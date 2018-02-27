@@ -152,7 +152,7 @@
         "uri": "async/async.dart"
       },
       "mirrors": {
-        "patches": "_internal/js_runtime/lib/mirrors_patch.dart",
+        "patches": "_internal/js_runtime/lib/mirrors_patch_cfe.dart",
         "uri": "mirrors/mirrors.dart"
       },
       "_interceptors": {

@@ -555,7 +555,8 @@ abstract class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
   void computeMembersNeededForReflection(
       ResolutionWorldBuilder worldBuilder, ClosedWorld closedWorld) {
     if (_membersNeededForReflection != null) return;
-    if (!closedWorld.backendUsage.isMirrorsUsed) {
+    if (!closedWorld.backendUsage.isMirrorsUsed ||
+        _compiler.options.useKernel) {
       createImmutableSets();
       return;
     }

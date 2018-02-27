@@ -1491,8 +1491,7 @@ const_constructor2_test/11: CompileTimeError
 const_constructor2_test/12: CompileTimeError
 const_constructor3_test/03: CompileTimeError
 const_dynamic_type_literal_test/02: MissingCompileTimeError
-const_evaluation_test/01: CompileTimeError
-const_evaluation_test/none: CompileTimeError
+const_evaluation_test/01: RuntimeError
 const_instance_field_test/01: MissingCompileTimeError
 const_list_test: RuntimeError
 const_map2_test/00: MissingCompileTimeError
@@ -1533,8 +1532,8 @@ cyclic_typedef_test/10: Crash # Stack Overflow
 cyclic_typedef_test/11: Crash # Stack Overflow
 default_factory2_test/01: MissingCompileTimeError
 default_factory_test/01: MissingCompileTimeError
-deferred_constraints_constants_test/none: CompileTimeError
-deferred_constraints_constants_test/reference_after_load: CompileTimeError
+deferred_constraints_constants_test/none: RuntimeError
+deferred_constraints_constants_test/reference_after_load: RuntimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
@@ -1550,7 +1549,7 @@ duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
 dynamic_prefix_core_test/none: CompileTimeError
 emit_const_fields_test: CompileTimeError
-enum_mirror_test: CompileTimeError
+enum_mirror_test: RuntimeError
 example_constructor_test: RuntimeError
 expect_test: RuntimeError
 external_test/10: MissingRuntimeError
@@ -1566,7 +1565,7 @@ factory4_test/00: MissingCompileTimeError
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
 field3_test/01: MissingCompileTimeError
-field_increment_bailout_test: CompileTimeError
+field_increment_bailout_test: RuntimeError
 field_initialization_order_test/01: MissingCompileTimeError
 field_initialization_order_test/none: RuntimeError
 field_override2_test: MissingCompileTimeError
@@ -1673,7 +1672,7 @@ inferrer_synthesized_constructor_test: RuntimeError
 infinity_test: RuntimeError
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
-instance_creation_in_function_annotation_test: CompileTimeError
+instance_creation_in_function_annotation_test: RuntimeError
 instantiate_tearoff_after_contravariance_check_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 instantiate_tearoff_of_call_test: CompileTimeError
 instantiate_tearoff_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
@@ -1689,11 +1688,11 @@ int64_literal_test/40: RuntimeError
 int64_literal_test/none: RuntimeError
 integer_division_by_zero_test: RuntimeError
 internal_library_test/02: Crash # type 'DillLibraryBuilder' is not a subtype of type 'SourceLibraryBuilder<KernelTypeBuilder, Library>' of 'value' where
-invocation_mirror2_test: CompileTimeError
-invocation_mirror_invoke_on2_test: CompileTimeError
-invocation_mirror_invoke_on_test: CompileTimeError
+invocation_mirror2_test: RuntimeError
+invocation_mirror_invoke_on2_test: RuntimeError
+invocation_mirror_invoke_on_test: RuntimeError
 issue18628_2_test/01: MissingCompileTimeError
-issue21079_test: CompileTimeError
+issue21079_test: RuntimeError
 issue23244_test: RuntimeError
 issue31596_override_test/07: MissingCompileTimeError
 issue31596_override_test/08: MissingCompileTimeError
@@ -1729,7 +1728,7 @@ malbounded_type_test_test/00: MissingCompileTimeError
 malbounded_type_test_test/01: MissingCompileTimeError
 malbounded_type_test_test/02: MissingCompileTimeError
 many_generic_instanceof_test: RuntimeError
-many_overridden_no_such_method_test: CompileTimeError
+many_overridden_no_such_method_test: RuntimeError
 map_literal11_test/none: MissingRuntimeError
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
@@ -1855,18 +1854,18 @@ nan_identical_test: RuntimeError
 nested_generic_closure_test: RuntimeError
 no_main_test/01: CompileTimeError
 no_such_method_mock_test: RuntimeError
-no_such_method_test: CompileTimeError
+no_such_method_test: RuntimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError
 null_no_such_method_test: CompileTimeError
-null_test/mirrors: CompileTimeError
-null_test/none: CompileTimeError
+null_test/mirrors: RuntimeError
+null_test/none: RuntimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError
 operator2_negative_test: Crash # 'file:*/pkg/compiler/lib/src/kernel/env.dart': Failed assertion: line 322 pos 16: '!name.contains('#')': is not true.
 operator4_test: RuntimeError
 operator_test: Crash # 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart': Failed assertion: line 441 pos 16: 'identical(combiner.arguments.positional[0], rhs)': is not true.
-overridden_no_such_method_test: CompileTimeError
+overridden_no_such_method_test: RuntimeError
 override_field_method1_negative_test: Fail
 override_field_method2_negative_test: Fail
 override_field_method4_negative_test: Fail
@@ -1935,10 +1934,9 @@ redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
-redirecting_factory_reflection_test: CompileTimeError
-regress_13462_0_test: CompileTimeError
-regress_13462_1_test: CompileTimeError
-regress_18535_test: CompileTimeError
+redirecting_factory_reflection_test: RuntimeError
+regress_13462_1_test: RuntimeError
+regress_18535_test: RuntimeError
 regress_23089_test: Crash # Stack Overflow
 regress_23408_test: CompileTimeError
 regress_23996_test: RuntimeError
@@ -1946,7 +1944,7 @@ regress_24283_test: RuntimeError
 regress_24935_test/none: RuntimeError
 regress_26175_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
-regress_28255_test: CompileTimeError
+regress_28255_test: RuntimeError
 regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError
 regress_29784_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ok).
@@ -2064,7 +2062,7 @@ vm/no_such_method_error_message_vm_test: RuntimeError
 vm/optimization_test: RuntimeError
 vm/optimized_guarded_field_isolates_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 vm/optimized_list_constructor_test: RuntimeError
-vm/reflect_core_vm_test: CompileTimeError
+vm/reflect_core_vm_test: RuntimeError
 vm/regress_22480_test: RuntimeError
 vm/regress_23238_test: RuntimeError
 vm/regress_27201_test: CompileTimeError
@@ -2230,8 +2228,7 @@ const_constructor2_test/11: CompileTimeError
 const_constructor2_test/12: CompileTimeError
 const_constructor3_test/03: CompileTimeError
 const_dynamic_type_literal_test/02: MissingCompileTimeError
-const_evaluation_test/01: CompileTimeError
-const_evaluation_test/none: CompileTimeError
+const_evaluation_test/01: RuntimeError
 const_instance_field_test/01: MissingCompileTimeError
 const_list_test: RuntimeError
 const_map2_test/00: MissingCompileTimeError
@@ -2272,8 +2269,8 @@ cyclic_typedef_test/10: Crash # Stack Overflow
 cyclic_typedef_test/11: Crash # Stack Overflow
 default_factory2_test/01: MissingCompileTimeError
 default_factory_test/01: MissingCompileTimeError
-deferred_constraints_constants_test/none: CompileTimeError
-deferred_constraints_constants_test/reference_after_load: CompileTimeError
+deferred_constraints_constants_test/none: RuntimeError
+deferred_constraints_constants_test/reference_after_load: RuntimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
@@ -2289,7 +2286,7 @@ duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
 dynamic_prefix_core_test/none: CompileTimeError
 emit_const_fields_test: CompileTimeError
-enum_mirror_test: CompileTimeError
+enum_mirror_test: RuntimeError
 example_constructor_test: RuntimeError
 expect_test: RuntimeError
 external_test/10: MissingRuntimeError
@@ -2306,7 +2303,7 @@ factory4_test/00: MissingCompileTimeError
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
 field3_test/01: MissingCompileTimeError
-field_increment_bailout_test: CompileTimeError
+field_increment_bailout_test: RuntimeError
 field_initialization_order_test/01: MissingCompileTimeError
 field_initialization_order_test/none: RuntimeError
 field_override2_test: MissingCompileTimeError
@@ -2410,7 +2407,7 @@ inferrer_synthesized_constructor_test: RuntimeError
 infinity_test: RuntimeError
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
-instance_creation_in_function_annotation_test: CompileTimeError
+instance_creation_in_function_annotation_test: RuntimeError
 instantiate_tearoff_of_call_test: CompileTimeError
 int64_literal_test/01: RuntimeError
 int64_literal_test/02: RuntimeError
@@ -2424,12 +2421,12 @@ int64_literal_test/40: RuntimeError
 int64_literal_test/none: RuntimeError
 integer_division_by_zero_test: RuntimeError
 internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' has no instance getter 'mixinApplicationClasses'.
-invocation_mirror2_test: CompileTimeError
-invocation_mirror_invoke_on2_test: CompileTimeError
-invocation_mirror_invoke_on_test: CompileTimeError
+invocation_mirror2_test: RuntimeError
+invocation_mirror_invoke_on2_test: RuntimeError
+invocation_mirror_invoke_on_test: RuntimeError
 invocation_mirror_test: RuntimeError
 issue18628_2_test/01: MissingCompileTimeError
-issue21079_test: CompileTimeError
+issue21079_test: RuntimeError
 issue23244_test: RuntimeError
 issue31596_override_test/07: MissingCompileTimeError
 issue31596_override_test/08: MissingCompileTimeError
@@ -2465,7 +2462,7 @@ malbounded_type_test_test/00: MissingCompileTimeError
 malbounded_type_test_test/01: MissingCompileTimeError
 malbounded_type_test_test/02: MissingCompileTimeError
 many_generic_instanceof_test: RuntimeError
-many_overridden_no_such_method_test: CompileTimeError
+many_overridden_no_such_method_test: RuntimeError
 map_literal11_test/none: MissingRuntimeError
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
@@ -2596,16 +2593,16 @@ nested_generic_closure_test: RuntimeError
 no_main_test/01: CompileTimeError
 no_such_method_mock_test: RuntimeError
 no_such_method_native_test: RuntimeError
-no_such_method_test: CompileTimeError
+no_such_method_test: RuntimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError
 null_no_such_method_test: CompileTimeError
-null_test/mirrors: CompileTimeError
-null_test/none: CompileTimeError
+null_test/mirrors: RuntimeError
+null_test/none: RuntimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError
 operator4_test: RuntimeError
-overridden_no_such_method_test: CompileTimeError
+overridden_no_such_method_test: RuntimeError
 override_field_method1_negative_test: Fail
 override_field_method2_negative_test: Fail
 override_field_method4_negative_test: Fail
@@ -2667,10 +2664,9 @@ redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
-redirecting_factory_reflection_test: CompileTimeError
-regress_13462_0_test: CompileTimeError
-regress_13462_1_test: CompileTimeError
-regress_18535_test: CompileTimeError
+redirecting_factory_reflection_test: RuntimeError
+regress_13462_1_test: RuntimeError
+regress_18535_test: RuntimeError
 regress_21795_test: RuntimeError
 regress_23089_test: Crash # Stack Overflow
 regress_23408_test: CompileTimeError
@@ -2679,7 +2675,7 @@ regress_24283_test: RuntimeError, OK # Requires 64 bit numbers.
 regress_24935_test/none: RuntimeError
 regress_26175_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
-regress_28255_test: CompileTimeError
+regress_28255_test: RuntimeError
 regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError
 regress_29784_test/01: Crash # Issue 29784
@@ -2775,7 +2771,7 @@ vm/no_such_method_error_message_vm_test: RuntimeError
 vm/optimization_test: RuntimeError
 vm/optimized_guarded_field_isolates_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 vm/optimized_list_constructor_test: RuntimeError
-vm/reflect_core_vm_test: CompileTimeError
+vm/reflect_core_vm_test: RuntimeError
 vm/regress_22480_test: RuntimeError
 vm/regress_23238_test: RuntimeError
 vm/regress_27201_test: CompileTimeError

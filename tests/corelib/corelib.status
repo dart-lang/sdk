@@ -177,7 +177,7 @@ string_base_vm_test: RuntimeError
 symbol_reserved_word_test/03: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-apply3_test: CompileTimeError
+apply3_test: RuntimeError
 big_integer_parsed_arith_vm_test: RuntimeError
 big_integer_parsed_div_rem_vm_test: RuntimeError
 big_integer_parsed_mul_div_vm_test: RuntimeError
@@ -194,7 +194,7 @@ string_base_vm_test: RuntimeError
 symbol_reserved_word_test/03: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-apply3_test: CompileTimeError
+apply3_test: RuntimeError
 big_integer_parsed_arith_vm_test: RuntimeError
 big_integer_parsed_div_rem_vm_test: RuntimeError
 big_integer_parsed_mul_div_vm_test: RuntimeError
