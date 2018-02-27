@@ -1070,15 +1070,16 @@ abstract class VMKernelCompilerMixin {
         ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal'
         : '${_configuration.buildDirectory}';
 
-    final vmPlatform = _isStrong
-        ? '$kernelBinariesFolder/vm_platform_strong.dill'
-        : '$kernelBinariesFolder/vm_platform.dill';
+    // Always use strong platform as preview_dart_2 implies strong.
+    final vmPlatform = '$kernelBinariesFolder/vm_platform_strong.dill';
 
     final dillFile = tempKernelFile(tempDir);
 
     final args = [
       _isAot ? '--aot' : '--no-aot',
-      _isStrong ? '--strong-mode' : '--no-strong-mode',
+      // Specify strong mode irrespective of the value of _isStrong
+      // as preview_dart_2 implies strong mode anyway.
+      '--strong-mode',
       _isStrong ? '--sync-async' : '--no-sync-async',
       '--platform=$vmPlatform',
       '-o',
@@ -1086,12 +1087,10 @@ abstract class VMKernelCompilerMixin {
     ];
     args.add(arguments.where((name) => name.endsWith('.dart')).single);
 
-    if (_isStrong) {
-      // Pass environment variable to the gen_kernel script as
-      // arguments are not passed if gen_kernel runs in batch mode.
-      environmentOverrides = new Map.from(environmentOverrides);
-      environmentOverrides['DART_VM_FLAGS'] = '--limit-ints-to-64-bits';
-    }
+    // Pass environment variable to the gen_kernel script as
+    // arguments are not passed if gen_kernel runs in batch mode.
+    environmentOverrides = new Map.from(environmentOverrides);
+    environmentOverrides['DART_VM_FLAGS'] = '--limit-ints-to-64-bits';
 
     return Command.vmKernelCompilation(dillFile, true, bootstrapDependencies(),
         genKernel, args, environmentOverrides);

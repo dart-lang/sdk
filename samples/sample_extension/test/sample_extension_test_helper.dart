@@ -33,7 +33,7 @@ Future copyFileToDirectory(String file, String directory) async {
   }
 }
 
-Future run(String program, List arguments) async {
+Future run(String program, List<String> arguments) async {
   print("+ $program ${arguments.join(' ')}");
   ProcessResult result = await Process.run(program, arguments);
   if (result.exitCode != 0) {

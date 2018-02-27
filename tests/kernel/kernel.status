@@ -9,11 +9,11 @@ unsorted/simple_literal_test/01: Skip # The test expects error for large integer
 unsorted/super_initializer_test: Skip
 unsorted/super_mixin_test: CompileTimeError
 
+[ $compiler != dartk ]
+unsorted/types_test: RuntimeError
+
 [ !$fasta ]
 unsorted/loop_test: Skip # This test uses optional new/const.
-
-[ !$strong ]
-unsorted/invocation_errors_test: RuntimeError
 
 [ $arch == simarm && $compiler == dartkp && $strong ]
 unsorted/invocation_errors_test: CompileTimeError
@@ -34,11 +34,8 @@ unsorted/super_mixin_test: CompileTimeError
 [ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
 
-[ $compiler == dartk && $strong ]
-unsorted/invocation_errors_test: CompileTimeError
-unsorted/nsm_dispatcher_test: CompileTimeError
-unsorted/super_mixin_test: CompileTimeError
-unsorted/types_test: RuntimeError
+[ $compiler != dartk && $compiler != dartkp ]
+unsorted/invocation_errors_test/00: MissingCompileTimeError # This test has been tuned for dart 2.
 
 [ $runtime == dart_precompiled && $minified ]
 unsorted/symbol_literal_test: Skip # Expects unobfuscated Symbol.toString.

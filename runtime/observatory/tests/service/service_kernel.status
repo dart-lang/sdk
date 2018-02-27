@@ -44,9 +44,6 @@ eval_test: Pass, Slow
 isolate_lifecycle_test: Skip # Flaky.
 pause_idle_isolate_test: Skip # Flaky
 
-[ $compiler == dartk && $mode == debug && $strong ]
-external_service_disappear_test: Crash # Issue 31587
-
 [ $compiler == dartk && $system == windows ]
 break_on_default_constructor_test: Skip # Issues 32137 and 32138.
 coverage_leaf_function_test: RuntimeError
@@ -108,12 +105,6 @@ step_through_constructor_test: Skip # Timeout
 
 [ $compiler == dartk && $strong ]
 awaiter_async_stack_contents_test: RuntimeError
-external_service_asynchronous_invocation_test: CompileTimeError # Issue 31696
-external_service_disappear_test: CompileTimeError # Issue 31696
-external_service_notification_invocation_test: CompileTimeError # Issue 31696
-external_service_registration_test: CompileTimeError # Issue 31696
-external_service_registration_via_notification_test: CompileTimeError # Issue 31696
-external_service_synchronous_invocation_test: CompileTimeError # Issue 31696
 step_through_arithmetic_test: RuntimeError
 
 [ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64) ]

@@ -296,8 +296,6 @@ cc/IsolateReload_LibraryImportRemoved: Fail # Issue 32190
 cc/IsolateReload_LibraryLookup: Crash # Issue 32190
 cc/Mixin_PrivateSuperResolutionCrossLibraryShouldFail: Fail, Crash # Issue 32190
 cc/StackMapGC: Crash # Issue 32190
-dart/optimized_stacktrace_line_and_column_test: CompileTimeError # Issue 31586
-dart/optimized_stacktrace_line_test: CompileTimeError # Issue 31586
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
@@ -306,12 +304,7 @@ dart/optimized_stacktrace_line_test: CompileTimeError # Issue 31586
 dart/data_uri_spawn_test: Skip # Please triage.
 dart/snapshot_version_test: RuntimeError # Please triage.
 
-[ $compiler == dartkp && $strong ]
-dart/optimized_stacktrace_line_and_column_test: CompileTimeError
-dart/optimized_stacktrace_line_test: CompileTimeError
-
 [ $compiler == dartkp && !$strong ]
-dart/optimized_stacktrace_line_and_column_test: RuntimeError, OK # AOT lacks column information
 dart/truncating_ints_test: Skip # This test cannot be run in dartkp/legacy mode (gen_kernel does not pass --limit-ints-to-64-bits in legacy mode).
 
 [ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
