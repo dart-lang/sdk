@@ -184,6 +184,10 @@ class KernelLineStartsReader {
   DISALLOW_COPY_AND_ASSIGN(KernelLineStartsReader);
 };
 
+RawFunction* CreateFieldInitializerFunction(Thread* thread,
+                                            Zone* zone,
+                                            const Field& field);
+
 ParsedFunction* ParseStaticFieldInitializer(Zone* zone, const Field& field);
 
 bool FieldHasFunctionLiteralInitializer(const Field& field,

@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*class: global#Map:checks=[]*/
-/*class: global#LinkedHashMap:*/
-/*class: global#JsLinkedHashMap:checks=[$isLinkedHashMap]*/
-/*class: global#double:checks=[]*/
-/*class: global#JSNumber:checks=[$isdouble,$isnum]*/
-/*class: global#JSDouble:checks=[]*/
+/*class: global#Map:checkedInstance,checks=[],instance*/
+/*class: global#LinkedHashMap:checkedInstance*/
+/*class: global#JsLinkedHashMap:checkedInstance,checks=[$isLinkedHashMap],instance*/
+/*class: global#double:checkedInstance,checks=[],instance,typeArgument*/
+/*class: global#JSNumber:checks=[$isdouble,$isnum],instance*/
+/*class: global#JSDouble:checks=[],instance*/
 
 main() {
   <int, double>{}[0] = 0.5;

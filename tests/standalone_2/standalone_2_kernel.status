@@ -36,12 +36,11 @@ io/socket_port_test: Pass, Crash
 
 # ===== dartk + vm status lines =====
 [ $compiler == dartk && $runtime == vm && $strong ]
-io/compile_all_test: Crash
 io/http_client_request_test: Pass, Timeout
 io/http_compression_test: RuntimeError
 io/platform_resolved_executable_test/03: Pass, RuntimeError
 io/platform_resolved_executable_test/04: Pass, RuntimeError
-io/secure_builtin_roots_test: Timeout
+io/secure_builtin_roots_test: Pass, Timeout
 io/socket_finalizer_test: Pass, Timeout
 no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
 regress_29350_test: MissingCompileTimeError
@@ -93,7 +92,7 @@ io/socket_port_test: Pass, Crash
 # ===== dartkp + dart_precompiled status lines =====
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 dwarf_stack_trace_test: RuntimeError
-io/compile_all_test: Crash
+io/compile_all_test: RuntimeError # Issue 32338
 io/file_fuzz_test: RuntimeError, Pass
 io/http_client_connect_test: Skip # Flaky.
 io/http_close_test: Crash

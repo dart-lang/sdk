@@ -6,11 +6,11 @@ library fasta.kernel_library_builder;
 
 import 'dart:convert' show JSON;
 
-import 'package:front_end/src/fasta/export.dart';
-import 'package:front_end/src/fasta/import.dart';
 import 'package:kernel/ast.dart';
 
 import '../../scanner/token.dart' show Token;
+
+import '../export.dart' show Export;
 
 import '../fasta_codes.dart'
     show
@@ -24,7 +24,6 @@ import '../fasta_codes.dart'
         templateDuplicatedImport,
         templateDuplicatedImportInType,
         templateExportHidesExport,
-        templateIllegalMethodName,
         templateImportHidesImport,
         templateLoadLibraryHidesMember,
         templateLocalDefinitionHidesExport,
@@ -32,10 +31,14 @@ import '../fasta_codes.dart'
         templatePatchInjectionFailed,
         templateTypeVariableDuplicatedNameCause;
 
+import '../import.dart' show Import;
+
 import '../loader.dart' show Loader;
 
 import '../modifier.dart'
     show abstractMask, namedMixinApplicationMask, staticMask;
+
+import '../parser.dart' show noLength;
 
 import '../problems.dart' show unhandled;
 
@@ -75,7 +78,6 @@ import 'kernel_builder.dart'
         NamedTypeBuilder,
         PrefixBuilder,
         ProcedureBuilder,
-        QualifiedName,
         Scope,
         TypeBuilder,
         TypeVariableBuilder,
@@ -203,9 +205,10 @@ class KernelLibraryBuilder
         if (tv != null) {
           cls.addCompileTimeError(
               templateConflictsWithTypeVariable.withArguments(name),
-              member.charOffset);
-          cls.addCompileTimeError(
-              messageConflictsWithTypeVariableCause, tv.charOffset);
+              member.charOffset,
+              name.length,
+              context: messageConflictsWithTypeVariableCause.withLocation(
+                  tv.fileUri, tv.charOffset, name.length));
         }
       }
       setParent(name, member);
@@ -227,20 +230,20 @@ class KernelLibraryBuilder
     for (TypeVariableBuilder tv in typeVariables) {
       TypeVariableBuilder existing = typeVariablesByName[tv.name];
       if (existing != null) {
-        addCompileTimeError(
-            messageTypeVariableDuplicatedName, tv.charOffset, fileUri);
-        addCompileTimeError(
-            templateTypeVariableDuplicatedNameCause.withArguments(tv.name),
-            existing.charOffset,
-            fileUri);
+        addCompileTimeError(messageTypeVariableDuplicatedName, tv.charOffset,
+            tv.name.length, fileUri,
+            context: templateTypeVariableDuplicatedNameCause
+                .withArguments(tv.name)
+                .withLocation(
+                    fileUri, existing.charOffset, existing.name.length));
       } else {
         typeVariablesByName[tv.name] = tv;
         if (owner is ClassBuilder) {
           // Only classes and type variables can't have the same name. See
           // [#29555](https://github.com/dart-lang/sdk/issues/29555).
           if (tv.name == owner.name) {
-            addCompileTimeError(
-                messageTypeVariableSameNameAsEnclosing, tv.charOffset, fileUri);
+            addCompileTimeError(messageTypeVariableSameNameAsEnclosing,
+                tv.charOffset, tv.name.length, fileUri);
           }
         }
       }
@@ -554,29 +557,40 @@ class KernelLibraryBuilder
         ?.setDocumentationComment(builder.target, documentationComment);
   }
 
-  String computeAndValidateConstructorName(Object name, int charOffset) {
-    String className = currentDeclaration.name;
-    String prefix;
-    String suffix;
-    if (name is QualifiedName) {
-      prefix = name.prefix;
-      suffix = name.suffix;
-    } else {
-      prefix = name;
-      suffix = null;
-    }
-    if (prefix == className) {
-      return suffix ?? "";
-    }
-    if (suffix == null) {
-      // A legal name for a regular method, but not for a constructor.
-      return null;
-    }
-    addCompileTimeError(
-        templateIllegalMethodName.withArguments("$name", "$className.$suffix"),
+  void addConstructor(
+      String documentationComment,
+      List<MetadataBuilder> metadata,
+      int modifiers,
+      KernelTypeBuilder returnType,
+      final Object name,
+      String constructorName,
+      List<TypeVariableBuilder> typeVariables,
+      List<FormalParameterBuilder> formals,
+      int charOffset,
+      int charOpenParenOffset,
+      int charEndOffset,
+      String nativeMethodName) {
+    MetadataCollector metadataCollector = loader.target.metadataCollector;
+    ProcedureBuilder procedure = new KernelConstructorBuilder(
+        metadata,
+        modifiers & ~abstractMask,
+        returnType,
+        constructorName,
+        typeVariables,
+        formals,
+        this,
         charOffset,
-        fileUri);
-    return suffix;
+        charOpenParenOffset,
+        charEndOffset,
+        nativeMethodName);
+    metadataCollector?.setDocumentationComment(
+        procedure.target, documentationComment);
+    metadataCollector?.setConstructorNameOffset(procedure.target, name);
+    checkTypeVariables(typeVariables, procedure);
+    addBuilder(constructorName, procedure, charOffset);
+    if (nativeMethodName != null) {
+      addNativeMethod(procedure);
+    }
   }
 
   void addProcedure(
@@ -584,7 +598,7 @@ class KernelLibraryBuilder
       List<MetadataBuilder> metadata,
       int modifiers,
       KernelTypeBuilder returnType,
-      final Object name,
+      String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       ProcedureKind kind,
@@ -593,55 +607,24 @@ class KernelLibraryBuilder
       int charEndOffset,
       String nativeMethodName,
       {bool isTopLevel}) {
-    // Nested declaration began in `OutlineBuilder.beginMethod` or
-    // `OutlineBuilder.beginTopLevelMethod`.
-    endNestedDeclaration("#method").resolveTypes(typeVariables, this);
-    String procedureName;
-    ProcedureBuilder procedure;
     MetadataCollector metadataCollector = loader.target.metadataCollector;
-    String constructorName = isTopLevel ||
-            kind == ProcedureKind.Getter ||
-            kind == ProcedureKind.Setter
-        ? null
-        : computeAndValidateConstructorName(name, charOffset);
-    if (constructorName != null) {
-      procedureName = constructorName;
-      procedure = new KernelConstructorBuilder(
-          metadata,
-          modifiers & ~abstractMask,
-          returnType,
-          constructorName,
-          typeVariables,
-          formals,
-          this,
-          charOffset,
-          charOpenParenOffset,
-          charEndOffset,
-          nativeMethodName);
-      metadataCollector?.setDocumentationComment(
-          procedure.target, documentationComment);
-      metadataCollector?.setConstructorNameOffset(procedure.target, name);
-    } else {
-      assert(name is String);
-      procedureName = name;
-      procedure = new KernelProcedureBuilder(
-          metadata,
-          modifiers,
-          returnType,
-          name,
-          typeVariables,
-          formals,
-          kind,
-          this,
-          charOffset,
-          charOpenParenOffset,
-          charEndOffset,
-          nativeMethodName);
-      metadataCollector?.setDocumentationComment(
-          procedure.target, documentationComment);
-    }
+    ProcedureBuilder procedure = new KernelProcedureBuilder(
+        metadata,
+        modifiers,
+        returnType,
+        name,
+        typeVariables,
+        formals,
+        kind,
+        this,
+        charOffset,
+        charOpenParenOffset,
+        charEndOffset,
+        nativeMethodName);
+    metadataCollector?.setDocumentationComment(
+        procedure.target, documentationComment);
     checkTypeVariables(typeVariables, procedure);
-    addBuilder(procedureName, procedure, charOffset);
+    addBuilder(name, procedure, charOffset);
     if (nativeMethodName != null) {
       addNativeMethod(procedure);
     }
@@ -981,16 +964,16 @@ class KernelLibraryBuilder
         var template = isExport
             ? templateLocalDefinitionHidesExport
             : templateLocalDefinitionHidesImport;
-        addProblem(
-            template.withArguments(name, hiddenUri), charOffset, fileUri);
+        addProblem(template.withArguments(name, hiddenUri), charOffset,
+            noLength, fileUri);
       } else if (isLoadLibrary) {
         addProblem(templateLoadLibraryHidesMember.withArguments(preferredUri),
-            charOffset, fileUri);
+            charOffset, noLength, fileUri);
       } else {
         var template =
             isExport ? templateExportHidesExport : templateImportHidesImport;
         addProblem(template.withArguments(name, preferredUri, hiddenUri),
-            charOffset, fileUri);
+            charOffset, noLength, fileUri);
       }
       return preferred;
     }
@@ -1009,7 +992,7 @@ class KernelLibraryBuilder
     var template =
         isExport ? templateDuplicatedExport : templateDuplicatedImport;
     Message message = template.withArguments(name, uri, otherUri);
-    addProblem(message, charOffset, fileUri);
+    addProblem(message, charOffset, noLength, fileUri);
     var builderTemplate = isExport
         ? templateDuplicatedExportInType
         : templateDuplicatedImportInType;
@@ -1183,7 +1166,7 @@ class KernelLibraryBuilder
   void exportMemberFromPatch(String name, Builder member) {
     if (uri.scheme != "dart" || !uri.path.startsWith("_")) {
       addCompileTimeError(templatePatchInjectionFailed.withArguments(name, uri),
-          member.charOffset, member.fileUri);
+          member.charOffset, noLength, member.fileUri);
     }
     // Platform-private libraries, such as "dart:_internal" have special
     // semantics: public members are injected into the origin library.

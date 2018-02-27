@@ -503,7 +503,7 @@ class A {
   foo(bar) => 0;''');
     addTestFile('''
   library libA;
-  part "/testA.dart";
+  part "${convertPathForImport('/testA.dart')}";
   import "dart:math";
   /// The [^]
   main(aaa, bbb) {}
@@ -529,7 +529,7 @@ class A {
   test_inherited() {
     newFile('/libA.dart', content: 'class A {m() {}}');
     addTestFile('''
-import '/libA.dart';
+import ${convertPathForImport('/libA.dart')};
 class B extends A {
   x() {^}
 }

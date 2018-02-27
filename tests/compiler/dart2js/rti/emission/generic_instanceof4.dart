@@ -4,7 +4,7 @@
 
 import 'package:meta/dart2js.dart';
 
-/*class: A:checks=[]*/
+/*class: A:checks=[],instance*/
 class A<T> {
   @noInline
   foo(x) {
@@ -12,10 +12,10 @@ class A<T> {
   }
 }
 
-/*class: BB:checks=[]*/
+/*class: BB:checkedInstance,checks=[],typeArgument*/
 class BB {}
 
-/*class: B:checks=[$isBB]*/
+/*class: B:checks=[$isBB],instance*/
 class B<T> implements BB {
   @noInline
   foo() {

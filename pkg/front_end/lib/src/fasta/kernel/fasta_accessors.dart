@@ -22,13 +22,16 @@ import '../messages.dart' show Message;
 
 import '../names.dart' show callName, lengthName;
 
+import '../parser.dart'
+    show lengthForToken, lengthOfSpan, noLength, offsetForToken;
+
 import '../problems.dart' show unhandled, unimplemented, unsupported;
 
 import '../scope.dart' show AccessErrorBuilder, ProblemBuilder, Scope;
 
 import '../type_inference/type_promotion.dart' show TypePromoter;
 
-import 'body_builder.dart' show Identifier;
+import 'body_builder.dart' show Identifier, noLocation;
 
 import 'forest.dart' show Forest;
 
@@ -55,6 +58,7 @@ import 'kernel_ast_api.dart';
 import 'kernel_builder.dart'
     show
         Builder,
+        BuiltinTypeBuilder,
         FunctionTypeAliasBuilder,
         KernelClassBuilder,
         KernelFunctionTypeAliasBuilder,
@@ -67,11 +71,9 @@ import 'kernel_builder.dart'
         TypeDeclarationBuilder,
         KernelTypeBuilder;
 
-import 'utils.dart' show offsetForToken;
-
 import 'type_algorithms.dart' show calculateBoundsForDeclaration;
 
-abstract class BuilderHelper {
+abstract class BuilderHelper<Arguments> {
   LibraryBuilder get library;
 
   Uri get uri;
@@ -82,7 +84,7 @@ abstract class BuilderHelper {
 
   bool get constantExpressionRequired;
 
-  Forest<Expression, Statement> get forest;
+  Forest<Expression, Statement, Token, Arguments> get forest;
 
   Constructor lookupConstructor(Name name, {bool isSuper});
 
@@ -95,7 +97,7 @@ abstract class BuilderHelper {
 
   finishSend(Object receiver, Arguments arguments, int offset);
 
-  Expression buildCompileTimeError(Message message, int charOffset);
+  Expression buildCompileTimeError(Message message, int charOffset, int length);
 
   Expression wrapInCompileTimeError(Expression expression, Message message);
 
@@ -117,7 +119,8 @@ abstract class BuilderHelper {
   Expression buildStaticInvocation(Procedure target, Arguments arguments,
       {bool isConst, int charOffset, Member initialTarget});
 
-  Expression buildProblemExpression(ProblemBuilder builder, int offset);
+  Expression buildProblemExpression(
+      ProblemBuilder builder, int offset, int length);
 
   Expression throwNoSuchMethodError(
       Expression receiver, String name, Arguments arguments, int offset,
@@ -161,7 +164,7 @@ abstract class BuilderHelper {
   DartType validatedTypeVariableUse(
       TypeParameterType type, int offset, bool nonInstanceAccessIsError);
 
-  void addProblem(Message message, int charOffset);
+  void addProblem(Message message, int charOffset, int length);
 
   void addProblemErrorIfConst(Message message, int charOffset, int length);
 
@@ -172,6 +175,8 @@ abstract class BuilderHelper {
   Message warnUnresolvedMethod(Name name, int charOffset, {bool isSuper});
 
   void warnTypeArgumentsMismatch(String name, int expected, int charOffset);
+
+  T storeOffset<T>(T node, int offset);
 }
 
 // The name used to refer to a call target kind
@@ -203,8 +208,10 @@ class FunctionTypeAccessor {
       this.positionalParameterCount, this._namedParameters);
 }
 
-abstract class FastaAccessor implements Accessor {
+abstract class FastaAccessor<Arguments> implements Accessor<Arguments> {
   BuilderHelper get helper;
+
+  Forest<Expression, Statement, Token, Arguments> get forest => helper.forest;
 
   String get plainNameForRead;
 
@@ -214,26 +221,29 @@ abstract class FastaAccessor implements Accessor {
 
   bool get isInitializer => false;
 
+  T storeOffset<T>(T node, int offset) {
+    return helper.storeOffset(node, offset);
+  }
+
   Expression buildForEffect() => buildSimpleRead();
 
   Initializer buildFieldInitializer(Map<String, int> initializedFields) {
     int offset = offsetForToken(token);
     return helper.buildInvalidInitializer(
-        helper.buildCompileTimeError(messageInvalidInitializer, offset),
+        helper.buildCompileTimeError(
+            messageInvalidInitializer, offset, lengthForToken(token)),
         offset);
   }
 
   Expression makeInvalidRead() {
     return buildThrowNoSuchMethodError(
-        new NullLiteral()..fileOffset = offsetForToken(token),
-        new Arguments.empty(),
+        forest.literalNull(token), forest.argumentsEmpty(noLocation),
         isGetter: true);
   }
 
   Expression makeInvalidWrite(Expression value) {
-    return buildThrowNoSuchMethodError(
-        new NullLiteral()..fileOffset = offsetForToken(token),
-        new ShadowArguments(<Expression>[value]),
+    return buildThrowNoSuchMethodError(forest.literalNull(token),
+        forest.arguments(<Expression>[value], noLocation),
         isSetter: true);
   }
 
@@ -258,8 +268,8 @@ abstract class FastaAccessor implements Accessor {
 
   DartType buildTypeWithBuiltArguments(List<DartType> arguments,
       {bool nonInstanceAccessIsError: false}) {
-    helper.addProblem(
-        templateNotAType.withArguments(token.lexeme), token.charOffset);
+    helper.addProblem(templateNotAType.withArguments(token.lexeme),
+        offsetForToken(token), lengthForToken(token));
     return const InvalidType();
   }
 
@@ -288,7 +298,7 @@ abstract class FastaAccessor implements Accessor {
       new ShadowIllegalAssignment(rhs);
 }
 
-abstract class ErrorAccessor implements FastaAccessor {
+abstract class ErrorAccessor<Arguments> implements FastaAccessor<Arguments> {
   /// Pass [arguments] that must be evaluated before throwing an error.  At
   /// most one of [isGetter] and [isSetter] should be true and they're passed
   /// to [BuilderHelper.buildThrowNoSuchMethodError] if it is used.
@@ -307,7 +317,7 @@ abstract class ErrorAccessor implements FastaAccessor {
   @override
   Initializer buildFieldInitializer(Map<String, int> initializedFields) {
     return helper.buildInvalidInitializer(
-        buildError(new Arguments.empty(), isSetter: true));
+        buildError(forest.argumentsEmpty(noLocation), isSetter: true));
   }
 
   @override
@@ -335,7 +345,8 @@ abstract class ErrorAccessor implements FastaAccessor {
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return buildError(new ShadowArguments(<Expression>[value]), isSetter: true);
+    return buildError(forest.arguments(<Expression>[value], noLocation),
+        isSetter: true);
   }
 
   @override
@@ -344,7 +355,8 @@ abstract class ErrorAccessor implements FastaAccessor {
       bool voidContext: false,
       Procedure interfaceTarget,
       bool isPreIncDec: false}) {
-    return buildError(new ShadowArguments(<Expression>[value]), isGetter: true);
+    return buildError(forest.arguments(<Expression>[value], token),
+        isGetter: true);
   }
 
   @override
@@ -355,7 +367,9 @@ abstract class ErrorAccessor implements FastaAccessor {
     // TODO(ahe): For the Analyzer, we probably need to build a prefix
     // increment node that wraps an error.
     return buildError(
-        new ShadowArguments(<Expression>[helper.forest.literalInt(1, offset)]),
+        forest.arguments(
+            <Expression>[storeOffset(forest.literalInt(1, null), offset)],
+            noLocation),
         isGetter: true);
   }
 
@@ -367,7 +381,9 @@ abstract class ErrorAccessor implements FastaAccessor {
     // TODO(ahe): For the Analyzer, we probably need to build a post increment
     // node that wraps an error.
     return buildError(
-        new ShadowArguments(<Expression>[helper.forest.literalInt(1, offset)]),
+        forest.arguments(
+            <Expression>[storeOffset(forest.literalInt(1, null), offset)],
+            noLocation),
         isGetter: true);
   }
 
@@ -375,24 +391,26 @@ abstract class ErrorAccessor implements FastaAccessor {
   Expression buildNullAwareAssignment(
       Expression value, DartType type, int offset,
       {bool voidContext: false}) {
-    return buildError(new ShadowArguments(<Expression>[value]), isSetter: true);
+    return buildError(forest.arguments(<Expression>[value], noLocation),
+        isSetter: true);
   }
 
   @override
   Expression buildSimpleRead() =>
-      buildError(new Arguments.empty(), isGetter: true);
+      buildError(forest.argumentsEmpty(noLocation), isGetter: true);
 
   @override
   Expression makeInvalidRead() =>
-      buildError(new Arguments.empty(), isGetter: true);
+      buildError(forest.argumentsEmpty(noLocation), isGetter: true);
 
   @override
   Expression makeInvalidWrite(Expression value) {
-    return buildError(new ShadowArguments(<Expression>[value]), isSetter: true);
+    return buildError(forest.arguments(<Expression>[value], noLocation),
+        isSetter: true);
   }
 }
 
-class ThisAccessor extends FastaAccessor {
+class ThisAccessor<Arguments> extends FastaAccessor<Arguments> {
   final BuilderHelper helper;
 
   final Token token;
@@ -413,8 +431,8 @@ class ThisAccessor extends FastaAccessor {
     if (!isSuper) {
       return new ShadowThisExpression();
     } else {
-      return helper.buildCompileTimeError(
-          messageSuperAsExpression, offsetForToken(token));
+      return helper.buildCompileTimeError(messageSuperAsExpression,
+          offsetForToken(token), lengthForToken(token));
     }
   }
 
@@ -468,7 +486,8 @@ class ThisAccessor extends FastaAccessor {
     if (isInitializer) {
       return buildConstructorInitializer(offset, new Name(""), arguments);
     } else if (isSuper) {
-      return helper.buildCompileTimeError(messageSuperAsExpression, offset);
+      return helper.buildCompileTimeError(
+          messageSuperAsExpression, offset, noLength);
     } else {
       return helper.buildMethodInvocation(
           new ShadowThisExpression(), callName, arguments, offset,
@@ -490,7 +509,7 @@ class ThisAccessor extends FastaAccessor {
     if (constructor == null || argMessage != null) {
       return helper.buildInvalidInitializer(
           buildThrowNoSuchMethodError(
-              new NullLiteral()..fileOffset = offset, arguments,
+              storeOffset(forest.literalNull(null), offset), arguments,
               isSuper: isSuper,
               name: name.name,
               offset: offset,
@@ -549,7 +568,7 @@ class ThisAccessor extends FastaAccessor {
   }
 }
 
-abstract class IncompleteSend extends FastaAccessor {
+abstract class IncompleteSend<Arguments> extends FastaAccessor<Arguments> {
   final BuilderHelper helper;
 
   @override
@@ -564,7 +583,8 @@ abstract class IncompleteSend extends FastaAccessor {
   Arguments get arguments => null;
 }
 
-class IncompleteError extends IncompleteSend with ErrorAccessor {
+class IncompleteError<Arguments> extends IncompleteSend<Arguments>
+    with ErrorAccessor<Arguments> {
   final Message message;
 
   IncompleteError(BuilderHelper helper, Token token, this.message)
@@ -573,8 +593,12 @@ class IncompleteError extends IncompleteSend with ErrorAccessor {
   @override
   Expression buildError(Arguments arguments,
       {bool isGetter: false, bool isSetter: false, int offset}) {
-    return helper.buildCompileTimeError(
-        message, offset ?? offsetForToken(this.token));
+    int length = noLength;
+    if (offset == null) {
+      offset = offsetForToken(token);
+      length = lengthForToken(token);
+    }
+    return helper.buildCompileTimeError(message, offset, length);
   }
 
   @override
@@ -582,7 +606,8 @@ class IncompleteError extends IncompleteSend with ErrorAccessor {
     helper.addProblem(
         templateNotAPrefixInTypeAnnotation.withArguments(
             token.lexeme, suffix.name),
-        offsetForToken(token));
+        offsetForToken(token),
+        lengthOfSpan(token, suffix.token));
     return const InvalidType();
   }
 
@@ -590,7 +615,7 @@ class IncompleteError extends IncompleteSend with ErrorAccessor {
   doInvocation(int offset, Arguments arguments) => this;
 }
 
-class SendAccessor extends IncompleteSend {
+class SendAccessor<Arguments> extends IncompleteSend<Arguments> {
   @override
   final Arguments arguments;
 
@@ -667,7 +692,7 @@ class SendAccessor extends IncompleteSend {
   }
 }
 
-class IncompletePropertyAccessor extends IncompleteSend {
+class IncompletePropertyAccessor<Arguments> extends IncompleteSend<Arguments> {
   IncompletePropertyAccessor(BuilderHelper helper, Token token, Name name)
       : super(helper, token, name);
 
@@ -738,7 +763,8 @@ class IncompletePropertyAccessor extends IncompleteSend {
   }
 }
 
-class IndexAccessor extends kernel.IndexAccessor with FastaAccessor {
+class IndexAccessor<Arguments> extends kernel.IndexAccessor<Arguments>
+    with FastaAccessor<Arguments> {
   final BuilderHelper helper;
 
   IndexAccessor.internal(this.helper, Token token, Expression receiver,
@@ -751,7 +777,7 @@ class IndexAccessor extends kernel.IndexAccessor with FastaAccessor {
 
   Expression doInvocation(int offset, Arguments arguments) {
     return helper.buildMethodInvocation(
-        buildSimpleRead(), callName, arguments, arguments.fileOffset,
+        buildSimpleRead(), callName, arguments, forest.readOffset(arguments),
         isImplicitCall: true);
   }
 
@@ -777,7 +803,8 @@ class IndexAccessor extends kernel.IndexAccessor with FastaAccessor {
       new ShadowIndexAssign(receiver, index, rhs);
 }
 
-class PropertyAccessor extends kernel.PropertyAccessor with FastaAccessor {
+class PropertyAccessor<Arguments> extends kernel.PropertyAccessor<Arguments>
+    with FastaAccessor<Arguments> {
   final BuilderHelper helper;
 
   PropertyAccessor.internal(this.helper, Token token, Expression receiver,
@@ -818,7 +845,8 @@ class PropertyAccessor extends kernel.PropertyAccessor with FastaAccessor {
       new ShadowPropertyAssign(receiver, rhs);
 }
 
-class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
+class StaticAccessor<Arguments> extends kernel.StaticAccessor<Arguments>
+    with FastaAccessor<Arguments> {
   StaticAccessor(
       BuilderHelper helper, Token token, Member readTarget, Member writeTarget)
       : super(helper, readTarget, writeTarget, token) {
@@ -874,8 +902,8 @@ class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
       new ShadowStaticAssignment(rhs);
 }
 
-class LoadLibraryAccessor extends kernel.LoadLibraryAccessor
-    with FastaAccessor {
+class LoadLibraryAccessor<Arguments> extends kernel
+    .LoadLibraryAccessor<Arguments> with FastaAccessor<Arguments> {
   LoadLibraryAccessor(
       BuilderHelper helper, Token token, LoadLibraryBuilder builder)
       : super(helper, token, builder);
@@ -883,7 +911,8 @@ class LoadLibraryAccessor extends kernel.LoadLibraryAccessor
   String get plainNameForRead => 'loadLibrary';
 
   Expression doInvocation(int offset, Arguments arguments) {
-    if (arguments.positional.length > 0 || arguments.named.length > 0) {
+    if (forest.argumentsPositional(arguments).length > 0 ||
+        forest.argumentsNamed(arguments).length > 0) {
       helper.addProblemErrorIfConst(
           messageLoadLibraryTakesNoArguments, offset, 'loadLibrary'.length);
     }
@@ -891,7 +920,8 @@ class LoadLibraryAccessor extends kernel.LoadLibraryAccessor
   }
 }
 
-class DeferredAccessor extends kernel.DeferredAccessor with FastaAccessor {
+class DeferredAccessor<Arguments> extends kernel.DeferredAccessor<Arguments>
+    with FastaAccessor<Arguments> {
   DeferredAccessor(BuilderHelper helper, Token token, PrefixBuilder builder,
       FastaAccessor expression)
       : super(helper, token, builder, expression);
@@ -923,7 +953,8 @@ class DeferredAccessor extends kernel.DeferredAccessor with FastaAccessor {
             accessor.buildTypeWithBuiltArguments(arguments,
                 nonInstanceAccessIsError: nonInstanceAccessIsError),
             builder.name),
-        token.charOffset);
+        offsetForToken(token),
+        lengthForToken(token));
     return const InvalidType();
   }
 
@@ -933,8 +964,8 @@ class DeferredAccessor extends kernel.DeferredAccessor with FastaAccessor {
   }
 }
 
-class SuperPropertyAccessor extends kernel.SuperPropertyAccessor
-    with FastaAccessor {
+class SuperPropertyAccessor<Arguments> extends kernel
+    .SuperPropertyAccessor<Arguments> with FastaAccessor<Arguments> {
   SuperPropertyAccessor(BuilderHelper helper, Token token, Name name,
       Member getter, Member setter)
       : super(helper, name, getter, setter, token);
@@ -967,7 +998,8 @@ class SuperPropertyAccessor extends kernel.SuperPropertyAccessor
       new ShadowPropertyAssign(null, rhs, isSuper: true);
 }
 
-class ThisIndexAccessor extends kernel.ThisIndexAccessor with FastaAccessor {
+class ThisIndexAccessor<Arguments> extends kernel.ThisIndexAccessor<Arguments>
+    with FastaAccessor<Arguments> {
   ThisIndexAccessor(BuilderHelper helper, Token token, Expression index,
       Procedure getter, Procedure setter)
       : super(helper, index, getter, setter, token);
@@ -989,7 +1021,8 @@ class ThisIndexAccessor extends kernel.ThisIndexAccessor with FastaAccessor {
       new ShadowIndexAssign(null, index, rhs);
 }
 
-class SuperIndexAccessor extends kernel.SuperIndexAccessor with FastaAccessor {
+class SuperIndexAccessor<Arguments> extends kernel.SuperIndexAccessor<Arguments>
+    with FastaAccessor<Arguments> {
   SuperIndexAccessor(BuilderHelper helper, Token token, Expression index,
       Member getter, Member setter)
       : super(helper, index, getter, setter, token);
@@ -1011,8 +1044,8 @@ class SuperIndexAccessor extends kernel.SuperIndexAccessor with FastaAccessor {
       new ShadowIndexAssign(null, index, rhs, isSuper: true);
 }
 
-class ThisPropertyAccessor extends kernel.ThisPropertyAccessor
-    with FastaAccessor {
+class ThisPropertyAccessor<Arguments> extends kernel
+    .ThisPropertyAccessor<Arguments> with FastaAccessor<Arguments> {
   final BuilderHelper helper;
 
   ThisPropertyAccessor(
@@ -1045,8 +1078,8 @@ class ThisPropertyAccessor extends kernel.ThisPropertyAccessor
       new ShadowPropertyAssign(null, rhs);
 }
 
-class NullAwarePropertyAccessor extends kernel.NullAwarePropertyAccessor
-    with FastaAccessor {
+class NullAwarePropertyAccessor<Arguments> extends kernel
+    .NullAwarePropertyAccessor<Arguments> with FastaAccessor<Arguments> {
   final BuilderHelper helper;
 
   NullAwarePropertyAccessor(this.helper, Token token, Expression receiver,
@@ -1072,7 +1105,8 @@ int adjustForImplicitCall(String name, int offset) {
   return offset + (name?.length ?? 0);
 }
 
-class VariableAccessor extends kernel.VariableAccessor with FastaAccessor {
+class VariableAccessor<Arguments> extends kernel.VariableAccessor<Arguments>
+    with FastaAccessor<Arguments> {
   VariableAccessor(
       BuilderHelper helper, Token token, VariableDeclaration variable,
       [DartType promotedType])
@@ -1093,7 +1127,8 @@ class VariableAccessor extends kernel.VariableAccessor with FastaAccessor {
       new ShadowVariableAssignment(rhs);
 }
 
-class ReadOnlyAccessor extends kernel.ReadOnlyAccessor with FastaAccessor {
+class ReadOnlyAccessor<Arguments> extends kernel.ReadOnlyAccessor<Arguments>
+    with FastaAccessor<Arguments> {
   final String plainNameForRead;
 
   ReadOnlyAccessor(BuilderHelper helper, Expression expression,
@@ -1107,20 +1142,24 @@ class ReadOnlyAccessor extends kernel.ReadOnlyAccessor with FastaAccessor {
   }
 }
 
-class LargeIntAccessor extends kernel.DelayedErrorAccessor with FastaAccessor {
+class LargeIntAccessor<Arguments> extends kernel.DelayedErrorAccessor<Arguments>
+    with FastaAccessor<Arguments> {
   final String plainNameForRead = null;
 
   LargeIntAccessor(BuilderHelper helper, Token token) : super(helper, token);
 
   @override
-  Expression buildError() => helper.buildCompileTimeError(
-      templateIntegerLiteralIsOutOfRange.withArguments(token),
-      token.charOffset);
+  Expression buildError() {
+    return helper.buildCompileTimeError(
+        templateIntegerLiteralIsOutOfRange.withArguments(token),
+        offsetForToken(token),
+        lengthForToken(token));
+  }
 
   Expression doInvocation(int offset, Arguments arguments) => buildError();
 }
 
-class ParenthesizedExpression extends ReadOnlyAccessor {
+class ParenthesizedExpression<Arguments> extends ReadOnlyAccessor<Arguments> {
   ParenthesizedExpression(
       BuilderHelper helper, Expression expression, Token token)
       : super(helper, expression, null, token);
@@ -1131,7 +1170,7 @@ class ParenthesizedExpression extends ReadOnlyAccessor {
   }
 }
 
-class TypeDeclarationAccessor extends ReadOnlyAccessor {
+class TypeDeclarationAccessor<Arguments> extends ReadOnlyAccessor<Arguments> {
   /// The import prefix preceding the [declaration] reference, or `null` if
   /// the reference is not prefixed.
   final PrefixBuilder prefix;
@@ -1158,14 +1197,13 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
         KernelInvalidTypeBuilder declaration = this.declaration;
         helper.addProblemErrorIfConst(
             declaration.message.messageObject, offset, token.length);
-        super.expression = new Throw(
-            new StringLiteral(declaration.message.message)
-              ..fileOffset = offsetForToken(token))
-          ..fileOffset = offset;
+        super.expression =
+            new Throw(forest.literalString(declaration.message.message, token))
+              ..fileOffset = offset;
       } else {
-        super.expression = new ShadowTypeLiteral(
-            buildTypeWithBuiltArguments(null, nonInstanceAccessIsError: true))
-          ..fileOffset = offsetForToken(token);
+        super.expression = forest.literalType(
+            buildTypeWithBuiltArguments(null, nonInstanceAccessIsError: true),
+            token);
       }
     }
     return super.expression;
@@ -1173,8 +1211,9 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
 
   Expression makeInvalidWrite(Expression value) {
     return buildThrowNoSuchMethodError(
-        new NullLiteral()..fileOffset = offsetForToken(token),
-        new Arguments(<Expression>[value])..fileOffset = value.fileOffset,
+        forest.literalNull(token),
+        storeOffset(
+            forest.arguments(<Expression>[value], null), value.fileOffset),
         isSetter: true);
   }
 
@@ -1242,6 +1281,9 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
         expected = declaration.target.typeParameters.length;
       } else if (declaration is KernelTypeVariableBuilder) {
         // Type arguments on a type variable - error reported elsewhere.
+      } else if (declaration is BuiltinTypeBuilder) {
+        // Type arguments on a built-in type, for example, dynamic or void.
+        expected = 0;
       } else {
         return unhandled(
             "${declaration.runtimeType}",
@@ -1335,7 +1377,8 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
   }
 }
 
-class UnresolvedAccessor extends FastaAccessor with ErrorAccessor {
+class UnresolvedAccessor<Arguments> extends FastaAccessor<Arguments>
+    with ErrorAccessor<Arguments> {
   @override
   final Token token;
 
@@ -1356,7 +1399,8 @@ class UnresolvedAccessor extends FastaAccessor with ErrorAccessor {
     helper.addProblem(
         templateUnresolvedPrefixInTypeAnnotation.withArguments(
             name.name, suffix.name),
-        offsetForToken(token));
+        offsetForToken(token),
+        lengthOfSpan(token, suffix.token));
     return const InvalidType();
   }
 
@@ -1364,9 +1408,13 @@ class UnresolvedAccessor extends FastaAccessor with ErrorAccessor {
   Expression buildError(Arguments arguments,
       {bool isGetter: false, bool isSetter: false, int offset}) {
     offset ??= offsetForToken(this.token);
-    return helper.throwNoSuchMethodError(new NullLiteral()..fileOffset = offset,
-        plainNameForRead, arguments, offset,
-        isGetter: isGetter, isSetter: isSetter);
+    return helper.throwNoSuchMethodError(
+        storeOffset(forest.literalNull(null), offset),
+        plainNameForRead,
+        arguments,
+        offset,
+        isGetter: isGetter,
+        isSetter: isSetter);
   }
 }
 

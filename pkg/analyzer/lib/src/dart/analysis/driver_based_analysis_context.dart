@@ -44,14 +44,16 @@ class DriverBasedAnalysisContext implements AnalysisContext {
   @override
   Iterable<String> analyzedFiles() sync* {
     for (String path in includedPaths) {
-      Resource resource = resourceProvider.getResource(path);
-      if (resource is File) {
-        yield path;
-      } else if (resource is Folder) {
-        yield* _includedFilesInFolder(resource);
-      } else {
-        Type type = resource.runtimeType;
-        throw new StateError('Unknown resource at path "$path" ($type)');
+      if (!_isExcluded(path)) {
+        Resource resource = resourceProvider.getResource(path);
+        if (resource is File) {
+          yield path;
+        } else if (resource is Folder) {
+          yield* _includedFilesInFolder(resource);
+        } else {
+          Type type = resource.runtimeType;
+          throw new StateError('Unknown resource at path "$path" ($type)');
+        }
       }
     }
   }
@@ -67,14 +69,16 @@ class DriverBasedAnalysisContext implements AnalysisContext {
    */
   Iterable<String> _includedFilesInFolder(Folder folder) sync* {
     for (Resource resource in folder.getChildren()) {
-      if (resource is File) {
-        yield resource.path;
-      } else if (resource is Folder) {
-        yield* _includedFilesInFolder(resource);
-      } else {
-        String path = resource.path;
-        Type type = resource.runtimeType;
-        throw new StateError('Unknown resource at path "$path" ($type)');
+      String path = resource.path;
+      if (!_isExcluded(path)) {
+        if (resource is File) {
+          yield path;
+        } else if (resource is Folder) {
+          yield* _includedFilesInFolder(resource);
+        } else {
+          Type type = resource.runtimeType;
+          throw new StateError('Unknown resource at path "$path" ($type)');
+        }
       }
     }
   }
@@ -85,6 +89,11 @@ class DriverBasedAnalysisContext implements AnalysisContext {
    */
   bool _isExcluded(String path) {
     Context context = resourceProvider.pathContext;
+    String name = context.basename(path);
+    if (name.startsWith('.') ||
+        (name == 'packages' && resourceProvider.getResource(path) is Folder)) {
+      return true;
+    }
     for (String excludedPath in excludedPaths) {
       if (context.isAbsolute(excludedPath)) {
         if (context.isWithin(excludedPath, path)) {

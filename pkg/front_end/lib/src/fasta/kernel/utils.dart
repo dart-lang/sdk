@@ -2,19 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-import 'dart:io';
+import 'dart:async' show Future;
 
-import 'package:front_end/src/scanner/token.dart' show Token;
-import 'package:kernel/ast.dart';
-import 'package:kernel/binary/ast_to_binary.dart';
-import 'package:kernel/binary/limited_ast_to_binary.dart';
-import 'package:kernel/text/ast_to_text.dart';
+import 'dart:io' show BytesBuilder, File, IOSink;
 
-/// A null-aware alternative to `token.offset`.  If [token] is `null`, returns
-/// `TreeNode.noOffset`.
-int offsetForToken(Token token) =>
-    token == null ? TreeNode.noOffset : token.offset;
+import 'package:kernel/ast.dart' show Library, Program;
+
+import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
+
+import 'package:kernel/binary/limited_ast_to_binary.dart'
+    show LimitedBinaryPrinter;
+
+import 'package:kernel/text/ast_to_text.dart' show Printer;
 
 /// Print the given [program].  Do nothing if it is `null`.  If the
 /// [libraryFilter] is provided, then only libraries that satisfy it are

@@ -119,6 +119,16 @@ var tests = <IsolateTest>[
     expect(coverage['ranges'].length, greaterThan(1));
     expect(coverage['scripts'].length, greaterThan(1));
 
+    // Full isolate
+    params = {
+      'reports': ['Coverage'],
+      'forceCompile': true
+    };
+    coverage = await isolate.invokeRpcNoUpgrade('getSourceReport', params);
+    expect(coverage['type'], equals('SourceReport'));
+    expect(coverage['ranges'].length, greaterThan(1));
+    expect(coverage['scripts'].length, greaterThan(1));
+
     // Multiple reports (make sure enum list parameter parsing works).
     params = {
       'reports': ['_CallSites', 'Coverage', 'PossibleBreakpoints'],

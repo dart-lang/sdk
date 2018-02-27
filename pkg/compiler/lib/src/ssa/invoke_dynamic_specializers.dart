@@ -87,6 +87,7 @@ class InvokeDynamicSpecializer {
       if (selector.namedArguments.length == 0) {
         int argumentCount = selector.argumentCount;
         if (argumentCount == 0) {
+          if (name == 'abs') return const AbsSpecializer();
           if (name == 'round') return const RoundSpecializer();
           if (name == 'trim') return const TrimSpecializer();
         } else if (argumentCount == 1) {
@@ -227,6 +228,45 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
     HInstruction input = instruction.inputs[1];
     if (input.isNumber(closedWorld)) {
       return new HNegate(input, instruction.selector, input.instructionType);
+    }
+    return null;
+  }
+}
+
+class AbsSpecializer extends InvokeDynamicSpecializer {
+  const AbsSpecializer();
+
+  UnaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.abs;
+  }
+
+  TypeMask computeTypeFromInputTypes(
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      ClosedWorld closedWorld) {
+    HInstruction input = instruction.inputs[1];
+    if (input.isNumberOrNull(closedWorld)) {
+      return input.instructionType.nonNullable();
+    }
+    return super
+        .computeTypeFromInputTypes(instruction, results, options, closedWorld);
+  }
+
+  HInstruction tryConvertToBuiltin(
+      HInvokeDynamic instruction,
+      HGraph graph,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      CommonElements commonElements,
+      ClosedWorld closedWorld) {
+    HInstruction input = instruction.inputs[1];
+    if (input.isNumber(closedWorld)) {
+      return new HAbs(
+          input,
+          instruction.selector,
+          computeTypeFromInputTypes(
+              instruction, results, options, closedWorld));
     }
     return null;
   }

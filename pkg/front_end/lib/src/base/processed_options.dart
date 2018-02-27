@@ -2,37 +2,75 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
-import 'package:front_end/src/api_prototype/compilation_message.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:front_end/src/api_prototype/file_system.dart';
-import 'package:front_end/src/base/performance_logger.dart';
-import 'package:front_end/src/fasta/fasta_codes.dart';
-import 'package:front_end/src/fasta/problems.dart' show unimplemented;
-import 'package:front_end/src/fasta/severity.dart';
-import 'package:front_end/src/fasta/ticker.dart';
-import 'package:front_end/src/fasta/uri_translator.dart';
-import 'package:front_end/src/fasta/uri_translator_impl.dart';
-import 'package:kernel/kernel.dart' show CanonicalName, Location, Program;
-import 'package:kernel/target/targets.dart';
-import 'package:kernel/target/vm.dart';
-import 'package:package_config/packages.dart' show Packages;
-import 'package:package_config/src/packages_impl.dart'
-    show NonFilePackagesDirectoryPackages, MapPackages;
-import 'package:package_config/packages_file.dart' as package_config;
-import 'package:source_span/source_span.dart' show SourceSpan, SourceLocation;
-import 'package:front_end/src/fasta/command_line_reporting.dart'
-    as command_line_reporting;
+import 'dart:async' show Future;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
-import '../fasta/messages.dart' show getLocation;
+import 'package:kernel/kernel.dart' show CanonicalName, Location, Program;
+
+import 'package:kernel/target/targets.dart' show Target, TargetFlags;
+
+import 'package:kernel/target/vm.dart' show VmTarget;
+
+import 'package:package_config/packages.dart' show Packages;
+
+import 'package:package_config/packages_file.dart' as package_config;
+
+import 'package:package_config/src/packages_impl.dart'
+    show NonFilePackagesDirectoryPackages, MapPackages;
+
+import 'package:source_span/source_span.dart' show SourceSpan, SourceLocation;
+
+import '../api_prototype/byte_store.dart' show ByteStore;
+
+import '../api_prototype/compilation_message.dart' show CompilationMessage;
+
+import '../api_prototype/compiler_options.dart' show CompilerOptions;
+
+import '../api_prototype/file_system.dart'
+    show FileSystem, FileSystemEntity, FileSystemException;
+
+import '../base/performance_logger.dart' show PerformanceLog;
+
+import '../fasta/command_line_reporting.dart' as command_line_reporting;
 
 import '../fasta/deprecated_problems.dart' show deprecated_InputError;
 
-import 'libraries_specification.dart';
+import '../fasta/fasta_codes.dart'
+    show
+        LocatedMessage,
+        Message,
+        messageCantInferPackagesFromManyInputs,
+        messageCantInferPackagesFromPackageUri,
+        messageInternalProblemProvidedBothCompileSdkAndSdkSummary,
+        messageMissingInput,
+        templateCannotReadPackagesFile,
+        templateCannotReadSdkSpecification,
+        templateInputFileNotFound,
+        templateInternalProblemUnsupported,
+        templateSdkRootNotFound,
+        templateSdkSpecificationNotFound,
+        templateSdkSummaryNotFound;
+
+import '../fasta/messages.dart' show getLocation;
+
+import '../fasta/parser.dart' show noLength;
+
+import '../fasta/problems.dart' show unimplemented;
+
+import '../fasta/severity.dart' show Severity;
+
+import '../fasta/ticker.dart' show Ticker;
+
+import '../fasta/uri_translator.dart' show UriTranslator;
+
+import '../fasta/uri_translator_impl.dart' show UriTranslatorImpl;
+
+import 'libraries_specification.dart'
+    show
+        LibrariesSpecification,
+        LibrariesSpecificationException,
+        TargetLibrariesSpecification;
 
 /// All options needed for the front end implementation.
 ///
@@ -198,7 +236,7 @@ class ProcessedOptions {
   void reportWithoutLocation(Message message, Severity severity) {
     if (_raw.onProblem != null) {
       _raw.onProblem(
-          message.withLocation(null, -1),
+          message.withLocation(null, -1, noLength),
           severity,
           command_line_reporting.formatWithoutLocation(message, severity),
           -1,
@@ -214,8 +252,8 @@ class ProcessedOptions {
       return;
     }
     if (_raw.onError != null) {
-      _raw.onError(
-          new _CompilationMessage(message.withLocation(null, -1), severity));
+      _raw.onError(new _CompilationMessage(
+          message.withLocation(null, -1, noLength), severity));
     }
 
     if (_reportMessages) {
@@ -422,7 +460,9 @@ class ProcessedOptions {
     if (input.scheme == 'dart') return _packages = Packages.noPackages;
 
     if (input.scheme == 'packages') {
-      report(messageCantInferPackagesFromPackageUri.withLocation(input, -1),
+      report(
+          messageCantInferPackagesFromPackageUri.withLocation(
+              input, -1, noLength),
           Severity.error);
       return _packages = Packages.noPackages;
     }
@@ -440,7 +480,7 @@ class ProcessedOptions {
       report(
           templateCannotReadPackagesFile
               .withArguments("$e")
-              .withLocation(file, -1),
+              .withLocation(file, -1, noLength),
           Severity.error);
       return Packages.noPackages;
     }

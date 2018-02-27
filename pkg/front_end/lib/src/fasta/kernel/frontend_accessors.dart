@@ -11,6 +11,8 @@ import '../../scanner/token.dart' show Token;
 
 import '../names.dart' show equalsName, indexGetName, indexSetName;
 
+import '../parser.dart' show offsetForToken;
+
 import '../problems.dart' show unhandled;
 
 import 'fasta_accessors.dart' show BuilderHelper;
@@ -33,8 +35,6 @@ import 'kernel_shadow_ast.dart'
         ShadowVariableDeclaration,
         ShadowVariableGet;
 
-import 'utils.dart' show offsetForToken;
-
 /// An [Accessor] represents a subexpression for which we can't yet build a
 /// kernel [Expression] because we don't yet know the context in which it is
 /// used.
@@ -47,7 +47,7 @@ import 'utils.dart' show offsetForToken;
 /// generate an invocation of `operator[]` or `operator[]=`, so we generate an
 /// [Accessor] object.  Later, after `= b` is parsed, [buildAssignment] will be
 /// called.
-abstract class Accessor {
+abstract class Accessor<Arguments> {
   final BuilderHelper helper;
   final Token token;
 
@@ -198,7 +198,7 @@ abstract class Accessor {
       new ShadowIllegalAssignment(rhs);
 }
 
-abstract class VariableAccessor extends Accessor {
+abstract class VariableAccessor<Arguments> extends Accessor<Arguments> {
   VariableDeclaration variable;
   DartType promotedType;
 
@@ -228,7 +228,7 @@ abstract class VariableAccessor extends Accessor {
   }
 }
 
-class PropertyAccessor extends Accessor {
+class PropertyAccessor<Arguments> extends Accessor<Arguments> {
   VariableDeclaration _receiverVariable;
   Expression receiver;
   Name name;
@@ -289,7 +289,7 @@ class PropertyAccessor extends Accessor {
 
 /// Special case of [PropertyAccessor] to avoid creating an indirect access to
 /// 'this'.
-class ThisPropertyAccessor extends Accessor {
+class ThisPropertyAccessor<Arguments> extends Accessor<Arguments> {
   Name name;
   Member getter, setter;
 
@@ -319,7 +319,7 @@ class ThisPropertyAccessor extends Accessor {
   }
 }
 
-class NullAwarePropertyAccessor extends Accessor {
+class NullAwarePropertyAccessor<Arguments> extends Accessor<Arguments> {
   VariableDeclaration receiver;
   Expression receiverExpression;
   Name name;
@@ -367,7 +367,7 @@ class NullAwarePropertyAccessor extends Accessor {
   }
 }
 
-class SuperPropertyAccessor extends Accessor {
+class SuperPropertyAccessor<Arguments> extends Accessor<Arguments> {
   Name name;
   Member getter, setter;
 
@@ -399,7 +399,7 @@ class SuperPropertyAccessor extends Accessor {
   }
 }
 
-class IndexAccessor extends Accessor {
+class IndexAccessor<Arguments> extends Accessor<Arguments> {
   Expression receiver;
   Expression index;
   VariableDeclaration receiverVariable;
@@ -504,7 +504,7 @@ class IndexAccessor extends Accessor {
 
 /// Special case of [IndexAccessor] to avoid creating an indirect access to
 /// 'this'.
-class ThisIndexAccessor extends Accessor {
+class ThisIndexAccessor<Arguments> extends Accessor<Arguments> {
   Expression index;
   VariableDeclaration indexVariable;
   Procedure getter, setter;
@@ -578,7 +578,7 @@ class ThisIndexAccessor extends Accessor {
   }
 }
 
-class SuperIndexAccessor extends Accessor {
+class SuperIndexAccessor<Arguments> extends Accessor<Arguments> {
   Expression index;
   VariableDeclaration indexVariable;
   Member getter, setter;
@@ -668,7 +668,7 @@ class SuperIndexAccessor extends Accessor {
   }
 }
 
-class StaticAccessor extends Accessor {
+class StaticAccessor<Arguments> extends Accessor<Arguments> {
   Member readTarget;
   Member writeTarget;
 
@@ -700,7 +700,7 @@ class StaticAccessor extends Accessor {
   }
 }
 
-abstract class LoadLibraryAccessor extends Accessor {
+abstract class LoadLibraryAccessor<Arguments> extends Accessor<Arguments> {
   final LoadLibraryBuilder builder;
 
   LoadLibraryAccessor(BuilderHelper helper, Token token, this.builder)
@@ -720,7 +720,7 @@ abstract class LoadLibraryAccessor extends Accessor {
   }
 }
 
-abstract class DeferredAccessor extends Accessor {
+abstract class DeferredAccessor<Arguments> extends Accessor<Arguments> {
   final PrefixBuilder builder;
   final Accessor accessor;
 
@@ -747,7 +747,7 @@ abstract class DeferredAccessor extends Accessor {
   }
 }
 
-class ReadOnlyAccessor extends Accessor {
+class ReadOnlyAccessor<Arguments> extends Accessor<Arguments> {
   Expression expression;
   VariableDeclaration value;
 
@@ -773,7 +773,7 @@ class ReadOnlyAccessor extends Accessor {
       super._finish(makeLet(value, body), complexAssignment);
 }
 
-abstract class DelayedErrorAccessor extends Accessor {
+abstract class DelayedErrorAccessor<Arguments> extends Accessor<Arguments> {
   DelayedErrorAccessor(BuilderHelper helper, Token token)
       : super(helper, token);
 

@@ -8,6 +8,6 @@ import 'package:meta/dart2js.dart';
 test(o) => o is Function;
 
 main() {
-  test(/*checks=[]*/ () {});
+  test(/*checks=[],instance*/ () {});
   test(null);
 }

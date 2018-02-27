@@ -14,6 +14,8 @@ import 'messages.dart'
         templateInternalProblemUnimplemented,
         templateInternalProblemUnsupported;
 
+import 'parser.dart' show noLength;
+
 import 'severity.dart' show Severity;
 
 /// Used to report an internal error.
@@ -26,8 +28,9 @@ import 'severity.dart' show Severity;
 ///
 /// Before printing the message, the string `"Internal error: "` is prepended.
 dynamic internalProblem(Message message, int charOffset, Uri uri) {
-  throw CompilerContext.current
-      .format(message.withLocation(uri, charOffset), Severity.internalProblem);
+  throw CompilerContext.current.format(
+      message.withLocation(uri, charOffset, noLength),
+      Severity.internalProblem);
 }
 
 dynamic unimplemented(String what, int charOffset, Uri uri) {

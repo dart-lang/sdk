@@ -21,6 +21,7 @@ import 'utils.dart';
 import '../devirtualization.dart' show Devirtualization;
 import '../../metadata/direct_call.dart';
 import '../../metadata/inferred_type.dart';
+import '../../metadata/unreachable.dart';
 
 const bool kDumpAllSummaries =
     const bool.fromEnvironment('global.type.flow.dump.all.summaries');
@@ -29,12 +30,12 @@ const bool kDumpClassHierarchy =
 
 /// Whole-program type flow analysis and transformation.
 /// Assumes strong mode and closed world.
-Program transformProgram(CoreTypes coreTypes, Program program,
-    // TODO(alexmarkov): Pass entry points descriptors from command line.
-    {List<String> entryPointsJSONFiles: const [
-      'pkg/vm/lib/transformations/type_flow/entry_points.json',
-      'pkg/vm/lib/transformations/type_flow/entry_points_extra.json',
-    ]}) {
+Program transformProgram(
+    CoreTypes coreTypes, Program program, List<String> entryPoints) {
+  if ((entryPoints == null) || entryPoints.isEmpty) {
+    throw 'Error: unable to perform global type flow analysis without entry points.';
+  }
+
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
   final hierarchy = new ClassHierarchy(program,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
@@ -51,7 +52,7 @@ Program transformProgram(CoreTypes coreTypes, Program program,
   final analysisStopWatch = new Stopwatch()..start();
 
   final typeFlowAnalysis = new TypeFlowAnalysis(hierarchy, types, libraryIndex,
-      entryPointsJSONFiles: entryPointsJSONFiles);
+      entryPointsJSONFiles: entryPoints);
 
   Procedure main = program.mainMethod;
   final Selector mainSelector = new DirectSelector(main);
@@ -70,8 +71,7 @@ Program transformProgram(CoreTypes coreTypes, Program program,
 
   new TFADevirtualization(program, typeFlowAnalysis).visitProgram(program);
 
-  new AnnotateWithInferredTypes(program, typeFlowAnalysis)
-      .visitProgram(program);
+  new AnnotateKernel(program, typeFlowAnalysis).visitProgram(program);
 
   transformsStopWatch.stop();
 
@@ -132,14 +132,17 @@ class DropMethodBodiesVisitor extends RecursiveVisitor<Null> {
   }
 }
 
-/// Annotates kernel AST with types inferred by type flow analysis.
-class AnnotateWithInferredTypes extends RecursiveVisitor<Null> {
+/// Annotates kernel AST with metadata using results of type flow analysis.
+class AnnotateKernel extends RecursiveVisitor<Null> {
   final TypeFlowAnalysis _typeFlowAnalysis;
-  final InferredTypeMetadataRepository _metadata;
+  final InferredTypeMetadataRepository _inferredTypeMetadata;
+  final UnreachableNodeMetadataRepository _unreachableNodeMetadata;
 
-  AnnotateWithInferredTypes(Program program, this._typeFlowAnalysis)
-      : _metadata = new InferredTypeMetadataRepository() {
-    program.addMetadataRepository(_metadata);
+  AnnotateKernel(Program program, this._typeFlowAnalysis)
+      : _inferredTypeMetadata = new InferredTypeMetadataRepository(),
+        _unreachableNodeMetadata = new UnreachableNodeMetadataRepository() {
+    program.addMetadataRepository(_inferredTypeMetadata);
+    program.addMetadataRepository(_unreachableNodeMetadata);
   }
 
   InferredType _convertType(Type type) {
@@ -171,14 +174,24 @@ class AnnotateWithInferredTypes extends RecursiveVisitor<Null> {
   void _setInferredType(TreeNode node, Type type) {
     final inferredType = _convertType(type);
     if (inferredType != null) {
-      _metadata.mapping[node] = inferredType;
+      _inferredTypeMetadata.mapping[node] = inferredType;
     }
+  }
+
+  void _setUnreachable(TreeNode node) {
+    _unreachableNodeMetadata.mapping[node] = const UnreachableNode();
   }
 
   void _annotateCallSite(TreeNode node) {
     final callSite = _typeFlowAnalysis.callSite(node);
-    if ((callSite != null) && callSite.isResultUsed && callSite.isReachable) {
-      _setInferredType(node, callSite.resultType);
+    if (callSite != null) {
+      if (callSite.isReachable) {
+        if (callSite.isResultUsed) {
+          _setInferredType(node, callSite.resultType);
+        }
+      } else {
+        _setUnreachable(node);
+      }
     }
   }
 
@@ -204,6 +217,8 @@ class AnnotateWithInferredTypes extends RecursiveVisitor<Null> {
         // TODO(alexmarkov): figure out how to pass receiver type.
         // TODO(alexmarkov): support named parameters
       }
+    } else if (!member.isAbstract) {
+      _setUnreachable(member);
     }
   }
 

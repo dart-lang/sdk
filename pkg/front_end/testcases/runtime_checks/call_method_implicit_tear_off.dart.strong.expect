@@ -9,5 +9,5 @@ class C extends core::Object {
   method call() → void {}
 }
 static method main() → dynamic {
-  () → void x = new self::C::•().{self::C::call};
+  () → void x = let final self::C #t1 = new self::C::•() in #t1.==(null) ?{() → void} null : #t1.{self::C::call};
 }

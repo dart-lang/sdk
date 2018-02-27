@@ -281,11 +281,19 @@ intptr_t ObjectPoolWrapper::FindImmediate(uword imm) {
                     kNotPatchable);
 }
 
-intptr_t ObjectPoolWrapper::FindNativeEntry(const ExternalLabel* label,
-                                            Patchability patchable) {
+intptr_t ObjectPoolWrapper::FindNativeFunction(const ExternalLabel* label,
+                                               Patchability patchable) {
   return FindObject(
-      ObjectPoolWrapperEntry(label->address(), ObjectPool::kNativeEntry),
+      ObjectPoolWrapperEntry(label->address(), ObjectPool::kNativeFunction),
       patchable);
+}
+
+intptr_t ObjectPoolWrapper::FindNativeFunctionWrapper(
+    const ExternalLabel* label,
+    Patchability patchable) {
+  return FindObject(ObjectPoolWrapperEntry(label->address(),
+                                           ObjectPool::kNativeFunctionWrapper),
+                    patchable);
 }
 
 RawObjectPool* ObjectPoolWrapper::MakeObjectPool() {

@@ -977,7 +977,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       }
       // Check that the type is resolvable, and is not "void"
       DartType returnTypeType = returnType.type;
-      if (returnTypeType == null || returnTypeType.isVoid) {
+      if (returnTypeType == null ||
+          returnTypeType.isVoid ||
+          (body.isAsynchronous && _isFutureVoid(returnTypeType))) {
         return;
       }
       // For async, give no hint if the return type does not matter, i.e.
@@ -1230,6 +1232,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     return element == typeElement ||
         element.allSupertypes
             .any((InterfaceType t) => t.element == typeElement);
+  }
+
+  /**
+   * Return `true` if the given [type] represents `Future<void>`.
+   */
+  bool _isFutureVoid(DartType type) {
+    if (type.isDartAsyncFuture) {
+      List<DartType> typeArgs = (type as InterfaceType).typeArguments;
+      if (typeArgs.length == 1 && typeArgs[0].isVoid) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

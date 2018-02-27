@@ -8733,7 +8733,10 @@ class EditSortMembersResult implements ResponseResult {
  *   "offset": int
  *   "line": int
  *   "column": int
+ *   "codeOffset": int
+ *   "codeLength": int
  *   "className": optional String
+ *   "parameters": optional String
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -8751,7 +8754,13 @@ class ElementDeclaration implements HasToJson {
 
   int _column;
 
+  int _codeOffset;
+
+  int _codeLength;
+
   String _className;
+
+  String _parameters;
 
   /**
    * The name of the declaration.
@@ -8832,6 +8841,32 @@ class ElementDeclaration implements HasToJson {
   }
 
   /**
+   * The offset of the first character of the declaration code in the file.
+   */
+  int get codeOffset => _codeOffset;
+
+  /**
+   * The offset of the first character of the declaration code in the file.
+   */
+  void set codeOffset(int value) {
+    assert(value != null);
+    this._codeOffset = value;
+  }
+
+  /**
+   * The length of the declaration code in the file.
+   */
+  int get codeLength => _codeLength;
+
+  /**
+   * The length of the declaration code in the file.
+   */
+  void set codeLength(int value) {
+    assert(value != null);
+    this._codeLength = value;
+  }
+
+  /**
    * The name of the class enclosing this declaration. If the declaration is
    * not a class member, this field will be absent.
    */
@@ -8845,16 +8880,41 @@ class ElementDeclaration implements HasToJson {
     this._className = value;
   }
 
+  /**
+   * The parameter list for the element. If the element is not a method or
+   * function this field will not be defined. If the element doesn't have
+   * parameters (e.g. getter), this field will not be defined. If the element
+   * has zero parameters, this field will have a value of "()". The value
+   * should not be treated as exact presentation of parameters, it is just
+   * approximation of parameters to give the user general idea.
+   */
+  String get parameters => _parameters;
+
+  /**
+   * The parameter list for the element. If the element is not a method or
+   * function this field will not be defined. If the element doesn't have
+   * parameters (e.g. getter), this field will not be defined. If the element
+   * has zero parameters, this field will have a value of "()". The value
+   * should not be treated as exact presentation of parameters, it is just
+   * approximation of parameters to give the user general idea.
+   */
+  void set parameters(String value) {
+    this._parameters = value;
+  }
+
   ElementDeclaration(String name, ElementKind kind, int fileIndex, int offset,
-      int line, int column,
-      {String className}) {
+      int line, int column, int codeOffset, int codeLength,
+      {String className, String parameters}) {
     this.name = name;
     this.kind = kind;
     this.fileIndex = fileIndex;
     this.offset = offset;
     this.line = line;
     this.column = column;
+    this.codeOffset = codeOffset;
+    this.codeLength = codeLength;
     this.className = className;
+    this.parameters = parameters;
   }
 
   factory ElementDeclaration.fromJson(
@@ -8901,13 +8961,33 @@ class ElementDeclaration implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "column");
       }
+      int codeOffset;
+      if (json.containsKey("codeOffset")) {
+        codeOffset =
+            jsonDecoder.decodeInt(jsonPath + ".codeOffset", json["codeOffset"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "codeOffset");
+      }
+      int codeLength;
+      if (json.containsKey("codeLength")) {
+        codeLength =
+            jsonDecoder.decodeInt(jsonPath + ".codeLength", json["codeLength"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "codeLength");
+      }
       String className;
       if (json.containsKey("className")) {
         className = jsonDecoder.decodeString(
             jsonPath + ".className", json["className"]);
       }
-      return new ElementDeclaration(name, kind, fileIndex, offset, line, column,
-          className: className);
+      String parameters;
+      if (json.containsKey("parameters")) {
+        parameters = jsonDecoder.decodeString(
+            jsonPath + ".parameters", json["parameters"]);
+      }
+      return new ElementDeclaration(
+          name, kind, fileIndex, offset, line, column, codeOffset, codeLength,
+          className: className, parameters: parameters);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ElementDeclaration", json);
     }
@@ -8922,8 +9002,13 @@ class ElementDeclaration implements HasToJson {
     result["offset"] = offset;
     result["line"] = line;
     result["column"] = column;
+    result["codeOffset"] = codeOffset;
+    result["codeLength"] = codeLength;
     if (className != null) {
       result["className"] = className;
+    }
+    if (parameters != null) {
+      result["parameters"] = parameters;
     }
     return result;
   }
@@ -8940,7 +9025,10 @@ class ElementDeclaration implements HasToJson {
           offset == other.offset &&
           line == other.line &&
           column == other.column &&
-          className == other.className;
+          codeOffset == other.codeOffset &&
+          codeLength == other.codeLength &&
+          className == other.className &&
+          parameters == other.parameters;
     }
     return false;
   }
@@ -8954,7 +9042,10 @@ class ElementDeclaration implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, offset.hashCode);
     hash = JenkinsSmiHash.combine(hash, line.hashCode);
     hash = JenkinsSmiHash.combine(hash, column.hashCode);
+    hash = JenkinsSmiHash.combine(hash, codeOffset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, codeLength.hashCode);
     hash = JenkinsSmiHash.combine(hash, className.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -15301,28 +15392,114 @@ class SearchFindTopLevelDeclarationsResult implements ResponseResult {
 /**
  * search.getElementDeclarations params
  *
+ * {
+ *   "pattern": optional String
+ *   "maxResults": optional int
+ * }
+ *
  * Clients may not extend, implement or mix-in this class.
  */
 class SearchGetElementDeclarationsParams implements RequestParams {
+  String _pattern;
+
+  int _maxResults;
+
+  /**
+   * The regular expression used to match the names of declarations. If this
+   * field is missing, return all declarations.
+   */
+  String get pattern => _pattern;
+
+  /**
+   * The regular expression used to match the names of declarations. If this
+   * field is missing, return all declarations.
+   */
+  void set pattern(String value) {
+    this._pattern = value;
+  }
+
+  /**
+   * The maximum number of declarations to return. If this field is missing,
+   * return all matching declarations.
+   */
+  int get maxResults => _maxResults;
+
+  /**
+   * The maximum number of declarations to return. If this field is missing,
+   * return all matching declarations.
+   */
+  void set maxResults(int value) {
+    this._maxResults = value;
+  }
+
+  SearchGetElementDeclarationsParams({String pattern, int maxResults}) {
+    this.pattern = pattern;
+    this.maxResults = maxResults;
+  }
+
+  factory SearchGetElementDeclarationsParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String pattern;
+      if (json.containsKey("pattern")) {
+        pattern =
+            jsonDecoder.decodeString(jsonPath + ".pattern", json["pattern"]);
+      }
+      int maxResults;
+      if (json.containsKey("maxResults")) {
+        maxResults =
+            jsonDecoder.decodeInt(jsonPath + ".maxResults", json["maxResults"]);
+      }
+      return new SearchGetElementDeclarationsParams(
+          pattern: pattern, maxResults: maxResults);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "search.getElementDeclarations params", json);
+    }
+  }
+
+  factory SearchGetElementDeclarationsParams.fromRequest(Request request) {
+    return new SearchGetElementDeclarationsParams.fromJson(
+        new RequestDecoder(request), "params", request.params);
+  }
+
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    if (pattern != null) {
+      result["pattern"] = pattern;
+    }
+    if (maxResults != null) {
+      result["maxResults"] = maxResults;
+    }
+    return result;
+  }
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "search.getElementDeclarations", null);
+    return new Request(id, "search.getElementDeclarations", toJson());
   }
+
+  @override
+  String toString() => JSON.encode(toJson());
 
   @override
   bool operator ==(other) {
     if (other is SearchGetElementDeclarationsParams) {
-      return true;
+      return pattern == other.pattern && maxResults == other.maxResults;
     }
     return false;
   }
 
   @override
   int get hashCode {
-    return 653510116;
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, pattern.hashCode);
+    hash = JenkinsSmiHash.combine(hash, maxResults.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 

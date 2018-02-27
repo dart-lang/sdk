@@ -788,11 +788,11 @@ class DietListener extends StackListener {
 
   @override
   void addCompileTimeError(Message message, int charOffset, int length) {
-    library.addCompileTimeError(message, charOffset, uri);
+    library.addCompileTimeError(message, charOffset, length, uri);
   }
 
   void addProblem(Message message, int charOffset, int length) {
-    library.addProblem(message, charOffset, uri);
+    library.addProblem(message, charOffset, length, uri);
   }
 
   @override

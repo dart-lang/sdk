@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -108,6 +107,12 @@ class OpType {
   CompletionSuggestionKind suggestKind = CompletionSuggestionKind.INVOCATION;
 
   /**
+   * The type that is required by the context in which the completion was
+   * activated, or `null` if there is no such type, or it cannot be determined.
+   */
+  DartType _requiredType = null;
+
+  /**
    * Determine the suggestions that should be made based upon the given
    * [CompletionTarget] and [offset].
    */
@@ -125,6 +130,20 @@ class OpType {
         target.containingNode.getAncestor((p) => p is MethodDeclaration);
     optype.inStaticMethodBody =
         mthDecl is MethodDeclaration && mthDecl.isStatic;
+
+    // If a value should be suggested, suggest also constructors.
+    if (optype.includeReturnValueSuggestions) {
+      // Careful: in angular plugin, `target.unit` may be null!
+      CompilationUnitElement unitElement = target.unit?.element;
+      if (unitElement != null &&
+          unitElement.context.analysisOptions.previewDart2) {
+        optype.includeConstructorSuggestions = true;
+      }
+    }
+
+    // Compute the type required by the context and set filters.
+    optype._computeRequiredTypeAndFilters(target);
+
     return optype;
   }
 
@@ -158,6 +177,58 @@ class OpType {
       !includeNamedArgumentSuggestions &&
       !includeReturnValueSuggestions &&
       !includeVoidReturnSuggestions;
+
+  /**
+   * Try to determine the required context type, and configure filters.
+   */
+  void _computeRequiredTypeAndFilters(CompletionTarget target) {
+    var node = target.containingNode;
+    if (node is Expression) {
+      AstNode parent = node.parent;
+      if (parent is VariableDeclaration) {
+        _requiredType = parent.element?.type;
+      } else if (parent is AssignmentExpression) {
+        _requiredType = parent.leftHandSide.staticType;
+      } else if (node.staticParameterElement != null) {
+        _requiredType = node.staticParameterElement.type;
+      } else if (parent is NamedExpression &&
+          parent.staticParameterElement != null) {
+        _requiredType = parent.staticParameterElement.type;
+      }
+    }
+    if (_requiredType == null) {
+      return;
+    }
+    if (_requiredType.isDynamic || _requiredType.isObject) {
+      _requiredType = null;
+      return;
+    }
+
+    constructorSuggestionsFilter = (DartType dartType, int relevance) {
+      if (dartType != null) {
+        if (dartType == _requiredType) {
+          return relevance + DART_RELEVANCE_BOOST_TYPE;
+        } else if (dartType.isSubtypeOf(_requiredType)) {
+          return relevance + DART_RELEVANCE_BOOST_SUBTYPE;
+        }
+        if (target.containingNode is InstanceCreationExpression) {
+          return null;
+        }
+      }
+      return relevance;
+    };
+
+    returnValueSuggestionsFilter = (DartType dartType, int relevance) {
+      if (dartType != null) {
+        if (dartType == _requiredType) {
+          return relevance + DART_RELEVANCE_BOOST_TYPE;
+        } else if (dartType.isSubtypeOf(_requiredType)) {
+          return relevance + DART_RELEVANCE_BOOST_SUBTYPE;
+        }
+      }
+      return relevance;
+    };
+  }
 
   /// Return the statement before [entity]
   /// where [entity] can be a statement or the `}` closing the given block.
@@ -630,31 +701,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (identical(entity, node.constructorName)) {
       optype.includeConstructorSuggestions = true;
-      optype.constructorSuggestionsFilter = (DartType dartType, int relevance) {
-        DartType localTypeAssertion = null;
-        AstNode parent = node.parent;
-        if (parent is VariableDeclaration) {
-          localTypeAssertion = parent.element?.type;
-        } else if (parent is AssignmentExpression) {
-          localTypeAssertion = parent.leftHandSide.staticType;
-        } else if (node.staticParameterElement != null) {
-          localTypeAssertion = node.staticParameterElement.type;
-        } else if (parent is NamedExpression &&
-            parent.staticParameterElement != null) {
-          localTypeAssertion = parent.staticParameterElement.type;
-        }
-        if (localTypeAssertion == null ||
-            dartType == null ||
-            localTypeAssertion.isDynamic) {
-          return relevance;
-        } else if (localTypeAssertion == dartType) {
-          return relevance + DART_RELEVANCE_INCREMENT;
-        } else if (dartType.isSubtypeOf(localTypeAssertion)) {
-          return relevance;
-        } else {
-          return null;
-        }
-      };
     }
   }
 
@@ -723,28 +769,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitNamedExpression(NamedExpression node) {
     if (identical(entity, node.expression)) {
       optype.includeReturnValueSuggestions = true;
-      optype.returnValueSuggestionsFilter = (DartType dartType, int relevance) {
-        DartType type = resolutionMap.elementForNamedExpression(node)?.type;
-        bool isEnum = type != null &&
-            type.element is ClassElement &&
-            (type.element as ClassElement).isEnum;
-        if (isEnum) {
-          if (type == dartType) {
-            return relevance + DART_RELEVANCE_INCREMENT;
-          } else {
-            return null;
-          }
-        }
-        if (type != null &&
-            dartType != null &&
-            !type.isDynamic &&
-            dartType.isSubtypeOf(type)) {
-          // is correct type
-          return relevance + DART_RELEVANCE_INCREMENT;
-        } else {
-          return relevance;
-        }
-      };
       optype.includeTypeNameSuggestions = true;
 
       // Check for named parameters in constructor calls.
@@ -992,7 +1016,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   bool _isEntityPrevTokenSynthetic() {
     Object entity = this.entity;
-    if (entity is AstNode && entity.beginToken.previous?.isSynthetic ?? false) {
+    if (entity is AstNode &&
+        (entity.beginToken.previous?.isSynthetic ?? false)) {
       return true;
     }
     return false;

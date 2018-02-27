@@ -1387,6 +1387,40 @@ main() {
   }
 
   /**
+   * Test that the call to a constructor with an implicit unnamed constructor is
+   * re-written as an InstanceCreationExpression AST node from a
+   * MethodInvocation.
+   *
+   * C(), where class C has no constructors
+   */
+  test_visitMethodInvocations_implicit_implicit() async {
+    String code = '''
+class A {}
+main() {
+  A();
+}
+    ''';
+    CompilationUnit unit = await resolveSource(code);
+    var statements = AstFinder.getStatementsInTopLevelFunction(unit, 'main');
+
+    ExpressionStatement statement = statements[0];
+    InstanceCreationExpression creation = statement.expression;
+    ConstructorElement constructor = creation.staticElement;
+
+    expect(constructor, _isConstructorElement);
+    expect(creation.staticType, isNotNull);
+
+    expect(creation.constructorName.staticElement, constructor);
+
+    expect(creation.constructorName.type.type, isNotNull);
+    expect(creation.constructorName.type.name.staticElement, _isClassElement);
+
+    expect(creation.constructorName.name, isNull);
+
+    expect(creation.argumentList.arguments, isEmpty);
+  }
+
+  /**
    * Test that the call to a constructor with an implicit named constructor is
    * re-written as an InstanceCreationExpression AST node from a
    * MethodInvocation.

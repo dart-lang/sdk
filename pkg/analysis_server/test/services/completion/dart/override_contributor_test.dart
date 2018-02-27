@@ -38,46 +38,65 @@ class C extends B {
 }
 ''');
     await computeSuggestions();
-    _assertOverride('''@override
+    _assertOverride('''
+@override
   A suggested1(int x) {
     // TODO: implement suggested1
     return super.suggested1(x);
   }''',
         displayText: 'suggested1(int x) { … }',
-        selectionOffset: 74,
+        selectionOffset: 72,
         selectionLength: 27);
-    _assertOverride(
-        '''@override\n  A suggested1(int x) {\n    // TODO: implement suggested1\n    return super.suggested1(x);\n  }''',
+    _assertOverride('''
+@override
+  A suggested1(int x) {
+    // TODO: implement suggested1
+    return super.suggested1(x);
+  }''',
         displayText: 'suggested1(int x) { … }',
-        selectionOffset: 74,
+        selectionOffset: 72,
         selectionLength: 27);
-    _assertOverride(
-        '''@override\n  B suggested2(String y) {\n    // TODO: implement suggested2\n    return super.suggested2(y);\n  }''',
+    _assertOverride('''
+@override
+  B suggested2(String y) {
+    // TODO: implement suggested2
+    return super.suggested2(y);
+  }''',
         displayText: 'suggested2(String y) { … }',
+        selectionOffset: 75,
+        selectionLength: 27);
+    _assertOverride('''
+@override
+  C suggested3([String z]) {
+    // TODO: implement suggested3
+    return super.suggested3(z);
+  }''',
+        displayText: 'suggested3([String z]) { … }',
         selectionOffset: 77,
         selectionLength: 27);
-    _assertOverride(
-        '''@override\n  C suggested3([String z]) {\n    // TODO: implement suggested3\n    return super.suggested3(z);\n  }''',
-        displayText: 'suggested3([String z]) { … }',
-        selectionOffset: 79,
-        selectionLength: 27);
-    _assertOverride(
-        '''@override\n  void suggested4() {\n    // TODO: implement suggested4\n    super.suggested4();\n  }''',
+    _assertOverride('''
+@override
+  void suggested4() {
+    // TODO: implement suggested4
+    super.suggested4();
+  }''',
         displayText: 'suggested4() { … }',
-        selectionOffset: 72,
+        selectionOffset: 70,
         selectionLength: 19);
-    _assertOverride(
-        '''@override\n  // TODO: implement suggested5\n  int get suggested5 => super.suggested5;''',
+    _assertOverride('''
+@override
+  // TODO: implement suggested5
+  int get suggested5 => super.suggested5;''',
         displayText: 'suggested5 => …',
-        selectionOffset: 68,
+        selectionOffset: 66,
         selectionLength: 16);
   }
 
   test_fromPart() async {
     addSource('/myLib.dart', '''
 library myLib;
-part '$testFile'
-part '/otherPart.dart'
+part '${convertPathForImport(testFile)}'
+part '${convertPathForImport('/otherPart.dart')}'
 class A {
   A suggested1(int x) => null;
   B suggested2(String y) => null;
@@ -99,26 +118,62 @@ class C extends B {
     // assume information for context.getLibrariesContaining has been cached
     await computeLibrariesContaining();
     await computeSuggestions();
-    _assertOverride('''@override
+    _assertOverride('''
+@override
   A suggested1(int x) {
     // TODO: implement suggested1
     return super.suggested1(x);
   }''', displayText: 'suggested1(int x) { … }');
-    _assertOverride(
-        '''@override\n  A suggested1(int x) {\n    // TODO: implement suggested1\n    return super.suggested1(x);\n  }''',
+    _assertOverride('''
+@override
+  A suggested1(int x) {
+    // TODO: implement suggested1
+    return super.suggested1(x);
+  }''',
         displayText: 'suggested1(int x) { … }',
-        selectionOffset: 74,
+        selectionOffset: 72,
         selectionLength: 27);
-    _assertOverride(
-        '''@override\n  B suggested2(String y) {\n    // TODO: implement suggested2\n    return super.suggested2(y);\n  }''',
+    _assertOverride('''
+@override
+  B suggested2(String y) {
+    // TODO: implement suggested2
+    return super.suggested2(y);
+  }''',
         displayText: 'suggested2(String y) { … }',
+        selectionOffset: 75,
+        selectionLength: 27);
+    _assertOverride('''
+@override
+  C suggested3([String z]) {
+    // TODO: implement suggested3
+    return super.suggested3(z);
+  }''',
+        displayText: 'suggested3([String z]) { … }',
         selectionOffset: 77,
         selectionLength: 27);
-    _assertOverride(
-        '''@override\n  C suggested3([String z]) {\n    // TODO: implement suggested3\n    return super.suggested3(z);\n  }''',
-        displayText: 'suggested3([String z]) { … }',
-        selectionOffset: 79,
-        selectionLength: 27);
+  }
+
+  test_withExistingOverride() async {
+    addTestSource('''
+class A {
+  method() {}
+  int age;
+}
+
+class B extends A {
+  @override
+  meth^
+}
+''');
+    await computeSuggestions();
+    _assertOverride('''
+method() {
+    // TODO: implement method
+    return super.method();
+  }''',
+        displayText: 'method() { … }',
+        selectionOffset: 45,
+        selectionLength: 22);
   }
 
   CompletionSuggestion _assertOverride(String completion,

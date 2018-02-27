@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.18.6</version>
+  <version>1.18.7</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -1578,6 +1578,22 @@
     <p>
       Return top-level and class member declarations.
     </p>
+    <params>
+      <field name="pattern" optional="true">
+        <ref>String</ref>
+        <p>
+          The regular expression used to match the names of declarations.
+          If this field is missing, return all declarations.
+        </p>
+      </field>
+      <field name="maxResults" optional="true">
+        <ref>int</ref>
+        <p>
+          The maximum number of declarations to return.
+          If this field is missing, return all matching declarations.
+        </p>
+      </field>
+    </params>
     <result>
       <field name="declarations">
         <list>
@@ -2945,11 +2961,35 @@
           The one-based index of the column containing the declaration name.
         </p>
       </field>
+      <field name="codeOffset">
+        <ref>int</ref>
+        <p>
+          The offset of the first character of the declaration code in the file.
+        </p>
+      </field>
+      <field name="codeLength">
+        <ref>int</ref>
+        <p>
+          The length of the declaration code in the file.
+        </p>
+      </field>
       <field name="className" optional="true">
         <ref>String</ref>
         <p>
           The name of the class enclosing this declaration. If the declaration
           is not a class member, this field will be absent.
+        </p>
+      </field>
+      <field name="parameters" optional="true">
+        <ref>String</ref>
+        <p>
+          The parameter list for the element. If the element is not a method or
+          function this field will not be defined. If the element doesn't have
+          parameters (e.g. getter), this field will not be defined. If the
+          element has zero parameters, this field will have a value of "()".
+
+          The value should not be treated as exact presentation of parameters,
+          it is just approximation of parameters to give the user general idea.
         </p>
       </field>
     </object>

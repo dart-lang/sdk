@@ -147,13 +147,15 @@ abstract class ElementSuggestionBuilder {
    * Add a suggestion based upon the given element.
    */
   void addSuggestion(Element element,
-      {String prefix, int relevance: DART_RELEVANCE_DEFAULT}) {
+      {String prefix,
+      int relevance: DART_RELEVANCE_DEFAULT,
+      String elementCompletion}) {
     if (element.isPrivate) {
       if (element.library != containingLibrary) {
         return;
       }
     }
-    String completion = element.displayName;
+    String completion = elementCompletion ?? element.displayName;
     if (prefix != null && prefix.length > 0) {
       if (completion == null || completion.length <= 0) {
         completion = prefix;

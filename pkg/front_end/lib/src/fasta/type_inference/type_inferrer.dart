@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart'
         AsyncMarker,
         BottomType,
         Class,
+        ConditionalExpression,
         ConstructorInvocation,
         DartType,
         DispatchCategory,
@@ -28,6 +29,7 @@ import 'package:kernel/ast.dart'
         Member,
         MethodInvocation,
         Name,
+        NullLiteral,
         Procedure,
         ProcedureKind,
         PropertyGet,
@@ -65,6 +67,8 @@ import '../fasta_codes.dart';
 import '../kernel/fasta_accessors.dart'
     show BuilderHelper, CalleeDesignation, FunctionTypeAccessor;
 
+import '../kernel/frontend_accessors.dart' show buildIsNull;
+
 import '../kernel/kernel_shadow_ast.dart'
     show
         getExplicitTypeArguments,
@@ -76,6 +80,8 @@ import '../kernel/kernel_shadow_ast.dart'
         ShadowVariableDeclaration;
 
 import '../names.dart' show callName;
+
+import '../parser.dart' show noLength;
 
 import '../problems.dart' show unhandled;
 
@@ -229,16 +235,9 @@ class ClosureContext {
           : returnOrYieldContext;
       if (expectedType != null) {
         expectedType = greatestClosure(inferrer.coreTypes, expectedType);
-        DartType expectedTypeToCheck = expectedType;
-        if (!inferrer.isAssignable(expectedType, type) && isAsync) {
-          DartType unfuturedExpectedType =
-              inferrer.typeSchemaEnvironment.unfutureType(expectedType);
-          if (inferrer.isAssignable(unfuturedExpectedType, type)) {
-            expectedTypeToCheck = unfuturedExpectedType;
-          }
-        }
         if (inferrer.ensureAssignable(
-                expectedTypeToCheck, type, expression, fileOffset) !=
+                expectedType, type, expression, fileOffset,
+                isReturnFromAsync: isAsync) !=
             null) {
           type = expectedType;
         }
@@ -450,8 +449,25 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Checks whether [actualType] can be assigned to [expectedType], and inserts
   /// an implicit downcast if appropriate.
   Expression ensureAssignable(DartType expectedType, DartType actualType,
-      Expression expression, int fileOffset) {
+      Expression expression, int fileOffset,
+      {bool isReturnFromAsync = false}) {
     assert(expectedType == null || isKnown(expectedType));
+
+    DartType initialExpectedType = expectedType;
+    if (isReturnFromAsync && !isAssignable(expectedType, actualType)) {
+      // If the body of the function is async, the expected return type has the
+      // shape FutureOr<T>.  We check both branches for FutureOr here: both T
+      // and Future<T>.
+      DartType unfuturedExpectedType =
+          typeSchemaEnvironment.unfutureType(expectedType);
+      DartType futuredExpectedType = wrapFutureType(unfuturedExpectedType);
+      if (isAssignable(unfuturedExpectedType, actualType)) {
+        expectedType = unfuturedExpectedType;
+      } else if (isAssignable(futuredExpectedType, actualType)) {
+        expectedType = futuredExpectedType;
+      }
+    }
+
     // We don't need to insert assignability checks when doing top level type
     // inference since top level type inference only cares about the type that
     // is inferred (the kernel code is discarded).
@@ -468,12 +484,21 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       var callMember = classHierarchy.getInterfaceMember(classNode, callName);
       if (callMember is Procedure && callMember.kind == ProcedureKind.Method) {
         if (_shouldTearOffCall(expectedType, actualType)) {
+          // Replace expression with:
+          // `let t = expression in t == null ? null : t.call`
           var parent = expression.parent;
-          var tearOff = new PropertyGet(expression, callName, callMember)
+          var t = new VariableDeclaration.forValue(expression, type: actualType)
             ..fileOffset = fileOffset;
-          parent?.replaceChild(expression, tearOff);
-          expression = tearOff;
+          var nullCheck = buildIsNull(new VariableGet(t), fileOffset);
+          var tearOff =
+              new PropertyGet(new VariableGet(t), callName, callMember)
+                ..fileOffset = fileOffset;
           actualType = getCalleeType(callMember, actualType);
+          var conditional = new ConditionalExpression(nullCheck,
+              new NullLiteral()..fileOffset = fileOffset, tearOff, actualType);
+          var let = new Let(t, conditional);
+          parent?.replaceChild(expression, let);
+          expression = conditional;
         }
       }
     }
@@ -504,7 +529,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       } else {
         // Insert an implicit downcast.
         var parent = expression.parent;
-        var typeCheck = new AsExpression(expression, expectedType)
+        var typeCheck = new AsExpression(expression, initialExpectedType)
           ..isTypeError = true
           ..fileOffset = fileOffset;
         parent?.replaceChild(expression, typeCheck);
@@ -560,7 +585,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
                 ..fileOffset = receiver.fileOffset,
               helper.buildCompileTimeError(
                   errorTemplate.withArguments(name.name, receiverType),
-                  fileOffset))
+                  fileOffset,
+                  noLength))
             ..fileOffset = fileOffset);
     }
     return interfaceMember;
@@ -1080,7 +1106,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           calleeKind,
           offset);
       if (argMessage != null) {
-        helper.addProblem(argMessage.messageObject, argMessage.charOffset);
+        helper.addProblem(
+            argMessage.messageObject, argMessage.charOffset, argMessage.length);
       } else {
         // Argument counts and names match. Compare types.
         int numPositionalArgs = arguments.positional.length;
@@ -1681,6 +1708,7 @@ class StrongModeMixinInferrer implements MixinInferrer {
             templateMixinInferenceNoMatchingClass.withArguments(mixinClass.name,
                 baseType.classNode.name, mixinSupertype.asInterfaceType),
             mixinClass.fileOffset,
+            noLength,
             mixinClass.fileUri);
         return;
       }
@@ -1728,6 +1756,7 @@ class StrongModeMixinInferrer implements MixinInferrer {
                   baseType.classNode.name,
                   mixinSupertype.asInterfaceType),
               mixinClass.fileOffset,
+              noLength,
               mixinClass.fileUri);
           return p;
         }

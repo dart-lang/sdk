@@ -447,8 +447,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
       }
       typeVariables = new List<FunctionTypeVariable>.generate(
           node.typeParameters.length,
-          (int index) => new FunctionTypeVariable(
-              index, getDartType(node.typeParameters[index].bound)));
+          (int index) => new FunctionTypeVariable(index));
 
       DartType subst(DartType type) {
         return type.subst(typeVariables, typeParameters);
@@ -457,6 +456,10 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
       parameterTypes = parameterTypes.map(subst).toList();
       optionalParameterTypes = optionalParameterTypes.map(subst).toList();
       namedParameterTypes = namedParameterTypes.map(subst).toList();
+      for (int index = 0; index < typeVariables.length; index++) {
+        typeVariables[index].bound =
+            subst(getDartType(node.typeParameters[index].bound));
+      }
     } else {
       typeVariables = const <FunctionTypeVariable>[];
     }
@@ -921,6 +924,10 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
                 createTypeVariable(_getMethod(procedure), node.name, index),
                 new TypeVariableData(node));
           }
+        } else {
+          throw new UnsupportedError(
+              'Unsupported function type parameter parent '
+              'node ${func.parent}.');
         }
       }
       throw new UnsupportedError('Unsupported type parameter type node $node.');
@@ -1277,10 +1284,15 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
       localFunction = _localFunctionMap[node] =
           new KLocalFunction(name, memberContext, executableContext, node);
       int index = 0;
+      List<KLocalTypeVariable> typeVariables = <KLocalTypeVariable>[];
       for (ir.TypeParameter typeParameter in function.typeParameters) {
-        KLocalTypeVariable typeVariable = _typeVariableMap[typeParameter] =
-            new KLocalTypeVariable(localFunction, typeParameter.name, index);
-        typeVariable.bound = getDartType(typeParameter.bound);
+        typeVariables.add(_typeVariableMap[typeParameter] =
+            new KLocalTypeVariable(localFunction, typeParameter.name, index));
+        index++;
+      }
+      index = 0;
+      for (ir.TypeParameter typeParameter in function.typeParameters) {
+        typeVariables[index].bound = getDartType(typeParameter.bound);
         index++;
       }
       localFunction.functionType = getFunctionType(function);
@@ -1648,11 +1660,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
     List<FunctionTypeVariable> typeVariables;
     for (ir.TypeParameter typeParameter in node.typeParameters) {
       if (elementMap.options.strongMode) {
-        // TODO(johnniwinther): Support recursive type variable bounds, like
-        // `void Function<T extends Foo<T>>(T t)` when #31531 is fixed.
-        DartType bound = typeParameter.bound.accept(this);
-        FunctionTypeVariable typeVariable =
-            new FunctionTypeVariable(index, bound);
+        FunctionTypeVariable typeVariable = new FunctionTypeVariable(index);
         currentFunctionTypeParameters[typeParameter] = typeVariable;
         typeVariables ??= <FunctionTypeVariable>[];
         typeVariables.add(typeVariable);
@@ -1660,6 +1668,12 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
         currentFunctionTypeParameters[typeParameter] = const DynamicType();
       }
       index++;
+    }
+    if (typeVariables != null) {
+      for (int index = 0; index < typeVariables.length; index++) {
+        typeVariables[index].bound =
+            node.typeParameters[index].bound.accept(this);
+      }
     }
 
     DartType typedefType =
@@ -2441,7 +2455,8 @@ class JsKernelToElementMap extends KernelToElementMapBase
       Map<Local, JRecordField> recordFieldsVisibleInScope,
       KernelScopeInfo info,
       KernelToLocalsMap localsMap,
-      InterfaceType supertype) {
+      InterfaceType supertype,
+      {bool needsSignature}) {
     InterfaceType memberThisType = member.enclosingClass != null
         ? _elementEnvironment.getThisType(member.enclosingClass)
         : null;
@@ -2510,7 +2525,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
     _buildClosureClassFields(closureClassInfo, member, memberThisType, info,
         localsMap, recordFieldsVisibleInScope, memberMap);
 
-    if (options.strongMode) {
+    if (needsSignature) {
       _constructSignatureMethod(closureClassInfo, memberMap, node,
           memberThisType, location, typeVariableAccess);
     }

@@ -40,12 +40,12 @@ subclassing_super_field_2_test: RuntimeError
 bound_closure_super_test: RuntimeError
 compute_this_script_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/types.dart': Failed assertion: line 63 pos 12: '!result.isEmpty': is not true.
 fake_thing_test: RuntimeError
-mirror_intercepted_field_test: CompileTimeError
+mirror_intercepted_field_test: RuntimeError
 native_library_same_name_used_frog_test: CompileTimeError
-native_mirror_test: CompileTimeError
-native_no_such_method_exception3_frog_test: CompileTimeError
-native_no_such_method_exception4_frog_test: CompileTimeError
-native_no_such_method_exception5_frog_test: CompileTimeError
+native_mirror_test: RuntimeError
+native_no_such_method_exception3_frog_test: RuntimeError
+native_no_such_method_exception4_frog_test: RuntimeError
+native_no_such_method_exception5_frog_test: RuntimeError
 subclassing_constructor_1_test: RuntimeError
 subclassing_super_call_test: RuntimeError
 subclassing_super_field_1_test: RuntimeError
@@ -54,12 +54,12 @@ subclassing_super_field_2_test: RuntimeError
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 bound_closure_super_test: RuntimeError
 fake_thing_test: RuntimeError
-mirror_intercepted_field_test: CompileTimeError
+mirror_intercepted_field_test: RuntimeError
 native_library_same_name_used_frog_test: CompileTimeError
-native_mirror_test: CompileTimeError
-native_no_such_method_exception3_frog_test: CompileTimeError
-native_no_such_method_exception4_frog_test: CompileTimeError
-native_no_such_method_exception5_frog_test: CompileTimeError
+native_mirror_test: RuntimeError
+native_no_such_method_exception3_frog_test: RuntimeError
+native_no_such_method_exception4_frog_test: RuntimeError
+native_no_such_method_exception5_frog_test: RuntimeError
 optimization_hints_test: RuntimeError
 subclassing_constructor_1_test: RuntimeError
 subclassing_super_call_test: RuntimeError

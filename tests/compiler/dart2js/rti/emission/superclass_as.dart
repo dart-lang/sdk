@@ -5,7 +5,7 @@
 import 'package:expect/expect.dart';
 import 'package:meta/dart2js.dart';
 
-/*class: A:checks=[]*/
+/*class: A:checkedInstance,checks=[],instance*/
 class A<T> {}
 
 /*class: B:checks=[]*/
@@ -14,7 +14,7 @@ class B<T, S> {
   method() => new A<S>();
 }
 
-/*class: C:checks=[$asB]*/
+/*class: C:checks=[$asB],instance*/
 class C<T> extends B<T, T> {}
 
 @noInline

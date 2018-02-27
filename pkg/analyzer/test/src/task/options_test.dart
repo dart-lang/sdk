@@ -46,7 +46,7 @@ class ContextConfigurationTest extends AbstractContextTest {
 
   AnalysisOptions get analysisOptions => context.analysisOptions;
 
-  configureContext(String optionsSource) =>
+  void configureContext(String optionsSource) =>
       applyToAnalysisOptions(analysisOptions, parseOptions(optionsSource));
 
   Map<String, YamlNode> parseOptions(String source) =>

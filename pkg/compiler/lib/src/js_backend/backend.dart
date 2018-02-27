@@ -544,6 +544,8 @@ class JavaScriptBackend {
     return _rtiChecksBuilder;
   }
 
+  RuntimeTypesChecksBuilder get rtiChecksBuilderForTesting => _rtiChecksBuilder;
+
   RuntimeTypesSubstitutions get rtiSubstitutions {
     assert(
         _rtiSubstitutions != null,

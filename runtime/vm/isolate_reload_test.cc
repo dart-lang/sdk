@@ -720,7 +720,7 @@ TEST_CASE(IsolateReload_Generics) {
 
 TEST_CASE(IsolateReload_TypeIdentity) {
   const char* kScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class T { }\n"
       "getType() => T;\n"
       "main() {\n"
@@ -734,7 +734,7 @@ TEST_CASE(IsolateReload_TypeIdentity) {
   EXPECT_VALID(lib);
 
   const char* kReloadScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class T extends Stopwatch { }\n"
       "getType() => T;\n"
       "main() {\n"
@@ -751,7 +751,7 @@ TEST_CASE(IsolateReload_TypeIdentity) {
 
 TEST_CASE(IsolateReload_TypeIdentityGeneric) {
   const char* kScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class T<G> { }\n"
       "getType() => new T<int>().runtimeType;\n"
       "main() {\n"
@@ -765,7 +765,7 @@ TEST_CASE(IsolateReload_TypeIdentityGeneric) {
   EXPECT_VALID(lib);
 
   const char* kReloadScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class T<G> extends Stopwatch { }\n"
       "getType() => new T<int>().runtimeType;\n"
       "main() {\n"
@@ -783,7 +783,7 @@ TEST_CASE(IsolateReload_TypeIdentityGeneric) {
 TEST_CASE(IsolateReload_TypeIdentityParameter) {
   const char* kScript =
       "import 'dart:mirrors';\n"
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class T<G> { }\n"
       "getTypeVar() => reflectType(T).typeVariables[0];\n"
       "main() {\n"
@@ -798,7 +798,7 @@ TEST_CASE(IsolateReload_TypeIdentityParameter) {
 
   const char* kReloadScript =
       "import 'dart:mirrors';\n"
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class T<G> extends Stopwatch { }\n"
       "getTypeVar() => reflectType(T).typeVariables[0];\n"
       "main() {\n"
@@ -946,7 +946,7 @@ TEST_CASE(IsolateReload_ComplexInheritanceChange) {
 
 TEST_CASE(IsolateReload_LiveStack) {
   const char* kScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "helper() => 7;\n"
       "alpha() { var x = helper(); reloadTest(); return x + helper(); }\n"
       "foo() => alpha();\n"
@@ -959,7 +959,7 @@ TEST_CASE(IsolateReload_LiveStack) {
   EXPECT_VALID(lib);
 
   const char* kReloadScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "helper() => 100;\n"
       "alpha() => 5 + helper();\n"
       "foo() => alpha();\n"
@@ -972,8 +972,8 @@ TEST_CASE(IsolateReload_LiveStack) {
 
   EXPECT_EQ(107, SimpleInvoke(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
   EXPECT_EQ(105, SimpleInvoke(lib, "main"));
 }
 
@@ -1100,7 +1100,7 @@ TEST_CASE(IsolateReload_SmiFastPathStubs) {
   TestCase::AddTestLib("test:lib1", kImportScript);
 
   const char* kScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "import 'test:lib1' show importedIntFunc;\n"
       "main() {\n"
       "  var x = importedIntFunc();\n"
@@ -1183,7 +1183,7 @@ TEST_CASE(IsolateReload_TopLevelParseError) {
 
 TEST_CASE(IsolateReload_PendingUnqualifiedCall_StaticToInstance) {
   const char* kScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class C {\n"
       "  static foo() => 'static';\n"
       "  test() {\n"
@@ -1199,7 +1199,7 @@ TEST_CASE(IsolateReload_PendingUnqualifiedCall_StaticToInstance) {
   EXPECT_VALID(lib);
 
   const char* kReloadScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class C {\n"
       "  foo() => 'instance';\n"
       "  test() {\n"
@@ -1215,14 +1215,14 @@ TEST_CASE(IsolateReload_PendingUnqualifiedCall_StaticToInstance) {
 
   EXPECT_STREQ("instance", SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
   EXPECT_STREQ("instance", SimpleInvokeStr(lib, "main"));
 }
 
 TEST_CASE(IsolateReload_PendingUnqualifiedCall_InstanceToStatic) {
   const char* kScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class C {\n"
       "  foo() => 'instance';\n"
       "  test() {\n"
@@ -1238,7 +1238,7 @@ TEST_CASE(IsolateReload_PendingUnqualifiedCall_InstanceToStatic) {
   EXPECT_VALID(lib);
 
   const char* kReloadScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class C {\n"
       "  static foo() => 'static';\n"
       "  test() {\n"
@@ -1254,14 +1254,14 @@ TEST_CASE(IsolateReload_PendingUnqualifiedCall_InstanceToStatic) {
 
   EXPECT_STREQ("static", SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
   EXPECT_STREQ("static", SimpleInvokeStr(lib, "main"));
 }
 
 TEST_CASE(IsolateReload_PendingConstructorCall_AbstractToConcrete) {
   const char* kScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "abstract class Foo {}\n"
       "class C {\n"
       "  test() {\n"
@@ -1282,7 +1282,7 @@ TEST_CASE(IsolateReload_PendingConstructorCall_AbstractToConcrete) {
   EXPECT_VALID(lib);
 
   const char* kReloadScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class Foo {}\n"
       "class C {\n"
       "  test() {\n"
@@ -1303,14 +1303,14 @@ TEST_CASE(IsolateReload_PendingConstructorCall_AbstractToConcrete) {
 
   EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
   EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
 }
 
 TEST_CASE(IsolateReload_PendingConstructorCall_ConcreteToAbstract) {
   const char* kScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class Foo {}\n"
       "class C {\n"
       "  test() {\n"
@@ -1331,7 +1331,7 @@ TEST_CASE(IsolateReload_PendingConstructorCall_ConcreteToAbstract) {
   EXPECT_VALID(lib);
 
   const char* kReloadScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "abstract class Foo {}\n"
       "class C {\n"
       "  test() {\n"
@@ -1352,14 +1352,14 @@ TEST_CASE(IsolateReload_PendingConstructorCall_ConcreteToAbstract) {
 
   EXPECT_STREQ("exception", SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
   EXPECT_STREQ("exception", SimpleInvokeStr(lib, "main"));
 }
 
 TEST_CASE(IsolateReload_PendingStaticCall_DefinedToNSM) {
   const char* kScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class C {\n"
       "  static foo() => 'static'\n"
       "  test() {\n"
@@ -1379,7 +1379,7 @@ TEST_CASE(IsolateReload_PendingStaticCall_DefinedToNSM) {
   EXPECT_VALID(lib);
 
   const char* kReloadScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class C {\n"
       "  test() {\n"
       "    reloadTest();\n"
@@ -1398,14 +1398,14 @@ TEST_CASE(IsolateReload_PendingStaticCall_DefinedToNSM) {
 
   EXPECT_STREQ("exception", SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
   EXPECT_STREQ("exception", SimpleInvokeStr(lib, "main"));
 }
 
 TEST_CASE(IsolateReload_PendingStaticCall_NSMToDefined) {
   const char* kScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class C {\n"
       "  test() {\n"
       "    reloadTest();\n"
@@ -1424,7 +1424,7 @@ TEST_CASE(IsolateReload_PendingStaticCall_NSMToDefined) {
   EXPECT_VALID(lib);
 
   const char* kReloadScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class C {\n"
       "  static foo() => 'static'\n"
       "  test() {\n"
@@ -1444,14 +1444,14 @@ TEST_CASE(IsolateReload_PendingStaticCall_NSMToDefined) {
 
   EXPECT_STREQ("static", SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
   EXPECT_STREQ("static", SimpleInvokeStr(lib, "main"));
 }
 
 TEST_CASE(IsolateReload_PendingSuperCall) {
   const char* kScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class S {\n"
       "  foo() => 1;\n"
       "}\n"
@@ -1471,7 +1471,7 @@ TEST_CASE(IsolateReload_PendingSuperCall) {
   EXPECT_VALID(lib);
 
   const char* kReloadScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class S {\n"
       "  foo() => 10;\n"
       "}\n"
@@ -1494,7 +1494,7 @@ TEST_CASE(IsolateReload_PendingSuperCall) {
 
 TEST_CASE(IsolateReload_TearOff_Instance_Equality) {
   const char* kScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class C {\n"
       "  foo() => 'old';\n"
       "}\n"
@@ -1510,7 +1510,7 @@ TEST_CASE(IsolateReload_TearOff_Instance_Equality) {
   EXPECT_VALID(lib);
 
   const char* kReloadScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class C {\n"
       "  foo() => 'new';\n"
       "}\n"
@@ -1526,13 +1526,13 @@ TEST_CASE(IsolateReload_TearOff_Instance_Equality) {
 
   EXPECT_STREQ("new new true false", SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
 }
 
 TEST_CASE(IsolateReload_TearOff_Class_Identity) {
   const char* kScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class C {\n"
       "  static foo() => 'old';\n"
       "}\n"
@@ -1548,7 +1548,7 @@ TEST_CASE(IsolateReload_TearOff_Class_Identity) {
   EXPECT_VALID(lib);
 
   const char* kReloadScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class C {\n"
       "  static foo() => 'new';\n"
       "}\n"
@@ -1564,13 +1564,13 @@ TEST_CASE(IsolateReload_TearOff_Class_Identity) {
 
   EXPECT_STREQ("new new true true", SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
 }
 
 TEST_CASE(IsolateReload_TearOff_Library_Identity) {
   const char* kScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "foo() => 'old';\n"
       "getFoo() => foo;\n"
       "main() {\n"
@@ -1584,7 +1584,7 @@ TEST_CASE(IsolateReload_TearOff_Library_Identity) {
   EXPECT_VALID(lib);
 
   const char* kReloadScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "foo() => 'new';\n"
       "getFoo() => foo;\n"
       "main() {\n"
@@ -1598,13 +1598,13 @@ TEST_CASE(IsolateReload_TearOff_Library_Identity) {
 
   EXPECT_STREQ("new new true true", SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
 }
 
 TEST_CASE(IsolateReload_TearOff_List_Set) {
   const char* kScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class C {\n"
       "  foo() => 'old';\n"
       "}\n"
@@ -1632,7 +1632,7 @@ TEST_CASE(IsolateReload_TearOff_List_Set) {
   EXPECT_VALID(lib);
 
   const char* kReloadScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class C {\n"
       "  foo() => 'new';\n"
       "}\n"
@@ -1661,13 +1661,16 @@ TEST_CASE(IsolateReload_TearOff_List_Set) {
   EXPECT_STREQ("new new true true true new true true true",
                SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
 }
 
+// TODO(bkonyi): This test has been modified since it was written and no longer
+// tests functionality that it did originally. It needs to be either re-written
+// or removed.
 TEST_CASE(IsolateReload_DanglingGetter_Instance) {
   const char* kScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class C {\n"
       "  var x = 3;\n"
       "  var y = 4;\n"
@@ -1692,7 +1695,7 @@ TEST_CASE(IsolateReload_DanglingGetter_Instance) {
   EXPECT_VALID(lib);
 
   const char* kReloadScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class C {\n"
       "  var x = 3;\n"
       "}\n"
@@ -1719,13 +1722,20 @@ TEST_CASE(IsolateReload_DanglingGetter_Instance) {
       "NoSuchMethodError: Class 'int' has no instance method 'call'.",
       SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  if (TestCase::UsingDartFrontend() && TestCase::UsingStrongMode()) {
+    EXPECT_NULL(lib);
+  } else {
+    EXPECT_NON_NULL(lib);
+  }
 }
 
+// TODO(bkonyi): This test has been modified since it was written and no longer
+// tests functionality that it did originally. It needs to be either re-written
+// or removed.
 TEST_CASE(IsolateReload_DanglingGetter_Class) {
   const char* kScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class C {\n"
       "  static var x;\n"
       "  static var y;\n"
@@ -1751,7 +1761,7 @@ TEST_CASE(IsolateReload_DanglingGetter_Class) {
   EXPECT_VALID(lib);
 
   const char* kReloadScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class C {\n"
       "  static var x;\n"
       "}\n"
@@ -1779,13 +1789,17 @@ TEST_CASE(IsolateReload_DanglingGetter_Class) {
       "NoSuchMethodError: Class 'int' has no instance method 'call'.",
       SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  if (TestCase::UsingDartFrontend() && TestCase::UsingStrongMode()) {
+    EXPECT_NULL(lib);
+  } else {
+    EXPECT_NON_NULL(lib);
+  }
 }
 
 TEST_CASE(IsolateReload_TearOff_AddArguments) {
   const char* kScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class C {\n"
       "  foo(x) => x;\n"
       "}\n"
@@ -1809,7 +1823,7 @@ TEST_CASE(IsolateReload_TearOff_AddArguments) {
   EXPECT_VALID(lib);
 
   const char* kReloadScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class C {\n"
       "  foo(x, y, z) => x + y + z;\n"
       "}\n"
@@ -1836,13 +1850,13 @@ TEST_CASE(IsolateReload_TearOff_AddArguments) {
       "'foo' with matching arguments.",
       SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
 }
 
 TEST_CASE(IsolateReload_TearOff_AddArguments2) {
   const char* kScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class C {\n"
       "  static foo(x) => x;\n"
       "}\n"
@@ -1865,7 +1879,7 @@ TEST_CASE(IsolateReload_TearOff_AddArguments2) {
   EXPECT_VALID(lib);
 
   const char* kReloadScript =
-      "import 'test:isolate_reload_helper';\n"
+      "import 'file:///test:isolate_reload_helper';\n"
       "class C {\n"
       "  static foo(x, y, z) => x + y + z;\n"
       "}\n"
@@ -1891,8 +1905,8 @@ TEST_CASE(IsolateReload_TearOff_AddArguments2) {
       "function 'C.foo'",
       SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
 }
 
 TEST_CASE(IsolateReload_EnumEquality) {
@@ -3373,6 +3387,46 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersWithConsts) {
   // Verify that we ran field initializers on existing instances and the const
   // expressions were properly canonicalized.
   EXPECT_STREQ("true true true true", SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_RunNewFieldInitializersWithGenerics) {
+  const char* kScript =
+      "class Foo<T> {\n"
+      "  T x;\n"
+      "}\n"
+      "Foo value1;\n"
+      "Foo value2;\n"
+      "main() {\n"
+      "  value1 = new Foo<String>();\n"
+      "  value2 = new Foo<int>();\n"
+      "  return 'Okay';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Okay", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "class Foo<T> {\n"
+      "  T x;\n"
+      "  List<T> y = new List<T>();"
+      "  dynamic z = <T,T>{};"
+      "}\n"
+      "Foo value1;\n"
+      "Foo value2;\n"
+      "main() {\n"
+      "  return '${value1.y.runtimeType} ${value1.z.runtimeType}'"
+      "      ' ${value2.y.runtimeType} ${value2.z.runtimeType}';\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  // Verify that we ran field initializers on existing instances and
+  // correct type arguments were used.
+  EXPECT_STREQ(
+      "List<String> _InternalLinkedHashMap<String, String> List<int> "
+      "_InternalLinkedHashMap<int, int>",
+      SimpleInvokeStr(lib, "main"));
 }
 
 TEST_CASE(IsolateReload_TypedefToNotTypedef) {

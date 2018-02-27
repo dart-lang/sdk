@@ -1712,8 +1712,6 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
         return Error::Cast(result).raw();
       }
       ASSERT(!result.IsNull());
-      func.ClearICDataArray();
-      func.ClearCode();
     }
   }
   return Error::null();

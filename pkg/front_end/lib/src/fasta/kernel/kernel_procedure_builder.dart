@@ -45,12 +45,13 @@ import '../loader.dart' show Loader;
 
 import '../messages.dart'
     show
-        messageConstConstructorWithBody,
         messageInternalProblemBodyOnAbstractMethod,
         messageNonInstanceTypeVariableUse,
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
         messagePatchNonExternal;
+
+import '../parser.dart' show noLength;
 
 import '../problems.dart' show internalProblem, unexpected;
 
@@ -106,10 +107,6 @@ abstract class KernelFunctionBuilder
       if (isAbstract) {
         return internalProblem(messageInternalProblemBodyOnAbstractMethod,
             newBody.fileOffset, fileUri);
-      }
-      if (isConstructor && isConst) {
-        return library.addCompileTimeError(
-            messageConstConstructorWithBody, newBody.fileOffset, fileUri);
       }
     }
     actualBody = newBody;
@@ -194,7 +191,7 @@ abstract class KernelFunctionBuilder
             }
           }
           library.addProblem(
-              messageNonInstanceTypeVariableUse, charOffset, fileUri);
+              messageNonInstanceTypeVariableUse, charOffset, noLength, fileUri);
           return substitute(type, substitution);
         }
 
@@ -237,19 +234,19 @@ abstract class KernelFunctionBuilder
   bool checkPatch(KernelFunctionBuilder patch) {
     if (!isExternal) {
       patch.library.addCompileTimeError(
-          messagePatchNonExternal, patch.charOffset, patch.fileUri,
-          context:
-              messagePatchDeclarationOrigin.withLocation(fileUri, charOffset));
+          messagePatchNonExternal, patch.charOffset, noLength, patch.fileUri,
+          context: messagePatchDeclarationOrigin.withLocation(
+              fileUri, charOffset, noLength));
       return false;
     }
     return true;
   }
 
   void reportPatchMismatch(Builder patch) {
-    library.addCompileTimeError(
-        messagePatchDeclarationMismatch, patch.charOffset, patch.fileUri,
-        context:
-            messagePatchDeclarationOrigin.withLocation(fileUri, charOffset));
+    library.addCompileTimeError(messagePatchDeclarationMismatch,
+        patch.charOffset, noLength, patch.fileUri,
+        context: messagePatchDeclarationOrigin.withLocation(
+            fileUri, charOffset, noLength));
   }
 }
 
@@ -618,6 +615,7 @@ class KernelRedirectingFactoryBuilder extends KernelProcedureBuilder {
   @override
   Procedure build(SourceLibraryBuilder library) {
     Procedure result = super.build(library);
+    result.isRedirectingFactoryConstructor = true;
     if (redirectionTarget.typeArguments != null) {
       typeArguments =
           new List<DartType>(redirectionTarget.typeArguments.length);

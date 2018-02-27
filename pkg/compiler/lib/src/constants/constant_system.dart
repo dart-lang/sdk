@@ -55,6 +55,7 @@ abstract class ConstantSystem {
 
   BinaryOperation get codeUnitAt;
   UnaryOperation get round;
+  UnaryOperation get abs;
 
   const ConstantSystem();
 

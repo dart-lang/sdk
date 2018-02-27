@@ -14,6 +14,7 @@
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
+#include "vm/reusable_handles.h"
 #include "vm/service_isolate.h"
 #include "vm/symbols.h"
 
@@ -56,7 +57,7 @@ class SimpleExpressionConverter {
         return true;
       }
       case kStringLiteral:
-        simple_value_ = &H.DartSymbol(
+        simple_value_ = &H.DartSymbolPlain(
             builder_->ReadStringReference());  // read index into string table.
         return true;
       case kSpecialIntLiteral:
@@ -466,7 +467,7 @@ RawString* KernelLoader::DetectExternalName() {
 
   Tag tag = builder_.ReadTag();
   ASSERT(tag == kStringLiteral);
-  String& result = H.DartSymbol(
+  String& result = H.DartSymbolPlain(
       builder_.ReadStringReference());  // read index into string table.
 
   // List of named.
@@ -733,7 +734,7 @@ void KernelLoader::LoadLibrary(intptr_t index) {
   intptr_t procedure_count = library_index.procedure_count();
 
   library_helper.ReadUntilIncluding(LibraryHelper::kName);
-  library.SetName(H.DartSymbol(library_helper.name_index_));
+  library.SetName(H.DartSymbolObfuscate(library_helper.name_index_));
 
   // The bootstrapper will take care of creating the native wrapper classes, but
   // we will add the synthetic constructors to them here.
@@ -877,7 +878,8 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library) {
       uint8_t flags = builder_.ReadFlags();
       intptr_t name_count = builder_.ReadListLength();
       for (intptr_t n = 0; n < name_count; ++n) {
-        String& show_hide_name = H.DartSymbol(builder_.ReadStringReference());
+        String& show_hide_name =
+            H.DartSymbolObfuscate(builder_.ReadStringReference());
         if (flags & LibraryDependencyHelper::Show) {
           show_list.Add(show_hide_name, Heap::kOld);
         } else {
@@ -904,7 +906,7 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library) {
         target_library.url() == Symbols::DartMirrors().raw()) {
       H.ReportError("import of dart:mirrors with --enable-mirrors=false");
     }
-    String& prefix = H.DartSymbol(dependency_helper.name_index_);
+    String& prefix = H.DartSymbolPlain(dependency_helper.name_index_);
     ns = Namespace::New(target_library, show_names, hide_names);
     if (dependency_helper.flags_ & LibraryDependencyHelper::Export) {
       library->AddExport(ns);
@@ -967,6 +969,41 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
   if (class_helper->is_abstract_) klass->set_is_abstract();
 }
 
+// Workaround for http://dartbug.com/32087: currently Kernel front-end
+// embeds absolute build-time paths to core library sources into Kernel
+// binaries this introduces discrepancy between how stack traces were
+// looked like in legacy pipeline and how they look in Dart 2 pipeline and
+// breaks users' code that attempts to pattern match and filter various
+// irrelevant frames (e.g. frames from dart:async).
+// This also breaks debugging experience in external debuggers because
+// debugger attempts to open files that don't exist in the local file
+// system.
+// To work around this issue we reformat urls of scripts belonging to
+// dart:-scheme libraries to look like they looked like in legacy pipeline:
+//
+//               dart:libname/filename.dart
+//
+void KernelLoader::FixCoreLibraryScriptUri(const Library& library,
+                                           const Script& script) {
+  if (library.is_dart_scheme()) {
+    String& url = String::Handle(zone_, script.url());
+    if (!url.StartsWith(Symbols::DartScheme())) {
+      // Search backwards until '/' is found. That gives us the filename.
+      // Note: can't use reusable handle in the code below because
+      // concat also needs it.
+      intptr_t pos = url.Length() - 1;
+      while (pos >= 0 && url.CharAt(pos) != '/') {
+        pos--;
+      }
+
+      url = String::SubString(url, pos + 1);
+      url = String::Concat(Symbols::Slash(), url);
+      url = String::Concat(String::Handle(zone_, library.url()), url);
+      script.set_url(url);
+    }
+  }
+}
+
 Class& KernelLoader::LoadClass(const Library& library,
                                const Class& toplevel_class,
                                intptr_t class_end) {
@@ -987,6 +1024,7 @@ Class& KernelLoader::LoadClass(const Library& library,
     const Script& script =
         Script::Handle(Z, ScriptAt(class_helper.source_uri_index_));
     klass.set_script(script);
+    FixCoreLibraryScriptUri(library, script);
   }
   if (klass.token_pos() == TokenPosition::kNoSource) {
     class_helper.ReadUntilIncluding(ClassHelper::kPosition);
@@ -1190,6 +1228,10 @@ void KernelLoader::LoadProcedure(const Library& library,
   ProcedureHelper procedure_helper(&builder_);
 
   procedure_helper.ReadUntilExcluding(ProcedureHelper::kAnnotations);
+  if (procedure_helper.IsRedirectingFactoryConstructor()) {
+    builder_.SetOffset(procedure_end);
+    return;
+  }
   const String& name = H.DartProcedureName(procedure_helper.canonical_name_);
   bool is_method = in_class && !procedure_helper.IsStatic();
   bool is_abstract = procedure_helper.IsAbstract();
@@ -1345,6 +1387,7 @@ const Object& KernelLoader::ClassForScriptAt(const Class& klass,
     patch_class ^= patch_classes_.At(source_uri_index);
     if (patch_class.IsNull() || patch_class.origin_class() != klass.raw()) {
       ASSERT(!library_kernel_data_.IsNull());
+      FixCoreLibraryScriptUri(Library::Handle(klass.library()), correct_script);
       patch_class = PatchClass::New(klass, correct_script);
       patch_class.set_library_kernel_data(library_kernel_data_);
       patch_class.set_library_kernel_offset(library_kernel_offset_);
@@ -1496,7 +1539,7 @@ void KernelLoader::SetupFieldAccessorFunction(const Class& klass,
 Library& KernelLoader::LookupLibrary(NameIndex library) {
   Library* handle = NULL;
   if (!libraries_.Lookup(library, &handle)) {
-    const String& url = H.DartSymbol(H.CanonicalNameString(library));
+    const String& url = H.DartString(H.CanonicalNameString(library));
     handle = &Library::Handle(Z, Library::LookupLibrary(thread_, url));
     if (handle->IsNull()) {
       *handle = Library::New(url);
@@ -1541,16 +1584,19 @@ RawFunction::Kind KernelLoader::GetFunctionType(
   return static_cast<RawFunction::Kind>(lookuptable[kind]);
 }
 
-ParsedFunction* ParseStaticFieldInitializer(Zone* zone, const Field& field) {
-  Thread* thread = Thread::Current();
-
+RawFunction* CreateFieldInitializerFunction(Thread* thread,
+                                            Zone* zone,
+                                            const Field& field) {
   String& init_name = String::Handle(zone, field.name());
   init_name = Symbols::FromConcat(thread, Symbols::InitPrefix(), init_name);
 
   // Create a static initializer.
   const Object& owner = Object::Handle(field.RawOwner());
-  const Function& initializer_fun = Function::ZoneHandle(
-      zone, Function::New(init_name, RawFunction::kImplicitStaticFinalGetter,
+  const Function& initializer_fun = Function::Handle(
+      zone, Function::New(init_name,
+                          // TODO(alexmarkov): Consider creating a separate
+                          // function kind for field initializers.
+                          RawFunction::kImplicitStaticFinalGetter,
                           true,   // is_static
                           false,  // is_const
                           false,  // is_abstract
@@ -1562,6 +1608,15 @@ ParsedFunction* ParseStaticFieldInitializer(Zone* zone, const Field& field) {
   initializer_fun.set_is_debuggable(false);
   initializer_fun.set_is_reflectable(false);
   initializer_fun.set_is_inlinable(false);
+  return initializer_fun.raw();
+}
+
+ParsedFunction* ParseStaticFieldInitializer(Zone* zone, const Field& field) {
+  Thread* thread = Thread::Current();
+
+  const Function& initializer_fun = Function::ZoneHandle(
+      zone, CreateFieldInitializerFunction(thread, zone, field));
+
   return new (zone) ParsedFunction(thread, initializer_fun);
 }
 

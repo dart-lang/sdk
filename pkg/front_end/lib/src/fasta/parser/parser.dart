@@ -1412,17 +1412,7 @@ class Parser {
       next = token.next;
       if (next.type != TokenType.IDENTIFIER) {
         String value = next.stringValue;
-        if (identical(value, 'get') || identical(value, 'set')) {
-          // Found a type reference, but missing an identifier after the period.
-          rewriteAndRecover(
-              token,
-              fasta.templateExpectedIdentifier.withArguments(next),
-              new SyntheticStringToken(
-                  TokenType.IDENTIFIER, '', next.charOffset, 0));
-          // Return the newly inserted synthetic token
-          // as the end of the type reference.
-          return token.next;
-        } else if (identical(value, '<')) {
+        if (identical(value, '<')) {
           // Found a type reference, but missing an identifier after the period.
           rewriteAndRecover(
               token,
@@ -2722,8 +2712,16 @@ class Parser {
               beforeToken = beforeNameToken;
               token = nameToken;
             }
-          } else if (nameToken.isIdentifier) {
-            nameContext = IdentifierContext.formalParameterDeclaration;
+          } else if (nameToken.isKeywordOrIdentifier) {
+            if (untyped) {
+              // Type is required in a function type but name is not.
+              untyped = false;
+              nameContext = null;
+              beforeNameToken = nameToken;
+              nameToken = nameToken.next;
+            } else {
+              nameContext = IdentifierContext.formalParameterDeclaration;
+            }
           } else {
             // No name required in a function type.
             nameContext = null;
@@ -2911,6 +2909,10 @@ class Parser {
       Function endStuff, Function handleNoStuff) {
     Token next = token.next;
     if (optional('<', next)) {
+      if (optional('dynamic', token)) {
+        reportRecoverableError(next,
+            fasta.templateTypeArgumentsOnTypeVariable.withArguments('dynamic'));
+      }
       BeginToken begin = next;
       rewriteLtEndGroupOpt(begin);
       beginStuff(begin);
@@ -3814,49 +3816,39 @@ class Parser {
       Token beforeName) {
     bool isOperator = getOrSet == null && optional('operator', beforeName.next);
 
-    int modifierCount = 0;
-    if (externalToken != null) {
-      listener.handleModifier(externalToken);
-      ++modifierCount;
-    }
     if (staticToken != null) {
-      if (!isOperator) {
-        listener.handleModifier(staticToken);
-        ++modifierCount;
-      } else {
+      if (isOperator) {
         reportRecoverableError(staticToken, fasta.messageStaticOperator);
         staticToken = null;
       }
     } else if (covariantToken != null) {
-      if (getOrSet != null && !optional('get', getOrSet)) {
-        listener.handleModifier(covariantToken);
-        ++modifierCount;
-      } else {
+      if (getOrSet == null || optional('get', getOrSet)) {
         reportRecoverableError(covariantToken, fasta.messageCovariantMember);
         covariantToken = null;
       }
     }
     if (varFinalOrConst != null) {
       if (optional('const', varFinalOrConst)) {
-        if (getOrSet == null) {
-          listener.handleModifier(varFinalOrConst);
-          ++modifierCount;
-        } else {
+        if (getOrSet != null) {
           reportRecoverableErrorWithToken(
               varFinalOrConst, fasta.templateExtraneousModifier);
           varFinalOrConst = null;
         }
       } else if (optional('var', varFinalOrConst)) {
         reportRecoverableError(varFinalOrConst, fasta.messageVarReturnType);
+        varFinalOrConst = null;
       } else {
         assert(optional('final', varFinalOrConst));
         reportRecoverableErrorWithToken(
             varFinalOrConst, fasta.templateExtraneousModifier);
+        varFinalOrConst = null;
       }
     }
-    // TODO(danrubel): Move beginMethod event before handleModifier events
-    listener.beginMethod();
-    listener.handleModifiers(modifierCount);
+
+    // TODO(danrubel): Consider parsing the name before calling beginMethod
+    // rather than passing the name token into beginMethod.
+    listener.beginMethod(externalToken, staticToken, covariantToken,
+        varFinalOrConst, beforeName.next);
 
     if (beforeType == null) {
       listener.handleNoType(beforeName);
@@ -3973,9 +3965,9 @@ class Parser {
       token = parseFunctionBody(token, false, true);
     } else {
       if (varFinalOrConst != null && !optional('native', next)) {
-        // TODO(danrubel): report error to fix
-        // test_constFactory in parser_fasta_test.dart
-        //reportRecoverableError(constToken, fasta.messageConstFactory);
+        if (optional('const', varFinalOrConst)) {
+          reportRecoverableError(varFinalOrConst, fasta.messageConstFactory);
+        }
       }
       token = parseFunctionBody(token, false, false);
     }

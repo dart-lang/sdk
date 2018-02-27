@@ -16,7 +16,6 @@ evaluate_activation_in_method_class_test: RuntimeError
 evaluate_activation_test/instance: RuntimeError
 evaluate_activation_test/scope: RuntimeError
 evaluate_in_sync_star_activation_test: RuntimeError
-library_dependency_test: CompileTimeError # Deferred loading kernel issue 28335.
 pause_on_unhandled_async_exceptions2_test: RuntimeError # --pause-isolates-on-unhandled-exceptions doesn't currently work. Issue #29056
 pause_on_unhandled_async_exceptions_test: RuntimeError #  --pause-isolates-on-unhandled-exceptions doesn't currently work. Issue #29056
 step_through_arithmetic_test: RuntimeError # probably constant evaluator pre-evaluating e.g. 1+2
@@ -128,7 +127,6 @@ coverage_leaf_function_test: RuntimeError # Please triage.
 coverage_optimized_function_test: RuntimeError # Please triage.
 get_object_rpc_test: RuntimeError # Please triage.
 get_source_report_test: RuntimeError # Please triage.
-library_dependency_test: RuntimeError # Please triage.
 positive_token_pos_test: Pass, RuntimeError
 reload_sources_test: Skip # Times out.
 rewind_test: Pass, RuntimeError

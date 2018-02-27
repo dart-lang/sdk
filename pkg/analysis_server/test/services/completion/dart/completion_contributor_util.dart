@@ -198,6 +198,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   CompletionSuggestion assertSuggestConstructor(String name,
       {int relevance: DART_RELEVANCE_DEFAULT,
       String importUri,
+      String elementName,
       int elemOffset,
       String defaultArgListString: _UNCHECKED,
       List<int> defaultArgumentListTextRanges}) {
@@ -211,7 +212,8 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     expect(element, isNotNull);
     expect(element.kind, equals(ElementKind.CONSTRUCTOR));
     int index = name.indexOf('.');
-    expect(element.name, index >= 0 ? name.substring(index + 1) : '');
+    elementName ??= index >= 0 ? name.substring(index + 1) : '';
+    expect(element.name, elementName);
     return cs;
   }
 

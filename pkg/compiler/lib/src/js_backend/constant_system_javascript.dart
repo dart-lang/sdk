@@ -258,6 +258,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
       const TruncatingDivideOperation());
   final codeUnitAt = const CodeUnitAtRuntimeOperation();
   final round = const JavaScriptRoundOperation();
+  final abs = const UnfoldedUnaryOperation('abs');
 
   const JavaScriptConstantSystem();
 

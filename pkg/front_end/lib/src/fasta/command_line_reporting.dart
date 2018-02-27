@@ -12,7 +12,7 @@ import 'dart:io' show exitCode;
 
 import 'package:kernel/ast.dart' show Location;
 
-import 'colors.dart' show cyan, magenta, red;
+import 'colors.dart' show cyan, green, magenta, red;
 
 import 'compiler_context.dart' show CompilerContext;
 
@@ -22,6 +22,8 @@ import 'deprecated_problems.dart'
 import 'fasta_codes.dart' show LocatedMessage, Message;
 
 import 'messages.dart' show getLocation, getSourceLine, isVerbose;
+
+import 'parser.dart' show noLength;
 
 import 'problems.dart' show unexpected;
 
@@ -37,9 +39,15 @@ const bool hideWarnings = false;
 ///
 /// This is shared implementation used by methods below, and isn't intended to
 /// be called directly.
-String formatInternal(Message message, Severity severity, Uri uri, int offset,
+String formatInternal(
+    Message message, Severity severity, Uri uri, int offset, int length,
     {Location location}) {
   try {
+    if (length < 1) {
+      // TODO(ahe): Throw in this situation. It is normally an error caused by
+      // empty names.
+      length = 1;
+    }
     String text =
         "${severityName(severity, capitalized: true)}: ${message.message}";
     if (message.tip != null) {
@@ -60,6 +68,10 @@ String formatInternal(Message message, Severity severity, Uri uri, int offset,
           text = magenta(text);
           break;
 
+        case Severity.context:
+          text = green(text);
+          break;
+
         default:
           return unexpected("$severity", "formatInternal", -1, null);
       }
@@ -71,12 +83,21 @@ String formatInternal(Message message, Severity severity, Uri uri, int offset,
       String sourceLine = getSourceLine(location);
       if (sourceLine == null) {
         sourceLine = "";
-      } else {
-        // TODO(ahe): We only print a single point in the source line as we
-        // don't have end positions. Also, we should be able to use
-        // package:source_span to produce this.
-        sourceLine = "\n$sourceLine\n"
-            "${' ' * (location.column - 1)}^";
+      } else if (sourceLine.isNotEmpty) {
+        String indentation = " " * (location.column - 1);
+        String pointer = indentation + ("^" * length);
+        if (pointer.length > sourceLine.length) {
+          // Truncate the carets to handle messages that span multiple lines.
+          int pointerLength = sourceLine.length;
+          // Add one to cover the case of a parser error pointing to EOF when
+          // the last line doesn't end with a newline. For messages spanning
+          // multiple lines, this also provides a minor visual clue that can be
+          // useful for debugging Fasta.
+          pointerLength += 1;
+          pointer = pointer.substring(0, pointerLength);
+          pointer += "...";
+        }
+        sourceLine = "\n$sourceLine\n$pointer";
       }
       String position =
           location == null ? "" : ":${location.line}:${location.column}";
@@ -98,6 +119,7 @@ bool isHidden(Severity severity) {
   switch (severity) {
     case Severity.error:
     case Severity.internalProblem:
+    case Severity.context:
       return false;
 
     case Severity.nit:
@@ -127,6 +149,9 @@ bool shouldThrowOn(Severity severity) {
     case Severity.warning:
       return CompilerContext.current.options.throwOnWarningsForDebugging;
 
+    case Severity.context:
+      return false;
+
     default:
       return unexpected("$severity", "shouldThrowOn", -1, null);
   }
@@ -146,6 +171,9 @@ String severityName(Severity severity, {bool capitalized: false}) {
 
     case Severity.warning:
       return capitalized ? "Warning" : "warning";
+
+    case Severity.context:
+      return capitalized ? "Context" : "context";
 
     default:
       return unexpected("$severity", "severityName", -1, null);
@@ -187,6 +215,7 @@ bool isCompileTimeError(Severity severity) {
 
     case Severity.nit:
     case Severity.warning:
+    case Severity.context:
       return false;
   }
   return unexpected("$severity", "isCompileTimeError", -1, null);
@@ -224,8 +253,8 @@ void reportWithoutLocation(Message message, Severity severity) {
 /// This method isn't intended to be called directly. Use
 /// [CompilerContext.format] instead.
 String format(LocatedMessage message, Severity severity, {Location location}) {
-  return formatInternal(
-      message.messageObject, severity, message.uri, message.charOffset,
+  return formatInternal(message.messageObject, severity, message.uri,
+      message.charOffset, message.length,
       location: location);
 }
 
@@ -234,5 +263,5 @@ String format(LocatedMessage message, Severity severity, {Location location}) {
 /// This method isn't intended to be called directly. Use
 /// [CompilerContext.formatWithoutLocation] instead.
 String formatWithoutLocation(Message message, Severity severity) {
-  return formatInternal(message, severity, null, -1);
+  return formatInternal(message, severity, null, -1, noLength);
 }

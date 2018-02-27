@@ -13,7 +13,7 @@ class T2 extends core::Object {
     ;
 }
 abstract class A extends core::Object {
-  synthetic constructor •() → void
+[@vm.unreachable.metadata=]  synthetic constructor •() → void
     : super core::Object::•()
     throw "TFA Error: #lib::A::";
   abstract method foo() → core::Object;

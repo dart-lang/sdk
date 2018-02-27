@@ -16,7 +16,7 @@ class S<Y> {
   Type get getSType => Y;
 }
 
-/*class: TS:checks=[$asS0,$asT]*/
+/*class: TS:checks=[$asS0,$asT],instance*/
 class TS<A, B> = T<A> with S<B>;
 
 @NoInline()

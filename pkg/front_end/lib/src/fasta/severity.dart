@@ -5,9 +5,10 @@
 library fasta.severity;
 
 enum Severity {
+  context,
   error,
+  errorLegacyWarning,
   internalProblem,
   nit,
   warning,
-  errorLegacyWarning,
 }

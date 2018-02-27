@@ -36,6 +36,7 @@ class GlobalLocalsMap {
   ///
   /// Use this for sharing maps between members that share IR nodes.
   void setLocalsMap(MemberEntity member, KernelToLocalsMap localsMap) {
+    assert(member != null, "No member provided.");
     assert(!_localsMaps.containsKey(member),
         "Locals map already created for $member.");
     _localsMaps[member] = localsMap;

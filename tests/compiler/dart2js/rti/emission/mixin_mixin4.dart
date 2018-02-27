@@ -4,23 +4,26 @@
 
 import "package:expect/expect.dart";
 
+/*class: I:checkedInstance*/
 class I<T> {}
 
+/*class: J:checkedInstance*/
 class J<T> {}
 
-/*class: S:checks=[]*/
+/*class: S:checkedInstance,checks=[]*/
 class S<T> {}
 
-/*class: M:checks=[]*/
+/*class: M:checkedInstance,checks=[]*/
 class M<T> {
   t() {
     return T;
   }
 }
 
+/*class: A:checkedInstance*/
 class A<U, V> = Object with M<Map<U, V>> implements I<V>;
 
-/*class: C:checks=[$asA,$asI,$asJ,$asM,$asS,$isA,$isI,$isJ]*/
+/*class: C:checks=[$asA,$asI,$asJ,$asM,$asS,$isA,$isI,$isJ],instance*/
 class C<T, K> = S<T> with A<T, List<K>> implements J<K>;
 
 @NoInline()

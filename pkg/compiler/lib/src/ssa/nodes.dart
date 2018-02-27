@@ -26,6 +26,7 @@ import 'invoke_dynamic_specializers.dart';
 import 'validate.dart';
 
 abstract class HVisitor<R> {
+  R visitAbs(HAbs node);
   R visitAdd(HAdd node);
   R visitAwait(HAwait node);
   R visitBitAnd(HBitAnd node);
@@ -382,6 +383,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitFieldAccess(HFieldAccess node) => visitInstruction(node);
   visitRelational(HRelational node) => visitInvokeBinary(node);
 
+  visitAbs(HAbs node) => visitInvokeUnary(node);
   visitAdd(HAdd node) => visitBinaryArithmetic(node);
   visitBitAnd(HBitAnd node) => visitBinaryBitOp(node);
   visitBitNot(HBitNot node) => visitInvokeUnary(node);
@@ -931,6 +933,7 @@ abstract class HInstruction implements Spannable {
   static const int FOREIGN_CODE_TYPECODE = 41;
   static const int REMAINDER_TYPECODE = 42;
   static const int GET_LENGTH_TYPECODE = 43;
+  static const int ABS_TYPECODE = 44;
 
   HInstruction(this.inputs, this.instructionType)
       : id = idCounter++,
@@ -2369,6 +2372,17 @@ class HNegate extends HInvokeUnary {
       constantSystem.negate;
   int typeCode() => HInstruction.NEGATE_TYPECODE;
   bool typeEquals(other) => other is HNegate;
+  bool dataEquals(HInstruction other) => true;
+}
+
+class HAbs extends HInvokeUnary {
+  HAbs(HInstruction input, Selector selector, TypeMask type)
+      : super(input, selector, type);
+  accept(HVisitor visitor) => visitor.visitAbs(this);
+
+  UnaryOperation operation(ConstantSystem constantSystem) => constantSystem.abs;
+  int typeCode() => HInstruction.ABS_TYPECODE;
+  bool typeEquals(other) => other is HAbs;
   bool dataEquals(HInstruction other) => true;
 }
 

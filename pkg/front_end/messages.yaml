@@ -267,6 +267,7 @@ ExpectedToken:
 
 ExpectedType:
   template: "Expected a type, but got '#lexeme'."
+  severity: ERROR
   analyzerCode: EXPECTED_TYPE_NAME
   dart2jsCode: "*fatal*"
 
@@ -392,6 +393,22 @@ ConstAfterFactory:
   dart2jsCode: "*ignored*"
   script:
     - "class C { factory const C() = prefix.B.foo; }"
+
+ConstConstructorWithBody:
+  template: "A const constructor can't have a body."
+  tip: "Try removing either the 'const' keyword or the body."
+  analyzerCode: CONST_CONSTRUCTOR_WITH_BODY
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { const C() {} }"
+
+ConstMethod:
+  template: "Getters, setters and methods can't be declared to be 'const'."
+  tip: "Try removing the 'const' keyword."
+  analyzerCode: CONST_METHOD
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { const C() {} }"
 
 CovariantAfterFinal:
   template: "The modifier 'covariant' should be before the modifier 'final'."
@@ -916,6 +933,22 @@ ConstructorNotFound:
   template: "Couldn't find constructor '#name'."
   severity: ERROR_LEGACY_WARNING
 
+ConstructorWithReturnType:
+  template: "Constructors can't have a return type."
+  tip: "Try removing the return type."
+  analyzerCode: CONSTRUCTOR_WITH_RETURN_TYPE
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { T C() {} }"
+
+FieldInitializerOutsideConstructor:
+  template: "Field formal parameters can only be used in a constructor."
+  tip: "Try replacing the field formal parameter with a normal parameter."
+  analyzerCode: FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { void m(this.x); }"
+
 RedirectionTargetNotFound:
   template: "Redirection constructor target not found: '#name'"
   severity: ERROR_LEGACY_WARNING
@@ -945,9 +978,11 @@ MethodNotFound:
 
 CandidateFound:
   template: "Found this candidate, but the arguments don't match."
+  severity: CONTEXT
 
 CandidateFoundIsDefaultConstructor:
   template: "The class '#name' has a constructor that takes no arguments."
+  severity: CONTEXT
 
 TooFewArgumentsToFunction:
   template: "Too few positional arguments to function: #count required, #count2 given."
@@ -1282,6 +1317,7 @@ IllegalMixinDueToConstructors:
 
 IllegalMixinDueToConstructorsCause:
   template: "This constructor prevents using '#name' as a mixin."
+  severity: CONTEXT
 
 ConflictsWithConstructor:
   template: "Conflicts with constructor '#name'."
@@ -1312,8 +1348,8 @@ ConflictsWithTypeVariable:
   severity: ERROR
 
 ConflictsWithTypeVariableCause:
-  template:  "This is the type variable."
-  severity: ERROR
+  template: "This is the type variable."
+  severity: CONTEXT
 
 IllegalMixin:
   template: "The type '#name' can't be mixed in."
@@ -1324,6 +1360,7 @@ OverrideTypeVariablesMismatch:
 
 OverriddenMethodCause:
   template: "This is the overriden method ('#name')."
+  severity: CONTEXT
 
 OverrideMismatchNamedParameter:
   template: "The method '#name' doesn't have the named parameter '#name2' of overriden method '#name3'."
@@ -1357,9 +1394,6 @@ IllegalMethodName:
   template: "'#name' isn't a legal method name."
   tip: "Did you mean '#name2'?"
 
-ConstConstructorWithBody:
-  template: "A const constructor can't have a body."
-
 PartOfSelf:
   template: "A file can't be a part of itself."
 
@@ -1368,6 +1402,7 @@ TypeVariableDuplicatedName:
 
 TypeVariableDuplicatedNameCause:
   template: "The other type variable named '#name'."
+  severity: CONTEXT
 
 TypeVariableSameNameAsEnclosing:
   template: "A type variable can't have the same name as its enclosing declaration."
@@ -1537,10 +1572,16 @@ DeferredPrefixDuplicated:
 
 DeferredPrefixDuplicatedCause:
   template: "'#name' is used here."
+  severity: CONTEXT
 
 TypeArgumentsOnTypeVariable:
   template: "Can't use type arguments with type variable '#name'."
+  tip: "Try removing the type arguments."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: TYPE_ARGUMENTS_ON_TYPE_VARIABLE
+  dart2jsCode: "*fatal*"
+  script:
+    - "dynamic<T>(x) => 0"
 
 DuplicatedDefinition:
   template: "Duplicated definition of '#name'."
@@ -1553,6 +1594,7 @@ DuplicatedParameterName:
 
 DuplicatedParameterNameCause:
   template: "Other parameter named '#name'."
+  severity: CONTEXT
 
 MemberWithSameNameAsClass:
   template: "A class member can't have the same name as the enclosing class."
@@ -1669,7 +1711,7 @@ FinalInstanceVariableAlreadyInitialized:
 
 FinalInstanceVariableAlreadyInitializedCause:
   template: "'#name' was initialized here."
-  severity: ERROR_LEGACY_WARNING
+  severity: CONTEXT
 
 TypeVariableInStaticContext:
   template: "Type variables can't be used in static members."
@@ -1703,6 +1745,7 @@ ConstConstructorNonFinalField:
 
 ConstConstructorNonFinalFieldCause:
   template: "Field isn't final, but constructor is 'const'."
+  severity: CONTEXT
 
 AccessError:
   template: "Access error: '#name'."
@@ -1823,12 +1866,14 @@ PatchClassTypeVariablesMismatch:
 
 PatchClassOrigin:
   template: "This is the origin class."
+  severity: CONTEXT
 
 PatchDeclarationMismatch:
   template: "This patch doesn't match origin declaration."
 
 PatchDeclarationOrigin:
   template: "This is the origin declaration."
+  severity: CONTEXT
 
 PatchInjectionFailed:
   template: "Can't inject '#name' into '#uri'."

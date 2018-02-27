@@ -41,7 +41,7 @@ class A {}
     addSource('/libB.dart', '''
 library libB;
 import "/libA.dart" as foo;
-part '$testFile';
+part '${convertPathForImport(testFile)}';
 ''');
     addTestSource('part of libB; main() {^}');
 

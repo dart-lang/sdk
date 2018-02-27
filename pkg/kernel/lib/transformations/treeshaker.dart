@@ -1161,22 +1161,22 @@ class _ExternalTypeVisitor extends DartTypeVisitor {
     }
   }
 
-  visitCovariant(DartType type) => type?.accept(this);
+  void visitCovariant(DartType type) => type?.accept(this);
 
-  visitInvariant(DartType type) => shaker._invariantVisitor.visit(type);
+  void visitInvariant(DartType type) => shaker._invariantVisitor.visit(type);
 
-  visitInvalidType(InvalidType node) {}
+  void visitInvalidType(InvalidType node) {}
 
-  visitDynamicType(DynamicType node) {
+  void visitDynamicType(DynamicType node) {
     // TODO(asgerf): Find a suitable model for untyped externals, e.g. track
     // them to the first type boundary.
   }
 
-  visitVoidType(VoidType node) {}
+  void visitVoidType(VoidType node) {}
 
-  visitVectorType(VectorType node) {}
+  void visitVectorType(VectorType node) {}
 
-  visitInterfaceType(InterfaceType node) {
+  void visitInterfaceType(InterfaceType node) {
     if (isCovariant) {
       shaker._addInstantiatedExternalSubclass(node.classNode);
     }
@@ -1197,11 +1197,11 @@ class _ExternalTypeVisitor extends DartTypeVisitor {
     }
   }
 
-  visitTypedefType(TypedefType node) {
+  void visitTypedefType(TypedefType node) {
     shaker.addUsedTypedef(node.typedefNode);
   }
 
-  visitFunctionType(FunctionType node) {
+  void visitFunctionType(FunctionType node) {
     visit(node.returnType);
     for (int i = 0; i < node.positionalParameters.length; ++i) {
       visitContravariant(node.positionalParameters[i]);
@@ -1211,7 +1211,7 @@ class _ExternalTypeVisitor extends DartTypeVisitor {
     }
   }
 
-  visitTypeParameterType(TypeParameterType node) {}
+  void visitTypeParameterType(TypeParameterType node) {}
 
   /// Just treat a couple of whitelisted classes as having covariant type
   /// parameters.

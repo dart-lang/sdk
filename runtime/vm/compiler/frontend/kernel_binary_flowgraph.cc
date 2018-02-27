@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/compiler/frontend/kernel_binary_flowgraph.h"
+#include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/frontend/prologue_builder.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/longjump.h"
@@ -18,7 +19,7 @@ namespace kernel {
 #define T (type_translator_)
 #define I Isolate::Current()
 
-static bool IsStaticInitializer(const Function& function, Zone* zone) {
+static bool IsFieldInitializer(const Function& function, Zone* zone) {
   return (function.kind() == RawFunction::kImplicitStaticFinalGetter) &&
          String::Handle(zone, function.name())
              .StartsWith(Symbols::InitPrefix());
@@ -1003,7 +1004,7 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
     case RawFunction::kImplicitStaticFinalGetter:
     case RawFunction::kImplicitSetter: {
       ASSERT(builder_->PeekTag() == kField);
-      if (IsStaticInitializer(function, Z)) {
+      if (IsFieldInitializer(function, Z)) {
         VisitNode();
         break;
       }
@@ -1541,6 +1542,10 @@ void StreamingScopeBuilder::VisitExpression() {
       }
       return;
     }
+    case kLoadLibrary:
+    case kCheckLibraryIsLoaded:
+      builder_->ReadUInt();  // library index
+      break;
     default:
       H.ReportError("Unsupported tag at this point: %d.", tag);
       UNREACHABLE();
@@ -1711,7 +1716,7 @@ void StreamingScopeBuilder::VisitStatement() {
     case kReturnStatement: {
       if ((depth_.function_ == 0) && (depth_.finally_ > 0) &&
           (result_->finally_return_variable == NULL)) {
-        const String& name = H.DartSymbol(":try_finally_return_value");
+        const String& name = Symbols::TryFinallyReturnValue();
         LocalVariable* variable =
             MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                          name, AbstractType::dynamic_type());
@@ -1849,7 +1854,7 @@ void StreamingScopeBuilder::VisitVariableDeclaration() {
   // `declaration->SetConstantValue()`.
   const String& name = (H.StringSize(helper.name_index_) == 0)
                            ? GenerateName(":var", name_index_++)
-                           : H.DartSymbol(helper.name_index_);
+                           : H.DartSymbolObfuscate(helper.name_index_);
 
   Tag tag = builder_->ReadTag();  // read (first part of) initializer.
   if (tag == kSomething) {
@@ -2077,7 +2082,7 @@ void StreamingScopeBuilder::AddVariableDeclarationParameter(
       builder_->inferred_type_metadata_helper_.GetInferredType(kernel_offset);
   VariableDeclarationHelper helper(builder_);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
-  String& name = H.DartSymbol(helper.name_index_);
+  String& name = H.DartSymbolObfuscate(helper.name_index_);
   AbstractType& type = BuildAndVisitVariableType();  // read type.
   helper.SetJustRead(VariableDeclarationHelper::kType);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kInitializer);
@@ -2238,7 +2243,7 @@ void StreamingScopeBuilder::LookupVariable(intptr_t declaration_binary_offset) {
         declaration_binary_offset - builder_->data_program_offset_,
         parsed_function_->function());
 
-    const String& name = H.DartSymbol(var_name);
+    const String& name = H.DartSymbolObfuscate(var_name);
     variable = current_function_scope_->parent()->LookupVariable(name, true);
     ASSERT(variable != NULL);
     result_->locals.Insert(declaration_binary_offset, variable);
@@ -2267,7 +2272,7 @@ const String& StreamingScopeBuilder::GenerateName(const char* prefix,
                                                   intptr_t suffix) {
   char name[64];
   OS::SNPrint(name, 64, "%s%" Pd "", prefix, suffix);
-  return H.DartSymbol(name);
+  return H.DartSymbolObfuscate(name);
 }
 
 void StreamingScopeBuilder::HandleSpecialLoad(LocalVariable** variable,
@@ -2469,7 +2474,7 @@ void StreamingDartTypeTranslator::BuildFunctionType(bool simple) {
 
   intptr_t pos = 0;
   parameter_types.SetAt(pos, AbstractType::dynamic_type());
-  parameter_names.SetAt(pos, H.DartSymbol("_receiver_"));
+  parameter_names.SetAt(pos, H.DartSymbolPlain("_receiver_"));
   ++pos;
   for (intptr_t i = 0; i < positional_count; ++i, ++pos) {
     BuildTypeInternal();  // read ith positional parameter.
@@ -2477,7 +2482,7 @@ void StreamingDartTypeTranslator::BuildFunctionType(bool simple) {
       result_ = AbstractType::dynamic_type().raw();
     }
     parameter_types.SetAt(pos, result_);
-    parameter_names.SetAt(pos, H.DartSymbol("noname"));
+    parameter_names.SetAt(pos, H.DartSymbolPlain("noname"));
   }
 
   // The additional first parameter is the receiver type (set to dynamic).
@@ -2490,7 +2495,7 @@ void StreamingDartTypeTranslator::BuildFunctionType(bool simple) {
         builder_->ReadListLength();  // read named_parameters list length.
     for (intptr_t i = 0; i < named_count; ++i, ++pos) {
       // read string reference (i.e. named_parameters[i].name).
-      String& name = H.DartSymbol(builder_->ReadStringReference());
+      String& name = H.DartSymbolObfuscate(builder_->ReadStringReference());
       BuildTypeInternal();  // read named_parameters[i].type.
       if (result_.IsMalformed()) {
         result_ = AbstractType::dynamic_type().raw();
@@ -2607,7 +2612,10 @@ void StreamingDartTypeTranslator::BuildTypeParameterType() {
     return;
   }
 
-  H.ReportError("Unexpected input. Please report this at dartbug.com.");
+  H.ReportError(
+      builder_->script(), TokenPosition::kNoSource,
+      "Unbound type parameter found in %s.  Please report this at dartbug.com.",
+      active_class_->ToCString());
 }
 
 const TypeArguments& StreamingDartTypeTranslator::BuildTypeArguments(
@@ -2769,6 +2777,9 @@ Instance& StreamingConstantEvaluator::EvaluateExpression(intptr_t offset,
         break;
       case kLet:
         EvaluateLet();
+        break;
+      case kInstantiation:
+        EvaluatePartialTearoffInstantiation();
         break;
       case kBigIntLiteral:
         EvaluateBigIntLiteral();
@@ -3179,11 +3190,15 @@ void StreamingConstantEvaluator::EvaluateConstructorInvocationInternal() {
   if (constructor.IsFactory()) {
     // Factories return the new object.
     result_ ^= result.raw();
-    result_ = H.Canonicalize(result_);
   } else {
     ASSERT(!receiver->IsNull());
-    result_ = H.Canonicalize(*receiver);
+    result_ ^= (*receiver).raw();
   }
+  if (I->obfuscate() &&
+      (result_.clazz() == I->object_store()->symbol_class())) {
+    Obfuscator::ObfuscateSymbolInstance(H.thread(), result_);
+  }
+  result_ = H.Canonicalize(result_);
 }
 
 void StreamingConstantEvaluator::EvaluateNot() {
@@ -3293,7 +3308,8 @@ void StreamingConstantEvaluator::EvaluateStringConcatenation() {
 }
 
 void StreamingConstantEvaluator::EvaluateSymbolLiteral() {
-  const String& symbol_value = H.DartSymbol(
+  // The symbol value is read plain and obfuscated later.
+  const String& symbol_value = H.DartSymbolPlain(
       builder_->ReadStringReference());  // read index into string table.
 
   const Class& symbol_class =
@@ -3356,8 +3372,9 @@ void StreamingConstantEvaluator::EvaluateMapLiteralInternal() {
   ASSERT(!map_class.IsNull());
   ASSERT(map_class.NumTypeArguments() == 2);
 
-  const Field& field = Field::Handle(
-      Z, map_class.LookupInstanceFieldAllowPrivate(H.DartSymbol("_kvPairs")));
+  const Field& field =
+      Field::Handle(Z, map_class.LookupInstanceFieldAllowPrivate(
+                           H.DartSymbolObfuscate("_kvPairs")));
   ASSERT(!field.IsNull());
 
   // NOTE: This needs to be kept in sync with `runtime/lib/immutable_map.dart`!
@@ -3387,6 +3404,41 @@ void StreamingConstantEvaluator::EvaluateLet() {
   EvaluateExpression(builder_->ReaderOffset(), false);  // read body
 }
 
+void StreamingConstantEvaluator::EvaluatePartialTearoffInstantiation() {
+  // This method call wasn't cached, so receiver et al. isn't cached either.
+  const Instance& receiver =
+      EvaluateExpression(builder_->ReaderOffset(), false);  // read receiver.
+  if (!receiver.IsClosure()) {
+    H.ReportError(script_, TokenPosition::kNoSource, "Expected closure.");
+  }
+  const Closure& old_closure = Closure::Cast(receiver);
+
+  // read type arguments.
+  intptr_t num_type_args = builder_->ReadListLength();
+  const TypeArguments* type_args = &T.BuildTypeArguments(num_type_args);
+  // Even if all dynamic types are passed in, we need to put a vector in here to
+  // distinguish this partially applied tearoff from a normal tearoff. This is
+  // necessary because the tearoff wrapper (BuildGraphOfImplicitClosureFunction)
+  // needs to throw NSM if type arguments are passed to a partially applied
+  // tearoff.
+  if (type_args->IsNull()) {
+    type_args =
+        &TypeArguments::ZoneHandle(Z, TypeArguments::New(num_type_args));
+    for (intptr_t i = 0; i < num_type_args; ++i) {
+      type_args->SetTypeAt(i, Type::ZoneHandle(Z, Type::DynamicType()));
+    }
+  }
+
+  // Create new closure with the type arguments inserted, and other things
+  // copied over.
+  Closure& new_closure = Closure::Handle(
+      Z, Closure::New(TypeArguments::Handle(
+                          Z, old_closure.instantiator_type_arguments()),
+                      *type_args, Function::Handle(Z, old_closure.function()),
+                      Context::Handle(Z, old_closure.context()), Heap::kOld));
+  result_ = H.Canonicalize(new_closure);
+}
+
 void StreamingConstantEvaluator::EvaluateBigIntLiteral() {
   const String& value =
       H.DartString(builder_->ReadStringReference());  // read string reference.
@@ -3399,7 +3451,7 @@ void StreamingConstantEvaluator::EvaluateBigIntLiteral() {
 }
 
 void StreamingConstantEvaluator::EvaluateStringLiteral() {
-  result_ = H.DartSymbol(builder_->ReadStringReference())
+  result_ = H.DartSymbolPlain(builder_->ReadStringReference())
                 .raw();  // read string reference.
 }
 
@@ -3469,8 +3521,8 @@ const Object& StreamingConstantEvaluator::RunFunction(
   const Array& names =
       Array::ZoneHandle(Z, Array::New(list_length, H.allocation_space()));
   for (intptr_t i = 0; i < list_length; ++i) {
-    String& name =
-        H.DartSymbol(builder_->ReadStringReference());  // read ith name index.
+    String& name = H.DartSymbolObfuscate(
+        builder_->ReadStringReference());  // read ith name index.
     names.SetAt(i, name);
     EvaluateExpression(builder_->ReaderOffset(),
                        false);  // read ith expression.
@@ -3546,6 +3598,10 @@ RawObject* StreamingConstantEvaluator::EvaluateConstConstructorCall(
   if (constructor.IsFactory()) {
     // The factory method returns the allocated object.
     instance ^= result.raw();
+  }
+  if (I->obfuscate() &&
+      (instance.clazz() == I->object_store()->symbol_class())) {
+    Obfuscator::ObfuscateSymbolInstance(H.thread(), instance);
   }
   return H.Canonicalize(instance);
 }
@@ -3692,10 +3748,9 @@ bool StreamingFlowGraphBuilder::optimizing() {
   return flow_graph_builder_->optimizing_;
 }
 
-FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfStaticFieldInitializer() {
+FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldInitializer() {
   FieldHelper field_helper(this);
   field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
-  ASSERT(field_helper.IsStatic());
 
   Tag initializer_tag = ReadTag();  // read first part of initializer.
   if (initializer_tag != kSomething) {
@@ -4201,7 +4256,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
       VariableDeclarationHelper helper(this);
       helper.ReadUntilExcluding(VariableDeclarationHelper::kEnd);
 
-      argument_names.SetAt(i, H.DartSymbol(helper.name_index_));
+      argument_names.SetAt(i, H.DartSymbolObfuscate(helper.name_index_));
     }
   }
 
@@ -4251,7 +4306,7 @@ Fragment StreamingFlowGraphBuilder::BuildArgumentTypeChecks(
     for (intptr_t i = 0; i < num_type_params; ++i) {
       ReadFlags();                                         // skip flags
       SkipListOfExpressions();                             // skip annotations
-      String& name = H.DartSymbol(ReadStringReference());  // read name
+      String& name = H.DartSymbolObfuscate(ReadStringReference());  // read name
       AbstractType& bound = T.BuildType();                 // read bound
 
       if (forwarding_target != NULL) {
@@ -4710,8 +4765,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
     case RawFunction::kImplicitGetter:
     case RawFunction::kImplicitStaticFinalGetter:
     case RawFunction::kImplicitSetter: {
-      return IsStaticInitializer(function, Z)
-                 ? BuildGraphOfStaticFieldInitializer()
+      return IsFieldInitializer(function, Z)
+                 ? BuildGraphOfFieldInitializer()
                  : BuildGraphOfFieldAccessor(scopes()->setter_value);
     }
     case RawFunction::kMethodExtractor:
@@ -4843,6 +4898,10 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
       return BuildConstantExpression(position);
     case kInstantiation:
       return BuildPartialTearoffInstantiation(position);
+    case kLoadLibrary:
+    case kCheckLibraryIsLoaded:
+      ReadUInt();  // skip library index
+      return BuildFutureNullValue(position);
     default:
       H.ReportError("Unsupported tag at this point: %d.", tag);
       UNREACHABLE();
@@ -5394,6 +5453,10 @@ void StreamingFlowGraphBuilder::SkipExpression() {
       return;
     case kConstantExpression:
       SkipConstantReference();
+      return;
+    case kLoadLibrary:
+    case kCheckLibraryIsLoaded:
+      ReadUInt();  // skip library index
       return;
     default:
       H.ReportError("Unsupported tag at this point: %d.", tag);
@@ -6206,7 +6269,8 @@ Fragment StreamingFlowGraphBuilder::BuildArgumentsFromActualArguments(
     *argument_names ^= Array::New(list_length, Heap::kOld);
   }
   for (intptr_t i = 0; i < list_length; ++i) {
-    String& name = H.DartSymbol(ReadStringReference());  // read ith name index.
+    String& name =
+        H.DartSymbolObfuscate(ReadStringReference());    // read ith name index.
     instructions += BuildExpression();                   // read ith expression.
     if (!skip_push_arguments) instructions += PushArgument();
     if (do_drop) instructions += Drop();
@@ -7082,7 +7146,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
     intptr_t named_list_length = ReadListLength();
     argument_names ^= Array::New(named_list_length, H.allocation_space());
     for (intptr_t i = 0; i < named_list_length; i++) {
-      const String& arg_name = H.DartSymbol(ReadStringReference());
+      const String& arg_name = H.DartSymbolObfuscate(ReadStringReference());
       argument_names.SetAt(i, arg_name);
       SkipExpression();
     }
@@ -7855,8 +7919,8 @@ Fragment StreamingFlowGraphBuilder::BuildStringLiteral(
     TokenPosition* position) {
   if (position != NULL) *position = TokenPosition::kNoSource;
 
-  return Constant(
-      H.DartSymbol(ReadStringReference()));  // read index into string table.
+  return Constant(H.DartSymbolPlain(
+      ReadStringReference()));  // read index into string table.
 }
 
 Fragment StreamingFlowGraphBuilder::BuildIntLiteral(uint8_t payload,
@@ -7897,6 +7961,23 @@ Fragment StreamingFlowGraphBuilder::BuildNullLiteral(TokenPosition* position) {
   if (position != NULL) *position = TokenPosition::kNoSource;
 
   return Constant(Instance::ZoneHandle(Z, Instance::null()));
+}
+
+Fragment StreamingFlowGraphBuilder::BuildFutureNullValue(
+    TokenPosition* position) {
+  if (position != NULL) *position = TokenPosition::kNoSource;
+  const Class& future = Class::Handle(Z, I->object_store()->future_class());
+  ASSERT(!future.IsNull());
+  const Function& constructor =
+      Function::ZoneHandle(Z, future.LookupFunction(Symbols::FutureValue()));
+  ASSERT(!constructor.IsNull());
+
+  Fragment instructions;
+  instructions += BuildNullLiteral(position);
+  instructions += PushArgument();
+  instructions += StaticCall(TokenPosition::kNoSource, constructor,
+                             /* argument_count = */ 1, ICData::kStatic);
+  return instructions;
 }
 
 Fragment StreamingFlowGraphBuilder::BuildVectorCreation(
@@ -8453,9 +8534,15 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement() {
       const Class& klass = Class::ZoneHandle(
           Z, Library::LookupCoreClass(Symbols::FallThroughError()));
       ASSERT(!klass.IsNull());
+
+      GrowableHandlePtrArray<const String> pieces(Z, 3);
+      pieces.Add(Symbols::FallThroughError());
+      pieces.Add(Symbols::Dot());
+      pieces.Add(H.DartSymbolObfuscate("_create"));
+
       const Function& constructor = Function::ZoneHandle(
-          Z, klass.LookupConstructorAllowPrivate(
-                 H.DartSymbol("FallThroughError._create")));
+          Z, klass.LookupConstructorAllowPrivate(String::ZoneHandle(
+                 Z, Symbols::FromConcatAll(H.thread(), pieces))));
       ASSERT(!constructor.IsNull());
       const String& url = H.DartString(
           parsed_function()->function().ToLibNamePrefixedQualifiedCString(),
@@ -8989,7 +9076,7 @@ Fragment StreamingFlowGraphBuilder::BuildVariableDeclaration() {
 
   VariableDeclarationHelper helper(this);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
-  String& name = H.DartSymbol(helper.name_index_);
+  String& name = H.DartSymbolObfuscate(helper.name_index_);
   AbstractType& type = T.BuildType();  // read type.
   Tag tag = ReadTag();                 // read (first part of) initializer.
 
@@ -9072,7 +9159,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
 
       const String* name;
       if (declaration) {
-        name = &H.DartSymbol(name_index);
+        name = &H.DartSymbolObfuscate(name_index);
       } else {
         name = &Symbols::AnonymousClosure();
       }
@@ -9195,7 +9282,7 @@ void StreamingFlowGraphBuilder::LoadAndSetupTypeParameters(
       parameter = TypeParameter::New(
           set_on_class ? *active_class->klass : Class::Handle(Z),
           parameterized_function, i,
-          H.DartSymbol(ReadStringReference()),  // read ith name index.
+          H.DartSymbolObfuscate(ReadStringReference()),  // read ith name index.
           null_bound, TokenPosition::kNoSource);
       type_parameters.SetTypeAt(i, parameter);
       SkipDartType();  // read guard.
@@ -9312,7 +9399,7 @@ void StreamingFlowGraphBuilder::SetupFunctionParameters(
 
     function.SetParameterTypeAt(
         pos, type.IsMalformed() ? Type::dynamic_type() : type);
-    function.SetParameterNameAt(pos, H.DartSymbol(helper.name_index_));
+    function.SetParameterNameAt(pos, H.DartSymbolObfuscate(helper.name_index_));
   }
 
   intptr_t named_parameter_count_check = ReadListLength();  // read list length.
@@ -9329,7 +9416,7 @@ void StreamingFlowGraphBuilder::SetupFunctionParameters(
 
     function.SetParameterTypeAt(
         pos, type.IsMalformed() ? Type::dynamic_type() : type);
-    function.SetParameterNameAt(pos, H.DartSymbol(helper.name_index_));
+    function.SetParameterNameAt(pos, H.DartSymbolObfuscate(helper.name_index_));
   }
 
   function_node_helper->SetJustRead(FunctionNodeHelper::kNamedParameters);

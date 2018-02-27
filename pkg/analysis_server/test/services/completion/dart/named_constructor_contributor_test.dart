@@ -51,7 +51,7 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "/testB.dart";
+        import "${convertPathForImport("/testB.dart")}";
         var m;
         main() {new X.^}''');
 
@@ -75,7 +75,7 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "/testB.dart";
+        import "${convertPathForImport("/testB.dart")}";
         var m;
         main() {new X.^}''');
     // Assume that imported libraries are NOT resolved
@@ -100,7 +100,7 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
         F1() { }
         class X {factory X.c(); factory X._d(); z() {}}''');
     addTestSource('''
-        import "/testB.dart";
+        import "${convertPathForImport("/testB.dart")}";
         var m;
         main() {new X.^}''');
 

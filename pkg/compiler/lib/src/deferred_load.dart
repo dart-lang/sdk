@@ -647,7 +647,8 @@ abstract class DeferredLoadTask extends CompilerTask {
 
     work() {
       var queue = new WorkQueue(this.importSets);
-      _isMirrorsUsed = closedWorld.backendUsage.isMirrorsUsed;
+      _isMirrorsUsed =
+          closedWorld.backendUsage.isMirrorsUsed && !compiler.options.useKernel;
 
       // Add `main` and their recursive dependencies to the main output unit.
       // We do this upfront to avoid wasting time visiting these elements when
@@ -689,7 +690,7 @@ abstract class DeferredLoadTask extends CompilerTask {
       }
 
       emptyQueue();
-      if (closedWorld.backendUsage.isMirrorsUsed) {
+      if (_isMirrorsUsed) {
         addDeferredMirrorElements(queue);
         emptyQueue();
       }

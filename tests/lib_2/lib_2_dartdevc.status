@@ -3,8 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartdevc ]
-async/futures_test: RuntimeError # Issue 29922
-html/xhr_test/xhr: RuntimeError # Issue 29922, strong mode cast failure
+html/xhr_test: Pass, Slow
 
 [ $compiler == dartdevk ]
 async/slow_consumer_test: CompileTimeError
@@ -38,7 +37,7 @@ html/client_rect_test: Pass, RuntimeError # Issue 31019
 html/css_test: Pass, RuntimeError # Issue 31019
 
 [ $system == windows && ($compiler == dartdevc || $compiler == dartdevk) ]
-html/xhr_test/xhr: Skip # Times out. Issue 21527
+html/xhr_test: Skip # Times out. Issue 21527
 
 [ $compiler == dartdevc || $compiler == dartdevk ]
 async/async_await_sync_completer_test: RuntimeError # Issue 29922
@@ -91,8 +90,6 @@ html/element_classes_svg_test: RuntimeError # Issue 29922
 html/element_classes_test: RuntimeError # Issue 29922
 html/fontface_loaded_test: RuntimeError
 html/gamepad_test: RuntimeError # Issue 31029
-html/indexeddb_1_test/functional: RuntimeError # Issue 29922, strong mode cast failure
-html/indexeddb_2_test: RuntimeError, Skip # Times out. Issue 29922, strong mode cast failure
 html/interactive_media_test: Skip # requests interactive permissions (camera, geolocation)
 html/isolates_test: RuntimeError # Issue 29922
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue 29922
@@ -130,4 +127,3 @@ typed_data/int32x4_arithmetic_test/int64: RuntimeError # Issue 29922
 typed_data/int64_list_load_store_test: RuntimeError # Issue 29922
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 29922
 typed_data/unmodifiable_typed_data_test: RuntimeError # Issue 10275
-

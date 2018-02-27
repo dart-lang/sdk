@@ -8,11 +8,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 import 'dart:typed_data';
-import 'package:unittest/html_individual_config.dart';
-import 'package:unittest/unittest.dart';
 
-main() {
-  useHtmlIndividualConfiguration();
+import 'package:unittest/unittest.dart';
+import 'package:unittest/html_config.dart';
+import 'package:async_helper/async_helper.dart';
+
+main() async {
+  useHtmlConfiguration();
+
   // Cache blocker is a workaround for:
   // https://code.google.com/p/dart/issues/detail?id=11834
   var cacheBlocker = new DateTime.now().millisecondsSinceEpoch;
@@ -89,11 +92,11 @@ main() {
     test('XHR.request No file', () {
       HttpRequest.request('NonExistingFile').then((_) {
         fail('Request should not have succeeded.');
-      }, onError: expectAsync((error) {
-        var xhr = error.target;
+      }).catchError((error) {
+        HttpRequest xhr = error.target;
         expect(xhr.readyState, equals(HttpRequest.DONE));
         validate404(xhr);
-      }));
+      });
     });
 
     test('XHR.request file', () {
@@ -117,30 +120,36 @@ main() {
     test('XHR.request withCredentials No file', () {
       HttpRequest.request('NonExistingFile', withCredentials: true).then((_) {
         fail('Request should not have succeeded.');
-      }, onError: expectAsync((error) {
-        var xhr = error.target;
+      }).catchError((error) {
+        HttpRequest xhr = error.target;
         expect(xhr.readyState, equals(HttpRequest.DONE));
         validate404(xhr);
-      }));
+      });
     });
 
-    test('XHR.request withCredentials file', () {
-      HttpRequest.request(url, withCredentials: true).then(expectAsync((xhr) {
+    test('XHR.request withCredentials file', () async {
+      try {
+        HttpRequest xhr = await HttpRequest.request(url, withCredentials: true);
         expect(xhr.readyState, equals(HttpRequest.DONE));
         validate200Response(xhr);
-      }));
+      } catch (error) {
+        fail('Request should succeed.');
+      }
     });
 
     test('XHR.getString file', () {
       HttpRequest.getString(url).then(expectAsync((str) {}));
     });
 
-    test('XHR.getString No file', () {
-      HttpRequest.getString('NonExistingFile').then((_) {
+    test('XHR.getString No file', () async {
+      try {
+        await HttpRequest.getString('NonExistingFile');
         fail('Succeeded for non-existing file.');
-      }, onError: expectAsync((error) {
-        validate404(error.target);
-      }));
+      } catch (error) {
+        HttpRequest xhr = error.target;
+        expect(xhr.readyState, equals(HttpRequest.DONE));
+        validate404(xhr);
+      }
     });
 
     test('XHR.request responseType arraybuffer', () {

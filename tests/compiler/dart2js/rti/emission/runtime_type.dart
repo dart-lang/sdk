@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*class: A:checks=[]*/
+/*class: A:checks=[],instance*/
 class A<T> {}
 
-/*class: B:checks=[]*/
+/*class: B:checks=[],typeArgument*/
 class B<T> {}
 
 main() {

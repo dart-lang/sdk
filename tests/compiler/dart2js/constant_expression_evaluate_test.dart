@@ -480,9 +480,19 @@ class B extends A {
     class B {
       const B() : assert(true, "Message");
     }
+    class C {
+      final a;
+      const C(this.a);
+    }
+    class D extends C {
+      final b;
+      const D(c) : super(c + 1), b = c + 2;
+    }
   ''', const [
     const ConstantData(r'const A()', 'ConstructedConstant(A())'),
     const ConstantData(r'const B()', 'ConstructedConstant(B())'),
+    const ConstantData(r'const D(0)',
+        'ConstructedConstant(D(a=IntConstant(1),b=IntConstant(2)))'),
   ]),
 ];
 

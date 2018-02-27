@@ -25422,6 +25422,65 @@ typedef void MutationCallback(
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@DocsEditable()
+@DomName('MutationEvent')
+// http://www.w3.org/TR/DOM-Level-3-Events/#events-mutationevents
+@deprecated
+@Native("MutationEvent")
+class MutationEvent extends Event {
+  // To suppress missing implicit constructor warnings.
+  factory MutationEvent._() {
+    throw new UnsupportedError("Not supported");
+  }
+
+  @DomName('MutationEvent.ADDITION')
+  @DocsEditable()
+  static const int ADDITION = 2;
+
+  @DomName('MutationEvent.MODIFICATION')
+  @DocsEditable()
+  static const int MODIFICATION = 1;
+
+  @DomName('MutationEvent.REMOVAL')
+  @DocsEditable()
+  static const int REMOVAL = 3;
+
+  @DomName('MutationEvent.attrChange')
+  @DocsEditable()
+  final int attrChange;
+
+  @DomName('MutationEvent.attrName')
+  @DocsEditable()
+  final String attrName;
+
+  @DomName('MutationEvent.newValue')
+  @DocsEditable()
+  final String newValue;
+
+  @DomName('MutationEvent.prevValue')
+  @DocsEditable()
+  final String prevValue;
+
+  @DomName('MutationEvent.relatedNode')
+  @DocsEditable()
+  final Node relatedNode;
+
+  @DomName('MutationEvent.initMutationEvent')
+  @DocsEditable()
+  void initMutationEvent(
+      String type,
+      bool bubbles,
+      bool cancelable,
+      Node relatedNode,
+      String prevValue,
+      String newValue,
+      String attrName,
+      int attrChange) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 @DomName('MutationObserver')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)

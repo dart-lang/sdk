@@ -219,7 +219,7 @@ class B {
 class A {}
 ''');
     await indexTestUnit('''
-import '/.pub-cache/lib.dart';
+import "${convertPathForImport('/.pub-cache/lib.dart')}";
 main() {
   A a;
 }
@@ -238,7 +238,7 @@ main() {
 class A {}
 ''');
     await indexTestUnit('''
-import '/Pub/Cache/lib.dart';
+import "${convertPathForImport('/Pub/Cache/lib.dart')}";
 main() {
   A a;
 }

@@ -20,15 +20,12 @@ import 'calls.dart';
 import 'types.dart';
 import 'utils.dart';
 
-class EntryPointsListener {
+abstract class EntryPointsListener {
   /// Add call by the given selector with arbitrary ('raw') arguments.
-  void addRawCall(Selector selector) {}
+  void addRawCall(Selector selector);
 
   /// Add instantiation of the given class.
-  void addAllocatedClass(Class c) {}
-
-  /// Add instantiation of the given type (may be generic).
-  void addAllocatedType(InterfaceType type) {}
+  ConcreteType addAllocatedClass(Class c);
 }
 
 /// Provides insights into the behavior of native code.
@@ -53,13 +50,13 @@ class NativeCodeOracle {
         if (action['action'] == 'return') {
           final c = _libraryIndex.getClass(action['library'], action['class']);
 
-          entryPointsListener.addAllocatedClass(c);
+          final concreteClass = entryPointsListener.addAllocatedClass(c);
 
           final nullable = action['nullable'];
           if (nullable == false) {
-            returnType = new Type.concrete(c.rawType);
+            returnType = concreteClass;
           } else if ((nullable == true) || (nullable == null)) {
-            returnType = new Type.nullable(new Type.concrete(c.rawType));
+            returnType = new Type.nullable(concreteClass);
           } else {
             throw 'Bad entry point: unexpected nullable: "$nullable" in $action';
           }

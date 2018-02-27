@@ -1172,7 +1172,7 @@ class Field extends Member implements FileUriNode {
   void set isGenericContravariant(bool value) {
     flags2 = value
         ? (flags2 | Flag2GenericContravariant)
-        : (flags & ~Flag2GenericContravariant);
+        : (flags2 & ~Flag2GenericContravariant);
   }
 
   /// True if the field is neither final nor const.
@@ -1546,6 +1546,8 @@ class Procedure extends Member implements FileUriNode {
   static const int FlagForwardingStub = 1 << 4;
   static const int FlagGenericContravariant = 1 << 5;
   static const int FlagForwardingSemiStub = 1 << 6;
+  // TODO(29841): Remove this flag after the issue is resolved.
+  static const int FlagRedirectingFactoryConstructor = 1 << 7;
 
   bool get isStatic => flags & FlagStatic != 0;
   bool get isAbstract => flags & FlagAbstract != 0;
@@ -1576,6 +1578,12 @@ class Procedure extends Member implements FileUriNode {
   /// If set, this flag indicates that although this function is a forwarding
   /// stub, it was present in the original source as an abstract method.
   bool get isForwardingSemiStub => flags & FlagForwardingSemiStub != 0;
+
+  // Indicates if this [Procedure] represents a redirecting factory constructor
+  // and doesn't have a runnable body.
+  bool get isRedirectingFactoryConstructor {
+    return flags & FlagRedirectingFactoryConstructor != 0;
+  }
 
   /// If set, this flag indicates that this function was not present in the
   /// source, and it exists solely for the purpose of type checking arguments
@@ -1613,6 +1621,12 @@ class Procedure extends Member implements FileUriNode {
     flags = value
         ? (flags | FlagForwardingSemiStub)
         : (flags & ~FlagForwardingSemiStub);
+  }
+
+  void set isRedirectingFactoryConstructor(bool value) {
+    flags = value
+        ? (flags | FlagRedirectingFactoryConstructor)
+        : (flags & ~FlagRedirectingFactoryConstructor);
   }
 
   bool get isInstanceMember => !isStatic;

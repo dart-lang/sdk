@@ -248,7 +248,7 @@ abstract class Map<K, V> {
   /**
    * Adds all key/value pairs of [newEntries] to this map.
    *
-   * If a key of [other] is already in this map,
+   * If a key of [newEntries] is already in this map,
    * the corresponding value is overwritten.
    *
    * The operation is equivalent to doing `this[entry.key] = entry.value`

@@ -116,6 +116,7 @@ function inherit(cls, sup) {
 // Mixes in the properties of [mixin] into [cls].
 function mixin(cls, mixin) {
   copyProperties(mixin.prototype, cls.prototype);
+  cls.prototype.constructor = cls;
 }
 
 // Creates a lazy field.

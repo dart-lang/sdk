@@ -217,12 +217,14 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
             null);
   }
 
-  void addCompileTimeError(Message message, int charOffset,
+  void addCompileTimeError(Message message, int charOffset, int length,
       {LocatedMessage context}) {
-    library.addCompileTimeError(message, charOffset, fileUri, context: context);
+    library.addCompileTimeError(message, charOffset, length, fileUri,
+        context: context);
   }
 
-  void addProblem(Message message, int charOffset, {LocatedMessage context}) {
-    library.addProblem(message, charOffset, fileUri, context: context);
+  void addProblem(Message message, int charOffset, int length,
+      {LocatedMessage context}) {
+    library.addProblem(message, charOffset, length, fileUri, context: context);
   }
 }

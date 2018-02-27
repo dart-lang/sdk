@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/expressions.dart:74:16: Error: Method not found: 'int.toString'.
     print(int?.toString());
-               ^"]/* from null */;
+               ^^^^^^^^"]/* from null */;
 static method foo({dynamic fisk = null}) → dynamic {
   core::print(fisk);
 }

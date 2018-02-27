@@ -57,14 +57,14 @@ Try correcting the name to the name of an existing getter, or defining a getter 
     ^").+(invalid-expression "pkg/front_end/testcases/rasta/super.dart:43:6: Error: Can't use 'super' as an expression.
 To delegate a constructor to a super constructor, put the super call as an initializer.
     +super;
-     ^");
+     ^^^^^");
     self::use((let final dynamic #t2 = this in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/rasta/super.dart:44:9: Error: The getter '' isn't defined for the class '#lib1::C'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named ''.
     use(+super);
         ^").+(invalid-expression "pkg/front_end/testcases/rasta/super.dart:44:10: Error: Can't use 'super' as an expression.
 To delegate a constructor to a super constructor, put the super call as an initializer.
     use(+super);
-         ^"));
+         ^^^^^"));
     super.{self::A::==}(87);
     self::use(super.{self::A::==}(87));
     !super.{self::A::==}(87);

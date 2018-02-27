@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/context_locator.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -56,8 +57,8 @@ class ContextLocatorImplTest extends Object with ResourceProviderMixin {
     File outerPackagesFile = newPackagesFile('/test/outer');
     Folder innerRootFolder = newFolder('/test/outer/examples/inner');
 
-    List<ContextRoot> roots = contextLocator
-        .locateRoots([outerRootFolder.path, innerRootFolder.path]);
+    List<ContextRoot> roots = contextLocator.locateRoots(
+        includedPaths: [outerRootFolder.path, innerRootFolder.path]);
     expect(roots, hasLength(1));
 
     ContextRoot outerRoot = findRoot(roots, outerRootFolder);
@@ -73,8 +74,8 @@ class ContextLocatorImplTest extends Object with ResourceProviderMixin {
     File outerPackagesFile = newPackagesFile('/test/outer');
     File testFile = newFile('/test/outer/examples/inner/test.dart');
 
-    List<ContextRoot> roots =
-        contextLocator.locateRoots([outerRootFolder.path, testFile.path]);
+    List<ContextRoot> roots = contextLocator
+        .locateRoots(includedPaths: [outerRootFolder.path, testFile.path]);
     expect(roots, hasLength(1));
 
     ContextRoot outerRoot = findRoot(roots, outerRootFolder);
@@ -93,8 +94,8 @@ class ContextLocatorImplTest extends Object with ResourceProviderMixin {
     File outer2OptionsFile = newOptionsFile('/test/outer2');
     File outer2PackagesFile = newPackagesFile('/test/outer2');
 
-    List<ContextRoot> roots = contextLocator
-        .locateRoots([outer1RootFolder.path, outer2RootFolder.path]);
+    List<ContextRoot> roots = contextLocator.locateRoots(
+        includedPaths: [outer1RootFolder.path, outer2RootFolder.path]);
     expect(roots, hasLength(2));
 
     ContextRoot outer1Root = findRoot(roots, outer1RootFolder);
@@ -119,8 +120,8 @@ class ContextLocatorImplTest extends Object with ResourceProviderMixin {
     File outer2PackagesFile = newPackagesFile('/test/outer2');
     File testFile = newFile('/test/outer2/test.dart');
 
-    List<ContextRoot> roots =
-        contextLocator.locateRoots([outer1RootFolder.path, testFile.path]);
+    List<ContextRoot> roots = contextLocator
+        .locateRoots(includedPaths: [outer1RootFolder.path, testFile.path]);
     expect(roots, hasLength(2));
 
     ContextRoot outer1Root = findRoot(roots, outer1RootFolder);
@@ -129,7 +130,7 @@ class ContextLocatorImplTest extends Object with ResourceProviderMixin {
     expect(outer1Root.optionsFile, outer1OptionsFile);
     expect(outer1Root.packagesFile, outer1PackagesFile);
 
-    ContextRoot outer2Root = findRoot(roots, testFile);
+    ContextRoot outer2Root = findRoot(roots, testFile.parent);
     expect(outer2Root.includedPaths, unorderedEquals([testFile.path]));
     expect(outer2Root.excludedPaths, isEmpty);
     expect(outer2Root.optionsFile, outer2OptionsFile);
@@ -161,21 +162,16 @@ class ContextLocatorImplTest extends Object with ResourceProviderMixin {
     File testFile1 = newFile('/test/root/test1.dart');
     File testFile2 = newFile('/test/root/test2.dart');
 
-    List<ContextRoot> roots =
-        contextLocator.locateRoots([testFile1.path, testFile2.path]);
-    expect(roots, hasLength(2));
+    List<ContextRoot> roots = contextLocator
+        .locateRoots(includedPaths: [testFile1.path, testFile2.path]);
+    expect(roots, hasLength(1));
 
-    ContextRoot outer1Root = findRootFromIncluded(roots, testFile1.path);
-    expect(outer1Root.includedPaths, unorderedEquals([testFile1.path]));
-    expect(outer1Root.excludedPaths, isEmpty);
-    expect(outer1Root.optionsFile, optionsFile);
-    expect(outer1Root.packagesFile, packagesFile);
-
-    ContextRoot outer2Root = findRootFromIncluded(roots, testFile2.path);
-    expect(outer2Root.includedPaths, unorderedEquals([testFile2.path]));
-    expect(outer2Root.excludedPaths, isEmpty);
-    expect(outer2Root.optionsFile, optionsFile);
-    expect(outer2Root.packagesFile, packagesFile);
+    ContextRoot root = findRootFromIncluded(roots, testFile1.path);
+    expect(
+        root.includedPaths, unorderedEquals([testFile1.path, testFile2.path]));
+    expect(root.excludedPaths, isEmpty);
+    expect(root.optionsFile, optionsFile);
+    expect(root.packagesFile, packagesFile);
   }
 
   void test_locateRoots_nested_excluded_dot() {
@@ -186,7 +182,7 @@ class ContextLocatorImplTest extends Object with ResourceProviderMixin {
     newOptionsFile('/test/outer/.examples/inner');
 
     List<ContextRoot> roots =
-        contextLocator.locateRoots([outerRootFolder.path]);
+        contextLocator.locateRoots(includedPaths: [outerRootFolder.path]);
     expect(roots, hasLength(1));
 
     ContextRoot outerRoot = findRoot(roots, outerRootFolder);
@@ -203,7 +199,8 @@ class ContextLocatorImplTest extends Object with ResourceProviderMixin {
     Folder excludedFolder = newFolder('/test/outer/examples');
     newOptionsFile('/test/outer/examples/inner');
 
-    List<ContextRoot> roots = contextLocator.locateRoots([outerRootFolder.path],
+    List<ContextRoot> roots = contextLocator.locateRoots(
+        includedPaths: [outerRootFolder.path],
         excludedPaths: [excludedFolder.path]);
     expect(roots, hasLength(1));
 
@@ -222,7 +219,7 @@ class ContextLocatorImplTest extends Object with ResourceProviderMixin {
     newOptionsFile('/test/outer/packages/inner');
 
     List<ContextRoot> roots =
-        contextLocator.locateRoots([outerRootFolder.path]);
+        contextLocator.locateRoots(includedPaths: [outerRootFolder.path]);
     expect(roots, hasLength(1));
 
     ContextRoot outerRoot = findRoot(roots, outerRootFolder);
@@ -242,7 +239,7 @@ class ContextLocatorImplTest extends Object with ResourceProviderMixin {
     File inner2PackagesFile = newPackagesFile('/test/outer/examples/inner2');
 
     List<ContextRoot> roots =
-        contextLocator.locateRoots([outerRootFolder.path]);
+        contextLocator.locateRoots(includedPaths: [outerRootFolder.path]);
     expect(roots, hasLength(3));
 
     ContextRoot outerRoot = findRoot(roots, outerRootFolder);
@@ -273,7 +270,7 @@ class ContextLocatorImplTest extends Object with ResourceProviderMixin {
     File innerOptionsFile = newOptionsFile('/test/outer/examples/inner');
 
     List<ContextRoot> roots =
-        contextLocator.locateRoots([outerRootFolder.path]);
+        contextLocator.locateRoots(includedPaths: [outerRootFolder.path]);
     expect(roots, hasLength(2));
 
     ContextRoot outerRoot = findRoot(roots, outerRootFolder);
@@ -289,6 +286,52 @@ class ContextLocatorImplTest extends Object with ResourceProviderMixin {
     expect(innerRoot.packagesFile, outerPackagesFile);
   }
 
+  void test_locateRoots_nested_options_overriddenOptions() {
+    Folder outerRootFolder = newFolder('/test/outer');
+    newOptionsFile('/test/outer');
+    File outerPackagesFile = newPackagesFile('/test/outer');
+    newFolder('/test/outer/examples/inner');
+    newOptionsFile('/test/outer/examples/inner');
+    File overrideOptionsFile = newOptionsFile('/test/override');
+
+    List<ContextRoot> roots = contextLocator.locateRoots(
+        includedPaths: [outerRootFolder.path],
+        optionsFile: overrideOptionsFile.path);
+    expect(roots, hasLength(1));
+
+    ContextRoot outerRoot = findRoot(roots, outerRootFolder);
+    expect(outerRoot.includedPaths, unorderedEquals([outerRootFolder.path]));
+    expect(outerRoot.excludedPaths, isEmpty);
+    expect(outerRoot.optionsFile, overrideOptionsFile);
+    expect(outerRoot.packagesFile, outerPackagesFile);
+  }
+
+  void test_locateRoots_nested_options_overriddenPackages() {
+    Folder outerRootFolder = newFolder('/test/outer');
+    File outerOptionsFile = newOptionsFile('/test/outer');
+    newPackagesFile('/test/outer');
+    Folder innerRootFolder = newFolder('/test/outer/examples/inner');
+    File innerOptionsFile = newOptionsFile('/test/outer/examples/inner');
+    File overridePackagesFile = newPackagesFile('/test/override');
+
+    List<ContextRoot> roots = contextLocator.locateRoots(
+        includedPaths: [outerRootFolder.path],
+        packagesFile: overridePackagesFile.path);
+    expect(roots, hasLength(2));
+
+    ContextRoot outerRoot = findRoot(roots, outerRootFolder);
+    expect(outerRoot.includedPaths, unorderedEquals([outerRootFolder.path]));
+    expect(outerRoot.excludedPaths, unorderedEquals([innerRootFolder.path]));
+    expect(outerRoot.optionsFile, outerOptionsFile);
+    expect(outerRoot.packagesFile, overridePackagesFile);
+
+    ContextRoot innerRoot = findRoot(roots, innerRootFolder);
+    expect(innerRoot.includedPaths, unorderedEquals([innerRootFolder.path]));
+    expect(innerRoot.excludedPaths, isEmpty);
+    expect(innerRoot.optionsFile, innerOptionsFile);
+    expect(innerRoot.packagesFile, overridePackagesFile);
+  }
+
   void test_locateRoots_nested_optionsAndPackages() {
     Folder outerRootFolder = newFolder('/test/outer');
     File outerOptionsFile = newOptionsFile('/test/outer');
@@ -298,7 +341,7 @@ class ContextLocatorImplTest extends Object with ResourceProviderMixin {
     File innerPackagesFile = newPackagesFile('/test/outer/examples/inner');
 
     List<ContextRoot> roots =
-        contextLocator.locateRoots([outerRootFolder.path]);
+        contextLocator.locateRoots(includedPaths: [outerRootFolder.path]);
     expect(roots, hasLength(2));
 
     ContextRoot outerRoot = findRoot(roots, outerRootFolder);
@@ -314,6 +357,29 @@ class ContextLocatorImplTest extends Object with ResourceProviderMixin {
     expect(innerRoot.packagesFile, innerPackagesFile);
   }
 
+  void test_locateRoots_nested_optionsAndPackages_overriddenBoth() {
+    Folder outerRootFolder = newFolder('/test/outer');
+    newOptionsFile('/test/outer');
+    newPackagesFile('/test/outer');
+    newFolder('/test/outer/examples/inner');
+    newOptionsFile('/test/outer/examples/inner');
+    newPackagesFile('/test/outer/examples/inner');
+    File overrideOptionsFile = newOptionsFile('/test/override');
+    File overridePackagesFile = newPackagesFile('/test/override');
+
+    List<ContextRoot> roots = contextLocator.locateRoots(
+        includedPaths: [outerRootFolder.path],
+        optionsFile: overrideOptionsFile.path,
+        packagesFile: overridePackagesFile.path);
+    expect(roots, hasLength(1));
+
+    ContextRoot outerRoot = findRoot(roots, outerRootFolder);
+    expect(outerRoot.includedPaths, unorderedEquals([outerRootFolder.path]));
+    expect(outerRoot.excludedPaths, isEmpty);
+    expect(outerRoot.optionsFile, overrideOptionsFile);
+    expect(outerRoot.packagesFile, overridePackagesFile);
+  }
+
   void test_locateRoots_nested_packages() {
     Folder outerRootFolder = newFolder('/test/outer');
     File outerOptionsFile = newOptionsFile('/test/outer');
@@ -322,7 +388,7 @@ class ContextLocatorImplTest extends Object with ResourceProviderMixin {
     File innerPackagesFile = newPackagesFile('/test/outer/examples/inner');
 
     List<ContextRoot> roots =
-        contextLocator.locateRoots([outerRootFolder.path]);
+        contextLocator.locateRoots(includedPaths: [outerRootFolder.path]);
     expect(roots, hasLength(2));
 
     ContextRoot outerRoot = findRoot(roots, outerRootFolder);
@@ -338,12 +404,59 @@ class ContextLocatorImplTest extends Object with ResourceProviderMixin {
     expect(innerRoot.packagesFile, innerPackagesFile);
   }
 
+  void test_locateRoots_nested_packages_overriddenOptions() {
+    Folder outerRootFolder = newFolder('/test/outer');
+    newOptionsFile('/test/outer');
+    File outerPackagesFile = newPackagesFile('/test/outer');
+    Folder innerRootFolder = newFolder('/test/outer/examples/inner');
+    File innerPackagesFile = newPackagesFile('/test/outer/examples/inner');
+    File overrideOptionsFile = newOptionsFile('/test/override');
+
+    List<ContextRoot> roots = contextLocator.locateRoots(
+        includedPaths: [outerRootFolder.path],
+        optionsFile: overrideOptionsFile.path);
+    expect(roots, hasLength(2));
+
+    ContextRoot outerRoot = findRoot(roots, outerRootFolder);
+    expect(outerRoot.includedPaths, unorderedEquals([outerRootFolder.path]));
+    expect(outerRoot.excludedPaths, unorderedEquals([innerRootFolder.path]));
+    expect(outerRoot.optionsFile, overrideOptionsFile);
+    expect(outerRoot.packagesFile, outerPackagesFile);
+
+    ContextRoot innerRoot = findRoot(roots, innerRootFolder);
+    expect(innerRoot.includedPaths, unorderedEquals([innerRootFolder.path]));
+    expect(innerRoot.excludedPaths, isEmpty);
+    expect(innerRoot.optionsFile, overrideOptionsFile);
+    expect(innerRoot.packagesFile, innerPackagesFile);
+  }
+
+  void test_locateRoots_nested_packages_overriddenPackages() {
+    Folder outerRootFolder = newFolder('/test/outer');
+    File outerOptionsFile = newOptionsFile('/test/outer');
+    newPackagesFile('/test/outer');
+    newFolder('/test/outer/examples/inner');
+    newPackagesFile('/test/outer/examples/inner');
+    File overridePackagesFile = newPackagesFile('/test/override');
+
+    List<ContextRoot> roots = contextLocator.locateRoots(
+        includedPaths: [outerRootFolder.path],
+        packagesFile: overridePackagesFile.path);
+    expect(roots, hasLength(1));
+
+    ContextRoot outerRoot = findRoot(roots, outerRootFolder);
+    expect(outerRoot.includedPaths, unorderedEquals([outerRootFolder.path]));
+    expect(outerRoot.excludedPaths, isEmpty);
+    expect(outerRoot.optionsFile, outerOptionsFile);
+    expect(outerRoot.packagesFile, overridePackagesFile);
+  }
+
   void test_locateRoots_single_dir_directOptions_directPackages() {
     Folder rootFolder = newFolder('/test/root');
     File optionsFile = newOptionsFile('/test/root');
     File packagesFile = newPackagesFile('/test/root');
 
-    List<ContextRoot> roots = contextLocator.locateRoots([rootFolder.path]);
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [rootFolder.path]);
     expect(roots, hasLength(1));
 
     ContextRoot package1Root = findRoot(roots, rootFolder);
@@ -358,7 +471,8 @@ class ContextLocatorImplTest extends Object with ResourceProviderMixin {
     File optionsFile = newOptionsFile('/test/root');
     File packagesFile = newPackagesFile('/test');
 
-    List<ContextRoot> roots = contextLocator.locateRoots([rootFolder.path]);
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [rootFolder.path]);
     expect(roots, hasLength(1));
 
     ContextRoot package1Root = findRoot(roots, rootFolder);
@@ -373,7 +487,8 @@ class ContextLocatorImplTest extends Object with ResourceProviderMixin {
     File optionsFile = newOptionsFile('/test');
     File packagesFile = newPackagesFile('/test/root');
 
-    List<ContextRoot> roots = contextLocator.locateRoots([rootFolder.path]);
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [rootFolder.path]);
     expect(roots, hasLength(1));
 
     ContextRoot package1Root = findRoot(roots, rootFolder);
@@ -388,7 +503,8 @@ class ContextLocatorImplTest extends Object with ResourceProviderMixin {
     File optionsFile = newOptionsFile('/test');
     File packagesFile = newPackagesFile('/test');
 
-    List<ContextRoot> roots = contextLocator.locateRoots([rootFolder.path]);
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [rootFolder.path]);
     expect(roots, hasLength(1));
 
     ContextRoot package1Root = findRoot(roots, rootFolder);
@@ -403,10 +519,11 @@ class ContextLocatorImplTest extends Object with ResourceProviderMixin {
     File packagesFile = newPackagesFile('/test/root');
     File testFile = newFile('/test/root/test.dart');
 
-    List<ContextRoot> roots = contextLocator.locateRoots([testFile.path]);
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [testFile.path]);
     expect(roots, hasLength(1));
 
-    ContextRoot package1Root = findRoot(roots, testFile);
+    ContextRoot package1Root = findRoot(roots, testFile.parent);
     expect(package1Root.includedPaths, unorderedEquals([testFile.path]));
     expect(package1Root.excludedPaths, isEmpty);
     expect(package1Root.optionsFile, optionsFile);

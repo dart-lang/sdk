@@ -24,6 +24,8 @@ import '../world.dart' show ClosedWorld;
 import 'backend_usage.dart';
 import 'namer.dart';
 
+bool cacheRtiDataForTesting = false;
+
 /// For each class, stores the possible class subtype tests that could succeed.
 abstract class TypeChecks {
   /// Get the set of checks required for class [element].
@@ -1399,6 +1401,8 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
   @override
   TypeChecks get _requiredChecks => cachedRequiredChecks;
 
+  Map<ClassEntity, ClassUse> classUseMapForTesting;
+
   @override
   void registerTypeVariableBoundsSubtypeCheck(
       DartType typeArgument, DartType bound) {
@@ -1414,6 +1418,9 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
     Set<DartType> implicitIsChecks = typeVariableTests.implicitIsChecks;
 
     Map<ClassEntity, ClassUse> classUseMap = <ClassEntity, ClassUse>{};
+    if (cacheRtiDataForTesting) {
+      classUseMapForTesting = classUseMap;
+    }
 
     Set<ClassEntity> checkedClasses = new Set<ClassEntity>();
     Set<FunctionType> checkedFunctionTypes = new Set<FunctionType>();
@@ -1437,15 +1444,6 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
       }
     });
 
-    void processType(DartType t) {
-      if (t is FunctionType) {
-        checkedFunctionTypes.add(t);
-      } else if (t is InterfaceType) {
-        checkedClasses.add(t.element);
-      }
-      testedTypeVisitor.visitType(t, false);
-    }
-
     codegenWorldBuilder.instantiatedTypes.forEach((t) {
       liveTypeVisitor.visitType(t, false);
       ClassUse classUse =
@@ -1458,8 +1456,26 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
       testedTypeVisitor.visitType(t, false);
     });
 
-    explicitIsChecks.forEach(processType);
-    implicitIsChecks.forEach(processType);
+    void processMethodTypeArguments(_, Set<DartType> typeArguments) {
+      for (DartType typeArgument in typeArguments) {
+        liveTypeVisitor.visit(typeArgument, true);
+      }
+    }
+
+    codegenWorldBuilder.forEachStaticTypeArgument(processMethodTypeArguments);
+    codegenWorldBuilder.forEachDynamicTypeArgument(processMethodTypeArguments);
+
+    void processCheckedType(DartType t) {
+      if (t is FunctionType) {
+        checkedFunctionTypes.add(t);
+      } else if (t is InterfaceType) {
+        checkedClasses.add(t.element);
+      }
+      testedTypeVisitor.visitType(t, false);
+    }
+
+    explicitIsChecks.forEach(processCheckedType);
+    implicitIsChecks.forEach(processCheckedType);
 
     cachedRequiredChecks = _computeChecks(classUseMap);
     rtiChecksBuilderClosed = true;

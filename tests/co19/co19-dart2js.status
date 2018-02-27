@@ -5994,7 +5994,6 @@ LayoutTests/fast/dom/Range/insertNode-empty-fragment-crash_t01: RuntimeError # P
 LayoutTests/fast/dom/Range/mutation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/range-comparePoint_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/range-constructor_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/Range/range-created-during-remove-children_t01: RuntimeError
 LayoutTests/fast/dom/Range/range-detached-exceptions_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/range-exceptions_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/range-expand_t01: RuntimeError # Please triage this failure
@@ -6002,7 +6001,6 @@ LayoutTests/fast/dom/Range/range-insertNode-separate-endContainer_t01: RuntimeEr
 LayoutTests/fast/dom/Range/range-insertNode-splittext_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/range-isPointInRange_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/range-on-detached-node_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/Range/remove-twice-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/surroundContents-for-detached-node_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/dumpNodeList-2_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/dumpNodeList_t01: RuntimeError # Please triage this failure
@@ -6161,7 +6159,6 @@ LayoutTests/fast/events/invalid-004_t01: RuntimeError # Please triage this failu
 LayoutTests/fast/events/mutation-during-replace-child-2_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/mutation-during-replace-child_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/overflowchanged-event-raf-timing_t01: Skip # Times out. Please triage this failure
-LayoutTests/fast/events/scoped/editing-commands_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/scroll-event-does-not-bubble_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/tabindex-removal-from-focused-element_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/exclusions/parsing/parsing-wrap-flow_t01: RuntimeError # Please triage this failure
@@ -6271,8 +6268,6 @@ LayoutTests/fast/forms/parser-associated-form-removal_t01: RuntimeError # Please
 LayoutTests/fast/forms/plaintext-mode-1_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/search-popup-crasher_t01: Pass, RuntimeError # Fails on 7.1. Please triage this failure
 LayoutTests/fast/forms/select-max-length_t01: Pass, RuntimeError # Issue 29634
-LayoutTests/fast/forms/select-set-length-with-mutation-remove_t01: RuntimeError
-LayoutTests/fast/forms/select-set-length-with-mutation-reparent_t01: RuntimeError
 LayoutTests/fast/forms/selection-wrongtype_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/setrangetext_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/textarea-maxlength_t01: RuntimeError # Please triage this failure
@@ -6990,9 +6985,6 @@ LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Skip # Tim
 LibTest/core/Map/Map_class_A01_t04: Slow, Pass # Please triage this failure
 LibTest/core/Uri/Uri_A06_t03: Slow, Pass # Please triage this failure
 LibTest/math/Point/operator_mult_A02_t01: RuntimeError # Issue 1533
-
-[ $compiler == dart2js && $checked && $fast_startup ]
-Language/Statements/Break/async_loops_t02: RuntimeError
 
 [ $compiler == dart2js && !$checked && $enable_asserts ]
 Language/Statements/Assert/execution_t01: SkipByDesign # Unspec'd feature.

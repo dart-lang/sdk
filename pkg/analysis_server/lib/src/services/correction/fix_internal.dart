@@ -24,6 +24,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
@@ -1513,13 +1514,17 @@ class FixProcessor {
         String file = source.fullName;
         if (isAbsolute(file) && AnalysisEngine.isDartFileName(file)) {
           String libName = _computeLibraryName(file);
-          DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
-          await changeBuilder.addFileEdit(source.fullName,
-              (DartFileEditBuilder builder) {
-            builder.addSimpleInsertion(0, 'library $libName;$eol$eol');
-          });
-          _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_FILE,
-              args: [source.shortName]);
+          try {
+            DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+            await changeBuilder.addFileEdit(source.fullName,
+                (DartFileEditBuilder builder) {
+              builder.addSimpleInsertion(0, 'library $libName;$eol$eol');
+            });
+            _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_FILE,
+                args: [source.shortName]);
+          } on AnalysisException {
+            // Ignore the exception and just don't create a fix.
+          }
         }
       }
     }

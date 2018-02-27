@@ -4,13 +4,13 @@
 
 import 'package:meta/dart2js.dart';
 
-/*class: global#JSArray:checks=[$isIterable]*/
-/*class: global#Iterable:*/
+/*class: global#JSArray:checkedInstance,checks=[$isIterable],instance*/
+/*class: global#Iterable:checkedInstance*/
 
-/*class: A:checks=[]*/
+/*class: A:checkedTypeArgument,checks=[],typeArgument*/
 class A {}
 
-/*class: B:checks=[]*/
+/*class: B:checks=[],typeArgument*/
 class B {}
 
 @noInline

@@ -465,7 +465,7 @@ main() {
     change = assist.change;
     // verify
     {
-      var testFileEdit = change.getFileEdit('/app.dart');
+      var testFileEdit = change.getFileEdit(convertPath('/app.dart'));
       var resultCode = SourceEdit.applySequence(appCode, testFileEdit.edits);
       expect(resultCode, '''
 library my_app;
@@ -476,7 +476,7 @@ part 'test.dart';
 ''');
     }
     {
-      var testFileEdit = change.getFileEdit('/test.dart');
+      var testFileEdit = change.getFileEdit(convertPath('/test.dart'));
       var resultCode = SourceEdit.applySequence(testCode, testFileEdit.edits);
       expect(resultCode, '''
 part of my_app;
@@ -1191,6 +1191,138 @@ class A {
   mmm() {
     throw 'error';
   }
+}
+''');
+  }
+
+  test_convertToDoubleQuotedString_BAD_one_embeddedTarget() async {
+    await resolveTestUnit('''
+main() {
+  print('a"b"c');
+}
+''');
+    await assertNoAssistAt(
+        "'a", DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING);
+  }
+
+  test_convertToDoubleQuotedString_BAD_one_enclosingTarget() async {
+    await resolveTestUnit('''
+main() {
+  print("abc");
+}
+''');
+    await assertNoAssistAt(
+        '"ab', DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING);
+  }
+
+  test_convertToDoubleQuotedString_BAD_three_embeddedTarget() async {
+    await resolveTestUnit("""
+main() {
+  print('''a""\"c''');
+}
+""");
+    await assertNoAssistAt(
+        "'a", DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING);
+  }
+
+  test_convertToDoubleQuotedString_BAD_three_enclosingTarget() async {
+    await resolveTestUnit('''
+main() {
+  print("""abc""");
+}
+''');
+    await assertNoAssistAt(
+        '"ab', DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING);
+  }
+
+  test_convertToDoubleQuotedString_OK_one_interpolation() async {
+    await resolveTestUnit(r'''
+main() {
+  var b = 'b';
+  var c = 'c';
+  print('a $b-${c} d');
+}
+''');
+    await assertHasAssistAt(
+        r"'a $b", DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING, r'''
+main() {
+  var b = 'b';
+  var c = 'c';
+  print("a $b-${c} d");
+}
+''');
+  }
+
+  test_convertToDoubleQuotedString_OK_one_raw() async {
+    await resolveTestUnit('''
+main() {
+  print(r'abc');
+}
+''');
+    await assertHasAssistAt(
+        "'ab", DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING, '''
+main() {
+  print(r"abc");
+}
+''');
+  }
+
+  test_convertToDoubleQuotedString_OK_one_simple() async {
+    await resolveTestUnit('''
+main() {
+  print('abc');
+}
+''');
+    await assertHasAssistAt(
+        "'ab", DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING, '''
+main() {
+  print("abc");
+}
+''');
+  }
+
+  test_convertToDoubleQuotedString_OK_three_interpolation() async {
+    await resolveTestUnit(r"""
+main() {
+  var b = 'b';
+  var c = 'c';
+  print('''a $b-${c} d''');
+}
+""");
+    await assertHasAssistAt(
+        r"'a $b", DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING, r'''
+main() {
+  var b = 'b';
+  var c = 'c';
+  print("""a $b-${c} d""");
+}
+''');
+  }
+
+  test_convertToDoubleQuotedString_OK_three_raw() async {
+    await resolveTestUnit("""
+main() {
+  print(r'''abc''');
+}
+""");
+    await assertHasAssistAt(
+        "'ab", DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING, '''
+main() {
+  print(r"""abc""");
+}
+''');
+  }
+
+  test_convertToDoubleQuotedString_OK_three_simple() async {
+    await resolveTestUnit("""
+main() {
+  print('''abc''');
+}
+""");
+    await assertHasAssistAt(
+        "'ab", DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING, '''
+main() {
+  print("""abc""");
 }
 ''');
   }
@@ -2236,6 +2368,138 @@ class A {
 ''');
   }
 
+  test_convertToSingleQuotedString_BAD_one_embeddedTarget() async {
+    await resolveTestUnit('''
+main() {
+  print("a'b'c");
+}
+''');
+    await assertNoAssistAt(
+        '"a', DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING);
+  }
+
+  test_convertToSingleQuotedString_BAD_one_enclosingTarget() async {
+    await resolveTestUnit('''
+main() {
+  print('abc');
+}
+''');
+    await assertNoAssistAt(
+        "'ab", DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING);
+  }
+
+  test_convertToSingleQuotedString_BAD_three_embeddedTarget() async {
+    await resolveTestUnit('''
+main() {
+  print("""a''\'bc""");
+}
+''');
+    await assertNoAssistAt(
+        '"a', DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING);
+  }
+
+  test_convertToSingleQuotedString_BAD_three_enclosingTarget() async {
+    await resolveTestUnit("""
+main() {
+  print('''abc''');
+}
+""");
+    await assertNoAssistAt(
+        "'ab", DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING);
+  }
+
+  test_convertToSingleQuotedString_OK_one_interpolation() async {
+    await resolveTestUnit(r'''
+main() {
+  var b = 'b';
+  var c = 'c';
+  print("a $b-${c} d");
+}
+''');
+    await assertHasAssistAt(
+        r'"a $b', DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING, r'''
+main() {
+  var b = 'b';
+  var c = 'c';
+  print('a $b-${c} d');
+}
+''');
+  }
+
+  test_convertToSingleQuotedString_OK_one_raw() async {
+    await resolveTestUnit('''
+main() {
+  print(r"abc");
+}
+''');
+    await assertHasAssistAt(
+        '"ab', DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING, '''
+main() {
+  print(r'abc');
+}
+''');
+  }
+
+  test_convertToSingleQuotedString_OK_one_simple() async {
+    await resolveTestUnit('''
+main() {
+  print("abc");
+}
+''');
+    await assertHasAssistAt(
+        '"ab', DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING, '''
+main() {
+  print('abc');
+}
+''');
+  }
+
+  test_convertToSingleQuotedString_OK_three_interpolation() async {
+    await resolveTestUnit(r'''
+main() {
+  var b = 'b';
+  var c = 'c';
+  print("""a $b-${c} d""");
+}
+''');
+    await assertHasAssistAt(
+        r'"a $b', DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING, r"""
+main() {
+  var b = 'b';
+  var c = 'c';
+  print('''a $b-${c} d''');
+}
+""");
+  }
+
+  test_convertToSingleQuotedString_OK_three_raw() async {
+    await resolveTestUnit('''
+main() {
+  print(r"""abc""");
+}
+''');
+    await assertHasAssistAt(
+        '"ab', DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING, """
+main() {
+  print(r'''abc''');
+}
+""");
+  }
+
+  test_convertToSingleQuotedString_OK_three_simple() async {
+    await resolveTestUnit('''
+main() {
+  print("""abc""");
+}
+''');
+    await assertHasAssistAt(
+        '"ab', DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING, """
+main() {
+  print('''abc''');
+}
+""");
+  }
+
   test_encapsulateField_BAD_alreadyPrivate() async {
     await resolveTestUnit('''
 class A {
@@ -2779,8 +3043,8 @@ main() {
   new Column(
     children: <Widget>[
       new Text('aaa'),
-      /*caret*/new Text('bbb'),
-      new Text('ccc'),
+      /*caret*/new Text('bbbbbb'),
+      new Text('ccccccccc'),
     ],
   );
 }
@@ -2792,12 +3056,13 @@ main() {
   new Column(
     children: <Widget>[
       new Text('aaa'),
-      /*caret*/new Text('ccc'),
-      new Text('bbb'),
+      /*caret*/new Text('ccccccccc'),
+      new Text('bbbbbb'),
     ],
   );
 }
 ''');
+    _assertExitPosition(before: "new Text('bbbbbb')");
   }
 
   test_flutterMoveWidgetUp_BAD_first() async {
@@ -2840,8 +3105,8 @@ main() {
   new Column(
     children: <Widget>[
       new Text('aaa'),
-      /*caret*/new Text('bbb'),
-      new Text('ccc'),
+      /*caret*/new Text('bbbbbb'),
+      new Text('ccccccccc'),
     ],
   );
 }
@@ -2852,13 +3117,14 @@ import 'package:flutter/material.dart';
 main() {
   new Column(
     children: <Widget>[
-      new Text('bbb'),
+      new Text('bbbbbb'),
       /*caret*/new Text('aaa'),
-      new Text('ccc'),
+      new Text('ccccccccc'),
     ],
   );
 }
 ''');
+    _assertExitPosition(before: "new Text('bbbbbb')");
   }
 
   test_flutterRemoveWidget_BAD_childrenMultipleIntoChild() async {
@@ -3258,7 +3524,7 @@ class FakeFlutter {
   }
 
   test_flutterWrapCenter_OK_implicitNew() async {
-    _configurePreviewDart2();
+    configurePreviewDart2();
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -3352,7 +3618,7 @@ class FakeFlutter {
   }
 
   test_flutterWrapColumn_OK_implicitNew() async {
-    _configurePreviewDart2();
+    configurePreviewDart2();
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -5134,7 +5400,7 @@ main() {
 }
 ''');
     _assertLinkedGroup(change.linkedEditGroups[0], ['condition);']);
-    _assertExitPosition('condition);');
+    _assertExitPosition(after: 'condition);');
   }
 
   test_surroundWith_for() async {
@@ -5161,7 +5427,7 @@ main() {
     _assertLinkedGroup(change.linkedEditGroups[1], ['init;']);
     _assertLinkedGroup(change.linkedEditGroups[2], ['condition;']);
     _assertLinkedGroup(change.linkedEditGroups[3], ['increment']);
-    _assertExitPosition('  }');
+    _assertExitPosition(after: '  }');
   }
 
   test_surroundWith_forIn() async {
@@ -5186,7 +5452,7 @@ main() {
 ''');
     _assertLinkedGroup(change.linkedEditGroups[0], ['item']);
     _assertLinkedGroup(change.linkedEditGroups[1], ['iterable']);
-    _assertExitPosition('  }');
+    _assertExitPosition(after: '  }');
   }
 
   test_surroundWith_if() async {
@@ -5210,7 +5476,7 @@ main() {
 }
 ''');
     _assertLinkedGroup(change.linkedEditGroups[0], ['condition']);
-    _assertExitPosition('  }');
+    _assertExitPosition(after: '  }');
   }
 
   test_surroundWith_tryCatch() async {
@@ -5238,7 +5504,7 @@ main() {
     _assertLinkedGroup(change.linkedEditGroups[0], ['Exception']);
     _assertLinkedGroup(change.linkedEditGroups[1], ['e) {']);
     _assertLinkedGroup(change.linkedEditGroups[2], ['// TODO']);
-    _assertExitPosition('// TODO');
+    _assertExitPosition(after: '// TODO');
   }
 
   test_surroundWith_tryFinally() async {
@@ -5264,7 +5530,7 @@ main() {
 }
 ''');
     _assertLinkedGroup(change.linkedEditGroups[0], ['// TODO']);
-    _assertExitPosition('// TODO');
+    _assertExitPosition(after: '// TODO');
   }
 
   test_surroundWith_while() async {
@@ -5288,14 +5554,20 @@ main() {
 }
 ''');
     _assertLinkedGroup(change.linkedEditGroups[0], ['condition']);
-    _assertExitPosition('  }');
+    _assertExitPosition(after: '  }');
   }
 
-  void _assertExitPosition(String after) {
+  void _assertExitPosition({String before, String after}) {
     Position exitPosition = change.selection;
     expect(exitPosition, isNotNull);
     expect(exitPosition.file, testFile);
-    expect(exitPosition.offset, resultCode.indexOf(after) + after.length);
+    if (before != null) {
+      expect(exitPosition.offset, resultCode.indexOf(before));
+    } else if (after != null) {
+      expect(exitPosition.offset, resultCode.indexOf(after) + after.length);
+    } else {
+      fail("One of 'before' or 'after' expected.");
+    }
   }
 
   /**
@@ -5328,12 +5600,6 @@ main() {
         offset, length, driver, new AstProviderForDriver(driver), testUnit);
     AssistProcessor processor = new AssistProcessor(assistContext);
     return await processor.compute();
-  }
-
-  void _configurePreviewDart2() {
-    driver.configure(
-        analysisOptions: new AnalysisOptionsImpl.from(driver.analysisOptions)
-          ..previewDart2 = true);
   }
 
   List<Position> _findResultPositions(List<String> searchStrings) {

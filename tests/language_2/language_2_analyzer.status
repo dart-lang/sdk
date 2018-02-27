@@ -56,6 +56,10 @@ interface_injection2_negative_test: CompileTimeError
 interface_static_method_negative_test: CompileTimeError
 interface_static_non_final_fields_negative_test: Fail # Issue 11594
 interface_test/00: MissingCompileTimeError
+invalid_type_argument_count_test/01: MissingCompileTimeError
+invalid_type_argument_count_test/02: MissingCompileTimeError
+invalid_type_argument_count_test/03: MissingCompileTimeError
+invalid_type_argument_count_test/04: MissingCompileTimeError
 is_not_class1_negative_test: CompileTimeError
 is_not_class4_negative_test: CompileTimeError
 issue1578_negative_test: CompileTimeError
@@ -1434,6 +1438,7 @@ invalid_cast_test/08: MissingCompileTimeError
 invalid_cast_test/09: MissingCompileTimeError
 invalid_cast_test/10: MissingCompileTimeError
 invalid_cast_test/11: MissingCompileTimeError
+invalid_override_in_mixin_test/01: MissingCompileTimeError
 invocation_mirror_test: StaticWarning
 issue13179_test: StaticWarning
 issue15606_test/none: StaticWarning # invalid use of void for dart 2, see also #32100
@@ -1583,6 +1588,12 @@ object_has_no_call_method_test/02: MissingCompileTimeError
 object_has_no_call_method_test/05: MissingCompileTimeError
 object_has_no_call_method_test/08: MissingCompileTimeError
 override_inheritance_no_such_method_test/05: MissingCompileTimeError
+partial_tearoff_instantiation_test/01: MissingCompileTimeError
+partial_tearoff_instantiation_test/03: MissingCompileTimeError
+partial_tearoff_instantiation_test/05: MissingCompileTimeError
+partial_tearoff_instantiation_test/06: MissingCompileTimeError
+partial_tearoff_instantiation_test/07: MissingCompileTimeError
+partial_tearoff_instantiation_test/08: MissingCompileTimeError
 positional_parameters_type_test/01: MissingCompileTimeError
 positional_parameters_type_test/02: MissingCompileTimeError
 prefix13_negative_test: CompileTimeError, OK

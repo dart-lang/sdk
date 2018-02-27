@@ -52,6 +52,8 @@ mirrors/other_declarations_location_test: Crash # assertion error, TypeParameter
 
 [ $compiler == dartk && $mode == debug && $strong ]
 mirrors/instance_members_unimplemented_interface_test: Crash
+mirrors/library_import_deferred_loading_test: Crash # Deferred loading kernel issue 28335.
+mirrors/load_library_test: Crash
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
@@ -60,8 +62,8 @@ mirrors/instance_members_unimplemented_interface_test: Crash
 mirrors/variable_is_const_test/01: Crash # Please triage.
 
 [ $compiler == dartk && $runtime == vm && $checked && $strong ]
-mirrors/redirecting_factory_different_type_test/01: Crash # Issue 28424
-mirrors/redirecting_factory_different_type_test/none: Crash # Issue 28424
+mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError # Issue 28424
+mirrors/redirecting_factory_different_type_test/none: RuntimeError # Issue 28424
 mirrors/reflected_type_generics_test/02: Pass
 
 # ===== dartk + vm status lines =====
@@ -92,11 +94,9 @@ mirrors/constructor_kinds_test/01: RuntimeError
 mirrors/constructor_kinds_test/none: RuntimeError
 mirrors/constructor_private_name_test: RuntimeError
 mirrors/constructors_test: CompileTimeError # Issue 31402 (Invocation arguments)
-mirrors/dart2js_mirrors_test: Crash # 31916
+mirrors/dart2js_mirrors_test: RuntimeError # 31916
 mirrors/deferred_mirrors_metadata_test: RuntimeError, CompileTimeError # Deferred loading kernel issue 28335.
-mirrors/deferred_mirrors_metatarget_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/deferred_mirrors_test: Crash # 31916
-mirrors/deferred_mirrors_update_test: RuntimeError, CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/deferred_type_test: CompileTimeError, RuntimeError
 mirrors/empty_test: Crash, RuntimeError
 mirrors/enum_test: RuntimeError # Issue 31402 (Invocation arguments)
@@ -120,10 +120,10 @@ mirrors/intercepted_object_test: RuntimeError # Issue 31402 (Invocation argument
 mirrors/invoke_private_test: RuntimeError
 mirrors/invoke_private_wrong_library_test: RuntimeError
 mirrors/library_declarations_test/none: RuntimeError # Issue 31402 (Invocation arguments)
-mirrors/library_enumeration_deferred_loading_test: CompileTimeError
+mirrors/library_enumeration_deferred_loading_test: RuntimeError
 mirrors/library_exports_hidden_test: RuntimeError, Crash, CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/library_exports_shown_test: RuntimeError, CompileTimeError # Issue 31402 (Invocation arguments)
-mirrors/library_import_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/library_import_deferred_loading_test: RuntimeError # Deferred loading kernel issue 28335.
 mirrors/library_imports_bad_metadata_test/none: Crash
 mirrors/library_imports_deferred_test: RuntimeError, CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/library_imports_hidden_test: RuntimeError # Issue 31402 (Invocation arguments)
@@ -132,7 +132,7 @@ mirrors/library_imports_prefixed_show_hide_test: RuntimeError # Issue 31402 (Inv
 mirrors/library_imports_prefixed_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/library_imports_shown_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/library_metadata_test: RuntimeError
-mirrors/load_library_test: CompileTimeError
+mirrors/load_library_test: RuntimeError
 mirrors/metadata_allowed_values_test/16: Skip # Flaky, crashes.
 mirrors/metadata_constructed_constant_test: Crash, RuntimeError
 mirrors/metadata_scope_test/none: RuntimeError
@@ -143,7 +143,7 @@ mirrors/mirrors_nsm_mismatch_test: CompileTimeError # Issue 31533
 mirrors/mirrors_nsm_test/dart2js: CompileTimeError # Issue 31533
 mirrors/mirrors_nsm_test/none: CompileTimeError # Issue 31533
 mirrors/mirrors_reader_test: Crash
-mirrors/mirrors_test: Crash
+mirrors/mirrors_test: RuntimeError
 mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
 mirrors/mirrors_used_inheritance_test: RuntimeError
 mirrors/mirrors_used_typedef_declaration_test/01: RuntimeError
@@ -165,10 +165,10 @@ mirrors/private_class_field_test: RuntimeError
 mirrors/private_field_test: RuntimeError
 mirrors/private_symbol_test: RuntimeError
 mirrors/private_types_test: RuntimeError
-mirrors/redirecting_factory_different_type_test/01: Crash
-mirrors/redirecting_factory_test/01: Crash
-mirrors/redirecting_factory_test/02: Crash
-mirrors/redirecting_factory_test/none: Crash
+mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
+mirrors/redirecting_factory_test/01: RuntimeError
+mirrors/redirecting_factory_test/02: RuntimeError
+mirrors/redirecting_factory_test/none: RuntimeError
 mirrors/reflect_class_test/none: RuntimeError
 mirrors/reflected_type_classes_test/01: RuntimeError
 mirrors/reflected_type_function_type_test: RuntimeError
@@ -218,7 +218,7 @@ isolate/ping_pause_test: RuntimeError
 isolate/request_reply_test: Pass, Timeout
 isolate/stacktrace_message_test: RuntimeError
 mirrors/class_mirror_type_variables_test: RuntimeError
-mirrors/constructor_optional_args_test: Crash
+mirrors/constructor_optional_args_test: RuntimeError
 mirrors/constructors_test: RuntimeError
 mirrors/fake_function_with_call_test: RuntimeError
 mirrors/generic_bounded_by_type_parameter_test/none: RuntimeError
@@ -240,7 +240,7 @@ mirrors/instance_members_unimplemented_interface_test: RuntimeError
 mirrors/instance_members_with_override_test: RuntimeError
 mirrors/instantiate_abstract_class_test: RuntimeError
 mirrors/invoke_closurization2_test: RuntimeError
-mirrors/invoke_throws_test: Crash
+mirrors/invoke_throws_test: RuntimeError
 mirrors/library_imports_bad_metadata_test/none: RuntimeError
 mirrors/metadata_const_map_test: Crash
 mirrors/mixin_members_test: RuntimeError
@@ -249,8 +249,8 @@ mirrors/operator_test: RuntimeError
 mirrors/parameter_is_const_test/none: RuntimeError
 mirrors/parameter_test/01: RuntimeError
 mirrors/parameter_test/none: RuntimeError
-mirrors/redirecting_factory_different_type_test/02: Crash
-mirrors/redirecting_factory_different_type_test/none: Crash
+mirrors/redirecting_factory_different_type_test/02: MissingCompileTimeError
+mirrors/redirecting_factory_different_type_test/none: RuntimeError
 mirrors/regress_16321_test/none: Crash
 mirrors/top_level_accessors_test/01: MissingCompileTimeError
 mirrors/type_argument_is_type_variable_test: RuntimeError

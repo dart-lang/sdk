@@ -33,7 +33,7 @@ const kUseGlobalTypeFlow = const bool.fromEnvironment('use.global.type.flow');
 /// VM-specific replacement of [kernelForProgram].
 ///
 Future<Program> compileToKernel(Uri source, CompilerOptions options,
-    {bool aot: false}) async {
+    {bool aot: false, List<String> entryPoints}) async {
   // Replace error handler to detect if there are compilation errors.
   final errorDetector =
       new ErrorDetector(previousErrorHandler: options.onError);
@@ -46,18 +46,19 @@ Future<Program> compileToKernel(Uri source, CompilerOptions options,
 
   // Run global transformations only if program is correct.
   if (aot && (program != null) && !errorDetector.hasCompilationErrors) {
-    _runGlobalTransformations(program, options.strongMode);
+    _runGlobalTransformations(program, options.strongMode, entryPoints);
   }
 
   return program;
 }
 
-_runGlobalTransformations(Program program, bool strongMode) {
+_runGlobalTransformations(
+    Program program, bool strongMode, List<String> entryPoints) {
   if (strongMode) {
     final coreTypes = new CoreTypes(program);
 
     if (kUseGlobalTypeFlow) {
-      globalTypeFlow.transformProgram(coreTypes, program);
+      globalTypeFlow.transformProgram(coreTypes, program, entryPoints);
     } else {
       devirtualization.transformProgram(coreTypes, program);
     }
@@ -73,8 +74,7 @@ class ErrorDetector {
   ErrorDetector({this.previousErrorHandler});
 
   void call(CompilationMessage message) {
-    if ((message.severity != Severity.nit) &&
-        (message.severity != Severity.warning)) {
+    if (message.severity == Severity.error) {
       hasCompilationErrors = true;
     }
 

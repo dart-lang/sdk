@@ -110,28 +110,105 @@ class C {
 }
 ''');
     var files = <String>[];
-    List<Declaration> declarations = await driver.search.declarations(files);
-    _assertHasDeclaration(declarations, 'C', DeclarationKind.CLASS, 6);
-    _assertHasDeclaration(declarations, 'f', DeclarationKind.FIELD, 16, 'C');
-    _assertHasDeclaration(
-        declarations, 'named', DeclarationKind.CONSTRUCTOR, 30, 'C');
-    _assertHasDeclaration(declarations, 'g', DeclarationKind.GETTER, 49, 'C');
-    _assertHasDeclaration(declarations, 's', DeclarationKind.SETTER, 68, 'C');
-    _assertHasDeclaration(declarations, 'm', DeclarationKind.METHOD, 83, 'C');
+    List<Declaration> declarations =
+        await driver.search.declarations(null, null, files);
+    _assertHasDeclaration(declarations, 'C', DeclarationKind.CLASS,
+        offset: 6, codeOffset: 0, codeLength: 91);
+    _assertHasDeclaration(declarations, 'f', DeclarationKind.FIELD,
+        offset: 16, codeOffset: 12, codeLength: 6, className: 'C');
+    _assertHasDeclaration(declarations, 'named', DeclarationKind.CONSTRUCTOR,
+        offset: 30, codeOffset: 28, codeLength: 10, className: 'C');
+    _assertHasDeclaration(declarations, 'g', DeclarationKind.GETTER,
+        offset: 49, codeOffset: 41, codeLength: 15, className: 'C');
+    _assertHasDeclaration(declarations, 's', DeclarationKind.SETTER,
+        offset: 68, codeOffset: 59, codeLength: 16, className: 'C');
+    _assertHasDeclaration(declarations, 'm', DeclarationKind.METHOD,
+        offset: 83, codeOffset: 78, codeLength: 11, className: 'C');
   }
 
   test_declarations_enum() async {
     await _resolveTestUnit('''
 enum E {
-  a, b, c
+  a, bb, ccc
 }
 ''');
     var files = <String>[];
-    List<Declaration> declarations = await driver.search.declarations(files);
-    _assertHasDeclaration(declarations, 'E', DeclarationKind.ENUM, 5);
-    _assertHasDeclaration(declarations, 'a', DeclarationKind.ENUM_CONSTANT, 11);
-    _assertHasDeclaration(declarations, 'b', DeclarationKind.ENUM_CONSTANT, 14);
-    _assertHasDeclaration(declarations, 'c', DeclarationKind.ENUM_CONSTANT, 17);
+    List<Declaration> declarations =
+        await driver.search.declarations(null, null, files);
+    _assertHasDeclaration(declarations, 'E', DeclarationKind.ENUM,
+        offset: 5, codeOffset: 0, codeLength: 23);
+    _assertHasDeclaration(declarations, 'a', DeclarationKind.ENUM_CONSTANT,
+        offset: 11, codeOffset: 11, codeLength: 1);
+    _assertHasDeclaration(declarations, 'bb', DeclarationKind.ENUM_CONSTANT,
+        offset: 14, codeOffset: 14, codeLength: 2);
+    _assertHasDeclaration(declarations, 'ccc', DeclarationKind.ENUM_CONSTANT,
+        offset: 18, codeOffset: 18, codeLength: 3);
+  }
+
+  test_declarations_maxResults() async {
+    await _resolveTestUnit('''
+class A {}
+class B {}
+class C {}
+''');
+    var files = <String>[];
+    List<Declaration> declarations =
+        await driver.search.declarations(null, 2, files);
+    expect(declarations, hasLength(2));
+  }
+
+  test_declarations_regExp() async {
+    await _resolveTestUnit('''
+class A {}
+class B {}
+class C {}
+class D {}
+''');
+    var files = <String>[];
+    List<Declaration> declarations =
+        await driver.search.declarations(new RegExp(r'[A-C]'), null, files);
+    _assertHasDeclaration(declarations, 'A', DeclarationKind.CLASS);
+    _assertHasDeclaration(declarations, 'B', DeclarationKind.CLASS);
+    _assertHasDeclaration(declarations, 'C', DeclarationKind.CLASS);
+    _assertNoDeclaration(declarations, 'D');
+  }
+
+  test_declarations_parameters() async {
+    await _resolveTestUnit('''
+class C {
+  int get g => 0;
+  void m(int a, double b) {}
+}
+void f(bool a, String b) {}
+typedef F(int a);
+''');
+    var files = <String>[];
+    List<Declaration> declarations =
+        await driver.search.declarations(null, null, files);
+
+    Declaration declaration;
+
+    declaration =
+        _assertHasDeclaration(declarations, 'C', DeclarationKind.CLASS);
+    expect(declaration.parameters, isNull);
+
+    declaration = _assertHasDeclaration(
+        declarations, 'g', DeclarationKind.GETTER,
+        className: 'C');
+    expect(declaration.parameters, isNull);
+
+    declaration = _assertHasDeclaration(
+        declarations, 'm', DeclarationKind.METHOD,
+        className: 'C');
+    expect(declaration.parameters, '(int a, double b)');
+
+    declaration =
+        _assertHasDeclaration(declarations, 'f', DeclarationKind.FUNCTION);
+    expect(declaration.parameters, '(bool a, String b)');
+
+    declaration = _assertHasDeclaration(
+        declarations, 'F', DeclarationKind.FUNCTION_TYPE_ALIAS);
+    expect(declaration.parameters, '(int a)');
   }
 
   test_declarations_top() async {
@@ -144,15 +221,28 @@ typedef void tf1();
 typedef tf2<T> = int Function<S>(T tp, S sp);
 ''');
     var files = <String>[];
-    List<Declaration> declarations = await driver.search.declarations(files);
-    _assertHasDeclaration(declarations, 'g', DeclarationKind.GETTER, 8);
-    _assertHasDeclaration(declarations, 's', DeclarationKind.SETTER, 25);
-    _assertHasDeclaration(declarations, 'f', DeclarationKind.FUNCTION, 38);
-    _assertHasDeclaration(declarations, 'v', DeclarationKind.VARIABLE, 54);
+    List<Declaration> declarations =
+        await driver.search.declarations(null, null, files);
+    _assertHasDeclaration(declarations, 'g', DeclarationKind.GETTER,
+        offset: 8, codeOffset: 0, codeLength: 15);
+    _assertHasDeclaration(declarations, 's', DeclarationKind.SETTER,
+        offset: 25, codeOffset: 16, codeLength: 16);
     _assertHasDeclaration(
-        declarations, 'tf1', DeclarationKind.FUNCTION_TYPE_ALIAS, 70);
+      declarations,
+      'f',
+      DeclarationKind.FUNCTION,
+      offset: 38,
+      codeOffset: 33,
+      codeLength: 16,
+    );
+    _assertHasDeclaration(declarations, 'v', DeclarationKind.VARIABLE,
+        offset: 54, codeOffset: 50, codeLength: 6);
     _assertHasDeclaration(
-        declarations, 'tf2', DeclarationKind.FUNCTION_TYPE_ALIAS, 85);
+        declarations, 'tf1', DeclarationKind.FUNCTION_TYPE_ALIAS,
+        offset: 70, codeOffset: 57, codeLength: 19);
+    _assertHasDeclaration(
+        declarations, 'tf2', DeclarationKind.FUNCTION_TYPE_ALIAS,
+        offset: 85, codeOffset: 77, codeLength: 45);
     // No declaration for type variables.
     _assertNoDeclaration(declarations, 'T');
     _assertNoDeclaration(declarations, 'S');
@@ -1248,22 +1338,25 @@ class NoMatchABCDE {}
         unorderedEquals([a, b, c, d, e]));
   }
 
-  void _assertHasDeclaration(List<Declaration> declarations, String name,
-      DeclarationKind kind, int offset,
-      [String className]) {
+  Declaration _assertHasDeclaration(
+      List<Declaration> declarations, String name, DeclarationKind kind,
+      {int offset, int codeOffset, int codeLength, String className}) {
     for (var declaration in declarations) {
       if (declaration.name == name &&
           declaration.kind == kind &&
-          declaration.offset == offset &&
+          (offset == null || declaration.offset == offset) &&
+          (codeOffset == null || declaration.codeOffset == codeOffset) &&
+          (codeLength == null || declaration.codeLength == codeLength) &&
           declaration.className == className) {
-        return;
+        return declaration;
       }
     }
     var actual = declarations
-        .map((d) => '(name=${d.name}, kind=${d.kind}, offset=${d.offset})')
+        .map((d) => '(name=${d.name}, kind=${d.kind}, offset=${d.offset}, '
+            'codeOffset=${d.codeOffset}, codeLength=${d.codeLength})')
         .join('\n');
-    fail(
-        'Exected to find (name=$name, kind=$kind, offset=$offset) in\n$actual');
+    fail('Exected to find (name=$name, kind=$kind, offset=$offset, '
+        'codeOffset=$codeOffset, codeLength=$codeLength) in\n$actual');
   }
 
   void _assertNoDeclaration(List<Declaration> declarations, String name) {

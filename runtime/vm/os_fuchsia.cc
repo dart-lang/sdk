@@ -66,7 +66,7 @@ static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
   time_service::TimeServiceSyncPtr time_svc;
   if (GetTimeServicePtr(&time_svc) == ZX_OK) {
-    fidl::String res;
+    f1dl::String res;
     time_svc->GetTimezoneId(&res);
     char* tz_name = Thread::Current()->zone()->Alloc<char>(res.size() + 1);
     memmove(tz_name, res.get().c_str(), res.size());

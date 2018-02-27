@@ -66,22 +66,44 @@ public class ElementDeclaration {
   private final int column;
 
   /**
+   * The offset of the first character of the declaration code in the file.
+   */
+  private final int codeOffset;
+
+  /**
+   * The length of the declaration code in the file.
+   */
+  private final int codeLength;
+
+  /**
    * The name of the class enclosing this declaration. If the declaration is not a class member, this
    * field will be absent.
    */
   private final String className;
 
   /**
+   * The parameter list for the element. If the element is not a method or function this field will
+   * not be defined. If the element doesn't have parameters (e.g. getter), this field will not be
+   * defined. If the element has zero parameters, this field will have a value of "()". The value
+   * should not be treated as exact presentation of parameters, it is just approximation of
+   * parameters to give the user general idea.
+   */
+  private final String parameters;
+
+  /**
    * Constructor for {@link ElementDeclaration}.
    */
-  public ElementDeclaration(String name, String kind, int fileIndex, int offset, int line, int column, String className) {
+  public ElementDeclaration(String name, String kind, int fileIndex, int offset, int line, int column, int codeOffset, int codeLength, String className, String parameters) {
     this.name = name;
     this.kind = kind;
     this.fileIndex = fileIndex;
     this.offset = offset;
     this.line = line;
     this.column = column;
+    this.codeOffset = codeOffset;
+    this.codeLength = codeLength;
     this.className = className;
+    this.parameters = parameters;
   }
 
   @Override
@@ -95,7 +117,10 @@ public class ElementDeclaration {
         other.offset == offset &&
         other.line == line &&
         other.column == column &&
-        ObjectUtilities.equals(other.className, className);
+        other.codeOffset == codeOffset &&
+        other.codeLength == codeLength &&
+        ObjectUtilities.equals(other.className, className) &&
+        ObjectUtilities.equals(other.parameters, parameters);
     }
     return false;
   }
@@ -107,8 +132,11 @@ public class ElementDeclaration {
     int offset = jsonObject.get("offset").getAsInt();
     int line = jsonObject.get("line").getAsInt();
     int column = jsonObject.get("column").getAsInt();
+    int codeOffset = jsonObject.get("codeOffset").getAsInt();
+    int codeLength = jsonObject.get("codeLength").getAsInt();
     String className = jsonObject.get("className") == null ? null : jsonObject.get("className").getAsString();
-    return new ElementDeclaration(name, kind, fileIndex, offset, line, column, className);
+    String parameters = jsonObject.get("parameters") == null ? null : jsonObject.get("parameters").getAsString();
+    return new ElementDeclaration(name, kind, fileIndex, offset, line, column, codeOffset, codeLength, className, parameters);
   }
 
   public static List<ElementDeclaration> fromJsonArray(JsonArray jsonArray) {
@@ -129,6 +157,20 @@ public class ElementDeclaration {
    */
   public String getClassName() {
     return className;
+  }
+
+  /**
+   * The length of the declaration code in the file.
+   */
+  public int getCodeLength() {
+    return codeLength;
+  }
+
+  /**
+   * The offset of the first character of the declaration code in the file.
+   */
+  public int getCodeOffset() {
+    return codeOffset;
   }
 
   /**
@@ -173,6 +215,17 @@ public class ElementDeclaration {
     return offset;
   }
 
+  /**
+   * The parameter list for the element. If the element is not a method or function this field will
+   * not be defined. If the element doesn't have parameters (e.g. getter), this field will not be
+   * defined. If the element has zero parameters, this field will have a value of "()". The value
+   * should not be treated as exact presentation of parameters, it is just approximation of
+   * parameters to give the user general idea.
+   */
+  public String getParameters() {
+    return parameters;
+  }
+
   @Override
   public int hashCode() {
     HashCodeBuilder builder = new HashCodeBuilder();
@@ -182,7 +235,10 @@ public class ElementDeclaration {
     builder.append(offset);
     builder.append(line);
     builder.append(column);
+    builder.append(codeOffset);
+    builder.append(codeLength);
     builder.append(className);
+    builder.append(parameters);
     return builder.toHashCode();
   }
 
@@ -194,8 +250,13 @@ public class ElementDeclaration {
     jsonObject.addProperty("offset", offset);
     jsonObject.addProperty("line", line);
     jsonObject.addProperty("column", column);
+    jsonObject.addProperty("codeOffset", codeOffset);
+    jsonObject.addProperty("codeLength", codeLength);
     if (className != null) {
       jsonObject.addProperty("className", className);
+    }
+    if (parameters != null) {
+      jsonObject.addProperty("parameters", parameters);
     }
     return jsonObject;
   }
@@ -216,8 +277,14 @@ public class ElementDeclaration {
     builder.append(line + ", ");
     builder.append("column=");
     builder.append(column + ", ");
+    builder.append("codeOffset=");
+    builder.append(codeOffset + ", ");
+    builder.append("codeLength=");
+    builder.append(codeLength + ", ");
     builder.append("className=");
-    builder.append(className);
+    builder.append(className + ", ");
+    builder.append("parameters=");
+    builder.append(parameters);
     builder.append("]");
     return builder.toString();
   }

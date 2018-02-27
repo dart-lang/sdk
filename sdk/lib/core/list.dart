@@ -172,6 +172,68 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   static List<T> castFrom<S, T>(List<S> source) => new CastList<S, T>(source);
 
   /**
+   * Copy a range of one list into another list.
+   *
+   * This is a utility function that can be used to implement methods like
+   * [setRange].
+   *
+   * The range from [start] to [end] must be a valid range of [source],
+   * and there must be room for `end - start` elements from position [at].
+   * If [start] is omitted, it defaults to zero.
+   * If [end] is omitted, it defaults to [source.length].
+   *
+   * If [source] and [target] is the same list, overlapping source and target
+   * ranges are respected so that the target range ends up containing the
+   * initial content of the source range.
+   * Otherwise the order of element copying is not guaranteed.
+   */
+  static void copyRange<T>(List<T> target, int at, List<T> source,
+      [int start, int end]) {
+    start ??= 0;
+    end = RangeError.checkValidRange(start, end, source.length);
+    int length = end - start;
+    if (target.length < at + length) {
+      throw new ArgumentError.value(target, "target",
+          "Not big enough to hold $length elements at position $at");
+    }
+    if (!identical(source, target) || start >= at) {
+      for (int i = 0; i < length; i++) {
+        target[at + i] = source[start + i];
+      }
+    } else {
+      for (int i = length; --i >= 0;) {
+        target[at + i] = source[start + i];
+      }
+    }
+  }
+
+  /**
+   * Write the elements of an iterable into a list.
+   *
+   * This is a utility function that can be used to implement methods like
+   * [setAll].
+   *
+   * The elements of [source] are written into [target] from position [at].
+   * The [source] must not contain more elements after writing the last
+   * position of [target].
+   *
+   * If the source is a list, the [copyRange] function is likely to be more
+   * efficient.
+   */
+  static void writeIterable<T>(List<T> target, int at, Iterable<T> source) {
+    RangeError.checkValueInInterval(at, 0, target.length, "at");
+    int index = at;
+    int targetLength = target.length;
+    for (var element in source) {
+      if (index == targetLength) {
+        throw new IndexError(targetLength, target);
+      }
+      target[index] = element;
+      index++;
+    }
+  }
+
+  /**
    * Returns a view of this list as a list of [R] instances, if necessary.
    *
    * If this list is already a `List<R>`, it is returned unchanged.

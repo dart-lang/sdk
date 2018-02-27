@@ -1,0 +1,76 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+abstract class T0 extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method foo() → void;
+}
+class T1 extends self::T0 {
+[@vm.unreachable.metadata=]  synthetic constructor •() → void
+    : super self::T0::•()
+    throw "TFA Error: #lib::T1::";
+[@vm.unreachable.metadata=]  method foo() → void
+    throw "TFA Error: #lib::T1::foo";
+}
+class T2 extends self::T0 {
+  synthetic constructor •() → void
+    : super self::T0::•()
+    ;
+  method foo() → void {}
+}
+class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method method1(self::T0 t0) → void {
+    [@vm.direct-call.metadata=#lib::T2::foo??] t0.{self::T0::foo}();
+  }
+}
+abstract class B extends core::Object {
+[@vm.unreachable.metadata=]  synthetic constructor •() → void
+    : super core::Object::•()
+    throw "TFA Error: #lib::B::";
+  abstract method method2(covariant dynamic arg) → void;
+}
+class C extends core::Object implements self::B {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method method2(covariant self::T0 t0) → void {
+    [@vm.direct-call.metadata=#lib::T2::foo??] t0.{self::T0::foo}();
+  }
+}
+class D extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method method3(self::T0 t0) → void {
+    [@vm.direct-call.metadata=#lib::T2::foo??] t0.{self::T0::foo}();
+  }
+}
+[@vm.inferred-type.metadata=dart.core::Null?]static field core::Function unknown;
+static method func1([@vm.inferred-type.metadata=#lib::T2?] self::T0 t0) → void {
+  [@vm.direct-call.metadata=#lib::T2::foo??] t0.{self::T0::foo}();
+}
+static method func2(self::T0 t0) → void {
+  [@vm.direct-call.metadata=#lib::T2::foo??] t0.{self::T0::foo}();
+}
+static method getDynamic() → dynamic
+  return self::unknown.call();
+static method use(dynamic x) → dynamic
+  return self::unknown.call(x);
+static method main(core::List<core::String> args) → dynamic {
+  self::func1(self::getDynamic() as{TypeError} self::T0);
+  self::use(self::func2);
+  self::use(new self::A::•().{self::A::method1});
+  self::B bb = self::getDynamic() as{TypeError} self::B;
+  [@vm.direct-call.metadata=#lib::C::method2??] bb.{self::B::method2}(self::getDynamic());
+  self::getDynamic().method3(self::getDynamic());
+  new self::T2::•();
+  new self::A::•();
+  new self::C::•();
+  new self::D::•();
+}

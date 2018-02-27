@@ -759,7 +759,7 @@ class ProgramBuilder {
     List<StubMethod> isChecks = <StubMethod>[];
     if (_nativeData.isJsInteropClass(cls)) {
       typeTests.forEachProperty(_sorter, (js.Name name, js.Node code) {
-        _classes[_commonElements.jsInterceptorClass]
+        _classes[_commonElements.jsJavaScriptObjectClass]
             .isChecks
             .add(_buildStubMethod(name, code));
       });

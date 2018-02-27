@@ -5,6 +5,29 @@
 [ $compiler == app_jit ]
 deferred_inheritance_constraints_test/redirecting_constructor: Crash
 
+[ $compiler == dart2analyzer ]
+implicit_creation/implicit_const_context_constructor_generic_named_test: CompileTimeError
+implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError
+implicit_creation/implicit_const_context_constructor_named_test: CompileTimeError
+implicit_creation/implicit_const_context_constructor_test: CompileTimeError
+implicit_creation/implicit_const_context_list_test: CompileTimeError
+implicit_creation/implicit_const_context_map_test: CompileTimeError
+implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: CompileTimeError
+implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError
+implicit_creation/implicit_const_context_prefix_constructor_named_test: CompileTimeError
+implicit_creation/implicit_const_context_prefix_constructor_test: CompileTimeError
+implicit_creation/implicit_new_constructor_generic_named_test: CompileTimeError
+implicit_creation/implicit_new_constructor_generic_test: CompileTimeError
+implicit_creation/implicit_new_constructor_named_test: CompileTimeError
+implicit_creation/implicit_new_constructor_test: CompileTimeError
+implicit_creation/implicit_new_or_const_composite_test: CompileTimeError
+implicit_creation/implicit_new_or_const_generic_test: CompileTimeError
+implicit_creation/implicit_new_or_const_test: CompileTimeError
+implicit_creation/implicit_new_prefix_constructor_generic_named_test: CompileTimeError
+implicit_creation/implicit_new_prefix_constructor_generic_test: CompileTimeError
+implicit_creation/implicit_new_prefix_constructor_named_test: CompileTimeError
+implicit_creation/implicit_new_prefix_constructor_test: CompileTimeError
+
 [ $compiler != dart2analyzer ]
 switch_case_warn_test: Skip # Analyzer only, see language_analyzer2.status
 
@@ -52,8 +75,6 @@ compile_time_constant_static5_test/11: CompileTimeError # Issue 30546
 compile_time_constant_static5_test/16: CompileTimeError # Issue 30546
 compile_time_constant_static5_test/21: CompileTimeError # Issue 30546
 compile_time_constant_static5_test/23: CompileTimeError # Issue 30546
-issue_25671a_test/01: CompileTimeError
-issue_25671b_test/01: CompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError # Issue 30906.
 
 [ $compiler != dart2js && !$fasta && !$strong ]
@@ -98,29 +119,6 @@ initializer_super_last_test/cc32: MissingCompileTimeError # Was valid in Dart 1.
 
 [ $compiler != dartdevc && !$checked ]
 function_type/*: Skip # Needs checked mode.
-
-[ $compiler != dartdevc && !$fasta && $strong ]
-implicit_creation/implicit_const_context_constructor_generic_named_test: CompileTimeError
-implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError
-implicit_creation/implicit_const_context_constructor_named_test: CompileTimeError
-implicit_creation/implicit_const_context_constructor_test: CompileTimeError
-implicit_creation/implicit_const_context_list_test: CompileTimeError
-implicit_creation/implicit_const_context_map_test: CompileTimeError
-implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: CompileTimeError
-implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError
-implicit_creation/implicit_const_context_prefix_constructor_named_test: CompileTimeError
-implicit_creation/implicit_const_context_prefix_constructor_test: CompileTimeError
-implicit_creation/implicit_new_constructor_generic_named_test: CompileTimeError
-implicit_creation/implicit_new_constructor_generic_test: CompileTimeError
-implicit_creation/implicit_new_constructor_named_test: CompileTimeError
-implicit_creation/implicit_new_constructor_test: CompileTimeError
-implicit_creation/implicit_new_or_const_composite_test: CompileTimeError
-implicit_creation/implicit_new_or_const_generic_test: CompileTimeError
-implicit_creation/implicit_new_or_const_test: CompileTimeError
-implicit_creation/implicit_new_prefix_constructor_generic_named_test: CompileTimeError
-implicit_creation/implicit_new_prefix_constructor_generic_test: CompileTimeError
-implicit_creation/implicit_new_prefix_constructor_named_test: CompileTimeError
-implicit_creation/implicit_new_prefix_constructor_test: CompileTimeError
 
 [ $compiler != dartk && $compiler != dartkp && $mode == debug && $runtime == vm ]
 built_in_identifier_type_annotation_test/15: Crash # Not supported by legacy VM front-end.

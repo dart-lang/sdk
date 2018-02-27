@@ -523,7 +523,8 @@ class JsClosedWorldBuilder {
       JLibrary enclosingLibrary,
       Map<Local, JRecordField> boxedVariables,
       KernelScopeInfo info,
-      KernelToLocalsMap localsMap) {
+      KernelToLocalsMap localsMap,
+      {bool needsSignature}) {
     ClassEntity superclass = _commonElements.closureClass;
 
     KernelClosureClassInfo closureClassInfo = _elementMap.constructClosureClass(
@@ -533,7 +534,8 @@ class JsClosedWorldBuilder {
         boxedVariables,
         info,
         localsMap,
-        new InterfaceType(superclass, const []));
+        new InterfaceType(superclass, const []),
+        needsSignature: needsSignature);
 
     // Tell the hierarchy that this is the super class. then we can use
     // .getSupertypes(class)
@@ -692,6 +694,9 @@ class TypeConverter extends DartTypeVisitor<DartType, Null> {
   final Entity Function(Entity) toBackendEntity;
   TypeConverter(this.toBackendEntity);
 
+  Map<FunctionTypeVariable, FunctionTypeVariable> _functionTypeVariables =
+      <FunctionTypeVariable, FunctionTypeVariable>{};
+
   DartType convert(DartType type) => type.accept(this, null);
 
   DartType visitVoidType(VoidType type, _) => type;
@@ -702,8 +707,7 @@ class TypeConverter extends DartTypeVisitor<DartType, Null> {
   }
 
   DartType visitFunctionTypeVariable(FunctionTypeVariable type, _) {
-    var bound = type.bound?.accept(this, null);
-    return new FunctionTypeVariable(type.index, bound);
+    return _functionTypeVariables[type];
   }
 
   DartType visitFunctionType(FunctionType type, _) {
@@ -711,9 +715,18 @@ class TypeConverter extends DartTypeVisitor<DartType, Null> {
     var parameterTypes = _visitList(type.parameterTypes);
     var optionalParameterTypes = _visitList(type.optionalParameterTypes);
     var namedParameterTypes = _visitList(type.namedParameterTypes);
-    var typeVariables = type.typeVariables
-        .map<FunctionTypeVariable>((t) => t.accept<DartType, Null>(this, null))
-        .toList();
+    List<FunctionTypeVariable> typeVariables = <FunctionTypeVariable>[];
+    for (FunctionTypeVariable typeVariable in type.typeVariables) {
+      typeVariables.add(_functionTypeVariables[typeVariable] =
+          new FunctionTypeVariable(typeVariable.index));
+    }
+    for (FunctionTypeVariable typeVariable in type.typeVariables) {
+      _functionTypeVariables[typeVariable].bound =
+          typeVariable.bound?.accept(this, null);
+    }
+    for (FunctionTypeVariable typeVariable in type.typeVariables) {
+      _functionTypeVariables.remove(typeVariable);
+    }
     var typedefType = type.typedefType?.accept(this, null);
     return new FunctionType(returnType, parameterTypes, optionalParameterTypes,
         type.namedParameters, namedParameterTypes, typeVariables, typedefType);

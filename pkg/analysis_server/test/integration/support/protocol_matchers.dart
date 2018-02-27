@@ -332,7 +332,10 @@ final Matcher isElement =
  *   "offset": int
  *   "line": int
  *   "column": int
+ *   "codeOffset": int
+ *   "codeLength": int
  *   "className": optional String
+ *   "parameters": optional String
  * }
  */
 final Matcher isElementDeclaration =
@@ -342,9 +345,12 @@ final Matcher isElementDeclaration =
           "fileIndex": isInt,
           "offset": isInt,
           "line": isInt,
-          "column": isInt
+          "column": isInt,
+          "codeOffset": isInt,
+          "codeLength": isInt
         }, optionalFields: {
-          "className": isString
+          "className": isString,
+          "parameters": isString
         }));
 
 /**
@@ -2665,8 +2671,15 @@ final Matcher isSearchFindTopLevelDeclarationsResult = new LazyMatcher(() =>
 
 /**
  * search.getElementDeclarations params
+ *
+ * {
+ *   "pattern": optional String
+ *   "maxResults": optional int
+ * }
  */
-final Matcher isSearchGetElementDeclarationsParams = isNull;
+final Matcher isSearchGetElementDeclarationsParams = new LazyMatcher(() =>
+    new MatchesJsonObject("search.getElementDeclarations params", null,
+        optionalFields: {"pattern": isString, "maxResults": isInt}));
 
 /**
  * search.getElementDeclarations result

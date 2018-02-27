@@ -691,7 +691,27 @@ void PrecompilerEntryPointsPrinter::Print() {
 
   writer.CloseObject();  // top-level
 
-  THR_Print("%s\n", writer.ToCString());
+  const char* contents = writer.ToCString();
+
+  Dart_FileOpenCallback file_open = Dart::file_open_callback();
+  Dart_FileWriteCallback file_write = Dart::file_write_callback();
+  Dart_FileCloseCallback file_close = Dart::file_close_callback();
+  if ((file_open == NULL) || (file_write == NULL) || (file_close == NULL)) {
+    FATAL(
+        "Unable to print precompiler entry points:"
+        " file callbacks are not provided by embedder");
+  }
+
+  void* out_stream =
+      file_open(FLAG_print_precompiler_entry_points, /* write = */ true);
+  if (out_stream == NULL) {
+    FATAL1(
+        "Unable to print precompiler entry points:"
+        " failed to open file \"%s\" for writing",
+        FLAG_print_precompiler_entry_points);
+  }
+  file_write(contents, strlen(contents), out_stream);
+  file_close(out_stream);
 }
 
 void PrecompilerEntryPointsPrinter::DescribeClass(JSONWriter* writer,
@@ -3367,6 +3387,10 @@ void Obfuscator::InitializeRenamingMap(Isolate* isolate) {
   PreventRenaming("library");
   PreventRenaming("io");
   PreventRenaming("html");
+
+  // Looked up by name via "DartUtils::GetDartType".
+  PreventRenaming("_RandomAccessFileOpsImpl");
+  PreventRenaming("_NamespaceImpl");
 }
 
 RawString* Obfuscator::ObfuscationState::RenameImpl(const String& name,

@@ -339,7 +339,7 @@ void Snapshot::GenerateScript(const char* snapshot_filename) {
 }
 
 void Snapshot::GenerateAppJIT(const char* snapshot_filename) {
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_DBC)
+#if defined(TARGET_ARCH_IA32)
   // Snapshots with code are not supported on IA32 or DBC.
   uint8_t* isolate_buffer = NULL;
   intptr_t isolate_size = 0;

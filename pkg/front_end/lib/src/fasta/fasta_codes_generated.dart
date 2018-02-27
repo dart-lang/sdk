@@ -288,6 +288,7 @@ const Code<Null> codeCandidateFound = messageCandidateFound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCandidateFound = const MessageCode("CandidateFound",
+    severity: Severity.context,
     message: r"""Found this candidate, but the arguments don't match.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -302,9 +303,9 @@ const Template<Message Function(String name)>
 const Code<Message Function(String name)>
     codeCandidateFoundIsDefaultConstructor =
     const Code<Message Function(String name)>(
-  "CandidateFoundIsDefaultConstructor",
-  templateCandidateFoundIsDefaultConstructor,
-);
+        "CandidateFoundIsDefaultConstructor",
+        templateCandidateFoundIsDefaultConstructor,
+        severity: Severity.context);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCandidateFoundIsDefaultConstructor(String name) {
@@ -635,7 +636,7 @@ const Code<Null> codeConflictsWithTypeVariableCause =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConflictsWithTypeVariableCause = const MessageCode(
     "ConflictsWithTypeVariableCause",
-    severity: Severity.error,
+    severity: Severity.context,
     message: r"""This is the type variable.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -709,6 +710,7 @@ const Code<Null> codeConstConstructorNonFinalFieldCause =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstConstructorNonFinalFieldCause = const MessageCode(
     "ConstConstructorNonFinalFieldCause",
+    severity: Severity.context,
     message: r"""Field isn't final, but constructor is 'const'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -717,7 +719,10 @@ const Code<Null> codeConstConstructorWithBody = messageConstConstructorWithBody;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstConstructorWithBody = const MessageCode(
     "ConstConstructorWithBody",
-    message: r"""A const constructor can't have a body.""");
+    analyzerCode: "CONST_CONSTRUCTOR_WITH_BODY",
+    dart2jsCode: "*fatal*",
+    message: r"""A const constructor can't have a body.""",
+    tip: r"""Try removing either the 'const' keyword or the body.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstFactory = messageConstFactory;
@@ -756,6 +761,17 @@ Message _withArgumentsConstFieldWithoutInitializer(String name) {
           """Try adding an initializer ('= <expression>') to the declaration.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstMethod = messageConstMethod;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstMethod = const MessageCode("ConstMethod",
+    analyzerCode: "CONST_METHOD",
+    dart2jsCode: "*fatal*",
+    message:
+        r"""Getters, setters and methods can't be declared to be 'const'.""",
+    tip: r"""Try removing the 'const' keyword.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -799,6 +815,18 @@ Message _withArgumentsConstructorNotFound(String name) {
       message: """Couldn't find constructor '$name'.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstructorWithReturnType =
+    messageConstructorWithReturnType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstructorWithReturnType = const MessageCode(
+    "ConstructorWithReturnType",
+    analyzerCode: "CONSTRUCTOR_WITH_RETURN_TYPE",
+    dart2jsCode: "*fatal*",
+    message: r"""Constructors can't have a return type.""",
+    tip: r"""Try removing the return type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeContinueOutsideOfLoop = messageContinueOutsideOfLoop;
@@ -984,9 +1012,8 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeDeferredPrefixDuplicatedCause =
     const Code<Message Function(String name)>(
-  "DeferredPrefixDuplicatedCause",
-  templateDeferredPrefixDuplicatedCause,
-);
+        "DeferredPrefixDuplicatedCause", templateDeferredPrefixDuplicatedCause,
+        severity: Severity.context);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDeferredPrefixDuplicatedCause(String name) {
@@ -1292,9 +1319,8 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeDuplicatedParameterNameCause =
     const Code<Message Function(String name)>(
-  "DuplicatedParameterNameCause",
-  templateDuplicatedParameterNameCause,
-);
+        "DuplicatedParameterNameCause", templateDuplicatedParameterNameCause,
+        severity: Severity.context);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedParameterNameCause(String name) {
@@ -1641,7 +1667,9 @@ const Template<Message Function(Token token)> templateExpectedType =
 const Code<Message Function(Token token)> codeExpectedType =
     const Code<Message Function(Token token)>(
         "ExpectedType", templateExpectedType,
-        analyzerCode: "EXPECTED_TYPE_NAME", dart2jsCode: "*fatal*");
+        analyzerCode: "EXPECTED_TYPE_NAME",
+        dart2jsCode: "*fatal*",
+        severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedType(Token token) {
@@ -1996,6 +2024,19 @@ const MessageCode messageFastaUsageShort =
   -h        Display this message (add -v for information about all options).""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFieldInitializerOutsideConstructor =
+    messageFieldInitializerOutsideConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFieldInitializerOutsideConstructor = const MessageCode(
+    "FieldInitializerOutsideConstructor",
+    analyzerCode: "FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR",
+    dart2jsCode: "*fatal*",
+    message: r"""Field formal parameters can only be used in a constructor.""",
+    tip:
+        r"""Try replacing the field formal parameter with a normal parameter.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFinalAndCovariant = messageFinalAndCovariant;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2081,7 +2122,7 @@ const Code<Message Function(String name)>
     const Code<Message Function(String name)>(
         "FinalInstanceVariableAlreadyInitializedCause",
         templateFinalInstanceVariableAlreadyInitializedCause,
-        severity: Severity.errorLegacyWarning);
+        severity: Severity.context);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFinalInstanceVariableAlreadyInitializedCause(
@@ -2261,9 +2302,9 @@ const Template<Message Function(String name)>
 const Code<Message Function(String name)>
     codeIllegalMixinDueToConstructorsCause =
     const Code<Message Function(String name)>(
-  "IllegalMixinDueToConstructorsCause",
-  templateIllegalMixinDueToConstructorsCause,
-);
+        "IllegalMixinDueToConstructorsCause",
+        templateIllegalMixinDueToConstructorsCause,
+        severity: Severity.context);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIllegalMixinDueToConstructorsCause(String name) {
@@ -3865,9 +3906,8 @@ const Template<Message Function(String name)> templateOverriddenMethodCause =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeOverriddenMethodCause =
     const Code<Message Function(String name)>(
-  "OverriddenMethodCause",
-  templateOverriddenMethodCause,
-);
+        "OverriddenMethodCause", templateOverriddenMethodCause,
+        severity: Severity.context);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverriddenMethodCause(String name) {
@@ -4260,6 +4300,7 @@ const Code<Null> codePatchClassOrigin = messagePatchClassOrigin;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePatchClassOrigin = const MessageCode(
     "PatchClassOrigin",
+    severity: Severity.context,
     message: r"""This is the origin class.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4286,6 +4327,7 @@ const Code<Null> codePatchDeclarationOrigin = messagePatchDeclarationOrigin;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePatchDeclarationOrigin = const MessageCode(
     "PatchDeclarationOrigin",
+    severity: Severity.context,
     message: r"""This is the origin declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5182,18 +5224,22 @@ const Template<Message Function(String name)>
     const Template<Message Function(String name)>(
         messageTemplate:
             r"""Can't use type arguments with type variable '#name'.""",
+        tipTemplate: r"""Try removing the type arguments.""",
         withArguments: _withArgumentsTypeArgumentsOnTypeVariable);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeTypeArgumentsOnTypeVariable =
     const Code<Message Function(String name)>(
         "TypeArgumentsOnTypeVariable", templateTypeArgumentsOnTypeVariable,
+        analyzerCode: "TYPE_ARGUMENTS_ON_TYPE_VARIABLE",
+        dart2jsCode: "*fatal*",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTypeArgumentsOnTypeVariable(String name) {
   return new Message(codeTypeArgumentsOnTypeVariable,
       message: """Can't use type arguments with type variable '$name'.""",
+      tip: """Try removing the type arguments.""",
       arguments: {'name': name});
 }
 
@@ -5233,10 +5279,9 @@ const Template<Message Function(String name)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeTypeVariableDuplicatedNameCause =
-    const Code<Message Function(String name)>(
-  "TypeVariableDuplicatedNameCause",
-  templateTypeVariableDuplicatedNameCause,
-);
+    const Code<Message Function(String name)>("TypeVariableDuplicatedNameCause",
+        templateTypeVariableDuplicatedNameCause,
+        severity: Severity.context);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTypeVariableDuplicatedNameCause(String name) {

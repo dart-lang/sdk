@@ -25,7 +25,7 @@ html/js_typed_interop_side_cast_exp_test: Pass, RuntimeError # Roll 50 failure
 html/mirrors_js_typed_interop_test: Pass, Slow
 html/svgelement_test/PathElement: Pass, RuntimeError # Roll 50 failure
 html/wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant to Dartium
-html/xhr_test/xhr: Pass, RuntimeError # Roll 50 failure
+html/xhr_test: Pass, Slow
 isolate/browser/issue_12474_test: CompileTimeError # Issue 22529
 isolate/enum_const_test/02: RuntimeError # Issue 21817
 isolate/error_at_spawnuri_test: SkipByDesign # Test uses a ".dart" URI.
@@ -104,7 +104,7 @@ html/js_transferrables_test: RuntimeError
 html/js_typed_interop_lazy_test/none: RuntimeError
 html/js_typed_interop_rename_static_test: RuntimeError
 html/no_linked_scripts_htmltest: Timeout, Pass # Issue 32262
-html/worker_test/functional/functional: RuntimeError # Issue 32261
+html/worker_test/functional: RuntimeError # Issue 32261
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 html/audiobuffersourcenode_test/supported: Fail # TODO(dart2js-team): Please triage this failure.
@@ -137,8 +137,6 @@ html/html_mock_test: RuntimeError # Issue 31038
 html/input_element_attributes_test: RuntimeError
 html/interactive_media_test: RuntimeError
 html/js_extend_class_test: RuntimeError
-html/js_interop_constructor_name_error1_test: Fail # Issue 26838
-html/js_interop_constructor_name_error2_test: Fail # Issue 26838
 
 [ $compiler == dart2js && $runtime == drt && !$checked ]
 html/audiocontext_test/functional: Pass, Fail
@@ -176,7 +174,6 @@ html/text_event_test: Fail # Issue 17893
 html/touchevent_test: Fail
 html/webgl_1_test: Pass, Fail # Issue 8219
 html/websql_test: Fail
-html/xhr_test/xhr: Pass, Fail # Issue 11602
 isolate/kill_self_synchronously_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == ie11 ]
@@ -261,11 +258,16 @@ html/element_types_datalist_test: RuntimeError # Issue 29922
 html/element_types_shadow_test: RuntimeError # Issue 29922
 html/file_sample_test: Skip # FileSystem not supported on Safari.
 html/fileapi_supported_throws_test: Skip # FileSystem not supported on Safari
+html/js_mock_test: RuntimeError # Issue 32286
+html/xhr_test: RuntimeError
 isolate/cross_isolate_message_test: Skip # Issue 12627
 isolate/message_test: Skip # Issue 12627
 
 [ $compiler == dart2js && $system == linux ]
 html/interactive_geolocation_test: Skip # Requires allowing geo location.
+
+[ $compiler == dart2js && $system == windows ]
+html/xhr_test: RuntimeError
 
 [ $compiler == dart2js && $browser ]
 html/custom/created_callback_test: RuntimeError
@@ -769,4 +771,3 @@ isolate/large_byte_data_leak_test: RuntimeError
 html/custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
 html/custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 html/fontface_test: Fail # Fontface not supported on these.
-

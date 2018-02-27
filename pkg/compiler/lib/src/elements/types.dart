@@ -389,9 +389,19 @@ class FunctionTypeVariable extends DartType {
   final int index;
 
   /// The bound of this function type variable.
-  final DartType bound;
+  DartType _bound;
 
-  FunctionTypeVariable(this.index, this.bound);
+  FunctionTypeVariable(this.index);
+
+  DartType get bound {
+    assert(_bound != null, "Bound hasn't been set.");
+    return _bound;
+  }
+
+  void set bound(DartType value) {
+    assert(_bound == null, "Bound has already been set.");
+    _bound = value;
+  }
 
   @override
   bool get isFunctionTypeVariable => true;

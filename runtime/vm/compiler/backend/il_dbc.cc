@@ -954,21 +954,32 @@ EMIT_NATIVE_CODE(NativeCall,
 
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
 
-  ASSERT(!link_lazily());
-  const ExternalLabel label(reinterpret_cast<uword>(native_c_function()));
+  NativeFunctionWrapper trampoline;
+  NativeFunction function;
+  if (link_lazily()) {
+    trampoline = &NativeEntry::BootstrapNativeCallWrapper;
+    function = reinterpret_cast<NativeFunction>(&NativeEntry::LinkNativeCall);
+  } else {
+    if (is_bootstrap_native()) {
+      trampoline = &NativeEntry::BootstrapNativeCallWrapper;
+    } else if (is_auto_scope()) {
+      trampoline = &NativeEntry::AutoScopeNativeCallWrapper;
+    } else {
+      trampoline = &NativeEntry::NoScopeNativeCallWrapper;
+    }
+    function = native_c_function();
+  }
+
+  const ExternalLabel trampoline_label(reinterpret_cast<uword>(trampoline));
+  const intptr_t trampoline_kidx =
+      __ object_pool_wrapper().FindNativeFunctionWrapper(&trampoline_label,
+                                                         kPatchable);
+  const ExternalLabel label(reinterpret_cast<uword>(function));
   const intptr_t target_kidx =
-      __ object_pool_wrapper().FindNativeEntry(&label, kNotPatchable);
+      __ object_pool_wrapper().FindNativeFunction(&label, kPatchable);
   const intptr_t argc_tag_kidx =
       __ object_pool_wrapper().FindImmediate(static_cast<uword>(argc_tag));
-  __ PushConstant(target_kidx);
-  __ PushConstant(argc_tag_kidx);
-  if (is_bootstrap_native()) {
-    __ NativeBootstrapCall();
-  } else if (is_auto_scope()) {
-    __ NativeAutoScopeCall();
-  } else {
-    __ NativeNoScopeCall();
-  }
+  __ NativeCall(trampoline_kidx, target_kidx, argc_tag_kidx);
   compiler->RecordSafepoint(locs());
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId,
                                  token_pos());

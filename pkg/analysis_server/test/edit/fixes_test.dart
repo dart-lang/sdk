@@ -110,10 +110,12 @@ print(1)
   }
 
   test_suggestImportFromDifferentAnalysisRoot() async {
+    String asFileUri(String input) =>
+        new Uri.file(convertPath(input)).toString();
     newFolder('/aaa');
     newFile('/aaa/.packages', content: '''
-aaa:${resourceProvider.convertPath('/aaa/lib')}
-bbb:${resourceProvider.convertPath('/bbb/lib')}
+aaa:${asFileUri('/aaa/lib')}
+bbb:${asFileUri('/bbb/lib')}
 ''');
     // Ensure that the target is analyzed as an implicit source.
     newFile('/aaa/lib/foo.dart', content: 'import "package:bbb/target.dart";');
@@ -122,7 +124,8 @@ bbb:${resourceProvider.convertPath('/bbb/lib')}
     newFile('/bbb/lib/target.dart', content: 'class Foo() {}');
 
     handleSuccessfulRequest(
-        new AnalysisSetAnalysisRootsParams(['/aaa', '/bbb'], []).toRequest('0'),
+        new AnalysisSetAnalysisRootsParams(
+            [convertPath('/aaa'), convertPath('/bbb')], []).toRequest('0'),
         handler: analysisHandler);
 
     // Configure the test file.

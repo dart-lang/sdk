@@ -56,7 +56,11 @@ class Chain extends Suite {
 
   factory Chain.fromJsonMap(Uri base, Map json, String name, String kind) {
     Uri source = base.resolve(json["source"]);
-    Uri uri = base.resolve(json["path"]);
+    String path = json["path"];
+    if (!path.endsWith("/")) {
+      path += "/";
+    }
+    Uri uri = base.resolve(path);
     Uri statusFile = base.resolve(json["status"]);
     List<RegExp> pattern =
         new List<RegExp>.from(json["pattern"].map((String p) => new RegExp(p)));

@@ -90,7 +90,8 @@ the assignment to `y`.
         `whereType`.
       * `Iterable.singleWhere` added `orElse` parameter.
       * `List` added `+` operator, `first` and `last` setters, and `indexWhere`
-        and `lastIndexWhere` methods.
+        and `lastIndexWhere` methods, and static `copyRange` and `writeIterable`
+        methods.
       * `Map` added `fromEntries` constructor.
       * `Map` added `addEntries`, `cast`, `entries`, `map`, `removeWhere`,
         `retype`, `update` and `updateAll` members.

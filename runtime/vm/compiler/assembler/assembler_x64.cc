@@ -47,7 +47,7 @@ void Assembler::LoadNativeEntry(Register dst,
                                 const ExternalLabel* label,
                                 Patchability patchable) {
   const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindNativeEntry(label, patchable));
+      object_pool_wrapper_.FindNativeFunction(label, patchable));
   LoadWordFromPoolOffset(dst, offset - kHeapObjectTag);
 }
 

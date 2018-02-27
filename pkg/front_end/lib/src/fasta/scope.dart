@@ -209,7 +209,7 @@ class Scope extends MutableScope {
       if (usedNames?.containsKey(name) ?? false) {
         return templatePreviousUseOfName
             .withArguments(name)
-            .withLocation(fileUri, usedNames[name]);
+            .withLocation(fileUri, usedNames[name], name.length);
       }
       recordUse(name, charOffset, fileUri);
       local[name] = builder;

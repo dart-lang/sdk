@@ -150,6 +150,7 @@ interface WebGLContextEvent {
 interface IDBCursor {
   [DartName=next, CallWith=ExecutionContext, ImplementedAs=continueFunction, RaisesException] void continue([DartForceOptional] optional any key);
 };
+
 [DartSupplemental]
 interface IDBIndex {
     [CallWith=ExecutionContext, RaisesException] IDBRequest count([Default=Undefined] optional any key);
@@ -431,9 +432,6 @@ interface MIDIOutput : MIDIPort {
     //              postfix the name with send_sequence (?).
     [DartSuppress] void send(sequence<unsigned long> data, optional double timestamp);
 };
-
-[DartSuppress]
-interface MutationEvent {};
 
 // Tweaks types required for Dart strong mode.
 [DartSupplemental]

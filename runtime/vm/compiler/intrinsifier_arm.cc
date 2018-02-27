@@ -750,7 +750,7 @@ void Intrinsifier::Bigint_lsh(Assembler* assembler) {
   // R6 = &r_digits[1]
   __ add(R6, R2,
          Operand(TypedData::data_offset() - kHeapObjectTag +
-                 Bigint::kBytesPerDigit));
+                 kBytesPerBigIntDigit));
   // R6 = &r_digits[x_used + n ~/ _DIGIT_BITS + 1]
   __ add(R4, R4, Operand(R0, ASR, 1));
   __ add(R6, R6, Operand(R4, LSL, 2));
@@ -761,13 +761,13 @@ void Intrinsifier::Bigint_lsh(Assembler* assembler) {
   __ mov(R9, Operand(0));
   Label loop;
   __ Bind(&loop);
-  __ ldr(R4, Address(NOTFP, -Bigint::kBytesPerDigit, Address::PreIndex));
+  __ ldr(R4, Address(NOTFP, -kBytesPerBigIntDigit, Address::PreIndex));
   __ orr(R9, R9, Operand(R4, LSR, R0));
-  __ str(R9, Address(R6, -Bigint::kBytesPerDigit, Address::PreIndex));
+  __ str(R9, Address(R6, -kBytesPerBigIntDigit, Address::PreIndex));
   __ mov(R9, Operand(R4, LSL, R1));
   __ teq(NOTFP, Operand(R8));
   __ b(&loop, NE);
-  __ str(R9, Address(R6, -Bigint::kBytesPerDigit, Address::PreIndex));
+  __ str(R9, Address(R6, -kBytesPerBigIntDigit, Address::PreIndex));
   // Returning Object::null() is not required, since this method is private.
   __ Ret();
 }
@@ -797,15 +797,15 @@ void Intrinsifier::Bigint_rsh(Assembler* assembler) {
   // R0 = 32 - R1
   __ rsb(R0, R1, Operand(32));
   // R9 = x_digits[n ~/ _DIGIT_BITS] >> (n % _DIGIT_BITS)
-  __ ldr(R9, Address(NOTFP, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ ldr(R9, Address(NOTFP, kBytesPerBigIntDigit, Address::PostIndex));
   __ mov(R9, Operand(R9, LSR, R1));
   Label loop_entry;
   __ b(&loop_entry);
   Label loop;
   __ Bind(&loop);
-  __ ldr(R4, Address(NOTFP, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ ldr(R4, Address(NOTFP, kBytesPerBigIntDigit, Address::PostIndex));
   __ orr(R9, R9, Operand(R4, LSL, R0));
-  __ str(R9, Address(R6, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ str(R9, Address(R6, kBytesPerBigIntDigit, Address::PostIndex));
   __ mov(R9, Operand(R4, LSR, R1));
   __ Bind(&loop_entry);
   __ teq(R6, Operand(R8));
@@ -845,11 +845,11 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   Label add_loop;
   __ Bind(&add_loop);
   // Loop a_used times, a_used > 0.
-  __ ldr(R4, Address(R1, Bigint::kBytesPerDigit, Address::PostIndex));
-  __ ldr(R9, Address(R3, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ ldr(R4, Address(R1, kBytesPerBigIntDigit, Address::PostIndex));
+  __ ldr(R9, Address(R3, kBytesPerBigIntDigit, Address::PostIndex));
   __ adcs(R4, R4, Operand(R9));
   __ teq(R1, Operand(NOTFP));  // Does not affect carry flag.
-  __ str(R4, Address(R8, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ str(R4, Address(R8, kBytesPerBigIntDigit, Address::PostIndex));
   __ b(&add_loop, NE);
 
   Label last_carry;
@@ -859,10 +859,10 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   Label carry_loop;
   __ Bind(&carry_loop);
   // Loop used - a_used times, used - a_used > 0.
-  __ ldr(R4, Address(R1, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ ldr(R4, Address(R1, kBytesPerBigIntDigit, Address::PostIndex));
   __ adcs(R4, R4, Operand(0));
   __ teq(R1, Operand(R6));  // Does not affect carry flag.
-  __ str(R4, Address(R8, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ str(R4, Address(R8, kBytesPerBigIntDigit, Address::PostIndex));
   __ b(&carry_loop, NE);
 
   __ Bind(&last_carry);
@@ -904,11 +904,11 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
   Label sub_loop;
   __ Bind(&sub_loop);
   // Loop a_used times, a_used > 0.
-  __ ldr(R4, Address(R1, Bigint::kBytesPerDigit, Address::PostIndex));
-  __ ldr(R9, Address(R3, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ ldr(R4, Address(R1, kBytesPerBigIntDigit, Address::PostIndex));
+  __ ldr(R9, Address(R3, kBytesPerBigIntDigit, Address::PostIndex));
   __ sbcs(R4, R4, Operand(R9));
   __ teq(R1, Operand(NOTFP));  // Does not affect carry flag.
-  __ str(R4, Address(R8, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ str(R4, Address(R8, kBytesPerBigIntDigit, Address::PostIndex));
   __ b(&sub_loop, NE);
 
   Label done;
@@ -918,10 +918,10 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
   Label carry_loop;
   __ Bind(&carry_loop);
   // Loop used - a_used times, used - a_used > 0.
-  __ ldr(R4, Address(R1, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ ldr(R4, Address(R1, kBytesPerBigIntDigit, Address::PostIndex));
   __ sbcs(R4, R4, Operand(0));
   __ teq(R1, Operand(R6));  // Does not affect carry flag.
-  __ str(R4, Address(R8, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ str(R4, Address(R8, kBytesPerBigIntDigit, Address::PostIndex));
   __ b(&carry_loop, NE);
 
   __ Bind(&done);
@@ -992,7 +992,7 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   // n:   R8
 
   // uint32_t mi = *mip++
-  __ ldr(R2, Address(R4, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ ldr(R2, Address(R4, kBytesPerBigIntDigit, Address::PostIndex));
 
   // uint32_t aj = *ajp
   __ ldr(R0, Address(R9, 0));
@@ -1001,7 +1001,7 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   __ umaal(R0, R1, R2, R3);  // R1:R0 = R2*R3 + R1 + R0.
 
   // *ajp++ = low32(t) = R0
-  __ str(R0, Address(R9, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ str(R0, Address(R9, kBytesPerBigIntDigit, Address::PostIndex));
 
   // c = high32(t) = R1
 
@@ -1015,14 +1015,14 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   // *ajp++ += c
   __ ldr(R0, Address(R9, 0));
   __ adds(R0, R0, Operand(R1));
-  __ str(R0, Address(R9, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ str(R0, Address(R9, kBytesPerBigIntDigit, Address::PostIndex));
   __ b(&done, CC);
 
   Label propagate_carry_loop;
   __ Bind(&propagate_carry_loop);
   __ ldr(R0, Address(R9, 0));
   __ adds(R0, R0, Operand(1));
-  __ str(R0, Address(R9, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ str(R0, Address(R9, kBytesPerBigIntDigit, Address::PostIndex));
   __ b(&propagate_carry_loop, CS);
 
   __ Bind(&done);
@@ -1064,7 +1064,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
 
   // R3 = x = *xip++, return if x == 0
   Label x_zero;
-  __ ldr(R3, Address(R4, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ ldr(R3, Address(R4, kBytesPerBigIntDigit, Address::PostIndex));
   __ tst(R3, Operand(R3));
   __ b(&x_zero, EQ);
 
@@ -1079,7 +1079,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   __ umaal(R0, R8, R3, R3);  // R8:R0 = R3*R3 + R8 + R0.
 
   // *ajp++ = low32(t) = R0
-  __ str(R0, Address(NOTFP, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ str(R0, Address(NOTFP, kBytesPerBigIntDigit, Address::PostIndex));
 
   // R8 = low32(c) = high32(t)
   // R9 = high32(c) = 0
@@ -1103,7 +1103,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   // n:   R6
 
   // uint32_t xi = *xip++
-  __ ldr(R2, Address(R4, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ ldr(R2, Address(R4, kBytesPerBigIntDigit, Address::PostIndex));
 
   // uint96_t t = R9:R8:R0 = 2*x*xi + aj + c
   __ umull(R0, R1, R2, R3);  // R1:R0 = R2*R3.
@@ -1120,7 +1120,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   __ adc(R9, R2, Operand(0));  // R9:R8:R0 = 2*x*xi + c + aj.
 
   // *ajp++ = low32(t) = R0
-  __ str(R0, Address(NOTFP, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ str(R0, Address(NOTFP, kBytesPerBigIntDigit, Address::PostIndex));
 
   // while (--n >= 0)
   __ subs(R6, R6, Operand(1));  // --n
@@ -1161,8 +1161,8 @@ void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
   __ ldr(R4, Address(SP, 2 * kWordSize));  // args
 
   // R3 = rho = args[2]
-  __ ldr(R3, FieldAddress(
-                 R4, TypedData::data_offset() + 2 * Bigint::kBytesPerDigit));
+  __ ldr(R3,
+         FieldAddress(R4, TypedData::data_offset() + 2 * kBytesPerBigIntDigit));
 
   // R2 = digits[i >> 1]
   __ ldrd(R0, R1, SP, 0 * kWordSize);  // R0 = i as Smi, R1 = digits
@@ -1173,8 +1173,8 @@ void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
   __ umull(R0, R1, R2, R3);
 
   // args[4] = t mod DIGIT_BASE = low32(t)
-  __ str(R0, FieldAddress(
-                 R4, TypedData::data_offset() + 4 * Bigint::kBytesPerDigit));
+  __ str(R0,
+         FieldAddress(R4, TypedData::data_offset() + 4 * kBytesPerBigIntDigit));
 
   __ mov(R0, Operand(Smi::RawValue(1)));  // One digit processed.
   __ Ret();

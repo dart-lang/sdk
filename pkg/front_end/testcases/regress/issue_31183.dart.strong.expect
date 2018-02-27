@@ -13,9 +13,9 @@ class C extends core::Object {
 static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_31183.dart:6:3: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 Try adding the name of the type of the variable or the keyword 'var'.
   operator unary- => 0;
-  ^", "pkg/front_end/testcases/regress/issue_31183.dart:6:12: Error: Expected ';' before this.
+  ^^^^^^^^", "pkg/front_end/testcases/regress/issue_31183.dart:6:12: Error: Expected ';' before this.
   operator unary- => 0;
-           ^", "pkg/front_end/testcases/regress/issue_31183.dart:6:17: Error: Operator declarations must be preceeded by the keyword 'operator'.
+           ^^^^^", "pkg/front_end/testcases/regress/issue_31183.dart:6:17: Error: Operator declarations must be preceeded by the keyword 'operator'.
 Try adding the keyword 'operator'.
   operator unary- => 0;
                 ^", "pkg/front_end/testcases/regress/issue_31183.dart:6:17: Error: A method declaration needs an explicit list of parameters.

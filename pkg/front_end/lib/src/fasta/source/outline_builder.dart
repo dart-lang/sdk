@@ -14,10 +14,15 @@ import '../combinator.dart' show Combinator;
 
 import '../fasta_codes.dart'
     show
+        LocatedMessage,
         Message,
+        messageConstConstructorWithBody,
+        messageConstMethod,
+        messageConstructorWithReturnType,
         messageExpectedBlockToSkip,
         messageInterpolationInUri,
         messageOperatorWithOptionalFormals,
+        messageStaticConstructor,
         messageTypedefNotFunction,
         templateDuplicatedParameterName,
         templateDuplicatedParameterNameCause,
@@ -26,7 +31,18 @@ import '../fasta_codes.dart'
         templateOperatorParameterMismatch1,
         templateOperatorParameterMismatch2;
 
-import '../modifier.dart' show abstractMask, externalMask, Modifier;
+import '../modifier.dart'
+    show
+        Const,
+        Covariant,
+        External,
+        Final,
+        Modifier,
+        Static,
+        Var,
+        abstractMask,
+        constMask,
+        externalMask;
 
 import '../operator.dart'
     show
@@ -450,6 +466,9 @@ class OutlineBuilder extends UnhandledListener {
     List<MetadataBuilder> metadata = pop();
     String documentationComment = getDocumentationComment(beginToken);
     checkEmpty(beginToken.charOffset);
+    library
+        .endNestedDeclaration("#method")
+        .resolveTypes(typeVariables, library);
     library.addProcedure(
         documentationComment,
         metadata,
@@ -507,7 +526,35 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void beginMethod() {
+  void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
+      Token varFinalOrConst, Token name) {
+    List<Modifier> modifiers = <Modifier>[];
+    if (externalToken != null) {
+      modifiers.add(External);
+    }
+    if (staticToken != null) {
+      if (name?.lexeme == library.currentDeclaration.name) {
+        handleRecoverableError(
+            messageStaticConstructor, staticToken, staticToken);
+      } else {
+        modifiers.add(Static);
+      }
+    }
+    if (covariantToken != null) {
+      modifiers.add(Covariant);
+    }
+    if (varFinalOrConst != null) {
+      String lexeme = varFinalOrConst.lexeme;
+      if (identical('var', lexeme)) {
+        modifiers.add(Var);
+      } else if (identical('final', lexeme)) {
+        modifiers.add(Final);
+      } else {
+        modifiers.add(Const);
+      }
+    }
+    push(varFinalOrConst ?? NullValue.VarFinalOrConstToken);
+    push(modifiers);
     library.beginNestedDeclaration("#method", hasMembers: false);
   }
 
@@ -587,22 +634,71 @@ class OutlineBuilder extends UnhandledListener {
     if ((modifiers & externalMask) != 0) {
       modifiers &= ~abstractMask;
     }
+    Token varFinalOrConst = pop(NullValue.VarFinalOrConstToken);
     List<MetadataBuilder> metadata = pop();
     String documentationComment = getDocumentationComment(beginToken);
-    library.addProcedure(
-        documentationComment,
-        metadata,
-        modifiers,
-        returnType,
-        name,
-        typeVariables,
-        formals,
-        kind,
-        charOffset,
-        formalsOffset,
-        endToken.charOffset,
-        nativeMethodName,
-        isTopLevel: false);
+    library
+        .endNestedDeclaration("#method")
+        .resolveTypes(typeVariables, library);
+    String constructorName =
+        kind == ProcedureKind.Getter || kind == ProcedureKind.Setter
+            ? null
+            : library.computeAndValidateConstructorName(name, charOffset);
+    if (constructorName != null) {
+      if (varFinalOrConst != null) {
+        if (optional('const', varFinalOrConst) &&
+            (endToken != null && !optional(';', endToken))) {
+          handleRecoverableError(messageConstConstructorWithBody,
+              varFinalOrConst, varFinalOrConst);
+          varFinalOrConst = null;
+          modifiers &= ~constMask;
+        }
+      }
+      if (returnType != null) {
+        // TODO(danrubel): Report this error on the return type
+        handleRecoverableError(
+            messageConstructorWithReturnType, beginToken, beginToken);
+        returnType = null;
+      }
+      library.addConstructor(
+          documentationComment,
+          metadata,
+          modifiers,
+          returnType,
+          name,
+          constructorName,
+          typeVariables,
+          formals,
+          charOffset,
+          formalsOffset,
+          endToken.charOffset,
+          nativeMethodName);
+    } else {
+      if (varFinalOrConst != null) {
+        if (optional('const', varFinalOrConst)) {
+          handleRecoverableError(
+              messageConstMethod, varFinalOrConst, varFinalOrConst);
+          varFinalOrConst = null;
+          modifiers &= ~constMask;
+        }
+      }
+      // TODO(danrubel): report messageFieldInitializerOutsideConstructor
+      // for any parameter of the form `this.fieldName`.
+      library.addProcedure(
+          documentationComment,
+          metadata,
+          modifiers,
+          returnType,
+          name,
+          typeVariables,
+          formals,
+          kind,
+          charOffset,
+          formalsOffset,
+          endToken.charOffset,
+          nativeMethodName,
+          isTopLevel: false);
+    }
     nativeMethodName = null;
   }
 
@@ -748,12 +844,11 @@ class OutlineBuilder extends UnhandledListener {
           addCompileTimeError(
               templateDuplicatedParameterName.withArguments(formals[1].name),
               formals[1].charOffset,
-              formals[1].name.length);
-          addCompileTimeError(
-              templateDuplicatedParameterNameCause
-                  .withArguments(formals[1].name),
-              formals[0].charOffset,
-              formals[0].name.length);
+              formals[1].name.length,
+              context: templateDuplicatedParameterNameCause
+                  .withArguments(formals[1].name)
+                  .withLocation(
+                      uri, formals[0].charOffset, formals[0].name.length));
         }
       } else if (formals.length > 2) {
         Map<String, FormalParameterBuilder> seenNames =
@@ -1064,12 +1159,15 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void addCompileTimeError(Message message, int charOffset, int length) {
-    library.addCompileTimeError(message, charOffset, uri);
+  void addCompileTimeError(Message message, int charOffset, int length,
+      {LocatedMessage context}) {
+    library.addCompileTimeError(message, charOffset, length, uri,
+        context: context);
   }
 
-  void addProblem(Message message, int charOffset, int length) {
-    library.addProblem(message, charOffset, uri);
+  void addProblem(Message message, int charOffset, int length,
+      {LocatedMessage context}) {
+    library.addProblem(message, charOffset, length, uri, context: context);
   }
 
   /// Return the documentation comment for the entity that starts at the

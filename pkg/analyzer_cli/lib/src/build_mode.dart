@@ -360,6 +360,8 @@ class BuildMode {
       }
     });
 
+    String rootPath =
+        options.sourceFiles.isEmpty ? null : options.sourceFiles.first;
     DartSdk sdk;
     logger.run('Add SDK bundle', () {
       PackageBundle sdkBundle;
@@ -375,7 +377,7 @@ class BuildMode {
             options.strongMode);
         dartSdk.analysisOptions =
             Driver.createAnalysisOptionsForCommandLineOptions(
-                resourceProvider, options);
+                resourceProvider, options, rootPath);
         dartSdk.useSummary = !options.buildSummaryOnly;
         sdk = dartSdk;
         sdkBundle = dartSdk.getSummarySdkBundle(options.strongMode);
@@ -392,7 +394,7 @@ class BuildMode {
     ]);
 
     analysisOptions = Driver.createAnalysisOptionsForCommandLineOptions(
-        resourceProvider, options);
+        resourceProvider, options, rootPath);
 
     AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(logger);
     analysisDriver = new AnalysisDriver(

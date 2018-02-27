@@ -1487,6 +1487,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitNegate(HNegate node) => visitInvokeUnary(node, '-');
 
+  visitAbs(HAbs node) {
+    use(node.operand);
+    push(js
+        .js('Math.abs(#)', pop())
+        .withSourceInformation(node.sourceInformation));
+  }
+
   visitLess(HLess node) => visitRelational(node, '<');
   visitLessEqual(HLessEqual node) => visitRelational(node, '<=');
   visitGreater(HGreater node) => visitRelational(node, '>');

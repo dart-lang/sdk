@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*class: global#Map:*/
+/*class: global#Map:instance*/
 /*class: global#LinkedHashMap:*/
-/*class: global#JsLinkedHashMap:checks=[]*/
-/*class: global#double:checks=[]*/
-/*class: global#JSDouble:checks=[]*/
+/*class: global#JsLinkedHashMap:checks=[],instance*/
+/*class: global#double:checks=[],instance,typeArgument*/
+/*class: global#JSDouble:checks=[],instance*/
 
 main() {
   <int, double>{}[0] = 0.5;

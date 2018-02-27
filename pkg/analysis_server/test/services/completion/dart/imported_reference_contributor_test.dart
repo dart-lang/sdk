@@ -1849,6 +1849,33 @@ int myFunc() {}
     assertNotSuggested('two');
   }
 
+  test_enum_filter() async {
+    addSource('/a.dart', '''
+enum E { one, two }
+enum F { three, four }
+''');
+    addTestSource('''
+import 'a.dart';
+
+void foo({E e}) {}
+
+main() {
+  foo(e: ^);
+}
+''');
+    await computeSuggestions();
+
+    assertSuggestEnum('E');
+    assertSuggestEnumConst('E.one',
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+    assertSuggestEnumConst('E.two',
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+
+    assertSuggestEnum('F');
+    assertSuggestEnumConst('F.three');
+    assertSuggestEnumConst('F.four');
+  }
+
   test_ExpressionStatement_identifier() async {
     // SimpleIdentifier  ExpressionStatement  Block
     resolveSource('/testA.dart', '''
@@ -2381,6 +2408,36 @@ class B extends A {
     assertNotSuggested('int');
   }
 
+  test_implicitCreation() async {
+    configurePreviewDart2();
+    addSource('/a.dart', '''
+class A {
+  A.a1();
+  A.a2();
+}
+class B {
+  B.b1();
+  B.b2();
+}
+''');
+    addTestSource('''
+import 'a.dart';
+
+main() {
+  ^;
+}
+''');
+    await computeSuggestions();
+
+    assertSuggestClass('A');
+    assertSuggestConstructor('A.a1');
+    assertSuggestConstructor('A.a2');
+
+    assertSuggestClass('B');
+    assertSuggestConstructor('B.b1');
+    assertSuggestConstructor('B.b2');
+  }
+
   test_ImportDirective_dart() async {
     // SimpleStringLiteral  ImportDirective
     addTestSource('''
@@ -2522,6 +2579,35 @@ main() {
     await computeSuggestions();
 
     assertNotSuggested('A');
+  }
+
+  test_InstanceCreationExpression_filter() async {
+    configurePreviewDart2();
+    addSource('/a.dart', '''
+class A {}
+class B extends A {}
+class C implements A {}
+class D {}
+''');
+    addTestSource('''
+import 'a.dart';
+
+main() {
+  A a = new ^
+}
+''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('A',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+    assertSuggestConstructor('B',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
+    assertSuggestConstructor('C',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
+    assertNotSuggested('D');
   }
 
   test_InstanceCreationExpression_imported() async {

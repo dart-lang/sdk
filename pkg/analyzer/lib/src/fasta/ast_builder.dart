@@ -33,7 +33,11 @@ import 'package:front_end/src/fasta/messages.dart'
     show
         Message,
         codeExpectedFunctionBody,
+        messageConstConstructorWithBody,
+        messageConstMethod,
+        messageConstructorWithReturnType,
         messageDirectiveAfterDeclaration,
+        messageFieldInitializerOutsideConstructor,
         messageIllegalAssignmentToNonAssignable,
         messageMissingAssignableSelector,
         messageNativeClauseShouldBeAnnotation,
@@ -669,7 +673,7 @@ class AstBuilder extends ScopeListener {
   }
 
   void handleInvalidTopLevelBlock(Token token) {
-    // TODO(danrubel): Consider improved recovery by adding a this block
+    // TODO(danrubel): Consider improved recovery by adding this block
     // as part of a synthetic top level function.
     pop(); // block
   }
@@ -1354,8 +1358,8 @@ class AstBuilder extends ScopeListener {
       // TODO(danrubel): The fasta parser does not have enough context to
       // report this error. Consider moving it to the resolution phase
       // or at least to common location that can be shared by all listeners.
-      parser.reportRecoverableError(
-          expression.endToken, messageMissingAssignableSelector);
+      handleRecoverableError(messageMissingAssignableSelector,
+          expression.endToken, expression.endToken);
     }
     push(ast.prefixExpression(operator, expression));
   }
@@ -1369,8 +1373,8 @@ class AstBuilder extends ScopeListener {
       // TODO(danrubel): The fasta parser does not have enough context to
       // report this error. Consider moving it to the resolution phase
       // or at least to common location that can be shared by all listeners.
-      parser.reportRecoverableError(
-          operator, messageIllegalAssignmentToNonAssignable);
+      handleRecoverableError(
+          messageIllegalAssignmentToNonAssignable, operator, operator);
     }
     push(ast.postfixExpression(expression, operator));
   }
@@ -2055,6 +2059,35 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
+  void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
+      Token varFinalOrConst, Token name) {
+    _Modifiers modifiers = new _Modifiers();
+    if (externalToken != null) {
+      assert(externalToken.isModifier);
+      modifiers.externalKeyword = externalToken;
+    }
+    if (staticToken != null) {
+      assert(staticToken.isModifier);
+      if (name?.lexeme == classDeclaration.name.name) {
+        // This error is also reported in OutlineBuilder.beginMethod
+        handleRecoverableError(
+            messageStaticConstructor, staticToken, staticToken);
+      } else {
+        modifiers.staticKeyword = staticToken;
+      }
+    }
+    if (covariantToken != null) {
+      assert(covariantToken.isModifier);
+      modifiers.covariantKeyword = covariantToken;
+    }
+    if (varFinalOrConst != null) {
+      assert(varFinalOrConst.isModifier);
+      modifiers.finalConstOrVarKeyword = varFinalOrConst;
+    }
+    push(modifiers);
+  }
+
+  @override
   void endMethod(
       Token getOrSet, Token beginToken, Token beginParam, Token endToken) {
     assert(getOrSet == null ||
@@ -2112,13 +2145,19 @@ class AstBuilder extends ScopeListener {
     }
 
     void constructor(
-        SimpleIdentifier returnType, Token period, SimpleIdentifier name) {
-      if (modifiers?.staticKeyword != null) {
-        // TODO(danrubel): The fasta parser does not have enough context to
-        // report this error. Consider moving it to the resolution phase
-        // or at least to common location that can be shared by all listeners.
-        parser.reportRecoverableError(
-            modifiers.staticKeyword, messageStaticConstructor);
+        SimpleIdentifier prefixOrName, Token period, SimpleIdentifier name) {
+      if (modifiers?.constKeyword != null &&
+          body != null &&
+          (body.length > 1 || body.beginToken?.lexeme != ';')) {
+        // This error is also reported in BodyBuilder.finishFunction
+        Token bodyToken = body.beginToken ?? modifiers.constKeyword;
+        handleRecoverableError(
+            messageConstConstructorWithBody, bodyToken, bodyToken);
+      }
+      if (returnType != null) {
+        // This error is also reported in OutlineBuilder.endMethod
+        handleRecoverableError(messageConstructorWithReturnType,
+            returnType.beginToken, returnType.beginToken);
       }
       classDeclaration.members.add(ast.constructorDeclaration(
           comment,
@@ -2126,7 +2165,7 @@ class AstBuilder extends ScopeListener {
           modifiers?.externalKeyword,
           modifiers?.finalConstOrVarKeyword,
           null, // TODO(paulberry): factoryKeyword
-          ast.simpleIdentifier(returnType.token),
+          ast.simpleIdentifier(prefixOrName.token),
           period,
           name,
           parameters,
@@ -2137,6 +2176,23 @@ class AstBuilder extends ScopeListener {
     }
 
     void method(Token operatorKeyword, SimpleIdentifier name) {
+      if (modifiers?.constKeyword != null &&
+          body != null &&
+          (body.length > 1 || body.beginToken?.lexeme != ';')) {
+        // This error is also reported in OutlineBuilder.endMethod
+        handleRecoverableError(
+            messageConstMethod, modifiers.constKeyword, modifiers.constKeyword);
+      }
+      if (parameters?.parameters != null) {
+        parameters.parameters.forEach((FormalParameter param) {
+          if (param is FieldFormalParameter) {
+            // Added comment in OutlineBuilder.endMethod at the location
+            // where this error could be reported.
+            handleRecoverableError(messageFieldInitializerOutsideConstructor,
+                param.thisKeyword, param.thisKeyword);
+          }
+        });
+      }
       classDeclaration.members.add(ast.methodDeclaration(
           comment,
           metadata,
@@ -2812,28 +2868,30 @@ class _Modifiers {
   Token staticKeyword;
   Token covariantKeyword;
 
-  _Modifiers(List<Token> modifierTokens) {
+  _Modifiers([List<Token> modifierTokens]) {
     // No need to check the order and uniqueness of the modifiers, or that
     // disallowed modifiers are not used; the parser should do that.
     // TODO(paulberry,ahe): implement the necessary logic in the parser.
-    for (var token in modifierTokens) {
-      var s = token.lexeme;
-      if (identical('abstract', s)) {
-        abstractKeyword = token;
-      } else if (identical('const', s)) {
-        finalConstOrVarKeyword = token;
-      } else if (identical('external', s)) {
-        externalKeyword = token;
-      } else if (identical('final', s)) {
-        finalConstOrVarKeyword = token;
-      } else if (identical('static', s)) {
-        staticKeyword = token;
-      } else if (identical('var', s)) {
-        finalConstOrVarKeyword = token;
-      } else if (identical('covariant', s)) {
-        covariantKeyword = token;
-      } else {
-        unhandled("$s", "modifier", token.charOffset, null);
+    if (modifierTokens != null) {
+      for (var token in modifierTokens) {
+        var s = token.lexeme;
+        if (identical('abstract', s)) {
+          abstractKeyword = token;
+        } else if (identical('const', s)) {
+          finalConstOrVarKeyword = token;
+        } else if (identical('external', s)) {
+          externalKeyword = token;
+        } else if (identical('final', s)) {
+          finalConstOrVarKeyword = token;
+        } else if (identical('static', s)) {
+          staticKeyword = token;
+        } else if (identical('var', s)) {
+          finalConstOrVarKeyword = token;
+        } else if (identical('covariant', s)) {
+          covariantKeyword = token;
+        } else {
+          unhandled("$s", "modifier", token.charOffset, null);
+        }
       }
     }
   }
@@ -2857,5 +2915,12 @@ class _Modifiers {
       }
     }
     return firstToken;
+  }
+
+  /// Return the `const` keyword or `null`.
+  Token get constKeyword {
+    return identical('const', finalConstOrVarKeyword?.lexeme)
+        ? finalConstOrVarKeyword
+        : null;
   }
 }

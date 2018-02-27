@@ -31,8 +31,8 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         class X {X.c(); X._d(); z() {}}''');
     addSource('/testA.dart', '''
         library libA;
-        import "/testB.dart";
-        part "$testFile";
+        import "${convertPathForImport("/testB.dart")}";
+        part "${convertPathForImport(testFile)}";
         class A { }
         var m;''');
     addTestSource('''
@@ -69,8 +69,8 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         class B { }''');
     addTestSource('''
         library libA;
-        import "/testB.dart";
-        part "/testA.dart";
+        import "${convertPathForImport("/testB.dart")}";
+        part "${convertPathForImport("/testA.dart")}";
         class A { A({String boo: 'hoo'}) { } }
         main() {new ^}
         var m;''');
@@ -105,8 +105,8 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         ''');
     addTestSource('''
         library libA;
-        import "/testB.dart";
-        part "/testA.dart";
+        import "${convertPathForImport("/testB.dart")}";
+        part "${convertPathForImport("/testA.dart")}";
         class Local { }
         main() {
           A a;
@@ -121,11 +121,13 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     // A is suggested with a higher relevance
     assertSuggestConstructor('A',
         elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
     assertSuggestConstructor('B',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
     assertSuggestConstructor('C',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
     // D is sorted out
     assertNotSuggested('D');
 
@@ -156,8 +158,8 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         ''');
     addTestSource('''
         library libA;
-        import "/testB.dart";
-        part "/testA.dart";
+        import "${convertPathForImport("/testB.dart")}";
+        part "${convertPathForImport("/testA.dart")}";
         class Local { }
         main() {
           A a = new ^
@@ -170,11 +172,13 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     // A is suggested with a higher relevance
     assertSuggestConstructor('A',
         elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
     assertSuggestConstructor('B',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
     assertSuggestConstructor('C',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
     // D is sorted out
     assertNotSuggested('D');
 
@@ -200,8 +204,8 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         class X {X.c(); X._d(); z() {}}''');
     addSource('/testA.dart', '''
         library libA;
-        import "/testB.dart";
-        part "$testFile";
+        import "${convertPathForImport("/testB.dart")}";
+        part "${convertPathForImport(testFile)}";
         class A { var a1; a2(){}}
         var m;
         typedef t1(int blue);
@@ -249,8 +253,8 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         var n;''');
     addTestSource('''
         library libA;
-        import "/testB.dart";
-        part "/testA.dart";
+        import "${convertPathForImport("/testB.dart")}";
+        part "${convertPathForImport("/testA.dart")}";
         class A { A({String boo: 'hoo'}) { } }
         main() {^}
         var m;''');

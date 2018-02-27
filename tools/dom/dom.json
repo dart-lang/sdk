@@ -8088,6 +8088,9 @@
     "dart_action": "unstable",
     "members": {
       "IDBVersionChangeEvent": {},
+      "Xyzzy": {
+        "support_level": "untriaged"
+      },
       "dataLoss": {
         "support_level": "untriaged"
       },
@@ -8095,7 +8098,10 @@
         "support_level": "untriaged"
       },
       "newVersion": {},
-      "oldVersion": {}
+      "oldVersion": {},
+      "target": {
+        "support_level": "untriaged"
+      }
     },
     "support_level": "stable"
   },

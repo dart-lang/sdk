@@ -1115,6 +1115,7 @@ function_type/function_type90_test: RuntimeError # Issue 30475
 function_type/function_type96_test: RuntimeError # Issue 30475
 function_type/function_type9_test: RuntimeError # Issue 30475
 function_type_alias2_test: RuntimeError
+invalid_override_in_mixin_test/01: MissingCompileTimeError
 recursive_mixin_test: Crash
 type_literal_prefix_call_test: RuntimeError
 
@@ -1337,4 +1338,8 @@ type_parameter_test/05: MissingCompileTimeError
 [ $compiler != dartk && $runtime == vm || $compiler != dartkp && $runtime == dart_precompiled ]
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Error only in strong mode
 int64_literal_test/*: Skip # This is testing Dart 2.0 int64 semantics.
-
+invalid_type_argument_count_test/01: MissingCompileTimeError # Error only in strong mode
+invalid_type_argument_count_test/02: MissingCompileTimeError # Error only in strong mode
+invalid_type_argument_count_test/03: MissingCompileTimeError # Error only in strong mode
+invalid_type_argument_count_test/04: MissingCompileTimeError # Error only in strong mode
+partial_tearoff_instantiation_test/none: CompiletimeError

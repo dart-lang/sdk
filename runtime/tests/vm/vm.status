@@ -15,6 +15,7 @@ cc/IsolateReload_PendingStaticCall_DefinedToNSM: SkipSlow # Issue 28198
 cc/IsolateReload_PendingStaticCall_NSMToDefined: SkipSlow # Issue 28198
 cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: SkipSlow # Issue 28198
 cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: SkipSlow # Issue 28198
+cc/IsolateReload_RunNewFieldInitializersWithGenerics: Fail # Issue 32299
 cc/Profiler_InliningIntervalBoundry: Skip # Differences in ia32, debug, release
 cc/SNPrint_BadArgs: Crash, Fail # These tests are expected to crash on all platforms.
 cc/Sleep: Skip # Flaky # Flaky on buildbot. Issue 5133 and 10409.
@@ -24,7 +25,6 @@ dart/data_uri_import_test/none: SkipByDesign
 cc/CodeImmutability: Fail, OK # Address Sanitizer turns a crash into a failure.
 cc/IsolateReload_DanglingGetter_Class: Fail # Issue 28349
 cc/IsolateReload_DanglingGetter_Instance: Fail # Issue 28349
-cc/IsolateReload_DanglingSetter_Instance: Fail # Issue 28349
 cc/IsolateReload_LiveStack: Fail # Issue 28349
 cc/IsolateReload_PendingSuperCall: Fail # Issue 28349
 cc/IsolateReload_SmiFastPathStubs: Fail # Issue 28349
@@ -62,10 +62,10 @@ dart/truncating_ints_test: Skip # dart2js doesn't know about --limit-ints-to-64-
 dart/wrap_around_in_range_analysis_test: SkipByDesign # The test requires int64.
 
 [ $compiler == dartk ]
-cc/DartAPI_New: Crash
+cc/DartAPI_New: Fail
 cc/DartAPI_TypeGetParameterizedTypes: Crash
-dart/redirection_type_shuffling_test/00: Crash
-dart/redirection_type_shuffling_test/none: Crash
+dart/redirection_type_shuffling_test/00: RuntimeError
+dart/redirection_type_shuffling_test/none: RuntimeError
 
 [ $compiler != dartk ]
 cc/IsolateReload_KernelIncrementalCompile: Skip
@@ -164,8 +164,6 @@ cc/Service_TokenStream: Fail
 [ $compiler == dartk && $runtime == vm ]
 cc/CanonicalizationInScriptSnapshots: Fail
 cc/Class_ComputeEndTokenPos: Crash
-cc/CorelibCompileAll: Crash
-cc/CorelibCompilerStats: Crash
 cc/DartAPI_CurrentStackTraceInfo: Fail
 cc/DartAPI_InjectNativeFields1: Skip
 cc/DartAPI_InvokeNoSuchMethod: Fail
@@ -199,21 +197,11 @@ cc/Debugger_Rewind_Optimized: SkipSlow
 cc/Debugger_SetBreakpointInPartOfLibrary: Crash
 cc/FunctionSourceFingerprint: Fail
 cc/GenerateSource: Skip # Cannot generate source from a kernel binary. 
-cc/IsolateReload_DanglingSetter_Instance: Fail
 cc/IsolateReload_EnumDelete: Fail
 cc/IsolateReload_EnumReorderIdentical: Fail
 cc/IsolateReload_EnumToNotEnum: Skip
-cc/IsolateReload_LiveStack: Fail
 cc/IsolateReload_NotEnumToEnum: Skip
 cc/IsolateReload_NotTypedefToTypedef: Fail
-cc/IsolateReload_PendingSuperCall: Fail
-cc/IsolateReload_RunNewFieldInitialiazersSuperClass: Skip
-cc/IsolateReload_RunNewFieldInitializers: Skip
-cc/IsolateReload_RunNewFieldInitializersMutateStaticField: Skip
-cc/IsolateReload_RunNewFieldInitializersReferenceStaticField: Skip
-cc/IsolateReload_RunNewFieldInitializersThrows: Skip
-cc/IsolateReload_RunNewFieldInitializersWithConsts: Skip
-cc/IsolateReload_SmiFastPathStubs: Fail
 cc/IsolateReload_TypedefToNotTypedef: Fail
 cc/Parser_AllocateVariables_CaptureLoopVar: Fail
 cc/Parser_AllocateVariables_CapturedVar: Fail
@@ -244,7 +232,7 @@ cc/SourcePosition_WhileContinueBreak: Crash
 cc/SourceReport_CallSites_PolymorphicCall: Fail
 cc/SourceReport_CallSites_SimpleCall: Fail
 cc/SourceReport_Coverage_AllFunctions: Fail
-cc/SourceReport_Coverage_AllFunctions_ForceCompile: Crash
+cc/SourceReport_Coverage_AllFunctions_ForceCompile: Fail
 cc/SourceReport_Coverage_ForceCompile: Fail
 cc/SourceReport_Coverage_NestedFunctions: Fail
 cc/SourceReport_Coverage_NoCalls: Fail
@@ -261,20 +249,11 @@ dart/data_uri_import_test/utf16: MissingRuntimeError
 dart/spawn_shutdown_test: SkipSlow
 
 [ $compiler == dartk && $runtime == vm && $system == macos ]
-cc/IsolateReload_DanglingGetter_Class: Crash
-cc/IsolateReload_DanglingGetter_Instance: Crash
-cc/IsolateReload_DanglingSetter_Instance: Crash
 cc/IsolateReload_EnumDelete: Crash
 cc/IsolateReload_LibraryLookup: Fail, Crash
-cc/IsolateReload_TearOff_AddArguments: Crash
-cc/IsolateReload_TearOff_AddArguments2: Crash
-cc/IsolateReload_TearOff_Class_Identity: Crash
-cc/IsolateReload_TearOff_Instance_Equality: Crash
-cc/IsolateReload_TearOff_Library_Identity: Crash
-cc/IsolateReload_TearOff_List_Set: Crash
-cc/IsolateReload_TypeIdentity: Crash
-cc/IsolateReload_TypeIdentityGeneric: Crash
-cc/IsolateReload_TypeIdentityParameter: Crash
+cc/IsolateReload_TearOff_AddArguments: Fail
+cc/IsolateReload_TearOff_Instance_Equality: Fail
+cc/IsolateReload_TearOff_List_Set: Fail
 cc/Parser_AllocateVariables_CaptureLoopVar: Crash
 cc/Parser_AllocateVariables_Issue7681: Crash
 cc/Parser_AllocateVariables_MiddleChain: Crash
@@ -286,34 +265,16 @@ cc/IsolateReload_LibraryHide: Crash
 cc/IsolateReload_LibraryShow: Crash
 
 [ $compiler == dartk && $system == linux ]
-cc/IsolateReload_DanglingGetter_Class: Fail
-cc/IsolateReload_DanglingGetter_Instance: Fail
 cc/IsolateReload_LibraryLookup: Crash
 cc/IsolateReload_TearOff_AddArguments: Fail
-cc/IsolateReload_TearOff_AddArguments2: Fail
-cc/IsolateReload_TearOff_Class_Identity: Fail
 cc/IsolateReload_TearOff_Instance_Equality: Fail
-cc/IsolateReload_TearOff_Library_Identity: Fail
 cc/IsolateReload_TearOff_List_Set: Fail
-cc/IsolateReload_TypeIdentity: Fail
-cc/IsolateReload_TypeIdentityGeneric: Fail
-cc/IsolateReload_TypeIdentityParameter: Fail
 
 [ $compiler == dartk && $system == windows ]
-cc/IsolateReload_DanglingGetter_Class: Crash
-cc/IsolateReload_DanglingGetter_Instance: Crash
 cc/IsolateReload_LibraryLookup: Crash
-cc/IsolateReload_TearOff_AddArguments: Crash
-cc/IsolateReload_TearOff_AddArguments2: Crash
-cc/IsolateReload_TearOff_Class_Identity: Crash
-cc/IsolateReload_TearOff_Instance_Equality: Crash
-cc/IsolateReload_TearOff_Library_Identity: Crash
-cc/IsolateReload_TearOff_List_Set: Crash
-cc/IsolateReload_TypeIdentity: Crash
-cc/IsolateReload_TypeIdentityGeneric: Crash
-cc/IsolateReload_TypeIdentityParameter: Crash
-cc/Profiler_BasicSourcePosition: Fail, Pass
-cc/Profiler_CodeTicks: Fail, Pass
+cc/IsolateReload_TearOff_AddArguments: Fail
+cc/IsolateReload_TearOff_Instance_Equality: Fail
+cc/IsolateReload_TearOff_List_Set: Fail
 cc/Profiler_ContextAllocation: Fail, Pass # Flaky on Windows --- sometimes give "profiler_test.cc: 1107: error: expected: !walker.Down()"
 cc/Profiler_FunctionTicks: Fail, Pass
 cc/Profiler_ToggleRecordAllocation: Fail, Pass

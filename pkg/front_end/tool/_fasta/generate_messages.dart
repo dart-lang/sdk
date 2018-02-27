@@ -16,6 +16,7 @@ Map<String, String> severityEnumNames = <String, String>{
   'ERROR': 'error',
   'ERROR_LEGACY_WARNING': 'errorLegacyWarning',
   'INTERNAL_PROBLEM': 'internalProblem',
+  'CONTEXT': 'context',
 };
 
 main(List<String> arguments) async {
