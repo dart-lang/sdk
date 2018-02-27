@@ -1159,6 +1159,9 @@ type_variable_promotion_test: RuntimeError # Compares runtime type to the string
 [ $compiler == fasta && $strong ]
 deferred_super_dependency_test/01: MissingCompileTimeError
 
+[ $compiler == fasta && !$strong ]
+invalid_override_in_mixin_test/01: MissingCompileTimeError
+
 [ $runtime == vm && $fasta ]
 implicit_creation/implicit_new_or_const_composite_test: RuntimeError
 implicit_creation/implicit_new_or_const_test: RuntimeError

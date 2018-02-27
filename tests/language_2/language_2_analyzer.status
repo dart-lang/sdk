@@ -1438,6 +1438,7 @@ invalid_cast_test/08: MissingCompileTimeError
 invalid_cast_test/09: MissingCompileTimeError
 invalid_cast_test/10: MissingCompileTimeError
 invalid_cast_test/11: MissingCompileTimeError
+invalid_override_in_mixin_test/01: MissingCompileTimeError
 invocation_mirror_test: StaticWarning
 issue13179_test: StaticWarning
 issue15606_test/none: StaticWarning # invalid use of void for dart 2, see also #32100

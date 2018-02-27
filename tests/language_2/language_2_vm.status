@@ -1115,6 +1115,7 @@ function_type/function_type90_test: RuntimeError # Issue 30475
 function_type/function_type96_test: RuntimeError # Issue 30475
 function_type/function_type9_test: RuntimeError # Issue 30475
 function_type_alias2_test: RuntimeError
+invalid_override_in_mixin_test/01: MissingCompileTimeError
 recursive_mixin_test: Crash
 type_literal_prefix_call_test: RuntimeError
 
