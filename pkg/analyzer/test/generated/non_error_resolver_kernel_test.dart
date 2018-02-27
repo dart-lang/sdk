@@ -191,6 +191,23 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
     return super.test_genericTypeAlias_invalidGenericFunctionType();
   }
 
+  @override // passes with kernel
+  test_infer_mixin() => super.test_infer_mixin();
+
+  @override // Passes with kernel
+  test_infer_mixin_multiplyConstrained() =>
+      super.test_infer_mixin_multiplyConstrained();
+
+  @override
+  @failingTest
+  test_infer_mixin_with_substitution() =>
+      super.test_infer_mixin_with_substitution();
+
+  @override
+  @failingTest
+  test_infer_mixin_with_substitution_functionType() =>
+      super.test_infer_mixin_with_substitution_functionType();
+
   @override
   @failingTest
   @potentialAnalyzerProblem

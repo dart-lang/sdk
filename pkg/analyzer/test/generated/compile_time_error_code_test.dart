@@ -3955,9 +3955,40 @@ class C extends B with M {
     verify([source]);
   }
 
+  test_mixinInference_conflictingSubstitution() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    options.strongMode = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class M<T> extends A<Map<T, T>> {}
+class C extends A<Map<int, String>> with M {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION]);
+  }
+
+  test_mixinInference_impossibleSubstitution() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    options.strongMode = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class M<T> extends A<Map<T, T>> {}
+class C extends A<List<int>> with M {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION]);
+  }
+
   test_mixinInference_matchingClass() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
+    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -3972,6 +4003,7 @@ class C extends A<int> with M {}
   test_mixinInference_matchingClass_inPreviousMixin() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
+    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}

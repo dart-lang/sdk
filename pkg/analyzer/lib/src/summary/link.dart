@@ -675,8 +675,9 @@ class ClassElementForLink_Class extends ClassElementForLink
           CompilationUnitElementForLink enclosingElement =
               this.enclosingElement;
           if (enclosingElement is CompilationUnitElementInBuildUnit) {
-            var mixinSupertypeConstraint = mixinElement.supertype;
-            if (mixinSupertypeConstraint.element.typeParameters.isNotEmpty) {
+            var mixinSupertypeConstraints = context.typeSystem
+                .gatherMixinSupertypeConstraints(mixinElement);
+            if (mixinSupertypeConstraints.isNotEmpty) {
               if (supertypesForMixinInference == null) {
                 supertypesForMixinInference = <InterfaceType>[];
                 ClassElementImpl.collectAllSupertypes(
@@ -686,33 +687,23 @@ class ClassElementForLink_Class extends ClassElementForLink
                       supertypesForMixinInference, previousMixin, type);
                 }
               }
-              var matchingInterfaceType = _findInterfaceTypeForElement(
-                  mixinSupertypeConstraint.element,
-                  supertypesForMixinInference);
-              // TODO(paulberry): If matchingInterfaceType is null, that's an
-              // error.  Also, if there are multiple matching interface types
-              // that use different type parameters, that's also an error.  But
-              // we can't report errors from the linker, so we just use the
-              // first matching interface type (if there is one) and hope for
-              // the best.  The error detection logic will have to be
-              // implemented in the ErrorVerifier.
-              if (matchingInterfaceType != null) {
-                // TODO(paulberry): now we should pattern match
-                // matchingInterfaceType against mixinSupertypeConstraint to
-                // find the correct set of type parameters to apply to the
-                // mixin.  But as a quick hack, we assume that the mixin just
-                // passes its type parameters through to the supertype
-                // constraint (that is, each type in
-                // mixinSupertypeConstraint.typeParameters should be a
-                // TypeParameterType pointing to the corresponding element of
-                // mixinElement.typeParameters).  To avoid a complete disaster
-                // if this assumption is wrong, we only do the inference if the
-                // number of type arguments applied to mixinSupertypeConstraint
-                // matches the number of type parameters accepted by the mixin.
-                if (mixinSupertypeConstraint.typeArguments.length ==
-                    mixinElement.typeParameters.length) {
-                  mixin = mixinElement.type
-                      .instantiate(matchingInterfaceType.typeArguments);
+              var matchingInterfaceTypes = _findInterfaceTypesForConstraints(
+                  mixinSupertypeConstraints, supertypesForMixinInference);
+              // Note: if matchingInterfaceType is null, that's an error.  Also,
+              // if there are multiple matching interface types that use
+              // different type parameters, that's also an error.  But we can't
+              // report errors from the linker, so we just use the
+              // first matching interface type (if there is one).  The error
+              // detection logic is implemented in the ErrorVerifier.
+              if (matchingInterfaceTypes != null) {
+                // Try to pattern match matchingInterfaceTypes against
+                // mixinSupertypeConstraints to find the correct set of type
+                // parameters to apply to the mixin.
+                var inferredMixin = context.typeSystem
+                    .matchSupertypeConstraints(mixinElement,
+                        mixinSupertypeConstraints, matchingInterfaceTypes);
+                if (inferredMixin != null) {
+                  mixin = inferredMixin;
                   enclosingElement._storeLinkedType(slot, mixin, this);
                 }
               }
@@ -829,6 +820,21 @@ class ClassElementForLink_Class extends ClassElementForLink
       // the supertype is `Object`.
     }
     return enclosingElement.enclosingElement._linker.typeProvider.objectType;
+  }
+
+  List<InterfaceType> _findInterfaceTypesForConstraints(
+      List<InterfaceType> constraints, List<InterfaceType> interfaceTypes) {
+    var result = <InterfaceType>[];
+    for (var constraint in constraints) {
+      var interfaceType =
+          _findInterfaceTypeForElement(constraint.element, interfaceTypes);
+      if (interfaceType == null) {
+        // No matching interface type found, so inference fails.
+        return null;
+      }
+      result.add(interfaceType);
+    }
+    return result;
   }
 
   InterfaceType _findInterfaceTypeForElement(

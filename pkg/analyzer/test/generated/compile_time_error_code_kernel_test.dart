@@ -1725,6 +1725,16 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  test_mixinInference_conflictingSubstitution() =>
+      super.test_mixinInference_conflictingSubstitution();
+
+  @override
+  @failingTest
+  test_mixinInference_impossibleSubstitution() =>
+      super.test_mixinInference_impossibleSubstitution();
+
+  @override
+  @failingTest
   test_mixinInference_noMatchingClass() =>
       super.test_mixinInference_noMatchingClass();
 
