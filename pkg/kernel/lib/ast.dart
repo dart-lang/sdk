@@ -1172,7 +1172,7 @@ class Field extends Member implements FileUriNode {
   void set isGenericContravariant(bool value) {
     flags2 = value
         ? (flags2 | Flag2GenericContravariant)
-        : (flags & ~Flag2GenericContravariant);
+        : (flags2 & ~Flag2GenericContravariant);
   }
 
   /// True if the field is neither final nor const.
