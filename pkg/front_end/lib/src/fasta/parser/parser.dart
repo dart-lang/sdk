@@ -2909,10 +2909,6 @@ class Parser {
       Function endStuff, Function handleNoStuff) {
     Token next = token.next;
     if (optional('<', next)) {
-      if (optional('dynamic', token)) {
-        reportRecoverableError(next,
-            fasta.templateTypeArgumentsOnTypeVariable.withArguments('dynamic'));
-      }
       BeginToken begin = next;
       rewriteLtEndGroupOpt(begin);
       beginStuff(begin);
