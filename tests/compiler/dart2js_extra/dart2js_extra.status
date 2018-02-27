@@ -27,6 +27,10 @@ timer_negative_test: Fail, OK # A negative runtime test.
 dummy_compiler_test: Skip # Issue 28649
 recursive_import_test: Skip # Issue 28649
 
+[ $compiler == dart2js && !$strong ]
+generic_method_dynamic_is_test: RuntimeError # Test against function type variables is only supported in strong mode.
+generic_method_static_is_test: RuntimeError # Test against function type variables is only supported in strong mode.
+
 [ $compiler == dart2js && $mode == debug ]
 operator_test: Skip
 string_interpolation_test: Skip

@@ -1444,15 +1444,6 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
       }
     });
 
-    void processType(DartType t) {
-      if (t is FunctionType) {
-        checkedFunctionTypes.add(t);
-      } else if (t is InterfaceType) {
-        checkedClasses.add(t.element);
-      }
-      testedTypeVisitor.visitType(t, false);
-    }
-
     codegenWorldBuilder.instantiatedTypes.forEach((t) {
       liveTypeVisitor.visitType(t, false);
       ClassUse classUse =
@@ -1465,8 +1456,26 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
       testedTypeVisitor.visitType(t, false);
     });
 
-    explicitIsChecks.forEach(processType);
-    implicitIsChecks.forEach(processType);
+    void processMethodTypeArguments(_, Set<DartType> typeArguments) {
+      for (DartType typeArgument in typeArguments) {
+        liveTypeVisitor.visit(typeArgument, true);
+      }
+    }
+
+    codegenWorldBuilder.forEachStaticTypeArgument(processMethodTypeArguments);
+    codegenWorldBuilder.forEachDynamicTypeArgument(processMethodTypeArguments);
+
+    void processCheckedType(DartType t) {
+      if (t is FunctionType) {
+        checkedFunctionTypes.add(t);
+      } else if (t is InterfaceType) {
+        checkedClasses.add(t.element);
+      }
+      testedTypeVisitor.visitType(t, false);
+    }
+
+    explicitIsChecks.forEach(processCheckedType);
+    implicitIsChecks.forEach(processCheckedType);
 
     cachedRequiredChecks = _computeChecks(classUseMap);
     rtiChecksBuilderClosed = true;
