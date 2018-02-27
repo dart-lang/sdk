@@ -173,6 +173,44 @@ class D {}
     _assertNoDeclaration(declarations, 'D');
   }
 
+  test_declarations_parameters() async {
+    await _resolveTestUnit('''
+class C {
+  int get g => 0;
+  void m(int a, double b) {}
+}
+void f(bool a, String b) {}
+typedef F(int a);
+''');
+    var files = <String>[];
+    List<Declaration> declarations =
+        await driver.search.declarations(null, null, files);
+
+    Declaration declaration;
+
+    declaration =
+        _assertHasDeclaration(declarations, 'C', DeclarationKind.CLASS);
+    expect(declaration.parameters, isNull);
+
+    declaration = _assertHasDeclaration(
+        declarations, 'g', DeclarationKind.GETTER,
+        className: 'C');
+    expect(declaration.parameters, isNull);
+
+    declaration = _assertHasDeclaration(
+        declarations, 'm', DeclarationKind.METHOD,
+        className: 'C');
+    expect(declaration.parameters, '(int a, double b)');
+
+    declaration =
+        _assertHasDeclaration(declarations, 'f', DeclarationKind.FUNCTION);
+    expect(declaration.parameters, '(bool a, String b)');
+
+    declaration = _assertHasDeclaration(
+        declarations, 'F', DeclarationKind.FUNCTION_TYPE_ALIAS);
+    expect(declaration.parameters, '(int a)');
+  }
+
   test_declarations_top() async {
     await _resolveTestUnit('''
 int get g => 0;
@@ -1300,7 +1338,7 @@ class NoMatchABCDE {}
         unorderedEquals([a, b, c, d, e]));
   }
 
-  void _assertHasDeclaration(
+  Declaration _assertHasDeclaration(
       List<Declaration> declarations, String name, DeclarationKind kind,
       {int offset, int codeOffset, int codeLength, String className}) {
     for (var declaration in declarations) {
@@ -1310,7 +1348,7 @@ class NoMatchABCDE {}
           (codeOffset == null || declaration.codeOffset == codeOffset) &&
           (codeLength == null || declaration.codeLength == codeLength) &&
           declaration.className == className) {
-        return;
+        return declaration;
       }
     }
     var actual = declarations

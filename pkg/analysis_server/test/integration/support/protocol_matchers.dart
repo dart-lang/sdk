@@ -335,6 +335,7 @@ final Matcher isElement =
  *   "codeOffset": int
  *   "codeLength": int
  *   "className": optional String
+ *   "parameters": optional String
  * }
  */
 final Matcher isElementDeclaration =
@@ -348,7 +349,8 @@ final Matcher isElementDeclaration =
           "codeOffset": isInt,
           "codeLength": isInt
         }, optionalFields: {
-          "className": isString
+          "className": isString,
+          "parameters": isString
         }));
 
 /**

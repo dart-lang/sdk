@@ -8736,6 +8736,7 @@ class EditSortMembersResult implements ResponseResult {
  *   "codeOffset": int
  *   "codeLength": int
  *   "className": optional String
+ *   "parameters": optional String
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -8758,6 +8759,8 @@ class ElementDeclaration implements HasToJson {
   int _codeLength;
 
   String _className;
+
+  String _parameters;
 
   /**
    * The name of the declaration.
@@ -8877,9 +8880,31 @@ class ElementDeclaration implements HasToJson {
     this._className = value;
   }
 
+  /**
+   * The parameter list for the element. If the element is not a method or
+   * function this field will not be defined. If the element doesn't have
+   * parameters (e.g. getter), this field will not be defined. If the element
+   * has zero parameters, this field will have a value of "()". The value
+   * should not be treated as exact presentation of parameters, it is just
+   * approximation of parameters to give the user general idea.
+   */
+  String get parameters => _parameters;
+
+  /**
+   * The parameter list for the element. If the element is not a method or
+   * function this field will not be defined. If the element doesn't have
+   * parameters (e.g. getter), this field will not be defined. If the element
+   * has zero parameters, this field will have a value of "()". The value
+   * should not be treated as exact presentation of parameters, it is just
+   * approximation of parameters to give the user general idea.
+   */
+  void set parameters(String value) {
+    this._parameters = value;
+  }
+
   ElementDeclaration(String name, ElementKind kind, int fileIndex, int offset,
       int line, int column, int codeOffset, int codeLength,
-      {String className}) {
+      {String className, String parameters}) {
     this.name = name;
     this.kind = kind;
     this.fileIndex = fileIndex;
@@ -8889,6 +8914,7 @@ class ElementDeclaration implements HasToJson {
     this.codeOffset = codeOffset;
     this.codeLength = codeLength;
     this.className = className;
+    this.parameters = parameters;
   }
 
   factory ElementDeclaration.fromJson(
@@ -8954,9 +8980,14 @@ class ElementDeclaration implements HasToJson {
         className = jsonDecoder.decodeString(
             jsonPath + ".className", json["className"]);
       }
+      String parameters;
+      if (json.containsKey("parameters")) {
+        parameters = jsonDecoder.decodeString(
+            jsonPath + ".parameters", json["parameters"]);
+      }
       return new ElementDeclaration(
           name, kind, fileIndex, offset, line, column, codeOffset, codeLength,
-          className: className);
+          className: className, parameters: parameters);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ElementDeclaration", json);
     }
@@ -8976,6 +9007,9 @@ class ElementDeclaration implements HasToJson {
     if (className != null) {
       result["className"] = className;
     }
+    if (parameters != null) {
+      result["parameters"] = parameters;
+    }
     return result;
   }
 
@@ -8993,7 +9027,8 @@ class ElementDeclaration implements HasToJson {
           column == other.column &&
           codeOffset == other.codeOffset &&
           codeLength == other.codeLength &&
-          className == other.className;
+          className == other.className &&
+          parameters == other.parameters;
     }
     return false;
   }
@@ -9010,6 +9045,7 @@ class ElementDeclaration implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, codeOffset.hashCode);
     hash = JenkinsSmiHash.combine(hash, codeLength.hashCode);
     hash = JenkinsSmiHash.combine(hash, className.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

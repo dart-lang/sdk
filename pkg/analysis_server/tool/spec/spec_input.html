@@ -2980,6 +2980,18 @@
           is not a class member, this field will be absent.
         </p>
       </field>
+      <field name="parameters" optional="true">
+        <ref>String</ref>
+        <p>
+          The parameter list for the element. If the element is not a method or
+          function this field will not be defined. If the element doesn't have
+          parameters (e.g. getter), this field will not be defined. If the
+          element has zero parameters, this field will have a value of "()".
+
+          The value should not be treated as exact presentation of parameters,
+          it is just approximation of parameters to give the user general idea.
+        </p>
+      </field>
     </object>
   </type>
   <type name="ExecutableFile">

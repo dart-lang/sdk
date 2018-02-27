@@ -3132,6 +3132,17 @@ a:focus, a:hover {
           The name of the class enclosing this declaration. If the declaration
           is not a class member, this field will be absent.
         </p>
+      </dd><dt class="field"><b>parameters: String<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The parameter list for the element. If the element is not a method or
+          function this field will not be defined. If the element doesn't have
+          parameters (e.g. getter), this field will not be defined. If the
+          element has zero parameters, this field will have a value of "()".
+
+          The value should not be treated as exact presentation of parameters,
+          it is just approximation of parameters to give the user general idea.
+        </p>
       </dd></dl></dd><dt class="typeDefinition"><a name="type_ElementKind">ElementKind: String</a></dt><dd>
     <p>
       An enumeration of the kinds of elements.

@@ -38,9 +38,19 @@ class Declaration {
   final int codeOffset;
   final int codeLength;
   final String className;
+  final String parameters;
 
-  Declaration(this.fileIndex, this.name, this.kind, this.offset, this.line,
-      this.column, this.codeOffset, this.codeLength, this.className);
+  Declaration(
+      this.fileIndex,
+      this.name,
+      this.kind,
+      this.offset,
+      this.line,
+      this.column,
+      this.codeOffset,
+      this.codeLength,
+      this.className,
+      this.parameters);
 }
 
 /**
@@ -111,6 +121,7 @@ class Search {
   Future<List<Declaration>> declarations(
       RegExp regExp, int maxResults, List<String> files) async {
     List<Declaration> declarations = <Declaration>[];
+    UnlinkedUnit unlinkedUnit;
 
     DeclarationKind getExecutableKind(
         UnlinkedExecutable executable, bool topLevel) {
@@ -130,6 +141,43 @@ class Search {
       }
     }
 
+    void appendParameter(StringBuffer buffer, UnlinkedParam parameter) {
+      EntityRef type = parameter.type;
+      if (type?.entityKind == EntityRefKind.named) {
+        if (type.reference != null) {
+          UnlinkedReference typeRef = unlinkedUnit.references[type.reference];
+          buffer.write(typeRef.name);
+          buffer.write(' ');
+        }
+      }
+      buffer.write(parameter.name);
+    }
+
+    String getParametersString(List<UnlinkedParam> parameters) {
+      var buffer = new StringBuffer();
+      buffer.write('(');
+
+      bool isFirstParameter = true;
+      for (var parameter in parameters) {
+        if (isFirstParameter) {
+          isFirstParameter = false;
+        } else {
+          buffer.write(', ');
+        }
+        appendParameter(buffer, parameter);
+      }
+
+      buffer.write(')');
+      return buffer.toString();
+    }
+
+    String getExecutableParameters(UnlinkedExecutable executable) {
+      if (executable.kind == UnlinkedExecutableKind.getter) {
+        return null;
+      }
+      return getParametersString(executable.parameters);
+    }
+
     try {
       for (String path in _driver.addedFiles) {
         FileState file = _driver.fsState.getFileForPath(path);
@@ -137,7 +185,7 @@ class Search {
 
         void addDeclaration(String name, DeclarationKind kind, int offset,
             int codeOffset, int codeLength,
-            [String className]) {
+            {String className, String parameters}) {
           if (maxResults != null && declarations.length >= maxResults) {
             throw const _MaxNumberOfDeclarationsError();
           }
@@ -153,7 +201,6 @@ class Search {
             fileIndex = files.length;
             files.add(file.path);
           }
-
           var location = file.lineInfo.getLocation(offset);
           declarations.add(new Declaration(
               fileIndex,
@@ -164,10 +211,12 @@ class Search {
               location.columnNumber,
               codeOffset,
               codeLength,
-              className));
+              className,
+              parameters));
         }
 
-        for (var class_ in file.unlinked.classes) {
+        unlinkedUnit = file.unlinked;
+        for (var class_ in unlinkedUnit.classes) {
           String className = class_.name;
           addDeclaration(
               className,
@@ -180,7 +229,8 @@ class Search {
 
           for (var field in class_.fields) {
             addDeclaration(field.name, DeclarationKind.FIELD, field.nameOffset,
-                field.codeRange.offset, field.codeRange.length, className);
+                field.codeRange.offset, field.codeRange.length,
+                className: className);
           }
 
           for (var executable in class_.executables) {
@@ -191,12 +241,13 @@ class Search {
                   executable.nameOffset,
                   executable.codeRange.offset,
                   executable.codeRange.length,
-                  className);
+                  className: className,
+                  parameters: getExecutableParameters(executable));
             }
           }
         }
 
-        for (var enum_ in file.unlinked.enums) {
+        for (var enum_ in unlinkedUnit.enums) {
           addDeclaration(enum_.name, DeclarationKind.ENUM, enum_.nameOffset,
               enum_.codeRange.offset, enum_.codeRange.length);
           for (var value in enum_.values) {
@@ -205,25 +256,27 @@ class Search {
           }
         }
 
-        for (var executable in file.unlinked.executables) {
+        for (var executable in unlinkedUnit.executables) {
           addDeclaration(
               executable.name,
               getExecutableKind(executable, true),
               executable.nameOffset,
               executable.codeRange.offset,
-              executable.codeRange.length);
+              executable.codeRange.length,
+              parameters: getExecutableParameters(executable));
         }
 
-        for (var typedef_ in file.unlinked.typedefs) {
+        for (var typedef_ in unlinkedUnit.typedefs) {
           addDeclaration(
               typedef_.name,
               DeclarationKind.FUNCTION_TYPE_ALIAS,
               typedef_.nameOffset,
               typedef_.codeRange.offset,
-              typedef_.codeRange.length);
+              typedef_.codeRange.length,
+              parameters: getParametersString(typedef_.parameters));
         }
 
-        for (var variable in file.unlinked.variables) {
+        for (var variable in unlinkedUnit.variables) {
           addDeclaration(
               variable.name,
               DeclarationKind.VARIABLE,

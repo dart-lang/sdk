@@ -22,14 +22,13 @@ main() {
 class DeclarationsTest extends AbstractSearchDomainTest {
   SearchGetElementDeclarationsResult declarationsResult;
 
-  void assertHas(String name, ElementKind kind, {String className}) {
-    expect(
-        declarationsResult.declarations,
-        contains(predicate((ElementDeclaration d) =>
-            declarationsResult.files[d.fileIndex] == testFile &&
-            d.name == name &&
-            d.kind == kind &&
-            d.className == className)));
+  ElementDeclaration assertHas(String name, ElementKind kind,
+      {String className}) {
+    return declarationsResult.declarations.singleWhere((ElementDeclaration d) =>
+        declarationsResult.files[d.fileIndex] == testFile &&
+        d.name == name &&
+        d.kind == kind &&
+        d.className == className);
   }
 
   void assertNo(String name) {
@@ -125,6 +124,16 @@ class D {}
       expect(declaration.kind, ElementKind.CLASS);
       expect(declarationsResult.files[declaration.fileIndex], b);
     }
+  }
+
+  test_parameters() async {
+    addTestFile(r'''
+void f(bool a, String b) {}
+''');
+    await _getDeclarations();
+
+    ElementDeclaration declaration = assertHas('f', ElementKind.FUNCTION);
+    expect(declaration.parameters, '(bool a, String b)');
   }
 
   test_regExp() async {
