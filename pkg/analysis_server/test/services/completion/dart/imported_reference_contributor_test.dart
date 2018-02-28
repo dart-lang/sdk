@@ -1866,10 +1866,8 @@ main() {
     await computeSuggestions();
 
     assertSuggestEnum('E');
-    assertSuggestEnumConst('E.one',
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
-    assertSuggestEnumConst('E.two',
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+    assertSuggestEnumConst('E.one', hasTypeBoost: true);
+    assertSuggestEnumConst('E.two', hasTypeBoost: true);
 
     assertSuggestEnum('F');
     assertSuggestEnumConst('F.three');

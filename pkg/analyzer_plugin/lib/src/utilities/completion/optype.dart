@@ -182,27 +182,37 @@ class OpType {
    * Try to determine the required context type, and configure filters.
    */
   void _computeRequiredTypeAndFilters(CompletionTarget target) {
-    var node = target.containingNode;
-    if (node is BinaryExpression && node.operator.type == TokenType.EQ_EQ) {
+    Object entity = target.entity;
+    AstNode node = target.containingNode;
+
+    if (node is InstanceCreationExpression &&
+        node.keyword != null &&
+        node.constructorName == entity) {
+      entity = node;
+      node = node.parent;
+    }
+
+    if (node is AssignmentExpression &&
+        node.operator.type == TokenType.EQ &&
+        node.rightHandSide == entity) {
+      _requiredType = node.leftHandSide?.staticType;
+    } else if (node is BinaryExpression &&
+        node.operator.type == TokenType.EQ_EQ &&
+        node.rightOperand == entity) {
       _requiredType = node.leftOperand?.staticType;
-    } else if (node is SwitchCase && node.expression == target.entity) {
+    } else if (node is NamedExpression && node.expression == entity) {
+      _requiredType = node.staticParameterElement?.type;
+    } else if (node is SwitchCase && node.expression == entity) {
       AstNode parent = node.parent;
       if (parent is SwitchStatement) {
         _requiredType = parent.expression?.staticType;
       }
-    } else if (node is Expression) {
-      AstNode parent = node.parent;
-      if (parent is VariableDeclaration) {
-        _requiredType = parent.element?.type;
-      } else if (parent is AssignmentExpression) {
-        _requiredType = parent.leftHandSide.staticType;
-      } else if (node.staticParameterElement != null) {
-        _requiredType = node.staticParameterElement.type;
-      } else if (parent is NamedExpression &&
-          parent.staticParameterElement != null) {
-        _requiredType = parent.staticParameterElement.type;
-      }
+    } else if (node is VariableDeclaration && node.initializer == entity) {
+      _requiredType = node.element?.type;
+    } else if (entity is Expression && entity.staticParameterElement != null) {
+      _requiredType = entity.staticParameterElement.type;
     }
+
     if (_requiredType == null) {
       return;
     }
