@@ -195,7 +195,6 @@ mutation_observer: Skip # Issue 21149
 unittest/*: Skip # Issue 21949
 
 [ $runtime == vm && $system == windows ]
-analysis_server/*: Skip # Issue 27557
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
 analysis_server/test/integration/analysis/analysis_options_test: RuntimeError # Issue 24796
 analyzer/test/generated/non_error_resolver_kernel_test: RuntimeError # Issue 30785
