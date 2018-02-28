@@ -2,76 +2,274 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
+import "dart:async" show Future, Stream;
 
-import 'package:front_end/src/testing/package_root.dart' as package_root;
-import 'package:path/path.dart' as path;
-import 'package:yaml/yaml.dart' show loadYaml;
+import "dart:convert" show utf8;
 
-main([List<String> arguments = const []]) async {
-  File file = new File(
-      path.join(package_root.packageRoot, 'front_end', 'messages.yaml'));
-  if (!await file.exists()) {
-    file = new File.fromUri(Uri.base.resolve('messages.yaml'));
-  }
-  Map yaml = loadYaml(await file.readAsString());
+import "dart:io" show File;
 
-  int untestedExampleCount = 0;
-  int missingExamplesCount = 0;
-  int missingAnalyzerCode = 0;
-  List<String> keysWithAnalyzerCodeButNoDart2JsCode = <String>[];
-  List<String> keys = yaml.keys.toList()..sort();
-  for (String name in keys) {
-    var description = yaml[name];
-    while (description is String) {
-      description = yaml[description];
+import "dart:typed_data" show Uint8List;
+
+import "package:testing/testing.dart"
+    show Chain, ChainContext, Result, Step, TestDescription, runMe;
+
+import "package:yaml/yaml.dart" show loadYaml;
+
+part "messages_exceptions.dart";
+
+final Set<String> messagesWithoutExamples =
+    new Set<String>.from(listOfMessagesWithoutExamples);
+
+final Set<String> messagesWithoutAnalyzerCode =
+    new Set<String>.from(listOfMessagesWithoutAnalyzerCode);
+
+class MessageTestDescription extends TestDescription {
+  @override
+  final Uri uri;
+
+  @override
+  final String shortName;
+
+  final Map data;
+
+  MessageTestDescription(this.uri, this.shortName, this.data);
+}
+
+class MessageTestSuite extends ChainContext {
+  final List<Step> steps = const <Step>[
+    const ValidateMessage(),
+    const CompileExamples(),
+  ];
+
+  Stream<MessageTestDescription> list(Chain suite) async* {
+    Uri uri = suite.uri.resolve("messages.yaml");
+    File file = new File.fromUri(uri);
+    Map yaml = loadYaml(await file.readAsString());
+    for (String key in yaml.keys) {
+      var data = yaml[key];
+      if (data is String) continue;
+      yield new MessageTestDescription(uri.resolve("#$key"), key, data);
     }
-    Map map = description;
+  }
+}
 
-    int localUntestedExampleCount = countExamples(map, name, 'bytes');
-    localUntestedExampleCount += countExamples(map, name, 'declaration');
-    localUntestedExampleCount += countExamples(map, name, 'expression');
-    localUntestedExampleCount += countExamples(map, name, 'script');
-    localUntestedExampleCount += countExamples(map, name, 'statement');
-    if (localUntestedExampleCount == 0) ++missingExamplesCount;
-    untestedExampleCount += localUntestedExampleCount;
+abstract class Example {
+  final String expectedCode;
 
-    if (map['analyzerCode'] == null) {
-      ++missingAnalyzerCode;
-    } else {
-      if (map['dart2jsCode'] == null) {
-        keysWithAnalyzerCodeButNoDart2JsCode.add(name);
+  Example(this.expectedCode);
+
+  Uint8List get bytes;
+}
+
+class BytesExample extends Example {
+  @override
+  final Uint8List bytes;
+
+  BytesExample(String code, List bytes)
+      : bytes = new Uint8List.fromList(bytes),
+        super(code);
+}
+
+class DeclarationExample extends Example {
+  final String declaration;
+
+  DeclarationExample(String code, this.declaration) : super(code);
+
+  @override
+  Uint8List get bytes {
+    return new Uint8List.fromList(utf8.encode("""
+$declaration
+
+main() {
+}
+"""));
+  }
+}
+
+class StatementExample extends Example {
+  final String statement;
+
+  StatementExample(String code, this.statement) : super(code);
+
+  @override
+  Uint8List get bytes {
+    return new Uint8List.fromList(utf8.encode("""
+main() {
+  $statement
+}
+"""));
+  }
+}
+
+class ExpressionExample extends Example {
+  final String expression;
+
+  ExpressionExample(String code, this.expression) : super(code);
+
+  @override
+  Uint8List get bytes {
+    return new Uint8List.fromList(utf8.encode("""
+main() {
+  $expression;
+}
+"""));
+  }
+}
+
+class ScriptExample extends Example {
+  final String script;
+
+  ScriptExample(String code, this.script) : super(code);
+
+  @override
+  Uint8List get bytes {
+    return new Uint8List.fromList(utf8.encode(script));
+  }
+}
+
+class ValidateMessage
+    extends Step<MessageTestDescription, List<Example>, MessageTestSuite> {
+  const ValidateMessage();
+
+  String get name => "validate";
+
+  Future<Result<List<Example>>> run(
+      MessageTestDescription description, MessageTestSuite suite) async {
+    Map data = description.data;
+    String name = description.shortName;
+
+    List<String> unknownKeys = <String>[];
+    List<Example> examples = <Example>[];
+    String analyzerCode;
+    String dart2jsCode;
+
+    for (String key in data.keys) {
+      var value = data[key];
+      switch (key) {
+        case "template":
+        case "tip":
+        case "severity":
+          break;
+
+        case "analyzerCode":
+          analyzerCode = value;
+          break;
+
+        case "dart2jsCode":
+          dart2jsCode = value;
+          break;
+
+        case "bytes":
+          if (value.first is List) {
+            for (List bytes in value) {
+              examples.add(new BytesExample(name, bytes));
+            }
+          } else {
+            examples.add(new BytesExample(name, value));
+          }
+          break;
+
+        case "declaration":
+          if (value is List) {
+            for (String declaration in value) {
+              examples.add(new DeclarationExample(name, declaration));
+            }
+          } else {
+            examples.add(new DeclarationExample(name, value));
+          }
+          break;
+
+        case "expression":
+          if (value is List) {
+            for (String expression in value) {
+              examples.add(new ExpressionExample(name, expression));
+            }
+          } else {
+            examples.add(new ExpressionExample(name, value));
+          }
+          break;
+
+        case "script":
+          if (value is List) {
+            for (String script in value) {
+              examples.add(new ScriptExample(name, script));
+            }
+          } else {
+            examples.add(new ScriptExample(name, value));
+          }
+          break;
+
+        case "statement":
+          if (value is List) {
+            for (String statement in value) {
+              examples.add(new StatementExample(name, statement));
+            }
+          } else {
+            examples.add(new StatementExample(name, value));
+          }
+          break;
+
+        default:
+          unknownKeys.add(key);
       }
     }
-  }
 
-  if (keysWithAnalyzerCodeButNoDart2JsCode.isNotEmpty) {
-    print('${keysWithAnalyzerCodeButNoDart2JsCode.length}'
-        ' error codes have an analyzerCode but no dart2jsCode:');
-    for (String name in keysWithAnalyzerCodeButNoDart2JsCode) {
-      print('  $name');
+    if (unknownKeys.isNotEmpty) {
+      return fail(null, "Unknown keys: ${unknownKeys.join(' ')}");
     }
-    print('');
+
+    if (examples.isEmpty) {
+      if (!messagesWithoutExamples.contains(name)) {
+        return fail(null, "No example for $name");
+      }
+    } else {
+      if (messagesWithoutExamples.contains(name)) {
+        return fail(
+            null, "$name can be removed from listOfMessagesWithoutExamples");
+      }
+    }
+
+    if (analyzerCode == null) {
+      if (!messagesWithoutAnalyzerCode.contains(name)) {
+        return fail(null, "No analyzer code for $name");
+      }
+    } else {
+      if (messagesWithoutAnalyzerCode.contains(name)) {
+        return fail(
+            null, "$name can be removed fro listOfMessagesWithoutAnalyzerCode");
+      }
+      if (dart2jsCode == null) {
+        return fail(null, "No dart2js code for $name");
+      }
+    }
+
+    return pass(examples);
   }
-  print('$untestedExampleCount examples not tested');
-  print('$missingExamplesCount error codes missing examples');
-  print('$missingAnalyzerCode error codes missing analyzer code');
-
-  // TODO(danrubel): Update this to assert each count == 0 and stays zero.
-  exit(keysWithAnalyzerCodeButNoDart2JsCode.isEmpty &&
-          untestedExampleCount > 0 &&
-          missingExamplesCount > 0 &&
-          missingAnalyzerCode > 0
-      ? 0
-      : 1);
 }
 
-int countExamples(Map map, String name, String key) {
-  var example = map[key];
-  if (example == null) return 0;
-  if (example is String) return 1;
-  if (example is List) return example.length;
-  if (example is Map) return example.length;
+class CompileExamples extends Step<List<Example>, Null, MessageTestSuite> {
+  const CompileExamples();
 
-  throw 'Unknown value for $name $key --> ${example.runtimeType}\n  $example';
+  String get name => "compile";
+
+  Future<Result<Null>> run(
+      List<Example> examples, MessageTestSuite suite) async {
+    for (Example example in examples) {
+      // TODO(ahe): This is where I should actually compile the examples and
+      // verify that only one message is reported, and it is the expected
+      // message.
+      if (example is! BytesExample) {
+        print(utf8.decode(example.bytes));
+      }
+    }
+    return pass(null);
+  }
 }
+
+Future<MessageTestSuite> createContext(
+    Chain suite, Map<String, String> environment) async {
+  return new MessageTestSuite();
+}
+
+main([List<String> arguments = const []]) =>
+    runMe(arguments, createContext, "../../testing.json");

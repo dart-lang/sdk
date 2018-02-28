@@ -8,7 +8,8 @@ export 'dart:async' show Future;
 
 export 'src/discover.dart';
 
-export 'src/test_description.dart';
+export 'src/test_description.dart'
+    show FileBasedTestDescription, TestDescription;
 
 export 'src/chain.dart' show Chain, ChainContext, Result, Step;
 
