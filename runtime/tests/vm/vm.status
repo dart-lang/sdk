@@ -39,7 +39,6 @@ cc/IsolateReload_TypeIdentityGeneric: Fail # Issue 28349
 cc/IsolateReload_TypeIdentityParameter: Fail # Issue 28349
 
 [ $compiler == app_jit ]
-dart/optimized_stacktrace_line_and_column_test: RuntimeError, OK # app-jit lacks column information
 dart/snapshot_version_test: Fail, OK # Expects to find script snapshot relative to Dart source.
 
 [ $compiler == dart2analyzer ]
@@ -314,9 +313,6 @@ dart/spawn_shutdown_test: SkipSlow
 
 [ $compiler == none && $runtime == drt ]
 dart/truncating_ints_test: Skip # Issue 14651
-
-[ $compiler == precompiler && $runtime == dart_precompiled ]
-dart/optimized_stacktrace_line_and_column_test: RuntimeError, OK # AOT lacks column information
 
 [ $mode == debug && $system == windows ]
 dart/spawn_shutdown_test: Skip # Flaky crashes unable to start thread; likely low memory on the bot.

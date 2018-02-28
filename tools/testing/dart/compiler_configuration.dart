@@ -245,11 +245,7 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
       List<String> originalArguments,
       CommandArtifact artifact) {
     var args = <String>[];
-    if (_isStrong) {
-      args.add('--strong');
-      args.add('--reify-generic-functions');
-      args.add('--limit-ints-to-64-bits');
-    }
+    args.add('--preview-dart-2');
     if (_isChecked) {
       args.add('--enable_asserts');
       args.add('--enable_type_checks');

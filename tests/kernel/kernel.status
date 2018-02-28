@@ -15,18 +15,6 @@ unsorted/types_test: RuntimeError
 [ !$fasta ]
 unsorted/loop_test: Skip # This test uses optional new/const.
 
-[ $arch == simarm && $compiler == dartkp && $strong ]
-unsorted/invocation_errors_test: CompileTimeError
-unsorted/nsm_dispatcher_test: CompileTimeError
-unsorted/super_mixin_test: CompileTimeError
-unsorted/types_test: RuntimeError
-
-[ $arch == simarm64 && $compiler == dartkp && $strong ]
-unsorted/invocation_errors_test: CompileTimeError
-unsorted/nsm_dispatcher_test: CompileTimeError
-unsorted/super_mixin_test: CompileTimeError
-unsorted/types_test: RuntimeError
-
 [ $compiler == dart2analyzer && $runtime == none ]
 unsorted/invocation_errors_test: StaticWarning
 unsorted/super_mixin_test: CompileTimeError
