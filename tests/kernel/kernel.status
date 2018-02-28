@@ -22,9 +22,6 @@ unsorted/super_mixin_test: CompileTimeError
 unsorted/invocation_errors_test/00: MissingCompileTimeError # This test has been tuned for dart 2.
 unsorted/types_test: RuntimeError
 
-[ $compiler == dartkp && !$strong ]
-unsorted/types_test: RuntimeError
-
 [ $runtime == dart_precompiled && $minified ]
 unsorted/symbol_literal_test: Skip # Expects unobfuscated Symbol.toString.
 

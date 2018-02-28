@@ -756,6 +756,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       args.add('--strong');
     }
     if (useDfe) {
+      args.add('--preview-dart-2');
       args.addAll(_replaceDartFiles(arguments, tempKernelFile(tempDir)));
     } else {
       args.addAll(arguments);
@@ -879,8 +880,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       args.add('--enable_asserts');
       args.add('--enable_type_checks');
     }
-    if (_isStrong) {
-      args.add('--strong');
+    if (useDfe) {
+      args.add('--preview-dart-2');
     }
     var dir = artifact.filename;
     if (runtimeConfiguration is DartPrecompiledAdbRuntimeConfiguration) {
