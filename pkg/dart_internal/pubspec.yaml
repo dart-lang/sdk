@@ -1,18 +1,19 @@
 name: dart_internal
-version: 0.1.0-dev
+version: 0.1.0
 author: "Dart Team <misc@dartlang.org>"
 homepage: http://www.dartlang.org
 description: >
-  This package is not intended for any external use. Basically, if you don't
-  personally know exactly what it's for, you're probably not the intended user.
+  This package is not intended for wide use. It provides a temporary API to
+  solve the problem: "Given an object some generic type A, how do I construct an
+  instance of generic type B with the same type argument(s)?"
 
-  It contains functionality to enable some internal Google code to transition
-  to strong mode before some anticipated language features are in place. In
-  particular, it provides an API to solve the problem: "Given an object some
-  generic type A, how do I construct an instance of generic type B with the
-  same type argument(s)?"
-publish_to:
-  # This package is not intended to be used externally (or, at least, not yet).
-  none
+  This is necessary in a few rare places in order to migrate existing code to
+  Dart 2's stronger type system. Eventually, the hope is to have direct
+  language support for solving this problem but we don't have time to get that
+  into 2.0, so this package is provided as a temporary workaround.
+
+  We will very likely remove support for this in a later version of Dart.
 environment:
-  sdk: ">=2.0.0 <2.0.0"
+  # Restrict the upper bound so that we can remove support for this in a later
+  # version of the SDK without it being a breaking change.
+  sdk: ">=2.0.0 <2.1.0"
