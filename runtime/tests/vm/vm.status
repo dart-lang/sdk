@@ -44,8 +44,6 @@ dart/snapshot_version_test: Fail, OK # Expects to find script snapshot relative 
 [ $compiler == dart2analyzer ]
 dart/byte_array_optimized_test: CompileTimeError # int64
 dart/byte_array_test: CompileTimeError # int64
-dart/optimized_stacktrace_line_and_column_test: StaticWarning
-dart/optimized_stacktrace_line_test: StaticWarning
 dart/truncating_ints_test: CompileTimeError # int64
 
 [ $compiler == dart2js ]

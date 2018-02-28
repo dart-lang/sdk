@@ -13,7 +13,6 @@ unsorted/super_mixin_test: CompileTimeError
 unsorted/loop_test: Skip # This test uses optional new/const.
 
 [ $compiler == dart2analyzer && $runtime == none ]
-unsorted/invocation_errors_test: StaticWarning
 unsorted/super_mixin_test: CompileTimeError
 
 [ $compiler == dart2analyzer && $strong ]
