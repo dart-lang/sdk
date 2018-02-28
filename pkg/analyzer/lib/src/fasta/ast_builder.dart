@@ -2202,8 +2202,7 @@ class AstBuilder extends ScopeListener {
       if (parameters?.parameters != null) {
         parameters.parameters.forEach((FormalParameter param) {
           if (param is FieldFormalParameter) {
-            // Added comment in OutlineBuilder.endMethod at the location
-            // where this error could be reported.
+            // This error is reported in the BodyBuilder.endFormalParameter.
             handleRecoverableError(messageFieldInitializerOutsideConstructor,
                 param.thisKeyword, param.thisKeyword);
           }

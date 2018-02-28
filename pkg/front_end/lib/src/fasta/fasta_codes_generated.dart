@@ -2033,8 +2033,7 @@ const MessageCode messageFieldInitializerOutsideConstructor = const MessageCode(
     analyzerCode: "FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR",
     dart2jsCode: "*fatal*",
     message: r"""Field formal parameters can only be used in a constructor.""",
-    tip:
-        r"""Try replacing the field formal parameter with a normal parameter.""");
+    tip: r"""Try removing 'this.'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFinalAndCovariant = messageFinalAndCovariant;
