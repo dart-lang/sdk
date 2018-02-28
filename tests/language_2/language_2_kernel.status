@@ -20,6 +20,7 @@ generic_no_such_method_dispatcher_test: RuntimeError # Issue 31424
 mock_writable_final_field_test: RuntimeError # Issue 31424
 no_such_method_subtype_test: RuntimeError # Issue 31424
 
+
 [ $fasta ]
 abstract_factory_constructor_test/00: MissingCompileTimeError # Issue 32013.
 abstract_getter_test/01: MissingCompileTimeError # Issue 32013.
@@ -1105,6 +1106,7 @@ super_operator_index7_test: CompileTimeError
 super_operator_index8_test: CompileTimeError
 super_test: Fail, OK
 syntax_test/00: MissingCompileTimeError
+tearoff_dynamic_test: Crash
 type_literal_test: RuntimeError
 type_promotion_functions_test/02: CompileTimeError # Issue 31537
 type_promotion_functions_test/03: CompileTimeError # Issue 31537
