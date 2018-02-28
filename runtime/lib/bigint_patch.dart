@@ -60,10 +60,13 @@ class BigInt implements Comparable<BigInt> {
 int _max(int a, int b) => a > b ? a : b;
 int _min(int a, int b) => a < b ? a : b;
 
+/// Allocate a new digits list of even length.
+Uint32List _newDigits(int length) => new Uint32List(length + (length & 1));
+
 /**
  * An implementation for the arbitrarily large integer.
  *
- * The integer number is represented by a sign, an array of 16-bit unsigned
+ * The integer number is represented by a sign, an array of 32-bit unsigned
  * integers in little endian format, and a number of used digits in that array.
  */
 class _BigIntImpl implements BigInt {
@@ -81,6 +84,8 @@ class _BigIntImpl implements BigInt {
   static final _BigIntImpl two = new _BigIntImpl._fromInt(2);
 
   static final _BigIntImpl _minusOne = -one;
+  static final _BigIntImpl _oneDigitMask = new _BigIntImpl._fromInt(_digitMask);
+  static final _BigIntImpl _twoDigitMask = (one << (2 * _digitBits)) - one;
   static final _BigIntImpl _oneBillion = new _BigIntImpl._fromInt(1000000000);
   static const int _minInt = -0x8000000000000000;
   static const int _maxInt = 0x7fffffffffffffff;
@@ -104,12 +109,22 @@ class _BigIntImpl implements BigInt {
   /// The least significant digit is in slot 0.
   /// The list may have more digits than needed. That is, `_digits.length` may
   /// be strictly greater than `_used`.
+  /// Also, `_digits.length` must always be even, because intrinsics on 64-bit
+  /// platforms may process a digit pair as a 64-bit value.
   final Uint32List _digits;
 
   /// The number of used entries in [_digits].
   ///
   /// To avoid reallocating [Uint32List]s, lists that are too big are not
-  /// replaced.
+  /// replaced, but `_used` reflects the smaller number of digits actually used.
+  ///
+  /// Note that functions shortening an existing list of digits to a smaller
+  /// `_used` number of digits must ensure that the highermost pair of digits
+  /// is correct when read as a 64-bit value by intrinsics. Therefore, if the
+  /// smaller '_used' number is odd, the high digit of that pair must be
+  /// explicitly cleared, i.e. _digits[_used] = 0, which cannot result in an
+  /// out of bounds access, since the length of the list is guaranteed to be
+  /// even.
   final int _used;
 
   /**
@@ -197,34 +212,33 @@ class _BigIntImpl implements BigInt {
   ///
   /// The [source] (substring) must be a valid hex literal.
   static _BigIntImpl _parseHex(String source, int startPos, bool isNegative) {
-    int hexDigitsPerChunk = _digitBits ~/ 4;
+    int hexCharsPerDigit = _digitBits ~/ 4;
     int sourceLength = source.length - startPos;
-    int chunkCount =
-        (sourceLength + hexDigitsPerChunk - 1) ~/ hexDigitsPerChunk;
-    var digits = new Uint32List(chunkCount);
+    int used = (sourceLength + hexCharsPerDigit - 1) ~/ hexCharsPerDigit;
+    var digits = _newDigits(used);
 
-    int lastDigitLength = sourceLength - (chunkCount - 1) * hexDigitsPerChunk;
-    int digitIndex = digits.length - 1;
+    int lastDigitLength = sourceLength - (used - 1) * hexCharsPerDigit;
+    int digitIndex = used - 1;
     int i = startPos;
-    int chunk = 0;
+    int digit = 0;
     for (int j = 0; j < lastDigitLength; j++) {
-      var digitValue = _codeUnitToRadixValue(source.codeUnitAt(i++));
-      if (digitValue >= 16) return null;
-      chunk = chunk * 16 + digitValue;
+      var value = _codeUnitToRadixValue(source.codeUnitAt(i++));
+      if (value >= 16) return null;
+      digit = digit * 16 + value;
     }
-    digits[digitIndex--] = chunk;
+    digits[digitIndex--] = digit;
 
     while (i < source.length) {
-      chunk = 0;
-      for (int j = 0; j < hexDigitsPerChunk; j++) {
-        var digitValue = _codeUnitToRadixValue(source.codeUnitAt(i++));
-        if (digitValue >= 16) return null;
-        chunk = chunk * 16 + digitValue;
+      digit = 0;
+      for (int j = 0; j < hexCharsPerDigit; j++) {
+        var value = _codeUnitToRadixValue(source.codeUnitAt(i++));
+        if (value >= 16) return null;
+        digit = digit * 16 + value;
       }
-      digits[digitIndex--] = chunk;
+      digits[digitIndex--] = digit;
     }
-    if (digits.length == 1 && digits[0] == 0) return zero;
-    return new _BigIntImpl._(isNegative, digits.length, digits);
+    if (used == 1 && digits[0] == 0) return zero;
+    return new _BigIntImpl._(isNegative, used, digits);
   }
 
   /// Parses the given [source] as a [radix] literal.
@@ -235,9 +249,9 @@ class _BigIntImpl implements BigInt {
     var result = zero;
     var base = new _BigIntImpl._fromInt(radix);
     for (int i = 0; i < source.length; i++) {
-      var digitValue = _codeUnitToRadixValue(source.codeUnitAt(i));
-      if (digitValue >= radix) return null;
-      result = result * base + new _BigIntImpl._fromInt(digitValue);
+      var value = _codeUnitToRadixValue(source.codeUnitAt(i));
+      if (value >= radix) return null;
+      result = result * base + new _BigIntImpl._fromInt(value);
     }
     if (isNegative) return -result;
     return result;
@@ -308,7 +322,10 @@ class _BigIntImpl implements BigInt {
       : this._normalized(isNegative, _normalize(used, digits), digits);
 
   _BigIntImpl._normalized(bool isNegative, this._used, this._digits)
-      : _isNegative = _used == 0 ? false : isNegative;
+      : _isNegative = _used == 0 ? false : isNegative {
+    assert(_digits.length.isEven);
+    assert(_used.isEven || _digits[_used] == 0); // Leading zero for 64-bit.
+  }
 
   /// Whether this big integer is zero.
   bool get _isZero => _used == 0;
@@ -318,7 +335,7 @@ class _BigIntImpl implements BigInt {
   /// digits.
   static Uint32List _cloneDigits(
       Uint32List digits, int from, int to, int length) {
-    var resultDigits = new Uint32List(length);
+    var resultDigits = _newDigits(length);
     var n = to - from;
     for (var i = 0; i < n; i++) {
       resultDigits[i] = digits[from + i];
@@ -341,22 +358,20 @@ class _BigIntImpl implements BigInt {
   factory _BigIntImpl._fromInt(int value) {
     bool isNegative = value < 0;
     assert(_digitBits == 32);
+    var digits = _newDigits(2);
     if (isNegative) {
       // Handle the min 64-bit value differently, since its negation is not
       // positive.
       if (value == _minInt) {
-        var digits = new Uint32List(2);
         digits[1] = 0x80000000;
         return new _BigIntImpl._(true, 2, digits);
       }
       value = -value;
     }
     if (value < _digitBase) {
-      var digits = new Uint32List(1);
       digits[0] = value;
       return new _BigIntImpl._(isNegative, 1, digits);
     }
-    var digits = new Uint32List(2);
     digits[0] = value & _digitMask;
     digits[1] = value >> _digitBits;
     return new _BigIntImpl._(isNegative, 2, digits);
@@ -389,7 +404,7 @@ class _BigIntImpl implements BigInt {
 
     assert(_digitBits == 32);
     // The significant bits are in 0 .. 52.
-    var unshiftedDigits = new Uint32List(2);
+    var unshiftedDigits = _newDigits(2);
     unshiftedDigits[0] =
         (bits[3] << 24) + (bits[2] << 16) + (bits[1] << 8) + bits[0];
     // Don't forget to add the hidden bit.
@@ -425,7 +440,7 @@ class _BigIntImpl implements BigInt {
    */
   _BigIntImpl abs() => _isNegative ? -this : this;
 
-  /// Returns this << n *_DIGIT_BITS.
+  /// Returns this << n*_digitBits.
   _BigIntImpl _dlShift(int n) {
     final used = _used;
     if (used == 0) {
@@ -433,7 +448,7 @@ class _BigIntImpl implements BigInt {
     }
     final resultUsed = used + n;
     final digits = _digits;
-    final resultDigits = new Uint32List(resultUsed);
+    final resultDigits = _newDigits(resultUsed);
     for (int i = used - 1; i >= 0; i--) {
       resultDigits[i + n] = digits[i];
     }
@@ -444,7 +459,7 @@ class _BigIntImpl implements BigInt {
   ///
   /// Returns `resultUsed`.
   ///
-  /// `resultDigits[0..resultUsed-1] = xDigits[0..xUsed-1] << n*_DIGIT_BITS`.
+  /// `resultDigits[0..resultUsed-1] = xDigits[0..xUsed-1] << n*_digitBits`.
   static int _dlShiftDigits(
       Uint32List xDigits, int xUsed, int n, Uint32List resultDigits) {
     if (xUsed == 0) {
@@ -454,16 +469,20 @@ class _BigIntImpl implements BigInt {
       return xUsed;
     }
     final resultUsed = xUsed + n;
+    assert(resultDigits.length >= resultUsed + (resultUsed & 1));
     for (int i = xUsed - 1; i >= 0; i--) {
       resultDigits[i + n] = xDigits[i];
     }
     for (int i = n - 1; i >= 0; i--) {
       resultDigits[i] = 0;
     }
+    if (resultUsed.isOdd) {
+      resultDigits[resultUsed] = 0;
+    }
     return resultUsed;
   }
 
-  /// Returns `this >> n*_DIGIT_BITS`.
+  /// Returns `this >> n*_digitBits`.
   _BigIntImpl _drShift(int n) {
     final used = _used;
     if (used == 0) {
@@ -474,7 +493,7 @@ class _BigIntImpl implements BigInt {
       return _isNegative ? _minusOne : zero;
     }
     final digits = _digits;
-    final resultDigits = new Uint32List(resultUsed);
+    final resultDigits = _newDigits(resultUsed);
     for (var i = n; i < used; i++) {
       resultDigits[i - n] = digits[i];
     }
@@ -490,12 +509,35 @@ class _BigIntImpl implements BigInt {
     return result;
   }
 
+  /// Same as [_drShift] but works on the decomposed big integers.
+  ///
+  /// Returns `resultUsed`.
+  ///
+  /// `resultDigits[0..resultUsed-1] = xDigits[0..xUsed-1] >> n*_digitBits`.
+  static int _drShiftDigits(
+      Uint32List xDigits, int xUsed, int n, Uint32List resultDigits) {
+    final resultUsed = xUsed - n;
+    if (resultUsed <= 0) {
+      return 0;
+    }
+    assert(resultDigits.length >= resultUsed + (resultUsed & 1));
+    for (var i = n; i < xUsed; i++) {
+      resultDigits[i - n] = xDigits[i];
+    }
+    if (resultUsed.isOdd) {
+      resultDigits[resultUsed] = 0;
+    }
+    return resultUsed;
+  }
+
   /// Shifts the digits of [xDigits] into the right place in [resultDigits].
   ///
-  /// `resultDigits[ds..xUsed+ds] = xDigits[0..xUsed-1] << (n % _DIGIT_BITS)`
-  ///   where `ds = ceil(n / _DIGIT_BITS)`
+  /// `resultDigits[ds..xUsed+ds] = xDigits[0..xUsed-1] << (n % _digitBits)`
+  ///   where `ds = ceil(n / _digitBits)`
   ///
   /// Does *not* clear digits below ds.
+  ///
+  /// Note: This function may be intrinsified.
   static void _lsh(
       Uint32List xDigits, int xUsed, int n, Uint32List resultDigits) {
     final digitShift = n ~/ _digitBits;
@@ -525,21 +567,22 @@ class _BigIntImpl implements BigInt {
    */
   _BigIntImpl operator <<(int shiftAmount) {
     if (shiftAmount < 0) {
-      throw new ArgumentError("shift-amount must be posititve $shiftAmount");
+      throw new ArgumentError("shift-amount must be positive $shiftAmount");
     }
     final digitShift = shiftAmount ~/ _digitBits;
     final bitShift = shiftAmount % _digitBits;
     if (bitShift == 0) {
       return _dlShift(digitShift);
     }
+    // Need one extra digit to hold bits shifted by bitShift.
     var resultUsed = _used + digitShift + 1;
-    var resultDigits = new Uint32List(resultUsed);
+    var resultDigits = _newDigits(resultUsed);
     _lsh(_digits, _used, shiftAmount, resultDigits);
     return new _BigIntImpl._(_isNegative, resultUsed, resultDigits);
   }
 
-  // resultDigits[0..resultUsed-1] = xDigits[0..xUsed-1] << n.
-  // Returns resultUsed.
+  /// resultDigits[0..resultUsed-1] = xDigits[0..xUsed-1] << n.
+  /// Returns resultUsed.
   static int _lShiftDigits(
       Uint32List xDigits, int xUsed, int n, Uint32List resultDigits) {
     final digitsShift = n ~/ _digitBits;
@@ -547,7 +590,9 @@ class _BigIntImpl implements BigInt {
     if (bitShift == 0) {
       return _dlShiftDigits(xDigits, xUsed, digitsShift, resultDigits);
     }
+    // Need one extra digit to hold bits shifted by bitShift.
     var resultUsed = xUsed + digitsShift + 1;
+    assert(resultDigits.length >= resultUsed + (resultUsed & 1));
     _lsh(xDigits, xUsed, n, resultDigits);
     var i = digitsShift;
     while (--i >= 0) {
@@ -555,11 +600,15 @@ class _BigIntImpl implements BigInt {
     }
     if (resultDigits[resultUsed - 1] == 0) {
       resultUsed--; // Clamp result.
+    } else if (resultUsed.isOdd) {
+      resultDigits[resultUsed] = 0;
     }
     return resultUsed;
   }
 
-  // resultDigits[0..resultUsed-1] = xDigits[0..xUsed-1] >> n.
+  /// resultDigits[0..resultUsed-1] = xDigits[0..xUsed-1] >> n.
+  ///
+  /// Note: This function may be intrinsified.
   static void _rsh(
       Uint32List xDigits, int xUsed, int n, Uint32List resultDigits) {
     final digitsShift = n ~/ _digitBits;
@@ -587,7 +636,7 @@ class _BigIntImpl implements BigInt {
    */
   _BigIntImpl operator >>(int shiftAmount) {
     if (shiftAmount < 0) {
-      throw new ArgumentError("shift-amount must be posititve $shiftAmount");
+      throw new ArgumentError("shift-amount must be positive $shiftAmount");
     }
     final digitShift = shiftAmount ~/ _digitBits;
     final bitShift = shiftAmount % _digitBits;
@@ -600,7 +649,7 @@ class _BigIntImpl implements BigInt {
       return _isNegative ? _minusOne : zero;
     }
     final digits = _digits;
-    final resultDigits = new Uint32List(resultUsed);
+    final resultDigits = _newDigits(resultUsed);
     _rsh(digits, used, shiftAmount, resultDigits);
     final result = new _BigIntImpl._(_isNegative, resultUsed, resultDigits);
     if (_isNegative) {
@@ -615,6 +664,29 @@ class _BigIntImpl implements BigInt {
       }
     }
     return result;
+  }
+
+  /// resultDigits[0..resultUsed-1] = xDigits[0..xUsed-1] >> n.
+  /// Returns resultUsed.
+  static int _rShiftDigits(
+      Uint32List xDigits, int xUsed, int n, Uint32List resultDigits) {
+    final digitShift = n ~/ _digitBits;
+    final bitShift = n % _digitBits;
+    if (bitShift == 0) {
+      return _drShiftDigits(xDigits, xUsed, digitShift, resultDigits);
+    }
+    var resultUsed = xUsed - digitShift;
+    if (resultUsed <= 0) {
+      return 0;
+    }
+    assert(resultDigits.length >= resultUsed + (resultUsed & 1));
+    _rsh(xDigits, xUsed, n, resultDigits);
+    if (resultDigits[resultUsed - 1] == 0) {
+      resultUsed--; // Clamp result.
+    } else if (resultUsed.isOdd) {
+      resultDigits[resultUsed] = 0;
+    }
+    return resultUsed;
   }
 
   /// Compares this to [other] taking the absolute value of both operands.
@@ -658,8 +730,10 @@ class _BigIntImpl implements BigInt {
     return result;
   }
 
-  // resultDigits[0..used] = digits[0..used-1] + otherDigits[0..otherUsed-1].
-  // used >= otherUsed > 0.
+  /// resultDigits[0..used] = digits[0..used-1] + otherDigits[0..otherUsed-1].
+  /// used >= otherUsed > 0.
+  ///
+  /// Note: This function may be intrinsified.
   static void _absAdd(Uint32List digits, int used, Uint32List otherDigits,
       int otherUsed, Uint32List resultDigits) {
     assert(used >= otherUsed && otherUsed > 0);
@@ -677,12 +751,13 @@ class _BigIntImpl implements BigInt {
     resultDigits[used] = carry;
   }
 
-  // resultDigits[0..used-1] = digits[0..used-1] - otherDigits[0..otherUsed-1].
-  // used >= otherUsed > 0.
+  /// resultDigits[0..used-1] = digits[0..used-1] - otherDigits[0..otherUsed-1].
+  /// used >= otherUsed > 0.
+  ///
+  /// Note: This function may be intrinsified.
   static void _absSub(Uint32List digits, int used, Uint32List otherDigits,
       int otherUsed, Uint32List resultDigits) {
     assert(used >= otherUsed && otherUsed > 0);
-
     var carry = 0;
     for (var i = 0; i < otherUsed; i++) {
       carry += digits[i] - otherDigits[i];
@@ -711,7 +786,7 @@ class _BigIntImpl implements BigInt {
       return _isNegative == isNegative ? this : -this;
     }
     var resultUsed = used + 1;
-    var resultDigits = new Uint32List(resultUsed);
+    var resultDigits = _newDigits(resultUsed);
     _absAdd(_digits, used, other._digits, otherUsed, resultDigits);
     return new _BigIntImpl._(isNegative, resultUsed, resultDigits);
   }
@@ -730,7 +805,7 @@ class _BigIntImpl implements BigInt {
     if (otherUsed == 0) {
       return _isNegative == isNegative ? this : -this;
     }
-    var resultDigits = new Uint32List(used);
+    var resultDigits = _newDigits(used);
     _absSub(_digits, used, other._digits, otherUsed, resultDigits);
     return new _BigIntImpl._(isNegative, used, resultDigits);
   }
@@ -740,7 +815,7 @@ class _BigIntImpl implements BigInt {
     var resultUsed = _min(_used, other._used);
     var digits = _digits;
     var otherDigits = other._digits;
-    var resultDigits = new Uint32List(resultUsed);
+    var resultDigits = _newDigits(resultUsed);
     for (var i = 0; i < resultUsed; i++) {
       resultDigits[i] = digits[i] & otherDigits[i];
     }
@@ -752,7 +827,7 @@ class _BigIntImpl implements BigInt {
     var resultUsed = _used;
     var digits = _digits;
     var otherDigits = other._digits;
-    var resultDigits = new Uint32List(resultUsed);
+    var resultDigits = _newDigits(resultUsed);
     var m = _min(resultUsed, other._used);
     for (var i = 0; i < m; i++) {
       resultDigits[i] = digits[i] & ~otherDigits[i];
@@ -770,7 +845,7 @@ class _BigIntImpl implements BigInt {
     var resultUsed = _max(used, otherUsed);
     var digits = _digits;
     var otherDigits = other._digits;
-    var resultDigits = new Uint32List(resultUsed);
+    var resultDigits = _newDigits(resultUsed);
     var l, m;
     if (used < otherUsed) {
       l = other;
@@ -796,7 +871,7 @@ class _BigIntImpl implements BigInt {
     var resultUsed = _max(used, otherUsed);
     var digits = _digits;
     var otherDigits = other._digits;
-    var resultDigits = new Uint32List(resultUsed);
+    var resultDigits = _newDigits(resultUsed);
     var l, m;
     if (used < otherUsed) {
       l = other;
@@ -983,23 +1058,33 @@ class _BigIntImpl implements BigInt {
     return other._absSubSetSign(this, !isNegative);
   }
 
-  /// Multiplies [x] with [multiplicandDigits] and adds the result to
-  /// [accumulatorDigits].
+  /// Multiplies `xDigits[xIndex]` with `multiplicandDigits` and adds the result
+  /// to `accumulatorDigits`.
   ///
-  /// The [multiplicandDigits] in the range [i] to [i]+[n]-1 are the
+  /// The `multiplicandDigits` in the range `i` to `i`+`n`-1 are the
   /// multiplicand digits.
   ///
-  /// The [acculumatorDigits] in the range [j] to [j]+[n]-1 are the accumulator
+  /// The `acculumatorDigits` in the range `j` to `j`+`n`-1 are the accumulator
   /// digits.
   ///
-  /// Adds the result of the multiplicand-digits * [x] to the accumulator.
+  /// Concretely:
+  /// `accumulatorDigits[j..j+n] += xDigits[xIndex] * m_digits[i..i+n-1]`.
+  /// Returns 1.
   ///
-  /// Concretely: `accumulatorDigits[j..j+n] += x * m_digits[i..i+n-1]`.
-  static void _mulAdd(int x, Uint32List multiplicandDigits, int i,
-      Uint32List accumulatorDigits, int j, int n) {
+  /// Note: This function may be intrinsified. Intrinsics on 64-bit platforms
+  /// process digit pairs at even indices and returns 2.
+  static int _mulAdd(
+      Uint32List xDigits,
+      int xIndex,
+      Uint32List multiplicandDigits,
+      int i,
+      Uint32List accumulatorDigits,
+      int j,
+      int n) {
+    int x = xDigits[xIndex];
     if (x == 0) {
       // No-op if x is 0.
-      return;
+      return 1;
     }
     int carry = 0;
     int xl = x & _halfDigitMask;
@@ -1020,6 +1105,63 @@ class _BigIntImpl implements BigInt {
       carry = l >> _digitBits;
       accumulatorDigits[j++] = l & _digitMask;
     }
+    return 1;
+  }
+
+  /// Multiplies `xDigits[i]` with `xDigits` and adds the result to
+  /// `accumulatorDigits`.
+  ///
+  /// The `xDigits` in the range `i` to `used`-1 are the multiplicand digits.
+  ///
+  /// The `acculumatorDigits` in the range 2*`i` to `i`+`used`-1 are the
+  /// accumulator digits.
+  ///
+  /// Concretely:
+  /// `accumulatorDigits[2*i..i+used-1] += xDigits[i]*xDigits[i] +
+  /// 2*xDigits[i]*xDigits[i+1..used-1]`.
+  /// Returns 1.
+  ///
+  /// Note: This function may be intrinsified. Intrinsics on 64-bit platforms
+  /// process digit pairs at even indices and returns 2.
+  static int _sqrAdd(
+      Uint32List xDigits, int i, Uint32List acculumatorDigits, int used) {
+    int x = xDigits[i];
+    if (x == 0) return 1;
+    int j = 2 * i;
+    int carry = 0;
+    int xl = x & _halfDigitMask;
+    int xh = x >> _halfDigitBits;
+    int ph = 2 * xh * xl;
+    int pl = xl * xl +
+        ((ph & _halfDigitMask) << _halfDigitBits) +
+        acculumatorDigits[j];
+    carry = (pl >> _digitBits) + (ph >> _halfDigitBits) + xh * xh;
+    acculumatorDigits[j] = pl & _digitMask;
+    x <<= 1;
+    xl = x & _halfDigitMask;
+    xh = x >> _halfDigitBits;
+    int n = used - i - 1;
+    int k = i + 1;
+    j++;
+    while (--n >= 0) {
+      int l = xDigits[k] & _halfDigitMask;
+      int h = xDigits[k++] >> _halfDigitBits;
+      int ph = xh * l + h * xl;
+      int pl = xl * l +
+          ((ph & _halfDigitMask) << _halfDigitBits) +
+          acculumatorDigits[j] +
+          carry;
+      carry = (pl >> _digitBits) + (ph >> _halfDigitBits) + xh * h;
+      acculumatorDigits[j++] = pl & _digitMask;
+    }
+    carry += acculumatorDigits[i + used];
+    if (carry >= _digitBase) {
+      acculumatorDigits[i + used] = carry - _digitBase;
+      acculumatorDigits[i + used + 1] = 1;
+    } else {
+      acculumatorDigits[i + used] = carry;
+    }
+    return 1;
   }
 
   /// Multiplication operator.
@@ -1033,44 +1175,91 @@ class _BigIntImpl implements BigInt {
     var resultUsed = used + otherUsed;
     var digits = _digits;
     var otherDigits = other._digits;
-    var resultDigits = new Uint32List(resultUsed);
+    var resultDigits = _newDigits(resultUsed);
     var i = 0;
     while (i < otherUsed) {
-      _mulAdd(otherDigits[i], digits, 0, resultDigits, i, used);
-      i++;
+      i += _mulAdd(otherDigits, i, digits, 0, resultDigits, i, used);
     }
     return new _BigIntImpl._(
         _isNegative != other._isNegative, resultUsed, resultDigits);
   }
 
-  // r_digits[0..rUsed-1] = xDigits[0..xUsed-1]*otherDigits[0..otherUsed-1].
-  // Return resultUsed = xUsed + otherUsed.
+  // resultDigits[0..resultUsed-1] =
+  //     xDigits[0..xUsed-1]*otherDigits[0..otherUsed-1].
+  // Returns resultUsed = xUsed + otherUsed.
   static int _mulDigits(Uint32List xDigits, int xUsed, Uint32List otherDigits,
       int otherUsed, Uint32List resultDigits) {
     var resultUsed = xUsed + otherUsed;
-    var i = resultUsed;
+    var i = resultUsed + (resultUsed & 1);
     assert(resultDigits.length >= i);
     while (--i >= 0) {
       resultDigits[i] = 0;
     }
     i = 0;
     while (i < otherUsed) {
-      _mulAdd(otherDigits[i], xDigits, 0, resultDigits, i, xUsed);
-      i++;
+      i += _mulAdd(otherDigits, i, xDigits, 0, resultDigits, i, xUsed);
     }
     return resultUsed;
   }
 
-  /// Returns an estimate of `digits[i-1..i] ~/ topDigitDivisor`.
-  static int _estimateQuotientDigit(
-      int topDigitDivisor, Uint32List digits, int i) {
-    if (digits[i] == topDigitDivisor) return _digitMask;
-    // Chop off one bit, since a Mint cannot hold 2 digits.
-    var quotientDigit =
-        ((digits[i] << (_digitBits - 1)) | (digits[i - 1] >> 1)) ~/
-            (topDigitDivisor >> 1);
-    if (quotientDigit > _digitMask) return _digitMask;
-    return quotientDigit;
+  // resultDigits[0..resultUsed-1] = xDigits[0..xUsed-1]^2.
+  // Returns resultUsed = 2*xUsed.
+  static int _sqrDigits(
+      Uint32List xDigits, int xUsed, Uint32List resultDigits) {
+    var resultUsed = 2 * xUsed;
+    assert(resultDigits.length >= resultUsed);
+    // Since resultUsed is even, no need for a leading zero for
+    // 64-bit processing.
+    var i = resultUsed;
+    while (--i >= 0) {
+      resultDigits[i] = 0;
+    }
+    i = 0;
+    while (i < xUsed - 1) {
+      i += _sqrAdd(xDigits, i, resultDigits, xUsed);
+    }
+    // The last step is already done if digit pairs were processed above.
+    if (i < xUsed) {
+      _mulAdd(xDigits, i, xDigits, i, resultDigits, 2 * i, 1);
+    }
+    return resultUsed;
+  }
+
+  // Indices of the arguments of _estimateQuotientDigit.
+  // For 64-bit processing by intrinsics on 64-bit platforms, the top digit pair
+  // of the divisor is provided in the args array, and a 64-bit estimated
+  // quotient is returned. However, on 32-bit platforms, the low 32-bit digit is
+  // ignored and only one 32-bit digit is returned as the estimated quotient.
+  static const int _divisorLowTopDigit = 0; // Low digit of top pair of divisor.
+  static const int _divisorTopDigit = 1; // Top digit of divisor.
+  static const int _quotientDigit = 2; // Estimated quotient.
+  static const int _quotientHighDigit = 3; // High digit of estimated quotient.
+
+  /// Estimate `args[_quotientDigit] = digits[i-1..i] ~/ args[_divisorTopDigit]`
+  /// Returns 1.
+  ///
+  /// Note: This function may be intrinsified. Intrinsics on 64-bit platforms
+  /// process a digit pair (i always odd):
+  /// Estimate `args[_quotientDigit.._quotientHighDigit] = digits[i-3..i] ~/
+  /// args[_divisorLowTopDigit.._divisorTopDigit]`.
+  /// Returns 2.
+  static int _estimateQuotientDigit(Uint32List args, Uint32List digits, int i) {
+    // Verify that digit pairs are accessible for 64-bit processing.
+    assert(digits.length >= 4);
+    if (digits[i] == args[_divisorTopDigit]) {
+      args[_quotientDigit] = _digitMask;
+    } else {
+      // Chop off one bit, since a Mint cannot hold 2 digits.
+      var quotientDigit =
+          ((digits[i] << (_digitBits - 1)) | (digits[i - 1] >> 1)) ~/
+              (args[_divisorTopDigit] >> 1);
+      if (quotientDigit > _digitMask) {
+        args[_quotientDigit] = _digitMask;
+      } else {
+        args[_quotientDigit] = quotientDigit;
+      }
+    }
+    return 1;
   }
 
   /// Returns `trunc(this / other)`, with `other != 0`.
@@ -1134,32 +1323,43 @@ class _BigIntImpl implements BigInt {
     assert(_used >= other._used);
 
     var nsh = _digitBits - other._digits[other._used - 1].bitLength;
+    // For 64-bit processing, make sure other has an even number of digits.
+    if (other._used.isOdd) {
+      nsh += _digitBits;
+    }
     // Concatenated positive quotient and normalized positive remainder.
     // The resultDigits can have at most one more digit than the dividend.
     Uint32List resultDigits;
     int resultUsed;
-    // Normalized positive divisor.
+    // Normalized positive divisor (referred to as 'y').
     // The normalized divisor has the most-significant bit of its most
     // significant digit set.
     // This makes estimating the quotient easier.
     Uint32List yDigits;
     int yUsed;
     if (nsh > 0) {
-      yDigits = new Uint32List(other._used + 5);
+      // Extra digits for normalization.
+      yDigits = _newDigits(other._used + (nsh % _digitBits) + 1);
       yUsed = _lShiftDigits(other._digits, other._used, nsh, yDigits);
-      resultDigits = new Uint32List(_used + 5);
+      // Extra digits for normalization, also used for possible _mulAdd carry.
+      resultDigits = _newDigits(_used + (nsh % _digitBits) + 1);
       resultUsed = _lShiftDigits(_digits, _used, nsh, resultDigits);
     } else {
       yDigits = other._digits;
       yUsed = other._used;
-      resultDigits = _cloneDigits(_digits, 0, _used, _used + 2);
+      // Extra digit to hold possible _mulAdd carry.
+      resultDigits = _cloneDigits(_digits, 0, _used, _used + 1);
       resultUsed = _used;
     }
-    var topDigitDivisor = yDigits[yUsed - 1];
-    var i = resultUsed;
+    Uint32List args = _newDigits(4);
+    args[_divisorLowTopDigit] = yDigits[yUsed - 2];
+    args[_divisorTopDigit] = yDigits[yUsed - 1];
+    // For 64-bit processing, make sure yUsed, i, and j are even.
+    assert(yUsed.isEven);
+    var i = resultUsed + (resultUsed & 1);
     var j = i - yUsed;
-    // tmpDigits is a temporary array of i (resultUsed) digits.
-    var tmpDigits = new Uint32List(i);
+    // tmpDigits is a temporary array of i (even resultUsed) digits.
+    var tmpDigits = _newDigits(i);
     var tmpUsed = _dlShiftDigits(yDigits, yUsed, j, tmpDigits);
     // Explicit first division step in case normalized dividend is larger or
     // equal to shifted normalized divisor.
@@ -1172,32 +1372,61 @@ class _BigIntImpl implements BigInt {
       // Account for possible carry in _mulAdd step.
       resultDigits[resultUsed++] = 0;
     }
-
+    if (resultUsed.isOdd) {
+      resultDigits[resultUsed] = 0; // Leading zero for 64-bit processing.
+    }
     // Negate y so we can later use _mulAdd instead of non-existent _mulSub.
-    var nyDigits = new Uint32List(yUsed + 2);
+    var nyDigits = _newDigits(yUsed + 2);
     nyDigits[yUsed] = 1;
     _absSub(nyDigits, yUsed + 1, yDigits, yUsed, nyDigits);
     // nyDigits is read-only and has yUsed digits (possibly including several
-    // leading zeros).
+    // leading zeros) plus a leading zero for 64-bit processing.
     // resultDigits is modified during iteration.
     // resultDigits[0..yUsed-1] is the current remainder.
     // resultDigits[yUsed..resultUsed-1] is the current quotient.
     --i;
-
     while (j > 0) {
-      var estimatedQuotientDigit =
-          _estimateQuotientDigit(topDigitDivisor, resultDigits, i);
-      j--;
-      _mulAdd(estimatedQuotientDigit, nyDigits, 0, resultDigits, j, yUsed);
-      if (resultDigits[i] < estimatedQuotientDigit) {
-        // Reusing the already existing tmpDigits array.
-        var tmpUsed = _dlShiftDigits(nyDigits, yUsed, j, tmpDigits);
-        _absSub(resultDigits, resultUsed, tmpDigits, tmpUsed, resultDigits);
-        while (resultDigits[i] < --estimatedQuotientDigit) {
+      var d0 = _estimateQuotientDigit(args, resultDigits, i);
+      j -= d0;
+      var d1 =
+          _mulAdd(args, _quotientDigit, nyDigits, 0, resultDigits, j, yUsed);
+      // _estimateQuotientDigit and _mulAdd must agree on the number of digits
+      // to process.
+      assert(d0 == d1);
+      if (d0 == 1) {
+        if (resultDigits[i] < args[_quotientDigit]) {
+          // Reusing the already existing tmpDigits array.
+          var tmpUsed = _dlShiftDigits(nyDigits, yUsed, j, tmpDigits);
           _absSub(resultDigits, resultUsed, tmpDigits, tmpUsed, resultDigits);
+          while (resultDigits[i] < --args[_quotientDigit]) {
+            _absSub(resultDigits, resultUsed, tmpDigits, tmpUsed, resultDigits);
+          }
+        }
+      } else {
+        assert(d0 == 2);
+        assert(resultDigits[i] <= args[_quotientHighDigit]);
+        if (resultDigits[i] < args[_quotientHighDigit] ||
+            resultDigits[i - 1] < args[_quotientDigit]) {
+          // Reusing the already existing tmpDigits array.
+          var tmpUsed = _dlShiftDigits(nyDigits, yUsed, j, tmpDigits);
+          _absSub(resultDigits, resultUsed, tmpDigits, tmpUsed, resultDigits);
+          if (args[_quotientDigit] == 0) {
+            --args[_quotientHighDigit];
+          }
+          --args[_quotientDigit];
+          assert(resultDigits[i] <= args[_quotientHighDigit]);
+          while (resultDigits[i] < args[_quotientHighDigit] ||
+              resultDigits[i - 1] < args[_quotientDigit]) {
+            _absSub(resultDigits, resultUsed, tmpDigits, tmpUsed, resultDigits);
+            if (args[_quotientDigit] == 0) {
+              --args[_quotientHighDigit];
+            }
+            --args[_quotientDigit];
+            assert(resultDigits[i] <= args[_quotientHighDigit]);
+          }
         }
       }
-      i--;
+      i -= d0;
     }
     // Cache result.
     _lastDividendDigits = _digits;
@@ -1208,6 +1437,108 @@ class _BigIntImpl implements BigInt {
     _lastQuoRemUsed = resultUsed;
     _lastRemUsed = yUsed;
     _lastRem_nsh = nsh;
+  }
+
+  // Customized version of _rem() minimizing allocations for use in reduction.
+  // Input:
+  //   xDigits[0..xUsed-1]: positive dividend.
+  //   yDigits[0..yUsed-1]: normalized positive divisor.
+  //   nyDigits[0..yUsed-1]: negated yDigits.
+  //   nsh: normalization shift amount.
+  //   args: top y digit(s) and place holder for estimated quotient digit(s).
+  //   tmpDigits: temp array of 2*yUsed digits.
+  //   resultDigits: result digits array large enough to temporarily hold
+  //                 concatenated quotient and normalized remainder.
+  // Output:
+  //   resultDigits[0..resultUsed-1]: positive remainder.
+  // Returns resultUsed.
+  static int _remDigits(
+      Uint32List xDigits,
+      int xUsed,
+      Uint32List yDigits,
+      int yUsed,
+      Uint32List nyDigits,
+      int nsh,
+      Uint32List args,
+      Uint32List tmpDigits,
+      Uint32List resultDigits) {
+    // Initialize resultDigits to normalized positive dividend.
+    var resultUsed = _lShiftDigits(xDigits, xUsed, nsh, resultDigits);
+    // For 64-bit processing, make sure yUsed, i, and j are even.
+    assert(yUsed.isEven);
+    var i = resultUsed + (resultUsed & 1);
+    var j = i - yUsed;
+    var tmpUsed = _dlShiftDigits(yDigits, yUsed, j, tmpDigits);
+    // Explicit first division step in case normalized dividend is larger or
+    // equal to shifted normalized divisor.
+    if (_compareDigits(resultDigits, resultUsed, tmpDigits, tmpUsed) >= 0) {
+      assert(i == resultUsed);
+      resultDigits[resultUsed++] = 1; // Quotient = 1.
+      // Subtract divisor from remainder.
+      _absSub(resultDigits, resultUsed, tmpDigits, tmpUsed, resultDigits);
+    } else {
+      // Account for possible carry in _mulAdd step.
+      resultDigits[resultUsed++] = 0;
+    }
+    if (resultUsed.isOdd) {
+      resultDigits[resultUsed] = 0; // Leading zero for 64-bit processing.
+    }
+    // Negated yDigits passed in nyDigits allow the use of _mulAdd instead of
+    // unimplemented _mulSub.
+    // nyDigits is read-only and has yUsed digits (possibly including several
+    // leading zeros) plus a leading zero for 64-bit processing.
+    // resultDigits is modified during iteration.
+    // resultDigits[0..yUsed-1] is the current remainder.
+    // resultDigits[yUsed..resultUsed-1] is the current quotient.
+    --i;
+    while (j > 0) {
+      var d0 = _estimateQuotientDigit(args, resultDigits, i);
+      j -= d0;
+      var d1 =
+          _mulAdd(args, _quotientDigit, nyDigits, 0, resultDigits, j, yUsed);
+      // _estimateQuotientDigit and _mulAdd must agree on the number of digits
+      // to process.
+      assert(d0 == d1);
+      if (d0 == 1) {
+        if (resultDigits[i] < args[_quotientDigit]) {
+          var tmpUsed = _dlShiftDigits(nyDigits, yUsed, j, tmpDigits);
+          _absSub(resultDigits, resultUsed, tmpDigits, tmpUsed, resultDigits);
+          while (resultDigits[i] < --args[_quotientDigit]) {
+            _absSub(resultDigits, resultUsed, tmpDigits, tmpUsed, resultDigits);
+          }
+        }
+      } else {
+        assert(d0 == 2);
+        assert(resultDigits[i] <= args[_quotientHighDigit]);
+        if ((resultDigits[i] < args[_quotientHighDigit]) ||
+            (resultDigits[i - 1] < args[_quotientDigit])) {
+          var tmpUsed = _dlShiftDigits(nyDigits, yUsed, j, tmpDigits);
+          _absSub(resultDigits, resultUsed, tmpDigits, tmpUsed, resultDigits);
+          if (args[_quotientDigit] == 0) {
+            --args[_quotientHighDigit];
+          }
+          --args[_quotientDigit];
+          assert(resultDigits[i] <= args[_quotientHighDigit]);
+          while ((resultDigits[i] < args[_quotientHighDigit]) ||
+              (resultDigits[i - 1] < args[_quotientDigit])) {
+            _absSub(resultDigits, resultUsed, tmpDigits, tmpUsed, resultDigits);
+            if (args[_quotientDigit] == 0) {
+              --args[_quotientHighDigit];
+            }
+            --args[_quotientDigit];
+            assert(resultDigits[i] <= args[_quotientHighDigit]);
+          }
+        }
+      }
+      i -= d0;
+    }
+    // Return remainder, i.e. denormalized resultDigits[0..yUsed-1].
+    resultUsed = yUsed;
+    if (nsh > 0) {
+      // Denormalize remainder.
+      resultUsed = _rShiftDigits(resultDigits, resultUsed, nsh, resultDigits);
+    }
+    return resultUsed;
   }
 
   int get hashCode {
@@ -1239,8 +1570,8 @@ class _BigIntImpl implements BigInt {
   /**
    * Test whether this value is numerically equal to `other`.
    *
-   * If [other] is a [_BigIntImpl] returns whether the two operands have the same
-   * value.
+   * If [other] is a [_BigIntImpl] returns whether the two operands have the
+   * same value.
    *
    * Returns false if `other` is not a [_BigIntImpl].
    */
@@ -1419,38 +1750,142 @@ class _BigIntImpl implements BigInt {
     }
     if (exponent._isZero) return one;
 
-    final modulusUsed = modulus._used;
-    final modulusUsed2p4 = 2 * modulusUsed + 4;
     final exponentBitlen = exponent.bitLength;
     if (exponentBitlen <= 0) return one;
-    _BigIntReduction z = new _BigIntClassic(modulus);
-    var resultDigits = new Uint32List(modulusUsed2p4);
-    var result2Digits = new Uint32List(modulusUsed2p4);
-    var gDigits = new Uint32List(modulusUsed);
-    var gUsed = z.convert(this, gDigits);
-    // Initialize result with g.
-    // Copy leading zero if any.
-    for (int j = gUsed - 1; j >= 0; j--) {
-      resultDigits[j] = gDigits[j];
+    final bool cannotUseMontgomery = modulus.isEven || abs() >= modulus;
+    if (cannotUseMontgomery || exponentBitlen < 64) {
+      _BigIntReduction z = (cannotUseMontgomery || exponentBitlen < 8)
+          ? new _BigIntClassicReduction(modulus)
+          : new _BigIntMontgomeryReduction(modulus);
+      var resultDigits = _newDigits(2 * z._normModulusUsed + 2);
+      var result2Digits = _newDigits(2 * z._normModulusUsed + 2);
+      var gDigits = _newDigits(z._normModulusUsed);
+      var gUsed = z._convert(this, gDigits);
+      // Initialize result with g.
+      // Copy leading zero if any.
+      for (int j = gUsed + (gUsed & 1) - 1; j >= 0; j--) {
+        resultDigits[j] = gDigits[j];
+      }
+      var resultUsed = gUsed;
+      var result2Used;
+      for (int i = exponentBitlen - 2; i >= 0; i--) {
+        result2Used = z._sqr(resultDigits, resultUsed, result2Digits);
+        if (exponent._digits[i ~/ _digitBits] & (1 << (i % _digitBits)) != 0) {
+          resultUsed =
+              z._mul(result2Digits, result2Used, gDigits, gUsed, resultDigits);
+        } else {
+          // Swap result and result2.
+          var tmpDigits = resultDigits;
+          var tmpUsed = resultUsed;
+          resultDigits = result2Digits;
+          resultUsed = result2Used;
+          result2Digits = tmpDigits;
+          result2Used = tmpUsed;
+        }
+      }
+      return z._revert(resultDigits, resultUsed);
     }
-    var resultUsed = gUsed;
-    var result2Used;
-    for (int i = exponentBitlen - 2; i >= 0; i--) {
-      result2Used = z.sqr(resultDigits, resultUsed, result2Digits);
-      if (!(exponent & (one << i))._isZero) {
-        resultUsed =
-            z.mul(result2Digits, result2Used, gDigits, gUsed, resultDigits);
-      } else {
-        // Swap result and result2.
-        var tmpDigits = resultDigits;
-        var tmpUsed = resultUsed;
-        resultDigits = result2Digits;
-        resultUsed = result2Used;
-        result2Digits = tmpDigits;
-        result2Used = tmpUsed;
+    var k;
+    if (exponentBitlen < 18)
+      k = 1;
+    else if (exponentBitlen < 48)
+      k = 3;
+    else if (exponentBitlen < 144)
+      k = 4;
+    else if (exponentBitlen < 768)
+      k = 5;
+    else
+      k = 6;
+    _BigIntReduction z = new _BigIntMontgomeryReduction(modulus);
+    var n = 3;
+    final k1 = k - 1;
+    final km = (1 << k) - 1;
+    List gDigits = new List(km + 1);
+    List gUsed = new List(km + 1);
+    gDigits[1] = _newDigits(z._normModulusUsed);
+    gUsed[1] = z._convert(this, gDigits[1]);
+    if (k > 1) {
+      var g2Digits = _newDigits(2 * z._normModulusUsed + 2);
+      var g2Used = z._sqr(gDigits[1], gUsed[1], g2Digits);
+      while (n <= km) {
+        gDigits[n] = _newDigits(2 * z._normModulusUsed + 2);
+        gUsed[n] =
+            z._mul(g2Digits, g2Used, gDigits[n - 2], gUsed[n - 2], gDigits[n]);
+        n += 2;
       }
     }
-    return z.revert(resultDigits, resultUsed);
+    var w;
+    var isOne = true;
+    var resultDigits = one._digits;
+    var resultUsed = one._used;
+    var result2Digits = _newDigits(2 * z._normModulusUsed + 2);
+    var result2Used;
+    var exponentDigits = exponent._digits;
+    var j = exponent._used - 1;
+    var i = exponentDigits[j].bitLength - 1;
+    while (j >= 0) {
+      if (i >= k1) {
+        w = (exponentDigits[j] >> (i - k1)) & km;
+      } else {
+        w = (exponentDigits[j] & ((1 << (i + 1)) - 1)) << (k1 - i);
+        if (j > 0) {
+          w |= exponentDigits[j - 1] >> (_digitBits + i - k1);
+        }
+      }
+      n = k;
+      while ((w & 1) == 0) {
+        w >>= 1;
+        --n;
+      }
+      if ((i -= n) < 0) {
+        i += _digitBits;
+        --j;
+      }
+      if (isOne) {
+        // r == 1, don't bother squaring or multiplying it.
+        resultDigits = _newDigits(2 * z._normModulusUsed + 2);
+        resultUsed = gUsed[w];
+        var gwDigits = gDigits[w];
+        var ri = resultUsed + (resultUsed & 1); // Copy leading zero if any.
+        while (--ri >= 0) {
+          resultDigits[ri] = gwDigits[ri];
+        }
+        isOne = false;
+      } else {
+        while (n > 1) {
+          result2Used = z._sqr(resultDigits, resultUsed, result2Digits);
+          resultUsed = z._sqr(result2Digits, result2Used, resultDigits);
+          n -= 2;
+        }
+        if (n > 0) {
+          result2Used = z._sqr(resultDigits, resultUsed, result2Digits);
+        } else {
+          var swapDigits = resultDigits;
+          var swapUsed = resultUsed;
+          resultDigits = result2Digits;
+          resultUsed = result2Used;
+          result2Digits = swapDigits;
+          result2Used = swapUsed;
+        }
+        resultUsed = z._mul(
+            result2Digits, result2Used, gDigits[w], gUsed[w], resultDigits);
+      }
+      while (j >= 0 && (exponentDigits[j] & (1 << i)) == 0) {
+        result2Used = z._sqr(resultDigits, resultUsed, result2Digits);
+        var swapDigits = resultDigits;
+        var swapUsed = resultUsed;
+        resultDigits = result2Digits;
+        resultUsed = result2Used;
+        result2Digits = swapDigits;
+        result2Used = swapUsed;
+        if (--i < 0) {
+          i = _digitBits - 1;
+          --j;
+        }
+      }
+    }
+    assert(!isOne);
+    return z._revert(resultDigits, resultUsed);
   }
 
   // If inv is false, returns gcd(x, y).
@@ -1461,10 +1896,10 @@ class _BigIntImpl implements BigInt {
     var yDigits = y._digits;
     var xUsed = x._used;
     var yUsed = y._used;
-    var maxUsed = xUsed > yUsed ? xUsed : yUsed;
-    var unshiftedMaxUsed = maxUsed; // Keep
-    xDigits = _cloneDigits(xDigits, 0, xUsed, maxUsed);
-    yDigits = _cloneDigits(yDigits, 0, yUsed, maxUsed);
+    var maxUsed = _max(xUsed, yUsed);
+    final maxLen = maxUsed + (maxUsed & 1);
+    xDigits = _cloneDigits(xDigits, 0, xUsed, maxLen);
+    yDigits = _cloneDigits(yDigits, 0, yUsed, maxLen);
     int shiftAmount = 0;
     if (inv) {
       if ((yUsed == 1) && (yDigits[0] == 1)) return one;
@@ -1501,26 +1936,25 @@ class _BigIntImpl implements BigInt {
         yUsed = tmpUsed;
       }
     }
-    var uDigits = _cloneDigits(xDigits, 0, xUsed, unshiftedMaxUsed);
-    var vDigits =
-        _cloneDigits(yDigits, 0, yUsed, unshiftedMaxUsed + 2); // +2 for lsh.
+    var uDigits = _cloneDigits(xDigits, 0, xUsed, maxLen);
+    var vDigits = _cloneDigits(yDigits, 0, yUsed, maxLen + 2); // +2 for lsh.
     final bool ac = (xDigits[0] & 1) == 0;
 
     // Variables a, b, c, and d require one more digit.
     final abcdUsed = maxUsed + 1;
-    final abcdLen = abcdUsed + 2; // +2 to satisfy _absAdd.
+    final abcdLen = abcdUsed + (abcdUsed & 1) + 2; // +2 to satisfy _absAdd.
     var aDigits, bDigits, cDigits, dDigits;
     bool aIsNegative, bIsNegative, cIsNegative, dIsNegative;
     if (ac) {
-      aDigits = new Uint32List(abcdLen);
+      aDigits = _newDigits(abcdLen);
       aIsNegative = false;
       aDigits[0] = 1;
-      cDigits = new Uint32List(abcdLen);
+      cDigits = _newDigits(abcdLen);
       cIsNegative = false;
     }
-    bDigits = new Uint32List(abcdLen);
+    bDigits = _newDigits(abcdLen);
     bIsNegative = false;
-    dDigits = new Uint32List(abcdLen);
+    dDigits = _newDigits(abcdLen);
     dIsNegative = false;
     dDigits[0] = 1;
 
@@ -2046,27 +2480,240 @@ class _BigIntImpl implements BigInt {
 
 // Interface for modular reduction.
 abstract class _BigIntReduction {
-  // Return the number of digits used by r_digits.
-  int convert(_BigIntImpl x, Uint32List r_digits);
-  int mul(Uint32List xDigits, int xUsed, Uint32List yDigits, int yUsed,
+  int get _normModulusUsed;
+  // Return the number of digits used by resultDigits.
+  int _convert(_BigIntImpl x, Uint32List resultDigits);
+  int _mul(Uint32List xDigits, int xUsed, Uint32List yDigits, int yUsed,
       Uint32List resultDigits);
-  int sqr(Uint32List xDigits, int xUsed, Uint32List resultDigits);
+  int _sqr(Uint32List xDigits, int xUsed, Uint32List resultDigits);
 
   // Return x reverted to _BigIntImpl.
-  _BigIntImpl revert(Uint32List xDigits, int xUsed);
+  _BigIntImpl _revert(Uint32List xDigits, int xUsed);
+}
+
+// Montgomery reduction on _BigIntImpl.
+class _BigIntMontgomeryReduction implements _BigIntReduction {
+  final _BigIntImpl _modulus;
+  int _normModulusUsed; // Even if processing 64-bit (digit pairs).
+  Uint32List _modulusDigits;
+  Uint32List _args;
+  int _digitsPerStep; // Number of digits processed in one step. 1 or 2.
+  static const int _xDigit = 0; // Index of digit of x.
+  static const int _xHighDigit = 1; // Index of high digit of x (64-bit only).
+  static const int _rhoDigit = 2; // Index of digit of rho.
+  static const int _rhoHighDigit = 3; // Index of high digit of rho (64-bit).
+  static const int _muDigit = 4; // Index of mu.
+  static const int _muHighDigit = 5; // Index of high 32-bits of mu (64-bit).
+
+  _BigIntMontgomeryReduction(this._modulus) {
+    _modulusDigits = _modulus._digits;
+    _args = _newDigits(6);
+    // Determine if we can process digit pairs by calling an intrinsic.
+    _digitsPerStep = _mulMod(_args, _args, 0);
+    _args[_xDigit] = _modulusDigits[0];
+    if (_digitsPerStep == 1) {
+      _normModulusUsed = _modulus._used;
+      _invDigit(_args);
+    } else {
+      assert(_digitsPerStep == 2);
+      _normModulusUsed = _modulus._used + (_modulus._used & 1);
+      _args[_xHighDigit] = _modulusDigits[1];
+      _invDigitPair(_args);
+    }
+  }
+
+  // Calculates -1/x % _digitBase, x is 32-bit digit.
+  //         xy == 1 (mod m)
+  //         xy =  1+km
+  //   xy(2-xy) = (1+km)(1-km)
+  // x(y(2-xy)) = 1-k^2 m^2
+  // x(y(2-xy)) == 1 (mod m^2)
+  // if y is 1/x mod m, then y(2-xy) is 1/x mod m^2
+  // Should reduce x and y(2-xy) by m^2 at each step to keep size bounded.
+  //
+  // Operation:
+  //   args[_rhoDigit] = 1/args[_xDigit] mod _digitBase.
+  static void _invDigit(Uint32List args) {
+    var x = args[_xDigit];
+    var y = x & 3; // y == 1/x mod 2^2
+    y = (y * (2 - (x & 0xf) * y)) & 0xf; // y == 1/x mod 2^4
+    y = (y * (2 - (x & 0xff) * y)) & 0xff; // y == 1/x mod 2^8
+    y = (y * (2 - (((x & 0xffff) * y) & 0xffff))) & 0xffff; // y == 1/x mod 2^16
+    y = (y * (2 - x * y % _BigIntImpl._digitBase)) % _BigIntImpl._digitBase;
+    // y == 1/x mod _digitBase
+    y = -y; // We really want the negative inverse.
+    args[_rhoDigit] = y & _BigIntImpl._digitMask;
+    assert(((x * y) & _BigIntImpl._digitMask) == _BigIntImpl._digitMask);
+  }
+
+  // Calculates -1/x % _digitBase^2, x is a pair of 32-bit digits.
+  // Operation:
+  //   args[_rhoDigit.._rhoHighDigit] =
+  //     1/args[_xDigit.._xHighDigit] mod _digitBase^2.
+  static void _invDigitPair(Uint32List args) {
+    var two = _BigIntImpl.two;
+    var mask32 = _BigIntImpl._oneDigitMask;
+    var mask64 = _BigIntImpl._twoDigitMask;
+    var xl = args[_xDigit]; // Lower 32-bit digit of x.
+    var y = xl & 3; // y == 1/x mod 2^2
+    y = (y * (2 - (xl & 0xf) * y)) & 0xf; // y == 1/x mod 2^4
+    y = (y * (2 - (xl & 0xff) * y)) & 0xff; // y == 1/x mod 2^8
+    y = (y * (2 - (((xl & 0xffff) * y) & 0xffff))) & 0xffff;
+    // y == 1/x mod 2^16
+    y = (y * (2 - ((xl * y) & 0xffffffff))) & 0xffffffff; // y == 1/x mod 2^32
+    var x = (args[_xHighDigit] << _BigIntImpl._digitBits) | xl;
+    y *= 2 - x * y; // Masking with 2^64-1 is implied by 64-bit arithmetic.
+    // y == 1/x mod _digitBase^2
+    y = -y; // We really want the negative inverse.
+    args[_rhoDigit] = y & _BigIntImpl._digitMask;
+    args[_rhoHighDigit] =
+        (y >> _BigIntImpl._digitBits) & _BigIntImpl._digitMask;
+    assert(x * y == -1);
+  }
+
+  // Operation:
+  //   args[_muDigit] = args[_rhoDigit]*digits[i] mod _digitBase.
+  //   Returns 1.
+  // Note: Intrinsics on 64-bit platforms process digit pairs at even indices:
+  //   args[_muDigit.._muHighDigit] =
+  //     args[_rhoDigit.._rhoHighDigit] * digits[i..i+1] mod _digitBase^2.
+  //   Returns 2.
+  static int _mulMod(Uint32List args, Uint32List digits, int i) {
+    var rhol = args[_rhoDigit] & _BigIntImpl._halfDigitMask;
+    var rhoh = args[_rhoDigit] >> _BigIntImpl._halfDigitBits;
+    var dh = digits[i] >> _BigIntImpl._halfDigitBits;
+    var dl = digits[i] & _BigIntImpl._halfDigitMask;
+    args[_muDigit] = (dl * rhol +
+            (((dl * rhoh + dh * rhol) & _BigIntImpl._halfDigitMask) <<
+                _BigIntImpl._halfDigitBits)) &
+        _BigIntImpl._digitMask;
+    return 1;
+  }
+
+  // result = x*R mod _modulus.
+  // Returns resultUsed.
+  int _convert(_BigIntImpl x, Uint32List resultDigits) {
+    // Montgomery reduction only works if abs(x) < _modulus.
+    assert(x.abs() < _modulus);
+    assert(_digitsPerStep == 1 || _normModulusUsed.isEven);
+    var result = x.abs()._dlShift(_normModulusUsed)._rem(_modulus);
+    if (x._isNegative && !result._isNegative && result._used > 0) {
+      result = _modulus - result;
+    }
+    var used = result._used;
+    var digits = result._digits;
+    var i = used + (used & 1);
+    while (--i >= 0) {
+      resultDigits[i] = digits[i];
+    }
+    return used;
+  }
+
+  _BigIntImpl _revert(Uint32List xDigits, int xUsed) {
+    var resultDigits = _newDigits(2 * _normModulusUsed);
+    var i = xUsed + (xUsed & 1);
+    while (--i >= 0) {
+      resultDigits[i] = xDigits[i];
+    }
+    var resultUsed = _reduce(resultDigits, xUsed);
+    return new _BigIntImpl._(false, resultUsed, resultDigits);
+  }
+
+  // x = x/R mod _modulus.
+  // Returns xUsed.
+  int _reduce(Uint32List xDigits, int xUsed) {
+    while (xUsed < 2 * _normModulusUsed) {
+      // Pad x so _mulAdd has enough room later.
+      xDigits[xUsed++] = 0;
+    }
+    var i = 0;
+    while (i < _normModulusUsed) {
+      var d = _mulMod(_args, xDigits, i);
+      assert(d == _digitsPerStep);
+      d = _BigIntImpl._mulAdd(
+          _args, _muDigit, _modulusDigits, 0, xDigits, i, _normModulusUsed);
+      assert(d == _digitsPerStep);
+      i += d;
+    }
+    // Clamp x.
+    while (xUsed > 0 && xDigits[xUsed - 1] == 0) {
+      --xUsed;
+    }
+    xUsed = _BigIntImpl._drShiftDigits(xDigits, xUsed, i, xDigits);
+    if (_BigIntImpl._compareDigits(
+            xDigits, xUsed, _modulusDigits, _normModulusUsed) >=
+        0) {
+      _BigIntImpl._absSub(
+          xDigits, xUsed, _modulusDigits, _normModulusUsed, xDigits);
+    }
+    // Clamp x.
+    while (xUsed > 0 && xDigits[xUsed - 1] == 0) {
+      --xUsed;
+    }
+    return xUsed;
+  }
+
+  int _sqr(Uint32List xDigits, int xUsed, Uint32List resultDigits) {
+    var resultUsed = _BigIntImpl._sqrDigits(xDigits, xUsed, resultDigits);
+    return _reduce(resultDigits, resultUsed);
+  }
+
+  int _mul(Uint32List xDigits, int xUsed, Uint32List yDigits, int yUsed,
+      Uint32List resultDigits) {
+    var resultUsed =
+        _BigIntImpl._mulDigits(xDigits, xUsed, yDigits, yUsed, resultDigits);
+    return _reduce(resultDigits, resultUsed);
+  }
 }
 
 // Modular reduction using "classic" algorithm.
-class _BigIntClassic implements _BigIntReduction {
+class _BigIntClassicReduction implements _BigIntReduction {
   final _BigIntImpl _modulus; // Modulus.
-  final _BigIntImpl _normalizedModulus; // Normalized _modulus.
+  int _normModulusUsed;
+  _BigIntImpl _normModulus; // Normalized _modulus.
+  Uint32List _normModulusDigits;
+  Uint32List _negNormModulusDigits; // Negated _normModulus digits.
+  int _modulusNsh; // Normalization shift amount.
+  Uint32List _args; // Top _normModulus digit(s) and place holder for estimated
+  // quotient digit(s).
+  Uint32List _tmpDigits; // Temporary digits used during reduction.
 
-  _BigIntClassic(this._modulus)
-      : _normalizedModulus = _modulus <<
-            (_BigIntImpl._digitBits -
-                _modulus._digits[_modulus._used - 1].bitLength);
+  _BigIntClassicReduction(this._modulus) {
+    // Preprocess arguments to _remDigits.
+    var nsh =
+        _BigIntImpl._digitBits - _modulus._digits[_modulus._used - 1].bitLength;
+    // For 64-bit processing, make sure _negNormModulusDigits has an even number
+    // of digits.
+    if (_modulus._used.isOdd) {
+      nsh += _BigIntImpl._digitBits;
+    }
+    _modulusNsh = nsh;
+    _normModulus = _modulus << nsh;
+    _normModulusUsed = _normModulus._used;
+    _normModulusDigits = _normModulus._digits;
+    assert(_normModulusUsed.isEven);
+    _args = _newDigits(4);
+    _args[_BigIntImpl._divisorLowTopDigit] =
+        _normModulusDigits[_normModulusUsed - 2];
+    _args[_BigIntImpl._divisorTopDigit] =
+        _normModulusDigits[_normModulusUsed - 1];
+    // Negate _normModulus so we can use _mulAdd instead of
+    // unimplemented  _mulSub.
+    var negNormModulus =
+        _BigIntImpl.one._dlShift(_normModulusUsed) - _normModulus;
+    if (negNormModulus._used < _normModulusUsed) {
+      _negNormModulusDigits = _BigIntImpl._cloneDigits(
+          negNormModulus._digits, 0, _normModulusUsed, _normModulusUsed);
+    } else {
+      _negNormModulusDigits = negNormModulus._digits;
+    }
+    // _negNormModulusDigits is read-only and has _normModulusUsed digits (possibly
+    // including several leading zeros) plus a leading zero for 64-bit
+    // processing.
+    _tmpDigits = _newDigits(2 * _normModulusUsed);
+  }
 
-  int convert(_BigIntImpl x, Uint32List resultDigits) {
+  int _convert(_BigIntImpl x, Uint32List resultDigits) {
     var digits;
     var used;
     if (x._isNegative || x.compareTo(_modulus) >= 0) {
@@ -2081,14 +2728,14 @@ class _BigIntClassic implements _BigIntReduction {
       used = x._used;
       digits = x._digits;
     }
-    var i = used; // Copy leading zero if any.
+    var i = used + (used & 1); // Copy leading zero if any.
     while (--i >= 0) {
       resultDigits[i] = digits[i];
     }
     return used;
   }
 
-  _BigIntImpl revert(Uint32List xDigits, int xUsed) {
+  _BigIntImpl _revert(Uint32List xDigits, int xUsed) {
     return new _BigIntImpl._(false, xUsed, xDigits);
   }
 
@@ -2096,24 +2743,27 @@ class _BigIntClassic implements _BigIntReduction {
     if (xUsed < _modulus._used) {
       return xUsed;
     }
-    var reverted = revert(xDigits, xUsed);
-    var rem = reverted._rem(_normalizedModulus);
-    return convert(rem, xDigits);
+    // The function _BigIntImpl._remDigits(...) is optimized for reduction and
+    // equivalent to calling
+    // 'convert(revert(xDigits, xUsed)._rem(_normModulus), xDigits);'
+    return _BigIntImpl._remDigits(
+        xDigits,
+        xUsed,
+        _normModulusDigits,
+        _normModulusUsed,
+        _negNormModulusDigits,
+        _modulusNsh,
+        _args,
+        _tmpDigits,
+        xDigits);
   }
 
-  int sqr(Uint32List xDigits, int xUsed, Uint32List resultDigits) {
-    var b = new _BigIntImpl._(false, xUsed, xDigits);
-    var b2 = b * b;
-    for (int i = 0; i < b2._used; i++) {
-      resultDigits[i] = b2._digits[i];
-    }
-    for (int i = b2._used; i < 2 * xUsed; i++) {
-      resultDigits[i] = 0;
-    }
-    return _reduce(resultDigits, 2 * xUsed);
+  int _sqr(Uint32List xDigits, int xUsed, Uint32List resultDigits) {
+    var resultUsed = _BigIntImpl._sqrDigits(xDigits, xUsed, resultDigits);
+    return _reduce(resultDigits, resultUsed);
   }
 
-  int mul(Uint32List xDigits, int xUsed, Uint32List yDigits, int yUsed,
+  int _mul(Uint32List xDigits, int xUsed, Uint32List yDigits, int yUsed,
       Uint32List resultDigits) {
     var resultUsed =
         _BigIntImpl._mulDigits(xDigits, xUsed, yDigits, yUsed, resultDigits);
