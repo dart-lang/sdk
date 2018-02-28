@@ -8,45 +8,76 @@ import "package:expect/expect.dart";
 import 'dart:collection';
 
 void main() {
-  test(const {1: 37});
-  test(new UnmodifiableMapView({1: 37}));
+  testNum(const {1: 37}, "const");
+  testNum(const <num, num>{1: 37}.cast<int, int>(), "const.cast");
+  testNum(const <num, num>{1: 37}.retype<int, int>(), "const.retype");
 
-  test(new UnmodifiableMapView<num, num>(<num, num>{1: 37}));
-  test(new UnmodifiableMapView<num, num>(<int, int>{1: 37}));
+  testNum(new UnmodifiableMapView({1: 37}), "unmod");
+  testNum(new UnmodifiableMapView<num, num>(<num, num>{1: 37}), "unmod.cast");
+  testNum(new UnmodifiableMapView<num, num>(<int, int>{1: 37}), "unmod.retype");
 
-  test(new UnmodifiableMapView<num, num>(<num, num>{1: 37}).cast<int, int>());
-  test(new UnmodifiableMapView<num, num>(<int, int>{1: 37}).cast<int, int>());
-  test(new UnmodifiableMapView<Object, Object>(<num, num>{1: 37})
-      .cast<int, int>());
-  test(new UnmodifiableMapView<Object, Object>(<int, int>{1: 37})
-      .cast<num, num>());
+  testNum(new UnmodifiableMapView<num, num>(<num, num>{1: 37}).cast<int, int>(),
+      "unmodView<num>.cast<int>");
+  testNum(new UnmodifiableMapView<num, num>(<int, int>{1: 37}).cast<int, int>(),
+      "unmodView<int>.cast<int>");
+  testNum(
+      new UnmodifiableMapView<Object, Object>(<num, num>{1: 37})
+          .cast<int, int>(),
+      "unmodView<Object>(num).cast<int>");
+  testNum(
+      new UnmodifiableMapView<Object, Object>(<int, int>{1: 37})
+          .cast<num, num>(),
+      "unmodView<Object>(int).cast<num>");
 
-  test(new UnmodifiableMapView<num, num>(<num, num>{1: 37}).retype<int, int>());
-  test(new UnmodifiableMapView<num, num>(<int, int>{1: 37}).retype<int, int>());
-  test(new UnmodifiableMapView<Object, Object>(<num, num>{1: 37})
-      .retype<int, int>());
-  test(new UnmodifiableMapView<Object, Object>(<int, int>{1: 37})
-      .retype<num, num>());
+  testNum(
+      new UnmodifiableMapView<num, num>(<num, num>{1: 37}).retype<int, int>(),
+      "unmodView<num>(num).retype<int>");
+  testNum(
+      new UnmodifiableMapView<num, num>(<int, int>{1: 37}).retype<int, int>(),
+      "unmodView<num>(int).retype<int>");
+  testNum(
+      new UnmodifiableMapView<Object, Object>(<num, num>{1: 37})
+          .retype<int, int>(),
+      "unmodView<Object>(num).retype<int>");
+  testNum(
+      new UnmodifiableMapView<Object, Object>(<int, int>{1: 37})
+          .retype<num, num>(),
+      "unmodView<Object>(int).retype<num>");
 
   var m2 = new Map<num, num>.unmodifiable({1: 37});
-  test(m2);
-  test(m2.cast<int, int>());
+  testNum(m2, "Map<num>.unmod");
+  testNum(m2.cast<int, int>(), "Map<num>.unmod.cast<int>");
+
+  Map<Symbol, dynamic> nsm = new NsmMap().foo(a: 0);
+  test(nsm, #a, 0, "nsm");
+  test(nsm.cast<Object, int>(), #a, 0, "nsm.cast");
+  test(nsm.retype<Object, int>(), #a, 0, "nsm.retype");
 }
 
-void test(Map map) {
-  Expect.isTrue(map.containsKey(1));
-  Expect.equals(1, map.length);
-  Expect.equals(1, map.keys.first);
-  Expect.equals(37, map.values.first);
+void testNum(Map<Object, Object> map, String name) {
+  test(map, 1, 37, name);
+}
 
-  Expect.throws(map.clear);
-  Expect.throws(() {
-    map.remove(1);
-  });
-  Expect.throws(() {
-    map[2] = 42;
-  });
-  Expect.throws(() {
-    map.addAll(<int, int>{2: 42});
-  });
+void test(
+    Map<Object, Object> map, Object firstKey, Object firstValue, String name) {
+  Expect.isTrue(map.containsKey(firstKey), "$name.containsKey");
+  Expect.equals(1, map.length, "$name.length");
+  Expect.equals(firstKey, map.keys.first, "$name.keys.first");
+  Expect.equals(firstValue, map.values.first, "$name.values.first");
+
+  Expect.throwsUnsupportedError(map.clear, "$name.clear");
+  Expect.throwsUnsupportedError(() {
+    map.remove(firstKey);
+  }, "$name.remove");
+  Expect.throwsUnsupportedError(() {
+    map[null] = null;
+  }, "$name[]=");
+  Expect.throwsUnsupportedError(() {
+    map.addAll(<Null, Null>{null: null});
+  }, "$name.addAll");
+}
+
+class NsmMap {
+  noSuchMethod(i) => i.namedArguments;
+  foo({a, b, c, d});
 }

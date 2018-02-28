@@ -1863,7 +1863,7 @@ class _Bigint extends _IntegerImplementation {
 }
 
 // Interface for modular reduction.
-class _Reduction {
+abstract class _Reduction {
   // Return the number of digits used by r_digits.
   int _convert(_Bigint x, Uint32List r_digits);
   int _mul(Uint32List x_digits, int x_used, Uint32List y_digits, int y_used,

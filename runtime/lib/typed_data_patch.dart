@@ -12,6 +12,7 @@ import "dart:_internal"
         ClassID,
         CodeUnits,
         ExpandIterable,
+        FollowedByIterable,
         IterableElementError,
         ListMapView,
         Lists,
@@ -23,6 +24,7 @@ import "dart:_internal"
         SubListIterable,
         TakeWhileIterable,
         WhereIterable,
+        WhereTypeIterable,
         patch;
 
 import "dart:collection" show ListBase;
@@ -111,6 +113,11 @@ abstract class _IntListMixin implements List<int> {
   _ByteBuffer get buffer;
 
   List<int> _createList(int length);
+
+  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
+
+  Iterable<int> followedBy(Iterable<int> other) =>
+      new FollowedByIterable<int>.firstEfficient(this, other);
 
   List<R> cast<R>() {
     List<Object> self = this;
@@ -465,6 +472,11 @@ abstract class _DoubleListMixin implements List<double> {
   _ByteBuffer get buffer;
 
   List<double> _createList(int length);
+
+  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
+
+  Iterable<double> followedBy(Iterable<double> other) =>
+      new FollowedByIterable<double>.firstEfficient(this, other);
 
   List<R> cast<R>() {
     List<Object> self = this;
@@ -822,6 +834,11 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
   _ByteBuffer get buffer;
 
   List<Float32x4> _createList(int length);
+
+  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
+
+  Iterable<Float32x4> followedBy(Iterable<Float32x4> other) =>
+      new FollowedByIterable<Float32x4>.firstEfficient(this, other);
 
   List<R> cast<R>() {
     List<Object> self = this;
@@ -1184,6 +1201,11 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
 
   List<Int32x4> _createList(int length);
 
+  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
+
+  Iterable<Int32x4> followedBy(Iterable<Int32x4> other) =>
+      new FollowedByIterable<Int32x4>.firstEfficient(this, other);
+
   List<R> cast<R>() {
     List<Object> self = this;
     return self is List<R> ? self : List.castFrom<Int32x4, R>(this);
@@ -1543,6 +1565,11 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
   _ByteBuffer get buffer;
 
   List<Float64x2> _createList(int length);
+
+  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
+
+  Iterable<Float64x2> followedBy(Iterable<Float64x2> other) =>
+      new FollowedByIterable<Float64x2>.firstEfficient(this, other);
 
   List<R> cast<R>() {
     List<Object> self = this;

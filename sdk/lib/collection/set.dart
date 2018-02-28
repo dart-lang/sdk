@@ -58,16 +58,10 @@ abstract class SetMixin<E> implements Set<E> {
 
   Set<R> retype<R>() => Set.castFrom<E, R>(this);
 
-  Iterable<E> followedBy(Iterable<E> other) sync* {
-    // TODO(lrn): Optimize this (some operations can be more efficient,
-    // and the concatenation has efficient length if the source iterables do).
-    yield* this;
-    yield* other;
-  }
+  Iterable<E> followedBy(Iterable<E> other) =>
+      new FollowedByIterable<E>.firstEfficient(this, other);
 
-  Iterable<T> whereType<T>() sync* {
-    for (Object element in this) if (element is T) yield element;
-  }
+  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
 
   void clear() {
     removeAll(toList());

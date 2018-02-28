@@ -8,6 +8,9 @@ int_parse_radix_bad_handler_test: MissingCompileTimeError
 iterable_element_at_test/static: Pass
 num_sign_test: Crash, Pass # Issue 31768
 
+[ $compiler == dart2js ]
+iterable_where_type_test: RuntimeError # issue 31718
+
 [ $compiler != dartdevc ]
 error_stack_trace_test/static: MissingCompileTimeError
 
