@@ -286,6 +286,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.ILLEGAL_CHARACTER, offset, length);
         return;
+      case "INITIALIZED_VARIABLE_IN_FOR_EACH":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, offset, length);
+        return;
       case "INVALID_ASSIGNMENT":
         var type1 = arguments['type'];
         var type2 = arguments['type2'];

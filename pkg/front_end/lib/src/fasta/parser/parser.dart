@@ -1367,7 +1367,7 @@ class Parser {
   /// as in `abstract<t> foo`. In situations such as this, return the last
   /// token in that type reference and assume the caller will report the error
   /// and recover.
-  Token skipTypeReferenceOpt(Token token) {
+  Token skipTypeReferenceOpt(Token token, bool inDeclaration) {
     final Token beforeStart = token;
     Token next = token.next;
 
@@ -1460,7 +1460,7 @@ class Parser {
     }
 
     return next.isIdentifier ||
-            (next.isOperator && !optional('=', next)) ||
+            (inDeclaration && next.isOperator && !optional('=', next)) ||
             looksLikeTypeRef
         ? token
         : beforeStart;
@@ -2658,14 +2658,6 @@ class Parser {
           throw new StateError("beforeName.next != name");
         return parseNamedFunctionRest(beforeName, begin, formals, true);
 
-      case TypeContinuation.VariablesDeclarationOrExpression:
-        if (looksLikeType && token.isIdentifier) {
-          // TODO(ahe): Generate type events and call
-          // parseVariablesDeclarationNoSemicolonRest instead.
-          return parseVariablesDeclarationNoSemicolon(beforeBegin);
-        }
-        return parseExpression(beforeBegin);
-
       case TypeContinuation.NormalFormalParameter:
       case TypeContinuation.NormalFormalParameterAfterVar:
         parameterKind = FormalParameterKind.mandatory;
@@ -2983,7 +2975,7 @@ class Parser {
     // TODO(danrubel): Consider changing the listener contract
     // so that the type reference can be parsed immediately
     // rather than skipped now and parsed later.
-    token = skipTypeReferenceOpt(token);
+    token = skipTypeReferenceOpt(token, true);
     if (token == beforeType) {
       // There is no type reference.
       beforeType = null;
@@ -3699,7 +3691,7 @@ class Parser {
     // TODO(danrubel): Consider changing the listener contract
     // so that the type reference can be parsed immediately
     // rather than skipped now and parsed later.
-    token = skipTypeReferenceOpt(token);
+    token = skipTypeReferenceOpt(token, true);
     if (token == beforeType) {
       // There is no type reference.
       beforeType = null;
@@ -4338,7 +4330,7 @@ class Parser {
     } else if (identical(value, 'await') && optional('for', token.next.next)) {
       return parseForStatement(token.next, token.next);
     } else if (identical(value, 'for')) {
-      return parseForStatement(null, token);
+      return parseForStatement(token, null);
     } else if (identical(value, 'rethrow')) {
       return parseRethrowStatement(token);
     } else if (identical(value, 'throw') && optional(';', token.next.next)) {
@@ -5534,16 +5526,12 @@ class Parser {
   }
 
   Token parseVariablesDeclaration(Token token) {
+    token = parseMetadataStar(token);
     return parseVariablesDeclarationMaybeSemicolon(token, true);
   }
 
   Token parseVariablesDeclarationRest(Token token) {
     return parseVariablesDeclarationMaybeSemicolonRest(token, true);
-  }
-
-  Token parseVariablesDeclarationNoSemicolon(Token token) {
-    // Only called when parsing a for loop, so this is for parsing locals.
-    return parseVariablesDeclarationMaybeSemicolon(token, false);
   }
 
   Token parseVariablesDeclarationNoSemicolonRest(Token token) {
@@ -5553,7 +5541,6 @@ class Parser {
 
   Token parseVariablesDeclarationMaybeSemicolon(
       Token token, bool endWithSemicolon) {
-    token = parseMetadataStar(token);
     Token next = token.next;
 
     MemberKind memberKind = MemberKind.Local;
@@ -5657,20 +5644,77 @@ class Parser {
   ///   declaredIdentifier 'in' expression |
   ///   identifier 'in' expression
   /// ;
+  ///
+  /// forInitializerStatement:
+  ///   localVariableDeclaration |
+  ///   expression? ';'
+  /// ;
   /// ```
-  Token parseForStatement(Token awaitToken, Token token) {
-    // TODO(brianwilkerson): Consider moving `token` to be the first parameter.
-    Token forKeyword = token.next;
+  Token parseForStatement(Token token, Token awaitToken) {
+    Token forKeyword = token = token.next;
     assert(awaitToken == null || optional('await', awaitToken));
+    assert(optional('for', token));
     listener.beginForStatement(forKeyword);
-    token = expect('for', forKeyword);
-    Token leftParenthesis = token;
-    expect('(', token);
-    token = parseVariablesDeclarationOrExpressionOpt(token);
+
+    Token leftParenthesis = forKeyword.next;
+    if (!optional('(', leftParenthesis)) {
+      // Recovery
+      reportRecoverableError(
+          leftParenthesis, fasta.templateExpectedButGot.withArguments('('));
+      int offset = leftParenthesis.offset;
+
+      BeginToken openParen =
+          token.setNext(new SyntheticBeginToken(TokenType.OPEN_PAREN, offset));
+      Token semicolon =
+          openParen.setNext(new SyntheticToken(TokenType.SEMICOLON, offset));
+      semicolon =
+          semicolon.setNext(new SyntheticToken(TokenType.SEMICOLON, offset));
+      Token closeParen =
+          semicolon.setNext(new SyntheticToken(TokenType.CLOSE_PAREN, offset));
+      openParen.endGroup = closeParen;
+
+      closeParen.setNext(leftParenthesis);
+      leftParenthesis = openParen;
+    }
+    token = leftParenthesis;
+
+    Token beforeIdentifier;
+    final String stringValue = token.next.stringValue;
+    if (identical(stringValue, ';')) {
+      listener.handleNoExpression(token.next);
+    } else {
+      if (identical('@', stringValue) ||
+          identical('var', stringValue) ||
+          identical('final', stringValue) ||
+          identical('const', stringValue)) {
+        token = parseMetadataStar(token);
+        beforeIdentifier = skipTypeReferenceOpt(token, false);
+        // TODO(ahe, danrubel): Generate type events and call
+        // parseVariablesDeclarationNoSemicolonRest instead.
+        token = parseVariablesDeclarationMaybeSemicolon(token, false);
+      } else {
+        beforeIdentifier = skipTypeReferenceOpt(token, false);
+        if (token == beforeIdentifier) {
+          // No type found, just parse expression
+          token = parseExpression(token);
+        } else {
+          // TODO(ahe, danrubel): Generate type events and call
+          // parseVariablesDeclarationNoSemicolonRest instead.
+          token = parseMetadataStar(token);
+          token = parseVariablesDeclarationMaybeSemicolon(token, false);
+        }
+      }
+    }
+
     Token next = token.next;
     if (optional('in', next)) {
       if (awaitToken != null && !inAsync) {
         reportRecoverableError(next, fasta.messageAwaitForNotAsync);
+      }
+      if (beforeIdentifier != null &&
+          optional('=', beforeIdentifier.next.next)) {
+        reportRecoverableError(beforeIdentifier.next.next,
+            fasta.messageInitializedVariableInForEach);
       }
       return parseForInRest(awaitToken, forKeyword, leftParenthesis, token);
     } else if (optional(':', next)) {
@@ -5685,24 +5729,6 @@ class Parser {
       }
       return parseForRest(forKeyword, leftParenthesis, token);
     }
-  }
-
-  /// ```
-  /// forInitializerStatement:
-  ///   localVariableDeclaration |
-  ///   expression? ';'
-  /// ;
-  /// ```
-  Token parseVariablesDeclarationOrExpressionOpt(Token token) {
-    Token next = token.next;
-    final String value = next.stringValue;
-    if (identical(value, ';')) {
-      listener.handleNoExpression(next);
-      return token;
-    } else if (isOneOf4(next, '@', 'var', 'final', 'const')) {
-      return parseVariablesDeclarationNoSemicolon(token);
-    }
-    return parseType(token, TypeContinuation.VariablesDeclarationOrExpression);
   }
 
   /// This method parses the portion of the forLoopParts that starts with the

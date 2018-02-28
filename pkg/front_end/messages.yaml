@@ -615,6 +615,14 @@ ContinueWithoutLabelInCase:
   script:
     - "main() { switch (x) {case 1: continue;} }"
 
+InitializedVariableInForEach:
+  template: "The loop variable in a for-each loop can't be initialized."
+  tip: "Try removing the initializer, or using a different kind of loop."
+  analyzerCode: INITIALIZED_VARIABLE_IN_FOR_EACH
+  dart2jsCode: "*fatal*"
+  statement:
+    - "for (int a = 0 in <int>[10]) {}"
+
 InvalidAwaitFor:
   template: "The keyword 'await' isn't allowed for a normal 'for' statement."
   tip: "Try removing the keyword, or use a for-each statement."

@@ -2400,6 +2400,19 @@ Message _withArgumentsImportHidesImport(String name, Uri uri_, Uri uri2_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInitializedVariableInForEach =
+    messageInitializedVariableInForEach;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInitializedVariableInForEach = const MessageCode(
+    "InitializedVariableInForEach",
+    analyzerCode: "INITIALIZED_VARIABLE_IN_FOR_EACH",
+    dart2jsCode: "*fatal*",
+    message: r"""The loop variable in a for-each loop can't be initialized.""",
+    tip:
+        r"""Try removing the initializer, or using a different kind of loop.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri_)> templateInputFileNotFound =
     const Template<Message Function(Uri uri_)>(
         messageTemplate: r"""Input file not found: #uri.""",
