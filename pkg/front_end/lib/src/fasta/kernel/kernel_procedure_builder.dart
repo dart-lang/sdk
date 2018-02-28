@@ -45,7 +45,6 @@ import '../loader.dart' show Loader;
 
 import '../messages.dart'
     show
-        messageInternalProblemBodyOnAbstractMethod,
         messageNonInstanceTypeVariableUse,
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
@@ -53,7 +52,7 @@ import '../messages.dart'
 
 import '../parser.dart' show noLength;
 
-import '../problems.dart' show internalProblem, unexpected;
+import '../problems.dart' show unexpected;
 
 import '../deprecated_problems.dart' show deprecated_inputError;
 
@@ -103,12 +102,13 @@ abstract class KernelFunctionBuilder
   KernelFunctionBuilder get actualOrigin;
 
   void set body(Statement newBody) {
-    if (newBody != null) {
-      if (isAbstract) {
-        return internalProblem(messageInternalProblemBodyOnAbstractMethod,
-            newBody.fileOffset, fileUri);
-      }
-    }
+//    if (newBody != null) {
+//      if (isAbstract) {
+//        // TODO(danrubel): Is this check needed?
+//        return internalProblem(messageInternalProblemBodyOnAbstractMethod,
+//            newBody.fileOffset, fileUri);
+//      }
+//    }
     actualBody = newBody;
     if (function != null) {
       // A forwarding semi-stub is a method that is abstract in the source code,
