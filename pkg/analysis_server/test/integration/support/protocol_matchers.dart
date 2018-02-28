@@ -484,6 +484,10 @@ final Matcher isFilePath = isString;
  *   "parentAssociationLabel": optional String
  *   "variableName": optional String
  *   "children": optional List<FlutterOutline>
+ *   "id": optional int
+ *   "renderConstructor": optional String
+ *   "stateOffset": optional int
+ *   "stateLength": optional int
  * }
  */
 final Matcher isFlutterOutline =
@@ -498,7 +502,11 @@ final Matcher isFlutterOutline =
           "className": isString,
           "parentAssociationLabel": isString,
           "variableName": isString,
-          "children": isListOf(isFlutterOutline)
+          "children": isListOf(isFlutterOutline),
+          "id": isInt,
+          "renderConstructor": isString,
+          "stateOffset": isInt,
+          "stateLength": isInt
         }));
 
 /**
@@ -2447,11 +2455,15 @@ final Matcher isExtractMethodOptions =
  * {
  *   "file": FilePath
  *   "outline": FlutterOutline
+ *   "instrumentationEdits": List<SourceEdit>
  * }
  */
-final Matcher isFlutterOutlineParams = new LazyMatcher(() =>
-    new MatchesJsonObject("flutter.outline params",
-        {"file": isFilePath, "outline": isFlutterOutline}));
+final Matcher isFlutterOutlineParams =
+    new LazyMatcher(() => new MatchesJsonObject("flutter.outline params", {
+          "file": isFilePath,
+          "outline": isFlutterOutline,
+          "instrumentationEdits": isListOf(isSourceEdit)
+        }));
 
 /**
  * flutter.setSubscriptions params
