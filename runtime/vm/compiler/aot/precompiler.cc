@@ -1046,13 +1046,7 @@ void Precompiler::AddCalleesOf(const Function& function) {
       } else if (entry.IsInstance()) {
         // Const object, literal or args descriptor.
         instance ^= entry.raw();
-        if (entry.IsAbstractType()) {
-          AddType(AbstractType::Cast(entry));
-        } else if (entry.IsTypeArguments()) {
-          AddTypeArguments(TypeArguments::Cast(entry));
-        } else {
-          AddConstObject(instance);
-        }
+        AddConstObject(instance);
       } else if (entry.IsFunction()) {
         // Local closure function.
         target ^= entry.raw();
@@ -1199,6 +1193,15 @@ void Precompiler::AddTypeArguments(const TypeArguments& args) {
 }
 
 void Precompiler::AddConstObject(const Instance& instance) {
+  // Types and type arguments require special handling.
+  if (instance.IsAbstractType()) {
+    AddType(AbstractType::Cast(instance));
+    return;
+  } else if (instance.IsTypeArguments()) {
+    AddTypeArguments(TypeArguments::Cast(instance));
+    return;
+  }
+
   const Class& cls = Class::Handle(Z, instance.clazz());
   AddInstantiatedClass(cls);
 
@@ -1241,9 +1244,7 @@ void Precompiler::AddConstObject(const Instance& instance) {
     virtual void VisitPointers(RawObject** first, RawObject** last) {
       for (RawObject** current = first; current <= last; current++) {
         subinstance_ = *current;
-        if (subinstance_.IsTypeArguments()) {
-          precompiler_->AddTypeArguments(TypeArguments::Cast(subinstance_));
-        } else if (subinstance_.IsInstance()) {
+        if (subinstance_.IsInstance()) {
           precompiler_->AddConstObject(Instance::Cast(subinstance_));
         }
       }
