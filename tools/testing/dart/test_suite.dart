@@ -727,6 +727,24 @@ class StandardTestSuite extends TestSuite {
   }
 
   void enqueueFile(String filename, FutureGroup group) {
+    bool match = false;
+    for (var regex in configuration.selectors.values) {
+      String pattern = regex.pattern;
+      if (pattern.contains("/")) {
+        String lastPart = pattern.substring(pattern.lastIndexOf("/") + 1);
+        if (int.parse(lastPart, onError: (_) => -1) >= 0 ||
+            lastPart.toLowerCase() == "none") {
+          pattern = pattern.substring(0, pattern.lastIndexOf("/"));
+        }
+      }
+      if (pattern != regex.pattern) {
+        regex = new RegExp(pattern);
+      }
+      if (regex.hasMatch(filename)) match = true;
+      if (match) break;
+    }
+    if (!match) return;
+
     if (isHtmlTestFile(filename)) {
       var info = html_test.getInformation(filename);
       if (info == null) {
