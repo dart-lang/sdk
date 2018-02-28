@@ -105,27 +105,28 @@ class Utils {
   static uintptr_t RoundUpToPowerOfTwo(uintptr_t x);
 
   static int CountOneBits32(uint32_t x) {
-#ifdef _MSC_VER
-    return __popcnt(x);
-#elif __GNUC__
+    // Apparently there are x64 chips without popcount.
+#if __GNUC__ && !defined(HOST_ARCH_IA32) && !defined(HOST_ARCH_X64)
     return __builtin_popcount(x);
 #else
-#error CountOneBits32 not implemented for this compiler
+    // Implementation is from "Hacker's Delight" by Henry S. Warren, Jr.,
+    // figure 5-2, page 66, where the function is called pop.
+    x = x - ((x >> 1) & 0x55555555);
+    x = (x & 0x33333333) + ((x >> 2) & 0x33333333);
+    x = (x + (x >> 4)) & 0x0F0F0F0F;
+    x = x + (x >> 8);
+    x = x + (x >> 16);
+    return static_cast<int>(x & 0x0000003F);
 #endif
   }
 
   static int CountOneBits64(uint64_t x) {
-#ifdef _MSC_VER
-#ifdef ARCH_IS_64_BIT
-    return __popcnt64(x);
+    // Apparently there are x64 chips without popcount.
+#if __GNUC__ && !defined(HOST_ARCH_IA32) && !defined(HOST_ARCH_X64)
+    return __builtin_popcountll(x);
 #else
     return CountOneBits32(static_cast<uint32_t>(x)) +
            CountOneBits32(static_cast<uint32_t>(x >> 32));
-#endif
-#elif __GNUC__
-    return __builtin_popcountll(x);
-#else
-#error CountOneBits64 not implemented for this compiler
 #endif
   }
 
