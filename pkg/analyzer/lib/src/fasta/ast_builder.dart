@@ -320,8 +320,13 @@ class AstBuilder extends ScopeListener {
   void endExpressionStatement(Token semicolon) {
     assert(optional(';', semicolon));
     debugEvent("ExpressionStatement");
-
-    push(ast.expressionStatement(pop(), semicolon));
+    Expression expression = pop();
+    if (expression is SuperExpression) {
+      // This error is also reported by the body builder.
+      handleRecoverableError(messageMissingAssignableSelector,
+          expression.beginToken, expression.endToken);
+    }
+    push(ast.expressionStatement(expression, semicolon));
   }
 
   @override
@@ -1372,9 +1377,7 @@ class AstBuilder extends ScopeListener {
 
     Expression expression = pop();
     if (!expression.isAssignable) {
-      // TODO(danrubel): The fasta parser does not have enough context to
-      // report this error. Consider moving it to the resolution phase
-      // or at least to common location that can be shared by all listeners.
+      // This error is also reported by the body builder.
       handleRecoverableError(messageMissingAssignableSelector,
           expression.endToken, expression.endToken);
     }
@@ -1387,9 +1390,7 @@ class AstBuilder extends ScopeListener {
 
     Expression expression = pop();
     if (!expression.isAssignable) {
-      // TODO(danrubel): The fasta parser does not have enough context to
-      // report this error. Consider moving it to the resolution phase
-      // or at least to common location that can be shared by all listeners.
+      // This error is also reported by the body builder.
       handleRecoverableError(
           messageIllegalAssignmentToNonAssignable, operator, operator);
     }

@@ -800,14 +800,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_missingAssignableSelector_superPrimaryExpression() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, found 0
-    super.test_missingAssignableSelector_superPrimaryExpression();
-  }
-
-  @override
-  @failingTest
   void test_missingAssignableSelector_superPropertyAccessAssigned() {
     // TODO(brianwilkerson) Does not recover.
     //   Expected: true
