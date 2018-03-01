@@ -6039,6 +6039,7 @@ class CodeGenerator extends Object
     if (type == null || type.isDynamic || type.isObject) {
       return isObjectMember(name);
     } else if (type is InterfaceType) {
+      type = getImplementationType(type) ?? type;
       var element = type.element;
       if (_extensionTypes.isNativeClass(element)) {
         var member = _lookupForwardedMember(element, name);
