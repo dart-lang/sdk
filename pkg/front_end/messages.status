@@ -1,12 +1,10 @@
 # Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
-
-# Please don't add more failures to this status file of the "analyzerCode" or
-# "example" varity.
-
 AbstractClassInstantiation/analyzerCode: Fail
 AbstractClassInstantiation/example: Fail
+AbstractClassMember/script5: Fail
+AbstractClassMember/script6: Fail
 AbstractNotSync/analyzerCode: Fail
 AbstractNotSync/example: Fail
 AbstractRedirectedClassInstantiation/analyzerCode: Fail
@@ -24,6 +22,7 @@ AsyncAsIdentifier/example: Fail
 AwaitAsIdentifier/example: Fail
 AwaitNotAsync/analyzerCode: Fail
 AwaitNotAsync/example: Fail
+BreakOutsideOfLoop/script1: Fail
 BuiltInIdentifierAsType/example: Fail
 BuiltInIdentifierInDeclaration/example: Fail
 CandidateFound/analyzerCode: Fail
@@ -63,6 +62,10 @@ ConflictsWithTypeVariable/analyzerCode: Fail
 ConflictsWithTypeVariable/example: Fail
 ConflictsWithTypeVariableCause/analyzerCode: Fail
 ConflictsWithTypeVariableCause/example: Fail
+ConstAfterFactory/script1: Fail
+ConstAndCovariant/script2: Fail
+ConstAndFinal/script1: Fail
+ConstAndVar/script1: Fail
 ConstConstructorNonFinalField/analyzerCode: Fail
 ConstConstructorNonFinalField/example: Fail
 ConstConstructorNonFinalFieldCause/analyzerCode: Fail
@@ -72,8 +75,16 @@ ConstructorHasNoSuchNamedParameter/analyzerCode: Fail
 ConstructorHasNoSuchNamedParameter/example: Fail
 ConstructorNotFound/analyzerCode: Fail
 ConstructorNotFound/example: Fail
+ContinueOutsideOfLoop/script1: Fail
+ContinueWithoutLabelInCase/script1: Fail
 CouldNotParseUri/analyzerCode: Fail
 CouldNotParseUri/example: Fail
+CovariantAfterFinal/script1: Fail
+CovariantAfterVar/script1: Fail
+CovariantAndStatic/script1: Fail
+CovariantAndStatic/script2: Fail
+CovariantMember/script1: Fail
+CovariantMember/script2: Fail
 CyclicClassHierarchy/analyzerCode: Fail
 CyclicClassHierarchy/example: Fail
 CyclicTypedef/analyzerCode: Fail
@@ -86,6 +97,8 @@ DeferredPrefixDuplicatedCause/example: Fail
 DeferredTypeAnnotation/example: Fail
 DillOutlineSummary/analyzerCode: Fail
 DillOutlineSummary/example: Fail
+DirectiveAfterDeclaration/script1: Fail
+DirectiveAfterDeclaration/script2: Fail
 DuplicateDeferred/example: Fail
 DuplicatePrefix/example: Fail
 DuplicatedDefinition/analyzerCode: Fail
@@ -97,6 +110,7 @@ DuplicatedImport/analyzerCode: Fail
 DuplicatedImport/example: Fail
 DuplicatedImportInType/analyzerCode: Fail
 DuplicatedImportInType/example: Fail
+DuplicatedModifier/script1: Fail
 DuplicatedName/analyzerCode: Fail
 DuplicatedName/example: Fail
 DuplicatedParameterName/analyzerCode: Fail
@@ -106,6 +120,13 @@ DuplicatedParameterNameCause/example: Fail
 Encoding/analyzerCode: Fail
 EnumConstantSameNameAsEnclosing/analyzerCode: Fail
 EnumConstantSameNameAsEnclosing/example: Fail
+EqualityCannotBeEqualityOperand/script1: Fail
+EqualityCannotBeEqualityOperand/script2: Fail
+ExpectedAnInitializer/script1: Fail
+ExpectedBlock/script: Fail
+ExpectedBlockToSkip/script: Fail
+ExpectedButGot/script1: Fail
+ExpectedButGot/script2: Fail
 ExpectedClassBody/example: Fail
 ExpectedClassMember/example: Fail
 ExpectedDeclaration/example: Fail
@@ -117,6 +138,7 @@ ExpectedToken/example: Fail
 ExpectedType/example: Fail
 ExpectedUri/analyzerCode: Fail
 ExpectedUri/example: Fail
+ExportAfterPart/script1: Fail
 ExportHidesExport/analyzerCode: Fail
 ExportHidesExport/example: Fail
 ExpressionNotMetadata/analyzerCode: Fail
@@ -124,7 +146,26 @@ ExpressionNotMetadata/example: Fail
 ExtendingEnum/analyzerCode: Fail
 ExtendingEnum/example: Fail
 ExtendingRestricted/example: Fail
+ExternalConstructorWithBody/script1: Fail
 ExternalFactoryRedirection/example: Fail
+ExternalFactoryWithBody/script1: Fail
+ExtraneousModifier/script1: Fail
+ExtraneousModifier/script10: Fail
+ExtraneousModifier/script11: Fail
+ExtraneousModifier/script12: Fail
+ExtraneousModifier/script13: Fail
+ExtraneousModifier/script16: Fail
+ExtraneousModifier/script17: Fail
+ExtraneousModifier/script18: Fail
+ExtraneousModifier/script19: Fail
+ExtraneousModifier/script2: Fail
+ExtraneousModifier/script20: Fail
+ExtraneousModifier/script3: Fail
+ExtraneousModifier/script4: Fail
+ExtraneousModifier/script5: Fail
+ExtraneousModifier/script7: Fail
+ExtraneousModifier/script8: Fail
+ExtraneousModifier/script9: Fail
 FactoryNotSync/analyzerCode: Fail
 FactoryNotSync/example: Fail
 FastaCLIArgumentRequired/analyzerCode: Fail
@@ -133,6 +174,8 @@ FastaUsageLong/analyzerCode: Fail
 FastaUsageLong/example: Fail
 FastaUsageShort/analyzerCode: Fail
 FastaUsageShort/example: Fail
+FieldInitializerOutsideConstructor/script1: Fail
+FinalAndCovariant/script2: Fail
 FinalFieldWithoutInitializer/example: Fail
 FinalInstanceVariableAlreadyInitialized/analyzerCode: Fail
 FinalInstanceVariableAlreadyInitialized/example: Fail
@@ -141,10 +184,12 @@ FinalInstanceVariableAlreadyInitializedCause/example: Fail
 FunctionHasNoSuchNamedParameter/analyzerCode: Fail
 FunctionHasNoSuchNamedParameter/example: Fail
 FunctionTypeDefaultValue/example: Fail
+FunctionTypedParameterVar/script1: Fail
 GeneratorReturnsValue/example: Fail
 GetterNotFound/analyzerCode: Fail
 GetterNotFound/example: Fail
 GetterWithFormals/example: Fail
+IllegalAssignmentToNonAssignable/script1: Fail
 IllegalMethodName/analyzerCode: Fail
 IllegalMethodName/example: Fail
 IllegalMixin/analyzerCode: Fail
@@ -153,8 +198,11 @@ IllegalMixinDueToConstructors/analyzerCode: Fail
 IllegalMixinDueToConstructors/example: Fail
 IllegalMixinDueToConstructorsCause/analyzerCode: Fail
 IllegalMixinDueToConstructorsCause/example: Fail
+ImplementsBeforeExtends/script: Fail
+ImplementsBeforeWith/script: Fail
 ImplicitCallOfNonMethod/analyzerCode: Fail
 ImplicitCallOfNonMethod/example: Fail
+ImportAfterPart/script1: Fail
 ImportHidesImport/analyzerCode: Fail
 ImportHidesImport/example: Fail
 InputFileNotFound/analyzerCode: Fail
@@ -209,9 +257,14 @@ InvalidCastTopLevelFunction/example: Fail
 InvalidInitializer/analyzerCode: Fail
 InvalidInitializer/example: Fail
 InvalidInlineFunctionType/analyzerCode: Fail
+InvalidInlineFunctionType/declaration: Fail
 InvalidPackageUri/analyzerCode: Fail
 InvalidPackageUri/example: Fail
 InvalidVoid/analyzerCode: Fail
+InvalidVoid/script1: Fail
+InvalidVoid/script2: Fail
+LibraryDirectiveNotFirst/script2: Fail
+LibraryDirectiveNotFirst/script3: Fail
 ListLiteralTooManyTypeArguments/analyzerCode: Fail
 ListLiteralTooManyTypeArguments/example: Fail
 ListLiteralTypeArgumentMismatch/analyzerCode: Fail
@@ -232,6 +285,8 @@ MethodHasNoSuchNamedParameter/analyzerCode: Fail
 MethodHasNoSuchNamedParameter/example: Fail
 MethodNotFound/analyzerCode: Fail
 MethodNotFound/example: Fail
+MissingAssignableSelector/script1: Fail
+MissingAssignmentInInitializer/script1: Fail
 MissingInput/analyzerCode: Fail
 MissingInput/example: Fail
 MissingMain/analyzerCode: Fail
@@ -241,14 +296,19 @@ MissingPartOf/example: Fail
 MissingPrefixInDeferredImport/example: Fail
 MixinInferenceNoMatchingClass/analyzerCode: Fail
 MixinInferenceNoMatchingClass/example: Fail
+MultipleExtends/script: Fail
+MultipleImplements/script: Fail
 MultipleLibraryDirectives/example: Fail
+MultipleWith/script: Fail
 NamedFunctionExpression/example: Fail
 NativeClauseShouldBeAnnotation/example: Fail
 NoFormals/example: Fail
 NoUnnamedConstructorInObject/analyzerCode: Fail
 NoUnnamedConstructorInObject/example: Fail
+NonAsciiIdentifier/expression: Fail
 NonInstanceTypeVariableUse/analyzerCode: Fail
 NonInstanceTypeVariableUse/example: Fail
+NonPartOfDirectiveInPart/script1: Fail
 NotAPrefixInTypeAnnotation/example: Fail
 NotAType/example: Fail
 NotAnLvalue/analyzerCode: Fail
@@ -309,6 +369,8 @@ PreviousUseOfName/analyzerCode: Fail
 PreviousUseOfName/example: Fail
 PrivateNamedParameter/analyzerCode: Fail
 PrivateNamedParameter/example: Fail
+RedirectingConstructorWithBody/script1: Fail
+RedirectionInNonFactory/script1: Fail
 RedirectionTargetNotFound/analyzerCode: Fail
 RedirectionTargetNotFound/example: Fail
 ReturnTypeFunctionExpression/analyzerCode: Fail
@@ -329,6 +391,7 @@ SourceOutlineSummary/analyzerCode: Fail
 SourceOutlineSummary/example: Fail
 StackOverflow/analyzerCode: Fail
 StackOverflow/example: Fail
+StaticAfterConst/script1: Fail
 SuperAsExpression/analyzerCode: Fail
 SuperAsExpression/example: Fail
 SuperAsIdentifier/analyzerCode: Fail
@@ -366,9 +429,13 @@ TooManyArgumentsToFunction/analyzerCode: Fail
 TooManyArgumentsToFunction/example: Fail
 TooManyArgumentsToMethod/analyzerCode: Fail
 TooManyArgumentsToMethod/example: Fail
+TopLevelOperator/script1: Fail
+TopLevelOperator/script2: Fail
+TopLevelOperator/script3: Fail
 TypeAfterVar/example: Fail
 TypeArgumentMismatch/analyzerCode: Fail
 TypeArgumentMismatch/example: Fail
+TypeArgumentsOnTypeVariable/script1: Fail
 TypeNotFound/analyzerCode: Fail
 TypeNotFound/example: Fail
 TypeVariableDuplicatedName/analyzerCode: Fail
@@ -382,11 +449,26 @@ TypeVariableSameNameAsEnclosing/example: Fail
 TypedefNotFunction/analyzerCode: Fail
 TypedefNotFunction/example: Fail
 UnexpectedDollarInString/analyzerCode: Fail
+UnexpectedDollarInString/script1: Fail
+UnexpectedDollarInString/script2: Fail
+UnexpectedDollarInString/script3: Fail
+UnexpectedDollarInString/script4: Fail
+UnexpectedToken/script1: Fail
 UnmatchedToken/analyzerCode: Fail
+UnmatchedToken/script1: Fail
+UnmatchedToken/script3: Fail
 UnresolvedPrefixInTypeAnnotation/example: Fail
 Unspecified/analyzerCode: Fail
 Unspecified/example: Fail
+UnsupportedPrefixPlus/script: Fail
+UnterminatedString/script2: Fail
+UnterminatedString/script4: Fail
+UnterminatedString/script5: Fail
+UnterminatedString/script6: Fail
+UnterminatedString/script7: Fail
+UnterminatedString/script8: Fail
 UnterminatedToken/analyzerCode: Fail
 UnterminatedToken/example: Fail
 YieldAsIdentifier/example: Fail
 YieldNotGenerator/example: Fail
+
