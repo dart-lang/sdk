@@ -159,7 +159,9 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   BinaryExpression parseEqualityExpression(String code);
 
   Expression parseExpression(String source,
-      {List<ErrorCode> codes, List<ExpectedError> errors});
+      {List<ErrorCode> codes,
+      List<ExpectedError> errors,
+      int expectedEndOffset});
 
   List<Expression> parseExpressionList(String code);
 
@@ -2942,19 +2944,41 @@ class Foo {
   }
 
   void test_expectedClassMember_inClass_afterType() {
-    createParser('heart 2 heart');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 0, 5)]);
+    parseCompilationUnit('class C{ heart 2 heart }',
+        errors: usingFastaParser
+            ? [
+                expectedError(
+                    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 9, 5),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 15, 1),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 15, 1),
+                expectedError(
+                    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 17, 5),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 23, 1)
+              ]
+            : [
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 15, 1),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 15, 1),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 15, 1),
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 23, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 23, 1)
+              ]);
   }
 
   void test_expectedClassMember_inClass_beforeType() {
-    createParser('4 score');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 0, 1)]);
+    parseCompilationUnit('class C { 4 score }',
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 10, 1),
+                expectedError(
+                    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 12, 5),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 18, 1)
+              ]
+            : [
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 10, 1),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 10, 1),
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 18, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 18, 1)
+              ]);
   }
 
   void test_expectedExecutable_afterAnnotation_atEOF() {
@@ -2965,11 +2989,21 @@ class Foo {
   }
 
   void test_expectedExecutable_inClass_afterVoid() {
-    createParser('void 2 void');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 5, 1)]);
+    parseCompilationUnit('class C { void 2 void }',
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 15, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 15, 1),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 15, 1),
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 22, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 22, 1)
+              ]
+            : [
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 15, 1),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 15, 1),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 15, 1),
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 22, 1),
+              ]);
   }
 
   void test_expectedExecutable_topLevel_afterType() {
@@ -3013,11 +3047,19 @@ class Foo {
   }
 
   void test_expectedExecutable_topLevel_beforeType() {
-    createParser('4 score');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 1)]);
+    parseCompilationUnit('4 score',
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 1),
+                expectedError(
+                    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 2, 5),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 0),
+              ]
+            : [
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 1),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 0, 1),
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 2, 5),
+              ]);
   }
 
   void test_expectedExecutable_topLevel_eof() {
@@ -3087,11 +3129,16 @@ class Foo {
   }
 
   void test_expectedToken_parseStatement_afterVoid() {
-    parseStatement("void}");
-    listener.assertErrors([
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 1)
-    ]);
+    parseStatement("void}", expectedEndOffset: 4);
+    listener.assertErrors(usingFastaParser
+        ? [
+            expectedError(ParserErrorCode.MISSING_STATEMENT, 0, 4),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)
+          ]
+        : [
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1),
+            expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 1)
+          ]);
   }
 
   void test_expectedToken_semicolonMissingAfterExport() {
@@ -3160,6 +3207,7 @@ class Foo {
 
   void test_expectedTypeName_as_void() {
     parseExpression("x as void)",
+        expectedEndOffset: 9,
         errors: [expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 5, 4)]);
   }
 
@@ -3170,6 +3218,7 @@ class Foo {
 
   void test_expectedTypeName_is_void() {
     parseExpression("x is void)",
+        expectedEndOffset: 9,
         errors: [expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 4, 4)]);
   }
 
@@ -3435,11 +3484,12 @@ class Foo {
   }
 
   void test_factoryWithInitializers() {
-    createParser('factory C() : x = 3 {}');
+    createParser('factory C() : x = 3 {}', expectedEndOffset: 12);
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.FACTORY_WITH_INITIALIZERS, 12, 1)]);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 12, 1)]
+        : [expectedError(ParserErrorCode.FACTORY_WITH_INITIALIZERS, 12, 1)]);
   }
 
   void test_factoryWithoutBody() {
@@ -9673,8 +9723,10 @@ class ParserTestCase extends EngineTestCase
    * matches the list. Otherwise, assert that there are no errors.
    */
   Expression parseExpression(String source,
-      {List<ErrorCode> codes, List<ExpectedError> errors}) {
-    createParser(source);
+      {List<ErrorCode> codes,
+      List<ExpectedError> errors,
+      int expectedEndOffset}) {
+    createParser(source, expectedEndOffset: expectedEndOffset);
     Expression expression = parser.parseExpression2();
     expectNotNullIfNoErrors(expression);
     if (codes != null) {
