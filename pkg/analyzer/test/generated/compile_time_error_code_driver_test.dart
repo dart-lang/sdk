@@ -16,4 +16,8 @@ main() {
 class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTest {
   @override
   bool get enableNewAnalysisDriver => true;
+
+  @override // Passes with driver
+  test_mixinInference_recursiveSubtypeCheck() =>
+      super.test_mixinInference_recursiveSubtypeCheck();
 }

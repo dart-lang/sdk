@@ -1137,7 +1137,8 @@ abstract class TypeSystem {
       inferrer.constrainReturnType(srcs[i], dests[i]);
       inferrer.constrainReturnType(dests[i], srcs[i]);
     }
-    var result = inferrer.infer(mixinElement.type, typeParameters);
+    var result = inferrer.infer(mixinElement.type, typeParameters,
+        considerExtendsClause: false);
     for (int i = 0; i < srcs.length; i++) {
       if (!srcs[i]
           .substitute2(result.typeArguments, mixinElement.type.typeArguments)
@@ -1748,7 +1749,8 @@ class _GenericInferrer {
   /// including argument types, and must not conclude `?` for any type formal.
   T infer<T extends ParameterizedType>(
       T genericType, List<TypeParameterElement> typeFormals,
-      {ErrorReporter errorReporter,
+      {bool considerExtendsClause: true,
+      ErrorReporter errorReporter,
       AstNode errorNode,
       bool downwardsInferPhase: false}) {
     var fnTypeParams = TypeParameterTypeImpl.getTypes(typeFormals);
@@ -1768,7 +1770,7 @@ class _GenericInferrer {
 
       var typeParamBound = typeParam.bound;
       _TypeConstraint extendsClause;
-      if (!typeParamBound.isDynamic) {
+      if (considerExtendsClause && !typeParamBound.isDynamic) {
         extendsClause = new _TypeConstraint.fromExtends(typeParam,
             typeParam.bound.substitute2(inferredTypes, fnTypeParams));
       }

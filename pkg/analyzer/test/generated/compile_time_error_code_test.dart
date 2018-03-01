@@ -4094,6 +4094,45 @@ class C extends Object with M<int> {}
     assertNoErrors(source);
   }
 
+  @failingTest // Does not work with old task model
+  test_mixinInference_recursiveSubtypeCheck() async {
+    // See dartbug.com/32353 for a detailed explanation.
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    options.strongMode = true;
+    resetWith(options: options);
+    Source source = addSource('''
+class ioDirectory implements ioFileSystemEntity {}
+
+class ioFileSystemEntity {}
+
+abstract class _LocalDirectory
+    extends _LocalFileSystemEntity<_LocalDirectory, ioDirectory>
+    with ForwardingDirectory, DirectoryAddOnsMixin {}
+
+abstract class _LocalFileSystemEntity<T extends FileSystemEntity,
+  D extends ioFileSystemEntity> extends ForwardingFileSystemEntity<T, D> {}
+
+abstract class FileSystemEntity implements ioFileSystemEntity {}
+
+abstract class ForwardingFileSystemEntity<T extends FileSystemEntity,
+  D extends ioFileSystemEntity> implements FileSystemEntity {}
+
+
+abstract class ForwardingDirectory<T extends Directory>
+    extends ForwardingFileSystemEntity<T, ioDirectory>
+    implements Directory {}
+
+abstract class Directory implements FileSystemEntity, ioDirectory {}
+
+abstract class DirectoryAddOnsMixin implements Directory {}
+''');
+    var analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    var mixins = analysisResult.unit.element.getType('_LocalDirectory').mixins;
+    expect(mixins[0].toString(), 'ForwardingDirectory<_LocalDirectory>');
+  }
+
   test_mixinInheritsFromNotObject_classDeclaration_extends() async {
     Source source = addSource(r'''
 class A {}
