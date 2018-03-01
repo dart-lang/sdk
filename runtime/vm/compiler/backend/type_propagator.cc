@@ -714,15 +714,17 @@ const AbstractType* CompileType::ToAbstractType() {
       return type_;
     }
 
-    const Class& type_class =
-        Class::Handle(Isolate::Current()->class_table()->At(cid_));
-
+    Isolate* I = Isolate::Current();
+    const Class& type_class = Class::Handle(I->class_table()->At(cid_));
     if (type_class.NumTypeArguments() > 0) {
-      type_ = &Object::dynamic_type();
-      return type_;
+      if (I->strong()) {
+        type_ = &AbstractType::ZoneHandle(type_class.RareType());
+      } else {
+        type_ = &Object::dynamic_type();
+      }
+    } else {
+      type_ = &Type::ZoneHandle(Type::NewNonParameterizedType(type_class));
     }
-
-    type_ = &Type::ZoneHandle(Type::NewNonParameterizedType(type_class));
   }
 
   return type_;
@@ -1254,21 +1256,27 @@ CompileType LoadFieldInstr::ComputeType() const {
   }
 
   const Isolate* isolate = Isolate::Current();
-  const AbstractType* abstract_type = NULL;
+  CompileType compile_type_annotation = CompileType::None();
   if ((isolate->strong() && FLAG_use_strong_mode_types) ||
       (isolate->type_checks() &&
        (type().IsFunctionType() || type().HasResolvedTypeClass()))) {
-    abstract_type = &type();
+    const AbstractType* abstract_type = abstract_type = &type();
     TraceStrongModeType(this, *abstract_type);
+    compile_type_annotation = CompileType::FromAbstractType(*abstract_type);
   }
 
+  CompileType compile_type_cid = CompileType::None();
   if ((field_ != NULL) && (field_->guarded_cid() != kIllegalCid)) {
     bool is_nullable = field_->is_nullable();
     intptr_t field_cid = field_->guarded_cid();
-    return CompileType(is_nullable, field_cid, abstract_type);
+
+    compile_type_cid = CompileType(is_nullable, field_cid, NULL);
+  } else {
+    compile_type_cid = CompileType::FromCid(result_cid_);
   }
 
-  return CompileType::Create(result_cid_, *abstract_type);
+  return *CompileType::ComputeRefinedType(&compile_type_cid,
+                                          &compile_type_annotation);
 }
 
 CompileType LoadCodeUnitsInstr::ComputeType() const {
