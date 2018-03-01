@@ -51,8 +51,8 @@ class FieldInitializerInferenceNode extends InferenceNode {
       // typeInferrer to be null.  If this happens, just skip type inference for
       // this field.
       if (typeInferrer != null) {
-        var inferredType = typeInferrer.inferDeclarationType(
-            typeInferrer.inferFieldTopLevel(field, null, true));
+        var inferredType = typeInferrer
+            .inferDeclarationType(typeInferrer.inferFieldTopLevel(field, true));
         if (isCircular) {
           // Report the appropriate error.
           _library.addCompileTimeError(

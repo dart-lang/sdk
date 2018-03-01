@@ -967,8 +967,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       BuilderHelper helper, DartType declaredType, Expression initializer) {
     assert(closureContext == null);
     this.helper = helper;
-    var actualType =
-        inferExpression(initializer, declaredType, declaredType != null);
+    var actualType = inferExpression(
+        initializer, declaredType ?? const UnknownType(), declaredType != null);
     if (declaredType != null) {
       ensureAssignable(
           declaredType, actualType, initializer, initializer.fileOffset);
@@ -980,8 +980,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   ///
   /// Derived classes should provide an implementation that calls
   /// [inferExpression] for the given [field]'s initializer expression.
-  DartType inferFieldTopLevel(
-      ShadowField field, DartType type, bool typeNeeded);
+  DartType inferFieldTopLevel(ShadowField field, bool typeNeeded);
 
   @override
   void inferFunctionBody(BuilderHelper helper, DartType returnType,
@@ -1287,7 +1286,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       // replaced during type inference.
       new ListLiteral(annotations);
       for (var annotation in annotations) {
-        inferExpression(annotation, null, false);
+        inferExpression(annotation, const UnknownType(), false);
       }
       this.helper = null;
     }
@@ -1303,8 +1302,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       Name methodName,
       Arguments arguments}) {
     // First infer the receiver so we can look up the method that was invoked.
-    var receiverType =
-        receiver == null ? thisType : inferExpression(receiver, null, true);
+    var receiverType = receiver == null
+        ? thisType
+        : inferExpression(receiver, const UnknownType(), true);
     if (strongMode) {
       receiverVariable?.type = receiverType;
     }
@@ -1369,8 +1369,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       Object interfaceMember,
       Name propertyName}) {
     // First infer the receiver so we can look up the getter that was invoked.
-    var receiverType =
-        receiver == null ? thisType : inferExpression(receiver, null, true);
+    var receiverType = receiver == null
+        ? thisType
+        : inferExpression(receiver, const UnknownType(), true);
     if (strongMode) {
       receiverVariable?.type = receiverType;
     }

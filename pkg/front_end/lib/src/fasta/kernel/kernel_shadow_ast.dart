@@ -112,7 +112,7 @@ class ShadowAsExpression extends AsExpression implements ShadowExpression {
 
   @override
   DartType _inferExpression(ShadowTypeInferrer inferrer, DartType typeContext) {
-    inferrer.inferExpression(operand, null, false);
+    inferrer.inferExpression(operand, const UnknownType(), false);
     return type;
   }
 }
@@ -145,7 +145,7 @@ class ShadowAssertStatement extends AssertStatement implements ShadowStatement {
     inferrer.ensureAssignable(
         expectedType, actualType, condition, condition.fileOffset);
     if (message != null) {
-      inferrer.inferExpression(message, null, false);
+      inferrer.inferExpression(message, const UnknownType(), false);
     }
   }
 }
@@ -260,7 +260,8 @@ class ShadowCascadeExpression extends Let implements ShadowExpression {
     }
     Let section = body;
     while (true) {
-      inferrer.inferExpression(section.variable.initializer, null, false);
+      inferrer.inferExpression(
+          section.variable.initializer, const UnknownType(), false);
       if (section.body is! Let) break;
       section = section.body;
     }
@@ -409,7 +410,7 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
       } else {
         // Analyzer uses a null context for the RHS here.
         // TODO(paulberry): improve on this.
-        rhsType = inferrer.inferExpression(rhs, null, true);
+        rhsType = inferrer.inferExpression(rhs, const UnknownType(), true);
         // It's not necessary to call _storeLetType for [rhs] because the RHS
         // is always passed directly to the combiner; it's never stored in a
         // temporary variable first.
@@ -441,7 +442,8 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
       }
       _storeLetType(inferrer, replacedCombiner, combinedType);
     } else {
-      var rhsType = inferrer.inferExpression(rhs, writeContext, true);
+      var rhsType = inferrer.inferExpression(
+          rhs, writeContext ?? const UnknownType(), true);
       var replacedRhs =
           inferrer.ensureAssignable(writeContext, rhsType, rhs, writeOffset);
       _storeLetType(inferrer, replacedRhs ?? rhs, rhsType);
@@ -495,7 +497,8 @@ abstract class ShadowComplexAssignmentWithReceiver
 
   DartType _inferReceiver(ShadowTypeInferrer inferrer) {
     if (receiver != null) {
-      var receiverType = inferrer.inferExpression(receiver, null, true);
+      var receiverType =
+          inferrer.inferExpression(receiver, const UnknownType(), true);
       _storeLetType(inferrer, receiver, receiverType);
       return receiverType;
     } else if (isSuper) {
@@ -685,7 +688,7 @@ class ShadowExpressionStatement extends ExpressionStatement
 
   @override
   void _inferStatement(ShadowTypeInferrer inferrer) {
-    inferrer.inferExpression(expression, null, false);
+    inferrer.inferExpression(expression, const UnknownType(), false);
   }
 }
 
@@ -910,7 +913,7 @@ class ShadowForStatement extends ForStatement implements ShadowStatement {
           expectedType, conditionType, condition, condition.fileOffset);
     }
     for (var update in updates) {
-      inferrer.inferExpression(update, null, false);
+      inferrer.inferExpression(update, const UnknownType(), false);
     }
     inferrer.inferStatement(body);
   }
@@ -981,11 +984,12 @@ class ShadowIfNullExpression extends Let implements ShadowExpression {
     if (inferrer.strongMode) {
       variable.type = lhsType;
     }
-    // - Let J = T0 if K is `_` else K.
-    var rhsContext = typeContext ?? lhsType;
+    // - Let J = T0 if K is `?` else K.
     // - Infer e1 in context J to get T1
-    bool useLub = _forceLub || typeContext == null;
-    var rhsType = inferrer.inferExpression(_rhs, rhsContext, useLub);
+    bool useLub = _forceLub || typeContext is UnknownType;
+    var rhsType = typeContext is UnknownType
+        ? inferrer.inferExpression(_rhs, lhsType, true)
+        : inferrer.inferExpression(_rhs, typeContext, _forceLub);
     // - Let T = greatest closure of K with respect to `?` if K is not `_`, else
     //   UP(t0, t1)
     // - Then the inferred type is T.
@@ -1029,7 +1033,7 @@ class ShadowIllegalAssignment extends ShadowComplexAssignment {
   @override
   DartType _inferExpression(ShadowTypeInferrer inferrer, DartType typeContext) {
     if (write != null) {
-      inferrer.inferExpression(write, null, false);
+      inferrer.inferExpression(write, const UnknownType(), false);
     }
     _replaceWithDesugared();
     return const DynamicType();
@@ -1075,13 +1079,12 @@ class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
     var calleeType =
         inferrer.getCalleeFunctionType(writeMember, receiverType, false);
     DartType expectedIndexTypeForWrite;
-    DartType indexContext;
+    DartType indexContext = const UnknownType();
     DartType writeContext;
     if (calleeType.positionalParameters.length >= 2) {
       // TODO(paulberry): we ought to get a context for the index expression
       // from the index formal parameter, but analyzer doesn't so for now we
       // replicate its behavior.
-      indexContext = null;
       expectedIndexTypeForWrite = calleeType.positionalParameters[0];
       writeContext = calleeType.positionalParameters[1];
     }
@@ -1151,7 +1154,7 @@ class ShadowInvalidInitializer extends LocalInitializer
 
   @override
   void _inferInitializer(ShadowTypeInferrer inferrer) {
-    inferrer.inferExpression(variable.initializer, null, false);
+    inferrer.inferExpression(variable.initializer, const UnknownType(), false);
   }
 }
 
@@ -1161,7 +1164,7 @@ class ShadowIsExpression extends IsExpression implements ShadowExpression {
 
   @override
   DartType _inferExpression(ShadowTypeInferrer inferrer, DartType typeContext) {
-    inferrer.inferExpression(operand, null, false);
+    inferrer.inferExpression(operand, const UnknownType(), false);
     return inferrer.coreTypes.boolClass.rawType;
   }
 }
@@ -1174,7 +1177,7 @@ class ShadowIsNotExpression extends Not implements ShadowExpression {
   @override
   DartType _inferExpression(ShadowTypeInferrer inferrer, DartType typeContext) {
     IsExpression isExpression = this.operand;
-    inferrer.inferExpression(isExpression.operand, null, false);
+    inferrer.inferExpression(isExpression.operand, const UnknownType(), false);
     return inferrer.coreTypes.boolClass.rawType;
   }
 }
@@ -1660,7 +1663,8 @@ class ShadowReturnStatement extends ReturnStatement implements ShadowStatement {
         ? closureContext.returnOrYieldContext
         : null;
     var inferredType = expression != null
-        ? inferrer.inferExpression(expression, typeContext, true)
+        ? inferrer.inferExpression(
+            expression, typeContext ?? const UnknownType(), true)
         : const VoidType();
     // Analyzer treats bare `return` statements as having no effect on the
     // inferred type of the closure.  TODO(paulberry): is this what we want
@@ -1759,7 +1763,7 @@ class ShadowStringConcatenation extends StringConcatenation
   DartType _inferExpression(ShadowTypeInferrer inferrer, DartType typeContext) {
     if (!inferrer.isTopLevel) {
       for (Expression expression in expressions) {
-        inferrer.inferExpression(expression, null, false);
+        inferrer.inferExpression(expression, const UnknownType(), false);
       }
     }
     return inferrer.coreTypes.stringClass.rawType;
@@ -1843,7 +1847,8 @@ class ShadowSwitchStatement extends SwitchStatement implements ShadowStatement {
 
   @override
   void _inferStatement(ShadowTypeInferrer inferrer) {
-    var expressionType = inferrer.inferExpression(expression, null, true);
+    var expressionType =
+        inferrer.inferExpression(expression, const UnknownType(), true);
     for (var switchCase in cases) {
       for (var caseExpression in switchCase.expressions) {
         inferrer.inferExpression(caseExpression, expressionType, false);
@@ -1939,7 +1944,7 @@ class ShadowThrow extends Throw implements ShadowExpression {
 
   @override
   DartType _inferExpression(ShadowTypeInferrer inferrer, DartType typeContext) {
-    inferrer.inferExpression(expression, null, false);
+    inferrer.inferExpression(expression, const UnknownType(), false);
     return const BottomType();
   }
 }
@@ -2017,6 +2022,10 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   @override
   DartType inferExpression(
       Expression expression, DartType typeContext, bool typeNeeded) {
+    // `null` should never be used as the type context.  An instance of
+    // `UnknownType` should be used instead.
+    assert(typeContext != null);
+
     // It isn't safe to do type inference on an expression without a parent,
     // because type inference might cause us to have to replace one expression
     // with another, and we can only replace a node if it has a parent pointer.
@@ -2048,10 +2057,9 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   }
 
   @override
-  DartType inferFieldTopLevel(
-      ShadowField field, DartType type, bool typeNeeded) {
+  DartType inferFieldTopLevel(ShadowField field, bool typeNeeded) {
     if (field.initializer == null) return const DynamicType();
-    return inferExpression(field.initializer, type, typeNeeded);
+    return inferExpression(field.initializer, const UnknownType(), typeNeeded);
   }
 
   @override
@@ -2245,7 +2253,7 @@ class ShadowVariableDeclaration extends VariableDeclaration
 
   @override
   void _inferStatement(ShadowTypeInferrer inferrer) {
-    var declaredType = _implicitlyTyped ? null : type;
+    var declaredType = _implicitlyTyped ? const UnknownType() : type;
     DartType inferredType;
     DartType initializerType;
     if (initializer != null) {
@@ -2349,7 +2357,8 @@ class ShadowYieldStatement extends YieldStatement implements ShadowStatement {
               ? inferrer.coreTypes.streamClass
               : inferrer.coreTypes.iterableClass);
     }
-    var inferredType = inferrer.inferExpression(expression, typeContext, true);
+    var inferredType = inferrer.inferExpression(
+        expression, typeContext ?? const UnknownType(), true);
     closureContext.handleYield(
         inferrer, isYieldStar, inferredType, expression, fileOffset);
   }
