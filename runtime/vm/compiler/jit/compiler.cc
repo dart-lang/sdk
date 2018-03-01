@@ -22,6 +22,7 @@
 #include "vm/compiler/backend/redundancy_elimination.h"
 #include "vm/compiler/backend/type_propagator.h"
 #include "vm/compiler/cha.h"
+#include "vm/compiler/compiler_pass.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/jit/jit_call_specializer.h"
@@ -47,28 +48,11 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool,
-            allocation_sinking,
-            true,
-            "Attempt to sink temporary allocations to side exits");
-DEFINE_FLAG(bool,
-            common_subexpression_elimination,
-            true,
-            "Do common subexpression elimination.");
-DEFINE_FLAG(
-    bool,
-    constant_propagation,
-    true,
-    "Do conditional constant propagation/unreachable code elimination.");
 DEFINE_FLAG(
     int,
     max_deoptimization_counter_threshold,
     16,
     "How many times we allow deoptimization before we disallow optimization.");
-DEFINE_FLAG(bool,
-            loop_invariant_code_motion,
-            true,
-            "Do loop invariant code motion.");
 DEFINE_FLAG(charp, optimization_filter, NULL, "Optimize only named function");
 DEFINE_FLAG(bool, print_flow_graph, false, "Print the IR flow graph.");
 DEFINE_FLAG(bool,
@@ -80,7 +64,6 @@ DEFINE_FLAG(bool,
             false,
             "Print the deopt-id to ICData map in optimizing compiler.");
 DEFINE_FLAG(bool, print_code_source_map, false, "Print code source map.");
-DEFINE_FLAG(bool, range_analysis, true, "Enable range analysis");
 DEFINE_FLAG(bool,
             stress_test_background_compilation,
             false,
@@ -99,7 +82,6 @@ DEFINE_FLAG(bool,
             false,
             "Trace only optimizing compiler operations.");
 DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
-DEFINE_FLAG(bool, use_inlining, true, "Enable call-site inlining");
 DEFINE_FLAG(bool,
             verify_compiler,
             false,
@@ -839,12 +821,8 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
            (optimized() && FLAG_print_flow_graph_optimized)) &&
           FlowGraphPrinter::ShouldPrint(function);
 
-      if (print_flow_graph) {
-        if (osr_id() == Compiler::kNoOSRDeoptId) {
-          FlowGraphPrinter::PrintGraph("Before Optimizations", flow_graph);
-        } else {
-          FlowGraphPrinter::PrintGraph("For OSR", flow_graph);
-        }
+      if (print_flow_graph && !optimized()) {
+        FlowGraphPrinter::PrintGraph("Unoptimized Compilation", flow_graph);
       }
 
       BlockScheduler block_scheduler(flow_graph);
@@ -856,355 +834,38 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         block_scheduler.AssignEdgeWeights();
       }
 
-      if (optimized()) {
-        NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
-                                                 "ComputeSSA"));
-        CSTAT_TIMER_SCOPE(thread(), ssa_timer);
-        // Transform to SSA (virtual register 0 and no inlining arguments).
-        flow_graph->ComputeSSA(0, NULL);
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
-        if (print_flow_graph) {
-          FlowGraphPrinter::PrintGraph("After SSA", flow_graph);
-        }
-      }
+      CompilerPassState pass_state(thread(), flow_graph, &speculative_policy);
+      NOT_IN_PRODUCT(pass_state.compiler_timeline = compiler_timeline);
+      pass_state.block_scheduler = &block_scheduler;
+      pass_state.reorder_blocks = reorder_blocks;
 
-      // Maps inline_id_to_function[inline_id] -> function. Top scope
-      // function has inline_id 0. The map is populated by the inliner.
-      GrowableArray<const Function*> inline_id_to_function;
-      // Token position where inlining occured.
-      GrowableArray<TokenPosition> inline_id_to_token_pos;
-      // For a given inlining-id(index) specifies the caller's inlining-id.
-      GrowableArray<intptr_t> caller_inline_id;
-      // Collect all instance fields that are loaded in the graph and
-      // have non-generic type feedback attached to them that can
-      // potentially affect optimizations.
       if (optimized()) {
         NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
                                                  "OptimizationPasses"));
-        inline_id_to_function.Add(&function);
+        CSTAT_TIMER_SCOPE(thread(), graphoptimizer_timer);
+
+        pass_state.inline_id_to_function.Add(&function);
         // We do not add the token position now because we don't know the
         // position of the inlined call until later. A side effect of this
         // is that the length of |inline_id_to_function| is always larger
         // than the length of |inline_id_to_token_pos| by one.
         // Top scope function has no caller (-1). We do this because we expect
         // all token positions to be at an inlined call.
-        caller_inline_id.Add(-1);
-        CSTAT_TIMER_SCOPE(thread(), graphoptimizer_timer);
+        pass_state.caller_inline_id.Add(-1);
 
         JitCallSpecializer call_specializer(flow_graph, &speculative_policy);
+        pass_state.call_specializer = &call_specializer;
 
-        {
-          NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
-                                                   "ApplyICData"));
-          call_specializer.ApplyICData();
-          thread()->CheckForSafepoint();
-        }
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
-
-        // Optimize (a << b) & c patterns, merge operations.
-        // Run early in order to have more opportunity to optimize left shifts.
-        flow_graph->TryOptimizePatterns();
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
-
-        FlowGraphInliner::SetInliningId(flow_graph, 0);
-
-        int inlining_depth = 0;
-
-        // Inlining (mutates the flow graph)
-        if (FLAG_use_inlining) {
-          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(), compiler_timeline,
-                                                    "Inlining"));
-          CSTAT_TIMER_SCOPE(thread(), graphinliner_timer);
-          // Propagate types to create more inlining opportunities.
-          FlowGraphTypePropagator::Propagate(flow_graph);
-          DEBUG_ASSERT(flow_graph->VerifyUseLists());
-
-          // Use propagated class-ids to create more inlining opportunities.
-          call_specializer.ApplyClassIds();
-          DEBUG_ASSERT(flow_graph->VerifyUseLists());
-
-          FlowGraphInliner inliner(flow_graph, &inline_id_to_function,
-                                   &inline_id_to_token_pos, &caller_inline_id,
-                                   &speculative_policy,
-                                   /*precompiler=*/NULL);
-          inlining_depth = inliner.Inline();
-          // Use lists are maintained and validated by the inliner.
-          DEBUG_ASSERT(flow_graph->VerifyUseLists());
-          thread()->CheckForSafepoint();
-        }
-
-        // Propagate types and eliminate more type tests.
-        FlowGraphTypePropagator::Propagate(flow_graph);
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
-
-        {
-          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(), compiler_timeline,
-                                                    "ApplyClassIds"));
-          // Use propagated class-ids to optimize further.
-          call_specializer.ApplyClassIds();
-          DEBUG_ASSERT(flow_graph->VerifyUseLists());
-        }
-
-        // Propagate types for potentially newly added instructions by
-        // ApplyClassIds(). Must occur before canonicalization.
-        FlowGraphTypePropagator::Propagate(flow_graph);
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
-
-        // Do optimizations that depend on the propagated type information.
-        if (flow_graph->Canonicalize()) {
-          // Invoke Canonicalize twice in order to fully canonicalize patterns
-          // like "if (a & const == 0) { }".
-          flow_graph->Canonicalize();
-        }
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
-
-        {
-          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(), compiler_timeline,
-                                                    "BranchSimplifier"));
-          BranchSimplifier::Simplify(flow_graph);
-          DEBUG_ASSERT(flow_graph->VerifyUseLists());
-
-          IfConverter::Simplify(flow_graph);
-          DEBUG_ASSERT(flow_graph->VerifyUseLists());
-        }
-
-        if (FLAG_constant_propagation) {
-          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(), compiler_timeline,
-                                                    "ConstantPropagation");
-                         ConstantPropagator::Optimize(flow_graph));
-          DEBUG_ASSERT(flow_graph->VerifyUseLists());
-          // A canonicalization pass to remove e.g. smi checks on smi constants.
-          flow_graph->Canonicalize();
-          DEBUG_ASSERT(flow_graph->VerifyUseLists());
-          // Canonicalization introduced more opportunities for constant
-          // propagation.
-          ConstantPropagator::Optimize(flow_graph);
-          DEBUG_ASSERT(flow_graph->VerifyUseLists());
-          thread()->CheckForSafepoint();
-        }
-
-        // Optimistically convert loop phis that have a single non-smi input
-        // coming from the loop pre-header into smi-phis.
-        if (FLAG_loop_invariant_code_motion) {
-          LICM licm(flow_graph);
-          licm.OptimisticallySpecializeSmiPhis();
-          DEBUG_ASSERT(flow_graph->VerifyUseLists());
-        }
-
-        // Propagate types and eliminate even more type tests.
-        // Recompute types after constant propagation to infer more precise
-        // types for uses that were previously reached by now eliminated phis.
-        FlowGraphTypePropagator::Propagate(flow_graph);
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
-
-        {
-          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(), compiler_timeline,
-                                                    "SelectRepresentations"));
-          // Where beneficial convert Smi operations into Int32 operations.
-          // Only meanigful for 32bit platforms right now.
-          flow_graph->WidenSmiToInt32();
-
-          // Unbox doubles. Performed after constant propagation to minimize
-          // interference from phis merging double values and tagged
-          // values coming from dead paths.
-          flow_graph->SelectRepresentations();
-          DEBUG_ASSERT(flow_graph->VerifyUseLists());
-        }
-
-        {
-          NOT_IN_PRODUCT(TimelineDurationScope tds2(
-              thread(), compiler_timeline, "CommonSubexpressionElinination"));
-
-          if (FLAG_common_subexpression_elimination) {
-            if (DominatorBasedCSE::Optimize(flow_graph)) {
-              DEBUG_ASSERT(flow_graph->VerifyUseLists());
-              flow_graph->Canonicalize();
-              // Do another round of CSE to take secondary effects into account:
-              // e.g. when eliminating dependent loads (a.x[0] + a.x[0])
-              // TODO(fschneider): Change to a one-pass optimization pass.
-              if (DominatorBasedCSE::Optimize(flow_graph)) {
-                flow_graph->Canonicalize();
-              }
-              DEBUG_ASSERT(flow_graph->VerifyUseLists());
-            }
-          }
-
-          // Run loop-invariant code motion right after load elimination since
-          // it depends on the numbering of loads from the previous
-          // load-elimination.
-          if (FLAG_loop_invariant_code_motion) {
-            flow_graph->RenameUsesDominatedByRedefinitions();
-            DEBUG_ASSERT(flow_graph->VerifyRedefinitions());
-            LICM licm(flow_graph);
-            licm.Optimize();
-            DEBUG_ASSERT(flow_graph->VerifyUseLists());
-          }
-          flow_graph->RemoveRedefinitions();
-          thread()->CheckForSafepoint();
-        }
-
-        // Optimize (a << b) & c patterns, merge operations.
-        // Run after CSE in order to have more opportunity to merge
-        // instructions that have same inputs.
-        flow_graph->TryOptimizePatterns();
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
-
-        {
-          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(), compiler_timeline,
-                                                    "DeadStoreElimination"));
-          DeadStoreElimination::Optimize(flow_graph);
-        }
-
-        if (FLAG_range_analysis) {
-          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(), compiler_timeline,
-                                                    "RangeAnalysis"));
-          // Propagate types after store-load-forwarding. Some phis may have
-          // become smi phis that can be processed by range analysis.
-          FlowGraphTypePropagator::Propagate(flow_graph);
-          DEBUG_ASSERT(flow_graph->VerifyUseLists());
-
-          // We have to perform range analysis after LICM because it
-          // optimistically moves CheckSmi through phis into loop preheaders
-          // making some phis smi.
-          RangeAnalysis range_analysis(flow_graph);
-          range_analysis.Analyze();
-          DEBUG_ASSERT(flow_graph->VerifyUseLists());
-        }
-
-        if (FLAG_constant_propagation) {
-          NOT_IN_PRODUCT(TimelineDurationScope tds2(
-              thread(), compiler_timeline,
-              "ConstantPropagator::OptimizeBranches"));
-          // Constant propagation can use information from range analysis to
-          // find unreachable branch targets and eliminate branches that have
-          // the same true- and false-target.
-          ConstantPropagator::OptimizeBranches(flow_graph);
-          DEBUG_ASSERT(flow_graph->VerifyUseLists());
-        }
-
-        // Recompute types after code movement was done to ensure correct
-        // reaching types for hoisted values.
-        FlowGraphTypePropagator::Propagate(flow_graph);
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
-
-        {
-          NOT_IN_PRODUCT(TimelineDurationScope tds2(
-              thread(), compiler_timeline, "TryCatchAnalyzer::Optimize"));
-          // Optimize try-blocks.
-          TryCatchAnalyzer::Optimize(flow_graph);
-        }
-
-        // Detach environments from the instructions that can't deoptimize.
-        // Do it before we attempt to perform allocation sinking to minimize
-        // amount of materializations it has to perform.
-        flow_graph->EliminateEnvironments();
-
-        {
-          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(), compiler_timeline,
-                                                    "EliminateDeadPhis"));
-          DeadCodeElimination::EliminateDeadPhis(flow_graph);
-          DEBUG_ASSERT(flow_graph->VerifyUseLists());
-        }
-
-        if (flow_graph->Canonicalize()) {
-          flow_graph->Canonicalize();
-        }
-
-        // Attempt to sink allocations of temporary non-escaping objects to
-        // the deoptimization path.
-        AllocationSinking* sinking = NULL;
-        if (FLAG_allocation_sinking &&
-            (flow_graph->graph_entry()->SuccessorCount() == 1)) {
-          NOT_IN_PRODUCT(TimelineDurationScope tds2(
-              thread(), compiler_timeline, "AllocationSinking::Optimize"));
-          // TODO(fschneider): Support allocation sinking with try-catch.
-          sinking = new AllocationSinking(flow_graph);
-          sinking->Optimize();
-          thread()->CheckForSafepoint();
-        }
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
-
-        DeadCodeElimination::EliminateDeadPhis(flow_graph);
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
-
-        FlowGraphTypePropagator::Propagate(flow_graph);
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
-
-        {
-          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(), compiler_timeline,
-                                                    "SelectRepresentations"));
-          // Ensure that all phis inserted by optimization passes have
-          // consistent representations.
-          flow_graph->SelectRepresentations();
-        }
-
-        if (flow_graph->Canonicalize()) {
-          // To fully remove redundant boxing (e.g. BoxDouble used only in
-          // environments and UnboxDouble instructions) instruction we
-          // first need to replace all their uses and then fold them away.
-          // For now we just repeat Canonicalize twice to do that.
-          // TODO(vegorov): implement a separate representation folding pass.
-          flow_graph->Canonicalize();
-        }
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
-
-        if (!flow_graph->IsCompiledForOsr()) {
-          CheckStackOverflowElimination::EliminateStackOverflow(flow_graph);
-
-          if (flow_graph->Canonicalize()) {
-            // To fully remove redundant boxing (e.g. BoxDouble used only in
-            // environments and UnboxDouble instructions) instruction we
-            // first need to replace all their uses and then fold them away.
-            // For now we just repeat Canonicalize twice to do that.
-            // TODO(vegorov): implement a separate representation folding pass.
-            flow_graph->Canonicalize();
-          }
-          DEBUG_ASSERT(flow_graph->VerifyUseLists());
-        }
-
-        if (sinking != NULL) {
-          NOT_IN_PRODUCT(TimelineDurationScope tds2(
-              thread(), compiler_timeline,
-              "AllocationSinking::DetachMaterializations"));
-          // Remove all MaterializeObject instructions inserted by allocation
-          // sinking from the flow graph and let them float on the side
-          // referenced only from environments. Register allocator will consider
-          // them as part of a deoptimization environment.
-          sinking->DetachMaterializations();
-        }
-
-        // Compute and store graph informations (call & instruction counts)
-        // to be later used by the inliner.
-        FlowGraphInliner::CollectGraphInfo(flow_graph, true);
-        function.set_inlining_depth(inlining_depth);
-
-        flow_graph->RemoveRedefinitions();
-        {
-          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(), compiler_timeline,
-                                                    "AllocateRegisters"));
-          // Perform register allocation on the SSA graph.
-          FlowGraphAllocator allocator(*flow_graph);
-          allocator.AllocateRegisters();
-          thread()->CheckForSafepoint();
-        }
-
-        if (reorder_blocks) {
-          NOT_IN_PRODUCT(TimelineDurationScope tds(
-              thread(), compiler_timeline, "BlockScheduler::ReorderBlocks"));
-          block_scheduler.ReorderBlocks();
-        }
-
-        if (print_flow_graph) {
-          FlowGraphPrinter::PrintGraph("After Optimizations", flow_graph);
-        }
+        CompilerPass::RunPipeline(CompilerPass::kJIT, &pass_state);
       }
 
-      ASSERT(inline_id_to_function.length() == caller_inline_id.length());
+      ASSERT(pass_state.inline_id_to_function.length() ==
+             pass_state.caller_inline_id.length());
       Assembler assembler(use_far_branches);
       FlowGraphCompiler graph_compiler(
           &assembler, flow_graph, *parsed_function(), optimized(),
-          &speculative_policy, inline_id_to_function, inline_id_to_token_pos,
-          caller_inline_id);
+          &speculative_policy, pass_state.inline_id_to_function,
+          pass_state.inline_id_to_token_pos, pass_state.caller_inline_id);
       {
         CSTAT_TIMER_SCOPE(thread(), graphcompiler_timer);
         NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
@@ -1236,12 +897,6 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
             *result =
                 FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
           }
-          // TODO(srdjan): Enable this and remove the one from
-          // 'BackgroundCompiler::CompileOptimized' once cause of time-outs
-          // is resolved.
-          // if (isolate()->heap()->NeedsGarbageCollection()) {
-          //   isolate()->heap()->CollectAllGarbage();
-          // }
         }
       }
       // Exit the loop and the function with the correct result value.

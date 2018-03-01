@@ -50,7 +50,8 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
       deferred_prefixes_(parsed_function.deferred_prefixes()),
       await_token_positions_(NULL),
       captured_parameters_(new (zone()) BitVector(zone(), variable_count())),
-      inlining_id_(-1) {
+      inlining_id_(-1),
+      should_print_(FlowGraphPrinter::ShouldPrint(parsed_function.function())) {
   DiscoverBlocks();
 }
 

@@ -1432,9 +1432,6 @@ class LoadOptimizer : public ValueObject {
 
   static bool OptimizeGraph(FlowGraph* graph) {
     ASSERT(FLAG_load_cse);
-    if (FLAG_trace_load_optimization) {
-      FlowGraphPrinter::PrintGraph("Before LoadOptimizer", graph);
-    }
 
     // For now, bail out for large functions to avoid OOM situations.
     // TODO(fschneider): Fix the memory consumption issue.
@@ -1469,11 +1466,6 @@ class LoadOptimizer : public ValueObject {
     }
     ForwardLoads();
     EmitPhis();
-
-    if (FLAG_trace_load_optimization) {
-      FlowGraphPrinter::PrintGraph("After LoadOptimizer", graph_);
-    }
-
     return forwarded_;
   }
 
@@ -2379,9 +2371,6 @@ class StoreOptimizer : public LivenessAnalysis {
 
   static void OptimizeGraph(FlowGraph* graph) {
     ASSERT(FLAG_load_cse);
-    if (FLAG_trace_load_optimization) {
-      FlowGraphPrinter::PrintGraph("Before StoreOptimizer", graph);
-    }
 
     // For now, bail out for large functions to avoid OOM situations.
     // TODO(fschneider): Fix the memory consumption issue.
@@ -2406,9 +2395,6 @@ class StoreOptimizer : public LivenessAnalysis {
       Dump();
     }
     EliminateDeadStores();
-    if (FLAG_trace_load_optimization) {
-      FlowGraphPrinter::PrintGraph("After StoreOptimizer", graph_);
-    }
   }
 
   bool CanEliminateStore(Instruction* instr) {

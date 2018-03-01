@@ -1277,20 +1277,20 @@ bool AotCallSpecializer::TryReplaceTypeCastWithRangeCheck(
   return true;
 }
 
-void AotCallSpecializer::ReplaceArrayBoundChecks() {
-  for (BlockIterator block_it = flow_graph()->reverse_postorder_iterator();
+void AotCallSpecializer::ReplaceArrayBoundChecks(FlowGraph* flow_graph) {
+  Zone* zone = Thread::Current()->zone();
+
+  for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
        !block_it.Done(); block_it.Advance()) {
-    ForwardInstructionIterator it(block_it.Current());
-    current_iterator_ = &it;
-    for (; !it.Done(); it.Advance()) {
-      CheckArrayBoundInstr* check = it.Current()->AsCheckArrayBound();
-      if (check != NULL) {
-        GenericCheckBoundInstr* new_check = new (Z) GenericCheckBoundInstr(
-            new (Z) Value(check->length()->definition()),
-            new (Z) Value(check->index()->definition()), check->deopt_id());
-        flow_graph()->InsertBefore(check, new_check, check->env(),
-                                   FlowGraph::kEffect);
-        current_iterator()->RemoveCurrentFromGraph();
+    for (ForwardInstructionIterator it(block_it.Current()); !it.Done();
+         it.Advance()) {
+      if (CheckArrayBoundInstr* check = it.Current()->AsCheckArrayBound()) {
+        GenericCheckBoundInstr* new_check = new (zone) GenericCheckBoundInstr(
+            new (zone) Value(check->length()->definition()),
+            new (zone) Value(check->index()->definition()), check->deopt_id());
+        flow_graph->InsertBefore(check, new_check, check->env(),
+                                 FlowGraph::kEffect);
+        it.RemoveCurrentFromGraph();
       }
     }
   }
