@@ -12,7 +12,7 @@ import '../metadata/procedure_attributes.dart';
 /// via dynamic invocation from anywhere then annotates it with appropriate
 /// [ProcedureAttributeMetadata] annotation.
 Program transformProgram(Program program) {
-  new NoDynamicInvocationsAnnotator(program).visitProgram(program);
+  new NoDynamicUsesAnnotator(program).visitProgram(program);
   return program;
 }
 
@@ -50,12 +50,14 @@ class Selector {
   }
 }
 
-class NoDynamicInvocationsAnnotator {
-  final Set<Selector> _dynamicSelectors;
+// TODO(kustermann): Try to extend the idea of tracking uses based on the 'this'
+// hierarchy.
+class NoDynamicUsesAnnotator {
+  final DynamicSelectorsCollector _selectors;
   final ProcedureAttributesMetadataRepository _metadata;
 
-  NoDynamicInvocationsAnnotator(Program program)
-      : _dynamicSelectors = DynamicSelectorsCollector.collect(program),
+  NoDynamicUsesAnnotator(Program program)
+      : _selectors = DynamicSelectorsCollector.collect(program),
         _metadata = new ProcedureAttributesMetadataRepository() {
     program.addMetadataRepository(_metadata);
   }
@@ -83,10 +85,19 @@ class NoDynamicInvocationsAnnotator {
       return;
     }
 
-    if (!_dynamicSelectors.contains(new Selector.doSet(node.name))) {
-      _metadata.mapping[node] =
-          const ProcedureAttributesMetadata.noDynamicInvocations();
+    final selector = new Selector.doSet(node.name);
+    if (_selectors.dynamicSelectors.contains(selector)) {
+      return;
     }
+
+    ProcedureAttributesMetadata metadata;
+    if (!_selectors.nonThisSelectors.contains(selector)) {
+      metadata = const ProcedureAttributesMetadata(
+          hasDynamicUses: false, hasNonThisUses: true, hasTearOffUses: false);
+    } else {
+      metadata = const ProcedureAttributesMetadata.noDynamicUses();
+    }
+    _metadata.mapping[node] = metadata;
   }
 
   visitProcedure(Procedure node) {
@@ -103,28 +114,81 @@ class NoDynamicInvocationsAnnotator {
       return;
     }
 
-    if (!_dynamicSelectors.contains(selector)) {
-      _metadata.mapping[node] =
-          const ProcedureAttributesMetadata.noDynamicInvocations();
+    if (_selectors.dynamicSelectors.contains(selector)) {
+      return;
     }
+
+    final bool hasNonThisUses = _selectors.nonThisSelectors.contains(selector);
+    final bool hasTearOffUses = _selectors.tearOffSelectors.contains(selector);
+    ProcedureAttributesMetadata metadata;
+    if (!hasNonThisUses && !hasTearOffUses) {
+      metadata = const ProcedureAttributesMetadata(
+          hasDynamicUses: false, hasNonThisUses: false, hasTearOffUses: false);
+    } else if (!hasNonThisUses && hasTearOffUses) {
+      metadata = const ProcedureAttributesMetadata(
+          hasDynamicUses: false, hasNonThisUses: false, hasTearOffUses: true);
+    } else if (hasNonThisUses && !hasTearOffUses) {
+      metadata = const ProcedureAttributesMetadata(
+          hasDynamicUses: false, hasNonThisUses: true, hasTearOffUses: false);
+    } else {
+      metadata = const ProcedureAttributesMetadata.noDynamicUses();
+    }
+    _metadata.mapping[node] = metadata;
   }
 }
 
 class DynamicSelectorsCollector extends RecursiveVisitor<Null> {
   final Set<Selector> dynamicSelectors = new Set<Selector>();
+  final Set<Selector> nonThisSelectors = new Set<Selector>();
+  final Set<Selector> tearOffSelectors = new Set<Selector>();
 
-  static Set<Selector> collect(Program program) {
+  static DynamicSelectorsCollector collect(Program program) {
     final v = new DynamicSelectorsCollector();
     v.visitProgram(program);
-    return v.dynamicSelectors;
+
+    // We only populate [nonThisSelectors] and [tearOffSelectors] inside the
+    // non-dynamic case (for efficiency reasons) while visiting the [Program].
+    //
+    // After the recursive visit of [Program] we complete the sets here.
+    for (final Selector selector in v.dynamicSelectors) {
+      // All dynamic getters can be tearoffs.
+      if (selector.action == Action.get) {
+        v.tearOffSelectors.add(new Selector.doInvoke(selector.target));
+      }
+
+      // All dynamic selectors are non-this selectors.
+      v.nonThisSelectors.add(selector);
+    }
+
+    return v;
   }
 
   @override
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
 
+    Selector selector;
     if (node.dispatchCategory == DispatchCategory.dynamicDispatch) {
       dynamicSelectors.add(new Selector.doInvoke(node.name));
+    } else {
+      if (node.receiver is! ThisExpression) {
+        nonThisSelectors.add(selector ??= new Selector.doInvoke(node.name));
+      }
+    }
+  }
+
+  @override
+  visitDirectMethodInvocation(DirectMethodInvocation node) {
+    super.visitDirectMethodInvocation(node);
+
+    Selector selector;
+    if (node.dispatchCategory == DispatchCategory.dynamicDispatch) {
+      dynamicSelectors.add(selector = new Selector.doInvoke(node.target.name));
+    } else {
+      if (node.receiver is! ThisExpression) {
+        nonThisSelectors
+            .add(selector ??= new Selector.doInvoke(node.target.name));
+      }
     }
   }
 
@@ -132,8 +196,36 @@ class DynamicSelectorsCollector extends RecursiveVisitor<Null> {
   visitPropertyGet(PropertyGet node) {
     super.visitPropertyGet(node);
 
+    Selector selector;
     if (node.dispatchCategory == DispatchCategory.dynamicDispatch) {
-      dynamicSelectors.add(new Selector.doGet(node.name));
+      dynamicSelectors.add(selector = new Selector.doGet(node.name));
+    } else {
+      if (node.receiver is! ThisExpression) {
+        nonThisSelectors.add(selector ??= new Selector.doGet(node.name));
+      }
+
+      final target = node.interfaceTarget;
+      if (target is Procedure && target.kind == ProcedureKind.Method) {
+        tearOffSelectors.add(new Selector.doInvoke(node.name));
+      }
+    }
+  }
+
+  @override
+  visitDirectPropertyGet(DirectPropertyGet node) {
+    super.visitDirectPropertyGet(node);
+
+    if (node.dispatchCategory == DispatchCategory.dynamicDispatch) {
+      dynamicSelectors.add(new Selector.doGet(node.target.name));
+    } else {
+      if (node.receiver is! ThisExpression) {
+        nonThisSelectors.add(new Selector.doGet(node.target.name));
+      }
+
+      final target = node.target;
+      if (target is Procedure && target.kind == ProcedureKind.Method) {
+        tearOffSelectors.add(new Selector.doInvoke(target.name));
+      }
     }
   }
 
@@ -141,8 +233,27 @@ class DynamicSelectorsCollector extends RecursiveVisitor<Null> {
   visitPropertySet(PropertySet node) {
     super.visitPropertySet(node);
 
+    Selector selector;
     if (node.dispatchCategory == DispatchCategory.dynamicDispatch) {
-      dynamicSelectors.add(new Selector.doSet(node.name));
+      dynamicSelectors.add(selector = new Selector.doSet(node.name));
+    } else {
+      if (node.receiver is! ThisExpression) {
+        nonThisSelectors.add(selector ??= new Selector.doSet(node.name));
+      }
+    }
+  }
+
+  @override
+  visitDirectPropertySet(DirectPropertySet node) {
+    super.visitDirectPropertySet(node);
+
+    Selector selector;
+    if (node.dispatchCategory == DispatchCategory.dynamicDispatch) {
+      dynamicSelectors.add(selector = new Selector.doSet(node.target.name));
+    } else {
+      if (node.receiver is! ThisExpression) {
+        nonThisSelectors.add(selector ??= new Selector.doSet(node.target.name));
+      }
     }
   }
 }
