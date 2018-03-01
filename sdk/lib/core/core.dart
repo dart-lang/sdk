@@ -101,7 +101,8 @@
  * and used by Map for its keys and values.
  *
  * For other kinds of collections, check out the
- * [dart:collection](#dart-collection) library.
+ * [dart:collection](https://api.dartlang.org/stable/dart-collection/dart-collection-library.html)
+ * library.
  *
  * ## Date and time
  *
