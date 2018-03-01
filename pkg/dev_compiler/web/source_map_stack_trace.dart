@@ -56,6 +56,15 @@ StackTrace mapStackTrace(Mapping sourceMap, StackTrace stackTrace,
       }
     }
 
+    if (!sourceUrl.startsWith('dart:') &&
+        !sourceUrl.startsWith('package:') &&
+        sourceUrl.contains('dart_sdk.js')) {
+      // This compresses the long dart_sdk URLs if SDK source maps are missing.
+      // It's no longer linkable, but neither are the properly mapped ones
+      // above.
+      sourceUrl = 'dart_sdk.js';
+    }
+
     return new Frame(Uri.parse(sourceUrl), span.start.line + 1,
         span.start.column + 1, _prettifyMember(frame.member));
   }).where((frame) => frame != null));
