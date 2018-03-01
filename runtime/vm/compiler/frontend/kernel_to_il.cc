@@ -1843,7 +1843,7 @@ RawFunction* FlowGraphBuilder::LookupMethodByMember(NameIndex target,
 LocalVariable* BaseFlowGraphBuilder::MakeTemporary() {
   char name[64];
   intptr_t index = stack_->definition()->temp_index();
-  OS::SNPrint(name, 64, ":temp%" Pd, index);
+  Utils::SNPrint(name, 64, ":temp%" Pd, index);
   const String& symbol_name =
       String::ZoneHandle(Z, Symbols::New(thread_, name));
   LocalVariable* variable =

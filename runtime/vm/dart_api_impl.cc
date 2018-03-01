@@ -470,13 +470,13 @@ Dart_Handle Api::NewError(const char* format, ...) {
 
   va_list args;
   va_start(args, format);
-  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, args);
   va_end(args);
 
   char* buffer = Z->Alloc<char>(len + 1);
   va_list args2;
   va_start(args2, format);
-  OS::VSNPrint(buffer, (len + 1), format, args2);
+  Utils::VSNPrint(buffer, (len + 1), format, args2);
   va_end(args2);
 
   const String& message = String::Handle(Z, String::New(buffer));
@@ -1080,9 +1080,9 @@ static char* BuildIsolateName(const char* script_uri, const char* main) {
   }
 
   char* chars = NULL;
-  intptr_t len = OS::SNPrint(NULL, 0, "%s:%s()", script_uri, main) + 1;
+  intptr_t len = Utils::SNPrint(NULL, 0, "%s:%s()", script_uri, main) + 1;
   chars = reinterpret_cast<char*>(malloc(len));
-  OS::SNPrint(chars, len, "%s:%s()", script_uri, main);
+  Utils::SNPrint(chars, len, "%s:%s()", script_uri, main);
   return chars;
 }
 
@@ -1546,7 +1546,7 @@ DART_EXPORT bool Dart_IsDart2Snapshot(const uint8_t* snapshot_buffer) {
   const char* features = version + version_len;
   ASSERT(features != NULL);
   intptr_t pending_len = snapshot_size - version_len;
-  intptr_t buffer_len = OS::StrNLen(features, pending_len);
+  intptr_t buffer_len = Utils::StrNLen(features, pending_len);
   // if buffer_len is less than pending_len it means we have a null terminated
   // string and we can safely execute 'strstr' on it.
   if ((buffer_len < pending_len)) {

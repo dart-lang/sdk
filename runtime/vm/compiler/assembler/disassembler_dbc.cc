@@ -34,7 +34,7 @@ void FormatOperand(char** buf,
                    intptr_t* size,
                    const char* fmt,
                    ValueType value) {
-  intptr_t written = OS::SNPrint(*buf, *size, fmt, value);
+  intptr_t written = Utils::SNPrint(*buf, *size, fmt, value);
   if (written < *size) {
     *buf += written;
     *size += written;
@@ -218,13 +218,13 @@ void Disassembler::DecodeInstruction(char* hex_buffer,
   const uint8_t opcode = instr & 0xFF;
   ASSERT(opcode < kOpcodeCount);
   size_t name_size =
-      OS::SNPrint(human_buffer, human_size, "%-10s\t", kOpcodeNames[opcode]);
+      Utils::SNPrint(human_buffer, human_size, "%-10s\t", kOpcodeNames[opcode]);
 
   human_buffer += name_size;
   human_size -= name_size;
   kFormatters[opcode](human_buffer, human_size, pc, instr);
 
-  OS::SNPrint(hex_buffer, hex_size, "%08x", instr);
+  Utils::SNPrint(hex_buffer, hex_size, "%08x", instr);
   if (out_instr_size) {
     *out_instr_size = sizeof(uint32_t);
   }

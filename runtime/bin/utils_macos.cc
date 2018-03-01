@@ -72,29 +72,6 @@ char* StringUtils::Utf8ToConsoleString(char* utf8,
   return NULL;
 }
 
-char* StringUtils::StrNDup(const char* s, intptr_t n) {
-// strndup has only been added to Mac OS X in 10.7. We are supplying
-// our own copy here if needed.
-#if !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) ||                 \
-    __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ <= 1060
-  intptr_t len = strlen(s);
-  if ((n < 0) || (len < 0)) {
-    return NULL;
-  }
-  if (n < len) {
-    len = n;
-  }
-  char* result = reinterpret_cast<char*>(malloc(len + 1));
-  if (result == NULL) {
-    return NULL;
-  }
-  result[len] = '\0';
-  return reinterpret_cast<char*>(memmove(result, s, len));
-#else   // !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || ...
-  return strndup(s, n);
-#endif  // !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || ...
-}
-
 bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   return false;
 }

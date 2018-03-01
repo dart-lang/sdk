@@ -1807,7 +1807,7 @@ ISOLATE_UNIT_TEST_CASE(Symbol) {
   // Make sure to cause symbol table overflow.
   for (int i = 0; i < 1024; i++) {
     char buf[256];
-    OS::SNPrint(buf, sizeof(buf), "%d", i);
+    Utils::SNPrint(buf, sizeof(buf), "%d", i);
     Symbols::New(thread, buf);
   }
   eins = Symbols::New(thread, "Eins");
@@ -1911,20 +1911,20 @@ ISOLATE_UNIT_TEST_CASE(Array) {
 
 static void TestIllegalArrayLength(intptr_t length) {
   char buffer[1024];
-  OS::SNPrint(buffer, sizeof(buffer),
-              "main() {\n"
-              "  new List(%" Pd
-              ");\n"
-              "}\n",
-              length);
+  Utils::SNPrint(buffer, sizeof(buffer),
+                 "main() {\n"
+                 "  new List(%" Pd
+                 ");\n"
+                 "}\n",
+                 length);
   Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  OS::SNPrint(buffer, sizeof(buffer),
-              "Unhandled exception:\n"
-              "RangeError (length): Invalid value: "
-              "Not in range 0..%" Pd ", inclusive: %" Pd,
-              Array::kMaxElements, length);
+  Utils::SNPrint(buffer, sizeof(buffer),
+                 "Unhandled exception:\n"
+                 "RangeError (length): Invalid value: "
+                 "Not in range 0..%" Pd ", inclusive: %" Pd,
+                 Array::kMaxElements, length);
   EXPECT_ERROR(result, buffer);
 }
 
@@ -1942,12 +1942,12 @@ TEST_CASE(ArrayLengthOneTooMany) {
 
 TEST_CASE(ArrayLengthMaxElements) {
   char buffer[1024];
-  OS::SNPrint(buffer, sizeof(buffer),
-              "main() {\n"
-              "  return new List(%" Pd
-              ");\n"
-              "}\n",
-              Array::kMaxElements);
+  Utils::SNPrint(buffer, sizeof(buffer),
+                 "main() {\n"
+                 "  return new List(%" Pd
+                 ");\n"
+                 "}\n",
+                 Array::kMaxElements);
   Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
@@ -1964,17 +1964,17 @@ TEST_CASE(ArrayLengthMaxElements) {
 static void TestIllegalTypedDataLength(const char* class_name,
                                        intptr_t length) {
   char buffer[1024];
-  OS::SNPrint(buffer, sizeof(buffer),
-              "import 'dart:typed_data';\n"
-              "main() {\n"
-              "  new %s(%" Pd
-              ");\n"
-              "}\n",
-              class_name, length);
+  Utils::SNPrint(buffer, sizeof(buffer),
+                 "import 'dart:typed_data';\n"
+                 "main() {\n"
+                 "  new %s(%" Pd
+                 ");\n"
+                 "}\n",
+                 class_name, length);
   Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  OS::SNPrint(buffer, sizeof(buffer), "%" Pd, length);
+  Utils::SNPrint(buffer, sizeof(buffer), "%" Pd, length);
   EXPECT_ERROR(result, "Invalid argument(s)");
   EXPECT_ERROR(result, buffer);
 }
@@ -1995,13 +1995,13 @@ TEST_CASE(Int8ListLengthOneTooMany) {
 TEST_CASE(Int8ListLengthMaxElements) {
   const intptr_t max_elements = TypedData::MaxElements(kTypedDataInt8ArrayCid);
   char buffer[1024];
-  OS::SNPrint(buffer, sizeof(buffer),
-              "import 'dart:typed_data';\n"
-              "main() {\n"
-              "  return new Int8List(%" Pd
-              ");\n"
-              "}\n",
-              max_elements);
+  Utils::SNPrint(buffer, sizeof(buffer),
+                 "import 'dart:typed_data';\n"
+                 "main() {\n"
+                 "  return new Int8List(%" Pd
+                 ");\n"
+                 "}\n",
+                 max_elements);
   Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);

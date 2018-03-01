@@ -296,7 +296,7 @@ void Loader::ResolveDependenciesAsFilePaths() {
     }
 
     // Convert buffer buffer to NUL-terminated string.
-    (*dependencies)[i] = StringUtils::StrNDup(
+    (*dependencies)[i] = Utils::StrNDup(
         reinterpret_cast<const char*>(file_path), file_path_length);
     free(file_path);
     free(resolved_uri);

@@ -1752,7 +1752,7 @@ void Parser::BuildDispatcherScope(const Function& func,
   for (; i < desc.PositionalCount(); ++i) {
     ParamDesc p;
     char name[64];
-    OS::SNPrint(name, 64, ":p%" Pd, i);
+    Utils::SNPrint(name, 64, ":p%" Pd, i);
     p.name = &String::ZoneHandle(Z, Symbols::New(T, name));
     p.type = &Object::dynamic_type();
     params.parameters->Add(p);
@@ -11120,7 +11120,7 @@ void Parser::EnsureExpressionTemp() {
 LocalVariable* Parser::CreateTempConstVariable(TokenPosition token_pos,
                                                const char* s) {
   char name[64];
-  OS::SNPrint(name, 64, ":%s%" Pd "", s, token_pos.value());
+  Utils::SNPrint(name, 64, ":%s%" Pd "", s, token_pos.value());
   LocalVariable* temp = new (Z) LocalVariable(
       token_pos, token_pos, String::ZoneHandle(Z, Symbols::New(T, name)),
       Object::dynamic_type());

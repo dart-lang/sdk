@@ -3610,7 +3610,7 @@ static void TestFieldOk(Dart_Handle container,
   // Use a unique expected value.
   static int counter = 0;
   char buffer[256];
-  OS::SNPrint(buffer, 256, "Expected%d", ++counter);
+  Utils::SNPrint(buffer, 256, "Expected%d", ++counter);
 
   // Try to change the field value.
   result = Dart_SetField(container, name, NewString(buffer));

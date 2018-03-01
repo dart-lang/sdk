@@ -502,17 +502,17 @@ TEST_CASE(SafepointTestDart) {
   const intptr_t kLoopCount = 1234567890;
 #endif  // USING_SIMULATOR
   char buffer[1024];
-  OS::SNPrint(buffer, sizeof(buffer),
-              "import 'dart:developer';\n"
-              "int dummy = 0;\n"
-              "main() {\n"
-              "  new UserTag('foo').makeCurrent();\n"
-              "  for (dummy = 0; dummy < %" Pd
-              "; ++dummy) {\n"
-              "    dummy += (dummy & 1);\n"
-              "  }\n"
-              "}\n",
-              kLoopCount);
+  Utils::SNPrint(buffer, sizeof(buffer),
+                 "import 'dart:developer';\n"
+                 "int dummy = 0;\n"
+                 "main() {\n"
+                 "  new UserTag('foo').makeCurrent();\n"
+                 "  for (dummy = 0; dummy < %" Pd
+                 "; ++dummy) {\n"
+                 "    dummy += (dummy & 1);\n"
+                 "  }\n"
+                 "}\n",
+                 kLoopCount);
   Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);

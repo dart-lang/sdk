@@ -49,17 +49,17 @@ intptr_t TimelineEventSystraceRecorder::PrintSystrace(TimelineEvent* event,
   int64_t pid = OS::ProcessId();
   switch (event->event_type()) {
     case TimelineEvent::kBegin: {
-      length = OS::SNPrint(buffer, buffer_size, "B|%" Pd64 "|%s", pid,
-                           event->label());
+      length = Utils::SNPrint(buffer, buffer_size, "B|%" Pd64 "|%s", pid,
+                              event->label());
     } break;
     case TimelineEvent::kEnd: {
-      length = OS::SNPrint(buffer, buffer_size, "E");
+      length = Utils::SNPrint(buffer, buffer_size, "E");
     } break;
     case TimelineEvent::kCounter: {
       if (event->arguments_length() > 0) {
         // We only report the first counter value.
-        length = OS::SNPrint(buffer, buffer_size, "C|%" Pd64 "|%s|%s", pid,
-                             event->label(), event->arguments()[0].value);
+        length = Utils::SNPrint(buffer, buffer_size, "C|%" Pd64 "|%s|%s", pid,
+                                event->label(), event->arguments()[0].value);
       }
     }
     default:

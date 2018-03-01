@@ -197,7 +197,7 @@ char* DartUtils::DirName(const char* url) {
   if (slash == NULL) {
     return strdup(url);
   } else {
-    return StringUtils::StrNDup(url, slash - url + 1);
+    return Utils::StrNDup(url, slash - url + 1);
   }
 }
 

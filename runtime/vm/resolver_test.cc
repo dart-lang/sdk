@@ -24,17 +24,17 @@ static void SetupFunction(const char* test_library_name,
 
   // Setup a dart class and function.
   char script_chars[1024];
-  OS::SNPrint(script_chars, sizeof(script_chars),
-              "class Base {\n"
-              "  dynCall() { return 3; }\n"
-              "  static statCall() { return 4; }\n"
-              "\n"
-              "}\n"
-              "class %s extends Base {\n"
-              "  %s %s(String s, int i) { return i; }\n"
-              "}\n",
-              test_class_name, is_static ? "static" : "",
-              test_static_function_name);
+  Utils::SNPrint(script_chars, sizeof(script_chars),
+                 "class Base {\n"
+                 "  dynCall() { return 3; }\n"
+                 "  static statCall() { return 4; }\n"
+                 "\n"
+                 "}\n"
+                 "class %s extends Base {\n"
+                 "  %s %s(String s, int i) { return i; }\n"
+                 "}\n",
+                 test_class_name, is_static ? "static" : "",
+                 test_static_function_name);
 
   String& url = String::Handle(
       zone, is_static ? String::New("dart-test:DartStaticResolve")

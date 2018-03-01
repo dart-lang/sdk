@@ -237,26 +237,6 @@ DART_NOINLINE uintptr_t OS::GetProgramCounter() {
   return reinterpret_cast<uintptr_t>(_ReturnAddress());
 }
 
-char* OS::StrNDup(const char* s, intptr_t n) {
-  intptr_t len = strlen(s);
-  if ((n < 0) || (len < 0)) {
-    return NULL;
-  }
-  if (n < len) {
-    len = n;
-  }
-  char* result = reinterpret_cast<char*>(malloc(len + 1));
-  if (result == NULL) {
-    return NULL;
-  }
-  result[len] = '\0';
-  return reinterpret_cast<char*>(memmove(result, s, len));
-}
-
-intptr_t OS::StrNLen(const char* s, intptr_t n) {
-  return strnlen(s, n);
-}
-
 void OS::Print(const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -267,48 +247,6 @@ void OS::Print(const char* format, ...) {
 void OS::VFPrint(FILE* stream, const char* format, va_list args) {
   vfprintf(stream, format, args);
   fflush(stream);
-}
-
-int OS::SNPrint(char* str, size_t size, const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  int retval = VSNPrint(str, size, format, args);
-  va_end(args);
-  return retval;
-}
-
-int OS::VSNPrint(char* str, size_t size, const char* format, va_list args) {
-  if (str == NULL || size == 0) {
-    int retval = _vscprintf(format, args);
-    if (retval < 0) {
-      FATAL1("Fatal error in OS::VSNPrint with format '%s'", format);
-    }
-    return retval;
-  }
-  va_list args_copy;
-  va_copy(args_copy, args);
-  int written = _vsnprintf(str, size, format, args_copy);
-  va_end(args_copy);
-  if (written < 0) {
-    // _vsnprintf returns -1 if the number of characters to be written is
-    // larger than 'size', so we call _vscprintf which returns the number
-    // of characters that would have been written.
-    va_list args_retry;
-    va_copy(args_retry, args);
-    written = _vscprintf(format, args_retry);
-    if (written < 0) {
-      FATAL1("Fatal error in OS::VSNPrint with format '%s'", format);
-    }
-    va_end(args_retry);
-  }
-  // Make sure to zero-terminate the string if the output was
-  // truncated or if there was an error.
-  // The static cast is safe here as we have already determined that 'written'
-  // is >= 0.
-  if (static_cast<size_t>(written) >= size) {
-    str[size - 1] = '\0';
-  }
-  return written;
 }
 
 char* OS::SCreate(Zone* zone, const char* format, ...) {
@@ -323,7 +261,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   // Measure.
   va_list measure_args;
   va_copy(measure_args, args);
-  intptr_t len = VSNPrint(NULL, 0, format, measure_args);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
   va_end(measure_args);
 
   char* buffer;
@@ -337,7 +275,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   // Print.
   va_list print_args;
   va_copy(print_args, args);
-  VSNPrint(buffer, len + 1, format, print_args);
+  Utils::VSNPrint(buffer, len + 1, format, print_args);
   va_end(print_args);
   return buffer;
 }

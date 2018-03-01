@@ -616,9 +616,9 @@ RawObject* SnapshotReader::ReadScriptSnapshot() {
     if (!obj_.IsError()) {
       const intptr_t kMessageBufferSize = 128;
       char message_buffer[kMessageBufferSize];
-      OS::SNPrint(message_buffer, kMessageBufferSize,
-                  "Invalid object %s found in script snapshot",
-                  obj_.ToCString());
+      Utils::SNPrint(message_buffer, kMessageBufferSize,
+                     "Invalid object %s found in script snapshot",
+                     obj_.ToCString());
       const String& msg = String::Handle(String::New(message_buffer));
       obj_ = ApiError::New(msg);
     }
@@ -636,9 +636,9 @@ RawApiError* SnapshotReader::VerifyVersionAndFeatures(Isolate* isolate) {
   if (PendingBytes() < version_len) {
     const intptr_t kMessageBufferSize = 128;
     char message_buffer[kMessageBufferSize];
-    OS::SNPrint(message_buffer, kMessageBufferSize,
-                "No full snapshot version found, expected '%s'",
-                expected_version);
+    Utils::SNPrint(message_buffer, kMessageBufferSize,
+                   "No full snapshot version found, expected '%s'",
+                   expected_version);
     // This can also fail while bringing up the VM isolate, so make sure to
     // allocate the error message in old space.
     const String& msg = String::Handle(String::New(message_buffer, Heap::kOld));
@@ -650,11 +650,11 @@ RawApiError* SnapshotReader::VerifyVersionAndFeatures(Isolate* isolate) {
   if (strncmp(version, expected_version, version_len)) {
     const intptr_t kMessageBufferSize = 256;
     char message_buffer[kMessageBufferSize];
-    char* actual_version = OS::StrNDup(version, version_len);
-    OS::SNPrint(message_buffer, kMessageBufferSize,
-                "Wrong %s snapshot version, expected '%s' found '%s'",
-                (Snapshot::IsFull(kind_)) ? "full" : "script", expected_version,
-                actual_version);
+    char* actual_version = Utils::StrNDup(version, version_len);
+    Utils::SNPrint(message_buffer, kMessageBufferSize,
+                   "Wrong %s snapshot version, expected '%s' found '%s'",
+                   (Snapshot::IsFull(kind_)) ? "full" : "script",
+                   expected_version, actual_version);
     free(actual_version);
     // This can also fail while bringing up the VM isolate, so make sure to
     // allocate the error message in old space.
@@ -669,17 +669,17 @@ RawApiError* SnapshotReader::VerifyVersionAndFeatures(Isolate* isolate) {
 
   const char* features = reinterpret_cast<const char*>(CurrentBufferAddress());
   ASSERT(features != NULL);
-  intptr_t buffer_len = OS::StrNLen(features, PendingBytes());
+  intptr_t buffer_len = Utils::StrNLen(features, PendingBytes());
   if ((buffer_len != expected_len) ||
       strncmp(features, expected_features, expected_len)) {
     const intptr_t kMessageBufferSize = 256;
     char message_buffer[kMessageBufferSize];
     char* actual_features =
-        OS::StrNDup(features, buffer_len < 128 ? buffer_len : 128);
-    OS::SNPrint(message_buffer, kMessageBufferSize,
-                "Snapshot not compatible with the current VM configuration: "
-                "the snapshot requires '%s' but the VM has '%s'",
-                actual_features, expected_features);
+        Utils::StrNDup(features, buffer_len < 128 ? buffer_len : 128);
+    Utils::SNPrint(message_buffer, kMessageBufferSize,
+                   "Snapshot not compatible with the current VM configuration: "
+                   "the snapshot requires '%s' but the VM has '%s'",
+                   actual_features, expected_features);
     free(const_cast<char*>(expected_features));
     free(actual_features);
     // This can also fail while bringing up the VM isolate, so make sure to

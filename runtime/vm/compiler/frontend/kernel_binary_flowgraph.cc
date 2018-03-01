@@ -2271,7 +2271,7 @@ void StreamingScopeBuilder::LookupVariable(intptr_t declaration_binary_offset) {
 const String& StreamingScopeBuilder::GenerateName(const char* prefix,
                                                   intptr_t suffix) {
   char name[64];
-  OS::SNPrint(name, 64, "%s%" Pd "", prefix, suffix);
+  Utils::SNPrint(name, 64, "%s%" Pd "", prefix, suffix);
   return H.DartSymbolObfuscate(name);
 }
 

@@ -2712,7 +2712,7 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
   for (; i < desc.PositionalCount(); i++) {
     invocation.SetParameterTypeAt(i, Object::dynamic_type());
     char name[64];
-    OS::SNPrint(name, 64, ":p%" Pd, i);
+    Utils::SNPrint(name, 64, ":p%" Pd, i);
     invocation.SetParameterNameAt(
         i, String::Handle(zone, Symbols::New(thread, name)));
   }
@@ -6307,9 +6307,9 @@ bool Function::AreValidArgumentCounts(intptr_t num_type_arguments,
     if (error_message != NULL) {
       const intptr_t kMessageBufferSize = 64;
       char message_buffer[kMessageBufferSize];
-      OS::SNPrint(message_buffer, kMessageBufferSize,
-                  "%" Pd " type arguments passed, but %" Pd " expected",
-                  num_type_arguments, NumTypeParameters());
+      Utils::SNPrint(message_buffer, kMessageBufferSize,
+                     "%" Pd " type arguments passed, but %" Pd " expected",
+                     num_type_arguments, NumTypeParameters());
       // Allocate in old space because it can be invoked in background
       // optimizing compilation.
       *error_message = String::New(message_buffer, Heap::kOld);
@@ -6320,9 +6320,9 @@ bool Function::AreValidArgumentCounts(intptr_t num_type_arguments,
     if (error_message != NULL) {
       const intptr_t kMessageBufferSize = 64;
       char message_buffer[kMessageBufferSize];
-      OS::SNPrint(message_buffer, kMessageBufferSize,
-                  "%" Pd " named passed, at most %" Pd " expected",
-                  num_named_arguments, NumOptionalNamedParameters());
+      Utils::SNPrint(message_buffer, kMessageBufferSize,
+                     "%" Pd " named passed, at most %" Pd " expected",
+                     num_named_arguments, NumOptionalNamedParameters());
       // Allocate in old space because it can be invoked in background
       // optimizing compilation.
       *error_message = String::New(message_buffer, Heap::kOld);
@@ -6338,12 +6338,12 @@ bool Function::AreValidArgumentCounts(intptr_t num_type_arguments,
       char message_buffer[kMessageBufferSize];
       // Hide implicit parameters to the user.
       const intptr_t num_hidden_params = NumImplicitParameters();
-      OS::SNPrint(message_buffer, kMessageBufferSize,
-                  "%" Pd "%s passed, %s%" Pd " expected",
-                  num_pos_args - num_hidden_params,
-                  num_opt_pos_params > 0 ? " positional" : "",
-                  num_opt_pos_params > 0 ? "at most " : "",
-                  num_pos_params - num_hidden_params);
+      Utils::SNPrint(message_buffer, kMessageBufferSize,
+                     "%" Pd "%s passed, %s%" Pd " expected",
+                     num_pos_args - num_hidden_params,
+                     num_opt_pos_params > 0 ? " positional" : "",
+                     num_opt_pos_params > 0 ? "at most " : "",
+                     num_pos_params - num_hidden_params);
       // Allocate in old space because it can be invoked in background
       // optimizing compilation.
       *error_message = String::New(message_buffer, Heap::kOld);
@@ -6356,12 +6356,12 @@ bool Function::AreValidArgumentCounts(intptr_t num_type_arguments,
       char message_buffer[kMessageBufferSize];
       // Hide implicit parameters to the user.
       const intptr_t num_hidden_params = NumImplicitParameters();
-      OS::SNPrint(message_buffer, kMessageBufferSize,
-                  "%" Pd "%s passed, %s%" Pd " expected",
-                  num_pos_args - num_hidden_params,
-                  num_opt_pos_params > 0 ? " positional" : "",
-                  num_opt_pos_params > 0 ? "at least " : "",
-                  num_fixed_parameters() - num_hidden_params);
+      Utils::SNPrint(message_buffer, kMessageBufferSize,
+                     "%" Pd "%s passed, %s%" Pd " expected",
+                     num_pos_args - num_hidden_params,
+                     num_opt_pos_params > 0 ? " positional" : "",
+                     num_opt_pos_params > 0 ? "at least " : "",
+                     num_fixed_parameters() - num_hidden_params);
       // Allocate in old space because it can be invoked in background
       // optimizing compilation.
       *error_message = String::New(message_buffer, Heap::kOld);
@@ -6403,9 +6403,9 @@ bool Function::AreValidArguments(intptr_t num_type_arguments,
       if (error_message != NULL) {
         const intptr_t kMessageBufferSize = 64;
         char message_buffer[kMessageBufferSize];
-        OS::SNPrint(message_buffer, kMessageBufferSize,
-                    "no optional formal parameter named '%s'",
-                    argument_name.ToCString());
+        Utils::SNPrint(message_buffer, kMessageBufferSize,
+                       "no optional formal parameter named '%s'",
+                       argument_name.ToCString());
         // Allocate in old space because it can be invoked in background
         // optimizing compilation.
         *error_message = String::New(message_buffer, Heap::kOld);
@@ -6448,9 +6448,9 @@ bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
       if (error_message != NULL) {
         const intptr_t kMessageBufferSize = 64;
         char message_buffer[kMessageBufferSize];
-        OS::SNPrint(message_buffer, kMessageBufferSize,
-                    "no optional formal parameter named '%s'",
-                    argument_name.ToCString());
+        Utils::SNPrint(message_buffer, kMessageBufferSize,
+                       "no optional formal parameter named '%s'",
+                       argument_name.ToCString());
         // Allocate in old space because it can be invoked in background
         // optimizing compilation.
         *error_message = String::New(message_buffer, Heap::kOld);
@@ -6479,7 +6479,7 @@ static intptr_t ConstructFunctionFullyQualifiedCString(
     QualifiedFunctionLibKind lib_kind) {
   const char* name = String::Handle(function.name()).ToCString();
   const char* function_format = (reserve_len == 0) ? "%s" : "%s_";
-  reserve_len += OS::SNPrint(NULL, 0, function_format, name);
+  reserve_len += Utils::SNPrint(NULL, 0, function_format, name);
   const Function& parent = Function::Handle(function.parent_function());
   intptr_t written = 0;
   if (parent.IsNull()) {
@@ -6509,18 +6509,18 @@ static intptr_t ConstructFunctionFullyQualifiedCString(
       lib_class_format = "%s%s.";
     }
     reserve_len +=
-        OS::SNPrint(NULL, 0, lib_class_format, library_name, class_name);
+        Utils::SNPrint(NULL, 0, lib_class_format, library_name, class_name);
     ASSERT(chars != NULL);
     *chars = Thread::Current()->zone()->Alloc<char>(reserve_len + 1);
-    written = OS::SNPrint(*chars, reserve_len + 1, lib_class_format,
-                          library_name, class_name);
+    written = Utils::SNPrint(*chars, reserve_len + 1, lib_class_format,
+                             library_name, class_name);
   } else {
     written = ConstructFunctionFullyQualifiedCString(parent, chars, reserve_len,
                                                      with_lib, lib_kind);
   }
   ASSERT(*chars != NULL);
   char* next = *chars + written;
-  written += OS::SNPrint(next, reserve_len + 1, function_format, name);
+  written += Utils::SNPrint(next, reserve_len + 1, function_format, name);
   // Replace ":" with "_".
   while (true) {
     next = strchr(next, ':');
@@ -11443,8 +11443,8 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate, bool is_kernel) {
   char name_buffer[kNameLength];
   String& cls_name = String::Handle(zone);
   for (int fld_cnt = 1; fld_cnt <= kNumNativeWrappersClasses; fld_cnt++) {
-    OS::SNPrint(name_buffer, kNameLength, "%s%d", kNativeWrappersClass,
-                fld_cnt);
+    Utils::SNPrint(name_buffer, kNameLength, "%s%d", kNativeWrappersClass,
+                   fld_cnt);
     cls_name = Symbols::New(thread, name_buffer);
     Class::NewNativeWrapper(native_flds_lib, cls_name, fld_cnt);
   }
@@ -11549,8 +11549,8 @@ void Library::AllocatePrivateKey() const {
   intptr_t sequence_value = libs.Length();
 
   char private_key[32];
-  OS::SNPrint(private_key, sizeof(private_key), "%c%" Pd "%06" Pd "",
-              kPrivateKeySeparator, sequence_value, hash_value);
+  Utils::SNPrint(private_key, sizeof(private_key), "%c%" Pd "%06" Pd "",
+                 kPrivateKeySeparator, sequence_value, hash_value);
   const String& key =
       String::Handle(zone, String::New(private_key, Heap::kOld));
   key.Hash();  // This string may end up in the VM isolate.
@@ -12653,9 +12653,9 @@ const char* PcDescriptors::ToCString() const {
   {
     Iterator iter(*this, RawPcDescriptors::kAnyKind);
     while (iter.MoveNext()) {
-      len += OS::SNPrint(NULL, 0, FORMAT, addr_width, iter.PcOffset(),
-                         KindAsStr(iter.Kind()), iter.DeoptId(),
-                         iter.TokenPos().ToCString(), iter.TryIndex());
+      len += Utils::SNPrint(NULL, 0, FORMAT, addr_width, iter.PcOffset(),
+                            KindAsStr(iter.Kind()), iter.DeoptId(),
+                            iter.TokenPos().ToCString(), iter.TryIndex());
     }
   }
   // Allocate the buffer.
@@ -12665,9 +12665,9 @@ const char* PcDescriptors::ToCString() const {
   Iterator iter(*this, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
     index +=
-        OS::SNPrint((buffer + index), (len - index), FORMAT, addr_width,
-                    iter.PcOffset(), KindAsStr(iter.Kind()), iter.DeoptId(),
-                    iter.TokenPos().ToCString(), iter.TryIndex());
+        Utils::SNPrint((buffer + index), (len - index), FORMAT, addr_width,
+                       iter.PcOffset(), KindAsStr(iter.Kind()), iter.DeoptId(),
+                       iter.TokenPos().ToCString(), iter.TryIndex());
   }
   return buffer;
 #undef FORMAT
@@ -12839,7 +12839,7 @@ const char* StackMap::ToCString() const {
   if (IsNull()) {
     return "{null}";
   } else {
-    intptr_t fixed_length = OS::SNPrint(NULL, 0, FORMAT, PcOffset()) + 1;
+    intptr_t fixed_length = Utils::SNPrint(NULL, 0, FORMAT, PcOffset()) + 1;
     Thread* thread = Thread::Current();
     // Guard against integer overflow in the computation of alloc_size.
     //
@@ -12850,7 +12850,7 @@ const char* StackMap::ToCString() const {
     }
     intptr_t alloc_size = fixed_length + Length();
     char* chars = thread->zone()->Alloc<char>(alloc_size);
-    intptr_t index = OS::SNPrint(chars, alloc_size, FORMAT, PcOffset());
+    intptr_t index = Utils::SNPrint(chars, alloc_size, FORMAT, PcOffset());
     for (intptr_t i = 0; i < Length(); i++) {
       chars[index++] = IsObject(i) ? '1' : '0';
     }
@@ -12889,15 +12889,15 @@ static int PrintVarInfo(char* buffer,
   const RawLocalVarDescriptors::VarInfoKind kind = info.kind();
   const int32_t index = info.index();
   if (kind == RawLocalVarDescriptors::kContextLevel) {
-    return OS::SNPrint(buffer, len,
-                       "%2" Pd
-                       " %-13s level=%-3d"
-                       " begin=%-3d end=%d\n",
-                       i, LocalVarDescriptors::KindToCString(kind), index,
-                       static_cast<int>(info.begin_pos.value()),
-                       static_cast<int>(info.end_pos.value()));
+    return Utils::SNPrint(buffer, len,
+                          "%2" Pd
+                          " %-13s level=%-3d"
+                          " begin=%-3d end=%d\n",
+                          i, LocalVarDescriptors::KindToCString(kind), index,
+                          static_cast<int>(info.begin_pos.value()),
+                          static_cast<int>(info.end_pos.value()));
   } else if (kind == RawLocalVarDescriptors::kContextVar) {
-    return OS::SNPrint(
+    return Utils::SNPrint(
         buffer, len,
         "%2" Pd
         " %-13s level=%-3d index=%-3d"
@@ -12906,7 +12906,7 @@ static int PrintVarInfo(char* buffer,
         static_cast<int>(info.begin_pos.Pos()),
         static_cast<int>(info.end_pos.Pos()), var_name.ToCString());
   } else {
-    return OS::SNPrint(
+    return Utils::SNPrint(
         buffer, len,
         "%2" Pd
         " %-13s scope=%-3d index=%-3d"
@@ -13129,13 +13129,13 @@ const char* ExceptionHandlers::ToCString() const {
     handled_types = GetHandledTypes(i);
     const intptr_t num_types =
         handled_types.IsNull() ? 0 : handled_types.Length();
-    len += OS::SNPrint(NULL, 0, FORMAT1, i, info.handler_pc_offset, num_types,
-                       info.outer_try_index,
-                       info.is_generated ? "(generated)" : "");
+    len += Utils::SNPrint(NULL, 0, FORMAT1, i, info.handler_pc_offset,
+                          num_types, info.outer_try_index,
+                          info.is_generated ? "(generated)" : "");
     for (int k = 0; k < num_types; k++) {
       type ^= handled_types.At(k);
       ASSERT(!type.IsNull());
-      len += OS::SNPrint(NULL, 0, FORMAT2, k, type.ToCString());
+      len += Utils::SNPrint(NULL, 0, FORMAT2, k, type.ToCString());
     }
   }
   // Allocate the buffer.
@@ -13148,13 +13148,13 @@ const char* ExceptionHandlers::ToCString() const {
     const intptr_t num_types =
         handled_types.IsNull() ? 0 : handled_types.Length();
     num_chars +=
-        OS::SNPrint((buffer + num_chars), (len - num_chars), FORMAT1, i,
-                    info.handler_pc_offset, num_types, info.outer_try_index,
-                    info.is_generated ? "(generated)" : "");
+        Utils::SNPrint((buffer + num_chars), (len - num_chars), FORMAT1, i,
+                       info.handler_pc_offset, num_types, info.outer_try_index,
+                       info.is_generated ? "(generated)" : "");
     for (int k = 0; k < num_types; k++) {
       type ^= handled_types.At(k);
-      num_chars += OS::SNPrint((buffer + num_chars), (len - num_chars), FORMAT2,
-                               k, type.ToCString());
+      num_chars += Utils::SNPrint((buffer + num_chars), (len - num_chars),
+                                  FORMAT2, k, type.ToCString());
     }
   }
   return buffer;
@@ -18315,11 +18315,12 @@ const char* TypeParameter::ToCString() const {
         "TypeParameter: name %s; index: %d; function: %s; bound: %s";
     const Function& function = Function::Handle(parameterized_function());
     const char* fun_cstr = String::Handle(function.name()).ToCString();
-    intptr_t len =
-        OS::SNPrint(NULL, 0, format, name_cstr, index(), fun_cstr, bound_cstr) +
-        1;
+    intptr_t len = Utils::SNPrint(NULL, 0, format, name_cstr, index(), fun_cstr,
+                                  bound_cstr) +
+                   1;
     char* chars = Thread::Current()->zone()->Alloc<char>(len);
-    OS::SNPrint(chars, len, format, name_cstr, index(), fun_cstr, bound_cstr);
+    Utils::SNPrint(chars, len, format, name_cstr, index(), fun_cstr,
+                   bound_cstr);
     return chars;
   } else {
     const char* format =
@@ -18327,11 +18328,12 @@ const char* TypeParameter::ToCString() const {
     const Class& cls = Class::Handle(parameterized_class());
     const char* cls_cstr =
         cls.IsNull() ? " null" : String::Handle(cls.Name()).ToCString();
-    intptr_t len =
-        OS::SNPrint(NULL, 0, format, name_cstr, index(), cls_cstr, bound_cstr) +
-        1;
+    intptr_t len = Utils::SNPrint(NULL, 0, format, name_cstr, index(), cls_cstr,
+                                  bound_cstr) +
+                   1;
     char* chars = Thread::Current()->zone()->Alloc<char>(len);
-    OS::SNPrint(chars, len, format, name_cstr, index(), cls_cstr, bound_cstr);
+    Utils::SNPrint(chars, len, format, name_cstr, index(), cls_cstr,
+                   bound_cstr);
     return chars;
   }
 }
@@ -18564,12 +18566,12 @@ const char* BoundedType::ToCString() const {
   const char* type_param_cstr = String::Handle(type_param.name()).ToCString();
   const Class& cls = Class::Handle(type_param.parameterized_class());
   const char* cls_cstr = String::Handle(cls.Name()).ToCString();
-  intptr_t len = OS::SNPrint(NULL, 0, format, type_cstr, bound_cstr,
-                             type_param_cstr, cls_cstr) +
+  intptr_t len = Utils::SNPrint(NULL, 0, format, type_cstr, bound_cstr,
+                                type_param_cstr, cls_cstr) +
                  1;
   char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, type_cstr, bound_cstr, type_param_cstr,
-              cls_cstr);
+  Utils::SNPrint(chars, len, format, type_cstr, bound_cstr, type_param_cstr,
+                 cls_cstr);
   return chars;
 }
 
@@ -18592,9 +18594,10 @@ const char* MixinAppType::ToCString() const {
   const char* first_mixin_type_cstr =
       String::Handle(AbstractType::Handle(MixinTypeAt(0)).Name()).ToCString();
   intptr_t len =
-      OS::SNPrint(NULL, 0, format, super_type_cstr, first_mixin_type_cstr) + 1;
+      Utils::SNPrint(NULL, 0, format, super_type_cstr, first_mixin_type_cstr) +
+      1;
   char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, super_type_cstr, first_mixin_type_cstr);
+  Utils::SNPrint(chars, len, format, super_type_cstr, first_mixin_type_cstr);
   return chars;
 }
 
@@ -20785,12 +20788,12 @@ RawString* String::NewFormattedV(const char* format,
                                  Heap::Space space) {
   va_list args_copy;
   va_copy(args_copy, args);
-  intptr_t len = OS::VSNPrint(NULL, 0, format, args_copy);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, args_copy);
   va_end(args_copy);
 
   Zone* zone = Thread::Current()->zone();
   char* buffer = zone->Alloc<char>(len + 1);
-  OS::VSNPrint(buffer, (len + 1), format, args);
+  Utils::VSNPrint(buffer, (len + 1), format, args);
 
   return String::New(buffer, space);
 }

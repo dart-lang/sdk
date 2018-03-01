@@ -395,7 +395,7 @@ class WriteStream : public ValueObject {
     // Measure.
     va_list measure_args;
     va_copy(measure_args, args);
-    intptr_t len = OS::VSNPrint(NULL, 0, format, measure_args);
+    intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
     va_end(measure_args);
 
     // Alloc.
@@ -407,8 +407,8 @@ class WriteStream : public ValueObject {
     // Print.
     va_list print_args;
     va_copy(print_args, args);
-    OS::VSNPrint(reinterpret_cast<char*>(current_), len + 1, format,
-                 print_args);
+    Utils::VSNPrint(reinterpret_cast<char*>(current_), len + 1, format,
+                    print_args);
     va_end(print_args);
     current_ += len;  // Not len + 1 to swallow the terminating NUL.
   }

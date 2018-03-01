@@ -68,7 +68,7 @@ static char* GetDirectoryPrefixFromExeName() {
     return strdup("");
   }
 
-  return StringUtils::StrNDup(name, i + 1);
+  return Utils::StrNDup(name, i + 1);
 }
 
 static void NoopRelease(uint8_t* buffer) {}
