@@ -8,6 +8,9 @@ int_parse_radix_bad_handler_test: MissingCompileTimeError
 iterable_element_at_test/static: Pass
 num_sign_test: Crash, Pass # Issue 31768
 
+[ $compiler == dart2js ]
+iterable_where_type_test: RuntimeError # issue 31718
+
 [ $compiler != dartdevc ]
 error_stack_trace_test/static: MissingCompileTimeError
 
@@ -364,7 +367,15 @@ symbol_reserved_word_test/12: RuntimeError # Issues 11669 and 31936 - throwing c
 symbol_test/none: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
 unicode_test: RuntimeError # Issue 18061: German double S.
 
+# ===== dartkp + dart_precompiled + debug status lines =====
+[ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
+null_nosuchmethod_test/01: Crash # dartbug.com/32377
+null_nosuchmethod_test/none: Crash # dartbug.com/32377
+
 # ===== dartkp + dart_precompiled status lines =====
+[ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
+null_nosuchmethod_test: Crash
+
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 apply_test: RuntimeError, OK
 iterable_fold_test/02: RuntimeError

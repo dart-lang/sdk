@@ -838,8 +838,9 @@ void Scanner::Scan() {
           char utf8_char[5];
           int len = Utf8::Encode(c0_, utf8_char);
           utf8_char[len] = '\0';
-          OS::SNPrint(msg, sizeof(msg), "unexpected character: '%s' (U+%04X)\n",
-                      utf8_char, c0_);
+          Utils::SNPrint(msg, sizeof(msg),
+                         "unexpected character: '%s' (U+%04X)\n", utf8_char,
+                         c0_);
           ErrorMsg(msg);
           ReadChar();
         }

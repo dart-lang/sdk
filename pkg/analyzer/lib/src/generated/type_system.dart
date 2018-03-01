@@ -1112,6 +1112,44 @@ abstract class TypeSystem {
    */
   bool get isStrong;
 
+  List<InterfaceType> gatherMixinSupertypeConstraints(
+      ClassElement mixinElement) {
+    var mixinSupertypeConstraints = <InterfaceType>[];
+    void addIfGeneric(InterfaceType type) {
+      if (type.element.typeParameters.isNotEmpty) {
+        mixinSupertypeConstraints.add(type);
+      }
+    }
+
+    addIfGeneric(mixinElement.supertype);
+    mixinElement.mixins.forEach(addIfGeneric);
+    return mixinSupertypeConstraints;
+  }
+
+  /// Attempts to find the appropriate substitution for [typeParameters] that can
+  /// be applied to [src] to make it equal to [dest].  If no such substitution can
+  /// be found, `null` is returned.
+  InterfaceType matchSupertypeConstraints(
+      ClassElement mixinElement, List<DartType> srcs, List<DartType> dests) {
+    var typeParameters = mixinElement.typeParameters;
+    var inferrer = new _GenericInferrer(typeProvider, this, typeParameters);
+    for (int i = 0; i < srcs.length; i++) {
+      inferrer.constrainReturnType(srcs[i], dests[i]);
+      inferrer.constrainReturnType(dests[i], srcs[i]);
+    }
+    var result = inferrer.infer(mixinElement.type, typeParameters,
+        considerExtendsClause: false);
+    for (int i = 0; i < srcs.length; i++) {
+      if (!srcs[i]
+          .substitute2(result.typeArguments, mixinElement.type.typeArguments)
+          .isEquivalentTo(dests[i])) {
+        // Failed to find an appropriate substitution
+        return null;
+      }
+    }
+    return result;
+  }
+
   /**
    * The provider of types for the system
    */
@@ -1711,7 +1749,8 @@ class _GenericInferrer {
   /// including argument types, and must not conclude `?` for any type formal.
   T infer<T extends ParameterizedType>(
       T genericType, List<TypeParameterElement> typeFormals,
-      {ErrorReporter errorReporter,
+      {bool considerExtendsClause: true,
+      ErrorReporter errorReporter,
       AstNode errorNode,
       bool downwardsInferPhase: false}) {
     var fnTypeParams = TypeParameterTypeImpl.getTypes(typeFormals);
@@ -1731,7 +1770,7 @@ class _GenericInferrer {
 
       var typeParamBound = typeParam.bound;
       _TypeConstraint extendsClause;
-      if (!typeParamBound.isDynamic) {
+      if (considerExtendsClause && !typeParamBound.isDynamic) {
         extendsClause = new _TypeConstraint.fromExtends(typeParam,
             typeParam.bound.substitute2(inferredTypes, fnTypeParams));
       }

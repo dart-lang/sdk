@@ -605,9 +605,15 @@ class InferredTypeMetadataHelper : public MetadataHelper {
 };
 
 struct ProcedureAttributesMetadata {
-  explicit ProcedureAttributesMetadata(bool has_dynamic_invocations)
-      : has_dynamic_invocations(has_dynamic_invocations) {}
-  const bool has_dynamic_invocations;
+  ProcedureAttributesMetadata(bool has_dynamic_invocations = true,
+                              bool has_non_this_uses = true,
+                              bool has_tearoff_uses = true)
+      : has_dynamic_invocations(has_dynamic_invocations),
+        has_non_this_uses(has_non_this_uses),
+        has_tearoff_uses(has_tearoff_uses) {}
+  bool has_dynamic_invocations;
+  bool has_non_this_uses;
+  bool has_tearoff_uses;
 };
 
 // Helper class which provides access to direct call metadata.
@@ -621,7 +627,8 @@ class ProcedureAttributesMetadataHelper : public MetadataHelper {
   ProcedureAttributesMetadata GetProcedureAttributes(intptr_t node_offset);
 
  private:
-  bool ReadMetadata(intptr_t node_offset, bool* has_dynamic_invocations);
+  bool ReadMetadata(intptr_t node_offset,
+                    ProcedureAttributesMetadata* metadata);
 };
 
 class StreamingDartTypeTranslator {
@@ -749,13 +756,17 @@ class StreamingScopeBuilder {
 
   // This assumes that the reader is at a FunctionNode,
   // about to read the positional parameters.
-  void AddPositionalAndNamedParameters(intptr_t pos,
-                                       ParameterTypeCheckMode type_check_mode);
+  void AddPositionalAndNamedParameters(
+      intptr_t pos,
+      ParameterTypeCheckMode type_check_mode,
+      const ProcedureAttributesMetadata& attrs);
 
   // This assumes that the reader is at a FunctionNode,
   // about to read a parameter (i.e. VariableDeclaration).
-  void AddVariableDeclarationParameter(intptr_t pos,
-                                       ParameterTypeCheckMode type_check_mode);
+  void AddVariableDeclarationParameter(
+      intptr_t pos,
+      ParameterTypeCheckMode type_check_mode,
+      const ProcedureAttributesMetadata& attrs);
 
   LocalVariable* MakeVariable(TokenPosition declaration_pos,
                               TokenPosition token_pos,

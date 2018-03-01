@@ -355,11 +355,11 @@ void TimelineEventArguments::FormatArgument(intptr_t i,
   ASSERT(i < length_);
   va_list args2;
   va_copy(args2, args);
-  intptr_t len = OS::VSNPrint(NULL, 0, fmt, args);
+  intptr_t len = Utils::VSNPrint(NULL, 0, fmt, args);
   va_end(args);
 
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));
-  OS::VSNPrint(buffer, (len + 1), fmt, args2);
+  Utils::VSNPrint(buffer, (len + 1), fmt, args2);
   va_end(args2);
 
   SetArgument(i, name, buffer);

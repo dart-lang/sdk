@@ -553,7 +553,7 @@ class OutlineBuilder extends UnhandledListener {
         modifiers.add(Const);
       }
     }
-    push(varFinalOrConst ?? NullValue.VarFinalOrConstToken);
+    push(varFinalOrConst?.charOffset ?? -1);
     push(modifiers);
     library.beginNestedDeclaration("#method", hasMembers: false);
   }
@@ -634,7 +634,8 @@ class OutlineBuilder extends UnhandledListener {
     if ((modifiers & externalMask) != 0) {
       modifiers &= ~abstractMask;
     }
-    Token varFinalOrConst = pop(NullValue.VarFinalOrConstToken);
+    bool isConst = (modifiers & constMask) != 0;
+    int varFinalOrConstOffset = pop();
     List<MetadataBuilder> metadata = pop();
     String documentationComment = getDocumentationComment(beginToken);
     library
@@ -645,14 +646,10 @@ class OutlineBuilder extends UnhandledListener {
             ? null
             : library.computeAndValidateConstructorName(name, charOffset);
     if (constructorName != null) {
-      if (varFinalOrConst != null) {
-        if (optional('const', varFinalOrConst) &&
-            (endToken != null && !optional(';', endToken))) {
-          handleRecoverableError(messageConstConstructorWithBody,
-              varFinalOrConst, varFinalOrConst);
-          varFinalOrConst = null;
-          modifiers &= ~constMask;
-        }
+      if (isConst && bodyKind != MethodBody.Abstract) {
+        addCompileTimeError(
+            messageConstConstructorWithBody, varFinalOrConstOffset, 5);
+        modifiers &= ~constMask;
       }
       if (returnType != null) {
         // TODO(danrubel): Report this error on the return type
@@ -674,16 +671,10 @@ class OutlineBuilder extends UnhandledListener {
           endToken.charOffset,
           nativeMethodName);
     } else {
-      if (varFinalOrConst != null) {
-        if (optional('const', varFinalOrConst)) {
-          handleRecoverableError(
-              messageConstMethod, varFinalOrConst, varFinalOrConst);
-          varFinalOrConst = null;
-          modifiers &= ~constMask;
-        }
+      if (isConst) {
+        addCompileTimeError(messageConstMethod, varFinalOrConstOffset, 5);
+        modifiers &= ~constMask;
       }
-      // TODO(danrubel): report messageFieldInitializerOutsideConstructor
-      // for any parameter of the form `this.fieldName`.
       library.addProcedure(
           documentationComment,
           metadata,

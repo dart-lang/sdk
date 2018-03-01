@@ -250,15 +250,18 @@ class A {
   }
 
   test_import_uri_with_trailing() {
-    newFile('/project/bin/testA.dart', content: 'library libA;');
+    final filePath = '/project/bin/testA.dart';
+    final incompleteImportText = convertPathForImport('/project/bin/t');
+    newFile(filePath, content: 'library libA;');
     addTestFile('''
-      import '/project/bin/t^.dart';
-      main() {}''');
+    import "$incompleteImportText^.dart";
+    main() {}''');
     return getSuggestions().then((_) {
-      expect(replacementOffset, equals(completionOffset - 14));
-      expect(replacementLength, equals(5 + 14));
+      expect(replacementOffset,
+          equals(completionOffset - incompleteImportText.length));
+      expect(replacementLength, equals(5 + incompleteImportText.length));
       assertHasResult(
-          CompletionSuggestionKind.IMPORT, '/project/bin/testA.dart');
+          CompletionSuggestionKind.IMPORT, convertPathForImport(filePath));
       assertNoResult('test');
     });
   }
@@ -664,7 +667,7 @@ class B extends A {m() {^}}
   test_partFile() {
     newFile('/project/bin/testA.dart', content: '''
       library libA;
-      part "$testFile";
+      part "${convertPathForImport(testFile)}";
       import 'dart:html';
       class A { }
     ''');
@@ -687,7 +690,7 @@ class B extends A {m() {^}}
       class A { }''');
     addTestFile('''
       library libA;
-      part "/testA.dart";
+      part "${convertPathForImport("/testA.dart")}";
       import 'dart:html';
       main() {^}
     ''');

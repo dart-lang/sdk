@@ -598,17 +598,10 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   Type get runtimeType =>
       dart.wrapType(JS('', '#(#)', dart.getGenericClass(List), E));
 
-  Iterable<E> followedBy(Iterable<E> other) sync* {
-    yield* this;
-    yield* other;
-  }
+  Iterable<E> followedBy(Iterable<E> other) =>
+      new FollowedByIterable<E>.firstEfficient(this, other);
 
-  Iterable<T> whereType<T>() sync* {
-    for (var i = 0; i < this.length; i++) {
-      var element = this[i];
-      if (element is T) yield element;
-    }
-  }
+  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
 
   List<E> operator +(List<E> other) {
     int totalLength = this.length + other.length;

@@ -28,11 +28,6 @@ sample_extension: Skip
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
-[ $compiler == dartk && $strong ]
-sample_extension/test/sample_extension_app_snapshot_test: RuntimeError
-sample_extension/test/sample_extension_script_snapshot_test: RuntimeError
-sample_extension/test/sample_extension_test: RuntimeError
-
 [ $compiler == none && $mode == debug && $runtime == vm && $system == windows ]
 sample_extension/test/sample_extension_app_snapshot_test: Pass, RuntimeError # Issue 28842
 

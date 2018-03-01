@@ -149,7 +149,15 @@ class _UriSuggestionBuilder extends SimpleAstVisitor {
     }
     String uriPrefix = parentUri == '.' ? '' : parentUri;
 
-    String dirPath = resContext.normalize(parentUri);
+    // Only handle file uris in the format file:///xxx or /xxx
+    String parentUriScheme = Uri.parse(parentUri).scheme;
+    if (!parentUri.startsWith('file://') && parentUriScheme != '') {
+      return;
+    }
+
+    String dirPath = resProvider.pathContext.fromUri(parentUri);
+    dirPath = resContext.normalize(dirPath);
+
     if (resContext.isRelative(dirPath)) {
       String sourceDirPath = resContext.dirname(source.fullName);
       if (resContext.isAbsolute(sourceDirPath)) {

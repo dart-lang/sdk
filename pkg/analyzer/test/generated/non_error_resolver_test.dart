@@ -2707,6 +2707,7 @@ class C implements A, B {
   test_infer_mixin() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
+    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -2725,6 +2726,86 @@ class C extends A<B> with M {}
         resolutionMap.elementDeclaredByCompilationUnit(unit).getType('C');
     expect(classC.mixins, hasLength(1));
     expect(classC.mixins[0].toString(), 'M<B>');
+  }
+
+  @failingTest // Does not work with old task model
+  test_infer_mixin_multiplyConstrained() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    options.strongMode = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+
+abstract class B<U> {}
+
+class C {}
+
+class D {}
+
+class M<T, U> extends A<T> with B<U> {}
+
+class E extends A<C> implements B<D> {}
+
+class F extends E with M {}
+''');
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    ClassElement classF =
+        resolutionMap.elementDeclaredByCompilationUnit(unit).getType('F');
+    expect(classF.mixins, hasLength(1));
+    expect(classF.mixins[0].toString(), 'M<C, D>');
+  }
+
+  @failingTest // Does not work with old task model
+  test_infer_mixin_with_substitution() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    options.strongMode = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+
+class B {}
+
+class M<T> extends A<List<T>> {}
+
+class C extends A<List<B>> with M {}
+''');
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    ClassElement classC =
+        resolutionMap.elementDeclaredByCompilationUnit(unit).getType('C');
+    expect(classC.mixins, hasLength(1));
+    expect(classC.mixins[0].toString(), 'M<B>');
+  }
+
+  @failingTest // Does not work with old task model
+  test_infer_mixin_with_substitution_functionType() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    options.strongMode = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+
+class B {}
+
+class M<T, U> extends A<T Function(U)> {}
+
+class C extends A<int Function(String)> with M {}
+''');
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    CompilationUnit unit = analysisResult.unit;
+    ClassElement classC =
+        resolutionMap.elementDeclaredByCompilationUnit(unit).getType('C');
+    expect(classC.mixins, hasLength(1));
+    expect(classC.mixins[0].toString(), 'M<int, String>');
   }
 
   test_initializingFormalForNonExistentField() async {

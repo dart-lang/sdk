@@ -33,6 +33,7 @@ import '../../js_backend/mirrors_data.dart';
 import '../../js_backend/js_interop_analysis.dart';
 import '../../js_backend/runtime_types.dart'
     show RuntimeTypesChecks, RuntimeTypesNeed, RuntimeTypesEncoder;
+import '../../js_model/elements.dart' show JSignatureMethod;
 import '../../native/enqueue.dart' show NativeCodegenEnqueuer;
 import '../../options.dart';
 import '../../universe/selector.dart' show Selector;
@@ -93,8 +94,8 @@ class ProgramBuilder {
   /// Contains the collected information the program builder used to build
   /// the model.
   // The collector will be filled on the first call to `buildProgram`.
-  // It is stored and publicly exposed for backwards compatibility. New code
-  // (and in particular new emitters) should not use it.
+  // It is publicly exposed for backwards compatibility. New code
+  // (and in particular new emitters) should not access it outside this class.
   final Collector collector;
 
   final Registry _registry;
@@ -684,13 +685,15 @@ class ProgramBuilder {
         _namer,
         _rtiChecks,
         _rtiEncoder,
-        _jsInteropAnalysis);
+        _jsInteropAnalysis,
+        _options.useKernel,
+        _options.strongMode,
+        _options.disableRtiOptimization);
 
     void visitMember(MemberEntity member) {
       if (member.isInstanceMember && !member.isAbstract && !member.isField) {
-        // TODO(herhut): Remove once _buildMethod can no longer return null.
         Method method = _buildMethod(member);
-        if (method != null) methods.add(method);
+        if (method != null && member is! JSignatureMethod) methods.add(method);
       }
       if (member.isGetter || member.isField) {
         Map<Selector, SelectorConstraints> selectors =
@@ -752,7 +755,8 @@ class ProgramBuilder {
             visitStatics: true,
             isHolderInterceptedClass: isInterceptedClass);
 
-    TypeTestProperties typeTests = runtimeTypeGenerator.generateIsTests(cls,
+    TypeTestProperties typeTests = runtimeTypeGenerator.generateIsTests(
+        cls, _generatedCode,
         storeFunctionTypeInMetadata: _storeFunctionTypesInMetadata);
 
     List<StubMethod> checkedSetters = <StubMethod>[];

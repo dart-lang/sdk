@@ -2,76 +2,299 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
+import "dart:async" show Future, Stream;
 
-import 'package:front_end/src/testing/package_root.dart' as package_root;
-import 'package:path/path.dart' as path;
-import 'package:yaml/yaml.dart' show loadYaml;
+import "dart:convert" show utf8;
 
-main([List<String> arguments = const []]) async {
-  File file = new File(
-      path.join(package_root.packageRoot, 'front_end', 'messages.yaml'));
-  if (!await file.exists()) {
-    file = new File.fromUri(Uri.base.resolve('messages.yaml'));
-  }
-  Map yaml = loadYaml(await file.readAsString());
+import "dart:io" show File;
 
-  int untestedExampleCount = 0;
-  int missingExamplesCount = 0;
-  int missingAnalyzerCode = 0;
-  List<String> keysWithAnalyzerCodeButNoDart2JsCode = <String>[];
-  List<String> keys = yaml.keys.toList()..sort();
-  for (String name in keys) {
-    var description = yaml[name];
-    while (description is String) {
-      description = yaml[description];
-    }
-    Map map = description;
+import "dart:typed_data" show Uint8List;
 
-    int localUntestedExampleCount = countExamples(map, name, 'bytes');
-    localUntestedExampleCount += countExamples(map, name, 'declaration');
-    localUntestedExampleCount += countExamples(map, name, 'expression');
-    localUntestedExampleCount += countExamples(map, name, 'script');
-    localUntestedExampleCount += countExamples(map, name, 'statement');
-    if (localUntestedExampleCount == 0) ++missingExamplesCount;
-    untestedExampleCount += localUntestedExampleCount;
+import "package:testing/testing.dart"
+    show Chain, ChainContext, Result, Step, TestDescription, runMe;
 
-    if (map['analyzerCode'] == null) {
-      ++missingAnalyzerCode;
-    } else {
-      if (map['dart2jsCode'] == null) {
-        keysWithAnalyzerCodeButNoDart2JsCode.add(name);
+import "package:yaml/yaml.dart" show loadYaml;
+
+class MessageTestDescription extends TestDescription {
+  @override
+  final Uri uri;
+
+  @override
+  final String shortName;
+
+  final String name;
+
+  final Map data;
+
+  final Example example;
+
+  final String problem;
+
+  MessageTestDescription(this.uri, this.shortName, this.name, this.data,
+      this.example, this.problem);
+}
+
+class MessageTestSuite extends ChainContext {
+  final List<Step> steps = const <Step>[
+    const Validate(),
+    const Compile(),
+  ];
+
+  /// Convert all the examples found in `messages.yaml` to a test
+  /// description. In addition, for each problem found, create a test
+  /// description that has a problem. This problem will then be reported as a
+  /// failure by the [Validate] step that can be suppressed via the status
+  /// file.
+  Stream<MessageTestDescription> list(Chain suite) async* {
+    Uri uri = suite.uri.resolve("messages.yaml");
+    File file = new File.fromUri(uri);
+    Map yaml = loadYaml(await file.readAsString());
+    for (String name in yaml.keys) {
+      var data = yaml[name];
+      if (data is String) continue;
+
+      List<String> unknownKeys = <String>[];
+      List<Example> examples = <Example>[];
+      String analyzerCode;
+      String dart2jsCode;
+
+      for (String key in data.keys) {
+        var value = data[key];
+        switch (key) {
+          case "template":
+          case "tip":
+          case "severity":
+            break;
+
+          case "analyzerCode":
+            analyzerCode = value;
+            break;
+
+          case "dart2jsCode":
+            dart2jsCode = value;
+            break;
+
+          case "bytes":
+            if (value.first is List) {
+              for (List bytes in value) {
+                int i = 0;
+                examples.add(new BytesExample("bytes${++i}", name, bytes));
+              }
+            } else {
+              examples.add(new BytesExample("bytes", name, value));
+            }
+            break;
+
+          case "declaration":
+            if (value is List) {
+              int i = 0;
+              for (String declaration in value) {
+                examples.add(new DeclarationExample(
+                    "declaration${++i}", name, declaration));
+              }
+            } else {
+              examples.add(new DeclarationExample("declaration", name, value));
+            }
+            break;
+
+          case "expression":
+            if (value is List) {
+              int i = 0;
+              for (String expression in value) {
+                examples.add(new ExpressionExample(
+                    "expression${++i}", name, expression));
+              }
+            } else {
+              examples.add(new ExpressionExample("expression", name, value));
+            }
+            break;
+
+          case "script":
+            if (value is List) {
+              int i = 0;
+              for (String script in value) {
+                examples.add(new ScriptExample("script${++i}", name, script));
+              }
+            } else {
+              examples.add(new ScriptExample("script", name, value));
+            }
+            break;
+
+          case "statement":
+            if (value is List) {
+              int i = 0;
+              for (String statement in value) {
+                examples.add(
+                    new StatementExample("statement${++i}", name, statement));
+              }
+            } else {
+              examples.add(new StatementExample("statement", name, value));
+            }
+            break;
+
+          default:
+            unknownKeys.add(key);
+        }
+      }
+
+      MessageTestDescription createDescription(
+          String subName, Example example, String problem) {
+        String shortName = "$name/$subName";
+        if (problem != null) {
+          String base = "${Uri.base}";
+          String filename = "$uri";
+          if (filename.startsWith(base)) {
+            filename = filename.substring(base.length);
+          }
+          var location = data.span.start;
+          int line = location.line;
+          int column = location.column;
+          problem = "$filename:$line:$column: error:\n$problem";
+        }
+        return new MessageTestDescription(uri.resolve("#$shortName"), shortName,
+            name, data, example, problem);
+      }
+
+      for (Example example in examples) {
+        yield createDescription(example.name, example, null);
+      }
+
+      if (unknownKeys.isNotEmpty) {
+        yield createDescription(
+            "knownKeys", null, "Unknown keys: ${unknownKeys.join(' ')}");
+      }
+
+      if (examples.isEmpty) {
+        yield createDescription("example", null, "No example for $name");
+      }
+
+      if (analyzerCode == null) {
+        yield createDescription(
+            "analyzerCode", null, "No analyzer code for $name");
+      } else {
+        if (dart2jsCode == null) {
+          yield createDescription(
+              "dart2jsCode", null, "No dart2js code for $name");
+        }
       }
     }
   }
+}
 
-  if (keysWithAnalyzerCodeButNoDart2JsCode.isNotEmpty) {
-    print('${keysWithAnalyzerCodeButNoDart2JsCode.length}'
-        ' error codes have an analyzerCode but no dart2jsCode:');
-    for (String name in keysWithAnalyzerCodeButNoDart2JsCode) {
-      print('  $name');
-    }
-    print('');
+abstract class Example {
+  final String name;
+
+  final String expectedCode;
+
+  Example(this.name, this.expectedCode);
+
+  Uint8List get bytes;
+}
+
+class BytesExample extends Example {
+  @override
+  final Uint8List bytes;
+
+  BytesExample(String name, String code, List bytes)
+      : bytes = new Uint8List.fromList(bytes),
+        super(name, code);
+}
+
+class DeclarationExample extends Example {
+  final String declaration;
+
+  DeclarationExample(String name, String code, this.declaration)
+      : super(name, code);
+
+  @override
+  Uint8List get bytes {
+    return new Uint8List.fromList(utf8.encode("""
+$declaration
+
+main() {
+}
+"""));
   }
-  print('$untestedExampleCount examples not tested');
-  print('$missingExamplesCount error codes missing examples');
-  print('$missingAnalyzerCode error codes missing analyzer code');
-
-  // TODO(danrubel): Update this to assert each count == 0 and stays zero.
-  exit(keysWithAnalyzerCodeButNoDart2JsCode.isEmpty &&
-          untestedExampleCount > 0 &&
-          missingExamplesCount > 0 &&
-          missingAnalyzerCode > 0
-      ? 0
-      : 1);
 }
 
-int countExamples(Map map, String name, String key) {
-  var example = map[key];
-  if (example == null) return 0;
-  if (example is String) return 1;
-  if (example is List) return example.length;
-  if (example is Map) return example.length;
+class StatementExample extends Example {
+  final String statement;
 
-  throw 'Unknown value for $name $key --> ${example.runtimeType}\n  $example';
+  StatementExample(String name, String code, this.statement)
+      : super(name, code);
+
+  @override
+  Uint8List get bytes {
+    return new Uint8List.fromList(utf8.encode("""
+main() {
+  $statement
 }
+"""));
+  }
+}
+
+class ExpressionExample extends Example {
+  final String expression;
+
+  ExpressionExample(String name, String code, this.expression)
+      : super(name, code);
+
+  @override
+  Uint8List get bytes {
+    return new Uint8List.fromList(utf8.encode("""
+main() {
+  $expression;
+}
+"""));
+  }
+}
+
+class ScriptExample extends Example {
+  final String script;
+
+  ScriptExample(String name, String code, this.script) : super(name, code);
+
+  @override
+  Uint8List get bytes {
+    return new Uint8List.fromList(utf8.encode(script));
+  }
+}
+
+class Validate extends Step<MessageTestDescription, Example, MessageTestSuite> {
+  const Validate();
+
+  String get name => "validate";
+
+  Future<Result<Example>> run(
+      MessageTestDescription description, MessageTestSuite suite) async {
+    if (description.problem != null) {
+      return fail(null, description.problem);
+    } else {
+      return pass(description.example);
+    }
+  }
+}
+
+class Compile extends Step<Example, Null, MessageTestSuite> {
+  const Compile();
+
+  String get name => "compile";
+
+  Future<Result<Null>> run(Example example, MessageTestSuite suite) async {
+    // TODO(ahe): This is where I should actually compile the example and
+    // verify that only one message is reported, and it is the expected
+    // message.
+    if (example is! BytesExample) {
+      print(utf8.decode(example.bytes));
+    }
+    return pass(null);
+  }
+}
+
+Future<MessageTestSuite> createContext(
+    Chain suite, Map<String, String> environment) async {
+  return new MessageTestSuite();
+}
+
+main([List<String> arguments = const []]) =>
+    runMe(arguments, createContext, "../../testing.json");

@@ -86,7 +86,7 @@ class ScannerTest_Replacement extends ScannerTestBase {
     expect(open.isSynthetic, isFalse);
     expect(close.isSynthetic, isTrue);
     listener.assertErrors([
-      new TestError(0, ScannerErrorCode.EXPECTED_TOKEN, [expectedCloser]),
+      new TestError(1, ScannerErrorCode.EXPECTED_TOKEN, [expectedCloser]),
     ]);
   }
 
@@ -176,8 +176,8 @@ class ScannerTest_Replacement extends ScannerTestBase {
     expect(closeParen2.isSynthetic, isTrue);
     expect(eof.isEof, isTrue);
     listener.assertErrors([
-      new TestError(3, ScannerErrorCode.EXPECTED_TOKEN, [')']),
-      new TestError(5, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+      new TestError(6, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+      new TestError(7, ScannerErrorCode.EXPECTED_TOKEN, [')']),
     ]);
   }
 
@@ -200,9 +200,9 @@ class ScannerTest_Replacement extends ScannerTestBase {
     expect(eof.isEof, true);
 
     listener.assertErrors([
-      new TestError(2, ScannerErrorCode.EXPECTED_TOKEN, [')']),
-      new TestError(1, ScannerErrorCode.EXPECTED_TOKEN, [']']),
-      new TestError(0, ScannerErrorCode.EXPECTED_TOKEN, ['}']),
+      new TestError(4, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+      new TestError(4, ScannerErrorCode.EXPECTED_TOKEN, [']']),
+      new TestError(4, ScannerErrorCode.EXPECTED_TOKEN, ['}']),
     ]);
   }
 

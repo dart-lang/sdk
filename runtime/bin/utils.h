@@ -78,9 +78,6 @@ class StringUtils {
                                    intptr_t len = -1,
                                    intptr_t* result_len = NULL);
 
-  // Not all platforms support strndup.
-  static char* StrNDup(const char* s, intptr_t n);
-
  private:
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(StringUtils);

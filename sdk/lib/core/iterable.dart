@@ -186,11 +186,11 @@ abstract class Iterable<E> {
    * and, after that, the elements of [other], in the same order as in the
    * original iterables.
    */
-  Iterable<E> followedBy(Iterable<E> other) sync* {
-    // TODO(lrn): Optimize this (some operations can be more efficient,
-    // and the concatenation has efficient length if the source iterables do).
-    yield* this;
-    yield* other;
+  Iterable<E> followedBy(Iterable<E> other) {
+    if (this is EfficientLengthIterable<E>) {
+      return new FollowedByIterable<E>.firstEfficient(this, other);
+    }
+    return new FollowedByIterable<E>(this, other);
   }
 
   /**
@@ -236,9 +236,7 @@ abstract class Iterable<E> {
    * the returned [Iterable] may yield different results,
    * if the underlying elements change between iterations.
    */
-  Iterable<T> whereType<T>() sync* {
-    for (var element in this) if (element is T) yield (element as T);
-  }
+  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
 
   /**
    * Expands each element of this [Iterable] into zero or more elements.

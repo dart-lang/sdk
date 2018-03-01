@@ -2112,7 +2112,7 @@ LocalVariable* EffectGraphVisitor::EnterTempLocalScope(Value* value) {
   ASSERT(value->definition()->temp_index() == (owner()->temp_count() - 1));
   intptr_t index = GetCurrentTempLocalIndex();
   char name[64];
-  OS::SNPrint(name, 64, ":tmp_local%" Pd, index);
+  Utils::SNPrint(name, 64, ":tmp_local%" Pd, index);
   LocalVariable* var =
       new (Z) LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                             String::ZoneHandle(Z, Symbols::New(T, name)),

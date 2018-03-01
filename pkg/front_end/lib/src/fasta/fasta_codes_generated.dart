@@ -2033,8 +2033,7 @@ const MessageCode messageFieldInitializerOutsideConstructor = const MessageCode(
     analyzerCode: "FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR",
     dart2jsCode: "*fatal*",
     message: r"""Field formal parameters can only be used in a constructor.""",
-    tip:
-        r"""Try replacing the field formal parameter with a normal parameter.""");
+    tip: r"""Try removing 'this.'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFinalAndCovariant = messageFinalAndCovariant;
@@ -2399,6 +2398,19 @@ Message _withArgumentsImportHidesImport(String name, Uri uri_, Uri uri2_) {
       message: """Import of '$name' (from '$uri') hides import from '$uri2'.""",
       arguments: {'name': name, 'uri': uri_, 'uri2': uri2_});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInitializedVariableInForEach =
+    messageInitializedVariableInForEach;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInitializedVariableInForEach = const MessageCode(
+    "InitializedVariableInForEach",
+    analyzerCode: "INITIALIZED_VARIABLE_IN_FOR_EACH",
+    dart2jsCode: "*fatal*",
+    message: r"""The loop variable in a for-each loop can't be initialized.""",
+    tip:
+        r"""Try removing the initializer, or using a different kind of loop.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri_)> templateInputFileNotFound =
@@ -2788,6 +2800,8 @@ const Code<Null> codeInterpolationInUri = messageInterpolationInUri;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInterpolationInUri = const MessageCode(
     "InterpolationInUri",
+    analyzerCode: "INVALID_LITERAL_IN_CONFIGURATION",
+    dart2jsCode: "*fatal*",
     message: r"""Can't use string interpolation in a URI.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

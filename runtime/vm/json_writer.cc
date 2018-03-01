@@ -189,7 +189,7 @@ void JSONWriter::VPrintfValue(const char* format, va_list args) {
 
   va_list measure_args;
   va_copy(measure_args, args);
-  intptr_t len = OS::VSNPrint(NULL, 0, format, measure_args);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
   va_end(measure_args);
 
   MaybeOnStackBuffer mosb(len + 1);
@@ -197,7 +197,7 @@ void JSONWriter::VPrintfValue(const char* format, va_list args) {
 
   va_list print_args;
   va_copy(print_args, args);
-  intptr_t len2 = OS::VSNPrint(p, len + 1, format, print_args);
+  intptr_t len2 = Utils::VSNPrint(p, len + 1, format, print_args);
   va_end(print_args);
   ASSERT(len == len2);
 
@@ -265,7 +265,7 @@ void JSONWriter::VPrintfProperty(const char* name,
 
   va_list measure_args;
   va_copy(measure_args, args);
-  intptr_t len = OS::VSNPrint(NULL, 0, format, measure_args);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
   va_end(measure_args);
 
   MaybeOnStackBuffer mosb(len + 1);
@@ -273,7 +273,7 @@ void JSONWriter::VPrintfProperty(const char* name,
 
   va_list print_args;
   va_copy(print_args, args);
-  intptr_t len2 = OS::VSNPrint(p, len + 1, format, print_args);
+  intptr_t len2 = Utils::VSNPrint(p, len + 1, format, print_args);
   va_end(print_args);
   ASSERT(len == len2);
 

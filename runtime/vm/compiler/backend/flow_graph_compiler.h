@@ -189,12 +189,12 @@ class CompilerDeoptInfoWithStub : public CompilerDeoptInfo {
 
   const char* Name() const {
     const char* kFormat = "Deopt stub for id %d, reason: %s";
-    const intptr_t len = OS::SNPrint(NULL, 0, kFormat, deopt_id(),
-                                     DeoptReasonToCString(reason())) +
+    const intptr_t len = Utils::SNPrint(NULL, 0, kFormat, deopt_id(),
+                                        DeoptReasonToCString(reason())) +
                          1;
     char* chars = Thread::Current()->zone()->Alloc<char>(len);
-    OS::SNPrint(chars, len, kFormat, deopt_id(),
-                DeoptReasonToCString(reason()));
+    Utils::SNPrint(chars, len, kFormat, deopt_id(),
+                   DeoptReasonToCString(reason()));
     return chars;
   }
 

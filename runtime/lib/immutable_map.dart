@@ -5,11 +5,20 @@
 // part of "core_patch.dart";
 
 /// Immutable map class for compiler generated map literals.
+// TODO(lrn): Extend MapBase with UnmodifiableMapMixin when mixins
+// support forwarding const constructors.
 class _ImmutableMap<K, V> implements Map<K, V> {
   final _ImmutableList _kvPairs;
 
   const _ImmutableMap._create(_ImmutableList keyValuePairs)
       : _kvPairs = keyValuePairs;
+
+  Map<K2, V2> cast<K2, V2>() {
+    Map<Object, Object> self = this;
+    return (self is Map<K2, V2>) ? self : this.retype<K2, V2>();
+  }
+
+  Map<K2, V2> retype<K2, V2>() => Map.castFrom<K, V, K2, V2>(this);
 
   V operator [](Object key) {
     // To preserve the key-value order of the map literal, the keys are
@@ -66,6 +75,10 @@ class _ImmutableMap<K, V> implements Map<K, V> {
   }
 
   void operator []=(K key, V value) {
+    throw new UnsupportedError("Cannot set value in unmodifiable Map");
+  }
+
+  void addAll(Map<K, V> other) {
     throw new UnsupportedError("Cannot set value in unmodifiable Map");
   }
 

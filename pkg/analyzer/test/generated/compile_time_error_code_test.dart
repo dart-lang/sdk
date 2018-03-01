@@ -3955,9 +3955,40 @@ class C extends B with M {
     verify([source]);
   }
 
+  test_mixinInference_conflictingSubstitution() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    options.strongMode = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class M<T> extends A<Map<T, T>> {}
+class C extends A<Map<int, String>> with M {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION]);
+  }
+
+  test_mixinInference_impossibleSubstitution() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    options.strongMode = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class M<T> extends A<Map<T, T>> {}
+class C extends A<List<int>> with M {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION]);
+  }
+
   test_mixinInference_matchingClass() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
+    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -3972,6 +4003,7 @@ class C extends A<int> with M {}
   test_mixinInference_matchingClass_inPreviousMixin() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
+    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -3987,6 +4019,7 @@ class C extends Object with M1, M2 {}
   test_mixinInference_noMatchingClass() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
+    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -4002,6 +4035,7 @@ class C extends Object with M {}
   test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
+    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -4017,6 +4051,7 @@ class C extends Object with M implements A<B> {}
   test_mixinInference_noMatchingClass_namedMixinApplication() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
+    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -4032,6 +4067,7 @@ class C = Object with M;
   test_mixinInference_noMatchingClass_noSuperclassConstraint() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
+    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -4046,6 +4082,7 @@ class C extends Object with M {}
   test_mixinInference_noMatchingClass_typeParametersSupplied() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
+    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -4055,6 +4092,45 @@ class C extends Object with M<int> {}
 ''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
+  }
+
+  @failingTest // Does not work with old task model
+  test_mixinInference_recursiveSubtypeCheck() async {
+    // See dartbug.com/32353 for a detailed explanation.
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    options.strongMode = true;
+    resetWith(options: options);
+    Source source = addSource('''
+class ioDirectory implements ioFileSystemEntity {}
+
+class ioFileSystemEntity {}
+
+abstract class _LocalDirectory
+    extends _LocalFileSystemEntity<_LocalDirectory, ioDirectory>
+    with ForwardingDirectory, DirectoryAddOnsMixin {}
+
+abstract class _LocalFileSystemEntity<T extends FileSystemEntity,
+  D extends ioFileSystemEntity> extends ForwardingFileSystemEntity<T, D> {}
+
+abstract class FileSystemEntity implements ioFileSystemEntity {}
+
+abstract class ForwardingFileSystemEntity<T extends FileSystemEntity,
+  D extends ioFileSystemEntity> implements FileSystemEntity {}
+
+
+abstract class ForwardingDirectory<T extends Directory>
+    extends ForwardingFileSystemEntity<T, ioDirectory>
+    implements Directory {}
+
+abstract class Directory implements FileSystemEntity, ioDirectory {}
+
+abstract class DirectoryAddOnsMixin implements Directory {}
+''');
+    var analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    var mixins = analysisResult.unit.element.getType('_LocalDirectory').mixins;
+    expect(mixins[0].toString(), 'ForwardingDirectory<_LocalDirectory>');
   }
 
   test_mixinInheritsFromNotObject_classDeclaration_extends() async {

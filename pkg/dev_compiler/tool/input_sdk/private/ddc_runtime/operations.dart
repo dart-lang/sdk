@@ -26,12 +26,14 @@ class InvocationImpl extends Invocation {
         namedArguments = _namedArgsToSymbols(namedArguments),
         typeArguments = typeArguments == null
             ? const []
-            : typeArguments.map(wrapType).toList();
+            : new List.unmodifiable(typeArguments.map(wrapType));
 
   static Map<Symbol, dynamic> _namedArgsToSymbols(namedArgs) {
-    if (namedArgs == null) return {};
-    return new Map.fromIterable(getOwnPropertyNames(namedArgs),
-        key: _dartSymbol, value: (k) => JS('', '#[#]', namedArgs, k));
+    if (namedArgs == null) return const {};
+    return new Map.unmodifiable(new Map.fromIterable(
+        getOwnPropertyNames(namedArgs),
+        key: _dartSymbol,
+        value: (k) => JS('', '#[#]', namedArgs, k)));
   }
 }
 
@@ -206,7 +208,7 @@ _toDisplayName(name) => JS('', '''(() => {
       // Names starting with _ are escaped names used to disambiguate Dart and
       // JS names.
       if ($name[0] === '_') {
-        // Inverse of 
+        // Inverse of
         switch($name) {
           case '_get':
             return '[]';
@@ -293,7 +295,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
   // Apply type arguments
   if ($ftype instanceof $GenericFunctionType) {
     let formalCount = $ftype.formalCount;
-    
+
     if ($typeArgs == null) {
       $typeArgs = $ftype.instantiateDefaultBounds();
     } else if ($typeArgs.length != formalCount) {

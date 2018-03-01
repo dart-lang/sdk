@@ -25,4 +25,9 @@ platform_sources = [
   "text_buffer.h",
   "utils.cc",
   "utils.h",
+  "utils_android.cc",
+  "utils_fuchsia.cc",
+  "utils_linux.cc",
+  "utils_macos.cc",
+  "utils_win.cc",
 ]

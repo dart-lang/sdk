@@ -540,7 +540,7 @@ class JClosureCallMethod extends JMethod {
 class JSignatureMethod extends JMethod {
   JSignatureMethod(LibraryEntity enclosingLibrary, ClassEntity enclosingClass,
       ParameterStructure parameterStructure, AsyncMarker asyncMarker)
-      : super(enclosingLibrary, enclosingClass, const PublicName('\$signature'),
+      : super(enclosingLibrary, enclosingClass, Names.signature,
             parameterStructure, asyncMarker,
             isStatic: false, isExternal: false, isAbstract: false);
 

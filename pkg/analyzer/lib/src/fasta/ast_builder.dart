@@ -20,6 +20,7 @@ import 'package:front_end/src/fasta/parser.dart'
         optional,
         Parser;
 import 'package:front_end/src/fasta/scanner.dart' hide StringToken;
+import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
 import 'package:front_end/src/scanner/token.dart'
     show
         StringToken,
@@ -39,6 +40,7 @@ import 'package:front_end/src/fasta/messages.dart'
         messageDirectiveAfterDeclaration,
         messageFieldInitializerOutsideConstructor,
         messageIllegalAssignmentToNonAssignable,
+        messageInterpolationInUri,
         messageMissingAssignableSelector,
         messageNativeClauseShouldBeAnnotation,
         messageStaticConstructor;
@@ -1583,6 +1585,16 @@ class AstBuilder extends ScopeListener {
 
     StringLiteral libraryUri = pop();
     StringLiteral value = popIfNotNull(equalSign);
+    if (value is StringInterpolation) {
+      for (var child in value.childEntities) {
+        if (child is InterpolationExpression) {
+          // This error is reported in OutlineBuilder.endLiteralString
+          handleRecoverableError(
+              messageInterpolationInUri, child.beginToken, child.endToken);
+          break;
+        }
+      }
+    }
     DottedName name = pop();
     push(ast.configuration(ifKeyword, leftParen, name, equalSign, value,
         leftParen?.endGroup, libraryUri));
@@ -1831,9 +1843,13 @@ class AstBuilder extends ScopeListener {
       return;
     }
     debugEvent("Error: ${message.message}");
-    int offset = startToken.offset;
-    int length = endToken.end - offset;
-    addCompileTimeError(message, offset, length);
+    if (message.code.analyzerCode == null && startToken is ErrorToken) {
+      translateErrorToken(startToken, errorReporter.reportScannerError);
+    } else {
+      int offset = startToken.offset;
+      int length = endToken.end - offset;
+      addCompileTimeError(message, offset, length);
+    }
   }
 
   @override
@@ -2186,8 +2202,7 @@ class AstBuilder extends ScopeListener {
       if (parameters?.parameters != null) {
         parameters.parameters.forEach((FormalParameter param) {
           if (param is FieldFormalParameter) {
-            // Added comment in OutlineBuilder.endMethod at the location
-            // where this error could be reported.
+            // This error is reported in the BodyBuilder.endFormalParameter.
             handleRecoverableError(messageFieldInitializerOutsideConstructor,
                 param.thisKeyword, param.thisKeyword);
           }

@@ -2168,6 +2168,12 @@ abstract class IntegrationTestMixin {
    * outline: FlutterOutline
    *
    *   The outline associated with the file.
+   *
+   * instrumentationEdits: List<SourceEdit>
+   *
+   *   If the file has Flutter widgets that can be rendered, the list of edits
+   *   that should be applied to the file to instrument widgets and associate
+   *   them with outline nodes.
    */
   Stream<FlutterOutlineParams> onFlutterOutline;
 

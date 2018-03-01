@@ -115,6 +115,8 @@ abstract class _HashBase implements _HashVMBase {
   int get _checkSum => _usedData + _deletedKeys;
   bool _isModifiedSince(List oldData, int oldCheckSum) =>
       !identical(_data, oldData) || (_checkSum != oldCheckSum);
+
+  int get length;
 }
 
 class _OperatorEqualsAndHashCode {
@@ -144,7 +146,7 @@ class _InternalLinkedHashMap<K, V> extends _HashVMBase
   }
 }
 
-abstract class _LinkedHashMapMixin<K, V> implements _HashVMBase {
+abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
   int _hashCode(e);
   bool _equals(e1, e2);
   int get _checkSum;
@@ -401,7 +403,7 @@ class _CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
 // Iterates through _data[_offset + _step], _data[_offset + 2*_step], ...
 // and checks for concurrent modification.
 class _CompactIterable<E> extends Iterable<E> {
-  final _table;
+  final _HashBase _table;
   final List _data;
   final int _len;
   final int _offset;
@@ -419,7 +421,7 @@ class _CompactIterable<E> extends Iterable<E> {
 }
 
 class _CompactIterator<E> implements Iterator<E> {
-  final _table;
+  final _HashBase _table;
   final List _data;
   final int _len;
   int _offset;

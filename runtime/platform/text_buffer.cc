@@ -7,7 +7,6 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "platform/utils.h"
-#include "vm/os.h"
 #include "vm/unicode.h"
 
 namespace dart {
@@ -59,7 +58,7 @@ intptr_t TextBuffer::Printf(const char* format, ...) {
   va_start(args, format);
   intptr_t remaining = buf_size_ - msg_len_;
   ASSERT(remaining >= 0);
-  intptr_t len = OS::VSNPrint(buf_ + msg_len_, remaining, format, args);
+  intptr_t len = Utils::VSNPrint(buf_ + msg_len_, remaining, format, args);
   va_end(args);
   if (len >= remaining) {
     EnsureCapacity(len);
@@ -67,7 +66,7 @@ intptr_t TextBuffer::Printf(const char* format, ...) {
     ASSERT(remaining > len);
     va_list args2;
     va_start(args2, format);
-    intptr_t len2 = OS::VSNPrint(buf_ + msg_len_, remaining, format, args2);
+    intptr_t len2 = Utils::VSNPrint(buf_ + msg_len_, remaining, format, args2);
     va_end(args2);
     ASSERT(len == len2);
   }
@@ -163,7 +162,8 @@ void BufferFormatter::Print(const char* format, ...) {
 void BufferFormatter::VPrint(const char* format, va_list args) {
   intptr_t available = size_ - position_;
   if (available <= 0) return;
-  intptr_t written = OS::VSNPrint(buffer_ + position_, available, format, args);
+  intptr_t written =
+      Utils::VSNPrint(buffer_ + position_, available, format, args);
   if (written >= 0) {
     position_ += (available <= written) ? available : written;
   }

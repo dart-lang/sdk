@@ -3570,8 +3570,8 @@ class Foo {
     parseCompilationUnit("void f(int Function(",
         errors: usingFastaParser
             ? [
-                expectedError(ScannerErrorCode.EXPECTED_TOKEN, 6, 1),
-                expectedError(ScannerErrorCode.EXPECTED_TOKEN, 19, 1),
+                expectedError(ScannerErrorCode.EXPECTED_TOKEN, 20, 1),
+                expectedError(ScannerErrorCode.EXPECTED_TOKEN, 20, 1),
                 expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 8),
                 expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 20, 0),
               ]
@@ -3829,7 +3829,7 @@ class Wrong<T> {
     Configuration configuration = parser.parseConfiguration();
     expectNotNullIfNoErrors(configuration);
     listener.assertErrors([
-      expectedError(ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION, 9, 9)
+      expectedError(ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION, 12, 2)
     ]);
   }
 
@@ -4563,8 +4563,8 @@ class Wrong<T> {
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
     if (fe.Scanner.useFasta) {
-      listener
-          .assertErrors([expectedError(ScannerErrorCode.EXPECTED_TOKEN, 9, 1)]);
+      listener.assertErrors(
+          [expectedError(ScannerErrorCode.EXPECTED_TOKEN, 10, 1)]);
     } else {
       listener.assertErrorsWithCodes(
           [ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP]);
@@ -5296,7 +5296,7 @@ void main() {
   var x = "''', errors: [
       expectedError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 24, 1),
       fe.Scanner.useFasta
-          ? expectedError(ScannerErrorCode.EXPECTED_TOKEN, 12, 1)
+          ? expectedError(ScannerErrorCode.EXPECTED_TOKEN, 25, 1)
           : expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 1),
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 25, 0)
     ]);
@@ -5548,8 +5548,10 @@ void main() {
     expectNotNullIfNoErrors(list);
     // fasta scanner generates '(a, {b, c]})' where '}' is synthetic
     if (usingFastaParser) {
-      listener
-          .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1)]);
+      listener.assertErrors([
+        expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1),
+        expectedError(ScannerErrorCode.EXPECTED_TOKEN, 10, 1)
+      ]);
     } else {
       listener.assertErrors([
         expectedError(ScannerErrorCode.EXPECTED_TOKEN, 9, 1),
@@ -5565,8 +5567,10 @@ void main() {
     expectNotNullIfNoErrors(list);
     // fasta scanner generates '(a, [b, c}])' where ']' is synthetic
     if (usingFastaParser) {
-      listener
-          .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1)]);
+      listener.assertErrors([
+        expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1),
+        expectedError(ScannerErrorCode.EXPECTED_TOKEN, 10, 1)
+      ]);
     } else {
       listener.assertErrors([
         expectedError(ScannerErrorCode.EXPECTED_TOKEN, 4, 1),
@@ -15669,22 +15673,10 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
       for (Keyword keyword in Keyword.values) {
         if (keyword.isBuiltIn || keyword.isPseudo) {
           String lexeme = keyword.lexeme;
-          List<ExpectedError> expectedErrors = [];
-          if (lexeme == 'dynamic') {
-            expectedErrors = [
-              expectedError(
-                  ParserErrorCode.TYPE_ARGUMENTS_ON_TYPE_VARIABLE, 7, 1)
-            ];
-          }
-          parseCompilationUnit('$lexeme<T>(x) => 0;', errors: expectedErrors);
-          if (lexeme == 'dynamic') {
-            expectedErrors = [
-              expectedError(
-                  ParserErrorCode.TYPE_ARGUMENTS_ON_TYPE_VARIABLE, 16, 1)
-            ];
-          }
-          parseCompilationUnit('class C {$lexeme<T>(x) => 0;}',
-              errors: expectedErrors);
+          // The fasta type resolution phase will report an error
+          // on type arguments on `dynamic` (e.g. `dynamic<int>`).
+          parseCompilationUnit('$lexeme<T>(x) => 0;');
+          parseCompilationUnit('class C {$lexeme<T>(x) => 0;}');
         }
       }
     }

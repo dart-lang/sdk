@@ -130,6 +130,7 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
 
     default:
       if (errorCode == codeUnmatchedToken) {
+        charOffset = token.begin.endToken.charOffset;
         TokenType type = token.begin?.type;
         if (type == TokenType.OPEN_CURLY_BRACKET ||
             type == TokenType.STRING_INTERPOLATION_EXPRESSION) {

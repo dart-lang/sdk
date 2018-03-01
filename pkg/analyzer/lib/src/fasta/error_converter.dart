@@ -286,6 +286,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.ILLEGAL_CHARACTER, offset, length);
         return;
+      case "INITIALIZED_VARIABLE_IN_FOR_EACH":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, offset, length);
+        return;
       case "INVALID_ASSIGNMENT":
         var type1 = arguments['type'];
         var type2 = arguments['type2'];
@@ -294,6 +298,10 @@ class FastaErrorReporter {
             offset,
             length,
             [type1, type2]);
+        return;
+      case "INVALID_LITERAL_IN_CONFIGURATION":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION, offset, length);
         return;
       case "INVALID_AWAIT_IN_FOR":
         errorReporter?.reportErrorForOffset(
@@ -608,6 +616,13 @@ class FastaErrorReporter {
     Code code = message.code;
 
     reportByCode(code.analyzerCode, offset, length, message);
+  }
+
+  void reportScannerError(
+      ScannerErrorCode errorCode, int offset, List<Object> arguments) {
+    // TODO(danrubel): update client to pass length in addition to offset.
+    int length = 1;
+    errorReporter?.reportErrorForOffset(errorCode, offset, length, arguments);
   }
 
   void _reportByCode(

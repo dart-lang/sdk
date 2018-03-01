@@ -18,25 +18,7 @@ import 'package:async_helper/async_helper.dart';
  * the error/warning message in the list of white-listings for each file.
  */
 // TODO(johnniwinther): Support canonical URIs as keys.
-const Map<String, List<String>> WHITE_LIST = const {
-  "sdk/lib/_internal/js_runtime/lib/js_array.dart": const [
-    "Method type variables do not have a runtime value.",
-  ],
-  "sdk/lib/collection/iterable.dart": const [
-    "Method type variables do not have a runtime value.",
-  ],
-  "sdk/lib/collection/list.dart": const [
-    "Method type variables do not have a runtime value.",
-    "Method type variables are treated as `dynamic` in `as` expressions.",
-  ],
-  "sdk/lib/collection/set.dart": const [
-    "Method type variables do not have a runtime value.",
-  ],
-  "sdk/lib/core/iterable.dart": const [
-    "Method type variables do not have a runtime value.",
-    "Method type variables are treated as `dynamic` in `as` expressions.",
-  ],
-};
+const Map<String, List<String>> WHITE_LIST = const {};
 
 void main() {
   var uriList = new List<Uri>();

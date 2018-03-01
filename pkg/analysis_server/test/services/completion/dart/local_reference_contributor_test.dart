@@ -20,7 +20,14 @@ main() {
 class LocalReferenceContributorTest extends DartCompletionContributorTest {
   CompletionSuggestion assertSuggestLocalVariable(
       String name, String returnType,
-      {int relevance: DART_RELEVANCE_LOCAL_VARIABLE}) {
+      {int relevance: DART_RELEVANCE_LOCAL_VARIABLE,
+      bool hasTypeBoost: false,
+      bool hasSubtypeBoost: false}) {
+    if (hasTypeBoost) {
+      relevance += DART_RELEVANCE_BOOST_TYPE;
+    } else if (hasSubtypeBoost) {
+      relevance += DART_RELEVANCE_BOOST_SUBTYPE;
+    }
     // Local variables should only be suggested by LocalReferenceContributor
     CompletionSuggestion cs = assertSuggest(name,
         csKind: CompletionSuggestionKind.INVOCATION, relevance: relevance);
@@ -645,7 +652,7 @@ f(U u){ (u as ^) }''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertSuggestLocalVariable('a', 'int');
+    assertSuggestLocalVariable('a', 'int', hasTypeBoost: true);
     assertSuggestFunction('main', null,
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
     assertSuggestClass('A');
@@ -790,7 +797,11 @@ main() async {A a; await ^}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertSuggestLocalVariable('a', 'int');
+    // We should not have the type boost, but we do.
+    // The reason is that coveringNode is VariableDeclaration, and the
+    // entity is BinaryExpression, so the expected type is int.
+    // It would be more correct to use BinaryExpression as coveringNode.
+    assertSuggestLocalVariable('a', 'int', hasTypeBoost: true);
     assertNotSuggested('Object');
     assertNotSuggested('b');
   }
@@ -803,8 +814,7 @@ main() async {A a; await ^}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertSuggestLocalVariable('a', 'int',
-        relevance: DART_RELEVANCE_LOCAL_VARIABLE + DART_RELEVANCE_BOOST_TYPE);
+    assertSuggestLocalVariable('a', 'int', hasSubtypeBoost: true);
     assertNotSuggested('Object');
     assertNotSuggested('b');
     assertNotSuggested('==');
@@ -2168,10 +2178,91 @@ main() {
     await computeSuggestions();
 
     assertSuggestEnum('E');
-    assertSuggestEnumConst('E.one',
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
-    assertSuggestEnumConst('E.two',
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+    assertSuggestEnumConst('E.one', hasTypeBoost: true);
+    assertSuggestEnumConst('E.two', hasTypeBoost: true);
+
+    assertSuggestEnum('F');
+    assertSuggestEnumConst('F.three');
+    assertSuggestEnumConst('F.four');
+  }
+
+  test_enum_filter_assignment() async {
+    addTestSource('''
+enum E { one, two }
+enum F { three, four }
+
+main() {
+  E e;
+  e = ^;
+}
+''');
+    await computeSuggestions();
+
+    assertSuggestEnum('E');
+    assertSuggestEnumConst('E.one', hasTypeBoost: true);
+    assertSuggestEnumConst('E.two', hasTypeBoost: true);
+
+    assertSuggestEnum('F');
+    assertSuggestEnumConst('F.three');
+    assertSuggestEnumConst('F.four');
+  }
+
+  test_enum_filter_binaryEquals() async {
+    addTestSource('''
+enum E { one, two }
+enum F { three, four }
+
+main(E e) {
+  e == ^;
+}
+''');
+    await computeSuggestions();
+
+    assertSuggestEnum('E');
+    assertSuggestEnumConst('E.one', hasTypeBoost: true);
+    assertSuggestEnumConst('E.two', hasTypeBoost: true);
+
+    assertSuggestEnum('F');
+    assertSuggestEnumConst('F.three');
+    assertSuggestEnumConst('F.four');
+  }
+
+  test_enum_filter_switchCase() async {
+    addTestSource('''
+enum E { one, two }
+enum F { three, four }
+
+main(E e) {
+  switch (e) {
+    case ^
+  }
+}
+''');
+    await computeSuggestions();
+
+    assertSuggestEnum('E');
+    assertSuggestEnumConst('E.one', hasTypeBoost: true);
+    assertSuggestEnumConst('E.two', hasTypeBoost: true);
+
+    assertSuggestEnum('F');
+    assertSuggestEnumConst('F.three');
+    assertSuggestEnumConst('F.four');
+  }
+
+  test_enum_filter_variableDeclaration() async {
+    addTestSource('''
+enum E { one, two }
+enum F { three, four }
+
+main() {
+  E e = ^;
+}
+''');
+    await computeSuggestions();
+
+    assertSuggestEnum('E');
+    assertSuggestEnumConst('E.one', hasTypeBoost: true);
+    assertSuggestEnumConst('E.two', hasTypeBoost: true);
 
     assertSuggestEnum('F');
     assertSuggestEnumConst('F.three');
@@ -4197,11 +4288,9 @@ class X {foo(){A^.bar}}''');
 
     assertSuggestFunction('g', 'dynamic',
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
-    assertSuggestLocalVariable('t', 'dynamic',
-        relevance: DART_RELEVANCE_LOCAL_VARIABLE);
+    assertSuggestLocalVariable('t', 'dynamic');
     assertSuggestParameter('x', 'int', relevance: DART_RELEVANCE_PARAMETER);
-    assertSuggestLocalVariable('bar', 'dynamic',
-        relevance: DART_RELEVANCE_LOCAL_VARIABLE);
+    assertSuggestLocalVariable('bar', 'dynamic');
     assertNotSuggested('String');
   }
 

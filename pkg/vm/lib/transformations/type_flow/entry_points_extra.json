@@ -68,11 +68,6 @@
       "action": "call"
     },
     {
-      "library": "dart:_builtin",
-      "name": "_resolveScriptUri",
-      "action": "call"
-    },
-    {
       "library": "dart:math",
       "class": "_Random",
       "name": "_A",

@@ -34,13 +34,13 @@ class D {
 main() {
   new D().test();
   // Implicitly invokes D.c1.call(1)
-  Expect.equals(new D().c1(1), 2); //# 09: ok
+  Expect.equals(new D().c1(1), 2); //# 05: ok
   // Implicitly invokes D.d1.call(1)
-  Expect.equals(new D().d1(1), 2); //# 10: ok
+  Expect.equals(new D().d1(1), 2); //# 06: ok
   // Implicitly invokes D.c2.call(1)
-  Expect.equals(new D().c2(1), 2); //# 11: ok
+  Expect.equals(new D().c2(1), 2); //# 07: ok
   // Implicitly invokes D.d2.call(1)
-  Expect.equals(new D().d2(1), 2); //# 12: ok
+  Expect.equals(new D().d2(1), 2); //# 08: ok
   D d = new D();
   // Implicitly invokes d.c1.call(1)
   Expect.equals(d.c1(1), 2); //# 09: ok

@@ -39,14 +39,11 @@ cc/IsolateReload_TypeIdentityGeneric: Fail # Issue 28349
 cc/IsolateReload_TypeIdentityParameter: Fail # Issue 28349
 
 [ $compiler == app_jit ]
-dart/optimized_stacktrace_line_and_column_test: RuntimeError, OK # app-jit lacks column information
 dart/snapshot_version_test: Fail, OK # Expects to find script snapshot relative to Dart source.
 
 [ $compiler == dart2analyzer ]
 dart/byte_array_optimized_test: CompileTimeError # int64
 dart/byte_array_test: CompileTimeError # int64
-dart/optimized_stacktrace_line_and_column_test: StaticWarning
-dart/optimized_stacktrace_line_test: StaticWarning
 dart/truncating_ints_test: CompileTimeError # int64
 
 [ $compiler == dart2js ]
@@ -296,8 +293,6 @@ cc/IsolateReload_LibraryImportRemoved: Fail # Issue 32190
 cc/IsolateReload_LibraryLookup: Crash # Issue 32190
 cc/Mixin_PrivateSuperResolutionCrossLibraryShouldFail: Fail, Crash # Issue 32190
 cc/StackMapGC: Crash # Issue 32190
-dart/optimized_stacktrace_line_and_column_test: CompileTimeError # Issue 31586
-dart/optimized_stacktrace_line_test: CompileTimeError # Issue 31586
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
@@ -306,12 +301,7 @@ dart/optimized_stacktrace_line_test: CompileTimeError # Issue 31586
 dart/data_uri_spawn_test: Skip # Please triage.
 dart/snapshot_version_test: RuntimeError # Please triage.
 
-[ $compiler == dartkp && $strong ]
-dart/optimized_stacktrace_line_and_column_test: CompileTimeError
-dart/optimized_stacktrace_line_test: CompileTimeError
-
 [ $compiler == dartkp && !$strong ]
-dart/optimized_stacktrace_line_and_column_test: RuntimeError, OK # AOT lacks column information
 dart/truncating_ints_test: Skip # This test cannot be run in dartkp/legacy mode (gen_kernel does not pass --limit-ints-to-64-bits in legacy mode).
 
 [ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
@@ -321,9 +311,6 @@ dart/spawn_shutdown_test: SkipSlow
 
 [ $compiler == none && $runtime == drt ]
 dart/truncating_ints_test: Skip # Issue 14651
-
-[ $compiler == precompiler && $runtime == dart_precompiled ]
-dart/optimized_stacktrace_line_and_column_test: RuntimeError, OK # AOT lacks column information
 
 [ $mode == debug && $system == windows ]
 dart/spawn_shutdown_test: Skip # Flaky crashes unable to start thread; likely low memory on the bot.

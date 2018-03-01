@@ -528,7 +528,7 @@ void Heap::RegionName(Heap* heap, Space space, char* name, intptr_t name_size) {
     default:
       UNREACHABLE();
   }
-  OS::SNPrint(name, name_size, "dart-%s %s", space_name, isolate_name);
+  Utils::SNPrint(name, name_size, "dart-%s %s", space_name, isolate_name);
 }
 
 void Heap::AddRegionsToObjectSet(ObjectSet* set) const {

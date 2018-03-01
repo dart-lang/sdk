@@ -8,6 +8,9 @@
 // whether a parameter was passed.
 class _GrowableArrayMarker implements int {
   const _GrowableArrayMarker();
+  noSuchMethod(_) {
+    throw new UnimplementedError();
+  }
 }
 
 const _GROWABLE_ARRAY_MARKER = const _GrowableArrayMarker();

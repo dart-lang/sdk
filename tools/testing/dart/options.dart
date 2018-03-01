@@ -173,6 +173,9 @@ simdbc, simdbc64''',
     new _Option.bool(
         'dart2js_with_kernel', 'Pass the --use-kernel flag to dart2js.',
         hide: true),
+    new _Option.bool(
+        'dart2js_old_frontend', 'Pass the --use-old-frontend flag to dart2js.',
+        hide: true),
     new _Option.bool('hot_reload', 'Run hot reload stress tests.', hide: true),
     new _Option.bool(
         'hot_reload_rollback', 'Run hot reload rollback stress tests.',
@@ -649,6 +652,7 @@ compiler.''',
                 useFastStartup: data["fast_startup"] as bool,
                 useEnableAsserts: data["enable_asserts"] as bool,
                 useDart2JSWithKernel: data["dart2js_with_kernel"] as bool,
+                useDart2JSOldFrontend: data["dart2js_old_frontend"] as bool,
                 writeDebugLog: data["write_debug_log"] as bool,
                 writeTestOutcomeLog: data["write_test_outcome_log"] as bool,
                 writeResultLog: data["write_result_log"] as bool,

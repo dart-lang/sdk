@@ -3,22 +3,25 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * File, socket, HTTP, and other I/O support for server applications.
+ * File, socket, HTTP, and other I/O support for non-web applications.
  *
- * The I/O library is used for Dart server applications,
- * which run on a stand-alone Dart VM from the command line.
- * *This library does not work in browser-based applications.*
+ * **Important:** Browser-based applications can't use this library.
+ * Only servers, command-line scripts, and Flutter mobile apps can import
+ * and use dart:io.
  *
  * This library allows you to work with files, directories,
  * sockets, processes, HTTP servers and clients, and more.
+ * Many operations related to input and output are asynchronous
+ * and are handled using [Future]s or [Stream]s, both of which
+ * are defined in the [dart:async
+ * library](../dart-async/dart-async-library.html).
  *
- * To use this library in your code:
+ * To use the dart:io library in your code:
  *
  *     import 'dart:io';
  *
- * *Note:* Many operations related to input and output are asynchronous
- * and are handled using [Future]s or [Stream]s, both of which
- * are defined in the `dart:async` library.
+ * For an introduction to I/O in Dart, see the [dart:io library
+ * tour](https://www.dartlang.org/dart-vm/io-library-tour).
  *
  * ## File, Directory, and Link
  *
@@ -182,14 +185,6 @@
  * (the program blocks waiting for user to type information):
  *
  *      String inputText = stdin.readLineSync();
- *
- * ## Other resources
- *
- * For an introduction to I/O in Dart, see the [dart:io section of the library
- * tour](https://www.dartlang.org/docs/dart-up-and-running/ch03.html#dartio---io-for-command-line-apps).
- *
- * To learn more about I/O in Dart, refer to the [tutorial about writing
- * command-line apps](https://www.dartlang.org/docs/tutorials/cmdline/).
  */
 library dart.io;
 

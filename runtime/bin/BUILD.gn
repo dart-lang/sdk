@@ -6,6 +6,7 @@ import("../../build/compiled_action.gni")
 import("../../sdk/lib/_http/http_sources.gni")
 import("../../sdk/lib/io/io_sources.gni")
 import("../../sdk/lib/cli/cli_sources.gni")
+import("../../utils/generate_entry_points_json.gni")
 import("../runtime_args.gni")
 import("../vm/compiler/compiler_sources.gni")
 import("../vm/vm_sources.gni")
@@ -751,20 +752,27 @@ source_set("dart_snapshot_cc") {
   deps = [
     ":isolate_snapshot_data_assembly",
     ":isolate_snapshot_instructions_assembly",
-    ":kernel_service_dill_cc",
-    ":platform_dill_cc",
-    ":platform_strong_dill_cc",
     ":vm_snapshot_data_assembly",
     ":vm_snapshot_instructions_assembly",
   ]
   sources = [
-    "$root_gen_dir/kernel_service.dill.cc",
     "$target_gen_dir/isolate_snapshot_data.S",
     "$target_gen_dir/isolate_snapshot_instructions.S",
-    "$target_gen_dir/vm_platform.dill.cc",
-    "$target_gen_dir/vm_platform_strong.dill.cc",
     "$target_gen_dir/vm_snapshot_data.S",
     "$target_gen_dir/vm_snapshot_instructions.S",
+  ]
+}
+
+source_set("dart_kernel_platform_cc") {
+  deps = [
+    ":kernel_service_dill_cc",
+    ":platform_dill_cc",
+    ":platform_strong_dill_cc",
+  ]
+  sources = [
+    "$root_gen_dir/kernel_service.dill.cc",
+    "$target_gen_dir/vm_platform.dill.cc",
+    "$target_gen_dir/vm_platform_strong.dill.cc",
   ]
 }
 
@@ -872,6 +880,9 @@ dart_executable("dart") {
   if (dart_runtime_mode != "release") {
     extra_deps += [ "../observatory:standalone_observatory_archive" ]
   }
+  if (dart_runtime_mode != "release") {
+    extra_deps += [ ":dart_kernel_platform_cc" ]
+  }
   extra_sources = [
     "builtin_nolib.cc",
     "dfe.cc",
@@ -931,6 +942,9 @@ dart_executable("dart_bootstrap") {
     ":generate_web_sql_cc_file",
     "..:libdart_nosnapshot_with_precompiler",
   ]
+  if (dart_runtime_mode != "release") {
+    extra_deps += [ ":dart_kernel_platform_cc" ]
+  }
   extra_defines = [ "NO_OBSERVATORY" ]
   extra_sources = [
     "builtin.cc",
@@ -1108,6 +1122,7 @@ executable("run_vm_tests") {
   }
 
   deps = [
+    ":dart_kernel_platform_cc",
     ":dart_snapshot_cc",
     ":generate_snapshot_test_dat_file",
     ":libdart_builtin",
@@ -1206,29 +1221,10 @@ shared_library("sample_extension") {
   }
 }
 
-compiled_action("precompiler_entry_points_json") {
-  # Printing precompiler entry points is folded into precompilation, so dart_bootstrap is invoked
-  # with correct arguments to generate app-aot snapshot.
-
+generate_entry_points_json_with_dart_bootstrap(
+    "precompiler_entry_points_json") {
   # Dart script to precompile (any valid script would suffice).
-  input = "../vm/snapshot_test.dart"
-
-  # Output snapshot for precompilation.
-  snapshot = "$target_gen_dir/dummy.snapshot"
+  input = "../tests/vm/dart/hello_world_test.dart"
 
   output = "$target_gen_dir/precompiler_entry_points.json"
-  tool = ":dart_bootstrap"
-  inputs = [
-    input,
-  ]
-  outputs = [
-    output,
-  ]
-  args = [
-    "--print-precompiler-entry-points=" + rebase_path(output),
-    "--snapshot=" + rebase_path(snapshot),
-    "--snapshot-kind=app-aot",
-    "--use-blobs",
-    rebase_path(input),
-  ]
 }

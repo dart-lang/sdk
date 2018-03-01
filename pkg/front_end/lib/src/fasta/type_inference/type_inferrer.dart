@@ -83,7 +83,7 @@ import '../names.dart' show callName;
 
 import '../parser.dart' show noLength;
 
-import '../problems.dart' show unhandled;
+import '../problems.dart' show unexpected, unhandled;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -967,8 +967,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       BuilderHelper helper, DartType declaredType, Expression initializer) {
     assert(closureContext == null);
     this.helper = helper;
-    var actualType =
-        inferExpression(initializer, declaredType, declaredType != null);
+    var actualType = inferExpression(
+        initializer, declaredType ?? const UnknownType(), declaredType != null);
     if (declaredType != null) {
       ensureAssignable(
           declaredType, actualType, initializer, initializer.fileOffset);
@@ -980,8 +980,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   ///
   /// Derived classes should provide an implementation that calls
   /// [inferExpression] for the given [field]'s initializer expression.
-  DartType inferFieldTopLevel(
-      ShadowField field, DartType type, bool typeNeeded);
+  DartType inferFieldTopLevel(ShadowField field, bool typeNeeded);
 
   @override
   void inferFunctionBody(BuilderHelper helper, DartType returnType,
@@ -1287,7 +1286,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       // replaced during type inference.
       new ListLiteral(annotations);
       for (var annotation in annotations) {
-        inferExpression(annotation, null, false);
+        inferExpression(annotation, const UnknownType(), false);
       }
       this.helper = null;
     }
@@ -1303,8 +1302,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       Name methodName,
       Arguments arguments}) {
     // First infer the receiver so we can look up the method that was invoked.
-    var receiverType =
-        receiver == null ? thisType : inferExpression(receiver, null, true);
+    var receiverType = receiver == null
+        ? thisType
+        : inferExpression(receiver, const UnknownType(), true);
     if (strongMode) {
       receiverVariable?.type = receiverType;
     }
@@ -1369,8 +1369,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       Object interfaceMember,
       Name propertyName}) {
     // First infer the receiver so we can look up the getter that was invoked.
-    var receiverType =
-        receiver == null ? thisType : inferExpression(receiver, null, true);
+    var receiverType = receiver == null
+        ? thisType
+        : inferExpression(receiver, const UnknownType(), true);
     if (strongMode) {
       receiverVariable?.type = receiverType;
     }
@@ -1691,11 +1692,28 @@ class StrongModeMixinInferrer implements MixinInferrer {
       // where the type parameters of S0&M0 are the X0, ..., Xn that occured
       // free in S0 and M0.  Treat S0 and M0 as separate supertype constraints
       // by recursively calling this algorithm.
+      //
+      // In some back ends (e.g., the Dart VM) the mixin application classes
+      // themselves are all eliminated by translating them to normal classes.
+      // In that case, the mixin appears as the only interface in the
+      // introduced class:
+      //
+      // class S0&M0<...> extends S0 implements M0 {}
+      var mixinSuperclass = mixinSupertype.classNode;
+      if (mixinSuperclass.mixedInType == null &&
+          mixinSuperclass.implementedTypes.length != 1) {
+        unexpected(
+            'Compiler-generated mixin applications have a mixin or else '
+            'implement exactly one type',
+            '$mixinSuperclass implements '
+            '${mixinSuperclass.implementedTypes.length} types',
+            mixinSuperclass.fileOffset,
+            mixinSuperclass.fileUri);
+      }
       var substitution = Substitution.fromSupertype(mixinSupertype);
-      var s0 =
-          substitution.substituteSupertype(mixinSupertype.classNode.supertype);
-      var m0 = substitution
-          .substituteSupertype(mixinSupertype.classNode.mixedInType);
+      var s0 = substitution.substituteSupertype(mixinSuperclass.supertype);
+      var m0 = substitution.substituteSupertype(mixinSuperclass.mixedInType ??
+          mixinSuperclass.implementedTypes.first);
       generateConstraints(hierarchy, mixinClass, baseType, s0);
       generateConstraints(hierarchy, mixinClass, baseType, m0);
     } else {

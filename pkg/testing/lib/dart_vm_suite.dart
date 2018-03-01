@@ -15,12 +15,13 @@ class VmContext extends ChainContext {
   final List<Step> steps = const <Step>[const DartVmStep()];
 }
 
-class DartVmStep extends Step<TestDescription, int, VmContext> {
+class DartVmStep extends Step<FileBasedTestDescription, int, VmContext> {
   const DartVmStep();
 
   String get name => "Dart VM";
 
-  Future<Result<int>> run(TestDescription input, VmContext context) async {
+  Future<Result<int>> run(
+      FileBasedTestDescription input, VmContext context) async {
     StdioProcess process = await StdioProcess.run("dart", [input.file.path]);
     return process.toResult();
   }

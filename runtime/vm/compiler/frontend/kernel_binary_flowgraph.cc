@@ -732,23 +732,35 @@ DirectCallMetadata DirectCallMetadataHelper::GetDirectTargetForMethodInvocation(
   return DirectCallMetadata(target, check_receiver_for_null);
 }
 
-bool ProcedureAttributesMetadataHelper::ReadMetadata(intptr_t node_offset,
-                                                     bool* has_dynamic_calls) {
+bool ProcedureAttributesMetadataHelper::ReadMetadata(
+    intptr_t node_offset,
+    ProcedureAttributesMetadata* metadata) {
   intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
   if (md_offset < 0) {
-    *has_dynamic_calls = true;
     return false;
   }
-  *has_dynamic_calls = false;
+
+  AlternativeReadingScope alt(builder_->reader_, &H.metadata_payloads(),
+                              md_offset - MetadataPayloadOffset);
+
+  const int kDynamicUsesBit = 1 << 0;
+  const int kNonThisUsesBit = 1 << 1;
+  const int kTearOffUsesBit = 1 << 2;
+
+  const uint8_t flags = builder_->ReadByte();
+  metadata->has_dynamic_invocations =
+      (flags & kDynamicUsesBit) == kDynamicUsesBit;
+  metadata->has_non_this_uses = (flags & kNonThisUsesBit) == kNonThisUsesBit;
+  metadata->has_tearoff_uses = (flags & kTearOffUsesBit) == kTearOffUsesBit;
   return true;
 }
 
 ProcedureAttributesMetadata
 ProcedureAttributesMetadataHelper::GetProcedureAttributes(
     intptr_t node_offset) {
-  bool has_dynamic_calls = true;
-  ReadMetadata(node_offset, &has_dynamic_calls);
-  return ProcedureAttributesMetadata(has_dynamic_calls);
+  ProcedureAttributesMetadata metadata;
+  ReadMetadata(node_offset, &metadata);
+  return metadata;
 }
 
 InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
@@ -973,7 +985,7 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
 
       // Continue reading FunctionNode:
       // read positional_parameters and named_parameters.
-      AddPositionalAndNamedParameters(pos, type_check_mode);
+      AddPositionalAndNamedParameters(pos, type_check_mode, attrs);
 
       // We generate a synthetic body for implicit closure functions - which
       // will forward the call to the real function.
@@ -1032,7 +1044,8 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
           field_helper.ReadUntilIncluding(FieldHelper::kFlags);
 
           if (!field_helper.IsCovariant() &&
-              !field_helper.IsGenericCovariantImpl()) {
+              (!field_helper.IsGenericCovariantImpl() ||
+               (!attrs.has_non_this_uses && !attrs.has_tearoff_uses))) {
             result_->setter_value->set_type_check_mode(
                 LocalVariable::kTypeCheckedByCaller);
           }
@@ -2032,7 +2045,9 @@ void StreamingScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {
   // read positional_parameters and named_parameters.
   function_node_helper.ReadUntilExcluding(
       FunctionNodeHelper::kPositionalParameters);
-  AddPositionalAndNamedParameters(0, kTypeCheckAllParameters);
+
+  ProcedureAttributesMetadata default_attrs;
+  AddPositionalAndNamedParameters(0, kTypeCheckAllParameters, default_attrs);
 
   // "Peek" is now done.
   builder_->SetOffset(offset);
@@ -2060,23 +2075,25 @@ void StreamingScopeBuilder::ExitScope(TokenPosition start_position,
 
 void StreamingScopeBuilder::AddPositionalAndNamedParameters(
     intptr_t pos,
-    ParameterTypeCheckMode type_check_mode /* = kTypeCheckAllParameters*/) {
+    ParameterTypeCheckMode type_check_mode /* = kTypeCheckAllParameters*/,
+    const ProcedureAttributesMetadata& attrs) {
   // List of positional.
   intptr_t list_length = builder_->ReadListLength();  // read list length.
   for (intptr_t i = 0; i < list_length; ++i) {
-    AddVariableDeclarationParameter(pos++, type_check_mode);
+    AddVariableDeclarationParameter(pos++, type_check_mode, attrs);
   }
 
   // List of named.
   list_length = builder_->ReadListLength();  // read list length.
   for (intptr_t i = 0; i < list_length; ++i) {
-    AddVariableDeclarationParameter(pos++, type_check_mode);
+    AddVariableDeclarationParameter(pos++, type_check_mode, attrs);
   }
 }
 
 void StreamingScopeBuilder::AddVariableDeclarationParameter(
     intptr_t pos,
-    ParameterTypeCheckMode type_check_mode) {
+    ParameterTypeCheckMode type_check_mode,
+    const ProcedureAttributesMetadata& attrs) {
   intptr_t kernel_offset = builder_->ReaderOffset();  // no tag.
   const InferredTypeMetadata parameter_type =
       builder_->inferred_type_metadata_helper_.GetInferredType(kernel_offset);
@@ -2096,14 +2113,16 @@ void StreamingScopeBuilder::AddVariableDeclarationParameter(
     variable->set_is_forced_stack();
   }
 
-  const bool is_covariant =
-      helper.IsGenericCovariantImpl() || helper.IsCovariant();
+  const bool needs_covariant_checke_in_method =
+      helper.IsCovariant() ||
+      (helper.IsGenericCovariantImpl() && attrs.has_non_this_uses);
+
   switch (type_check_mode) {
     case kTypeCheckAllParameters:
       variable->set_type_check_mode(LocalVariable::kDoTypeCheck);
       break;
     case kTypeCheckForTearOffOfNonDynamicallyInvokedMethod:
-      if (is_covariant) {
+      if (needs_covariant_checke_in_method) {
         // Don't type check covariant parameters - they will be checked by
         // a function we forward to. Their types however are not known.
         variable->set_type_check_mode(LocalVariable::kSkipTypeCheck);
@@ -2112,7 +2131,7 @@ void StreamingScopeBuilder::AddVariableDeclarationParameter(
       }
       break;
     case kTypeCheckForNonDynamicallyInvokedMethod:
-      if (is_covariant) {
+      if (needs_covariant_checke_in_method) {
         variable->set_type_check_mode(LocalVariable::kDoTypeCheck);
       } else {
         // Types of non-covariant parameters are guaranteed to match by
@@ -2271,7 +2290,7 @@ void StreamingScopeBuilder::LookupVariable(intptr_t declaration_binary_offset) {
 const String& StreamingScopeBuilder::GenerateName(const char* prefix,
                                                   intptr_t suffix) {
   char name[64];
-  OS::SNPrint(name, 64, "%s%" Pd "", prefix, suffix);
+  Utils::SNPrint(name, 64, "%s%" Pd "", prefix, suffix);
   return H.DartSymbolObfuscate(name);
 }
 

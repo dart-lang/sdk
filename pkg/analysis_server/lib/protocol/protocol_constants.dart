@@ -208,6 +208,8 @@ const String EXECUTION_RESPONSE_MAP_URI_FILE = 'file';
 const String EXECUTION_RESPONSE_MAP_URI_URI = 'uri';
 const String FLUTTER_NOTIFICATION_OUTLINE = 'flutter.outline';
 const String FLUTTER_NOTIFICATION_OUTLINE_FILE = 'file';
+const String FLUTTER_NOTIFICATION_OUTLINE_INSTRUMENTATION_EDITS =
+    'instrumentationEdits';
 const String FLUTTER_NOTIFICATION_OUTLINE_OUTLINE = 'outline';
 const String FLUTTER_REQUEST_SET_SUBSCRIPTIONS = 'flutter.setSubscriptions';
 const String FLUTTER_REQUEST_SET_SUBSCRIPTIONS_SUBSCRIPTIONS = 'subscriptions';

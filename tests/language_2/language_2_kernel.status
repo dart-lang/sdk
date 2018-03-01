@@ -11,6 +11,7 @@
 # to add them.
 
 [ $compiler == dartkp ]
+bug32353_test: DartkCrash # Issue 32353
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 duplicate_implements_test/01: MissingCompileTimeError
@@ -19,6 +20,7 @@ generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_no_such_method_dispatcher_test: RuntimeError # Issue 31424
 mock_writable_final_field_test: RuntimeError # Issue 31424
 no_such_method_subtype_test: RuntimeError # Issue 31424
+
 
 [ $fasta ]
 abstract_factory_constructor_test/00: MissingCompileTimeError # Issue 32013.
@@ -578,6 +580,7 @@ arithmetic2_test: RuntimeError # Throws CastError instead of TypeError
 async_star_cancel_while_paused_test: RuntimeError
 async_star_pause_test: Fail, OK
 async_star_test/02: RuntimeError # Issue 31402 (Invocation arguments)
+bug32353_test: DartkCrash # Issue 32353
 built_in_identifier_prefix_test: CompileTimeError
 call_method_must_not_be_field_test/03: RuntimeError # Issue 32265
 call_method_must_not_be_getter_test/03: RuntimeError # Issue 32265
@@ -1105,6 +1108,7 @@ super_operator_index7_test: CompileTimeError
 super_operator_index8_test: CompileTimeError
 super_test: Fail, OK
 syntax_test/00: MissingCompileTimeError
+tearoff_dynamic_test: Crash
 type_literal_test: RuntimeError
 type_promotion_functions_test/02: CompileTimeError # Issue 31537
 type_promotion_functions_test/03: CompileTimeError # Issue 31537

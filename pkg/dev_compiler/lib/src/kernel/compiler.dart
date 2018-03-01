@@ -183,6 +183,9 @@ class ProgramCompiler
   final _labelNames = new HashMap<Statement, String>.identity();
 
   final Class _jsArrayClass;
+  final Class _jsBoolClass;
+  final Class _jsNumberClass;
+  final Class _jsStringClass;
   final Class privateSymbolClass;
   final Class linkedHashMapImplClass;
   final Class identityHashMapImplClass;
@@ -219,6 +222,11 @@ class ProgramCompiler
         _constants = new ConstantVisitor(nativeTypes.coreTypes),
         _jsArrayClass =
             nativeTypes.sdk.getClass('dart:_interceptors', 'JSArray'),
+        _jsBoolClass = nativeTypes.sdk.getClass('dart:_interceptors', 'JSBool'),
+        _jsNumberClass =
+            nativeTypes.sdk.getClass('dart:_interceptors', 'JSNumber'),
+        _jsStringClass =
+            nativeTypes.sdk.getClass('dart:_interceptors', 'JSString'),
         _asyncStreamIteratorClass =
             nativeTypes.sdk.getClass('dart:async', 'StreamIterator'),
         privateSymbolClass =
@@ -2316,7 +2324,7 @@ class ProgramCompiler
         type == coreTypes.objectClass) {
       return isObjectMember(name);
     } else if (type is InterfaceType) {
-      var c = type.classNode;
+      var c = getImplementationClass(type) ?? type.classNode;
       if (_extensionTypes.isNativeClass(c)) {
         var member = _lookupForwardedMember(c, name);
 
@@ -4693,6 +4701,14 @@ class ProgramCompiler
     if (t is JSNumber) return 'number';
     if (t is JSString) return 'string';
     if (t is JSBoolean) return 'boolean';
+    return null;
+  }
+
+  Class getImplementationClass(DartType type) {
+    var t = _typeRep.typeFor(type);
+    if (t is JSNumber) return _jsNumberClass;
+    if (t is JSString) return _jsStringClass;
+    if (t is JSBoolean) return _jsBoolClass;
     return null;
   }
 

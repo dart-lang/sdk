@@ -14,13 +14,12 @@ import 'dart:isolate' show Isolate, ReceivePort;
 
 import 'test_root.dart' show TestRoot;
 
-import 'test_description.dart' show TestDescription;
-
 import 'error_handling.dart' show withErrorHandling;
 
 import 'chain.dart' show CreateContext;
 
-import '../testing.dart' show Chain, ChainContext, TestDescription, listTests;
+import '../testing.dart'
+    show Chain, ChainContext, FileBasedTestDescription, listTests;
 
 import 'analyze.dart' show Analyze;
 
@@ -164,7 +163,7 @@ class SuiteRunner {
     StringBuffer chain = new StringBuffer();
     bool hasRunnableTests = false;
 
-    await for (TestDescription description in listDescriptions()) {
+    await for (FileBasedTestDescription description in listDescriptions()) {
       hasRunnableTests = true;
       description.writeImportOn(imports);
       description.writeClosureOn(dart);
@@ -228,9 +227,9 @@ Future<Null> main() async {
     return hasAnalyzerSuites;
   }
 
-  Stream<TestDescription> listDescriptions() async* {
+  Stream<FileBasedTestDescription> listDescriptions() async* {
     for (Dart suite in suites.where((Suite suite) => suite is Dart)) {
-      await for (TestDescription description
+      await for (FileBasedTestDescription description
           in listTests(<Uri>[suite.uri], pattern: "")) {
         testUris.add(await Isolate.resolvePackageUri(description.uri));
         if (shouldRunSuite(suite)) {

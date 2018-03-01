@@ -382,14 +382,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_initializedVariableInForEach() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, found 0
-    super.test_initializedVariableInForEach();
-  }
-
-  @override
-  @failingTest
   void test_invalidCodePoint() {
     // TODO(brianwilkerson) Does not recover.
     //   Internal problem: Compiler cannot run without a compiler context.
@@ -508,14 +500,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     //   package:front_end/src/fasta/parser/parser.dart 2942:11             Parser.parseExpression
     //   test/generated/parser_fasta_test.dart 3196:39                      ParserProxy._run
     super.test_invalidInterpolationIdentifier_startWithDigit();
-  }
-
-  @override
-  @failingTest
-  void test_invalidLiteralInConfiguration() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION, found 0
-    super.test_invalidLiteralInConfiguration();
   }
 
   @override
@@ -789,13 +773,9 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   }
 
   @override
-  @failingTest
   void test_method_invalidTypeParameterExtendsComment() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 2 errors of type ParserErrorCode.EXPECTED_TOKEN, found 0;
-    // 2 errors of type ParserErrorCode.MISSING_IDENTIFIER, found 0;
-    // 1 errors of type ParserErrorCode.MISSING_FUNCTION_BODY, found 0
-    super.test_method_invalidTypeParameterExtendsComment();
+    // Fasta no longer supports type comment based syntax
+    // super.test_method_invalidTypeParameterExtendsComment();
   }
 
   @override
@@ -946,22 +926,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.MISSING_STATEMENT, found 0
     super.test_missingStatement_afterVoid();
-  }
-
-  @override
-  @failingTest
-  void test_missingTerminatorForParameterGroup_named() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ScannerErrorCode.EXPECTED_TOKEN, found 0
-    super.test_missingTerminatorForParameterGroup_named();
-  }
-
-  @override
-  @failingTest
-  void test_missingTerminatorForParameterGroup_optional() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ScannerErrorCode.EXPECTED_TOKEN, found 0
-    super.test_missingTerminatorForParameterGroup_optional();
   }
 
   @override

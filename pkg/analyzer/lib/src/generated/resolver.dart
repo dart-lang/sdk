@@ -9787,6 +9787,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     element.declaredReturnType = _computeReturnType(node.returnType);
     element.type = new FunctionTypeImpl(element);
     _inferSetterReturnType(element);
+    _inferOperatorReturnType(element);
     if (element is PropertyAccessorElement) {
       PropertyAccessorElement accessor = element as PropertyAccessorElement;
       PropertyInducingElementImpl variable =
@@ -10037,6 +10038,20 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (_strongMode &&
         element is PropertyAccessorElementImpl &&
         element.isSetter &&
+        element.hasImplicitReturnType) {
+      element.declaredReturnType = VoidTypeImpl.instance;
+    }
+  }
+
+  /**
+   * In strong mode we infer "void" as the return type of operator []= (as void
+   * is the only legal return type for []=). This allows us to give better
+   * errors later if an invalid type is returned.
+   */
+  void _inferOperatorReturnType(ExecutableElementImpl element) {
+    if (_strongMode &&
+        element.isOperator &&
+        element.name == '[]=' &&
         element.hasImplicitReturnType) {
       element.declaredReturnType = VoidTypeImpl.instance;
     }

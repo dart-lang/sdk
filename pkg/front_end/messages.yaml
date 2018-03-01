@@ -408,7 +408,7 @@ ConstMethod:
   analyzerCode: CONST_METHOD
   dart2jsCode: "*fatal*"
   script:
-    - "class C { const C() {} }"
+    - "class C { const m() {} }"
 
 CovariantAfterFinal:
   template: "The modifier 'covariant' should be before the modifier 'final'."
@@ -614,6 +614,14 @@ ContinueWithoutLabelInCase:
   dart2jsCode: "*ignored*"
   script:
     - "main() { switch (x) {case 1: continue;} }"
+
+InitializedVariableInForEach:
+  template: "The loop variable in a for-each loop can't be initialized."
+  tip: "Try removing the initializer, or using a different kind of loop."
+  analyzerCode: INITIALIZED_VARIABLE_IN_FOR_EACH
+  dart2jsCode: "*fatal*"
+  statement:
+    - "for (int a = 0 in <int>[10]) {}"
 
 InvalidAwaitFor:
   template: "The keyword 'await' isn't allowed for a normal 'for' statement."
@@ -939,11 +947,11 @@ ConstructorWithReturnType:
   analyzerCode: CONSTRUCTOR_WITH_RETURN_TYPE
   dart2jsCode: "*fatal*"
   script:
-    - "class C { T C() {} }"
+    - "class C { int C() {} }"
 
 FieldInitializerOutsideConstructor:
   template: "Field formal parameters can only be used in a constructor."
-  tip: "Try replacing the field formal parameter with a normal parameter."
+  tip: "Try removing 'this.'."
   analyzerCode: FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
   dart2jsCode: "*fatal*"
   script:
@@ -1831,6 +1839,8 @@ ExpectedUri:
 
 InterpolationInUri:
   template: "Can't use string interpolation in a URI."
+  analyzerCode: INVALID_LITERAL_IN_CONFIGURATION
+  dart2jsCode: "*fatal*"
 
 IntegerLiteralIsOutOfRange:
   template: "The integer literal #lexeme can't be represented in 64 bits."

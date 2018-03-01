@@ -385,7 +385,7 @@ void DisassemblerX64::Print(const char* format, ...) {
   char* buf = buffer_ + buffer_pos_;
   va_list args;
   va_start(args, format);
-  int length = OS::VSNPrint(buf, available, format, args);
+  int length = Utils::VSNPrint(buf, available, format, args);
   va_end(args);
   buffer_pos_ =
       (length >= available) ? (buffer_size_ - 1) : (buffer_pos_ + length);
@@ -1957,7 +1957,7 @@ void Disassembler::DecodeInstruction(char* hex_buffer,
   int hex_index = 0;
   int remaining_size = hex_size - hex_index;
   for (int i = 0; (i < instruction_length) && (remaining_size > 2); ++i) {
-    OS::SNPrint(&hex_buffer[hex_index], remaining_size, "%02x", pc_ptr[i]);
+    Utils::SNPrint(&hex_buffer[hex_index], remaining_size, "%02x", pc_ptr[i]);
     hex_index += 2;
     remaining_size -= 2;
   }

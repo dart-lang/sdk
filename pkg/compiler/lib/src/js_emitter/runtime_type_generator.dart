@@ -109,6 +109,9 @@ class RuntimeTypeGenerator {
   final RuntimeTypesChecks _rtiChecks;
   final RuntimeTypesEncoder _rtiEncoder;
   final JsInteropAnalysis _jsInteropAnalysis;
+  final bool _useKernel;
+  final bool _strongMode;
+  final bool _disableRtiOptimization;
 
   RuntimeTypeGenerator(
       this._elementEnvironment,
@@ -119,7 +122,10 @@ class RuntimeTypeGenerator {
       this._namer,
       this._rtiChecks,
       this._rtiEncoder,
-      this._jsInteropAnalysis);
+      this._jsInteropAnalysis,
+      this._useKernel,
+      this._strongMode,
+      this._disableRtiOptimization);
 
   TypeTestRegistry get _typeTestRegistry => emitterTask.typeTestRegistry;
 
@@ -143,6 +149,7 @@ class RuntimeTypeGenerator {
   /// the result. This is only possible for function types that do not contain
   /// type variables.
   TypeTestProperties generateIsTests(ClassEntity classElement,
+      Map<MemberEntity, jsAst.Expression> generatedCode,
       {bool storeFunctionTypeInMetadata: true}) {
     TypeTestProperties result = new TypeTestProperties();
 
@@ -173,8 +180,36 @@ class RuntimeTypeGenerator {
         result.functionTypeIndex =
             emitterTask.metadataCollector.reifyType(type, outputUnit);
       } else {
-        jsAst.Expression encoding = _rtiEncoder.getSignatureEncoding(
-            emitterTask.emitter, type, thisAccess);
+        jsAst.Expression encoding;
+        MemberEntity signature = _elementEnvironment.lookupLocalClassMember(
+            method.enclosingClass, Identifiers.signature);
+        if (_useKernel &&
+            signature != null &&
+            generatedCode[signature] != null) {
+          encoding = generatedCode[signature];
+        } else {
+          // With Dart 2, if disableRtiOptimization is true, then we might
+          // generate some code for classes that are not actually called,
+          // so following this path is "okay." Also, classes that have call
+          // methods are no longer a subtype of Function (and therefore we don't
+          // create a closure class), so this path is also acceptable.
+
+          // TODO(efortuna, johnniwinther): Verify that closures that use this
+          // path are in fact dead code. If this *not* actually dead code, we
+          // get to this point because TrivialRuntimeTypesChecksBuilder
+          // specifies that every subtype of Object and its types is "used"
+          // (ClassUse = true). However, on the codegen side, we only codegen
+          // entities that are actually reachable via treeshaking. To solve this
+          // issue, if disableRtiOptimization is turned on, we could literally
+          // in world_impact.dart loop through every subclass of Object and say
+          // that all types related to JClosureClasses are "used" so the go
+          // through the codegen queue and therefore we generate code for it.
+          // This seems not ideal though.
+          assert(!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+              (_useKernel && _strongMode && !method.enclosingClass.isClosure));
+          encoding = _rtiEncoder.getSignatureEncoding(
+              emitterTask.emitter, type, thisAccess);
+        }
         jsAst.Name operatorSignature = _namer.asName(_namer.operatorSignature);
         result.addSignature(classElement, operatorSignature, encoding);
       }

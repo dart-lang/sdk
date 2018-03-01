@@ -12,7 +12,7 @@ import 'dart:io' show Directory, File, FileSystemEntity, exitCode;
 
 import 'suite.dart' show Suite;
 
-import '../testing.dart' show TestDescription;
+import '../testing.dart' show FileBasedTestDescription, TestDescription;
 
 import 'test_dart/status_file_parser.dart'
     show ReadTestExpectations, TestExpectations;
@@ -247,7 +247,7 @@ abstract class ChainContext {
         String path = entity.uri.path;
         if (suite.exclude.any((RegExp r) => path.contains(r))) continue;
         if (suite.pattern.any((RegExp r) => path.contains(r))) {
-          yield new TestDescription(suite.uri, entity);
+          yield new FileBasedTestDescription(suite.uri, entity);
         }
       }
     } else {
@@ -257,7 +257,8 @@ abstract class ChainContext {
 
   Result processTestResult(
       TestDescription description, Result result, bool last) {
-    if (description.multitestExpectations != null) {
+    if (description is FileBasedTestDescription &&
+        description.multitestExpectations != null) {
       if (isError(description.multitestExpectations)) {
         result =
             toNegativeTestResult(result, description.multitestExpectations);

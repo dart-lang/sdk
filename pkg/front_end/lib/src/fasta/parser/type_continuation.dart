@@ -43,10 +43,6 @@ enum TypeContinuation {
   /// identifier.
   SendOrFunctionLiteral,
 
-  /// Indicates that the parser has just parsed `for '('` and is looking to
-  /// parse a variable declaration or expression.
-  VariablesDeclarationOrExpression,
-
   /// Indicates that an optional type followed by a normal formal parameter is
   /// expected.
   NormalFormalParameter,

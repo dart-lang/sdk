@@ -2699,6 +2699,16 @@
           The outline associated with the file.
         </p>
       </field>
+      <field name="instrumentationEdits">
+        <list>
+          <ref>SourceEdit</ref>
+        </list>
+        <p>
+          If the file has Flutter widgets that can be rendered, the list
+          of edits that should be applied to the file to instrument widgets and
+          associate them with outline nodes.
+        </p>
+      </field>
     </params>
   </notification>
 </domain>
@@ -3133,6 +3143,39 @@
         <p>
           The children of the node. The field will be omitted if the node has no
           children.
+        </p>
+      </field>
+      <field name="id" optional="true">
+        <ref>int</ref>
+        <p>
+          If the node is a widget, and it is instrumented, the unique identifier
+          of this widget, that can be used to associate rendering information
+          with this node.
+        </p>
+      </field>
+      <field name="renderConstructor" optional="true">
+        <ref>String</ref>
+        <p>
+          If the node is a widget class that can be rendered for IDE, the name
+          of the constructor that should be used to instantiate the widget.
+          Empty string for default constructor. Absent if the node is not a
+          widget class that can be rendered.
+        </p>
+      </field>
+      <field name="stateOffset" optional="true">
+        <ref>int</ref>
+        <p>
+          If the node is a StatefulWidget that can be rendered, and its State
+          class is defined in the same file, the offset of the State class code
+          in the file.
+        </p>
+      </field>
+      <field name="stateLength" optional="true">
+        <ref>int</ref>
+        <p>
+          If the node is a StatefulWidget that can be rendered, and its State
+          class is defined in the same file, the length of the State class code
+          in the file.
         </p>
       </field>
     </object>

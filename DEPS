@@ -58,8 +58,8 @@ vars = {
   "barback_tag" : "@0.15.2+14",
   "bazel_worker_tag": "@v0.1.9",
   "boolean_selector_tag" : "@1.0.2",
-  "boringssl_gen_rev": "@d2b56d1b7657e52eb5a1f075968c773aa3e53614",
-  "boringssl_rev" : "@d519bf6be0b447fb80fbc539d4bff4479b5482a2",
+  "boringssl_gen_rev": "@39762c7f9ee4d828ff212838fae79528b94d5443",
+  "boringssl_rev" : "@a62dbf88d8a3c04446db833a1eb80a620cb1514d",
   "charcode_tag": "@v1.1.1",
   "chrome_rev" : "@19997",
   "cli_util_tag" : "@0.1.2+1",
@@ -83,7 +83,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "@1.0.10",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "@v0.16.0",
+  "dartdoc_tag" : "@v0.17.0",
   "fixnum_tag": "@0.10.5",
   "func_rev": "@25eec48146a58967d75330075ab376b3838b18a8",
   "glob_tag": "@1.1.5",
@@ -115,7 +115,7 @@ vars = {
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "@1.3.4",
   "protobuf_tag": "@0.7.0",
-  "pub_rev": "@64c5f40adf6828da1b63320dd39bcedbef1354c6",
+  "pub_rev": "@73ff0d3d9f80f60d41e3135ac44597d011abb4f3",
   "pub_semver_tag": "@1.3.2",
   "quiver_tag": "@0.28.0",
   "resource_rev":"@af5a5bf65511943398146cf146e466e5f0b95cb9",

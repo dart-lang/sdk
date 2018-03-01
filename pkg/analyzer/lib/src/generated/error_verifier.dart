@@ -6206,6 +6206,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       NamedCompilationUnitMember node, WithClause withClause) {
     if (withClause == null) return;
     if (!_options.enableSuperMixins) return;
+    if (!_options.strongMode) return;
     ClassElement classElement = node.element;
     var type = classElement.type;
     var supertype = classElement.supertype;
@@ -6216,10 +6217,26 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (typeName.typeArguments != null) continue;
       var mixinElement = typeName.name.staticElement;
       if (mixinElement is ClassElement) {
-        var mixinSupertypeConstraint = mixinElement.supertype;
-        if (mixinSupertypeConstraint.element.typeParameters.isNotEmpty) {
-          _findInterfaceTypeForMixin(
-              typeName, mixinSupertypeConstraint, supertypesForMixinInference);
+        var mixinSupertypeConstraints =
+            _typeSystem.gatherMixinSupertypeConstraints(mixinElement);
+        if (mixinSupertypeConstraints.isNotEmpty) {
+          var matchingInterfaceTypes = _findInterfaceTypesForConstraints(
+              typeName, mixinSupertypeConstraints, supertypesForMixinInference);
+          if (matchingInterfaceTypes != null) {
+            // Try to pattern match matchingInterfaceType against
+            // mixinSupertypeConstraint to find the correct set of type
+            // parameters to apply to the mixin.
+            var matchedType = _typeSystem.matchSupertypeConstraints(
+                mixinElement,
+                mixinSupertypeConstraints,
+                matchingInterfaceTypes);
+            if (matchedType == null) {
+              _errorReporter.reportErrorForToken(
+                  CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION,
+                  typeName.name.beginToken,
+                  [typeName]);
+            }
+          }
         }
         ClassElementImpl.collectAllSupertypes(
             supertypesForMixinInference, mixinElement.type, type);
@@ -6343,7 +6360,25 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         isDeclarationCast: isDeclarationCast);
   }
 
-  void _findInterfaceTypeForMixin(TypeName mixin,
+  List<InterfaceType> _findInterfaceTypesForConstraints(
+      TypeName mixin,
+      List<InterfaceType> supertypeConstraints,
+      List<InterfaceType> interfaceTypes) {
+    var result = <InterfaceType>[];
+    for (var constraint in supertypeConstraints) {
+      var interfaceType =
+          _findInterfaceTypeForMixin(mixin, constraint, interfaceTypes);
+      if (interfaceType == null) {
+        // No matching interface type found, so inference fails.  The error has
+        // already been reported.
+        return null;
+      }
+      result.add(interfaceType);
+    }
+    return result;
+  }
+
+  InterfaceType _findInterfaceTypeForMixin(TypeName mixin,
       InterfaceType supertypeConstraint, List<InterfaceType> interfaceTypes) {
     var element = supertypeConstraint.element;
     InterfaceType foundInterfaceType;
@@ -6367,6 +6402,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           mixin.name.beginToken,
           [mixin, supertypeConstraint]);
     }
+    return foundInterfaceType;
   }
 
   MethodElement _findOverriddenMemberThatMustCallSuper(MethodDeclaration node) {

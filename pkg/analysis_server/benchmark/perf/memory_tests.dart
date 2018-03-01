@@ -34,9 +34,15 @@ class AnalysisServerMemoryUsageTest
   static const int vmServicePort = 12345;
 
   int getMemoryUsage() {
-    ProcessResult result = _run('curl', <String>[
-      'localhost:$vmServicePort/_getAllocationProfile\?isolateId=isolates/root\&gc=full'
-    ]);
+    String vmService =
+        'http://localhost:$vmServicePort/_getAllocationProfile\?isolateId=isolates/root\&gc=full';
+    ProcessResult result;
+    if (Platform.isWindows) {
+      result = _run(
+          'powershell', <String>['-Command', '(curl "$vmService").Content']);
+    } else {
+      result = _run('curl', <String>[vmService]);
+    }
     Map json = JSON.decode(result.stdout);
     Map heaps = json['result']['heaps'];
     int newSpace = heaps['new']['used'];
@@ -53,7 +59,7 @@ class AnalysisServerMemoryUsageTest
 
   /**
    * The server is automatically started before every test.
-   */
+  */
   @override
   Future setUp({bool useCFE: false}) {
     onAnalysisErrors.listen((AnalysisErrorsParams params) {

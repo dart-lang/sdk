@@ -188,7 +188,7 @@ abstract class NamedNode extends TreeNode {
 }
 
 abstract class FileUriNode extends TreeNode {
-  /// The uri of the source file this node was loaded from.
+  /// The URI of the source file this node was loaded from.
   Uri get fileUri;
 }
 
@@ -275,7 +275,7 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   /// If the URI has the `app` scheme, it is relative to the application root.
   Uri importUri;
 
-  /// The uri of the source file this library was loaded from.
+  /// The URI of the source file this library was loaded from.
   Uri fileUri;
 
   /// If true, the library is part of another build unit and its contents
@@ -575,7 +575,7 @@ class Combinator extends TreeNode {
 
 /// Declaration of a type alias.
 class Typedef extends NamedNode implements FileUriNode {
-  /// The uri of the source file that contains the declaration of this typedef.
+  /// The URI of the source file that contains the declaration of this typedef.
   Uri fileUri;
   List<Expression> annotations = const <Expression>[];
   String name;
@@ -717,7 +717,7 @@ class Class extends NamedNode implements FileUriNode {
   /// All X&Y classes are marked as synthetic.
   bool isSyntheticMixinImplementation;
 
-  /// The uri of the source file this class was loaded from.
+  /// The URI of the source file this class was loaded from.
   Uri fileUri;
 
   final List<TypeParameter> typeParameters;
@@ -938,7 +938,7 @@ class Class extends NamedNode implements FileUriNode {
 // ------------------------------------------------------------------------
 
 @coq
-abstract class Member extends NamedNode {
+abstract class Member extends NamedNode implements FileUriNode {
   /// End offset in the source file it comes from. Valid values are from 0 and
   /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
   /// (this is the default if none is specifically set).
@@ -952,6 +952,9 @@ abstract class Member extends NamedNode {
   List<Expression> annotations = const <Expression>[];
 
   Name name;
+
+  /// The URI of the source file this member was loaded from.
+  Uri fileUri;
 
   /// Flags summarizing the kinds of AST nodes contained in this member, for
   /// speeding up transformations that only affect certain types of nodes.
@@ -970,7 +973,7 @@ abstract class Member extends NamedNode {
   // TODO(asgerf): It might be worthwhile to put this on classes as well.
   int transformerFlags = 0;
 
-  Member(this.name, Reference reference) : super(reference);
+  Member(this.name, this.fileUri, Reference reference) : super(reference);
 
   Class get enclosingClass => parent is Class ? parent : null;
   Library get enclosingLibrary => parent is Class ? parent.parent : parent;
@@ -1034,14 +1037,11 @@ abstract class Member extends NamedNode {
 ///
 /// The implied getter and setter for the field are not represented explicitly,
 /// but can be made explicit if needed.
-class Field extends Member implements FileUriNode {
+class Field extends Member {
   DartType type; // Not null. Defaults to DynamicType.
   int flags = 0;
   int flags2 = 0;
   Expression initializer; // May be null.
-
-  /// The uri of the source file this field was loaded from.
-  Uri fileUri;
 
   Field(Name name,
       {this.type: const DynamicType(),
@@ -1053,9 +1053,9 @@ class Field extends Member implements FileUriNode {
       bool hasImplicitGetter,
       bool hasImplicitSetter,
       int transformerFlags: 0,
-      this.fileUri,
+      Uri fileUri,
       Reference reference})
-      : super(name, reference) {
+      : super(name, fileUri, reference) {
     assert(type != null);
     initializer?.parent = this;
     this.isCovariant = isCovariant;
@@ -1222,13 +1222,10 @@ class Field extends Member implements FileUriNode {
 /// invocation should be matched with the type parameters declared in the class.
 ///
 /// For unnamed constructors, the name is an empty string (in a [Name]).
-class Constructor extends Member implements FileUriNode {
+class Constructor extends Member {
   int flags = 0;
   FunctionNode function;
   List<Initializer> initializers;
-
-  /// The uri of the source file this field was loaded from.
-  Uri fileUri;
 
   Constructor(this.function,
       {Name name,
@@ -1237,10 +1234,10 @@ class Constructor extends Member implements FileUriNode {
       bool isSynthetic: false,
       List<Initializer> initializers,
       int transformerFlags: 0,
-      this.fileUri,
+      Uri fileUri,
       Reference reference})
       : this.initializers = initializers ?? <Initializer>[],
-        super(name, reference) {
+        super(name, fileUri, reference) {
     function?.parent = this;
     setParents(this.initializers, this);
     this.isConst = isConst;
@@ -1326,11 +1323,8 @@ class Constructor extends Member implements FileUriNode {
 ///
 /// Redirecting factory constructors can be unnamed.  In this case, the name is
 /// an empty string (in a [Name]).
-class RedirectingFactoryConstructor extends Member implements FileUriNode {
+class RedirectingFactoryConstructor extends Member {
   int flags = 0;
-
-  /// The uri of the source file this field was loaded from.
-  Uri fileUri;
 
   /// [RedirectingFactoryConstructor]s may redirect to constructors or factories
   /// of instantiated generic types, that is, generic types with supplied type
@@ -1367,7 +1361,7 @@ class RedirectingFactoryConstructor extends Member implements FileUriNode {
       List<VariableDeclaration> positionalParameters,
       List<VariableDeclaration> namedParameters,
       int requiredParameterCount,
-      this.fileUri,
+      Uri fileUri,
       Reference reference})
       : this.typeArguments = typeArguments ?? <DartType>[],
         this.typeParameters = typeParameters ?? <TypeParameter>[],
@@ -1376,7 +1370,7 @@ class RedirectingFactoryConstructor extends Member implements FileUriNode {
         this.namedParameters = namedParameters ?? <VariableDeclaration>[],
         this.requiredParameterCount =
             requiredParameterCount ?? positionalParameters?.length ?? 0,
-        super(name, reference) {
+        super(name, fileUri, reference) {
     setParents(this.typeParameters, this);
     setParents(this.positionalParameters, this);
     setParents(this.namedParameters, this);
@@ -1454,7 +1448,7 @@ class RedirectingFactoryConstructor extends Member implements FileUriNode {
 /// For operators, this is the token for the operator, e.g. `+` or `==`,
 /// except for the unary minus operator, whose name is `unary-`.
 @coq
-class Procedure extends Member implements FileUriNode {
+class Procedure extends Member {
   ProcedureKind kind;
   int flags = 0;
   // function is null if and only if abstract, external.
@@ -1482,9 +1476,6 @@ class Procedure extends Member implements FileUriNode {
   void setTransformerFlagsWithoutLazyLoading(int newValue) {
     super.transformerFlags = newValue;
   }
-
-  /// The uri of the source file this procedure was loaded from.
-  Uri fileUri;
 
   Reference forwardingStubSuperTargetReference;
   Reference forwardingStubInterfaceTargetReference;
@@ -1524,11 +1515,11 @@ class Procedure extends Member implements FileUriNode {
       bool isForwardingStub: false,
       bool isForwardingSemiStub: false,
       int transformerFlags: 0,
-      this.fileUri,
+      Uri fileUri,
       Reference reference,
       this.forwardingStubSuperTargetReference,
       this.forwardingStubInterfaceTargetReference})
-      : super(name, reference) {
+      : super(name, fileUri, reference) {
     function?.parent = this;
     this.isAbstract = isAbstract;
     this.isStatic = isStatic;
@@ -5564,8 +5555,8 @@ class Program extends TreeNode {
 
   final List<Library> libraries;
 
-  /// Map from a source file uri to a line-starts table and source code.
-  /// Given a source file uri and a offset in that file one can translate
+  /// Map from a source file URI to a line-starts table and source code.
+  /// Given a source file URI and a offset in that file one can translate
   /// it to a line:column position in that file.
   final Map<Uri, Source> uriToSource;
 

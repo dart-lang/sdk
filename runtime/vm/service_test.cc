@@ -99,13 +99,13 @@ static RawArray* Eval(Dart_Handle lib, const char* expr) {
 static RawArray* EvalF(Dart_Handle lib, const char* fmt, ...) {
   va_list args;
   va_start(args, fmt);
-  intptr_t len = OS::VSNPrint(NULL, 0, fmt, args);
+  intptr_t len = Utils::VSNPrint(NULL, 0, fmt, args);
   va_end(args);
 
   char* buffer = Thread::Current()->zone()->Alloc<char>(len + 1);
   va_list args2;
   va_start(args2, fmt);
-  OS::VSNPrint(buffer, (len + 1), fmt, args2);
+  Utils::VSNPrint(buffer, (len + 1), fmt, args2);
   va_end(args2);
 
   return Eval(lib, buffer);
@@ -280,9 +280,9 @@ TEST_CASE(Service_Code) {
     // Only perform a partial match.
     const intptr_t kBufferSize = 512;
     char buffer[kBufferSize];
-    OS::SNPrint(buffer, kBufferSize - 1,
-                "\"fixedId\":true,\"id\":\"code\\/%" Px64 "-%" Px "\",",
-                compile_timestamp, entry);
+    Utils::SNPrint(buffer, kBufferSize - 1,
+                   "\"fixedId\":true,\"id\":\"code\\/%" Px64 "-%" Px "\",",
+                   compile_timestamp, entry);
     EXPECT_SUBSTRING(buffer, handler.msg());
   }
 
@@ -601,12 +601,12 @@ TEST_CASE(Service_Address) {
     uword addr = start_addr + offset;
     char buf[1024];
     bool ref = offset % 2 == 0;
-    OS::SNPrint(buf, sizeof(buf),
-                (ref ? "[0, port, '0', '_getObjectByAddress', "
-                       "['address', 'ref'], ['%" Px "', 'true']]"
-                     : "[0, port, '0', '_getObjectByAddress', "
-                       "['address'], ['%" Px "']]"),
-                addr);
+    Utils::SNPrint(buf, sizeof(buf),
+                   (ref ? "[0, port, '0', '_getObjectByAddress', "
+                          "['address', 'ref'], ['%" Px "', 'true']]"
+                        : "[0, port, '0', '_getObjectByAddress', "
+                          "['address'], ['%" Px "']]"),
+                   addr);
     service_msg = Eval(lib, buf);
     HandleIsolateMessage(isolate, service_msg);
     EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());

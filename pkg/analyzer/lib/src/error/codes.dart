@@ -1701,6 +1701,13 @@ class CompileTimeErrorCode extends ErrorCode {
           "the base class does not implement the mixin's supertype "
           "constraint '{1}'");
 
+  static const CompileTimeErrorCode MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION =
+      const CompileTimeErrorCode(
+          'MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION',
+          "Type parameters could not be inferred for the mixin '{0}' because "
+          "no type parameter substitution could be found matching the mixin's "
+          "supertype constraints");
+
   /**
    * 9 Mixins: It is a compile-time error if a mixin is derived from a class
    * whose superclass is not Object.
