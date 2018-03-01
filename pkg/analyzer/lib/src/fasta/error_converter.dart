@@ -138,6 +138,14 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, offset, length);
         return;
+      case "DUPLICATE_LABEL_IN_SWITCH_STATEMENT":
+        String text = stringOrTokenLexeme();
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT,
+            offset,
+            length,
+            [text]);
+        return;
       case "COVARIANT_MEMBER":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.COVARIANT_MEMBER, offset, length);

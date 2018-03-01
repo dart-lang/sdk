@@ -43,7 +43,8 @@ import 'package:front_end/src/fasta/messages.dart'
         messageInterpolationInUri,
         messageMissingAssignableSelector,
         messageNativeClauseShouldBeAnnotation,
-        messageStaticConstructor;
+        messageStaticConstructor,
+        templateDuplicateLabelInSwitchStatement;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
     show Builder, KernelLibraryBuilder, Scope;
 import 'package:front_end/src/fasta/quote.dart';
@@ -1160,6 +1161,20 @@ class AstBuilder extends ScopeListener {
     exitLocalScope();
     List<SwitchMember> members =
         membersList?.expand((members) => members)?.toList() ?? <SwitchMember>[];
+
+    Set<String> labels = new Set<String>();
+    for (SwitchMember member in members) {
+      for (Label label in member.labels) {
+        if (!labels.add(label.label.name)) {
+          handleRecoverableError(
+              templateDuplicateLabelInSwitchStatement
+                  .withArguments(label.label.name),
+              label.beginToken,
+              label.beginToken);
+        }
+      }
+    }
+
     push(leftBracket);
     push(members);
     push(rightBracket);

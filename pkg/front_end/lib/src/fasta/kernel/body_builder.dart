@@ -3016,7 +3016,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   void handleLabel(Token token) {
     debugEvent("Label");
     Identifier identifier = pop();
-    push(new Label(identifier.name));
+    push(new Label(identifier.name, identifier.token.charOffset));
   }
 
   @override
@@ -3201,8 +3201,14 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     assert(scope == switchScope);
     for (Label label in labels) {
       if (scope.hasLocalLabel(label.name)) {
-        // TODO(ahe): Should validate this is a goto target and not duplicated.
-        scope.claimLabel(label.name);
+        // TODO(ahe): Should validate this is a goto target.
+        if (!scope.claimLabel(label.name)) {
+          addCompileTimeError(
+              fasta.templateDuplicateLabelInSwitchStatement
+                  .withArguments(label.name),
+              label.charOffset,
+              label.name.length);
+        }
       } else {
         scope.declareLabel(label.name, createGotoTarget(firstToken.charOffset));
       }
@@ -3895,8 +3901,9 @@ class InitializedIdentifier extends Identifier {
 
 class Label {
   String name;
+  int charOffset;
 
-  Label(this.name);
+  Label(this.name, this.charOffset);
 
   String toString() => "label($name)";
 }

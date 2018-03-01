@@ -1120,6 +1120,35 @@ const MessageCode messageDuplicateDeferred = const MessageCode(
     tip: r"""Try removing all but one 'deferred' keyword.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            string)> templateDuplicateLabelInSwitchStatement = const Template<
+        Message Function(String string)>(
+    messageTemplate:
+        r"""The label '#string' was already used in this switch statement.""",
+    tipTemplate: r"""Try choosing a different name for this label.""",
+    withArguments: _withArgumentsDuplicateLabelInSwitchStatement);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)>
+    codeDuplicateLabelInSwitchStatement =
+    const Code<Message Function(String string)>(
+        "DuplicateLabelInSwitchStatement",
+        templateDuplicateLabelInSwitchStatement,
+        analyzerCode: "DUPLICATE_LABEL_IN_SWITCH_STATEMENT",
+        dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicateLabelInSwitchStatement(String string) {
+  return new Message(codeDuplicateLabelInSwitchStatement,
+      message:
+          """The label '$string' was already used in this switch statement.""",
+      tip: """Try choosing a different name for this label.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeDuplicatePrefix = messageDuplicatePrefix;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

@@ -115,14 +115,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     with ErrorParserTestMixin {
   @override
   @failingTest
-  void test_duplicateLabelInSwitchStatement() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT, found 0
-    super.test_duplicateLabelInSwitchStatement();
-  }
-
-  @override
-  @failingTest
   void test_expectedClassMember_inClass_afterType() {
     // TODO(brianwilkerson) Does not recover.
     //   Expected: an object with length of <1>
