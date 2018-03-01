@@ -6,6 +6,7 @@
 """Pulls down tools required to build Dart."""
 
 import os
+import platform
 import subprocess
 import shutil
 import sys
@@ -100,6 +101,11 @@ def CopyClangFormat():
 
 
 def main(argv):
+  arch_id = platform.machine()
+  # Don't try to download binaries if we're on an arm machine.
+  if arch_id.startswith('arm') or arch_id.startswith('aarch64'):
+    print('Not downloading buildtools binaries for ' + arch_id)
+    return 0
   if sys.platform.startswith('win'):
     result = UpdateGNOnWindows()
     if result != 0:
