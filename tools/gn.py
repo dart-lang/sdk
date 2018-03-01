@@ -153,9 +153,12 @@ def UseSanitizer(args):
 def DontUseClang(args, target_os, host_cpu, target_cpu):
   # We don't have clang on Windows.
   return (target_os == 'win'
-         # TODO(zra): After we roll our clang toolchain to pick up the fix for
-         # https://reviews.llvm.org/D34691 we should be able to use clang for
-         # arm as well.
+         # TODO(infra): Clang cannot compile boringssl and tcmalloc in -mthumb
+         # mode.
+         # See dartbug.com/32363.
+         #
+         # We also can't compile the whole VM with clang in -marm mode
+         # See: dartbug.com/32362.
          or (target_os == 'linux'
              and target_cpu.startswith('arm')
              and target_cpu != 'arm64'
@@ -478,9 +481,9 @@ def Main(argv):
   if sys.platform.startswith(('cygwin', 'win')):
     subdir = 'win'
   elif sys.platform == 'darwin':
-    subdir = 'mac'
+    subdir = 'mac-x64'
   elif sys.platform.startswith('linux'):
-    subdir = 'linux64'
+    subdir = 'linux-x64'
   else:
     print 'Unknown platform: ' + sys.platform
     return 1
@@ -491,7 +494,10 @@ def Main(argv):
     for mode in args.mode:
       for arch in args.arch:
         out_dir = GetOutDir(mode, arch, target_os)
-        command = [gn, 'gen', out_dir, '--check']
+        # TODO(infra): Re-enable --check. Many targets fail to use
+        # public_deps to re-expose header files to their dependents.
+        # See dartbug.com/32364
+        command = [gn, 'gen', out_dir]
         gn_args = ToCommandLine(ToGnArgs(args, mode, arch, target_os))
         gn_args += GetGNArgs(args)
         if args.verbose:

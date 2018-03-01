@@ -42,7 +42,7 @@ vars = {
   # Fuchsia. This revision should be kept up to date with the revision pulled
   # by the Flutter engine. If there are problems with the toolchain, contact
   # fuchsia-toolchain@.
-  "buildtools_revision": "@de2d6da936fa0be8bcb0bacd096fe124efff2854",
+  "buildtools_revision": "@446d5b1019dcbe7835236dc85261e91cf29a9239",
 
   # Scripts that make 'git cl format' work.
   "clang_format_scripts_rev": "@c09c8deeac31f05bd801995c475e7c8070f9ecda",

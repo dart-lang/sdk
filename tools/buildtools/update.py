@@ -28,7 +28,8 @@ def Update():
 
 
 def UpdateGNOnWindows():
-  sha1_file = os.path.join(BUILDTOOLS, 'win', 'gn.exe.sha1')
+  sha1_file = os.path.join(TOOLS_BUILDTOOLS, 'win', 'gn.exe.sha1')
+  output_dir = os.path.join(BUILDTOOLS, 'win', 'gn.exe')
   downloader_script = os.path.join(
       DEPOT_PATH, 'download_from_google_storage.py')
   download_cmd = [
@@ -41,7 +42,9 @@ def UpdateGNOnWindows():
     '--bucket',
     'chromium-gn',
     '-s',
-    sha1_file
+    sha1_file,
+    '-o',
+    output_dir
   ]
   return subprocess.call(download_cmd)
 
@@ -68,8 +71,8 @@ def UpdateClangFormatOnWindows():
   return subprocess.call(download_cmd)
 
 
-# On Mac and Linux we copy clang-format to the place where git cl format
-# expects it to be.
+# On Mac and Linux we copy clang-format and gn to the place where git cl format
+# expects them to be.
 def CopyClangFormat():
   if sys.platform == 'darwin':
     platform = 'darwin'
@@ -85,8 +88,14 @@ def CopyClangFormat():
 
   clang_format = os.path.join(
       BUILDTOOLS, toolchain, 'clang', 'bin', 'clang-format')
-  dest = os.path.join(BUILDTOOLS, tools, 'clang-format')
-  shutil.copy2(clang_format, dest)
+  gn = os.path.join(BUILDTOOLS, toolchain, 'gn')
+  dest_dir = os.path.join(BUILDTOOLS, tools)
+  if not os.path.exists(dest_dir):
+    os.makedirs(dest_dir)
+  clang_format_dest = os.path.join(dest_dir, 'clang-format')
+  gn_dest = os.path.join(dest_dir, 'gn')
+  shutil.copy2(clang_format, clang_format_dest)
+  shutil.copy2(gn, gn_dest)
   return 0
 
 
