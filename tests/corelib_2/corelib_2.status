@@ -368,6 +368,9 @@ symbol_test/none: RuntimeError # Issues 11669 and 31936 - throwing const constru
 unicode_test: RuntimeError # Issue 18061: German double S.
 
 # ===== dartkp + dart_precompiled status lines =====
+[ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
+null_nosuchmethod_test: Crash
+
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 apply_test: RuntimeError, OK
 iterable_fold_test/02: RuntimeError
