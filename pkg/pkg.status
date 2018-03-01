@@ -197,10 +197,7 @@ unittest/*: Skip # Issue 21949
 [ $runtime == vm && $system == windows ]
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
 analysis_server/test/benchmarks_test: RuntimeError # Issue 32355
-analysis_server/test/integration/analysis/set_general_subscriptions_test: Pass, RuntimeError # Issue 32355
-analysis_server/test/integration/analysis/get_navigation_test: Pass, Slow # Issue 32356
-analysis_server/test/integration/analysis/reanalyze_concurrent_test: Pass, RuntimeError # Times out in pkg:test, Issue 32356
-analysis_server/test/integration/edit/get_statement_completion_test: Pass, RuntimeError # Times out in pkg:test, Issue 32356
+analysis_server/test/integration/*: Skip # Issue 32356
 analyzer/test/generated/non_error_resolver_kernel_test: RuntimeError # Issue 30785
 analyzer/test/src/task/strong/checker_test: Pass, Slow
 analyzer/tool/task_dependency_graph/check_test: Slow, Pass
