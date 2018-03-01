@@ -377,7 +377,7 @@ mirrors/deferred_type_test: CompileTimeError, OK # Don't have a multitest marker
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 typed_data/int32x4_bigint_test: CompileTimeError # Large integer literal
 
-[ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm || $compiler == dart2js && $dart2js_with_kernel ]
+[ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm || $compiler == dart2js && $fasta ]
 convert/base64_test/01: CompileTimeError # Large integer literal
 convert/utf82_test: CompileTimeError # Large integer literal
 math/double_pow_test: CompileTimeError # Large integer literal

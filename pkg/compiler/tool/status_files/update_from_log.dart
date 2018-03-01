@@ -3,25 +3,25 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Script that updates dart2js status lines automatically for tests under the
-/// '$dart2js_with_kernel' configuration.
+/// '$fasta' configuration.
 ///
 /// This script is hardcoded to only support this configuration and relies on
 /// a convention for how the status files are structured, In particular,
 /// every status file for dart2js should have 3 sections:
 ///
-///     [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
+///     [ $compiler == dart2js && $fasta && $host_checked ]
 ///
 /// and:
 ///
-///     [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
+///     [ $compiler == dart2js && $fasta && $minified ]
 ///
 /// and:
 ///
-///     [ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
+///     [ $compiler == dart2js && $fasta && $fast_startup ]
 ///
 /// and:
 ///
-///     [ $compiler == dart2js && $checked && $dart2js_with_kernel ]
+///     [ $compiler == dart2js && $checked && $fasta ]
 library compiler.status_files.update_from_log;
 
 import 'dart:io';
@@ -30,21 +30,18 @@ import 'record.dart';
 import 'log_parser.dart';
 
 final dart2jsConfigurations = {
-  'host-checked':
-      r'[ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]',
-  'minified': r'[ $compiler == dart2js && $dart2js_with_kernel && $minified ]',
+  'host-checked': r'[ $compiler == dart2js && $fasta && $host_checked ]',
+  'minified': r'[ $compiler == dart2js && $fasta && $minified ]',
   'host-checked-strong':
-      r'[ $compiler == dart2js && $dart2js_with_kernel && $host_checked && $strong ]',
+      r'[ $compiler == dart2js && $fasta && $host_checked && $strong ]',
   'minified-strong':
-      r'[ $compiler == dart2js && $dart2js_with_kernel && $minified && $strong ]',
-  'fast-startup':
-      r'[ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]',
+      r'[ $compiler == dart2js && $fasta && $minified && $strong ]',
+  'fast-startup': r'[ $compiler == dart2js && $fasta && $fast_startup ]',
   'fast-startup-strong':
-      r'[ $compiler == dart2js && $dart2js_with_kernel && $fast_startup && $strong ]',
-  'checked-mode':
-      r'[ $compiler == dart2js && $checked && $dart2js_with_kernel ]',
+      r'[ $compiler == dart2js && $fasta && $fast_startup && $strong ]',
+  'checked-mode': r'[ $compiler == dart2js && $checked && $fasta ]',
   'checked-mode-strong':
-      r'[ $compiler == dart2js && $checked && $dart2js_with_kernel && $strong ]',
+      r'[ $compiler == dart2js && $checked && $fasta && $strong ]',
 };
 
 final dart2jsStatusFiles = {

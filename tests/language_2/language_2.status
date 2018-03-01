@@ -259,10 +259,6 @@ type_parameter_test/05: Pass
 [ !$checked && ($compiler == app_jit || $compiler == none || $compiler == precompiler) && ($runtime == dart_precompiled || $runtime == vm) ]
 *: SkipByDesign
 
-[ !$dart2js_with_kernel && $minified ]
-regress_21795_test: RuntimeError # Issue 12605
-stack_trace_test: Fail, OK # Stack trace not preserved in minified code.
-
 [ !$fasta && !$strong ]
 implicit_creation/implicit_const_context_constructor_generic_named_test: Fail # No support for implicit creation.
 implicit_creation/implicit_const_context_constructor_generic_test: Fail # No support for implicit creation.

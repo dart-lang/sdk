@@ -132,22 +132,22 @@ string_static_test: MissingCompileTimeError
 list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
 string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
-[ $compiler == dart2js && $runtime == d8 && !$dart2js_with_kernel ]
+[ $compiler == dart2js && $runtime == d8 && !$fasta ]
 uri_base_test: RuntimeError # D8 uses a custom uri scheme for Uri.base
 
-[ $compiler == dart2js && $runtime == drt && $csp && !$dart2js_with_kernel && $minified ]
+[ $compiler == dart2js && $runtime == drt && $csp && !$fasta && $minified ]
 core_runtime_types_test: Pass, Fail # Issue 27913
 
 [ $compiler == dart2js && $runtime != none ]
 regexp/pcre_test: Pass, Slow # Issue 21593
 
-[ $compiler == dart2js && $runtime != none && !$checked && !$dart2js_with_kernel ]
+[ $compiler == dart2js && $runtime != none && !$checked && !$fasta ]
 growable_list_test: RuntimeError # Concurrent modifications test always runs
 null_nosuchmethod_test: RuntimeError # Like many tests, fails if type checks are skipped.
 splay_tree_from_iterable_test: RuntimeError
 string_split_test/checkedstore: RuntimeError # Issue 30548: does not check stores into List<String>
 
-[ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel ]
+[ $compiler == dart2js && $runtime != none && !$fasta ]
 error_stack_trace1_test: RuntimeError # Issue 12399
 int_parse_radix_test/01: RuntimeError
 int_parse_radix_test/02: RuntimeError
@@ -166,7 +166,7 @@ regexp/overflow_test: RuntimeError
 [ $compiler == dart2js && !$browser ]
 package_resource_test: RuntimeError # Issue 26842
 
-[ $compiler == dart2js && $checked && $dart2js_with_kernel && $strong ]
+[ $compiler == dart2js && $checked && $fasta && $strong ]
 apply3_test: RuntimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
 from_environment_const_type_test/02: MissingCompileTimeError
@@ -197,11 +197,11 @@ list_test/none: Crash # Unsupported operation: Unsupported type parameter type n
 map_test: Crash # tests/corelib_2/map_test.dart:903:7: Internal problem: Unhandled Null in installDefaultConstructor.
 symbol_reserved_word_test/03: RuntimeError
 
-[ $compiler == dart2js && $dart2js_with_kernel ]
-int_from_environment_test: Pass # Issue 31762
-int_parse_radix_test/none: Pass # Issue 31762
+[ $compiler == dart2js && $fast_startup ]
+apply3_test: Fail # mirrors not supported
+dynamic_nosuchmethod_test: Fail # mirrors not supported
 
-[ $compiler == dart2js && $dart2js_with_kernel && $fast_startup && $strong ]
+[ $compiler == dart2js && $fast_startup && $fasta && $strong ]
 iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
 iterable_to_list_test/01: Crash # Wrong number of template arguments, given 2, expected 1
@@ -212,7 +212,11 @@ map_test: Crash # tests/corelib_2/map_test.dart:903:7: Internal problem: Unhandl
 symbol_reserved_word_test/03: RuntimeError
 uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 
-[ $compiler == dart2js && $dart2js_with_kernel && $host_checked && $strong ]
+[ $compiler == dart2js && $fasta ]
+int_from_environment_test: Pass # Issue 31762
+int_parse_radix_test/none: Pass # Issue 31762
+
+[ $compiler == dart2js && $fasta && $host_checked && $strong ]
 apply3_test: RuntimeError
 cast_test: RuntimeError
 collection_removes_test: RuntimeError
@@ -246,7 +250,7 @@ string_split_test/checkedstore: RuntimeError
 symbol_reserved_word_test/03: RuntimeError
 uri_base_test: RuntimeError
 
-[ $compiler == dart2js && $dart2js_with_kernel && $minified && $strong ]
+[ $compiler == dart2js && $fasta && $minified && $strong ]
 apply3_test: RuntimeError
 cast_test: RuntimeError
 collection_removes_test: RuntimeError
@@ -283,14 +287,14 @@ symbol_operator_test/none: RuntimeError
 symbol_reserved_word_test/03: RuntimeError
 uri_base_test: RuntimeError
 
-[ $compiler == dart2js && $dart2js_with_kernel && $strong ]
+[ $compiler == dart2js && $fasta && $strong ]
 map_unmodifiable_cast_test: Crash
 null_nosuchmethod_test: RuntimeError
 
-[ $compiler == dart2js && $dart2js_with_kernel && !$strong ]
+[ $compiler == dart2js && $fasta && !$strong ]
 *: SkipByDesign
 
-[ $compiler == dart2js && !$dart2js_with_kernel ]
+[ $compiler == dart2js && !$fasta ]
 date_time11_test: RuntimeError, Pass # Fails when US is on winter time, issue 31285.
 from_environment_const_type_undefined_test/09: MissingCompileTimeError
 from_environment_const_type_undefined_test/11: MissingCompileTimeError
@@ -313,12 +317,8 @@ string_static_test: MissingCompileTimeError
 
 # Dart2JS does not support strong mode without the new front end, though it
 # does support checked mode which is partly compatible.
-[ $compiler == dart2js && !$dart2js_with_kernel && $strong ]
+[ $compiler == dart2js && !$fasta && $strong ]
 *: SkipByDesign
-
-[ $compiler == dart2js && $fast_startup ]
-apply3_test: Fail # mirrors not supported
-dynamic_nosuchmethod_test: Fail # mirrors not supported
 
 [ $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp ]
 iterable_element_at_test/static: MissingCompileTimeError
@@ -369,12 +369,9 @@ unicode_test: RuntimeError # Issue 18061: German double S.
 
 # ===== dartkp + dart_precompiled + debug status lines =====
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
+null_nosuchmethod_test: Crash
 null_nosuchmethod_test/01: Crash # dartbug.com/32377
 null_nosuchmethod_test/none: Crash # dartbug.com/32377
-
-# ===== dartkp + dart_precompiled status lines =====
-[ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
-null_nosuchmethod_test: Crash
 
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 apply_test: RuntimeError, OK
@@ -507,7 +504,7 @@ symbol_reserved_word_test/12: RuntimeError # Issue 29921
 symbol_test/none: RuntimeError # Issue 29921
 typed_data_with_limited_ints_test: Skip # dartdevc doesn't know about --limit-ints-to-64-bits
 
-[ !$checked && !$dart2js_with_kernel && ($compiler == dart2js || $compiler == none && $runtime == vm) ]
+[ !$checked && !$fasta && ($compiler == dart2js || $compiler == none && $runtime == vm) ]
 from_environment_const_type_test/02: MissingCompileTimeError
 from_environment_const_type_test/03: MissingCompileTimeError
 from_environment_const_type_test/04: MissingCompileTimeError
@@ -607,7 +604,7 @@ symbol_test/none: Fail # Issue 11669
 unicode_test: Fail # Issue 6706
 
 # void should be a valid symbol.
-[ $compiler == app_jit || $compiler == none || $compiler == precompiler || $compiler == dart2js && !$dart2js_with_kernel ]
+[ $compiler == app_jit || $compiler == none || $compiler == precompiler || $compiler == dart2js && !$fasta ]
 symbol_reserved_word_test/02: CompileTimeError # Issue 20191
 symbol_reserved_word_test/04: MissingCompileTimeError # Issue 11669, 19972, With the exception of 'void', const Symbol() should not accept reserved words.
 symbol_reserved_word_test/07: MissingCompileTimeError # Issue 11669, 19972, With the exception of 'void', const Symbol() should not accept reserved words.

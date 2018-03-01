@@ -27,11 +27,6 @@ timer_negative_test: Fail, OK # A negative runtime test.
 dummy_compiler_test: Skip # Issue 28649
 recursive_import_test: Skip # Issue 28649
 
-[ $compiler == dart2js && !$strong ]
-generic_method_dynamic_is_test: RuntimeError # Test against function type variables is only supported in strong mode.
-generic_method_static_is_test: RuntimeError # Test against function type variables is only supported in strong mode.
-local_signature_test: RuntimeError # Test against function type variables is only supported in strong mode.
-
 [ $compiler == dart2js && $mode == debug ]
 operator_test: Skip
 string_interpolation_test: Skip
@@ -68,7 +63,7 @@ recursive_import_test: Skip
 variable_type_test/01: Fail, OK
 variable_type_test/03: Fail, OK
 
-[ $compiler == dart2js && $checked && $dart2js_with_kernel ]
+[ $compiler == dart2js && $checked && $fasta ]
 21666_test: RuntimeError
 closure_capture2_test: RuntimeError
 closure_type_reflection2_test: RuntimeError
@@ -119,7 +114,44 @@ deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loadin
 deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed loading.
 js_interop_test: RuntimeError # Issue 31082
 
-[ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
+[ $compiler == dart2js && $fast_startup ]
+21666_test: Fail # mirrors not supported
+23056_test: Fail # mirrors not supported
+closure_type_reflection2_test: Fail # mirrors not supported
+closure_type_reflection_test: Fail # mirrors not supported
+deferred/deferred_mirrors1_lib: Fail # mirrors not supported
+deferred/deferred_mirrors1_test: Fail # mirrors not supported
+deferred/deferred_mirrors2_lazy: Fail # mirrors not supported
+deferred/deferred_mirrors2_lib3: Fail # mirrors not supported
+deferred/deferred_mirrors2_test: Fail # mirrors not supported
+deferred/reflect_multiple_annotations_test: CompileTimeError # mirrors not supported
+deferred/reflect_multiple_default_arg_test: CompileTimeError # mirrors not supported
+inference_nsm_mirrors_test: Fail # mirrors not supported
+invalid_annotation2_test/01: Pass # mirrors not supported, passes for the wrong reason
+invalid_annotation2_test/none: Fail # mirrors not supported
+mirror_enqueuer_regression_test: Fail # mirrors not supported
+mirror_invalid_field_access2_test: Fail # mirrors not supported
+mirror_invalid_field_access3_test: Fail # mirrors not supported
+mirror_invalid_field_access4_test: Fail # mirrors not supported
+mirror_invalid_field_access_test: Fail # mirrors not supported
+mirror_invalid_invoke2_test: Fail # mirrors not supported
+mirror_invalid_invoke3_test: Fail # mirrors not supported
+mirror_invalid_invoke_test: Fail # mirrors not supported
+mirror_printer_test: Fail # mirrors not supported
+mirror_test: Fail # mirrors not supported
+mirror_type_inference_field2_test: Fail # mirrors not supported
+mirror_type_inference_field_test: Fail # mirrors not supported
+mirror_type_inference_function_test: Fail # mirrors not supported
+mirrors_declarations_filtering_test: Fail # mirrors not supported
+mirrors_used_closure_test: SkipByDesign
+mirrors_used_metatargets_test: Fail # mirrors not supported
+mirrors_used_native_test: Fail # mirrors not supported
+mirrors_used_warning2_test: Fail # mirrors not supported
+mirrors_used_warning_test: Fail # mirrors not supported
+no_such_method_mirrors_test: Fail # mirrors not supported
+reflect_native_types_test: Fail # mirrors not supported
+
+[ $compiler == dart2js && $fast_startup && $fasta ]
 23056_test: Pass
 closure_capture2_test: RuntimeError
 constant_javascript_semantics_test/01: MissingCompileTimeError
@@ -140,7 +172,7 @@ regress/4562_test/none: CompileTimeError
 type_constant_switch_test/01: MissingCompileTimeError
 unconditional_dartio_import_test: RuntimeError
 
-[ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
+[ $compiler == dart2js && $fasta && $host_checked ]
 21666_test: RuntimeError
 23264_test: RuntimeError
 closure_capture2_test: RuntimeError
@@ -187,7 +219,7 @@ regress/4562_test/none: CompileTimeError
 type_constant_switch_test/01: MissingCompileTimeError
 unconditional_dartio_import_test: RuntimeError # Issue 30902
 
-[ $compiler == dart2js && $dart2js_with_kernel && $minified ]
+[ $compiler == dart2js && $fasta && $minified ]
 21666_test: RuntimeError
 23264_test: RuntimeError
 closure_type_reflection2_test: RuntimeError
@@ -233,48 +265,11 @@ regress/4562_test/none: CompileTimeError
 type_constant_switch_test/01: MissingCompileTimeError
 unconditional_dartio_import_test: RuntimeError # Issue 30902
 
-[ $compiler == dart2js && !$dart2js_with_kernel ]
+[ $compiler == dart2js && !$fasta ]
 expose_this1_test: RuntimeError # Issue 31254
 expose_this2_test: RuntimeError # Issue 31254
 string_interpolation_dynamic_test: Fail # CRLF handling clarified, see Issue 23562
 string_interpolation_test: Fail # CRLF handling clarified, see Issue 23562
-
-[ $compiler == dart2js && $fast_startup ]
-21666_test: Fail # mirrors not supported
-23056_test: Fail # mirrors not supported
-closure_type_reflection2_test: Fail # mirrors not supported
-closure_type_reflection_test: Fail # mirrors not supported
-deferred/deferred_mirrors1_lib: Fail # mirrors not supported
-deferred/deferred_mirrors1_test: Fail # mirrors not supported
-deferred/deferred_mirrors2_lazy: Fail # mirrors not supported
-deferred/deferred_mirrors2_lib3: Fail # mirrors not supported
-deferred/deferred_mirrors2_test: Fail # mirrors not supported
-deferred/reflect_multiple_annotations_test: CompileTimeError # mirrors not supported
-deferred/reflect_multiple_default_arg_test: CompileTimeError # mirrors not supported
-inference_nsm_mirrors_test: Fail # mirrors not supported
-invalid_annotation2_test/01: Pass # mirrors not supported, passes for the wrong reason
-invalid_annotation2_test/none: Fail # mirrors not supported
-mirror_enqueuer_regression_test: Fail # mirrors not supported
-mirror_invalid_field_access2_test: Fail # mirrors not supported
-mirror_invalid_field_access3_test: Fail # mirrors not supported
-mirror_invalid_field_access4_test: Fail # mirrors not supported
-mirror_invalid_field_access_test: Fail # mirrors not supported
-mirror_invalid_invoke2_test: Fail # mirrors not supported
-mirror_invalid_invoke3_test: Fail # mirrors not supported
-mirror_invalid_invoke_test: Fail # mirrors not supported
-mirror_printer_test: Fail # mirrors not supported
-mirror_test: Fail # mirrors not supported
-mirror_type_inference_field2_test: Fail # mirrors not supported
-mirror_type_inference_field_test: Fail # mirrors not supported
-mirror_type_inference_function_test: Fail # mirrors not supported
-mirrors_declarations_filtering_test: Fail # mirrors not supported
-mirrors_used_closure_test: SkipByDesign
-mirrors_used_metatargets_test: Fail # mirrors not supported
-mirrors_used_native_test: Fail # mirrors not supported
-mirrors_used_warning2_test: Fail # mirrors not supported
-mirrors_used_warning_test: Fail # mirrors not supported
-no_such_method_mirrors_test: Fail # mirrors not supported
-reflect_native_types_test: Fail # mirrors not supported
 
 [ $compiler == dart2js && $host_checked ]
 dummy_compiler_test: Skip # Issue 30773
@@ -292,6 +287,11 @@ mirrors_used_warning_test/minif: Fail, OK # Tests warning that minified code wil
 runtime_type_test: Fail, OK # Tests extected output of Type.toString().
 to_string_test: Fail # Issue 7179.
 typevariable_typedef_test: Fail, OK # Tests expected output of Type.toString().
+
+[ $compiler == dart2js && !$strong ]
+generic_method_dynamic_is_test: RuntimeError # Test against function type variables is only supported in strong mode.
+generic_method_static_is_test: RuntimeError # Test against function type variables is only supported in strong mode.
+local_signature_test: RuntimeError # Test against function type variables is only supported in strong mode.
 
 [ $compiler == dart2js && ($runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt || $runtime == ff || $runtime == safari) ]
 isolate2_test/01: Fail # Issue 14458.

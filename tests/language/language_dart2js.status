@@ -25,7 +25,7 @@ issue23244_test: RuntimeError # 23244
 [ $compiler == dart2js && $runtime == ff ]
 round_test: Pass, Fail, OK # Fixed in ff 35. Common JavaScript engine Math.round bug.
 
-[ $compiler == dart2js && $runtime == jsshell && !$dart2js_with_kernel ]
+[ $compiler == dart2js && $runtime == jsshell && !$fasta ]
 async_star_no_cancel2_test: RuntimeError # Need triage
 async_star_no_cancel_test: RuntimeError # Need triage
 async_star_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
@@ -35,7 +35,7 @@ regress_23996_test: RuntimeError # Jsshell does not provide non-zero timers, Iss
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
-[ $compiler == dart2js && $runtime == none && $dart2js_with_kernel ]
+[ $compiler == dart2js && $runtime == none && $fasta ]
 *: Fail, Pass, Crash # TODO(sigmund): we should have no crashes when migration completes
 
 [ $compiler == dart2js && $runtime == safari ]
@@ -48,12 +48,12 @@ string_literals_test: RuntimeError # Issue 27533
 conditional_import_string_test: Fail # Issue 30615
 conditional_import_test: Fail # Issue 30615
 
-[ $compiler == dart2js && $browser && !$dart2js_with_kernel ]
+[ $compiler == dart2js && $browser && !$fasta ]
 config_import_test: Fail # Test flag is not passed to the compiler.
 library_env_test/has_io_support: RuntimeError # Issue 27398
 library_env_test/has_no_io_support: Pass # Issue 27398
 
-[ $compiler == dart2js && $checked && $dart2js_with_kernel ]
+[ $compiler == dart2js && $checked && $fasta ]
 assertion_initializer_const_function_test/01: RuntimeError
 assertion_initializer_test: CompileTimeError
 assign_static_type_test/01: Fail
@@ -418,7 +418,7 @@ type_variable_bounds3_test/00: Fail # Issue 12702
 type_variable_bounds_test/02: Fail # Issue 12702
 type_variable_scope_test/03: Crash # Internal Error: Unexpected type variable in static context.
 
-[ $compiler == dart2js && $checked && !$dart2js_with_kernel ]
+[ $compiler == dart2js && $checked && !$fasta ]
 async_return_types_test/nestedFuture: Fail # Issue 26429
 async_return_types_test/wrongTypeParameter: Fail # Issue 26429
 closure_type_test: Fail # Issue 12745
@@ -441,7 +441,13 @@ type_variable_bounds2_test/06: Pass # Issue 12702 (pass for the wrong reasons).
 type_variable_bounds3_test/00: Fail # Issue 12702
 type_variable_bounds_test/02: Fail # Issue 12702
 
-[ $compiler == dart2js && !$checked && !$dart2js_with_kernel ]
+[ $compiler == dart2js && !$checked && $enable_asserts ]
+bool_check_test: RuntimeError # Issue 29647
+
+[ $compiler == dart2js && !$checked && $enable_asserts && !$fasta ]
+assertion_test: RuntimeError # Issue 12748
+
+[ $compiler == dart2js && !$checked && !$fasta ]
 assertion_test: RuntimeError
 generic_test: RuntimeError, OK
 issue13474_test: RuntimeError, OK
@@ -453,16 +459,10 @@ positional_parameters_type_test/01: MissingRuntimeError, OK
 positional_parameters_type_test/02: MissingRuntimeError, OK
 type_checks_in_factory_method_test: RuntimeError # Issue 12746
 
-[ $compiler == dart2js && !$checked && !$dart2js_with_kernel && $enable_asserts ]
-assertion_test: RuntimeError # Issue 12748
-
-[ $compiler == dart2js && !$checked && !$dart2js_with_kernel && $minified ]
+[ $compiler == dart2js && !$checked && !$fasta && $minified ]
 f_bounded_quantification5_test: Fail, OK # Issue 12605
 
-[ $compiler == dart2js && !$checked && $enable_asserts ]
-bool_check_test: RuntimeError # Issue 29647
-
-[ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
+[ $compiler == dart2js && $fast_startup && $fasta ]
 arithmetic_canonicalization_test: RuntimeError
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_test: RuntimeError
@@ -763,7 +763,41 @@ truncdiv_test: RuntimeError
 try_catch_test/01: MissingCompileTimeError
 type_checks_in_factory_method_test: RuntimeError
 
-[ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
+[ $compiler == dart2js && $fast_startup && !$fasta ]
+assertion_initializer_const_error2_test/*: Crash
+assertion_initializer_const_error2_test/cc10: CompileTimeError # Issue #31321
+assertion_initializer_const_error2_test/cc11: CompileTimeError # Issue #31321
+assertion_initializer_const_error2_test/none: Pass
+assertion_initializer_const_function_error_test/01: Crash
+assertion_initializer_const_function_test/01: CompileTimeError
+const_evaluation_test/*: Fail # mirrors not supported
+deferred_constraints_constants_test: Pass # mirrors not supported, passes for the wrong reason
+deferred_constraints_constants_test/none: Fail # mirrors not supported
+deferred_constraints_constants_test/reference_after_load: Fail # mirrors not supported
+enum_mirror_test: Fail # mirrors not supported
+field_increment_bailout_test: Fail # mirrors not supported
+instance_creation_in_function_annotation_test: Fail # mirrors not supported
+invocation_mirror2_test: Fail # mirrors not supported
+invocation_mirror_invoke_on2_test: Fail # mirrors not supported
+invocation_mirror_invoke_on_test: Fail # mirrors not supported
+issue21079_test: Fail # mirrors not supported
+library_env_test/has_mirror_support: Fail # mirrors not supported
+library_env_test/has_no_mirror_support: Pass # fails for the wrong reason.
+many_overridden_no_such_method_test: Fail # mirrors not supported
+no_such_method_test: Fail # mirrors not supported
+null_test/0*: Pass # mirrors not supported, fails for the wrong reason
+null_test/none: Fail # mirrors not supported
+overridden_no_such_method_test: Fail # mirrors not supported
+redirecting_factory_reflection_test: Fail # mirrors not supported
+regress_13462_0_test: Fail # mirrors not supported
+regress_13462_1_test: Fail # mirrors not supported
+regress_18535_test: Fail # mirrors not supported
+regress_28255_test: Fail # mirrors not supported
+super_call4_test: Fail # mirrors not supported
+super_getter_setter_test: Fail # mirrors not supported
+vm/reflect_core_vm_test: Fail # mirrors not supported
+
+[ $compiler == dart2js && $fasta && $host_checked ]
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 assertion_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
@@ -1089,7 +1123,7 @@ type_checks_in_factory_method_test: RuntimeError
 type_literal_prefix_call_test/00: RuntimeError
 type_variable_conflict2_test/02: MissingCompileTimeError
 
-[ $compiler == dart2js && $dart2js_with_kernel && $minified ]
+[ $compiler == dart2js && $fasta && $minified ]
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 assertion_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
@@ -1388,7 +1422,7 @@ type_checks_in_factory_method_test: RuntimeError
 type_literal_prefix_call_test/00: RuntimeError
 type_variable_conflict2_test/02: MissingCompileTimeError
 
-[ $compiler == dart2js && !$dart2js_with_kernel ]
+[ $compiler == dart2js && !$fasta ]
 accessor_conflict_export2_test: Crash # Issue 25626
 accessor_conflict_export_test: Crash # Issue 25626
 accessor_conflict_import2_test: RuntimeError # Issue 25626
@@ -1519,41 +1553,7 @@ type_variable_conflict_test/04: Fail # Issue 13702
 type_variable_conflict_test/05: Fail # Issue 13702
 type_variable_conflict_test/06: Fail # Issue 13702
 
-[ $compiler == dart2js && !$dart2js_with_kernel && $fast_startup ]
-assertion_initializer_const_error2_test/*: Crash
-assertion_initializer_const_error2_test/cc10: CompileTimeError # Issue #31321
-assertion_initializer_const_error2_test/cc11: CompileTimeError # Issue #31321
-assertion_initializer_const_error2_test/none: Pass
-assertion_initializer_const_function_error_test/01: Crash
-assertion_initializer_const_function_test/01: CompileTimeError
-const_evaluation_test/*: Fail # mirrors not supported
-deferred_constraints_constants_test: Pass # mirrors not supported, passes for the wrong reason
-deferred_constraints_constants_test/none: Fail # mirrors not supported
-deferred_constraints_constants_test/reference_after_load: Fail # mirrors not supported
-enum_mirror_test: Fail # mirrors not supported
-field_increment_bailout_test: Fail # mirrors not supported
-instance_creation_in_function_annotation_test: Fail # mirrors not supported
-invocation_mirror2_test: Fail # mirrors not supported
-invocation_mirror_invoke_on2_test: Fail # mirrors not supported
-invocation_mirror_invoke_on_test: Fail # mirrors not supported
-issue21079_test: Fail # mirrors not supported
-library_env_test/has_mirror_support: Fail # mirrors not supported
-library_env_test/has_no_mirror_support: Pass # fails for the wrong reason.
-many_overridden_no_such_method_test: Fail # mirrors not supported
-no_such_method_test: Fail # mirrors not supported
-null_test/0*: Pass # mirrors not supported, fails for the wrong reason
-null_test/none: Fail # mirrors not supported
-overridden_no_such_method_test: Fail # mirrors not supported
-redirecting_factory_reflection_test: Fail # mirrors not supported
-regress_13462_0_test: Fail # mirrors not supported
-regress_13462_1_test: Fail # mirrors not supported
-regress_18535_test: Fail # mirrors not supported
-regress_28255_test: Fail # mirrors not supported
-super_call4_test: Fail # mirrors not supported
-super_getter_setter_test: Fail # mirrors not supported
-vm/reflect_core_vm_test: Fail # mirrors not supported
-
-[ $compiler == dart2js && !$dart2js_with_kernel && $host_checked ]
+[ $compiler == dart2js && !$fasta && $host_checked ]
 assertion_initializer_const_error2_test/cc01: Crash
 assertion_initializer_const_error2_test/cc02: Crash
 assertion_initializer_const_error2_test/cc03: Crash
@@ -1573,7 +1573,7 @@ regress_26855_test/2: Crash # Issue 26867
 regress_26855_test/3: Crash # Issue 26867
 regress_26855_test/4: Crash # Issue 26867
 
-[ $compiler == dart2js && !$dart2js_with_kernel && $minified ]
+[ $compiler == dart2js && !$fasta && $minified ]
 symbol_conflict_test: RuntimeError # Issue 23857
 
 [ $compiler == dart2js && $minified ]

@@ -5,10 +5,10 @@
 [ $browser ]
 *: Skip
 
-[ $compiler == dart2js && $runtime == d8 && $system == windows && !$dart2js_with_kernel ]
+[ $compiler == dart2js && $runtime == d8 && $system == windows && !$fasta ]
 compute_this_script_test: Skip # Issue 17458
 
-[ $compiler == dart2js && $checked && $dart2js_with_kernel ]
+[ $compiler == dart2js && $checked && $fasta ]
 bound_closure_super_test: RuntimeError
 fake_thing_test: RuntimeError
 mirror_intercepted_field_test: RuntimeError
@@ -21,7 +21,7 @@ subclassing_super_call_test: RuntimeError
 subclassing_super_field_1_test: RuntimeError
 subclassing_super_field_2_test: RuntimeError
 
-[ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
+[ $compiler == dart2js && $fast_startup && $fasta ]
 bound_closure_super_test: RuntimeError
 fake_thing_test: RuntimeError
 mirror_intercepted_field_test: RuntimeError
@@ -36,7 +36,14 @@ subclassing_super_call_test: RuntimeError
 subclassing_super_field_1_test: RuntimeError
 subclassing_super_field_2_test: RuntimeError
 
-[ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
+[ $compiler == dart2js && $fast_startup && !$fasta ]
+mirror_intercepted_field_test: Fail # mirrors not supported
+native_mirror_test: Fail # mirrors not supported
+native_no_such_method_exception3_frog_test: Fail # mirrors not supported
+native_no_such_method_exception4_frog_test: Fail # mirrors not supported
+native_no_such_method_exception5_frog_test: Fail # mirrors not supported
+
+[ $compiler == dart2js && $fasta && $host_checked ]
 bound_closure_super_test: RuntimeError
 compute_this_script_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/types.dart': Failed assertion: line 63 pos 12: '!result.isEmpty': is not true.
 fake_thing_test: RuntimeError
@@ -51,7 +58,7 @@ subclassing_super_call_test: RuntimeError
 subclassing_super_field_1_test: RuntimeError
 subclassing_super_field_2_test: RuntimeError
 
-[ $compiler == dart2js && $dart2js_with_kernel && $minified ]
+[ $compiler == dart2js && $fasta && $minified ]
 bound_closure_super_test: RuntimeError
 fake_thing_test: RuntimeError
 mirror_intercepted_field_test: RuntimeError
@@ -66,19 +73,12 @@ subclassing_super_call_test: RuntimeError
 subclassing_super_field_1_test: RuntimeError
 subclassing_super_field_2_test: RuntimeError
 
-[ $compiler == dart2js && !$dart2js_with_kernel ]
+[ $compiler == dart2js && !$fasta ]
 bound_closure_super_test: Fail
 fake_thing_test: Fail # Issue 13010
 native_no_such_method_exception4_frog_test: CompileTimeError # Issue 9631
 native_no_such_method_exception5_frog_test: CompileTimeError # Issue 9631
 
-[ $compiler == dart2js && !$dart2js_with_kernel && $fast_startup ]
-mirror_intercepted_field_test: Fail # mirrors not supported
-native_mirror_test: Fail # mirrors not supported
-native_no_such_method_exception3_frog_test: Fail # mirrors not supported
-native_no_such_method_exception4_frog_test: Fail # mirrors not supported
-native_no_such_method_exception5_frog_test: Fail # mirrors not supported
-
-[ $compiler == dart2js && !$dart2js_with_kernel && $minified ]
+[ $compiler == dart2js && !$fasta && $minified ]
 optimization_hints_test: Fail, OK # Test relies on unminified names.
 

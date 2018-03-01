@@ -233,7 +233,7 @@ custom/js_custom_test: Fail # Issue 14643
 [ $compiler == dart2js && $checked ]
 js_function_getter_trust_types_test: Skip # --trust-type-annotations incompatible with --checked
 
-[ $compiler == dart2js && $checked && $dart2js_with_kernel ]
+[ $compiler == dart2js && $checked && $fasta ]
 canvasrenderingcontext2d_test/drawImage_image_element: Timeout
 canvasrenderingcontext2d_test/drawImage_video_element: Timeout
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Timeout
@@ -317,7 +317,14 @@ js_util_test: SkipByDesign
 mirrors_js_typed_interop_test: SkipByDesign
 postmessage_structured_test: SkipByDesign
 
-[ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
+[ $compiler == dart2js && $fast_startup ]
+custom/constructor_calls_created_synchronously_test: Fail # mirrors not supported
+custom/js_custom_test: Fail # mirrors not supported
+custom/mirrors_2_test: Fail # mirrors not supported
+custom/mirrors_test: Fail # mirrors not supported
+mirrors_js_typed_interop_test: Fail # mirrors not supported
+
+[ $compiler == dart2js && $fast_startup && $fasta ]
 js_typed_interop_default_arg_test/explicit_argument: RuntimeError
 js_typed_interop_default_arg_test/none: RuntimeError
 js_typed_interop_test/object literal: RuntimeError
@@ -325,26 +332,19 @@ js_typed_interop_test/static_method_call: RuntimeError
 js_typed_interop_test/static_method_tearoff_1: RuntimeError
 js_util_test/hasProperty: RuntimeError
 
-[ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
+[ $compiler == dart2js && $fasta && $host_checked ]
 custom/mirrors_2_test: RuntimeError
 custom/mirrors_test: RuntimeError
 fileapi_test/entry: RuntimeError
 js_typed_interop_default_arg_test/explicit_argument: RuntimeError
 js_typed_interop_test/static_method_tearoff_1: RuntimeError
 
-[ $compiler == dart2js && $dart2js_with_kernel && $minified ]
+[ $compiler == dart2js && $fasta && $minified ]
 custom/mirrors_2_test: RuntimeError
 custom/mirrors_test: RuntimeError
 fileapi_test/entry: RuntimeError
 js_typed_interop_default_arg_test/explicit_argument: RuntimeError
 js_typed_interop_test/static_method_tearoff_1: RuntimeError
-
-[ $compiler == dart2js && $fast_startup ]
-custom/constructor_calls_created_synchronously_test: Fail # mirrors not supported
-custom/js_custom_test: Fail # mirrors not supported
-custom/mirrors_2_test: Fail # mirrors not supported
-custom/mirrors_test: Fail # mirrors not supported
-mirrors_js_typed_interop_test: Fail # mirrors not supported
 
 [ $compiler == dart2js && $minified ]
 canvas_pixel_array_type_alias_test/types2_runtimeTypeName: Fail, OK # Issue 12605

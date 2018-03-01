@@ -308,10 +308,38 @@ html/js_util_test: SkipByDesign
 html/mirrors_js_typed_interop_test: SkipByDesign
 html/postmessage_structured_test: SkipByDesign
 
-[ $compiler == dart2js && $dart2js_with_kernel ]
+[ $compiler == dart2js && $fast_startup ]
+html/custom/constructor_calls_created_synchronously_test: Fail # mirrors not supported
+html/custom/document_register_basic_test: Pass, Slow, RuntimeError # Slow and sometimes times out
+html/custom/js_custom_test: Fail # mirrors not supported
+html/custom/mirrors_2_test: Fail # mirrors not supported
+html/custom/mirrors_test: Fail # mirrors not supported
+html/mirrors_js_typed_interop_test: Fail # mirrors not supported
+isolate/browser/compute_this_script_browser_test: Fail # mirrors not supported
+isolate/browser/typed_data_message_test: Fail # mirrors not supported
+isolate/count_test: Fail # mirrors not supported
+isolate/cross_isolate_message_test: Fail # mirrors not supported
+isolate/illegal_msg_mirror_test: Fail # mirrors not supported
+isolate/mandel_isolate_test: Fail # mirrors not supported
+isolate/message2_test: Fail # mirrors not supported
+isolate/message_test: Fail # mirrors not supported
+isolate/mint_maker_test: Fail # mirrors not supported
+isolate/nested_spawn2_test: Fail # mirrors not supported
+isolate/nested_spawn_test: Fail # mirrors not supported
+isolate/raw_port_test: Fail # mirrors not supported
+isolate/remote_unittest_helper: Fail # mirrors not supported
+isolate/request_reply_test: Fail # mirrors not supported
+isolate/spawn_function_custom_class_test: Fail # mirrors not supported
+isolate/spawn_function_test: Fail # mirrors not supported
+isolate/stacktrace_message_test: Fail # mirrors not supported
+isolate/static_function_test: Fail # mirrors not supported
+isolate/unresolved_ports_test: Fail # mirrors not supported
+mirrors/regress_16321_test/01: Pass # expects failure, but if fails for the wrong reason
+
+[ $compiler == dart2js && $fasta ]
 async/zone_run_unary_test: Crash
 
-[ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
+[ $compiler == dart2js && $fasta && $host_checked ]
 html/async_spawnuri_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/async_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/audiobuffersourcenode_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
@@ -488,7 +516,7 @@ html/worker_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Fa
 html/xhr_cross_origin_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/xhr_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 
-[ $compiler == dart2js && $dart2js_with_kernel && $minified ]
+[ $compiler == dart2js && $fasta && $minified ]
 html/async_spawnuri_test: RuntimeError
 html/async_test: RuntimeError
 html/audiobuffersourcenode_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
@@ -722,34 +750,6 @@ html/window_eq_test: RuntimeError
 html/window_mangling_test: RuntimeError
 html/window_nosuchmethod_test: RuntimeError
 
-[ $compiler == dart2js && $fast_startup ]
-html/custom/constructor_calls_created_synchronously_test: Fail # mirrors not supported
-html/custom/document_register_basic_test: Pass, Slow, RuntimeError # Slow and sometimes times out
-html/custom/js_custom_test: Fail # mirrors not supported
-html/custom/mirrors_2_test: Fail # mirrors not supported
-html/custom/mirrors_test: Fail # mirrors not supported
-html/mirrors_js_typed_interop_test: Fail # mirrors not supported
-isolate/browser/compute_this_script_browser_test: Fail # mirrors not supported
-isolate/browser/typed_data_message_test: Fail # mirrors not supported
-isolate/count_test: Fail # mirrors not supported
-isolate/cross_isolate_message_test: Fail # mirrors not supported
-isolate/illegal_msg_mirror_test: Fail # mirrors not supported
-isolate/mandel_isolate_test: Fail # mirrors not supported
-isolate/message2_test: Fail # mirrors not supported
-isolate/message_test: Fail # mirrors not supported
-isolate/mint_maker_test: Fail # mirrors not supported
-isolate/nested_spawn2_test: Fail # mirrors not supported
-isolate/nested_spawn_test: Fail # mirrors not supported
-isolate/raw_port_test: Fail # mirrors not supported
-isolate/remote_unittest_helper: Fail # mirrors not supported
-isolate/request_reply_test: Fail # mirrors not supported
-isolate/spawn_function_custom_class_test: Fail # mirrors not supported
-isolate/spawn_function_test: Fail # mirrors not supported
-isolate/stacktrace_message_test: Fail # mirrors not supported
-isolate/static_function_test: Fail # mirrors not supported
-isolate/unresolved_ports_test: Fail # mirrors not supported
-mirrors/regress_16321_test/01: Pass # expects failure, but if fails for the wrong reason
-
 [ $compiler == dart2js && $jscl ]
 isolate/spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell
 
@@ -771,3 +771,4 @@ isolate/large_byte_data_leak_test: RuntimeError
 html/custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
 html/custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 html/fontface_test: Fail # Fontface not supported on these.
+
