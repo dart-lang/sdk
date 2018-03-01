@@ -5,7 +5,15 @@
 // test w/ `pub run test -N prefer_const_constructors`
 
 class A {
-  const A();
+  const A({A parent});
+  const A.a();
+}
+
+void accessA_0() {
+  A a = A(); //OK
+  A a1 = A(
+    parent: A.a(), //OK
+  );
 }
 
 void accessA_1() {

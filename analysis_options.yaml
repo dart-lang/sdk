@@ -1,5 +1,7 @@
 analyzer:
   strong-mode: true
+  language:
+    enablePreviewDart2: true
   exclude:
     # ignore vscode .history files
     - .history/**
