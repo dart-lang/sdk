@@ -31,6 +31,20 @@ copy("copy_kernel_service_snapshot") {
   ]
 }
 
+application_snapshot("frontend_server") {
+  main_dart = "../../pkg/vm/bin/frontend_server_starter.dart"
+  deps = [
+    "../../runtime/vm:kernel_platform_files($dart_host_toolchain)",
+  ]
+  sdk_root = rebase_path("$root_out_dir")
+  training_args = [
+    "--train",
+    "--sdk-root=$sdk_root/",
+    "--platform=$sdk_root/vm_platform.dill",
+  ]
+  output = "$root_out_dir/frontend_server.dart.snapshot"
+}
+
 dart_action("kernel_service_dill") {
   deps = [
     "../../runtime/vm:vm_legacy_platform",
