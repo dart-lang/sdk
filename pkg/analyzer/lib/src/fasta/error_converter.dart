@@ -22,19 +22,7 @@ class FastaErrorReporter {
       String analyzerCode, int offset, int length, Message message) {
     Map<String, dynamic> arguments = message.arguments;
 
-    String stringOrTokenLexeme() {
-      var text = arguments['string'];
-      if (text == null) {
-        text = arguments['name'];
-        if (text == null) {
-          Token token = arguments['token'];
-          if (token != null) {
-            text = token.lexeme;
-          }
-        }
-      }
-      return text;
-    }
+    String lexeme() => (arguments['token'] as Token).lexeme;
 
     switch (analyzerCode) {
       case "ABSTRACT_CLASS_MEMBER":
@@ -58,12 +46,11 @@ class FastaErrorReporter {
             ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, offset, length);
         return;
       case "BUILT_IN_IDENTIFIER_AS_TYPE":
-        String name = stringOrTokenLexeme();
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
             offset,
             length,
-            [name]);
+            [lexeme()]);
         return;
       case "CLASS_IN_CLASS":
         errorReporter?.reportErrorForOffset(
@@ -139,12 +126,11 @@ class FastaErrorReporter {
             ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, offset, length);
         return;
       case "DUPLICATE_LABEL_IN_SWITCH_STATEMENT":
-        String text = stringOrTokenLexeme();
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT,
             offset,
             length,
-            [text]);
+            [arguments['string']]);
         return;
       case "COVARIANT_MEMBER":
         errorReporter?.reportErrorForOffset(
@@ -163,9 +149,8 @@ class FastaErrorReporter {
             ParserErrorCode.DUPLICATE_DEFERRED, offset, length);
         return;
       case "DUPLICATED_MODIFIER":
-        String text = stringOrTokenLexeme();
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.DUPLICATED_MODIFIER, offset, length, [text]);
+            ParserErrorCode.DUPLICATED_MODIFIER, offset, length, [lexeme()]);
         return;
       case "DUPLICATE_PREFIX":
         errorReporter?.reportErrorForOffset(
@@ -198,9 +183,8 @@ class FastaErrorReporter {
             ParserErrorCode.EXPECTED_STRING_LITERAL, offset, length);
         return;
       case "EXPECTED_TOKEN":
-        String text = stringOrTokenLexeme();
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXPECTED_TOKEN, offset, length, [text]);
+        errorReporter?.reportErrorForOffset(ParserErrorCode.EXPECTED_TOKEN,
+            offset, length, [arguments['string']]);
         return;
       case "EXPECTED_TYPE_NAME":
         errorReporter?.reportErrorForOffset(
@@ -249,9 +233,8 @@ class FastaErrorReporter {
             ParserErrorCode.EXTERNAL_TYPEDEF, offset, length);
         return;
       case "EXTRANEOUS_MODIFIER":
-        String text = stringOrTokenLexeme();
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTRANEOUS_MODIFIER, offset, length, [text]);
+            ParserErrorCode.EXTRANEOUS_MODIFIER, offset, length, [lexeme()]);
         return;
       case "FACTORY_TOP_LEVEL_DECLARATION":
         errorReporter?.reportErrorForOffset(
@@ -362,9 +345,8 @@ class FastaErrorReporter {
             offset, length);
         return;
       case "INVALID_OPERATOR":
-        String text = stringOrTokenLexeme();
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.INVALID_OPERATOR, offset, length, [text]);
+            ParserErrorCode.INVALID_OPERATOR, offset, length, [lexeme()]);
         return;
       case "INVALID_OPERATOR_FOR_SUPER":
         _reportByCode(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, message,
@@ -529,12 +511,11 @@ class FastaErrorReporter {
             ParserErrorCode.TOP_LEVEL_OPERATOR, offset, length);
         return;
       case "TYPE_ARGUMENTS_ON_TYPE_VARIABLE":
-        String text = stringOrTokenLexeme();
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.TYPE_ARGUMENTS_ON_TYPE_VARIABLE,
             offset,
             length,
-            [text]);
+            [arguments['name']]);
         return;
       case "TYPEDEF_IN_CLASS":
         errorReporter?.reportErrorForOffset(
@@ -553,9 +534,8 @@ class FastaErrorReporter {
             StaticTypeWarningCode.UNDEFINED_SETTER, offset, length);
         return;
       case "UNEXPECTED_TOKEN":
-        String text = stringOrTokenLexeme();
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.UNEXPECTED_TOKEN, offset, length, [text]);
+            ParserErrorCode.UNEXPECTED_TOKEN, offset, length, [lexeme()]);
         return;
       case "UNTERMINATED_MULTI_LINE_COMMENT":
         errorReporter?.reportErrorForOffset(
