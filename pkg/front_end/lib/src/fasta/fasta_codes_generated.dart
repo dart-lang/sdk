@@ -1648,6 +1648,16 @@ const MessageCode messageExpectedOpenParens = const MessageCode(
     message: r"""Expected '('.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedStatement = messageExpectedStatement;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedStatement = const MessageCode(
+    "ExpectedStatement",
+    analyzerCode: "MISSING_STATEMENT",
+    dart2jsCode: "*fatal*",
+    message: r"""Expected a statement.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExpectedString =
     const Template<Message Function(Token token)>(
         messageTemplate: r"""Expected a String, but got '#lexeme'.""",

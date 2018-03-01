@@ -1649,6 +1649,8 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   }
 
   void handleInvalidTopLevelBlock(Token token) {
+    // TODO(danrubel): Consider improved recovery by adding this block
+    // as part of a synthetic top level function.
     pop(); // block
   }
 

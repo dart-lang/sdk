@@ -133,6 +133,7 @@ ExpectedDeclaration/example: Fail
 ExpectedFunctionBody/example: Fail
 ExpectedOpenParens/analyzerCode: Fail
 ExpectedOpenParens/example: Fail
+ExpectedStatement/statement: Fail
 ExpectedString/example: Fail
 ExpectedToken/example: Fail
 ExpectedType/example: Fail

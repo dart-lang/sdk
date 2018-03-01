@@ -906,14 +906,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_missingStatement_afterVoid() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_STATEMENT, found 0
-    super.test_missingStatement_afterVoid();
-  }
-
-  @override
-  @failingTest
   void test_missingVariableInForEach() {
     // TODO(brianwilkerson) Does not recover.
     //   type 'BinaryExpressionImpl' is not a subtype of type 'VariableDeclarationStatement' in type cast where

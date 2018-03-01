@@ -137,6 +137,12 @@ ExpectedBody:
   dart2jsCode: BODY_EXPECTED
   script: "main();"
 
+ExpectedStatement:
+  template: "Expected a statement."
+  analyzerCode: MISSING_STATEMENT
+  dart2jsCode: "*fatal*"
+  statement: "void;"
+
 ExpectedButGot:
   template: "Expected '#string' before this."
   # Consider the second example below: the parser expects a ')' before 'y', but

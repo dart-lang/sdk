@@ -416,6 +416,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MISSING_STAR_AFTER_SYNC, offset, length);
         return;
+      case "MISSING_STATEMENT":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_STATEMENT, offset, length);
+        return;
       case "MISSING_TYPEDEF_PARAMETERS":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, offset, length);

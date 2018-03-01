@@ -4537,6 +4537,7 @@ class Wrong<T> {
     listener.assertErrors(usingFastaParser
         ? [
             expectedError(ParserErrorCode.MISSING_IDENTIFIER, 0, 2),
+            expectedError(ParserErrorCode.MISSING_STATEMENT, 0, 2),
             expectedError(ParserErrorCode.EXPECTED_TOKEN, 2, 0)
           ]
         : [expectedError(ParserErrorCode.MISSING_STATEMENT, 2, 0)]);
@@ -4545,7 +4546,7 @@ class Wrong<T> {
   void test_missingStatement_afterVoid() {
     parseStatement("void;");
     listener
-        .assertErrors([expectedError(ParserErrorCode.MISSING_STATEMENT, 4, 1)]);
+        .assertErrors([expectedError(ParserErrorCode.MISSING_STATEMENT, 0, 4)]);
   }
 
   void test_missingTerminatorForParameterGroup_named() {

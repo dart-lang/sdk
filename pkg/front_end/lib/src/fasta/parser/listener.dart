@@ -62,6 +62,9 @@ class Listener {
     logEvent("Block");
   }
 
+  /// Called to handle a block that has been parsed but is not associated
+  /// with any top level function declaration. Substructures:
+  /// - block
   void handleInvalidTopLevelBlock(Token token) {}
 
   void beginCascade(Token token) {}

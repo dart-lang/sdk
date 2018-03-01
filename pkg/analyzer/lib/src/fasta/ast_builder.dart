@@ -38,6 +38,7 @@ import 'package:front_end/src/fasta/messages.dart'
         messageConstMethod,
         messageConstructorWithReturnType,
         messageDirectiveAfterDeclaration,
+        messageExpectedStatement,
         messageFieldInitializerOutsideConstructor,
         messageIllegalAssignmentToNonAssignable,
         messageInterpolationInUri,
@@ -325,6 +326,12 @@ class AstBuilder extends ScopeListener {
       // This error is also reported by the body builder.
       handleRecoverableError(messageMissingAssignableSelector,
           expression.beginToken, expression.endToken);
+    }
+    if (expression is SimpleIdentifier &&
+        expression.token?.keyword?.isBuiltInOrPseudo == false) {
+      // This error is also reported by the body builder.
+      handleRecoverableError(
+          messageExpectedStatement, expression.beginToken, expression.endToken);
     }
     push(ast.expressionStatement(expression, semicolon));
   }
