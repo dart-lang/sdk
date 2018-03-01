@@ -276,6 +276,30 @@ class C extends B {
     expect(bundle.unlinkedUnits[0].references[typeRef.reference].name, 'int');
   }
 
+  void test_genericTypeAlias_fromBundle() {
+    var bundle = createPackageBundle('''
+typedef F<S> = S Function(num);
+''', path: '/a.dart');
+    addBundle('/a.ds', bundle);
+
+    createLinker('''
+import 'a.dart';
+class A {
+  F<int> f;
+}
+class B implements A {
+  F<int> f;
+}
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+
+    ClassElementForLink_Class B = library.getContainedName('B');
+    expect(B.fields, hasLength(1));
+    FieldElementForLink f = B.fields[0];
+    expect(f.type.toString(), '(num) → int');
+  }
+
   void test_getContainedName_nonStaticField() {
     createLinker('class C { var f; }');
     LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);

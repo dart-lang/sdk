@@ -824,6 +824,14 @@ class ClassElementForLink_Class extends ClassElementForLink
     return enclosingElement.enclosingElement._linker.typeProvider.objectType;
   }
 
+  InterfaceType _findInterfaceTypeForElement(
+      ClassElement element, List<InterfaceType> interfaceTypes) {
+    for (var interfaceType in interfaceTypes) {
+      if (interfaceType.element == element) return interfaceType;
+    }
+    return null;
+  }
+
   List<InterfaceType> _findInterfaceTypesForConstraints(
       List<InterfaceType> constraints, List<InterfaceType> interfaceTypes) {
     var result = <InterfaceType>[];
@@ -837,14 +845,6 @@ class ClassElementForLink_Class extends ClassElementForLink
       result.add(interfaceType);
     }
     return result;
-  }
-
-  InterfaceType _findInterfaceTypeForElement(
-      ClassElement element, List<InterfaceType> interfaceTypes) {
-    for (var interfaceType in interfaceTypes) {
-      if (interfaceType.element == element) return interfaceType;
-    }
-    return null;
   }
 }
 
@@ -3636,7 +3636,15 @@ class GenericTypeAliasElementForLink extends Object
   String get name => _unlinkedTypedef.name;
 
   @override
+  DartType get returnType => enclosingElement.resolveTypeRef(
+      this, _unlinkedTypedef.returnType.syntheticReturnType);
+
+  @override
   TypeParameterizedElementMixin get typeParameterContext => this;
+
+  @override
+  List<UnlinkedParam> get unlinkedParameters =>
+      _unlinkedTypedef.returnType.syntheticParams;
 
   @override
   List<UnlinkedTypeParam> get unlinkedTypeParams =>
