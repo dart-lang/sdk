@@ -22,15 +22,73 @@ import "package:front_end/src/api_prototype/memory_file_system.dart"
 Directory outDir;
 
 main() async {
+  await runPassingTest(testDart2jsCompile);
+  await runPassingTest(testDisappearingLibrary);
+  await runPassingTest(testDeferredLibrary);
+  await runPassingTest(testStrongModeMixins);
+}
+
+void runFailingTest(dynamic test, String expectContains) async {
+  try {
+    await runPassingTest(test);
+    throw "Expected this to fail.";
+  } catch (e) {
+    if (e.toString().contains(expectContains)) {
+      print("got expected error as this test is currently failing");
+    } else {
+      rethrow;
+    }
+  }
+}
+
+void runPassingTest(dynamic test) async {
   outDir =
       Directory.systemTemp.createTempSync("incremental_load_from_dill_test");
   try {
-    await testDart2jsCompile();
-    await testDisappearingLibrary();
-    await testDeferredLibrary();
+    await test();
+    print("----");
   } finally {
     outDir.deleteSync(recursive: true);
   }
+}
+
+/// Compile in strong mode. Invalidate a file so type inferrer starts
+/// on something compiled from source and (potentially) goes into
+/// something loaded from dill.
+void testStrongModeMixins() async {
+  final Uri a = outDir.uri.resolve("testStrongModeMixins_a.dart");
+  final Uri b = outDir.uri.resolve("testStrongModeMixins_b.dart");
+
+  Uri output = outDir.uri.resolve("testStrongModeMixins_full.dill");
+  Uri bootstrappedOutput =
+      outDir.uri.resolve("testStrongModeMixins_full_from_bootstrap.dill");
+
+  new File.fromUri(a).writeAsStringSync("""
+    import 'testStrongModeMixins_b.dart';
+    class A extends Object with B<Object>, C {}
+    """);
+  new File.fromUri(b).writeAsStringSync("""
+    abstract class C<T extends Object> extends Object with B<T> {}
+    abstract class B<ChildType extends Object> extends Object {}
+    """);
+
+  Stopwatch stopwatch = new Stopwatch()..start();
+  await normalCompile(a, output, options: getOptions()..strongMode = true);
+  print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
+
+  stopwatch.reset();
+  bool bootstrapResult = await bootstrapCompile(
+      a, bootstrappedOutput, output, [a],
+      performSizeTests: false, options: getOptions()..strongMode = true);
+  print("Bootstrapped compile(s) from ${output.pathSegments.last} "
+      "took ${stopwatch.elapsedMilliseconds} ms");
+  Expect.isTrue(bootstrapResult);
+
+  // Compare the two files.
+  List<int> normalDillData = new File.fromUri(output).readAsBytesSync();
+  List<int> bootstrappedDillData =
+      new File.fromUri(bootstrappedOutput).readAsBytesSync();
+  checkBootstrappedIsEqual(normalDillData, bootstrappedDillData);
 }
 
 /// Test loading from a dill file with a deferred library.
@@ -169,7 +227,9 @@ void testDisappearingLibrary() async {
     options.sdkSummary = sdkSummary;
     IncrementalCompiler compiler =
         new IncrementalKernelGenerator(options, main);
+    Stopwatch stopwatch = new Stopwatch()..start();
     var program = await compiler.computeDelta();
+    print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
     libCount2 = serializeProgram(program);
     if (program.libraries.length != 2) {
       throw "Expected 2 libraries, got ${program.libraries.length}";
@@ -199,7 +259,9 @@ void testDisappearingLibrary() async {
         new IncrementalKernelGenerator(options, b, bootstrap);
     compiler.invalidate(main);
     compiler.invalidate(b);
+    Stopwatch stopwatch = new Stopwatch()..start();
     var program = await compiler.computeDelta();
+    print("Bootstrapped compile took ${stopwatch.elapsedMilliseconds} ms");
     if (program.libraries.length != 1) {
       throw "Expected 1 library, got ${program.libraries.length}";
     }
@@ -215,8 +277,9 @@ CompilerOptions getOptions() {
   return options;
 }
 
-Future<bool> normalCompile(Uri input, Uri output) async {
-  CompilerOptions options = getOptions();
+Future<bool> normalCompile(Uri input, Uri output,
+    {CompilerOptions options}) async {
+  options ??= getOptions();
   IncrementalCompiler compiler = new IncrementalKernelGenerator(options, input);
   var y = await compiler.computeDelta();
   await writeProgramToFile(y, output);
@@ -225,8 +288,8 @@ Future<bool> normalCompile(Uri input, Uri output) async {
 
 Future<bool> bootstrapCompile(
     Uri input, Uri output, Uri bootstrapWith, List<Uri> invalidateUris,
-    {bool performSizeTests: true}) async {
-  CompilerOptions options = getOptions();
+    {bool performSizeTests: true, CompilerOptions options}) async {
+  options ??= getOptions();
   IncrementalCompiler compiler =
       new IncrementalKernelGenerator(options, input, bootstrapWith);
   for (Uri invalidateUri in invalidateUris) {
