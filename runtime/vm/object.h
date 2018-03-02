@@ -6289,6 +6289,9 @@ class TypeRef : public AbstractType {
   virtual bool IsMalformedOrMalbounded() const {
     return AbstractType::Handle(type()).IsMalformedOrMalbounded();
   }
+  virtual RawLanguageError* error() const {
+    return AbstractType::Handle(type()).error();
+  }
   virtual bool IsResolved() const { return true; }
   virtual bool HasResolvedTypeClass() const {
     return (type() != AbstractType::null()) &&
