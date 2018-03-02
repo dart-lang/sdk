@@ -94,6 +94,10 @@ class _SecureFilterImpl extends NativeFieldWrapperClass1
 
   void handshake() native "SecureSocket_Handshake";
 
+  void rehandshake() => throw new UnimplementedError();
+
+  int processBuffer(int bufferIndex) => throw new UnimplementedError();
+
   String selectedProtocol() native "SecureSocket_GetSelectedProtocol";
 
   void renegotiate(bool useSessionCache, bool requestClientCertificate,
