@@ -1250,7 +1250,7 @@ CompileType LoadFieldInstr::ComputeType() const {
   if ((isolate->strong() && FLAG_use_strong_mode_types) ||
       (isolate->type_checks() &&
        (type().IsFunctionType() || type().HasResolvedTypeClass()))) {
-    const AbstractType* abstract_type = abstract_type = &type();
+    const AbstractType* abstract_type = &type();
     TraceStrongModeType(this, *abstract_type);
     compile_type_annotation = CompileType::FromAbstractType(*abstract_type);
   }
