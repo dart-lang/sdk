@@ -62,7 +62,7 @@ StackTrace mapStackTrace(Mapping sourceMap, StackTrace stackTrace,
       // This compresses the long dart_sdk URLs if SDK source maps are missing.
       // It's no longer linkable, but neither are the properly mapped ones
       // above.
-      sourceUrl = 'dart_sdk.js';
+      sourceUrl = 'dart:sdk_internal';
     }
 
     return new Frame(Uri.parse(sourceUrl), span.start.line + 1,
