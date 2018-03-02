@@ -36,9 +36,9 @@ final dart2jsConfigurations = {
       r'[ $compiler == dart2js && $fasta && $host_checked && $strong ]',
   'minified-strong':
       r'[ $compiler == dart2js && $fasta && $minified && $strong ]',
-  'fast-startup': r'[ $compiler == dart2js && $fasta && $fast_startup ]',
+  'fast-startup': r'[ $compiler == dart2js && $fast_startup && $fasta ]',
   'fast-startup-strong':
-      r'[ $compiler == dart2js && $fasta && $fast_startup && $strong ]',
+      r'[ $compiler == dart2js && $fast_startup && $fasta && $strong ]',
   'checked-mode': r'[ $compiler == dart2js && $checked && $fasta ]',
   'checked-mode-strong':
       r'[ $compiler == dart2js && $checked && $fasta && $strong ]',
