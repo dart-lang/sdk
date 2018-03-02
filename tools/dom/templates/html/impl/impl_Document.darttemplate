@@ -57,6 +57,7 @@ $!MEMBERS
   bool get supportsRegister => supportsRegisterElement;
 
   @DomName('Document.createElement')
+  @ForceInline() // Almost all call sites have one argument.
   Element createElement(String tagName, [String typeExtension]) {
     return (typeExtension == null)
         ? _createElement_2(tagName)
