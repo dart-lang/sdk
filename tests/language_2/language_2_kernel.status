@@ -1108,7 +1108,6 @@ super_operator_index7_test: CompileTimeError
 super_operator_index8_test: CompileTimeError
 super_test: Fail, OK
 syntax_test/00: MissingCompileTimeError
-tearoff_dynamic_test: Crash
 type_literal_test: RuntimeError
 type_promotion_functions_test/02: CompileTimeError # Issue 31537
 type_promotion_functions_test/03: CompileTimeError # Issue 31537
