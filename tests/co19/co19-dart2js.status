@@ -127,7 +127,6 @@ Language/Types/Type_Void/syntax_t08: MissingCompileTimeError
 Language/Variables/final_t01/01: CompileTimeError # co19 issue 77
 Language/Variables/final_t02/01: CompileTimeError # co19 issue 77
 Language/Variables/local_variable_t01: MissingCompileTimeError # Issue 21050
-LayoutTests/fast/css/font-face-cache-bug_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/dom/HTMLLinkElement/link-onload-stylesheet-with-import_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/dom/css-innerHTML_t01: SkipByDesign # Test is incorrect.
 LayoutTests/fast/dom/mutation-event-remove-inserted-node_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
@@ -501,17 +500,10 @@ LayoutTests/fast/css/deprecated-flexbox-auto-min-size_t01: RuntimeError # Please
 LayoutTests/fast/css/ex-unit-with-no-x-height_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/first-child-display-change-inverse_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/focus-display-block-inline_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/css/font-face-cache-bug_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-insert-link_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/css/font-face-unicode-range-load_t01: Skip # Please triage this failure
-LayoutTests/fast/css/font-face-unicode-range-monospace_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-unicode-range-overlap-load_t01: Skip # Times out, Runtime error. Please triage this failure
-LayoutTests/fast/css/font-family-trailing-bracket-gunk_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/fontfaceset-download-error_t01: Skip # Timeout: issue 28722. Runtime error not triaged
 LayoutTests/fast/css/fontfaceset-events_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/css/fontfaceset-loadingdone_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/getComputedStyle/computed-style-cross-fade_t01: RuntimeError # co19 issue 14
 LayoutTests/fast/css/getComputedStyle/computed-style-font_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/getComputedStyle/font-family-fallback-reset_t01: RuntimeError # Please triage this failure
@@ -1108,14 +1100,6 @@ WebPlatformTest/Utils/test/asyncTestTimeout_t01: Skip # Times out. Please triage
 WebPlatformTest/custom-elements/concepts/type_A03_t01: RuntimeError # Please triage this failure
 WebPlatformTest/custom-elements/concepts/type_A05_t01: RuntimeError # Please triage this failure
 WebPlatformTest/custom-elements/concepts/type_A06_t01: RuntimeError # Please triage this failure
-WebPlatformTest/custom-elements/instantiating/createElementNS_A02_t01: RuntimeError # Issue 25155
-WebPlatformTest/custom-elements/instantiating/createElementNS_A03_t01: RuntimeError # Issue 25155
-WebPlatformTest/custom-elements/instantiating/createElementNS_A04_t01: RuntimeError # Please triage this failure
-WebPlatformTest/custom-elements/instantiating/createElement_A02_t01: RuntimeError # Issue 25155
-WebPlatformTest/custom-elements/instantiating/createElement_A03_t01: RuntimeError # Issue 25155
-WebPlatformTest/custom-elements/instantiating/createElement_A04_t01: RuntimeError # Please triage this failure
-WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t01: RuntimeError # Issue 25155
-WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t02: RuntimeError # Issue 25155
 WebPlatformTest/dom/EventTarget/dispatchEvent_A02_t01: RuntimeError # Please triage this failure
 WebPlatformTest/dom/EventTarget/dispatchEvent_A03_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/dom/events/type_A01_t01: RuntimeError # Please triage this failure
@@ -2560,7 +2544,6 @@ LayoutTests/fast/css/dynamic-class-backdrop-pseudo_t01: RuntimeError # Please tr
 LayoutTests/fast/css/first-child-display-change-inverse_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/focus-display-block-inline_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-insert-link_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/css/font-family-trailing-bracket-gunk_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-property-priority_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-mix-inherit_t01: RuntimeError # Please triage this failure
