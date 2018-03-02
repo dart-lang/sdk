@@ -3742,27 +3742,19 @@ class Wrong<T> {
   }
 
   void test_illegalAssignmentToNonAssignable_superAssigned() {
-    // TODO(brianwilkerson) When the test
-    // test_illegalAssignmentToNonAssignable_superAssigned_failing starts to pass,
-    // remove this test (there should only be one error generated, but we're
-    // keeping this test until that time so that we can catch other forms of
-    // regressions).
-    parseExpression("super = x;", codes: [
-      ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR,
-      ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE
-    ]);
-  }
-
-  @failingTest
-  void test_illegalAssignmentToNonAssignable_superAssigned_failing() {
     // TODO(brianwilkerson) When this test starts to pass, remove the test
     // test_illegalAssignmentToNonAssignable_superAssigned.
-    parseExpression("super = x;",
-//        codes: [ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE],
-        errors: [
-          expectedError(
-              ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 6, 1)
-        ]);
+    parseStatement("super = x;");
+    listener.assertErrors(usingFastaParser
+        ? [
+            expectedError(
+                ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 0, 5)
+          ]
+        : [
+            expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 6, 1),
+            expectedError(
+                ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 6, 1)
+          ]);
   }
 
   void test_implementsBeforeExtends() {

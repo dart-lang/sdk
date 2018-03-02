@@ -267,30 +267,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_illegalAssignmentToNonAssignable_superAssigned() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Expected: true
-    //   Actual: <false>
-    //
-    //   package:test                                                       expect
-    //   test/generated/parser_fasta_test.dart 3157:5                       ParserProxy._run
-    super.test_illegalAssignmentToNonAssignable_superAssigned();
-  }
-
-  @override
-  @failingTest
-  void test_illegalAssignmentToNonAssignable_superAssigned_failing() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Expected: true
-    //   Actual: <false>
-    //
-    //   package:test                                                       expect
-    //   test/generated/parser_fasta_test.dart 3157:5                       ParserProxy._run
-    super.test_illegalAssignmentToNonAssignable_superAssigned_failing();
-  }
-
-  @override
-  @failingTest
   void test_invalidCodePoint() {
     // TODO(brianwilkerson) Does not recover.
     //   Internal problem: Compiler cannot run without a compiler context.

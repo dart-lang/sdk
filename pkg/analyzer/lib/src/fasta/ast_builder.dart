@@ -333,6 +333,15 @@ class AstBuilder extends ScopeListener {
       handleRecoverableError(
           messageExpectedStatement, expression.beginToken, expression.endToken);
     }
+    if (expression is AssignmentExpression) {
+      if (!expression.leftHandSide.isAssignable) {
+        // This error is also reported by the body builder.
+        handleRecoverableError(
+            messageIllegalAssignmentToNonAssignable,
+            expression.leftHandSide.beginToken,
+            expression.leftHandSide.endToken);
+      }
+    }
     push(ast.expressionStatement(expression, semicolon));
   }
 
