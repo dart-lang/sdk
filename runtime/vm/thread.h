@@ -101,12 +101,15 @@ class Zone;
 
 #endif
 
+#define CACHED_NON_VM_STUB_LIST(V)                                             \
+  V(RawObject*, object_null_, Object::null(), NULL)                            \
+  V(RawBool*, bool_true_, Object::bool_true().raw(), NULL)                     \
+  V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)
+
 // List of VM-global objects/addresses cached in each Thread object.
 // Important: constant false must immediately follow constant true.
 #define CACHED_VM_OBJECTS_LIST(V)                                              \
-  V(RawObject*, object_null_, Object::null(), NULL)                            \
-  V(RawBool*, bool_true_, Object::bool_true().raw(), NULL)                     \
-  V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)                   \
+  CACHED_NON_VM_STUB_LIST(V)                                                   \
   CACHED_VM_STUBS_LIST(V)
 
 // This assertion marks places which assume that boolean false immediate
