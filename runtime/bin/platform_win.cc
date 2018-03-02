@@ -116,10 +116,19 @@ class PlatformWin {
   // https://msdn.microsoft.com/en-us/library/windows/desktop/ms681401(v=vs.85).aspx
   static LONG WINAPI
   DartExceptionHandler(struct _EXCEPTION_POINTERS* ExceptionInfo) {
-    if (ExceptionInfo->ExceptionRecord->ExceptionCode ==
-        EXCEPTION_ACCESS_VIOLATION) {
-      const int kAbortExitCode = 3;
+    if ((ExceptionInfo->ExceptionRecord->ExceptionCode ==
+         EXCEPTION_ACCESS_VIOLATION) ||
+        (ExceptionInfo->ExceptionRecord->ExceptionCode ==
+         EXCEPTION_ILLEGAL_INSTRUCTION)) {
+      Log::PrintErr(
+          "\n===== DART STANDALONE VM CRASH =====\n"
+          "version=%s\n"
+          "ExceptionCode=%d, ExceptionFlags=%d, ExceptionAddress=%p\n",
+          Dart_VersionString(), ExceptionInfo->ExceptionRecord->ExceptionCode,
+          ExceptionInfo->ExceptionRecord->ExceptionFlags,
+          ExceptionInfo->ExceptionRecord->ExceptionAddress);
       Dart_DumpNativeStackTrace(ExceptionInfo->ContextRecord);
+      const int kAbortExitCode = 3;
       Platform::Exit(kAbortExitCode);
     }
     return EXCEPTION_CONTINUE_SEARCH;
