@@ -65,18 +65,34 @@ variable_type_test/03: Fail, OK
 
 [ $compiler == dart2js && $checked && $fasta ]
 21666_test: RuntimeError
-closure_capture2_test: RuntimeError
 closure_type_reflection2_test: RuntimeError
 closure_type_reflection_test: RuntimeError
 constant_javascript_semantics_test/01: MissingCompileTimeError
+deferred/default_arg_is_tearoff_test: RuntimeError
+deferred/deferred_class_test: RuntimeError
+deferred/deferred_constant2_test: RuntimeError
+deferred/deferred_constant3_test: RuntimeError
+deferred/deferred_constant4_test: RuntimeError
+deferred/deferred_function_test: RuntimeError
+deferred/deferred_metadata_test: RuntimeError
 deferred/deferred_mirrors1_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred/deferred_mirrors2_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
+deferred/deferred_overlapping_test: RuntimeError
+deferred/interface_type_variable_test: RuntimeError
+deferred/load_in_correct_order_test: RuntimeError
+deferred/multiple_default_arg_test: RuntimeError
 deferred/reflect_multiple_annotations_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred/reflect_multiple_default_arg_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
+deferred/shared_constant_test: RuntimeError
+deferred/uninstantiated_type_variable_test: RuntimeError
+deferred_custom_loader_test: RuntimeError
 deferred_fail_and_retry_test: RuntimeError
 deferred_fail_and_retry_worker_test: Fail
-dummy_compiler_test: CompileTimeError
+deferred_inheritance_test: RuntimeError
+deferred_split_test: RuntimeError
+dummy_compiler_test: Crash
 invalid_annotation2_test/none: RuntimeError
+local_signature_test: Crash
 minus_zero_test/01: MissingCompileTimeError
 mirror_invalid_field_access2_test: RuntimeError
 mirror_invalid_field_access3_test: RuntimeError
@@ -94,15 +110,16 @@ mirror_type_inference_function_test: RuntimeError
 mirrors_declarations_filtering_test: RuntimeError
 mirrors_used_metatargets_test: RuntimeError
 mirrors_used_native_test: RuntimeError
-mirrors_used_warning2_test: RuntimeError
-mirrors_used_warning_test/minif: RuntimeError
-mirrors_used_warning_test/none: RuntimeError
+mirrors_used_warning2_test: Crash
+mirrors_used_warning_test/minif: Crash
+mirrors_used_warning_test/none: Crash
 private_symbol_literal_test/01: MissingCompileTimeError
 private_symbol_literal_test/02: MissingCompileTimeError
 private_symbol_literal_test/03: MissingCompileTimeError
 private_symbol_literal_test/04: MissingCompileTimeError
 private_symbol_literal_test/05: MissingCompileTimeError
 private_symbol_literal_test/06: MissingCompileTimeError
+recursive_import_test: Crash
 reflect_native_types_test: RuntimeError
 regress/4562_test/none: CompileTimeError
 type_constant_switch_test/01: MissingCompileTimeError
@@ -172,20 +189,20 @@ regress/4562_test/none: CompileTimeError
 type_constant_switch_test/01: MissingCompileTimeError
 unconditional_dartio_import_test: RuntimeError
 
-[ $compiler == dart2js && $fasta && $host_checked ]
+[ $compiler == dart2js && $fasta ]
 21666_test: RuntimeError
 23264_test: RuntimeError
 closure_capture2_test: RuntimeError
 closure_type_reflection2_test: RuntimeError
 closure_type_reflection_test: RuntimeError
 constant_javascript_semantics_test/01: MissingCompileTimeError
-deferred/deferred_mirrors1_test: RuntimeError
+deferred/deferred_mirrors1_test: SkipByDesign
 deferred/deferred_mirrors2_test: RuntimeError
 deferred/reflect_multiple_annotations_test: RuntimeError
 deferred/reflect_multiple_default_arg_test: RuntimeError
 deferred_fail_and_retry_test: RuntimeError
 deferred_fail_and_retry_worker_test: Fail
-inference_nsm_mirrors_test: RuntimeError
+inference_nsm_mirrors_test: SkipByDesign
 invalid_annotation2_test/none: RuntimeError
 mirror_invalid_field_access2_test: RuntimeError
 mirror_invalid_field_access3_test: RuntimeError
@@ -207,7 +224,7 @@ mirrors_used_native_test: RuntimeError
 mirrors_used_warning2_test: RuntimeError
 mirrors_used_warning_test/minif: RuntimeError
 mirrors_used_warning_test/none: RuntimeError
-no_such_method_mirrors_test: RuntimeError
+no_such_method_mirrors_test: SkipByDesign
 private_symbol_literal_test/01: MissingCompileTimeError
 private_symbol_literal_test/02: MissingCompileTimeError
 private_symbol_literal_test/03: MissingCompileTimeError
@@ -219,51 +236,16 @@ regress/4562_test/none: CompileTimeError
 type_constant_switch_test/01: MissingCompileTimeError
 unconditional_dartio_import_test: RuntimeError # Issue 30902
 
+[ $compiler == dart2js && $fasta && $host_checked ]
+closure_capture2_test: RuntimeError
+deferred/reflect_multiple_annotations_test: RuntimeError
+deferred/reflect_multiple_default_arg_test: RuntimeError
+
 [ $compiler == dart2js && $fasta && $minified ]
-21666_test: RuntimeError
-23264_test: RuntimeError
-closure_type_reflection2_test: RuntimeError
-closure_type_reflection_test: RuntimeError
-constant_javascript_semantics_test/01: MissingCompileTimeError
-deferred/deferred_mirrors1_test: RuntimeError
-deferred/deferred_mirrors2_test: RuntimeError
+closure_capture2_test: Pass # Passes for the wrong reason
 deferred/reflect_multiple_annotations_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred/reflect_multiple_default_arg_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-deferred_fail_and_retry_test: RuntimeError
-deferred_fail_and_retry_worker_test: Fail
 dummy_compiler_test: CompileTimeError
-inference_nsm_mirrors_test: RuntimeError
-invalid_annotation2_test/none: RuntimeError
-mirror_invalid_field_access2_test: RuntimeError
-mirror_invalid_field_access3_test: RuntimeError
-mirror_invalid_field_access4_test: RuntimeError
-mirror_invalid_field_access_test: RuntimeError
-mirror_invalid_invoke2_test: RuntimeError
-mirror_invalid_invoke3_test: RuntimeError
-mirror_invalid_invoke_test: RuntimeError
-mirror_printer_test/01: RuntimeError
-mirror_printer_test/none: RuntimeError
-mirror_test: RuntimeError
-mirror_type_inference_field2_test: RuntimeError
-mirror_type_inference_field_test: RuntimeError
-mirror_type_inference_function_test: RuntimeError
-mirrors_declarations_filtering_test: RuntimeError
-mirrors_used_closure_test: SkipByDesign
-mirrors_used_metatargets_test: RuntimeError
-mirrors_used_native_test: RuntimeError
-mirrors_used_warning2_test: RuntimeError
-mirrors_used_warning_test/none: RuntimeError
-no_such_method_mirrors_test: RuntimeError
-private_symbol_literal_test/01: MissingCompileTimeError
-private_symbol_literal_test/02: MissingCompileTimeError
-private_symbol_literal_test/03: MissingCompileTimeError
-private_symbol_literal_test/04: MissingCompileTimeError
-private_symbol_literal_test/05: MissingCompileTimeError
-private_symbol_literal_test/06: MissingCompileTimeError
-reflect_native_types_test: RuntimeError
-regress/4562_test/none: CompileTimeError
-type_constant_switch_test/01: MissingCompileTimeError
-unconditional_dartio_import_test: RuntimeError # Issue 30902
 
 [ $compiler == dart2js && !$fasta ]
 expose_this1_test: RuntimeError # Issue 31254
