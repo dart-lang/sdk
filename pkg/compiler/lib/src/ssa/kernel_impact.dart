@@ -539,6 +539,12 @@ class KernelImpactBuilder extends ir.Visitor {
   }
 
   @override
+  void visitInstantiation(ir.Instantiation node) {
+    impactBuilder.registerFeature(Feature.GENERIC_INSTANTIATION);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitStringConcatenation(ir.StringConcatenation node) {
     impactBuilder.registerFeature(Feature.STRING_INTERPOLATION);
     impactBuilder.registerFeature(Feature.STRING_JUXTAPOSITION);

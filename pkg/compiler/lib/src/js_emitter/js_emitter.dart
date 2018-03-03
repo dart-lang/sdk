@@ -6,6 +6,7 @@ library dart2js.js_emitter;
 
 export 'class_stub_generator.dart';
 export 'code_emitter_task.dart';
+export 'instantiation_stub_generator.dart';
 export 'interceptor_stub_generator.dart';
 export 'main_call_stub_generator.dart';
 export 'metadata_collector.dart';

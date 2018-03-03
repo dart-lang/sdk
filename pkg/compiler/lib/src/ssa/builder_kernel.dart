@@ -3990,10 +3990,33 @@ class KernelSsaGraphBuilder extends ir.Visitor
           _elementMap.getDartType(type), sourceElement);
       arguments.add(instruction);
     }
-    Selector selector =
-        new Selector.genericInstantiation(node.typeArguments.length);
-    _pushDynamicInvocation(node, commonMasks.functionType, selector, arguments,
-        const <DartType>[], null /*_sourceInformationBuilder.?*/);
+    int typeArgumentCount = node.typeArguments.length;
+    bool targetCanThrow = false; // TODO(sra): Is this true?
+    FunctionEntity target = _instantiator(typeArgumentCount);
+    if (target == null) {
+      reporter.internalError(
+          _elementMap.getSpannable(targetElement, node),
+          'Generic function instantiation not implemented for '
+          '${typeArgumentCount} type arguments');
+      stack.add(graph.addConstantNull(closedWorld));
+      return;
+    }
+    HInstruction instruction = new HInvokeStatic(
+        target, arguments, commonMasks.functionType, <DartType>[],
+        targetCanThrow: targetCanThrow);
+    // TODO(sra): ..sourceInformation = sourceInformation
+    instruction.sideEffects
+      ..clearAllDependencies()
+      ..clearAllSideEffects();
+
+    push(instruction);
+  }
+
+  FunctionEntity _instantiator(int count) {
+    if (count == 1) return _commonElements.instantiate1;
+    if (count == 2) return _commonElements.instantiate2;
+    if (count == 3) return _commonElements.instantiate3;
+    return null;
   }
 
   @override

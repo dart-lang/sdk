@@ -1726,7 +1726,7 @@ function_subtype_bound_closure4_test: RuntimeError
 function_subtype_bound_closure5_test: RuntimeError
 function_subtype_bound_closure5a_test: RuntimeError
 function_subtype_bound_closure6_test: RuntimeError
-function_subtype_bound_closure7_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
+function_subtype_bound_closure7_test: RuntimeError
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_cast1_test: RuntimeError
@@ -1760,7 +1760,7 @@ generic_closure_test/01: RuntimeError
 generic_closure_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
 generic_field_mixin6_test/none: RuntimeError
 generic_function_bounds_test: RuntimeError
-generic_function_dcall_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_function_dcall_test: RuntimeError
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError
 generic_function_type_as_type_argument_test/03: RuntimeError
@@ -1782,7 +1782,7 @@ generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_methods_recursive_bound_test/03: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/metadata_collector.dart': Failed assertion: line 100 pos 12: 'isBound': is not true.
 generic_methods_simple_as_expression_test/02: MissingRuntimeError
-generic_methods_tearoff_specialization_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
+generic_methods_tearoff_specialization_test: RuntimeError
 generic_methods_test: Crash # Stack Overflow
 generic_methods_type_expression_test: RuntimeError
 generic_methods_unused_parameter_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
@@ -2661,7 +2661,7 @@ generic_methods_simple_as_expression_test/02: MissingRuntimeError
 generic_methods_tearoff_specialization_test: RuntimeError
 generic_methods_test: Crash # Stack Overflow
 generic_methods_type_expression_test: RuntimeError
-generic_methods_unused_parameter_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [Instance of 'LiteralNull', null]
+generic_methods_unused_parameter_test: RuntimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
