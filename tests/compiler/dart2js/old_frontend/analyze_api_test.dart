@@ -18,7 +18,14 @@ import 'package:async_helper/async_helper.dart';
  * the error/warning message in the list of white-listings for each file.
  */
 // TODO(johnniwinther): Support canonical URIs as keys.
-const Map<String, List<String>> WHITE_LIST = const {};
+const Map<String, List<String>> WHITE_LIST = const {
+  "sdk/lib/io/file.dart": const [
+    "'void' is not a subtype of bound 'Object' for type variable",
+  ],
+  "sdk/lib/io/file_impl.dart": const [
+    "'void' is not a subtype of bound 'Object' for type variable",
+  ],
+};
 
 void main() {
   var uriList = new List<Uri>();

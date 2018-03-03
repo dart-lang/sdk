@@ -609,10 +609,10 @@ abstract class File implements FileSystemEntity {
  */
 abstract class RandomAccessFile {
   /**
-   * Closes the file. Returns a `Future<RandomAccessFile>` that
+   * Closes the file. Returns a `Future` that
    * completes with this RandomAccessFile when it has been closed.
    */
-  Future<RandomAccessFile> close();
+  Future<void> close();
 
   /**
    * Synchronously closes the file.
