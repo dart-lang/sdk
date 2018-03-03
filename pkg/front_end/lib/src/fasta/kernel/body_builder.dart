@@ -1613,10 +1613,10 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   }
 
   @override
-  void beginVariablesDeclaration(Token token) {
+  void beginVariablesDeclaration(Token token, Token varFinalOrConst) {
     debugEvent("beginVariablesDeclaration");
     DartType type = pop();
-    int modifiers = Modifier.validate(pop());
+    int modifiers = Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
     super.push(currentLocalVariableModifiers);
     super.push(currentLocalVariableType ?? NullValue.Type);
     currentLocalVariableType = type;

@@ -915,7 +915,7 @@ class Listener {
     logEvent("FunctionExpression");
   }
 
-  void beginVariablesDeclaration(Token token) {}
+  void beginVariablesDeclaration(Token token, Token varFinalOrConst) {}
 
   void endVariablesDeclaration(int count, Token endToken) {
     logEvent("VariablesDeclaration");

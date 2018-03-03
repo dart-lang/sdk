@@ -82,4 +82,12 @@ class Modifier {
     }
     return result;
   }
+
+  static int validateVarFinalOrConst(String lexeme) {
+    if (lexeme == null) return 0;
+    if (identical('const', lexeme)) return Const.mask;
+    if (identical('final', lexeme)) return Final.mask;
+    if (identical('var', lexeme)) return Var.mask;
+    return unhandled(lexeme, "Modifier.validateVarFinalOrConst", -1, null);
+  }
 }

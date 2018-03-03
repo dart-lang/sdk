@@ -522,8 +522,8 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginVariablesDeclaration(Token token) {
-    super.beginVariablesDeclaration(token);
+  void beginVariablesDeclaration(Token token, Token varFinalOrConst) {
+    super.beginVariablesDeclaration(token, varFinalOrConst);
     begin('VariablesDeclaration');
   }
 

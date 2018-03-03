@@ -572,12 +572,23 @@ class NodeListener extends ElementListener {
   }
 
   @override
+  void beginVariablesDeclaration(Token token, Token varFinalOrConst) {
+    if (varFinalOrConst == null) {
+      pushNode(Modifiers.EMPTY);
+    } else {
+      Link<Node> nodes =
+          const Link<Node>().prepend(new Identifier(varFinalOrConst));
+      pushNode(new Modifiers(new NodeList(null, nodes, null, ' ')));
+    }
+  }
+
+  @override
   void endVariablesDeclaration(int count, Token endToken) {
     // TODO(ahe): Pick one name for this concept, either
     // VariablesDeclaration or VariableDefinitions.
     NodeList variables = makeNodeList(count, null, endToken, ",");
-    TypeAnnotation type = popNode();
     Modifiers modifiers = popNode();
+    TypeAnnotation type = popNode();
     popNode();
     pushNode(new VariableDefinitions(type, modifiers, variables));
   }

@@ -660,13 +660,24 @@ class AstBuilder extends ScopeListener {
     push(variable);
   }
 
+  @override
+  void beginVariablesDeclaration(Token token, Token varFinalOrConst) {
+    debugEvent("beginVariablesDeclaration");
+    if (varFinalOrConst != null) {
+      push(new _Modifiers()..finalConstOrVarKeyword = varFinalOrConst);
+    } else {
+      push(NullValue.Modifiers);
+    }
+  }
+
+  @override
   void endVariablesDeclaration(int count, Token semicolon) {
     assert(optionalOrNull(';', semicolon));
     debugEvent("VariablesDeclaration");
 
     List<VariableDeclaration> variables = popList(count);
+    _Modifiers modifiers = pop(NullValue.Modifiers);
     TypeAnnotation type = pop();
-    _Modifiers modifiers = pop();
     Token keyword = modifiers?.finalConstOrVarKeyword;
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata,
