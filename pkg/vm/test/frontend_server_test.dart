@@ -454,7 +454,7 @@ Future<int> main() async {
       var dillFile = new File('${tempDir.path}/app.dill');
       expect(dillFile.existsSync(), equals(false));
       final List<String> args = <String>[
-        '--sdk-root=${sdkRoot.path}',
+        '--sdk-root=${sdkRoot.toFilePath()}',
         '--strong',
         '--incremental',
         '--platform=${platformKernel.path}',
