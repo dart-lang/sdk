@@ -252,7 +252,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       : _nullType = typeProvider.nullType,
         _futureNullType = typeProvider.futureNullType,
         _typeSystem = typeSystem ?? new TypeSystemImpl(typeProvider) {
-    inDeprecatedMember = _currentLibrary.isDeprecated;
+    inDeprecatedMember = _currentLibrary.hasDeprecated;
   }
 
   @override
@@ -318,7 +318,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     ClassElementImpl outerClass = _enclosingClass;
     bool wasInDeprecatedMember = inDeprecatedMember;
     ClassElement element = AbstractClassElementImpl.getImpl(node.element);
-    if (element != null && element.isDeprecated) {
+    if (element != null && element.hasDeprecated) {
       inDeprecatedMember = true;
     }
     try {
@@ -363,7 +363,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     bool wasInDeprecatedMember = inDeprecatedMember;
     ExecutableElement element = node.element;
-    if (element != null && element.isDeprecated) {
+    if (element != null && element.hasDeprecated) {
       inDeprecatedMember = true;
     }
     try {
@@ -406,7 +406,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   Object visitMethodDeclaration(MethodDeclaration node) {
     bool wasInDeprecatedMember = inDeprecatedMember;
     ExecutableElement element = node.element;
-    if (element != null && element.isDeprecated) {
+    if (element != null && element.hasDeprecated) {
       inDeprecatedMember = true;
     }
     try {
@@ -709,9 +709,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         if (variable == null) {
           return false;
         }
-        return variable.isDeprecated;
+        return variable.hasDeprecated;
       }
-      return element.isDeprecated;
+      return element.hasDeprecated;
     }
 
     if (!inDeprecatedMember && isDeprecated(element)) {
@@ -909,12 +909,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     bool isProtected(Element element) {
       if (element is PropertyAccessorElement &&
           element.enclosingElement is ClassElement &&
-          (element.isProtected || element.variable.isProtected)) {
+          (element.hasProtected || element.variable.hasProtected)) {
         return true;
       }
       if (element is MethodElement &&
           element.enclosingElement is ClassElement &&
-          element.isProtected) {
+          element.hasProtected) {
         return true;
       }
       return false;
@@ -924,12 +924,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       if (element == null) {
         return false;
       }
-      if (element.isVisibleForTesting) {
+      if (element.hasVisibleForTesting) {
         return true;
       }
       if (element is PropertyAccessorElement &&
           element.enclosingElement is ClassElement &&
-          element.variable.isVisibleForTesting) {
+          element.variable.hasVisibleForTesting) {
         return true;
       }
       return false;
@@ -1324,7 +1324,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   void _checkRequiredParameter(FormalParameterList node) {
     final requiredParameters =
-        node.parameters.where((p) => p.element?.isRequired == true);
+        node.parameters.where((p) => p.element?.hasRequired == true);
     final nonNamedParamsWithRequired =
         requiredParameters.where((p) => !p.isNamed);
     final namedParamsWithRequiredAndDefault = requiredParameters
@@ -3467,7 +3467,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       }
     }
     Element element = node.methodName.staticElement;
-    if (element != null && element.isAlwaysThrows) {
+    if (element != null && element.hasAlwaysThrows) {
       return true;
     }
     return _nodeExits(node.argumentList);
@@ -4661,7 +4661,7 @@ class OverrideVerifier extends RecursiveAstVisitor {
    * @param element the element being tested
    * @return `true` if the element has an override annotation associated with it
    */
-  bool _isOverride(Element element) => element != null && element.isOverride;
+  bool _isOverride(Element element) => element != null && element.hasOverride;
 }
 
 /**

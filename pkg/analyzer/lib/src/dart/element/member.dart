@@ -391,40 +391,64 @@ abstract class Member implements Element {
   String get documentationComment => _baseElement.documentationComment;
 
   @override
+  bool get hasAlwaysThrows => _baseElement.hasAlwaysThrows;
+
+  @override
+  bool get hasDeprecated => _baseElement.hasDeprecated;
+
+  @override
+  bool get hasFactory => _baseElement.hasFactory;
+
+  @override
+  bool get hasJS => _baseElement.hasJS;
+
+  @override
+  bool get hasOverride => _baseElement.hasOverride;
+
+  @override
+  bool get hasProtected => _baseElement.hasProtected;
+
+  @override
+  bool get hasRequired => _baseElement.hasRequired;
+
+  @override
+  bool get hasVisibleForTesting => _baseElement.hasVisibleForTesting;
+
+  @override
   int get id => _baseElement.id;
 
   @override
-  bool get isAlwaysThrows => _baseElement.isAlwaysThrows;
+  bool get isAlwaysThrows => _baseElement.hasAlwaysThrows;
 
   @override
-  bool get isDeprecated => _baseElement.isDeprecated;
+  bool get isDeprecated => _baseElement.hasDeprecated;
 
   @override
-  bool get isFactory => _baseElement.isFactory;
+  bool get isFactory => _baseElement.hasFactory;
 
   @override
-  bool get isJS => _baseElement.isJS;
+  bool get isJS => _baseElement.hasJS;
 
   @override
-  bool get isOverride => _baseElement.isOverride;
+  bool get isOverride => _baseElement.hasOverride;
 
   @override
   bool get isPrivate => _baseElement.isPrivate;
 
   @override
-  bool get isProtected => _baseElement.isProtected;
+  bool get isProtected => _baseElement.hasProtected;
 
   @override
   bool get isPublic => _baseElement.isPublic;
 
   @override
-  bool get isRequired => _baseElement.isRequired;
+  bool get isRequired => _baseElement.hasRequired;
 
   @override
   bool get isSynthetic => _baseElement.isSynthetic;
 
   @override
-  bool get isVisibleForTesting => _baseElement.isVisibleForTesting;
+  bool get isVisibleForTesting => _baseElement.hasVisibleForTesting;
 
   @override
   ElementKind get kind => _baseElement.kind;

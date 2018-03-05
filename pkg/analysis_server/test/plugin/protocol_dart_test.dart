@@ -240,7 +240,7 @@ enum E2 { three, four }''');
     engine.CompilationUnit unit = await resolveLibraryUnit(source);
     {
       engine.ClassElement engineElement = findElementInUnit(unit, '_E1');
-      expect(engineElement.isDeprecated, isTrue);
+      expect(engineElement.hasDeprecated, isTrue);
       // create notification Element
       Element element = convertElement(engineElement);
       expect(element.kind, ElementKind.ENUM);
@@ -257,7 +257,7 @@ enum E2 { three, four }''');
       expect(element.parameters, isNull);
       expect(
           element.flags,
-          (engineElement.isDeprecated ? Element.FLAG_DEPRECATED : 0) |
+          (engineElement.hasDeprecated ? Element.FLAG_DEPRECATED : 0) |
               Element.FLAG_PRIVATE);
     }
     {

@@ -55,7 +55,7 @@ void addDefaultArgDetails(
   }
 
   for (ParameterElement param in namedParams) {
-    if (param.isRequired) {
+    if (param.hasRequired) {
       if (sb.isNotEmpty) {
         sb.write(', ');
       }

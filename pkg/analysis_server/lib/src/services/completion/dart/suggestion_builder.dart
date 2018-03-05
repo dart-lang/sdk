@@ -37,7 +37,7 @@ CompletionSuggestion createSuggestion(Element element,
   if (completion == null) {
     completion = element.displayName;
   }
-  bool isDeprecated = element.isDeprecated;
+  bool isDeprecated = element.hasDeprecated;
   CompletionSuggestion suggestion = new CompletionSuggestion(
       kind,
       isDeprecated ? DART_RELEVANCE_LOW : relevance,

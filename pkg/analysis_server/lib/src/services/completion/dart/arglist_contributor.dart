@@ -252,7 +252,7 @@ class ArgListContributor extends DartCompletionContributor {
         completion += ',';
       }
 
-      final int relevance = parameter.isRequired
+      final int relevance = parameter.hasRequired
           ? DART_RELEVANCE_NAMED_PARAMETER_REQUIRED
           : DART_RELEVANCE_NAMED_PARAMETER;
 

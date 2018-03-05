@@ -3173,6 +3173,18 @@ abstract class ElementImpl implements Element {
   }
 
   @override
+  bool get hasAlwaysThrows =>
+      metadata.any((ElementAnnotation annotation) => annotation.isAlwaysThrows);
+
+  @override
+  bool get hasDeprecated =>
+      metadata.any((ElementAnnotation annotation) => annotation.isDeprecated);
+
+  @override
+  bool get hasFactory =>
+      metadata.any((ElementAnnotation annotation) => annotation.isFactory);
+
+  @override
   int get hashCode {
     // TODO: We might want to re-visit this optimization in the future.
     // We cache the hash code value as this is a very frequently called method.
@@ -3181,6 +3193,26 @@ abstract class ElementImpl implements Element {
     }
     return _cachedHashCode;
   }
+
+  @override
+  bool get hasJS =>
+      metadata.any((ElementAnnotation annotation) => annotation.isJS);
+
+  @override
+  bool get hasOverride =>
+      metadata.any((ElementAnnotation annotation) => annotation.isOverride);
+
+  @override
+  bool get hasProtected =>
+      metadata.any((ElementAnnotation annotation) => annotation.isProtected);
+
+  @override
+  bool get hasRequired =>
+      metadata.any((ElementAnnotation annotation) => annotation.isRequired);
+
+  @override
+  bool get hasVisibleForTesting => metadata
+      .any((ElementAnnotation annotation) => annotation.isVisibleForTesting);
 
   /**
    * Return an identifier that uniquely identifies this element among the
@@ -7470,6 +7502,30 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   Element get enclosingElement => null;
+
+  @override
+  bool get hasAlwaysThrows => false;
+
+  @override
+  bool get hasDeprecated => false;
+
+  @override
+  bool get hasFactory => false;
+
+  @override
+  bool get hasJS => false;
+
+  @override
+  bool get hasOverride => false;
+
+  @override
+  bool get hasProtected => false;
+
+  @override
+  bool get hasRequired => false;
+
+  @override
+  bool get hasVisibleForTesting => false;
 
   @override
   bool get isAlwaysThrows => false;

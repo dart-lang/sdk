@@ -93,7 +93,7 @@ class AnalyzerConverter {
         element.displayName,
         plugin.Element.makeFlags(
             isPrivate: element.isPrivate,
-            isDeprecated: element.isDeprecated,
+            isDeprecated: element.hasDeprecated,
             isAbstract: _isAbstract(element),
             isConst: _isConst(element),
             isFinal: _isFinal(element),

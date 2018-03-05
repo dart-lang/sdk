@@ -4790,7 +4790,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   void _checkForMissingJSLibAnnotation(Annotation node) {
     if (resolutionMap.elementAnnotationForAnnotation(node)?.isJS ?? false) {
-      if (_currentLibrary.isJS != true) {
+      if (_currentLibrary.hasJS != true) {
         _errorReporter.reportErrorForNode(
             HintCode.MISSING_JS_LIB_ANNOTATION, node);
       }

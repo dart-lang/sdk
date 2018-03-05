@@ -604,6 +604,49 @@ abstract class Element implements AnalysisTarget, ResolutionTarget {
   Element get enclosingElement;
 
   /**
+   * Return `true` if this element has an annotation of the form
+   * `@alwaysThrows`.
+   */
+  bool get hasAlwaysThrows;
+
+  /**
+   * Return `true` if this element has an annotation of the form `@deprecated`
+   * or `@Deprecated('..')`.
+   */
+  bool get hasDeprecated;
+
+  /**
+   * Return `true` if this element has an annotation of the form `@factory`.
+   */
+  bool get hasFactory;
+
+  /**
+   * Return `true` if this element has an annotation of the form `@JS(..)`.
+   */
+  bool get hasJS;
+
+  /**
+   * Return `true` if this element has an annotation of the form `@override`.
+   */
+  bool get hasOverride;
+
+  /**
+   * Return `true` if this element has an annotation of the form `@protected`.
+   */
+  bool get hasProtected;
+
+  /**
+   * Return `true` if this element has an annotation of the form '@required'.
+   */
+  bool get hasRequired;
+
+  /**
+   * Return `true` if this element has an annotation of the form
+   * `@visibleForTesting`.
+   */
+  bool get hasVisibleForTesting;
+
+  /**
    * The unique integer identifier of this element.
    */
   int get id;
@@ -612,27 +655,32 @@ abstract class Element implements AnalysisTarget, ResolutionTarget {
    * Return `true` if this element has an annotation of the form
    * '@alwaysThrows'.
    */
+  @deprecated
   bool get isAlwaysThrows;
 
   /**
    * Return `true` if this element has an annotation of the form '@deprecated'
    * or '@Deprecated('..')'.
    */
+  @deprecated
   bool get isDeprecated;
 
   /**
    * Return `true` if this element has an annotation of the form '@factory'.
    */
+  @deprecated
   bool get isFactory;
 
   /**
    * Return `true` if this element has an annotation of the form '@JS(..)'.
    */
+  @deprecated
   bool get isJS;
 
   /**
    * Return `true` if this element has an annotation of the form '@override'.
    */
+  @deprecated
   bool get isOverride;
 
   /**
@@ -644,6 +692,7 @@ abstract class Element implements AnalysisTarget, ResolutionTarget {
   /**
    * Return `true` if this element has an annotation of the form '@protected'.
    */
+  @deprecated
   bool get isProtected;
 
   /**
@@ -655,6 +704,7 @@ abstract class Element implements AnalysisTarget, ResolutionTarget {
   /**
    * Return `true` if this element has an annotation of the form '@required'.
    */
+  @deprecated
   bool get isRequired;
 
   /**
@@ -667,6 +717,7 @@ abstract class Element implements AnalysisTarget, ResolutionTarget {
 
   /// Return `true` if this element has an annotation of the form
   /// '@visibleForTesting'.
+  @deprecated
   bool get isVisibleForTesting;
 
   /**
@@ -877,8 +928,10 @@ abstract class ElementAnnotation
    */
   bool get isRequired;
 
-  /// Return `true` if this annotation marks the associated member as being
-  /// visible for testing.
+  /**
+   * Return `true` if this annotation marks the associated member as being
+   * visible for testing.
+   */
   bool get isVisibleForTesting;
 
   /**

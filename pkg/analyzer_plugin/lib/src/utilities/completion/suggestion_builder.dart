@@ -58,7 +58,7 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
     }
 
     for (ParameterElement param in namedParams) {
-      if (param.isRequired) {
+      if (param.hasRequired) {
         if (buffer.isNotEmpty) {
           buffer.write(', ');
         }
@@ -94,7 +94,7 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
     if (completion == null) {
       completion = element.displayName;
     }
-    bool isDeprecated = element.isDeprecated;
+    bool isDeprecated = element.hasDeprecated;
     CompletionSuggestion suggestion = new CompletionSuggestion(
         kind,
         isDeprecated ? DART_RELEVANCE_LOW : relevance,

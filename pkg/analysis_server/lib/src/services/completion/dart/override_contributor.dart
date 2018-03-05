@@ -110,7 +110,7 @@ class OverrideContributor implements DartCompletionContributor {
         completion,
         selectionRange.offset - offsetDelta,
         selectionRange.length,
-        element.isDeprecated,
+        element.hasDeprecated,
         false,
         displayText: displayText);
     suggestion.element = protocol.convertElement(element);
