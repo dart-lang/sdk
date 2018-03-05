@@ -11,7 +11,6 @@ bad_initializer2_negative_test: Fail # Issue 14880
 black_listed_test/none: Fail # Issue 14228
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Issue 28813
-built_in_identifier_type_annotation_test/85: Crash # Issue 28813
 call_type_literal_test: CompileTimeError
 cascade_test/none: Fail # Issue 11577
 class_literal_static_test/none: CompileTimeError

@@ -5135,6 +5135,13 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
         library, unitElement.source, typeProvider, errorListener);
     unit.accept(visitor);
     //
+    // Re-write the AST to handle the optional new and const feature.
+    //
+    if (library.context.analysisOptions.previewDart2) {
+      unit.accept(new AstRewriteVisitor(library, unit.element.source,
+          typeProvider, AnalysisErrorListener.NULL_LISTENER));
+    }
+    //
     // Record outputs.
     //
     outputs[RESOLVE_TYPE_NAMES_ERRORS] =

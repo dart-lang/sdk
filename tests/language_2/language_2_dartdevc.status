@@ -179,7 +179,6 @@ override_inheritance_method_test/29: CompileTimeError
 parameter_initializer_test: CompileTimeError
 part_refers_to_core_library_test/01: Crash
 prefix10_negative_test: Fail # Issue 29920
-private_access_test/04: MissingCompileTimeError
 regress_22976_test/01: CompileTimeError
 regress_22976_test/02: CompileTimeError
 regress_22976_test/none: CompileTimeError
