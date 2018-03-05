@@ -283,7 +283,7 @@ Future<bool> normalCompile(Uri input, Uri output,
   IncrementalCompiler compiler = new IncrementalKernelGenerator(options, input);
   var y = await compiler.computeDelta();
   await writeProgramToFile(y, output);
-  return compiler.bootstrapSuccess;
+  return compiler.initializedFromDill;
 }
 
 Future<bool> bootstrapCompile(
@@ -296,7 +296,7 @@ Future<bool> bootstrapCompile(
     compiler.invalidate(invalidateUri);
   }
   var bootstrappedProgram = await compiler.computeDelta();
-  bool result = compiler.bootstrapSuccess;
+  bool result = compiler.initializedFromDill;
   await writeProgramToFile(bootstrappedProgram, output);
   for (Uri invalidateUri in invalidateUris) {
     compiler.invalidate(invalidateUri);

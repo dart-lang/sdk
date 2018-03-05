@@ -43,12 +43,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   DillTarget dillLoadedData;
   List<LibraryBuilder> platformBuilders;
   Map<Uri, LibraryBuilder> userBuilders;
-  final Uri bootstrapDill;
-  bool bootstrapSuccess = false;
+  final Uri initializeFromDillUri;
+  bool initializedFromDill = false;
 
   KernelTarget userCode;
 
-  IncrementalCompiler(this.context, [this.bootstrapDill])
+  IncrementalCompiler(this.context, [this.initializeFromDillUri])
       : ticker = context.options.ticker;
 
   @override
@@ -63,27 +63,27 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
         List<int> summaryBytes = await c.options.loadSdkSummaryBytes();
         int bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
-        if (bootstrapDill != null) {
+        if (initializeFromDillUri != null) {
           try {
-            bytesLength += await bootstrapFromDill(summaryBytes, c, data);
+            bytesLength += await initializeFromDill(summaryBytes, c, data);
           } catch (e) {
             // We might have loaded x out of y libraries into the program.
             // To avoid any unforeseen problems start over.
             bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
           }
         }
-        appendedLibraries(data, bytesLength);
+        appendLibraries(data, bytesLength);
 
         try {
           await dillLoadedData.buildOutlines();
         } catch (e) {
-          if (!bootstrapSuccess) rethrow;
+          if (!initializedFromDill) rethrow;
 
-          // Retry without bootstrapping.
-          bootstrapSuccess = false;
+          // Retry without initializing from dill.
+          initializedFromDill = false;
           data.reset();
           bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
-          appendedLibraries(data, bytesLength);
+          appendLibraries(data, bytesLength);
           await dillLoadedData.buildOutlines();
         }
         summaryBytes = null;
@@ -167,7 +167,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     });
   }
 
-  prepareSummary(List<int> summaryBytes, UriTranslator uriTranslator,
+  int prepareSummary(List<int> summaryBytes, UriTranslator uriTranslator,
       CompilerContext c, IncrementalCompilerData data) {
     dillLoadedData = new DillTarget(ticker, uriTranslator, c.options.target);
     int bytesLength = 0;
@@ -185,24 +185,25 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   // This procedure will try to load the dill file and will crash if it cannot.
-  Future<int> bootstrapFromDill(List<int> summaryBytes, CompilerContext c,
+  Future<int> initializeFromDill(List<int> summaryBytes, CompilerContext c,
       IncrementalCompilerData data) async {
     int bytesLength = 0;
-    FileSystemEntity entity = c.options.fileSystem.entityForUri(bootstrapDill);
+    FileSystemEntity entity =
+        c.options.fileSystem.entityForUri(initializeFromDillUri);
     if (await entity.exists()) {
-      List<int> bootstrapBytes = await entity.readAsBytes();
-      if (bootstrapBytes != null) {
+      List<int> initializationBytes = await entity.readAsBytes();
+      if (initializationBytes != null) {
         Set<Uri> prevLibraryUris = new Set<Uri>.from(
             data.program.libraries.map((Library lib) => lib.importUri));
-        ticker.logMs("Read $bootstrapDill");
+        ticker.logMs("Read $initializeFromDillUri");
 
         // We're going to output all we read here so lazy loading it
         // doesn't make sense.
-        new BinaryBuilder(bootstrapBytes, disableLazyReading: true)
+        new BinaryBuilder(initializationBytes, disableLazyReading: true)
             .readProgram(data.program);
 
-        bootstrapSuccess = true;
-        bytesLength += bootstrapBytes.length;
+        initializedFromDill = true;
+        bytesLength += initializationBytes.length;
         for (Library lib in data.program.libraries) {
           if (prevLibraryUris.contains(lib.importUri)) continue;
           data.importUriToOrder[lib.importUri] = data.importUriToOrder.length;
@@ -215,7 +216,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     return bytesLength;
   }
 
-  void appendedLibraries(IncrementalCompilerData data, int bytesLength) {
+  void appendLibraries(IncrementalCompilerData data, int bytesLength) {
     if (data.program != null) {
       dillLoadedData.loader
           .appendLibraries(data.program, byteCount: bytesLength);
@@ -311,8 +312,8 @@ class IncrementalCompilerData {
 
   reset() {
     includeUserLoadedLibraries = false;
-    uriToSource = {};
-    importUriToOrder = {};
+    uriToSource = <Uri, Source>{};
+    importUriToOrder = <Uri, int>{};
     userLoadedUriMain = null;
     program = null;
   }
