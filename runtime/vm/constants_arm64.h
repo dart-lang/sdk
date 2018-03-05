@@ -525,7 +525,10 @@ enum MiscDP3SourceOp {
   MSUB = MiscDP3SourceFixed | B15,
   SMULH = MiscDP3SourceFixed | B31 | B22,
   UMULH = MiscDP3SourceFixed | B31 | B23 | B22,
+  SMADDL = MiscDP3SourceFixed | B31 | B21,
   UMADDL = MiscDP3SourceFixed | B31 | B23 | B21,
+  SMSUBL = MiscDP3SourceFixed | B31 | B21 | B15,
+  UMSUBL = MiscDP3SourceFixed | B31 | B23 | B21 | B15,
 };
 
 // C3.5.10

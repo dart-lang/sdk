@@ -1559,7 +1559,7 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
       Print(",");
       current += PrintImmediate(current, BYTE_SIZE);
     }
-  } else if (opcode == 0xBA && (*current & 0xE0) == 0xE0) {
+  } else if (opcode == 0xBA && (*current & 0x60) == 0x60) {
     // bt? immediate instruction
     int r = (*current >> 3) & 7;
     static const char* const names[4] = {"bt", "bts", "btr", "btc"};
