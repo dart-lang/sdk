@@ -639,7 +639,13 @@ void ClassFinalizer::CheckRecursiveType(const Class& cls,
   const TypeArguments& arguments =
       TypeArguments::Handle(zone, type.arguments());
   // A type can only be recursive via its type arguments.
-  ASSERT(!arguments.IsNull());
+  if (arguments.IsNull()) {
+    // However, Kernel does not keep the relation between a function type and
+    // its declaring typedef. Therefore, a typedef-declared function type may
+    // refer to the still unfinalized typedef via a type in its signature.
+    ASSERT(type.IsFunctionType());
+    return;
+  }
   const intptr_t num_type_args = arguments.Length();
   ASSERT(num_type_args > 0);
   ASSERT(num_type_args == type_cls.NumTypeArguments());
@@ -1100,7 +1106,7 @@ void ClassFinalizer::CheckTypeArgumentBounds(const Class& cls,
     }
   }
   AbstractType& super_type = AbstractType::Handle(cls.super_type());
-  if (!super_type.IsNull()) {
+  if (!super_type.IsNull() && !super_type.IsBeingFinalized()) {
     const Class& super_class = Class::Handle(super_type.type_class());
     CheckTypeArgumentBounds(super_class, arguments, bound_error);
   }
