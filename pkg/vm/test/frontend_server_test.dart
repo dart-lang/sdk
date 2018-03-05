@@ -4,11 +4,6 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:args/src/arg_results.dart';
-// front_end/src imports below that require lint `ignore_for_file`
-// are a temporary state of things until frontend team builds better api
-// that would replace api used below. This api was made private in
-// an effort to discourage further use.
-// ignore_for_file: implementation_imports
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/ast.dart' show Program;
 import 'package:mockito/mockito.dart';
@@ -437,5 +432,109 @@ Future<int> main() async {
       });
     });
   });
+
+  group('full compiler tests', () {
+    final platformKernel =
+        computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
+    final sdkRoot = computePlatformBinariesLocation();
+
+    Directory tempDir;
+    setUp(() {
+      var systemTempDir = Directory.systemTemp;
+      tempDir = systemTempDir.createTempSync('foo');
+    });
+
+    tearDown(() {
+      tempDir.delete(recursive: true);
+    });
+
+    test('recompile request keeps incremental output dill filename', () async {
+      var file = new File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("main() {}\n");
+      var dillFile = new File('${tempDir.path}/app.dill');
+      expect(dillFile.existsSync(), equals(false));
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.path}',
+        '--strong',
+        '--incremental',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}'
+      ];
+
+      final StreamController<List<int>> streamController =
+          new StreamController<List<int>>();
+      final StreamController<List<int>> stdoutStreamController =
+          new StreamController<List<int>>();
+      final IOSink ioSink = new IOSink(stdoutStreamController.sink);
+      StreamController<String> receivedResults = new StreamController<String>();
+
+      String boundaryKey;
+      stdoutStreamController.stream
+          .transform(UTF8.decoder)
+          .transform(const LineSplitter())
+          .listen((String s) {
+        const String RESULT_OUTPUT_SPACE = 'result ';
+        if (boundaryKey == null) {
+          if (s.startsWith(RESULT_OUTPUT_SPACE)) {
+            boundaryKey = s.substring(RESULT_OUTPUT_SPACE.length);
+          }
+        } else {
+          if (s.startsWith(boundaryKey)) {
+            receivedResults.add(s.substring(boundaryKey.length + 1));
+            boundaryKey = null;
+          }
+        }
+      });
+      int exitcode =
+          await starter(args, input: streamController.stream, output: ioSink);
+      expect(exitcode, equals(0));
+      streamController.add('compile ${file.path}\n'.codeUnits);
+      int count = 0;
+      Completer<bool> allDone = new Completer<bool>();
+      receivedResults.stream.listen((String outputFilename) {
+        if (count == 0) {
+          // First request is to 'compile', which results in full kernel file.
+          expect(dillFile.existsSync(), equals(true));
+          expect(outputFilename, dillFile.path);
+          count += 1;
+          streamController.add('accept\n'.codeUnits);
+          var file2 = new File('${tempDir.path}/bar.dart')..createSync();
+          file2.writeAsStringSync("main() {}\n");
+          streamController.add('recompile ${file2.path} abc\n'
+              '${file2.path}\n'
+              'abc\n'
+              .codeUnits);
+        } else {
+          expect(count, 1);
+          // Second request is to 'recompile', which results in incremental
+          // kernel file.
+          var dillIncFile = new File('${dillFile.path}.incremental.dill');
+          expect(outputFilename, dillIncFile.path);
+          expect(dillIncFile.existsSync(), equals(true));
+          allDone.complete(true);
+        }
+      });
+      expect(await allDone.future, true);
+    });
+  });
   return 0;
+}
+
+/// Computes the location of platform binaries, that is, compiled `.dill` files
+/// of the platform libraries that are used to avoid recompiling those
+/// libraries.
+Uri computePlatformBinariesLocation() {
+  // The directory of the Dart VM executable.
+  Uri vmDirectory = Uri.base
+      .resolveUri(new Uri.file(Platform.resolvedExecutable))
+      .resolve(".");
+  if (vmDirectory.path.endsWith("/bin/")) {
+    // Looks like the VM is in a `/bin/` directory, so this is running from a
+    // built SDK.
+    return vmDirectory.resolve("../lib/_internal/");
+  } else {
+    // We assume this is running from a build directory (for example,
+    // `out/ReleaseX64` or `xcodebuild/ReleaseX64`).
+    return vmDirectory;
+  }
 }

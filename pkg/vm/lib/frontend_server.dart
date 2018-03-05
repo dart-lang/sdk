@@ -163,12 +163,6 @@ class FrontendCompiler implements CompilerInterface {
 
   void setMainSourceFilename(String filename) {
     final Uri filenameUri = Uri.base.resolveUri(new Uri.file(filename));
-    _kernelBinaryFilenameFull = _options['output-dill'] ?? '$filename.dill';
-    _kernelBinaryFilenameIncremental =
-        _options['output-incremental-dill'] ?? _options['output-dill'] != null
-            ? '${_options["output-dill"]}.incremental.dill'
-            : '$filename.incremental.dill';
-    _kernelBinaryFilename = _kernelBinaryFilenameFull;
     _mainSource = filenameUri;
   }
 
@@ -180,6 +174,12 @@ class FrontendCompiler implements CompilerInterface {
   }) async {
     _options = options;
     setMainSourceFilename(filename);
+    _kernelBinaryFilenameFull = _options['output-dill'] ?? '$filename.dill';
+    _kernelBinaryFilenameIncremental = _options['output-incremental-dill'] ??
+        (_options['output-dill'] != null
+            ? '${_options["output-dill"]}.incremental.dill'
+            : '$filename.incremental.dill');
+    _kernelBinaryFilename = _kernelBinaryFilenameFull;
     final String boundaryKey = new Uuid().generateV4();
     _outputStream.writeln('result $boundaryKey');
     final Uri sdkRoot = _ensureFolderPath(options['sdk-root']);
