@@ -5131,7 +5131,8 @@ class InlineWeeder extends ir.Visitor {
   static String cannotBeInlinedReason(KernelToElementMapForBuilding elementMap,
       FunctionEntity function, int maxInliningNodes,
       {bool allowLoops: false, bool enableUserAssertions: null}) {
-    InlineWeeder visitor = new InlineWeeder(maxInliningNodes, allowLoops);
+    InlineWeeder visitor =
+        new InlineWeeder(maxInliningNodes, allowLoops, enableUserAssertions);
     ir.FunctionNode node = getFunctionNode(elementMap, function);
     node.accept(visitor);
     if (function.isConstructor) {
@@ -5146,13 +5147,15 @@ class InlineWeeder extends ir.Visitor {
 
   final int maxInliningNodes; // `null` for unbounded.
   final bool allowLoops;
+  final bool enableUserAssertions;
 
   bool seenReturn = false;
   int nodeCount = 0;
   String tooDifficultReason;
   bool get tooDifficult => tooDifficultReason != null;
 
-  InlineWeeder(this.maxInliningNodes, this.allowLoops);
+  InlineWeeder(
+      this.maxInliningNodes, this.allowLoops, this.enableUserAssertions);
 
   bool registerNode() {
     if (maxInliningNodes == null) return true;
@@ -5285,6 +5288,18 @@ class InlineWeeder extends ir.Visitor {
     }
     // This is last so that [tooDifficult] is always updated.
     if (!registerNode()) return;
+  }
+
+  @override
+  visitAssertInitializer(ir.AssertInitializer node) {
+    if (!enableUserAssertions) return;
+    node.visitChildren(this);
+  }
+
+  @override
+  visitAssertStatement(ir.AssertStatement node) {
+    if (!enableUserAssertions) return;
+    defaultNode(node);
   }
 }
 
