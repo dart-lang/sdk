@@ -838,7 +838,7 @@ ASSEMBLER_TEST_GENERATE(SignedMultiplyLong, assembler) {
   __ movq(RAX, Immediate(kLargeConstant));
   __ movq(RCX, Immediate(kAnotherLargeConstant));
   __ imulq(RAX, RCX);
-  __ MulImmediate(RCX, Immediate(kLargeConstant));
+  __ imulq(RCX, Immediate(kLargeConstant));
   __ cmpq(RAX, RCX);
   __ j(EQUAL, &done);
   __ int3();
@@ -4628,17 +4628,7 @@ ASSEMBLER_TEST_RUN(Int64ToDoubleConversion, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleToInt64Conversion, assembler) {
-  __ movq(RAX, Immediate(bit_cast<int64_t, double>(4.2e22)));
-  __ pushq(RAX);
-  __ movsd(XMM9, Address(RSP, 0));
-  __ popq(RAX);
-  __ cvttsd2siq(RAX, XMM9);
-  __ CompareImmediate(RAX, Immediate(0x8000000000000000ll));
-  Label ok;
-  __ j(EQUAL, &ok);
-  __ Stop("cvttsd2siq overflow not detected");
-  __ Bind(&ok);
-  __ movq(RAX, Immediate(bit_cast<int64_t, double>(4.2e11)));
+  __ movq(RAX, Immediate(bit_cast<int64_t, double>(12.3)));
   __ pushq(RAX);
   __ movsd(XMM9, Address(RSP, 0));
   __ movsd(XMM6, Address(RSP, 0));
@@ -4648,8 +4638,6 @@ ASSEMBLER_TEST_GENERATE(DoubleToInt64Conversion, assembler) {
   __ cvttsd2siq(R10, XMM9);
   __ cvttsd2siq(RDX, XMM9);
   __ subq(RDX, R10);
-  __ addq(RDX, RDX);
-  __ addq(RDX, R10);
   __ movq(RAX, RDX);
   __ ret();
 }
@@ -4657,18 +4645,8 @@ ASSEMBLER_TEST_GENERATE(DoubleToInt64Conversion, assembler) {
 ASSEMBLER_TEST_RUN(DoubleToInt64Conversion, test) {
   typedef int64_t (*DoubleToInt64ConversionCode)();
   int64_t res = reinterpret_cast<DoubleToInt64ConversionCode>(test->entry())();
-  EXPECT_EQ(420000000000l, res);
+  EXPECT_EQ(0, res);
   EXPECT_DISASSEMBLY(
-      "movq rax,0x................\n"
-      "push rax\n"
-      "movsd xmm9,[rsp]\n"
-      "pop rax\n"
-      "cvttsd2siq rax,xmm9\n"
-      "movq r11,0x................\n"
-      "cmpq rax,r11\n"
-      "jz 0x................\n"
-      "testl rax,0x........\n"
-      "int3\n"
       "movq rax,0x................\n"
       "push rax\n"
       "movsd xmm9,[rsp]\n"
@@ -4679,101 +4657,6 @@ ASSEMBLER_TEST_RUN(DoubleToInt64Conversion, test) {
       "cvttsd2siq r10,xmm9\n"
       "cvttsd2siq rdx,xmm9\n"
       "subq rdx,r10\n"
-      "addq rdx,rdx\n"
-      "addq rdx,r10\n"
-      "movq rax,rdx\n"
-      "ret\n");
-}
-
-ASSEMBLER_TEST_GENERATE(DoubleToInt32Conversion, assembler) {
-  // Check that a too big double results in the overflow value for a conversion
-  // to signed 32 bit.
-  __ movq(RAX, Immediate(bit_cast<int64_t, double>(4.2e11)));
-  __ pushq(RAX);
-  __ movsd(XMM9, Address(RSP, 0));
-  __ popq(RAX);
-  __ cvttsd2sil(RAX, XMM9);
-  __ CompareImmediate(RAX, Immediate(0x80000000ll));
-  {
-    Label ok;
-    __ j(EQUAL, &ok);
-    __ Stop("cvttsd2sil overflow not detected");
-    __ Bind(&ok);
-  }
-
-  // Check that negative floats result in signed 32 bit results with the top
-  // bits zeroed.
-  __ movq(RAX, Immediate(bit_cast<int64_t, double>(-42.0)));
-  __ pushq(RAX);
-  __ movsd(XMM9, Address(RSP, 0));
-  __ popq(RAX);
-  // These high 1-bits will be zeroed in the next insn.
-  __ movq(R10, Immediate(-1));
-  // Put -42 in r10d, zeroing the high bits of r10.
-  __ cvttsd2sil(R10, XMM9);
-  __ CompareImmediate(R10, Immediate(-42 & 0xffffffffll));
-  {
-    Label ok;
-    __ j(EQUAL, &ok);
-    __ Stop("cvttsd2sil negative result error");
-    __ Bind(&ok);
-  }
-
-  // Check for correct result for positive in-range input.
-  __ movq(RAX, Immediate(bit_cast<int64_t, double>(42.0)));
-  __ pushq(RAX);
-  __ movsd(XMM9, Address(RSP, 0));
-  __ movsd(XMM6, Address(RSP, 0));
-  __ popq(RAX);
-  __ cvttsd2sil(R10, XMM6);
-  __ cvttsd2sil(RDX, XMM6);
-  __ cvttsd2sil(R10, XMM9);
-  __ cvttsd2sil(RDX, XMM9);
-  __ subq(RDX, R10);
-  __ addq(RDX, RDX);
-  __ addq(RDX, R10);
-  __ movq(RAX, RDX);
-  __ ret();
-}
-
-ASSEMBLER_TEST_RUN(DoubleToInt32Conversion, test) {
-  typedef int64_t (*DoubleToInt32ConversionCode)();
-  int64_t res = reinterpret_cast<DoubleToInt32ConversionCode>(test->entry())();
-  EXPECT_EQ(42, res);
-  EXPECT_DISASSEMBLY(
-      "movq rax,0x................\n"
-      "push rax\n"
-      "movsd xmm9,[rsp]\n"
-      "pop rax\n"
-      "cvttsd2sil rax,xmm9\n"
-      "movl r11,0x........\n"
-      "cmpq rax,r11\n"
-      "jz 0x................\n"
-      "testl rax,0x........\n"
-      "int3\n"
-      "movq rax,0x................\n"
-      "push rax\n"
-      "movsd xmm9,[rsp]\n"
-      "pop rax\n"
-      "movq r10,-1\n"
-      "cvttsd2sil r10,xmm9\n"
-      "movl r11,0x........\n"
-      "cmpq r10,r11\n"
-      "jz 0x................\n"
-      "testl rax,0x........\n"
-      "int3\n"
-      "movq rax,0x................\n"
-      "push rax\n"
-      "movsd xmm9,[rsp]\n"
-      "movsd xmm6,[rsp]\n"
-      "pop rax\n"
-      "cvttsd2sil r10,xmm6\n"
-      "cvttsd2sil rdx,xmm6\n"
-      "cvttsd2sil r10,xmm9\n"
-      "cvttsd2sil rdx,xmm9\n"
-      "subq rdx,r10\n"
-      "addq rdx,rdx\n"
-      "addq rdx,r10\n"
       "movq rax,rdx\n"
       "ret\n");
 }
@@ -5549,168 +5432,6 @@ ASSEMBLER_TEST_RUN(ConditionalMovesNoOverflow, test) {
       "movl rax,1\n"
       "movl rcx,0\n"
       "cmovnoq rax,rcx\n"
-      "ret\n");
-}
-
-ASSEMBLER_TEST_GENERATE(ImmediateMacros, assembler) {
-  const intptr_t kBillion = 1000 * 1000 * 1000;
-  {
-    __ LoadImmediate(RAX, Immediate(42));
-    __ MulImmediate(RAX, Immediate(kBillion));
-    Label ok;
-    __ CompareImmediate(RAX, Immediate(42 * kBillion));
-    __ j(EQUAL, &ok);
-    __ Stop("MulImmediate");
-    __ Bind(&ok);
-  }
-  {
-    __ LoadImmediate(RAX, Immediate(42));
-    __ MulImmediate(RAX, Immediate(kBillion), Assembler::k32Bit);
-    Label ok;
-    __ CompareImmediate(RAX, Immediate((42 * kBillion) & 0xffffffffll));
-    __ j(EQUAL, &ok);
-    __ Stop("MulImmediate");
-    __ Bind(&ok);
-  }
-  {
-    __ LoadImmediate(RAX, Immediate(kBillion));
-    __ AddImmediate(RAX, Immediate(41 * kBillion));
-    Label ok;
-    __ CompareImmediate(RAX, Immediate(42 * kBillion));
-    __ j(EQUAL, &ok);
-    __ Stop("AddImmediate");
-    __ Bind(&ok);
-  }
-  {
-    __ LoadImmediate(RAX, Immediate(kBillion));
-    __ AddImmediate(RAX, Immediate(kBillion), Assembler::k32Bit);
-    __ AddImmediate(RAX, Immediate(kBillion), Assembler::k32Bit);
-    __ AddImmediate(RAX, Immediate(kBillion), Assembler::k32Bit);
-    Label ok;
-    __ CompareImmediate(RAX, Immediate((4 * kBillion) & 0xffffffffll));
-    __ j(EQUAL, &ok);
-    __ Stop("AddImmediate");
-    __ Bind(&ok);
-  }
-  {
-    __ LoadImmediate(RAX, Immediate(kBillion));
-    __ AddImmediate(RAX, Immediate(static_cast<int32_t>(3 * kBillion)),
-                    Assembler::k32Bit);
-    __ AddImmediate(RAX, Immediate(kBillion), Assembler::k32Bit);
-    __ AddImmediate(RAX, Immediate(-kBillion), Assembler::k32Bit);
-    Label ok;
-    __ CompareImmediate(RAX, Immediate((4 * kBillion) & 0xffffffffll));
-    __ j(EQUAL, &ok);
-    __ Stop("AddImmediate");
-    __ Bind(&ok);
-  }
-  {
-    __ LoadImmediate(RAX, Immediate(kBillion));
-    __ SubImmediate(RAX, Immediate(43 * kBillion));
-    Label ok;
-    __ CompareImmediate(RAX, Immediate(-42 * kBillion));
-    __ j(EQUAL, &ok);
-    __ Stop("AddImmediate");
-    __ Bind(&ok);
-  }
-  {
-    __ LoadImmediate(RAX, Immediate(-kBillion));
-    __ SubImmediate(RAX, Immediate(kBillion), Assembler::k32Bit);
-    __ SubImmediate(RAX, Immediate(kBillion), Assembler::k32Bit);
-    __ SubImmediate(RAX, Immediate(kBillion), Assembler::k32Bit);
-    Label ok;
-    __ CompareImmediate(RAX, Immediate((-4 * kBillion) & 0xffffffffll));
-    __ j(EQUAL, &ok);
-    __ Stop("AddImmediate");
-    __ Bind(&ok);
-  }
-  {
-    __ LoadImmediate(RAX, Immediate(kBillion));
-    __ SubImmediate(RAX, Immediate((-3 * kBillion) & 0xffffffffll),
-                    Assembler::k32Bit);
-    __ SubImmediate(RAX, Immediate(kBillion), Assembler::k32Bit);
-    __ SubImmediate(RAX, Immediate(-kBillion), Assembler::k32Bit);
-    Label ok;
-    __ CompareImmediate(RAX, Immediate((4 * kBillion) & 0xffffffffll));
-    __ j(EQUAL, &ok);
-    __ Stop("AddImmediate");
-    __ Bind(&ok);
-  }
-  __ LoadImmediate(RAX, Immediate(42));
-  __ ret();
-}
-
-ASSEMBLER_TEST_RUN(ImmediateMacros, test) {
-  typedef int (*ImmediateMacrosCode)();
-  int res = reinterpret_cast<ImmediateMacrosCode>(test->entry())();
-  EXPECT_EQ(42, res);
-  EXPECT_DISASSEMBLY(
-      "movl rax,0x2a\n"
-      "imulq rax,rax,0x........\n"
-      "movq r11,0x................\n"
-      "cmpq rax,r11\n"
-      "jz 0x................\n"
-      "testl rax,0x........\n"
-      "int3\n"
-      "movl rax,0x2a\n"
-      "imull rax,rax,0x........\n"
-      "movl r11,0x........\n"
-      "cmpq rax,r11\n"
-      "jz 0x................\n"
-      "testl rax,0x........\n"
-      "int3\n"
-      "movl rax,0x........\n"
-      "movq r11,0x................\n"
-      "addq rax,r11\n"
-      "movq r11,0x................\n"
-      "cmpq rax,r11\n"
-      "jz 0x................\n"
-      "testl rax,0x........\n"
-      "int3\n"
-      "movl rax,0x........\n"
-      "addl rax,0x........\n"
-      "addl rax,0x........\n"
-      "addl rax,0x........\n"
-      "movl r11,0x........\n"
-      "cmpq rax,r11\n"
-      "jz 0x................\n"
-      "testl rax,0x........\n"
-      "int3\n"
-      "movl rax,0x........\n"
-      "subl rax,0x........\n"
-      "addl rax,0x........\n"
-      "subl rax,0x........\n"
-      "movl r11,0x........\n"
-      "cmpq rax,r11\n"
-      "jz 0x................\n"
-      "testl rax,0x........\n"
-      "int3\n"
-      "movl rax,0x........\n"
-      "movq r11,0x................\n"
-      "subq rax,r11\n"
-      "movq r11,0x................\n"
-      "cmpq rax,r11\n"
-      "jz 0x................\n"
-      "testl rax,0x........\n"
-      "int3\n"
-      "movq rax,-0x........\n"
-      "subl rax,0x........\n"
-      "subl rax,0x........\n"
-      "subl rax,0x........\n"
-      "cmpq rax,0x........\n"
-      "jz 0x................\n"
-      "testl rax,0x........\n"
-      "int3\n"
-      "movl rax,0x........\n"
-      "subl rax,0x........\n"
-      "subl rax,0x........\n"
-      "addl rax,0x........\n"
-      "movl r11,0x........\n"
-      "cmpq rax,r11\n"
-      "jz 0x................\n"
-      "testl rax,0x........\n"
-      "int3\n"
-      "movl rax,0x2a\n"
       "ret\n");
 }
 

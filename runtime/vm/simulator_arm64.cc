@@ -2573,22 +2573,14 @@ void Simulator::DecodeMiscDP3Source(Instr* instr) {
     const uint64_t alu_out = static_cast<uint64_t>(res >> 64);
 #endif  // HOST_OS_WINDOWS
     set_register(instr, rd, alu_out, R31IsZR);
-  } else if ((instr->Bits(29, 3) == 4) && (instr->Bit(15) == 0)) {
-    if (instr->Bits(21, 3) == 5) {
-      // Format(instr, "umaddl 'rd, 'rn, 'rm, 'ra");
-      const uint64_t rn_val = static_cast<uint32_t>(get_wregister(rn, R31IsZR));
-      const uint64_t rm_val = static_cast<uint32_t>(get_wregister(rm, R31IsZR));
-      const uint64_t ra_val = get_register(ra, R31IsZR);
-      const uint64_t alu_out = ra_val + (rn_val * rm_val);
-      set_register(instr, rd, alu_out, R31IsZR);
-    } else {
-      // Format(instr, "smaddl 'rd, 'rn, 'rm, 'ra");
-      const int64_t rn_val = static_cast<int32_t>(get_wregister(rn, R31IsZR));
-      const int64_t rm_val = static_cast<int32_t>(get_wregister(rm, R31IsZR));
-      const int64_t ra_val = get_register(ra, R31IsZR);
-      const int64_t alu_out = ra_val + (rn_val * rm_val);
-      set_register(instr, rd, alu_out, R31IsZR);
-    }
+  } else if ((instr->Bits(29, 3) == 4) && (instr->Bits(21, 3) == 5) &&
+             (instr->Bit(15) == 0)) {
+    // Format(instr, "umaddl 'rd, 'rn, 'rm, 'ra");
+    const uint64_t rn_val = static_cast<uint32_t>(get_wregister(rn, R31IsZR));
+    const uint64_t rm_val = static_cast<uint32_t>(get_wregister(rm, R31IsZR));
+    const uint64_t ra_val = get_register(ra, R31IsZR);
+    const uint64_t alu_out = ra_val + (rn_val * rm_val);
+    set_register(instr, rd, alu_out, R31IsZR);
   } else {
     UnimplementedInstruction(instr);
   }

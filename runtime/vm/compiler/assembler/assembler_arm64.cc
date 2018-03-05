@@ -425,7 +425,6 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   // TODO(zra, kmillikin): Also load other large immediates from the object
   // pool
   if (object.IsSmi()) {
-    ASSERT(Smi::IsValid(Smi::Value(reinterpret_cast<RawSmi*>(object.raw()))));
     // If the raw smi does not fit into a 32-bit signed int, then we'll keep
     // the raw value in the object pool.
     return !Utils::IsInt(32, reinterpret_cast<int64_t>(object.raw()));
@@ -681,69 +680,37 @@ void Assembler::AddImmediate(Register dest, Register rn, int64_t imm) {
   }
 }
 
-void Assembler::AddImmediateSetFlags(Register dest,
-                                     Register rn,
-                                     int64_t imm,
-                                     OperandSize sz) {
-  ASSERT(sz == kDoubleWord || sz == kWord);
+void Assembler::AddImmediateSetFlags(Register dest, Register rn, int64_t imm) {
   Operand op;
   if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
     // Handles imm == kMinInt64.
-    if (sz == kDoubleWord) {
-      adds(dest, rn, op);
-    } else {
-      addsw(dest, rn, op);
-    }
+    adds(dest, rn, op);
   } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
              Operand::Immediate) {
     ASSERT(imm != kMinInt64);  // Would cause erroneous overflow detection.
-    if (sz == kDoubleWord) {
-      subs(dest, rn, op);
-    } else {
-      subsw(dest, rn, op);
-    }
+    subs(dest, rn, op);
   } else {
     // TODO(zra): Try adding top 12 bits, then bottom 12 bits.
     ASSERT(rn != TMP2);
     LoadImmediate(TMP2, imm);
-    if (sz == kDoubleWord) {
-      adds(dest, rn, Operand(TMP2));
-    } else {
-      addsw(dest, rn, Operand(TMP2));
-    }
+    adds(dest, rn, Operand(TMP2));
   }
 }
 
-void Assembler::SubImmediateSetFlags(Register dest,
-                                     Register rn,
-                                     int64_t imm,
-                                     OperandSize sz) {
+void Assembler::SubImmediateSetFlags(Register dest, Register rn, int64_t imm) {
   Operand op;
-  ASSERT(sz == kDoubleWord || sz == kWord);
   if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
     // Handles imm == kMinInt64.
-    if (sz == kDoubleWord) {
-      subs(dest, rn, op);
-    } else {
-      subsw(dest, rn, op);
-    }
+    subs(dest, rn, op);
   } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
              Operand::Immediate) {
     ASSERT(imm != kMinInt64);  // Would cause erroneous overflow detection.
-    if (sz == kDoubleWord) {
-      adds(dest, rn, op);
-    } else {
-      addsw(dest, rn, op);
-    }
+    adds(dest, rn, op);
   } else {
     // TODO(zra): Try subtracting top 12 bits, then bottom 12 bits.
     ASSERT(rn != TMP2);
     LoadImmediate(TMP2, imm);
-    if (sz == kDoubleWord) {
-      subs(dest, rn, Operand(TMP2));
-    } else {
-      subsw(dest, rn, Operand(TMP2));
-    }
+    subs(dest, rn, Operand(TMP2));
   }
 }
 

@@ -1061,12 +1061,8 @@ void ARM64Decoder::DecodeLogicalShift(Instr* instr) {
       break;
     case 2: {
       if ((instr->RnField() == R31) && (instr->IsShift()) &&
-          (instr->ShiftTypeField() == LSL)) {
-        if (instr->ShiftAmountField() == 0) {
-          Format(instr, "mov'sf 'rd, 'rm");
-        } else {
-          Format(instr, "lsl'sf 'rd, 'rm, 'imms");
-        }
+          (instr->Imm16Field() == 0) && (instr->ShiftTypeField() == LSL)) {
+        Format(instr, "mov'sf 'rd, 'rm");
       } else {
         Format(instr, "orr'sf 'rd, 'rn, 'shift_op");
       }
@@ -1138,50 +1134,25 @@ void ARM64Decoder::DecodeMiscDP2Source(Instr* instr) {
 }
 
 void ARM64Decoder::DecodeMiscDP3Source(Instr* instr) {
-  bool zero_operand = instr->RaField() == R31;
-  int32_t mask = B31 | B30 | B29 | B23 | B22 | B21 | B15 | MiscDP3SourceMask;
-  int32_t bits = instr->InstructionBits() & mask;
-
-  if (bits == MADD) {
-    if (zero_operand) {
+  if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 0) &&
+      (instr->Bit(15) == 0)) {
+    if (instr->RaField() == R31) {
       Format(instr, "mul'sf 'rd, 'rn, 'rm");
     } else {
       Format(instr, "madd'sf 'rd, 'rn, 'rm, 'ra");
     }
-  } else if (bits == MSUB) {
-    if (zero_operand) {
-      Format(instr, "mneg'sf 'rd, 'rn, 'rm");
-    } else {
-      Format(instr, "msub'sf 'rd, 'rn, 'rm, 'ra");
-    }
-  } else if (bits == SMULH) {
+  } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 0) &&
+             (instr->Bit(15) == 1)) {
+    Format(instr, "msub'sf 'rd, 'rn, 'rm, 'ra");
+  } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 2) &&
+             (instr->Bit(15) == 0)) {
     Format(instr, "smulh 'rd, 'rn, 'rm");
-  } else if (bits == UMULH) {
+  } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 6) &&
+             (instr->Bit(15) == 0)) {
     Format(instr, "umulh 'rd, 'rn, 'rm");
-  } else if (bits == UMADDL) {
-    if (zero_operand) {
-      Format(instr, "umull 'rd, 'rn, 'rm");
-    } else {
-      Format(instr, "umaddl 'rd, 'rn, 'rm, 'ra");
-    }
-  } else if (bits == SMADDL) {
-    if (zero_operand) {
-      Format(instr, "smull 'rd, 'rn, 'rm");
-    } else {
-      Format(instr, "smaddl 'rd, 'rn, 'rm, 'ra");
-    }
-  } else if (bits == SMSUBL) {
-    if (zero_operand) {
-      Format(instr, "smnegl 'rd, 'rn, 'rm");
-    } else {
-      Format(instr, "smsubl 'rd, 'rn, 'rm, 'ra");
-    }
-  } else if (bits == UMSUBL) {
-    if (zero_operand) {
-      Format(instr, "umnegl 'rd, 'rn, 'rm");
-    } else {
-      Format(instr, "umsubl 'rd, 'rn, 'rm, 'ra");
-    }
+  } else if ((instr->Bits(29, 3) == 4) && (instr->Bits(21, 3) == 5) &&
+             (instr->Bit(15) == 0)) {
+    Format(instr, "umaddl 'rd, 'rn, 'rm, 'ra");
   } else {
     Unknown(instr);
   }
