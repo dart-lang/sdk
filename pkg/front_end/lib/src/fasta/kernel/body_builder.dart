@@ -4,7 +4,6 @@
 
 library fasta.body_builder;
 
-// ignore: UNDEFINED_HIDDEN_NAME
 import 'dart:core' hide MapEntry;
 
 import '../fasta_codes.dart' as fasta;
