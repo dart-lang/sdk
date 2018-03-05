@@ -74,7 +74,7 @@ class BaseTest {
     return driveMany([source], options: options, args: args);
   }
 
-  /// An ability to use [drive] with many sources instead of one.
+  /// Like [drive], but takes an array of sources.
   Future<Null> driveMany(
     List<String> sources, {
     String options: emptyOptionsFile,
@@ -82,15 +82,13 @@ class BaseTest {
   }) async {
     driver = new Driver(isTesting: true);
     var cmd = <String>[];
-
-    if (options != null)
-      cmd.addAll([
+    if (options != null) {
+      cmd = <String>[
         '--options',
         path.join(testDirectory, options),
-      ]);
-
+      ];
+    }
     cmd..addAll(sources.map(_adjustFileSpec))..addAll(args);
-
     if (usePreviewDart2) {
       cmd.insert(0, '--preview-dart-2');
     }
@@ -631,8 +629,7 @@ class ExitCodesTest extends BaseTest {
   }
 
   test_partFile() async {
-    Driver driver = new Driver(isTesting: true);
-    await driver.start([
+    await driveMany([
       path.join(testDirectory, 'data/library_and_parts/lib.dart'),
       path.join(testDirectory, 'data/library_and_parts/part1.dart')
     ]);
@@ -654,8 +651,7 @@ class ExitCodesTest extends BaseTest {
   }
 
   test_partFile_extra() async {
-    Driver driver = new Driver(isTesting: true);
-    await driver.start([
+    await driveMany([
       path.join(testDirectory, 'data/library_and_parts/lib.dart'),
       path.join(testDirectory, 'data/library_and_parts/part1.dart'),
       path.join(testDirectory, 'data/library_and_parts/part2.dart')
@@ -920,7 +916,6 @@ class OptionsTest extends BaseTest {
     await drive(path.join(testDir, 'main.dart'), args: ['--strong']);
     expect(driver.context.analysisOptions.strongMode, isTrue);
     expect(outSink.toString(), contains('No issues found'));
-    expect(exitCode, 0);
   }
 
   test_todo() async {
@@ -967,6 +962,36 @@ class OptionsTest extends BaseTest {
     expect(outSink.toString(), contains('1 lint found.'));
   }
 
+  test_analysisOptions_excludes() async {
+    await drive('data/exclude_test_project',
+        options: 'data/exclude_test_project/$optionsFileName');
+    _expectUndefinedClassErrorsWithoutExclusions();
+  }
+
+  test_analysisOptions_excludesRelativeToAnalysisOptions_inferred() async {
+    // By passing no options, and the path `lib`, it should discover the
+    // analysis_options above lib. The exclude is relative to the project, not
+    // the analyzed path, and it has to then understand that.
+    await drive('data/exclude_test_project/lib', options: null);
+    _expectUndefinedClassErrorsWithoutExclusions();
+  }
+
+  test_analysisOptions_excludesRelativeToAnalysisOptions_explicit() async {
+    // The exclude is relative to the project, not/ the analyzed path, and it
+    // has to then understand that.
+    await drive('data/exclude_test_project',
+        options: 'data/exclude_test_project/$optionsFileName');
+    _expectUndefinedClassErrorsWithoutExclusions();
+  }
+
+  void _expectUndefinedClassErrorsWithoutExclusions() {
+    expect(bulletToDash(outSink),
+        contains("warning - Undefined class 'IncludedUndefinedClass'"));
+    expect(bulletToDash(outSink),
+        isNot(contains("warning - Undefined class 'ExcludedUndefinedClass'")));
+    expect(outSink.toString(), contains("1 warning found."));
+  }
+
   Future<Null> _driveBasic() async {
     await drive('data/options_tests_project/test_file.dart',
         options: 'data/options_tests_project/$optionsFileName');
@@ -1008,6 +1033,20 @@ class OptionsTest_UseCFE extends OptionsTest {
   @failingTest
   test_withFlags_overrideFatalWarning() =>
       super.test_withFlags_overrideFatalWarning();
+
+  @override
+  @failingTest
+  test_analysisOptions_excludes() => super.test_analysisOptions_excludes();
+
+  @override
+  @failingTest
+  test_analysisOptions_excludesRelativeToAnalysisOptions_inferred() =>
+      super.test_analysisOptions_excludesRelativeToAnalysisOptions_inferred();
+
+  @override
+  @failingTest
+  test_analysisOptions_excludesRelativeToAnalysisOptions_explicit() =>
+      super.test_analysisOptions_excludesRelativeToAnalysisOptions_explicit();
 }
 
 class TestSource implements Source {

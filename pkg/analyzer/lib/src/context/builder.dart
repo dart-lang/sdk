@@ -506,11 +506,17 @@ class ContextBuilder {
   /**
    * Return the analysis options file that should be used when analyzing code in
    * the directory with the given [path].
+   *
+   * If [forceSearch] is true, then don't return the default analysis options
+   * path. This allows cli to locate what *would* have been the analysis options
+   * file path, and super-impose the defaults over it in-place.
    */
-  File getOptionsFile(String path) {
-    String filePath = builderOptions.defaultAnalysisOptionsFilePath;
-    if (filePath != null) {
-      return resourceProvider.getFile(filePath);
+  File getOptionsFile(String path, {bool forceSearch: false}) {
+    if (!forceSearch) {
+      String filePath = builderOptions.defaultAnalysisOptionsFilePath;
+      if (filePath != null) {
+        return resourceProvider.getFile(filePath);
+      }
     }
     Folder root = resourceProvider.getFolder(path);
     for (Folder folder = root; folder != null; folder = folder.parent) {
