@@ -439,12 +439,15 @@ Future<int> starter(
         Directory.systemTemp.createTempSync('train_frontend_server');
     try {
       final String outputTrainingDill = path.join(temp.path, 'app.dill');
-      options = argParser.parse(<String>[
+      final List<String> args = <String>[
         '--incremental',
         '--sdk-root=$sdkRoot',
-        '--platform=$platform',
-        '--output-dill=$outputTrainingDill'
-      ]);
+        '--output-dill=$outputTrainingDill',
+      ];
+      if (platform != null) {
+        args.add('--platform=${new Uri.file(platform)}');
+      }
+      options = argParser.parse(args);
       compiler ??=
           new FrontendCompiler(output, printerFactory: binaryPrinterFactory);
 
