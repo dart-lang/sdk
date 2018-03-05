@@ -460,6 +460,119 @@ class InheritanceManager {
   }
 
   /**
+   * Given some array of [ExecutableElement]s, this method creates a synthetic element as
+   * described in 8.1.1:
+   *
+   * Let <i>numberOfPositionals</i>(<i>f</i>) denote the number of positional parameters of a
+   * function <i>f</i>, and let <i>numberOfRequiredParams</i>(<i>f</i>) denote the number of
+   * required parameters of a function <i>f</i>. Furthermore, let <i>s</i> denote the set of all
+   * named parameters of the <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i>. Then let
+   * * <i>h = max(numberOfPositionals(m<sub>i</sub>)),</i>
+   * * <i>r = min(numberOfRequiredParams(m<sub>i</sub>)), for all <i>i</i>, 1 <= i <= k.</i>
+   * Then <i>I</i> has a method named <i>n</i>, with <i>r</i> required parameters of type
+   * <b>dynamic</b>, <i>h</i> positional parameters of type <b>dynamic</b>, named parameters
+   * <i>s</i> of type <b>dynamic</b> and return type <b>dynamic</b>.
+   *
+   */
+  ExecutableElement _computeMergedExecutableElement(
+      List<ExecutableElement> elementArrayToMerge) {
+    int h = _getNumOfPositionalParameters(elementArrayToMerge[0]);
+    int r = _getNumOfRequiredParameters(elementArrayToMerge[0]);
+    Set<String> namedParametersList = new HashSet<String>();
+    for (int i = 1; i < elementArrayToMerge.length; i++) {
+      ExecutableElement element = elementArrayToMerge[i];
+      int numOfPositionalParams = _getNumOfPositionalParameters(element);
+      if (h < numOfPositionalParams) {
+        h = numOfPositionalParams;
+      }
+      int numOfRequiredParams = _getNumOfRequiredParameters(element);
+      if (r > numOfRequiredParams) {
+        r = numOfRequiredParams;
+      }
+      namedParametersList.addAll(_getNamedParameterNames(element));
+    }
+    return _createSyntheticExecutableElement(
+        elementArrayToMerge,
+        elementArrayToMerge[0].displayName,
+        r,
+        h - r,
+        new List.from(namedParametersList));
+  }
+
+  /**
+   * Used by [computeMergedExecutableElement] to actually create the
+   * synthetic element.
+   *
+   * @param elementArrayToMerge the array used to create the synthetic element
+   * @param name the name of the method, getter or setter
+   * @param numOfRequiredParameters the number of required parameters
+   * @param numOfPositionalParameters the number of positional parameters
+   * @param namedParameters the list of [String]s that are the named parameters
+   * @return the created synthetic element
+   */
+  ExecutableElement _createSyntheticExecutableElement(
+      List<ExecutableElement> elementArrayToMerge,
+      String name,
+      int numOfRequiredParameters,
+      int numOfPositionalParameters,
+      List<String> namedParameters) {
+    DynamicTypeImpl dynamicType = DynamicTypeImpl.instance;
+    DartType bottomType = _library.context.analysisOptions.strongMode
+        ? BottomTypeImpl.instance
+        : dynamicType;
+    SimpleIdentifier nameIdentifier = astFactory
+        .simpleIdentifier(new StringToken(TokenType.IDENTIFIER, name, 0));
+    ExecutableElementImpl executable;
+    ExecutableElement elementToMerge = elementArrayToMerge[0];
+    if (elementToMerge is MethodElement) {
+      MultiplyInheritedMethodElementImpl unionedMethod =
+          new MultiplyInheritedMethodElementImpl(nameIdentifier);
+      unionedMethod.inheritedElements = elementArrayToMerge;
+      executable = unionedMethod;
+    } else if (elementToMerge is PropertyAccessorElement) {
+      MultiplyInheritedPropertyAccessorElementImpl unionedPropertyAccessor =
+          new MultiplyInheritedPropertyAccessorElementImpl(nameIdentifier);
+      unionedPropertyAccessor.getter = elementToMerge.isGetter;
+      unionedPropertyAccessor.setter = elementToMerge.isSetter;
+      unionedPropertyAccessor.inheritedElements = elementArrayToMerge;
+      executable = unionedPropertyAccessor;
+    } else {
+      throw new AnalysisException(
+          'Invalid class of element in merge: ${elementToMerge.runtimeType}');
+    }
+    int numOfParameters = numOfRequiredParameters +
+        numOfPositionalParameters +
+        namedParameters.length;
+    List<ParameterElement> parameters =
+        new List<ParameterElement>(numOfParameters);
+    int i = 0;
+    for (int j = 0; j < numOfRequiredParameters; j++, i++) {
+      ParameterElementImpl parameter = new ParameterElementImpl("", 0);
+      parameter.type = bottomType;
+      parameter.parameterKind = ParameterKind.REQUIRED;
+      parameters[i] = parameter;
+    }
+    for (int k = 0; k < numOfPositionalParameters; k++, i++) {
+      ParameterElementImpl parameter = new ParameterElementImpl("", 0);
+      parameter.type = bottomType;
+      parameter.parameterKind = ParameterKind.POSITIONAL;
+      parameters[i] = parameter;
+    }
+    for (int m = 0; m < namedParameters.length; m++, i++) {
+      ParameterElementImpl parameter =
+          new ParameterElementImpl(namedParameters[m], 0);
+      parameter.type = bottomType;
+      parameter.parameterKind = ParameterKind.NAMED;
+      parameters[i] = parameter;
+    }
+    executable.returnType = dynamicType;
+    executable.parameters = parameters;
+    FunctionTypeImpl methodType = new FunctionTypeImpl(executable);
+    executable.type = methodType;
+    return executable;
+  }
+
+  /**
    * Collect a list of interface lookup maps whose elements correspond to all of the classes
    * directly above [classElt] in the class hierarchy (the direct superclass if any, all
    * mixins, and all direct superinterfaces). Each item in the list is the interface lookup map
@@ -911,119 +1024,6 @@ class InheritanceManager {
   }
 
   /**
-   * Given some array of [ExecutableElement]s, this method creates a synthetic element as
-   * described in 8.1.1:
-   *
-   * Let <i>numberOfPositionals</i>(<i>f</i>) denote the number of positional parameters of a
-   * function <i>f</i>, and let <i>numberOfRequiredParams</i>(<i>f</i>) denote the number of
-   * required parameters of a function <i>f</i>. Furthermore, let <i>s</i> denote the set of all
-   * named parameters of the <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i>. Then let
-   * * <i>h = max(numberOfPositionals(m<sub>i</sub>)),</i>
-   * * <i>r = min(numberOfRequiredParams(m<sub>i</sub>)), for all <i>i</i>, 1 <= i <= k.</i>
-   * Then <i>I</i> has a method named <i>n</i>, with <i>r</i> required parameters of type
-   * <b>dynamic</b>, <i>h</i> positional parameters of type <b>dynamic</b>, named parameters
-   * <i>s</i> of type <b>dynamic</b> and return type <b>dynamic</b>.
-   *
-   */
-  ExecutableElement _computeMergedExecutableElement(
-      List<ExecutableElement> elementArrayToMerge) {
-    int h = _getNumOfPositionalParameters(elementArrayToMerge[0]);
-    int r = _getNumOfRequiredParameters(elementArrayToMerge[0]);
-    Set<String> namedParametersList = new HashSet<String>();
-    for (int i = 1; i < elementArrayToMerge.length; i++) {
-      ExecutableElement element = elementArrayToMerge[i];
-      int numOfPositionalParams = _getNumOfPositionalParameters(element);
-      if (h < numOfPositionalParams) {
-        h = numOfPositionalParams;
-      }
-      int numOfRequiredParams = _getNumOfRequiredParameters(element);
-      if (r > numOfRequiredParams) {
-        r = numOfRequiredParams;
-      }
-      namedParametersList.addAll(_getNamedParameterNames(element));
-    }
-    return _createSyntheticExecutableElement(
-        elementArrayToMerge,
-        elementArrayToMerge[0].displayName,
-        r,
-        h - r,
-        new List.from(namedParametersList));
-  }
-
-  /**
-   * Used by [computeMergedExecutableElement] to actually create the
-   * synthetic element.
-   *
-   * @param elementArrayToMerge the array used to create the synthetic element
-   * @param name the name of the method, getter or setter
-   * @param numOfRequiredParameters the number of required parameters
-   * @param numOfPositionalParameters the number of positional parameters
-   * @param namedParameters the list of [String]s that are the named parameters
-   * @return the created synthetic element
-   */
-  ExecutableElement _createSyntheticExecutableElement(
-      List<ExecutableElement> elementArrayToMerge,
-      String name,
-      int numOfRequiredParameters,
-      int numOfPositionalParameters,
-      List<String> namedParameters) {
-    DynamicTypeImpl dynamicType = DynamicTypeImpl.instance;
-    DartType bottomType = _library.context.analysisOptions.strongMode
-        ? BottomTypeImpl.instance
-        : dynamicType;
-    SimpleIdentifier nameIdentifier = astFactory
-        .simpleIdentifier(new StringToken(TokenType.IDENTIFIER, name, 0));
-    ExecutableElementImpl executable;
-    ExecutableElement elementToMerge = elementArrayToMerge[0];
-    if (elementToMerge is MethodElement) {
-      MultiplyInheritedMethodElementImpl unionedMethod =
-          new MultiplyInheritedMethodElementImpl(nameIdentifier);
-      unionedMethod.inheritedElements = elementArrayToMerge;
-      executable = unionedMethod;
-    } else if (elementToMerge is PropertyAccessorElement) {
-      MultiplyInheritedPropertyAccessorElementImpl unionedPropertyAccessor =
-          new MultiplyInheritedPropertyAccessorElementImpl(nameIdentifier);
-      unionedPropertyAccessor.getter = elementToMerge.isGetter;
-      unionedPropertyAccessor.setter = elementToMerge.isSetter;
-      unionedPropertyAccessor.inheritedElements = elementArrayToMerge;
-      executable = unionedPropertyAccessor;
-    } else {
-      throw new AnalysisException(
-          'Invalid class of element in merge: ${elementToMerge.runtimeType}');
-    }
-    int numOfParameters = numOfRequiredParameters +
-        numOfPositionalParameters +
-        namedParameters.length;
-    List<ParameterElement> parameters =
-        new List<ParameterElement>(numOfParameters);
-    int i = 0;
-    for (int j = 0; j < numOfRequiredParameters; j++, i++) {
-      ParameterElementImpl parameter = new ParameterElementImpl("", 0);
-      parameter.type = bottomType;
-      parameter.parameterKind = ParameterKind.REQUIRED;
-      parameters[i] = parameter;
-    }
-    for (int k = 0; k < numOfPositionalParameters; k++, i++) {
-      ParameterElementImpl parameter = new ParameterElementImpl("", 0);
-      parameter.type = bottomType;
-      parameter.parameterKind = ParameterKind.POSITIONAL;
-      parameters[i] = parameter;
-    }
-    for (int m = 0; m < namedParameters.length; m++, i++) {
-      ParameterElementImpl parameter =
-          new ParameterElementImpl(namedParameters[m], 0);
-      parameter.type = bottomType;
-      parameter.parameterKind = ParameterKind.NAMED;
-      parameters[i] = parameter;
-    }
-    executable.returnType = dynamicType;
-    executable.parameters = parameters;
-    FunctionTypeImpl methodType = new FunctionTypeImpl(executable);
-    executable.type = methodType;
-    return executable;
-  }
-
-  /**
    * Given some [ExecutableElement], return the list of named parameters.
    */
   static List<String> _getNamedParameterNames(
@@ -1032,7 +1032,7 @@ class InheritanceManager {
     List<ParameterElement> parameters = executableElement.parameters;
     for (int i = 0; i < parameters.length; i++) {
       ParameterElement parameterElement = parameters[i];
-      if (parameterElement.parameterKind == ParameterKind.NAMED) {
+      if (parameterElement.isNamed) {
         namedParameterNames.add(parameterElement.name);
       }
     }
@@ -1048,6 +1048,7 @@ class InheritanceManager {
     List<ParameterElement> parameters = executableElement.parameters;
     for (int i = 0; i < parameters.length; i++) {
       ParameterElement parameterElement = parameters[i];
+      // ignore: deprecated_member_use
       if (parameterElement.parameterKind == parameterKind) {
         parameterCount++;
       }

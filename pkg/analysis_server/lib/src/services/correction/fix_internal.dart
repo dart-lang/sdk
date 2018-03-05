@@ -42,7 +42,6 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError, Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
@@ -528,10 +527,10 @@ class FixProcessor {
       if (targetElement is ExecutableElement) {
         List<ParameterElement> parameters = targetElement.parameters;
         int numParameters = parameters.length;
-        Iterable<ParameterElement> requiredParameters = parameters
-            .takeWhile((p) => p.parameterKind == ParameterKind.REQUIRED);
-        Iterable<ParameterElement> optionalParameters = parameters
-            .skipWhile((p) => p.parameterKind == ParameterKind.REQUIRED);
+        Iterable<ParameterElement> requiredParameters =
+            parameters.takeWhile((p) => p.isNotOptional);
+        Iterable<ParameterElement> optionalParameters =
+            parameters.skipWhile((p) => p.isNotOptional);
         // prepare the argument to add a new parameter for
         int numRequired = requiredParameters.length;
         if (numRequired >= arguments.length) {
@@ -866,7 +865,7 @@ class FixProcessor {
       int numberOfPositionalParameters = 0;
       var namedParameters = <ParameterElement>[];
       for (var parameter in executable.parameters) {
-        if (parameter.parameterKind == ParameterKind.NAMED) {
+        if (parameter.isNamed) {
           namedParameters.add(parameter);
         } else {
           numberOfPositionalParameters++;
@@ -1183,7 +1182,7 @@ class FixProcessor {
           bool firstParameter = true;
           for (ParameterElement parameter in superConstructor.parameters) {
             // skip non-required parameters
-            if (parameter.parameterKind != ParameterKind.REQUIRED) {
+            if (parameter.isOptional) {
               break;
             }
             // comma
@@ -1219,9 +1218,9 @@ class FixProcessor {
         continue;
       }
       // prepare parameters and arguments
-      Iterable<ParameterElement> requiredParameters =
-          superConstructor.parameters.where(
-              (parameter) => parameter.parameterKind == ParameterKind.REQUIRED);
+      Iterable<ParameterElement> requiredParameters = superConstructor
+          .parameters
+          .where((parameter) => parameter.isNotOptional);
       // add proposal
       ClassMemberLocation targetLocation =
           utils.prepareNewConstructorLocation(targetClassNode);
@@ -2809,7 +2808,7 @@ class FixProcessor {
     FormalParameter lastRequiredParameter;
     List<FormalParameter> parameters = constructor.parameters.parameters;
     for (FormalParameter parameter in parameters) {
-      if (parameter.kind == ParameterKind.REQUIRED) {
+      if (parameter.isRequired) {
         lastRequiredParameter = parameter;
       }
     }

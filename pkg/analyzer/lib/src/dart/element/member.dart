@@ -578,6 +578,7 @@ class MethodMember extends ExecutableMember implements MethodElement {
         buffer.write(", ");
       }
       ParameterElement parameter = parameters[i];
+      // ignore: deprecated_member_use
       ParameterKind parameterKind = parameter.parameterKind;
       if (parameterKind != kind) {
         if (closing != null) {
@@ -661,6 +662,7 @@ class ParameterMember extends VariableMember
   @override
   bool get isInitializingFormal => baseElement.isInitializingFormal;
 
+  @deprecated
   @override
   ParameterKind get parameterKind => baseElement.parameterKind;
 
@@ -707,13 +709,13 @@ class ParameterMember extends VariableMember
     String left = "";
     String right = "";
     while (true) {
-      if (baseElement.parameterKind == ParameterKind.NAMED) {
+      if (baseElement.isNamed) {
         left = "{";
         right = "}";
-      } else if (baseElement.parameterKind == ParameterKind.POSITIONAL) {
+      } else if (baseElement.isOptionalPositional) {
         left = "[";
         right = "]";
-      } else if (baseElement.parameterKind == ParameterKind.REQUIRED) {}
+      }
       break;
     }
     return '$left$type ${baseElement.displayName}$right';

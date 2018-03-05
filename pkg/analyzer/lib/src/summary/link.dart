@@ -276,16 +276,12 @@ UnlinkedParamBuilder _serializeSyntheticParam(
     TypeParameterizedElementMixin typeParameterContext) {
   UnlinkedParamBuilder b = new UnlinkedParamBuilder();
   b.name = parameter.name;
-  switch (parameter.parameterKind) {
-    case ParameterKind.REQUIRED:
-      b.kind = UnlinkedParamKind.required;
-      break;
-    case ParameterKind.POSITIONAL:
-      b.kind = UnlinkedParamKind.positional;
-      break;
-    case ParameterKind.NAMED:
-      b.kind = UnlinkedParamKind.named;
-      break;
+  if (parameter.isNotOptional) {
+    b.kind = UnlinkedParamKind.required;
+  } else if (parameter.isOptionalPositional) {
+    b.kind = UnlinkedParamKind.positional;
+  } else if (parameter.isNamed) {
+    b.kind = UnlinkedParamKind.named;
   }
   DartType type = parameter.type;
   if (!parameter.hasImplicitType) {
@@ -2764,7 +2760,7 @@ class ExprTypeComputer {
         int positionalIndex = 0;
         int numRequiredParameters = 0;
         for (ParameterElement parameter in rawMethodType.parameters) {
-          if (parameter.parameterKind == ParameterKind.REQUIRED) {
+          if (parameter.isNotOptional) {
             numRequiredParameters++;
             if (numRequiredParameters > numPositionalArguments) {
               return null;
@@ -2772,13 +2768,13 @@ class ExprTypeComputer {
             parameters.add(parameter);
             argumentTypes.add(positionalArgTypes[positionalIndex]);
             positionalIndex++;
-          } else if (parameter.parameterKind == ParameterKind.POSITIONAL) {
+          } else if (parameter.isOptionalPositional) {
             if (positionalIndex < numPositionalArguments) {
               parameters.add(parameter);
               argumentTypes.add(positionalArgTypes[positionalIndex]);
               positionalIndex++;
             }
-          } else if (parameter.parameterKind == ParameterKind.NAMED) {
+          } else if (parameter.isNamed) {
             DartType namedArgumentType = namedArgTypes[parameter.name];
             if (namedArgumentType != null) {
               parameters.add(parameter);
@@ -4513,6 +4509,25 @@ class ParameterElementForLink implements ParameterElementImpl {
 
   @override
   bool get isExplicitlyCovariant => _unlinkedParam.isExplicitlyCovariant;
+
+  @override
+  bool get isNamed => parameterKind == ParameterKind.NAMED;
+
+  @override
+  bool get isNotOptional => parameterKind == ParameterKind.REQUIRED;
+
+  @override
+  bool get isOptional =>
+      parameterKind == ParameterKind.NAMED ||
+      parameterKind == ParameterKind.POSITIONAL;
+
+  @override
+  bool get isOptionalPositional => parameterKind == ParameterKind.POSITIONAL;
+
+  @override
+  bool get isPositional =>
+      parameterKind == ParameterKind.POSITIONAL ||
+      parameterKind == ParameterKind.REQUIRED;
 
   @override
   String get name => _unlinkedParam.name;

@@ -5,14 +5,13 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/generated/source.dart' show Source, UriKind;
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/documentation.dart';
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:analyzer_plugin/utilities/completion/relevance.dart';
 import 'package:analyzer_plugin/utilities/completion/suggestion_builder.dart';
-import 'package:analyzer/src/generated/source.dart' show Source, UriKind;
 
 /**
  * An object used to build code completion suggestions for Dart code.
@@ -127,14 +126,12 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
         return paramType != null ? paramType.displayName : 'var';
       }).toList();
 
-      Iterable<ParameterElement> requiredParameters = element.parameters.where(
-          (ParameterElement param) =>
-              param.parameterKind == ParameterKind.REQUIRED);
+      Iterable<ParameterElement> requiredParameters = element.parameters
+          .where((ParameterElement param) => param.isNotOptional);
       suggestion.requiredParameterCount = requiredParameters.length;
 
-      Iterable<ParameterElement> namedParameters = element.parameters.where(
-          (ParameterElement param) =>
-              param.parameterKind == ParameterKind.NAMED);
+      Iterable<ParameterElement> namedParameters =
+          element.parameters.where((ParameterElement param) => param.isNamed);
       suggestion.hasNamedParameters = namedParameters.isNotEmpty;
 
       addDefaultArgDetails(

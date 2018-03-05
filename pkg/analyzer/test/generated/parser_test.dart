@@ -2586,23 +2586,6 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
     listener.assertErrors([expectedError(ParserErrorCode.CONST_METHOD, 0, 5)]);
   }
 
-  void test_constructorWithReturnType() {
-    createParser('C C() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, 0, 1)]);
-  }
-
-  void test_constructorWithReturnType_var() {
-    createParser('var C() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors(usingFastaParser
-        ? [expectedError(ParserErrorCode.VAR_RETURN_TYPE, 0, 3)]
-        : [expectedError(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, 0, 3)]);
-  }
-
   void test_constructorPartial() {
     createParser('class C { C< }');
     parser.parseCompilationUnit2();
@@ -2619,6 +2602,23 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
             expectedError(ParserErrorCode.MISSING_IDENTIFIER, 13, 1),
             expectedError(ParserErrorCode.EXPECTED_TOKEN, 13, 1)
           ]);
+  }
+
+  void test_constructorWithReturnType() {
+    createParser('C C() {}');
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, 0, 1)]);
+  }
+
+  void test_constructorWithReturnType_var() {
+    createParser('var C() {}');
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.VAR_RETURN_TYPE, 0, 3)]
+        : [expectedError(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, 0, 3)]);
   }
 
   void test_constTypedef() {
@@ -4739,8 +4739,8 @@ class Wrong<T> {
     expectNotNullIfNoErrors(list);
     listener.assertErrors(
         [expectedError(ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, 6, 1)]);
-    expect(list.parameters[0].kind, ParameterKind.REQUIRED);
-    expect(list.parameters[1].kind, ParameterKind.NAMED);
+    expect(list.parameters[0].isRequired, isTrue);
+    expect(list.parameters[1].isNamed, isTrue);
   }
 
   void test_nonConstructorFactory_field() {
@@ -4878,9 +4878,12 @@ class Wrong<T> {
             expectedError(
                 ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP, 4, 1)
           ]);
-    expect(list.parameters[0].kind, ParameterKind.REQUIRED);
-    expect(list.parameters[1].kind,
-        usingFastaParser ? ParameterKind.NAMED : ParameterKind.POSITIONAL);
+    expect(list.parameters[0].isRequired, isTrue);
+    if (usingFastaParser) {
+      expect(list.parameters[1].isNamed, isTrue);
+    } else {
+      expect(list.parameters[1].isOptionalPositional, isTrue);
+    }
   }
 
   void test_redirectingConstructorWithBody_named() {
@@ -8309,10 +8312,10 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isNamed, isTrue);
     expect(defaultParameter.separator, isNotNull);
     expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
+    expect(defaultParameter.isNamed, isTrue);
   }
 
   void test_parseFormalParameter_covariant_final_normal() {
@@ -8326,7 +8329,7 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isRequired, isTrue);
   }
 
   void test_parseFormalParameter_covariant_final_positional() {
@@ -8343,10 +8346,10 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isOptionalPositional, isTrue);
     expect(defaultParameter.separator, isNotNull);
     expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
+    expect(defaultParameter.isOptionalPositional, isTrue);
   }
 
   void test_parseFormalParameter_covariant_final_type_named() {
@@ -8363,10 +8366,10 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isNamed, isTrue);
     expect(defaultParameter.separator, isNotNull);
     expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
+    expect(defaultParameter.isNamed, isTrue);
   }
 
   void test_parseFormalParameter_covariant_final_type_normal() {
@@ -8381,7 +8384,7 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isRequired, isTrue);
   }
 
   void test_parseFormalParameter_covariant_final_type_positional() {
@@ -8398,10 +8401,10 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isOptionalPositional, isTrue);
     expect(defaultParameter.separator, isNotNull);
     expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
+    expect(defaultParameter.isOptionalPositional, isTrue);
   }
 
   void test_parseFormalParameter_covariant_type_function() {
@@ -8416,7 +8419,7 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, new isInstanceOf<GenericFunctionType>());
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isRequired, isTrue);
   }
 
   void test_parseFormalParameter_covariant_type_named() {
@@ -8433,10 +8436,10 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isNamed, isTrue);
     expect(defaultParameter.separator, isNotNull);
     expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
+    expect(defaultParameter.isNamed, isTrue);
   }
 
   void test_parseFormalParameter_covariant_type_normal() {
@@ -8451,7 +8454,7 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isRequired, isTrue);
   }
 
   void test_parseFormalParameter_covariant_type_positional() {
@@ -8468,10 +8471,10 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isOptionalPositional, isTrue);
     expect(defaultParameter.separator, isNotNull);
     expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
+    expect(defaultParameter.isOptionalPositional, isTrue);
   }
 
   void test_parseFormalParameter_covariant_var_named() {
@@ -8488,10 +8491,10 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isNamed, isTrue);
     expect(defaultParameter.separator, isNotNull);
     expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
+    expect(defaultParameter.isNamed, isTrue);
   }
 
   void test_parseFormalParameter_covariant_var_normal() {
@@ -8505,7 +8508,7 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isRequired, isTrue);
   }
 
   void test_parseFormalParameter_covariant_var_positional() {
@@ -8522,10 +8525,10 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isOptionalPositional, isTrue);
     expect(defaultParameter.separator, isNotNull);
     expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
+    expect(defaultParameter.isOptionalPositional, isTrue);
   }
 
   void test_parseFormalParameter_final_named() {
@@ -8541,10 +8544,10 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isNamed, isTrue);
     expect(defaultParameter.separator, isNotNull);
     expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
+    expect(defaultParameter.isNamed, isTrue);
   }
 
   void test_parseFormalParameter_final_normal() {
@@ -8558,7 +8561,7 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isRequired, isTrue);
   }
 
   void test_parseFormalParameter_final_positional() {
@@ -8574,10 +8577,10 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isOptionalPositional, isTrue);
     expect(defaultParameter.separator, isNotNull);
     expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
+    expect(defaultParameter.isOptionalPositional, isTrue);
   }
 
   void test_parseFormalParameter_final_type_named() {
@@ -8593,10 +8596,10 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isNamed, isTrue);
     expect(defaultParameter.separator, isNotNull);
     expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
+    expect(defaultParameter.isNamed, isTrue);
   }
 
   void test_parseFormalParameter_final_type_normal() {
@@ -8610,7 +8613,7 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isRequired, isTrue);
   }
 
   void test_parseFormalParameter_final_type_positional() {
@@ -8626,10 +8629,10 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isOptionalPositional, isTrue);
     expect(defaultParameter.separator, isNotNull);
     expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
+    expect(defaultParameter.isOptionalPositional, isTrue);
   }
 
   void test_parseFormalParameter_type_function() {
@@ -8644,7 +8647,7 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, new isInstanceOf<GenericFunctionType>());
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isRequired, isTrue);
   }
 
   void test_parseFormalParameter_type_named() {
@@ -8660,10 +8663,10 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isNamed, isTrue);
     expect(defaultParameter.separator, isNotNull);
     expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
+    expect(defaultParameter.isNamed, isTrue);
   }
 
   void test_parseFormalParameter_type_named_noDefault() {
@@ -8679,10 +8682,10 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isNamed, isTrue);
     expect(defaultParameter.separator, isNull);
     expect(defaultParameter.defaultValue, isNull);
-    expect(defaultParameter.kind, kind);
+    expect(defaultParameter.isNamed, isTrue);
   }
 
   void test_parseFormalParameter_type_normal() {
@@ -8696,7 +8699,7 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isRequired, isTrue);
   }
 
   void test_parseFormalParameter_type_positional() {
@@ -8712,10 +8715,10 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isOptionalPositional, isTrue);
     expect(defaultParameter.separator, isNotNull);
     expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
+    expect(defaultParameter.isOptionalPositional, isTrue);
   }
 
   void test_parseFormalParameter_type_positional_noDefault() {
@@ -8731,10 +8734,10 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isOptionalPositional, isTrue);
     expect(defaultParameter.separator, isNull);
     expect(defaultParameter.defaultValue, isNull);
-    expect(defaultParameter.kind, kind);
+    expect(defaultParameter.isOptionalPositional, isTrue);
   }
 
   void test_parseFormalParameter_var_named() {
@@ -8750,10 +8753,10 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isNamed, isTrue);
     expect(defaultParameter.separator, isNotNull);
     expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
+    expect(defaultParameter.isNamed, isTrue);
   }
 
   void test_parseFormalParameter_var_normal() {
@@ -8767,7 +8770,7 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isRequired, isTrue);
   }
 
   void test_parseFormalParameter_var_positional() {
@@ -8783,10 +8786,10 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
-    expect(simpleParameter.kind, kind);
+    expect(simpleParameter.isOptionalPositional, isTrue);
     expect(defaultParameter.separator, isNotNull);
     expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
+    expect(defaultParameter.isOptionalPositional, isTrue);
   }
 
   void test_parseFormalParameterList_empty() {
@@ -9167,10 +9170,10 @@ abstract class FormalParameterParserTestMixin
     expect(functionParameter.identifier, isNotNull);
     expect(functionParameter.typeParameters, isNull);
     expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.kind, kind);
+    expect(functionParameter.isNamed, isTrue);
     expect(defaultParameter.separator, isNotNull);
     expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
+    expect(defaultParameter.isNamed, isTrue);
   }
 
   void test_parseNormalFormalParameter_function_noType() {
@@ -11525,9 +11528,9 @@ class C {
     MethodDeclaration method = classA.members[0];
     NodeList<FormalParameter> parameters = method.parameters.parameters;
     expect(parameters, hasLength(3));
-    expect(parameters[0].kind, ParameterKind.NAMED);
-    expect(parameters[1].kind, ParameterKind.NAMED);
-    expect(parameters[2].kind, ParameterKind.REQUIRED);
+    expect(parameters[0].isNamed, isTrue);
+    expect(parameters[1].isNamed, isTrue);
+    expect(parameters[2].isRequired, isTrue);
   }
 
   void test_nonStringLiteralUri_import() {

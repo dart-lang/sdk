@@ -944,6 +944,7 @@ class ParameterElementHandle extends VariableElementHandle
   @override
   ElementKind get kind => ElementKind.PARAMETER;
 
+  @deprecated
   @override
   ParameterKind get parameterKind => actualElement.parameterKind;
 

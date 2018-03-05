@@ -33,7 +33,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/type_system.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:path/path.dart' as path;
 
 export 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
@@ -282,7 +281,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   Object visitArgumentList(ArgumentList node) {
     for (Expression argument in node.arguments) {
       ParameterElement parameter = argument.bestParameterElement;
-      if (parameter?.parameterKind == ParameterKind.POSITIONAL) {
+      if (parameter?.isOptionalPositional == true) {
         _checkForDeprecatedMemberUse(parameter, argument);
       }
     }
@@ -1327,9 +1326,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     final requiredParameters =
         node.parameters.where((p) => p.element?.isRequired == true);
     final nonNamedParamsWithRequired =
-        requiredParameters.where((p) => p.kind != ParameterKind.NAMED);
+        requiredParameters.where((p) => !p.isNamed);
     final namedParamsWithRequiredAndDefault = requiredParameters
-        .where((p) => p.kind == ParameterKind.NAMED)
+        .where((p) => p.isNamed)
         .where((p) => p.element.defaultValueCode != null);
     final paramsToHint = [
       nonNamedParamsWithRequired,
@@ -7022,12 +7021,11 @@ class ResolverVisitor extends ScopedVisitor {
     int length = parameters.length;
     for (int i = 0; i < length; i++) {
       ParameterElement parameter = parameters[i];
-      ParameterKind kind = parameter.parameterKind;
-      if (kind == ParameterKind.REQUIRED) {
+      if (parameter.isNotOptional) {
         unnamedParameters.add(parameter);
         unnamedParameterCount++;
         requiredParameterCount++;
-      } else if (kind == ParameterKind.POSITIONAL) {
+      } else if (parameter.isOptionalPositional) {
         unnamedParameters.add(parameter);
         unnamedParameterCount++;
       } else {

@@ -29,7 +29,6 @@ import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/dart.dart';
 
 /**
@@ -1945,8 +1944,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         AstNode parameterLocationToSelect = null;
         for (int i = 0; i < parameters.length; i++) {
           ParameterElement parameter = parameters[i];
-          if (parameter.parameterKind == ParameterKind.NAMED &&
-              overriddenName == parameter.name) {
+          if (parameter.isNamed && overriddenName == parameter.name) {
             parameterToSelect = parameter;
             parameterLocationToSelect = parameterLocations[i];
             break;
@@ -1979,13 +1977,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     List<ParameterElement> overriddenPEs = baseElement.parameters;
     for (int i = 0; i < parameters.length; i++) {
       ParameterElement parameter = parameters[i];
-      if (parameter.parameterKind.isOptional) {
+      if (parameter.isOptional) {
         formalParameters.add(parameterLocations[i]);
         parameterElts.add(parameter as ParameterElementImpl);
       }
     }
     for (ParameterElement parameterElt in overriddenPEs) {
-      if (parameterElt.parameterKind.isOptional) {
+      if (parameterElt.isOptional) {
         if (parameterElt is ParameterElementImpl) {
           overriddenParameterElts.add(parameterElt);
         }
@@ -1996,7 +1994,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // overridden optional parameter elements.
     //
     if (parameterElts.length > 0) {
-      if (parameterElts[0].parameterKind == ParameterKind.NAMED) {
+      if (parameterElts[0].isNamed) {
         // Named parameters, consider the names when matching the parameterElts
         // to the overriddenParameterElts
         for (int i = 0; i < parameterElts.length; i++) {
@@ -5337,7 +5335,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
     NodeList<FormalParameter> formalParameters = parameterList.parameters;
     for (FormalParameter formalParameter in formalParameters) {
-      if (formalParameter.kind.isOptional) {
+      if (formalParameter.isOptional) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR,
             formalParameter);
@@ -5366,7 +5364,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   void _checkForPrivateOptionalParameter(FormalParameter parameter) {
     // should be named parameter
-    if (parameter.kind != ParameterKind.NAMED) {
+    if (!parameter.isNamed) {
       return;
     }
     // name should start with '_'
@@ -5980,6 +5978,31 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         [enclosingElement.name]);
   }
 
+  /**
+   * Check for situations where the result of a method or function is used, when
+   * it returns 'void'. Or, in rare cases, when other types of expressions are
+   * void, such as identifiers.
+   *
+   * See [StaticWarningCode.USE_OF_VOID_RESULT].
+   */
+  bool _checkForUseOfVoidResult(Expression expression) {
+    if (expression == null ||
+        !identical(expression.staticType, VoidTypeImpl.instance)) {
+      return false;
+    }
+
+    if (expression is MethodInvocation) {
+      SimpleIdentifier methodName = expression.methodName;
+      _errorReporter.reportErrorForNode(
+          StaticWarningCode.USE_OF_VOID_RESULT, methodName, []);
+    } else {
+      _errorReporter.reportErrorForNode(
+          StaticWarningCode.USE_OF_VOID_RESULT, expression, []);
+    }
+
+    return true;
+  }
+
   void _checkForValidField(FieldFormalParameter parameter) {
     AstNode parent2 = parameter.parent?.parent;
     if (parent2 is! ConstructorDeclaration &&
@@ -6115,8 +6138,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
 
     NodeList<FormalParameter> parameters = parameterList.parameters;
-    if (parameters.length != 1 ||
-        parameters[0].kind != ParameterKind.REQUIRED) {
+    if (parameters.length != 1 || !parameters[0].isRequired) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
           setterName);
@@ -6342,31 +6364,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
-  /**
-   * Check for situations where the result of a method or function is used, when
-   * it returns 'void'. Or, in rare cases, when other types of expressions are
-   * void, such as identifiers.
-   *
-   * See [StaticWarningCode.USE_OF_VOID_RESULT].
-   */
-  bool _checkForUseOfVoidResult(Expression expression) {
-    if (expression == null ||
-        !identical(expression.staticType, VoidTypeImpl.instance)) {
-      return false;
-    }
-
-    if (expression is MethodInvocation) {
-      SimpleIdentifier methodName = expression.methodName;
-      _errorReporter.reportErrorForNode(
-          StaticWarningCode.USE_OF_VOID_RESULT, methodName, []);
-    } else {
-      _errorReporter.reportErrorForNode(
-          StaticWarningCode.USE_OF_VOID_RESULT, expression, []);
-    }
-
-    return true;
-  }
-
   DartType _computeReturnTypeForMethod(Expression returnExpression) {
     // This method should never be called for generators, since generators are
     // never allowed to contain return statements with expressions.
@@ -6391,24 +6388,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       {isDeclarationCast: false}) {
     return _typeSystem.isAssignableTo(actualStaticType, expectedStaticType,
         isDeclarationCast: isDeclarationCast);
-  }
-
-  List<InterfaceType> _findInterfaceTypesForConstraints(
-      TypeName mixin,
-      List<InterfaceType> supertypeConstraints,
-      List<InterfaceType> interfaceTypes) {
-    var result = <InterfaceType>[];
-    for (var constraint in supertypeConstraints) {
-      var interfaceType =
-          _findInterfaceTypeForMixin(mixin, constraint, interfaceTypes);
-      if (interfaceType == null) {
-        // No matching interface type found, so inference fails.  The error has
-        // already been reported.
-        return null;
-      }
-      result.add(interfaceType);
-    }
-    return result;
   }
 
   InterfaceType _findInterfaceTypeForMixin(TypeName mixin,
@@ -6436,6 +6415,24 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           [mixin, supertypeConstraint]);
     }
     return foundInterfaceType;
+  }
+
+  List<InterfaceType> _findInterfaceTypesForConstraints(
+      TypeName mixin,
+      List<InterfaceType> supertypeConstraints,
+      List<InterfaceType> interfaceTypes) {
+    var result = <InterfaceType>[];
+    for (var constraint in supertypeConstraints) {
+      var interfaceType =
+          _findInterfaceTypeForMixin(mixin, constraint, interfaceTypes);
+      if (interfaceType == null) {
+        // No matching interface type found, so inference fails.  The error has
+        // already been reported.
+        return null;
+      }
+      result.add(interfaceType);
+    }
+    return result;
   }
 
   MethodElement _findOverriddenMemberThatMustCallSuper(MethodDeclaration node) {
@@ -7136,7 +7133,7 @@ class RequiredConstantsComputer extends RecursiveAstVisitor {
       DartType type, ArgumentList argumentList, AstNode node) {
     if (type is FunctionType) {
       for (ParameterElement parameter in type.parameters) {
-        if (parameter.parameterKind == ParameterKind.NAMED) {
+        if (parameter.isNamed) {
           ElementAnnotationImpl annotation = _getRequiredAnnotation(parameter);
           if (annotation != null) {
             String parameterName = parameter.name;

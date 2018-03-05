@@ -5704,6 +5704,7 @@ typedef void F(int p);
     expect(type, isNotNull);
     expect(element.name, name);
     expect(element.nameOffset, offset);
+    // ignore: deprecated_member_use
     expect(element.parameterKind, kind);
     expect(element.type, type);
   }

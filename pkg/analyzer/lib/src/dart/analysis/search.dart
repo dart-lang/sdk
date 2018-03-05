@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart' show NamespaceBuilder;
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:collection/collection.dart';
 
@@ -681,7 +680,7 @@ class Search {
       AstNode parent = node.parent;
       return parent is ClassDeclaration || parent is CompilationUnit;
     }));
-    if (parameter.parameterKind == ParameterKind.NAMED) {
+    if (parameter.isNamed) {
       results.addAll(await _searchReferences(parameter));
     }
     return results;

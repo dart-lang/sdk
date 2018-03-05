@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/utilities/completion/relevance.dart';
@@ -346,7 +345,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       }
       if (0 <= index && index < parameters.length) {
         ParameterElement param = parameters[index];
-        if (param?.parameterKind == ParameterKind.NAMED) {
+        if (param?.isNamed == true) {
           optype.includeNamedArgumentSuggestions = true;
           return;
         }
@@ -799,8 +798,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
             if (e is DefaultFieldFormalParameterElementImpl) {
               return e.field?.name == node.name.label.name;
             }
-            return e.parameterKind == ParameterKind.NAMED &&
-                e.name == node.name.label.name;
+            return e.isNamed && e.name == node.name.label.name;
           }, orElse: () => null);
           // Suggest tear-offs.
           if (parameterElement?.type is FunctionType) {

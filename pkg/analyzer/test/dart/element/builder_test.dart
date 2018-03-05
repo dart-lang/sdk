@@ -20,7 +20,6 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:analyzer/src/generated/testing/node_search.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -461,7 +460,7 @@ class C {
     expect(parameter.isConst, isFalse);
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
-    expect(parameter.parameterKind, ParameterKind.REQUIRED);
+    expect(parameter.isNotOptional, isTrue);
     _assertVisibleRange(parameter, 100, 110);
   }
 
@@ -485,7 +484,7 @@ class C {
     expect(parameter.isExplicitlyCovariant, isTrue);
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
-    expect(parameter.parameterKind, ParameterKind.REQUIRED);
+    expect(parameter.isNotOptional, isTrue);
     _assertVisibleRange(parameter, 100, 110);
   }
 
@@ -509,7 +508,7 @@ class C {
     expect(parameter.isConst, isFalse);
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
-    expect(parameter.parameterKind, ParameterKind.REQUIRED);
+    expect(parameter.isNotOptional, isTrue);
     expect(typeElement.typeParameters, hasLength(1));
     _assertVisibleRange(parameter, 100, 110);
   }
@@ -575,7 +574,7 @@ class C {
     expect(parameter.isConst, isFalse);
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
-    expect(parameter.parameterKind, ParameterKind.NAMED);
+    expect(parameter.isNamed, isTrue);
     _assertVisibleRange(parameter, 100, 110);
     expect(parameter.defaultValueCode, "42");
     FunctionElement initializer = parameter.initializer;
@@ -608,7 +607,7 @@ class C {
     expect(parameter.isExplicitlyCovariant, isTrue);
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
-    expect(parameter.parameterKind, ParameterKind.NAMED);
+    expect(parameter.isNamed, isTrue);
     _assertVisibleRange(parameter, 100, 110);
     expect(parameter.defaultValueCode, "42");
     FunctionElement initializer = parameter.initializer;
@@ -636,7 +635,7 @@ class C {
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
     expect(parameter.name, parameterName);
-    expect(parameter.parameterKind, ParameterKind.REQUIRED);
+    expect(parameter.isNotOptional, isTrue);
     _assertVisibleRange(parameter, 100, 110);
   }
 
@@ -662,7 +661,7 @@ class C {
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
     expect(parameter.name, parameterName);
-    expect(parameter.parameterKind, ParameterKind.REQUIRED);
+    expect(parameter.isNotOptional, isTrue);
     _assertVisibleRange(parameter, 100, 110);
   }
 
@@ -685,7 +684,7 @@ class C {
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
     expect(parameter.name, parameterName);
-    expect(parameter.parameterKind, ParameterKind.REQUIRED);
+    expect(parameter.isNotOptional, isTrue);
     _assertVisibleRange(parameter, 100, 110);
   }
 
@@ -711,7 +710,7 @@ class C {
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
     expect(parameter.name, parameterName);
-    expect(parameter.parameterKind, ParameterKind.REQUIRED);
+    expect(parameter.isNotOptional, isTrue);
     _assertVisibleRange(parameter, 100, 110);
   }
 
@@ -1840,7 +1839,7 @@ class C {
     expect(parameter.isConst, isFalse);
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
-    expect(parameter.parameterKind, ParameterKind.REQUIRED);
+    expect(parameter.isNotOptional, isTrue);
     expect(parameter.parameters, hasLength(0));
   }
 
@@ -1864,7 +1863,7 @@ class C {
     expect(parameter.isConst, isFalse);
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
-    expect(parameter.parameterKind, ParameterKind.REQUIRED);
+    expect(parameter.isNotOptional, isTrue);
     expect(typeElement.parameters, hasLength(1));
   }
 

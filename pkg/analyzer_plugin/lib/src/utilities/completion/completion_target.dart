@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
  * A CompletionTarget represents an edge in the parse tree which connects an
@@ -560,13 +559,11 @@ class CompletionTarget {
     DartType paramType;
     if (paramIndex < parameters.length) {
       ParameterElement param = parameters[paramIndex];
-      if (param.parameterKind == ParameterKind.NAMED) {
+      if (param.isNamed) {
         if (containingNode is NamedExpression) {
           String name = containingNode.name?.label?.name;
           param = parameters.firstWhere(
-              (ParameterElement param) =>
-                  param.parameterKind == ParameterKind.NAMED &&
-                  param.name == name,
+              (ParameterElement param) => param.isNamed && param.name == name,
               orElse: () => null);
           paramType = param?.type;
         }

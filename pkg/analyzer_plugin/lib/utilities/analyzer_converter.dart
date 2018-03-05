@@ -216,12 +216,10 @@ class AnalyzerConverter {
         buffer.write(', ');
       }
       if (closeOptionalString.isEmpty) {
-        analyzer.ParameterKind kind = parameter.parameterKind;
-        if (kind == analyzer.ParameterKind.NAMED) {
+        if (parameter.isNamed) {
           buffer.write('{');
           closeOptionalString = '}';
-        }
-        if (kind == analyzer.ParameterKind.POSITIONAL) {
+        } else if (parameter.isOptionalPositional) {
           buffer.write('[');
           closeOptionalString = ']';
         }

@@ -12,7 +12,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:path/path.dart' as path;
 
 const String DYNAMIC = 'dynamic';
@@ -70,13 +69,12 @@ CompletionSuggestion createSuggestion(Element element,
       return paramType != null ? paramType.displayName : 'var';
     }).toList();
 
-    Iterable<ParameterElement> requiredParameters = element.parameters.where(
-        (ParameterElement param) =>
-            param.parameterKind == ParameterKind.REQUIRED);
+    Iterable<ParameterElement> requiredParameters = element.parameters
+        .where((ParameterElement param) => param.isNotOptional);
     suggestion.requiredParameterCount = requiredParameters.length;
 
-    Iterable<ParameterElement> namedParameters = element.parameters.where(
-        (ParameterElement param) => param.parameterKind == ParameterKind.NAMED);
+    Iterable<ParameterElement> namedParameters =
+        element.parameters.where((ParameterElement param) => param.isNamed);
     suggestion.hasNamedParameters = namedParameters.isNotEmpty;
 
     addDefaultArgDetails(
