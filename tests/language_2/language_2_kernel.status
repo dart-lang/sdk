@@ -606,8 +606,8 @@ ct_const_test: RuntimeError
 cyclic_type2_test: RuntimeError, CompileTimeError
 cyclic_type_test/02: RuntimeError, CompileTimeError
 cyclic_type_test/04: RuntimeError, CompileTimeError
-cyclic_typedef_test/10: Crash
-cyclic_typedef_test/11: Crash
+cyclic_typedef_test/10: Crash # Issue 32416.
+cyclic_typedef_test/11: Crash # Issue 32416.
 deferred_call_empty_before_load_test: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
 deferred_load_constants_test/none: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
 deferred_load_library_wrong_args_test/01: Pass # Passes by mistake. KernelVM bug: Deferred loading kernel issue 30273.
@@ -696,7 +696,7 @@ parser_quirks_test: CompileTimeError # Issue 31533
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 regress_22443_test: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
-regress_23089_test: Crash
+regress_23089_test: Crash # Issue 32417.
 regress_23408_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 regress_23408_test: RuntimeError
 regress_29025_test: CompileTimeError # Issue 31402 (Variable declaration)
@@ -768,7 +768,6 @@ least_upper_bound_expansive_test/none: RuntimeError # Please triage.
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
 const_instance_field_test/01: Crash # Issue 32326.
 external_test/13: Crash
-regress_29025_test: Crash
 tearoff_dynamic_test: Crash
 type_promotion_functions_test/05: Pass
 type_promotion_functions_test/06: Pass
@@ -851,7 +850,6 @@ redirecting_factory_infinite_steps_test/01: Fail
 redirecting_factory_malbounded_test/01: Fail
 regress_22728_test: Fail # Dartk Issue 28498
 regress_22728_test: RuntimeError
-regress_30339_test: Crash
 type_variable_bounds4_test/01: RuntimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled && !$checked && $strong ]
@@ -927,8 +925,8 @@ ct_const_test: RuntimeError
 cyclic_type2_test: Fail, OK
 cyclic_type_test/02: Fail, OK # Non-contractive types are not supported in the vm.
 cyclic_type_test/04: Fail, OK
-cyclic_typedef_test/10: Crash
-cyclic_typedef_test/11: Crash
+cyclic_typedef_test/10: Crash # Issue 32416.
+cyclic_typedef_test/11: Crash # Issue 32416.
 deep_nesting1_negative_test: Skip # Issue 31158
 deep_nesting2_negative_test: Skip # Issue 31158
 deferred_call_empty_before_load_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
@@ -1068,7 +1066,7 @@ regress_13462_0_test: SkipByDesign
 regress_13462_1_test: SkipByDesign
 regress_18535_test: SkipByDesign
 regress_22443_test: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
-regress_23089_test: Crash
+regress_23089_test: Crash # Issue 32417.
 regress_23408_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 regress_23408_test: RuntimeError
 regress_28255_test: SkipByDesign
