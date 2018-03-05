@@ -21,8 +21,8 @@ async_star_test/none: RuntimeError
 await_future_test: Pass, Timeout # Issue 29920
 bit_operations_test: RuntimeError # No bigints on web.
 black_listed_test/none: Fail # Issue 14228
-bug32353_test: RuntimeError
-bug32372_test: RuntimeError
+bug32353_test: CompileTimeError
+bug32372_test: CompileTimeError
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Issue 28816
 call_method_as_cast_test/01: RuntimeError
@@ -55,6 +55,7 @@ call_method_override_test/01: MissingCompileTimeError
 call_method_override_test/02: MissingCompileTimeError
 cascaded_forwarding_stubs_generic_test: RuntimeError
 cascaded_forwarding_stubs_test: CompileTimeError
+conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Crashes or times out
 conflicting_type_variable_and_setter_test: CompileTimeError
 const_evaluation_test/01: RuntimeError # Issue 29920
 const_for_in_variable_test/01: MissingCompileTimeError
@@ -140,20 +141,19 @@ mixin_super_use_test: RuntimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
 mixin_type_parameter_inference_previous_mixin_test/01: CompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/02: RuntimeError # should be CompileTimeError, fuzzy arrows
-mixin_type_parameter_inference_previous_mixin_test/03: MissingCompileTimeError # fuzzy arrows
-mixin_type_parameter_inference_previous_mixin_test/04: MissingCompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/05: RuntimeError
+mixin_type_parameter_inference_previous_mixin_test/02: CompileTimeError
+mixin_type_parameter_inference_previous_mixin_test/05: CompileTimeError
+mixin_type_parameter_inference_previous_mixin_test/none: CompileTimeError
 mixin_type_parameter_inference_test/01: CompileTimeError
-mixin_type_parameter_inference_test/02: RuntimeError # CompileTimeError, except Fuzzy arrows
-mixin_type_parameter_inference_test/03: RuntimeError # CompileTimeError, except Fuzzy arrows
-mixin_type_parameter_inference_test/04: MissingCompileTimeError
-mixin_type_parameter_inference_test/05: MissingCompileTimeError
-mixin_type_parameter_inference_test/06: MissingCompileTimeError
-mixin_type_parameter_inference_test/07: MissingCompileTimeError
-mixin_type_parameter_inference_test/08: RuntimeError
-mixin_type_parameter_inference_test/09: RuntimeError
-mixin_type_parameter_inference_test/11: MissingCompileTimeError
+mixin_type_parameter_inference_test/02: CompileTimeError
+mixin_type_parameter_inference_test/03: CompileTimeError
+mixin_type_parameter_inference_test/08: CompileTimeError
+mixin_type_parameter_inference_test/09: CompileTimeError
+mixin_type_parameter_inference_test/10: CompileTimeError
+mixin_type_parameter_inference_test/12: CompileTimeError
+mixin_type_parameter_inference_test/13: CompileTimeError
+mixin_type_parameter_inference_test/16: CompileTimeError
+mixin_type_parameter_inference_test/none: CompileTimeError
 mock_writable_final_private_field_test: CompileTimeError # Issue 30848
 multiline_newline_test/01: CompileTimeError
 multiline_newline_test/01r: CompileTimeError
@@ -180,6 +180,9 @@ parameter_initializer_test: CompileTimeError
 part_refers_to_core_library_test/01: Crash
 prefix10_negative_test: Fail # Issue 29920
 private_access_test/04: MissingCompileTimeError
+regress_22976_test/01: CompileTimeError
+regress_22976_test/02: CompileTimeError
+regress_22976_test/none: CompileTimeError
 regress_23408_test: CompileTimeError
 regress_24283_test: RuntimeError # Intended to fail, requires 64-bit numbers.
 regress_29025_test: CompileTimeError # Issue 29081

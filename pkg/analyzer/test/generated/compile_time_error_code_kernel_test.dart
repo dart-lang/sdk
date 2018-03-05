@@ -131,6 +131,21 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  test_conflictingGenericInterfaces_hierarchyLoop() =>
+      super.test_conflictingGenericInterfaces_hierarchyLoop();
+
+  @override
+  @failingTest
+  test_conflictingGenericInterfaces_simple() =>
+      super.test_conflictingGenericInterfaces_simple();
+
+  @override
+  @failingTest
+  test_conflictingGenericInterfaces_viaMixin() =>
+      super.test_conflictingGenericInterfaces_viaMixin();
+
+  @override
+  @failingTest
   test_conflictingGetterAndMethod_field_method() async {
     // Expected 1 errors of type CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD, found 0
     await super.test_conflictingGetterAndMethod_field_method();

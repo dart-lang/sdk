@@ -1124,6 +1124,7 @@ call_method_override_test/01: MissingCompileTimeError
 call_method_override_test/02: MissingCompileTimeError
 cascaded_forwarding_stubs_test: CompileTimeError
 config_import_corelib_test: CompileTimeError
+conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Crashes or times out
 const_types_test/07: MissingCompileTimeError # Incorrectly allows using type parameter in const expression.
 const_types_test/08: MissingCompileTimeError # Incorrectly allows using type parameter in const expression.
 const_types_test/14: MissingCompileTimeError # Incorrectly allows using type parameter in const expression.
@@ -1209,6 +1210,9 @@ prefix13_negative_test: CompileTimeError, OK
 prefix15_negative_test: CompileTimeError, OK
 prefix18_negative_test: CompileTimeError, OK
 prefix6_negative_test: CompileTimeError, OK
+regress_22976_test/01: CompileTimeError
+regress_22976_test/02: CompileTimeError
+regress_22976_test/none: CompileTimeError
 regress_30121_test: CompileTimeError # Issue 31087
 regress_30339_test: CompileTimeError
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 28823
@@ -1359,6 +1363,7 @@ conditional_property_increment_decrement_test/33: MissingCompileTimeError
 conditional_property_increment_decrement_test/34: MissingCompileTimeError
 conditional_property_increment_decrement_test/39: MissingCompileTimeError
 conditional_property_increment_decrement_test/40: MissingCompileTimeError
+conflicting_generic_interfaces_simple_test: MissingCompileTimeError
 const_constructor2_test/05: MissingCompileTimeError
 const_constructor2_test/06: MissingCompileTimeError
 const_dynamic_type_literal_test/02: MissingCompileTimeError

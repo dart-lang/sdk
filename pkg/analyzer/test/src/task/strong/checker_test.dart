@@ -2807,10 +2807,12 @@ class C extends Object with M<int> {
 }
 
 abstract class D extends Object with M<num> {}
-class E extends D with M<int> {
+/*error:CONFLICTING_GENERIC_INTERFACES*/
+/*error:CONFLICTING_GENERIC_INTERFACES*/class E extends D with M<int> {
   /*error:INVALID_METHOD_OVERRIDE*/int x;
 }
-class F extends D with M<int> {
+/*error:CONFLICTING_GENERIC_INTERFACES*/
+/*error:CONFLICTING_GENERIC_INTERFACES*/class F extends D with M<int> {
   num x;
 }
     ''');

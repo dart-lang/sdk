@@ -22,6 +22,14 @@ class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTest {
       super.test_mixinInference_doNotIgnorePreviousExplicitMixins();
 
   @override // Passes with driver
+  test_mixinInference_matchingClass() =>
+      super.test_mixinInference_matchingClass();
+
+  @override // Passes with driver
+  test_mixinInference_matchingClass_inPreviousMixin() =>
+      super.test_mixinInference_matchingClass_inPreviousMixin();
+
+  @override // Passes with driver
   test_mixinInference_recursiveSubtypeCheck() =>
       super.test_mixinInference_recursiveSubtypeCheck();
 }

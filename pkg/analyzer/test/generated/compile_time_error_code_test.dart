@@ -102,6 +102,21 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
   AnalysisOptions get defaultAnalysisOptions =>
       new AnalysisOptionsImpl()..strongMode = true;
 
+  disabled_test_conflictingGenericInterfaces_hierarchyLoop_infinite() async {
+    // There is an interface conflict here due to a loop in the class
+    // hierarchy leading to an infinite set of implemented types; this loop
+    // shouldn't cause non-termination.
+
+    // TODO(paulberry): this test is currently disabled due to non-termination
+    // bugs elsewhere in the analyzer.
+    Source source = addSource('''
+class A<T> implements B<List<T>> {}
+class B<T> implements A<List<T>> {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
+  }
+
   test_accessPrivateEnumField() async {
     Source source = addSource(r'''
 enum E { ONE }
@@ -697,6 +712,54 @@ class A {
     assertErrors(
         source, [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD]);
     verify([source]);
+  }
+
+  test_conflictingGenericInterfaces_hierarchyLoop() async {
+    // There is no interface conflict here, but there is a loop in the class
+    // hierarchy leading to a finite set of implemented types; this loop
+    // shouldn't cause non-termination.
+    Source source = addSource('''
+class A<T> implements B<T> {}
+class B<T> implements A<T> {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
+    ]);
+  }
+
+  test_conflictingGenericInterfaces_noConflict() async {
+    Source source = addSource('''
+class I<T> {}
+class A implements I<int> {}
+class B implements I<int> {}
+class C extends A implements B {}
+    ''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_conflictingGenericInterfaces_simple() async {
+    Source source = addSource('''
+class I<T> {}
+class A implements I<int> {}
+class B implements I<String> {}
+class C extends A implements B {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
+  }
+
+  test_conflictingGenericInterfaces_viaMixin() async {
+    Source source = addSource('''
+class I<T> {}
+class A implements I<int> {}
+class B implements I<String> {}
+class C extends A with B {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
   }
 
   test_conflictingGetterAndMethod_field_method() async {
@@ -3966,8 +4029,10 @@ class M<T> extends A<Map<T, T>> {}
 class C extends A<Map<int, String>> with M {}
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION]);
+    assertErrors(source, [
+      CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION,
+      CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES
+    ]);
   }
 
   @failingTest // Does not work with old task model
@@ -3998,10 +4063,13 @@ class M<T> extends A<Map<T, T>> {}
 class C extends A<List<int>> with M {}
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION]);
+    assertErrors(source, [
+      CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION,
+      CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES
+    ]);
   }
 
+  @failingTest // Does not work with old task model
   test_mixinInference_matchingClass() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
@@ -4017,6 +4085,7 @@ class C extends A<int> with M {}
     assertNoErrors(source);
   }
 
+  @failingTest // Does not work with old task model
   test_mixinInference_matchingClass_inPreviousMixin() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
@@ -4061,8 +4130,10 @@ class M<T> extends A<T> {}
 class C extends Object with M implements A<B> {}
 ''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS]);
+    assertErrors(source, [
+      CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS,
+      CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES
+    ]);
   }
 
   test_mixinInference_noMatchingClass_namedMixinApplication() async {

@@ -423,6 +423,12 @@ class CompileTimeErrorCode extends ErrorCode {
           "class.",
           "Try renaming either the constructor or the field.");
 
+  static const CompileTimeErrorCode CONFLICTING_GENERIC_INTERFACES =
+      const CompileTimeErrorCode(
+          'CONFLICTING_GENERIC_INTERFACES',
+          "The class '{0}' cannot implement both '{1}' and '{2}' because the "
+          "type arguments are different.");
+
   /**
    * 7. Classes: It is a compile time error if a generic class declares a type
    * variable with the same name as the class or any of its members or

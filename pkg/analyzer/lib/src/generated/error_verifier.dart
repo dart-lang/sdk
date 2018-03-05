@@ -1329,6 +1329,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
       if (_options.strongMode) {
         _checkForMixinWithConflictingPrivateMember(withClause, superclass);
+        _checkForConflictingGenerics(node);
       }
     }
   }
@@ -2815,6 +2816,34 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             [name]);
       }
     }
+  }
+
+  void _checkForConflictingGenerics(NamedCompilationUnitMember node) {
+    var visitedClasses = <ClassElement>[];
+    var interfaces = <ClassElement, InterfaceType>{};
+    void visit(InterfaceType type) {
+      if (type == null) return;
+      var element = type.element;
+      if (visitedClasses.contains(element)) return;
+      visitedClasses.add(element);
+      if (element.typeParameters.isNotEmpty) {
+        var oldType = interfaces[element];
+        if (oldType == null) {
+          interfaces[element] = type;
+        } else if (oldType != type) {
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
+              node,
+              [_enclosingClass.name, oldType, type]);
+        }
+      }
+      visit(type.superclass);
+      type.mixins.forEach(visit);
+      type.interfaces.forEach(visit);
+      visitedClasses.removeLast();
+    }
+
+    visit(_enclosingClass.type);
   }
 
   /**
