@@ -18,6 +18,8 @@ import 'package:front_end/src/fasta/kernel/utils.dart'
     show writeProgramToFile, serializeProgram;
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
+import 'package:kernel/kernel.dart'
+    show Class, EmptyStatement, Library, Procedure, Program;
 
 import 'package:front_end/src/fasta/fasta_codes.dart' show LocatedMessage;
 
@@ -85,13 +87,13 @@ void testStrongModeMixins2() async {
     """);
 
   Stopwatch stopwatch = new Stopwatch()..start();
-  await normalCompile(a, output, options: getOptions()..strongMode = true);
+  await normalCompile(a, output, options: getOptions(true));
   print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
 
   stopwatch.reset();
   bool bootstrapResult = await bootstrapCompile(
       a, bootstrappedOutput, output, [a],
-      performSizeTests: false, options: getOptions()..strongMode = true);
+      performSizeTests: false, options: getOptions(true));
   print("Bootstrapped compile(s) from ${output.pathSegments.last} "
       "took ${stopwatch.elapsedMilliseconds} ms");
   Expect.isTrue(bootstrapResult);
@@ -124,13 +126,13 @@ void testStrongModeMixins() async {
     """);
 
   Stopwatch stopwatch = new Stopwatch()..start();
-  await normalCompile(a, output, options: getOptions()..strongMode = true);
+  await normalCompile(a, output, options: getOptions(true));
   print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
 
   stopwatch.reset();
   bool bootstrapResult = await bootstrapCompile(
       a, bootstrappedOutput, output, [a],
-      performSizeTests: false, options: getOptions()..strongMode = true);
+      performSizeTests: false, options: getOptions(true));
   print("Bootstrapped compile(s) from ${output.pathSegments.last} "
       "took ${stopwatch.elapsedMilliseconds} ms");
   Expect.isTrue(bootstrapResult);
@@ -272,7 +274,7 @@ void testDisappearingLibrary() async {
       }
       """);
 
-    CompilerOptions options = getOptions();
+    CompilerOptions options = getOptions(false);
     options.fileSystem = fs;
     options.sdkRoot = null;
     options.sdkSummary = sdkSummary;
@@ -280,6 +282,7 @@ void testDisappearingLibrary() async {
         new IncrementalKernelGenerator(options, main);
     Stopwatch stopwatch = new Stopwatch()..start();
     var program = await compiler.computeDelta();
+    throwOnEmptyMixinBodies(program);
     print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
     libCount2 = serializeProgram(program);
     if (program.libraries.length != 2) {
@@ -302,7 +305,7 @@ void testDisappearingLibrary() async {
         print("hello from b!");
       }
       """);
-    CompilerOptions options = getOptions();
+    CompilerOptions options = getOptions(false);
     options.fileSystem = fs;
     options.sdkRoot = null;
     options.sdkSummary = sdkSummary;
@@ -312,6 +315,7 @@ void testDisappearingLibrary() async {
     compiler.invalidate(b);
     Stopwatch stopwatch = new Stopwatch()..start();
     var program = await compiler.computeDelta();
+    throwOnEmptyMixinBodies(program);
     print("Bootstrapped compile took ${stopwatch.elapsedMilliseconds} ms");
     if (program.libraries.length != 1) {
       throw "Expected 1 library, got ${program.libraries.length}";
@@ -319,7 +323,7 @@ void testDisappearingLibrary() async {
   }
 }
 
-CompilerOptions getOptions() {
+CompilerOptions getOptions(bool strong) {
   final Uri sdkRoot = computePlatformBinariesLocation();
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
@@ -330,29 +334,62 @@ CompilerOptions getOptions() {
         Expect.fail("Unexpected error: $formatted");
       }
     }
-    ..strongMode = false;
+    ..strongMode = strong;
+  if (strong) {
+    options.sdkSummary =
+        computePlatformBinariesLocation().resolve("vm_platform_strong.dill");
+  } else {
+    options.sdkSummary =
+        computePlatformBinariesLocation().resolve("vm_platform.dill");
+  }
   return options;
 }
 
 Future<bool> normalCompile(Uri input, Uri output,
     {CompilerOptions options}) async {
-  options ??= getOptions();
+  options ??= getOptions(false);
   IncrementalCompiler compiler = new IncrementalKernelGenerator(options, input);
-  var y = await compiler.computeDelta();
-  await writeProgramToFile(y, output);
+  var program = await compiler.computeDelta();
+  throwOnEmptyMixinBodies(program);
+  await writeProgramToFile(program, output);
   return compiler.initializedFromDill;
+}
+
+void throwOnEmptyMixinBodies(Program program) {
+  int empty = countEmptyMixinBodies(program);
+  if (empty != 0) {
+    throw "Expected 0 empty bodies in mixins, but found $empty";
+  }
+}
+
+int countEmptyMixinBodies(Program program) {
+  int empty = 0;
+  for (Library lib in program.libraries) {
+    for (Class c in lib.classes) {
+      if (c.isSyntheticMixinImplementation) {
+        // Assume mixin
+        for (Procedure p in c.procedures) {
+          if (p.function.body is EmptyStatement) {
+            empty++;
+          }
+        }
+      }
+    }
+  }
+  return empty;
 }
 
 Future<bool> bootstrapCompile(
     Uri input, Uri output, Uri bootstrapWith, List<Uri> invalidateUris,
     {bool performSizeTests: true, CompilerOptions options}) async {
-  options ??= getOptions();
+  options ??= getOptions(false);
   IncrementalCompiler compiler =
       new IncrementalKernelGenerator(options, input, bootstrapWith);
   for (Uri invalidateUri in invalidateUris) {
     compiler.invalidate(invalidateUri);
   }
   var bootstrappedProgram = await compiler.computeDelta();
+  throwOnEmptyMixinBodies(bootstrappedProgram);
   bool result = compiler.initializedFromDill;
   await writeProgramToFile(bootstrappedProgram, output);
   for (Uri invalidateUri in invalidateUris) {
@@ -360,7 +397,9 @@ Future<bool> bootstrapCompile(
   }
 
   var partialProgram = await compiler.computeDelta();
+  throwOnEmptyMixinBodies(partialProgram);
   var emptyProgram = await compiler.computeDelta();
+  throwOnEmptyMixinBodies(emptyProgram);
 
   var fullLibUris =
       bootstrappedProgram.libraries.map((lib) => lib.importUri).toList();
