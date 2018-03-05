@@ -322,6 +322,12 @@ testBigintTruncDiv() {
   Expect.equals(BigInt.zero, b ~/ a);
   Expect.equals(new BigInt.from(123456789),
       BigInt.parse("123456789012345678") ~/ new BigInt.from(1000000000));
+  // TruncDiv as used in toString().
+  a = BigInt.parse("4503599627370496"); // 0x10000000000000
+  b = new BigInt.from(10000);
+  Expect.equals(new BigInt.from(450359962737), a ~/ b);
+  b = new BigInt.from(1000000000);
+  Expect.equals(new BigInt.from(4503599), a ~/ b);
   // Bigint and Bigint.
   a = BigInt.parse("12345678901234567890");
   b = BigInt.parse("10000000000000000");
@@ -348,6 +354,12 @@ testBigintModulo() {
   var b = new BigInt.from(10);
   Expect.equals(new BigInt.from(5), a % b);
   Expect.equals(new BigInt.from(10), b % a);
+  // Modulo as used in toString().
+  a = BigInt.parse("4503599627370496"); // 0x10000000000000
+  b = new BigInt.from(10000);
+  Expect.equals(new BigInt.from(496), a % b);
+  b = new BigInt.from(1000000000);
+  Expect.equals(new BigInt.from(627370496), a % b);
   // Bigint & Bigint
   a = BigInt.parse("10000000000000000001");
   b = BigInt.parse("10000000000000000000");
@@ -820,7 +832,7 @@ void testFromToInt() {
     if (i != 0) test(-i);
   }
 
-  const minInt64 = -9223372036854775807 - 1;
+  const minInt64 = -0x80000000 * 0x100000000;
   test(minInt64);
 }
 

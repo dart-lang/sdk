@@ -20,6 +20,7 @@ import 'package:front_end/src/fasta/parser.dart'
         optional,
         Parser;
 import 'package:front_end/src/fasta/scanner.dart' hide StringToken;
+import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
 import 'package:front_end/src/scanner/token.dart'
     show
         StringToken,
@@ -33,8 +34,18 @@ import 'package:front_end/src/fasta/messages.dart'
     show
         Message,
         codeExpectedFunctionBody,
+        messageConstConstructorWithBody,
+        messageConstMethod,
+        messageConstructorWithReturnType,
         messageDirectiveAfterDeclaration,
-        messageNativeClauseShouldBeAnnotation;
+        messageExpectedStatement,
+        messageFieldInitializerOutsideConstructor,
+        messageIllegalAssignmentToNonAssignable,
+        messageInterpolationInUri,
+        messageMissingAssignableSelector,
+        messageNativeClauseShouldBeAnnotation,
+        messageStaticConstructor,
+        templateDuplicateLabelInSwitchStatement;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
     show Builder, KernelLibraryBuilder, Scope;
 import 'package:front_end/src/fasta/quote.dart';
@@ -310,8 +321,28 @@ class AstBuilder extends ScopeListener {
   void endExpressionStatement(Token semicolon) {
     assert(optional(';', semicolon));
     debugEvent("ExpressionStatement");
-
-    push(ast.expressionStatement(pop(), semicolon));
+    Expression expression = pop();
+    if (expression is SuperExpression) {
+      // This error is also reported by the body builder.
+      handleRecoverableError(messageMissingAssignableSelector,
+          expression.beginToken, expression.endToken);
+    }
+    if (expression is SimpleIdentifier &&
+        expression.token?.keyword?.isBuiltInOrPseudo == false) {
+      // This error is also reported by the body builder.
+      handleRecoverableError(
+          messageExpectedStatement, expression.beginToken, expression.endToken);
+    }
+    if (expression is AssignmentExpression) {
+      if (!expression.leftHandSide.isAssignable) {
+        // This error is also reported by the body builder.
+        handleRecoverableError(
+            messageIllegalAssignmentToNonAssignable,
+            expression.leftHandSide.beginToken,
+            expression.leftHandSide.endToken);
+      }
+    }
+    push(ast.expressionStatement(expression, semicolon));
   }
 
   @override
@@ -629,13 +660,24 @@ class AstBuilder extends ScopeListener {
     push(variable);
   }
 
+  @override
+  void beginVariablesDeclaration(Token token, Token varFinalOrConst) {
+    debugEvent("beginVariablesDeclaration");
+    if (varFinalOrConst != null) {
+      push(new _Modifiers()..finalConstOrVarKeyword = varFinalOrConst);
+    } else {
+      push(NullValue.Modifiers);
+    }
+  }
+
+  @override
   void endVariablesDeclaration(int count, Token semicolon) {
     assert(optionalOrNull(';', semicolon));
     debugEvent("VariablesDeclaration");
 
     List<VariableDeclaration> variables = popList(count);
+    _Modifiers modifiers = pop(NullValue.Modifiers);
     TypeAnnotation type = pop();
-    _Modifiers modifiers = pop();
     Token keyword = modifiers?.finalConstOrVarKeyword;
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata,
@@ -663,6 +705,12 @@ class AstBuilder extends ScopeListener {
     List<Statement> statements = popList(count) ?? <Statement>[];
     exitLocalScope();
     push(ast.block(leftBracket, statements, rightBracket));
+  }
+
+  void handleInvalidTopLevelBlock(Token token) {
+    // TODO(danrubel): Consider improved recovery by adding this block
+    // as part of a synthetic top level function.
+    pop(); // block
   }
 
   void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
@@ -1145,6 +1193,20 @@ class AstBuilder extends ScopeListener {
     exitLocalScope();
     List<SwitchMember> members =
         membersList?.expand((members) => members)?.toList() ?? <SwitchMember>[];
+
+    Set<String> labels = new Set<String>();
+    for (SwitchMember member in members) {
+      for (Label label in member.labels) {
+        if (!labels.add(label.label.name)) {
+          handleRecoverableError(
+              templateDuplicateLabelInSwitchStatement
+                  .withArguments(label.label.name),
+              label.beginToken,
+              label.beginToken);
+        }
+      }
+    }
+
     push(leftBracket);
     push(members);
     push(rightBracket);
@@ -1340,14 +1402,26 @@ class AstBuilder extends ScopeListener {
     assert(operator.type.isUnaryPrefixOperator);
     debugEvent("UnaryPrefixAssignmentExpression");
 
-    push(ast.prefixExpression(operator, pop()));
+    Expression expression = pop();
+    if (!expression.isAssignable) {
+      // This error is also reported by the body builder.
+      handleRecoverableError(messageMissingAssignableSelector,
+          expression.endToken, expression.endToken);
+    }
+    push(ast.prefixExpression(operator, expression));
   }
 
   void handleUnaryPostfixAssignmentExpression(Token operator) {
     assert(operator.type.isUnaryPostfixOperator);
     debugEvent("UnaryPostfixAssignmentExpression");
 
-    push(ast.postfixExpression(pop(), operator));
+    Expression expression = pop();
+    if (!expression.isAssignable) {
+      // This error is also reported by the body builder.
+      handleRecoverableError(
+          messageIllegalAssignmentToNonAssignable, operator, operator);
+    }
+    push(ast.postfixExpression(expression, operator));
   }
 
   void handleModifier(Token token) {
@@ -1554,6 +1628,16 @@ class AstBuilder extends ScopeListener {
 
     StringLiteral libraryUri = pop();
     StringLiteral value = popIfNotNull(equalSign);
+    if (value is StringInterpolation) {
+      for (var child in value.childEntities) {
+        if (child is InterpolationExpression) {
+          // This error is reported in OutlineBuilder.endLiteralString
+          handleRecoverableError(
+              messageInterpolationInUri, child.beginToken, child.endToken);
+          break;
+        }
+      }
+    }
     DottedName name = pop();
     push(ast.configuration(ifKeyword, leftParen, name, equalSign, value,
         leftParen?.endGroup, libraryUri));
@@ -1802,9 +1886,13 @@ class AstBuilder extends ScopeListener {
       return;
     }
     debugEvent("Error: ${message.message}");
-    int offset = startToken.offset;
-    int length = endToken.end - offset;
-    addCompileTimeError(message, offset, length);
+    if (message.code.analyzerCode == null && startToken is ErrorToken) {
+      translateErrorToken(startToken, errorReporter.reportScannerError);
+    } else {
+      int offset = startToken.offset;
+      int length = endToken.end - offset;
+      addCompileTimeError(message, offset, length);
+    }
   }
 
   @override
@@ -2030,6 +2118,35 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
+  void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
+      Token varFinalOrConst, Token name) {
+    _Modifiers modifiers = new _Modifiers();
+    if (externalToken != null) {
+      assert(externalToken.isModifier);
+      modifiers.externalKeyword = externalToken;
+    }
+    if (staticToken != null) {
+      assert(staticToken.isModifier);
+      if (name?.lexeme == classDeclaration.name.name) {
+        // This error is also reported in OutlineBuilder.beginMethod
+        handleRecoverableError(
+            messageStaticConstructor, staticToken, staticToken);
+      } else {
+        modifiers.staticKeyword = staticToken;
+      }
+    }
+    if (covariantToken != null) {
+      assert(covariantToken.isModifier);
+      modifiers.covariantKeyword = covariantToken;
+    }
+    if (varFinalOrConst != null) {
+      assert(varFinalOrConst.isModifier);
+      modifiers.finalConstOrVarKeyword = varFinalOrConst;
+    }
+    push(modifiers);
+  }
+
+  @override
   void endMethod(
       Token getOrSet, Token beginToken, Token beginParam, Token endToken) {
     assert(getOrSet == null ||
@@ -2087,14 +2204,27 @@ class AstBuilder extends ScopeListener {
     }
 
     void constructor(
-        SimpleIdentifier returnType, Token period, SimpleIdentifier name) {
+        SimpleIdentifier prefixOrName, Token period, SimpleIdentifier name) {
+      if (modifiers?.constKeyword != null &&
+          body != null &&
+          (body.length > 1 || body.beginToken?.lexeme != ';')) {
+        // This error is also reported in BodyBuilder.finishFunction
+        Token bodyToken = body.beginToken ?? modifiers.constKeyword;
+        handleRecoverableError(
+            messageConstConstructorWithBody, bodyToken, bodyToken);
+      }
+      if (returnType != null) {
+        // This error is also reported in OutlineBuilder.endMethod
+        handleRecoverableError(messageConstructorWithReturnType,
+            returnType.beginToken, returnType.beginToken);
+      }
       classDeclaration.members.add(ast.constructorDeclaration(
           comment,
           metadata,
           modifiers?.externalKeyword,
           modifiers?.finalConstOrVarKeyword,
           null, // TODO(paulberry): factoryKeyword
-          ast.simpleIdentifier(returnType.token),
+          ast.simpleIdentifier(prefixOrName.token),
           period,
           name,
           parameters,
@@ -2105,6 +2235,22 @@ class AstBuilder extends ScopeListener {
     }
 
     void method(Token operatorKeyword, SimpleIdentifier name) {
+      if (modifiers?.constKeyword != null &&
+          body != null &&
+          (body.length > 1 || body.beginToken?.lexeme != ';')) {
+        // This error is also reported in OutlineBuilder.endMethod
+        handleRecoverableError(
+            messageConstMethod, modifiers.constKeyword, modifiers.constKeyword);
+      }
+      if (parameters?.parameters != null) {
+        parameters.parameters.forEach((FormalParameter param) {
+          if (param is FieldFormalParameter) {
+            // This error is reported in the BodyBuilder.endFormalParameter.
+            handleRecoverableError(messageFieldInitializerOutsideConstructor,
+                param.thisKeyword, param.thisKeyword);
+          }
+        });
+      }
       classDeclaration.members.add(ast.methodDeclaration(
           comment,
           metadata,
@@ -2780,28 +2926,30 @@ class _Modifiers {
   Token staticKeyword;
   Token covariantKeyword;
 
-  _Modifiers(List<Token> modifierTokens) {
+  _Modifiers([List<Token> modifierTokens]) {
     // No need to check the order and uniqueness of the modifiers, or that
     // disallowed modifiers are not used; the parser should do that.
     // TODO(paulberry,ahe): implement the necessary logic in the parser.
-    for (var token in modifierTokens) {
-      var s = token.lexeme;
-      if (identical('abstract', s)) {
-        abstractKeyword = token;
-      } else if (identical('const', s)) {
-        finalConstOrVarKeyword = token;
-      } else if (identical('external', s)) {
-        externalKeyword = token;
-      } else if (identical('final', s)) {
-        finalConstOrVarKeyword = token;
-      } else if (identical('static', s)) {
-        staticKeyword = token;
-      } else if (identical('var', s)) {
-        finalConstOrVarKeyword = token;
-      } else if (identical('covariant', s)) {
-        covariantKeyword = token;
-      } else {
-        unhandled("$s", "modifier", token.charOffset, null);
+    if (modifierTokens != null) {
+      for (var token in modifierTokens) {
+        var s = token.lexeme;
+        if (identical('abstract', s)) {
+          abstractKeyword = token;
+        } else if (identical('const', s)) {
+          finalConstOrVarKeyword = token;
+        } else if (identical('external', s)) {
+          externalKeyword = token;
+        } else if (identical('final', s)) {
+          finalConstOrVarKeyword = token;
+        } else if (identical('static', s)) {
+          staticKeyword = token;
+        } else if (identical('var', s)) {
+          finalConstOrVarKeyword = token;
+        } else if (identical('covariant', s)) {
+          covariantKeyword = token;
+        } else {
+          unhandled("$s", "modifier", token.charOffset, null);
+        }
       }
     }
   }
@@ -2825,5 +2973,12 @@ class _Modifiers {
       }
     }
     return firstToken;
+  }
+
+  /// Return the `const` keyword or `null`.
+  Token get constKeyword {
+    return identical('const', finalConstOrVarKeyword?.lexeme)
+        ? finalConstOrVarKeyword
+        : null;
   }
 }

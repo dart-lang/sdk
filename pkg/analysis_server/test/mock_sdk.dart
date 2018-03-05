@@ -163,6 +163,9 @@ class Uri {
     return null;
   }
 }
+
+class _Override { const _Override(); }
+const Object override = const _Override();
 ''');
 
   static const MockSdkLibrary LIB_ASYNC =
@@ -272,7 +275,8 @@ const Map<String, LibraryInfo> libraries = const {
       resource.ResourceProvider resourceProvider})
       : provider = resourceProvider ?? new resource.MemoryResourceProvider() {
     LIBRARIES.forEach((SdkLibrary library) {
-      provider.newFile(library.path, (library as MockSdkLibrary).content);
+      provider.newFile(provider.convertPath(library.path),
+          (library as MockSdkLibrary).content);
     });
     provider.newFile(
         provider.convertPath(
@@ -383,7 +387,7 @@ const Map<String, LibraryInfo> libraries = const {
 
     String path = uriToPath[dartUri];
     if (path != null) {
-      resource.File file = provider.getResource(path);
+      resource.File file = provider.getResource(provider.convertPath(path));
       Uri uri = new Uri(scheme: 'dart', path: dartUri.substring(5));
       return file.createSource(uri);
     }

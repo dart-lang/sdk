@@ -3074,6 +3074,54 @@ class BoundClosure extends TearOffClosure {
   }
 }
 
+/// Support class for generic function type instantiation (binding of types).
+///
+abstract class Instantiation extends Closure {
+  final Closure _genericClosure;
+  Instantiation(this._genericClosure) {
+    // TODO(sra): Copy some metadata used by Function.apply.
+  }
+
+  /// Returns a list of the bound types.
+  List get _types;
+
+  String toString() {
+    var types = "<${_types.join(', ')}>";
+    // TODO(sra): Refactor Closure formatting to place type arguments inside,
+    // e.g. "Closure 'map<String>' of Instance of 'JSArray<int>'".
+    return '$_genericClosure with $types';
+  }
+}
+
+/// Instantiation classes are subclasses of [Instantiation]. For now we have a
+/// few canned subclasses. Later we might generate the classes on demand.
+class Instantiation1<T1> extends Instantiation {
+  Instantiation1(Closure f) : super(f);
+  List get _types => [T1];
+}
+
+class Instantiation2<T1, T2> extends Instantiation {
+  Instantiation2(Closure f) : super(f);
+  List get _types => [T1, T2];
+}
+
+class Instantiation3<T1, T2, T3> extends Instantiation {
+  Instantiation3(Closure f) : super(f);
+  List get _types => [T1, T2, T3];
+}
+
+Instantiation instantiate1<U>(Closure f) {
+  return new Instantiation1<U>(f);
+}
+
+Instantiation instantiate2<U, V>(Closure f) {
+  return new Instantiation2<U, V>(f);
+}
+
+Instantiation instantiate3<U, V, W>(Closure f) {
+  return new Instantiation3<U, V, W>(f);
+}
+
 bool jsHasOwnProperty(var jsObject, String property) {
   return JS('bool', r'#.hasOwnProperty(#)', jsObject, property);
 }

@@ -24,6 +24,7 @@ import 'package:analysis_server/src/services/completion/dart/local_constructor_c
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/local_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/named_constructor_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/override_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
@@ -92,7 +93,7 @@ class DartCompletionManager implements CompletionContributor {
       new LocalLibraryContributor(),
       new LocalReferenceContributor(),
       new NamedConstructorContributor(),
-      // new OverrideContributor(),
+      new OverrideContributor(),
       new StaticMemberContributor(),
       new TypeMemberContributor(),
       new UriContributor(),

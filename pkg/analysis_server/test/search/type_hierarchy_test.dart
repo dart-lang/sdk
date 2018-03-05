@@ -180,9 +180,8 @@ class C extends A {}
 ''');
     await waitForTasksFinished();
     // configure roots
-    Request request =
-        new AnalysisSetAnalysisRootsParams([projectPath, '/packages/pkgA'], [])
-            .toRequest('0');
+    Request request = new AnalysisSetAnalysisRootsParams(
+        [projectPath, convertPath('/packages/pkgA')], []).toRequest('0');
     handleSuccessfulRequest(request);
     // test A type hierarchy
     List<TypeHierarchyItem> items = await _getTypeHierarchy('A {}');
@@ -695,7 +694,7 @@ class D extends C {
   }
 
   test_member_method_private_differentLib() async {
-    newFile('$testFolder/lib.dart', content: r'''
+    newFile(join(testFolder, 'lib.dart'), content: r'''
 import 'test.dart';
 class A {
   void _m() {}

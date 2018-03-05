@@ -223,6 +223,11 @@ class OpTypeTest extends AbstractContextTest {
     await assertOpType(returnValue: true, typeNames: true);
   }
 
+  test_AssertInitializer() async {
+    addTestSource('class C { C() : assert(^); }');
+    await assertOpType(returnValue: true, typeNames: true);
+  }
+
   test_AssignmentExpression_name() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block
@@ -1171,6 +1176,21 @@ class OpTypeTest extends AbstractContextTest {
     // IfStatement  Block  BlockFunctionBody
     addTestSource('main(){var a; if (^ is A)}');
     await assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_IntegerLiteral_inArgumentList() async {
+    addTestSource('main() { print(1^); }');
+    await assertOpType();
+  }
+
+  test_IntegerLiteral_inListLiteral() async {
+    addTestSource('main() { var items = [1^]; }');
+    await assertOpType();
+  }
+
+  test_DoubleLiteral() async {
+    addTestSource('main() { print(1.2^); }');
+    await assertOpType();
   }
 
   test_IsExpression_type_partial() async {

@@ -3,16 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  /* bl */ var foo = new /*s:1*/ Foo();
-  foo.foo = foo. /*s:2*/ fooMethod;
-  foo. /*s:3*/ fooMethod();
+  /* bl */ var foo = new /*sl:1*/ Foo();
+  foo.foo = foo. /*sl:2*/ fooMethod;
+  foo /*sl:3*/ .fooMethod();
   // Stepping into this doesn't really work because what it does is something
   // like this:
   // main -> dart.dsend -> dart.callMethod -> get foo ->
   // (back in dart.callMethod) -> dart._checkAndCall -> fooMethod
   // which seems unlikely to be something the user is going to step through.
   // As a "fix" here a breakpoint has been set on the line in fooMethod.
-  foo. /*s:5*/ foo();
+  foo. /*sl:5*/ foo();
 }
 
 class Foo {

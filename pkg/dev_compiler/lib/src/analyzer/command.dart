@@ -95,23 +95,22 @@ ArgParser ddcArgParser({bool hide: true}) {
   var argParser = new ArgParser(allowTrailingOptions: true)
     ..addFlag('help',
         abbr: 'h',
-        help: 'Display this message. Add --verbose to show hidden options.',
+        help: 'Display this message. Add -v to show hidden options.',
         negatable: false)
-    ..addFlag('verbose', abbr: 'v', help: 'Verbose output.')
+    ..addFlag('verbose',
+        abbr: 'v', negatable: false, help: 'Verbose help output.', hide: hide)
     ..addFlag('version',
-        negatable: false, help: 'Print the $_binaryName version.')
+        negatable: false, help: 'Print the $_binaryName version.', hide: hide)
     ..addFlag(ignoreUnrecognizedFlagsFlag,
         help: 'Ignore unrecognized command line flags.',
         defaultsTo: false,
-        negatable: false)
+        hide: hide)
     ..addOption('out',
         abbr: 'o', allowMultiple: true, help: 'Output file (required).')
     ..addOption('module-root',
-        help: 'Root module directory. '
-            'Generated module paths are relative to this root.')
+        help: 'Root module directory. Module paths are relative to this root.')
     ..addOption('library-root',
-        help: 'Root of source files. '
-            'Generated library names are relative to this root.');
+        help: 'Root of source files. Library names are relative to this root.');
   defineAnalysisArguments(argParser, hide: hide, ddc: true);
   addModuleFormatOptions(argParser, allowMultiple: true, hide: hide);
   AnalyzerOptions.addArguments(argParser, hide: hide);

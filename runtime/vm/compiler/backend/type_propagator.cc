@@ -76,11 +76,6 @@ FlowGraphTypePropagator::FlowGraphTypePropagator(FlowGraph* flow_graph)
 }
 
 void FlowGraphTypePropagator::Propagate() {
-  if (FLAG_support_il_printer && FLAG_trace_type_propagation &&
-      FlowGraphPrinter::ShouldPrint(flow_graph_->function())) {
-    FlowGraphPrinter::PrintGraph("Before type propagation", flow_graph_);
-  }
-
   // Walk the dominator tree and propagate reaching types to all Values.
   // Collect all phis for a fixed point iteration.
   PropagateRecursive(flow_graph_->graph_entry());
@@ -101,13 +96,13 @@ void FlowGraphTypePropagator::Propagate() {
   while (!worklist_.is_empty()) {
     Definition* def = RemoveLastFromWorklist();
     if (FLAG_support_il_printer && FLAG_trace_type_propagation &&
-        FlowGraphPrinter::ShouldPrint(flow_graph_->function())) {
+        flow_graph_->should_print()) {
       THR_Print("recomputing type of v%" Pd ": %s\n", def->ssa_temp_index(),
                 def->Type()->ToCString());
     }
     if (def->RecomputeType()) {
       if (FLAG_support_il_printer && FLAG_trace_type_propagation &&
-          FlowGraphPrinter::ShouldPrint(flow_graph_->function())) {
+          flow_graph_->should_print()) {
         THR_Print("  ... new type %s\n", def->Type()->ToCString());
       }
       for (Value::Iterator it(def->input_use_list()); !it.Done();
@@ -120,11 +115,6 @@ void FlowGraphTypePropagator::Propagate() {
         }
       }
     }
-  }
-
-  if (FLAG_support_il_printer && FLAG_trace_type_propagation &&
-      FlowGraphPrinter::ShouldPrint(flow_graph_->function())) {
-    FlowGraphPrinter::PrintGraph("After type propagation", flow_graph_);
   }
 }
 
@@ -233,7 +223,7 @@ void FlowGraphTypePropagator::VisitValue(Value* value) {
   }
 
   if (FLAG_support_il_printer && FLAG_trace_type_propagation &&
-      FlowGraphPrinter::ShouldPrint(flow_graph_->function())) {
+      flow_graph_->should_print()) {
     THR_Print("reaching type to %s for v%" Pd " is %s\n",
               value->instruction()->ToCString(),
               value->definition()->ssa_temp_index(),
@@ -714,15 +704,17 @@ const AbstractType* CompileType::ToAbstractType() {
       return type_;
     }
 
-    const Class& type_class =
-        Class::Handle(Isolate::Current()->class_table()->At(cid_));
-
+    Isolate* I = Isolate::Current();
+    const Class& type_class = Class::Handle(I->class_table()->At(cid_));
     if (type_class.NumTypeArguments() > 0) {
-      type_ = &Object::dynamic_type();
-      return type_;
+      if (I->strong()) {
+        type_ = &AbstractType::ZoneHandle(type_class.RareType());
+      } else {
+        type_ = &Object::dynamic_type();
+      }
+    } else {
+      type_ = &Type::ZoneHandle(Type::NewNonParameterizedType(type_class));
     }
-
-    type_ = &Type::ZoneHandle(Type::NewNonParameterizedType(type_class));
   }
 
   return type_;
@@ -947,10 +939,29 @@ CompileType ParameterInstr::ComputeType() const {
     // Note: in catch-blocks we have ParameterInstr for each local variable
     // not only for normal parameters.
     if (index() < scope->num_variables()) {
-      LocalVariable* param = scope->VariableAt(index());
+      const LocalVariable* param = scope->VariableAt(index());
+      CompileType* inferred_type = NULL;
+      if (block_->IsGraphEntry()) {
+        inferred_type = param->parameter_type();
+      }
+      // Best bet: use inferred type if it has a concrete class.
+      if ((inferred_type != NULL) &&
+          (inferred_type->ToNullableCid() != kDynamicCid)) {
+        TraceStrongModeType(this, inferred_type);
+        return *inferred_type;
+      }
+      // If parameter type was checked by caller, then use Dart type annotation,
+      // plus non-nullability from inferred type if known.
       if (param->was_type_checked_by_caller()) {
-        return CompileType::FromAbstractType(param->type(),
-                                             CompileType::kNullable);
+        const bool is_nullable =
+            (inferred_type == NULL) || inferred_type->is_nullable();
+        TraceStrongModeType(this, param->type());
+        return CompileType::FromAbstractType(param->type(), is_nullable);
+      }
+      // Last resort: use inferred non-nullability.
+      if (inferred_type != NULL) {
+        TraceStrongModeType(this, inferred_type);
+        return *inferred_type;
       }
     }
   }
@@ -1063,6 +1074,7 @@ CompileType InstanceCallInstr::ComputeType() const {
   CompileType* inferred_type = result_type();
   if ((inferred_type != NULL) &&
       (inferred_type->ToNullableCid() != kDynamicCid)) {
+    TraceStrongModeType(this, inferred_type);
     return *inferred_type;
   }
 
@@ -1234,21 +1246,27 @@ CompileType LoadFieldInstr::ComputeType() const {
   }
 
   const Isolate* isolate = Isolate::Current();
-  const AbstractType* abstract_type = NULL;
+  CompileType compile_type_annotation = CompileType::None();
   if ((isolate->strong() && FLAG_use_strong_mode_types) ||
       (isolate->type_checks() &&
        (type().IsFunctionType() || type().HasResolvedTypeClass()))) {
-    abstract_type = &type();
+    const AbstractType* abstract_type = &type();
     TraceStrongModeType(this, *abstract_type);
+    compile_type_annotation = CompileType::FromAbstractType(*abstract_type);
   }
 
+  CompileType compile_type_cid = CompileType::None();
   if ((field_ != NULL) && (field_->guarded_cid() != kIllegalCid)) {
     bool is_nullable = field_->is_nullable();
     intptr_t field_cid = field_->guarded_cid();
-    return CompileType(is_nullable, field_cid, abstract_type);
+
+    compile_type_cid = CompileType(is_nullable, field_cid, NULL);
+  } else {
+    compile_type_cid = CompileType::FromCid(result_cid_);
   }
 
-  return CompileType::Create(result_cid_, *abstract_type);
+  return *CompileType::ComputeRefinedType(&compile_type_cid,
+                                          &compile_type_annotation);
 }
 
 CompileType LoadCodeUnitsInstr::ComputeType() const {

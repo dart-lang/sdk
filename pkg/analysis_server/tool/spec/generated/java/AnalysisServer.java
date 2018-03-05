@@ -730,6 +730,18 @@ public interface AnalysisServer {
   public void search_findTopLevelDeclarations(String pattern, FindTopLevelDeclarationsConsumer consumer);
 
   /**
+   * {@code search.getElementDeclarations}
+   *
+   * Return top-level and class member declarations.
+   *
+   * @param pattern The regular expression used to match the names of declarations. If this field is
+   *         missing, return all declarations.
+   * @param maxResults The maximum number of declarations to return. If this field is missing, return
+   *         all matching declarations.
+   */
+  public void search_getElementDeclarations(String pattern, int maxResults, GetElementDeclarationsConsumer consumer);
+
+  /**
    * {@code search.getTypeHierarchy}
    *
    * Return the type hierarchy of the class declared or referenced at the given location.

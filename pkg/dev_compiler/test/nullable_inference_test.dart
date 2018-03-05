@@ -125,9 +125,9 @@ void main() {
           'main() { 1.compareTo(2); 1.remainder(2); 1.abs(); 1.toInt(); '
           '1.ceil(); 1.floor(); 1.truncate(); 1.round(); 1.ceilToDouble(); '
           '1.floorToDouble(); 1.truncateToDouble(); 1.roundToDouble(); '
-          '1.toDouble(); 1.clamp(2); 1.toStringAsFixed(2); '
+          '1.toDouble(); 1.clamp(2, 2); 1.toStringAsFixed(2); '
           '1.toStringAsExponential(); 1.toStringAsPrecision(2); 1.toString(); '
-          '1.toRadixString(2); 1.toUnsigned(2); 1.toSigned(2); 1.modPow(2); '
+          '1.toRadixString(2); 1.toUnsigned(2); 1.toSigned(2); 1.modPow(2, 2); '
           '1.modInverse(2); 1.gcd(2); }');
     });
   });
@@ -153,7 +153,7 @@ void main() {
           '(1.0).toInt(); (1.0).ceil(); (1.0).floor(); (1.0).truncate(); '
           '(1.0).round(); (1.0).ceilToDouble(); (1.0).floorToDouble(); '
           '(1.0).truncateToDouble(); (1.0).roundToDouble(); (1.0).toDouble(); '
-          '(1.0).clamp(2.0); (1.0).toStringAsFixed(2); (1.0).toString(); '
+          '(1.0).clamp(2.0, 2.0); (1.0).toStringAsFixed(2); (1.0).toString(); '
           '(1.0).toStringAsExponential(); (1.0).toStringAsPrecision(2); }');
     });
   });
@@ -179,7 +179,7 @@ void main() {
           'n.toInt(); n.ceil(); n.floor(); n.truncate(); '
           'n.round(); n.ceilToDouble(); n.floorToDouble(); '
           'n.truncateToDouble(); n.roundToDouble(); n.toDouble(); '
-          'n.clamp(n); n.toStringAsFixed(n); n.toString(); '
+          'n.clamp(n, n); n.toStringAsFixed(n); n.toString(); '
           'n.toStringAsExponential(); n.toStringAsPrecision(n); }');
     });
   });
@@ -215,7 +215,7 @@ void main() {
         s.replaceFirstMapped(s, (_) => s);
         s.replaceRange(1, 2, s);
         s.split(s);
-        s.splitMapJoin(s, (_) => s, (_) => s);
+        s.splitMapJoin(s, onMatch: (_) => s, onNonMatch: (_) => s);
         s.startsWith(s);
         s.substring(1);
         s.toLowerCase();

@@ -21,6 +21,7 @@ import 'utils.dart';
 import '../devirtualization.dart' show Devirtualization;
 import '../../metadata/direct_call.dart';
 import '../../metadata/inferred_type.dart';
+import '../../metadata/unreachable.dart';
 
 const bool kDumpAllSummaries =
     const bool.fromEnvironment('global.type.flow.dump.all.summaries');
@@ -29,12 +30,12 @@ const bool kDumpClassHierarchy =
 
 /// Whole-program type flow analysis and transformation.
 /// Assumes strong mode and closed world.
-Program transformProgram(CoreTypes coreTypes, Program program,
-    // TODO(alexmarkov): Pass entry points descriptors from command line.
-    {List<String> entryPointsJSONFiles: const [
-      'pkg/vm/lib/transformations/type_flow/entry_points.json',
-      'pkg/vm/lib/transformations/type_flow/entry_points_extra.json',
-    ]}) {
+Program transformProgram(
+    CoreTypes coreTypes, Program program, List<String> entryPoints) {
+  if ((entryPoints == null) || entryPoints.isEmpty) {
+    throw 'Error: unable to perform global type flow analysis without entry points.';
+  }
+
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
   final hierarchy = new ClassHierarchy(program,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
@@ -51,7 +52,7 @@ Program transformProgram(CoreTypes coreTypes, Program program,
   final analysisStopWatch = new Stopwatch()..start();
 
   final typeFlowAnalysis = new TypeFlowAnalysis(hierarchy, types, libraryIndex,
-      entryPointsJSONFiles: entryPointsJSONFiles);
+      entryPointsJSONFiles: entryPoints);
 
   Procedure main = program.mainMethod;
   final Selector mainSelector = new DirectSelector(main);
@@ -70,8 +71,7 @@ Program transformProgram(CoreTypes coreTypes, Program program,
 
   new TFADevirtualization(program, typeFlowAnalysis).visitProgram(program);
 
-  new AnnotateWithInferredTypes(program, typeFlowAnalysis)
-      .visitProgram(program);
+  new AnnotateKernel(program, typeFlowAnalysis).visitProgram(program);
 
   transformsStopWatch.stop();
 
@@ -132,90 +132,159 @@ class DropMethodBodiesVisitor extends RecursiveVisitor<Null> {
   }
 }
 
-/// Annotates kernel AST with types inferred by type flow analysis.
-class AnnotateWithInferredTypes extends RecursiveVisitor<Null> {
+/// Annotates kernel AST with metadata using results of type flow analysis.
+class AnnotateKernel extends RecursiveVisitor<Null> {
   final TypeFlowAnalysis _typeFlowAnalysis;
-  final InferredTypeMetadataRepository _metadata;
+  final InferredTypeMetadataRepository _inferredTypeMetadata;
+  final UnreachableNodeMetadataRepository _unreachableNodeMetadata;
 
-  AnnotateWithInferredTypes(Program program, this._typeFlowAnalysis)
-      : _metadata = new InferredTypeMetadataRepository() {
-    program.addMetadataRepository(_metadata);
+  AnnotateKernel(Program program, this._typeFlowAnalysis)
+      : _inferredTypeMetadata = new InferredTypeMetadataRepository(),
+        _unreachableNodeMetadata = new UnreachableNodeMetadataRepository() {
+    program.addMetadataRepository(_inferredTypeMetadata);
+    program.addMetadataRepository(_unreachableNodeMetadata);
   }
 
-  void _annotateNode(TreeNode node) {
-    final callSite = _typeFlowAnalysis.callSite(node);
-    if ((callSite != null) && callSite.isResultUsed && callSite.isReachable) {
-      final resultType = callSite.resultType;
-      assertx(resultType != null);
+  InferredType _convertType(Type type) {
+    assertx(type != null);
 
-      Class concreteClass;
+    Class concreteClass;
 
-      final nullable = resultType is NullableType;
-      if (nullable) {
-        final baseType = (resultType as NullableType).baseType;
+    final nullable = type is NullableType;
+    if (nullable) {
+      final baseType = (type as NullableType).baseType;
 
-        if (baseType == const EmptyType()) {
-          concreteClass = _typeFlowAnalysis.environment.coreTypes.nullClass;
-        } else {
-          concreteClass =
-              baseType.getConcreteClass(_typeFlowAnalysis.hierarchyCache);
-        }
+      if (baseType == const EmptyType()) {
+        concreteClass = _typeFlowAnalysis.environment.coreTypes.nullClass;
       } else {
         concreteClass =
-            resultType.getConcreteClass(_typeFlowAnalysis.hierarchyCache);
+            baseType.getConcreteClass(_typeFlowAnalysis.hierarchyCache);
       }
+    } else {
+      concreteClass = type.getConcreteClass(_typeFlowAnalysis.hierarchyCache);
+    }
 
-      if ((concreteClass != null) || !nullable) {
-        _metadata.mapping[node] = new InferredType(concreteClass, nullable);
+    if ((concreteClass != null) || !nullable) {
+      return new InferredType(concreteClass, nullable);
+    }
+
+    return null;
+  }
+
+  void _setInferredType(TreeNode node, Type type) {
+    final inferredType = _convertType(type);
+    if (inferredType != null) {
+      _inferredTypeMetadata.mapping[node] = inferredType;
+    }
+  }
+
+  void _setUnreachable(TreeNode node) {
+    _unreachableNodeMetadata.mapping[node] = const UnreachableNode();
+  }
+
+  void _annotateCallSite(TreeNode node) {
+    final callSite = _typeFlowAnalysis.callSite(node);
+    if (callSite != null) {
+      if (callSite.isReachable) {
+        if (callSite.isResultUsed) {
+          _setInferredType(node, callSite.resultType);
+        }
+      } else {
+        _setUnreachable(node);
       }
     }
   }
 
+  void _annotateMember(Member member) {
+    if (_typeFlowAnalysis.isMemberUsed(member)) {
+      if (member is Field) {
+        _setInferredType(member, _typeFlowAnalysis.fieldType(member));
+      } else {
+        Args<Type> argTypes = _typeFlowAnalysis.argumentTypes(member);
+        assertx(argTypes != null);
+
+        final int firstParamIndex = hasReceiverArg(member) ? 1 : 0;
+
+        final positionalParams = member.function.positionalParameters;
+        assertx(argTypes.positionalCount ==
+            firstParamIndex + positionalParams.length);
+
+        for (int i = 0; i < positionalParams.length; i++) {
+          _setInferredType(
+              positionalParams[i], argTypes.values[firstParamIndex + i]);
+        }
+
+        // TODO(alexmarkov): figure out how to pass receiver type.
+        // TODO(alexmarkov): support named parameters
+      }
+    } else if (!member.isAbstract) {
+      _setUnreachable(member);
+    }
+  }
+
+  @override
+  visitConstructor(Constructor node) {
+    _annotateMember(node);
+    super.visitConstructor(node);
+  }
+
+  @override
+  visitProcedure(Procedure node) {
+    _annotateMember(node);
+    super.visitProcedure(node);
+  }
+
+  @override
+  visitField(Field node) {
+    _annotateMember(node);
+    super.visitField(node);
+  }
+
   @override
   visitMethodInvocation(MethodInvocation node) {
-    _annotateNode(node);
+    _annotateCallSite(node);
     super.visitMethodInvocation(node);
   }
 
   @override
   visitPropertyGet(PropertyGet node) {
-    _annotateNode(node);
+    _annotateCallSite(node);
     super.visitPropertyGet(node);
   }
 
   @override
   visitDirectMethodInvocation(DirectMethodInvocation node) {
-    _annotateNode(node);
+    _annotateCallSite(node);
     super.visitDirectMethodInvocation(node);
   }
 
   @override
   visitDirectPropertyGet(DirectPropertyGet node) {
-    _annotateNode(node);
+    _annotateCallSite(node);
     super.visitDirectPropertyGet(node);
   }
 
   @override
   visitSuperMethodInvocation(SuperMethodInvocation node) {
-    _annotateNode(node);
+    _annotateCallSite(node);
     super.visitSuperMethodInvocation(node);
   }
 
   @override
   visitSuperPropertyGet(SuperPropertyGet node) {
-    _annotateNode(node);
+    _annotateCallSite(node);
     super.visitSuperPropertyGet(node);
   }
 
   @override
   visitStaticInvocation(StaticInvocation node) {
-    _annotateNode(node);
+    _annotateCallSite(node);
     super.visitStaticInvocation(node);
   }
 
   @override
   visitStaticGet(StaticGet node) {
-    _annotateNode(node);
+    _annotateCallSite(node);
     super.visitStaticGet(node);
   }
 }

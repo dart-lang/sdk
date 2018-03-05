@@ -10,6 +10,7 @@
 #include "vm/dart_api_impl.h"
 #include "vm/hash_table.h"
 #include "vm/isolate.h"
+#include "vm/kernel_isolate.h"
 #include "vm/kernel_loader.h"
 #include "vm/log.h"
 #include "vm/object.h"
@@ -156,22 +157,29 @@ void InstanceMorpher::RunNewFieldInitializers() const {
   }
 
   TIR_Print("Running new field initializers for class: %s\n", to_.ToCString());
-  String& initializing_expression = String::Handle();
-  Function& eval_func = Function::Handle();
-  Object& result = Object::Handle();
-  Class& owning_class = Class::Handle();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  String& initializing_expression = String::Handle(zone);
+  Function& eval_func = Function::Handle(zone);
+  Object& result = Object::Handle(zone);
+  Class& owning_class = Class::Handle(zone);
   // For each new field.
   for (intptr_t i = 0; i < new_fields_->length(); i++) {
     // Create a function that returns the expression.
     const Field* field = new_fields_->At(i);
-    owning_class ^= field->Owner();
-    ASSERT(!owning_class.IsNull());
-    // Extract the initializing expression.
-    initializing_expression = field->InitializingExpression();
-    TIR_Print("New `%s` has initializing expression `%s`\n", field->ToCString(),
-              initializing_expression.ToCString());
-    eval_func ^= Function::EvaluateHelper(owning_class, initializing_expression,
-                                          Array::empty_array(), true);
+    if (field->kernel_offset() > 0) {
+      eval_func ^= kernel::CreateFieldInitializerFunction(thread, zone, *field);
+    } else {
+      owning_class ^= field->Owner();
+      ASSERT(!owning_class.IsNull());
+      // Extract the initializing expression.
+      initializing_expression = field->InitializingExpression();
+      TIR_Print("New `%s` has initializing expression `%s`\n",
+                field->ToCString(), initializing_expression.ToCString());
+      eval_func ^= Function::EvaluateHelper(
+          owning_class, initializing_expression, Array::empty_array(), true);
+    }
+
     for (intptr_t j = 0; j < after_->length(); j++) {
       const Instance* instance = after_->At(j);
       TIR_Print("Initializing instance %" Pd " / %" Pd "\n", j + 1,
@@ -516,6 +524,20 @@ class ResourceHolder : ValueObject {
   ~ResourceHolder() { delete (resource_); }
 };
 
+static void ReleaseFetchedBytes(uint8_t* buffer) {
+  free(buffer);
+}
+
+static void AcceptCompilation(Thread* thread) {
+  TransitionVMToNative transition(thread);
+  if (KernelIsolate::AcceptCompilation().status !=
+      Dart_KernelCompilationStatus_Ok) {
+    FATAL(
+        "An error occurred in the CFE while accepting the most recent"
+        " compilation results.");
+  }
+}
+
 // NOTE: This function returns *after* FinalizeLoading is called.
 void IsolateReloadContext::Reload(bool force_reload,
                                   const char* root_script_url,
@@ -554,47 +576,49 @@ void IsolateReloadContext::Reload(bool force_reload,
   if (packages_url_ != NULL) {
     packages_url = String::New(packages_url_);
   }
+
+  bool did_kernel_compilation = false;
   if (isolate()->use_dart_frontend()) {
     // Load the kernel program and figure out the modified libraries.
     const GrowableObjectArray& libs =
         GrowableObjectArray::Handle(object_store()->libraries());
     intptr_t num_libs = libs.Length();
     modified_libs_ = new (Z) BitVector(Z, num_libs);
-    TIR_Print("---- ENTERING TAG HANDLER\n");
-    {
+
+    // ReadPrecompiledKernelFromFile checks to see if the file at
+    // root_script_url is a valid .dill file. If that's the case, a Program*
+    // is returned. Otherwise, this is likely a source file that needs to be
+    // compiled, so ReadPrecompiledKernelFromFile returns NULL.
+    kernel_program.set(ReadPrecompiledKernelFromFile(root_script_url));
+    if (kernel_program.get() == NULL) {
       TransitionVMToNative transition(thread);
-      Api::Scope api_scope(thread);
-      Dart_Handle retval = (I->library_tag_handler())(
-          Dart_kKernelTag, Api::NewHandle(thread, packages_url.raw()),
-          Api::NewHandle(thread, root_lib_url.raw()));
-      if (Dart_IsError(retval)) {
-        // Compilation of the new sources failed, abort reload and report
-        // error.
-        result = Api::UnwrapHandle(retval);
-      } else {
-        uint64_t data;
-        intptr_t data_len = 0;
-        Dart_TypedData_Type data_type;
-        ASSERT(Dart_IsTypedData(retval));
-        Dart_Handle val = Dart_TypedDataAcquireData(
-            retval, &data_type, reinterpret_cast<void**>(&data), &data_len);
-        ASSERT(!Dart_IsError(val));
-        ASSERT(data_type == Dart_TypedData_kUint64);
-        ASSERT(data_len == 1);
-        kernel_program.set(reinterpret_cast<kernel::Program*>(data));
-        Dart_TypedDataReleaseData(retval);
-        kernel::KernelLoader::FindModifiedLibraries(
-            kernel_program.get(), I, modified_libs_, force_reload);
+      Dart_SourceFile* modified_scripts = NULL;
+      intptr_t modified_scripts_count = 0;
+
+      FindModifiedSources(thread, force_reload, &modified_scripts,
+                          &modified_scripts_count);
+
+      Dart_KernelCompilationResult retval = KernelIsolate::CompileToKernel(
+          root_lib_url.ToCString(), NULL, 0, modified_scripts_count,
+          modified_scripts, true);
+
+      if (retval.status != Dart_KernelCompilationStatus_Ok) {
+        TIR_Print("---- LOAD FAILED, ABORTING RELOAD\n");
+        const String& error_str = String::Handle(String::New(retval.error));
+        const ApiError& error = ApiError::Handle(ApiError::New(error_str));
+        AddReasonForCancelling(new Aborted(zone_, error));
+        ReportReasonsForCancelling();
+        CommonFinalizeTail();
+        return;
       }
+      did_kernel_compilation = true;
+      kernel_program.set(
+          ReadPrecompiledKernelFromBuffer(retval.kernel, retval.kernel_size));
     }
-    if (result.IsError()) {
-      TIR_Print("---- LOAD FAILED, ABORTING RELOAD\n");
-      AddReasonForCancelling(new Aborted(zone_, ApiError::Cast(result)));
-      ReportReasonsForCancelling();
-      CommonFinalizeTail();
-      return;
-    }
-    TIR_Print("---- EXITED TAG HANDLER\n");
+
+    kernel_program.get()->set_release_buffer_callback(ReleaseFetchedBytes);
+    kernel::KernelLoader::FindModifiedLibraries(kernel_program.get(), I,
+                                                modified_libs_, force_reload);
   } else {
     // Check to see which libraries have been modified.
     modified_libs_ = FindModifiedLibraries(force_reload, root_lib_modified);
@@ -606,6 +630,13 @@ void IsolateReloadContext::Reload(bool force_reload,
     I->object_store()->set_changed_in_last_reload(
         GrowableObjectArray::Handle(GrowableObjectArray::New()));
     ReportOnJSON(js_);
+
+    // If we use the CFE and performed a compilation, we need to notify that
+    // we have accepted the compilation to clear some state in the incremental
+    // compiler.
+    if (isolate()->use_dart_frontend() && did_kernel_compilation) {
+      AcceptCompilation(thread);
+    }
     TIR_Print("---- SKIPPING RELOAD (No libraries were modified)\n");
     return;
   }
@@ -666,6 +697,13 @@ void IsolateReloadContext::Reload(bool force_reload,
       isolate()->object_store()->set_root_library(lib);
       FinalizeLoading();
       result = Object::null();
+
+      // If we use the CFE and performed a compilation, we need to notify that
+      // we have accepted the compilation to clear some state in the incremental
+      // compiler.
+      if (did_kernel_compilation) {
+        AcceptCompilation(thread);
+      }
     } else {
       result = tmp.raw();
     }
@@ -927,6 +965,68 @@ static void PropagateLibraryModified(
       modified_libs->Add(dep_lib_index);
       PropagateLibraryModified(imported_by, dep_lib_index, modified_libs);
     }
+  }
+}
+
+static bool ContainsScriptUri(const GrowableArray<const char*>& seen_uris,
+                              const char* uri) {
+  for (intptr_t i = 0; i < seen_uris.length(); i++) {
+    const char* seen_uri = seen_uris.At(i);
+    size_t seen_len = strlen(seen_uri);
+    if (seen_len != strlen(uri)) {
+      continue;
+    } else if (strncmp(seen_uri, uri, seen_len) == 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void IsolateReloadContext::FindModifiedSources(
+    Thread* thread,
+    bool force_reload,
+    Dart_SourceFile** modified_sources,
+    intptr_t* count) {
+  Zone* zone = thread->zone();
+  int64_t last_reload = I->last_reload_timestamp();
+  GrowableArray<const char*> modified_sources_uris;
+  const GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(object_store()->libraries());
+  Library& lib = Library::Handle(zone);
+  Array& scripts = Array::Handle(zone);
+  Script& script = Script::Handle(zone);
+  String& uri = String::Handle(zone);
+
+  for (intptr_t lib_idx = 0; lib_idx < libs.Length(); lib_idx++) {
+    lib ^= libs.At(lib_idx);
+    if (lib.is_dart_scheme()) {
+      // We don't consider dart scheme libraries during reload.
+      continue;
+    }
+    scripts = lib.LoadedScripts();
+    for (intptr_t script_idx = 0; script_idx < scripts.Length(); script_idx++) {
+      script ^= scripts.At(script_idx);
+      uri ^= script.url();
+      if (ContainsScriptUri(modified_sources_uris, uri.ToCString())) {
+        // We've already accounted for this script in a prior library.
+        continue;
+      }
+
+      if (force_reload || ScriptModifiedSince(script, last_reload)) {
+        modified_sources_uris.Add(uri.ToCString());
+      }
+    }
+  }
+
+  *count = modified_sources_uris.length();
+  if (*count == 0) {
+    return;
+  }
+
+  *modified_sources = new (zone_) Dart_SourceFile[*count];
+  for (intptr_t i = 0; i < *count; ++i) {
+    (*modified_sources)[i].uri = modified_sources_uris[i];
+    (*modified_sources)[i].source = NULL;
   }
 }
 

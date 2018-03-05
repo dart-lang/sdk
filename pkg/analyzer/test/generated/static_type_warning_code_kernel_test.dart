@@ -8,8 +8,10 @@ import 'static_type_warning_code_driver_test.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(StaticTypeWarningCodeTest_Kernel);
-    defineReflectiveTests(StrongModeStaticTypeWarningCodeTest_Kernel);
+    // TODO(scheglov): Restore similar test coverage when the front-end API
+    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
+    // defineReflectiveTests(StaticTypeWarningCodeTest_Kernel);
+    // defineReflectiveTests(StrongModeStaticTypeWarningCodeTest_Kernel);
   });
 }
 
@@ -278,13 +280,6 @@ class StaticTypeWarningCodeTest_Kernel
   test_invocationOfNonFunction_class() async {
     // Expected 1 errors of type StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION, found 0
     await super.test_invocationOfNonFunction_class();
-  }
-
-  @override
-  @failingTest
-  test_invocationOfNonFunction_localGenericFunction() async {
-    // Expected 1 errors of type StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION, found 0
-    await super.test_invocationOfNonFunction_localGenericFunction();
   }
 
   @override
@@ -705,13 +700,6 @@ class StaticTypeWarningCodeTest_Kernel
   test_undefinedFunction_inImportedLib() async {
     // Bad state: No reference information for f at 40
     await super.test_undefinedFunction_inImportedLib();
-  }
-
-  @override
-  @failingTest
-  test_undefinedGetter_generic_function_call() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
-    await super.test_undefinedGetter_generic_function_call();
   }
 
   @override

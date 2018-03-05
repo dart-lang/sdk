@@ -81,7 +81,6 @@ Future main(List<String> arguments) async {
   await compileModule('meta');
   if (isTravis) {
     await compileModule('microlytics', libs: ['html_channels']);
-    await compileModule('typed_mock');
   }
 
   // Under third_party/pkg.

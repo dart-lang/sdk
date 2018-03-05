@@ -30,30 +30,73 @@ class A {
 class B extends A {
   B suggested2(String y) => null;
   C suggested3([String z]) => null;
+  void suggested4() { }
+  int get suggested5 => null;
 }
 class C extends B {
   sugg^
 }
 ''');
     await computeSuggestions();
-    _assertOverride('''@override
+    _assertOverride('''
+@override
   A suggested1(int x) {
     // TODO: implement suggested1
-    return null;
-  }''');
-    _assertOverride(
-        '''@override\n  A suggested1(int x) {\n    // TODO: implement suggested1\n    return null;\n  }''');
-    _assertOverride(
-        '''@override\n  B suggested2(String y) {\n    // TODO: implement suggested2\n    return null;\n  }''');
-    _assertOverride(
-        '''@override\n  C suggested3([String z]) {\n    // TODO: implement suggested3\n    return null;\n  }''');
+    return super.suggested1(x);
+  }''',
+        displayText: 'suggested1(int x) { … }',
+        selectionOffset: 72,
+        selectionLength: 27);
+    _assertOverride('''
+@override
+  A suggested1(int x) {
+    // TODO: implement suggested1
+    return super.suggested1(x);
+  }''',
+        displayText: 'suggested1(int x) { … }',
+        selectionOffset: 72,
+        selectionLength: 27);
+    _assertOverride('''
+@override
+  B suggested2(String y) {
+    // TODO: implement suggested2
+    return super.suggested2(y);
+  }''',
+        displayText: 'suggested2(String y) { … }',
+        selectionOffset: 75,
+        selectionLength: 27);
+    _assertOverride('''
+@override
+  C suggested3([String z]) {
+    // TODO: implement suggested3
+    return super.suggested3(z);
+  }''',
+        displayText: 'suggested3([String z]) { … }',
+        selectionOffset: 77,
+        selectionLength: 27);
+    _assertOverride('''
+@override
+  void suggested4() {
+    // TODO: implement suggested4
+    super.suggested4();
+  }''',
+        displayText: 'suggested4() { … }',
+        selectionOffset: 70,
+        selectionLength: 19);
+    _assertOverride('''
+@override
+  // TODO: implement suggested5
+  int get suggested5 => super.suggested5;''',
+        displayText: 'suggested5 => …',
+        selectionOffset: 66,
+        selectionLength: 16);
   }
 
   test_fromPart() async {
     addSource('/myLib.dart', '''
 library myLib;
-part '$testFile'
-part '/otherPart.dart'
+part '${convertPathForImport(testFile)}'
+part '${convertPathForImport('/otherPart.dart')}'
 class A {
   A suggested1(int x) => null;
   B suggested2(String y) => null;
@@ -75,35 +118,84 @@ class C extends B {
     // assume information for context.getLibrariesContaining has been cached
     await computeLibrariesContaining();
     await computeSuggestions();
-    _assertOverride('''@override
+    _assertOverride('''
+@override
   A suggested1(int x) {
     // TODO: implement suggested1
-    return null;
-  }''');
-    _assertOverride(
-        '''@override\n  A suggested1(int x) {\n    // TODO: implement suggested1\n    return null;\n  }''');
-    _assertOverride(
-        '''@override\n  B suggested2(String y) {\n    // TODO: implement suggested2\n    return null;\n  }''');
-    _assertOverride(
-        '''@override\n  C suggested3([String z]) {\n    // TODO: implement suggested3\n    return null;\n  }''');
+    return super.suggested1(x);
+  }''', displayText: 'suggested1(int x) { … }');
+    _assertOverride('''
+@override
+  A suggested1(int x) {
+    // TODO: implement suggested1
+    return super.suggested1(x);
+  }''',
+        displayText: 'suggested1(int x) { … }',
+        selectionOffset: 72,
+        selectionLength: 27);
+    _assertOverride('''
+@override
+  B suggested2(String y) {
+    // TODO: implement suggested2
+    return super.suggested2(y);
+  }''',
+        displayText: 'suggested2(String y) { … }',
+        selectionOffset: 75,
+        selectionLength: 27);
+    _assertOverride('''
+@override
+  C suggested3([String z]) {
+    // TODO: implement suggested3
+    return super.suggested3(z);
+  }''',
+        displayText: 'suggested3([String z]) { … }',
+        selectionOffset: 77,
+        selectionLength: 27);
   }
 
-  CompletionSuggestion _assertOverride(String completion) {
+  test_withExistingOverride() async {
+    addTestSource('''
+class A {
+  method() {}
+  int age;
+}
+
+class B extends A {
+  @override
+  meth^
+}
+''');
+    await computeSuggestions();
+    _assertOverride('''
+method() {
+    // TODO: implement method
+    return super.method();
+  }''',
+        displayText: 'method() { … }',
+        selectionOffset: 45,
+        selectionLength: 22);
+  }
+
+  CompletionSuggestion _assertOverride(String completion,
+      {String displayText, int selectionOffset, int selectionLength}) {
     CompletionSuggestion cs = getSuggest(
         completion: completion,
-        csKind: CompletionSuggestionKind.IDENTIFIER,
+        csKind: CompletionSuggestionKind.OVERRIDE,
         elemKind: null);
     if (cs == null) {
       failedCompletion('expected $completion', suggestions);
     }
-    expect(cs.kind, equals(CompletionSuggestionKind.IDENTIFIER));
+    expect(cs.kind, equals(CompletionSuggestionKind.OVERRIDE));
     expect(cs.relevance, equals(DART_RELEVANCE_HIGH));
     expect(cs.importUri, null);
-//    expect(cs.selectionOffset, equals(completion.length));
-//    expect(cs.selectionLength, equals(0));
+    if (selectionOffset != null && selectionLength != null) {
+      expect(cs.selectionOffset, selectionOffset);
+      expect(cs.selectionLength, selectionLength);
+    }
     expect(cs.isDeprecated, isFalse);
     expect(cs.isPotential, isFalse);
     expect(cs.element, isNotNull);
+    expect(cs.displayText, displayText);
     return cs;
   }
 }

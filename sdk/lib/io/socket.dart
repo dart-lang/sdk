@@ -80,7 +80,7 @@ abstract class InternetAddress {
   /**
    * The [type] of the [InternetAddress] specified what IP protocol.
    */
-  InternetAddressType type;
+  InternetAddressType get type;
 
   /**
    * The numeric address of the host. For IPv4 addresses this is using

@@ -13,7 +13,7 @@ class T2 extends core::Object {
     ;
 }
 class T3 extends core::Object {
-  synthetic constructor •() → void
+[@vm.unreachable.metadata=]  synthetic constructor •() → void
     : super core::Object::•()
     throw "TFA Error: #lib::T3::";
 }
@@ -60,7 +60,7 @@ class E extends core::Object implements self::A {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
-  method foo() → dynamic
+[@vm.unreachable.metadata=]  method foo() → dynamic
     throw "TFA Error: #lib::E::foo";
   method noSuchMethod(core::Invocation invocation) → dynamic {
     return new self::T4::•();
@@ -70,7 +70,7 @@ class F extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
-  method twoArg(dynamic a1, dynamic a2) → dynamic
+[@vm.unreachable.metadata=]  method twoArg(dynamic a1, dynamic a2) → dynamic
     throw "TFA Error: #lib::F::twoArg";
   method noSuchMethod(core::Invocation invocation) → dynamic {
     return new self::T2::•();
@@ -84,9 +84,9 @@ class G extends core::Object {
     return new self::T5::•();
   }
 }
-static field self::A bb = new self::B::•();
-static field self::A dd = new self::D::•();
-static field core::Function unknown;
+[@vm.inferred-type.metadata=#lib::B]static field self::A bb = new self::B::•();
+[@vm.inferred-type.metadata=#lib::D]static field self::A dd = new self::D::•();
+[@vm.inferred-type.metadata=dart.core::Null?]static field core::Function unknown;
 static method getDynamic() → dynamic
   return self::unknown.call();
 static method main(core::List<core::String> args) → dynamic {
@@ -103,5 +103,5 @@ static method main(core::List<core::String> args) → dynamic {
   core::print([@vm.inferred-type.metadata=!] yy.twoArg(1, 2, 3));
   new self::F::•();
   dynamic gg = new self::G::•();
-  core::print([@vm.inferred-type.metadata=#lib::T5] gg.{core::Object::noSuchMethod}(null, null));
+  core::print([@vm.inferred-type.metadata=#lib::T5] gg.noSuchMethod(null, null));
 }

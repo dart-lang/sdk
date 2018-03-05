@@ -18,6 +18,8 @@ import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../parser.dart' show noLength;
+
 /// Set this flag to `true` to cause debugging information about covariance
 /// checks to be printed to standard output.
 const bool debugCovariance = false;
@@ -66,6 +68,7 @@ class AccessorInferenceNode extends MemberInferenceNode {
       _library.addCompileTimeError(
           templateCantInferTypeDueToCircularity.withArguments(_name),
           _offset,
+          noLength,
           _fileUri);
     } else {
       var inferredType = _matchTypes(overriddenTypes, _name, _offset);
@@ -1133,6 +1136,7 @@ abstract class MemberInferenceNode extends InferenceNode {
         _library.addCompileTimeError(
             templateCantInferTypeDueToInconsistentOverrides.withArguments(name),
             charOffset,
+            noLength,
             _fileUri);
         return const DynamicType();
       }

@@ -69,6 +69,8 @@ compiler_sources = [
   "call_specializer.h",
   "cha.cc",
   "cha.h",
+  "compiler_pass.cc",
+  "compiler_pass.h",
   "frontend/flow_graph_builder.cc",
   "frontend/flow_graph_builder.h",
   "frontend/kernel_binary_flowgraph.cc",

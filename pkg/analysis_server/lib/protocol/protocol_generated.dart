@@ -8724,6 +8724,333 @@ class EditSortMembersResult implements ResponseResult {
 }
 
 /**
+ * ElementDeclaration
+ *
+ * {
+ *   "name": String
+ *   "kind": ElementKind
+ *   "fileIndex": int
+ *   "offset": int
+ *   "line": int
+ *   "column": int
+ *   "codeOffset": int
+ *   "codeLength": int
+ *   "className": optional String
+ *   "parameters": optional String
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class ElementDeclaration implements HasToJson {
+  String _name;
+
+  ElementKind _kind;
+
+  int _fileIndex;
+
+  int _offset;
+
+  int _line;
+
+  int _column;
+
+  int _codeOffset;
+
+  int _codeLength;
+
+  String _className;
+
+  String _parameters;
+
+  /**
+   * The name of the declaration.
+   */
+  String get name => _name;
+
+  /**
+   * The name of the declaration.
+   */
+  void set name(String value) {
+    assert(value != null);
+    this._name = value;
+  }
+
+  /**
+   * The kind of the element that corresponds to the declaration.
+   */
+  ElementKind get kind => _kind;
+
+  /**
+   * The kind of the element that corresponds to the declaration.
+   */
+  void set kind(ElementKind value) {
+    assert(value != null);
+    this._kind = value;
+  }
+
+  /**
+   * The index of the file (in the enclosing response).
+   */
+  int get fileIndex => _fileIndex;
+
+  /**
+   * The index of the file (in the enclosing response).
+   */
+  void set fileIndex(int value) {
+    assert(value != null);
+    this._fileIndex = value;
+  }
+
+  /**
+   * The offset of the declaration name in the file.
+   */
+  int get offset => _offset;
+
+  /**
+   * The offset of the declaration name in the file.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
+
+  /**
+   * The one-based index of the line containing the declaration name.
+   */
+  int get line => _line;
+
+  /**
+   * The one-based index of the line containing the declaration name.
+   */
+  void set line(int value) {
+    assert(value != null);
+    this._line = value;
+  }
+
+  /**
+   * The one-based index of the column containing the declaration name.
+   */
+  int get column => _column;
+
+  /**
+   * The one-based index of the column containing the declaration name.
+   */
+  void set column(int value) {
+    assert(value != null);
+    this._column = value;
+  }
+
+  /**
+   * The offset of the first character of the declaration code in the file.
+   */
+  int get codeOffset => _codeOffset;
+
+  /**
+   * The offset of the first character of the declaration code in the file.
+   */
+  void set codeOffset(int value) {
+    assert(value != null);
+    this._codeOffset = value;
+  }
+
+  /**
+   * The length of the declaration code in the file.
+   */
+  int get codeLength => _codeLength;
+
+  /**
+   * The length of the declaration code in the file.
+   */
+  void set codeLength(int value) {
+    assert(value != null);
+    this._codeLength = value;
+  }
+
+  /**
+   * The name of the class enclosing this declaration. If the declaration is
+   * not a class member, this field will be absent.
+   */
+  String get className => _className;
+
+  /**
+   * The name of the class enclosing this declaration. If the declaration is
+   * not a class member, this field will be absent.
+   */
+  void set className(String value) {
+    this._className = value;
+  }
+
+  /**
+   * The parameter list for the element. If the element is not a method or
+   * function this field will not be defined. If the element doesn't have
+   * parameters (e.g. getter), this field will not be defined. If the element
+   * has zero parameters, this field will have a value of "()". The value
+   * should not be treated as exact presentation of parameters, it is just
+   * approximation of parameters to give the user general idea.
+   */
+  String get parameters => _parameters;
+
+  /**
+   * The parameter list for the element. If the element is not a method or
+   * function this field will not be defined. If the element doesn't have
+   * parameters (e.g. getter), this field will not be defined. If the element
+   * has zero parameters, this field will have a value of "()". The value
+   * should not be treated as exact presentation of parameters, it is just
+   * approximation of parameters to give the user general idea.
+   */
+  void set parameters(String value) {
+    this._parameters = value;
+  }
+
+  ElementDeclaration(String name, ElementKind kind, int fileIndex, int offset,
+      int line, int column, int codeOffset, int codeLength,
+      {String className, String parameters}) {
+    this.name = name;
+    this.kind = kind;
+    this.fileIndex = fileIndex;
+    this.offset = offset;
+    this.line = line;
+    this.column = column;
+    this.codeOffset = codeOffset;
+    this.codeLength = codeLength;
+    this.className = className;
+    this.parameters = parameters;
+  }
+
+  factory ElementDeclaration.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String name;
+      if (json.containsKey("name")) {
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "name");
+      }
+      ElementKind kind;
+      if (json.containsKey("kind")) {
+        kind = new ElementKind.fromJson(
+            jsonDecoder, jsonPath + ".kind", json["kind"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "kind");
+      }
+      int fileIndex;
+      if (json.containsKey("fileIndex")) {
+        fileIndex =
+            jsonDecoder.decodeInt(jsonPath + ".fileIndex", json["fileIndex"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "fileIndex");
+      }
+      int offset;
+      if (json.containsKey("offset")) {
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "offset");
+      }
+      int line;
+      if (json.containsKey("line")) {
+        line = jsonDecoder.decodeInt(jsonPath + ".line", json["line"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "line");
+      }
+      int column;
+      if (json.containsKey("column")) {
+        column = jsonDecoder.decodeInt(jsonPath + ".column", json["column"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "column");
+      }
+      int codeOffset;
+      if (json.containsKey("codeOffset")) {
+        codeOffset =
+            jsonDecoder.decodeInt(jsonPath + ".codeOffset", json["codeOffset"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "codeOffset");
+      }
+      int codeLength;
+      if (json.containsKey("codeLength")) {
+        codeLength =
+            jsonDecoder.decodeInt(jsonPath + ".codeLength", json["codeLength"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "codeLength");
+      }
+      String className;
+      if (json.containsKey("className")) {
+        className = jsonDecoder.decodeString(
+            jsonPath + ".className", json["className"]);
+      }
+      String parameters;
+      if (json.containsKey("parameters")) {
+        parameters = jsonDecoder.decodeString(
+            jsonPath + ".parameters", json["parameters"]);
+      }
+      return new ElementDeclaration(
+          name, kind, fileIndex, offset, line, column, codeOffset, codeLength,
+          className: className, parameters: parameters);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "ElementDeclaration", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["name"] = name;
+    result["kind"] = kind.toJson();
+    result["fileIndex"] = fileIndex;
+    result["offset"] = offset;
+    result["line"] = line;
+    result["column"] = column;
+    result["codeOffset"] = codeOffset;
+    result["codeLength"] = codeLength;
+    if (className != null) {
+      result["className"] = className;
+    }
+    if (parameters != null) {
+      result["parameters"] = parameters;
+    }
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is ElementDeclaration) {
+      return name == other.name &&
+          kind == other.kind &&
+          fileIndex == other.fileIndex &&
+          offset == other.offset &&
+          line == other.line &&
+          column == other.column &&
+          codeOffset == other.codeOffset &&
+          codeLength == other.codeLength &&
+          className == other.className &&
+          parameters == other.parameters;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, fileIndex.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, line.hashCode);
+    hash = JenkinsSmiHash.combine(hash, column.hashCode);
+    hash = JenkinsSmiHash.combine(hash, codeOffset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, codeLength.hashCode);
+    hash = JenkinsSmiHash.combine(hash, className.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * ExecutableFile
  *
  * {
@@ -10632,6 +10959,10 @@ class FileKind implements Enum {
  *   "parentAssociationLabel": optional String
  *   "variableName": optional String
  *   "children": optional List<FlutterOutline>
+ *   "id": optional int
+ *   "renderConstructor": optional String
+ *   "stateOffset": optional int
+ *   "stateLength": optional int
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -10656,6 +10987,14 @@ class FlutterOutline implements HasToJson {
   String _variableName;
 
   List<FlutterOutline> _children;
+
+  int _id;
+
+  String _renderConstructor;
+
+  int _stateOffset;
+
+  int _stateLength;
 
   /**
    * The kind of the node.
@@ -10800,6 +11139,72 @@ class FlutterOutline implements HasToJson {
     this._children = value;
   }
 
+  /**
+   * If the node is a widget, and it is instrumented, the unique identifier of
+   * this widget, that can be used to associate rendering information with this
+   * node.
+   */
+  int get id => _id;
+
+  /**
+   * If the node is a widget, and it is instrumented, the unique identifier of
+   * this widget, that can be used to associate rendering information with this
+   * node.
+   */
+  void set id(int value) {
+    this._id = value;
+  }
+
+  /**
+   * If the node is a widget class that can be rendered for IDE, the name of
+   * the constructor that should be used to instantiate the widget. Empty
+   * string for default constructor. Absent if the node is not a widget class
+   * that can be rendered.
+   */
+  String get renderConstructor => _renderConstructor;
+
+  /**
+   * If the node is a widget class that can be rendered for IDE, the name of
+   * the constructor that should be used to instantiate the widget. Empty
+   * string for default constructor. Absent if the node is not a widget class
+   * that can be rendered.
+   */
+  void set renderConstructor(String value) {
+    this._renderConstructor = value;
+  }
+
+  /**
+   * If the node is a StatefulWidget that can be rendered, and its State class
+   * is defined in the same file, the offset of the State class code in the
+   * file.
+   */
+  int get stateOffset => _stateOffset;
+
+  /**
+   * If the node is a StatefulWidget that can be rendered, and its State class
+   * is defined in the same file, the offset of the State class code in the
+   * file.
+   */
+  void set stateOffset(int value) {
+    this._stateOffset = value;
+  }
+
+  /**
+   * If the node is a StatefulWidget that can be rendered, and its State class
+   * is defined in the same file, the length of the State class code in the
+   * file.
+   */
+  int get stateLength => _stateLength;
+
+  /**
+   * If the node is a StatefulWidget that can be rendered, and its State class
+   * is defined in the same file, the length of the State class code in the
+   * file.
+   */
+  void set stateLength(int value) {
+    this._stateLength = value;
+  }
+
   FlutterOutline(FlutterOutlineKind kind, int offset, int length,
       {String label,
       Element dartElement,
@@ -10807,7 +11212,11 @@ class FlutterOutline implements HasToJson {
       String className,
       String parentAssociationLabel,
       String variableName,
-      List<FlutterOutline> children}) {
+      List<FlutterOutline> children,
+      int id,
+      String renderConstructor,
+      int stateOffset,
+      int stateLength}) {
     this.kind = kind;
     this.offset = offset;
     this.length = length;
@@ -10818,6 +11227,10 @@ class FlutterOutline implements HasToJson {
     this.parentAssociationLabel = parentAssociationLabel;
     this.variableName = variableName;
     this.children = children;
+    this.id = id;
+    this.renderConstructor = renderConstructor;
+    this.stateOffset = stateOffset;
+    this.stateLength = stateLength;
   }
 
   factory FlutterOutline.fromJson(
@@ -10887,6 +11300,25 @@ class FlutterOutline implements HasToJson {
             (String jsonPath, Object json) =>
                 new FlutterOutline.fromJson(jsonDecoder, jsonPath, json));
       }
+      int id;
+      if (json.containsKey("id")) {
+        id = jsonDecoder.decodeInt(jsonPath + ".id", json["id"]);
+      }
+      String renderConstructor;
+      if (json.containsKey("renderConstructor")) {
+        renderConstructor = jsonDecoder.decodeString(
+            jsonPath + ".renderConstructor", json["renderConstructor"]);
+      }
+      int stateOffset;
+      if (json.containsKey("stateOffset")) {
+        stateOffset = jsonDecoder.decodeInt(
+            jsonPath + ".stateOffset", json["stateOffset"]);
+      }
+      int stateLength;
+      if (json.containsKey("stateLength")) {
+        stateLength = jsonDecoder.decodeInt(
+            jsonPath + ".stateLength", json["stateLength"]);
+      }
       return new FlutterOutline(kind, offset, length,
           label: label,
           dartElement: dartElement,
@@ -10894,7 +11326,11 @@ class FlutterOutline implements HasToJson {
           className: className,
           parentAssociationLabel: parentAssociationLabel,
           variableName: variableName,
-          children: children);
+          children: children,
+          id: id,
+          renderConstructor: renderConstructor,
+          stateOffset: stateOffset,
+          stateLength: stateLength);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "FlutterOutline", json);
     }
@@ -10930,6 +11366,18 @@ class FlutterOutline implements HasToJson {
       result["children"] =
           children.map((FlutterOutline value) => value.toJson()).toList();
     }
+    if (id != null) {
+      result["id"] = id;
+    }
+    if (renderConstructor != null) {
+      result["renderConstructor"] = renderConstructor;
+    }
+    if (stateOffset != null) {
+      result["stateOffset"] = stateOffset;
+    }
+    if (stateLength != null) {
+      result["stateLength"] = stateLength;
+    }
     return result;
   }
 
@@ -10953,7 +11401,11 @@ class FlutterOutline implements HasToJson {
           parentAssociationLabel == other.parentAssociationLabel &&
           variableName == other.variableName &&
           listEqual(children, other.children,
-              (FlutterOutline a, FlutterOutline b) => a == b);
+              (FlutterOutline a, FlutterOutline b) => a == b) &&
+          id == other.id &&
+          renderConstructor == other.renderConstructor &&
+          stateOffset == other.stateOffset &&
+          stateLength == other.stateLength;
     }
     return false;
   }
@@ -10971,6 +11423,10 @@ class FlutterOutline implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, parentAssociationLabel.hashCode);
     hash = JenkinsSmiHash.combine(hash, variableName.hashCode);
     hash = JenkinsSmiHash.combine(hash, children.hashCode);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    hash = JenkinsSmiHash.combine(hash, renderConstructor.hashCode);
+    hash = JenkinsSmiHash.combine(hash, stateOffset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, stateLength.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -11278,6 +11734,7 @@ class FlutterOutlineKind implements Enum {
  * {
  *   "file": FilePath
  *   "outline": FlutterOutline
+ *   "instrumentationEdits": List<SourceEdit>
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -11286,6 +11743,8 @@ class FlutterOutlineParams implements HasToJson {
   String _file;
 
   FlutterOutline _outline;
+
+  List<SourceEdit> _instrumentationEdits;
 
   /**
    * The file with which the outline is associated.
@@ -11313,9 +11772,28 @@ class FlutterOutlineParams implements HasToJson {
     this._outline = value;
   }
 
-  FlutterOutlineParams(String file, FlutterOutline outline) {
+  /**
+   * If the file has Flutter widgets that can be rendered, the list of edits
+   * that should be applied to the file to instrument widgets and associate
+   * them with outline nodes.
+   */
+  List<SourceEdit> get instrumentationEdits => _instrumentationEdits;
+
+  /**
+   * If the file has Flutter widgets that can be rendered, the list of edits
+   * that should be applied to the file to instrument widgets and associate
+   * them with outline nodes.
+   */
+  void set instrumentationEdits(List<SourceEdit> value) {
+    assert(value != null);
+    this._instrumentationEdits = value;
+  }
+
+  FlutterOutlineParams(String file, FlutterOutline outline,
+      List<SourceEdit> instrumentationEdits) {
     this.file = file;
     this.outline = outline;
+    this.instrumentationEdits = instrumentationEdits;
   }
 
   factory FlutterOutlineParams.fromJson(
@@ -11337,7 +11815,17 @@ class FlutterOutlineParams implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "outline");
       }
-      return new FlutterOutlineParams(file, outline);
+      List<SourceEdit> instrumentationEdits;
+      if (json.containsKey("instrumentationEdits")) {
+        instrumentationEdits = jsonDecoder.decodeList(
+            jsonPath + ".instrumentationEdits",
+            json["instrumentationEdits"],
+            (String jsonPath, Object json) =>
+                new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "instrumentationEdits");
+      }
+      return new FlutterOutlineParams(file, outline, instrumentationEdits);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "flutter.outline params", json);
     }
@@ -11353,6 +11841,8 @@ class FlutterOutlineParams implements HasToJson {
     Map<String, dynamic> result = {};
     result["file"] = file;
     result["outline"] = outline.toJson();
+    result["instrumentationEdits"] =
+        instrumentationEdits.map((SourceEdit value) => value.toJson()).toList();
     return result;
   }
 
@@ -11366,7 +11856,10 @@ class FlutterOutlineParams implements HasToJson {
   @override
   bool operator ==(other) {
     if (other is FlutterOutlineParams) {
-      return file == other.file && outline == other.outline;
+      return file == other.file &&
+          outline == other.outline &&
+          listEqual(instrumentationEdits, other.instrumentationEdits,
+              (SourceEdit a, SourceEdit b) => a == b);
     }
     return false;
   }
@@ -11376,6 +11869,7 @@ class FlutterOutlineParams implements HasToJson {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, file.hashCode);
     hash = JenkinsSmiHash.combine(hash, outline.hashCode);
+    hash = JenkinsSmiHash.combine(hash, instrumentationEdits.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -15058,6 +15552,240 @@ class SearchFindTopLevelDeclarationsResult implements ResponseResult {
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * search.getElementDeclarations params
+ *
+ * {
+ *   "pattern": optional String
+ *   "maxResults": optional int
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class SearchGetElementDeclarationsParams implements RequestParams {
+  String _pattern;
+
+  int _maxResults;
+
+  /**
+   * The regular expression used to match the names of declarations. If this
+   * field is missing, return all declarations.
+   */
+  String get pattern => _pattern;
+
+  /**
+   * The regular expression used to match the names of declarations. If this
+   * field is missing, return all declarations.
+   */
+  void set pattern(String value) {
+    this._pattern = value;
+  }
+
+  /**
+   * The maximum number of declarations to return. If this field is missing,
+   * return all matching declarations.
+   */
+  int get maxResults => _maxResults;
+
+  /**
+   * The maximum number of declarations to return. If this field is missing,
+   * return all matching declarations.
+   */
+  void set maxResults(int value) {
+    this._maxResults = value;
+  }
+
+  SearchGetElementDeclarationsParams({String pattern, int maxResults}) {
+    this.pattern = pattern;
+    this.maxResults = maxResults;
+  }
+
+  factory SearchGetElementDeclarationsParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String pattern;
+      if (json.containsKey("pattern")) {
+        pattern =
+            jsonDecoder.decodeString(jsonPath + ".pattern", json["pattern"]);
+      }
+      int maxResults;
+      if (json.containsKey("maxResults")) {
+        maxResults =
+            jsonDecoder.decodeInt(jsonPath + ".maxResults", json["maxResults"]);
+      }
+      return new SearchGetElementDeclarationsParams(
+          pattern: pattern, maxResults: maxResults);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "search.getElementDeclarations params", json);
+    }
+  }
+
+  factory SearchGetElementDeclarationsParams.fromRequest(Request request) {
+    return new SearchGetElementDeclarationsParams.fromJson(
+        new RequestDecoder(request), "params", request.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    if (pattern != null) {
+      result["pattern"] = pattern;
+    }
+    if (maxResults != null) {
+      result["maxResults"] = maxResults;
+    }
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return new Request(id, "search.getElementDeclarations", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is SearchGetElementDeclarationsParams) {
+      return pattern == other.pattern && maxResults == other.maxResults;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, pattern.hashCode);
+    hash = JenkinsSmiHash.combine(hash, maxResults.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * search.getElementDeclarations result
+ *
+ * {
+ *   "declarations": List<ElementDeclaration>
+ *   "files": List<FilePath>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class SearchGetElementDeclarationsResult implements ResponseResult {
+  List<ElementDeclaration> _declarations;
+
+  List<String> _files;
+
+  /**
+   * The list of declarations.
+   */
+  List<ElementDeclaration> get declarations => _declarations;
+
+  /**
+   * The list of declarations.
+   */
+  void set declarations(List<ElementDeclaration> value) {
+    assert(value != null);
+    this._declarations = value;
+  }
+
+  /**
+   * The list of the paths of files with declarations.
+   */
+  List<String> get files => _files;
+
+  /**
+   * The list of the paths of files with declarations.
+   */
+  void set files(List<String> value) {
+    assert(value != null);
+    this._files = value;
+  }
+
+  SearchGetElementDeclarationsResult(
+      List<ElementDeclaration> declarations, List<String> files) {
+    this.declarations = declarations;
+    this.files = files;
+  }
+
+  factory SearchGetElementDeclarationsResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<ElementDeclaration> declarations;
+      if (json.containsKey("declarations")) {
+        declarations = jsonDecoder.decodeList(
+            jsonPath + ".declarations",
+            json["declarations"],
+            (String jsonPath, Object json) =>
+                new ElementDeclaration.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "declarations");
+      }
+      List<String> files;
+      if (json.containsKey("files")) {
+        files = jsonDecoder.decodeList(
+            jsonPath + ".files", json["files"], jsonDecoder.decodeString);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "files");
+      }
+      return new SearchGetElementDeclarationsResult(declarations, files);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "search.getElementDeclarations result", json);
+    }
+  }
+
+  factory SearchGetElementDeclarationsResult.fromResponse(Response response) {
+    return new SearchGetElementDeclarationsResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["declarations"] =
+        declarations.map((ElementDeclaration value) => value.toJson()).toList();
+    result["files"] = files;
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is SearchGetElementDeclarationsResult) {
+      return listEqual(declarations, other.declarations,
+              (ElementDeclaration a, ElementDeclaration b) => a == b) &&
+          listEqual(files, other.files, (String a, String b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, declarations.hashCode);
+    hash = JenkinsSmiHash.combine(hash, files.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

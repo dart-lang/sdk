@@ -620,10 +620,6 @@ typedef intptr_t (*SimulatorLeafRuntimeCall)(intptr_t r0,
 // Calls to leaf float Dart runtime functions are based on this interface.
 typedef double (*SimulatorLeafFloatRuntimeCall)(double d0, double d1);
 
-// Calls to native Dart functions are based on this interface.
-typedef void (*SimulatorBootstrapNativeCall)(NativeArguments* arguments);
-typedef void (*SimulatorNativeCall)(NativeArguments* arguments, uword target);
-
 void Simulator::Exit(Thread* thread,
                      RawObject** base,
                      RawObject** frame,
@@ -970,48 +966,15 @@ static DART_NOINLINE bool InvokeRuntime(Thread* thread,
   }
 }
 
-static DART_NOINLINE bool InvokeBootstrapNative(Thread* thread,
-                                                Simulator* sim,
-                                                SimulatorBootstrapNativeCall f,
-                                                NativeArguments* args) {
+static DART_NOINLINE bool InvokeNative(Thread* thread,
+                                       Simulator* sim,
+                                       NativeFunctionWrapper wrapper,
+                                       Dart_NativeFunction function,
+                                       Dart_NativeArguments args) {
   SimulatorSetjmpBuffer buffer(sim);
   if (!setjmp(buffer.buffer_)) {
-    thread->set_vm_tag(reinterpret_cast<uword>(f));
-    f(args);
-    thread->set_vm_tag(VMTag::kDartTagId);
-    thread->set_top_exit_frame_info(0);
-    return true;
-  } else {
-    return false;
-  }
-}
-
-static DART_NOINLINE bool InvokeNativeNoScopeWrapper(Thread* thread,
-                                                     Simulator* sim,
-                                                     Dart_NativeFunction f,
-                                                     NativeArguments* args) {
-  SimulatorSetjmpBuffer buffer(sim);
-  if (!setjmp(buffer.buffer_)) {
-    thread->set_vm_tag(reinterpret_cast<uword>(f));
-    NativeEntry::NoScopeNativeCallWrapper(
-        reinterpret_cast<Dart_NativeArguments>(args), f);
-    thread->set_vm_tag(VMTag::kDartTagId);
-    thread->set_top_exit_frame_info(0);
-    return true;
-  } else {
-    return false;
-  }
-}
-
-static DART_NOINLINE bool InvokeNativeAutoScopeWrapper(Thread* thread,
-                                                       Simulator* sim,
-                                                       Dart_NativeFunction f,
-                                                       NativeArguments* args) {
-  SimulatorSetjmpBuffer buffer(sim);
-  if (!setjmp(buffer.buffer_)) {
-    thread->set_vm_tag(reinterpret_cast<uword>(f));
-    NativeEntry::AutoScopeNativeCallWrapper(
-        reinterpret_cast<Dart_NativeArguments>(args), f);
+    thread->set_vm_tag(reinterpret_cast<uword>(function));
+    wrapper(args, function);
     thread->set_vm_tag(VMTag::kDartTagId);
     thread->set_top_exit_frame_info(0);
     return true;
@@ -1174,22 +1137,8 @@ static DART_NOINLINE bool InvokeNativeAutoScopeWrapper(Thread* thread,
     HANDLE_RETURN;                                                             \
   }
 
-#define INVOKE_BOOTSTRAP_NATIVE(Func, Args)                                    \
-  if (!InvokeBootstrapNative(thread, this, Func, &Args)) {                     \
-    HANDLE_EXCEPTION;                                                          \
-  } else {                                                                     \
-    HANDLE_RETURN;                                                             \
-  }
-
-#define INVOKE_NATIVE_NO_SCOPE(Func, Args)                                     \
-  if (!InvokeNativeNoScopeWrapper(thread, this, Func, &Args)) {                \
-    HANDLE_EXCEPTION;                                                          \
-  } else {                                                                     \
-    HANDLE_RETURN;                                                             \
-  }
-
-#define INVOKE_NATIVE_AUTO_SCOPE(Func, Args)                                   \
-  if (!InvokeNativeAutoScopeWrapper(thread, this, Func, &Args)) {              \
+#define INVOKE_NATIVE(Wrapper, Func, Args)                                     \
+  if (!InvokeNative(thread, this, Wrapper, Func, Args)) {                      \
     HANDLE_EXCEPTION;                                                          \
   } else {                                                                     \
     HANDLE_RETURN;                                                             \
@@ -1854,60 +1803,25 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(NativeBootstrapCall, 0);
-    intptr_t argc_tag = reinterpret_cast<intptr_t>(SP[-0]);
+    BYTECODE(NativeCall, A_B_C);
+    NativeFunctionWrapper trampoline =
+        reinterpret_cast<NativeFunctionWrapper>(LOAD_CONSTANT(rA));
+    Dart_NativeFunction function =
+        reinterpret_cast<Dart_NativeFunction>(LOAD_CONSTANT(rB));
+    intptr_t argc_tag = reinterpret_cast<intptr_t>(LOAD_CONSTANT(rC));
     const intptr_t num_arguments = NativeArguments::ArgcBits::decode(argc_tag);
 
-    RawObject** incoming_args = SP - 1 - num_arguments;
-    RawObject** return_slot = SP - 1;
-    SimulatorBootstrapNativeCall native_target =
-        reinterpret_cast<SimulatorBootstrapNativeCall>(SP[-1]);
-    SP[-0] = 0;  // Note: argc_tag is not smi-tagged.
-    SP[-1] = null_value;
-    Exit(thread, FP, SP + 1, pc);
+    *++SP = null_value;  // Result slot.
+
+    RawObject** incoming_args = SP - num_arguments;
+    RawObject** return_slot = SP;
+    Exit(thread, FP, SP, pc);
     NativeArguments args(thread, argc_tag, incoming_args, return_slot);
-    INVOKE_BOOTSTRAP_NATIVE(native_target, args);
+    INVOKE_NATIVE(trampoline, function,
+                  reinterpret_cast<Dart_NativeArguments>(&args));
 
-    *(SP - 1 - num_arguments) = *return_slot;
-    SP -= 1 + num_arguments;
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(NativeNoScopeCall, 0);
-    intptr_t argc_tag = reinterpret_cast<intptr_t>(SP[-0]);
-    const intptr_t num_arguments = NativeArguments::ArgcBits::decode(argc_tag);
-
-    RawObject** incoming_args = SP - 1 - num_arguments;
-    RawObject** return_slot = SP - 1;
-    Dart_NativeFunction native_target =
-        reinterpret_cast<Dart_NativeFunction>(SP[-1]);
-    SP[-0] = 0;  // argc_tag is not smi tagged!
-    SP[-1] = null_value;
-    Exit(thread, FP, SP + 1, pc);
-    NativeArguments args(thread, argc_tag, incoming_args, return_slot);
-    INVOKE_NATIVE_NO_SCOPE(native_target, args);
-    *(SP - 1 - num_arguments) = *return_slot;
-    SP -= 1 + num_arguments;
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(NativeAutoScopeCall, 0);
-    intptr_t argc_tag = reinterpret_cast<intptr_t>(SP[-0]);
-    const intptr_t num_arguments = NativeArguments::ArgcBits::decode(argc_tag);
-
-    RawObject** incoming_args = SP - 1 - num_arguments;
-    RawObject** return_slot = SP - 1;
-    Dart_NativeFunction native_target =
-        reinterpret_cast<Dart_NativeFunction>(SP[-1]);
-    SP[-0] = 0;  // argc_tag is not smi tagged!
-    SP[-1] = null_value;
-    Exit(thread, FP, SP + 1, pc);
-    NativeArguments args(thread, argc_tag, incoming_args, return_slot);
-    INVOKE_NATIVE_AUTO_SCOPE(native_target, args);
-    *(SP - 1 - num_arguments) = *return_slot;
-    SP -= 1 + num_arguments;
+    *(SP - num_arguments) = *return_slot;
+    SP -= num_arguments;
     DISPATCH();
   }
 

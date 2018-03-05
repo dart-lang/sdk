@@ -15,6 +15,7 @@ cc/IsolateReload_PendingStaticCall_DefinedToNSM: SkipSlow # Issue 28198
 cc/IsolateReload_PendingStaticCall_NSMToDefined: SkipSlow # Issue 28198
 cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: SkipSlow # Issue 28198
 cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: SkipSlow # Issue 28198
+cc/IsolateReload_RunNewFieldInitializersWithGenerics: Fail # Issue 32299
 cc/Profiler_InliningIntervalBoundry: Skip # Differences in ia32, debug, release
 cc/SNPrint_BadArgs: Crash, Fail # These tests are expected to crash on all platforms.
 cc/Sleep: Skip # Flaky # Flaky on buildbot. Issue 5133 and 10409.
@@ -24,10 +25,6 @@ dart/data_uri_import_test/none: SkipByDesign
 cc/CodeImmutability: Fail, OK # Address Sanitizer turns a crash into a failure.
 cc/IsolateReload_DanglingGetter_Class: Fail # Issue 28349
 cc/IsolateReload_DanglingGetter_Instance: Fail # Issue 28349
-cc/IsolateReload_DanglingGetter_Library: Fail # Issue 28349
-cc/IsolateReload_DanglingSetter_Class: Fail # Issue 28349
-cc/IsolateReload_DanglingSetter_Instance: Fail # Issue 28349
-cc/IsolateReload_DanglingSetter_Library: Fail # Issue 28349
 cc/IsolateReload_LiveStack: Fail # Issue 28349
 cc/IsolateReload_PendingSuperCall: Fail # Issue 28349
 cc/IsolateReload_SmiFastPathStubs: Fail # Issue 28349
@@ -42,14 +39,11 @@ cc/IsolateReload_TypeIdentityGeneric: Fail # Issue 28349
 cc/IsolateReload_TypeIdentityParameter: Fail # Issue 28349
 
 [ $compiler == app_jit ]
-dart/optimized_stacktrace_line_and_column_test: RuntimeError, OK # app-jit lacks column information
 dart/snapshot_version_test: Fail, OK # Expects to find script snapshot relative to Dart source.
 
 [ $compiler == dart2analyzer ]
 dart/byte_array_optimized_test: CompileTimeError # int64
 dart/byte_array_test: CompileTimeError # int64
-dart/optimized_stacktrace_line_and_column_test: StaticWarning
-dart/optimized_stacktrace_line_test: StaticWarning
 dart/truncating_ints_test: CompileTimeError # int64
 
 [ $compiler == dart2js ]
@@ -62,12 +56,13 @@ dart/redirection_type_shuffling_test: Skip # Depends on lazy enforcement of type
 dart/simd128float32_array_test: Skip # compilers not aware of Simd128
 dart/simd128float32_test: Skip # compilers not aware of Simd128
 dart/truncating_ints_test: Skip # dart2js doesn't know about --limit-ints-to-64-bits
+dart/wrap_around_in_range_analysis_test: SkipByDesign # The test requires int64.
 
 [ $compiler == dartk ]
-cc/DartAPI_New: Crash
+cc/DartAPI_New: Fail
 cc/DartAPI_TypeGetParameterizedTypes: Crash
-dart/redirection_type_shuffling_test/00: Crash
-dart/redirection_type_shuffling_test/none: Crash
+dart/redirection_type_shuffling_test/00: RuntimeError
+dart/redirection_type_shuffling_test/none: RuntimeError
 
 [ $compiler != dartk ]
 cc/IsolateReload_KernelIncrementalCompile: Skip
@@ -90,7 +85,6 @@ dart/spawn_shutdown_test: Pass, Slow # VM Shutdown test, It can take some time f
 
 [ $runtime == dart_precompiled ]
 dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
-dart/optimized_stacktrace_line_and_column_test: RuntimeError, OK # AOT lacks column information
 
 [ $runtime != vm ]
 dart/hello_fuchsia_test: SkipByDesign # This is a test for fuchsia OS
@@ -134,19 +128,6 @@ cc/Profiler_ToggleRecordAllocation: Skip
 cc/Profiler_TrivialRecordAllocation: Skip
 cc/Profiler_TypedArrayAllocation: Skip
 
-# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
-# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
-# batch mode.
-[ $arch == simarm && $compiler == dartk ]
-cc/IsolateReload_ExportedLibModified: Fail # Please triage.
-cc/IsolateReload_ImportedLibModified: Fail # Please triage.
-cc/IsolateReload_ImportedMixinFunction: Fail # Please triage.
-cc/IsolateReload_LibraryHide: Fail # Please triage.
-cc/IsolateReload_LibraryShow: Fail # Please triage.
-cc/IsolateReload_MainLibModified: Fail # Please triage.
-cc/IsolateReload_NoLibsModified: Fail # Please triage.
-cc/IsolateReload_PrefixImportedLibModified: Fail # Please triage.
-
 [ $arch == x64 && $system == windows ]
 cc/Profiler_BinaryOperatorSourcePositionOptimized: Pass, Fail # Issue 31137
 cc/Profiler_ClosureAllocation: Pass, Fail # Issue 31137
@@ -163,7 +144,7 @@ cc/Dart2JSCompileAll: SkipSlow # Timeout.
 
 [ $compiler == dartk && $mode == debug && $runtime == vm ]
 cc/InjectNativeFields1: Crash
-cc/InjectNativeFields3: Crash
+cc/PrintJSON: Crash
 cc/Service_TokenStream: Crash
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
@@ -173,21 +154,18 @@ cc/Service_TokenStream: Crash
 cc/StackTraceMallocHookLengthTest: Fail # Please triage.
 
 [ $compiler == dartk && $mode == release && $runtime == vm ]
+cc/CorelibIsolateStartup: Timeout, Pass
 cc/InjectNativeFields1: Fail
-cc/InjectNativeFields3: Fail
 cc/Service_TokenStream: Fail
 
 [ $compiler == dartk && $runtime == vm ]
 cc/CanonicalizationInScriptSnapshots: Fail
 cc/Class_ComputeEndTokenPos: Crash
 cc/DartAPI_CurrentStackTraceInfo: Fail
-cc/DartAPI_ImplicitNativeFieldAccess: Crash
 cc/DartAPI_InjectNativeFields1: Skip
-cc/DartAPI_InjectNativeFields3: Crash
-cc/DartAPI_InjectNativeFields4: Crash
-cc/DartAPI_InjectNativeFieldsSuperClass: Crash
 cc/DartAPI_InvokeNoSuchMethod: Fail
 cc/DartAPI_Invoke_CrossLibrary: Crash
+cc/DartAPI_IsolateSetCheckedMode: Skip # Checked mode is not relevant for dart 2?
 cc/DartAPI_IsolateShutdownRunDartCode: Skip # Flaky
 cc/DartAPI_LazyLoadDeoptimizes: Fail
 cc/DartAPI_LoadLibrary: Crash
@@ -200,13 +178,11 @@ cc/DartAPI_LoadSource: Crash
 cc/DartAPI_LoadSource_LateLoad: Crash
 cc/DartAPI_LookupLibrary: Crash
 cc/DartAPI_NativeFieldAccess: Fail
-cc/DartAPI_NegativeNativeFieldInIsolateMessage: Crash
 cc/DartAPI_ParsePatchLibrary: Crash
 cc/DartAPI_PropagateError: Fail
 cc/DartAPI_StackOverflowStackTraceInfoArrowFunction: Fail
 cc/DartAPI_StackOverflowStackTraceInfoBraceFunction1: Fail
 cc/DartAPI_StackOverflowStackTraceInfoBraceFunction2: Fail
-cc/DartAPI_TestNativeFieldsAccess: Crash
 cc/DebuggerAPI_BreakpointStubPatching: Fail
 cc/DebuggerAPI_GetClosureInfo: Fail
 cc/DebuggerAPI_InterruptIsolate: SkipSlow
@@ -217,43 +193,12 @@ cc/Debugger_PrintBreakpointsToJSONArray: Fail
 cc/Debugger_Rewind_Optimized: SkipSlow
 cc/Debugger_SetBreakpointInPartOfLibrary: Crash
 cc/FunctionSourceFingerprint: Fail
-cc/IsolateReload_BadClass: Fail
-cc/IsolateReload_ChangeInstanceFormat1: Skip
-cc/IsolateReload_ChangeInstanceFormat3: Skip
-cc/IsolateReload_ChangeInstanceFormat7: Skip
-cc/IsolateReload_ChangeInstanceFormat8: Skip
-cc/IsolateReload_ClassFieldAdded: Skip # Crash, Timeout
-cc/IsolateReload_ClassFieldAdded2: Skip # Crash, Timeout
-cc/IsolateReload_DanglingGetter_Library: Fail
-cc/IsolateReload_DanglingSetter_Class: Fail
-cc/IsolateReload_DanglingSetter_Instance: Fail
-cc/IsolateReload_DanglingSetter_Library: Fail
-cc/IsolateReload_DirectSubclasses_Failure: Fail
-cc/IsolateReload_DirectSubclasses_Success: Skip
+cc/GenerateSource: Skip # Cannot generate source from a kernel binary. 
 cc/IsolateReload_EnumDelete: Fail
 cc/IsolateReload_EnumReorderIdentical: Fail
 cc/IsolateReload_EnumToNotEnum: Skip
-cc/IsolateReload_ExportedLibModified: Crash
-cc/IsolateReload_ImportedLibModified: Crash
-cc/IsolateReload_ImportedMixinFunction: Crash
-cc/IsolateReload_LibraryHide: Crash
-cc/IsolateReload_LibraryShow: Crash
-cc/IsolateReload_LiveStack: Fail
-cc/IsolateReload_MainLibModified: Crash
-cc/IsolateReload_NoLibsModified: Crash
 cc/IsolateReload_NotEnumToEnum: Skip
 cc/IsolateReload_NotTypedefToTypedef: Fail
-cc/IsolateReload_PendingSuperCall: Fail
-cc/IsolateReload_PrefixImportedLibModified: Crash
-cc/IsolateReload_RunNewFieldInitialiazersSuperClass: Skip
-cc/IsolateReload_RunNewFieldInitializers: Skip
-cc/IsolateReload_RunNewFieldInitializersMutateStaticField: Skip
-cc/IsolateReload_RunNewFieldInitializersReferenceStaticField: Skip
-cc/IsolateReload_RunNewFieldInitializersThrows: Skip
-cc/IsolateReload_RunNewFieldInitializersWithConsts: Skip
-cc/IsolateReload_ShapeChangeRetainsHash: Skip
-cc/IsolateReload_SmiFastPathStubs: Fail
-cc/IsolateReload_TopLevelParseError: Fail
 cc/IsolateReload_TypedefToNotTypedef: Fail
 cc/Parser_AllocateVariables_CaptureLoopVar: Fail
 cc/Parser_AllocateVariables_CapturedVar: Fail
@@ -301,68 +246,53 @@ dart/data_uri_import_test/utf16: MissingRuntimeError
 dart/spawn_shutdown_test: SkipSlow
 
 [ $compiler == dartk && $runtime == vm && $system == macos ]
-cc/IsolateReload_DanglingGetter_Class: Crash
-cc/IsolateReload_DanglingGetter_Instance: Crash
-cc/IsolateReload_DanglingGetter_Library: Crash
-cc/IsolateReload_DanglingSetter_Class: Crash
-cc/IsolateReload_DanglingSetter_Instance: Crash
-cc/IsolateReload_DanglingSetter_Library: Crash
 cc/IsolateReload_EnumDelete: Crash
-cc/IsolateReload_LibraryLookup: Crash
-cc/IsolateReload_TearOff_AddArguments: Crash
-cc/IsolateReload_TearOff_AddArguments2: Crash
-cc/IsolateReload_TearOff_Class_Identity: Crash
-cc/IsolateReload_TearOff_Instance_Equality: Crash
-cc/IsolateReload_TearOff_Library_Identity: Crash
-cc/IsolateReload_TearOff_List_Set: Crash
-cc/IsolateReload_TypeIdentity: Crash
-cc/IsolateReload_TypeIdentityGeneric: Crash
-cc/IsolateReload_TypeIdentityParameter: Crash
+cc/IsolateReload_LibraryLookup: Fail, Crash
+cc/IsolateReload_TearOff_AddArguments: Fail
+cc/IsolateReload_TearOff_Instance_Equality: Fail
+cc/IsolateReload_TearOff_List_Set: Fail
 cc/Parser_AllocateVariables_CaptureLoopVar: Crash
 cc/Parser_AllocateVariables_Issue7681: Crash
 cc/Parser_AllocateVariables_MiddleChain: Crash
 cc/Parser_AllocateVariables_NestedCapturedVar: Crash
 cc/Parser_AllocateVariables_TwoChains: Crash
 
+[ $compiler == dartk && $runtime == vm && $strong ]
+cc/IsolateReload_LibraryHide: Crash
+cc/IsolateReload_LibraryShow: Crash
+
 [ $compiler == dartk && $system == linux ]
-cc/IsolateReload_DanglingGetter_Class: Fail
-cc/IsolateReload_DanglingGetter_Instance: Fail
-cc/IsolateReload_LibraryLookup: Fail
+cc/IsolateReload_LibraryLookup: Crash
 cc/IsolateReload_TearOff_AddArguments: Fail
-cc/IsolateReload_TearOff_AddArguments2: Fail
-cc/IsolateReload_TearOff_Class_Identity: Fail
 cc/IsolateReload_TearOff_Instance_Equality: Fail
-cc/IsolateReload_TearOff_Library_Identity: Fail
 cc/IsolateReload_TearOff_List_Set: Fail
-cc/IsolateReload_TypeIdentity: Fail
-cc/IsolateReload_TypeIdentityGeneric: Fail
-cc/IsolateReload_TypeIdentityParameter: Fail
 
 [ $compiler == dartk && $system == windows ]
-cc/IsolateReload_DanglingGetter_Class: Crash
-cc/IsolateReload_DanglingGetter_Instance: Crash
 cc/IsolateReload_LibraryLookup: Crash
-cc/IsolateReload_TearOff_AddArguments: Crash
-cc/IsolateReload_TearOff_AddArguments2: Crash
-cc/IsolateReload_TearOff_Class_Identity: Crash
-cc/IsolateReload_TearOff_Instance_Equality: Crash
-cc/IsolateReload_TearOff_Library_Identity: Crash
-cc/IsolateReload_TearOff_List_Set: Crash
-cc/IsolateReload_TypeIdentity: Crash
-cc/IsolateReload_TypeIdentityGeneric: Crash
-cc/IsolateReload_TypeIdentityParameter: Crash
-cc/Profiler_BasicSourcePosition: Fail
-cc/Profiler_CodeTicks: Fail
+cc/IsolateReload_TearOff_AddArguments: Fail
+cc/IsolateReload_TearOff_Instance_Equality: Fail
+cc/IsolateReload_TearOff_List_Set: Fail
 cc/Profiler_ContextAllocation: Fail, Pass # Flaky on Windows --- sometimes give "profiler_test.cc: 1107: error: expected: !walker.Down()"
-cc/Profiler_FunctionTicks: Fail
-cc/Profiler_ToggleRecordAllocation: Fail
-cc/Profiler_TrivialRecordAllocation: Fail
+cc/Profiler_FunctionTicks: Fail, Pass
+cc/Profiler_ToggleRecordAllocation: Fail, Pass
+cc/Profiler_TrivialRecordAllocation: Fail, Pass
 cc/Service_Address: Fail
 cc/Service_Code: Fail
 
 [ $compiler == dartk && $strong ]
-dart/optimized_stacktrace_line_and_column_test: CompileTimeError # Issue 31586
-dart/optimized_stacktrace_line_test: CompileTimeError # Issue 31586
+cc/DartAPI_ImportLibrary3: Fail # Issue 32190
+cc/DartAPI_LazyLoadDeoptimizes: Crash # Issue 32190
+cc/DartAPI_NativePortPostInteger: Crash # Issue 32190
+cc/DartAPI_NativePortReceiveInteger: Timeout # Issue 32190
+cc/DartAPI_NativePortReceiveNull: Timeout # Issue 32190
+cc/DartAPI_NewNativePort: Crash,Timeout # Issue 32190
+cc/DartGeneratedArrayLiteralMessages: Crash # Issue 32190
+cc/FullSnapshot1: Crash # Issue 32190
+cc/IsolateReload_LibraryImportAdded: Crash # Issue 32190
+cc/IsolateReload_LibraryImportRemoved: Fail # Issue 32190
+cc/IsolateReload_LibraryLookup: Crash # Issue 32190
+cc/Mixin_PrivateSuperResolutionCrossLibraryShouldFail: Fail, Crash # Issue 32190
+cc/StackMapGC: Crash # Issue 32190
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of

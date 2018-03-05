@@ -34,7 +34,6 @@ class ArgumentsTest {
       '--dart-sdk-summary=$dartSdkSummaryPath',
       '-Dfoo=1',
       '-Dbar=2',
-      '--enable-strict-call-checks',
       '--no-declaration-casts',
       '--no-implicit-casts',
       '--no-implicit-dynamic',
@@ -58,7 +57,6 @@ class ArgumentsTest {
     expect(options.defaultPackagesDirectoryPath, defaultPackagesDirectoryPath);
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
     expect(defaultOptions, isNotNull);
-    expect(defaultOptions.enableStrictCallChecks, true);
     expect(defaultOptions.strongMode, true);
     expect(defaultOptions.declarationCasts, false);
     expect(defaultOptions.implicitCasts, false);
@@ -80,7 +78,6 @@ class ArgumentsTest {
     expect(options.defaultPackagesDirectoryPath, isNull);
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
     expect(defaultOptions, isNotNull);
-    expect(defaultOptions.enableStrictCallChecks, false);
     expect(defaultOptions.strongMode, false);
     expect(defaultOptions.declarationCasts, true);
     expect(defaultOptions.implicitCasts, true);
@@ -157,7 +154,7 @@ class ArgumentsTest {
   void test_defineAnalysisArguments() {
     ArgParser parser = new ArgParser();
     defineAnalysisArguments(parser);
-    expect(parser.options, hasLength(15));
+    expect(parser.options, hasLength(14));
   }
 
   void test_extractDefinedVariables() {

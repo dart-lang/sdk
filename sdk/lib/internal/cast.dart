@@ -4,7 +4,7 @@
 
 part of dart._internal;
 
-// Casting wrappers for collections and asynchronous classes.
+// Casting wrappers for collection classes.
 
 abstract class _CastIterableBase<S, T> extends Iterable<T> {
   Iterable<S> get _source;

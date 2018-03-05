@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
@@ -82,10 +83,16 @@ class Required {
   Source addSource(String path, String content, [Uri uri]) {
     File file = newFile(path, content: content);
     Source source = file.createSource(uri);
-    driver.addFile(path);
-    driver.changeFile(path);
-    _fileContentOverlay[path] = content;
+    driver.addFile(file.path);
+    driver.changeFile(file.path);
+    _fileContentOverlay[file.path] = content;
     return source;
+  }
+
+  void configurePreviewDart2() {
+    driver.configure(
+        analysisOptions: new AnalysisOptionsImpl.from(driver.analysisOptions)
+          ..previewDart2 = true);
   }
 
   void processRequiredPlugins() {
@@ -114,7 +121,7 @@ class Required {
         resourceProvider,
         new MemoryByteStore(),
         _fileContentOverlay,
-        null,
+        new ContextRoot(resourceProvider.convertPath('/project'), []),
         sourceFactory,
         new AnalysisOptionsImpl()..strongMode = true);
     scheduler.start();

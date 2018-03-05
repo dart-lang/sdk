@@ -15,7 +15,10 @@ class Bar<T extends asy::Stream<core::String>> extends core::Object {
     ;
   method foo(generic-covariant-impl generic-covariant-interface self::Bar::T t) → dynamic async {
     await for (core::String i in t) {
-      core::int x = let final dynamic #t1 = i in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:17:44: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n      int x = /*error:INVALID_ASSIGNMENT*/ i;\n                                           ^";
+      core::int x = let final dynamic #t1 = i in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:17:44: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+      int x = /*error:INVALID_ASSIGNMENT*/ i;
+                                           ^";
     }
   }
 }
@@ -25,7 +28,10 @@ class Baz<T extends core::Object, E extends asy::Stream<self::Baz::T>, S extends
     ;
   method foo(generic-covariant-impl generic-covariant-interface self::Baz::S t) → dynamic async {
     await for (self::Baz::T i in t) {
-      core::int x = let final dynamic #t2 = i in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:25:44: Error: A value of type 'test::Baz::T' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n      int x = /*error:INVALID_ASSIGNMENT*/ i;\n                                           ^";
+      core::int x = let final dynamic #t2 = i in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:25:44: Error: A value of type 'test::Baz::T' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+      int x = /*error:INVALID_ASSIGNMENT*/ i;
+                                           ^";
       self::Baz::T y = i;
     }
   }
@@ -37,13 +43,19 @@ abstract class MyStream<T extends core::Object> extends asy::Stream<self::MyStre
 static method test() → dynamic async {
   self::MyStream<self::Foo> myStream = self::MyStream::•<self::Foo>();
   await for (self::Foo x in myStream) {
-    core::String y = let final dynamic #t3 = x in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:38:45: Error: A value of type 'test::Foo' can't be assigned to a variable of type 'dart.core::String'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.\n    String y = /*error:INVALID_ASSIGNMENT*/ x;\n                                            ^";
+    core::String y = let final dynamic #t3 = x in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:38:45: Error: A value of type 'test::Foo' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+    String y = /*error:INVALID_ASSIGNMENT*/ x;
+                                            ^";
   }
   await for (dynamic x in myStream) {
     core::String y = x as{TypeError} core::String;
   }
   await for (final self::Foo #t4 in myStream) {
-    core::String x = let final dynamic #t5 = #t4 in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:45:21: Error: A value of type 'test::Foo' can't be assigned to a variable of type 'dart.core::String'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.\n  await for (String x in /*error:FOR_IN_OF_INVALID_ELEMENT_TYPE*/ myStream) {\n                    ^";
+    core::String x = let final dynamic #t5 = #t4 in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:45:21: Error: A value of type 'test::Foo' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+  await for (String x in /*error:FOR_IN_OF_INVALID_ELEMENT_TYPE*/ myStream) {
+                    ^";
     core::String y = x;
   }
   dynamic z;
@@ -62,7 +74,10 @@ static method test() → dynamic async {
     self::Foo y = x;
   }
   core::Map<core::String, self::Foo> map = <core::String, self::Foo>{};
-  await for (dynamic x in let final dynamic #t9 = map in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:66:74: Error: A value of type 'dart.core::Map<dart.core::String, test::Foo>' can't be assigned to a variable of type 'dart.async::Stream<dynamic>'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.async::Stream<dynamic>'.\n  await for (var /*@type=dynamic*/ x in /*error:FOR_IN_OF_INVALID_TYPE*/ map) {\n                                                                         ^") {
+  await for (dynamic x in let final dynamic #t9 = map in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:66:74: Error: A value of type 'dart.core::Map<dart.core::String, test::Foo>' can't be assigned to a variable of type 'dart.async::Stream<dynamic>'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.async::Stream<dynamic>'.
+  await for (var /*@type=dynamic*/ x in /*error:FOR_IN_OF_INVALID_TYPE*/ map) {
+                                                                         ^") {
     core::String y = x as{TypeError} core::String;
   }
 }

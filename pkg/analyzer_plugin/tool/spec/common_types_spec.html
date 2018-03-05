@@ -198,6 +198,14 @@
           required in order to do so is contained in other fields.
         </p>
       </field>
+      <field name="displayText" optional="true">
+        <ref>String</ref>
+        <p>
+          Text to be displayed in, for example, a completion pop-up. This field
+          is only defined if the displayed text should be different than the
+          completion.  Otherwise it is omitted.
+        </p>
+      </field>
       <field name="selectionOffset">
         <ref>int</ref>
         <p>
@@ -228,7 +236,7 @@
         <ref>String</ref>
         <p>
           An abbreviated version of the Dartdoc associated with the element
-          being suggested, This field is omitted if there is no Dartdoc
+          being suggested. This field is omitted if there is no Dartdoc
           associated with the element.
         </p>
       </field>
@@ -391,6 +399,12 @@
         </p>
       </value>
       <value><code>OPTIONAL_ARGUMENT</code></value>
+      <value>
+        <code>OVERRIDE</code>
+        <p>
+          An overriding implementation of a class member is being suggested.
+        </p>
+      </value>
       <value><code>PARAMETER</code></value>
     </enum>
   </type>
@@ -1347,6 +1361,13 @@
         <p>
           The position that should be selected after the edits have been
           applied.
+        </p>
+      </field>
+      <field name="id" optional="true">
+        <ref>String</ref>
+        <p>
+          The optional identifier of the change kind. The identifier remains
+          stable even if the message changes, or is parameterized.
         </p>
       </field>
     </object>

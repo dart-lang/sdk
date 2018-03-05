@@ -92,6 +92,19 @@ class Class3 {
   }
 }
 
+class Class4<T> {
+  Function method7<Q>() {
+    foo(T t, Q q) => '';
+    return foo;
+  }
+}
+
+// Nested generic local function.
+outside<T>() {
+  nested<T>(T t) => '';
+  return nested;
+}
+
 main(args) {
   method1<int>(0);
   method2<String, double>(0.5, 'foo');
@@ -109,6 +122,9 @@ main(args) {
     print('noSuchMethod: Class2.method6<int>');
     print('');
   }
+  var c = new Class4<bool>();
+  print((c.method7<int>()).runtimeType);
+  outside();
 }
 ''';
 
@@ -153,6 +169,7 @@ Class2.method6:
 
 noSuchMethod: Class2.method6<int>
 
+(bool, int) => String
 ''';
 
 main(List<String> args) {
@@ -162,7 +179,7 @@ main(List<String> args) {
     }, options: [
       Flags.useKernel,
       Flags.strongMode,
-      Flags.disableRtiOptimization
+      Flags.disableRtiOptimization,
     ], expectedOutput: OUTPUT, printJs: args.contains('-v'));
     ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;

@@ -534,8 +534,8 @@ class IdbFactory extends Interceptor {
   @DomName('IDBFactory.open')
   Future<Database> open(String name,
       {int version,
-      void onUpgradeNeeded(VersionChangeEvent),
-      void onBlocked(Event)}) {
+      void onUpgradeNeeded(VersionChangeEvent event),
+      void onBlocked(Event event)}) {
     if ((version == null) != (onUpgradeNeeded == null)) {
       return new Future.error(new ArgumentError(
           'version and onUpgradeNeeded must be specified together'));
@@ -1447,11 +1447,10 @@ class Transaction extends EventTarget {
   @DocsEditable()
   Stream<Event> get onError => errorEvent.forTarget(this);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@DocsEditable()
 @DomName('IDBVersionChangeEvent')
 @Unstable()
 @Native("IDBVersionChangeEvent")
@@ -1499,4 +1498,9 @@ class VersionChangeEvent extends Event {
   @Creates('int|String|Null')
   @Returns('int|String|Null')
   final int oldVersion;
+
+  @JSName('target')
+  @DomName('IDBVersionChangeEvent.target')
+  @DocsEditable()
+  final OpenDBRequest target;
 }

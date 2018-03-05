@@ -1377,6 +1377,14 @@ static int GenerateSnapshotFromKernelProgram(void* kernel_program) {
 
   Dart_IsolateFlags isolate_flags;
   Dart_IsolateFlagsInitialize(&isolate_flags);
+
+  Dart_QualifiedFunctionName* entry_points = NULL;
+  if (IsSnapshottingForPrecompilation()) {
+    entry_points = ParseEntryPointsManifestIfPresent();
+    isolate_flags.obfuscate = obfuscate;
+    isolate_flags.entry_points = entry_points;
+  }
+
   // We need to capture the vmservice library in the core snapshot, so load it
   // in the main isolate as well.
   isolate_flags.load_vmservice_library = true;
@@ -1412,9 +1420,6 @@ static int GenerateSnapshotFromKernelProgram(void* kernel_program) {
       Log::PrintErr("Unable to load root library from the input dill file.\n");
       return kErrorExitCode;
     }
-
-    Dart_QualifiedFunctionName* entry_points =
-        ParseEntryPointsManifestIfPresent();
 
     CreateAndWritePrecompiledSnapshot(entry_points);
 

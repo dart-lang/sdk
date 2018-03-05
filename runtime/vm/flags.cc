@@ -80,12 +80,28 @@ intptr_t Flags::num_flags_ = 0;
 
 class Flag {
  public:
-  enum FlagType { kBoolean, kInteger, kUint64, kString, kFunc, kNumFlagTypes };
+  enum FlagType {
+    kBoolean,
+    kInteger,
+    kUint64,
+    kString,
+    kFlagHandler,
+    kOptionHandler,
+    kNumFlagTypes
+  };
 
   Flag(const char* name, const char* comment, void* addr, FlagType type)
       : name_(name), comment_(comment), addr_(addr), type_(type) {}
   Flag(const char* name, const char* comment, FlagHandler handler)
-      : name_(name), comment_(comment), handler_(handler), type_(kFunc) {}
+      : name_(name),
+        comment_(comment),
+        flag_handler_(handler),
+        type_(kFlagHandler) {}
+  Flag(const char* name, const char* comment, OptionHandler handler)
+      : name_(name),
+        comment_(comment),
+        option_handler_(handler),
+        type_(kOptionHandler) {}
 
   void Print() {
     if (IsUnrecognized()) {
@@ -114,7 +130,8 @@ class Flag {
         }
         break;
       }
-      case kFunc: {
+      case kOptionHandler:
+      case kFlagHandler: {
         OS::Print("%s: (%s)\n", name_, comment_);
         break;
       }
@@ -136,7 +153,8 @@ class Flag {
     int* int_ptr_;
     uint64_t* uint64_ptr_;
     charp* charp_ptr_;
-    FlagHandler handler_;
+    FlagHandler flag_handler_;
+    OptionHandler option_handler_;
   };
   FlagType type_;
   bool changed_;
@@ -226,9 +244,18 @@ const char* Flags::Register_charp(charp* addr,
   return default_value;
 }
 
-bool Flags::Register_func(FlagHandler handler,
-                          const char* name,
-                          const char* comment) {
+bool Flags::RegisterFlagHandler(FlagHandler handler,
+                                const char* name,
+                                const char* comment) {
+  ASSERT(Lookup(name) == NULL);
+  Flag* flag = new Flag(name, comment, handler);
+  AddFlag(flag);
+  return false;
+}
+
+bool Flags::RegisterOptionHandler(OptionHandler handler,
+                                  const char* name,
+                                  const char* comment) {
   ASSERT(Lookup(name) == NULL);
   Flag* flag = new Flag(name, comment, handler);
   AddFlag(flag);
@@ -291,14 +318,18 @@ bool Flags::SetFlagFromString(Flag* flag, const char* argument) {
       }
       break;
     }
-    case Flag::kFunc: {
+    case Flag::kFlagHandler: {
       if (strcmp(argument, "true") == 0) {
-        (flag->handler_)(true);
+        (flag->flag_handler_)(true);
       } else if (strcmp(argument, "false") == 0) {
-        (flag->handler_)(false);
+        (flag->flag_handler_)(false);
       } else {
         return false;
       }
+      break;
+    }
+    case Flag::kOptionHandler: {
+      (flag->option_handler_)(argument);
       break;
     }
     default: {
@@ -453,7 +484,8 @@ void Flags::PrintFlagToJSONArray(JSONArray* jsarr, const Flag* flag) {
   if (!FLAG_support_service) {
     return;
   }
-  if (flag->IsUnrecognized() || flag->type_ == Flag::kFunc) {
+  if (flag->IsUnrecognized() || flag->type_ == Flag::kFlagHandler ||
+      flag->type_ == Flag::kOptionHandler) {
     return;
   }
   JSONObject jsflag(jsarr);

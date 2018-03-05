@@ -67,6 +67,15 @@ class DFE {
 
   static bool KernelServiceDillAvailable();
 
+  // Tries to read [script_uri] as a Kernel IR file.
+  // Returns `true` if successful and sets [kernel_file] and [kernel_length]
+  // to be the kernel IR contents.
+  // The caller is responsible for free()ing [kernel_file] if `true`
+  // was returned.
+  static bool TryReadKernelFile(const char* script_uri,
+                                const uint8_t** kernel_ir,
+                                intptr_t* kernel_ir_size);
+
   // We distinguish between "intent to use Dart frontend" vs "can actually
   // use Dart frontend". The method UseDartFrontend tells us about the
   // intent to use DFE. This method tells us if Dart frontend can actually
@@ -78,15 +87,6 @@ class DFE {
   void* LoadKernelServiceProgram();
 
  private:
-  // Tries to read [script_uri] as a Kernel IR file.
-  // Returns `true` if successful and sets [kernel_file] and [kernel_length]
-  // to be the kernel IR contents.
-  // The caller is responsible for free()ing [kernel_file] if `true`
-  // was returned.
-  bool TryReadKernelFile(const char* script_uri,
-                         const uint8_t** kernel_ir,
-                         intptr_t* kernel_ir_size) const;
-
   bool use_dfe_;
   char* frontend_filename_;
 
@@ -95,7 +95,6 @@ class DFE {
   void* platform_strong_program_;
 
   // Kernel binary specified on the cmd line.
-  // Loaded instead of platform if --kernel-binaries is not specified.
   void* application_kernel_binary_;
 
   DISALLOW_COPY_AND_ASSIGN(DFE);

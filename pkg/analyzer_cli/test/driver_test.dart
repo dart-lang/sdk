@@ -31,13 +31,18 @@ main() {
     defineReflectiveTests(BuildModeTest);
     defineReflectiveTests(ExitCodesTest);
     defineReflectiveTests(ExitCodesTest_PreviewDart2);
-    defineReflectiveTests(ExitCodesTest_UseCFE);
+    // TODO(scheglov): Restore similar test coverage when the front-end API
+    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
+    // defineReflectiveTests(ExitCodesTest_UseCFE);
     defineReflectiveTests(LinterTest);
     defineReflectiveTests(LinterTest_PreviewDart2);
     defineReflectiveTests(LinterTest_UseCFE);
+    defineReflectiveTests(NonDartFilesTest);
     defineReflectiveTests(OptionsTest);
     defineReflectiveTests(OptionsTest_PreviewDart2);
-    defineReflectiveTests(OptionsTest_UseCFE);
+    // TODO(scheglov): Restore similar test coverage when the front-end API
+    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
+    // defineReflectiveTests(OptionsTest_UseCFE);
   }, name: 'Driver');
 }
 
@@ -65,19 +70,34 @@ class BaseTest {
     String source, {
     String options: emptyOptionsFile,
     List<String> args: const <String>[],
+  }) {
+    return driveMany([source], options: options, args: args);
+  }
+
+  /// An ability to use [drive] with many sources instead of one.
+  Future<Null> driveMany(
+    List<String> sources, {
+    String options: emptyOptionsFile,
+    List<String> args: const <String>[],
   }) async {
     driver = new Driver(isTesting: true);
-    var cmd = <String>[
-      '--options',
-      path.join(testDirectory, options),
-      _adjustFileSpec(source)
-    ]..addAll(args);
+    var cmd = <String>[];
+
+    if (options != null)
+      cmd.addAll([
+        '--options',
+        path.join(testDirectory, options),
+      ]);
+
+    cmd..addAll(sources.map(_adjustFileSpec))..addAll(args);
+
     if (usePreviewDart2) {
       cmd.insert(0, '--preview-dart-2');
     }
     if (useCFE) {
       cmd.insert(0, '--use-cfe');
     }
+
     await driver.start(cmd);
   }
 
@@ -619,6 +639,15 @@ class ExitCodesTest extends BaseTest {
     expect(exitCode, 0);
   }
 
+  test_partFile_reversed() async {
+    Driver driver = new Driver(isTesting: true);
+    await driver.start([
+      path.join(testDirectory, 'data/library_and_parts/part1.dart'),
+      path.join(testDirectory, 'data/library_and_parts/lib.dart')
+    ]);
+    expect(exitCode, 0);
+  }
+
   test_partFile_dangling() async {
     await drive('data/library_and_parts/part2.dart');
     expect(exitCode, 3);
@@ -779,6 +808,44 @@ class LinterTest_UseCFE extends LinterTest {
 }
 
 @reflectiveTest
+class NonDartFilesTest extends BaseTest {
+  test_analysisOptionsYaml() async {
+    await withTempDirAsync((tempDir) async {
+      String filePath =
+          path.join(tempDir, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
+      new File(filePath).writeAsStringSync('''
+analyzer:
+  string-mode: true
+''');
+      await drive(filePath);
+      expect(
+          bulletToDash(outSink),
+          contains(
+              "warning - The option 'string-mode' isn't supported by 'analyzer'"));
+      expect(exitCode, 0);
+    });
+  }
+
+  test_pubspecYaml() async {
+    await withTempDirAsync((tempDir) async {
+      String filePath = path.join(tempDir, AnalysisEngine.PUBSPEC_YAML_FILE);
+      new File(filePath).writeAsStringSync('''
+name: foo
+flutter:
+  assets:
+    doesNotExist.gif
+''');
+      await drive(filePath);
+      expect(
+          bulletToDash(outSink),
+          contains(
+              "warning - The value of the 'asset' field is expected to be a list of relative file paths"));
+      expect(exitCode, 0);
+    });
+  }
+}
+
+@reflectiveTest
 class OptionsTest extends BaseTest {
   String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
 
@@ -883,6 +950,21 @@ class OptionsTest extends BaseTest {
     expect(bulletToDash(outSink),
         contains("warning - The function 'baz' isn't defined"));
     expect(outSink.toString(), contains("1 error and 1 warning found."));
+  }
+
+  test_analyzeFilesInDifferentContexts() async {
+    await driveMany([
+      'data/linter_project/test_file.dart',
+      'data/no_lints_project/test_file.dart',
+    ], options: null);
+
+    // Should have the lint in the project with lint rules enabled.
+    expect(
+        bulletToDash(outSink),
+        contains(path.join('linter_project', 'test_file.dart') +
+            ':7:7 - camel_case_types'));
+    // Should be just one lint in total.
+    expect(outSink.toString(), contains('1 lint found.'));
   }
 
   Future<Null> _driveBasic() async {

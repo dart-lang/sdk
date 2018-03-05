@@ -58,6 +58,6 @@ main() {
   // Annotation argument.
   // (Cannot check that it's const, just that it's accepted).
   @C(<int, int>{37: 87})
-  void foo() {}
-  foo(); // avoid "unused" hints.
+  var foo = null;
+  foo; // avoid "unused" hints.
 }

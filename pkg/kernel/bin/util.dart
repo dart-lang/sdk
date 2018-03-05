@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:kernel/kernel.dart';
 import 'package:kernel/transformations/treeshaker.dart';
 
 /// Parses all given [embedderEntryPointManifests] and returns the program roots
@@ -64,4 +65,41 @@ List<ProgramRoot> parseProgramRoots(List<String> embedderEntryPointManifests) {
   }
 
   return roots;
+}
+
+class CommandLineHelper {
+  static requireExactlyOneArgument(
+      bool requireExistingFile, List<String> args, void Function() usage) {
+    if (args.length != 1) {
+      print("Expected exactly 1 argument, got ${args.length}.");
+      usage();
+    }
+    requireFileExists(args[0], usage);
+  }
+
+  static requireVariableArgumentCount(
+      List<int> ok, List<String> args, void Function() usage) {
+    if (!ok.contains(args.length)) {
+      print(
+          "Expected the argument count to be one of ${ok}, got ${args.length}.");
+      usage();
+    }
+  }
+
+  static requireFileExists(String file, void Function() usage) {
+    if (!new File(file).existsSync()) {
+      print("Argument '$file' isn't an existing file.");
+      usage();
+    }
+  }
+
+  static Program tryLoadDill(String file, void Function() usage) {
+    try {
+      return loadProgramFromBinary(file);
+    } catch (e) {
+      print("Argument '$file' isn't a dill file that can be loaded.");
+      usage();
+    }
+    return null;
+  }
 }

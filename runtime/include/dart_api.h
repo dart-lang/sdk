@@ -1030,6 +1030,17 @@ Dart_CreateScriptSnapshot(uint8_t** script_snapshot_buffer,
                           intptr_t* script_snapshot_size);
 
 /**
+ * Returns true if snapshot_buffer contains a Dart2 snapshot.
+ *
+ * \param snapshot_buffer Pointer to a buffer that contains the snapshot
+ *   that needs to be checked.
+ * \param snapshot_size Size of the buffer.
+ *
+ * \returns true if the snapshot is a Dart2 snapshot, false otherwise.
+ */
+DART_EXPORT bool Dart_IsDart2Snapshot(const uint8_t* snapshot_buffer);
+
+/**
  * Schedules an interrupt for the specified isolate.
  *
  * When the isolate is interrupted, the isolate interrupt callback
@@ -1883,6 +1894,19 @@ typedef enum {
  */
 DART_EXPORT Dart_Handle Dart_NewListOf(Dart_CoreType_Id element_type_id,
                                        intptr_t length);
+
+/**
+ * Returns a List of the desired length with the desired element type.
+ *
+ * \param element_type Handle to a type object. E.g., from Dart_GetType.
+ *
+ * \param length The length of the list.
+ *
+ * \return The List object if no error occurs. Otherwise returns
+ *   an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_NewListOfType(Dart_Handle element_type,
+                                           intptr_t length);
 
 /**
  * Gets the length of a List.

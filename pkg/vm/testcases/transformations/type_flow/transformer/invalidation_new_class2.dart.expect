@@ -26,7 +26,7 @@ class B extends self::A {
     return new self::T1::•();
 }
 abstract class C extends core::Object implements self::B {
-  synthetic constructor •() → void
+[@vm.unreachable.metadata=]  synthetic constructor •() → void
     : super core::Object::•()
     throw "TFA Error: #lib::C::";
 }
@@ -54,12 +54,12 @@ class Intermediate extends core::Object {
   method bar(self::A aa) → dynamic
     return [@vm.inferred-type.metadata=!] aa.{self::A::foo}();
 }
-static field core::Function unknown;
-static method use1(self::Intermediate i, self::A aa) → dynamic
+[@vm.inferred-type.metadata=dart.core::Null?]static field core::Function unknown;
+static method use1([@vm.inferred-type.metadata=#lib::Intermediate] self::Intermediate i, self::A aa) → dynamic
   return [@vm.direct-call.metadata=#lib::Intermediate::bar] [@vm.inferred-type.metadata=!] i.{self::Intermediate::bar}(aa);
-static method use2(self::Intermediate i, self::A aa) → dynamic
+static method use2([@vm.inferred-type.metadata=#lib::Intermediate] self::Intermediate i, self::A aa) → dynamic
   return [@vm.direct-call.metadata=#lib::Intermediate::bar] [@vm.inferred-type.metadata=!] i.{self::Intermediate::bar}(aa);
-static method use3(self::Intermediate i, self::A aa) → dynamic
+static method use3([@vm.inferred-type.metadata=#lib::Intermediate] self::Intermediate i, self::A aa) → dynamic
   return [@vm.direct-call.metadata=#lib::Intermediate::bar] [@vm.inferred-type.metadata=!] i.{self::Intermediate::bar}(aa);
 static method getDynamic() → dynamic
   return self::unknown.call();

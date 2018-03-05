@@ -755,7 +755,7 @@ void Intrinsifier::Bigint_lsh(Assembler* assembler) {
   __ xorl(EAX, EAX);  // EAX = 0.
   __ movl(EDX, FieldAddress(EDI, ESI, TIMES_4, TypedData::data_offset()));
   __ shldl(EAX, EDX, ECX);
-  __ movl(Address(EBX, ESI, TIMES_4, Bigint::kBytesPerDigit), EAX);
+  __ movl(Address(EBX, ESI, TIMES_4, kBytesPerBigIntDigit), EAX);
   Label last;
   __ cmpl(ESI, Immediate(0));
   __ j(EQUAL, &last, Assembler::kNearJump);
@@ -763,7 +763,7 @@ void Intrinsifier::Bigint_lsh(Assembler* assembler) {
   __ Bind(&loop);
   __ movl(EAX, EDX);
   __ movl(EDX, FieldAddress(EDI, ESI, TIMES_4,
-                            TypedData::data_offset() - Bigint::kBytesPerDigit));
+                            TypedData::data_offset() - kBytesPerBigIntDigit));
   __ shldl(EAX, EDX, ECX);
   __ movl(Address(EBX, ESI, TIMES_4, 0), EAX);
   __ decl(ESI);
@@ -808,7 +808,7 @@ void Intrinsifier::Bigint_rsh(Assembler* assembler) {
   Label loop;
   __ Bind(&loop);
   __ movl(EAX, EDX);
-  __ movl(EDX, Address(EDI, ESI, TIMES_4, Bigint::kBytesPerDigit));
+  __ movl(EDX, Address(EDI, ESI, TIMES_4, kBytesPerBigIntDigit));
   __ shrdl(EAX, EDX, ECX);
   __ movl(Address(EBX, ESI, TIMES_4, 0), EAX);
   __ incl(ESI);
@@ -1010,7 +1010,7 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
 
   // uint32_t mi = *mip++
   __ movl(EAX, Address(EDI, 0));
-  __ addl(EDI, Immediate(Bigint::kBytesPerDigit));
+  __ addl(EDI, Immediate(kBytesPerBigIntDigit));
 
   // uint64_t t = x*mi
   __ mull(EBX);       // t = EDX:EAX = EAX * EBX
@@ -1023,7 +1023,7 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
 
   // *ajp++ = low32(t)
   __ movl(Address(ESI, 0), EAX);
-  __ addl(ESI, Immediate(Bigint::kBytesPerDigit));
+  __ addl(ESI, Immediate(kBytesPerBigIntDigit));
 
   // c = high32(t)
   __ movl(ECX, EDX);
@@ -1042,7 +1042,7 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
 
   Label propagate_carry_loop;
   __ Bind(&propagate_carry_loop);
-  __ addl(ESI, Immediate(Bigint::kBytesPerDigit));
+  __ addl(ESI, Immediate(kBytesPerBigIntDigit));
   __ incl(Address(ESI, 0));  // c == 0 or 1
   __ j(CARRY, &propagate_carry_loop, Assembler::kNearJump);
 
@@ -1093,7 +1093,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   __ movl(EBX, Address(EDI, 0));
   __ cmpl(EBX, Immediate(0));
   __ j(EQUAL, &x_zero, Assembler::kNearJump);
-  __ addl(EDI, Immediate(Bigint::kBytesPerDigit));
+  __ addl(EDI, Immediate(kBytesPerBigIntDigit));
 
   // Preserve THR to free ESI.
   __ pushl(THR);
@@ -1111,7 +1111,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
 
   // *ajp++ = low32(t)
   __ movl(Address(ESI, 0), EAX);
-  __ addl(ESI, Immediate(Bigint::kBytesPerDigit));
+  __ addl(ESI, Immediate(kBytesPerBigIntDigit));
 
   // int n = used - i - 1
   __ movl(EAX, Address(ESP, 2 * kWordSize));  // used is Smi
@@ -1143,7 +1143,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
 
   // uint32_t xi = *xip++
   __ movl(EAX, Address(EDI, 0));
-  __ addl(EDI, Immediate(Bigint::kBytesPerDigit));
+  __ addl(EDI, Immediate(kBytesPerBigIntDigit));
 
   // uint96_t t = ECX:EDX:EAX = 2*x*xi + aj + c
   __ mull(EBX);       // EDX:EAX = EAX * EBX
@@ -1160,7 +1160,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
 
   // *ajp++ = low32(t)
   __ movl(Address(ESI, 0), EAX);
-  __ addl(ESI, Immediate(Bigint::kBytesPerDigit));
+  __ addl(ESI, Immediate(kBytesPerBigIntDigit));
 
   // c = high64(t)
   __ movl(cl_addr, EDX);
@@ -1178,7 +1178,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   // *ajp++ = low32(t)
   // *ajp = high32(t)
   __ movl(Address(ESI, 0), EAX);
-  __ movl(Address(ESI, Bigint::kBytesPerDigit), EDX);
+  __ movl(Address(ESI, kBytesPerBigIntDigit), EDX);
 
   // Restore THR and return.
   __ Drop(3);
@@ -1210,7 +1210,7 @@ void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
 
   // ECX = yt = args[1]
   __ movl(ECX,
-          FieldAddress(EDI, TypedData::data_offset() + Bigint::kBytesPerDigit));
+          FieldAddress(EDI, TypedData::data_offset() + kBytesPerBigIntDigit));
 
   // EBX = dp = &digits[i >> 1]
   __ movl(EBX, Address(ESP, 2 * kWordSize));  // digits
@@ -1229,7 +1229,7 @@ void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
   __ j(EQUAL, &return_qd, Assembler::kNearJump);
 
   // EAX = dl = dp[-1]
-  __ movl(EAX, Address(EBX, -Bigint::kBytesPerDigit));
+  __ movl(EAX, Address(EBX, -kBytesPerBigIntDigit));
 
   // EAX = qd = dh:dl / yt = EDX:EAX / ECX
   __ divl(ECX);
@@ -1237,7 +1237,7 @@ void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
   __ Bind(&return_qd);
   // args[2] = qd
   __ movl(
-      FieldAddress(EDI, TypedData::data_offset() + 2 * Bigint::kBytesPerDigit),
+      FieldAddress(EDI, TypedData::data_offset() + 2 * kBytesPerBigIntDigit),
       EAX);
 
   __ movl(EAX, Immediate(Smi::RawValue(1)));  // One digit processed.
@@ -1259,7 +1259,7 @@ void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
 
   // ECX = rho = args[2]
   __ movl(ECX, FieldAddress(
-                   EDI, TypedData::data_offset() + 2 * Bigint::kBytesPerDigit));
+                   EDI, TypedData::data_offset() + 2 * kBytesPerBigIntDigit));
 
   // EAX = digits[i >> 1]
   __ movl(EBX, Address(ESP, 2 * kWordSize));  // digits
@@ -1271,7 +1271,7 @@ void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
 
   // args[4] = t mod DIGIT_BASE = low32(t)
   __ movl(
-      FieldAddress(EDI, TypedData::data_offset() + 4 * Bigint::kBytesPerDigit),
+      FieldAddress(EDI, TypedData::data_offset() + 4 * kBytesPerBigIntDigit),
       EAX);
 
   __ movl(EAX, Immediate(Smi::RawValue(1)));  // One digit processed.

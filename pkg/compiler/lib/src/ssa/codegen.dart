@@ -260,10 +260,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // of bits.
   int bitWidth(HInstruction instruction) {
     const int MAX = 32;
-    int constant(HInstruction insn) {
-      if (insn is HConstant && insn.isConstantInteger()) {
-        IntConstantValue constant = insn.constant;
-        return constant.primitiveValue;
+    int constant(HInstruction instruction) {
+      if (instruction is HConstant && instruction.isConstantInteger()) {
+        IntConstantValue constant = instruction.constant;
+        return constant.intValue;
       }
       return null;
     }
@@ -1486,6 +1486,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitNegate(HNegate node) => visitInvokeUnary(node, '-');
+
+  visitAbs(HAbs node) {
+    use(node.operand);
+    push(js
+        .js('Math.abs(#)', pop())
+        .withSourceInformation(node.sourceInformation));
+  }
 
   visitLess(HLess node) => visitRelational(node, '<');
   visitLessEqual(HLessEqual node) => visitRelational(node, '<=');

@@ -28,11 +28,13 @@ void m2(void x, {void y}) => null;
 A<void> m3(A<void> x, [A<void> y]) => new A<void>(null);
 A<void> m4(A<void> x, {A<void> y}) => new A<void>(null);
 
-class B<S, T> implements A<void> { void get t => null; }
+class B<S, T> implements A<void> {
+  void get t => null;
+}
 
 class C extends A<void> with B<void, A<void>> {
-  C(): super(null);
-  
+  C() : super(null);
+
   static final void x1 = null;
   static final A<void> x2 = new A<void>(null);
 
@@ -47,7 +49,7 @@ class C extends A<void> with B<void, A<void>> {
 
   covariant void x11 = null, x12;
   covariant A<void> x13 = new A<void>(null), x14;
-  
+
   static void get g1 => null;
   static A<void> get g2 => new A<void>(null);
   static void set s1(void x) => null;
@@ -68,11 +70,25 @@ class C extends A<void> with B<void, A<void>> {
 
   // Ensure that all members are used, and use `void` in expressions.
   void run() {
-    List<dynamic> ignore = [
-      x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, //
-      g1, g2, g3, g4,
-    ];
-    
+    x1;
+    x2;
+    x3;
+    x4;
+    x5;
+    x6;
+    x7;
+    x8;
+    x9;
+    x10;
+    x11;
+    x12;
+    x13;
+    x14;
+    g1;
+    g2;
+    g3;
+    g4;
+
     s1 = null;
     s2 = new A<void>(null);
     s3 = null;
@@ -96,7 +112,17 @@ class C extends A<void> with B<void, A<void>> {
 
 // Testing syntax, just enforce compilation.
 main() {
-  List<dynamic> ignore = [x1, x2, x3, x4, x5, x6, x7, x8, g1, g2];
+  // ignore
+  x1;
+  x2;
+  x3;
+  x4;
+  x5;
+  x6;
+  x7;
+  x8;
+  g1;
+  g2;
 
   s1 = null;
   s2 = new A<void>(null);

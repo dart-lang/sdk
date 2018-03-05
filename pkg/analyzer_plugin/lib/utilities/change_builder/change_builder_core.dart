@@ -20,6 +20,12 @@ abstract class ChangeBuilder {
   factory ChangeBuilder() = ChangeBuilderImpl;
 
   /**
+   * Return the range of the selection for the change being built, or `null` if
+   * there is no selection.
+   */
+  SourceRange get selectionRange;
+
+  /**
    * Return the source change that was built. The source change will not be
    * complete until all of the futures returned by [addFileEdit] have completed.
    */
@@ -66,7 +72,12 @@ abstract class EditBuilder {
       {LinkedEditSuggestionKind kind, List<String> suggestions});
 
   /**
-   * Set the selection to the given location within the edit being built.
+   * Set the selection to cover all of the code written by the given [writer].
+   */
+  void selectAll(void writer());
+
+  /**
+   * Set the selection to the current location within the edit being built.
    */
   void selectHere();
 

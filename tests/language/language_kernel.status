@@ -20,7 +20,6 @@ class_cycle_test/03: MissingCompileTimeError
 config_import_test: Crash
 const_error_multiply_initialized_test/02: MissingCompileTimeError
 const_error_multiply_initialized_test/04: MissingCompileTimeError
-const_factory_with_body_test/01: MissingCompileTimeError
 const_instance_field_test/01: MissingCompileTimeError
 const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
@@ -28,7 +27,6 @@ const_switch2_test/01: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
 constructor_redirect1_negative_test: Fail
 constructor_redirect2_negative_test: Fail
-constructor_redirect2_test/01: MissingCompileTimeError
 constructor_redirect_test/01: MissingCompileTimeError
 cyclic_constructor_test/01: MissingCompileTimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError

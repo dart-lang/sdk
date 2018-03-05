@@ -217,7 +217,7 @@ def ExecuteCommand(options, args):
                       options.pub_executable,
                       options.pub_snapshot,
                       ['build',
-                       '-DOBS_VER=' + utils.GetVersion(ignore_svn_revision=True),
+                       '-DOBS_VER=' + utils.GetVersion(no_git_hash=True),
                        '--output', args[0]],
                       options.silent)
   elif (cmd == 'deploy'):

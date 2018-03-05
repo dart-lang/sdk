@@ -44,5 +44,11 @@ class F extends self::D {
   get y() → self::A
     return null;
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/override_check_accessor_after_inference.dart:28:51: Error: The return type of the method 'F::y' is #lib1::A, which does not match the return type of the overridden method (#lib1::B).\nChange to a subtype of #lib1::B.\n  A get /*@error=OverrideTypeMismatchReturnType*/ y => null;\n                                                  ^", "pkg/front_end/testcases/override_check_accessor_after_inference.dart:27:57: Error: The parameter 'value' of the method 'F::x' has type #lib1::B, which does not match the corresponding type in the overridden method (#lib1::A).\nChange to a supertype of #lib1::A (or, for a covariant parameter, a subtype).\n  void set x(B /*@error=OverrideTypeMismatchParameter*/ value) {}\n                                                        ^"]/* from null */;
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/override_check_accessor_after_inference.dart:28:51: Error: The return type of the method 'F::y' is #lib1::A, which does not match the return type of the overridden method (#lib1::B).
+Change to a subtype of #lib1::B.
+  A get /*@error=OverrideTypeMismatchReturnType*/ y => null;
+                                                  ^", "pkg/front_end/testcases/override_check_accessor_after_inference.dart:27:57: Error: The parameter 'value' of the method 'F::x' has type #lib1::B, which does not match the corresponding type in the overridden method (#lib1::A).
+Change to a supertype of #lib1::A (or, for a covariant parameter, a subtype).
+  void set x(B /*@error=OverrideTypeMismatchParameter*/ value) {}
+                                                        ^"]/* from null */;
 static method main() → dynamic {}

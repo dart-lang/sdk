@@ -6,7 +6,7 @@ import "package:expect/expect.dart" as exp;
 class A<N extends core::Object, S extends core::Object, U extends core::Object> extends core::Object {
   final field core::List<self::A::U> field;
   constructor •(self::A::N n, self::A::S s) → void
-    : self::A::field = core::List::_internal<self::A::U>(), super core::Object::•() {
+    : self::A::field = core::List::•<self::A::U>(), super core::Object::•() {
     exp::Expect::isTrue(n is self::A::N);
     exp::Expect::isTrue(s is self::A::S);
   }

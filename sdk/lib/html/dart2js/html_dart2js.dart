@@ -29,7 +29,6 @@ import 'dart:collection' hide LinkedList, LinkedListEntry;
 import 'dart:_internal' hide Symbol;
 import 'dart:html_common';
 import 'dart:indexed_db';
-import 'dart:isolate';
 import "dart:convert";
 import 'dart:math';
 import 'dart:_native_typed_data';
@@ -113,18 +112,6 @@ class HtmlElement extends Element {
    * This can only be called by subclasses from their created constructor.
    */
   HtmlElement.created() : super.created();
-}
-
-/**
- * Spawn a DOM isolate using the given URI in the same window.
- * This isolate is not concurrent.  It runs on the browser thread
- * with full access to the DOM.
- * Note: this API is still evolving and may move to dart:isolate.
- */
-@Experimental()
-Future<Isolate> spawnDomUri(Uri uri, List<String> args, message) {
-  // TODO(17738): Implement this.
-  throw new UnimplementedError();
 }
 
 createCustomUpgrader(Type customElementClass, $this) => $this;
@@ -10762,6 +10749,7 @@ class Document extends Node {
   bool get supportsRegister => supportsRegisterElement;
 
   @DomName('Document.createElement')
+  @ForceInline() // Almost all call sites have one argument.
   Element createElement(String tagName, [String typeExtension]) {
     return (typeExtension == null)
         ? _createElement_2(tagName)
@@ -25418,6 +25406,65 @@ class MouseEvent extends UIEvent {
 @DomName('MutationCallback')
 typedef void MutationCallback(
     List<MutationRecord> mutations, MutationObserver observer);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('MutationEvent')
+// http://www.w3.org/TR/DOM-Level-3-Events/#events-mutationevents
+@deprecated
+@Native("MutationEvent")
+class MutationEvent extends Event {
+  // To suppress missing implicit constructor warnings.
+  factory MutationEvent._() {
+    throw new UnsupportedError("Not supported");
+  }
+
+  @DomName('MutationEvent.ADDITION')
+  @DocsEditable()
+  static const int ADDITION = 2;
+
+  @DomName('MutationEvent.MODIFICATION')
+  @DocsEditable()
+  static const int MODIFICATION = 1;
+
+  @DomName('MutationEvent.REMOVAL')
+  @DocsEditable()
+  static const int REMOVAL = 3;
+
+  @DomName('MutationEvent.attrChange')
+  @DocsEditable()
+  final int attrChange;
+
+  @DomName('MutationEvent.attrName')
+  @DocsEditable()
+  final String attrName;
+
+  @DomName('MutationEvent.newValue')
+  @DocsEditable()
+  final String newValue;
+
+  @DomName('MutationEvent.prevValue')
+  @DocsEditable()
+  final String prevValue;
+
+  @DomName('MutationEvent.relatedNode')
+  @DocsEditable()
+  final Node relatedNode;
+
+  @DomName('MutationEvent.initMutationEvent')
+  @DocsEditable()
+  void initMutationEvent(
+      String type,
+      bool bubbles,
+      bool cancelable,
+      Node relatedNode,
+      String prevValue,
+      String newValue,
+      String attrName,
+      int attrChange) native;
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -42883,6 +42930,9 @@ class _EventStream<T extends Event> extends Stream<T> {
       this;
   bool get isBroadcast => true;
 
+  // TODO(9757): Inlining should be smart and inline only when inlining would
+  // enable scalar replacement of an immediately allocated receiver.
+  @ForceInline()
   StreamSubscription<T> listen(void onData(T event),
       {Function onError, void onDone(), bool cancelOnError}) {
     return new _EventStreamSubscription<T>(

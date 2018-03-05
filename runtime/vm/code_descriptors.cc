@@ -373,6 +373,7 @@ intptr_t CodeSourceMapBuilder::GetFunctionId(intptr_t inline_id) {
       return i;
     }
   }
+  RELEASE_ASSERT(!function.IsNull());
   inlined_functions_.Add(function, Heap::kOld);
   return inlined_functions_.Length() - 1;
 }

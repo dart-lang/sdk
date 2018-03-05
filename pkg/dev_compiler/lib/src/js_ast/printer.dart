@@ -41,6 +41,8 @@ abstract class JavaScriptPrintingContext {
 
   /// Callback after printing the last character representing [node].
   void exitNode(Node node) {}
+
+  Printer printer;
 }
 
 /// A simple implementation of [JavaScriptPrintingContext] suitable for tests.
@@ -86,7 +88,9 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
         context = context,
         shouldCompressOutput = options.shouldCompressOutput,
         danglingElseVisitor = new DanglingElseVisitor(context),
-        localNamer = determineRenamer(localNamer, options);
+        localNamer = determineRenamer(localNamer, options) {
+    context.printer = this;
+  }
 
   static LocalNamer determineRenamer(
       LocalNamer localNamer, JavaScriptPrintingOptions options) {
@@ -581,7 +585,10 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   visitFunctionDeclaration(FunctionDeclaration declaration) {
     indent();
     outClosureAnnotation(declaration);
-    functionOut(declaration.function, declaration.name);
+    var f = declaration.function;
+    context.enterNode(f);
+    functionOut(f, declaration.name);
+    context.exitNode(f);
     lineOut();
   }
 
@@ -938,7 +945,10 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   }
 
   visitNamedFunction(NamedFunction namedFunction) {
-    functionOut(namedFunction.function, namedFunction.name);
+    var f = namedFunction.function;
+    context.enterNode(f);
+    functionOut(f, namedFunction.name);
+    context.exitNode(f);
   }
 
   visitFun(Fun fun) {

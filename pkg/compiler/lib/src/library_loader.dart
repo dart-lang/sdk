@@ -862,11 +862,14 @@ class KernelLibraryLoaderTask extends CompilerTask
         program = new ir.Program();
         new BinaryBuilder(input.data).readProgram(program);
       } else {
+        bool strongMode = _elementMap.options.strongMode;
+        String platform = strongMode
+            ? 'dart2js_platform_strong.dill'
+            : 'dart2js_platform.dill';
         initializedCompilerState = fe.initializeCompiler(
             initializedCompilerState,
-            new Dart2jsTarget(
-                new TargetFlags(strongMode: _elementMap.options.strongMode)),
-            platformBinaries.resolve("dart2js_platform.dill"),
+            new Dart2jsTarget(new TargetFlags(strongMode: strongMode)),
+            platformBinaries.resolve(platform),
             _packageConfig);
         program = await fe.compile(
             initializedCompilerState,

@@ -186,7 +186,9 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitNode(AstNode node) {
-    node.parent.accept(this);
+    // Support the case of searching partial ASTs by aborting on nodes with no
+    // parents. This is useful for the angular plugin.
+    node.parent?.accept(this);
   }
 
   @override

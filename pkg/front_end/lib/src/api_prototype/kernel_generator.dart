@@ -6,16 +6,23 @@
 library front_end.kernel_generator;
 
 import 'dart:async' show Future;
-import 'dart:async';
 
 import 'package:kernel/kernel.dart' show Program;
 
-import 'compiler_options.dart';
-import '../base/processed_options.dart';
-import '../fasta/fasta_codes.dart';
-import '../fasta/compiler_context.dart';
-import '../fasta/severity.dart';
-import '../kernel_generator_impl.dart';
+import '../base/processed_options.dart' show ProcessedOptions;
+
+import '../fasta/compiler_context.dart' show CompilerContext;
+
+import '../fasta/fasta_codes.dart' show messageMissingMain;
+
+import '../fasta/parser.dart' show noLength;
+
+import '../fasta/severity.dart' show Severity;
+
+import '../kernel_generator_impl.dart'
+    show generateKernel, generateKernelInternal;
+
+import 'compiler_options.dart' show CompilerOptions;
 
 /// Generates a kernel representation of the program whose main library is in
 /// the given [source].
@@ -44,8 +51,9 @@ Future<Program> kernelForProgram(Uri source, CompilerOptions options) async {
     if (program == null) return null;
 
     if (program.mainMethod == null) {
-      context.options
-          .report(messageMissingMain.withLocation(source, -1), Severity.error);
+      context.options.report(
+          messageMissingMain.withLocation(source, -1, noLength),
+          Severity.error);
       return null;
     }
     return program;

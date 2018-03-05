@@ -6,6 +6,7 @@
 #include "vm/kernel_binary.h"
 #include "platform/globals.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
+#include "vm/dart_api_impl.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
 #include "vm/kernel.h"
@@ -64,6 +65,35 @@ Program* Program::ReadFrom(Reader* reader, bool take_buffer_ownership) {
 }
 
 }  // namespace kernel
+
+kernel::Program* ReadPrecompiledKernelFromFile(const char* script_uri) {
+  Thread* thread = Thread::Current();
+  if (script_uri == NULL) {
+    return NULL;
+  }
+  kernel::Program* kernel_program = NULL;
+  {
+    TransitionVMToNative transition(thread);
+    Api::Scope api_scope(thread);
+    Dart_Handle retval = (thread->isolate()->library_tag_handler())(
+        Dart_kKernelTag, Api::Null(),
+        Api::NewHandle(thread, String::New(script_uri)));
+    if (!Dart_IsError(retval)) {
+      uint64_t data;
+      intptr_t data_len = 0;
+      Dart_TypedData_Type data_type;
+      ASSERT(Dart_IsTypedData(retval));
+      Dart_Handle val = Dart_TypedDataAcquireData(
+          retval, &data_type, reinterpret_cast<void**>(&data), &data_len);
+      ASSERT(!Dart_IsError(val));
+      ASSERT(data_type == Dart_TypedData_kUint64);
+      ASSERT(data_len == 1);
+      kernel_program = reinterpret_cast<kernel::Program*>(data);
+      Dart_TypedDataReleaseData(retval);
+    }
+  }
+  return kernel_program;
+}
 
 kernel::Program* ReadPrecompiledKernelFromBuffer(const uint8_t* buffer,
                                                  intptr_t buffer_length) {

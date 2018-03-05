@@ -135,7 +135,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       expect(cs.element.location.startLine, isNotNull);
     }
     if (elemFile != null) {
-      expect(cs.element.location.file, elemFile);
+      expect(cs.element.location.file, convertPath(elemFile));
     }
     if (elemOffset != null) {
       expect(cs.element.location.offset, elemOffset);
@@ -198,6 +198,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   CompletionSuggestion assertSuggestConstructor(String name,
       {int relevance: DART_RELEVANCE_DEFAULT,
       String importUri,
+      String elementName,
       int elemOffset,
       String defaultArgListString: _UNCHECKED,
       List<int> defaultArgumentListTextRanges}) {
@@ -211,7 +212,8 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     expect(element, isNotNull);
     expect(element.kind, equals(ElementKind.CONSTRUCTOR));
     int index = name.indexOf('.');
-    expect(element.name, index >= 0 ? name.substring(index + 1) : '');
+    elementName ??= index >= 0 ? name.substring(index + 1) : '';
+    expect(element.name, elementName);
     return cs;
   }
 
@@ -225,7 +227,12 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestEnumConst(String completion,
-      {int relevance: DART_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+      {int relevance: DART_RELEVANCE_DEFAULT,
+      bool isDeprecated: false,
+      bool hasTypeBoost: false}) {
+    if (hasTypeBoost) {
+      relevance += DART_RELEVANCE_BOOST_TYPE;
+    }
     CompletionSuggestion suggestion = assertSuggest(completion,
         relevance: relevance, isDeprecated: isDeprecated);
     expect(suggestion.completion, completion);
@@ -456,7 +463,8 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   }
 
   Future computeSuggestions({int times = 200}) async {
-    AnalysisResult analysisResult = await driver.getResult(testFile);
+    AnalysisResult analysisResult =
+        await driver.getResult(convertPath(testFile));
     testSource = analysisResult.unit.element.source;
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
         analysisResult,

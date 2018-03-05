@@ -9,6 +9,8 @@ import 'package:kernel/ast.dart' show DartType, Supertype;
 import '../messages.dart'
     show templateSupertypeIsIllegal, templateSupertypeIsTypeVariable;
 
+import '../parser.dart' show noLength;
+
 import 'kernel_builder.dart'
     show
         KernelClassBuilder,
@@ -37,7 +39,7 @@ class KernelNamedTypeBuilder
         ? templateSupertypeIsTypeVariable
         : templateSupertypeIsIllegal;
     library.addCompileTimeError(
-        template.withArguments("$name"), charOffset, fileUri);
+        template.withArguments("$name"), charOffset, noLength, fileUri);
     return null;
   }
 
@@ -50,6 +52,16 @@ class KernelNamedTypeBuilder
     if (builder is KernelClassBuilder) {
       KernelClassBuilder builder = this.builder;
       return builder.buildSupertype(library, arguments);
+    } else {
+      return handleInvalidSupertype(library, charOffset, fileUri);
+    }
+  }
+
+  Supertype buildMixedInType(
+      LibraryBuilder library, int charOffset, Uri fileUri) {
+    if (builder is KernelClassBuilder) {
+      KernelClassBuilder builder = this.builder;
+      return builder.buildMixedInType(library, arguments);
     } else {
       return handleInvalidSupertype(library, charOffset, fileUri);
     }

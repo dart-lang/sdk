@@ -7,6 +7,7 @@ library analyzer.src.generated.resolver;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/ast_factory.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -16,6 +17,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
@@ -31,12 +33,155 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/type_system.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:path/path.dart' as path;
 
 export 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 export 'package:analyzer/src/dart/resolver/scope.dart';
 export 'package:analyzer/src/generated/type_system.dart';
+
+/**
+ * A visitor that will re-write an AST to support the optional `new` and `const`
+ * feature.
+ */
+class AstRewriteVisitor extends ScopedVisitor {
+  /**
+   * Initialize a newly created visitor.
+   */
+  AstRewriteVisitor(LibraryElement definingLibrary, Source source,
+      TypeProvider typeProvider, AnalysisErrorListener errorListener,
+      {Scope nameScope})
+      : super(definingLibrary, source, typeProvider, errorListener,
+            nameScope: nameScope);
+
+  @override
+  Object visitMethodInvocation(MethodInvocation node) {
+    super.visitMethodInvocation(node);
+
+    SimpleIdentifier methodName = node.methodName;
+    if (methodName.isSynthetic) {
+      // This isn't a constructor invocation because the method name is
+      // synthetic.
+      return null;
+    }
+
+    Expression target = node.target;
+    if (target == null) {
+      // Possible cases: C() or C<>()
+      if (node.realTarget != null) {
+        // This isn't a constructor invocation because it's in a cascade.
+        return null;
+      }
+      Element element = nameScope.lookup(methodName, definingLibrary);
+      if (element is ClassElement) {
+        AstFactory astFactory = new AstFactoryImpl();
+        TypeName typeName = astFactory.typeName(methodName, node.typeArguments);
+        InstanceCreationExpression instanceCreationExpression =
+            astFactory.instanceCreationExpression(
+                null,
+                astFactory.constructorName(typeName, null, null),
+                node.argumentList);
+        DartType type = _getType(element, node.typeArguments);
+        methodName.staticElement = element;
+        methodName.staticType = type;
+        typeName.type = type;
+        NodeReplacer.replace(node, instanceCreationExpression);
+      }
+    } else if (target is SimpleIdentifier) {
+      // Possible cases: C.n(), p.C() or p.C<>()
+      if (node.operator.type == TokenType.QUESTION_PERIOD) {
+        // This isn't a constructor invocation because a null aware operator is
+        // being used.
+      }
+      Element element = nameScope.lookup(target, definingLibrary);
+      if (element is ClassElement) {
+        // Possible case: C.n()
+        if (element.getNamedConstructor(methodName.name) != null) {
+          AstFactory astFactory = new AstFactoryImpl();
+          TypeName typeName = astFactory.typeName(target, node.typeArguments);
+          InstanceCreationExpression instanceCreationExpression =
+              astFactory.instanceCreationExpression(
+                  null,
+                  astFactory.constructorName(
+                      typeName, node.operator, methodName),
+                  node.argumentList);
+          DartType type = _getType(element, node.typeArguments);
+          methodName.staticElement = element;
+          methodName.staticType = type;
+          typeName.type = type;
+          NodeReplacer.replace(node, instanceCreationExpression);
+        }
+      } else if (element is PrefixElement) {
+        // Possible cases: p.C() or p.C<>()
+        AstFactory astFactory = new AstFactoryImpl();
+        Identifier identifier = astFactory.prefixedIdentifier(
+            astFactory.simpleIdentifier(target.token),
+            null,
+            astFactory.simpleIdentifier(methodName.token));
+        Element prefixedElement = nameScope.lookup(identifier, definingLibrary);
+        if (prefixedElement is ClassElement) {
+          TypeName typeName = astFactory.typeName(
+              astFactory.prefixedIdentifier(target, node.operator, methodName),
+              node.typeArguments);
+          InstanceCreationExpression instanceCreationExpression =
+              astFactory.instanceCreationExpression(
+                  null,
+                  astFactory.constructorName(typeName, null, null),
+                  node.argumentList);
+          DartType type = _getType(prefixedElement, node.typeArguments);
+          methodName.staticElement = element;
+          methodName.staticType = type;
+          typeName.type = type;
+          NodeReplacer.replace(node, instanceCreationExpression);
+        }
+      }
+    } else if (target is PrefixedIdentifier) {
+      // Possible case: p.C.n()
+      Element prefixElement = nameScope.lookup(target.prefix, definingLibrary);
+      if (prefixElement is PrefixElement) {
+        Element element = nameScope.lookup(target, definingLibrary);
+        if (element is ClassElement) {
+          if (element.getNamedConstructor(methodName.name) != null) {
+            AstFactory astFactory = new AstFactoryImpl();
+            TypeName typeName = astFactory.typeName(target, node.typeArguments);
+            InstanceCreationExpression instanceCreationExpression =
+                astFactory.instanceCreationExpression(
+                    null,
+                    astFactory.constructorName(
+                        typeName, node.operator, methodName),
+                    node.argumentList);
+            DartType type = _getType(element, node.typeArguments);
+            methodName.staticElement = element;
+            methodName.staticType = type;
+            typeName.type = type;
+            NodeReplacer.replace(node, instanceCreationExpression);
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Return the type of the given class [element] after substituting any type
+   * arguments from the list of [typeArguments] for the class' type parameters.
+   */
+  DartType _getType(ClassElement element, TypeArgumentList typeArguments) {
+    DartType type = element.type;
+    List<TypeParameterElement> typeParameters = element.typeParameters;
+    if (typeArguments != null &&
+        typeParameters != null &&
+        typeArguments.arguments.length == typeParameters.length) {
+      List<DartType> argumentTypes = typeArguments.arguments
+          .map((TypeAnnotation argument) => argument.type)
+          .toList();
+      List<DartType> parameterTypes = typeParameters
+          .map((TypeParameterElement parameter) => parameter.type)
+          .toList();
+      type = type.substitute2(argumentTypes, parameterTypes);
+    }
+    return type;
+  }
+}
 
 /**
  * Instances of the class `BestPracticesVerifier` traverse an AST structure looking for
@@ -107,7 +252,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       : _nullType = typeProvider.nullType,
         _futureNullType = typeProvider.futureNullType,
         _typeSystem = typeSystem ?? new TypeSystemImpl(typeProvider) {
-    inDeprecatedMember = _currentLibrary.isDeprecated;
+    inDeprecatedMember = _currentLibrary.hasDeprecated;
   }
 
   @override
@@ -136,7 +281,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   Object visitArgumentList(ArgumentList node) {
     for (Expression argument in node.arguments) {
       ParameterElement parameter = argument.bestParameterElement;
-      if (parameter?.parameterKind == ParameterKind.POSITIONAL) {
+      if (parameter?.isOptionalPositional == true) {
         _checkForDeprecatedMemberUse(parameter, argument);
       }
     }
@@ -151,22 +296,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
-  Object visitAssertInitializer(AssertInitializer node) {
-    _checkForPossibleNullCondition(node.condition);
-    return super.visitAssertInitializer(node);
-  }
-
-  @override
-  Object visitAssertStatement(AssertStatement node) {
-    _checkForPossibleNullCondition(node.condition);
-    return super.visitAssertStatement(node);
-  }
-
-  @override
   Object visitAssignmentExpression(AssignmentExpression node) {
     TokenType operatorType = node.operator.type;
     if (operatorType == TokenType.EQ) {
-      _checkForUseOfVoidResult(node.rightHandSide);
       _checkForInvalidAssignment(node.leftHandSide, node.rightHandSide);
     } else {
       _checkForDeprecatedMemberUse(node.bestElement, node);
@@ -186,7 +318,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     ClassElementImpl outerClass = _enclosingClass;
     bool wasInDeprecatedMember = inDeprecatedMember;
     ClassElement element = AbstractClassElementImpl.getImpl(node.element);
-    if (element != null && element.isDeprecated) {
+    if (element != null && element.hasDeprecated) {
       inDeprecatedMember = true;
     }
     try {
@@ -199,12 +331,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       _enclosingClass = outerClass;
       inDeprecatedMember = wasInDeprecatedMember;
     }
-  }
-
-  @override
-  Object visitConditionalExpression(ConditionalExpression node) {
-    _checkForPossibleNullCondition(node.condition);
-    return super.visitConditionalExpression(node);
   }
 
   @override
@@ -222,12 +348,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
-  Object visitDoStatement(DoStatement node) {
-    _checkForPossibleNullCondition(node.condition);
-    return super.visitDoStatement(node);
-  }
-
-  @override
   Object visitExportDirective(ExportDirective node) {
     _checkForDeprecatedMemberUse(node.uriElement, node);
     return super.visitExportDirective(node);
@@ -240,16 +360,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
-  Object visitForStatement(ForStatement node) {
-    _checkForPossibleNullCondition(node.condition);
-    return super.visitForStatement(node);
-  }
-
-  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     bool wasInDeprecatedMember = inDeprecatedMember;
     ExecutableElement element = node.element;
-    if (element != null && element.isDeprecated) {
+    if (element != null && element.hasDeprecated) {
       inDeprecatedMember = true;
     }
     try {
@@ -258,12 +372,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     } finally {
       inDeprecatedMember = wasInDeprecatedMember;
     }
-  }
-
-  @override
-  Object visitIfStatement(IfStatement node) {
-    _checkForPossibleNullCondition(node.condition);
-    return super.visitIfStatement(node);
   }
 
   @override
@@ -298,7 +406,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   Object visitMethodDeclaration(MethodDeclaration node) {
     bool wasInDeprecatedMember = inDeprecatedMember;
     ExecutableElement element = node.element;
-    if (element != null && element.isDeprecated) {
+    if (element != null && element.hasDeprecated) {
       inDeprecatedMember = true;
     }
     try {
@@ -316,8 +424,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   Object visitMethodInvocation(MethodInvocation node) {
     Expression realTarget = node.realTarget;
     _checkForAbstractSuperMemberReference(realTarget, node.methodName);
-    _checkForCanBeNullAfterNullAware(
-        realTarget, node.operator, null, node.methodName);
+    _checkForNullAwareHints(node, node.operator);
     DartType staticInvokeType = node.staticInvokeType;
     if (staticInvokeType is InterfaceType) {
       MethodElement methodElement = staticInvokeType.lookUpMethod(
@@ -343,8 +450,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   Object visitPropertyAccess(PropertyAccess node) {
     Expression realTarget = node.realTarget;
     _checkForAbstractSuperMemberReference(realTarget, node.propertyName);
-    _checkForCanBeNullAfterNullAware(
-        realTarget, node.operator, node.propertyName, null);
+    _checkForNullAwareHints(node, node.operator);
     return super.visitPropertyAccess(node);
   }
 
@@ -370,15 +476,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitVariableDeclaration(VariableDeclaration node) {
-    _checkForUseOfVoidResult(node.initializer);
     _checkForInvalidAssignment(node.name, node.initializer);
     return super.visitVariableDeclaration(node);
-  }
-
-  @override
-  Object visitWhileStatement(WhileStatement node) {
-    _checkForPossibleNullCondition(node.condition);
-    return super.visitWhileStatement(node);
   }
 
   /**
@@ -593,44 +692,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Produce a hint if the given [target] could have a value of `null`, and
-   * [identifier] is not a name of a getter or a method that exists in the
-   * class [Null].
-   */
-  void _checkForCanBeNullAfterNullAware(Expression target, Token operator,
-      SimpleIdentifier propertyName, SimpleIdentifier methodName) {
-    if (operator?.type == TokenType.QUESTION_PERIOD) {
-      return;
-    }
-    bool isNullTypeMember() {
-      if (propertyName != null) {
-        String name = propertyName.name;
-        return _nullType.lookUpGetter(name, _currentLibrary) != null;
-      }
-      if (methodName != null) {
-        String name = methodName.name;
-        return _nullType.lookUpMethod(name, _currentLibrary) != null;
-      }
-      return false;
-    }
-
-    target = target?.unParenthesized;
-    if (target is MethodInvocation) {
-      if (target.operator?.type == TokenType.QUESTION_PERIOD &&
-          !isNullTypeMember()) {
-        _errorReporter.reportErrorForNode(
-            HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, target);
-      }
-    } else if (target is PropertyAccess) {
-      if (target.operator.type == TokenType.QUESTION_PERIOD &&
-          !isNullTypeMember()) {
-        _errorReporter.reportErrorForNode(
-            HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, target);
-      }
-    }
-  }
-
-  /**
    * Given some [Element], look at the associated metadata and report the use of the member if
    * it is declared as deprecated.
    *
@@ -648,9 +709,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         if (variable == null) {
           return false;
         }
-        return variable.isDeprecated;
+        return variable.hasDeprecated;
       }
-      return element.isDeprecated;
+      return element.hasDeprecated;
     }
 
     if (!inDeprecatedMember && isDeprecated(element)) {
@@ -848,12 +909,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     bool isProtected(Element element) {
       if (element is PropertyAccessorElement &&
           element.enclosingElement is ClassElement &&
-          (element.isProtected || element.variable.isProtected)) {
+          (element.hasProtected || element.variable.hasProtected)) {
         return true;
       }
       if (element is MethodElement &&
           element.enclosingElement is ClassElement &&
-          element.isProtected) {
+          element.hasProtected) {
         return true;
       }
       return false;
@@ -863,12 +924,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       if (element == null) {
         return false;
       }
-      if (element.isVisibleForTesting) {
+      if (element.hasVisibleForTesting) {
         return true;
       }
       if (element is PropertyAccessorElement &&
           element.enclosingElement is ClassElement &&
-          element.variable.isVisibleForTesting) {
+          element.variable.hasVisibleForTesting) {
         return true;
       }
       return false;
@@ -1061,7 +1122,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       }
       // Check that the type is resolvable, and is not "void"
       DartType returnTypeType = returnType.type;
-      if (returnTypeType == null || returnTypeType.isVoid) {
+      if (returnTypeType == null ||
+          returnTypeType.isVoid ||
+          (body.isAsynchronous && _isFutureVoid(returnTypeType))) {
         return;
       }
       // For async, give no hint if the return type does not matter, i.e.
@@ -1090,57 +1153,74 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Produce a hint if the given [condition] could have a value of `null`.
+   * Produce several null-aware related hints.
    */
-  void _checkForPossibleNullCondition(Expression condition) {
-    condition = condition?.unParenthesized;
-    if (condition is BinaryExpression) {
-      _checkForPossibleNullConditionInBinaryExpression(condition);
-    } else if (condition is PrefixExpression) {
-      _checkForPossibleNullConditionInPrefixExpression(condition);
-    } else {
-      _checkForPossibleNullConditionInSimpleExpression(condition);
+  void _checkForNullAwareHints(Expression node, Token operator) {
+    if (operator == null || operator.type != TokenType.QUESTION_PERIOD) {
+      return;
     }
-  }
 
-  /**
-   * Produce a hint if any of the parts of the given binary [condition] could
-   * have a value of `null`.
-   */
-  void _checkForPossibleNullConditionInBinaryExpression(
-      BinaryExpression condition) {
-    TokenType type = condition.operator?.type;
-    if (type == TokenType.AMPERSAND_AMPERSAND || type == TokenType.BAR_BAR) {
-      _checkForPossibleNullCondition(condition.leftOperand);
-      _checkForPossibleNullCondition(condition.rightOperand);
+    // childOfParent is used to know from which branch node comes.
+    var childOfParent = node;
+    var parent = node.parent;
+    while (parent is ParenthesizedExpression) {
+      childOfParent = parent;
+      parent = parent.parent;
     }
-  }
 
-  /**
-   * Produce a hint if the operand of the given prefix [condition] could
-   * have a value of `null`.
-   */
-  void _checkForPossibleNullConditionInPrefixExpression(
-      PrefixExpression condition) {
-    if (condition.operator?.type == TokenType.BANG) {
-      _checkForPossibleNullCondition(condition.operand);
+    // CAN_BE_NULL_AFTER_NULL_AWARE
+    if (parent is MethodInvocation &&
+        parent.operator.type != TokenType.QUESTION_PERIOD &&
+        _nullType.lookUpMethod(parent.methodName.name, _currentLibrary) ==
+            null) {
+      _errorReporter.reportErrorForNode(
+          HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, childOfParent);
+      return;
     }
-  }
+    if (parent is PropertyAccess &&
+        parent.operator.type != TokenType.QUESTION_PERIOD &&
+        _nullType.lookUpGetter(parent.propertyName.name, _currentLibrary) ==
+            null) {
+      _errorReporter.reportErrorForNode(
+          HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, childOfParent);
+      return;
+    }
+    if (parent is CascadeExpression && parent.target == childOfParent) {
+      _errorReporter.reportErrorForNode(
+          HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, childOfParent);
+      return;
+    }
 
-  /**
-   * Produce a hint if the given [condition] could have a value of `null`.
-   */
-  void _checkForPossibleNullConditionInSimpleExpression(Expression condition) {
-    if (condition is MethodInvocation) {
-      if (condition.operator?.type == TokenType.QUESTION_PERIOD) {
-        _errorReporter.reportErrorForNode(
-            HintCode.NULL_AWARE_IN_CONDITION, condition);
-      }
-    } else if (condition is PropertyAccess) {
-      if (condition.operator?.type == TokenType.QUESTION_PERIOD) {
-        _errorReporter.reportErrorForNode(
-            HintCode.NULL_AWARE_IN_CONDITION, condition);
-      }
+    // NULL_AWARE_IN_CONDITION
+    if (parent is IfStatement && parent.condition == childOfParent ||
+        parent is ForStatement && parent.condition == childOfParent ||
+        parent is DoStatement && parent.condition == childOfParent ||
+        parent is WhileStatement && parent.condition == childOfParent ||
+        parent is ConditionalExpression && parent.condition == childOfParent ||
+        parent is AssertStatement && parent.condition == childOfParent) {
+      _errorReporter.reportErrorForNode(
+          HintCode.NULL_AWARE_IN_CONDITION, childOfParent);
+      return;
+    }
+
+    // NULL_AWARE_IN_LOGICAL_OPERATOR
+    if (parent is PrefixExpression && parent.operator.type == TokenType.BANG ||
+        parent is BinaryExpression &&
+            [TokenType.BAR_BAR, TokenType.AMPERSAND_AMPERSAND]
+                .contains(parent.operator.type)) {
+      _errorReporter.reportErrorForNode(
+          HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR, childOfParent);
+      return;
+    }
+
+    // NULL_AWARE_BEFORE_OPERATOR
+    if (parent is BinaryExpression &&
+        ![TokenType.EQ_EQ, TokenType.BANG_EQ, TokenType.QUESTION_QUESTION]
+            .contains(parent.operator.type) &&
+        parent.leftOperand == childOfParent) {
+      _errorReporter.reportErrorForNode(
+          HintCode.NULL_AWARE_BEFORE_OPERATOR, childOfParent);
+      return;
     }
   }
 
@@ -1242,32 +1322,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     return false;
   }
 
-  /**
-   * Check for situations where the result of a method or function is used, when
-   * it returns 'void'.
-   *
-   * See [HintCode.USE_OF_VOID_RESULT].
-   */
-  void _checkForUseOfVoidResult(Expression expression) {
-    // TODO(jwren) Many other situations of use could be covered. We currently
-    // cover the cases var x = m() and x = m(), but we could also cover cases
-    // such as m().x, m()[k], a + m(), f(m()), return m().
-    if (expression is MethodInvocation) {
-      if (identical(expression.staticType, VoidTypeImpl.instance)) {
-        SimpleIdentifier methodName = expression.methodName;
-        _errorReporter.reportErrorForNode(
-            HintCode.USE_OF_VOID_RESULT, methodName, [methodName.name]);
-      }
-    }
-  }
-
   void _checkRequiredParameter(FormalParameterList node) {
     final requiredParameters =
-        node.parameters.where((p) => p.element?.isRequired == true);
+        node.parameters.where((p) => p.element?.hasRequired == true);
     final nonNamedParamsWithRequired =
-        requiredParameters.where((p) => p.kind != ParameterKind.NAMED);
+        requiredParameters.where((p) => !p.isNamed);
     final namedParamsWithRequiredAndDefault = requiredParameters
-        .where((p) => p.kind == ParameterKind.NAMED)
+        .where((p) => p.isNamed)
         .where((p) => p.element.defaultValueCode != null);
     final paramsToHint = [
       nonNamedParamsWithRequired,
@@ -1316,6 +1377,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     return element == typeElement ||
         element.allSupertypes
             .any((InterfaceType t) => t.element == typeElement);
+  }
+
+  /**
+   * Return `true` if the given [type] represents `Future<void>`.
+   */
+  bool _isFutureVoid(DartType type) {
+    if (type.isDartAsyncFuture) {
+      List<DartType> typeArgs = (type as InterfaceType).typeArguments;
+      if (typeArgs.length == 1 && typeArgs[0].isVoid) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -2555,17 +2629,20 @@ class DirectiveResolver extends SimpleAstVisitor {
       if (element.nameOffset == nodeOffset) {
         node.element = element;
         // Verify the exported source kind.
-        Source exportedSource = element.exportedLibrary.source;
-        int exportedTime = sourceModificationTimeMap[exportedSource] ?? -1;
-        if (exportedTime >= 0 &&
-            exportSourceKindMap[exportedSource] != SourceKind.LIBRARY) {
-          StringLiteral uriLiteral = node.uri;
-          errors.add(new AnalysisError(
-              _enclosingLibrary.source,
-              uriLiteral.offset,
-              uriLiteral.length,
-              CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
-              [uriLiteral.toSource()]));
+        LibraryElement exportedLibrary = element.exportedLibrary;
+        if (exportedLibrary != null) {
+          Source exportedSource = exportedLibrary.source;
+          int exportedTime = sourceModificationTimeMap[exportedSource] ?? -1;
+          if (exportedTime >= 0 &&
+              exportSourceKindMap[exportedSource] != SourceKind.LIBRARY) {
+            StringLiteral uriLiteral = node.uri;
+            errors.add(new AnalysisError(
+                _enclosingLibrary.source,
+                uriLiteral.offset,
+                uriLiteral.length,
+                CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
+                [uriLiteral.toSource()]));
+          }
         }
         break;
       }
@@ -2580,20 +2657,23 @@ class DirectiveResolver extends SimpleAstVisitor {
       if (element.nameOffset == nodeOffset) {
         node.element = element;
         // Verify the imported source kind.
-        Source importedSource = element.importedLibrary.source;
-        int importedTime = sourceModificationTimeMap[importedSource] ?? -1;
-        if (importedTime >= 0 &&
-            importSourceKindMap[importedSource] != SourceKind.LIBRARY) {
-          StringLiteral uriLiteral = node.uri;
-          ErrorCode errorCode = element.isDeferred
-              ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
-              : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY;
-          errors.add(new AnalysisError(
-              _enclosingLibrary.source,
-              uriLiteral.offset,
-              uriLiteral.length,
-              errorCode,
-              [uriLiteral.toSource()]));
+        LibraryElement importedLibrary = element.importedLibrary;
+        if (importedLibrary != null) {
+          Source importedSource = importedLibrary.source;
+          int importedTime = sourceModificationTimeMap[importedSource] ?? -1;
+          if (importedTime >= 0 &&
+              importSourceKindMap[importedSource] != SourceKind.LIBRARY) {
+            StringLiteral uriLiteral = node.uri;
+            ErrorCode errorCode = element.isDeferred
+                ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
+                : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY;
+            errors.add(new AnalysisError(
+                _enclosingLibrary.source,
+                uriLiteral.offset,
+                uriLiteral.length,
+                errorCode,
+                [uriLiteral.toSource()]));
+          }
         }
         break;
       }
@@ -3387,7 +3467,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       }
     }
     Element element = node.methodName.staticElement;
-    if (element != null && element.isAlwaysThrows) {
+    if (element != null && element.hasAlwaysThrows) {
       return true;
     }
     return _nodeExits(node.argumentList);
@@ -4581,7 +4661,7 @@ class OverrideVerifier extends RecursiveAstVisitor {
    * @param element the element being tested
    * @return `true` if the element has an override annotation associated with it
    */
-  bool _isOverride(Element element) => element != null && element.isOverride;
+  bool _isOverride(Element element) => element != null && element.hasOverride;
 }
 
 /**
@@ -6941,12 +7021,11 @@ class ResolverVisitor extends ScopedVisitor {
     int length = parameters.length;
     for (int i = 0; i < length; i++) {
       ParameterElement parameter = parameters[i];
-      ParameterKind kind = parameter.parameterKind;
-      if (kind == ParameterKind.REQUIRED) {
+      if (parameter.isNotOptional) {
         unnamedParameters.add(parameter);
         unnamedParameterCount++;
         requiredParameterCount++;
-      } else if (kind == ParameterKind.POSITIONAL) {
+      } else if (parameter.isOptionalPositional) {
         unnamedParameters.add(parameter);
         unnamedParameterCount++;
       } else {
@@ -7528,7 +7607,13 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
 
   @override
   Object visitGenericFunctionType(GenericFunctionType node) {
-    GenericFunctionTypeElement element = node.type.element;
+    DartType type = node.type;
+    if (type == null) {
+      // The function type hasn't been resolved yet, so we can't create a scope
+      // for its parameters.
+      return super.visitGenericFunctionType(node);
+    }
+    GenericFunctionTypeElement element = type.element;
     Scope outerScope = nameScope;
     try {
       if (element == null) {
@@ -9810,11 +9895,12 @@ class TypeResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitGenericFunctionType(GenericFunctionType node) {
-    GenericFunctionTypeElementImpl element =
-        node.type.element as GenericFunctionTypeElementImpl;
-    super.visitGenericFunctionType(node);
-    element.returnType =
-        _computeReturnType(node.returnType) ?? DynamicTypeImpl.instance;
+    GenericFunctionTypeElementImpl element = node.type?.element;
+    if (element != null) {
+      super.visitGenericFunctionType(node);
+      element.returnType =
+          _computeReturnType(node.returnType) ?? DynamicTypeImpl.instance;
+    }
     return null;
   }
 
@@ -9851,6 +9937,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     element.declaredReturnType = _computeReturnType(node.returnType);
     element.type = new FunctionTypeImpl(element);
     _inferSetterReturnType(element);
+    _inferOperatorReturnType(element);
     if (element is PropertyAccessorElement) {
       PropertyAccessorElement accessor = element as PropertyAccessorElement;
       PropertyInducingElementImpl variable =
@@ -10090,6 +10177,20 @@ class TypeResolverVisitor extends ScopedVisitor {
     // TODO(brianwilkerson) Report this
     // Internal error: Failed to create an element for a class declaration.
     return null;
+  }
+
+  /**
+   * In strong mode we infer "void" as the return type of operator []= (as void
+   * is the only legal return type for []=). This allows us to give better
+   * errors later if an invalid type is returned.
+   */
+  void _inferOperatorReturnType(ExecutableElementImpl element) {
+    if (_strongMode &&
+        element.isOperator &&
+        element.name == '[]=' &&
+        element.hasImplicitReturnType) {
+      element.declaredReturnType = VoidTypeImpl.instance;
+    }
   }
 
   /**

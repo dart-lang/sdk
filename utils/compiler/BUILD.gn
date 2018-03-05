@@ -85,3 +85,20 @@ compile_platform("compile_dart2js_platform") {
     "dart:core",
   ]
 }
+
+compile_platform("compile_dart2js_platform_strong") {
+  sources = [
+    "../../sdk/lib/libraries.json",
+  ]
+
+  outputs = [
+    "$root_out_dir/dart2js_platform_strong.dill",
+    "$root_out_dir/dart2js_outline_strong.dill",
+  ]
+
+  args = [
+    "--target=dart2js",
+    "--strong",
+    "dart:core",
+  ]
+}

@@ -8,26 +8,26 @@ main() {
   /*bl*/
   /*sl:1*/ var i = 42.42;
   /*sl:2*/ var hex = 0x42;
-  if (/*bc:3*/ foo() /*bc:4*/ is int) {
+  /*bc:3*/ if (/*bc:4*/ foo() is int) {
     /*bc:5*/ print("foo is int");
   }
-  if (i /*bc:6*/ is int) {
+  /*bc:6*/ if (i is int) {
     print("i is int");
   }
-  if (i /*bc:7*/ is! int) {
+  /*bc:7*/ if (i is! int) {
     /*bc:8*/ print("i is not int");
   }
-  if (hex /*bc:9*/ is int) {
+  /*bc:9*/ if (hex is int) {
     /*bc:10*/ print("hex is int");
     // ignore: unnecessary_cast
-    int x = hex /*bc:11*/ as int;
+    int x = /*bc:11*/ hex as int;
     /*bc:12*/ if (x.isEven) {
       /*bc:13*/ print("it's even even!");
     } else {
       print("but it's not even even!");
     }
   }
-  if (hex /*bc:14*/ is! int) {
+  /*bc:14*/ if (hex is! int) {
     print("hex is not int");
   }
 }

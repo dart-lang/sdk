@@ -4,13 +4,10 @@
 // Dart test program for testing setting/getting of instance fields.
 
 import "package:expect/expect.dart";
-import "package:meta/meta.dart" show virtual;
 
 class First {
   First() {}
-  @virtual
   var a;
-  @virtual
   var b;
 
   addFields() {
@@ -25,8 +22,6 @@ class First {
 }
 
 class Second extends First {
-  // TODO: consider removing once http://b/4254120 is fixed.
-  Second() : super() {}
   var c;
   get a {
     return -12;
@@ -34,6 +29,21 @@ class Second extends First {
 
   set b(a) {
     a.c = 12;
+  }
+}
+
+class FieldInitializedToNull {
+  int x, y;
+
+  static void test() {
+    var f = new FieldInitializedToNull();
+    int missingArg([int x = 42]) => x;
+    Expect.isNull(f.x);
+    Expect.isNull(f.y);
+    // Regression tests for a DDC bug, where undefined gets initialized in the
+    // fields, and is incorrect recognized as a missing argument.
+    Expect.isNull(missingArg(f.x));
+    Expect.isNull(missingArg(f.y));
   }
 }
 
@@ -68,13 +78,10 @@ class FieldTest {
     o.b = o;
     Expect.equals(12, o.c);
   }
-
-  static testMain() {
-    // FieldTest.one();
-    FieldTest.two();
-  }
 }
 
 main() {
-  FieldTest.testMain();
+  FieldTest.one();
+  FieldTest.two();
+  FieldInitializedToNull.test();
 }

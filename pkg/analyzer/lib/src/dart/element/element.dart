@@ -1159,7 +1159,7 @@ class ClassElementImpl extends AbstractClassElementImpl
     // Otherwise only constructors that lack optional parameters are
     // accessible (see dartbug.com/19576).
     for (ParameterElement parameter in constructor.parameters) {
-      if (parameter.parameterKind != ParameterKind.REQUIRED) {
+      if (parameter.isOptional) {
         return false;
       }
     }
@@ -1253,6 +1253,7 @@ class ClassElementImpl extends AbstractClassElementImpl
               new ParameterElementImpl(superParameter.name, -1);
           implicitParameter.isConst = superParameter.isConst;
           implicitParameter.isFinal = superParameter.isFinal;
+          // ignore: deprecated_member_use
           implicitParameter.parameterKind = superParameter.parameterKind;
           implicitParameter.isSynthetic = true;
           implicitParameter.type =
@@ -2373,7 +2374,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
     }
     // no required parameters
     for (ParameterElement parameter in parameters) {
-      if (parameter.parameterKind == ParameterKind.REQUIRED) {
+      if (parameter.isNotOptional) {
         return false;
       }
     }
@@ -3172,6 +3173,18 @@ abstract class ElementImpl implements Element {
   }
 
   @override
+  bool get hasAlwaysThrows =>
+      metadata.any((ElementAnnotation annotation) => annotation.isAlwaysThrows);
+
+  @override
+  bool get hasDeprecated =>
+      metadata.any((ElementAnnotation annotation) => annotation.isDeprecated);
+
+  @override
+  bool get hasFactory =>
+      metadata.any((ElementAnnotation annotation) => annotation.isFactory);
+
+  @override
   int get hashCode {
     // TODO: We might want to re-visit this optimization in the future.
     // We cache the hash code value as this is a very frequently called method.
@@ -3180,6 +3193,26 @@ abstract class ElementImpl implements Element {
     }
     return _cachedHashCode;
   }
+
+  @override
+  bool get hasJS =>
+      metadata.any((ElementAnnotation annotation) => annotation.isJS);
+
+  @override
+  bool get hasOverride =>
+      metadata.any((ElementAnnotation annotation) => annotation.isOverride);
+
+  @override
+  bool get hasProtected =>
+      metadata.any((ElementAnnotation annotation) => annotation.isProtected);
+
+  @override
+  bool get hasRequired =>
+      metadata.any((ElementAnnotation annotation) => annotation.isRequired);
+
+  @override
+  bool get hasVisibleForTesting => metadata
+      .any((ElementAnnotation annotation) => annotation.isVisibleForTesting);
 
   /**
    * Return an identifier that uniquely identifies this element among the
@@ -4377,6 +4410,7 @@ abstract class ExecutableElementImpl extends ElementImpl
           buffer.write(", ");
         }
         ParameterElement parameter = parameters[i];
+        // ignore: deprecated_member_use
         ParameterKind parameterKind = parameter.parameterKind;
         if (parameterKind != kind) {
           if (closing != null) {
@@ -7470,6 +7504,30 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   Element get enclosingElement => null;
 
   @override
+  bool get hasAlwaysThrows => false;
+
+  @override
+  bool get hasDeprecated => false;
+
+  @override
+  bool get hasFactory => false;
+
+  @override
+  bool get hasJS => false;
+
+  @override
+  bool get hasOverride => false;
+
+  @override
+  bool get hasProtected => false;
+
+  @override
+  bool get hasRequired => false;
+
+  @override
+  bool get hasVisibleForTesting => false;
+
+  @override
   bool get isAlwaysThrows => false;
 
   @override
@@ -8549,6 +8607,29 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
  * [ParameterElement].
  */
 abstract class ParameterElementMixin implements ParameterElement {
+  @override
+  bool get isNamed => parameterKind == ParameterKind.NAMED;
+
+  @override
+  bool get isNotOptional => parameterKind == ParameterKind.REQUIRED;
+
+  @override
+  bool get isOptional =>
+      parameterKind == ParameterKind.NAMED ||
+      parameterKind == ParameterKind.POSITIONAL;
+
+  @override
+  bool get isOptionalPositional => parameterKind == ParameterKind.POSITIONAL;
+
+  @override
+  bool get isPositional =>
+      parameterKind == ParameterKind.POSITIONAL ||
+      parameterKind == ParameterKind.REQUIRED;
+
+  @override
+  // Overridden to remove the 'deprecated' annotation.
+  ParameterKind get parameterKind;
+
   @override
   void appendToWithoutDelimiters(StringBuffer buffer) {
     buffer.write(type);

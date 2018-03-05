@@ -5,52 +5,7 @@
 [ $compiler == app_jit ]
 deferred_inheritance_constraints_test/redirecting_constructor: Crash
 
-[ $compiler != dart2analyzer ]
-switch_case_warn_test: Skip # Analyzer only, see language_analyzer2.status
-
-[ $mode == product ]
-assertion_test: SkipByDesign # Requires checked mode.
-generic_test: SkipByDesign # Requires checked mode.
-issue13474_test: SkipByDesign # Requires checked mode.
-map_literal4_test: SkipByDesign # Requires checked mode.
-named_parameters_type_test/01: SkipByDesign # Requires checked mode.
-named_parameters_type_test/02: SkipByDesign # Requires checked mode.
-named_parameters_type_test/03: SkipByDesign # Requires checked mode.
-positional_parameters_type_test/01: SkipByDesign # Requires checked mode.
-positional_parameters_type_test/02: SkipByDesign # Requires checked mode.
-regress_29784_test/02: SkipByDesign # Requires checked mode.
-stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
-type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
-
-[ $compiler == dart2js && $dart2js_with_kernel && $minified && $strong ]
-first_class_types_literals_test/01: Crash
-first_class_types_literals_test/02: Crash
-first_class_types_literals_test/none: Crash
-first_class_types_test: Crash
-runtime_type_function_test: Crash
-
-[ $compiler != dart2js && $compiler != dartdevc && !$fasta && $strong ]
-type_promotion_functions_test: CompileTimeError # Issue 30895: This test requires a complete rewrite for 2.0.
-
-[ $compiler != dart2js && !$fasta && $strong ]
-compile_time_constant_static5_test/11: CompileTimeError # Issue 30546
-compile_time_constant_static5_test/16: CompileTimeError # Issue 30546
-compile_time_constant_static5_test/21: CompileTimeError # Issue 30546
-compile_time_constant_static5_test/23: CompileTimeError # Issue 30546
-issue_25671a_test/01: CompileTimeError
-issue_25671b_test/01: CompileTimeError
-type_promotion_more_specific_test/04: CompileTimeError # Issue 30906.
-
-[ $compiler != dart2js && !$fasta && !$strong ]
-implicit_creation/implicit_new_constructor_generic_test: Fail # No support for implicit creation.
-implicit_creation/implicit_new_constructor_test: Fail # No support for implicit creation.
-implicit_creation/implicit_new_prefix_constructor_generic_test: Fail # No support for implicit creation.
-implicit_creation/implicit_new_prefix_constructor_test: Fail # No support for implicit creation.
-
-[ $compiler != dartdevc && !$checked ]
-function_type/*: Skip # Needs checked mode.
-
-[ $compiler != dartdevc && !$fasta && $strong ]
+[ $compiler == dart2analyzer ]
 implicit_creation/implicit_const_context_constructor_generic_named_test: CompileTimeError
 implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError
 implicit_creation/implicit_const_context_constructor_named_test: CompileTimeError
@@ -72,6 +27,98 @@ implicit_creation/implicit_new_prefix_constructor_generic_named_test: CompileTim
 implicit_creation/implicit_new_prefix_constructor_generic_test: CompileTimeError
 implicit_creation/implicit_new_prefix_constructor_named_test: CompileTimeError
 implicit_creation/implicit_new_prefix_constructor_test: CompileTimeError
+
+[ $compiler != dart2analyzer ]
+switch_case_warn_test: Skip # Analyzer only, see language_analyzer2.status
+
+[ $mode == product ]
+assertion_test: SkipByDesign # Requires checked mode.
+generic_test: SkipByDesign # Requires checked mode.
+issue13474_test: SkipByDesign # Requires checked mode.
+map_literal4_test: SkipByDesign # Requires checked mode.
+named_parameters_type_test/01: SkipByDesign # Requires checked mode.
+named_parameters_type_test/02: SkipByDesign # Requires checked mode.
+named_parameters_type_test/03: SkipByDesign # Requires checked mode.
+positional_parameters_type_test/01: SkipByDesign # Requires checked mode.
+positional_parameters_type_test/02: SkipByDesign # Requires checked mode.
+regress_29784_test/02: SkipByDesign # Requires checked mode.
+stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
+type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
+
+[ $fasta ]
+initializer_super_last_test/cc04: MissingCompileTimeError
+initializer_super_last_test/cc09: MissingCompileTimeError
+initializer_super_last_test/cc10: MissingCompileTimeError
+initializer_super_last_test/cc11: MissingCompileTimeError
+initializer_super_last_test/cc12: MissingCompileTimeError
+initializer_super_last_test/cc13: MissingCompileTimeError
+initializer_super_last_test/cc14: MissingCompileTimeError
+initializer_super_last_test/cc15: MissingCompileTimeError
+initializer_super_last_test/cc16: MissingCompileTimeError
+initializer_super_last_test/cc25: MissingCompileTimeError
+initializer_super_last_test/cc26: MissingCompileTimeError
+initializer_super_last_test/cc27: MissingCompileTimeError
+initializer_super_last_test/cc28: MissingCompileTimeError
+initializer_super_last_test/cc29: MissingCompileTimeError
+initializer_super_last_test/cc30: MissingCompileTimeError
+initializer_super_last_test/cc31: MissingCompileTimeError
+initializer_super_last_test/cc32: MissingCompileTimeError
+
+[ $compiler == dart2js && !$strong ]
+initializer_super_last_test: Crash, CompileTimeError # Issue 31321
+
+[ $compiler != dart2js && $compiler != dartdevc && !$fasta && $strong ]
+type_promotion_functions_test: CompileTimeError # Issue 30895: This test requires a complete rewrite for 2.0.
+
+[ $compiler != dart2js && !$fasta && $strong ]
+compile_time_constant_static5_test/11: CompileTimeError # Issue 30546
+compile_time_constant_static5_test/16: CompileTimeError # Issue 30546
+compile_time_constant_static5_test/21: CompileTimeError # Issue 30546
+compile_time_constant_static5_test/23: CompileTimeError # Issue 30546
+type_promotion_more_specific_test/04: CompileTimeError # Issue 30906.
+
+[ $compiler != dart2js && !$fasta && !$strong ]
+implicit_creation/implicit_new_constructor_generic_test: Fail # No support for implicit creation.
+implicit_creation/implicit_new_constructor_test: Fail # No support for implicit creation.
+implicit_creation/implicit_new_prefix_constructor_generic_test: Fail # No support for implicit creation.
+implicit_creation/implicit_new_prefix_constructor_test: Fail # No support for implicit creation.
+
+[ $compiler != dart2js && !$strong ]
+initializer_super_last_test/cc01: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc02: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc03: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc04: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc05: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc06: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc07: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc08: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc09: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc10: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc11: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc12: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc13: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc14: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc15: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc16: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc17: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc18: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc19: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc20: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc21: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc22: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc23: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc24: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc25: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc26: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc27: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc28: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc29: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc30: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc31: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc32: MissingCompileTimeError # Was valid in Dart 1.
+
+[ $compiler != dartdevc && !$checked ]
+function_type/*: Skip # Needs checked mode.
 
 [ $compiler != dartk && $compiler != dartkp && $mode == debug && $runtime == vm ]
 built_in_identifier_type_annotation_test/15: Crash # Not supported by legacy VM front-end.
@@ -212,10 +259,6 @@ type_parameter_test/05: Pass
 [ !$checked && ($compiler == app_jit || $compiler == none || $compiler == precompiler) && ($runtime == dart_precompiled || $runtime == vm) ]
 *: SkipByDesign
 
-[ !$dart2js_with_kernel && $minified ]
-regress_21795_test: RuntimeError # Issue 12605
-stack_trace_test: Fail, OK # Stack trace not preserved in minified code.
-
 [ !$fasta && !$strong ]
 implicit_creation/implicit_const_context_constructor_generic_named_test: Fail # No support for implicit creation.
 implicit_creation/implicit_const_context_constructor_generic_test: Fail # No support for implicit creation.
@@ -237,9 +280,6 @@ implicit_creation/implicit_new_prefix_constructor_named_test: Fail # No support 
 
 [ $compiler == app_jit || $compiler == none ]
 library_env_test/has_no_mirror_support: RuntimeError, OK
-
-[ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm ]
-cyclic_type_test/03: Pass, Fail, Crash # Issue 31944
 
 [ $hot_reload || $hot_reload_rollback ]
 cha_deopt1_test: Crash # Requires deferred libraries

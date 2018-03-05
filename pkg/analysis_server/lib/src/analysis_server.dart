@@ -108,7 +108,7 @@ class AnalysisServer {
    * The version of the analysis server. The value should be replaced
    * automatically during the build.
    */
-  static final String VERSION = '1.18.5';
+  static final String VERSION = '1.18.7';
 
   /**
    * The options of this server instance.
@@ -372,6 +372,7 @@ class AnalysisServer {
 
     defaultContextOptions.generateImplicitErrors = false;
     defaultContextOptions.useFastaParser = options.useCFE;
+    defaultContextOptions.previewDart2 = options.previewDart2;
 
     {
       String name = options.newAnalysisDriverLog;
@@ -1294,7 +1295,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
             FlutterService.OUTLINE, path)) {
           _runDelayed(() {
             sendFlutterNotificationOutline(
-                analysisServer, path, result.lineInfo, unit);
+                analysisServer, path, result.content, result.lineInfo, unit);
           });
         }
         // TODO(scheglov) Implement notifications for AnalysisService.IMPLEMENTED.

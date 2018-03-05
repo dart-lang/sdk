@@ -8,7 +8,9 @@ import 'hint_code_driver_test.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(HintCodeTest_Kernel);
+    // TODO(scheglov): Restore similar test coverage when the front-end API
+    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
+    // defineReflectiveTests(HintCodeTest_Kernel);
   });
 }
 
@@ -60,6 +62,13 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   test_argumentTypeNotAssignable_type() async {
     // Expected 1 errors of type HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0
     return super.test_argumentTypeNotAssignable_type();
+  }
+
+  @failingTest
+  @override
+  test_canBeNullAfterNullAware_after_cascade() async {
+    // Expected 1 errors of type HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, found 0
+    return super.test_canBeNullAfterNullAware_after_cascade();
   }
 
   @failingTest

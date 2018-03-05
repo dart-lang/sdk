@@ -2,5 +2,7 @@ library;
 import self as self;
 
 static method #main() → dynamic {
-  throw "pkg/front_end/testcases/co19_language_metadata_syntax_t04.dart:16:9: Error: Duplicated name: A\nclass A {\n        ^";
+  throw "pkg/front_end/testcases/co19_language_metadata_syntax_t04.dart:16:9: Error: Duplicated name: A
+class A {
+        ^";
 }

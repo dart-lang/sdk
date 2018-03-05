@@ -26,5 +26,5 @@ class Map<K, V> {
   }
 
   @patch
-  factory Map() = LinkedHashMap<K, V>;
+  factory Map() => new LinkedHashMap<K, V>();
 }

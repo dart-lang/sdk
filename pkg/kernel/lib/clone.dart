@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.clone;
 
-// ignore: UNDEFINED_HIDDEN_NAME
 import 'dart:core' hide MapEntry;
 
 import 'ast.dart';
@@ -14,7 +13,7 @@ import 'type_algebra.dart';
 ///
 /// It is safe to clone members, but cloning a class or library is not
 /// supported.
-class CloneVisitor extends TreeVisitor {
+class CloneVisitor implements TreeVisitor {
   final Map<VariableDeclaration, VariableDeclaration> variables =
       <VariableDeclaration, VariableDeclaration>{};
   final Map<LabeledStatement, LabeledStatement> labels =
@@ -473,5 +472,90 @@ class CloneVisitor extends TreeVisitor {
 
   visitNamedExpression(NamedExpression node) {
     return new NamedExpression(node.name, clone(node.value));
+  }
+
+  defaultBasicLiteral(BasicLiteral node) {
+    return defaultExpression(node);
+  }
+
+  defaultExpression(Expression node) {
+    throw 'Unimplemented clone for Kernel expression: $node';
+  }
+
+  defaultInitializer(Initializer node) {
+    throw 'Unimplemented clone for Kernel initializer: $node';
+  }
+
+  defaultMember(Member node) {
+    throw 'Unimplemented clone for Kernel member: $node';
+  }
+
+  defaultStatement(Statement node) {
+    throw 'Unimplemented clone for Kernel statement: $node';
+  }
+
+  defaultTreeNode(TreeNode node) {
+    throw 'Cloning Kernel non-members is not supported.  '
+        'Tried cloning $node';
+  }
+
+  visitAssertInitializer(AssertInitializer node) {
+    return new AssertInitializer(clone(node.statement));
+  }
+
+  visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
+    return new CheckLibraryIsLoaded(node.import);
+  }
+
+  visitCombinator(Combinator node) {
+    return defaultTreeNode(node);
+  }
+
+  visitFieldInitializer(FieldInitializer node) {
+    return new FieldInitializer.byReference(
+        node.fieldReference, clone(node.value));
+  }
+
+  visitInstantiation(Instantiation node) {
+    return new Instantiation(
+        clone(node.expression), node.typeArguments.map(visitType).toList());
+  }
+
+  visitInvalidInitializer(InvalidInitializer node) {
+    return new InvalidInitializer();
+  }
+
+  visitLibraryDependency(LibraryDependency node) {
+    return defaultTreeNode(node);
+  }
+
+  visitLibraryPart(LibraryPart node) {
+    return defaultTreeNode(node);
+  }
+
+  visitLoadLibrary(LoadLibrary node) {
+    return new LoadLibrary(node.import);
+  }
+
+  visitLocalInitializer(LocalInitializer node) {
+    return new LocalInitializer(clone(node.variable));
+  }
+
+  visitProgram(Program node) {
+    return defaultTreeNode(node);
+  }
+
+  visitRedirectingInitializer(RedirectingInitializer node) {
+    return new RedirectingInitializer.byReference(
+        node.targetReference, clone(node.arguments));
+  }
+
+  visitSuperInitializer(SuperInitializer node) {
+    return new SuperInitializer.byReference(
+        node.targetReference, clone(node.arguments));
+  }
+
+  visitTypedef(Typedef node) {
+    return defaultTreeNode(node);
   }
 }

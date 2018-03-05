@@ -287,6 +287,34 @@ hence ignored), except when explicitly subjected to a type cast. This
 open for the cases where the developer knows that the typing misrepresents
 the actual situation.*
 
+It is a static warning (in Dart 2: a compile-time error) if a return
+statement `return e;` occurs such that the innermost enclosing function
+has return type `void` and the static type of `e` is not the type void.
+
+It is a static warning (in Dart 2: a compile-time error) if a function
+marked `async*`, or `sync*` has return type `void`.
+
+*Note that it is allowed for an `async` function to have return type
+`void`. This serves to indicate that said function performs a
+"fire-and-forget" operation, that is, it is not even useful for the caller
+to synchronize with the completion of that task.*
+
+It is a static warning (Dart 2: a compile-time error) for a for-in
+statement to have an iterator expression of type `T` such that
+`Iterator<void>` is the most specific instantiation of `Iterator` that is a
+superinterface of `T`, unless the iteration variable has type void.
+
+It is a static warning (Dart 2: a compile-time error) for an asynchronous
+for-in statement to have a stream expression of type `T` such that
+`Stream<void>` is the most specific instantiation of `Stream` that is a
+superinterface of `T`, unless the iteration variable has type void.
+
+*Hence, `for (Object x in <void>[]) {}` and
+`await for (int x in new Stream<void>.empty()) {}` are errors, whereas
+`for (void x in <void>[]) {...}` and `for (var x in <void>[]) {...}` are OK. The
+usage of `x` in the loop body is constrained, though, because it has type
+void.*
+
 During bounds checking, it is possible that a bound of a formal type
 parameter of a generic class or function is statically known to be the type
 void. In this case, the bound is considered to be the built-in class

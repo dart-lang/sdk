@@ -339,8 +339,8 @@ void ProfileCode::SetName(const char* name) {
 void ProfileCode::GenerateAndSetSymbolName(const char* prefix) {
   const intptr_t kBuffSize = 512;
   char buff[kBuffSize];
-  OS::SNPrint(&buff[0], kBuffSize - 1, "%s [%" Px ", %" Px ")", prefix, start(),
-              end());
+  Utils::SNPrint(&buff[0], kBuffSize - 1, "%s [%" Px ", %" Px ")", prefix,
+                 start(), end());
   SetName(buff);
 }
 

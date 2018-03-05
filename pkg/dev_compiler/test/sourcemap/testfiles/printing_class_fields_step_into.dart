@@ -5,18 +5,19 @@
 /*nb*/
 main() {
   /*bl*/
-  Foo foo = new /*bc:1*/ Foo(1, 2);
-  /*bc:5*/ print(foo.x);
-  /*bc:6*/ print(foo.y);
-  /*bc:7*/ print(foo.z);
+  Foo foo = new /*sl:1*/ Foo(1, 2);
+  /*s:5*/ print(foo.x);
+  /*s:6*/ print(foo.y);
+  /*s:7*/ print(foo.z);
 }
 
 class Foo {
   var x, y, z;
 
   Foo(a, b)
-      : this.x /*bc:2*/ = a,
-        this.y /*bc:3*/ = b {
-    z = a /*bc:4*/ + b;
+      : this. /*sl:2*/ x = a, // `s:2` fails, DDK is missing hover info
+        this. /*sl:3*/ y = b {
+    // `s:3` fails, DDK is missing hover info
+    z = a /*sl:4*/ + b;
   }
 }

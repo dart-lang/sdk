@@ -27,311 +27,6 @@ main() {
 }
 
 @reflectiveTest
-class NonErrorResolverSpecTest extends ResolverTestCase {
-  test_inconsistentMethodInheritance_overrideTrumpsInherits_getter() async {
-    // 16134
-    Source source = addSource(r'''
-class B<S> {
-  S get g => null;
-}
-abstract class I<U> {
-  U get g => null;
-}
-class C extends B<double> implements I<int> {
-  num get g => null;
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_inconsistentMethodInheritance_overrideTrumpsInherits_method() async {
-    // 16134
-    Source source = addSource(r'''
-class B<S> {
-  m(S s) => null;
-}
-abstract class I<U> {
-  m(U u) => null;
-}
-class C extends B<double> implements I<int> {
-  m(num n) => null;
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_inconsistentMethodInheritance_overrideTrumpsInherits_setter() async {
-    // 16134
-    Source source = addSource(r'''
-class B<S> {
-  set t(S s) {}
-}
-abstract class I<U> {
-  set t(U u) {}
-}
-class C extends B<double> implements I<int> {
-  set t(num n) {}
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_invocationOfNonFunction_localVariable_dynamic2() async {
-    Source source = addSource(r'''
-f() {}
-main() {
-  var v = f;
-  v = 1;
-  v();
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_invocationOfNonFunction_proxyOnFunctionClass() async {
-    // 16078
-    Source source = addSource(r'''
-@proxy
-class Functor implements Function {
-  noSuchMethod(inv) {
-    return 42;
-  }
-}
-main() {
-  Functor f = new Functor();
-  f();
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_parameterDefaultDoesNotReferToParameterName() async {
-    // The final "f" should refer to the top-level function "f", not to the
-    // parameter called "f".  See dartbug.com/13179.
-    Source source = addSource('void f([void f([x]) = f]) {}');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_proxy_annotation_prefixed() async {
-    Source source = addSource(r'''
-library L;
-@proxy
-class A {}
-f(A a) {
-  a.m();
-  var x = a.g;
-  a.s = 1;
-  var y = a + a;
-  a++;
-  ++a;
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-  }
-
-  test_proxy_annotation_prefixed2() async {
-    Source source = addSource(r'''
-library L;
-@proxy
-class A {}
-class B {
-  f(A a) {
-    a.m();
-    var x = a.g;
-    a.s = 1;
-    var y = a + a;
-    a++;
-    ++a;
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-  }
-
-  test_proxy_annotation_prefixed3() async {
-    Source source = addSource(r'''
-library L;
-class B {
-  f(A a) {
-    a.m();
-    var x = a.g;
-    a.s = 1;
-    var y = a + a;
-    a++;
-    ++a;
-  }
-}
-@proxy
-class A {}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-  }
-
-  test_proxy_annotation_proxyHasPrefixedIdentifier() async {
-    Source source = addSource(r'''
-library L;
-import 'dart:core' as core;
-@core.proxy class PrefixProxy {}
-main() {
-  new PrefixProxy().foo;
-  new PrefixProxy().foo();
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-  }
-
-  test_proxy_annotation_simple() async {
-    Source source = addSource(r'''
-library L;
-@proxy
-class B {
-  m() {
-    n();
-    var x = g;
-    s = 1;
-    var y = this + this;
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-  }
-
-  test_proxy_annotation_superclass() async {
-    Source source = addSource(r'''
-library L;
-class B extends A {
-  m() {
-    n();
-    var x = g;
-    s = 1;
-    var y = this + this;
-  }
-}
-@proxy
-class A {}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-  }
-
-  test_proxy_annotation_superclass_mixin() async {
-    Source source = addSource(r'''
-library L;
-class B extends Object with A {
-  m() {
-    n();
-    var x = g;
-    s = 1;
-    var y = this + this;
-  }
-}
-@proxy
-class A {}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-  }
-
-  test_proxy_annotation_superinterface() async {
-    Source source = addSource(r'''
-library L;
-class B implements A {
-  m() {
-    n();
-    var x = g;
-    s = 1;
-    var y = this + this;
-  }
-}
-@proxy
-class A {}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-  }
-
-  test_proxy_annotation_superinterface_infiniteLoop() async {
-    addSource(r'''
-library L;
-class C implements A {
-  m() {
-    n();
-    var x = g;
-    s = 1;
-    var y = this + this;
-  }
-}
-class B implements A{}
-class A implements B{}''');
-    // Test is that a stack overflow isn't reached in resolution
-    // (previous line), no need to assert error set.
-  }
-
-  test_redirectToInvalidReturnType() async {
-    Source source = addSource(r'''
-class A {
-  A() {}
-}
-class B extends A {
-  factory B() = A;
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_returnOfInvalidType_async_future_int_mismatches_future_null() async {
-    Source source = addSource(r'''
-import 'dart:async';
-Future<Null> f() async {
-  return 5;
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_returnOfInvalidType_dynamicAsTypeArgument() async {
-    Source source = addSource(r'''
-class I<T> {
-  factory I() => new A<T>();
-}
-class A<T> implements I {
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_typeArgumentNotMatchingBounds_typeArgumentList_0() async {
-    Source source = addSource("abstract class A<T extends A>{}");
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_typeArgumentNotMatchingBounds_typeArgumentList_1() async {
-    Source source = addSource("abstract class A<T extends A<A>>{}");
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_typeArgumentNotMatchingBounds_typeArgumentList_20() async {
-    Source source = addSource(
-        "abstract class A<T extends A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A>>>>>>>>>>>>>>>>>>>>>{}");
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-}
-
-@reflectiveTest
 class NonErrorResolverTest extends ResolverTestCase {
   @override
   AnalysisOptions get defaultAnalysisOptions =>
@@ -614,6 +309,30 @@ main() {
   process(() {});
 }
 process(Object x) {}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_argumentTypeNotAssignable_optionalNew() async {
+    resetWith(
+        options: new AnalysisOptionsImpl()
+          ..previewDart2 = true
+          ..strongMode = true);
+    Source source = addSource(r'''
+class Widget { }
+
+class MaterialPageRoute {
+  final Widget Function() builder;
+  const MaterialPageRoute({this.builder});
+}
+
+void main() {
+  print(MaterialPageRoute(
+      builder: () { return Widget(); }
+  ));
+}
+''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
@@ -3012,6 +2731,7 @@ class C implements A, B {
   test_infer_mixin() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
+    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -3030,6 +2750,86 @@ class C extends A<B> with M {}
         resolutionMap.elementDeclaredByCompilationUnit(unit).getType('C');
     expect(classC.mixins, hasLength(1));
     expect(classC.mixins[0].toString(), 'M<B>');
+  }
+
+  @failingTest // Does not work with old task model
+  test_infer_mixin_multiplyConstrained() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    options.strongMode = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+
+abstract class B<U> {}
+
+class C {}
+
+class D {}
+
+class M<T, U> extends A<T> with B<U> {}
+
+class E extends A<C> implements B<D> {}
+
+class F extends E with M {}
+''');
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    ClassElement classF =
+        resolutionMap.elementDeclaredByCompilationUnit(unit).getType('F');
+    expect(classF.mixins, hasLength(1));
+    expect(classF.mixins[0].toString(), 'M<C, D>');
+  }
+
+  @failingTest // Does not work with old task model
+  test_infer_mixin_with_substitution() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    options.strongMode = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+
+class B {}
+
+class M<T> extends A<List<T>> {}
+
+class C extends A<List<B>> with M {}
+''');
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    ClassElement classC =
+        resolutionMap.elementDeclaredByCompilationUnit(unit).getType('C');
+    expect(classC.mixins, hasLength(1));
+    expect(classC.mixins[0].toString(), 'M<B>');
+  }
+
+  @failingTest // Does not work with old task model
+  test_infer_mixin_with_substitution_functionType() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    options.strongMode = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+
+class B {}
+
+class M<T, U> extends A<T Function(U)> {}
+
+class C extends A<int Function(String)> with M {}
+''');
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    CompilationUnit unit = analysisResult.unit;
+    ClassElement classC =
+        resolutionMap.elementDeclaredByCompilationUnit(unit).getType('C');
+    expect(classC.mixins, hasLength(1));
+    expect(classC.mixins[0].toString(), 'M<int, String>');
   }
 
   test_initializingFormalForNonExistentField() async {
@@ -3799,7 +3599,7 @@ main() {
   v();
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    assertErrors(source, [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
     verify([source]);
   }
 

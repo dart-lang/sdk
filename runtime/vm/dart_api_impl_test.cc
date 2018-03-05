@@ -3287,11 +3287,8 @@ VM_UNIT_TEST_CASE(DartAPI_Isolates) {
 
 VM_UNIT_TEST_CASE(DartAPI_CurrentIsolateData) {
   intptr_t mydata = 12345;
-  char* err;
   Dart_Isolate isolate =
-      Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
-                         bin::core_isolate_snapshot_instructions, NULL,
-                         reinterpret_cast<void*>(mydata), &err);
+      TestCase::CreateTestIsolate(NULL, reinterpret_cast<void*>(mydata));
   EXPECT(isolate != NULL);
   EXPECT_EQ(mydata, reinterpret_cast<intptr_t>(Dart_CurrentIsolateData()));
   EXPECT_EQ(mydata, reinterpret_cast<intptr_t>(Dart_IsolateData(isolate)));
@@ -3338,13 +3335,12 @@ VM_UNIT_TEST_CASE(DartAPI_IsolateSetCheckedMode) {
   api_flags.enable_error_on_bad_type = true;
   api_flags.enable_error_on_bad_override = true;
   api_flags.use_dart_frontend = FLAG_use_dart_frontend;
-
   char* err;
   Dart_Isolate isolate = Dart_CreateIsolate(
       NULL, NULL, bin::core_isolate_snapshot_data,
       bin::core_isolate_snapshot_instructions, &api_flags, NULL, &err);
   if (isolate == NULL) {
-    OS::Print("Creation of isolate failed '%s'\n", err);
+    OS::PrintErr("Creation of isolate failed '%s'\n", err);
     free(err);
   }
   EXPECT(isolate != NULL);
@@ -3614,7 +3610,7 @@ static void TestFieldOk(Dart_Handle container,
   // Use a unique expected value.
   static int counter = 0;
   char buffer[256];
-  OS::SNPrint(buffer, 256, "Expected%d", ++counter);
+  Utils::SNPrint(buffer, 256, "Expected%d", ++counter);
 
   // Try to change the field value.
   result = Dart_SetField(container, name, NewString(buffer));
@@ -4783,6 +4779,66 @@ TEST_CASE(DartAPI_New_Issue2971) {
   EXPECT(Dart_IsList(list_obj));
 }
 
+TEST_CASE(DartAPI_NewListOfType) {
+  const char* kScriptChars =
+      "class ZXHandle {}\n"
+      "class ChannelReadResult {\n"
+      "  final List<ZXHandle> handles;\n"
+      "  ChannelReadResult(this.handles);\n"
+      "}\n"
+      "void expectListOfString(List<String> _) {}\n"
+      "void expectListOfDynamic(List<dynamic> _) {}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  Dart_Handle zxhandle_type = Dart_GetType(lib, NewString("ZXHandle"), 0, NULL);
+  EXPECT_VALID(zxhandle_type);
+
+  Dart_Handle zxhandle = Dart_New(zxhandle_type, Dart_Null(), 0, NULL);
+  EXPECT_VALID(zxhandle);
+
+  Dart_Handle zxhandle_list = Dart_NewListOfType(zxhandle_type, 1);
+  EXPECT_VALID(zxhandle_list);
+
+  EXPECT_VALID(Dart_ListSetAt(zxhandle_list, 0, zxhandle));
+
+  Dart_Handle readresult_type =
+      Dart_GetType(lib, NewString("ChannelReadResult"), 0, NULL);
+  EXPECT_VALID(zxhandle_type);
+
+  const int kNumArgs = 1;
+  Dart_Handle args[kNumArgs];
+  args[0] = zxhandle_list;
+  EXPECT_VALID(Dart_New(readresult_type, Dart_Null(), kNumArgs, args));
+
+  EXPECT_ERROR(
+      Dart_NewListOfType(Dart_Null(), 1),
+      "Dart_NewListOfType expects argument 'element_type' to be non-null.");
+  EXPECT_ERROR(
+      Dart_NewListOfType(Dart_True(), 1),
+      "Dart_NewListOfType expects argument 'element_type' to be of type Type.");
+
+  Dart_Handle dart_core = Dart_LookupLibrary(NewString("dart:core"));
+  EXPECT_VALID(dart_core);
+
+  Dart_Handle string_type =
+      Dart_GetType(dart_core, NewString("String"), 0, NULL);
+  EXPECT_VALID(string_type);
+  Dart_Handle string_list = Dart_NewListOfType(string_type, 0);
+  EXPECT_VALID(string_list);
+  args[0] = string_list;
+  EXPECT_VALID(
+      Dart_Invoke(lib, NewString("expectListOfString"), kNumArgs, args));
+
+  Dart_Handle dynamic_type =
+      Dart_GetType(dart_core, NewString("dynamic"), 0, NULL);
+  EXPECT_VALID(dynamic_type);
+  Dart_Handle dynamic_list = Dart_NewListOfType(string_type, 0);
+  EXPECT_VALID(dynamic_list);
+  args[0] = dynamic_list;
+  EXPECT_VALID(
+      Dart_Invoke(lib, NewString("expectListOfDynamic"), kNumArgs, args));
+}
+
 static Dart_Handle PrivateLibName(Dart_Handle lib, const char* str) {
   EXPECT(Dart_IsLibrary(lib));
   Thread* thread = Thread::Current();
@@ -5107,7 +5163,7 @@ TEST_CASE(DartAPI_InvokeClosure) {
       "    return f;\n"
       "  }\n"
       "  static Function method2(int i) {\n"
-      "    n(int j) => true + i + fld4; \n"
+      "    n(int j) { throw new Exception('I am an exception'); return 1; }\n"
       "    return n;\n"
       "  }\n"
       "  int fld1;\n"
@@ -5877,7 +5933,7 @@ TEST_CASE(DartAPI_LibraryGetClassNames) {
       "class _B {}\n"
       "abstract class _C {}\n"
       "\n"
-      "_compare(String a, String b) => a.compareTo(b);\n"
+      "int _compare(dynamic a, dynamic b) => a.compareTo(b);\n"
       "sort(list) => list.sort(_compare);\n";
 
   Dart_Handle lib = TestCase::LoadTestLibrary("library_url", kLibraryChars);
@@ -5926,7 +5982,7 @@ TEST_CASE(DartAPI_GetFunctionNames) {
       "  var _D2;\n"
       "}\n"
       "\n"
-      "_compare(String a, String b) => a.compareTo(b);\n"
+      "int _compare(dynamic a, dynamic b) => a.compareTo(b);\n"
       "sort(list) => list.sort(_compare);\n";
 
   // Get the functions from a library.
@@ -7208,13 +7264,7 @@ void BusyLoop_start(uword unused) {
   Dart_Handle lib;
   {
     MonitorLocker ml(sync);
-    char* error = NULL;
-    Dart_IsolateFlags api_flags;
-    Isolate::FlagsInitialize(&api_flags);
-    api_flags.use_dart_frontend = FLAG_use_dart_frontend;
-    shared_isolate = Dart_CreateIsolate(
-        NULL, NULL, bin::core_isolate_snapshot_data,
-        bin::core_isolate_snapshot_instructions, &api_flags, NULL, &error);
+    TestCase::CreateTestIsolate();
     EXPECT(shared_isolate != NULL);
     Dart_EnterScope();
     Dart_Handle url = NewString(TestCase::url());
@@ -7258,18 +7308,9 @@ VM_UNIT_TEST_CASE(DartAPI_IsolateShutdown) {
   Isolate::SetShutdownCallback(IsolateShutdownTestCallback);
 
   saved_callback_data = NULL;
-
   void* my_data = reinterpret_cast<void*>(12345);
-
   // Create an isolate.
-  char* err;
-  Dart_Isolate isolate = Dart_CreateIsolate(
-      NULL, NULL, bin::core_isolate_snapshot_data,
-      bin::core_isolate_snapshot_instructions, NULL, my_data, &err);
-  if (isolate == NULL) {
-    OS::Print("Creation of isolate failed '%s'\n", err);
-    free(err);
-  }
+  Dart_Isolate isolate = TestCase::CreateTestIsolate(NULL, my_data);
   EXPECT(isolate != NULL);
 
   // The shutdown callback has not been called.
@@ -7312,17 +7353,7 @@ VM_UNIT_TEST_CASE(DartAPI_IsolateShutdownRunDartCode) {
       "}\n";
 
   // Create an isolate.
-  char* err;
-  Dart_IsolateFlags api_flags;
-  Isolate::FlagsInitialize(&api_flags);
-  api_flags.use_dart_frontend = FLAG_use_dart_frontend;
-  Dart_Isolate isolate = Dart_CreateIsolate(
-      NULL, NULL, bin::core_isolate_snapshot_data,
-      bin::core_isolate_snapshot_instructions, &api_flags, NULL, &err);
-  if (isolate == NULL) {
-    OS::Print("Creation of isolate failed '%s'\n", err);
-    free(err);
-  }
+  Dart_Isolate isolate = TestCase::CreateTestIsolate();
   EXPECT(isolate != NULL);
 
   Isolate::SetShutdownCallback(IsolateShutdownRunDartCodeTestCallback);

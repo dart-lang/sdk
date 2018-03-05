@@ -50,7 +50,7 @@ class HashMap<K, V> {
   }
 
   @patch
-  factory HashMap.identity() = _IdentityHashMap<K, V>;
+  factory HashMap.identity() => new _IdentityHashMap<K, V>();
 
   Set<K> _newKeySet();
 }
@@ -552,7 +552,7 @@ class HashSet<E> {
   }
 
   @patch
-  factory HashSet.identity() = _IdentityHashSet<E>;
+  factory HashSet.identity() => new _IdentityHashSet<E>();
 }
 
 class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
@@ -872,7 +872,7 @@ class LinkedHashMap<K, V> {
   }
 
   @patch
-  factory LinkedHashMap.identity() = _CompactLinkedIdentityHashMap<K, V>;
+  factory LinkedHashMap.identity() => new _CompactLinkedIdentityHashMap<K, V>();
 }
 
 @patch
@@ -909,5 +909,5 @@ class LinkedHashSet<E> {
   }
 
   @patch
-  factory LinkedHashSet.identity() = _CompactLinkedIdentityHashSet<E>;
+  factory LinkedHashSet.identity() => new _CompactLinkedIdentityHashSet<E>();
 }

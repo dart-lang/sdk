@@ -1,6 +1,11 @@
 library;
 import self as self;
 
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_29986.dart:8:13: Error: Expected a function body or '=>'.\nTry adding {}.\nC(this.name);\n            ^", "pkg/front_end/testcases/regress/issue_29986.dart:8:3: Error: 'this' parameters can only be used on constructors.\nC(this.name);\n  ^"]/* from null */;
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_29986.dart:8:13: Error: Expected a function body or '=>'.
+Try adding {}.
+C(this.name);
+            ^", "pkg/front_end/testcases/regress/issue_29986.dart:8:3: Error: 'this' parameters can only be used on constructors.
+C(this.name);
+  ^"]/* from null */;
 static method main() → dynamic {}
 static abstract method C(dynamic name) → dynamic;

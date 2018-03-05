@@ -76,10 +76,8 @@ class NativeEmitter {
    * [classesModifiedByEmitRTISupport] contains the list of classes that must
    * exist, because runtime-type support adds information to the class.
    */
-  Set<Class> prepareNativeClasses(
-      List<Class> classes,
-      Set<ClassEntity> interceptorClassesNeededByConstants,
-      Set<ClassEntity> classesModifiedByEmitRTISupport) {
+  Set<Class> prepareNativeClasses(List<Class> classes,
+      Set<ClassEntity> interceptorClassesNeededByConstants) {
     assert(classes.every((Class cls) => cls != null));
 
     hasNativeClasses = classes.isNotEmpty;
@@ -135,10 +133,6 @@ class NativeEmitter {
       } else if (!isTrivialClass(cls)) {
         needed = true;
       } else if (interceptorClassesNeededByConstants.contains(classElement)) {
-        needed = true;
-      } else if (classesModifiedByEmitRTISupport.contains(classElement)) {
-        // TODO(9556): Remove this test when [emitRuntimeTypeSupport] no longer
-        // adds information to a class prototype or constructor.
         needed = true;
       } else if (extensionPoints.containsKey(cls)) {
         needed = true;

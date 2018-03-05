@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart' show NamespaceBuilder;
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:collection/collection.dart';
 
@@ -23,6 +22,52 @@ Element _getEnclosingElement(CompilationUnitElement unitElement, int offset) {
   var finder = new _ContainingElementFinder(offset);
   unitElement.accept(finder);
   return finder.containingElement;
+}
+
+/**
+ * An element declaration.
+ */
+class Declaration {
+  final int fileIndex;
+  final String name;
+  final DeclarationKind kind;
+  final int offset;
+  final int line;
+  final int column;
+  final int codeOffset;
+  final int codeLength;
+  final String className;
+  final String parameters;
+
+  Declaration(
+      this.fileIndex,
+      this.name,
+      this.kind,
+      this.offset,
+      this.line,
+      this.column,
+      this.codeOffset,
+      this.codeLength,
+      this.className,
+      this.parameters);
+}
+
+/**
+ * The kind of a [Declaration].
+ */
+enum DeclarationKind {
+  CLASS,
+  CLASS_TYPE_ALIAS,
+  CONSTRUCTOR,
+  ENUM,
+  ENUM_CONSTANT,
+  FIELD,
+  FUNCTION,
+  FUNCTION_TYPE_ALIAS,
+  GETTER,
+  METHOD,
+  SETTER,
+  VARIABLE
 }
 
 /**
@@ -57,6 +102,191 @@ class Search {
       }
     }
     return elements;
+  }
+
+  /**
+   * Return top-level and class member declarations.
+   *
+   * If [regExp] is not `null`, only declaration with names matching it are
+   * returned. Otherwise, all declarations are returned.
+   *
+   * If [maxResults] is not `null`, it sets the maximum number of returned
+   * declarations.
+   *
+   * The path of each file with at least one declaration is added to [files].
+   * The list is for searched, there might be duplicates, but this is OK,
+   * we just want reduce amount of data, not to make it absolute minimum.
+   */
+  Future<List<Declaration>> declarations(
+      RegExp regExp, int maxResults, List<String> files) async {
+    List<Declaration> declarations = <Declaration>[];
+    UnlinkedUnit unlinkedUnit;
+
+    DeclarationKind getExecutableKind(
+        UnlinkedExecutable executable, bool topLevel) {
+      switch (executable.kind) {
+        case UnlinkedExecutableKind.constructor:
+          return DeclarationKind.CONSTRUCTOR;
+        case UnlinkedExecutableKind.functionOrMethod:
+          if (topLevel) {
+            return DeclarationKind.FUNCTION;
+          }
+          return DeclarationKind.METHOD;
+        case UnlinkedExecutableKind.getter:
+          return DeclarationKind.GETTER;
+          break;
+        default:
+          return DeclarationKind.SETTER;
+      }
+    }
+
+    void appendParameter(StringBuffer buffer, UnlinkedParam parameter) {
+      EntityRef type = parameter.type;
+      if (type?.entityKind == EntityRefKind.named) {
+        if (type.reference != null) {
+          UnlinkedReference typeRef = unlinkedUnit.references[type.reference];
+          buffer.write(typeRef.name);
+          buffer.write(' ');
+        }
+      }
+      buffer.write(parameter.name);
+    }
+
+    String getParametersString(List<UnlinkedParam> parameters) {
+      var buffer = new StringBuffer();
+      buffer.write('(');
+
+      bool isFirstParameter = true;
+      for (var parameter in parameters) {
+        if (isFirstParameter) {
+          isFirstParameter = false;
+        } else {
+          buffer.write(', ');
+        }
+        appendParameter(buffer, parameter);
+      }
+
+      buffer.write(')');
+      return buffer.toString();
+    }
+
+    String getExecutableParameters(UnlinkedExecutable executable) {
+      if (executable.kind == UnlinkedExecutableKind.getter) {
+        return null;
+      }
+      return getParametersString(executable.parameters);
+    }
+
+    try {
+      for (String path in _driver.addedFiles) {
+        FileState file = _driver.fsState.getFileForPath(path);
+        int fileIndex;
+
+        void addDeclaration(String name, DeclarationKind kind, int offset,
+            int codeOffset, int codeLength,
+            {String className, String parameters}) {
+          if (maxResults != null && declarations.length >= maxResults) {
+            throw const _MaxNumberOfDeclarationsError();
+          }
+
+          if (name.endsWith('=')) {
+            name = name.substring(0, name.length - 1);
+          }
+          if (regExp != null && !regExp.hasMatch(name)) {
+            return;
+          }
+
+          if (fileIndex == null) {
+            fileIndex = files.length;
+            files.add(file.path);
+          }
+          var location = file.lineInfo.getLocation(offset);
+          declarations.add(new Declaration(
+              fileIndex,
+              name,
+              kind,
+              offset,
+              location.lineNumber,
+              location.columnNumber,
+              codeOffset,
+              codeLength,
+              className,
+              parameters));
+        }
+
+        unlinkedUnit = file.unlinked;
+        for (var class_ in unlinkedUnit.classes) {
+          String className = class_.name;
+          addDeclaration(
+              className,
+              class_.isMixinApplication
+                  ? DeclarationKind.CLASS_TYPE_ALIAS
+                  : DeclarationKind.CLASS,
+              class_.nameOffset,
+              class_.codeRange.offset,
+              class_.codeRange.length);
+
+          for (var field in class_.fields) {
+            addDeclaration(field.name, DeclarationKind.FIELD, field.nameOffset,
+                field.codeRange.offset, field.codeRange.length,
+                className: className);
+          }
+
+          for (var executable in class_.executables) {
+            if (executable.name.isNotEmpty) {
+              addDeclaration(
+                  executable.name,
+                  getExecutableKind(executable, false),
+                  executable.nameOffset,
+                  executable.codeRange.offset,
+                  executable.codeRange.length,
+                  className: className,
+                  parameters: getExecutableParameters(executable));
+            }
+          }
+        }
+
+        for (var enum_ in unlinkedUnit.enums) {
+          addDeclaration(enum_.name, DeclarationKind.ENUM, enum_.nameOffset,
+              enum_.codeRange.offset, enum_.codeRange.length);
+          for (var value in enum_.values) {
+            addDeclaration(value.name, DeclarationKind.ENUM_CONSTANT,
+                value.nameOffset, value.nameOffset, value.name.length);
+          }
+        }
+
+        for (var executable in unlinkedUnit.executables) {
+          addDeclaration(
+              executable.name,
+              getExecutableKind(executable, true),
+              executable.nameOffset,
+              executable.codeRange.offset,
+              executable.codeRange.length,
+              parameters: getExecutableParameters(executable));
+        }
+
+        for (var typedef_ in unlinkedUnit.typedefs) {
+          addDeclaration(
+              typedef_.name,
+              DeclarationKind.FUNCTION_TYPE_ALIAS,
+              typedef_.nameOffset,
+              typedef_.codeRange.offset,
+              typedef_.codeRange.length,
+              parameters: getParametersString(typedef_.parameters));
+        }
+
+        for (var variable in unlinkedUnit.variables) {
+          addDeclaration(
+              variable.name,
+              DeclarationKind.VARIABLE,
+              variable.nameOffset,
+              variable.codeRange.offset,
+              variable.codeRange.length);
+        }
+      }
+    } on _MaxNumberOfDeclarationsError {}
+
+    return declarations;
   }
 
   /**
@@ -450,7 +680,7 @@ class Search {
       AstNode parent = node.parent;
       return parent is ClassDeclaration || parent is CompilationUnit;
     }));
-    if (parameter.parameterKind == ParameterKind.NAMED) {
+    if (parameter.isNamed) {
       results.addAll(await _searchReferences(parameter));
     }
     return results;
@@ -940,4 +1170,11 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor {
     results.add(new SearchResult._(
         enclosingElement, kind, node.offset, node.length, true, isQualified));
   }
+}
+
+/**
+ * The marker class that is thrown to stop adding declarations.
+ */
+class _MaxNumberOfDeclarationsError {
+  const _MaxNumberOfDeclarationsError();
 }

@@ -40,6 +40,8 @@ enum Tag {
   kLocalInitializer = 11,
   kAssertInitializer = 12,
 
+  kCheckLibraryIsLoaded = 13,
+  kLoadLibrary = 14,
   kDirectPropertyGet = 15,
   kDirectPropertySet = 16,
   kDirectMethodInvocation = 17,

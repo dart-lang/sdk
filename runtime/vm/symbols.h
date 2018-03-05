@@ -95,6 +95,7 @@ class ObjectPointerVisitor;
   V(ArgDescVar, ":arg_desc")                                                   \
   V(CurrentContextVar, ":current_context_var")                                 \
   V(SavedTryContextVar, ":saved_try_context_var")                              \
+  V(TryFinallyReturnValue, ":try_finally_return_value")                        \
   V(ExceptionParameter, ":exception")                                          \
   V(StackTraceParameter, ":stack_trace")                                       \
   V(ExceptionVar, ":exception_var")                                            \

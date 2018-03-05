@@ -7,6 +7,7 @@
 assertion_initializer_const_error2_test/cc01: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc03: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc04: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc05: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc06: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc07: MissingCompileTimeError # Not reporting failed assert() at compile time.
@@ -176,10 +177,40 @@ bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
 bad_override_test/06: MissingCompileTimeError
 bug31436_test: RuntimeError
+bug32353_test: RuntimeError
+bug32372_test: RuntimeError
 built_in_identifier_prefix_test: CompileTimeError
 call_constructor_on_unresolvable_class_test/01: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/02: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/03: MissingCompileTimeError
+call_method_as_cast_test/01: RuntimeError
+call_method_as_cast_test/02: RuntimeError
+call_method_as_cast_test/03: RuntimeError
+call_method_as_cast_test/04: RuntimeError
+call_method_as_cast_test/05: RuntimeError
+call_method_implicit_tear_off_implements_function_test/01: RuntimeError
+call_method_implicit_tear_off_implements_function_test/02: RuntimeError
+call_method_implicit_tear_off_implements_function_test/03: RuntimeError
+call_method_implicit_tear_off_implements_function_test/04: RuntimeError
+call_method_implicit_tear_off_test/01: RuntimeError
+call_method_implicit_tear_off_test/02: RuntimeError
+call_method_implicit_tear_off_test/03: RuntimeError
+call_method_implicit_tear_off_test/04: RuntimeError
+call_method_implicit_tear_off_test/05: RuntimeError
+call_method_implicit_tear_off_test/06: RuntimeError
+call_method_is_check_test/01: RuntimeError
+call_method_is_check_test/02: RuntimeError
+call_method_is_check_test/03: RuntimeError
+call_method_is_check_test/04: RuntimeError
+call_method_is_check_test/05: RuntimeError
+call_method_must_not_be_field_test/01: MissingCompileTimeError
+call_method_must_not_be_field_test/02: MissingCompileTimeError
+call_method_must_not_be_field_test/03: RuntimeError
+call_method_must_not_be_getter_test/01: MissingCompileTimeError
+call_method_must_not_be_getter_test/02: MissingCompileTimeError
+call_method_must_not_be_getter_test/03: RuntimeError
+call_method_override_test/01: MissingCompileTimeError
+call_method_override_test/02: MissingCompileTimeError
 call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
 call_nonexistent_constructor_test/01: MissingCompileTimeError
@@ -275,6 +306,7 @@ conditional_property_increment_decrement_test/33: MissingCompileTimeError
 conditional_property_increment_decrement_test/34: MissingCompileTimeError
 conditional_property_increment_decrement_test/39: MissingCompileTimeError
 conditional_property_increment_decrement_test/40: MissingCompileTimeError
+conflicting_generic_interfaces_simple_test: MissingCompileTimeError
 const_constructor2_test/05: MissingCompileTimeError
 const_constructor2_test/06: MissingCompileTimeError
 const_dynamic_type_literal_test/02: MissingCompileTimeError
@@ -381,6 +413,7 @@ flatten_test/12: MissingRuntimeError
 for_in3_test: MissingCompileTimeError
 for_in_side_effects_test/01: MissingCompileTimeError
 function_malformed_result_type_test/00: MissingCompileTimeError
+function_propagation_test: RuntimeError
 function_subtype_bound_closure1_test: RuntimeError
 function_subtype_bound_closure2_test: RuntimeError
 function_subtype_bound_closure3_test: RuntimeError
@@ -391,6 +424,7 @@ function_subtype_bound_closure6_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
+function_subtype_cast0_test: RuntimeError
 function_subtype_cast1_test: RuntimeError
 function_subtype_cast2_test: RuntimeError
 function_subtype_cast3_test: RuntimeError
@@ -497,6 +531,7 @@ instanceof2_test: RuntimeError
 instantiate_tearoff_after_contravariance_check_test: RuntimeError
 instantiate_tearoff_of_call_test: RuntimeError
 instantiate_tearoff_test: RuntimeError
+instantiate_type_variable_test/01: MissingCompileTimeError
 interface_test/00: MissingCompileTimeError
 invalid_cast_test/01: MissingCompileTimeError
 invalid_cast_test/02: MissingCompileTimeError
@@ -822,7 +857,6 @@ private_access_test/03: MissingCompileTimeError
 private_access_test/04: MissingCompileTimeError
 private_access_test/05: MissingCompileTimeError
 private_access_test/06: MissingCompileTimeError
-recursive_mixin_test: RuntimeError
 regress_12561_test: MissingCompileTimeError
 regress_13494_test: MissingCompileTimeError
 regress_17382_test: MissingCompileTimeError
@@ -841,6 +875,7 @@ return_type_test: MissingCompileTimeError
 rewrite_implicit_this_test/01: MissingCompileTimeError
 runtime_type_function_test: RuntimeError
 setter4_test: MissingCompileTimeError # Issue 14736
+setter_no_getter_call_test/01: MissingCompileTimeError
 setter_override_test/01: MissingCompileTimeError
 setter_override_test/02: MissingCompileTimeError
 static_field1_test/01: MissingCompileTimeError
@@ -1082,7 +1117,7 @@ function_type/function_type90_test: RuntimeError # Issue 30475
 function_type/function_type96_test: RuntimeError # Issue 30475
 function_type/function_type9_test: RuntimeError # Issue 30475
 function_type_alias2_test: RuntimeError
-recursive_mixin_test: Crash
+invalid_override_in_mixin_test/01: MissingCompileTimeError
 type_literal_prefix_call_test: RuntimeError
 
 # The VM and does not implement the Dart 2.0 runtime checks yet unless
@@ -1304,4 +1339,8 @@ type_parameter_test/05: MissingCompileTimeError
 [ $compiler != dartk && $runtime == vm || $compiler != dartkp && $runtime == dart_precompiled ]
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Error only in strong mode
 int64_literal_test/*: Skip # This is testing Dart 2.0 int64 semantics.
-
+invalid_type_argument_count_test/01: MissingCompileTimeError # Error only in strong mode
+invalid_type_argument_count_test/02: MissingCompileTimeError # Error only in strong mode
+invalid_type_argument_count_test/03: MissingCompileTimeError # Error only in strong mode
+invalid_type_argument_count_test/04: MissingCompileTimeError # Error only in strong mode
+partial_tearoff_instantiation_test/none: CompiletimeError

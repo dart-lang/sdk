@@ -248,14 +248,6 @@ uintptr_t DART_NOINLINE OS::GetProgramCounter() {
       __builtin_extract_return_addr(__builtin_return_address(0)));
 }
 
-char* OS::StrNDup(const char* s, intptr_t n) {
-  return strndup(s, n);
-}
-
-intptr_t OS::StrNLen(const char* s, intptr_t n) {
-  return strnlen(s, n);
-}
-
 uint16_t HostToBigEndian16(uint16_t value) {
   return htobe16(value);
 }
@@ -293,22 +285,6 @@ void OS::VFPrint(FILE* stream, const char* format, va_list args) {
   fflush(stream);
 }
 
-int OS::SNPrint(char* str, size_t size, const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  int retval = VSNPrint(str, size, format, args);
-  va_end(args);
-  return retval;
-}
-
-int OS::VSNPrint(char* str, size_t size, const char* format, va_list args) {
-  int retval = vsnprintf(str, size, format, args);
-  if (retval < 0) {
-    FATAL1("Fatal error in OS::VSNPrint with format '%s'", format);
-  }
-  return retval;
-}
-
 char* OS::SCreate(Zone* zone, const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -321,7 +297,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   // Measure.
   va_list measure_args;
   va_copy(measure_args, args);
-  intptr_t len = VSNPrint(NULL, 0, format, measure_args);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
   va_end(measure_args);
 
   char* buffer;
@@ -335,7 +311,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   // Print.
   va_list print_args;
   va_copy(print_args, args);
-  VSNPrint(buffer, len + 1, format, print_args);
+  Utils::VSNPrint(buffer, len + 1, format, print_args);
   va_end(print_args);
   return buffer;
 }

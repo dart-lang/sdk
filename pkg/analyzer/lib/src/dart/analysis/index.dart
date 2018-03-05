@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 
@@ -442,7 +441,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
             element.enclosingElement is ExecutableElement ||
         elementKind == ElementKind.PARAMETER &&
             element is ParameterElement &&
-            element.parameterKind != ParameterKind.NAMED ||
+            !element.isNamed ||
         false) {
       return;
     }

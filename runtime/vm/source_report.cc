@@ -65,6 +65,13 @@ bool SourceReport::IsReportRequested(ReportKind report_kind) {
 }
 
 bool SourceReport::ShouldSkipFunction(const Function& func) {
+  // TODO(32315): Verify that the check is still needed after the issue is
+  // resolved.
+  if (!func.token_pos().IsReal() || !func.end_token_pos().IsReal()) {
+    // At least one of the token positions is not known.
+    return true;
+  }
+
   if (script_ != NULL && !script_->IsNull()) {
     if (func.script() != script_->raw()) {
       // The function is from the wrong script.

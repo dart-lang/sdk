@@ -86,7 +86,7 @@ class Collector {
    * Return a function that returns true if its argument is a class
    * that needs to be emitted.
    */
-  Function computeClassFilter() {
+  Function computeClassFilter(Iterable<ClassEntity> backendTypeHelpers) {
     if (_mirrorsData.isTreeShakingDisabled) {
       return (ClassEntity cls) => true;
     }
@@ -117,14 +117,24 @@ class Collector {
     }
 
     // These classes are just helpers for the backend's type system.
-    unneededClasses.add(_commonElements.jsMutableArrayClass);
-    unneededClasses.add(_commonElements.jsFixedArrayClass);
-    unneededClasses.add(_commonElements.jsExtendableArrayClass);
-    unneededClasses.add(_commonElements.jsUInt32Class);
-    unneededClasses.add(_commonElements.jsUInt31Class);
-    unneededClasses.add(_commonElements.jsPositiveIntClass);
+    unneededClasses.addAll(backendTypeHelpers);
 
     return (ClassEntity cls) => !unneededClasses.contains(cls);
+  }
+
+  // Return the classes that are just helpers for the backend's type system.
+  static Iterable<ClassEntity> getBackendTypeHelpers(
+      CommonElements commonElements) {
+    return <ClassEntity>[
+      commonElements.jsMutableArrayClass,
+      commonElements.jsFixedArrayClass,
+      commonElements.jsExtendableArrayClass,
+      // TODO(johnniwinther): Mark this as a backend type helper:
+      //commonElements.jsUnmodifiableArrayClass,
+      commonElements.jsUInt32Class,
+      commonElements.jsUInt31Class,
+      commonElements.jsPositiveIntClass
+    ];
   }
 
   /**
@@ -193,6 +203,9 @@ class Collector {
 
   /// Compute all the classes and typedefs that must be emitted.
   void computeNeededDeclarations() {
+    Set<ClassEntity> backendTypeHelpers =
+        getBackendTypeHelpers(_commonElements).toSet();
+
     // Compute needed typedefs.
     typedefsNeededForReflection = _sorter.sortTypedefs(_closedWorld.allTypedefs
         .where(_mirrorsData.isTypedefAccessibleByReflection)
@@ -203,7 +216,7 @@ class Collector {
         // TODO(johnniwinther): This should be accessed from a codegen closed
         // world.
         _worldBuilder.directlyInstantiatedClasses
-            .where(computeClassFilter())
+            .where(computeClassFilter(backendTypeHelpers))
             .toSet();
 
     void addClassWithSuperclasses(ClassEntity cls) {
@@ -240,6 +253,7 @@ class Collector {
     // fields, etc.
     classesOnlyNeededForRti = new Set<ClassEntity>();
     for (ClassEntity cls in _rtiNeededClasses) {
+      if (backendTypeHelpers.contains(cls)) continue;
       while (cls != null && !neededClasses.contains(cls)) {
         if (!classesOnlyNeededForRti.add(cls)) break;
         cls = _elementEnvironment.getSuperClass(cls);

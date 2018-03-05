@@ -276,16 +276,12 @@ UnlinkedParamBuilder _serializeSyntheticParam(
     TypeParameterizedElementMixin typeParameterContext) {
   UnlinkedParamBuilder b = new UnlinkedParamBuilder();
   b.name = parameter.name;
-  switch (parameter.parameterKind) {
-    case ParameterKind.REQUIRED:
-      b.kind = UnlinkedParamKind.required;
-      break;
-    case ParameterKind.POSITIONAL:
-      b.kind = UnlinkedParamKind.positional;
-      break;
-    case ParameterKind.NAMED:
-      b.kind = UnlinkedParamKind.named;
-      break;
+  if (parameter.isNotOptional) {
+    b.kind = UnlinkedParamKind.required;
+  } else if (parameter.isOptionalPositional) {
+    b.kind = UnlinkedParamKind.positional;
+  } else if (parameter.isNamed) {
+    b.kind = UnlinkedParamKind.named;
   }
   DartType type = parameter.type;
   if (!parameter.hasImplicitType) {
@@ -671,12 +667,15 @@ class ClassElementForLink_Class extends ClassElementForLink
         var mixin = _computeInterfaceType(entity);
         var mixinElement = mixin.element;
         var slot = entity.refinedSlot;
-        if (slot != 0 && mixinElement.typeParameters.isNotEmpty) {
+        if (slot != 0 &&
+            mixinElement.typeParameters.isNotEmpty &&
+            library._linker.strongMode) {
           CompilationUnitElementForLink enclosingElement =
               this.enclosingElement;
           if (enclosingElement is CompilationUnitElementInBuildUnit) {
-            var mixinSupertypeConstraint = mixinElement.supertype;
-            if (mixinSupertypeConstraint.element.typeParameters.isNotEmpty) {
+            var mixinSupertypeConstraints = context.typeSystem
+                .gatherMixinSupertypeConstraints(mixinElement);
+            if (mixinSupertypeConstraints.isNotEmpty) {
               if (supertypesForMixinInference == null) {
                 supertypesForMixinInference = <InterfaceType>[];
                 ClassElementImpl.collectAllSupertypes(
@@ -686,33 +685,23 @@ class ClassElementForLink_Class extends ClassElementForLink
                       supertypesForMixinInference, previousMixin, type);
                 }
               }
-              var matchingInterfaceType = _findInterfaceTypeForElement(
-                  mixinSupertypeConstraint.element,
-                  supertypesForMixinInference);
-              // TODO(paulberry): If matchingInterfaceType is null, that's an
-              // error.  Also, if there are multiple matching interface types
-              // that use different type parameters, that's also an error.  But
-              // we can't report errors from the linker, so we just use the
-              // first matching interface type (if there is one) and hope for
-              // the best.  The error detection logic will have to be
-              // implemented in the ErrorVerifier.
-              if (matchingInterfaceType != null) {
-                // TODO(paulberry): now we should pattern match
-                // matchingInterfaceType against mixinSupertypeConstraint to
-                // find the correct set of type parameters to apply to the
-                // mixin.  But as a quick hack, we assume that the mixin just
-                // passes its type parameters through to the supertype
-                // constraint (that is, each type in
-                // mixinSupertypeConstraint.typeParameters should be a
-                // TypeParameterType pointing to the corresponding element of
-                // mixinElement.typeParameters).  To avoid a complete disaster
-                // if this assumption is wrong, we only do the inference if the
-                // number of type arguments applied to mixinSupertypeConstraint
-                // matches the number of type parameters accepted by the mixin.
-                if (mixinSupertypeConstraint.typeArguments.length ==
-                    mixinElement.typeParameters.length) {
-                  mixin = mixinElement.type
-                      .instantiate(matchingInterfaceType.typeArguments);
+              var matchingInterfaceTypes = _findInterfaceTypesForConstraints(
+                  mixinSupertypeConstraints, supertypesForMixinInference);
+              // Note: if matchingInterfaceType is null, that's an error.  Also,
+              // if there are multiple matching interface types that use
+              // different type parameters, that's also an error.  But we can't
+              // report errors from the linker, so we just use the
+              // first matching interface type (if there is one).  The error
+              // detection logic is implemented in the ErrorVerifier.
+              if (matchingInterfaceTypes != null) {
+                // Try to pattern match matchingInterfaceTypes against
+                // mixinSupertypeConstraints to find the correct set of type
+                // parameters to apply to the mixin.
+                var inferredMixin = context.typeSystem
+                    .matchSupertypeConstraints(mixinElement,
+                        mixinSupertypeConstraints, matchingInterfaceTypes);
+                if (inferredMixin != null) {
+                  mixin = inferredMixin;
                   enclosingElement._storeLinkedType(slot, mixin, this);
                 }
               }
@@ -837,6 +826,21 @@ class ClassElementForLink_Class extends ClassElementForLink
       if (interfaceType.element == element) return interfaceType;
     }
     return null;
+  }
+
+  List<InterfaceType> _findInterfaceTypesForConstraints(
+      List<InterfaceType> constraints, List<InterfaceType> interfaceTypes) {
+    var result = <InterfaceType>[];
+    for (var constraint in constraints) {
+      var interfaceType =
+          _findInterfaceTypeForElement(constraint.element, interfaceTypes);
+      if (interfaceType == null) {
+        // No matching interface type found, so inference fails.
+        return null;
+      }
+      result.add(interfaceType);
+    }
+    return result;
   }
 }
 
@@ -2756,7 +2760,7 @@ class ExprTypeComputer {
         int positionalIndex = 0;
         int numRequiredParameters = 0;
         for (ParameterElement parameter in rawMethodType.parameters) {
-          if (parameter.parameterKind == ParameterKind.REQUIRED) {
+          if (parameter.isNotOptional) {
             numRequiredParameters++;
             if (numRequiredParameters > numPositionalArguments) {
               return null;
@@ -2764,13 +2768,13 @@ class ExprTypeComputer {
             parameters.add(parameter);
             argumentTypes.add(positionalArgTypes[positionalIndex]);
             positionalIndex++;
-          } else if (parameter.parameterKind == ParameterKind.POSITIONAL) {
+          } else if (parameter.isOptionalPositional) {
             if (positionalIndex < numPositionalArguments) {
               parameters.add(parameter);
               argumentTypes.add(positionalArgTypes[positionalIndex]);
               positionalIndex++;
             }
-          } else if (parameter.parameterKind == ParameterKind.NAMED) {
+          } else if (parameter.isNamed) {
             DartType namedArgumentType = namedArgTypes[parameter.name];
             if (namedArgumentType != null) {
               parameters.add(parameter);
@@ -3628,7 +3632,15 @@ class GenericTypeAliasElementForLink extends Object
   String get name => _unlinkedTypedef.name;
 
   @override
+  DartType get returnType => enclosingElement.resolveTypeRef(
+      this, _unlinkedTypedef.returnType.syntheticReturnType);
+
+  @override
   TypeParameterizedElementMixin get typeParameterContext => this;
+
+  @override
+  List<UnlinkedParam> get unlinkedParameters =>
+      _unlinkedTypedef.returnType.syntheticParams;
 
   @override
   List<UnlinkedTypeParam> get unlinkedTypeParams =>
@@ -4497,6 +4509,25 @@ class ParameterElementForLink implements ParameterElementImpl {
 
   @override
   bool get isExplicitlyCovariant => _unlinkedParam.isExplicitlyCovariant;
+
+  @override
+  bool get isNamed => parameterKind == ParameterKind.NAMED;
+
+  @override
+  bool get isNotOptional => parameterKind == ParameterKind.REQUIRED;
+
+  @override
+  bool get isOptional =>
+      parameterKind == ParameterKind.NAMED ||
+      parameterKind == ParameterKind.POSITIONAL;
+
+  @override
+  bool get isOptionalPositional => parameterKind == ParameterKind.POSITIONAL;
+
+  @override
+  bool get isPositional =>
+      parameterKind == ParameterKind.POSITIONAL ||
+      parameterKind == ParameterKind.REQUIRED;
 
   @override
   String get name => _unlinkedParam.name;

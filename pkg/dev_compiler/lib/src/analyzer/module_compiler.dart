@@ -35,11 +35,11 @@ import '../compiler/module_builder.dart'
     show transformModuleFormat, ModuleFormat;
 import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
+import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
 import 'code_generator.dart' show CodeGenerator;
 import 'context.dart' show AnalyzerOptions, createSourceFactory;
 import 'error_helpers.dart' show errorSeverity, formatError, sortErrors;
 import 'extension_types.dart' show ExtensionTypeSet;
-import 'source_map_printer.dart' show SourceMapPrintingContext;
 
 /// Compiles a set of Dart files into a single JavaScript module.
 ///
@@ -268,22 +268,6 @@ class CompilerOptions {
   /// Whether to emit Closure Compiler-friendly code.
   final bool closure;
 
-  /// Enable ES6 destructuring of named parameters. Off by default.
-  ///
-  /// Older V8 versions do not accept default values with destructuring in
-  /// arrow functions yet (e.g. `({a} = {}) => 1`) but happily accepts them
-  /// with regular functions (e.g. `function({a} = {}) { return 1 }`).
-  ///
-  /// Supporting the syntax:
-  /// * Chrome Canary (51)
-  /// * Firefox
-  ///
-  /// Not yet supporting:
-  /// * Atom (1.5.4)
-  /// * Electron (0.36.3)
-  // TODO(ochafik): Simplify this code when our target platforms catch up.
-  final bool destructureNamedParams;
-
   /// Mapping from absolute file paths to bazel short path to substitute in
   /// source maps.
   final Map<String, String> bazelMapping;
@@ -302,7 +286,6 @@ class CompilerOptions {
       this.replCompile: false,
       this.emitMetadata: false,
       this.closure: false,
-      this.destructureNamedParams: false,
       this.bazelMapping: const {},
       this.summaryOutPath});
 
@@ -316,33 +299,34 @@ class CompilerOptions {
         replCompile = args['repl-compile'],
         emitMetadata = args['emit-metadata'],
         closure = args['closure-experimental'],
-        destructureNamedParams = args['destructure-named-params'],
         bazelMapping = _parseBazelMappings(args['bazel-mapping']),
         summaryOutPath = args['summary-out'];
 
   static void addArguments(ArgParser parser, {bool hide: true}) {
     parser
-      ..addFlag('summarize', help: 'emit an API summary file', defaultsTo: true)
+      ..addFlag('summarize',
+          help: 'emit an API summary file', defaultsTo: true, hide: hide)
       ..addOption('summary-extension',
           help: 'file extension for Dart summary files',
           defaultsTo: 'sum',
           hide: hide)
-      ..addFlag('source-map', help: 'emit source mapping', defaultsTo: true)
+      ..addFlag('source-map',
+          help: 'emit source mapping', defaultsTo: true, hide: hide)
       ..addFlag('source-map-comment',
           help: 'adds a sourceMappingURL comment to the end of the JS,\n'
               'disable if using X-SourceMap header',
           defaultsTo: true,
           hide: hide)
       ..addFlag('inline-source-map',
-          help: 'emit source mapping inline', defaultsTo: false)
+          help: 'emit source mapping inline', defaultsTo: false, hide: hide)
       ..addFlag('emit-metadata',
           help: 'emit metadata annotations queriable via mirrors',
-          defaultsTo: false)
+          defaultsTo: false,
+          hide: hide)
       ..addFlag('closure-experimental',
           help: 'emit Closure Compiler-friendly code (experimental)',
-          defaultsTo: false)
-      ..addFlag('destructure-named-params',
-          help: 'Destructure named parameters', defaultsTo: false, hide: hide)
+          defaultsTo: false,
+          hide: hide)
       ..addFlag('unsafe-force-compile',
           help: 'Compile code even if it has errors. ಠ_ಠ\n'
               'This has undefined behavior!',

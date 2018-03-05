@@ -245,13 +245,13 @@ linter:
   void test_cmdline_options_override_options_file() {
     ArgParser argParser = new ArgParser();
     defineAnalysisArguments(argParser);
-    ArgResults argResults = argParser.parse(['--$enableStrictCallChecksFlag']);
+    ArgResults argResults = argParser.parse(['--$enableSuperMixinFlag']);
     var builder = new ContextBuilder(resourceProvider, sdkManager, contentCache,
         options: createContextBuilderOptions(argResults));
 
     AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
     expected.enableSuperMixins = true;
-    expected.enableStrictCallChecks = true;
+    expected.previewDart2 = true;
 
     String path = resourceProvider.convertPath('/some/directory/path');
     String filePath =
@@ -259,8 +259,7 @@ linter:
     resourceProvider.newFile(filePath, '''
 analyzer:
   language:
-    enableSuperMixins : true
-    enableStrictCallChecks : false
+    enablePreviewDart2: true
 ''');
 
     AnalysisOptions options = builder.getAnalysisOptions(path);
@@ -300,8 +299,6 @@ analyzer:
     defaultOptions.dart2jsHint = !defaultOptions.dart2jsHint;
     defaultOptions.enableLazyAssignmentOperators =
         !defaultOptions.enableLazyAssignmentOperators;
-    defaultOptions.enableStrictCallChecks =
-        !defaultOptions.enableStrictCallChecks;
     defaultOptions.enableSuperMixins = !defaultOptions.enableSuperMixins;
     builderOptions.defaultOptions = defaultOptions;
     AnalysisOptions options = builder.createDefaultOptions();
@@ -1000,7 +997,6 @@ linter:
     expect(actual.dart2jsHint, expected.dart2jsHint);
     expect(actual.enableLazyAssignmentOperators,
         expected.enableLazyAssignmentOperators);
-    expect(actual.enableStrictCallChecks, expected.enableStrictCallChecks);
     expect(actual.enableSuperMixins, expected.enableSuperMixins);
     expect(actual.enableTiming, expected.enableTiming);
     expect(actual.generateImplicitErrors, expected.generateImplicitErrors);

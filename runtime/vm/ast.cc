@@ -92,8 +92,8 @@ LocalVariable* LetNode::AddInitializer(AstNode* node) {
   Zone* zone = thread->zone();
   initializers_.Add(node);
   char name[64];
-  OS::SNPrint(name, sizeof(name), ":lt%s_%" Pd "", token_pos().ToCString(),
-              vars_.length());
+  Utils::SNPrint(name, sizeof(name), ":lt%s_%" Pd "", token_pos().ToCString(),
+                 vars_.length());
   LocalVariable* temp_var =
       new LocalVariable(TokenPosition::kNoSource, token_pos(),
                         String::ZoneHandle(zone, Symbols::New(thread, name)),

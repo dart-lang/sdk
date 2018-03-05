@@ -43,9 +43,8 @@ abstract class DartEditBuilder implements EditBuilder {
    * Write the code for a declaration of a class with the given [name]. If a
    * list of [interfaces] is provided, then the class will implement those
    * interfaces. If [isAbstract] is `true`, then the class will be abstract. If
-   * a [memberWriter] is provided, then it will be invoked to allow members to
-   * be generated. (The members will automatically be preceded and followed by
-   * end-of-line markers.) If a list of [mixins] is provided, then the class
+   * a [membersWriter] is provided, then it will be invoked to allow members to
+   * be generated. If a list of [mixins] is provided, then the class
    * will mix in those classes. If a [nameGroupName] is provided, then the name
    * of the class will be included in the linked edit group with that name. If a
    * [superclass] is given then it will be the superclass of the class. (If a
@@ -55,7 +54,7 @@ abstract class DartEditBuilder implements EditBuilder {
   void writeClassDeclaration(String name,
       {Iterable<DartType> interfaces,
       bool isAbstract: false,
-      void memberWriter(),
+      void membersWriter(),
       Iterable<DartType> mixins,
       String nameGroupName,
       DartType superclass,
@@ -170,8 +169,11 @@ abstract class DartEditBuilder implements EditBuilder {
 
   /**
    * Append a placeholder for an override of the specified inherited [member].
+   * If provided, write a string value suitable for display (e.g., in a
+   * completion popup) in the given [displayTextBuffer].
    */
-  void writeOverrideOfInheritedMember(ExecutableElement member);
+  void writeOverrideOfInheritedMember(ExecutableElement member,
+      {StringBuffer displayTextBuffer});
 
   /**
    * Write the code for a parameter that would match the given [argument]. The

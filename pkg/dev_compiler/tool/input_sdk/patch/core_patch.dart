@@ -86,7 +86,7 @@ class Function {
       positionalArguments = new List.from(positionalArguments)..add(map);
     }
     return JS(
-        '', 'dart.dcall.apply(null, [#].concat(#))', f, positionalArguments);
+        '', '#.apply(null, [#].concat(#))', dart.dcall, f, positionalArguments);
   }
 
   static Map<String, dynamic> _toMangledNames(
@@ -923,7 +923,7 @@ class _BigIntImpl implements BigInt {
 
     while (i < source.length) {
       chunk = 0;
-      for (int j = 0; j < 4; j++) {
+      for (int j = 0; j < hexDigitsPerChunk; j++) {
         var digitValue = _codeUnitToRadixValue(source.codeUnitAt(i++));
         if (digitValue >= 16) return null;
         chunk = chunk * 16 + digitValue;
@@ -1049,29 +1049,28 @@ class _BigIntImpl implements BigInt {
 
   factory _BigIntImpl._fromInt(int value) {
     bool isNegative = value < 0;
+    assert(_digitBits == 16);
     if (isNegative) {
       // Handle the min 64-bit value differently, since its negation is not
       // positive.
-      // TODO(floitsch): we should use min.minValue or 0x8000000000000000 here.
-      const int minInt64 = -9223372036854775807 - 1;
+      const int minInt64 = -0x80000000 * 0x100000000;
       if (value == minInt64) {
         var digits = new Uint16List(4);
         digits[3] = 0x8000;
-        return new _BigIntImpl._(true, digits.length, digits);
+        return new _BigIntImpl._(true, 4, digits);
       }
       value = -value;
     }
-    assert(_digitBits == 16);
     if (value < _digitBase) {
       var digits = new Uint16List(1);
       digits[0] = value;
-      return new _BigIntImpl._(isNegative, digits.length, digits);
+      return new _BigIntImpl._(isNegative, 1, digits);
     }
     if (value <= 0xFFFFFFFF) {
       var digits = new Uint16List(2);
       digits[0] = value & _digitMask;
       digits[1] = value >> _digitBits;
-      return new _BigIntImpl._(isNegative, digits.length, digits);
+      return new _BigIntImpl._(isNegative, 2, digits);
     }
 
     var bits = value.bitLength;
@@ -1858,7 +1857,7 @@ class _BigIntImpl implements BigInt {
     Uint16List resultDigits;
     int resultUsed;
     // Normalized positive divisor.
-    // The normalized divisor has the most-significant bit of it's most
+    // The normalized divisor has the most-significant bit of its most
     // significant digit set.
     // This makes estimating the quotient easier.
     Uint16List yDigits;
@@ -2535,13 +2534,16 @@ class _BigIntImpl implements BigInt {
     return (this & (signMask - one)) - (this & signMask);
   }
 
-  // TODO(floitsch): implement `isValidInt`.
-  // Remove the comment in [BigInt.isValidInt] when done.
-  bool get isValidInt => true;
+  // Maximum number of digits that always fit in mantissa.
+  static const _simpleValidIntDigits = 53 ~/ _digitBits;
 
-  // TODO(floitsch): implement the clamping. It behaves differently on dart2js
-  // and the VM.
-  // Remove the comment in [BigInt.isValidInt] when done.
+  bool get isValidInt {
+    if (_used <= _simpleValidIntDigits) return true;
+    var asInt = toInt();
+    if (!asInt.toDouble().isFinite) return false;
+    return this == new _BigIntImpl._fromInt(asInt);
+  }
+
   int toInt() {
     var result = 0;
     for (int i = _used - 1; i >= 0; i--) {

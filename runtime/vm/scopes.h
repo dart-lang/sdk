@@ -16,6 +16,7 @@
 
 namespace dart {
 
+class CompileType;
 class LocalScope;
 
 class LocalVariable : public ZoneAllocated {
@@ -23,12 +24,14 @@ class LocalVariable : public ZoneAllocated {
   LocalVariable(TokenPosition declaration_pos,
                 TokenPosition token_pos,
                 const String& name,
-                const AbstractType& type)
+                const AbstractType& type,
+                CompileType* parameter_type = NULL)
       : declaration_pos_(declaration_pos),
         token_pos_(token_pos),
         name_(name),
         owner_(NULL),
         type_(type),
+        parameter_type_(parameter_type),
         const_value_(NULL),
         is_final_(false),
         is_captured_(false),
@@ -52,6 +55,8 @@ class LocalVariable : public ZoneAllocated {
   }
 
   const AbstractType& type() const { return type_; }
+
+  CompileType* parameter_type() const { return parameter_type_; }
 
   bool is_final() const { return is_final_; }
   void set_is_final() { is_final_ = true; }
@@ -134,6 +139,8 @@ class LocalVariable : public ZoneAllocated {
   LocalScope* owner_;  // Local scope declaring this variable.
 
   const AbstractType& type_;  // Declaration type of local variable.
+
+  CompileType* const parameter_type_;  // NULL or incoming parameter type.
 
   const Instance* const_value_;  // NULL or compile-time const value.
 

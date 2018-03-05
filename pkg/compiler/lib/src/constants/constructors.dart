@@ -18,6 +18,13 @@ enum ConstantConstructorKind {
   ERRONEOUS,
 }
 
+class InstanceData {
+  final Map<FieldEntity, ConstantExpression> fieldMap;
+  final List<AssertConstantExpression> assertions;
+
+  InstanceData(this.fieldMap, this.assertions);
+}
+
 /// Definition of a constant constructor.
 abstract class ConstantConstructor {
   ConstantConstructorKind get kind;
@@ -27,12 +34,11 @@ abstract class ConstantConstructor {
   InterfaceType computeInstanceType(
       EvaluationEnvironment environment, InterfaceType newType);
 
-  /// Computes the constant expressions of the fields of the created instance
-  /// in a const constructor invocation with [arguments].
-  Map<FieldEntity, ConstantExpression> computeInstanceFields(
-      EvaluationEnvironment environment,
-      List<ConstantExpression> arguments,
-      CallStructure callStructure);
+  /// Computes the constant expressions of the fields and initializer assertions
+  /// of the created instance in a const constructor invocation with
+  /// [arguments].
+  InstanceData computeInstanceData(EvaluationEnvironment environment,
+      List<ConstantExpression> arguments, CallStructure callStructure);
 
   accept(ConstantConstructorVisitor visitor, arg);
 }
@@ -62,10 +68,11 @@ class GenerativeConstantConstructor implements ConstantConstructor {
   final InterfaceType type;
   final Map<dynamic /*int|String*/, ConstantExpression> defaultValues;
   final Map<FieldEntity, ConstantExpression> fieldMap;
+  final List<AssertConstantExpression> assertions;
   final ConstructedConstantExpression superConstructorInvocation;
 
   GenerativeConstantConstructor(this.type, this.defaultValues, this.fieldMap,
-      this.superConstructorInvocation);
+      this.assertions, this.superConstructorInvocation);
 
   ConstantConstructorKind get kind => ConstantConstructorKind.GENERATIVE;
 
@@ -74,18 +81,19 @@ class GenerativeConstantConstructor implements ConstantConstructor {
     return environment.substByContext(type, newType);
   }
 
-  Map<FieldEntity, ConstantExpression> computeInstanceFields(
-      EvaluationEnvironment environment,
-      List<ConstantExpression> arguments,
-      CallStructure callStructure) {
+  InstanceData computeInstanceData(EvaluationEnvironment environment,
+      List<ConstantExpression> arguments, CallStructure callStructure) {
     NormalizedArguments args =
         new NormalizedArguments(defaultValues, callStructure, arguments);
-    Map<FieldEntity, ConstantExpression> appliedFieldMap =
-        applyFields(environment, args, superConstructorInvocation);
+    InstanceData appliedInstanceData =
+        applyInstanceData(environment, args, superConstructorInvocation);
     fieldMap.forEach((FieldEntity field, ConstantExpression constant) {
-      appliedFieldMap[field] = constant.apply(args);
+      appliedInstanceData.fieldMap[field] = constant.apply(args);
     });
-    return appliedFieldMap;
+    for (AssertConstantExpression assertion in assertions) {
+      appliedInstanceData.assertions.add(assertion.apply(args));
+    }
+    return appliedInstanceData;
   }
 
   accept(ConstantConstructorVisitor visitor, arg) {
@@ -138,24 +146,30 @@ class GenerativeConstantConstructor implements ConstantConstructor {
   /// [constructorInvocation]. If [constructorInvocation] is `null`, an empty
   /// map is created. Returns `null` if an erroneous constant constructor was
   /// encountered in the super-chain.
-  static Map<FieldEntity, ConstantExpression> applyFields(
+  static InstanceData applyInstanceData(
       EvaluationEnvironment environment,
       NormalizedArguments args,
       ConstructedConstantExpression constructorInvocation) {
     Map<FieldEntity, ConstantExpression> appliedFieldMap =
         <FieldEntity, ConstantExpression>{};
+    List<AssertConstantExpression> appliedAssertions =
+        <AssertConstantExpression>[];
     if (constructorInvocation != null) {
-      Map<FieldEntity, ConstantExpression> fieldMap =
-          constructorInvocation.computeInstanceFields(environment);
-      if (fieldMap == null) {
+      InstanceData instanceData =
+          constructorInvocation.computeInstanceData(environment);
+      if (instanceData == null) {
         // An erroneous constant constructor was encountered in the super-chain.
         return null;
       }
-      fieldMap.forEach((FieldEntity field, ConstantExpression constant) {
+      instanceData.fieldMap
+          .forEach((FieldEntity field, ConstantExpression constant) {
         appliedFieldMap[field] = constant.apply(args);
       });
+      for (AssertConstantExpression assertion in instanceData.assertions) {
+        appliedAssertions.add(assertion.apply(args));
+      }
     }
-    return appliedFieldMap;
+    return new InstanceData(appliedFieldMap, appliedAssertions);
   }
 }
 
@@ -177,16 +191,13 @@ class RedirectingGenerativeConstantConstructor implements ConstantConstructor {
         thisConstructorInvocation.computeInstanceType(environment), newType);
   }
 
-  Map<FieldEntity, ConstantExpression> computeInstanceFields(
-      EvaluationEnvironment environment,
-      List<ConstantExpression> arguments,
-      CallStructure callStructure) {
+  InstanceData computeInstanceData(EvaluationEnvironment environment,
+      List<ConstantExpression> arguments, CallStructure callStructure) {
     NormalizedArguments args =
         new NormalizedArguments(defaultValues, callStructure, arguments);
-    Map<FieldEntity, ConstantExpression> appliedFieldMap =
-        GenerativeConstantConstructor.applyFields(
-            environment, args, thisConstructorInvocation);
-    return appliedFieldMap;
+    InstanceData appliedInstanceData = GenerativeConstantConstructor
+        .applyInstanceData(environment, args, thisConstructorInvocation);
+    return appliedInstanceData;
   }
 
   accept(ConstantConstructorVisitor visitor, arg) {
@@ -234,13 +245,11 @@ class RedirectingFactoryConstantConstructor implements ConstantConstructor {
         targetConstructorInvocation.computeInstanceType(environment), newType);
   }
 
-  Map<FieldEntity, ConstantExpression> computeInstanceFields(
-      EvaluationEnvironment environment,
-      List<ConstantExpression> arguments,
-      CallStructure callStructure) {
+  InstanceData computeInstanceData(EvaluationEnvironment environment,
+      List<ConstantExpression> arguments, CallStructure callStructure) {
     ConstantConstructor constantConstructor =
         environment.getConstructorConstant(targetConstructorInvocation.target);
-    return constantConstructor.computeInstanceFields(
+    return constantConstructor.computeInstanceData(
         environment, arguments, callStructure);
   }
 
@@ -278,10 +287,8 @@ class ErroneousConstantConstructor implements ConstantConstructor {
   }
 
   @override
-  Map<FieldEntity, ConstantExpression> computeInstanceFields(
-      EvaluationEnvironment environment,
-      List<ConstantExpression> arguments,
-      CallStructure callStructure) {
+  InstanceData computeInstanceData(EvaluationEnvironment environment,
+      List<ConstantExpression> arguments, CallStructure callStructure) {
     return null;
   }
 

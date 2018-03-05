@@ -459,7 +459,7 @@ class A {
   test_dependencyOnFactoryRedirectWithTypeParams() async {
     await _assertProperDependencies(r'''
 class A {
-  const factory A(var a) = B<int>;
+  const factory A(int a) = B<int>;
 }
 
 class B<T> implements A {

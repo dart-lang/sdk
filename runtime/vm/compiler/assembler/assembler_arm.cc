@@ -1509,7 +1509,7 @@ void Assembler::LoadNativeEntry(Register rd,
                                 Patchability patchable,
                                 Condition cond) {
   const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindNativeEntry(label, patchable));
+      object_pool_wrapper_.FindNativeFunction(label, patchable));
   LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, PP, cond);
 }
 

@@ -1210,16 +1210,13 @@ class Class : public Object {
 
   RawLibraryPrefix* LookupLibraryPrefix(const String& name) const;
 
-  // Returns an instance of Double or Double::null().
+  RawDouble* LookupCanonicalDouble(Zone* zone, double value) const;
+  RawMint* LookupCanonicalMint(Zone* zone, int64_t value) const;
+
+  // Returns an instance of Bigint or Bigint::null().
   // 'index' points to either:
   // - constants_list_ position of found element, or
   // - constants_list_ position where new canonical can be inserted.
-  RawDouble* LookupCanonicalDouble(Zone* zone,
-                                   double value,
-                                   intptr_t* index) const;
-  RawMint* LookupCanonicalMint(Zone* zone,
-                               int64_t value,
-                               intptr_t* index) const;
   RawBigint* LookupCanonicalBigint(Zone* zone,
                                    const Bigint& value,
                                    intptr_t* index) const;
@@ -1228,9 +1225,11 @@ class Class : public Object {
 
   RawInstance* InsertCanonicalConstant(Zone* zone,
                                        const Instance& constant) const;
-  void InsertCanonicalNumber(Zone* zone,
+  void InsertCanonicalDouble(Zone* zone, const Double& constant) const;
+  void InsertCanonicalMint(Zone* zone, const Mint& constant) const;
+  void InsertCanonicalBigint(Zone* zone,
                              intptr_t index,
-                             const Number& constant) const;
+                             const Bigint& constant) const;
 
   void RehashConstants(Zone* zone) const;
 
@@ -2389,9 +2388,10 @@ class Function : public Object {
   bool IsInFactoryScope() const;
 
   bool NeedsArgumentTypeChecks(Isolate* I) const {
-    return (I->strong() &&
-            (!is_static() || kind() == RawFunction::kConstructor)) ||
-           I->type_checks();
+    if (I->strong()) {
+      return !(is_static() || (kind() == RawFunction::kConstructor));
+    }
+    return I->type_checks();
   }
 
   TokenPosition token_pos() const {
@@ -3076,7 +3076,7 @@ class Field : public Object {
 
   intptr_t kernel_offset() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    return NULL;
+    return 0;
 #else
     return raw_ptr()->kernel_offset_;
 #endif
@@ -4051,7 +4051,8 @@ class ObjectPool : public Object {
   enum EntryType {
     kTaggedObject,
     kImmediate,
-    kNativeEntry,
+    kNativeFunction,
+    kNativeFunctionWrapper,
   };
 
   struct Entry {
@@ -5998,6 +5999,9 @@ class AbstractType : public Instance {
   // type.
   RawString* ClassName() const;
 
+  // Check if this type is a still uninitialized TypeRef.
+  bool IsNullTypeRef() const;
+
   // Check if this type represents the 'dynamic' type or if it is malformed,
   // since a malformed type is mapped to 'dynamic'.
   // Call IsMalformed() first, if distinction is required.
@@ -6285,9 +6289,13 @@ class TypeRef : public AbstractType {
   virtual bool IsMalformedOrMalbounded() const {
     return AbstractType::Handle(type()).IsMalformedOrMalbounded();
   }
+  virtual RawLanguageError* error() const {
+    return AbstractType::Handle(type()).error();
+  }
   virtual bool IsResolved() const { return true; }
   virtual bool HasResolvedTypeClass() const {
-    return AbstractType::Handle(type()).HasResolvedTypeClass();
+    return (type() != AbstractType::null()) &&
+           AbstractType::Handle(type()).HasResolvedTypeClass();
   }
   RawAbstractType* type() const { return raw_ptr()->type_; }
   void set_type(const AbstractType& value) const;
@@ -7834,6 +7842,9 @@ class Array : public Instance {
   void MakeImmutable() const;
 
   static RawArray* New(intptr_t len, Heap::Space space = Heap::kNew);
+  static RawArray* New(intptr_t len,
+                       const AbstractType& element_type,
+                       Heap::Space space = Heap::kNew);
 
   // Creates and returns a new array with 'new_length'. Copies all elements from
   // 'source' to the new array. 'new_length' must be greater than or equal to

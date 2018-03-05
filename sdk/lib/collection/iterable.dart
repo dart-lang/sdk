@@ -26,18 +26,19 @@ abstract class IterableMixin<E> implements Iterable<E> {
 
   Iterable<E> where(bool f(E element)) => new WhereIterable<E>(this, f);
 
-  Iterable<T> whereType<T>() sync* {
-    for (Object element in this) if (element is T) yield element;
-  }
+  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
 
   Iterable<T> expand<T>(Iterable<T> f(E element)) =>
       new ExpandIterable<E, T>(this, f);
 
-  Iterable<E> followedBy(Iterable<E> other) sync* {
-    // TODO(lrn): Optimize this (some operations can be more efficient,
-    // and the concatenation has efficient length if the source iterables do).
-    yield* this;
-    yield* other;
+  Iterable<E> followedBy(Iterable<E> other) {
+    // Type workaround because IterableMixin<E> doesn't promote
+    // to EfficientLengthIterable<E>.
+    Iterable<E> self = this;
+    if (self is EfficientLengthIterable<E>) {
+      return new FollowedByIterable<E>.firstEfficient(self, other);
+    }
+    return new FollowedByIterable<E>(this, other);
   }
 
   bool contains(Object element) {

@@ -198,6 +198,8 @@ enum MessageKind {
   INSTANCE_STATIC_SAME_NAME_CONT,
   INTERNAL_LIBRARY,
   INTERNAL_LIBRARY_FROM,
+  INVALID_ASSERT_VALUE,
+  INVALID_ASSERT_VALUE_MESSAGE,
   INVALID_ARGUMENT_AFTER_NAMED,
   INVALID_AWAIT,
   INVALID_AWAIT_FOR,
@@ -287,7 +289,7 @@ enum MessageKind {
   MIRRORS_EXPECTED_STRING_OR_TYPE,
   MIRRORS_EXPECTED_STRING_TYPE_OR_LIST,
   MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND,
-  MIRRORS_LIBRARY_NOT_SUPPORT_WITH_KERNEL,
+  MIRRORS_LIBRARY_NOT_SUPPORT_WITH_CFE,
   MISSING_ARGUMENT,
   MISSING_ENUM_CASES,
   MISSING_FACTORY_KEYWORD,
@@ -3608,6 +3610,13 @@ part of test.main;
           "Constructor '#{constructorName}' is not a valid constant "
           "constructor."),
 
+      MessageKind.INVALID_ASSERT_VALUE: const MessageTemplate(
+          MessageKind.INVALID_ASSERT_VALUE, "Assertion '#{assertion}' failed."),
+
+      MessageKind.INVALID_ASSERT_VALUE_MESSAGE: const MessageTemplate(
+          MessageKind.INVALID_ASSERT_VALUE_MESSAGE,
+          "Assertion failed: #{message}"),
+
       //////////////////////////////////////////////////////////////////////////////
       // Patch errors start.
       //////////////////////////////////////////////////////////////////////////////
@@ -3794,10 +3803,12 @@ Your app imports dart:mirrors via:"""
           """
 $MIRRORS_NOT_SUPPORTED_BY_BACKEND_PADDING#{importChain}"""),
 
-      MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_WITH_KERNEL:
-          const MessageTemplate(
-              MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_WITH_KERNEL, """
-dart:mirrors library is not supported when using the new kernel front end."""),
+      MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_WITH_CFE: const MessageTemplate(
+          MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_WITH_CFE, """
+dart2js no longer supports the dart:mirrors library.
+
+APIs from this library will throw a runtime error at this time, but they will
+become a compile-time error in the future."""),
 
       MessageKind.DIRECTLY_THROWING_NSM: const MessageTemplate(
           MessageKind.DIRECTLY_THROWING_NSM,

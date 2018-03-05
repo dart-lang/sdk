@@ -103,7 +103,8 @@ class Template {
     if (arguments is List) {
       if (arguments.length != positionalArgumentCount) {
         throw 'Wrong number of template arguments, given ${arguments.length}, '
-            'expected $positionalArgumentCount';
+            'expected $positionalArgumentCount'
+            ', source: "$source"';
       }
       return instantiator(arguments);
     }

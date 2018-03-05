@@ -483,13 +483,15 @@ class PluginManagerTest extends Object with ResourceProviderMixin {
     expect(packagesFile.exists, isTrue);
     String content = packagesFile.readAsStringSync();
     List<String> lines = content.split('\n');
+    String asFileUri(String input) =>
+        new Uri.file(convertPath(input)).toString();
     expect(
         lines,
         unorderedEquals([
-          'plugin:file:///workspaceRoot/third_party/dart/plugin/lib',
-          'b:file:///workspaceRoot/third_party/dart/b/lib',
-          'c:file:///workspaceRoot/third_party/dart/c/lib',
-          'd:file:///workspaceRoot/third_party/dart/d/lib',
+          'plugin:${asFileUri('/workspaceRoot/third_party/dart/plugin/lib')}',
+          'b:${asFileUri('/workspaceRoot/third_party/dart/b/lib')}',
+          'c:${asFileUri('/workspaceRoot/third_party/dart/c/lib')}',
+          'd:${asFileUri('/workspaceRoot/third_party/dart/d/lib')}',
           ''
         ]));
   }
@@ -756,6 +758,9 @@ abstract class PluginTestSupport {
         String packageName = line.substring(0, index + 1);
         String relativePath = line.substring(index + 1);
         String absolutePath = path.join(sdkDirPath, relativePath);
+        // Convert to file:/// URI since that's how absolute paths in
+        // .packages must be for windows
+        absolutePath = new Uri.file(absolutePath).toString();
         buffer.write(packageName);
         buffer.writeln(absolutePath);
       }

@@ -25,10 +25,6 @@
 #define NOKERNEL
 #endif
 
-#if !defined(NOUSER)
-#define NOUSER
-#endif
-
 #if !defined(NOSERVICE)
 #define NOSERVICE
 #endif
@@ -148,6 +144,10 @@
 #define NOT_IN_PRECOMPILED(code)
 #else
 #define NOT_IN_PRECOMPILED(code) code
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
+#if defined(DART_PRECOMPILED_RUNTIME) || defined(PRODUCT)
+#define EXCLUDE_CFE_AND_KERNEL_PLATFORM 1
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {

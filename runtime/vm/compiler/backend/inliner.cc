@@ -2091,11 +2091,6 @@ bool PolymorphicInliner::Inline() {
   return true;
 }
 
-static bool ShouldTraceInlining(FlowGraph* flow_graph) {
-  const Function& top = flow_graph->parsed_function().function();
-  return FLAG_trace_inlining && FlowGraphPrinter::ShouldPrint(top);
-}
-
 FlowGraphInliner::FlowGraphInliner(
     FlowGraph* flow_graph,
     GrowableArray<const Function*>* inline_id_to_function,
@@ -2107,7 +2102,7 @@ FlowGraphInliner::FlowGraphInliner(
       inline_id_to_function_(inline_id_to_function),
       inline_id_to_token_pos_(inline_id_to_token_pos),
       caller_inline_id_(caller_inline_id),
-      trace_inlining_(ShouldTraceInlining(flow_graph)),
+      trace_inlining_(FLAG_trace_inlining && flow_graph->should_print()),
       speculative_policy_(speculative_policy),
       precompiler_(precompiler) {}
 
@@ -2235,6 +2230,7 @@ intptr_t FlowGraphInliner::NextInlineId(const Function& function,
   // TODO(johnmccutchan): Do not allow IsNoSource once all nodes have proper
   // source positions.
   ASSERT(tp.IsReal() || tp.IsSynthetic() || tp.IsNoSource());
+  RELEASE_ASSERT(!function.IsNull());
   inline_id_to_function_->Add(&function);
   inline_id_to_token_pos_->Add(tp);
   caller_inline_id_->Add(parent_id);
@@ -2768,6 +2764,10 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
       value_check = Cids::CreateMonomorphic(Z, kFloat32x4Cid);
       break;
     }
+    case kTypedDataInt64ArrayCid:
+      // StoreIndexedInstr takes unboxed int64, so value
+      // is checked when unboxing.
+      break;
     default:
       // Array cids are already checked in the caller.
       UNREACHABLE();
@@ -3338,6 +3338,13 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     case MethodRecognizer::kByteArrayBaseSetUint32:
       return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
                                       receiver_cid, kTypedDataUint32ArrayCid,
+                                      entry, last);
+    case MethodRecognizer::kByteArrayBaseSetInt64:
+      if (!ShouldInlineInt64ArrayOps()) {
+        return false;
+      }
+      return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
+                                      receiver_cid, kTypedDataInt64ArrayCid,
                                       entry, last);
     case MethodRecognizer::kByteArrayBaseSetFloat32:
       if (!CanUnboxDouble()) {

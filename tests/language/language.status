@@ -310,9 +310,6 @@ deep_nesting1_negative_test: Crash, Pass # Issue 31496
 [ $arch == ia32 && ($compiler == app_jit || $compiler == none || $compiler == precompiler) && ($runtime == dart_precompiled || $runtime == vm) ]
 vm/regress_24517_test: Pass, Fail # Issue 24517.
 
-[ $compiler == app_jit && $mode == debug && $runtime == vm ]
-cyclic_type_test/03: Pass, Crash # Issue 31945
-
 [ $compiler == app_jit && $runtime == vm && !$checked ]
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
@@ -459,9 +456,6 @@ vm/type_vm_test: RuntimeError # Expects line and column numbers
 [ $mode == product || $runtime == dart_precompiled ]
 vm/causal_async_exception_stack2_test: SkipByDesign # Causal async stacks are not supported in product mode
 vm/causal_async_exception_stack_test: SkipByDesign # Causal async stacks are not supported in product mode
-
-[ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm ]
-cyclic_type_test/03: Pass, Fail, Crash # Issue 31944
 
 [ $runtime == dart_precompiled || $runtime == vm ]
 arithmetic_test: CompileTimeError # Large integer literal

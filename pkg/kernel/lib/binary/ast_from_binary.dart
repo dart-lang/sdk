@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.ast_from_binary;
 
-// ignore: UNDEFINED_HIDDEN_NAME
 import 'dart:core' hide MapEntry;
 import 'dart:convert';
 import 'dart:typed_data';
@@ -62,12 +61,15 @@ class BinaryBuilder {
   /// will not be resolved correctly.
   bool _disableLazyReading = false;
 
-  BinaryBuilder(this._bytes, [this.filename, this._disableLazyReading = false]);
+  BinaryBuilder(this._bytes, {this.filename, disableLazyReading = false})
+      : _disableLazyReading = disableLazyReading;
 
   fail(String message) {
     throw new ParseError(message,
         byteIndex: _byteOffset, filename: filename, path: debugPath.join('::'));
   }
+
+  int get byteOffset => _byteOffset;
 
   int readByte() => _bytes[_byteOffset++];
 
@@ -1107,8 +1109,10 @@ class BinaryBuilder {
     final int programStartOffset = _programStartOffset;
     final List<TypeParameter> typeParameters = typeParameterStack.toList();
     final List<VariableDeclaration> variables = variableStack.toList();
+    final Library currentLibrary = _currentLibrary;
     result.lazyBuilder = () {
       _byteOffset = savedByteOffset;
+      _currentLibrary = currentLibrary;
       typeParameterStack.clear();
       typeParameterStack.addAll(typeParameters);
       variableStack.clear();
@@ -1812,7 +1816,8 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   /// Note: each metadata subsection has its own mapping.
   List<Node> _referencedNodes;
 
-  BinaryBuilderWithMetadata(bytes, [filename]) : super(bytes, filename);
+  BinaryBuilderWithMetadata(bytes, [filename])
+      : super(bytes, filename: filename);
 
   @override
   bool _readMetadataSection(Program program) {

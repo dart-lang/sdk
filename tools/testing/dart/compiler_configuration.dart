@@ -85,8 +85,10 @@ abstract class CompilerConfiguration {
       case Compiler.specParser:
         return new SpecParserCompilerConfiguration(configuration);
 
+      case Compiler.fasta:
+        return new FastaCompilerConfiguration(configuration);
+
       case Compiler.none:
-      case Compiler.fasta: // TODO(ahe): Implement a real fasta compiler.
         return new NoneCompilerConfiguration(configuration);
     }
 
@@ -119,8 +121,12 @@ abstract class CompilerConfiguration {
     throw new UnsupportedError("$this does not support createCommand().");
   }
 
-  CommandArtifact computeCompilationArtifact(String tempDir,
-      List<String> arguments, Map<String, String> environmentOverrides) {
+  CommandArtifact computeCompilationArtifact(
+
+      /// Each test has its own temporary directory to avoid name collisions.
+      String tempDir,
+      List<String> arguments,
+      Map<String, String> environmentOverrides) {
     return new CommandArtifact([], null, null);
   }
 
@@ -161,7 +167,6 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       List<String> sharedOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
-    var buildDir = _configuration.buildDirectory;
     var args = <String>[];
     if (useDfe) {
       // DFE+strong configuration is a Dart 2.0 configuration which uses
@@ -169,11 +174,7 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       // correct arguments to VM binary. No need to pass any additional
       // arguments.
       if (!_isStrong) {
-        args.add('--dfe=${buildDir}/gen/kernel-service.dart.snapshot');
-        args.add('--kernel-binaries=' +
-            (_useSdk
-                ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal'
-                : '${buildDir}'));
+        args.add('--preview_dart_2');
       }
       if (_isDebug) {
         // Temporarily disable background compilation to avoid flaky crashes
@@ -244,11 +245,7 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
       List<String> originalArguments,
       CommandArtifact artifact) {
     var args = <String>[];
-    if (_isStrong) {
-      args.add('--strong');
-      args.add('--reify-generic-functions');
-      args.add('--limit-ints-to-64-bits');
-    }
+    args.add('--preview-dart-2');
     if (_isChecked) {
       args.add('--enable_asserts');
       args.add('--enable_type_checks');
@@ -708,8 +705,16 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   /// almost identical configurations are tested simultaneosly.
   Command computeRemoveKernelFileCommand(String tempDir, List arguments,
       Map<String, String> environmentOverrides) {
-    var exec = 'rm';
-    var args = [tempKernelFile(tempDir)];
+    String exec;
+    List<String> args;
+
+    if (Platform.isWindows) {
+      exec = 'cmd.exe';
+      args = <String>['/c', 'del', tempKernelFile(tempDir)];
+    } else {
+      exec = 'rm';
+      args = <String>[tempKernelFile(tempDir)];
+    }
 
     return Command.compilation('remove_kernel_file', tempDir,
         bootstrapDependencies(), exec, args, environmentOverrides,
@@ -751,6 +756,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       args.add('--strong');
     }
     if (useDfe) {
+      args.add('--preview-dart-2');
       args.addAll(_replaceDartFiles(arguments, tempKernelFile(tempDir)));
     } else {
       args.addAll(arguments);
@@ -874,8 +880,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       args.add('--enable_asserts');
       args.add('--enable_type_checks');
     }
-    if (_isStrong) {
-      args.add('--strong');
+    if (useDfe) {
+      args.add('--preview-dart-2');
     }
     var dir = artifact.filename;
     if (runtimeConfiguration is DartPrecompiledAdbRuntimeConfiguration) {
@@ -1044,28 +1050,33 @@ abstract class VMKernelCompilerMixin {
   bool get _isStrong;
   bool get _isAot;
 
+  String get executableScriptSuffix;
+
   List<Uri> bootstrapDependencies();
 
-  String tempKernelFile(String tempDir) => '$tempDir/out.dill';
+  String tempKernelFile(String tempDir) =>
+      new Path('$tempDir/out.dill').toNativePath();
 
   Command computeCompileToKernelCommand(String tempDir, List<String> arguments,
       Map<String, String> environmentOverrides) {
-    final genKernel =
-        Platform.script.resolve('../../../pkg/vm/tool/gen_kernel').toFilePath();
+    final genKernel = Platform.script
+        .resolve('../../../pkg/vm/tool/gen_kernel${executableScriptSuffix}')
+        .toFilePath();
 
     final kernelBinariesFolder = _useSdk
         ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal'
         : '${_configuration.buildDirectory}';
 
-    final vmPlatform = _isStrong
-        ? '$kernelBinariesFolder/vm_platform_strong.dill'
-        : '$kernelBinariesFolder/vm_platform.dill';
+    // Always use strong platform as preview_dart_2 implies strong.
+    final vmPlatform = '$kernelBinariesFolder/vm_platform_strong.dill';
 
     final dillFile = tempKernelFile(tempDir);
 
     final args = [
       _isAot ? '--aot' : '--no-aot',
-      _isStrong ? '--strong-mode' : '--no-strong-mode',
+      // Specify strong mode irrespective of the value of _isStrong
+      // as preview_dart_2 implies strong mode anyway.
+      '--strong-mode',
       _isStrong ? '--sync-async' : '--no-sync-async',
       '--platform=$vmPlatform',
       '-o',
@@ -1073,14 +1084,118 @@ abstract class VMKernelCompilerMixin {
     ];
     args.add(arguments.where((name) => name.endsWith('.dart')).single);
 
-    if (_isStrong) {
-      // Pass environment variable to the gen_kernel script as
-      // arguments are not passed if gen_kernel runs in batch mode.
-      environmentOverrides = new Map.from(environmentOverrides);
-      environmentOverrides['DART_VM_FLAGS'] = '--limit-ints-to-64-bits';
-    }
+    // Pass environment variable to the gen_kernel script as
+    // arguments are not passed if gen_kernel runs in batch mode.
+    environmentOverrides = new Map.from(environmentOverrides);
+    environmentOverrides['DART_VM_FLAGS'] = '--limit-ints-to-64-bits';
 
     return Command.vmKernelCompilation(dillFile, true, bootstrapDependencies(),
         genKernel, args, environmentOverrides);
+  }
+}
+
+class FastaCompilerConfiguration extends CompilerConfiguration {
+  static final _compilerLocation =
+      Repository.uri.resolve("pkg/front_end/tool/_fasta/compile.dart");
+
+  final Uri _platformDill;
+
+  final Uri _vmExecutable;
+
+  bool get _isLegacy => !_configuration.isStrong;
+
+  factory FastaCompilerConfiguration(Configuration configuration) {
+    var buildDirectory =
+        Uri.base.resolveUri(new Uri.directory(configuration.buildDirectory));
+
+    var dillDir = buildDirectory;
+    if (configuration.useSdk) {
+      dillDir = buildDirectory.resolve("dart-sdk/lib/_internal/");
+    }
+
+    var suffix = configuration.isStrong ? "_strong" : "";
+    var platformDill = dillDir.resolve("vm_platform$suffix.dill");
+
+    var vmExecutable = buildDirectory
+        .resolve(configuration.useSdk ? "dart-sdk/bin/dart" : "dart");
+    return new FastaCompilerConfiguration._(
+        platformDill, vmExecutable, configuration);
+  }
+
+  FastaCompilerConfiguration._(
+      this._platformDill, this._vmExecutable, Configuration configuration)
+      : super._subclass(configuration);
+
+  @override
+  bool get useDfe => true;
+
+  @override
+  bool get runRuntimeDespiteMissingCompileTimeError => true;
+
+  @override
+  List<Uri> bootstrapDependencies() => [_platformDill];
+
+  @override
+  Command createCommand(String inputFile, String outputFile,
+      List<String> sharedOptions, Map<String, String> environment) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  CommandArtifact computeCompilationArtifact(String tempDir,
+      List<String> arguments, Map<String, String> environmentOverrides) {
+    var output =
+        Uri.base.resolveUri(new Uri.directory(tempDir)).resolve("out.dill");
+    var outputFileName = output.toFilePath();
+
+    var compilerArguments = <String>[];
+    if (!_isLegacy) {
+      compilerArguments.add("--strong-mode");
+    }
+
+    compilerArguments.addAll(
+        ["-o", outputFileName, "--platform", _platformDill.toFilePath()]);
+    compilerArguments.addAll(arguments);
+
+    return new CommandArtifact([
+      Command.fasta(
+          _compilerLocation,
+          output,
+          bootstrapDependencies(),
+          _vmExecutable,
+          compilerArguments,
+          environmentOverrides,
+          Repository.uri)
+    ], outputFileName, "application/x.dill");
+  }
+
+  @override
+  List<String> computeCompilerArguments(
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> dart2jsOptions,
+      List<String> args) {
+    var arguments = <String>[];
+    for (var argument in args) {
+      if (argument != "--ignore-unrecognized-flags") {
+        arguments.add(argument);
+      }
+    }
+    return arguments;
+  }
+
+  @override
+  List<String> computeRuntimeArguments(
+      RuntimeConfiguration runtimeConfiguration,
+      TestInformation info,
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> originalArguments,
+      CommandArtifact artifact) {
+    if (runtimeConfiguration is! NoneRuntimeConfiguration) {
+      throw "--compiler=fasta only supports --runtime=none";
+    }
+
+    return <String>[];
   }
 }

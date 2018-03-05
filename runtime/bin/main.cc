@@ -36,8 +36,6 @@
 #include "bin/gzip.h"
 #endif
 
-#include "vm/kernel.h"
-
 extern "C" {
 extern const uint8_t kDartVmSnapshotData[];
 extern const uint8_t kDartVmSnapshotInstructions[];
@@ -325,7 +323,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   return isolate;
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
 // Returns newly created Kernel Isolate on success, NULL on failure.
 // For now we only support the kernel isolate coming up from an
 // application snapshot or from a .dill file.
@@ -384,7 +382,7 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
   return IsolateSetupHelper(isolate, false, uri, package_root, packages_config,
                             true, isolate_run_app_snapshot, error, exit_code);
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
 
 // Returns newly created Service Isolate on success, NULL on failure.
 // For now we only support the service isolate coming up from sources
@@ -439,8 +437,8 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
       isolate = Dart_CreateIsolateFromKernel(script_uri, NULL, platform_program,
                                              flags, isolate_data, error);
     } else {
-      *error = OS::SCreate(
-          NULL, "Platform kernel not available to create service isolate.");
+      *error =
+          strdup("Platform kernel not available to create service isolate.");
       delete isolate_data;
       return NULL;
     }
@@ -525,19 +523,6 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   }
   if (!isolate_run_app_snapshot) {
     kernel_program = dfe.ReadScript(script_uri);
-    if (dfe.UseDartFrontend() && (kernel_program == NULL)) {
-      if (!dfe.CanUseDartFrontend()) {
-        *error = OS::SCreate(NULL, "Dart frontend unavailable to compile %s.",
-                             script_uri);
-        return NULL;
-      }
-      kernel_program =
-          dfe.CompileAndReadScript(script_uri, error, exit_code, flags->strong);
-      if (kernel_program == NULL) {
-        // Error message would have been set by DFE::CompileAndReadScript.
-        return NULL;
-      }
-    }
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -548,26 +533,51 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   }
 
   Dart_Isolate isolate = NULL;
-  if (kernel_program != NULL) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-    return NULL;
-#else
-    isolate_data->kernel_program = kernel_program;
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (dfe.UseDartFrontend()) {
     void* platform_program = dfe.platform_program(flags->strong) != NULL
                                  ? dfe.platform_program(flags->strong)
                                  : kernel_program;
+
+    if (platform_program == NULL) {
+      FATAL("platform_program cannot be NULL.");
+    }
     // TODO(sivachandra): When the platform program is unavailable, check if
     // application kernel binary is self contained or an incremental binary.
     // Isolate should be created only if it is a self contained kernel binary.
     isolate = Dart_CreateIsolateFromKernel(script_uri, main, platform_program,
                                            flags, isolate_data, error);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+    if (!isolate_run_app_snapshot && kernel_program == NULL) {
+      if (!dfe.CanUseDartFrontend()) {
+        const char* format = "Dart frontend unavailable to compile script %s.";
+        intptr_t len = snprintf(NULL, 0, format, script_uri) + 2;
+        *error = reinterpret_cast<char*>(malloc(len));
+        ASSERT(error != NULL);
+        snprintf(*error, len, format, script_uri);
+        return NULL;
+      }
+
+      kernel_program =
+          dfe.CompileAndReadScript(script_uri, error, exit_code, flags->strong);
+      if (kernel_program == NULL) {
+        if (Dart_CurrentIsolate() != NULL) {
+          Dart_ShutdownIsolate();
+        }
+        return NULL;
+      }
+    }
+    isolate_data->kernel_program = kernel_program;
   } else {
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
     isolate = Dart_CreateIsolate(script_uri, main, isolate_snapshot_data,
                                  isolate_snapshot_instructions, flags,
                                  isolate_data, error);
+#if !defined(DART_PRECOMPILED_RUNTIME)
   }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   if (isolate == NULL) {
     delete isolate_data;
     return NULL;
@@ -599,13 +609,13 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
   }
 
   int exit_code = 0;
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
   if (strcmp(script_uri, DART_KERNEL_ISOLATE_NAME) == 0) {
     return CreateAndSetupKernelIsolate(script_uri, main, package_root,
                                        package_config, flags, error,
                                        &exit_code);
   }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
   if (strcmp(script_uri, DART_VM_SERVICE_ISOLATE_NAME) == 0) {
     return CreateAndSetupServiceIsolate(script_uri, main, package_root,
                                         package_config, flags, error,

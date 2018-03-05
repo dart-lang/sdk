@@ -59,34 +59,8 @@ async_generator_breakpoint_test: Skip # Issue 29145
 dev_fs_http_put_weird_char_test: Skip # Windows disallows carriage returns in paths
 dev_fs_weird_char_test: Skip # Windows disallows question mark in paths
 
-# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
-# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
-# batch mode.
-[ $arch == simdbc64 && $compiler == dartk ]
-coverage_optimized_function_test: Crash # Please triage
-get_cpu_profile_timeline_rpc_test: Pass, RuntimeError # http://dartbug.com/31794
-
-[ $arch == simdbc64 && $compiler == dartk && $mode == debug ]
-eval_test: Pass, Slow
-
 [ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
-
-# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
-# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
-# batch mode.
-[ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
-async_generator_breakpoint_test: Pass, RuntimeError
-bad_reload_test: RuntimeError # Please triage.
-coverage_leaf_function_test: RuntimeError # Please triage.
-coverage_optimized_function_test: RuntimeError # Please triage.
-get_object_rpc_test: RuntimeError # Please triage.
-get_source_report_test: RuntimeError # Please triage.
-library_dependency_test: RuntimeError # Please triage.
-positive_token_pos_test: Pass, RuntimeError
-reload_sources_test: Timeout, Skip # Please triage.
-rewind_test: Pass, RuntimeError
-set_name_rpc_test: RuntimeError # Please triage.
 
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
@@ -124,4 +98,3 @@ step_through_getter_test: RuntimeError # Debugging StringConcatenation doesn't w
 # Skip all service tests because random reloads interfere.
 [ $hot_reload || $hot_reload_rollback ]
 *: SkipByDesign # The service tests should run without being reloaded.
-

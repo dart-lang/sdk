@@ -236,7 +236,7 @@ class _NetworkInterface implements NetworkInterface {
   }
 }
 
-// The NativeFieldWrapperClass1 can not be used with a mixin, due to missing
+// The NativeFieldWrapperClass1 cannot be used with a mixin, due to missing
 // implicit constructor.
 class _NativeSocketNativeWrapper extends NativeFieldWrapperClass1 {}
 
@@ -592,6 +592,10 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   bool get isInternal => (typeFlags & TYPE_INTERNAL_SOCKET) != 0;
   bool get isTcp => (typeFlags & TYPE_TCP_SOCKET) != 0;
   bool get isUdp => (typeFlags & TYPE_UDP_SOCKET) != 0;
+
+  Map _toJSON(bool ref) => throw new UnimplementedError();
+  String get _serviceTypePath => throw new UnimplementedError();
+  String get _serviceTypeName => throw new UnimplementedError();
 
   List<int> read(int len) {
     if (len != null && len <= 0) {
@@ -1549,6 +1553,10 @@ class _Socket extends Stream<List<int>> implements Socket {
   void writeAll(Iterable objects, [sep = ""]) => _sink.writeAll(objects, sep);
 
   void add(List<int> bytes) => _sink.add(bytes);
+
+  void addError(Object error, [StackTrace stackTrace]) {
+    throw new UnsupportedError("Cannot send errors on sockets");
+  }
 
   Future addStream(Stream<List<int>> stream) {
     return _sink.addStream(stream);

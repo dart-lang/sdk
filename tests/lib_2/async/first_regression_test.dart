@@ -8,7 +8,7 @@ library first_regression_test;
 
 import 'dart:async';
 
-class DoubleTransformer<T> implements StreamTransformer<T, T> {
+class DoubleTransformer<T> extends StreamTransformerBase<T, T> {
   Stream<T> bind(Stream<T> stream) {
     var transformer = new StreamTransformer<T, T>.fromHandlers(
         handleData: (T data, EventSink<T> sink) {

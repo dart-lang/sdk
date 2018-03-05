@@ -13,33 +13,83 @@ main() {
 class WhileStatementTest extends PartialCodeTest {
   buildAll() {
     buildTests(
-        'while_statement',
-        [
-          new TestDescriptor(
-              'keyword',
-              'while',
-              [
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "while (_s_)",
-              failing: ['eof', 'break', 'continue']),
-          new TestDescriptor(
-              'leftParen',
-              'while (',
-              [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "while (_s_)",
-              allFailing: true),
-          new TestDescriptor('condition', 'while (a',
-              [ParserErrorCode.EXPECTED_TOKEN], "while (a)",
-              allFailing: true),
-        ],
-        PartialCodeTest.statementSuffixes,
-        head: 'f() { ',
-        tail: ' }');
+      'while_statement',
+      <TestDescriptor>[
+        new TestDescriptor(
+          'keyword',
+          'while',
+          [
+            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.MISSING_IDENTIFIER,
+            ParserErrorCode.EXPECTED_TOKEN
+          ],
+          "while (_s_)",
+          allFailing: true,
+          expectedErrorsInValidCode: [
+            ParserErrorCode.MISSING_IDENTIFIER,
+            ParserErrorCode.EXPECTED_TOKEN
+          ],
+        ),
+        new TestDescriptor(
+          'leftParen',
+          'while (',
+          [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+          "while (_s_)",
+          allFailing: true,
+          expectedErrorsInValidCode: [
+            ParserErrorCode.MISSING_IDENTIFIER,
+            ParserErrorCode.EXPECTED_TOKEN
+          ],
+        ),
+        new TestDescriptor(
+          'condition',
+          'while (a',
+          [ParserErrorCode.EXPECTED_TOKEN],
+          "while (a)",
+          allFailing: true,
+          expectedErrorsInValidCode: [
+            ParserErrorCode.MISSING_IDENTIFIER,
+            ParserErrorCode.EXPECTED_TOKEN
+          ],
+        ),
+      ],
+      [],
+      head: 'f() { ',
+      tail: ' }',
+    );
+    buildTests(
+      'while_statement',
+      <TestDescriptor>[
+        new TestDescriptor(
+          'keyword',
+          'while',
+          [
+            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.MISSING_IDENTIFIER,
+            ParserErrorCode.EXPECTED_TOKEN
+          ],
+          "while (_s_)",
+          failing: ['break', 'continue'],
+        ),
+        new TestDescriptor(
+          'leftParen',
+          'while (',
+          [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+          "while (_s_)",
+          allFailing: true,
+        ),
+        new TestDescriptor(
+          'condition',
+          'while (a',
+          [ParserErrorCode.EXPECTED_TOKEN],
+          "while (a)",
+          allFailing: true,
+        ),
+      ],
+      PartialCodeTest.statementSuffixes,
+      head: 'f() { ',
+      includeEof: false,
+      tail: ' }',
+    );
   }
 }

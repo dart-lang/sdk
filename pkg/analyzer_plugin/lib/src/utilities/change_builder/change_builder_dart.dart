@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
@@ -50,7 +49,7 @@ class DartChangeBuilderImpl extends ChangeBuilderImpl
   @override
   Future<DartFileEditBuilderImpl> createFileEditBuilder(String path) async {
     ResolveResult result = await session.getResolvedAst(path);
-    ResultState state = result.state;
+    ResultState state = result?.state ?? ResultState.INVALID_FILE_TYPE;
     if (state == ResultState.INVALID_FILE_TYPE) {
       throw new AnalysisException('Cannot analyze "$path"');
     }
@@ -100,7 +99,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   void writeClassDeclaration(String name,
       {Iterable<DartType> interfaces,
       bool isAbstract: false,
-      void memberWriter(),
+      void membersWriter(),
       Iterable<DartType> mixins,
       String nameGroupName,
       DartType superclass,
@@ -126,10 +125,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     writeTypes(mixins, prefix: ' with ');
     writeTypes(interfaces, prefix: ' implements ');
     writeln(' {');
-    if (memberWriter != null) {
-      writeln();
-      memberWriter();
-      writeln();
+    if (membersWriter != null) {
+      membersWriter();
     }
     write('}');
   }
@@ -318,28 +315,34 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeOverrideOfInheritedMember(ExecutableElement member,
-      {String returnTypeGroupName}) {
-    // prepare environment
+      {StringBuffer displayTextBuffer, String returnTypeGroupName}) {
     String prefix = getIndent(1);
-    // may be property
     String prefix2 = getIndent(2);
     ElementKind elementKind = member.kind;
+    // TODO(brianwilkerson) Look for a non-abstract inherited member farther up
+    // in the superclass chain that we could invoke.
+    bool isAbstract = member.isAbstract;
     bool isGetter = elementKind == ElementKind.GETTER;
     bool isSetter = elementKind == ElementKind.SETTER;
     bool isMethod = elementKind == ElementKind.METHOD;
     bool isOperator = isMethod && (member as MethodElement).isOperator;
+    String memberName = member.displayName;
     write(prefix);
+
+    // @override
+    writeln('@override');
+    write(prefix);
+
     if (isGetter) {
       writeln('// TODO: implement ${member.displayName}');
       write(prefix);
     }
-    // @override
-    writeln('@override');
-    write(prefix);
+
     // return type
-    bool shouldReturn = writeType(member.type.returnType,
+    DartType returnType = member.type.returnType;
+    bool typeWritten = writeType(returnType,
         groupName: returnTypeGroupName, methodBeingCopied: member);
-    if (shouldReturn) {
+    if (typeWritten) {
       write(' ');
     }
     if (isGetter) {
@@ -352,26 +355,94 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write(Keyword.OPERATOR.lexeme);
       write(' ');
     }
+
     // name
-    write(member.displayName);
+    write(memberName, displayTextBuffer: displayTextBuffer);
+
     // parameters + body
     if (isGetter) {
-      writeln(' => null;');
+      if (isAbstract) {
+        write(' => ');
+        selectAll(() {
+          write('null');
+        });
+        writeln(';');
+      } else {
+        write(' => ');
+        selectAll(() {
+          write('super.');
+          write(memberName);
+        });
+        writeln(';');
+      }
+      displayTextBuffer?.write(' => …');
     } else {
-      writeTypeParameters(member.typeParameters, methodBeingCopied: member);
+      writeTypeParameters(member.typeParameters,
+          methodBeingCopied: member, displayTextBuffer: displayTextBuffer);
       List<ParameterElement> parameters = member.parameters;
-      writeParameters(parameters, methodBeingCopied: member);
+      writeParameters(parameters,
+          methodBeingCopied: member, displayTextBuffer: displayTextBuffer);
       writeln(' {');
+
       // TO-DO
       write(prefix2);
-      writeln('// TODO: implement ${member.displayName}');
-      if (shouldReturn) {
+      writeln('// TODO: implement $memberName');
+
+      if (returnType.isVoid) {
+        if (!isAbstract) {
+          write(prefix2);
+          selectAll(() {
+            write('super.');
+            write(memberName);
+            write('(');
+            for (int i = 0; i < parameters.length; i++) {
+              if (i > 0) {
+                write(', ');
+              }
+              write(parameters[i].name);
+            }
+            write(');');
+          });
+          writeln();
+        }
+      } else if (isSetter) {
+        if (!isAbstract) {
+          write(prefix2);
+          selectAll(() {
+            write('super.');
+            write(memberName);
+            write(' = ');
+            write(parameters[0].name);
+            write(';');
+          });
+          writeln();
+        }
+      } else {
         write(prefix2);
-        writeln('return null;');
+        if (isAbstract) {
+          selectAll(() {
+            write('return null;');
+          });
+        } else {
+          selectAll(() {
+            write('return super.');
+            write(memberName);
+            write('(');
+            for (int i = 0; i < parameters.length; i++) {
+              if (i > 0) {
+                write(', ');
+              }
+              write(parameters[i].name);
+            }
+            write(');');
+          });
+        }
+        writeln();
       }
       // close method
       write(prefix);
       writeln('}');
+      displayTextBuffer?.write(' { … }');
     }
   }
 
@@ -401,51 +472,50 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeParameters(Iterable<ParameterElement> parameters,
-      {ExecutableElement methodBeingCopied}) {
-    write('(');
+      {StringBuffer displayTextBuffer, ExecutableElement methodBeingCopied}) {
+    write('(', displayTextBuffer: displayTextBuffer);
     bool sawNamed = false;
     bool sawPositional = false;
     for (int i = 0; i < parameters.length; i++) {
       ParameterElement parameter = parameters.elementAt(i);
       if (i > 0) {
-        write(', ');
+        write(', ', displayTextBuffer: displayTextBuffer);
       }
-      // may be optional
-      ParameterKind parameterKind = parameter.parameterKind;
-      if (parameterKind == ParameterKind.NAMED) {
+      // Might be optional
+      if (parameter.isNamed) {
         if (!sawNamed) {
-          write('{');
+          write('{', displayTextBuffer: displayTextBuffer);
           sawNamed = true;
         }
-      }
-      if (parameterKind == ParameterKind.POSITIONAL) {
+      } else if (parameter.isOptionalPositional) {
         if (!sawPositional) {
-          write('[');
+          write('[', displayTextBuffer: displayTextBuffer);
           sawPositional = true;
         }
       }
       // parameter
       writeParameterSource(parameter.type, parameter.name,
-          methodBeingCopied: methodBeingCopied);
+          methodBeingCopied: methodBeingCopied,
+          displayTextBuffer: displayTextBuffer);
       // default value
       String defaultCode = parameter.defaultValueCode;
       if (defaultCode != null) {
         if (sawPositional) {
-          write(' = ');
+          write(' = ', displayTextBuffer: displayTextBuffer);
         } else {
-          write(': ');
+          write(': ', displayTextBuffer: displayTextBuffer);
         }
-        write(defaultCode);
+        write(defaultCode, displayTextBuffer: displayTextBuffer);
       }
     }
     // close parameters
     if (sawNamed) {
-      write('}');
+      write('}', displayTextBuffer: displayTextBuffer);
     }
     if (sawPositional) {
-      write(']');
+      write(']', displayTextBuffer: displayTextBuffer);
     }
-    write(')');
+    write(')', displayTextBuffer: displayTextBuffer);
   }
 
   @override
@@ -473,13 +543,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeParameterSource(DartType type, String name,
-      {ExecutableElement methodBeingCopied}) {
+      {StringBuffer displayTextBuffer, ExecutableElement methodBeingCopied}) {
     _EnclosingElementFinder finder = new _EnclosingElementFinder();
     finder.find(dartFileEditBuilder.unit, offset);
     String parameterSource = _getTypeSource(
         type, finder.enclosingClass, finder.enclosingExecutable,
         parameterName: name, methodBeingCopied: methodBeingCopied);
-    write(parameterSource);
+    write(parameterSource, displayTextBuffer: displayTextBuffer);
   }
 
   @override
@@ -517,8 +587,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeTypeParameter(TypeParameterElement typeParameter,
-      {ExecutableElement methodBeingCopied}) {
-    write(typeParameter.name);
+      {StringBuffer displayTextBuffer, ExecutableElement methodBeingCopied}) {
+    write(typeParameter.name, displayTextBuffer: displayTextBuffer);
     if (typeParameter.bound != null) {
       _EnclosingElementFinder finder = new _EnclosingElementFinder();
       finder.find(dartFileEditBuilder.unit, offset);
@@ -526,26 +596,28 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           finder.enclosingExecutable,
           methodBeingCopied: methodBeingCopied);
       if (bound != null) {
-        write(' extends ');
-        write(bound);
+        write(' extends ', displayTextBuffer: displayTextBuffer);
+        write(bound, displayTextBuffer: displayTextBuffer);
       }
     }
   }
 
   @override
   void writeTypeParameters(List<TypeParameterElement> typeParameters,
-      {ExecutableElement methodBeingCopied}) {
+      {StringBuffer displayTextBuffer, ExecutableElement methodBeingCopied}) {
     if (typeParameters.isNotEmpty) {
-      write('<');
+      write('<', displayTextBuffer: displayTextBuffer);
       bool isFirst = true;
       for (TypeParameterElement typeParameter in typeParameters) {
         if (!isFirst) {
-          write(', ');
+          write(', ', displayTextBuffer: displayTextBuffer);
         }
         isFirst = false;
-        writeTypeParameter(typeParameter, methodBeingCopied: methodBeingCopied);
+        writeTypeParameter(typeParameter,
+            methodBeingCopied: methodBeingCopied,
+            displayTextBuffer: displayTextBuffer);
       }
-      write('>');
+      write('>', displayTextBuffer: displayTextBuffer);
     }
   }
 
@@ -792,10 +864,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     // type parameter
     type = _getVisibleType(type, enclosingClass, enclosingExecutable,
         methodBeingCopied: methodBeingCopied);
-    if (type == null ||
-        type.isDynamic ||
-        type.isBottom ||
-        type.isDartCoreNull) {
+    if (type == null || type.isDynamic || type.isBottom) {
       if (parameterName != null) {
         return parameterName;
       }
@@ -816,6 +885,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       if (parameterName == null) {
         return 'Function';
       }
+      // TODO(brianwilkerson) Using a buffer here means that we cannot re-use
+      // the existing `write*` functions. Refactor this code to remove the
+      // duplication.
       StringBuffer buffer = new StringBuffer();
       String returnType = _getTypeSource(
           type.returnType, enclosingClass, enclosingExecutable,
@@ -824,7 +896,32 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         buffer.write(returnType);
         buffer.write(' ');
       }
-      buffer.write(parameterName);
+      if (element is GenericFunctionTypeElement) {
+        buffer.write('Function');
+        if (element.typeParameters.isNotEmpty) {
+          buffer.write('<');
+          bool isFirst = true;
+          for (TypeParameterElement typeParameter in element.typeParameters) {
+            if (!isFirst) {
+              buffer.write(', ');
+            }
+            isFirst = false;
+            buffer.write(typeParameter.name);
+            if (typeParameter.bound != null) {
+              String bound = _getTypeSource(
+                  typeParameter.bound, enclosingClass, enclosingExecutable,
+                  methodBeingCopied: methodBeingCopied);
+              if (bound != null) {
+                buffer.write(' extends ');
+                buffer.write(bound);
+              }
+            }
+          }
+          buffer.write('>');
+        }
+      } else {
+        buffer.write(parameterName);
+      }
       buffer.write('(');
       int count = type.parameters.length;
       for (int i = 0; i < count; i++) {
@@ -839,6 +936,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         buffer.write(parameterType);
       }
       buffer.write(')');
+      if (element is GenericFunctionTypeElement) {
+        buffer.write(' ');
+        buffer.write(parameterName);
+      }
       return buffer.toString();
     }
     // prepare element
@@ -970,6 +1071,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (type is TypeParameterType) {
       TypeParameterElement parameterElement = type.element;
       Element parameterParent = parameterElement.enclosingElement;
+      while (parameterParent is GenericFunctionTypeElement ||
+          parameterParent is ParameterElement) {
+        parameterParent = parameterParent.enclosingElement;
+      }
       // TODO(brianwilkerson) This needs to compare the parameterParent with
       // each of the parents of the enclosingExecutable. (That means that we
       // only need the most closely enclosing element.)

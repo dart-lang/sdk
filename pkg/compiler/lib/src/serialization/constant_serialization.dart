@@ -92,22 +92,22 @@ class ConstantSerializer
 
   @override
   void visitBool(BoolConstantExpression exp, ObjectEncoder encoder) {
-    encoder.setBool(Key.VALUE, exp.primitiveValue);
+    encoder.setBool(Key.VALUE, exp.boolValue);
   }
 
   @override
   void visitInt(IntConstantExpression exp, ObjectEncoder encoder) {
-    encoder.setInt(Key.VALUE, exp.primitiveValue);
+    encoder.setInt(Key.VALUE, exp.intValue);
   }
 
   @override
   void visitDouble(DoubleConstantExpression exp, ObjectEncoder encoder) {
-    encoder.setDouble(Key.VALUE, exp.primitiveValue);
+    encoder.setDouble(Key.VALUE, exp.doubleValue);
   }
 
   @override
   void visitString(StringConstantExpression exp, ObjectEncoder encoder) {
-    encoder.setString(Key.VALUE, exp.primitiveValue);
+    encoder.setString(Key.VALUE, exp.stringValue);
   }
 
   @override
@@ -192,6 +192,11 @@ class ConstantSerializer
   void visitDeferred(DeferredConstantExpression exp, ObjectEncoder encoder) {
     encoder.setElement(Key.IMPORT, exp.import as ImportElement);
     encoder.setConstant(Key.EXPRESSION, exp.expression);
+  }
+
+  @override
+  void visitAssert(AssertConstantExpression exp, ObjectEncoder context) {
+    throw new UnsupportedError("AssertConstantExpression is not supported.");
   }
 }
 
@@ -299,6 +304,7 @@ class ConstantDeserializer {
             decoder.getConstant(Key.EXPRESSION),
             decoder.getElement(Key.IMPORT) as ImportElement);
       case ConstantExpressionKind.SYNTHETIC:
+      case ConstantExpressionKind.ASSERT:
     }
     throw new UnsupportedError("Unexpected constant kind: ${kind} in $decoder");
   }
@@ -428,7 +434,11 @@ class ConstantConstructorDeserializer {
       case ConstantConstructorKind.GENERATIVE:
         ResolutionInterfaceType type = readType();
         return new GenerativeConstantConstructor(
-            type, readDefaults(), readFields(), readConstructorInvocation());
+            type,
+            readDefaults(),
+            readFields(),
+            const <AssertConstantExpression>[],
+            readConstructorInvocation());
       case ConstantConstructorKind.REDIRECTING_GENERATIVE:
         return new RedirectingGenerativeConstantConstructor(
             readDefaults(), readConstructorInvocation());

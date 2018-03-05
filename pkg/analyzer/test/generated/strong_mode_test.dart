@@ -389,7 +389,7 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     String code = r'''
     typedef To Func1<From, To>(From x);
     T f<T extends Func1<S, S>, S>(S x) => null;
-    void test() { var x = f(3)(4); }
+    void test() { var x = f(3)(null); }
    ''';
     Source source = addSource(code);
     TestAnalysisResult analysisResult = await computeAnalysisResult(source);
@@ -507,6 +507,11 @@ class C<T> {
     new C<Object>.fact().g;
     new C<Object>.fact().m1;
     new C<Object>.fact().m2();
+
+    new C.fact().f(42);
+    new C.fact().g;
+    new C.fact().m1;
+    new C.fact().m2();
   }
 
   noCasts(T t) {
@@ -544,12 +549,6 @@ class C<T> {
     new D().g;
     new D().m1();
     new D().m2();
-
-    // fuzzy arrows are currently checked at the call, they skip this cast.
-    new C.fact().f(42);
-    new C.fact().g;
-    new C.fact().m1;
-    new C.fact().m2();
   }
 }
 class D extends C<num> {
@@ -610,6 +609,12 @@ casts() {
   (c.m1)();
   c.m1()(obj);
   (c.m2)();
+
+  cD.f;
+  cD.g;
+  cD.m1;
+  cD.m1();
+  cD.m2();
 }
 
 noCasts() {
@@ -631,13 +636,6 @@ noCasts() {
   cN.m1;
   cN.m1();
   cN.m2();
-
-  // fuzzy arrows are currently checked at the call, they skip this cast.
-  cD.f;
-  cD.g;
-  cD.m1;
-  cD.m1();
-  cD.m2();
 }
 ''');
     var unit = (await computeAnalysisResult(source)).unit;
@@ -1535,10 +1533,10 @@ test(Iterable values) {
 }
  ''');
     await computeAnalysisResult(source);
-    _expectInferenceError(source, [
-      StrongModeCode.COULD_NOT_INFER,
-      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    ], r'''
+    _expectInferenceError(
+        source,
+        [StrongModeCode.COULD_NOT_INFER, StrongModeCode.INVALID_CAST_FUNCTION],
+        r'''
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'dynamic' for 'T' which doesn't work:
@@ -1706,10 +1704,8 @@ abstract class Iterable<T> {
 num test(Iterable values) => values.fold(values.first as num, max);
     ''');
     var analysisResult = await computeAnalysisResult(source);
-    assertErrors(source, [
-      StrongModeCode.COULD_NOT_INFER,
-      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    ]);
+    assertErrors(source,
+        [StrongModeCode.COULD_NOT_INFER, StrongModeCode.INVALID_CAST_FUNCTION]);
     verify([source]);
     var unit = analysisResult.unit;
     var fold = (AstFinder
@@ -2754,6 +2750,7 @@ class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
     resetWith(options: options);
   }
 
+  @failingTest // https://github.com/dart-lang/sdk/issues/32173
   test_dynamicObjectGetter_hashCode() async {
     String code = r'''
 main() {
@@ -2762,9 +2759,10 @@ main() {
 }
 ''';
     await resolveTestUnit(code);
-    expectInitializerType('foo', 'int', isNull);
+    expectInitializerType('foo', 'dynamic', isNull);
   }
 
+  @failingTest // https://github.com/dart-lang/sdk/issues/32173
   test_dynamicObjectMethod_toString() async {
     String code = r'''
 main() {
@@ -2773,7 +2771,7 @@ main() {
 }
 ''';
     await resolveTestUnit(code);
-    expectInitializerType('foo', 'String', isNull);
+    expectInitializerType('foo', 'dynamic', isNull);
   }
 
   test_futureOr_promotion1() async {

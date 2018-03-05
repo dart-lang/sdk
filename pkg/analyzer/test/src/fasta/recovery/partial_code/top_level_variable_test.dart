@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/error/codes.dart';
 
 import 'partial_code_support.dart';
 
@@ -27,93 +28,204 @@ class TopLevelVariableTest extends PartialCodeTest {
         'top_level_variable',
         [
           new TestDescriptor(
-              'const',
-              'const',
-              [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "const _s_;",
-              allFailing: true),
-          new TestDescriptor('constName', 'const a',
-              [ParserErrorCode.EXPECTED_TOKEN], "const a;",
-              allFailing: true),
-          new TestDescriptor('constTypeName', 'const int a',
-              [ParserErrorCode.EXPECTED_TOKEN], "const int a;",
-              allFailing: true),
+            'const',
+            'const',
+            [
+              ParserErrorCode.MISSING_IDENTIFIER,
+              ParserErrorCode.EXPECTED_TOKEN,
+              CompileTimeErrorCode.CONST_NOT_INITIALIZED
+            ],
+            "const _s_;",
+            failing: allExceptEof,
+            expectedErrorsInValidCode: [
+              CompileTimeErrorCode.CONST_NOT_INITIALIZED
+            ],
+          ),
           new TestDescriptor(
-              'constNameComma',
-              'const a,',
-              [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "const a, _s_;",
-              allFailing: true),
+            'constName',
+            'const a',
+            [
+              ParserErrorCode.EXPECTED_TOKEN,
+              CompileTimeErrorCode.CONST_NOT_INITIALIZED
+            ],
+            "const a;",
+            failing: ['typedef', 'functionNonVoid', 'getter', 'setter'],
+            expectedErrorsInValidCode: [
+              CompileTimeErrorCode.CONST_NOT_INITIALIZED
+            ],
+          ),
           new TestDescriptor(
-              'constTypeNameComma',
-              'const int a,',
-              [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "const int a, _s_;",
-              allFailing: true),
-          new TestDescriptor('constNameCommaName', 'const a, b',
-              [ParserErrorCode.EXPECTED_TOKEN], "const a, b;",
-              allFailing: true),
-          new TestDescriptor('constTypeNameCommaName', 'const int a, b',
-              [ParserErrorCode.EXPECTED_TOKEN], "const int a, b;",
-              allFailing: true),
+            'constTypeName',
+            'const int a',
+            [
+              ParserErrorCode.EXPECTED_TOKEN,
+              CompileTimeErrorCode.CONST_NOT_INITIALIZED
+            ],
+            "const int a;",
+            expectedErrorsInValidCode: [
+              CompileTimeErrorCode.CONST_NOT_INITIALIZED
+            ],
+          ),
           new TestDescriptor(
-              'final',
-              'final',
-              [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "final _s_;",
-              allFailing: true),
-          new TestDescriptor('finalName', 'final a',
-              [ParserErrorCode.EXPECTED_TOKEN], "final a;",
-              allFailing: true),
-          new TestDescriptor('finalTypeName', 'final int a',
-              [ParserErrorCode.EXPECTED_TOKEN], "final int a;",
-              allFailing: true),
+            'constNameComma',
+            'const a,',
+            [
+              ParserErrorCode.MISSING_IDENTIFIER,
+              ParserErrorCode.EXPECTED_TOKEN,
+              CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+              CompileTimeErrorCode.CONST_NOT_INITIALIZED
+            ],
+            "const a, _s_;",
+            failing: [
+              'typedef',
+              'functionVoid',
+              'functionNonVoid',
+              'getter',
+              'setter'
+            ],
+            expectedErrorsInValidCode: [
+              CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+              CompileTimeErrorCode.CONST_NOT_INITIALIZED
+            ],
+          ),
           new TestDescriptor(
-              'type',
-              'int',
-              [
-                ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "int _s_;",
-              allFailing: true),
+            'constTypeNameComma',
+            'const int a,',
+            [
+              ParserErrorCode.MISSING_IDENTIFIER,
+              ParserErrorCode.EXPECTED_TOKEN,
+              CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+              CompileTimeErrorCode.CONST_NOT_INITIALIZED
+            ],
+            "const int a, _s_;",
+            failing: [
+              'typedef',
+              'functionVoid',
+              'functionNonVoid',
+              'getter',
+              'setter'
+            ],
+            expectedErrorsInValidCode: [
+              CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+              CompileTimeErrorCode.CONST_NOT_INITIALIZED
+            ],
+          ),
           new TestDescriptor(
-              'typeName', 'int a', [ParserErrorCode.EXPECTED_TOKEN], "int a;"),
+            'constNameCommaName',
+            'const a, b',
+            [
+              ParserErrorCode.EXPECTED_TOKEN,
+              CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+              CompileTimeErrorCode.CONST_NOT_INITIALIZED
+            ],
+            "const a, b;",
+            expectedErrorsInValidCode: [
+              CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+              CompileTimeErrorCode.CONST_NOT_INITIALIZED
+            ],
+          ),
           new TestDescriptor(
-              'var',
-              'var',
-              [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "var _s_;",
-              failing: allExceptEof),
+            'constTypeNameCommaName',
+            'const int a, b',
+            [
+              ParserErrorCode.EXPECTED_TOKEN,
+              CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+              CompileTimeErrorCode.CONST_NOT_INITIALIZED
+            ],
+            "const int a, b;",
+            expectedErrorsInValidCode: [
+              CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+              CompileTimeErrorCode.CONST_NOT_INITIALIZED
+            ],
+          ),
           new TestDescriptor(
-              'varName', 'var a', [ParserErrorCode.EXPECTED_TOKEN], "var a;",
-              failing: ['typedef', 'functionNonVoid', 'getter', 'setter']),
+            'final',
+            'final',
+            [
+              ParserErrorCode.MISSING_IDENTIFIER,
+              ParserErrorCode.EXPECTED_TOKEN,
+              StaticWarningCode.FINAL_NOT_INITIALIZED
+            ],
+            "final _s_;",
+            failing: allExceptEof,
+            expectedErrorsInValidCode: [
+              StaticWarningCode.FINAL_NOT_INITIALIZED
+            ],
+          ),
           new TestDescriptor(
-              'varNameEquals',
-              'var a =',
-              [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "var a = _s_;",
-              failing: allExceptEof),
-          new TestDescriptor('varNameEqualsExpression', 'var a = b',
-              [ParserErrorCode.EXPECTED_TOKEN], "var a = b;"),
+            'finalName',
+            'final a',
+            [
+              ParserErrorCode.EXPECTED_TOKEN,
+              StaticWarningCode.FINAL_NOT_INITIALIZED
+            ],
+            "final a;",
+            failing: ['typedef', 'functionNonVoid', 'getter', 'setter'],
+            expectedErrorsInValidCode: [
+              StaticWarningCode.FINAL_NOT_INITIALIZED
+            ],
+          ),
+          new TestDescriptor(
+            'finalTypeName',
+            'final int a',
+            [
+              ParserErrorCode.EXPECTED_TOKEN,
+              StaticWarningCode.FINAL_NOT_INITIALIZED
+            ],
+            "final int a;",
+            expectedErrorsInValidCode: [
+              StaticWarningCode.FINAL_NOT_INITIALIZED
+            ],
+          ),
+          new TestDescriptor(
+            'type',
+            'int',
+            [
+              ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE,
+              ParserErrorCode.EXPECTED_TOKEN
+            ],
+            "int _s_;",
+            allFailing: true,
+          ),
+          new TestDescriptor(
+            'typeName',
+            'int a',
+            [ParserErrorCode.EXPECTED_TOKEN],
+            "int a;",
+          ),
+          new TestDescriptor(
+            'var',
+            'var',
+            [
+              ParserErrorCode.MISSING_IDENTIFIER,
+              ParserErrorCode.EXPECTED_TOKEN
+            ],
+            "var _s_;",
+            failing: allExceptEof,
+          ),
+          new TestDescriptor(
+            'varName',
+            'var a',
+            [ParserErrorCode.EXPECTED_TOKEN],
+            "var a;",
+            failing: ['typedef', 'functionNonVoid', 'getter', 'setter'],
+          ),
+          new TestDescriptor(
+            'varNameEquals',
+            'var a =',
+            [
+              ParserErrorCode.MISSING_IDENTIFIER,
+              ParserErrorCode.EXPECTED_TOKEN
+            ],
+            "var a = _s_;",
+            failing: allExceptEof,
+          ),
+          new TestDescriptor(
+            'varNameEqualsExpression',
+            'var a = b',
+            [ParserErrorCode.EXPECTED_TOKEN],
+            "var a = b;",
+          ),
         ],
         PartialCodeTest.declarationSuffixes);
   }

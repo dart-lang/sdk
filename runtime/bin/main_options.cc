@@ -63,15 +63,23 @@ ENUM_OPTIONS_LIST(ENUM_OPTION_DEFINITION)
 CB_OPTIONS_LIST(CB_OPTION_DEFINITION)
 #undef CB_OPTION_DEFINITION
 
+static void SetPreviewDart2Options(CommandLineOptions* vm_options) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Options::dfe()->set_use_dfe();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  vm_options->AddArgument("--strong");
+  vm_options->AddArgument("--reify-generic-functions");
+  vm_options->AddArgument("--limit-ints-to-64-bits");
+}
+
+DEFINE_BOOL_OPTION_CB(preview_dart_2, { SetPreviewDart2Options(vm_options); });
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
 DFE* Options::dfe_ = NULL;
-
-DEFINE_BOOL_OPTION_CB(preview_dart_2, { Options::dfe()->set_use_dfe(); });
 
 // TODO(sivachandra): Make it an error to specify --dfe without
 // specifying --preview_dart_2.
 DEFINE_STRING_OPTION_CB(dfe, { Options::dfe()->set_frontend_filename(value); });
-
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 DEFINE_BOOL_OPTION_CB(hot_reload_test_mode, {

@@ -119,9 +119,9 @@ class A {}
     expect(analyzedFilesReceived, isTrue);
 
     analyzedFilesReceived = false;
-    modifyTestFile('import "/foo.dart";');
+    modifyTestFile('import "${convertPathForImport('/foo.dart')}";');
     await prepareAnalyzedFiles();
-    assertHasFile('/foo.dart');
+    assertHasFile(convertPath('/foo.dart'));
   }
 
   void unsubscribeAnalyzedFiles() {

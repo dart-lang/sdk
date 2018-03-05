@@ -126,8 +126,8 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
     bool mayLookupInMain() {
       var mainUri = elementEnvironment.mainLibrary.canonicalUri;
       // Tests permit lookup outside of dart: libraries.
-      return mainUri.path.contains('sdk/tests/compiler/dart2js_native') ||
-          mainUri.path.contains('sdk/tests/compiler/dart2js_extra');
+      return mainUri.path.contains('tests/compiler/dart2js_native') ||
+          mainUri.path.contains('tests/compiler/dart2js_extra');
     }
 
     DartType lookup(String typeName, {bool required}) {
@@ -296,7 +296,7 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
         assert(constant.fields.length == 1 || constant.fields.length == 2);
         ConstantValue indexConstant = constant.fields.values.first;
         if (indexConstant is IntConstantValue) {
-          return indexConstant.primitiveValue;
+          return indexConstant.intValue;
         }
       }
     }
@@ -490,6 +490,8 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   final bool requireConstant;
   final KernelToElementMapBaseMixin elementMap;
   ir.TreeNode failNode;
+  final Map<ir.VariableDeclaration, ConstantExpression> _initializerLocals =
+      <ir.VariableDeclaration, ConstantExpression>{};
 
   Constantifier(this.elementMap, {this.requireConstant: true});
 
@@ -557,6 +559,10 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
 
   @override
   ConstantExpression visitVariableGet(ir.VariableGet node) {
+    ConstantExpression constant = _initializerLocals[node.variable];
+    if (constant != null) {
+      return constant;
+    }
     if (node.variable.parent is ir.FunctionNode) {
       ir.FunctionNode function = node.variable.parent;
       int index = function.positionalParameters.indexOf(node.variable);
@@ -878,6 +884,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
     }
 
     ConstructedConstantExpression superConstructorInvocation;
+    List<AssertConstantExpression> assertions = <AssertConstantExpression>[];
     for (ir.Initializer initializer in node.initializers) {
       if (initializer is ir.FieldInitializer) {
         registerField(initializer.field, visit(initializer.value));
@@ -888,14 +895,11 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
         superConstructorInvocation = _computeConstructorInvocation(
             initializer.target, initializer.arguments);
       } else if (initializer is ir.AssertInitializer) {
-        // Assert in initializer is currently not supported in dart2js.
-        // TODO(johnniwinther): Support assert in initializer.
-        String constructorName = '${cls.name}.${node.name}';
-        elementMap.reporter.reportErrorMessage(
-            computeSourceSpanFromTreeNode(initializer),
-            MessageKind.INVALID_CONSTANT_CONSTRUCTOR,
-            {'constructorName': constructorName});
-        return new ErroneousConstantConstructor();
+        ConstantExpression condition = visit(initializer.statement.condition);
+        ConstantExpression message = initializer.statement.message != null
+            ? visit(initializer.statement.message)
+            : null;
+        assertions.add(new AssertConstantExpression(condition, message));
       } else if (initializer is ir.InvalidInitializer) {
         String constructorName = '${cls.name}.${node.name}';
         elementMap.reporter.reportErrorMessage(
@@ -904,19 +908,20 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
             {'constructorName': constructorName});
         return new ErroneousConstantConstructor();
       } else if (initializer is ir.LocalInitializer) {
-        // TODO(johnniwinther): Support this where it makes sense. Currently
-        // invalid initializers are currently encoded as local initializers with
-        // a throwing initializer.
-        // TODO(johnniwinther): Use [_ErroneousInitializerVisitor] in
-        // `ssa/builder_kernel.dart` to identify erroneous initializer.
-        // TODO(johnniwinther) Handle local initializers that are valid as
-        // constants, if any.
-        String constructorName = '${cls.name}.${node.name}';
-        elementMap.reporter.reportErrorMessage(
-            computeSourceSpanFromTreeNode(initializer),
-            MessageKind.INVALID_CONSTANT_CONSTRUCTOR,
-            {'constructorName': constructorName});
-        return new ErroneousConstantConstructor();
+        ir.VariableDeclaration variable = initializer.variable;
+        ConstantExpression constant = visit(variable.initializer);
+        if (constant != null) {
+          _initializerLocals[variable] = constant;
+        } else {
+          // TODO(johnniwinther): Use [_ErroneousInitializerVisitor] in
+          // `ssa/builder_kernel.dart` to identify erroneous initializer.
+          String constructorName = '${cls.name}.${node.name}';
+          elementMap.reporter.reportErrorMessage(
+              computeSourceSpanFromTreeNode(initializer),
+              MessageKind.INVALID_CONSTANT_CONSTRUCTOR,
+              {'constructorName': constructorName});
+          return new ErroneousConstantConstructor();
+        }
       } else {
         throw new UnsupportedError(
             'Unexpected initializer $initializer (${initializer.runtimeType})');
@@ -926,8 +931,8 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
       return new RedirectingGenerativeConstantConstructor(
           defaultValues, superConstructorInvocation);
     } else {
-      return new GenerativeConstantConstructor(
-          type, defaultValues, fieldMap, superConstructorInvocation);
+      return new GenerativeConstantConstructor(type, defaultValues, fieldMap,
+          assertions, superConstructorInvocation);
     }
   }
 }

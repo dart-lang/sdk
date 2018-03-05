@@ -116,51 +116,11 @@ spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell
 [ $compiler == dart2js && ($runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt || $runtime == ff || $runtime == safari) ]
 isolate_stress_test: Pass, Slow # Issue 10697
 
-# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
-# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
-# batch mode.
-[ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
-checked_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-count_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-cross_isolate_message_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-error_at_spawnuri_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-error_exit_at_spawnuri_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-exit_at_spawnuri_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-illegal_msg_function_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-illegal_msg_mirror_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate_complex_messages_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-issue_21398_parent_isolate1_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-issue_21398_parent_isolate_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-issue_24243_parent_isolate_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-mandel_isolate_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-message2_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-message_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-mint_maker_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-nested_spawn2_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-nested_spawn_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-raw_port_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-request_reply_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-spawn_function_custom_class_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-spawn_function_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-spawn_uri_exported_main_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-spawn_uri_missing_from_isolate_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-spawn_uri_missing_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-spawn_uri_multi_test/01: Skip # No support for Isolate.spawnUri in batch-mode atm.
-spawn_uri_multi_test/none: Skip # No support for Isolate.spawnUri in batch-mode atm.
-spawn_uri_nested_vm_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-spawn_uri_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-spawn_uri_vm_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-static_function_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-unresolved_ports_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
 
 [ $compiler == none && ($runtime == flutter || $runtime == vm) ]
 scenarios/short_package/short_package_test: Fail, OK # We do not plan to support the tested behavior anyway.
-
-[ $mode == debug && ($compiler == dartk || $compiler == dartkp) ]
-static_function_test: Skip # Times out. Issue 31855
 
 [ $compiler == app_jit || $compiler == none || $compiler == precompiler ]
 compile_time_error_test/01: Skip # Issue 12587
@@ -172,12 +132,7 @@ ping_test: Skip # Resolve test issues
 checked_test: Skip # Unsupported.
 
 [ $compiler == dartk || $compiler == dartkp ]
-deferred_in_isolate2_test: Skip # Timeout. Deferred loading kernel issue 28335.
-deferred_in_isolate_test: Skip # Timeout. Deferred loading kernel issue 28335.
-issue_21398_parent_isolate2_test/01: Skip # Timeout. Deferred loading kernel issue 28335.
-ping_pause_test: Pass, Timeout
-spawn_function_custom_class_test: Pass, Timeout
-spawn_uri_nested_vm_test: Pass, Timeout
+*: Skip # This directory has only Dart1 tests (Dart2 tests are in lib_2/isolate).
 
 [ $compiler != none || $runtime != vm ]
 package_config_test: SkipByDesign # Uses Isolate.packageConfig

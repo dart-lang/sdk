@@ -30,9 +30,11 @@ except:
 DART_DIR = os.path.abspath(
     os.path.normpath(os.path.join(__file__, '..', '..')))
 
+
 def GetBotUtils():
   '''Dynamically load the tools/bots/bot_utils.py python module.'''
   return imp.load_source('bot_utils', os.path.join(DART_DIR, 'tools', 'bots', 'bot_utils.py'))
+
 
 class Version(object):
   def __init__(self, channel, major, minor, patch, prerelease,
@@ -43,6 +45,7 @@ class Version(object):
     self.patch = patch
     self.prerelease = prerelease
     self.prerelease_patch = prerelease_patch
+
 
 # Try to guess the host operating system.
 def GuessOS():
@@ -106,6 +109,7 @@ def GuessCpus():
     return int(win_cpu_count)
   return 2
 
+
 def GetWindowsRegistryKeyName(name):
   import win32process
   # Check if python process is 64-bit or if it's 32-bit running in 64-bit OS.
@@ -116,6 +120,7 @@ def GetWindowsRegistryKeyName(name):
   else:
     wow6432Node = ''
   return r'SOFTWARE\%s%s' % (wow6432Node, name)
+
 
 # Try to guess Visual Studio location when buiding on Windows.
 def GuessVisualStudioPath():
@@ -197,6 +202,7 @@ def ReadLinesFrom(name):
     result.append(line)
   return result
 
+
 # Filters out all arguments until the next '--' argument
 # occurs.
 def ListArgCallback(option, value, parser):
@@ -265,22 +271,27 @@ BASE_DIR = os.path.abspath(os.path.join(os.curdir, '..'))
 DART_DIR = os.path.abspath(os.path.join(__file__, '..', '..'))
 VERSION_FILE = os.path.join(DART_DIR, 'tools', 'VERSION')
 
+
 def GetBuildbotGSUtilPath():
   gsutil = '/b/build/scripts/slave/gsutil'
   if platform.system() == 'Windows':
     gsutil = 'e:\\\\b\\build\\scripts\\slave\\gsutil'
   return gsutil
 
+
 def GetBuildMode(mode):
   return BUILD_MODES[mode]
 
+
 def GetArchFamily(arch):
   return ARCH_FAMILY[arch]
+
 
 def IsCrossBuild(target_os, arch):
   host_arch = ARCH_GUESS
   return ((GetArchFamily(host_arch) != GetArchFamily(arch)) or
           (target_os != GuessOS()))
+
 
 def GetBuildConf(mode, arch, conf_os=None):
   if conf_os == 'android':
@@ -293,8 +304,10 @@ def GetBuildConf(mode, arch, conf_os=None):
       cross_build = 'X'
     return '%s%s%s' % (GetBuildMode(mode), cross_build, arch.upper())
 
+
 def GetBuildDir(host_os):
   return BUILD_ROOT[host_os]
+
 
 def GetBuildRoot(host_os, mode=None, arch=None, target_os=None):
   build_root = GetBuildDir(host_os)
@@ -302,12 +315,15 @@ def GetBuildRoot(host_os, mode=None, arch=None, target_os=None):
     build_root = os.path.join(build_root, GetBuildConf(mode, arch, target_os))
   return build_root
 
+
 def GetBuildSdkBin(host_os, mode=None, arch=None, target_os=None):
   build_root = GetBuildRoot(host_os, mode, arch, target_os)
   return os.path.join(build_root, 'dart-sdk', 'bin')
 
+
 def GetBaseDir():
   return BASE_DIR
+
 
 def GetShortVersion():
   version = ReadVersionFile()
@@ -315,13 +331,14 @@ def GetShortVersion():
       version.major, version.minor, version.patch, version.prerelease,
       version.prerelease_patch))
 
-def GetSemanticSDKVersion(ignore_svn_revision=False):
+
+def GetSemanticSDKVersion(no_git_hash=False):
   version = ReadVersionFile()
   if not version:
     return None
 
   if version.channel == 'be':
-    postfix = '-edge' if ignore_svn_revision else '-edge.%s' % GetGitRevision()
+    postfix = '-edge' if no_git_hash else '-edge.%s' % GetGitRevision()
   elif version.channel == 'dev':
     postfix = '-dev.%s.%s' % (version.prerelease, version.prerelease_patch)
   else:
@@ -330,8 +347,10 @@ def GetSemanticSDKVersion(ignore_svn_revision=False):
 
   return '%s.%s.%s%s' % (version.major, version.minor, version.patch, postfix)
 
-def GetVersion(ignore_svn_revision=False):
-  return GetSemanticSDKVersion(ignore_svn_revision)
+
+def GetVersion(no_git_hash=False):
+  return GetSemanticSDKVersion(no_git_hash)
+
 
 # The editor used to produce the VERSION file put on gcs. We now produce this
 # in the bots archiving the sdk.
@@ -347,15 +366,18 @@ def GetVersionFileContent():
             "revision": GetGitRevision()}
   return json.dumps(result, indent=2)
 
+
 def GetChannel():
   version = ReadVersionFile()
   return version.channel
+
 
 def GetUserName():
   key = 'USER'
   if sys.platform == 'win32':
     key = 'USERNAME'
   return os.environ.get(key, '')
+
 
 def ReadVersionFile():
   def match_against(pattern, file_content):
@@ -425,6 +447,38 @@ def GetGitRevision():
     return None
   return output
 
+
+def GetShortGitHash():
+  p = subprocess.Popen(['git', 'log', '-n', '1', '--pretty=format:%h'],
+                       stdout = subprocess.PIPE,
+                       stderr = subprocess.STDOUT, shell=IsWindows(),
+                       cwd = DART_DIR)
+  output, _ = p.communicate()
+  if p.wait() != 0:
+    return None
+  return output
+
+
+def GetLatestDevTag():
+  cmd = [
+    'git',
+    'for-each-ref',
+    'refs/tags/*dev*',
+    '--sort=-taggerdate',
+    "--format=%(refname:lstrip=2)",
+    '--count=1',
+  ]
+  p = subprocess.Popen(cmd,
+                       stdout = subprocess.PIPE,
+                       stderr = subprocess.STDOUT, shell=IsWindows(),
+                       cwd = DART_DIR)
+  output, _ = p.communicate()
+  if p.wait() != 0:
+    print "Warning: Could not get the most recent dev branch tag %s" % output
+    return None
+  return output.strip()
+
+
 def GetGitTimestamp():
   p = subprocess.Popen(['git', 'log', '-n', '1', '--pretty=format:%cd'],
                        stdout = subprocess.PIPE,
@@ -434,6 +488,7 @@ def GetGitTimestamp():
   if p.wait() != 0:
     return None
   return output
+
 
 # To eliminate clashing with older archived builds on bleeding edge we add
 # a base number bigger the largest svn revision (this also gives us an easy
@@ -452,6 +507,7 @@ def GetGitNumber():
     print "Warning: could not parse git count, output was %s" % output
   return None
 
+
 def ParseGitInfoOutput(output):
   """Given a git log, determine the latest corresponding svn revision."""
   for line in output.split('\n'):
@@ -460,11 +516,13 @@ def ParseGitInfoOutput(output):
       return tokens[1].split('@')[1]
   return None
 
+
 def ParseSvnInfoOutput(output):
   revision_match = re.search('Last Changed Rev: (\d+)', output)
   if revision_match:
     return revision_match.group(1)
   return None
+
 
 def RewritePathSeparator(path, workspace):
   # Paths in test files are always specified using '/'
@@ -558,6 +616,7 @@ def Main():
   print "GetGitTimestamp() -> ", GetGitTimestamp()
   print "GetVersionFileContent() -> ", GetVersionFileContent()
   print "GetGitNumber() -> ", GetGitNumber()
+
 
 class Error(Exception):
   pass
@@ -683,6 +742,7 @@ class TempDir(object):
   def __exit__(self, *_):
     shutil.rmtree(self._temp_dir, ignore_errors=True)
 
+
 class ChangedWorkingDirectory(object):
   def __init__(self, working_directory):
     self._working_directory = working_directory
@@ -706,6 +766,7 @@ class UnexpectedCrash(object):
   def __str__(self):
     return "Crash(%s: %s %s)" % (self.test, self.binary, self.pid)
 
+
 class SiteConfigBotoFileDisabler(object):
   def __init__(self):
     self._old_aws = None
@@ -726,6 +787,7 @@ class SiteConfigBotoFileDisabler(object):
     if self._old_boto:
       os.environ['BOTO_CONFIG'] = self._old_boto
 
+
 class PosixCoreDumpEnabler(object):
   def __init__(self):
     self._old_limits = None
@@ -736,6 +798,7 @@ class PosixCoreDumpEnabler(object):
 
   def __exit__(self, *_):
     resource.setrlimit(resource.RLIMIT_CORE, self._old_limits)
+
 
 # TODO(whesse): Re-enable after issue #30205 is addressed
 class LinuxCoreDumpEnabler(PosixCoreDumpEnabler):
@@ -749,6 +812,7 @@ class LinuxCoreDumpEnabler(PosixCoreDumpEnabler):
     pass
     # CheckLinuxCoreDumpPattern(fatal=True)
     # super(LinuxCoreDumpEnabler, self).__exit__(*args)
+
 
 class WindowsCoreDumpEnabler(object):
   """Configure Windows Error Reporting to store crash dumps.
@@ -834,6 +898,7 @@ class WindowsCoreDumpEnabler(object):
     if handle:
       handle.Close()
       self.winreg.DeleteKeyEx(key, subkey, wowbit, 0)
+
 
 class BaseCoreDumpArchiver(object):
   """This class reads coredumps file written by UnexpectedCrashDumpArchiver
@@ -976,13 +1041,16 @@ class PosixCoreDumpArchiver(BaseCoreDumpArchiver):
     if os.path.exists(core_filename):
       return core_filename
 
+
 class LinuxCoreDumpArchiver(PosixCoreDumpArchiver):
   def __init__(self):
     super(LinuxCoreDumpArchiver, self).__init__(os.getcwd())
 
+
 class MacOSCoreDumpArchiver(PosixCoreDumpArchiver):
   def __init__(self):
     super(MacOSCoreDumpArchiver, self).__init__('/cores')
+
 
 class WindowsCoreDumpArchiver(BaseCoreDumpArchiver):
   def __init__(self):
@@ -1030,9 +1098,11 @@ class WindowsCoreDumpArchiver(BaseCoreDumpArchiver):
       missing_as_string = ', '.join([str(c) for c in missing])
       raise Exception('Missing crash dumps for: %s' % missing_as_string)
 
+
 @contextlib.contextmanager
 def NooptCoreDumpArchiver():
   yield
+
 
 def CoreDumpArchiver(args):
   enabled = '--copy-coredumps' in args

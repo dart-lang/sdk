@@ -174,6 +174,8 @@ class FieldHelper {
     kFinal = 1 << 0,
     kConst = 1 << 1,
     kStatic = 1 << 2,
+    kIsCovariant = 1 << 5,
+    kIsGenericCovariantImpl = 1 << 6,
     kIsGenericCovariantInterface = 1 << 7
   };
 
@@ -197,6 +199,10 @@ class FieldHelper {
   bool IsConst() { return (flags_ & kConst) != 0; }
   bool IsFinal() { return (flags_ & kFinal) != 0; }
   bool IsStatic() { return (flags_ & kStatic) != 0; }
+  bool IsCovariant() const { return (flags_ & kIsCovariant) != 0; }
+  bool IsGenericCovariantImpl() {
+    return (flags_ & kIsGenericCovariantImpl) != 0;
+  }
   bool IsGenericCovariantInterface() {
     return (flags_ & kIsGenericCovariantInterface) != 0;
   }
@@ -265,6 +271,9 @@ class ProcedureHelper {
     kExternal = 1 << 2,
     kConst = 1 << 3,  // Only for external const factories.
     kForwardingStub = 1 << 4,
+
+    // TODO(29841): Remove this line after the issue is resolved.
+    kRedirectingFactoryConstructor = 1 << 7,
   };
 
   explicit ProcedureHelper(StreamingFlowGraphBuilder* builder) {
@@ -286,6 +295,9 @@ class ProcedureHelper {
   bool IsExternal() { return (flags_ & kExternal) != 0; }
   bool IsConst() { return (flags_ & kConst) != 0; }
   bool IsForwardingStub() { return (flags_ & kForwardingStub) != 0; }
+  bool IsRedirectingFactoryConstructor() {
+    return (flags_ & kRedirectingFactoryConstructor) != 0;
+  }
 
   NameIndex canonical_name_;
   TokenPosition position_;
@@ -577,6 +589,8 @@ struct InferredTypeMetadata {
 
   const intptr_t cid;
   const bool nullable;
+
+  bool IsTrivial() const { return (cid == kDynamicCid) && nullable; }
 };
 
 // Helper class which provides access to inferred type metadata.
@@ -591,9 +605,15 @@ class InferredTypeMetadataHelper : public MetadataHelper {
 };
 
 struct ProcedureAttributesMetadata {
-  explicit ProcedureAttributesMetadata(bool has_dynamic_invocations)
-      : has_dynamic_invocations(has_dynamic_invocations) {}
-  const bool has_dynamic_invocations;
+  ProcedureAttributesMetadata(bool has_dynamic_invocations = true,
+                              bool has_non_this_uses = true,
+                              bool has_tearoff_uses = true)
+      : has_dynamic_invocations(has_dynamic_invocations),
+        has_non_this_uses(has_non_this_uses),
+        has_tearoff_uses(has_tearoff_uses) {}
+  bool has_dynamic_invocations;
+  bool has_non_this_uses;
+  bool has_tearoff_uses;
 };
 
 // Helper class which provides access to direct call metadata.
@@ -607,7 +627,8 @@ class ProcedureAttributesMetadataHelper : public MetadataHelper {
   ProcedureAttributesMetadata GetProcedureAttributes(intptr_t node_offset);
 
  private:
-  bool ReadMetadata(intptr_t node_offset, bool* has_dynamic_invocations);
+  bool ReadMetadata(intptr_t node_offset,
+                    ProcedureAttributesMetadata* metadata);
 };
 
 class StreamingDartTypeTranslator {
@@ -709,6 +730,8 @@ class StreamingScopeBuilder {
   void VisitVectorType();
   void HandleLocalFunction(intptr_t parent_kernel_offset);
 
+  AbstractType& BuildAndVisitVariableType();
+
   void EnterScope(intptr_t kernel_offset);
   void ExitScope(TokenPosition start_position, TokenPosition end_position);
 
@@ -733,18 +756,23 @@ class StreamingScopeBuilder {
 
   // This assumes that the reader is at a FunctionNode,
   // about to read the positional parameters.
-  void AddPositionalAndNamedParameters(intptr_t pos,
-                                       ParameterTypeCheckMode type_check_mode);
+  void AddPositionalAndNamedParameters(
+      intptr_t pos,
+      ParameterTypeCheckMode type_check_mode,
+      const ProcedureAttributesMetadata& attrs);
 
   // This assumes that the reader is at a FunctionNode,
   // about to read a parameter (i.e. VariableDeclaration).
-  void AddVariableDeclarationParameter(intptr_t pos,
-                                       ParameterTypeCheckMode type_check_mode);
+  void AddVariableDeclarationParameter(
+      intptr_t pos,
+      ParameterTypeCheckMode type_check_mode,
+      const ProcedureAttributesMetadata& attrs);
 
   LocalVariable* MakeVariable(TokenPosition declaration_pos,
                               TokenPosition token_pos,
                               const String& name,
-                              const AbstractType& type);
+                              const AbstractType& type,
+                              const InferredTypeMetadata* param_type_md = NULL);
 
   void AddExceptionVariable(GrowableArray<LocalVariable*>* variables,
                             const char* prefix,
@@ -841,6 +869,7 @@ class StreamingConstantEvaluator {
 
  private:
   bool IsAllowedToEvaluate();
+  void EvaluateAsExpression();
   void EvaluateVariableGet();
   void EvaluateVariableGet(uint8_t payload);
   void EvaluatePropertyGet();
@@ -860,6 +889,7 @@ class StreamingConstantEvaluator {
   void EvaluateListLiteralInternal();
   void EvaluateMapLiteralInternal();
   void EvaluateLet();
+  void EvaluatePartialTearoffInstantiation();
   void EvaluateBigIntLiteral();
   void EvaluateStringLiteral();
   void EvaluateIntLiteral(uint8_t payload);
@@ -1021,7 +1051,7 @@ class StreamingFlowGraphBuilder {
 
   bool optimizing();
 
-  FlowGraph* BuildGraphOfStaticFieldInitializer();
+  FlowGraph* BuildGraphOfFieldInitializer();
   FlowGraph* BuildGraphOfFieldAccessor(LocalVariable* setter_value);
   void SetupDefaultParameterValues();
   Fragment BuildFieldInitializer(NameIndex canonical_name);
@@ -1148,9 +1178,7 @@ class StreamingFlowGraphBuilder {
                       const Array& argument_names,
                       ICData::RebindRule rebind_rule,
                       const InferredTypeMetadata* result_type = NULL,
-                      intptr_t type_args_len = 0,
-                      intptr_t argument_check_bits = 0,
-                      intptr_t type_argument_check_bits = 0);
+                      intptr_t type_args_len = 0);
   Fragment InstanceCall(TokenPosition position,
                         const String& name,
                         Token::Kind kind,
@@ -1164,9 +1192,7 @@ class StreamingFlowGraphBuilder {
                         const Array& argument_names,
                         intptr_t checked_argument_count,
                         const Function& interface_target,
-                        const InferredTypeMetadata* result_type = NULL,
-                        intptr_t argument_check_bits = 0,
-                        intptr_t type_argument_check_bits = 0);
+                        const InferredTypeMetadata* result_type = NULL);
 
   enum TypeChecksToBuild {
     kDefaultTypeChecks,
@@ -1296,6 +1322,7 @@ class StreamingFlowGraphBuilder {
   Fragment BuildDoubleLiteral(TokenPosition* position);
   Fragment BuildBoolLiteral(bool value, TokenPosition* position);
   Fragment BuildNullLiteral(TokenPosition* position);
+  Fragment BuildFutureNullValue(TokenPosition* position);
   Fragment BuildVectorCreation(TokenPosition* position);
   Fragment BuildVectorGet(TokenPosition* position);
   Fragment BuildVectorSet(TokenPosition* position);
@@ -1331,19 +1358,6 @@ class StreamingFlowGraphBuilder {
                                bool is_method,
                                bool is_closure,
                                FunctionNodeHelper* function_node_helper);
-
-  intptr_t ArgumentCheckBitsForSetter(const Function& interface_target,
-                                      DispatchCategory category);
-
-  void ArgumentCheckBitsForInvocation(
-      intptr_t argument_count,  // excluding receiver
-      intptr_t type_argument_count,
-      intptr_t positional_argument_count,
-      const Array& argument_names,
-      const Function& interface_target,
-      DispatchCategory category,
-      intptr_t* argument_bits,
-      intptr_t* type_argument_bits);
 
   const Script& script() { return script_; }
 

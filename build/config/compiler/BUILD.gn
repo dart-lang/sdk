@@ -335,12 +335,14 @@ config("compiler") {
   # define into the compile line.
   if (is_clang && (is_linux || is_mac)) {
     if (is_linux) {
-      toolchain_stamp_file = "//buildtools/linux64/clang.stamp"
+      toolchain_stamp_file =
+          "//buildtools/linux-x64/clang/.versions/clang.cipd_version"
     } else {
-      toolchain_stamp_file = "//buildtools/mac/clang.stamp"
+      toolchain_stamp_file =
+          "//buildtools/mac-x64/clang/.versions/clang.cipd_version"
     }
-    toolchain_version = read_file(toolchain_stamp_file, "trim string")
-    defines = [ "TOOLCHAIN_VERSION=$toolchain_version" ]
+    cipd_version = read_file(toolchain_stamp_file, "json")
+    defines = [ "TOOLCHAIN_VERSION=${cipd_version.instance_id}" ]
   }
 
   # Assign any flags set for the C compiler to asmflags so that they are sent
@@ -363,7 +365,7 @@ config("clang_stackrealign") {
       "-mstack-alignment=16",
       "-mstackrealign",
     ]
- }
+  }
 }
 
 config("compiler_arm_fpu") {

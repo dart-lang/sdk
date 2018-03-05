@@ -4,6 +4,7 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:expect/expect.dart';
 import '../type_test_helper.dart';
@@ -26,6 +27,14 @@ main() {
         .create(createTypedefs(existentialTypeData, additionalData: """
     class C1 {}
     class C2 {}
+    class C3<T> {
+      factory C3.fact() => C3.gen();
+      C3.gen();
+    }
+    void F9<U extends V, V>(U u, V v) {}
+    F10() {
+      void local<A extends B, B>(A a, B b) {}
+    }
   """), compileMode: CompileMode.kernel, options: [Flags.strongMode]);
 
     testToString(FunctionType type, String expectedToString) {
@@ -78,6 +87,21 @@ main() {
     FunctionType F6 = env.getFieldType('F6');
     FunctionType F7 = env.getFieldType('F7');
     FunctionType F8 = env.getFieldType('F8');
+    FunctionType F9 = env.getMemberType('F9');
+    FunctionType F10 = env.getClosureType('F10');
+
+    List<FunctionType> all = <FunctionType>[
+      F1,
+      F2,
+      F3,
+      F4,
+      F5,
+      F6,
+      F7,
+      F8,
+      F9,
+      F10,
+    ];
 
     testToString(F1, 'void Function<#A>(#A)');
     testToString(F2, 'void Function<#A>(#A)');
@@ -87,6 +111,8 @@ main() {
     testToString(F6, 'void Function<#A extends int>(#A)');
     testToString(F7, 'void Function<#A extends num>(#A,[int])');
     testToString(F8, '#A Function<#A extends num>(#A)');
+    testToString(F9, 'void Function<#A extends #B,#B>(#A,#B)');
+    testToString(F10, 'void Function<#A extends #B,#B>(#A,#B)');
 
     testBounds(F1, [Object_]);
     testBounds(F2, [Object_]);
@@ -96,6 +122,8 @@ main() {
     testBounds(F6, [int_]);
     testBounds(F7, [num_]);
     testBounds(F8, [num_]);
+    testBounds(F9, [F9.typeVariables.last, Object_]);
+    testBounds(F10, [F10.typeVariables.last, Object_]);
 
     testInstantiate(F1, [C1], 'void Function(C1)');
     testInstantiate(F2, [C2], 'void Function(C2)');
@@ -105,81 +133,50 @@ main() {
     testInstantiate(F6, [int_], 'void Function(int)');
     testInstantiate(F7, [int_], 'void Function(int,[int])');
     testInstantiate(F8, [int_], 'int Function(int)');
+    testInstantiate(F9, [int_, num_], 'void Function(int,num)');
+    testInstantiate(F10, [int_, num_], 'void Function(int,num)');
 
-    testRelations(F1, F1, areEqual: true);
-    testRelations(F1, F2, areEqual: true);
-    testRelations(F1, F3);
-    testRelations(F1, F4);
-    testRelations(F1, F5);
-    testRelations(F1, F6);
-    testRelations(F1, F7);
-    testRelations(F1, F8);
+    Map<FunctionType, List<FunctionType>> expectedEquals =
+        <FunctionType, List<FunctionType>>{
+      F1: [F2],
+      F2: [F1],
+      F9: [F10],
+      F10: [F9],
+    };
 
-    testRelations(F2, F1, areEqual: true);
-    testRelations(F2, F2, areEqual: true);
-    testRelations(F2, F3);
-    testRelations(F2, F4);
-    testRelations(F2, F5);
-    testRelations(F2, F6);
-    testRelations(F2, F7);
-    testRelations(F2, F8);
+    Map<FunctionType, List<FunctionType>> expectedSubtype =
+        <FunctionType, List<FunctionType>>{
+      F7: [F5],
+      F8: [F5],
+    };
 
-    testRelations(F3, F1);
-    testRelations(F3, F2);
-    testRelations(F3, F3, areEqual: true);
-    testRelations(F3, F4);
-    testRelations(F3, F5);
-    testRelations(F3, F6);
-    testRelations(F3, F7);
-    testRelations(F3, F8);
-
-    testRelations(F4, F1);
-    testRelations(F4, F2);
-    testRelations(F4, F3);
-    testRelations(F4, F4, areEqual: true);
-    testRelations(F4, F5);
-    testRelations(F4, F6);
-    testRelations(F4, F7);
-    testRelations(F4, F8);
-
-    testRelations(F5, F1);
-    testRelations(F5, F2);
-    testRelations(F5, F3);
-    testRelations(F5, F4);
-    testRelations(F5, F5, areEqual: true);
-    testRelations(F5, F6);
-    testRelations(F5, F7);
-    testRelations(F5, F8);
-
-    testRelations(F6, F1);
-    testRelations(F6, F2);
-    testRelations(F6, F3);
-    testRelations(F6, F4);
-    testRelations(F6, F5);
-    testRelations(F6, F6, areEqual: true);
-    testRelations(F6, F7);
-    testRelations(F6, F8);
-
-    testRelations(F7, F1);
-    testRelations(F7, F2);
-    testRelations(F7, F3);
-    testRelations(F7, F4);
-    testRelations(F7, F5, isSubtype: true);
-    testRelations(F7, F6);
-    testRelations(F7, F7, areEqual: true);
-    testRelations(F7, F8);
-
-    testRelations(F8, F1);
-    testRelations(F8, F2);
-    testRelations(F8, F3);
-    testRelations(F8, F4);
-    testRelations(F8, F5, isSubtype: true);
-    testRelations(F8, F6);
-    testRelations(F8, F7);
-    testRelations(F8, F8, areEqual: true);
+    for (FunctionType f1 in all) {
+      for (FunctionType f2 in all) {
+        testRelations(f1, f2,
+            areEqual: identical(f1, f2) ||
+                (expectedEquals[f1]?.contains(f2) ?? false),
+            isSubtype: expectedSubtype[f1]?.contains(f2) ?? false);
+      }
+    }
 
     testRelations(F1.typeVariables.first, F1.typeVariables.first,
         areEqual: true);
     testRelations(F1.typeVariables.first, F2.typeVariables.first);
+
+    ClassEntity cls = env.getClass('C3');
+    env.elementEnvironment.forEachConstructor(cls,
+        (ConstructorEntity constructor) {
+      Expect.equals(
+          0,
+          constructor.parameterStructure.typeParameters,
+          "Type parameters found on constructor $constructor: "
+          "${constructor.parameterStructure}");
+      List<TypeVariableType> functionTypeVariables =
+          env.elementEnvironment.getFunctionTypeVariables(constructor);
+      Expect.isTrue(
+          functionTypeVariables.isEmpty,
+          "Function type variables found on constructor $constructor: "
+          "$functionTypeVariables");
+    });
   });
 }

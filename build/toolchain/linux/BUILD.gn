@@ -50,8 +50,7 @@ gcc_toolchain("arm") {
 }
 
 gcc_toolchain("clang_arm") {
-  prefix = rebase_path("//buildtools/toolchain/clang+llvm-x86_64-linux/bin",
-                       root_build_dir)
+  prefix = rebase_path("//buildtools/linux-x64/clang/bin", root_build_dir)
   if (toolchain_prefix != "") {
     prefix = toolchain_prefix
   }

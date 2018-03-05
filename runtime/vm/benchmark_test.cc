@@ -16,13 +16,13 @@
 #include "vm/compiler_stats.h"
 #include "vm/dart_api_impl.h"
 #include "vm/stack_frame.h"
-#include "vm/unit_test.h"
 
 using dart::bin::File;
 
 namespace dart {
 
 DECLARE_FLAG(bool, use_dart_frontend);
+DECLARE_FLAG(bool, strong);
 
 Benchmark* Benchmark::first_ = NULL;
 Benchmark* Benchmark::tail_ = NULL;
@@ -40,8 +40,9 @@ static char* ComputeDart2JSPath(const char* arg) {
   char* ptr = strrchr(dart2js_path, *path_separator);
   while (ptr != NULL) {
     *ptr = '\0';
-    OS::SNPrint(buffer, 2048, compiler_path, dart2js_path, path_separator,
-                path_separator, path_separator, path_separator, path_separator);
+    Utils::SNPrint(buffer, 2048, compiler_path, dart2js_path, path_separator,
+                   path_separator, path_separator, path_separator,
+                   path_separator);
     if (File::Exists(NULL, buffer)) {
       break;
     }
@@ -77,8 +78,8 @@ static void SetupDart2JSPackagePath() {
       strdup(File::GetCanonicalPath(NULL, Benchmark::Executable()));
   const char* packages_path = "%s%s..%spackages";
   const char* path_separator = File::PathSeparator();
-  OS::SNPrint(buffer, 2048, packages_path, executable_path, path_separator,
-              path_separator);
+  Utils::SNPrint(buffer, 2048, packages_path, executable_path, path_separator,
+                 path_separator);
   result = bin::DartUtils::SetupPackageRoot(buffer, NULL);
   DART_CHECK_VALID(result);
 }
@@ -90,19 +91,6 @@ void Benchmark::RunAll(const char* executable) {
     benchmark->RunBenchmark();
     benchmark = benchmark->next_;
   }
-}
-
-Dart_Isolate Benchmark::CreateIsolate(const uint8_t* snapshot_data,
-                                      const uint8_t* snapshot_instructions) {
-  char* err = NULL;
-  Dart_IsolateFlags api_flags;
-  Isolate::FlagsInitialize(&api_flags);
-  api_flags.use_dart_frontend = FLAG_use_dart_frontend;
-  isolate_ = Dart_CreateIsolate(NULL, NULL, snapshot_data,
-                                snapshot_instructions, &api_flags, NULL, &err);
-  EXPECT(isolate_ != NULL);
-  free(err);
-  return isolate_;
 }
 
 //
@@ -482,10 +470,6 @@ static uint8_t* malloc_allocator(uint8_t* ptr,
   return reinterpret_cast<uint8_t*>(realloc(ptr, new_size));
 }
 
-static void malloc_deallocator(uint8_t* ptr) {
-  free(ptr);
-}
-
 BENCHMARK_SIZE(CoreSnapshotSize) {
   const char* kScriptChars =
       "import 'dart:async';\n"
@@ -526,13 +510,11 @@ BENCHMARK_SIZE(StandaloneSnapshotSize) {
       "import 'dart:async';\n"
       "import 'dart:core';\n"
       "import 'dart:collection';\n"
-      "import 'dart:_internal';\n"
       "import 'dart:convert';\n"
       "import 'dart:math';\n"
       "import 'dart:isolate';\n"
       "import 'dart:mirrors';\n"
       "import 'dart:typed_data';\n"
-      "import 'dart:_builtin';\n"
       "import 'dart:io';\n"
       "import 'dart:cli';\n"
       "\n";
@@ -597,31 +579,22 @@ BENCHMARK(EnterExitIsolate) {
   benchmark->set_score(elapsed_time);
 }
 
-static uint8_t message_buffer[64];
-static uint8_t* message_allocator(uint8_t* ptr,
-                                  intptr_t old_size,
-                                  intptr_t new_size) {
-  return message_buffer;
-}
-static void message_deallocator(uint8_t* ptr) {}
-
 BENCHMARK(SerializeNull) {
   TransitionNativeToVM transition(thread);
   const Object& null_object = Object::Handle();
   const intptr_t kLoopCount = 1000000;
-  uint8_t* buffer;
   Timer timer(true, "Serialize Null");
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
-    MessageWriter writer(&buffer, &message_allocator, &message_deallocator,
-                         true);
-    writer.WriteMessage(null_object);
-    intptr_t buffer_len = writer.BytesWritten();
+    MessageWriter writer(true);
+    Message* message = writer.WriteMessage(null_object, ILLEGAL_PORT,
+                                           Message::kNormalPriority);
 
     // Read object back from the snapshot.
-    MessageSnapshotReader reader(buffer, buffer_len, thread);
+    MessageSnapshotReader reader(message, thread);
     reader.ReadObject();
+    delete message;
   }
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
@@ -632,19 +605,18 @@ BENCHMARK(SerializeSmi) {
   TransitionNativeToVM transition(thread);
   const Integer& smi_object = Integer::Handle(Smi::New(42));
   const intptr_t kLoopCount = 1000000;
-  uint8_t* buffer;
   Timer timer(true, "Serialize Smi");
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
-    MessageWriter writer(&buffer, &message_allocator, &message_deallocator,
-                         true);
-    writer.WriteMessage(smi_object);
-    intptr_t buffer_len = writer.BytesWritten();
+    MessageWriter writer(true);
+    Message* message =
+        writer.WriteMessage(smi_object, ILLEGAL_PORT, Message::kNormalPriority);
 
     // Read object back from the snapshot.
-    MessageSnapshotReader reader(buffer, buffer_len, thread);
+    MessageSnapshotReader reader(message, thread);
     reader.ReadObject();
+    delete message;
   }
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
@@ -657,19 +629,18 @@ BENCHMARK(SimpleMessage) {
   array_object.SetAt(0, Integer::Handle(Smi::New(42)));
   array_object.SetAt(1, Object::Handle());
   const intptr_t kLoopCount = 1000000;
-  uint8_t* buffer;
   Timer timer(true, "Simple Message");
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
-    MessageWriter writer(&buffer, &malloc_allocator, &malloc_deallocator, true);
-    writer.WriteMessage(array_object);
-    intptr_t buffer_len = writer.BytesWritten();
+    MessageWriter writer(true);
+    Message* message = writer.WriteMessage(array_object, ILLEGAL_PORT,
+                                           Message::kNormalPriority);
 
     // Read object back from the snapshot.
-    MessageSnapshotReader reader(buffer, buffer_len, thread);
+    MessageSnapshotReader reader(message, thread);
     reader.ReadObject();
-    free(buffer);
+    delete message;
   }
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
@@ -690,19 +661,18 @@ BENCHMARK(LargeMap) {
   Instance& map = Instance::Handle();
   map ^= Api::UnwrapHandle(h_result);
   const intptr_t kLoopCount = 100;
-  uint8_t* buffer;
   Timer timer(true, "Large Map");
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
-    MessageWriter writer(&buffer, &malloc_allocator, &malloc_deallocator, true);
-    writer.WriteMessage(map);
-    intptr_t buffer_len = writer.BytesWritten();
+    MessageWriter writer(true);
+    Message* message =
+        writer.WriteMessage(map, ILLEGAL_PORT, Message::kNormalPriority);
 
     // Read object back from the snapshot.
-    MessageSnapshotReader reader(buffer, buffer_len, thread);
+    MessageSnapshotReader reader(message, thread);
     reader.ReadObject();
-    free(buffer);
+    delete message;
   }
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();

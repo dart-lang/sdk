@@ -32,11 +32,8 @@ import '../../js_backend/interceptor_data.dart';
 import '../../js_backend/mirrors_data.dart';
 import '../../js_backend/js_interop_analysis.dart';
 import '../../js_backend/runtime_types.dart'
-    show
-        RuntimeTypesChecks,
-        RuntimeTypesNeed,
-        RuntimeTypesEncoder,
-        RuntimeTypesSubstitutions;
+    show RuntimeTypesChecks, RuntimeTypesNeed, RuntimeTypesEncoder;
+import '../../js_model/elements.dart' show JSignatureMethod;
 import '../../native/enqueue.dart' show NativeCodegenEnqueuer;
 import '../../options.dart';
 import '../../universe/selector.dart' show Selector;
@@ -48,6 +45,7 @@ import '../js_emitter.dart'
         ClassStubGenerator,
         CodeEmitterTask,
         Emitter,
+        InstantiationStubGenerator,
         InterceptorStubGenerator,
         MainCallStubGenerator,
         ParameterStubGenerator,
@@ -82,7 +80,6 @@ class ProgramBuilder {
   final SuperMemberData _superMemberData;
   final RuntimeTypesChecks _rtiChecks;
   final RuntimeTypesEncoder _rtiEncoder;
-  final RuntimeTypesSubstitutions _rtiSubstitutions;
   final JsInteropAnalysis _jsInteropAnalysis;
   final OneShotInterceptorData _oneShotInterceptorData;
   final CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
@@ -98,8 +95,8 @@ class ProgramBuilder {
   /// Contains the collected information the program builder used to build
   /// the model.
   // The collector will be filled on the first call to `buildProgram`.
-  // It is stored and publicly exposed for backwards compatibility. New code
-  // (and in particular new emitters) should not use it.
+  // It is publicly exposed for backwards compatibility. New code
+  // (and in particular new emitters) should not access it outside this class.
   final Collector collector;
 
   final Registry _registry;
@@ -130,7 +127,6 @@ class ProgramBuilder {
       this._superMemberData,
       this._rtiChecks,
       this._rtiEncoder,
-      this._rtiSubstitutions,
       this._jsInteropAnalysis,
       this._oneShotInterceptorData,
       this._customElementsCodegenAnalysis,
@@ -248,13 +244,9 @@ class ProgramBuilder {
 
     Set<ClassEntity> interceptorClassesNeededByConstants =
         collector.computeInterceptorsReferencedFromConstants();
-    Set<ClassEntity> classesModifiedByEmitRTISupport =
-        _task.typeTestRegistry.computeClassesModifiedByEmitRuntimeTypeSupport();
 
     _unneededNativeClasses = _task.nativeEmitter.prepareNativeClasses(
-        nativeClasses,
-        interceptorClassesNeededByConstants,
-        classesModifiedByEmitRTISupport);
+        nativeClasses, interceptorClassesNeededByConstants);
 
     _addJsInteropStubs(_registry.mainLibrariesMap);
 
@@ -688,24 +680,21 @@ class ProgramBuilder {
     RuntimeTypeGenerator runtimeTypeGenerator = new RuntimeTypeGenerator(
         _elementEnvironment,
         _commonElements,
-        _types,
-        _closedWorld,
         _closureDataLookup,
         _outputUnitData,
         _task,
         _namer,
-        _nativeData,
         _rtiChecks,
         _rtiEncoder,
-        _rtiNeed,
-        _rtiSubstitutions,
-        _jsInteropAnalysis);
+        _jsInteropAnalysis,
+        _options.useKernel,
+        _options.strongMode,
+        _options.disableRtiOptimization);
 
     void visitMember(MemberEntity member) {
       if (member.isInstanceMember && !member.isAbstract && !member.isField) {
-        // TODO(herhut): Remove once _buildMethod can no longer return null.
         Method method = _buildMethod(member);
-        if (method != null) methods.add(method);
+        if (method != null && member is! JSignatureMethod) methods.add(method);
       }
       if (member.isGetter || member.isField) {
         Map<Selector, SelectorConstraints> selectors =
@@ -745,6 +734,12 @@ class ProgramBuilder {
       callStubs.add(_buildStubMethod(name, function));
     }
 
+    if (cls == _commonElements.instantiation1Class ||
+        cls == _commonElements.instantiation2Class ||
+        cls == _commonElements.instantiation3Class) {
+      callStubs.addAll(_generateInstantiationStubs(cls));
+    }
+
     // MixinApplications run through the members of their mixin. Here, we are
     // only interested in direct members.
     if (!onlyForRti && !_elementEnvironment.isMixinApplication(cls)) {
@@ -767,14 +762,15 @@ class ProgramBuilder {
             visitStatics: true,
             isHolderInterceptedClass: isInterceptedClass);
 
-    TypeTestProperties typeTests = runtimeTypeGenerator.generateIsTests(cls,
+    TypeTestProperties typeTests = runtimeTypeGenerator.generateIsTests(
+        cls, _generatedCode,
         storeFunctionTypeInMetadata: _storeFunctionTypesInMetadata);
 
     List<StubMethod> checkedSetters = <StubMethod>[];
     List<StubMethod> isChecks = <StubMethod>[];
     if (_nativeData.isJsInteropClass(cls)) {
       typeTests.forEachProperty(_sorter, (js.Name name, js.Node code) {
-        _classes[_commonElements.jsInterceptorClass]
+        _classes[_commonElements.jsJavaScriptObjectClass]
             .isChecks
             .add(_buildStubMethod(name, code));
       });
@@ -988,6 +984,12 @@ class ProgramBuilder {
         _closedWorld,
         _sourceInformationStrategy);
     return generator.generateParameterStubs(element, canTearOff: canTearOff);
+  }
+
+  List<StubMethod> _generateInstantiationStubs(ClassEntity instantiationClass) {
+    InstantiationStubGenerator generator = new InstantiationStubGenerator(
+        _task, _namer, _worldBuilder, _closedWorld, _sourceInformationStrategy);
+    return generator.generateStubs(instantiationClass, null);
   }
 
   /// Builds a stub method.

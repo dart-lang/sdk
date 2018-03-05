@@ -24,8 +24,8 @@ class NameIndex {
  private:
   int value_;
 };
-} // kernel
-} // dart
+}  // namespace kernel
+}  // namespace dart
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 namespace dart {
@@ -184,6 +184,10 @@ class KernelLineStartsReader {
   DISALLOW_COPY_AND_ASSIGN(KernelLineStartsReader);
 };
 
+RawFunction* CreateFieldInitializerFunction(Thread* thread,
+                                            Zone* zone,
+                                            const Field& field);
+
 ParsedFunction* ParseStaticFieldInitializer(Zone* zone, const Field& field);
 
 bool FieldHasFunctionLiteralInitializer(const Field& field,
@@ -191,6 +195,8 @@ bool FieldHasFunctionLiteralInitializer(const Field& field,
                                         TokenPosition* end);
 
 }  // namespace kernel
+
+kernel::Program* ReadPrecompiledKernelFromFile(const char* script_uri);
 
 kernel::Program* ReadPrecompiledKernelFromBuffer(const uint8_t* buffer,
                                                  intptr_t buffer_length);

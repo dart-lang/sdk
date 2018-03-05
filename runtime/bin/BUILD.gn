@@ -6,6 +6,7 @@ import("../../build/compiled_action.gni")
 import("../../sdk/lib/_http/http_sources.gni")
 import("../../sdk/lib/io/io_sources.gni")
 import("../../sdk/lib/cli/cli_sources.gni")
+import("../../utils/generate_entry_points_json.gni")
 import("../runtime_args.gni")
 import("../vm/compiler/compiler_sources.gni")
 import("../vm/vm_sources.gni")
@@ -272,7 +273,9 @@ template("build_libdart_builtin") {
     ]
     if (is_fuchsia) {
       deps += [ "//zircon/public/lib/launchpad" ]
-      public_deps = [ "//zircon/public/lib/fdio" ]
+      public_deps = [
+        "//zircon/public/lib/fdio",
+      ]
     }
     include_dirs = [ ".." ]
     set_sources_assignment_filter([
@@ -380,6 +383,7 @@ template("build_gen_snapshot") {
         "psapi.lib",
         "ws2_32.lib",
         "Rpcrt4.lib",
+        "shlwapi.lib",
         "winmm.lib",
       ]
     }
@@ -422,7 +426,9 @@ template("build_gen_snapshot_dart_io") {
 
     if (is_fuchsia) {
       deps += [ "//garnet/public/lib/netstack/c" ]
-      public_deps = [ "//zircon/public/lib/fdio" ]
+      public_deps = [
+        "//zircon/public/lib/fdio",
+      ]
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
 
@@ -523,7 +529,9 @@ template("dart_io") {
         "//garnet/public/lib/netstack/c",
         "//zircon/public/lib/launchpad",
       ]
-      public_deps = [ "//zircon/public/lib/fdio" ]
+      public_deps = [
+        "//zircon/public/lib/fdio",
+      ]
     }
 
     sources = io_impl_sources + builtin_impl_sources + cli_impl_sources
@@ -744,20 +752,27 @@ source_set("dart_snapshot_cc") {
   deps = [
     ":isolate_snapshot_data_assembly",
     ":isolate_snapshot_instructions_assembly",
-    ":kernel_service_dill_cc",
-    ":platform_dill_cc",
-    ":platform_strong_dill_cc",
     ":vm_snapshot_data_assembly",
     ":vm_snapshot_instructions_assembly",
   ]
   sources = [
-    "$root_gen_dir/kernel_service.dill.cc",
     "$target_gen_dir/isolate_snapshot_data.S",
     "$target_gen_dir/isolate_snapshot_instructions.S",
-    "$target_gen_dir/vm_platform.dill.cc",
-    "$target_gen_dir/vm_platform_strong.dill.cc",
     "$target_gen_dir/vm_snapshot_data.S",
     "$target_gen_dir/vm_snapshot_instructions.S",
+  ]
+}
+
+source_set("dart_kernel_platform_cc") {
+  deps = [
+    ":kernel_service_dill_cc",
+    ":platform_dill_cc",
+    ":platform_strong_dill_cc",
+  ]
+  sources = [
+    "$root_gen_dir/kernel_service.dill.cc",
+    "$target_gen_dir/vm_platform.dill.cc",
+    "$target_gen_dir/vm_platform_strong.dill.cc",
   ]
 }
 
@@ -849,6 +864,7 @@ template("dart_executable") {
         "psapi.lib",
         "ws2_32.lib",
         "Rpcrt4.lib",
+        "shlwapi.lib",
         "winmm.lib",
       ]
     }
@@ -863,6 +879,9 @@ dart_executable("dart") {
   ]
   if (dart_runtime_mode != "release") {
     extra_deps += [ "../observatory:standalone_observatory_archive" ]
+  }
+  if (dart_runtime_mode != "release") {
+    extra_deps += [ ":dart_kernel_platform_cc" ]
   }
   extra_sources = [
     "builtin_nolib.cc",
@@ -923,6 +942,9 @@ dart_executable("dart_bootstrap") {
     ":generate_web_sql_cc_file",
     "..:libdart_nosnapshot_with_precompiler",
   ]
+  if (dart_runtime_mode != "release") {
+    extra_deps += [ ":dart_kernel_platform_cc" ]
+  }
   extra_defines = [ "NO_OBSERVATORY" ]
   extra_sources = [
     "builtin.cc",
@@ -1100,6 +1122,7 @@ executable("run_vm_tests") {
   }
 
   deps = [
+    ":dart_kernel_platform_cc",
     ":dart_snapshot_cc",
     ":generate_snapshot_test_dat_file",
     ":libdart_builtin",
@@ -1129,8 +1152,6 @@ executable("run_vm_tests") {
 
   sources = [
               "builtin_nolib.cc",
-              "dfe.cc",
-              "dfe.h",
               "error_exit.cc",
               "error_exit.h",
               "run_vm_tests.cc",
@@ -1148,6 +1169,7 @@ executable("run_vm_tests") {
       "psapi.lib",
       "ws2_32.lib",
       "Rpcrt4.lib",
+      "shlwapi.lib",
       "winmm.lib",
     ]
   }
@@ -1197,4 +1219,12 @@ shared_library("sample_extension") {
     abs_root_out_dir = rebase_path(root_out_dir)
     ldflags = [ "/LIBPATH:$abs_root_out_dir" ]
   }
+}
+
+generate_entry_points_json_with_dart_bootstrap(
+    "precompiler_entry_points_json") {
+  # Dart script to precompile (any valid script would suffice).
+  input = "../tests/vm/dart/hello_world_test.dart"
+
+  output = "$target_gen_dir/precompiler_entry_points.json"
 }

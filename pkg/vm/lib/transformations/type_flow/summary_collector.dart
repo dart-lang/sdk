@@ -263,7 +263,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       if (hasReceiver) {
         // TODO(alexmarkov): subclass cone
         _receiver = _declareParameter(
-            "this", new InterfaceType(member.enclosingClass), null);
+            "this", member.enclosingClass.rawType, null,
+            isReceiver: true);
         _environment.thisType = member.enclosingClass?.thisType;
       }
 
@@ -345,8 +346,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
           final function = member.function;
           assertx(function != null);
 
-          for (var decl in function.positionalParameters) {
-            args.add(new Type.fromStatic(decl.type));
+          for (int i = 0; i < function.positionalParameters.length; i++) {
+            args.add(new Type.nullableAny());
           }
 
           // TODO(alexmarkov): take named parameters into account
@@ -357,7 +358,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         break;
 
       case CallKind.PropertySet:
-        args.add(new Type.fromStatic(member.setterType));
+        args.add(new Type.nullableAny());
         break;
 
       case CallKind.FieldInitializer:
@@ -385,8 +386,11 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   }
 
   Parameter _declareParameter(
-      String name, DartType type, Expression initializer) {
-    final param = new Parameter(name, type);
+      String name, DartType type, Expression initializer,
+      {bool isReceiver: false}) {
+    Type staticType =
+        isReceiver ? new ConeType(type) : new Type.fromStatic(type);
+    final param = new Parameter(name, staticType);
     _summary.add(param);
     assertx(param.index < _summary.parameterCount);
     if (param.index >= _summary.requiredParameterCount) {
@@ -438,9 +442,6 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   Type _staticType(Expression node) =>
       new Type.fromStatic(node.getStaticType(_environment));
-
-  Type _concreteType(DartType t) =>
-      (t == _environment.nullType) ? _nullType : new Type.concrete(t);
 
   Type _cachedBoolType;
   Type get _boolType =>
@@ -518,9 +519,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitConstructorInvocation(ConstructorInvocation node) {
-    final receiver = _concreteType(node.constructedType);
-
-    _entryPointsListener.addAllocatedType(node.constructedType);
+    final receiver =
+        _entryPointsListener.addAllocatedClass(node.constructedType.classNode);
 
     final args = _visitArguments(receiver, node.arguments);
     _makeCall(node, new DirectSelector(node.target), args);
@@ -1102,13 +1102,27 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   visitInvalidInitializer(InvalidInitializer node) {}
 }
 
+class EmptyEntryPointsListener implements EntryPointsListener {
+  final Map<Class, IntClassId> _classIds = <Class, IntClassId>{};
+  int _classIdCounter = 0;
+
+  @override
+  void addRawCall(Selector selector) {}
+
+  @override
+  ConcreteType addAllocatedClass(Class c) {
+    final classId = (_classIds[c] ??= new IntClassId(++_classIdCounter));
+    return new ConcreteType(classId, c.rawType);
+  }
+}
+
 class CreateAllSummariesVisitor extends RecursiveVisitor<Null> {
   final TypeEnvironment _environment;
   final SummaryCollector _summaryColector;
 
   CreateAllSummariesVisitor(this._environment)
       : _summaryColector = new SummaryCollector(_environment,
-            new EntryPointsListener(), new NativeCodeOracle(null));
+            new EmptyEntryPointsListener(), new NativeCodeOracle(null));
 
   @override
   defaultMember(Member m) {

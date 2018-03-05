@@ -139,22 +139,22 @@ class _ConstantOrdering
   }
 
   int visitInt(IntConstantValue a, IntConstantValue b) {
-    return a.primitiveValue.compareTo(b.primitiveValue);
+    return a.intValue.compareTo(b.intValue);
   }
 
   int visitDouble(DoubleConstantValue a, DoubleConstantValue b) {
-    return a.primitiveValue.compareTo(b.primitiveValue);
+    return a.doubleValue.compareTo(b.doubleValue);
   }
 
   int visitBool(BoolConstantValue a, BoolConstantValue b) {
-    int aInt = a.primitiveValue ? 1 : 0;
-    int bInt = b.primitiveValue ? 1 : 0;
+    int aInt = a.boolValue ? 1 : 0;
+    int bInt = b.boolValue ? 1 : 0;
     return aInt.compareTo(bInt);
   }
 
   int visitString(StringConstantValue a, StringConstantValue b) {
-    String aString = a.primitiveValue;
-    String bString = b.primitiveValue;
+    String aString = a.stringValue;
+    String bString = b.stringValue;
     return aString.compareTo(bString);
   }
 

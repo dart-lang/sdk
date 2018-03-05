@@ -6,6 +6,17 @@
   "packages": "../../.packages",
 
   "suites": [
+    {
+      "name": "messages",
+      "kind": "Chain",
+      "source": "test/fasta/messages_test.dart",
+      "path": "./",
+      "status": "messages.status",
+      "pattern": [
+      ],
+      "exclude": [
+      ]
+    },
 
     {
       "name": "scanner",
@@ -52,8 +63,7 @@
         "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
-        "/testcases/shaker/",
-        "/testcases/instantiate_to_bound/"
+        "/testcases/shaker/"
       ]
     },
 
@@ -70,8 +80,7 @@
         "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
-        "/testcases/shaker/",
-        "/testcases/instantiate_to_bound/"
+        "/testcases/shaker/"
       ]
     },
 
@@ -256,14 +265,16 @@
       "lib/",
       "tool/",
       "test/",
-      "../kernel/lib/"
+      "../kernel/lib/",
+      "../testing/"
     ],
 
     "git grep": {
       "pathspecs": [ "*.dart" ],
       "patterns": [
         "package:front_end/",
-        "package:kernel/"
+        "package:kernel/",
+        "package:testing/"
       ]
     },
 

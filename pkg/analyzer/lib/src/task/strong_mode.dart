@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/generated/resolver.dart'
     show TypeProvider, InheritanceManager;
 import 'package:analyzer/src/generated/type_system.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart'
@@ -226,15 +225,14 @@ class InstanceMemberInferrer {
     //
     // Find the corresponding parameter.
     //
-    if (parameter.parameterKind == ParameterKind.NAMED) {
+    if (parameter.isNamed) {
       //
       // If we're looking for a named parameter, only a named parameter with
       // the same name will be matched.
       //
       return methodParameters.lastWhere(
           (ParameterElement methodParameter) =>
-              methodParameter.parameterKind == ParameterKind.NAMED &&
-              methodParameter.name == parameter.name,
+              methodParameter.isNamed && methodParameter.name == parameter.name,
           orElse: () => null);
     }
     //
@@ -243,7 +241,7 @@ class InstanceMemberInferrer {
     //
     if (index < methodParameters.length) {
       var matchingParameter = methodParameters[index];
-      if (matchingParameter.parameterKind != ParameterKind.NAMED) {
+      if (!matchingParameter.isNamed) {
         return matchingParameter;
       }
     }

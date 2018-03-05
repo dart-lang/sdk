@@ -221,6 +221,10 @@ class ActiveClass {
     return klass->NumTypeArguments();
   }
 
+  const char* ToCString() {
+    return member != NULL ? member->ToCString() : klass->ToCString();
+  }
+
   // The current enclosing class (or the library top-level class).
   const Class* klass;
 
@@ -375,9 +379,10 @@ class TranslationHelper {
                      intptr_t len,
                      Heap::Space space);
 
-  const String& DartSymbol(const char* content) const;
-  String& DartSymbol(StringIndex string_index) const;
-  String& DartSymbol(const uint8_t* utf8_array, intptr_t len) const;
+  const String& DartSymbolPlain(const char* content) const;
+  String& DartSymbolPlain(StringIndex string_index) const;
+  const String& DartSymbolObfuscate(const char* content) const;
+  String& DartSymbolObfuscate(StringIndex string_index) const;
 
   const String& DartClassName(NameIndex kernel_class);
 
@@ -434,10 +439,12 @@ class TranslationHelper {
   // to get the import URI of the library where the name is visible.
   String& ManglePrivateName(NameIndex parent,
                             String* name_to_modify,
-                            bool symbolize = true);
+                            bool symbolize = true,
+                            bool obfuscate = true);
   String& ManglePrivateName(const Library& library,
                             String* name_to_modify,
-                            bool symbolize = true);
+                            bool symbolize = true,
+                            bool obfuscate = true);
 
   Thread* thread_;
   Zone* zone_;
@@ -700,9 +707,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                         const Array& argument_names,
                         intptr_t checked_argument_count,
                         const Function& interface_target,
-                        const InferredTypeMetadata* result_type = NULL,
-                        intptr_t argument_bits = 0,
-                        intptr_t type_argument_bits = 0);
+                        const InferredTypeMetadata* result_type = NULL);
   Fragment ClosureCall(intptr_t type_args_len,
                        intptr_t argument_count,
                        const Array& argument_names);
@@ -721,6 +726,10 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment NativeCall(const String* name, const Function* function);
   Fragment Return(TokenPosition position);
   Fragment CheckNull(TokenPosition position, LocalVariable* receiver);
+  void SetResultTypeForStaticCall(StaticCallInstr* call,
+                                  const Function& target,
+                                  intptr_t argument_count,
+                                  const InferredTypeMetadata* result_type);
   Fragment StaticCall(TokenPosition position,
                       const Function& target,
                       intptr_t argument_count,
@@ -731,9 +740,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                       const Array& argument_names,
                       ICData::RebindRule rebind_rule,
                       const InferredTypeMetadata* result_type = NULL,
-                      intptr_t type_args_len = 0,
-                      intptr_t argument_bits = 0,
-                      intptr_t type_argument_check_bits = 0);
+                      intptr_t type_args_len = 0);
   Fragment StoreIndexed(intptr_t class_id);
   Fragment StoreInstanceFieldGuarded(const Field& field,
                                      bool is_initialization_store);
@@ -755,7 +762,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment GuardFieldClass(const Field& field, intptr_t deopt_id);
 
   Fragment EvaluateAssertion();
-  Fragment CheckReturnTypeInCheckedMode();
   Fragment CheckVariableTypeInCheckedMode(const AbstractType& dst_type,
                                           const String& name_symbol);
   Fragment CheckBooleanInCheckedMode();

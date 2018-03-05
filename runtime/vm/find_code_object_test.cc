@@ -46,14 +46,14 @@ ISOLATE_UNIT_TEST_CASE(FindCodeObject) {
   lib = Library::CoreLibrary();
 
   // Load up class A with 1024 functions.
-  int written = OS::SNPrint(scriptChars, kScriptSize, "class A {");
+  int written = Utils::SNPrint(scriptChars, kScriptSize, "class A {");
   for (int i = 0; i < kNumFunctions; i++) {
-    OS::SNPrint(buffer, 256,
-                "static foo%d([int i=1,int j=2,int k=3]){return i+j+k;}", i);
-    written += OS::SNPrint((scriptChars + written), (kScriptSize - written),
-                           "%s", buffer);
+    Utils::SNPrint(buffer, 256,
+                   "static foo%d([int i=1,int j=2,int k=3]){return i+j+k;}", i);
+    written += Utils::SNPrint((scriptChars + written), (kScriptSize - written),
+                              "%s", buffer);
   }
-  OS::SNPrint((scriptChars + written), (kScriptSize - written), "}");
+  Utils::SNPrint((scriptChars + written), (kScriptSize - written), "}");
   source = String::New(scriptChars);
   script = Script::New(url, source, RawScript::kScriptTag);
   EXPECT(CompilerTest::TestCompileScript(lib, script));
@@ -61,7 +61,7 @@ ISOLATE_UNIT_TEST_CASE(FindCodeObject) {
   EXPECT(!clsA.IsNull());
   ClassFinalizer::ProcessPendingClasses();
   for (int i = 0; i < kNumFunctions; i++) {
-    OS::SNPrint(buffer, 256, "foo%d", i);
+    Utils::SNPrint(buffer, 256, "foo%d", i);
     function_name = String::New(buffer);
     function = clsA.LookupStaticFunction(function_name);
     EXPECT(!function.IsNull());
@@ -72,28 +72,28 @@ ISOLATE_UNIT_TEST_CASE(FindCodeObject) {
   }
 
   // Now load up class B with 1024 functions.
-  written = OS::SNPrint(scriptChars, kScriptSize, "class B {");
+  written = Utils::SNPrint(scriptChars, kScriptSize, "class B {");
   // Create one large function.
-  OS::SNPrint(buffer, sizeof(buffer), "static moo0([var i=1]) { ");
-  written += OS::SNPrint((scriptChars + written), (kScriptSize - written), "%s",
-                         buffer);
+  Utils::SNPrint(buffer, sizeof(buffer), "static moo0([var i=1]) { ");
+  written += Utils::SNPrint((scriptChars + written), (kScriptSize - written),
+                            "%s", buffer);
   // Generate a large function so that the code for this function when
   // compiled will reside in a large page.
   for (int i = 0; i < kLoopCount; i++) {
-    OS::SNPrint(buffer, sizeof(buffer), "i = i+i;");
-    written += OS::SNPrint((scriptChars + written), (kScriptSize - written),
-                           "%s", buffer);
+    Utils::SNPrint(buffer, sizeof(buffer), "i = i+i;");
+    written += Utils::SNPrint((scriptChars + written), (kScriptSize - written),
+                              "%s", buffer);
   }
-  OS::SNPrint(buffer, sizeof(buffer), "return i; }");
-  written += OS::SNPrint((scriptChars + written), (kScriptSize - written), "%s",
-                         buffer);
+  Utils::SNPrint(buffer, sizeof(buffer), "return i; }");
+  written += Utils::SNPrint((scriptChars + written), (kScriptSize - written),
+                            "%s", buffer);
   for (int i = 1; i < kNumFunctions; i++) {
-    OS::SNPrint(buffer, 256,
-                "static moo%d([int i=1,int j=2,int k=3]){return i+j+k;}", i);
-    written += OS::SNPrint((scriptChars + written), (kScriptSize - written),
-                           "%s", buffer);
+    Utils::SNPrint(buffer, 256,
+                   "static moo%d([int i=1,int j=2,int k=3]){return i+j+k;}", i);
+    written += Utils::SNPrint((scriptChars + written), (kScriptSize - written),
+                              "%s", buffer);
   }
-  OS::SNPrint((scriptChars + written), (kScriptSize - written), "}");
+  Utils::SNPrint((scriptChars + written), (kScriptSize - written), "}");
   url = String::New("dart-test:FindCodeObject");
   source = String::New(scriptChars);
   script = Script::New(url, source, RawScript::kScriptTag);
@@ -102,7 +102,7 @@ ISOLATE_UNIT_TEST_CASE(FindCodeObject) {
   EXPECT(!clsB.IsNull());
   ClassFinalizer::ProcessPendingClasses();
   for (int i = 0; i < kNumFunctions; i++) {
-    OS::SNPrint(buffer, 256, "moo%d", i);
+    Utils::SNPrint(buffer, 256, "moo%d", i);
     function_name = String::New(buffer);
     function = clsB.LookupStaticFunction(function_name);
     EXPECT(!function.IsNull());
@@ -115,7 +115,7 @@ ISOLATE_UNIT_TEST_CASE(FindCodeObject) {
   // Now try and access these functions using the code index table.
   Code& code = Code::Handle();
   uword pc;
-  OS::SNPrint(buffer, 256, "foo%d", 123);
+  Utils::SNPrint(buffer, 256, "foo%d", 123);
   function_name = String::New(buffer);
   function = clsA.LookupStaticFunction(function_name);
   EXPECT(!function.IsNull());
@@ -124,7 +124,7 @@ ISOLATE_UNIT_TEST_CASE(FindCodeObject) {
   pc = code.PayloadStart() + 16;
   EXPECT(Code::LookupCode(pc) == code.raw());
 
-  OS::SNPrint(buffer, 256, "moo%d", 54);
+  Utils::SNPrint(buffer, 256, "moo%d", 54);
   function_name = String::New(buffer);
   function = clsB.LookupStaticFunction(function_name);
   EXPECT(!function.IsNull());
@@ -134,7 +134,7 @@ ISOLATE_UNIT_TEST_CASE(FindCodeObject) {
   EXPECT(Code::LookupCode(pc) == code.raw());
 
   // Lookup the large function
-  OS::SNPrint(buffer, 256, "moo%d", 0);
+  Utils::SNPrint(buffer, 256, "moo%d", 0);
   function_name = String::New(buffer);
   function = clsB.LookupStaticFunction(function_name);
   EXPECT(!function.IsNull());

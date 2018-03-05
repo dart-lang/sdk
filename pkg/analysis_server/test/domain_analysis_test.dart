@@ -51,14 +51,15 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   test_setAnalysisRoots_excludedFolder() async {
     newFile('/project/aaa/a.dart', content: '// a');
     newFile('/project/bbb/b.dart', content: '// b');
-    var response = testSetAnalysisRoots(['/project'], ['/project/bbb']);
+    var excludedPath = join(projectPath, 'bbb');
+    var response = testSetAnalysisRoots([projectPath], [excludedPath]);
     expect(response, isResponseSuccess('0'));
   }
 
   test_setAnalysisRoots_included_newFolder() async {
     newFile('/project/pubspec.yaml', content: 'name: project');
     String file = newFile('/project/bin/test.dart', content: 'main() {}').path;
-    var response = testSetAnalysisRoots(['/project'], []);
+    var response = testSetAnalysisRoots([projectPath], []);
     var serverRef = server;
     expect(response, isResponseSuccess('0'));
     // verify that unit is resolved eventually
@@ -68,8 +69,10 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   test_setAnalysisRoots_included_nonexistentFolder() async {
+    String projectA = convertPath('/project_a');
+    String projectB = convertPath('/project_b');
     String fileB = newFile('/project_b/b.dart', content: '// b').path;
-    var response = testSetAnalysisRoots(['/project_a', '/project_b'], []);
+    var response = testSetAnalysisRoots([projectA, projectB], []);
     var serverRef = server;
     expect(response, isResponseSuccess('0'));
     // Non-existence of /project_a should not prevent files in /project_b
@@ -111,12 +114,17 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   test_setPriorityFiles_valid() {
-    newFile('/p1/a.dart', content: 'library a;');
-    newFile('/p2/b.dart', content: 'library b;');
-    newFile('/p2/c.dart', content: 'library c;');
+    var p1 = convertPath('/p1');
+    var p2 = convertPath('/p2');
+    var aPath = convertPath('/p1/a.dart');
+    var bPath = convertPath('/p2/b.dart');
+    var cPath = convertPath('/p2/c.dart');
+    newFile(aPath, content: 'library a;');
+    newFile(bPath, content: 'library b;');
+    newFile(cPath, content: 'library c;');
 
     var setRootsRequest =
-        new AnalysisSetAnalysisRootsParams(['/p1', '/p2'], []).toRequest('0');
+        new AnalysisSetAnalysisRootsParams([p1, p2], []).toRequest('0');
     var setRootsResponse = handler.handleRequest(setRootsRequest);
     expect(setRootsResponse, isResponseSuccess('0'));
 
@@ -129,8 +137,8 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
       // expect(server.getPriorityFiles(), unorderedEquals(fileList));
     }
 
-    setPriorityFiles(['/p1/a.dart', '/p2/b.dart']);
-    setPriorityFiles(['/p2/b.dart', '/p2/c.dart']);
+    setPriorityFiles([aPath, bPath]);
+    setPriorityFiles([bPath, cPath]);
     setPriorityFiles([]);
   }
 
@@ -341,10 +349,13 @@ class AnalysisTestHelper extends Object with ResourceProviderMixin {
   Map<String, List<HighlightRegion>> filesHighlights = {};
   Map<String, List<NavigationRegion>> filesNavigation = {};
 
-  String testFile = '/project/bin/test.dart';
+  String projectPath;
+  String testFile;
   String testCode;
 
   AnalysisTestHelper() {
+    projectPath = convertPath('/project');
+    testFile = convertPath('/project/bin/test.dart');
     processRequiredPlugins();
     serverChannel = new MockServerChannel();
     // Create an SDK in the mock file system.
@@ -353,8 +364,8 @@ class AnalysisTestHelper extends Object with ResourceProviderMixin {
         serverChannel,
         resourceProvider,
         new MockPackageMapProvider(),
-        new AnalysisServerOptions(),
-        new DartSdkManager('/', false),
+        new AnalysisServerOptions()..previewDart2 = true,
+        new DartSdkManager(convertPath('/'), false),
         InstrumentationService.NULL_SERVICE);
     handler = new AnalysisDomainHandler(server);
     // listen for notifications
@@ -411,9 +422,9 @@ class AnalysisTestHelper extends Object with ResourceProviderMixin {
    * Creates an empty project `/project`.
    */
   void createEmptyProject() {
-    newFolder('/project');
+    newFolder(projectPath);
     Request request =
-        new AnalysisSetAnalysisRootsParams(['/project'], []).toRequest('0');
+        new AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
     handleSuccessfulRequest(request);
   }
 
@@ -423,10 +434,10 @@ class AnalysisTestHelper extends Object with ResourceProviderMixin {
    */
   void createSingleFileProject(code) {
     this.testCode = _getCodeString(code);
-    newFolder('/project');
+    newFolder(projectPath);
     newFile(testFile, content: testCode);
     Request request =
-        new AnalysisSetAnalysisRootsParams(['/project'], []).toRequest('0');
+        new AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
     handleSuccessfulRequest(request);
   }
 
@@ -603,8 +614,8 @@ main() {
   }
 
   test_afterAnalysis_packageFile_inRoot() async {
-    String pkgA = '/pkgA';
-    String pkgB = '/pkgA';
+    String pkgA = convertPath('/pkgA');
+    String pkgB = convertPath('/pkgA');
     String pkgFileA = newFile('$pkgA/lib/libA.dart', content: '''
 library lib_a;
 class A {}
@@ -654,7 +665,7 @@ class A {}
   }
 
   test_afterAnalysis_sdkFile() async {
-    String file = '/lib/core/core.dart';
+    String file = convertPath('/lib/core/core.dart');
     addTestFile('// no matter');
     createProject();
     // wait for analysis, no results initially

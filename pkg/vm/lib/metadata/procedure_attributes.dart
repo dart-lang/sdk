@@ -8,20 +8,29 @@ import 'package:kernel/ast.dart';
 
 /// Metadata for annotating procedures with various attributes.
 class ProcedureAttributesMetadata {
-  final bool hasDynamicInvocations;
+  final bool hasDynamicUses;
+  final bool hasNonThisUses;
+  final bool hasTearOffUses;
 
-  const ProcedureAttributesMetadata({this.hasDynamicInvocations});
+  const ProcedureAttributesMetadata(
+      {this.hasDynamicUses, this.hasNonThisUses, this.hasTearOffUses});
 
-  const ProcedureAttributesMetadata.noDynamicInvocations()
-      : hasDynamicInvocations = false;
+  const ProcedureAttributesMetadata.noDynamicUses()
+      : this(hasDynamicUses: false, hasNonThisUses: true, hasTearOffUses: true);
 
   @override
-  String toString() => "hasDynamicInvocations:${hasDynamicInvocations}";
+  String toString() => "hasDynamicUses:$hasDynamicUses,"
+      "hasNonThisUses:$hasNonThisUses,"
+      "hasTearOffUses:$hasTearOffUses";
 }
 
 /// Repository for [ProcedureAttributesMetadata].
 class ProcedureAttributesMetadataRepository
     extends MetadataRepository<ProcedureAttributesMetadata> {
+  static const int kDynamicUsesBit = 1 << 0;
+  static const int kNonThisUsesBit = 1 << 1;
+  static const int kTearOffUsesBit = 1 << 2;
+
   @override
   final String tag = 'vm.procedure-attributes.metadata';
 
@@ -31,11 +40,30 @@ class ProcedureAttributesMetadataRepository
 
   @override
   void writeToBinary(ProcedureAttributesMetadata metadata, BinarySink sink) {
-    assert(!metadata.hasDynamicInvocations);
+    int flags = 0;
+    if (metadata.hasDynamicUses) {
+      flags |= kDynamicUsesBit;
+    }
+    if (metadata.hasNonThisUses) {
+      flags |= kNonThisUsesBit;
+    }
+    if (metadata.hasTearOffUses) {
+      flags |= kTearOffUsesBit;
+    }
+    sink.writeByte(flags);
   }
 
   @override
   ProcedureAttributesMetadata readFromBinary(BinarySource source) {
-    return const ProcedureAttributesMetadata.noDynamicInvocations();
+    final int flags = source.readByte();
+
+    final bool hasDynamicUses = (flags & kDynamicUsesBit) == kDynamicUsesBit;
+    final bool hasNonThisUses = (flags & kNonThisUsesBit) == kNonThisUsesBit;
+    final bool hasTearOffUses = (flags & kTearOffUsesBit) == kTearOffUsesBit;
+
+    return new ProcedureAttributesMetadata(
+        hasDynamicUses: hasDynamicUses,
+        hasNonThisUses: hasNonThisUses,
+        hasTearOffUses: hasTearOffUses);
   }
 }

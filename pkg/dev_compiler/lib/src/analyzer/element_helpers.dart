@@ -18,6 +18,7 @@ import 'package:analyzer/dart/ast/ast.dart'
 import 'package:analyzer/dart/element/element.dart'
     show
         ClassElement,
+        CompilationUnitElement,
         Element,
         ExecutableElement,
         FunctionElement,
@@ -96,11 +97,13 @@ bool inInvocationContext(SimpleIdentifier node) {
   return parent is MethodInvocation && parent.methodName == node;
 }
 
-bool isInlineJS(Element e) =>
-    e is FunctionElement &&
-    e.name == 'JS' &&
-    e.library.isInSdk &&
-    e.library.source.uri.toString() == 'dart:_foreign_helper';
+bool isInlineJS(Element e) {
+  if (e != null && e.name == 'JS' && e is FunctionElement) {
+    var uri = e.librarySource.uri;
+    return uri.scheme == 'dart' && uri.path == '_foreign_helper';
+  }
+  return false;
+}
 
 ExecutableElement getFunctionBodyElement(FunctionBody body) {
   var f = body.parent;
@@ -162,8 +165,10 @@ List<ClassElement> getImmediateSuperclasses(ClassElement c) {
 /// Returns true if the library [l] is dart:_runtime.
 // TODO(jmesserly): unlike other methods in this file, this one wouldn't be
 // suitable for upstream to Analyzer, as it's DDC specific.
-bool isSdkInternalRuntime(LibraryElement l) =>
-    l.isInSdk && l.source.uri.toString() == 'dart:_runtime';
+bool isSdkInternalRuntime(LibraryElement l) {
+  var uri = l.source.uri;
+  return uri.scheme == 'dart' && uri.path == '_runtime';
+}
 
 /// Return `true` if the given [classElement] has a noSuchMethod() method
 /// distinct from the one declared in class Object, as per the Dart Language
@@ -205,4 +210,19 @@ bool isCallableClass(ClassElement c) {
   return callMethod is PropertyAccessorElement
       ? callMethod.returnType is FunctionType
       : callMethod != null;
+}
+
+Uri uriForCompilationUnit(CompilationUnitElement unit) {
+  if (unit.source.isInSystemLibrary) {
+    return unit.source.uri;
+  }
+  // TODO(jmesserly): this needs serious cleanup.
+  // There does appear to be something strange going on with Analyzer
+  // URIs if we try and use them directly on Windows.
+  // See also compiler.dart placeSourceMap, which could use cleanup too.
+  var sourcePath = unit.source.fullName;
+  return sourcePath.startsWith('package:')
+      ? Uri.parse(sourcePath)
+      // TODO(jmesserly): shouldn't this be path.toUri?
+      : new Uri.file(sourcePath);
 }

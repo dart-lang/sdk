@@ -21,8 +21,8 @@ class PrintSummaries extends RecursiveVisitor<Null> {
   final StringBuffer _buf = new StringBuffer();
 
   PrintSummaries(TypeEnvironment environment)
-      : _summaryColector = new SummaryCollector(
-            environment, new EntryPointsListener(), new NativeCodeOracle(null));
+      : _summaryColector = new SummaryCollector(environment,
+            new EmptyEntryPointsListener(), new NativeCodeOracle(null));
 
   String print(TreeNode node) {
     visitLibrary(node);

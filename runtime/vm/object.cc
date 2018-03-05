@@ -2712,7 +2712,7 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
   for (; i < desc.PositionalCount(); i++) {
     invocation.SetParameterTypeAt(i, Object::dynamic_type());
     char name[64];
-    OS::SNPrint(name, 64, ":p%" Pd, i);
+    Utils::SNPrint(name, 64, ":p%" Pd, i);
     invocation.SetParameterNameAt(
         i, String::Handle(zone, Symbols::New(thread, name)));
   }
@@ -3910,7 +3910,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
                                      from_index, num_type_params, bound_error,
                                      bound_trail, space);
     }
-    if (other.IsDartFunctionClass()) {
+    // In strong mode, subtyping rules of callable instances are restricted.
+    if (!isolate->strong() && other.IsDartFunctionClass()) {
       // Check if type S has a call() method.
       const Function& call_function =
           Function::Handle(zone, this_class.LookupCallFunctionForTypeTest());
@@ -4403,54 +4404,111 @@ const char* Class::ToCString() const {
                      patch_prefix, class_name);
 }
 
-// Returns an instance of Double or Double::null().
-// 'index' points to either:
-// - constants_list_ position of found element, or
-// - constants_list_ position where new canonical can be inserted.
-RawDouble* Class::LookupCanonicalDouble(Zone* zone,
-                                        double value,
-                                        intptr_t* index) const {
-  ASSERT(this->raw() == Isolate::Current()->object_store()->double_class());
-  const Array& constants = Array::Handle(zone, this->constants());
-  const intptr_t constants_len = constants.Length();
-  // Linear search to see whether this value is already present in the
-  // list of canonicalized constants.
-  Double& canonical_value = Double::Handle(zone);
-  while (*index < constants_len) {
-    canonical_value ^= constants.At(*index);
-    if (canonical_value.IsNull()) {
-      break;
-    }
-    if (canonical_value.BitwiseEqualsToDouble(value)) {
-      ASSERT(canonical_value.IsCanonical());
-      return canonical_value.raw();
-    }
-    *index = *index + 1;
-  }
-  return Double::null();
+// Thomas Wang, Integer Hash Functions.
+// https://gist.github.com/badboy/6267743
+// "64 bit to 32 bit Hash Functions"
+static uword Hash64To32(uint64_t v) {
+  v = ~v + (v << 18);
+  v = v ^ (v >> 31);
+  v = v * 21;
+  v = v ^ (v >> 11);
+  v = v + (v << 6);
+  v = v ^ (v >> 22);
+  return static_cast<uint32_t>(v);
 }
 
-RawMint* Class::LookupCanonicalMint(Zone* zone,
-                                    int64_t value,
-                                    intptr_t* index) const {
-  ASSERT(this->raw() == Isolate::Current()->object_store()->mint_class());
-  const Array& constants = Array::Handle(zone, this->constants());
-  const intptr_t constants_len = constants.Length();
-  // Linear search to see whether this value is already present in the
-  // list of canonicalized constants.
-  Mint& canonical_value = Mint::Handle(zone);
-  while (*index < constants_len) {
-    canonical_value ^= constants.At(*index);
-    if (canonical_value.IsNull()) {
-      break;
-    }
-    if (canonical_value.value() == value) {
-      ASSERT(canonical_value.IsCanonical());
-      return canonical_value.raw();
-    }
-    *index = *index + 1;
+class CanonicalDoubleKey {
+ public:
+  explicit CanonicalDoubleKey(const Double& key)
+      : key_(&key), value_(key.value()) {}
+  explicit CanonicalDoubleKey(const double value) : key_(NULL), value_(value) {}
+  bool Matches(const Double& obj) const {
+    return obj.BitwiseEqualsToDouble(value_);
   }
-  return Mint::null();
+  uword Hash() const { return Hash(value_); }
+  static uword Hash(double value) {
+    return Hash64To32(bit_cast<uint64_t>(value));
+  }
+
+  const Double* key_;
+  const double value_;
+
+ private:
+  DISALLOW_ALLOCATION();
+};
+
+class CanonicalMintKey {
+ public:
+  explicit CanonicalMintKey(const Mint& key)
+      : key_(&key), value_(key.value()) {}
+  explicit CanonicalMintKey(const int64_t value) : key_(NULL), value_(value) {}
+  bool Matches(const Mint& obj) const { return obj.value() == value_; }
+  uword Hash() const { return Hash(value_); }
+  static uword Hash(int64_t value) {
+    return Hash64To32(bit_cast<uint64_t>(value));
+  }
+
+  const Mint* key_;
+  const int64_t value_;
+
+ private:
+  DISALLOW_ALLOCATION();
+};
+
+// Traits for looking up Canonical numbers based on a hash of the value.
+template <typename ObjectType, typename KeyType>
+class CanonicalNumberTraits {
+ public:
+  static const char* Name() { return "CanonicalNumberTraits"; }
+  static bool ReportStats() { return false; }
+
+  // Called when growing the table.
+  static bool IsMatch(const Object& a, const Object& b) {
+    return a.raw() == b.raw();
+  }
+  static bool IsMatch(const KeyType& a, const Object& b) {
+    return a.Matches(ObjectType::Cast(b));
+  }
+  static uword Hash(const Object& key) {
+    return KeyType::Hash(ObjectType::Cast(key).value());
+  }
+  static uword Hash(const KeyType& key) { return key.Hash(); }
+  static RawObject* NewKey(const KeyType& obj) {
+    if (obj.key_ != NULL) {
+      return obj.key_->raw();
+    } else {
+      UNIMPLEMENTED();
+      return NULL;
+    }
+  }
+};
+typedef UnorderedHashSet<CanonicalNumberTraits<Double, CanonicalDoubleKey> >
+    CanonicalDoubleSet;
+typedef UnorderedHashSet<CanonicalNumberTraits<Mint, CanonicalMintKey> >
+    CanonicalMintSet;
+
+// Returns an instance of Double or Double::null().
+RawDouble* Class::LookupCanonicalDouble(Zone* zone, double value) const {
+  ASSERT(this->raw() == Isolate::Current()->object_store()->double_class());
+  if (this->constants() == Object::empty_array().raw()) return Double::null();
+
+  Double& canonical_value = Double::Handle(zone);
+  CanonicalDoubleSet constants(zone, this->constants());
+  canonical_value ^= constants.GetOrNull(CanonicalDoubleKey(value));
+  this->set_constants(constants.Release());
+  return canonical_value.raw();
+}
+
+// Returns an instance of Mint or Mint::null().
+RawMint* Class::LookupCanonicalMint(Zone* zone, int64_t value) const {
+  ASSERT(this->raw() == Isolate::Current()->object_store()->mint_class());
+  if (this->constants() == Object::empty_array().raw()) return Mint::null();
+
+  Mint& canonical_value = Mint::Handle(zone);
+  CanonicalMintSet constants(zone, this->constants());
+  canonical_value ^= constants.GetOrNull(CanonicalMintKey(value));
+  this->set_constants(constants.Release());
+  return canonical_value.raw();
 }
 
 RawBigint* Class::LookupCanonicalBigint(Zone* zone,
@@ -4554,9 +4612,29 @@ RawInstance* Class::InsertCanonicalConstant(Zone* zone,
   return canonical_value.raw();
 }
 
-void Class::InsertCanonicalNumber(Zone* zone,
+void Class::InsertCanonicalDouble(Zone* zone, const Double& constant) const {
+  if (this->constants() == Object::empty_array().raw()) {
+    this->set_constants(Array::Handle(
+        zone, HashTables::New<CanonicalDoubleSet>(128, Heap::kOld)));
+  }
+  CanonicalDoubleSet constants(zone, this->constants());
+  constants.InsertNewOrGet(CanonicalDoubleKey(constant));
+  this->set_constants(constants.Release());
+}
+
+void Class::InsertCanonicalMint(Zone* zone, const Mint& constant) const {
+  if (this->constants() == Object::empty_array().raw()) {
+    this->set_constants(Array::Handle(
+        zone, HashTables::New<CanonicalMintSet>(128, Heap::kOld)));
+  }
+  CanonicalMintSet constants(zone, this->constants());
+  constants.InsertNewOrGet(CanonicalMintKey(constant));
+  this->set_constants(constants.Release());
+}
+
+void Class::InsertCanonicalBigint(Zone* zone,
                                   intptr_t index,
-                                  const Number& constant) const {
+                                  const Bigint& constant) const {
   // The constant needs to be added to the list. Grow the list if it is full.
   Array& canonical_list = Array::Handle(zone, constants());
   const intptr_t list_len = canonical_list.Length();
@@ -4571,7 +4649,8 @@ void Class::InsertCanonicalNumber(Zone* zone,
 void Class::RehashConstants(Zone* zone) const {
   intptr_t cid = id();
   if ((cid == kMintCid) || (cid == kBigintCid) || (cid == kDoubleCid)) {
-    // Constants stored as a plain list, no rehashing needed.
+    // Constants stored as a plain list or in a hashset with a stable hashcode,
+    // which only depends on the actual value of the constant.
     return;
   }
 
@@ -4579,6 +4658,7 @@ void Class::RehashConstants(Zone* zone) const {
   if (old_constants.Length() == 0) return;
 
   set_constants(Object::empty_array());
+
   CanonicalInstancesSet set(zone, old_constants.raw());
   Instance& constant = Instance::Handle(zone);
   CanonicalInstancesSet::Iterator it(&set);
@@ -4677,7 +4757,10 @@ intptr_t TypeArguments::ComputeHash() const {
     type = TypeAt(i);
     // The hash may be calculated during type finalization (for debugging
     // purposes only) while a type argument is still temporarily null.
-    result = CombineHashes(result, type.IsNull() ? 0 : type.Hash());
+    if (type.IsNull() || type.IsNullTypeRef()) {
+      return 0;  // Do not cache hash, since it will still change.
+    }
+    result = CombineHashes(result, type.Hash());
   }
   result = FinalizeHash(result, kHashBits);
   SetHash(result);
@@ -4728,7 +4811,8 @@ bool TypeArguments::IsSubvectorEquivalent(const TypeArguments& other,
   for (intptr_t i = from_index; i < from_index + len; i++) {
     type = TypeAt(i);
     other_type = other.TypeAt(i);
-    if (!type.IsNull() && !type.IsEquivalent(other_type, trail)) {
+    // Still unfinalized vectors should not be considered equivalent.
+    if (type.IsNull() || !type.IsEquivalent(other_type, trail)) {
       return false;
     }
   }
@@ -4914,7 +4998,7 @@ bool TypeArguments::IsUninstantiatedIdentity() const {
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
     if (type.IsNull()) {
-      continue;
+      return false;  // Still unfinalized, too early to tell.
     }
     if (!type.IsTypeParameter()) {
       return false;
@@ -5307,8 +5391,8 @@ const char* TypeArguments::ToCString() const {
     return "TypeArguments: null";
   }
   Zone* zone = Thread::Current()->zone();
-  const char* prev_cstr = OS::SCreate(zone, "TypeArguments: (%" Pd ")",
-                                      Smi::Value(raw_ptr()->hash_));
+  const char* prev_cstr = OS::SCreate(zone, "TypeArguments: (@%p H%" Px ")",
+                                      raw(), Smi::Value(raw_ptr()->hash_));
   for (int i = 0; i < Length(); i++) {
     const AbstractType& type_at = AbstractType::Handle(zone, TypeAt(i));
     const char* type_cstr = type_at.IsNull() ? "null" : type_at.ToCString();
@@ -6223,9 +6307,9 @@ bool Function::AreValidArgumentCounts(intptr_t num_type_arguments,
     if (error_message != NULL) {
       const intptr_t kMessageBufferSize = 64;
       char message_buffer[kMessageBufferSize];
-      OS::SNPrint(message_buffer, kMessageBufferSize,
-                  "%" Pd " type arguments passed, but %" Pd " expected",
-                  num_type_arguments, NumTypeParameters());
+      Utils::SNPrint(message_buffer, kMessageBufferSize,
+                     "%" Pd " type arguments passed, but %" Pd " expected",
+                     num_type_arguments, NumTypeParameters());
       // Allocate in old space because it can be invoked in background
       // optimizing compilation.
       *error_message = String::New(message_buffer, Heap::kOld);
@@ -6236,9 +6320,9 @@ bool Function::AreValidArgumentCounts(intptr_t num_type_arguments,
     if (error_message != NULL) {
       const intptr_t kMessageBufferSize = 64;
       char message_buffer[kMessageBufferSize];
-      OS::SNPrint(message_buffer, kMessageBufferSize,
-                  "%" Pd " named passed, at most %" Pd " expected",
-                  num_named_arguments, NumOptionalNamedParameters());
+      Utils::SNPrint(message_buffer, kMessageBufferSize,
+                     "%" Pd " named passed, at most %" Pd " expected",
+                     num_named_arguments, NumOptionalNamedParameters());
       // Allocate in old space because it can be invoked in background
       // optimizing compilation.
       *error_message = String::New(message_buffer, Heap::kOld);
@@ -6254,12 +6338,12 @@ bool Function::AreValidArgumentCounts(intptr_t num_type_arguments,
       char message_buffer[kMessageBufferSize];
       // Hide implicit parameters to the user.
       const intptr_t num_hidden_params = NumImplicitParameters();
-      OS::SNPrint(message_buffer, kMessageBufferSize,
-                  "%" Pd "%s passed, %s%" Pd " expected",
-                  num_pos_args - num_hidden_params,
-                  num_opt_pos_params > 0 ? " positional" : "",
-                  num_opt_pos_params > 0 ? "at most " : "",
-                  num_pos_params - num_hidden_params);
+      Utils::SNPrint(message_buffer, kMessageBufferSize,
+                     "%" Pd "%s passed, %s%" Pd " expected",
+                     num_pos_args - num_hidden_params,
+                     num_opt_pos_params > 0 ? " positional" : "",
+                     num_opt_pos_params > 0 ? "at most " : "",
+                     num_pos_params - num_hidden_params);
       // Allocate in old space because it can be invoked in background
       // optimizing compilation.
       *error_message = String::New(message_buffer, Heap::kOld);
@@ -6272,12 +6356,12 @@ bool Function::AreValidArgumentCounts(intptr_t num_type_arguments,
       char message_buffer[kMessageBufferSize];
       // Hide implicit parameters to the user.
       const intptr_t num_hidden_params = NumImplicitParameters();
-      OS::SNPrint(message_buffer, kMessageBufferSize,
-                  "%" Pd "%s passed, %s%" Pd " expected",
-                  num_pos_args - num_hidden_params,
-                  num_opt_pos_params > 0 ? " positional" : "",
-                  num_opt_pos_params > 0 ? "at least " : "",
-                  num_fixed_parameters() - num_hidden_params);
+      Utils::SNPrint(message_buffer, kMessageBufferSize,
+                     "%" Pd "%s passed, %s%" Pd " expected",
+                     num_pos_args - num_hidden_params,
+                     num_opt_pos_params > 0 ? " positional" : "",
+                     num_opt_pos_params > 0 ? "at least " : "",
+                     num_fixed_parameters() - num_hidden_params);
       // Allocate in old space because it can be invoked in background
       // optimizing compilation.
       *error_message = String::New(message_buffer, Heap::kOld);
@@ -6319,9 +6403,9 @@ bool Function::AreValidArguments(intptr_t num_type_arguments,
       if (error_message != NULL) {
         const intptr_t kMessageBufferSize = 64;
         char message_buffer[kMessageBufferSize];
-        OS::SNPrint(message_buffer, kMessageBufferSize,
-                    "no optional formal parameter named '%s'",
-                    argument_name.ToCString());
+        Utils::SNPrint(message_buffer, kMessageBufferSize,
+                       "no optional formal parameter named '%s'",
+                       argument_name.ToCString());
         // Allocate in old space because it can be invoked in background
         // optimizing compilation.
         *error_message = String::New(message_buffer, Heap::kOld);
@@ -6364,9 +6448,9 @@ bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
       if (error_message != NULL) {
         const intptr_t kMessageBufferSize = 64;
         char message_buffer[kMessageBufferSize];
-        OS::SNPrint(message_buffer, kMessageBufferSize,
-                    "no optional formal parameter named '%s'",
-                    argument_name.ToCString());
+        Utils::SNPrint(message_buffer, kMessageBufferSize,
+                       "no optional formal parameter named '%s'",
+                       argument_name.ToCString());
         // Allocate in old space because it can be invoked in background
         // optimizing compilation.
         *error_message = String::New(message_buffer, Heap::kOld);
@@ -6395,7 +6479,7 @@ static intptr_t ConstructFunctionFullyQualifiedCString(
     QualifiedFunctionLibKind lib_kind) {
   const char* name = String::Handle(function.name()).ToCString();
   const char* function_format = (reserve_len == 0) ? "%s" : "%s_";
-  reserve_len += OS::SNPrint(NULL, 0, function_format, name);
+  reserve_len += Utils::SNPrint(NULL, 0, function_format, name);
   const Function& parent = Function::Handle(function.parent_function());
   intptr_t written = 0;
   if (parent.IsNull()) {
@@ -6425,18 +6509,18 @@ static intptr_t ConstructFunctionFullyQualifiedCString(
       lib_class_format = "%s%s.";
     }
     reserve_len +=
-        OS::SNPrint(NULL, 0, lib_class_format, library_name, class_name);
+        Utils::SNPrint(NULL, 0, lib_class_format, library_name, class_name);
     ASSERT(chars != NULL);
     *chars = Thread::Current()->zone()->Alloc<char>(reserve_len + 1);
-    written = OS::SNPrint(*chars, reserve_len + 1, lib_class_format,
-                          library_name, class_name);
+    written = Utils::SNPrint(*chars, reserve_len + 1, lib_class_format,
+                             library_name, class_name);
   } else {
     written = ConstructFunctionFullyQualifiedCString(parent, chars, reserve_len,
                                                      with_lib, lib_kind);
   }
   ASSERT(*chars != NULL);
   char* next = *chars + written;
-  written += OS::SNPrint(next, reserve_len + 1, function_format, name);
+  written += Utils::SNPrint(next, reserve_len + 1, function_format, name);
   // Replace ":" with "_".
   while (true) {
     next = strchr(next, ':');
@@ -11359,8 +11443,8 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate, bool is_kernel) {
   char name_buffer[kNameLength];
   String& cls_name = String::Handle(zone);
   for (int fld_cnt = 1; fld_cnt <= kNumNativeWrappersClasses; fld_cnt++) {
-    OS::SNPrint(name_buffer, kNameLength, "%s%d", kNativeWrappersClass,
-                fld_cnt);
+    Utils::SNPrint(name_buffer, kNameLength, "%s%d", kNativeWrappersClass,
+                   fld_cnt);
     cls_name = Symbols::New(thread, name_buffer);
     Class::NewNativeWrapper(native_flds_lib, cls_name, fld_cnt);
   }
@@ -11465,8 +11549,8 @@ void Library::AllocatePrivateKey() const {
   intptr_t sequence_value = libs.Length();
 
   char private_key[32];
-  OS::SNPrint(private_key, sizeof(private_key), "%c%" Pd "%06" Pd "",
-              kPrivateKeySeparator, sequence_value, hash_value);
+  Utils::SNPrint(private_key, sizeof(private_key), "%c%" Pd "%06" Pd "",
+                 kPrivateKeySeparator, sequence_value, hash_value);
   const String& key =
       String::Handle(zone, String::New(private_key, Heap::kOld));
   key.Hash();  // This string may end up in the VM isolate.
@@ -12180,8 +12264,6 @@ RawError* Library::CompileAll() {
       if (result.IsError()) {
         return Error::Cast(result).raw();
       }
-      func.ClearICDataArray();
-      func.ClearCode();
     }
   }
   return Error::null();
@@ -12463,8 +12545,10 @@ void ObjectPool::DebugPrint() const {
       RawObject* obj = ObjectAt(i);
       THR_Print("0x%" Px " %s (obj)\n", reinterpret_cast<uword>(obj),
                 Object::Handle(obj).ToCString());
-    } else if (TypeAt(i) == kNativeEntry) {
-      THR_Print("0x%" Px " (native entry)\n", RawValueAt(i));
+    } else if (TypeAt(i) == kNativeFunction) {
+      THR_Print("0x%" Px " (native function)\n", RawValueAt(i));
+    } else if (TypeAt(i) == kNativeFunctionWrapper) {
+      THR_Print("0x%" Px " (native function wrapper)\n", RawValueAt(i));
     } else {
       THR_Print("0x%" Px " (raw)\n", RawValueAt(i));
     }
@@ -12569,9 +12653,9 @@ const char* PcDescriptors::ToCString() const {
   {
     Iterator iter(*this, RawPcDescriptors::kAnyKind);
     while (iter.MoveNext()) {
-      len += OS::SNPrint(NULL, 0, FORMAT, addr_width, iter.PcOffset(),
-                         KindAsStr(iter.Kind()), iter.DeoptId(),
-                         iter.TokenPos().ToCString(), iter.TryIndex());
+      len += Utils::SNPrint(NULL, 0, FORMAT, addr_width, iter.PcOffset(),
+                            KindAsStr(iter.Kind()), iter.DeoptId(),
+                            iter.TokenPos().ToCString(), iter.TryIndex());
     }
   }
   // Allocate the buffer.
@@ -12581,9 +12665,9 @@ const char* PcDescriptors::ToCString() const {
   Iterator iter(*this, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
     index +=
-        OS::SNPrint((buffer + index), (len - index), FORMAT, addr_width,
-                    iter.PcOffset(), KindAsStr(iter.Kind()), iter.DeoptId(),
-                    iter.TokenPos().ToCString(), iter.TryIndex());
+        Utils::SNPrint((buffer + index), (len - index), FORMAT, addr_width,
+                       iter.PcOffset(), KindAsStr(iter.Kind()), iter.DeoptId(),
+                       iter.TokenPos().ToCString(), iter.TryIndex());
   }
   return buffer;
 #undef FORMAT
@@ -12755,7 +12839,7 @@ const char* StackMap::ToCString() const {
   if (IsNull()) {
     return "{null}";
   } else {
-    intptr_t fixed_length = OS::SNPrint(NULL, 0, FORMAT, PcOffset()) + 1;
+    intptr_t fixed_length = Utils::SNPrint(NULL, 0, FORMAT, PcOffset()) + 1;
     Thread* thread = Thread::Current();
     // Guard against integer overflow in the computation of alloc_size.
     //
@@ -12766,7 +12850,7 @@ const char* StackMap::ToCString() const {
     }
     intptr_t alloc_size = fixed_length + Length();
     char* chars = thread->zone()->Alloc<char>(alloc_size);
-    intptr_t index = OS::SNPrint(chars, alloc_size, FORMAT, PcOffset());
+    intptr_t index = Utils::SNPrint(chars, alloc_size, FORMAT, PcOffset());
     for (intptr_t i = 0; i < Length(); i++) {
       chars[index++] = IsObject(i) ? '1' : '0';
     }
@@ -12805,15 +12889,15 @@ static int PrintVarInfo(char* buffer,
   const RawLocalVarDescriptors::VarInfoKind kind = info.kind();
   const int32_t index = info.index();
   if (kind == RawLocalVarDescriptors::kContextLevel) {
-    return OS::SNPrint(buffer, len,
-                       "%2" Pd
-                       " %-13s level=%-3d"
-                       " begin=%-3d end=%d\n",
-                       i, LocalVarDescriptors::KindToCString(kind), index,
-                       static_cast<int>(info.begin_pos.value()),
-                       static_cast<int>(info.end_pos.value()));
+    return Utils::SNPrint(buffer, len,
+                          "%2" Pd
+                          " %-13s level=%-3d"
+                          " begin=%-3d end=%d\n",
+                          i, LocalVarDescriptors::KindToCString(kind), index,
+                          static_cast<int>(info.begin_pos.value()),
+                          static_cast<int>(info.end_pos.value()));
   } else if (kind == RawLocalVarDescriptors::kContextVar) {
-    return OS::SNPrint(
+    return Utils::SNPrint(
         buffer, len,
         "%2" Pd
         " %-13s level=%-3d index=%-3d"
@@ -12822,7 +12906,7 @@ static int PrintVarInfo(char* buffer,
         static_cast<int>(info.begin_pos.Pos()),
         static_cast<int>(info.end_pos.Pos()), var_name.ToCString());
   } else {
-    return OS::SNPrint(
+    return Utils::SNPrint(
         buffer, len,
         "%2" Pd
         " %-13s scope=%-3d index=%-3d"
@@ -13045,13 +13129,13 @@ const char* ExceptionHandlers::ToCString() const {
     handled_types = GetHandledTypes(i);
     const intptr_t num_types =
         handled_types.IsNull() ? 0 : handled_types.Length();
-    len += OS::SNPrint(NULL, 0, FORMAT1, i, info.handler_pc_offset, num_types,
-                       info.outer_try_index,
-                       info.is_generated ? "(generated)" : "");
+    len += Utils::SNPrint(NULL, 0, FORMAT1, i, info.handler_pc_offset,
+                          num_types, info.outer_try_index,
+                          info.is_generated ? "(generated)" : "");
     for (int k = 0; k < num_types; k++) {
       type ^= handled_types.At(k);
       ASSERT(!type.IsNull());
-      len += OS::SNPrint(NULL, 0, FORMAT2, k, type.ToCString());
+      len += Utils::SNPrint(NULL, 0, FORMAT2, k, type.ToCString());
     }
   }
   // Allocate the buffer.
@@ -13064,13 +13148,13 @@ const char* ExceptionHandlers::ToCString() const {
     const intptr_t num_types =
         handled_types.IsNull() ? 0 : handled_types.Length();
     num_chars +=
-        OS::SNPrint((buffer + num_chars), (len - num_chars), FORMAT1, i,
-                    info.handler_pc_offset, num_types, info.outer_try_index,
-                    info.is_generated ? "(generated)" : "");
+        Utils::SNPrint((buffer + num_chars), (len - num_chars), FORMAT1, i,
+                       info.handler_pc_offset, num_types, info.outer_try_index,
+                       info.is_generated ? "(generated)" : "");
     for (int k = 0; k < num_types; k++) {
       type ^= handled_types.At(k);
-      num_chars += OS::SNPrint((buffer + num_chars), (len - num_chars), FORMAT2,
-                               k, type.ToCString());
+      num_chars += Utils::SNPrint((buffer + num_chars), (len - num_chars),
+                                  FORMAT2, k, type.ToCString());
     }
   }
   return buffer;
@@ -15843,7 +15927,9 @@ bool Instance::IsInstanceOf(
   }
   other_type_arguments = instantiated_other.arguments();
   const bool other_is_dart_function = instantiated_other.IsDartFunctionType();
-  if (other_is_dart_function || instantiated_other.IsFunctionType()) {
+  // In strong mode, subtyping rules of callable instances are restricted.
+  if (!isolate->strong() &&
+      (other_is_dart_function || instantiated_other.IsFunctionType())) {
     // Check if this instance understands a call() method of a compatible type.
     Function& sig_fun =
         Function::Handle(zone, cls.LookupCallFunctionForTypeTest());
@@ -16467,6 +16553,10 @@ RawString* AbstractType::ClassName() const {
   }
 }
 
+bool AbstractType::IsNullTypeRef() const {
+  return IsTypeRef() && (TypeRef::Cast(*this).type() == AbstractType::null());
+}
+
 bool AbstractType::IsDynamicType() const {
   if (IsCanonical()) {
     return raw() == Object::dynamic_type().raw();
@@ -16708,22 +16798,26 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
       return fun.TypeTest(test_kind, other_fun, bound_error, bound_trail,
                           space);
     }
-    // Check if type S has a call() method of function type T.
-    const Function& call_function =
-        Function::Handle(zone, type_cls.LookupCallFunctionForTypeTest());
-    if (!call_function.IsNull()) {
-      if (other_is_dart_function_type) {
-        return true;
-      }
-      // Shortcut the test involving the call function if the
-      // pair <this, other> is already in the trail.
-      if (TestAndAddBuddyToTrail(&bound_trail, other)) {
-        return true;
-      }
-      if (call_function.TypeTest(
-              test_kind, Function::Handle(zone, Type::Cast(other).signature()),
-              bound_error, bound_trail, space)) {
-        return true;
+    // In strong mode, subtyping rules of callable instances are restricted.
+    if (!isolate->strong()) {
+      // Check if type S has a call() method of function type T.
+      const Function& call_function =
+          Function::Handle(zone, type_cls.LookupCallFunctionForTypeTest());
+      if (!call_function.IsNull()) {
+        if (other_is_dart_function_type) {
+          return true;
+        }
+        // Shortcut the test involving the call function if the
+        // pair <this, other> is already in the trail.
+        if (TestAndAddBuddyToTrail(&bound_trail, other)) {
+          return true;
+        }
+        if (call_function.TypeTest(
+                test_kind,
+                Function::Handle(zone, Type::Cast(other).signature()),
+                bound_error, bound_trail, space)) {
+          return true;
+        }
       }
     }
   }
@@ -17449,15 +17543,18 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
 
-  // Since void is a keyword, we never have to canonicalize the void type after
-  // it is canonicalized once by the vm isolate. The parser does the mapping.
-  ASSERT((type_class_id() != kVoidCid) || (isolate == Dart::vm_isolate()));
+  if ((type_class_id() == kVoidCid) && (isolate != Dart::vm_isolate())) {
+    ASSERT(Object::void_type().IsCanonical());
+    return Object::void_type().raw();
+  }
 
-  // Since dynamic is not a keyword, the parser builds a type that requires
-  // canonicalization.
   if ((type_class_id() == kDynamicCid) && (isolate != Dart::vm_isolate())) {
     ASSERT(Object::dynamic_type().IsCanonical());
     return Object::dynamic_type().raw();
+  }
+  if ((type_class_id() == kVectorCid) && (isolate != Dart::vm_isolate())) {
+    ASSERT(Object::vector_type().IsCanonical());
+    return Object::vector_type().raw();
   }
 
   const Class& cls = Class::Handle(zone, type_class());
@@ -17894,16 +17991,13 @@ const char* TypeRef::ToCString() const {
   if (ref_type.IsNull()) {
     return "TypeRef: null";
   }
-  const char* type_cstr =
-      String::Handle(Class::Handle(type_class()).Name()).ToCString();
+  const char* type_cstr = String::Handle(ref_type.Name()).ToCString();
   if (ref_type.IsFinalized()) {
     const intptr_t hash = ref_type.Hash();
-    return OS::SCreate(Thread::Current()->zone(),
-                       "TypeRef: %s<...> (@%p H%" Px ")", type_cstr,
-                       ref_type.raw(), hash);
+    return OS::SCreate(Thread::Current()->zone(), "TypeRef: %s (@%p H%" Px ")",
+                       type_cstr, ref_type.raw(), hash);
   } else {
-    return OS::SCreate(Thread::Current()->zone(), "TypeRef: %s<...>",
-                       type_cstr);
+    return OS::SCreate(Thread::Current()->zone(), "TypeRef: %s", type_cstr);
   }
 }
 
@@ -18224,11 +18318,12 @@ const char* TypeParameter::ToCString() const {
         "TypeParameter: name %s; index: %d; function: %s; bound: %s";
     const Function& function = Function::Handle(parameterized_function());
     const char* fun_cstr = String::Handle(function.name()).ToCString();
-    intptr_t len =
-        OS::SNPrint(NULL, 0, format, name_cstr, index(), fun_cstr, bound_cstr) +
-        1;
+    intptr_t len = Utils::SNPrint(NULL, 0, format, name_cstr, index(), fun_cstr,
+                                  bound_cstr) +
+                   1;
     char* chars = Thread::Current()->zone()->Alloc<char>(len);
-    OS::SNPrint(chars, len, format, name_cstr, index(), fun_cstr, bound_cstr);
+    Utils::SNPrint(chars, len, format, name_cstr, index(), fun_cstr,
+                   bound_cstr);
     return chars;
   } else {
     const char* format =
@@ -18236,11 +18331,12 @@ const char* TypeParameter::ToCString() const {
     const Class& cls = Class::Handle(parameterized_class());
     const char* cls_cstr =
         cls.IsNull() ? " null" : String::Handle(cls.Name()).ToCString();
-    intptr_t len =
-        OS::SNPrint(NULL, 0, format, name_cstr, index(), cls_cstr, bound_cstr) +
-        1;
+    intptr_t len = Utils::SNPrint(NULL, 0, format, name_cstr, index(), cls_cstr,
+                                  bound_cstr) +
+                   1;
     char* chars = Thread::Current()->zone()->Alloc<char>(len);
-    OS::SNPrint(chars, len, format, name_cstr, index(), cls_cstr, bound_cstr);
+    Utils::SNPrint(chars, len, format, name_cstr, index(), cls_cstr,
+                   bound_cstr);
     return chars;
   }
 }
@@ -18473,12 +18569,12 @@ const char* BoundedType::ToCString() const {
   const char* type_param_cstr = String::Handle(type_param.name()).ToCString();
   const Class& cls = Class::Handle(type_param.parameterized_class());
   const char* cls_cstr = String::Handle(cls.Name()).ToCString();
-  intptr_t len = OS::SNPrint(NULL, 0, format, type_cstr, bound_cstr,
-                             type_param_cstr, cls_cstr) +
+  intptr_t len = Utils::SNPrint(NULL, 0, format, type_cstr, bound_cstr,
+                                type_param_cstr, cls_cstr) +
                  1;
   char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, type_cstr, bound_cstr, type_param_cstr,
-              cls_cstr);
+  Utils::SNPrint(chars, len, format, type_cstr, bound_cstr, type_param_cstr,
+                 cls_cstr);
   return chars;
 }
 
@@ -18501,9 +18597,10 @@ const char* MixinAppType::ToCString() const {
   const char* first_mixin_type_cstr =
       String::Handle(AbstractType::Handle(MixinTypeAt(0)).Name()).ToCString();
   intptr_t len =
-      OS::SNPrint(NULL, 0, format, super_type_cstr, first_mixin_type_cstr) + 1;
+      Utils::SNPrint(NULL, 0, format, super_type_cstr, first_mixin_type_cstr) +
+      1;
   char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, super_type_cstr, first_mixin_type_cstr);
+  Utils::SNPrint(chars, len, format, super_type_cstr, first_mixin_type_cstr);
   return chars;
 }
 
@@ -18579,7 +18676,7 @@ RawInstance* Number::CheckAndCanonicalize(Thread* thread,
         }
         ASSERT(result.IsOld());
         result.SetCanonical();
-        cls.InsertCanonicalNumber(zone, index, result);
+        cls.InsertCanonicalBigint(zone, index, result);
         return result.raw();
       }
     }
@@ -18600,12 +18697,12 @@ bool Number::CheckIsCanonical(Thread* thread) const {
       return true;
     case kMintCid: {
       Mint& result = Mint::Handle(zone);
-      result ^= cls.LookupCanonicalMint(zone, Mint::Cast(*this).value(), &idx);
+      result ^= cls.LookupCanonicalMint(zone, Mint::Cast(*this).value());
       return (result.raw() == this->raw());
     }
     case kDoubleCid: {
       Double& dbl = Double::Handle(zone);
-      dbl ^= cls.LookupCanonicalDouble(zone, Double::Cast(*this).value(), &idx);
+      dbl ^= cls.LookupCanonicalDouble(zone, Double::Cast(*this).value());
       return (dbl.raw() == this->raw());
     }
     case kBigintCid: {
@@ -19087,8 +19184,7 @@ RawMint* Mint::NewCanonical(int64_t value) {
   Isolate* isolate = thread->isolate();
   const Class& cls = Class::Handle(zone, isolate->object_store()->mint_class());
   Mint& canonical_value = Mint::Handle(zone);
-  intptr_t index = 0;
-  canonical_value ^= cls.LookupCanonicalMint(zone, value, &index);
+  canonical_value ^= cls.LookupCanonicalMint(zone, value);
   if (!canonical_value.IsNull()) {
     return canonical_value.raw();
   }
@@ -19096,7 +19192,7 @@ RawMint* Mint::NewCanonical(int64_t value) {
     SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
     // Retry lookup.
     {
-      canonical_value ^= cls.LookupCanonicalMint(zone, value, &index);
+      canonical_value ^= cls.LookupCanonicalMint(zone, value);
       if (!canonical_value.IsNull()) {
         return canonical_value.raw();
       }
@@ -19105,7 +19201,7 @@ RawMint* Mint::NewCanonical(int64_t value) {
     canonical_value.SetCanonical();
     // The value needs to be added to the constants list. Grow the list if
     // it is full.
-    cls.InsertCanonicalNumber(zone, index, canonical_value);
+    cls.InsertCanonicalMint(zone, canonical_value);
     return canonical_value.raw();
   }
 }
@@ -19223,9 +19319,8 @@ RawDouble* Double::NewCanonical(double value) {
   // Linear search to see whether this value is already present in the
   // list of canonicalized constants.
   Double& canonical_value = Double::Handle(zone);
-  intptr_t index = 0;
 
-  canonical_value ^= cls.LookupCanonicalDouble(zone, value, &index);
+  canonical_value ^= cls.LookupCanonicalDouble(zone, value);
   if (!canonical_value.IsNull()) {
     return canonical_value.raw();
   }
@@ -19233,16 +19328,15 @@ RawDouble* Double::NewCanonical(double value) {
     SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
     // Retry lookup.
     {
-      canonical_value ^= cls.LookupCanonicalDouble(zone, value, &index);
+      canonical_value ^= cls.LookupCanonicalDouble(zone, value);
       if (!canonical_value.IsNull()) {
         return canonical_value.raw();
       }
     }
     canonical_value = Double::New(value, Heap::kOld);
     canonical_value.SetCanonical();
-    // The value needs to be added to the constants list. Grow the list if
-    // it is full.
-    cls.InsertCanonicalNumber(zone, index, canonical_value);
+    // The value needs to be added to the constants list.
+    cls.InsertCanonicalDouble(zone, canonical_value);
     return canonical_value.raw();
   }
 }
@@ -19539,7 +19633,7 @@ RawBigint* Bigint::NewCanonical(const String& str) {
     value.SetCanonical();
     // The value needs to be added to the constants list. Grow the list if
     // it is full.
-    cls.InsertCanonicalNumber(zone, index, value);
+    cls.InsertCanonicalBigint(zone, index, value);
     return value.raw();
   }
 }
@@ -20697,12 +20791,12 @@ RawString* String::NewFormattedV(const char* format,
                                  Heap::Space space) {
   va_list args_copy;
   va_copy(args_copy, args);
-  intptr_t len = OS::VSNPrint(NULL, 0, format, args_copy);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, args_copy);
   va_end(args_copy);
 
   Zone* zone = Thread::Current()->zone();
   char* buffer = zone->Alloc<char>(len + 1);
-  OS::VSNPrint(buffer, (len + 1), format, args);
+  Utils::VSNPrint(buffer, (len + 1), format, args);
 
   return String::New(buffer, space);
 }
@@ -21614,6 +21708,19 @@ uword Array::ComputeCanonicalTableHash() const {
 RawArray* Array::New(intptr_t len, Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->array_class() != Class::null());
   return New(kClassId, len, space);
+}
+
+RawArray* Array::New(intptr_t len,
+                     const AbstractType& element_type,
+                     Heap::Space space) {
+  const Array& result = Array::Handle(Array::New(len, space));
+  if (!element_type.IsDynamicType()) {
+    TypeArguments& type_args = TypeArguments::Handle(TypeArguments::New(1));
+    type_args.SetTypeAt(0, element_type);
+    type_args = type_args.Canonicalize();
+    result.SetTypeArguments(type_args);
+  }
+  return result.raw();
 }
 
 RawArray* Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
@@ -22556,15 +22663,17 @@ static void PrintStackTraceFrame(Zone* zone,
       }
     }
   }
+
+  const char* url_string = url.ToCString();
   if (column >= 0) {
     buffer->Printf("#%-6" Pd " %s (%s:%" Pd ":%" Pd ")\n", frame_index,
-                   function_name.ToCString(), url.ToCString(), line, column);
+                   function_name.ToCString(), url_string, line, column);
   } else if (line >= 0) {
     buffer->Printf("#%-6" Pd " %s (%s:%" Pd ")\n", frame_index,
-                   function_name.ToCString(), url.ToCString(), line);
+                   function_name.ToCString(), url_string, line);
   } else {
     buffer->Printf("#%-6" Pd " %s (%s)\n", frame_index,
-                   function_name.ToCString(), url.ToCString());
+                   function_name.ToCString(), url_string);
   }
 }
 

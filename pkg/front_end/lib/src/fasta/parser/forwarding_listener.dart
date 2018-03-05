@@ -8,6 +8,7 @@ import '../scanner.dart';
 
 class ForwardingListener implements Listener {
   Listener listener;
+  bool forwardErrors = true;
 
   ForwardingListener([this.listener]);
 
@@ -280,8 +281,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginMethod() {
-    listener?.beginMethod();
+  void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
+      Token varFinalOrConst, Token name) {
+    listener?.beginMethod(
+        externalToken, staticToken, covariantToken, varFinalOrConst, name);
   }
 
   @override
@@ -400,8 +403,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginVariablesDeclaration(Token token) {
-    listener?.beginVariablesDeclaration(token);
+  void beginVariablesDeclaration(Token token, Token varFinalOrConst) {
+    listener?.beginVariablesDeclaration(token, varFinalOrConst);
   }
 
   @override
@@ -1028,6 +1031,10 @@ class ForwardingListener implements Listener {
     listener?.handleInvalidTypeReference(token);
   }
 
+  void handleInvalidTopLevelBlock(Token token) {
+    listener?.handleInvalidTopLevelBlock(token);
+  }
+
   @override
   void handleInvalidTopLevelDeclaration(Token endToken) {
     listener?.handleInvalidTopLevelDeclaration(endToken);
@@ -1203,7 +1210,9 @@ class ForwardingListener implements Listener {
   @override
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
-    listener?.handleRecoverableError(message, startToken, endToken);
+    if (forwardErrors) {
+      listener?.handleRecoverableError(message, startToken, endToken);
+    }
   }
 
   @override

@@ -36,6 +36,8 @@ class String;
 //    scope.
 
 typedef void (*NativeFunction)(NativeArguments* arguments);
+typedef void (*NativeFunctionWrapper)(Dart_NativeArguments args,
+                                      Dart_NativeFunction func);
 
 #ifndef PRODUCT
 #define TRACE_NATIVE_CALL(format, name)                                        \
@@ -127,6 +129,12 @@ class NativeEntry : public AllStatic {
                                                uword pc);
   static const uint8_t* ResolveSymbol(uword pc);
 
+#if defined(TARGET_ARCH_DBC)
+  static uword BootstrapNativeCallWrapperEntry();
+  static void BootstrapNativeCallWrapper(Dart_NativeArguments args,
+                                         Dart_NativeFunction func);
+#endif
+
   static uword NoScopeNativeCallWrapperEntry();
   static void NoScopeNativeCallWrapper(Dart_NativeArguments args,
                                        Dart_NativeFunction func);
@@ -135,11 +143,8 @@ class NativeEntry : public AllStatic {
   static void AutoScopeNativeCallWrapper(Dart_NativeArguments args,
                                          Dart_NativeFunction func);
 
-// DBC does not support lazy native call linking.
-#if !defined(TARGET_ARCH_DBC)
   static uword LinkNativeCallEntry();
   static void LinkNativeCall(Dart_NativeArguments args);
-#endif
 
  private:
   static void NoScopeNativeCallWrapperNoStackCheck(Dart_NativeArguments args,

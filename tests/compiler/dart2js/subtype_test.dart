@@ -315,12 +315,12 @@ Future testCallableSubtype(CompileMode compileMode) async {
     ClassEntity classA = env.getClass('A');
     DartType A = env.elementEnvironment.getRawType(classA);
     DartType function = env['Function'];
-    DartType call = env.getMemberType(classA, 'call');
-    DartType m1 = env.getMemberType(classA, 'm1');
-    DartType m2 = env.getMemberType(classA, 'm2');
-    DartType m3 = env.getMemberType(classA, 'm3');
-    DartType m4 = env.getMemberType(classA, 'm4');
-    DartType m5 = env.getMemberType(classA, 'm5');
+    DartType call = env.getMemberType('call', classA);
+    DartType m1 = env.getMemberType('m1', classA);
+    DartType m2 = env.getMemberType('m2', classA);
+    DartType m3 = env.getMemberType('m3', classA);
+    DartType m4 = env.getMemberType('m4', classA);
+    DartType m5 = env.getMemberType('m5', classA);
 
     expect(true, A, function);
     expect(true, A, call);

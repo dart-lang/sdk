@@ -10,13 +10,7 @@ import 'package:yaml/yaml.dart' show loadYaml;
 
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 
-Map<String, String> severityEnumNames = <String, String>{
-  'NIT': 'nit',
-  'WARNING': 'warning',
-  'ERROR': 'error',
-  'ERROR_LEGACY_WARNING': 'errorLegacyWarning',
-  'INTERNAL_PROBLEM': 'internalProblem',
-};
+import "package:front_end/src/fasta/severity.dart" show severityEnumNames;
 
 main(List<String> arguments) async {
   var port = new ReceivePort();
@@ -25,14 +19,14 @@ main(List<String> arguments) async {
   StringBuffer sb = new StringBuffer();
 
   sb.writeln("""
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/front_end/messages.yaml' and run
-// 'pkg/front_end/tool/_fasta/generate_messages.dart' to update.
+// 'pkg/front_end/tool/fasta generate-messages' to update.
 
 part of fasta.codes;
 """);

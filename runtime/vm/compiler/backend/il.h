@@ -350,7 +350,10 @@ typedef MallocGrowableArray<CidRange> CidRangeVector;
 class HierarchyInfo : public StackResource {
  public:
   explicit HierarchyInfo(Thread* thread)
-      : StackResource(thread), thread_(thread), cid_subtype_ranges_(NULL) {
+      : StackResource(thread),
+        thread_(thread),
+        cid_subtype_ranges_(NULL),
+        cid_subclass_ranges_(NULL) {
     thread->set_hierarchy_info(this);
   }
 
@@ -359,17 +362,45 @@ class HierarchyInfo : public StackResource {
 
     delete[] cid_subtype_ranges_;
     cid_subtype_ranges_ = NULL;
+
+    delete[] cid_subclass_ranges_;
+    cid_subclass_ranges_ = NULL;
   }
 
   const CidRangeVector& SubtypeRangesForClass(const Class& klass);
+  const CidRangeVector& SubclassRangesForClass(const Class& klass);
 
   bool InstanceOfHasClassRange(const AbstractType& type,
                                intptr_t* lower_limit,
                                intptr_t* upper_limit);
 
+  // Returns `true` if a simple [CidRange]-based subtype-check can be used to
+  // determine if a given instance's type is a subtype of [type].
+  //
+  // This is the case for [type]s without type arguments or where the type
+  // arguments are all dynamic (known as "rare type").
+  bool CanUseSubtypeRangeCheckFor(const AbstractType& type);
+
+  // Returns `true` if a combination of [CidRange]-based checks can be used to
+  // determine if a given instance's type is a subtype of [type].
+  //
+  // This is the case for [type]s with type arguments where we are able to do a
+  // [CidRange]-based subclass-check against the class and [CidRange]-based
+  // subtype-checks against the type arguments.
+  //
+  // This method should only be called if [CanUseSubtypeRangecheckFor] returned
+  // false.
+  bool CanUseGenericSubtypeRangeCheckFor(const AbstractType& type);
+
  private:
+  void BuildRangesFor(ClassTable* table,
+                      CidRangeVector* ranges,
+                      const Class& klass,
+                      bool use_subtype_test);
+
   Thread* thread_;
   CidRangeVector* cid_subtype_ranges_;
+  CidRangeVector* cid_subclass_ranges_;
 };
 
 // An embedded container with N elements of type T.  Used (with partial
@@ -3019,16 +3050,12 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
                    intptr_t type_args_len,
                    const Array& argument_names,
                    PushArgumentsArray* arguments,
-                   TokenPosition token_pos,
-                   intptr_t argument_check_bits = 0,
-                   intptr_t type_argument_check_bits = 0)
+                   TokenPosition token_pos)
       : TemplateDefinition<kInputCount, Throws>(deopt_id),
         type_args_len_(type_args_len),
         argument_names_(argument_names),
         arguments_(arguments),
-        token_pos_(token_pos),
-        argument_check_bits_(argument_check_bits),
-        type_argument_check_bits_(type_argument_check_bits) {
+        token_pos_(token_pos) {
     ASSERT(argument_names.IsZoneHandle() || argument_names.InVMHeap());
   }
 
@@ -3047,13 +3074,7 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
   virtual TokenPosition token_pos() const { return token_pos_; }
   RawArray* GetArgumentsDescriptor() const {
     return ArgumentsDescriptor::New(
-        type_args_len(), ArgumentCountWithoutTypeArgs(), argument_names(),
-        argument_check_bits(), type_argument_check_bits());
-  }
-
-  intptr_t argument_check_bits() const { return argument_check_bits_; }
-  intptr_t type_argument_check_bits() const {
-    return type_argument_check_bits_;
+        type_args_len(), ArgumentCountWithoutTypeArgs(), argument_names());
   }
 
  private:
@@ -3061,12 +3082,6 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
   const Array& argument_names_;
   PushArgumentsArray* arguments_;
   TokenPosition token_pos_;
-
-  // One bit per argument (up to word size) which helps the callee decide which
-  // arguments it needs to check. See the comments in ArgumentsDescriptor for
-  // more information on strong-mode checked calls.
-  intptr_t argument_check_bits_;
-  intptr_t type_argument_check_bits_;
 
   DISALLOW_COPY_AND_ASSIGN(TemplateDartCall);
 };
@@ -3128,16 +3143,12 @@ class InstanceCallInstr : public TemplateDartCall<0> {
       intptr_t checked_argument_count,
       const ZoneGrowableArray<const ICData*>& ic_data_array,
       intptr_t deopt_id,
-      const Function& interface_target = Function::null_function(),
-      intptr_t argument_check_bits = 0,
-      intptr_t type_argument_check_bits = 0)
+      const Function& interface_target = Function::null_function())
       : TemplateDartCall(deopt_id,
                          type_args_len,
                          argument_names,
                          arguments,
-                         token_pos,
-                         argument_check_bits,
-                         type_argument_check_bits),
+                         token_pos),
         ic_data_(NULL),
         function_name_(function_name),
         token_kind_(token_kind),
@@ -3168,16 +3179,12 @@ class InstanceCallInstr : public TemplateDartCall<0> {
       const Array& argument_names,
       intptr_t checked_argument_count,
       intptr_t deopt_id,
-      const Function& interface_target = Function::null_function(),
-      intptr_t argument_check_bits = 0,
-      intptr_t type_argument_check_bits = 0)
+      const Function& interface_target = Function::null_function())
       : TemplateDartCall(deopt_id,
                          type_args_len,
                          argument_names,
                          arguments,
-                         token_pos,
-                         argument_check_bits,
-                         type_argument_check_bits),
+                         token_pos),
         ic_data_(NULL),
         function_name_(function_name),
         token_kind_(token_kind),
@@ -3638,16 +3645,12 @@ class StaticCallInstr : public TemplateDartCall<0> {
                   PushArgumentsArray* arguments,
                   const ZoneGrowableArray<const ICData*>& ic_data_array,
                   intptr_t deopt_id,
-                  ICData::RebindRule rebind_rule,
-                  intptr_t argument_check_bits = 0,
-                  intptr_t type_argument_check_bits = 0)
+                  ICData::RebindRule rebind_rule)
       : TemplateDartCall(deopt_id,
                          type_args_len,
                          argument_names,
                          arguments,
-                         token_pos,
-                         argument_check_bits,
-                         type_argument_check_bits),
+                         token_pos),
         ic_data_(NULL),
         call_count_(0),
         function_(function),
@@ -3667,14 +3670,12 @@ class StaticCallInstr : public TemplateDartCall<0> {
                   PushArgumentsArray* arguments,
                   intptr_t deopt_id,
                   intptr_t call_count,
-                  ICData::RebindRule rebind_rule,
-                  intptr_t argument_check_bits = 0)
+                  ICData::RebindRule rebind_rule)
       : TemplateDartCall(deopt_id,
                          type_args_len,
                          argument_names,
                          arguments,
-                         token_pos,
-                         argument_check_bits),
+                         token_pos),
         ic_data_(NULL),
         call_count_(call_count),
         function_(function),

@@ -70,7 +70,6 @@ final subpackageRules = {
     'lib/src/base',
     'lib/src/fasta/builder',
     'lib/src/fasta/dill',
-    'lib/src/fasta/graph',
     'lib/src/fasta/kernel',
     'lib/src/fasta/parser',
     'lib/src/fasta/scanner',
@@ -88,7 +87,6 @@ final subpackageRules = {
     'lib/src/fasta',
     'lib/src/fasta/kernel',
   ]),
-  'lib/src/fasta/graph': new SubpackageRules(),
   'lib/src/fasta/kernel': new SubpackageRules(allowedDependencies: [
     'lib/src/api_prototype',
     'lib/src/fasta',

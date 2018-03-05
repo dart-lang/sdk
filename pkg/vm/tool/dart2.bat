@@ -35,4 +35,4 @@ if "%DART_USE_SDK%"=="1" (
 )
 set KERNEL_SERVICE_SNAPSHOT=%BUILD_DIR%/gen/kernel-service.dart.snapshot
 
-"%DART_BINARY%" --strong --reify-generic-functions --limit-ints-to-64-bits --dfe="%KERNEL_SERVICE_SNAPSHOT%" --kernel-binaries="%KERNEL_BINARIES_DIR%" %*
+"%DART_BINARY%" --preview_dart_2 --strong --reify-generic-functions --limit-ints-to-64-bits %*

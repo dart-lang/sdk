@@ -86,9 +86,7 @@ enum _OptionValueType { bool, int, string }
 class OptionsParser {
   static final List<_Option> _options = [
     new _Option('mode', 'Mode in which to run the tests.',
-        abbr: 'm',
-        values: ['all']..addAll(Mode.names),
-        defaultsTo: Mode.debug.name),
+        abbr: 'm', values: ['all']..addAll(Mode.names)),
     new _Option(
         'compiler',
         '''How the Dart code should be compiled or statically processed.
@@ -174,6 +172,9 @@ simdbc, simdbc64''',
     // TODO(sigmund): replace dart2js_with_kernel with preview-dart-2.
     new _Option.bool(
         'dart2js_with_kernel', 'Pass the --use-kernel flag to dart2js.',
+        hide: true),
+    new _Option.bool(
+        'dart2js_old_frontend', 'Pass the --use-old-frontend flag to dart2js.',
         hide: true),
     new _Option.bool('hot_reload', 'Run hot reload stress tests.', hide: true),
     new _Option.bool(
@@ -613,7 +614,7 @@ compiler.''',
         // Expand compilers.
         for (var compiler in compilers) {
           // Expand modes.
-          var modes = data["mode"] as String;
+          String modes = data["mode"] ?? compiler.defaultMode.name;
           if (modes == "all") modes = "debug,release,product";
           for (var modeName in modes.split(",")) {
             var mode = Mode.find(modeName);
@@ -651,6 +652,7 @@ compiler.''',
                 useFastStartup: data["fast_startup"] as bool,
                 useEnableAsserts: data["enable_asserts"] as bool,
                 useDart2JSWithKernel: data["dart2js_with_kernel"] as bool,
+                useDart2JSOldFrontend: data["dart2js_old_frontend"] as bool,
                 writeDebugLog: data["write_debug_log"] as bool,
                 writeTestOutcomeLog: data["write_test_outcome_log"] as bool,
                 writeResultLog: data["write_result_log"] as bool,

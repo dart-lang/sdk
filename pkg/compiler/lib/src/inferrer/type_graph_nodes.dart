@@ -1212,7 +1212,8 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
           TypeMask arg = arguments.positional[0].type;
           if (arg is ValueTypeMask && arg.value.isString) {
             DictionaryTypeMask dictionaryTypeMask = typeMask;
-            String key = arg.value.primitiveValue;
+            StringConstantValue value = arg.value;
+            String key = value.stringValue;
             if (dictionaryTypeMask.typeMap.containsKey(key)) {
               if (debug.VERBOSE) {
                 print("Dictionary lookup for $key yields "

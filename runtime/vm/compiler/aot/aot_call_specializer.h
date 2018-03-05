@@ -23,7 +23,7 @@ class AotCallSpecializer : public CallSpecializer {
   // TODO(dartbug.com/30633) these method has nothing to do with
   // specialization of calls. They are here for historical reasons.
   // Find a better place for them.
-  void ReplaceArrayBoundChecks();
+  static void ReplaceArrayBoundChecks(FlowGraph* flow_graph);
 
   virtual void VisitInstanceCall(InstanceCallInstr* instr);
   virtual void VisitStaticCall(StaticCallInstr* instr);
@@ -42,7 +42,7 @@ class AotCallSpecializer : public CallSpecializer {
   bool TryCreateICDataForUniqueTarget(InstanceCallInstr* call);
 
   bool RecognizeRuntimeTypeGetter(InstanceCallInstr* call);
-  bool TryReplaceWithHaveSameRuntimeType(InstanceCallInstr* call);
+  bool TryReplaceWithHaveSameRuntimeType(TemplateDartCall<0>* call);
 
   bool TryInlineFieldAccess(InstanceCallInstr* call);
   bool TryInlineFieldAccess(StaticCallInstr* call);

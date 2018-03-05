@@ -145,12 +145,15 @@ class KernelLoader {
   void AnnotateNativeProcedures(const Array& constant_table);
   void LoadNativeExtensionLibraries(const Array& constant_table);
 
-  const String& DartSymbol(StringIndex index) {
-    return translation_helper_.DartSymbol(index);
+  const String& DartSymbolPlain(StringIndex index) {
+    return translation_helper_.DartSymbolPlain(index);
+  }
+  const String& DartSymbolObfuscate(StringIndex index) {
+    return translation_helper_.DartSymbolObfuscate(index);
   }
 
   const String& LibraryUri(intptr_t library_index) {
-    return translation_helper_.DartSymbol(
+    return translation_helper_.DartSymbolPlain(
         translation_helper_.CanonicalNameString(
             library_canonical_name(library_index)));
   }
@@ -189,6 +192,10 @@ class KernelLoader {
 
   void LoadPreliminaryClass(ClassHelper* class_helper,
                             intptr_t type_parameter_count);
+
+  void CheckForInitializer(const Field& field);
+
+  void FixCoreLibraryScriptUri(const Library& library, const Script& script);
 
   Class& LoadClass(const Library& library,
                    const Class& toplevel_class,

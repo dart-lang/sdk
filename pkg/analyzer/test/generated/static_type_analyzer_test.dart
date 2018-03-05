@@ -1627,6 +1627,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     for (FormalParameter parameter in parameters.parameters) {
       ParameterElementImpl element =
           new ParameterElementImpl.forNode(parameter.identifier);
+      // ignore: deprecated_member_use
       element.parameterKind = parameter.kind;
       element.type = _typeProvider.dynamicType;
       parameter.identifier.staticElement = element;

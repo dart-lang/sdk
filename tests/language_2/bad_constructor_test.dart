@@ -38,10 +38,17 @@ class E {
   E.setter();
 }
 
+// A constructor can't be static.
+class F {
+  static //# 07: compile-time error
+  F(){}
+}
+
 main() {
   new A();
   new B();
   new C.good();
   new D.good();
   new E.setter();
+  new F();
 }

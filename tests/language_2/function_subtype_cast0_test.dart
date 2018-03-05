@@ -13,7 +13,7 @@ typedef void Bar(int i);
 void bar(int i) {}
 
 void main() {
-  Expect.isNotNull(bar as Foo);
+  Expect.throws(() => bar as Foo);
   Expect.throws(() => bar as Foo<bool>);
   Expect.isNotNull(bar as Foo<int>);
   Expect.isNotNull(bar as Bar);

@@ -10,7 +10,18 @@ class C extends core::Object {
   operator unary-() → dynamic
     return 0;
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_31183.dart:6:3: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.\nTry adding the name of the type of the variable or the keyword 'var'.\n  operator unary- => 0;\n  ^", "pkg/front_end/testcases/regress/issue_31183.dart:6:12: Error: Expected ';' before this.\n  operator unary- => 0;\n           ^", "pkg/front_end/testcases/regress/issue_31183.dart:6:17: Error: Operator declarations must be preceeded by the keyword 'operator'.\nTry adding the keyword 'operator'.\n  operator unary- => 0;\n                ^", "pkg/front_end/testcases/regress/issue_31183.dart:6:17: Error: A method declaration needs an explicit list of parameters.\nTry adding a parameter list to the method declaration.\n  operator unary- => 0;\n                ^"]/* from null */;
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_31183.dart:6:3: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+Try adding the name of the type of the variable or the keyword 'var'.
+  operator unary- => 0;
+  ^^^^^^^^", "pkg/front_end/testcases/regress/issue_31183.dart:6:12: Error: Expected ';' before this.
+  operator unary- => 0;
+           ^^^^^", "pkg/front_end/testcases/regress/issue_31183.dart:6:17: Error: Operator declarations must be preceeded by the keyword 'operator'.
+Try adding the keyword 'operator'.
+  operator unary- => 0;
+                ^", "pkg/front_end/testcases/regress/issue_31183.dart:6:17: Error: A method declaration needs an explicit list of parameters.
+Try adding a parameter list to the method declaration.
+  operator unary- => 0;
+                ^"]/* from null */;
 static method main() → dynamic {
   new self::C::•();
 }

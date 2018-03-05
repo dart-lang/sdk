@@ -80,6 +80,22 @@ bool ConstantPropagator::SetValue(Definition* definition, const Object& value) {
   return false;
 }
 
+static bool IsIdenticalConstants(const Object& left, const Object& right) {
+  // This should be kept in line with Identical_comparison (identical.cc)
+  // (=> Instance::IsIdenticalTo in object.cc).
+
+  if (left.raw() == right.raw()) return true;
+  if (left.GetClassId() != right.GetClassId()) return false;
+  if (left.IsInteger()) {
+    return Integer::Cast(left).Equals(Integer::Cast(right));
+  }
+  if (left.IsDouble()) {
+    return Double::Cast(left).BitwiseEqualsToDouble(
+        Double::Cast(right).value());
+  }
+  return false;
+}
+
 // Compute the join of two values in the lattice, assign it to the first.
 void ConstantPropagator::Join(Object* left, const Object& right) {
   // Join(non-constant, X) = non-constant
@@ -94,8 +110,7 @@ void ConstantPropagator::Join(Object* left, const Object& right) {
   }
 
   // Join(X, X) = X
-  // TODO(kmillikin): support equality for doubles, mints, etc.
-  if (left->raw() == right.raw()) return;
+  if (IsIdenticalConstants(*left, right)) return;
 
   // Join(X, Y) = non-constant
   *left = non_constant_.raw();
@@ -433,7 +448,7 @@ void ConstantPropagator::VisitStrictCompare(StrictCompareInstr* instr) {
       }
     }
   } else if (IsConstant(left) && IsConstant(right)) {
-    bool result = (left.raw() == right.raw());
+    bool result = IsIdenticalConstants(left, right);
     if (instr->kind() == Token::kNE_STRICT) {
       result = !result;
     }
@@ -1284,8 +1299,7 @@ void ConstantPropagator::EliminateRedundantBranches() {
 
           changed = true;
 
-          if (FLAG_trace_constant_propagation &&
-              FlowGraphPrinter::ShouldPrint(graph_->function())) {
+          if (FLAG_trace_constant_propagation && graph_->should_print()) {
             THR_Print("Eliminated branch in B%" Pd " common target B%" Pd "\n",
                       block->block_id(), join->block_id());
           }
@@ -1303,11 +1317,6 @@ void ConstantPropagator::EliminateRedundantBranches() {
 }
 
 void ConstantPropagator::Transform() {
-  if (FLAG_trace_constant_propagation &&
-      FlowGraphPrinter::ShouldPrint(graph_->function())) {
-    FlowGraphPrinter::PrintGraph("Before CP", graph_);
-  }
-
   // We will recompute dominators, block ordering, block ids, block last
   // instructions, previous pointers, predecessors, etc. after eliminating
   // unreachable code.  We do not maintain those properties during the
@@ -1316,8 +1325,7 @@ void ConstantPropagator::Transform() {
        b.Advance()) {
     BlockEntryInstr* block = b.Current();
     if (!reachable_->Contains(block->preorder_number())) {
-      if (FLAG_trace_constant_propagation &&
-          FlowGraphPrinter::ShouldPrint(graph_->function())) {
+      if (FLAG_trace_constant_propagation && graph_->should_print()) {
         THR_Print("Unreachable B%" Pd "\n", block->block_id());
       }
       // Remove all uses in unreachable blocks.
@@ -1386,8 +1394,7 @@ void ConstantPropagator::Transform() {
           !defn->IsConstant() && !defn->IsPushArgument() &&
           !defn->IsStoreIndexed() && !defn->IsStoreInstanceField() &&
           !defn->IsStoreStaticField()) {
-        if (FLAG_trace_constant_propagation &&
-            FlowGraphPrinter::ShouldPrint(graph_->function())) {
+        if (FLAG_trace_constant_propagation && graph_->should_print()) {
           THR_Print("Constant v%" Pd " = %s\n", defn->ssa_temp_index(),
                     defn->constant_value().ToCString());
         }
@@ -1448,11 +1455,6 @@ void ConstantPropagator::Transform() {
   graph_->MergeBlocks();
   GrowableArray<BitVector*> dominance_frontier;
   graph_->ComputeDominators(&dominance_frontier);
-
-  if (FLAG_trace_constant_propagation &&
-      FlowGraphPrinter::ShouldPrint(graph_->function())) {
-    FlowGraphPrinter::PrintGraph("After CP", graph_);
-  }
 }
 
 }  // namespace dart

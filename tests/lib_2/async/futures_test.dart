@@ -170,7 +170,8 @@ Future testEagerWait() {
   }, onError: (e, s) {
     Expect.equals(e, 42);
     Expect.identical(st, s);
-    return true;
+  }).whenComplete(() {
+    return new Future(() => true);
   });
   c1.completeError(42, st);
   return result;
@@ -235,6 +236,8 @@ Future testDoWhileWithException() {
     throw 'incorrect exception';
   }).catchError((error) {
     Expect.equals('correct exception', error);
+  }).whenComplete(() {
+    return new Future(() => false);
   });
 }
 

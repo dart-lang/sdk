@@ -1926,11 +1926,9 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
             s->Write<intptr_t>(entry.raw_value_);
             break;
           }
-          case ObjectPool::kNativeEntry: {
-// Write nothing. Will initialize with the lazy link entry.
-#if defined(TARGET_ARCH_DBC)
-            UNREACHABLE();  // DBC does not support lazy native call linking.
-#endif
+          case ObjectPool::kNativeFunction:
+          case ObjectPool::kNativeFunctionWrapper: {
+            // Write nothing. Will initialize with the lazy link entry.
             break;
           }
           default:
@@ -1982,16 +1980,20 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
           case ObjectPool::kImmediate:
             entry.raw_value_ = d->Read<intptr_t>();
             break;
-          case ObjectPool::kNativeEntry: {
-#if !defined(TARGET_ARCH_DBC)
+          case ObjectPool::kNativeFunction: {
             // Read nothing. Initialize with the lazy link entry.
             uword new_entry = NativeEntry::LinkNativeCallEntry();
             entry.raw_value_ = static_cast<intptr_t>(new_entry);
-#else
-            UNREACHABLE();  // DBC does not support lazy native call linking.
-#endif
             break;
           }
+#if defined(TARGET_ARCH_DBC)
+          case ObjectPool::kNativeFunctionWrapper: {
+            // Read nothing. Initialize with the lazy link entry.
+            uword new_entry = NativeEntry::BootstrapNativeCallWrapperEntry();
+            entry.raw_value_ = static_cast<intptr_t>(new_entry);
+            break;
+          }
+#endif
           default:
             UNREACHABLE();
         }
@@ -3537,20 +3539,16 @@ class MintDeserializationCluster : public DeserializationCluster {
     NOT_IN_PRODUCT(TimelineDurationScope tds(
         Thread::Current(), Timeline::GetIsolateStream(), "PostLoadMint"));
 
-    const GrowableObjectArray& new_constants =
-        GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+    const Class& mint_cls =
+        Class::Handle(zone, Isolate::Current()->object_store()->mint_class());
+    mint_cls.set_constants(Object::empty_array());
     Object& number = Object::Handle(zone);
     for (intptr_t i = start_index_; i < stop_index_; i++) {
       number = refs.At(i);
       if (number.IsMint() && number.IsCanonical()) {
-        new_constants.Add(number);
+        mint_cls.InsertCanonicalMint(zone, Mint::Cast(number));
       }
     }
-    const Array& constants_array =
-        Array::Handle(zone, Array::MakeFixedLength(new_constants));
-    const Class& mint_cls =
-        Class::Handle(zone, Isolate::Current()->object_store()->mint_class());
-    mint_cls.set_constants(constants_array);
   }
 };
 
@@ -4850,14 +4848,14 @@ RawObject* Serializer::ParentOf(const Object& object) {
 }
 #endif  // SNAPSHOT_BACKTRACE
 
-void Serializer::WriteVersionAndFeatures() {
+void Serializer::WriteVersionAndFeatures(bool is_vm_snapshot) {
   const char* expected_version = Version::SnapshotString();
   ASSERT(expected_version != NULL);
   const intptr_t version_len = strlen(expected_version);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_version), version_len);
 
   const char* expected_features =
-      Dart::FeaturesString(Isolate::Current(), kind_);
+      Dart::FeaturesString(Isolate::Current(), is_vm_snapshot, kind_);
   ASSERT(expected_features != NULL);
   const intptr_t features_len = strlen(expected_features);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_features),
@@ -5280,9 +5278,9 @@ RawApiError* Deserializer::VerifyVersionAndFeatures(Isolate* isolate) {
   if (PendingBytes() < version_len) {
     const intptr_t kMessageBufferSize = 128;
     char message_buffer[kMessageBufferSize];
-    OS::SNPrint(message_buffer, kMessageBufferSize,
-                "No full snapshot version found, expected '%s'",
-                expected_version);
+    Utils::SNPrint(message_buffer, kMessageBufferSize,
+                   "No full snapshot version found, expected '%s'",
+                   expected_version);
     // This can also fail while bringing up the VM isolate, so make sure to
     // allocate the error message in old space.
     const String& msg = String::Handle(String::New(message_buffer, Heap::kOld));
@@ -5294,11 +5292,11 @@ RawApiError* Deserializer::VerifyVersionAndFeatures(Isolate* isolate) {
   if (strncmp(version, expected_version, version_len)) {
     const intptr_t kMessageBufferSize = 256;
     char message_buffer[kMessageBufferSize];
-    char* actual_version = OS::StrNDup(version, version_len);
-    OS::SNPrint(message_buffer, kMessageBufferSize,
-                "Wrong %s snapshot version, expected '%s' found '%s'",
-                (Snapshot::IsFull(kind_)) ? "full" : "script", expected_version,
-                actual_version);
+    char* actual_version = Utils::StrNDup(version, version_len);
+    Utils::SNPrint(message_buffer, kMessageBufferSize,
+                   "Wrong %s snapshot version, expected '%s' found '%s'",
+                   (Snapshot::IsFull(kind_)) ? "full" : "script",
+                   expected_version, actual_version);
     free(actual_version);
     // This can also fail while bringing up the VM isolate, so make sure to
     // allocate the error message in old space.
@@ -5307,23 +5305,24 @@ RawApiError* Deserializer::VerifyVersionAndFeatures(Isolate* isolate) {
   }
   Advance(version_len);
 
-  const char* expected_features = Dart::FeaturesString(isolate, kind_);
+  const char* expected_features =
+      Dart::FeaturesString(isolate, (isolate == NULL), kind_);
   ASSERT(expected_features != NULL);
   const intptr_t expected_len = strlen(expected_features);
 
   const char* features = reinterpret_cast<const char*>(CurrentBufferAddress());
   ASSERT(features != NULL);
-  intptr_t buffer_len = OS::StrNLen(features, PendingBytes());
+  intptr_t buffer_len = Utils::StrNLen(features, PendingBytes());
   if ((buffer_len != expected_len) ||
       strncmp(features, expected_features, expected_len)) {
     const intptr_t kMessageBufferSize = 1024;
     char message_buffer[kMessageBufferSize];
     char* actual_features =
-        OS::StrNDup(features, buffer_len < 128 ? buffer_len : 128);
-    OS::SNPrint(message_buffer, kMessageBufferSize,
-                "Snapshot not compatible with the current VM configuration: "
-                "the snapshot requires '%s' but the VM has '%s'",
-                actual_features, expected_features);
+        Utils::StrNDup(features, buffer_len < 128 ? buffer_len : 128);
+    Utils::SNPrint(message_buffer, kMessageBufferSize,
+                   "Snapshot not compatible with the current VM configuration: "
+                   "the snapshot requires '%s' but the VM has '%s'",
+                   actual_features, expected_features);
     free(const_cast<char*>(expected_features));
     free(actual_features);
     // This can also fail while bringing up the VM isolate, so make sure to
@@ -5531,12 +5530,8 @@ void Deserializer::ReadIsolateSnapshot(ObjectStore* object_store) {
   isolate->heap()->Verify();
 #endif
 
-  {
-    NOT_IN_PRODUCT(TimelineDurationScope tds(
-        thread(), Timeline::GetIsolateStream(), "PostLoad"));
-    for (intptr_t i = 0; i < num_clusters_; i++) {
-      clusters_[i]->PostLoad(refs, kind_, zone_);
-    }
+  for (intptr_t i = 0; i < num_clusters_; i++) {
+    clusters_[i]->PostLoad(refs, kind_, zone_);
   }
 
   // Setup native resolver for bootstrap impl.
@@ -5589,7 +5584,6 @@ class SeedVMIsolateVisitor : public ClassVisitor, public FunctionVisitor {
   }
 
   void Visit(const Script& script) {
-    objects_->Add(&Object::Handle(zone_, script_.tokens()));
     kernel_program_info_ = script_.kernel_program_info();
     if (!kernel_program_info_.IsNull()) {
       objects_->Add(
@@ -5602,6 +5596,8 @@ class SeedVMIsolateVisitor : public ClassVisitor, public FunctionVisitor {
       objects_->Add(
           &Object::Handle(zone_, kernel_program_info_.metadata_mappings()));
       objects_->Add(&Object::Handle(zone_, kernel_program_info_.constants()));
+    } else {
+      objects_->Add(&Object::Handle(zone_, script_.tokens()));
     }
   }
 
@@ -5721,7 +5717,7 @@ intptr_t FullSnapshotWriter::WriteVMSnapshot() {
                         kInitialSize, vm_image_writer_);
 
   serializer.ReserveHeader();
-  serializer.WriteVersionAndFeatures();
+  serializer.WriteVersionAndFeatures(true);
   // VM snapshot roots are:
   // - the symbol table
   // - all the token streams
@@ -5753,7 +5749,7 @@ void FullSnapshotWriter::WriteIsolateSnapshot(intptr_t num_base_objects) {
   ASSERT(object_store != NULL);
 
   serializer.ReserveHeader();
-  serializer.WriteVersionAndFeatures();
+  serializer.WriteVersionAndFeatures(false);
   // Isolate snapshot roots are:
   // - the object store
   serializer.WriteIsolateSnapshot(num_base_objects, object_store);

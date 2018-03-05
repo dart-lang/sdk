@@ -14,6 +14,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -63,16 +64,20 @@ class OverrideContributor implements DartCompletionContributor {
    * Return a template for an override of the given [element]. If selected, the
    * template will replace [targetId].
    */
-  Future<String> _buildReplacementText(AnalysisResult result,
-      SimpleIdentifier targetId, ExecutableElement element) async {
+  Future<DartChangeBuilder> _buildReplacementText(
+      AnalysisResult result,
+      SimpleIdentifier targetId,
+      ExecutableElement element,
+      StringBuffer displayTextBuffer) async {
     DartChangeBuilder builder =
         new DartChangeBuilder(result.driver.currentSession);
     await builder.addFileEdit(result.path, (DartFileEditBuilder builder) {
       builder.addReplacement(range.node(targetId), (DartEditBuilder builder) {
-        builder.writeOverrideOfInheritedMember(element);
+        builder.writeOverrideOfInheritedMember(element,
+            displayTextBuffer: displayTextBuffer);
       });
     });
-    return builder.sourceChange.edits[0].edits[0].replacement.trim();
+    return builder;
   }
 
   /**
@@ -81,19 +86,33 @@ class OverrideContributor implements DartCompletionContributor {
    */
   Future<CompletionSuggestion> _buildSuggestion(DartCompletionRequest request,
       SimpleIdentifier targetId, ExecutableElement element) async {
-    String completion =
-        await _buildReplacementText(request.result, targetId, element);
-    if (completion == null || completion.length == 0) {
+    StringBuffer displayTextBuffer = new StringBuffer();
+    DartChangeBuilder builder = await _buildReplacementText(
+        request.result, targetId, element, displayTextBuffer);
+    String replacement = builder.sourceChange.edits[0].edits[0].replacement;
+    String completion = replacement.trim();
+    String overrideAnnotation = '@override';
+    if (_hasOverride(request.target.containingNode) &&
+        completion.startsWith(overrideAnnotation)) {
+      completion = completion.substring(overrideAnnotation.length).trim();
+    }
+    if (completion.length == 0) {
       return null;
     }
+
+    SourceRange selectionRange = builder.selectionRange;
+    int offsetDelta = targetId.offset + replacement.indexOf(completion);
+    String displayText =
+        displayTextBuffer.isNotEmpty ? displayTextBuffer.toString() : null;
     CompletionSuggestion suggestion = new CompletionSuggestion(
-        CompletionSuggestionKind.IDENTIFIER,
+        CompletionSuggestionKind.OVERRIDE,
         DART_RELEVANCE_HIGH,
         completion,
-        targetId.offset,
-        0,
-        element.isDeprecated,
-        false);
+        selectionRange.offset - offsetDelta,
+        selectionRange.length,
+        element.hasDeprecated,
+        false,
+        displayText: displayText);
     suggestion.element = protocol.convertElement(element);
     return suggestion;
   }
@@ -131,6 +150,17 @@ class OverrideContributor implements DartCompletionContributor {
           }
         }
       }
+    } else if (node is FieldDeclaration) {
+      Object entity = target.entity;
+      if (entity is VariableDeclarationList) {
+        NodeList<VariableDeclaration> variables = entity.variables;
+        if (variables.length == 1) {
+          SimpleIdentifier targetId = variables[0].name;
+          if (targetId.name.isEmpty) {
+            return targetId;
+          }
+        }
+      }
     }
     return null;
   }
@@ -144,5 +174,21 @@ class OverrideContributor implements DartCompletionContributor {
         classElement.getGetter(memberName) != null ||
         classElement.getMethod(memberName) != null ||
         classElement.getSetter(memberName) != null;
+  }
+
+  /**
+   * Return `true` if the given [node] has an `override` annotation.
+   */
+  bool _hasOverride(AstNode node) {
+    if (node is AnnotatedNode) {
+      NodeList<Annotation> metadata = node.metadata;
+      for (Annotation annotation in metadata) {
+        if (annotation.name.name == 'override' &&
+            annotation.arguments == null) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }

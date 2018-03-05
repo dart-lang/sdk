@@ -2,19 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dartk ]
-Language/Expressions/Instance_Creation/Const/canonicalized_t05: RuntimeError
-Language/Expressions/Object_Identity/string_t01: RuntimeError
-Language/Expressions/Strings/adjacent_strings_t02: RuntimeError
-Language/Metadata/before_type_param_t01: RuntimeError
-LibTest/isolate/Isolate/spawnUri_A01_t03: Pass, Timeout
-
-[ $compiler == dartkp ]
-Language/Classes/definition_t23: RuntimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
-Language/Mixins/Mixin_Application/syntax_t16: RuntimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
-Language/Overview/Scoping/hiding_declaration_t11: Crash, Pass
-Language/Overview/Scoping/hiding_declaration_t12: Crash, Pass
-
 [ $compiler == fasta ]
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t01: MissingCompileTimeError
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t02: MissingCompileTimeError
@@ -66,7 +53,6 @@ Language/Classes/Constructors/Generative_Constructors/execution_t05: MissingComp
 Language/Classes/Constructors/Generative_Constructors/execution_t06: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/execution_t07: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/execution_t12: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/redirection_t02: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/redirection_t03: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/redirection_t07: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/redirection_t08: MissingCompileTimeError
@@ -74,15 +60,10 @@ Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t02
 Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t03: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t05: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t06: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/syntax_t04: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/syntax_t05: MissingCompileTimeError
 Language/Classes/Instance_Variables/constant_t01: MissingCompileTimeError
 Language/Classes/Static_Methods/declaration_t01: MissingCompileTimeError
 Language/Classes/Superclasses/wrong_superclass_t08: MissingCompileTimeError
 Language/Classes/Superinterfaces/wrong_type_t05: MissingCompileTimeError
-Language/Classes/declarations_t06: MissingCompileTimeError
-Language/Classes/declarations_t08: MissingCompileTimeError
-Language/Classes/declarations_t33: MissingCompileTimeError
 Language/Classes/same_name_type_variable_t04: MissingCompileTimeError
 Language/Classes/same_name_type_variable_t07: MissingCompileTimeError
 Language/Expressions/Constants/bitwise_operators_t02: MissingCompileTimeError
@@ -208,96 +189,6 @@ LibTest/typed_data/Uint64List/Uint64List.fromList_A01_t02: CompileTimeError
 LibTest/typed_data/Uint64List/Uint64List.view_A01_t01: CompileTimeError
 LibTest/typed_data/Uint64List/Uint64List.view_A01_t02: CompileTimeError
 
-# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
-# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
-# batch mode.
-[ $arch == simarm64 && $compiler == dartk && $mode == debug ]
-LibTest/core/DateTime/parse_A01_t02: Crash # Please triage.
-LibTest/core/DateTime/parse_A01_t03: Crash # Please triage.
-LibTest/core/DateTime/parse_A03_t01: Crash # Please triage.
-
-[ $compiler == dartk && $mode == debug ]
-LibTest/isolate/Isolate/spawnUri_A01_t04: Pass, Slow, Timeout
-
-[ $compiler == dartk && $strong ]
-*: SkipByDesign
-
-# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
-# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
-# batch mode.
-[ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
-Language/Classes/definition_t23: RuntimeError # Please triaage.
-Language/Expressions/Spawning_an_Isolate/*: Skip
-Language/Mixins/Mixin_Application/syntax_t16: RuntimeError # Please triaage.
-LibTest/isolate/*/*: Skip
-
-[ $compiler == dartkp && $mode == debug ]
-Language/Functions/External_Functions/not_connected_to_a_body_t01: Crash
-
-[ $compiler == dartkp && $strong ]
-*: SkipByDesign
-
-[ $mode == debug && ($compiler == dartk || $compiler == dartkp) ]
-Language/Classes/Constructors/Generative_Constructors/execution_t04: Crash
-Language/Classes/Instance_Variables/constant_t01: Crash
-
-[ $checked && ($compiler == dartk || $compiler == dartkp) ]
-Language/Classes/Constructors/Factories/arguments_type_t01: RuntimeError
-Language/Classes/Constructors/Factories/function_type_t02: Fail # dartbug.com/30527
-Language/Expressions/Constants/exception_t04: Pass
-Language/Expressions/Function_Expressions/static_type_dynamic_async_t03: RuntimeError # dartbgug.com/30667
-Language/Expressions/Function_Expressions/static_type_dynamic_asyncs_t03: RuntimeError # dartbgug.com/30667
-Language/Expressions/Function_Expressions/static_type_dynamic_syncs_t03: RuntimeError # dartbug.com/30667
-Language/Expressions/Function_Expressions/static_type_form_3_async_t03: RuntimeError # dartbgug.com/30667
-Language/Expressions/Function_Expressions/static_type_form_3_asyncs_t03: RuntimeError # dartbgug.com/30667
-Language/Expressions/Function_Expressions/static_type_form_3_syncs_t03: RuntimeError # dartbgug.com/30667
-Language/Generics/malformed_t02: RuntimeError
-Language/Statements/Return/runtime_type_t04: RuntimeError
-Language/Statements/Switch/execution_t01: RuntimeError
-Language/Statements/Switch/type_t01: RuntimeError
-Language/Types/Dynamic_Type_System/malbounded_type_error_t01: RuntimeError
-Language/Types/Parameterized_Types/malbounded_t06: RuntimeError
-Language/Types/Static_Types/malformed_type_t04: RuntimeError
-
 [ $compiler == dartk || $compiler == dartkp ]
-Language/Classes/definition_t23: CompileTimeError
-Language/Expressions/Constants/bitwise_operators_t02: Crash
-Language/Expressions/Constants/bitwise_operators_t03: Crash
-Language/Expressions/Constants/bitwise_operators_t04: Crash
-Language/Expressions/Constants/bitwise_operators_t06: Crash
-Language/Expressions/Constants/depending_on_itself_t03: Crash
-Language/Expressions/Constants/math_operators_t04: Crash
-Language/Expressions/Constants/math_operators_t05: Crash
-Language/Expressions/Instance_Creation/New/evaluation_t19: CompileTimeError # Issue 31938
-Language/Expressions/Instance_Creation/New/evaluation_t20: CompileTimeError # Issue 31938
-Language/Functions/External_Functions/not_connected_to_a_body_t01: RuntimeError # Dartk Issue 28565
-Language/Libraries_and_Scripts/Imports/deferred_import_t01: CompileTimeError # Deferred loading kernel issue 28335.
-Language/Libraries_and_Scripts/Imports/deferred_import_t02: CompileTimeError # Deferred loading kernel issue 28335.
-Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t03: CompileTimeError
-Language/Libraries_and_Scripts/Imports/same_name_t10: RuntimeError
-Language/Libraries_and_Scripts/Imports/static_type_t01: Skip # No support for deferred libraries.
-Language/Metadata/before_export_t01: RuntimeError # Issue 28434: Kernel IR misses these annotations.
-Language/Metadata/before_import_t01: RuntimeError # Issue 28434: Kernel IR misses these annotations.
-Language/Metadata/before_library_t01: RuntimeError # Issue 28434: Kernel IR misses these annotations.
-Language/Metadata/before_param_t01: RuntimeError # Issue 28434: Kernel IR misses these annotations.
-Language/Metadata/before_param_t02: RuntimeError # Issue 28434: Kernel IR misses these annotations.
-Language/Metadata/before_param_t03: RuntimeError # Issue 28434: Kernel IR misses these annotations.
-Language/Metadata/before_param_t04: RuntimeError # Issue 28434: Kernel IR misses these annotations.
-Language/Metadata/before_param_t05: RuntimeError # Issue 28434: Kernel IR misses these annotations.
-Language/Metadata/before_param_t06: RuntimeError # Issue 28434: Kernel IR misses these annotations.
-Language/Metadata/before_param_t07: RuntimeError # Issue 28434: Kernel IR misses these annotations.
-Language/Metadata/before_param_t08: RuntimeError # Issue 28434: Kernel IR misses these annotations.
-Language/Metadata/before_param_t09: RuntimeError # Issue 28434: Kernel IR misses these annotations.
-Language/Metadata/before_typedef_t01: RuntimeError # Issue 28434: Kernel IR misses these annotations.
-Language/Mixins/Mixin_Application/syntax_t16: CompileTimeError # Issue 25765
-Language/Types/Dynamic_Type_System/deferred_type_error_t01: CompileTimeError
-Language/Types/Type_Void/syntax_t01: Pass # Issue 30470
-LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # No support for deferred libraries.
-LibTest/isolate/Isolate/spawnUri_A01_t06: Skip
-
-[ $compiler == dartkp || $compiler == fasta ]
-Language/Classes/Superinterfaces/more_than_once_t01: MissingCompileTimeError
-Language/Classes/Superinterfaces/superclass_as_superinterface_t01: MissingCompileTimeError
-Language/Expressions/Constants/depending_on_itself_t01: MissingCompileTimeError
-Language/Expressions/Constants/depending_on_itself_t02: MissingCompileTimeError
+*: SkipByDesign
 

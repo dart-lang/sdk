@@ -4,6 +4,7 @@
 
 #include <set>
 
+#include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 
 #include "vm/compiler/backend/il.h"
@@ -435,23 +436,46 @@ String& TranslationHelper::DartString(const uint8_t* utf8_array,
   return String::ZoneHandle(Z, String::FromUTF8(utf8_array, len, space));
 }
 
-const String& TranslationHelper::DartSymbol(const char* content) const {
+const String& TranslationHelper::DartSymbolPlain(const char* content) const {
   return String::ZoneHandle(Z, Symbols::New(thread_, content));
 }
 
-String& TranslationHelper::DartSymbol(StringIndex string_index) const {
+String& TranslationHelper::DartSymbolPlain(StringIndex string_index) const {
   intptr_t length = StringSize(string_index);
   uint8_t* buffer = Z->Alloc<uint8_t>(length);
   {
     NoSafepointScope no_safepoint;
     memmove(buffer, StringBuffer(string_index), length);
   }
-  return String::ZoneHandle(Z, Symbols::FromUTF8(thread_, buffer, length));
+  String& result =
+      String::ZoneHandle(Z, Symbols::FromUTF8(thread_, buffer, length));
+  return result;
 }
 
-String& TranslationHelper::DartSymbol(const uint8_t* utf8_array,
-                                      intptr_t len) const {
-  return String::ZoneHandle(Z, Symbols::FromUTF8(thread_, utf8_array, len));
+const String& TranslationHelper::DartSymbolObfuscate(
+    const char* content) const {
+  String& result = String::ZoneHandle(Z, Symbols::New(thread_, content));
+  if (I->obfuscate()) {
+    Obfuscator obfuscator(thread_, String::Handle(Z));
+    result = obfuscator.Rename(result, true);
+  }
+  return result;
+}
+
+String& TranslationHelper::DartSymbolObfuscate(StringIndex string_index) const {
+  intptr_t length = StringSize(string_index);
+  uint8_t* buffer = Z->Alloc<uint8_t>(length);
+  {
+    NoSafepointScope no_safepoint;
+    memmove(buffer, StringBuffer(string_index), length);
+  }
+  String& result =
+      String::ZoneHandle(Z, Symbols::FromUTF8(thread_, buffer, length));
+  if (I->obfuscate()) {
+    Obfuscator obfuscator(thread_, String::Handle(Z));
+    result = obfuscator.Rename(result, true);
+  }
+  return result;
 }
 
 const String& TranslationHelper::DartClassName(NameIndex kernel_class) {
@@ -505,7 +529,7 @@ const String& TranslationHelper::DartSetterName(NameIndex parent,
   }
   String& name =
       String::ZoneHandle(Z, String::FromUTF8(buffer, size, allocation_space_));
-  ManglePrivateName(parent, &name, false);
+  ManglePrivateName(parent, &name);
   name = Field::SetterSymbol(name);
   return name;
 }
@@ -518,7 +542,7 @@ const String& TranslationHelper::DartGetterName(NameIndex getter) {
 const String& TranslationHelper::DartGetterName(NameIndex parent,
                                                 StringIndex getter) {
   String& name = DartString(getter);
-  ManglePrivateName(parent, &name, false);
+  ManglePrivateName(parent, &name);
   name = Field::GetterSymbol(name);
   return name;
 }
@@ -556,7 +580,8 @@ RawLibrary* TranslationHelper::LookupLibraryByKernelLibrary(
   // This ASSERT is just a sanity check.
   ASSERT(IsLibrary(kernel_library) ||
          IsAdministrative(CanonicalNameParent(kernel_library)));
-  const String& library_name = DartSymbol(CanonicalNameString(kernel_library));
+  const String& library_name =
+      DartSymbolPlain(CanonicalNameString(kernel_library));
   ASSERT(!library_name.IsNull());
   RawLibrary* library = Library::LookupLibrary(thread_, library_name);
   ASSERT(library != Object::null());
@@ -589,7 +614,7 @@ RawField* TranslationHelper::LookupFieldByKernelField(NameIndex kernel_field) {
     klass = LookupClassByKernelClass(enclosing);
   }
   RawField* field = klass.LookupFieldAllowPrivate(
-      DartSymbol(CanonicalNameString(kernel_field)));
+      DartSymbolObfuscate(CanonicalNameString(kernel_field)));
   ASSERT(field != Object::null());
   return field;
 }
@@ -726,27 +751,50 @@ void TranslationHelper::ReportError(const Error& prev_error,
 
 String& TranslationHelper::ManglePrivateName(NameIndex parent,
                                              String* name_to_modify,
-                                             bool symbolize) {
+                                             bool symbolize,
+                                             bool obfuscate) {
   if (name_to_modify->Length() >= 1 && name_to_modify->CharAt(0) == '_') {
     const Library& library =
         Library::Handle(Z, LookupLibraryByKernelLibrary(parent));
     *name_to_modify = library.PrivateName(*name_to_modify);
+    if (obfuscate && I->obfuscate()) {
+      const String& library_key = String::Handle(library.private_key());
+      Obfuscator obfuscator(thread_, library_key);
+      *name_to_modify = obfuscator.Rename(*name_to_modify);
+    }
   } else if (symbolize) {
     *name_to_modify = Symbols::New(thread_, *name_to_modify);
+    if (obfuscate && I->obfuscate()) {
+      const String& library_key = String::Handle();
+      Obfuscator obfuscator(thread_, library_key);
+      *name_to_modify = obfuscator.Rename(*name_to_modify);
+    }
   }
   return *name_to_modify;
 }
 
 String& TranslationHelper::ManglePrivateName(const Library& library,
                                              String* name_to_modify,
-                                             bool symbolize) {
+                                             bool symbolize,
+                                             bool obfuscate) {
   if (name_to_modify->Length() >= 1 && name_to_modify->CharAt(0) == '_') {
     *name_to_modify = library.PrivateName(*name_to_modify);
+    if (obfuscate && I->obfuscate()) {
+      const String& library_key = String::Handle(library.private_key());
+      Obfuscator obfuscator(thread_, library_key);
+      *name_to_modify = obfuscator.Rename(*name_to_modify);
+    }
   } else if (symbolize) {
     *name_to_modify = Symbols::New(thread_, *name_to_modify);
+    if (obfuscate && I->obfuscate()) {
+      const String& library_key = String::Handle();
+      Obfuscator obfuscator(thread_, library_key);
+      *name_to_modify = obfuscator.Rename(*name_to_modify);
+    }
   }
   return *name_to_modify;
 }
+
 FlowGraphBuilder::FlowGraphBuilder(
     intptr_t kernel_offset,
     ParsedFunction* parsed_function,
@@ -1227,24 +1275,23 @@ Fragment BaseFlowGraphBuilder::IntConstant(int64_t value) {
       Constant(Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld))));
 }
 
-Fragment FlowGraphBuilder::InstanceCall(TokenPosition position,
-                                        const String& name,
-                                        Token::Kind kind,
-                                        intptr_t type_args_len,
-                                        intptr_t argument_count,
-                                        const Array& argument_names,
-                                        intptr_t checked_argument_count,
-                                        const Function& interface_target,
-                                        const InferredTypeMetadata* result_type,
-                                        intptr_t argument_bits,
-                                        intptr_t type_argument_bits) {
+Fragment FlowGraphBuilder::InstanceCall(
+    TokenPosition position,
+    const String& name,
+    Token::Kind kind,
+    intptr_t type_args_len,
+    intptr_t argument_count,
+    const Array& argument_names,
+    intptr_t checked_argument_count,
+    const Function& interface_target,
+    const InferredTypeMetadata* result_type) {
   const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
   ArgumentArray arguments = GetArguments(total_count);
   InstanceCallInstr* call = new (Z) InstanceCallInstr(
       position, name, kind, arguments, type_args_len, argument_names,
       checked_argument_count, ic_data_array_, GetNextDeoptId(),
-      interface_target, argument_bits, type_argument_bits);
-  if (result_type != NULL) {
+      interface_target);
+  if ((result_type != NULL) && !result_type->IsTrivial()) {
     call->SetResultType(Z, CompileType::CreateNullable(result_type->nullable,
                                                        result_type->cid));
   }
@@ -1427,13 +1474,19 @@ Fragment BaseFlowGraphBuilder::PushArgument() {
 
 Fragment FlowGraphBuilder::Return(TokenPosition position) {
   Fragment instructions;
+  const Function& function = parsed_function_->function();
 
-  instructions += CheckReturnTypeInCheckedMode();
+  // Emit a type check of the return type in checked mode for all functions
+  // and in strong mode for native functions.
+  if (I->type_checks() || (function.is_native() && I->strong())) {
+    const AbstractType& return_type =
+        AbstractType::Handle(Z, function.result_type());
+    instructions += CheckAssignable(return_type, Symbols::FunctionResult());
+  }
 
   Value* value = Pop();
   ASSERT(stack_ == NULL);
 
-  const Function& function = parsed_function_->function();
   if (NeedsDebugStepCheck(function, position)) {
     instructions += DebugStepCheck(position);
   }
@@ -1506,21 +1559,11 @@ static intptr_t GetResultCidOfListFactory(Zone* zone,
   return FactoryRecognizer::ResultCid(function);
 }
 
-Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
-                                      const Function& target,
-                                      intptr_t argument_count,
-                                      const Array& argument_names,
-                                      ICData::RebindRule rebind_rule,
-                                      const InferredTypeMetadata* result_type,
-                                      intptr_t type_args_count,
-                                      intptr_t argument_bits,
-                                      intptr_t type_argument_check_bits) {
-  const intptr_t total_count = argument_count + (type_args_count > 0 ? 1 : 0);
-  ArgumentArray arguments = GetArguments(total_count);
-  StaticCallInstr* call = new (Z)
-      StaticCallInstr(position, target, type_args_count, argument_names,
-                      arguments, ic_data_array_, GetNextDeoptId(), rebind_rule,
-                      argument_bits, type_argument_check_bits);
+void FlowGraphBuilder::SetResultTypeForStaticCall(
+    StaticCallInstr* call,
+    const Function& target,
+    intptr_t argument_count,
+    const InferredTypeMetadata* result_type) {
   const intptr_t list_cid =
       GetResultCidOfListFactory(Z, target, argument_count);
   if (list_cid != kDynamicCid) {
@@ -1528,15 +1571,36 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
            (result_type->cid == list_cid));
     call->SetResultType(Z, CompileType::FromCid(list_cid));
     call->set_is_known_list_constructor(true);
-  } else if (target.recognized_kind() != MethodRecognizer::kUnknown) {
+    return;
+  }
+  if (target.recognized_kind() != MethodRecognizer::kUnknown) {
     intptr_t recognized_cid = MethodRecognizer::ResultCid(target);
-    ASSERT((result_type == NULL) || (result_type->cid == kDynamicCid) ||
-           (result_type->cid == recognized_cid));
-    call->SetResultType(Z, CompileType::FromCid(recognized_cid));
-  } else if (result_type != NULL) {
+    if (recognized_cid != kDynamicCid) {
+      ASSERT((result_type == NULL) || (result_type->cid == kDynamicCid) ||
+             (result_type->cid == recognized_cid));
+      call->SetResultType(Z, CompileType::FromCid(recognized_cid));
+      return;
+    }
+  }
+  if ((result_type != NULL) && !result_type->IsTrivial()) {
     call->SetResultType(Z, CompileType::CreateNullable(result_type->nullable,
                                                        result_type->cid));
   }
+}
+
+Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
+                                      const Function& target,
+                                      intptr_t argument_count,
+                                      const Array& argument_names,
+                                      ICData::RebindRule rebind_rule,
+                                      const InferredTypeMetadata* result_type,
+                                      intptr_t type_args_count) {
+  const intptr_t total_count = argument_count + (type_args_count > 0 ? 1 : 0);
+  ArgumentArray arguments = GetArguments(total_count);
+  StaticCallInstr* call = new (Z)
+      StaticCallInstr(position, target, type_args_count, argument_names,
+                      arguments, ic_data_array_, GetNextDeoptId(), rebind_rule);
+  SetResultTypeForStaticCall(call, target, argument_count, result_type);
   Push(call);
   return Fragment(call);
 }
@@ -1676,9 +1740,14 @@ Fragment FlowGraphBuilder::ThrowTypeError() {
   const Class& klass =
       Class::ZoneHandle(Z, Library::LookupCoreClass(Symbols::TypeError()));
   ASSERT(!klass.IsNull());
+  GrowableHandlePtrArray<const String> pieces(Z, 3);
+  pieces.Add(Symbols::TypeError());
+  pieces.Add(Symbols::Dot());
+  pieces.Add(H.DartSymbolObfuscate("_create"));
+
   const Function& constructor = Function::ZoneHandle(
-      Z,
-      klass.LookupConstructorAllowPrivate(H.DartSymbol("_TypeError._create")));
+      Z, klass.LookupConstructorAllowPrivate(
+             String::ZoneHandle(Z, Symbols::FromConcatAll(thread_, pieces))));
   ASSERT(!constructor.IsNull());
 
   const String& url = H.DartString(
@@ -1704,7 +1773,7 @@ Fragment FlowGraphBuilder::ThrowTypeError() {
   instructions += IntConstant(0);
   instructions += PushArgument();  // column
 
-  instructions += Constant(H.DartSymbol("Malformed type."));
+  instructions += Constant(H.DartSymbolPlain("Malformed type."));
   instructions += PushArgument();  // message
 
   instructions += StaticCall(TokenPosition::kNoSource, constructor,
@@ -1774,7 +1843,7 @@ RawFunction* FlowGraphBuilder::LookupMethodByMember(NameIndex target,
 LocalVariable* BaseFlowGraphBuilder::MakeTemporary() {
   char name[64];
   intptr_t index = stack_->definition()->temp_index();
-  OS::SNPrint(name, 64, ":temp%" Pd, index);
+  Utils::SNPrint(name, 64, ":temp%" Pd, index);
   const String& symbol_name =
       String::ZoneHandle(Z, Symbols::New(thread_, name));
   LocalVariable* variable =
@@ -2146,21 +2215,11 @@ Fragment FlowGraphBuilder::EvaluateAssertion() {
   const Class& klass =
       Class::ZoneHandle(Z, Library::LookupCoreClass(Symbols::AssertionError()));
   ASSERT(!klass.IsNull());
-  const Function& target =
-      Function::ZoneHandle(Z, klass.LookupStaticFunctionAllowPrivate(
-                                  H.DartSymbol("_evaluateAssertion")));
+  const Function& target = Function::ZoneHandle(
+      Z, klass.LookupStaticFunctionAllowPrivate(Symbols::EvaluateAssertion()));
   ASSERT(!target.IsNull());
   return StaticCall(TokenPosition::kNoSource, target, /* argument_count = */ 1,
                     ICData::kStatic);
-}
-
-Fragment FlowGraphBuilder::CheckReturnTypeInCheckedMode() {
-  if (I->type_checks()) {
-    const AbstractType& return_type =
-        AbstractType::Handle(Z, parsed_function_->function().result_type());
-    return CheckAssignable(return_type, Symbols::FunctionResult());
-  }
-  return Fragment();
 }
 
 Fragment FlowGraphBuilder::CheckBooleanInCheckedMode() {

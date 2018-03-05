@@ -59,12 +59,8 @@ abstract class ListMixin<E> implements List<E> {
 
   E elementAt(int index) => this[index];
 
-  Iterable<E> followedBy(Iterable<E> other) sync* {
-    for (var i = 0; i < length; i++) {
-      yield this[i];
-    }
-    yield* other;
-  }
+  Iterable<E> followedBy(Iterable<E> other) =>
+      new FollowedByIterable<E>.firstEfficient(this, other);
 
   void forEach(void action(E element)) {
     int length = this.length;
@@ -195,9 +191,7 @@ abstract class ListMixin<E> implements List<E> {
 
   Iterable<E> where(bool test(E element)) => new WhereIterable<E>(this, test);
 
-  Iterable<T> whereType<T>() sync* {
-    for (var element in this) if (element is T) yield (element as T);
-  }
+  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
 
   Iterable<T> map<T>(T f(E element)) => new MappedListIterable<E, T>(this, f);
 

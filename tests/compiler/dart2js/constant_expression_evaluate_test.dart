@@ -114,6 +114,9 @@ class MemoryEnvironment implements EvaluationEnvironment {
   ConstantValue evaluateField(FieldEntity field, ConstantValue evaluate()) {
     return _environment.evaluateField(field, evaluate);
   }
+
+  @override
+  bool get enableAssertions => true;
 }
 
 const List<TestData> DATA = const [
@@ -309,7 +312,7 @@ class B extends A {
         'y=IntConstant(499),'
         'z=IntConstant(99)))'),
   ]),
-  const TestData('errors', '''
+  const TestData('errors', r'''
  const integer = const int.fromEnvironment("foo", defaultValue: 5);
  const string = const String.fromEnvironment("bar", defaultValue: "baz");
  const boolean = const bool.fromEnvironment("baz", defaultValue: false);
@@ -319,6 +322,23 @@ class B extends A {
  class Class1 {
     final field;
     const Class1() : field = not_string.length;
+ }
+ class Class2 implements Class3 {
+    const Class2() : assert(false);
+    const Class2.redirect() : this();
+ }
+ class Class3 {
+    const Class3() : assert(false, "Message");
+    const factory Class3.fact() = Class2;
+ }
+ class Class4 extends Class2 {
+    const Class4();
+ }
+ class Class5 {
+    const Class5(a) : assert(a > 0, "$a <= 0");
+ }
+ class Class6 extends Class5 {
+    const Class6(a) : super(a - 1);
  }
  ''', const [
     const ConstantData(
@@ -436,11 +456,53 @@ class B extends A {
     const ConstantData('const Class1()', 'NonConstant',
         MessageKind.INVALID_CONSTANT_STRING_LENGTH_TYPE),
     const ConstantData('getter', 'NonConstant'),
+    const ConstantData(
+        'const Class2()', 'NonConstant', MessageKind.INVALID_ASSERT_VALUE),
+    const ConstantData('const Class2.redirect()', 'NonConstant',
+        MessageKind.INVALID_ASSERT_VALUE),
+    const ConstantData('const Class3()', 'NonConstant',
+        MessageKind.INVALID_ASSERT_VALUE_MESSAGE),
+    const ConstantData(
+        'const Class3.fact()', 'NonConstant', MessageKind.INVALID_ASSERT_VALUE),
+    const ConstantData(
+        'const Class4()', 'NonConstant', MessageKind.INVALID_ASSERT_VALUE),
+    const ConstantData('const Class5(0)', 'NonConstant',
+        MessageKind.INVALID_ASSERT_VALUE_MESSAGE),
+    const ConstantData('const Class5(1)', 'ConstructedConstant(Class5())'),
+    const ConstantData('const Class6(1)', 'NonConstant',
+        MessageKind.INVALID_ASSERT_VALUE_MESSAGE),
+    const ConstantData('const Class6(2)', 'ConstructedConstant(Class6())'),
+  ]),
+  const TestData('assert', '''
+    class A {
+      const A() : assert(true);
+    }
+    class B {
+      const B() : assert(true, "Message");
+    }
+    class C {
+      final a;
+      const C(this.a);
+    }
+    class D extends C {
+      final b;
+      const D(c) : super(c + 1), b = c + 2;
+    }
+  ''', const [
+    const ConstantData(r'const A()', 'ConstructedConstant(A())'),
+    const ConstantData(r'const B()', 'ConstructedConstant(B())'),
+    const ConstantData(r'const D(0)',
+        'ConstructedConstant(D(a=IntConstant(1),b=IntConstant(2)))'),
   ]),
 ];
 
-main() {
-  asyncTest(() => Future.forEach(DATA, testData));
+main(List<String> args) {
+  asyncTest(() async {
+    for (TestData data in DATA) {
+      if (args.isNotEmpty && !args.contains(data.name)) continue;
+      await testData(data);
+    }
+  });
 }
 
 Future testData(TestData data) async {
@@ -524,6 +586,8 @@ Future testData(TestData data) async {
     // evaluator which results in different constant expressions for errorneous
     // constants.
     'errors',
+    // Assert in initializer is not supported by the old frontend.
+    'assert',
   ];
   const skipKernelList = const [
     // TODO(johnniwinther): Investigate why some types of the constructed

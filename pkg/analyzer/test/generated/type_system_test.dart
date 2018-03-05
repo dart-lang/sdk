@@ -652,19 +652,6 @@ class StrongAssignabilityTest {
     _checkGroups(dynamicType, interassignable: interassignable);
   }
 
-  void test_isAssignableTo_fuzzy_arrows() {
-    FunctionType top = TypeBuilder
-        .function(required: <DartType>[dynamicType], result: objectType);
-    FunctionType left = TypeBuilder
-        .function(required: <DartType>[objectType], result: objectType);
-    FunctionType right = TypeBuilder
-        .function(required: <DartType>[dynamicType], result: bottomType);
-    FunctionType bottom = TypeBuilder
-        .function(required: <DartType>[objectType], result: bottomType);
-
-    _checkCrossLattice(top, left, right, bottom);
-  }
-
   void test_isAssignableTo_generics() {
     ClassElementImpl LClass = ElementFactory.classElement2('L', ["T"]);
     InterfaceType LType = LClass.type;
@@ -1328,10 +1315,10 @@ class StrongGreatestLowerBoundTest extends BoundTestBase {
     _checkGreatestLowerBound(type1, type2, expected);
   }
 
-  void test_functionsFuzzyArrows() {
+  void test_functionsFromDynamic() {
     FunctionType type1 = _functionType([dynamicType]);
     FunctionType type2 = _functionType([intType]);
-    FunctionType expected = _functionType([intType]);
+    FunctionType expected = _functionType([dynamicType]);
     _checkGreatestLowerBound(type1, type2, expected);
   }
 
@@ -1507,7 +1494,7 @@ class StrongLeastUpperBoundTest extends LeastUpperBoundTestBase {
   void test_functionsFuzzyArrows() {
     FunctionType type1 = _functionType([dynamicType]);
     FunctionType type2 = _functionType([intType]);
-    FunctionType expected = _functionType([dynamicType]);
+    FunctionType expected = _functionType([intType]);
     _checkLeastUpperBound(type1, type2, expected);
   }
 
@@ -1702,19 +1689,6 @@ class StrongSubtypingTest {
     _checkGroups(voidType, equivalents: equivalents, subtypes: subtypes);
   }
 
-  void test_fuzzy_arrows() {
-    FunctionType top = TypeBuilder
-        .function(required: <DartType>[dynamicType], result: objectType);
-    FunctionType left = TypeBuilder
-        .function(required: <DartType>[objectType], result: objectType);
-    FunctionType right = TypeBuilder
-        .function(required: <DartType>[dynamicType], result: bottomType);
-    FunctionType bottom = TypeBuilder
-        .function(required: <DartType>[objectType], result: bottomType);
-
-    _checkLattice(top, left, right, bottom);
-  }
-
   void test_genericFunction_generic_monomorphic() {
     DartType s = TypeBuilder.variable("S");
     DartType t = TypeBuilder.variable("T", bound: s);
@@ -1729,7 +1703,7 @@ class StrongSubtypingTest {
     _checkIsStrictSubtypeOf(
         TypeBuilder.function(types: [s, t], required: [s], result: t),
         TypeBuilder.function(
-            types: [a, b], required: [dynamicType], result: dynamicType));
+            types: [a, b], required: [bottomType], result: dynamicType));
 
     _checkIsNotSubtypeOf(
         TypeBuilder.function(types: [u, v], required: [u], result: v),

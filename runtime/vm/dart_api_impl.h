@@ -10,6 +10,7 @@
 #include "vm/object.h"
 #include "vm/safepoint.h"
 #include "vm/thread_registry.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -100,6 +101,32 @@ const char* CanonicalFunction(const char* func);
           CURRENT_FUNC, #length, max);                                         \
     }                                                                          \
   } while (0)
+
+#ifndef PRODUCT
+#define API_TIMELINE_DURATION(thread)                                          \
+  TimelineDurationScope tds(thread, Timeline::GetAPIStream(), CURRENT_FUNC)
+#define API_TIMELINE_DURATION_BASIC(thread)                                    \
+  API_TIMELINE_DURATION(thread);                                               \
+  tds.SetNumArguments(1);                                                      \
+  tds.CopyArgument(0, "mode", "basic");
+
+#define API_TIMELINE_BEGIN_END(thread)                                         \
+  TimelineBeginEndScope tbes(thread, Timeline::GetAPIStream(), CURRENT_FUNC)
+
+#define API_TIMELINE_BEGIN_END_BASIC(thread)                                   \
+  API_TIMELINE_BEGIN_END(thread);                                              \
+  tbes.SetNumArguments(1);                                                     \
+  tbes.CopyArgument(0, "mode", "basic");
+#else
+#define API_TIMELINE_DURATION(thread)                                          \
+  do {                                                                         \
+  } while (false)
+#define API_TIMELINE_DURATION_BASIC(thread) API_TIMELINE_DURATION(thread)
+#define API_TIMELINE_BEGIN_END(thread)                                         \
+  do {                                                                         \
+  } while (false)
+#define API_TIMELINE_BEGIN_END_BASIC(thread) API_TIMELINE_BEGIN_END(thread)
+#endif  // !PRODUCT
 
 class Api : AllStatic {
  public:

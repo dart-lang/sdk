@@ -4,6 +4,8 @@
 
 library testing.log;
 
+import 'dart:io' show stdout;
+
 import 'chain.dart' show Result, Step;
 
 import 'suite.dart' show Suite;
@@ -14,11 +16,17 @@ import 'expectation.dart' show Expectation;
 
 /// ANSI escape code for moving cursor one line up.
 /// See [CSI codes](https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_codes).
-const String cursorUp = "\u001b[1A";
+const String cursorUpCodes = "\u001b[1A";
 
 /// ANSI escape code for erasing the entire line.
 /// See [CSI codes](https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_codes).
-const String eraseLine = "\u001b[2K";
+const String eraseLineCodes = "\u001b[2K";
+
+final bool enableAnsiEscapes = stdout.supportsAnsiEscapes;
+
+final String cursorUp = enableAnsiEscapes ? cursorUpCodes : "";
+
+final String eraseLine = enableAnsiEscapes ? eraseLineCodes : "";
 
 final Stopwatch wallclock = new Stopwatch()..start();
 

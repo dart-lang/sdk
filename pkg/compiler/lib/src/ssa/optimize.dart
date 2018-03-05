@@ -1020,10 +1020,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   HInstruction visitIndex(HIndex node) {
     if (node.receiver.isConstantList() && node.index.isConstantInteger()) {
-      dynamic instruction = node.receiver;
-      List<ConstantValue> entries = instruction.constant.entries;
-      instruction = node.index;
-      int index = instruction.constant.primitiveValue;
+      HConstant instruction = node.receiver;
+      ListConstantValue list = instruction.constant;
+      List<ConstantValue> entries = list.entries;
+      HConstant indexInstruction = node.index;
+      IntConstantValue indexConstant = indexInstruction.constant;
+      int index = indexConstant.intValue;
       if (index >= 0 && index < entries.length) {
         return _graph.addConstant(entries[index], _closedWorld);
       }
@@ -1140,6 +1142,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
             _closedWorld.commonMasks.boolType)
           ..sourceInformation = node.sourceInformation;
       }
+    } else if (element == commonElements.setRuntimeTypeInfo) {
+      if (node.inputs.length == 2) {
+        return handleArrayTypeInfo(node);
+      }
     } else if (element == commonElements.checkConcurrentModificationError) {
       if (node.inputs.length == 2) {
         HInstruction firstArgument = node.inputs[0];
@@ -1167,6 +1173,39 @@ class SsaInstructionSimplifier extends HBaseVisitor
     return node;
   }
 
+  HInstruction handleArrayTypeInfo(HInvokeStatic node) {
+    // If type information is not needed, use the raw Array.
+    HInstruction source = node.inputs[0];
+    if (source.usedBy.length != 1) return node;
+    if (!source.isArray(_closedWorld)) return node;
+    for (HInstruction user in node.usedBy) {
+      if (user is HGetLength) continue;
+      if (user is HIndex) continue;
+      // Bounds check escapes the array, but we don't care.
+      if (user is HBoundsCheck) continue;
+      // Interceptor only escapes the Array if array passed to an intercepted
+      // method.
+      if (user is HInterceptor) continue;
+      if (user is HInvokeStatic) {
+        MemberEntity element = user.element;
+        if (element == commonElements.checkConcurrentModificationError) {
+          // CME check escapes the array, but we don't care.
+          continue;
+        }
+      }
+      if (user is HInvokeDynamicGetter) {
+        String name = user.selector.name;
+        // These getters don't use the Array type.
+        if (name == 'last') continue;
+        if (name == 'first') continue;
+      }
+      // TODO(sra): Implement a more general algorithm - many methods don't use
+      // the element type.
+      return node;
+    }
+    return source;
+  }
+
   HInstruction visitStringConcat(HStringConcat node) {
     // Simplify string concat:
     //
@@ -1182,13 +1221,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     StringConstantValue leftString = getString(node.left);
-    if (leftString != null && leftString.primitiveValue.length == 0) {
+    if (leftString != null && leftString.stringValue.length == 0) {
       return node.right;
     }
 
     StringConstantValue rightString = getString(node.right);
     if (rightString == null) return node;
-    if (rightString.primitiveValue.length == 0) return node.left;
+    if (rightString.stringValue.length == 0) return node.left;
 
     HInstruction prefix = null;
     if (leftString == null) {
@@ -1201,14 +1240,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (leftString == null) return node;
     }
 
-    if (leftString.primitiveValue.length + rightString.primitiveValue.length >
+    if (leftString.stringValue.length + rightString.stringValue.length >
         MAX_SHARED_CONSTANT_FOLDED_STRING_LENGTH) {
       if (node.usedBy.length > 1) return node;
     }
 
     HInstruction folded = _graph.addConstant(
-        constantSystem.createString(
-            leftString.primitiveValue + rightString.primitiveValue),
+        constantSystem
+            .createString(leftString.stringValue + rightString.stringValue),
         _closedWorld);
     if (prefix == null) return folded;
     return new HStringConcat(
@@ -1219,22 +1258,33 @@ class SsaInstructionSimplifier extends HBaseVisitor
     HInstruction input = node.inputs[0];
     if (input.isString(_closedWorld)) return input;
 
+    HInstruction asString(String string) =>
+        _graph.addConstant(constantSystem.createString(string), _closedWorld);
+
     HInstruction tryConstant() {
       if (!input.isConstant()) return null;
       HConstant constant = input;
       if (!constant.constant.isPrimitive) return null;
-      if (constant.constant.isInt) {
+      PrimitiveConstantValue value = constant.constant;
+      if (value is IntConstantValue) {
         // Only constant-fold int.toString() when Dart and JS results the same.
         // TODO(18103): We should be able to remove this work-around when issue
         // 18103 is resolved by providing the correct string.
-        IntConstantValue intConstant = constant.constant;
-        // Very conservative range.
-        if (!intConstant.isUInt32()) return null;
+        if (!value.isUInt32()) return null;
+        return asString('${value.intValue}');
       }
-      PrimitiveConstantValue primitive = constant.constant;
-      return _graph.addConstant(
-          constantSystem.createString('${primitive.primitiveValue}'),
-          _closedWorld);
+      if (value is BoolConstantValue) {
+        return asString(value.boolValue ? 'true' : 'false');
+      }
+      if (value is NullConstantValue) {
+        return asString('null');
+      }
+      if (value is DoubleConstantValue) {
+        // TODO(sra): It seems unlikely that all dart2js host implementations
+        // produce exactly the same characters as all JavaScript targets.
+        return asString('${value.doubleValue}');
+      }
+      return null;
     }
 
     HInstruction tryToString() {
@@ -1932,7 +1982,7 @@ class SsaLiveBlockAnalyzer extends HBaseVisitor {
           HConstant input = node.inputs[pos];
           if (!input.isConstantInteger()) continue;
           IntConstantValue constant = input.constant;
-          int label = constant.primitiveValue;
+          int label = constant.intValue;
           if (!liveLabels.contains(label) && label <= upper && label >= lower) {
             markBlockLive(node.block.successors[pos - 1]);
             liveLabels.add(label);

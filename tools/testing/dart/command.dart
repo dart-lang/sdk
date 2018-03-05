@@ -115,6 +115,24 @@ class Command {
     return new MakeSymlinkCommand._(link, target);
   }
 
+  static Command fasta(
+      Uri compilerLocation,
+      Uri outputFile,
+      List<Uri> bootstrapDependencies,
+      Uri executable,
+      List<String> arguments,
+      Map<String, String> environment,
+      Uri workingDirectory) {
+    return new FastaCompilationCommand._(
+        compilerLocation,
+        outputFile,
+        bootstrapDependencies,
+        executable,
+        arguments,
+        environment,
+        workingDirectory);
+  }
+
   /// A descriptive name for this command.
   final String displayName;
 
@@ -280,6 +298,84 @@ class CompilationCommand extends ProcessCommand {
       _outputFile == other._outputFile &&
       _alwaysCompile == other._alwaysCompile &&
       deepJsonCompare(_bootstrapDependencies, other._bootstrapDependencies);
+}
+
+class FastaCompilationCommand extends CompilationCommand {
+  final Uri _compilerLocation;
+
+  FastaCompilationCommand._(
+      this._compilerLocation,
+      Uri outputFile,
+      List<Uri> bootstrapDependencies,
+      Uri executable,
+      List<String> arguments,
+      Map<String, String> environmentOverrides,
+      Uri workingDirectory)
+      : super._("fasta", outputFile.toFilePath(), true, bootstrapDependencies,
+            executable.toFilePath(), arguments, environmentOverrides,
+            workingDirectory: workingDirectory?.toFilePath());
+
+  @override
+  List<String> get batchArguments {
+    return <String>[
+      _compilerLocation.resolve("batch.dart").toFilePath(),
+    ];
+  }
+
+  @override
+  String get reproductionCommand {
+    String relativizeAndEscape(String argument) {
+      if (workingDirectory != null) {
+        argument = argument.replaceAll(
+            workingDirectory, new Uri.directory(".").toFilePath());
+      }
+      return escapeCommandLineArgument(argument);
+    }
+
+    StringBuffer buffer = new StringBuffer();
+    if (workingDirectory != null && !io.Platform.isWindows) {
+      buffer.write("(cd ");
+      buffer.write(escapeCommandLineArgument(workingDirectory));
+      buffer.write(" ; ");
+    }
+    environmentOverrides?.forEach((key, value) {
+      if (io.Platform.isWindows) {
+        buffer.write("set ");
+      }
+      buffer.write(key);
+      buffer.write("=");
+      buffer.write(relativizeAndEscape(value));
+      if (io.Platform.isWindows) {
+        buffer.write(" &");
+      }
+      buffer.write(" ");
+    });
+    buffer.writeAll(
+        (<String>[executable]
+              ..add(_compilerLocation.toFilePath())
+              ..addAll(arguments))
+            .map(relativizeAndEscape),
+        " ");
+    if (workingDirectory != null) {
+      if (io.Platform.isWindows) {
+        buffer.write(" (working directory: $workingDirectory)");
+      } else {
+        buffer.write(" )");
+      }
+    }
+    return "$buffer";
+  }
+
+  @override
+  void _buildHashCode(HashCodeBuilder builder) {
+    super._buildHashCode(builder);
+    builder.addJson(_compilerLocation);
+  }
+
+  @override
+  bool _equal(FastaCompilationCommand other) {
+    return super._equal(other) && _compilerLocation == other._compilerLocation;
+  }
 }
 
 class VMKernelCompilationCommand extends CompilationCommand {

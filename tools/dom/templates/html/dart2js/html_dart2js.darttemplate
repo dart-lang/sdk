@@ -37,7 +37,6 @@ import 'dart:collection' hide LinkedList, LinkedListEntry;
 import 'dart:_internal' hide Symbol;
 import 'dart:html_common';
 import 'dart:indexed_db';
-import 'dart:isolate';
 import "dart:convert";
 import 'dart:math';
 import 'dart:_native_typed_data';
@@ -131,18 +130,6 @@ class HtmlElement extends Element {
    * This can only be called by subclasses from their created constructor.
    */
   HtmlElement.created() : super.created();
-}
-
-/**
- * Spawn a DOM isolate using the given URI in the same window.
- * This isolate is not concurrent.  It runs on the browser thread
- * with full access to the DOM.
- * Note: this API is still evolving and may move to dart:isolate.
- */
-@Experimental()
-Future<Isolate> spawnDomUri(Uri uri, List<String> args, message) {
-  // TODO(17738): Implement this.
-  throw new UnimplementedError();
 }
 
 createCustomUpgrader(Type customElementClass, $this) => $this;

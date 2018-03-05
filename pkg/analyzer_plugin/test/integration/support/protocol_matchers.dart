@@ -133,6 +133,7 @@ final Matcher isChangeContentOverlay = new LazyMatcher(() =>
  *   "kind": CompletionSuggestionKind
  *   "relevance": int
  *   "completion": String
+ *   "displayText": optional String
  *   "selectionOffset": int
  *   "selectionLength": int
  *   "isDeprecated": bool
@@ -163,6 +164,7 @@ final Matcher isCompletionSuggestion =
           "isDeprecated": isBool,
           "isPotential": isBool
         }, optionalFields: {
+          "displayText": isString,
           "docSummary": isString,
           "docComplete": isString,
           "declaringType": isString,
@@ -190,6 +192,7 @@ final Matcher isCompletionSuggestion =
  *   KEYWORD
  *   NAMED_ARGUMENT
  *   OPTIONAL_ARGUMENT
+ *   OVERRIDE
  *   PARAMETER
  * }
  */
@@ -202,6 +205,7 @@ final Matcher isCompletionSuggestionKind =
   "KEYWORD",
   "NAMED_ARGUMENT",
   "OPTIONAL_ARGUMENT",
+  "OVERRIDE",
   "PARAMETER"
 ]);
 
@@ -849,6 +853,7 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
  *   "edits": List<SourceFileEdit>
  *   "linkedEditGroups": List<LinkedEditGroup>
  *   "selection": optional Position
+ *   "id": optional String
  * }
  */
 final Matcher isSourceChange =
@@ -857,7 +862,8 @@ final Matcher isSourceChange =
           "edits": isListOf(isSourceFileEdit),
           "linkedEditGroups": isListOf(isLinkedEditGroup)
         }, optionalFields: {
-          "selection": isPosition
+          "selection": isPosition,
+          "id": isString
         }));
 
 /**

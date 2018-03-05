@@ -270,6 +270,11 @@ extern const uint8_t* core_isolate_snapshot_data;
 extern const uint8_t* core_isolate_snapshot_instructions;
 }  // namespace bin
 
+extern const uint8_t* platform_dill;
+extern const uint8_t* platform_strong_dill;
+extern const intptr_t platform_dill_size;
+extern const intptr_t platform_strong_dill_size;
+
 class TestCaseBase {
  public:
   explicit TestCaseBase(const char* name);
@@ -306,37 +311,42 @@ class TestCase : TestCaseBase {
 
   TestCase(RunEntry* run, const char* name) : TestCaseBase(name), run_(run) {}
 
+  static bool UsingDartFrontend();
+  static bool UsingStrongMode();
+
   static char* CompileTestScriptWithDFE(const char* url,
                                         const char* source,
                                         void** kernel_pgm,
-                                        bool incrementally = false);
+                                        bool incrementally = true);
   static char* CompileTestScriptWithDFE(const char* url,
                                         int sourcefiles_count,
                                         Dart_SourceFile sourcefiles[],
                                         void** kernel_pgm,
-                                        bool incrementally = false);
+                                        bool incrementally = true);
   static Dart_Handle LoadTestScript(const char* script,
                                     Dart_NativeEntryResolver resolver,
                                     const char* lib_uri = USER_TEST_URI,
                                     bool finalize = true);
-  static Dart_Handle LoadTestLibrary(const char* lib_uri, const char* script);
+  static Dart_Handle LoadTestLibrary(const char* lib_uri,
+                                     const char* script,
+                                     Dart_NativeEntryResolver resolver = NULL);
   static Dart_Handle LoadTestScriptWithDFE(
       int sourcefiles_count,
       Dart_SourceFile sourcefiles[],
       Dart_NativeEntryResolver resolver = NULL,
       bool finalize = true,
-      bool incrementally = false);
+      bool incrementally = true);
   static Dart_Handle LoadCoreTestScript(const char* script,
                                         Dart_NativeEntryResolver resolver);
+
   static Dart_Handle lib();
   static const char* url();
   static Dart_Isolate CreateTestIsolateFromSnapshot(uint8_t* buffer,
                                                     const char* name = NULL) {
-    return CreateIsolate(buffer, name);
+    return CreateIsolate(buffer, 0, NULL, name);
   }
-  static Dart_Isolate CreateTestIsolate(const char* name = NULL) {
-    return CreateIsolate(bin::core_isolate_snapshot_data, name);
-  }
+  static Dart_Isolate CreateTestIsolate(const char* name = NULL,
+                                        void* data = NULL);
   static Dart_Handle library_handler(Dart_LibraryTag tag,
                                      Dart_Handle library,
                                      Dart_Handle url);
@@ -346,12 +356,13 @@ class TestCase : TestCaseBase {
 
   // Sets |script| to be the source used at next reload.
   static void SetReloadTestScript(const char* script);
-  static void SetReloadTestKernel(const void* kernel);
 
   // Initiates the reload.
   static Dart_Handle TriggerReload();
-  // Gets the result of a reload.
-  static Dart_Handle GetReloadErrorOrRootLibrary();
+
+  // Returns the root library if the last reload was successful, otherwise
+  // returns Dart_Null().
+  static Dart_Handle GetReloadLibrary();
 
   // Helper function which reloads the current isolate using |script|.
   static Dart_Handle ReloadTestScript(const char* script);
@@ -361,7 +372,21 @@ class TestCase : TestCaseBase {
   static const char* GetTestLib(const char* url);
 
  private:
-  static Dart_Isolate CreateIsolate(const uint8_t* buffer, const char* name);
+  // |data_buffer| can either be snapshot data, or kernel binary data.
+  // If |data_buffer| is snapshot data, then |len| should be zero as snapshot
+  // size is encoded within them. If |len| is non-zero, then |data_buffer|
+  // will be treated as a kernel binary (but CreateIsolate will not
+  // take ownership of the buffer) and |instr_buffer| will be ignored.
+  static Dart_Isolate CreateIsolate(const uint8_t* data_buffer,
+                                    intptr_t len,
+                                    const uint8_t* instr_buffer,
+                                    const char* name,
+                                    void* data = NULL);
+
+  // Gets the result of a reload. This touches state in IsolateReloadContext
+  // that is zone allocated and should not be used if a reload is triggered
+  // using reloadTest() from package:isolate_reload_helper.
+  static Dart_Handle GetReloadErrorOrRootLibrary();
 
   RunEntry* const run_;
 };
@@ -641,6 +666,24 @@ class CompilerTest : public AllStatic {
     } else {                                                                   \
       dart::Expect(__FILE__, __LINE__)                                         \
           .Fail("expected True, but was '%s'\n", #handle);                     \
+    }                                                                          \
+  } while (0)
+
+#define EXPECT_NULL(handle)                                                    \
+  do {                                                                         \
+    Dart_Handle tmp_handle = (handle);                                         \
+    if (!Dart_IsNull(tmp_handle)) {                                            \
+      dart::Expect(__FILE__, __LINE__)                                         \
+          .Fail("expected '%s' to be a null handle.\n", #handle);              \
+    }                                                                          \
+  } while (0)
+
+#define EXPECT_NON_NULL(handle)                                                \
+  do {                                                                         \
+    Dart_Handle tmp_handle = (handle);                                         \
+    if (Dart_IsNull(tmp_handle)) {                                             \
+      dart::Expect(__FILE__, __LINE__)                                         \
+          .Fail("expected '%s' to be a non-null handle.\n", #handle);          \
     }                                                                          \
   } while (0)
 

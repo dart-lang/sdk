@@ -377,7 +377,7 @@ class DartUnitOutlineComputer {
    */
   static bool _isDeprecated(Declaration declaration) {
     engine.Element element = declaration.element;
-    return element != null && element.isDeprecated;
+    return element != null && element.hasDeprecated;
   }
 
   static String _safeToSource(AstNode node) =>

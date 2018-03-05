@@ -27,6 +27,13 @@ Program transformProgram(CoreTypes coreTypes, Program program, bool syncAsync) {
   return rewriter.rewriteProgram(program);
 }
 
+Procedure transformProcedure(
+    CoreTypes coreTypes, Procedure procedure, bool syncAsync) {
+  var helper = new HelperNodes.fromCoreTypes(coreTypes);
+  var rewriter = new RecursiveContinuationRewriter(helper, syncAsync);
+  return rewriter.visitProcedure(procedure);
+}
+
 class RecursiveContinuationRewriter extends Transformer {
   final HelperNodes helper;
 

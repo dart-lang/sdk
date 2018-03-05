@@ -197,13 +197,19 @@ char* DartUtils::DirName(const char* url) {
   if (slash == NULL) {
     return strdup(url);
   } else {
-    return StringUtils::StrNDup(url, slash - url + 1);
+    return Utils::StrNDup(url, slash - url + 1);
   }
 }
 
 void* DartUtils::OpenFile(const char* name, bool write) {
   File* file =
       File::Open(NULL, name, write ? File::kWriteTruncate : File::kRead);
+  return reinterpret_cast<void*>(file);
+}
+
+void* DartUtils::OpenFileUri(const char* uri, bool write) {
+  File* file =
+      File::OpenUri(NULL, uri, write ? File::kWriteTruncate : File::kRead);
   return reinterpret_cast<void*>(file);
 }
 

@@ -102,6 +102,8 @@ class DartFixKind {
   static const ADD_NE_NULL = const FixKind('ADD_NE_NULL', 50, "Add != null");
   static const ADD_PACKAGE_DEPENDENCY = const FixKind(
       'ADD_PACKAGE_DEPENDENCY', 50, "Add dependency on package '{0}'");
+  static const ADD_STATIC =
+      const FixKind('ADD_STATIC', 50, "Add 'static' modifier");
   static const ADD_SUPER_CONSTRUCTOR_INVOCATION = const FixKind(
       'ADD_SUPER_CONSTRUCTOR_INVOCATION',
       50,
@@ -113,6 +115,8 @@ class DartFixKind {
       'CHANGE_TYPE_ANNOTATION', 50, "Change '{0}' to '{1}' type annotation");
   static const CONVERT_FLUTTER_CHILD =
       const FixKind('CONVERT_FLUTTER_CHILD', 50, "Convert to children:");
+  static const CONVERT_FLUTTER_CHILDREN =
+      const FixKind('CONVERT_FLUTTER_CHILDREN', 50, "Convert to child:");
   static const CREATE_CLASS =
       const FixKind('CREATE_CLASS', 50, "Create class '{0}'");
   static const CREATE_CONSTRUCTOR =
@@ -141,6 +145,8 @@ class DartFixKind {
       'CREATE_MISSING_OVERRIDES', 49, "Create {0} missing override(s)");
   static const CREATE_NO_SUCH_METHOD = const FixKind(
       'CREATE_NO_SUCH_METHOD', 51, "Create 'noSuchMethod' method");
+  static const CONVERT_TO_NAMED_ARGUMENTS = const FixKind(
+      'CONVERT_TO_NAMED_ARGUMENTS', 50, "Convert to named arguments");
   static const IMPORT_LIBRARY_PREFIX = const FixKind('IMPORT_LIBRARY_PREFIX',
       51, "Use imported library '{0}' with prefix '{1}'");
   static const IMPORT_LIBRARY_PROJECT1 =

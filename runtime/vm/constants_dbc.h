@@ -165,9 +165,10 @@ namespace dart {
 //    with arguments SP[-(1+ArgC)], ..., SP[-1].
 //    The ICData indicates whether the first argument is a type argument vector.
 //
-//  - NativeBootstrapCall, NativeNoScopeCall, NativeAutoScopeCall
+//  - NativeCall ArgA, ArgB, ArgC
 //
-//    Invoke native function SP[-1] with argc_tag SP[0].
+//    Invoke native function at pool[ArgB] with argc_tag at pool[ArgC] using
+//    wrapper at pool[ArgA].
 //
 //  - PushPolymorphicInstanceCall ArgC, D
 //
@@ -767,9 +768,7 @@ namespace dart {
   V(InstanceCall2Opt,                    A_D, num, num, ___) \
   V(PushPolymorphicInstanceCall,         A_D, num, num, ___) \
   V(PushPolymorphicInstanceCallByRange,  A_D, num, num, ___) \
-  V(NativeBootstrapCall,                   0, ___, ___, ___) \
-  V(NativeNoScopeCall,                     0, ___, ___, ___) \
-  V(NativeAutoScopeCall,                   0, ___, ___, ___) \
+  V(NativeCall,                        A_B_C, num, num, num) \
   V(OneByteStringFromCharCode,           A_X, reg, xeg, ___) \
   V(StringToCharCode,                    A_X, reg, xeg, ___) \
   V(AddTOS,                                0, ___, ___, ___) \
@@ -999,6 +998,10 @@ class Bytecode {
 
   DART_FORCE_INLINE static uint8_t DecodeA(Instr bc) {
     return (bc >> kAShift) & kAMask;
+  }
+
+  DART_FORCE_INLINE static uint8_t DecodeB(Instr bc) {
+    return (bc >> kBShift) & kBMask;
   }
 
   DART_FORCE_INLINE static uint16_t DecodeD(Instr bc) {

@@ -1197,6 +1197,42 @@ abstract class IntegrationTestMixin {
   }
 
   /**
+   * Return top-level and class member declarations.
+   *
+   * Parameters
+   *
+   * pattern: String (optional)
+   *
+   *   The regular expression used to match the names of declarations. If this
+   *   field is missing, return all declarations.
+   *
+   * maxResults: int (optional)
+   *
+   *   The maximum number of declarations to return. If this field is missing,
+   *   return all matching declarations.
+   *
+   * Returns
+   *
+   * declarations: List<ElementDeclaration>
+   *
+   *   The list of declarations.
+   *
+   * files: List<FilePath>
+   *
+   *   The list of the paths of files with declarations.
+   */
+  Future<SearchGetElementDeclarationsResult> sendSearchGetElementDeclarations(
+      {String pattern, int maxResults}) async {
+    var params = new SearchGetElementDeclarationsParams(
+            pattern: pattern, maxResults: maxResults)
+        .toJson();
+    var result = await server.send("search.getElementDeclarations", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new SearchGetElementDeclarationsResult.fromJson(
+        decoder, 'result', result);
+  }
+
+  /**
    * Return the type hierarchy of the class declared or referenced at the given
    * location.
    *
@@ -2132,6 +2168,12 @@ abstract class IntegrationTestMixin {
    * outline: FlutterOutline
    *
    *   The outline associated with the file.
+   *
+   * instrumentationEdits: List<SourceEdit>
+   *
+   *   If the file has Flutter widgets that can be rendered, the list of edits
+   *   that should be applied to the file to instrument widgets and associate
+   *   them with outline nodes.
    */
   Stream<FlutterOutlineParams> onFlutterOutline;
 

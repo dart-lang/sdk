@@ -124,7 +124,7 @@ class MatchExpectation extends Step<Program, Program, ChainContext> {
     StringBuffer buffer = new StringBuffer();
     new Printer(buffer).writeLibraryFile(library);
     String actual = "$buffer".replaceAll("$base", "org-dartlang-testcase:///");
-
+    actual = actual.replaceAll("\\n", "\n");
     File expectedFile = new File("${uri.toFilePath()}$suffix");
     if (await expectedFile.exists()) {
       String expected = await expectedFile.readAsString();

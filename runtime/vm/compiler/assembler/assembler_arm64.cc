@@ -436,7 +436,7 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
 
 void Assembler::LoadNativeEntry(Register dst, const ExternalLabel* label) {
   const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindNativeEntry(label, kNotPatchable));
+      object_pool_wrapper_.FindNativeFunction(label, kNotPatchable));
   LoadWordFromPoolOffset(dst, offset);
 }
 

@@ -11,6 +11,7 @@
 #include "vm/exceptions.h"
 #include "vm/heap.h"
 #include "vm/longjump.h"
+#include "vm/message.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/snapshot_ids.h"
@@ -615,9 +616,9 @@ RawObject* SnapshotReader::ReadScriptSnapshot() {
     if (!obj_.IsError()) {
       const intptr_t kMessageBufferSize = 128;
       char message_buffer[kMessageBufferSize];
-      OS::SNPrint(message_buffer, kMessageBufferSize,
-                  "Invalid object %s found in script snapshot",
-                  obj_.ToCString());
+      Utils::SNPrint(message_buffer, kMessageBufferSize,
+                     "Invalid object %s found in script snapshot",
+                     obj_.ToCString());
       const String& msg = String::Handle(String::New(message_buffer));
       obj_ = ApiError::New(msg);
     }
@@ -635,9 +636,9 @@ RawApiError* SnapshotReader::VerifyVersionAndFeatures(Isolate* isolate) {
   if (PendingBytes() < version_len) {
     const intptr_t kMessageBufferSize = 128;
     char message_buffer[kMessageBufferSize];
-    OS::SNPrint(message_buffer, kMessageBufferSize,
-                "No full snapshot version found, expected '%s'",
-                expected_version);
+    Utils::SNPrint(message_buffer, kMessageBufferSize,
+                   "No full snapshot version found, expected '%s'",
+                   expected_version);
     // This can also fail while bringing up the VM isolate, so make sure to
     // allocate the error message in old space.
     const String& msg = String::Handle(String::New(message_buffer, Heap::kOld));
@@ -649,11 +650,11 @@ RawApiError* SnapshotReader::VerifyVersionAndFeatures(Isolate* isolate) {
   if (strncmp(version, expected_version, version_len)) {
     const intptr_t kMessageBufferSize = 256;
     char message_buffer[kMessageBufferSize];
-    char* actual_version = OS::StrNDup(version, version_len);
-    OS::SNPrint(message_buffer, kMessageBufferSize,
-                "Wrong %s snapshot version, expected '%s' found '%s'",
-                (Snapshot::IsFull(kind_)) ? "full" : "script", expected_version,
-                actual_version);
+    char* actual_version = Utils::StrNDup(version, version_len);
+    Utils::SNPrint(message_buffer, kMessageBufferSize,
+                   "Wrong %s snapshot version, expected '%s' found '%s'",
+                   (Snapshot::IsFull(kind_)) ? "full" : "script",
+                   expected_version, actual_version);
     free(actual_version);
     // This can also fail while bringing up the VM isolate, so make sure to
     // allocate the error message in old space.
@@ -662,23 +663,23 @@ RawApiError* SnapshotReader::VerifyVersionAndFeatures(Isolate* isolate) {
   }
   Advance(version_len);
 
-  const char* expected_features = Dart::FeaturesString(isolate, kind_);
+  const char* expected_features = Dart::FeaturesString(isolate, false, kind_);
   ASSERT(expected_features != NULL);
   const intptr_t expected_len = strlen(expected_features);
 
   const char* features = reinterpret_cast<const char*>(CurrentBufferAddress());
   ASSERT(features != NULL);
-  intptr_t buffer_len = OS::StrNLen(features, PendingBytes());
+  intptr_t buffer_len = Utils::StrNLen(features, PendingBytes());
   if ((buffer_len != expected_len) ||
       strncmp(features, expected_features, expected_len)) {
     const intptr_t kMessageBufferSize = 256;
     char message_buffer[kMessageBufferSize];
     char* actual_features =
-        OS::StrNDup(features, buffer_len < 128 ? buffer_len : 128);
-    OS::SNPrint(message_buffer, kMessageBufferSize,
-                "Snapshot not compatible with the current VM configuration: "
-                "the snapshot requires '%s' but the VM has '%s'",
-                actual_features, expected_features);
+        Utils::StrNDup(features, buffer_len < 128 ? buffer_len : 128);
+    Utils::SNPrint(message_buffer, kMessageBufferSize,
+                   "Snapshot not compatible with the current VM configuration: "
+                   "the snapshot requires '%s' but the VM has '%s'",
+                   actual_features, expected_features);
     free(const_cast<char*>(expected_features));
     free(actual_features);
     // This can also fail while bringing up the VM isolate, so make sure to
@@ -918,14 +919,13 @@ ScriptSnapshotReader::~ScriptSnapshotReader() {
   ResetBackwardReferenceTable();
 }
 
-MessageSnapshotReader::MessageSnapshotReader(const uint8_t* buffer,
-                                             intptr_t size,
-                                             Thread* thread)
-    : SnapshotReader(buffer,
-                     size,
+MessageSnapshotReader::MessageSnapshotReader(Message* message, Thread* thread)
+    : SnapshotReader(message->snapshot(),
+                     message->snapshot_length(),
                      Snapshot::kMessage,
                      new ZoneGrowableArray<BackRefNode>(kNumInitialReferences),
-                     thread) {}
+                     thread),
+      finalizable_data_(message->finalizable_data()) {}
 
 MessageSnapshotReader::~MessageSnapshotReader() {
   ResetBackwardReferenceTable();
@@ -933,13 +933,12 @@ MessageSnapshotReader::~MessageSnapshotReader() {
 
 SnapshotWriter::SnapshotWriter(Thread* thread,
                                Snapshot::Kind kind,
-                               uint8_t** buffer,
                                ReAlloc alloc,
                                DeAlloc dealloc,
                                intptr_t initial_size,
                                ForwardList* forward_list,
                                bool can_send_any_object)
-    : BaseWriter(buffer, alloc, dealloc, initial_size),
+    : BaseWriter(alloc, dealloc, initial_size),
       thread_(thread),
       kind_(kind),
       object_store_(isolate()->object_store()),
@@ -1538,7 +1537,7 @@ void SnapshotWriter::WriteVersionAndFeatures() {
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_version), version_len);
 
   const char* expected_features =
-      Dart::FeaturesString(Isolate::Current(), kind_);
+      Dart::FeaturesString(Isolate::Current(), false, kind_);
   ASSERT(expected_features != NULL);
   const intptr_t features_len = strlen(expected_features);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_features),
@@ -1546,17 +1545,15 @@ void SnapshotWriter::WriteVersionAndFeatures() {
   free(const_cast<char*>(expected_features));
 }
 
-ScriptSnapshotWriter::ScriptSnapshotWriter(uint8_t** buffer, ReAlloc alloc)
+ScriptSnapshotWriter::ScriptSnapshotWriter(ReAlloc alloc)
     : SnapshotWriter(Thread::Current(),
                      Snapshot::kScript,
-                     buffer,
                      alloc,
                      NULL,
                      kInitialSize,
                      &forward_list_,
                      true /* can_send_any_object */),
       forward_list_(thread(), kMaxPredefinedObjectIds) {
-  ASSERT(buffer != NULL);
   ASSERT(alloc != NULL);
 }
 
@@ -1598,26 +1595,35 @@ void SnapshotWriterVisitor::VisitPointers(RawObject** first, RawObject** last) {
   }
 }
 
-MessageWriter::MessageWriter(uint8_t** buffer,
-                             ReAlloc alloc,
-                             DeAlloc dealloc,
-                             bool can_send_any_object,
-                             intptr_t* buffer_len)
+static uint8_t* malloc_allocator(uint8_t* ptr,
+                                 intptr_t old_size,
+                                 intptr_t new_size) {
+  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
+  return reinterpret_cast<uint8_t*>(new_ptr);
+}
+
+static void malloc_deallocator(uint8_t* ptr) {
+  free(reinterpret_cast<void*>(ptr));
+}
+
+MessageWriter::MessageWriter(bool can_send_any_object)
     : SnapshotWriter(Thread::Current(),
                      Snapshot::kMessage,
-                     buffer,
-                     alloc,
-                     dealloc,
+                     malloc_allocator,
+                     malloc_deallocator,
                      kInitialSize,
                      &forward_list_,
                      can_send_any_object),
       forward_list_(thread(), kMaxPredefinedObjectIds),
-      buffer_len_(buffer_len) {
-  ASSERT(buffer != NULL);
-  ASSERT(alloc != NULL);
+      finalizable_data_(new MessageFinalizableData()) {}
+
+MessageWriter::~MessageWriter() {
+  delete finalizable_data_;
 }
 
-void MessageWriter::WriteMessage(const Object& obj) {
+Message* MessageWriter::WriteMessage(const Object& obj,
+                                     Dart_Port dest_port,
+                                     Message::Priority priority) {
   ASSERT(kind() == Snapshot::kMessage);
   ASSERT(isolate() != NULL);
 
@@ -1627,13 +1633,15 @@ void MessageWriter::WriteMessage(const Object& obj) {
   if (setjmp(*jump.Set()) == 0) {
     NoSafepointScope no_safepoint;
     WriteObject(obj.raw());
-    if (buffer_len_ != NULL) {
-      *buffer_len_ = BytesWritten();
-    }
   } else {
     FreeBuffer();
     ThrowException(exception_type(), exception_msg());
   }
+
+  MessageFinalizableData* finalizable_data = finalizable_data_;
+  finalizable_data_ = NULL;
+  return new Message(dest_port, buffer(), BytesWritten(), finalizable_data,
+                     priority);
 }
 
 }  // namespace dart

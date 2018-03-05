@@ -219,8 +219,8 @@ static void SaveVars(Dart_IsolateId isolate_id,
     const char* function_str =
         String::Handle(frame->function().QualifiedUserVisibleName())
             .ToCString();
-    pos += OS::SNPrint(pos, (kBufferLen - (pos - buffer)), "%s\n%s",
-                       function_str, var_str);
+    pos += Utils::SNPrint(pos, (kBufferLen - (pos - buffer)), "%s\n%s",
+                          function_str, var_str);
     delete[] var_str;
   }
   pos[0] = '\0';

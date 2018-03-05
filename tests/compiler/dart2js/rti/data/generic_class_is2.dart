@@ -5,12 +5,10 @@
 import 'package:expect/expect.dart';
 import 'package:meta/dart2js.dart';
 
-// TODO(johnniwinther): A, C and C2 should be checked or A1, C1, and C2 should
-// have checks againts A, C and C, respectively.
-/*class: A:arg,checks=[A],implicit=[List<A<C2>>,List<A<C>>]*/
+/*class: A:implicit=[List<A<C2>>,List<A<C>>]*/
 class A<T> {}
 
-/*class: A1:arg,checks=[A]*/
+/*kernel.class: A1:implicit=[A1]*/
 class A1 implements A<C1> {}
 
 /*class: B:direct,explicit=[B.T],needsArgs*/
@@ -19,13 +17,12 @@ class B<T> {
   method(var t) => t is T;
 }
 
-/*class: C:arg,checks=[C],implicit=[List<A<C>>]*/
+/*class: C:implicit=[List<A<C>>]*/
 class C {}
 
-/*class: C1:arg*/
 class C1 implements C {}
 
-/*class: C2:arg,checks=[C,C2],implicit=[List<A<C2>>]*/
+/*class: C2:implicit=[List<A<C2>>]*/
 class C2 implements C {}
 
 main() {

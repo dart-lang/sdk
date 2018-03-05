@@ -900,7 +900,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   /// that no corresponding ir.Node actually exists for it. We just use the
   /// targetElement.
   void buildMethodSignature(ir.FunctionNode originalClosureNode) {
-    openFunction(targetElement);
+    openFunction(targetElement, originalClosureNode);
     List<HInstruction> typeArguments = <HInstruction>[];
 
     // Add function type variables.
@@ -3130,11 +3130,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     if (isFixedListConstructorCall) {
       assert(
-          arguments.length == 1,
+          // Arguments may include the type.
+          arguments.length == 1 || arguments.length == 2,
           failedAt(
               function,
               "Unexpected arguments. "
-              "Expected 1 argument, actual: $arguments."));
+              "Expected 1-2 argument, actual: $arguments."));
       HInstruction lengthInput = arguments.first;
       if (!lengthInput.isNumber(closedWorld)) {
         HTypeConversion conversion = new HTypeConversion(
@@ -3167,7 +3168,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       resultType = inferredType.containsAll(closedWorld)
           ? commonMasks.fixedListType
           : inferredType;
-      HForeignCode foreign = new HForeignCode(code, resultType, arguments,
+      HForeignCode foreign = new HForeignCode(
+          code, resultType, <HInstruction>[lengthInput],
           nativeBehavior: behavior,
           throwBehavior: canThrow
               ? native.NativeThrowBehavior.MAY
@@ -3354,7 +3356,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     HConstant hConstant = instruction;
     StringConstantValue stringConstant = hConstant.constant;
-    return stringConstant.primitiveValue;
+    return stringConstant.stringValue;
   }
 
   void handleForeignJsCurrentIsolateContext(ir.StaticInvocation invocation) {
@@ -3988,10 +3990,33 @@ class KernelSsaGraphBuilder extends ir.Visitor
           _elementMap.getDartType(type), sourceElement);
       arguments.add(instruction);
     }
-    Selector selector =
-        new Selector.genericInstantiation(node.typeArguments.length);
-    _pushDynamicInvocation(node, commonMasks.functionType, selector, arguments,
-        const <DartType>[], null /*_sourceInformationBuilder.?*/);
+    int typeArgumentCount = node.typeArguments.length;
+    bool targetCanThrow = false; // TODO(sra): Is this true?
+    FunctionEntity target = _instantiator(typeArgumentCount);
+    if (target == null) {
+      reporter.internalError(
+          _elementMap.getSpannable(targetElement, node),
+          'Generic function instantiation not implemented for '
+          '${typeArgumentCount} type arguments');
+      stack.add(graph.addConstantNull(closedWorld));
+      return;
+    }
+    HInstruction instruction = new HInvokeStatic(
+        target, arguments, commonMasks.functionType, <DartType>[],
+        targetCanThrow: targetCanThrow);
+    // TODO(sra): ..sourceInformation = sourceInformation
+    instruction.sideEffects
+      ..clearAllDependencies()
+      ..clearAllSideEffects();
+
+    push(instruction);
+  }
+
+  FunctionEntity _instantiator(int count) {
+    if (count == 1) return _commonElements.instantiate1;
+    if (count == 2) return _commonElements.instantiate2;
+    if (count == 3) return _commonElements.instantiate3;
+    return null;
   }
 
   @override
@@ -4920,7 +4945,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         failedAt(
             function,
             "Only ${argumentIndex} of ${compiledArguments.length} "
-            "arguments have been read from: ${compiledArguments}"));
+            "arguments have been read from: ${compiledArguments} passed to "
+            "$function."));
 
     _returnType =
         _elementMap.elementEnvironment.getFunctionType(function).returnType;
@@ -5105,7 +5131,8 @@ class InlineWeeder extends ir.Visitor {
   static String cannotBeInlinedReason(KernelToElementMapForBuilding elementMap,
       FunctionEntity function, int maxInliningNodes,
       {bool allowLoops: false, bool enableUserAssertions: null}) {
-    InlineWeeder visitor = new InlineWeeder(maxInliningNodes, allowLoops);
+    InlineWeeder visitor =
+        new InlineWeeder(maxInliningNodes, allowLoops, enableUserAssertions);
     ir.FunctionNode node = getFunctionNode(elementMap, function);
     node.accept(visitor);
     if (function.isConstructor) {
@@ -5120,13 +5147,15 @@ class InlineWeeder extends ir.Visitor {
 
   final int maxInliningNodes; // `null` for unbounded.
   final bool allowLoops;
+  final bool enableUserAssertions;
 
   bool seenReturn = false;
   int nodeCount = 0;
   String tooDifficultReason;
   bool get tooDifficult => tooDifficultReason != null;
 
-  InlineWeeder(this.maxInliningNodes, this.allowLoops);
+  InlineWeeder(
+      this.maxInliningNodes, this.allowLoops, this.enableUserAssertions);
 
   bool registerNode() {
     if (maxInliningNodes == null) return true;
@@ -5259,6 +5288,18 @@ class InlineWeeder extends ir.Visitor {
     }
     // This is last so that [tooDifficult] is always updated.
     if (!registerNode()) return;
+  }
+
+  @override
+  visitAssertInitializer(ir.AssertInitializer node) {
+    if (!enableUserAssertions) return;
+    node.visitChildren(this);
+  }
+
+  @override
+  visitAssertStatement(ir.AssertStatement node) {
+    if (!enableUserAssertions) return;
+    defaultNode(node);
   }
 }
 

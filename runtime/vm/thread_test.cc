@@ -15,9 +15,7 @@ namespace dart {
 
 VM_UNIT_TEST_CASE(Mutex) {
   // This unit test case needs a running isolate.
-  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
-                     bin::core_isolate_snapshot_instructions, NULL, NULL, NULL);
-
+  TestCase::CreateTestIsolate();
   Mutex* mutex = new Mutex();
   mutex->Lock();
   EXPECT_EQ(false, mutex->TryLock());
@@ -36,8 +34,7 @@ VM_UNIT_TEST_CASE(Mutex) {
 
 VM_UNIT_TEST_CASE(Monitor) {
   // This unit test case needs a running isolate.
-  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
-                     bin::core_isolate_snapshot_instructions, NULL, NULL, NULL);
+  TestCase::CreateTestIsolate();
   OSThread* thread = OSThread::Current();
   // Thread interrupter interferes with this test, disable interrupts.
   thread->DisableThreadInterrupts();
@@ -368,14 +365,12 @@ TEST_CASE(ThreadRegistry) {
   char* orig_str = orig_zone->PrintToString("foo");
   Dart_ExitIsolate();
   // Create and enter a new isolate.
-  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
-                     bin::core_isolate_snapshot_instructions, NULL, NULL, NULL);
+  TestCase::CreateTestIsolate();
   Zone* zone0 = Thread::Current()->zone();
   EXPECT(zone0 != orig_zone);
   Dart_ShutdownIsolate();
   // Create and enter yet another isolate.
-  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
-                     bin::core_isolate_snapshot_instructions, NULL, NULL, NULL);
+  TestCase::CreateTestIsolate();
   {
     // Create a stack resource this time, and exercise it.
     StackZone stack_zone(Thread::Current());
@@ -507,17 +502,17 @@ TEST_CASE(SafepointTestDart) {
   const intptr_t kLoopCount = 1234567890;
 #endif  // USING_SIMULATOR
   char buffer[1024];
-  OS::SNPrint(buffer, sizeof(buffer),
-              "import 'dart:developer';\n"
-              "int dummy = 0;\n"
-              "main() {\n"
-              "  new UserTag('foo').makeCurrent();\n"
-              "  for (dummy = 0; dummy < %" Pd
-              "; ++dummy) {\n"
-              "    dummy += (dummy & 1);\n"
-              "  }\n"
-              "}\n",
-              kLoopCount);
+  Utils::SNPrint(buffer, sizeof(buffer),
+                 "import 'dart:developer';\n"
+                 "int dummy = 0;\n"
+                 "main() {\n"
+                 "  new UserTag('foo').makeCurrent();\n"
+                 "  for (dummy = 0; dummy < %" Pd
+                 "; ++dummy) {\n"
+                 "    dummy += (dummy & 1);\n"
+                 "  }\n"
+                 "}\n",
+                 kLoopCount);
   Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);

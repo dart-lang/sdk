@@ -1863,7 +1863,7 @@ class _Bigint extends _IntegerImplementation {
 }
 
 // Interface for modular reduction.
-class _Reduction {
+abstract class _Reduction {
   // Return the number of digits used by r_digits.
   int _convert(_Bigint x, Uint32List r_digits);
   int _mul(Uint32List x_digits, int x_used, Uint32List y_digits, int y_used,
@@ -1925,6 +1925,7 @@ class _Montgomery implements _Reduction {
     // y == 1/x mod _DIGIT_BASE
     y = -y; // We really want the negative inverse.
     args[_RHO] = y & _Bigint._DIGIT_MASK;
+    assert(((x * y) & _Bigint._DIGIT_MASK) == _Bigint._DIGIT_MASK);
   }
 
   // Calculates -1/x % _DIGIT_BASE^2, x is a pair of 32-bit digits.
@@ -1938,6 +1939,7 @@ class _Montgomery implements _Reduction {
     y = (y * (2 - (((xl & 0xffff) * y) & 0xffff))) &
         0xffff; // y == 1/x mod 2^16
     y = (y * (2 - ((xl * y) & 0xffffffff))) & 0xffffffff; // y == 1/x mod 2^32
+    // Warning: The following expressions involve bigint arithmetic.
     var x = (args[_X_HI] << _Bigint._DIGIT_BITS) | xl;
     y = (y * (2 - ((x * y) & _Bigint._TWO_DIGITS_MASK))) &
         _Bigint._TWO_DIGITS_MASK;
@@ -1945,6 +1947,7 @@ class _Montgomery implements _Reduction {
     y = -y; // We really want the negative inverse.
     args[_RHO] = y & _Bigint._DIGIT_MASK;
     args[_RHO_HI] = (y >> _Bigint._DIGIT_BITS) & _Bigint._DIGIT_MASK;
+    assert(((x * y) & _Bigint._TWO_DIGITS_MASK) == _Bigint._TWO_DIGITS_MASK);
   }
 
   // Operation:
@@ -1972,6 +1975,7 @@ class _Montgomery implements _Reduction {
   int _convert(_Bigint x, Uint32List r_digits) {
     // Montgomery reduction only works if abs(x) < _m.
     assert(x._abs() < _m);
+    assert(_digits_per_step == 1 || _m._used.isEven);
     var r = x._abs()._dlShift(_m._used)._rem(_m);
     if (x._neg && !r._neg && r._used > 0) {
       r = _m._sub(r);

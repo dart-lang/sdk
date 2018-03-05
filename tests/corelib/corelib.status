@@ -3,54 +3,10 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2analyzer ]
-big_integer_arith_vm_test/add: CompileTimeError # int64
-big_integer_arith_vm_test/div: CompileTimeError # int64
-big_integer_arith_vm_test/gcd: CompileTimeError # int64
-big_integer_arith_vm_test/mod: CompileTimeError # int64
-big_integer_arith_vm_test/modInv: CompileTimeError # int64
-big_integer_arith_vm_test/modPow: CompileTimeError # int64
-big_integer_arith_vm_test/mul: CompileTimeError # int64
-big_integer_arith_vm_test/negate: CompileTimeError # int64
-big_integer_arith_vm_test/none: CompileTimeError # int64
-big_integer_arith_vm_test/overflow: CompileTimeError # int64
-big_integer_arith_vm_test/shift: CompileTimeError # int64
-big_integer_arith_vm_test/sub: CompileTimeError # int64
-big_integer_arith_vm_test/trunDiv: CompileTimeError # int64
-bit_twiddling_bigint_test: CompileTimeError # int64
-bit_twiddling_test: CompileTimeError # int64
-double_ceil_test: CompileTimeError # int64
-double_floor_test: CompileTimeError # int64
-double_round_test: CompileTimeError # int64
-double_truncate_test: CompileTimeError # int64
-duration2_test: StaticWarning, OK # Test generates error on purpose.
-error_stack_trace_test: StaticWarning, OK # Test generates errors on purpose.
-hash_set_type_check_test: StaticWarning, OK # Tests failing type tests.
-int_ceil_test: CompileTimeError # int64
-int_ceil_to_double_test: CompileTimeError # int64
-int_floor_test: CompileTimeError # int64
-int_floor_to_double_test: CompileTimeError # int64
-int_from_environment_test: CompileTimeError # int64
-int_modulo_arith_test/bignum: CompileTimeError # int64
-int_modulo_arith_test/modPow: CompileTimeError # int64
-int_modulo_arith_test/none: CompileTimeError # int64
-int_parse_radix_bad_handler_test: Fail
-int_parse_radix_test/02: CompileTimeError # int64
-int_round_test: CompileTimeError # int64
-int_round_to_double_test: CompileTimeError # int64
-int_to_int_test: CompileTimeError # int64
-int_truncate_test: CompileTimeError # int64
-int_truncate_to_double_test: CompileTimeError # int64
-integer_to_radix_string_test: CompileTimeError # int64
-integer_to_string_test/01: CompileTimeError # int64
-iterable_element_at_test: StaticWarning, OK # Test generates errors on purpose.
-num_clamp_test: StaticWarning, OK # Test generates errors on purpose.
-num_parse_test/01: CompileTimeError # int64
-num_parse_test/none: CompileTimeError # int64
-num_sign_test: CompileTimeError # int64
-regress_r21715_test: CompileTimeError # int64
-string_test: StaticWarning, OK # Test generates error on purpose.
+*: Skip
 
 [ $compiler == dart2js ]
+error_stack_trace1_test: RuntimeError # Issue 12399
 regexp/pcre_test: Pass, Slow # Issue 21593
 
 [ $compiler == precompiler ]
@@ -126,22 +82,6 @@ int_parse_radix_test/*: Pass, Slow
 [ $arch == x64 && $system == windows ]
 stopwatch_test: Skip # Flaky test due to expected performance behaviour.
 
-# Analyzer's implementation of fromEnvironment assumes that undefined
-# environment variables have an unspecified value (rather than being
-# null) because it is expected that the user will supply a value when
-# the code is run.  This means that it produces slightly different
-# error messages than the VM and Dart2js.
-[ $compiler == dart2analyzer && $checked ]
-from_environment_const_type_undefined_test/09: CompileTimeError
-from_environment_const_type_undefined_test/11: CompileTimeError
-from_environment_const_type_undefined_test/12: CompileTimeError
-from_environment_const_type_undefined_test/13: CompileTimeError
-from_environment_const_type_undefined_test/14: CompileTimeError
-from_environment_const_type_undefined_test/16: CompileTimeError
-
-[ $compiler == dart2analyzer && $strong ]
-*: Skip # Issue 28649
-
 [ $compiler != dart2analyzer && $runtime != dart_precompiled && $runtime != vm ]
 data_resource_test: RuntimeError # Issue 23825 (not implemented yet).
 file_resource_test: Skip, OK # VM specific test, uses dart:io.
@@ -163,14 +103,7 @@ core_runtime_types_test: Pass, Fail # Issue 27913
 [ $compiler == dart2js && !$browser ]
 package_resource_test: RuntimeError # Issue 26842
 
-[ $compiler == dart2js && $checked && $dart2js_with_kernel ]
-apply3_test: RuntimeError
-big_integer_parsed_arith_vm_test: RuntimeError
-big_integer_parsed_div_rem_vm_test: RuntimeError
-big_integer_parsed_mul_div_vm_test: RuntimeError
-compare_to2_test: RuntimeError
-double_parse_test/01: RuntimeError
-error_stack_trace1_test: RuntimeError # Issue 12399
+[ $compiler == dart2js && $checked && $fasta ]
 from_environment_const_type_test/02: MissingCompileTimeError
 from_environment_const_type_test/03: MissingCompileTimeError
 from_environment_const_type_test/04: MissingCompileTimeError
@@ -189,17 +122,12 @@ from_environment_const_type_undefined_test/04: MissingCompileTimeError
 from_environment_const_type_undefined_test/06: MissingCompileTimeError
 from_environment_const_type_undefined_test/07: MissingCompileTimeError
 from_environment_const_type_undefined_test/08: MissingCompileTimeError
-hash_set_test/01: RuntimeError
-int_parse_radix_test/01: RuntimeError
-iterable_return_type_test/01: RuntimeError
-iterable_return_type_test/02: RuntimeError
-iterable_to_list_test/01: RuntimeError
-map_test: Crash # tests/corelib/map_test.dart:866:7: Internal problem: Unhandled Null in installDefaultConstructor.
-nan_infinity_test/01: RuntimeError
-string_base_vm_test: RuntimeError
-symbol_reserved_word_test/03: RuntimeError
 
-[ $compiler == dart2js && $dart2js_with_kernel ]
+[ $compiler == dart2js && $fast_startup ]
+apply3_test: Fail # mirrors not supported
+
+[ $compiler == dart2js && $fasta ]
+apply3_test: RuntimeError # mirrors not supported
 big_integer_arith_vm_test/add: RuntimeError
 big_integer_arith_vm_test/div: RuntimeError
 big_integer_arith_vm_test/gcd: RuntimeError
@@ -213,73 +141,40 @@ big_integer_arith_vm_test/overflow: RuntimeError
 big_integer_arith_vm_test/shift: RuntimeError
 big_integer_arith_vm_test/sub: RuntimeError
 big_integer_arith_vm_test/trunDiv: RuntimeError
+big_integer_parsed_arith_vm_test: RuntimeError
+big_integer_parsed_div_rem_vm_test: RuntimeError
+big_integer_parsed_mul_div_vm_test: RuntimeError
 bit_twiddling_bigint_test: RuntimeError
+compare_to2_test: RuntimeError
+double_parse_test/01: RuntimeError
+hash_set_test/01: RuntimeError
 int_modulo_arith_test/bignum: RuntimeError
 int_modulo_arith_test/modPow: RuntimeError
+int_parse_radix_test/01: RuntimeError
 int_parse_radix_test/02: RuntimeError
 integer_to_radix_string_test: RuntimeError
 integer_to_string_test/01: RuntimeError
+iterable_return_type_test/01: RuntimeError
+iterable_return_type_test/02: RuntimeError
+iterable_to_list_test/01: RuntimeError
+nan_infinity_test/01: RuntimeError
 regress_r21715_test: RuntimeError
-
-[ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
-big_integer_parsed_arith_vm_test: RuntimeError
-big_integer_parsed_div_rem_vm_test: RuntimeError
-big_integer_parsed_mul_div_vm_test: RuntimeError
-compare_to2_test: RuntimeError
-double_parse_test/01: RuntimeError
-hash_set_test/01: RuntimeError
-int_parse_radix_test/01: RuntimeError
-iterable_return_type_test/01: RuntimeError
-iterable_return_type_test/02: RuntimeError
-iterable_to_list_test/01: RuntimeError
-map_test: Crash # tests/corelib/map_test.dart:866:7: Internal problem: Unhandled Null in installDefaultConstructor.
-nan_infinity_test/01: RuntimeError
 string_base_vm_test: RuntimeError
 symbol_reserved_word_test/03: RuntimeError
 
-[ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-apply3_test: CompileTimeError
-big_integer_parsed_arith_vm_test: RuntimeError
-big_integer_parsed_div_rem_vm_test: RuntimeError
-big_integer_parsed_mul_div_vm_test: RuntimeError
-compare_to2_test: RuntimeError
-double_parse_test/01: RuntimeError
-error_stack_trace1_test: RuntimeError # Issue 12399
-hash_set_test/01: RuntimeError
-int_parse_radix_test/01: RuntimeError
-iterable_return_type_test/01: RuntimeError
-iterable_return_type_test/02: RuntimeError
-iterable_to_list_test/01: RuntimeError
-map_test: Crash # Issue 27394
-nan_infinity_test/01: RuntimeError
-string_base_vm_test: RuntimeError
-symbol_reserved_word_test/03: RuntimeError
+[ $compiler == dart2js && $fasta && $host_checked ]
+apply3_test: RuntimeError
 
-[ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-apply3_test: CompileTimeError
-big_integer_parsed_arith_vm_test: RuntimeError
-big_integer_parsed_div_rem_vm_test: RuntimeError
-big_integer_parsed_mul_div_vm_test: RuntimeError
-compare_to2_test: RuntimeError
-double_parse_test/01: RuntimeError
-error_stack_trace1_test: RuntimeError
-hash_set_test/01: RuntimeError
-int_parse_radix_test/01: RuntimeError
-iterable_return_type_test/01: RuntimeError
-iterable_return_type_test/02: RuntimeError
-iterable_to_list_test/01: RuntimeError
-nan_infinity_test/01: RuntimeError
-string_base_vm_test: RuntimeError
+[ $compiler == dart2js && $fasta && $minified ]
+apply3_test: RuntimeError
 symbol_operator_test/03: RuntimeError # Issue 27394
 symbol_operator_test/none: RuntimeError
-symbol_reserved_word_test/03: RuntimeError
 
-[ $compiler == dart2js && !$dart2js_with_kernel ]
+[ $compiler == dart2js && !$fasta ]
 big_integer_*: Skip # VM specific test.
 bit_twiddling_bigint_test: RuntimeError # Requires bigint support.
 compare_to2_test: RuntimeError, OK # Requires bigint support.
 double_parse_test/01: Pass, Fail # JS implementations disagree on U+0085 being whitespace.
-error_stack_trace1_test: RuntimeError # Issue 12399
 hash_set_test/01: RuntimeError # Issue 11551
 int_modulo_arith_test/bignum: RuntimeError # No bigints.
 int_modulo_arith_test/modPow: RuntimeError # No bigints.
@@ -300,9 +195,6 @@ symbol_reserved_word_test/04: MissingCompileTimeError
 symbol_reserved_word_test/05: Crash # bug 20191
 symbol_reserved_word_test/07: MissingCompileTimeError
 symbol_reserved_word_test/10: MissingCompileTimeError
-
-[ $compiler == dart2js && $fast_startup ]
-apply3_test: Fail # mirrors not supported
 
 [ $compiler != dart2js && $fasta ]
 big_integer_arith_vm_test/add: CompileTimeError

@@ -110,22 +110,28 @@ print(1)
   }
 
   test_suggestImportFromDifferentAnalysisRoot() async {
-    // Set up two projects.
-    newFolder("/project1");
-    newFolder("/project2");
+    String asFileUri(String input) =>
+        new Uri.file(convertPath(input)).toString();
+    newFolder('/aaa');
+    newFile('/aaa/.packages', content: '''
+aaa:${asFileUri('/aaa/lib')}
+bbb:${asFileUri('/bbb/lib')}
+''');
+    // Ensure that the target is analyzed as an implicit source.
+    newFile('/aaa/lib/foo.dart', content: 'import "package:bbb/target.dart";');
+
+    newFolder('/bbb');
+    newFile('/bbb/lib/target.dart', content: 'class Foo() {}');
+
     handleSuccessfulRequest(
-        new AnalysisSetAnalysisRootsParams(["/project1", "/project2"], [])
-            .toRequest('0'),
+        new AnalysisSetAnalysisRootsParams(
+            [convertPath('/aaa'), convertPath('/bbb')], []).toRequest('0'),
         handler: analysisHandler);
 
-    // Set up files.
-    testFile = resourceProvider.convertPath('/project1/main.dart');
-    testCode = 'main() { print(new Foo()); }';
+    // Configure the test file.
+    testFile = resourceProvider.convertPath('/aaa/main.dart');
+    testCode = 'main() { new Foo(); }';
     _addOverlay(testFile, testCode);
-    // Add another file in the same project that imports the target file.
-    // This ensures it will be analyzed as an implicit Source.
-    _addOverlay('/project1/another.dart', 'import "../project2/target.dart";');
-    _addOverlay('/project2/target.dart', 'class Foo() {}');
 
     await waitForTasksFinished();
 
@@ -134,7 +140,7 @@ print(1)
         .fixes
         .map((f) => f.message)
         .toList();
-    expect(fixes, contains("Import library '../project2/target.dart'"));
+    expect(fixes, contains("Import library 'package:bbb/target.dart'"));
   }
 
   void _addOverlay(String name, String contents) {

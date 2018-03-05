@@ -768,7 +768,7 @@ class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR*/Child2 implement
 ''');
   }
 
-  test_fieldOverride_fuzzyArrows() async {
+  test_fieldOverride() async {
     await checkFile('''
 typedef void ToVoid<T>(T x);
 class F {
@@ -777,13 +777,13 @@ class F {
 }
 
 class G extends F {
-  final ToVoid<int> f = null;
-  /*error:INVALID_METHOD_OVERRIDE*/final ToVoid<dynamic> g = null;
+  /*error:INVALID_METHOD_OVERRIDE*/final ToVoid<int> f = null;
+  final ToVoid<dynamic> g = null;
 }
 
 class H implements F {
-  final ToVoid<int> f = null;
-  /*error:INVALID_METHOD_OVERRIDE*/final ToVoid<dynamic> g = null;
+  /*error:INVALID_METHOD_OVERRIDE*/final ToVoid<int> f = null;
+  final ToVoid<dynamic> g = null;
 }
  ''');
   }
@@ -1192,14 +1192,14 @@ void main() {
   {
     BotA f;
     f = topA;
-    f = /*error:INVALID_ASSIGNMENT*/topTop;
+    f = /*error:INVALID_CAST_FUNCTION*/topTop;
     f = aa;
     f = /*error:INVALID_ASSIGNMENT*/aTop;
     f = botA;
     f = /*info:DOWN_CAST_COMPOSITE*/botTop;
     apply<BotA>(
         topA,
-        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/topTop,
+        /*error:INVALID_CAST_FUNCTION*/topTop,
         aa,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/aTop,
         botA,
@@ -1217,14 +1217,14 @@ void main() {
   {
     AA f;
     f = topA;
-    f = /*error:INVALID_ASSIGNMENT*/topTop;
+    f = /*error:INVALID_CAST_FUNCTION*/topTop;
     f = aa;
     f = /*error:INVALID_CAST_FUNCTION*/aTop; // known function
     f = /*info:DOWN_CAST_COMPOSITE*/botA;
     f = /*info:DOWN_CAST_COMPOSITE*/botTop;
     apply<AA>(
         topA,
-        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/topTop,
+        /*error:INVALID_CAST_FUNCTION*/topTop,
         aa,
         /*error:INVALID_CAST_FUNCTION*/aTop, // known function
         /*info:DOWN_CAST_COMPOSITE*/botA,
@@ -1291,6 +1291,145 @@ void main() {
   }
 }
 ''');
+  }
+
+  @failingTest
+  test_fuzzyArrowLegacyAssignability_GlobalInference() async {
+    // Test for legacy fuzzy arrow support on assignability, pending
+    // cleanup.  https://github.com/dart-lang/sdk/issues/29630
+    // Tests impact of https://github.com/dart-lang/sdk/issues/32114
+    // on fuzzy arrow warnings
+    await checkFile('''
+    typedef T Fn<T>(T x);
+    typedef T FnB<T extends int>(T x);
+
+    class I2i {
+      int call(int x) => x;
+    }
+    class D2i {
+      int call(dynamic x) => x as int;
+    }
+    class I2d {
+      dynamic call(int x) => x;
+    }
+    class D2d {
+      dynamic call(dynamic x) => x;
+    }
+    Fn global0;
+    var inferred0 = global0;
+    FnB global1;
+    var inferred1 = global1;
+
+    void test0() {
+      int Function(int) i2i;
+      int Function(dynamic) d2i;
+      dynamic Function(int) i2d;
+      dynamic Function(dynamic) d2d;
+      I2i ci2i;
+      D2i cd2i;
+      I2d ci2d;
+      D2d cd2d;
+
+      { 
+        var f = inferred0;
+        f = /*warning:USES_DYNAMIC_AS_BOTTOM*/i2i;
+        f = d2i;
+        f = /*warning:USES_DYNAMIC_AS_BOTTOM*/i2d;
+        f = d2d;
+        f = /*warning:USES_DYNAMIC_AS_BOTTOM*/ci2i;
+        f = cd2i;
+        f = /*warning:USES_DYNAMIC_AS_BOTTOM*/ci2d;
+        f = cd2d;
+      }
+      {
+        var f = inferred1; 
+        f = i2i;
+        f = d2i;
+        f = /*info:DOWN_CAST_COMPOSITE*/i2d; // Real downcast
+        f = /*warning:USES_DYNAMIC_AS_BOTTOM, info:DOWN_CAST_COMPOSITE*/d2d; // Fuzzy downcast
+        f = ci2i;
+        f = cd2i;
+        f = /*error:INVALID_ASSIGNMENT, info:DOWN_CAST_COMPOSITE*/ci2d;
+        f = /*error:INVALID_ASSIGNMENT*/cd2d;
+      }
+    }
+  ''');
+  }
+
+  test_fuzzyArrowLegacyAssignability() async {
+    // Test for legacy fuzzy arrow support on assignability, pending
+    // cleanup.  https://github.com/dart-lang/sdk/issues/29630
+    await checkFile('''
+
+    class I2i {
+      int call(int x) => x;
+    }
+    class D2i {
+      int call(dynamic x) => x as int;
+    }
+    class I2d {
+      dynamic call(int x) => x;
+    }
+    class D2d {
+      dynamic call(dynamic x) => x;
+    }
+
+    void test0() {
+      int Function(int) i2i;
+      int Function(dynamic) d2i;
+      dynamic Function(int) i2d;
+      dynamic Function(dynamic) d2d;
+      I2i ci2i;
+      D2i cd2i;
+      I2d ci2d;
+      D2d cd2d;
+
+      { 
+        int Function(int) f;
+        f = i2i;
+        f = d2i;
+        f = /*info:DOWN_CAST_COMPOSITE*/i2d;
+        f = /*warning:USES_DYNAMIC_AS_BOTTOM, info:DOWN_CAST_COMPOSITE*/d2d;
+        f = ci2i;
+        f = cd2i;
+        f = /*error:INVALID_ASSIGNMENT, info:DOWN_CAST_COMPOSITE*/ci2d;
+        f = /*error:INVALID_ASSIGNMENT*/cd2d;
+      }
+      { 
+        int Function(dynamic) f;
+        f = /*warning:USES_DYNAMIC_AS_BOTTOM*/i2i;
+        f = d2i;
+        f = /*info:DOWN_CAST_COMPOSITE*/i2d;
+        f = /*info:DOWN_CAST_COMPOSITE*/d2d;
+        f = /*warning:USES_DYNAMIC_AS_BOTTOM*/ci2i;
+        f = cd2i;
+        f = /*error:INVALID_ASSIGNMENT, info:DOWN_CAST_COMPOSITE*/ci2d;
+        f = /*error:INVALID_ASSIGNMENT, info:DOWN_CAST_COMPOSITE*/cd2d;
+      }
+      { 
+        dynamic Function(int) f;
+        f = i2i;
+        f = d2i;
+        f = i2d;
+        f = d2d;
+        f = ci2i;
+        f = cd2i;
+        f = ci2d;
+        f = cd2d;
+      }
+      { 
+        dynamic Function(dynamic) f;
+        f = /*warning:USES_DYNAMIC_AS_BOTTOM*/i2i;
+        f = d2i;
+        f = /*warning:USES_DYNAMIC_AS_BOTTOM*/i2d;
+        f = d2d;
+        f = /*warning:USES_DYNAMIC_AS_BOTTOM*/ci2i;
+        f = cd2i;
+        f = /*warning:USES_DYNAMIC_AS_BOTTOM*/ci2d;
+        f = cd2d;
+      }
+    }
+  ''');
   }
 
   test_functionTypingAndSubtyping_dynamicFunctions_closuresAreNotFuzzy() async {
@@ -2144,7 +2283,7 @@ class Child extends Base {
 ''');
   }
 
-  test_getterOverride_fuzzyArrows() async {
+  test_getterOverride() async {
     await checkFile('''
 typedef void ToVoid<T>(T x);
 
@@ -2154,13 +2293,13 @@ class F {
 }
 
 class G extends F {
-  ToVoid<int> get f => null;
-  /*error:INVALID_METHOD_OVERRIDE*/ToVoid<dynamic> get g => null;
+  /*error:INVALID_METHOD_OVERRIDE*/ToVoid<int> get f => null;
+  ToVoid<dynamic> get g => null;
 }
 
 class H implements F {
-  ToVoid<int> get f => null;
-  /*error:INVALID_METHOD_OVERRIDE*/ToVoid<dynamic> get g => null;
+  /*error:INVALID_METHOD_OVERRIDE*/ToVoid<int> get f => null;
+  ToVoid<dynamic> get g => null;
 }
 ''');
   }
@@ -2668,10 +2807,12 @@ class C extends Object with M<int> {
 }
 
 abstract class D extends Object with M<num> {}
-class E extends D with M<int> {
+/*error:CONFLICTING_GENERIC_INTERFACES*/
+/*error:CONFLICTING_GENERIC_INTERFACES*/class E extends D with M<int> {
   /*error:INVALID_METHOD_OVERRIDE*/int x;
 }
-class F extends D with M<int> {
+/*error:CONFLICTING_GENERIC_INTERFACES*/
+/*error:CONFLICTING_GENERIC_INTERFACES*/class F extends D with M<int> {
   num x;
 }
     ''');
@@ -3004,7 +3145,7 @@ void main() {
   b = /*info:NON_GROUND_TYPE_CHECK_INFO*/foo is I2I;
   b = /*info:NON_GROUND_TYPE_CHECK_INFO*/foo is D2I;
   b = /*info:NON_GROUND_TYPE_CHECK_INFO*/foo is I2D;
-  b = foo is D2D;
+  b = /*info:NON_GROUND_TYPE_CHECK_INFO*/foo is D2D;
 
   b = /*info:NON_GROUND_TYPE_CHECK_INFO*/bar is II2I;
   b = /*info:NON_GROUND_TYPE_CHECK_INFO*/bar is DI2I;
@@ -3013,7 +3154,7 @@ void main() {
   b = /*info:NON_GROUND_TYPE_CHECK_INFO*/bar is DD2I;
   b = /*info:NON_GROUND_TYPE_CHECK_INFO*/bar is DI2D;
   b = /*info:NON_GROUND_TYPE_CHECK_INFO*/bar is ID2D;
-  b = bar is DD2D;
+  b = /*info:NON_GROUND_TYPE_CHECK_INFO*/bar is DD2D;
 
   // For as, the validity of checks is deferred to runtime.
   Function f;
@@ -3092,7 +3233,7 @@ void main() {
   TakesA<dynamic> g;
   TakesA<String> h;
   g = /*warning:USES_DYNAMIC_AS_BOTTOM*/h;
-  f = /*info:DOWN_CAST_COMPOSITE*/f ?? g;
+  f = f ?? g;
 }
 ''');
   }
@@ -3133,7 +3274,7 @@ class Child extends Base {
 ''');
   }
 
-  test_methodOverride_fuzzyArrows() async {
+  test_methodOverride_contravariant() async {
     await checkFile('''
 abstract class A {
   bool operator ==(Object object);
@@ -3715,7 +3856,7 @@ void main() {
 ''');
   }
 
-  test_setterOverride_fuzzyArrows() async {
+  test_setterOverride() async {
     await checkFile('''
 typedef void ToVoid<T>(T x);
 class F {
@@ -3726,15 +3867,15 @@ class F {
 }
 
 class G extends F {
-  /*error:INVALID_METHOD_OVERRIDE*/void set f(ToVoid<int> x) {}
-  void set g(ToVoid<dynamic> x) {}
+  void set f(ToVoid<int> x) {}
+  /*error:INVALID_METHOD_OVERRIDE*/void set g(ToVoid<dynamic> x) {}
   /*error:INVALID_METHOD_OVERRIDE*/void set h(int x) {}
   void set i(dynamic x) {}
 }
 
 class H implements F {
-  /*error:INVALID_METHOD_OVERRIDE*/void set f(ToVoid<int> x) {}
-  void set g(ToVoid<dynamic> x) {}
+  void set f(ToVoid<int> x) {}
+  /*error:INVALID_METHOD_OVERRIDE*/void set g(ToVoid<dynamic> x) {}
   /*error:INVALID_METHOD_OVERRIDE*/void set h(int x) {}
   void set i(dynamic x) {}
 }
@@ -3751,7 +3892,7 @@ class A {
   void set d(y) => voidFn();
   /*warning:NON_VOID_RETURN_FOR_SETTER*/int set e(y) => 4;
   /*warning:NON_VOID_RETURN_FOR_SETTER*/int set f(y) => 
-    /*error:RETURN_OF_INVALID_TYPE, info:DOWN_CAST_IMPLICIT*/voidFn();
+    /*error:RETURN_OF_INVALID_TYPE*/voidFn();
   set g(y) {return /*error:RETURN_OF_INVALID_TYPE*/4;}
   void set h(y) {return /*error:RETURN_OF_INVALID_TYPE*/4;}
   /*warning:NON_VOID_RETURN_FOR_SETTER*/int set i(y) {return 4;}
@@ -4059,8 +4200,7 @@ class SplayTreeMap<K, V> {
     : _comparator = /*info:DOWN_CAST_COMPOSITE*/(compare == null) ? Comparable.compare : compare,
       _validKey = (isValidKey != null) ? isValidKey : (/*info:INFERRED_TYPE_CLOSURE*/(v) => true) {
 
-    // NOTE: this is a down cast because isValidKey has fuzzy arrow type.
-    _Predicate<Object> v = /*info:DOWN_CAST_COMPOSITE*/(isValidKey != null)
+    _Predicate<Object> v = (isValidKey != null)
         ? isValidKey : (/*info:INFERRED_TYPE_CLOSURE*/(_) => true);
 
     v = (isValidKey != null)
@@ -4437,7 +4577,7 @@ class B extends A {
 typedef int Foo();
 void foo() {}
 void main () {
-  Foo x = /*info:USE_OF_VOID_RESULT, info:DOWN_CAST_COMPOSITE*/foo();
+  Foo x = /*error:USE_OF_VOID_RESULT*/foo();
 }
 ''');
   }
@@ -4463,5 +4603,10 @@ class CheckerTest_Driver extends CheckerTest {
   @override
   test_covariantOverride_fields() async {
     await super.test_covariantOverride_fields();
+  }
+
+  @override
+  test_fuzzyArrowLegacyAssignability_GlobalInference() async {
+    await super.test_fuzzyArrowLegacyAssignability_GlobalInference();
   }
 }

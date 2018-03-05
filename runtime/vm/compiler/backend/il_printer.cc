@@ -36,6 +36,8 @@ bool FlowGraphPrinter::PassesFilter(const char* filter,
   }
 
   char* save_ptr;  // Needed for strtok_r.
+  const char* scrubbed_name =
+      String::Handle(function.QualifiedScrubbedName()).ToCString();
   const char* function_name = function.ToFullyQualifiedCString();
   intptr_t function_name_len = strlen(function_name);
 
@@ -45,7 +47,8 @@ bool FlowGraphPrinter::PassesFilter(const char* filter,
   char* token = strtok_r(filter_buffer, ",", &save_ptr);
   bool found = false;
   while (token != NULL) {
-    if (strstr(function_name, token) != NULL) {
+    if ((strstr(function_name, token) != NULL) ||
+        (strstr(scrubbed_name, token) != NULL)) {
       found = true;
       break;
     }

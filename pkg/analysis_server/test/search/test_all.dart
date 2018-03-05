@@ -4,6 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'declarations_test.dart' as declarations_test;
 import 'element_references_test.dart' as element_references_test;
 import 'member_declarations_test.dart' as member_declarations;
 import 'member_references_test.dart' as member_references_test;
@@ -16,6 +17,7 @@ import 'type_hierarchy_test.dart' as type_hierarchy_test;
  */
 main() {
   defineReflectiveSuite(() {
+    declarations_test.main();
     element_references_test.main();
     member_declarations.main();
     member_references_test.main();

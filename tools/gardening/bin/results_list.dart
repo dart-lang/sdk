@@ -18,6 +18,7 @@ void addStandardArguments(ArgParser argParser) {
   argParser.addFlag("csp", negatable: false);
   argParser.addFlag("fasta", negatable: false);
   argParser.addFlag("dart2js-with-kernel", negatable: false);
+  argParser.addFlag("dart2js-old-frontend", negatable: false);
   argParser.addFlag("dart2js-with-kernel-in-ssa", negatable: false);
   argParser.addFlag("enable-asserts", negatable: false);
   argParser.addFlag("fast-startup", negatable: false);
@@ -53,6 +54,7 @@ models.Configuration getConfigurationFromArguments(ArgResults argResults) {
       argResults["fast-startup"],
       0,
       argResults["dart2js-with-kernel"],
+      argResults["dart2js-old-frontend"],
       argResults["enable-asserts"],
       argResults["hot-reload"],
       argResults["hot-reload-rollback"],

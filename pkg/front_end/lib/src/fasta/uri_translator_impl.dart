@@ -47,15 +47,7 @@ class UriTranslatorImpl implements UriTranslator {
   /// if there is no corresponding Dart library registered.
   Uri _translateDartUri(Uri uri) {
     if (!uri.isScheme('dart')) return null;
-    String path = uri.path;
-
-    int index = path.indexOf('/');
-    if (index == -1) return dartLibraries.libraryInfoFor(path)?.uri;
-
-    String libraryName = path.substring(0, index);
-    String relativePath = path.substring(index + 1);
-    Uri libraryFileUri = dartLibraries.libraryInfoFor(libraryName).uri;
-    return libraryFileUri?.resolve(relativePath);
+    return dartLibraries.libraryInfoFor(uri.path)?.uri;
   }
 
   /// Return the file URI that corresponds to the given `package` URI, or

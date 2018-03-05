@@ -13,7 +13,7 @@ part of _interceptors;
  * Note that none of the methods here delegate to a method defined on JSInt or
  * JSDouble.  This is exploited in [tryComputeConstantInterceptor].
  */
-class JSNumber extends Interceptor implements num {
+class JSNumber extends Interceptor implements double {
   const JSNumber();
 
   int compareTo(num b) {
@@ -50,15 +50,18 @@ class JSNumber extends Interceptor implements num {
 
   bool get isFinite => JS('bool', r'isFinite(#)', this);
 
-  num remainder(num b) {
+  JSNumber remainder(num b) {
     if (b is! num) throw argumentErrorValue(b);
     return JS('num', r'# % #', this, b);
   }
 
-  num abs() => JS('returns:num;effects:none;depends:none;throws:never;gvn:true',
-      r'Math.abs(#)', this);
+  @NoInline() // Use invoke_dynamic_specializer instead of inlining.
+  JSNumber abs() => JS(
+      'returns:num;effects:none;depends:none;throws:never;gvn:true',
+      r'Math.abs(#)',
+      this);
 
-  num get sign => this > 0 ? 1 : this < 0 ? -1 : this;
+  JSNumber get sign => this > 0 ? 1 : this < 0 ? -1 : this;
 
   static const int _MIN_INT32 = -0x80000000;
   static const int _MAX_INT32 = 0x7FFFFFFF;
@@ -240,33 +243,33 @@ class JSNumber extends Interceptor implements num {
 
   int get hashCode => JS('int', '# & 0x1FFFFFFF', this);
 
-  num operator -() => JS('num', r'-#', this);
+  JSNumber operator -() => JS('num', r'-#', this);
 
-  num operator +(num other) {
+  JSNumber operator +(num other) {
     if (other is! num) throw argumentErrorValue(other);
     return JS('num', '# + #', this, other);
   }
 
-  num operator -(num other) {
+  JSNumber operator -(num other) {
     if (other is! num) throw argumentErrorValue(other);
     return JS('num', '# - #', this, other);
   }
 
-  num operator /(num other) {
+  double operator /(num other) {
     if (other is! num) throw argumentErrorValue(other);
     return JS('num', '# / #', this, other);
   }
 
-  num operator *(num other) {
+  JSNumber operator *(num other) {
     if (other is! num) throw argumentErrorValue(other);
     return JS('num', '# * #', this, other);
   }
 
-  num operator %(num other) {
+  JSNumber operator %(num other) {
     if (other is! num) throw argumentErrorValue(other);
     // Euclidean Modulo.
     num result = JS('num', r'# % #', this, other);
-    if (result == 0) return 0; // Make sure we don't return -0.0.
+    if (result == 0) return JS('num', '0'); // Make sure we don't return -0.0.
     if (result > 0) return result;
     if (JS('num', '#', other) < 0) {
       return result - JS('num', '#', other);
@@ -411,12 +414,26 @@ class JSNumber extends Interceptor implements num {
 /**
  * The interceptor class for [int]s.
  *
- * This class implements double since in JavaScript all numbers are doubles, so
- * while we want to treat `2.0` as an integer for some operations, its
- * interceptor should answer `true` to `is double`.
+ * This class implements double (indirectly through JSNumber) since in
+ * JavaScript all numbers are doubles, so while we want to treat `2.0` as an
+ * integer for some operations, its interceptor should answer `true` to `is
+ * double`.
  */
-class JSInt extends JSNumber implements int, double {
+class JSInt extends JSNumber implements int {
   const JSInt();
+
+  @override
+  @NoInline() // Use invoke_dynamic_specializer instead of inlining.
+  JSInt abs() => JS(
+      'returns:int;effects:none;depends:none;throws:never;gvn:true',
+      r'Math.abs(#)',
+      this);
+
+  @override
+  JSInt get sign => this > 0 ? 1 : this < 0 ? -1 : this;
+
+  @override
+  JSInt operator -() => JS('int', r'-#', this);
 
   bool get isEven => (this & 1) == 0;
 
@@ -432,12 +449,18 @@ class JSInt extends JSNumber implements int, double {
   }
 
   int get bitLength {
-    int nonneg = this < 0 ? -this - 1 : this;
-    if (nonneg >= 0x100000000) {
+    JSInt nonneg = this < 0 ? -this - 1 : this;
+    int wordBits = 32;
+    while (nonneg >= 0x100000000) {
       nonneg = nonneg ~/ 0x100000000;
-      return _bitCount(_spread(nonneg)) + 32;
+      wordBits += 32;
     }
-    return _bitCount(_spread(nonneg));
+    return wordBits - _clz32(nonneg);
+  }
+
+  static int _clz32(int uint32) {
+    // TODO(sra): Use `Math.clz32(uint32)` (not available on IE11).
+    return 32 - _bitCount(_spread(uint32));
   }
 
   // Returns pow(this, e) % m.
@@ -592,9 +615,9 @@ class JSInt extends JSNumber implements int, double {
     return (i & 0x0000003F);
   }
 
-  static _shru(int value, int shift) => JS('int', '# >>> #', value, shift);
-  static _shrs(int value, int shift) => JS('int', '# >> #', value, shift);
-  static _ors(int a, int b) => JS('int', '# | #', a, b);
+  static int _shru(int value, int shift) => JS('int', '# >>> #', value, shift);
+  static int _shrs(int value, int shift) => JS('int', '# >> #', value, shift);
+  static int _ors(int a, int b) => JS('int', '# | #', a, b);
 
   // Assumes i is <= 32-bit
   static int _spread(int i) {

@@ -69,7 +69,7 @@ class B extends A {
     await indexTestUnit('''
 class Test {}
 ''');
-    await indexUnit('/lib.dart', '''
+    await indexUnit(convertPath('/lib.dart'), '''
 library my.lib;
 import 'test.dart';
 
@@ -109,7 +109,7 @@ class A {
     await indexTestUnit('''
 class Test {}
 ''');
-    await indexUnit('/lib.dart', '''
+    await indexUnit(convertPath('/lib.dart'), '''
 library my.lib;
 import 'test.dart';
 class A {
@@ -219,7 +219,7 @@ class B {
 class A {}
 ''');
     await indexTestUnit('''
-import '/.pub-cache/lib.dart';
+import "${convertPathForImport('/.pub-cache/lib.dart')}";
 main() {
   A a;
 }
@@ -238,7 +238,7 @@ main() {
 class A {}
 ''');
     await indexTestUnit('''
-import '/Pub/Cache/lib.dart';
+import "${convertPathForImport('/Pub/Cache/lib.dart')}";
 main() {
   A a;
 }

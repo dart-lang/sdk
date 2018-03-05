@@ -127,7 +127,7 @@ class Message {
   }
 
   dynamic forwardToJson([Map overloads]) {
-    var json = {'jsonrpc': '2.0', 'id': serial};
+    Map<dynamic, dynamic> json = {'jsonrpc': '2.0', 'id': serial};
     switch (type) {
       case MessageType.Request:
       case MessageType.Notification:

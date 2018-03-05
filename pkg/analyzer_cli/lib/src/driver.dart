@@ -27,10 +27,12 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart'
     show PerformanceTag;
+import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
+import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/batch_mode.dart';
 import 'package:analyzer_cli/src/build_mode.dart';
@@ -250,22 +252,59 @@ class Driver implements CommandLineStarter {
       outSink.writeln("Analyzing ${fileNames.join(', ')}...");
     }
 
-    // Create a context, or re-use the previous one.
-    try {
-      _createContextAndAnalyze(options);
-    } on _DriverError catch (error) {
-      outSink.writeln(error.msg);
-      return ErrorSeverity.ERROR;
+    // These are used to do part file analysis across sources.
+    Set<Uri> libUris = new Set<Uri>();
+    Set<Source> danglingParts = new Set<Source>();
+
+    // Note: This references _context via closure, so it will change over time
+    // during the following analysis.
+    SeverityProcessor defaultSeverityProcessor = (AnalysisError error) {
+      return determineProcessedSeverity(
+          error, options, _context.analysisOptions);
+    };
+
+    // We currently print out to stderr to ensure that when in batch mode we
+    // print to stderr, this is because the prints from batch are made to
+    // stderr. The reason that options.shouldBatch isn't used is because when
+    // the argument flags are constructed in BatchRunner and passed in from
+    // batch mode which removes the batch flag to prevent the "cannot have the
+    // batch flag and source file" error message.
+    ErrorFormatter formatter;
+    if (options.machineFormat) {
+      formatter = new MachineErrorFormatter(errorSink, options, stats,
+          severityProcessor: defaultSeverityProcessor);
+    } else {
+      formatter = new HumanErrorFormatter(outSink, options, stats,
+          severityProcessor: defaultSeverityProcessor);
     }
 
-    // Add all the files to be analyzed en masse to the context. Skip any
-    // files that were added earlier (whether explicitly or implicitly) to
-    // avoid causing those files to be unnecessarily re-read.
-    Set<Source> knownSources = context.sources.toSet();
-    Set<Source> sourcesToAnalyze = new Set<Source>();
-    ChangeSet changeSet = new ChangeSet();
+    ErrorSeverity allResult = ErrorSeverity.NONE;
+
+    void reportPartError(Source partSource) {
+      errorSink
+          .writeln("${partSource.fullName} is a part and cannot be analyzed.");
+      errorSink.writeln("Please pass in a library that contains this part.");
+      io.exitCode = ErrorSeverity.ERROR.ordinal;
+      allResult = allResult.max(ErrorSeverity.ERROR);
+    }
+
     for (String sourcePath in options.sourceFiles) {
       sourcePath = sourcePath.trim();
+
+      // Create a context, or re-use the previous one.
+      try {
+        _createContextAndAnalyze(options, sourcePath);
+      } on _DriverError catch (error) {
+        outSink.writeln(error.msg);
+        return ErrorSeverity.ERROR;
+      }
+
+      // Add all the files to be analyzed en masse to the context. Skip any
+      // files that were added earlier (whether explicitly or implicitly) to
+      // avoid causing those files to be unnecessarily re-read.
+      Set<Source> knownSources = context.sources.toSet();
+      Set<Source> sourcesToAnalyze = new Set<Source>();
+      ChangeSet changeSet = new ChangeSet();
 
       // Collect files for analysis.
       // Note that these files will all be analyzed in the same context.
@@ -290,72 +329,101 @@ class Driver implements CommandLineStarter {
       if (analysisDriver == null) {
         context.applyChanges(changeSet);
       }
-    }
 
-    // Analyze the libraries.
-    ErrorSeverity allResult = ErrorSeverity.NONE;
-    List<Uri> libUris = <Uri>[];
-    Set<Source> partSources = new Set<Source>();
+      // Analyze the libraries.
+      Set<Source> partSources = new Set<Source>();
 
-    SeverityProcessor defaultSeverityProcessor = (AnalysisError error) {
-      return determineProcessedSeverity(
-          error, options, _context.analysisOptions);
-    };
-
-    // We currently print out to stderr to ensure that when in batch mode we
-    // print to stderr, this is because the prints from batch are made to
-    // stderr. The reason that options.shouldBatch isn't used is because when
-    // the argument flags are constructed in BatchRunner and passed in from
-    // batch mode which removes the batch flag to prevent the "cannot have the
-    // batch flag and source file" error message.
-    ErrorFormatter formatter;
-    if (options.machineFormat) {
-      formatter = new MachineErrorFormatter(errorSink, options, stats,
-          severityProcessor: defaultSeverityProcessor);
-    } else {
-      formatter = new HumanErrorFormatter(outSink, options, stats,
-          severityProcessor: defaultSeverityProcessor);
-    }
-
-    for (Source source in sourcesToAnalyze) {
-      SourceKind sourceKind = analysisDriver != null
-          ? await analysisDriver.getSourceKind(source.fullName)
-          : context.computeKindOf(source);
-      if (sourceKind == SourceKind.PART) {
-        partSources.add(source);
-        continue;
-      }
-      ErrorSeverity status = await _runAnalyzer(source, options, formatter);
-      allResult = allResult.max(status);
-      libUris.add(source.uri);
-    }
-
-    formatter.flush();
-
-    // Check that each part has a corresponding source in the input list.
-    for (Source partSource in partSources) {
-      bool found = false;
-      if (analysisDriver != null) {
-        var partFile =
-            analysisDriver.fsState.getFileForPath(partSource.fullName);
-        if (libUris.contains(partFile.library?.uri)) {
-          found = true;
-        }
-      } else {
-        for (var lib in context.getLibrariesContaining(partSource)) {
-          if (libUris.contains(lib.uri)) {
-            found = true;
+      for (Source source in sourcesToAnalyze) {
+        if (analysisDriver != null &&
+            (source.shortName == AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE ||
+                source.shortName == AnalysisEngine.ANALYSIS_OPTIONS_FILE)) {
+          file_system.File file = resourceProvider.getFile(source.fullName);
+          String content = file.readAsStringSync();
+          LineInfo lineInfo = new LineInfo.fromContent(content);
+          List<AnalysisError> errors =
+              GenerateOptionsErrorsTask.analyzeAnalysisOptions(
+                  file.createSource(), content, analysisDriver.sourceFactory);
+          formatter.formatErrors([new AnalysisErrorInfoImpl(errors, lineInfo)]);
+          for (AnalysisError error in errors) {
+            allResult = allResult.max(determineProcessedSeverity(
+                error, options, _context.analysisOptions));
+          }
+        } else if (source.shortName == AnalysisEngine.PUBSPEC_YAML_FILE) {
+          try {
+            file_system.File file = resourceProvider.getFile(source.fullName);
+            String content = file.readAsStringSync();
+            YamlNode node = loadYamlNode(content);
+            if (node is YamlMap) {
+              PubspecValidator validator =
+                  new PubspecValidator(resourceProvider, file.createSource());
+              LineInfo lineInfo = new LineInfo.fromContent(content);
+              List<AnalysisError> errors = validator.validate(node.nodes);
+              formatter
+                  .formatErrors([new AnalysisErrorInfoImpl(errors, lineInfo)]);
+              for (AnalysisError error in errors) {
+                allResult = allResult.max(determineProcessedSeverity(
+                    error, options, _context.analysisOptions));
+              }
+            }
+          } catch (exception) {
+            // If the file cannot be analyzed, ignore it.
+          }
+        } else {
+          SourceKind sourceKind = analysisDriver != null
+              ? await analysisDriver.getSourceKind(source.fullName)
+              : context.computeKindOf(source);
+          if (sourceKind == SourceKind.PART) {
+            partSources.add(source);
+            continue;
+          }
+          ErrorSeverity status = await _runAnalyzer(source, options, formatter);
+          allResult = allResult.max(status);
+          libUris.add(source.uri);
+          if (analysisDriver != null) {
+            // With [AnalysisDriver], we can easily mark previously dangling
+            // parts as no longer dangling once we process the lib.
+            var libFile =
+                analysisDriver.fsState.getFileForPath(source.fullName);
+            for (FileState part in libFile.partedFiles) {
+              danglingParts.remove(part.source);
+            }
           }
         }
       }
-      if (!found) {
-        errorSink.writeln(
-            "${partSource.fullName} is a part and cannot be analyzed.");
-        errorSink.writeln("Please pass in a library that contains this part.");
-        io.exitCode = ErrorSeverity.ERROR.ordinal;
-        allResult = allResult.max(ErrorSeverity.ERROR);
+
+      // Check that each part has a corresponding source in the input list.
+      for (Source partSource in partSources) {
+        if (analysisDriver != null) {
+          var partFile =
+              analysisDriver.fsState.getFileForPath(partSource.fullName);
+          if (!libUris.contains(partFile.library?.uri)) {
+            // With [AnalysisDriver], we can mark this as dangling, for now, and
+            // later on remove it from this list if its containing lib is found.
+            danglingParts.add(partSource);
+          }
+        } else {
+          final potentialLibs = context.getLibrariesContaining(partSource);
+          bool found = false;
+          for (var lib in potentialLibs) {
+            if (libUris.contains(lib.uri)) {
+              found = true;
+            }
+          }
+          if (!found) {
+            // Without an analysis driver, we can't easily mark it dangling "for
+            // now", but this path is deprecated anyway. Just give up now.
+            reportPartError(partSource);
+          }
+        }
       }
     }
+
+    // Any dangling parts still in this list were definitely dangling.
+    for (Source partSource in danglingParts) {
+      reportPartError(partSource);
+    }
+
+    formatter.flush();
 
     if (!options.machineFormat) {
       stats.print(outSink);
@@ -567,7 +635,7 @@ class Driver implements CommandLineStarter {
 
   /// Create an analysis context that is prepared to analyze sources according
   /// to the given [options], and store it in [_context].
-  void _createContextAndAnalyze(CommandLineOptions options) {
+  void _createContextAndAnalyze(CommandLineOptions options, String source) {
     // If not the same command-line options, clear cached information.
     if (!_equalCommandLineOptions(_previousOptions, options)) {
       _previousOptions = options;
@@ -577,7 +645,8 @@ class Driver implements CommandLineStarter {
     }
 
     AnalysisOptionsImpl analysisOptions =
-        createAnalysisOptionsForCommandLineOptions(resourceProvider, options);
+        createAnalysisOptionsForCommandLineOptions(
+            resourceProvider, options, source);
     analysisOptions.analyzeFunctionBodiesPredicate =
         _chooseDietParsingPolicy(options);
 
@@ -689,8 +758,7 @@ class Driver implements CommandLineStarter {
   /// Return whether [a] and [b] options are equal for the purpose of
   /// command line analysis.
   bool _equalAnalysisOptions(AnalysisOptionsImpl a, AnalysisOptions b) {
-    return a.enableStrictCallChecks == b.enableStrictCallChecks &&
-        a.enableLazyAssignmentOperators == b.enableLazyAssignmentOperators &&
+    return a.enableLazyAssignmentOperators == b.enableLazyAssignmentOperators &&
         a.enableSuperMixins == b.enableSuperMixins &&
         a.enableTiming == b.enableTiming &&
         a.generateImplicitErrors == b.generateImplicitErrors &&
@@ -824,7 +892,9 @@ class Driver implements CommandLineStarter {
   }
 
   static AnalysisOptionsImpl createAnalysisOptionsForCommandLineOptions(
-      ResourceProvider resourceProvider, CommandLineOptions options) {
+      ResourceProvider resourceProvider,
+      CommandLineOptions options,
+      String source) {
     if (options.analysisOptionsFile != null) {
       file_system.File file =
           resourceProvider.getFile(options.analysisOptionsFile);
@@ -838,9 +908,10 @@ class Driver implements CommandLineStarter {
     if (options.sourceFiles.isEmpty) {
       contextRoot = path.current;
     } else {
-      contextRoot = options.sourceFiles[0];
-      if (!path.isAbsolute(contextRoot)) {
-        contextRoot = path.absolute(contextRoot);
+      if (path.isAbsolute(source)) {
+        contextRoot = source;
+      } else {
+        contextRoot = path.absolute(source);
       }
     }
 
@@ -912,9 +983,6 @@ class Driver implements CommandLineStarter {
       return false;
     }
     if (newOptions.disableHints != previous.disableHints) {
-      return false;
-    }
-    if (newOptions.enableStrictCallChecks != previous.enableStrictCallChecks) {
       return false;
     }
     if (newOptions.showPackageWarnings != previous.showPackageWarnings) {

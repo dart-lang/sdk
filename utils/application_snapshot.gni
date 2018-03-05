@@ -41,16 +41,19 @@ template("application_snapshot") {
   } else {
     dot_packages = rebase_path("$_dart_root/.packages")
   }
+  output = "$root_gen_dir/$name.dart.snapshot"
+  if (defined(invoker.output)) {
+    output = invoker.output
+  }
   compiled_action(target_name) {
     tool = "$_dart_root/runtime/bin:dart"
     deps = extra_deps
-    depfile = "$root_gen_dir/$name.dart.snapshot.d"
+    depfile = "$output.d"
 
     main_file = rebase_path(main_dart)
 
     inputs = extra_inputs + [ main_file ]
 
-    output = "$root_gen_dir/$name.dart.snapshot"
     outputs = [
       output,
     ]

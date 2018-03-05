@@ -34,6 +34,7 @@ import 'package:kernel/ast.dart'
         StringLiteral,
         SuperInitializer,
         TypeParameter,
+        TypeParameterType,
         VariableDeclaration,
         VariableGet,
         VoidType,
@@ -45,14 +46,14 @@ import '../loader.dart' show Loader;
 
 import '../messages.dart'
     show
-        messageConstConstructorWithBody,
-        messageInternalProblemBodyOnAbstractMethod,
         messageNonInstanceTypeVariableUse,
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
         messagePatchNonExternal;
 
-import '../problems.dart' show internalProblem, unexpected;
+import '../parser.dart' show noLength;
+
+import '../problems.dart' show unexpected;
 
 import '../deprecated_problems.dart' show deprecated_inputError;
 
@@ -102,16 +103,13 @@ abstract class KernelFunctionBuilder
   KernelFunctionBuilder get actualOrigin;
 
   void set body(Statement newBody) {
-    if (newBody != null) {
-      if (isAbstract) {
-        return internalProblem(messageInternalProblemBodyOnAbstractMethod,
-            newBody.fileOffset, fileUri);
-      }
-      if (isConstructor && isConst) {
-        return library.addCompileTimeError(
-            messageConstConstructorWithBody, newBody.fileOffset, fileUri);
-      }
-    }
+//    if (newBody != null) {
+//      if (isAbstract) {
+//        // TODO(danrubel): Is this check needed?
+//        return internalProblem(messageInternalProblemBodyOnAbstractMethod,
+//            newBody.fileOffset, fileUri);
+//      }
+//    }
     actualBody = newBody;
     if (function != null) {
       // A forwarding semi-stub is a method that is abstract in the source code,
@@ -128,15 +126,15 @@ abstract class KernelFunctionBuilder
     }
   }
 
-  void setRedirectingFactoryBody(Member target) {
+  void setRedirectingFactoryBody(Member target, List<DartType> typeArguments) {
     if (actualBody != null) {
       unexpected("null", "${actualBody.runtimeType}", charOffset, fileUri);
     }
-    actualBody = new RedirectingFactoryBody(target);
+    actualBody = new RedirectingFactoryBody(target, typeArguments);
     function.body = actualBody;
     actualBody?.parent = function;
     if (isPatch) {
-      actualOrigin.setRedirectingFactoryBody(target);
+      actualOrigin.setRedirectingFactoryBody(target, typeArguments);
     }
   }
 
@@ -194,7 +192,7 @@ abstract class KernelFunctionBuilder
             }
           }
           library.addProblem(
-              messageNonInstanceTypeVariableUse, charOffset, fileUri);
+              messageNonInstanceTypeVariableUse, charOffset, noLength, fileUri);
           return substitute(type, substitution);
         }
 
@@ -237,19 +235,19 @@ abstract class KernelFunctionBuilder
   bool checkPatch(KernelFunctionBuilder patch) {
     if (!isExternal) {
       patch.library.addCompileTimeError(
-          messagePatchNonExternal, patch.charOffset, patch.fileUri,
-          context:
-              messagePatchDeclarationOrigin.withLocation(fileUri, charOffset));
+          messagePatchNonExternal, patch.charOffset, noLength, patch.fileUri,
+          context: messagePatchDeclarationOrigin.withLocation(
+              fileUri, charOffset, noLength));
       return false;
     }
     return true;
   }
 
   void reportPatchMismatch(Builder patch) {
-    library.addCompileTimeError(
-        messagePatchDeclarationMismatch, patch.charOffset, patch.fileUri,
-        context:
-            messagePatchDeclarationOrigin.withLocation(fileUri, charOffset));
+    library.addCompileTimeError(messagePatchDeclarationMismatch,
+        patch.charOffset, noLength, patch.fileUri,
+        context: messagePatchDeclarationOrigin.withLocation(
+            fileUri, charOffset, noLength));
   }
 }
 
@@ -258,8 +256,6 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
   final int charOpenParenOffset;
 
   AsyncMarker actualAsyncModifier = AsyncMarker.Sync;
-
-  final ConstructorReferenceBuilder redirectionTarget;
 
   @override
   KernelProcedureBuilder actualOrigin;
@@ -276,8 +272,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       int charOffset,
       this.charOpenParenOffset,
       int charEndOffset,
-      [String nativeMethodName,
-      this.redirectionTarget])
+      [String nativeMethodName])
       : procedure = new ShadowProcedure(null, kind, null, returnType == null,
             fileUri: compilationUnit?.fileUri)
           ..fileOffset = charOffset
@@ -293,10 +288,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
   AsyncMarker get asyncModifier => actualAsyncModifier;
 
   Statement get body {
-    if (actualBody == null &&
-        redirectionTarget == null &&
-        !isAbstract &&
-        !isExternal) {
+    if (actualBody == null && !isAbstract && !isExternal) {
       actualBody = new EmptyStatement();
     }
     return actualBody;
@@ -571,5 +563,94 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
     } else {
       reportPatchMismatch(patch);
     }
+  }
+}
+
+class KernelRedirectingFactoryBuilder extends KernelProcedureBuilder {
+  final ConstructorReferenceBuilder redirectionTarget;
+  List<DartType> typeArguments;
+
+  KernelRedirectingFactoryBuilder(
+      List<MetadataBuilder> metadata,
+      int modifiers,
+      KernelTypeBuilder returnType,
+      String name,
+      List<TypeVariableBuilder> typeVariables,
+      List<FormalParameterBuilder> formals,
+      KernelLibraryBuilder compilationUnit,
+      int charOffset,
+      int charOpenParenOffset,
+      int charEndOffset,
+      [String nativeMethodName,
+      this.redirectionTarget])
+      : super(
+            metadata,
+            modifiers,
+            returnType,
+            name,
+            typeVariables,
+            formals,
+            ProcedureKind.Factory,
+            compilationUnit,
+            charOffset,
+            charOpenParenOffset,
+            charEndOffset,
+            nativeMethodName);
+
+  @override
+  Statement get body => actualBody;
+
+  @override
+  void setRedirectingFactoryBody(Member target, List<DartType> typeArguments) {
+    if (actualBody != null) {
+      unexpected("null", "${actualBody.runtimeType}", charOffset, fileUri);
+    }
+    actualBody = new RedirectingFactoryBody(target, typeArguments);
+    function.body = actualBody;
+    actualBody?.parent = function;
+    if (isPatch) {
+      if (function.typeParameters != null) {
+        Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
+        for (int i = 0; i < function.typeParameters.length; i++) {
+          substitution[function.typeParameters[i]] =
+              new TypeParameterType(actualOrigin.function.typeParameters[i]);
+        }
+        List<DartType> newTypeArguments =
+            new List<DartType>(typeArguments.length);
+        for (int i = 0; i < newTypeArguments.length; i++) {
+          newTypeArguments[i] = substitute(typeArguments[i], substitution);
+        }
+        typeArguments = newTypeArguments;
+      }
+      actualOrigin.setRedirectingFactoryBody(target, typeArguments);
+    }
+  }
+
+  @override
+  Procedure build(SourceLibraryBuilder library) {
+    Procedure result = super.build(library);
+    result.isRedirectingFactoryConstructor = true;
+    if (redirectionTarget.typeArguments != null) {
+      typeArguments =
+          new List<DartType>(redirectionTarget.typeArguments.length);
+      for (int i = 0; i < typeArguments.length; i++) {
+        typeArguments[i] = redirectionTarget.typeArguments[i].build(library);
+      }
+    }
+    return result;
+  }
+
+  @override
+  int finishPatch() {
+    if (!isPatch) return 0;
+
+    super.finishPatch();
+
+    if (origin is KernelRedirectingFactoryBuilder) {
+      KernelRedirectingFactoryBuilder redirectingOrigin = origin;
+      redirectingOrigin.typeArguments = typeArguments;
+    }
+
+    return 1;
   }
 }

@@ -72,6 +72,8 @@ abstract class Stream<T extends core::Object> extends core::Object {
   method any((self::Stream::T) → core::bool test) → self::Future<core::bool>;
   get length() → self::Future<core::int>;
   get isEmpty() → self::Future<core::bool>;
+  method cast<R extends core::Object>() → self::Stream<self::Stream::cast::R>;
+  method retype<R extends core::Object>() → self::Stream<self::Stream::retype::R>;
   method toList() → self::Future<core::List<self::Stream::T>>;
   method toSet() → self::Future<core::Set<self::Stream::T>>;
   method drain<E extends core::Object>([self::Stream::drain::E futureValue]) → self::Future<self::Stream::drain::E>;
@@ -83,9 +85,9 @@ abstract class Stream<T extends core::Object> extends core::Object {
   get first() → self::Future<self::Stream::T>;
   get last() → self::Future<self::Stream::T>;
   get single() → self::Future<self::Stream::T>;
-  method firstWhere((self::Stream::T) → core::bool test, {() → core::Object defaultValue}) → self::Future<dynamic>;
-  method lastWhere((self::Stream::T) → core::bool test, {() → core::Object defaultValue}) → self::Future<dynamic>;
-  method singleWhere((self::Stream::T) → core::bool test) → self::Future<self::Stream::T>;
+  method firstWhere((self::Stream::T) → core::bool test, {() → dynamic defaultValue, () → self::Stream::T orElse}) → self::Future<self::Stream::T>;
+  method lastWhere((self::Stream::T) → core::bool test, {() → dynamic defaultValue, () → self::Stream::T orElse}) → self::Future<self::Stream::T>;
+  method singleWhere((self::Stream::T) → core::bool test, {() → self::Stream::T orElse}) → self::Future<self::Stream::T>;
   method elementAt(core::int index) → self::Future<self::Stream::T>;
   method timeout(core::Duration timeLimit, {(self::EventSink<self::Stream::T>) → void onTimeout}) → self::Stream<self::Stream::T>;
 }
@@ -114,6 +116,8 @@ abstract class StreamSink<S extends core::Object> extends core::Object implement
 }
 abstract class StreamTransformer<S extends core::Object, T extends core::Object> extends core::Object {
   abstract method bind(self::Stream<self::StreamTransformer::S> stream) → self::Stream<self::StreamTransformer::T>;
+  abstract method cast<RS extends core::Object, RT extends core::Object>() → self::StreamTransformer<self::StreamTransformer::cast::RS, self::StreamTransformer::cast::RT>;
+  abstract method retype<RS extends core::Object, RT extends core::Object>() → self::StreamTransformer<self::StreamTransformer::retype::RS, self::StreamTransformer::retype::RT>;
 }
 abstract class StreamIterator<T extends core::Object> extends core::Object {
   abstract method moveNext() → self::Future<core::bool>;

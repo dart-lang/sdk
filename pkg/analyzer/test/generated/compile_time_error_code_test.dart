@@ -102,6 +102,21 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
   AnalysisOptions get defaultAnalysisOptions =>
       new AnalysisOptionsImpl()..strongMode = true;
 
+  disabled_test_conflictingGenericInterfaces_hierarchyLoop_infinite() async {
+    // There is an interface conflict here due to a loop in the class
+    // hierarchy leading to an infinite set of implemented types; this loop
+    // shouldn't cause non-termination.
+
+    // TODO(paulberry): this test is currently disabled due to non-termination
+    // bugs elsewhere in the analyzer.
+    Source source = addSource('''
+class A<T> implements B<List<T>> {}
+class B<T> implements A<List<T>> {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
+  }
+
   test_accessPrivateEnumField() async {
     Source source = addSource(r'''
 enum E { ONE }
@@ -697,6 +712,54 @@ class A {
     assertErrors(
         source, [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD]);
     verify([source]);
+  }
+
+  test_conflictingGenericInterfaces_hierarchyLoop() async {
+    // There is no interface conflict here, but there is a loop in the class
+    // hierarchy leading to a finite set of implemented types; this loop
+    // shouldn't cause non-termination.
+    Source source = addSource('''
+class A<T> implements B<T> {}
+class B<T> implements A<T> {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
+    ]);
+  }
+
+  test_conflictingGenericInterfaces_noConflict() async {
+    Source source = addSource('''
+class I<T> {}
+class A implements I<int> {}
+class B implements I<int> {}
+class C extends A implements B {}
+    ''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_conflictingGenericInterfaces_simple() async {
+    Source source = addSource('''
+class I<T> {}
+class A implements I<int> {}
+class B implements I<String> {}
+class C extends A implements B {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
+  }
+
+  test_conflictingGenericInterfaces_viaMixin() async {
+    Source source = addSource('''
+class I<T> {}
+class A implements I<int> {}
+class B implements I<String> {}
+class C extends A with B {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
   }
 
   test_conflictingGetterAndMethod_field_method() async {
@@ -1653,14 +1716,7 @@ main() {
   p.loadLibrary();
 }''');
     await computeAnalysisResult(source);
-    if (enableNewAnalysisDriver) {
-      assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
-    } else {
-      assertErrors(source, [
-        CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-        StaticWarningCode.UNDEFINED_IDENTIFIER
-      ]);
-    }
+    assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
   }
 
   test_duplicateConstructorName_named() async {
@@ -3962,9 +4018,62 @@ class C extends B with M {
     verify([source]);
   }
 
+  test_mixinInference_conflictingSubstitution() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    options.strongMode = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class M<T> extends A<Map<T, T>> {}
+class C extends A<Map<int, String>> with M {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION,
+      CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES
+    ]);
+  }
+
+  @failingTest // Does not work with old task model
+  test_mixinInference_doNotIgnorePreviousExplicitMixins() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    options.strongMode = true;
+    resetWith(options: options);
+    Source source = addSource('''
+class A extends Object with B<String>, C {}
+class B<T> {}
+class C<T> extends B<T> {}
+''');
+    var analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    var mixins = analysisResult.unit.element.getType('A').mixins;
+    expect(mixins[1].toString(), 'C<String>');
+  }
+
+  test_mixinInference_impossibleSubstitution() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    options.strongMode = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class M<T> extends A<Map<T, T>> {}
+class C extends A<List<int>> with M {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION,
+      CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES
+    ]);
+  }
+
+  @failingTest // Does not work with old task model
   test_mixinInference_matchingClass() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
+    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -3976,9 +4085,11 @@ class C extends A<int> with M {}
     assertNoErrors(source);
   }
 
+  @failingTest // Does not work with old task model
   test_mixinInference_matchingClass_inPreviousMixin() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
+    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -3994,6 +4105,7 @@ class C extends Object with M1, M2 {}
   test_mixinInference_noMatchingClass() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
+    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -4009,6 +4121,7 @@ class C extends Object with M {}
   test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
+    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -4017,13 +4130,16 @@ class M<T> extends A<T> {}
 class C extends Object with M implements A<B> {}
 ''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS]);
+    assertErrors(source, [
+      CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS,
+      CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES
+    ]);
   }
 
   test_mixinInference_noMatchingClass_namedMixinApplication() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
+    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -4039,6 +4155,7 @@ class C = Object with M;
   test_mixinInference_noMatchingClass_noSuperclassConstraint() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
+    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -4053,6 +4170,7 @@ class C extends Object with M {}
   test_mixinInference_noMatchingClass_typeParametersSupplied() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
+    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -4062,6 +4180,45 @@ class C extends Object with M<int> {}
 ''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
+  }
+
+  @failingTest // Does not work with old task model
+  test_mixinInference_recursiveSubtypeCheck() async {
+    // See dartbug.com/32353 for a detailed explanation.
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    options.strongMode = true;
+    resetWith(options: options);
+    Source source = addSource('''
+class ioDirectory implements ioFileSystemEntity {}
+
+class ioFileSystemEntity {}
+
+abstract class _LocalDirectory
+    extends _LocalFileSystemEntity<_LocalDirectory, ioDirectory>
+    with ForwardingDirectory, DirectoryAddOnsMixin {}
+
+abstract class _LocalFileSystemEntity<T extends FileSystemEntity,
+  D extends ioFileSystemEntity> extends ForwardingFileSystemEntity<T, D> {}
+
+abstract class FileSystemEntity implements ioFileSystemEntity {}
+
+abstract class ForwardingFileSystemEntity<T extends FileSystemEntity,
+  D extends ioFileSystemEntity> implements FileSystemEntity {}
+
+
+abstract class ForwardingDirectory<T extends Directory>
+    extends ForwardingFileSystemEntity<T, ioDirectory>
+    implements Directory {}
+
+abstract class Directory implements FileSystemEntity, ioDirectory {}
+
+abstract class DirectoryAddOnsMixin implements Directory {}
+''');
+    var analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    var mixins = analysisResult.unit.element.getType('_LocalDirectory').mixins;
+    expect(mixins[0].toString(), 'ForwardingDirectory<_LocalDirectory>');
   }
 
   test_mixinInheritsFromNotObject_classDeclaration_extends() async {

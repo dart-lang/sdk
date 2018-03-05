@@ -10,6 +10,10 @@
 ///     import 'dart:typed_data';
 library dart.typed_data;
 
+import "dart:_internal" show UnmodifiableListBase;
+
+part "unmodifiable_typed_data.dart";
+
 /**
  * A sequence of bytes underlying a typed data object.
  *

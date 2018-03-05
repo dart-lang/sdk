@@ -3,14 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/utilities/completion/relevance.dart';
@@ -108,17 +106,43 @@ class OpType {
   CompletionSuggestionKind suggestKind = CompletionSuggestionKind.INVOCATION;
 
   /**
+   * The type that is required by the context in which the completion was
+   * activated, or `null` if there is no such type, or it cannot be determined.
+   */
+  DartType _requiredType = null;
+
+  /**
    * Determine the suggestions that should be made based upon the given
    * [CompletionTarget] and [offset].
    */
   factory OpType.forCompletion(CompletionTarget target, int offset) {
     OpType optype = new OpType._();
+
+    // Don't suggest anything right after double or integer literals.
+    if (target.isDoubleOrIntLiteral()) {
+      return optype;
+    }
+
     target.containingNode
         .accept(new _OpTypeAstVisitor(optype, target.entity, offset));
     var mthDecl =
         target.containingNode.getAncestor((p) => p is MethodDeclaration);
     optype.inStaticMethodBody =
         mthDecl is MethodDeclaration && mthDecl.isStatic;
+
+    // If a value should be suggested, suggest also constructors.
+    if (optype.includeReturnValueSuggestions) {
+      // Careful: in angular plugin, `target.unit` may be null!
+      CompilationUnitElement unitElement = target.unit?.element;
+      if (unitElement != null &&
+          unitElement.context.analysisOptions.previewDart2) {
+        optype.includeConstructorSuggestions = true;
+      }
+    }
+
+    // Compute the type required by the context and set filters.
+    optype._computeRequiredTypeAndFilters(target);
+
     return optype;
   }
 
@@ -152,6 +176,75 @@ class OpType {
       !includeNamedArgumentSuggestions &&
       !includeReturnValueSuggestions &&
       !includeVoidReturnSuggestions;
+
+  /**
+   * Try to determine the required context type, and configure filters.
+   */
+  void _computeRequiredTypeAndFilters(CompletionTarget target) {
+    Object entity = target.entity;
+    AstNode node = target.containingNode;
+
+    if (node is InstanceCreationExpression &&
+        node.keyword != null &&
+        node.constructorName == entity) {
+      entity = node;
+      node = node.parent;
+    }
+
+    if (node is AssignmentExpression &&
+        node.operator.type == TokenType.EQ &&
+        node.rightHandSide == entity) {
+      _requiredType = node.leftHandSide?.staticType;
+    } else if (node is BinaryExpression &&
+        node.operator.type == TokenType.EQ_EQ &&
+        node.rightOperand == entity) {
+      _requiredType = node.leftOperand?.staticType;
+    } else if (node is NamedExpression && node.expression == entity) {
+      _requiredType = node.staticParameterElement?.type;
+    } else if (node is SwitchCase && node.expression == entity) {
+      AstNode parent = node.parent;
+      if (parent is SwitchStatement) {
+        _requiredType = parent.expression?.staticType;
+      }
+    } else if (node is VariableDeclaration && node.initializer == entity) {
+      _requiredType = node.element?.type;
+    } else if (entity is Expression && entity.staticParameterElement != null) {
+      _requiredType = entity.staticParameterElement.type;
+    }
+
+    if (_requiredType == null) {
+      return;
+    }
+    if (_requiredType.isDynamic || _requiredType.isObject) {
+      _requiredType = null;
+      return;
+    }
+
+    constructorSuggestionsFilter = (DartType dartType, int relevance) {
+      if (dartType != null) {
+        if (dartType == _requiredType) {
+          return relevance + DART_RELEVANCE_BOOST_TYPE;
+        } else if (dartType.isSubtypeOf(_requiredType)) {
+          return relevance + DART_RELEVANCE_BOOST_SUBTYPE;
+        }
+        if (target.containingNode is InstanceCreationExpression) {
+          return null;
+        }
+      }
+      return relevance;
+    };
+
+    returnValueSuggestionsFilter = (DartType dartType, int relevance) {
+      if (dartType != null) {
+        if (dartType == _requiredType) {
+          return relevance + DART_RELEVANCE_BOOST_TYPE;
+        } else if (dartType.isSubtypeOf(_requiredType)) {
+          return relevance + DART_RELEVANCE_BOOST_SUBTYPE;
+        }
+      }
+      return relevance;
+    };
+  }
 
   /// Return the statement before [entity]
   /// where [entity] can be a statement or the `}` closing the given block.
@@ -252,7 +345,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       }
       if (0 <= index && index < parameters.length) {
         ParameterElement param = parameters[index];
-        if (param?.parameterKind == ParameterKind.NAMED) {
+        if (param?.isNamed == true) {
           optype.includeNamedArgumentSuggestions = true;
           return;
         }
@@ -276,6 +369,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
           return null;
         }
       };
+    }
+  }
+
+  @override
+  void visitAssertInitializer(AssertInitializer node) {
+    if (identical(entity, node.condition)) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
     }
   }
 
@@ -616,31 +717,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (identical(entity, node.constructorName)) {
       optype.includeConstructorSuggestions = true;
-      optype.constructorSuggestionsFilter = (DartType dartType, int relevance) {
-        DartType localTypeAssertion = null;
-        if (node.parent is VariableDeclaration) {
-          VariableDeclaration varDeclaration =
-              node.parent as VariableDeclaration;
-          localTypeAssertion = resolutionMap
-              .elementDeclaredByVariableDeclaration(varDeclaration)
-              ?.type;
-        } else if (node.parent is AssignmentExpression) {
-          AssignmentExpression assignmentExpression =
-              node.parent as AssignmentExpression;
-          localTypeAssertion = assignmentExpression.leftHandSide.staticType;
-        }
-        if (localTypeAssertion == null ||
-            dartType == null ||
-            localTypeAssertion.isDynamic) {
-          return relevance;
-        } else if (localTypeAssertion == dartType) {
-          return relevance + DART_RELEVANCE_INCREMENT;
-        } else if (dartType.isSubtypeOf(localTypeAssertion)) {
-          return relevance;
-        } else {
-          return null;
-        }
-      };
     }
   }
 
@@ -709,28 +785,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitNamedExpression(NamedExpression node) {
     if (identical(entity, node.expression)) {
       optype.includeReturnValueSuggestions = true;
-      optype.returnValueSuggestionsFilter = (DartType dartType, int relevance) {
-        DartType type = resolutionMap.elementForNamedExpression(node)?.type;
-        bool isEnum = type != null &&
-            type.element is ClassElement &&
-            (type.element as ClassElement).isEnum;
-        if (isEnum) {
-          if (type == dartType) {
-            return relevance + DART_RELEVANCE_INCREMENT;
-          } else {
-            return null;
-          }
-        }
-        if (type != null &&
-            dartType != null &&
-            !type.isDynamic &&
-            dartType.isSubtypeOf(type)) {
-          // is correct type
-          return relevance + DART_RELEVANCE_INCREMENT;
-        } else {
-          return relevance;
-        }
-      };
       optype.includeTypeNameSuggestions = true;
 
       // Check for named parameters in constructor calls.
@@ -744,8 +798,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
             if (e is DefaultFieldFormalParameterElementImpl) {
               return e.field?.name == node.name.label.name;
             }
-            return e.parameterKind == ParameterKind.NAMED &&
-                e.name == node.name.label.name;
+            return e.isNamed && e.name == node.name.label.name;
           }, orElse: () => null);
           // Suggest tear-offs.
           if (parameterElement?.type is FunctionType) {
@@ -978,7 +1031,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   bool _isEntityPrevTokenSynthetic() {
     Object entity = this.entity;
-    if (entity is AstNode && entity.beginToken.previous?.isSynthetic ?? false) {
+    if (entity is AstNode &&
+        (entity.beginToken.previous?.isSynthetic ?? false)) {
       return true;
     }
     return false;

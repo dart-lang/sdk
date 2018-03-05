@@ -13,33 +13,70 @@ main() {
 class IfStatementTest extends PartialCodeTest {
   buildAll() {
     buildTests(
-        'if_statement',
-        [
-          new TestDescriptor(
-              'keyword',
-              'if',
-              [
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "if (_s_)",
-              failing: ['eof']),
-          new TestDescriptor(
-              'leftParen',
-              'if (',
-              [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "if (_s_)",
-              allFailing: true),
-          new TestDescriptor(
-              'condition', 'if (a', [ParserErrorCode.EXPECTED_TOKEN], "if (a)",
-              allFailing: true),
-        ],
-        PartialCodeTest.statementSuffixes,
-        head: 'f() { ',
-        tail: ' }');
+      'if_statement',
+      [
+        new TestDescriptor(
+          'keyword',
+          'if',
+          [
+            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.MISSING_IDENTIFIER,
+            ParserErrorCode.EXPECTED_TOKEN
+          ],
+          "if (_s_)",
+        ),
+        new TestDescriptor(
+          'leftParen',
+          'if (',
+          [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+          "if (_s_)",
+          allFailing: true,
+        ),
+        new TestDescriptor(
+          'condition',
+          'if (a',
+          [ParserErrorCode.EXPECTED_TOKEN],
+          "if (a)",
+          allFailing: true,
+        ),
+      ],
+      PartialCodeTest.statementSuffixes,
+      head: 'f() { ',
+      includeEof: false,
+      tail: ' }',
+    );
+    buildTests(
+      'if_statement',
+      [
+        new TestDescriptor(
+          'keyword',
+          'if',
+          [
+            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.MISSING_IDENTIFIER,
+            ParserErrorCode.EXPECTED_TOKEN
+          ],
+          "if (_s_);",
+          allFailing: true,
+        ),
+        new TestDescriptor(
+          'leftParen',
+          'if (',
+          [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+          "if (_s_);",
+          allFailing: true,
+        ),
+        new TestDescriptor(
+          'condition',
+          'if (a',
+          [ParserErrorCode.EXPECTED_TOKEN],
+          "if (a);",
+          allFailing: true,
+        ),
+      ],
+      [],
+      head: 'f() { ',
+      tail: ' }',
+    );
   }
 }

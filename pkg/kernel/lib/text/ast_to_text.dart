@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.ast_to_text;
 
-// ignore: UNDEFINED_HIDDEN_NAME
 import 'dart:core' hide MapEntry;
 
 import '../ast.dart';
@@ -1670,6 +1669,7 @@ class Printer extends Visitor<Null> {
   void writeVariableDeclaration(VariableDeclaration node,
       {bool useVarKeyword: false}) {
     if (showOffsets) writeWord("[${node.fileOffset}]");
+    if (showMetadata) writeMetadata(node);
     writeAnnotationList(node.annotations);
     writeModifier(node.isCovariant, 'covariant');
     writeModifier(node.isGenericCovariantImpl, 'generic-covariant-impl');

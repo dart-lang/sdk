@@ -5,7 +5,6 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/ast_factory.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -18,9 +17,7 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         IdentifierImpl,
         PrefixedIdentifierImpl,
         SimpleIdentifierImpl;
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -103,12 +100,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   bool _enableHints = false;
 
   /**
-   * A flag indicating whether we should strictly follow the specification when
-   * generating warnings on "call" methods (fixes dartbug.com/21938).
-   */
-  bool _enableStrictCallChecks = false;
-
-  /**
    * The type representing the type 'dynamic'.
    */
   DartType _dynamicType;
@@ -130,11 +121,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   TypePromotionManager _promoteManager;
 
   /**
-   * Gets an instance of [AstFactory] based on the standard AST implementation.
-   */
-  AstFactory _astFactory;
-
-  /**
    * Initialize a newly created visitor to work for the given [_resolver] to
    * resolve the nodes in a compilation unit.
    */
@@ -142,12 +128,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     this._definingLibrary = _resolver.definingLibrary;
     AnalysisOptions options = _definingLibrary.context.analysisOptions;
     _enableHints = options.hint;
-    _enableStrictCallChecks = options.enableStrictCallChecks;
     _dynamicType = _resolver.typeProvider.dynamicType;
     _typeType = _resolver.typeProvider.typeType;
     _subtypeManager = new SubtypeManager();
     _promoteManager = _resolver.promoteManager;
-    _astFactory = new AstFactoryImpl();
   }
 
   /**
@@ -166,15 +150,26 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   Object visitAssignmentExpression(AssignmentExpression node) {
     Token operator = node.operator;
     TokenType operatorType = operator.type;
+    Expression leftHandSide = node.leftHandSide;
+    DartType staticType = _getStaticType(leftHandSide, read: true);
+
+    // For any compound assignments to a void variable, report bad void usage.
+    // Example: `y += voidFn()`, not allowed.
+    if (operatorType != TokenType.EQ &&
+        staticType != null &&
+        staticType.isVoid) {
+      _recordUndefinedToken(
+          null, StaticWarningCode.USE_OF_VOID_RESULT, operator, []);
+      return null;
+    }
+
     if (operatorType != TokenType.AMPERSAND_AMPERSAND_EQ &&
         operatorType != TokenType.BAR_BAR_EQ &&
         operatorType != TokenType.EQ &&
         operatorType != TokenType.QUESTION_QUESTION_EQ) {
       operatorType = _operatorFromCompoundAssignment(operatorType);
-      Expression leftHandSide = node.leftHandSide;
       if (leftHandSide != null) {
         String methodName = operatorType.lexeme;
-        DartType staticType = _getStaticType(leftHandSide, read: true);
         MethodElement staticMethod =
             _lookUpMethod(leftHandSide, staticType, methodName);
         node.staticElement = staticMethod;
@@ -622,23 +617,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     }
     Element staticElement;
     Element propagatedElement;
-    bool previewDart2 = _definingLibrary.context.analysisOptions.previewDart2;
     if (target == null) {
       staticElement = _resolveInvokedElement(methodName);
       propagatedElement = null;
-
-      if (previewDart2 &&
-          staticElement != null &&
-          staticElement is ClassElement) {
-        // cases: C() or C<>()
-        InstanceCreationExpression instanceCreationExpression =
-            _handleImplicitConstructorCase(node, staticElement);
-        if (instanceCreationExpression != null) {
-          // If a non-null is returned, the node was created, replaced, so we
-          // can return here.
-          return null;
-        }
-      }
     } else if (methodName.name == FunctionElement.LOAD_LIBRARY_NAME &&
         _isDeferredPrefix(target)) {
       if (node.operator.type == TokenType.QUESTION_PERIOD) {
@@ -662,28 +643,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       //
       bool isConditional = node.operator.type == TokenType.QUESTION_PERIOD;
       ClassElement typeReference = getTypeReference(target);
-
-      if (previewDart2) {
-        InstanceCreationExpression instanceCreationExpression;
-        if ((target is SimpleIdentifier &&
-                target.staticElement is PrefixElement) ||
-            (target is PrefixedIdentifier &&
-                target.prefix.staticElement is PrefixElement)) {
-          // case: p.C(), p.C<>() or p.C.n()
-          instanceCreationExpression =
-              _handlePrefixedImplicitConstructorCase(node, target);
-        } else if (typeReference is ClassElement) {
-          // case: C.n()
-          instanceCreationExpression =
-              _handleImplicitConstructorCase(node, typeReference);
-        }
-
-        if (instanceCreationExpression != null) {
-          // If a non-null is returned, the node was created, replaced, so we
-          // can return here.
-          return null;
-        }
-      }
 
       if (typeReference != null) {
         if (node.isCascaded) {
@@ -713,20 +672,20 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     //
     // Given the elements, determine the type of the function we are invoking
     //
-    DartType staticInvokeType = _getInvokeType(staticElement);
-    methodName.staticType = staticInvokeType;
+    DartType staticType = _getInvokeType(staticElement);
+    methodName.staticType = staticType;
 
-    DartType propagatedInvokeType = _getInvokeType(propagatedElement);
+    DartType propagatedType = _getInvokeType(propagatedElement);
     methodName.propagatedType =
-        _propagatedInvokeTypeIfBetter(propagatedInvokeType, staticInvokeType);
+        _propagatedInvokeTypeIfBetter(propagatedType, staticType);
 
     //
     // Instantiate generic function or method if needed.
     //
-    staticInvokeType = _instantiateGenericMethod(
-        staticInvokeType, node.typeArguments, node.methodName);
-    propagatedInvokeType = _instantiateGenericMethod(
-        propagatedInvokeType, node.typeArguments, node.methodName);
+    DartType staticInvokeType = _instantiateGenericMethod(
+        staticType, node.typeArguments, node.methodName);
+    DartType propagatedInvokeType = _instantiateGenericMethod(
+        propagatedType, node.typeArguments, node.methodName);
 
     //
     // Record the results.
@@ -760,7 +719,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     //
     // Then check for error conditions.
     //
-    ErrorCode errorCode = _checkForInvocationError(target, true, staticElement);
+    ErrorCode errorCode =
+        _checkForInvocationError(target, true, staticElement, staticType);
     if (errorCode != null &&
         target is SimpleIdentifier &&
         target.staticElement is PrefixElement) {
@@ -774,7 +734,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (_enableHints && errorCode == null && staticElement == null) {
       // The method lookup may have failed because there were multiple
       // incompatible choices. In this case we don't want to generate a hint.
-      errorCode = _checkForInvocationError(target, false, propagatedElement);
+      errorCode = _checkForInvocationError(
+          target, false, propagatedElement, propagatedType);
       if (identical(errorCode, StaticTypeWarningCode.UNDEFINED_METHOD)) {
         ClassElement classElementContext = null;
         if (target == null) {
@@ -838,13 +799,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             targetType = _getStaticType(target);
           }
         }
-        if (!_enableStrictCallChecks &&
-            targetType != null &&
+        if (targetType != null &&
             targetType.isDartCoreFunction &&
             methodName.name == FunctionElement.CALL_METHOD_NAME) {
-          // TODO(brianwilkerson) Can we ever resolve the function being
-          // invoked?
-//          resolveArgumentsToParameters(node.getArgumentList(), invokedFunction);
           return null;
         }
         if (!node.isCascaded) {
@@ -888,6 +845,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
           methodName,
           [methodName.name, targetTypeName]);
+    } else if (identical(errorCode, StaticWarningCode.USE_OF_VOID_RESULT)) {
+      _resolver.errorReporter.reportErrorForNode(
+          StaticWarningCode.USE_OF_VOID_RESULT, target ?? methodName, []);
     }
     return null;
   }
@@ -1291,8 +1251,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * was no target. The flag [useStaticContext] should be `true` if the
    * invocation is in a static constant (does not have access to instance state).
    */
-  ErrorCode _checkForInvocationError(
-      Expression target, bool useStaticContext, Element element) {
+  ErrorCode _checkForInvocationError(Expression target, bool useStaticContext,
+      Element element, DartType type) {
     // Prefix is not declared, instead "prefix.id" are declared.
     if (element is PrefixElement) {
       return CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT;
@@ -1304,9 +1264,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       FunctionType getterType = element.type;
       if (getterType != null) {
         DartType returnType = getterType.returnType;
-        if (!_isExecutableType(returnType)) {
-          return StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION;
-        }
+        return _getErrorCodeForExecuting(returnType);
       }
     } else if (element is ExecutableElement) {
       return null;
@@ -1328,15 +1286,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         FunctionType getterType = getter.type;
         if (getterType != null) {
           DartType returnType = getterType.returnType;
-          if (!_isExecutableType(returnType)) {
-            return StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION;
-          }
+          return _getErrorCodeForExecuting(returnType);
         }
       } else if (element is VariableElement) {
-        DartType variableType = element.type;
-        if (!_isExecutableType(variableType)) {
-          return StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION;
-        }
+        return _getErrorCodeForExecuting(type);
       } else {
         if (target == null) {
           ClassElement enclosingClass = _resolver.enclosingClass;
@@ -1365,6 +1318,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
               return null;
             }
             return StaticTypeWarningCode.UNDEFINED_FUNCTION;
+          } else if (targetType.isVoid) {
+            return StaticWarningCode.USE_OF_VOID_RESULT;
           } else if (!targetType.isDynamic && target is! NullLiteral) {
             // Proxy-conditional warning, based on state of
             // targetType.getElement()
@@ -1403,25 +1358,29 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       Token leftBracket = expression.leftBracket;
       Token rightBracket = expression.rightBracket;
       ErrorCode errorCode;
+      DartType type =
+          shouldReportMissingMember_static ? staticType : propagatedType;
+      var errorArguments = [methodName, type.displayName];
       if (shouldReportMissingMember_static) {
         if (target is SuperExpression) {
           errorCode = StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR;
+        } else if (staticType != null && staticType.isVoid) {
+          errorCode = StaticWarningCode.USE_OF_VOID_RESULT;
+          errorArguments = [];
         } else {
           errorCode = StaticTypeWarningCode.UNDEFINED_OPERATOR;
         }
       } else {
         errorCode = HintCode.UNDEFINED_OPERATOR;
       }
-      DartType type =
-          shouldReportMissingMember_static ? staticType : propagatedType;
       if (leftBracket == null || rightBracket == null) {
-        _recordUndefinedNode(type.element, errorCode, expression,
-            [methodName, type.displayName]);
+        _recordUndefinedNode(
+            type.element, errorCode, expression, errorArguments);
       } else {
         int offset = leftBracket.offset;
         int length = rightBracket.offset - offset + 1;
-        _recordUndefinedOffset(type.element, errorCode, offset, length,
-            [methodName, type.displayName]);
+        _recordUndefinedOffset(
+            type.element, errorCode, offset, length, errorArguments);
       }
       return true;
     }
@@ -1509,6 +1468,21 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       bestType = _resolver.typeProvider.functionType;
     }
     return bestType;
+  }
+
+  /**
+   * Return an error if the [type], which is presumably being invoked, is not a
+   * function. The errors for non functions may be broken up by type; currently,
+   * it returns a special value for when the type is `void`.
+   */
+  ErrorCode _getErrorCodeForExecuting(DartType type) {
+    if (_isExecutableType(type)) {
+      return null;
+    }
+
+    return type.isVoid
+        ? StaticWarningCode.USE_OF_VOID_RESULT
+        : StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION;
   }
 
   /**
@@ -1611,203 +1585,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Return the newly created and replaced [InstanceCreationExpression], or
-   * `null` if this is not an implicit constructor case.
-   *
-   * This method covers the "ClassName()" and "ClassName.namedConstructor()"
-   * cases for the prefixed cases, i.e. "libraryPrefix.ClassName()" and
-   * "libraryPrefix.ClassName.namedConstructor()" see
-   * [_handlePrefixedImplicitConstructorCase].
-   */
-  InstanceCreationExpression _handleImplicitConstructorCase(
-      MethodInvocation node, ClassElement classElement) {
-    // If target == null, then this is the unnamed constructor, A(), case,
-    // otherwise it is the named constructor A.name() case.
-    Expression target = node.realTarget;
-    bool isNamedConstructorCase = target != null;
-
-    // If we are in the named constructor case, verify that the target is a
-    // SimpleIdentifier and that the operator is '.'
-    SimpleIdentifier targetSimpleId;
-    if (isNamedConstructorCase) {
-      if (target is SimpleIdentifier &&
-          node.operator.type == TokenType.PERIOD) {
-        targetSimpleId = target;
-      } else {
-        // Return null as this is not an implicit constructor case.
-        return null;
-      }
-    }
-
-    // Before any ASTs are created, look up ConstructorElement to see if we
-    // should construct an [InstanceCreationExpression] to replace this
-    // [MethodInvocation].
-    InterfaceType classType = classElement.type;
-    if (node.typeArguments != null) {
-      int parameterCount = classType.typeParameters.length;
-      int argumentCount = node.typeArguments.arguments.length;
-      if (parameterCount == argumentCount) {
-        // TODO(brianwilkerson) More gracefully handle the case where the counts
-        // are different.
-        List<DartType> typeArguments = node.typeArguments.arguments
-            .map((TypeAnnotation type) => type.type)
-            .toList();
-        classType = classType.instantiate(typeArguments);
-      }
-    } else {
-      int parameterCount = classType.typeParameters.length;
-      if (parameterCount > 0) {
-        List<DartType> typeArguments =
-            new List<DartType>.filled(parameterCount, _dynamicType);
-        classType = classType.instantiate(typeArguments);
-      }
-    }
-    ConstructorElement constructorElt;
-    if (isNamedConstructorCase) {
-      constructorElt =
-          classType.lookUpConstructor(node.methodName.name, _definingLibrary);
-    } else {
-      constructorElt = classType.lookUpConstructor(null, _definingLibrary);
-    }
-    // If the constructor was not looked up, return `null` so resulting
-    // resolution, such as error messages, will proceed as a [MethodInvocation].
-    if (constructorElt == null) {
-      return null;
-    }
-
-    // Create the Constructor name, in each case: A[.named]()
-    TypeName typeName;
-    ConstructorName constructorName;
-    if (isNamedConstructorCase) {
-      // A.named()
-      typeName = _astFactory.typeName(targetSimpleId, node.typeArguments);
-      typeName.type = classType;
-      constructorName =
-          _astFactory.constructorName(typeName, node.operator, node.methodName);
-    } else {
-      // A()
-      typeName = _astFactory.typeName(node.methodName, node.typeArguments);
-      typeName.type = classType;
-      constructorName = _astFactory.constructorName(typeName, null, null);
-    }
-    InstanceCreationExpression instanceCreationExpression = _astFactory
-        .instanceCreationExpression(null, constructorName, node.argumentList);
-
-    if (isNamedConstructorCase) {
-      constructorName.name.staticElement = constructorElt;
-    }
-    constructorName.staticElement = constructorElt;
-    instanceCreationExpression.staticElement = constructorElt;
-    instanceCreationExpression.staticType = classType;
-
-    // Finally, do the node replacement, true is returned iff the replacement
-    // was successful, only return the new node if it was successful.
-    if (NodeReplacer.replace(node, instanceCreationExpression)) {
-      return instanceCreationExpression;
-    }
-    return null;
-  }
-
-  /**
-   * Return the newly created and replaced [InstanceCreationExpression], or
-   * `null` if this is not an implicit constructor case.
-   *
-   * This method covers the "libraryPrefix.ClassName()" and
-   * "libraryPrefix.ClassName.namedConstructor()" cases for the non-prefixed
-   * cases, i.e. "ClassName()" and "ClassName.namedConstructor()" see
-   * [_handleImplicitConstructorCase].
-   */
-  InstanceCreationExpression _handlePrefixedImplicitConstructorCase(
-      MethodInvocation node, Identifier libraryPrefixId) {
-    bool isNamedConstructorCase = libraryPrefixId is PrefixedIdentifier;
-    ClassElement classElement;
-    if (isNamedConstructorCase) {
-      var elt = (libraryPrefixId as PrefixedIdentifier).staticElement;
-      if (elt is ClassElement) {
-        classElement = elt;
-      }
-    } else {
-      LibraryElementImpl libraryElementImpl = _getImportedLibrary(node.target);
-      classElement = libraryElementImpl.getType(node.methodName.name);
-    }
-
-    // Before any ASTs are created, look up ConstructorElement to see if we
-    // should construct an [InstanceCreationExpression] to replace this
-    // [MethodInvocation].
-    if (classElement == null) {
-      return null;
-    }
-    InterfaceType classType = classElement.type;
-    if (node.typeArguments != null) {
-      int parameterCount = classType.typeParameters.length;
-      int argumentCount = node.typeArguments.arguments.length;
-      if (parameterCount == argumentCount) {
-        // TODO(brianwilkerson) More gracefully handle the case where the counts
-        // are different.
-        List<DartType> typeArguments = node.typeArguments.arguments
-            .map((TypeAnnotation type) => type.type)
-            .toList();
-        classType = classType.instantiate(typeArguments);
-      }
-    } else {
-      int parameterCount = classType.typeParameters.length;
-      if (parameterCount > 0) {
-        List<DartType> typeArguments =
-            new List<DartType>.filled(parameterCount, _dynamicType);
-        classType = classType.instantiate(typeArguments);
-      }
-    }
-    ConstructorElement constructorElt;
-    if (isNamedConstructorCase) {
-      constructorElt =
-          classType.lookUpConstructor(node.methodName.name, _definingLibrary);
-    } else {
-      constructorElt = classType.lookUpConstructor(null, _definingLibrary);
-    }
-    // If the constructor was not looked up, return `null` so resulting
-    // resolution, such as error messages, will proceed as a [MethodInvocation].
-    if (constructorElt == null) {
-      return null;
-    }
-
-    // Create the Constructor name, in each case: A[.named]()
-    TypeName typeName;
-    ConstructorName constructorName;
-    if (isNamedConstructorCase) {
-      // p.A.n()
-      // libraryPrefixId is a PrefixedIdentifier in this case
-      typeName = _astFactory.typeName(libraryPrefixId, node.typeArguments);
-      typeName.type = classType;
-      constructorName =
-          _astFactory.constructorName(typeName, node.operator, node.methodName);
-    } else {
-      // p.A()
-      // libraryPrefixId is a SimpleIdentifier in this case
-      PrefixedIdentifier prefixedIdentifier = _astFactory.prefixedIdentifier(
-          libraryPrefixId, node.operator, node.methodName);
-      typeName = _astFactory.typeName(prefixedIdentifier, node.typeArguments);
-      typeName.type = classType;
-      constructorName = _astFactory.constructorName(typeName, null, null);
-    }
-    InstanceCreationExpression instanceCreationExpression = _astFactory
-        .instanceCreationExpression(null, constructorName, node.argumentList);
-
-    if (isNamedConstructorCase) {
-      constructorName.name.staticElement = constructorElt;
-    }
-    constructorName.staticElement = constructorElt;
-    instanceCreationExpression.staticElement = constructorElt;
-    instanceCreationExpression.staticType = classType;
-
-    // Finally, do the node replacement, true is returned iff the replacement
-    // was successful, only return the new node if it was successful.
-    if (NodeReplacer.replace(node, instanceCreationExpression)) {
-      return instanceCreationExpression;
-    }
-    return null;
-  }
-
-  /**
    * Return `true` if the given [element] is or inherits from a class marked
    * with `@proxy`.
    *
@@ -1880,8 +1657,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     type = type?.resolveToBound(_resolver.typeProvider.objectType);
     if (type.isDynamic || type is FunctionType) {
       return true;
-    } else if (!_enableStrictCallChecks &&
-        (type.isDartCoreFunction || type.isObject)) {
+    } else if (type.isDartCoreFunction) {
       return true;
     } else if (type is InterfaceType) {
       ClassElement classElement = type.element;
@@ -2614,13 +2390,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         if (!isStaticProperty &&
             staticOrPropagatedEnclosingElt is ClassElement) {
           InterfaceType targetType = staticOrPropagatedEnclosingElt.type;
-          if (!_enableStrictCallChecks &&
-              targetType != null &&
+          if (targetType != null &&
               targetType.isDartCoreFunction &&
               propertyName.name == FunctionElement.CALL_METHOD_NAME) {
-            // TODO(brianwilkerson) Can we ever resolve the function being
-            // invoked?
-//            resolveArgumentsToParameters(node.getArgumentList(), invokedFunction);
             return;
           } else if (staticOrPropagatedEnclosingElt.isEnum &&
               propertyName.name == "_name") {
@@ -2636,6 +2408,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           staticType.isVoid ? null : staticOrPropagatedEnclosingElt;
       if (propertyName.inSetterContext()) {
         ErrorCode errorCode;
+        var arguments = [propertyName.name, displayType.displayName];
         if (shouldReportMissingMember_static) {
           if (target is SuperExpression) {
             if (isStaticProperty && !staticType.isVoid) {
@@ -2644,7 +2417,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
               errorCode = StaticTypeWarningCode.UNDEFINED_SUPER_SETTER;
             }
           } else {
-            if (isStaticProperty && !staticType.isVoid) {
+            if (staticType.isVoid) {
+              errorCode = StaticWarningCode.USE_OF_VOID_RESULT;
+              arguments = [];
+            } else if (isStaticProperty) {
               errorCode = StaticWarningCode.UNDEFINED_SETTER;
             } else {
               errorCode = StaticTypeWarningCode.UNDEFINED_SETTER;
@@ -2653,10 +2429,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         } else {
           errorCode = HintCode.UNDEFINED_SETTER;
         }
-        _recordUndefinedNode(declaringElement, errorCode, propertyName,
-            [propertyName.name, displayType.displayName]);
+        _recordUndefinedNode(
+            declaringElement, errorCode, propertyName, arguments);
       } else if (propertyName.inGetterContext()) {
         ErrorCode errorCode;
+        var arguments = [propertyName.name, displayType.displayName];
         if (shouldReportMissingMember_static) {
           if (target is SuperExpression) {
             if (isStaticProperty && !staticType.isVoid) {
@@ -2665,7 +2442,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
               errorCode = StaticTypeWarningCode.UNDEFINED_SUPER_GETTER;
             }
           } else {
-            if (isStaticProperty && !staticType.isVoid) {
+            if (staticType.isVoid) {
+              errorCode = StaticWarningCode.USE_OF_VOID_RESULT;
+              arguments = [];
+            } else if (isStaticProperty) {
               errorCode = StaticWarningCode.UNDEFINED_GETTER;
             } else {
               errorCode = StaticTypeWarningCode.UNDEFINED_GETTER;
@@ -2674,8 +2454,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         } else {
           errorCode = HintCode.UNDEFINED_GETTER;
         }
-        _recordUndefinedNode(declaringElement, errorCode, propertyName,
-            [propertyName.name, displayType.displayName]);
+        _recordUndefinedNode(
+            declaringElement, errorCode, propertyName, arguments);
       } else {
         _recordUndefinedNode(
             declaringElement,

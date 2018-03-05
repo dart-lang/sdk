@@ -8,7 +8,9 @@ import 'non_error_resolver_driver_test.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NonErrorResolverTest_Kernel);
+    // TODO(scheglov): Restore similar test coverage when the front-end API
+    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
+    // defineReflectiveTests(NonErrorResolverTest_Kernel);
   });
 }
 
@@ -39,13 +41,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31625')
   test_ambiguousImport_showCombinator() async {
     return super.test_ambiguousImport_showCombinator();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
-  test_argumentTypeNotAssignable_classWithCall_Function() async {
-    return super.test_argumentTypeNotAssignable_classWithCall_Function();
   }
 
   @override
@@ -196,10 +191,22 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
     return super.test_genericTypeAlias_invalidGenericFunctionType();
   }
 
+  @override // passes with kernel
+  test_infer_mixin() => super.test_infer_mixin();
+
+  @override // Passes with kernel
+  test_infer_mixin_multiplyConstrained() =>
+      super.test_infer_mixin_multiplyConstrained();
+
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31984')
-  test_infer_mixin() => super.test_infer_mixin();
+  test_infer_mixin_with_substitution() =>
+      super.test_infer_mixin_with_substitution();
+
+  @override
+  @failingTest
+  test_infer_mixin_with_substitution_functionType() =>
+      super.test_infer_mixin_with_substitution_functionType();
 
   @override
   @failingTest
@@ -213,34 +220,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31641')
   test_invalidAnnotation_constantVariable_field() async {
     return super.test_invalidAnnotation_constantVariable_field();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
-  test_invalidAssignment_implicitlyImplementFunctionViaCall_1() async {
-    return super.test_invalidAssignment_implicitlyImplementFunctionViaCall_1();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
-  test_invalidAssignment_implicitlyImplementFunctionViaCall_2() async {
-    return super.test_invalidAssignment_implicitlyImplementFunctionViaCall_2();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
-  test_invalidAssignment_implicitlyImplementFunctionViaCall_3() async {
-    return super.test_invalidAssignment_implicitlyImplementFunctionViaCall_3();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
-  test_invalidAssignment_implicitlyImplementFunctionViaCall_4() async {
-    return super.test_invalidAssignment_implicitlyImplementFunctionViaCall_4();
   }
 
   @override

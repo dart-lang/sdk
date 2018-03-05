@@ -423,6 +423,12 @@ class CompileTimeErrorCode extends ErrorCode {
           "class.",
           "Try renaming either the constructor or the field.");
 
+  static const CompileTimeErrorCode CONFLICTING_GENERIC_INTERFACES =
+      const CompileTimeErrorCode(
+          'CONFLICTING_GENERIC_INTERFACES',
+          "The class '{0}' cannot implement both '{1}' and '{2}' because the "
+          "type arguments are different.");
+
   /**
    * 7. Classes: It is a compile time error if a generic class declares a type
    * variable with the same name as the class or any of its members or
@@ -1700,6 +1706,13 @@ class CompileTimeErrorCode extends ErrorCode {
           "Type parameters could not be inferred for the mixin '{0}' because "
           "the base class does not implement the mixin's supertype "
           "constraint '{1}'");
+
+  static const CompileTimeErrorCode MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION =
+      const CompileTimeErrorCode(
+          'MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION',
+          "Type parameters could not be inferred for the mixin '{0}' because "
+          "no type parameter substitution could be found matching the mixin's "
+          "supertype constraints");
 
   /**
    * 9 Mixins: It is a compile-time error if a mixin is derived from a class
@@ -4761,6 +4774,20 @@ class StaticWarningCode extends ErrorCode {
           "defining the setter in a superclass of '{1}'.");
 
   /**
+   * It is a static warning to assign void to any non-void type in dart.
+   * compile-time error). Report that error specially for a better user
+   * experience.
+   *
+   * Parameters: none
+   */
+  static const StaticWarningCode USE_OF_VOID_RESULT = const StaticWarningCode(
+      'USE_OF_VOID_RESULT',
+      "The expression here has a type of 'void', and therefore cannot be used.",
+      'Check if you are using the correct API; there may be a function or'
+      " call that returns void you didn't expect. Also check type parameters"
+      ' and variables which, in rare cases, may be void as well.');
+
+  /**
    * A flag indicating whether this warning is an error when running with strong
    * mode enabled.
    */
@@ -5032,7 +5059,7 @@ class StrongModeCode extends ErrorCode {
   /* TODO(leafp) Delete most of these.
    */
   static const StrongModeCode TOP_LEVEL_CYCLE = const StrongModeCode(
-      ErrorType.HINT,
+      ErrorType.COMPILE_TIME_ERROR,
       'TOP_LEVEL_CYCLE',
       "The type of '{0}' can't be inferred because it depends on itself through the cycle: {1}.",
       "Try adding an explicit type to one or more of the variables in the cycle in order to break the cycle.");

@@ -41,47 +41,6 @@ class Immediate : public ValueObject {
   friend class Assembler;
 };
 
-class Label : public ValueObject {
- public:
-  Label() : position_(0) {}
-
-  ~Label() {
-    // Assert if label is being destroyed with unresolved branches pending.
-    ASSERT(!IsLinked());
-  }
-
-  // Returns the position for bound and linked labels. Cannot be used
-  // for unused labels.
-  intptr_t Position() const {
-    ASSERT(!IsUnused());
-    return IsBound() ? -position_ - kWordSize : position_ - kWordSize;
-  }
-
-  bool IsBound() const { return position_ < 0; }
-  bool IsUnused() const { return position_ == 0; }
-  bool IsLinked() const { return position_ > 0; }
-
- private:
-  intptr_t position_;
-
-  void Reinitialize() { position_ = 0; }
-
-  void BindTo(intptr_t position) {
-    ASSERT(!IsBound());
-    position_ = -position - kWordSize;
-    ASSERT(IsBound());
-  }
-
-  void LinkTo(intptr_t position) {
-    ASSERT(!IsBound());
-    position_ = position + kWordSize;
-    ASSERT(IsLinked());
-  }
-
-  friend class Assembler;
-  DISALLOW_COPY_AND_ASSIGN(Label);
-};
-
 class Arm64Encode : public AllStatic {
  public:
   static inline uint32_t Rd(Register rd) {

@@ -20,17 +20,18 @@ import "dart:collection" show HashMap;
 @patch
 class ReceivePort {
   @patch
-  factory ReceivePort() = _ReceivePortImpl;
+  factory ReceivePort() => new _ReceivePortImpl();
 
   @patch
-  factory ReceivePort.fromRawReceivePort(RawReceivePort rawPort) =
-      _ReceivePortImpl.fromRawReceivePort;
+  factory ReceivePort.fromRawReceivePort(RawReceivePort rawPort) {
+    return new _ReceivePortImpl.fromRawReceivePort(rawPort);
+  }
 }
 
 @patch
 class Capability {
   @patch
-  factory Capability() = _CapabilityImpl;
+  factory Capability() => new _CapabilityImpl();
 }
 
 class _CapabilityImpl implements Capability {

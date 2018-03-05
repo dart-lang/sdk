@@ -299,8 +299,8 @@ main() {}
     expect(openBrace.endToken, same(closeBrace));
     expect(openParen2.endToken, same(closeParen2));
     listener.assertErrors([
-      new TestError(3, ScannerErrorCode.EXPECTED_TOKEN, [')']),
-      new TestError(5, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+      new TestError(6, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+      new TestError(7, ScannerErrorCode.EXPECTED_TOKEN, [')']),
     ]);
   }
 
@@ -335,9 +335,9 @@ main() {}
     expect(openBracket.endToken, same(closeBracket));
     expect(openParen.endToken, same(closeParen));
     listener.assertErrors([
-      new TestError(0, ScannerErrorCode.EXPECTED_TOKEN, ['}']),
-      new TestError(1, ScannerErrorCode.EXPECTED_TOKEN, [']']),
-      new TestError(2, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+      new TestError(2, ScannerErrorCode.EXPECTED_TOKEN, ['}']),
+      new TestError(3, ScannerErrorCode.EXPECTED_TOKEN, [']']),
+      new TestError(3, ScannerErrorCode.EXPECTED_TOKEN, [')']),
     ]);
   }
 }

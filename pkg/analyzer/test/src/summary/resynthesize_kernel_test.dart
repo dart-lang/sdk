@@ -147,6 +147,10 @@ class C {
     await super.test_class_type_parameters_bound();
   }
 
+  @failingTest // See dartbug.com/32290
+  test_const_constructor_inferred_args() =>
+      test_const_constructor_inferred_args();
+
   @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
   test_constructor_redirected_factory_named_generic() async {

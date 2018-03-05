@@ -51,6 +51,11 @@ public class CompletionSuggestionKind {
 
   public static final String OPTIONAL_ARGUMENT = "OPTIONAL_ARGUMENT";
 
+  /**
+   * An overriding implementation of a class member is being suggested.
+   */
+  public static final String OVERRIDE = "OVERRIDE";
+
   public static final String PARAMETER = "PARAMETER";
 
 }

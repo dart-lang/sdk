@@ -172,6 +172,16 @@ abstract class DartType implements ResolutionType {
    */
   DartType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes);
+
+  /// Indicates whether `this` represents a type that is equivalent to `dest`.
+  ///
+  /// This is different from `operator==`.  Consider for example:
+  ///
+  ///     typedef void F<T>(); // T not used!
+  ///
+  /// `operator==` would consider F<int> and F<bool> to be different types;
+  /// `isEquivalentTo` considers them to be equivalent.
+  bool isEquivalentTo(DartType dest);
 }
 
 /**

@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart' show DartType;
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/public_namespace_computer.dart';
@@ -98,6 +97,10 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
     }
   }
 
+  @override
+  EntityRefBuilder serializeGenericFunctionType(GenericFunctionType node) =>
+      visitor.serializeGenericFunctionType(node);
+
   EntityRefBuilder serializeIdentifier(Identifier identifier) {
     EntityRefBuilder b = new EntityRefBuilder();
     if (identifier is SimpleIdentifier) {
@@ -148,10 +151,6 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
       DartType type, Identifier name, TypeArgumentList arguments) {
     return visitor.serializeTypeName(name, arguments);
   }
-
-  @override
-  EntityRefBuilder serializeGenericFunctionType(GenericFunctionType node) =>
-      visitor.serializeGenericFunctionType(node);
 }
 
 /**
@@ -792,6 +791,19 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   }
 
   /**
+   * Serialize a type name that appears in a "with" clause to an [EntityRef].
+   */
+  EntityRefBuilder serializeMixedInType(TypeAnnotation node) {
+    var builder = serializeType(node);
+    if (builder != null && builder.typeArguments.isEmpty) {
+      // Type arguments may get inferred so we need to assign a slot to hold the
+      // complete inferred mixed in type.
+      builder.refinedSlot = assignSlot();
+    }
+    return builder;
+  }
+
+  /**
    * Serialize a [FieldFormalParameter], [FunctionTypedFormalParameter], or
    * [SimpleFormalParameter] into an [UnlinkedParam].
    */
@@ -806,18 +818,15 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     if (_parametersMayInheritCovariance) {
       b.inheritsCovariantSlot = assignSlot();
     }
-    switch (node.kind) {
-      case ParameterKind.REQUIRED:
-        b.kind = UnlinkedParamKind.required;
-        break;
-      case ParameterKind.POSITIONAL:
-        b.kind = UnlinkedParamKind.positional;
-        break;
-      case ParameterKind.NAMED:
-        b.kind = UnlinkedParamKind.named;
-        break;
-      default:
-        throw new StateError('Unexpected parameter kind: ${node.kind}');
+    if (node.isRequired) {
+      b.kind = UnlinkedParamKind.required;
+    } else if (node.isOptionalPositional) {
+      b.kind = UnlinkedParamKind.positional;
+    } else if (node.isNamed) {
+      b.kind = UnlinkedParamKind.named;
+    } else {
+      // ignore: deprecated_member_use
+      throw new StateError('Unexpected parameter kind: ${node.kind}');
     }
     return b;
   }
@@ -862,6 +871,23 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       }
     }
     return serializeReference(null, name);
+  }
+
+  /**
+   * Serialize a type name (which might be defined in a nested scope, at top
+   * level within this library, or at top level within an imported library) to
+   * a [EntityRef].  Note that this method does the right thing if the
+   * name doesn't refer to an entity other than a type (e.g. a class member).
+   */
+  EntityRefBuilder serializeType(TypeAnnotation node) {
+    if (node is TypeName) {
+      return serializeTypeName(node?.name, node?.typeArguments);
+    } else if (node is GenericFunctionType) {
+      return serializeGenericFunctionType(node);
+    } else if (node != null) {
+      throw new ArgumentError('Cannot serialize a ${node.runtimeType}');
+    }
+    return null;
   }
 
   /**
@@ -919,36 +945,6 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       }
       return b;
     }
-  }
-
-  /**
-   * Serialize a type name that appears in a "with" clause to an [EntityRef].
-   */
-  EntityRefBuilder serializeMixedInType(TypeAnnotation node) {
-    var builder = serializeType(node);
-    if (builder != null && builder.typeArguments.isEmpty) {
-      // Type arguments may get inferred so we need to assign a slot to hold the
-      // complete inferred mixed in type.
-      builder.refinedSlot = assignSlot();
-    }
-    return builder;
-  }
-
-  /**
-   * Serialize a type name (which might be defined in a nested scope, at top
-   * level within this library, or at top level within an imported library) to
-   * a [EntityRef].  Note that this method does the right thing if the
-   * name doesn't refer to an entity other than a type (e.g. a class member).
-   */
-  EntityRefBuilder serializeType(TypeAnnotation node) {
-    if (node is TypeName) {
-      return serializeTypeName(node?.name, node?.typeArguments);
-    } else if (node is GenericFunctionType) {
-      return serializeGenericFunctionType(node);
-    } else if (node != null) {
-      throw new ArgumentError('Cannot serialize a ${node.runtimeType}');
-    }
-    return null;
   }
 
   /**

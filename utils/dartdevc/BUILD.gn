@@ -214,7 +214,6 @@ dart_action("dartdevc_sdk") {
     rebase_path(sdk_summary),
     "--source-map",
     "--source-map-comment",
-    "--inline-source-map",
     "--modules=amd",
     "-o",
     rebase_path("$target_gen_dir/js/amd/dart_sdk.js"),

@@ -8,7 +8,9 @@ import 'compile_time_error_code_driver_test.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(CompileTimeErrorCodeTest_Kernel);
+    // TODO(scheglov): Restore similar test coverage when the front-end API
+    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
+    // defineReflectiveTests(CompileTimeErrorCodeTest_Kernel);
   });
 }
 
@@ -126,6 +128,21 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
     // Expected 1 errors of type CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD, found 0
     await super.test_conflictingConstructorNameAndMember_method();
   }
+
+  @override
+  @failingTest
+  test_conflictingGenericInterfaces_hierarchyLoop() =>
+      super.test_conflictingGenericInterfaces_hierarchyLoop();
+
+  @override
+  @failingTest
+  test_conflictingGenericInterfaces_simple() =>
+      super.test_conflictingGenericInterfaces_simple();
+
+  @override
+  @failingTest
+  test_conflictingGenericInterfaces_viaMixin() =>
+      super.test_conflictingGenericInterfaces_viaMixin();
 
   @override
   @failingTest
@@ -1723,8 +1740,13 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_mixinInference_matchingClass() =>
-      super.test_mixinInference_matchingClass();
+  test_mixinInference_conflictingSubstitution() =>
+      super.test_mixinInference_conflictingSubstitution();
+
+  @override
+  @failingTest
+  test_mixinInference_impossibleSubstitution() =>
+      super.test_mixinInference_impossibleSubstitution();
 
   @override
   @failingTest

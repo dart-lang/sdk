@@ -34,7 +34,14 @@ main(List<String> args) {
         computeClassDataFromAst: computeAstRtiClassNeed,
         computeClassDataFromKernel: computeKernelRtiClassNeed,
         args: args,
-        options: [Flags.strongMode]);
+        options: [
+          Flags.strongMode
+        ],
+        skipForKernel: [
+          // TODO(johnniwinther): Fix this. It triggers a crash in the ssa
+          // builder.
+          'generic_creation.dart',
+        ]);
   });
 }
 
@@ -71,23 +78,6 @@ class Tags {
   static const String directTypeArgumentTest = 'direct';
   static const String indirectTypeArgumentTest = 'indirect';
   static const String typeLiteral = 'exp';
-  static const String typeChecks = 'checks';
-
-  /// This class is needed as a checked type argument.
-  ///
-  /// For instance directly in `String` in `o is List<String>` or indirectly
-  /// as `String` in
-  ///
-  ///   class C<T> {
-  ///     method(o) => o is T;
-  ///   }
-  ///   main() => new C<String>().method('');
-  static const String argumentClass = 'arg';
-
-  // Objects are checked against this class.
-  //
-  // For instance `String` in `o is String`.
-  static const String checkedClass = 'checked';
 }
 
 abstract class ComputeValueMixin<T> {
@@ -98,9 +88,6 @@ abstract class ComputeValueMixin<T> {
   RuntimeTypesNeedBuilderImpl get rtiNeedBuilder =>
       compiler.frontendStrategy.runtimeTypesNeedBuilderForTesting;
   RuntimeTypesNeed get rtiNeed => compiler.backendClosedWorldForTesting.rtiNeed;
-  RuntimeTypesChecks get rtiChecks =>
-      compiler.backend.emitter.typeTestRegistry.rtiChecks;
-  TypeChecks get requiredChecks => rtiChecks.requiredChecks;
   ClassEntity getFrontendClass(ClassEntity cls);
   MemberEntity getFrontendMember(MemberEntity member);
   Local getFrontendClosure(MemberEntity member);
@@ -152,17 +139,6 @@ abstract class ComputeValueMixin<T> {
         rtiNeedBuilder.typeVariableTests.explicitIsChecks);
     findChecks(features, Tags.implicitTypeCheck, frontendClass,
         rtiNeedBuilder.typeVariableTests.implicitIsChecks);
-    if (rtiChecks.checkedClasses.contains(backendClass)) {
-      features.add(Tags.checkedClass);
-    }
-    if (rtiChecks.getRequiredArgumentClasses().contains(backendClass)) {
-      features.add(Tags.argumentClass);
-    }
-    Iterable<TypeCheck> checks = requiredChecks[backendClass];
-    if (checks.isNotEmpty) {
-      features[Tags.typeChecks] =
-          '[${(checks.map((c) => c.cls.name).toList()..sort()).join(',')}]';
-    }
     return features.getText();
   }
 

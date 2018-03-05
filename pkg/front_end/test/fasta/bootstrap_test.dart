@@ -80,8 +80,8 @@ Future compare(Uri a, Uri b, {bool silent: false}) async {
   }
   Program programA = new Program();
   Program programB = new Program();
-  new BinaryBuilder(bytesA, a.toFilePath()).readProgram(programA);
-  new BinaryBuilder(bytesB, b.toFilePath()).readProgram(programB);
+  new BinaryBuilder(bytesA, filename: a.toFilePath()).readProgram(programA);
+  new BinaryBuilder(bytesB, filename: b.toFilePath()).readProgram(programB);
   RegExp splitLines = new RegExp('^', multiLine: true);
   List<String> linesA = programToString(programA).split(splitLines);
   List<String> linesB = programToString(programB).split(splitLines);

@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.18.5</version>
+  <version>1.18.7</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -1574,6 +1574,45 @@
       </field>
     </result>
   </request>
+  <request method="getElementDeclarations" experimental="true">
+    <p>
+      Return top-level and class member declarations.
+    </p>
+    <params>
+      <field name="pattern" optional="true">
+        <ref>String</ref>
+        <p>
+          The regular expression used to match the names of declarations.
+          If this field is missing, return all declarations.
+        </p>
+      </field>
+      <field name="maxResults" optional="true">
+        <ref>int</ref>
+        <p>
+          The maximum number of declarations to return.
+          If this field is missing, return all matching declarations.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="declarations">
+        <list>
+          <ref>ElementDeclaration</ref>
+        </list>
+        <p>
+          The list of declarations.
+        </p>
+      </field>
+      <field name="files">
+        <list>
+          <ref>FilePath</ref>
+        </list>
+        <p>
+          The list of the paths of files with declarations.
+        </p>
+      </field>
+    </result>
+  </request>
   <request method="getTypeHierarchy">
     <p>
       Return the type hierarchy of the class declared or
@@ -2660,6 +2699,16 @@
           The outline associated with the file.
         </p>
       </field>
+      <field name="instrumentationEdits">
+        <list>
+          <ref>SourceEdit</ref>
+        </list>
+        <p>
+          If the file has Flutter widgets that can be rendered, the list
+          of edits that should be applied to the file to instrument widgets and
+          associate them with outline nodes.
+        </p>
+      </field>
     </params>
   </notification>
 </domain>
@@ -2880,6 +2929,81 @@
       </field>
     </object>
   </type>
+  <type name="ElementDeclaration">
+    <p>
+      A declaration - top-level (class, field, etc) or a class member (method,
+      field, etc).
+    </p>
+    <object>
+      <field name="name">
+        <ref>String</ref>
+        <p>
+          The name of the declaration.
+        </p>
+      </field>
+      <field name="kind">
+        <ref>ElementKind</ref>
+        <p>
+          The kind of the element that corresponds to the declaration.
+        </p>
+      </field>
+      <field name="fileIndex">
+        <ref>int</ref>
+        <p>
+          The index of the file (in the enclosing response).
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the declaration name in the file.
+        </p>
+      </field>
+      <field name="line">
+        <ref>int</ref>
+        <p>
+          The one-based index of the line containing the declaration name.
+        </p>
+      </field>
+      <field name="column">
+        <ref>int</ref>
+        <p>
+          The one-based index of the column containing the declaration name.
+        </p>
+      </field>
+      <field name="codeOffset">
+        <ref>int</ref>
+        <p>
+          The offset of the first character of the declaration code in the file.
+        </p>
+      </field>
+      <field name="codeLength">
+        <ref>int</ref>
+        <p>
+          The length of the declaration code in the file.
+        </p>
+      </field>
+      <field name="className" optional="true">
+        <ref>String</ref>
+        <p>
+          The name of the class enclosing this declaration. If the declaration
+          is not a class member, this field will be absent.
+        </p>
+      </field>
+      <field name="parameters" optional="true">
+        <ref>String</ref>
+        <p>
+          The parameter list for the element. If the element is not a method or
+          function this field will not be defined. If the element doesn't have
+          parameters (e.g. getter), this field will not be defined. If the
+          element has zero parameters, this field will have a value of "()".
+
+          The value should not be treated as exact presentation of parameters,
+          it is just approximation of parameters to give the user general idea.
+        </p>
+      </field>
+    </object>
+  </type>
   <type name="ExecutableFile">
     <p>
       A description of an executable file.
@@ -3019,6 +3143,39 @@
         <p>
           The children of the node. The field will be omitted if the node has no
           children.
+        </p>
+      </field>
+      <field name="id" optional="true">
+        <ref>int</ref>
+        <p>
+          If the node is a widget, and it is instrumented, the unique identifier
+          of this widget, that can be used to associate rendering information
+          with this node.
+        </p>
+      </field>
+      <field name="renderConstructor" optional="true">
+        <ref>String</ref>
+        <p>
+          If the node is a widget class that can be rendered for IDE, the name
+          of the constructor that should be used to instantiate the widget.
+          Empty string for default constructor. Absent if the node is not a
+          widget class that can be rendered.
+        </p>
+      </field>
+      <field name="stateOffset" optional="true">
+        <ref>int</ref>
+        <p>
+          If the node is a StatefulWidget that can be rendered, and its State
+          class is defined in the same file, the offset of the State class code
+          in the file.
+        </p>
+      </field>
+      <field name="stateLength" optional="true">
+        <ref>int</ref>
+        <p>
+          If the node is a StatefulWidget that can be rendered, and its State
+          class is defined in the same file, the length of the State class code
+          in the file.
         </p>
       </field>
     </object>

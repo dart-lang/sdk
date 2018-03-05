@@ -572,12 +572,23 @@ class NodeListener extends ElementListener {
   }
 
   @override
+  void beginVariablesDeclaration(Token token, Token varFinalOrConst) {
+    if (varFinalOrConst == null) {
+      pushNode(Modifiers.EMPTY);
+    } else {
+      Link<Node> nodes =
+          const Link<Node>().prepend(new Identifier(varFinalOrConst));
+      pushNode(new Modifiers(new NodeList(null, nodes, null, ' ')));
+    }
+  }
+
+  @override
   void endVariablesDeclaration(int count, Token endToken) {
     // TODO(ahe): Pick one name for this concept, either
     // VariablesDeclaration or VariableDefinitions.
     NodeList variables = makeNodeList(count, null, endToken, ",");
-    TypeAnnotation type = popNode();
     Modifiers modifiers = popNode();
+    TypeAnnotation type = popNode();
     popNode();
     pushNode(new VariableDefinitions(type, modifiers, variables));
   }
@@ -638,6 +649,10 @@ class NodeListener extends ElementListener {
   @override
   void endBlock(int count, Token beginToken, Token endToken) {
     pushNode(new Block(makeNodeList(count, beginToken, endToken, null)));
+  }
+
+  void handleInvalidTopLevelBlock(Token token) {
+    popNode(); // block
   }
 
   @override
@@ -741,6 +756,29 @@ class NodeListener extends ElementListener {
     TypeAnnotation type = popNode();
     Modifiers modifiers = popNode();
     pushNode(new VariableDefinitions(type, modifiers, variables));
+  }
+
+  @override
+  void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
+      Token varFinalOrConst, Token name) {
+    Link<Node> modifiers = const Link<Node>();
+    if (varFinalOrConst != null) {
+      modifiers = modifiers.prepend(new Identifier(varFinalOrConst));
+    }
+    if (covariantToken != null) {
+      modifiers = modifiers.prepend(new Identifier(covariantToken));
+    }
+    if (staticToken != null) {
+      modifiers = modifiers.prepend(new Identifier(staticToken));
+    }
+    if (externalToken != null) {
+      modifiers = modifiers.prepend(new Identifier(externalToken));
+    }
+    if (modifiers.isEmpty) {
+      pushNode(Modifiers.EMPTY);
+    } else {
+      pushNode(new Modifiers(new NodeList(null, modifiers, null, ' ')));
+    }
   }
 
   @override

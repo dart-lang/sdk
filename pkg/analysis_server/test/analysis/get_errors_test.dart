@@ -44,8 +44,8 @@ main() {
   }
 
   test_errorInPart() async {
-    String libPath = '$testFolder/main.dart';
-    String partPath = '$testFolder/main_part.dart';
+    String libPath = join(testFolder, 'main.dart');
+    String partPath = join(testFolder, 'main_part.dart');
     newFile(libPath, content: r'''
 library main;
 part 'main_part.dart';
@@ -69,14 +69,14 @@ class A {}
   @failingTest
   test_fileDoesNotExist() {
     // Broken under the new driver.
-    String file = '$projectPath/doesNotExist.dart';
+    String file = convertPath('$projectPath/doesNotExist.dart');
     return _checkInvalid(file);
   }
 
   @failingTest
   test_fileWithoutContext() {
     // Broken under the new driver.
-    String file = '/outside.dart';
+    String file = convertPath('/outside.dart');
     newFile(file, content: '''
 main() {
   print(42);

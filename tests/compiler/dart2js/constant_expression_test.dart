@@ -229,7 +229,7 @@ Future testData(TestData data) async {
           "`${constant.toDartText()}`, expected '${data.type}'.");
     }
     if (data.fields != null) {
-      Map instanceFields = constant.computeInstanceFields(environment);
+      Map instanceFields = constant.computeInstanceData(environment).fieldMap;
       Expect.equals(
           data.fields.length,
           instanceFields.length,

@@ -296,7 +296,7 @@ void Loader::ResolveDependenciesAsFilePaths() {
     }
 
     // Convert buffer buffer to NUL-terminated string.
-    (*dependencies)[i] = StringUtils::StrNDup(
+    (*dependencies)[i] = Utils::StrNDup(
         reinterpret_cast<const char*>(file_path), file_path_length);
     free(file_path);
     free(resolved_uri);
@@ -664,8 +664,17 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   }
   Dart_Isolate current = Dart_CurrentIsolate();
   if (tag == Dart_kKernelTag) {
-    ASSERT(!Dart_IsServiceIsolate(current) && !Dart_IsKernelIsolate(current));
-    return dfe.ReadKernelBinary(current, url_string);
+    const uint8_t* kernel_ir = NULL;
+    intptr_t kernel_ir_size = 0;
+
+    // Check to see if url_string points to a valid dill file. If so, return the
+    // loaded kernel::Program.
+    if (!DFE::TryReadKernelFile(url_string, &kernel_ir, &kernel_ir_size)) {
+      return DartUtils::NewError("'%s' is not a kernel file", url_string);
+    }
+    void* kernel_program =
+        Dart_ReadKernelBinary(kernel_ir, kernel_ir_size, ReleaseFetchedBytes);
+    return Dart_NewExternalTypedData(Dart_TypedData_kUint64, kernel_program, 1);
   }
   if (tag == Dart_kImportResolvedExtensionTag) {
     if (strncmp(url_string, "file://", 7)) {

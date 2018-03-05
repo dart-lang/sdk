@@ -13,7 +13,7 @@ class A<T> {
   }
 }
 
-/*class: BB:arg,checked,implicit=[BB]*/
+/*class: BB:implicit=[BB]*/
 class BB {}
 
 /*element: method2:deps=[B],implicit=[method2.T],indirect,needsArgs*/

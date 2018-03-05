@@ -52,7 +52,7 @@ void testTypeRepresentations() {
         var closedWorld = closedWorldRefiner.closedWorld;
         env.compiler.startCodegen(closedWorld);
         TypeRepresentationGenerator typeRepresentation =
-            new TypeRepresentationGenerator(env.compiler.backend.namer);
+            new TypeRepresentationGenerator(env.compiler.backend.namer, false);
 
         Expression onVariable(TypeVariableType _variable) {
           ResolutionTypeVariableType variable = _variable;

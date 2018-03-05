@@ -201,6 +201,7 @@ final Matcher isCompletionId = isString;
  *   "kind": CompletionSuggestionKind
  *   "relevance": int
  *   "completion": String
+ *   "displayText": optional String
  *   "selectionOffset": int
  *   "selectionLength": int
  *   "isDeprecated": bool
@@ -231,6 +232,7 @@ final Matcher isCompletionSuggestion =
           "isDeprecated": isBool,
           "isPotential": isBool
         }, optionalFields: {
+          "displayText": isString,
           "docSummary": isString,
           "docComplete": isString,
           "declaringType": isString,
@@ -258,6 +260,7 @@ final Matcher isCompletionSuggestion =
  *   KEYWORD
  *   NAMED_ARGUMENT
  *   OPTIONAL_ARGUMENT
+ *   OVERRIDE
  *   PARAMETER
  * }
  */
@@ -270,6 +273,7 @@ final Matcher isCompletionSuggestionKind =
   "KEYWORD",
   "NAMED_ARGUMENT",
   "OPTIONAL_ARGUMENT",
+  "OVERRIDE",
   "PARAMETER"
 ]);
 
@@ -316,6 +320,37 @@ final Matcher isElement =
           "parameters": isString,
           "returnType": isString,
           "typeParameters": isString
+        }));
+
+/**
+ * ElementDeclaration
+ *
+ * {
+ *   "name": String
+ *   "kind": ElementKind
+ *   "fileIndex": int
+ *   "offset": int
+ *   "line": int
+ *   "column": int
+ *   "codeOffset": int
+ *   "codeLength": int
+ *   "className": optional String
+ *   "parameters": optional String
+ * }
+ */
+final Matcher isElementDeclaration =
+    new LazyMatcher(() => new MatchesJsonObject("ElementDeclaration", {
+          "name": isString,
+          "kind": isElementKind,
+          "fileIndex": isInt,
+          "offset": isInt,
+          "line": isInt,
+          "column": isInt,
+          "codeOffset": isInt,
+          "codeLength": isInt
+        }, optionalFields: {
+          "className": isString,
+          "parameters": isString
         }));
 
 /**
@@ -449,6 +484,10 @@ final Matcher isFilePath = isString;
  *   "parentAssociationLabel": optional String
  *   "variableName": optional String
  *   "children": optional List<FlutterOutline>
+ *   "id": optional int
+ *   "renderConstructor": optional String
+ *   "stateOffset": optional int
+ *   "stateLength": optional int
  * }
  */
 final Matcher isFlutterOutline =
@@ -463,7 +502,11 @@ final Matcher isFlutterOutline =
           "className": isString,
           "parentAssociationLabel": isString,
           "variableName": isString,
-          "children": isListOf(isFlutterOutline)
+          "children": isListOf(isFlutterOutline),
+          "id": isInt,
+          "renderConstructor": isString,
+          "stateOffset": isInt,
+          "stateLength": isInt
         }));
 
 /**
@@ -1281,6 +1324,7 @@ final Matcher isServerService = new MatchesEnum("ServerService", ["STATUS"]);
  *   "edits": List<SourceFileEdit>
  *   "linkedEditGroups": List<LinkedEditGroup>
  *   "selection": optional Position
+ *   "id": optional String
  * }
  */
 final Matcher isSourceChange =
@@ -1289,7 +1333,8 @@ final Matcher isSourceChange =
           "edits": isListOf(isSourceFileEdit),
           "linkedEditGroups": isListOf(isLinkedEditGroup)
         }, optionalFields: {
-          "selection": isPosition
+          "selection": isPosition,
+          "id": isString
         }));
 
 /**
@@ -2410,11 +2455,15 @@ final Matcher isExtractMethodOptions =
  * {
  *   "file": FilePath
  *   "outline": FlutterOutline
+ *   "instrumentationEdits": List<SourceEdit>
  * }
  */
-final Matcher isFlutterOutlineParams = new LazyMatcher(() =>
-    new MatchesJsonObject("flutter.outline params",
-        {"file": isFilePath, "outline": isFlutterOutline}));
+final Matcher isFlutterOutlineParams =
+    new LazyMatcher(() => new MatchesJsonObject("flutter.outline params", {
+          "file": isFilePath,
+          "outline": isFlutterOutline,
+          "instrumentationEdits": isListOf(isSourceEdit)
+        }));
 
 /**
  * flutter.setSubscriptions params
@@ -2631,6 +2680,32 @@ final Matcher isSearchFindTopLevelDeclarationsParams = new LazyMatcher(() =>
 final Matcher isSearchFindTopLevelDeclarationsResult = new LazyMatcher(() =>
     new MatchesJsonObject(
         "search.findTopLevelDeclarations result", {"id": isSearchId}));
+
+/**
+ * search.getElementDeclarations params
+ *
+ * {
+ *   "pattern": optional String
+ *   "maxResults": optional int
+ * }
+ */
+final Matcher isSearchGetElementDeclarationsParams = new LazyMatcher(() =>
+    new MatchesJsonObject("search.getElementDeclarations params", null,
+        optionalFields: {"pattern": isString, "maxResults": isInt}));
+
+/**
+ * search.getElementDeclarations result
+ *
+ * {
+ *   "declarations": List<ElementDeclaration>
+ *   "files": List<FilePath>
+ * }
+ */
+final Matcher isSearchGetElementDeclarationsResult = new LazyMatcher(() =>
+    new MatchesJsonObject("search.getElementDeclarations result", {
+      "declarations": isListOf(isElementDeclaration),
+      "files": isListOf(isFilePath)
+    }));
 
 /**
  * search.getTypeHierarchy params

@@ -1005,7 +1005,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         ConstantValue value = _elementMap.getFieldConstantValue(member);
         if (value != null && value.isInt) {
           IntConstantValue intValue = value;
-          return intValue.primitiveValue;
+          return intValue.intValue;
         }
       }
     }

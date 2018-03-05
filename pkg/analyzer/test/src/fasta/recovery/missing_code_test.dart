@@ -293,6 +293,26 @@ f(x) {
     testUserDefinableOperatorWithSuper('-');
   }
 
+  @failingTest
+  void test_parameterList_leftParen() {
+    // https://github.com/dart-lang/sdk/issues/22938
+    testRecovery('''
+int f int x, int y) {}
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+int f (int x, int y) {}
+''');
+  }
+
+  @failingTest
+  void test_parentheses_aroundThrow() {
+    // https://github.com/dart-lang/sdk/issues/24892
+    testRecovery('''
+f(x) => x ?? throw 0;
+''', [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN], '''
+f(x) => x ?? (throw 0);
+''');
+  }
+
   void test_percent() {
     testBinaryExpression('%');
   }
@@ -339,15 +359,7 @@ f() {
     testUserDefinableOperatorWithSuper('*');
   }
 
-  void test_tildeSlash() {
-    testBinaryExpression('~/');
-  }
-
-  void test_tildeSlash_super() {
-    testUserDefinableOperatorWithSuper('~/');
-  }
-
-  void test_unclosedStringInterpolation() {
+  void test_stringInterpolation_unclosed() {
     // https://github.com/dart-lang/sdk/issues/946
     // TODO(brianwilkerson) Try to recover better. Ideally there would be a
     // single error about an unterminated interpolation block.
@@ -367,6 +379,14 @@ f() {
   print("${42}");
 }
 ''');
+  }
+
+  void test_tildeSlash() {
+    testBinaryExpression('~/');
+  }
+
+  void test_tildeSlash_super() {
+    testUserDefinableOperatorWithSuper('~/');
   }
 
   void testBinaryExpression(String operator) {
@@ -506,57 +526,51 @@ class C {
 ''');
   }
 
-  @failingTest
   void test_incorrectlyTerminatedGroup_named_none() {
     testRecovery('''
 f({a: 0) {}
-''', [ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP], '''
+''', [ScannerErrorCode.EXPECTED_TOKEN], '''
 f({a: 0}) {}
 ''');
   }
 
-  @failingTest
   void test_incorrectlyTerminatedGroup_named_positional() {
     testRecovery('''
 f({a: 0]) {}
-''', [ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP], '''
+''', [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN], '''
 f({a: 0}) {}
 ''');
   }
 
-  @failingTest
   void test_incorrectlyTerminatedGroup_none_named() {
     testRecovery('''
 f(a}) {}
-''', [ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP], '''
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
 f(a) {}
 ''');
   }
 
-  @failingTest
   void test_incorrectlyTerminatedGroup_none_positional() {
     testRecovery('''
 f(a]) {}
-''', [ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP], '''
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
 f(a) {}
 ''');
   }
 
-  @failingTest
   void test_incorrectlyTerminatedGroup_positional_named() {
     testRecovery('''
 f([a = 0}) {}
-''', [ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP], '''
+''', [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN], '''
 f([a = 0]) {}
 ''');
   }
 
-  @failingTest
   void test_incorrectlyTerminatedGroup_positional_none() {
     // Maybe put in paired_tokens_test.dart.
     testRecovery('''
 f([a = 0) {}
-''', [ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP], '''
+''', [ScannerErrorCode.EXPECTED_TOKEN], '''
 f([a = 0]) {}
 ''');
   }
@@ -608,12 +622,11 @@ f([a = _s_, b]) {}
 ''');
   }
 
-  @failingTest
   void test_multipleGroups_mixed() {
     // TODO(brianwilkerson) Figure out the best way to recover from this.
     testRecovery('''
 f([a = 0], {b: 1}) {}
-''', [ParserErrorCode.MIXED_PARAMETER_GROUPS], '''
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
 f([a = 0]) {}
 ''');
   }

@@ -310,7 +310,7 @@ class InitializerResolver {
     // parameters (regular ones and initializing formals) we must extend
     // the parameter scope rather than adding a new nested scope.
     visitor.scope = new ExtensionScope(visitor.scope);
-    Link<Node> parameterNodes = (functionNode.parameters == null)
+    Link<Node> parameterNodes = (functionNode?.parameters == null)
         ? const Link<Node>()
         : functionNode.parameters.nodes;
     functionParameters.forEachParameter((FormalElement _element) {
@@ -367,7 +367,7 @@ class InitializerResolver {
       parameterNodes = parameterNodes.tail;
     });
 
-    if (functionNode.initializers == null) {
+    if (functionNode?.initializers == null) {
       initializers = const Link<Node>();
     } else {
       initializers = functionNode.initializers.nodes;
@@ -479,6 +479,7 @@ class InitializerResolver {
             constructor.enclosingClass.thisType,
             defaultValues,
             fieldInitializers,
+            const <AssertConstantExpression>[],
             constructorInvocation);
       }
     }

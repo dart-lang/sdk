@@ -62,6 +62,11 @@ class Listener {
     logEvent("Block");
   }
 
+  /// Called to handle a block that has been parsed but is not associated
+  /// with any top level function declaration. Substructures:
+  /// - block
+  void handleInvalidTopLevelBlock(Token token) {}
+
   void beginCascade(Token token) {}
 
   void endCascade() {
@@ -626,11 +631,13 @@ class Listener {
     logEvent("Member");
   }
 
-  void beginMethod() {}
+  /// Handle the beginning of a method declaration.  Substructures:
+  /// - metadata
+  void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
+      Token varFinalOrConst, Token name) {}
 
   /// Handle the end of a method declaration.  Substructures:
   /// - metadata
-  /// - modifiers
   /// - return type
   /// - method name (identifier, possibly qualified)
   /// - type variables
@@ -908,7 +915,7 @@ class Listener {
     logEvent("FunctionExpression");
   }
 
-  void beginVariablesDeclaration(Token token) {}
+  void beginVariablesDeclaration(Token token, Token varFinalOrConst) {}
 
   void endVariablesDeclaration(int count, Token endToken) {
     logEvent("VariablesDeclaration");

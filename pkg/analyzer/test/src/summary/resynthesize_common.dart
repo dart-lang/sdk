@@ -965,6 +965,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     compareVariableElements(resynthesized, original, desc);
     compareParameterElementLists(
         resynthesized.parameters, original.parameters, desc);
+    // ignore: deprecated_member_use
     expect(resynthesized.parameterKind, original.parameterKind, reason: desc);
     expect(resynthesized.isInitializingFormal, original.isInitializingFormal,
         reason: desc);
@@ -2472,6 +2473,41 @@ unit: a.dart
 final dynamic f;
 ''');
     }
+  }
+
+  test_const_constructor_inferred_args() async {
+    if (!isStrongMode) return;
+    var library = await checkLibrary('''
+class C<T> {
+  final T t;
+  const C(this.t);
+  const C.named(this.t);
+}
+const Object x = const C(0);
+const Object y = const C.named(0);
+''');
+    checkElementText(library, '''
+class C<T> {
+  final T t;
+  const C(T this.t);
+  const C.named(T this.t);
+}
+const Object x = const
+        C/*location: test.dart;C*/(0);
+const Object y = const
+        C/*location: test.dart;C*/.
+        named/*location: test.dart;C;named*/(0);
+''');
+    TopLevelVariableElementImpl x =
+        library.definingCompilationUnit.topLevelVariables[0];
+    InstanceCreationExpression xExpr = x.constantInitializer;
+    var xType = xExpr.constructorName.staticElement.returnType;
+    expect(xType.toString(), 'C<int>');
+    TopLevelVariableElementImpl y =
+        library.definingCompilationUnit.topLevelVariables[0];
+    InstanceCreationExpression yExpr = y.constantInitializer;
+    var yType = yExpr.constructorName.staticElement.returnType;
+    expect(yType.toString(), 'C<int>');
   }
 
   test_const_finalField_hasConstConstructor() async {

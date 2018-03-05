@@ -7,9 +7,9 @@
 import 'package:expect/expect.dart';
 
 fact(n) {
-  var f = 1;
-  while (n > 0) {
-    f *= n;
+  var f = BigInt.one;
+  while (n > 1) {
+    f *= BigInt.from(n);
     --n;
   }
   return f;
@@ -66,12 +66,12 @@ test3() {
 }
 
 main() {
-  Expect.isTrue(fact(0) == 1);
-  Expect.isTrue(fact(1) == 1);
-  Expect.isTrue(fact(5) == 120);
-  Expect
-      .isTrue(fact(42) == 1405006117752879898543142606244511569936384000000000);
-  Expect.isTrue(fact(3.14159) == 1.0874982674320444);
+  Expect.isTrue(fact(0) == BigInt.one);
+  Expect.isTrue(fact(1) == BigInt.one);
+  Expect.isTrue(fact(5) == BigInt.from(120));
+  Expect.isTrue(fact(42) ==
+      BigInt.parse("1405006117752879898543142606244511569936384000000000"));
+  Expect.isTrue(fact(3.14159) == BigInt.from(6));
 
   Expect.isTrue(fib(0) == 0);
   Expect.isTrue(fib(1) == 1);

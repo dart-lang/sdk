@@ -215,8 +215,10 @@ class JsIsolateMirror extends JsMirror implements IsolateMirror {
   bool get isCurrent => JS_CURRENT_ISOLATE_CONTEXT() == _isolateContext;
 
   LibraryMirror get rootLibrary {
-    return currentJsMirrorSystem.libraries.values
-        .firstWhere((JsLibraryMirror library) => library._isRoot);
+    return currentJsMirrorSystem.libraries.values.firstWhere((LibraryMirror l) {
+      JsLibraryMirror library = l;
+      return library._isRoot;
+    });
   }
 }
 
@@ -389,7 +391,7 @@ class JsLibraryMirror extends JsDeclarationMirror
   InstanceMirror setField(Symbol fieldName, Object arg) {
     String name = n(fieldName);
     if (name.endsWith('=')) throw new ArgumentError('');
-    var mirror = __functions[s('$name=')];
+    dynamic mirror = __functions[s('$name=')];
     if (mirror == null) mirror = __variables[fieldName];
     if (mirror == null) {
       throw new NoSuchStaticMethodError.method(
@@ -1360,7 +1362,7 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
 
   List<TypeMirror> get typeArguments {
     if (_cachedTypeArguments != null) return _cachedTypeArguments;
-    List result = new List();
+    var result = <TypeMirror>[];
 
     addTypeArgument(String typeArgument) {
       int parsedIndex = int.parse(typeArgument, onError: (_) => -1);
@@ -1498,12 +1500,16 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
     var instance = _class._getInvokedInstance(
         constructorName, positionalArguments, namedArguments);
     return reflect(setRuntimeTypeInfo(
-        instance, typeArguments.map((t) => t._asRuntimeType()).toList()));
+        instance, typeArguments.map(_toRuntimeType).toList()));
   }
 
   _asRuntimeType() {
-    return [_class._jsConstructor]
-        .addAll(typeArguments.map((t) => t._asRuntimeType()));
+    return [_class._jsConstructor].addAll(typeArguments.map(_toRuntimeType));
+  }
+
+  static _toRuntimeType(TypeMirror t) {
+    JsTypeMirror typeMirror = t;
+    return typeMirror._asRuntimeType();
   }
 
   JsLibraryMirror get owner => _class.owner;
@@ -1744,9 +1750,9 @@ class JsClassMirror extends JsTypeMirror
   List<VariableMirror> _getFieldsWithOwner(DeclarationMirror fieldOwner) {
     var result = <VariableMirror>[];
 
-    var instanceFieldSpecfication = _fieldsDescriptor.split(';')[1];
+    dynamic instanceFieldSpecfication = _fieldsDescriptor.split(';')[1];
     if (_fieldsMetadata != null) {
-      instanceFieldSpecfication = [instanceFieldSpecfication]
+      instanceFieldSpecfication = <dynamic>[instanceFieldSpecfication]
         ..addAll(_fieldsMetadata);
     }
     parseCompactFieldSpecification(
@@ -2071,7 +2077,7 @@ class JsClassMirror extends JsTypeMirror
 
   List<TypeVariableMirror> get typeVariables {
     if (_cachedTypeVariables != null) return _cachedTypeVariables;
-    List result = new List();
+    var result = new List<TypeVariableMirror>();
     List typeVariables =
         JS('JSExtendableArray|Null', '#.prototype["<>"]', _jsConstructor);
     if (typeVariables == null) return result;
@@ -2297,7 +2303,7 @@ class JsClosureMirror extends JsInstanceMirror implements ClosureMirror {
         Function.apply(reflectee, positionalArguments, namedArguments));
   }
 
-  TypeMirror get type {
+  ClassMirror get type {
     // Classes that implement [call] do not subclass [Closure], but only
     // implement [Function], so are rejected by this test.
     if (reflectee is Closure) {
@@ -2403,7 +2409,7 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
   List<InstanceMirror> get metadata {
     if (_metadata == null) {
       var raw = extractMetadata(_jsFunction);
-      var formals = new List(_parameterCount);
+      var formals = new List<ParameterMirror>(_parameterCount);
       ReflectionInfo info = new ReflectionInfo(_jsFunction);
       if (info != null) {
         assert(_parameterCount ==
@@ -2733,7 +2739,7 @@ class JsFunctionTypeMirror extends BrokenClassMirror
 
   List<ParameterMirror> get parameters {
     if (_cachedParameters != null) return _cachedParameters;
-    List result = [];
+    var result = <ParameterMirror>[];
     int parameterCount = 0;
     if (_hasArguments) {
       for (var type in _arguments) {
@@ -2898,7 +2904,7 @@ TypeMirror typeMirrorFromRuntimeTypeRepresentation(
           return 'dynamic';
         }
       }
-      return typeArgument._mangledName;
+      return (typeArgument as dynamic)._mangledName;
     }
 
     representation =
@@ -2936,7 +2942,7 @@ List extractMetadata(victim) {
     return JSArray
         .markFixedList(JS('JSExtendableArray',
             r'#.$reflectionInfo.splice(#.$metadataIndex)', victim, victim))
-        .map((int i) => getMetadata(i))
+        .map((i) => getMetadata(i))
         .toList();
   }
   return const [];

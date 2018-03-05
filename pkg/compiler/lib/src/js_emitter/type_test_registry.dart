@@ -12,8 +12,7 @@ import '../js_backend/runtime_types.dart'
     show
         RuntimeTypesChecks,
         RuntimeTypesChecksBuilder,
-        RuntimeTypesSubstitutions,
-        TypeChecks;
+        RuntimeTypesSubstitutions;
 import '../js_backend/mirrors_data.dart';
 import '../universe/world_builder.dart';
 import '../world.dart' show ClosedWorld;
@@ -49,22 +48,6 @@ class TypeTestRegistry {
     return _rtiNeededClasses;
   }
 
-  /**
-   * Returns the classes with constructors used as a 'holder' in
-   * [emitRuntimeTypeSupport].
-   * TODO(9556): Some cases will go away when the class objects are created as
-   * complete.  Not all classes will go away while constructors are referenced
-   * from type substitutions.
-   */
-  Set<ClassEntity> computeClassesModifiedByEmitRuntimeTypeSupport() {
-    TypeChecks typeChecks = rtiChecks.requiredChecks;
-    Set<ClassEntity> result = new Set<ClassEntity>();
-    for (ClassEntity cls in typeChecks.classes) {
-      if (typeChecks[cls].isNotEmpty) result.add(cls);
-    }
-    return result;
-  }
-
   void computeRtiNeededClasses(RuntimeTypesSubstitutions rtiSubstitutions,
       MirrorsData mirrorsData, Iterable<MemberEntity> liveMembers) {
     _rtiNeededClasses = new Set<ClassEntity>();
@@ -86,19 +69,9 @@ class TypeTestRegistry {
 
     // 1.  Add classes that are referenced by type arguments or substitutions in
     //     argument checks.
-    // TODO(karlklose): merge this case with 2 when unifying argument and
-    // object checks.
-    rtiChecks
-        .getRequiredArgumentClasses()
-        .forEach((e) => addClassWithSuperclasses(e));
+    addClassesWithSuperclasses(rtiChecks.requiredClasses);
 
-    // 2.  Add classes that are referenced by substitutions in object checks and
-    //     their superclasses.
-    Set<ClassEntity> classesUsedInSubstitutions = rtiSubstitutions
-        .getClassesUsedInSubstitutions(rtiChecks.requiredChecks);
-    addClassesWithSuperclasses(classesUsedInSubstitutions);
-
-    // 3.  Add classes that contain checked generic function types. These are
+    // 2.  Add classes that contain checked generic function types. These are
     //     needed to store the signature encoding.
     for (FunctionType type in rtiChecks.checkedFunctionTypes) {
       ClassEntity contextClass = DartTypes.getClassContext(type);

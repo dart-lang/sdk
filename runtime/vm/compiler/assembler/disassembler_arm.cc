@@ -127,22 +127,22 @@ void ARMDecoder::PrintRegister(int reg) {
 void ARMDecoder::PrintSRegister(int reg) {
   ASSERT(0 <= reg);
   ASSERT(reg < kNumberOfSRegisters);
-  buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                             remaining_size_in_buffer(), "s%d", reg);
+  buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
+                                remaining_size_in_buffer(), "s%d", reg);
 }
 
 void ARMDecoder::PrintDRegister(int reg) {
   ASSERT(0 <= reg);
   ASSERT(reg < kNumberOfDRegisters);
-  buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                             remaining_size_in_buffer(), "d%d", reg);
+  buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
+                                remaining_size_in_buffer(), "d%d", reg);
 }
 
 void ARMDecoder::PrintQRegister(int reg) {
   ASSERT(0 <= reg);
   ASSERT(reg < kNumberOfQRegisters);
-  buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                             remaining_size_in_buffer(), "q%d", reg);
+  buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
+                                remaining_size_in_buffer(), "q%d", reg);
 }
 
 // These shift names are defined in a way to match the native disassembler
@@ -171,14 +171,14 @@ void ARMDecoder::PrintShiftRm(Instr* instr) {
       shift_amount = 32;
     }
     buffer_pos_ +=
-        OS::SNPrint(current_position_in_buffer(), remaining_size_in_buffer(),
-                    ", %s #%d", shift_names[shift], shift_amount);
+        Utils::SNPrint(current_position_in_buffer(), remaining_size_in_buffer(),
+                       ", %s #%d", shift_names[shift], shift_amount);
   } else {
     // by register
     int rs = instr->RsField();
     buffer_pos_ +=
-        OS::SNPrint(current_position_in_buffer(), remaining_size_in_buffer(),
-                    ", %s ", shift_names[shift]);
+        Utils::SNPrint(current_position_in_buffer(), remaining_size_in_buffer(),
+                       ", %s ", shift_names[shift]);
     PrintRegister(rs);
   }
 }
@@ -189,8 +189,8 @@ void ARMDecoder::PrintShiftImm(Instr* instr) {
   int rotate = instr->RotateField() * 2;
   int immed8 = instr->Immed8Field();
   int imm = (immed8 >> rotate) | (immed8 << (32 - rotate));
-  buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                             remaining_size_in_buffer(), "#%d", imm);
+  buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
+                                remaining_size_in_buffer(), "#%d", imm);
 }
 
 // Print PU formatting to reduce complexity of FormatOption.
@@ -406,8 +406,8 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
         int off = (instr->SImmed24Field() << 2) + 8;
         uword destination = reinterpret_cast<uword>(instr) + off;
         buffer_pos_ +=
-            OS::SNPrint(current_position_in_buffer(),
-                        remaining_size_in_buffer(), "%#" Px "", destination);
+            Utils::SNPrint(current_position_in_buffer(),
+                           remaining_size_in_buffer(), "%#" Px "", destination);
         return 4;
       } else {
         return FormatDRegister(instr, format);
@@ -420,15 +420,15 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
       uint16_t immed16;
       if (format[3] == 'f') {
         ASSERT(STRING_STARTS_WITH(format, "immf"));
-        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                   remaining_size_in_buffer(), "%f",
-                                   instr->ImmFloatField());
+        buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
+                                      remaining_size_in_buffer(), "%f",
+                                      instr->ImmFloatField());
         return 4;
       } else if (format[3] == 'd') {
         ASSERT(STRING_STARTS_WITH(format, "immd"));
-        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                   remaining_size_in_buffer(), "%g",
-                                   instr->ImmDoubleField());
+        buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
+                                      remaining_size_in_buffer(), "%g",
+                                      instr->ImmDoubleField());
         return 4;
       } else if (format[3] == '1') {
         ASSERT(STRING_STARTS_WITH(format, "imm12_4"));
@@ -445,16 +445,17 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
             idx = imm4 >> 2;
           else if ((imm4 & 4) != 0)
             idx = imm4 >> 3;
-          buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                     remaining_size_in_buffer(), "%d", idx);
+          buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
+                                        remaining_size_in_buffer(), "%d", idx);
           return 9;
         } else {
           ASSERT(STRING_STARTS_WITH(format, "imm4_12"));
           immed16 = instr->MovwField();
         }
       }
-      buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                 remaining_size_in_buffer(), "0x%x", immed16);
+      buffer_pos_ +=
+          Utils::SNPrint(current_position_in_buffer(),
+                         remaining_size_in_buffer(), "0x%x", immed16);
       return 7;
     }
     case 'l': {  // 'l: branch and link
@@ -478,23 +479,23 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
       if (format[3] == '1') {
         if (format[4] == '0') {
           // 'off10: 10-bit offset for VFP load and store instructions
-          buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                     remaining_size_in_buffer(), "%d",
-                                     instr->Bits(0, 8) << 2);
+          buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
+                                        remaining_size_in_buffer(), "%d",
+                                        instr->Bits(0, 8) << 2);
         } else {
           // 'off12: 12-bit offset for load and store instructions.
           ASSERT(STRING_STARTS_WITH(format, "off12"));
-          buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                     remaining_size_in_buffer(), "%d",
-                                     instr->Offset12Field());
+          buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
+                                        remaining_size_in_buffer(), "%d",
+                                        instr->Offset12Field());
         }
         return 5;
       }
       // 'off8: 8-bit offset for extra load and store instructions.
       ASSERT(STRING_STARTS_WITH(format, "off8"));
       int offs8 = (instr->ImmedHField() << 4) | instr->ImmedLField();
-      buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                 remaining_size_in_buffer(), "%d", offs8);
+      buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
+                                    remaining_size_in_buffer(), "%d", offs8);
       return 4;
     }
     case 'p': {  // 'pu: P and U bits for load and store instructions.
@@ -523,9 +524,9 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
         }
       } else if (format[1] == 'v') {  // 'svc
         ASSERT(STRING_STARTS_WITH(format, "svc"));
-        buffer_pos_ +=
-            OS::SNPrint(current_position_in_buffer(),
-                        remaining_size_in_buffer(), "0x%x", instr->SvcField());
+        buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
+                                      remaining_size_in_buffer(), "0x%x",
+                                      instr->SvcField());
         return 3;
       } else if (format[1] == 'z') {
         // 'sz: Size field of SIMD instructions.
@@ -548,8 +549,8 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
             sz_str = "?";
             break;
         }
-        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                   remaining_size_in_buffer(), "%s", sz_str);
+        buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
+                                      remaining_size_in_buffer(), "%s", sz_str);
         return 2;
       } else if (format[1] == ' ') {
         // 's: S field of data processing instructions.
@@ -564,8 +565,8 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
     case 't': {  // 'target: target of branch instructions.
       ASSERT(STRING_STARTS_WITH(format, "target"));
       int off = (instr->SImmed24Field() << 2) + 8;
-      buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                 remaining_size_in_buffer(), "%+d", off);
+      buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
+                                    remaining_size_in_buffer(), "%+d", off);
       return 6;
     }
     case 'u': {  // 'u: signed or unsigned multiplies.
@@ -657,9 +658,9 @@ void ARMDecoder::DecodeType01(Instr* instr) {
             if (instr->BkptField() == Instr::kStopMessageCode) {
               const char* message = *reinterpret_cast<const char**>(
                   reinterpret_cast<intptr_t>(instr) - Instr::kInstrSize);
-              buffer_pos_ +=
-                  OS::SNPrint(current_position_in_buffer(),
-                              remaining_size_in_buffer(), " ; \"%s\"", message);
+              buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
+                                            remaining_size_in_buffer(),
+                                            " ; \"%s\"", message);
             }
           } else {
             // Format(instr, "smc'cond");
@@ -1494,7 +1495,7 @@ void Disassembler::DecodeInstruction(char* hex_buffer,
   ARMDecoder decoder(human_buffer, human_size);
   decoder.InstructionDecode(pc);
   int32_t instruction_bits = Instr::At(pc)->InstructionBits();
-  OS::SNPrint(hex_buffer, hex_size, "%08x", instruction_bits);
+  Utils::SNPrint(hex_buffer, hex_size, "%08x", instruction_bits);
   if (out_instr_size) {
     *out_instr_size = Instr::kInstrSize;
   }

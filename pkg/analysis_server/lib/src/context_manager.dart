@@ -661,14 +661,9 @@ class ContextManagerImpl implements ContextManager {
 
     applyToAnalysisOptions(analysisOptions, options);
 
-    var analyzer = options[AnalyzerOptions.analyzer];
-    if (analyzer is Map) {
+    if (analysisOptions.excludePatterns != null) {
       // Set ignore patterns.
-      YamlList exclude = analyzer[AnalyzerOptions.exclude];
-      List<String> excludeList = toStringList(exclude);
-      if (excludeList != null) {
-        setIgnorePatternsForContext(info, excludeList);
-      }
+      setIgnorePatternsForContext(info, analysisOptions.excludePatterns);
     }
   }
 
@@ -1438,8 +1433,7 @@ class ContextManagerImpl implements ContextManager {
         // had a chance to process the event, resource might be a Folder.  In
         // that case don't add it.
         if (resource is File) {
-          File file = resource;
-          if (_shouldFileBeAnalyzed(file)) {
+          if (_shouldFileBeAnalyzed(resource)) {
             info.analysisDriver.addFile(path);
           }
         }
@@ -1480,10 +1474,15 @@ class ContextManagerImpl implements ContextManager {
         callbacks.applyFileRemoved(info.analysisDriver, path);
         break;
       case ChangeType.MODIFY:
-        for (AnalysisDriver driver in driverMap.values) {
-          driver.changeFile(path);
+        Resource resource = resourceProvider.getResource(path);
+        if (resource is File) {
+          if (_shouldFileBeAnalyzed(resource)) {
+            for (AnalysisDriver driver in driverMap.values) {
+              driver.changeFile(path);
+            }
+            break;
+          }
         }
-        break;
     }
     _checkForPackagespecUpdate(path, info, info.folder);
     _checkForAnalysisOptionsUpdate(path, info, type);

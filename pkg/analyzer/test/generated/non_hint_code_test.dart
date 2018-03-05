@@ -495,6 +495,16 @@ abstract class A {
     verify([source]);
   }
 
+  test_missingReturn_futureVoidReturnType() async {
+    Source source = addSource('''
+import 'dart:async';
+Future<void> f() async {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_missingReturn_noReturnType() async {
     Source source = addSource("f() {}");
     await computeAnalysisResult(source);

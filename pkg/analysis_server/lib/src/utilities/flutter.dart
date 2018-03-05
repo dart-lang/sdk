@@ -9,6 +9,12 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 
+const WIDGETS_LIBRARY_URI = 'package:flutter/widgets.dart';
+
+const _BASIC_URI = "package:flutter/src/widgets/basic.dart";
+const _CENTER_NAME = "Center";
+const _PADDING_NAME = "Padding";
+const _STATELESS_WIDGET_NAME = "StatelessWidget";
 const _WIDGET_NAME = "Widget";
 const _WIDGET_URI = "package:flutter/src/widgets/framework.dart";
 
@@ -57,7 +63,7 @@ void convertChildToChildren(
 
 void convertChildToChildren2(
     DartFileEditBuilder builder,
-    InstanceCreationExpression childArg,
+    Expression childArg,
     NamedExpression namedExp,
     String eol,
     Function getNodeText,
@@ -98,12 +104,21 @@ void convertChildToChildren2(
 }
 
 /**
- * Return the named expression representing the 'child' argument of the given
- * [newExpr], or null if none.
+ * Return the named expression representing the `child` argument of the given
+ * [newExpr], or `null` if none.
  */
 NamedExpression findChildArgument(InstanceCreationExpression newExpr) =>
     newExpr.argumentList.arguments.firstWhere(
         (arg) => arg is NamedExpression && arg.name.label.name == 'child',
+        orElse: () => null);
+
+/**
+ * Return the named expression representing the `children` argument of the
+ * given [newExpr], or `null` if none.
+ */
+NamedExpression findChildrenArgument(InstanceCreationExpression newExpr) =>
+    newExpr.argumentList.arguments.firstWhere(
+        (arg) => arg is NamedExpression && arg.name.label.name == 'children',
         orElse: () => null);
 
 /**
@@ -144,33 +159,14 @@ NamedExpression findNamedExpression(AstNode node, String name) {
   return namedExp;
 }
 
-ListLiteral getChildList(NamedExpression child) {
-  if (child.expression is ListLiteral) {
-    ListLiteral list = child.expression;
-    if (list.elements.isEmpty ||
-        list.elements.every((element) =>
-            element is InstanceCreationExpression &&
-            isWidgetCreation(element))) {
-      return list;
-    }
-  }
-  return null;
-}
-
 /**
- * Return the Flutter instance creation expression that is the value of the
- * given [child], or null if none. If [strict] is true, require the value to
- * also have a 'child' argument.
+ * Return the expression that is a Flutter Widget that is the value of the
+ * given [child], or null if none.
  */
-InstanceCreationExpression getChildWidget(NamedExpression child,
-    [bool strict = false]) {
-  if (child?.expression is InstanceCreationExpression) {
-    InstanceCreationExpression childNewExpr = child.expression;
-    if (isWidgetCreation(childNewExpr)) {
-      if (!strict || (findChildArgument(childNewExpr) != null)) {
-        return childNewExpr;
-      }
-    }
+Expression getChildWidget(NamedExpression child) {
+  Expression expression = child?.expression;
+  if (isWidgetExpression(expression)) {
+    return expression;
   }
   return null;
 }
@@ -245,6 +241,30 @@ Expression identifyWidgetExpression(AstNode node) {
 }
 
 /**
+ * Return `true` if the given [type] is the Flutter class `StatelessWidget`.
+ */
+bool isExactlyStatelessWidgetType(DartType type) {
+  return type is InterfaceType &&
+      _isExactWidget(type.element, _STATELESS_WIDGET_NAME, _WIDGET_URI);
+}
+
+/**
+ * Return `true` if the given [type] is the Flutter class `Center`.
+ */
+bool isExactWidgetTypeCenter(DartType type) {
+  return type is InterfaceType &&
+      _isExactWidget(type.element, _CENTER_NAME, _BASIC_URI);
+}
+
+/**
+ * Return `true` if the given [type] is the Flutter class `Padding`.
+ */
+bool isExactWidgetTypePadding(DartType type) {
+  return type is InterfaceType &&
+      _isExactWidget(type.element, _PADDING_NAME, _BASIC_URI);
+}
+
+/**
  * Return `true` if the given [type] is the Flutter class `Widget`, or its
  * subtype.
  */
@@ -280,7 +300,7 @@ bool isWidget(ClassElement element) {
  * class that has the Flutter class `Widget` as a superclass.
  */
 bool isWidgetCreation(InstanceCreationExpression expr) {
-  ClassElement element = expr.staticElement?.enclosingElement;
+  ClassElement element = expr?.staticElement?.enclosingElement;
   return isWidget(element);
 }
 

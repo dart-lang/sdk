@@ -78,6 +78,8 @@ _injectJs() {
 
   function confuse(obj) { return obj; }
 
+  function isUndefined(obj) { return obj === void 0; }
+
   function StringWrapper(str) {
     this.str = str;
   }
@@ -192,6 +194,9 @@ class StringWrapper {
 external confuse(obj);
 
 @JS()
+external isUndefined(obj);
+
+@JS()
 external CanvasRenderingContext2D getCanvasContext();
 
 @JS('window.window.document.documentProperty')
@@ -199,6 +204,10 @@ external num get propertyOnDocument;
 
 @JS('window.self.window.window.windowProperty')
 external num get propertyOnWindow;
+
+class DartClassWithNullField {
+  int x;
+}
 
 main() {
   _injectJs();
@@ -433,6 +442,7 @@ main() {
       expect(selection is List, isTrue);
     });
   });
+
   group('html', () {
     test('return html type', () {
       expect(getCanvasContext() is CanvasRenderingContext2D, isTrue);
@@ -441,5 +451,9 @@ main() {
       expect(propertyOnWindow, equals(42));
       expect(propertyOnDocument, equals(45));
     });
+  });
+
+  test('Dart field is null instead of undefined', () {
+    expect(isUndefined(new DartClassWithNullField().x), false);
   });
 }

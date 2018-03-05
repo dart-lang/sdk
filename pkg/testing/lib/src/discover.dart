@@ -8,7 +8,7 @@ import 'dart:io' show Directory, FileSystemEntity, Platform, Process;
 
 import 'dart:async' show Future, Stream, StreamController, StreamSubscription;
 
-import '../testing.dart' show TestDescription;
+import '../testing.dart' show FileBasedTestDescription;
 
 final Uri packageConfig = computePackageConfig();
 
@@ -19,9 +19,10 @@ final Uri dartSdk = computeDartSdk();
 List<String> get dartArguments =>
     <String>["-c", "--packages=${packageConfig.toFilePath()}"];
 
-Stream<TestDescription> listTests(List<Uri> testRoots, {Pattern pattern}) {
-  StreamController<TestDescription> controller =
-      new StreamController<TestDescription>();
+Stream<FileBasedTestDescription> listTests(List<Uri> testRoots,
+    {Pattern pattern}) {
+  StreamController<FileBasedTestDescription> controller =
+      new StreamController<FileBasedTestDescription>();
   Map<Uri, StreamSubscription> subscriptions = <Uri, StreamSubscription>{};
   for (Uri testRootUri in testRoots) {
     subscriptions[testRootUri] = null;
@@ -31,8 +32,8 @@ Stream<TestDescription> listTests(List<Uri> testRoots, {Pattern pattern}) {
         Stream<FileSystemEntity> stream =
             testRoot.list(recursive: true, followLinks: false);
         var subscription = stream.listen((FileSystemEntity entity) {
-          TestDescription description =
-              TestDescription.from(testRootUri, entity, pattern: pattern);
+          FileBasedTestDescription description = FileBasedTestDescription
+              .from(testRootUri, entity, pattern: pattern);
           if (description != null) {
             controller.add(description);
           }

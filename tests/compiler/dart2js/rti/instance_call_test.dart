@@ -108,22 +108,6 @@ main() {
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     ProgramLookup programLookup = new ProgramLookup(compiler);
 
-    FunctionEntity getFunctionEntity(String name) {
-      FunctionEntity function;
-      int dotIndex = name.indexOf('.');
-      if (dotIndex != -1) {
-        String className = name.substring(0, dotIndex);
-        name = name.substring(dotIndex + 1);
-        ClassEntity cls = elementEnvironment.lookupClass(
-            elementEnvironment.mainLibrary, className);
-        function = elementEnvironment.lookupClassMember(cls, name);
-      } else {
-        function = elementEnvironment.lookupLibraryMember(
-            elementEnvironment.mainLibrary, name);
-      }
-      return function;
-    }
-
     CallStructure callStructure = new CallStructure(1, const <String>[], 1);
 
     js.Name getName(String name) {
@@ -133,7 +117,7 @@ main() {
 
     void checkParameters(String name,
         {int expectedParameterCount, bool needsTypeArguments}) {
-      FunctionEntity function = getFunctionEntity(name);
+      FunctionEntity function = lookupMember(elementEnvironment, name);
 
       Expect.equals(
           needsTypeArguments,
@@ -162,7 +146,7 @@ main() {
 
     checkArguments(String name, String targetName,
         {int expectedTypeArguments}) {
-      FunctionEntity function = getFunctionEntity(name);
+      FunctionEntity function = lookupMember(elementEnvironment, name);
       Method method = programLookup.getMethod(function);
 
       js.Fun fun = method.code;
@@ -197,21 +181,4 @@ main() {
     checkArguments('call3a', 'method3', expectedTypeArguments: 2 /*1*/);
     checkArguments('call3b', 'method3', expectedTypeArguments: 2 /*1*/);
   });
-}
-
-void forEachCall(js.Node root, void f(js.Call node)) {
-  CallVisitor visitor = new CallVisitor(f);
-  root.accept(visitor);
-}
-
-class CallVisitor extends js.BaseVisitor {
-  final void Function(js.Call) callback;
-
-  CallVisitor(this.callback);
-
-  @override
-  visitCall(js.Call node) {
-    callback(node);
-    super.visitCall(node);
-  }
 }

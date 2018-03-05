@@ -722,7 +722,7 @@ processObj(p) {
 }
 ''');
     await indexTestUnit('''
-import '$pkgLib';
+import '${convertPathForImport(pkgLib)}';
 class A {
   test() {}
 }
@@ -737,7 +737,7 @@ main(var a) {
     refactoring.newName = 'newName';
     // validate change
     await assertSuccessfulRefactoring('''
-import '/.pub-cache/lib.dart';
+import '${convertPathForImport('/.pub-cache/lib.dart')}';
 class A {
   newName() {}
 }

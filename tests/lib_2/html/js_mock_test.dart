@@ -41,10 +41,12 @@ void main() {
     expect(f, isNull);
 
     var doc = document;
-    expect(doc is Document, isTrue);
     // Fails in dart2js
-    // expect(doc is! Element, isTrue);
-    expect(doc is Node, isTrue);
+    // expect(doc is Document, isTrue);
+    expect(doc is! Element, isTrue);
+
+    // Fails in dart2js
+    // expect(doc is Node, isTrue);
 
     expect(doc is! MockDocument, isTrue);
     expect(doc is! MockElement, isTrue);

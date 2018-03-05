@@ -1,6 +1,5 @@
 analyzer:
   language:
-    enableStrictCallChecks: true
     enableSuperMixins: true
   strong-mode: true
   errors:

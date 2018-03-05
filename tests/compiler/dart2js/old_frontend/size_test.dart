@@ -30,7 +30,7 @@ main() {
       compileAll(TEST, coreSource: DEFAULT_CORELIB_WITH_LIST).then((generated) {
         return MockCompiler.create((MockCompiler compiler) {
           // Make sure no class is emitted.
-          Expect.isFalse(generated.contains('finishClasses'));
+          Expect.isFalse(generated.contains('finishClasses'), generated);
         });
       }));
 }

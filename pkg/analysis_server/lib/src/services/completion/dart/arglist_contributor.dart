@@ -13,7 +13,6 @@ import 'package:analysis_server/src/utilities/flutter.dart' as flutter;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
  * Determine the number of arguments.
@@ -219,7 +218,7 @@ class ArgListContributor extends DartCompletionContributor {
     bool appendColon = !_isInNamedExpression(request);
     Iterable<String> namedArgs = _namedArgs(request);
     for (ParameterElement parameter in parameters) {
-      if (parameter.parameterKind == ParameterKind.NAMED) {
+      if (parameter.isNamed) {
         _addNamedParameterSuggestion(
             namedArgs, parameter, appendColon, appendComma);
       }
@@ -253,7 +252,7 @@ class ArgListContributor extends DartCompletionContributor {
         completion += ',';
       }
 
-      final int relevance = parameter.isRequired
+      final int relevance = parameter.hasRequired
           ? DART_RELEVANCE_NAMED_PARAMETER_REQUIRED
           : DART_RELEVANCE_NAMED_PARAMETER;
 
@@ -280,8 +279,8 @@ class ArgListContributor extends DartCompletionContributor {
     if (parameters == null || parameters.length == 0) {
       return;
     }
-    Iterable<ParameterElement> requiredParam = parameters.where(
-        (ParameterElement p) => p.parameterKind == ParameterKind.REQUIRED);
+    Iterable<ParameterElement> requiredParam =
+        parameters.where((ParameterElement p) => p.isNotOptional);
     int requiredCount = requiredParam.length;
     // TODO (jwren) _isAppendingToArgList can be split into two cases (with and
     // without preceded), then _isAppendingToArgList,

@@ -61,9 +61,9 @@ main() {
     expect(replacementLength, equals(0));
     assertHasResult(CompletionSuggestionKind.INVOCATION, 'E');
     assertHasResult(CompletionSuggestionKind.INVOCATION, 'E.e1',
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
     assertHasResult(CompletionSuggestionKind.INVOCATION, 'E.e2',
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
   }
 
   test_PrefixedIdentifier_field() async {
@@ -85,7 +85,8 @@ main() {
   test_PrefixedIdentifier_field_inPart() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     newFile('/project/bin/myLib.dart',
-        content: 'library L; part "$testFile"; class A {static int s2;}');
+        content:
+            'library L; part "${convertPathForImport(testFile)}"; class A {static int s2;}');
     addTestFile('part of L; foo() {A.^}');
     await getSuggestionsWith({
       'L.A': ['s2']

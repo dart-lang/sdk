@@ -11,14 +11,19 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -2745,6 +2750,37 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
 }
 
 /**
+ * An error listener that only records whether any constant related errors have
+ * been reported.
+ */
+class ConstantAnalysisErrorListener extends AnalysisErrorListener {
+  /**
+   * A flag indicating whether any constant related errors have been reported to
+   * this listener.
+   */
+  bool hasConstError = false;
+
+  @override
+  void onError(AnalysisError error) {
+    switch (error.errorCode) {
+      case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
+      case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
+      case CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
+      case CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
+      case CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
+      case CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
+      case CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
+      case CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER:
+      case CompileTimeErrorCode
+          .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
+      case CompileTimeErrorCode.INVALID_CONSTANT:
+      case CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL:
+        hasConstError = true;
+    }
+  }
+}
+
+/**
  * A constructor declaration.
  *
  *    constructorDeclaration ::=
@@ -4143,14 +4179,10 @@ abstract class ExpressionImpl extends AstNodeImpl implements Expression {
       if (parent is TypedLiteralImpl && parent.constKeyword != null) {
         // Inside an explicitly `const` list or map literal.
         return true;
-      } else if (parent is InstanceCreationExpression) {
-        if (parent.keyword?.keyword == Keyword.CONST) {
-          // Inside an explicitly `const` instance creation expression.
-          return true;
-        } else if (parent.keyword?.keyword == Keyword.NEW) {
-          // Inside an explicitly non-`const` instance creation expression.
-          return false;
-        }
+      } else if (parent is InstanceCreationExpression &&
+          parent.keyword?.keyword == Keyword.CONST) {
+        // Inside an explicitly `const` instance creation expression.
+        return true;
       } else if (parent is Annotation) {
         // Inside an annotation.
         return true;
@@ -4752,6 +4784,27 @@ abstract class FormalParameterImpl extends AstNodeImpl
     }
     return identifier.staticElement as ParameterElement;
   }
+
+  @override
+  bool get isNamed => kind == ParameterKind.NAMED;
+
+  @override
+  bool get isOptional =>
+      kind == ParameterKind.NAMED || kind == ParameterKind.POSITIONAL;
+
+  @override
+  bool get isOptionalPositional => kind == ParameterKind.POSITIONAL;
+
+  @override
+  bool get isPositional =>
+      kind == ParameterKind.POSITIONAL || kind == ParameterKind.REQUIRED;
+
+  @override
+  bool get isRequired => kind == ParameterKind.REQUIRED;
+
+  @override
+  // Overridden to remove the 'deprecated' annotation.
+  ParameterKind get kind;
 }
 
 /**
@@ -6495,7 +6548,7 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
     if (!isImplicit) {
       return keyword.keyword == Keyword.CONST;
     } else {
-      return inConstantContext;
+      return inConstantContext || canBeConst();
     }
   }
 
@@ -6512,6 +6565,75 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
   @override
   E accept<E>(AstVisitor<E> visitor) =>
       visitor.visitInstanceCreationExpression(this);
+
+  /**
+   * Return `true` if it would be valid for this instance creation expression to
+   * have a keyword of `const`. It is valid if
+   *
+   * * the invoked constructor is a `const` constructor,
+   * * all of the arguments are, or could be, constant expressions, and
+   * * the evaluation of the constructor would not produce an exception.
+   *
+   * Note that this method will return `false` if the AST has not been resolved
+   * because without resolution it cannot be determined whether the constructor
+   * is a `const` constructor.
+   *
+   * Also note that this method can cause constant evaluation to occur, which
+   * can be computationally expensive.
+   */
+  bool canBeConst() {
+    //
+    // Verify that the invoked constructor is a const constructor.
+    //
+    ConstructorElement element = staticElement;
+    if (element == null || !element.isConst) {
+      return false;
+    }
+    //
+    // Verify that all of the arguments are, or could be, constant expressions.
+    //
+    for (Expression argument in argumentList.arguments) {
+      if (argument is InstanceCreationExpression) {
+        if (!argument.isConst) {
+          return false;
+        }
+      } else if (argument is TypedLiteral) {
+        if (!argument.isConst) {
+          return false;
+        }
+      } else if (argument is LiteralImpl) {
+        if (argument is StringInterpolation) {
+          return false;
+        } else if (argument is AdjacentStrings) {
+          for (StringLiteral string in (argument as AdjacentStrings).strings) {
+            if (string is StringInterpolation) {
+              return false;
+            }
+          }
+        }
+      } else {
+        return false;
+      }
+    }
+    //
+    // Verify that the evaluation of the constructor would not produce an
+    // exception.
+    //
+    Token oldKeyword = keyword;
+    ConstantAnalysisErrorListener listener =
+        new ConstantAnalysisErrorListener();
+    try {
+      keyword = new KeywordToken(Keyword.CONST, offset);
+      LibraryElement library = element.library;
+      AnalysisContext context = library.context;
+      ErrorReporter errorReporter = new ErrorReporter(listener, element.source);
+      accept(new ConstantVerifier(errorReporter, library, context.typeProvider,
+          context.declaredVariables));
+    } finally {
+      keyword = oldKeyword;
+    }
+    return !listener.hasConstError;
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -8249,6 +8371,7 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
     _identifier = _becomeParentOf(identifier as AstNodeImpl);
   }
 
+  @deprecated
   @override
   ParameterKind get kind {
     AstNode parent = this.parent;

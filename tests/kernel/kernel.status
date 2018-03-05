@@ -4,33 +4,24 @@
 
 [ $compiler == dart2js ]
 unsorted/invocation_errors_test: Pass
-unsorted/loop_test: Skip
 unsorted/nsm_dispatcher_test: Skip # The test uses Symbol without MirrorsUsed
+unsorted/simple_literal_test/01: Skip # The test expects error for large integer literal.
 unsorted/super_initializer_test: Skip
 unsorted/super_mixin_test: CompileTimeError
 
-[ !$strong ]
-unsorted/invocation_errors_test: RuntimeError
+[ !$fasta ]
+unsorted/loop_test: Skip # This test uses optional new/const.
 
 [ $compiler == dart2analyzer && $runtime == none ]
-unsorted/invocation_errors_test: StaticWarning
-unsorted/loop_test: CompileTimeError # int64
-unsorted/simple_literal_test: CompileTimeError # int64
 unsorted/super_mixin_test: CompileTimeError
 
 [ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
 
-[ $compiler == dartk && $strong ]
-unsorted/invocation_errors_test: CompileTimeError
-unsorted/nsm_dispatcher_test: CompileTimeError
-unsorted/super_mixin_test: CompileTimeError
+[ $compiler != dartk && $compiler != dartkp ]
+unsorted/invocation_errors_test/00: MissingCompileTimeError # This test has been tuned for dart 2.
 unsorted/types_test: RuntimeError
 
 [ $runtime == dart_precompiled && $minified ]
 unsorted/symbol_literal_test: Skip # Expects unobfuscated Symbol.toString.
-
-[ $runtime == dart_precompiled || $runtime == vm || $fasta ]
-unsorted/loop_test: CompileTimeError
-unsorted/simple_literal_test: CompileTimeError
 

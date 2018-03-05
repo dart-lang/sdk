@@ -855,10 +855,17 @@ Future compareCompiledData(CompiledData data1, CompiledData data2,
 
 /// Set of features used in annotations.
 class Features {
-  Map<String, String> _features = <String, String>{};
+  Map<String, Object> _features = <String, Object>{};
 
   void add(String key, {var value: ''}) {
-    _features[key] = value;
+    _features[key] = value.toString();
+  }
+
+  void addElement(String key, [var value]) {
+    List<String> list = _features.putIfAbsent(key, () => <String>[]);
+    if (value != null) {
+      list.add(value.toString());
+    }
   }
 
   bool containsKey(String key) {
@@ -879,12 +886,15 @@ class Features {
     StringBuffer sb = new StringBuffer();
     bool needsComma = false;
     for (String name in _features.keys.toList()..sort()) {
-      String value = _features[name];
+      dynamic value = _features[name];
       if (value != null) {
         if (needsComma) {
           sb.write(',');
         }
         sb.write(name);
+        if (value is List<String>) {
+          value = '[${(value..sort()).join(',')}]';
+        }
         if (value != '') {
           sb.write('=');
           sb.write(value);

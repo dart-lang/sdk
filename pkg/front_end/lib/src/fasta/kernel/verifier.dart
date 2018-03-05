@@ -30,6 +30,8 @@ import '../compiler_context.dart' show CompilerContext;
 import '../fasta_codes.dart'
     show LocatedMessage, templateInternalVerificationError;
 
+import '../parser.dart' show noLength;
+
 import '../severity.dart' show Severity;
 
 import '../type_inference/type_schema.dart' show TypeSchemaVisitor, UnknownType;
@@ -105,7 +107,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor
     Uri uri = file == null ? null : file;
     LocatedMessage message = templateInternalVerificationError
         .withArguments(details)
-        .withLocation(uri, offset);
+        .withLocation(uri, offset, noLength);
     CompilerContext.current.report(message, Severity.error);
     errors.add(message);
   }

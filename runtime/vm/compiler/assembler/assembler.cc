@@ -175,25 +175,25 @@ void AssemblerBuffer::EmitObject(const Object& object) {
 // Shared macros are implemented here.
 void Assembler::Unimplemented(const char* message) {
   const char* format = "Unimplemented: %s";
-  const intptr_t len = OS::SNPrint(NULL, 0, format, message);
+  const intptr_t len = Utils::SNPrint(NULL, 0, format, message);
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));
-  OS::SNPrint(buffer, len + 1, format, message);
+  Utils::SNPrint(buffer, len + 1, format, message);
   Stop(buffer);
 }
 
 void Assembler::Untested(const char* message) {
   const char* format = "Untested: %s";
-  const intptr_t len = OS::SNPrint(NULL, 0, format, message);
+  const intptr_t len = Utils::SNPrint(NULL, 0, format, message);
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));
-  OS::SNPrint(buffer, len + 1, format, message);
+  Utils::SNPrint(buffer, len + 1, format, message);
   Stop(buffer);
 }
 
 void Assembler::Unreachable(const char* message) {
   const char* format = "Unreachable: %s";
-  const intptr_t len = OS::SNPrint(NULL, 0, format, message);
+  const intptr_t len = Utils::SNPrint(NULL, 0, format, message);
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));
-  OS::SNPrint(buffer, len + 1, format, message);
+  Utils::SNPrint(buffer, len + 1, format, message);
   Stop(buffer);
 }
 
@@ -203,7 +203,7 @@ void Assembler::Comment(const char* format, ...) {
 
     va_list args;
     va_start(args, format);
-    OS::VSNPrint(buffer, sizeof(buffer), format, args);
+    Utils::VSNPrint(buffer, sizeof(buffer), format, args);
     va_end(args);
 
     comments_.Add(
@@ -281,11 +281,19 @@ intptr_t ObjectPoolWrapper::FindImmediate(uword imm) {
                     kNotPatchable);
 }
 
-intptr_t ObjectPoolWrapper::FindNativeEntry(const ExternalLabel* label,
-                                            Patchability patchable) {
+intptr_t ObjectPoolWrapper::FindNativeFunction(const ExternalLabel* label,
+                                               Patchability patchable) {
   return FindObject(
-      ObjectPoolWrapperEntry(label->address(), ObjectPool::kNativeEntry),
+      ObjectPoolWrapperEntry(label->address(), ObjectPool::kNativeFunction),
       patchable);
+}
+
+intptr_t ObjectPoolWrapper::FindNativeFunctionWrapper(
+    const ExternalLabel* label,
+    Patchability patchable) {
+  return FindObject(ObjectPoolWrapperEntry(label->address(),
+                                           ObjectPool::kNativeFunctionWrapper),
+                    patchable);
 }
 
 RawObjectPool* ObjectPoolWrapper::MakeObjectPool() {

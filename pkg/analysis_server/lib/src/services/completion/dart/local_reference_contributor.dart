@@ -17,7 +17,6 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart' show ParameterKind;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
     show Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
@@ -468,12 +467,12 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     }).toList();
 
     Iterable<ParameterElement> requiredParameters = paramList
-        .where((FormalParameter param) => param.kind == ParameterKind.REQUIRED)
+        .where((FormalParameter param) => param.isRequired)
         .map((p) => p.element);
     suggestion.requiredParameterCount = requiredParameters.length;
 
     Iterable<ParameterElement> namedParameters = paramList
-        .where((FormalParameter param) => param.kind == ParameterKind.NAMED)
+        .where((FormalParameter param) => param.isNamed)
         .map((p) => p.element);
     suggestion.hasNamedParameters = namedParameters.isNotEmpty;
 

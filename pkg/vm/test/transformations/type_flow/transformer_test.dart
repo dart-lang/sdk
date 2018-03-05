@@ -25,10 +25,12 @@ runTestCase(Uri source) async {
 
   final coreTypes = new CoreTypes(program);
 
-  program = transformProgram(coreTypes, program, entryPointsJSONFiles: [
+  final entryPoints = [
     pkgVmDir + '/lib/transformations/type_flow/entry_points.json',
     pkgVmDir + '/lib/transformations/type_flow/entry_points_extra.json',
-  ]);
+  ];
+
+  program = transformProgram(coreTypes, program, entryPoints);
 
   final StringBuffer buffer = new StringBuffer();
   new Printer(buffer, showExternal: false, showMetadata: true)

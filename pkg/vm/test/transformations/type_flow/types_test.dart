@@ -45,19 +45,17 @@ main() {
     expect(new Type.cone(t2Generic), equals(new ConeType(t2Raw)));
     expect(new Type.cone(f1), equals(const AnyType()));
 
-    expect(new Type.concrete(t1), equals(new ConcreteType(t1)));
-    expect(new Type.concrete(t2Raw), equals(new ConcreteType(t2Raw)));
-    expect(new Type.concrete(t2Generic), equals(new ConcreteType(t2Raw)));
-
     expect(new Type.nullable(new Type.empty()),
         equals(new NullableType(new EmptyType())));
     expect(new Type.nullable(new Type.cone(t1)),
         equals(new NullableType(new ConeType(t1))));
-    expect(new Type.nullable(new Type.concrete(t1)),
-        equals(new NullableType(new ConcreteType(t1))));
+
+    expect(new Type.nullableAny(), equals(new NullableType(new AnyType())));
 
     expect(new Type.fromStatic(const DynamicType()),
         equals(new NullableType(new AnyType())));
+    expect(new Type.fromStatic(const DynamicType()),
+        equals(new Type.nullableAny()));
     expect(new Type.fromStatic(const BottomType()),
         equals(new NullableType(new EmptyType())));
     expect(new Type.fromStatic(t1), equals(new NullableType(new ConeType(t1))));
@@ -77,22 +75,22 @@ main() {
 
     final empty = new EmptyType();
     final any = new AnyType();
-    final concreteT1 = new ConcreteType(t1);
-    final concreteT2 = new ConcreteType(t2);
-    final concreteT3 = new ConcreteType(t3);
-    final concreteT4 = new ConcreteType(t4);
+    final concreteT1 = new ConcreteType(const IntClassId(1), t1);
+    final concreteT2 = new ConcreteType(const IntClassId(2), t2);
+    final concreteT3 = new ConcreteType(const IntClassId(3), t3);
+    final concreteT4 = new ConcreteType(const IntClassId(4), t4);
     final coneT1 = new ConeType(t1);
     final coneT2 = new ConeType(t2);
     final coneT3 = new ConeType(t3);
     final coneT4 = new ConeType(t4);
-    final setT12 = new SetType([concreteT1, concreteT2].toSet());
-    final setT14 = new SetType([concreteT1, concreteT4].toSet());
-    final setT23 = new SetType([concreteT2, concreteT3].toSet());
-    final setT34 = new SetType([concreteT3, concreteT4].toSet());
-    final setT123 = new SetType([concreteT1, concreteT2, concreteT3].toSet());
-    final setT124 = new SetType([concreteT1, concreteT2, concreteT4].toSet());
+    final setT12 = new SetType([concreteT1, concreteT2]);
+    final setT14 = new SetType([concreteT1, concreteT4]);
+    final setT23 = new SetType([concreteT2, concreteT3]);
+    final setT34 = new SetType([concreteT3, concreteT4]);
+    final setT123 = new SetType([concreteT1, concreteT2, concreteT3]);
+    final setT124 = new SetType([concreteT1, concreteT2, concreteT4]);
     final setT1234 =
-        new SetType([concreteT1, concreteT2, concreteT3, concreteT4].toSet());
+        new SetType([concreteT1, concreteT2, concreteT3, concreteT4]);
     final nullableEmpty = new Type.nullable(empty);
     final nullableAny = new Type.nullable(any);
     final nullableConcreteT1 = new Type.nullable(concreteT1);
@@ -268,6 +266,10 @@ main() {
     final f1b = new FunctionType([t1b], const VoidType());
     final f2 = new FunctionType([t1a, t1a], const VoidType());
 
+    final cid1 = const IntClassId(1);
+    final cid2 = const IntClassId(2);
+    final cid3 = const IntClassId(3);
+
     void eq(dynamic a, dynamic b) {
       expect(a == b, isTrue, reason: "Test case: $a == $b");
       expect(a.hashCode == b.hashCode, isTrue,
@@ -290,29 +292,27 @@ main() {
 
     eq(new EmptyType(), new EmptyType());
     ne(new EmptyType(), new AnyType());
-    ne(new EmptyType(), new ConcreteType(t1a));
+    ne(new EmptyType(), new ConcreteType(cid1, t1a));
     ne(new EmptyType(), new ConeType(t1a));
     ne(new EmptyType(),
-        new SetType([new ConcreteType(t1a), new ConcreteType(t2)].toSet()));
+        new SetType([new ConcreteType(cid1, t1a), new ConcreteType(cid2, t2)]));
     ne(new EmptyType(), new NullableType(new EmptyType()));
 
     eq(new AnyType(), new AnyType());
-    ne(new AnyType(), new ConcreteType(t1a));
+    ne(new AnyType(), new ConcreteType(cid1, t1a));
     ne(new AnyType(), new ConeType(t1a));
     ne(new AnyType(),
-        new SetType([new ConcreteType(t1a), new ConcreteType(t2)].toSet()));
+        new SetType([new ConcreteType(cid1, t1a), new ConcreteType(cid2, t2)]));
     ne(new AnyType(), new NullableType(new EmptyType()));
 
-    eq(new ConcreteType(t1a), new ConcreteType(t1b));
-    eq(new ConcreteType(f1a), new ConcreteType(f1b));
-    ne(new ConcreteType(t1a), new ConcreteType(t2));
-    ne(new ConcreteType(f1a), new ConcreteType(f2));
-    ne(new ConcreteType(t1a), new ConcreteType(f1a));
-    ne(new ConcreteType(t1a), new ConeType(t1a));
-    ne(new ConcreteType(t1a), new ConeType(t2));
-    ne(new ConcreteType(t1a),
-        new SetType([new ConcreteType(t1a), new ConcreteType(t2)].toSet()));
-    ne(new ConcreteType(t1a), new NullableType(new ConcreteType(t1a)));
+    eq(new ConcreteType(cid1, t1a), new ConcreteType(cid1, t1b));
+    ne(new ConcreteType(cid1, t1a), new ConcreteType(cid2, t2));
+    ne(new ConcreteType(cid1, t1a), new ConeType(t1a));
+    ne(new ConcreteType(cid1, t1a), new ConeType(t2));
+    ne(new ConcreteType(cid1, t1a),
+        new SetType([new ConcreteType(cid1, t1a), new ConcreteType(cid2, t2)]));
+    ne(new ConcreteType(cid1, t1a),
+        new NullableType(new ConcreteType(cid1, t1a)));
 
     eq(new ConeType(t1a), new ConeType(t1b));
     eq(new ConeType(f1a), new ConeType(f1b));
@@ -320,34 +320,34 @@ main() {
     ne(new ConeType(f1a), new ConeType(f2));
     ne(new ConeType(t1a), new ConeType(f1a));
     ne(new ConeType(t1a),
-        new SetType([new ConcreteType(t1a), new ConcreteType(t2)].toSet()));
+        new SetType([new ConcreteType(cid1, t1a), new ConcreteType(cid2, t2)]));
     ne(new ConeType(t1a), new NullableType(new ConeType(t1a)));
 
-    eq(new SetType([new ConcreteType(t1a), new ConcreteType(t2)].toSet()),
-        new SetType([new ConcreteType(t2), new ConcreteType(t1b)].toSet()));
+    eq(new SetType([new ConcreteType(cid1, t1a), new ConcreteType(cid2, t2)]),
+        new SetType([new ConcreteType(cid1, t1b), new ConcreteType(cid2, t2)]));
     eq(
         new SetType([
-          new ConcreteType(t1a),
-          new ConcreteType(t2),
-          new ConcreteType(t3)
-        ].toSet()),
+          new ConcreteType(cid1, t1a),
+          new ConcreteType(cid2, t2),
+          new ConcreteType(cid3, t3)
+        ]),
         new SetType([
-          new ConcreteType(t2),
-          new ConcreteType(t1b),
-          new ConcreteType(t3)
-        ].toSet()));
+          new ConcreteType(cid1, t1b),
+          new ConcreteType(cid2, t2),
+          new ConcreteType(cid3, t3)
+        ]));
     ne(
-        new SetType([new ConcreteType(t1a), new ConcreteType(t2)].toSet()),
+        new SetType([new ConcreteType(cid1, t1a), new ConcreteType(cid2, t2)]),
         new SetType([
-          new ConcreteType(t1a),
-          new ConcreteType(t2),
-          new ConcreteType(t3)
-        ].toSet()));
-    ne(new SetType([new ConcreteType(t1a), new ConcreteType(t2)].toSet()),
-        new SetType([new ConcreteType(t1a), new ConcreteType(t3)].toSet()));
+          new ConcreteType(cid1, t1a),
+          new ConcreteType(cid2, t2),
+          new ConcreteType(cid3, t3)
+        ]));
+    ne(new SetType([new ConcreteType(cid1, t1a), new ConcreteType(cid2, t2)]),
+        new SetType([new ConcreteType(cid1, t1a), new ConcreteType(cid3, t3)]));
     ne(
-        new SetType([new ConcreteType(t1a), new ConcreteType(t2)].toSet()),
+        new SetType([new ConcreteType(cid1, t1a), new ConcreteType(cid2, t2)]),
         new NullableType(new SetType(
-            [new ConcreteType(t1a), new ConcreteType(t2)].toSet())));
+            [new ConcreteType(cid1, t1a), new ConcreteType(cid2, t2)])));
   });
 }

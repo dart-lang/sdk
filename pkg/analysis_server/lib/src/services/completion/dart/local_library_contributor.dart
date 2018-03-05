@@ -61,6 +61,21 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
         _addConstructorSuggestions(element, relevance);
       }
     }
+    if (optype.includeReturnValueSuggestions) {
+      if (element.isEnum) {
+        String enumName = element.displayName;
+        int relevance = optype.returnValueSuggestionsFilter(
+            element.type, DART_RELEVANCE_DEFAULT);
+        for (var field in element.fields) {
+          if (field.isEnumConstant) {
+            addSuggestion(field,
+                prefix: prefix,
+                relevance: relevance,
+                elementCompletion: '$enumName.${field.name}');
+          }
+        }
+      }
+    }
   }
 
   @override
@@ -147,19 +162,24 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   void _addConstructorSuggestions(ClassElement classElem, int relevance) {
     String className = classElem.name;
     for (ConstructorElement constructor in classElem.constructors) {
-      if (!constructor.isPrivate) {
-        CompletionSuggestion suggestion =
-            createSuggestion(constructor, relevance: relevance);
-        if (suggestion != null) {
-          String name = suggestion.completion;
-          name = name.length > 0 ? '$className.$name' : className;
-          if (prefix != null && prefix.length > 0) {
-            name = '$prefix.$name';
-          }
-          suggestion.completion = name;
-          suggestion.selectionOffset = suggestion.completion.length;
-          suggestions.add(suggestion);
+      if (constructor.isPrivate) {
+        continue;
+      }
+      if (classElem.isAbstract && !constructor.isFactory) {
+        continue;
+      }
+
+      CompletionSuggestion suggestion =
+          createSuggestion(constructor, relevance: relevance);
+      if (suggestion != null) {
+        String name = suggestion.completion;
+        name = name.length > 0 ? '$className.$name' : className;
+        if (prefix != null && prefix.length > 0) {
+          name = '$prefix.$name';
         }
+        suggestion.completion = name;
+        suggestion.selectionOffset = suggestion.completion.length;
+        suggestions.add(suggestion);
       }
     }
   }

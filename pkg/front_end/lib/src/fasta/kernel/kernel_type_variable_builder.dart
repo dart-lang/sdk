@@ -49,6 +49,7 @@ class KernelTypeVariableBuilder
       library.addProblem(
           templateTypeArgumentsOnTypeVariable.withArguments(name),
           charOffset,
+          name.length,
           fileUri);
     }
     return new TypeParameterType(parameter);

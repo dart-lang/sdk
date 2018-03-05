@@ -417,8 +417,8 @@ intptr_t DeoptContext::MaterializeDeferredObjects() {
     String& line_string = String::Handle(script.GetLine(line));
     THR_Print("  Function: %s\n", top_function.ToFullyQualifiedCString());
     char line_buffer[80];
-    OS::SNPrint(line_buffer, sizeof(line_buffer), "  Line %" Pd ": '%s'", line,
-                line_string.ToCString());
+    Utils::SNPrint(line_buffer, sizeof(line_buffer), "  Line %" Pd ": '%s'",
+                   line, line_string.ToCString());
     THR_Print("%s\n", line_buffer);
     THR_Print("  Deopt args: %" Pd "\n", deopt_arg_count);
   }
@@ -1401,7 +1401,7 @@ const char* DeoptInfo::ToCString(const Array& deopt_table,
   // Compute the buffer size required.
   intptr_t len = 1;  // Trailing '\0'.
   for (intptr_t i = 0; i < deopt_instrs.length(); i++) {
-    len += OS::SNPrint(NULL, 0, FORMAT, deopt_instrs[i]->ToCString());
+    len += Utils::SNPrint(NULL, 0, FORMAT, deopt_instrs[i]->ToCString());
   }
 
   // Allocate the buffer.
@@ -1410,8 +1410,8 @@ const char* DeoptInfo::ToCString(const Array& deopt_table,
   // Layout the fields in the buffer.
   intptr_t index = 0;
   for (intptr_t i = 0; i < deopt_instrs.length(); i++) {
-    index += OS::SNPrint((buffer + index), (len - index), FORMAT,
-                         deopt_instrs[i]->ToCString());
+    index += Utils::SNPrint((buffer + index), (len - index), FORMAT,
+                            deopt_instrs[i]->ToCString());
   }
 
   return buffer;

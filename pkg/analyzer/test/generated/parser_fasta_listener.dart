@@ -376,8 +376,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginMethod() {
-    super.beginMethod();
+  void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
+      Token varFinalOrConst, Token name) {
+    super.beginMethod(
+        externalToken, staticToken, covariantToken, varFinalOrConst, name);
     begin('Method');
   }
 
@@ -520,8 +522,8 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginVariablesDeclaration(Token token) {
-    super.beginVariablesDeclaration(token);
+  void beginVariablesDeclaration(Token token, Token varFinalOrConst) {
+    super.beginVariablesDeclaration(token, varFinalOrConst);
     begin('VariablesDeclaration');
   }
 

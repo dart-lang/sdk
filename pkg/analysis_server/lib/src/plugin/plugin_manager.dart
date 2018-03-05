@@ -683,6 +683,10 @@ class PluginManager {
       if (runPub) {
         String vmPath = Platform.executable;
         String pubPath = path.join(path.dirname(vmPath), 'pub');
+        if (Platform.isWindows) {
+          // Process.run requires the `.bat` suffix on Windows
+          pubPath = '$pubPath.bat';
+        }
         ProcessResult result = Process.runSync(pubPath, <String>['get'],
             stderrEncoding: UTF8,
             stdoutEncoding: UTF8,

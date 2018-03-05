@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/message.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -2544,11 +2545,6 @@ void RawFloat64x2::WriteTo(SnapshotWriter* writer,
   writer->Write<double>(ptr()->value_[1]);
 }
 
-#define TYPED_DATA_READ(setter, type, element_size)                            \
-  for (intptr_t i = 0; i < length_in_bytes; i += element_size) {               \
-    result.Set##setter(i, reader->Read<type>());                               \
-  }
-
 RawTypedData* TypedData::ReadFrom(SnapshotReader* reader,
                                   intptr_t object_id,
                                   intptr_t tags,
@@ -2565,51 +2561,10 @@ RawTypedData* TypedData::ReadFrom(SnapshotReader* reader,
   // Setup the array elements.
   intptr_t element_size = ElementSizeInBytes(cid);
   intptr_t length_in_bytes = len * element_size;
-  switch (cid) {
-    case kTypedDataInt8ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid: {
-      NoSafepointScope no_safepoint;
-      uint8_t* data = reinterpret_cast<uint8_t*>(result.DataAddr(0));
-      reader->ReadBytes(data, length_in_bytes);
-      break;
-    }
-    case kTypedDataInt16ArrayCid:
-      TYPED_DATA_READ(Int16, int16_t, element_size);
-      break;
-    case kTypedDataUint16ArrayCid:
-      TYPED_DATA_READ(Uint16, uint16_t, element_size);
-      break;
-    case kTypedDataInt32ArrayCid:
-      TYPED_DATA_READ(Int32, int32_t, element_size);
-      break;
-    case kTypedDataUint32ArrayCid:
-      TYPED_DATA_READ(Uint32, uint32_t, element_size);
-      break;
-    case kTypedDataInt64ArrayCid:
-      TYPED_DATA_READ(Int64, int64_t, element_size);
-      break;
-    case kTypedDataUint64ArrayCid:
-      TYPED_DATA_READ(Uint64, uint64_t, element_size);
-      break;
-    case kTypedDataFloat32ArrayCid:
-      TYPED_DATA_READ(Float32, float, element_size);
-      break;
-    case kTypedDataFloat64ArrayCid:
-      TYPED_DATA_READ(Float64, double, element_size);
-      break;
-    case kTypedDataInt32x4ArrayCid:
-      TYPED_DATA_READ(Int32, int32_t, sizeof(int32_t));
-      break;
-    case kTypedDataFloat32x4ArrayCid:
-      TYPED_DATA_READ(Float32, float, sizeof(float));
-      break;
-    case kTypedDataFloat64x2ArrayCid:
-      TYPED_DATA_READ(Float64, double, sizeof(double));
-      break;
-    default:
-      UNREACHABLE();
-  }
+  NoSafepointScope no_safepoint;
+  uint8_t* data = reinterpret_cast<uint8_t*>(result.DataAddr(0));
+  reader->ReadBytes(data, length_in_bytes);
+
   // If it is a canonical constant make it one.
   // When reading a full snapshot we don't need to canonicalize the object
   // as it would already be a canonical object.
@@ -2622,7 +2577,6 @@ RawTypedData* TypedData::ReadFrom(SnapshotReader* reader,
   }
   return result.raw();
 }
-#undef TYPED_DATA_READ
 
 RawExternalTypedData* ExternalTypedData::ReadFrom(SnapshotReader* reader,
                                                   intptr_t object_id,
@@ -2632,26 +2586,27 @@ RawExternalTypedData* ExternalTypedData::ReadFrom(SnapshotReader* reader,
   ASSERT(!Snapshot::IsFull(kind));
   intptr_t cid = RawObject::ClassIdTag::decode(tags);
   intptr_t length = reader->ReadSmiValue();
-  uint8_t* data = reinterpret_cast<uint8_t*>(reader->ReadRawPointerValue());
+
+  FinalizableData finalizable_data =
+      static_cast<MessageSnapshotReader*>(reader)->finalizable_data()->Take();
+  uint8_t* data = reinterpret_cast<uint8_t*>(finalizable_data.data);
   ExternalTypedData& obj =
       ExternalTypedData::ZoneHandle(ExternalTypedData::New(cid, data, length));
   reader->AddBackRef(object_id, &obj, kIsDeserialized);
-  void* peer = reinterpret_cast<void*>(reader->ReadRawPointerValue());
-  Dart_WeakPersistentHandleFinalizer callback =
-      reinterpret_cast<Dart_WeakPersistentHandleFinalizer>(
-          reader->ReadRawPointerValue());
   intptr_t external_size = obj.LengthInBytes();
-  obj.AddFinalizer(peer, callback, external_size);
+  obj.AddFinalizer(finalizable_data.peer, finalizable_data.callback,
+                   external_size);
   return obj.raw();
 }
 
-#define TYPED_DATA_WRITE(type, len)                                            \
-  {                                                                            \
-    type* data = reinterpret_cast<type*>(ptr()->data());                       \
-    for (intptr_t i = 0; i < (len); i++) {                                     \
-      writer->Write(data[i]);                                                  \
-    }                                                                          \
-  }
+// This function's name can appear in Observatory.
+static void IsolateMessageTypedDataFinalizer(void* isolate_callback_data,
+                                             Dart_WeakPersistentHandle handle,
+                                             void* buffer) {
+  free(buffer);
+}
+
+static const intptr_t kExternalizeTypedDataThreshold = 4 * KB;
 
 void RawTypedData::WriteTo(SnapshotWriter* writer,
                            intptr_t object_id,
@@ -2659,78 +2614,101 @@ void RawTypedData::WriteTo(SnapshotWriter* writer,
                            bool as_reference) {
   ASSERT(writer != NULL);
   intptr_t cid = this->GetClassId();
-  intptr_t len = Smi::Value(ptr()->length_);
+  intptr_t length = Smi::Value(ptr()->length_);  // In elements.
+  intptr_t external_cid;
+  intptr_t bytes;
+  switch (cid) {
+    case kTypedDataInt8ArrayCid:
+      external_cid = kExternalTypedDataInt8ArrayCid;
+      bytes = length * sizeof(int8_t);
+      break;
+    case kTypedDataUint8ArrayCid:
+      external_cid = kExternalTypedDataUint8ArrayCid;
+      bytes = length * sizeof(uint8_t);
+      break;
+    case kTypedDataUint8ClampedArrayCid:
+      external_cid = kExternalTypedDataUint8ClampedArrayCid;
+      bytes = length * sizeof(uint8_t);
+      break;
+    case kTypedDataInt16ArrayCid:
+      external_cid = kExternalTypedDataInt16ArrayCid;
+      bytes = length * sizeof(int16_t);
+      break;
+    case kTypedDataUint16ArrayCid:
+      external_cid = kExternalTypedDataUint16ArrayCid;
+      bytes = length * sizeof(uint16_t);
+      break;
+    case kTypedDataInt32ArrayCid:
+      external_cid = kExternalTypedDataInt32ArrayCid;
+      bytes = length * sizeof(int32_t);
+      break;
+    case kTypedDataUint32ArrayCid:
+      external_cid = kExternalTypedDataUint32ArrayCid;
+      bytes = length * sizeof(uint32_t);
+      break;
+    case kTypedDataInt64ArrayCid:
+      external_cid = kExternalTypedDataInt64ArrayCid;
+      bytes = length * sizeof(int64_t);
+      break;
+    case kTypedDataUint64ArrayCid:
+      external_cid = kExternalTypedDataUint64ArrayCid;
+      bytes = length * sizeof(uint64_t);
+      break;
+    case kTypedDataFloat32ArrayCid:
+      external_cid = kExternalTypedDataFloat32ArrayCid;
+      bytes = length * sizeof(float);
+      break;
+    case kTypedDataFloat64ArrayCid:
+      external_cid = kExternalTypedDataFloat64ArrayCid;
+      bytes = length * sizeof(double);
+      break;
+    case kTypedDataInt32x4ArrayCid:
+      external_cid = kExternalTypedDataInt32x4ArrayCid;
+      bytes = length * sizeof(int32_t) * 4;
+      break;
+    case kTypedDataFloat32x4ArrayCid:
+      external_cid = kExternalTypedDataFloat32x4ArrayCid;
+      bytes = length * sizeof(float) * 4;
+      break;
+    case kTypedDataFloat64x2ArrayCid:
+      external_cid = kExternalTypedDataFloat64x2ArrayCid;
+      bytes = length * sizeof(double) * 2;
+      break;
+    default:
+      external_cid = kIllegalCid;
+      bytes = 0;
+      UNREACHABLE();
+  }
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
 
-  // Write out the class and tags information.
-  writer->WriteIndexedObject(cid);
-  writer->WriteTags(writer->GetObjectTags(this));
-
-  // Write out the length field.
-  writer->Write<RawObject*>(ptr()->length_);
-
-  // Write out the array elements.
-  switch (cid) {
-    case kTypedDataInt8ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid: {
-      uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data());
-      writer->WriteBytes(data, len);
-      break;
+  if ((kind == Snapshot::kMessage) &&
+      (bytes >= kExternalizeTypedDataThreshold)) {
+    // Write as external.
+    writer->WriteIndexedObject(external_cid);
+    writer->WriteTags(writer->GetObjectTags(this));
+    writer->Write<RawObject*>(ptr()->length_);
+    uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data());
+    void* passed_data = malloc(bytes);
+    if (passed_data == NULL) {
+      OUT_OF_MEMORY();
     }
-    case kTypedDataInt16ArrayCid:
-      TYPED_DATA_WRITE(int16_t, len);
-      break;
-    case kTypedDataUint16ArrayCid:
-      TYPED_DATA_WRITE(uint16_t, len);
-      break;
-    case kTypedDataInt32ArrayCid:
-      TYPED_DATA_WRITE(int32_t, len);
-      break;
-    case kTypedDataUint32ArrayCid:
-      TYPED_DATA_WRITE(uint32_t, len);
-      break;
-    case kTypedDataInt64ArrayCid:
-      TYPED_DATA_WRITE(int64_t, len);
-      break;
-    case kTypedDataUint64ArrayCid:
-      TYPED_DATA_WRITE(uint64_t, len);
-      break;
-    case kTypedDataFloat32ArrayCid:
-      TYPED_DATA_WRITE(float, len);  // NOLINT.
-      break;
-    case kTypedDataFloat64ArrayCid:
-      TYPED_DATA_WRITE(double, len);  // NOLINT.
-      break;
-    case kTypedDataInt32x4ArrayCid:
-      TYPED_DATA_WRITE(int32_t, len * 4);  // NOLINT.
-      break;
-    case kTypedDataFloat32x4ArrayCid:
-      TYPED_DATA_WRITE(float, len * 4);  // NOLINT.
-      break;
-    case kTypedDataFloat64x2ArrayCid:
-      TYPED_DATA_WRITE(double, len * 2);  // NOLINT.
-      break;
-    default:
-      UNREACHABLE();
+    memmove(passed_data, data, bytes);
+    static_cast<MessageWriter*>(writer)->finalizable_data()->Put(
+        bytes,
+        passed_data,  // data
+        passed_data,  // peer,
+        IsolateMessageTypedDataFinalizer);
+  } else {
+    // Write as internal.
+    writer->WriteIndexedObject(cid);
+    writer->WriteTags(writer->GetObjectTags(this));
+    writer->Write<RawObject*>(ptr()->length_);
+    uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data());
+    writer->WriteBytes(data, bytes);
   }
 }
-
-#define TYPED_EXT_DATA_WRITE(type, len)                                        \
-  {                                                                            \
-    type* data = reinterpret_cast<type*>(ptr()->data_);                        \
-    for (intptr_t i = 0; i < (len); i++) {                                     \
-      writer->Write(data[i]);                                                  \
-    }                                                                          \
-  }
-
-#define EXT_TYPED_DATA_WRITE(cid, type, len)                                   \
-  writer->WriteIndexedObject(cid);                                             \
-  writer->WriteTags(writer->GetObjectTags(this));                              \
-  writer->Write<RawObject*>(ptr()->length_);                                   \
-  TYPED_EXT_DATA_WRITE(type, len)
 
 void RawExternalTypedData::WriteTo(SnapshotWriter* writer,
                                    intptr_t object_id,
@@ -2738,60 +2716,101 @@ void RawExternalTypedData::WriteTo(SnapshotWriter* writer,
                                    bool as_reference) {
   ASSERT(writer != NULL);
   intptr_t cid = this->GetClassId();
-  intptr_t len = Smi::Value(ptr()->length_);
+  intptr_t length = Smi::Value(ptr()->length_);  // In elements.
+  intptr_t internal_cid;
+  intptr_t bytes;
+  switch (cid) {
+    case kExternalTypedDataInt8ArrayCid:
+      internal_cid = kTypedDataInt8ArrayCid;
+      bytes = length * sizeof(int8_t);
+      break;
+    case kExternalTypedDataUint8ArrayCid:
+      internal_cid = kTypedDataUint8ArrayCid;
+      bytes = length * sizeof(uint8_t);
+      break;
+    case kExternalTypedDataUint8ClampedArrayCid:
+      internal_cid = kTypedDataUint8ClampedArrayCid;
+      bytes = length * sizeof(uint8_t);
+      break;
+    case kExternalTypedDataInt16ArrayCid:
+      internal_cid = kTypedDataInt16ArrayCid;
+      bytes = length * sizeof(int16_t);
+      break;
+    case kExternalTypedDataUint16ArrayCid:
+      internal_cid = kTypedDataUint16ArrayCid;
+      bytes = length * sizeof(uint16_t);
+      break;
+    case kExternalTypedDataInt32ArrayCid:
+      internal_cid = kTypedDataInt32ArrayCid;
+      bytes = length * sizeof(int32_t);
+      break;
+    case kExternalTypedDataUint32ArrayCid:
+      internal_cid = kTypedDataUint32ArrayCid;
+      bytes = length * sizeof(uint32_t);
+      break;
+    case kExternalTypedDataInt64ArrayCid:
+      internal_cid = kTypedDataInt64ArrayCid;
+      bytes = length * sizeof(int64_t);
+      break;
+    case kExternalTypedDataUint64ArrayCid:
+      internal_cid = kTypedDataUint64ArrayCid;
+      bytes = length * sizeof(uint64_t);
+      break;
+    case kExternalTypedDataFloat32ArrayCid:
+      internal_cid = kTypedDataFloat32ArrayCid;
+      bytes = length * sizeof(float);  // NOLINT.
+      break;
+    case kExternalTypedDataFloat64ArrayCid:
+      internal_cid = kTypedDataFloat64ArrayCid,
+      bytes = length * sizeof(double);  // NOLINT.
+      break;
+    case kExternalTypedDataInt32x4ArrayCid:
+      internal_cid = kTypedDataInt32x4ArrayCid;
+      bytes = length * sizeof(int32_t) * 4;
+      break;
+    case kExternalTypedDataFloat32x4ArrayCid:
+      internal_cid = kTypedDataFloat32x4ArrayCid;
+      bytes = length * sizeof(float) * 4;
+      break;
+    case kExternalTypedDataFloat64x2ArrayCid:
+      internal_cid = kTypedDataFloat64x2ArrayCid;
+      bytes = length * sizeof(double) * 2;
+      break;
+    default:
+      internal_cid = kIllegalCid;
+      bytes = 0;
+      UNREACHABLE();
+  }
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
 
-  switch (cid) {
-    case kExternalTypedDataInt8ArrayCid:
-      EXT_TYPED_DATA_WRITE(kTypedDataInt8ArrayCid, int8_t, len);
-      break;
-    case kExternalTypedDataUint8ArrayCid:
-      EXT_TYPED_DATA_WRITE(kTypedDataUint8ArrayCid, uint8_t, len);
-      break;
-    case kExternalTypedDataUint8ClampedArrayCid:
-      EXT_TYPED_DATA_WRITE(kTypedDataUint8ClampedArrayCid, uint8_t, len);
-      break;
-    case kExternalTypedDataInt16ArrayCid:
-      EXT_TYPED_DATA_WRITE(kTypedDataInt16ArrayCid, int16_t, len);
-      break;
-    case kExternalTypedDataUint16ArrayCid:
-      EXT_TYPED_DATA_WRITE(kTypedDataUint16ArrayCid, uint16_t, len);
-      break;
-    case kExternalTypedDataInt32ArrayCid:
-      EXT_TYPED_DATA_WRITE(kTypedDataInt32ArrayCid, int32_t, len);
-      break;
-    case kExternalTypedDataUint32ArrayCid:
-      EXT_TYPED_DATA_WRITE(kTypedDataUint32ArrayCid, uint32_t, len);
-      break;
-    case kExternalTypedDataInt64ArrayCid:
-      EXT_TYPED_DATA_WRITE(kTypedDataInt64ArrayCid, int64_t, len);
-      break;
-    case kExternalTypedDataUint64ArrayCid:
-      EXT_TYPED_DATA_WRITE(kTypedDataUint64ArrayCid, uint64_t, len);
-      break;
-    case kExternalTypedDataFloat32ArrayCid:
-      EXT_TYPED_DATA_WRITE(kTypedDataFloat32ArrayCid, float, len);  // NOLINT.
-      break;
-    case kExternalTypedDataFloat64ArrayCid:
-      EXT_TYPED_DATA_WRITE(kTypedDataFloat64ArrayCid, double, len);  // NOLINT.
-      break;
-    case kExternalTypedDataInt32x4ArrayCid:
-      EXT_TYPED_DATA_WRITE(kTypedDataInt32x4ArrayCid, int32_t, len * 4);
-      break;
-    case kExternalTypedDataFloat32x4ArrayCid:
-      EXT_TYPED_DATA_WRITE(kTypedDataFloat32x4ArrayCid, float, len * 4);
-      break;
-    case kExternalTypedDataFloat64x2ArrayCid:
-      EXT_TYPED_DATA_WRITE(kTypedDataFloat64x2ArrayCid, double, len * 2);
-      break;
-    default:
-      UNREACHABLE();
+  if ((kind == Snapshot::kMessage) &&
+      (bytes >= kExternalizeTypedDataThreshold)) {
+    // Write as external.
+    writer->WriteIndexedObject(cid);
+    writer->WriteTags(writer->GetObjectTags(this));
+    writer->Write<RawObject*>(ptr()->length_);
+    uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data_);
+    void* passed_data = malloc(bytes);
+    if (passed_data == NULL) {
+      OUT_OF_MEMORY();
+    }
+    memmove(passed_data, data, bytes);
+    static_cast<MessageWriter*>(writer)->finalizable_data()->Put(
+        bytes,
+        passed_data,  // data
+        passed_data,  // peer,
+        IsolateMessageTypedDataFinalizer);
+  } else {
+    // Write as internal.
+    writer->WriteIndexedObject(internal_cid);
+    writer->WriteTags(writer->GetObjectTags(this));
+    writer->Write<RawObject*>(ptr()->length_);
+    uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data_);
+    writer->WriteBytes(data, bytes);
   }
 }
-#undef TYPED_DATA_WRITE
-#undef EXT_TYPED_DATA_WRITE
 
 RawCapability* Capability::ReadFrom(SnapshotReader* reader,
                                     intptr_t object_id,

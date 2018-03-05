@@ -13,6 +13,8 @@ import 'package:vm/metadata/inferred_type.dart'
     show InferredTypeMetadataRepository;
 import 'package:vm/metadata/procedure_attributes.dart'
     show ProcedureAttributesMetadataRepository;
+import 'package:vm/metadata/unreachable.dart'
+    show UnreachableNodeMetadataRepository;
 
 final String _usage = '''
 Usage: dump_kernel input.dill output.txt
@@ -34,9 +36,11 @@ main(List<String> arguments) async {
   program.addMetadataRepository(new DirectCallMetadataRepository());
   program.addMetadataRepository(new InferredTypeMetadataRepository());
   program.addMetadataRepository(new ProcedureAttributesMetadataRepository());
+  program.addMetadataRepository(new UnreachableNodeMetadataRepository());
 
   final List<int> bytes = new File(input).readAsBytesSync();
   new BinaryBuilderWithMetadata(bytes).readProgram(program);
 
-  writeProgramToText(program, path: output, showMetadata: true);
+  writeProgramToText(program,
+      path: output, showExternal: true, showMetadata: true);
 }

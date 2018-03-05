@@ -13,6 +13,7 @@ class Flags {
   static const String analyzeOnly = '--analyze-only';
   static const String analyzeSignaturesOnly = '--analyze-signatures-only';
   static const String disableInlining = '--disable-inlining';
+  static const String disableProgramSplit = '--disable-program-split';
   static const String disableDiagnosticColors = '--disable-diagnostic-colors';
   static const String disableNativeLiveTypeAnalysis =
       '--disable-native-live-type-analysis';
@@ -38,8 +39,11 @@ class Flags {
   /// using the kernel representation.
   /// See [CompilerOptions.useKernel] for details.
   static const String useKernel = '--use-kernel';
+
+  /// Temporary flag to revert to the old front-end once the new common
+  /// front-end is the default.
+  static const String useOldFrontend = '--use-old-frontend';
   static const String strongMode = '--strong';
-  static const String addMethodSignatures = '--method-signatures';
   static const String platformBinaries = '--platform-binaries=.+';
 
   static const String minify = '--minify';

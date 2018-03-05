@@ -15,14 +15,20 @@
               'tests/',
               'pkg/async_helper/',
               'pkg/browser/',
+              'pkg/compiler/',
               'pkg/dart_internal/',
               'pkg/expect/',
+              'pkg/front_end/',
               'pkg/js/',
+              'pkg/js_ast/',
+              'pkg/kernel/',
               'pkg/meta/',
               'pkg/pkg.status',
               'pkg/status_file/',
               'pkg/vm/',
               'runtime/tests/',
+              'sdk/lib/_internal/js_runtime/',
+              'sdk/lib/_internal/sdk_library_metadata/',
               '.packages']
   }
 }

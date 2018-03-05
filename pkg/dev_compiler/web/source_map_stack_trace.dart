@@ -44,8 +44,8 @@ StackTrace mapStackTrace(Mapping sourceMap, StackTrace stackTrace,
     for (var root in roots) {
       if (root != null && p.url.isWithin(root, sourceUrl)) {
         var relative = p.url.relative(sourceUrl, from: root);
-        if (relative.startsWith('dart:')) {
-          sourceUrl = relative;
+        if (relative.contains('dart:')) {
+          sourceUrl = relative.substring(relative.indexOf('dart:'));
           break;
         }
         var packageRoot = '$root/packages';
@@ -54,6 +54,15 @@ StackTrace mapStackTrace(Mapping sourceMap, StackTrace stackTrace,
           break;
         }
       }
+    }
+
+    if (!sourceUrl.startsWith('dart:') &&
+        !sourceUrl.startsWith('package:') &&
+        sourceUrl.contains('dart_sdk.js')) {
+      // This compresses the long dart_sdk URLs if SDK source maps are missing.
+      // It's no longer linkable, but neither are the properly mapped ones
+      // above.
+      sourceUrl = 'dart:sdk_internal';
     }
 
     return new Frame(Uri.parse(sourceUrl), span.start.line + 1,

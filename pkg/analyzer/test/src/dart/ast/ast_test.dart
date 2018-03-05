@@ -4,14 +4,17 @@
 
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/parser_test.dart';
+import '../../../generated/resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExpressionImplTest);
+    defineReflectiveTests(InstanceCreationExpressionImplTest);
     defineReflectiveTests(IntegerLiteralImplTest);
   });
 }
@@ -44,6 +47,16 @@ class C {
 }
 ''');
     assertInContext("C(0", true);
+  }
+
+  test_inConstantContext_instanceCreation_functionLiteral() {
+    parse('''
+const V = () => C();
+class C {
+  const C();
+}
+''');
+    assertInContext("C()", false);
   }
 
   test_inConstantContext_instanceCreation_initializer_false() {
@@ -213,6 +226,16 @@ class C {
     assertInContext("[]", true);
   }
 
+  test_inConstantContext_listLiteral_functionLiteral() {
+    parse('''
+const V = () => [];
+class C {
+  const C();
+}
+''');
+    assertInContext("[]", false);
+  }
+
   test_inConstantContext_listLiteral_initializer_false() {
     parse('''
 var c = [];
@@ -313,6 +336,16 @@ class C {
     assertInContext("{}", true);
   }
 
+  test_inConstantContext_mapLiteral_functionLiteral() {
+    parse('''
+const V = () => {};
+class C {
+  const C();
+}
+''');
+    assertInContext("{}", false);
+  }
+
   test_inConstantContext_mapLiteral_initializer_false() {
     parse('''
 var c = {};
@@ -401,6 +434,179 @@ f(v) {
 }
 ''');
     assertInContext("{}", true);
+  }
+}
+
+@reflectiveTest
+class InstanceCreationExpressionImplTest extends ResolverTestCase {
+  String testSource;
+  CompilationUnitImpl testUnit;
+
+  void assertInContext(String snippet, bool isConst) {
+    int index = testSource.indexOf(snippet);
+    expect(index >= 0, isTrue);
+    NodeLocator visitor = new NodeLocator(index);
+    AstNodeImpl node = visitor.searchWithin(testUnit);
+    node = node.getAncestor((node) => node is InstanceCreationExpressionImpl);
+    expect(node, isNotNull);
+    expect((node as InstanceCreationExpressionImpl).isConst,
+        isConst ? isTrue : isFalse);
+  }
+
+  void enablePreviewDart2() {
+    resetWith(options: new AnalysisOptionsImpl()..previewDart2 = true);
+  }
+
+  void resolve(String source) async {
+    testSource = source;
+    testUnit = await resolveSource2('/test.dart', source);
+  }
+
+  void test_isConst_notInContext_constructor_const_generic_named() async {
+    enablePreviewDart2();
+    await resolve('''
+f() => <Object>[C<int>.n()];
+class C<E> {
+  const C.n();
+}
+''');
+    assertInContext("C<int>.n", true);
+  }
+
+  void
+      test_isConst_notInContext_constructor_const_generic_named_prefixed() async {
+    enablePreviewDart2();
+    addNamedSource('/c.dart', '''
+class C<E> {
+  const C.n();
+}
+''');
+    await resolve('''
+import 'c.dart' as p;
+f() => <Object>[p.C<int>.n()];
+''');
+    assertInContext("C<int>", true);
+  }
+
+  void test_isConst_notInContext_constructor_const_generic_unnamed() async {
+    enablePreviewDart2();
+    await resolve('''
+f() => <Object>[C<int>()];
+class C<E> {
+  const C();
+}
+''');
+    assertInContext("C<int>", true);
+  }
+
+  void
+      test_isConst_notInContext_constructor_const_generic_unnamed_prefixed() async {
+    enablePreviewDart2();
+    addNamedSource('/c.dart', '''
+class C<E> {
+  const C();
+}
+''');
+    await resolve('''
+import 'c.dart' as p;
+f() => <Object>[p.C<int>()];
+''');
+    assertInContext("C<int>", true);
+  }
+
+  void
+      test_isConst_notInContext_constructor_const_nonConstParam_constructor() async {
+    enablePreviewDart2();
+    await resolve('''
+f() {
+  return A(B());
+}
+
+class A {
+  const A(B b);
+}
+
+class B {
+  B();
+}
+''');
+    assertInContext("B())", false);
+  }
+
+  void
+      test_isConst_notInContext_constructor_const_nonConstParam_variable() async {
+    enablePreviewDart2();
+    await resolve('''
+f(int i) => <Object>[C(i)];
+class C {
+  final int f;
+  const C(this.f);
+}
+''');
+    assertInContext("C(i)", false);
+  }
+
+  void test_isConst_notInContext_constructor_const_nonGeneric_named() async {
+    enablePreviewDart2();
+    await resolve('''
+f() => <Object>[C.n()];
+class C<E> {
+  const C.n();
+}
+''');
+    assertInContext("C.n()", true);
+  }
+
+  void
+      test_isConst_notInContext_constructor_const_nonGeneric_named_prefixed() async {
+    enablePreviewDart2();
+    addNamedSource('/c.dart', '''
+class C {
+  const C.n();
+}
+''');
+    await resolve('''
+import 'c.dart' as p;
+f() => <Object>[p.C.n()];
+''');
+    assertInContext("C.n()", true);
+  }
+
+  void test_isConst_notInContext_constructor_const_nonGeneric_unnamed() async {
+    enablePreviewDart2();
+    await resolve('''
+f() => <Object>[C()];
+class C {
+  const C();
+}
+''');
+    assertInContext("C()", true);
+  }
+
+  void
+      test_isConst_notInContext_constructor_const_nonGeneric_unnamed_prefixed() async {
+    enablePreviewDart2();
+    addNamedSource('/c.dart', '''
+class C {
+  const C();
+}
+''');
+    await resolve('''
+import 'c.dart' as p;
+f() => <Object>[p.C()];
+''');
+    assertInContext("C()", true);
+  }
+
+  void test_isConst_notInContext_constructor_nonConst() async {
+    enablePreviewDart2();
+    await resolve('''
+f() => <Object>[C()];
+class C {
+  C();
+}
+''');
+    assertInContext("C()", false);
   }
 }
 

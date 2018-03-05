@@ -289,6 +289,8 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   void setUseKernel(String argument) {
     useKernel = true;
+    // TODO(sigmund): reenable hints (Issue #32111)
+    showHints = false;
     passThrough(argument);
   }
 
@@ -346,6 +348,7 @@ Future<api.CompilationResult> compile(List<String> argv,
         '--output-type=dart|--output-type=dart-multi|--output-type=js',
         setOutputType),
     new OptionHandler(Flags.useKernel, setUseKernel),
+    new OptionHandler(Flags.useOldFrontend, ignoreOption),
     new OptionHandler(Flags.platformBinaries, setPlatformBinaries),
     new OptionHandler(Flags.noFrequencyBasedMinification, passThrough),
     new OptionHandler(Flags.verbose, setVerbose),
@@ -390,6 +393,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.disableNativeLiveTypeAnalysis, passThrough),
     new OptionHandler('--categories=.*', setCategories),
     new OptionHandler(Flags.disableInlining, implyCompilation),
+    new OptionHandler(Flags.disableProgramSplit, implyCompilation),
     new OptionHandler(Flags.disableTypeInference, implyCompilation),
     new OptionHandler(Flags.disableRtiOptimization, implyCompilation),
     new OptionHandler(Flags.terse, passThrough),
@@ -402,7 +406,6 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.enableExperimentalMirrors, passThrough),
     new OptionHandler(Flags.enableAssertMessage, passThrough),
     new OptionHandler(Flags.strongMode, passThrough),
-    new OptionHandler(Flags.addMethodSignatures, passThrough),
 
     // TODO(floitsch): remove conditional directives flag.
     // We don't provide the info-message yet, since we haven't publicly

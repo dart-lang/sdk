@@ -15,8 +15,8 @@
 set -e
 
 OPTIONS=()
+GEN_KERNEL_OPTIONS=()
 PACKAGES=
-SYNC_ASYNC=
 
 ARGV=()
 for arg in "$@"; do
@@ -24,8 +24,11 @@ for arg in "$@"; do
     --packages=*)
     PACKAGES="$arg"
     ;;
-    --sync-async)
-    SYNC_ASYNC="--sync-async"
+    --sync-async | \
+    --no-sync-async | \
+    --tfa | \
+    --no-tfa )
+    GEN_KERNEL_OPTIONS+=("$arg")
     ;;
     --*)
     OPTIONS+=("$arg")
@@ -70,14 +73,19 @@ fi
 export DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
 BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
 
+ENTRY_POINTS="--entry-points ${BIN_DIR}/gen/runtime/bin/precompiler_entry_points.json \
+              --entry-points ${SDK_DIR}/pkg/vm/lib/transformations/type_flow/entry_points_extra.json \
+              --entry-points ${SDK_DIR}/pkg/vm/lib/transformations/type_flow/entry_points_extra_standalone.json"
+
 # Step 1: Generate Kernel binary from the input Dart source.
 "$BIN_DIR"/dart                                                                \
      --limit-ints-to-64-bits                                                   \
      "${SDK_DIR}/pkg/vm/bin/gen_kernel.dart"                                   \
      --platform "${BIN_DIR}/vm_platform_strong.dill"                           \
      --aot                                                                     \
-     $SYNC_ASYNC                                                               \
+     "${GEN_KERNEL_OPTIONS[@]}"                                                \
      $PACKAGES                                                                 \
+     $ENTRY_POINTS                                                             \
      -o "$SNAPSHOT_FILE.dill"                                                  \
      "$SOURCE_FILE"
 

@@ -604,6 +604,49 @@ abstract class Element implements AnalysisTarget, ResolutionTarget {
   Element get enclosingElement;
 
   /**
+   * Return `true` if this element has an annotation of the form
+   * `@alwaysThrows`.
+   */
+  bool get hasAlwaysThrows;
+
+  /**
+   * Return `true` if this element has an annotation of the form `@deprecated`
+   * or `@Deprecated('..')`.
+   */
+  bool get hasDeprecated;
+
+  /**
+   * Return `true` if this element has an annotation of the form `@factory`.
+   */
+  bool get hasFactory;
+
+  /**
+   * Return `true` if this element has an annotation of the form `@JS(..)`.
+   */
+  bool get hasJS;
+
+  /**
+   * Return `true` if this element has an annotation of the form `@override`.
+   */
+  bool get hasOverride;
+
+  /**
+   * Return `true` if this element has an annotation of the form `@protected`.
+   */
+  bool get hasProtected;
+
+  /**
+   * Return `true` if this element has an annotation of the form '@required'.
+   */
+  bool get hasRequired;
+
+  /**
+   * Return `true` if this element has an annotation of the form
+   * `@visibleForTesting`.
+   */
+  bool get hasVisibleForTesting;
+
+  /**
    * The unique integer identifier of this element.
    */
   int get id;
@@ -612,27 +655,32 @@ abstract class Element implements AnalysisTarget, ResolutionTarget {
    * Return `true` if this element has an annotation of the form
    * '@alwaysThrows'.
    */
+  @deprecated
   bool get isAlwaysThrows;
 
   /**
    * Return `true` if this element has an annotation of the form '@deprecated'
    * or '@Deprecated('..')'.
    */
+  @deprecated
   bool get isDeprecated;
 
   /**
    * Return `true` if this element has an annotation of the form '@factory'.
    */
+  @deprecated
   bool get isFactory;
 
   /**
    * Return `true` if this element has an annotation of the form '@JS(..)'.
    */
+  @deprecated
   bool get isJS;
 
   /**
    * Return `true` if this element has an annotation of the form '@override'.
    */
+  @deprecated
   bool get isOverride;
 
   /**
@@ -644,6 +692,7 @@ abstract class Element implements AnalysisTarget, ResolutionTarget {
   /**
    * Return `true` if this element has an annotation of the form '@protected'.
    */
+  @deprecated
   bool get isProtected;
 
   /**
@@ -655,6 +704,7 @@ abstract class Element implements AnalysisTarget, ResolutionTarget {
   /**
    * Return `true` if this element has an annotation of the form '@required'.
    */
+  @deprecated
   bool get isRequired;
 
   /**
@@ -667,6 +717,7 @@ abstract class Element implements AnalysisTarget, ResolutionTarget {
 
   /// Return `true` if this element has an annotation of the form
   /// '@visibleForTesting'.
+  @deprecated
   bool get isVisibleForTesting;
 
   /**
@@ -877,8 +928,10 @@ abstract class ElementAnnotation
    */
   bool get isRequired;
 
-  /// Return `true` if this annotation marks the associated member as being
-  /// visible for testing.
+  /**
+   * Return `true` if this annotation marks the associated member as being
+   * visible for testing.
+   */
   bool get isVisibleForTesting;
 
   /**
@@ -1700,8 +1753,44 @@ abstract class ParameterElement
   bool get isInitializingFormal;
 
   /**
+   * Return `true` if this parameter is a named parameter. Named parameters are
+   * always optional, even when they are annotated with the `@required`
+   * annotation.
+   */
+  bool get isNamed;
+
+  /**
+   * Return `true` if this parameter is a required parameter. Required
+   * parameters are always positional.
+   *
+   * Note: this will return `false` for a named parameter that is annotated with
+   * the `@required` annotation.
+   */
+  // TODO(brianwilkerson) Rename this to `isRequired`.
+  bool get isNotOptional;
+
+  /**
+   * Return `true` if this parameter is an optional parameter. Optional
+   * parameters can either be positional or named.
+   */
+  bool get isOptional;
+
+  /**
+   * Return `true` if this parameter is both an optional and positional
+   * parameter.
+   */
+  bool get isOptionalPositional;
+
+  /**
+   * Return `true` if this parameter is a positional parameter. Positional
+   * parameters can either be required or optional.
+   */
+  bool get isPositional;
+
+  /**
    * Return the kind of this parameter.
    */
+  @deprecated
   ParameterKind get parameterKind;
 
   /**

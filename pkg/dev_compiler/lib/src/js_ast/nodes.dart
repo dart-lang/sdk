@@ -336,6 +336,12 @@ abstract class Statement extends ModuleItem {
   /// JavaScript syntax error due to a redeclared identifier.
   bool shadows(Set<String> names) => false;
 
+  /// If this statement [shadows] any name from [names], this will wrap it in a
+  /// new scoped [Block].
+  Statement toScopedBlock(Set<String> names) {
+    return shadows(names) ? new Block([this], isScope: true) : this;
+  }
+
   Statement toStatement() => this;
   Statement toReturn() => new Block([this, new Return()]);
 
@@ -357,6 +363,18 @@ class Block extends Statement {
 
   @override
   Block toBlock() => this;
+
+  @override
+  bool shadows(Set<String> names) =>
+      !isScope && statements.any((s) => s.shadows(names));
+
+  @override
+  Statement toScopedBlock(Set<String> names) {
+    var scoped = statements.any((s) => s.shadows(names));
+    if (scoped == isScope) return this;
+    return new Block(statements, isScope: scoped)
+      ..sourceInformation = sourceInformation;
+  }
 
   accept(NodeVisitor visitor) => visitor.visitBlock(this);
   void visitChildren(NodeVisitor visitor) {

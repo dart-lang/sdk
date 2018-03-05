@@ -215,14 +215,39 @@ class TypeEnvironment {
     return getElementType(name);
   }
 
-  DartType getMemberType(ClassEntity cls, String name) {
-    MemberEntity member = elementEnvironment.lookupLocalClassMember(cls, name);
+  MemberEntity _getMember(String name, [ClassEntity cls]) {
+    if (cls != null) {
+      return elementEnvironment.lookupLocalClassMember(cls, name);
+    } else {
+      LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
+      return elementEnvironment.lookupLibraryMember(mainLibrary, name);
+    }
+  }
+
+  DartType getMemberType(String name, [ClassEntity cls]) {
+    MemberEntity member = _getMember(name, cls);
     if (member is FieldEntity) {
       return elementEnvironment.getFieldType(member);
     } else if (member is FunctionEntity) {
       return elementEnvironment.getFunctionType(member);
     }
     throw 'Unexpected member: $member';
+  }
+
+  DartType getClosureType(String name, [ClassEntity cls]) {
+    if (testBackendWorld) {
+      throw new UnsupportedError(
+          "getClosureType not supported for backend testing.");
+    }
+    MemberEntity member = _getMember(name, cls);
+    DartType type;
+    compiler.resolutionWorldBuilder
+        .forEachLocalFunction((MemberEntity m, Local local) {
+      if (member == m) {
+        type ??= elementEnvironment.getLocalFunctionType(local);
+      }
+    });
+    return type;
   }
 
   DartType getFieldType(String name) {

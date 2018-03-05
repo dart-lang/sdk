@@ -10,6 +10,7 @@
 #include <WinIoCtl.h>  // NOLINT
 #include <fcntl.h>     // NOLINT
 #include <io.h>        // NOLINT
+#include <Shlwapi.h>   // NOLINT
 #include <stdio.h>     // NOLINT
 #include <string.h>    // NOLINT
 #include <sys/stat.h>  // NOLINT
@@ -277,6 +278,18 @@ File* File::Open(Namespace* namespc, const char* path, FileOpenMode mode) {
   Utf8ToWideScope system_name(path);
   File* file = FileOpenW(system_name.wide(), mode);
   return file;
+}
+
+File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
+  Utf8ToWideScope uri_w(uri);
+  if (!UrlIsFileUrlW(uri_w.wide())) {
+    return FileOpenW(uri_w.wide(), mode);
+  }
+  wchar_t filename_w[MAX_PATH];
+  DWORD filename_len = MAX_PATH;
+  HRESULT result = PathCreateFromUrlW(uri_w.wide(),
+      filename_w, &filename_len, /* dwFlags= */ NULL);
+  return (result == S_OK) ? FileOpenW(filename_w, mode) : NULL;
 }
 
 File* File::OpenStdio(int fd) {

@@ -42,6 +42,7 @@ class IsolateProfilerData;
 class IsolateReloadContext;
 class IsolateSpawnState;
 class Log;
+class Message;
 class MessageHandler;
 class Mutex;
 class Object;
@@ -1125,10 +1126,8 @@ class IsolateSpawnState {
   const char* library_url_;
   const char* class_name_;
   const char* function_name_;
-  uint8_t* serialized_args_;
-  intptr_t serialized_args_len_;
-  uint8_t* serialized_message_;
-  intptr_t serialized_message_len_;
+  Message* serialized_args_;
+  Message* serialized_message_;
 
   // This counter tracks the number of outstanding calls to spawn by the parent
   // isolate.

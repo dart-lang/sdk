@@ -18,7 +18,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /**
@@ -73,7 +72,7 @@ String _getMethodSourceForInvocation(
       argumentSource = utils.getNodeText(argument);
     } else {
       // report about a missing required parameter
-      if (parameter.parameterKind == ParameterKind.REQUIRED) {
+      if (parameter.isNotOptional) {
         status.addError('No argument for the parameter "${parameter.name}".',
             newLocation_fromNode(contextNode));
         return;

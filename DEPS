@@ -42,7 +42,7 @@ vars = {
   # Fuchsia. This revision should be kept up to date with the revision pulled
   # by the Flutter engine. If there are problems with the toolchain, contact
   # fuchsia-toolchain@.
-  "buildtools_revision": "@de2d6da936fa0be8bcb0bacd096fe124efff2854",
+  "buildtools_revision": "@446d5b1019dcbe7835236dc85261e91cf29a9239",
 
   # Scripts that make 'git cl format' work.
   "clang_format_scripts_rev": "@c09c8deeac31f05bd801995c475e7c8070f9ecda",
@@ -51,19 +51,19 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "args_tag": "@0.13.7",
-  "async_tag": "@corelib_2_2_1",
+  "async_tag": "@2.0.6",
   "barback-0.13.0_rev": "@34853",
   "barback-0.14.0_rev": "@36398",
   "barback-0.14.1_rev": "@38525",
   "barback_tag" : "@0.15.2+14",
   "bazel_worker_tag": "@v0.1.9",
   "boolean_selector_tag" : "@1.0.2",
-  "boringssl_gen_rev": "@d2b56d1b7657e52eb5a1f075968c773aa3e53614",
-  "boringssl_rev" : "@d519bf6be0b447fb80fbc539d4bff4479b5482a2",
+  "boringssl_gen_rev": "@39762c7f9ee4d828ff212838fae79528b94d5443",
+  "boringssl_rev" : "@a62dbf88d8a3c04446db833a1eb80a620cb1514d",
   "charcode_tag": "@v1.1.1",
   "chrome_rev" : "@19997",
   "cli_util_tag" : "@0.1.2+1",
-  "collection_tag": "@1.14.5",
+  "collection_tag": "@5943e1681204250f33a833eb5550f270357ad6c8",
   "convert_tag": "@2.0.1",
   "crypto_tag" : "@2.0.2+1",
   "csslib_tag" : "@0.14.1",
@@ -81,9 +81,9 @@ vars = {
   #     minutes later.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_tag": "@1.0.9",  # Please see the note above before updating.
+  "dart_style_tag": "@1.0.10",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "@v0.15.1",
+  "dartdoc_tag" : "@v0.17.0",
   "fixnum_tag": "@0.10.5",
   "func_rev": "@25eec48146a58967d75330075ab376b3838b18a8",
   "glob_tag": "@1.1.5",
@@ -99,12 +99,12 @@ vars = {
   "isolate_tag": "@1.1.0",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@2.0.6",
-  "linter_tag": "@0.1.42",
+  "linter_tag": "@0.1.43",
   "logging_tag": "@0.11.3+1",
   "markdown_tag": "@1.0.0",
   "matcher_tag": "@0.12.1+4",
   "mime_tag": "@0.9.6",
-  "mockito_tag": "@2.0.2",
+  "mockito_tag": "@a92db054fba18bc2d605be7670aee74b7cadc00a",
   "mustache4dart_tag" : "@v2.1.0",
   "oauth2_tag": "@1.1.0",
   "observatory_pub_packages_rev": "@4c282bb240b68f407c8c7779a65c68eeb0139dc6",
@@ -115,11 +115,11 @@ vars = {
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "@1.3.4",
   "protobuf_tag": "@0.7.0",
-  "pub_rev": "@64c5f40adf6828da1b63320dd39bcedbef1354c6",
+  "pub_rev": "@73ff0d3d9f80f60d41e3135ac44597d011abb4f3",
   "pub_semver_tag": "@1.3.2",
-  "quiver_tag": "@0.28.0",
+  "quiver_tag": "@5aaa3f58c48608af5b027444d561270b53f15dbf",
   "resource_rev":"@af5a5bf65511943398146cf146e466e5f0b95cb9",
-  "root_certificates_rev": "@a4c7c6f23a664a37bc1b6f15a819e3f2a292791a",
+  "root_certificates_rev": "@16ef64be64c7dfdff2b9f4b910726e635ccc519e",
   "shelf_static_rev": "@3558aa35a0d2f0f35868c3fd64b258e140db0122",
   "shelf_packages_handler_tag": "@1.0.3",
   "shelf_tag": "@0.7.1",
@@ -142,7 +142,7 @@ vars = {
   "usage_tag": "@3.3.0",
   "utf_tag": "@0.9.0+4",
   "watcher_tag": "@0.9.7+7",
-  "web_socket_channel_tag": "@corelib_2_2_1",
+  "web_socket_channel_tag": "@1.0.7",
   "WebCore_rev": "@3c45690813c112373757bbef53de1602a62af609",
   "yaml_tag": "@2.1.13",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",

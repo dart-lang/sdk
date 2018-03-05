@@ -654,12 +654,12 @@ RawString* Symbols::NewFormattedV(Thread* thread,
                                   va_list args) {
   va_list args_copy;
   va_copy(args_copy, args);
-  intptr_t len = OS::VSNPrint(NULL, 0, format, args_copy);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, args_copy);
   va_end(args_copy);
 
   Zone* zone = Thread::Current()->zone();
   char* buffer = zone->Alloc<char>(len + 1);
-  OS::VSNPrint(buffer, (len + 1), format, args);
+  Utils::VSNPrint(buffer, (len + 1), format, args);
 
   return Symbols::New(thread, buffer);
 }

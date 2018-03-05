@@ -136,6 +136,9 @@ class _EventStream<T extends Event> extends Stream<T> {
       this;
   bool get isBroadcast => true;
 
+  // TODO(9757): Inlining should be smart and inline only when inlining would
+  // enable scalar replacement of an immediately allocated receiver.
+  @ForceInline()
   StreamSubscription<T> listen(void onData(T event),
       {Function onError, void onDone(), bool cancelOnError}) {
     return new _EventStreamSubscription<T>(

@@ -232,10 +232,6 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
 
     String executable = suite.dartVmBinaryFileName;
     if (type == 'application/kernel-ir-fully-linked') {
-      // We don't use the pkg/vm/tool/dart2 wrapper script for fully linked
-      // kernel files, since we don't want to pass the --dfe/--kernel-binaries
-      // flags to the VM (the vm cannot distinguish fully-linked vs
-      // not-fully-linked, see http://dartbug.com/31545)
       executable = suite.dartVmExecutableFileName;
     }
     return [Command.vm(executable, arguments, environmentOverrides)];

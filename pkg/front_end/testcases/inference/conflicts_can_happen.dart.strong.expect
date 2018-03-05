@@ -40,5 +40,11 @@ class C2 extends core::Object implements self::B, self::A {
   get a() → dynamic
     return null;
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference/conflicts_can_happen.dart:25:79: Error: Can't infer the type of 'a': overridden members must all have the same type.\nSpecify the type explicitly.\n  get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ a =>\n                                                                              ^", "pkg/front_end/testcases/inference/conflicts_can_happen.dart:31:79: Error: Can't infer the type of 'a': overridden members must all have the same type.\nSpecify the type explicitly.\n  get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ a =>\n                                                                              ^"]/* from null */;
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference/conflicts_can_happen.dart:25:79: Error: Can't infer the type of 'a': overridden members must all have the same type.
+Specify the type explicitly.
+  get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ a =>
+                                                                              ^", "pkg/front_end/testcases/inference/conflicts_can_happen.dart:31:79: Error: Can't infer the type of 'a': overridden members must all have the same type.
+Specify the type explicitly.
+  get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ a =>
+                                                                              ^"]/* from null */;
 static method main() → dynamic {}

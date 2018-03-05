@@ -302,7 +302,7 @@ class KernelImpactBuilder extends ir.Visitor {
         return;
       }
       StringConstantValue stringValue = value;
-      impactBuilder.registerConstSymbolName(stringValue.primitiveValue);
+      impactBuilder.registerConstSymbolName(stringValue.stringValue);
     }
   }
 
@@ -536,6 +536,12 @@ class KernelImpactBuilder extends ir.Visitor {
         node.message != null ? Feature.ASSERT_WITH_MESSAGE : Feature.ASSERT);
     visitNode(node.condition);
     visitNode(node.message);
+  }
+
+  @override
+  void visitInstantiation(ir.Instantiation node) {
+    impactBuilder.registerFeature(Feature.GENERIC_INSTANTIATION);
+    node.visitChildren(this);
   }
 
   @override
