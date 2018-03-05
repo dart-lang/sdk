@@ -23,7 +23,8 @@ import 'package:front_end/src/api_prototype/memory_file_system.dart'
 
 import 'package:front_end/src/fasta/fasta_codes.dart' show LocatedMessage;
 
-import 'package:front_end/src/fasta/severity.dart' show Severity;
+import 'package:front_end/src/fasta/severity.dart'
+    show Severity, severityEnumValues;
 
 import 'package:front_end/src/testing/hybrid_file_system.dart'
     show HybridFileSystem;
@@ -77,8 +78,8 @@ class MessageTestSuite extends ChainContext {
             new HybridFileSystem(fileSystem), problemHandler(problems));
 
   /// Convert all the examples found in `messages.yaml` to a test
-  /// description. In addition, for each problem found, create a test
-  /// description that has a problem. This problem will then be reported as a
+  /// description. In addition, create a test description for each kind of
+  /// problem that a message can have. This problem will then be reported as a
   /// failure by the [Validate] step that can be suppressed via the status
   /// file.
   Stream<MessageTestDescription> list(Chain suite) async* {
@@ -94,6 +95,8 @@ class MessageTestSuite extends ChainContext {
       List<Example> examples = <Example>[];
       String analyzerCode;
       String dart2jsCode;
+      Severity severity;
+      YamlNode badSeverity;
 
       for (String key in message.keys) {
         YamlNode node = message.nodes[key];
@@ -101,7 +104,13 @@ class MessageTestSuite extends ChainContext {
         switch (key) {
           case "template":
           case "tip":
+            break;
+
           case "severity":
+            severity = severityEnumValues[value];
+            if (severity == null) {
+              badSeverity = node;
+            }
             break;
 
           case "analyzerCode":
@@ -177,11 +186,12 @@ class MessageTestSuite extends ChainContext {
       }
 
       MessageTestDescription createDescription(
-          String subName, Example example, String problem) {
+          String subName, Example example, String problem,
+          {location}) {
         String shortName = "$name/$subName";
         if (problem != null) {
           String filename = relativize(uri);
-          var location = message.span.start;
+          location ??= message.span.start;
           int line = location.line;
           int column = location.column;
           problem = "$filename:$line:$column: error:\n$problem";
@@ -194,34 +204,51 @@ class MessageTestSuite extends ChainContext {
         yield createDescription(example.name, example, null);
       }
 
-      if (unknownKeys.isNotEmpty) {
-        yield createDescription(
-            "knownKeys", null, "Unknown keys: ${unknownKeys.join(' ')}.");
-      }
+      yield createDescription(
+          "knownKeys",
+          null,
+          unknownKeys.isNotEmpty
+              ? "Unknown keys: ${unknownKeys.join(' ')}."
+              : null);
 
-      if (examples.isEmpty) {
-        yield createDescription("example", null,
-            "No example for $name, please add at least one example.");
-      }
+      yield createDescription(
+          "severity",
+          null,
+          badSeverity != null
+              ? "Unknown severity: '${badSeverity.value}'."
+              : null,
+          location: badSeverity?.span?.start);
 
-      if (analyzerCode == null) {
-        yield createDescription(
-            "analyzerCode",
-            null,
-            "No analyzer code for $name."
-            "\nTry running"
-            " <BUILDDIR>/dart-sdk/bin/dartanalyzer --format=machine"
-            " on an example to find the code."
-            " The code is printed just before the file name.");
-      } else {
-        if (dart2jsCode == null) {
-          yield createDescription(
-              "dart2jsCode",
-              null,
-              "No dart2js code for $name."
-              " Try using *ignored* or *fatal*");
-        }
-      }
+      bool exampleAndAnalyzerCodeRequired = (severity != Severity.context &&
+          severity != Severity.internalProblem);
+
+      yield createDescription(
+          "example",
+          null,
+          exampleAndAnalyzerCodeRequired && examples.isEmpty
+              ? "No example for $name, please add at least one example."
+              : null);
+
+      yield createDescription(
+          "analyzerCode",
+          null,
+          exampleAndAnalyzerCodeRequired && analyzerCode == null
+              ? "No analyzer code for $name."
+                  "\nTry running"
+                  " <BUILDDIR>/dart-sdk/bin/dartanalyzer --format=machine"
+                  " on an example to find the code."
+                  " The code is printed just before the file name."
+              : null);
+
+      yield createDescription(
+          "dart2jsCode",
+          null,
+          exampleAndAnalyzerCodeRequired &&
+                  analyzerCode != null &&
+                  dart2jsCode == null
+              ? "No dart2js code for $name."
+                  " Try using *ignored* or *fatal*"
+              : null);
     }
   }
 
@@ -384,6 +411,7 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
   String get name => "compile";
 
   Future<Result<Null>> run(Example example, MessageTestSuite suite) async {
+    if (example == null) return pass(null);
     String name = "${example.expectedCode}/${example.name}";
     Uri uri = suite.addSource("${name}.dart", example.bytes);
     print("Compiling $uri");
