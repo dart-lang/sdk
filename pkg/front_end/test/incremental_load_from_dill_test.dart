@@ -19,6 +19,10 @@ import 'package:front_end/src/fasta/kernel/utils.dart'
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
 
+import 'package:front_end/src/fasta/fasta_codes.dart' show LocatedMessage;
+
+import 'package:front_end/src/fasta/severity.dart' show Severity;
+
 Directory outDir;
 
 main() async {
@@ -26,6 +30,10 @@ main() async {
   await runPassingTest(testDisappearingLibrary);
   await runPassingTest(testDeferredLibrary);
   await runPassingTest(testStrongModeMixins);
+  await runFailingTest(
+      testStrongModeMixins2,
+      "testStrongModeMixins2_a.dart: Error: "
+      "The parameter 'value' of the method 'A::child' has type");
 }
 
 void runFailingTest(dynamic test, String expectContains) async {
@@ -50,6 +58,49 @@ void runPassingTest(dynamic test) async {
   } finally {
     outDir.deleteSync(recursive: true);
   }
+}
+
+/// Compile in strong mode. Use mixins.
+void testStrongModeMixins2() async {
+  final Uri a = outDir.uri.resolve("testStrongModeMixins2_a.dart");
+  final Uri b = outDir.uri.resolve("testStrongModeMixins2_b.dart");
+
+  Uri output = outDir.uri.resolve("testStrongModeMixins2_full.dill");
+  Uri bootstrappedOutput =
+      outDir.uri.resolve("testStrongModeMixins2_full_from_bootstrap.dill");
+
+  new File.fromUri(a).writeAsStringSync("""
+    import 'testStrongModeMixins2_b.dart';
+    class A extends Object with B<C>, D<Object> {}
+    """);
+  new File.fromUri(b).writeAsStringSync("""
+    abstract class B<ChildType extends Object> extends Object {
+      ChildType get child => null;
+      set child(ChildType value) {}
+    }
+
+    class C extends Object {}
+
+    abstract class D<T extends Object> extends Object with B<T> {}
+    """);
+
+  Stopwatch stopwatch = new Stopwatch()..start();
+  await normalCompile(a, output, options: getOptions()..strongMode = true);
+  print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
+
+  stopwatch.reset();
+  bool bootstrapResult = await bootstrapCompile(
+      a, bootstrappedOutput, output, [a],
+      performSizeTests: false, options: getOptions()..strongMode = true);
+  print("Bootstrapped compile(s) from ${output.pathSegments.last} "
+      "took ${stopwatch.elapsedMilliseconds} ms");
+  Expect.isTrue(bootstrapResult);
+
+  // Compare the two files.
+  List<int> normalDillData = new File.fromUri(output).readAsBytesSync();
+  List<int> bootstrappedDillData =
+      new File.fromUri(bootstrappedOutput).readAsBytesSync();
+  checkBootstrappedIsEqual(normalDillData, bootstrappedDillData);
 }
 
 /// Compile in strong mode. Invalidate a file so type inferrer starts
@@ -273,6 +324,12 @@ CompilerOptions getOptions() {
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
+    ..onProblem = (LocatedMessage message, Severity severity, String formatted,
+        int line, int column) {
+      if (severity == Severity.error || severity == Severity.warning) {
+        Expect.fail("Unexpected error: $formatted");
+      }
+    }
     ..strongMode = false;
   return options;
 }
