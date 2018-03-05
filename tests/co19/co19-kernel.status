@@ -133,12 +133,6 @@ Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t01: MissingCompile
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t03: MissingCompileTimeError
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: MissingCompileTimeError
 Language/Types/Interface_Types/subtype_t30: CompileTimeError
-Language/Types/Type_Void/syntax_t01: MissingCompileTimeError
-Language/Types/Type_Void/syntax_t02: MissingCompileTimeError
-Language/Types/Type_Void/syntax_t04: MissingCompileTimeError
-Language/Types/Type_Void/syntax_t05: MissingCompileTimeError
-Language/Types/Type_Void/syntax_t08: MissingCompileTimeError
-Language/Types/Type_Void/syntax_t09: MissingCompileTimeError
 Language/Variables/final_or_static_initialization_t02: MissingCompileTimeError
 Language/Variables/final_or_static_initialization_t03: MissingCompileTimeError
 LibTest/core/double/isInfinite_A01_t03: CompileTimeError
