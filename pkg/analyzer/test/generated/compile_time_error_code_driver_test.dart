@@ -18,6 +18,10 @@ class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTest {
   bool get enableNewAnalysisDriver => true;
 
   @override // Passes with driver
+  test_mixinInference_doNotIgnorePreviousExplicitMixins() =>
+      super.test_mixinInference_doNotIgnorePreviousExplicitMixins();
+
+  @override // Passes with driver
   test_mixinInference_recursiveSubtypeCheck() =>
       super.test_mixinInference_recursiveSubtypeCheck();
 }

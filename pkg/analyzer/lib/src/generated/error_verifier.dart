@@ -6214,27 +6214,31 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     ClassElementImpl.collectAllSupertypes(
         supertypesForMixinInference, supertype, type);
     for (var typeName in withClause.mixinTypes) {
-      if (typeName.typeArguments != null) continue;
       var mixinElement = typeName.name.staticElement;
       if (mixinElement is ClassElement) {
-        var mixinSupertypeConstraints =
-            _typeSystem.gatherMixinSupertypeConstraints(mixinElement);
-        if (mixinSupertypeConstraints.isNotEmpty) {
-          var matchingInterfaceTypes = _findInterfaceTypesForConstraints(
-              typeName, mixinSupertypeConstraints, supertypesForMixinInference);
-          if (matchingInterfaceTypes != null) {
-            // Try to pattern match matchingInterfaceType against
-            // mixinSupertypeConstraint to find the correct set of type
-            // parameters to apply to the mixin.
-            var matchedType = _typeSystem.matchSupertypeConstraints(
-                mixinElement,
+        if (typeName.typeArguments == null) {
+          var mixinSupertypeConstraints =
+              _typeSystem.gatherMixinSupertypeConstraints(mixinElement);
+          if (mixinSupertypeConstraints.isNotEmpty) {
+            var matchingInterfaceTypes = _findInterfaceTypesForConstraints(
+                typeName,
                 mixinSupertypeConstraints,
-                matchingInterfaceTypes);
-            if (matchedType == null) {
-              _errorReporter.reportErrorForToken(
-                  CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION,
-                  typeName.name.beginToken,
-                  [typeName]);
+                supertypesForMixinInference);
+            if (matchingInterfaceTypes != null) {
+              // Try to pattern match matchingInterfaceType against
+              // mixinSupertypeConstraint to find the correct set of type
+              // parameters to apply to the mixin.
+              var matchedType = _typeSystem.matchSupertypeConstraints(
+                  mixinElement,
+                  mixinSupertypeConstraints,
+                  matchingInterfaceTypes);
+              if (matchedType == null) {
+                _errorReporter.reportErrorForToken(
+                    CompileTimeErrorCode
+                        .MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION,
+                    typeName.name.beginToken,
+                    [typeName]);
+              }
             }
           }
         }

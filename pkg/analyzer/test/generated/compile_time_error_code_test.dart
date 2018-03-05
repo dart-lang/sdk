@@ -3970,6 +3970,23 @@ class C extends A<Map<int, String>> with M {}
         [CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION]);
   }
 
+  @failingTest // Does not work with old task model
+  test_mixinInference_doNotIgnorePreviousExplicitMixins() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    options.strongMode = true;
+    resetWith(options: options);
+    Source source = addSource('''
+class A extends Object with B<String>, C {}
+class B<T> {}
+class C<T> extends B<T> {}
+''');
+    var analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    var mixins = analysisResult.unit.element.getType('A').mixins;
+    expect(mixins[1].toString(), 'C<String>');
+  }
+
   test_mixinInference_impossibleSubstitution() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
