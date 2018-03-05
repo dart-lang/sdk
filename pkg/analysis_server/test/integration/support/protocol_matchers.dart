@@ -2455,15 +2455,13 @@ final Matcher isExtractMethodOptions =
  * {
  *   "file": FilePath
  *   "outline": FlutterOutline
- *   "instrumentationEdits": List<SourceEdit>
+ *   "instrumentedCode": optional String
  * }
  */
-final Matcher isFlutterOutlineParams =
-    new LazyMatcher(() => new MatchesJsonObject("flutter.outline params", {
-          "file": isFilePath,
-          "outline": isFlutterOutline,
-          "instrumentationEdits": isListOf(isSourceEdit)
-        }));
+final Matcher isFlutterOutlineParams = new LazyMatcher(() =>
+    new MatchesJsonObject("flutter.outline params",
+        {"file": isFilePath, "outline": isFlutterOutline},
+        optionalFields: {"instrumentedCode": isString}));
 
 /**
  * flutter.setSubscriptions params
