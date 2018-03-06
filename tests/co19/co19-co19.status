@@ -33,12 +33,6 @@ LibTest/typed_data/Uint8List/last_A01_t02: RuntimeError # co19 issue 130
 
 # Tests that fail everywhere, including the analyzer.
 [ $compiler != fasta ]
-Language/Classes/Getters/type_object_t01: Fail # co19 issue 115
-Language/Classes/Getters/type_object_t02: Fail # co19 issue 115
-Language/Classes/Setters/type_object_t01: Fail # co19 issue 115
-Language/Classes/Setters/type_object_t02: Fail # co19 issue 115
-Language/Classes/Static_Methods/type_object_t01: Fail # co19 issue 115
-Language/Classes/Static_Methods/type_object_t02: Fail # co19 issue 115
 Language/Statements/Assert/syntax_t04: Pass, Fail # assert now has an optional second parameter.
 LibTest/async/Zone/bindBinaryCallback_A01_t02: Fail # co19 issue 126
 LibTest/async/Zone/bindCallback_A01_t02: Fail # co19 issue 126
