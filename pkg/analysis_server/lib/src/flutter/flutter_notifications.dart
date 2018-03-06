@@ -15,7 +15,8 @@ void sendFlutterNotificationOutline(AnalysisServer server, String file,
         new FlutterOutlineComputer(file, content, lineInfo, dartUnit);
     protocol.FlutterOutline outline = computer.compute();
     // send notification
-    var params = new protocol.FlutterOutlineParams(file, outline);
+    var params = new protocol.FlutterOutlineParams(file, outline,
+        instrumentedCode: computer.instrumentedCode);
     server.sendNotification(params.toNotification());
   });
 }
