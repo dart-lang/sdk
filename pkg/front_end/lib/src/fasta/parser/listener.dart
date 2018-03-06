@@ -62,6 +62,9 @@ class Listener {
     logEvent("Block");
   }
 
+  /// Called to handle a block that has been parsed but is not associated
+  /// with any top level function declaration. Substructures:
+  /// - block
   void handleInvalidTopLevelBlock(Token token) {}
 
   void beginCascade(Token token) {}
@@ -912,7 +915,7 @@ class Listener {
     logEvent("FunctionExpression");
   }
 
-  void beginVariablesDeclaration(Token token) {}
+  void beginVariablesDeclaration(Token token, Token varFinalOrConst) {}
 
   void endVariablesDeclaration(int count, Token endToken) {
     logEvent("VariablesDeclaration");

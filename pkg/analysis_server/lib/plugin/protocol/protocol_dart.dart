@@ -25,7 +25,7 @@ Element convertElement(engine.Element element) {
       name,
       Element.makeFlags(
           isPrivate: element.isPrivate,
-          isDeprecated: element.isDeprecated,
+          isDeprecated: element.hasDeprecated,
           isAbstract: _isAbstract(element),
           isConst: _isConst(element),
           isFinal: _isFinal(element),
@@ -145,17 +145,15 @@ String _getParametersString(engine.Element element) {
       sb.write(', ');
     }
     if (closeOptionalString.isEmpty) {
-      engine.ParameterKind kind = parameter.parameterKind;
-      if (kind == engine.ParameterKind.NAMED) {
+      if (parameter.isNamed) {
         sb.write('{');
         closeOptionalString = '}';
-      }
-      if (kind == engine.ParameterKind.POSITIONAL) {
+      } else if (parameter.isOptionalPositional) {
         sb.write('[');
         closeOptionalString = ']';
       }
     }
-    if (parameter.isRequired) {
+    if (parameter.hasRequired) {
       sb.write('@required ');
     }
     parameter.appendToWithoutDelimiters(sb);
@@ -224,11 +222,7 @@ bool _isStatic(engine.Element element) {
 // Sort @required named parameters before optional ones.
 int _preferRequiredParams(
     engine.ParameterElement e1, engine.ParameterElement e2) {
-  int rank1 = e1.isRequired
-      ? 0
-      : e1.parameterKind != engine.ParameterKind.NAMED ? -1 : 1;
-  int rank2 = e2.isRequired
-      ? 0
-      : e2.parameterKind != engine.ParameterKind.NAMED ? -1 : 1;
+  int rank1 = e1.hasRequired ? 0 : !e1.isNamed ? -1 : 1;
+  int rank2 = e2.hasRequired ? 0 : !e2.isNamed ? -1 : 1;
   return rank1 - rank2;
 }

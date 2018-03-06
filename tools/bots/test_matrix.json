@@ -99,6 +99,53 @@
   "configurations": [
     {
       "builders": [
+        "front-end-linux-release-x64",
+        "front-end-mac-release-x64",
+        "front-end-win-release-x64"
+      ],
+      "meta": {
+        "description": "Runs the front-end unit tests, fasta tests and fasta legacy mode tests."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "create_sdk",
+            "dartdevc_test",
+            "kernel_platform_files",
+            "runtime_kernel"
+          ]
+        },
+        {
+          "name": "unit tests",
+          "arguments": [
+            "--checked",
+            "--compiler=none",
+            "--runtime=vm",
+            "--timeout=240",
+            "pkg/(kernel|front_end|fasta)"
+          ]
+        },
+        {
+          "name": "fasta sdk tests",
+          "arguments": [
+            "--compiler=fasta",
+            "--runtime=none",
+            "--strong"
+          ]
+        },
+        {
+          "name": "fasta legacy mode sdk tests",
+          "arguments": [
+            "--compiler=fasta",
+            "--runtime=none"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-linux-debug-ia32",
         "vm-linux-debug-simarm",
         "vm-linux-debug-x64",

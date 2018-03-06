@@ -137,6 +137,12 @@ ExpectedBody:
   dart2jsCode: BODY_EXPECTED
   script: "main();"
 
+ExpectedStatement:
+  template: "Expected a statement."
+  analyzerCode: MISSING_STATEMENT
+  dart2jsCode: "*fatal*"
+  statement: "void;"
+
 ExpectedButGot:
   template: "Expected '#string' before this."
   # Consider the second example below: the parser expects a ')' before 'y', but
@@ -614,6 +620,14 @@ ContinueWithoutLabelInCase:
   dart2jsCode: "*ignored*"
   script:
     - "main() { switch (x) {case 1: continue;} }"
+
+DuplicateLabelInSwitchStatement:
+  template: "The label '#string' was already used in this switch statement."
+  tip: "Try choosing a different name for this label."
+  analyzerCode: DUPLICATE_LABEL_IN_SWITCH_STATEMENT
+  dart2jsCode: "*fatal*"
+  statement:
+    - "switch (0) {l1: case 0: break; l1: case 1: break;}"
 
 InitializedVariableInForEach:
   template: "The loop variable in a for-each loop can't be initialized."

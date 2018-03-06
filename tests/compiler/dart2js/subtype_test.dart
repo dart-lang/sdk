@@ -6,6 +6,7 @@ library subtype_test;
 
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart' show ClassEntity;
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
@@ -18,19 +19,21 @@ void main() {
     await runTests(CompileMode.memory);
     print('--test from kernel------------------------------------------------');
     await runTests(CompileMode.kernel);
+    print('--test from kernel (strong)---------------------------------------');
+    await runTests(CompileMode.kernel, strongMode: true);
   });
 }
 
-Future runTests(CompileMode compileMode) async {
-  await testInterfaceSubtype(compileMode);
-  await testCallableSubtype(compileMode);
-  await testFunctionSubtyping(compileMode);
-  await testTypedefSubtyping(compileMode);
-  await testFunctionSubtypingOptional(compileMode);
-  await testTypedefSubtypingOptional(compileMode);
-  await testFunctionSubtypingNamed(compileMode);
-  await testTypedefSubtypingNamed(compileMode);
-  await testTypeVariableSubtype(compileMode);
+Future runTests(CompileMode compileMode, {bool strongMode: false}) async {
+  await testCallableSubtype(compileMode, strongMode);
+  await testInterfaceSubtype(compileMode, strongMode);
+  await testFunctionSubtyping(compileMode, strongMode);
+  await testTypedefSubtyping(compileMode, strongMode);
+  await testFunctionSubtypingOptional(compileMode, strongMode);
+  await testTypedefSubtypingOptional(compileMode, strongMode);
+  await testFunctionSubtypingNamed(compileMode, strongMode);
+  await testTypedefSubtypingNamed(compileMode, strongMode);
+  await testTypeVariableSubtype(compileMode, strongMode);
 }
 
 void testTypes(TypeEnvironment env, DartType subtype, DartType supertype,
@@ -51,14 +54,16 @@ void testElementTypes(TypeEnvironment env, String subname, String supername,
   testTypes(env, subtype, supertype, expectSubtype, expectMoreSpecific);
 }
 
-Future testInterfaceSubtype(CompileMode compileMode) async {
+Future testInterfaceSubtype(CompileMode compileMode, bool strongMode) async {
   await TypeEnvironment.create(r"""
       class A<T> {}
       class B<T1, T2> extends A<T1> {}
       // TODO(johnniwinther): Inheritance with different type arguments is
       // currently not supported by the implementation.
       class C<T1, T2> extends B<T2, T1> /*implements A<A<T1>>*/ {}
-      """, compileMode: compileMode).then((env) {
+      """,
+      compileMode: compileMode,
+      options: strongMode ? [Flags.strongMode] : []).then((env) {
     void expect(bool expectSubtype, DartType T, DartType S,
         {bool expectMoreSpecific}) {
       testTypes(env, T, S, expectSubtype, expectMoreSpecific);
@@ -292,7 +297,7 @@ Future testInterfaceSubtype(CompileMode compileMode) async {
   });
 }
 
-Future testCallableSubtype(CompileMode compileMode) async {
+Future testCallableSubtype(CompileMode compileMode, bool strongMode) async {
   await TypeEnvironment.create(r"""
       class U {}
       class V extends U {}
@@ -306,7 +311,9 @@ Future testCallableSubtype(CompileMode compileMode) async {
         int m4(V v, U u) => null;
         void m5(V v, int i) => null;
       }
-      """, compileMode: compileMode).then((env) {
+      """,
+      compileMode: compileMode,
+      options: strongMode ? [Flags.strongMode] : []).then((env) {
     void expect(bool expectSubtype, DartType T, DartType S,
         {bool expectMoreSpecific}) {
       testTypes(env, T, S, expectSubtype, expectMoreSpecific);
@@ -322,14 +329,14 @@ Future testCallableSubtype(CompileMode compileMode) async {
     DartType m4 = env.getMemberType('m4', classA);
     DartType m5 = env.getMemberType('m5', classA);
 
-    expect(true, A, function);
-    expect(true, A, call);
+    expect(!strongMode, A, function);
+    expect(!strongMode, A, call);
     expect(true, call, m1);
-    expect(true, A, m1);
-    expect(true, A, m2, expectMoreSpecific: false);
+    expect(!strongMode, A, m1);
+    expect(!strongMode, A, m2, expectMoreSpecific: false);
     expect(false, A, m3);
     expect(false, A, m4);
-    expect(true, A, m5);
+    expect(!strongMode, A, m5);
   });
 }
 
@@ -353,15 +360,19 @@ const List<FunctionTypeData> functionTypesData = const <FunctionTypeData>[
       'void', 'inline_void__int', '(void Function(int i) f)'),
 ];
 
-Future testFunctionSubtyping(CompileMode compileMode) async {
+Future testFunctionSubtyping(CompileMode compileMode, bool strongMode) async {
   await TypeEnvironment
-      .create(createMethods(functionTypesData), compileMode: compileMode)
+      .create(createMethods(functionTypesData),
+          compileMode: compileMode,
+          options: strongMode ? [Flags.strongMode] : [])
       .then(functionSubtypingHelper);
 }
 
-Future testTypedefSubtyping(CompileMode compileMode) async {
+Future testTypedefSubtyping(CompileMode compileMode, bool strongMode) async {
   await TypeEnvironment
-      .create(createTypedefs(functionTypesData), compileMode: compileMode)
+      .create(createTypedefs(functionTypesData),
+          compileMode: compileMode,
+          options: strongMode ? [Flags.strongMode] : [])
       .then(functionSubtypingHelper);
 }
 
@@ -437,17 +448,21 @@ const List<FunctionTypeData> optionalFunctionTypesData =
   const FunctionTypeData('void', 'void___Object_int', '([Object o, int i])'),
 ];
 
-Future testFunctionSubtypingOptional(CompileMode compileMode) async {
+Future testFunctionSubtypingOptional(
+    CompileMode compileMode, bool strongMode) async {
   await TypeEnvironment
       .create(createMethods(optionalFunctionTypesData),
-          compileMode: compileMode)
+          compileMode: compileMode,
+          options: strongMode ? [Flags.strongMode] : [])
       .then(functionSubtypingOptionalHelper);
 }
 
-Future testTypedefSubtypingOptional(CompileMode compileMode) async {
+Future testTypedefSubtypingOptional(
+    CompileMode compileMode, bool strongMode) async {
   await TypeEnvironment
       .create(createTypedefs(optionalFunctionTypesData),
-          compileMode: compileMode)
+          compileMode: compileMode,
+          options: strongMode ? [Flags.strongMode] : [])
       .then(functionSubtypingOptionalHelper);
 }
 
@@ -511,15 +526,21 @@ const List<FunctionTypeData> namedFunctionTypesData = const <FunctionTypeData>[
   const FunctionTypeData('void', 'void___c_int', '({int c})'),
 ];
 
-Future testFunctionSubtypingNamed(CompileMode compileMode) async {
+Future testFunctionSubtypingNamed(
+    CompileMode compileMode, bool strongMode) async {
   await TypeEnvironment
-      .create(createMethods(namedFunctionTypesData), compileMode: compileMode)
+      .create(createMethods(namedFunctionTypesData),
+          compileMode: compileMode,
+          options: strongMode ? [Flags.strongMode] : [])
       .then(functionSubtypingNamedHelper);
 }
 
-Future testTypedefSubtypingNamed(CompileMode compileMode) async {
+Future testTypedefSubtypingNamed(
+    CompileMode compileMode, bool strongMode) async {
   await TypeEnvironment
-      .create(createTypedefs(namedFunctionTypesData), compileMode: compileMode)
+      .create(createTypedefs(namedFunctionTypesData),
+          compileMode: compileMode,
+          options: strongMode ? [Flags.strongMode] : [])
       .then(functionSubtypingNamedHelper);
 }
 
@@ -559,7 +580,7 @@ functionSubtypingNamedHelper(TypeEnvironment env) {
   expect(true, 'void___a_int_b_int_c_int', 'void___c_int');
 }
 
-Future testTypeVariableSubtype(CompileMode compileMode) async {
+Future testTypeVariableSubtype(CompileMode compileMode, bool strongMode) async {
   await TypeEnvironment.create(r"""
       class A<T> {}
       class B<T extends Object> {}
@@ -571,7 +592,9 @@ Future testTypeVariableSubtype(CompileMode compileMode) async {
       class H<T extends S, S extends T> {}
       class I<T extends S, S extends U, U extends T> {}
       class J<T extends S, S extends U, U extends S> {}
-      """, compileMode: compileMode).then((env) {
+      """,
+      compileMode: compileMode,
+      options: strongMode ? [Flags.strongMode] : []).then((env) {
     void expect(bool expectSubtype, DartType T, DartType S,
         {bool expectMoreSpecific}) {
       testTypes(env, T, S, expectSubtype, expectMoreSpecific);

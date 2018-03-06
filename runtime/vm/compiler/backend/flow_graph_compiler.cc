@@ -1831,7 +1831,8 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
     }
     Label next_test;
     if (!complete || !is_last_check) {
-      bias = EmitTestAndCallCheckCid(is_last_check ? failed : &next_test,
+      bias = EmitTestAndCallCheckCid(assembler(),
+                                     is_last_check ? failed : &next_test,
                                      EmitTestCidRegister(), targets[i], bias,
                                      /*jump_on_miss =*/true);
     }
@@ -1871,7 +1872,8 @@ bool FlowGraphCompiler::GenerateSubclassTypeCheck(Register class_id_reg,
       for (intptr_t i = 0; i < ranges.length(); ++i) {
         const CidRange& range = ranges[i];
         if (!range.IsIllegalRange()) {
-          bias = EmitTestAndCallCheckCid(is_subtype, class_id_reg, range, bias,
+          bias = EmitTestAndCallCheckCid(assembler(), is_subtype, class_id_reg,
+                                         range, bias,
                                          /*jump_on_miss=*/false);
         }
       }

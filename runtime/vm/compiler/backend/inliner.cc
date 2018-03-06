@@ -2091,11 +2091,6 @@ bool PolymorphicInliner::Inline() {
   return true;
 }
 
-static bool ShouldTraceInlining(FlowGraph* flow_graph) {
-  const Function& top = flow_graph->parsed_function().function();
-  return FLAG_trace_inlining && FlowGraphPrinter::ShouldPrint(top);
-}
-
 FlowGraphInliner::FlowGraphInliner(
     FlowGraph* flow_graph,
     GrowableArray<const Function*>* inline_id_to_function,
@@ -2107,7 +2102,7 @@ FlowGraphInliner::FlowGraphInliner(
       inline_id_to_function_(inline_id_to_function),
       inline_id_to_token_pos_(inline_id_to_token_pos),
       caller_inline_id_(caller_inline_id),
-      trace_inlining_(ShouldTraceInlining(flow_graph)),
+      trace_inlining_(FLAG_trace_inlining && flow_graph->should_print()),
       speculative_policy_(speculative_policy),
       precompiler_(precompiler) {}
 

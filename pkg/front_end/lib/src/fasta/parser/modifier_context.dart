@@ -212,7 +212,6 @@ class ModifierContext {
 class ModifierRecoveryContext2 {
   final Parser parser;
   TypeContinuation typeContinuation;
-  int modifierCount = 0;
   Token abstractToken;
   Token constToken;
   Token covariantToken;
@@ -272,22 +271,23 @@ class ModifierRecoveryContext2 {
     token = parseModifiers(token, typeContinuation,
         externalToken: externalToken, varFinalOrConst: varFinalOrConst);
 
-    if (abstractToken != null) {
-      parser.reportRecoverableErrorWithToken(
-          abstractToken, fasta.templateExtraneousModifier);
-    }
-    if (staticToken != null) {
-      parser.reportRecoverableErrorWithToken(
-          staticToken, fasta.templateExtraneousModifier);
-      staticToken = null;
-      --modifierCount;
-    }
-    if (covariantToken != null) {
-      parser.reportRecoverableErrorWithToken(
-          covariantToken, fasta.templateExtraneousModifier);
-      covariantToken = null;
-      --modifierCount;
-    }
+    reportExtraneousModifier(abstractToken);
+    reportExtraneousModifier(covariantToken);
+    reportExtraneousModifier(staticToken);
+    return token;
+  }
+
+  /// Parse modifiers for variable declarations.
+  Token parseVariableDeclarationModifiers(
+      Token token, TypeContinuation typeContinuation,
+      {Token varFinalOrConst}) {
+    token = parseModifiers(token, typeContinuation,
+        varFinalOrConst: varFinalOrConst);
+
+    reportExtraneousModifier(abstractToken);
+    reportExtraneousModifier(covariantToken);
+    reportExtraneousModifier(externalToken);
+    reportExtraneousModifier(staticToken);
     return token;
   }
 
@@ -311,29 +311,23 @@ class ModifierRecoveryContext2 {
     this.typeContinuation = typeContinuation;
     if (externalToken != null) {
       this.externalToken = externalToken;
-      ++modifierCount;
     }
     if (staticOrCovariant != null) {
       if (optional('static', staticOrCovariant)) {
         this.staticToken = staticOrCovariant;
-        ++modifierCount;
       } else if (optional('covariant', staticOrCovariant)) {
         this.covariantToken = staticOrCovariant;
-        ++modifierCount;
       } else {
         throw "Internal error: "
             "Unexpected staticOrCovariant '$staticOrCovariant'.";
       }
     } else if (staticToken != null) {
       this.staticToken = staticToken;
-      ++modifierCount;
     } else if (covariantToken != null) {
       this.covariantToken = covariantToken;
-      ++modifierCount;
     }
     if (varFinalOrConst != null) {
       this.varFinalOrConst = varFinalOrConst;
-      ++modifierCount;
       if (optional('var', varFinalOrConst)) {
         varToken = varFinalOrConst;
       } else if (optional('final', varFinalOrConst)) {
@@ -385,7 +379,6 @@ class ModifierRecoveryContext2 {
     assert(optional('abstract', next));
     if (abstractToken == null) {
       abstractToken = next;
-      ++modifierCount;
       return next;
     }
 
@@ -401,7 +394,6 @@ class ModifierRecoveryContext2 {
     if (varFinalOrConst == null && covariantToken == null) {
       typeContinuation ??= TypeContinuation.Optional;
       varFinalOrConst = constToken = next;
-      ++modifierCount;
 
       if (afterFactory) {
         parser.reportRecoverableError(next, fasta.messageConstAfterFactory);
@@ -433,7 +425,6 @@ class ModifierRecoveryContext2 {
         staticToken == null &&
         !afterFactory) {
       covariantToken = next;
-      ++modifierCount;
 
       if (varToken != null) {
         parser.reportRecoverableError(next, fasta.messageCovariantAfterVar);
@@ -448,8 +439,7 @@ class ModifierRecoveryContext2 {
       parser.reportRecoverableErrorWithToken(
           next, fasta.templateDuplicatedModifier);
     } else if (afterFactory) {
-      parser.reportRecoverableErrorWithToken(
-          next, fasta.templateExtraneousModifier);
+      reportExtraneousModifier(next);
     } else if (constToken != null) {
       parser.reportRecoverableError(next, fasta.messageConstAndCovariant);
     } else if (staticToken != null) {
@@ -465,7 +455,6 @@ class ModifierRecoveryContext2 {
     assert(optional('external', next));
     if (externalToken == null) {
       externalToken = next;
-      ++modifierCount;
 
       if (afterFactory) {
         parser.reportRecoverableError(next, fasta.messageExternalAfterFactory);
@@ -489,7 +478,6 @@ class ModifierRecoveryContext2 {
     if (varFinalOrConst == null && !afterFactory) {
       typeContinuation ??= TypeContinuation.Optional;
       varFinalOrConst = finalToken = next;
-      ++modifierCount;
       return next;
     }
 
@@ -498,8 +486,7 @@ class ModifierRecoveryContext2 {
       parser.reportRecoverableErrorWithToken(
           next, fasta.templateDuplicatedModifier);
     } else if (afterFactory) {
-      parser.reportRecoverableErrorWithToken(
-          next, fasta.templateExtraneousModifier);
+      reportExtraneousModifier(next);
     } else if (constToken != null) {
       parser.reportRecoverableError(next, fasta.messageConstAndFinal);
     } else if (varToken != null) {
@@ -515,7 +502,6 @@ class ModifierRecoveryContext2 {
     assert(optional('static', next));
     if (covariantToken == null && staticToken == null && !afterFactory) {
       staticToken = next;
-      ++modifierCount;
 
       if (constToken != null) {
         parser.reportRecoverableError(next, fasta.messageStaticAfterConst);
@@ -534,8 +520,7 @@ class ModifierRecoveryContext2 {
       parser.reportRecoverableErrorWithToken(
           next, fasta.templateDuplicatedModifier);
     } else if (afterFactory) {
-      parser.reportRecoverableErrorWithToken(
-          next, fasta.templateExtraneousModifier);
+      reportExtraneousModifier(next);
     } else {
       throw 'Internal Error: Unhandled recovery: $next';
     }
@@ -548,7 +533,6 @@ class ModifierRecoveryContext2 {
     if (varFinalOrConst == null && !afterFactory) {
       typeContinuation = typeContinuationAfterVar(typeContinuation);
       varFinalOrConst = varToken = next;
-      ++modifierCount;
       return next;
     }
 
@@ -557,8 +541,7 @@ class ModifierRecoveryContext2 {
       parser.reportRecoverableErrorWithToken(
           next, fasta.templateDuplicatedModifier);
     } else if (afterFactory) {
-      parser.reportRecoverableErrorWithToken(
-          next, fasta.templateExtraneousModifier);
+      reportExtraneousModifier(next);
     } else if (constToken != null) {
       parser.reportRecoverableError(next, fasta.messageConstAndVar);
     } else if (finalToken != null) {
@@ -567,6 +550,13 @@ class ModifierRecoveryContext2 {
       throw 'Internal Error: Unexpected varFinalOrConst: $varFinalOrConst';
     }
     return next;
+  }
+
+  void reportExtraneousModifier(Token token) {
+    if (token != null) {
+      parser.reportRecoverableErrorWithToken(
+          token, fasta.templateExtraneousModifier);
+    }
   }
 }
 

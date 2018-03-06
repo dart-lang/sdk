@@ -64,7 +64,7 @@ enum C {C1, C2, C3}
     // A
     {
       ClassElement elementA = unitElement.getType("A");
-      expect(elementA.isDeprecated, isFalse);
+      expect(elementA.hasDeprecated, isFalse);
       expect(elementA.isEnum, isFalse);
       ClassDeclaration nodeA = elementA.computeNode();
       expect(nodeA, isNotNull);
@@ -74,7 +74,7 @@ enum C {C1, C2, C3}
     // B
     {
       ClassElement elementB = unitElement.getType("B");
-      expect(elementB.isDeprecated, isTrue);
+      expect(elementB.hasDeprecated, isTrue);
       expect(elementB.isEnum, isFalse);
       ClassDeclaration nodeB = elementB.computeNode();
       expect(nodeB, isNotNull);
@@ -84,7 +84,7 @@ enum C {C1, C2, C3}
     // C
     {
       ClassElement elementC = unitElement.getEnum("C");
-      expect(elementC.isDeprecated, isFalse);
+      expect(elementC.hasDeprecated, isFalse);
       expect(elementC.isEnum, isTrue);
       EnumDeclaration nodeC = elementC.computeNode();
       expect(nodeC, isNotNull);
@@ -94,7 +94,7 @@ enum C {C1, C2, C3}
     // D
     {
       ClassElement elementD = unitElement.getEnum("D");
-      expect(elementD.isDeprecated, isTrue);
+      expect(elementD.hasDeprecated, isTrue);
       expect(elementD.isEnum, isTrue);
       EnumDeclaration nodeC = elementD.computeNode();
       expect(nodeC, isNotNull);

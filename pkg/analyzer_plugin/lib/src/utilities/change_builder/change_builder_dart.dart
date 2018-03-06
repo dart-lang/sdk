@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
@@ -482,15 +481,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       if (i > 0) {
         write(', ', displayTextBuffer: displayTextBuffer);
       }
-      // may be optional
-      ParameterKind parameterKind = parameter.parameterKind;
-      if (parameterKind == ParameterKind.NAMED) {
+      // Might be optional
+      if (parameter.isNamed) {
         if (!sawNamed) {
           write('{', displayTextBuffer: displayTextBuffer);
           sawNamed = true;
         }
-      }
-      if (parameterKind == ParameterKind.POSITIONAL) {
+      } else if (parameter.isOptionalPositional) {
         if (!sawPositional) {
           write('[', displayTextBuffer: displayTextBuffer);
           sawPositional = true;

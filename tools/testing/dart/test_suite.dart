@@ -283,6 +283,7 @@ abstract class TestSuite {
     if (configuration.runtime == Runtime.none) {
       expectations = expectations.toSet();
       expectations.remove(Expectation.runtimeError);
+      expectations.remove(Expectation.ok);
       expectations.remove(Expectation.missingRuntimeError);
       expectations.remove(Expectation.timeout);
       if (expectations.isEmpty) expectations.add(Expectation.pass);

@@ -673,6 +673,11 @@ class LibraryAnalyzer {
     new DeclarationResolver(enableKernelDriver: _enableKernelDriver)
         .resolve(unit, unitElement);
 
+    if (_libraryElement.context.analysisOptions.previewDart2) {
+      unit.accept(new AstRewriteVisitor(_libraryElement, source, _typeProvider,
+          AnalysisErrorListener.NULL_LISTENER));
+    }
+
     // TODO(scheglov) remove EnumMemberBuilder class
 
     new TypeParameterBoundsResolver(
@@ -721,6 +726,11 @@ class LibraryAnalyzer {
     CompilationUnitElement unitElement = unit.element;
     new DeclarationResolver(enableKernelDriver: true, applyKernelTypes: true)
         .resolve(unit, unitElement);
+
+    if (_libraryElement.context.analysisOptions.previewDart2) {
+      unit.accept(new AstRewriteVisitor(_libraryElement, file.source,
+          _typeProvider, AnalysisErrorListener.NULL_LISTENER));
+    }
 
     for (var declaration in unit.declarations) {
       if (declaration is ClassDeclaration) {

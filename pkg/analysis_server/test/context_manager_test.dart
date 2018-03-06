@@ -2432,6 +2432,27 @@ analyzer:
     await new Future.delayed(new Duration(milliseconds: 1));
     expect(callbacks.watchEvents, hasLength(1));
   }
+
+  test_non_analyzable_files_not_considered() async {
+    // Set up project and get a reference to the driver.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    Folder projectFolder = resourceProvider.newFolder(projPath);
+    var drivers = manager.getDriversInAnalysisRoot(projectFolder);
+    expect(drivers, hasLength(1));
+
+    // Add the driver to the manager so that it will receive the events.
+    manager.driverMap[projectFolder] = drivers[0];
+
+    // Ensure adding a file that shouldn't be analyzed is not picked up.
+    newFile('$projPath/test.txt');
+    await pumpEventQueue();
+    expect(drivers[0].hasFilesToAnalyze, false);
+
+    // Ensure modifying a file that shouldn't be analyzed is not picked up.
+    modifyFile('$projPath/test.txt', 'new content');
+    await pumpEventQueue();
+    expect(drivers[0].hasFilesToAnalyze, false);
+  }
 }
 
 class TestContextManagerCallbacks extends ContextManagerCallbacks {

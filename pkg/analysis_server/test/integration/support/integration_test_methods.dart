@@ -2169,11 +2169,12 @@ abstract class IntegrationTestMixin {
    *
    *   The outline associated with the file.
    *
-   * instrumentationEdits: List<SourceEdit>
+   * instrumentedCode: String (optional)
    *
-   *   If the file has Flutter widgets that can be rendered, the list of edits
-   *   that should be applied to the file to instrument widgets and associate
-   *   them with outline nodes.
+   *   If the file has Flutter widgets that can be rendered, this field has the
+   *   instrumented content of the file, that allows associating widgets with
+   *   corresponding outline nodes. If there are no widgets to render, this
+   *   field is absent.
    */
   Stream<FlutterOutlineParams> onFlutterOutline;
 

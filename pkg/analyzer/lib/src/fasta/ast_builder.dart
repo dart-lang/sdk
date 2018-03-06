@@ -38,12 +38,14 @@ import 'package:front_end/src/fasta/messages.dart'
         messageConstMethod,
         messageConstructorWithReturnType,
         messageDirectiveAfterDeclaration,
+        messageExpectedStatement,
         messageFieldInitializerOutsideConstructor,
         messageIllegalAssignmentToNonAssignable,
         messageInterpolationInUri,
         messageMissingAssignableSelector,
         messageNativeClauseShouldBeAnnotation,
-        messageStaticConstructor;
+        messageStaticConstructor,
+        templateDuplicateLabelInSwitchStatement;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
     show Builder, KernelLibraryBuilder, Scope;
 import 'package:front_end/src/fasta/quote.dart';
@@ -319,8 +321,28 @@ class AstBuilder extends ScopeListener {
   void endExpressionStatement(Token semicolon) {
     assert(optional(';', semicolon));
     debugEvent("ExpressionStatement");
-
-    push(ast.expressionStatement(pop(), semicolon));
+    Expression expression = pop();
+    if (expression is SuperExpression) {
+      // This error is also reported by the body builder.
+      handleRecoverableError(messageMissingAssignableSelector,
+          expression.beginToken, expression.endToken);
+    }
+    if (expression is SimpleIdentifier &&
+        expression.token?.keyword?.isBuiltInOrPseudo == false) {
+      // This error is also reported by the body builder.
+      handleRecoverableError(
+          messageExpectedStatement, expression.beginToken, expression.endToken);
+    }
+    if (expression is AssignmentExpression) {
+      if (!expression.leftHandSide.isAssignable) {
+        // This error is also reported by the body builder.
+        handleRecoverableError(
+            messageIllegalAssignmentToNonAssignable,
+            expression.leftHandSide.beginToken,
+            expression.leftHandSide.endToken);
+      }
+    }
+    push(ast.expressionStatement(expression, semicolon));
   }
 
   @override
@@ -638,13 +660,24 @@ class AstBuilder extends ScopeListener {
     push(variable);
   }
 
+  @override
+  void beginVariablesDeclaration(Token token, Token varFinalOrConst) {
+    debugEvent("beginVariablesDeclaration");
+    if (varFinalOrConst != null) {
+      push(new _Modifiers()..finalConstOrVarKeyword = varFinalOrConst);
+    } else {
+      push(NullValue.Modifiers);
+    }
+  }
+
+  @override
   void endVariablesDeclaration(int count, Token semicolon) {
     assert(optionalOrNull(';', semicolon));
     debugEvent("VariablesDeclaration");
 
     List<VariableDeclaration> variables = popList(count);
+    _Modifiers modifiers = pop(NullValue.Modifiers);
     TypeAnnotation type = pop();
-    _Modifiers modifiers = pop();
     Token keyword = modifiers?.finalConstOrVarKeyword;
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata,
@@ -1160,6 +1193,20 @@ class AstBuilder extends ScopeListener {
     exitLocalScope();
     List<SwitchMember> members =
         membersList?.expand((members) => members)?.toList() ?? <SwitchMember>[];
+
+    Set<String> labels = new Set<String>();
+    for (SwitchMember member in members) {
+      for (Label label in member.labels) {
+        if (!labels.add(label.label.name)) {
+          handleRecoverableError(
+              templateDuplicateLabelInSwitchStatement
+                  .withArguments(label.label.name),
+              label.beginToken,
+              label.beginToken);
+        }
+      }
+    }
+
     push(leftBracket);
     push(members);
     push(rightBracket);
@@ -1357,9 +1404,7 @@ class AstBuilder extends ScopeListener {
 
     Expression expression = pop();
     if (!expression.isAssignable) {
-      // TODO(danrubel): The fasta parser does not have enough context to
-      // report this error. Consider moving it to the resolution phase
-      // or at least to common location that can be shared by all listeners.
+      // This error is also reported by the body builder.
       handleRecoverableError(messageMissingAssignableSelector,
           expression.endToken, expression.endToken);
     }
@@ -1372,9 +1417,7 @@ class AstBuilder extends ScopeListener {
 
     Expression expression = pop();
     if (!expression.isAssignable) {
-      // TODO(danrubel): The fasta parser does not have enough context to
-      // report this error. Consider moving it to the resolution phase
-      // or at least to common location that can be shared by all listeners.
+      // This error is also reported by the body builder.
       handleRecoverableError(
           messageIllegalAssignmentToNonAssignable, operator, operator);
     }

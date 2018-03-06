@@ -88,6 +88,7 @@ bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 bug31436_test: RuntimeError
 bug32353_test: RuntimeError
+bug32372_test: RuntimeError
 built_in_identifier_prefix_test: CompileTimeError
 call_constructor_on_unresolvable_class_test/01: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/02: MissingCompileTimeError
@@ -219,6 +220,7 @@ conditional_property_increment_decrement_test/33: MissingCompileTimeError
 conditional_property_increment_decrement_test/34: MissingCompileTimeError
 conditional_property_increment_decrement_test/39: MissingCompileTimeError
 conditional_property_increment_decrement_test/40: MissingCompileTimeError
+conflicting_generic_interfaces_simple_test: MissingCompileTimeError
 const_constructor2_test/05: MissingCompileTimeError
 const_constructor2_test/06: MissingCompileTimeError
 const_constructor3_test/02: MissingCompileTimeError

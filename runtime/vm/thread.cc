@@ -661,19 +661,53 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
 }
 
 bool Thread::CanLoadFromThread(const Object& object) {
+  // In order to allow us to use assembler helper routines with non-[Code]
+  // objects *before* stubs are initialized, we only loop ver the stubs if the
+  // [object] is in fact a [Code] object.
+  if (object.IsCode()) {
 #define CHECK_OBJECT(type_name, member_name, expr, default_init_value)         \
-  if (object.raw() == expr) return true;
-  CACHED_VM_OBJECTS_LIST(CHECK_OBJECT)
+  if (object.raw() == expr) {                                                  \
+    return true;                                                               \
+  }
+    CACHED_VM_STUBS_LIST(CHECK_OBJECT)
+#undef CHECK_OBJECT
+  }
+
+  // For non [Code] objects we check if the object equals to any of the cached
+  // non-stub entries.
+#define CHECK_OBJECT(type_name, member_name, expr, default_init_value)         \
+  if (object.raw() == expr) {                                                  \
+    return true;                                                               \
+  }
+  CACHED_NON_VM_STUB_LIST(CHECK_OBJECT)
 #undef CHECK_OBJECT
   return false;
 }
 
 intptr_t Thread::OffsetFromThread(const Object& object) {
+  // In order to allow us to use assembler helper routines with non-[Code]
+  // objects *before* stubs are initialized, we only loop ver the stubs if the
+  // [object] is in fact a [Code] object.
+  if (object.IsCode()) {
 #define COMPUTE_OFFSET(type_name, member_name, expr, default_init_value)       \
   ASSERT((expr)->IsVMHeapObject());                                            \
-  if (object.raw() == expr) return Thread::member_name##offset();
-  CACHED_VM_OBJECTS_LIST(COMPUTE_OFFSET)
+  if (object.raw() == expr) {                                                  \
+    return Thread::member_name##offset();                                      \
+  }
+    CACHED_VM_STUBS_LIST(COMPUTE_OFFSET)
 #undef COMPUTE_OFFSET
+  }
+
+  // For non [Code] objects we check if the object equals to any of the cached
+  // non-stub entries.
+#define COMPUTE_OFFSET(type_name, member_name, expr, default_init_value)       \
+  ASSERT((expr)->IsVMHeapObject());                                            \
+  if (object.raw() == expr) {                                                  \
+    return Thread::member_name##offset();                                      \
+  }
+  CACHED_NON_VM_STUB_LIST(COMPUTE_OFFSET)
+#undef COMPUTE_OFFSET
+
   UNREACHABLE();
   return -1;
 }

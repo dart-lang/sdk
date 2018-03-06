@@ -18,7 +18,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
  * A [Refactoring] for renaming [LocalElement]s.
@@ -89,7 +88,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
     Element enclosing = element.enclosingElement;
     if (enclosing is MethodElement &&
         element is ParameterElement &&
-        (element as ParameterElement).parameterKind == ParameterKind.NAMED) {
+        (element as ParameterElement).isNamed) {
       // prepare hierarchy methods
       Set<ClassMemberElement> methods =
           await getHierarchyMembers(searchEngine, enclosing);
@@ -97,8 +96,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
       for (ClassMemberElement method in methods) {
         if (method is MethodElement) {
           for (ParameterElement parameter in method.parameters) {
-            if (parameter.parameterKind == ParameterKind.NAMED &&
-                parameter.name == element.name) {
+            if (parameter.isNamed && parameter.name == element.name) {
               elements.add(parameter);
             }
           }

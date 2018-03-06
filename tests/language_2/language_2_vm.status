@@ -178,6 +178,7 @@ bad_override_test/02: MissingCompileTimeError
 bad_override_test/06: MissingCompileTimeError
 bug31436_test: RuntimeError
 bug32353_test: RuntimeError
+bug32372_test: RuntimeError
 built_in_identifier_prefix_test: CompileTimeError
 call_constructor_on_unresolvable_class_test/01: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/02: MissingCompileTimeError
@@ -305,6 +306,7 @@ conditional_property_increment_decrement_test/33: MissingCompileTimeError
 conditional_property_increment_decrement_test/34: MissingCompileTimeError
 conditional_property_increment_decrement_test/39: MissingCompileTimeError
 conditional_property_increment_decrement_test/40: MissingCompileTimeError
+conflicting_generic_interfaces_simple_test: MissingCompileTimeError
 const_constructor2_test/05: MissingCompileTimeError
 const_constructor2_test/06: MissingCompileTimeError
 const_dynamic_type_literal_test/02: MissingCompileTimeError
@@ -855,7 +857,6 @@ private_access_test/03: MissingCompileTimeError
 private_access_test/04: MissingCompileTimeError
 private_access_test/05: MissingCompileTimeError
 private_access_test/06: MissingCompileTimeError
-recursive_mixin_test: RuntimeError
 regress_12561_test: MissingCompileTimeError
 regress_13494_test: MissingCompileTimeError
 regress_17382_test: MissingCompileTimeError
@@ -1036,6 +1037,8 @@ unresolved_top_level_method_test: MissingCompileTimeError
 unresolved_top_level_var_test: MissingCompileTimeError
 
 [ $compiler != dartk && $runtime == vm && $checked ]
+call_operator_test/01: RuntimeError
+call_operator_test/02: RuntimeError
 call_type_literal_test: RuntimeError
 class_literal_static_test/none: RuntimeError
 class_literal_test/none: RuntimeError
@@ -1117,7 +1120,6 @@ function_type/function_type96_test: RuntimeError # Issue 30475
 function_type/function_type9_test: RuntimeError # Issue 30475
 function_type_alias2_test: RuntimeError
 invalid_override_in_mixin_test/01: MissingCompileTimeError
-recursive_mixin_test: Crash
 type_literal_prefix_call_test: RuntimeError
 
 # The VM and does not implement the Dart 2.0 runtime checks yet unless

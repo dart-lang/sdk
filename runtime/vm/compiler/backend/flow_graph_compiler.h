@@ -622,6 +622,16 @@ class FlowGraphCompiler : public ValueObject {
   void RecordAfterCall(Instruction* instr, CallResult result);
 #endif
 
+  // Returns new class-id bias.
+  //
+  // TODO(kustermann): We should move this code out of the [FlowGraphCompiler]!
+  static int EmitTestAndCallCheckCid(Assembler* assembler,
+                                     Label* label,
+                                     Register class_id_reg,
+                                     const CidRange& range,
+                                     int bias,
+                                     bool jump_on_miss = true);
+
  private:
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
   friend class CheckedSmiSlowPath;          // Same.
@@ -667,13 +677,6 @@ class FlowGraphCompiler : public ValueObject {
   void EmitTestAndCallSmiBranch(Label* label, bool jump_if_smi);
 
   void EmitTestAndCallLoadCid(Register class_id_reg);
-
-  // Returns new class-id bias.
-  int EmitTestAndCallCheckCid(Label* label,
-                              Register class_id_reg,
-                              const CidRange& range,
-                              int bias,
-                              bool jump_on_miss = true);
 
 // DBC handles type tests differently from all other architectures due
 // to its interpreted nature.

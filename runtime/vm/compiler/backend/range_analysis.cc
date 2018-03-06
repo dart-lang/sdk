@@ -679,9 +679,6 @@ void RangeAnalysis::Iterate(JoinOperator op, intptr_t max_iterations) {
 }
 
 void RangeAnalysis::InferRanges() {
-  if (FLAG_trace_range_analysis) {
-    FlowGraphPrinter::PrintGraph("Range Analysis (BEFORE)", flow_graph_);
-  }
   Zone* zone = flow_graph_->zone();
   // Initialize bitvector for quick filtering of int values.
   BitVector* set =
@@ -719,19 +716,11 @@ void RangeAnalysis::InferRanges() {
   // Widening simply maps growing bounds to the respective range bound.
   Iterate(WIDEN, kMaxInt32);
 
-  if (FLAG_trace_range_analysis) {
-    FlowGraphPrinter::PrintGraph("Range Analysis (WIDEN)", flow_graph_);
-  }
-
   // Perform fix-point iteration of range inference applying narrowing
   // to phis to compute more accurate range.
   // Narrowing only improves those boundaries that were widened up to
   // range boundary and leaves other boundaries intact.
   Iterate(NARROW, kMaxInt32);
-
-  if (FLAG_trace_range_analysis) {
-    FlowGraphPrinter::PrintGraph("Range Analysis (AFTER)", flow_graph_);
-  }
 }
 
 void RangeAnalysis::AssignRangesRecursively(Definition* defn) {
@@ -1446,10 +1435,6 @@ void RangeAnalysis::EliminateRedundantBoundsChecks() {
         generalizer.TryGeneralize(check, array_length);
       }
     }
-
-    if (FLAG_trace_range_analysis) {
-      FlowGraphPrinter::PrintGraph("RangeAnalysis (ABCE)", flow_graph_);
-    }
   }
 }
 
@@ -1467,8 +1452,7 @@ void RangeAnalysis::MarkUnreachableBlocks() {
           target->PredecessorAt(0)->last_instruction()->AsBranch();
       if (target == branch->true_successor()) {
         // True unreachable.
-        if (FLAG_trace_constant_propagation &&
-            FlowGraphPrinter::ShouldPrint(flow_graph_->function())) {
+        if (FLAG_trace_constant_propagation && flow_graph_->should_print()) {
           THR_Print("Range analysis: True unreachable (B%" Pd ")\n",
                     branch->true_successor()->block_id());
         }
@@ -1476,8 +1460,7 @@ void RangeAnalysis::MarkUnreachableBlocks() {
       } else {
         ASSERT(target == branch->false_successor());
         // False unreachable.
-        if (FLAG_trace_constant_propagation &&
-            FlowGraphPrinter::ShouldPrint(flow_graph_->function())) {
+        if (FLAG_trace_constant_propagation && flow_graph_->should_print()) {
           THR_Print("Range analysis: False unreachable (B%" Pd ")\n",
                     branch->false_successor()->block_id());
         }

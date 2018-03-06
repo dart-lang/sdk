@@ -314,6 +314,30 @@ process(Object x) {}''');
     verify([source]);
   }
 
+  test_argumentTypeNotAssignable_optionalNew() async {
+    resetWith(
+        options: new AnalysisOptionsImpl()
+          ..previewDart2 = true
+          ..strongMode = true);
+    Source source = addSource(r'''
+class Widget { }
+
+class MaterialPageRoute {
+  final Widget Function() builder;
+  const MaterialPageRoute({this.builder});
+}
+
+void main() {
+  print(MaterialPageRoute(
+      builder: () { return Widget(); }
+  ));
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_argumentTypeNotAssignable_typedef_local() async {
     Source source = addSource(r'''
 typedef A(int p1, String p2);

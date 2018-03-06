@@ -4784,6 +4784,27 @@ abstract class FormalParameterImpl extends AstNodeImpl
     }
     return identifier.staticElement as ParameterElement;
   }
+
+  @override
+  bool get isNamed => kind == ParameterKind.NAMED;
+
+  @override
+  bool get isOptional =>
+      kind == ParameterKind.NAMED || kind == ParameterKind.POSITIONAL;
+
+  @override
+  bool get isOptionalPositional => kind == ParameterKind.POSITIONAL;
+
+  @override
+  bool get isPositional =>
+      kind == ParameterKind.POSITIONAL || kind == ParameterKind.REQUIRED;
+
+  @override
+  bool get isRequired => kind == ParameterKind.REQUIRED;
+
+  @override
+  // Overridden to remove the 'deprecated' annotation.
+  ParameterKind get kind;
 }
 
 /**
@@ -8350,6 +8371,7 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
     _identifier = _becomeParentOf(identifier as AstNodeImpl);
   }
 
+  @deprecated
   @override
   ParameterKind get kind {
     AstNode parent = this.parent;

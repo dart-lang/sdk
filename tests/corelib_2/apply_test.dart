@@ -42,6 +42,8 @@ main() {
     Expect.equals(res, Function.apply(func, list, new Map<Symbol, dynamic>()));
   }
 
+  testListTyped(res, Function func, list) => testList(res, func, list);
+
   test(res, func, list, map) {
     map = symbolMapToStringMap(map);
     Expect.equals(res, Function.apply(func, list, map));
@@ -71,6 +73,8 @@ main() {
         [17, 25]
       ]));
 
-  // Test that apply works on callable objects.
-  testList(42, new Callable(), [13, 29]);
+  // Test that apply works on callable objects when it is passed to a method
+  // that expects Function (and not dynamic).
+  Expect.throws(() => testList(42, new Callable(), [13, 29])); //# 01: ok
+  testListTyped(42, new Callable(), [13, 29]); //# 02: ok
 }

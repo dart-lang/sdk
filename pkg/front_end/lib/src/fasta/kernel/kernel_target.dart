@@ -28,6 +28,7 @@ import 'package:kernel/ast.dart'
         Name,
         NamedExpression,
         NullLiteral,
+        Procedure,
         ProcedureKind,
         Program,
         Source,
@@ -50,6 +51,8 @@ import '../deprecated_problems.dart'
     show deprecated_InputError, reportCrash, resetCrashReporting;
 
 import '../dill/dill_target.dart' show DillTarget;
+
+import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
 import '../messages.dart'
     show
@@ -372,6 +375,10 @@ class KernelTarget extends TargetImplementation {
       Builder builder = loader.first.exportScope.lookup("main", -1, null);
       if (builder is KernelProcedureBuilder) {
         program.mainMethod = builder.procedure;
+      } else if (builder is DillMemberBuilder) {
+        if (builder.member is Procedure) {
+          program.mainMethod = builder.member;
+        }
       }
     }
 

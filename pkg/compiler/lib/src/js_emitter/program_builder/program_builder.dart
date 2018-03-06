@@ -45,6 +45,7 @@ import '../js_emitter.dart'
         ClassStubGenerator,
         CodeEmitterTask,
         Emitter,
+        InstantiationStubGenerator,
         InterceptorStubGenerator,
         MainCallStubGenerator,
         ParameterStubGenerator,
@@ -733,6 +734,12 @@ class ProgramBuilder {
       callStubs.add(_buildStubMethod(name, function));
     }
 
+    if (cls == _commonElements.instantiation1Class ||
+        cls == _commonElements.instantiation2Class ||
+        cls == _commonElements.instantiation3Class) {
+      callStubs.addAll(_generateInstantiationStubs(cls));
+    }
+
     // MixinApplications run through the members of their mixin. Here, we are
     // only interested in direct members.
     if (!onlyForRti && !_elementEnvironment.isMixinApplication(cls)) {
@@ -977,6 +984,12 @@ class ProgramBuilder {
         _closedWorld,
         _sourceInformationStrategy);
     return generator.generateParameterStubs(element, canTearOff: canTearOff);
+  }
+
+  List<StubMethod> _generateInstantiationStubs(ClassEntity instantiationClass) {
+    InstantiationStubGenerator generator = new InstantiationStubGenerator(
+        _task, _namer, _worldBuilder, _closedWorld, _sourceInformationStrategy);
+    return generator.generateStubs(instantiationClass, null);
   }
 
   /// Builds a stub method.

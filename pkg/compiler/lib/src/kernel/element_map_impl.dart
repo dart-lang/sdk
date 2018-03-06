@@ -485,6 +485,11 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   void _ensureCallType(IndexedClass cls, ClassData data) {
     if (!data.isCallTypeComputed) {
       data.isCallTypeComputed = true;
+      if (options.strongMode && !cls.isClosure) {
+        // In Dart 2, a regular class with a 'call' method is no longer a
+        // subtype of its function type.
+        return;
+      }
       MemberEntity callMethod = lookupClassMember(cls, Identifiers.call);
       if (callMethod != null) {
         if (callMethod.isFunction) {

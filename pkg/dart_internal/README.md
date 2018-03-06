@@ -1,5 +1,5 @@
-**Scary warning: This package is experimental and may deprecated in a future
-version of Dart.**
+☠☠ **Warning: This package is experimental and may be removed in a future
+version of Dart.** ☠☠
 
 This package is not intended for wide use. It provides a temporary API to
 solve the problem: "Given an object some generic type A, how do I construct an

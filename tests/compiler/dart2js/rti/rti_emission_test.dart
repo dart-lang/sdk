@@ -5,7 +5,6 @@
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/closure.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
@@ -32,9 +31,6 @@ main(List<String> args) {
         computeClassDataFromAst: computeAstRtiClassEmission,
         computeClassDataFromKernel: computeKernelRtiClassEmission,
         args: args,
-        options: [
-          Flags.strongMode
-        ],
         skipForKernel: [
           // TODO(johnniwinther): Fix this. It triggers a crash in the ssa
           // builder.
@@ -49,6 +45,7 @@ class Tags {
   static const String checkedInstance = 'checkedInstance';
   static const String typeArgument = 'typeArgument';
   static const String checkedTypeArgument = 'checkedTypeArgument';
+  static const String functionType = 'functionType';
 }
 
 void computeAstRtiMemberEmission(
@@ -84,6 +81,9 @@ abstract class ComputeValueMixin<T> {
       features.addElement(Tags.isChecks);
       for (StubMethod stub in cls.isChecks) {
         features.addElement(Tags.isChecks, stub.name.key);
+      }
+      if (cls.functionTypeIndex != null) {
+        features.add(Tags.functionType);
       }
     }
     ClassUse classUse = checksBuilder.classUseMapForTesting[element];

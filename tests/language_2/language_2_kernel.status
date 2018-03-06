@@ -493,11 +493,6 @@ mixin_supertype_subclass_test/05: MissingCompileTimeError
 
 [ $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
 const_instance_field_test/01: Crash # Issue 32326.
-cyclic_type_variable_test/01: Crash
-cyclic_type_variable_test/02: Crash
-cyclic_type_variable_test/03: Crash
-cyclic_type_variable_test/04: Crash
-cyclic_type_variable_test/none: Crash
 deopt_inlined_function_lazy_test: Skip
 tearoff_dynamic_test: Crash
 
@@ -556,7 +551,6 @@ mixin_invalid_bound2_test/10: Fail
 mixin_invalid_bound_test/06: Fail
 mixin_invalid_bound_test/07: Fail
 recursive_inheritance_test: RuntimeError
-recursive_mixin_test: Crash
 redirecting_factory_infinite_steps_test/01: Fail
 redirecting_factory_malbounded_test/01: Fail
 regress_22728_test: Fail # Dartk Issue 28498
@@ -584,7 +578,6 @@ bug32353_test: DartkCrash # Issue 32353
 built_in_identifier_prefix_test: CompileTimeError
 call_method_must_not_be_field_test/03: RuntimeError # Issue 32265
 call_method_must_not_be_getter_test/03: RuntimeError # Issue 32265
-call_operator_test: RuntimeError, OK
 call_with_no_such_method_test: RuntimeError
 compile_time_constant_k_test/01: MissingCompileTimeError
 compile_time_constant_k_test/02: MissingCompileTimeError
@@ -612,8 +605,8 @@ ct_const_test: RuntimeError
 cyclic_type2_test: RuntimeError, CompileTimeError
 cyclic_type_test/02: RuntimeError, CompileTimeError
 cyclic_type_test/04: RuntimeError, CompileTimeError
-cyclic_typedef_test/10: Crash
-cyclic_typedef_test/11: Crash
+cyclic_typedef_test/10: Crash # Issue 32416.
+cyclic_typedef_test/11: Crash # Issue 32416.
 deferred_call_empty_before_load_test: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
 deferred_load_constants_test/none: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
 deferred_load_library_wrong_args_test/01: Pass # Passes by mistake. KernelVM bug: Deferred loading kernel issue 30273.
@@ -702,7 +695,7 @@ parser_quirks_test: CompileTimeError # Issue 31533
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 regress_22443_test: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
-regress_23089_test: Crash
+regress_23089_test: Crash # Issue 32417.
 regress_23408_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 regress_23408_test: RuntimeError
 regress_29025_test: CompileTimeError # Issue 31402 (Variable declaration)
@@ -763,7 +756,6 @@ assertion_initializer_const_error2_test/cc08: MissingCompileTimeError # Not repo
 assertion_initializer_const_error2_test/cc09: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc10: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc11: MissingCompileTimeError # Not reporting failed assert() at compile time.
-recursive_mixin_test: Crash
 redirecting_factory_reflection_test: RuntimeError
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
@@ -774,13 +766,7 @@ least_upper_bound_expansive_test/none: RuntimeError # Please triage.
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
 const_instance_field_test/01: Crash # Issue 32326.
-cyclic_type_variable_test/01: Crash
-cyclic_type_variable_test/02: Crash
-cyclic_type_variable_test/03: Crash
-cyclic_type_variable_test/04: Crash
-cyclic_type_variable_test/none: Crash
 external_test/13: Crash
-regress_29025_test: Crash
 tearoff_dynamic_test: Crash
 type_promotion_functions_test/05: Pass
 type_promotion_functions_test/06: Pass
@@ -863,7 +849,6 @@ redirecting_factory_infinite_steps_test/01: Fail
 redirecting_factory_malbounded_test/01: Fail
 regress_22728_test: Fail # Dartk Issue 28498
 regress_22728_test: RuntimeError
-regress_30339_test: Crash
 type_variable_bounds4_test/01: RuntimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled && !$checked && $strong ]
@@ -909,7 +894,6 @@ async_star_test/02: RuntimeError, CompileTimeError # Issue 31402 (Invocation arg
 built_in_identifier_prefix_test: CompileTimeError
 call_method_must_not_be_field_test/03: RuntimeError # Issue 32265
 call_method_must_not_be_getter_test/03: RuntimeError # Issue 32265
-call_operator_test: RuntimeError, OK
 call_with_no_such_method_test: RuntimeError
 checked_setter3_test/01: MissingCompileTimeError
 checked_setter3_test/02: MissingCompileTimeError
@@ -939,8 +923,8 @@ ct_const_test: RuntimeError
 cyclic_type2_test: Fail, OK
 cyclic_type_test/02: Fail, OK # Non-contractive types are not supported in the vm.
 cyclic_type_test/04: Fail, OK
-cyclic_typedef_test/10: Crash
-cyclic_typedef_test/11: Crash
+cyclic_typedef_test/10: Crash # Issue 32416.
+cyclic_typedef_test/11: Crash # Issue 32416.
 deep_nesting1_negative_test: Skip # Issue 31158
 deep_nesting2_negative_test: Skip # Issue 31158
 deferred_call_empty_before_load_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
@@ -1073,7 +1057,6 @@ override_inheritance_method_test/28: CompileTimeError
 override_inheritance_method_test/29: CompileTimeError
 override_inheritance_mixed_test/08: Pass # Correctly passes.
 parser_quirks_test: CompileTimeError # Issue 31533
-recursive_mixin_test: Crash
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 redirecting_factory_reflection_test: SkipByDesign
@@ -1081,7 +1064,7 @@ regress_13462_0_test: SkipByDesign
 regress_13462_1_test: SkipByDesign
 regress_18535_test: SkipByDesign
 regress_22443_test: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
-regress_23089_test: Crash
+regress_23089_test: Crash # Issue 32417.
 regress_23408_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 regress_23408_test: RuntimeError
 regress_28255_test: SkipByDesign
@@ -1108,7 +1091,6 @@ super_operator_index7_test: CompileTimeError
 super_operator_index8_test: CompileTimeError
 super_test: Fail, OK
 syntax_test/00: MissingCompileTimeError
-tearoff_dynamic_test: Crash
 type_literal_test: RuntimeError
 type_promotion_functions_test/02: CompileTimeError # Issue 31537
 type_promotion_functions_test/03: CompileTimeError # Issue 31537

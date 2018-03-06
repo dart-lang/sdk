@@ -108,6 +108,9 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
               new TypeUse.instantiation(_commonElements.nullType));
           registerImpact(_impacts.nullLiteral);
           break;
+        case Feature.GENERIC_INSTANTIATION:
+          registerImpact(_impacts.genericInstantiation);
+          break;
         case Feature.LAZY_FIELD:
           registerImpact(_impacts.lazyField);
           break;

@@ -965,6 +965,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     compareVariableElements(resynthesized, original, desc);
     compareParameterElementLists(
         resynthesized.parameters, original.parameters, desc);
+    // ignore: deprecated_member_use
     expect(resynthesized.parameterKind, original.parameterKind, reason: desc);
     expect(resynthesized.isInitializingFormal, original.isInitializingFormal,
         reason: desc);

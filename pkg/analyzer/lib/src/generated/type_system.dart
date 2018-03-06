@@ -21,22 +21,6 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/utilities_dart.dart' show ParameterKind;
 
-bool _isBottom(DartType t) {
-  return t.isBottom ||
-      t.isDartCoreNull ||
-      identical(t, UnknownInferredType.instance);
-}
-
-bool _isTop(DartType t) {
-  if (t.isDartAsyncFutureOr) {
-    return _isTop((t as InterfaceType).typeArguments[0]);
-  }
-  return t.isDynamic ||
-      t.isObject ||
-      t.isVoid ||
-      identical(t, UnknownInferredType.instance);
-}
-
 /**
  * `void`, `dynamic`, and `Object` are all equivalent. However, this makes
  * LUB/GLB indeterministic. Therefore, for the cases of LUB/GLB, we have some
@@ -61,6 +45,22 @@ int _getTopiness(DartType t) {
 
   // Try to ensure that if this happens, its less toppy than an actual Top type.
   return -100000;
+}
+
+bool _isBottom(DartType t) {
+  return t.isBottom ||
+      t.isDartCoreNull ||
+      identical(t, UnknownInferredType.instance);
+}
+
+bool _isTop(DartType t) {
+  if (t.isDartAsyncFutureOr) {
+    return _isTop((t as InterfaceType).typeArguments[0]);
+  }
+  return t.isDynamic ||
+      t.isObject ||
+      t.isVoid ||
+      identical(t, UnknownInferredType.instance);
 }
 
 typedef bool _GuardedSubtypeChecker<T>(T t1, T t2, Set<TypeImpl> visitedTypes);
@@ -103,27 +103,6 @@ class StrongTypeSystemImpl extends TypeSystem {
 
   bool anyParameterType(FunctionType ft, bool predicate(DartType t)) {
     return ft.parameters.any((p) => predicate(p.type));
-  }
-
-  FunctionType _replaceDynamicParameters(FunctionType t, DartType replaceWith) {
-    if (!t.parameters.any((p) => p.type.isDynamic)) {
-      return t;
-    }
-    ParameterElement shave(ParameterElement p) {
-      if (p.type.isDynamic) {
-        return new ParameterElementImpl.synthetic(
-            p.name, replaceWith, p.parameterKind);
-      }
-      return p;
-    }
-
-    List<ParameterElement> parameters = t.parameters.map(shave).toList();
-    FunctionElementImpl function = new FunctionElementImpl("", -1);
-    function.isSynthetic = true;
-    function.returnType = t.returnType;
-    function.shareTypeParameters(t.typeFormals);
-    function.shareParameters(parameters);
-    return function.type = new FunctionTypeImpl(function);
   }
 
   FunctionType functionTypeToConcreteType(FunctionType t) =>
@@ -971,6 +950,31 @@ class StrongTypeSystemImpl extends TypeSystem {
     return guardedIsFunctionSubtype(t1, t2, visitedTypes);
   }
 
+  FunctionType _replaceDynamicParameters(FunctionType t, DartType replaceWith) {
+    if (!t.parameters.any((p) => p.type.isDynamic)) {
+      return t;
+    }
+    ParameterElement shave(ParameterElement p) {
+      if (p.type.isDynamic) {
+        return new ParameterElementImpl.synthetic(
+            // ignore: deprecated_member_use
+            p.name,
+            replaceWith,
+            // ignore: deprecated_member_use
+            p.parameterKind);
+      }
+      return p;
+    }
+
+    List<ParameterElement> parameters = t.parameters.map(shave).toList();
+    FunctionElementImpl function = new FunctionElementImpl("", -1);
+    function.isSynthetic = true;
+    function.returnType = t.returnType;
+    function.shareTypeParameters(t.typeFormals);
+    function.shareParameters(parameters);
+    return function.type = new FunctionTypeImpl(function);
+  }
+
   DartType _substituteForUnknownType(DartType type, {bool lowerBound: false}) {
     if (identical(type, UnknownInferredType.instance)) {
       if (lowerBound) {
@@ -996,7 +1000,11 @@ class StrongTypeSystemImpl extends TypeSystem {
         var newType =
             _substituteForUnknownType(p.type, lowerBound: !lowerBound);
         return new ParameterElementImpl.synthetic(
-            p.name, newType, p.parameterKind);
+            // ignore: deprecated_member_use
+            p.name,
+            newType,
+            // ignore: deprecated_member_use
+            p.parameterKind);
       });
       // Return type is covariant.
       var newReturnType =
@@ -1112,6 +1120,11 @@ abstract class TypeSystem {
    */
   bool get isStrong;
 
+  /**
+   * The provider of types for the system
+   */
+  TypeProvider get typeProvider;
+
   List<InterfaceType> gatherMixinSupertypeConstraints(
       ClassElement mixinElement) {
     var mixinSupertypeConstraints = <InterfaceType>[];
@@ -1125,35 +1138,6 @@ abstract class TypeSystem {
     mixinElement.mixins.forEach(addIfGeneric);
     return mixinSupertypeConstraints;
   }
-
-  /// Attempts to find the appropriate substitution for [typeParameters] that can
-  /// be applied to [src] to make it equal to [dest].  If no such substitution can
-  /// be found, `null` is returned.
-  InterfaceType matchSupertypeConstraints(
-      ClassElement mixinElement, List<DartType> srcs, List<DartType> dests) {
-    var typeParameters = mixinElement.typeParameters;
-    var inferrer = new _GenericInferrer(typeProvider, this, typeParameters);
-    for (int i = 0; i < srcs.length; i++) {
-      inferrer.constrainReturnType(srcs[i], dests[i]);
-      inferrer.constrainReturnType(dests[i], srcs[i]);
-    }
-    var result = inferrer.infer(mixinElement.type, typeParameters,
-        considerExtendsClause: false);
-    for (int i = 0; i < srcs.length; i++) {
-      if (!srcs[i]
-          .substitute2(result.typeArguments, mixinElement.type.typeArguments)
-          .isEquivalentTo(dests[i])) {
-        // Failed to find an appropriate substitution
-        return null;
-      }
-    }
-    return result;
-  }
-
-  /**
-   * The provider of types for the system
-   */
-  TypeProvider get typeProvider;
 
   /**
    * Compute the least upper bound of two types.
@@ -1258,6 +1242,30 @@ abstract class TypeSystem {
    * if leftType <: rightType).
    */
   bool isSubtypeOf(DartType leftType, DartType rightType);
+
+  /// Attempts to find the appropriate substitution for [typeParameters] that can
+  /// be applied to [src] to make it equal to [dest].  If no such substitution can
+  /// be found, `null` is returned.
+  InterfaceType matchSupertypeConstraints(
+      ClassElement mixinElement, List<DartType> srcs, List<DartType> dests) {
+    var typeParameters = mixinElement.typeParameters;
+    var inferrer = new _GenericInferrer(typeProvider, this, typeParameters);
+    for (int i = 0; i < srcs.length; i++) {
+      inferrer.constrainReturnType(srcs[i], dests[i]);
+      inferrer.constrainReturnType(dests[i], srcs[i]);
+    }
+    var result = inferrer.infer(mixinElement.type, typeParameters,
+        considerExtendsClause: false);
+    for (int i = 0; i < srcs.length; i++) {
+      if (!srcs[i]
+          .substitute2(result.typeArguments, mixinElement.type.typeArguments)
+          .isEquivalentTo(dests[i])) {
+        // Failed to find an appropriate substitution
+        return null;
+      }
+    }
+    return result;
+  }
 
   /**
    * Searches the superinterfaces of [type] for implementations of [genericType]

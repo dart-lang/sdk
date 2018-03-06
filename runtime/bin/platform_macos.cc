@@ -22,6 +22,7 @@
 
 #include "bin/fdutils.h"
 #include "bin/file.h"
+#include "bin/log.h"
 
 namespace dart {
 namespace bin {
@@ -32,6 +33,12 @@ int Platform::script_index_ = 1;
 char** Platform::argv_ = NULL;
 
 static void segv_handler(int signal, siginfo_t* siginfo, void* context) {
+  Log::PrintErr(
+      "\n===== DART STANDALONE VM CRASH =====\n"
+      "version=%s\n"
+      "si_signo=%s(%d), si_code=%d, si_addr=%p\n",
+      Dart_VersionString(), strsignal(siginfo->si_signo), siginfo->si_signo,
+      siginfo->si_code, siginfo->si_addr);
   Dart_DumpNativeStackTrace(context);
   abort();
 }
@@ -66,6 +73,10 @@ bool Platform::Initialize() {
     return false;
   }
   if (sigaction(SIGTRAP, &act, NULL) != 0) {
+    perror("sigaction() failed.");
+    return false;
+  }
+  if (sigaction(SIGILL, &act, NULL) != 0) {
     perror("sigaction() failed.");
     return false;
   }

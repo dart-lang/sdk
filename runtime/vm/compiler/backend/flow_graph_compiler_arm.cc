@@ -1182,7 +1182,11 @@ void FlowGraphCompiler::EmitTestAndCallLoadCid(Register class_id_reg) {
   __ LoadClassId(class_id_reg, R0);
 }
 
-int FlowGraphCompiler::EmitTestAndCallCheckCid(Label* label,
+#undef __
+#define __ assembler->
+
+int FlowGraphCompiler::EmitTestAndCallCheckCid(Assembler* assembler,
+                                               Label* label,
                                                Register class_id_reg,
                                                const CidRange& range,
                                                int bias,

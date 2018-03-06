@@ -786,4 +786,17 @@ class BackendImpacts {
       _commonElements.typeVariableClass
     ]);
   }
+
+  BackendImpact _genericInstantiation;
+
+  BackendImpact get genericInstantiation =>
+      _genericInstantiation ??= new BackendImpact(staticUses: [
+        _commonElements.instantiate1,
+        _commonElements.instantiate2,
+        _commonElements.instantiate3,
+      ], instantiatedClasses: [
+        _commonElements.instantiation1Class,
+        _commonElements.instantiation2Class,
+        _commonElements.instantiation3Class,
+      ]);
 }

@@ -43,6 +43,9 @@ enum Feature {
   /// A field without an initializer.
   FIELD_WITHOUT_INITIALIZER,
 
+  /// A generic instantiation (application of type parameters).
+  GENERIC_INSTANTIATION,
+
   /// A local variable without an initializer.
   LOCAL_WITHOUT_INITIALIZER,
 

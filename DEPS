@@ -42,7 +42,7 @@ vars = {
   # Fuchsia. This revision should be kept up to date with the revision pulled
   # by the Flutter engine. If there are problems with the toolchain, contact
   # fuchsia-toolchain@.
-  "buildtools_revision": "@de2d6da936fa0be8bcb0bacd096fe124efff2854",
+  "buildtools_revision": "@446d5b1019dcbe7835236dc85261e91cf29a9239",
 
   # Scripts that make 'git cl format' work.
   "clang_format_scripts_rev": "@c09c8deeac31f05bd801995c475e7c8070f9ecda",
@@ -51,7 +51,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "args_tag": "@0.13.7",
-  "async_tag": "@2.0.4",
+  "async_tag": "@2.0.6",
   "barback-0.13.0_rev": "@34853",
   "barback-0.14.0_rev": "@36398",
   "barback-0.14.1_rev": "@38525",
@@ -63,7 +63,7 @@ vars = {
   "charcode_tag": "@v1.1.1",
   "chrome_rev" : "@19997",
   "cli_util_tag" : "@0.1.2+1",
-  "collection_tag": "@1.14.5",
+  "collection_tag": "@5943e1681204250f33a833eb5550f270357ad6c8",
   "convert_tag": "@2.0.1",
   "crypto_tag" : "@2.0.2+1",
   "csslib_tag" : "@0.14.1",
@@ -117,7 +117,7 @@ vars = {
   "protobuf_tag": "@0.7.0",
   "pub_rev": "@73ff0d3d9f80f60d41e3135ac44597d011abb4f3",
   "pub_semver_tag": "@1.3.2",
-  "quiver_tag": "@0.28.0",
+  "quiver_tag": "@5aaa3f58c48608af5b027444d561270b53f15dbf",
   "resource_rev":"@af5a5bf65511943398146cf146e466e5f0b95cb9",
   "root_certificates_rev": "@16ef64be64c7dfdff2b9f4b910726e635ccc519e",
   "shelf_static_rev": "@3558aa35a0d2f0f35868c3fd64b258e140db0122",

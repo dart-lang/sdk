@@ -17,6 +17,11 @@ import 'package:kernel/kernel.dart'
 
 import 'package:kernel/target/targets.dart' show TargetFlags, targets;
 
+import 'package:front_end/src/api_prototype/compiler_options.dart'
+    show ProblemHandler;
+
+import 'package:front_end/src/api_prototype/file_system.dart' show FileSystem;
+
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
@@ -86,16 +91,24 @@ batchEntryPoint(List<String> arguments) {
 class BatchCompiler {
   final Stream lines;
 
+  final FileSystem fileSystem;
+
+  final ProblemHandler problemHandler;
+
   Uri platformUri;
 
   Program platformComponent;
 
-  BatchCompiler(this.lines);
+  BatchCompiler(this.lines)
+      : fileSystem = null,
+        problemHandler = null;
+
+  BatchCompiler.forTesting(this.fileSystem, this.problemHandler) : lines = null;
 
   run() async {
     await for (String line in lines) {
       try {
-        if (await batchCompile(line)) {
+        if (await batchCompile(JSON.decode(line))) {
           stdout.writeln(">>> TEST OK");
         } else {
           stdout.writeln(">>> TEST FAIL");
@@ -111,8 +124,7 @@ class BatchCompiler {
     }
   }
 
-  Future<bool> batchCompile(String line) async {
-    List<String> arguments = new List<String>.from(JSON.decode(line));
+  Future<bool> batchCompile(List<String> arguments) async {
     try {
       return await withGlobalOptions("compile", arguments, true,
           (CompilerContext c, _) async {
@@ -120,7 +132,7 @@ class BatchCompiler {
         bool verbose = options.verbose;
         Ticker ticker = new Ticker(isVerbose: verbose);
         if (verbose) {
-          print("Compiling directly to Kernel: $line");
+          print("Compiling directly to Kernel: ${arguments.join(' ')}");
         }
         if (platformComponent == null || platformUri != options.sdkSummary) {
           platformUri = options.sdkSummary;
@@ -140,7 +152,7 @@ class BatchCompiler {
         }
         root.unbindAll();
         return c.errors.isEmpty;
-      });
+      }, fileSystem: fileSystem, problemHandler: problemHandler);
     } on deprecated_InputError catch (e) {
       CompilerContext.runWithDefaultOptions(
           (c) => c.report(deprecated_InputError.toMessage(e), Severity.error));
@@ -234,7 +246,6 @@ class CompileTask {
 
   Future<Uri> compile({bool sansPlatform: false}) async {
     KernelTarget kernelTarget = await buildOutline();
-    if (exitCode != 0) return null;
     Uri uri = c.options.output;
     Program program = await kernelTarget.buildProgram(verify: c.options.verify);
     if (c.options.debugDump) {
@@ -253,8 +264,10 @@ class CompileTask {
       }
       program = userCode;
     }
-    await writeProgramToFile(program, uri);
-    ticker.logMs("Wrote program to ${uri.toFilePath()}");
+    if (uri.scheme == "file") {
+      await writeProgramToFile(program, uri);
+      ticker.logMs("Wrote program to ${uri.toFilePath()}");
+    }
     return uri;
   }
 }

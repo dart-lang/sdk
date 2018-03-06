@@ -76,11 +76,6 @@ FlowGraphTypePropagator::FlowGraphTypePropagator(FlowGraph* flow_graph)
 }
 
 void FlowGraphTypePropagator::Propagate() {
-  if (FLAG_support_il_printer && FLAG_trace_type_propagation &&
-      FlowGraphPrinter::ShouldPrint(flow_graph_->function())) {
-    FlowGraphPrinter::PrintGraph("Before type propagation", flow_graph_);
-  }
-
   // Walk the dominator tree and propagate reaching types to all Values.
   // Collect all phis for a fixed point iteration.
   PropagateRecursive(flow_graph_->graph_entry());
@@ -101,13 +96,13 @@ void FlowGraphTypePropagator::Propagate() {
   while (!worklist_.is_empty()) {
     Definition* def = RemoveLastFromWorklist();
     if (FLAG_support_il_printer && FLAG_trace_type_propagation &&
-        FlowGraphPrinter::ShouldPrint(flow_graph_->function())) {
+        flow_graph_->should_print()) {
       THR_Print("recomputing type of v%" Pd ": %s\n", def->ssa_temp_index(),
                 def->Type()->ToCString());
     }
     if (def->RecomputeType()) {
       if (FLAG_support_il_printer && FLAG_trace_type_propagation &&
-          FlowGraphPrinter::ShouldPrint(flow_graph_->function())) {
+          flow_graph_->should_print()) {
         THR_Print("  ... new type %s\n", def->Type()->ToCString());
       }
       for (Value::Iterator it(def->input_use_list()); !it.Done();
@@ -120,11 +115,6 @@ void FlowGraphTypePropagator::Propagate() {
         }
       }
     }
-  }
-
-  if (FLAG_support_il_printer && FLAG_trace_type_propagation &&
-      FlowGraphPrinter::ShouldPrint(flow_graph_->function())) {
-    FlowGraphPrinter::PrintGraph("After type propagation", flow_graph_);
   }
 }
 
@@ -233,7 +223,7 @@ void FlowGraphTypePropagator::VisitValue(Value* value) {
   }
 
   if (FLAG_support_il_printer && FLAG_trace_type_propagation &&
-      FlowGraphPrinter::ShouldPrint(flow_graph_->function())) {
+      flow_graph_->should_print()) {
     THR_Print("reaching type to %s for v%" Pd " is %s\n",
               value->instruction()->ToCString(),
               value->definition()->ssa_temp_index(),
@@ -1260,7 +1250,7 @@ CompileType LoadFieldInstr::ComputeType() const {
   if ((isolate->strong() && FLAG_use_strong_mode_types) ||
       (isolate->type_checks() &&
        (type().IsFunctionType() || type().HasResolvedTypeClass()))) {
-    const AbstractType* abstract_type = abstract_type = &type();
+    const AbstractType* abstract_type = &type();
     TraceStrongModeType(this, *abstract_type);
     compile_type_annotation = CompileType::FromAbstractType(*abstract_type);
   }

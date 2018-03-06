@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:test/test.dart';
 
@@ -619,21 +618,20 @@ class _ElementWriter {
     String defaultValueSeparator;
     Expression defaultValue;
     String closeString;
-    ParameterKind kind = e.parameterKind;
-    if (kind == ParameterKind.REQUIRED) {
+    if (e.isNotOptional) {
       closeString = '';
-    } else if (kind == ParameterKind.POSITIONAL) {
+    } else if (e.isOptionalPositional) {
       buffer.write('[');
       defaultValueSeparator = ' = ';
       defaultValue = (e as ConstVariableElement).constantInitializer;
       closeString = ']';
-    } else if (kind == ParameterKind.NAMED) {
+    } else if (e.isNamed) {
       buffer.write('{');
       defaultValueSeparator = ': ';
       defaultValue = (e as ConstVariableElement).constantInitializer;
       closeString = '}';
     } else {
-      fail('Unknown parameter kind: $kind');
+      fail('Unknown parameter kind');
     }
 
     // Kernel desugars omitted default parameter values to 'null'.

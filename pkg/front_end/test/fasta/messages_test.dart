@@ -13,7 +13,30 @@ import "dart:typed_data" show Uint8List;
 import "package:testing/testing.dart"
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
 
-import "package:yaml/yaml.dart" show loadYaml;
+import "package:yaml/yaml.dart" show YamlList, YamlMap, YamlNode, loadYamlNode;
+
+import 'package:front_end/src/api_prototype/compiler_options.dart'
+    show ProblemHandler;
+
+import 'package:front_end/src/api_prototype/memory_file_system.dart'
+    show MemoryFileSystem, MemoryFileSystemEntity;
+
+import 'package:front_end/src/fasta/fasta_codes.dart' show LocatedMessage;
+
+import 'package:front_end/src/fasta/severity.dart'
+    show Severity, severityEnumValues;
+
+import 'package:front_end/src/testing/hybrid_file_system.dart'
+    show HybridFileSystem;
+
+import "../../tool/_fasta/entry_points.dart" show BatchCompiler;
+
+ProblemHandler problemHandler(List<List> problems) {
+  return (LocatedMessage problem, Severity severity, String formatted, int line,
+      int column) {
+    problems.add([problem, severity, formatted, line, column]);
+  };
+}
 
 class MessageTestDescription extends TestDescription {
   @override
@@ -24,7 +47,7 @@ class MessageTestDescription extends TestDescription {
 
   final String name;
 
-  final Map data;
+  final YamlMap data;
 
   final Example example;
 
@@ -40,30 +63,54 @@ class MessageTestSuite extends ChainContext {
     const Compile(),
   ];
 
+  final MemoryFileSystem fileSystem;
+
+  final BatchCompiler compiler;
+
+  final List<List> problems;
+
+  MessageTestSuite()
+      : this.internal(new MemoryFileSystem(Uri.parse("org-dartlang-fasta:///")),
+            <List>[]);
+
+  MessageTestSuite.internal(this.fileSystem, this.problems)
+      : compiler = new BatchCompiler.forTesting(
+            new HybridFileSystem(fileSystem), problemHandler(problems));
+
   /// Convert all the examples found in `messages.yaml` to a test
-  /// description. In addition, for each problem found, create a test
-  /// description that has a problem. This problem will then be reported as a
+  /// description. In addition, create a test description for each kind of
+  /// problem that a message can have. This problem will then be reported as a
   /// failure by the [Validate] step that can be suppressed via the status
   /// file.
   Stream<MessageTestDescription> list(Chain suite) async* {
     Uri uri = suite.uri.resolve("messages.yaml");
     File file = new File.fromUri(uri);
-    Map yaml = loadYaml(await file.readAsString());
-    for (String name in yaml.keys) {
-      var data = yaml[name];
-      if (data is String) continue;
+    YamlMap messages = loadYamlNode(await file.readAsString(), sourceUrl: uri);
+    for (String name in messages.keys) {
+      YamlNode messageNode = messages.nodes[name];
+      var message = messageNode.value;
+      if (message is String) continue;
 
       List<String> unknownKeys = <String>[];
       List<Example> examples = <Example>[];
       String analyzerCode;
       String dart2jsCode;
+      Severity severity;
+      YamlNode badSeverity;
 
-      for (String key in data.keys) {
-        var value = data[key];
+      for (String key in message.keys) {
+        YamlNode node = message.nodes[key];
+        var value = node.value;
         switch (key) {
           case "template":
           case "tip":
+            break;
+
           case "severity":
+            severity = severityEnumValues[value];
+            if (severity == null) {
+              badSeverity = node;
+            }
             break;
 
           case "analyzerCode":
@@ -75,60 +122,61 @@ class MessageTestSuite extends ChainContext {
             break;
 
           case "bytes":
-            if (value.first is List) {
-              for (List bytes in value) {
+            YamlList list = node;
+            if (list.first is List) {
+              for (YamlList bytes in list.nodes) {
                 int i = 0;
                 examples.add(new BytesExample("bytes${++i}", name, bytes));
               }
             } else {
-              examples.add(new BytesExample("bytes", name, value));
+              examples.add(new BytesExample("bytes", name, list));
             }
             break;
 
           case "declaration":
-            if (value is List) {
+            if (node is YamlList) {
               int i = 0;
-              for (String declaration in value) {
+              for (YamlNode declaration in node.nodes) {
                 examples.add(new DeclarationExample(
                     "declaration${++i}", name, declaration));
               }
             } else {
-              examples.add(new DeclarationExample("declaration", name, value));
+              examples.add(new DeclarationExample("declaration", name, node));
             }
             break;
 
           case "expression":
-            if (value is List) {
+            if (node is YamlList) {
               int i = 0;
-              for (String expression in value) {
+              for (YamlNode expression in node.nodes) {
                 examples.add(new ExpressionExample(
                     "expression${++i}", name, expression));
               }
             } else {
-              examples.add(new ExpressionExample("expression", name, value));
+              examples.add(new ExpressionExample("expression", name, node));
             }
             break;
 
           case "script":
-            if (value is List) {
+            if (node is YamlList) {
               int i = 0;
-              for (String script in value) {
+              for (YamlNode script in node.nodes) {
                 examples.add(new ScriptExample("script${++i}", name, script));
               }
             } else {
-              examples.add(new ScriptExample("script", name, value));
+              examples.add(new ScriptExample("script", name, node));
             }
             break;
 
           case "statement":
-            if (value is List) {
+            if (node is YamlList) {
               int i = 0;
-              for (String statement in value) {
+              for (YamlNode statement in node.nodes) {
                 examples.add(
                     new StatementExample("statement${++i}", name, statement));
               }
             } else {
-              examples.add(new StatementExample("statement", name, value));
+              examples.add(new StatementExample("statement", name, node));
             }
             break;
 
@@ -138,46 +186,106 @@ class MessageTestSuite extends ChainContext {
       }
 
       MessageTestDescription createDescription(
-          String subName, Example example, String problem) {
+          String subName, Example example, String problem,
+          {location}) {
         String shortName = "$name/$subName";
         if (problem != null) {
-          String base = "${Uri.base}";
-          String filename = "$uri";
-          if (filename.startsWith(base)) {
-            filename = filename.substring(base.length);
-          }
-          var location = data.span.start;
+          String filename = relativize(uri);
+          location ??= message.span.start;
           int line = location.line;
           int column = location.column;
           problem = "$filename:$line:$column: error:\n$problem";
         }
         return new MessageTestDescription(uri.resolve("#$shortName"), shortName,
-            name, data, example, problem);
+            name, messageNode, example, problem);
       }
 
       for (Example example in examples) {
         yield createDescription(example.name, example, null);
       }
 
-      if (unknownKeys.isNotEmpty) {
-        yield createDescription(
-            "knownKeys", null, "Unknown keys: ${unknownKeys.join(' ')}");
-      }
+      yield createDescription(
+          "knownKeys",
+          null,
+          unknownKeys.isNotEmpty
+              ? "Unknown keys: ${unknownKeys.join(' ')}."
+              : null);
 
-      if (examples.isEmpty) {
-        yield createDescription("example", null, "No example for $name");
-      }
+      yield createDescription(
+          "severity",
+          null,
+          badSeverity != null
+              ? "Unknown severity: '${badSeverity.value}'."
+              : null,
+          location: badSeverity?.span?.start);
 
-      if (analyzerCode == null) {
-        yield createDescription(
-            "analyzerCode", null, "No analyzer code for $name");
-      } else {
-        if (dart2jsCode == null) {
-          yield createDescription(
-              "dart2jsCode", null, "No dart2js code for $name");
-        }
-      }
+      bool exampleAndAnalyzerCodeRequired = (severity != Severity.context &&
+          severity != Severity.internalProblem);
+
+      yield createDescription(
+          "example",
+          null,
+          exampleAndAnalyzerCodeRequired && examples.isEmpty
+              ? "No example for $name, please add at least one example."
+              : null);
+
+      yield createDescription(
+          "analyzerCode",
+          null,
+          exampleAndAnalyzerCodeRequired && analyzerCode == null
+              ? "No analyzer code for $name."
+                  "\nTry running"
+                  " <BUILDDIR>/dart-sdk/bin/dartanalyzer --format=machine"
+                  " on an example to find the code."
+                  " The code is printed just before the file name."
+              : null);
+
+      yield createDescription(
+          "dart2jsCode",
+          null,
+          exampleAndAnalyzerCodeRequired &&
+                  analyzerCode != null &&
+                  dart2jsCode == null
+              ? "No dart2js code for $name."
+                  " Try using *ignored* or *fatal*"
+              : null);
     }
+  }
+
+  Uri addSource(String name, List<int> bytes) {
+    Uri uri = fileSystem.currentDirectory.resolve(name);
+    MemoryFileSystemEntity entity = fileSystem.entityForUri(uri);
+    entity.writeAsBytesSync(bytes);
+    return uri;
+  }
+
+  List<List> takeProblems() {
+    List<List> result = problems.toList();
+    problems.clear();
+    return result;
+  }
+
+  String formatProblems(String message, Example example, List<List> problems) {
+    var span = example.node.span;
+    StringBuffer buffer = new StringBuffer();
+    buffer
+      ..write(relativize(span.sourceUrl))
+      ..write(":")
+      ..write(span.start.line)
+      ..write(":")
+      ..write(span.start.column)
+      ..write(": error: ")
+      ..write(message);
+    buffer.write("\n${span.text}");
+    for (List problem in problems) {
+      LocatedMessage messsage = problem[0];
+      String formatted = problem[2];
+      buffer.write("\nCode: ${messsage.code.name}");
+      buffer.write("\n  > ");
+      buffer.write(formatted.replaceAll("\n", "\n  > "));
+    }
+
+    return "$buffer";
   }
 }
 
@@ -188,23 +296,32 @@ abstract class Example {
 
   Example(this.name, this.expectedCode);
 
+  YamlNode get node;
+
   Uint8List get bytes;
 }
 
 class BytesExample extends Example {
   @override
+  final YamlList node;
+
+  @override
   final Uint8List bytes;
 
-  BytesExample(String name, String code, List bytes)
-      : bytes = new Uint8List.fromList(bytes),
+  BytesExample(String name, String code, this.node)
+      : bytes = new Uint8List.fromList(node.value),
         super(name, code);
 }
 
 class DeclarationExample extends Example {
+  @override
+  final YamlNode node;
+
   final String declaration;
 
-  DeclarationExample(String name, String code, this.declaration)
-      : super(name, code);
+  DeclarationExample(String name, String code, this.node)
+      : declaration = node.value,
+        super(name, code);
 
   @override
   Uint8List get bytes {
@@ -218,10 +335,14 @@ main() {
 }
 
 class StatementExample extends Example {
+  @override
+  final YamlNode node;
+
   final String statement;
 
-  StatementExample(String name, String code, this.statement)
-      : super(name, code);
+  StatementExample(String name, String code, this.node)
+      : statement = node.value,
+        super(name, code);
 
   @override
   Uint8List get bytes {
@@ -234,10 +355,14 @@ main() {
 }
 
 class ExpressionExample extends Example {
+  @override
+  final YamlNode node;
+
   final String expression;
 
-  ExpressionExample(String name, String code, this.expression)
-      : super(name, code);
+  ExpressionExample(String name, String code, this.node)
+      : expression = node.value,
+        super(name, code);
 
   @override
   Uint8List get bytes {
@@ -250,9 +375,14 @@ main() {
 }
 
 class ScriptExample extends Example {
+  @override
+  final YamlNode node;
+
   final String script;
 
-  ScriptExample(String name, String code, this.script) : super(name, code);
+  ScriptExample(String name, String code, this.node)
+      : script = node.value,
+        super(name, code);
 
   @override
   Uint8List get bytes {
@@ -281,19 +411,61 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
   String get name => "compile";
 
   Future<Result<Null>> run(Example example, MessageTestSuite suite) async {
-    // TODO(ahe): This is where I should actually compile the example and
-    // verify that only one message is reported, and it is the expected
-    // message.
-    if (example is! BytesExample) {
-      print(utf8.decode(example.bytes));
+    if (example == null) return pass(null);
+    String name = "${example.expectedCode}/${example.name}";
+    Uri uri = suite.addSource("${name}.dart", example.bytes);
+    print("Compiling $uri");
+    List<List> problems;
+    try {
+      await suite.compiler.batchCompile(<String>["--strong", "$uri"]);
+    } finally {
+      problems = suite.takeProblems();
     }
-    return pass(null);
+    List<List> unexpectedProblems = <List>[];
+    for (List problem in problems) {
+      LocatedMessage message = problem[0];
+      if (message.code.name != example.expectedCode) {
+        unexpectedProblems.add(problem);
+      }
+    }
+    if (unexpectedProblems.isEmpty) {
+      switch (problems.length) {
+        case 0:
+          return fail(
+              null,
+              suite.formatProblems("No problem reported in ${example.name}:",
+                  example, problems));
+        case 1:
+          return pass(null);
+        default:
+          return fail(
+              null,
+              suite.formatProblems(
+                  "Problem reported multiple times in ${example.name}:",
+                  example,
+                  problems));
+      }
+    }
+    return fail(
+        null,
+        suite.formatProblems("Too many problems reported in ${example.name}:",
+            example, problems));
   }
 }
 
 Future<MessageTestSuite> createContext(
     Chain suite, Map<String, String> environment) async {
   return new MessageTestSuite();
+}
+
+String relativize(Uri uri) {
+  String base = "${Uri.base}";
+  String filename = "$uri";
+  if (filename.startsWith(base)) {
+    return filename.substring(base.length);
+  } else {
+    return filename;
+  }
 }
 
 main([List<String> arguments = const []]) =>

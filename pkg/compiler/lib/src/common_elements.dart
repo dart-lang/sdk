@@ -1068,6 +1068,13 @@ class CommonElements {
   FunctionEntity get hashCodeForNativeObject =>
       _findHelperFunction('hashCodeForNativeObject');
 
+  ClassEntity get instantiation1Class => _findHelperClass('Instantiation1');
+  ClassEntity get instantiation2Class => _findHelperClass('Instantiation2');
+  ClassEntity get instantiation3Class => _findHelperClass('Instantiation3');
+  FunctionEntity get instantiate1 => _findHelperFunction('instantiate1');
+  FunctionEntity get instantiate2 => _findHelperFunction('instantiate2');
+  FunctionEntity get instantiate3 => _findHelperFunction('instantiate3');
+
   // From dart:_internal
 
   ClassEntity _symbolImplementationClass;

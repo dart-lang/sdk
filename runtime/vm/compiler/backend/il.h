@@ -350,7 +350,10 @@ typedef MallocGrowableArray<CidRange> CidRangeVector;
 class HierarchyInfo : public StackResource {
  public:
   explicit HierarchyInfo(Thread* thread)
-      : StackResource(thread), thread_(thread), cid_subtype_ranges_(NULL) {
+      : StackResource(thread),
+        thread_(thread),
+        cid_subtype_ranges_(NULL),
+        cid_subclass_ranges_(NULL) {
     thread->set_hierarchy_info(this);
   }
 
@@ -359,17 +362,45 @@ class HierarchyInfo : public StackResource {
 
     delete[] cid_subtype_ranges_;
     cid_subtype_ranges_ = NULL;
+
+    delete[] cid_subclass_ranges_;
+    cid_subclass_ranges_ = NULL;
   }
 
   const CidRangeVector& SubtypeRangesForClass(const Class& klass);
+  const CidRangeVector& SubclassRangesForClass(const Class& klass);
 
   bool InstanceOfHasClassRange(const AbstractType& type,
                                intptr_t* lower_limit,
                                intptr_t* upper_limit);
 
+  // Returns `true` if a simple [CidRange]-based subtype-check can be used to
+  // determine if a given instance's type is a subtype of [type].
+  //
+  // This is the case for [type]s without type arguments or where the type
+  // arguments are all dynamic (known as "rare type").
+  bool CanUseSubtypeRangeCheckFor(const AbstractType& type);
+
+  // Returns `true` if a combination of [CidRange]-based checks can be used to
+  // determine if a given instance's type is a subtype of [type].
+  //
+  // This is the case for [type]s with type arguments where we are able to do a
+  // [CidRange]-based subclass-check against the class and [CidRange]-based
+  // subtype-checks against the type arguments.
+  //
+  // This method should only be called if [CanUseSubtypeRangecheckFor] returned
+  // false.
+  bool CanUseGenericSubtypeRangeCheckFor(const AbstractType& type);
+
  private:
+  void BuildRangesFor(ClassTable* table,
+                      CidRangeVector* ranges,
+                      const Class& klass,
+                      bool use_subtype_test);
+
   Thread* thread_;
   CidRangeVector* cid_subtype_ranges_;
+  CidRangeVector* cid_subclass_ranges_;
 };
 
 // An embedded container with N elements of type T.  Used (with partial

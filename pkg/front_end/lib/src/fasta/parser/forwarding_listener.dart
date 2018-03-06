@@ -403,8 +403,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginVariablesDeclaration(Token token) {
-    listener?.beginVariablesDeclaration(token);
+  void beginVariablesDeclaration(Token token, Token varFinalOrConst) {
+    listener?.beginVariablesDeclaration(token, varFinalOrConst);
   }
 
   @override

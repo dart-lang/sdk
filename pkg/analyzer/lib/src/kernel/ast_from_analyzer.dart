@@ -461,19 +461,13 @@ class TypeScope extends ReferenceScope {
     for (var parameter in element.parameters) {
       var parameterNode = new ast.VariableDeclaration(parameter.name,
           type: buildType(parameter.type));
-      switch (parameter.parameterKind) {
-        case ParameterKind.REQUIRED:
-          positional.add(parameterNode);
-          ++requiredParameterCount;
-          break;
-
-        case ParameterKind.POSITIONAL:
-          positional.add(parameterNode);
-          break;
-
-        case ParameterKind.NAMED:
-          named.add(parameterNode);
-          break;
+      if (parameter.isNotOptional) {
+        positional.add(parameterNode);
+        ++requiredParameterCount;
+      } else if (parameter.isOptionalPositional) {
+        positional.add(parameterNode);
+      } else if (parameter.isNamed) {
+        named.add(parameterNode);
       }
     }
     var returnType = element is ConstructorElement
@@ -564,20 +558,14 @@ class ExpressionScope extends TypeScope {
               : null,
           type: buildType(
               resolutionMap.elementDeclaredByFormalParameter(parameter).type));
-      switch (parameter.kind) {
-        case ParameterKind.REQUIRED:
-          positional.add(declaration);
-          ++requiredParameterCount;
-          declaration.initializer = null;
-          break;
-
-        case ParameterKind.POSITIONAL:
-          positional.add(declaration);
-          break;
-
-        case ParameterKind.NAMED:
-          named.add(declaration);
-          break;
+      if (parameter.isRequired) {
+        positional.add(declaration);
+        ++requiredParameterCount;
+        declaration.initializer = null;
+      } else if (parameter.isOptionalPositional) {
+        positional.add(declaration);
+      } else if (parameter.isNamed) {
+        named.add(declaration);
       }
     }
     int offset = formalParameters?.offset ?? body.offset;
@@ -690,34 +678,30 @@ class ExpressionScope extends TypeScope {
       FunctionTypedElement target, ast.Arguments arguments) {
     var positionals = arguments.positional;
     var parameters = target.parameters;
-    const required = ParameterKind.REQUIRED; // For avoiding long lines.
-    const named = ParameterKind.NAMED;
     // If the first unprovided parameter is required, there are too few
     // positional arguments.
     if (positionals.length < parameters.length &&
-        parameters[positionals.length].parameterKind == required) {
+        parameters[positionals.length].isNotOptional) {
       return false;
     }
     // If there are more positional arguments than parameters, or if the last
     // positional argument corresponds to a named parameter, there are too many
     // positional arguments.
     if (positionals.length > parameters.length) return false;
-    if (positionals.isNotEmpty &&
-        parameters[positionals.length - 1].parameterKind == named) {
+    if (positionals.isNotEmpty && parameters[positionals.length - 1].isNamed) {
       return false; // Too many positional arguments.
     }
     if (arguments.named.isEmpty) return true;
     int firstNamedParameter = positionals.length;
     while (firstNamedParameter < parameters.length &&
-        parameters[firstNamedParameter].parameterKind != ParameterKind.NAMED) {
+        !parameters[firstNamedParameter].isNamed) {
       ++firstNamedParameter;
     }
     namedLoop:
     for (int i = 0; i < arguments.named.length; ++i) {
       String name = arguments.named[i].name;
       for (int j = firstNamedParameter; j < parameters.length; ++j) {
-        if (parameters[j].parameterKind == ParameterKind.NAMED &&
-            parameters[j].name == name) {
+        if (parameters[j].isNamed && parameters[j].name == name) {
           continue namedLoop;
         }
       }

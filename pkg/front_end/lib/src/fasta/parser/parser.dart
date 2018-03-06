@@ -5530,62 +5530,47 @@ class Parser {
     return parseVariablesDeclarationMaybeSemicolon(token, true);
   }
 
-  Token parseVariablesDeclarationRest(Token token) {
-    return parseVariablesDeclarationMaybeSemicolonRest(token, true);
-  }
-
-  Token parseVariablesDeclarationNoSemicolonRest(Token token) {
-    // Only called when parsing a for loop, so this is for parsing locals.
-    return parseVariablesDeclarationMaybeSemicolonRest(token, false);
-  }
-
   Token parseVariablesDeclarationMaybeSemicolon(
       Token token, bool endWithSemicolon) {
     Token next = token.next;
 
-    MemberKind memberKind = MemberKind.Local;
     TypeContinuation typeContinuation;
     Token varFinalOrConst;
     if (isModifier(next)) {
       if (optional('var', next)) {
         typeContinuation = TypeContinuation.OptionalAfterVar;
-        varFinalOrConst = token = parseModifier(token);
+        varFinalOrConst = token = token.next;
         next = token.next;
       } else if (optional('final', next) || optional('const', next)) {
         typeContinuation = TypeContinuation.Optional;
-        varFinalOrConst = token = parseModifier(token);
+        varFinalOrConst = token = token.next;
         next = token.next;
       }
 
       if (isModifier(next)) {
         // Recovery
-        ModifierRecoveryContext modifierContext = new ModifierRecoveryContext(
-            this, memberKind, null, true, typeContinuation);
-        token = modifierContext.parseRecovery(token,
+        ModifierRecoveryContext2 modifierContext =
+            new ModifierRecoveryContext2(this);
+        token = modifierContext.parseVariableDeclarationModifiers(
+            token, typeContinuation,
             varFinalOrConst: varFinalOrConst);
 
         varFinalOrConst = modifierContext.varFinalOrConst;
-        listener.handleModifiers(modifierContext.modifierCount);
-
-        memberKind = modifierContext.memberKind;
         typeContinuation = modifierContext.typeContinuation;
         modifierContext = null;
-      } else {
-        listener.handleModifiers(1);
       }
-    } else {
-      listener.handleModifiers(0);
     }
 
-    token = parseType(
-        token, typeContinuation ?? TypeContinuation.Required, null, memberKind);
-    return parseVariablesDeclarationMaybeSemicolonRest(token, endWithSemicolon);
+    token = parseType(token, typeContinuation ?? TypeContinuation.Required,
+        null, MemberKind.Local);
+    return parseVariablesDeclarationMaybeSemicolonRest(
+        token, varFinalOrConst, endWithSemicolon);
   }
 
   Token parseVariablesDeclarationMaybeSemicolonRest(
-      Token token, bool endWithSemicolon) {
+      Token token, Token varFinalOrConst, bool endWithSemicolon) {
     int count = 1;
-    listener.beginVariablesDeclaration(token.next);
+    listener.beginVariablesDeclaration(token.next, varFinalOrConst);
     token = parseOptionallyInitializedIdentifier(token);
     while (optional(',', token.next)) {
       token = parseOptionallyInitializedIdentifier(token.next);

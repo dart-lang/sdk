@@ -17543,15 +17543,18 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
 
-  // Since void is a keyword, we never have to canonicalize the void type after
-  // it is canonicalized once by the vm isolate. The parser does the mapping.
-  ASSERT((type_class_id() != kVoidCid) || (isolate == Dart::vm_isolate()));
+  if ((type_class_id() == kVoidCid) && (isolate != Dart::vm_isolate())) {
+    ASSERT(Object::void_type().IsCanonical());
+    return Object::void_type().raw();
+  }
 
-  // Since dynamic is not a keyword, the parser builds a type that requires
-  // canonicalization.
   if ((type_class_id() == kDynamicCid) && (isolate != Dart::vm_isolate())) {
     ASSERT(Object::dynamic_type().IsCanonical());
     return Object::dynamic_type().raw();
+  }
+  if ((type_class_id() == kVectorCid) && (isolate != Dart::vm_isolate())) {
+    ASSERT(Object::vector_type().IsCanonical());
+    return Object::vector_type().raw();
   }
 
   const Class& cls = Class::Handle(zone, type_class());

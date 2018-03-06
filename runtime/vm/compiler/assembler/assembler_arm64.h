@@ -649,8 +649,9 @@ class Assembler : public ValueObject {
              int width,
              OperandSize size = kDoubleWord) {
     int wordsize = size == kDoubleWord ? 64 : 32;
-    EmitBitfieldOp(UBFM, rd, rn, (width - low_bit) & (wordsize - 1),
-                   wordsize - 1, size);
+    ASSERT(width > 0);
+    ASSERT(low_bit < wordsize);
+    EmitBitfieldOp(UBFM, rd, rn, (-low_bit) & (wordsize - 1), width - 1, size);
   }
 
   // Unsigned bitfield extract.  Takes the width bits, starting at low_bit and
@@ -686,6 +687,11 @@ class Assembler : public ValueObject {
   // Zero/unsigned extend halfword->64 bit.
   void uxth(Register rd, Register rn) {
     EmitBitfieldOp(UBFM, rd, rn, 0, 15, kDoubleWord);
+  }
+
+  // Zero/unsigned extend word->64 bit.
+  void uxtw(Register rd, Register rn) {
+    EmitBitfieldOp(UBFM, rd, rn, 0, 31, kDoubleWord);
   }
 
   // Logical immediate operations.
@@ -737,6 +743,9 @@ class Assembler : public ValueObject {
   void orn(Register rd, Register rn, Operand o) {
     EmitLogicalShiftOp(ORN, rd, rn, o, kDoubleWord);
   }
+  void ornw(Register rd, Register rn, Operand o) {
+    EmitLogicalShiftOp(ORN, rd, rn, o, kWord);
+  }
   void eor(Register rd, Register rn, Operand o) {
     EmitLogicalShiftOp(EOR, rd, rn, o, kDoubleWord);
   }
@@ -774,20 +783,66 @@ class Assembler : public ValueObject {
   void asrv(Register rd, Register rn, Register rm) {
     EmitMiscDP2Source(ASRV, rd, rn, rm, kDoubleWord);
   }
-  void madd(Register rd, Register rn, Register rm, Register ra) {
-    EmitMiscDP3Source(MADD, rd, rn, rm, ra, kDoubleWord);
+  void lslvw(Register rd, Register rn, Register rm) {
+    EmitMiscDP2Source(LSLV, rd, rn, rm, kWord);
   }
-  void msub(Register rd, Register rn, Register rm, Register ra) {
-    EmitMiscDP3Source(MSUB, rd, rn, rm, ra, kDoubleWord);
+  void lsrvw(Register rd, Register rn, Register rm) {
+    EmitMiscDP2Source(LSRV, rd, rn, rm, kWord);
   }
-  void smulh(Register rd, Register rn, Register rm) {
-    EmitMiscDP3Source(SMULH, rd, rn, rm, R31, kDoubleWord);
+  void asrvw(Register rd, Register rn, Register rm) {
+    EmitMiscDP2Source(ASRV, rd, rn, rm, kWord);
   }
-  void umulh(Register rd, Register rn, Register rm) {
-    EmitMiscDP3Source(UMULH, rd, rn, rm, R31, kDoubleWord);
+  void madd(Register rd,
+            Register rn,
+            Register rm,
+            Register ra,
+            OperandSize sz = kDoubleWord) {
+    EmitMiscDP3Source(MADD, rd, rn, rm, ra, sz);
   }
-  void umaddl(Register rd, Register rn, Register rm, Register ra) {
-    EmitMiscDP3Source(UMADDL, rd, rn, rm, ra, kDoubleWord);
+  void msub(Register rd,
+            Register rn,
+            Register rm,
+            Register ra,
+            OperandSize sz = kDoubleWord) {
+    EmitMiscDP3Source(MSUB, rd, rn, rm, ra, sz);
+  }
+  void smulh(Register rd,
+             Register rn,
+             Register rm,
+             OperandSize sz = kDoubleWord) {
+    EmitMiscDP3Source(SMULH, rd, rn, rm, R31, sz);
+  }
+  void umulh(Register rd,
+             Register rn,
+             Register rm,
+             OperandSize sz = kDoubleWord) {
+    EmitMiscDP3Source(UMULH, rd, rn, rm, R31, sz);
+  }
+  void umaddl(Register rd,
+              Register rn,
+              Register rm,
+              Register ra,
+              OperandSize sz = kDoubleWord) {
+    EmitMiscDP3Source(UMADDL, rd, rn, rm, ra, sz);
+  }
+  void umull(Register rd,
+             Register rn,
+             Register rm,
+             OperandSize sz = kDoubleWord) {
+    EmitMiscDP3Source(UMADDL, rd, rn, rm, ZR, sz);
+  }
+  void smaddl(Register rd,
+              Register rn,
+              Register rm,
+              Register ra,
+              OperandSize sz = kDoubleWord) {
+    EmitMiscDP3Source(SMADDL, rd, rn, rm, ra, sz);
+  }
+  void smull(Register rd,
+             Register rn,
+             Register rm,
+             OperandSize sz = kDoubleWord) {
+    EmitMiscDP3Source(SMADDL, rd, rn, rm, ZR, sz);
   }
 
   // Move wide immediate.
@@ -903,6 +958,7 @@ class Assembler : public ValueObject {
   // For add and sub, to use CSP for rn, o must be of type Operand::Extend.
   // For an unmodified rm in this case, use Operand(rm, UXTX, 0);
   void cmp(Register rn, Operand o) { subs(ZR, rn, o); }
+  void cmpw(Register rn, Operand o) { subsw(ZR, rn, o); }
   // rn cmp -o.
   void cmn(Register rn, Operand o) { adds(ZR, rn, o); }
 
@@ -1199,9 +1255,16 @@ class Assembler : public ValueObject {
   }
   void vmov(VRegister vd, VRegister vn) { vorr(vd, vn, vn); }
   void mvn(Register rd, Register rm) { orn(rd, ZR, Operand(rm)); }
+  void mvnw(Register rd, Register rm) { ornw(rd, ZR, Operand(rm)); }
   void neg(Register rd, Register rm) { sub(rd, ZR, Operand(rm)); }
   void negs(Register rd, Register rm) { subs(rd, ZR, Operand(rm)); }
-  void mul(Register rd, Register rn, Register rm) { madd(rd, rn, rm, ZR); }
+  void negsw(Register rd, Register rm) { subsw(rd, ZR, Operand(rm)); }
+  void mul(Register rd, Register rn, Register rm) {
+    madd(rd, rn, rm, ZR, kDoubleWord);
+  }
+  void mulw(Register rd, Register rn, Register rm) {
+    madd(rd, rn, rm, ZR, kWord);
+  }
   void Push(Register reg) {
     ASSERT(reg != PP);  // Only push PP with TagAndPushPP().
     str(reg, Address(SP, -1 * kWordSize, Address::PreIndex));
@@ -1257,8 +1320,15 @@ class Assembler : public ValueObject {
   void tsti(Register rn, const Immediate& imm) { andis(ZR, rn, imm); }
 
   // We use an alias of add, where ARM recommends an alias of ubfm.
-  void LslImmediate(Register rd, Register rn, int shift) {
-    add(rd, ZR, Operand(rn, LSL, shift));
+  void LslImmediate(Register rd,
+                    Register rn,
+                    int shift,
+                    OperandSize sz = kDoubleWord) {
+    if (sz == kDoubleWord) {
+      add(rd, ZR, Operand(rn, LSL, shift));
+    } else {
+      addw(rd, ZR, Operand(rn, LSL, shift));
+    }
   }
   // We use an alias of add, where ARM recommends an alias of ubfm.
   void LsrImmediate(Register rd, Register rn, int shift) {
@@ -1310,8 +1380,14 @@ class Assembler : public ValueObject {
   // pool pointer is in another register, or that it is not available at all,
   // PP should be passed for pp.
   void AddImmediate(Register dest, Register rn, int64_t imm);
-  void AddImmediateSetFlags(Register dest, Register rn, int64_t imm);
-  void SubImmediateSetFlags(Register dest, Register rn, int64_t imm);
+  void AddImmediateSetFlags(Register dest,
+                            Register rn,
+                            int64_t imm,
+                            OperandSize sz = kDoubleWord);
+  void SubImmediateSetFlags(Register dest,
+                            Register rn,
+                            int64_t imm,
+                            OperandSize sz = kDoubleWord);
   void AndImmediate(Register rd, Register rn, int64_t imm);
   void OrImmediate(Register rd, Register rn, int64_t imm);
   void XorImmediate(Register rd, Register rn, int64_t imm);

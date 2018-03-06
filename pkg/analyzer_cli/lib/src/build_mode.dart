@@ -24,9 +24,11 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
+import 'package:analyzer_cli/src/context_cache.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/error_severity.dart';
+import 'package:analyzer_cli/src/has_context_mixin.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:bazel_worker/bazel_worker.dart';
 import 'package:collection/collection.dart';
@@ -70,8 +72,12 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
     var packageBundleProvider =
         new WorkerPackageBundleProvider(packageBundleCache, inputs);
     var buildMode = new BuildMode(
-        resourceProvider, options, new AnalysisStats(),
-        logger: logger, packageBundleProvider: packageBundleProvider);
+        resourceProvider,
+        options,
+        new AnalysisStats(),
+        new ContextCache(resourceProvider, options, Driver.verbosePrint),
+        logger: logger,
+        packageBundleProvider: packageBundleProvider);
     await buildMode.analyze();
     AnalysisEngine.instance.clearCaches();
   }
@@ -149,12 +155,14 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
 /**
  * Analyzer used when the "--build-mode" option is supplied.
  */
-class BuildMode {
+class BuildMode extends Object with HasContextMixin {
   final ResourceProvider resourceProvider;
   final CommandLineOptions options;
   final AnalysisStats stats;
   final PerformanceLog logger;
   final PackageBundleProvider packageBundleProvider;
+
+  final ContextCache contextCache;
 
   SummaryDataStore summaryDataStore;
   AnalysisOptions analysisOptions;
@@ -168,7 +176,7 @@ class BuildMode {
   final Set<Source> processedSources = new Set<Source>();
   final Map<String, UnlinkedUnit> uriToUnit = <String, UnlinkedUnit>{};
 
-  BuildMode(this.resourceProvider, this.options, this.stats,
+  BuildMode(this.resourceProvider, this.options, this.stats, this.contextCache,
       {PerformanceLog logger, PackageBundleProvider packageBundleProvider})
       : logger = logger ?? new PerformanceLog(null),
         packageBundleProvider = packageBundleProvider ??
@@ -376,8 +384,7 @@ class BuildMode {
             resourceProvider.getFolder(options.dartSdkPath),
             options.strongMode);
         dartSdk.analysisOptions =
-            Driver.createAnalysisOptionsForCommandLineOptions(
-                resourceProvider, options, rootPath);
+            createAnalysisOptionsForCommandLineOptions(options, rootPath);
         dartSdk.useSummary = !options.buildSummaryOnly;
         sdk = dartSdk;
         sdkBundle = dartSdk.getSummarySdkBundle(options.strongMode);
@@ -393,8 +400,8 @@ class BuildMode {
       new ExplicitSourceResolver(uriToFileMap)
     ]);
 
-    analysisOptions = Driver.createAnalysisOptionsForCommandLineOptions(
-        resourceProvider, options, rootPath);
+    analysisOptions =
+        createAnalysisOptionsForCommandLineOptions(options, rootPath);
 
     AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(logger);
     analysisDriver = new AnalysisDriver(

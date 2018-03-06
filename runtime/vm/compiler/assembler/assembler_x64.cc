@@ -683,12 +683,19 @@ void Assembler::imulq(Register reg, const Immediate& imm) {
   }
 }
 
-void Assembler::MulImmediate(Register reg, const Immediate& imm) {
+void Assembler::MulImmediate(Register reg,
+                             const Immediate& imm,
+                             OperandWidth width) {
   if (imm.is_int32()) {
-    imulq(reg, imm);
+    if (width == k32Bit) {
+      imull(reg, imm);
+    } else {
+      imulq(reg, imm);
+    }
   } else {
     ASSERT(reg != TMP);
-    LoadImmediate(TMP, imm);
+    ASSERT(width != k32Bit);
+    movq(TMP, imm);
     imulq(reg, TMP);
   }
 }
@@ -943,25 +950,36 @@ void Assembler::PopRegister(Register r) {
   popq(r);
 }
 
-void Assembler::AddImmediate(Register reg, const Immediate& imm) {
+void Assembler::AddImmediate(Register reg,
+                             const Immediate& imm,
+                             OperandWidth width) {
   const int64_t value = imm.value();
   if (value == 0) {
     return;
   }
   if ((value > 0) || (value == kMinInt64)) {
     if (value == 1) {
-      incq(reg);
+      if (width == k32Bit) {
+        incl(reg);
+      } else {
+        incq(reg);
+      }
     } else {
-      if (imm.is_int32()) {
-        addq(reg, imm);
+      if (imm.is_int32() || (width == k32Bit && imm.is_uint32())) {
+        if (width == k32Bit) {
+          addl(reg, imm);
+        } else {
+          addq(reg, imm);
+        }
       } else {
         ASSERT(reg != TMP);
+        ASSERT(width != k32Bit);
         LoadImmediate(TMP, imm);
         addq(reg, TMP);
       }
     }
   } else {
-    SubImmediate(reg, Immediate(-value));
+    SubImmediate(reg, Immediate(-value), width);
   }
 }
 
@@ -986,25 +1004,37 @@ void Assembler::AddImmediate(const Address& address, const Immediate& imm) {
   }
 }
 
-void Assembler::SubImmediate(Register reg, const Immediate& imm) {
+void Assembler::SubImmediate(Register reg,
+                             const Immediate& imm,
+                             OperandWidth width) {
   const int64_t value = imm.value();
   if (value == 0) {
     return;
   }
-  if ((value > 0) || (value == kMinInt64)) {
+  if ((value > 0) || (value == kMinInt64) ||
+      (value == kMinInt32 && width == k32Bit)) {
     if (value == 1) {
-      decq(reg);
+      if (width == k32Bit) {
+        decl(reg);
+      } else {
+        decq(reg);
+      }
     } else {
       if (imm.is_int32()) {
-        subq(reg, imm);
+        if (width == k32Bit) {
+          subl(reg, imm);
+        } else {
+          subq(reg, imm);
+        }
       } else {
         ASSERT(reg != TMP);
+        ASSERT(width != k32Bit);
         LoadImmediate(TMP, imm);
         subq(reg, TMP);
       }
     }
   } else {
-    AddImmediate(reg, Immediate(-value));
+    AddImmediate(reg, Immediate(-value), width);
   }
 }
 

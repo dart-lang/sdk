@@ -7,7 +7,9 @@ library fasta.tool.command_line;
 import 'dart:io' show exit;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions;
+    show CompilerOptions, ProblemHandler;
+
+import 'package:front_end/src/api_prototype/file_system.dart' show FileSystem;
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -226,7 +228,9 @@ ProcessedOptions analyzeCommandLine(
     String programName,
     ParsedArguments parsedArguments,
     bool areRestArgumentsInputs,
-    bool verbose) {
+    bool verbose,
+    FileSystem fileSystem,
+    ProblemHandler problemHandler) {
   final Map<String, dynamic> options = parsedArguments.options;
 
   final List<String> arguments = parsedArguments.arguments;
@@ -295,6 +299,8 @@ ProcessedOptions analyzeCommandLine(
 
     return new ProcessedOptions(
         new CompilerOptions()
+          ..fileSystem = fileSystem
+          ..onProblem = problemHandler
           ..sdkSummary = options["--platform"]
           ..librariesSpecificationUri =
               Uri.base.resolveUri(new Uri.file(arguments[1]))
@@ -329,6 +335,8 @@ ProcessedOptions analyzeCommandLine(
           computePlatformBinariesLocation().resolve("vm_platform.dill"));
 
   CompilerOptions compilerOptions = new CompilerOptions()
+    ..fileSystem = fileSystem
+    ..onProblem = problemHandler
     ..compileSdk = compileSdk
     ..sdkRoot = sdk
     ..sdkSummary = platform
@@ -356,7 +364,10 @@ dynamic withGlobalOptions(
     String programName,
     List<String> arguments,
     bool areRestArgumentsInputs,
-    dynamic f(CompilerContext context, List<String> restArguments)) {
+    dynamic f(CompilerContext context, List<String> restArguments),
+    {FileSystem fileSystem,
+    ProblemHandler problemHandler}) {
+  fileSystem ??= new CompilerOptions().fileSystem;
   bool verbose = false;
   for (String argument in arguments) {
     if (argument == "--") break;
@@ -370,8 +381,8 @@ dynamic withGlobalOptions(
   CommandLineProblem problem;
   try {
     parsedArguments = ParsedArguments.parse(arguments, optionSpecification);
-    options = analyzeCommandLine(
-        programName, parsedArguments, areRestArgumentsInputs, verbose);
+    options = analyzeCommandLine(programName, parsedArguments,
+        areRestArgumentsInputs, verbose, fileSystem, problemHandler);
   } on CommandLineProblem catch (e) {
     options = new ProcessedOptions(new CompilerOptions());
     problem = e;

@@ -128,7 +128,13 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
     if (element is ParameterElement) {
       properties['defaultValueCode'] = element.defaultValueCode;
       properties['isInitializingFormal'] = element.isInitializingFormal;
-      properties['parameterKind'] = element.parameterKind;
+      if (element.isNotOptional) {
+        properties['parameterKind'] = 'required';
+      } else if (element.isOptionalPositional) {
+        properties['parameterKind'] = 'positional';
+      } else if (element.isNamed) {
+        properties['parameterKind'] = 'named';
+      }
     }
     if (element is PropertyAccessorElement) {
       properties['isGetter'] = element.isGetter;

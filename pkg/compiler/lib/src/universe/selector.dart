@@ -185,6 +185,7 @@ class Selector {
   factory Selector.callDefaultConstructor() => new Selector(
       SelectorKind.CALL, const PublicName(''), CallStructure.NO_ARGS);
 
+  // TODO(31953): Remove this if we can implement via static calls.
   factory Selector.genericInstantiation(int typeArguments) => new Selector(
       SelectorKind.SPECIAL,
       Names.genericInstantiation,

@@ -18,6 +18,12 @@ import 'package:front_end/src/fasta/kernel/utils.dart'
     show writeProgramToFile, serializeProgram;
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
+import 'package:kernel/kernel.dart'
+    show Class, EmptyStatement, Library, Procedure, Program;
+
+import 'package:front_end/src/fasta/fasta_codes.dart' show LocatedMessage;
+
+import 'package:front_end/src/fasta/severity.dart' show Severity;
 
 Directory outDir;
 
@@ -26,6 +32,12 @@ main() async {
   await runPassingTest(testDisappearingLibrary);
   await runPassingTest(testDeferredLibrary);
   await runPassingTest(testStrongModeMixins);
+  await runFailingTest(
+      testStrongModeMixins2,
+      "testStrongModeMixins2_a.dart: Error: "
+      "The parameter 'value' of the method 'A::child' has type");
+  await runPassingTest(testInvalidateExportOfMain);
+  await runPassingTest(testInvalidatePart);
 }
 
 void runFailingTest(dynamic test, String expectContains) async {
@@ -52,6 +64,132 @@ void runPassingTest(dynamic test) async {
   }
 }
 
+/// Invalidate a part file.
+void testInvalidatePart() async {
+  final Uri a = outDir.uri.resolve("testInvalidatePart_a.dart");
+  final Uri b = outDir.uri.resolve("testInvalidatePart_b.dart");
+  final Uri c = outDir.uri.resolve("testInvalidatePart_c.dart");
+  final Uri d = outDir.uri.resolve("testInvalidatePart_d.dart");
+
+  Uri output = outDir.uri.resolve("testInvalidatePart_full.dill");
+  Uri bootstrappedOutput =
+      outDir.uri.resolve("testInvalidatePart_full_from_bootstrap.dill");
+
+  new File.fromUri(a).writeAsStringSync("""
+    library a;
+    import 'testInvalidatePart_c.dart';
+    part 'testInvalidatePart_b.dart';
+    """);
+  new File.fromUri(b).writeAsStringSync("""
+    part of a;
+    b() { print("b"); }
+    """);
+  new File.fromUri(c).writeAsStringSync("""
+    library c;
+    part 'testInvalidatePart_d.dart';
+    """);
+  new File.fromUri(d).writeAsStringSync("""
+    part of c;
+    d() { print("d"); }
+    """);
+
+  Stopwatch stopwatch = new Stopwatch()..start();
+  await normalCompile(a, output, options: getOptions(true));
+  print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
+
+  stopwatch.reset();
+  bool bootstrapResult = await bootstrapCompile(
+      a, bootstrappedOutput, output, [b],
+      performSizeTests: true, options: getOptions(true));
+  print("Bootstrapped compile(s) from ${output.pathSegments.last} "
+      "took ${stopwatch.elapsedMilliseconds} ms");
+  Expect.isTrue(bootstrapResult);
+
+  // Compare the two files.
+  List<int> normalDillData = new File.fromUri(output).readAsBytesSync();
+  List<int> bootstrappedDillData =
+      new File.fromUri(bootstrappedOutput).readAsBytesSync();
+  checkBootstrappedIsEqual(normalDillData, bootstrappedDillData);
+}
+
+/// Invalidate the entrypoint which just exports another file (which has main).
+void testInvalidateExportOfMain() async {
+  final Uri a = outDir.uri.resolve("testInvalidateExportOfMain_a.dart");
+  final Uri b = outDir.uri.resolve("testInvalidateExportOfMain_b.dart");
+
+  Uri output = outDir.uri.resolve("testInvalidateExportOfMain_full.dill");
+  Uri bootstrappedOutput =
+      outDir.uri.resolve("testInvalidateExportOfMain_full_from_bootstrap.dill");
+
+  new File.fromUri(a).writeAsStringSync("""
+    export 'testInvalidateExportOfMain_b.dart';
+    """);
+  new File.fromUri(b).writeAsStringSync("""
+    main() { print("hello"); }
+    """);
+
+  Stopwatch stopwatch = new Stopwatch()..start();
+  await normalCompile(a, output, options: getOptions(true));
+  print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
+
+  stopwatch.reset();
+  bool bootstrapResult = await bootstrapCompile(
+      a, bootstrappedOutput, output, [a],
+      performSizeTests: true, options: getOptions(true));
+  print("Bootstrapped compile(s) from ${output.pathSegments.last} "
+      "took ${stopwatch.elapsedMilliseconds} ms");
+  Expect.isTrue(bootstrapResult);
+
+  // Compare the two files.
+  List<int> normalDillData = new File.fromUri(output).readAsBytesSync();
+  List<int> bootstrappedDillData =
+      new File.fromUri(bootstrappedOutput).readAsBytesSync();
+  checkBootstrappedIsEqual(normalDillData, bootstrappedDillData);
+}
+
+/// Compile in strong mode. Use mixins.
+void testStrongModeMixins2() async {
+  final Uri a = outDir.uri.resolve("testStrongModeMixins2_a.dart");
+  final Uri b = outDir.uri.resolve("testStrongModeMixins2_b.dart");
+
+  Uri output = outDir.uri.resolve("testStrongModeMixins2_full.dill");
+  Uri bootstrappedOutput =
+      outDir.uri.resolve("testStrongModeMixins2_full_from_bootstrap.dill");
+
+  new File.fromUri(a).writeAsStringSync("""
+    import 'testStrongModeMixins2_b.dart';
+    class A extends Object with B<C>, D<Object> {}
+    """);
+  new File.fromUri(b).writeAsStringSync("""
+    abstract class B<ChildType extends Object> extends Object {
+      ChildType get child => null;
+      set child(ChildType value) {}
+    }
+
+    class C extends Object {}
+
+    abstract class D<T extends Object> extends Object with B<T> {}
+    """);
+
+  Stopwatch stopwatch = new Stopwatch()..start();
+  await normalCompile(a, output, options: getOptions(true));
+  print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
+
+  stopwatch.reset();
+  bool bootstrapResult = await bootstrapCompile(
+      a, bootstrappedOutput, output, [a],
+      performSizeTests: true, options: getOptions(true));
+  print("Bootstrapped compile(s) from ${output.pathSegments.last} "
+      "took ${stopwatch.elapsedMilliseconds} ms");
+  Expect.isTrue(bootstrapResult);
+
+  // Compare the two files.
+  List<int> normalDillData = new File.fromUri(output).readAsBytesSync();
+  List<int> bootstrappedDillData =
+      new File.fromUri(bootstrappedOutput).readAsBytesSync();
+  checkBootstrappedIsEqual(normalDillData, bootstrappedDillData);
+}
+
 /// Compile in strong mode. Invalidate a file so type inferrer starts
 /// on something compiled from source and (potentially) goes into
 /// something loaded from dill.
@@ -73,13 +211,13 @@ void testStrongModeMixins() async {
     """);
 
   Stopwatch stopwatch = new Stopwatch()..start();
-  await normalCompile(a, output, options: getOptions()..strongMode = true);
+  await normalCompile(a, output, options: getOptions(true));
   print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
 
   stopwatch.reset();
   bool bootstrapResult = await bootstrapCompile(
       a, bootstrappedOutput, output, [a],
-      performSizeTests: false, options: getOptions()..strongMode = true);
+      performSizeTests: true, options: getOptions(true));
   print("Bootstrapped compile(s) from ${output.pathSegments.last} "
       "took ${stopwatch.elapsedMilliseconds} ms");
   Expect.isTrue(bootstrapResult);
@@ -221,7 +359,7 @@ void testDisappearingLibrary() async {
       }
       """);
 
-    CompilerOptions options = getOptions();
+    CompilerOptions options = getOptions(false);
     options.fileSystem = fs;
     options.sdkRoot = null;
     options.sdkSummary = sdkSummary;
@@ -229,6 +367,7 @@ void testDisappearingLibrary() async {
         new IncrementalKernelGenerator(options, main);
     Stopwatch stopwatch = new Stopwatch()..start();
     var program = await compiler.computeDelta();
+    throwOnEmptyMixinBodies(program);
     print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
     libCount2 = serializeProgram(program);
     if (program.libraries.length != 2) {
@@ -251,7 +390,7 @@ void testDisappearingLibrary() async {
         print("hello from b!");
       }
       """);
-    CompilerOptions options = getOptions();
+    CompilerOptions options = getOptions(false);
     options.fileSystem = fs;
     options.sdkRoot = null;
     options.sdkSummary = sdkSummary;
@@ -261,6 +400,7 @@ void testDisappearingLibrary() async {
     compiler.invalidate(b);
     Stopwatch stopwatch = new Stopwatch()..start();
     var program = await compiler.computeDelta();
+    throwOnEmptyMixinBodies(program);
     print("Bootstrapped compile took ${stopwatch.elapsedMilliseconds} ms");
     if (program.libraries.length != 1) {
       throw "Expected 1 library, got ${program.libraries.length}";
@@ -268,42 +408,83 @@ void testDisappearingLibrary() async {
   }
 }
 
-CompilerOptions getOptions() {
+CompilerOptions getOptions(bool strong) {
   final Uri sdkRoot = computePlatformBinariesLocation();
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
-    ..strongMode = false;
+    ..onProblem = (LocatedMessage message, Severity severity, String formatted,
+        int line, int column) {
+      if (severity == Severity.error || severity == Severity.warning) {
+        Expect.fail("Unexpected error: $formatted");
+      }
+    }
+    ..strongMode = strong;
+  if (strong) {
+    options.sdkSummary =
+        computePlatformBinariesLocation().resolve("vm_platform_strong.dill");
+  } else {
+    options.sdkSummary =
+        computePlatformBinariesLocation().resolve("vm_platform.dill");
+  }
   return options;
 }
 
 Future<bool> normalCompile(Uri input, Uri output,
     {CompilerOptions options}) async {
-  options ??= getOptions();
+  options ??= getOptions(false);
   IncrementalCompiler compiler = new IncrementalKernelGenerator(options, input);
-  var y = await compiler.computeDelta();
-  await writeProgramToFile(y, output);
-  return compiler.bootstrapSuccess;
+  var program = await compiler.computeDelta();
+  throwOnEmptyMixinBodies(program);
+  await writeProgramToFile(program, output);
+  return compiler.initializedFromDill;
+}
+
+void throwOnEmptyMixinBodies(Program program) {
+  int empty = countEmptyMixinBodies(program);
+  if (empty != 0) {
+    throw "Expected 0 empty bodies in mixins, but found $empty";
+  }
+}
+
+int countEmptyMixinBodies(Program program) {
+  int empty = 0;
+  for (Library lib in program.libraries) {
+    for (Class c in lib.classes) {
+      if (c.isSyntheticMixinImplementation) {
+        // Assume mixin
+        for (Procedure p in c.procedures) {
+          if (p.function.body is EmptyStatement) {
+            empty++;
+          }
+        }
+      }
+    }
+  }
+  return empty;
 }
 
 Future<bool> bootstrapCompile(
     Uri input, Uri output, Uri bootstrapWith, List<Uri> invalidateUris,
     {bool performSizeTests: true, CompilerOptions options}) async {
-  options ??= getOptions();
+  options ??= getOptions(false);
   IncrementalCompiler compiler =
       new IncrementalKernelGenerator(options, input, bootstrapWith);
   for (Uri invalidateUri in invalidateUris) {
     compiler.invalidate(invalidateUri);
   }
   var bootstrappedProgram = await compiler.computeDelta();
-  bool result = compiler.bootstrapSuccess;
+  throwOnEmptyMixinBodies(bootstrappedProgram);
+  bool result = compiler.initializedFromDill;
   await writeProgramToFile(bootstrappedProgram, output);
   for (Uri invalidateUri in invalidateUris) {
     compiler.invalidate(invalidateUri);
   }
 
   var partialProgram = await compiler.computeDelta();
+  throwOnEmptyMixinBodies(partialProgram);
   var emptyProgram = await compiler.computeDelta();
+  throwOnEmptyMixinBodies(emptyProgram);
 
   var fullLibUris =
       bootstrappedProgram.libraries.map((lib) => lib.importUri).toList();

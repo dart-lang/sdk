@@ -71,15 +71,6 @@ class TypeTestRegistry {
     //     argument checks.
     addClassesWithSuperclasses(rtiChecks.requiredClasses);
 
-    // 2.  Add classes that contain checked generic function types. These are
-    //     needed to store the signature encoding.
-    for (FunctionType type in rtiChecks.checkedFunctionTypes) {
-      ClassEntity contextClass = DartTypes.getClassContext(type);
-      if (contextClass != null) {
-        _rtiNeededClasses.add(contextClass);
-      }
-    }
-
     bool canTearOff(MemberEntity function) {
       if (!function.isFunction ||
           function.isConstructor ||
@@ -103,7 +94,7 @@ class TypeTestRegistry {
           mirrorsData.isMemberAccessibleByReflection(element));
     }
 
-    // Find all types referenced from the types of elements that can be
+    // 2. Find all types referenced from the types of elements that can be
     // reflected on 'as functions'.
     liveMembers.where((MemberEntity element) {
       return canBeReflectedAsFunction(element) && canBeReified(element);

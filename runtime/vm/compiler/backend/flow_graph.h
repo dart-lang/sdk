@@ -346,6 +346,8 @@ class FlowGraph : public ZoneAllocated {
   // values that are dominated by a redefinition are renamed.
   void RenameUsesDominatedByRedefinitions();
 
+  bool should_print() const { return should_print_; }
+
  private:
   friend class IfConverter;
   friend class BranchSimplifier;
@@ -445,6 +447,7 @@ class FlowGraph : public ZoneAllocated {
   BitVector* captured_parameters_;
 
   intptr_t inlining_id_;
+  bool should_print_;
 };
 
 class LivenessAnalysis : public ValueObject {

@@ -12,6 +12,7 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/source/path_filter.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/context/builder.dart';
@@ -36,8 +37,10 @@ import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/batch_mode.dart';
 import 'package:analyzer_cli/src/build_mode.dart';
+import 'package:analyzer_cli/src/context_cache.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/error_severity.dart';
+import 'package:analyzer_cli/src/has_context_mixin.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:analyzer_cli/starter.dart' show CommandLineStarter;
@@ -90,16 +93,13 @@ void setAnalytics(telemetry.Analytics replacementAnalytics) {
   _analytics = replacementAnalytics;
 }
 
-class Driver implements CommandLineStarter {
+class Driver extends Object with HasContextMixin implements CommandLineStarter {
   static final PerformanceTag _analyzeAllTag =
       new PerformanceTag("Driver._analyzeAll");
 
-  /// Cache of [AnalysisOptionsImpl] objects that correspond to directories
-  /// with analyzed files, used to reduce searching for `analysis_options.yaml`
-  /// files.
-  static Map<String, AnalysisOptionsImpl> _directoryToAnalysisOptions = {};
-
   static ByteStore analysisDriverMemoryByteStore = new MemoryByteStore();
+
+  ContextCache contextCache;
 
   /// The plugins that are defined outside the `analyzer_cli` package.
   List<Plugin> _userDefinedPlugins = <Plugin>[];
@@ -133,6 +133,9 @@ class Driver implements CommandLineStarter {
   final AnalysisStats stats = new AnalysisStats();
 
   CrashReportSender _crashReportSender;
+
+  /// The [PathFilter] for excluded files with wildcards, etc.
+  PathFilter pathFilter;
 
   /// Create a new Driver instance.
   ///
@@ -442,7 +445,9 @@ class Driver implements CommandLineStarter {
             .run();
         return ErrorSeverity.NONE;
       } else {
-        return await new BuildMode(resourceProvider, options, stats).analyze();
+        return await new BuildMode(resourceProvider, options, stats,
+                new ContextCache(resourceProvider, options, verbosePrint))
+            .analyze();
       }
     } finally {
       previous.makeCurrent();
@@ -580,23 +585,9 @@ class Driver implements CommandLineStarter {
   /// Collect all analyzable files at [filePath], recursively if it's a
   /// directory, ignoring links.
   Iterable<io.File> _collectFiles(String filePath, AnalysisOptions options) {
-    List<String> excludedPaths = options.excludePatterns;
-
-    /**
-     * Returns `true` if the given [path] is excluded by [excludedPaths].
-     */
-    bool _isExcluded(String path) {
-      return excludedPaths.any((excludedPath) {
-        if (resourceProvider.absolutePathContext.isWithin(excludedPath, path)) {
-          return true;
-        }
-        return path == excludedPath;
-      });
-    }
-
     List<io.File> files = <io.File>[];
     io.File file = new io.File(filePath);
-    if (file.existsSync() && !_isExcluded(filePath)) {
+    if (file.existsSync() && !pathFilter.ignored(filePath)) {
       files.add(file);
     } else {
       io.Directory directory = new io.Directory(filePath);
@@ -605,7 +596,7 @@ class Driver implements CommandLineStarter {
             in directory.listSync(recursive: true, followLinks: false)) {
           String relative = path.relative(entry.path, from: directory.path);
           if (AnalysisEngine.isDartFileName(entry.path) &&
-              !_isExcluded(relative) &&
+              !pathFilter.ignored(entry.path) &&
               !_isInHiddenDir(relative)) {
             files.add(entry);
           }
@@ -639,16 +630,19 @@ class Driver implements CommandLineStarter {
     // If not the same command-line options, clear cached information.
     if (!_equalCommandLineOptions(_previousOptions, options)) {
       _previousOptions = options;
-      _directoryToAnalysisOptions.clear();
+      contextCache = new ContextCache(resourceProvider, options, verbosePrint);
       _context = null;
       analysisDriver = null;
     }
 
     AnalysisOptionsImpl analysisOptions =
-        createAnalysisOptionsForCommandLineOptions(
-            resourceProvider, options, source);
+        createAnalysisOptionsForCommandLineOptions(options, source);
     analysisOptions.analyzeFunctionBodiesPredicate =
         _chooseDietParsingPolicy(options);
+
+    // Store the [PathFilter] for this context to properly exclude files
+    pathFilter = new PathFilter(getContextInfo(options, source).analysisRoot,
+        analysisOptions.excludePatterns);
 
     // If we have the analysis driver, and the new analysis options are the
     // same, we can reuse this analysis driver.
@@ -891,68 +885,6 @@ class Driver implements CommandLineStarter {
     }
   }
 
-  static AnalysisOptionsImpl createAnalysisOptionsForCommandLineOptions(
-      ResourceProvider resourceProvider,
-      CommandLineOptions options,
-      String source) {
-    if (options.analysisOptionsFile != null) {
-      file_system.File file =
-          resourceProvider.getFile(options.analysisOptionsFile);
-      if (!file.exists) {
-        printAndFail('Options file not found: ${options.analysisOptionsFile}',
-            exitCode: ErrorSeverity.ERROR.ordinal);
-      }
-    }
-
-    String contextRoot;
-    if (options.sourceFiles.isEmpty) {
-      contextRoot = path.current;
-    } else {
-      if (path.isAbsolute(source)) {
-        contextRoot = source;
-      } else {
-        contextRoot = path.absolute(source);
-      }
-    }
-
-    void verbosePrint(String text) {
-      outSink.writeln(text);
-    }
-
-    // Prepare the directory which is, or contains, the context root.
-    String contextRootDirectory;
-    if (resourceProvider.getFolder(contextRoot).exists) {
-      contextRootDirectory = contextRoot;
-    } else {
-      contextRootDirectory = resourceProvider.pathContext.dirname(contextRoot);
-    }
-
-    // Check if there is the options object for the content directory.
-    AnalysisOptionsImpl contextOptions =
-        _directoryToAnalysisOptions[contextRootDirectory];
-    if (contextOptions != null) {
-      return contextOptions;
-    }
-
-    contextOptions = new ContextBuilder(resourceProvider, null, null,
-            options: options.contextBuilderOptions)
-        .getAnalysisOptions(contextRoot,
-            verbosePrint: options.verbose ? verbosePrint : null);
-
-    contextOptions.trackCacheDependencies = false;
-    contextOptions.disableCacheFlushing = options.disableCacheFlushing;
-    contextOptions.hint = !options.disableHints;
-    contextOptions.generateImplicitErrors = options.showPackageWarnings;
-    contextOptions.generateSdkErrors = options.showSdkWarnings;
-    contextOptions.previewDart2 = options.previewDart2;
-    if (options.useCFE) {
-      contextOptions.useFastaParser = true;
-    }
-
-    _directoryToAnalysisOptions[contextRootDirectory] = contextOptions;
-    return contextOptions;
-  }
-
   /// Copy variables defined in the [options] into [declaredVariables].
   static void declareVariables(
       DeclaredVariables declaredVariables, CommandLineOptions options) {
@@ -962,6 +894,10 @@ class Driver implements CommandLineStarter {
         declaredVariables.define(variableName, value);
       });
     }
+  }
+
+  static void verbosePrint(String text) {
+    outSink.writeln(text);
   }
 
   /// Return whether the [newOptions] are equal to the [previous].

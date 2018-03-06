@@ -42,6 +42,9 @@ class CallStructure {
         argumentCount, namedArguments, typeArgumentCount);
   }
 
+  CallStructure withTypeArgumentCount(int typeArgumentCount) =>
+      new CallStructure(argumentCount, namedArguments, typeArgumentCount);
+
   /// `true` if this call has named arguments.
   bool get isNamed => false;
 

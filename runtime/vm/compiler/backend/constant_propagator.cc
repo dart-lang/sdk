@@ -1299,8 +1299,7 @@ void ConstantPropagator::EliminateRedundantBranches() {
 
           changed = true;
 
-          if (FLAG_trace_constant_propagation &&
-              FlowGraphPrinter::ShouldPrint(graph_->function())) {
+          if (FLAG_trace_constant_propagation && graph_->should_print()) {
             THR_Print("Eliminated branch in B%" Pd " common target B%" Pd "\n",
                       block->block_id(), join->block_id());
           }
@@ -1318,11 +1317,6 @@ void ConstantPropagator::EliminateRedundantBranches() {
 }
 
 void ConstantPropagator::Transform() {
-  if (FLAG_trace_constant_propagation &&
-      FlowGraphPrinter::ShouldPrint(graph_->function())) {
-    FlowGraphPrinter::PrintGraph("Before CP", graph_);
-  }
-
   // We will recompute dominators, block ordering, block ids, block last
   // instructions, previous pointers, predecessors, etc. after eliminating
   // unreachable code.  We do not maintain those properties during the
@@ -1331,8 +1325,7 @@ void ConstantPropagator::Transform() {
        b.Advance()) {
     BlockEntryInstr* block = b.Current();
     if (!reachable_->Contains(block->preorder_number())) {
-      if (FLAG_trace_constant_propagation &&
-          FlowGraphPrinter::ShouldPrint(graph_->function())) {
+      if (FLAG_trace_constant_propagation && graph_->should_print()) {
         THR_Print("Unreachable B%" Pd "\n", block->block_id());
       }
       // Remove all uses in unreachable blocks.
@@ -1401,8 +1394,7 @@ void ConstantPropagator::Transform() {
           !defn->IsConstant() && !defn->IsPushArgument() &&
           !defn->IsStoreIndexed() && !defn->IsStoreInstanceField() &&
           !defn->IsStoreStaticField()) {
-        if (FLAG_trace_constant_propagation &&
-            FlowGraphPrinter::ShouldPrint(graph_->function())) {
+        if (FLAG_trace_constant_propagation && graph_->should_print()) {
           THR_Print("Constant v%" Pd " = %s\n", defn->ssa_temp_index(),
                     defn->constant_value().ToCString());
         }
@@ -1463,11 +1455,6 @@ void ConstantPropagator::Transform() {
   graph_->MergeBlocks();
   GrowableArray<BitVector*> dominance_frontier;
   graph_->ComputeDominators(&dominance_frontier);
-
-  if (FLAG_trace_constant_propagation &&
-      FlowGraphPrinter::ShouldPrint(graph_->function())) {
-    FlowGraphPrinter::PrintGraph("After CP", graph_);
-  }
 }
 
 }  // namespace dart

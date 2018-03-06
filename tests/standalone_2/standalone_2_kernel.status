@@ -53,7 +53,7 @@ io/test_extension_test: RuntimeError, Pass # Issue 32137.
 io/wait_for_event_isolate_test: Skip # Issues 32137 and 32138.
 
 [ $compiler == dartk && $system == windows && $strong ]
-io/compile_all_test: Fail
+io/compile_all_test: Pass,Fail # Possibly related to issue 32373
 io/file_stream_test: RuntimeError # Issue 31904
 io/platform_test: RuntimeError # Issue 31904
 io/process_non_ascii_test: RuntimeError # Issue 31904

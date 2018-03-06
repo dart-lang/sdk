@@ -10,14 +10,7 @@ import 'package:yaml/yaml.dart' show loadYaml;
 
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 
-Map<String, String> severityEnumNames = <String, String>{
-  'NIT': 'nit',
-  'WARNING': 'warning',
-  'ERROR': 'error',
-  'ERROR_LEGACY_WARNING': 'errorLegacyWarning',
-  'INTERNAL_PROBLEM': 'internalProblem',
-  'CONTEXT': 'context',
-};
+import "package:front_end/src/fasta/severity.dart" show severityEnumNames;
 
 main(List<String> arguments) async {
   var port = new ReceivePort();

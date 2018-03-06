@@ -1325,6 +1325,8 @@ class _LocalLibraryDependencyMirror extends _LocalMirror
   }
 
   static _tryUpgradePrefix(libraryPrefix) native "LibraryMirror_fromPrefix";
+
+  SourceLocation get location => null;
 }
 
 class _LocalCombinatorMirror extends _LocalMirror implements CombinatorMirror {

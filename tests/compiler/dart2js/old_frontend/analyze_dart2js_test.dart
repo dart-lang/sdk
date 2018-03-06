@@ -37,30 +37,6 @@ const Map<String, List<String>> WHITE_LIST = const {
   "third_party/pkg/collection/lib/src/functions.dart": const [
     "Method type variables are treated as `dynamic` in `as` expressions."
   ],
-  "pkg/front_end/lib/src/fasta/kernel/kernel_shadow_ast.dart": const [
-    "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
-  ],
-  "pkg/front_end/lib/src/fasta/kernel/body_builder.dart": const [
-    "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
-  ],
-  "pkg/kernel/lib/visitor.dart": const [
-    "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
-  ],
-  "pkg/kernel/lib/text/ast_to_text.dart": const [
-    "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
-  ],
-  "pkg/kernel/lib/target/vm.dart": const [
-    "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
-  ],
-  "pkg/kernel/lib/clone.dart": const [
-    "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
-  ],
-  "pkg/kernel/lib/binary/ast_to_binary.dart": const [
-    "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
-  ],
-  "pkg/kernel/lib/binary/ast_from_binary.dart": const [
-    "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
-  ],
   "sdk/lib/_internal/js_runtime/lib/js_array.dart": const [
     "Method type variables do not have a runtime value.",
   ],

@@ -4,7 +4,6 @@
 
 library fasta.body_builder;
 
-// ignore: UNDEFINED_HIDDEN_NAME
 import 'dart:core' hide MapEntry;
 
 import '../fasta_codes.dart' as fasta;
@@ -1613,10 +1612,10 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   }
 
   @override
-  void beginVariablesDeclaration(Token token) {
+  void beginVariablesDeclaration(Token token, Token varFinalOrConst) {
     debugEvent("beginVariablesDeclaration");
     DartType type = pop();
-    int modifiers = Modifier.validate(pop());
+    int modifiers = Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
     super.push(currentLocalVariableModifiers);
     super.push(currentLocalVariableType ?? NullValue.Type);
     currentLocalVariableType = type;
@@ -1649,6 +1648,8 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   }
 
   void handleInvalidTopLevelBlock(Token token) {
+    // TODO(danrubel): Consider improved recovery by adding this block
+    // as part of a synthetic top level function.
     pop(); // block
   }
 
@@ -3016,7 +3017,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   void handleLabel(Token token) {
     debugEvent("Label");
     Identifier identifier = pop();
-    push(new Label(identifier.name));
+    push(new Label(identifier.name, identifier.token.charOffset));
   }
 
   @override
@@ -3201,8 +3202,14 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     assert(scope == switchScope);
     for (Label label in labels) {
       if (scope.hasLocalLabel(label.name)) {
-        // TODO(ahe): Should validate this is a goto target and not duplicated.
-        scope.claimLabel(label.name);
+        // TODO(ahe): Should validate this is a goto target.
+        if (!scope.claimLabel(label.name)) {
+          addCompileTimeError(
+              fasta.templateDuplicateLabelInSwitchStatement
+                  .withArguments(label.name),
+              label.charOffset,
+              label.name.length);
+        }
       } else {
         scope.declareLabel(label.name, createGotoTarget(firstToken.charOffset));
       }
@@ -3895,8 +3902,9 @@ class InitializedIdentifier extends Identifier {
 
 class Label {
   String name;
+  int charOffset;
 
-  Label(this.name);
+  Label(this.name, this.charOffset);
 
   String toString() => "label($name)";
 }

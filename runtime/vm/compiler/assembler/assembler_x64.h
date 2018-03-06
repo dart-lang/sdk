@@ -484,6 +484,9 @@ class Assembler : public ValueObject {
   void cvttsd2siq(Register dst, XmmRegister src) {
     EmitQ(dst, src, 0x2C, 0x0F, 0xF2);
   }
+  void cvttsd2sil(Register dst, XmmRegister src) {
+    EmitL(dst, src, 0x2C, 0x0F, 0xF2);
+  }
   void movmskpd(Register dst, XmmRegister src) {
     EmitL(dst, src, 0x50, 0x0F, 0x66);
   }
@@ -579,10 +582,16 @@ class Assembler : public ValueObject {
   REGULAR_UNARY(dec, 0xFF, 1)
 #undef REGULAR_UNARY
 
+  // We could use kWord, kDoubleWord, and kQuadWord here, but it is rather
+  // confusing since the same sizes mean something different on ARM.
+  enum OperandWidth { k32Bit, k64Bit };
+
   void imull(Register reg, const Immediate& imm);
 
   void imulq(Register dst, const Immediate& imm);
-  void MulImmediate(Register reg, const Immediate& imm);
+  void MulImmediate(Register reg,
+                    const Immediate& imm,
+                    OperandWidth width = k64Bit);
 
   void shll(Register reg, const Immediate& imm);
   void shll(Register operand, Register shifter);
@@ -653,9 +662,13 @@ class Assembler : public ValueObject {
   // Methods for adding/subtracting an immediate value that may be loaded from
   // the constant pool.
   // TODO(koda): Assert that these are not used for heap objects.
-  void AddImmediate(Register reg, const Immediate& imm);
+  void AddImmediate(Register reg,
+                    const Immediate& imm,
+                    OperandWidth width = k64Bit);
   void AddImmediate(const Address& address, const Immediate& imm);
-  void SubImmediate(Register reg, const Immediate& imm);
+  void SubImmediate(Register reg,
+                    const Immediate& imm,
+                    OperandWidth width = k64Bit);
   void SubImmediate(const Address& address, const Immediate& imm);
 
   void Drop(intptr_t stack_elements, Register tmp = TMP);

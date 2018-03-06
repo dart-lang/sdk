@@ -46,9 +46,6 @@ DEFINE_FLAG(bool,
 DECLARE_FLAG(bool, eliminate_type_checks);
 
 const CidRangeVector& HierarchyInfo::SubtypeRangesForClass(const Class& klass) {
-  ASSERT(!klass.IsGeneric());
-
-  Zone* zone = thread_->zone();
   ClassTable* table = thread_->isolate()->class_table();
   const intptr_t cid_count = table->NumCids();
   if (cid_subtype_ranges_ == NULL) {
@@ -57,59 +54,93 @@ const CidRangeVector& HierarchyInfo::SubtypeRangesForClass(const Class& klass) {
 
   CidRangeVector& ranges = cid_subtype_ranges_[klass.id()];
   if (ranges.length() == 0) {
-    // The ranges haven't been computed yet, so let's compute them.
-
-    Class& cls = Class::Handle(zone);
-    Type& dst_type = Type::Handle(zone, Type::NewNonParameterizedType(klass));
-    AbstractType& cls_type = AbstractType::Handle(zone);
-
-    intptr_t start = -1;
-    for (intptr_t cid = kInstanceCid; cid < cid_count; ++cid) {
-      // Create local zone because deep hierarchies may allocate lots of handles
-      // within one iteration of this loop.
-      StackZone stack_zone(thread_);
-      HANDLESCOPE(thread_);
-
-      if (!table->HasValidClassAt(cid)) continue;
-      if (cid == kTypeArgumentsCid) continue;
-      if (cid == kVoidCid) continue;
-      if (cid == kDynamicCid) continue;
-      if (cid == kNullCid) continue;
-      cls = table->At(cid);
-      if (cls.is_abstract()) continue;
-      if (cls.is_patch()) continue;
-      if (cls.IsTopLevel()) continue;
-
-      cls_type = cls.RareType();
-      const bool is_subtype =
-          cls_type.IsSubtypeOf(dst_type, NULL, NULL, Heap::kNew);
-      if (start == -1 && is_subtype) {
-        start = cid;
-      } else if (start != -1 && !is_subtype) {
-        CidRange range(start, cid - 1);
-        ranges.Add(range);
-        start = -1;
-      }
-    }
-
-    if (start != -1) {
-      CidRange range(start, cid_count - 1);
-      ranges.Add(range);
-    }
-
-    if (start == -1 && ranges.length() == 0) {
-      // Not implemented by any concrete class.
-      CidRange range;
-      ASSERT(range.IsIllegalRange());
-      ranges.Add(range);
-    }
+    BuildRangesFor(table, &ranges, klass, /*use_subtype_test=*/true);
   }
   return ranges;
 }
 
-bool HierarchyInfo::InstanceOfHasClassRange(const AbstractType& type,
-                                            intptr_t* lower_limit,
-                                            intptr_t* upper_limit) {
+const CidRangeVector& HierarchyInfo::SubclassRangesForClass(
+    const Class& klass) {
+  ClassTable* table = thread_->isolate()->class_table();
+  const intptr_t cid_count = table->NumCids();
+  if (cid_subclass_ranges_ == NULL) {
+    cid_subclass_ranges_ = new CidRangeVector[cid_count];
+  }
+
+  CidRangeVector& ranges = cid_subclass_ranges_[klass.id()];
+  if (ranges.length() == 0) {
+    BuildRangesFor(table, &ranges, klass, /*use_subtype_test=*/false);
+  }
+  return ranges;
+}
+
+void HierarchyInfo::BuildRangesFor(ClassTable* table,
+                                   CidRangeVector* ranges,
+                                   const Class& klass,
+                                   bool use_subtype_test) {
+  Zone* zone = thread_->zone();
+  Class& cls = Class::Handle(zone);
+
+  // Only really used if `use_subtype_test == true`.
+  const Type& dst_type = Type::Handle(zone, Type::RawCast(klass.RareType()));
+  AbstractType& cls_type = AbstractType::Handle(zone);
+
+  const intptr_t cid_count = table->NumCids();
+
+  intptr_t start = -1;
+  for (intptr_t cid = kInstanceCid; cid < cid_count; ++cid) {
+    // Create local zone because deep hierarchies may allocate lots of handles
+    // within one iteration of this loop.
+    StackZone stack_zone(thread_);
+    HANDLESCOPE(thread_);
+
+    if (!table->HasValidClassAt(cid)) continue;
+    if (cid == kTypeArgumentsCid) continue;
+    if (cid == kVoidCid) continue;
+    if (cid == kDynamicCid) continue;
+    if (cid == kNullCid) continue;
+    cls = table->At(cid);
+    if (cls.is_abstract()) continue;
+    if (cls.is_patch()) continue;
+    if (cls.IsTopLevel()) continue;
+
+    // We are either interested in [CidRange]es of subclasses or subtypes.
+    bool test_succeded = false;
+    if (use_subtype_test) {
+      cls_type = cls.RareType();
+      test_succeded = cls_type.IsSubtypeOf(dst_type, NULL, NULL, Heap::kNew);
+    } else {
+      while (!cls.IsObjectClass()) {
+        if (cls.raw() == klass.raw()) {
+          test_succeded = true;
+          break;
+        }
+        cls = cls.SuperClass();
+      }
+    }
+
+    if (start == -1 && test_succeded) {
+      start = cid;
+    } else if (start != -1 && !test_succeded) {
+      CidRange range(start, cid - 1);
+      ranges->Add(range);
+      start = -1;
+    }
+  }
+
+  if (start != -1) {
+    CidRange range(start, cid_count - 1);
+    ranges->Add(range);
+  }
+
+  if (start == -1 && ranges->length() == 0) {
+    CidRange range;
+    ASSERT(range.IsIllegalRange());
+    ranges->Add(range);
+  }
+}
+
+bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
   ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
 
   if (!type.IsInstantiated() || type.IsFunctionType() ||
@@ -117,17 +148,92 @@ bool HierarchyInfo::InstanceOfHasClassRange(const AbstractType& type,
     return false;
   }
 
-  // TODO(kustermann): Support also classes like 'class Foo extends Bar<Baz> {}'
   Zone* zone = thread_->zone();
   const Class& type_class = Class::Handle(zone, type.type_class());
-  if (type_class.NumTypeArguments() > 0) {
+
+  // We can use class id range checks only if we don't have to test type
+  // arguments.
+  //
+  // This is e.g. true for "String" but also for "List<dynamic>".  (A type for
+  // which the type arguments vector is filled with "dynamic" is known as a rare
+  // type)
+  if (type_class.IsGeneric()) {
+    // TODO(kustermann): We might want to consider extending this when the type
+    // arguments are not "dynamic" but instantiated-to-bounds.
+    const Type& rare_type =
+        Type::Handle(zone, Type::RawCast(type_class.RareType()));
+    if (!rare_type.Equals(type)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
+    const AbstractType& type) {
+  ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
+
+  if (type.IsFunctionType() || type.IsDartFunctionType()) {
     return false;
   }
-  const CidRangeVector& ranges = SubtypeRangesForClass(type_class);
-  if (ranges.length() == 1) {
-    *lower_limit = ranges[0].cid_start;
-    *upper_limit = ranges[0].cid_end;
-    return true;
+
+  // NOTE: We do allow non-instantiated types here (in comparison to
+  // [CanUseSubtypeRangeCheckFor], since we handle type parameters in the type
+  // expression in some cases (see below).
+
+  Zone* zone = thread_->zone();
+  const Class& type_class = Class::Handle(zone, type.type_class());
+  const intptr_t num_type_parameters = type_class.NumTypeParameters();
+  const intptr_t num_type_arguments = type_class.NumTypeArguments();
+
+  // This function should only be called for generic classes.
+  ASSERT(type_class.NumTypeParameters() > 0 &&
+         type.arguments() != TypeArguments::null());
+
+  // If the type class is implemented the different implementations might have
+  // their type argument vector stored at different offsets and we can therefore
+  // not perform our optimized [CidRange]-based implementation.
+  //
+  // TODO(kustermann): If the class is implemented but all implementations
+  // store the instantator type argument vector at the same offset we can
+  // still do it!
+  if (type_class.is_implemented()) {
+    return false;
+  }
+
+  const TypeArguments& ta =
+      TypeArguments::Handle(zone, Type::Cast(type).arguments());
+  ASSERT(ta.Length() == num_type_arguments);
+
+  // The last [num_type_pararameters] entries in the [TypeArguments] vector [ta]
+  // are the values we have to check against.  Ensure we can handle all of them
+  // via [CidRange]-based checks or that it is a type parameter.
+  AbstractType& type_arg = AbstractType::Handle(zone);
+  for (intptr_t i = 0; i < num_type_parameters; ++i) {
+    type_arg = ta.TypeAt(num_type_arguments - num_type_parameters + i);
+    if (!CanUseSubtypeRangeCheckFor(type_arg) && !type_arg.IsTypeParameter()) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool HierarchyInfo::InstanceOfHasClassRange(const AbstractType& type,
+                                            intptr_t* lower_limit,
+                                            intptr_t* upper_limit) {
+  if (CanUseSubtypeRangeCheckFor(type)) {
+    const Class& type_class = Class::Handle(thread_->zone(), type.type_class());
+    const CidRangeVector& ranges = SubtypeRangesForClass(type_class);
+    if (ranges.length() == 1) {
+      const CidRange& range = ranges[0];
+      if (!range.IsIllegalRange()) {
+        *lower_limit = range.cid_start;
+        *upper_limit = range.cid_end;
+        return true;
+      }
+    }
   }
   return false;
 }

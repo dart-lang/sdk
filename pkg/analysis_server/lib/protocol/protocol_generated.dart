@@ -11734,7 +11734,7 @@ class FlutterOutlineKind implements Enum {
  * {
  *   "file": FilePath
  *   "outline": FlutterOutline
- *   "instrumentationEdits": List<SourceEdit>
+ *   "instrumentedCode": optional String
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -11744,7 +11744,7 @@ class FlutterOutlineParams implements HasToJson {
 
   FlutterOutline _outline;
 
-  List<SourceEdit> _instrumentationEdits;
+  String _instrumentedCode;
 
   /**
    * The file with which the outline is associated.
@@ -11773,27 +11773,28 @@ class FlutterOutlineParams implements HasToJson {
   }
 
   /**
-   * If the file has Flutter widgets that can be rendered, the list of edits
-   * that should be applied to the file to instrument widgets and associate
-   * them with outline nodes.
+   * If the file has Flutter widgets that can be rendered, this field has the
+   * instrumented content of the file, that allows associating widgets with
+   * corresponding outline nodes. If there are no widgets to render, this field
+   * is absent.
    */
-  List<SourceEdit> get instrumentationEdits => _instrumentationEdits;
+  String get instrumentedCode => _instrumentedCode;
 
   /**
-   * If the file has Flutter widgets that can be rendered, the list of edits
-   * that should be applied to the file to instrument widgets and associate
-   * them with outline nodes.
+   * If the file has Flutter widgets that can be rendered, this field has the
+   * instrumented content of the file, that allows associating widgets with
+   * corresponding outline nodes. If there are no widgets to render, this field
+   * is absent.
    */
-  void set instrumentationEdits(List<SourceEdit> value) {
-    assert(value != null);
-    this._instrumentationEdits = value;
+  void set instrumentedCode(String value) {
+    this._instrumentedCode = value;
   }
 
   FlutterOutlineParams(String file, FlutterOutline outline,
-      List<SourceEdit> instrumentationEdits) {
+      {String instrumentedCode}) {
     this.file = file;
     this.outline = outline;
-    this.instrumentationEdits = instrumentationEdits;
+    this.instrumentedCode = instrumentedCode;
   }
 
   factory FlutterOutlineParams.fromJson(
@@ -11815,17 +11816,13 @@ class FlutterOutlineParams implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "outline");
       }
-      List<SourceEdit> instrumentationEdits;
-      if (json.containsKey("instrumentationEdits")) {
-        instrumentationEdits = jsonDecoder.decodeList(
-            jsonPath + ".instrumentationEdits",
-            json["instrumentationEdits"],
-            (String jsonPath, Object json) =>
-                new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, "instrumentationEdits");
+      String instrumentedCode;
+      if (json.containsKey("instrumentedCode")) {
+        instrumentedCode = jsonDecoder.decodeString(
+            jsonPath + ".instrumentedCode", json["instrumentedCode"]);
       }
-      return new FlutterOutlineParams(file, outline, instrumentationEdits);
+      return new FlutterOutlineParams(file, outline,
+          instrumentedCode: instrumentedCode);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "flutter.outline params", json);
     }
@@ -11841,8 +11838,9 @@ class FlutterOutlineParams implements HasToJson {
     Map<String, dynamic> result = {};
     result["file"] = file;
     result["outline"] = outline.toJson();
-    result["instrumentationEdits"] =
-        instrumentationEdits.map((SourceEdit value) => value.toJson()).toList();
+    if (instrumentedCode != null) {
+      result["instrumentedCode"] = instrumentedCode;
+    }
     return result;
   }
 
@@ -11858,8 +11856,7 @@ class FlutterOutlineParams implements HasToJson {
     if (other is FlutterOutlineParams) {
       return file == other.file &&
           outline == other.outline &&
-          listEqual(instrumentationEdits, other.instrumentationEdits,
-              (SourceEdit a, SourceEdit b) => a == b);
+          instrumentedCode == other.instrumentedCode;
     }
     return false;
   }
@@ -11869,7 +11866,7 @@ class FlutterOutlineParams implements HasToJson {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, file.hashCode);
     hash = JenkinsSmiHash.combine(hash, outline.hashCode);
-    hash = JenkinsSmiHash.combine(hash, instrumentationEdits.hashCode);
+    hash = JenkinsSmiHash.combine(hash, instrumentedCode.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

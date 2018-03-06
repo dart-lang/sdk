@@ -34,6 +34,7 @@ import 'package:kernel/ast.dart'
         StringLiteral,
         SuperInitializer,
         TypeParameter,
+        TypeParameterType,
         VariableDeclaration,
         VariableGet,
         VoidType,
@@ -129,7 +130,7 @@ abstract class KernelFunctionBuilder
     if (actualBody != null) {
       unexpected("null", "${actualBody.runtimeType}", charOffset, fileUri);
     }
-    actualBody = new RedirectingFactoryBody(target);
+    actualBody = new RedirectingFactoryBody(target, typeArguments);
     function.body = actualBody;
     actualBody?.parent = function;
     if (isPatch) {
@@ -608,6 +609,19 @@ class KernelRedirectingFactoryBuilder extends KernelProcedureBuilder {
     function.body = actualBody;
     actualBody?.parent = function;
     if (isPatch) {
+      if (function.typeParameters != null) {
+        Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
+        for (int i = 0; i < function.typeParameters.length; i++) {
+          substitution[function.typeParameters[i]] =
+              new TypeParameterType(actualOrigin.function.typeParameters[i]);
+        }
+        List<DartType> newTypeArguments =
+            new List<DartType>(typeArguments.length);
+        for (int i = 0; i < newTypeArguments.length; i++) {
+          newTypeArguments[i] = substitute(typeArguments[i], substitution);
+        }
+        typeArguments = newTypeArguments;
+      }
       actualOrigin.setRedirectingFactoryBody(target, typeArguments);
     }
   }
