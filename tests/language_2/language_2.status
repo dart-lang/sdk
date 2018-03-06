@@ -270,6 +270,7 @@ implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: 
 implicit_creation/implicit_const_context_prefix_constructor_generic_test: Fail # No support for implicit creation.
 implicit_creation/implicit_const_context_prefix_constructor_named_test: Fail # No support for implicit creation.
 implicit_creation/implicit_const_context_prefix_constructor_test: Fail # No support for implicit creation.
+implicit_creation/implicit_const_not_default_values_test/o.*: CompileTimeError # No support for implicit creation.
 implicit_creation/implicit_new_constructor_generic_named_test: Fail # No support for implicit creation.
 implicit_creation/implicit_new_constructor_named_test: Fail # No support for implicit creation.
 implicit_creation/implicit_new_or_const_composite_test: Fail # No support for implicit creation.
