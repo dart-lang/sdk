@@ -54,8 +54,13 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
             withBasicFlutter: false)
         .compute();
 
+    // Find widget classes.
+    // IDEA plugin only supports rendering widgets in libraries.
+    if (unit.element.source == unit.element.librarySource) {
+      _findWidgets();
+    }
+
     // Convert Dart outlines into Flutter outlines.
-    _findWidgets();
     var flutterDartOutline = _convert(dartOutline);
 
     // Create outlines for widgets.

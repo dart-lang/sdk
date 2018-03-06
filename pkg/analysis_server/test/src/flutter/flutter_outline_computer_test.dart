@@ -25,6 +25,7 @@ main() {
 class FlutterOutlineComputerTest extends AbstractContextTest {
   String testPath;
   String testCode;
+  AnalysisResult analysisResult;
   FlutterOutlineComputer computer;
 
   @override
@@ -290,6 +291,58 @@ class MyWidget extends StatelessWidget {
 ''');
   }
 
+  test_render_BAD_noDesignTimeConstructor() async {
+    FlutterOutline unitOutline = await _computeOutline('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Row();
+  }
+}
+''');
+    var myWidget = unitOutline.children[0];
+    expect(myWidget.renderConstructor, isNull);
+    expect(myWidget.stateOffset, isNull);
+    expect(myWidget.stateLength, isNull);
+
+    expect(computer.instrumentedCode, isNull);
+  }
+
+  test_render_BAD_part() async {
+    // Use test.dart as a part of a library.
+    // Add the library to the driver so that it is analyzed before the part.
+    var libPath = newFile('/test_lib.dart', content: r'''
+part 'test.dart';
+import 'package:flutter/widgets.dart';
+''').path;
+    driver.addFile(libPath);
+
+    FlutterOutline unitOutline = await _computeOutline('''
+part of 'test_lib.dart';
+
+class MyWidget extends StatelessWidget {
+  MyWidget.forDesignTime();
+
+  @override
+  Widget build(BuildContext context) {
+    return new Row();
+  }
+}
+''');
+
+    // Analysis is successful, no errors.
+    expect(analysisResult.errors, isEmpty);
+
+    // No instrumentation, because not a library.
+    expect(computer.instrumentedCode, isNull);
+
+    // There is forDesignTime() constructor, but we don't handle parts.
+    var myWidget = unitOutline.children[0];
+    expect(myWidget.renderConstructor, isNull);
+  }
+
   test_render_stateful_createState_blockBody() async {
     FlutterOutline unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
@@ -399,25 +452,6 @@ class MyWidget extends StatelessWidget {
     expect(textB.id, 2);
   }
 
-  test_render_stateless_noDesignTimeConstructor() async {
-    FlutterOutline unitOutline = await _computeOutline('''
-import 'package:flutter/widgets.dart';
-
-class MyWidget extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return new Row();
-  }
-}
-''');
-    var myWidget = unitOutline.children[0];
-    expect(myWidget.renderConstructor, isNull);
-    expect(myWidget.stateOffset, isNull);
-    expect(myWidget.stateLength, isNull);
-
-    expect(computer.instrumentedCode, isNull);
-  }
-
   test_variableName() async {
     FlutterOutline unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
@@ -452,7 +486,7 @@ class MyWidget extends StatelessWidget {
   Future<FlutterOutline> _computeOutline(String code) async {
     testCode = code;
     newFile(testPath, content: code);
-    AnalysisResult analysisResult = await driver.getResult(testPath);
+    analysisResult = await driver.getResult(testPath);
     computer = new FlutterOutlineComputer(
         testPath, testCode, analysisResult.lineInfo, analysisResult.unit);
     return computer.compute();
