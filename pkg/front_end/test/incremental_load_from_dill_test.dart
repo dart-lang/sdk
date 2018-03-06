@@ -80,13 +80,13 @@ void testInvalidateExportOfMain() async {
     """);
 
   Stopwatch stopwatch = new Stopwatch()..start();
-  await normalCompile(a, output, options: getOptions()..strongMode = true);
+  await normalCompile(a, output, options: getOptions(true));
   print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
 
   stopwatch.reset();
   bool bootstrapResult = await bootstrapCompile(
       a, bootstrappedOutput, output, [a],
-      performSizeTests: false, options: getOptions()..strongMode = true);
+      performSizeTests: false, options: getOptions(true));
   print("Bootstrapped compile(s) from ${output.pathSegments.last} "
       "took ${stopwatch.elapsedMilliseconds} ms");
   Expect.isTrue(bootstrapResult);
