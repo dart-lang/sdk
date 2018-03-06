@@ -49,6 +49,7 @@ class Tags {
   static const String checkedInstance = 'checkedInstance';
   static const String typeArgument = 'typeArgument';
   static const String checkedTypeArgument = 'checkedTypeArgument';
+  static const String functionType = 'functionType';
 }
 
 void computeAstRtiMemberEmission(
@@ -84,6 +85,9 @@ abstract class ComputeValueMixin<T> {
       features.addElement(Tags.isChecks);
       for (StubMethod stub in cls.isChecks) {
         features.addElement(Tags.isChecks, stub.name.key);
+      }
+      if (cls.functionTypeIndex != null) {
+        features.add(Tags.functionType);
       }
     }
     ClassUse classUse = checksBuilder.classUseMapForTesting[element];
