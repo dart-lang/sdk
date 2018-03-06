@@ -167,11 +167,10 @@ LibTest/isolate/ReceivePort/sendPort_A01_t01: Pass, Timeout # Flutter Issue 9109
 LibTest/typed_data/Int32List/buffer_A01_t02: Pass, Timeout # Flutter Issue 9109
 
 [ $runtime == vm ]
+Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: MissingCompileTimeError # Issue 114
 LibTest/isolate/Isolate/spawnUri_A01_t06: Pass, Fail # Issue 28269, These tests are timing dependent and should be non-flaky once the fix for https://github.com/dart-lang/co19/issues/86 is merged into master. (They are skipped on $runtime == pre_compiled below.)
 LibTest/isolate/Isolate/spawnUri_A01_t07: Pass, Fail # Issue 28269, These tests are timing dependent and should be non-flaky once the fix for https://github.com/dart-lang/co19/issues/86 is merged into master. (They are skipped on $runtime == pre_compiled below.)
 LibTest/isolate/Isolate/spawn_A04_t01: Pass, Fail # Issue 28269, These tests are timing dependent and should be non-flaky once the fix for https://github.com/dart-lang/co19/issues/86 is merged into master. (They are skipped on $runtime == pre_compiled below.)
-Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: MissingCompileTimeError # Issue 114
-Language/Classes/definition_t24: MissingCompileTimeError # Issue co19 #129, sdk issue #31624
 
 [ $system == windows ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Slow
@@ -205,33 +204,6 @@ Language/Types/Interface_Types/subtype_t27: Skip # Issue 21174.
 LibTest/typed_data/Float32x4List/first_A01_t02: RuntimeError # co19 issue 130 + type error
 LibTest/typed_data/Float32x4List/last_A01_t02: RuntimeError # co19 issue 130 + type error
 
-[ $compiler != dartk && $compiler != dartkp && ($runtime == dart_precompiled || $runtime == flutter || $runtime == vm) ]
-Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t01: MissingCompileTimeError # Issue 25496
-Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t02: MissingCompileTimeError # Issue 25496
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t01: MissingCompileTimeError # Issue 24332
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t02: MissingCompileTimeError # Issue 24332
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t03: MissingCompileTimeError # Issue 24332
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t04: MissingCompileTimeError # Issue 24332
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t05: MissingCompileTimeError # Issue 24332
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t06: MissingCompileTimeError # Issue 24332
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t07: MissingCompileTimeError # Issue 24332
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t08: MissingCompileTimeError # Issue 24332
-Language/Libraries_and_Scripts/Exports/invalid_uri_t02: Fail
-Language/Libraries_and_Scripts/Exports/reexport_t01: Fail # Dart issue 12916
-Language/Libraries_and_Scripts/Imports/invalid_uri_t02: Fail
-Language/Libraries_and_Scripts/Parts/syntax_t06: Fail
-Language/Mixins/Mixin_Application/syntax_t16: CompileTimeError # Issue 25765
-Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Issue 24767
-Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Issue 24767
-Language/Statements/Labels/syntax_t03: Fail # Dart issue 2238
-Language/Statements/Switch/syntax_t02: Fail # Dart issue 12908
-Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t01: MissingCompileTimeError # Issue 25495
-Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t03: MissingCompileTimeError # Issue 25495
-Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: MissingCompileTimeError # Issue 25495
-
-[ $compiler != dartk && $compiler != dartkp && ($runtime == dart_precompiled) ]
-Language/Classes/Constructors/Generative_Constructors/initializing_formals_execution_t02: CompileTimeError # Issue 114
-
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Tests not included in the image.
 
@@ -249,9 +221,6 @@ LibTest/core/List/List_class_A01_t02: Pass, Slow
 
 [ $mode == release && $runtime == vm && $system == linux && ($arch == ia32 || $arch == x64) ]
 LibTest/isolate/Isolate/spawn_A04_t05: Pass, Slow
-
-[ $runtime == dart_precompiled && !$fasta ]
-Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: CompileTimeError # Issue 114
 
 # Obfuscated mode expectations
 [ $runtime == dart_precompiled && $minified ]
@@ -287,26 +256,49 @@ Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01: Skip # Eager lo
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: Skip # Eager loading
 
 [ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm ]
+Language/Classes/definition_t24: MissingCompileTimeError # Issue co19 #129, sdk issue #31624
 Language/Expressions/Assignment/super_assignment_failed_t05: RuntimeError # Issue 25671
 Language/Expressions/Constants/literal_number_t01: CompileTimeError # Large integer literal
 Language/Expressions/Constants/math_operators_t01: CompileTimeError # Large integer literal
 Language/Expressions/Constants/math_operators_t06: CompileTimeError # Large integer literal
 Language/Expressions/Function_Invocation/async_generator_invokation_t08: Fail # Issue 25967
 Language/Expressions/Function_Invocation/async_generator_invokation_t10: Fail # Issue 25967
+Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t01: MissingCompileTimeError # Issue 25496
+Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t02: MissingCompileTimeError # Issue 25496
 Language/Expressions/Numbers/static_type_of_int_t01: CompileTimeError # Large integer literal
 Language/Expressions/Numbers/syntax_t06: CompileTimeError # Large integer literal
 Language/Expressions/Numbers/syntax_t09: CompileTimeError # Large integer literal
 Language/Expressions/Numbers/syntax_t10: CompileTimeError # Large integer literal
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t01: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t02: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t03: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t04: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t05: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t06: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t07: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t08: MissingCompileTimeError # Issue 24332
+Language/Libraries_and_Scripts/Exports/invalid_uri_t02: Fail
+Language/Libraries_and_Scripts/Exports/reexport_t01: Fail # Dart issue 12916
 Language/Libraries_and_Scripts/Exports/reexport_t02: MissingCompileTimeError, Fail # Dart issue 12916
+Language/Libraries_and_Scripts/Imports/invalid_uri_t02: Fail
+Language/Libraries_and_Scripts/Parts/syntax_t06: Fail
 Language/Libraries_and_Scripts/Scripts/top_level_main_t01: Skip # Issue 29895
+Language/Mixins/Mixin_Application/syntax_t16: CompileTimeError # Issue 25765
+Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Issue 24767
+Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Issue 24767
 Language/Statements/Assert/execution_t02: Skip # co19 issue 734
 Language/Statements/Assert/execution_t03: Skip # co19 issue 734
 Language/Statements/Assert/type_t02: Skip # co19 issue 734
 Language/Statements/Assert/type_t05: Skip # co19 issue 734
+Language/Statements/Labels/syntax_t03: Fail # Dart issue 2238
+Language/Statements/Switch/syntax_t02: Fail # Dart issue 12908
 Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t08: RuntimeError # Issue 25748
 Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t09: RuntimeError # Issue 25748
 Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t10: RuntimeError # Issue 25748
 Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_sync_t05: RuntimeError # Issue 25662,25634
+Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t01: MissingCompileTimeError # Issue 25495
+Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t03: MissingCompileTimeError # Issue 25495
+Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: MissingCompileTimeError # Issue 25495
 Language/Types/Type_Void/syntax_t09: MissingCompileTimeError # Issue co19/30264
 LayoutTests/fast/*: SkipByDesign # DOM not supported on VM.
 LibTest/collection/ListBase/ListBase_class_A01_t01: RuntimeError # Large integers

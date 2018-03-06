@@ -1374,6 +1374,7 @@ WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-001_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == chrome && $csp && $minified ]
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/no_such_method_t01: RuntimeError # Issue 32434
 LayoutTests/fast/dom/HTMLScriptElement/isURLAttribute_t01: SkipByDesign # Uses script injection
 LayoutTests/fast/dom/HTMLScriptElement/remove-source_t01: Pass # Please triage this failure
 LayoutTests/fast/dom/HTMLScriptElement/script-for-attribute-unexpected-execution_t01: RuntimeError # Please triage this failure
@@ -1483,6 +1484,7 @@ LibTest/typed_data/Int8List/sublist_A02_t01: Pass, Slow # Please triage this fai
 LibTest/typed_data/Uint8ClampedList/map_A02_t01: Pass, Slow # Please triage this failure.
 
 [ $compiler == dart2js && $runtime == d8 ]
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/no_such_method_t01: RuntimeError # Issue 32434
 LibTest/isolate/Isolate/spawn_A03_t01: Pass # co19 issue 77
 LibTest/isolate/Isolate/spawn_A04_t02: RuntimeError # Please triage this failure.
 LibTest/typed_data/Float32x4List/Float32x4List.view_A06_t01: Fail # co19-roll r587: Please triage this failure
@@ -2538,10 +2540,8 @@ LayoutTests/fast/css/first-child-display-change-inverse_t01: RuntimeError # Plea
 LayoutTests/fast/css/focus-display-block-inline_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-insert-link_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-property-priority_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-mix-inherit_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Uses FontFace class, not defined for this browser.
-LayoutTests/fast/css/fontfaceset-download-error_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/getComputedStyle/computed-style-border-image_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/getComputedStyle/computed-style-cross-fade_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/getComputedStyle/computed-style-font_t01: RuntimeError # Please triage this failure
@@ -4036,11 +4036,9 @@ LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: RuntimeErr
 LayoutTests/fast/css/font-face-unicode-range-load_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-unicode-range-overlap-load_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-family-initial-shorthand_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/font-family-trailing-bracket-gunk_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-mix-inherit_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Uses FontFace class, not defined for this browser
-LayoutTests/fast/css/fontfaceset-download-error_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-events_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-loadingdone_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/getComputedStyle/computed-style-border-image_t01: RuntimeError # Please triage this failure
