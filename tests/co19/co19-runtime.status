@@ -171,7 +171,7 @@ LibTest/isolate/Isolate/spawnUri_A01_t06: Pass, Fail # Issue 28269, These tests 
 LibTest/isolate/Isolate/spawnUri_A01_t07: Pass, Fail # Issue 28269, These tests are timing dependent and should be non-flaky once the fix for https://github.com/dart-lang/co19/issues/86 is merged into master. (They are skipped on $runtime == pre_compiled below.)
 LibTest/isolate/Isolate/spawn_A04_t01: Pass, Fail # Issue 28269, These tests are timing dependent and should be non-flaky once the fix for https://github.com/dart-lang/co19/issues/86 is merged into master. (They are skipped on $runtime == pre_compiled below.)
 Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: MissingCompileTimeError # Issue 114
-Language/Classes/definition_t24 # Issue co19 #129, sdk issue #31624
+Language/Classes/definition_t24: MissingCompileTimeError # Issue co19 #129, sdk issue #31624
 
 [ $system == windows ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Slow
