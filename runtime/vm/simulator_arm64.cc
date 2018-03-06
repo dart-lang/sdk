@@ -784,11 +784,18 @@ class Redirection {
   static Redirection* Get(uword external_function,
                           Simulator::CallKind call_kind,
                           int argument_count) {
-    Redirection* current;
-    for (current = list_; current != NULL; current = current->next_) {
+    MutexLocker ml(mutex_);
+
+    for (Redirection* current = list_; current != NULL;
+         current = current->next_) {
       if (current->external_function_ == external_function) return current;
     }
-    return new Redirection(external_function, call_kind, argument_count);
+
+    Redirection* redirection =
+        new Redirection(external_function, call_kind, argument_count);
+    redirection->next_ = list_;
+    list_ = redirection;
+    return redirection;
   }
 
   static Redirection* FromHltInstruction(Instr* hlt_instruction) {
@@ -799,6 +806,8 @@ class Redirection {
   }
 
   static uword FunctionForRedirect(uword address_of_hlt) {
+    MutexLocker ml(mutex_);
+
     Redirection* current;
     for (current = list_; current != NULL; current = current->next_) {
       if (current->address_of_hlt_instruction() == address_of_hlt) {
@@ -816,18 +825,7 @@ class Redirection {
         call_kind_(call_kind),
         argument_count_(argument_count),
         hlt_instruction_(Instr::kSimulatorRedirectInstruction),
-        next_(list_) {
-    // Atomically prepend this element to the front of the global list.
-    // Note: Since elements are never removed, there is no ABA issue.
-    Redirection* list_head = list_;
-    do {
-      next_ = list_head;
-      list_head =
-          reinterpret_cast<Redirection*>(AtomicOperations::CompareAndSwapWord(
-              reinterpret_cast<uword*>(&list_), reinterpret_cast<uword>(next_),
-              reinterpret_cast<uword>(this)));
-    } while (list_head != next_);
-  }
+        next_(NULL) {}
 
   uword external_function_;
   Simulator::CallKind call_kind_;
@@ -835,9 +833,11 @@ class Redirection {
   uint32_t hlt_instruction_;
   Redirection* next_;
   static Redirection* list_;
+  static Mutex* mutex_;
 };
 
 Redirection* Redirection::list_ = NULL;
+Mutex* Redirection::mutex_ = new Mutex();
 
 uword Simulator::RedirectExternalReference(uword function,
                                            CallKind call_kind,
