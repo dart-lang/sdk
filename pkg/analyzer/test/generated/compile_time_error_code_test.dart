@@ -740,6 +740,7 @@ class C extends A implements B {}
     assertNoErrors(source);
   }
 
+  @failingTest // Does not work with old task model
   test_conflictingGenericInterfaces_simple() async {
     Source source = addSource('''
 class I<T> {}
@@ -751,6 +752,7 @@ class C extends A implements B {}
     assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
   }
 
+  @failingTest // Does not work with old task model
   test_conflictingGenericInterfaces_viaMixin() async {
     Source source = addSource('''
 class I<T> {}
@@ -4018,6 +4020,7 @@ class C extends B with M {
     verify([source]);
   }
 
+  @failingTest // Does not work with old task model
   test_mixinInference_conflictingSubstitution() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
@@ -4052,6 +4055,7 @@ class C<T> extends B<T> {}
     expect(mixins[1].toString(), 'C<String>');
   }
 
+  @failingTest // Does not work with old task model
   test_mixinInference_impossibleSubstitution() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
@@ -4069,7 +4073,6 @@ class C extends A<List<int>> with M {}
     ]);
   }
 
-  @failingTest // Does not work with old task model
   test_mixinInference_matchingClass() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
@@ -4085,7 +4088,6 @@ class C extends A<int> with M {}
     assertNoErrors(source);
   }
 
-  @failingTest // Does not work with old task model
   test_mixinInference_matchingClass_inPreviousMixin() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
@@ -4118,6 +4120,7 @@ class C extends Object with M {}
         source, [CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS]);
   }
 
+  @failingTest // Does not work with old task model
   test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
