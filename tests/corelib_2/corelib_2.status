@@ -322,6 +322,7 @@ uri_test: RuntimeError
 [ $compiler == dart2js && $fasta && $strong ]
 map_unmodifiable_cast_test: Crash
 null_nosuchmethod_test: RuntimeError # Fails if type checks are skipped.
+shuffle_test: RuntimeError
 
 [ $compiler == dart2js && $fasta && !$strong ]
 *: SkipByDesign
@@ -374,6 +375,9 @@ symbol_reserved_word_test/09: RuntimeError # Issues 11669 and 31936 - throwing c
 symbol_reserved_word_test/12: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
 symbol_test/none: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
 unicode_test: RuntimeError # Issue 18061: German double S.
+
+[ $compiler != dartk && $runtime == vm && $checked ]
+apply_test/01: RuntimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 iterable_fold_test/02: RuntimeError
@@ -458,9 +462,9 @@ regress_r21715_test: RuntimeError # Requires fixed-size int64 support.
 typed_data_with_limited_ints_test: Skip # dart2js and dartdevc don't know about --limit-ints-to-64-bits
 
 [ $runtime != none && ($compiler == dartdevc || $compiler == dartdevk) ]
-apply_test/01: RuntimeError # Issue 32157
 apply2_test: RuntimeError # Issue 29921
 apply3_test: RuntimeError # Issue 29921
+apply_test/01: RuntimeError # Issue 32157
 bigint_test: Pass, Slow
 compare_to2_test: RuntimeError # Issue 30170
 date_time10_test: RuntimeError # Issue 29921
@@ -665,7 +669,4 @@ regexp/UC16_test: RuntimeError
 bigint_parse_radix_test: Pass, Timeout # Issue 31659
 bigint_test: Pass, Crash # Issue 31660
 integer_parsed_mul_div_vm_test: Pass, Slow # Slow
-
-[ $compiler != dartk && $runtime == vm && $checked ]
-apply_test/01: RuntimeError
 

@@ -11,7 +11,6 @@
 # to add them.
 
 [ $compiler == dartkp ]
-bug32353_test: DartkCrash # Issue 32353
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 duplicate_implements_test/01: MissingCompileTimeError
@@ -573,7 +572,6 @@ arithmetic2_test: RuntimeError # Throws CastError instead of TypeError
 async_star_cancel_while_paused_test: RuntimeError
 async_star_pause_test: Fail, OK
 async_star_test/02: RuntimeError # Issue 31402 (Invocation arguments)
-bug32353_test: DartkCrash # Issue 32353
 built_in_identifier_prefix_test: CompileTimeError
 call_method_must_not_be_field_test/03: RuntimeError # Issue 32265
 call_method_must_not_be_getter_test/03: RuntimeError # Issue 32265

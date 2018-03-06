@@ -18,11 +18,11 @@ class M2<T extends core::Object> extends self::I<self::M2::T> {
   synthetic constructor •() → void
     ;
 }
-abstract class _M0&M1^#U0^<#U0 extends core::Object> = self::M0<self::_M0&M1^#U0^::#U0> with self::M1<dynamic> {
+abstract class _A&M0&M1 = self::M0<core::int> with self::M1<dynamic> {
 }
-abstract class __M0&M1&M2^#U0^^<#U0 extends core::Object> = self::_M0&M1^#U0^<self::__M0&M1&M2^#U0^^::#U0> with self::M2<dynamic> {
+abstract class _A&M0&M1&M2 = self::_A&M0&M1 with self::M2<dynamic> {
 }
-class A extends self::__M0&M1&M2^#U0^^<core::int> {
+class A extends self::_A&M0&M1&M2 {
   synthetic constructor •() → void
     ;
 }

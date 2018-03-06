@@ -48,6 +48,7 @@ front_end/testcases/*: Skip # These are not tests but input for tests.
 front_end/tool/incremental_perf_test: Slow, Pass
 kernel/test/closures_test: Slow, Pass
 kernel/testcases/*: Skip # These are not tests but input for tests.
+vm/test/transformations/type_flow/transformer_test: Slow, Pass
 vm/testcases/*: SkipByDesign # These are not tests but input for tests.
 
 [ $compiler == dart2analyzer ]

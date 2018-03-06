@@ -2819,6 +2819,10 @@ wrong_number_type_arguments_test/01: MissingCompileTimeError
 wrong_number_type_arguments_test/none: Pass
 yieldstar_pause_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
 
+[ $compiler == dart2js && $fasta && $strong ]
+mixin_type_parameter5_test: RuntimeError
+mixin_type_parameter6_test: RuntimeError
+
 [ $compiler == dart2js && $fasta && !$strong ]
 *: SkipByDesign
 

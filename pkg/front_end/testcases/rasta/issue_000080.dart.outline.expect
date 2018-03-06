@@ -9,9 +9,9 @@ class Mixin extends core::Object {
   method foo() → dynamic
     ;
 }
-abstract class _Object&Mixin = core::Object with self::Mixin {
+abstract class _Foo&Object&Mixin = core::Object with self::Mixin {
 }
-class Foo extends self::_Object&Mixin {
+class Foo extends self::_Foo&Object&Mixin {
   synthetic constructor •() → void
     ;
   method foo() → dynamic

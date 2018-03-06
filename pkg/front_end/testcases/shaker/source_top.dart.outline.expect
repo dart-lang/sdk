@@ -17,9 +17,9 @@ class C2 extends core::Object implements sou::A2 {
   synthetic constructor •() → void
     : super core::Object::•();
 }
-abstract class _Object&A3 extends core::Object implements sou::A3 {
+abstract class _C3&Object&A3 extends core::Object implements sou::A3 {
 }
-class C3 extends self::_Object&A3 {
+class C3 extends self::_C3&Object&A3 {
   synthetic constructor •() → void
     : super core::Object::•();
 }

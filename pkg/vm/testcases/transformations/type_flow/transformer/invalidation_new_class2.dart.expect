@@ -35,12 +35,12 @@ class D extends core::Object {
     : super core::Object::•()
     ;
 }
-abstract class _D&C extends self::D implements self::C {
+abstract class _E&D&C extends self::D implements self::C {
   synthetic constructor •() → void
     : super self::D::•()
     ;
 }
-class E extends self::_D&C {
+class E extends self::_E&D&C {
   synthetic constructor •() → void
     : super self::D::•()
     ;

@@ -2,11 +2,11 @@ library;
 import self as self;
 import "dart:core" as core;
 
-abstract class _Object&M1 = core::Object with self::M1 {
+abstract class _B&Object&M1 = core::Object with self::M1 {
 }
-abstract class __Object&M1&M2 = self::_Object&M1 with self::M2 {
+abstract class _B&Object&M1&M2 = self::_B&Object&M1 with self::M2 {
 }
-class B extends self::__Object&M1&M2 {
+class B extends self::_B&Object&M1&M2 {
   constructor •(dynamic value) → void
     : super core::Object::•()
     ;
@@ -25,7 +25,11 @@ abstract class M2 extends core::Object {
   method m() → dynamic
     return core::print("M2");
 }
-class C extends self::__Object&M1&M2 {
+abstract class _C&Object&M1 = core::Object with self::M1 {
+}
+abstract class _C&Object&M1&M2 = self::_C&Object&M1 with self::M2 {
+}
+class C extends self::_C&Object&M1&M2 {
   constructor •(dynamic value) → void
     : super core::Object::•()
     ;
@@ -37,9 +41,9 @@ abstract class G1<T extends core::Object> extends core::Object {
   method m() → dynamic
     return core::print(self::G1::T);
 }
-abstract class _Object&G1^^#T0<#T0 extends core::Object> = core::Object with self::G1<self::_Object&G1^^#T0::#T0> {
+abstract class _D&Object&G1<S extends core::Object> = core::Object with self::G1<self::_D&Object&G1::S> {
 }
-class D<S extends core::Object> extends self::_Object&G1^^#T0<self::D::S> {
+class D<S extends core::Object> extends self::_D&Object&G1<self::D::S> {
   synthetic constructor •() → void
     : super core::Object::•()
     ;

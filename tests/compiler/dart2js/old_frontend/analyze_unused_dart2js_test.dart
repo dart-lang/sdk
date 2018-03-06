@@ -47,10 +47,6 @@ const Map<String, List<String>> WHITE_LIST = const {
   //   "The method 'setterInvocationsByName' is never called."
   // ],
 
-  "pkg/front_end/lib/src/fasta/kernel/kernel_library_builder.dart": const [
-    "The getter 'iterator' is not defined for the class 'Object'.",
-  ],
-
   "pkg/front_end/lib/src/fasta/type_inference/type_schema.dart": const [
     "The class 'UnknownType' overrides 'operator==', but not 'get hashCode'."
   ],
