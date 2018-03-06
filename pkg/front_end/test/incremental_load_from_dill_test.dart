@@ -37,6 +37,7 @@ main() async {
       "testStrongModeMixins2_a.dart: Error: "
       "The parameter 'value' of the method 'A::child' has type");
   await runPassingTest(testInvalidateExportOfMain);
+  await runPassingTest(testInvalidatePart);
 }
 
 void runFailingTest(dynamic test, String expectContains) async {
@@ -63,6 +64,54 @@ void runPassingTest(dynamic test) async {
   }
 }
 
+/// Invalidate a part file.
+void testInvalidatePart() async {
+  final Uri a = outDir.uri.resolve("testInvalidatePart_a.dart");
+  final Uri b = outDir.uri.resolve("testInvalidatePart_b.dart");
+  final Uri c = outDir.uri.resolve("testInvalidatePart_c.dart");
+  final Uri d = outDir.uri.resolve("testInvalidatePart_d.dart");
+
+  Uri output = outDir.uri.resolve("testInvalidatePart_full.dill");
+  Uri bootstrappedOutput =
+      outDir.uri.resolve("testInvalidatePart_full_from_bootstrap.dill");
+
+  new File.fromUri(a).writeAsStringSync("""
+    library a;
+    import 'testInvalidatePart_c.dart';
+    part 'testInvalidatePart_b.dart';
+    """);
+  new File.fromUri(b).writeAsStringSync("""
+    part of a;
+    b() { print("b"); }
+    """);
+  new File.fromUri(c).writeAsStringSync("""
+    library c;
+    part 'testInvalidatePart_d.dart';
+    """);
+  new File.fromUri(d).writeAsStringSync("""
+    part of c;
+    d() { print("d"); }
+    """);
+
+  Stopwatch stopwatch = new Stopwatch()..start();
+  await normalCompile(a, output, options: getOptions(true));
+  print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
+
+  stopwatch.reset();
+  bool bootstrapResult = await bootstrapCompile(
+      a, bootstrappedOutput, output, [b],
+      performSizeTests: true, options: getOptions(true));
+  print("Bootstrapped compile(s) from ${output.pathSegments.last} "
+      "took ${stopwatch.elapsedMilliseconds} ms");
+  Expect.isTrue(bootstrapResult);
+
+  // Compare the two files.
+  List<int> normalDillData = new File.fromUri(output).readAsBytesSync();
+  List<int> bootstrappedDillData =
+      new File.fromUri(bootstrappedOutput).readAsBytesSync();
+  checkBootstrappedIsEqual(normalDillData, bootstrappedDillData);
+}
+
 /// Invalidate the entrypoint which just exports another file (which has main).
 void testInvalidateExportOfMain() async {
   final Uri a = outDir.uri.resolve("testInvalidateExportOfMain_a.dart");
@@ -86,7 +135,7 @@ void testInvalidateExportOfMain() async {
   stopwatch.reset();
   bool bootstrapResult = await bootstrapCompile(
       a, bootstrappedOutput, output, [a],
-      performSizeTests: false, options: getOptions(true));
+      performSizeTests: true, options: getOptions(true));
   print("Bootstrapped compile(s) from ${output.pathSegments.last} "
       "took ${stopwatch.elapsedMilliseconds} ms");
   Expect.isTrue(bootstrapResult);
@@ -129,7 +178,7 @@ void testStrongModeMixins2() async {
   stopwatch.reset();
   bool bootstrapResult = await bootstrapCompile(
       a, bootstrappedOutput, output, [a],
-      performSizeTests: false, options: getOptions(true));
+      performSizeTests: true, options: getOptions(true));
   print("Bootstrapped compile(s) from ${output.pathSegments.last} "
       "took ${stopwatch.elapsedMilliseconds} ms");
   Expect.isTrue(bootstrapResult);
@@ -168,7 +217,7 @@ void testStrongModeMixins() async {
   stopwatch.reset();
   bool bootstrapResult = await bootstrapCompile(
       a, bootstrappedOutput, output, [a],
-      performSizeTests: false, options: getOptions(true));
+      performSizeTests: true, options: getOptions(true));
   print("Bootstrapped compile(s) from ${output.pathSegments.last} "
       "took ${stopwatch.elapsedMilliseconds} ms");
   Expect.isTrue(bootstrapResult);
