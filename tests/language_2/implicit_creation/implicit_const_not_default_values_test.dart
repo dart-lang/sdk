@@ -27,7 +27,7 @@ foo([x //
   = const C(C()) //    //# o3: ok
   = [42] //            //# e1: compile-time error
   = {42: 42} //        //# e2: compile-time error
-  = C() //             //# e3: compile-time error
+  = C([]) //           //# e3: compile-time error
   ]) {
 }
 
@@ -37,7 +37,7 @@ bar({x //
   = const C(C()) //    //# o6: ok
   = [42] //            //# e4: compile-time error
   = {42: 42} //        //# e5: compile-time error
-  = C() //             //# e6: compile-time error
+  = C([]) //           //# e6: compile-time error
   }) {
 }
 
@@ -47,7 +47,7 @@ var baz = ([x
   = const C(C()) //    //# o9: ok
   = [42] //            //# e7: compile-time error
   = {42: 42} //        //# e8: compile-time error
-  = C() //             //# e9: compile-time error
+  = C([]) //           //# e9: compile-time error
 ]) => 42;
 
 var qux = ({x
@@ -56,7 +56,7 @@ var qux = ({x
   = const C(C()) //    //# o12: ok
   = [42] //            //# e10: compile-time error
   = {42: 42} //        //# e11: compile-time error
-  = C() //             //# e12: compile-time error
+  = C([]) //           //# e12: compile-time error
 }) => 42;
 
 class C {
@@ -69,7 +69,7 @@ class C {
     = const C(C()) //    //# o15: ok
     = [42] //            //# e13: compile-time error
     = {42: 42} //        //# e14: compile-time error
-    = C() //             //# e15: compile-time error
+    = C([]) //           //# e15: compile-time error
   ]);
 
   const C.nam({this.x //
@@ -78,7 +78,7 @@ class C {
     = const C(C()) //    //# o18: ok
     = [42] //            //# e16: compile-time error
     = {42: 42} //        //# e17: compile-time error
-    = C() //             //# e18: compile-time error
+    = C([]) //           //# e18: compile-time error
   });
 
   static foo([x //
@@ -87,7 +87,7 @@ class C {
     = const C(C()) //    //# o21: ok
     = [42] //            //# e19: compile-time error
     = {42: 42} //        //# e20: compile-time error
-    = C() //             //# e21: compile-time error
+    = C([]) //           //# e21: compile-time error
     ]) {
   }
 
@@ -97,7 +97,7 @@ class C {
     = const C(C()) //    //# o24: ok
     = [42] //            //# e22: compile-time error
     = {42: 42} //        //# e23: compile-time error
-    = C() //             //# e24: compile-time error
+    = C([]) //           //# e24: compile-time error
     }) {
   }
 
@@ -107,7 +107,7 @@ class C {
     = const C(C()) //    //# o27: ok
     = [42] //            //# e25: compile-time error
     = {42: 42} //        //# e26: compile-time error
-    = C() //             //# e27: compile-time error
+    = C([]) //           //# e27: compile-time error
     ]) {
   }
 
@@ -117,7 +117,7 @@ class C {
     = const C(C()) //    //# o30: ok
     = [42] //            //# e28: compile-time error
     = {42: 42} //        //# e29: compile-time error
-    = C() //             //# e30: compile-time error
+    = C([]) //           //# e30: compile-time error
     }) {
   }
 }
