@@ -365,7 +365,6 @@ bigint_test: Pass, Timeout # Please triage.
 # ===== dartk + vm status lines =====
 [ $compiler == dartk && $runtime == vm && $strong ]
 apply3_test: RuntimeError
-apply_test: RuntimeError, OK
 iterable_fold_test/02: RuntimeError
 iterable_reduce_test/01: CompileTimeError # Issue 31533
 iterable_reduce_test/none: RuntimeError
@@ -377,7 +376,6 @@ symbol_test/none: RuntimeError # Issues 11669 and 31936 - throwing const constru
 unicode_test: RuntimeError # Issue 18061: German double S.
 
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
-apply_test: RuntimeError, OK
 iterable_fold_test/02: RuntimeError
 iterable_reduce_test/01: CompileTimeError # Issue 31533
 iterable_reduce_test/none: RuntimeError
@@ -460,6 +458,7 @@ regress_r21715_test: RuntimeError # Requires fixed-size int64 support.
 typed_data_with_limited_ints_test: Skip # dart2js and dartdevc don't know about --limit-ints-to-64-bits
 
 [ $runtime != none && ($compiler == dartdevc || $compiler == dartdevk) ]
+apply_test/01: RuntimeError # Issue 32157
 apply2_test: RuntimeError # Issue 29921
 apply3_test: RuntimeError # Issue 29921
 bigint_test: Pass, Slow
@@ -666,4 +665,7 @@ regexp/UC16_test: RuntimeError
 bigint_parse_radix_test: Pass, Timeout # Issue 31659
 bigint_test: Pass, Crash # Issue 31660
 integer_parsed_mul_div_vm_test: Pass, Slow # Slow
+
+[ $compiler != dartk && $runtime == vm && $checked ]
+apply_test/01: RuntimeError
 

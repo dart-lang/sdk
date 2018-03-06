@@ -5,7 +5,6 @@
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/closure.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
@@ -32,9 +31,6 @@ main(List<String> args) {
         computeClassDataFromAst: computeAstRtiClassEmission,
         computeClassDataFromKernel: computeKernelRtiClassEmission,
         args: args,
-        options: [
-          Flags.strongMode
-        ],
         skipForKernel: [
           // TODO(johnniwinther): Fix this. It triggers a crash in the ssa
           // builder.

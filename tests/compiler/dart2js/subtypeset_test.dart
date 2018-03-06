@@ -9,6 +9,7 @@ library subtypeset_test;
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'type_test_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/world.dart';
@@ -19,10 +20,12 @@ void main() {
     await runTests(CompileMode.memory);
     print('--test from kernel------------------------------------------------');
     await runTests(CompileMode.kernel);
+    print('--test from kernel (strong)---------------------------------------');
+    await runTests(CompileMode.kernel, strongMode: true);
   });
 }
 
-runTests(CompileMode compileMode) async {
+runTests(CompileMode compileMode, {bool strongMode: false}) async {
   var env = await TypeEnvironment.create(r"""
       ///        A
       ///       / \
@@ -41,7 +44,8 @@ runTests(CompileMode compileMode) async {
       class G extends C {}
       class H implements C {}
       class I implements H {}
-      """, mainSource: r"""
+      """,
+      mainSource: r"""
       main() {
         new A().call;
         new C();
@@ -50,7 +54,9 @@ runTests(CompileMode compileMode) async {
         new F();
         new G();
       }
-      """, compileMode: compileMode);
+      """,
+      compileMode: compileMode,
+      options: strongMode ? [Flags.strongMode] : []);
   ClosedWorld world = env.closedWorld;
 
   ClassEntity A = env.getElement("A");
@@ -62,16 +68,28 @@ runTests(CompileMode compileMode) async {
   ClassEntity G = env.getElement("G");
   ClassEntity H = env.getElement("H");
   ClassEntity I = env.getElement("I");
+  ClassEntity Function_ = env.getElement("Function");
 
-  void checkClass(ClassEntity cls, List<ClassEntity> subtypes) {
+  void checkClass(ClassEntity cls, List<ClassEntity> expectedSubtypes,
+      {bool checkSubset: false}) {
     ClassSet node = world.getClassSet(cls);
-    print('$cls:\n${node}');
-    Expect.setEquals(
-        subtypes,
-        node.subtypes().toList(),
-        "Unexpected subtypes of ${cls.name}:\n"
-        "Expected: $subtypes\n"
-        "Found   : ${node.subtypes().toList()}");
+    Set<ClassEntity> actualSubtypes = node.subtypes().toSet();
+    if (checkSubset) {
+      for (ClassEntity subtype in expectedSubtypes) {
+        Expect.isTrue(
+            actualSubtypes.contains(subtype),
+            "Unexpected subtype ${subtype} of ${cls.name}:\n"
+            "Expected: $expectedSubtypes\n"
+            "Found   : $actualSubtypes");
+      }
+    } else {
+      Expect.setEquals(
+          expectedSubtypes,
+          actualSubtypes,
+          "Unexpected subtypes of ${cls.name}:\n"
+          "Expected: $expectedSubtypes\n"
+          "Found   : $actualSubtypes");
+    }
   }
 
   checkClass(A, [A, C, E, F, G, B, D, H, I]);
@@ -83,4 +101,6 @@ runTests(CompileMode compileMode) async {
   checkClass(G, [G]);
   checkClass(H, [H, I]);
   checkClass(I, [I]);
+  checkClass(Function_, strongMode ? [] : [A, B, C, D, E, F, G],
+      checkSubset: true);
 }

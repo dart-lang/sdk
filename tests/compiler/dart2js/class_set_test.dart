@@ -9,6 +9,7 @@ library class_set_test;
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'type_test_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart' show ClassEntity;
 import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/util/enumset.dart';
@@ -21,13 +22,15 @@ void main() {
     await testAll(CompileMode.memory);
     print('--test from kernel------------------------------------------------');
     await testAll(CompileMode.kernel);
+    print('--test from kernel (strong)---------------------------------------');
+    await testAll(CompileMode.kernel, strongMode: true);
   });
 }
 
-testAll(CompileMode compileMode) async {
+testAll(CompileMode compileMode, {bool strongMode: false}) async {
   await testIterators(compileMode);
   await testForEach(compileMode);
-  await testClosures(compileMode);
+  await testClosures(compileMode, strongMode);
 }
 
 testIterators(CompileMode compileMode) async {
@@ -587,30 +590,37 @@ testForEach(CompileMode compileMode) async {
       find: I, anySubtype: true, expectedResult: true);
 }
 
-testClosures(CompileMode compileMode) async {
+testClosures(CompileMode compileMode, bool strongMode) async {
   var env = await TypeEnvironment.create(r"""
       class A {
         call() => null;
       }
-      """, mainSource: r"""
+      """,
+      mainSource: r"""
       main() {
         new A();
         () {};
         local() {}
       }
-      """, compileMode: compileMode, testBackendWorld: true);
+      """,
+      compileMode: compileMode,
+      options: strongMode ? [Flags.strongMode] : [],
+      testBackendWorld: true);
   ClosedWorld world = env.closedWorld;
 
   ClassEntity functionClass = world.commonElements.functionClass;
   ClassEntity closureClass = world.commonElements.closureClass;
   ClassEntity A = env.getClass("A");
 
-  checkIsFunction(ClassEntity cls) {
-    Expect.isTrue(world.isSubtypeOf(cls, functionClass),
-        "Expected $cls to be a subtype of $functionClass.");
+  checkIsFunction(ClassEntity cls, {bool expected: true}) {
+    Expect.equals(
+        expected,
+        world.isSubtypeOf(cls, functionClass),
+        "Expected $cls ${expected ? '' : 'not '}to be a subtype "
+        "of $functionClass.");
   }
 
-  checkIsFunction(A);
+  checkIsFunction(A, expected: !strongMode);
 
   world.forEachStrictSubtypeOf(closureClass, checkIsFunction);
 }

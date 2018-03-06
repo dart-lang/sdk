@@ -578,7 +578,6 @@ bug32353_test: DartkCrash # Issue 32353
 built_in_identifier_prefix_test: CompileTimeError
 call_method_must_not_be_field_test/03: RuntimeError # Issue 32265
 call_method_must_not_be_getter_test/03: RuntimeError # Issue 32265
-call_operator_test: RuntimeError, OK
 call_with_no_such_method_test: RuntimeError
 compile_time_constant_k_test/01: MissingCompileTimeError
 compile_time_constant_k_test/02: MissingCompileTimeError
@@ -895,7 +894,6 @@ async_star_test/02: RuntimeError, CompileTimeError # Issue 31402 (Invocation arg
 built_in_identifier_prefix_test: CompileTimeError
 call_method_must_not_be_field_test/03: RuntimeError # Issue 32265
 call_method_must_not_be_getter_test/03: RuntimeError # Issue 32265
-call_operator_test: RuntimeError, OK
 call_with_no_such_method_test: RuntimeError
 checked_setter3_test/01: MissingCompileTimeError
 checked_setter3_test/02: MissingCompileTimeError

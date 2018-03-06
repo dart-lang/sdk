@@ -734,6 +734,8 @@ bit_operations_test/02: MissingCompileTimeError
 branch_canonicalization_test: RuntimeError # Issue 29920; Expect.equals(expected: <0>, actual: <1>) fails.
 built_in_identifier_prefix_test: CompileTimeError
 call_closurization_test: RuntimeError # Issue 29920; TypeError: Cannot read property '0' of undefined
+call_operator_test/01: RuntimeError # Issue 32157
+call_operator_test/02: RuntimeError # Issue 32157
 call_test: RuntimeError # Expect.throws(NoSuchMethodError) fails: Did not throw
 canonical_const2_test: RuntimeError # Ints and doubles are unified.; Expect.isFalse(true) fails.
 closure_call_wrong_argument_count_negative_test: Fail
