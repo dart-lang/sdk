@@ -131,21 +131,21 @@ class DateTime implements Comparable<DateTime> {
   static const int sunday = 7;
   static const int daysPerWeek = 7;
 
-  /** Deprecated, use [monday] instead. */
+  @Deprecated("Use monday instead")
   static const int MONDAY = monday;
-  /** Deprecated, use [tuesday] instead. */
+  @Deprecated("Use tuesday instead")
   static const int TUESDAY = tuesday;
-  /** Deprecated, use [wednesday] instead. */
+  @Deprecated("Use wednesday instead")
   static const int WEDNESDAY = wednesday;
-  /** Deprecated, use [thursday] instead. */
+  @Deprecated("Use thursday instead")
   static const int THURSDAY = thursday;
-  /** Deprecated, use [friday] instead. */
+  @Deprecated("Use friday instead")
   static const int FRIDAY = friday;
-  /** Deprecated, use [saturday] instead. */
+  @Deprecated("Use saturday instead")
   static const int SATURDAY = saturday;
-  /** Deprecated, use [sunday] instead. */
+  @Deprecated("Use sunday instead")
   static const int SUNDAY = sunday;
-  /** Deprecated, use [daysPerWeek] instead. */
+  @Deprecated("Use daysPerWeek instead")
   static const int DAYS_PER_WEEK = daysPerWeek;
 
   // Month constants that are returned by the [month] getter.
@@ -163,31 +163,31 @@ class DateTime implements Comparable<DateTime> {
   static const int december = 12;
   static const int monthsPerYear = 12;
 
-  /** Deprecated, use [january] instead. */
+  @Deprecated("Use january instead")
   static const int JANUARY = january;
-  /** Deprecated, use [february] instead. */
+  @Deprecated("Use february instead")
   static const int FEBRUARY = february;
-  /** Deprecated, use [march] instead. */
+  @Deprecated("Use march instead")
   static const int MARCH = march;
-  /** Deprecated, use [april] instead. */
+  @Deprecated("Use april instead")
   static const int APRIL = april;
-  /** Deprecated, use [may] instead. */
+  @Deprecated("Use may instead")
   static const int MAY = may;
-  /** Deprecated, use [june] instead. */
+  @Deprecated("Use june instead")
   static const int JUNE = june;
-  /** Deprecated, use [july] instead. */
+  @Deprecated("Use july instead")
   static const int JULY = july;
-  /** Deprecated, use [august] instead. */
+  @Deprecated("Use august instead")
   static const int AUGUST = august;
-  /** Deprecated, use [september] instead. */
+  @Deprecated("Use september instead")
   static const int SEPTEMBER = september;
-  /** Deprecated, use [october] instead. */
+  @Deprecated("Use october instead")
   static const int OCTOBER = october;
-  /** Deprecated, use [november] instead. */
+  @Deprecated("Use november instead")
   static const int NOVEMBER = november;
-  /** Deprecated, use [december] instead. */
+  @Deprecated("Use december instead")
   static const int DECEMBER = december;
-  /** Deprecated, use [monthsPerYear] instead. */
+  @Deprecated("Use monthsPerYear instead")
   static const int MONTHS_PER_YEAR = monthsPerYear;
 
   /**

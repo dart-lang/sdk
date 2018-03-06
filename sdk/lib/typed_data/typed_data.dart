@@ -412,7 +412,7 @@ abstract class _TypedFloatList extends TypedData {
 }
 
 // TODO(lrn): Remove class for Dart 2.0.
-/** Deprecated, use [Endian] instead. */
+@Deprecated("Use Endian instead")
 abstract class Endianness {
   Endianness._(); // prevent construction.
   /** Deprecated, use [Endian.big] instead. */
@@ -781,7 +781,7 @@ abstract class Int8List implements List<int>, _TypedIntList {
     return buffer.asInt8List(offsetInBytes, length);
   }
 
-  /** Deprecated, use [bytesPerElement] instead. */
+  @Deprecated("Use bytesPerElement instead")
   static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 1;
 }
@@ -840,7 +840,7 @@ abstract class Uint8List implements List<int>, _TypedIntList {
    */
   List<int> operator +(List<int> other);
 
-  /** Deprecated, use [bytesPerElement] instead. */
+  @Deprecated("Use bytesPerElement instead")
   static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 1;
 }
@@ -891,7 +891,7 @@ abstract class Uint8ClampedList implements List<int>, _TypedIntList {
     return buffer.asUint8ClampedList(offsetInBytes, length);
   }
 
-  /** Deprecated, use [bytesPerElement] instead. */
+  @Deprecated("Use bytesPerElement instead")
   static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 1;
 }
@@ -945,7 +945,7 @@ abstract class Int16List implements List<int>, _TypedIntList {
     return buffer.asInt16List(offsetInBytes, length);
   }
 
-  /** Deprecated, use [bytesPerElement] instead. */
+  @Deprecated("Use bytesPerElement instead")
   static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 2;
 }
@@ -1000,7 +1000,7 @@ abstract class Uint16List implements List<int>, _TypedIntList {
     return buffer.asUint16List(offsetInBytes, length);
   }
 
-  /** Deprecated, use [bytesPerElement] instead. */
+  @Deprecated("Use bytesPerElement instead")
   static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 2;
 }
@@ -1054,7 +1054,7 @@ abstract class Int32List implements List<int>, _TypedIntList {
     return buffer.asInt32List(offsetInBytes, length);
   }
 
-  /** Deprecated, use [bytesPerElement] instead. */
+  @Deprecated("Use bytesPerElement instead")
   static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 4;
 }
@@ -1109,7 +1109,7 @@ abstract class Uint32List implements List<int>, _TypedIntList {
     return buffer.asUint32List(offsetInBytes, length);
   }
 
-  /** Deprecated, use [bytesPerElement] instead. */
+  @Deprecated("Use bytesPerElement instead")
   static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 4;
 }
@@ -1163,7 +1163,7 @@ abstract class Int64List implements List<int>, _TypedIntList {
     return buffer.asInt64List(offsetInBytes, length);
   }
 
-  /** Deprecated, use [bytesPerElement] instead. */
+  @Deprecated("Use bytesPerElement instead")
   static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 8;
 }
@@ -1218,7 +1218,7 @@ abstract class Uint64List implements List<int>, _TypedIntList {
     return buffer.asUint64List(offsetInBytes, length);
   }
 
-  /** Deprecated, use [bytesPerElement] instead. */
+  @Deprecated("Use bytesPerElement instead")
   static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 8;
 }
@@ -1273,7 +1273,7 @@ abstract class Float32List implements List<double>, _TypedFloatList {
     return buffer.asFloat32List(offsetInBytes, length);
   }
 
-  /** Deprecated, use [bytesPerElement] instead. */
+  @Deprecated("Use bytesPerElement instead")
   static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 4;
 }
@@ -1321,7 +1321,7 @@ abstract class Float64List implements List<double>, _TypedFloatList {
     return buffer.asFloat64List(offsetInBytes, length);
   }
 
-  /** Deprecated, use [bytesPerElement] instead. */
+  @Deprecated("Use bytesPerElement instead")
   static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 8;
 }
@@ -1376,7 +1376,7 @@ abstract class Float32x4List implements List<Float32x4>, TypedData {
    */
   List<Float32x4> operator +(List<Float32x4> other);
 
-  /** Deprecated, use [bytesPerElement] instead. */
+  @Deprecated("Use bytesPerElement instead")
   static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 16;
 }
@@ -1431,7 +1431,7 @@ abstract class Int32x4List implements List<Int32x4>, TypedData {
    */
   List<Int32x4> operator +(List<Int32x4> other);
 
-  /** Deprecated, use [bytesPerElement] instead. */
+  @Deprecated("Use bytesPerElement instead")
   static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 16;
 }
@@ -1486,7 +1486,7 @@ abstract class Float64x2List implements List<Float64x2>, TypedData {
     return buffer.asFloat64x2List(offsetInBytes, length);
   }
 
-  /** Deprecated, use [bytesPerElement] instead. */
+  @Deprecated("Use bytesPerElement instead")
   static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 16;
 }
@@ -1826,517 +1826,517 @@ abstract class Float32x4 {
   static const int wwwy = 0x7F;
   static const int wwwz = 0xBF;
   static const int wwww = 0xFF;
-  /** Deprecated, use [xxxx] instead. */
+  @Deprecated("Use xxxx instead")
   static const int XXXX = xxxx;
-  /** Deprecated, use [xxxy] instead. */
+  @Deprecated("Use xxxy instead")
   static const int XXXY = xxxy;
-  /** Deprecated, use [xxxz] instead. */
+  @Deprecated("Use xxxz instead")
   static const int XXXZ = xxxz;
-  /** Deprecated, use [xxxw] instead. */
+  @Deprecated("Use xxxw instead")
   static const int XXXW = xxxw;
-  /** Deprecated, use [xxyx] instead. */
+  @Deprecated("Use xxyx instead")
   static const int XXYX = xxyx;
-  /** Deprecated, use [xxyy] instead. */
+  @Deprecated("Use xxyy instead")
   static const int XXYY = xxyy;
-  /** Deprecated, use [xxyz] instead. */
+  @Deprecated("Use xxyz instead")
   static const int XXYZ = xxyz;
-  /** Deprecated, use [xxyw] instead. */
+  @Deprecated("Use xxyw instead")
   static const int XXYW = xxyw;
-  /** Deprecated, use [xxzx] instead. */
+  @Deprecated("Use xxzx instead")
   static const int XXZX = xxzx;
-  /** Deprecated, use [xxzy] instead. */
+  @Deprecated("Use xxzy instead")
   static const int XXZY = xxzy;
-  /** Deprecated, use [xxzz] instead. */
+  @Deprecated("Use xxzz instead")
   static const int XXZZ = xxzz;
-  /** Deprecated, use [xxzw] instead. */
+  @Deprecated("Use xxzw instead")
   static const int XXZW = xxzw;
-  /** Deprecated, use [xxwx] instead. */
+  @Deprecated("Use xxwx instead")
   static const int XXWX = xxwx;
-  /** Deprecated, use [xxwy] instead. */
+  @Deprecated("Use xxwy instead")
   static const int XXWY = xxwy;
-  /** Deprecated, use [xxwz] instead. */
+  @Deprecated("Use xxwz instead")
   static const int XXWZ = xxwz;
-  /** Deprecated, use [xxww] instead. */
+  @Deprecated("Use xxww instead")
   static const int XXWW = xxww;
-  /** Deprecated, use [xyxx] instead. */
+  @Deprecated("Use xyxx instead")
   static const int XYXX = xyxx;
-  /** Deprecated, use [xyxy] instead. */
+  @Deprecated("Use xyxy instead")
   static const int XYXY = xyxy;
-  /** Deprecated, use [xyxz] instead. */
+  @Deprecated("Use xyxz instead")
   static const int XYXZ = xyxz;
-  /** Deprecated, use [xyxw] instead. */
+  @Deprecated("Use xyxw instead")
   static const int XYXW = xyxw;
-  /** Deprecated, use [xyyx] instead. */
+  @Deprecated("Use xyyx instead")
   static const int XYYX = xyyx;
-  /** Deprecated, use [xyyy] instead. */
+  @Deprecated("Use xyyy instead")
   static const int XYYY = xyyy;
-  /** Deprecated, use [xyyz] instead. */
+  @Deprecated("Use xyyz instead")
   static const int XYYZ = xyyz;
-  /** Deprecated, use [xyyw] instead. */
+  @Deprecated("Use xyyw instead")
   static const int XYYW = xyyw;
-  /** Deprecated, use [xyzx] instead. */
+  @Deprecated("Use xyzx instead")
   static const int XYZX = xyzx;
-  /** Deprecated, use [xyzy] instead. */
+  @Deprecated("Use xyzy instead")
   static const int XYZY = xyzy;
-  /** Deprecated, use [xyzz] instead. */
+  @Deprecated("Use xyzz instead")
   static const int XYZZ = xyzz;
-  /** Deprecated, use [xyzw] instead. */
+  @Deprecated("Use xyzw instead")
   static const int XYZW = xyzw;
-  /** Deprecated, use [xywx] instead. */
+  @Deprecated("Use xywx instead")
   static const int XYWX = xywx;
-  /** Deprecated, use [xywy] instead. */
+  @Deprecated("Use xywy instead")
   static const int XYWY = xywy;
-  /** Deprecated, use [xywz] instead. */
+  @Deprecated("Use xywz instead")
   static const int XYWZ = xywz;
-  /** Deprecated, use [xyww] instead. */
+  @Deprecated("Use xyww instead")
   static const int XYWW = xyww;
-  /** Deprecated, use [xzxx] instead. */
+  @Deprecated("Use xzxx instead")
   static const int XZXX = xzxx;
-  /** Deprecated, use [xzxy] instead. */
+  @Deprecated("Use xzxy instead")
   static const int XZXY = xzxy;
-  /** Deprecated, use [xzxz] instead. */
+  @Deprecated("Use xzxz instead")
   static const int XZXZ = xzxz;
-  /** Deprecated, use [xzxw] instead. */
+  @Deprecated("Use xzxw instead")
   static const int XZXW = xzxw;
-  /** Deprecated, use [xzyx] instead. */
+  @Deprecated("Use xzyx instead")
   static const int XZYX = xzyx;
-  /** Deprecated, use [xzyy] instead. */
+  @Deprecated("Use xzyy instead")
   static const int XZYY = xzyy;
-  /** Deprecated, use [xzyz] instead. */
+  @Deprecated("Use xzyz instead")
   static const int XZYZ = xzyz;
-  /** Deprecated, use [xzyw] instead. */
+  @Deprecated("Use xzyw instead")
   static const int XZYW = xzyw;
-  /** Deprecated, use [xzzx] instead. */
+  @Deprecated("Use xzzx instead")
   static const int XZZX = xzzx;
-  /** Deprecated, use [xzzy] instead. */
+  @Deprecated("Use xzzy instead")
   static const int XZZY = xzzy;
-  /** Deprecated, use [xzzz] instead. */
+  @Deprecated("Use xzzz instead")
   static const int XZZZ = xzzz;
-  /** Deprecated, use [xzzw] instead. */
+  @Deprecated("Use xzzw instead")
   static const int XZZW = xzzw;
-  /** Deprecated, use [xzwx] instead. */
+  @Deprecated("Use xzwx instead")
   static const int XZWX = xzwx;
-  /** Deprecated, use [xzwy] instead. */
+  @Deprecated("Use xzwy instead")
   static const int XZWY = xzwy;
-  /** Deprecated, use [xzwz] instead. */
+  @Deprecated("Use xzwz instead")
   static const int XZWZ = xzwz;
-  /** Deprecated, use [xzww] instead. */
+  @Deprecated("Use xzww instead")
   static const int XZWW = xzww;
-  /** Deprecated, use [xwxx] instead. */
+  @Deprecated("Use xwxx instead")
   static const int XWXX = xwxx;
-  /** Deprecated, use [xwxy] instead. */
+  @Deprecated("Use xwxy instead")
   static const int XWXY = xwxy;
-  /** Deprecated, use [xwxz] instead. */
+  @Deprecated("Use xwxz instead")
   static const int XWXZ = xwxz;
-  /** Deprecated, use [xwxw] instead. */
+  @Deprecated("Use xwxw instead")
   static const int XWXW = xwxw;
-  /** Deprecated, use [xwyx] instead. */
+  @Deprecated("Use xwyx instead")
   static const int XWYX = xwyx;
-  /** Deprecated, use [xwyy] instead. */
+  @Deprecated("Use xwyy instead")
   static const int XWYY = xwyy;
-  /** Deprecated, use [xwyz] instead. */
+  @Deprecated("Use xwyz instead")
   static const int XWYZ = xwyz;
-  /** Deprecated, use [xwyw] instead. */
+  @Deprecated("Use xwyw instead")
   static const int XWYW = xwyw;
-  /** Deprecated, use [xwzx] instead. */
+  @Deprecated("Use xwzx instead")
   static const int XWZX = xwzx;
-  /** Deprecated, use [xwzy] instead. */
+  @Deprecated("Use xwzy instead")
   static const int XWZY = xwzy;
-  /** Deprecated, use [xwzz] instead. */
+  @Deprecated("Use xwzz instead")
   static const int XWZZ = xwzz;
-  /** Deprecated, use [xwzw] instead. */
+  @Deprecated("Use xwzw instead")
   static const int XWZW = xwzw;
-  /** Deprecated, use [xwwx] instead. */
+  @Deprecated("Use xwwx instead")
   static const int XWWX = xwwx;
-  /** Deprecated, use [xwwy] instead. */
+  @Deprecated("Use xwwy instead")
   static const int XWWY = xwwy;
-  /** Deprecated, use [xwwz] instead. */
+  @Deprecated("Use xwwz instead")
   static const int XWWZ = xwwz;
-  /** Deprecated, use [xwww] instead. */
+  @Deprecated("Use xwww instead")
   static const int XWWW = xwww;
-  /** Deprecated, use [yxxx] instead. */
+  @Deprecated("Use yxxx instead")
   static const int YXXX = yxxx;
-  /** Deprecated, use [yxxy] instead. */
+  @Deprecated("Use yxxy instead")
   static const int YXXY = yxxy;
-  /** Deprecated, use [yxxz] instead. */
+  @Deprecated("Use yxxz instead")
   static const int YXXZ = yxxz;
-  /** Deprecated, use [yxxw] instead. */
+  @Deprecated("Use yxxw instead")
   static const int YXXW = yxxw;
-  /** Deprecated, use [yxyx] instead. */
+  @Deprecated("Use yxyx instead")
   static const int YXYX = yxyx;
-  /** Deprecated, use [yxyy] instead. */
+  @Deprecated("Use yxyy instead")
   static const int YXYY = yxyy;
-  /** Deprecated, use [yxyz] instead. */
+  @Deprecated("Use yxyz instead")
   static const int YXYZ = yxyz;
-  /** Deprecated, use [yxyw] instead. */
+  @Deprecated("Use yxyw instead")
   static const int YXYW = yxyw;
-  /** Deprecated, use [yxzx] instead. */
+  @Deprecated("Use yxzx instead")
   static const int YXZX = yxzx;
-  /** Deprecated, use [yxzy] instead. */
+  @Deprecated("Use yxzy instead")
   static const int YXZY = yxzy;
-  /** Deprecated, use [yxzz] instead. */
+  @Deprecated("Use yxzz instead")
   static const int YXZZ = yxzz;
-  /** Deprecated, use [yxzw] instead. */
+  @Deprecated("Use yxzw instead")
   static const int YXZW = yxzw;
-  /** Deprecated, use [yxwx] instead. */
+  @Deprecated("Use yxwx instead")
   static const int YXWX = yxwx;
-  /** Deprecated, use [yxwy] instead. */
+  @Deprecated("Use yxwy instead")
   static const int YXWY = yxwy;
-  /** Deprecated, use [yxwz] instead. */
+  @Deprecated("Use yxwz instead")
   static const int YXWZ = yxwz;
-  /** Deprecated, use [yxww] instead. */
+  @Deprecated("Use yxww instead")
   static const int YXWW = yxww;
-  /** Deprecated, use [yyxx] instead. */
+  @Deprecated("Use yyxx instead")
   static const int YYXX = yyxx;
-  /** Deprecated, use [yyxy] instead. */
+  @Deprecated("Use yyxy instead")
   static const int YYXY = yyxy;
-  /** Deprecated, use [yyxz] instead. */
+  @Deprecated("Use yyxz instead")
   static const int YYXZ = yyxz;
-  /** Deprecated, use [yyxw] instead. */
+  @Deprecated("Use yyxw instead")
   static const int YYXW = yyxw;
-  /** Deprecated, use [yyyx] instead. */
+  @Deprecated("Use yyyx instead")
   static const int YYYX = yyyx;
-  /** Deprecated, use [yyyy] instead. */
+  @Deprecated("Use yyyy instead")
   static const int YYYY = yyyy;
-  /** Deprecated, use [yyyz] instead. */
+  @Deprecated("Use yyyz instead")
   static const int YYYZ = yyyz;
-  /** Deprecated, use [yyyw] instead. */
+  @Deprecated("Use yyyw instead")
   static const int YYYW = yyyw;
-  /** Deprecated, use [yyzx] instead. */
+  @Deprecated("Use yyzx instead")
   static const int YYZX = yyzx;
-  /** Deprecated, use [yyzy] instead. */
+  @Deprecated("Use yyzy instead")
   static const int YYZY = yyzy;
-  /** Deprecated, use [yyzz] instead. */
+  @Deprecated("Use yyzz instead")
   static const int YYZZ = yyzz;
-  /** Deprecated, use [yyzw] instead. */
+  @Deprecated("Use yyzw instead")
   static const int YYZW = yyzw;
-  /** Deprecated, use [yywx] instead. */
+  @Deprecated("Use yywx instead")
   static const int YYWX = yywx;
-  /** Deprecated, use [yywy] instead. */
+  @Deprecated("Use yywy instead")
   static const int YYWY = yywy;
-  /** Deprecated, use [yywz] instead. */
+  @Deprecated("Use yywz instead")
   static const int YYWZ = yywz;
-  /** Deprecated, use [yyww] instead. */
+  @Deprecated("Use yyww instead")
   static const int YYWW = yyww;
-  /** Deprecated, use [yzxx] instead. */
+  @Deprecated("Use yzxx instead")
   static const int YZXX = yzxx;
-  /** Deprecated, use [yzxy] instead. */
+  @Deprecated("Use yzxy instead")
   static const int YZXY = yzxy;
-  /** Deprecated, use [yzxz] instead. */
+  @Deprecated("Use yzxz instead")
   static const int YZXZ = yzxz;
-  /** Deprecated, use [yzxw] instead. */
+  @Deprecated("Use yzxw instead")
   static const int YZXW = yzxw;
-  /** Deprecated, use [yzyx] instead. */
+  @Deprecated("Use yzyx instead")
   static const int YZYX = yzyx;
-  /** Deprecated, use [yzyy] instead. */
+  @Deprecated("Use yzyy instead")
   static const int YZYY = yzyy;
-  /** Deprecated, use [yzyz] instead. */
+  @Deprecated("Use yzyz instead")
   static const int YZYZ = yzyz;
-  /** Deprecated, use [yzyw] instead. */
+  @Deprecated("Use yzyw instead")
   static const int YZYW = yzyw;
-  /** Deprecated, use [yzzx] instead. */
+  @Deprecated("Use yzzx instead")
   static const int YZZX = yzzx;
-  /** Deprecated, use [yzzy] instead. */
+  @Deprecated("Use yzzy instead")
   static const int YZZY = yzzy;
-  /** Deprecated, use [yzzz] instead. */
+  @Deprecated("Use yzzz instead")
   static const int YZZZ = yzzz;
-  /** Deprecated, use [yzzw] instead. */
+  @Deprecated("Use yzzw instead")
   static const int YZZW = yzzw;
-  /** Deprecated, use [yzwx] instead. */
+  @Deprecated("Use yzwx instead")
   static const int YZWX = yzwx;
-  /** Deprecated, use [yzwy] instead. */
+  @Deprecated("Use yzwy instead")
   static const int YZWY = yzwy;
-  /** Deprecated, use [yzwz] instead. */
+  @Deprecated("Use yzwz instead")
   static const int YZWZ = yzwz;
-  /** Deprecated, use [yzww] instead. */
+  @Deprecated("Use yzww instead")
   static const int YZWW = yzww;
-  /** Deprecated, use [ywxx] instead. */
+  @Deprecated("Use ywxx instead")
   static const int YWXX = ywxx;
-  /** Deprecated, use [ywxy] instead. */
+  @Deprecated("Use ywxy instead")
   static const int YWXY = ywxy;
-  /** Deprecated, use [ywxz] instead. */
+  @Deprecated("Use ywxz instead")
   static const int YWXZ = ywxz;
-  /** Deprecated, use [ywxw] instead. */
+  @Deprecated("Use ywxw instead")
   static const int YWXW = ywxw;
-  /** Deprecated, use [ywyx] instead. */
+  @Deprecated("Use ywyx instead")
   static const int YWYX = ywyx;
-  /** Deprecated, use [ywyy] instead. */
+  @Deprecated("Use ywyy instead")
   static const int YWYY = ywyy;
-  /** Deprecated, use [ywyz] instead. */
+  @Deprecated("Use ywyz instead")
   static const int YWYZ = ywyz;
-  /** Deprecated, use [ywyw] instead. */
+  @Deprecated("Use ywyw instead")
   static const int YWYW = ywyw;
-  /** Deprecated, use [ywzx] instead. */
+  @Deprecated("Use ywzx instead")
   static const int YWZX = ywzx;
-  /** Deprecated, use [ywzy] instead. */
+  @Deprecated("Use ywzy instead")
   static const int YWZY = ywzy;
-  /** Deprecated, use [ywzz] instead. */
+  @Deprecated("Use ywzz instead")
   static const int YWZZ = ywzz;
-  /** Deprecated, use [ywzw] instead. */
+  @Deprecated("Use ywzw instead")
   static const int YWZW = ywzw;
-  /** Deprecated, use [ywwx] instead. */
+  @Deprecated("Use ywwx instead")
   static const int YWWX = ywwx;
-  /** Deprecated, use [ywwy] instead. */
+  @Deprecated("Use ywwy instead")
   static const int YWWY = ywwy;
-  /** Deprecated, use [ywwz] instead. */
+  @Deprecated("Use ywwz instead")
   static const int YWWZ = ywwz;
-  /** Deprecated, use [ywww] instead. */
+  @Deprecated("Use ywww instead")
   static const int YWWW = ywww;
-  /** Deprecated, use [zxxx] instead. */
+  @Deprecated("Use zxxx instead")
   static const int ZXXX = zxxx;
-  /** Deprecated, use [zxxy] instead. */
+  @Deprecated("Use zxxy instead")
   static const int ZXXY = zxxy;
-  /** Deprecated, use [zxxz] instead. */
+  @Deprecated("Use zxxz instead")
   static const int ZXXZ = zxxz;
-  /** Deprecated, use [zxxw] instead. */
+  @Deprecated("Use zxxw instead")
   static const int ZXXW = zxxw;
-  /** Deprecated, use [zxyx] instead. */
+  @Deprecated("Use zxyx instead")
   static const int ZXYX = zxyx;
-  /** Deprecated, use [zxyy] instead. */
+  @Deprecated("Use zxyy instead")
   static const int ZXYY = zxyy;
-  /** Deprecated, use [zxyz] instead. */
+  @Deprecated("Use zxyz instead")
   static const int ZXYZ = zxyz;
-  /** Deprecated, use [zxyw] instead. */
+  @Deprecated("Use zxyw instead")
   static const int ZXYW = zxyw;
-  /** Deprecated, use [zxzx] instead. */
+  @Deprecated("Use zxzx instead")
   static const int ZXZX = zxzx;
-  /** Deprecated, use [zxzy] instead. */
+  @Deprecated("Use zxzy instead")
   static const int ZXZY = zxzy;
-  /** Deprecated, use [zxzz] instead. */
+  @Deprecated("Use zxzz instead")
   static const int ZXZZ = zxzz;
-  /** Deprecated, use [zxzw] instead. */
+  @Deprecated("Use zxzw instead")
   static const int ZXZW = zxzw;
-  /** Deprecated, use [zxwx] instead. */
+  @Deprecated("Use zxwx instead")
   static const int ZXWX = zxwx;
-  /** Deprecated, use [zxwy] instead. */
+  @Deprecated("Use zxwy instead")
   static const int ZXWY = zxwy;
-  /** Deprecated, use [zxwz] instead. */
+  @Deprecated("Use zxwz instead")
   static const int ZXWZ = zxwz;
-  /** Deprecated, use [zxww] instead. */
+  @Deprecated("Use zxww instead")
   static const int ZXWW = zxww;
-  /** Deprecated, use [zyxx] instead. */
+  @Deprecated("Use zyxx instead")
   static const int ZYXX = zyxx;
-  /** Deprecated, use [zyxy] instead. */
+  @Deprecated("Use zyxy instead")
   static const int ZYXY = zyxy;
-  /** Deprecated, use [zyxz] instead. */
+  @Deprecated("Use zyxz instead")
   static const int ZYXZ = zyxz;
-  /** Deprecated, use [zyxw] instead. */
+  @Deprecated("Use zyxw instead")
   static const int ZYXW = zyxw;
-  /** Deprecated, use [zyyx] instead. */
+  @Deprecated("Use zyyx instead")
   static const int ZYYX = zyyx;
-  /** Deprecated, use [zyyy] instead. */
+  @Deprecated("Use zyyy instead")
   static const int ZYYY = zyyy;
-  /** Deprecated, use [zyyz] instead. */
+  @Deprecated("Use zyyz instead")
   static const int ZYYZ = zyyz;
-  /** Deprecated, use [zyyw] instead. */
+  @Deprecated("Use zyyw instead")
   static const int ZYYW = zyyw;
-  /** Deprecated, use [zyzx] instead. */
+  @Deprecated("Use zyzx instead")
   static const int ZYZX = zyzx;
-  /** Deprecated, use [zyzy] instead. */
+  @Deprecated("Use zyzy instead")
   static const int ZYZY = zyzy;
-  /** Deprecated, use [zyzz] instead. */
+  @Deprecated("Use zyzz instead")
   static const int ZYZZ = zyzz;
-  /** Deprecated, use [zyzw] instead. */
+  @Deprecated("Use zyzw instead")
   static const int ZYZW = zyzw;
-  /** Deprecated, use [zywx] instead. */
+  @Deprecated("Use zywx instead")
   static const int ZYWX = zywx;
-  /** Deprecated, use [zywy] instead. */
+  @Deprecated("Use zywy instead")
   static const int ZYWY = zywy;
-  /** Deprecated, use [zywz] instead. */
+  @Deprecated("Use zywz instead")
   static const int ZYWZ = zywz;
-  /** Deprecated, use [zyww] instead. */
+  @Deprecated("Use zyww instead")
   static const int ZYWW = zyww;
-  /** Deprecated, use [zzxx] instead. */
+  @Deprecated("Use zzxx instead")
   static const int ZZXX = zzxx;
-  /** Deprecated, use [zzxy] instead. */
+  @Deprecated("Use zzxy instead")
   static const int ZZXY = zzxy;
-  /** Deprecated, use [zzxz] instead. */
+  @Deprecated("Use zzxz instead")
   static const int ZZXZ = zzxz;
-  /** Deprecated, use [zzxw] instead. */
+  @Deprecated("Use zzxw instead")
   static const int ZZXW = zzxw;
-  /** Deprecated, use [zzyx] instead. */
+  @Deprecated("Use zzyx instead")
   static const int ZZYX = zzyx;
-  /** Deprecated, use [zzyy] instead. */
+  @Deprecated("Use zzyy instead")
   static const int ZZYY = zzyy;
-  /** Deprecated, use [zzyz] instead. */
+  @Deprecated("Use zzyz instead")
   static const int ZZYZ = zzyz;
-  /** Deprecated, use [zzyw] instead. */
+  @Deprecated("Use zzyw instead")
   static const int ZZYW = zzyw;
-  /** Deprecated, use [zzzx] instead. */
+  @Deprecated("Use zzzx instead")
   static const int ZZZX = zzzx;
-  /** Deprecated, use [zzzy] instead. */
+  @Deprecated("Use zzzy instead")
   static const int ZZZY = zzzy;
-  /** Deprecated, use [zzzz] instead. */
+  @Deprecated("Use zzzz instead")
   static const int ZZZZ = zzzz;
-  /** Deprecated, use [zzzw] instead. */
+  @Deprecated("Use zzzw instead")
   static const int ZZZW = zzzw;
-  /** Deprecated, use [zzwx] instead. */
+  @Deprecated("Use zzwx instead")
   static const int ZZWX = zzwx;
-  /** Deprecated, use [zzwy] instead. */
+  @Deprecated("Use zzwy instead")
   static const int ZZWY = zzwy;
-  /** Deprecated, use [zzwz] instead. */
+  @Deprecated("Use zzwz instead")
   static const int ZZWZ = zzwz;
-  /** Deprecated, use [zzww] instead. */
+  @Deprecated("Use zzww instead")
   static const int ZZWW = zzww;
-  /** Deprecated, use [zwxx] instead. */
+  @Deprecated("Use zwxx instead")
   static const int ZWXX = zwxx;
-  /** Deprecated, use [zwxy] instead. */
+  @Deprecated("Use zwxy instead")
   static const int ZWXY = zwxy;
-  /** Deprecated, use [zwxz] instead. */
+  @Deprecated("Use zwxz instead")
   static const int ZWXZ = zwxz;
-  /** Deprecated, use [zwxw] instead. */
+  @Deprecated("Use zwxw instead")
   static const int ZWXW = zwxw;
-  /** Deprecated, use [zwyx] instead. */
+  @Deprecated("Use zwyx instead")
   static const int ZWYX = zwyx;
-  /** Deprecated, use [zwyy] instead. */
+  @Deprecated("Use zwyy instead")
   static const int ZWYY = zwyy;
-  /** Deprecated, use [zwyz] instead. */
+  @Deprecated("Use zwyz instead")
   static const int ZWYZ = zwyz;
-  /** Deprecated, use [zwyw] instead. */
+  @Deprecated("Use zwyw instead")
   static const int ZWYW = zwyw;
-  /** Deprecated, use [zwzx] instead. */
+  @Deprecated("Use zwzx instead")
   static const int ZWZX = zwzx;
-  /** Deprecated, use [zwzy] instead. */
+  @Deprecated("Use zwzy instead")
   static const int ZWZY = zwzy;
-  /** Deprecated, use [zwzz] instead. */
+  @Deprecated("Use zwzz instead")
   static const int ZWZZ = zwzz;
-  /** Deprecated, use [zwzw] instead. */
+  @Deprecated("Use zwzw instead")
   static const int ZWZW = zwzw;
-  /** Deprecated, use [zwwx] instead. */
+  @Deprecated("Use zwwx instead")
   static const int ZWWX = zwwx;
-  /** Deprecated, use [zwwy] instead. */
+  @Deprecated("Use zwwy instead")
   static const int ZWWY = zwwy;
-  /** Deprecated, use [zwwz] instead. */
+  @Deprecated("Use zwwz instead")
   static const int ZWWZ = zwwz;
-  /** Deprecated, use [zwww] instead. */
+  @Deprecated("Use zwww instead")
   static const int ZWWW = zwww;
-  /** Deprecated, use [wxxx] instead. */
+  @Deprecated("Use wxxx instead")
   static const int WXXX = wxxx;
-  /** Deprecated, use [wxxy] instead. */
+  @Deprecated("Use wxxy instead")
   static const int WXXY = wxxy;
-  /** Deprecated, use [wxxz] instead. */
+  @Deprecated("Use wxxz instead")
   static const int WXXZ = wxxz;
-  /** Deprecated, use [wxxw] instead. */
+  @Deprecated("Use wxxw instead")
   static const int WXXW = wxxw;
-  /** Deprecated, use [wxyx] instead. */
+  @Deprecated("Use wxyx instead")
   static const int WXYX = wxyx;
-  /** Deprecated, use [wxyy] instead. */
+  @Deprecated("Use wxyy instead")
   static const int WXYY = wxyy;
-  /** Deprecated, use [wxyz] instead. */
+  @Deprecated("Use wxyz instead")
   static const int WXYZ = wxyz;
-  /** Deprecated, use [wxyw] instead. */
+  @Deprecated("Use wxyw instead")
   static const int WXYW = wxyw;
-  /** Deprecated, use [wxzx] instead. */
+  @Deprecated("Use wxzx instead")
   static const int WXZX = wxzx;
-  /** Deprecated, use [wxzy] instead. */
+  @Deprecated("Use wxzy instead")
   static const int WXZY = wxzy;
-  /** Deprecated, use [wxzz] instead. */
+  @Deprecated("Use wxzz instead")
   static const int WXZZ = wxzz;
-  /** Deprecated, use [wxzw] instead. */
+  @Deprecated("Use wxzw instead")
   static const int WXZW = wxzw;
-  /** Deprecated, use [wxwx] instead. */
+  @Deprecated("Use wxwx instead")
   static const int WXWX = wxwx;
-  /** Deprecated, use [wxwy] instead. */
+  @Deprecated("Use wxwy instead")
   static const int WXWY = wxwy;
-  /** Deprecated, use [wxwz] instead. */
+  @Deprecated("Use wxwz instead")
   static const int WXWZ = wxwz;
-  /** Deprecated, use [wxww] instead. */
+  @Deprecated("Use wxww instead")
   static const int WXWW = wxww;
-  /** Deprecated, use [wyxx] instead. */
+  @Deprecated("Use wyxx instead")
   static const int WYXX = wyxx;
-  /** Deprecated, use [wyxy] instead. */
+  @Deprecated("Use wyxy instead")
   static const int WYXY = wyxy;
-  /** Deprecated, use [wyxz] instead. */
+  @Deprecated("Use wyxz instead")
   static const int WYXZ = wyxz;
-  /** Deprecated, use [wyxw] instead. */
+  @Deprecated("Use wyxw instead")
   static const int WYXW = wyxw;
-  /** Deprecated, use [wyyx] instead. */
+  @Deprecated("Use wyyx instead")
   static const int WYYX = wyyx;
-  /** Deprecated, use [wyyy] instead. */
+  @Deprecated("Use wyyy instead")
   static const int WYYY = wyyy;
-  /** Deprecated, use [wyyz] instead. */
+  @Deprecated("Use wyyz instead")
   static const int WYYZ = wyyz;
-  /** Deprecated, use [wyyw] instead. */
+  @Deprecated("Use wyyw instead")
   static const int WYYW = wyyw;
-  /** Deprecated, use [wyzx] instead. */
+  @Deprecated("Use wyzx instead")
   static const int WYZX = wyzx;
-  /** Deprecated, use [wyzy] instead. */
+  @Deprecated("Use wyzy instead")
   static const int WYZY = wyzy;
-  /** Deprecated, use [wyzz] instead. */
+  @Deprecated("Use wyzz instead")
   static const int WYZZ = wyzz;
-  /** Deprecated, use [wyzw] instead. */
+  @Deprecated("Use wyzw instead")
   static const int WYZW = wyzw;
-  /** Deprecated, use [wywx] instead. */
+  @Deprecated("Use wywx instead")
   static const int WYWX = wywx;
-  /** Deprecated, use [wywy] instead. */
+  @Deprecated("Use wywy instead")
   static const int WYWY = wywy;
-  /** Deprecated, use [wywz] instead. */
+  @Deprecated("Use wywz instead")
   static const int WYWZ = wywz;
-  /** Deprecated, use [wyww] instead. */
+  @Deprecated("Use wyww instead")
   static const int WYWW = wyww;
-  /** Deprecated, use [wzxx] instead. */
+  @Deprecated("Use wzxx instead")
   static const int WZXX = wzxx;
-  /** Deprecated, use [wzxy] instead. */
+  @Deprecated("Use wzxy instead")
   static const int WZXY = wzxy;
-  /** Deprecated, use [wzxz] instead. */
+  @Deprecated("Use wzxz instead")
   static const int WZXZ = wzxz;
-  /** Deprecated, use [wzxw] instead. */
+  @Deprecated("Use wzxw instead")
   static const int WZXW = wzxw;
-  /** Deprecated, use [wzyx] instead. */
+  @Deprecated("Use wzyx instead")
   static const int WZYX = wzyx;
-  /** Deprecated, use [wzyy] instead. */
+  @Deprecated("Use wzyy instead")
   static const int WZYY = wzyy;
-  /** Deprecated, use [wzyz] instead. */
+  @Deprecated("Use wzyz instead")
   static const int WZYZ = wzyz;
-  /** Deprecated, use [wzyw] instead. */
+  @Deprecated("Use wzyw instead")
   static const int WZYW = wzyw;
-  /** Deprecated, use [wzzx] instead. */
+  @Deprecated("Use wzzx instead")
   static const int WZZX = wzzx;
-  /** Deprecated, use [wzzy] instead. */
+  @Deprecated("Use wzzy instead")
   static const int WZZY = wzzy;
-  /** Deprecated, use [wzzz] instead. */
+  @Deprecated("Use wzzz instead")
   static const int WZZZ = wzzz;
-  /** Deprecated, use [wzzw] instead. */
+  @Deprecated("Use wzzw instead")
   static const int WZZW = wzzw;
-  /** Deprecated, use [wzwx] instead. */
+  @Deprecated("Use wzwx instead")
   static const int WZWX = wzwx;
-  /** Deprecated, use [wzwy] instead. */
+  @Deprecated("Use wzwy instead")
   static const int WZWY = wzwy;
-  /** Deprecated, use [wzwz] instead. */
+  @Deprecated("Use wzwz instead")
   static const int WZWZ = wzwz;
-  /** Deprecated, use [wzww] instead. */
+  @Deprecated("Use wzww instead")
   static const int WZWW = wzww;
-  /** Deprecated, use [wwxx] instead. */
+  @Deprecated("Use wwxx instead")
   static const int WWXX = wwxx;
-  /** Deprecated, use [wwxy] instead. */
+  @Deprecated("Use wwxy instead")
   static const int WWXY = wwxy;
-  /** Deprecated, use [wwxz] instead. */
+  @Deprecated("Use wwxz instead")
   static const int WWXZ = wwxz;
-  /** Deprecated, use [wwxw] instead. */
+  @Deprecated("Use wwxw instead")
   static const int WWXW = wwxw;
-  /** Deprecated, use [wwyx] instead. */
+  @Deprecated("Use wwyx instead")
   static const int WWYX = wwyx;
-  /** Deprecated, use [wwyy] instead. */
+  @Deprecated("Use wwyy instead")
   static const int WWYY = wwyy;
-  /** Deprecated, use [wwyz] instead. */
+  @Deprecated("Use wwyz instead")
   static const int WWYZ = wwyz;
-  /** Deprecated, use [wwyw] instead. */
+  @Deprecated("Use wwyw instead")
   static const int WWYW = wwyw;
-  /** Deprecated, use [wwzx] instead. */
+  @Deprecated("Use wwzx instead")
   static const int WWZX = wwzx;
-  /** Deprecated, use [wwzy] instead. */
+  @Deprecated("Use wwzy instead")
   static const int WWZY = wwzy;
-  /** Deprecated, use [wwzz] instead. */
+  @Deprecated("Use wwzz instead")
   static const int WWZZ = wwzz;
-  /** Deprecated, use [wwzw] instead. */
+  @Deprecated("Use wwzw instead")
   static const int WWZW = wwzw;
-  /** Deprecated, use [wwwx] instead. */
+  @Deprecated("Use wwwx instead")
   static const int WWWX = wwwx;
-  /** Deprecated, use [wwwy] instead. */
+  @Deprecated("Use wwwy instead")
   static const int WWWY = wwwy;
-  /** Deprecated, use [wwwz] instead. */
+  @Deprecated("Use wwwz instead")
   static const int WWWZ = wwwz;
-  /** Deprecated, use [wwww] instead. */
+  @Deprecated("Use wwww instead")
   static const int WWWW = wwww;
 
   /// Shuffle the lane values. [mask] must be one of the 256 shuffle constants.
@@ -2677,517 +2677,517 @@ abstract class Int32x4 {
   static const int wwwy = 0x7F;
   static const int wwwz = 0xBF;
   static const int wwww = 0xFF;
-  /** Deprecated, use [xxxx] instead. */
+  @Deprecated("Use xxxx instead")
   static const int XXXX = xxxx;
-  /** Deprecated, use [xxxy] instead. */
+  @Deprecated("Use xxxy instead")
   static const int XXXY = xxxy;
-  /** Deprecated, use [xxxz] instead. */
+  @Deprecated("Use xxxz instead")
   static const int XXXZ = xxxz;
-  /** Deprecated, use [xxxw] instead. */
+  @Deprecated("Use xxxw instead")
   static const int XXXW = xxxw;
-  /** Deprecated, use [xxyx] instead. */
+  @Deprecated("Use xxyx instead")
   static const int XXYX = xxyx;
-  /** Deprecated, use [xxyy] instead. */
+  @Deprecated("Use xxyy instead")
   static const int XXYY = xxyy;
-  /** Deprecated, use [xxyz] instead. */
+  @Deprecated("Use xxyz instead")
   static const int XXYZ = xxyz;
-  /** Deprecated, use [xxyw] instead. */
+  @Deprecated("Use xxyw instead")
   static const int XXYW = xxyw;
-  /** Deprecated, use [xxzx] instead. */
+  @Deprecated("Use xxzx instead")
   static const int XXZX = xxzx;
-  /** Deprecated, use [xxzy] instead. */
+  @Deprecated("Use xxzy instead")
   static const int XXZY = xxzy;
-  /** Deprecated, use [xxzz] instead. */
+  @Deprecated("Use xxzz instead")
   static const int XXZZ = xxzz;
-  /** Deprecated, use [xxzw] instead. */
+  @Deprecated("Use xxzw instead")
   static const int XXZW = xxzw;
-  /** Deprecated, use [xxwx] instead. */
+  @Deprecated("Use xxwx instead")
   static const int XXWX = xxwx;
-  /** Deprecated, use [xxwy] instead. */
+  @Deprecated("Use xxwy instead")
   static const int XXWY = xxwy;
-  /** Deprecated, use [xxwz] instead. */
+  @Deprecated("Use xxwz instead")
   static const int XXWZ = xxwz;
-  /** Deprecated, use [xxww] instead. */
+  @Deprecated("Use xxww instead")
   static const int XXWW = xxww;
-  /** Deprecated, use [xyxx] instead. */
+  @Deprecated("Use xyxx instead")
   static const int XYXX = xyxx;
-  /** Deprecated, use [xyxy] instead. */
+  @Deprecated("Use xyxy instead")
   static const int XYXY = xyxy;
-  /** Deprecated, use [xyxz] instead. */
+  @Deprecated("Use xyxz instead")
   static const int XYXZ = xyxz;
-  /** Deprecated, use [xyxw] instead. */
+  @Deprecated("Use xyxw instead")
   static const int XYXW = xyxw;
-  /** Deprecated, use [xyyx] instead. */
+  @Deprecated("Use xyyx instead")
   static const int XYYX = xyyx;
-  /** Deprecated, use [xyyy] instead. */
+  @Deprecated("Use xyyy instead")
   static const int XYYY = xyyy;
-  /** Deprecated, use [xyyz] instead. */
+  @Deprecated("Use xyyz instead")
   static const int XYYZ = xyyz;
-  /** Deprecated, use [xyyw] instead. */
+  @Deprecated("Use xyyw instead")
   static const int XYYW = xyyw;
-  /** Deprecated, use [xyzx] instead. */
+  @Deprecated("Use xyzx instead")
   static const int XYZX = xyzx;
-  /** Deprecated, use [xyzy] instead. */
+  @Deprecated("Use xyzy instead")
   static const int XYZY = xyzy;
-  /** Deprecated, use [xyzz] instead. */
+  @Deprecated("Use xyzz instead")
   static const int XYZZ = xyzz;
-  /** Deprecated, use [xyzw] instead. */
+  @Deprecated("Use xyzw instead")
   static const int XYZW = xyzw;
-  /** Deprecated, use [xywx] instead. */
+  @Deprecated("Use xywx instead")
   static const int XYWX = xywx;
-  /** Deprecated, use [xywy] instead. */
+  @Deprecated("Use xywy instead")
   static const int XYWY = xywy;
-  /** Deprecated, use [xywz] instead. */
+  @Deprecated("Use xywz instead")
   static const int XYWZ = xywz;
-  /** Deprecated, use [xyww] instead. */
+  @Deprecated("Use xyww instead")
   static const int XYWW = xyww;
-  /** Deprecated, use [xzxx] instead. */
+  @Deprecated("Use xzxx instead")
   static const int XZXX = xzxx;
-  /** Deprecated, use [xzxy] instead. */
+  @Deprecated("Use xzxy instead")
   static const int XZXY = xzxy;
-  /** Deprecated, use [xzxz] instead. */
+  @Deprecated("Use xzxz instead")
   static const int XZXZ = xzxz;
-  /** Deprecated, use [xzxw] instead. */
+  @Deprecated("Use xzxw instead")
   static const int XZXW = xzxw;
-  /** Deprecated, use [xzyx] instead. */
+  @Deprecated("Use xzyx instead")
   static const int XZYX = xzyx;
-  /** Deprecated, use [xzyy] instead. */
+  @Deprecated("Use xzyy instead")
   static const int XZYY = xzyy;
-  /** Deprecated, use [xzyz] instead. */
+  @Deprecated("Use xzyz instead")
   static const int XZYZ = xzyz;
-  /** Deprecated, use [xzyw] instead. */
+  @Deprecated("Use xzyw instead")
   static const int XZYW = xzyw;
-  /** Deprecated, use [xzzx] instead. */
+  @Deprecated("Use xzzx instead")
   static const int XZZX = xzzx;
-  /** Deprecated, use [xzzy] instead. */
+  @Deprecated("Use xzzy instead")
   static const int XZZY = xzzy;
-  /** Deprecated, use [xzzz] instead. */
+  @Deprecated("Use xzzz instead")
   static const int XZZZ = xzzz;
-  /** Deprecated, use [xzzw] instead. */
+  @Deprecated("Use xzzw instead")
   static const int XZZW = xzzw;
-  /** Deprecated, use [xzwx] instead. */
+  @Deprecated("Use xzwx instead")
   static const int XZWX = xzwx;
-  /** Deprecated, use [xzwy] instead. */
+  @Deprecated("Use xzwy instead")
   static const int XZWY = xzwy;
-  /** Deprecated, use [xzwz] instead. */
+  @Deprecated("Use xzwz instead")
   static const int XZWZ = xzwz;
-  /** Deprecated, use [xzww] instead. */
+  @Deprecated("Use xzww instead")
   static const int XZWW = xzww;
-  /** Deprecated, use [xwxx] instead. */
+  @Deprecated("Use xwxx instead")
   static const int XWXX = xwxx;
-  /** Deprecated, use [xwxy] instead. */
+  @Deprecated("Use xwxy instead")
   static const int XWXY = xwxy;
-  /** Deprecated, use [xwxz] instead. */
+  @Deprecated("Use xwxz instead")
   static const int XWXZ = xwxz;
-  /** Deprecated, use [xwxw] instead. */
+  @Deprecated("Use xwxw instead")
   static const int XWXW = xwxw;
-  /** Deprecated, use [xwyx] instead. */
+  @Deprecated("Use xwyx instead")
   static const int XWYX = xwyx;
-  /** Deprecated, use [xwyy] instead. */
+  @Deprecated("Use xwyy instead")
   static const int XWYY = xwyy;
-  /** Deprecated, use [xwyz] instead. */
+  @Deprecated("Use xwyz instead")
   static const int XWYZ = xwyz;
-  /** Deprecated, use [xwyw] instead. */
+  @Deprecated("Use xwyw instead")
   static const int XWYW = xwyw;
-  /** Deprecated, use [xwzx] instead. */
+  @Deprecated("Use xwzx instead")
   static const int XWZX = xwzx;
-  /** Deprecated, use [xwzy] instead. */
+  @Deprecated("Use xwzy instead")
   static const int XWZY = xwzy;
-  /** Deprecated, use [xwzz] instead. */
+  @Deprecated("Use xwzz instead")
   static const int XWZZ = xwzz;
-  /** Deprecated, use [xwzw] instead. */
+  @Deprecated("Use xwzw instead")
   static const int XWZW = xwzw;
-  /** Deprecated, use [xwwx] instead. */
+  @Deprecated("Use xwwx instead")
   static const int XWWX = xwwx;
-  /** Deprecated, use [xwwy] instead. */
+  @Deprecated("Use xwwy instead")
   static const int XWWY = xwwy;
-  /** Deprecated, use [xwwz] instead. */
+  @Deprecated("Use xwwz instead")
   static const int XWWZ = xwwz;
-  /** Deprecated, use [xwww] instead. */
+  @Deprecated("Use xwww instead")
   static const int XWWW = xwww;
-  /** Deprecated, use [yxxx] instead. */
+  @Deprecated("Use yxxx instead")
   static const int YXXX = yxxx;
-  /** Deprecated, use [yxxy] instead. */
+  @Deprecated("Use yxxy instead")
   static const int YXXY = yxxy;
-  /** Deprecated, use [yxxz] instead. */
+  @Deprecated("Use yxxz instead")
   static const int YXXZ = yxxz;
-  /** Deprecated, use [yxxw] instead. */
+  @Deprecated("Use yxxw instead")
   static const int YXXW = yxxw;
-  /** Deprecated, use [yxyx] instead. */
+  @Deprecated("Use yxyx instead")
   static const int YXYX = yxyx;
-  /** Deprecated, use [yxyy] instead. */
+  @Deprecated("Use yxyy instead")
   static const int YXYY = yxyy;
-  /** Deprecated, use [yxyz] instead. */
+  @Deprecated("Use yxyz instead")
   static const int YXYZ = yxyz;
-  /** Deprecated, use [yxyw] instead. */
+  @Deprecated("Use yxyw instead")
   static const int YXYW = yxyw;
-  /** Deprecated, use [yxzx] instead. */
+  @Deprecated("Use yxzx instead")
   static const int YXZX = yxzx;
-  /** Deprecated, use [yxzy] instead. */
+  @Deprecated("Use yxzy instead")
   static const int YXZY = yxzy;
-  /** Deprecated, use [yxzz] instead. */
+  @Deprecated("Use yxzz instead")
   static const int YXZZ = yxzz;
-  /** Deprecated, use [yxzw] instead. */
+  @Deprecated("Use yxzw instead")
   static const int YXZW = yxzw;
-  /** Deprecated, use [yxwx] instead. */
+  @Deprecated("Use yxwx instead")
   static const int YXWX = yxwx;
-  /** Deprecated, use [yxwy] instead. */
+  @Deprecated("Use yxwy instead")
   static const int YXWY = yxwy;
-  /** Deprecated, use [yxwz] instead. */
+  @Deprecated("Use yxwz instead")
   static const int YXWZ = yxwz;
-  /** Deprecated, use [yxww] instead. */
+  @Deprecated("Use yxww instead")
   static const int YXWW = yxww;
-  /** Deprecated, use [yyxx] instead. */
+  @Deprecated("Use yyxx instead")
   static const int YYXX = yyxx;
-  /** Deprecated, use [yyxy] instead. */
+  @Deprecated("Use yyxy instead")
   static const int YYXY = yyxy;
-  /** Deprecated, use [yyxz] instead. */
+  @Deprecated("Use yyxz instead")
   static const int YYXZ = yyxz;
-  /** Deprecated, use [yyxw] instead. */
+  @Deprecated("Use yyxw instead")
   static const int YYXW = yyxw;
-  /** Deprecated, use [yyyx] instead. */
+  @Deprecated("Use yyyx instead")
   static const int YYYX = yyyx;
-  /** Deprecated, use [yyyy] instead. */
+  @Deprecated("Use yyyy instead")
   static const int YYYY = yyyy;
-  /** Deprecated, use [yyyz] instead. */
+  @Deprecated("Use yyyz instead")
   static const int YYYZ = yyyz;
-  /** Deprecated, use [yyyw] instead. */
+  @Deprecated("Use yyyw instead")
   static const int YYYW = yyyw;
-  /** Deprecated, use [yyzx] instead. */
+  @Deprecated("Use yyzx instead")
   static const int YYZX = yyzx;
-  /** Deprecated, use [yyzy] instead. */
+  @Deprecated("Use yyzy instead")
   static const int YYZY = yyzy;
-  /** Deprecated, use [yyzz] instead. */
+  @Deprecated("Use yyzz instead")
   static const int YYZZ = yyzz;
-  /** Deprecated, use [yyzw] instead. */
+  @Deprecated("Use yyzw instead")
   static const int YYZW = yyzw;
-  /** Deprecated, use [yywx] instead. */
+  @Deprecated("Use yywx instead")
   static const int YYWX = yywx;
-  /** Deprecated, use [yywy] instead. */
+  @Deprecated("Use yywy instead")
   static const int YYWY = yywy;
-  /** Deprecated, use [yywz] instead. */
+  @Deprecated("Use yywz instead")
   static const int YYWZ = yywz;
-  /** Deprecated, use [yyww] instead. */
+  @Deprecated("Use yyww instead")
   static const int YYWW = yyww;
-  /** Deprecated, use [yzxx] instead. */
+  @Deprecated("Use yzxx instead")
   static const int YZXX = yzxx;
-  /** Deprecated, use [yzxy] instead. */
+  @Deprecated("Use yzxy instead")
   static const int YZXY = yzxy;
-  /** Deprecated, use [yzxz] instead. */
+  @Deprecated("Use yzxz instead")
   static const int YZXZ = yzxz;
-  /** Deprecated, use [yzxw] instead. */
+  @Deprecated("Use yzxw instead")
   static const int YZXW = yzxw;
-  /** Deprecated, use [yzyx] instead. */
+  @Deprecated("Use yzyx instead")
   static const int YZYX = yzyx;
-  /** Deprecated, use [yzyy] instead. */
+  @Deprecated("Use yzyy instead")
   static const int YZYY = yzyy;
-  /** Deprecated, use [yzyz] instead. */
+  @Deprecated("Use yzyz instead")
   static const int YZYZ = yzyz;
-  /** Deprecated, use [yzyw] instead. */
+  @Deprecated("Use yzyw instead")
   static const int YZYW = yzyw;
-  /** Deprecated, use [yzzx] instead. */
+  @Deprecated("Use yzzx instead")
   static const int YZZX = yzzx;
-  /** Deprecated, use [yzzy] instead. */
+  @Deprecated("Use yzzy instead")
   static const int YZZY = yzzy;
-  /** Deprecated, use [yzzz] instead. */
+  @Deprecated("Use yzzz instead")
   static const int YZZZ = yzzz;
-  /** Deprecated, use [yzzw] instead. */
+  @Deprecated("Use yzzw instead")
   static const int YZZW = yzzw;
-  /** Deprecated, use [yzwx] instead. */
+  @Deprecated("Use yzwx instead")
   static const int YZWX = yzwx;
-  /** Deprecated, use [yzwy] instead. */
+  @Deprecated("Use yzwy instead")
   static const int YZWY = yzwy;
-  /** Deprecated, use [yzwz] instead. */
+  @Deprecated("Use yzwz instead")
   static const int YZWZ = yzwz;
-  /** Deprecated, use [yzww] instead. */
+  @Deprecated("Use yzww instead")
   static const int YZWW = yzww;
-  /** Deprecated, use [ywxx] instead. */
+  @Deprecated("Use ywxx instead")
   static const int YWXX = ywxx;
-  /** Deprecated, use [ywxy] instead. */
+  @Deprecated("Use ywxy instead")
   static const int YWXY = ywxy;
-  /** Deprecated, use [ywxz] instead. */
+  @Deprecated("Use ywxz instead")
   static const int YWXZ = ywxz;
-  /** Deprecated, use [ywxw] instead. */
+  @Deprecated("Use ywxw instead")
   static const int YWXW = ywxw;
-  /** Deprecated, use [ywyx] instead. */
+  @Deprecated("Use ywyx instead")
   static const int YWYX = ywyx;
-  /** Deprecated, use [ywyy] instead. */
+  @Deprecated("Use ywyy instead")
   static const int YWYY = ywyy;
-  /** Deprecated, use [ywyz] instead. */
+  @Deprecated("Use ywyz instead")
   static const int YWYZ = ywyz;
-  /** Deprecated, use [ywyw] instead. */
+  @Deprecated("Use ywyw instead")
   static const int YWYW = ywyw;
-  /** Deprecated, use [ywzx] instead. */
+  @Deprecated("Use ywzx instead")
   static const int YWZX = ywzx;
-  /** Deprecated, use [ywzy] instead. */
+  @Deprecated("Use ywzy instead")
   static const int YWZY = ywzy;
-  /** Deprecated, use [ywzz] instead. */
+  @Deprecated("Use ywzz instead")
   static const int YWZZ = ywzz;
-  /** Deprecated, use [ywzw] instead. */
+  @Deprecated("Use ywzw instead")
   static const int YWZW = ywzw;
-  /** Deprecated, use [ywwx] instead. */
+  @Deprecated("Use ywwx instead")
   static const int YWWX = ywwx;
-  /** Deprecated, use [ywwy] instead. */
+  @Deprecated("Use ywwy instead")
   static const int YWWY = ywwy;
-  /** Deprecated, use [ywwz] instead. */
+  @Deprecated("Use ywwz instead")
   static const int YWWZ = ywwz;
-  /** Deprecated, use [ywww] instead. */
+  @Deprecated("Use ywww instead")
   static const int YWWW = ywww;
-  /** Deprecated, use [zxxx] instead. */
+  @Deprecated("Use zxxx instead")
   static const int ZXXX = zxxx;
-  /** Deprecated, use [zxxy] instead. */
+  @Deprecated("Use zxxy instead")
   static const int ZXXY = zxxy;
-  /** Deprecated, use [zxxz] instead. */
+  @Deprecated("Use zxxz instead")
   static const int ZXXZ = zxxz;
-  /** Deprecated, use [zxxw] instead. */
+  @Deprecated("Use zxxw instead")
   static const int ZXXW = zxxw;
-  /** Deprecated, use [zxyx] instead. */
+  @Deprecated("Use zxyx instead")
   static const int ZXYX = zxyx;
-  /** Deprecated, use [zxyy] instead. */
+  @Deprecated("Use zxyy instead")
   static const int ZXYY = zxyy;
-  /** Deprecated, use [zxyz] instead. */
+  @Deprecated("Use zxyz instead")
   static const int ZXYZ = zxyz;
-  /** Deprecated, use [zxyw] instead. */
+  @Deprecated("Use zxyw instead")
   static const int ZXYW = zxyw;
-  /** Deprecated, use [zxzx] instead. */
+  @Deprecated("Use zxzx instead")
   static const int ZXZX = zxzx;
-  /** Deprecated, use [zxzy] instead. */
+  @Deprecated("Use zxzy instead")
   static const int ZXZY = zxzy;
-  /** Deprecated, use [zxzz] instead. */
+  @Deprecated("Use zxzz instead")
   static const int ZXZZ = zxzz;
-  /** Deprecated, use [zxzw] instead. */
+  @Deprecated("Use zxzw instead")
   static const int ZXZW = zxzw;
-  /** Deprecated, use [zxwx] instead. */
+  @Deprecated("Use zxwx instead")
   static const int ZXWX = zxwx;
-  /** Deprecated, use [zxwy] instead. */
+  @Deprecated("Use zxwy instead")
   static const int ZXWY = zxwy;
-  /** Deprecated, use [zxwz] instead. */
+  @Deprecated("Use zxwz instead")
   static const int ZXWZ = zxwz;
-  /** Deprecated, use [zxww] instead. */
+  @Deprecated("Use zxww instead")
   static const int ZXWW = zxww;
-  /** Deprecated, use [zyxx] instead. */
+  @Deprecated("Use zyxx instead")
   static const int ZYXX = zyxx;
-  /** Deprecated, use [zyxy] instead. */
+  @Deprecated("Use zyxy instead")
   static const int ZYXY = zyxy;
-  /** Deprecated, use [zyxz] instead. */
+  @Deprecated("Use zyxz instead")
   static const int ZYXZ = zyxz;
-  /** Deprecated, use [zyxw] instead. */
+  @Deprecated("Use zyxw instead")
   static const int ZYXW = zyxw;
-  /** Deprecated, use [zyyx] instead. */
+  @Deprecated("Use zyyx instead")
   static const int ZYYX = zyyx;
-  /** Deprecated, use [zyyy] instead. */
+  @Deprecated("Use zyyy instead")
   static const int ZYYY = zyyy;
-  /** Deprecated, use [zyyz] instead. */
+  @Deprecated("Use zyyz instead")
   static const int ZYYZ = zyyz;
-  /** Deprecated, use [zyyw] instead. */
+  @Deprecated("Use zyyw instead")
   static const int ZYYW = zyyw;
-  /** Deprecated, use [zyzx] instead. */
+  @Deprecated("Use zyzx instead")
   static const int ZYZX = zyzx;
-  /** Deprecated, use [zyzy] instead. */
+  @Deprecated("Use zyzy instead")
   static const int ZYZY = zyzy;
-  /** Deprecated, use [zyzz] instead. */
+  @Deprecated("Use zyzz instead")
   static const int ZYZZ = zyzz;
-  /** Deprecated, use [zyzw] instead. */
+  @Deprecated("Use zyzw instead")
   static const int ZYZW = zyzw;
-  /** Deprecated, use [zywx] instead. */
+  @Deprecated("Use zywx instead")
   static const int ZYWX = zywx;
-  /** Deprecated, use [zywy] instead. */
+  @Deprecated("Use zywy instead")
   static const int ZYWY = zywy;
-  /** Deprecated, use [zywz] instead. */
+  @Deprecated("Use zywz instead")
   static const int ZYWZ = zywz;
-  /** Deprecated, use [zyww] instead. */
+  @Deprecated("Use zyww instead")
   static const int ZYWW = zyww;
-  /** Deprecated, use [zzxx] instead. */
+  @Deprecated("Use zzxx instead")
   static const int ZZXX = zzxx;
-  /** Deprecated, use [zzxy] instead. */
+  @Deprecated("Use zzxy instead")
   static const int ZZXY = zzxy;
-  /** Deprecated, use [zzxz] instead. */
+  @Deprecated("Use zzxz instead")
   static const int ZZXZ = zzxz;
-  /** Deprecated, use [zzxw] instead. */
+  @Deprecated("Use zzxw instead")
   static const int ZZXW = zzxw;
-  /** Deprecated, use [zzyx] instead. */
+  @Deprecated("Use zzyx instead")
   static const int ZZYX = zzyx;
-  /** Deprecated, use [zzyy] instead. */
+  @Deprecated("Use zzyy instead")
   static const int ZZYY = zzyy;
-  /** Deprecated, use [zzyz] instead. */
+  @Deprecated("Use zzyz instead")
   static const int ZZYZ = zzyz;
-  /** Deprecated, use [zzyw] instead. */
+  @Deprecated("Use zzyw instead")
   static const int ZZYW = zzyw;
-  /** Deprecated, use [zzzx] instead. */
+  @Deprecated("Use zzzx instead")
   static const int ZZZX = zzzx;
-  /** Deprecated, use [zzzy] instead. */
+  @Deprecated("Use zzzy instead")
   static const int ZZZY = zzzy;
-  /** Deprecated, use [zzzz] instead. */
+  @Deprecated("Use zzzz instead")
   static const int ZZZZ = zzzz;
-  /** Deprecated, use [zzzw] instead. */
+  @Deprecated("Use zzzw instead")
   static const int ZZZW = zzzw;
-  /** Deprecated, use [zzwx] instead. */
+  @Deprecated("Use zzwx instead")
   static const int ZZWX = zzwx;
-  /** Deprecated, use [zzwy] instead. */
+  @Deprecated("Use zzwy instead")
   static const int ZZWY = zzwy;
-  /** Deprecated, use [zzwz] instead. */
+  @Deprecated("Use zzwz instead")
   static const int ZZWZ = zzwz;
-  /** Deprecated, use [zzww] instead. */
+  @Deprecated("Use zzww instead")
   static const int ZZWW = zzww;
-  /** Deprecated, use [zwxx] instead. */
+  @Deprecated("Use zwxx instead")
   static const int ZWXX = zwxx;
-  /** Deprecated, use [zwxy] instead. */
+  @Deprecated("Use zwxy instead")
   static const int ZWXY = zwxy;
-  /** Deprecated, use [zwxz] instead. */
+  @Deprecated("Use zwxz instead")
   static const int ZWXZ = zwxz;
-  /** Deprecated, use [zwxw] instead. */
+  @Deprecated("Use zwxw instead")
   static const int ZWXW = zwxw;
-  /** Deprecated, use [zwyx] instead. */
+  @Deprecated("Use zwyx instead")
   static const int ZWYX = zwyx;
-  /** Deprecated, use [zwyy] instead. */
+  @Deprecated("Use zwyy instead")
   static const int ZWYY = zwyy;
-  /** Deprecated, use [zwyz] instead. */
+  @Deprecated("Use zwyz instead")
   static const int ZWYZ = zwyz;
-  /** Deprecated, use [zwyw] instead. */
+  @Deprecated("Use zwyw instead")
   static const int ZWYW = zwyw;
-  /** Deprecated, use [zwzx] instead. */
+  @Deprecated("Use zwzx instead")
   static const int ZWZX = zwzx;
-  /** Deprecated, use [zwzy] instead. */
+  @Deprecated("Use zwzy instead")
   static const int ZWZY = zwzy;
-  /** Deprecated, use [zwzz] instead. */
+  @Deprecated("Use zwzz instead")
   static const int ZWZZ = zwzz;
-  /** Deprecated, use [zwzw] instead. */
+  @Deprecated("Use zwzw instead")
   static const int ZWZW = zwzw;
-  /** Deprecated, use [zwwx] instead. */
+  @Deprecated("Use zwwx instead")
   static const int ZWWX = zwwx;
-  /** Deprecated, use [zwwy] instead. */
+  @Deprecated("Use zwwy instead")
   static const int ZWWY = zwwy;
-  /** Deprecated, use [zwwz] instead. */
+  @Deprecated("Use zwwz instead")
   static const int ZWWZ = zwwz;
-  /** Deprecated, use [zwww] instead. */
+  @Deprecated("Use zwww instead")
   static const int ZWWW = zwww;
-  /** Deprecated, use [wxxx] instead. */
+  @Deprecated("Use wxxx instead")
   static const int WXXX = wxxx;
-  /** Deprecated, use [wxxy] instead. */
+  @Deprecated("Use wxxy instead")
   static const int WXXY = wxxy;
-  /** Deprecated, use [wxxz] instead. */
+  @Deprecated("Use wxxz instead")
   static const int WXXZ = wxxz;
-  /** Deprecated, use [wxxw] instead. */
+  @Deprecated("Use wxxw instead")
   static const int WXXW = wxxw;
-  /** Deprecated, use [wxyx] instead. */
+  @Deprecated("Use wxyx instead")
   static const int WXYX = wxyx;
-  /** Deprecated, use [wxyy] instead. */
+  @Deprecated("Use wxyy instead")
   static const int WXYY = wxyy;
-  /** Deprecated, use [wxyz] instead. */
+  @Deprecated("Use wxyz instead")
   static const int WXYZ = wxyz;
-  /** Deprecated, use [wxyw] instead. */
+  @Deprecated("Use wxyw instead")
   static const int WXYW = wxyw;
-  /** Deprecated, use [wxzx] instead. */
+  @Deprecated("Use wxzx instead")
   static const int WXZX = wxzx;
-  /** Deprecated, use [wxzy] instead. */
+  @Deprecated("Use wxzy instead")
   static const int WXZY = wxzy;
-  /** Deprecated, use [wxzz] instead. */
+  @Deprecated("Use wxzz instead")
   static const int WXZZ = wxzz;
-  /** Deprecated, use [wxzw] instead. */
+  @Deprecated("Use wxzw instead")
   static const int WXZW = wxzw;
-  /** Deprecated, use [wxwx] instead. */
+  @Deprecated("Use wxwx instead")
   static const int WXWX = wxwx;
-  /** Deprecated, use [wxwy] instead. */
+  @Deprecated("Use wxwy instead")
   static const int WXWY = wxwy;
-  /** Deprecated, use [wxwz] instead. */
+  @Deprecated("Use wxwz instead")
   static const int WXWZ = wxwz;
-  /** Deprecated, use [wxww] instead. */
+  @Deprecated("Use wxww instead")
   static const int WXWW = wxww;
-  /** Deprecated, use [wyxx] instead. */
+  @Deprecated("Use wyxx instead")
   static const int WYXX = wyxx;
-  /** Deprecated, use [wyxy] instead. */
+  @Deprecated("Use wyxy instead")
   static const int WYXY = wyxy;
-  /** Deprecated, use [wyxz] instead. */
+  @Deprecated("Use wyxz instead")
   static const int WYXZ = wyxz;
-  /** Deprecated, use [wyxw] instead. */
+  @Deprecated("Use wyxw instead")
   static const int WYXW = wyxw;
-  /** Deprecated, use [wyyx] instead. */
+  @Deprecated("Use wyyx instead")
   static const int WYYX = wyyx;
-  /** Deprecated, use [wyyy] instead. */
+  @Deprecated("Use wyyy instead")
   static const int WYYY = wyyy;
-  /** Deprecated, use [wyyz] instead. */
+  @Deprecated("Use wyyz instead")
   static const int WYYZ = wyyz;
-  /** Deprecated, use [wyyw] instead. */
+  @Deprecated("Use wyyw instead")
   static const int WYYW = wyyw;
-  /** Deprecated, use [wyzx] instead. */
+  @Deprecated("Use wyzx instead")
   static const int WYZX = wyzx;
-  /** Deprecated, use [wyzy] instead. */
+  @Deprecated("Use wyzy instead")
   static const int WYZY = wyzy;
-  /** Deprecated, use [wyzz] instead. */
+  @Deprecated("Use wyzz instead")
   static const int WYZZ = wyzz;
-  /** Deprecated, use [wyzw] instead. */
+  @Deprecated("Use wyzw instead")
   static const int WYZW = wyzw;
-  /** Deprecated, use [wywx] instead. */
+  @Deprecated("Use wywx instead")
   static const int WYWX = wywx;
-  /** Deprecated, use [wywy] instead. */
+  @Deprecated("Use wywy instead")
   static const int WYWY = wywy;
-  /** Deprecated, use [wywz] instead. */
+  @Deprecated("Use wywz instead")
   static const int WYWZ = wywz;
-  /** Deprecated, use [wyww] instead. */
+  @Deprecated("Use wyww instead")
   static const int WYWW = wyww;
-  /** Deprecated, use [wzxx] instead. */
+  @Deprecated("Use wzxx instead")
   static const int WZXX = wzxx;
-  /** Deprecated, use [wzxy] instead. */
+  @Deprecated("Use wzxy instead")
   static const int WZXY = wzxy;
-  /** Deprecated, use [wzxz] instead. */
+  @Deprecated("Use wzxz instead")
   static const int WZXZ = wzxz;
-  /** Deprecated, use [wzxw] instead. */
+  @Deprecated("Use wzxw instead")
   static const int WZXW = wzxw;
-  /** Deprecated, use [wzyx] instead. */
+  @Deprecated("Use wzyx instead")
   static const int WZYX = wzyx;
-  /** Deprecated, use [wzyy] instead. */
+  @Deprecated("Use wzyy instead")
   static const int WZYY = wzyy;
-  /** Deprecated, use [wzyz] instead. */
+  @Deprecated("Use wzyz instead")
   static const int WZYZ = wzyz;
-  /** Deprecated, use [wzyw] instead. */
+  @Deprecated("Use wzyw instead")
   static const int WZYW = wzyw;
-  /** Deprecated, use [wzzx] instead. */
+  @Deprecated("Use wzzx instead")
   static const int WZZX = wzzx;
-  /** Deprecated, use [wzzy] instead. */
+  @Deprecated("Use wzzy instead")
   static const int WZZY = wzzy;
-  /** Deprecated, use [wzzz] instead. */
+  @Deprecated("Use wzzz instead")
   static const int WZZZ = wzzz;
-  /** Deprecated, use [wzzw] instead. */
+  @Deprecated("Use wzzw instead")
   static const int WZZW = wzzw;
-  /** Deprecated, use [wzwx] instead. */
+  @Deprecated("Use wzwx instead")
   static const int WZWX = wzwx;
-  /** Deprecated, use [wzwy] instead. */
+  @Deprecated("Use wzwy instead")
   static const int WZWY = wzwy;
-  /** Deprecated, use [wzwz] instead. */
+  @Deprecated("Use wzwz instead")
   static const int WZWZ = wzwz;
-  /** Deprecated, use [wzww] instead. */
+  @Deprecated("Use wzww instead")
   static const int WZWW = wzww;
-  /** Deprecated, use [wwxx] instead. */
+  @Deprecated("Use wwxx instead")
   static const int WWXX = wwxx;
-  /** Deprecated, use [wwxy] instead. */
+  @Deprecated("Use wwxy instead")
   static const int WWXY = wwxy;
-  /** Deprecated, use [wwxz] instead. */
+  @Deprecated("Use wwxz instead")
   static const int WWXZ = wwxz;
-  /** Deprecated, use [wwxw] instead. */
+  @Deprecated("Use wwxw instead")
   static const int WWXW = wwxw;
-  /** Deprecated, use [wwyx] instead. */
+  @Deprecated("Use wwyx instead")
   static const int WWYX = wwyx;
-  /** Deprecated, use [wwyy] instead. */
+  @Deprecated("Use wwyy instead")
   static const int WWYY = wwyy;
-  /** Deprecated, use [wwyz] instead. */
+  @Deprecated("Use wwyz instead")
   static const int WWYZ = wwyz;
-  /** Deprecated, use [wwyw] instead. */
+  @Deprecated("Use wwyw instead")
   static const int WWYW = wwyw;
-  /** Deprecated, use [wwzx] instead. */
+  @Deprecated("Use wwzx instead")
   static const int WWZX = wwzx;
-  /** Deprecated, use [wwzy] instead. */
+  @Deprecated("Use wwzy instead")
   static const int WWZY = wwzy;
-  /** Deprecated, use [wwzz] instead. */
+  @Deprecated("Use wwzz instead")
   static const int WWZZ = wwzz;
-  /** Deprecated, use [wwzw] instead. */
+  @Deprecated("Use wwzw instead")
   static const int WWZW = wwzw;
-  /** Deprecated, use [wwwx] instead. */
+  @Deprecated("Use wwwx instead")
   static const int WWWX = wwwx;
-  /** Deprecated, use [wwwy] instead. */
+  @Deprecated("Use wwwy instead")
   static const int WWWY = wwwy;
-  /** Deprecated, use [wwwz] instead. */
+  @Deprecated("Use wwwz instead")
   static const int WWWZ = wwwz;
-  /** Deprecated, use [wwww] instead. */
+  @Deprecated("Use wwww instead")
   static const int WWWW = wwww;
 
   /// Shuffle the lane values. [mask] must be one of the 256 shuffle constants.
