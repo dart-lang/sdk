@@ -469,6 +469,26 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
 
   int get length => _usedData - _deletedKeys;
 
+  E get first {
+    for (int offset = 0; offset < _usedData; offset++) {
+      Object current = _data[offset];
+      if (!_HashBase._isDeleted(_data, current)) {
+        return current;
+      }
+    }
+    throw IterableElementError.noElement();
+  }
+
+  E get last {
+    for (int offset = _usedData - 1; offset >= 0; offset--) {
+      Object current = _data[offset];
+      if (!_HashBase._isDeleted(_data, current)) {
+        return current;
+      }
+    }
+    throw IterableElementError.noElement();
+  }
+
   void _rehash() {
     if ((_deletedKeys << 1) > _usedData) {
       _init(_index.length, _hashMask, _data, _usedData);
