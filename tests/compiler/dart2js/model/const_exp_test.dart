@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'type_test_helper.dart';
+import '../type_test_helper.dart';
 
 test(String constantInitializer, [String expectedOutput]) {
   if (expectedOutput == null) {

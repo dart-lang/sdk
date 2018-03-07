@@ -9,8 +9,8 @@ library type_substitution_test;
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
-import 'compiler_helper.dart';
-import 'type_test_helper.dart';
+import '../compiler_helper.dart';
+import '../type_test_helper.dart';
 
 ResolutionDartType getType(compiler, String name) {
   dynamic clazz = findElement(compiler, "Class");
@@ -189,8 +189,8 @@ void testTypeSubstitution() {
           StringType
         ];
 
-        // TODO(johnniwinther): Create types directly from strings to improve test
-        // readability.
+        // TODO(johnniwinther): Create types directly from strings to improve
+        // test readability.
 
         testSubstitution(compiler, arguments, parameters, "void1", "void2");
         testSubstitution(

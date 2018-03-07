@@ -11,7 +11,7 @@ import 'package:compiler/src/elements/entities.dart' show ClassEntity;
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:expect/expect.dart';
-import 'type_test_helper.dart';
+import '../type_test_helper.dart';
 
 void main() {
   asyncTest(() async {
