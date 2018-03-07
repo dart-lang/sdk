@@ -82,6 +82,7 @@ the assignment to `y`.
   * `BigInt` class added to support integers greater than 64-bits.
   * Deprecated the `proxy` annotation.
   * Added `Provisional` class and `provisional` field.
+  * Added `pragma` annotation.
   * `RegExp` added static `escape` function.
   * The `Uri` class now correctly handles paths while running on Node.js on
     Windows.
