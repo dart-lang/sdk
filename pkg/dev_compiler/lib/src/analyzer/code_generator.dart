@@ -329,8 +329,9 @@ class CodeGenerator extends Object
     var root = new JS.Identifier('_root');
     items.add(js.statement('const # = Object.create(null)', [root]));
 
-    if (compilationUnits.any((u) => isSdkInternalRuntime(
-        resolutionMap.elementDeclaredByCompilationUnit(u).library))) {
+    var isBuildingSdk =
+        compilationUnits.any((u) => isSdkInternalRuntime(u.element.library));
+    if (isBuildingSdk) {
       // Don't allow these to be renamed when we're building the SDK.
       // There is JS code in dart:* that depends on their names.
       _runtimeModule = new JS.Identifier('dart');
@@ -343,27 +344,28 @@ class CodeGenerator extends Object
     _typeTable = new TypeTable(_runtimeModule);
 
     // Initialize our library variables.
-    var isBuildingSdk = false;
+    var exports = <JS.NameSpecifier>[];
+    void emitLibrary(JS.Identifier id) {
+      items.add(js.statement('const # = Object.create(#)', [id, root]));
+      exports.add(new JS.NameSpecifier(id));
+    }
+
     for (var unit in compilationUnits) {
-      var library =
-          resolutionMap.elementDeclaredByCompilationUnit(unit).library;
+      var library = unit.element.library;
       if (unit.element != library.definingCompilationUnit) continue;
 
       var libraryTemp = isSdkInternalRuntime(library)
           ? _runtimeModule
           : new JS.TemporaryId(jsLibraryName(_libraryRoot, library));
       _libraries[library] = libraryTemp;
-      items.add(new JS.ExportDeclaration(
-          js.call('const # = Object.create(#)', [libraryTemp, root])));
-
-      // dart:_runtime has a magic module that holds extension method symbols.
-      // TODO(jmesserly): find a cleaner design for this.
-      if (isSdkInternalRuntime(library)) {
-        isBuildingSdk = true;
-        items.add(new JS.ExportDeclaration(js.call(
-            'const # = Object.create(#)', [_extensionSymbolsModule, root])));
-      }
+      emitLibrary(libraryTemp);
     }
+
+    // dart:_runtime has a magic module that holds extension method symbols.
+    // TODO(jmesserly): find a cleaner design for this.
+    if (isBuildingSdk) emitLibrary(_extensionSymbolsModule);
+
+    items.add(new JS.ExportDeclaration(new JS.ExportClause(exports)));
 
     // Collect all class/type Element -> Node mappings
     // in case we need to forward declare any classes.

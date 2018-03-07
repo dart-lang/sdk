@@ -134,7 +134,10 @@ abstract class _ModuleBuilder {
 
   visitExportDeclaration(ExportDeclaration node) {
     exports.add(node);
-    statements.add(node.exported.toStatement());
+    var exported = node.exported;
+    if (exported is! ExportClause) {
+      statements.add(exported.toStatement());
+    }
   }
 
   visitStatement(Statement node) {

@@ -280,21 +280,28 @@ class ProgramCompiler
 
     // Initialize our library variables.
     var items = <JS.ModuleItem>[];
+    var exports = <JS.NameSpecifier>[];
+    var root = new JS.Identifier('_root');
+    items.add(js.statement('const # = Object.create(null)', [root]));
+
+    void emitLibrary(JS.Identifier id) {
+      items.add(js.statement('const # = Object.create(#)', [id, root]));
+      exports.add(new JS.NameSpecifier(id));
+    }
+
     for (var library in libraries) {
       var libraryTemp = library == ddcRuntime
           ? _runtimeModule
           : new JS.TemporaryId(jsLibraryName(library));
       _libraries[library] = libraryTemp;
-      items.add(new JS.ExportDeclaration(
-          js.call('const # = Object.create(null)', [libraryTemp])));
-
-      // dart:_runtime has a magic module that holds extension method symbols.
-      // TODO(jmesserly): find a cleaner design for this.
-      if (library == ddcRuntime) {
-        items.add(new JS.ExportDeclaration(js
-            .call('const # = Object.create(null)', [_extensionSymbolsModule])));
-      }
+      emitLibrary(libraryTemp);
     }
+
+    // dart:_runtime has a magic module that holds extension method symbols.
+    // TODO(jmesserly): find a cleaner design for this.
+    if (ddcRuntime != null) emitLibrary(_extensionSymbolsModule);
+
+    items.add(new JS.ExportDeclaration(new JS.ExportClause(exports)));
 
     // Collect all class/type Element -> Node mappings
     // in case we need to forward declare any classes.

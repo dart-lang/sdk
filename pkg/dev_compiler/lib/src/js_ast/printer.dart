@@ -1233,7 +1233,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
         spaceOut();
       }
     }
-    nameSpecifierListOut(node.namedImports);
+    nameSpecifierListOut(node.namedImports, false);
     fromClauseOut(node.from);
     outSemicolonLn();
   }
@@ -1248,15 +1248,15 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   }
 
   visitExportClause(ExportClause node) {
-    nameSpecifierListOut(node.exports);
+    nameSpecifierListOut(node.exports, true);
     fromClauseOut(node.from);
   }
 
-  nameSpecifierListOut(List<NameSpecifier> names) {
+  nameSpecifierListOut(List<NameSpecifier> names, bool export) {
     if (names == null) return;
 
     if (names.length == 1 && names[0].name == '*') {
-      visit(names[0]);
+      nameSpecifierOut(names[0], export);
       return;
     }
 
@@ -1267,7 +1267,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
         out(',');
         spaceOut();
       }
-      visit(names[i]);
+      nameSpecifierOut(names[i], export);
     }
     spaceOut();
     out('}');
@@ -1281,22 +1281,28 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     }
   }
 
+  /// This is unused, see [nameSpecifierOut].
   visitNameSpecifier(NameSpecifier node) {
+    throw new UnsupportedError('visitNameSpecifier');
+  }
+
+  nameSpecifierOut(NameSpecifier node, bool export) {
     if (node.isStar) {
       out('*');
     } else {
-      var importName = node.name.name;
-      out(importName);
-
+      var name = node.name.name;
       if (node.asName == null) {
         // If our local was renamed, generate an implicit "as".
-        // This is a convenience feature so imports can be renamed.
+        // This is a convenience feature so imports and exports can be renamed.
         var localName = localNamer.getName(node.name);
-        if (localName != importName) {
+        if (localName != name) {
+          out(export ? localName : name);
           out(' as ');
-          out(localName);
+          out(export ? name : localName);
+          return;
         }
       }
+      out(name);
     }
     if (node.asName != null) {
       out(' as ');
