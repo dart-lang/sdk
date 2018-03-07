@@ -677,7 +677,7 @@ class _ClassData extends _DependencyTracker implements ClassId<_ClassData> {
   final int _id;
   final Class class_;
   final Set<_ClassData> supertypes; // List of super-types including this.
-  final Set<_ClassData> allocatedSubtypes = new Set<_ClassData>();
+  final Set<_ClassData> _allocatedSubtypes = new Set<_ClassData>();
 
   /// Flag indicating if this class has a noSuchMethod() method not inherited
   /// from Object.
@@ -691,6 +691,33 @@ class _ClassData extends _DependencyTracker implements ClassId<_ClassData> {
   ConcreteType _concreteType;
   ConcreteType get concreteType =>
       _concreteType ??= new ConcreteType(this, class_.rawType);
+
+  Type _specializedConeType;
+  Type get specializedConeType =>
+      _specializedConeType ??= _calculateConeTypeSpecialization();
+
+  Type _calculateConeTypeSpecialization() {
+    final int numSubTypes = _allocatedSubtypes.length;
+    if (numSubTypes == 0) {
+      return new Type.empty();
+    } else if (numSubTypes == 1) {
+      return _allocatedSubtypes.single.concreteType;
+    } else {
+      List<ConcreteType> types = new List<ConcreteType>();
+      for (var sub in _allocatedSubtypes) {
+        types.add(sub.concreteType);
+      }
+      // SetType constructor expects a list of ConcreteTypes sorted by classId
+      // (for faster intersections and unions).
+      types.sort();
+      return new SetType(types);
+    }
+  }
+
+  void addAllocatedSubtype(_ClassData subType) {
+    _allocatedSubtypes.add(subType);
+    _specializedConeType = null; // Reset cached specialization.
+  }
 
   @override
   int get hashCode => _id;
@@ -755,11 +782,11 @@ class _ClassHierarchyCache implements TypeHierarchy {
     final _ClassData classData = getClassData(cl);
 
     if (allocatedClasses.add(cl)) {
-      classData.allocatedSubtypes.add(classData);
+      classData.addAllocatedSubtype(classData);
       classData.invalidateDependentInvocations(_typeFlowAnalysis.workList);
 
       for (var supertype in classData.supertypes) {
-        supertype.allocatedSubtypes.add(classData);
+        supertype.addAllocatedSubtype(classData);
         supertype.invalidateDependentInvocations(_typeFlowAnalysis.workList);
       }
 
@@ -851,26 +878,11 @@ class _ClassHierarchyCache implements TypeHierarchy {
 
     _ClassData classData = getClassData(baseClass);
 
-    final allocatedSubtypes = classData.allocatedSubtypes;
     if (!_sealed) {
       classData.addDependentInvocation(_typeFlowAnalysis.currentInvocation);
     }
 
-    final int numSubTypes = allocatedSubtypes.length;
-
-    if (numSubTypes == 0) {
-      return new Type.empty();
-    } else if (numSubTypes == 1) {
-      return allocatedSubtypes.single.concreteType;
-    } else {
-      List<ConcreteType> types = new List<ConcreteType>();
-      for (var sub in allocatedSubtypes) {
-        types.add(sub.concreteType);
-      }
-      // TODO(alexmarkov): cache result of specialization or keep allocatedSubtypes sorted
-      types.sort();
-      return new SetType(types);
-    }
+    return classData.specializedConeType;
   }
 
   bool hasNonTrivialNoSuchMethod(Class c) {
