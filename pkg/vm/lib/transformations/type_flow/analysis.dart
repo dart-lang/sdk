@@ -34,7 +34,6 @@ import 'utils.dart';
 // * Support function types, better handle closures.
 // * Support generic types: substitution, passing type arguments. Figure out
 //   when generic type should be approximated.
-// * Support named parameters (remove their approximation with static types).
 //
 // === Efficiency of the analysis ===
 // * Add benchmark to measure analysis time continuously.
@@ -182,7 +181,7 @@ class _DirectInvocation extends _Invocation {
   Type _processFunction(TypeFlowAnalysis typeFlowAnalysis) {
     final Member member = selector.member;
     if (selector.memberAgreesToCallKind(member)) {
-      if (_isLegalNumberOfArguments()) {
+      if (_argumentsValid()) {
         return typeFlowAnalysis
             .getSummary(member)
             .apply(args, typeFlowAnalysis.hierarchyCache, typeFlowAnalysis);
@@ -210,7 +209,7 @@ class _DirectInvocation extends _Invocation {
     }
   }
 
-  bool _isLegalNumberOfArguments() {
+  bool _argumentsValid() {
     final function = selector.member.function;
     assertx(function != null);
 
@@ -227,6 +226,16 @@ class _DirectInvocation extends _Invocation {
         firstParamIndex + function.positionalParameters.length;
     if (positionalArguments > positionalParameters) {
       return false;
+    }
+
+    if (args.names.isNotEmpty) {
+      // TODO(dartbug.com/32292): make sure parameters are sorted in kernel AST
+      // and iterate parameters in parallel, without lookup.
+      for (var name in args.names) {
+        if (findNamedParameter(function, name) == null) {
+          return false;
+        }
+      }
     }
 
     return true;

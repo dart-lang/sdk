@@ -6,7 +6,8 @@
 /// analysis.
 library vm.transformations.type_flow.utils;
 
-import 'package:kernel/ast.dart' show Member, Constructor;
+import 'package:kernel/ast.dart'
+    show Constructor, FunctionNode, Member, VariableDeclaration;
 
 const bool kPrintTrace =
     const bool.fromEnvironment('global.type.flow.print.trace');
@@ -46,6 +47,22 @@ const int kHashMask = 0x3fffffff;
 
 bool hasReceiverArg(Member member) =>
     member.isInstanceMember || (member is Constructor);
+
+/// Returns true if elements in [list] are in strictly increasing order.
+/// List with duplicates is considered not sorted.
+bool isSorted(List list) {
+  for (int i = 0; i < list.length - 1; i++) {
+    if (list[i].compareTo(list[i + 1]) >= 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
+VariableDeclaration findNamedParameter(FunctionNode function, String name) {
+  return function.namedParameters
+      .firstWhere((p) => p.name == name, orElse: () => null);
+}
 
 /// Holds various statistic counters for type flow analysis.
 class Statistics {

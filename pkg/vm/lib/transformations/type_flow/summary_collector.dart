@@ -36,12 +36,26 @@ class _SummaryNormalizer extends StatementVisitor {
   _SummaryNormalizer(this._summary);
 
   void normalize() {
-    var statements = _summary.statements;
+    final List<Statement> statements = _summary.statements;
     _summary.reset();
 
-    for (int i = 0; i < _summary.parameterCount; i++) {
+    for (int i = 0; i < _summary.positionalParameterCount; i++) {
       _processed.add(statements[i]);
       _summary.add(statements[i]);
+    }
+
+    // Sort named parameters.
+    // TODO(dartbug.com/32292): make sure parameters are sorted in kernel AST
+    // and remove this sorting.
+    if (_summary.positionalParameterCount < _summary.parameterCount) {
+      List<Statement> namedParams = statements.sublist(
+          _summary.positionalParameterCount, _summary.parameterCount);
+      namedParams.sort((Statement s1, Statement s2) =>
+          (s1 as Parameter).name.compareTo((s2 as Parameter).name));
+      namedParams.forEach((Statement st) {
+        _processed.add(st);
+        _summary.add(st);
+      });
     }
 
     for (Statement st in statements) {
@@ -255,7 +269,10 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       final firstParamIndex = hasReceiver ? 1 : 0;
 
       _summary = new Summary(
-          parameterCount:
+          parameterCount: firstParamIndex +
+              function.positionalParameters.length +
+              function.namedParameters.length,
+          positionalParameterCount:
               firstParamIndex + function.positionalParameters.length,
           requiredParameterCount:
               firstParamIndex + function.requiredParameterCount);
@@ -271,16 +288,20 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       for (VariableDeclaration param in function.positionalParameters) {
         _declareParameter(param.name, param.type, param.initializer);
       }
-
-      int count = 0;
-      for (VariableDeclaration param in function.positionalParameters) {
-        Join v = _declareVariable(param);
-        v.values.add(_summary.statements[firstParamIndex + count]);
-        ++count;
+      for (VariableDeclaration param in function.namedParameters) {
+        _declareParameter(param.name, param.type, param.initializer);
       }
 
-      // TODO(alexmarkov): take named parameters into account
-      function.namedParameters.forEach(_declareVariableWithStaticType);
+      int count = firstParamIndex;
+      for (VariableDeclaration param in function.positionalParameters) {
+        Join v = _declareVariable(param);
+        v.values.add(_summary.statements[count++]);
+      }
+      for (VariableDeclaration param in function.namedParameters) {
+        Join v = _declareVariable(param);
+        v.values.add(_summary.statements[count++]);
+      }
+      assertx(count == _summary.parameterCount);
 
       _returnValue = new Join("%result", function.returnType);
       _summary.add(_returnValue);
@@ -331,7 +352,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     final member = selector.member;
     assertx(member != null);
 
-    List<Type> args = <Type>[];
+    final List<Type> args = <Type>[];
+    final List<String> names = <String>[];
 
     if (hasReceiverArg(member) &&
         (selector.callKind != CallKind.FieldInitializer)) {
@@ -346,11 +368,20 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
           final function = member.function;
           assertx(function != null);
 
-          for (int i = 0; i < function.positionalParameters.length; i++) {
+          final int paramCount = function.positionalParameters.length +
+              function.namedParameters.length;
+          for (int i = 0; i < paramCount; i++) {
             args.add(new Type.nullableAny());
           }
 
-          // TODO(alexmarkov): take named parameters into account
+          if (function.namedParameters.isNotEmpty) {
+            for (var param in function.namedParameters) {
+              names.add(param.name);
+            }
+            // TODO(dartbug.com/32292): make sure parameters are sorted in
+            // kernel AST and remove this sorting.
+            names.sort();
+          }
         }
         break;
 
@@ -365,24 +396,35 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         break;
     }
 
-    return new Args<Type>(args);
+    return new Args<Type>(args, names: names);
   }
 
   TypeExpr _visit(TreeNode node) => node.accept(this);
 
   Args<TypeExpr> _visitArguments(TypeExpr receiver, Arguments arguments) {
-    var args = <TypeExpr>[];
+    final args = <TypeExpr>[];
     if (receiver != null) {
       args.add(receiver);
     }
     for (Expression arg in arguments.positional) {
       args.add(_visit(arg));
     }
-    // TODO(alexmarkov): take named arguments into account
-    for (NamedExpression arg in arguments.named) {
-      _visit(arg.value);
+    if (arguments.named.isNotEmpty) {
+      final names = <String>[];
+      final map = <String, TypeExpr>{};
+      for (NamedExpression arg in arguments.named) {
+        final name = arg.name;
+        names.add(name);
+        map[name] = _visit(arg.value);
+      }
+      names.sort();
+      for (var name in names) {
+        args.add(map[name]);
+      }
+      return new Args<TypeExpr>(args, names: names);
+    } else {
+      return new Args<TypeExpr>(args);
     }
-    return new Args<TypeExpr>(args);
   }
 
   Parameter _declareParameter(
@@ -404,12 +446,15 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     return param;
   }
 
-  Join _declareVariable(VariableDeclaration decl) {
+  Join _declareVariable(VariableDeclaration decl, {bool addInitType: false}) {
     Join v = new Join(decl.name, decl.type);
     _summary.add(v);
     _variables[decl] = v;
     if (decl.initializer != null) {
-      v.values.add(_visit(decl.initializer));
+      TypeExpr initType = _visit(decl.initializer);
+      if (addInitType) {
+        v.values.add(initType);
+      }
     }
     return v;
   }
@@ -594,7 +639,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitLet(Let node) {
-    _declareVariable(node.variable);
+    _declareVariable(node.variable, addInitType: true);
     return _visit(node.body);
   }
 
@@ -1037,7 +1082,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   visitVariableDeclaration(VariableDeclaration node) {
-    final v = _declareVariable(node);
+    final v = _declareVariable(node, addInitType: true);
     if (node.initializer == null) {
       v.values.add(_nullType);
     }

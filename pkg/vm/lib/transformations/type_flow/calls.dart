@@ -155,15 +155,15 @@ class DynamicSelector extends Selector {
 }
 
 /// Arguments passed to a call, including implicit receiver argument.
-// TODO(alexmarkov): use this class instead of List<Type> / List<TypeExpr>.
 // TODO(alexmarkov): take type arguments into account
-// TODO(alexmarkov): keep names sorted
 class Args<T extends TypeExpr> {
   final List<T> values;
   final List<String> names;
   int _hashCode;
 
-  Args(this.values, {this.names = const <String>[]});
+  Args(this.values, {this.names = const <String>[]}) {
+    assertx(isSorted(names));
+  }
 
   Args.withReceiver(Args<T> args, T receiver)
       : values = new List.from(args.values),
@@ -172,9 +172,7 @@ class Args<T extends TypeExpr> {
   }
 
   int get positionalCount => values.length - names.length;
-
-  // TODO(alexmarkov): get rid of this method
-  List<T> get positional => values.sublist(0, positionalCount);
+  int get namedCount => names.length;
 
   T get receiver => values[0];
 

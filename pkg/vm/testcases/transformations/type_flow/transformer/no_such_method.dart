@@ -12,6 +12,10 @@ class T4 {}
 
 class T5 {}
 
+class T6 {}
+
+class T7 {}
+
 abstract class A {
   foo();
   get bar;
@@ -54,6 +58,14 @@ class G {
   }
 }
 
+class H {
+  foo({left, right}) => new T6();
+
+  noSuchMethod(Invocation invocation) {
+    return new T7();
+  }
+}
+
 A bb = new B();
 A dd = new D();
 
@@ -83,4 +95,9 @@ main(List<String> args) {
   dynamic gg = new G();
 
   print(gg.noSuchMethod(null, null));
+
+  dynamic hh = new H();
+
+  print(hh.foo(right: 2, left: 1));
+  print(hh.foo(left: 1, top: 2));
 }
