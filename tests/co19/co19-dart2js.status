@@ -390,6 +390,7 @@ LayoutTests/fast/canvas/canvas-scale-drawImage-shadow_t01: Pass, RuntimeError # 
 LayoutTests/fast/canvas/canvas-strokePath-gradient-shadow_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/draw-custom-focus-ring_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/getPutImageDataPairTest_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/gradient-addColorStop-with-invalid-color_t01: RuntimeError
 LayoutTests/fast/canvas/rgba-parsing_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/setWidthResetAfterForcedRender_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/canvas/webgl/bad-arguments-test_t01: RuntimeError # Please triage this failure
