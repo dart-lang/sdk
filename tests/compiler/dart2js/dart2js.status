@@ -91,7 +91,6 @@ dart2js_batch2_test: Pass, RuntimeError # Issue 29021
 codegen/value_range_test: Pass, Slow
 codegen/value_range_kernel_test: Pass, Slow
 end_to_end/exit_code_test: Pass, Slow
-generic_methods/world_test: RuntimeError
 jsinterop/declaration_test: Slow, Pass
 jsinterop/interop_anonymous_unreachable_test: Pass, Slow
 jsinterop/world_test: Pass, Slow
