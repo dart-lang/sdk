@@ -501,7 +501,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
               new NullLiteral()..fileOffset = fileOffset, tearOff, actualType);
           var let = new Let(t, conditional);
           parent?.replaceChild(expression, let);
-          expression = conditional;
+          expression = let;
         }
       }
     }

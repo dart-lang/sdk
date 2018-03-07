@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class I extends core::Object {
+  synthetic constructor •() → void
+    ;
+  abstract method call() → void;
+}
+class C extends core::Object implements self::I {
+  synthetic constructor •() → void
+    ;
+  method call([core::int x]) → void
+    ;
+}
+static method main() → dynamic
+  ;

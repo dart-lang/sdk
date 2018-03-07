@@ -1120,6 +1120,7 @@ accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
+call_method_implicit_tear_off_assignable_test: CompileTimeError # Issue 32426
 call_method_override_test/01: MissingCompileTimeError
 call_method_override_test/02: MissingCompileTimeError
 cascaded_forwarding_stubs_test: CompileTimeError
@@ -1278,6 +1279,7 @@ built_in_identifier_type_annotation_test/70: MissingCompileTimeError # Issue 288
 built_in_identifier_type_annotation_test/72: MissingCompileTimeError # Issue 28813
 built_in_identifier_type_annotation_test/78: MissingCompileTimeError # Issue 28813
 built_in_identifier_type_annotation_test/81: MissingCompileTimeError # Issue 28813
+call_method_implicit_tear_off_assignable_test: StaticWarning
 call_method_implicit_tear_off_implements_function_test/03: StaticWarning
 call_method_implicit_tear_off_test/03: StaticWarning
 call_method_must_not_be_field_test/01: MissingCompileTimeError # Issue 32264

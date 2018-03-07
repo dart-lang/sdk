@@ -188,6 +188,7 @@ call_method_as_cast_test/02: RuntimeError
 call_method_as_cast_test/03: RuntimeError
 call_method_as_cast_test/04: RuntimeError
 call_method_as_cast_test/05: RuntimeError
+call_method_implicit_tear_off_assignable_test: RuntimeError
 call_method_implicit_tear_off_implements_function_test/01: RuntimeError
 call_method_implicit_tear_off_implements_function_test/02: RuntimeError
 call_method_implicit_tear_off_implements_function_test/03: RuntimeError
