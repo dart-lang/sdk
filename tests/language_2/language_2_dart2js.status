@@ -1474,7 +1474,6 @@ generic_function_type_as_type_argument_test/02: MissingCompileTimeError
 generic_function_type_as_type_argument_test/03: RuntimeError
 generic_function_type_within_type_argument_test: RuntimeError
 generic_function_typedef_test/01: RuntimeError
-generic_functions_test: Crash # Stack Overflow
 generic_instanceof2_test: RuntimeError
 generic_instanceof_test: RuntimeError
 generic_is_check_test: RuntimeError
@@ -1491,7 +1490,6 @@ generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_methods_recursive_bound_test/03: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/metadata_collector.dart': Failed assertion: line 100 pos 12: 'isBound': is not true.
 generic_methods_simple_as_expression_test/02: MissingRuntimeError
 generic_methods_tearoff_specialization_test: RuntimeError
-generic_methods_test: Crash # Stack Overflow
 generic_methods_type_expression_test: RuntimeError
 generic_methods_unused_parameter_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
@@ -2334,7 +2332,6 @@ generic_function_type_as_type_argument_test/02: MissingCompileTimeError
 generic_function_type_as_type_argument_test/03: RuntimeError
 generic_function_type_within_type_argument_test: RuntimeError
 generic_function_typedef_test/01: RuntimeError
-generic_functions_test: Crash # Stack Overflow
 generic_instanceof2_test: RuntimeError
 generic_instanceof_test: RuntimeError
 generic_is_check_test: RuntimeError
@@ -2351,7 +2348,6 @@ generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_methods_recursive_bound_test/03: Crash # NoSuchMethodError: The method 'markSeen' was called on null.
 generic_methods_simple_as_expression_test/02: MissingRuntimeError
 generic_methods_tearoff_specialization_test: RuntimeError
-generic_methods_test: Crash # Stack Overflow
 generic_methods_type_expression_test: RuntimeError
 generic_methods_unused_parameter_test: RuntimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError

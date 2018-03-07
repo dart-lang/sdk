@@ -311,7 +311,6 @@ uri_parameters_all_test: RuntimeError
 uri_test: RuntimeError
 
 [ $compiler == dart2js && $fasta && $strong ]
-map_unmodifiable_cast_test: Crash
 null_nosuchmethod_test: RuntimeError # Fails if type checks are skipped.
 shuffle_test: RuntimeError
 

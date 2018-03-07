@@ -847,7 +847,7 @@ class TypeVariableTests {
   ///     class B<T> {}
   ///     main() => new A<String>().m() is B<int>;
   ///
-  /// Here `A` need type arguments at runtime because the key entity `B` needs
+  /// Here `A` needs type arguments at runtime because the key entity `B` needs
   /// it in order to generate the check against `B<int>`.
   ///
   /// This can also involve generic methods:
@@ -1297,6 +1297,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
     Set<FunctionEntity> methodsNeedingTypeArguments = new Set<FunctionEntity>();
     Set<Local> localFunctionsNeedingSignature = new Set<Local>();
     Set<Local> localFunctionsNeedingTypeArguments = new Set<Local>();
+    Set<Entity> processedEntities = new Set<Entity>();
 
     // Find the classes that need type arguments at runtime. Such
     // classes are:
@@ -1304,6 +1305,12 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
     // (2) dependencies of classes in (1),
     // (3) subclasses of (2) and (3).
     void potentiallyNeedTypeArguments(Entity entity) {
+      // Functions with type arguments can have dependencies of each other (if
+      // the functions call each other) so we keep a set to prevent infinitely
+      // recursing over the same entities.
+      if (processedEntities.contains(entity)) return;
+
+      processedEntities.add(entity);
       if (entity is ClassEntity) {
         ClassEntity cls = entity;
         assert(checkClass(cls));
