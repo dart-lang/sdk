@@ -2706,7 +2706,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     _pushDynamicInvocation(
         node,
-        _typeInferenceMap.typeOfGet(node),
+        _typeInferenceMap.receiverTypeOfGet(node),
         new Selector.getter(_elementMap.getName(node.name)),
         <HInstruction>[receiver],
         const <DartType>[],
@@ -2736,7 +2736,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     _pushDynamicInvocation(
         node,
-        _typeInferenceMap.typeOfSet(node, closedWorld),
+        _typeInferenceMap.receiverTypeOfSet(node, closedWorld),
         new Selector.setter(_elementMap.getName(node.name)),
         <HInstruction>[receiver, value],
         const <DartType>[],
@@ -2755,7 +2755,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // TODO(sra): Implement direct invocations properly.
     _pushDynamicInvocation(
         node,
-        _typeInferenceMap.typeOfDirectGet(node),
+        _typeInferenceMap.receiverTypeOfDirectGet(node),
         new Selector.getter(_elementMap.getMember(node.target).memberName),
         <HInstruction>[receiver],
         const <DartType>[],
@@ -4033,7 +4033,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _fillDynamicTypeArguments(selector, node.arguments, typeArguments);
     _pushDynamicInvocation(
         node,
-        _typeInferenceMap.typeOfInvocation(node, closedWorld),
+        _typeInferenceMap.receiverTypeOfInvocation(node, closedWorld),
         selector,
         <HInstruction>[receiver]..addAll(_visitArgumentsForDynamicTarget(
             selector, node.arguments, typeArguments)),

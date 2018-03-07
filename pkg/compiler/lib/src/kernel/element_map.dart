@@ -358,17 +358,17 @@ abstract class KernelToTypeInferenceMap {
   TypeMask getReturnTypeOf(FunctionEntity function);
 
   /// Returns the inferred receiver type of the dynamic [invocation].
-  TypeMask typeOfInvocation(
+  TypeMask receiverTypeOfInvocation(
       ir.MethodInvocation invocation, ClosedWorld closedWorld);
 
   /// Returns the inferred receiver type of the dynamic [read].
-  TypeMask typeOfGet(ir.PropertyGet read);
+  TypeMask receiverTypeOfGet(ir.PropertyGet read);
 
   /// Returns the inferred receiver type of the direct [read].
-  TypeMask typeOfDirectGet(ir.DirectPropertyGet read);
+  TypeMask receiverTypeOfDirectGet(ir.DirectPropertyGet read);
 
   /// Returns the inferred receiver type of the dynamic [write].
-  TypeMask typeOfSet(ir.PropertySet write, ClosedWorld closedWorld);
+  TypeMask receiverTypeOfSet(ir.PropertySet write, ClosedWorld closedWorld);
 
   /// Returns the inferred type of [listLiteral].
   TypeMask typeOfListLiteral(covariant MemberEntity owner,
