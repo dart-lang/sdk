@@ -3717,6 +3717,20 @@ class Wrong<T> {
 //        [expectedError(ParserErrorCode.GETTER_WITH_PARAMETERS, 9, 2)]);
   }
 
+  void test_illegalAssignmentToNonAssignable_assign_int() {
+    parseStatement("0 = 1;");
+    listener.assertErrors([
+      expectedError(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 0, 1)
+    ]);
+  }
+
+  void test_illegalAssignmentToNonAssignable_assign_this() {
+    parseStatement("this = 1;");
+    listener.assertErrors([
+      expectedError(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 0, 4)
+    ]);
+  }
+
   void test_illegalAssignmentToNonAssignable_postfix_minusMinus_literal() {
     parseExpression("0--", errors: [
       expectedError(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 1, 2)
@@ -3742,8 +3756,6 @@ class Wrong<T> {
   }
 
   void test_illegalAssignmentToNonAssignable_superAssigned() {
-    // TODO(brianwilkerson) When this test starts to pass, remove the test
-    // test_illegalAssignmentToNonAssignable_superAssigned.
     parseStatement("super = x;");
     listener.assertErrors(usingFastaParser
         ? [
@@ -6583,6 +6595,17 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     var invocation = expression as MethodInvocation;
     expect(invocation.target, isNotNull);
     expect(invocation.methodName, isNotNull);
+    expect(invocation.typeArguments, isNotNull);
+    expect(invocation.argumentList, isNotNull);
+  }
+
+  void test_parseExpression_superMethodInvocation_typeArguments_chained() {
+    Expression expression = parseExpression('super.b.c<D>()');
+    MethodInvocation invocation = expression as MethodInvocation;
+    Expression target = invocation.target;
+    expect(target, new isInstanceOf<PropertyAccess>());
+    expect(invocation.methodName, isNotNull);
+    expect(invocation.methodName.name, 'c');
     expect(invocation.typeArguments, isNotNull);
     expect(invocation.argumentList, isNotNull);
   }
