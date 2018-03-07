@@ -90,6 +90,9 @@ io/socket_info_ipv6_test: Pass, Crash
 io/socket_port_test: Pass, Crash
 
 # ===== dartkp + dart_precompiled status lines =====
+[ $compiler == dartkp && $runtime == dart_precompiled && $system != windows && $strong ]
+io/namespace_test: RuntimeError
+
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 dwarf_stack_trace_test: RuntimeError
 io/compile_all_test: RuntimeError # Issue 32338
@@ -106,7 +109,6 @@ io/http_reuse_server_port_test: Skip # Flaky.
 io/http_server_close_response_after_error_test: Skip # Flaky.
 io/http_shutdown_test: Skip # Flaky.
 io/https_client_certificate_test: Crash
-io/namespace_test: RuntimeError
 io/platform_test: Crash
 io/raw_datagram_socket_test: Skip # Flaky.
 io/raw_secure_server_closing_test: Skip # Flaky
