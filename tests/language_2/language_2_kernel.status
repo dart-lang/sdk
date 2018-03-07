@@ -1189,8 +1189,6 @@ type_variable_promotion_test: RuntimeError # Compares runtime type to the string
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
-callable_test/00: Crash
-callable_test/01: Crash
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
@@ -1312,7 +1310,7 @@ override_method_with_field_test/01: MissingCompileTimeError
 parser_quirks_test: CompileTimeError
 regress_23089_test: Crash
 regress_23408_test: CompileTimeError
-regress_29025_test: Crash
+regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError
 regress_30339_test: CompileTimeError
 setter_no_getter_test/01: CompileTimeError
