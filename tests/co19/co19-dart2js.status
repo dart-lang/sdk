@@ -1374,7 +1374,6 @@ WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-001_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == chrome && $csp && $minified ]
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/no_such_method_t01: RuntimeError # Issue 32434
 LayoutTests/fast/dom/HTMLScriptElement/isURLAttribute_t01: SkipByDesign # Uses script injection
 LayoutTests/fast/dom/HTMLScriptElement/remove-source_t01: Pass # Please triage this failure
 LayoutTests/fast/dom/HTMLScriptElement/script-for-attribute-unexpected-execution_t01: RuntimeError # Please triage this failure
@@ -1484,7 +1483,6 @@ LibTest/typed_data/Int8List/sublist_A02_t01: Pass, Slow # Please triage this fai
 LibTest/typed_data/Uint8ClampedList/map_A02_t01: Pass, Slow # Please triage this failure.
 
 [ $compiler == dart2js && $runtime == d8 ]
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/no_such_method_t01: RuntimeError # Issue 32434
 LibTest/isolate/Isolate/spawn_A03_t01: Pass # co19 issue 77
 LibTest/isolate/Isolate/spawn_A04_t02: RuntimeError # Please triage this failure.
 LibTest/typed_data/Float32x4List/Float32x4List.view_A06_t01: Fail # co19-roll r587: Please triage this failure
@@ -7035,6 +7033,7 @@ LibTest/core/int/toDouble_A01_t01: RuntimeError, OK # Requires big int.
 LibTest/core/int/toRadixString_A01_t01: RuntimeError, OK # Bad test: uses Expect.fail, Expect.throws, assumes case of result, and uses unsupported radixes.
 
 [ $compiler == dart2js && $minified ]
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/no_such_method_t01: RuntimeError # Issue 32434
 LibTest/typed_data/Float32List/runtimeType_A01_t01: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32x4List/runtimeType_A01_t01: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float64List/runtimeType_A01_t01: Fail # co19-roll r559: Please triage this failure
