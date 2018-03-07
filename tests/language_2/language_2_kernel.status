@@ -1396,6 +1396,9 @@ assign_to_type_test/04: MissingCompileTimeError
 assign_top_method_test: MissingCompileTimeError
 async_await_syntax_test/a10a: MissingCompileTimeError
 async_await_syntax_test/b10a: MissingCompileTimeError
+async_await_syntax_test/c10a: MissingCompileTimeError
+async_await_syntax_test/d08b: MissingCompileTimeError
+async_await_syntax_test/d10a: MissingCompileTimeError
 async_congruence_local_test/01: MissingCompileTimeError
 async_congruence_local_test/02: MissingCompileTimeError
 async_congruence_method_test/01: MissingCompileTimeError
@@ -1604,6 +1607,7 @@ fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
 field_initialization_order_test/01: MissingCompileTimeError
 field_method4_test: MissingCompileTimeError
+field_override2_test: MissingCompileTimeError
 field_override3_test/00: MissingCompileTimeError
 field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
