@@ -96,8 +96,6 @@ abstract class RuntimeTypesNeed {
   /// and when it is needed.
   // TODO(redemption): Remove this when the old frontend is deleted.
   bool localFunctionNeedsSignature(Local localFunction);
-
-  bool classUsesTypeVariableLiteral(ClassEntity cls);
 }
 
 class TrivialRuntimeTypesNeed implements RuntimeTypesNeed {
@@ -105,9 +103,6 @@ class TrivialRuntimeTypesNeed implements RuntimeTypesNeed {
 
   @override
   bool classNeedsTypeArguments(ClassEntity cls) => true;
-
-  @override
-  bool classUsesTypeVariableLiteral(ClassEntity cls) => true;
 
   @override
   bool localFunctionNeedsSignature(Local localFunction) => true;
@@ -695,9 +690,6 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
   final Set<Local> localFunctionsNeedingSignature;
   final Set<Local> localFunctionsNeedingTypeArguments;
 
-  /// The set of classes that use one of their type variables as literals.
-  final Set<ClassEntity> classesUsingTypeVariableLiterals;
-
   RuntimeTypesNeedImpl(
       this._elementEnvironment,
       this._backendUsage,
@@ -705,8 +697,7 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
       this.methodsNeedingSignature,
       this.methodsNeedingTypeArguments,
       this.localFunctionsNeedingSignature,
-      this.localFunctionsNeedingTypeArguments,
-      this.classesUsingTypeVariableLiterals);
+      this.localFunctionsNeedingTypeArguments);
 
   bool checkClass(covariant ClassEntity cls) => true;
 
@@ -739,11 +730,6 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
     return _backendUsage.isRuntimeTypeUsed ||
         localFunctionsNeedingSignature.contains(function);
   }
-
-  @override
-  bool classUsesTypeVariableLiteral(ClassEntity cls) {
-    return classesUsingTypeVariableLiterals.contains(cls);
-  }
 }
 
 class _ResolutionRuntimeTypesNeed extends RuntimeTypesNeedImpl {
@@ -754,8 +740,7 @@ class _ResolutionRuntimeTypesNeed extends RuntimeTypesNeedImpl {
       Set<FunctionEntity> methodsNeedingSignature,
       Set<FunctionEntity> methodsNeedingTypeArguments,
       Set<Local> localFunctionsNeedingSignature,
-      Set<Local> localFunctionsNeedingTypeArguments,
-      Set<ClassEntity> classesUsingTypeVariableExpression)
+      Set<Local> localFunctionsNeedingTypeArguments)
       : super(
             elementEnvironment,
             backendUsage,
@@ -763,8 +748,7 @@ class _ResolutionRuntimeTypesNeed extends RuntimeTypesNeedImpl {
             methodsNeedingSignature,
             methodsNeedingTypeArguments,
             localFunctionsNeedingSignature,
-            localFunctionsNeedingTypeArguments,
-            classesUsingTypeVariableExpression);
+            localFunctionsNeedingTypeArguments);
 
   bool checkClass(ClassElement cls) => cls.isDeclaration;
 }
@@ -1297,8 +1281,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
         methodsNeedingSignature,
         methodsNeedingTypeArguments,
         localFunctionsNeedingSignature,
-        localFunctionsNeedingTypeArguments,
-        classesUsingTypeVariableLiterals);
+        localFunctionsNeedingTypeArguments);
   }
 
   RuntimeTypesNeed _createRuntimeTypesNeed(
@@ -1308,8 +1291,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
       Set<FunctionEntity> methodsNeedingSignature,
       Set<FunctionEntity> methodsNeedingTypeArguments,
       Set<Local> localFunctionsNeedingSignature,
-      Set<Local> localFunctionsNeedingTypeArguments,
-      Set<ClassEntity> classesUsingTypeVariableExpression) {
+      Set<Local> localFunctionsNeedingTypeArguments) {
     return new RuntimeTypesNeedImpl(
         _elementEnvironment,
         backendUsage,
@@ -1317,8 +1299,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
         methodsNeedingSignature,
         methodsNeedingTypeArguments,
         localFunctionsNeedingSignature,
-        localFunctionsNeedingTypeArguments,
-        classesUsingTypeVariableExpression);
+        localFunctionsNeedingTypeArguments);
   }
 }
 
@@ -1337,8 +1318,7 @@ class ResolutionRuntimeTypesNeedBuilderImpl
       Set<FunctionEntity> methodsNeedingSignature,
       Set<FunctionEntity> methodsNeedingTypeArguments,
       Set<Local> localFunctionsNeedingSignature,
-      Set<Local> localFunctionsNeedingTypeArguments,
-      Set<ClassEntity> classesUsingTypeVariableExpression) {
+      Set<Local> localFunctionsNeedingTypeArguments) {
     return new _ResolutionRuntimeTypesNeed(
         _elementEnvironment,
         backendUsage,
@@ -1346,8 +1326,7 @@ class ResolutionRuntimeTypesNeedBuilderImpl
         methodsNeedingSignature,
         methodsNeedingTypeArguments,
         localFunctionsNeedingSignature,
-        localFunctionsNeedingTypeArguments,
-        classesUsingTypeVariableExpression);
+        localFunctionsNeedingTypeArguments);
   }
 }
 

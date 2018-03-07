@@ -502,8 +502,6 @@ class JsClosedWorldBuilder {
         map.toBackendFunctionSet(rtiNeed.methodsNeedingTypeArguments);
     Set<FunctionEntity> methodsNeedingSignature =
         map.toBackendFunctionSet(rtiNeed.methodsNeedingSignature);
-    Set<ClassEntity> classesUsingTypeVariableExpression =
-        map.toBackendClassSet(rtiNeed.classesUsingTypeVariableLiterals);
     return new RuntimeTypesNeedImpl(
         _elementEnvironment,
         backendUsage,
@@ -511,8 +509,7 @@ class JsClosedWorldBuilder {
         methodsNeedingSignature,
         methodsNeedingTypeArguments,
         null,
-        null,
-        classesUsingTypeVariableExpression);
+        null);
   }
 
   /// Construct a closure class and set up the necessary class inference
