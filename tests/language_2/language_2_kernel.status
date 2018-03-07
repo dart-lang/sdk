@@ -114,7 +114,6 @@ f_bounded_quantification_test/02: MissingCompileTimeError
 factory2_test/03: MissingCompileTimeError
 factory4_test/00: MissingCompileTimeError
 field3_test/01: MissingCompileTimeError
-field_override2_test: MissingCompileTimeError
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
 generic_methods_bounds_test/01: MissingCompileTimeError

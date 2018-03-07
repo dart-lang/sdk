@@ -429,7 +429,6 @@ factory4_test/00: MissingCompileTimeError
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
 field_initialization_order_test/01: MissingCompileTimeError
-field_override2_test: MissingCompileTimeError
 field_override3_test/00: MissingCompileTimeError
 field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError

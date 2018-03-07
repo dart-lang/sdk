@@ -784,6 +784,9 @@ class ShadowField extends Field implements ShadowMember {
     type = inferredType;
   }
 
+  static bool hasTypeInferredFromInitializer(ShadowField field) =>
+      field._inferenceNode is FieldInitializerInferenceNode;
+
   static bool isImplicitlyTyped(ShadowField field) => field._isImplicitlyTyped;
 
   static void setInferenceNode(ShadowField field, InferenceNode node) {

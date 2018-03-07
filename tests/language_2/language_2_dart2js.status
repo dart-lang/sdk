@@ -1413,7 +1413,6 @@ field3_test/01: MissingCompileTimeError
 field_increment_bailout_test: RuntimeError
 field_initialization_order_test/01: MissingCompileTimeError
 field_initialization_order_test/none: RuntimeError
-field_override2_test: MissingCompileTimeError
 field_override3_test/00: MissingCompileTimeError
 field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
@@ -2291,7 +2290,6 @@ field3_test/01: MissingCompileTimeError
 field_increment_bailout_test: RuntimeError
 field_initialization_order_test/01: MissingCompileTimeError
 field_initialization_order_test/none: RuntimeError
-field_override2_test: MissingCompileTimeError
 field_override3_test/00: MissingCompileTimeError
 field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError

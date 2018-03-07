@@ -463,7 +463,9 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         }
         field.initializer = initializer;
         _typeInferrer.inferFieldInitializer(
-            this, field.hasImplicitType ? null : field.builtType, initializer);
+            this,
+            field.hasTypeInferredFromInitializer ? null : field.builtType,
+            initializer);
       }
     }
     pop(); // Type.
