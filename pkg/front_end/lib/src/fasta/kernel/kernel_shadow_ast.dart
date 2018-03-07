@@ -390,6 +390,7 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
 
   _ComplexAssignmentInferenceResult _inferRhs(
       ShadowTypeInferrer inferrer, DartType readType, DartType writeContext) {
+    assert(writeContext != null);
     var writeOffset = write == null ? -1 : write.fileOffset;
     Procedure combinerMember;
     DartType combinedType;
@@ -448,7 +449,8 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
       _storeLetType(inferrer, replacedRhs ?? rhs, rhsType);
       if (nullAwareCombiner != null) {
         MethodInvocation equalsInvocation = nullAwareCombiner.condition;
-        inferrer.findMethodInvocationMember(writeContext, equalsInvocation,
+        inferrer.findMethodInvocationMember(
+            greatestClosure(inferrer.coreTypes, writeContext), equalsInvocation,
             silent: true);
         // Note: the case of readType=null only happens for erroneous code.
         combinedType = readType == null
@@ -1079,7 +1081,7 @@ class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
         inferrer.getCalleeFunctionType(writeMember, receiverType, false);
     DartType expectedIndexTypeForWrite;
     DartType indexContext = const UnknownType();
-    DartType writeContext;
+    DartType writeContext = const UnknownType();
     if (calleeType.positionalParameters.length >= 2) {
       // TODO(paulberry): we ought to get a context for the index expression
       // from the index formal parameter, but analyzer doesn't so for now we
@@ -1089,7 +1091,7 @@ class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
     }
     var indexType = inferrer.inferExpression(index, indexContext, true);
     _storeLetType(inferrer, index, indexType);
-    if (writeContext != null) {
+    if (writeContext is! UnknownType) {
       inferrer.ensureAssignable(
           expectedIndexTypeForWrite,
           indexType,
@@ -1660,10 +1662,9 @@ class ShadowReturnStatement extends ReturnStatement implements ShadowStatement {
     var closureContext = inferrer.closureContext;
     var typeContext = !closureContext.isGenerator
         ? closureContext.returnOrYieldContext
-        : null;
+        : const UnknownType();
     var inferredType = expression != null
-        ? inferrer.inferExpression(
-            expression, typeContext ?? const UnknownType(), true)
+        ? inferrer.inferExpression(expression, typeContext, true)
         : const VoidType();
     // Analyzer treats bare `return` statements as having no effect on the
     // inferred type of the closure.  TODO(paulberry): is this what we want
@@ -1695,14 +1696,14 @@ class ShadowStaticAssignment extends ShadowComplexAssignment {
 
   @override
   DartType _inferExpression(ShadowTypeInferrer inferrer, DartType typeContext) {
-    DartType readType;
+    DartType readType = const DynamicType(); // Only used in error recovery
     var read = this.read;
     if (read is StaticGet) {
       readType = read.target.getterType;
       _storeLetType(inferrer, read, readType);
     }
     Member writeMember;
-    DartType writeContext;
+    DartType writeContext = const UnknownType();
     var write = this.write;
     if (write is StaticSet) {
       writeContext = write.target.setterType;
@@ -2193,7 +2194,7 @@ class ShadowVariableAssignment extends ShadowComplexAssignment {
     if (read is VariableGet) {
       readType = read.promotedType ?? read.variable.type;
     }
-    DartType writeContext;
+    DartType writeContext = const UnknownType();
     var write = this.write;
     if (write is VariableSet) {
       writeContext = write.variable.type;
@@ -2347,17 +2348,21 @@ class ShadowYieldStatement extends YieldStatement implements ShadowStatement {
   @override
   void _inferStatement(ShadowTypeInferrer inferrer) {
     var closureContext = inferrer.closureContext;
-    var typeContext =
-        closureContext.isGenerator ? closureContext.returnOrYieldContext : null;
-    if (isYieldStar && typeContext != null) {
-      typeContext = inferrer.wrapType(
-          typeContext,
-          closureContext.isAsync
-              ? inferrer.coreTypes.streamClass
-              : inferrer.coreTypes.iterableClass);
+    DartType inferredType;
+    if (closureContext.isGenerator) {
+      var typeContext = closureContext.returnOrYieldContext;
+      if (isYieldStar && typeContext != null) {
+        typeContext = inferrer.wrapType(
+            typeContext,
+            closureContext.isAsync
+                ? inferrer.coreTypes.streamClass
+                : inferrer.coreTypes.iterableClass);
+      }
+      inferredType = inferrer.inferExpression(expression, typeContext, true);
+    } else {
+      inferredType =
+          inferrer.inferExpression(expression, const UnknownType(), true);
     }
-    var inferredType = inferrer.inferExpression(
-        expression, typeContext ?? const UnknownType(), true);
     closureContext.handleYield(
         inferrer, isYieldStar, inferredType, expression, fileOffset);
   }

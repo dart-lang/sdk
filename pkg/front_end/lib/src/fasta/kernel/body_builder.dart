@@ -604,7 +604,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       return member.procedure.function.returnType;
     } else {
       assert(member is KernelConstructorBuilder);
-      return null;
+      return const DynamicType();
     }
   }
 

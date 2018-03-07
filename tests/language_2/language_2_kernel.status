@@ -28,9 +28,6 @@ abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Is
 abstract_syntax_test/00: MissingCompileTimeError # Issue 32013.
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue 32014.
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError # Issue 32014.
-async_await_syntax_test/c10a: MissingCompileTimeError
-async_await_syntax_test/d08b: MissingCompileTimeError
-async_await_syntax_test/d10a: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
