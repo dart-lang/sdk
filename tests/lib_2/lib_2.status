@@ -75,7 +75,6 @@ html/worker_test/functional: Pass, Fail # Issues 20659.
 html/xhr_test/json: Fail # IE10 returns string, not JSON object
 
 [ $runtime == safari ]
-async/periodic_timer3_test: Pass, RuntimeError # Flaky. Issue 32094
 convert/json_test: Fail # https://bugs.webkit.org/show_bug.cgi?id=134920
 html/audiobuffersourcenode_test/functional: RuntimeError
 html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element
@@ -105,6 +104,11 @@ html/webgl_1_test: Pass, Fail # Issue 8219
 html/worker_api_test: Skip # Issue 13221
 typed_data/float32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
 typed_data/int32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
+
+[ $browser ]
+async/periodic_timer2_test: Pass, RuntimeError # Flaky. Issue 32094
+async/periodic_timer3_test: Pass, RuntimeError # Flaky. Issue 32094
+async/periodic_timer4_test: Pass, RuntimeError # Flaky. Issue 32094
 
 [ $csp ]
 isolate/browser/package_resolve_browser_hook_test: SkipByDesign # Test written in a way that violates CSP.
@@ -189,7 +193,6 @@ isolate/spawn_uri_fail_test: SkipByDesign # Uses dart:io.
 html/webgl_1_test: Pass, Fail # Issue 8219
 
 [ $runtime == chrome || $runtime == ff ]
-async/periodic_timer4_test: Pass, RuntimeError # Flaky. Issue 32094
 async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
 async/stream_timeout_test: SkipSlow # Times out. Issue 22050
 
