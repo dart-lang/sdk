@@ -4058,31 +4058,61 @@ class Wrong<T> {
   }
 
   void test_localFunctionDeclarationModifier_abstract() {
-    parseStatement("abstract f() {}");
-    listener.assertErrors([
-      expectedError(ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, 0, 8)
-    ]);
+    parseCompilationUnit("class C { m() { abstract f() {} } }",
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 16, 8),
+                expectedError(
+                    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 25, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 26, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 32, 1),
+              ]
+            : [
+                expectedError(
+                    ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, 16, 8)
+              ]);
   }
 
   void test_localFunctionDeclarationModifier_external() {
-    parseStatement("external f() {}");
-    listener.assertErrors([
-      expectedError(ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, 0, 8)
-    ]);
+    parseCompilationUnit("class C { m() { external f() {} } }",
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 16, 8),
+                expectedError(
+                    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 25, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 26, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 32, 1),
+              ]
+            : [
+                expectedError(
+                    ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, 16, 8)
+              ]);
   }
 
   void test_localFunctionDeclarationModifier_factory() {
-    parseStatement("factory f() {}");
-    listener.assertErrors([
-      expectedError(ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, 0, 7)
-    ]);
+    parseCompilationUnit("class C { m() { factory f() {} } }",
+        errors: usingFastaParser
+            ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 24, 1)]
+            : [
+                expectedError(
+                    ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, 16, 7)
+              ]);
   }
 
   void test_localFunctionDeclarationModifier_static() {
-    parseStatement("static f() {}");
-    listener.assertErrors([
-      expectedError(ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, 0, 6)
-    ]);
+    parseCompilationUnit("class C { m() { static f() {} } }",
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 16, 6),
+                expectedError(
+                    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 23, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 24, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 30, 1),
+              ]
+            : [
+                expectedError(
+                    ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, 16, 6)
+              ]);
   }
 
   void test_method_invalidTypeParameterComments() {
