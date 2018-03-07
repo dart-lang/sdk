@@ -884,6 +884,7 @@ is_not_class2_test/*: MissingCompileTimeError
 library_ambiguous_test/04: MissingCompileTimeError
 list_literal1_test/01: MissingCompileTimeError
 malformed2_test/00: MissingCompileTimeError
+map_literal1_test/01: MissingCompileTimeError
 method_override2_test/00: MissingCompileTimeError
 method_override2_test/01: MissingCompileTimeError
 method_override2_test/02: MissingCompileTimeError
@@ -1566,7 +1567,6 @@ malformed_test/22: MissingCompileTimeError
 malformed_test/23: MissingCompileTimeError
 malformed_test/24: MissingCompileTimeError
 malformed_type_test: MissingCompileTimeError
-map_literal1_test/01: MissingCompileTimeError
 mixin_type_parameter_inference_error_test/01: MissingCompileTimeError
 mixin_type_parameter_inference_error_test/02: MissingCompileTimeError
 mixin_type_parameter_inference_error_test/03: MissingCompileTimeError
