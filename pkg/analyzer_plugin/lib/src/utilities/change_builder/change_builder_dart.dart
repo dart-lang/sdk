@@ -1258,15 +1258,37 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
             ImportDirective next,
             String uri,
             bool trailingNewLine: false}) {
+          LineInfo lineInfo = unit.lineInfo;
           if (prev != null) {
-            addInsertion(prev.end, (EditBuilder builder) {
+            int offset = prev.end;
+            int line = lineInfo.getLocation(offset).lineNumber;
+            Token comment = prev.endToken.next.precedingComments;
+            while (comment != null) {
+              if (lineInfo.getLocation(comment.offset).lineNumber == line) {
+                offset = comment.end;
+              }
+              comment = comment.next;
+            }
+            addInsertion(offset, (EditBuilder builder) {
               builder.writeln();
               builder.write("import '");
               builder.write(uri);
               builder.write("';");
             });
           } else {
-            addInsertion(next.offset, (EditBuilder builder) {
+            int offset = next.offset;
+            Token comment = next.beginToken.precedingComments;
+            while (comment != null) {
+              int commentOffset = comment.offset;
+              if (commentOffset ==
+                  lineInfo.getOffsetOfLine(
+                      lineInfo.getLocation(commentOffset).lineNumber - 1)) {
+                offset = commentOffset;
+                break;
+              }
+              comment = comment.next;
+            }
+            addInsertion(offset, (EditBuilder builder) {
               builder.write("import '");
               builder.write(uri);
               builder.writeln("';");

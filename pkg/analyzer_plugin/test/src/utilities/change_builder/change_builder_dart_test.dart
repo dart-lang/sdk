@@ -177,6 +177,34 @@ import 'foo.dart';
 ''');
   }
 
+  test_importLibrary_package_afterPackage_leadingComment() async {
+    await _assertImportLibraries('''
+// comment
+import 'package:aaa/a1.dart';
+
+import 'foo.dart';
+''', ['package:aaa/a2.dart'], '''
+// comment
+import 'package:aaa/a1.dart';
+import 'package:aaa/a2.dart';
+
+import 'foo.dart';
+''');
+  }
+
+  test_importLibrary_package_afterPackage_trailingComment() async {
+    await _assertImportLibraries('''
+import 'package:aaa/a1.dart'; // comment
+
+import 'foo.dart';
+''', ['package:aaa/a2.dart'], '''
+import 'package:aaa/a1.dart'; // comment
+import 'package:aaa/a2.dart';
+
+import 'foo.dart';
+''');
+  }
+
   test_importLibrary_package_beforePackage() async {
     await _assertImportLibraries('''
 import 'package:aaa/a1.dart';
@@ -200,6 +228,34 @@ import 'foo.dart';
 ''', ['package:aaa/a1.dart'], '''
 import 'package:aaa/a1.dart';
 import 'package:aaa/a2.dart';
+
+import 'foo.dart';
+''');
+  }
+
+  test_importLibrary_package_beforePackage_leadingComments() async {
+    await _assertImportLibraries('''
+// comment a2
+import 'package:aaa/a2.dart';
+
+import 'foo.dart';
+''', ['package:aaa/a1.dart'], '''
+import 'package:aaa/a1.dart';
+// comment a2
+import 'package:aaa/a2.dart';
+
+import 'foo.dart';
+''');
+  }
+
+  test_importLibrary_package_beforePackage_trailingComments() async {
+    await _assertImportLibraries('''
+import 'package:aaa/a2.dart'; // comment a2
+
+import 'foo.dart';
+''', ['package:aaa/a1.dart'], '''
+import 'package:aaa/a1.dart';
+import 'package:aaa/a2.dart'; // comment a2
 
 import 'foo.dart';
 ''');
