@@ -98,6 +98,8 @@ abstract class ResolutionEnqueuerWorldBuilder extends ResolutionWorldBuilder {
   /// Registers that [type] is checked in this world builder. The unaliased type
   /// is returned.
   void registerIsCheck(DartType type);
+
+  void registerTypeVariableTypeLiteral(TypeVariableType typeVariable);
 }
 
 /// The type and kind of an instantiation registered through
@@ -382,6 +384,8 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
 
   final Set<ConstantValue> _constantValues = new Set<ConstantValue>();
 
+  final Set<Local> genericLocalFunctions = new Set<Local>();
+
   Set<MemberEntity> _processedMembers = new Set<MemberEntity>();
 
   bool get isClosed => _closed;
@@ -408,8 +412,21 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
 
   bool isMemberProcessed(MemberEntity member) =>
       _processedMembers.contains(member);
+
   void registerProcessedMember(MemberEntity member) {
     _processedMembers.add(member);
+  }
+
+  Iterable<FunctionEntity> get genericInstanceMethods {
+    List<FunctionEntity> functions = <FunctionEntity>[];
+    for (MemberEntity member in processedMembers) {
+      if (member.isInstanceMember &&
+          member.isFunction &&
+          _elementEnvironment.getFunctionTypeVariables(member).isNotEmpty) {
+        functions.add(member);
+      }
+    }
+    return functions;
   }
 
   Iterable<MemberEntity> get processedMembers => _processedMembers;
@@ -620,10 +637,15 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
       if (type.containsTypeVariables) {
         localFunctionsWithFreeTypeVariables.add(localFunction);
       }
+      if (type.typeVariables.isNotEmpty) {
+        genericLocalFunctions.add(localFunction);
+      }
       localFunctions.add(staticUse.element);
       return;
     } else if (staticUse.kind == StaticUseKind.CLOSURE_CALL) {
-      registerStaticInvocation(staticUse);
+      registerDynamicInvocation(new GenericDynamicUse(
+          new Selector.call(Names.call, staticUse.callStructure),
+          staticUse.typeArguments));
       return;
     }
 

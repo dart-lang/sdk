@@ -7,7 +7,7 @@ library world_builder;
 import 'dart:collection';
 
 import '../common.dart';
-import '../common/names.dart' show Identifiers;
+import '../common/names.dart' show Identifiers, Names;
 import '../common/resolution.dart' show Resolution;
 import '../common_elements.dart';
 import '../constants/constant_system.dart';
@@ -41,6 +41,7 @@ import 'use.dart'
         ConstantUseKind,
         DynamicUse,
         DynamicUseKind,
+        GenericDynamicUse,
         StaticUse,
         StaticUseKind;
 
@@ -188,11 +189,21 @@ abstract class WorldBuilder {
   // TODO(johnniwinther): Improve semantic precision.
   Iterable<InterfaceType> get instantiatedTypes;
 
-  /// Set of methods in instantiated classes that are potentially closurized.
+  // TODO(johnniwinther): Clean up these getters.
+  /// Methods in instantiated classes that are potentially closurized.
   Iterable<FunctionEntity> get closurizedMembers;
 
-  /// Set of static or top level methods that are closurized.
+  /// Static or top level methods that are closurized.
   Iterable<FunctionEntity> get closurizedStatics;
+
+  /// Live generic instance methods.
+  Iterable<FunctionEntity> get genericInstanceMethods;
+
+  /// Live generic local functions.
+  Iterable<Local> get genericLocalFunctions;
+
+  /// Type variables used as type literals.
+  Iterable<TypeVariableType> get typeVariableTypeLiterals;
 
   /// Call [f] for each generic [function] with the type arguments passed
   /// through static calls to [function].
@@ -217,6 +228,9 @@ abstract class WorldBuilderBase {
 
   /// Set of static or top level methods that are closurized.
   final Set<FunctionEntity> closurizedStatics = new Set<FunctionEntity>();
+
+  final Set<TypeVariableType> typeVariableTypeLiterals =
+      new Set<TypeVariableType>();
 
   void _registerStaticTypeArgumentDependency(
       Entity element, List<DartType> typeArguments) {
@@ -254,5 +268,9 @@ abstract class WorldBuilderBase {
   void forEachDynamicTypeArgument(
       void f(Selector selector, Set<DartType> typeArguments)) {
     _dynamicTypeArgumentDependencies.forEach(f);
+  }
+
+  void registerTypeVariableTypeLiteral(TypeVariableType typeVariable) {
+    typeVariableTypeLiterals.add(typeVariable);
   }
 }

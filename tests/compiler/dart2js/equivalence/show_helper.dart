@@ -19,6 +19,7 @@ ArgParser createArgParser() {
   argParser.addFlag('colors', negatable: true);
   argParser.addFlag('all', negatable: false, defaultsTo: false);
   argParser.addFlag('use-kernel', negatable: false, defaultsTo: false);
+  argParser.addFlag('strong', negatable: false, defaultsTo: false);
   return argParser;
 }
 
@@ -31,7 +32,8 @@ show(ArgResults argResults, ComputeMemberDataFunction computeAstData,
     useColors = argResults['colors'];
   }
   bool verbose = argResults['verbose'];
-  bool useKernel = argResults['use-kernel'];
+  bool strongMode = argResults['strong'];
+  bool useKernel = argResults['use-kernel'] || strongMode;
 
   String file = argResults.rest.first;
   Uri entryPoint = Uri.base.resolve(nativeToUriPath(file));
@@ -47,6 +49,9 @@ show(ArgResults argResults, ComputeMemberDataFunction computeAstData,
   options = new List<String>.from(options);
   if (useKernel) {
     options.add(Flags.useKernel);
+  }
+  if (strongMode) {
+    options.add(Flags.strongMode);
   }
   CompiledData data = await computeData(
       entryPoint, const {}, useKernel ? computeKernelData : computeAstData,

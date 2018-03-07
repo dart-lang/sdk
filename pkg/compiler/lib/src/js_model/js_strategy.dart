@@ -15,6 +15,7 @@ import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../deferred_load.dart';
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../elements/types.dart';
 import '../enqueue.dart';
 import '../io/kernel_source_information.dart'
@@ -40,6 +41,7 @@ import '../options.dart';
 import '../ssa/ssa.dart';
 import '../types/types.dart';
 import '../universe/class_set.dart';
+import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../util/emptyset.dart';
 import '../world.dart';
@@ -502,6 +504,18 @@ class JsClosedWorldBuilder {
         map.toBackendFunctionSet(rtiNeed.methodsNeedingTypeArguments);
     Set<FunctionEntity> methodsNeedingSignature =
         map.toBackendFunctionSet(rtiNeed.methodsNeedingSignature);
+    Set<Selector> selectorsNeedingTypeArguments =
+        rtiNeed.selectorsNeedingTypeArguments.map((Selector selector) {
+      if (selector.memberName.isPrivate) {
+        return new Selector(
+            selector.kind,
+            new PrivateName(selector.memberName.text,
+                map.toBackendLibrary(selector.memberName.library),
+                isSetter: selector.memberName.isSetter),
+            selector.callStructure);
+      }
+      return selector;
+    }).toSet();
     return new RuntimeTypesNeedImpl(
         _elementEnvironment,
         backendUsage,
@@ -509,7 +523,8 @@ class JsClosedWorldBuilder {
         methodsNeedingSignature,
         methodsNeedingTypeArguments,
         null,
-        null);
+        null,
+        selectorsNeedingTypeArguments);
   }
 
   /// Construct a closure class and set up the necessary class inference

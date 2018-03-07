@@ -5,7 +5,7 @@
 import 'package:meta/dart2js.dart';
 import "package:expect/expect.dart";
 
-/*class: A:deps=[method2],direct,explicit=[A.T],needsArgs*/
+/*class: A:deps=[C.method2],direct,explicit=[A.T],needsArgs*/
 class A<T> {
   @noInline
   foo(x) {
@@ -16,7 +16,7 @@ class A<T> {
 /*class: BB:implicit=[BB]*/
 class BB {}
 
-/*class: B:deps=[method1],implicit=[B.T],indirect,needsArgs*/
+/*class: B:deps=[C.method1],implicit=[B.T],indirect,needsArgs*/
 class B<T> implements BB {
   @noInline
   foo(c) {
@@ -25,13 +25,13 @@ class B<T> implements BB {
 }
 
 class C {
-  /*element: C.method1:implicit=[method1.T],indirect,needsArgs*/
+  /*element: C.method1:implicit=[method1.T],indirect,needsArgs,selectors=[Selector(call, method1, arity=0, types=1)]*/
   @noInline
   method1<T>() {
     return new B<T>().foo(this);
   }
 
-  /*element: C.method2:deps=[B],implicit=[method2.T],indirect,needsArgs*/
+  /*element: C.method2:deps=[B],implicit=[method2.T],indirect,needsArgs,selectors=[Selector(call, method2, arity=0, types=1)]*/
   @noInline
   method2<T>() => new A<T>();
 }

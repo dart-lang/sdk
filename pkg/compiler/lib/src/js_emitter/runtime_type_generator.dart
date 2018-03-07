@@ -136,9 +136,6 @@ class RuntimeTypeGenerator {
   Iterable<ClassEntity> get checkedClasses =>
       _typeTestRegistry.rtiChecks.checkedClasses;
 
-  Iterable<ClassEntity> get classesUsingTypeVariableTests =>
-      _typeTestRegistry.rtiChecks.classesUsingTypeVariableTests;
-
   Iterable<FunctionType> get checkedFunctionTypes =>
       _typeTestRegistry.rtiChecks.checkedFunctionTypes;
 

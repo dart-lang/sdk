@@ -270,4 +270,11 @@ class Selector {
   }
 
   Selector toCallSelector() => new Selector.callClosureFrom(this);
+
+  /// Returns the non-generic [Selector] corresponding to this selector.
+  Selector toNonGeneric() {
+    return callStructure.typeArgumentCount > 0
+        ? new Selector(kind, memberName, callStructure.nonGeneric)
+        : this;
+  }
 }

@@ -571,6 +571,17 @@ abstract class CodegenWorldBuilderImpl extends WorldBuilderBase
     }
     return _constantValues.add(use.value);
   }
+
+  @override
+  Iterable<Local> get genericLocalFunctions => const <Local>[];
+
+  @override
+  Iterable<FunctionEntity> get genericInstanceMethods {
+    List<FunctionEntity> functions = <FunctionEntity>[];
+    // TODO(johnniwinther): Compute this correctly; add a test for when it is
+    // needed or return a constant empty list if this never needed.
+    return functions;
+  }
 }
 
 class ElementCodegenWorldBuilderImpl extends CodegenWorldBuilderImpl {

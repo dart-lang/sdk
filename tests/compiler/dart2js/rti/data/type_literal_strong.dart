@@ -15,23 +15,25 @@ class A<T> {
     return inner();
   }
 
-  /*element: A.genericMethod:exp,needsArgs*/
+  /*element: A.genericMethod:exp,needsArgs,selectors=[Selector(call, genericMethod, arity=0, types=1)]*/
   genericMethod<S>() => S;
 
-  /*element: A.genericMethodNested:exp,needsArgs*/
+  /*element: A.genericMethodNested:exp,needsArgs,selectors=[Selector(call, genericMethodNested, arity=0, types=1)]*/
   genericMethodNested<S>() {
     var inner = () => S;
     return inner();
   }
 
   localFunction() {
-    /*exp,needsArgs*/ local<S>() => S;
+    /*exp,needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
+    local<S>() => S;
 
     return local<bool>();
   }
 
   localFunctionNested() {
-    /*exp,needsArgs*/ local<S>() {
+    /*exp,needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
+    local<S>() {
       var inner = () => S;
       return inner();
     }
