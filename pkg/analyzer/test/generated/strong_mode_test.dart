@@ -2816,6 +2816,17 @@ main() {
     await resolveTestUnit(code);
   }
 
+  test_generalizedVoid_assignToVoidOk() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  x = 42;
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
   test_genericFunction() async {
     await resolveTestUnit(r'T f<T>(T x) => null;');
     expectFunctionType('f', '<T>(T) → T',
@@ -2976,12 +2987,12 @@ main() {
 class C<E> {
   T f<T>(T e) => null;
   static T g<T>(T e) => null;
-  static final h = g;
+  static T Function<T>(T) h = null;
 }
 
 T topF<T>(T e) => null;
 var topG = topF;
-void test<S>(T pf<T>(T e)) {
+void test<S>(T Function<T>(T) pf) {
   var c = new C<int>();
   T lf<T>(T e) => null;
 
@@ -2994,8 +3005,7 @@ void test<S>(T pf<T>(T e)) {
   var localCall = (lf)<int>(3);
   var paramCall = (pf)<int>(3);
 }
-''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
-        );
+''');
     expectIdentifierType('methodCall', "int");
     expectIdentifierType('staticCall', "int");
     expectIdentifierType('staticFieldCall', "int");
@@ -3006,17 +3016,37 @@ void test<S>(T pf<T>(T e)) {
     expectIdentifierType('lambdaCall', "int");
   }
 
+  test_genericMethod_functionExpressionInvocation_functionTypedParameter_explicit() async {
+    await resolveTestUnit(r'''
+void test<S>(T pf<T>(T e)) {
+  var paramCall = (pf)<int>(3);
+}
+''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
+        );
+    expectIdentifierType('paramCall', "int");
+  }
+
+  test_genericMethod_functionExpressionInvocation_functionTypedParameter_inferred() async {
+    await resolveTestUnit(r'''
+void test<S>(T pf<T>(T e)) {
+  var paramCall = (pf)(3);
+}
+''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
+        );
+    expectIdentifierType('paramCall', "int");
+  }
+
   test_genericMethod_functionExpressionInvocation_inferred() async {
     await resolveTestUnit(r'''
 class C<E> {
   T f<T>(T e) => null;
   static T g<T>(T e) => null;
-  static final h = g;
+  static T Function<T>(T) h = null;
 }
 
 T topF<T>(T e) => null;
 var topG = topF;
-void test<S>(T pf<T>(T e)) {
+void test<S>(T Function<T>(T) pf) {
   var c = new C<int>();
   T lf<T>(T e) => null;
 
@@ -3046,12 +3076,12 @@ void test<S>(T pf<T>(T e)) {
 class C<E> {
   T f<T>(T e) => null;
   static T g<T>(T e) => null;
-  static final h = g;
+  static T Function<T>(T) h = null;
 }
 
 T topF<T>(T e) => null;
 var topG = topF;
-void test<S>(T pf<T>(T e)) {
+void test<S>(T Function<T>(T) pf) {
   var c = new C<int>();
   T lf<T>(T e) => null;
   var methodCall = c.f<int>(3);
@@ -3062,8 +3092,7 @@ void test<S>(T pf<T>(T e)) {
   var localCall = lf<int>(3);
   var paramCall = pf<int>(3);
 }
-''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
-        );
+''');
     expectIdentifierType('methodCall', "int");
     expectIdentifierType('staticCall', "int");
     expectIdentifierType('staticFieldCall', "int");
@@ -3073,17 +3102,37 @@ void test<S>(T pf<T>(T e)) {
     expectIdentifierType('paramCall', "int");
   }
 
+  test_genericMethod_functionInvocation_functionTypedParameter_explicit() async {
+    await resolveTestUnit(r'''
+void test<S>(T pf<T>(T e)) {
+  var paramCall = pf<int>(3);
+}
+''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
+        );
+    expectIdentifierType('paramCall', "int");
+  }
+
+  test_genericMethod_functionInvocation_functionTypedParameter_inferred() async {
+    await resolveTestUnit(r'''
+void test<S>(T pf<T>(T e)) {
+  var paramCall = pf(3);
+}
+''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
+        );
+    expectIdentifierType('paramCall', "int");
+  }
+
   test_genericMethod_functionInvocation_inferred() async {
     await resolveTestUnit(r'''
 class C<E> {
   T f<T>(T e) => null;
   static T g<T>(T e) => null;
-  static final h = g;
+  static T Function<T>(T) h = null;
 }
 
 T topF<T>(T e) => null;
 var topG = topF;
-void test<S>(T pf<T>(T e)) {
+void test<S>(T Function<T>(T) pf) {
   var c = new C<int>();
   T lf<T>(T e) => null;
   var methodCall = c.f(3);
@@ -3094,8 +3143,7 @@ void test<S>(T pf<T>(T e)) {
   var localCall = lf(3);
   var paramCall = pf(3);
 }
-''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
-        );
+''');
     expectIdentifierType('methodCall', "int");
     expectIdentifierType('staticCall', "int");
     expectIdentifierType('staticFieldCall', "int");
@@ -3125,6 +3173,16 @@ main() {
     expect(ft.toString(), '<T>((String) → T) → List<T>');
     ft = ft.instantiate([typeProvider.intType]);
     expect(ft.toString(), '((String) → int) → List<int>');
+  }
+
+  test_genericMethod_functionTypedParameter_tearoff() async {
+    await resolveTestUnit(r'''
+void test<S>(T pf<T>(T e)) {
+  var paramTearOff = pf;
+}
+''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
+        );
+    expectIdentifierType('paramTearOff', "<T>(T) → T");
   }
 
   test_genericMethod_implicitDynamic() async {
@@ -3395,12 +3453,12 @@ C toSpan(dynamic element) {
 class C<E> {
   T f<T>(E e) => null;
   static T g<T>(T e) => null;
-  static final h = g;
+  static T Function<T>(T) h = null;
 }
 
 T topF<T>(T e) => null;
 var topG = topF;
-void test<S>(T pf<T>(T e)) {
+void test<S>(T Function<T>(T) pf) {
   var c = new C<int>();
   T lf<T>(T e) => null;
   var methodTearOff = c.f;
@@ -3411,8 +3469,7 @@ void test<S>(T pf<T>(T e)) {
   var localTearOff = lf;
   var paramTearOff = pf;
 }
-''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
-        );
+''');
     expectIdentifierType('methodTearOff', "<T>(int) → T");
     expectIdentifierType('staticTearOff', "<T>(T) → T");
     expectIdentifierType('staticFieldTearOff', "<T>(T) → T");
@@ -3428,7 +3485,7 @@ void test<S>(T pf<T>(T e)) {
 class C<E> {
   T f<T>(E e) => null;
   static T g<T>(T e) => null;
-  static final h = g;
+  static T Function<T>(T) h = null;
 }
 
 T topF<T>(T e) => null;
@@ -3496,6 +3553,20 @@ void main() {
     // when run without the driver, it reports no errors.  So we don't bother
     // checking whether the correct errors were reported.
     expectInitializerType('foo', 'Future<String>', isNull);
+  }
+
+  test_genericMethod_toplevel_field_staticTearoff() async {
+    await resolveTestUnit(r'''
+class C<E> {
+  static T g<T>(T e) => null;
+  static T Function<T>(T) h = null;
+}
+
+void test() {
+  var fieldRead = C.h;
+}
+''');
+    expectIdentifierType('fieldRead', "<T>(T) → T");
   }
 
   test_implicitBounds() async {
@@ -3942,6 +4013,12 @@ void main() {
     await _objectMethodOnFunctions_helper2(code);
   }
 
+  test_returnOfInvalidType_object_void() async {
+    await assertErrorsInCode(
+        "Object f() { void voidFn() => null; return voidFn(); }",
+        [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
+  }
+
   test_setterWithDynamicTypeIsError() async {
     Source source = addSource(r'''
 class A {
@@ -4034,23 +4111,6 @@ main() {
     expectInitializerType('foo', 'int', isNull);
   }
 
-  test_generalizedVoid_assignToVoidOk() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  x = 42;
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-  }
-
-  test_returnOfInvalidType_object_void() async {
-    await assertErrorsInCode(
-        "Object f() { void voidFn() => null; return voidFn(); }",
-        [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
-  }
-
   Future<Null> _objectMethodOnFunctions_helper2(String code) async {
     await resolveTestUnit(code);
     expectIdentifierType('t0', "String");
@@ -4137,6 +4197,28 @@ main() async {
     CompilationUnit unit = await resolveSource(code);
     assertPropagatedIterationType(code, unit, typeProvider.intType, null);
     assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
+  }
+
+  test_inconsistentMethodInheritance_inferFunctionTypeFromTypedef() async {
+    Source source = addSource(r'''
+typedef bool F<E>(E argument);
+
+abstract class Base {
+  f<E extends int>(F<int> x);
+}
+
+abstract class BaseCopy extends Base {
+}
+
+abstract class Override implements Base, BaseCopy {
+  f<E>(x) => null;
+}
+
+class C extends Override implements Base {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
   }
 
   test_localVariableInference_bottom_disabled() async {
@@ -4326,27 +4408,5 @@ int x = 3;
     CompilationUnit unit = await resolveSource(code);
     assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
     assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
-  }
-
-  test_inconsistentMethodInheritance_inferFunctionTypeFromTypedef() async {
-    Source source = addSource(r'''
-typedef bool F<E>(E argument);
-
-abstract class Base {
-  f<E extends int>(F<int> x);
-}
-
-abstract class BaseCopy extends Base {
-}
-
-abstract class Override implements Base, BaseCopy {
-  f<E>(x) => null;
-}
-
-class C extends Override implements Base {}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
   }
 }
