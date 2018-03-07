@@ -53,8 +53,10 @@ io/stdout_stderr_non_blocking_test: Pass, Timeout # Issue 28426
 [ $mode == product && $runtime == dart_precompiled ]
 dwarf_stack_trace_test: Pass, RuntimeError # Results will flake due to identical code folding
 
-[ $runtime == dart_precompiled && $checked ]
+[ $runtime == dart_precompiled && $system != windows && $checked ]
 io/namespace_test: RuntimeError
+
+[ $runtime == dart_precompiled && $checked ]
 io/test_runner_test: RuntimeError
 
 [ $runtime == dart_precompiled && !$checked && !$strong ]
