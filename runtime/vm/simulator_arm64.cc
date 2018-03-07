@@ -794,7 +794,16 @@ class Redirection {
     Redirection* redirection =
         new Redirection(external_function, call_kind, argument_count);
     redirection->next_ = list_;
-    list_ = redirection;
+
+    // Use a memory fence to ensure all pending writes are written at the time
+    // of updating the list head, so the profiling thread always has a valid
+    // list to look at.
+    Redirection* old_head = list_;
+    Redirection* replaced_list_head =
+        AtomicOperations::CompareAndSwapPointer<Redirection>(&list_, old_head,
+                                                             redirection);
+    ASSERT(old_head == replaced_list_head);
+
     return redirection;
   }
 
@@ -805,9 +814,11 @@ class Redirection {
     return reinterpret_cast<Redirection*>(addr_of_redirection);
   }
 
+  // Please note that this function is called by the signal handler of the
+  // profiling thread.  It can therefore run at any point in time and is not
+  // allowed to hold any locks - which is precisely the reason why the list is
+  // prepend-only and a memory fence is used when writing the list head [list_]!
   static uword FunctionForRedirect(uword address_of_hlt) {
-    MutexLocker ml(mutex_);
-
     Redirection* current;
     for (current = list_; current != NULL; current = current->next_) {
       if (current->address_of_hlt_instruction() == address_of_hlt) {
