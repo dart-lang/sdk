@@ -48,7 +48,7 @@ wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant
 xhr_test/xhr: Pass, RuntimeError # Roll 50 failure
 
 [ $compiler == fasta ]
-*: CompileTimeError # TODO(ahe): Support dart:html in Fasta.
+*: Skip # TODO(ahe): Support dart:html in Fasta.
 
 [ $runtime == drt ]
 webgl_extensions_test: Skip # webgl does not work properly on DRT, which is 'headless'.

@@ -10,6 +10,11 @@
 # missing a section you need, please reach out to sigmund@ to see the best way
 # to add them.
 
+[ $compiler == fasta ]
+html/*: Skip # TODO(ahe): Make dart:html available.
+isolate/browser/*: Skip # TODO(ahe): Make dart:html available.
+js/*: Skip # TODO(ahe): Make dart:js available.
+
 [ $fasta ]
 isolate/compile_time_error_test/01: MissingCompileTimeError
 mirrors/generic_bounded_by_type_parameter_test/02: MissingCompileTimeError
@@ -317,6 +322,21 @@ mirrors/*: SkipByDesign # Mirrors are not supported in AOT mode.
 [ $compiler == dartkp && !$strong ]
 *: SkipByDesign
 
+[ $compiler == fasta && $strong ]
+isolate/isolate_stress_test: CompileTimeError
+mirrors/deferred_type_test: CompileTimeError
+mirrors/library_imports_bad_metadata_test/01: Crash
+mirrors/metadata_allowed_values_test/02: MissingCompileTimeError
+mirrors/metadata_allowed_values_test/27: MissingCompileTimeError
+mirrors/metadata_constructor_arguments_test/04: MissingCompileTimeError
+mirrors/mirrors_nsm_mismatch_test: CompileTimeError
+mirrors/mirrors_nsm_test/dart2js: CompileTimeError
+mirrors/mirrors_nsm_test/none: CompileTimeError
+mirrors/native_class_test: CompileTimeError
+mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
+mirrors/redirecting_factory_different_type_test/02: MissingCompileTimeError
+mirrors/relation_subclass_test: CompileTimeError
+
 [ $fasta && $strong ]
 mirrors/top_level_accessors_test/01: MissingCompileTimeError
 
@@ -325,6 +345,7 @@ isolate/browser/compute_this_script_browser_test: CompileTimeError
 isolate/browser/package_resolve_browser_hook2_test: CompileTimeError
 isolate/browser/package_resolve_browser_hook_test: CompileTimeError
 isolate/browser/package_resolve_browser_test: CompileTimeError
+isolate/isolate_import_test/01: MissingCompileTimeError
 isolate/isolate_stress_test: CompileTimeError
 mirrors/library_imports_bad_metadata_test/01: Crash
 mirrors/metadata_allowed_values_test/02: MissingCompileTimeError
@@ -335,8 +356,13 @@ mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
 mirrors/reflect_class_test/01: MissingCompileTimeError
 mirrors/reflect_class_test/02: MissingCompileTimeError
 mirrors/regress_16321_test/01: MissingCompileTimeError
+mirrors/top_level_accessors_test/01: MissingCompileTimeError
+typed_data/float32x4_static_test: MissingCompileTimeError
+typed_data/int32x4_static_test/01: MissingCompileTimeError
+typed_data/int32x4_static_test/02: MissingCompileTimeError
 
-[ $compiler == dartk || $compiler == dartkp || $compiler == fasta ]
-html/*: CompileTimeError # TODO(ahe): Make dart:html available.
-js/*: CompileTimeError # TODO(ahe): Make dart:js available.
+[ $compiler == dartk || $compiler == dartkp ]
+html/*: SkipByDesign
+isolate/browser/*: SkipByDesign
+js/*: SkipByDesign
 

@@ -29,6 +29,19 @@ io/*: Skip # Issue 30618
 [ $compiler == dartk && $strong ]
 *: SkipByDesign
 
+[ $compiler == fasta && $strong ]
+io/directory_invalid_arguments_test: CompileTimeError
+io/io_override_test: CompileTimeError
+io/process_invalid_arguments_test: CompileTimeError
+io/raw_secure_server_socket_argument_test: CompileTimeError
+io/raw_secure_server_socket_test: CompileTimeError
+io/secure_socket_bad_data_test: CompileTimeError
+io/security_context_argument_test: CompileTimeError
+io/stdout_bad_argument_test: CompileTimeError
+no_assert_test: CompileTimeError
+priority_queue_stress_test: CompileTimeError
+verbose_gc_to_bmu_test: CompileTimeError
+
 [ $compiler != fasta && $compiler != none && $runtime != dart_precompiled && $runtime != vm ]
 no_assert_test: Fail, OK # This is testing a vm flag.
 

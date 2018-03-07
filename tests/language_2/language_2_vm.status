@@ -1328,6 +1328,8 @@ generic_methods_function_type_test: Pass # Issue 25869
 generic_methods_generic_function_parameter_test: Pass # Issue 25869
 generic_methods_new_test: Pass # Issue 25869
 generic_methods_test: Pass # Issue 25869
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError
 nsm5_test: MissingCompileTimeError
 override_inheritance_no_such_method_test/05: MissingCompileTimeError
 
@@ -1345,4 +1347,5 @@ invalid_type_argument_count_test/01: MissingCompileTimeError # Error only in str
 invalid_type_argument_count_test/02: MissingCompileTimeError # Error only in strong mode
 invalid_type_argument_count_test/03: MissingCompileTimeError # Error only in strong mode
 invalid_type_argument_count_test/04: MissingCompileTimeError # Error only in strong mode
-partial_tearoff_instantiation_test/none: CompiletimeError
+partial_tearoff_instantiation_test/none: CompileTimeError
+

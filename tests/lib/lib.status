@@ -14,9 +14,6 @@ mirrors/*: Skip # Issue 27929: Triage
 [ $compiler == dart2analyzer ]
 *: Skip
 
-[ $compiler != dart2analyzer ]
-async/stream_controller_async_test: StaticWarning
-
 [ $compiler == dart2js ]
 async/schedule_microtask6_test: RuntimeError # global error handling is not supported. Issue 5958
 convert/base64_test/01: Fail, OK # Uses bit-wise operations to detect invalid values. Some large invalid values accepted by dart2js.
@@ -182,10 +179,6 @@ mirrors/generic_bounded_test/02: Fail # Type equality - Issue 26869
 [ $strong ]
 *: SkipByDesign # tests/lib_2 has the strong mode versions of these tests.
 
-[ !$strong ]
-async/stream_first_where_test: RuntimeError
-async/stream_last_where_test: RuntimeError
-
 [ $arch == ia32 && $mode == debug && $system == windows ]
 convert/streamed_conversion_json_utf8_decode_test: Skip # Verification OOM.
 
@@ -307,6 +300,10 @@ mirrors/native_class_test: Pass, Slow
 [ $runtime == chrome && $system == macos ]
 async/catch_errors11_test: Pass, Timeout # Issue 22696
 async/timer_isActive_test: Fail, Pass, Timeout # Issue 22696
+
+[ $runtime != none && !$strong ]
+async/stream_first_where_test: RuntimeError
+async/stream_last_where_test: RuntimeError
 
 [ $runtime == vm && $system == fuchsia ]
 async/first_regression_test: RuntimeError # These use package:unittest

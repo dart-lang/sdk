@@ -123,7 +123,7 @@ symbol_reserved_word_test/05: MissingCompileTimeError # Issue 30245
 bigint_js_test: SkipByDesign # JavaScript-specific test
 
 # All static_tests have expected compile-time errors.
-[ $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $strong ]
+[ $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $compiler != fasta && $strong ]
 core_runtime_types_static_test: MissingCompileTimeError
 splay_tree_test/01: MissingCompileTimeError
 splay_tree_test/02: MissingCompileTimeError
@@ -330,14 +330,14 @@ shuffle_test: RuntimeError
 [ $compiler == dart2js && !$fasta ]
 *: SkipByDesign
 
-[ $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp ]
+[ $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $compiler != fasta ]
 iterable_element_at_test/static: MissingCompileTimeError
+
+[ $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $compiler != fasta && ($compiler != dart2analyzer || !$strong) ]
+iterable_mapping_test/01: MissingCompileTimeError
 
 [ $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $runtime != none ]
 map_keys2_test: RuntimeError # needs Dart 2 is checks
-
-[ $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && ($compiler != dart2analyzer || !$strong) ]
-iterable_mapping_test/01: MissingCompileTimeError
 
 [ $compiler != dart2js && $fasta ]
 bool_from_environment2_test/03: MissingCompileTimeError
@@ -575,6 +575,8 @@ from_environment_const_type_undefined_test/13: MissingCompileTimeError
 from_environment_const_type_undefined_test/14: MissingCompileTimeError
 from_environment_const_type_undefined_test/16: MissingCompileTimeError
 int_parse_radix_bad_handler_test: MissingCompileTimeError
+iterable_element_at_test/static: MissingCompileTimeError
+iterable_mapping_test/01: MissingCompileTimeError
 string_from_environment3_test/01: MissingCompileTimeError
 string_from_environment3_test/02: MissingCompileTimeError
 string_from_environment3_test/04: MissingCompileTimeError

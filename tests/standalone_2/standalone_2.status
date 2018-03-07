@@ -62,9 +62,6 @@ io/wait_for_event_zone_caught_error_test: SkipByDesign # Uses mirrors.
 io/wait_for_event_zone_test: SkipByDesign # Uses mirrors.
 io/wait_for_test: SkipByDesign # Uses mirrors.
 
-[ $runtime == none ]
-io/process_exit_negative_test: Fail, OK # Must be run to exit with non-zero exit code.
-
 [ !$strong ]
 float_array_static_test: MissingCompileTimeError
 
@@ -72,7 +69,7 @@ float_array_static_test: MissingCompileTimeError
 io/*: Skip # Issue 30618
 
 # All static_tests have expected compile-time errors.
-[ $compiler != dart2analyzer && $compiler != dartdevc && $compiler != dartk && $compiler != dartkp && $strong ]
+[ $compiler != dart2analyzer && $compiler != dartdevc && $compiler != dartk && $compiler != dartkp && $runtime != none && $strong ]
 float_array_static_test: MissingCompileTimeError
 
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
@@ -87,6 +84,9 @@ dwarf_stack_trace_test: Pass, RuntimeError
 
 [ $mode == release && $runtime == vm && $system == macos ]
 io/named_pipe_script_test: Pass, RuntimeError # Issue 28737
+
+[ $runtime == none && !$strong ]
+io/process_exit_negative_test: Fail, OK # Must be run to exit with non-zero exit code.
 
 [ $system == linux && ($runtime == flutter || $runtime == vm) ]
 io/http_basic_test: Pass, Slow, Timeout # Issue 28046, These tests might be slow on an opt counter threshold bot. They also time out on the bot occasionally => flaky test issue 28046

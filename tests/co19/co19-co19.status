@@ -5,9 +5,16 @@
 # have been filed on the co19 issue tracker at
 #    https://code.google.com/p/co19/issues/list (read-only).
 #    https://github.com/dart-lang/co19/issues .
-#
+
 # In order to qualify here these tests need to fail both on the VM and dart2js.
 ### GENERAL FAILURES ###
+[ $runtime != none ]
+Language/Statements/Assert/syntax_t04: Pass, Fail # assert now has an optional second parameter.
+LibTest/async/Zone/bindBinaryCallback_A01_t02: Fail # co19 issue 126
+LibTest/async/Zone/bindCallback_A01_t02: Fail # co19 issue 126
+LibTest/async/Zone/bindUnaryCallback_A01_t02: Fail # co19 issue 126
+LibTest/core/RegExp/firstMatch_A01_t01: Fail # co19 issue 742
+LibTest/typed_data/ByteData/buffer_A01_t01: Fail # co19 r736 bug - sent comment.
 LibTest/typed_data/Float32List/first_A01_t02: RuntimeError # co19 issue 130
 LibTest/typed_data/Float32List/last_A01_t02: RuntimeError # co19 issue 130
 LibTest/typed_data/Float64List/first_A01_t02: RuntimeError # co19 issue 130
@@ -30,24 +37,6 @@ LibTest/typed_data/Uint8ClampedList/first_A01_t02: RuntimeError # co19 issue 130
 LibTest/typed_data/Uint8ClampedList/last_A01_t02: RuntimeError # co19 issue 130
 LibTest/typed_data/Uint8List/first_A01_t02: RuntimeError # co19 issue 130
 LibTest/typed_data/Uint8List/last_A01_t02: RuntimeError # co19 issue 130
-
-# Tests that fail everywhere, including the analyzer.
-[ $compiler != fasta ]
-Language/Statements/Assert/syntax_t04: Pass, Fail # assert now has an optional second parameter.
-LibTest/async/Zone/bindBinaryCallback_A01_t02: Fail # co19 issue 126
-LibTest/async/Zone/bindCallback_A01_t02: Fail # co19 issue 126
-LibTest/async/Zone/bindUnaryCallback_A01_t02: Fail # co19 issue 126
-LibTest/core/RegExp/firstMatch_A01_t01: Fail # co19 issue 742
-LibTest/typed_data/ByteData/buffer_A01_t01: Fail # co19 r736 bug - sent comment.
-
-[ $strong ]
-Language/Expressions/Additive_Expressions/syntax_t01/07: CompileTimeError
-LibTest/typed_data/Float32x4List/first_A01_t02: CompileTimeError # co19 issue 130 + type error
-LibTest/typed_data/Float32x4List/last_A01_t02: CompileTimeError # co19 issue 130 + type error
-
-[ !$strong ]
-LibTest/typed_data/Float32x4List/first_A01_t02: RuntimeError # co19 issue 130
-LibTest/typed_data/Float32x4List/last_A01_t02: RuntimeError # co19 issue 130
 
 # Tests that fail on every runtime, but not on the analyzer.
 [ $compiler != dart2analyzer && $compiler != fasta ]
@@ -101,6 +90,15 @@ LibTest/math/cos_A01_t01: Pass, Fail, OK # Issue 26261
 LibTest/math/log_A01_t01: Pass, Fail, OK # Issue 26261
 LibTest/math/tan_A01_t01: Pass, Fail, OK # Issue 26261
 
-[ !$checked && !$strong ]
+[ $compiler != fasta && !$checked && !$strong ]
 Language/Expressions/Additive_Expressions/syntax_t01/07: MissingRuntimeError # Unchecked mode allows List + anything-with-a-zero-length
+
+[ $compiler != fasta && $strong ]
+Language/Expressions/Additive_Expressions/syntax_t01/07: CompileTimeError
+LibTest/typed_data/Float32x4List/first_A01_t02: CompileTimeError # co19 issue 130 + type error
+LibTest/typed_data/Float32x4List/last_A01_t02: CompileTimeError # co19 issue 130 + type error
+
+[ $runtime != none && !$strong ]
+LibTest/typed_data/Float32x4List/first_A01_t02: RuntimeError # co19 issue 130
+LibTest/typed_data/Float32x4List/last_A01_t02: RuntimeError # co19 issue 130
 

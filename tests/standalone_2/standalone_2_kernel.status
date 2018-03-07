@@ -16,7 +16,6 @@ package/package1_test: CompileTimeError
 package/package_isolate_test: Crash
 package/package_test: CompileTimeError
 package/scenarios/invalid/same_package_twice_test: CompileTimeError
-regress_29350_test/none: MissingCompileTimeError
 
 [ $arch != simarm && $arch != simarm64 && $arch != simdbc64 && $fasta ]
 package/scenarios/invalid/invalid_utf8_test: CompileTimeError # Issue 32085
@@ -53,7 +52,7 @@ io/test_extension_test: RuntimeError, Pass # Issue 32137.
 io/wait_for_event_isolate_test: Skip # Issues 32137 and 32138.
 
 [ $compiler == dartk && $system == windows && $strong ]
-io/compile_all_test: Pass,Fail # Possibly related to issue 32373
+io/compile_all_test: Pass, Fail # Possibly related to issue 32373
 io/file_stream_test: RuntimeError # Issue 31904
 io/platform_test: RuntimeError # Issue 31904
 io/process_non_ascii_test: RuntimeError # Issue 31904
@@ -128,4 +127,18 @@ regress_29350_test/none: Pass # Issue 31537
 
 [ $compiler == dartkp && !$strong ]
 *: SkipByDesign
+
+[ $compiler == fasta && $strong ]
+io/dependency_graph_test: CompileTimeError
+io/http_cookie_date_test: CompileTimeError
+io/http_headers_test: CompileTimeError
+io/http_parser_test: CompileTimeError
+io/secure_socket_argument_test: CompileTimeError
+io/skipping_dart2js_compilations_test: CompileTimeError
+io/test_harness_analyzer_test: CompileTimeError
+io/test_runner_test: CompileTimeError
+io/web_socket_protocol_processor_test: CompileTimeError
+
+[ $fasta && !$strong ]
+regress_29350_test/none: MissingCompileTimeError
 
