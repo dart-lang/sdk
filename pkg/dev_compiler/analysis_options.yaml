@@ -1,5 +1,6 @@
 analyzer:
-  strong-mode: true
+  strong-mode:
+    implicit-casts: false
   exclude:
     - doc/api/**
     - gen/**

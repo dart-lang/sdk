@@ -6,14 +6,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analyzer/analyzer.dart'
-    show
-        ExportDirective,
-        ImportDirective,
-        PartDirective,
-        StringLiteral,
-        UriBasedDirective,
-        parseDirectives;
+import 'package:analyzer/analyzer.dart' show StringLiteral, parseDirectives;
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:args/args.dart' show ArgParser;
 import 'package:path/path.dart' as path;
@@ -252,16 +245,14 @@ String canonicalize(String uri, String root) {
 }
 
 /// Simplified from ParseDartTask.resolveDirective.
-String _resolveDirective(UriBasedDirective directive) {
+String _resolveDirective(UriBasedDirectiveImpl directive) {
   StringLiteral uriLiteral = directive.uri;
   String uriContent = uriLiteral.stringValue;
   if (uriContent != null) {
     uriContent = uriContent.trim();
     directive.uriContent = uriContent;
   }
-  return (directive as UriBasedDirectiveImpl).validate() == null
-      ? uriContent
-      : null;
+  return directive.validate() == null ? uriContent : null;
 }
 
 String _loadFile(String uri, String packageRoot) {
@@ -280,11 +271,11 @@ void transitiveFiles(String entryPoint, String root, String packageRoot) {
     var entryDir = path.dirname(entryPoint);
     var unit = parseDirectives(source, name: entryPoint, suppressErrors: true);
     for (var d in unit.directives) {
-      if (d is ImportDirective || d is ExportDirective) {
+      if (d is NamespaceDirectiveImpl) {
         var uri = _resolveDirective(d);
         processDependence(entryPoint, canonicalize(uri, entryDir));
         transitiveFiles(uri, entryDir, packageRoot);
-      } else if (d is PartDirective) {
+      } else if (d is PartDirectiveImpl) {
         var uri = _resolveDirective(d);
         processFile(canonicalize(uri, entryDir));
       }

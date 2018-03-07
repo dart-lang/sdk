@@ -196,12 +196,12 @@ class LegacyModuleBuilder extends _ModuleBuilder {
       }
     }
 
-    var resultModule =
-        js.call("function(#) { 'use strict'; #; }", [parameters, statements]);
     var functionName =
         'load__' + pathToJSIdentifier(module.name.replaceAll('.', '_'));
-    resultModule =
-        new NamedFunction(new Identifier(functionName), resultModule, true);
+    var resultModule = new NamedFunction(
+        new Identifier(functionName),
+        js.fun("function(#) { 'use strict'; #; }", [parameters, statements]),
+        true);
 
     var moduleDef = js.statement("dart_library.library(#, #, #, #)", [
       js.string(module.name, "'"),

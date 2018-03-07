@@ -14,13 +14,7 @@ library dev_compiler.test.codegen_test;
 
 import 'dart:convert';
 import 'dart:io' show Directory, File, Platform;
-import 'package:analyzer/analyzer.dart'
-    show
-        ExportDirective,
-        ImportDirective,
-        StringLiteral,
-        UriBasedDirective,
-        parseDirectives;
+import 'package:analyzer/analyzer.dart' show StringLiteral, parseDirectives;
 import 'package:analyzer/src/command_line/arguments.dart'
     show defineAnalysisArguments;
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -431,7 +425,7 @@ void _collectTransitiveImports(String contents, Set<String> libraries,
 
   var unit = parseDirectives(contents, name: from, suppressErrors: true);
   for (var d in unit.directives) {
-    if (d is ImportDirective || d is ExportDirective) {
+    if (d is NamespaceDirectiveImpl) {
       String uri = _resolveDirective(d);
       if (uri == null ||
           uri.startsWith('dart:') ||
@@ -449,14 +443,12 @@ void _collectTransitiveImports(String contents, Set<String> libraries,
 }
 
 /// Simplified from ParseDartTask.resolveDirective.
-String _resolveDirective(UriBasedDirective directive) {
+String _resolveDirective(NamespaceDirectiveImpl directive) {
   StringLiteral uriLiteral = directive.uri;
   String uriContent = uriLiteral.stringValue;
   if (uriContent != null) {
     uriContent = uriContent.trim();
     directive.uriContent = uriContent;
   }
-  return (directive as UriBasedDirectiveImpl).validate() == null
-      ? uriContent
-      : null;
+  return directive.validate() == null ? uriContent : null;
 }

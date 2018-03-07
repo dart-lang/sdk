@@ -67,7 +67,7 @@ class StepWithD8 extends Step<Data, Data, ChainContext> {
     var outWrapperPath = path.join(data.outDir.path, "wrapper.js");
     ProcessResult runResult =
         runD8AndStep(data.outDir.path, data.code, ['--module', outWrapperPath]);
-    data.d8Output = runResult.stdout.split("\n");
+    data.d8Output = (runResult.stdout as String).split("\n");
     return pass(data);
   }
 }
