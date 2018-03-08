@@ -274,8 +274,10 @@ class A {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'HtmlElement');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object',
+          elementKind: ElementKind.CLASS);
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'HtmlElement',
+          elementKind: ElementKind.CLASS);
       assertNoResult('test');
     });
   }
@@ -430,7 +432,8 @@ class A {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object',
+          elementKind: ElementKind.CLASS);
       assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'foo');
       assertNoResult('HtmlElement');
       assertNoResult('test');
@@ -597,6 +600,32 @@ class B extends A {
     });
   }
 
+  test_local_implicitCreation() async {
+    addTestFile('''
+class A {
+  A();
+  A.named();
+}
+main() {
+  ^
+}
+''');
+    await getSuggestions();
+
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+
+    // The class is suggested.
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'A',
+        elementKind: ElementKind.CLASS);
+
+    // Both constructors - default and named, are suggested.
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'A',
+        elementKind: ElementKind.CONSTRUCTOR);
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'A.named',
+        elementKind: ElementKind.CONSTRUCTOR);
+  }
+
   test_local_named_constructor() {
     addTestFile('class A {A.c(); x() {new A.^}}');
     return getSuggestions().then((_) {
@@ -624,19 +653,47 @@ class B extends A {
     });
   }
 
+  test_local_shadowClass() async {
+    addTestFile('''
+class A {
+  A();
+  A.named();
+}
+main() {
+  int A = 0;
+  ^
+}
+''');
+    await getSuggestions();
+
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+
+    // The class is suggested.
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'A',
+        relevance: DART_RELEVANCE_LOCAL_VARIABLE);
+
+    // Class and all its constructors are shadowed by the local variable.
+    assertNoResult('A', elementKind: ElementKind.CLASS);
+    assertNoResult('A', elementKind: ElementKind.CONSTRUCTOR);
+    assertNoResult('A.named', elementKind: ElementKind.CONSTRUCTOR);
+  }
+
   test_locals() {
     addTestFile('class A {var a; x() {var b;^}} class DateTime { }');
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'A');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'A',
+          elementKind: ElementKind.CLASS);
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'a',
           relevance: DART_RELEVANCE_LOCAL_FIELD);
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'b',
           relevance: DART_RELEVANCE_LOCAL_VARIABLE);
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'x',
           relevance: DART_RELEVANCE_LOCAL_METHOD);
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'DateTime');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'DateTime',
+          elementKind: ElementKind.CLASS);
     });
   }
 
@@ -677,9 +734,12 @@ class B extends A {m() {^}}
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'HtmlElement');
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'A');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object',
+          elementKind: ElementKind.CLASS);
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'HtmlElement',
+          elementKind: ElementKind.CLASS);
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'A',
+          elementKind: ElementKind.CLASS);
       assertNoResult('test');
     });
   }
@@ -697,9 +757,12 @@ class B extends A {m() {^}}
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'HtmlElement');
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'A');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object',
+          elementKind: ElementKind.CLASS);
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'HtmlElement',
+          elementKind: ElementKind.CLASS);
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'A',
+          elementKind: ElementKind.CLASS);
       assertNoResult('test');
     });
   }
@@ -734,7 +797,8 @@ class B extends A {m() {^}}
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object',
+          elementKind: ElementKind.CLASS);
       assertNoResult('HtmlElement');
       assertNoResult('test');
     });

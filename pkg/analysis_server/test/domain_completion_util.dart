@@ -43,9 +43,13 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
       {int relevance: DART_RELEVANCE_DEFAULT,
       bool isDeprecated: false,
       bool isPotential: false,
-      int selectionOffset}) {
+      int selectionOffset,
+      ElementKind elementKind}) {
     var cs;
     suggestions.forEach((s) {
+      if (elementKind != null && s.element?.kind != elementKind) {
+        return;
+      }
       if (s.completion == completion) {
         if (cs == null) {
           cs = s;
@@ -56,7 +60,13 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
     });
     if (cs == null) {
       var completions = suggestions.map((s) => s.completion).toList();
-      fail('expected "$completion" but found\n $completions');
+
+      String expectationText = '"$completion"';
+      if (elementKind != null) {
+        expectationText += ' ($elementKind)';
+      }
+
+      fail('expected $expectationText, but found\n $completions');
     }
     expect(cs.kind, equals(kind));
     expect(cs.relevance, equals(relevance));
@@ -66,8 +76,10 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
     expect(cs.isPotential, equals(isPotential));
   }
 
-  void assertNoResult(String completion) {
-    if (suggestions.any((cs) => cs.completion == completion)) {
+  void assertNoResult(String completion, {ElementKind elementKind}) {
+    if (suggestions.any((cs) =>
+        cs.completion == completion &&
+        (elementKind == null || cs.element?.kind == elementKind))) {
       fail('did not expect completion: $completion');
     }
   }
