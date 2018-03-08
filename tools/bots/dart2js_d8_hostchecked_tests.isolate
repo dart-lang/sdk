@@ -2,9 +2,17 @@
   'variables': {
     'files': [
               'out/ReleaseIA32/dart',
+              'out/ReleaseIA32/dart2js_platform.dill',
+              'out/ReleaseIA32/dart2js_platform_strong.dill',
               'out/ReleaseX64/dart',
+              'out/ReleaseX64/dart2js_platform.dill',
+              'out/ReleaseX64/dart2js_platform_strong.dill',
               'xcodebuild/ReleaseIA32/dart',
+              'xcodebuild/ReleaseIA32/dart2js_platform.dill',
+              'xcodebuild/ReleaseIA32/dart2js_platform_strong.dill',
               'xcodebuild/ReleaseX64/dart',
+              'xcodebuild/ReleaseX64/dart2js_platform.dill',
+              'xcodebuild/ReleaseX64/dart2js_platform_strong.dill',
               'samples/',
               'samples-dev/',
               'tools/',
