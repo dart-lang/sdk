@@ -112,11 +112,19 @@ DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 2) {
     return Bool::True().raw();
   }
 
+  if (left.GetTypeArguments() == right.GetTypeArguments()) {
+    return Bool::True().raw();
+  }
   const TypeArguments& left_type_arguments =
       TypeArguments::Handle(left.GetTypeArguments());
   const TypeArguments& right_type_arguments =
       TypeArguments::Handle(right.GetTypeArguments());
-  return Bool::Get(left_type_arguments.Equals(right_type_arguments)).raw();
+  const intptr_t num_type_args = cls.NumTypeArguments();
+  const intptr_t num_type_params = cls.NumTypeParameters();
+  return Bool::Get(left_type_arguments.IsSubvectorEquivalent(
+                       right_type_arguments, num_type_args - num_type_params,
+                       num_type_params))
+      .raw();
 }
 
 DEFINE_NATIVE_ENTRY(Object_instanceOf, 4) {
