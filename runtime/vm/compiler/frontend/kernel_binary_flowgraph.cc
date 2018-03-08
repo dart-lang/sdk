@@ -322,8 +322,8 @@ void ClassHelper::ReadUntilExcluding(Field field) {
     case kEndPosition:
       end_position_ = builder_->ReadPosition();  // read end position.
       if (++next_read_ == field) return;
-    case kIsAbstract:
-      is_abstract_ = builder_->ReadBool();  // read is_abstract.
+    case kFlags:
+      flags_ = builder_->ReadFlags();  // read flags.
       if (++next_read_ == field) return;
     case kNameIndex:
       name_index_ = builder_->ReadStringReference();  // read name index.
