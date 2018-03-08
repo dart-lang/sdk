@@ -152,17 +152,7 @@ def UseSanitizer(args):
 
 def DontUseClang(args, target_os, host_cpu, target_cpu):
   # We don't have clang on Windows.
-  return (target_os == 'win'
-         # TODO(infra): Clang cannot compile boringssl and tcmalloc in -mthumb
-         # mode.
-         # See dartbug.com/32363.
-         #
-         # We also can't compile the whole VM with clang in -marm mode
-         # See: dartbug.com/32362.
-         or (target_os == 'linux'
-             and target_cpu.startswith('arm')
-             and target_cpu != 'arm64'
-             and not UseSanitizer(args)))
+  return target_os == 'win'
 
 
 def UseWheezySysroot(args, gn_args):

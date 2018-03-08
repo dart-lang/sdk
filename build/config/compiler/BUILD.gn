@@ -197,12 +197,6 @@ config("compiler") {
       if (arm_tune != "") {
         cflags += [ "-mtune=$arm_tune" ]
       }
-      if (arm_use_thumb) {
-        cflags += [ "-mthumb" ]
-        if (is_android && !is_clang) {  # Clang doesn't support this option.
-          cflags += [ "-mthumb-interwork" ]
-        }
-      }
       if (!is_clang) {
         # Clang doesn't support these flags.
         cflags += [
@@ -377,6 +371,18 @@ config("clang_stackrealign") {
 config("compiler_arm_fpu") {
   if (current_cpu == "arm") {
     cflags = [ "-mfpu=$arm_fpu" ]
+  }
+}
+
+config("compiler_arm_thumb") {
+  if (current_cpu == "arm") {
+    if (arm_use_thumb) {
+      cflags = [ "-mthumb" ]
+      if (is_android && !is_clang) {  # Clang doesn't support this option.
+        cflags += [ "-mthumb-interwork" ]
+      }
+      asmflags = cflags
+    }
   }
 }
 
