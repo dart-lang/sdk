@@ -11,6 +11,46 @@ LayoutTests/*: Skip # TODO(ahe): Make dart:html available.
 LibTest/html/*: Skip # TODO(ahe): Make dart:html available.
 WebPlatformTest/*: Skip # TODO(ahe): Make dart:html available.
 
+[ $compiler != dart2js && $fasta && !$strong ]
+Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t03: MissingCompileTimeError
+Language/Classes/Constructors/Generative_Constructors/execution_t05: MissingCompileTimeError
+Language/Expressions/Constants/bitwise_operators_t02: MissingCompileTimeError
+Language/Expressions/Constants/exception_t04: MissingCompileTimeError
+Language/Expressions/Constants/literal_number_t01: CompileTimeError
+Language/Expressions/Constants/literal_string_t02: MissingCompileTimeError
+Language/Expressions/Constants/logical_expression_t03: MissingCompileTimeError
+Language/Expressions/Constants/math_operators_t01: CompileTimeError
+Language/Expressions/Constants/math_operators_t04: MissingCompileTimeError
+Language/Expressions/Constants/math_operators_t06: CompileTimeError
+Language/Expressions/Numbers/static_type_of_int_t01: CompileTimeError
+Language/Expressions/Numbers/syntax_t10: CompileTimeError
+Language/Expressions/This/placement_t04: MissingCompileTimeError
+LibTest/core/double/isInfinite_A01_t03: CompileTimeError
+LibTest/core/int/abs_A01_t01: CompileTimeError
+LibTest/core/int/ceilToDouble_A01_t01: CompileTimeError
+LibTest/core/int/ceil_A01_t01: CompileTimeError
+LibTest/core/int/floorToDouble_A01_t01: CompileTimeError
+LibTest/core/int/floor_A01_t01: CompileTimeError
+LibTest/core/int/isInfinite_A01_t01: CompileTimeError
+LibTest/core/int/isNaN_A01_t01: CompileTimeError
+LibTest/core/int/isNegative_A01_t01: CompileTimeError
+LibTest/core/int/operator_GE_A01_t01: CompileTimeError
+LibTest/core/int/operator_LE_A01_t01: CompileTimeError
+LibTest/core/int/operator_division_A01_t01: CompileTimeError
+LibTest/core/int/operator_multiplication_A01_t01: CompileTimeError
+LibTest/core/int/operator_remainder_A01_t02: CompileTimeError
+LibTest/core/int/operator_subtraction_A01_t01: CompileTimeError
+LibTest/core/int/operator_truncating_division_A01_t01: CompileTimeError
+LibTest/core/int/operator_unary_minus_A01_t01: CompileTimeError
+LibTest/core/int/parse_A01_t01: CompileTimeError
+LibTest/core/int/remainder_A01_t02: CompileTimeError
+LibTest/core/int/roundToDouble_A01_t01: CompileTimeError
+LibTest/core/int/round_A01_t01: CompileTimeError
+LibTest/core/int/toInt_A01_t01: CompileTimeError
+LibTest/core/int/truncateToDouble_A01_t01: CompileTimeError
+LibTest/core/int/truncate_A01_t01: CompileTimeError
+LibTest/math/pow_A10_t01: CompileTimeError
+
 [ $compiler == fasta && $strong ]
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t01: MissingCompileTimeError
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t02: MissingCompileTimeError
@@ -1609,7 +1649,6 @@ Utils/tests/Expect/notEquals_A01_t03: CompileTimeError
 Utils/tests/Expect/throws_A01_t04: CompileTimeError
 
 [ $fasta && !$strong ]
-Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t03: MissingCompileTimeError
 Language/Classes/Constructors/Constant_Constructors/potentially_constant_expression_t01: MissingCompileTimeError
 Language/Classes/Constructors/Factories/const_modifier_t01: MissingCompileTimeError
 Language/Classes/Constructors/Factories/const_modifier_t02: MissingCompileTimeError
@@ -1620,7 +1659,6 @@ Language/Classes/Constructors/Factories/name_t03: MissingCompileTimeError
 Language/Classes/Constructors/Factories/name_t04: MissingCompileTimeError
 Language/Classes/Constructors/Factories/name_t05: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/execution_t04: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/execution_t05: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/execution_t06: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/execution_t07: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/execution_t12: MissingCompileTimeError
@@ -1637,7 +1675,6 @@ Language/Classes/Superclasses/wrong_superclass_t08: MissingCompileTimeError
 Language/Classes/Superinterfaces/wrong_type_t05: MissingCompileTimeError
 Language/Classes/same_name_type_variable_t04: MissingCompileTimeError
 Language/Classes/same_name_type_variable_t07: MissingCompileTimeError
-Language/Expressions/Constants/bitwise_operators_t02: MissingCompileTimeError
 Language/Expressions/Constants/bitwise_operators_t03: MissingCompileTimeError
 Language/Expressions/Constants/bitwise_operators_t04: MissingCompileTimeError
 Language/Expressions/Constants/bitwise_operators_t06: MissingCompileTimeError
@@ -1645,14 +1682,7 @@ Language/Expressions/Constants/constant_list_t02: MissingCompileTimeError
 Language/Expressions/Constants/constant_map_t02: MissingCompileTimeError
 Language/Expressions/Constants/depending_on_itself_t03: MissingCompileTimeError
 Language/Expressions/Constants/equals_expression_t03: MissingCompileTimeError
-Language/Expressions/Constants/exception_t04: MissingCompileTimeError
-Language/Expressions/Constants/literal_number_t01: CompileTimeError
-Language/Expressions/Constants/literal_string_t02: MissingCompileTimeError
-Language/Expressions/Constants/logical_expression_t03: MissingCompileTimeError
-Language/Expressions/Constants/math_operators_t01: CompileTimeError
-Language/Expressions/Constants/math_operators_t04: MissingCompileTimeError
 Language/Expressions/Constants/math_operators_t05: MissingCompileTimeError
-Language/Expressions/Constants/math_operators_t06: CompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t03: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/arguments_t03: MissingCompileTimeError
@@ -1662,10 +1692,8 @@ Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocat
 Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t02: MissingCompileTimeError
 Language/Expressions/Method_Invocation/Super_Invocation/invocation_t02: MissingCompileTimeError
 Language/Expressions/Method_Invocation/Super_Invocation/invocation_t03: MissingCompileTimeError
-Language/Expressions/Numbers/static_type_of_int_t01: CompileTimeError
 Language/Expressions/Numbers/syntax_t06: CompileTimeError
 Language/Expressions/Numbers/syntax_t09: CompileTimeError
-Language/Expressions/Numbers/syntax_t10: CompileTimeError
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t01: MissingCompileTimeError
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t02: MissingCompileTimeError
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t03: MissingCompileTimeError
@@ -1674,7 +1702,6 @@ Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/cla
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t06: MissingCompileTimeError
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t07: MissingCompileTimeError
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t08: MissingCompileTimeError
-Language/Expressions/This/placement_t04: MissingCompileTimeError
 Language/Expressions/Throw/syntax_t02: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: MissingCompileTimeError
@@ -1703,47 +1730,22 @@ Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: MissingCompile
 Language/Types/Interface_Types/subtype_t30: CompileTimeError
 Language/Variables/final_or_static_initialization_t02: MissingCompileTimeError
 Language/Variables/final_or_static_initialization_t03: MissingCompileTimeError
-LibTest/core/double/isInfinite_A01_t03: CompileTimeError
-LibTest/core/int/abs_A01_t01: CompileTimeError
-LibTest/core/int/ceilToDouble_A01_t01: CompileTimeError
-LibTest/core/int/ceil_A01_t01: CompileTimeError
 LibTest/core/int/compareTo_A01_t01: CompileTimeError
-LibTest/core/int/floorToDouble_A01_t01: CompileTimeError
-LibTest/core/int/floor_A01_t01: CompileTimeError
 LibTest/core/int/isEven_A01_t01: CompileTimeError
-LibTest/core/int/isInfinite_A01_t01: CompileTimeError
-LibTest/core/int/isNaN_A01_t01: CompileTimeError
-LibTest/core/int/isNegative_A01_t01: CompileTimeError
 LibTest/core/int/isOdd_A01_t01: CompileTimeError
 LibTest/core/int/operator_AND_A01_t01: CompileTimeError
-LibTest/core/int/operator_GE_A01_t01: CompileTimeError
 LibTest/core/int/operator_GT_A01_t01: CompileTimeError
-LibTest/core/int/operator_LE_A01_t01: CompileTimeError
 LibTest/core/int/operator_LT_A01_t01: CompileTimeError
 LibTest/core/int/operator_NOT_A01_t01: CompileTimeError
 LibTest/core/int/operator_OR_A01_t01: CompileTimeError
 LibTest/core/int/operator_XOR_A01_t01: CompileTimeError
 LibTest/core/int/operator_addition_A01_t01: CompileTimeError
-LibTest/core/int/operator_division_A01_t01: CompileTimeError
 LibTest/core/int/operator_left_shift_A01_t01: CompileTimeError
-LibTest/core/int/operator_multiplication_A01_t01: CompileTimeError
 LibTest/core/int/operator_remainder_A01_t01: CompileTimeError
-LibTest/core/int/operator_remainder_A01_t02: CompileTimeError
 LibTest/core/int/operator_right_shift_A01_t01: CompileTimeError
-LibTest/core/int/operator_subtraction_A01_t01: CompileTimeError
-LibTest/core/int/operator_truncating_division_A01_t01: CompileTimeError
 LibTest/core/int/operator_truncating_division_A01_t02: CompileTimeError
-LibTest/core/int/operator_unary_minus_A01_t01: CompileTimeError
-LibTest/core/int/parse_A01_t01: CompileTimeError
 LibTest/core/int/remainder_A01_t01: CompileTimeError
-LibTest/core/int/remainder_A01_t02: CompileTimeError
-LibTest/core/int/roundToDouble_A01_t01: CompileTimeError
-LibTest/core/int/round_A01_t01: CompileTimeError
 LibTest/core/int/toDouble_A01_t01: CompileTimeError
-LibTest/core/int/toInt_A01_t01: CompileTimeError
-LibTest/core/int/truncateToDouble_A01_t01: CompileTimeError
-LibTest/core/int/truncate_A01_t01: CompileTimeError
-LibTest/math/pow_A10_t01: CompileTimeError
 LibTest/typed_data/ByteData/getUint64_A01_t01: CompileTimeError
 LibTest/typed_data/ByteData/setUint64_A01_t01: CompileTimeError
 LibTest/typed_data/Uint64List/Uint64List.fromList_A01_t01: CompileTimeError
