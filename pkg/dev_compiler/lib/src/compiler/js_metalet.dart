@@ -82,9 +82,11 @@ class MetaLet extends Expression {
     return new MetaLet(variables, exprs);
   }
 
-  Statement toVariableDeclaration(Identifier name) {
-    var simple = _simplifyAssignment(name, isDeclaration: true);
-    if (simple != null) return simple.toStatement();
+  Statement toVariableDeclaration(VariableBinding name) {
+    if (name is Identifier) {
+      var simple = _simplifyAssignment(name, isDeclaration: true);
+      if (simple != null) return simple.toStatement();
+    }
 
     // We can still optimize something like:
     //
@@ -138,13 +140,14 @@ class MetaLet extends Expression {
     return _finishStatement(statements);
   }
 
-  accept(NodeVisitor visitor) {
+  T accept<T>(NodeVisitor<T> visitor) {
     // TODO(jmesserly): we special case vistors from js_ast.Template, because it
     // doesn't know about MetaLet. Should we integrate directly?
-    if (visitor is InstantiatorGeneratorVisitor) {
-      return _templateVisitMetaLet(visitor);
-    } else if (visitor is InterpolatedNodeAnalysis) {
-      return visitor.visitNode(this);
+    NodeVisitor v = visitor;
+    if (v is InstantiatorGeneratorVisitor) {
+      return _templateVisitMetaLet(v) as T;
+    } else if (v is InterpolatedNodeAnalysis) {
+      return v.visitNode(this) as T;
     } else {
       return toExpression().accept(visitor);
     }
@@ -171,13 +174,13 @@ class MetaLet extends Expression {
     var bodyInstantiators = body.map(visitor.visit);
 
     return (args) => new MetaLet(
-        new Map.fromIterables(
-            variables.keys, valueInstantiators.map((i) => i(args))),
+        new Map.fromIterables(variables.keys,
+            valueInstantiators.map((i) => i(args) as Expression)),
         bodyInstantiators.map((i) => i(args) as Expression).toList(),
         statelessResult: statelessResult);
   }
 
-  Expression _toInvokedFunction(Statement block) {
+  Expression _toInvokedFunction(Block block) {
     var finder = new _YieldFinder();
     block.accept(finder);
     if (!finder.hasYield) {
@@ -276,7 +279,8 @@ class MetaLet extends Expression {
 }
 
 /// Similar to [Template.instantiate] but works with free variables.
-Node _substitute(Node tree, Map<MetaLetVariable, Expression> substitutions) {
+T _substitute<T extends Node>(
+    T tree, Map<MetaLetVariable, Expression> substitutions) {
   var generator = new InstantiatorGeneratorVisitor(/*forceCopy:*/ false);
   var instantiator = generator.compile(tree);
   var nodes = new List<MetaLetVariable>.from(generator
@@ -286,7 +290,7 @@ Node _substitute(Node tree, Map<MetaLetVariable, Expression> substitutions) {
 
   return instantiator(new Map.fromIterable(nodes,
       key: (v) => (v as MetaLetVariable).nameOrPosition,
-      value: (v) => substitutions[v] ?? v));
+      value: (v) => substitutions[v] ?? v)) as T;
 }
 
 /// A temporary variable used in a [MetaLet].

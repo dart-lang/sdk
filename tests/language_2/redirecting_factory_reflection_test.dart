@@ -17,6 +17,6 @@ class B<X, Y> implements A<X> {
 
 main() {
   ClassMirror m = reflectClass(A);
-  var i = m.newInstance(const Symbol(''), []).reflectee;
+  var i = m.newInstance(Symbol.empty, []).reflectee;
   Expect.equals(i.t.toString(), 'A');
 }

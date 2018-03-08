@@ -7,9 +7,7 @@ library fasta.kernel_interface_type_builder;
 import 'package:kernel/ast.dart' show DartType, Supertype;
 
 import '../messages.dart'
-    show templateSupertypeIsIllegal, templateSupertypeIsTypeVariable;
-
-import '../parser.dart' show noLength;
+    show noLength, templateSupertypeIsIllegal, templateSupertypeIsTypeVariable;
 
 import 'kernel_builder.dart'
     show

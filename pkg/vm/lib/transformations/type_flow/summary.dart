@@ -30,10 +30,10 @@ abstract class Statement extends TypeExpr {
     return type;
   }
 
-  String get name => "t$index";
+  String get label => "t$index";
 
   @override
-  String toString() => name;
+  String toString() => label;
 
   /// Prints body of this statement.
   String dump();
@@ -58,20 +58,21 @@ class StatementVisitor {
 
 /// Input parameter of the summary.
 class Parameter extends Statement {
-  final String _name;
+  final String name;
   final Type staticType;
   Type defaultValue;
   Type _argumentType = const EmptyType();
 
-  Parameter(this._name, this.staticType);
+  Parameter(this.name, this.staticType);
 
-  String get name => _name != null ? "%$_name" : super.name;
+  @override
+  String get label => "%$name";
 
   @override
   void accept(StatementVisitor visitor) => visitor.visitParameter(this);
 
   @override
-  String dump() => "$name = _Parameter #$index [$staticType]";
+  String dump() => "$label = _Parameter #$index [$staticType]";
 
   @override
   Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
@@ -96,7 +97,7 @@ class Narrow extends Statement {
   void accept(StatementVisitor visitor) => visitor.visitNarrow(this);
 
   @override
-  String dump() => "$name = _Narrow ($arg to $type)";
+  String dump() => "$label = _Narrow ($arg to $type)";
 
   @override
   Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
@@ -112,13 +113,14 @@ class Join extends Statement {
 
   Join(this._name, this.staticType);
 
-  String get name => _name ?? super.name;
+  @override
+  String get label => _name ?? super.label;
 
   @override
   void accept(StatementVisitor visitor) => visitor.visitJoin(this);
 
   @override
-  String dump() => "$name = _Join [$staticType] (${values.join(", ")})";
+  String dump() => "$label = _Join [$staticType] (${values.join(", ")})";
 
   @override
   Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
@@ -144,7 +146,7 @@ class Call extends Statement {
   void accept(StatementVisitor visitor) => visitor.visitCall(this);
 
   @override
-  String dump() => "$name${isResultUsed ? '*' : ''} = _Call $selector $args";
+  String dump() => "$label${isResultUsed ? '*' : ''} = _Call $selector $args";
 
   @override
   Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
@@ -238,12 +240,16 @@ class Call extends Statement {
 /// one member, function or initializer.
 class Summary {
   final int parameterCount;
+  final int positionalParameterCount;
   final int requiredParameterCount;
 
   List<Statement> _statements = <Statement>[];
   TypeExpr result = null;
 
-  Summary({this.parameterCount: 0, this.requiredParameterCount: 0});
+  Summary(
+      {this.parameterCount: 0,
+      this.positionalParameterCount: 0,
+      this.requiredParameterCount: 0});
 
   List<Statement> get statements => _statements;
 
@@ -267,11 +273,12 @@ class Summary {
   /// Apply this summary to the given arguments and return the resulting type.
   Type apply(Args<Type> arguments, TypeHierarchy typeHierarchy,
       CallHandler callHandler) {
-    // TODO(alexmarkov): take named parameters into account
-    final args = arguments.positional;
-
-    assertx(args.length >= requiredParameterCount);
-    assertx(args.length <= parameterCount);
+    final args = arguments.values;
+    final positionalArgCount = arguments.positionalCount;
+    final namedArgCount = arguments.namedCount;
+    assertx(requiredParameterCount <= positionalArgCount);
+    assertx(positionalArgCount <= positionalParameterCount);
+    assertx(namedArgCount <= parameterCount - positionalParameterCount);
 
     // Interpret statements sequentially, calculating the result type
     // of each statement and putting it into the 'types' list parallel
@@ -284,20 +291,39 @@ class Summary {
 
     List<Type> types = new List<Type>(_statements.length);
 
-    types.setAll(0, args);
+    types.setRange(0, positionalArgCount, args);
 
-    for (int i = 0; i < args.length; i++) {
+    for (int i = 0; i < positionalArgCount; i++) {
       Parameter param = _statements[i] as Parameter;
       param._observeArgumentType(args[i], typeHierarchy);
       types[i] = args[i].intersection(param.staticType, typeHierarchy);
     }
 
-    for (int i = args.length; i < parameterCount; i++) {
+    for (int i = positionalArgCount; i < positionalParameterCount; i++) {
       Parameter param = _statements[i] as Parameter;
+      assertx(param.defaultValue != null);
       param._observeArgumentType(param.defaultValue, typeHierarchy);
       types[i] = param.defaultValue;
-      assertx(types[i] != null);
     }
+
+    final argNames = arguments.names;
+    int argIndex = 0;
+    for (int i = positionalParameterCount; i < parameterCount; i++) {
+      Parameter param = _statements[i] as Parameter;
+      assertx(param.defaultValue != null);
+      if ((argIndex < namedArgCount) && (argNames[argIndex] == param.name)) {
+        Type argType = args[positionalArgCount + argIndex];
+        argIndex++;
+        param._observeArgumentType(argType, typeHierarchy);
+        types[i] = argType.intersection(param.staticType, typeHierarchy);
+      } else {
+        assertx((argIndex == namedArgCount) ||
+            (param.name.compareTo(argNames[argIndex]) < 0));
+        param._observeArgumentType(param.defaultValue, typeHierarchy);
+        types[i] = param.defaultValue;
+      }
+    }
+    assertx(argIndex == namedArgCount);
 
     for (int i = parameterCount; i < _statements.length; i++) {
       // Test if tracing is enabled to avoid expensive message formatting.
@@ -316,12 +342,16 @@ class Summary {
   }
 
   Args<Type> get argumentTypes {
-    final positional = new List<Type>(parameterCount);
+    final argTypes = new List<Type>(parameterCount);
+    final argNames =
+        new List<String>(parameterCount - positionalParameterCount);
     for (int i = 0; i < parameterCount; i++) {
       Parameter param = _statements[i] as Parameter;
-      positional[i] = param.argumentType;
+      argTypes[i] = param.argumentType;
+      if (i >= positionalParameterCount) {
+        argNames[i - positionalParameterCount] = param.name;
+      }
     }
-    // TODO(alexmarkov): support named parameters
-    return new Args<Type>(positional);
+    return new Args<Type>(argTypes, names: argNames);
   }
 }

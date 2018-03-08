@@ -17,6 +17,7 @@ class C1 {}
 
 class C2 {}
 
+/*class: C3:implicit=[C3]*/
 class C3 {}
 
 /*class: D1:implicit=[D1]*/
@@ -37,7 +38,7 @@ class F2 {}
 /*class: F3:implicit=[F3]*/
 class F3 {}
 
-/*element: topLevelMethod1:direct,explicit=[topLevelMethod1.T],needsArgs*/
+/*element: topLevelMethod1:direct,explicit=[topLevelMethod1.T],needsArgs,selectors=[Selector(call, call, arity=2, named=[a1], types=1)]*/
 // Calls to this imply a check of the passed type arguments.
 bool topLevelMethod1<T>(T t, {a1}) => t is T;
 
@@ -45,7 +46,7 @@ bool topLevelMethod1<T>(T t, {a1}) => t is T;
 T topLevelMethod2<T>(T t, {a2}) => t;
 
 class Class {
-  /*element: Class.instanceMethod1:direct,explicit=[instanceMethod1.S],needsArgs*/
+  /*element: Class.instanceMethod1:direct,explicit=[instanceMethod1.S],needsArgs,selectors=[Selector(call, call, arity=2, named=[b1], types=1),Selector(call, instanceMethod1, arity=2, named=[b1], types=1)]*/
   // Calls to this imply a check of the passed type arguments.
   bool instanceMethod1<S>(S s, {b1}) => s is S;
 
@@ -55,7 +56,7 @@ class Class {
 
 main() {
   // Calls to this imply a check of the passed type arguments.
-  /*direct,explicit=[localFunction1.U],needsArgs*/
+  /*direct,explicit=[localFunction1.U],needsArgs,selectors=[Selector(call, call, arity=2, named=[c1], types=1)]*/
   bool localFunction1<U>(U u, {c1}) => u is U;
 
   // Calls to this does _not_ imply a check of the passed type arguments.

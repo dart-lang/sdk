@@ -2706,7 +2706,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     _pushDynamicInvocation(
         node,
-        _typeInferenceMap.typeOfGet(node),
+        _typeInferenceMap.receiverTypeOfGet(node),
         new Selector.getter(_elementMap.getName(node.name)),
         <HInstruction>[receiver],
         const <DartType>[],
@@ -2736,7 +2736,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     _pushDynamicInvocation(
         node,
-        _typeInferenceMap.typeOfSet(node, closedWorld),
+        _typeInferenceMap.receiverTypeOfSet(node, closedWorld),
         new Selector.setter(_elementMap.getName(node.name)),
         <HInstruction>[receiver, value],
         const <DartType>[],
@@ -2755,7 +2755,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // TODO(sra): Implement direct invocations properly.
     _pushDynamicInvocation(
         node,
-        _typeInferenceMap.typeOfDirectGet(node),
+        _typeInferenceMap.receiverTypeOfDirectGet(node),
         new Selector.getter(_elementMap.getMember(node.target).memberName),
         <HInstruction>[receiver],
         const <DartType>[],
@@ -2934,14 +2934,18 @@ class KernelSsaGraphBuilder extends ir.Visitor
     return values;
   }
 
-  List<DartType> _getDynamicTypeArguments(
-      Selector selector, ir.Arguments arguments) {
-    if (options.strongMode && arguments.types.isNotEmpty) {
-      // TODO(johnniwinther): Only pass type arguments to dynamic call where at
-      // least one potential target need them.
-      return arguments.types.map(_elementMap.getDartType).toList();
+  /// Fills [typeArguments] with the type arguments needed for [selector] and
+  /// returns the selector corresponding to the passed type arguments.
+  Selector _fillDynamicTypeArguments(
+      Selector selector, ir.Arguments arguments, List<DartType> typeArguments) {
+    if (options.strongMode && selector.typeArgumentCount > 0) {
+      if (rtiNeed.selectorNeedsTypeArguments(selector)) {
+        typeArguments.addAll(arguments.types.map(_elementMap.getDartType));
+      } else {
+        return selector.toNonGeneric();
+      }
     }
-    return const <DartType>[];
+    return selector;
   }
 
   List<DartType> _getConstructorTypeArguments(
@@ -4024,11 +4028,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
     node.receiver.accept(this);
     HInstruction receiver = pop();
     Selector selector = _elementMap.getSelector(node);
-    List<DartType> typeArguments =
-        _getDynamicTypeArguments(selector, node.arguments);
+    List<DartType> typeArguments = <DartType>[];
+    selector =
+        _fillDynamicTypeArguments(selector, node.arguments, typeArguments);
     _pushDynamicInvocation(
         node,
-        _typeInferenceMap.typeOfInvocation(node, closedWorld),
+        _typeInferenceMap.receiverTypeOfInvocation(node, closedWorld),
         selector,
         <HInstruction>[receiver]..addAll(_visitArgumentsForDynamicTarget(
             selector, node.arguments, typeArguments)),
@@ -4167,8 +4172,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _sourceInformationBuilder.buildCall(node, node);
     if (node.interfaceTarget == null) {
       Selector selector = _elementMap.getSelector(node);
-      List<DartType> typeArguments =
-          _getDynamicTypeArguments(selector, node.arguments);
+      List<DartType> typeArguments = <DartType>[];
+      selector =
+          _fillDynamicTypeArguments(selector, node.arguments, typeArguments);
       List<HInstruction> arguments = _visitArgumentsForDynamicTarget(
           selector, node.arguments, typeArguments);
       _generateSuperNoSuchMethod(

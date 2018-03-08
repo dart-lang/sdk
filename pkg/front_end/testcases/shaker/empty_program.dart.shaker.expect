@@ -263,6 +263,7 @@ library dart:core:
     - toRadixString
   - class Invocation
     - memberName
+    - typeArguments
     - positionalArguments
     - namedArguments
     - isMethod

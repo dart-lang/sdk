@@ -32,6 +32,7 @@ final _variables = {
   "jscl": new _Variable.bool((c) => c.runtime.isJSCommandLine),
   "minified": new _Variable.bool((c) => c.isMinified),
   "mode": new _Variable((c) => c.mode.name, Mode.names),
+  "preview_dart_2": new _Variable.bool((c) => c.previewDart2),
   "runtime": new _Variable(_runtimeName, Runtime.names),
   "spec_parser": new _Variable.bool((c) => c.compiler == Compiler.specParser),
   "strong": new _Variable.bool((c) => c.isStrong),

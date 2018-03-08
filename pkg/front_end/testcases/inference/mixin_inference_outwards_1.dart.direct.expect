@@ -17,9 +17,9 @@ class M1<T extends core::Object> extends self::I<self::M1::T> {
     : super self::I::•()
     ;
 }
-abstract class _M0&M1^#U0^<#U0 extends core::Object> = self::M0<self::_M0&M1^#U0^::#U0> with self::M1<dynamic> {
+abstract class _A&M0&M1 = self::M0<core::int> with self::M1<dynamic> {
 }
-class A extends self::_M0&M1^#U0^<core::int> {
+class A extends self::_A&M0&M1 {
   synthetic constructor •() → void
     : super self::M0::•()
     ;

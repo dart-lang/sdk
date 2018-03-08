@@ -33,10 +33,11 @@ class MaybeQualifiedId extends Expression {
   }
 
   /// Helper to create an [Identifier] from something that starts as a property.
-  static identifier(LiteralString propertyName) =>
+  static Identifier identifier(LiteralString propertyName) =>
       new Identifier(propertyName.valueWithoutQuotes);
 
   void setQualified(bool qualified) {
+    var name = this.name;
     if (!qualified && name is LiteralString) {
       _expr = identifier(name);
     }
@@ -44,7 +45,7 @@ class MaybeQualifiedId extends Expression {
 
   int get precedenceLevel => _expr.precedenceLevel;
 
-  accept(NodeVisitor visitor) => _expr.accept(visitor);
+  T accept<T>(NodeVisitor<T> visitor) => _expr.accept(visitor);
 
   void visitChildren(NodeVisitor visitor) => _expr.visitChildren(visitor);
 }
@@ -194,7 +195,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
       name = id.name;
       valid = !invalidVariableName(name);
     } else {
-      name = id;
+      name = id as String;
       valid = false;
     }
 

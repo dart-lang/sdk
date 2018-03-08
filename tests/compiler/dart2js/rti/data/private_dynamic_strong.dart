@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*class: A:explicit=[B<A>]*/
-class A {}
-
-/*class: B:deps=[closure],explicit=[B<A>],needsArgs*/
-class B<T> {}
+class C {
+  /*element: C._private:direct,explicit=[_private.T],needsArgs,selectors=[Selector(call, _private, arity=1, types=1)]*/
+  _private<T>(t) => t is T;
+}
 
 main() {
-  /*kernel.needsArgs*/ closure<T>() => new B<T>();
-
-  closure<A>() is B<A>;
+  dynamic c = new C();
+  c._private<int>(0);
 }

@@ -17,7 +17,7 @@ part of dart.convert;
  *                                 0x20, 0x41, 0x53, 0x43, 0x49, 0x49, 0x21]);
  */
 const AsciiCodec ascii = const AsciiCodec();
-/** Deprecated, use [ascii] instead. */
+@Deprecated("Use ascii instead")
 const AsciiCodec ASCII = ascii;
 
 const int _asciiMask = 0x7F;

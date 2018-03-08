@@ -126,7 +126,7 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
 
 class _TreeCloner extends analyzer.AstCloner {
   void _cloneProperties(AstNode clone, AstNode node) {
-    if (clone is Expression) {
+    if (clone is Expression && node is Expression) {
       ast_properties.setImplicitCast(
           clone, ast_properties.getImplicitCast(node));
       ast_properties.setImplicitOperationCast(
@@ -134,7 +134,7 @@ class _TreeCloner extends analyzer.AstCloner {
       ast_properties.setIsDynamicInvoke(
           clone, ast_properties.isDynamicInvoke(node));
     }
-    if (clone is ClassDeclaration || clone is ClassTypeAlias) {
+    if (clone is Declaration && node is Declaration) {
       ast_properties.setClassCovariantParameters(
           clone, ast_properties.getClassCovariantParameters(node));
       ast_properties.setSuperclassCovariantParameters(

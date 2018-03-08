@@ -11,10 +11,13 @@ Fun simplifyPassThroughArrowFunCallBody(Fun fn) {
     var stat = fn.body.statements.single;
     if (stat is Return && stat.value is Call) {
       Call call = stat.value;
-      if (call.target is ArrowFun && call.arguments.isEmpty) {
-        ArrowFun innerFun = call.target;
-        if (innerFun.params.isEmpty) {
-          return new Fun(fn.params, innerFun.body,
+      var innerFun = call.target;
+      if (innerFun is ArrowFun &&
+          call.arguments.isEmpty &&
+          innerFun.params.isEmpty) {
+        var body = innerFun.body;
+        if (body is Block) {
+          return new Fun(fn.params, body,
               typeParams: fn.typeParams, returnType: fn.returnType);
         }
       }

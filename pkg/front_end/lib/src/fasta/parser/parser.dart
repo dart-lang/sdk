@@ -2468,7 +2468,8 @@ class Parser {
         if (!token.isIdentifier) {
           if (memberKind == MemberKind.TopLevelField ||
               memberKind == MemberKind.NonStaticField ||
-              memberKind == MemberKind.StaticField) {
+              memberKind == MemberKind.StaticField ||
+              memberKind == MemberKind.Local) {
             reportRecoverableError(
                 begin, fasta.messageMissingConstFinalVarOrType);
             listener.handleNoType(beforeBegin);

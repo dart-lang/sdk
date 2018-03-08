@@ -12,9 +12,9 @@ class M extends core::Object {
   method m() → dynamic
     ;
 }
-abstract class _A&M^#U0^<#U0 extends core::Object> = self::A<self::_A&M^#U0^::#U0> with self::M {
+abstract class _C&A&M = self::A<self::A<dynamic>> with self::M {
 }
-class C extends self::_A&M^#U0^<self::A<dynamic>> {
+class C extends self::_C&A&M {
   synthetic constructor •() → void
     ;
 }

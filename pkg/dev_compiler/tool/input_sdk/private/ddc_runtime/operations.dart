@@ -15,7 +15,7 @@ class InvocationImpl extends Invocation {
   final bool isGetter;
   final bool isSetter;
 
-  InvocationImpl(memberName, this.positionalArguments,
+  InvocationImpl(memberName, List<Object> positionalArguments,
       {namedArguments,
       List typeArguments,
       this.isMethod: false,
@@ -23,6 +23,7 @@ class InvocationImpl extends Invocation {
       this.isSetter: false})
       : memberName =
             isSetter ? _setterSymbol(memberName) : _dartSymbol(memberName),
+        positionalArguments = new List.unmodifiable(positionalArguments),
         namedArguments = _namedArgsToSymbols(namedArguments),
         typeArguments = typeArguments == null
             ? const []

@@ -79,15 +79,13 @@ class Template {
   }
 
   bool _checkNoPlaceholders() {
-    InstantiatorGeneratorVisitor generator =
-        new InstantiatorGeneratorVisitor(false);
+    var generator = new InstantiatorGeneratorVisitor(false);
     generator.compile(ast);
     return generator.analysis.count == 0;
   }
 
   void _compile() {
-    InstantiatorGeneratorVisitor generator =
-        new InstantiatorGeneratorVisitor(forceCopy);
+    var generator = new InstantiatorGeneratorVisitor(forceCopy);
     instantiator = generator.compile(ast);
     positionalArgumentCount = generator.analysis.count;
     Set<String> names = generator.analysis.holeNames;
@@ -104,22 +102,25 @@ class Template {
         throw 'Wrong number of template arguments, given ${arguments.length}, '
             'expected $positionalArgumentCount:\n$source';
       }
-      return instantiator(arguments);
+      return instantiator(arguments) as Node;
     }
-    assert(arguments is Map);
-    if (holeNames.length < arguments.length) {
-      // This search is in O(n), but we only do it in case of an error, and the
-      // number of holes should be quite limited.
-      String unusedNames =
-          arguments.keys.where((name) => !holeNames.contains(name)).join(", ");
-      throw "Template arguments has unused mappings: $unusedNames";
+    if (arguments is Map) {
+      if (holeNames.length < arguments.length) {
+        // This search is in O(n), but we only do it in case of an new StateError, and the
+        // number of holes should be quite limited.
+        String unusedNames = arguments.keys
+            .where((name) => !holeNames.contains(name))
+            .join(", ");
+        throw "Template arguments has unused mappings: $unusedNames";
+      }
+      if (!holeNames.every((String name) => arguments.containsKey(name))) {
+        String notFound =
+            holeNames.where((name) => !arguments.containsKey(name)).join(", ");
+        throw "Template arguments is missing mappings for: $notFound";
+      }
+      return instantiator(arguments) as Node;
     }
-    if (!holeNames.every((String name) => arguments.containsKey(name))) {
-      String notFound =
-          holeNames.where((name) => !arguments.containsKey(name)).join(", ");
-      throw "Template arguments is missing mappings for: $notFound";
-    }
-    return instantiator(arguments);
+    throw new ArgumentError.value(arguments, 'must be a List or Map');
   }
 }
 
@@ -128,7 +129,7 @@ class Template {
  * trees. [arguments] is a List for positional templates, or Map for
  * named templates.
  */
-typedef Instantiator(var arguments);
+typedef T Instantiator<T>(arguments);
 
 /**
  * InstantiatorGeneratorVisitor compiles a template.  This class compiles a tree
@@ -138,7 +139,7 @@ typedef Instantiator(var arguments);
 class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   final bool forceCopy;
 
-  InterpolatedNodeAnalysis analysis = new InterpolatedNodeAnalysis();
+  final analysis = new InterpolatedNodeAnalysis();
 
   /**
    * The entire tree is cloned if [forceCopy] is true.
@@ -147,16 +148,11 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   Instantiator compile(Node node) {
     analysis.visit(node);
-    Instantiator result = visit(node);
-    return result;
+    return visit(node);
   }
 
-  static error(String message) {
-    throw message;
-  }
-
-  static Instantiator same(Node node) => (arguments) => node;
-  static Node makeNull(arguments) => null;
+  static Instantiator<T> same<T extends Node>(T node) => (arguments) => node;
+  static Null makeNull(arguments) => null;
 
   Instantiator visit(Node node) {
     if (forceCopy || analysis.containsInterpolatedNodes(node)) {
@@ -166,26 +162,29 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   }
 
   Instantiator visitNullable(Node node) {
-    if (node == null) return makeNull;
-    return visit(node);
+    return node == null ? makeNull : visit(node);
   }
 
   Instantiator visitSplayable(Node node) {
-    // TODO(sra): Process immediate [InterpolatedNode]s, permitting splaying.
-    return visit(node);
+    // TODO(jmesserly): parameters and methods always support splaying because
+    // they appear in lists. So this method is equivalent to
+    // `visitSplayableExpression`.
+    return visitSplayableExpression(node);
   }
 
   Instantiator visitNode(Node node) {
-    throw 'Unimplemented InstantiatorGeneratorVisitor for $node';
+    throw new UnimplementedError('visit${node.runtimeType}');
   }
 
-  Instantiator visitInterpolatedExpression(InterpolatedExpression node) {
+  Instantiator<Expression> visitInterpolatedExpression(
+      InterpolatedExpression node) {
     var nameOrPosition = node.nameOrPosition;
     return (arguments) {
       var value = arguments[nameOrPosition];
       if (value is Expression) return value;
       if (value is String) return new Identifier(value);
-      error('Interpolated value #$nameOrPosition is not an Expression: $value');
+      throw new StateError(
+          'Interpolated value #$nameOrPosition is not an Expression: $value');
     };
   }
 
@@ -197,7 +196,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         Expression toExpression(item) {
           if (item is Expression) return item;
           if (item is String) return new Identifier(item);
-          return error('Interpolated value #$nameOrPosition is not '
+          throw new StateError('Interpolated value #$nameOrPosition is not '
               'an Expression or List of Expressions: $value');
         }
 
@@ -208,12 +207,26 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     return visit(node);
   }
 
-  Instantiator visitInterpolatedLiteral(InterpolatedLiteral node) {
+  List<T> splayNodes<T extends Node>(List<Instantiator> makers, args) {
+    var exprs = <T>[];
+    for (var instantiator in makers) {
+      var result = instantiator(args);
+      if (result is Iterable) {
+        for (var e in result) exprs.add(e as T);
+      } else {
+        exprs.add(result as T);
+      }
+    }
+    return exprs;
+  }
+
+  Instantiator<Literal> visitInterpolatedLiteral(InterpolatedLiteral node) {
     var nameOrPosition = node.nameOrPosition;
     return (arguments) {
       var value = arguments[nameOrPosition];
       if (value is Literal) return value;
-      error('Interpolated value #$nameOrPosition is not a Literal: $value');
+      throw new StateError(
+          'Interpolated value #$nameOrPosition is not a Literal: $value');
     };
   }
 
@@ -225,7 +238,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       Parameter toIdentifier(item) {
         if (item is Parameter) return item;
         if (item is String) return new Identifier(item);
-        return error('Interpolated value #$nameOrPosition is not an Identifier'
+        throw new StateError(
+            'Interpolated value #$nameOrPosition is not an Identifier'
             ' or List of Identifiers: $value');
       }
 
@@ -234,7 +248,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
-  Instantiator visitInterpolatedSelector(InterpolatedSelector node) {
+  Instantiator<Expression> visitInterpolatedSelector(
+      InterpolatedSelector node) {
     // A selector is an expression, as in `a[selector]`.
     // A String argument converted into a LiteralString, so `a.#` with argument
     // 'foo' generates `a["foo"]` which prints as `a.foo`.
@@ -243,16 +258,19 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       var value = arguments[nameOrPosition];
       if (value is Expression) return value;
       if (value is String) return new LiteralString('"$value"');
-      error('Interpolated value #$nameOrPosition is not a selector: $value');
+      throw new StateError(
+          'Interpolated value #$nameOrPosition is not a selector: $value');
     };
   }
 
-  Instantiator visitInterpolatedStatement(InterpolatedStatement node) {
+  Instantiator<Statement> visitInterpolatedStatement(
+      InterpolatedStatement node) {
     var nameOrPosition = node.nameOrPosition;
     return (arguments) {
       var value = arguments[nameOrPosition];
       if (value is Node) return value.toStatement();
-      error('Interpolated value #$nameOrPosition is not a Statement: $value');
+      throw new StateError(
+          'Interpolated value #$nameOrPosition is not a Statement: $value');
     };
   }
 
@@ -262,7 +280,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       var value = arguments[nameOrPosition];
       Method toMethod(item) {
         if (item is Method) return item;
-        return error('Interpolated value #$nameOrPosition is not a Method '
+        throw new StateError(
+            'Interpolated value #$nameOrPosition is not a Method '
             'or List of Methods: $value');
       }
 
@@ -271,13 +290,14 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
-  Instantiator visitInterpolatedIdentifier(InterpolatedIdentifier node) {
+  Instantiator<Identifier> visitInterpolatedIdentifier(
+      InterpolatedIdentifier node) {
     var nameOrPosition = node.nameOrPosition;
     return (arguments) {
       var item = arguments[nameOrPosition];
       if (item is Identifier) return item;
       if (item is String) return new Identifier(item);
-      return error('Interpolated value #$nameOrPosition is not a '
+      throw new StateError('Interpolated value #$nameOrPosition is not a '
           'Identifier or String: $item');
     };
   }
@@ -290,8 +310,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         Statement toStatement(item) {
           if (item is Statement) return item;
           if (item is Expression) return item.toStatement();
-          ;
-          return error('Interpolated value #$nameOrPosition is not '
+          throw new StateError('Interpolated value #$nameOrPosition is not '
               'a Statement or List of Statements: $value');
         }
 
@@ -302,250 +321,178 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     return visit(node);
   }
 
-  Instantiator visitProgram(Program node) {
-    List instantiators = node.body.map(visitSplayableStatement).toList();
-    return (arguments) {
-      List<Statement> statements = <Statement>[];
-      void add(node) {
-        if (node is EmptyStatement) return;
-        if (node is Iterable) {
-          for (var n in node) statements.add(n);
-        } else {
-          statements.add(node.toStatement());
-        }
-      }
-
-      for (Instantiator instantiator in instantiators) {
-        add(instantiator(arguments));
-      }
-      return new Program(statements);
-    };
+  Instantiator<Program> visitProgram(Program node) {
+    var instantiators = node.body.map(visitSplayableStatement).toList();
+    return (a) => new Program(splayStatements(instantiators, a));
   }
 
-  Instantiator visitBlock(Block node) {
-    List instantiators = node.statements.map(visitSplayableStatement).toList();
-    return (arguments) {
-      List<Statement> statements = <Statement>[];
-      void add(node) {
-        if (node is EmptyStatement) return;
-        if (node is Iterable) {
-          for (var n in node) statements.add(n);
-        } else if (node is Block) {
-          statements.addAll(node.statements);
-        } else {
-          statements.add(node.toStatement());
-        }
+  List<Statement> splayStatements(List<Instantiator> instantiators, arguments) {
+    var statements = <Statement>[];
+    for (var instantiator in instantiators) {
+      var node = instantiator(arguments);
+      if (node is EmptyStatement) continue;
+      if (node is Iterable) {
+        for (var n in node) statements.add(n as Statement);
+      } else if (node is Block && !node.isScope) {
+        statements.addAll(node.statements);
+      } else {
+        statements.add((node as Node).toStatement());
       }
-
-      for (Instantiator instantiator in instantiators) {
-        add(instantiator(arguments));
-      }
-      return new Block(statements);
-    };
+    }
+    return statements;
   }
 
-  Instantiator visitExpressionStatement(ExpressionStatement node) {
-    Instantiator buildExpression = visit(node.expression);
-    return (arguments) {
-      return buildExpression(arguments).toStatement();
-    };
+  Instantiator<Block> visitBlock(Block node) {
+    var instantiators = node.statements.map(visitSplayableStatement).toList();
+    return (a) => new Block(splayStatements(instantiators, a));
   }
 
-  Instantiator visitEmptyStatement(EmptyStatement node) =>
-      (arguments) => new EmptyStatement();
+  Instantiator<Statement> visitExpressionStatement(ExpressionStatement node) {
+    Instantiator<Expression> makeExpression = visit(node.expression);
+    return (a) => makeExpression(a).toStatement();
+  }
 
-  Instantiator visitIf(If node) {
-    if (node.condition is InterpolatedExpression) {
-      return visitIfConditionalCompilation(node);
+  Instantiator<EmptyStatement> visitEmptyStatement(EmptyStatement node) =>
+      (a) => new EmptyStatement();
+
+  Instantiator<Statement> visitIf(If node) {
+    var condition = node.condition;
+    if (condition is InterpolatedExpression) {
+      return visitIfConditionalCompilation(node, condition);
     } else {
       return visitIfNormal(node);
     }
   }
 
-  Instantiator visitIfConditionalCompilation(If node) {
-    // Special version of visitInterpolatedExpression that permits bools.
-    compileCondition(InterpolatedExpression node) {
-      var nameOrPosition = node.nameOrPosition;
-      return (arguments) {
-        var value = arguments[nameOrPosition];
-        if (value is bool) return value;
-        if (value is Expression) return value;
-        if (value is String) return new Identifier(value);
-        error('Interpolated value #$nameOrPosition '
-            'is not an Expression: $value');
-      };
-    }
-
-    var makeCondition = compileCondition(node.condition);
-    Instantiator makeThen = visit(node.then);
-    Instantiator makeOtherwise = visit(node.otherwise);
+  Instantiator<Statement> visitIfConditionalCompilation(
+      If node, InterpolatedExpression condition) {
+    Instantiator<Statement> makeThen = visit(node.then);
+    Instantiator<Statement> makeOtherwise = visit(node.otherwise);
     return (arguments) {
-      var condition = makeCondition(arguments);
-      if (condition is bool) {
-        if (condition == true) {
-          return makeThen(arguments);
-        } else {
-          return makeOtherwise(arguments);
-        }
+      // Allow bools to be used for conditional compliation.
+      var nameOrPosition = condition.nameOrPosition;
+      var value = arguments[nameOrPosition];
+      if (value is bool) {
+        return value ? makeThen(arguments) : makeOtherwise(arguments);
       }
-      return new If(condition, makeThen(arguments), makeOtherwise(arguments));
+      var cond = value is String ? new Identifier(value) : value as Expression;
+      return new If(cond, makeThen(arguments), makeOtherwise(arguments));
     };
   }
 
-  Instantiator visitIfNormal(If node) {
-    Instantiator makeCondition = visit(node.condition);
-    Instantiator makeThen = visit(node.then);
-    Instantiator makeOtherwise = visit(node.otherwise);
-    return (arguments) {
-      return new If(makeCondition(arguments), makeThen(arguments),
-          makeOtherwise(arguments));
-    };
+  Instantiator<Statement> visitIfNormal(If node) {
+    Instantiator<Expression> makeCondition = visit(node.condition);
+    Instantiator<Statement> makeThen = visit(node.then);
+    Instantiator<Statement> makeOtherwise = visit(node.otherwise);
+    return (a) => new If(makeCondition(a), makeThen(a), makeOtherwise(a));
   }
 
-  Instantiator visitFor(For node) {
-    Instantiator makeInit = visitNullable(node.init);
-    Instantiator makeCondition = visitNullable(node.condition);
-    Instantiator makeUpdate = visitNullable(node.update);
-    Instantiator makeBody = visit(node.body);
-    return (arguments) {
-      return new For(makeInit(arguments), makeCondition(arguments),
-          makeUpdate(arguments)?.toVoidExpression(), makeBody(arguments));
-    };
+  Instantiator<Statement> visitFor(For node) {
+    Instantiator<Expression> makeInit = visitNullable(node.init);
+    Instantiator<Expression> makeCondition = visitNullable(node.condition);
+    Instantiator<Expression> makeUpdate = visitNullable(node.update);
+    Instantiator<Statement> makeBody = visit(node.body);
+    return (a) => new For(makeInit(a), makeCondition(a),
+        makeUpdate(a)?.toVoidExpression(), makeBody(a));
   }
 
-  Instantiator visitForIn(ForIn node) {
-    Instantiator makeLeftHandSide = visit(node.leftHandSide);
-    Instantiator makeObject = visit(node.object);
-    Instantiator makeBody = visit(node.body);
-    return (arguments) {
-      return new ForIn(makeLeftHandSide(arguments), makeObject(arguments),
-          makeBody(arguments));
-    };
+  Instantiator<ForIn> visitForIn(ForIn node) {
+    Instantiator<Expression> makeLeftHandSide = visit(node.leftHandSide);
+    Instantiator<Expression> makeObject = visit(node.object);
+    Instantiator<Statement> makeBody = visit(node.body);
+    return (a) => new ForIn(makeLeftHandSide(a), makeObject(a), makeBody(a));
   }
 
-  Instantiator visitForOf(ForOf node) {
-    Instantiator makeLeftHandSide = visit(node.leftHandSide);
-    Instantiator makeObject = visit(node.iterable);
-    Instantiator makeBody = visit(node.body);
-    return (arguments) {
-      return new ForOf(makeLeftHandSide(arguments), makeObject(arguments),
-          makeBody(arguments));
-    };
+  Instantiator<ForOf> visitForOf(ForOf node) {
+    Instantiator<Expression> makeLeftHandSide = visit(node.leftHandSide);
+    Instantiator<Expression> makeObject = visit(node.iterable);
+    Instantiator<Statement> makeBody = visit(node.body);
+    return (a) => new ForOf(makeLeftHandSide(a), makeObject(a), makeBody(a));
   }
 
-  TODO(String name) {
-    throw new UnimplementedError('$this.$name');
+  Instantiator<While> visitWhile(While node) {
+    Instantiator<Expression> makeCondition = visit(node.condition);
+    Instantiator<Statement> makeBody = visit(node.body);
+    return (a) => new While(makeCondition(a), makeBody(a));
   }
 
-  Instantiator visitWhile(While node) {
-    Instantiator makeCondition = visit(node.condition);
-    Instantiator makeBody = visit(node.body);
-    return (arguments) {
-      return new While(makeCondition(arguments), makeBody(arguments));
-    };
+  Instantiator<Do> visitDo(Do node) {
+    Instantiator<Statement> makeBody = visit(node.body);
+    Instantiator<Expression> makeCondition = visit(node.condition);
+    return (a) => new Do(makeBody(a), makeCondition(a));
   }
 
-  Instantiator visitDo(Do node) {
-    Instantiator makeBody = visit(node.body);
-    Instantiator makeCondition = visit(node.condition);
-    return (arguments) {
-      return new Do(makeBody(arguments), makeCondition(arguments));
-    };
-  }
+  Instantiator<Continue> visitContinue(Continue node) =>
+      (a) => new Continue(node.targetLabel);
 
-  Instantiator visitContinue(Continue node) =>
-      (arguments) => new Continue(node.targetLabel);
+  Instantiator<Break> visitBreak(Break node) =>
+      (a) => new Break(node.targetLabel);
 
-  Instantiator visitBreak(Break node) =>
-      (arguments) => new Break(node.targetLabel);
-
-  Instantiator visitReturn(Return node) {
+  Instantiator<Statement> visitReturn(Return node) {
     if (node.value == null) return (args) => new Return();
-    Instantiator makeExpression = visit(node.value);
-    return (args) => makeExpression(args).toReturn();
+    Instantiator<Expression> makeExpression = visit(node.value);
+    return (a) => makeExpression(a).toReturn();
   }
 
-  Instantiator visitDartYield(DartYield node) {
-    Instantiator makeExpression = visit(node.expression);
-    return (arguments) =>
-        new DartYield(makeExpression(arguments), node.hasStar);
+  Instantiator<DartYield> visitDartYield(DartYield node) {
+    Instantiator<Expression> makeExpression = visit(node.expression);
+    return (a) => new DartYield(makeExpression(a), node.hasStar);
   }
 
-  Instantiator visitThrow(Throw node) {
-    Instantiator makeExpression = visit(node.expression);
-    return (arguments) => new Throw(makeExpression(arguments));
+  Instantiator<Throw> visitThrow(Throw node) {
+    Instantiator<Expression> makeExpression = visit(node.expression);
+    return (a) => new Throw(makeExpression(a));
   }
 
-  Instantiator visitTry(Try node) {
-    Instantiator makeBody = visit(node.body);
-    Instantiator makeCatch = visitNullable(node.catchPart);
-    Instantiator makeFinally = visitNullable(node.finallyPart);
-    return (arguments) => new Try(
-        makeBody(arguments), makeCatch(arguments), makeFinally(arguments));
+  Instantiator<Try> visitTry(Try node) {
+    Instantiator<Block> makeBody = visit(node.body);
+    Instantiator<Catch> makeCatch = visitNullable(node.catchPart);
+    Instantiator<Block> makeFinally = visitNullable(node.finallyPart);
+    return (a) => new Try(makeBody(a), makeCatch(a), makeFinally(a));
   }
 
-  Instantiator visitCatch(Catch node) {
-    Instantiator makeDeclaration = visit(node.declaration);
-    Instantiator makeBody = visit(node.body);
-    return (arguments) =>
-        new Catch(makeDeclaration(arguments), makeBody(arguments));
+  Instantiator<Catch> visitCatch(Catch node) {
+    Instantiator<Identifier> makeDeclaration = visit(node.declaration);
+    Instantiator<Block> makeBody = visit(node.body);
+    return (a) => new Catch(makeDeclaration(a), makeBody(a));
   }
 
-  Instantiator visitSwitch(Switch node) {
-    Instantiator makeKey = visit(node.key);
-    Iterable<Instantiator> makeCases = node.cases.map(visit);
+  Instantiator<Switch> visitSwitch(Switch node) {
+    Instantiator<Expression> makeKey = visit(node.key);
+    var makeCases = node.cases.map(visitSwitchCase).toList();
+    return (a) => new Switch(makeKey(a), makeCases.map((m) => m(a)).toList());
+  }
+
+  Instantiator<SwitchCase> visitSwitchCase(SwitchCase node) {
+    Instantiator<Expression> makeExpression = visitNullable(node.expression);
+    Instantiator<Block> makeBody = visit(node.body);
     return (arguments) {
-      return new Switch(
-          makeKey(arguments),
-          makeCases
-              .map((makeCase) => makeCase(arguments) as SwitchClause)
-              .toList());
+      return new SwitchCase(makeExpression(arguments), makeBody(arguments));
     };
   }
 
-  Instantiator visitCase(Case node) {
-    Instantiator makeExpression = visit(node.expression);
-    Instantiator makeBody = visit(node.body);
-    return (arguments) {
-      return new Case(makeExpression(arguments), makeBody(arguments));
-    };
+  Instantiator<FunctionDeclaration> visitFunctionDeclaration(
+      FunctionDeclaration node) {
+    Instantiator<Identifier> makeName = visit(node.name);
+    Instantiator<Fun> makeFunction = visit(node.function);
+    return (a) => new FunctionDeclaration(makeName(a), makeFunction(a));
   }
 
-  Instantiator visitDefault(Default node) {
-    Instantiator makeBody = visit(node.body);
-    return (arguments) {
-      return new Default(makeBody(arguments));
-    };
+  Instantiator<LabeledStatement> visitLabeledStatement(LabeledStatement node) {
+    Instantiator<Statement> makeBody = visit(node.body);
+    return (a) => new LabeledStatement(node.label, makeBody(a));
   }
 
-  Instantiator visitFunctionDeclaration(FunctionDeclaration node) {
-    Instantiator makeName = visit(node.name);
-    Instantiator makeFunction = visit(node.function);
-    return (arguments) =>
-        new FunctionDeclaration(makeName(arguments), makeFunction(arguments));
-  }
-
-  Instantiator visitLabeledStatement(LabeledStatement node) {
-    Instantiator makeBody = visit(node.body);
-    return (arguments) => new LabeledStatement(node.label, makeBody(arguments));
-  }
-
-  Instantiator visitLiteralStatement(LiteralStatement node) =>
-      TODO('visitLiteralStatement');
+  Instantiator visitLiteralStatement(LiteralStatement node) => visitNode(node);
   Instantiator visitLiteralExpression(LiteralExpression node) =>
-      TODO('visitLiteralExpression');
+      visitNode(node);
 
-  Instantiator visitVariableDeclarationList(VariableDeclarationList node) {
-    List<Instantiator> declarationMakers =
-        node.declarations.map(visit).toList();
-    return (arguments) {
-      List<VariableInitialization> declarations = <VariableInitialization>[];
-      for (Instantiator instantiator in declarationMakers) {
-        var result = instantiator(arguments);
-        declarations.add(result);
-      }
-      return new VariableDeclarationList(node.keyword, declarations);
-    };
+  Instantiator<VariableDeclarationList> visitVariableDeclarationList(
+      VariableDeclarationList node) {
+    var declarationMakers =
+        node.declarations.map(visitVariableInitialization).toList();
+    return (a) => new VariableDeclarationList(
+        node.keyword, declarationMakers.map((m) => m(a)).toList());
   }
 
   Instantiator visitAssignment(Assignment node) {
@@ -558,260 +505,185 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
-  Instantiator visitVariableInitialization(VariableInitialization node) {
-    Instantiator makeDeclaration = visit(node.declaration);
-    Instantiator makeValue = visitNullable(node.value);
-    return (arguments) {
-      return new VariableInitialization(
-          makeDeclaration(arguments), makeValue(arguments));
-    };
+  Instantiator<VariableInitialization> visitVariableInitialization(
+      VariableInitialization node) {
+    Instantiator<VariableBinding> makeDeclaration = visit(node.declaration);
+    Instantiator<Expression> makeValue = visitNullable(node.value);
+    return (a) => new VariableInitialization(makeDeclaration(a), makeValue(a));
   }
 
-  Instantiator visitConditional(Conditional cond) {
-    Instantiator makeCondition = visit(cond.condition);
-    Instantiator makeThen = visit(cond.then);
-    Instantiator makeOtherwise = visit(cond.otherwise);
-    return (arguments) => new Conditional(makeCondition(arguments),
-        makeThen(arguments), makeOtherwise(arguments));
+  Instantiator<Conditional> visitConditional(Conditional cond) {
+    Instantiator<Expression> makeCondition = visit(cond.condition);
+    Instantiator<Expression> makeThen = visit(cond.then);
+    Instantiator<Expression> makeOtherwise = visit(cond.otherwise);
+    return (a) =>
+        new Conditional(makeCondition(a), makeThen(a), makeOtherwise(a));
   }
 
-  Instantiator visitNew(New node) => handleCallOrNew(node,
-      (target, arguments) => new New(target, arguments as List<Expression>));
+  Instantiator<Call> visitNew(New node) => handleCallOrNew(node, true);
 
-  Instantiator visitCall(Call node) => handleCallOrNew(node,
-      (target, arguments) => new Call(target, arguments as List<Expression>));
+  Instantiator<Call> visitCall(Call node) => handleCallOrNew(node, false);
 
-  Instantiator handleCallOrNew(Call node, finish(target, arguments)) {
-    Instantiator makeTarget = visit(node.target);
-    Iterable<Instantiator> argumentMakers =
-        node.arguments.map(visitSplayableExpression).toList();
+  Instantiator<Call> handleCallOrNew(Call node, bool isNew) {
+    Instantiator<Expression> makeTarget = visit(node.target);
+    var argumentMakers = node.arguments.map(visitSplayableExpression).toList();
 
     // TODO(sra): Avoid copying call arguments if no interpolation or forced
     // copying.
-    return (arguments) {
-      Node target = makeTarget(arguments);
-      List<Expression> callArguments = <Expression>[];
-      for (Instantiator instantiator in argumentMakers) {
-        var result = instantiator(arguments);
-        if (result is Iterable) {
-          for (var r in result) callArguments.add(r);
-        } else {
-          callArguments.add(result);
-        }
-      }
-      return finish(target, callArguments.toList(growable: false));
+    return (a) {
+      var target = makeTarget(a);
+      var callArgs = splayNodes<Expression>(argumentMakers, a);
+      return isNew ? new New(target, callArgs) : new Call(target, callArgs);
     };
   }
 
-  Instantiator visitBinary(Binary node) {
-    Instantiator makeLeft = visit(node.left);
-    Instantiator makeRight = visit(node.right);
+  Instantiator<Binary> visitBinary(Binary node) {
+    Instantiator<Expression> makeLeft = visit(node.left);
+    Instantiator<Expression> makeRight = visit(node.right);
     String op = node.op;
-    return (arguments) =>
-        new Binary(op, makeLeft(arguments), makeRight(arguments));
+    return (a) => new Binary(op, makeLeft(a), makeRight(a));
   }
 
-  Instantiator visitPrefix(Prefix node) {
-    Instantiator makeOperand = visit(node.argument);
+  Instantiator<Prefix> visitPrefix(Prefix node) {
+    Instantiator<Expression> makeOperand = visit(node.argument);
     String op = node.op;
-    return (arguments) => new Prefix(op, makeOperand(arguments));
+    return (a) => new Prefix(op, makeOperand(a));
   }
 
-  Instantiator visitPostfix(Postfix node) {
-    Instantiator makeOperand = visit(node.argument);
+  Instantiator<Postfix> visitPostfix(Postfix node) {
+    Instantiator<Expression> makeOperand = visit(node.argument);
     String op = node.op;
-    return (arguments) => new Postfix(op, makeOperand(arguments));
+    return (a) => new Postfix(op, makeOperand(a));
   }
 
-  Instantiator visitThis(This node) => (arguments) => new This();
-  Instantiator visitSuper(Super node) => (arguments) => new Super();
+  Instantiator<This> visitThis(This node) => (a) => new This();
+  Instantiator<Super> visitSuper(Super node) => (a) => new Super();
 
-  Instantiator visitIdentifier(Identifier node) =>
-      (arguments) => new Identifier(node.name);
+  Instantiator<Identifier> visitIdentifier(Identifier node) =>
+      (a) => new Identifier(node.name);
 
-  Instantiator visitSpread(Spread node) =>
-      (args) => new Spread(visit(node.argument)(args));
-
-  Instantiator visitYield(Yield node) =>
-      (args) => new Yield(node.value != null ? visit(node.value)(args) : null,
-          star: node.star);
-
-  Instantiator visitRestParameter(RestParameter node) =>
-      (args) => new RestParameter(visit(node.parameter)(args));
-
-  Instantiator visitAccess(PropertyAccess node) {
-    Instantiator makeReceiver = visit(node.receiver);
-    Instantiator makeSelector = visit(node.selector);
-    return (arguments) =>
-        new PropertyAccess(makeReceiver(arguments), makeSelector(arguments));
+  Instantiator<Spread> visitSpread(Spread node) {
+    var maker = visit(node.argument);
+    return (a) => new Spread(maker(a) as Expression);
   }
 
-  Instantiator visitNamedFunction(NamedFunction node) {
-    Instantiator makeDeclaration = visit(node.name);
-    Instantiator makeFunction = visit(node.function);
-    return (arguments) =>
-        new NamedFunction(makeDeclaration(arguments), makeFunction(arguments));
+  Instantiator<Yield> visitYield(Yield node) {
+    var maker = visitNullable(node.value);
+    return (a) => new Yield(maker(a) as Expression, star: node.star);
   }
 
-  Instantiator visitFunctionExpression(FunctionExpression node) {
-    List<Instantiator> paramMakers = node.params.map(visitSplayable).toList();
-    Instantiator makeBody = visit(node.body);
-    // TODO(sra): Avoid copying params if no interpolation or forced copying.
-    return (arguments) {
-      List<Parameter> params = <Parameter>[];
-      for (Instantiator instantiator in paramMakers) {
-        var result = instantiator(arguments);
-        if (result is Iterable) {
-          for (var r in result) params.add(r);
-        } else {
-          params.add(result);
-        }
-      }
-      var body = makeBody(arguments);
-      if (node is ArrowFun) {
-        return new ArrowFun(params, body);
-      } else if (node is Fun) {
-        return new Fun(params, body,
-            isGenerator: node.isGenerator, asyncModifier: node.asyncModifier);
-      } else {
-        throw "Unknown FunctionExpression type ${node.runtimeType}: $node";
-      }
-    };
+  Instantiator<RestParameter> visitRestParameter(RestParameter node) {
+    var maker = visit(node.parameter);
+    return (a) => new RestParameter(maker(a) as Identifier);
   }
 
-  Instantiator visitFun(Fun node) => visitFunctionExpression(node);
+  Instantiator<PropertyAccess> visitAccess(PropertyAccess node) {
+    Instantiator<Expression> makeReceiver = visit(node.receiver);
+    Instantiator<Expression> makeSelector = visit(node.selector);
+    return (a) => new PropertyAccess(makeReceiver(a), makeSelector(a));
+  }
 
-  Instantiator visitArrowFun(ArrowFun node) => visitFunctionExpression(node);
+  Instantiator<NamedFunction> visitNamedFunction(NamedFunction node) {
+    Instantiator<Identifier> makeDeclaration = visit(node.name);
+    Instantiator<Fun> makeFunction = visit(node.function);
+    return (a) => new NamedFunction(makeDeclaration(a), makeFunction(a));
+  }
 
-  Instantiator visitLiteralBool(LiteralBool node) =>
-      (arguments) => new LiteralBool(node.value);
+  Instantiator<Fun> visitFun(Fun node) {
+    var paramMakers = node.params.map(visitSplayable).toList();
+    Instantiator<Block> makeBody = visit(node.body);
+    return (a) => new Fun(splayNodes(paramMakers, a), makeBody(a),
+        isGenerator: node.isGenerator, asyncModifier: node.asyncModifier);
+  }
 
-  Instantiator visitLiteralString(LiteralString node) =>
-      (arguments) => new LiteralString(node.value);
+  Instantiator<ArrowFun> visitArrowFun(ArrowFun node) {
+    var paramMakers = node.params.map(visitSplayable).toList();
+    Instantiator makeBody = visit(node.body as Node);
+    return (a) => new ArrowFun(splayNodes(paramMakers, a), makeBody(a));
+  }
 
-  Instantiator visitLiteralNumber(LiteralNumber node) =>
-      (arguments) => new LiteralNumber(node.value);
+  Instantiator<LiteralBool> visitLiteralBool(LiteralBool node) =>
+      (a) => new LiteralBool(node.value);
 
-  Instantiator visitLiteralNull(LiteralNull node) =>
-      (arguments) => new LiteralNull();
+  Instantiator<LiteralString> visitLiteralString(LiteralString node) =>
+      (a) => new LiteralString(node.value);
 
-  Instantiator visitArrayInitializer(ArrayInitializer node) {
-    List<Instantiator> elementMakers =
-        node.elements.map(visitSplayableExpression).toList(growable: false);
-    return (arguments) {
-      var elements = <Expression>[];
-      for (var instantiator in elementMakers) {
-        var element = instantiator(arguments);
-        if (element is Iterable) {
-          elements.addAll(element);
-        } else {
-          elements.add(element);
-        }
-      }
-      return new ArrayInitializer(elements);
-    };
+  Instantiator<LiteralNumber> visitLiteralNumber(LiteralNumber node) =>
+      (a) => new LiteralNumber(node.value);
+
+  Instantiator<LiteralNull> visitLiteralNull(LiteralNull node) =>
+      (a) => new LiteralNull();
+
+  Instantiator<ArrayInitializer> visitArrayInitializer(ArrayInitializer node) {
+    var makers = node.elements.map(visitSplayableExpression).toList();
+    return (a) => new ArrayInitializer(splayNodes(makers, a));
   }
 
   Instantiator visitArrayHole(ArrayHole node) {
     return (arguments) => new ArrayHole();
   }
 
-  Instantiator visitObjectInitializer(ObjectInitializer node) {
-    List<Instantiator> propertyMakers =
-        node.properties.map(visitSplayable).toList();
-    return (arguments) {
-      List<Property> properties = <Property>[];
-      for (Instantiator instantiator in propertyMakers) {
-        var result = instantiator(arguments);
-        if (result is Iterable) {
-          for (var r in result) properties.add(r);
-        } else {
-          properties.add(result);
-        }
-      }
-      return new ObjectInitializer(properties);
-    };
+  Instantiator<ObjectInitializer> visitObjectInitializer(
+      ObjectInitializer node) {
+    var propertyMakers = node.properties.map(visitSplayable).toList();
+    return (a) => new ObjectInitializer(splayNodes(propertyMakers, a));
   }
 
-  Instantiator visitProperty(Property node) {
-    Instantiator makeName = visit(node.name);
-    Instantiator makeValue = visit(node.value);
-    return (arguments) {
-      return new Property(makeName(arguments), makeValue(arguments));
-    };
+  Instantiator<Property> visitProperty(Property node) {
+    Instantiator<Expression> makeName = visit(node.name);
+    Instantiator<Expression> makeValue = visit(node.value);
+    return (a) => new Property(makeName(a), makeValue(a));
   }
 
-  Instantiator visitRegExpLiteral(RegExpLiteral node) =>
-      (arguments) => new RegExpLiteral(node.pattern);
+  Instantiator<RegExpLiteral> visitRegExpLiteral(RegExpLiteral node) =>
+      (a) => new RegExpLiteral(node.pattern);
 
-  Instantiator visitTemplateString(TemplateString node) {
-    Iterable<Instantiator> makeElements = node.interpolations.map(visit);
-    return (arguments) => new TemplateString(node.strings,
-        makeElements.map((m) => m(arguments)).toList(growable: false));
+  Instantiator<TemplateString> visitTemplateString(TemplateString node) {
+    var makeElements = node.interpolations.map(visit).toList();
+    return (a) => new TemplateString(node.strings, splayNodes(makeElements, a));
   }
 
-  Instantiator visitTaggedTemplate(TaggedTemplate node) {
-    Instantiator makeTag = visit(node.tag);
-    Instantiator makeTemplate = visit(node.template);
-    return (arguments) {
-      return new TaggedTemplate(makeTag(arguments), makeTemplate(arguments));
-    };
+  Instantiator<TaggedTemplate> visitTaggedTemplate(TaggedTemplate node) {
+    Instantiator<Expression> makeTag = visit(node.tag);
+    var makeTemplate = visitTemplateString(node.template);
+    return (a) => new TaggedTemplate(makeTag(a), makeTemplate(a));
   }
 
   Instantiator visitClassDeclaration(ClassDeclaration node) {
-    Instantiator makeClass = visit(node.classExpr);
-    return (arguments) {
-      return new ClassDeclaration(makeClass(arguments));
-    };
+    var makeClass = visitClassExpression(node.classExpr);
+    return (a) => new ClassDeclaration(makeClass(a));
   }
 
-  Instantiator visitClassExpression(ClassExpression node) {
-    List<Instantiator> makeMethods =
-        node.methods.map(visitSplayableExpression).toList(growable: true);
-    Instantiator makeName = visit(node.name);
-    Instantiator makeHeritage = visit(node.heritage);
+  Instantiator<ClassExpression> visitClassExpression(ClassExpression node) {
+    var makeMethods = node.methods.map(visitSplayableExpression).toList();
+    Instantiator<Identifier> makeName = visit(node.name);
+    Instantiator<Expression> makeHeritage = visit(node.heritage);
 
-    return (arguments) {
-      var methods = <Method>[];
-      for (Instantiator instantiator in makeMethods) {
-        var result = instantiator(arguments);
-        if (result is Iterable) {
-          for (var r in result) methods.add(r);
-        } else {
-          methods.add(result);
-        }
-      }
-      return new ClassExpression(
-          makeName(arguments), makeHeritage(arguments), methods);
-    };
+    return (a) => new ClassExpression(
+        makeName(a), makeHeritage(a), splayNodes(makeMethods, a));
   }
 
-  Instantiator visitMethod(Method node) {
-    Instantiator makeName = visit(node.name);
-    Instantiator makeFunction = visit(node.function);
-    return (arguments) {
-      return new Method(makeName(arguments), makeFunction(arguments),
-          isGetter: node.isGetter,
-          isSetter: node.isSetter,
-          isStatic: node.isStatic);
-    };
+  Instantiator<Method> visitMethod(Method node) {
+    Instantiator<Expression> makeName = visit(node.name);
+    Instantiator<Fun> makeFunction = visit(node.function);
+    return (a) => new Method(makeName(a), makeFunction(a),
+        isGetter: node.isGetter,
+        isSetter: node.isSetter,
+        isStatic: node.isStatic);
   }
 
-  Instantiator visitComment(Comment node) =>
-      (arguments) => new Comment(node.comment);
+  Instantiator<Comment> visitComment(Comment node) =>
+      (a) => new Comment(node.comment);
 
-  Instantiator visitCommentExpression(CommentExpression node) {
-    Instantiator makeExpr = visit(node.expression);
-    return (arguments) {
-      return new CommentExpression(node.comment, makeExpr(arguments));
-    };
+  Instantiator<CommentExpression> visitCommentExpression(
+      CommentExpression node) {
+    Instantiator<Expression> makeExpr = visit(node.expression);
+    return (a) => new CommentExpression(node.comment, makeExpr(a));
   }
 
-  Instantiator visitAwait(Await node) {
-    Instantiator makeExpression = visit(node.expression);
-    return (arguments) {
-      return new Await(makeExpression(arguments));
-    };
+  Instantiator<Await> visitAwait(Await node) {
+    Instantiator<Expression> makeExpr = visit(node.expression);
+    return (a) => new Await(makeExpr(a));
   }
 
   // Note: these are not supported yet in the interpolation grammar.
@@ -856,39 +728,36 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       throw new UnimplementedError();
 
   @override
-  Instantiator visitDestructuredVariable(DestructuredVariable node) {
-    Instantiator makeName = visit(node.name);
-    Instantiator makeStructure = visit(node.structure);
-    Instantiator makeDefaultValue = visit(node.defaultValue);
-    return (arguments) {
-      return new DestructuredVariable(
-          name: makeName(arguments),
-          structure: makeStructure(arguments),
-          defaultValue: makeDefaultValue(arguments));
-    };
+  Instantiator<DestructuredVariable> visitDestructuredVariable(
+      DestructuredVariable node) {
+    Instantiator<Identifier> makeName = visitNullable(node.name);
+    Instantiator<Expression> makeProperty = visitNullable(node.property);
+    Instantiator<BindingPattern> makeStructure = visitNullable(node.structure);
+    Instantiator<Expression> makeDefaultValue =
+        visitNullable(node.defaultValue);
+    return (a) => new DestructuredVariable(
+        name: makeName(a),
+        property: makeProperty(a),
+        structure: makeStructure(a),
+        defaultValue: makeDefaultValue(a));
   }
 
   @override
-  Instantiator visitArrayBindingPattern(ArrayBindingPattern node) {
+  Instantiator<ArrayBindingPattern> visitArrayBindingPattern(
+      ArrayBindingPattern node) {
     List<Instantiator> makeVars = node.variables.map(this.visit).toList();
-    return (arguments) {
-      return new ArrayBindingPattern(
-          makeVars.map((m) => m(arguments) as DestructuredVariable).toList());
-    };
+    return (a) => new ArrayBindingPattern(splayNodes(makeVars, a));
   }
 
   @override
   Instantiator visitObjectBindingPattern(ObjectBindingPattern node) {
     List<Instantiator> makeVars = node.variables.map(this.visit).toList();
-    return (arguments) {
-      return new ObjectBindingPattern(
-          makeVars.map((m) => m(arguments) as DestructuredVariable).toList());
-    };
+    return (a) => new ObjectBindingPattern(splayNodes(makeVars, a));
   }
 
   @override
   Instantiator visitSimpleBindingPattern(SimpleBindingPattern node) =>
-      (arguments) => new SimpleBindingPattern(new Identifier(node.name.name));
+      (a) => new SimpleBindingPattern(new Identifier(node.name.name));
 }
 
 /**
@@ -918,7 +787,7 @@ class InterpolatedNodeAnalysis extends BaseVisitor {
 
   visitInterpolatedNode(InterpolatedNode node) {
     containsInterpolatedNode.add(node);
-    if (node.isNamed) holeNames.add(node.nameOrPosition);
+    if (node.isNamed) holeNames.add(node.nameOrPosition as String);
     ++count;
   }
 }

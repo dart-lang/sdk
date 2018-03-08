@@ -595,38 +595,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_localFunctionDeclarationModifier_abstract() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, found 0
-    super.test_localFunctionDeclarationModifier_abstract();
-  }
-
-  @override
-  @failingTest
-  void test_localFunctionDeclarationModifier_external() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, found 0
-    super.test_localFunctionDeclarationModifier_external();
-  }
-
-  @override
-  @failingTest
-  void test_localFunctionDeclarationModifier_factory() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, found 0
-    super.test_localFunctionDeclarationModifier_factory();
-  }
-
-  @override
-  @failingTest
-  void test_localFunctionDeclarationModifier_static() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, found 0
-    super.test_localFunctionDeclarationModifier_static();
-  }
-
-  @override
-  @failingTest
   void test_method_invalidTypeParameterComments() {
     // TODO(brianwilkerson) Does not recover.
     //   type 'DeclaredSimpleIdentifier' is not a subtype of type 'TypeAnnotation' of 'returnType' where

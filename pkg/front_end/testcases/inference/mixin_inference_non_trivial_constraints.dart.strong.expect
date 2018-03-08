@@ -22,9 +22,9 @@ class M2<T extends core::Object> extends self::M1<core::Map<self::M2::T, self::M
     : super self::M1::•()
     ;
 }
-abstract class _M2&M0^#U0^<#U0 extends core::Object> = self::M2<self::_M2&M0^#U0^::#U0> with self::M0<core::Map<self::_M2&M0^#U0^::#U0, self::_M2&M0^#U0^::#U0>> {
+abstract class _A&M2&M0 = self::M2<core::int> with self::M0<core::Map<core::int, core::int>> {
 }
-class A extends self::_M2&M0^#U0^<core::int> {
+class A extends self::_A&M2&M0 {
   synthetic constructor •() → void
     : super self::M2::•()
     ;

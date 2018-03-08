@@ -46,6 +46,7 @@ import '../fasta_codes.dart'
     show
         LocatedMessage,
         Message,
+        noLength,
         SummaryTemplate,
         Template,
         templateAmbiguousSupertypes,
@@ -69,7 +70,7 @@ import '../loader.dart' show Loader;
 
 import '../parser/class_member_parser.dart' show ClassMemberParser;
 
-import '../parser.dart' show lengthForToken, noLength, offsetForToken;
+import '../parser.dart' show lengthForToken, offsetForToken;
 
 import '../problems.dart' show internalProblem;
 

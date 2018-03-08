@@ -75,11 +75,8 @@ class LazyMapping extends Mapping {
     if (!_bundle.containsMapping(uri)) {
       var rawMap = _provider(uri);
       if (rawMap != null) {
-        if (rawMap is! String) {
-          // The sourcemap was passed as regular JavaScript JSON.
-          rawMap = _stringify(rawMap);
-        }
-        SingleMapping mapping = parse(rawMap);
+        var strMap = rawMap is String ? rawMap : _stringify(rawMap);
+        var mapping = parse(strMap) as SingleMapping;
         mapping
           ..targetUrl = uri
           ..sourceRoot = '${path.dirname(uri)}/';

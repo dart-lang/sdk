@@ -37,7 +37,7 @@ void defineLazyGetter(obj, name, compute) {
 final Function(Object, Object) getOwnPropertyDescriptor =
     JS('', 'Object.getOwnPropertyDescriptor');
 
-final Function(Object) getOwnPropertyNames =
+final Iterable Function(Object) getOwnPropertyNames =
     JS('', 'Object.getOwnPropertyNames');
 
 final Function(Object) getOwnPropertySymbols =

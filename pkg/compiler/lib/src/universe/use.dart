@@ -306,16 +306,16 @@ class StaticUse {
   }
 
   /// Direct invocation of a method [element] with the given [callStructure].
-  factory StaticUse.directInvoke(
-      FunctionEntity element, CallStructure callStructure) {
+  factory StaticUse.directInvoke(FunctionEntity element,
+      CallStructure callStructure, List<DartType> typeArguments) {
     assert(
         element.isInstanceMember,
         failedAt(element,
             "Direct invoke element $element must be an instance member."));
     assert(element.isFunction,
         failedAt(element, "Direct invoke element $element must be a method."));
-    return new StaticUse.internal(element, StaticUseKind.DIRECT_INVOKE,
-        callStructure: callStructure);
+    return new GenericStaticUse(
+        element, StaticUseKind.DIRECT_INVOKE, callStructure, typeArguments);
   }
 
   /// Direct read access of a field or getter [element].

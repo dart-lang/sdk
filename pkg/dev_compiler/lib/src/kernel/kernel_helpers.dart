@@ -9,12 +9,12 @@ import 'package:kernel/kernel.dart';
 Constructor unnamedConstructor(Class c) =>
     c.constructors.firstWhere((c) => c.name.name == '', orElse: () => null);
 
-/// Returns the enclosing library for reference [r].
-Library getLibrary(NamedNode n) {
-  while (n != null && n is! Library) {
-    n = n.parent;
+/// Returns the enclosing library for reference [node].
+Library getLibrary(NamedNode node) {
+  for (TreeNode n = node; n != null; n = n.parent) {
+    if (n is Library) return n;
   }
-  return n;
+  return null;
 }
 
 final Pattern _syntheticTypeCharacters = new RegExp('[&^#.]');
@@ -132,7 +132,7 @@ class ConstantVisitor extends ExpressionVisitor<bool> {
   final CoreTypes coreTypes;
   ConstantVisitor(this.coreTypes);
 
-  bool isConstant(Expression e) => e.accept(this);
+  bool isConstant(Expression e) => e.accept(this) as bool;
 
   defaultExpression(node) => false;
   defaultBasicLiteral(node) => true;

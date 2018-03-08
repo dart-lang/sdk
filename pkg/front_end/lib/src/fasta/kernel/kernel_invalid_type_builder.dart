@@ -6,9 +6,8 @@ library fasta.kernel_invalid_type_builder;
 
 import 'package:kernel/ast.dart' show DartType, InvalidType;
 
-import '../fasta_codes.dart' show LocatedMessage, Message, templateTypeNotFound;
-
-import '../parser.dart' show noLength;
+import '../fasta_codes.dart'
+    show LocatedMessage, Message, noLength, templateTypeNotFound;
 
 import 'kernel_builder.dart'
     show InvalidTypeBuilder, KernelTypeBuilder, LibraryBuilder;

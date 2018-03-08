@@ -13,9 +13,7 @@ import 'package:kernel/ast.dart'
         Supertype,
         TypeParameter;
 
-import '../fasta_codes.dart' show messageSupertypeIsFunction;
-
-import '../parser.dart' show noLength;
+import '../fasta_codes.dart' show messageSupertypeIsFunction, noLength;
 
 import '../problems.dart' show unsupported;
 

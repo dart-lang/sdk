@@ -82,6 +82,7 @@ the assignment to `y`.
   * `BigInt` class added to support integers greater than 64-bits.
   * Deprecated the `proxy` annotation.
   * Added `Provisional` class and `provisional` field.
+  * Added `pragma` annotation.
   * `RegExp` added static `escape` function.
   * The `Uri` class now correctly handles paths while running on Node.js on
     Windows.
@@ -123,6 +124,10 @@ the assignment to `y`.
     `SECONDS_PER_DAY` to `secondsPerDay`,
     `MINUTES_PER_DAY` to `minutesPerDay`, and
     `ZERO` to `zero`.
+  * Added `typeArguments` to `Invocation` class.
+  * Added constructors to invocation class that allows creation of
+    `Invocation` objects directly, without going through `noSuchMethod`.
+  * Added `unaryMinus` and `empty` constant symbols on the `Symbol` class.
 
 * `dart:developer`
 

@@ -8,7 +8,7 @@ import 'dart:core' hide MapEntry;
 
 import '../fasta_codes.dart' as fasta;
 
-import '../fasta_codes.dart' show LocatedMessage, Message, Template;
+import '../fasta_codes.dart' show LocatedMessage, Message, noLength, Template;
 
 import '../messages.dart' as messages show getLocationFromUri;
 
@@ -23,7 +23,6 @@ import '../parser.dart'
         closeBraceTokenFor,
         lengthForToken,
         lengthOfSpan,
-        noLength,
         offsetForToken,
         optional;
 
@@ -463,7 +462,9 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         }
         field.initializer = initializer;
         _typeInferrer.inferFieldInitializer(
-            this, field.hasImplicitType ? null : field.builtType, initializer);
+            this,
+            field.hasTypeInferredFromInitializer ? null : field.builtType,
+            initializer);
       }
     }
     pop(); // Type.
@@ -604,7 +605,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       return member.procedure.function.returnType;
     } else {
       assert(member is KernelConstructorBuilder);
-      return null;
+      return const DynamicType();
     }
   }
 

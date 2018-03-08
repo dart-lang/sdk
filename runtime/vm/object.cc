@@ -17613,9 +17613,24 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     // Canonicalize the type arguments.
     TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
     // In case the type is first canonicalized at runtime, its type argument
-    // vector may be longer than necessary. This is not an issue.
-    ASSERT(type_args.IsNull() ||
-           (type_args.Length() >= cls.NumTypeArguments()));
+    // vector may be longer than necessary. If so, reallocate a vector of the
+    // exact size to prevent multiple "canonical" types.
+    if (!type_args.IsNull()) {
+      const intptr_t num_type_args = cls.NumTypeArguments();
+      ASSERT(type_args.Length() >= num_type_args);
+      if (type_args.Length() > num_type_args) {
+        TypeArguments& new_type_args =
+            TypeArguments::Handle(zone, TypeArguments::New(num_type_args));
+        AbstractType& type_arg = AbstractType::Handle(zone);
+        for (intptr_t i = 0; i < num_type_args; i++) {
+          type_arg = type_args.TypeAt(i);
+          new_type_args.SetTypeAt(i, type_arg);
+        }
+        type_args = new_type_args.raw();
+        set_arguments(type_args);
+        SetHash(0);  // Flush cached hash value.
+      }
+    }
     type_args = type_args.Canonicalize(trail);
     if (IsCanonical()) {
       // Canonicalizing type_args canonicalized this type as a side effect.

@@ -42,13 +42,13 @@ int compile(List<String> args, {void printFn(Object obj)}) {
     return 64;
   }
 
-  _verbose = argResults['verbose'];
-  if (argResults['help'] || args.isEmpty) {
+  _verbose = argResults['verbose'] as bool;
+  if (argResults['help'] as bool || args.isEmpty) {
     printFn(_usageMessage);
     return 0;
   }
 
-  if (argResults['version']) {
+  if (argResults['version'] as bool) {
     printFn('$_binaryName version ${_getVersion()}');
     return 0;
   }

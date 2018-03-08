@@ -64,7 +64,7 @@ T fillDynamicTypeArgs<T extends DartType>(T t) {
 DartObject findAnnotation(Element element, bool test(DartObjectImpl value)) {
   for (var metadata in element.metadata) {
     var value = metadata.computeConstantValue();
-    if (value != null && test(value)) return value;
+    if (value is DartObjectImpl && test(value)) return value;
   }
   return null;
 }

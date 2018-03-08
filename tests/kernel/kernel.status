@@ -18,9 +18,11 @@ unsorted/super_mixin_test: CompileTimeError
 [ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
 
-[ $compiler != dartk && $compiler != dartkp ]
-unsorted/invocation_errors_test/00: MissingCompileTimeError # This test has been tuned for dart 2.
+[ $compiler != dartk && $compiler != dartkp && $runtime != none ]
 unsorted/types_test: RuntimeError
+
+[ $compiler != dartk && $compiler != dartkp && !$strong ]
+unsorted/invocation_errors_test/00: MissingCompileTimeError # This test has been tuned for dart 2.
 
 [ $runtime == dart_precompiled && $minified ]
 unsorted/symbol_literal_test: Skip # Expects unobfuscated Symbol.toString.

@@ -38,9 +38,9 @@ class F extends core::Object implements self::B {
     : super core::Object::•()
     ;
 }
-abstract class _Object&B = core::Object with self::B {
+abstract class _G&Object&B = core::Object with self::B {
 }
-class G extends self::_Object&B {
+class G extends self::_G&Object&B {
   field dynamic x = null;
   synthetic constructor •() → void
     : super core::Object::•()

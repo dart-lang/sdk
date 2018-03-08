@@ -49,9 +49,8 @@ import '../messages.dart'
         messageNonInstanceTypeVariableUse,
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
-        messagePatchNonExternal;
-
-import '../parser.dart' show noLength;
+        messagePatchNonExternal,
+        noLength;
 
 import '../problems.dart' show unexpected;
 

@@ -34,32 +34,36 @@ class StrongModeStaticTypeAnalyzer2Test_Driver
 
   @failingTest
   @override
-  test_genericMethod_functionExpressionInvocation_explicit() {
-    return super.test_genericMethod_functionExpressionInvocation_explicit();
+  test_genericMethod_functionExpressionInvocation_functionTypedParameter_explicit() {
+    return super
+        .test_genericMethod_functionExpressionInvocation_functionTypedParameter_explicit();
   }
 
   @failingTest
   @override
-  test_genericMethod_functionExpressionInvocation_inferred() {
-    return super.test_genericMethod_functionExpressionInvocation_inferred();
+  test_genericMethod_functionExpressionInvocation_functionTypedParameter_inferred() {
+    return super
+        .test_genericMethod_functionExpressionInvocation_functionTypedParameter_inferred();
   }
 
   @failingTest
   @override
-  test_genericMethod_functionInvocation_explicit() {
-    return super.test_genericMethod_functionInvocation_explicit();
+  test_genericMethod_functionInvocation_functionTypedParameter_explicit() {
+    return super
+        .test_genericMethod_functionInvocation_functionTypedParameter_explicit();
   }
 
   @failingTest
   @override
-  test_genericMethod_functionInvocation_inferred() {
-    return super.test_genericMethod_functionInvocation_inferred();
+  test_genericMethod_functionInvocation_functionTypedParameter_inferred() {
+    return super
+        .test_genericMethod_functionInvocation_functionTypedParameter_inferred();
   }
 
   @failingTest
   @override
-  test_genericMethod_tearoff() {
-    return super.test_genericMethod_tearoff();
+  test_genericMethod_functionTypedParameter_tearoff() {
+    return super.test_genericMethod_functionTypedParameter_tearoff();
   }
 }
 

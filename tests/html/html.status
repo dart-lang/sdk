@@ -48,7 +48,7 @@ wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant
 xhr_test/xhr: Pass, RuntimeError # Roll 50 failure
 
 [ $compiler == fasta ]
-*: CompileTimeError # TODO(ahe): Support dart:html in Fasta.
+*: Skip # TODO(ahe): Support dart:html in Fasta.
 
 [ $runtime == drt ]
 webgl_extensions_test: Skip # webgl does not work properly on DRT, which is 'headless'.
@@ -249,8 +249,6 @@ custom/entered_left_view_test/shadow_dom: RuntimeError
 custom/entered_left_view_test/standard_events: RuntimeError
 custom/entered_left_view_test/standard_events_old_callback_names: RuntimeError
 custom/entered_left_view_test/viewless_document: RuntimeError
-custom/mirrors_2_test: RuntimeError
-custom/mirrors_test: RuntimeError
 custom_element_method_clash_test/test: RuntimeError
 custom_element_name_clash_test/test: RuntimeError
 custom_elements_23127_test/baseline: RuntimeError
@@ -261,7 +259,6 @@ custom_elements_test/innerHtml: RuntimeError
 custom_elements_test/lifecycle: RuntimeError
 custom_elements_test/mixins: RuntimeError
 custom_elements_test/register: RuntimeError
-deferred_multi_app_htmltest: CompileTimeError
 element_animate_test/omit_timing: Timeout
 element_test/click: RuntimeError
 element_test/eventDelegation: RuntimeError
@@ -271,13 +268,9 @@ form_data_test/functional: Timeout
 history_test/history: Timeout
 indexeddb_1_test/functional: RuntimeError
 indexeddb_2_test: RuntimeError
-indexeddb_3_test: RuntimeError
 indexeddb_4_test: RuntimeError
-indexeddb_5_test: RuntimeError
 js_test/JsObject.fromBrowserObject(): RuntimeError
 js_test/JsObject.jsify(): RuntimeError
-js_typed_interop_default_arg_test/explicit_argument: RuntimeError
-js_typed_interop_test/static_method_tearoff_1: RuntimeError
 js_util_test/js_util.jsify(): RuntimeError
 mirrors_js_typed_interop_test: RuntimeError
 mutationobserver_test/childList: Timeout
@@ -325,24 +318,19 @@ custom/mirrors_test: Fail # mirrors not supported
 mirrors_js_typed_interop_test: Fail # mirrors not supported
 
 [ $compiler == dart2js && $fast_startup && $fasta ]
-js_typed_interop_default_arg_test/explicit_argument: RuntimeError
 js_typed_interop_default_arg_test/none: RuntimeError
 js_typed_interop_test/object literal: RuntimeError
 js_typed_interop_test/static_method_call: RuntimeError
-js_typed_interop_test/static_method_tearoff_1: RuntimeError
 js_util_test/hasProperty: RuntimeError
 
-[ $compiler == dart2js && $fasta && $host_checked ]
+[ $compiler == dart2js && $fasta ]
 custom/mirrors_2_test: RuntimeError
 custom/mirrors_test: RuntimeError
+deferred_multi_app_htmltest: CompileTimeError
 fileapi_test/entry: RuntimeError
-js_typed_interop_default_arg_test/explicit_argument: RuntimeError
-js_typed_interop_test/static_method_tearoff_1: RuntimeError
-
-[ $compiler == dart2js && $fasta && $minified ]
-custom/mirrors_2_test: RuntimeError
-custom/mirrors_test: RuntimeError
-fileapi_test/entry: RuntimeError
+indexeddb_1_test/functional: RuntimeError
+indexeddb_3_test: RuntimeError
+indexeddb_5_test: RuntimeError
 js_typed_interop_default_arg_test/explicit_argument: RuntimeError
 js_typed_interop_test/static_method_tearoff_1: RuntimeError
 

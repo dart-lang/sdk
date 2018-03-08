@@ -66,7 +66,7 @@ class JsonCyclicError extends JsonUnsupportedObjectError {
  *     var decoded = json.decode('["foo", { "bar": 499 }]');
  */
 const JsonCodec json = const JsonCodec();
-/** Deprecated, use [json] instead. */
+@Deprecated("Use json instead")
 const JsonCodec JSON = json;
 
 typedef _Reviver(Object key, Object value);

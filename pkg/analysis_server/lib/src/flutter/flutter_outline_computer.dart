@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -14,6 +15,19 @@ import 'package:analyzer/src/generated/source.dart';
 
 /// Computer for Flutter specific outlines.
 class FlutterOutlineComputer {
+  static const CONSTRUCTOR_NAME = 'forDesignTime';
+
+  /// Code to append to the instrumented library code.
+  static const RENDER_APPEND = r'''
+
+final flutterDesignerWidgets = <int, Widget>{};
+
+T _registerWidgetInstance<T extends Widget>(int id, T widget) {
+  flutterDesignerWidgets[id] = widget;
+  return widget;
+}
+''';
+
   final String file;
   final String content;
   final LineInfo lineInfo;
@@ -21,6 +35,15 @@ class FlutterOutlineComputer {
   final TypeProvider typeProvider;
 
   final List<protocol.FlutterOutline> _depthFirstOrder = [];
+
+  int nextWidgetId = 0;
+
+  /// This map is filled with information about widget classes that can be
+  /// rendered. Its keys are class name offsets.
+  final Map<int, _WidgetClass> widgets = {};
+
+  final List<protocol.SourceEdit> instrumentationEdits = [];
+  String instrumentedCode;
 
   FlutterOutlineComputer(this.file, this.content, this.lineInfo, this.unit)
       : typeProvider = unit.element.context.typeProvider;
@@ -30,8 +53,27 @@ class FlutterOutlineComputer {
             file, lineInfo, unit,
             withBasicFlutter: false)
         .compute();
+
+    // Find widget classes.
+    // IDEA plugin only supports rendering widgets in libraries.
+    if (unit.element.source == unit.element.librarySource) {
+      _findWidgets();
+    }
+
+    // Convert Dart outlines into Flutter outlines.
     var flutterDartOutline = _convert(dartOutline);
+
+    // Create outlines for widgets.
     unit.accept(new _FlutterOutlineBuilder(this));
+
+    // Compute instrumented code.
+    if (widgets.isNotEmpty) {
+      instrumentationEdits.sort((a, b) => b.offset - a.offset);
+      instrumentedCode =
+          SourceEdit.applySequence(content, instrumentationEdits);
+      instrumentedCode += RENDER_APPEND;
+    }
+
     return flutterDartOutline;
   }
 
@@ -80,6 +122,14 @@ class FlutterOutlineComputer {
     }
   }
 
+  int _addInstrumentationEdits(Expression expression) {
+    int id = nextWidgetId++;
+    instrumentationEdits.add(new protocol.SourceEdit(
+        expression.offset, 0, '_registerWidgetInstance($id, '));
+    instrumentationEdits.add(new protocol.SourceEdit(expression.end, 0, ')'));
+    return id;
+  }
+
   protocol.FlutterOutline _convert(protocol.Outline dartOutline) {
     protocol.FlutterOutline flutterOutline = new protocol.FlutterOutline(
         protocol.FlutterOutlineKind.DART_ELEMENT,
@@ -89,6 +139,17 @@ class FlutterOutlineComputer {
     if (dartOutline.children != null) {
       flutterOutline.children = dartOutline.children.map(_convert).toList();
     }
+
+    // Fill rendering information for widget classes.
+    if (dartOutline.element.kind == protocol.ElementKind.CLASS) {
+      var widget = widgets[dartOutline.element.location.offset];
+      if (widget != null) {
+        flutterOutline.renderConstructor = CONSTRUCTOR_NAME;
+        flutterOutline.stateOffset = widget.state?.offset;
+        flutterOutline.stateLength = widget.state?.length;
+      }
+    }
+
     _depthFirstOrder.add(flutterOutline);
     return flutterOutline;
   }
@@ -105,6 +166,8 @@ class FlutterOutlineComputer {
     String className = type.element.displayName;
 
     if (node is InstanceCreationExpression) {
+      int id = _addInstrumentationEdits(node);
+
       var attributes = <protocol.FlutterOutlineAttribute>[];
       var children = <protocol.FlutterOutline>[];
       for (var argument in node.argumentList.arguments) {
@@ -144,7 +207,10 @@ class FlutterOutlineComputer {
 
       return new protocol.FlutterOutline(
           protocol.FlutterOutlineKind.NEW_INSTANCE, node.offset, node.length,
-          className: className, attributes: attributes, children: children);
+          className: className,
+          attributes: attributes,
+          children: children,
+          id: id);
     }
 
     // A generic Widget typed expression.
@@ -162,11 +228,87 @@ class FlutterOutlineComputer {
         label = _getShortLabel(node);
       }
 
+      int id = _addInstrumentationEdits(node);
       return new protocol.FlutterOutline(kind, node.offset, node.length,
-          className: className, variableName: variableName, label: label);
+          className: className,
+          variableName: variableName,
+          label: label,
+          id: id);
     }
 
     return null;
+  }
+
+  /// Return the `State` declaration for the given `StatefulWidget` declaration.
+  /// Return `null` if cannot be found.
+  ClassDeclaration _findState(ClassDeclaration widget) {
+    MethodDeclaration createStateMethod = widget.members.firstWhere(
+        (method) =>
+            method is MethodDeclaration &&
+            method.name.name == 'createState' &&
+            method.body != null,
+        orElse: () => null);
+    if (createStateMethod == null) {
+      return null;
+    }
+
+    DartType stateType;
+    {
+      FunctionBody buildBody = createStateMethod.body;
+      if (buildBody is ExpressionFunctionBody) {
+        stateType = buildBody.expression.staticType;
+      } else if (buildBody is BlockFunctionBody) {
+        List<Statement> statements = buildBody.block.statements;
+        if (statements.isNotEmpty) {
+          Statement lastStatement = statements.last;
+          if (lastStatement is ReturnStatement) {
+            stateType = lastStatement.expression?.staticType;
+          }
+        }
+      }
+    }
+    if (stateType == null) {
+      return null;
+    }
+
+    ClassElement stateElement;
+    if (stateType is InterfaceType && isState(stateType.element)) {
+      stateElement = stateType.element;
+    } else {
+      return null;
+    }
+
+    for (var stateNode in unit.declarations) {
+      if (stateNode is ClassDeclaration && stateNode.element == stateElement) {
+        return stateNode;
+      }
+    }
+
+    return null;
+  }
+
+  /// Fill [widgets] with information about classes that can be rendered.
+  void _findWidgets() {
+    for (var widget in unit.declarations) {
+      if (widget is ClassDeclaration) {
+        int nameOffset = widget.name.offset;
+
+        var designTimeConstructor = widget.getConstructor(CONSTRUCTOR_NAME);
+        if (designTimeConstructor == null) {
+          continue;
+        }
+
+        InterfaceType superType = widget.element.supertype;
+        if (isExactlyStatelessWidgetType(superType)) {
+          widgets[nameOffset] = new _WidgetClass(nameOffset);
+        } else if (isExactlyStatefulWidgetType(superType)) {
+          ClassDeclaration state = _findState(widget);
+          if (state != null) {
+            widgets[nameOffset] = new _WidgetClass(nameOffset, state);
+          }
+        }
+      }
+    }
   }
 
   String _getShortLabel(AstNode node) {
@@ -213,4 +355,14 @@ class _FlutterOutlineBuilder extends GeneralizingAstVisitor<void> {
       super.visitExpression(node);
     }
   }
+}
+
+/// Information about a Widget class that can be rendered.
+class _WidgetClass {
+  final int nameOffset;
+
+  /// If a `StatefulWidget` with the `State` in the same file.
+  final ClassDeclaration state;
+
+  _WidgetClass(this.nameOffset, [this.state]);
 }

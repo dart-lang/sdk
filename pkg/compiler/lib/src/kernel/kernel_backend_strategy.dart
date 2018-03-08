@@ -129,20 +129,21 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
         function, _globalInferenceResults);
   }
 
-  TypeMask typeOfInvocation(ir.MethodInvocation node, ClosedWorld closedWorld) {
+  TypeMask receiverTypeOfInvocation(
+      ir.MethodInvocation node, ClosedWorld closedWorld) {
     return _targetResults.typeOfSend(node);
   }
 
-  TypeMask typeOfGet(ir.PropertyGet node) {
+  TypeMask receiverTypeOfGet(ir.PropertyGet node) {
     return _targetResults.typeOfSend(node);
   }
 
-  TypeMask typeOfDirectGet(ir.DirectPropertyGet node) {
+  TypeMask receiverTypeOfDirectGet(ir.DirectPropertyGet node) {
     return _targetResults.typeOfSend(node);
   }
 
-  TypeMask typeOfSet(ir.PropertySet node, ClosedWorld closedWorld) {
-    return closedWorld.commonMasks.dynamicType;
+  TypeMask receiverTypeOfSet(ir.PropertySet node, ClosedWorld closedWorld) {
+    return _targetResults.typeOfSend(node);
   }
 
   TypeMask typeOfListLiteral(

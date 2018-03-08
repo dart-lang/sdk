@@ -9,7 +9,7 @@ import 'package:expect/expect.dart';
 import 'package:compiler/src/helpers/helpers.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/constants/values.dart';
-import 'type_test_helper.dart';
+import '../type_test_helper.dart';
 
 void main() {
   enableDebugMode();

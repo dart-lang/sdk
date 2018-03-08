@@ -14,9 +14,12 @@ const WIDGETS_LIBRARY_URI = 'package:flutter/widgets.dart';
 const _BASIC_URI = "package:flutter/src/widgets/basic.dart";
 const _CENTER_NAME = "Center";
 const _PADDING_NAME = "Padding";
+const _STATE_NAME = "State";
+const _STATEFUL_WIDGET_NAME = "StatefulWidget";
 const _STATELESS_WIDGET_NAME = "StatelessWidget";
 const _WIDGET_NAME = "Widget";
 const _WIDGET_URI = "package:flutter/src/widgets/framework.dart";
+final _frameworkUri = Uri.parse('package:flutter/src/widgets/framework.dart');
 
 void convertChildToChildren(
     InstanceCreationExpression childArg,
@@ -241,6 +244,14 @@ Expression identifyWidgetExpression(AstNode node) {
 }
 
 /**
+ * Return `true` if the given [type] is the Flutter class `StatefulWidget`.
+ */
+bool isExactlyStatefulWidgetType(DartType type) {
+  return type is InterfaceType &&
+      _isExactWidget(type.element, _STATEFUL_WIDGET_NAME, _WIDGET_URI);
+}
+
+/**
  * Return `true` if the given [type] is the Flutter class `StatelessWidget`.
  */
 bool isExactlyStatelessWidgetType(DartType type) {
@@ -274,6 +285,12 @@ bool isListOfWidgetsType(DartType type) {
       type.element.name == 'List' &&
       type.typeArguments.length == 1 &&
       isWidgetType(type.typeArguments[0]);
+}
+
+/// Return `true` if the given [element] has the Flutter class `State` as
+/// a superclass.
+bool isState(ClassElement element) {
+  return _hasSupertype(element, _frameworkUri, _STATE_NAME);
 }
 
 /**
@@ -327,6 +344,23 @@ bool isWidgetExpression(AstNode node) {
  */
 bool isWidgetType(DartType type) {
   return type is InterfaceType && isWidget(type.element);
+}
+
+/// Return `true` if the given [element] has a supertype with the [requiredName]
+/// defined in the file with the [requiredUri].
+bool _hasSupertype(ClassElement element, Uri requiredUri, String requiredName) {
+  if (element == null) {
+    return false;
+  }
+  for (InterfaceType type in element.allSupertypes) {
+    if (type.name == requiredName) {
+      Uri uri = type.element.source.uri;
+      if (uri == requiredUri) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 /**

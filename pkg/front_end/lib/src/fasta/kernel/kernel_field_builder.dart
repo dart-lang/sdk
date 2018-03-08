@@ -130,5 +130,6 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   DartType get builtType => field.type;
 
   @override
-  bool get hasImplicitType => type == null;
+  bool get hasTypeInferredFromInitializer =>
+      ShadowField.hasTypeInferredFromInitializer(field);
 }

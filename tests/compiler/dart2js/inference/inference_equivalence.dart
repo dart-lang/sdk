@@ -10,7 +10,6 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/inferrer/inferrer_engine.dart';
-import 'package:compiler/src/resolution/class_hierarchy.dart';
 import '../equivalence/id_equivalence_helper.dart';
 import 'inference_test_helper.dart';
 import '../equivalence/id_equivalence.dart';
@@ -30,7 +29,6 @@ Future<bool> mainInternal(List<String> args,
   }
   bool verbose = argResults['verbose'];
 
-  useOptimizedMixins = true;
   InferrerEngineImpl.useSorterForTesting = true;
 
   bool success = true;

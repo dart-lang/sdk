@@ -388,7 +388,7 @@ class ClassHelper {
     kCanonicalName,
     kPosition,
     kEndPosition,
-    kIsAbstract,
+    kFlags,
     kNameIndex,
     kSourceUriIndex,
     kAnnotations,
@@ -401,6 +401,11 @@ class ClassHelper {
     kProcedures,
     kClassIndex,
     kEnd,
+  };
+
+  enum Flag {
+    kIsAbstract = 1,
+    kIsEnumClass = 2,
   };
 
   explicit ClassHelper(StreamingFlowGraphBuilder* builder) {
@@ -417,14 +422,18 @@ class ClassHelper {
   void SetNext(Field field) { next_read_ = field; }
   void SetJustRead(Field field) { next_read_ = field + 1; }
 
+  bool is_abstract() { return flags_ & Flag::kIsAbstract; }
+
+  bool is_enum_class() { return flags_ & Flag::kIsEnumClass; }
+
   NameIndex canonical_name_;
   TokenPosition position_;
   TokenPosition end_position_;
-  bool is_abstract_;
   StringIndex name_index_;
   intptr_t source_uri_index_;
   intptr_t annotation_count_;
   intptr_t procedure_count_;
+  uint8_t flags_;
 
  private:
   StreamingFlowGraphBuilder* builder_;

@@ -35,8 +35,8 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
-  "co19_rev": "@dec2b67aaab3bb7339b9764049707e71e601da3d",
-  "co19_2_rev": "@d8cdc47f759b0e89a517403ffa13eccd874bbbc0",
+  "co19_rev": "@d4b3fc9af414c990b4d22f313e533b275d2f27c5",
+  "co19_2_rev": "@74562e984a81673b581e148b5802684d6df840d2",
 
   # As Flutter does, we pull buildtools, including the clang toolchain, from
   # Fuchsia. This revision should be kept up to date with the revision pulled
@@ -57,13 +57,13 @@ vars = {
   "barback-0.14.1_rev": "@38525",
   "barback_tag" : "@0.15.2+14",
   "bazel_worker_tag": "@v0.1.9",
-  "boolean_selector_tag" : "@1.0.2",
+  "boolean_selector_tag" : "@1.0.3",
   "boringssl_gen_rev": "@39762c7f9ee4d828ff212838fae79528b94d5443",
   "boringssl_rev" : "@a62dbf88d8a3c04446db833a1eb80a620cb1514d",
   "charcode_tag": "@v1.1.1",
   "chrome_rev" : "@19997",
   "cli_util_tag" : "@0.1.2+1",
-  "collection_tag": "@5943e1681204250f33a833eb5550f270357ad6c8",
+  "collection_tag": "@6ff408a512df30559c1a18b37cfac9fc51a4ceef",
   "convert_tag": "@2.0.1",
   "crypto_tag" : "@2.0.2+1",
   "csslib_tag" : "@0.14.1",

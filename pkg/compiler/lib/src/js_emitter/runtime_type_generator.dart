@@ -110,7 +110,11 @@ class RuntimeTypeGenerator {
   final RuntimeTypesEncoder _rtiEncoder;
   final JsInteropAnalysis _jsInteropAnalysis;
   final bool _useKernel;
+
+  /// ignore: UNUSED_FIELD
   final bool _strongMode;
+
+  /// ignore: UNUSED_FIELD
   final bool _disableRtiOptimization;
 
   RuntimeTypeGenerator(
@@ -131,9 +135,6 @@ class RuntimeTypeGenerator {
 
   Iterable<ClassEntity> get checkedClasses =>
       _typeTestRegistry.rtiChecks.checkedClasses;
-
-  Iterable<ClassEntity> get classesUsingTypeVariableTests =>
-      _typeTestRegistry.rtiChecks.classesUsingTypeVariableTests;
 
   Iterable<FunctionType> get checkedFunctionTypes =>
       _typeTestRegistry.rtiChecks.checkedFunctionTypes;
@@ -186,27 +187,13 @@ class RuntimeTypeGenerator {
         if (_useKernel &&
             signature != null &&
             generatedCode[signature] != null) {
+          // Use precomputed signature function.
           encoding = generatedCode[signature];
         } else {
-          // With Dart 2, if disableRtiOptimization is true, then we might
-          // generate some code for classes that are not actually called,
-          // so following this path is "okay." Also, classes that have call
-          // methods are no longer a subtype of Function (and therefore we don't
-          // create a closure class), so this path is also acceptable.
-
-          // TODO(efortuna, johnniwinther): Verify that closures that use this
-          // path are in fact dead code. If this *not* actually dead code, we
-          // get to this point because TrivialRuntimeTypesChecksBuilder
-          // specifies that every subtype of Object and its types is "used"
-          // (ClassUse = true). However, on the codegen side, we only codegen
-          // entities that are actually reachable via treeshaking. To solve this
-          // issue, if disableRtiOptimization is turned on, we could literally
-          // in world_impact.dart loop through every subclass of Object and say
-          // that all types related to JClosureClasses are "used" so the go
-          // through the codegen queue and therefore we generate code for it.
-          // This seems not ideal though.
-          assert(!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-              (_useKernel && _strongMode && !method.enclosingClass.isClosure));
+          // TODO(efortuna): Reinsert assertion.
+          // TODO(johnniwinther): Avoid unneeded signatures from closure
+          // classes.
+          // Use shared signature function.
           encoding = _rtiEncoder.getSignatureEncoding(
               emitterTask.emitter, type, thisAccess);
         }

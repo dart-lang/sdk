@@ -95,6 +95,6 @@ main() {
 
   // Instantiation of a generic class preserves type information:
   ClassMirror m = reflectType(A, [P]) as ClassMirror;
-  var instance = m.newInstance(const Symbol(""), []).reflectee;
+  var instance = m.newInstance(Symbol.empty, []).reflectee;
   Expect.equals(new A<P>().runtimeType, instance.runtimeType);
 }

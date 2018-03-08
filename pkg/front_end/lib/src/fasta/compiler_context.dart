@@ -65,6 +65,7 @@ class CompilerContext {
   }
 
   /// Report [message], for example, by printing it.
+  // TODO(askesc): Remove this and direct callers directly to report.
   void reportWithoutLocation(Message message, Severity severity) {
     options.reportWithoutLocation(message, severity);
   }
@@ -75,8 +76,9 @@ class CompilerContext {
   }
 
   /// Format [message] as a text string that can be included in generated code.
+  // TODO(askesc): Remove this and direct callers directly to format.
   String formatWithoutLocation(Message message, Severity severity) {
-    return command_line_reporting.formatWithoutLocation(message, severity);
+    return command_line_reporting.format(message.withoutLocation(), severity);
   }
 
   void logError(Object message, Severity severity) {

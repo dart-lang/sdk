@@ -18,8 +18,6 @@ import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../parser.dart' show noLength;
-
 /// Set this flag to `true` to cause debugging information about covariance
 /// checks to be printed to standard output.
 const bool debugCovariance = false;

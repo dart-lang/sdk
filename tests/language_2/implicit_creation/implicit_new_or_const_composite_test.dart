@@ -35,7 +35,7 @@ main() {
 
     Expect.identical(cd1, cd2);
     Expect.identical(cd1, cd3);
-    Expect.allDistinct([cd1, cd3, cd4, cd5]);
+    Expect.allDistinct([cd1, cd4, cd5]);
   }
 
   {
@@ -95,7 +95,7 @@ main() {
     Expect.identical(n1, n3);
     Expect.identical(n1, n4);
     Expect.identical(n1, n8);
-    Expect.allDistinct([n1, n5, n6, n7, n8, n9, n10, n11, n12, n13, n14]);
+    Expect.allDistinct([n1, n5, n6, n7, n9, n10, n11, n12, n13, n14]);
 
     Expect.identical(clist, n6.left);
     Expect.identical(clist, n10.left);
@@ -183,7 +183,7 @@ main() {
     Expect.identical(l20, l23);
     Expect.identical(l20, l24);
     // List literals are never const unless in const context.
-    Expect.allDistinct([l25, l26, l27, l28, l29, l30, l31]);
+    Expect.allDistinct([l20, l25, l26, l27, l28, l29, l30, l31]);
     Expect.identical(cc42, l25[0]);
     Expect.identical(cc42, l26[0]);
     Expect.identical(cc42, l27[0]);
@@ -234,7 +234,7 @@ main() {
     Expect.identical(m20, m23);
     Expect.identical(m20, m24);
     // Map literals are never const unless in const context.
-    Expect.allDistinct([m25, m26, m27, m28, m29, m30, m31]);
+    Expect.allDistinct([m20, m25, m26, m27, m28, m29, m30, m31]);
     Expect.identical(cc42, m25.keys.first);
     Expect.identical(cc42, m26.keys.first);
     Expect.identical(cc42, m27.keys.first);

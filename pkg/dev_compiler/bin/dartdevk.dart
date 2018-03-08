@@ -104,7 +104,7 @@ _ParsedArgs _preprocessArgs(List<String> args) {
     return new _ParsedArgs(true, false, args.sublist(0, args.length - 1));
   }
 
-  var newArgs = [];
+  var newArgs = <String>[];
   bool isWorker = false;
   var len = args.length;
   for (int i = 0; i < len; i++) {

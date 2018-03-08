@@ -21,8 +21,8 @@ async_star_test/none: RuntimeError
 await_future_test: Pass, Timeout # Issue 29920
 bit_operations_test: RuntimeError # No bigints on web.
 black_listed_test/none: Fail # Issue 14228
-bug32353_test: CompileTimeError
-bug32372_test: CompileTimeError
+bug32353_test: RuntimeError
+bug32372_test: RuntimeError
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Issue 28816
 call_method_as_cast_test/01: RuntimeError
@@ -34,6 +34,7 @@ call_method_function_typed_value_test/02: RuntimeError
 call_method_function_typed_value_test/04: RuntimeError
 call_method_function_typed_value_test/06: RuntimeError
 call_method_function_typed_value_test/08: RuntimeError
+call_method_implicit_tear_off_assignable_test: CompileTimeError # Issue 32426
 call_method_implicit_tear_off_implements_function_test/01: RuntimeError
 call_method_implicit_tear_off_implements_function_test/02: RuntimeError
 call_method_implicit_tear_off_implements_function_test/03: RuntimeError
@@ -56,6 +57,7 @@ call_method_override_test/02: MissingCompileTimeError
 cascaded_forwarding_stubs_generic_test: RuntimeError
 cascaded_forwarding_stubs_test: CompileTimeError
 conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Crashes or times out
+conflicting_generic_interfaces_simple_test: MissingCompileTimeError
 conflicting_type_variable_and_setter_test: CompileTimeError
 const_evaluation_test/01: RuntimeError # Issue 29920
 const_for_in_variable_test/01: MissingCompileTimeError
@@ -141,19 +143,20 @@ mixin_super_use_test: RuntimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
 mixin_type_parameter_inference_previous_mixin_test/01: CompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/02: CompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/05: CompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/none: CompileTimeError
+mixin_type_parameter_inference_previous_mixin_test/02: RuntimeError
+mixin_type_parameter_inference_previous_mixin_test/03: MissingCompileTimeError
+mixin_type_parameter_inference_previous_mixin_test/04: MissingCompileTimeError
+mixin_type_parameter_inference_previous_mixin_test/05: RuntimeError
 mixin_type_parameter_inference_test/01: CompileTimeError
-mixin_type_parameter_inference_test/02: CompileTimeError
-mixin_type_parameter_inference_test/03: CompileTimeError
-mixin_type_parameter_inference_test/08: CompileTimeError
-mixin_type_parameter_inference_test/09: CompileTimeError
-mixin_type_parameter_inference_test/10: CompileTimeError
-mixin_type_parameter_inference_test/12: CompileTimeError
-mixin_type_parameter_inference_test/13: CompileTimeError
-mixin_type_parameter_inference_test/16: CompileTimeError
-mixin_type_parameter_inference_test/none: CompileTimeError
+mixin_type_parameter_inference_test/02: RuntimeError
+mixin_type_parameter_inference_test/03: RuntimeError
+mixin_type_parameter_inference_test/04: MissingCompileTimeError
+mixin_type_parameter_inference_test/05: MissingCompileTimeError
+mixin_type_parameter_inference_test/06: MissingCompileTimeError
+mixin_type_parameter_inference_test/07: MissingCompileTimeError
+mixin_type_parameter_inference_test/08: RuntimeError
+mixin_type_parameter_inference_test/09: RuntimeError
+mixin_type_parameter_inference_test/11: MissingCompileTimeError
 mock_writable_final_private_field_test: CompileTimeError # Issue 30848
 multiline_newline_test/01: CompileTimeError
 multiline_newline_test/01r: CompileTimeError
@@ -179,9 +182,6 @@ override_inheritance_method_test/29: CompileTimeError
 parameter_initializer_test: CompileTimeError
 part_refers_to_core_library_test/01: Crash
 prefix10_negative_test: Fail # Issue 29920
-regress_22976_test/01: CompileTimeError
-regress_22976_test/02: CompileTimeError
-regress_22976_test/none: CompileTimeError
 regress_23408_test: CompileTimeError
 regress_24283_test: RuntimeError # Intended to fail, requires 64-bit numbers.
 regress_29025_test: CompileTimeError # Issue 29081
@@ -324,9 +324,6 @@ abstract_getter_test/01: MissingCompileTimeError
 abstract_syntax_test/00: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
-async_await_syntax_test/c10a: MissingCompileTimeError
-async_await_syntax_test/d08b: MissingCompileTimeError
-async_await_syntax_test/d10a: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
@@ -338,7 +335,7 @@ bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
-bug32353_test: Crash # Issue 32353
+bug32353_test: RuntimeError # Issue 32428
 built_in_identifier_type_annotation_test/05: RuntimeError # Issue 32194
 built_in_identifier_type_annotation_test/none: RuntimeError # Issue 32194
 call_method_as_cast_test/01: RuntimeError
@@ -433,7 +430,6 @@ factory4_test/00: MissingCompileTimeError
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
 field_initialization_order_test/01: MissingCompileTimeError
-field_override2_test: MissingCompileTimeError
 field_override3_test/00: MissingCompileTimeError
 field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
@@ -460,6 +456,7 @@ identical_const_test/01: MissingCompileTimeError
 identical_const_test/02: MissingCompileTimeError
 identical_const_test/03: MissingCompileTimeError
 identical_const_test/04: MissingCompileTimeError
+implicit_creation/implicit_const_not_default_values_test/e.*: MissingCompileTimeError
 implicit_creation/implicit_new_or_const_composite_test: RuntimeError
 implicit_creation/implicit_new_or_const_test: RuntimeError
 implicit_this_test/01: MissingCompileTimeError
@@ -571,6 +568,7 @@ mixin_of_mixin_test/03: MissingCompileTimeError
 mixin_of_mixin_test/04: MissingCompileTimeError
 mixin_of_mixin_test/05: MissingCompileTimeError
 mixin_of_mixin_test/06: MissingCompileTimeError
+mixin_regress_13688_test: RuntimeError # Issue 32427
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
 mixin_super_bound_test/01: MissingCompileTimeError
@@ -633,11 +631,13 @@ override_inheritance_no_such_method_test/09: MissingCompileTimeError
 override_inheritance_no_such_method_test/10: MissingCompileTimeError
 override_inheritance_no_such_method_test/12: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
+recursive_mixin_test: RuntimeError # Issue 32428
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 redirecting_factory_reflection_test: RuntimeError # UnimplementedError: node <InvalidExpression> `invalid-expression`
+regress_22666_test: RuntimeError # Issue 32427
 regress_23089_test: Crash # Crashes in KernelClassBuilder.buildTypeArguments
 regress_23408_test: CompileTimeError # Issue 31533
 regress_24283_test: RuntimeError # Expect.equals(expected: <-1>, actual: <4294967295>) fails.
@@ -645,6 +645,7 @@ regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError # Issue 31402 Error: A value of type '#lib2::Foo' can't be assigned to a variable of type '(#lib2::Foo) → void'.
 regress_29784_test/01: MissingCompileTimeError
 regress_29784_test/02: MissingCompileTimeError
+regress_29949_test: RuntimeError # Issue 32429
 regress_30339_test: CompileTimeError
 regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
 runtime_type_function_test: RuntimeError # Expect.fail('Type print string does not match expectation
@@ -791,7 +792,6 @@ int64_literal_test/*: Skip # This is testing Dart 2.0 int64 semantics.
 integer_division_by_zero_test: RuntimeError # Issue 29920; Expect.throws: Unexpected 'Unsupported operation: Infinity'
 internal_library_test/02: Crash
 invocation_mirror2_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
-invocation_mirror_empty_arguments_test: RuntimeError # Expect.throws(UnsupportedError) fails: Did not throw
 invocation_mirror_invoke_on2_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
 invocation_mirror_invoke_on_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
 invocation_mirror_test: RuntimeError # Type 'NativeJavaScriptObject' is not a subtype of type 'int' in strong mode

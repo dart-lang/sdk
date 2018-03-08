@@ -23,7 +23,7 @@ import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
-import 'memory_compiler.dart';
+import '../memory_compiler.dart';
 
 class TestData {
   final String name;

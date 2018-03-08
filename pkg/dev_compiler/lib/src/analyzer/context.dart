@@ -81,7 +81,7 @@ class AnalyzerOptions {
     (contextBuilderOptions.defaultOptions as AnalysisOptionsImpl).previewDart2 =
         true;
 
-    var dartSdkPath = args['dart-sdk'] ?? getSdkDir().path;
+    var dartSdkPath = args['dart-sdk'] as String ?? getSdkDir().path;
 
     dartSdkSummaryPath ??= contextBuilderOptions.dartSdkSummaryPath;
     dartSdkSummaryPath ??=
@@ -94,7 +94,8 @@ class AnalyzerOptions {
         contextBuilderOptions: contextBuilderOptions,
         summaryPaths: summaryPaths ?? args['summary'] as List<String>,
         dartSdkPath: dartSdkPath,
-        customUrlMappings: _parseUrlMappings(args['url-mapping']));
+        customUrlMappings:
+            _parseUrlMappings(args['url-mapping'] as List<String>));
   }
 
   static void addArguments(ArgParser parser, {bool hide: true}) {
@@ -109,7 +110,7 @@ class AnalyzerOptions {
           hide: hide);
   }
 
-  static Map<String, String> _parseUrlMappings(Iterable argument) {
+  static Map<String, String> _parseUrlMappings(List<String> argument) {
     var mappings = <String, String>{};
     for (var mapping in argument) {
       var splitMapping = mapping.split(',');

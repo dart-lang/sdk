@@ -12,9 +12,9 @@ class J<X extends core::Object> extends core::Object {
     : super core::Object::•()
     ;
 }
-abstract class _I&J^#T0^#T1<#T0 extends core::Object, #T1 extends core::Object> = self::I<self::_I&J^#T0^#T1::#T0> with self::J<self::_I&J^#T0^#T1::#T1> {
+abstract class _M0&I&J<X extends core::Object, Y extends core::Object> = self::I<self::_M0&I&J::X> with self::J<self::_M0&I&J::Y> {
 }
-class M0<X extends core::Object, Y extends core::Object> extends self::_I&J^#T0^#T1<self::M0::X, self::M0::Y> {
+class M0<X extends core::Object, Y extends core::Object> extends self::_M0&I&J<self::M0::X, self::M0::Y> {
   synthetic constructor •() → void
     : super self::I::•()
     ;
@@ -29,9 +29,9 @@ class M2 extends self::M1 implements self::J<core::double> {
     : super self::M1::•()
     ;
 }
-abstract class _M2&M0 = self::M2 with self::M0<dynamic, dynamic> {
+abstract class _A&M2&M0 = self::M2 with self::M0<dynamic, dynamic> {
 }
-class A extends self::_M2&M0 {
+class A extends self::_A&M2&M0 {
   synthetic constructor •() → void
     : super self::M2::•()
     ;

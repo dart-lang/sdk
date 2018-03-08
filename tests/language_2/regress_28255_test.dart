@@ -19,5 +19,5 @@ class Class {
 }
 
 main() {
-  reflectClass(Class).newInstance(const Symbol(''), []).reflectee.foo();
+  reflectClass(Class).newInstance(Symbol.empty, []).reflectee.foo();
 }

@@ -3,7 +3,7 @@ import 'package:test/test.dart';
 
 final _prenumberedPlaceholders = new RegExp(r'#\d+');
 
-_parser(String src) =>
+MiniJsParser _parser(String src) =>
     new MiniJsParser(src.replaceAll(_prenumberedPlaceholders, '#'));
 
 _check(Node node, String expected) =>

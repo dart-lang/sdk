@@ -5,9 +5,7 @@
 [ $compiler == dart2js ]
 Language/Classes/Constructors/Generative_Constructors/execution_of_a_superinitializer_t01: RuntimeError # compiler cancelled: cannot resolve type T
 Language/Classes/Constructors/Generative_Constructors/execution_of_a_superinitializer_t01: RuntimeError, OK # co19 issue 258
-Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: Fail # Issue 13363
 Language/Classes/Constructors/Generative_Constructors/execution_t03: RuntimeError # https://github.com/dart-lang/sdk/issues/29596
-Language/Classes/Constructors/Generative_Constructors/initializing_formals_execution_t02: Fail # Issue 13363
 Language/Classes/Getters/static_getter_t02: CompileTimeError # Should be fixed with unified frontend. Issue 24534
 Language/Classes/Instance_Methods/same_name_setter_t01: Fail # Issue 21201
 Language/Classes/Setters/name_t01: CompileTimeError # Issue 5023
@@ -16,7 +14,6 @@ Language/Classes/Setters/name_t03: RuntimeError # Issue 5023
 Language/Classes/Setters/name_t07: CompileTimeError # Issue 5023
 Language/Classes/Setters/static_setter_t06: RuntimeError # Should be fixed with unified frontend. Issue 23749
 Language/Classes/Static_Methods/same_name_method_and_setter_t01: CompileTimeError # Should be fixed with unified frontend. Issue 23749
-Language/Classes/definition_t23: CompileTimeError # Please triage this failure
 Language/Classes/same_name_type_variable_t01: Fail # Missing CT error on class with same name a type parameter
 Language/Classes/same_name_type_variable_t02: Fail # Missing CT error on member with same name a type parameter
 Language/Classes/same_name_type_variable_t03: Fail # Missing CT error on member with same name a type parameter
@@ -66,8 +63,6 @@ Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/cla
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t06: MissingCompileTimeError # Issue 24332
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t07: MissingCompileTimeError # Issue 24332
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t08: MissingCompileTimeError # Issue 24332
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/no_such_method_t01: RuntimeError # Issue 24331
-Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/no_such_method_t01: RuntimeError # Issue 24331
 Language/Expressions/Shift/syntax_t01/14: MissingRuntimeError # Please triage this failure
 Language/Functions/External_Functions/not_connected_to_a_body_t01: CompileTimeError, OK # Issue 5021
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t01: CompileTimeError # Please triage this failure
@@ -120,14 +115,12 @@ Language/Types/Dynamic_Type_System/deferred_type_error_t01: RuntimeError # Pleas
 Language/Types/Interface_Types/subtype_t27: Skip # Times out or crashes. Issue 21174
 Language/Types/Interface_Types/subtype_t28: Pass, Fail, Crash # Stack overflow. Issue 25282
 Language/Types/Interface_Types/subtype_t30: Fail # Issue 14654
-Language/Types/Type_Void/syntax_t01: MissingCompileTimeError
-Language/Types/Type_Void/syntax_t04: MissingCompileTimeError
+Language/Types/Type_Void/syntax_t02: CompileTimeError # Please triage this failure
 Language/Types/Type_Void/syntax_t05: MissingCompileTimeError, Crash
 Language/Types/Type_Void/syntax_t08: MissingCompileTimeError
 Language/Variables/final_t01/01: CompileTimeError # co19 issue 77
 Language/Variables/final_t02/01: CompileTimeError # co19 issue 77
 Language/Variables/local_variable_t01: MissingCompileTimeError # Issue 21050
-LayoutTests/fast/css/font-face-cache-bug_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/dom/HTMLLinkElement/link-onload-stylesheet-with-import_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/dom/css-innerHTML_t01: SkipByDesign # Test is incorrect.
 LayoutTests/fast/dom/mutation-event-remove-inserted-node_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
@@ -397,6 +390,7 @@ LayoutTests/fast/canvas/canvas-scale-drawImage-shadow_t01: Pass, RuntimeError # 
 LayoutTests/fast/canvas/canvas-strokePath-gradient-shadow_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/draw-custom-focus-ring_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/getPutImageDataPairTest_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/gradient-addColorStop-with-invalid-color_t01: RuntimeError
 LayoutTests/fast/canvas/rgba-parsing_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/setWidthResetAfterForcedRender_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/canvas/webgl/bad-arguments-test_t01: RuntimeError # Please triage this failure
@@ -501,17 +495,10 @@ LayoutTests/fast/css/deprecated-flexbox-auto-min-size_t01: RuntimeError # Please
 LayoutTests/fast/css/ex-unit-with-no-x-height_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/first-child-display-change-inverse_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/focus-display-block-inline_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/css/font-face-cache-bug_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-insert-link_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/css/font-face-unicode-range-load_t01: Skip # Please triage this failure
-LayoutTests/fast/css/font-face-unicode-range-monospace_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-unicode-range-overlap-load_t01: Skip # Times out, Runtime error. Please triage this failure
-LayoutTests/fast/css/font-family-trailing-bracket-gunk_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/fontfaceset-download-error_t01: Skip # Timeout: issue 28722. Runtime error not triaged
 LayoutTests/fast/css/fontfaceset-events_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/css/fontfaceset-loadingdone_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/getComputedStyle/computed-style-cross-fade_t01: RuntimeError # co19 issue 14
 LayoutTests/fast/css/getComputedStyle/computed-style-font_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/getComputedStyle/font-family-fallback-reset_t01: RuntimeError # Please triage this failure
@@ -1053,7 +1040,6 @@ LibTest/html/HttpRequestUpload/onError_A01_t02: Skip # Times out. Please triage 
 LibTest/html/HttpRequestUpload/onLoadEnd_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/HttpRequestUpload/onLoadStart_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/HttpRequestUpload/onLoad_A01_t01: Skip # Times out. Please triage this failure
-LibTest/html/IFrameElement/IFrameElement.created_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/attributeChanged_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/attributes_setter_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/blur_A01_t01: Skip # Times out. Please triage this failure
@@ -1108,14 +1094,6 @@ WebPlatformTest/Utils/test/asyncTestTimeout_t01: Skip # Times out. Please triage
 WebPlatformTest/custom-elements/concepts/type_A03_t01: RuntimeError # Please triage this failure
 WebPlatformTest/custom-elements/concepts/type_A05_t01: RuntimeError # Please triage this failure
 WebPlatformTest/custom-elements/concepts/type_A06_t01: RuntimeError # Please triage this failure
-WebPlatformTest/custom-elements/instantiating/createElementNS_A02_t01: RuntimeError # Issue 25155
-WebPlatformTest/custom-elements/instantiating/createElementNS_A03_t01: RuntimeError # Issue 25155
-WebPlatformTest/custom-elements/instantiating/createElementNS_A04_t01: RuntimeError # Please triage this failure
-WebPlatformTest/custom-elements/instantiating/createElement_A02_t01: RuntimeError # Issue 25155
-WebPlatformTest/custom-elements/instantiating/createElement_A03_t01: RuntimeError # Issue 25155
-WebPlatformTest/custom-elements/instantiating/createElement_A04_t01: RuntimeError # Please triage this failure
-WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t01: RuntimeError # Issue 25155
-WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t02: RuntimeError # Issue 25155
 WebPlatformTest/dom/EventTarget/dispatchEvent_A02_t01: RuntimeError # Please triage this failure
 WebPlatformTest/dom/EventTarget/dispatchEvent_A03_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/dom/events/type_A01_t01: RuntimeError # Please triage this failure
@@ -2560,12 +2538,9 @@ LayoutTests/fast/css/dynamic-class-backdrop-pseudo_t01: RuntimeError # Please tr
 LayoutTests/fast/css/first-child-display-change-inverse_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/focus-display-block-inline_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-insert-link_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/css/font-family-trailing-bracket-gunk_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-property-priority_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-mix-inherit_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Uses FontFace class, not defined for this browser.
-LayoutTests/fast/css/fontfaceset-download-error_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/getComputedStyle/computed-style-border-image_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/getComputedStyle/computed-style-cross-fade_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/getComputedStyle/computed-style-font_t01: RuntimeError # Please triage this failure
@@ -4060,11 +4035,9 @@ LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: RuntimeErr
 LayoutTests/fast/css/font-face-unicode-range-load_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-unicode-range-overlap-load_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-family-initial-shorthand_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/font-family-trailing-bracket-gunk_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-mix-inherit_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Uses FontFace class, not defined for this browser
-LayoutTests/fast/css/fontfaceset-download-error_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/fontfaceset-download-error_t01: RuntimeError
 LayoutTests/fast/css/fontfaceset-events_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-loadingdone_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/getComputedStyle/computed-style-border-image_t01: RuntimeError # Please triage this failure
@@ -7061,6 +7034,7 @@ LibTest/core/int/toDouble_A01_t01: RuntimeError, OK # Requires big int.
 LibTest/core/int/toRadixString_A01_t01: RuntimeError, OK # Bad test: uses Expect.fail, Expect.throws, assumes case of result, and uses unsupported radixes.
 
 [ $compiler == dart2js && $minified ]
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/no_such_method_t01: RuntimeError # Issue 32434
 LibTest/typed_data/Float32List/runtimeType_A01_t01: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32x4List/runtimeType_A01_t01: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float64List/runtimeType_A01_t01: Fail # co19-roll r559: Please triage this failure

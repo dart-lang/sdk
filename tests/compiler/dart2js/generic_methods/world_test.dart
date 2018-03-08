@@ -19,16 +19,19 @@ class Class1 {
   method1<T>() {}
 
   @noInline
-  method2<T>() {}
+  method2<T>() => T;
 
   @noInline
-  method3<T>() {}
+  method3<T>() => T;
 
   @noInline
-  method4<T>() {}
+  method4<T>() => T;
 
   @noInline
-  method5<T>() {}
+  method5<T>() => T;
+
+  @noInline
+  method6<T>() {}
 }
 
 class Class2 {}
@@ -48,6 +51,9 @@ class Class3 implements Class1 {
 
   @noInline
   method5<T>() {}
+
+  @noInline
+  method6<T>() {}
 }
 
 main(args) {
@@ -68,6 +74,12 @@ main(args) {
 
   var c6 = args != null ? new Class1() : new Class3();
   c6.method5();  // Type arguments are inferred here.
+
+  dynamic c7 = args != null ? new Class1() : new Class2();
+  c7.method6<int>(); // Type arguments are not needed.
+
+  var c8 = args != null ? new Class1() : new Class3();
+  c8.method6(); // Type arguments are inferred here but not needed.
 }
 ''';
 
@@ -108,5 +120,6 @@ main() {
     checkInvocationsFor('method3', [oneTypeArgument]);
     checkInvocationsFor('method4', [oneTypeArgument]);
     checkInvocationsFor('method5', [noTypeArguments, oneTypeArgument]);
+    checkInvocationsFor('method6', [noTypeArguments]);
   });
 }

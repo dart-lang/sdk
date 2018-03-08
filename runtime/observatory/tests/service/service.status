@@ -35,7 +35,6 @@ unused_changes_in_last_reload_test: RuntimeError # Issue 27806
 # Tests with known analyzer issues
 [ $compiler == dart2analyzer ]
 developer_extension_test: SkipByDesign
-evaluate_activation_in_method_class_test: RuntimeError # Issue 24478, also, test is excluded in .analysis_options
 get_isolate_after_language_error_test: SkipByDesign
 
 # Kernel version of tests

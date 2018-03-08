@@ -43,6 +43,13 @@ class AtomicOperations : public AllStatic {
   static T LoadRelaxed(T* ptr) {
     return *static_cast<volatile T*>(ptr);
   }
+
+  template <typename T>
+  static T* CompareAndSwapPointer(T** slot, T* old_value, T* new_value) {
+    return reinterpret_cast<T*>(AtomicOperations::CompareAndSwapWord(
+        reinterpret_cast<uword*>(slot), reinterpret_cast<uword>(old_value),
+        reinterpret_cast<uword>(new_value)));
+  }
 };
 
 }  // namespace dart

@@ -214,3 +214,55 @@ class _Proxy {
  */
 @deprecated
 const Object proxy = const _Proxy();
+
+/**
+ * A hint to tools.
+ *
+ * Tools that work with Dart programs may accept hints to guide their behavior
+ * as `pragma` annotations on declarations.
+ * Each tool decides which hints it accepts, what they mean, and whether and
+ * how they apply to sub-parts of the annotated entity.
+ *
+ * Tools that recognize pragma hints should pick a pragma prefix to identify
+ * the tool. They should recognize any hint with a [name] starting with their
+ * prefix followed by `:` as if it was intended for that tool. A hint with a
+ * prefix for another tool should be ignored (unless compatibility with that
+ * other tool is a goal).
+ *
+ * A tool may recognize unprefixed names as well, if they would recognize that
+ * name with their own prefix in front.
+ *
+ * If the hint can be parameterized, an extra [options] object can be added as well.
+ *
+ * For example:
+ *
+ * ```dart
+ * @pragma('Tool:pragma-name', [param1, param2, ...])
+ * class Foo { }
+ *
+ * @pragma('OtherTool:other-pragma')
+ * void foo() { }
+ * ```
+ *
+ * Here class Foo is annotated with a Tool specific pragma 'pragma-name' and
+ * function foo is annotated with a pragma 'other-pragma' specific to OtherTool.
+ *
+ */
+class pragma {
+  /**
+   * The name of the hint.
+   *
+   * A string that is recognized by one or more tools, or such a string prefixed
+   * by a tool identifier and a colon, which is only recognized by that
+   * particular tool.
+   */
+  final String name;
+
+  /** Optional extra data parameterizing the hint. */
+  final Object options;
+
+  /** Creates a hint named [name] with optional [options]. */
+  const factory pragma(String name, [Object options]) = pragma._;
+
+  const pragma._(this.name, [this.options]);
+}

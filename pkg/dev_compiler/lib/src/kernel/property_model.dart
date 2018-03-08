@@ -82,11 +82,14 @@ class _LibraryVirtualFieldModel {
     // Class can only look up inherited members with an O(N) scan through
     // the class, so we build up a mapping of all fields in the library ahead of
     // time.
-    var allFields = new HashMap<Class, HashMap<String, Field>>.fromIterable(
-        allClasses,
-        value: (t) => new HashMap.fromIterable(
-            t.fields.where((f) => !f.isStatic),
-            key: (f) => f.name));
+    Map<String, Field> getInstanceFieldMap(Class c) {
+      var instanceFields = c.fields.where((f) => !f.isStatic);
+      return new HashMap.fromIterables(
+          instanceFields.map((f) => f.name.name), instanceFields);
+    }
+
+    var allFields = new HashMap.fromIterables(
+        allClasses, allClasses.map(getInstanceFieldMap));
 
     for (var class_ in allClasses) {
       Set<Class> superclasses = null;

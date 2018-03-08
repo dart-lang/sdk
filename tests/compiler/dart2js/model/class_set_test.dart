@@ -8,13 +8,13 @@ library class_set_test;
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'type_test_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart' show ClassEntity;
 import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/util/enumset.dart';
 import 'package:compiler/src/util/util.dart';
 import 'package:compiler/src/world.dart';
+import '../type_test_helper.dart';
 
 void main() {
   asyncTest(() async {

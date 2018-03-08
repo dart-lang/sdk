@@ -81,8 +81,6 @@ import '../kernel/kernel_shadow_ast.dart'
 
 import '../names.dart' show callName;
 
-import '../parser.dart' show noLength;
-
 import '../problems.dart' show unexpected, unhandled;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
@@ -195,7 +193,9 @@ class ClosureContext {
   }
 
   ClosureContext._(this.isAsync, this.isGenerator, this.returnOrYieldContext,
-      this._needToInferReturnType, this._needImplicitDowncasts);
+      this._needToInferReturnType, this._needImplicitDowncasts) {
+    assert(returnOrYieldContext != null);
+  }
 
   /// Updates the inferred return type based on the presence of a return
   /// statement returning the given [type].
@@ -446,12 +446,13 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         typeSchemaEnvironment.isSubtypeOf(actualType, expectedType);
   }
 
-  /// Checks whether [actualType] can be assigned to [expectedType], and inserts
-  /// an implicit downcast if appropriate.
+  /// Checks whether [actualType] can be assigned to the greatest closure of
+  /// [expectedType], and inserts an implicit downcast if appropriate.
   Expression ensureAssignable(DartType expectedType, DartType actualType,
       Expression expression, int fileOffset,
       {bool isReturnFromAsync = false}) {
-    assert(expectedType == null || isKnown(expectedType));
+    assert(expectedType != null);
+    expectedType = greatestClosure(coreTypes, expectedType);
 
     DartType initialExpectedType = expectedType;
     if (isReturnFromAsync && !isAssignable(expectedType, actualType)) {
@@ -498,7 +499,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
               new NullLiteral()..fileOffset = fileOffset, tearOff, actualType);
           var let = new Let(t, conditional);
           parent?.replaceChild(expression, let);
-          expression = conditional;
+          expression = let;
         }
       }
     }
@@ -549,6 +550,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       Expression receiver,
       bool setter: false,
       bool silent: false}) {
+    assert(receiverType != null && isKnown(receiverType));
+
     // Our non-strong golden files currently don't include interface
     // targets, so we can't store the interface target without causing tests
     // to fail.  TODO(paulberry): fix this.
@@ -793,7 +796,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (type is InterfaceType && identical(type.classNode, class_)) {
       return type.typeArguments[0];
     } else {
-      return null;
+      return const UnknownType();
     }
   }
 
@@ -1135,7 +1138,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   DartType inferLocalFunction(FunctionNode function, DartType typeContext,
       int fileOffset, DartType returnContext) {
-    bool hasImplicitReturnType = returnContext == null;
+    bool hasImplicitReturnType = false;
+    if (returnContext == null) {
+      hasImplicitReturnType = true;
+      returnContext = const DynamicType();
+    }
     if (!isTopLevel) {
       var positionalParameters = function.positionalParameters;
       for (var i = 0; i < positionalParameters.length; i++) {
@@ -1234,9 +1241,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // Let `N'` be `N[T/S]`.  The [ClosureContext] constructor will adjust
     // accordingly if the closure is declared with `async`, `async*`, or
     // `sync*`.
-    if (returnContext != null) {
-      returnContext = substitution.substituteType(returnContext);
-    }
+    returnContext = substitution.substituteType(returnContext);
 
     // Apply type inference to `B` in return context `N’`, with any references
     // to `xi` in `B` having type `Pi`.  This produces `B’`.

@@ -28,7 +28,7 @@ void callerA2(A aa) {
   aa.foo();
 }
 
-void callerA3(A aa) {
+void callerA3({A aa}) {
   aa.foo();
 }
 
@@ -51,7 +51,7 @@ main(List<String> args) {
   callerA1(new B());
   callerA1(new C());
   callerA2(new B());
-  callerA3(new C());
+  callerA3(aa: new C());
   callerA4(dd);
   dd = new D();
 
