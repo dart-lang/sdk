@@ -219,7 +219,6 @@ integer_to_radix_string_test/01: RuntimeError
 integer_to_radix_string_test/02: RuntimeError
 integer_to_radix_string_test/none: RuntimeError
 integer_to_string_test/01: RuntimeError
-iterable_empty_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/interceptor_simplifier.dart': Failed assertion: line 391 pos 16: 'receiver.nonCheck() == user.inputs[1].nonCheck()': is not true.
 iterable_fold_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
 iterable_followed_by_test: RuntimeError
 iterable_reduce_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
@@ -232,7 +231,6 @@ list_test/01: RuntimeError
 list_test/none: RuntimeError
 list_unmodifiable_test: RuntimeError
 nan_infinity_test/01: RuntimeError
-queue_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/interceptor_simplifier.dart': Failed assertion: line 391 pos 16: 'receiver.nonCheck() == user.inputs[1].nonCheck()': is not true.
 reg_exp_all_matches_test: RuntimeError
 reg_exp_start_end_test: RuntimeError
 regexp/capture_test: RuntimeError
@@ -286,7 +284,6 @@ list_test/none: RuntimeError
 list_unmodifiable_test: RuntimeError
 nan_infinity_test/01: RuntimeError
 nsm_invocation_test: RuntimeError # Symbols don't match due to minifiaction.
-queue_test: RuntimeError
 reg_exp_all_matches_test: RuntimeError
 reg_exp_start_end_test: RuntimeError
 regexp/capture_test: RuntimeError

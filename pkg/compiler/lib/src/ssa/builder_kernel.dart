@@ -3837,11 +3837,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     TypeMask type = _typeInferenceMap.selectorTypeOf(selector, mask);
     if (selector.isGetter) {
-      push(new HInvokeDynamicGetter(
-          selector, mask, null, inputs, type, sourceInformation));
+      push(new HInvokeDynamicGetter(selector, mask, null, inputs, isIntercepted,
+          type, sourceInformation));
     } else if (selector.isSetter) {
-      push(new HInvokeDynamicSetter(
-          selector, mask, null, inputs, type, sourceInformation));
+      push(new HInvokeDynamicSetter(selector, mask, null, inputs, isIntercepted,
+          type, sourceInformation));
     } else {
       push(new HInvokeDynamicMethod(
           selector, mask, inputs, type, typeArguments, sourceInformation,
@@ -4127,7 +4127,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
         localsHandler.readThis(sourceInformation: sourceInformation);
 
     List<HInstruction> inputs = <HInstruction>[];
-    if (closedWorld.interceptorData.isInterceptedSelector(selector)) {
+    bool isIntercepted =
+        closedWorld.interceptorData.isInterceptedSelector(selector);
+    if (isIntercepted) {
       inputs.add(_interceptorFor(receiver, sourceInformation));
     }
     inputs.add(receiver);
@@ -4139,8 +4141,15 @@ class KernelSsaGraphBuilder extends ir.Visitor
     } else {
       typeMask = closedWorld.commonMasks.dynamicType;
     }
-    HInstruction instruction = new HInvokeSuper(target, containingClass,
-        selector, inputs, typeMask, typeArguments, sourceInformation,
+    HInstruction instruction = new HInvokeSuper(
+        target,
+        containingClass,
+        selector,
+        inputs,
+        isIntercepted,
+        typeMask,
+        typeArguments,
+        sourceInformation,
         isSetter: selector.isSetter || selector.isIndexSet);
     instruction.sideEffects =
         closedWorld.getSideEffectsOfSelector(selector, null);

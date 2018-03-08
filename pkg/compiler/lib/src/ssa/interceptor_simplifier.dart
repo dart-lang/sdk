@@ -411,6 +411,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
           mask,
           node.element,
           <HInstruction>[constant, node.inputs[1]],
+          true,
           node.instructionType,
           node.sourceInformation);
     } else if (selector.isSetter) {
@@ -419,6 +420,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
           mask,
           node.element,
           <HInstruction>[constant, node.inputs[1], node.inputs[2]],
+          true,
           node.instructionType,
           node.sourceInformation);
     } else {

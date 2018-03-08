@@ -447,10 +447,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
         HInvokeDynamicMethod result = new HInvokeDynamicMethod(
             node.selector,
             node.mask,
-            node.inputs.sublist(1),
+            node.inputs.sublist(1), // Drop interceptor.
             node.instructionType,
             node.typeArguments,
-            node.sourceInformation);
+            node.sourceInformation,
+            isIntercepted: false);
         result.element = target;
         return result;
       }
@@ -481,10 +482,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
     HInvokeDynamicMethod splitInstruction = new HInvokeDynamicMethod(
         node.selector,
         node.mask,
-        node.inputs.sublist(1),
+        node.inputs.sublist(1), // Drop interceptor.
         resultMask,
         const <DartType>[],
-        node.sourceInformation)
+        node.sourceInformation,
+        isIntercepted: false)
       ..element = commonElements.jsStringSplit
       ..isAllocation = true;
 
@@ -1310,7 +1312,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
             inputs,
             toStringType,
             const <DartType>[],
-            node.sourceInformation);
+            node.sourceInformation,
+            isIntercepted: true);
         return result;
       }
       return null;
