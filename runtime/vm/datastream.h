@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_DATASTREAM_H_
 #define RUNTIME_VM_DATASTREAM_H_
 
+#include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/allocation.h"
@@ -460,6 +461,56 @@ class WriteStream : public ValueObject {
   intptr_t initial_size_;
 
   DISALLOW_COPY_AND_ASSIGN(WriteStream);
+};
+
+class StreamingWriteStream : public ValueObject {
+ public:
+  explicit StreamingWriteStream(intptr_t initial_capacity,
+                                Dart_StreamingWriteCallback callback,
+                                void* callback_data);
+  ~StreamingWriteStream();
+
+  intptr_t position() const { return flushed_size_ + (cursor_ - buffer_); }
+
+  void Align(intptr_t alignment) {
+    intptr_t padding = Utils::RoundUp(position(), alignment) - position();
+    EnsureAvailable(padding);
+    memset(cursor_, 0, padding);
+    cursor_ += padding;
+  }
+
+  void Print(const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    VPrint(format, args);
+    va_end(args);
+  }
+  void VPrint(const char* format, va_list args);
+
+  void WriteBytes(const uint8_t* buffer, intptr_t size) {
+    EnsureAvailable(size);
+    memmove(cursor_, buffer, size);
+    cursor_ += size;
+  }
+
+ private:
+  void EnsureAvailable(intptr_t needed) {
+    intptr_t available = limit_ - cursor_;
+    if (available >= needed) return;
+    EnsureAvailableSlowPath(needed);
+  }
+
+  void EnsureAvailableSlowPath(intptr_t needed);
+  void Flush();
+
+  uint8_t* buffer_;
+  uint8_t* cursor_;
+  uint8_t* limit_;
+  intptr_t flushed_size_;
+  Dart_StreamingWriteCallback callback_;
+  void* callback_data_;
+
+  DISALLOW_COPY_AND_ASSIGN(StreamingWriteStream);
 };
 
 }  // namespace dart

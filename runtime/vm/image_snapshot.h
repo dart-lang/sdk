@@ -126,14 +126,11 @@ class ImageWriter : public ZoneAllocated {
 
 class AssemblyImageWriter : public ImageWriter {
  public:
-  AssemblyImageWriter(uint8_t** assembly_buffer,
-                      ReAlloc alloc,
-                      intptr_t initial_size);
+  AssemblyImageWriter(Dart_StreamingWriteCallback callback,
+                      void* callback_data);
   void Finalize();
 
   virtual void WriteText(WriteStream* clustered_stream, bool vm);
-
-  intptr_t AssemblySize() const { return assembly_stream_.bytes_written(); }
 
  private:
   void FrameUnwindPrologue();
@@ -148,7 +145,7 @@ class AssemblyImageWriter : public ImageWriter {
 #endif
   }
 
-  WriteStream assembly_stream_;
+  StreamingWriteStream assembly_stream_;
   Dwarf* dwarf_;
 
   DISALLOW_COPY_AND_ASSIGN(AssemblyImageWriter);
