@@ -1448,6 +1448,14 @@ LibTest/async/DeferredLibrary/*: Skip # Issue 17458
 [ $compiler == dart2js && $runtime == d8 && $fast_startup ]
 LibTest/isolate/Isolate/spawn_A04_t04: Fail # Issue 27558
 
+[ $compiler == dart2js && $runtime == d8 && $fasta ]
+Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: MissingCompileTimeError
+Language/Classes/Constructors/Generative_Constructors/initializing_formals_execution_t02: MissingCompileTimeError
+Language/Classes/definition_t24: MissingCompileTimeError
+LayoutTests/*: SkipByDesign
+LibTest/html/*: SkipByDesign
+WebPlatformTest/*: SkipByDesign
+
 [ $compiler == dart2js && $runtime != d8 && $runtime != drt && $checked ]
 WebPlatformTest/custom-elements/instantiating/createElementNS_A04_t01: RuntimeError # Please triage this failure
 WebPlatformTest/custom-elements/instantiating/createElement_A04_t01: RuntimeError # Please triage this failure
@@ -6983,12 +6991,6 @@ Language/Classes/Getters/same_name_method_t03: MissingCompileTimeError
 Language/Classes/Getters/same_name_method_t04: MissingCompileTimeError
 Language/Classes/Getters/same_name_method_t05: MissingCompileTimeError
 Language/Classes/Getters/same_name_method_t07: MissingCompileTimeError
-Language/Classes/Getters/type_object_t01: RuntimeError
-Language/Classes/Getters/type_object_t02: RuntimeError
-Language/Classes/Setters/type_object_t01: RuntimeError
-Language/Classes/Setters/type_object_t02: RuntimeError
-Language/Classes/Static_Methods/type_object_t01: RuntimeError
-Language/Classes/Static_Methods/type_object_t02: RuntimeError
 Language/Classes/Superinterfaces/more_than_once_t01: MissingCompileTimeError
 Language/Classes/Superinterfaces/superclass_as_superinterface_t01: MissingCompileTimeError
 Language/Classes/same_name_instance_and_static_members_t01: MissingCompileTimeError
@@ -7018,8 +7020,6 @@ Language/Expressions/Method_Invocation/Super_Invocation/accessible_instance_memb
 Language/Expressions/Method_Invocation/Super_Invocation/evaluation_t05: RuntimeError
 Language/Expressions/Method_Invocation/Super_Invocation/invocation_t02: Crash
 Language/Expressions/Null/instance_of_class_null_t01: RuntimeError
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/no_such_method_t01: RuntimeError
-Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/no_such_method_t01: RuntimeError
 Language/Expressions/This/placement_t04: Crash
 Language/Functions/External_Functions/not_connected_to_a_body_t01: RuntimeError
 Language/Libraries_and_Scripts/Imports/same_name_t10: RuntimeError
@@ -7050,9 +7050,6 @@ Language/Mixins/Mixin_Application/syntax_t23: RuntimeError
 Language/Mixins/Mixin_Application/syntax_t24: RuntimeError
 Language/Mixins/Mixin_Application/syntax_t25: RuntimeError
 Language/Statements/Continue/async_loops_t10: Timeout
-Language/Types/Type_Void/syntax_t01: MissingCompileTimeError
-Language/Types/Type_Void/syntax_t02: MissingCompileTimeError
-Language/Types/Type_Void/syntax_t04: MissingCompileTimeError
 Language/Types/Type_Void/syntax_t09: MissingCompileTimeError
 LayoutTests/fast/canvas/rgba-parsing_t01: RuntimeError
 LayoutTests/fast/css/font-face-unicode-range-monospace_t01: RuntimeError
@@ -7081,7 +7078,6 @@ LibTest/html/HttpRequest/setRequestHeader_A01_t01: Crash
 LibTest/html/HttpRequest/statusText_A01_t01: Crash
 LibTest/html/HttpRequest/status_A01_t01: Crash
 LibTest/html/HttpRequestUpload/onAbort_A01_t01: Crash
-LibTest/html/IFrameElement/IFrameElement.created_A01_t01: Crash
 LibTest/html/IFrameElement/contentWindow_A01_t01: Crash
 LibTest/html/IFrameElement/dispatchEvent_A01_t01: Crash
 LibTest/html/Node/dispatchEvent_A01_t01: Crash
@@ -7098,6 +7094,117 @@ WebPlatformTest/custom-elements/instantiating/createElement_A04_t01: RuntimeErro
 WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t01: RuntimeError
 WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t02: RuntimeError
 WebPlatformTest/html/semantics/embedded-content/the-audio-element/audio_constructor_t01: RuntimeError
+
+[ $compiler == dart2js && $fasta && $host_checked ]
+Language/Classes/Constructors/Factories/redirecting_constructor_t03: Crash
+Language/Classes/Constructors/Generative_Constructors/execution_t04: Crash
+Language/Classes/Constructors/Generative_Constructors/execution_t05: Crash
+Language/Classes/Constructors/Generative_Constructors/execution_t06: Crash
+Language/Classes/Constructors/Generative_Constructors/execution_t07: Crash
+Language/Classes/Constructors/Generative_Constructors/execution_t12: Crash
+Language/Classes/Constructors/Generative_Constructors/redirection_t03: Crash
+Language/Classes/Constructors/Generative_Constructors/redirection_t07: Crash
+Language/Classes/Constructors/Generative_Constructors/redirection_t08: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t02: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t05: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t07: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t08: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t09: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t10: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t11: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t12: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t13: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t14: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t15: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t16: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t17: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t18: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t19: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t20: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t21: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t22: Crash
+Language/Classes/definition_t16: Crash
+Language/Classes/member_definition_t04: Crash
+Language/Classes/member_definition_t06: Crash
+Language/Classes/member_definition_t07: Crash
+Language/Classes/member_definition_t08: Crash
+Language/Classes/member_definition_t09: Crash
+Language/Classes/member_definition_t10: Crash
+Language/Classes/member_definition_t11: Crash
+Language/Classes/member_definition_t12: Crash
+Language/Expressions/Constants/depending_on_itself_t03: Crash
+Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: Crash
+Language/Expressions/Maps/syntax_t08: Crash
+Language/Expressions/Method_Invocation/Super_Invocation/accessible_instance_member_t02: Crash
+Language/Expressions/Method_Invocation/Super_Invocation/evaluation_t05: Crash
+Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t03: Crash
+Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t04: Crash
+Language/Expressions/Method_Invocation/Super_Invocation/invocation_t02: Crash
+Language/Expressions/Strings/String_Interpolation/syntax_t08: Crash
+Language/Expressions/Strings/multi_line_t11: Crash
+Language/Expressions/Strings/multi_line_t12: Crash
+Language/Expressions/Strings/multi_line_t13: Crash
+Language/Expressions/Strings/multi_line_t15: Crash
+Language/Expressions/Strings/multi_line_t16: Crash
+Language/Expressions/Strings/multi_line_t17: Crash
+Language/Expressions/Strings/multi_line_t18: Crash
+Language/Expressions/Strings/multi_line_t19: Crash
+Language/Expressions/Strings/multi_line_t20: Crash
+Language/Expressions/Strings/multi_line_t21: Crash
+Language/Expressions/Strings/multi_line_t22: Crash
+Language/Expressions/Strings/multi_line_t23: Crash
+Language/Expressions/Strings/multi_line_t24: Crash
+Language/Expressions/Strings/multi_line_t25: Crash
+Language/Expressions/Strings/multi_line_t28: Crash
+Language/Expressions/Strings/multi_line_t29: Crash
+Language/Expressions/Strings/multi_line_t32: Crash
+Language/Expressions/Strings/multi_line_t33: Crash
+Language/Expressions/This/placement_t04: Crash
+Language/Functions/setter_modifier_t01: Crash
+Language/Functions/setter_modifier_t02: Crash
+Language/Functions/setter_modifier_t03: Crash
+Language/Functions/setter_modifier_t04: Crash
+Language/Functions/setter_modifier_t05: Crash
+Language/Functions/setter_modifier_t06: Crash
+Language/Functions/syntax_t09: Crash
+Language/Statements/For/syntax_t13: Crash
+Language/Statements/For/syntax_t20: Crash
+LibTest/core/Invocation/namedArguments_A01_t01: Crash
+LibTest/html/Document/dispatchEvent_A01_t01: Crash
+LibTest/html/Document/on_A01_t01: Crash
+LibTest/html/Document/on_A01_t02: Crash
+LibTest/html/HttpRequest/abort_A01_t01: Crash
+LibTest/html/HttpRequest/dispatchEvent_A01_t01: Crash
+LibTest/html/HttpRequest/getAllResponseHeaders_A01_t01: Crash
+LibTest/html/HttpRequest/getResponseHeader_A01_t01: Crash
+LibTest/html/HttpRequest/getString_A01_t01: Crash
+LibTest/html/HttpRequest/onAbort_A01_t01: Crash
+LibTest/html/HttpRequest/onError_A01_t02: Crash
+LibTest/html/HttpRequest/onLoadEnd_A01_t01: Crash
+LibTest/html/HttpRequest/onLoadStart_A01_t01: Crash
+LibTest/html/HttpRequest/onLoad_A01_t01: Crash
+LibTest/html/HttpRequest/onReadyStateChange_A01_t01: Crash
+LibTest/html/HttpRequest/overrideMimeType_A01_t01: Crash
+LibTest/html/HttpRequest/readyStateChangeEvent_A01_t01: Crash
+LibTest/html/HttpRequest/request_A01_t01: Crash
+LibTest/html/HttpRequest/responseText_A01_t01: Crash
+LibTest/html/HttpRequest/responseText_A01_t02: Crash
+LibTest/html/HttpRequest/setRequestHeader_A01_t01: Crash
+LibTest/html/HttpRequest/statusText_A01_t01: Crash
+LibTest/html/HttpRequest/status_A01_t01: Crash
+LibTest/html/HttpRequestUpload/onAbort_A01_t01: Crash
+LibTest/html/HttpRequestUpload/onError_A01_t02: Crash
+LibTest/html/HttpRequestUpload/onLoadEnd_A01_t01: Crash
+LibTest/html/HttpRequestUpload/onLoadStart_A01_t01: Crash
+LibTest/html/HttpRequestUpload/onLoad_A01_t01: Crash
+LibTest/html/IFrameElement/contentWindow_A01_t01: Crash
+LibTest/html/IFrameElement/dispatchEvent_A01_t01: Crash
+LibTest/html/Node/dispatchEvent_A01_t01: Crash
+LibTest/html/Window/dispatchEvent_A01_t01: Crash
+LibTest/html/Window/postMessage_A01_t02: Crash
+LibTest/html/Window/requestFileSystem_A01_t01: Crash
+LibTest/html/Window/requestFileSystem_A01_t02: Crash
+LibTest/html/Window/requestFileSystem_A02_t01: Crash
 
 [ $compiler == dart2js && !$fasta ]
 Language/Classes/Constructors/Generative_Constructors/execution_t03: RuntimeError # https://github.com/dart-lang/sdk/issues/29596
