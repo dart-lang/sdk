@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+iterable_where_type_test: RuntimeError # Disabled.  Issue 32463
+
 [ $compiler == dart2analyzer ]
 compare_to2_test: CompileTimeError # invalid test
 int_parse_radix_bad_handler_test: MissingCompileTimeError

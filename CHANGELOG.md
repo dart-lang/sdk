@@ -1,3 +1,11 @@
+
+### Core library changes
+
+* Temporarily disabled the `whereType` method until generic methods are enabled
+  on all platforms ([issue 32463]).
+
+[issue 32463]: https://github.com/dart-lang/sdk/issues/32463
+
 ## 2.0.0
 
 ### Language
