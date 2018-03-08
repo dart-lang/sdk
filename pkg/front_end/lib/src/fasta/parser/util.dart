@@ -6,11 +6,11 @@ library fasta.parser.util;
 
 import 'package:kernel/ast.dart' show TreeNode;
 
+import '../fasta_codes.dart' show noLength;
+
 import '../scanner.dart' show Token;
 
 import '../../scanner/token.dart' show BeginToken;
-
-const int noLength = 1;
 
 /// Returns true if [token] is the symbol or keyword [value].
 bool optional(String value, Token token) {
@@ -48,7 +48,7 @@ int offsetForToken(Token token) {
 /// A null-aware alternative to `token.length`.  If [token] is `null`, returns
 /// [noLength].
 int lengthForToken(Token token) {
-  return token == null ? 1 : token.length;
+  return token == null ? noLength : token.length;
 }
 
 /// Returns the length of the span from [begin] to [end] (inclusive). If both

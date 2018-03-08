@@ -19,11 +19,9 @@ import 'compiler_context.dart' show CompilerContext;
 import 'deprecated_problems.dart'
     show Crash, deprecated_InputError, safeToString;
 
-import 'fasta_codes.dart' show LocatedMessage, Message;
+import 'fasta_codes.dart' show LocatedMessage;
 
 import 'messages.dart' show getLocation, getSourceLine, isVerbose;
-
-import 'parser.dart' show noLength;
 
 import 'problems.dart' show unexpected;
 
@@ -36,13 +34,9 @@ const bool hideWarnings = false;
 /// Formats [message] as a string that is suitable for output from a
 /// command-line tool. This includes source snippets and different colors based
 /// on [severity].
-///
-/// This is shared implementation used by methods below, and isn't intended to
-/// be called directly.
-String formatInternal(
-    Message message, Severity severity, Uri uri, int offset, int length,
-    {Location location}) {
+String format(LocatedMessage message, Severity severity, {Location location}) {
   try {
+    int length = message.length;
     if (length < 1) {
       // TODO(ahe): Throw in this situation. It is normally an error caused by
       // empty names.
@@ -73,13 +67,14 @@ String formatInternal(
           break;
 
         default:
-          return unexpected("$severity", "formatInternal", -1, null);
+          return unexpected("$severity", "format", -1, null);
       }
     }
 
-    if (uri != null) {
-      String path = relativizeUri(uri);
-      location ??= (offset == -1 ? null : getLocation(uri, offset));
+    if (message.uri != null) {
+      String path = relativizeUri(message.uri);
+      int offset = message.charOffset;
+      location ??= (offset == -1 ? null : getLocation(message.uri, offset));
       String sourceLine = getSourceLine(location);
       if (sourceLine == null) {
         sourceLine = "";
@@ -110,7 +105,7 @@ String formatInternal(
         "[${message.code.name}] ${safeToString(message.message)}\n"
         "${safeToString(error)}\n"
         "$trace");
-    throw new Crash(uri, offset, error, trace);
+    throw new Crash(message.uri, message.charOffset, error, trace);
   }
 }
 
@@ -233,35 +228,4 @@ void report(LocatedMessage message, Severity severity) {
   }
   _printAndThrowIfDebugging(
       format(message, severity), severity, message.uri, message.charOffset);
-}
-
-/// Similar to [report].
-///
-/// This method isn't intended to be called directly. Use
-/// [CompilerContext.reportWithoutLocation] instead.
-void reportWithoutLocation(Message message, Severity severity) {
-  if (isHidden(severity)) return;
-  if (isCompileTimeError(severity)) {
-    CompilerContext.current.logError(message, severity);
-  }
-  _printAndThrowIfDebugging(
-      formatWithoutLocation(message, severity), severity, null, -1);
-}
-
-/// Formats [message] as described in [formatInternal].
-///
-/// This method isn't intended to be called directly. Use
-/// [CompilerContext.format] instead.
-String format(LocatedMessage message, Severity severity, {Location location}) {
-  return formatInternal(message.messageObject, severity, message.uri,
-      message.charOffset, message.length,
-      location: location);
-}
-
-/// Formats [message] as described in [formatInternal].
-///
-/// This method isn't intended to be called directly. Use
-/// [CompilerContext.formatWithoutLocation] instead.
-String formatWithoutLocation(Message message, Severity severity) {
-  return formatInternal(message, severity, null, -1, noLength);
 }

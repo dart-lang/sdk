@@ -35,7 +35,6 @@ export 'parser/util.dart'
         closeBraceTokenFor,
         lengthForToken,
         lengthOfSpan,
-        noLength,
         offsetForToken,
         optional;
 

@@ -8,7 +8,7 @@ import 'dart:core' hide MapEntry;
 
 import '../fasta_codes.dart' as fasta;
 
-import '../fasta_codes.dart' show LocatedMessage, Message, Template;
+import '../fasta_codes.dart' show LocatedMessage, Message, noLength, Template;
 
 import '../messages.dart' as messages show getLocationFromUri;
 
@@ -23,7 +23,6 @@ import '../parser.dart'
         closeBraceTokenFor,
         lengthForToken,
         lengthOfSpan,
-        noLength,
         offsetForToken,
         optional;
 

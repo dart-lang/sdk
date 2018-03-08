@@ -13,6 +13,7 @@ import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
 import '../fasta_codes.dart'
     show
+        noLength,
         templateConflictsWithConstructor,
         templateConflictsWithFactory,
         templateConflictsWithMember,
@@ -38,8 +39,6 @@ import '../kernel/kernel_builder.dart'
         compareProcedures;
 
 import '../kernel/kernel_shadow_ast.dart' show ShadowClass;
-
-import '../parser.dart' show noLength;
 
 import '../problems.dart' show unexpected, unhandled;
 

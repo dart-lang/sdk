@@ -40,6 +40,7 @@ import '../fasta_codes.dart'
         messagePatchClassTypeVariablesMismatch,
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
+        noLength,
         templateOverriddenMethodCause,
         templateOverrideFewerNamedArguments,
         templateOverrideFewerPositionalArguments,
@@ -49,8 +50,6 @@ import '../fasta_codes.dart'
         templateOverrideTypeMismatchReturnType,
         templateOverrideTypeVariablesMismatch,
         templateRedirectionTargetNotFound;
-
-import '../parser.dart' show noLength;
 
 import '../problems.dart' show unexpected, unhandled, unimplemented;
 

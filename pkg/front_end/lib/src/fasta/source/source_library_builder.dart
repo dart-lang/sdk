@@ -42,6 +42,7 @@ import '../fasta_codes.dart'
         messageExpectedUri,
         messageMemberWithSameNameAsClass,
         messagePartOfSelf,
+        noLength,
         templateConflictsWithMember,
         templateConflictsWithSetter,
         templateCouldNotParseUri,
@@ -58,8 +59,6 @@ import '../fasta_codes.dart'
 import '../import.dart' show Import;
 
 import '../configuration.dart' show Configuration;
-
-import '../parser.dart' show noLength;
 
 import '../problems.dart' show unhandled;
 

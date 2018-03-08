@@ -44,6 +44,7 @@ import '../fasta/fasta_codes.dart'
         messageCantInferPackagesFromPackageUri,
         messageInternalProblemProvidedBothCompileSdkAndSdkSummary,
         messageMissingInput,
+        noLength,
         templateCannotReadPackagesFile,
         templateCannotReadSdkSpecification,
         templateInputFileNotFound,
@@ -53,8 +54,6 @@ import '../fasta/fasta_codes.dart'
         templateSdkSummaryNotFound;
 
 import '../fasta/messages.dart' show getLocation;
-
-import '../fasta/parser.dart' show noLength;
 
 import '../fasta/problems.dart' show unimplemented;
 
@@ -233,32 +232,9 @@ class ProcessedOptions {
     if (_reportMessages) command_line_reporting.report(message, severity);
   }
 
+  // TODO(askesc): Remove this and direct callers directly to report.
   void reportWithoutLocation(Message message, Severity severity) {
-    if (_raw.onProblem != null) {
-      _raw.onProblem(
-          message.withLocation(null, -1, noLength),
-          severity,
-          command_line_reporting.formatWithoutLocation(message, severity),
-          -1,
-          -1);
-      if (command_line_reporting.shouldThrowOn(severity)) {
-        if (verbose) print(StackTrace.current);
-        throw new deprecated_InputError(
-            null,
-            -1,
-            "Compilation aborted due to fatal "
-            "${command_line_reporting.severityName(severity)}.");
-      }
-      return;
-    }
-    if (_raw.onError != null) {
-      _raw.onError(new _CompilationMessage(
-          message.withLocation(null, -1, noLength), severity));
-    }
-
-    if (_reportMessages) {
-      command_line_reporting.reportWithoutLocation(message, severity);
-    }
+    report(message.withoutLocation(), severity);
   }
 
   /// Runs various validations checks on the input options. For instance,

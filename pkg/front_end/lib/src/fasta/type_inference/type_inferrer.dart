@@ -81,8 +81,6 @@ import '../kernel/kernel_shadow_ast.dart'
 
 import '../names.dart' show callName;
 
-import '../parser.dart' show noLength;
-
 import '../problems.dart' show unexpected, unhandled;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;

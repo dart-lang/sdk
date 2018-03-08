@@ -18,6 +18,7 @@ import '../fasta_codes.dart'
         messageConflictsWithTypeVariableCause,
         messageTypeVariableDuplicatedName,
         messageTypeVariableSameNameAsEnclosing,
+        noLength,
         templateConflictsWithTypeVariable,
         templateDuplicatedExport,
         templateDuplicatedExportInType,
@@ -37,8 +38,6 @@ import '../loader.dart' show Loader;
 
 import '../modifier.dart'
     show abstractMask, namedMixinApplicationMask, staticMask;
-
-import '../parser.dart' show noLength;
 
 import '../problems.dart' show unhandled;
 

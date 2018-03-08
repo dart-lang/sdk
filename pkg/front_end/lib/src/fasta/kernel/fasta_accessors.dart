@@ -18,12 +18,11 @@ import '../fasta_codes.dart'
         templateNotAType,
         templateUnresolvedPrefixInTypeAnnotation;
 
-import '../messages.dart' show Message;
+import '../messages.dart' show Message, noLength;
 
 import '../names.dart' show callName, lengthName;
 
-import '../parser.dart'
-    show lengthForToken, lengthOfSpan, noLength, offsetForToken;
+import '../parser.dart' show lengthForToken, lengthOfSpan, offsetForToken;
 
 import '../problems.dart' show unhandled, unimplemented, unsupported;
 

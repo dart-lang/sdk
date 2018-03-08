@@ -59,9 +59,8 @@ import '../messages.dart'
         LocatedMessage,
         messageConstConstructorNonFinalField,
         messageConstConstructorNonFinalFieldCause,
+        noLength,
         templateSuperclassHasNoDefaultConstructor;
-
-import '../parser.dart' show noLength;
 
 import '../problems.dart' show unhandled;
 

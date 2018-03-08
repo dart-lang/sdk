@@ -14,9 +14,7 @@ import '../../scanner/token.dart' as analyzer;
 
 import '../compiler_context.dart' show CompilerContext;
 
-import '../messages.dart' show templateUnspecified;
-
-import '../parser.dart' show noLength;
+import '../messages.dart' show noLength, templateUnspecified;
 
 import '../scanner.dart' show ScannerResult, Token, scan;
 

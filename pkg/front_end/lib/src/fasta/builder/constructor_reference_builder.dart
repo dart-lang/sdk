@@ -4,9 +4,7 @@
 
 library fasta.constructor_reference_builder;
 
-import '../messages.dart' show templateConstructorNotFound;
-
-import '../parser.dart' show noLength;
+import '../messages.dart' show noLength, templateConstructorNotFound;
 
 import 'builder.dart'
     show

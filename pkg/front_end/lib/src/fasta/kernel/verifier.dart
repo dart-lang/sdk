@@ -28,9 +28,7 @@ import 'package:kernel/verifier.dart' show VerifyingVisitor;
 import '../compiler_context.dart' show CompilerContext;
 
 import '../fasta_codes.dart'
-    show LocatedMessage, templateInternalVerificationError;
-
-import '../parser.dart' show noLength;
+    show LocatedMessage, noLength, templateInternalVerificationError;
 
 import '../severity.dart' show Severity;
 

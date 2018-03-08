@@ -32,12 +32,11 @@ import 'package:kernel/ast.dart'
 import '../fasta_codes.dart'
     show
         messageNoUnnamedConstructorInObject,
+        noLength,
         templateDuplicatedName,
         templateEnumConstantSameNameAsEnclosing;
 
 import '../modifier.dart' show constMask, finalMask, staticMask;
-
-import '../parser.dart' show noLength;
 
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 
