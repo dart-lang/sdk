@@ -18,6 +18,10 @@ unsorted/super_mixin_test: CompileTimeError
 [ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
 
+[ $compiler == dart2js && $fasta && $host_checked ]
+unsorted/super_mixin_test: Crash
+unsorted/try_finally_test: Crash
+
 [ $compiler != dartk && $compiler != dartkp && $runtime != none ]
 unsorted/types_test: RuntimeError
 

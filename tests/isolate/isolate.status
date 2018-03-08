@@ -69,6 +69,9 @@ isolate_stress_test: Pass, Slow # TODO(kasperl): Please triage.
 mandel_isolate_test: Pass, Timeout # TODO(kasperl): Please triage.
 unresolved_ports_test: Pass, Timeout # Issue 15610
 
+[ $compiler == dart2js && $runtime == d8 && $fasta ]
+isolate_stress_test: RuntimeError
+
 [ $compiler == dart2js && $runtime != d8 ]
 error_at_spawn_test: Skip # Issue 23876
 error_exit_at_spawn_test: Skip # Issue 23876
@@ -132,6 +135,9 @@ spawn_function_test: RuntimeError # mirrors not supported
 stacktrace_message_test: RuntimeError # mirrors not supported
 static_function_test: RuntimeError # mirrors not supported
 unresolved_ports_test: RuntimeError # mirrors not supported
+
+[ $compiler == dart2js && $fasta && $host_checked ]
+deferred_in_isolate2_test: Crash
 
 [ $compiler == dart2js && $jscl ]
 browser/*: SkipByDesign # Browser specific tests

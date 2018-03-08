@@ -205,6 +205,9 @@ typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage thi
 async/*deferred*: Pass, RuntimeError # Issue 17458
 mirrors/*deferred*: Pass, RuntimeError # Issue 17458
 
+[ $compiler == dart2js && $runtime == d8 && $fasta ]
+js/null_test: RuntimeError
+
 [ $compiler == dart2js && $runtime == jsshell ]
 async/catch_errors12_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors13_test: Fail # Timer interface not supported: Issue 7728.
@@ -265,6 +268,9 @@ mirrors/variable_is_const_test/01: Pass # expects failure, but it fails for the 
 
 [ $compiler == dart2js && $fasta ]
 mirrors/*: SkipByDesign # mirrors not supported
+
+[ $compiler == dart2js && $fasta && $host_checked ]
+async/stream_controller_async_test: Crash
 
 [ $compiler == dart2js && $host_checked ]
 mirrors/metadata_allowed_values_test/28: Crash # Issue 25911
