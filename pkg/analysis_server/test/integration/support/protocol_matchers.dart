@@ -2683,13 +2683,18 @@ final Matcher isSearchFindTopLevelDeclarationsResult = new LazyMatcher(() =>
  * search.getElementDeclarations params
  *
  * {
+ *   "file": optional FilePath
  *   "pattern": optional String
  *   "maxResults": optional int
  * }
  */
 final Matcher isSearchGetElementDeclarationsParams = new LazyMatcher(() =>
     new MatchesJsonObject("search.getElementDeclarations params", null,
-        optionalFields: {"pattern": isString, "maxResults": isInt}));
+        optionalFields: {
+          "file": isFilePath,
+          "pattern": isString,
+          "maxResults": isInt
+        }));
 
 /**
  * search.getElementDeclarations result

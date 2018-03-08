@@ -180,8 +180,9 @@ class SearchDomainHandler implements protocol.RequestHandler {
 
     int remainingMaxResults = params.maxResults;
     for (var driver in server.driverMap.values.toList()) {
-      var driverDeclarations =
-          await driver.search.declarations(regExp, remainingMaxResults, files);
+      var driverDeclarations = await driver.search.declarations(
+          regExp, remainingMaxResults, files,
+          onlyForFile: params.file);
       declarations.addAll(driverDeclarations);
 
       if (remainingMaxResults != null) {

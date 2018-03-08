@@ -15557,6 +15557,7 @@ class SearchFindTopLevelDeclarationsResult implements ResponseResult {
  * search.getElementDeclarations params
  *
  * {
+ *   "file": optional FilePath
  *   "pattern": optional String
  *   "maxResults": optional int
  * }
@@ -15564,9 +15565,25 @@ class SearchFindTopLevelDeclarationsResult implements ResponseResult {
  * Clients may not extend, implement or mix-in this class.
  */
 class SearchGetElementDeclarationsParams implements RequestParams {
+  String _file;
+
   String _pattern;
 
   int _maxResults;
+
+  /**
+   * If this field is provided, return only declarations in this file. If this
+   * field is missing, return declarations in all files.
+   */
+  String get file => _file;
+
+  /**
+   * If this field is provided, return only declarations in this file. If this
+   * field is missing, return declarations in all files.
+   */
+  void set file(String value) {
+    this._file = value;
+  }
 
   /**
    * The regular expression used to match the names of declarations. If this
@@ -15596,7 +15613,9 @@ class SearchGetElementDeclarationsParams implements RequestParams {
     this._maxResults = value;
   }
 
-  SearchGetElementDeclarationsParams({String pattern, int maxResults}) {
+  SearchGetElementDeclarationsParams(
+      {String file, String pattern, int maxResults}) {
+    this.file = file;
     this.pattern = pattern;
     this.maxResults = maxResults;
   }
@@ -15607,6 +15626,10 @@ class SearchGetElementDeclarationsParams implements RequestParams {
       json = {};
     }
     if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      }
       String pattern;
       if (json.containsKey("pattern")) {
         pattern =
@@ -15618,7 +15641,7 @@ class SearchGetElementDeclarationsParams implements RequestParams {
             jsonDecoder.decodeInt(jsonPath + ".maxResults", json["maxResults"]);
       }
       return new SearchGetElementDeclarationsParams(
-          pattern: pattern, maxResults: maxResults);
+          file: file, pattern: pattern, maxResults: maxResults);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "search.getElementDeclarations params", json);
@@ -15633,6 +15656,9 @@ class SearchGetElementDeclarationsParams implements RequestParams {
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
+    if (file != null) {
+      result["file"] = file;
+    }
     if (pattern != null) {
       result["pattern"] = pattern;
     }
@@ -15653,7 +15679,9 @@ class SearchGetElementDeclarationsParams implements RequestParams {
   @override
   bool operator ==(other) {
     if (other is SearchGetElementDeclarationsParams) {
-      return pattern == other.pattern && maxResults == other.maxResults;
+      return file == other.file &&
+          pattern == other.pattern &&
+          maxResults == other.maxResults;
     }
     return false;
   }
@@ -15661,6 +15689,7 @@ class SearchGetElementDeclarationsParams implements RequestParams {
   @override
   int get hashCode {
     int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
     hash = JenkinsSmiHash.combine(hash, pattern.hashCode);
     hash = JenkinsSmiHash.combine(hash, maxResults.hashCode);
     return JenkinsSmiHash.finish(hash);

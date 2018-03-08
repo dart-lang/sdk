@@ -157,20 +157,23 @@ class C {}
     expect(declarations, hasLength(2));
   }
 
-  test_declarations_regExp() async {
-    await _resolveTestUnit('''
-class A {}
-class B {}
-class C {}
-class D {}
-''');
+  test_declarations_onlyForFile() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    provider.newFile(a, 'class A {}');
+    provider.newFile(b, 'class B {}');
+
+    driver.addFile(a);
+    driver.addFile(b);
+
     var files = <String>[];
     List<Declaration> declarations =
-        await driver.search.declarations(new RegExp(r'[A-C]'), null, files);
-    _assertHasDeclaration(declarations, 'A', DeclarationKind.CLASS);
+        await driver.search.declarations(null, null, files, onlyForFile: b);
+
+    expect(files, [b]);
+
+    _assertNoDeclaration(declarations, 'A');
     _assertHasDeclaration(declarations, 'B', DeclarationKind.CLASS);
-    _assertHasDeclaration(declarations, 'C', DeclarationKind.CLASS);
-    _assertNoDeclaration(declarations, 'D');
   }
 
   test_declarations_parameters() async {
@@ -209,6 +212,22 @@ typedef F(int a);
     declaration = _assertHasDeclaration(
         declarations, 'F', DeclarationKind.FUNCTION_TYPE_ALIAS);
     expect(declaration.parameters, '(int a)');
+  }
+
+  test_declarations_regExp() async {
+    await _resolveTestUnit('''
+class A {}
+class B {}
+class C {}
+class D {}
+''');
+    var files = <String>[];
+    List<Declaration> declarations =
+        await driver.search.declarations(new RegExp(r'[A-C]'), null, files);
+    _assertHasDeclaration(declarations, 'A', DeclarationKind.CLASS);
+    _assertHasDeclaration(declarations, 'B', DeclarationKind.CLASS);
+    _assertHasDeclaration(declarations, 'C', DeclarationKind.CLASS);
+    _assertNoDeclaration(declarations, 'D');
   }
 
   test_declarations_top() async {

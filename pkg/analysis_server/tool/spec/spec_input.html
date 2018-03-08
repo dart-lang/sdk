@@ -1579,6 +1579,13 @@
       Return top-level and class member declarations.
     </p>
     <params>
+      <field name="file" optional="true">
+        <ref>FilePath</ref>
+        <p>
+          If this field is provided, return only declarations in this file.
+          If this field is missing, return declarations in all files.
+        </p>
+      </field>
       <field name="pattern" optional="true">
         <ref>String</ref>
         <p>
