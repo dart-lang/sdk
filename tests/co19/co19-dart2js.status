@@ -121,6 +121,7 @@ Language/Types/Type_Void/syntax_t08: MissingCompileTimeError
 Language/Variables/final_t01/01: CompileTimeError # co19 issue 77
 Language/Variables/final_t02/01: CompileTimeError # co19 issue 77
 Language/Variables/local_variable_t01: MissingCompileTimeError # Issue 21050
+LayoutTests/fast/css/content/content-quotes-01_t01: Pass, RuntimeError
 LayoutTests/fast/dom/HTMLLinkElement/link-onload-stylesheet-with-import_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/dom/css-innerHTML_t01: SkipByDesign # Test is incorrect.
 LayoutTests/fast/dom/mutation-event-remove-inserted-node_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
@@ -139,6 +140,7 @@ LayoutTests/fast/replaced/table-percent-width_t01: Skip # https://github.com/dar
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-image-margin_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/table/css-table-max-height_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/table/fixed-table-layout-toggle-colwidth_t01: Pass, RuntimeError
+LayoutTests/fast/table/fixed-table-with-percent-width-inside-extra-large-div_t01: Pass, RuntimeError
 LayoutTests/fast/table/hittest-tablecell-right-edge_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/table/hittest-tablecell-with-borders-right-edge_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/table/table-all-rowspans-height-distribution-in-rows-except-overlapped_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
