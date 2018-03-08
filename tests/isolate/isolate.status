@@ -109,6 +109,30 @@ stacktrace_message_test: Fail # mirrors not supported
 static_function_test: Fail # mirrors not supported
 unresolved_ports_test: Fail # mirrors not supported
 
+[ $compiler == dart2js && $fasta ]
+browser/compute_this_script_browser_test: RuntimeError # mirrors not supported
+browser/typed_data_message_test: RuntimeError # mirrors not supported
+compile_time_error_test/01: Crash
+count_test: RuntimeError # mirrors not supported
+cross_isolate_message_test: RuntimeError # mirrors not supported
+illegal_msg_function_test: RuntimeError # mirrors not supported
+illegal_msg_mirror_test: RuntimeError # mirrors not supported
+isolate_complex_messages_test: RuntimeError # mirrors not supported
+mandel_isolate_test: RuntimeError # mirrors not supported
+message2_test: RuntimeError # mirrors not supported
+message_test: RuntimeError # mirrors not supported
+mint_maker_test: RuntimeError # mirrors not supported
+nested_spawn2_test: RuntimeError # mirrors not supported
+nested_spawn_test: RuntimeError # mirrors not supported
+raw_port_test: RuntimeError # mirrors not supported
+remote_unittest_helper: RuntimeError # mirrors not supported
+request_reply_test: RuntimeError # mirrors not supported
+spawn_function_custom_class_test: RuntimeError # mirrors not supported
+spawn_function_test: RuntimeError # mirrors not supported
+stacktrace_message_test: RuntimeError # mirrors not supported
+static_function_test: RuntimeError # mirrors not supported
+unresolved_ports_test: RuntimeError # mirrors not supported
+
 [ $compiler == dart2js && $jscl ]
 browser/*: SkipByDesign # Browser specific tests
 spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell

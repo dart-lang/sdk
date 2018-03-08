@@ -159,9 +159,6 @@ mirrors/redirecting_factory_different_type_test: SkipByDesign # Tests type check
 
 [ $fasta ]
 convert/base64_test/01: CompileTimeError
-convert/utf82_test: CompileTimeError
-js/datetime_roundtrip_test: CompileTimeError
-js/null_test: CompileTimeError
 math/double_pow_test: CompileTimeError
 mirrors/metadata_allowed_values_test/13: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/14: MissingCompileTimeError
@@ -266,6 +263,9 @@ mirrors/regress_16321_test/01: Pass # expects failure, but if fails for the wron
 mirrors/syntax_error_test/01: Pass # expects failure, but it fails for the wrong reason
 mirrors/variable_is_const_test/01: Pass # expects failure, but it fails for the wrong reason
 
+[ $compiler == dart2js && $fasta ]
+mirrors/*: SkipByDesign # mirrors not supported
+
 [ $compiler == dart2js && $host_checked ]
 mirrors/metadata_allowed_values_test/28: Crash # Issue 25911
 mirrors/metadata_allowed_values_test/29: Crash # Issue 25911
@@ -282,6 +282,11 @@ async/timer_not_available_test: Fail, OK # only meant to test when there is no w
 [ $compiler == dart2js && ($runtime == drt || $runtime == ie11) ]
 math/math2_test: RuntimeError
 math/math_test: RuntimeError
+
+[ $compiler != dart2js && $fasta ]
+convert/utf82_test: CompileTimeError # Note: dart2js passes for the wrong reason, it hasn't switched to run in 64-bits
+js/datetime_roundtrip_test: CompileTimeError
+js/null_test: CompileTimeError
 
 [ $compiler != dartk && $compiler != dartkp && ($runtime == dart_precompiled || $runtime == flutter || $runtime == vm) ]
 mirrors/initializing_formals_test/01: Fail # initializing formals are implicitly final as of Dart 1.21
@@ -373,11 +378,6 @@ math/double_pow_test: CompileTimeError # Large integer literal
 mirrors/deferred_type_test: CompileTimeError, OK # Don't have a multitest marker for dynamic compile time errors.
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 typed_data/int32x4_bigint_test: CompileTimeError # Large integer literal
-
-[ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm || $compiler == dart2js && $fasta ]
-convert/base64_test/01: CompileTimeError # Large integer literal
-convert/utf82_test: CompileTimeError # Large integer literal
-math/double_pow_test: CompileTimeError # Large integer literal
 
 [ $hot_reload || $hot_reload_rollback ]
 async/stream_transformer_test: Pass, Fail # Closure identity

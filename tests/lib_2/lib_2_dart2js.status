@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js ]
-async/future_or_bad_type_test: MissingCompileTimeError
 async/future_or_strong_test: RuntimeError
 convert/base64_test/01: Fail, OK # Uses bit-wise operations to detect invalid values. Some large invalid values accepted by dart2js.
 convert/chunked_conversion_utf88_test: Slow, Pass
@@ -337,7 +336,33 @@ isolate/unresolved_ports_test: Fail # mirrors not supported
 mirrors/regress_16321_test/01: Pass # expects failure, but if fails for the wrong reason
 
 [ $compiler == dart2js && $fasta ]
-async/zone_run_unary_test: Crash
+html/custom/mirrors_2_test: RuntimeError
+html/custom/mirrors_test: RuntimeError
+html/indexeddb_1_test/functional: RuntimeError
+html/indexeddb_3_test: RuntimeError
+html/indexeddb_5_test: RuntimeError
+html/js_typed_interop_default_arg_test/explicit_argument: RuntimeError
+html/js_typed_interop_test: RuntimeError
+isolate/browser/compute_this_script_browser_test: RuntimeError # mirrors not supported
+isolate/browser/typed_data_message_test: RuntimeError # mirrors not supported
+isolate/compile_time_error_test/01: Crash
+isolate/count_test: RuntimeError # mirrors not supported
+isolate/cross_isolate_message_test: RuntimeError # mirrors not supported
+isolate/illegal_msg_mirror_test: RuntimeError # mirrors not supported
+isolate/mandel_isolate_test: RuntimeError # mirrors not supported
+isolate/message2_test: RuntimeError # mirrors not supported
+isolate/message_test: RuntimeError # mirrors not supported
+isolate/mint_maker_test: RuntimeError # mirrors not supported
+isolate/nested_spawn2_test: RuntimeError # mirrors not supported
+isolate/nested_spawn_test: RuntimeError # mirrors not supported
+isolate/raw_port_test: RuntimeError # mirrors not supported
+isolate/remote_unittest_helper: RuntimeError # mirrors not supported
+isolate/request_reply_test: RuntimeError # mirrors not supported
+isolate/spawn_function_custom_class_test: RuntimeError # mirrors not supported
+isolate/spawn_function_test: RuntimeError # mirrors not supported
+isolate/stacktrace_message_test: RuntimeError # mirrors not supported
+isolate/static_function_test: RuntimeError # mirrors not supported
+isolate/unresolved_ports_test: RuntimeError # mirrors not supported
 
 [ $compiler == dart2js && $fasta && $host_checked ]
 html/async_spawnuri_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
@@ -749,6 +774,9 @@ html/wheelevent_test: RuntimeError
 html/window_eq_test: RuntimeError
 html/window_mangling_test: RuntimeError
 html/window_nosuchmethod_test: RuntimeError
+
+[ $compiler == dart2js && !$fasta ]
+async/future_or_bad_type_test: MissingCompileTimeError
 
 [ $compiler == dart2js && $jscl ]
 isolate/spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell

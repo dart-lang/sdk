@@ -44,6 +44,12 @@ mirrors/invocation_fuzz_test/none: Pass, Crash, RuntimeError # Flaky on vm-kerne
 mirrors/invocation_fuzz_test/smi: Crash, RuntimeError, Fail, Pass # Crashes on opt counter builder (#31838)
 mirrors/invocation_fuzz_test/string: Pass, Crash, RuntimeError # Flaky on vm-kernel-optcounter-threshold-linux-release-x64, bug #31838
 
+[ $compiler != dart2js && $fasta && !$strong ]
+isolate/browser/compute_this_script_browser_test: CompileTimeError
+isolate/browser/package_resolve_browser_hook2_test: CompileTimeError
+isolate/browser/package_resolve_browser_hook_test: CompileTimeError
+isolate/browser/package_resolve_browser_test: CompileTimeError
+
 [ $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
 isolate/isolate_complex_messages_test: Crash
 mirrors/library_exports_shown_test: Crash # 31916
@@ -341,10 +347,6 @@ mirrors/relation_subclass_test: CompileTimeError
 mirrors/top_level_accessors_test/01: MissingCompileTimeError
 
 [ $fasta && !$strong ]
-isolate/browser/compute_this_script_browser_test: CompileTimeError
-isolate/browser/package_resolve_browser_hook2_test: CompileTimeError
-isolate/browser/package_resolve_browser_hook_test: CompileTimeError
-isolate/browser/package_resolve_browser_test: CompileTimeError
 isolate/isolate_import_test/01: MissingCompileTimeError
 isolate/isolate_stress_test: CompileTimeError
 mirrors/library_imports_bad_metadata_test/01: Crash
