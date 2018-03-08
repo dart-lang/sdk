@@ -138,6 +138,7 @@ LayoutTests/fast/replaced/table-percent-height_t01: Skip # https://github.com/da
 LayoutTests/fast/replaced/table-percent-width_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-image-margin_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/table/css-table-max-height_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
+LayoutTests/fast/table/fixed-table-layout-toggle-colwidth_t01: Pass, RuntimeError
 LayoutTests/fast/table/hittest-tablecell-right-edge_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/table/hittest-tablecell-with-borders-right-edge_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/table/table-all-rowspans-height-distribution-in-rows-except-overlapped_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
