@@ -73,7 +73,7 @@ main() {
     throw "non-const Symbol's hashCode not equal to its const equivalent";
   }
 
-  if (new Symbol('') != const Symbol('')) {
+  if (new Symbol('') != Symbol.empty) {
     throw 'empty Symbol not equals to itself';
   }
 }

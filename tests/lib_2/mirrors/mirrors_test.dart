@@ -119,7 +119,7 @@ testClosureMirrors(mirrors) {
 testInvokeConstructor(mirrors) {
   var classMirror = reflectClass(Class);
 
-  var instanceMirror = classMirror.newInstance(const Symbol(''), []);
+  var instanceMirror = classMirror.newInstance(Symbol.empty, []);
   expect(instanceMirror.reflectee is Class, equals(true));
   expect(instanceMirror.reflectee.field, equals("default value"));
 
@@ -149,7 +149,7 @@ testReflectClass(mirrors) {
   expect(classMirror is ClassMirror, equals(true));
   var symbolClassMirror = reflectClass(Symbol);
   var symbolMirror =
-      symbolClassMirror.newInstance(const Symbol(''), ['withInitialValue']);
+      symbolClassMirror.newInstance(Symbol.empty, ['withInitialValue']);
   var objectMirror = classMirror.newInstance(symbolMirror.reflectee, [1234]);
   expect(objectMirror.reflectee is Class, equals(true));
   expect(objectMirror.reflectee.field, equals(1234));

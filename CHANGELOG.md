@@ -124,6 +124,10 @@ the assignment to `y`.
     `SECONDS_PER_DAY` to `secondsPerDay`,
     `MINUTES_PER_DAY` to `minutesPerDay`, and
     `ZERO` to `zero`.
+  * Added `typeArguments` to `Invocation` class.
+  * Added constructors to invocation class that allows creation of
+    `Invocation` objects directly, without going through `noSuchMethod`.
+  * Added `unaryMinus` and `empty` constant symbols on the `Symbol` class.
 
 * `dart:developer`
 

@@ -1602,7 +1602,7 @@ class JsSyntheticAccessor implements MethodMirror {
   bool get isPrivate => n(simpleName).startsWith('_');
 
   Symbol get qualifiedName => computeQualifiedName(owner, simpleName);
-  Symbol get constructorName => const Symbol('');
+  Symbol get constructorName => Symbol.empty;
 
   TypeMirror get returnType => _target.type;
   List<ParameterMirror> get parameters {
@@ -2462,10 +2462,10 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
   Symbol get constructorName {
     // TODO(ahe): I believe it is more appropriate to throw an exception or
     // return null.
-    if (!isConstructor) return const Symbol('');
+    if (!isConstructor) return Symbol.empty;
     String name = n(simpleName);
     int index = name.indexOf('.');
-    if (index == -1) return const Symbol('');
+    if (index == -1) return Symbol.empty;
     return s(name.substring(index + 1));
   }
 

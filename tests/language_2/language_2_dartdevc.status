@@ -792,7 +792,6 @@ int64_literal_test/*: Skip # This is testing Dart 2.0 int64 semantics.
 integer_division_by_zero_test: RuntimeError # Issue 29920; Expect.throws: Unexpected 'Unsupported operation: Infinity'
 internal_library_test/02: Crash
 invocation_mirror2_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
-invocation_mirror_empty_arguments_test: RuntimeError # Expect.throws(UnsupportedError) fails: Did not throw
 invocation_mirror_invoke_on2_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
 invocation_mirror_invoke_on_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
 invocation_mirror_test: RuntimeError # Type 'NativeJavaScriptObject' is not a subtype of type 'int' in strong mode

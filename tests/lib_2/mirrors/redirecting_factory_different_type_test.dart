@@ -14,7 +14,7 @@ class A {
     String //# 01: compile-time error
     var    //# 02: compile-time error
     int    //# none: ok
-      x) = B; 
+      x) = B;
   A._();
 }
 
@@ -28,7 +28,7 @@ class B extends A {
 main() {
   var cm = reflectClass(A);
   // The type-annotation in A's constructor must be ignored.
-  var b = cm.newInstance(const Symbol(''), [499]).reflectee;
+  var b = cm.newInstance(Symbol.empty, [499]).reflectee;
   Expect.equals(499, b.x);
-  Expect.throws(() => cm.newInstance(const Symbol(''), ["str"]), (e) => e is TypeError); 
+  Expect.throwsTypeError(() => cm.newInstance(Symbol.empty, ["str"]));
 }

@@ -65,6 +65,9 @@ string_from_environment_test: Fail # Flutter Issue 9111
 string_case_test/01: Fail, OK # German double S.
 unicode_test: Fail
 
+[ $runtime != none ]
+nsm_invocation_generic_test: RuntimeError # Not implemented yet. Issue 27323.
+
 [ $runtime == safari ]
 double_round3_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
 double_round_to_double2_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
@@ -280,6 +283,7 @@ list_test/01: RuntimeError
 list_test/none: RuntimeError
 list_unmodifiable_test: RuntimeError
 nan_infinity_test/01: RuntimeError
+nsm_invocation_test: RuntimeError # Symbols don't match due to minifiaction.
 queue_test: RuntimeError
 reg_exp_all_matches_test: RuntimeError
 reg_exp_start_end_test: RuntimeError
