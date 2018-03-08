@@ -1846,8 +1846,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // for this to work.
       assert(selector.applies(target),
           failedAt(node, '$selector does not apply to $target'));
-      _registry.registerStaticUse(
-          new StaticUse.directInvoke(target, selector.callStructure));
+      _registry.registerStaticUse(new StaticUse.directInvoke(
+          target, selector.callStructure, node.typeArguments));
     } else {
       TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
       _registry.registerDynamicUse(

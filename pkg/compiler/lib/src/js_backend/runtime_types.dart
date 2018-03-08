@@ -968,6 +968,10 @@ class TypeVariableTests {
       }
     });
 
+    // TODO(johnniwinther): Cached here because the world builders computes
+    // this lazily. Track this set directly in the world builders .
+    Iterable<FunctionEntity> genericInstanceMethods =
+        worldBuilder.genericInstanceMethods;
     worldBuilder.forEachDynamicTypeArgument(
         (Selector selector, Iterable<DartType> typeArguments) {
       void processEntity(Entity entity) {
@@ -980,7 +984,7 @@ class TypeVariableTests {
         }
       }
 
-      worldBuilder.genericInstanceMethods.forEach(processEntity);
+      genericInstanceMethods.forEach(processEntity);
       worldBuilder.genericLocalFunctions.forEach(processEntity);
       worldBuilder.closurizedStatics.forEach(processEntity);
     });

@@ -588,7 +588,8 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
 
     switch (dynamicUse.kind) {
       case DynamicUseKind.INVOKE:
-        registerDynamicInvocation(dynamicUse);
+        registerDynamicInvocation(
+            dynamicUse.selector, dynamicUse.typeArguments);
         if (_registerNewSelector(dynamicUse, _invokedNames)) {
           _process(_instanceMembersByName, (m) => m.invoke());
         }
@@ -643,9 +644,11 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
       localFunctions.add(staticUse.element);
       return;
     } else if (staticUse.kind == StaticUseKind.CLOSURE_CALL) {
-      registerDynamicInvocation(new GenericDynamicUse(
-          new Selector.call(Names.call, staticUse.callStructure),
-          staticUse.typeArguments));
+      if (staticUse.typeArguments?.isNotEmpty ?? false) {
+        registerDynamicInvocation(
+            new Selector.call(Names.call, staticUse.callStructure),
+            staticUse.typeArguments);
+      }
       return;
     }
 

@@ -41,7 +41,6 @@ import 'use.dart'
         ConstantUseKind,
         DynamicUse,
         DynamicUseKind,
-        GenericDynamicUse,
         StaticUse,
         StaticUseKind;
 
@@ -254,10 +253,10 @@ abstract class WorldBuilderBase {
         staticUse.element, staticUse.typeArguments);
   }
 
-  void registerDynamicInvocation(DynamicUse dynamicUse) {
-    if (dynamicUse.typeArguments.isEmpty) return;
-    _registerDynamicTypeArgumentDependency(
-        dynamicUse.selector, dynamicUse.typeArguments);
+  void registerDynamicInvocation(
+      Selector selector, List<DartType> typeArguments) {
+    if (typeArguments.isEmpty) return;
+    _registerDynamicTypeArgumentDependency(selector, typeArguments);
   }
 
   void forEachStaticTypeArgument(
