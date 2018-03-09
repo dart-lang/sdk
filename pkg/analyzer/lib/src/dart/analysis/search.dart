@@ -685,7 +685,7 @@ class Search {
       AstNode parent = node.parent;
       return parent is ClassDeclaration || parent is CompilationUnit;
     }));
-    if (parameter.isNamed) {
+    if (parameter.isOptional) {
       results.addAll(await _searchReferences(parameter));
     }
     return results;

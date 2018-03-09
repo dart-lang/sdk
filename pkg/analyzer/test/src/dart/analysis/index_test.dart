@@ -820,6 +820,21 @@ main() {
     assertThat(element)..isReferencedAt('p: 1', true);
   }
 
+  test_isReferencedBy_ParameterElement_optionalPositional() async {
+    await _indexTestUnit('''
+foo([p]) {
+  p; // 1
+}
+main() {
+  foo(1); // 2
+}
+''');
+    Element element = findElement('p');
+    assertThat(element)
+      ..hasRelationCount(1)
+      ..isReferencedAt('1); // 2', true, length: 0);
+  }
+
   test_isReferencedBy_synthetic_leastUpperBound() async {
     await _indexTestUnit('''
 int f1({int p}) => 1;

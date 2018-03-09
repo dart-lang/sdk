@@ -77,7 +77,14 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   Future fillChange() async {
     for (Element element in elements) {
       addDeclarationEdit(element);
-      await searchEngine.searchReferences(element).then(addReferenceEdits);
+      var references = await searchEngine.searchReferences(element);
+
+      // Exclude "implicit" references to optional positional parameters.
+      if (element is ParameterElement && element.isOptionalPositional) {
+        references.removeWhere((match) => match.sourceRange.length == 0);
+      }
+
+      addReferenceEdits(references);
     }
   }
 

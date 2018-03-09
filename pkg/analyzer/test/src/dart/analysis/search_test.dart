@@ -984,6 +984,31 @@ main() {
     await _verifyReferences(element, expected);
   }
 
+  test_searchReferences_ParameterElement_optionalPositional() async {
+    await _resolveTestUnit('''
+foo([p]) {
+  p = 1;
+  p += 2;
+  print(p);
+  p();
+}
+main() {
+  foo(42);
+}
+''');
+    ParameterElement element = _findElement('p');
+    Element fooElement = _findElement('foo');
+    Element mainElement = _findElement('main');
+    var expected = [
+      _expectId(fooElement, SearchResultKind.WRITE, 'p = 1;'),
+      _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
+      _expectId(fooElement, SearchResultKind.READ, 'p);'),
+      _expectId(fooElement, SearchResultKind.INVOCATION, 'p();'),
+      _expectIdQ(mainElement, SearchResultKind.REFERENCE, '42', length: 0)
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_searchReferences_PrefixElement() async {
     String partCode = r'''
 part of my_lib;
