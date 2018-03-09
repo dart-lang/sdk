@@ -12,6 +12,7 @@ mirrors_used_closure_test: Fail # Issue 17939
 no_such_method_test: Fail # Wrong Invocation.memberName.
 statements_test: Fail
 typed_locals_test: Pass, Fail
+closure_signature_unneeded_test: RuntimeError # Too eager signature generation.
 
 [ $compiler != dart2js ]
 dummy_compiler_test: SkipByDesign # Issue 30773. Test should be migrated as a unit test of dart2js, is only intended to test self-hosting.

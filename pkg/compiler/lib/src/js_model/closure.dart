@@ -116,7 +116,6 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
 
   void _updateScopeBasedOnRtiNeed(
       KernelScopeInfo scope,
-      ir.Node node,
       bool Function(ClassEntity) classNeedsTypeArguments,
       bool Function(MemberEntity) methodNeedsTypeArguments,
       bool Function(ir.Node) localFunctionNeedsTypeArguments,
@@ -189,7 +188,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
           .forEach((ir.Node node, KernelCapturedScope scope) {
         Map<Local, JRecordField> boxedVariables =
             _elementMap.makeRecordContainer(scope, member, localsMap);
-        _updateScopeBasedOnRtiNeed(scope, node, classNeedsTypeArguments,
+        _updateScopeBasedOnRtiNeed(scope, classNeedsTypeArguments,
             methodNeedsTypeArguments, localFunctionNeedsTypeArguments, member);
 
         if (scope is KernelCapturedLoopScope) {
@@ -222,7 +221,8 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
             classNeedsTypeArguments,
             methodNeedsTypeArguments,
             localFunctionNeedsTypeArguments,
-            needsSignature: localFunctionNeedsSignature(functionNode));
+            createSignatureMethod:
+                localFunctionNeedsSignature(functionNode.parent));
         // Add also for the call method.
         _scopeMap[closureClassInfo.callMethod] = closureClassInfo;
         _scopeMap[closureClassInfo.signatureMethod] = closureClassInfo;
@@ -247,14 +247,14 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       bool Function(ClassEntity) classNeedsTypeArguments,
       bool Function(FunctionEntity) methodNeedsTypeArguments,
       bool Function(ir.Node) localFunctionNeedsTypeArguments,
-      {bool needsSignature}) {
-    _updateScopeBasedOnRtiNeed(info, node.parent, classNeedsTypeArguments,
+      {bool createSignatureMethod}) {
+    _updateScopeBasedOnRtiNeed(info, classNeedsTypeArguments,
         methodNeedsTypeArguments, localFunctionNeedsTypeArguments, member);
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
     KernelClosureClassInfo closureClassInfo =
         closedWorldBuilder.buildClosureClass(
             member, node, member.library, boxedVariables, info, localsMap,
-            needsSignature: needsSignature);
+            createSignatureMethod: createSignatureMethod);
 
     // We want the original declaration where that function is used to point
     // to the correct closure class.
@@ -263,7 +263,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
     _memberClosureRepresentationMap[closureClassInfo.signatureMethod] =
         closureClassInfo;
     _globalLocalsMap.setLocalsMap(closureClassInfo.callMethod, localsMap);
-    if (needsSignature) {
+    if (createSignatureMethod) {
       _globalLocalsMap.setLocalsMap(
           closureClassInfo.signatureMethod, localsMap);
     }
