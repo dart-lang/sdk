@@ -261,6 +261,16 @@ config("compiler") {
     cflags += [ "-fcolor-diagnostics" ]
   }
 
+  # C++14 compiler flags setup.
+  # ---------------------------
+  if (is_win) {
+    cc_std = [ "/std:c++14" ]
+  } else {
+    cc_std = [ "-std=c++14" ]
+  }
+  cflags_cc += cc_std
+  cflags_objcc += cc_std
+
   # Android-specific flags setup.
   # -----------------------------
   if (is_android) {
