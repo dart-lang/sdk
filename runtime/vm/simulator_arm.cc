@@ -2859,6 +2859,96 @@ void Simulator::DecodeType7(Instr* instr) {
   }
 }
 
+static float arm_reciprocal_sqrt_estimate(float a) {
+  // From the ARM Architecture Reference Manual A2-87.
+  if (isinf(a) || (fabs(a) >= exp2f(126)))
+    return 0.0;
+  else if (a == 0.0)
+    return kPosInfinity;
+  else if (isnan(a))
+    return a;
+
+  uint32_t a_bits = bit_cast<uint32_t, float>(a);
+  uint64_t scaled;
+  if (((a_bits >> 23) & 1) != 0) {
+    // scaled = '0 01111111101' : operand<22:0> : Zeros(29)
+    scaled = (static_cast<uint64_t>(0x3fd) << 52) |
+             ((static_cast<uint64_t>(a_bits) & 0x7fffff) << 29);
+  } else {
+    // scaled = '0 01111111110' : operand<22:0> : Zeros(29)
+    scaled = (static_cast<uint64_t>(0x3fe) << 52) |
+             ((static_cast<uint64_t>(a_bits) & 0x7fffff) << 29);
+  }
+  // result_exp = (380 - UInt(operand<30:23>) DIV 2;
+  int32_t result_exp = (380 - ((a_bits >> 23) & 0xff)) / 2;
+
+  double scaled_d = bit_cast<double, uint64_t>(scaled);
+  ASSERT((scaled_d >= 0.25) && (scaled_d < 1.0));
+
+  double r;
+  if (scaled_d < 0.5) {
+    // range 0.25 <= a < 0.5
+
+    // a in units of 1/512 rounded down.
+    int32_t q0 = static_cast<int32_t>(scaled_d * 512.0);
+    // reciprocal root r.
+    r = 1.0 / sqrt((static_cast<double>(q0) + 0.5) / 512.0);
+  } else {
+    // range 0.5 <= a < 1.0
+
+    // a in units of 1/256 rounded down.
+    int32_t q1 = static_cast<int32_t>(scaled_d * 256.0);
+    // reciprocal root r.
+    r = 1.0 / sqrt((static_cast<double>(q1) + 0.5) / 256.0);
+  }
+  // r in units of 1/256 rounded to nearest.
+  int32_t s = static_cast<int>(256.0 * r + 0.5);
+  double estimate = static_cast<double>(s) / 256.0;
+  ASSERT((estimate >= 1.0) && (estimate <= (511.0 / 256.0)));
+
+  // result = 0 : result_exp<7:0> : estimate<51:29>
+  int32_t result_bits =
+      ((result_exp & 0xff) << 23) |
+      ((bit_cast<uint64_t, double>(estimate) >> 29) & 0x7fffff);
+  return bit_cast<float, int32_t>(result_bits);
+}
+
+static float arm_recip_estimate(float a) {
+  // From the ARM Architecture Reference Manual A2-85.
+  if (isinf(a) || (fabs(a) >= exp2f(126)))
+    return 0.0;
+  else if (a == 0.0)
+    return kPosInfinity;
+  else if (isnan(a))
+    return a;
+
+  uint32_t a_bits = bit_cast<uint32_t, float>(a);
+  // scaled = '0011 1111 1110' : a<22:0> : Zeros(29)
+  uint64_t scaled = (static_cast<uint64_t>(0x3fe) << 52) |
+                    ((static_cast<uint64_t>(a_bits) & 0x7fffff) << 29);
+  // result_exp = 253 - UInt(a<30:23>)
+  int32_t result_exp = 253 - ((a_bits >> 23) & 0xff);
+  ASSERT((result_exp >= 1) && (result_exp <= 252));
+
+  double scaled_d = bit_cast<double, uint64_t>(scaled);
+  ASSERT((scaled_d >= 0.5) && (scaled_d < 1.0));
+
+  // a in units of 1/512 rounded down.
+  int32_t q = static_cast<int32_t>(scaled_d * 512.0);
+  // reciprocal r.
+  double r = 1.0 / ((static_cast<double>(q) + 0.5) / 512.0);
+  // r in units of 1/256 rounded to nearest.
+  int32_t s = static_cast<int32_t>(256.0 * r + 0.5);
+  double estimate = static_cast<double>(s) / 256.0;
+  ASSERT((estimate >= 1.0) && (estimate <= (511.0 / 256.0)));
+
+  // result = sign : result_exp<7:0> : estimate<51:29>
+  int32_t result_bits =
+      (a_bits & 0x80000000) | ((result_exp & 0xff) << 23) |
+      ((bit_cast<uint64_t, double>(estimate) >> 29) & 0x7fffff);
+  return bit_cast<float, int32_t>(result_bits);
+}
+
 static void simd_value_swap(simd_value_t* s1,
                             int i1,
                             simd_value_t* s2,
@@ -3123,26 +3213,26 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
                (instr->Bits(16, 4) == 11)) {
       // Format(instr, "vrecpeq 'qd, 'qm");
       for (int i = 0; i < 4; i++) {
-        s8d.data_[i].f = ReciprocalEstimate(s8m.data_[i].f);
+        s8d.data_[i].f = arm_recip_estimate(s8m.data_[i].f);
       }
     } else if ((instr->Bits(8, 4) == 15) && (instr->Bit(4) == 1) &&
                (instr->Bits(20, 2) == 0) && (instr->Bits(23, 2) == 0)) {
       // Format(instr, "vrecpsq 'qd, 'qn, 'qm");
       for (int i = 0; i < 4; i++) {
-        s8d.data_[i].f = ReciprocalStep(s8n.data_[i].f, s8m.data_[i].f);
+        s8d.data_[i].f = 2.0 - (s8n.data_[i].f * s8m.data_[i].f);
       }
     } else if ((instr->Bits(8, 4) == 5) && (instr->Bit(4) == 0) &&
                (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
                (instr->Bit(7) == 1) && (instr->Bits(16, 4) == 11)) {
       // Format(instr, "vrsqrteqs 'qd, 'qm");
       for (int i = 0; i < 4; i++) {
-        s8d.data_[i].f = ReciprocalSqrtEstimate(s8m.data_[i].f);
+        s8d.data_[i].f = arm_reciprocal_sqrt_estimate(s8m.data_[i].f);
       }
     } else if ((instr->Bits(8, 4) == 15) && (instr->Bit(4) == 1) &&
                (instr->Bits(20, 2) == 2) && (instr->Bits(23, 2) == 0)) {
       // Format(instr, "vrsqrtsqs 'qd, 'qn, 'qm");
       for (int i = 0; i < 4; i++) {
-        s8d.data_[i].f = ReciprocalSqrtStep(s8n.data_[i].f, s8m.data_[i].f);
+        s8d.data_[i].f = (3.0 - s8n.data_[i].f * s8m.data_[i].f) / 2.0;
       }
     } else if ((instr->Bits(8, 4) == 12) && (instr->Bit(4) == 0) &&
                (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
