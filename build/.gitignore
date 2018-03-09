@@ -5,5 +5,6 @@ win_toolchain.json
 linux/debian_jessie_arm-sysroot
 linux/debian_jessie_arm64-sysroot
 linux/debian_wheezy_amd64-sysroot
+linux/debian_jessie_amd64-sysroot
 linux/debian_wheezy_arm-sysroot
 linux/debian_wheezy_i386-sysroot

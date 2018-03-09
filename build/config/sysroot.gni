@@ -18,7 +18,11 @@ if (is_linux && dart_use_wheezy_sysroot) {
   if (current_cpu == "x86") {
     target_sysroot = rebase_path("//build/linux/debian_wheezy_i386-sysroot")
   } else if (current_cpu == "x64") {
-    target_sysroot = rebase_path("//build/linux/debian_wheezy_amd64-sysroot")
+    if (is_asan || is_lsan || is_msan || is_tsan) {
+      target_sysroot = rebase_path("//build/linux/debian_jessie_amd64-sysroot")
+    } else {
+      target_sysroot = rebase_path("//build/linux/debian_wheezy_amd64-sysroot")
+    }
   } else if (current_cpu == "arm") {
     target_sysroot = rebase_path("//build/linux/debian_wheezy_arm-sysroot")
   } else if (current_cpu == "arm64") {
