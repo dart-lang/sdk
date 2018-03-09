@@ -5070,7 +5070,7 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(shift >= 0);
     switch (op_kind()) {
       case Token::kSHR: {
-        __ LsrImmediate(out, left, Utils::Minimum(shift, kBitsPerWord - 1));
+        __ AsrImmediate(out, left, Utils::Minimum(shift, kBitsPerWord - 1));
         break;
       }
       case Token::kSHL: {
