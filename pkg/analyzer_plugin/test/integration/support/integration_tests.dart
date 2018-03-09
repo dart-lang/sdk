@@ -542,7 +542,7 @@ class Server {
       _recordStdio('RECV: $trimmedLine');
       var message;
       try {
-        message = JSON.decoder.convert(trimmedLine);
+        message = json.decoder.convert(trimmedLine);
       } catch (exception) {
         _badDataFromServer('JSON decode failure: $exception');
         return;
@@ -608,9 +608,9 @@ class Server {
     }
     Completer completer = new Completer();
     _pendingCommands[id] = completer;
-    String line = JSON.encode(command);
+    String line = json.encode(command);
     _recordStdio('SEND: $line');
-    _process.stdin.add(UTF8.encoder.convert("$line\n"));
+    _process.stdin.add(utf8.encoder.convert("$line\n"));
     return completer.future;
   }
 

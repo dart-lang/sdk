@@ -207,7 +207,7 @@ class Request {
    */
   factory Request.fromString(String data) {
     try {
-      var result = JSON.decode(data);
+      var result = json.decode(data);
       if (result is Map) {
         return new Request.fromJson(result as Map<String, dynamic>);
       }

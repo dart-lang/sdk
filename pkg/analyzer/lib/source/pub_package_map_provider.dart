@@ -85,7 +85,7 @@ class PubPackageMapProvider implements PackageMapProvider {
     }
     try {
       PackageMapInfo packageMap =
-          parsePackageMap(JSON.decode(result.stdout), folder);
+          parsePackageMap(json.decode(result.stdout), folder);
       return packageMap;
     } catch (exception, stackTrace) {
       AnalysisEngine.instance.logger.logError(

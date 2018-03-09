@@ -43,8 +43,8 @@ class AnalysisServerMemoryUsageTest
     } else {
       result = _run('curl', <String>[vmService]);
     }
-    Map json = JSON.decode(result.stdout);
-    Map heaps = json['result']['heaps'];
+    Map jsonData = json.decode(result.stdout);
+    Map heaps = jsonData['result']['heaps'];
     int newSpace = heaps['new']['used'];
     int oldSpace = heaps['old']['used'];
     return newSpace + oldSpace;
@@ -105,7 +105,7 @@ class AnalysisServerMemoryUsageTest
    */
   ProcessResult _run(String executable, List<String> arguments) {
     return Process.runSync(executable, arguments,
-        stderrEncoding: UTF8, stdoutEncoding: UTF8);
+        stderrEncoding: utf8, stdoutEncoding: utf8);
   }
 
   /**

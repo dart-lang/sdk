@@ -73,7 +73,7 @@ class AddContentOverlay implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -317,7 +317,7 @@ class AnalysisError implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -570,7 +570,7 @@ class ChangeContentOverlay implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -1256,7 +1256,7 @@ class CompletionSuggestion implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -1725,7 +1725,7 @@ class Element implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -2139,7 +2139,7 @@ class FoldingRegion implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -2265,7 +2265,7 @@ class HighlightRegion implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3138,7 +3138,7 @@ class KytheEntry implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3328,7 +3328,7 @@ class KytheVName implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3491,7 +3491,7 @@ class LinkedEditGroup implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3595,7 +3595,7 @@ class LinkedEditSuggestion implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3840,7 +3840,7 @@ class Location implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3974,7 +3974,7 @@ class NavigationRegion implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4183,7 +4183,7 @@ class NavigationTarget implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4316,7 +4316,7 @@ class Occurrences implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4478,7 +4478,7 @@ class Outline implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4581,7 +4581,7 @@ class Position implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4867,7 +4867,7 @@ class RefactoringMethodParameter implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -5066,7 +5066,7 @@ class RefactoringProblem implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -5223,7 +5223,7 @@ class RemoveContentOverlay implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -5448,7 +5448,7 @@ class SourceChange implements HasToJson {
   SourceFileEdit getFileEdit(String file) => getChangeFileEdit(this, file);
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -5634,7 +5634,7 @@ class SourceEdit implements HasToJson {
   String apply(String code) => applyEdit(code, this);
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -5788,7 +5788,7 @@ class SourceFileEdit implements HasToJson {
   void addAll(Iterable<SourceEdit> edits) => addAllEditsForSource(this, edits);
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {

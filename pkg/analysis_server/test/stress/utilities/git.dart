@@ -464,7 +464,7 @@ class GitRepository {
   ProcessResult _run(List<String> arguments) {
     logger?.log('git', 'git', arguments: arguments);
     return Process.runSync('git', arguments,
-        stderrEncoding: UTF8, stdoutEncoding: UTF8, workingDirectory: path);
+        stderrEncoding: utf8, stdoutEncoding: utf8, workingDirectory: path);
   }
 }
 

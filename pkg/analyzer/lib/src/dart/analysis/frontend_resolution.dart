@@ -494,7 +494,7 @@ class _FileSystemEntityAdaptor implements front_end.FileSystemEntity {
   @override
   Future<List<int>> readAsBytes() async {
     // TODO(scheglov) Optimize.
-    return UTF8.encode(file.content);
+    return utf8.encode(file.content);
   }
 
   @override

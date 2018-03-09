@@ -788,7 +788,7 @@ set _V3(_) {}
   String _p(String path) => provider.convertPath(path);
 
   static String _md5(String content) {
-    return hex.encode(md5.convert(UTF8.encode(content)).bytes);
+    return hex.encode(md5.convert(utf8.encode(content)).bytes);
   }
 }
 

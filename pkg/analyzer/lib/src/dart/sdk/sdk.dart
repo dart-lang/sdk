@@ -797,7 +797,7 @@ class SdkExtensionFinder {
   void _processSdkExt(String sdkExtJSON, Folder libDir) {
     var sdkExt;
     try {
-      sdkExt = JSON.decode(sdkExtJSON);
+      sdkExt = json.decode(sdkExtJSON);
     } catch (e) {
       return;
     }

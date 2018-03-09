@@ -1281,13 +1281,13 @@ main() {
       "positions": positions.toList(),
       "suggestions": suggestions.toList()
     };
-    _assertSingleLinkedEditGroupJson(JSON.encode(expected));
+    _assertSingleLinkedEditGroupJson(json.encode(expected));
   }
 
   void _assertSingleLinkedEditGroupJson(String expectedJsonString) {
     List<LinkedEditGroup> editGroups = refactoringChange.linkedEditGroups;
     expect(editGroups, hasLength(1));
-    expect(editGroups.first.toJson(), JSON.decode(expectedJsonString));
+    expect(editGroups.first.toJson(), json.decode(expectedJsonString));
   }
 
   /**

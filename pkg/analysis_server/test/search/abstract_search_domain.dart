@@ -100,7 +100,7 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
       results = resultSet.results;
       return new Future.value();
     }
-    return new Future.delayed(Duration.ZERO, waitForSearchResults);
+    return new Future.delayed(Duration.zero, waitForSearchResults);
   }
 }
 

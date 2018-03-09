@@ -101,6 +101,6 @@ class PackageBundleAssembler {
    * Compute a hash of the given file contents.
    */
   String _hash(String contents) {
-    return hex.encode(md5.convert(UTF8.encode(contents)).bytes);
+    return hex.encode(md5.convert(utf8.encode(contents)).bytes);
   }
 }

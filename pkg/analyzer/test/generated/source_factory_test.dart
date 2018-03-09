@@ -44,7 +44,7 @@ void runPackageMapTests() {
   ];
 
   Packages createPackageMap(Uri base, String configFileContents) {
-    List<int> bytes = UTF8.encode(configFileContents);
+    List<int> bytes = utf8.encode(configFileContents);
     Map<String, Uri> map = pkgfile.parse(bytes, base);
     return new MapPackages(map);
   }
