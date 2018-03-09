@@ -283,9 +283,10 @@ class ClassPropertyModel {
       for (var i in type.interfaces) visit(i, true);
 
       for (var m in [type.methods, type.accessors].expand((m) => m)) {
+        if (m.isStatic) continue;
         if (isAbstract || m.isAbstract) {
           mockMembers[m.name] = m;
-        } else if (!m.isStatic) {
+        } else {
           concreteMembers.add(m.name);
         }
       }
