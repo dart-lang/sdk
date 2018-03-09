@@ -701,9 +701,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    */
   void _checkForDeprecatedMemberUse(Element element, AstNode node) {
     bool isDeprecated(Element element) {
-      if (element == null) {
-        return false;
-      } else if (element is PropertyAccessorElement && element.isSynthetic) {
+      if (element is PropertyAccessorElement && element.isSynthetic) {
         // TODO(brianwilkerson) Why isn't this the implementation for PropertyAccessorElement?
         Element variable = element.variable;
         if (variable == null) {
@@ -714,7 +712,34 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       return element.hasDeprecated;
     }
 
-    if (!inDeprecatedMember && isDeprecated(element)) {
+    bool isLocalParameter(Element element, AstNode node) {
+      if (element is ParameterElement) {
+        ExecutableElement definingFunction = element.enclosingElement;
+        FunctionBody body =
+            node.getAncestor((ancestor) => ancestor is FunctionBody);
+        while (body != null) {
+          ExecutableElement enclosingFunction;
+          AstNode parent = body.parent;
+          if (parent is ConstructorDeclaration) {
+            enclosingFunction = parent.element;
+          } else if (parent is FunctionExpression) {
+            enclosingFunction = parent.element;
+          } else if (parent is MethodDeclaration) {
+            enclosingFunction = parent.element;
+          }
+          if (enclosingFunction == definingFunction) {
+            return true;
+          }
+          body = parent?.getAncestor((ancestor) => ancestor is FunctionBody);
+        }
+      }
+      return false;
+    }
+
+    if (!inDeprecatedMember &&
+        element != null &&
+        isDeprecated(element) &&
+        !isLocalParameter(element, node)) {
       String displayName = element.displayName;
       if (element is ConstructorElement) {
         // TODO(jwren) We should modify ConstructorElement.getDisplayName(),
