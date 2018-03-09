@@ -1141,13 +1141,26 @@
           The length of the element.
         </p>
       </field>
+      <field name="codeOffset">
+        <ref>int</ref>
+        <p>
+          The offset of the first character of the element code, which is
+          neither documentation, nor annotation.
+        </p>
+      </field>
+      <field name="codeLength">
+        <ref>int</ref>
+        <p>
+          The length of the element code.
+        </p>
+      </field>
       <field name="children" optional="true">
         <list>
           <ref>Outline</ref>
         </list>
         <p>
           The children of the node. The field will be omitted if the node has no
-          children.
+          children. Children are sorted by offset.
         </p>
       </field>
     </object>

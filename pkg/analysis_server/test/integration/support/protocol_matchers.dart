@@ -997,12 +997,21 @@ final Matcher isOccurrences = new LazyMatcher(() => new MatchesJsonObject(
  *   "element": Element
  *   "offset": int
  *   "length": int
+ *   "codeOffset": int
+ *   "codeLength": int
  *   "children": optional List<Outline>
  * }
  */
-final Matcher isOutline = new LazyMatcher(() => new MatchesJsonObject(
-    "Outline", {"element": isElement, "offset": isInt, "length": isInt},
-    optionalFields: {"children": isListOf(isOutline)}));
+final Matcher isOutline =
+    new LazyMatcher(() => new MatchesJsonObject("Outline", {
+          "element": isElement,
+          "offset": isInt,
+          "length": isInt,
+          "codeOffset": isInt,
+          "codeLength": isInt
+        }, optionalFields: {
+          "children": isListOf(isOutline)
+        }));
 
 /**
  * OverriddenMember
