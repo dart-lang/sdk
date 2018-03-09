@@ -35,6 +35,7 @@ html/interactive_media_test: RuntimeError
 [ $system == macos && ($compiler == dartdevc || $compiler == dartdevk) ]
 html/client_rect_test: Pass, RuntimeError # Issue 31019
 html/css_test: Pass, RuntimeError # Issue 31019
+html/fileapi_entry_test: Pass, RuntimeError # Issue 31019
 
 [ $system == windows && ($compiler == dartdevc || $compiler == dartdevk) ]
 html/xhr_test: Skip # Times out. Issue 21527
