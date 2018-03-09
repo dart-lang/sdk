@@ -134,7 +134,7 @@ class MemoryResourceProvider implements ResourceProvider {
 
   void modifyFile(String path, String content) {
     _checkFileAtPath(path);
-    _pathToBytes[path] = UTF8.encode(content);
+    _pathToBytes[path] = utf8.encode(content);
     _pathToTimestamp[path] = nextStamp++;
     _notifyWatchers(path, ChangeType.MODIFY);
   }
@@ -156,7 +156,7 @@ class MemoryResourceProvider implements ResourceProvider {
   File newFile(String path, String content, [int stamp]) {
     path = pathContext.normalize(path);
     _MemoryFile file = _newFile(path);
-    _pathToBytes[path] = UTF8.encode(content);
+    _pathToBytes[path] = utf8.encode(content);
     _pathToTimestamp[path] = stamp ?? nextStamp++;
     _notifyWatchers(path, ChangeType.ADD);
     return file;
@@ -224,7 +224,7 @@ class MemoryResourceProvider implements ResourceProvider {
     newFolder(pathContext.dirname(path));
     _MemoryFile file = new _MemoryFile(this, path);
     _pathToResource[path] = file;
-    _pathToBytes[path] = UTF8.encode(content);
+    _pathToBytes[path] = utf8.encode(content);
     _pathToTimestamp[path] = stamp ?? nextStamp++;
     _notifyWatchers(path, ChangeType.MODIFY);
     return file;
@@ -439,7 +439,7 @@ class _MemoryFile extends _MemoryResource implements File {
     if (content == null) {
       throw new FileSystemException(path, 'File "$path" does not exist.');
     }
-    return UTF8.decode(content);
+    return utf8.decode(content);
   }
 
   @override
@@ -457,7 +457,7 @@ class _MemoryFile extends _MemoryResource implements File {
 
   @override
   void writeAsStringSync(String content) {
-    _provider._setFileContent(this, UTF8.encode(content));
+    _provider._setFileContent(this, utf8.encode(content));
   }
 }
 

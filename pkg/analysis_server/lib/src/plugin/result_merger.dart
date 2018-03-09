@@ -469,8 +469,12 @@ class ResultMerger {
           // The [newChild] isn't in the existing list.
           Outline copiedOutline = copyMap.putIfAbsent(
               mergedOutline,
-              () => new Outline(mergedOutline.element, mergedOutline.offset,
+              () => new Outline(
+                  mergedOutline.element,
+                  mergedOutline.offset,
                   mergedOutline.length,
+                  mergedOutline.codeOffset,
+                  mergedOutline.codeLength,
                   children: mergedOutline.children.toList()));
           copiedOutline.children.add(newChild);
           addToMap(newChild);
@@ -514,7 +518,11 @@ class ResultMerger {
       if (currentChildren != updatedChildren) {
         if (!isCopied) {
           return new Outline(
-              copiedOutline.element, copiedOutline.offset, copiedOutline.length,
+              copiedOutline.element,
+              copiedOutline.offset,
+              copiedOutline.length,
+              copiedOutline.codeOffset,
+              copiedOutline.codeLength,
               children: updatedChildren);
         }
         copiedOutline.children = updatedChildren;

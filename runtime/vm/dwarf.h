@@ -117,7 +117,7 @@ typedef DirectChainedHashMap<CodeIndexPair> CodeIndexMap;
 
 class Dwarf : public ZoneAllocated {
  public:
-  Dwarf(Zone* zone, WriteStream* stream);
+  Dwarf(Zone* zone, StreamingWriteStream* stream);
 
   intptr_t AddCode(const Code& code);
   intptr_t AddFunction(const Function& function);
@@ -198,7 +198,7 @@ class Dwarf : public ZoneAllocated {
   void WriteLines();
 
   Zone* const zone_;
-  WriteStream* stream_;
+  StreamingWriteStream* stream_;
   ZoneGrowableArray<const Code*> codes_;
   CodeIndexMap code_to_index_;
   ZoneGrowableArray<const Function*> functions_;

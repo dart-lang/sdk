@@ -312,23 +312,28 @@ static int ParseArguments(int argc,
   return 0;
 }
 
+static File* OpenFile(const char* filename) {
+  File* file = File::Open(NULL, filename, File::kWriteTruncate);
+  if (file == NULL) {
+    Log::PrintErr("Error: Unable to write file: %s\n\n", filename);
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+    exit(kErrorExitCode);
+  }
+  return file;
+}
+
 static void WriteFile(const char* filename,
                       const uint8_t* buffer,
                       const intptr_t size) {
-  File* file = File::Open(NULL, filename, File::kWriteTruncate);
-  if (file == NULL) {
-    Log::PrintErr("Error: Unable to write snapshot file: %s\n\n", filename);
-    Dart_ExitScope();
-    Dart_ShutdownIsolate();
-    exit(kErrorExitCode);
-  }
+  File* file = OpenFile(filename);
+  RefCntReleaseScope<File> rs(file);
   if (!file->WriteFully(buffer, size)) {
-    Log::PrintErr("Error: Unable to write snapshot file: %s\n\n", filename);
+    Log::PrintErr("Error: Unable to write file: %s\n\n", filename);
     Dart_ExitScope();
     Dart_ShutdownIsolate();
     exit(kErrorExitCode);
   }
-  file->Release();
 }
 
 static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
@@ -339,6 +344,7 @@ static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
     Dart_ShutdownIsolate();
     exit(kErrorExitCode);
   }
+  RefCntReleaseScope<File> rs(file);
   *size = file->Length();
   *buffer = reinterpret_cast<uint8_t*>(malloc(*size));
   if (!file->ReadFully(*buffer, *size)) {
@@ -347,7 +353,6 @@ static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
     Dart_ShutdownIsolate();
     exit(kErrorExitCode);
   }
-  file->Release();
 }
 
 class UriResolverIsolateScope {
@@ -493,6 +498,7 @@ class DependenciesFileWriter : public ValueObject {
                     dependencies_filename);
       exit(kErrorExitCode);
     }
+    RefCntReleaseScope<File> rs(file_);
 
     // Write dependencies for one of the output files.
     // TODO(https://github.com/ninja-build/ninja/issues/1184): Do this for all
@@ -524,7 +530,6 @@ class DependenciesFileWriter : public ValueObject {
                     dependencies_filename);
       exit(kErrorExitCode);
     }
-    file_->Release();
   }
 
  private:
@@ -1199,6 +1204,18 @@ static void CreateAndWriteScriptSnapshot() {
   WriteFile(script_snapshot_filename, buffer, size);
 }
 
+static void StreamingWriteCallback(void* callback_data,
+                                   const uint8_t* buffer,
+                                   intptr_t size) {
+  File* file = reinterpret_cast<File*>(callback_data);
+  if (!file->WriteFully(buffer, size)) {
+    Log::PrintErr("Error: Unable to write snapshot file\n\n");
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+    exit(kErrorExitCode);
+  }
+}
+
 static void CreateAndWritePrecompiledSnapshot(
     Dart_QualifiedFunctionName* standalone_entry_points) {
   ASSERT(IsSnapshottingForPrecompilation());
@@ -1212,14 +1229,10 @@ static void CreateAndWritePrecompiledSnapshot(
   bool as_assembly = assembly_filename != NULL;
   if (as_assembly) {
     ASSERT(snapshot_kind == kAppAOTAssembly);
-
-    uint8_t* assembly_buffer = NULL;
-    intptr_t assembly_size = 0;
-    result =
-        Dart_CreateAppAOTSnapshotAsAssembly(&assembly_buffer, &assembly_size);
+    File* file = OpenFile(assembly_filename);
+    RefCntReleaseScope<File> rs(file);
+    result = Dart_CreateAppAOTSnapshotAsAssembly(StreamingWriteCallback, file);
     CHECK_RESULT(result);
-
-    WriteFile(assembly_filename, assembly_buffer, assembly_size);
   } else {
     ASSERT(snapshot_kind == kAppAOTBlobs);
 
@@ -1349,6 +1362,7 @@ static MappedMemory* MapFile(const char* filename,
     Log::PrintErr("Failed to open: %s\n", filename);
     exit(kErrorExitCode);
   }
+  RefCntReleaseScope<File> rs(file);
   intptr_t length = file->Length();
   if (length == 0) {
     // Can't map an empty file.
@@ -1360,7 +1374,6 @@ static MappedMemory* MapFile(const char* filename,
     Log::PrintErr("Failed to read: %s\n", filename);
     exit(kErrorExitCode);
   }
-  file->Release();
   *buffer = reinterpret_cast<const uint8_t*>(mapping->address());
   return mapping;
 }
@@ -1582,14 +1595,10 @@ int main(int argc, char** argv) {
   Dart_EnterScope();
 
   if (snapshot_kind == kVMAOTAssembly) {
-    uint8_t* assembly_buffer = NULL;
-    intptr_t assembly_size = 0;
-    result =
-        Dart_CreateVMAOTSnapshotAsAssembly(&assembly_buffer, &assembly_size);
+    File* file = OpenFile(assembly_filename);
+    RefCntReleaseScope<File> rs(file);
+    result = Dart_CreateVMAOTSnapshotAsAssembly(StreamingWriteCallback, file);
     CHECK_RESULT(result);
-
-    WriteFile(assembly_filename, assembly_buffer, assembly_size);
-
     Dart_ExitScope();
     Dart_ShutdownIsolate();
     return 0;

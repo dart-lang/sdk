@@ -688,8 +688,8 @@ class PluginManager {
           pubPath = '$pubPath.bat';
         }
         ProcessResult result = Process.runSync(pubPath, <String>['get'],
-            stderrEncoding: UTF8,
-            stdoutEncoding: UTF8,
+            stderrEncoding: utf8,
+            stdoutEncoding: utf8,
             workingDirectory: pluginFolder.path);
         if (result.exitCode != 0) {
           StringBuffer buffer = new StringBuffer();

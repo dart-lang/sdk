@@ -22506,9 +22506,10 @@ int64_t Closure::ComputeHash() const {
     // code with identityHashCode of cached receiver.
     result = static_cast<uint32_t>(func.ComputeClosureHash());
     const Context& context = Context::Handle(zone, this->context());
-    const Object& receiver = Object::Handle(zone, context.At(0));
+    const Instance& receiver =
+        Instance::Handle(zone, Instance::RawCast(context.At(0)));
     const Object& receiverHash =
-        Object::Handle(zone, Instance::Cast(receiver).IdentityHashCode());
+        Object::Handle(zone, receiver.IdentityHashCode());
     if (receiverHash.IsError()) {
       Exceptions::PropagateError(Error::Cast(receiverHash));
       UNREACHABLE();

@@ -173,7 +173,7 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
     if (element.isSynthetic) {
       buffer.write('<i>');
     }
-    buffer.write(HTML_ESCAPE.convert(element.toString()));
+    buffer.write(htmlEscape.convert(element.toString()));
     if (element.isSynthetic) {
       buffer.write('</i>');
     }

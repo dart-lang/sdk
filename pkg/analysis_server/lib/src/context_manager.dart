@@ -1590,7 +1590,7 @@ class ContextManagerImpl implements ContextManager {
     try {
       String contents = specFile.readAsStringSync();
       Map<String, Uri> map =
-          pkgfile.parse(UTF8.encode(contents), new Uri.file(specFile.path));
+          pkgfile.parse(utf8.encode(contents), new Uri.file(specFile.path));
       return new MapPackages(map);
     } catch (_) {
       //TODO(pquitslund): consider creating an error for the spec file.

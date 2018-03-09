@@ -94,7 +94,7 @@ class InstrumentationInputConverter extends CommonInputConverter {
 
   Map<String, dynamic> decodeJson(String line, String text) {
     try {
-      return asMap(JSON.decode(text));
+      return asMap(json.decode(text));
     } catch (e, s) {
       throw new AnalysisException(
           'Failed to decode JSON: $text\n$line', new CaughtException(e, s));

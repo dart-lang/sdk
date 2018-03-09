@@ -4,7 +4,6 @@
 
 /// This tests the benchmarks in benchmark/benchmark.test, and ensures that our
 /// benchmarks can run.
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -12,6 +11,12 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 void main() => defineTests();
+
+String get _serverSourcePath {
+  String script = Platform.script.toFilePath(windows: Platform.isWindows);
+  String pkgPath = path.normalize(path.join(path.dirname(script), '..', '..'));
+  return path.join(pkgPath, 'analysis_server');
+}
 
 void defineTests() {
   group('benchmarks', () {
@@ -66,13 +71,7 @@ List<String> _listBenchmarks() {
     [path.join('benchmark', 'benchmarks.dart'), 'list', '--machine'],
     workingDirectory: _serverSourcePath,
   );
-  Map m = JSON.decode(result.stdout);
+  Map m = json.decode(result.stdout);
   List benchmarks = m['benchmarks'];
   return benchmarks.map((b) => b['id']).toList();
-}
-
-String get _serverSourcePath {
-  String script = Platform.script.toFilePath(windows: Platform.isWindows);
-  String pkgPath = path.normalize(path.join(path.dirname(script), '..', '..'));
-  return path.join(pkgPath, 'analysis_server');
 }

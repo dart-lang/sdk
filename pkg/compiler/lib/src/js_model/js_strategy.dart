@@ -291,26 +291,40 @@ class JsClosedWorldBuilder {
       Set<ir.Node> localFunctionsNodesNeedingSignature = new Set<ir.Node>();
       for (KLocalFunction localFunction
           in kernelRtiNeed.localFunctionsNeedingSignature) {
-        localFunctionsNodesNeedingSignature.add(localFunction.node);
+        ir.Node node = localFunction.node;
+        assert(node is ir.FunctionDeclaration || node is ir.FunctionExpression,
+            "Unexpected local function node: $node");
+        localFunctionsNodesNeedingSignature.add(node);
       }
       Set<ir.Node> localFunctionsNodesNeedingTypeArguments = new Set<ir.Node>();
       for (KLocalFunction localFunction
           in kernelRtiNeed.localFunctionsNeedingTypeArguments) {
-        localFunctionsNodesNeedingTypeArguments.add(localFunction.node);
+        ir.Node node = localFunction.node;
+        assert(node is ir.FunctionDeclaration || node is ir.FunctionExpression,
+            "Unexpected local function node: $node");
+        localFunctionsNodesNeedingTypeArguments.add(node);
       }
 
       RuntimeTypesNeedImpl jRtiNeed =
           _convertRuntimeTypesNeed(map, backendUsage, kernelRtiNeed);
       callMethods = _closureConversionTask.createClosureEntities(
           this, map.toBackendMemberMap(closureModels, identity),
-          localFunctionNeedsSignature: backendUsage.isRuntimeTypeUsed
-              ? (_) => true
-              : localFunctionsNodesNeedingSignature.contains,
+          localFunctionNeedsSignature: (ir.Node node) {
+            assert(node is ir.FunctionDeclaration ||
+                node is ir.FunctionExpression);
+            return backendUsage.isRuntimeTypeUsed
+                ? true
+                : localFunctionsNodesNeedingSignature.contains(node);
+          },
           classNeedsTypeArguments: jRtiNeed.classNeedsTypeArguments,
           methodNeedsTypeArguments: jRtiNeed.methodNeedsTypeArguments,
-          localFunctionNeedsTypeArguments: backendUsage.isRuntimeTypeUsed
-              ? (_) => true
-              : localFunctionsNodesNeedingTypeArguments.contains);
+          localFunctionNeedsTypeArguments: (ir.Node node) {
+            assert(node is ir.FunctionDeclaration ||
+                node is ir.FunctionExpression);
+            return backendUsage.isRuntimeTypeUsed
+                ? true
+                : localFunctionsNodesNeedingTypeArguments.contains(node);
+          });
 
       List<FunctionEntity> callMethodsNeedingSignature = <FunctionEntity>[];
       for (ir.Node node in localFunctionsNodesNeedingSignature) {
@@ -536,7 +550,7 @@ class JsClosedWorldBuilder {
       Map<Local, JRecordField> boxedVariables,
       KernelScopeInfo info,
       KernelToLocalsMap localsMap,
-      {bool needsSignature}) {
+      {bool createSignatureMethod}) {
     ClassEntity superclass = _commonElements.closureClass;
 
     KernelClosureClassInfo closureClassInfo = _elementMap.constructClosureClass(
@@ -547,7 +561,7 @@ class JsClosedWorldBuilder {
         info,
         localsMap,
         new InterfaceType(superclass, const []),
-        needsSignature: needsSignature);
+        createSignatureMethod: createSignatureMethod);
 
     // Tell the hierarchy that this is the super class. then we can use
     // .getSupertypes(class)

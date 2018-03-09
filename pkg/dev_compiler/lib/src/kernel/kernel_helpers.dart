@@ -264,3 +264,31 @@ bool isInlineJS(Member e) =>
 // Usually we don't, so we can use the same type.
 bool isCovariant(VariableDeclaration p) =>
     p.isCovariant || p.isGenericCovariantImpl;
+
+/// Returns true iff this factory constructor just throws [UnsupportedError]/
+///
+/// `dart:html` has many of these.
+bool isUnsupportedFactoryConstructor(Procedure node) {
+  if (node.name.isPrivate && node.enclosingLibrary.importUri.scheme == 'dart') {
+    var body = node.function.body;
+    if (body is Block) {
+      var statements = body.statements;
+      if (statements.length == 1) {
+        var statement = statements[0];
+        if (statement is ExpressionStatement) {
+          var expr = statement.expression;
+          if (expr is Throw) {
+            var error = expr.expression;
+            if (error is ConstructorInvocation &&
+                error.target.enclosingClass.name == 'UnsupportedError') {
+              // HTML adds a lot of private constructors that are unreachable.
+              // Skip these.
+              return true;
+            }
+          }
+        }
+      }
+    }
+  }
+  return false;
+}

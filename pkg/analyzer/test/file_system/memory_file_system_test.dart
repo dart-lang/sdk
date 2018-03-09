@@ -872,7 +872,7 @@ class MemoryResourceProviderTest {
   }
 
   Future _delayed(computation()) {
-    return new Future.delayed(Duration.ZERO, computation);
+    return new Future.delayed(Duration.zero, computation);
   }
 
   _watchingFolder(String path, test(List<WatchEvent> changesReceived)) {

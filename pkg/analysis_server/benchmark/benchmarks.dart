@@ -128,7 +128,7 @@ class RunCommand extends Command {
       time.stop();
       print('Finished in ${time.elapsed.inSeconds} seconds.\n');
       Map m = {'benchmark': benchmarkId, 'result': result.toJson()};
-      print(JSON.encode(m));
+      print(json.encode(m));
     } catch (error, st) {
       print('$benchmarkId threw exception: $error');
       print(st);

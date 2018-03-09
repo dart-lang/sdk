@@ -6470,8 +6470,8 @@ Dart_Precompile(Dart_QualifiedFunctionName entry_points[]) {
 }
 
 DART_EXPORT Dart_Handle
-Dart_CreateAppAOTSnapshotAsAssembly(uint8_t** assembly_buffer,
-                                    intptr_t* assembly_size) {
+Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
+                                    void* callback_data) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
 #elif defined(TARGET_ARCH_DBC)
@@ -6489,13 +6489,11 @@ Dart_CreateAppAOTSnapshotAsAssembly(uint8_t** assembly_buffer,
         "Did you forget to call Dart_Precompile?");
   }
   ASSERT(FLAG_load_deferred_eagerly);
-  CHECK_NULL(assembly_buffer);
-  CHECK_NULL(assembly_size);
+  CHECK_NULL(callback);
 
   NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
                                             "WriteAppAOTSnapshot"));
-  AssemblyImageWriter image_writer(assembly_buffer, ApiReallocate,
-                                   2 * MB /* initial_size */);
+  AssemblyImageWriter image_writer(callback, callback_data);
   uint8_t* vm_snapshot_data_buffer = NULL;
   uint8_t* isolate_snapshot_data_buffer = NULL;
   FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer,
@@ -6504,15 +6502,14 @@ Dart_CreateAppAOTSnapshotAsAssembly(uint8_t** assembly_buffer,
 
   writer.WriteFullSnapshot();
   image_writer.Finalize();
-  *assembly_size = image_writer.AssemblySize();
 
   return Api::Success();
 #endif
 }
 
 DART_EXPORT Dart_Handle
-Dart_CreateVMAOTSnapshotAsAssembly(uint8_t** assembly_buffer,
-                                   intptr_t* assembly_size) {
+Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
+                                   void* callback_data) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
 #elif defined(TARGET_ARCH_DBC)
@@ -6523,19 +6520,16 @@ Dart_CreateVMAOTSnapshotAsAssembly(uint8_t** assembly_buffer,
 #else
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
-  CHECK_NULL(assembly_buffer);
-  CHECK_NULL(assembly_size);
+  CHECK_NULL(callback);
 
   NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
                                             "WriteVMAOTSnapshot"));
-  AssemblyImageWriter image_writer(assembly_buffer, ApiReallocate,
-                                   2 * MB /* initial_size */);
+  AssemblyImageWriter image_writer(callback, callback_data);
   uint8_t* vm_snapshot_data_buffer = NULL;
   FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer, NULL,
                             ApiReallocate, &image_writer, NULL);
 
   writer.WriteFullSnapshot();
-  *assembly_size = image_writer.AssemblySize();
 
   return Api::Success();
 #endif

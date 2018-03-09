@@ -118,7 +118,8 @@ class Search {
    * we just want reduce amount of data, not to make it absolute minimum.
    */
   Future<List<Declaration>> declarations(
-      RegExp regExp, int maxResults, List<String> files) async {
+      RegExp regExp, int maxResults, List<String> files,
+      {String onlyForFile}) async {
     List<Declaration> declarations = <Declaration>[];
     UnlinkedUnit unlinkedUnit;
 
@@ -179,6 +180,10 @@ class Search {
 
     try {
       for (String path in _driver.addedFiles) {
+        if (onlyForFile != null && path != onlyForFile) {
+          continue;
+        }
+
         FileState file = _driver.fsState.getFileForPath(path);
         int fileIndex;
 

@@ -4,7 +4,7 @@
 
 library analyzer_cli.test.perf_report;
 
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 
 import 'package:analyzer_cli/src/error_formatter.dart' show AnalysisStats;
 import 'package:analyzer_cli/src/options.dart';
@@ -16,8 +16,8 @@ main() {
     var options = CommandLineOptions.parse(["somefile.dart"]);
     var encoded = makePerfReport(1000, 1234, options, 0, new AnalysisStats());
 
-    var json = JSON.decode(encoded);
-    expect(json['totalElapsedTime'], 234);
-    expect(json['options']['sourceFiles'], ["somefile.dart"]);
+    var jsonData = json.decode(encoded);
+    expect(jsonData['totalElapsedTime'], 234);
+    expect(jsonData['options']['sourceFiles'], ["somefile.dart"]);
   });
 }

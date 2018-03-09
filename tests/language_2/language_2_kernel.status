@@ -531,7 +531,6 @@ mixin_supertype_subclass_test/05: MissingCompileTimeError
 [ $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
 const_instance_field_test/01: Crash # Issue 32326.
 deopt_inlined_function_lazy_test: Skip
-tearoff_dynamic_test: Crash
 
 [ $compiler == dartk && $mode == product && $runtime == vm ]
 deferred_load_constants_test/02: Fail
@@ -803,7 +802,6 @@ least_upper_bound_expansive_test/none: RuntimeError # Please triage.
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
 const_instance_field_test/01: Crash # Issue 32326.
 external_test/13: Crash
-tearoff_dynamic_test: Crash
 type_promotion_functions_test/05: Pass
 type_promotion_functions_test/06: Pass
 type_promotion_functions_test/07: Pass

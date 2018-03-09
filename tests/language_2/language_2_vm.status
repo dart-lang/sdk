@@ -92,9 +92,6 @@ generic_methods_bounds_test/02: MissingRuntimeError
 generic_methods_dynamic_test/02: MissingRuntimeError
 generic_methods_dynamic_test/04: MissingRuntimeError
 
-[ $compiler != dartk && $mode == debug && $runtime == vm && $checked ]
-tearoff_dynamic_test: Crash
-
 [ $compiler != dartk && $mode == product && $runtime == vm ]
 deferred_load_constants_test/02: Fail
 deferred_load_constants_test/03: Fail
@@ -1235,7 +1232,6 @@ issue31596_test: RuntimeError
 list_is_test: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
 malformed2_test/00: MissingCompileTimeError
-tearoff_dynamic_test: RuntimeError
 type_argument_in_super_type_test: RuntimeError
 type_check_const_function_typedef2_test: MissingCompileTimeError
 typevariable_substitution2_test/02: RuntimeError

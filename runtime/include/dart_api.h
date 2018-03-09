@@ -3244,6 +3244,10 @@ DART_EXPORT Dart_Handle Dart_LoadCompilationTrace(uint8_t* buffer,
 DART_EXPORT Dart_Handle
 Dart_Precompile(Dart_QualifiedFunctionName entry_points[]);
 
+typedef void (*Dart_StreamingWriteCallback)(void* callback_data,
+                                            const uint8_t* buffer,
+                                            intptr_t size);
+
 /**
  *  Creates a precompiled snapshot.
  *   - A root library must have been loaded.
@@ -3262,22 +3266,21 @@ Dart_Precompile(Dart_QualifiedFunctionName entry_points[]);
  *  Dart_Initialize. The kDartIsolateSnapshotData and
  *  kDartIsoalteSnapshotInstructions should be passed to Dart_CreateIsolate.
  *
- *  The buffers are scope allocated and are only valid until the next call to
- *  Dart_ExitScope.
+ *  The callback will be invoked one or more times to provide the assembly code.
  *
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT Dart_Handle
-Dart_CreateAppAOTSnapshotAsAssembly(uint8_t** assembly_buffer,
-                                    intptr_t* assembly_size);
+Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
+                                    void* callback_data);
 
 /**
  *  Like Dart_CreateAppAOTSnapshotAsAssembly, but only includes
  *  kDartVmSnapshotData and kDartVmSnapshotInstructions.
  */
 DART_EXPORT Dart_Handle
-Dart_CreateVMAOTSnapshotAsAssembly(uint8_t** assembly_buffer,
-                                   intptr_t* assembly_size);
+Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
+                                   void* callback_data);
 
 /**
  *  Same as Dart_CreateAppAOTSnapshotAsAssembly, except all the pieces are

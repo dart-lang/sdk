@@ -297,10 +297,10 @@ class ResultMergerTest {
     // - element1_1
     // - element1_2
     //
-    Outline outline1_1 = new Outline(element1_1, 0, 0, children: []);
-    Outline outline1_2 = new Outline(element1_2, 0, 0, children: []);
+    Outline outline1_1 = new Outline(element1_1, 0, 0, 0, 0, children: []);
+    Outline outline1_2 = new Outline(element1_2, 0, 0, 0, 0, children: []);
     Outline outline1 =
-        new Outline(element1, 0, 0, children: [outline1_1, outline1_2]);
+        new Outline(element1, 0, 0, 0, 0, children: [outline1_1, outline1_2]);
     //
     // Same top level element, common child.
     //
@@ -311,15 +311,15 @@ class ResultMergerTest {
     // - element3_1
     // - element3_2
     //
-    Outline outline2_1 = new Outline(element2_1, 0, 0, children: []);
-    Outline outline2_2 = new Outline(element2_2, 0, 0, children: []);
-    Outline outline3_1 = new Outline(element3_1, 0, 0, children: []);
-    Outline outline3_2 = new Outline(element3_2, 0, 0, children: []);
+    Outline outline2_1 = new Outline(element2_1, 0, 0, 0, 0, children: []);
+    Outline outline2_2 = new Outline(element2_2, 0, 0, 0, 0, children: []);
+    Outline outline3_1 = new Outline(element3_1, 0, 0, 0, 0, children: []);
+    Outline outline3_2 = new Outline(element3_2, 0, 0, 0, 0, children: []);
     Outline outline2 =
-        new Outline(element2, 0, 0, children: [outline2_1, outline2_2]);
+        new Outline(element2, 0, 0, 0, 0, children: [outline2_1, outline2_2]);
     Outline outline3 =
-        new Outline(element2, 0, 0, children: [outline3_1, outline3_2]);
-    Outline outline2and3 = new Outline(element2, 0, 0,
+        new Outline(element2, 0, 0, 0, 0, children: [outline3_1, outline3_2]);
+    Outline outline2and3 = new Outline(element2, 0, 0, 0, 0,
         children: [outline2_1, outline2_2, outline3_2]);
     //
     // Unique, contributed from second plugin.
@@ -327,8 +327,9 @@ class ResultMergerTest {
     // element4
     // - element4_1
     //
-    Outline outline4_1 = new Outline(element4_1, 0, 0, children: []);
-    Outline outline4 = new Outline(element4, 0, 0, children: [outline4_1]);
+    Outline outline4_1 = new Outline(element4_1, 0, 0, 0, 0, children: []);
+    Outline outline4 =
+        new Outline(element4, 0, 0, 0, 0, children: [outline4_1]);
 
     void runTest() {
       expect(

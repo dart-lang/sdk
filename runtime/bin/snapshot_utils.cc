@@ -75,20 +75,18 @@ static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name) {
   if (file == NULL) {
     return NULL;
   }
+  RefCntReleaseScope<File> rs(file);
   if (file->Length() < kAppSnapshotHeaderSize) {
-    file->Release();
     return NULL;
   }
   int64_t header[5];
   ASSERT(sizeof(header) == kAppSnapshotHeaderSize);
   if (!file->ReadFully(&header, kAppSnapshotHeaderSize)) {
-    file->Release();
     return NULL;
   }
   ASSERT(sizeof(header[0]) == appjit_magic_number.length);
   if (memcmp(&header[0], appjit_magic_number.bytes,
              appjit_magic_number.length) != 0) {
-    file->Release();
     return NULL;
   }
 
@@ -149,7 +147,6 @@ static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name) {
     }
   }
 
-  file->Release();
   return new MappedAppSnapshot(vm_data_mapping, vm_instr_mapping,
                                isolate_data_mapping, isolate_instr_mapping);
 }
@@ -391,15 +388,27 @@ void Snapshot::GenerateAppAOTAsBlobs(const char* snapshot_filename) {
                    isolate_instructions_buffer, isolate_instructions_size);
 }
 
+static void StreamingWriteCallback(void* callback_data,
+                                   const uint8_t* buffer,
+                                   intptr_t size) {
+  File* file = reinterpret_cast<File*>(callback_data);
+  if (!file->WriteFully(buffer, size)) {
+    ErrorExit(kErrorExitCode, "Unable to write snapshot file\n");
+  }
+}
+
 void Snapshot::GenerateAppAOTAsAssembly(const char* snapshot_filename) {
-  uint8_t* assembly_buffer = NULL;
-  intptr_t assembly_size = 0;
+  File* file = File::Open(NULL, snapshot_filename, File::kWriteTruncate);
+  RefCntReleaseScope<File> rs(file);
+  if (file == NULL) {
+    ErrorExit(kErrorExitCode, "Unable to open file %s for writing snapshot\n",
+              snapshot_filename);
+  }
   Dart_Handle result =
-      Dart_CreateAppAOTSnapshotAsAssembly(&assembly_buffer, &assembly_size);
+      Dart_CreateAppAOTSnapshotAsAssembly(StreamingWriteCallback, file);
   if (Dart_IsError(result)) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }
-  WriteSnapshotFile(snapshot_filename, false, assembly_buffer, assembly_size);
 }
 
 }  // namespace bin

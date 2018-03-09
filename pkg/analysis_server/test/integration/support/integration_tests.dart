@@ -158,6 +158,12 @@ abstract class AbstractAnalysisServerIntegrationTest
   }
 
   /**
+   * Whether to run integration tests with the --use-cfe flag.
+   */
+  // TODO(devoncarew): Remove this when --use-cfe goes away.
+  bool get useCFE => false;
+
+  /**
    * Print out any messages exchanged with the server.  If some messages have
    * already been exchanged with the server, they are printed out immediately.
    */
@@ -251,12 +257,6 @@ abstract class AbstractAnalysisServerIntegrationTest
     futures.add(sendAnalysisSetAnalysisRoots([sourceDirectory.path], []));
     return Future.wait(futures);
   }
-
-  /**
-   * Whether to run integration tests with the --use-cfe flag.
-   */
-  // TODO(devoncarew): Remove this when --use-cfe goes away.
-  bool get useCFE => false;
 
   /**
    * Start [server].
@@ -583,7 +583,7 @@ class Server {
       _recordStdio('<== $trimmedLine');
       var message;
       try {
-        message = JSON.decoder.convert(trimmedLine);
+        message = json.decoder.convert(trimmedLine);
       } catch (exception) {
         _badDataFromServer('JSON decode failure: $exception');
         return;
@@ -651,9 +651,9 @@ class Server {
     Completer<Map<String, dynamic>> completer =
         new Completer<Map<String, dynamic>>();
     _pendingCommands[id] = completer;
-    String line = JSON.encode(command);
+    String line = json.encode(command);
     _recordStdio('==> $line');
-    _process.stdin.add(UTF8.encoder.convert("$line\n"));
+    _process.stdin.add(utf8.encoder.convert("$line\n"));
     return completer.future;
   }
 

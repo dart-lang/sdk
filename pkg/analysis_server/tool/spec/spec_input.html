@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.18.7</version>
+  <version>1.19.0</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -1579,6 +1579,13 @@
       Return top-level and class member declarations.
     </p>
     <params>
+      <field name="file" optional="true">
+        <ref>FilePath</ref>
+        <p>
+          If this field is provided, return only declarations in this file.
+          If this field is missing, return declarations in all files.
+        </p>
+      </field>
       <field name="pattern" optional="true">
         <ref>String</ref>
         <p>

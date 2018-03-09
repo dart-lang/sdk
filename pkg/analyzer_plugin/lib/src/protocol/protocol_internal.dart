@@ -309,14 +309,14 @@ abstract class JsonDecoder {
    * Decode a JSON object that is expected to be a Map.  [keyDecoder] is used
    * to decode the keys, and [valueDecoder] is used to decode the values.
    */
-  Map<K, V> decodeMap<K, V>(String jsonPath, Object json,
+  Map<K, V> decodeMap<K, V>(String jsonPath, Object jsonData,
       {JsonDecoderCallback<K> keyDecoder,
       JsonDecoderCallback<V> valueDecoder}) {
-    if (json == null) {
+    if (jsonData == null) {
       return {};
-    } else if (json is Map) {
+    } else if (jsonData is Map) {
       Map<K, V> result = <K, V>{};
-      json.forEach((key, value) {
+      jsonData.forEach((key, value) {
         K decodedKey;
         if (keyDecoder != null) {
           decodedKey = keyDecoder('$jsonPath.key', key);
@@ -324,13 +324,13 @@ abstract class JsonDecoder {
           decodedKey = key as K;
         }
         if (valueDecoder != null) {
-          value = valueDecoder('$jsonPath[${JSON.encode(key)}]', value);
+          value = valueDecoder('$jsonPath[${json.encode(key)}]', value);
         }
         result[decodedKey] = value as V;
       });
       return result;
     } else {
-      throw mismatch(jsonPath, 'Map', json);
+      throw mismatch(jsonPath, 'Map', jsonData);
     }
   }
 
@@ -351,21 +351,21 @@ abstract class JsonDecoder {
    * [decoders] is a map from each possible string in the field to the decoder
    * that should be used to decode the JSON object.
    */
-  Object decodeUnion(String jsonPath, Map json, String field,
+  Object decodeUnion(String jsonPath, Map jsonData, String field,
       Map<String, JsonDecoderCallback> decoders) {
-    if (json is Map) {
-      if (!json.containsKey(field)) {
+    if (jsonData is Map) {
+      if (!jsonData.containsKey(field)) {
         throw missingKey(jsonPath, field);
       }
-      var disambiguatorPath = '$jsonPath[${JSON.encode(field)}]';
-      String disambiguator = decodeString(disambiguatorPath, json[field]);
+      var disambiguatorPath = '$jsonPath[${json.encode(field)}]';
+      String disambiguator = decodeString(disambiguatorPath, jsonData[field]);
       if (!decoders.containsKey(disambiguator)) {
         throw mismatch(
-            disambiguatorPath, 'One of: ${decoders.keys.toList()}', json);
+            disambiguatorPath, 'One of: ${decoders.keys.toList()}', jsonData);
       }
-      return decoders[disambiguator](jsonPath, json);
+      return decoders[disambiguator](jsonPath, jsonData);
     } else {
-      throw mismatch(jsonPath, 'Map', json);
+      throw mismatch(jsonPath, 'Map', jsonData);
     }
   }
 
@@ -407,7 +407,7 @@ class RequestDecoder extends JsonDecoder {
     buffer.write(expected);
     if (actual != null) {
       buffer.write('; found "');
-      buffer.write(JSON.encode(actual));
+      buffer.write(json.encode(actual));
       buffer.write('"');
     }
     return new RequestFailure(
@@ -417,7 +417,7 @@ class RequestDecoder extends JsonDecoder {
   @override
   dynamic missingKey(String jsonPath, String key) {
     return new RequestFailure(RequestErrorFactory.invalidParameter(
-        jsonPath, 'Expected to contain key ${JSON.encode(key)}'));
+        jsonPath, 'Expected to contain key ${json.encode(key)}'));
   }
 }
 
@@ -446,7 +446,7 @@ class ResponseDecoder extends JsonDecoder {
     buffer.write(expected);
     if (actual != null) {
       buffer.write(' found "');
-      buffer.write(JSON.encode(actual));
+      buffer.write(json.encode(actual));
       buffer.write('"');
     }
     buffer.write(' at ');

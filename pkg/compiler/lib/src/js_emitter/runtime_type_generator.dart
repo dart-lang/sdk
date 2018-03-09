@@ -175,6 +175,10 @@ class RuntimeTypeGenerator {
         }
       }
 
+      // TODO(johnniwinther): Avoid unneeded function type indices or
+      // signatures. We either need them for mirrors or because [type] is
+      // potentially a subtype of a checked function. Currently we eagerly
+      // generate a function type index or signature for all callable classes.
       if (storeFunctionTypeInMetadata && !type.containsTypeVariables) {
         // TODO(sigmund): use output unit of `method` (Issue #31032)
         OutputUnit outputUnit = _outputUnitData.mainOutputUnit;
@@ -191,9 +195,7 @@ class RuntimeTypeGenerator {
           encoding = generatedCode[signature];
         } else {
           // TODO(efortuna): Reinsert assertion.
-          // TODO(johnniwinther): Avoid unneeded signatures from closure
-          // classes.
-          // Use shared signature function.
+          // Generate the signature on the fly.
           encoding = _rtiEncoder.getSignatureEncoding(
               emitterTask.emitter, type, thisAccess);
         }

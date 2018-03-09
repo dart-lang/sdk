@@ -79,6 +79,7 @@ vm_sources = [
   "dart_api_state.h",
   "dart_entry.cc",
   "dart_entry.h",
+  "datastream.cc",
   "datastream.h",
   "debugger.cc",
   "debugger.h",

@@ -72,6 +72,7 @@ source_set("tcmalloc") {
   configs -= [
     "//build/config/compiler:chromium_code",
     "//build/config/compiler:clang_stackrealign",
+    "//build/config/compiler:compiler_arm_thumb",
   ]
   configs += [ ":internal_config" ]
 

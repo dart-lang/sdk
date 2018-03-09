@@ -428,7 +428,7 @@ class FileState {
     }
 
     // Compute the content hash.
-    List<int> contentBytes = UTF8.encode(_content);
+    List<int> contentBytes = utf8.encode(_content);
     {
       List<int> hashBytes = md5.convert(contentBytes).bytes;
       _contentHash = hex.encode(hashBytes);

@@ -20,18 +20,6 @@ main() {
 
 @reflectiveTest
 class OutlineTest extends AbstractAnalysisServerIntegrationTest {
-  /**
-   * Verify that the range of source text covered by the given outline objects
-   * is connected (the end of each object in the list corresponds to the start
-   * of the next).
-   */
-  void checkConnected(List<Outline> outlineObjects) {
-    for (int i = 0; i < outlineObjects.length - 1; i++) {
-      expect(outlineObjects[i + 1].offset,
-          equals(outlineObjects[i].offset + outlineObjects[i].length));
-    }
-  }
-
   test_outline() {
     String pathname = sourcePath('test.dart');
     String text = r'''
@@ -73,7 +61,7 @@ class Class2 {
       expect(classes, hasLength(2));
       expect(classes[0].element.name, equals('Class1'));
       expect(classes[1].element.name, equals('Class2'));
-      checkConnected(classes);
+
       List<Outline> members = classes[0].children;
       expect(members, hasLength(5));
       expect(members[0].element.name, equals('field'));
@@ -81,7 +69,6 @@ class Class2 {
       expect(members[2].element.name, equals('staticMethod'));
       expect(members[3].element.name, equals('getter'));
       expect(members[4].element.name, equals('setter'));
-      checkConnected(members);
     });
   }
 }

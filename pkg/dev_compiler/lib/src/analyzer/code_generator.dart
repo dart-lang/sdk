@@ -1623,6 +1623,8 @@ class CodeGenerator extends Object
 
   /// Emits a Dart factory constructor to a JS static method.
   JS.Method _emitFactoryConstructor(ConstructorDeclaration node) {
+    if (isUnsupportedFactoryConstructor(node)) return null;
+
     var element = node.element;
     var returnType = emitTypeRef(element.returnType);
     var name = _constructorName(element.name);

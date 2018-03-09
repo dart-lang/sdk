@@ -315,8 +315,8 @@ class InstrumentationService {
         TAG_SUBPROCESS_RESULT,
         subprocessId.toString(),
         exitCode.toString(),
-        JSON.encode(stdout),
-        JSON.encode(stderr)
+        json.encode(stdout),
+        json.encode(stderr)
       ]));
     }
   }
@@ -335,7 +335,7 @@ class InstrumentationService {
         subprocessId.toString(),
         executablePath,
         workingDirectory,
-        JSON.encode(arguments)
+        json.encode(arguments)
       ]));
     }
     return subprocessId;

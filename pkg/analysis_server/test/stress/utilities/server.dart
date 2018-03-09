@@ -887,7 +887,7 @@ class Server {
       return;
     }
     logger?.log(fromServer, '$trimmedLine');
-    Map message = asMap(JSON.decoder.convert(trimmedLine));
+    Map message = asMap(json.decoder.convert(trimmedLine));
     if (message.containsKey('id')) {
       // The message is a response.
       Response response = new Response.fromJson(message);
@@ -935,8 +935,8 @@ class Server {
     if (params != null) {
       command['params'] = params;
     }
-    String line = JSON.encode(command);
-    _process.stdin.add(UTF8.encoder.convert('$line\n'));
+    String line = json.encode(command);
+    _process.stdin.add(utf8.encoder.convert('$line\n'));
     logger?.log(fromClient, '$line');
     return requestData;
   }

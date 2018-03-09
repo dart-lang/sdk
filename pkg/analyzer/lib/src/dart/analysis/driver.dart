@@ -1901,7 +1901,7 @@ class AnalysisDriverScheduler {
     if (times == 0) {
       return new Future.value();
     }
-    return new Future.delayed(Duration.ZERO, () => _pumpEventQueue(times - 1));
+    return new Future.delayed(Duration.zero, () => _pumpEventQueue(times - 1));
   }
 }
 

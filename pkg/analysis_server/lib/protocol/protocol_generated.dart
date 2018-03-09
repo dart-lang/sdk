@@ -80,7 +80,7 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -206,7 +206,7 @@ class AnalysisClosingLabelsParams implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -316,7 +316,7 @@ class AnalysisErrorFixes implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -430,7 +430,7 @@ class AnalysisErrorsParams implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -518,7 +518,7 @@ class AnalysisFlushResultsParams implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -629,7 +629,7 @@ class AnalysisFoldingParams implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -715,7 +715,7 @@ class AnalysisGetErrorsParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -805,7 +805,7 @@ class AnalysisGetErrorsResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -913,7 +913,7 @@ class AnalysisGetHoverParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -1012,7 +1012,7 @@ class AnalysisGetHoverResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -1145,7 +1145,7 @@ class AnalysisGetImportedElementsParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -1242,7 +1242,7 @@ class AnalysisGetImportedElementsResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -1392,7 +1392,7 @@ class AnalysisGetLibraryDependenciesResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -1539,7 +1539,7 @@ class AnalysisGetNavigationParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -1693,7 +1693,7 @@ class AnalysisGetNavigationResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -1783,7 +1783,7 @@ class AnalysisGetReachableSourcesParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -1881,7 +1881,7 @@ class AnalysisGetReachableSourcesResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -2004,7 +2004,7 @@ class AnalysisHighlightsParams implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -2149,7 +2149,7 @@ class AnalysisImplementedParams implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -2313,7 +2313,7 @@ class AnalysisInvalidateParams implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -2501,7 +2501,7 @@ class AnalysisNavigationParams implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -2621,7 +2621,7 @@ class AnalysisOccurrencesParams implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -2910,7 +2910,7 @@ class AnalysisOptions implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3090,7 +3090,7 @@ class AnalysisOutlineParams implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3207,7 +3207,7 @@ class AnalysisOverridesParams implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3293,7 +3293,7 @@ class AnalysisReanalyzeParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3604,7 +3604,7 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3730,7 +3730,7 @@ class AnalysisSetGeneralSubscriptionsParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3844,7 +3844,7 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3965,7 +3965,7 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4097,7 +4097,7 @@ class AnalysisStatus implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4198,7 +4198,7 @@ class AnalysisUpdateContentParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4259,7 +4259,7 @@ class AnalysisUpdateContentResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4343,7 +4343,7 @@ class AnalysisUpdateOptionsParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4454,7 +4454,7 @@ class AnalyticsEnableParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4596,7 +4596,7 @@ class AnalyticsIsEnabledResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4679,7 +4679,7 @@ class AnalyticsSendEventParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4814,7 +4814,7 @@ class AnalyticsSendTimingParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4964,7 +4964,7 @@ class ClosingLabel implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -5076,7 +5076,7 @@ class CompletionGetSuggestionsParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -5163,7 +5163,7 @@ class CompletionGetSuggestionsResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -5370,7 +5370,7 @@ class CompletionResultsParams implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -5556,7 +5556,7 @@ class ContextData implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -5768,7 +5768,7 @@ class DiagnosticGetDiagnosticsResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -5883,7 +5883,7 @@ class DiagnosticGetServerPortResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -6042,7 +6042,7 @@ class EditFormatParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -6190,7 +6190,7 @@ class EditFormatResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -6326,7 +6326,7 @@ class EditGetAssistsParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -6420,7 +6420,7 @@ class EditGetAssistsResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -6553,7 +6553,7 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -6648,7 +6648,7 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -6756,7 +6756,7 @@ class EditGetFixesParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -6847,7 +6847,7 @@ class EditGetFixesResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -6982,7 +6982,7 @@ class EditGetPostfixCompletionParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -7071,7 +7071,7 @@ class EditGetPostfixCompletionResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -7292,7 +7292,7 @@ class EditGetRefactoringParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -7567,7 +7567,7 @@ class EditGetRefactoringResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -7689,7 +7689,7 @@ class EditGetStatementCompletionParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -7804,7 +7804,7 @@ class EditGetStatementCompletionResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -7917,7 +7917,7 @@ class EditImportElementsParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -8014,7 +8014,7 @@ class EditImportElementsResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -8148,7 +8148,7 @@ class EditIsPostfixCompletionApplicableParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -8237,7 +8237,7 @@ class EditIsPostfixCompletionApplicableResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -8360,7 +8360,7 @@ class EditListPostfixCompletionTemplatesResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -8445,7 +8445,7 @@ class EditOrganizeDirectivesParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -8534,7 +8534,7 @@ class EditOrganizeDirectivesResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -8617,7 +8617,7 @@ class EditSortMembersParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -8705,7 +8705,7 @@ class EditSortMembersResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -9014,7 +9014,7 @@ class ElementDeclaration implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -9130,7 +9130,7 @@ class ExecutableFile implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -9287,7 +9287,7 @@ class ExecutionCreateContextParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -9373,7 +9373,7 @@ class ExecutionCreateContextResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -9457,7 +9457,7 @@ class ExecutionDeleteContextParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -9624,7 +9624,7 @@ class ExecutionLaunchDataParams implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -9758,7 +9758,7 @@ class ExecutionMapUriParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -9871,7 +9871,7 @@ class ExecutionMapUriResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -10012,7 +10012,7 @@ class ExecutionSetSubscriptionsParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -10235,7 +10235,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -10356,7 +10356,7 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -10633,7 +10633,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -10862,7 +10862,7 @@ class ExtractMethodOptions extends RefactoringOptions {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -11382,7 +11382,7 @@ class FlutterOutline implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -11596,7 +11596,7 @@ class FlutterOutlineAttribute implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -11849,7 +11849,7 @@ class FlutterOutlineParams implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -11994,7 +11994,7 @@ class FlutterSetSubscriptionsParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -12472,7 +12472,7 @@ class HoverInformation implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -12591,7 +12591,7 @@ class ImplementedClass implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -12689,7 +12689,7 @@ class ImplementedMember implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -12814,7 +12814,7 @@ class ImportedElements implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -12917,7 +12917,7 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -13068,7 +13068,7 @@ class InlineMethodFeedback extends RefactoringFeedback {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -13181,7 +13181,7 @@ class InlineMethodOptions extends RefactoringOptions {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -13268,7 +13268,7 @@ class KytheGetKytheEntriesParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -13390,7 +13390,7 @@ class KytheGetKytheEntriesResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -13493,7 +13493,7 @@ class MoveFileOptions extends RefactoringOptions {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -13592,7 +13592,7 @@ class OverriddenMember implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -13755,7 +13755,7 @@ class Override implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -13886,7 +13886,7 @@ class PostfixTemplateDescriptor implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -13964,7 +13964,7 @@ class PubStatus implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -14006,7 +14006,7 @@ class RefactoringFeedback implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -14046,7 +14046,7 @@ class RefactoringOptions implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -14195,7 +14195,7 @@ class RenameFeedback extends RefactoringFeedback {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -14281,7 +14281,7 @@ class RenameOptions extends RefactoringOptions {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -14406,7 +14406,7 @@ class RequestError implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -14896,7 +14896,7 @@ class SearchFindElementReferencesParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -15021,7 +15021,7 @@ class SearchFindElementReferencesResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -15106,7 +15106,7 @@ class SearchFindMemberDeclarationsParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -15192,7 +15192,7 @@ class SearchFindMemberDeclarationsResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -15276,7 +15276,7 @@ class SearchFindMemberReferencesParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -15362,7 +15362,7 @@ class SearchFindMemberReferencesResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -15449,7 +15449,7 @@ class SearchFindTopLevelDeclarationsParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -15535,7 +15535,7 @@ class SearchFindTopLevelDeclarationsResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -15557,6 +15557,7 @@ class SearchFindTopLevelDeclarationsResult implements ResponseResult {
  * search.getElementDeclarations params
  *
  * {
+ *   "file": optional FilePath
  *   "pattern": optional String
  *   "maxResults": optional int
  * }
@@ -15564,9 +15565,25 @@ class SearchFindTopLevelDeclarationsResult implements ResponseResult {
  * Clients may not extend, implement or mix-in this class.
  */
 class SearchGetElementDeclarationsParams implements RequestParams {
+  String _file;
+
   String _pattern;
 
   int _maxResults;
+
+  /**
+   * If this field is provided, return only declarations in this file. If this
+   * field is missing, return declarations in all files.
+   */
+  String get file => _file;
+
+  /**
+   * If this field is provided, return only declarations in this file. If this
+   * field is missing, return declarations in all files.
+   */
+  void set file(String value) {
+    this._file = value;
+  }
 
   /**
    * The regular expression used to match the names of declarations. If this
@@ -15596,7 +15613,9 @@ class SearchGetElementDeclarationsParams implements RequestParams {
     this._maxResults = value;
   }
 
-  SearchGetElementDeclarationsParams({String pattern, int maxResults}) {
+  SearchGetElementDeclarationsParams(
+      {String file, String pattern, int maxResults}) {
+    this.file = file;
     this.pattern = pattern;
     this.maxResults = maxResults;
   }
@@ -15607,6 +15626,10 @@ class SearchGetElementDeclarationsParams implements RequestParams {
       json = {};
     }
     if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      }
       String pattern;
       if (json.containsKey("pattern")) {
         pattern =
@@ -15618,7 +15641,7 @@ class SearchGetElementDeclarationsParams implements RequestParams {
             jsonDecoder.decodeInt(jsonPath + ".maxResults", json["maxResults"]);
       }
       return new SearchGetElementDeclarationsParams(
-          pattern: pattern, maxResults: maxResults);
+          file: file, pattern: pattern, maxResults: maxResults);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "search.getElementDeclarations params", json);
@@ -15633,6 +15656,9 @@ class SearchGetElementDeclarationsParams implements RequestParams {
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
+    if (file != null) {
+      result["file"] = file;
+    }
     if (pattern != null) {
       result["pattern"] = pattern;
     }
@@ -15648,12 +15674,14 @@ class SearchGetElementDeclarationsParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
     if (other is SearchGetElementDeclarationsParams) {
-      return pattern == other.pattern && maxResults == other.maxResults;
+      return file == other.file &&
+          pattern == other.pattern &&
+          maxResults == other.maxResults;
     }
     return false;
   }
@@ -15661,6 +15689,7 @@ class SearchGetElementDeclarationsParams implements RequestParams {
   @override
   int get hashCode {
     int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
     hash = JenkinsSmiHash.combine(hash, pattern.hashCode);
     hash = JenkinsSmiHash.combine(hash, maxResults.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -15766,7 +15795,7 @@ class SearchGetElementDeclarationsResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -15906,7 +15935,7 @@ class SearchGetTypeHierarchyParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -16017,7 +16046,7 @@ class SearchGetTypeHierarchyResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -16181,7 +16210,7 @@ class SearchResult implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -16436,7 +16465,7 @@ class SearchResultsParams implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -16572,7 +16601,7 @@ class ServerConnectedParams implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -16713,7 +16742,7 @@ class ServerErrorParams implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -16831,7 +16860,7 @@ class ServerGetVersionResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -16968,7 +16997,7 @@ class ServerSetSubscriptionsParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -17163,7 +17192,7 @@ class ServerStatusParams implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -17431,7 +17460,7 @@ class TypeHierarchyItem implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {

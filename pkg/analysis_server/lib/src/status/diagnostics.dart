@@ -905,7 +905,7 @@ class InstrumentationPage extends DiagnosticPageWithNav {
     InstrumentationServer instrumentation =
         AnalysisEngine.instance.instrumentationService.instrumentationServer;
     String description = instrumentation.describe;
-    HtmlEscape htmlEscape = new HtmlEscape(HtmlEscapeMode.ELEMENT);
+    HtmlEscape htmlEscape = new HtmlEscape(HtmlEscapeMode.element);
     description = htmlEscape.convert(description);
     // Convert http(s): references to hyperlinks.
     final RegExp urlRegExp = new RegExp(r'[http|https]+:\/*(\S+)');

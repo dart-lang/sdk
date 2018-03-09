@@ -73,7 +73,7 @@ class AddContentOverlay implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -317,7 +317,7 @@ class AnalysisError implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -570,7 +570,7 @@ class ChangeContentOverlay implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -1256,7 +1256,7 @@ class CompletionSuggestion implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -1725,7 +1725,7 @@ class Element implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -2139,7 +2139,7 @@ class FoldingRegion implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -2265,7 +2265,7 @@ class HighlightRegion implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3138,7 +3138,7 @@ class KytheEntry implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3328,7 +3328,7 @@ class KytheVName implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3491,7 +3491,7 @@ class LinkedEditGroup implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3595,7 +3595,7 @@ class LinkedEditSuggestion implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3840,7 +3840,7 @@ class Location implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3974,7 +3974,7 @@ class NavigationRegion implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4183,7 +4183,7 @@ class NavigationTarget implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4316,7 +4316,7 @@ class Occurrences implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4345,6 +4345,8 @@ class Occurrences implements HasToJson {
  *   "element": Element
  *   "offset": int
  *   "length": int
+ *   "codeOffset": int
+ *   "codeLength": int
  *   "children": optional List<Outline>
  * }
  *
@@ -4356,6 +4358,10 @@ class Outline implements HasToJson {
   int _offset;
 
   int _length;
+
+  int _codeOffset;
+
+  int _codeLength;
 
   List<Outline> _children;
 
@@ -4405,23 +4411,55 @@ class Outline implements HasToJson {
   }
 
   /**
+   * The offset of the first character of the element code, which is neither
+   * documentation, nor annotation.
+   */
+  int get codeOffset => _codeOffset;
+
+  /**
+   * The offset of the first character of the element code, which is neither
+   * documentation, nor annotation.
+   */
+  void set codeOffset(int value) {
+    assert(value != null);
+    this._codeOffset = value;
+  }
+
+  /**
+   * The length of the element code.
+   */
+  int get codeLength => _codeLength;
+
+  /**
+   * The length of the element code.
+   */
+  void set codeLength(int value) {
+    assert(value != null);
+    this._codeLength = value;
+  }
+
+  /**
    * The children of the node. The field will be omitted if the node has no
-   * children.
+   * children. Children are sorted by offset.
    */
   List<Outline> get children => _children;
 
   /**
    * The children of the node. The field will be omitted if the node has no
-   * children.
+   * children. Children are sorted by offset.
    */
   void set children(List<Outline> value) {
     this._children = value;
   }
 
-  Outline(Element element, int offset, int length, {List<Outline> children}) {
+  Outline(
+      Element element, int offset, int length, int codeOffset, int codeLength,
+      {List<Outline> children}) {
     this.element = element;
     this.offset = offset;
     this.length = length;
+    this.codeOffset = codeOffset;
+    this.codeLength = codeLength;
     this.children = children;
   }
 
@@ -4450,6 +4488,20 @@ class Outline implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "length");
       }
+      int codeOffset;
+      if (json.containsKey("codeOffset")) {
+        codeOffset =
+            jsonDecoder.decodeInt(jsonPath + ".codeOffset", json["codeOffset"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "codeOffset");
+      }
+      int codeLength;
+      if (json.containsKey("codeLength")) {
+        codeLength =
+            jsonDecoder.decodeInt(jsonPath + ".codeLength", json["codeLength"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "codeLength");
+      }
       List<Outline> children;
       if (json.containsKey("children")) {
         children = jsonDecoder.decodeList(
@@ -4458,7 +4510,8 @@ class Outline implements HasToJson {
             (String jsonPath, Object json) =>
                 new Outline.fromJson(jsonDecoder, jsonPath, json));
       }
-      return new Outline(element, offset, length, children: children);
+      return new Outline(element, offset, length, codeOffset, codeLength,
+          children: children);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "Outline", json);
     }
@@ -4470,6 +4523,8 @@ class Outline implements HasToJson {
     result["element"] = element.toJson();
     result["offset"] = offset;
     result["length"] = length;
+    result["codeOffset"] = codeOffset;
+    result["codeLength"] = codeLength;
     if (children != null) {
       result["children"] =
           children.map((Outline value) => value.toJson()).toList();
@@ -4478,7 +4533,7 @@ class Outline implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4486,6 +4541,8 @@ class Outline implements HasToJson {
       return element == other.element &&
           offset == other.offset &&
           length == other.length &&
+          codeOffset == other.codeOffset &&
+          codeLength == other.codeLength &&
           listEqual(children, other.children, (Outline a, Outline b) => a == b);
     }
     return false;
@@ -4497,6 +4554,8 @@ class Outline implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, element.hashCode);
     hash = JenkinsSmiHash.combine(hash, offset.hashCode);
     hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, codeOffset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, codeLength.hashCode);
     hash = JenkinsSmiHash.combine(hash, children.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -4581,7 +4640,7 @@ class Position implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4867,7 +4926,7 @@ class RefactoringMethodParameter implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -5066,7 +5125,7 @@ class RefactoringProblem implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -5223,7 +5282,7 @@ class RemoveContentOverlay implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -5448,7 +5507,7 @@ class SourceChange implements HasToJson {
   SourceFileEdit getFileEdit(String file) => getChangeFileEdit(this, file);
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -5634,7 +5693,7 @@ class SourceEdit implements HasToJson {
   String apply(String code) => applyEdit(code, this);
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -5788,7 +5847,7 @@ class SourceFileEdit implements HasToJson {
   void addAll(Iterable<SourceEdit> edits) => addAllEditsForSource(this, edits);
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
