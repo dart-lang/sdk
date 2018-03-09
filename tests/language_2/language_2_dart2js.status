@@ -357,7 +357,6 @@ function_type_alias_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError # Issue #30176.
 generic_closure_test/01: RuntimeError
 generic_closure_test/none: RuntimeError
-generic_function_bounds_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_function_dcall_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_function_typedef_test/01: RuntimeError
 generic_instanceof_test: RuntimeError

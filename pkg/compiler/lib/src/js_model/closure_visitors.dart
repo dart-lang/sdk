@@ -235,7 +235,12 @@ class CapturedScopeBuilder extends ir.Visitor {
       TypeVariableTypeWithContext typeVariable =
           new TypeVariableTypeWithContext(
               new ir.TypeParameterType(typeParameter),
-              typeParameter.parent.parent);
+              // If this typeParameter is part of a typedef then its parent is
+              // null because it has no context. Just pass in null for the
+              // context in that case.
+              typeParameter.parent != null
+                  ? typeParameter.parent.parent
+                  : null);
       if (_isInsideClosure && context is ir.Procedure && context.isFactory) {
         // This is a closure in a factory constructor.  Since there is no
         // [:this:], we have to mark the type arguments as free variables to
