@@ -1449,9 +1449,6 @@ LibTest/async/DeferredLibrary/*: Skip # Issue 17458
 LibTest/isolate/Isolate/spawn_A04_t04: Fail # Issue 27558
 
 [ $compiler == dart2js && $runtime == d8 && $fasta ]
-Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/initializing_formals_execution_t02: MissingCompileTimeError
-Language/Classes/definition_t24: MissingCompileTimeError
 LayoutTests/*: SkipByDesign
 LibTest/html/*: SkipByDesign
 WebPlatformTest/*: SkipByDesign
@@ -6979,11 +6976,13 @@ Language/Metadata/compilation_t11: Pass # mirrors not supported, fails for the w
 WebPlatformTest/shadow-dom/testcommon: Fail # mirrors not supported
 
 [ $compiler == dart2js && $fasta ]
+Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/execution_t04: Crash
 Language/Classes/Constructors/Generative_Constructors/execution_t05: Crash
 Language/Classes/Constructors/Generative_Constructors/execution_t06: Crash
 Language/Classes/Constructors/Generative_Constructors/execution_t07: Crash
 Language/Classes/Constructors/Generative_Constructors/execution_t12: Crash
+Language/Classes/Constructors/Generative_Constructors/initializing_formals_execution_t02: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/redirection_t03: Crash
 Language/Classes/Constructors/Generative_Constructors/redirection_t07: Crash
 Language/Classes/Constructors/Generative_Constructors/redirection_t08: Crash
@@ -6993,6 +6992,8 @@ Language/Classes/Getters/same_name_method_t05: MissingCompileTimeError
 Language/Classes/Getters/same_name_method_t07: MissingCompileTimeError
 Language/Classes/Superinterfaces/more_than_once_t01: MissingCompileTimeError
 Language/Classes/Superinterfaces/superclass_as_superinterface_t01: MissingCompileTimeError
+Language/Classes/definition_t16: Crash
+Language/Classes/definition_t24: MissingCompileTimeError
 Language/Classes/same_name_instance_and_static_members_t01: MissingCompileTimeError
 Language/Classes/same_name_instance_and_static_members_t02: MissingCompileTimeError
 Language/Classes/same_name_instance_and_static_members_t03: MissingCompileTimeError
@@ -7015,13 +7016,34 @@ Language/Expressions/Constants/logical_expression_t04: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: Crash
 Language/Expressions/Identifier_Reference/evaluation_variable_or_parameter_t02: RuntimeError
 Language/Expressions/Instance_Creation/Const/exception_t01: MissingCompileTimeError
+Language/Expressions/Maps/syntax_t08: Crash
 Language/Expressions/Method_Invocation/Ordinary_Invocation/evaluation_t08: RuntimeError
 Language/Expressions/Method_Invocation/Super_Invocation/accessible_instance_member_t02: Crash
 Language/Expressions/Method_Invocation/Super_Invocation/evaluation_t05: RuntimeError
 Language/Expressions/Method_Invocation/Super_Invocation/invocation_t02: Crash
 Language/Expressions/Null/instance_of_class_null_t01: RuntimeError
+Language/Expressions/Strings/String_Interpolation/syntax_t08: Crash
+Language/Expressions/Strings/multi_line_t11: Crash # Investiage: source-data from FE causes us to crash
+Language/Expressions/Strings/multi_line_t12: Crash
+Language/Expressions/Strings/multi_line_t13: Crash
+Language/Expressions/Strings/multi_line_t15: Crash
+Language/Expressions/Strings/multi_line_t16: Crash
+Language/Expressions/Strings/multi_line_t17: Crash
+Language/Expressions/Strings/multi_line_t18: Crash
+Language/Expressions/Strings/multi_line_t19: Crash
+Language/Expressions/Strings/multi_line_t20: Crash
+Language/Expressions/Strings/multi_line_t21: Crash
+Language/Expressions/Strings/multi_line_t22: Crash
+Language/Expressions/Strings/multi_line_t23: Crash
+Language/Expressions/Strings/multi_line_t24: Crash
+Language/Expressions/Strings/multi_line_t25: Crash
+Language/Expressions/Strings/multi_line_t28: Crash
+Language/Expressions/Strings/multi_line_t29: Crash
+Language/Expressions/Strings/multi_line_t32: Crash
+Language/Expressions/Strings/multi_line_t33: Crash
 Language/Expressions/This/placement_t04: Crash
 Language/Functions/External_Functions/not_connected_to_a_body_t01: RuntimeError
+Language/Functions/syntax_t09: Crash
 Language/Libraries_and_Scripts/Imports/same_name_t10: RuntimeError
 Language/Libraries_and_Scripts/Scripts/top_level_main_t01: CompileTimeError
 Language/Metadata/before_class_t01: RuntimeError
@@ -7051,15 +7073,13 @@ Language/Mixins/Mixin_Application/syntax_t24: RuntimeError
 Language/Mixins/Mixin_Application/syntax_t25: RuntimeError
 Language/Statements/Continue/async_loops_t10: Timeout
 Language/Types/Type_Void/syntax_t09: MissingCompileTimeError
+LayoutTests/fast/canvas/gradient-addColorStop-with-invalid-color_t01: RuntimeError
 LayoutTests/fast/canvas/rgba-parsing_t01: RuntimeError
-LayoutTests/fast/css/font-face-unicode-range-monospace_t01: RuntimeError
-LayoutTests/fast/css/font-family-trailing-bracket-gunk_t01: RuntimeError
-LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError
-LayoutTests/fast/css/fontfaceset-loadingdone_t01: RuntimeError
 LibTest/core/Invocation/namedArguments_A01_t01: RuntimeError
 LibTest/html/Document/dispatchEvent_A01_t01: Crash
 LibTest/html/Document/on_A01_t01: Crash
 LibTest/html/Document/on_A01_t02: Crash
+LibTest/html/Element/mouseEnterEvent_A01_t01: RuntimeError
 LibTest/html/HttpRequest/abort_A01_t01: Crash
 LibTest/html/HttpRequest/dispatchEvent_A01_t01: Crash
 LibTest/html/HttpRequest/getAllResponseHeaders_A01_t01: Crash
@@ -7085,14 +7105,6 @@ LibTest/html/Window/dispatchEvent_A01_t01: Crash
 LibTest/html/Window/postMessage_A01_t02: Crash
 LibTest/html/Window/requestFileSystem_A02_t01: Crash
 LibTest/isolate/SendPort/send_A01_t03: RuntimeError
-WebPlatformTest/custom-elements/instantiating/createElementNS_A02_t01: RuntimeError
-WebPlatformTest/custom-elements/instantiating/createElementNS_A03_t01: RuntimeError
-WebPlatformTest/custom-elements/instantiating/createElementNS_A04_t01: RuntimeError
-WebPlatformTest/custom-elements/instantiating/createElement_A02_t01: RuntimeError
-WebPlatformTest/custom-elements/instantiating/createElement_A03_t01: RuntimeError
-WebPlatformTest/custom-elements/instantiating/createElement_A04_t01: RuntimeError
-WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t01: RuntimeError
-WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t02: RuntimeError
 WebPlatformTest/html/semantics/embedded-content/the-audio-element/audio_constructor_t01: RuntimeError
 
 [ $compiler == dart2js && $fasta && $host_checked ]

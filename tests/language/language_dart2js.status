@@ -19,8 +19,18 @@ new_expression2_negative_test: Pass, Crash # Flaky, issue 31131
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
 await_future_test: Pass, Timeout # Issue 26735
 
+[ $compiler == dart2js && $runtime == chrome && $fasta ]
+conditional_import_string_test: RuntimeError
+conditional_import_test: RuntimeError
+config_import_corelib_test: RuntimeError
+library_env_test/has_io_support: RuntimeError
+
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.
+
+[ $compiler == dart2js && $runtime == d8 && $fasta ]
+library_env_test/has_no_io_support: RuntimeError
+regress_23408_test: RuntimeError
 
 [ $compiler == dart2js && $runtime != drt ]
 issue23244_test: RuntimeError # 23244
@@ -513,7 +523,6 @@ issue21079_test: RuntimeError
 left_shift_test: RuntimeError
 library_env_test/has_mirror_support: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
-library_env_test/has_no_io_support: RuntimeError
 list_literal4_test: RuntimeError
 main_not_a_function_test/01: CompileTimeError
 many_overridden_no_such_method_test: RuntimeError
@@ -660,7 +669,6 @@ regress_17382_test: RuntimeError
 regress_18535_test: RuntimeError
 regress_20394_test/01: MissingCompileTimeError
 regress_22936_test/01: RuntimeError
-regress_23408_test: RuntimeError
 regress_24283_test: RuntimeError
 regress_27572_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
