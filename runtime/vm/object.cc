@@ -929,6 +929,15 @@ void Object::InitOnce(Isolate* isolate) {
   *background_compilation_error_ =
       LanguageError::New(error_str, Report::kBailout, Heap::kOld);
 
+  // Allocate the parameter arrays for method extractor types and names.
+  *extractor_parameter_types_ = Array::New(1, Heap::kOld);
+  extractor_parameter_types_->SetAt(0, Object::dynamic_type());
+  *extractor_parameter_names_ = Array::New(1, Heap::kOld);
+  // Fill in extractor_parameter_names_ later, after symbols are initialized
+  // (in Object::FinalizeVMIsolate). extractor_parameter_names_ object
+  // needs to be created earlier as VM isolate snapshot reader references it
+  // before Object::FinalizeVMIsolate.
+
   // Some thread fields need to be reinitialized as null constants have not been
   // initialized until now.
   Thread* thr = Thread::Current();
@@ -984,6 +993,10 @@ void Object::InitOnce(Isolate* isolate) {
   ASSERT(background_compilation_error_->IsLanguageError());
   ASSERT(!vm_isolate_snapshot_object_table_->IsSmi());
   ASSERT(vm_isolate_snapshot_object_table_->IsArray());
+  ASSERT(!extractor_parameter_types_->IsSmi());
+  ASSERT(extractor_parameter_types_->IsArray());
+  ASSERT(!extractor_parameter_names_->IsSmi());
+  ASSERT(extractor_parameter_names_->IsArray());
 }
 
 // An object visitor which will mark all visited objects. This is used to
@@ -1046,16 +1059,9 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   // Should only be run by the vm isolate.
   ASSERT(isolate == Dart::vm_isolate());
 
-  // Allocate the parameter arrays for method extractor types and names.
-  *extractor_parameter_types_ = Array::New(1, Heap::kOld);
-  extractor_parameter_types_->SetAt(0, Object::dynamic_type());
-  *extractor_parameter_names_ = Array::New(1, Heap::kOld);
+  // Finish initialization of extractor_parameter_names_ which was
+  // Started in Object::InitOnce()
   extractor_parameter_names_->SetAt(0, Symbols::This());
-
-  ASSERT(!extractor_parameter_types_->IsSmi());
-  ASSERT(extractor_parameter_types_->IsArray());
-  ASSERT(!extractor_parameter_names_->IsSmi());
-  ASSERT(extractor_parameter_names_->IsArray());
 
   // Set up names for all VM singleton classes.
   Class& cls = Class::Handle();
