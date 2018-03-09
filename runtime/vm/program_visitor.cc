@@ -614,6 +614,10 @@ void ProgramVisitor::DedupLists() {
     }
 
     RawArray* DedupList(const Array& list) {
+      if (list.InVMHeap()) {
+        // Avoid using read-only VM objects for de-duplication.
+        return list.raw();
+      }
       const Array* canonical_list = canonical_lists_.LookupValue(&list);
       if (canonical_list == NULL) {
         canonical_lists_.Insert(&Array::ZoneHandle(zone_, list.raw()));
