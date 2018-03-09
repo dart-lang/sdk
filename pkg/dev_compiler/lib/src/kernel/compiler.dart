@@ -1778,6 +1778,8 @@ class ProgramCompiler
 
   /// Emits a Dart factory constructor to a JS static method.
   JS.Method _emitFactoryConstructor(Procedure node) {
+    if (isUnsupportedFactoryConstructor(node)) return null;
+
     return new JS.Method(
         _constructorName(node.name.name),
         new JS.Fun(_emitFormalParameters(node.function),

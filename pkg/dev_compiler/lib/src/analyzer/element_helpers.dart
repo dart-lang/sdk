@@ -6,15 +6,7 @@ import 'dart:collection';
 
 /// Helpers for Analyzer's Element model and corelib model.
 
-import 'package:analyzer/dart/ast/ast.dart'
-    show
-        ConstructorDeclaration,
-        Expression,
-        FunctionBody,
-        FunctionExpression,
-        MethodDeclaration,
-        MethodInvocation,
-        SimpleIdentifier;
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart'
     show
         ClassElement,
@@ -225,4 +217,32 @@ Uri uriForCompilationUnit(CompilationUnitElement unit) {
       ? Uri.parse(sourcePath)
       // TODO(jmesserly): shouldn't this be path.toUri?
       : new Uri.file(sourcePath);
+}
+
+/// Returns true iff this factory constructor just throws [UnsupportedError]/
+///
+/// `dart:html` has many of these.
+bool isUnsupportedFactoryConstructor(ConstructorDeclaration node) {
+  var ctorBody = node.body;
+  var element = node.element;
+  if (element.isPrivate &&
+      element.librarySource.isInSystemLibrary &&
+      ctorBody is BlockFunctionBody) {
+    var statements = ctorBody.block.statements;
+    if (statements.length == 1) {
+      var statement = statements[0];
+      if (statement is ExpressionStatement) {
+        var expr = statement.expression;
+        if (expr is ThrowExpression &&
+            expr.expression is InstanceCreationExpression) {
+          if (expr.expression.staticType.name == 'UnsupportedError') {
+            // HTML adds a lot of private constructors that are unreachable.
+            // Skip these.
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
 }
