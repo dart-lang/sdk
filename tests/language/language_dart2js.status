@@ -443,8 +443,6 @@ class_cycle_test/03: MissingCompileTimeError
 class_literal_test/01: RuntimeError
 class_literal_test/03: RuntimeError
 class_literal_test/07: RuntimeError
-closure_in_field_test/01: RuntimeError
-closure_in_field_test/02: RuntimeError
 config_import_test: RuntimeError
 const_error_multiply_initialized_test/02: MissingCompileTimeError
 const_error_multiply_initialized_test/04: MissingCompileTimeError
