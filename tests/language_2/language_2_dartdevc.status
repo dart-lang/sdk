@@ -335,6 +335,7 @@ bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
+bug32353_2_test: Crash # Issue 32353
 bug32353_test: RuntimeError # Issue 32428
 built_in_identifier_type_annotation_test/05: RuntimeError # Issue 32194
 built_in_identifier_type_annotation_test/none: RuntimeError # Issue 32194

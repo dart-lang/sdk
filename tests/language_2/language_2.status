@@ -47,6 +47,9 @@ initializer_super_last_test: Crash, CompileTimeError # Issue 31321
 [ $compiler != dart2js && $compiler != dartdevc && !$fasta && $strong ]
 type_promotion_functions_test: CompileTimeError # Issue 30895: This test requires a complete rewrite for 2.0.
 
+[ $compiler != dart2js && $fasta && $strong ]
+bug32353_2_test: Crash # Issue 32353
+
 [ $compiler != dart2js && !$fasta && $strong ]
 compile_time_constant_static5_test/11: CompileTimeError # Issue 30546
 compile_time_constant_static5_test/16: CompileTimeError # Issue 30546

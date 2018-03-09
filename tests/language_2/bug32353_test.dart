@@ -3,30 +3,32 @@
 // BSD-style license that can be found in the LICENSE file.
 // SharedOptions=--supermixin
 
-import 'dart:io' as io;
-
 import "package:expect/expect.dart";
 
+class io_FileSystemEntity {}
+
+class io_Directory extends io_FileSystemEntity {}
+
 class _LocalDirectory
-    extends _LocalFileSystemEntity<_LocalDirectory, io.Directory>
+    extends _LocalFileSystemEntity<_LocalDirectory, io_Directory>
     with ForwardingDirectory, DirectoryAddOnsMixin {
   noSuchMethod(invocation) => null;
 }
 
 abstract class _LocalFileSystemEntity<T extends FileSystemEntity,
-    D extends io.FileSystemEntity> extends ForwardingFileSystemEntity<T, D> {}
+    D extends io_FileSystemEntity> extends ForwardingFileSystemEntity<T, D> {}
 
-abstract class FileSystemEntity implements io.FileSystemEntity {}
+abstract class FileSystemEntity implements io_FileSystemEntity {}
 
 abstract class ForwardingFileSystemEntity<T extends FileSystemEntity,
-    D extends io.FileSystemEntity> implements FileSystemEntity {}
+    D extends io_FileSystemEntity> implements FileSystemEntity {}
 
 abstract class ForwardingDirectory<T extends Directory>
-    extends ForwardingFileSystemEntity<T, io.Directory> implements Directory {
+    extends ForwardingFileSystemEntity<T, io_Directory> implements Directory {
   get t => T;
 }
 
-abstract class Directory implements FileSystemEntity, io.Directory {}
+abstract class Directory implements FileSystemEntity, io_Directory {}
 
 abstract class DirectoryAddOnsMixin implements Directory {}
 
