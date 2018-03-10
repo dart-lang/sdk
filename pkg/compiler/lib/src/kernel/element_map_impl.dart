@@ -453,6 +453,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
         return type.subst(typeVariables, typeParameters);
       }
 
+      returnType = subst(returnType);
       parameterTypes = parameterTypes.map(subst).toList();
       optionalParameterTypes = optionalParameterTypes.map(subst).toList();
       namedParameterTypes = namedParameterTypes.map(subst).toList();

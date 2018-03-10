@@ -1268,7 +1268,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
           return;
         }
       } else {
-        value = typeBuilder.potentiallyCheckOrTrustType(value, _returnType);
+        if (!options.strongMode) {
+          value = typeBuilder.potentiallyCheckOrTrustType(value, _returnType);
+        }
       }
     }
     handleInTryStatement();

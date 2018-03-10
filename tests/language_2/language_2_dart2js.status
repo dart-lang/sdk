@@ -1467,14 +1467,12 @@ generic_function_bounds_test: RuntimeError
 generic_function_dcall_test: RuntimeError
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError
-generic_function_type_as_type_argument_test/03: RuntimeError
 generic_function_type_within_type_argument_test: RuntimeError
 generic_function_typedef_test/01: RuntimeError
 generic_instanceof2_test: RuntimeError
 generic_instanceof_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_method_types_test/02: RuntimeError
-generic_method_types_test/03: RuntimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_bounds_test/02: MissingRuntimeError
 generic_methods_dynamic_test/02: MissingRuntimeError
@@ -1485,14 +1483,12 @@ generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_methods_recursive_bound_test/03: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/metadata_collector.dart': Failed assertion: line 100 pos 12: 'isBound': is not true.
 generic_methods_simple_as_expression_test/02: MissingRuntimeError
-generic_methods_tearoff_specialization_test: RuntimeError
 generic_methods_type_expression_test: RuntimeError
 generic_methods_unused_parameter_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
 generic_test: RuntimeError
-generic_typedef_test: RuntimeError
 getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
@@ -2325,14 +2321,12 @@ generic_function_bounds_test: RuntimeError
 generic_function_dcall_test: RuntimeError
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError
-generic_function_type_as_type_argument_test/03: RuntimeError
 generic_function_type_within_type_argument_test: RuntimeError
 generic_function_typedef_test/01: RuntimeError
 generic_instanceof2_test: RuntimeError
 generic_instanceof_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_method_types_test/02: RuntimeError
-generic_method_types_test/03: RuntimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_bounds_test/02: MissingRuntimeError
 generic_methods_dynamic_test/02: MissingRuntimeError
@@ -2343,13 +2337,11 @@ generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_methods_recursive_bound_test/03: Crash # NoSuchMethodError: The method 'markSeen' was called on null.
 generic_methods_simple_as_expression_test/02: MissingRuntimeError
-generic_methods_tearoff_specialization_test: RuntimeError
 generic_methods_type_expression_test: RuntimeError
 generic_methods_unused_parameter_test: RuntimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
-generic_typedef_test: RuntimeError
 getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
