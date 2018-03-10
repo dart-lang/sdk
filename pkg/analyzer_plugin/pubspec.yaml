@@ -1,6 +1,6 @@
 name: analyzer_plugin
 description: A framework for building plugins for the analysis server.
-version: 0.0.1-alpha.0
+version: 0.0.1-alpha.1
 author: Dart Team <misc@dartlang.org>
 homepage: https://github.com/dart-lang/sdk/tree/master/pkg/analyzer_plugin
 
