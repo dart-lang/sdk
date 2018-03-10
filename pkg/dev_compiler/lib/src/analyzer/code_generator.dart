@@ -2124,16 +2124,19 @@ class CodeGenerator extends Object
       ]));
     }
 
+    var mockMembers = _classProperties.mockMembers;
+
     {
       var extMembers = _classProperties.extensionMethods;
       var staticMethods = <JS.Property>[];
       var instanceMethods = <JS.Property>[];
-      for (var method in classElem.methods) {
-        // TODO(vsm): Clean up all the nasty duplication.
-        if (method.isAbstract) {
-          continue;
-        }
 
+      var classMethods = classElem.methods.where((m) => !m.isAbstract).toList();
+      for (var m in mockMembers.values) {
+        if (m is MethodElement) classMethods.add(m);
+      }
+
+      for (var method in classMethods) {
         var name = method.name;
         var reifiedType = _getMemberRuntimeType(method);
         var memberOverride =
@@ -2177,10 +2180,15 @@ class CodeGenerator extends Object
       var instanceGetters = <JS.Property>[];
       var staticSetters = <JS.Property>[];
       var instanceSetters = <JS.Property>[];
-      for (var accessor in classElem.accessors) {
-        if (accessor.isAbstract || accessor.isSynthetic) {
-          continue;
-        }
+
+      var classAccessors = classElem.accessors
+          .where((m) => !m.isAbstract && !m.isSynthetic)
+          .toList();
+      for (var m in mockMembers.values) {
+        if (m is PropertyAccessorElement) classAccessors.add(m);
+      }
+
+      for (var accessor in classAccessors) {
         // Static getters/setters cannot be called with dynamic dispatch, nor
         // can they be torn off.
         // TODO(jmesserly): can we attach static method type info at the tearoff
@@ -2239,6 +2247,7 @@ class CodeGenerator extends Object
     {
       var instanceFields = <JS.Property>[];
       var staticFields = <JS.Property>[];
+
       for (var field in classElem.fields) {
         if (field.isSynthetic && !classElem.isEnum) continue;
         // Only instance fields need to be saved for dynamic dispatch.

@@ -591,6 +591,8 @@ multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
+no_such_method_mock_test: RuntimeError # Issue 31425
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError # Issue 31425
 nsm5_test: MissingCompileTimeError
 null2_test: RuntimeError # Issue 32194
 null_method_test: RuntimeError # Issue 32194
@@ -822,7 +824,6 @@ named_parameters_default_eq_test/none: RuntimeError # Expect.isTrue(false) fails
 nan_identical_test: RuntimeError # Issue 29920; Unsupported operation: Uint64 accessor not supported by dart2js.
 nested_switch_label_test: RuntimeError # Issue 29920; UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
 no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
-nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError # Issue #31425
 null_test/mirrors: RuntimeError # Uses mirrors.; ReferenceError: GenericOfT is not defined
 number_identity2_test: RuntimeError # Issue 29920; Expect.isTrue(false) fails.
 numbers_test: RuntimeError # Issue 29920; Expect.equals(expected: <false>, actual: <true>) fails.
