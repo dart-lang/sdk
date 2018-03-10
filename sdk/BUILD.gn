@@ -833,7 +833,6 @@ action("write_version_file") {
   visibility = [ ":create_common_sdk" ]
   inputs = [
     "../tools/VERSION",
-    "../.git/logs/HEAD",
   ]
   output = "$root_out_dir/dart-sdk/version"
   outputs = [
@@ -849,9 +848,6 @@ action("write_version_file") {
 # This rule writes the revision file.
 action("write_revision_file") {
   visibility = [ ":create_common_sdk" ]
-  inputs = [
-    "../.git/logs/HEAD",
-  ]
   output = "$root_out_dir/dart-sdk/revision"
   outputs = [
     output,
