@@ -744,6 +744,8 @@ class StreamingScopeBuilder {
   void EnterScope(intptr_t kernel_offset);
   void ExitScope(TokenPosition start_position, TokenPosition end_position);
 
+  void ReportUnexpectedTag(const char* variant, Tag tag);
+
   // This enum controls which parameters would be marked as requring type
   // check on the callee side.
   enum ParameterTypeCheckMode {
@@ -1044,6 +1046,8 @@ class StreamingFlowGraphBuilder {
   intptr_t ReadListLength();
 
   enum DispatchCategory { Interface, ViaThis, Closure, DynamicDispatch };
+
+  void ReportUnexpectedTag(const char* variant, Tag tag);
 
  private:
   void LoadAndSetupTypeParameters(ActiveClass* active_class,

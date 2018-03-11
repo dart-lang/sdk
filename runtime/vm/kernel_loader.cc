@@ -61,7 +61,7 @@ class SimpleExpressionConverter {
         simple_value_ = &H.DartSymbolPlain(
             builder_->ReadStringReference());  // read index into string table.
         return true;
-      case kSpecialIntLiteral:
+      case kSpecializedIntLiteral:
         simple_value_ =
             &Integer::ZoneHandle(Z, Integer::New(static_cast<int32_t>(payload) -
                                                      SpecializedIntLiteralBias,

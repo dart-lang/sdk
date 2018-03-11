@@ -1089,6 +1089,13 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
   return result_;
 }
 
+void StreamingScopeBuilder::ReportUnexpectedTag(const char* variant, Tag tag) {
+  H.ReportError(builder_->script(), TokenPosition::kNoSource,
+                "Unexpected tag %d (%s) in %s, expected %s", tag,
+                Reader::TagName(tag),
+                parsed_function_->function().ToQualifiedCString(), variant);
+}
+
 void StreamingScopeBuilder::VisitNode() {
   Tag tag = builder_->PeekTag();
   switch (tag) {
@@ -1269,7 +1276,7 @@ void StreamingScopeBuilder::VisitInitializer() {
       VisitStatement();
       return;
     default:
-      H.ReportError("Unsupported tag at this point: %d.", tag);
+      ReportUnexpectedTag("initializer", tag);
       UNREACHABLE();
   }
 }
@@ -1504,7 +1511,7 @@ void StreamingScopeBuilder::VisitExpression() {
     case kStringLiteral:
       builder_->SkipStringReference();  // read string reference.
       return;
-    case kSpecialIntLiteral:
+    case kSpecializedIntLiteral:
       return;
     case kNegativeIntLiteral:
       builder_->ReadUInt();  // read value.
@@ -1560,7 +1567,7 @@ void StreamingScopeBuilder::VisitExpression() {
       builder_->ReadUInt();  // library index
       break;
     default:
-      H.ReportError("Unsupported tag at this point: %d.", tag);
+      ReportUnexpectedTag("expression", tag);
       UNREACHABLE();
   }
 }
@@ -1826,7 +1833,7 @@ void StreamingScopeBuilder::VisitStatement() {
       return;
     }
     default:
-      H.ReportError("Unsupported tag at this point: %d.", tag);
+      ReportUnexpectedTag("declaration", tag);
       UNREACHABLE();
   }
 }
@@ -1924,7 +1931,7 @@ void StreamingScopeBuilder::VisitDartType() {
       VisitTypeParameterType();
       return;
     default:
-      H.ReportError("Unsupported tag at this point: %d.", tag);
+      ReportUnexpectedTag("type", tag);
       UNREACHABLE();
   }
 }
@@ -2413,7 +2420,7 @@ void StreamingDartTypeTranslator::BuildTypeInternal(bool invalid_as_dynamic) {
       BuildTypeParameterType();
       break;
     default:
-      H.ReportError("Unsupported tag at this point: %d.", tag);
+      builder_->ReportUnexpectedTag("type", tag);
       UNREACHABLE();
   }
 }
@@ -2806,7 +2813,7 @@ Instance& StreamingConstantEvaluator::EvaluateExpression(intptr_t offset,
       case kStringLiteral:
         EvaluateStringLiteral();
         break;
-      case kSpecialIntLiteral:
+      case kSpecializedIntLiteral:
         EvaluateIntLiteral(payload);
         break;
       case kNegativeIntLiteral:
@@ -2831,8 +2838,10 @@ Instance& StreamingConstantEvaluator::EvaluateExpression(intptr_t offset,
         EvaluateConstantExpression();
         break;
       default:
-        H.ReportError(script_, TokenPosition::kNoSource,
-                      "Not a constant expression.");
+        H.ReportError(
+            script_, TokenPosition::kNoSource,
+            "Not a constant expression: unexpected kernel tag %s (%" Pd ")",
+            Reader::TagName(tag), tag);
     }
 
     CacheConstantValue(offset, result_);
@@ -3745,7 +3754,7 @@ void StreamingFlowGraphBuilder::ReadUntilFunctionNode(
   } else if (tag == kFunctionNode) {
     // Already at start of FunctionNode.
   } else {
-    H.ReportError("Unsupported tag at this point: %d.", tag);
+    ReportUnexpectedTag("a procedure, a constructor or a function node", tag);
     UNREACHABLE();
   }
 }
@@ -4129,7 +4138,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
           break;
         }
         default:
-          H.ReportError("Unsupported tag at this point: %d.", tag);
+          ReportUnexpectedTag("initializer", tag);
           UNREACHABLE();
       }
     }
@@ -4889,7 +4898,7 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
       return BuildBigIntLiteral(position);
     case kStringLiteral:
       return BuildStringLiteral(position);
-    case kSpecialIntLiteral:
+    case kSpecializedIntLiteral:
       return BuildIntLiteral(payload, position);
     case kNegativeIntLiteral:
       return BuildIntLiteral(true, position);
@@ -4922,7 +4931,7 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
       ReadUInt();  // skip library index
       return BuildFutureNullValue(position);
     default:
-      H.ReportError("Unsupported tag at this point: %d.", tag);
+      ReportUnexpectedTag("expression", tag);
       UNREACHABLE();
   }
 
@@ -4973,7 +4982,7 @@ Fragment StreamingFlowGraphBuilder::BuildStatement() {
     case kFunctionDeclaration:
       return BuildFunctionDeclaration();
     default:
-      H.ReportError("Unsupported tag at this point: %d.", tag);
+      ReportUnexpectedTag("statement", tag);
       UNREACHABLE();
   }
   return Fragment();
@@ -5097,6 +5106,14 @@ void StreamingFlowGraphBuilder::SkipCanonicalNameReference() {
   ReadUInt();
 }
 
+void StreamingFlowGraphBuilder::ReportUnexpectedTag(const char* variant,
+                                                    Tag tag) {
+  H.ReportError(script_, TokenPosition::kNoSource,
+                "Unexpected tag %d (%s) in %s, expected %s", tag,
+                Reader::TagName(tag),
+                parsed_function()->function().ToQualifiedCString(), variant);
+}
+
 void StreamingFlowGraphBuilder::SkipDartType() {
   Tag tag = ReadTag();
   switch (tag) {
@@ -5124,7 +5141,7 @@ void StreamingFlowGraphBuilder::SkipDartType() {
       SkipOptionalDartType();  // read bound bound.
       return;
     default:
-      H.ReportError("Unsupported tag at this point: %d.", tag);
+      ReportUnexpectedTag("type", tag);
       UNREACHABLE();
   }
 }
@@ -5237,7 +5254,7 @@ void StreamingFlowGraphBuilder::SkipInitializer() {
       SkipStatement();
       return;
     default:
-      H.ReportError("Unsupported tag at this point: %d.", tag);
+      ReportUnexpectedTag("initializer", tag);
       UNREACHABLE();
   }
 }
@@ -5453,7 +5470,7 @@ void StreamingFlowGraphBuilder::SkipExpression() {
     case kStringLiteral:
       SkipStringReference();  // read string reference.
       return;
-    case kSpecialIntLiteral:
+    case kSpecializedIntLiteral:
       return;
     case kNegativeIntLiteral:
       ReadUInt();  // read value.
@@ -5478,7 +5495,7 @@ void StreamingFlowGraphBuilder::SkipExpression() {
       ReadUInt();  // skip library index
       return;
     default:
-      H.ReportError("Unsupported tag at this point: %d.", tag);
+      ReportUnexpectedTag("expression", tag);
       UNREACHABLE();
   }
 }
@@ -5616,7 +5633,7 @@ void StreamingFlowGraphBuilder::SkipStatement() {
       SkipFunctionNode();         // read function node.
       return;
     default:
-      H.ReportError("Unsupported tag at this point: %d.", tag);
+      ReportUnexpectedTag("statement", tag);
       UNREACHABLE();
   }
 }
@@ -6880,7 +6897,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticSet(TokenPosition* p) {
 
 static bool IsNumberLiteral(Tag tag) {
   return tag == kNegativeIntLiteral || tag == kPositiveIntLiteral ||
-         tag == kSpecialIntLiteral || tag == kDoubleLiteral;
+         tag == kSpecializedIntLiteral || tag == kDoubleLiteral;
 }
 
 Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
@@ -7720,7 +7737,9 @@ Fragment StreamingFlowGraphBuilder::BuildTypeLiteral(TokenPosition* position) {
   if (position != NULL) *position = TokenPosition::kNoSource;
 
   const AbstractType& type = T.BuildType();  // read type.
-  if (type.IsMalformed()) H.ReportError("Malformed type literal");
+  if (type.IsMalformed()) {
+    H.ReportError(script_, TokenPosition::kNoSource, "Malformed type literal");
+  }
 
   Fragment instructions;
   if (type.IsInstantiated()) {
@@ -7928,7 +7947,8 @@ Fragment StreamingFlowGraphBuilder::BuildBigIntLiteral(
   const Integer& integer =
       Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld));
   if (integer.IsNull()) {
-    H.ReportError("Integer literal %s is out of range", value.ToCString());
+    H.ReportError(script_, TokenPosition::kNoSource,
+                  "Integer literal %s is out of range", value.ToCString());
     UNREACHABLE();
   }
   return Constant(integer);
@@ -9561,7 +9581,7 @@ void StreamingFlowGraphBuilder::CollectTokenPositionsFor(
     ClassHelper class_helper(this);
     class_helper.ReadUntilExcluding(ClassHelper::kEnd);
   } else {
-    H.ReportError("Unsupported tag at this point: %d.", tag);
+    ReportUnexpectedTag("a class or a member", tag);
     UNREACHABLE();
   }
 
