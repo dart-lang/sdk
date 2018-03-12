@@ -959,7 +959,18 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
       }
 
       ParameterTypeCheckMode type_check_mode = kTypeCheckAllParameters;
-      if (!function.IsImplicitClosureFunction()) {
+      if (function.IsNonImplicitClosureFunction()) {
+        type_check_mode = kTypeCheckAllParameters;
+      } else if (function.IsImplicitClosureFunction()) {
+        if (!attrs.has_dynamic_invocations) {
+          // This is a tear-off of an instance method that can not be reached
+          // from any dynamic invocation. The method would not check any
+          // parameters except covariant ones and those annotated with
+          // generic-covariant-impl. Which means that we have to check
+          // the rest in the tear-off itself..
+          type_check_mode = kTypeCheckForTearOffOfNonDynamicallyInvokedMethod;
+        }
+      } else {
         if (function.is_static()) {
           // In static functions we don't check anything.
           type_check_mode = kTypeCheckForStaticFunction;
@@ -971,15 +982,6 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
           // to check this parameter on the callee side, because strong mode
           // guarantees that it was checked at the caller side.
           type_check_mode = kTypeCheckForNonDynamicallyInvokedMethod;
-        }
-      } else {
-        if (!attrs.has_dynamic_invocations) {
-          // This is a tear-off of an instance method that can not be reached
-          // from any dynamic invocation. The method would not check any
-          // parameters except covariant ones and those annotated with
-          // generic-covariant-impl. Which means that we have to check
-          // the rest in the tear-off itself..
-          type_check_mode = kTypeCheckForTearOffOfNonDynamicallyInvokedMethod;
         }
       }
 
