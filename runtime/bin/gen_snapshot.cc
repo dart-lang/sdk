@@ -12,6 +12,7 @@
 #include <cstdarg>
 
 #include "bin/builtin.h"
+#include "bin/console.h"
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
 #include "bin/eventhandler.h"
@@ -1489,6 +1490,7 @@ int main(int argc, char** argv) {
     Log::PrintErr("Initialization failed\n");
     return kErrorExitCode;
   }
+  Console::SaveConfig();
   Thread::InitOnce();
   Loader::InitOnce();
   DartUtils::SetOriginalWorkingDirectory();

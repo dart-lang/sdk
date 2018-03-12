@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 
+#include "bin/console.h"
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
 #include "bin/eventhandler.h"
@@ -211,6 +212,9 @@ static int Main(int argc, const char** argv) {
     OS::PrintErr("Initialization failed\n");
     return 1;
   }
+
+  // Save the console state so we can restore it later.
+  dart::bin::Console::SaveConfig();
 
   if (argc < 2) {
     // Bad parameter count.
