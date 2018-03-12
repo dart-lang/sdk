@@ -216,18 +216,16 @@ class Search {
           }
 
           for (var executable in class_.executables) {
-            if (executable.name.isNotEmpty) {
-              parameterComposer.innerTypeParameters = executable.typeParameters;
-              addDeclaration(
-                  executable.name,
-                  getExecutableKind(executable, false),
-                  executable.nameOffset,
-                  executable.codeRange.offset,
-                  executable.codeRange.length,
-                  className: className,
-                  parameters: getExecutableParameters(executable));
-              parameterComposer.innerTypeParameters = const [];
-            }
+            parameterComposer.innerTypeParameters = executable.typeParameters;
+            addDeclaration(
+                executable.name,
+                getExecutableKind(executable, false),
+                executable.nameOffset,
+                executable.codeRange.offset,
+                executable.codeRange.length,
+                className: className,
+                parameters: getExecutableParameters(executable));
+            parameterComposer.innerTypeParameters = const [];
           }
 
           parameterComposer.outerTypeParameters = const [];

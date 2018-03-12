@@ -116,6 +116,8 @@ class C {
         offset: 6, codeOffset: 0, codeLength: 91);
     _assertHasDeclaration(declarations, 'f', DeclarationKind.FIELD,
         offset: 16, codeOffset: 12, codeLength: 6, className: 'C');
+    _assertHasDeclaration(declarations, '', DeclarationKind.CONSTRUCTOR,
+        offset: 21, codeOffset: 21, codeLength: 4, className: 'C');
     _assertHasDeclaration(declarations, 'named', DeclarationKind.CONSTRUCTOR,
         offset: 30, codeOffset: 28, codeLength: 10, className: 'C');
     _assertHasDeclaration(declarations, 'g', DeclarationKind.GETTER,
