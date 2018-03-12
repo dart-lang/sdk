@@ -1,5 +1,5 @@
 name: front_end
-version: 0.1.0-alpha.10
+version: 0.1.0-alpha.11
 author: Dart Team <misc@dartlang.org>
 description: Front end for compilation of Dart code.
 homepage: https://github.com/dart-lang/sdk/tree/master/pkg/front_end
