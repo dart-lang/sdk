@@ -83,8 +83,13 @@ class Visitor extends SimpleAstVisitor {
     }
   }
 
-  bool _hasImmutableAnnotation(ClassElement clazz) {
-    final inheritedAndSelfTypes = _getSelfAndInheritedTypes(clazz.type);
+  bool _hasImmutableAnnotation(DartType type) {
+    if (type is! InterfaceType) {
+      // This happens when we find an instance creation expression for a class
+      // that cannot be resolved.
+      return false;
+    }
+    final inheritedAndSelfTypes = _getSelfAndInheritedTypes(type);
     final inheritedAndSelfAnnotations = inheritedAndSelfTypes
         .map((type) => type.element)
         .expand((c) => c.metadata)
@@ -107,7 +112,7 @@ class Visitor extends SimpleAstVisitor {
       node = node.parent;
     }
     if (!(node is InstanceCreationExpression &&
-        _hasImmutableAnnotation(node.bestType.element))) {
+        _hasImmutableAnnotation(node.bestType))) {
       return;
     }
 
