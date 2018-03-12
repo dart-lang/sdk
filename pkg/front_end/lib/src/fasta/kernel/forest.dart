@@ -20,7 +20,7 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
 
   List argumentsTypes(Arguments arguments);
 
-  void argumentsSetExplicitArgumentTypes(
+  void argumentsSetNonInferrableArgumentTypes(
       Arguments arguments, covariant List types);
 
   Expression asLiteralString(Expression value);

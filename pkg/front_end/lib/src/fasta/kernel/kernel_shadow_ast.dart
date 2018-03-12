@@ -97,11 +97,16 @@ class ShadowArguments extends Arguments {
       : _hasExplicitTypeArguments = types != null && types.isNotEmpty,
         super(positional, types: types, named: named);
 
-  static void setExplicitArgumentTypes(
+  static void setNonInferrableArgumentTypes(
       ShadowArguments arguments, List<DartType> types) {
     arguments.types.clear();
     arguments.types.addAll(types);
     arguments._hasExplicitTypeArguments = true;
+  }
+
+  static void removeNonInferrableArgumentTypes(ShadowArguments arguments) {
+    arguments.types.clear();
+    arguments._hasExplicitTypeArguments = false;
   }
 }
 
@@ -1642,9 +1647,18 @@ class ShadowRedirectingInitializer extends RedirectingInitializer
 
   @override
   _inferInitializer(ShadowTypeInferrer inferrer) {
+    List<TypeParameter> classTypeParameters =
+        target.enclosingClass.typeParameters;
+    List<DartType> typeArguments =
+        new List<DartType>(classTypeParameters.length);
+    for (int i = 0; i < typeArguments.length; i++) {
+      typeArguments[i] = new TypeParameterType(classTypeParameters[i]);
+    }
+    ShadowArguments.setNonInferrableArgumentTypes(arguments, typeArguments);
     inferrer.inferInvocation(null, fileOffset, target.function.functionType,
         target.enclosingClass.thisType, arguments,
         skipTypeArgumentInference: true);
+    ShadowArguments.removeNonInferrableArgumentTypes(arguments);
   }
 }
 

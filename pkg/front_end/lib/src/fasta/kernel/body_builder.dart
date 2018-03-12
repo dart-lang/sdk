@@ -824,7 +824,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     Object receiver = pop();
     if (arguments != null && typeArguments != null) {
       assert(forest.argumentsTypes(arguments).isEmpty);
-      forest.argumentsSetExplicitArgumentTypes(arguments, typeArguments);
+      forest.argumentsSetNonInferrableArgumentTypes(arguments, typeArguments);
     } else {
       assert(typeArguments == null);
     }
@@ -2644,7 +2644,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
 
     if (typeArguments != null) {
       assert(forest.argumentsTypes(arguments).isEmpty);
-      forest.argumentsSetExplicitArgumentTypes(arguments, typeArguments);
+      forest.argumentsSetNonInferrableArgumentTypes(arguments, typeArguments);
     }
 
     String errorName;
