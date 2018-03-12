@@ -1607,8 +1607,22 @@ RawFunction* CreateFieldInitializerFunction(Thread* thread,
   String& init_name = String::Handle(zone, field.name());
   init_name = Symbols::FromConcat(thread, Symbols::InitPrefix(), init_name);
 
+  // Static field initializers are not added as members of their owning class,
+  // so they must be pre-emptively given a patch class to avoid the meaning of
+  // their kernel/token position changing during a reload. Compare
+  // Class::PatchFieldsAndFunctions().
+  // This might also be necessary for lazy computation of local var descriptors.
+  // Compare https://codereview.chromium.org//1317753004
+  const Script& script = Script::Handle(zone, field.Script());
+  const Class& field_owner = Class::Handle(zone, field.Owner());
+  const PatchClass& initializer_owner =
+      PatchClass::Handle(zone, PatchClass::New(field_owner, script));
+  const Library& lib = Library::Handle(zone, field_owner.library());
+  initializer_owner.set_library_kernel_data(
+      TypedData::Handle(zone, lib.kernel_data()));
+  initializer_owner.set_library_kernel_offset(lib.kernel_offset());
+
   // Create a static initializer.
-  const Object& owner = Object::Handle(field.RawOwner());
   const Function& initializer_fun = Function::Handle(
       zone, Function::New(init_name,
                           // TODO(alexmarkov): Consider creating a separate
@@ -1619,7 +1633,7 @@ RawFunction* CreateFieldInitializerFunction(Thread* thread,
                           false,  // is_abstract
                           false,  // is_external
                           false,  // is_native
-                          owner, TokenPosition::kNoSource));
+                          initializer_owner, TokenPosition::kNoSource));
   initializer_fun.set_kernel_offset(field.kernel_offset());
   initializer_fun.set_result_type(AbstractType::Handle(zone, field.type()));
   initializer_fun.set_is_debuggable(false);
