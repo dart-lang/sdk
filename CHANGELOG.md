@@ -1,10 +1,13 @@
 
 ### Core library changes
 
-* Temporarily disabled the `whereType` method until generic methods are enabled
-  on all platforms ([issue 32463]).
-
-[issue 32463]: https://github.com/dart-lang/sdk/issues/32463
+* `dart:core`
+  * Temporarily disabled the `whereType` method until generic methods are
+    enabled on all platforms
+    ([issue 32463](https://github.com/dart-lang/sdk/issues/32463)).
+* `dart:convert`
+  * Added `jsonEncode`, `jsonDecode`, `base64Encode`, `base64UrlEncode` and
+    `base64Decode` top-level functions.
 
 ## 2.0.0
 
