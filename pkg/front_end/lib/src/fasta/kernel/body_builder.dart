@@ -823,8 +823,8 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     List<DartType> typeArguments = pop();
     Object receiver = pop();
     if (arguments != null && typeArguments != null) {
-      assert(forest.argumentsTypes(arguments).isEmpty);
-      forest.argumentsSetNonInferrableArgumentTypes(arguments, typeArguments);
+      assert(forest.argumentsTypeArguments(arguments).isEmpty);
+      forest.argumentsSetTypeArguments(arguments, typeArguments);
     } else {
       assert(typeArguments == null);
     }
@@ -2534,7 +2534,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       }
     }
 
-    List types = forest.argumentsTypes(arguments);
+    List types = forest.argumentsTypeArguments(arguments);
     if (typeParameters != null && typeParameters.length != types.length) {
       // TODO(paulberry): Report error in this case as well,
       // after https://github.com/dart-lang/sdk/issues/32130 is fixed.
@@ -2643,8 +2643,8 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     }
 
     if (typeArguments != null) {
-      assert(forest.argumentsTypes(arguments).isEmpty);
-      forest.argumentsSetNonInferrableArgumentTypes(arguments, typeArguments);
+      assert(forest.argumentsTypeArguments(arguments).isEmpty);
+      forest.argumentsSetTypeArguments(arguments, typeArguments);
     }
 
     String errorName;
