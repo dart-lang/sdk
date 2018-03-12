@@ -18,9 +18,7 @@ import 'package:kernel/kernel.dart'
 import 'package:kernel/target/targets.dart' show TargetFlags, targets;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show ProblemHandler;
-
-import 'package:front_end/src/api_prototype/file_system.dart' show FileSystem;
+    show CompilerOptions;
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -91,24 +89,16 @@ batchEntryPoint(List<String> arguments) {
 class BatchCompiler {
   final Stream lines;
 
-  final FileSystem fileSystem;
-
-  final ProblemHandler problemHandler;
-
   Uri platformUri;
 
   Program platformComponent;
 
-  BatchCompiler(this.lines)
-      : fileSystem = null,
-        problemHandler = null;
-
-  BatchCompiler.forTesting(this.fileSystem, this.problemHandler) : lines = null;
+  BatchCompiler(this.lines);
 
   run() async {
     await for (String line in lines) {
       try {
-        if (await batchCompile(JSON.decode(line))) {
+        if (await batchCompileArguments(JSON.decode(line))) {
           stdout.writeln(">>> TEST OK");
         } else {
           stdout.writeln(">>> TEST FAIL");
@@ -124,40 +114,48 @@ class BatchCompiler {
     }
   }
 
-  Future<bool> batchCompile(List<String> arguments) async {
+  Future<bool> batchCompileArguments(List<String> arguments) async {
     try {
       return await withGlobalOptions("compile", arguments, true,
-          (CompilerContext c, _) async {
-        ProcessedOptions options = c.options;
-        bool verbose = options.verbose;
-        Ticker ticker = new Ticker(isVerbose: verbose);
-        if (verbose) {
-          print("Compiling directly to Kernel: ${arguments.join(' ')}");
-        }
-        if (platformComponent == null || platformUri != options.sdkSummary) {
-          platformUri = options.sdkSummary;
-          platformComponent = await options.loadSdkSummary(null);
-        } else {
-          options.sdkSummaryComponent = platformComponent;
-        }
-        CompileTask task = new CompileTask(c, ticker);
-        await task.compile(sansPlatform: true);
-        CanonicalName root = platformComponent.root;
-        for (Library library in platformComponent.libraries) {
-          library.parent = platformComponent;
-          CanonicalName name = library.reference.canonicalName;
-          if (name != null && name.parent != root) {
-            root.adoptChild(name);
-          }
-        }
-        root.unbindAll();
-        return c.errors.isEmpty;
-      }, fileSystem: fileSystem, problemHandler: problemHandler);
+          (CompilerContext c, _) => batchCompileImpl(c));
     } on deprecated_InputError catch (e) {
       CompilerContext.runWithDefaultOptions(
           (c) => c.report(deprecated_InputError.toMessage(e), Severity.error));
       return false;
     }
+  }
+
+  Future<bool> batchCompile(CompilerOptions options, Uri input, Uri output) {
+    return CompilerContext.runWithOptions(
+        new ProcessedOptions(options, false, <Uri>[input], output),
+        batchCompileImpl);
+  }
+
+  Future<bool> batchCompileImpl(CompilerContext c) async {
+    ProcessedOptions options = c.options;
+    bool verbose = options.verbose;
+    Ticker ticker = new Ticker(isVerbose: verbose);
+    if (platformComponent == null || platformUri != options.sdkSummary) {
+      platformUri = options.sdkSummary;
+      platformComponent = await options.loadSdkSummary(null);
+      if (platformComponent == null) {
+        throw "platformComponent is null";
+      }
+    } else {
+      options.sdkSummaryComponent = platformComponent;
+    }
+    CompileTask task = new CompileTask(c, ticker);
+    await task.compile(sansPlatform: true);
+    CanonicalName root = platformComponent.root;
+    for (Library library in platformComponent.libraries) {
+      library.parent = platformComponent;
+      CanonicalName name = library.reference.canonicalName;
+      if (name != null && name.parent != root) {
+        root.adoptChild(name);
+      }
+    }
+    root.unbindAll();
+    return c.errors.isEmpty;
   }
 }
 

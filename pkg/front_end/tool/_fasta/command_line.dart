@@ -7,9 +7,7 @@ library fasta.tool.command_line;
 import 'dart:io' show exit;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions, ProblemHandler;
-
-import 'package:front_end/src/api_prototype/file_system.dart' show FileSystem;
+    show CompilerOptions;
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -33,6 +31,8 @@ import 'package:front_end/src/fasta/severity.dart' show Severity;
 
 import 'package:kernel/target/targets.dart'
     show Target, getTarget, TargetFlags, targets;
+
+Uri resolveFile(String path) => Uri.base.resolveUri(new Uri.file(path));
 
 class CommandLineProblem {
   final Message message;
@@ -159,7 +159,7 @@ class ParsedArguments {
                     "but expected one of: 'true', 'false', 'yes', or 'no'.");
               }
             } else if (valueSpecification == Uri) {
-              parsedValue = Uri.base.resolveUri(new Uri.file(value));
+              parsedValue = resolveFile(value);
             } else if (valueSpecification == String) {
               parsedValue = value;
             } else if (valueSpecification is String) {
@@ -228,9 +228,7 @@ ProcessedOptions analyzeCommandLine(
     String programName,
     ParsedArguments parsedArguments,
     bool areRestArgumentsInputs,
-    bool verbose,
-    FileSystem fileSystem,
-    ProblemHandler problemHandler) {
+    bool verbose) {
   final Map<String, dynamic> options = parsedArguments.options;
 
   final List<String> arguments = parsedArguments.arguments;
@@ -299,11 +297,8 @@ ProcessedOptions analyzeCommandLine(
 
     return new ProcessedOptions(
         new CompilerOptions()
-          ..fileSystem = fileSystem
-          ..onProblem = problemHandler
           ..sdkSummary = options["--platform"]
-          ..librariesSpecificationUri =
-              Uri.base.resolveUri(new Uri.file(arguments[1]))
+          ..librariesSpecificationUri = resolveFile(arguments[1])
           ..setExitCodeOnProblem = true
           ..chaseDependencies = true
           ..packagesFileUri = packages
@@ -318,12 +313,12 @@ ProcessedOptions analyzeCommandLine(
           ..verify = verify,
         false,
         <Uri>[Uri.parse(arguments[0])],
-        Uri.base.resolveUri(new Uri.file(arguments[2])));
+        resolveFile(arguments[2]));
   } else if (arguments.isEmpty) {
     return throw new CommandLineProblem.deprecated("No Dart file specified.");
   }
 
-  final Uri defaultOutput = Uri.base.resolve("${arguments.first}.dill");
+  final Uri defaultOutput = resolveFile("${arguments.first}.dill");
 
   final Uri output = options["-o"] ?? options["--output"] ?? defaultOutput;
 
@@ -335,8 +330,6 @@ ProcessedOptions analyzeCommandLine(
           computePlatformBinariesLocation().resolve("vm_platform.dill"));
 
   CompilerOptions compilerOptions = new CompilerOptions()
-    ..fileSystem = fileSystem
-    ..onProblem = problemHandler
     ..compileSdk = compileSdk
     ..sdkRoot = sdk
     ..sdkSummary = platform
@@ -353,9 +346,11 @@ ProcessedOptions analyzeCommandLine(
 
   // TODO(ahe): What about chase dependencies?
 
-  var inputs = <Uri>[];
+  List<Uri> inputs = <Uri>[];
   if (areRestArgumentsInputs) {
-    inputs = arguments.map(Uri.base.resolve).toList();
+    for (String argument in arguments) {
+      inputs.add(resolveFile(argument));
+    }
   }
   return new ProcessedOptions(compilerOptions, false, inputs, output);
 }
@@ -364,10 +359,7 @@ dynamic withGlobalOptions(
     String programName,
     List<String> arguments,
     bool areRestArgumentsInputs,
-    dynamic f(CompilerContext context, List<String> restArguments),
-    {FileSystem fileSystem,
-    ProblemHandler problemHandler}) {
-  fileSystem ??= new CompilerOptions().fileSystem;
+    dynamic f(CompilerContext context, List<String> restArguments)) {
   bool verbose = false;
   for (String argument in arguments) {
     if (argument == "--") break;
@@ -381,8 +373,8 @@ dynamic withGlobalOptions(
   CommandLineProblem problem;
   try {
     parsedArguments = ParsedArguments.parse(arguments, optionSpecification);
-    options = analyzeCommandLine(programName, parsedArguments,
-        areRestArgumentsInputs, verbose, fileSystem, problemHandler);
+    options = analyzeCommandLine(
+        programName, parsedArguments, areRestArgumentsInputs, verbose);
   } on CommandLineProblem catch (e) {
     options = new ProcessedOptions(new CompilerOptions());
     problem = e;
