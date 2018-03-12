@@ -1283,7 +1283,6 @@ async_congruence_local_test/02: MissingCompileTimeError
 async_congruence_method_test/01: MissingCompileTimeError
 async_congruence_unnamed_test/01: MissingCompileTimeError
 async_congruence_unnamed_test/02: MissingCompileTimeError
-bug32353_2_test: MissingCompileTimeError
 built_in_identifier_type_annotation_test/35: MissingCompileTimeError # Issue 28813
 built_in_identifier_type_annotation_test/36: MissingCompileTimeError # Issue 28813
 built_in_identifier_type_annotation_test/37: MissingCompileTimeError # Issue 28813
@@ -1480,6 +1479,7 @@ issue31596_override_test/07: MissingCompileTimeError
 issue31596_override_test/08: MissingCompileTimeError
 issue31596_super_test/02: MissingCompileTimeError
 issue31596_super_test/04: MissingCompileTimeError
+issue32353_2_test: MissingCompileTimeError
 known_identifier_prefix_error_test/*: MissingCompileTimeError # Error only in strong mode.
 known_identifier_prefix_error_test/none: Pass
 least_upper_bound_expansive_test/01: MissingCompileTimeError

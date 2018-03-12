@@ -21,7 +21,6 @@ async_star_test/none: RuntimeError
 await_future_test: Pass, Timeout # Issue 29920
 bit_operations_test: RuntimeError # No bigints on web.
 black_listed_test/none: Fail # Issue 14228
-bug32353_test: RuntimeError
 bug32372_test: RuntimeError
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Issue 28816
@@ -128,6 +127,7 @@ issue31596_super_test/05: CompileTimeError
 issue31596_super_test/none: CompileTimeError
 issue31596_tearoff_test: CompileTimeError
 issue31596_test: CompileTimeError
+issue32353_test: RuntimeError
 label_test: RuntimeError
 lazy_static3_test: RuntimeError # Issue 30852
 lazy_static8_test: RuntimeError # Issue 30852
@@ -335,7 +335,6 @@ bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
-bug32353_test: RuntimeError # Issue 32428
 built_in_identifier_type_annotation_test/05: RuntimeError # Issue 32194
 built_in_identifier_type_annotation_test/none: RuntimeError # Issue 32194
 call_method_as_cast_test/01: RuntimeError
@@ -472,6 +471,7 @@ issue31596_super_test/02: MissingCompileTimeError
 issue31596_super_test/03: CompileTimeError
 issue31596_super_test/04: MissingCompileTimeError
 issue31596_super_test/05: RuntimeError
+issue32353_test: RuntimeError # Issue 32428
 library_env_test/has_io_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_mirror_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_no_html_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor

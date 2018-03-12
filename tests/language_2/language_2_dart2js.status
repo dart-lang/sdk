@@ -34,9 +34,9 @@ generic_list_checked_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == d8 && $fasta ]
 assertion_test: RuntimeError
-bug32353_test: CompileTimeError
 bug32372_test: CompileTimeError
 implicit_creation/implicit_new_constructor_generic_test: Pass
+issue32353_test: CompileTimeError
 
 [ $compiler == dart2js && $runtime == ff ]
 field_override_optimization_test: RuntimeError
