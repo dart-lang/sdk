@@ -86,3 +86,6 @@ var m13 = new A({1: 1.0}); // LINT
 var m14 = new A({1: ''}); // LINT
 var m15 = new A({1: null}); // LINT
 
+// ignore: undefined_class
+var e1 = new B([]); // OK
+
