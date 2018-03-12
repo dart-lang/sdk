@@ -68,9 +68,9 @@ const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
   if (GetTimeServicePtr(&time_svc) == ZX_OK) {
     f1dl::String res;
     time_svc->GetTimezoneId(&res);
-    char* tz_name = Thread::Current()->zone()->Alloc<char>(res.size() + 1);
-    memmove(tz_name, res.get().c_str(), res.size());
-    tz_name[res.size()] = '\0';
+    char* tz_name = Thread::Current()->zone()->Alloc<char>(res->size() + 1);
+    memmove(tz_name, res->data(), res->size());
+    tz_name[res->size()] = '\0';
     return tz_name;
   }
   return "";
