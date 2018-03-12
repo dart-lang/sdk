@@ -1059,9 +1059,8 @@ abstract class VMKernelCompilerMixin {
 
   Command computeCompileToKernelCommand(String tempDir, List<String> arguments,
       Map<String, String> environmentOverrides) {
-    final genKernel = Platform.script
-        .resolve('../../../pkg/vm/tool/gen_kernel${executableScriptSuffix}')
-        .toFilePath();
+    final pkgVmDir = Platform.script.resolve('../../../pkg/vm').toFilePath();
+    final genKernel = '${pkgVmDir}/tool/gen_kernel${executableScriptSuffix}';
 
     final kernelBinariesFolder = _useSdk
         ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal'
@@ -1082,6 +1081,18 @@ abstract class VMKernelCompilerMixin {
       '-o',
       dillFile,
     ];
+
+    if (_isAot) {
+      args.addAll([
+        '--entry-points',
+        '${_configuration.buildDirectory}/gen/runtime/bin/precompiler_entry_points.json',
+        '--entry-points',
+        '${pkgVmDir}/lib/transformations/type_flow/entry_points_extra.json',
+        '--entry-points',
+        '${pkgVmDir}/lib/transformations/type_flow/entry_points_extra_standalone.json',
+      ]);
+    }
+
     args.add(arguments.where((name) => name.endsWith('.dart')).single);
 
     // Pass environment variable to the gen_kernel script as
