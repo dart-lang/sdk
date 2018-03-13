@@ -1451,6 +1451,7 @@ LibTest/isolate/Isolate/spawn_A04_t04: Fail # Issue 27558
 [ $compiler == dart2js && $runtime == d8 && $fasta ]
 LayoutTests/*: SkipByDesign
 LibTest/html/*: SkipByDesign
+LibTest/html/Element/mouseEnterEvent_A01_t01: RuntimeError
 WebPlatformTest/*: SkipByDesign
 
 [ $compiler == dart2js && $runtime != d8 && $runtime != drt && $checked ]
@@ -7079,7 +7080,6 @@ LibTest/core/Invocation/namedArguments_A01_t01: RuntimeError
 LibTest/html/Document/dispatchEvent_A01_t01: Crash
 LibTest/html/Document/on_A01_t01: Crash
 LibTest/html/Document/on_A01_t02: Crash
-LibTest/html/Element/mouseEnterEvent_A01_t01: RuntimeError
 LibTest/html/HttpRequest/abort_A01_t01: Crash
 LibTest/html/HttpRequest/dispatchEvent_A01_t01: Crash
 LibTest/html/HttpRequest/getAllResponseHeaders_A01_t01: Crash
