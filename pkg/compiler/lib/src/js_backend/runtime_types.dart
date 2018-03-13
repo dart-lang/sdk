@@ -4,6 +4,7 @@
 
 library js_backend.runtime_types;
 
+import '../common/names.dart' show Identifiers;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/elements.dart' show ClassElement;
 import '../elements/entities.dart';
@@ -170,20 +171,6 @@ abstract class RuntimeTypesChecks {
 
   /// Return all classes needed for runtime type information.
   Iterable<ClassEntity> get requiredClasses;
-
-  /// Return all classes immediately used in explicit or implicit is-tests.
-  ///
-  /// An is-test of `o is List<String>` will add `List`, but _not_ `String` to
-  /// the [checkedClasses] set.
-  Iterable<ClassEntity> get checkedClasses;
-
-  // Returns all function types immediately used in explicit or implicit
-  // is-tests.
-  //
-  // An is-test of `of is Function(Function())` will add `Function(Function())`
-  // but _not_ `Function()` to the [checkedFunctionTypes] set. An is-test
-  // against a typedef will add its alias to the [checkedFunctionTypes] set.
-  Iterable<FunctionType> get checkedFunctionTypes;
 }
 
 class TrivialTypesChecks implements RuntimeTypesChecks {
@@ -201,12 +188,6 @@ class TrivialTypesChecks implements RuntimeTypesChecks {
 
   @override
   Iterable<ClassEntity> getReferencedClasses(FunctionType type) => _allClasses;
-
-  @override
-  Iterable<ClassEntity> get checkedClasses => _allClasses;
-
-  @override
-  Iterable<FunctionType> get checkedFunctionTypes => const <FunctionType>[];
 }
 
 /// Interface for computing the needed runtime type checks.
@@ -238,15 +219,17 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
   RuntimeTypesChecks computeRequiredChecks(
       CodegenWorldBuilder codegenWorldBuilder) {
     rtiChecksBuilderClosed = true;
-    ClassUse classUse = new ClassUse()
-      ..instance = true
-      ..checkedInstance = true
-      ..typeArgument = true
-      ..checkedTypeArgument = true;
+
     Map<ClassEntity, ClassUse> classUseMap = <ClassEntity, ClassUse>{};
     for (ClassEntity cls in _closedWorld
         .getClassSet(_closedWorld.commonElements.objectClass)
         .subtypes()) {
+      ClassUse classUse = new ClassUse()
+        ..instance = true
+        ..checkedInstance = true
+        ..typeArgument = true
+        ..checkedTypeArgument = true
+        ..functionType = _computeFunctionType(_elementEnvironment, cls);
       classUseMap[cls] = classUse;
     }
     TypeChecks typeChecks = _substitutions._requiredChecks =
@@ -307,9 +290,9 @@ abstract class RuntimeTypesSubstitutionsMixin
     ClassChecks computeChecks(ClassEntity cls) {
       if (!handled.add(cls)) return result[cls];
 
-      ClassChecks checks = new ClassChecks();
-      result[cls] = checks;
       ClassUse classUse = classUseMap[cls] ?? emptyUse;
+      ClassChecks checks = new ClassChecks(classUse.functionType);
+      result[cls] = checks;
 
       // Find the superclass from which [cls] inherits checks.
       ClassEntity superClass = _elementEnvironment.getSuperClass(cls,
@@ -1494,11 +1477,8 @@ class ResolutionRuntimeTypesNeedBuilderImpl
 class _RuntimeTypesChecks implements RuntimeTypesChecks {
   final RuntimeTypesSubstitutions _substitutions;
   final TypeChecks requiredChecks;
-  final Iterable<ClassEntity> checkedClasses;
-  final Iterable<FunctionType> checkedFunctionTypes;
 
-  _RuntimeTypesChecks(this._substitutions, this.requiredChecks,
-      this.checkedClasses, this.checkedFunctionTypes);
+  _RuntimeTypesChecks(this._substitutions, this.requiredChecks);
 
   @override
   Iterable<ClassEntity> get requiredClasses {
@@ -1586,11 +1566,25 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
           classUseMap.putIfAbsent(t.element, () => new ClassUse());
       classUse.instance = true;
     });
-    Set<FunctionType> instantiatedClosureTypes =
-        computeInstantiatedClosureTypes(codegenWorldBuilder);
-    instantiatedClosureTypes.forEach((t) {
-      testedTypeVisitor.visitType(t, false);
-    });
+
+    for (InterfaceType instantiatedType
+        in codegenWorldBuilder.instantiatedTypes) {
+      FunctionType callType = _types.getCallType(instantiatedType);
+      if (callType != null) {
+        testedTypeVisitor.visitType(callType, false);
+      }
+    }
+
+    for (FunctionEntity element
+        in codegenWorldBuilder.staticFunctionsNeedingGetter) {
+      FunctionType functionType = _elementEnvironment.getFunctionType(element);
+      testedTypeVisitor.visitType(functionType, false);
+    }
+
+    for (FunctionEntity element in codegenWorldBuilder.closurizedMembers) {
+      FunctionType functionType = _elementEnvironment.getFunctionType(element);
+      testedTypeVisitor.visitType(functionType, false);
+    }
 
     void processMethodTypeArguments(_, Set<DartType> typeArguments) {
       for (DartType typeArgument in typeArguments) {
@@ -1613,56 +1607,63 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
     explicitIsChecks.forEach(processCheckedType);
     implicitIsChecks.forEach(processCheckedType);
 
+    // In Dart 1, a class that defines a `call` method implicitly has function
+    // type of its `call` method and needs a signature function for testing its
+    // function type against typedefs and function types that are used in
+    // is-checks.
+    //
+    // In Dart 2, a closure class implements the function type of its `call`
+    // method and needs a signature function for testing its function type
+    // against typedefs and function types that are used in is-checks.
+    if (checkedClasses.contains(_commonElements.functionClass) ||
+        checkedFunctionTypes.isNotEmpty) {
+      Set<ClassEntity> processedClasses = new Set<ClassEntity>();
+
+      void processClass(ClassEntity cls) {
+        ClassFunctionType functionType =
+            _computeFunctionType(_elementEnvironment, cls);
+        if (functionType != null) {
+          ClassUse classUse =
+              classUseMap.putIfAbsent(cls, () => new ClassUse());
+          classUse.functionType = functionType;
+        }
+      }
+
+      void processSuperClasses(ClassEntity cls, [ClassUse classUse]) {
+        while (cls != null && processedClasses.add(cls)) {
+          processClass(cls);
+          cls = _elementEnvironment.getSuperClass(cls);
+        }
+      }
+
+      // Collect classes that are 'live' either through instantiation or use in
+      // type arguments.
+      List<ClassEntity> liveClasses = <ClassEntity>[];
+      classUseMap.forEach((ClassEntity cls, ClassUse classUse) {
+        if (classUse.isLive) {
+          liveClasses.add(cls);
+        }
+      });
+      liveClasses.forEach(processSuperClasses);
+    }
+
     cachedRequiredChecks = _computeChecks(classUseMap);
     rtiChecksBuilderClosed = true;
-    return new _RuntimeTypesChecks(
-        this, cachedRequiredChecks, checkedClasses, checkedFunctionTypes);
+    return new _RuntimeTypesChecks(this, cachedRequiredChecks);
   }
+}
 
-  Set<FunctionType> computeInstantiatedClosureTypes(
-      CodegenWorldBuilder codegenWorldBuilder) {
-    Set<FunctionType> instantiatedClosureTypes = new Set<FunctionType>();
-    for (InterfaceType instantiatedType
-        in codegenWorldBuilder.instantiatedTypes) {
-      FunctionType callType = _types.getCallType(instantiatedType);
-      if (callType != null) {
-        instantiatedClosureTypes.add(callType);
-      }
-    }
-    for (FunctionEntity element
-        in codegenWorldBuilder.staticFunctionsNeedingGetter) {
-      instantiatedClosureTypes
-          .add(_elementEnvironment.getFunctionType(element));
-    }
-
-    for (FunctionEntity element in codegenWorldBuilder.closurizedMembers) {
-      instantiatedClosureTypes
-          .add(_elementEnvironment.getFunctionType(element));
-    }
-    return instantiatedClosureTypes;
+// TODO(johnniwinther): Handle Dart 2 semantics.
+ClassFunctionType _computeFunctionType(
+    ElementEnvironment _elementEnvironment, ClassEntity cls) {
+  MemberEntity call =
+      _elementEnvironment.lookupLocalClassMember(cls, Identifiers.call);
+  if (call != null && call.isFunction) {
+    FunctionEntity callFunction = call;
+    FunctionType callType = _elementEnvironment.getFunctionType(callFunction);
+    return new ClassFunctionType(callFunction, callType);
   }
-
-  Set<DartType> computeInstantiatedTypesAndClosures(
-      CodegenWorldBuilder codegenWorldBuilder) {
-    Set<DartType> instantiatedTypes =
-        new Set<DartType>.from(codegenWorldBuilder.instantiatedTypes);
-    for (InterfaceType instantiatedType
-        in codegenWorldBuilder.instantiatedTypes) {
-      FunctionType callType = _types.getCallType(instantiatedType);
-      if (callType != null) {
-        instantiatedTypes.add(callType);
-      }
-    }
-    for (FunctionEntity element
-        in codegenWorldBuilder.staticFunctionsNeedingGetter) {
-      instantiatedTypes.add(_elementEnvironment.getFunctionType(element));
-    }
-
-    for (FunctionEntity element in codegenWorldBuilder.closurizedMembers) {
-      instantiatedTypes.add(_elementEnvironment.getFunctionType(element));
-    }
-    return instantiatedTypes;
-  }
+  return null;
 }
 
 class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
@@ -2277,9 +2278,13 @@ class TypeVisitor extends ResolutionDartTypeVisitor<void, bool> {
 class ClassChecks {
   final Map<ClassEntity, TypeCheck> _map;
 
-  ClassChecks() : _map = <ClassEntity, TypeCheck>{};
+  final ClassFunctionType functionType;
 
-  const ClassChecks.empty() : _map = const <ClassEntity, TypeCheck>{};
+  ClassChecks(this.functionType) : _map = <ClassEntity, TypeCheck>{};
+
+  const ClassChecks.empty()
+      : _map = const <ClassEntity, TypeCheck>{},
+        functionType = null;
 
   void add(TypeCheck check) {
     _map[check.cls] = check;
@@ -2294,6 +2299,18 @@ class ClassChecks {
   String toString() {
     return 'ClassChecks($checks)';
   }
+}
+
+/// Data needed for generating a signature function for the function type of
+/// a class.
+class ClassFunctionType {
+  /// The `call` function that defines the function type.
+  final MemberEntity callFunction;
+
+  /// The type of the `call` function.
+  final FunctionType callType;
+
+  ClassFunctionType(this.callFunction, this.callType);
 }
 
 /// Runtime type usage for a class.
@@ -2321,7 +2338,7 @@ class ClassUse {
   /// For instance `A` in:
   ///
   ///     class A {}
-  ///     main() => new List<A>() is List<String>();
+  ///     main() => new List<A>() is List<String>;
   ///
   bool typeArgument = false;
 
@@ -2330,9 +2347,23 @@ class ClassUse {
   /// For instance `A` in:
   ///
   ///     class A {}
-  ///     main() => new List<String>() is List<A>();
+  ///     main() => new List<String>() is List<A>;
   ///
   bool checkedTypeArgument = false;
+
+  /// The function type of the class, if any.
+  ///
+  /// This is only set if the function type is needed at runtime. For instance,
+  /// if no function types are checked at runtime then the function type isn't
+  /// needed.
+  ///
+  /// Furthermore optimization might also omit function type that are known not
+  /// to be valid in any subtype test.
+  ClassFunctionType functionType;
+
+  /// `true` if the class is 'live' either through instantiation or use in
+  /// type arguments.
+  bool get isLive => instance || typeArgument;
 
   String toString() {
     List<String> properties = <String>[];
@@ -2347,6 +2378,9 @@ class ClassUse {
     }
     if (checkedTypeArgument) {
       properties.add('checkedTypeArgument');
+    }
+    if (functionType != null) {
+      properties.add('functionType');
     }
     return 'ClassUse(${properties.join(',')})';
   }
