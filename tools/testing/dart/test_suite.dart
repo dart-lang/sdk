@@ -580,6 +580,10 @@ class StandardTestSuite extends TestSuite {
   final List<String> extraVmOptions;
   List<Uri> _dart2JsBootstrapDependencies;
 
+  static final Uri co19SuiteLocation = Repository.uri.resolve("tests/co19_2/");
+  static final Uri legacyCo19SuiteLocation =
+      Repository.uri.resolve("tests/co19/");
+
   StandardTestSuite(Configuration configuration, String suiteName,
       Path suiteDirectory, List<String> statusFilePaths,
       {this.isTestFilePredicate, bool recursive: false})
@@ -760,7 +764,7 @@ class StandardTestSuite extends TestSuite {
     if (!isTestFile(filename)) return;
     Path filePath = new Path(filename);
 
-    var optionsFromFile = readOptionsFromFile(filePath);
+    var optionsFromFile = readOptionsFromFile(new Uri.file(filename));
     CreateTest createTestCase = makeTestCaseCreator(optionsFromFile);
 
     if (optionsFromFile['isMultitest'] as bool) {
@@ -1427,11 +1431,12 @@ class StandardTestSuite extends TestSuite {
    * This method is static as the map is cached and shared amongst
    * configurations, so it may not use [configuration].
    */
-  Map<String, dynamic> readOptionsFromFile(Path filePath) {
-    if (filePath.filename.endsWith('.dill')) {
+  Map<String, dynamic> readOptionsFromFile(Uri uri) {
+    if (uri.path.endsWith('.dill')) {
       return optionsFromKernelFile();
-    } else if (filePath.segments().any(['co19', 'co19_2'].contains)) {
-      return readOptionsFromCo19File(filePath);
+    } else if ("$uri".startsWith("$co19SuiteLocation") ||
+        "$uri".startsWith("$legacyCo19SuiteLocation")) {
+      return readOptionsFromCo19File(uri);
     }
     RegExp testOptionsRegExp = new RegExp(r"// VMOptions=(.*)");
     RegExp environmentRegExp = new RegExp(r"// Environment=(.*)");
@@ -1445,7 +1450,7 @@ class StandardTestSuite extends TestSuite {
         r"^[#]?import.*dart:(html|web_audio|indexed_db|svg|web_sql)",
         multiLine: true);
 
-    var bytes = new File(filePath.toNativePath()).readAsBytesSync();
+    var bytes = new File.fromUri(uri).readAsBytesSync();
     String contents = decodeUtf8(bytes);
     bytes = null;
 
@@ -1467,7 +1472,7 @@ class StandardTestSuite extends TestSuite {
       for (var match in matches) {
         if (options != null) {
           throw new Exception(
-              'More than one "// $name=" line in test $filePath');
+              'More than one "// $name=" line in test ${uri.toFilePath()}');
         }
         options = wordSplit(match[1]);
       }
@@ -1498,14 +1503,15 @@ class StandardTestSuite extends TestSuite {
     for (var match in matches) {
       if (packageRoot != null || packages != null) {
         throw new Exception(
-            'More than one "// Package... line in test $filePath');
+            'More than one "// Package... line in test ${uri.toFilePath()}');
       }
       packageRoot = match[1];
       if (packageRoot != 'none') {
         // PackageRoot=none means that no packages or package-root option
         // should be given. Any other value overrides package-root and
         // removes any packages option.  Don't use with // Packages=.
-        packageRoot = '${filePath.directoryPath.join(new Path(packageRoot))}';
+        packageRoot =
+            uri.resolveUri(new Uri.directory(packageRoot)).toFilePath();
       }
     }
 
@@ -1513,14 +1519,14 @@ class StandardTestSuite extends TestSuite {
     for (var match in matches) {
       if (packages != null || packageRoot != null) {
         throw new Exception(
-            'More than one "// Package..." line in test $filePath');
+            'More than one "// Package..." line in test ${uri.toFilePath()}');
       }
       packages = match[1];
       if (packages != 'none') {
         // Packages=none means that no packages or package-root option
         // should be given. Any other value overrides packages and removes
         // any package-root option. Don't use with // PackageRoot=.
-        packages = '${filePath.directoryPath.join(new Path(packages))}';
+        packages = uri.resolveUri(new Uri.file(packages)).toFilePath();
       }
     }
 
@@ -1656,9 +1662,8 @@ class StandardTestSuite extends TestSuite {
    * pass the co19 test suite as is, and not require extra flags,
    * environment variables, configuration files, etc.
    */
-  Map<String, dynamic> readOptionsFromCo19File(Path filePath) {
-    String contents =
-        decodeUtf8(new File(filePath.toNativePath()).readAsBytesSync());
+  Map<String, dynamic> readOptionsFromCo19File(Uri uri) {
+    String contents = decodeUtf8(new File.fromUri(uri).readAsBytesSync());
 
     bool hasSyntaxError = contents.contains("@syntax-error");
     bool hasCompileError =
