@@ -75,6 +75,9 @@ the assignment to `y`.
   * `MapBase`: added `mapToString`.
   * `LinkedHashMap` no longer implements `HashMap`
   * `LinkedHashSet` no longer implements `HashSet`.
+  * Added `of` constructor to `Queue`, `ListQueue`,
+    `DoubleLinkedQueue`, `HashSet`, `LinkedHashSet`, `SplayTreeSet`,
+    `Map`, `HashMap`, `LinkedHashMap`, `SplayTreeMap`.
 
 * `dart:convert`
 
@@ -114,6 +117,7 @@ the assignment to `y`.
       * *Note*: if a class extends `IterableBase`, `ListBase`, `SetBase` or
         `MapBase` (or uses the corresponding mixins) from `dart:collection`, the
         new members are implemented automatically.
+      * Added `of` constructor to `List`, `Set`, `Map`.
   * Renamed `double.INFINITY`, `double.NEGATIVE_INFINITY`, `double.NAN`,
     `double.MAX_FINITE` and `double.MIN_POSITIVE`
     to `double.infinity`, `double.negativeInfinity`, `double.nan`,

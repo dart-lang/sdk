@@ -61,7 +61,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /**
    * Creates a [Set] that contains all [elements].
    *
-   * All the [elements] should be assignable to [E].
+   * All the [elements] should be instances of [E].
    * The `elements` iterable itself can have any type,
    * so this constructor can be used to down-cast a `Set`, for example as:
    *
@@ -77,6 +77,18 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
    * `new LinkedHashSet<E>.from(elements)`.
    */
   factory Set.from(Iterable elements) = LinkedHashSet<E>.from;
+
+  /**
+   * Creates a [Set] from [elements].
+   *
+   * The created [Set] is a [LinkedHashSet]. As such, it considers elements that
+   * are equal (using [==]) to be indistinguishable, and requires them to
+   * have a compatible [Object.hashCode] implementation.
+   *
+   * The set is equivalent to one created by
+   * `new LinkedHashSet<E>.of(elements)`.
+   */
+  factory Set.of(Iterable<E> elements) = LinkedHashSet<E>.of;
 
   /**
    * Adapts [source] to be a `Set<T>`.
