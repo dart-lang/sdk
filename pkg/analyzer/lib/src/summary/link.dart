@@ -3266,6 +3266,9 @@ class FunctionElementForLink_Initializer extends Object
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
+  String toString() => _variable.toString();
+
+  @override
   void _setInferenceError(TopLevelInferenceErrorBuilder error) {
     assert(!_hasTypeBeenInferred);
     _inferenceError = error;
@@ -3391,6 +3394,9 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  String toString() => enclosingElement.toString();
 
   @override
   void _setInferenceError(TopLevelInferenceErrorBuilder error) {}

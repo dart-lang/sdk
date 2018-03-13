@@ -185,9 +185,9 @@ abstract class AbstractConstExprSerializer {
    */
   EntityRefBuilder serializeIdentifierSequence(Expression expr);
 
-  void serializeInstanceCreation(
-      EntityRefBuilder constructor, ArgumentList argumentList) {
-    _serializeArguments(argumentList);
+  void serializeInstanceCreation(EntityRefBuilder constructor,
+      ArgumentList argumentList, bool typeArgumentsProvided) {
+    _serializeArguments(argumentList, typeArgumentsProvided);
     references.add(constructor);
     operations.add(UnlinkedExprOperation.invokeConstructor);
   }
@@ -368,7 +368,8 @@ abstract class AbstractConstExprSerializer {
       serializeInstanceCreation(
           serializeConstructorRef(typeName.type, typeName.name,
               typeName.typeArguments, expr.constructorName.name),
-          expr.argumentList);
+          expr.argumentList,
+          typeName.typeArguments != null);
     } else if (expr is ListLiteral) {
       _serializeListLiteral(expr);
     } else if (expr is MapLiteral) {
@@ -441,8 +442,9 @@ abstract class AbstractConstExprSerializer {
     }
   }
 
-  void _serializeArguments(ArgumentList argumentList) {
-    if (forConst) {
+  void _serializeArguments(
+      ArgumentList argumentList, bool typeArgumentsProvided) {
+    if (forConst || !typeArgumentsProvided) {
       List<Expression> arguments = argumentList.arguments;
       // Serialize the arguments.
       List<String> argumentNames = <String>[];
@@ -601,7 +603,7 @@ abstract class AbstractConstExprSerializer {
     ArgumentList argumentList = invocation.argumentList;
     if (_isIdentifierSequence(methodName)) {
       EntityRefBuilder ref = serializeIdentifierSequence(methodName);
-      _serializeArguments(argumentList);
+      _serializeArguments(argumentList, invocation.typeArguments != null);
       references.add(ref);
       _serializeTypeArguments(invocation.typeArguments);
       operations.add(UnlinkedExprOperation.invokeMethodRef);
@@ -609,7 +611,7 @@ abstract class AbstractConstExprSerializer {
       if (!invocation.isCascaded) {
         _serialize(target);
       }
-      _serializeArguments(argumentList);
+      _serializeArguments(argumentList, invocation.typeArguments != null);
       strings.add(methodName.name);
       _serializeTypeArguments(invocation.typeArguments);
       operations.add(UnlinkedExprOperation.invokeMethod);

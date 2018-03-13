@@ -4361,12 +4361,6 @@ class InferredTypeTest_Driver extends InferredTypeTest {
 
   @failingTest
   @override
-  test_genericMethods_usesGreatestLowerBound_topLevel() async {
-    await super.test_genericMethods_usesGreatestLowerBound_topLevel();
-  }
-
-  @failingTest
-  @override
   test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2() async {
     await super
         .test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2();
@@ -4377,11 +4371,5 @@ class InferredTypeTest_Driver extends InferredTypeTest {
   test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2() async {
     await super
         .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2();
-  }
-
-  @failingTest
-  @override
-  test_voidReturnTypeEquivalentToDynamic() async {
-    await super.test_voidReturnTypeEquivalentToDynamic();
   }
 }
