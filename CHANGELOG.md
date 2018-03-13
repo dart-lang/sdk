@@ -1,3 +1,15 @@
+# 0.1.44
+
+* new `avoid_relative_lib_imports` lint
+* new `unnecessary_parenthesis` lint
+* fix to `prefer_const_literals_to_create_immutables` to handle undefined classes gracefully
+* updates to `prefer_const_declarations` to support optional `new` and `const`
+* `prefer_const_declarations` updated to check locals
+* fixes to `invariant_booleans`
+* bumped SDK lower bound to `2.0.0-dev`
+* build and workflow improvements: rule template fixes; formatting and header validation
+* miscellaneous documentation fixes
+
 # 0.1.43
 
 * new `prefer_const_declarations.dart` lint
