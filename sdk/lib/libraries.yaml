@@ -81,9 +81,9 @@ vm:
     developer:
       uri: "developer/developer.dart"
       patches:
-        - "../../runtime/lib/developer.dart"
-        - "../../runtime/lib/profiler.dart"
-        - "../../runtime/lib/timeline.dart"
+        - "../../runtime/lib/developer_patch.dart"
+        - "../../runtime/lib/profiler_patch.dart"
+        - "../../runtime/lib/timeline_patch.dart"
 
     _http:
       uri: "_http/http.dart"

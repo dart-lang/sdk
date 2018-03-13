@@ -1153,6 +1153,16 @@ void KernelLoader::FinishClassLoading(const Class& klass,
 
     const String& name =
         H.DartConstructorName(constructor_helper.canonical_name_);
+
+    // We can have synthetic constructors, which will not have a source uri
+    // attached to them (which means the index into the source uri table is 0,
+    // see `package:kernel/binary/ast_to_binary::writeUriReference`.
+    const Object* owner = &klass;
+    const intptr_t source_uri_index = constructor_helper.source_uri_index_;
+    if (source_uri_index != 0) {
+      owner = &ClassForScriptAt(klass, source_uri_index);
+    }
+
     Function& function = Function::ZoneHandle(
         Z, Function::New(name, RawFunction::kConstructor,
                          false,  // is_static
@@ -1160,7 +1170,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                          false,  // is_abstract
                          constructor_helper.IsExternal(),
                          false,  // is_native
-                         klass, constructor_helper.position_));
+                         *owner, constructor_helper.position_));
     function.set_end_token_pos(constructor_helper.end_position_);
     functions_.Add(&function);
     function.set_kernel_offset(constructor_offset);
