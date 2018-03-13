@@ -510,10 +510,12 @@ partial_tearoff_instantiation_test/07: Crash # Issue http://dartbug.com/32340
 partial_tearoff_instantiation_test/08: Crash # Issue http://dartbug.com/32340
 partial_tearoff_instantiation_test/none: Crash # Issue http://dartbug.com/32340
 
+[ $compiler != dart2js && $compiler != dartk && $compiler != dartkp && $fasta ]
+const_optional_args_test/01: MissingCompileTimeError
+
 [ $compiler != dart2js && $fasta ]
 compile_time_constant_c_test/02: MissingCompileTimeError
 const_constructor_nonconst_field_test/01: MissingCompileTimeError
-const_optional_args_test/01: MissingCompileTimeError
 const_syntax_test/05: MissingCompileTimeError
 mixin_of_mixin_test/01: MissingCompileTimeError
 mixin_of_mixin_test/02: MissingCompileTimeError
@@ -2184,5 +2186,4 @@ unresolved_top_level_var_test: MissingCompileTimeError
 [ $compiler == dartk || $compiler == dartkp ]
 generic_function_bounds_test: RuntimeError # Issue 32076
 generic_test/01: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e.*: MissingCompileTimeError
 
