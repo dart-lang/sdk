@@ -408,4 +408,6 @@ class MapEntry<K, V> {
   const factory MapEntry(K key, V value) = MapEntry<K, V>._;
 
   const MapEntry._(this.key, this.value);
+
+  String toString() => "MapEntry($key: $value)";
 }

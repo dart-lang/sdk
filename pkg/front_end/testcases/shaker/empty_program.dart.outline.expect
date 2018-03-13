@@ -434,6 +434,7 @@ abstract class Map<K extends self::Object, V extends self::Object> extends self:
 class MapEntry<K extends self::Object, V extends self::Object> extends self::Object {
   final field self::MapEntry::K key;
   final field self::MapEntry::V value;
+  method toString() → self::String;
 }
 class Null extends self::Object {
   external get hashCode() → self::int;
