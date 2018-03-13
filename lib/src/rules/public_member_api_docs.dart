@@ -6,11 +6,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
-import 'package:path/path.dart' as path;
 
 const _desc = r'Document all public members.';
 
@@ -114,34 +111,6 @@ class _Visitor extends GeneralizingAstVisitor {
   bool isOverridingMember(Declaration node) =>
       getOverriddenMember(node.element) != null;
 
-  /// Return true if the given node is declared in a compilation unit that is in
-  /// a `lib/` folder.
-  bool _isDefinedInLib(CompilationUnit compilationUnit) {
-    String fullName = compilationUnit?.element?.source?.fullName;
-    if (fullName == null) {
-      return false;
-    }
-
-    // TODO(devoncarew): Change to using the resource provider on the context
-    // when that is available.
-    ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
-    File file = resourceProvider.getFile(fullName);
-    Folder folder = file.parent;
-
-    // Look for a pubspec.yaml file.
-    while (folder != null) {
-      if (folder.getChildAssumingFile('pubspec.yaml').exists) {
-        // Determine if this file is a child of the lib/ folder.
-        String relPath = file.path.substring(folder.path.length + 1);
-        return path.split(relPath).first == 'lib';
-      }
-
-      folder = folder.parent;
-    }
-
-    return false;
-  }
-
   @override
   visitClassDeclaration(ClassDeclaration node) {
     if (!isInLibFolder) return;
@@ -213,7 +182,7 @@ class _Visitor extends GeneralizingAstVisitor {
   @override
   visitCompilationUnit(CompilationUnit node) {
     // Ignore this compilation unit if its not in the lib/ folder.
-    isInLibFolder = _isDefinedInLib(node);
+    isInLibFolder = isDefinedInLib(node);
     if (!isInLibFolder) return;
 
     LibraryElement library = node == null

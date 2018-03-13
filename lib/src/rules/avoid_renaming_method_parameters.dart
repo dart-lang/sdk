@@ -1,12 +1,13 @@
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+import 'dart:math' as math;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
+import 'package:linter/src/ast.dart';
 
 const _desc = r"Don't rename parameters of overridden methods.";
 
@@ -66,6 +67,7 @@ class Visitor extends SimpleAstVisitor {
     ClassDeclaration clazz = node.parent;
 
     if (clazz.element.isPrivate) return;
+    if (!isDefinedInLib(getCompilationUnit(node))) return;
 
     final parentMethod = clazz.element
         .lookUpInheritedMethod(node.name.name, clazz.element.library);
@@ -78,7 +80,8 @@ class Visitor extends SimpleAstVisitor {
     final parentParameters = parentMethod.parameters
         .where((p) => p.parameterKind != ParameterKind.NAMED)
         .toList();
-    for (var i = 0; i < parameters.length; i++) {
+    int count = math.min(parameters.length, parentParameters.length);
+    for (var i = 0; i < count; i++) {
       if (parentParameters.length <= i) break;
       if (parameters[i].identifier.name != parentParameters[i].name) {
         rule.reportLint(parameters[i].identifier);
