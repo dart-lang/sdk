@@ -636,15 +636,6 @@ class ExitCodesTest extends BaseTest {
     expect(exitCode, 0);
   }
 
-  test_partFile_reversed() async {
-    Driver driver = new Driver(isTesting: true);
-    await driver.start([
-      path.join(testDirectory, 'data/library_and_parts/part1.dart'),
-      path.join(testDirectory, 'data/library_and_parts/lib.dart')
-    ]);
-    expect(exitCode, 0);
-  }
-
   test_partFile_dangling() async {
     await drive('data/library_and_parts/part2.dart');
     expect(exitCode, 3);
@@ -657,6 +648,15 @@ class ExitCodesTest extends BaseTest {
       path.join(testDirectory, 'data/library_and_parts/part2.dart')
     ]);
     expect(exitCode, 3);
+  }
+
+  test_partFile_reversed() async {
+    Driver driver = new Driver(isTesting: true);
+    await driver.start([
+      path.join(testDirectory, 'data/library_and_parts/part1.dart'),
+      path.join(testDirectory, 'data/library_and_parts/lib.dart')
+    ]);
+    expect(exitCode, 0);
   }
 }
 
@@ -851,6 +851,43 @@ class OptionsTest extends BaseTest {
   ErrorProcessor processorFor(AnalysisError error) =>
       processors.firstWhere((p) => p.appliesTo(error));
 
+  test_analysisOptions_excludes() async {
+    await drive('data/exclude_test_project',
+        options: 'data/exclude_test_project/$optionsFileName');
+    _expectUndefinedClassErrorsWithoutExclusions(usePreviewDart2);
+  }
+
+  test_analysisOptions_excludesRelativeToAnalysisOptions_explicit() async {
+    // The exclude is relative to the project, not/ the analyzed path, and it
+    // has to then understand that.
+    await drive('data/exclude_test_project',
+        options: 'data/exclude_test_project/$optionsFileName');
+    _expectUndefinedClassErrorsWithoutExclusions(usePreviewDart2);
+  }
+
+  test_analysisOptions_excludesRelativeToAnalysisOptions_inferred() async {
+    // By passing no options, and the path `lib`, it should discover the
+    // analysis_options above lib. The exclude is relative to the project, not
+    // the analyzed path, and it has to then understand that.
+    await drive('data/exclude_test_project/lib', options: null);
+    _expectUndefinedClassErrorsWithoutExclusions(usePreviewDart2);
+  }
+
+  test_analyzeFilesInDifferentContexts() async {
+    await driveMany([
+      'data/linter_project/test_file.dart',
+      'data/no_lints_project/test_file.dart',
+    ], options: null);
+
+    // Should have the lint in the project with lint rules enabled.
+    expect(
+        bulletToDash(outSink),
+        contains(path.join('linter_project', 'test_file.dart') +
+            ':7:7 - camel_case_types'));
+    // Should be just one lint in total.
+    expect(outSink.toString(), contains('1 lint found.'));
+  }
+
   test_basic_filters() async {
     await _driveBasic();
     expect(processors, hasLength(3));
@@ -947,54 +984,20 @@ class OptionsTest extends BaseTest {
     expect(outSink.toString(), contains("1 error and 1 warning found."));
   }
 
-  test_analyzeFilesInDifferentContexts() async {
-    await driveMany([
-      'data/linter_project/test_file.dart',
-      'data/no_lints_project/test_file.dart',
-    ], options: null);
-
-    // Should have the lint in the project with lint rules enabled.
-    expect(
-        bulletToDash(outSink),
-        contains(path.join('linter_project', 'test_file.dart') +
-            ':7:7 - camel_case_types'));
-    // Should be just one lint in total.
-    expect(outSink.toString(), contains('1 lint found.'));
-  }
-
-  test_analysisOptions_excludes() async {
-    await drive('data/exclude_test_project',
-        options: 'data/exclude_test_project/$optionsFileName');
-    _expectUndefinedClassErrorsWithoutExclusions();
-  }
-
-  test_analysisOptions_excludesRelativeToAnalysisOptions_inferred() async {
-    // By passing no options, and the path `lib`, it should discover the
-    // analysis_options above lib. The exclude is relative to the project, not
-    // the analyzed path, and it has to then understand that.
-    await drive('data/exclude_test_project/lib', options: null);
-    _expectUndefinedClassErrorsWithoutExclusions();
-  }
-
-  test_analysisOptions_excludesRelativeToAnalysisOptions_explicit() async {
-    // The exclude is relative to the project, not/ the analyzed path, and it
-    // has to then understand that.
-    await drive('data/exclude_test_project',
-        options: 'data/exclude_test_project/$optionsFileName');
-    _expectUndefinedClassErrorsWithoutExclusions();
-  }
-
-  void _expectUndefinedClassErrorsWithoutExclusions() {
-    expect(bulletToDash(outSink),
-        contains("warning - Undefined class 'IncludedUndefinedClass'"));
-    expect(bulletToDash(outSink),
-        isNot(contains("warning - Undefined class 'ExcludedUndefinedClass'")));
-    expect(outSink.toString(), contains("1 warning found."));
-  }
-
   Future<Null> _driveBasic() async {
     await drive('data/options_tests_project/test_file.dart',
         options: 'data/options_tests_project/$optionsFileName');
+  }
+
+  void _expectUndefinedClassErrorsWithoutExclusions(bool isStrong) {
+    final String issueType = isStrong ? 'error' : 'warning';
+    expect(bulletToDash(outSink),
+        contains("$issueType - Undefined class 'IncludedUndefinedClass'"));
+    expect(
+        bulletToDash(outSink),
+        isNot(
+            contains("$issueType - Undefined class 'ExcludedUndefinedClass'")));
+    expect(outSink.toString(), contains("1 $issueType found."));
   }
 }
 
@@ -1008,6 +1011,20 @@ class OptionsTest_PreviewDart2 extends OptionsTest {
 class OptionsTest_UseCFE extends OptionsTest {
   @override
   bool get useCFE => true;
+
+  @override
+  @failingTest
+  test_analysisOptions_excludes() => super.test_analysisOptions_excludes();
+
+  @override
+  @failingTest
+  test_analysisOptions_excludesRelativeToAnalysisOptions_explicit() =>
+      super.test_analysisOptions_excludesRelativeToAnalysisOptions_explicit();
+
+  @override
+  @failingTest
+  test_analysisOptions_excludesRelativeToAnalysisOptions_inferred() =>
+      super.test_analysisOptions_excludesRelativeToAnalysisOptions_inferred();
 
   @override
   @failingTest
@@ -1033,20 +1050,6 @@ class OptionsTest_UseCFE extends OptionsTest {
   @failingTest
   test_withFlags_overrideFatalWarning() =>
       super.test_withFlags_overrideFatalWarning();
-
-  @override
-  @failingTest
-  test_analysisOptions_excludes() => super.test_analysisOptions_excludes();
-
-  @override
-  @failingTest
-  test_analysisOptions_excludesRelativeToAnalysisOptions_inferred() =>
-      super.test_analysisOptions_excludesRelativeToAnalysisOptions_inferred();
-
-  @override
-  @failingTest
-  test_analysisOptions_excludesRelativeToAnalysisOptions_explicit() =>
-      super.test_analysisOptions_excludesRelativeToAnalysisOptions_explicit();
 }
 
 class TestSource implements Source {

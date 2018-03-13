@@ -1,3 +1,3 @@
 main() {
-  undefined();
+  final String foo;
 }
