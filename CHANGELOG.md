@@ -349,6 +349,9 @@ the `PUB_ALLOW_PRERELEASE_SDK` environment variable to `false`.
 * Fix `pub global run` for packages activated from a local path that also have
   relative path dependencies ([issue 1751][pub#1751]).
 
+* `pub build` and `pub serve` support using the common front-end in the dart2js
+  transformer.
+
 [pub#1684]: https://github.com/dart-lang/pub/issues/1684
 [pub#1719]: https://github.com/dart-lang/pub/issues/1719
 [pub#1679]: https://github.com/dart-lang/pub/issues/1679
