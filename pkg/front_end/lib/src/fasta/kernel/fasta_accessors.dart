@@ -6,6 +6,8 @@ library fasta.fasta_accessors;
 
 import '../../scanner/token.dart' show Token;
 
+import '../constant_context.dart' show ConstantContext;
+
 import '../fasta_codes.dart'
     show
         LocatedMessage,
@@ -81,7 +83,7 @@ abstract class BuilderHelper<Arguments> {
 
   int get functionNestingLevel;
 
-  bool get constantExpressionRequired;
+  ConstantContext get constantContext;
 
   Forest<Expression, Statement, Token, Arguments> get forest;
 
@@ -256,7 +258,8 @@ abstract class FastaAccessor<Arguments> implements Accessor<Arguments> {
           send.arguments, offsetForToken(send.token),
           isNullAware: isNullAware);
     } else {
-      if (helper.constantExpressionRequired && send.name != lengthName) {
+      if (helper.constantContext != ConstantContext.none &&
+          send.name != lengthName) {
         helper.deprecated_addCompileTimeError(
             offsetForToken(token), "Not a constant expression.");
       }
@@ -877,7 +880,8 @@ class StaticAccessor<Arguments> extends kernel.StaticAccessor<Arguments>
   String get plainNameForRead => (readTarget ?? writeTarget).name.name;
 
   Expression doInvocation(int offset, Arguments arguments) {
-    if (helper.constantExpressionRequired && !helper.isIdentical(readTarget)) {
+    if (helper.constantContext != ConstantContext.none &&
+        !helper.isIdentical(readTarget)) {
       helper.deprecated_addCompileTimeError(
           offset, "Not a constant expression.");
     }
@@ -972,7 +976,7 @@ class SuperPropertyAccessor<Arguments> extends kernel
   String get plainNameForRead => name.name;
 
   Expression doInvocation(int offset, Arguments arguments) {
-    if (helper.constantExpressionRequired) {
+    if (helper.constantContext != ConstantContext.none) {
       helper.deprecated_addCompileTimeError(
           offset, "Not a constant expression.");
     }
@@ -1244,7 +1248,7 @@ class TypeDeclarationAccessor<Arguments> extends ReadOnlyAccessor<Arguments> {
               name.name,
               null,
               token.charOffset,
-              helper.constantExpressionRequired);
+              helper.constantContext == ConstantContext.inferred);
         }
       } else {
         Builder setter;
@@ -1371,8 +1375,14 @@ class TypeDeclarationAccessor<Arguments> extends ReadOnlyAccessor<Arguments> {
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
-    return helper.buildConstructorInvocation(declaration, token, arguments, "",
-        null, token.charOffset, helper.constantExpressionRequired);
+    return helper.buildConstructorInvocation(
+        declaration,
+        token,
+        arguments,
+        "",
+        null,
+        token.charOffset,
+        helper.constantContext == ConstantContext.inferred);
   }
 }
 

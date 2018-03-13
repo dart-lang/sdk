@@ -16,6 +16,8 @@ import '../../scanner/token.dart' show Token;
 
 import '../builder/builder.dart';
 
+import '../constant_context.dart' show ConstantContext;
+
 import '../deprecated_problems.dart'
     show Crash, deprecated_InputError, deprecated_inputError;
 
@@ -545,9 +547,12 @@ class DietListener extends StackListener {
     var typeInferrer = library.disableTypeInference
         ? typeInferenceEngine.createDisabledTypeInferrer()
         : typeInferenceEngine.createLocalTypeInferrer(uri, thisType, library);
+    ConstantContext constantContext = builder.isConstructor && builder.isConst
+        ? ConstantContext.inferred
+        : ConstantContext.none;
     return new BodyBuilder(library, builder, memberScope, formalParameterScope,
         hierarchy, coreTypes, currentClass, isInstanceMember, uri, typeInferrer)
-      ..constantExpressionRequired = builder.isConstructor && builder.isConst;
+      ..constantContext = constantContext;
   }
 
   void buildFunctionBody(
