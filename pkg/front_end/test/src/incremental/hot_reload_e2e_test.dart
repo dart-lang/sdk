@@ -71,6 +71,7 @@ abstract class TestCase {
     fs.entityForUri(root).createDirectory();
     writeFile(fs, 'a.dart', sourceA);
     writeFile(fs, 'b.dart', sourceB);
+    writeFile(fs, 'c.dart', sourceC);
     writeFile(fs, '.packages', '');
     compiler = createIncrementalCompiler(
         'org-dartlang-test:///a.dart', new HybridFileSystem(fs));
@@ -230,6 +231,55 @@ class ReloadTwice extends TestCase {
   }
 }
 
+class ReloadToplevelField extends TestCase {
+  @override
+  String get name => "reload top level field";
+
+  @override
+  Future run() async {
+    await startProgram(2);
+    Expect.stringEquals("part1 part2", await lines[1]);
+
+    writeFile(fs, 'b.dart', sourceB.replaceAll("part1", "part3"));
+    writeFile(fs, 'c.dart', r"""
+      void g() {
+        bField.a("a");
+      }
+
+      class B {
+        dynamic a;
+        B({this.a});
+      }
+
+      var bField = new B(a: (String s) => "$s");
+    """);
+
+    await rebuild(compiler, outputUri);
+    await hotReload();
+    Expect.stringEquals("part3 part2", await lines[2]);
+
+    writeFile(fs, 'b.dart', sourceB.replaceAll("part1", "part4"));
+    writeFile(fs, 'c.dart', r"""
+      void g() {
+        bField.a("a");
+      }
+
+      class B {
+        dynamic a;
+        dynamic b;
+        B({this.a});
+      }
+
+      var bField = new B(a: (String s) => "$s");
+    """);
+
+    await rebuild(compiler, outputUri);
+    await hotReload();
+    Expect.stringEquals("part4 part2", await lines[3]);
+    await programIsDone;
+  }
+}
+
 main() {
   asyncTest(() async {
     await new InitialProgramIsValid().test();
@@ -237,6 +287,7 @@ main() {
     await new ReloadAfterNonLeafLibraryModification().test();
     await new ReloadAfterWholeProgramModification().test();
     await new ReloadTwice().test();
+    await new ReloadToplevelField().test();
   });
 }
 
@@ -256,6 +307,7 @@ IncrementalKernelGenerator createIncrementalCompiler(
 Future<bool> rebuild(IncrementalKernelGenerator compiler, Uri outputUri) async {
   compiler.invalidate(Uri.parse("org-dartlang-test:///a.dart"));
   compiler.invalidate(Uri.parse("org-dartlang-test:///b.dart"));
+  compiler.invalidate(Uri.parse("org-dartlang-test:///c.dart"));
   var program = await compiler.computeDelta();
   if (program != null && !program.libraries.isEmpty) {
     await writeProgram(program, outputUri);
@@ -287,10 +339,12 @@ void writeFile(MemoryFileSystem fs, String fileName, String contents) {
 const sourceA = r'''
 import 'dart:async';
 import 'b.dart';
+import 'c.dart';
 
 void main(List<String> args) {
   var last = f();
   print(last);
+  g();
 
   // The argument indicates how many "visible" hot-reloads to run
   int reloadCount = 0;
@@ -303,6 +357,7 @@ void main(List<String> args) {
     var result = f();
     if (last != result) {
       print(result);
+      g();
       last = result;
       if (--reloadCount == 0) timer.cancel();
     }
@@ -314,6 +369,10 @@ f() => "$line part2";
 
 const sourceB = r'''
 get line => "part1";
+''';
+
+const sourceC = r'''
+void g() {}
 ''';
 
 RegExp observatoryPortRegExp =

@@ -5113,7 +5113,10 @@ void StreamingFlowGraphBuilder::ReportUnexpectedTag(const char* variant,
   H.ReportError(script_, TokenPosition::kNoSource,
                 "Unexpected tag %d (%s) in %s, expected %s", tag,
                 Reader::TagName(tag),
-                parsed_function()->function().ToQualifiedCString(), variant);
+                flow_graph_builder_ != NULL && parsed_function() != NULL
+                    ? parsed_function()->function().ToQualifiedCString()
+                    : "?",
+                variant);
 }
 
 void StreamingFlowGraphBuilder::SkipDartType() {
