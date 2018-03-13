@@ -358,7 +358,7 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
         return 6;
       } else {
         ASSERT(STRING_STARTS_WITH(format, "bitpos"));
-        int bitpos = instr->Bits(19, 4) | (instr->Bit(31) << 5);
+        int bitpos = instr->Bits(19, 5) | (instr->Bit(31) << 5);
         buffer_pos_ +=
             Utils::SNPrint(current_position_in_buffer(),
                            remaining_size_in_buffer(), "#%d", bitpos);

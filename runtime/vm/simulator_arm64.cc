@@ -1700,19 +1700,19 @@ void Simulator::DecodeSystem(Instr* instr) {
 
 void Simulator::DecodeTestAndBranch(Instr* instr) {
   const int op = instr->Bit(24);
-  const int bitpos = instr->Bits(19, 4) | (instr->Bit(31) << 5);
+  const int bitpos = instr->Bits(19, 5) | (instr->Bit(31) << 5);
   const int64_t imm14 = instr->SImm14Field();
   const int64_t dest = get_pc() + (imm14 << 2);
   const Register rt = instr->RtField();
   const int64_t rt_val = get_register(rt, R31IsZR);
   if (op == 0) {
     // Format(instr, "tbz'sf 'rt, 'bitpos, 'dest14");
-    if ((rt_val & (1 << bitpos)) == 0) {
+    if ((rt_val & (1ll << bitpos)) == 0) {
       set_pc(dest);
     }
   } else {
     // Format(instr, "tbnz'sf 'rt, 'bitpos, 'dest14");
-    if ((rt_val & (1 << bitpos)) != 0) {
+    if ((rt_val & (1ll << bitpos)) != 0) {
       set_pc(dest);
     }
   }

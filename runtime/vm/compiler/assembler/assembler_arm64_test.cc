@@ -1008,15 +1008,22 @@ ASSEMBLER_TEST_RUN(CmpBranchIfNotZeroNotTaken, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
+static const int64_t kBits5And35 = (1 << 5) | (1ll << 35);
+
 ASSEMBLER_TEST_GENERATE(TstBranchIfZero, assembler) {
-  Label l;
+  Label l, l2;
 
   __ movz(R0, Immediate(42), 0);
-  __ movz(R1, Immediate((0 << 5) | 1), 0);
+  __ LoadImmediate(R1, ~kBits5And35);
 
   __ tbz(&l, R1, 5);
   __ movz(R0, Immediate(0), 0);
   __ Bind(&l);
+
+  __ tbz(&l2, R1, 35);
+  __ movz(R0, Immediate(0), 0);
+  __ Bind(&l2);
+
   __ ret();
 }
 
@@ -1029,7 +1036,7 @@ ASSEMBLER_TEST_GENERATE(TstBranchIfZeroNotTaken, assembler) {
   Label l;
 
   __ movz(R0, Immediate(0), 0);
-  __ movz(R1, Immediate((1 << 5) | 1), 0);
+  __ LoadImmediate(R1, kBits5And35);
 
   __ tbz(&l, R1, 5);
   __ movz(R0, Immediate(42), 0);
@@ -1043,14 +1050,19 @@ ASSEMBLER_TEST_RUN(TstBranchIfZeroNotTaken, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(TstBranchIfNotZero, assembler) {
-  Label l;
+  Label l, l2;
 
   __ movz(R0, Immediate(42), 0);
-  __ movz(R1, Immediate((1 << 5) | 1), 0);
+  __ LoadImmediate(R1, kBits5And35);
 
   __ tbnz(&l, R1, 5);
   __ movz(R0, Immediate(0), 0);
   __ Bind(&l);
+
+  __ tbnz(&l2, R1, 35);
+  __ movz(R0, Immediate(0), 0);
+  __ Bind(&l2);
+
   __ ret();
 }
 
@@ -1063,7 +1075,7 @@ ASSEMBLER_TEST_GENERATE(TstBranchIfNotZeroNotTaken, assembler) {
   Label l;
 
   __ movz(R0, Immediate(0), 0);
-  __ movz(R1, Immediate((0 << 5) | 1), 0);
+  __ LoadImmediate(R1, ~kBits5And35);
 
   __ tbnz(&l, R1, 5);
   __ movz(R0, Immediate(42), 0);
@@ -1080,7 +1092,7 @@ ASSEMBLER_TEST_GENERATE(TstBranchIfZeroFar, assembler) {
   Label l;
 
   __ movz(R0, Immediate(42), 0);
-  __ movz(R1, Immediate((0 << 5) | 1), 0);
+  __ LoadImmediate(R1, ~kBits5And35);
 
   __ tbz(&l, R1, 5);
 
@@ -1103,7 +1115,7 @@ ASSEMBLER_TEST_GENERATE(TstBranchIfNotZeroFar, assembler) {
   Label l;
 
   __ movz(R0, Immediate(42), 0);
-  __ movz(R1, Immediate((1 << 5) | 1), 0);
+  __ LoadImmediate(R1, kBits5And35);
 
   __ tbnz(&l, R1, 5);
 

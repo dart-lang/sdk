@@ -1841,9 +1841,11 @@ class Assembler : public ValueObject {
     ASSERT(Utils::IsInt(16, imm) && ((imm & 0x3) == 0));
     ASSERT((rt != CSP) && (rt != R31));
     const Register crt = ConcreteRegister(rt);
-    const int32_t encoding = op | (static_cast<int32_t>(bit_number) << 19) |
-                             (static_cast<int32_t>(crt) << kRtShift) |
-                             encoded_offset;
+    int32_t bit_number_low = bit_number & 0x1f;
+    int32_t bit_number_hi = (bit_number & 0x20) >> 5;
+    const int32_t encoding =
+        op | (bit_number_low << 19) | (bit_number_hi << 31) |
+        (static_cast<int32_t>(crt) << kRtShift) | encoded_offset;
     Emit(encoding);
   }
 
