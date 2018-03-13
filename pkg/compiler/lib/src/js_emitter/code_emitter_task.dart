@@ -171,7 +171,7 @@ class CodeEmitterTask extends CompilerTask {
           backend.mirrorsData,
           backend.rtiEncoder,
           codegenWorldBuilder);
-      typeTestRegistry = new TypeTestRegistry(
+      typeTestRegistry = new TypeTestRegistry(compiler.options,
           codegenWorldBuilder, closedWorld, closedWorld.elementEnvironment);
     });
   }

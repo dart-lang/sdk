@@ -14,6 +14,7 @@ import '../js_backend/runtime_types.dart'
         RuntimeTypesChecksBuilder,
         RuntimeTypesSubstitutions;
 import '../js_backend/mirrors_data.dart';
+import '../options.dart';
 import '../universe/world_builder.dart';
 import '../world.dart' show ClosedWorld;
 
@@ -24,13 +25,14 @@ class TypeTestRegistry {
   /// used for RTI.
   Set<ClassEntity> _rtiNeededClasses;
 
+  final CompilerOptions _options;
   final CodegenWorldBuilder _codegenWorldBuilder;
   final ClosedWorld _closedWorld;
 
   RuntimeTypesChecks _rtiChecks;
 
-  TypeTestRegistry(
-      this._codegenWorldBuilder, this._closedWorld, this._elementEnvironment);
+  TypeTestRegistry(this._options, this._codegenWorldBuilder, this._closedWorld,
+      this._elementEnvironment);
 
   RuntimeTypesChecks get rtiChecks {
     assert(
@@ -111,6 +113,7 @@ class TypeTestRegistry {
   }
 
   void computeRequiredTypeChecks(RuntimeTypesChecksBuilder rtiChecksBuilder) {
-    _rtiChecks = rtiChecksBuilder.computeRequiredChecks(_codegenWorldBuilder);
+    _rtiChecks = rtiChecksBuilder.computeRequiredChecks(_codegenWorldBuilder,
+        strongMode: _options.strongMode);
   }
 }

@@ -97,6 +97,8 @@ abstract class RuntimeTypesNeed {
   /// and when it is needed.
   bool localFunctionNeedsSignature(Local localFunction);
 
+  /// Returns `true` if a dynamic call of [selector] needs to pass type
+  /// arguments.
   bool selectorNeedsTypeArguments(Selector selector);
 }
 
@@ -137,7 +139,7 @@ abstract class RuntimeTypesNeedBuilder {
   /// Computes the [RuntimeTypesNeed] for the data registered with this builder.
   RuntimeTypesNeed computeRuntimeTypesNeed(
       ResolutionWorldBuilder resolutionWorldBuilder, ClosedWorld closedWorld,
-      {bool enableTypeAssertions});
+      {bool enableTypeAssertions, bool strongMode});
 }
 
 class TrivialRuntimeTypesNeedBuilder implements RuntimeTypesNeedBuilder {
@@ -155,7 +157,7 @@ class TrivialRuntimeTypesNeedBuilder implements RuntimeTypesNeedBuilder {
   @override
   RuntimeTypesNeed computeRuntimeTypesNeed(
       ResolutionWorldBuilder resolutionWorldBuilder, ClosedWorld closedWorld,
-      {bool enableTypeAssertions}) {
+      {bool enableTypeAssertions, bool strongMode}) {
     return const TrivialRuntimeTypesNeed();
   }
 }
@@ -197,7 +199,8 @@ abstract class RuntimeTypesChecksBuilder {
 
   /// Computes the [RuntimeTypesChecks] for the data in this builder.
   RuntimeTypesChecks computeRequiredChecks(
-      CodegenWorldBuilder codegenWorldBuilder);
+      CodegenWorldBuilder codegenWorldBuilder,
+      {bool strongMode});
 
   bool get rtiChecksBuilderClosed;
 }
@@ -217,7 +220,8 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
 
   @override
   RuntimeTypesChecks computeRequiredChecks(
-      CodegenWorldBuilder codegenWorldBuilder) {
+      CodegenWorldBuilder codegenWorldBuilder,
+      {bool strongMode}) {
     rtiChecksBuilderClosed = true;
 
     Map<ClassEntity, ClassUse> classUseMap = <ClassEntity, ClassUse>{};
@@ -229,7 +233,8 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
         ..checkedInstance = true
         ..typeArgument = true
         ..checkedTypeArgument = true
-        ..functionType = _computeFunctionType(_elementEnvironment, cls);
+        ..functionType = _computeFunctionType(_elementEnvironment, cls,
+            strongMode: strongMode);
       classUseMap[cls] = classUse;
     }
     TypeChecks typeChecks = _substitutions._requiredChecks =
@@ -1273,7 +1278,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
   @override
   RuntimeTypesNeed computeRuntimeTypesNeed(
       ResolutionWorldBuilder resolutionWorldBuilder, ClosedWorld closedWorld,
-      {bool enableTypeAssertions}) {
+      {bool enableTypeAssertions, bool strongMode}) {
     TypeVariableTests typeVariableTests = new TypeVariableTests(
         closedWorld.elementEnvironment,
         closedWorld.commonElements,
@@ -1526,7 +1531,8 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
   }
 
   RuntimeTypesChecks computeRequiredChecks(
-      CodegenWorldBuilder codegenWorldBuilder) {
+      CodegenWorldBuilder codegenWorldBuilder,
+      {bool strongMode}) {
     TypeVariableTests typeVariableTests = new TypeVariableTests(
         _elementEnvironment, _commonElements, _types, codegenWorldBuilder,
         forRtiNeeds: false);
@@ -1620,8 +1626,9 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
       Set<ClassEntity> processedClasses = new Set<ClassEntity>();
 
       void processClass(ClassEntity cls) {
-        ClassFunctionType functionType =
-            _computeFunctionType(_elementEnvironment, cls);
+        ClassFunctionType functionType = _computeFunctionType(
+            _elementEnvironment, cls,
+            strongMode: strongMode);
         if (functionType != null) {
           ClassUse classUse =
               classUseMap.putIfAbsent(cls, () => new ClassUse());
@@ -1653,9 +1660,14 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
   }
 }
 
-// TODO(johnniwinther): Handle Dart 2 semantics.
+/// Computes the function type of [cls], if any.
+///
+/// In Dart 1, any class with a `call` method has a function type, in Dart 2
+/// only closure classes have a function type.
 ClassFunctionType _computeFunctionType(
-    ElementEnvironment _elementEnvironment, ClassEntity cls) {
+    ElementEnvironment _elementEnvironment, ClassEntity cls,
+    {bool strongMode}) {
+  if (strongMode && !cls.isClosure) return null;
   MemberEntity call =
       _elementEnvironment.lookupLocalClassMember(cls, Identifiers.call);
   if (call != null && call.isFunction) {

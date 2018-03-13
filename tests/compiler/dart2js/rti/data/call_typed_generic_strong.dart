@@ -2,12 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*class: global#Map:*/
-/*class: global#LinkedHashMap:deps=[Map]*/
-/*class: global#JsLinkedHashMap:deps=[LinkedHashMap]*/
-/*class: global#double:explicit=[double]*/
-/*class: global#JSDouble:*/
+import 'package:expect/expect.dart';
+import 'package:meta/dart2js.dart';
+
+class A<T> {
+  call(T t) {}
+}
+
+@noInline
+test(o) => o is Function(int);
 
 main() {
-  <int, double>{}[0] = 0.5;
+  Expect.isFalse(test(new A<int>()));
+  Expect.isFalse(test(new A<String>()));
 }

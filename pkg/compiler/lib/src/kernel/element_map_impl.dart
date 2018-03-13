@@ -2004,7 +2004,8 @@ class KernelClosedWorld extends ClosedWorldBase
             classHierarchyNodes,
             classSets) {
     computeRtiNeed(resolutionWorldBuilder, rtiNeedBuilder,
-        enableTypeAssertions: options.enableTypeAssertions);
+        enableTypeAssertions: options.enableTypeAssertions,
+        strongMode: options.strongMode);
   }
 
   @override

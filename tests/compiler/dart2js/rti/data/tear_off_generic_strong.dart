@@ -2,12 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*class: global#Map:*/
-/*class: global#LinkedHashMap:deps=[Map]*/
-/*class: global#JsLinkedHashMap:deps=[LinkedHashMap]*/
-/*class: global#double:explicit=[double]*/
-/*class: global#JSDouble:*/
+/*class: A:needsArgs*/
+class A<T> {
+  /*element: A.m:needsSignature*/
+  void m(T t) {}
+
+  /*element: A.f:*/
+  void f(int t) {}
+}
 
 main() {
-  <int, double>{}[0] = 0.5;
+  new A<int>().m is void Function(int);
+  new A<int>().f is void Function(int);
 }
