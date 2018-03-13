@@ -93,6 +93,8 @@ import 'token_stream_rewriter.dart' show TokenStreamRewriter;
 import 'type_continuation.dart'
     show TypeContinuation, typeContinuationFromFormalParameterKind;
 
+import 'type_info.dart' show isGeneralizedFunctionType, isValidTypeReference;
+
 import 'util.dart' show closeBraceTokenFor, optional;
 
 /// An event generating parser of Dart programs. This parser expects all tokens
@@ -1466,20 +1468,6 @@ class Parser {
         : beforeStart;
   }
 
-  bool isValidTypeReference(Token token) {
-    int kind = token.kind;
-    if (IDENTIFIER_TOKEN == kind) return true;
-    if (KEYWORD_TOKEN == kind) {
-      TokenType type = token.type;
-      String value = type.lexeme;
-      return type.isPseudo ||
-          (type.isBuiltIn && optional('.', token.next)) ||
-          (identical(value, 'dynamic')) ||
-          (identical(value, 'void'));
-    }
-    return false;
-  }
-
   /// Returns `true` if [token] matches '<' type (',' type)* '>' '(', and
   /// otherwise returns `false`. The final '(' is not part of the grammar
   /// construct `typeArguments`, but it is required here such that type
@@ -2239,11 +2227,6 @@ class Parser {
   bool notEofOrValue(String value, Token token) {
     return !identical(token.kind, EOF_TOKEN) &&
         !identical(value, token.stringValue);
-  }
-
-  bool isGeneralizedFunctionType(Token token) {
-    return optional('Function', token) &&
-        (optional('<', token.next) || optional('(', token.next));
   }
 
   /// Parse a type, if it is appropriate to do so.
