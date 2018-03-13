@@ -1,7 +1,15 @@
+Contributing to the Linter
+==========================
+
+[![Build Status](https://travis-ci.org/dart-lang/linter.svg)](https://travis-ci.org/dart-lang/linter)
+
 Want to contribute? Great! First, read this page (including the small print at
 the end).
 
 ### Before you contribute
+
+_See also: [Dart's code of conduct](https://www.dartlang.org/code-of-conduct)_
+
 Before we can use your code, you must sign the
 [Google Individual Contributor License Agreement](https://cla.developers.google.com/about/google-individual)
 (CLA), which you can do online. The CLA is necessary mainly because you own the
