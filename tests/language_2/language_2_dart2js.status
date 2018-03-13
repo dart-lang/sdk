@@ -584,6 +584,18 @@ type_argument_in_super_type_test: RuntimeError
 assertion_test: RuntimeError, OK
 
 [ $compiler == dart2js && !$checked && $fasta ]
+constructor_call_as_function_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_prefix_constructor_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_constructor_named_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_prefix_constructor_named_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_constructor_named_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_constructor_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_constructor_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_or_const_composite_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_or_const_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_prefix_constructor_named_test: CompileTimeError # Issue 32517
+
 cascaded_forwarding_stubs_generic_test: RuntimeError
 cascaded_forwarding_stubs_test: RuntimeError
 checked_setter3_test: RuntimeError # Issue 31128

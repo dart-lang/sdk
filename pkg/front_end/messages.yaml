@@ -2031,3 +2031,11 @@ ImplicitCallOfNonMethod:
   template: "Can't invoke the type '#type' because its declaration of `.call` is not a method."
   tip: "Change .call to a method or explicitly invoke .call."
   severity: ERROR
+
+# TODO(ahe): Remove this message when the underlying issue is fixed.
+CantDetermineConstness:
+  template: "The keyword 'const' or 'new' is required here. Due to an implementation limit, the compiler isn't able to infer 'const' or 'new' here."
+  severity: ERROR
+  expression:
+    - "Object()"
+    - "bool.fromEnvironment('fisk')"

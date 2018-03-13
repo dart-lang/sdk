@@ -25,6 +25,7 @@ const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
 const_switch2_test/01: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
+constructor_call_as_function_test/01: CompileTimeError # Issue 32517
 constructor_redirect1_negative_test: Fail
 constructor_redirect2_negative_test: Fail
 constructor_redirect_test/01: MissingCompileTimeError

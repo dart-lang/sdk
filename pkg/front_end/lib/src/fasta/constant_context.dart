@@ -10,7 +10,8 @@ enum ConstantContext {
   /// This means that `Object()` and `[]` are equivalent to `new Object()` and
   /// `[]` respectively. `new Object()` is **not** a compile-time error.
   ///
-  /// TODO(ahe): `Object()` is always a compile-time constant. See [magic
+  /// TODO(ahe): Update the above specification and corresponding
+  /// implementation because `Object()` is a compile-time constant. See [magic
   /// const](
   /// ../../../../../../docs/language/informal/docs/language/informal/implicit-creation.md
   /// ).

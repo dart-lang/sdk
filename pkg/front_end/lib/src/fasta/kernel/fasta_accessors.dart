@@ -34,6 +34,8 @@ import '../type_inference/type_promotion.dart' show TypePromoter;
 
 import 'body_builder.dart' show Identifier, noLocation;
 
+import 'constness.dart' show Constness;
+
 import 'forest.dart' show Forest;
 
 import 'frontend_accessors.dart' as kernel
@@ -118,7 +120,7 @@ abstract class BuilderHelper<Arguments> {
       [int charOffset = -1]);
 
   Expression buildStaticInvocation(Procedure target, Arguments arguments,
-      {bool isConst, int charOffset, Member initialTarget});
+      {Constness constness, int charOffset, Member initialTarget});
 
   Expression buildProblemExpression(
       ProblemBuilder builder, int offset, int length);
@@ -160,7 +162,7 @@ abstract class BuilderHelper<Arguments> {
       String name,
       List<DartType> typeArguments,
       int charOffset,
-      bool isConst);
+      Constness constness);
 
   DartType validatedTypeVariableUse(
       TypeParameterType type, int offset, bool nonInstanceAccessIsError);
@@ -1241,14 +1243,8 @@ class TypeDeclarationAccessor<Arguments> extends ReadOnlyAccessor<Arguments> {
         if (send is IncompletePropertyAccessor) {
           accessor = new UnresolvedAccessor(helper, name, send.token);
         } else {
-          return helper.buildConstructorInvocation(
-              declaration,
-              send.token,
-              arguments,
-              name.name,
-              null,
-              token.charOffset,
-              helper.constantContext == ConstantContext.inferred);
+          return helper.buildConstructorInvocation(declaration, send.token,
+              arguments, name.name, null, token.charOffset, Constness.implicit);
         }
       } else {
         Builder setter;
@@ -1375,14 +1371,8 @@ class TypeDeclarationAccessor<Arguments> extends ReadOnlyAccessor<Arguments> {
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
-    return helper.buildConstructorInvocation(
-        declaration,
-        token,
-        arguments,
-        "",
-        null,
-        token.charOffset,
-        helper.constantContext == ConstantContext.inferred);
+    return helper.buildConstructorInvocation(declaration, token, arguments, "",
+        null, token.charOffset, Constness.implicit);
   }
 }
 

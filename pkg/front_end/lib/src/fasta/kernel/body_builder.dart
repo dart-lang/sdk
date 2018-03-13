@@ -60,6 +60,8 @@ import '../type_inference/type_inferrer.dart' show TypeInferrer;
 
 import '../type_inference/type_promotion.dart' show TypePromoter;
 
+import 'constness.dart' show Constness;
+
 import 'fangorn.dart' show Fangorn;
 
 import 'forest.dart' show Forest;
@@ -2417,10 +2419,11 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
 
   @override
   Expression buildStaticInvocation(Member target, Arguments arguments,
-      {bool isConst: false,
+      {Constness constness: Constness.implicit,
       int charOffset: -1,
       Member initialTarget,
       List<DartType> targetTypeArguments}) {
+    bool isConst = constness == Constness.explicitConst;
     initialTarget ??= target;
     List<TypeParameter> typeParameters = target.function.typeParameters;
     if (target is Constructor) {
@@ -2446,7 +2449,14 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
           argMessage: argMessage);
     }
     if (target is Constructor) {
-      if (isConst && !target.isConst) {
+      isConst =
+          isConst || constantContext != ConstantContext.none && target.isConst;
+      if (constness == Constness.implicit &&
+          target.isConst &&
+          constantContext != ConstantContext.inferred) {
+        return buildCompileTimeError(
+            fasta.messageCantDetermineConstness, charOffset, noLength);
+      } else if (isConst && !target.isConst) {
         return deprecated_buildCompileTimeError(
             "Not a const constructor.", charOffset);
       }
@@ -2456,7 +2466,14 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         ..fileOffset = charOffset;
     } else {
       Procedure procedure = target;
-      if (isConst && !procedure.isConst) {
+      isConst = isConst ||
+          constantContext != ConstantContext.none && procedure.isConst;
+      if (constness == Constness.implicit &&
+          procedure.isConst &&
+          constantContext != ConstantContext.inferred) {
+        return buildCompileTimeError(
+            fasta.messageCantDetermineConstness, charOffset, noLength);
+      } else if (isConst && !procedure.isConst) {
         return deprecated_buildCompileTimeError(
             "Not a const factory.", charOffset);
       } else if (procedure.isFactory) {
@@ -2620,7 +2637,9 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
           name,
           typeArguments,
           token.charOffset,
-          optional("const", token) || optional("@", token));
+          optional("const", token) || optional("@", token)
+              ? Constness.explicitConst
+              : Constness.explicitNew);
       push(deferredPrefix != null
           ? wrapInDeferredCheck(expression, deferredPrefix, checkOffset)
           : expression);
@@ -2641,7 +2660,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       String name,
       List<DartType> typeArguments,
       int charOffset,
-      bool isConst) {
+      Constness constness) {
     if (arguments == null) {
       return deprecated_buildCompileTimeError(
           "No arguments.", nameToken.charOffset);
@@ -2710,7 +2729,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       if (target is Constructor ||
           (target is Procedure && target.kind == ProcedureKind.Factory)) {
         return buildStaticInvocation(target, arguments,
-            isConst: isConst,
+            constness: constness,
             charOffset: nameToken.charOffset,
             initialTarget: initialTarget,
             targetTypeArguments: targetTypeArguments);
@@ -3701,7 +3720,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   @override
   void deprecated_addCompileTimeError(int charOffset, String message,
       {bool wasHandled: false}) {
-    // TODO(ahe): Consider settting [constantContext] to `ConstantContext.none`
+    // TODO(ahe): Consider setting [constantContext] to `ConstantContext.none`
     // to avoid a long list of errors.
     return library.addCompileTimeError(
         fasta.templateUnspecified.withArguments(message),

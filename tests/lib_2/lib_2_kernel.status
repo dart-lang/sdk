@@ -146,6 +146,7 @@ mirrors/library_metadata_test: RuntimeError
 mirrors/load_library_test: RuntimeError
 mirrors/metadata_allowed_values_test/16: Skip # Flaky, crashes.
 mirrors/metadata_constructed_constant_test: Crash, RuntimeError
+mirrors/metadata_nested_constructor_call_test/06: Pass # Issue 32517
 mirrors/metadata_scope_test/none: RuntimeError
 mirrors/method_mirror_location_test: RuntimeError
 mirrors/method_mirror_source_line_ending_test: Crash
@@ -344,6 +345,7 @@ mirrors/redirecting_factory_different_type_test/02: MissingCompileTimeError
 mirrors/relation_subclass_test: CompileTimeError
 
 [ $fasta && $strong ]
+mirrors/metadata_nested_constructor_call_test/06: MissingCompileTimeError # Issue 32517
 mirrors/top_level_accessors_test/01: MissingCompileTimeError
 
 [ $fasta && !$strong ]
@@ -353,6 +355,7 @@ mirrors/library_imports_bad_metadata_test/01: Crash
 mirrors/metadata_allowed_values_test/02: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/27: MissingCompileTimeError
 mirrors/metadata_constructor_arguments_test/04: MissingCompileTimeError
+mirrors/metadata_nested_constructor_call_test/06: MissingCompileTimeError # Issue 32517
 mirrors/native_class_test: CompileTimeError
 mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
 mirrors/reflect_class_test/01: MissingCompileTimeError

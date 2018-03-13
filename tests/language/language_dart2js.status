@@ -458,7 +458,7 @@ constructor2_test: RuntimeError
 constructor3_test: RuntimeError
 constructor5_test: RuntimeError
 constructor6_test: RuntimeError
-constructor_call_as_function_test/01: MissingRuntimeError
+constructor_call_as_function_test/01: CompileTimeError # Issue 32517
 constructor_named_arguments_test/none: RuntimeError
 constructor_redirect1_negative_test: Crash # Issue 30856
 constructor_redirect2_negative_test: Crash # Issue 30856

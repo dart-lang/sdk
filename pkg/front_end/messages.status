@@ -29,6 +29,7 @@ CannotReadPackagesFile/analyzerCode: Fail
 CannotReadPackagesFile/example: Fail
 CannotReadSdkSpecification/analyzerCode: Fail
 CannotReadSdkSpecification/example: Fail
+CantDetermineConstness/analyzerCode: Fail
 CantInferPackagesFromManyInputs/analyzerCode: Fail
 CantInferPackagesFromManyInputs/example: Fail
 CantInferPackagesFromPackageUri/analyzerCode: Fail
