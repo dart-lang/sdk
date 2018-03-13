@@ -27,6 +27,10 @@ import 'namer.dart';
 
 bool cacheRtiDataForTesting = false;
 
+// TODO(johnniwinther): Remove this when local signatures are optimized for
+// Dart 2.
+const bool optimizeLocalSignaturesForStrongMode = false;
+
 /// For each class, stores the possible class subtype tests that could succeed.
 abstract class TypeChecks {
   /// Get the set of checks required for class [element].
@@ -1341,11 +1345,24 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
         return false;
       }
 
-      for (Local function
-          in resolutionWorldBuilder.localFunctionsWithFreeTypeVariables) {
-        if (checkFunctionType(
-            _elementEnvironment.getLocalFunctionType(function))) {
+      if (strongMode) {
+        assert(!optimizeLocalSignaturesForStrongMode);
+        // TODO(johnniwinther): Optimize generation of signatures for Dart 2.
+        for (Local function in resolutionWorldBuilder.localFunctions) {
+          FunctionType functionType =
+              _elementEnvironment.getLocalFunctionType(function);
+          functionType.forEachTypeVariable((TypeVariableType typeVariable) {
+            potentiallyNeedTypeArguments(typeVariable.element.typeDeclaration);
+          });
           localFunctionsNeedingSignature.add(function);
+        }
+      } else {
+        for (Local function
+            in resolutionWorldBuilder.localFunctionsWithFreeTypeVariables) {
+          if (checkFunctionType(
+              _elementEnvironment.getLocalFunctionType(function))) {
+            localFunctionsNeedingSignature.add(function);
+          }
         }
       }
       for (FunctionEntity function

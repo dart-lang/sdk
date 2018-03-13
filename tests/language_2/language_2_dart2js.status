@@ -1548,7 +1548,6 @@ library_env_test/has_mirror_support: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 library_prefixes_test: CompileTimeError
-list_test: RuntimeError
 local_function2_test/none: RuntimeError
 local_function3_test/none: RuntimeError
 local_function_test/none: RuntimeError
@@ -2407,7 +2406,6 @@ library_env_test/has_mirror_support: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 library_prefixes_test: CompileTimeError
-list_test: RuntimeError
 local_function2_test/none: RuntimeError
 local_function3_test/none: RuntimeError
 local_function_test/none: RuntimeError

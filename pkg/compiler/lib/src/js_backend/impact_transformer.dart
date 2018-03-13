@@ -240,7 +240,8 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           registerImpact(_impacts.closure);
           Local closure = staticUse.element;
           FunctionType type = _elementEnvironment.getLocalFunctionType(closure);
-          if (type.containsTypeVariables) {
+          if (type.containsTypeVariables ||
+              (_options.strongMode && !optimizeLocalSignaturesForStrongMode)) {
             registerImpact(_impacts.computeSignature);
           }
           break;
