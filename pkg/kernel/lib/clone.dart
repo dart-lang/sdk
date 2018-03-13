@@ -391,7 +391,6 @@ class CloneVisitor implements TreeVisitor {
         isSynthetic: node.isSynthetic,
         initializers: node.initializers.map(clone).toList(),
         transformerFlags: node.transformerFlags)
-      ..fileOffset = node.fileOffset
       ..fileEndOffset = node.fileEndOffset;
   }
 
@@ -407,7 +406,6 @@ class CloneVisitor implements TreeVisitor {
         fileUri: node.fileUri,
         forwardingStubSuperTarget: node.forwardingStubSuperTarget,
         forwardingStubInterfaceTarget: node.forwardingStubInterfaceTarget)
-      ..fileOffset = node.fileOffset
       ..fileEndOffset = node.fileEndOffset
       ..isGenericContravariant = node.isGenericContravariant;
   }
@@ -424,7 +422,6 @@ class CloneVisitor implements TreeVisitor {
         hasImplicitSetter: node.hasImplicitSetter,
         transformerFlags: node.transformerFlags,
         fileUri: node.fileUri)
-      ..fileOffset = node.fileOffset
       ..fileEndOffset = node.fileEndOffset
       ..flags = node.flags
       ..flags2 = node.flags2;
@@ -464,7 +461,6 @@ class CloneVisitor implements TreeVisitor {
         returnType: visitType(node.returnType),
         asyncMarker: node.asyncMarker,
         dartAsyncMarker: node.dartAsyncMarker)
-      ..fileOffset = node.fileOffset
       ..fileEndOffset = node.fileEndOffset;
   }
 

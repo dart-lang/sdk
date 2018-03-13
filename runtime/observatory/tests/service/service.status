@@ -48,7 +48,6 @@ add_breakpoint_rpc_kernel_test: SkipByDesign # kernel specific version of add_br
 [ $mode == debug ]
 debugger_location_second_test: Pass, Slow
 debugger_location_test: Pass, Slow
-valid_source_locations_test: Pass, Slow
 
 # Service protocol is not supported in product mode.
 [ $mode == product ]

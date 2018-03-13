@@ -14,8 +14,8 @@ import "dart:async" show Future, Zone;
 import "dart:isolate" show SendPort;
 
 /// These are the additional parts of this patch library:
-// part "profiler_patch.dart"
-// part "timeline_patch.dart"
+// part "profiler.dart"
+// part "timeline.dart"
 
 @patch
 bool debugger({bool when: true, String message}) native "Developer_debugger";

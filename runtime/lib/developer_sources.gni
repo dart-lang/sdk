@@ -6,11 +6,11 @@
 developer_runtime_sources = [
   "developer.cc",
 
-  # developer_patch.dart needs to be the first dart file because it contains
+  # developer.dart needs to be the first dart file because it contains
   # imports.
-  "developer_patch.dart",
+  "developer.dart",
   "profiler.cc",
-  "profiler_patch.dart",
+  "profiler.dart",
   "timeline.cc",
-  "timeline_patch.dart",
+  "timeline.dart",
 ]
