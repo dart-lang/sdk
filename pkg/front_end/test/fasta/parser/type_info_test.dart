@@ -91,312 +91,21 @@ class TokenInfoTest {
     ]);
   }
 
-  void test_computeType() {
-    Token scan(String source) {
-      Token start = scanString(source).tokens;
-      while (start is ErrorToken) {
-        start = start.next;
-      }
-      return new SyntheticToken(TokenType.EOF, 0)..setNext(start);
-    }
+  void test_computeType_basic() {
+    expectInfo(noTypeInfo, '');
+    expectInfo(noTypeInfo, ';');
+    expectInfo(noTypeInfo, '( foo');
+    expectInfo(noTypeInfo, '< foo');
+    expectInfo(noTypeInfo, '= foo');
+    expectInfo(noTypeInfo, '* foo');
+    expectInfo(noTypeInfo, 'do foo');
+    expectInfo(noTypeInfo, 'get foo');
+    expectInfo(noTypeInfo, 'set foo');
+    expectInfo(noTypeInfo, 'operator *');
+  }
 
-    void expectEnd(String tokenAfter, Token end) {
-      if (tokenAfter == null) {
-        expect(end.isEof, isFalse);
-        expect(end.next.isEof, isTrue);
-      } else {
-        expect(end.next.lexeme, tokenAfter);
-      }
-    }
-
-    void compute(expectedInfo, String source, Token start, bool required,
-        String expectedAfter, List<String> expectedCalls) {
-      TypeInfo typeInfo = computeType(start, required);
-      expect(typeInfo, expectedInfo, reason: source);
-      if (typeInfo is ComplexTypeInfo) {
-        TypeInfoListener listener = new TypeInfoListener();
-        Parser parser = new Parser(listener);
-        expect(typeInfo.start, start.next, reason: source);
-        expectEnd(expectedAfter, typeInfo.skipType(start));
-        expectEnd(expectedAfter, typeInfo.parseType(start, parser));
-        if (expectedCalls != null) {
-          // TypeInfoListener listener2 = new TypeInfoListener();
-          // new Parser(listener2).parseType(start, TypeContinuation.Required);
-          // print('[');
-          // for (String call in listener2.calls) {
-          //   print("'$call',");
-          // }
-          // print(']');
-
-          expect(listener.calls, expectedCalls, reason: source);
-        }
-      }
-    }
-
-    void t(expectedInfo, String source,
-        {bool required, String expectedAfter, List<String> expectedCalls}) {
-      Token start = scan(source);
-      if (required == null) {
-        compute(
-            expectedInfo, source, start, true, expectedAfter, expectedCalls);
-        compute(
-            expectedInfo, source, start, false, expectedAfter, expectedCalls);
-      } else {
-        compute(expectedInfo, source, start, required, expectedAfter,
-            expectedCalls);
-      }
-    }
-
-    void tComplex(String source,
-        {bool required, String tokenAfter, List<String> expectedCalls}) {
-      t(const isInstanceOf<ComplexTypeInfo>(), source,
-          required: required,
-          expectedAfter: tokenAfter,
-          expectedCalls: expectedCalls);
-    }
-
-    t(noTypeInfo, '');
-    t(noTypeInfo, ';');
-    t(noTypeInfo, '( foo');
-    t(noTypeInfo, '< foo');
-    t(noTypeInfo, '= foo');
-    t(noTypeInfo, '* foo');
-    t(noTypeInfo, 'do foo');
-    t(noTypeInfo, 'get foo');
-    t(noTypeInfo, 'set foo');
-    t(noTypeInfo, 'operator *');
-
-    // TOOD(danrubel): dynamic, do, other keywords, malformed, recovery
-    // <T>
-
-    t(voidTypeInfo, 'void');
-    t(voidTypeInfo, 'void;');
-    t(voidTypeInfo, 'void(');
-    t(voidTypeInfo, 'void<');
-    t(voidTypeInfo, 'void=');
-    t(voidTypeInfo, 'void*');
-    t(voidTypeInfo, 'void<T>');
-    t(voidTypeInfo, 'void do');
-    t(voidTypeInfo, 'void foo');
-    t(voidTypeInfo, 'void get');
-    t(voidTypeInfo, 'void set');
-    t(voidTypeInfo, 'void operator');
-    t(voidTypeInfo, 'void Function');
-    tComplex('void Function(', // Scanner inserts synthetic ')'.
-        expectedCalls: [
-          'handleNoTypeVariables (',
-          'beginFunctionType void',
-          'handleVoidKeyword void',
-          'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
-          'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-          'endFunctionType Function ',
-        ]);
-
-    t(noTypeInfo, 'C', required: false);
-    t(noTypeInfo, 'C;', required: false);
-    t(noTypeInfo, 'C(', required: false);
-    t(noTypeInfo, 'C<', required: false);
-    t(noTypeInfo, 'C.', required: false);
-    t(noTypeInfo, 'C=', required: false);
-    t(noTypeInfo, 'C*', required: false);
-    t(noTypeInfo, 'C do', required: false);
-
-    t(simpleTypeInfo, 'C', required: true);
-    t(simpleTypeInfo, 'C;', required: true);
-    t(simpleTypeInfo, 'C(', required: true);
-    t(simpleTypeInfo, 'C<', required: true);
-    t(simpleTypeInfo, 'C.', required: true);
-    t(simpleTypeInfo, 'C=', required: true);
-    t(simpleTypeInfo, 'C*', required: true);
-    t(simpleTypeInfo, 'C do', required: true);
-
-    t(noTypeInfo, 'C<>', required: false);
-    tComplex('C<>', required: true, expectedCalls: [
-      'handleIdentifier C typeReference',
-      'beginTypeArguments <',
-      'handleIdentifier  typeReference',
-      'handleNoTypeArguments >',
-      'handleType > >',
-      'endTypeArguments 1 < >',
-      'handleType C ',
-    ]);
-    tComplex('C<> f', required: true, tokenAfter: 'f', expectedCalls: [
-      'handleIdentifier C typeReference',
-      'beginTypeArguments <',
-      'handleIdentifier  typeReference',
-      'handleNoTypeArguments >',
-      'handleType > >',
-      'endTypeArguments 1 < >',
-      'handleType C f',
-    ]);
-
-    t(simpleTypeInfo, 'C foo');
-    t(simpleTypeInfo, 'C get');
-    t(simpleTypeInfo, 'C set');
-    t(simpleTypeInfo, 'C operator');
-    t(simpleTypeInfo, 'C this');
-    t(simpleTypeInfo, 'C Function');
-    tComplex('C Function(', // Scanner inserts synthetic ')'.
-        expectedCalls: [
-          'handleNoTypeVariables (',
-          'beginFunctionType C',
-          'handleIdentifier C typeReference',
-          'handleNoTypeArguments Function',
-          'handleType C Function',
-          'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
-          'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-          'endFunctionType Function ',
-        ]);
-
-    t(noTypeInfo, 'C<T>', required: false);
-    t(noTypeInfo, 'C<T>;', required: false);
-    t(noTypeInfo, 'C<T>(', required: false);
-    t(noTypeInfo, 'C<T> do', required: false);
-
-    t(simpleTypeArgumentsInfo, 'C<T>', required: true);
-    t(simpleTypeArgumentsInfo, 'C<T>;', required: true);
-    t(simpleTypeArgumentsInfo, 'C<T>(', required: true);
-    t(simpleTypeArgumentsInfo, 'C<T> do', required: true);
-
-    t(simpleTypeArgumentsInfo, 'C<T> foo');
-    t(simpleTypeArgumentsInfo, 'C<T> get');
-    t(simpleTypeArgumentsInfo, 'C<T> set');
-    t(simpleTypeArgumentsInfo, 'C<T> operator');
-    t(simpleTypeArgumentsInfo, 'C<T> Function');
-    tComplex('C<T> Function(', // Scanner inserts synthetic ')'.
-        expectedCalls: [
-          'handleNoTypeVariables (',
-          'beginFunctionType C',
-          'handleIdentifier C typeReference',
-          'beginTypeArguments <',
-          'handleIdentifier T typeReference',
-          'handleNoTypeArguments >',
-          'handleType T >',
-          'endTypeArguments 1 < >',
-          'handleType C Function',
-          'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
-          'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-          'endFunctionType Function ',
-        ]);
-
-    // Statements that should not have a type
-    t(noTypeInfo, 'C<T ; T>U;', required: false);
-    t(noTypeInfo, 'C<T && T>U;', required: false);
-
-    t(noTypeInfo, 'C.a', required: false);
-    t(noTypeInfo, 'C.a;', required: false);
-    t(noTypeInfo, 'C.a(', required: false);
-    t(noTypeInfo, 'C.a<', required: false);
-    t(noTypeInfo, 'C.a=', required: false);
-    t(noTypeInfo, 'C.a*', required: false);
-    t(noTypeInfo, 'C.a do', required: false);
-
-    t(prefixedTypeInfo, 'C.a', required: true);
-    t(prefixedTypeInfo, 'C.a;', required: true);
-    t(prefixedTypeInfo, 'C.a(', required: true);
-    t(prefixedTypeInfo, 'C.a<', required: true);
-    t(prefixedTypeInfo, 'C.a=', required: true);
-    t(prefixedTypeInfo, 'C.a*', required: true);
-    t(prefixedTypeInfo, 'C.a do', required: true);
-
-    t(prefixedTypeInfo, 'C.a foo');
-    t(prefixedTypeInfo, 'C.a get');
-    t(prefixedTypeInfo, 'C.a set');
-    t(prefixedTypeInfo, 'C.a operator');
-    t(prefixedTypeInfo, 'C.a Function');
-    tComplex('C.a Function(', // Scanner inserts synthetic ')'.
-        expectedCalls: [
-          'handleNoTypeVariables (',
-          'beginFunctionType C',
-          'handleIdentifier C prefixedTypeReference',
-          'handleIdentifier a typeReferenceContinuation',
-          'handleQualified .',
-          'handleNoTypeArguments Function',
-          'handleType C Function',
-          'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
-          'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-          'endFunctionType Function ',
-        ]);
-
-    t(noTypeInfo, 'C<S,T>', required: false);
-    t(noTypeInfo, 'C<S<T>>', required: false);
-    t(noTypeInfo, 'C.a<T>', required: false);
-
-    tComplex('C<S,T>', required: true, expectedCalls: [
-      'handleIdentifier C typeReference',
-      'beginTypeArguments <',
-      'handleIdentifier S typeReference',
-      'handleNoTypeArguments ,',
-      'handleType S ,',
-      'handleIdentifier T typeReference',
-      'handleNoTypeArguments >',
-      'handleType T >',
-      'endTypeArguments 2 < >',
-      'handleType C ',
-    ]);
-    tComplex('C<S<T>>', required: true, expectedCalls: [
-      'handleIdentifier C typeReference',
-      'beginTypeArguments <',
-      'handleIdentifier S typeReference',
-      'beginTypeArguments <',
-      'handleIdentifier T typeReference',
-      'handleNoTypeArguments >',
-      'handleType T >',
-      'endTypeArguments 1 < >',
-      'handleType S >',
-      'endTypeArguments 1 < >',
-      'handleType C ',
-    ]);
-    tComplex('C.a<T>', required: true, expectedCalls: [
-      'handleIdentifier C prefixedTypeReference',
-      'handleIdentifier a typeReferenceContinuation',
-      'handleQualified .',
-      'beginTypeArguments <',
-      'handleIdentifier T typeReference',
-      'handleNoTypeArguments >',
-      'handleType T >',
-      'endTypeArguments 1 < >',
-      'handleType C ',
-    ]);
-
-    tComplex('C<S,T> f', tokenAfter: 'f', expectedCalls: [
-      'handleIdentifier C typeReference',
-      'beginTypeArguments <',
-      'handleIdentifier S typeReference',
-      'handleNoTypeArguments ,',
-      'handleType S ,',
-      'handleIdentifier T typeReference',
-      'handleNoTypeArguments >',
-      'handleType T >',
-      'endTypeArguments 2 < >',
-      'handleType C f',
-    ]);
-    tComplex('C<S<T>> f', tokenAfter: 'f', expectedCalls: [
-      'handleIdentifier C typeReference',
-      'beginTypeArguments <',
-      'handleIdentifier S typeReference',
-      'beginTypeArguments <',
-      'handleIdentifier T typeReference',
-      'handleNoTypeArguments >',
-      'handleType T >',
-      'endTypeArguments 1 < >',
-      'handleType S >',
-      'endTypeArguments 1 < >',
-      'handleType C f',
-    ]);
-    tComplex('C.a<T> f', tokenAfter: 'f', expectedCalls: [
-      'handleIdentifier C prefixedTypeReference',
-      'handleIdentifier a typeReferenceContinuation',
-      'handleQualified .',
-      'beginTypeArguments <',
-      'handleIdentifier T typeReference',
-      'handleNoTypeArguments >',
-      'handleType T >',
-      'endTypeArguments 1 < >',
-      'handleType C f',
-    ]);
-
-    tComplex('Function()', expectedCalls: [
+  void test_computeType_gft() {
+    expectComplexInfo('Function()', expectedCalls: [
       'handleNoTypeVariables (',
       'beginFunctionType Function',
       'handleNoType ',
@@ -404,7 +113,7 @@ class TokenInfoTest {
       'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
       'endFunctionType Function ',
     ]);
-    tComplex('Function<T>()', expectedCalls: [
+    expectComplexInfo('Function<T>()', expectedCalls: [
       'beginTypeVariables <',
       'beginTypeVariable T',
       'beginMetadataStar T',
@@ -419,7 +128,7 @@ class TokenInfoTest {
       'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
       'endFunctionType Function ',
     ]);
-    tComplex('Function(int)', expectedCalls: [
+    expectComplexInfo('Function(int)', expectedCalls: [
       'handleNoTypeVariables (',
       'beginFunctionType Function',
       'handleNoType ',
@@ -438,7 +147,7 @@ class TokenInfoTest {
       'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
       'endFunctionType Function ',
     ]);
-    tComplex('Function<T>(int)', expectedCalls: [
+    expectComplexInfo('Function<T>(int)', expectedCalls: [
       'beginTypeVariables <',
       'beginTypeVariable T',
       'beginMetadataStar T',
@@ -463,38 +172,225 @@ class TokenInfoTest {
       'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
       'endFunctionType Function ',
     ]);
-    tComplex('Function(int x)');
-    tComplex('Function<T>(int x)');
-    tComplex('Function<T>(int x) Function<T>(int x)');
+    expectComplexInfo('Function(int x)');
+    expectComplexInfo('Function<T>(int x)');
+    expectComplexInfo('Function<T>(int x) Function<T>(int x)');
+  }
 
-    tComplex('C Function()');
-    tComplex('C Function<T>()');
-    tComplex('C Function(int)');
-    tComplex('C Function<T>(int)');
-    tComplex('C Function(int x)');
-    tComplex('C Function<T>(int x)');
-    tComplex('C Function<T>(int x) Function<T>(int x)');
-    tComplex('C.a Function<T>(int x) Function<T>(int x)');
-    tComplex('C<T> Function<T>(int x) Function<T>(int x)');
-    tComplex('C.a<T> Function<T>(int x) Function<T>(int x)', expectedCalls: [
-      'beginTypeVariables <',
-      'beginTypeVariable T',
-      'beginMetadataStar T',
-      'endMetadataStar 0',
-      'handleIdentifier T typeVariableDeclaration',
-      'handleNoType T',
-      'endTypeVariable > null',
-      'endTypeVariables 1 < >',
-      'beginFunctionType C',
-      'beginTypeVariables <',
-      'beginTypeVariable T',
-      'beginMetadataStar T',
-      'endMetadataStar 0',
-      'handleIdentifier T typeVariableDeclaration',
-      'handleNoType T',
-      'endTypeVariable > null',
-      'endTypeVariables 1 < >',
-      'beginFunctionType C',
+  void test_computeType_identifier() {
+    expectInfo(noTypeInfo, 'C', required: false);
+    expectInfo(noTypeInfo, 'C;', required: false);
+    expectInfo(noTypeInfo, 'C(', required: false);
+    expectInfo(noTypeInfo, 'C<', required: false);
+    expectInfo(noTypeInfo, 'C.', required: false);
+    expectInfo(noTypeInfo, 'C=', required: false);
+    expectInfo(noTypeInfo, 'C*', required: false);
+    expectInfo(noTypeInfo, 'C do', required: false);
+
+    expectInfo(simpleTypeInfo, 'C', required: true);
+    expectInfo(simpleTypeInfo, 'C;', required: true);
+    expectInfo(simpleTypeInfo, 'C(', required: true);
+    expectInfo(simpleTypeInfo, 'C<', required: true);
+    expectInfo(simpleTypeInfo, 'C.', required: true);
+    expectInfo(simpleTypeInfo, 'C=', required: true);
+    expectInfo(simpleTypeInfo, 'C*', required: true);
+    expectInfo(simpleTypeInfo, 'C do', required: true);
+
+    expectInfo(simpleTypeInfo, 'C foo');
+    expectInfo(simpleTypeInfo, 'C get');
+    expectInfo(simpleTypeInfo, 'C set');
+    expectInfo(simpleTypeInfo, 'C operator');
+    expectInfo(simpleTypeInfo, 'C this');
+    expectInfo(simpleTypeInfo, 'C Function');
+  }
+
+  void test_computeType_identifierComplex() {
+    expectComplexInfo('C Function()');
+    expectComplexInfo('C Function<T>()');
+    expectComplexInfo('C Function(int)');
+    expectComplexInfo('C Function<T>(int)');
+    expectComplexInfo('C Function(int x)');
+    expectComplexInfo('C Function<T>(int x)');
+    expectComplexInfo('C Function<T>(int x) Function<T>(int x)');
+    expectComplexInfo('C Function(', // Scanner inserts synthetic ')'.
+        expectedCalls: [
+          'handleNoTypeVariables (',
+          'beginFunctionType C',
+          'handleIdentifier C typeReference',
+          'handleNoTypeArguments Function',
+          'handleType C Function',
+          'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
+          'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
+          'endFunctionType Function ',
+        ]);
+  }
+
+  void test_computeType_identifierTypeArg() {
+    expectInfo(noTypeInfo, 'C<T>', required: false);
+    expectInfo(noTypeInfo, 'C<T>;', required: false);
+    expectInfo(noTypeInfo, 'C<T>(', required: false);
+    expectInfo(noTypeInfo, 'C<T> do', required: false);
+
+    expectInfo(simpleTypeArgumentsInfo, 'C<T>', required: true);
+    expectInfo(simpleTypeArgumentsInfo, 'C<T>;', required: true);
+    expectInfo(simpleTypeArgumentsInfo, 'C<T>(', required: true);
+    expectInfo(simpleTypeArgumentsInfo, 'C<T> do', required: true);
+
+    expectInfo(simpleTypeArgumentsInfo, 'C<T> foo');
+    expectInfo(simpleTypeArgumentsInfo, 'C<T> get');
+    expectInfo(simpleTypeArgumentsInfo, 'C<T> set');
+    expectInfo(simpleTypeArgumentsInfo, 'C<T> operator');
+    expectInfo(simpleTypeArgumentsInfo, 'C<T> Function');
+  }
+
+  void test_computeType_identifierTypeArgComplex() {
+    expectInfo(noTypeInfo, 'C<S,T>', required: false);
+    expectInfo(noTypeInfo, 'C<S<T>>', required: false);
+    expectInfo(noTypeInfo, 'C.a<T>', required: false);
+
+    expectComplexInfo('C<S,T>', required: true, expectedCalls: [
+      'handleIdentifier C typeReference',
+      'beginTypeArguments <',
+      'handleIdentifier S typeReference',
+      'handleNoTypeArguments ,',
+      'handleType S ,',
+      'handleIdentifier T typeReference',
+      'handleNoTypeArguments >',
+      'handleType T >',
+      'endTypeArguments 2 < >',
+      'handleType C ',
+    ]);
+    expectComplexInfo('C<S<T>>', required: true, expectedCalls: [
+      'handleIdentifier C typeReference',
+      'beginTypeArguments <',
+      'handleIdentifier S typeReference',
+      'beginTypeArguments <',
+      'handleIdentifier T typeReference',
+      'handleNoTypeArguments >',
+      'handleType T >',
+      'endTypeArguments 1 < >',
+      'handleType S >',
+      'endTypeArguments 1 < >',
+      'handleType C ',
+    ]);
+    expectComplexInfo('C<S,T> f', tokenAfter: 'f', expectedCalls: [
+      'handleIdentifier C typeReference',
+      'beginTypeArguments <',
+      'handleIdentifier S typeReference',
+      'handleNoTypeArguments ,',
+      'handleType S ,',
+      'handleIdentifier T typeReference',
+      'handleNoTypeArguments >',
+      'handleType T >',
+      'endTypeArguments 2 < >',
+      'handleType C f',
+    ]);
+    expectComplexInfo('C<S<T>> f', tokenAfter: 'f', expectedCalls: [
+      'handleIdentifier C typeReference',
+      'beginTypeArguments <',
+      'handleIdentifier S typeReference',
+      'beginTypeArguments <',
+      'handleIdentifier T typeReference',
+      'handleNoTypeArguments >',
+      'handleType T >',
+      'endTypeArguments 1 < >',
+      'handleType S >',
+      'endTypeArguments 1 < >',
+      'handleType C f',
+    ]);
+  }
+
+  void test_computeType_identifierTypeArgGFT() {
+    expectComplexInfo('C<T> Function(', // Scanner inserts synthetic ')'.
+        expectedCalls: [
+          'handleNoTypeVariables (',
+          'beginFunctionType C',
+          'handleIdentifier C typeReference',
+          'beginTypeArguments <',
+          'handleIdentifier T typeReference',
+          'handleNoTypeArguments >',
+          'handleType T >',
+          'endTypeArguments 1 < >',
+          'handleType C Function',
+          'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
+          'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
+          'endFunctionType Function ',
+        ]);
+    expectComplexInfo('C<T> Function<T>(int x) Function<T>(int x)');
+  }
+
+  void test_computeType_identifierTypeArgRecovery() {
+    // TOOD(danrubel): dynamic, do, other keywords, malformed, recovery
+    // <T>
+
+    expectInfo(noTypeInfo, 'C<>', required: false);
+    expectComplexInfo('C<>', required: true, expectedCalls: [
+      'handleIdentifier C typeReference',
+      'beginTypeArguments <',
+      'handleIdentifier  typeReference',
+      'handleNoTypeArguments >',
+      'handleType > >',
+      'endTypeArguments 1 < >',
+      'handleType C ',
+    ]);
+    expectComplexInfo('C<> f', required: true, tokenAfter: 'f', expectedCalls: [
+      'handleIdentifier C typeReference',
+      'beginTypeArguments <',
+      'handleIdentifier  typeReference',
+      'handleNoTypeArguments >',
+      'handleType > >',
+      'endTypeArguments 1 < >',
+      'handleType C f',
+    ]);
+
+    // Statements that should not have a type
+    expectInfo(noTypeInfo, 'C<T ; T>U;', required: false);
+    expectInfo(noTypeInfo, 'C<T && T>U;', required: false);
+  }
+
+  void test_computeType_prefixed() {
+    expectInfo(noTypeInfo, 'C.a', required: false);
+    expectInfo(noTypeInfo, 'C.a;', required: false);
+    expectInfo(noTypeInfo, 'C.a(', required: false);
+    expectInfo(noTypeInfo, 'C.a<', required: false);
+    expectInfo(noTypeInfo, 'C.a=', required: false);
+    expectInfo(noTypeInfo, 'C.a*', required: false);
+    expectInfo(noTypeInfo, 'C.a do', required: false);
+
+    expectInfo(prefixedTypeInfo, 'C.a', required: true);
+    expectInfo(prefixedTypeInfo, 'C.a;', required: true);
+    expectInfo(prefixedTypeInfo, 'C.a(', required: true);
+    expectInfo(prefixedTypeInfo, 'C.a<', required: true);
+    expectInfo(prefixedTypeInfo, 'C.a=', required: true);
+    expectInfo(prefixedTypeInfo, 'C.a*', required: true);
+    expectInfo(prefixedTypeInfo, 'C.a do', required: true);
+
+    expectInfo(prefixedTypeInfo, 'C.a foo');
+    expectInfo(prefixedTypeInfo, 'C.a get');
+    expectInfo(prefixedTypeInfo, 'C.a set');
+    expectInfo(prefixedTypeInfo, 'C.a operator');
+    expectInfo(prefixedTypeInfo, 'C.a Function');
+  }
+
+  void test_computeType_prefixedGFT() {
+    expectComplexInfo('C.a Function(', // Scanner inserts synthetic ')'.
+        expectedCalls: [
+          'handleNoTypeVariables (',
+          'beginFunctionType C',
+          'handleIdentifier C prefixedTypeReference',
+          'handleIdentifier a typeReferenceContinuation',
+          'handleQualified .',
+          'handleNoTypeArguments Function',
+          'handleType C Function',
+          'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
+          'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
+          'endFunctionType Function ',
+        ]);
+    expectComplexInfo('C.a Function<T>(int x) Function<T>(int x)');
+  }
+
+  void test_computeType_prefixedTypeArg() {
+    expectComplexInfo('C.a<T>', required: true, expectedCalls: [
       'handleIdentifier C prefixedTypeReference',
       'handleIdentifier a typeReferenceContinuation',
       'handleQualified .',
@@ -503,38 +399,110 @@ class TokenInfoTest {
       'handleNoTypeArguments >',
       'handleType T >',
       'endTypeArguments 1 < >',
-      'handleType C Function',
-      'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
-      'beginMetadataStar int',
-      'endMetadataStar 0',
-      'beginFormalParameter int MemberKind.GeneralizedFunctionType',
-      'handleModifiers 0',
-      'handleIdentifier int typeReference',
-      'handleNoTypeArguments x',
-      'handleType int x',
-      'handleIdentifier x formalParameterDeclaration',
-      'handleFormalParameterWithoutValue )',
-      'beginTypeVariables null null x FormalParameterKind.mandatory '
-          'MemberKind.GeneralizedFunctionType',
-      'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function Function',
-      'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
-      'beginMetadataStar int',
-      'endMetadataStar 0',
-      'beginFormalParameter int MemberKind.GeneralizedFunctionType',
-      'handleModifiers 0',
-      'handleIdentifier int typeReference',
-      'handleNoTypeArguments x',
-      'handleType int x',
-      'handleIdentifier x formalParameterDeclaration',
-      'handleFormalParameterWithoutValue )',
-      'beginTypeVariables null null x FormalParameterKind.mandatory '
-          'MemberKind.GeneralizedFunctionType',
-      'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function ',
+      'handleType C ',
     ]);
 
-    tComplex('void Function()', expectedCalls: [
+    expectComplexInfo('C.a<T> f', tokenAfter: 'f', expectedCalls: [
+      'handleIdentifier C prefixedTypeReference',
+      'handleIdentifier a typeReferenceContinuation',
+      'handleQualified .',
+      'beginTypeArguments <',
+      'handleIdentifier T typeReference',
+      'handleNoTypeArguments >',
+      'handleType T >',
+      'endTypeArguments 1 < >',
+      'handleType C f',
+    ]);
+  }
+
+  void test_computeType_prefixedTypeArgGFT() {
+    expectComplexInfo('C.a<T> Function<T>(int x) Function<T>(int x)',
+        expectedCalls: [
+          'beginTypeVariables <',
+          'beginTypeVariable T',
+          'beginMetadataStar T',
+          'endMetadataStar 0',
+          'handleIdentifier T typeVariableDeclaration',
+          'handleNoType T',
+          'endTypeVariable > null',
+          'endTypeVariables 1 < >',
+          'beginFunctionType C',
+          'beginTypeVariables <',
+          'beginTypeVariable T',
+          'beginMetadataStar T',
+          'endMetadataStar 0',
+          'handleIdentifier T typeVariableDeclaration',
+          'handleNoType T',
+          'endTypeVariable > null',
+          'endTypeVariables 1 < >',
+          'beginFunctionType C',
+          'handleIdentifier C prefixedTypeReference',
+          'handleIdentifier a typeReferenceContinuation',
+          'handleQualified .',
+          'beginTypeArguments <',
+          'handleIdentifier T typeReference',
+          'handleNoTypeArguments >',
+          'handleType T >',
+          'endTypeArguments 1 < >',
+          'handleType C Function',
+          'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
+          'beginMetadataStar int',
+          'endMetadataStar 0',
+          'beginFormalParameter int MemberKind.GeneralizedFunctionType',
+          'handleModifiers 0',
+          'handleIdentifier int typeReference',
+          'handleNoTypeArguments x',
+          'handleType int x',
+          'handleIdentifier x formalParameterDeclaration',
+          'handleFormalParameterWithoutValue )',
+          'beginTypeVariables null null x FormalParameterKind.mandatory '
+              'MemberKind.GeneralizedFunctionType',
+          'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
+          'endFunctionType Function Function',
+          'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
+          'beginMetadataStar int',
+          'endMetadataStar 0',
+          'beginFormalParameter int MemberKind.GeneralizedFunctionType',
+          'handleModifiers 0',
+          'handleIdentifier int typeReference',
+          'handleNoTypeArguments x',
+          'handleType int x',
+          'handleIdentifier x formalParameterDeclaration',
+          'handleFormalParameterWithoutValue )',
+          'beginTypeVariables null null x FormalParameterKind.mandatory '
+              'MemberKind.GeneralizedFunctionType',
+          'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
+          'endFunctionType Function ',
+        ]);
+  }
+
+  void test_computeType_void() {
+    expectInfo(voidTypeInfo, 'void');
+    expectInfo(voidTypeInfo, 'void;');
+    expectInfo(voidTypeInfo, 'void(');
+    expectInfo(voidTypeInfo, 'void<');
+    expectInfo(voidTypeInfo, 'void=');
+    expectInfo(voidTypeInfo, 'void*');
+    expectInfo(voidTypeInfo, 'void<T>');
+    expectInfo(voidTypeInfo, 'void do');
+    expectInfo(voidTypeInfo, 'void foo');
+    expectInfo(voidTypeInfo, 'void get');
+    expectInfo(voidTypeInfo, 'void set');
+    expectInfo(voidTypeInfo, 'void operator');
+    expectInfo(voidTypeInfo, 'void Function');
+    expectComplexInfo('void Function(', // Scanner inserts synthetic ')'.
+        expectedCalls: [
+          'handleNoTypeVariables (',
+          'beginFunctionType void',
+          'handleVoidKeyword void',
+          'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
+          'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
+          'endFunctionType Function ',
+        ]);
+  }
+
+  void test_computeType_voidComplex() {
+    expectComplexInfo('void Function()', expectedCalls: [
       'handleNoTypeVariables (',
       'beginFunctionType void',
       'handleVoidKeyword void',
@@ -542,13 +510,74 @@ class TokenInfoTest {
       'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
       'endFunctionType Function ',
     ]);
-    tComplex('void Function<T>()');
-    tComplex('void Function(int)');
-    tComplex('void Function<T>(int)');
-    tComplex('void Function(int x)');
-    tComplex('void Function<T>(int x)');
-    tComplex('void Function<T>(int x) Function<T>(int x)');
+    expectComplexInfo('void Function<T>()');
+    expectComplexInfo('void Function(int)');
+    expectComplexInfo('void Function<T>(int)');
+    expectComplexInfo('void Function(int x)');
+    expectComplexInfo('void Function<T>(int x)');
+    expectComplexInfo('void Function<T>(int x) Function<T>(int x)');
   }
+}
+
+void expectInfo(expectedInfo, String source,
+    {bool required, String expectedAfter, List<String> expectedCalls}) {
+  Token start = scan(source);
+  if (required == null) {
+    compute(expectedInfo, source, start, true, expectedAfter, expectedCalls);
+    compute(expectedInfo, source, start, false, expectedAfter, expectedCalls);
+  } else {
+    compute(
+        expectedInfo, source, start, required, expectedAfter, expectedCalls);
+  }
+}
+
+void expectComplexInfo(String source,
+    {bool required, String tokenAfter, List<String> expectedCalls}) {
+  expectInfo(const isInstanceOf<ComplexTypeInfo>(), source,
+      required: required,
+      expectedAfter: tokenAfter,
+      expectedCalls: expectedCalls);
+}
+
+void compute(expectedInfo, String source, Token start, bool required,
+    String expectedAfter, List<String> expectedCalls) {
+  TypeInfo typeInfo = computeType(start, required);
+  expect(typeInfo, expectedInfo, reason: source);
+  if (typeInfo is ComplexTypeInfo) {
+    TypeInfoListener listener = new TypeInfoListener();
+    Parser parser = new Parser(listener);
+    expect(typeInfo.start, start.next, reason: source);
+    expectEnd(expectedAfter, typeInfo.skipType(start));
+    expectEnd(expectedAfter, typeInfo.parseType(start, parser));
+    if (expectedCalls != null) {
+      // TypeInfoListener listener2 = new TypeInfoListener();
+      // new Parser(listener2).parseType(start, TypeContinuation.Required);
+      // print('[');
+      // for (String call in listener2.calls) {
+      //   print("'$call',");
+      // }
+      // print(']');
+
+      expect(listener.calls, expectedCalls, reason: source);
+    }
+  }
+}
+
+void expectEnd(String tokenAfter, Token end) {
+  if (tokenAfter == null) {
+    expect(end.isEof, isFalse);
+    expect(end.next.isEof, isTrue);
+  } else {
+    expect(end.next.lexeme, tokenAfter);
+  }
+}
+
+Token scan(String source) {
+  Token start = scanString(source).tokens;
+  while (start is ErrorToken) {
+    start = start.next;
+  }
+  return new SyntheticToken(TokenType.EOF, 0)..setNext(start);
 }
 
 class TypeInfoListener implements Listener {
