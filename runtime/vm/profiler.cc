@@ -31,8 +31,7 @@ static const intptr_t kMaxSamplesPerTick = 16;
 
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
 
-#if defined(HOST_OS_ANDROID) || defined(TARGET_ARCH_ARM64) ||                  \
-    defined(TARGET_ARCH_ARM)
+#if defined(TARGET_ARCH_ARM_6) || defined(TARGET_ARCH_ARM_5TE)
 DEFINE_FLAG(int,
             profile_period,
             10000,
