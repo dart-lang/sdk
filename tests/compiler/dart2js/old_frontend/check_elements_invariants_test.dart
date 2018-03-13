@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/apiimpl.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/elements/entities.dart' show ClassEntity;
 import 'package:compiler/src/resolution/class_members.dart'
@@ -14,7 +15,8 @@ import '../memory_compiler.dart';
 const String DART2JS_SOURCE = 'pkg/compiler/lib/src/dart2js.dart';
 const List<String> DART2JS_OPTIONS = const <String>[
   '--categories=Client,Server',
-  '--disable-type-inference'
+  '--disable-type-inference',
+  Flags.useOldFrontend
 ];
 
 Iterable<ClassEntity> computeLiveClasses(CompilerImpl compiler) {

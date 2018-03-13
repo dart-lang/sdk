@@ -44,7 +44,7 @@ Future<Compiler> test(Uri entryPoint,
   print('==================================================================');
   print('test: $entryPoint showPackageWarnings=$showPackageWarnings '
       'suppressHints=$suppressHints');
-  var options = [Flags.analyzeOnly];
+  var options = [Flags.analyzeOnly, Flags.useOldFrontend];
   if (showPackageWarnings) {
     options.add(Flags.showPackageWarnings);
   }

@@ -7,7 +7,7 @@ library source_map_name_test;
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/io/source_information.dart';
 import '../memory_compiler.dart';
 
@@ -71,7 +71,7 @@ main() {
 }
 ''';
 
-check(Element element, String expectedName) {
+check(Entity element, String expectedName) {
   String name = computeElementNameForSourceMaps(element);
   Expect.equals(expectedName, name,
       "Unexpected name '$name' for $element, expected '$expectedName'.");
@@ -82,19 +82,23 @@ main() {
     CompilationResult result =
         await runCompiler(memorySourceFiles: {'main.dart': SOURCE});
     Compiler compiler = result.compiler;
-    LibraryElement mainApp =
-        compiler.frontendStrategy.elementEnvironment.mainLibrary;
+    var env = compiler.backendClosedWorldForTesting.elementEnvironment;
+    LibraryEntity mainApp = env.mainLibrary;
 
-    Element lookup(String name) {
-      Element element;
+    Entity lookup(String name) {
+      Entity element;
       int dotPosition = name.indexOf('.');
       if (dotPosition != -1) {
         String clsName = name.substring(0, dotPosition);
-        ClassElement cls = mainApp.find(clsName);
+        ClassEntity cls = env.lookupClass(mainApp, clsName);
         Expect.isNotNull(cls, "Class '$clsName' not found.");
-        element = cls.localLookup(name.substring(dotPosition + 1));
+        var subname = name.substring(dotPosition + 1);
+        element = env.lookupLocalClassMember(cls, subname) ??
+            env.lookupConstructor(cls, subname);
+      } else if (name.substring(0, 1) == name.substring(0, 1).toUpperCase()) {
+        element = env.lookupClass(mainApp, name);
       } else {
-        element = mainApp.find(name);
+        element = env.lookupLibraryMember(mainApp, name);
       }
       Expect.isNotNull(element, "Element '$name' not found.");
       return element;
@@ -107,51 +111,50 @@ main() {
       }
       dynamic element = lookup(lookupName);
       check(element, expectedName);
-      if (element.isConstructor) {
-        var constructorBody =
-            element.enclosingClass.lookupConstructorBody(element.name);
-        Expect.isNotNull(
-            element, "Constructor body '${element.name}' not found.");
-        check(constructorBody, expectedName);
+      if (element is ConstructorEntity) {
+        env.forEachConstructorBody(element.enclosingClass, (body) {
+          if (body.name != element.name) return;
+          Expect.isNotNull(
+              body, "Constructor body '${element.name}' not found.");
+          check(body, expectedName);
+        });
       }
 
       if (expectedClosureNames != null) {
         int index = 0;
-        for (var closure in element.nestedClosures) {
+        env.forEachNestedClosure(element, (closure) {
           String expectedName = expectedClosureNames[index];
           check(closure, expectedName);
-          check(closure.expression, expectedName);
           check(closure.enclosingClass, expectedName);
           index++;
-        }
+        });
       }
     }
 
     checkName('toplevelField');
     checkName('toplevelMethod');
-    checkName('toplevelAnonymous', ['toplevelAnonymous.<anonymous function>']);
-    checkName('toplevelLocal', ['toplevelLocal.localMethod']);
+    // TODO(johnniwinther): improve closure names.
+    checkName('toplevelAnonymous', ['toplevelAnonymous_closure']);
+    checkName('toplevelLocal', ['toplevelLocal_localMethod']);
     checkName('Class');
     checkName('main');
 
     checkName('Class.staticField');
     checkName('Class.staticMethod');
-    checkName('Class.staticAnonymous',
-        ['Class.staticAnonymous.<anonymous function>']);
-    checkName('Class.staticLocal', ['Class.staticLocal.localMethod']);
+    checkName('Class.staticAnonymous', ['Class_staticAnonymous_closure']);
+    checkName('Class.staticLocal', ['Class_staticLocal_localMethod']);
 
-    checkName('Class', ['Class.<anonymous function>'], 'Class.');
-    checkName('Class.named', ['Class.named.localMethod']);
+    checkName('Class', ['Class_closure'], 'Class.');
+    checkName('Class.named', ['Class\$named_localMethod']);
 
     checkName('Class.instanceField');
     checkName('Class.instanceMethod');
-    checkName('Class.instanceAnonymous',
-        ['Class.instanceAnonymous.<anonymous function>']);
-    checkName('Class.instanceLocal', ['Class.instanceLocal.localMethod']);
+    checkName('Class.instanceAnonymous', ['Class_instanceAnonymous_closure']);
+    checkName('Class.instanceLocal', ['Class_instanceLocal_localMethod']);
     checkName('Class.instanceNestedLocal', [
-      'Class.instanceNestedLocal.localMethod',
-      'Class.instanceNestedLocal.localMethod.<anonymous function>',
-      'Class.instanceNestedLocal.localMethod.nestedLocalMethod'
+      'Class_instanceNestedLocal_localMethod',
+      'Class_instanceNestedLocal_localMethod_closure',
+      'Class_instanceNestedLocal_localMethod_nestedLocalMethod'
     ]);
   });
 }

@@ -191,7 +191,7 @@ class Configuration {
       Compiler.fasta,
     ];
     return fastaCompilers.contains(compiler) ||
-        compiler == Compiler.dart2js && useDart2JSWithKernel;
+        compiler == Compiler.dart2js && !useDart2JSOldFrontend;
   }
 
   /// Returns true if this configuration is considered Dart 2.0 configuration

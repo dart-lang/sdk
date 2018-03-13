@@ -449,9 +449,10 @@ runTestInternal(Test test, {bool useKernel}) async {
   DiagnosticCollector collector = new DiagnosticCollector();
   List<String> options = <String>[];
   if (useKernel) {
-    options.add(Flags.useKernel);
     // TODO(redemption): Enable inlining.
     options.add(Flags.disableInlining);
+  } else {
+    options.add(Flags.useOldFrontend);
   }
   print('--useKernel=${useKernel}--------------------------------------------');
   await runCompiler(

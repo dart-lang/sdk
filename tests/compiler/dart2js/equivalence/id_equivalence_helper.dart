@@ -519,7 +519,7 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
       CompiledData compiledData1 = await computeData(
           entryPoint, memorySourceFiles, computeFromAst,
           computeClassData: computeClassDataFromAst,
-          options: testOptions,
+          options: [Flags.useOldFrontend]..addAll(testOptions),
           verbose: verbose,
           forUserLibrariesOnly: forUserLibrariesOnly,
           globalIds: annotations.globalData.keys);
@@ -536,7 +536,7 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
       CompiledData compiledData2 = await computeData(
           entryPoint, memorySourceFiles, computeFromKernel,
           computeClassData: computeClassDataFromKernel,
-          options: [Flags.useKernel]..addAll(testOptions),
+          options: testOptions,
           verbose: verbose,
           forUserLibrariesOnly: forUserLibrariesOnly,
           globalIds: annotations.globalData.keys);
@@ -762,7 +762,7 @@ Future<bool> compareData(
   print('--from ast----------------------------------------------------------');
   CompiledData data1 = await computeData(
       entryPoint, memorySourceFiles, computeAstData,
-      options: options,
+      options: [Flags.useOldFrontend]..addAll(options),
       forUserLibrariesOnly: forUserLibrariesOnly,
       skipUnprocessedMembers: skipUnprocessedMembers,
       skipFailedCompilations: skipFailedCompilations);
@@ -770,7 +770,7 @@ Future<bool> compareData(
   print('--from kernel-------------------------------------------------------');
   CompiledData data2 = await computeData(
       entryPoint, memorySourceFiles, computeIrData,
-      options: [Flags.useKernel]..addAll(options),
+      options: options,
       forUserLibrariesOnly: forUserLibrariesOnly,
       skipUnprocessedMembers: skipUnprocessedMembers,
       skipFailedCompilations: skipFailedCompilations);

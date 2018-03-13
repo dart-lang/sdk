@@ -212,7 +212,7 @@ main() {
       print(test.code);
       CompilationResult result = await runCompiler(
           memorySourceFiles: {'main.dart': test.code},
-          options: useKernel ? [Flags.useKernel] : []);
+          options: useKernel ? [] : [Flags.useOldFrontend]);
       Compiler compiler = result.compiler;
       checkTest(compiler, test);
     }

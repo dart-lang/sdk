@@ -24,7 +24,7 @@ void main() {
 runTest({bool useKernel}) async {
   CompilationResult result = await runCompiler(
       memorySourceFiles: MEMORY_SOURCE_FILES,
-      options: useKernel ? [Flags.useKernel] : []);
+      options: useKernel ? [] : [Flags.useOldFrontend]);
   Compiler compiler = result.compiler;
   var closedWorld = compiler.backendClosedWorldForTesting;
   var outputUnitForEntity = compiler.backend.outputUnitData.outputUnitForEntity;

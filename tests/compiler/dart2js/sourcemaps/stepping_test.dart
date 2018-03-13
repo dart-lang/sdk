@@ -75,9 +75,8 @@ Future runTest(AnnotatedCode annotatedCode, String config,
     inputFile,
     Flags.disableInlining,
   ];
-  if (config == kernelMarker) {
-    arguments.add(Flags.useKernel);
-  } else {
+  if (config == astMarker) {
+    arguments.add(Flags.useOldFrontend);
     arguments.add(Flags.useNewSourceInfo);
   }
   CompilationResult compilationResult = await entry.internalMain(arguments);

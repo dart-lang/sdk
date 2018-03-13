@@ -5,6 +5,7 @@
 // Test that elements are not needlessly required by dart2js.
 
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
@@ -36,7 +37,8 @@ void checkInstantiated(Compiler compiler, ClassElement cls, bool expected) {
 analyze(String code,
     {bool proxyConstantComputed: false, bool deprecatedClass: false}) async {
   CompilationResult result = await runCompiler(
-      memorySourceFiles: {'main.dart': code}, options: ['--analyze-only']);
+      memorySourceFiles: {'main.dart': code},
+      options: ['--analyze-only', Flags.useOldFrontend]);
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
   Expect.equals(

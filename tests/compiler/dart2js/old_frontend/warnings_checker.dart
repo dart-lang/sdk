@@ -43,7 +43,7 @@ void checkWarnings(Map<String, dynamic> tests, [List<String> arguments]) {
         await runCompiler(
             entryPoint: uri,
             diagnosticHandler: collector,
-            options: [Flags.analyzeOnly],
+            options: [Flags.analyzeOnly, Flags.useOldFrontend],
             showDiagnostics: verbose);
         Map<String, List<int>> statusMap = tests[test];
         // Line numbers with known unexpected warnings.

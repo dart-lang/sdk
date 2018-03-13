@@ -31,6 +31,7 @@ main(List<String> arguments) {
   bool verbose = arguments.contains('-v');
 
   List<String> options = <String>[
+    Flags.useOldFrontend,
     Flags.analyzeOnly,
     Flags.analyzeMain,
     '--categories=Client,Server'

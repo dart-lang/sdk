@@ -17,7 +17,7 @@ main() {
         memorySourceFiles: MEMORY_SOURCE_FILES,
         diagnosticHandler: diagnostics,
         outputProvider: output,
-        options: useKernel ? [Flags.useKernel] : []);
+        options: useKernel ? [] : [Flags.useOldFrontend]);
     Expect.isFalse(diagnostics.hasRegularMessages);
     Expect.isFalse(output.hasExtraOutput);
     Expect.isTrue(result.isSuccess);

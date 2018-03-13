@@ -12,6 +12,37 @@
   * Changed return type of `encode` on `AsciiCodec` and `Latin1Codec`,
     and `convert` on `AsciiEncoder`, `Latin1Encoder`, to `Uint8List`.
 
+### Tool Changes
+
+* dart2js
+
+  * The dart2js compiler now uses the common front-end by default. This is a
+    step towards supporting Dart 2.0. At this time dart2js has no semantic
+    changes: the Dart 2.0 strong-mode semantics are not enabled, so dart2js
+    continues to support the Dart 1 type system. This change however lets us
+    start supporting new syntactic features of Dart 2.0, like optional
+    new/const. With this change you may notice:
+
+    * small code differences (~1% code size): some code is generated slightly
+      different, this is expected because the internal representation of the
+      program has small differences between the old and new front end.
+
+    * source-maps changes: with the new front-end, dart2js also is using a new
+      mechanism to generate source-map files. We don't expect big differences
+      here either, the new source-maps try to encode more data for locations
+      that are commonly used during debugging.
+
+    * some missing errors: the CFE is not complete and may not report some
+      static errors that the old front-end did. This is temporary. If you run
+      the analyzer on all your project already, you may never notice those
+      missing error messages.
+
+    * as announced earlier, this is the first version of dart2js that no longer
+      supports `dart:mirrors`.
+
+    * this is the first version of dart2js that no longer supports
+      `--package-root`, which long ago was deprecated in favor of `--packages`.
+
 ## 2.0.0
 
 ### Language

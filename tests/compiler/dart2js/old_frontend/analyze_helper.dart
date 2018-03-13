@@ -232,6 +232,7 @@ Future analyze(
   var provider = new CompilerSourceFileProvider();
   var handler = new CollectingDiagnosticHandler(whiteList, skipList, provider);
   options = <String>[
+    Flags.useOldFrontend,
     Flags.analyzeOnly,
     '--categories=Client,Server',
     Flags.showPackageWarnings

@@ -7,6 +7,7 @@ library members_test;
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import '../type_test_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import "package:compiler/src/elements/elements.dart"
     show ClassElement, MemberSignature;
@@ -187,7 +188,9 @@ void testClassMembers() {
     class C<S> extends B<S> {}
     class D extends C<int> {}
     class E extends D {}
-    """, compileMode: CompileMode.memory).then((env) {
+    """,
+          options: [Flags.useOldFrontend],
+          compileMode: CompileMode.memory).then((env) {
         ResolutionInterfaceType bool_ = env['bool'];
         ResolutionInterfaceType String_ = env['String'];
         ResolutionInterfaceType int_ = env['int'];
@@ -445,7 +448,7 @@ void testInterfaceMembers() {
       num method4();
     }
     abstract class D implements A, B, C {}
-    """).then((env) {
+    """, options: [Flags.useOldFrontend]).then((env) {
         ResolutionDynamicType dynamic_ = env['dynamic'];
         ResolutionVoidType void_ = env['void'];
         ResolutionInterfaceType num_ = env['num'];
@@ -614,7 +617,7 @@ void testClassVsInterfaceMembers() {
       method2(a);
     }
     abstract class C extends A implements B {}
-    """).then((env) {
+    """, options: [Flags.useOldFrontend]).then((env) {
         ResolutionDynamicType dynamic_ = env['dynamic'];
 
         ResolutionInterfaceType A = env['A'];
@@ -665,7 +668,7 @@ void testMixinMembers() {
       method3(S a) {}
     }
     abstract class C<U, V> extends Object with A<U> implements B<V> {}
-    """).then((env) {
+    """, options: [Flags.useOldFrontend]).then((env) {
         ResolutionDynamicType dynamic_ = env['dynamic'];
 
         ClassElement A = env.getElement('A');
@@ -734,7 +737,7 @@ void testMixinMembersWithoutImplements() {
     abstract class B implements A {
     }
     abstract class C extends Object with B {}
-    """).then((env) {
+    """, options: [Flags.useOldFrontend]).then((env) {
         ResolutionDynamicType dynamic_ = env['dynamic'];
 
         ResolutionInterfaceType A = env['A'];

@@ -27,7 +27,7 @@ main() {
     await runCompiler(
         memorySourceFiles: TEST_SOURCE,
         outputProvider: collector,
-        options: useKernel ? [Flags.useKernel] : []);
+        options: useKernel ? [] : [Flags.useOldFrontend]);
     String generated = collector.getOutput('', OutputType.js);
     Expect.isFalse(generated.contains(HASHMAP_EMPTY_CONSTRUCTOR));
   }

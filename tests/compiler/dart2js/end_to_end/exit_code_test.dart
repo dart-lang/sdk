@@ -241,6 +241,8 @@ Future testExitCode(
     entry.compileFunc = compile;
 
     List<String> args = new List<String>.from(options)
+      // TODO(sigmund): convert to support the new CFE
+      ..add("--use-old-frontend")
       ..add("--library-root=${Uri.base.resolve('sdk/')}")
       ..add("tests/compiler/dart2js/end_to_end/data/exit_code_helper.dart");
     Future result = entry.internalMain(args);

@@ -35,9 +35,7 @@ class Flags {
   static const String generateCodeWithCompileTimeErrors =
       '--generate-code-with-compile-time-errors';
 
-  /// Enable the unified front end, loading from .dill files, and compilation
-  /// using the kernel representation.
-  /// See [CompilerOptions.useKernel] for details.
+  /// TODO(sigmund): delete this flag.
   static const String useKernel = '--use-kernel';
 
   /// Temporary flag to revert to the old front-end once the new common

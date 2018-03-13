@@ -51,7 +51,7 @@ Future compile(Uri entryPoint,
   String title = '${id}${testDescription}';
   OutputCollector outputCollector = new OutputCollector();
   await measure(title, 'compile', () async {
-    List<String> options = [];
+    List<String> options = [Flags.useOldFrontend];
     if (test != null && test.checkedMode) {
       options.add(Flags.enableCheckedMode);
     }

@@ -14,6 +14,7 @@ import "package:async_helper/async_helper.dart";
 import '../memory_compiler.dart' show runCompiler;
 
 import 'package:compiler/src/apiimpl.dart' show CompilerImpl;
+import 'package:compiler/src/commandline_options.dart';
 
 import 'package:compiler/src/constants/values.dart'
     show ConstantValue, TypeConstantValue;
@@ -54,7 +55,7 @@ void main() {
     var result = await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES,
         diagnosticHandler: new LegacyCompilerDiagnostics(expectOnlyVerboseInfo),
-        options: ['--enable-experimental-mirrors']);
+        options: ['--enable-experimental-mirrors', Flags.useOldFrontend]);
     CompilerImpl compiler = result.compiler;
     JavaScriptBackend backend = compiler.backend;
     print('');

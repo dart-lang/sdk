@@ -38,7 +38,9 @@ class CustomCompiler extends CompilerImpl {
             const NullCompilerOutput(),
             handler,
             new CompilerOptions(
-                libraryRoot: libraryRoot, packageConfig: packageConfig));
+                libraryRoot: libraryRoot,
+                useKernel: false,
+                packageConfig: packageConfig));
 }
 
 main() async {

@@ -30,7 +30,7 @@ Future test(Map<String, String> source,
       memorySourceFiles: source,
       diagnosticHandler: collector,
       showDiagnostics: true,
-      options: [Flags.analyzeOnly, Flags.analyzeAll],
+      options: [Flags.analyzeOnly, Flags.analyzeAll, Flags.useOldFrontend],
       packageRoot: Uri.parse('memory:pkg/'));
 
   Expect.isTrue(collector.errors.isEmpty);

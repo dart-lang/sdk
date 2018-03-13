@@ -47,8 +47,8 @@ show(ArgResults argResults, ComputeMemberDataFunction computeAstData,
   }
 
   options = new List<String>.from(options);
-  if (useKernel) {
-    options.add(Flags.useKernel);
+  if (!useKernel) {
+    options.add(Flags.useOldFrontend);
   }
   if (strongMode) {
     options.add(Flags.strongMode);

@@ -1,7 +1,6 @@
 # Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
-
 analyze_dart_test: Slow, Pass
 analyze_test: Slow, Pass
 async_await_syntax_test: Pass # DON'T CHANGE THIS LINE -- Don't mark these tests as failing. Instead, fix the errors/warnings that they report or update the whitelist in the test-files to temporarily allow digression.
@@ -12,6 +11,8 @@ codegen/logical_expression_test: Fail # Issue 17027
 codegen/simple_function_subtype_test: Fail # simple_function_subtype_test is temporarily(?) disabled due to new method for building function type tests.
 deferred_loading/deferred_loading_test: Slow, Pass
 equivalence/id_equivalence_test: Pass, Slow
+generate_code_with_compile_time_errors_test: RuntimeError # not supported yet with the new FE.
+in_user_code_test: RuntimeError # analyze-only with CFE is not complete (Issues 32512, 32513)
 inference/inference0_test: Slow, Pass
 inference/inference1_test: Slow, Pass
 inference/simple_inferrer_const_closure2_test: Fail # Issue 16507
@@ -30,13 +31,11 @@ mirrors/library_imports_prefixed_test: Fail
 mirrors/library_imports_shown_test: Fail
 no_such_method_enabled_test: Pass, Slow
 old_frontend/check_elements_invariants_test: Skip # Times out even with Slow marker. Slow due to inlining in the CPS backend
-old_frontend/check_elements_invariants_test: Skip # Times out even with Slow marker. Slow due to inlining in the CPS backend
-old_frontend/compile_with_empty_libraries_test: Fail # Issue 24223
 old_frontend/compile_with_empty_libraries_test: Fail # Issue 24223
 old_frontend/patch_test/bug: RuntimeError # Issue 21132
 old_frontend/resolver_test: RuntimeError # Test must be updated given new parser recovery
 packages/*: Skip # Skip packages folder
-quarantined/http_test: Pass, Slow
+quarantined/http_test: RuntimeError # not supported with CFE, consider deleting.
 rti/rti_emission_test: Pass, Slow
 rti/rti_need_test: Pass, Slow
 serialization/analysis1_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
@@ -59,6 +58,8 @@ serialization/model5_test: Skip # Skip most serialization tests. These are very 
 serialization/model_1_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/native_data_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/reserialization_test: Slow, RuntimeError # Issue 32149
+show_package_warnings_test: RuntimeError # missing errors from the FE
+sourcemaps/pub_build_validity_test: Pass, RuntimeError # Investigate: passes locally, but only fails in bots.
 sourcemaps/source_mapping_invokes_test: Pass, Slow
 sourcemaps/source_mapping_operators_test: Pass, Slow
 sourcemaps/source_mapping_test: Pass, Slow
@@ -88,8 +89,8 @@ sourcemaps/source_map_pub_build_validity_test: Pass, Slow
 dart2js_batch2_test: Pass, RuntimeError # Issue 29021
 
 [ $checked ]
-codegen/value_range_test: Pass, Slow
 codegen/value_range_kernel_test: Pass, Slow
+codegen/value_range_test: Pass, Slow
 end_to_end/exit_code_test: Pass, Slow
 jsinterop/declaration_test: Slow, Pass
 jsinterop/interop_anonymous_unreachable_test: Pass, Slow

@@ -19,18 +19,29 @@ main() {
   asyncTest(() async {
     await test([], exitCode: 1);
     await test(['foo.dart']);
-    await test([Flags.useKernel], exitCode: 1);
-    await test([Flags.useKernel, 'foo.dart']);
-    await test([Flags.resolveOnly, 'foo.dart'],
+    await test([Flags.useOldFrontend], exitCode: 1);
+    await test([Flags.useOldFrontend, 'foo.dart']);
+    await test([Flags.useOldFrontend, Flags.resolveOnly, 'foo.dart'],
         resolveOnly: true, resolutionOutput: Uri.base.resolve('out.data'));
-    await test(['--resolution-input=bar.dart', 'foo.dart'],
+    await test(
+        [Flags.useOldFrontend, '--resolution-input=bar.dart', 'foo.dart'],
         resolutionInputs: [Uri.base.resolve('bar.dart')]);
-    await test([Flags.resolveOnly, '--resolution-input=bar.dart', 'foo.dart'],
+    await test(
+        [
+          Flags.useOldFrontend,
+          Flags.resolveOnly,
+          '--resolution-input=bar.dart',
+          'foo.dart'
+        ],
         resolveOnly: true,
         resolutionOutput: Uri.base.resolve('out.data'),
         resolutionInputs: [Uri.base.resolve('bar.dart')]);
-    await test([Flags.resolveOnly, '--resolution-input=out.data', 'foo.dart'],
-        exitCode: 1);
+    await test([
+      Flags.useOldFrontend,
+      Flags.resolveOnly,
+      '--resolution-input=out.data',
+      'foo.dart'
+    ], exitCode: 1);
   });
 }
 

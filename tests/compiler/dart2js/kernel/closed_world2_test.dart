@@ -198,7 +198,11 @@ Future<ResultKind> mainInternal(List<String> args,
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
       diagnosticHandler: collector,
-      options: [Flags.analyzeOnly, Flags.enableAssertMessage],
+      options: [
+        Flags.useOldFrontend,
+        Flags.analyzeOnly,
+        Flags.enableAssertMessage
+      ],
       beforeRun: (compiler) {
         compiler.impactCacheDeleter.retainCachesForTesting = true;
       });

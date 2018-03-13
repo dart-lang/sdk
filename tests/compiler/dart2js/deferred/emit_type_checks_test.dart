@@ -20,7 +20,7 @@ void main() {
     CompilationResult result = await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES,
         outputProvider: collector,
-        options: useKernel ? [Flags.useKernel] : []);
+        options: useKernel ? [] : [Flags.useOldFrontend]);
     Compiler compiler = result.compiler;
     String mainOutput = collector.getOutput('', OutputType.js);
     String deferredOutput = collector.getOutput('out_1', OutputType.jsPart);

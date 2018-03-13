@@ -65,6 +65,11 @@ main() {
   m(null);
   pkg2.m(null);
 }
+""",
+  '.packages': """
+pkg_error1:pkg/pkg_error1/
+pkg_error2:pkg/pkg_error2/
+pkg_noerror:pkg/pkg_noerror/
 """
 };
 
@@ -90,7 +95,7 @@ Future test(Uri entryPoint,
       entryPoint: entryPoint,
       memorySourceFiles: SOURCE,
       options: options,
-      packageRoot: Uri.parse('memory:pkg/'),
+      packageConfig: Uri.parse('memory:.packages'),
       diagnosticHandler: collector);
   Expect.equals(
       0, collector.errors.length, 'Unexpected errors: ${collector.errors}');

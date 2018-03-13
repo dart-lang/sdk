@@ -263,7 +263,7 @@ main(List<String> arguments) {
     DiagnosticCollector collector = new DiagnosticCollector();
     CompilationResult result = await runCompiler(
         memorySourceFiles: {'main.dart': CODE},
-        options: [Flags.analyzeOnly, Flags.analyzeMain],
+        options: [Flags.analyzeOnly, Flags.analyzeMain, Flags.useOldFrontend],
         diagnosticHandler: collector);
     Expect.isFalse(
         collector.hasRegularMessages, "Unexpected analysis messages.");

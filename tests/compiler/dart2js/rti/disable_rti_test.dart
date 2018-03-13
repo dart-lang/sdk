@@ -60,7 +60,7 @@ main() {
     CompilationResult result = await runCompiler(
         memorySourceFiles: {'main.dart': code},
         options: [Flags.disableRtiOptimization, Flags.disableInlining]
-          ..addAll(useKernel ? [Flags.useKernel] : []));
+          ..addAll(useKernel ? [] : [Flags.useOldFrontend]));
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
     ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;

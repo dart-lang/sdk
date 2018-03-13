@@ -28,11 +28,15 @@ const SOURCES = const {
     """
 };
 
-Future<String> provideInput(Uri uri) {
-  var source = SOURCES[uri.path];
+Future provideInput(Uri uri) {
+  dynamic source = SOURCES[uri.path];
   if (source == null) {
     // Not one of our source files, so assume it's a built-in.
-    source = new File(uri.toFilePath()).readAsStringSync();
+    if (uri.path.endsWith('.dill')) {
+      source = new File(uri.toFilePath()).readAsBytesSync();
+    } else {
+      source = new File(uri.toFilePath()).readAsStringSync();
+    }
   }
 
   // Deliver the input asynchronously.
@@ -45,9 +49,14 @@ main() {
   // Find the path to sdk/ in the repo relative to this script.
   Uri libraryRoot = Uri.base.resolve('sdk/');
   Uri packageRoot = Uri.base.resolve('packages/');
-
-  asyncTest(() => compiler.compile(entrypoint, libraryRoot, packageRoot,
-          provideInput, handleDiagnostic, []).then((code) {
+  var platformDir = Uri.parse(Platform.resolvedExecutable).resolve('.');
+  asyncTest(() => compiler.compile(
+          entrypoint,
+          libraryRoot,
+          packageRoot,
+          provideInput,
+          handleDiagnostic,
+          ['--platform-binaries=${platformDir}']).then((code) {
         Expect.isNotNull(code);
       }));
 }

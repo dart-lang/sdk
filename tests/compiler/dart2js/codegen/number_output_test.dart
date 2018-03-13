@@ -23,8 +23,8 @@ const MEMORY_SOURCE_FILES = const {
 Future test({bool useKernel, bool minify}) async {
   OutputCollector collector = new OutputCollector();
   List<String> options = <String>[];
-  if (useKernel) {
-    options.add(Flags.useKernel);
+  if (!useKernel) {
+    options.add(Flags.useOldFrontend);
   }
   if (minify) {
     options.add(Flags.minify);

@@ -105,8 +105,9 @@ class TypeEnvironment {
             memorySourceFiles: {'main.dart': source},
             diagnosticHandler: collector,
             options: stopAfterTypeInference
-                ? options
-                : ([Flags.analyzeAll, Flags.analyzeOnly]..addAll(options)),
+                ? ([Flags.useOldFrontend]..addAll(options))
+                : ([Flags.useOldFrontend, Flags.analyzeAll, Flags.analyzeOnly]
+                  ..addAll(options)),
             beforeRun: (compiler) {
               compiler.stopAfterTypeInference = stopAfterTypeInference;
             });

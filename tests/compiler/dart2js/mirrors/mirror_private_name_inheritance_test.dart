@@ -6,6 +6,7 @@
 
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
+import 'package:compiler/src/commandline_options.dart';
 import '../memory_compiler.dart' show runCompiler;
 import '../compiler_helper.dart' show findElement;
 
@@ -38,7 +39,9 @@ class Super {
 
 void main() {
   asyncTest(() async {
-    var result = await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
+    var result = await runCompiler(
+        memorySourceFiles: MEMORY_SOURCE_FILES,
+        options: [Flags.useOldFrontend]);
     var compiler = result.compiler;
 
     dynamic superclass =

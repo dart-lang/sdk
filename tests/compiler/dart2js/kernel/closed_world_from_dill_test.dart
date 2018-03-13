@@ -115,7 +115,11 @@ Future<ResultKind> mainInternal(List<String> args,
   CompilationResult result = await runCompiler(
       entryPoint: entryPoint,
       diagnosticHandler: collector,
-      options: [Flags.analyzeOnly, Flags.enableAssertMessage],
+      options: [
+        Flags.useOldFrontend,
+        Flags.analyzeOnly,
+        Flags.enableAssertMessage
+      ],
       beforeRun: (compiler) {
         compiler.impactCacheDeleter.retainCachesForTesting = true;
       });
