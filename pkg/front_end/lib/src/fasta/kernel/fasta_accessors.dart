@@ -1311,14 +1311,16 @@ class TypeDeclarationAccessor<Arguments> extends ReadOnlyAccessor<Arguments> {
         typeDeclaration.calculatedBounds ??= calculateBoundsForDeclaration(
             typeDeclaration,
             helperLibrary.loader.target.dynamicType,
-            helperLibrary.loader.coreLibrary["Object"]);
+            helperLibrary.loader.target.bottomType,
+            helperLibrary.loader.target.objectClassBuilder);
         type = typeDeclaration.buildType(
             helper.library, typeDeclaration.calculatedBounds);
       } else if (typeDeclaration is KernelFunctionTypeAliasBuilder) {
         typeDeclaration.calculatedBounds ??= calculateBoundsForDeclaration(
             typeDeclaration,
             helperLibrary.loader.target.dynamicType,
-            helperLibrary.loader.coreLibrary["Object"]);
+            helperLibrary.loader.target.bottomType,
+            helperLibrary.loader.target.objectClassBuilder);
         type = typeDeclaration.buildType(
             helper.library, typeDeclaration.calculatedBounds);
       }

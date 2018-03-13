@@ -358,11 +358,13 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Resolved $count type-variable bounds");
   }
 
-  void instantiateToBound(TypeBuilder dynamicType, ClassBuilder objectClass) {
+  void instantiateToBound(TypeBuilder dynamicType, TypeBuilder bottomType,
+      ClassBuilder objectClass) {
     int count = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
-        count += library.instantiateToBound(dynamicType, objectClass);
+        count +=
+            library.instantiateToBound(dynamicType, bottomType, objectClass);
       }
     });
     ticker.logMs("Instantiated $count type variables to their bounds");
