@@ -392,15 +392,6 @@
           "arguments": ["--compiler=dartk", "--strong"],
           "fileset": "vm-kernel",
           "shards": 10
-        },
-        {
-          "name": "front-end tests",
-          "arguments": [
-            "--compiler=none",
-            "--checked",
-            "--timeout=120"
-          ],
-          "tests": ["pkg/front_end"]
         }
       ]
     },
@@ -1400,16 +1391,6 @@
             "--use-sdk",
             "pkg/analyzer_plugin"
           ]
-        },
-        {
-          "name": "front end unit tests",
-          "arguments": [
-            "--checked",
-            "--compiler=none",
-            "--timeout=120",
-            "--use-sdk",
-            "pkg/front_end"
-          ]
         }
       ]
     },
@@ -1505,16 +1486,6 @@
             "--compiler=none",
             "--use-sdk",
             "pkg/analyzer_plugin"
-          ]
-        },
-        {
-          "name": "front end unit tests",
-          "arguments": [
-            "--checked",
-            "--compiler=none",
-            "--timeout=120",
-            "--use-sdk",
-            "pkg/front_end"
           ]
         }
       ]
