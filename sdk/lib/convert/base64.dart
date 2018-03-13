@@ -57,7 +57,7 @@ String base64UrlEncode(List<int> bytes) => base64Url.encode(bytes);
  *
  * Shorthand for [base64.decode].
  */
-List<int> base64Decode(String source) => base64.decode(source);
+Uint8List base64Decode(String source) => base64.decode(source);
 
 // Constants used in more than one class.
 const int _paddingChar = 0x3d; // '='.

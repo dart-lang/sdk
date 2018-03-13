@@ -5,9 +5,12 @@
   * Temporarily disabled the `whereType` method until generic methods are
     enabled on all platforms
     ([issue 32463](https://github.com/dart-lang/sdk/issues/32463)).
+  * Changed return type of `UriData.dataAsBytes` to `Uint8List`.
 * `dart:convert`
   * Added `jsonEncode`, `jsonDecode`, `base64Encode`, `base64UrlEncode` and
     `base64Decode` top-level functions.
+  * Changed return type of `encode` on `AsciiCodec` and `Latin1Codec`,
+    and `convert` on `AsciiEncoder`, `Latin1Encoder`, to `Uint8List`.
 
 ## 2.0.0
 
