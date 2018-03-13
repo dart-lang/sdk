@@ -60,14 +60,13 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
-  List<DartType> argumentsTypes(Arguments arguments) {
+  List<DartType> argumentsTypeArguments(Arguments arguments) {
     return arguments.types;
   }
 
   @override
-  void argumentsSetExplicitArgumentTypes(
-      Arguments arguments, List<DartType> types) {
-    ShadowArguments.setExplicitArgumentTypes(arguments, types);
+  void argumentsSetTypeArguments(Arguments arguments, List<DartType> types) {
+    ShadowArguments.setNonInferrableArgumentTypes(arguments, types);
   }
 
   @override

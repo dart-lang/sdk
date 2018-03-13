@@ -1181,6 +1181,144 @@ bool isGenericFunctionTypeParameter(var type) {
   return type is num; // Actually int, but 'is num' is faster.
 }
 
+/// Returns [genericFunctionRti] with type parameters bound to [parameters].
+///
+/// [genericFunctionRti] must be an rti representation with a number of generic
+/// type parameters matching the number of types in [parameters].
+///
+/// Called from generated code.
+@NoInline()
+instantiatedGenericFunctionType(genericFunctionRti, parameters) {
+  assert(isDartFunctionType(genericFunctionRti));
+
+  var genericBoundsTag =
+      JS_GET_NAME(JsGetName.FUNCTION_TYPE_GENERIC_BOUNDS_TAG);
+
+  assert(hasField(genericFunctionRti, genericBoundsTag));
+  var bounds = getField(genericFunctionRti, genericBoundsTag);
+
+  // Generic function types must agree on number of type parameters and bounds.
+  int boundLength = getLength(bounds);
+  int parametersLength = getLength(parameters);
+  assert(boundLength == parametersLength);
+
+  var result = JS('', '{#:1}', JS_GET_NAME(JsGetName.FUNCTION_TYPE_TAG));
+  return finishBindInstantiatedFunctionType(
+      genericFunctionRti, result, parameters, 0);
+}
+
+bindInstantiatedFunctionType(rti, parameters, int depth) {
+  var result = JS('', '{#:1}', JS_GET_NAME(JsGetName.FUNCTION_TYPE_TAG));
+
+  var genericBoundsTag =
+      JS_GET_NAME(JsGetName.FUNCTION_TYPE_GENERIC_BOUNDS_TAG);
+  if (hasField(rti, genericBoundsTag)) {
+    var bounds = getField(rti, genericBoundsTag);
+    depth += getLength(bounds);
+    setField(result, genericBoundsTag,
+        bindInstantiatedTypes(bounds, parameters, depth));
+  }
+
+  return finishBindInstantiatedFunctionType(rti, result, parameters, depth);
+}
+
+/// Common code for function types that copies all non-bounds parts of the
+/// function [rti] into [result].
+finishBindInstantiatedFunctionType(rti, result, parameters, int depth) {
+  var voidReturnTag = JS_GET_NAME(JsGetName.FUNCTION_TYPE_VOID_RETURN_TAG);
+  var returnTypeTag = JS_GET_NAME(JsGetName.FUNCTION_TYPE_RETURN_TYPE_TAG);
+
+  if (hasField(rti, voidReturnTag)) {
+    setField(result, voidReturnTag, getField(rti, voidReturnTag));
+  } else if (hasField(rti, returnTypeTag)) {
+    setField(result, returnTypeTag,
+        bindInstantiatedType(getField(rti, returnTypeTag), parameters, depth));
+  }
+
+  var requiredParametersTag =
+      JS_GET_NAME(JsGetName.FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG);
+  if (hasField(rti, requiredParametersTag)) {
+    setField(
+        result,
+        requiredParametersTag,
+        bindInstantiatedTypes(
+            getField(rti, requiredParametersTag), parameters, depth));
+  }
+
+  String optionalParametersTag =
+      JS_GET_NAME(JsGetName.FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG);
+  if (hasField(rti, optionalParametersTag)) {
+    setField(
+        result,
+        optionalParametersTag,
+        bindInstantiatedTypes(
+            getField(rti, optionalParametersTag), parameters, depth));
+  }
+
+  String namedParametersTag =
+      JS_GET_NAME(JsGetName.FUNCTION_TYPE_NAMED_PARAMETERS_TAG);
+  if (hasField(rti, namedParametersTag)) {
+    var namedParameters = getField(rti, namedParametersTag);
+    var boundNamed = JS('', '{}');
+    var names = JS('JSFixedArray', 'Object.keys(#)', namedParameters);
+    for (var name in names) {
+      setField(
+          boundNamed,
+          name,
+          bindInstantiatedType(
+              getField(namedParameters, name), parameters, depth));
+    }
+    setField(result, namedParametersTag, boundNamed);
+  }
+
+  return result;
+}
+
+/// Copies [rti], substituting generic type parameters from [parameters].
+///
+/// Generic type parameters are de Bruijn indexes counting up through the
+/// generic function type parameters scopes to index into [parameters].
+///
+/// [depth] is the number of subsequent generic function parameters that are in
+/// scope. This is subtracted off the de Bruijn index for the type parameter to
+/// arrive at an potential index into [parameters].
+bindInstantiatedType(rti, parameters, int depth) {
+  if (rti == null) return rti; // dynamic.
+  // Functions are constructors denoting the class of the constructor.
+  if (isJsFunction(rti)) return rti;
+
+  // de Bruijn type indexes.
+  if (isGenericFunctionTypeParameter(rti)) {
+    if (rti < depth) return rti;
+    return JS('', '#[#]', parameters, rti - depth);
+  }
+  // Other things encoded as numbers.
+  if (rti is num) return rti;
+
+  if (isJsArray(rti)) {
+    // An array is a parameterized class type, e.g. the list of three
+    // constructor functions [Map, String, int] represents `Map<String, int>`.
+    // Since the 'head' of the term and the arguments are encoded in the same
+    // scheme, it is sufficient to walk all the types.
+    return bindInstantiatedTypes(rti, parameters, depth);
+  }
+  if (isDartFunctionType(rti)) {
+    return bindInstantiatedFunctionType(rti, parameters, depth);
+  }
+
+  // Can't include the bad [rti] since it is not a Dart value.
+  throw new ArgumentError('Unknown RTI format in bindInstantiatedType.');
+}
+
+/// Returns a copy of array [rti] with each type bound.
+bindInstantiatedTypes(rti, parameters, int depth) {
+  List array = JS('JSFixedArray', '#.slice()', rti);
+  for (int i = 0; i < array.length; i++) {
+    array[i] = bindInstantiatedType(array[i], parameters, depth);
+  }
+  return array;
+}
+
 /**
  * Calls the JavaScript [function] with the [arguments] with the global scope
  * as the `this` context.
@@ -1207,6 +1345,14 @@ getField(var object, String name) => JS('var', r'#[#]', object, name);
 getIndex(var array, int index) {
   assert(isJsArray(array));
   return JS('var', r'#[#]', array, index);
+}
+
+setField(var object, String name, var value) {
+  JS('', '#[#] = #', object, name, value);
+}
+
+setIndex(var array, int index, var value) {
+  JS('', '#[#] = #', array, index, value);
 }
 
 /// Returns the length of the JavaScript array [array].

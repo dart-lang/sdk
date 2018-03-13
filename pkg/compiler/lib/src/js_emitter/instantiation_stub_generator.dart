@@ -4,6 +4,7 @@
 
 library dart2js.js_emitter.instantiation_stub_generator;
 
+import '../common_elements.dart' show CommonElements;
 import '../elements/entities.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as jsAst;
@@ -17,12 +18,12 @@ import '../world.dart' show ClosedWorld;
 
 import 'model.dart';
 
-import 'code_emitter_task.dart' show CodeEmitterTask;
+import 'code_emitter_task.dart' show CodeEmitterTask, Emitter;
 
 // Generator of stubs required for Instantiation classes.
 class InstantiationStubGenerator {
-  // ignore: UNUSED_FIELD
   final CodeEmitterTask _emitterTask;
+  final CommonElements _commonElements;
   final Namer _namer;
   final CodegenWorldBuilder _codegenWorldBuilder;
   final ClosedWorld _closedWorld;
@@ -31,10 +32,13 @@ class InstantiationStubGenerator {
 
   InstantiationStubGenerator(
       this._emitterTask,
+      this._commonElements,
       this._namer,
       this._codegenWorldBuilder,
       this._closedWorld,
       this._sourceInformationStrategy);
+
+  Emitter get _emitter => _emitterTask.emitter;
 
   /// Generates a stub to forward a call selector with no type arguments to a
   /// call selector with stored types.
@@ -92,6 +96,33 @@ class InstantiationStubGenerator {
     return new ParameterStubMethod(name, null, function);
   }
 
+  /// Generates a stub for a 'signature' selector. The stub calls the underlying
+  /// function's 'signature' method and calls a helper to subsitute the type
+  /// parameters in the type term. The stub looks like this:
+  ///
+  /// ```
+  /// $signature:: function() {
+  ///   return H.instantiatedGenericFunctionType(
+  ///       this._genericClosure.$signature(),
+  ///       this.$ti);
+  /// }
+  /// ```
+  ParameterStubMethod _generateSignatureStub(FieldEntity functionField) {
+    jsAst.Name operatorSignature = _namer.asName(_namer.operatorSignature);
+
+    jsAst.Fun function = js('function() { return #(this.#.#(), this.#); }', [
+      _emitter.staticFunctionAccess(
+          _commonElements.instantiatedGenericFunctionType),
+      _namer.fieldPropertyName(functionField),
+      operatorSignature,
+      _namer.rtiFieldJsName,
+    ]);
+    // TODO(sra): Generate source information for stub that has no member.
+    // TODO(sra): .withSourceInformation(sourceInformation);
+
+    return new ParameterStubMethod(operatorSignature, null, function);
+  }
+
   // Returns all stubs for an instantiation class.
   //
   List<StubMethod> generateStubs(
@@ -124,6 +155,8 @@ class InstantiationStubGenerator {
     for (Selector selector in callSelectors.keys) {
       CallStructure callStructure = selector.callStructure;
       if (callStructure.typeArgumentCount != 0) continue;
+      // TODO(sra): Eliminate selectors that are not supported by any generic
+      // function with [typeArgumentCount] type arguments.
       CallStructure genericCallStructrure =
           callStructure.withTypeArgumentCount(typeArgumentCount);
       Selector genericSelector =
@@ -132,8 +165,7 @@ class InstantiationStubGenerator {
           instantiationClass, functionField, selector, genericSelector));
     }
 
-    // TODO(sra): Generate $signature() stub that forwards to
-    // $instantiatedSignature() method of _f.
+    stubs.add(_generateSignatureStub(functionField));
 
     return stubs;
   }

@@ -1964,7 +1964,7 @@ TypeMask _narrowType(
   } else if (annotation.isTypedef || annotation.isFunctionType) {
     otherType = closedWorld.commonMasks.functionType;
   } else {
-    assert(annotation.isTypeVariable);
+    assert(annotation.isTypeVariable || annotation.isFunctionTypeVariable);
     // TODO(ngeoffray): Narrow to bound.
     return type;
   }

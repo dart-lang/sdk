@@ -21,7 +21,6 @@ async_star_test/none: RuntimeError
 await_future_test: Pass, Timeout # Issue 29920
 bit_operations_test: RuntimeError # No bigints on web.
 black_listed_test/none: Fail # Issue 14228
-bug32353_test: RuntimeError
 bug32372_test: RuntimeError
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Issue 28816
@@ -128,6 +127,7 @@ issue31596_super_test/05: CompileTimeError
 issue31596_super_test/none: CompileTimeError
 issue31596_tearoff_test: CompileTimeError
 issue31596_test: CompileTimeError
+issue32353_test: RuntimeError
 label_test: RuntimeError
 lazy_static3_test: RuntimeError # Issue 30852
 lazy_static8_test: RuntimeError # Issue 30852
@@ -335,7 +335,6 @@ bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
-bug32353_test: RuntimeError # Issue 32428
 built_in_identifier_type_annotation_test/05: RuntimeError # Issue 32194
 built_in_identifier_type_annotation_test/none: RuntimeError # Issue 32194
 call_method_as_cast_test/01: RuntimeError
@@ -472,6 +471,7 @@ issue31596_super_test/02: MissingCompileTimeError
 issue31596_super_test/03: CompileTimeError
 issue31596_super_test/04: MissingCompileTimeError
 issue31596_super_test/05: RuntimeError
+issue32353_test: RuntimeError # Issue 32428
 library_env_test/has_io_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_mirror_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_no_html_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
@@ -590,6 +590,8 @@ multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
+no_such_method_mock_test: RuntimeError # Issue 31425
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError # Issue 31425
 nsm5_test: MissingCompileTimeError
 null2_test: RuntimeError # Issue 32194
 null_method_test: RuntimeError # Issue 32194
@@ -821,7 +823,6 @@ named_parameters_default_eq_test/none: RuntimeError # Expect.isTrue(false) fails
 nan_identical_test: RuntimeError # Issue 29920; Unsupported operation: Uint64 accessor not supported by dart2js.
 nested_switch_label_test: RuntimeError # Issue 29920; UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
 no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
-nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError # Issue #31425
 null_test/mirrors: RuntimeError # Uses mirrors.; ReferenceError: GenericOfT is not defined
 number_identity2_test: RuntimeError # Issue 29920; Expect.isTrue(false) fails.
 numbers_test: RuntimeError # Issue 29920; Expect.equals(expected: <false>, actual: <true>) fails.

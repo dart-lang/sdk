@@ -2389,7 +2389,8 @@ class Function : public Object {
 
   bool NeedsArgumentTypeChecks(Isolate* I) const {
     if (I->strong()) {
-      return !(is_static() || (kind() == RawFunction::kConstructor));
+      return IsNonImplicitClosureFunction() ||
+             !(is_static() || (kind() == RawFunction::kConstructor));
     }
     return I->type_checks();
   }

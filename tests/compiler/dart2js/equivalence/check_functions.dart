@@ -1037,20 +1037,6 @@ void checkEmitters(
       "TypeTestRegistry rti needed classes mismatch",
       strategy.elementEquivalence,
       verbose: verbose);
-
-  checkSets(
-      emitter1.typeTestRegistry.rtiChecks.checkedFunctionTypes,
-      emitter2.typeTestRegistry.rtiChecks.checkedFunctionTypes,
-      "TypeTestRegistry checked function types mismatch",
-      strategy.typeEquivalence,
-      verbose: verbose);
-
-  checkSets(
-      emitter1.typeTestRegistry.rtiChecks.checkedClasses,
-      emitter2.typeTestRegistry.rtiChecks.checkedClasses,
-      "TypeTestRegistry checked classes mismatch",
-      strategy.elementEquivalence,
-      verbose: verbose);
 }
 
 void checkEmitterPrograms(

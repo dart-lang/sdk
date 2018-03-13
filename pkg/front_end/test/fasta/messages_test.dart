@@ -16,10 +16,13 @@ import "package:testing/testing.dart"
 import "package:yaml/yaml.dart" show YamlList, YamlMap, YamlNode, loadYamlNode;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show ProblemHandler;
+    show CompilerOptions;
 
 import 'package:front_end/src/api_prototype/memory_file_system.dart'
-    show MemoryFileSystem, MemoryFileSystemEntity;
+    show MemoryFileSystem;
+
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
 
 import 'package:front_end/src/fasta/fasta_codes.dart' show LocatedMessage;
 
@@ -30,13 +33,6 @@ import 'package:front_end/src/testing/hybrid_file_system.dart'
     show HybridFileSystem;
 
 import "../../tool/_fasta/entry_points.dart" show BatchCompiler;
-
-ProblemHandler problemHandler(List<List> problems) {
-  return (LocatedMessage problem, Severity severity, String formatted, int line,
-      int column) {
-    problems.add([problem, severity, formatted, line, column]);
-  };
-}
 
 class MessageTestDescription extends TestDescription {
   @override
@@ -67,15 +63,9 @@ class MessageTestSuite extends ChainContext {
 
   final BatchCompiler compiler;
 
-  final List<List> problems;
-
   MessageTestSuite()
-      : this.internal(new MemoryFileSystem(Uri.parse("org-dartlang-fasta:///")),
-            <List>[]);
-
-  MessageTestSuite.internal(this.fileSystem, this.problems)
-      : compiler = new BatchCompiler.forTesting(
-            new HybridFileSystem(fileSystem), problemHandler(problems));
+      : fileSystem = new MemoryFileSystem(Uri.parse("org-dartlang-fasta:///")),
+        compiler = new BatchCompiler(null);
 
   /// Convert all the examples found in `messages.yaml` to a test
   /// description. In addition, create a test description for each kind of
@@ -252,19 +242,6 @@ class MessageTestSuite extends ChainContext {
     }
   }
 
-  Uri addSource(String name, List<int> bytes) {
-    Uri uri = fileSystem.currentDirectory.resolve(name);
-    MemoryFileSystemEntity entity = fileSystem.entityForUri(uri);
-    entity.writeAsBytesSync(bytes);
-    return uri;
-  }
-
-  List<List> takeProblems() {
-    List<List> result = problems.toList();
-    problems.clear();
-    return result;
-  }
-
   String formatProblems(String message, Example example, List<List> problems) {
     var span = example.node.span;
     StringBuffer buffer = new StringBuffer();
@@ -413,14 +390,26 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
   Future<Result<Null>> run(Example example, MessageTestSuite suite) async {
     if (example == null) return pass(null);
     String name = "${example.expectedCode}/${example.name}";
-    Uri uri = suite.addSource("${name}.dart", example.bytes);
+    Uri uri = suite.fileSystem.currentDirectory.resolve("${name}.dart");
+    suite.fileSystem.entityForUri(uri).writeAsBytesSync(example.bytes);
+    Uri output = uri.resolve("${uri.path}.dill");
+
     print("Compiling $uri");
-    List<List> problems;
-    try {
-      await suite.compiler.batchCompile(<String>["--strong", "$uri"]);
-    } finally {
-      problems = suite.takeProblems();
-    }
+    List<List> problems = <List>[];
+
+    await suite.compiler.batchCompile(
+        new CompilerOptions()
+          ..sdkSummary = computePlatformBinariesLocation()
+              .resolve("vm_platform_strong.dill")
+          ..fileSystem = new HybridFileSystem(suite.fileSystem)
+          ..onProblem = (LocatedMessage problem, Severity severity,
+              String formatted, int line, int column) {
+            problems.add([problem, severity, formatted, line, column]);
+          }
+          ..strongMode = true,
+        uri,
+        output);
+
     List<List> unexpectedProblems = <List>[];
     for (List problem in problems) {
       LocatedMessage message = problem[0];

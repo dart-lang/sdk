@@ -116,6 +116,8 @@ class C {
         offset: 6, codeOffset: 0, codeLength: 91);
     _assertHasDeclaration(declarations, 'f', DeclarationKind.FIELD,
         offset: 16, codeOffset: 12, codeLength: 6, className: 'C');
+    _assertHasDeclaration(declarations, '', DeclarationKind.CONSTRUCTOR,
+        offset: 21, codeOffset: 21, codeLength: 4, className: 'C');
     _assertHasDeclaration(declarations, 'named', DeclarationKind.CONSTRUCTOR,
         offset: 30, codeOffset: 28, codeLength: 10, className: 'C');
     _assertHasDeclaration(declarations, 'g', DeclarationKind.GETTER,
@@ -184,6 +186,7 @@ class C {
 }
 void f(bool a, String b) {}
 typedef F(int a);
+typedef T F2<T, U>(U a);
 ''');
     var files = <String>[];
     List<Declaration> declarations =
@@ -212,6 +215,70 @@ typedef F(int a);
     declaration = _assertHasDeclaration(
         declarations, 'F', DeclarationKind.FUNCTION_TYPE_ALIAS);
     expect(declaration.parameters, '(int a)');
+
+    declaration = _assertHasDeclaration(
+        declarations, 'F2', DeclarationKind.FUNCTION_TYPE_ALIAS);
+    expect(declaration.parameters, '(U a)');
+  }
+
+  test_declarations_parameters_functionTyped() async {
+    await _resolveTestUnit('''
+void f1(bool a(int b, String c)) {}
+void f2(a(b, c)) {}
+void f3(bool Function(int a, String b) c) {}
+void f4(bool Function(int, String) a) {}
+''');
+    var files = <String>[];
+    List<Declaration> declarations =
+        await driver.search.declarations(null, null, files);
+
+    Declaration declaration;
+
+    declaration =
+        _assertHasDeclaration(declarations, 'f1', DeclarationKind.FUNCTION);
+    expect(declaration.parameters, '(bool a(int b, String c))');
+
+    declaration =
+        _assertHasDeclaration(declarations, 'f2', DeclarationKind.FUNCTION);
+    expect(declaration.parameters, '(a(b, c))');
+
+    declaration =
+        _assertHasDeclaration(declarations, 'f3', DeclarationKind.FUNCTION);
+    expect(declaration.parameters, '(bool Function(int a, String b) c)');
+
+    declaration =
+        _assertHasDeclaration(declarations, 'f4', DeclarationKind.FUNCTION);
+    expect(declaration.parameters, '(bool Function(int, String) a)');
+  }
+
+  test_declarations_parameters_typeArguments() async {
+    await _resolveTestUnit('''
+class A<T, T2> {
+  void m1(Map<int, String> a) {}
+  void m2<U>(Map<T, U> a) {}
+  void m3<U1, U2>(Map<Map<T2, U2>, Map<U1, T>> a) {}
+}
+''');
+    var files = <String>[];
+    List<Declaration> declarations =
+        await driver.search.declarations(null, null, files);
+
+    Declaration declaration;
+
+    declaration = _assertHasDeclaration(
+        declarations, 'm1', DeclarationKind.METHOD,
+        className: 'A');
+    expect(declaration.parameters, '(Map<int, String> a)');
+
+    declaration = _assertHasDeclaration(
+        declarations, 'm2', DeclarationKind.METHOD,
+        className: 'A');
+    expect(declaration.parameters, '(Map<T, U> a)');
+
+    declaration = _assertHasDeclaration(
+        declarations, 'm3', DeclarationKind.METHOD,
+        className: 'A');
+    expect(declaration.parameters, '(Map<Map<T2, U2>, Map<U1, T>> a)');
   }
 
   test_declarations_regExp() async {
@@ -980,6 +1047,31 @@ main() {
       _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
       _expectId(fooElement, SearchResultKind.READ, 'p);'),
       _expectId(fooElement, SearchResultKind.INVOCATION, 'p();')
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ParameterElement_optionalPositional() async {
+    await _resolveTestUnit('''
+foo([p]) {
+  p = 1;
+  p += 2;
+  print(p);
+  p();
+}
+main() {
+  foo(42);
+}
+''');
+    ParameterElement element = _findElement('p');
+    Element fooElement = _findElement('foo');
+    Element mainElement = _findElement('main');
+    var expected = [
+      _expectId(fooElement, SearchResultKind.WRITE, 'p = 1;'),
+      _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
+      _expectId(fooElement, SearchResultKind.READ, 'p);'),
+      _expectId(fooElement, SearchResultKind.INVOCATION, 'p();'),
+      _expectIdQ(mainElement, SearchResultKind.REFERENCE, '42', length: 0)
     ];
     await _verifyReferences(element, expected);
   }

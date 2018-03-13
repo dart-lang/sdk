@@ -5,6 +5,9 @@
 # This file contains some C++ sources for the dart:io library.  The other
 # implementation files are in builtin_impl_sources.gypi.
 io_impl_sources = [
+  "console.h",
+  "console_posix.cc",
+  "console_win.cc",
   "eventhandler.cc",
   "eventhandler.h",
   "eventhandler_android.cc",

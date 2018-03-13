@@ -1479,6 +1479,7 @@ issue31596_override_test/07: MissingCompileTimeError
 issue31596_override_test/08: MissingCompileTimeError
 issue31596_super_test/02: MissingCompileTimeError
 issue31596_super_test/04: MissingCompileTimeError
+issue32353_2_test: MissingCompileTimeError
 known_identifier_prefix_error_test/*: MissingCompileTimeError # Error only in strong mode.
 known_identifier_prefix_error_test/none: Pass
 least_upper_bound_expansive_test/01: MissingCompileTimeError

@@ -35,7 +35,7 @@ void testJson(jsonText, expected) {
   }
 
   for (var reviver in [null, (k, v) => v]) {
-    for (var split in [0, 1, 2, 3]) {
+    for (var split in [0, 1, 2, 3, 4, 5]) {
       var name = (reviver == null) ? "" : "reviver:";
       var sink = new ChunkedConversionSink.withCallback((values) {
         var value = values[0];
@@ -72,6 +72,14 @@ void testJson(jsonText, expected) {
           decoderSink.add(jsonText.substring(2 * third));
           decoderSink.close();
           break;
+        case 4:
+          // Use .decode
+          sink.add([json.decode(jsonText)]);
+          break;
+        case 5:
+          // Use jsonDecode
+          sink.add([jsonDecode(jsonText)]);
+          break;
       }
     }
   }
@@ -97,6 +105,8 @@ String escape(String s) {
 
 void testThrows(jsonText) {
   Expect.throwsFormatException(() => json.decode(jsonText),
+      "json = '${escape(jsonText)}'");
+  Expect.throwsFormatException(() => jsonDecode(jsonText),
       "json = '${escape(jsonText)}'");
 }
 
@@ -187,6 +197,9 @@ testNumbers() {
   Expect.throws(() => json.encode(double.nan));
   Expect.throws(() => json.encode(double.infinity));
   Expect.throws(() => json.encode(double.negativeInfinity));
+  Expect.throws(() => jsonEncode(double.nan));
+  Expect.throws(() => jsonEncode(double.infinity));
+  Expect.throws(() => jsonEncode(double.negativeInfinity));
 }
 
 testStrings() {

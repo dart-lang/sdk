@@ -17,8 +17,6 @@ duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_no_such_method_dispatcher_test: RuntimeError # Issue 31424
-mock_writable_final_field_test: RuntimeError # Issue 31424
-no_such_method_subtype_test: RuntimeError # Issue 31424
 
 [ $compiler == fasta ]
 assertion_initializer_const_error2_test/cc01: MissingCompileTimeError
@@ -716,8 +714,9 @@ named_parameters_default_eq_test/none: RuntimeError
 nested_generic_closure_test: RuntimeError
 no_main_test/01: DartkCrash
 no_main_test/01: Skip
-nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError # Issue #31426
-nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError # Issue #31426
+no_such_method_mock_test: RuntimeError # Issue 31426
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError # Issue 31426
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError # Issue 31426
 null_no_such_method_test: CompileTimeError # Issue 31533
 override_inheritance_field_test/04: CompileTimeError # Issue 31616
 override_inheritance_field_test/06: CompileTimeError # Issue 31616
@@ -1075,9 +1074,8 @@ nested_generic_closure_test: RuntimeError
 no_main_test/01: Skip
 no_such_method_mock_test: RuntimeError
 no_such_method_test: SkipByDesign
-nosuchmethod_forwarding/nosuchmethod_forwarding_test/04: RuntimeError # Issue #31911
-nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError # Issue #31426
-nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError # Issue #31426
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError # Issue 31426
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError # Issue 31426
 null_no_such_method_test: CompileTimeError # Issue 31533
 null_test/mirrors: Skip # Uses mirrors.
 null_test/none: SkipByDesign

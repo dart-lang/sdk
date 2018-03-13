@@ -1,0 +1,45 @@
+class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class C<T extends mix::A> extends core::Object {
+  generic-covariant-impl generic-covariant-interface field mix::C::T _field = null;
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method foo(generic-covariant-impl generic-covariant-interface mix::C::T x) → dynamic {
+    this.{mix::C::_field} = x;
+  }
+}
+class D extends mix::C<mix::B> {
+  synthetic constructor •() → void
+    : super mix::C::•()
+    ;
+  abstract forwarding-stub method foo(generic-covariant-impl mix::B x) → dynamic;
+  abstract forwarding-stub set _field(generic-covariant-impl mix::B _) → void;
+}
+abstract class _Foo&Object&C extends core::Object implements mix::C<mix::B> {
+  generic-covariant-impl field mix::B _field = null;
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method foo(generic-covariant-impl mix::B x) → dynamic {
+    this.{mix::C::_field} = x;
+  }
+}
+class Foo extends mix::_Foo&Object&C {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract forwarding-stub set _field(generic-covariant-impl mix::B _) → void;
+}
+class B extends mix::A {
+  synthetic constructor •() → void
+    : super mix::A::•()
+    ;
+}
+static method main() → dynamic {
+  mix::Foo foo = new mix::Foo::•();
+  foo.{mix::C::foo}(new mix::B::•());
+}

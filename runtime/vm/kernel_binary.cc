@@ -16,6 +16,19 @@ namespace dart {
 
 namespace kernel {
 
+const char* Reader::TagName(Tag tag) {
+  switch (tag) {
+#define CASE(Name, value)                                                      \
+  case k##Name:                                                                \
+    return #Name;
+    KERNEL_TAG_LIST(CASE)
+#undef CASE
+    default:
+      break;
+  }
+  return "Unknown";
+}
+
 Program* Program::ReadFrom(Reader* reader, bool take_buffer_ownership) {
   uint32_t magic = reader->ReadUInt32();
   if (magic != kMagicProgramFile) FATAL("Invalid magic identifier");

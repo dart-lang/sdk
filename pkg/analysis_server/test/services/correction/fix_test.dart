@@ -6177,6 +6177,74 @@ main() {
 ''');
   }
 
+  test_makeFieldFinal_type() async {
+    String src = '''
+class C {
+  int /*LINT*/f = 2;
+}
+''';
+    await findLint(src, LintNames.prefer_final_fields);
+
+    await applyFix(DartFixKind.MAKE_FINAL);
+
+    verifyResult('''
+class C {
+  final int f = 2;
+}
+''');
+  }
+
+  test_makeFieldFinal_var() async {
+    String src = '''
+class C {
+  var /*LINT*/f = 2;
+}
+''';
+    await findLint(src, LintNames.prefer_final_fields);
+
+    await applyFix(DartFixKind.MAKE_FINAL);
+
+    verifyResult('''
+class C {
+  final f = 2;
+}
+''');
+  }
+
+  test_makeLocalFinal_type() async {
+    String src = '''
+bad() {
+  int /*LINT*/x = 2;
+}
+''';
+    await findLint(src, LintNames.prefer_final_locals);
+
+    await applyFix(DartFixKind.MAKE_FINAL);
+
+    verifyResult('''
+bad() {
+  final int x = 2;
+}
+''');
+  }
+
+  test_makeLocalFinal_var() async {
+    String src = '''
+bad() {
+  var /*LINT*/x = 2;
+}
+''';
+    await findLint(src, LintNames.prefer_final_locals);
+
+    await applyFix(DartFixKind.MAKE_FINAL);
+
+    verifyResult('''
+bad() {
+  final x = 2;
+}
+''');
+  }
+
   test_removeAwait_intLiteral() async {
     String src = '''
 bad() async {

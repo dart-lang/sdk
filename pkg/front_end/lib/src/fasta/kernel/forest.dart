@@ -18,10 +18,9 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
 
   List<Expression> argumentsPositional(Arguments arguments);
 
-  List argumentsTypes(Arguments arguments);
+  List argumentsTypeArguments(Arguments arguments);
 
-  void argumentsSetExplicitArgumentTypes(
-      Arguments arguments, covariant List types);
+  void argumentsSetTypeArguments(Arguments arguments, covariant List types);
 
   Expression asLiteralString(Expression value);
 

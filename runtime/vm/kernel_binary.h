@@ -22,122 +22,120 @@ static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
 static const uint32_t kBinaryFormatVersion = 3;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
+#define KERNEL_TAG_LIST(V)                                                     \
+  V(Nothing, 0)                                                                \
+  V(Something, 1)                                                              \
+  V(Class, 2)                                                                  \
+  V(FunctionNode, 3)                                                           \
+  V(Field, 4)                                                                  \
+  V(Constructor, 5)                                                            \
+  V(Procedure, 6)                                                              \
+  V(RedirectingFactoryConstructor, 108)                                        \
+  V(InvalidInitializer, 7)                                                     \
+  V(FieldInitializer, 8)                                                       \
+  V(SuperInitializer, 9)                                                       \
+  V(RedirectingInitializer, 10)                                                \
+  V(LocalInitializer, 11)                                                      \
+  V(AssertInitializer, 12)                                                     \
+  V(CheckLibraryIsLoaded, 13)                                                  \
+  V(LoadLibrary, 14)                                                           \
+  V(DirectPropertyGet, 15)                                                     \
+  V(DirectPropertySet, 16)                                                     \
+  V(DirectMethodInvocation, 17)                                                \
+  V(ConstStaticInvocation, 18)                                                 \
+  V(InvalidExpression, 19)                                                     \
+  V(VariableGet, 20)                                                           \
+  V(VariableSet, 21)                                                           \
+  V(PropertyGet, 22)                                                           \
+  V(PropertySet, 23)                                                           \
+  V(SuperPropertyGet, 24)                                                      \
+  V(SuperPropertySet, 25)                                                      \
+  V(StaticGet, 26)                                                             \
+  V(StaticSet, 27)                                                             \
+  V(MethodInvocation, 28)                                                      \
+  V(SuperMethodInvocation, 29)                                                 \
+  V(StaticInvocation, 30)                                                      \
+  V(ConstructorInvocation, 31)                                                 \
+  V(ConstConstructorInvocation, 32)                                            \
+  V(Not, 33)                                                                   \
+  V(LogicalExpression, 34)                                                     \
+  V(ConditionalExpression, 35)                                                 \
+  V(StringConcatenation, 36)                                                   \
+  V(IsExpression, 37)                                                          \
+  V(AsExpression, 38)                                                          \
+  V(StringLiteral, 39)                                                         \
+  V(DoubleLiteral, 40)                                                         \
+  V(TrueLiteral, 41)                                                           \
+  V(FalseLiteral, 42)                                                          \
+  V(NullLiteral, 43)                                                           \
+  V(SymbolLiteral, 44)                                                         \
+  V(TypeLiteral, 45)                                                           \
+  V(ThisExpression, 46)                                                        \
+  V(Rethrow, 47)                                                               \
+  V(Throw, 48)                                                                 \
+  V(ListLiteral, 49)                                                           \
+  V(MapLiteral, 50)                                                            \
+  V(AwaitExpression, 51)                                                       \
+  V(FunctionExpression, 52)                                                    \
+  V(Let, 53)                                                                   \
+  V(Instantiation, 54)                                                         \
+  V(PositiveIntLiteral, 55)                                                    \
+  V(NegativeIntLiteral, 56)                                                    \
+  V(BigIntLiteral, 57)                                                         \
+  V(ConstListLiteral, 58)                                                      \
+  V(ConstMapLiteral, 59)                                                       \
+  V(ExpressionStatement, 61)                                                   \
+  V(Block, 62)                                                                 \
+  V(EmptyStatement, 63)                                                        \
+  V(AssertStatement, 64)                                                       \
+  V(LabeledStatement, 65)                                                      \
+  V(BreakStatement, 66)                                                        \
+  V(WhileStatement, 67)                                                        \
+  V(DoStatement, 68)                                                           \
+  V(ForStatement, 69)                                                          \
+  V(ForInStatement, 70)                                                        \
+  V(SwitchStatement, 71)                                                       \
+  V(ContinueSwitchStatement, 72)                                               \
+  V(IfStatement, 73)                                                           \
+  V(ReturnStatement, 74)                                                       \
+  V(TryCatch, 75)                                                              \
+  V(TryFinally, 76)                                                            \
+  V(YieldStatement, 77)                                                        \
+  V(VariableDeclaration, 78)                                                   \
+  V(FunctionDeclaration, 79)                                                   \
+  V(AsyncForInStatement, 80)                                                   \
+  V(TypedefType, 87)                                                           \
+  V(VectorType, 88)                                                            \
+  V(BottomType, 89)                                                            \
+  V(InvalidType, 90)                                                           \
+  V(DynamicType, 91)                                                           \
+  V(VoidType, 92)                                                              \
+  V(InterfaceType, 93)                                                         \
+  V(FunctionType, 94)                                                          \
+  V(TypeParameterType, 95)                                                     \
+  V(SimpleInterfaceType, 96)                                                   \
+  V(SimpleFunctionType, 97)                                                    \
+  V(NullReference, 99)                                                         \
+  V(ClassReference, 100)                                                       \
+  V(MemberReference, 101)                                                      \
+  V(VectorCreation, 102)                                                       \
+  V(VectorGet, 103)                                                            \
+  V(VectorSet, 104)                                                            \
+  V(VectorCopy, 105)                                                           \
+  V(ClosureCreation, 106)                                                      \
+  V(ConstantExpression, 107)                                                   \
+  V(SpecializedVariableGet, 128)                                               \
+  V(SpecializedVariableSet, 136)                                               \
+  V(SpecializedIntLiteral, 144)
+
+static const intptr_t kSpecializedTagHighBit = 0x80;
+static const intptr_t kSpecializedTagMask = 0xf8;
+static const intptr_t kSpecializedPayloadMask = 0x7;
+
 enum Tag {
-  kNothing = 0,
-  kSomething = 1,
-
-  kClass = 2,
-
-  kFunctionNode = 3,
-  kField = 4,
-  kConstructor = 5,
-  kProcedure = 6,
-
-  kInvalidInitializer = 7,
-  kFieldInitializer = 8,
-  kSuperInitializer = 9,
-  kRedirectingInitializer = 10,
-  kLocalInitializer = 11,
-  kAssertInitializer = 12,
-
-  kCheckLibraryIsLoaded = 13,
-  kLoadLibrary = 14,
-  kDirectPropertyGet = 15,
-  kDirectPropertySet = 16,
-  kDirectMethodInvocation = 17,
-  kConstStaticInvocation = 18,
-  kInvalidExpression = 19,
-  kVariableGet = 20,
-  kVariableSet = 21,
-  kPropertyGet = 22,
-  kPropertySet = 23,
-  kSuperPropertyGet = 24,
-  kSuperPropertySet = 25,
-  kStaticGet = 26,
-  kStaticSet = 27,
-  kMethodInvocation = 28,
-  kSuperMethodInvocation = 29,
-  kStaticInvocation = 30,
-  kConstructorInvocation = 31,
-  kConstConstructorInvocation = 32,
-  kNot = 33,
-  kLogicalExpression = 34,
-  kConditionalExpression = 35,
-  kStringConcatenation = 36,
-  kIsExpression = 37,
-  kAsExpression = 38,
-  kStringLiteral = 39,
-  kDoubleLiteral = 40,
-  kTrueLiteral = 41,
-  kFalseLiteral = 42,
-  kNullLiteral = 43,
-  kSymbolLiteral = 44,
-  kTypeLiteral = 45,
-  kThisExpression = 46,
-  kRethrow = 47,
-  kThrow = 48,
-  kListLiteral = 49,
-  kMapLiteral = 50,
-  kAwaitExpression = 51,
-  kFunctionExpression = 52,
-  kLet = 53,
-  kInstantiation = 54,
-
-  kPositiveIntLiteral = 55,
-  kNegativeIntLiteral = 56,
-  kBigIntLiteral = 57,
-  kConstListLiteral = 58,
-  kConstMapLiteral = 59,
-
-  kExpressionStatement = 61,
-  kBlock = 62,
-  kEmptyStatement = 63,
-  kAssertStatement = 64,
-  kLabeledStatement = 65,
-  kBreakStatement = 66,
-  kWhileStatement = 67,
-  kDoStatement = 68,
-  kForStatement = 69,
-  kForInStatement = 70,
-  kSwitchStatement = 71,
-  kContinueSwitchStatement = 72,
-  kIfStatement = 73,
-  kReturnStatement = 74,
-  kTryCatch = 75,
-  kTryFinally = 76,
-  kYieldStatement = 77,
-  kVariableDeclaration = 78,
-  kFunctionDeclaration = 79,
-  kAsyncForInStatement = 80,
-
-  kTypedefType = 87,
-  kVectorType = 88,
-  kBottomType = 89,
-  kInvalidType = 90,
-  kDynamicType = 91,
-  kVoidType = 92,
-  kInterfaceType = 93,
-  kFunctionType = 94,
-  kTypeParameterType = 95,
-  kSimpleInterfaceType = 96,
-  kSimpleFunctionType = 97,
-
-  kVectorCreation = 102,
-  kVectorGet = 103,
-  kVectorSet = 104,
-  kVectorCopy = 105,
-
-  kClosureCreation = 106,
-
-  kConstantExpression = 107,
-
-  kSpecializedTagHighBit = 0x80,  // 10000000
-  kSpecializedTagMask = 0xF8,     // 11111000
-  kSpecializedPayloadMask = 0x7,  // 00000111
-
-  kSpecializedVariableGet = 128,
-  kSpecializedVariableSet = 136,
-  kSpecialIntLiteral = 144,
+#define DECLARE(Name, value) k##Name = value,
+  KERNEL_TAG_LIST(DECLARE)
+#undef DECLARE
 };
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
@@ -258,6 +256,8 @@ class Reader {
   bool ReadBool() { return (ReadByte() & 1) == 1; }
 
   uint8_t ReadFlags() { return ReadByte(); }
+
+  static const char* TagName(Tag tag);
 
   Tag ReadTag(uint8_t* payload = NULL) {
     uint8_t byte = ReadByte();

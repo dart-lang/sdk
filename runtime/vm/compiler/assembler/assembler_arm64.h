@@ -1331,8 +1331,15 @@ class Assembler : public ValueObject {
     }
   }
   // We use an alias of add, where ARM recommends an alias of ubfm.
-  void LsrImmediate(Register rd, Register rn, int shift) {
-    add(rd, ZR, Operand(rn, LSR, shift));
+  void LsrImmediate(Register rd,
+                    Register rn,
+                    int shift,
+                    OperandSize sz = kDoubleWord) {
+    if (sz == kDoubleWord) {
+      add(rd, ZR, Operand(rn, LSR, shift));
+    } else {
+      addw(rd, ZR, Operand(rn, LSR, shift));
+    }
   }
   // We use an alias of add, where ARM recommends an alias of sbfm.
   void AsrImmediate(Register rd, Register rn, int shift) {

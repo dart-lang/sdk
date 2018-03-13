@@ -10,6 +10,7 @@
 #include "include/dart_tools_api.h"
 
 #include "bin/builtin.h"
+#include "bin/console.h"
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
 #include "bin/directory.h"
@@ -1007,6 +1008,9 @@ void main(int argc, char** argv) {
     Log::PrintErr("Initialization failed\n");
     Platform::Exit(kErrorExitCode);
   }
+
+  // Save the console state so we can restore it at shutdown.
+  Console::SaveConfig();
 
   // On Windows, the argv strings are code page encoded and not
   // utf8. We need to convert them to utf8.

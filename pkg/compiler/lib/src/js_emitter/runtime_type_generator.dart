@@ -23,17 +23,16 @@ import '../js_backend/js_interop_analysis.dart';
 import '../js_backend/namer.dart' show Namer;
 import '../js_backend/runtime_types.dart'
     show
+        ClassChecks,
         RuntimeTypesChecks,
         RuntimeTypesEncoder,
         Substitution,
-        TypeCheck,
-        TypeChecks;
+        TypeCheck;
 import '../js_emitter/sorter.dart';
 import '../js_model/closure.dart' show JClosureField;
 import '../util/util.dart' show Setlet;
 
 import 'code_emitter_task.dart' show CodeEmitterTask;
-import 'type_test_registry.dart' show TypeTestRegistry;
 
 // Function signatures used in the generation of runtime type information.
 typedef void FunctionTypeSignatureEmitter(
@@ -130,14 +129,6 @@ class RuntimeTypeGenerator {
       this._useKernel,
       this._strongMode,
       this._disableRtiOptimization);
-
-  TypeTestRegistry get _typeTestRegistry => emitterTask.typeTestRegistry;
-
-  Iterable<ClassEntity> get checkedClasses =>
-      _typeTestRegistry.rtiChecks.checkedClasses;
-
-  Iterable<FunctionType> get checkedFunctionTypes =>
-      _typeTestRegistry.rtiChecks.checkedFunctionTypes;
 
   /// Generates all properties necessary for is-checks on the [classElement].
   ///
@@ -249,29 +240,20 @@ class RuntimeTypeGenerator {
     Setlet<ClassEntity> generated = new Setlet<ClassEntity>();
 
     // Precomputed is checks.
-    TypeChecks typeChecks = _rtiChecks.requiredChecks;
-    Iterable<TypeCheck> classChecks = typeChecks[cls].checks;
-    if (classChecks != null) {
-      for (TypeCheck check in classChecks) {
-        if (!generated.contains(check.cls)) {
-          emitTypeCheck(check);
-          generated.add(check.cls);
+    ClassChecks classChecks = _rtiChecks.requiredChecks[cls];
+    Iterable<TypeCheck> typeChecks = classChecks.checks;
+    if (typeChecks != null) {
+      for (TypeCheck typeCheck in typeChecks) {
+        if (!generated.contains(typeCheck.cls)) {
+          emitTypeCheck(typeCheck);
+          generated.add(typeCheck.cls);
         }
       }
     }
 
-    // A class that defines a `call` method implicitly implements
-    // [Function] and needs checks for all typedefs that are used in is-checks.
-    if (checkedClasses.contains(_commonElements.functionClass) ||
-        checkedFunctionTypes.isNotEmpty) {
-      MemberEntity call =
-          _elementEnvironment.lookupLocalClassMember(cls, Identifiers.call);
-      if (call != null && call.isFunction) {
-        FunctionEntity callFunction = call;
-        FunctionType callType =
-            _elementEnvironment.getFunctionType(callFunction);
-        generateFunctionTypeSignature(callFunction, callType);
-      }
+    if (classChecks.functionType != null) {
+      generateFunctionTypeSignature(classChecks.functionType.callFunction,
+          classChecks.functionType.callType);
     }
   }
 }

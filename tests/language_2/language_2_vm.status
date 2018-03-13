@@ -174,7 +174,6 @@ bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
 bad_override_test/06: MissingCompileTimeError
 bug31436_test: RuntimeError
-bug32353_test: RuntimeError
 bug32372_test: RuntimeError
 built_in_identifier_prefix_test: CompileTimeError
 call_constructor_on_unresolvable_class_test/01: MissingCompileTimeError
@@ -548,6 +547,8 @@ issue31596_super_test/02: MissingCompileTimeError
 issue31596_super_test/04: MissingCompileTimeError
 issue31596_super_test/05: RuntimeError
 issue31596_tearoff_test: RuntimeError
+issue32353_2_test: MissingCompileTimeError # Issue 32353
+issue32353_test: RuntimeError
 least_upper_bound_expansive_test/none: CompileTimeError
 least_upper_bound_test/03: MissingCompileTimeError
 least_upper_bound_test/04: MissingCompileTimeError

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Based on tests\language_2\type_variable_function_type_test.dart
+// Based on tests/language_2/type_variable_function_type_test.dart
 
 import 'package:expect/expect.dart';
 
