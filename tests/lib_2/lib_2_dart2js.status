@@ -411,9 +411,6 @@ html/webgl_1_test: Pass, Fail # Issue 8219
 html/websql_test: Fail
 isolate/kill_self_synchronously_test: RuntimeError
 
-[ $compiler == dart2js && $runtime == ff && $fast_startup && $fasta ]
-html/fileapi_entry_test: RuntimeError
-
 [ $compiler == dart2js && $runtime == ie11 ]
 html/element_types_content_test: RuntimeError # Issue 29922
 html/element_types_datalist_test: RuntimeError # Issue 29922
@@ -503,21 +500,6 @@ isolate/message_test: Skip # Issue 12627
 
 [ $compiler == dart2js && $system == linux ]
 html/interactive_geolocation_test: Skip # Requires allowing geo location.
-
-[ $compiler == dart2js && $system == linux && $browser && !$csp && $fast_startup && $fasta ]
-async/stream_iterator_test: RuntimeError
-html/fileapi_directory_reader_test: RuntimeError
-html/fileapi_directory_test: RuntimeError
-html/fileapi_file_entry_test: RuntimeError
-html/fileapi_file_test: RuntimeError
-html/fileapi_supported_test: RuntimeError
-html/fileapi_supported_throws_test: RuntimeError
-html/websql_test: RuntimeError
-isolate/browser/package_resolve_browser_hook2_test: RuntimeError
-isolate/browser/package_resolve_browser_test: RuntimeError
-
-[ $compiler == dart2js && $system == linux && $browser && $fast_startup && $fasta ]
-isolate/browser/package_resolve_browser_hook_test: RuntimeError
 
 [ $compiler == dart2js && $system == windows ]
 html/xhr_test: RuntimeError
