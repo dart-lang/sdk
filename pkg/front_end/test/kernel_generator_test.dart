@@ -67,7 +67,8 @@ main() {
       expect(errors, isNotEmpty);
     });
 
-    test('by default program is compiled using summaries', () async {
+    test('by default program is compiled using the full platform file',
+        () async {
       var options = new CompilerOptions()
         // Note: we define [librariesSpecificationUri] with a specification that
         // contains broken URIs to ensure we do not attempt to lookup for
@@ -80,7 +81,7 @@ main() {
 
       // Note: summaries created by the SDK today contain empty statements as
       // method bodies.
-      expect(printMember.function.body is EmptyStatement, isTrue);
+      expect(printMember.function.body is! EmptyStatement, isTrue);
     });
 
     test('compiler requires a main method', () async {
