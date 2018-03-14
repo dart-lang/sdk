@@ -1293,7 +1293,6 @@ void main() {
 ''');
   }
 
-  @failingTest
   test_fuzzyArrowLegacyAssignability_GlobalInference() async {
     // Test for legacy fuzzy arrow support on assignability, pending
     // cleanup.  https://github.com/dart-lang/sdk/issues/29630

@@ -68,12 +68,6 @@ class ResynthesizeAstStrongTest extends _ResynthesizeAstTest {
 
   @override
   @failingTest
-  test_instantiateToBounds_functionTypeAlias_simple() async {
-    await super.test_instantiateToBounds_functionTypeAlias_simple();
-  }
-
-  @override
-  @failingTest
   test_syntheticFunctionType_genericClosure() async {
     await super.test_syntheticFunctionType_genericClosure();
   }
