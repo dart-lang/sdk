@@ -37,8 +37,10 @@ import '../type_inference/type_schema.dart' show TypeSchemaVisitor, UnknownType;
 import 'redirecting_factory_body.dart'
     show RedirectingFactoryBody, getRedirectingFactoryBody;
 
-List<LocatedMessage> verifyProgram(Program program, {bool isOutline: false}) {
-  FastaVerifyingVisitor verifier = new FastaVerifyingVisitor(isOutline);
+List<LocatedMessage> verifyProgram(Program program,
+    {bool isOutline: false, bool skipPlatform: false}) {
+  FastaVerifyingVisitor verifier =
+      new FastaVerifyingVisitor(isOutline, skipPlatform);
   program.accept(verifier);
   return verifier.errors;
 }
@@ -48,8 +50,9 @@ class FastaVerifyingVisitor extends VerifyingVisitor
   final List<LocatedMessage> errors = <LocatedMessage>[];
 
   Uri fileUri;
+  final bool skipPlatform;
 
-  FastaVerifyingVisitor(bool isOutline) {
+  FastaVerifyingVisitor(bool isOutline, this.skipPlatform) {
     this.isOutline = isOutline;
   }
 
@@ -129,6 +132,10 @@ class FastaVerifyingVisitor extends VerifyingVisitor
 
   @override
   visitLibrary(Library node) {
+    // Issue(http://dartbug.com/32530)
+    if (skipPlatform && node.importUri.scheme == 'dart') {
+      return;
+    }
     fileUri = checkLocation(node, node.name, node.fileUri);
     super.visitLibrary(node);
   }

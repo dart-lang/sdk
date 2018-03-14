@@ -73,7 +73,8 @@ class Verify extends Step<Program, Program, ChainContext> {
   Future<Result<Program>> run(Program program, ChainContext context) async {
     var options = new ProcessedOptions(new CompilerOptions());
     return await CompilerContext.runWithOptions(options, (_) async {
-      var errors = verifyProgram(program, isOutline: !fullCompile);
+      var errors =
+          verifyProgram(program, isOutline: !fullCompile, skipPlatform: true);
       if (errors.isEmpty) {
         return pass(program);
       } else {

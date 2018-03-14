@@ -111,8 +111,7 @@ class FastaContext extends ChainContext {
   final Map<Program, KernelTarget> programToTarget = <Program, KernelTarget>{};
   final Uri platformBinaries;
   Uri platformUri;
-  Uri outlineUri;
-  Program outline;
+  Program platform;
 
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(JSON.decode(EXPECTATIONS));
@@ -158,19 +157,18 @@ class FastaContext extends ChainContext {
 
   Future ensurePlatformUris() async {
     if (platformUri == null) {
-      platformUri = platformBinaries.resolve("vm_platform.dill");
-      outlineUri = platformBinaries
-          .resolve(strongMode ? "vm_outline_strong.dill" : "vm_outline.dill");
+      platformUri = platformBinaries
+          .resolve(strongMode ? "vm_platform_strong.dill" : "vm_platform.dill");
     }
   }
 
-  Future<Program> loadPlatformOutline() async {
-    if (outline == null) {
+  Future<Program> loadPlatform() async {
+    if (platform == null) {
       await ensurePlatformUris();
-      outline =
-          loadProgramFromBytes(new File.fromUri(outlineUri).readAsBytesSync());
+      platform =
+          loadProgramFromBytes(new File.fromUri(platformUri).readAsBytesSync());
     }
-    return outline;
+    return platform;
   }
 
   @override
@@ -281,11 +279,11 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
       // Disable colors to ensure that expectation files are the same across
       // platforms and independent of stdin/stderr.
       CompilerContext.current.disableColors();
-      Program platformOutline = await context.loadPlatformOutline();
+      Program platform = await context.loadPlatform();
       Ticker ticker = new Ticker();
       DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator,
           new TestVmTarget(new TargetFlags(strongMode: strongMode)));
-      dillTarget.loader.appendLibraries(platformOutline);
+      dillTarget.loader.appendLibraries(platform);
       // We create a new URI translator to avoid reading platform libraries from
       // file system.
       UriTranslatorImpl uriTranslator = new UriTranslatorImpl(

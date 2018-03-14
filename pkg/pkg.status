@@ -37,11 +37,12 @@ dev_compiler/test/worker/*: Skip # Skip dev_compiler codegen tests
 front_end/test/fasta/analyze_test: Pass, Slow
 front_end/test/fasta/ast_builder_test: Pass, Slow
 front_end/test/fasta/bootstrap_test: Pass, Slow
-front_end/test/fasta/compile_test: Pass, Slow
+front_end/test/fasta/compile_test: Pass, ExtraSlow
 front_end/test/fasta/outline_test: Pass, Slow
 front_end/test/fasta/rasta/*: SkipByDesign # Anything in rasta is input to fasta unit tests and shouldn't be run as tests.
 front_end/test/fasta/sdk_test: SkipByDesign # sdk_test would take too long to complete, and should be run in a different way.
-front_end/test/fasta/strong_test: Pass, Slow
+front_end/test/fasta/shaker_test: Skip # Issue http://dartbug.com/32531
+front_end/test/fasta/strong_test: Pass, ExtraSlow
 front_end/test/minimal_incremental_kernel_generator_test: Slow, Pass
 front_end/test/whole_program_test: Slow, Pass
 front_end/testcases/*: Skip # These are not tests but input for tests.
