@@ -342,6 +342,9 @@ class TokenInfoTest {
           'handleType int double',
           'endTypeArguments 1 < >',
           'handleType G double',
+        ],
+        expectedErrors: [
+          error(codeExpectedToken, 6, 6)
         ]);
 
     expectInfo(noTypeInfo, 'C<>', required: false);
@@ -353,6 +356,8 @@ class TokenInfoTest {
       'handleType > >',
       'endTypeArguments 1 < >',
       'handleType C ',
+    ], expectedErrors: [
+      error(codeExpectedType, 2, 1)
     ]);
     expectComplexInfo('C<> f', required: true, tokenAfter: 'f', expectedCalls: [
       'handleIdentifier C typeReference',
@@ -362,6 +367,8 @@ class TokenInfoTest {
       'handleType > >',
       'endTypeArguments 1 < >',
       'handleType C f',
+    ], expectedErrors: [
+      error(codeExpectedType, 2, 1)
     ]);
 
     // Statements that should not have a type
@@ -541,27 +548,42 @@ class TokenInfoTest {
 }
 
 void expectInfo(expectedInfo, String source,
-    {bool required, String expectedAfter, List<String> expectedCalls}) {
+    {bool required,
+    String expectedAfter,
+    List<String> expectedCalls,
+    List<ExpectedError> expectedErrors}) {
   Token start = scan(source);
   if (required == null) {
-    compute(expectedInfo, source, start, true, expectedAfter, expectedCalls);
-    compute(expectedInfo, source, start, false, expectedAfter, expectedCalls);
+    compute(expectedInfo, source, start, true, expectedAfter, expectedCalls,
+        expectedErrors);
+    compute(expectedInfo, source, start, false, expectedAfter, expectedCalls,
+        expectedErrors);
   } else {
-    compute(
-        expectedInfo, source, start, required, expectedAfter, expectedCalls);
+    compute(expectedInfo, source, start, required, expectedAfter, expectedCalls,
+        expectedErrors);
   }
 }
 
 void expectComplexInfo(String source,
-    {bool required, String tokenAfter, List<String> expectedCalls}) {
+    {bool required,
+    String tokenAfter,
+    List<String> expectedCalls,
+    List<ExpectedError> expectedErrors}) {
   expectInfo(const isInstanceOf<ComplexTypeInfo>(), source,
       required: required,
       expectedAfter: tokenAfter,
-      expectedCalls: expectedCalls);
+      expectedCalls: expectedCalls,
+      expectedErrors: expectedErrors);
 }
 
-void compute(expectedInfo, String source, Token start, bool required,
-    String expectedAfter, List<String> expectedCalls) {
+void compute(
+    expectedInfo,
+    String source,
+    Token start,
+    bool required,
+    String expectedAfter,
+    List<String> expectedCalls,
+    List<ExpectedError> expectedErrors) {
   TypeInfo typeInfo = computeType(start, required);
   expect(typeInfo, expectedInfo, reason: source);
   if (typeInfo is ComplexTypeInfo) {
@@ -581,6 +603,9 @@ void compute(expectedInfo, String source, Token start, bool required,
 
       expect(listener.calls, expectedCalls, reason: source);
     }
+    expect(listener.errors, expectedErrors, reason: source);
+  } else {
+    assert(expectedErrors == null);
   }
 }
 
@@ -603,6 +628,7 @@ Token scan(String source) {
 
 class TypeInfoListener implements Listener {
   List<String> calls = <String>[];
+  List<ExpectedError> errors;
 
   @override
   void beginFormalParameter(Token token, MemberKind kind) {
@@ -715,7 +741,9 @@ class TypeInfoListener implements Listener {
   @override
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
-    // ignored
+    errors ??= <ExpectedError>[];
+    int offset = startToken.charOffset;
+    errors.add(error(message.code, offset, endToken.charEnd - offset));
   }
 
   @override
@@ -736,4 +764,25 @@ class TypeInfoListener implements Listener {
   noSuchMethod(Invocation invocation) {
     throw '${invocation.memberName} should not be called.';
   }
+}
+
+ExpectedError error(Code code, int start, int length) =>
+    new ExpectedError(code, start, length);
+
+class ExpectedError {
+  final Code code;
+  final int start;
+  final int length;
+
+  ExpectedError(this.code, this.start, this.length);
+
+  @override
+  bool operator ==(other) =>
+      other is ExpectedError &&
+      code == other.code &&
+      start == other.start &&
+      length == other.length;
+
+  @override
+  String toString() => 'error(${code.name}, $start, $length)';
 }

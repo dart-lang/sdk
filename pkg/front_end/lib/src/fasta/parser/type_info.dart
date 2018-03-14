@@ -35,12 +35,13 @@ import 'util.dart' show optional;
 abstract class TypeInfo {
   /// Call this function when it's known that the token after [token] is a type.
   /// This function will call the appropriate event methods on the [Parser]'s
-  /// listener to handle the type.
+  /// listener to handle the type. This may modify the token stream
+  /// when parsing `>>` in valid code or during recovery.
   Token parseType(Token token, Parser parser);
 
   /// Call this function with the [token] before the type to obtain
   /// the last token in the type. If there is no type, then this method
-  /// will return [token].
+  /// will return [token]. This does not modify the token stream.
   Token skipType(Token token);
 }
 
@@ -85,7 +86,7 @@ bool isValidTypeReference(Token token) {
 }
 
 /// Called by the parser to obtain information about a possible type reference
-/// that follows [token].
+/// that follows [token]. This does not modify the token stream.
 TypeInfo computeType(final Token token, bool required) {
   Token next = token.next;
   if (!isValidTypeReference(next)) {
