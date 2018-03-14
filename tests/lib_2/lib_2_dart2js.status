@@ -357,6 +357,9 @@ isolate/isolate_stress_test: RuntimeError
 js/null_test: RuntimeError
 js/prototype_access_test: RuntimeError
 
+[ $compiler == dart2js && $runtime == d8 && $fasta && $minified ]
+collection/list_test: RuntimeError
+
 [ $compiler == dart2js && $runtime != d8 ]
 isolate/error_at_spawn_test: Skip # Issue 23876
 isolate/error_exit_at_spawn_test: Skip # Issue 23876
@@ -369,6 +372,11 @@ html/html_mock_test: RuntimeError # Issue 31038
 html/input_element_attributes_test: RuntimeError
 html/interactive_media_test: RuntimeError
 html/js_extend_class_test: RuntimeError
+
+[ $compiler == dart2js && $runtime != d8 && $fasta && $minified ]
+html/js_typed_interop_type2_test/01: RuntimeError
+html/js_typed_interop_type2_test/none: RuntimeError
+html/non_instantiated_is_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == drt && !$checked ]
 html/audiocontext_test/functional: Pass, Fail
@@ -521,6 +529,9 @@ isolate/isolate_current_test: Fail # please triage
 convert/utf85_test: Pass, Slow # Issue 12029.
 html/js_function_getter_trust_types_test: Skip # --trust-type-annotations incompatible with --checked
 
+[ $compiler == dart2js && $checked && $fasta && $host_checked ]
+async/stream_listen_zone_test: RuntimeError
+
 [ $compiler == dart2js && $csp && ($runtime == chrome || $runtime == chromeOnAndroid || $runtime == ff || $runtime == safari) ]
 html/event_customevent_test: SkipByDesign
 html/js_array_test: SkipByDesign
@@ -638,7 +649,6 @@ html/canvas_pixel_array_type_alias_test/types1: RuntimeError
 html/canvas_pixel_array_type_alias_test/types2: RuntimeError
 html/custom/mirrors_2_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/custom/mirrors_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/custom/regress_194523002_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/custom_element_method_clash_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/custom_element_name_clash_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/custom_elements_23127_test: Crash # Assertion failure: Cannot find value local(B2T.created#a) in (type_variable_local(B2T.T), local(C2T.created#a), local(C2T.created#b), local(C2T.created#c), BoxLocal(_box_0)) for j:constructor(C2T.created).
@@ -703,7 +713,7 @@ html/fileapi_entry_test: RuntimeError
 html/fileapi_supported_test: RuntimeError
 html/filereader_test: RuntimeError
 html/filteredelementlist_test: RuntimeError
-html/fontface_loaded_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/fontface_loaded_test: RuntimeError
 html/fontface_test: RuntimeError
 html/form_data_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/form_data_test/functional: RuntimeError
@@ -765,23 +775,14 @@ html/js_jsfunc_callmethod_test: RuntimeError
 html/js_jsify_test: RuntimeError
 html/js_jsobject_test: RuntimeError
 html/js_transferrables_test: RuntimeError
-html/js_typed_interop_anonymous2_exp_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/js_typed_interop_anonymous2_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/js_typed_interop_anonymous_exp_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/js_typed_interop_anonymous_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/js_typed_interop_anonymous_unreachable_exp_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/js_typed_interop_anonymous_unreachable_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/js_typed_interop_bind_this_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/js_typed_interop_callable_object_test: CompileTimeError
 html/js_typed_interop_default_arg_test/explicit_argument: CompileTimeError
 html/js_typed_interop_default_arg_test/none: CompileTimeError
 html/js_typed_interop_side_cast_exp_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/js_typed_interop_side_cast_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/js_typed_interop_test: CompileTimeError
 html/js_typed_interop_type1_test/01: RuntimeError
 html/js_typed_interop_type1_test/none: RuntimeError
-html/js_typed_interop_type2_test/01: RuntimeError
-html/js_typed_interop_type2_test/none: RuntimeError
 html/js_typed_interop_type3_test/01: RuntimeError
 html/js_typed_interop_type3_test/02: RuntimeError
 html/js_typed_interop_type3_test/none: RuntimeError
@@ -800,7 +801,6 @@ html/native_gc_test: RuntimeError
 html/navigator_test: RuntimeError
 html/node_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/node_validator_important_if_you_suppress_make_the_bug_critical_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/non_instantiated_is_test: RuntimeError
 html/notification_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/performance_api_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/postmessage_structured_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.

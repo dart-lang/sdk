@@ -249,6 +249,9 @@ mirrors/mirrors_reader_test: Skip # Running in v8 suffices. Issue 16589 - Runtim
 [ $compiler == dart2js && $checked ]
 convert/utf85_test: Pass, Slow # Issue 12029.
 
+[ $compiler == dart2js && $checked && $fasta && $host_checked ]
+async/stream_listen_zone_test: RuntimeError
+
 [ $compiler == dart2js && $fast_startup ]
 mirrors/*: Fail # mirrors not supported
 mirrors/library_imports_bad_metadata_test/01: Pass # expects failure, but it fails for the wrong reason

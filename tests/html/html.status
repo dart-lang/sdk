@@ -363,6 +363,10 @@ xhr_cross_origin_test: RuntimeError
 xhr_test: RuntimeError
 xsltprocessor_test: RuntimeError
 
+[ $compiler == dart2js && $runtime == d8 && $fasta && $minified ]
+fontface_loaded_test: RuntimeError
+streams_test: RuntimeError
+
 [ $compiler == dart2js && $runtime == drt && !$checked ]
 audiocontext_test/functional: Pass, Fail
 
