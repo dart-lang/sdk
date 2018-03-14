@@ -8,6 +8,7 @@
 library dart2js.test.import;
 
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import '../memory_compiler.dart';
 
@@ -45,7 +46,8 @@ testEntryPointIsPart() async {
   await runCompiler(
       entryPoint: Uri.parse('memory:part.dart'),
       memorySourceFiles: MEMORY_SOURCE_FILES,
-      diagnosticHandler: collector);
+      diagnosticHandler: collector,
+      options: [Flags.useOldFrontend]);
 
   collector.checkMessages([const Expected.error(MessageKind.MAIN_HAS_PART_OF)]);
 }
@@ -55,7 +57,8 @@ testImportPart() async {
   await runCompiler(
       entryPoint: Uri.parse('memory:lib.dart'),
       memorySourceFiles: MEMORY_SOURCE_FILES,
-      diagnosticHandler: collector);
+      diagnosticHandler: collector,
+      options: [Flags.useOldFrontend]);
 
   collector.checkMessages([
     const Expected.error(MessageKind.IMPORT_PART_OF),
@@ -66,7 +69,9 @@ testImportPart() async {
 testMissingImports() async {
   var collector = new DiagnosticCollector();
   await runCompiler(
-      memorySourceFiles: MEMORY_SOURCE_FILES, diagnosticHandler: collector);
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+      diagnosticHandler: collector,
+      options: [Flags.useOldFrontend]);
 
   collector.checkMessages([
     const Expected.error(MessageKind.READ_URI_ERROR),
@@ -81,7 +86,8 @@ testMissingMain() async {
   var collector = new DiagnosticCollector();
   await runCompiler(
       entryPoint: Uri.parse('memory:missing.dart'),
-      diagnosticHandler: collector);
+      diagnosticHandler: collector,
+      options: [Flags.useOldFrontend]);
   collector.checkMessages([const Expected.error(MessageKind.READ_SELF_ERROR)]);
 }
 

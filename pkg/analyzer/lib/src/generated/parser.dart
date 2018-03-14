@@ -846,12 +846,52 @@ class Parser {
    *       | identifier
    */
   Expression parseAssignableExpression(bool primaryAllowed) {
-    if (_matchesKeyword(Keyword.SUPER)) {
-      return parseAssignableSelector(
-          astFactory.superExpression(getAndAdvance()), false,
-          allowConditional: false);
+    //
+    // A primary expression can start with an identifier. We resolve the
+    // ambiguity by determining whether the primary consists of anything other
+    // than an identifier and/or is followed by an assignableSelector.
+    //
+    Expression expression = parsePrimaryExpression();
+    bool isOptional =
+        primaryAllowed || _isValidAssignableExpression(expression);
+    while (true) {
+      while (_isLikelyArgumentList()) {
+        TypeArgumentList typeArguments = _parseOptionalTypeArguments();
+        ArgumentList argumentList = parseArgumentList();
+        Expression currentExpression = expression;
+        if (currentExpression is SimpleIdentifier) {
+          expression = astFactory.methodInvocation(
+              null, null, currentExpression, typeArguments, argumentList);
+        } else if (currentExpression is PrefixedIdentifier) {
+          expression = astFactory.methodInvocation(
+              currentExpression.prefix,
+              currentExpression.period,
+              currentExpression.identifier,
+              typeArguments,
+              argumentList);
+        } else if (currentExpression is PropertyAccess) {
+          expression = astFactory.methodInvocation(
+              currentExpression.target,
+              currentExpression.operator,
+              currentExpression.propertyName,
+              typeArguments,
+              argumentList);
+        } else {
+          expression = astFactory.functionExpressionInvocation(
+              expression, typeArguments, argumentList);
+        }
+        if (!primaryAllowed) {
+          isOptional = false;
+        }
+      }
+      Expression selectorExpression = parseAssignableSelector(
+          expression, isOptional || (expression is PrefixedIdentifier));
+      if (identical(selectorExpression, expression)) {
+        return expression;
+      }
+      expression = selectorExpression;
+      isOptional = true;
     }
-    return _parseAssignableExpressionNotStartingWithSuper(primaryAllowed);
   }
 
   /**
@@ -4457,7 +4497,7 @@ class Parser {
    *
    *     selector ::=
    *         assignableSelector
-   *       | argumentList
+   *       | argumentPart
    */
   Expression parsePostfixExpression() {
     Expression operand = parseAssignableExpression(true);
@@ -4583,8 +4623,6 @@ class Parser {
     } else if (keyword == Keyword.THIS) {
       return astFactory.thisExpression(getAndAdvance());
     } else if (keyword == Keyword.SUPER) {
-      // TODO(paulberry): verify with Gilad that "super" must be followed by
-      // unconditionalAssignableSelector in this case.
       return parseAssignableSelector(
           astFactory.superExpression(getAndAdvance()), false,
           allowConditional: false);
@@ -5416,7 +5454,7 @@ class Parser {
             operator, astFactory.superExpression(getAndAdvance()));
       }
       return astFactory.prefixExpression(
-          operator, _parseAssignableExpressionNotStartingWithSuper(false));
+          operator, parseAssignableExpression(false));
     } else if (type == TokenType.PLUS) {
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
       return createSyntheticIdentifier();
@@ -6382,6 +6420,21 @@ class Parser {
   }
 
   /**
+   * Return `true` if the given [expression] is a primary expression that is
+   * allowed to be an assignable expression without any assignable selector.
+   */
+  bool _isValidAssignableExpression(Expression expression) {
+    if (expression is SimpleIdentifier) {
+      return true;
+    } else if (expression is PropertyAccess) {
+      return expression.target is SuperExpression;
+    } else if (expression is IndexExpression) {
+      return expression.target is SuperExpression;
+    }
+    return false;
+  }
+
+  /**
    * Increments the error reporting lock level. If level is more than `0`, then
    * [reportError] wont report any error.
    */
@@ -6517,61 +6570,6 @@ class Parser {
     Token rightParen = _expect(TokenType.CLOSE_PAREN);
     return astFactory.assertInitializer(
         keyword, leftParen, expression, comma, message, rightParen);
-  }
-
-  /**
-   * Parse an assignable expression given that the current token is not 'super'.
-   * The [primaryAllowed] is `true` if the expression is allowed to be a primary
-   * without any assignable selector. Return the assignable expression that was
-   * parsed.
-   */
-  Expression _parseAssignableExpressionNotStartingWithSuper(
-      bool primaryAllowed) {
-    //
-    // A primary expression can start with an identifier. We resolve the
-    // ambiguity by determining whether the primary consists of anything other
-    // than an identifier and/or is followed by an assignableSelector.
-    //
-    Expression expression = parsePrimaryExpression();
-    bool isOptional = primaryAllowed || expression is SimpleIdentifier;
-    while (true) {
-      while (_isLikelyArgumentList()) {
-        TypeArgumentList typeArguments = _parseOptionalTypeArguments();
-        ArgumentList argumentList = parseArgumentList();
-        Expression currentExpression = expression;
-        if (currentExpression is SimpleIdentifier) {
-          expression = astFactory.methodInvocation(
-              null, null, currentExpression, typeArguments, argumentList);
-        } else if (currentExpression is PrefixedIdentifier) {
-          expression = astFactory.methodInvocation(
-              currentExpression.prefix,
-              currentExpression.period,
-              currentExpression.identifier,
-              typeArguments,
-              argumentList);
-        } else if (currentExpression is PropertyAccess) {
-          expression = astFactory.methodInvocation(
-              currentExpression.target,
-              currentExpression.operator,
-              currentExpression.propertyName,
-              typeArguments,
-              argumentList);
-        } else {
-          expression = astFactory.functionExpressionInvocation(
-              expression, typeArguments, argumentList);
-        }
-        if (!primaryAllowed) {
-          isOptional = false;
-        }
-      }
-      Expression selectorExpression = parseAssignableSelector(
-          expression, isOptional || (expression is PrefixedIdentifier));
-      if (identical(selectorExpression, expression)) {
-        return expression;
-      }
-      expression = selectorExpression;
-      isOptional = true;
-    }
   }
 
   /**

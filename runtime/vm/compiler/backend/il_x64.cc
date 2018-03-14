@@ -5317,8 +5317,7 @@ template <typename OperandType>
 static void EmitIntegerArithmetic(FlowGraphCompiler* compiler,
                                   Token::Kind op_kind,
                                   Register left,
-                                  const OperandType& right,
-                                  Label* deopt) {
+                                  const OperandType& right) {
   switch (op_kind) {
     case Token::kADD:
       __ addl(left, right);
@@ -5341,7 +5340,6 @@ static void EmitIntegerArithmetic(FlowGraphCompiler* compiler,
     default:
       UNREACHABLE();
   }
-  if (deopt != NULL) __ j(OVERFLOW, deopt);
 }
 
 void BinaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -5356,7 +5354,7 @@ void BinaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kADD:
     case Token::kSUB:
     case Token::kMUL:
-      EmitIntegerArithmetic(compiler, op_kind(), left, right, NULL);
+      EmitIntegerArithmetic(compiler, op_kind(), left, right);
       return;
     default:
       UNREACHABLE();

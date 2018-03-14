@@ -16,8 +16,12 @@ void main() {
         String file = 'tests/compiler/dart2js/sourcemaps/test_files/'
             'deferred_validator_test_file.dart';
         print("Compiling $file");
-        var result = entry.internalMain(
-            [file, '-o${tmpDir.path}/out.js', '--library-root=sdk']);
+        var result = entry.internalMain([
+          file,
+          '-o${tmpDir.path}/out.js',
+          '--library-root=sdk',
+          '--use-old-frontend'
+        ]);
         return result.then((CompilationResult result) {
           CompilerImpl compiler = result.compiler;
           Uri mainUri = new Uri.file('${tmpDir.path}/out.js',

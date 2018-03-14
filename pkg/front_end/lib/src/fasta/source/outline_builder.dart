@@ -815,11 +815,10 @@ class OutlineBuilder extends UnhandledListener {
     } else if (count > 1) {
       var last = pop();
       count--;
-      if (last is List) {
+      if (last is List<FormalParameterBuilder>) {
         formals = new List<FormalParameterBuilder>.filled(
             count + last.length, null,
             growable: true);
-        // ignore: ARGUMENT_TYPE_NOT_ASSIGNABLE
         formals.setRange(count, formals.length, last);
       } else {
         formals = new List<FormalParameterBuilder>.filled(count + 1, null,

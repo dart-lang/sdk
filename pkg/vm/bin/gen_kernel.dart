@@ -34,7 +34,7 @@ final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
   ..addFlag('tfa',
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
-      defaultsTo: false)
+      defaultsTo: true)
   ..addOption('entry-points',
       help: 'Path to JSON file with the list of entry points',
       allowMultiple: true);

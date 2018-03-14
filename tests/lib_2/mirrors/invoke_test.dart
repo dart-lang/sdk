@@ -97,7 +97,7 @@ testSync() {
       () => cm.setField(const Symbol('doesntExist'), 'sbar'), 'Not defined');
 
   // ClassMirror invokeConstructor
-  result = cm.newInstance(const Symbol(''), []);
+  result = cm.newInstance(Symbol.empty, []);
   Expect.isTrue(result.reflectee is C);
   Expect.equals('default', result.reflectee.field);
   result = cm.newInstance(const Symbol('named'), ['my value']);
@@ -123,8 +123,8 @@ testSync() {
   Expect.equals('lget a priori', result.reflectee);
   result = lm.getField(const Symbol('libraryField'));
   Expect.equals('a priori', result.reflectee);
-  Expect.throwsNoSuchMethodError(() => lm.getField(const Symbol('doesntExist')),
-      'Not defined');
+  Expect.throwsNoSuchMethodError(
+      () => lm.getField(const Symbol('doesntExist')), 'Not defined');
 
   // LibraryMirror invokeSetter
   result = lm.setField(const Symbol('librarySetter'), 'lfoo');

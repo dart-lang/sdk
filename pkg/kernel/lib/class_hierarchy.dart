@@ -702,7 +702,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     // Build the class ordering based on a topological sort.
     for (var library in _program.libraries) {
       for (var classNode in library.classes) {
-        _topologicalSortVisit(classNode, mixinInferrer);
+        _topologicalSortVisit(classNode);
       }
     }
 
@@ -725,6 +725,23 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     // Run a downward traversal from the root, compute preorder numbers for
     // each class, and build their subtype sets as interval lists.
     _topDownSortVisit(_infoFor[classes[0]]);
+
+    // Now that the intervals for subclass, mixer, and implementer queries are
+    // built, we may infer and record supertypes for the classes.
+    for (int i = 0; i < classes.length; ++i) {
+      Class classNode = classes[i];
+      _ClassInfo info = _infoFor[classNode];
+      if (classNode.supertype != null) {
+        _recordSuperTypes(info, classNode.supertype);
+      }
+      if (classNode.mixedInType != null) {
+        mixinInferrer?.infer(this, classNode);
+        _recordSuperTypes(info, classNode.mixedInType);
+      }
+      for (Supertype supertype in classNode.implementedTypes) {
+        _recordSuperTypes(info, supertype);
+      }
+    }
 
     for (int i = 0; i < classes.length; ++i) {
       var class_ = classes[i];
@@ -757,7 +774,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   /// Returns the depth of the visited class (the number of steps in the longest
   /// inheritance path to the root class).
   int _topSortIndex = 0;
-  int _topologicalSortVisit(Class classNode, MixinInferrer mixinInferrer) {
+  int _topologicalSortVisit(Class classNode) {
     var info = _infoFor[classNode];
     if (info != null) {
       if (info.isBeingVisited) {
@@ -769,22 +786,15 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     _infoFor[classNode] = info = new _ClassInfo(classNode);
     info.isBeingVisited = true;
     if (classNode.supertype != null) {
-      superDepth = max(superDepth,
-          _topologicalSortVisit(classNode.supertype.classNode, mixinInferrer));
-      _recordSuperTypes(info, classNode.supertype);
+      superDepth =
+          max(superDepth, _topologicalSortVisit(classNode.supertype.classNode));
     }
     if (classNode.mixedInType != null) {
       superDepth = max(
-          superDepth,
-          _topologicalSortVisit(
-              classNode.mixedInType.classNode, mixinInferrer));
-      if (mixinInferrer != null) mixinInferrer.infer(this, classNode);
-      _recordSuperTypes(info, classNode.mixedInType);
+          superDepth, _topologicalSortVisit(classNode.mixedInType.classNode));
     }
     for (var supertype in classNode.implementedTypes) {
-      superDepth = max(superDepth,
-          _topologicalSortVisit(supertype.classNode, mixinInferrer));
-      _recordSuperTypes(info, supertype);
+      superDepth = max(superDepth, _topologicalSortVisit(supertype.classNode));
     }
     _buildDeclaredMembers(classNode, info);
     _buildImplementedMembers(classNode, info);

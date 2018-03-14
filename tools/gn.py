@@ -22,7 +22,6 @@ GN = os.path.join(DART_ROOT, 'buildtools', 'gn')
 DART_USE_ASAN = "DART_USE_ASAN"  # Use instead of --asan
 DART_USE_MSAN = "DART_USE_MSAN"  # Use instead of --msan
 DART_USE_TSAN = "DART_USE_TSAN"  # Use instead of --tsan
-DART_USE_WHEEZY = "DART_USE_WHEEZY"  # Use instread of --wheezy
 DART_USE_TOOLCHAIN = "DART_USE_TOOLCHAIN"  # Use instread of --toolchain-prefix
 DART_USE_SYSROOT = "DART_USE_SYSROOT"  # Use instead of --target-sysroot
 # use instead of --platform-sdk
@@ -40,10 +39,6 @@ def UseMSAN():
 
 def UseTSAN():
   return DART_USE_TSAN in os.environ
-
-
-def UseWheezy():
-  return DART_USE_WHEEZY in os.environ
 
 
 def ToolchainPrefix(args):
@@ -152,32 +147,18 @@ def UseSanitizer(args):
 
 def DontUseClang(args, target_os, host_cpu, target_cpu):
   # We don't have clang on Windows.
-  return (target_os == 'win'
-         # TODO(infra): Clang cannot compile boringssl and tcmalloc in -mthumb
-         # mode.
-         # See dartbug.com/32363.
-         #
-         # We also can't compile the whole VM with clang in -marm mode
-         # See: dartbug.com/32362.
-         or (target_os == 'linux'
-             and target_cpu.startswith('arm')
-             and target_cpu != 'arm64'
-             and not UseSanitizer(args)))
+  return target_os == 'win'
 
 
-def UseWheezySysroot(args, gn_args):
+def UseSysroot(args, gn_args):
   # Don't try to use a Linux sysroot if we aren't on Linux.
   if gn_args['target_os'] != 'linux':
     return False
-  # Use the wheezy sysroot if explicitly asked to do so.
-  if args.wheezy:
-    return True
-  # Don't use the wheezy sysroot if we're given another sysroot.
+  # Don't use the sysroot if we're given another sysroot.
   if TargetSysroot(args):
     return False
-  # The clang toolchain we pull from Fuchsia doesn't have arm and arm64
-  # sysroots, so use the wheezy/jesse ones.
-  return gn_args['is_clang'] and gn_args['target_cpu'].startswith('arm')
+  # Otherwise use the sysroot.
+  return True
 
 
 def ToGnArgs(args, mode, arch, target_os):
@@ -254,7 +235,7 @@ def ToGnArgs(args, mode, arch, target_os):
   gn_args['dart_stripped_binary'] = 'exe.stripped/dart'
 
   # Setup the user-defined sysroot.
-  if UseWheezySysroot(args, gn_args):
+  if UseSysroot(args, gn_args):
     gn_args['dart_use_wheezy_sysroot'] = True
   else:
     sysroot = TargetSysroot(args)
@@ -442,11 +423,11 @@ def parse_args(args):
       dest='tsan',
       action='store_false')
   other_group.add_argument('--wheezy',
-      help='Use the Debian wheezy sysroot on Linux',
-      default=UseWheezy(),
+      help='This flag is deprecated.',
+      default=True,
       action='store_true')
   other_group.add_argument('--no-wheezy',
-      help='Disable the Debian wheezy sysroot on Linux',
+      help='This flag is deprecated',
       dest='wheezy',
       action='store_false')
   other_group.add_argument('--workers', '-w',

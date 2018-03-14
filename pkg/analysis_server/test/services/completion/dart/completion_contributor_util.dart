@@ -557,7 +557,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     // would therefore not wait for microtask callbacks that are scheduled after
     // invoking this method.
     return new Future.delayed(
-        Duration.ZERO, () => performAnalysis(times - 1, completer));
+        Duration.zero, () => performAnalysis(times - 1, completer));
   }
 
   void resolveSource(String path, String content) {

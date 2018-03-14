@@ -456,6 +456,12 @@ class FixProcessor {
       if (errorCode.name == LintNames.prefer_const_declarations) {
         await _addFix_replaceFinalWithConst();
       }
+      if (name == LintNames.prefer_final_fields) {
+        await _addFix_makeVariableFinal();
+      }
+      if (name == LintNames.prefer_final_locals) {
+        await _addFix_makeVariableFinal();
+      }
       if (name == LintNames.prefer_is_not_empty) {
         await _addFix_isNotEmpty();
       }
@@ -2060,6 +2066,25 @@ class FixProcessor {
     }
   }
 
+  Future<Null> _addFix_makeVariableFinal() async {
+    AstNode node = this.node;
+    if (node is SimpleIdentifier && node.parent is VariableDeclaration) {
+      VariableDeclaration declaration = node.parent;
+      VariableDeclarationList list = declaration.parent;
+      if (list.variables.length == 1) {
+        DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+          if (list.type == null && list.keyword.keyword == Keyword.VAR) {
+            builder.addSimpleReplacement(range.token(list.keyword), 'final');
+          } else if (list.type != null && list.keyword == null) {
+            builder.addSimpleInsertion(list.type.offset, 'final ');
+          }
+        });
+        _addFixFromBuilder(changeBuilder, DartFixKind.MAKE_FINAL);
+      }
+    }
+  }
+
   Future<Null> _addFix_nonBoolCondition_addNotNull() async {
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
@@ -3414,6 +3439,8 @@ class LintNames {
   static const String prefer_conditional_assignment =
       'prefer_conditional_assignment';
   static const String prefer_const_declarations = 'prefer_const_declarations';
+  static const String prefer_final_fields = 'prefer_final_fields';
+  static const String prefer_final_locals = 'prefer_final_locals';
   static const String prefer_is_not_empty = 'prefer_is_not_empty';
   static const String type_init_formals = 'type_init_formals';
   static const String unnecessary_brace_in_string_interp =

@@ -6,6 +6,8 @@ library fasta.fasta_accessors;
 
 import '../../scanner/token.dart' show Token;
 
+import '../constant_context.dart' show ConstantContext;
+
 import '../fasta_codes.dart'
     show
         LocatedMessage,
@@ -18,12 +20,11 @@ import '../fasta_codes.dart'
         templateNotAType,
         templateUnresolvedPrefixInTypeAnnotation;
 
-import '../messages.dart' show Message;
+import '../messages.dart' show Message, noLength;
 
 import '../names.dart' show callName, lengthName;
 
-import '../parser.dart'
-    show lengthForToken, lengthOfSpan, noLength, offsetForToken;
+import '../parser.dart' show lengthForToken, lengthOfSpan, offsetForToken;
 
 import '../problems.dart' show unhandled, unimplemented, unsupported;
 
@@ -32,6 +33,8 @@ import '../scope.dart' show AccessErrorBuilder, ProblemBuilder, Scope;
 import '../type_inference/type_promotion.dart' show TypePromoter;
 
 import 'body_builder.dart' show Identifier, noLocation;
+
+import 'constness.dart' show Constness;
 
 import 'forest.dart' show Forest;
 
@@ -82,7 +85,7 @@ abstract class BuilderHelper<Arguments> {
 
   int get functionNestingLevel;
 
-  bool get constantExpressionRequired;
+  ConstantContext get constantContext;
 
   Forest<Expression, Statement, Token, Arguments> get forest;
 
@@ -117,7 +120,7 @@ abstract class BuilderHelper<Arguments> {
       [int charOffset = -1]);
 
   Expression buildStaticInvocation(Procedure target, Arguments arguments,
-      {bool isConst, int charOffset, Member initialTarget});
+      {Constness constness, int charOffset, Member initialTarget});
 
   Expression buildProblemExpression(
       ProblemBuilder builder, int offset, int length);
@@ -159,7 +162,7 @@ abstract class BuilderHelper<Arguments> {
       String name,
       List<DartType> typeArguments,
       int charOffset,
-      bool isConst);
+      Constness constness);
 
   DartType validatedTypeVariableUse(
       TypeParameterType type, int offset, bool nonInstanceAccessIsError);
@@ -257,7 +260,8 @@ abstract class FastaAccessor<Arguments> implements Accessor<Arguments> {
           send.arguments, offsetForToken(send.token),
           isNullAware: isNullAware);
     } else {
-      if (helper.constantExpressionRequired && send.name != lengthName) {
+      if (helper.constantContext != ConstantContext.none &&
+          send.name != lengthName) {
         helper.deprecated_addCompileTimeError(
             offsetForToken(token), "Not a constant expression.");
       }
@@ -878,7 +882,8 @@ class StaticAccessor<Arguments> extends kernel.StaticAccessor<Arguments>
   String get plainNameForRead => (readTarget ?? writeTarget).name.name;
 
   Expression doInvocation(int offset, Arguments arguments) {
-    if (helper.constantExpressionRequired && !helper.isIdentical(readTarget)) {
+    if (helper.constantContext != ConstantContext.none &&
+        !helper.isIdentical(readTarget)) {
       helper.deprecated_addCompileTimeError(
           offset, "Not a constant expression.");
     }
@@ -973,7 +978,7 @@ class SuperPropertyAccessor<Arguments> extends kernel
   String get plainNameForRead => name.name;
 
   Expression doInvocation(int offset, Arguments arguments) {
-    if (helper.constantExpressionRequired) {
+    if (helper.constantContext != ConstantContext.none) {
       helper.deprecated_addCompileTimeError(
           offset, "Not a constant expression.");
     }
@@ -1238,14 +1243,8 @@ class TypeDeclarationAccessor<Arguments> extends ReadOnlyAccessor<Arguments> {
         if (send is IncompletePropertyAccessor) {
           accessor = new UnresolvedAccessor(helper, name, send.token);
         } else {
-          return helper.buildConstructorInvocation(
-              declaration,
-              send.token,
-              arguments,
-              name.name,
-              null,
-              token.charOffset,
-              helper.constantExpressionRequired);
+          return helper.buildConstructorInvocation(declaration, send.token,
+              arguments, name.name, null, token.charOffset, Constness.implicit);
         }
       } else {
         Builder setter;
@@ -1312,14 +1311,16 @@ class TypeDeclarationAccessor<Arguments> extends ReadOnlyAccessor<Arguments> {
         typeDeclaration.calculatedBounds ??= calculateBoundsForDeclaration(
             typeDeclaration,
             helperLibrary.loader.target.dynamicType,
-            helperLibrary.loader.coreLibrary["Object"]);
+            helperLibrary.loader.target.bottomType,
+            helperLibrary.loader.target.objectClassBuilder);
         type = typeDeclaration.buildType(
             helper.library, typeDeclaration.calculatedBounds);
       } else if (typeDeclaration is KernelFunctionTypeAliasBuilder) {
         typeDeclaration.calculatedBounds ??= calculateBoundsForDeclaration(
             typeDeclaration,
             helperLibrary.loader.target.dynamicType,
-            helperLibrary.loader.coreLibrary["Object"]);
+            helperLibrary.loader.target.bottomType,
+            helperLibrary.loader.target.objectClassBuilder);
         type = typeDeclaration.buildType(
             helper.library, typeDeclaration.calculatedBounds);
       }
@@ -1373,7 +1374,7 @@ class TypeDeclarationAccessor<Arguments> extends ReadOnlyAccessor<Arguments> {
   @override
   Expression doInvocation(int offset, Arguments arguments) {
     return helper.buildConstructorInvocation(declaration, token, arguments, "",
-        null, token.charOffset, helper.constantExpressionRequired);
+        null, token.charOffset, Constness.implicit);
   }
 }
 

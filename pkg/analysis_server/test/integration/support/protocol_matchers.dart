@@ -997,12 +997,21 @@ final Matcher isOccurrences = new LazyMatcher(() => new MatchesJsonObject(
  *   "element": Element
  *   "offset": int
  *   "length": int
+ *   "codeOffset": int
+ *   "codeLength": int
  *   "children": optional List<Outline>
  * }
  */
-final Matcher isOutline = new LazyMatcher(() => new MatchesJsonObject(
-    "Outline", {"element": isElement, "offset": isInt, "length": isInt},
-    optionalFields: {"children": isListOf(isOutline)}));
+final Matcher isOutline =
+    new LazyMatcher(() => new MatchesJsonObject("Outline", {
+          "element": isElement,
+          "offset": isInt,
+          "length": isInt,
+          "codeOffset": isInt,
+          "codeLength": isInt
+        }, optionalFields: {
+          "children": isListOf(isOutline)
+        }));
 
 /**
  * OverriddenMember
@@ -2455,15 +2464,13 @@ final Matcher isExtractMethodOptions =
  * {
  *   "file": FilePath
  *   "outline": FlutterOutline
- *   "instrumentationEdits": List<SourceEdit>
+ *   "instrumentedCode": optional String
  * }
  */
-final Matcher isFlutterOutlineParams =
-    new LazyMatcher(() => new MatchesJsonObject("flutter.outline params", {
-          "file": isFilePath,
-          "outline": isFlutterOutline,
-          "instrumentationEdits": isListOf(isSourceEdit)
-        }));
+final Matcher isFlutterOutlineParams = new LazyMatcher(() =>
+    new MatchesJsonObject("flutter.outline params",
+        {"file": isFilePath, "outline": isFlutterOutline},
+        optionalFields: {"instrumentedCode": isString}));
 
 /**
  * flutter.setSubscriptions params
@@ -2685,13 +2692,18 @@ final Matcher isSearchFindTopLevelDeclarationsResult = new LazyMatcher(() =>
  * search.getElementDeclarations params
  *
  * {
+ *   "file": optional FilePath
  *   "pattern": optional String
  *   "maxResults": optional int
  * }
  */
 final Matcher isSearchGetElementDeclarationsParams = new LazyMatcher(() =>
     new MatchesJsonObject("search.getElementDeclarations params", null,
-        optionalFields: {"pattern": isString, "maxResults": isInt}));
+        optionalFields: {
+          "file": isFilePath,
+          "pattern": isString,
+          "maxResults": isInt
+        }));
 
 /**
  * search.getElementDeclarations result

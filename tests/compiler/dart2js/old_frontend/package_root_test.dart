@@ -10,6 +10,7 @@ import 'dart:async';
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/compiler.dart' show PackagesDiscoveryProvider;
 import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
 import 'package:package_config/packages.dart';
@@ -41,7 +42,8 @@ Future runTest(Uri main, MessageKind expectedMessageKind,
       diagnosticHandler: collector,
       packageRoot: packageRoot,
       packageConfig: packageConfig,
-      packagesDiscoveryProvider: packagesDiscoveryProvider);
+      packagesDiscoveryProvider: packagesDiscoveryProvider,
+      options: [Flags.useOldFrontend]);
   Expect.equals(
       1, collector.errors.length, "Unexpected errors: ${collector.errors}");
   Expect.equals(expectedMessageKind, collector.errors.first.message.kind,

@@ -27,6 +27,16 @@ class T5 extends core::Object {
     : super core::Object::•()
     ;
 }
+class T6 extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class T7 extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
 abstract class A extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
@@ -84,6 +94,16 @@ class G extends core::Object {
     return new self::T5::•();
   }
 }
+class H extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method foo({[@vm.inferred-type.metadata=!] dynamic left = null, [@vm.inferred-type.metadata=!] dynamic right = null}) → dynamic
+    return new self::T6::•();
+  method noSuchMethod(core::Invocation invocation) → dynamic {
+    return new self::T7::•();
+  }
+}
 [@vm.inferred-type.metadata=#lib::B]static field self::A bb = new self::B::•();
 [@vm.inferred-type.metadata=#lib::D]static field self::A dd = new self::D::•();
 [@vm.inferred-type.metadata=dart.core::Null?]static field core::Function unknown;
@@ -104,4 +124,7 @@ static method main(core::List<core::String> args) → dynamic {
   new self::F::•();
   dynamic gg = new self::G::•();
   core::print([@vm.inferred-type.metadata=#lib::T5] gg.noSuchMethod(null, null));
+  dynamic hh = new self::H::•();
+  core::print([@vm.inferred-type.metadata=#lib::T6] hh.foo(right: 2, left: 1));
+  core::print([@vm.inferred-type.metadata=#lib::T7] hh.foo(left: 1, top: 2));
 }

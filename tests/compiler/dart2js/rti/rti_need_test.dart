@@ -5,7 +5,6 @@
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/closure.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
@@ -20,6 +19,7 @@ import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/ssa/builder.dart' as ast;
+import 'package:compiler/src/universe/selector.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/check_helpers.dart';
@@ -27,21 +27,14 @@ import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 
 main(List<String> args) {
+  cacheRtiDataForTesting = true;
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(
         dataDir, computeAstRtiMemberNeed, computeKernelRtiMemberNeed,
         computeClassDataFromAst: computeAstRtiClassNeed,
         computeClassDataFromKernel: computeKernelRtiClassNeed,
-        args: args,
-        options: [
-          Flags.strongMode
-        ],
-        skipForKernel: [
-          // TODO(johnniwinther): Fix this. It triggers a crash in the ssa
-          // builder.
-          'generic_creation.dart',
-        ]);
+        args: args);
   });
 }
 
@@ -78,6 +71,7 @@ class Tags {
   static const String directTypeArgumentTest = 'direct';
   static const String indirectTypeArgumentTest = 'indirect';
   static const String typeLiteral = 'exp';
+  static const String selectors = 'selectors';
 }
 
 abstract class ComputeValueMixin<T> {
@@ -87,7 +81,8 @@ abstract class ComputeValueMixin<T> {
       compiler.resolutionWorldBuilder;
   RuntimeTypesNeedBuilderImpl get rtiNeedBuilder =>
       compiler.frontendStrategy.runtimeTypesNeedBuilderForTesting;
-  RuntimeTypesNeed get rtiNeed => compiler.backendClosedWorldForTesting.rtiNeed;
+  RuntimeTypesNeedImpl get rtiNeed =>
+      compiler.backendClosedWorldForTesting.rtiNeed;
   ClassEntity getFrontendClass(ClassEntity cls);
   MemberEntity getFrontendMember(MemberEntity member);
   Local getFrontendClosure(MemberEntity member);
@@ -108,10 +103,16 @@ abstract class ComputeValueMixin<T> {
   }
 
   void findDependencies(Features features, Entity entity) {
-    Iterable<Entity> dependencies =
-        rtiNeedBuilder.typeVariableTests.getTypeArgumentDependencies(entity);
+    Iterable<Entity> dependencies = rtiNeedBuilder.typeVariableTestsForTesting
+        .getTypeArgumentDependencies(entity);
     if (dependencies.isNotEmpty) {
-      List<String> names = dependencies.map((d) => d.name).toList()..sort();
+      List<String> names = dependencies.map((Entity d) {
+        if (d is MemberEntity && d.enclosingClass != null) {
+          return '${d.enclosingClass.name}.${d.name}';
+        }
+        return d.name;
+      }).toList()
+        ..sort();
       features[Tags.dependencies] = '[${names.join(',')}]';
     }
   }
@@ -128,17 +129,17 @@ abstract class ComputeValueMixin<T> {
         .contains(frontendClass)) {
       features.add(Tags.typeLiteral);
     }
-    if (rtiNeedBuilder.typeVariableTests.directClassTests
+    if (rtiNeedBuilder.typeVariableTestsForTesting.directClassTests
         .contains(frontendClass)) {
       features.add(Tags.directTypeArgumentTest);
-    } else if (rtiNeedBuilder.typeVariableTests.classTests
+    } else if (rtiNeedBuilder.typeVariableTestsForTesting.classTests
         .contains(frontendClass)) {
       features.add(Tags.indirectTypeArgumentTest);
     }
     findChecks(features, Tags.explicitTypeCheck, frontendClass,
-        rtiNeedBuilder.typeVariableTests.explicitIsChecks);
+        rtiNeedBuilder.typeVariableTestsForTesting.explicitIsChecks);
     findChecks(features, Tags.implicitTypeCheck, frontendClass,
-        rtiNeedBuilder.typeVariableTests.implicitIsChecks);
+        rtiNeedBuilder.typeVariableTestsForTesting.implicitIsChecks);
     return features.getText();
   }
 
@@ -158,17 +159,23 @@ abstract class ComputeValueMixin<T> {
 
       void addFrontendData(Entity entity) {
         findDependencies(features, entity);
-        if (rtiNeedBuilder.typeVariableTests.directMethodTests
+        if (rtiNeedBuilder.typeVariableTestsForTesting.directMethodTests
             .contains(entity)) {
           features.add(Tags.directTypeArgumentTest);
-        } else if (rtiNeedBuilder.typeVariableTests.methodTests
+        } else if (rtiNeedBuilder.typeVariableTestsForTesting.methodTests
             .contains(entity)) {
           features.add(Tags.indirectTypeArgumentTest);
         }
         findChecks(features, Tags.explicitTypeCheck, entity,
-            rtiNeedBuilder.typeVariableTests.explicitIsChecks);
+            rtiNeedBuilder.typeVariableTestsForTesting.explicitIsChecks);
         findChecks(features, Tags.implicitTypeCheck, entity,
-            rtiNeedBuilder.typeVariableTests.implicitIsChecks);
+            rtiNeedBuilder.typeVariableTestsForTesting.implicitIsChecks);
+        rtiNeedBuilder.selectorsNeedingTypeArgumentsForTesting
+            ?.forEach((Selector selector, Set<Entity> targets) {
+          if (targets.contains(entity)) {
+            features.addElement(Tags.selectors, selector);
+          }
+        });
       }
 
       if (frontendClosure != null) {

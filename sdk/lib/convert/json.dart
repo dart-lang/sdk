@@ -66,8 +66,39 @@ class JsonCyclicError extends JsonUnsupportedObjectError {
  *     var decoded = json.decode('["foo", { "bar": 499 }]');
  */
 const JsonCodec json = const JsonCodec();
-/** Deprecated, use [json] instead. */
+@Deprecated("Use json instead")
 const JsonCodec JSON = json;
+
+/**
+ * Converts [value] to a JSON string.
+ *
+ * If value contains objects that are not directly encodable to a JSON
+ * string (a value that is not a number, boolean, string, null, list or a map
+ * with string keys), the [toEncodable] function is used to convert it to an
+ * object that must be directly encodable.
+ *
+ * If [toEncodable] is omitted, it defaults to a function that returns the
+ * result of calling `.toJson()` on the unencodable object.
+ *
+ * Shorthand for [json.encode].
+ */
+String jsonEncode(Object object, {Object toEncodable(Object nonEncodable)}) =>
+    json.encode(object, toEncodable: toEncodable);
+
+/**
+ * Parses the string and returns the resulting Json object.
+ *
+ * The optional [reviver] function is called once for each object or list
+ * property that has been parsed during decoding. The `key` argument is either
+ * the integer list index for a list property, the string map key for object
+ * properties, or `null` for the final result.
+ *
+ * The default [reviver] (when not provided) is the identity function.
+ *
+ * Shorthand for [json.decode].
+ */
+dynamic jsonDecode(String source, {Object reviver(Object key, Object value)}) =>
+    json.decode(source, reviver: reviver);
 
 typedef _Reviver(Object key, Object value);
 typedef _ToEncodable(var o);

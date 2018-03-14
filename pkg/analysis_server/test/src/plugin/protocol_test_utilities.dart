@@ -115,12 +115,18 @@ class ProtocolTestUtilities {
   /**
    * On return, increment [stringIndex] by 10 and [intIndex] by 14.
    */
-  Outline outline(int stringIndex, int intIndex) =>
-      new Outline(element(stringIndex, intIndex), intIndex + 5, intIndex + 6,
+  Outline outline(int stringIndex, int intIndex) => new Outline(
+          element(stringIndex, intIndex),
+          intIndex + 5,
+          intIndex + 6,
+          intIndex + 5,
+          intIndex + 6,
           children: <Outline>[
             new Outline(
                 element(stringIndex + 5, intIndex + 7,
                     kind: ElementKind.METHOD),
+                intIndex + 12,
+                intIndex + 13,
                 intIndex + 12,
                 intIndex + 13)
           ]);

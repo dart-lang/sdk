@@ -10,7 +10,7 @@ import 'package:intl/intl.dart';
 
 final NumberFormat numberFormat = new NumberFormat.decimalPattern();
 
-String escape(String text) => text == null ? '' : HTML_ESCAPE.convert(text);
+String escape(String text) => text == null ? '' : htmlEscape.convert(text);
 
 String printInteger(int value) => numberFormat.format(value);
 

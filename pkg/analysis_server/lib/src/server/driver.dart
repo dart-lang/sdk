@@ -316,7 +316,9 @@ class Driver implements ServerStarter {
     analysisServerOptions.clientId = results[CLIENT_ID];
     analysisServerOptions.clientVersion = results[CLIENT_VERSION];
     analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
-    analysisServerOptions.previewDart2 = results[PREVIEW_DART2];
+    if (results.wasParsed(PREVIEW_DART2)) {
+      analysisServerOptions.previewDart2 = results[PREVIEW_DART2];
+    }
     analysisServerOptions.useCFE = results[USE_CFE];
 
     ContextBuilderOptions.flutterRepo = results[FLUTTER_REPO];
@@ -624,7 +626,7 @@ class Driver implements ServerStarter {
     for (int i = numOld - 1; i >= 0; i--) {
       try {
         String oldPath = i == 0 ? path : '$path.$i';
-        new File(oldPath).renameSync('$path.${i+1}');
+        new File(oldPath).renameSync('$path.${i + 1}');
       } catch (e) {}
     }
   }

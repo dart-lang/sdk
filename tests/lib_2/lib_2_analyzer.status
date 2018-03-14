@@ -9,13 +9,15 @@ html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # 
 mirrors/deferred_mirrors_metadata_test: Fail # Issue 17522
 mirrors/deferred_type_test: StaticWarning, OK # Deliberately refers to a deferred type in a declaration.
 mirrors/generic_f_bounded_mixin_application_test: StaticWarning # Test Issue
-mirrors/metadata_nested_constructor_call_test/none: CompileTimeError
 mirrors/mirrors_nsm_mismatch_test: StaticWarning, OK
 mirrors/mirrors_nsm_test: StaticWarning, OK
 mirrors/mirrors_nsm_test/dart2js: StaticWarning, OK
 mirrors/redirecting_factory_test/01: StaticWarning # test issue X, The return type 'Class<T2, T1>' of the redirected constructor is not assignable to 'Class<T1, T2>'
 mirrors/redirecting_factory_test/none: StaticWarning # test issue X, The return type 'Class<T2, T1>' of the redirected constructor is not assignable to 'Class<T1, T2>
 mirrors/repeated_private_anon_mixin_app_test: StaticWarning, OK # Intentional library name conflict.
+
+[ $compiler == dart2analyzer && !$preview_dart_2 ]
+mirrors/metadata_nested_constructor_call_test/none: CompileTimeError
 
 [ $compiler == dart2analyzer && $strong ]
 html/transferables_test: CompileTimeError # Issue 30975

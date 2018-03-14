@@ -6,6 +6,7 @@
 /// environment variable set.
 
 import 'dart:async';
+import 'dart:io';
 
 import '../memory_source_file_helper.dart';
 
@@ -59,6 +60,8 @@ class DummyCompilerInput implements CompilerInput {
       return new Binary(uri, clientPlatform.codeUnits);
     } else if (uri.toString().endsWith("dart_server.platform")) {
       return new Binary(uri, serverPlatform.codeUnits);
+    } else if (uri.path.endsWith(".dill")) {
+      return new Binary(uri, new File.fromUri(uri).readAsBytesSync());
     } else {
       throw "should not be needed $uri";
     }
@@ -73,6 +76,8 @@ class DummyCompilerDiagnostics implements CompilerDiagnostics {
   }
 }
 
+final platformDir = Uri.parse(Platform.resolvedExecutable).resolve('.');
+
 class CustomCompiler extends CompilerImpl {
   CustomCompiler(options, environment)
       : super(
@@ -81,7 +86,7 @@ class CustomCompiler extends CompilerImpl {
             const DummyCompilerDiagnostics(),
             new CompilerOptions.parse(
                 libraryRoot: Uri.base.resolve("sdk/"),
-                options: options,
+                options: ['--platform-binaries=$platformDir']..addAll(options),
                 environment: environment));
 }
 

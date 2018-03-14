@@ -9,12 +9,11 @@ import 'compiler_context.dart' show CompilerContext;
 import 'messages.dart'
     show
         Message,
+        noLength,
         templateInternalProblemUnexpected,
         templateInternalProblemUnhandled,
         templateInternalProblemUnimplemented,
         templateInternalProblemUnsupported;
-
-import 'parser.dart' show noLength;
 
 import 'severity.dart' show Severity;
 

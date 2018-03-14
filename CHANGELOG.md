@@ -1,3 +1,48 @@
+
+### Core library changes
+
+* `dart:core`
+  * Temporarily disabled the `whereType` method until generic methods are
+    enabled on all platforms
+    ([issue 32463](https://github.com/dart-lang/sdk/issues/32463)).
+  * Changed return type of `UriData.dataAsBytes` to `Uint8List`.
+* `dart:convert`
+  * Added `jsonEncode`, `jsonDecode`, `base64Encode`, `base64UrlEncode` and
+    `base64Decode` top-level functions.
+  * Changed return type of `encode` on `AsciiCodec` and `Latin1Codec`,
+    and `convert` on `AsciiEncoder`, `Latin1Encoder`, to `Uint8List`.
+
+### Tool Changes
+
+* dart2js
+
+  * The dart2js compiler now uses the common front-end by default. This is a
+    step towards supporting Dart 2.0. At this time dart2js has no semantic
+    changes: the Dart 2.0 strong-mode semantics are not enabled, so dart2js
+    continues to support the Dart 1 type system. This change however lets us
+    start supporting new syntactic features of Dart 2.0, like optional
+    new/const. With this change you may notice:
+
+    * small code differences (~1% code size): some code is generated slightly
+      different, this is expected because the internal representation of the
+      program has small differences between the old and new front end.
+
+    * source-maps changes: with the new front-end, dart2js also is using a new
+      mechanism to generate source-map files. We don't expect big differences
+      here either, the new source-maps try to encode more data for locations
+      that are commonly used during debugging.
+
+    * some missing errors: the CFE is not complete and may not report some
+      static errors that the old front-end did. This is temporary. If you run
+      the analyzer on all your project already, you may never notice those
+      missing error messages.
+
+    * as announced earlier, this is the first version of dart2js that no longer
+      supports `dart:mirrors`.
+
+    * this is the first version of dart2js that no longer supports
+      `--package-root`, which long ago was deprecated in favor of `--packages`.
+
 ## 2.0.0
 
 ### Language
@@ -61,6 +106,9 @@ the assignment to `y`.
   * `MapBase`: added `mapToString`.
   * `LinkedHashMap` no longer implements `HashMap`
   * `LinkedHashSet` no longer implements `HashSet`.
+  * Added `of` constructor to `Queue`, `ListQueue`,
+    `DoubleLinkedQueue`, `HashSet`, `LinkedHashSet`, `SplayTreeSet`,
+    `Map`, `HashMap`, `LinkedHashMap`, `SplayTreeMap`.
 
 * `dart:convert`
 
@@ -82,6 +130,7 @@ the assignment to `y`.
   * `BigInt` class added to support integers greater than 64-bits.
   * Deprecated the `proxy` annotation.
   * Added `Provisional` class and `provisional` field.
+  * Added `pragma` annotation.
   * `RegExp` added static `escape` function.
   * The `Uri` class now correctly handles paths while running on Node.js on
     Windows.
@@ -99,6 +148,7 @@ the assignment to `y`.
       * *Note*: if a class extends `IterableBase`, `ListBase`, `SetBase` or
         `MapBase` (or uses the corresponding mixins) from `dart:collection`, the
         new members are implemented automatically.
+      * Added `of` constructor to `List`, `Set`, `Map`.
   * Renamed `double.INFINITY`, `double.NEGATIVE_INFINITY`, `double.NAN`,
     `double.MAX_FINITE` and `double.MIN_POSITIVE`
     to `double.infinity`, `double.negativeInfinity`, `double.nan`,
@@ -123,6 +173,10 @@ the assignment to `y`.
     `SECONDS_PER_DAY` to `secondsPerDay`,
     `MINUTES_PER_DAY` to `minutesPerDay`, and
     `ZERO` to `zero`.
+  * Added `typeArguments` to `Invocation` class.
+  * Added constructors to invocation class that allows creation of
+    `Invocation` objects directly, without going through `noSuchMethod`.
+  * Added `unaryMinus` and `empty` constant symbols on the `Symbol` class.
 
 * `dart:developer`
 
@@ -325,6 +379,9 @@ the `PUB_ALLOW_PRERELEASE_SDK` environment variable to `false`.
 
 * Fix `pub global run` for packages activated from a local path that also have
   relative path dependencies ([issue 1751][pub#1751]).
+
+* `pub build` and `pub serve` support using the common front-end in the dart2js
+  transformer.
 
 [pub#1684]: https://github.com/dart-lang/pub/issues/1684
 [pub#1719]: https://github.com/dart-lang/pub/issues/1719

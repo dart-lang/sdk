@@ -53,7 +53,8 @@ class NullableInference extends ExpressionVisitor<bool> {
   void exitFunction(FunctionNode fn) => _variableInference.exitFunction(fn);
 
   /// Returns true if [expr] can be null.
-  bool isNullable(Expression expr) => expr != null ? expr.accept(this) : false;
+  bool isNullable(Expression expr) =>
+      expr != null ? expr.accept(this) as bool : false;
 
   @override
   defaultExpression(Expression node) => true;

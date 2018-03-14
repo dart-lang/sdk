@@ -65,10 +65,10 @@ Future main(List<String> arguments) async {
         argParser, 'Unexpected arguments "${argResults.rest.join(' ')}".');
   }
 
-  var isTravis = argResults["travis"];
-  analyzerSummary = argResults["analyzer-sdk"];
-  kernelSummary = argResults["kernel-sdk"];
-  outputDirectory = argResults["output"];
+  var isTravis = argResults["travis"] as bool;
+  analyzerSummary = argResults["analyzer-sdk"] as String;
+  kernelSummary = argResults["kernel-sdk"] as String;
+  outputDirectory = argResults["output"] as String;
 
   new Directory(pkgDirectory).createSync(recursive: true);
 

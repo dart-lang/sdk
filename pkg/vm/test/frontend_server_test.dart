@@ -45,8 +45,7 @@ Future<int> main() async {
         argThat(equals('server.dart')),
         captureAny,
         generator: any,
-      ))
-          .captured;
+      )).captured;
       expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
       expect(capturedArgs.single['strong'], equals(false));
     });
@@ -64,8 +63,7 @@ Future<int> main() async {
         argThat(equals('server.dart')),
         captureAny,
         generator: any,
-      ))
-          .captured;
+      )).captured;
       expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
       expect(capturedArgs.single['strong'], equals(true));
     });
@@ -83,8 +81,7 @@ Future<int> main() async {
         argThat(equals('server.dart')),
         captureAny,
         generator: any,
-      ))
-          .captured;
+      )).captured;
       expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
       expect(capturedArgs.single['link-platform'], equals(true));
       expect(capturedArgs.single['strong'], equals(false));
@@ -425,8 +422,7 @@ Future<int> main() async {
           argThat(equals('server.dart')),
           captureAny,
           generator: any,
-        ))
-            .captured;
+        )).captured;
         expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
         expect(capturedArgs.single['strong'], equals(false));
       });

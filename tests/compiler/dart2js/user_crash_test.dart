@@ -100,7 +100,7 @@ Future<RunResult> run(
           memorySourceFiles: memorySourceFiles,
           diagnosticHandler: diagnostics,
           packagesDiscoveryProvider: packagesDiscoveryProvider,
-          options: useKernel ? [Flags.useKernel] : []);
+          options: useKernel ? [] : [Flags.useOldFrontend]);
     } catch (e) {
       result.exceptions.add(e);
     }

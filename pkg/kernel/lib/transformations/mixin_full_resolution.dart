@@ -137,9 +137,35 @@ class MixinFullResolution {
     // Clone fields and methods from the mixin class.
     var substitution = getSubstitutionMap(class_.mixedInType);
     var cloner = new CloneVisitor(typeSubstitution: substitution);
-    for (var field in class_.mixin.fields) {
-      class_.addMember(cloner.clone(field));
+
+    // When we copy a field from the mixed in class, we remove any
+    // forwarding-stub getters/setters from the superclass, but copy their
+    // covariance-bits onto the new field.
+    var nonSetters = <Name, Procedure>{};
+    var setters = <Name, Procedure>{};
+    for (var procedure in class_.procedures) {
+      if (procedure.isSetter) {
+        setters[procedure.name] = procedure;
+      } else {
+        nonSetters[procedure.name] = procedure;
+      }
     }
+    for (var field in class_.mixin.fields) {
+      Field clone = cloner.clone(field);
+      Procedure setter = setters[field.name];
+      if (setter != null) {
+        setters.remove(field.name);
+        VariableDeclaration parameter =
+            setter.function.positionalParameters.first;
+        clone.isGenericCovariantImpl = parameter.isGenericCovariantImpl;
+        clone.isGenericCovariantInterface =
+            parameter.isGenericCovariantInterface;
+      }
+      nonSetters.remove(field.name);
+      class_.addMember(clone);
+    }
+    class_.procedures.clear();
+    class_.procedures..addAll(nonSetters.values)..addAll(setters.values);
 
     // Existing procedures in the class should only be forwarding stubs.
     // Replace them with methods from the mixin class if they have the same

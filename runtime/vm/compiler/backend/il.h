@@ -1781,7 +1781,7 @@ class Definition : public Instruction {
   bool HasSSATemp() const { return ssa_temp_index_ >= 0; }
   void ClearSSATempIndex() { ssa_temp_index_ = -1; }
   bool HasPairRepresentation() const {
-#if defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
     return representation() == kPairOfTagged;
 #else
     return (representation() == kPairOfTagged) ||

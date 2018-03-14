@@ -25,7 +25,7 @@ Future<jsAst.Expression> compile(String code,
     Flags.disableInlining,
   ];
   if (disableTypeInference) options.add(Flags.disableTypeInference);
-  if (useKernel) options.add(Flags.useKernel);
+  if (!useKernel) options.add(Flags.useOldFrontend);
   options.addAll(extraOptions);
 
   if (lookup is String && lookup != 'main' && !code.contains('main')) {

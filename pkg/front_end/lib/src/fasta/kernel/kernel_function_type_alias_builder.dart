@@ -15,9 +15,7 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/type_algebra.dart' show substitute;
 
-import '../parser.dart' show noLength;
-
-import '../fasta_codes.dart' show templateCyclicTypedef;
+import '../fasta_codes.dart' show noLength, templateCyclicTypedef;
 
 import 'kernel_builder.dart'
     show

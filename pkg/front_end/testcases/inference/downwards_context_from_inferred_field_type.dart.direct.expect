@@ -1,0 +1,17 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract get foo() → core::Iterable<core::String>;
+}
+class B extends core::Object implements self::A {
+  final field dynamic foo = const <dynamic>[];
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method main() → void {}

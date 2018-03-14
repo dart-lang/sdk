@@ -68,7 +68,8 @@ Future checkModels(Uri entryPoint,
   String title = '${id}${testDescription}';
   Compiler compilerNormal = await measure(title, 'compile normal', () async {
     Compiler compilerNormal = compilerFor(
-        memorySourceFiles: sourceFiles, options: [Flags.analyzeOnly]);
+        memorySourceFiles: sourceFiles,
+        options: [Flags.analyzeOnly, Flags.useOldFrontend]);
     compilerNormal.impactCacheDeleter.retainCachesForTesting = true;
     await compilerNormal.run(entryPoint);
     ElementEnvironment elementEnvironment =
@@ -82,7 +83,7 @@ Future checkModels(Uri entryPoint,
     Compiler compilerDeserialized = compilerFor(
         memorySourceFiles: sourceFiles,
         resolutionInputs: resolutionInputs,
-        options: [Flags.analyzeOnly]);
+        options: [Flags.analyzeOnly, Flags.useOldFrontend]);
     compilerDeserialized.impactCacheDeleter.retainCachesForTesting = true;
     await compilerDeserialized.run(entryPoint);
     ElementEnvironment elementEnvironment =

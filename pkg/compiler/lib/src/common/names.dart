@@ -42,7 +42,7 @@ class Identifiers {
   static const String length = 'length';
 
   /// The name of the signature function in closure classes.
-  static const String signature = 'signature';
+  static const String signature = ':signature';
 }
 
 /// [Name]s commonly used.

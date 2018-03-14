@@ -211,7 +211,7 @@ class SummaryInspector {
       }
       return new DecodedEntity.group('[', parts, ']', false);
     } else if (obj is String) {
-      return new DecodedEntity.short(JSON.encode(obj));
+      return new DecodedEntity.short(json.encode(obj));
     } else if (isEnum(obj)) {
       return new DecodedEntity.short(obj.toString().split('.')[1]);
     } else if (obj is int &&
@@ -243,7 +243,7 @@ class SummaryInspector {
           new UnitWrapper(linked.units[0], unlinked[0]);
       for (int i = 1; i < linked.units.length; i++) {
         String partUri = unlinked[0].publicNamespace.parts[i - 1];
-        result['part ${JSON.encode(partUri)}'] =
+        result['part ${json.encode(partUri)}'] =
             new UnitWrapper(linked.units[i], unlinked[i]);
       }
       return decodeMap(result);
@@ -324,14 +324,14 @@ class SummaryInspector {
         libraryUnits.add(units[partUriString]);
         seenUnits.add(partUriString);
       }
-      result['library ${JSON.encode(libraryUriString)}'] =
+      result['library ${json.encode(libraryUriString)}'] =
           new LibraryWrapper(linkedLibrary, libraryUnits);
     }
     for (String uriString in units.keys) {
       if (seenUnits.contains(uriString)) {
         continue;
       }
-      result['orphan unit ${JSON.encode(uriString)}'] =
+      result['orphan unit ${json.encode(uriString)}'] =
           new UnitWrapper(null, units[uriString]);
     }
     restOfMap.remove('linkedLibraries');

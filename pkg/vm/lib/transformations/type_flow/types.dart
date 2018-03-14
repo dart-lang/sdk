@@ -234,16 +234,7 @@ class SetType extends Type {
   /// Creates a new SetType using list of concrete types sorted by classId.
   SetType(this.types) {
     assertx(types.length >= 2);
-    assertx(_isSorted(types));
-  }
-
-  static bool _isSorted(List<ConcreteType> types) {
-    for (int i = 0; i < types.length - 1; i++) {
-      if (types[i].classId.compareTo(types[i + 1].classId) >= 0) {
-        return false;
-      }
-    }
-    return true;
+    assertx(isSorted(types));
   }
 
   @override

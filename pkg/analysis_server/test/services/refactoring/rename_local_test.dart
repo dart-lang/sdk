@@ -412,7 +412,7 @@ main() {
 ''');
   }
 
-  test_createChange_parameter() async {
+  test_createChange_parameter_named() async {
     await indexTestUnit('''
 myFunction({int test}) {
   test = 1;
@@ -527,6 +527,35 @@ class B extends A {
   void foo({int newName: 2}) {
     print(newName);
   }
+}
+''');
+  }
+
+  test_createChange_parameter_optionalPositional() async {
+    await indexTestUnit('''
+myFunction([int test]) {
+  test = 1;
+  test += 2;
+  print(test);
+}
+main() {
+  myFunction(2);
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test]) {');
+    expect(refactoring.refactoringName, 'Rename Parameter');
+    expect(refactoring.elementKindName, 'parameter');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+myFunction([int newName]) {
+  newName = 1;
+  newName += 2;
+  print(newName);
+}
+main() {
+  myFunction(2);
 }
 ''');
   }

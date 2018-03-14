@@ -2794,6 +2794,7 @@ class C extends Object with M1, M2 implements I1, I2 {}
     ''');
   }
 
+  @failingTest // Does not work with old task model
   test_interfacesFromMixinsUsedTwiceAreChecked() {
     // Regression test for https://github.com/dart-lang/sdk/issues/29782
     return checkFile(r'''
@@ -4609,4 +4610,8 @@ class CheckerTest_Driver extends CheckerTest {
   test_fuzzyArrowLegacyAssignability_GlobalInference() async {
     await super.test_fuzzyArrowLegacyAssignability_GlobalInference();
   }
+
+  @override // Passes with driver
+  test_interfacesFromMixinsUsedTwiceAreChecked() =>
+      super.test_interfacesFromMixinsUsedTwiceAreChecked();
 }

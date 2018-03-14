@@ -38,11 +38,10 @@ main() {
   Expect.equals(String, c_string.s);
   Expect.equals(dynamic, c_dynamic.s);
 
-  var reflective_a_int =
-      cmB.superclass.newInstance(const Symbol(''), []).reflectee;
-  var reflective_a_dynamic = cmA.newInstance(const Symbol(''), []).reflectee;
-  var reflective_b = cmB.newInstance(const Symbol(''), []).reflectee;
-  var reflective_c_dynamic = cmC.newInstance(const Symbol(''), []).reflectee;
+  var reflective_a_int = cmB.superclass.newInstance(Symbol.empty, []).reflectee;
+  var reflective_a_dynamic = cmA.newInstance(Symbol.empty, []).reflectee;
+  var reflective_b = cmB.newInstance(Symbol.empty, []).reflectee;
+  var reflective_c_dynamic = cmC.newInstance(Symbol.empty, []).reflectee;
 
   Expect.equals(int, reflective_a_int.t);
   Expect.equals(dynamic, reflective_a_dynamic.t);

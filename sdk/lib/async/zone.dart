@@ -284,7 +284,7 @@ abstract class Zone {
    * desired behavior.
    */
   static const Zone root = _rootZone;
-  /** Deprecated, use [root] instead. */
+  @Deprecated("Use root instead")
   static const Zone ROOT = root;
 
   /** The currently running zone. */

@@ -236,6 +236,60 @@ f() {
     verify([source]);
   }
 
+  test_deprecatedAnnotationUse_namedParameter_inDefiningFunction() async {
+    Source source = addSource(r'''
+f({@deprecated int x}) => x;
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_deprecatedAnnotationUse_namedParameter_inDefiningLocalFunction() async {
+    Source source = addSource(r'''
+class C {
+  m() {
+    f({@deprecated int x}) {
+      return x;
+    }
+    return f();
+  }
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_deprecatedAnnotationUse_namedParameter_inDefiningMethod() async {
+    Source source = addSource(r'''
+class C {
+  m({@deprecated int x}) {
+    return x;
+  }
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_deprecatedAnnotationUse_namedParameter_inNestedLocalFunction() async {
+    Source source = addSource(r'''
+class C {
+  m({@deprecated int x}) {
+    f() {
+      return x;
+    }
+    return f();
+  }
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_deprecatedMemberUse_inDeprecatedClass() async {
     Source source = addSource(r'''
 @deprecated

@@ -6,6 +6,17 @@ part of dart.core;
 
 /// Opaque name used by mirrors, invocations and [Function.apply].
 abstract class Symbol {
+  /** The symbol corresponding to the name of the unary minus operator. */
+  static const Symbol unaryMinus = const Symbol("unary-");
+
+  /**
+   * The empty symbol.
+   *
+   * The empty symbol is the name of libraries with no library declaration,
+   * and the base-name of the unnamed constructor.
+   */
+  static const Symbol empty = const Symbol("");
+
   /**
    * Constructs a new Symbol.
    *

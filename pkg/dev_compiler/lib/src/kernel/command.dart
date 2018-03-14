@@ -132,7 +132,7 @@ Future<CompilerResult> _compile(List<String> args,
   var declaredVariables = parseAndRemoveDeclaredVariables(args);
   var argResults = argParser.parse(args);
 
-  if (argResults['help'] || args.isEmpty) {
+  if (argResults['help'] as bool || args.isEmpty) {
     print(_usageMessage(argParser));
     return new CompilerResult.noState(true);
   }
@@ -140,8 +140,8 @@ Future<CompilerResult> _compile(List<String> args,
   var moduleFormat = parseModuleFormatOption(argResults).first;
   var ddcPath = path.dirname(path.dirname(path.fromUri(Platform.script)));
 
-  var multiRoots = [];
-  for (var s in argResults['summary-input-dir']) {
+  var multiRoots = <Uri>[];
+  for (var s in argResults['summary-input-dir'] as List<String>) {
     var uri = stringToUri(s);
     if (!uri.path.endsWith('/')) {
       uri = uri.replace(path: '${uri.path}/');
@@ -150,15 +150,16 @@ Future<CompilerResult> _compile(List<String> args,
   }
   multiRoots.add(Uri.base);
 
-  var customScheme = argResults['custom-app-scheme'];
-  var summaryUris = argResults['summary']
+  var customScheme = argResults['custom-app-scheme'] as String;
+  var summaryUris = (argResults['summary'] as List<String>)
       .map((s) => stringToCustomUri(s, multiRoots, customScheme))
       .toList();
 
-  var sdkSummaryPath = argResults['dart-sdk-summary'] ?? defaultSdkSummaryPath;
+  var sdkSummaryPath =
+      argResults['dart-sdk-summary'] as String ?? defaultSdkSummaryPath;
 
-  var packageFile =
-      argResults['packages'] ?? path.absolute(ddcPath, '..', '..', '.packages');
+  var packageFile = argResults['packages'] as String ??
+      path.absolute(ddcPath, '..', '..', '.packages');
 
   var inputs = argResults.rest
       .map((s) => stringToCustomUri(s, [Uri.base], customScheme))
@@ -203,7 +204,7 @@ Future<CompilerResult> _compile(List<String> args,
   var jsModule = compileToJSModule(
       result.program, result.inputSummaries, summaryUris, declaredVariables);
   var jsCode = jsProgramToCode(jsModule, moduleFormat,
-      buildSourceMap: argResults['source-map'],
+      buildSourceMap: argResults['source-map'] as bool,
       jsUrl: path.toUri(output).toString(),
       mapUrl: path.toUri(output + '.map').toString(),
       customScheme: customScheme);
@@ -249,7 +250,7 @@ JSCode jsProgramToCode(JS.Program moduleTree, ModuleFormat format,
     String customScheme}) {
   var opts = new JS.JavaScriptPrintingOptions(
       allowKeywordsInProperties: true, allowSingleLineIfStatements: true);
-  var printer;
+  JS.SimpleJavaScriptPrintingContext printer;
   SourceMapBuilder sourceMap;
   if (buildSourceMap) {
     var sourceMapContext = new SourceMapPrintingContext();
@@ -293,7 +294,7 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath,
   // Convert to a local file path if it's not.
   sourceMapPath = path.fromUri(_sourceToUri(sourceMapPath, customScheme));
   var sourceMapDir = path.dirname(path.absolute(sourceMapPath));
-  var list = new List.from(map['sources']);
+  var list = (map['sources'] as List).toList();
   map['sources'] = list;
 
   String makeRelative(String sourcePath) {
@@ -319,9 +320,9 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath,
   }
 
   for (int i = 0; i < list.length; i++) {
-    list[i] = makeRelative(list[i]);
+    list[i] = makeRelative(list[i] as String);
   }
-  map['file'] = makeRelative(map['file']);
+  map['file'] = makeRelative(map['file'] as String);
   return map;
 }
 

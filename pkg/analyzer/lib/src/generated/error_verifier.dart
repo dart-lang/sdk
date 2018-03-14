@@ -294,11 +294,20 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   final _UninstantiatedBoundChecker _uninstantiatedBoundChecker;
 
+  /// Setting this flag to `true` disables the check for conflicting generics.
+  /// This is used when running with the old task model to work around
+  /// dartbug.com/32421.
+  ///
+  /// TODO(paulberry): remove this flag once dartbug.com/32421 is properly
+  /// fixed.
+  final bool disableConflictingGenericsCheck;
+
   /**
    * Initialize a newly created error verifier.
    */
   ErrorVerifier(ErrorReporter errorReporter, this._currentLibrary,
-      this._typeProvider, this._inheritanceManager, this.enableSuperMixins)
+      this._typeProvider, this._inheritanceManager, this.enableSuperMixins,
+      {this.disableConflictingGenericsCheck: false})
       : _errorReporter = errorReporter,
         _uninstantiatedBoundChecker =
             new _UninstantiatedBoundChecker(errorReporter) {
@@ -1328,7 +1337,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
       if (_options.strongMode) {
         _checkForMixinWithConflictingPrivateMember(withClause, superclass);
-        _checkForConflictingGenerics(node);
+        if (!disableConflictingGenericsCheck) {
+          _checkForConflictingGenerics(node);
+        }
       }
     }
   }

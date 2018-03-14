@@ -54,44 +54,43 @@ import 'package:analyzer/task/model.dart';
 /**
  * The [ResultCachingPolicy] for ASTs.
  */
-const ResultCachingPolicy<CompilationUnit> AST_CACHING_POLICY =
+const ResultCachingPolicy AST_CACHING_POLICY =
     const SimpleResultCachingPolicy(1024 * 64, 32);
 
 /**
  * The [ResultCachingPolicy] for lists of [ConstantEvaluationTarget]s.
  */
-const ResultCachingPolicy<List<ConstantEvaluationTarget>>
-    CONSTANT_EVALUATION_TARGET_LIST_POLICY =
+const ResultCachingPolicy CONSTANT_EVALUATION_TARGET_LIST_POLICY =
     const SimpleResultCachingPolicy(-1, -1);
 
 /**
  * The [ResultCachingPolicy] for [ConstantEvaluationTarget]s.
  */
-const ResultCachingPolicy<ConstantEvaluationTarget>
-    CONSTANT_EVALUATION_TARGET_POLICY = const SimpleResultCachingPolicy(-1, -1);
+const ResultCachingPolicy CONSTANT_EVALUATION_TARGET_POLICY =
+    const SimpleResultCachingPolicy(-1, -1);
 
 /**
  * The [ResultCachingPolicy] for [Element]s.
  */
-const ResultCachingPolicy<Element> ELEMENT_CACHING_POLICY =
+const ResultCachingPolicy ELEMENT_CACHING_POLICY =
     const SimpleResultCachingPolicy(-1, -1);
 
 /**
  * The [ResultCachingPolicy] for [TOKEN_STREAM].
  */
-const ResultCachingPolicy<Token> TOKEN_STREAM_CACHING_POLICY =
+const ResultCachingPolicy TOKEN_STREAM_CACHING_POLICY =
     const SimpleResultCachingPolicy(1, 1);
 
 /**
  * The [ResultCachingPolicy] for [UsedImportedElements]s.
  */
-const ResultCachingPolicy<UsedImportedElements> USED_IMPORTED_ELEMENTS_POLICY =
+const ResultCachingPolicy USED_IMPORTED_ELEMENTS_POLICY =
     const SimpleResultCachingPolicy(-1, -1);
 
 /**
  * The [ResultCachingPolicy] for [UsedLocalElements]s.
  */
-const ResultCachingPolicy<UsedLocalElements> USED_LOCAL_ELEMENTS_POLICY =
+const ResultCachingPolicy USED_LOCAL_ELEMENTS_POLICY =
     const SimpleResultCachingPolicy(-1, -1);
 
 /**
@@ -5591,7 +5590,8 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
         libraryElement,
         typeProvider,
         new InheritanceManager(libraryElement),
-        context.analysisOptions.enableSuperMixins);
+        context.analysisOptions.enableSuperMixins,
+        disableConflictingGenericsCheck: true);
     unit.accept(errorVerifier);
     //
     // Convert the pending errors into actual errors.

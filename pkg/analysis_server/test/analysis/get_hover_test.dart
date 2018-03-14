@@ -420,11 +420,11 @@ main() {
     expect(hover.containingLibraryPath, isNull);
     expect(hover.containingClassDescription, isNull);
     expect(hover.dartdoc, isNull);
-    expect(hover.elementDescription, 'dynamic vvv');
+    expect(hover.elementDescription, 'int vvv');
     expect(hover.elementKind, 'local variable');
     // types
-    expect(hover.staticType, 'dynamic');
-    expect(hover.propagatedType, 'int');
+    expect(hover.staticType, 'int');
+    expect(hover.propagatedType, null);
   }
 
   test_expression_variable_inMethod() async {
@@ -446,7 +446,7 @@ class A {
     expect(hover.elementKind, 'local variable');
     // types
     expect(hover.staticType, 'num');
-    expect(hover.propagatedType, 'int');
+    expect(hover.propagatedType, null);
     // no parameter
     expect(hover.parameter, isNull);
   }

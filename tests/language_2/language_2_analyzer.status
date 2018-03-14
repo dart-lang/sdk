@@ -11,14 +11,10 @@ bad_initializer2_negative_test: Fail # Issue 14880
 black_listed_test/none: Fail # Issue 14228
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Issue 28813
-call_type_literal_test: CompileTimeError
 cascade_test/none: Fail # Issue 11577
-class_literal_static_test/none: CompileTimeError
-class_literal_test/none: CompileTimeError
 config_import_corelib_test: StaticWarning, OK
 conflicting_type_variable_and_setter_test: CompileTimeError # Issue 25525
 const_for_in_variable_test/01: MissingCompileTimeError # Issue 25161
-constructor_call_as_function_test: CompileTimeError
 constructor_call_wrong_argument_count_negative_test: Fail # Issue 11585
 deep_nesting1_negative_test: CompileTimeError # Issue 25558
 deep_nesting2_negative_test: CompileTimeError # Issue 25558
@@ -42,6 +38,10 @@ generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
 generic_no_such_method_dispatcher_simple_test: Skip # This test is just for kernel.
 getter_declaration_negative_test: CompileTimeError
 getter_setter_in_lib_test: Fail # Issue 23286
+implicit_creation/implicit_const_context_constructor_generic_named_test: CompileTimeError
+implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError
+implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: CompileTimeError
+implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError
 import_core_prefix_test: StaticWarning
 index_assign_operator_infer_return_type_test: StaticWarning
 initializing_formal_final_test: MissingCompileTimeError
@@ -145,7 +145,6 @@ test_negative_test: CompileTimeError
 try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
 type_inference_inconsistent_inheritance_test: MissingCompileTimeError
-type_literal_prefix_call_test: CompileTimeError
 type_variable_scope_test/none: Fail # Issue 11578
 type_variable_static_context_negative_test: Fail # Issue 12161
 vm/debug_break_enabled_vm_test: Skip
@@ -883,6 +882,7 @@ is_not_class2_test/*: MissingCompileTimeError
 library_ambiguous_test/04: MissingCompileTimeError
 list_literal1_test/01: MissingCompileTimeError
 malformed2_test/00: MissingCompileTimeError
+map_literal1_test/01: MissingCompileTimeError
 method_override2_test/00: MissingCompileTimeError
 method_override2_test/01: MissingCompileTimeError
 method_override2_test/02: MissingCompileTimeError
@@ -1111,6 +1111,31 @@ type_variable_identifier_expression_test: MissingCompileTimeError
 type_variable_static_context_test: MissingCompileTimeError
 unresolved_in_factory_test: MissingCompileTimeError
 
+[ $compiler == dart2analyzer && !$preview_dart_2 ]
+call_type_literal_test: CompileTimeError
+class_literal_static_test/none: CompileTimeError
+class_literal_test/none: CompileTimeError
+constructor_call_as_function_test: CompileTimeError
+implicit_creation/implicit_const_context_constructor_named_test: CompileTimeError
+implicit_creation/implicit_const_context_constructor_test: CompileTimeError
+implicit_creation/implicit_const_context_list_test: CompileTimeError
+implicit_creation/implicit_const_context_map_test: CompileTimeError
+implicit_creation/implicit_const_context_prefix_constructor_named_test: CompileTimeError
+implicit_creation/implicit_const_context_prefix_constructor_test: CompileTimeError
+implicit_creation/implicit_const_not_default_values_test/o.*: CompileTimeError # No support for implicit creation.
+implicit_creation/implicit_new_constructor_generic_named_test: CompileTimeError
+implicit_creation/implicit_new_constructor_generic_test: CompileTimeError
+implicit_creation/implicit_new_constructor_named_test: CompileTimeError
+implicit_creation/implicit_new_constructor_test: CompileTimeError
+implicit_creation/implicit_new_or_const_composite_test: CompileTimeError
+implicit_creation/implicit_new_or_const_generic_test: CompileTimeError
+implicit_creation/implicit_new_or_const_test: CompileTimeError
+implicit_creation/implicit_new_prefix_constructor_generic_named_test: CompileTimeError
+implicit_creation/implicit_new_prefix_constructor_generic_test: CompileTimeError
+implicit_creation/implicit_new_prefix_constructor_named_test: CompileTimeError
+implicit_creation/implicit_new_prefix_constructor_test: CompileTimeError
+type_literal_prefix_call_test: CompileTimeError
+
 [ $compiler == dart2analyzer && $strong ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
 accessor_conflict_export_test: CompileTimeError # Issue 25626
@@ -1119,6 +1144,7 @@ accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
+call_method_implicit_tear_off_assignable_test: CompileTimeError # Issue 32426
 call_method_override_test/01: MissingCompileTimeError
 call_method_override_test/02: MissingCompileTimeError
 cascaded_forwarding_stubs_test: CompileTimeError
@@ -1277,6 +1303,7 @@ built_in_identifier_type_annotation_test/70: MissingCompileTimeError # Issue 288
 built_in_identifier_type_annotation_test/72: MissingCompileTimeError # Issue 28813
 built_in_identifier_type_annotation_test/78: MissingCompileTimeError # Issue 28813
 built_in_identifier_type_annotation_test/81: MissingCompileTimeError # Issue 28813
+call_method_implicit_tear_off_assignable_test: StaticWarning
 call_method_implicit_tear_off_implements_function_test/03: StaticWarning
 call_method_implicit_tear_off_test/03: StaticWarning
 call_method_must_not_be_field_test/01: MissingCompileTimeError # Issue 32264
@@ -1452,6 +1479,7 @@ issue31596_override_test/07: MissingCompileTimeError
 issue31596_override_test/08: MissingCompileTimeError
 issue31596_super_test/02: MissingCompileTimeError
 issue31596_super_test/04: MissingCompileTimeError
+issue32353_2_test: MissingCompileTimeError
 known_identifier_prefix_error_test/*: MissingCompileTimeError # Error only in strong mode.
 known_identifier_prefix_error_test/none: Pass
 least_upper_bound_expansive_test/01: MissingCompileTimeError

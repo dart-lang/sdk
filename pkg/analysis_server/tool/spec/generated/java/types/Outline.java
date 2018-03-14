@@ -52,6 +52,17 @@ public class Outline {
    */
   private int length;
 
+  /**
+   * The offset of the first character of the element code, which is neither documentation, nor
+   * annotation.
+   */
+  private int codeOffset;
+
+  /**
+   * The length of the element code.
+   */
+  private int codeLength;
+
   private final Outline parent;
 
   private List<Outline> children;
@@ -59,11 +70,13 @@ public class Outline {
   /**
    * Constructor for {@link Outline}.
    */
-  public Outline(Outline parent, Element element, int offset, int length) {
+  public Outline(Outline parent, Element element, int offset, int length, int codeOffset, int codeLength) {
     this.parent = parent;
     this.element = element;
     this.offset = offset;
     this.length = length;
+    this.codeOffset = codeOffset;
+    this.codeLength = codeLength;
   }
 
   public boolean containsInclusive(int x) {
@@ -78,6 +91,8 @@ public class Outline {
         ObjectUtilities.equals(other.element, element) &&
         other.offset == offset &&
         other.length == length &&
+        other.codeOffset == codeOffset &&
+        other.codeLength == codeLength &&
         ObjectUtilities.equals(other.children, children);
     }
     return false;
@@ -111,10 +126,26 @@ public class Outline {
   }
 
   /**
-   * The children of the node. The field will be omitted if the node has no children.
+   * The children of the node. The field will be omitted if the node has no children. Children are
+   * sorted by offset.
    */
   public List<Outline> getChildren() {
     return children;
+  }
+
+  /**
+   * The length of the element code.
+   */
+  public int getCodeLength() {
+    return codeLength;
+  }
+
+  /**
+   * The offset of the first character of the element code, which is neither documentation, nor
+   * annotation.
+   */
+  public int getCodeOffset() {
+    return codeOffset;
   }
 
   /**
@@ -146,15 +177,33 @@ public class Outline {
     builder.append(element);
     builder.append(offset);
     builder.append(length);
+    builder.append(codeOffset);
+    builder.append(codeLength);
     builder.append(children);
     return builder.toHashCode();
   }
 
   /**
-   * The children of the node. The field will be omitted if the node has no children.
+   * The children of the node. The field will be omitted if the node has no children. Children are
+   * sorted by offset.
    */
   public void setChildren(List<Outline> children) {
     this.children = children;
+  }
+
+  /**
+   * The length of the element code.
+   */
+  public void setCodeLength(int codeLength) {
+    this.codeLength = codeLength;
+  }
+
+  /**
+   * The offset of the first character of the element code, which is neither documentation, nor
+   * annotation.
+   */
+  public void setCodeOffset(int codeOffset) {
+    this.codeOffset = codeOffset;
   }
 
   /**
@@ -190,6 +239,10 @@ public class Outline {
     builder.append(offset + ", ");
     builder.append("length=");
     builder.append(length + ", ");
+    builder.append("codeOffset=");
+    builder.append(codeOffset + ", ");
+    builder.append("codeLength=");
+    builder.append(codeLength + ", ");
     builder.append("children=");
     builder.append(StringUtils.join(children, ", "));
     builder.append("]");

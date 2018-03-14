@@ -92,9 +92,6 @@ generic_methods_bounds_test/02: MissingRuntimeError
 generic_methods_dynamic_test/02: MissingRuntimeError
 generic_methods_dynamic_test/04: MissingRuntimeError
 
-[ $compiler != dartk && $mode == debug && $runtime == vm && $checked ]
-tearoff_dynamic_test: Crash
-
 [ $compiler != dartk && $mode == product && $runtime == vm ]
 deferred_load_constants_test/02: Fail
 deferred_load_constants_test/03: Fail
@@ -177,7 +174,6 @@ bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
 bad_override_test/06: MissingCompileTimeError
 bug31436_test: RuntimeError
-bug32353_test: RuntimeError
 bug32372_test: RuntimeError
 built_in_identifier_prefix_test: CompileTimeError
 call_constructor_on_unresolvable_class_test/01: MissingCompileTimeError
@@ -188,6 +184,7 @@ call_method_as_cast_test/02: RuntimeError
 call_method_as_cast_test/03: RuntimeError
 call_method_as_cast_test/04: RuntimeError
 call_method_as_cast_test/05: RuntimeError
+call_method_implicit_tear_off_assignable_test: RuntimeError
 call_method_implicit_tear_off_implements_function_test/01: RuntimeError
 call_method_implicit_tear_off_implements_function_test/02: RuntimeError
 call_method_implicit_tear_off_implements_function_test/03: RuntimeError
@@ -550,6 +547,8 @@ issue31596_super_test/02: MissingCompileTimeError
 issue31596_super_test/04: MissingCompileTimeError
 issue31596_super_test/05: RuntimeError
 issue31596_tearoff_test: RuntimeError
+issue32353_2_test: MissingCompileTimeError # Issue 32353
+issue32353_test: RuntimeError
 least_upper_bound_expansive_test/none: CompileTimeError
 least_upper_bound_test/03: MissingCompileTimeError
 least_upper_bound_test/04: MissingCompileTimeError
@@ -1037,6 +1036,8 @@ unresolved_top_level_method_test: MissingCompileTimeError
 unresolved_top_level_var_test: MissingCompileTimeError
 
 [ $compiler != dartk && $runtime == vm && $checked ]
+call_operator_test/01: RuntimeError
+call_operator_test/02: RuntimeError
 call_type_literal_test: RuntimeError
 class_literal_static_test/none: RuntimeError
 class_literal_test/none: RuntimeError
@@ -1232,7 +1233,6 @@ issue31596_test: RuntimeError
 list_is_test: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
 malformed2_test/00: MissingCompileTimeError
-tearoff_dynamic_test: RuntimeError
 type_argument_in_super_type_test: RuntimeError
 type_check_const_function_typedef2_test: MissingCompileTimeError
 typevariable_substitution2_test/02: RuntimeError
@@ -1326,6 +1326,8 @@ generic_methods_function_type_test: Pass # Issue 25869
 generic_methods_generic_function_parameter_test: Pass # Issue 25869
 generic_methods_new_test: Pass # Issue 25869
 generic_methods_test: Pass # Issue 25869
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError
 nsm5_test: MissingCompileTimeError
 override_inheritance_no_such_method_test/05: MissingCompileTimeError
 
@@ -1343,4 +1345,5 @@ invalid_type_argument_count_test/01: MissingCompileTimeError # Error only in str
 invalid_type_argument_count_test/02: MissingCompileTimeError # Error only in strong mode
 invalid_type_argument_count_test/03: MissingCompileTimeError # Error only in strong mode
 invalid_type_argument_count_test/04: MissingCompileTimeError # Error only in strong mode
-partial_tearoff_instantiation_test/none: CompiletimeError
+partial_tearoff_instantiation_test/none: CompileTimeError
+

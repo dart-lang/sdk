@@ -6749,11 +6749,16 @@ foo(a, b) {}
     assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushLocalFunctionReference,
           UnlinkedExprOperation.invokeMethodRef
         ],
         ints: [
+          5,
           0,
           0,
+          0,
+          2,
           0
         ],
         referenceValidators: [
@@ -6770,11 +6775,19 @@ foo(a, b, c) {}
     assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushLocalFunctionReference,
+          UnlinkedExprOperation.pushLocalFunctionReference,
           UnlinkedExprOperation.invokeMethodRef
         ],
         ints: [
+          5,
           0,
           0,
+          0,
+          1,
+          0,
+          3,
           0
         ],
         referenceValidators: [
@@ -7046,16 +7059,24 @@ final v = new C().m(1, b: 2, c: 3);
         isValidConst: false,
         operators: [
           UnlinkedExprOperation.invokeConstructor,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.invokeMethod,
         ],
         ints: [
           0,
           0,
-          0,
-          0,
+          1,
+          2,
+          3,
+          2,
+          1,
           0
         ],
         strings: [
+          'b',
+          'c',
           'm'
         ],
         referenceValidators: [
@@ -7117,11 +7138,15 @@ final v = a.b.c.m(10, 20);
     assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.invokeMethodRef,
         ],
         ints: [
+          10,
+          20,
           0,
-          0,
+          2,
           0
         ],
         strings: [],
@@ -7184,14 +7209,17 @@ final v = f(u);
     assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
+          UnlinkedExprOperation.pushReference,
           UnlinkedExprOperation.invokeMethodRef
         ],
         ints: [
           0,
-          0,
+          1,
           0
         ],
         referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, null, 'u',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor),
           (EntityRef r) => checkTypeRef(r, null, 'f',
               expectedKind: ReferenceKind.topLevelFunction)
         ]);

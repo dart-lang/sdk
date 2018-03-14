@@ -18,7 +18,6 @@ import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
-import 'package:compiler/src/resolution/class_hierarchy.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
@@ -383,7 +382,6 @@ Future<ResultKind> runTest(
     bool expectIdenticalOutput: true}) async {
   enableDebugMode();
   Elements.useCFEOrder = true;
-  useOptimizedMixins = true;
 
   print('---- compile from ast ----------------------------------------------');
   DiagnosticCollector collector = new DiagnosticCollector();

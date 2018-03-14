@@ -26,7 +26,7 @@ main (x, y) {
 main() {
   runTest({bool useKernel}) async {
     var options = [Flags.enableCheckedMode];
-    if (useKernel) options.add(Flags.useKernel);
+    if (!useKernel) options.add(Flags.useOldFrontend);
     var result = await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES, options: options);
     var compiler = result.compiler;

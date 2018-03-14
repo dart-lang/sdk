@@ -49,7 +49,7 @@ class OutlineCollectorImpl implements OutlineCollector {
 
   @override
   void startElement(Element element, int offset, int length) {
-    Outline outline = new Outline(element, offset, length);
+    Outline outline = new Outline(element, offset, length, offset, length);
     if (outlineStack.isEmpty) {
       outlines.add(outline);
     } else {

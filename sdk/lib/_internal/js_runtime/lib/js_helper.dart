@@ -3080,6 +3080,16 @@ abstract class Instantiation extends Closure {
   final Closure _genericClosure;
   Instantiation(this._genericClosure) {
     // TODO(sra): Copy some metadata used by Function.apply.
+
+    // Mark support code as used.  The JS condition is inscrutable to dart2js,
+    // so the 'if (false)' is in the final program.
+    // TODO(sra): Find a better way to do this. Generating the signature methods
+    // earlier as SSA on the instantiation closures should achieve this.
+    if (JS('bool', 'false')) {
+      // [instantiatedGenericFunctionType] is called from injected $signature
+      // methods with runtime type representations.
+      instantiatedGenericFunctionType(JS('', '0'), JS('', '0'));
+    }
   }
 
   /// Returns a list of the bound types.

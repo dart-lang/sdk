@@ -40,8 +40,7 @@ main() {
 main() {
   asyncTest(() async {
     CompilationResult result = await runCompiler(
-        memorySourceFiles: {'main.dart': code},
-        options: [Flags.strongMode, Flags.useKernel]);
+        memorySourceFiles: {'main.dart': code}, options: [Flags.strongMode]);
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
     ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;

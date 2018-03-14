@@ -38,6 +38,7 @@ import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
@@ -77,8 +78,8 @@ class DartCompletionManager implements CompletionContributor {
       ..replacementLength = range.length;
 
     // Request Dart specific completions from each contributor
-    Map<String, CompletionSuggestion> suggestionMap =
-        <String, CompletionSuggestion>{};
+    var suggestionMap = <String, CompletionSuggestion>{};
+    var constructorMap = <String, List<String>>{};
     List<DartCompletionContributor> contributors = <DartCompletionContributor>[
       new ArgListContributor(),
       new CombinatorContributor(),
@@ -109,11 +110,25 @@ class DartCompletionManager implements CompletionContributor {
       request.checkAborted();
 
       for (CompletionSuggestion newSuggestion in contributorSuggestions) {
-        var oldSuggestion = suggestionMap.putIfAbsent(
-            newSuggestion.completion, () => newSuggestion);
-        if (newSuggestion != oldSuggestion &&
-            newSuggestion.relevance > oldSuggestion.relevance) {
-          suggestionMap[newSuggestion.completion] = newSuggestion;
+        String key = newSuggestion.completion;
+
+        // Append parenthesis for constructors to disambiguate from classes.
+        if (_isConstructor(newSuggestion)) {
+          key += '()';
+          String className = _getConstructorClassName(newSuggestion);
+          _ensureList(constructorMap, className).add(key);
+        }
+
+        // Local declarations hide both the class and its constructors.
+        if (!_isClass(newSuggestion)) {
+          List<String> constructorKeys = constructorMap[key];
+          constructorKeys?.forEach(suggestionMap.remove);
+        }
+
+        CompletionSuggestion oldSuggestion = suggestionMap[key];
+        if (oldSuggestion == null ||
+            oldSuggestion.relevance < newSuggestion.relevance) {
+          suggestionMap[key] = newSuggestion;
         }
       }
     }
@@ -126,6 +141,33 @@ class DartCompletionManager implements CompletionContributor {
     performance.logElapseTime(SORT_TAG);
     request.checkAborted();
     return suggestions;
+  }
+
+  static List<String> _ensureList(Map<String, List<String>> map, String key) {
+    List<String> list = map[key];
+    if (list == null) {
+      list = <String>[];
+      map[key] = list;
+    }
+    return list;
+  }
+
+  static String _getConstructorClassName(CompletionSuggestion suggestion) {
+    String completion = suggestion.completion;
+    int dotIndex = completion.indexOf('.');
+    if (dotIndex != -1) {
+      return completion.substring(0, dotIndex);
+    } else {
+      return completion;
+    }
+  }
+
+  static bool _isClass(CompletionSuggestion suggestion) {
+    return suggestion.element?.kind == protocol.ElementKind.CLASS;
+  }
+
+  static bool _isConstructor(CompletionSuggestion suggestion) {
+    return suggestion.element?.kind == protocol.ElementKind.CONSTRUCTOR;
   }
 }
 

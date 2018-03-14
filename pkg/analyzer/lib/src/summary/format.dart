@@ -402,7 +402,7 @@ abstract class _AnalysisDriverExceptionContextMixin
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class AnalysisDriverExceptionFileBuilder extends Object
@@ -519,7 +519,7 @@ abstract class _AnalysisDriverExceptionFileMixin
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class AnalysisDriverResolvedUnitBuilder extends Object
@@ -666,7 +666,7 @@ abstract class _AnalysisDriverResolvedUnitMixin
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class AnalysisDriverSubtypeBuilder extends Object
@@ -832,7 +832,7 @@ abstract class _AnalysisDriverSubtypeMixin
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class AnalysisDriverUnitErrorBuilder extends Object
@@ -1034,7 +1034,7 @@ abstract class _AnalysisDriverUnitErrorMixin
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class AnalysisDriverUnitIndexBuilder extends Object
@@ -1899,7 +1899,7 @@ abstract class _AnalysisDriverUnitIndexMixin
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class AnalysisDriverUnlinkedUnitBuilder extends Object
@@ -2168,7 +2168,7 @@ abstract class _AnalysisDriverUnlinkedUnitMixin
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class CodeRangeBuilder extends Object
@@ -2276,7 +2276,7 @@ abstract class _CodeRangeMixin implements idl.CodeRange {
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class EntityRefBuilder extends Object
@@ -2740,7 +2740,7 @@ abstract class _EntityRefMixin implements idl.EntityRef {
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class LinkedDependencyBuilder extends Object
@@ -2864,7 +2864,7 @@ abstract class _LinkedDependencyMixin implements idl.LinkedDependency {
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class LinkedExportNameBuilder extends Object
@@ -3034,7 +3034,7 @@ abstract class _LinkedExportNameMixin implements idl.LinkedExportName {
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class LinkedLibraryBuilder extends Object
@@ -3373,7 +3373,7 @@ abstract class _LinkedLibraryMixin implements idl.LinkedLibrary {
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class LinkedReferenceBuilder extends Object
@@ -3630,7 +3630,7 @@ abstract class _LinkedReferenceMixin implements idl.LinkedReference {
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class LinkedUnitBuilder extends Object
@@ -3909,7 +3909,7 @@ abstract class _LinkedUnitMixin implements idl.LinkedUnit {
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class PackageBundleBuilder extends Object
@@ -4303,7 +4303,7 @@ abstract class _PackageBundleMixin implements idl.PackageBundle {
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class PackageDependencyInfoBuilder extends Object
@@ -4528,7 +4528,7 @@ abstract class _PackageDependencyInfoMixin
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class PackageIndexBuilder extends Object
@@ -4985,7 +4985,7 @@ abstract class _PackageIndexMixin implements idl.PackageIndex {
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class TopLevelInferenceErrorBuilder extends Object
@@ -5138,7 +5138,7 @@ abstract class _TopLevelInferenceErrorMixin
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class UnitIndexBuilder extends Object
@@ -5730,7 +5730,7 @@ abstract class _UnitIndexMixin implements idl.UnitIndex {
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class UnlinkedClassBuilder extends Object
@@ -6282,7 +6282,7 @@ abstract class _UnlinkedClassMixin implements idl.UnlinkedClass {
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class UnlinkedCombinatorBuilder extends Object
@@ -6471,7 +6471,7 @@ abstract class _UnlinkedCombinatorMixin implements idl.UnlinkedCombinator {
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class UnlinkedConfigurationBuilder extends Object
@@ -6618,7 +6618,7 @@ abstract class _UnlinkedConfigurationMixin
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class UnlinkedConstructorInitializerBuilder extends Object
@@ -6861,7 +6861,7 @@ abstract class _UnlinkedConstructorInitializerMixin
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class UnlinkedDocumentationCommentBuilder extends Object
@@ -6967,7 +6967,7 @@ abstract class _UnlinkedDocumentationCommentMixin
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class UnlinkedEnumBuilder extends Object
@@ -7232,7 +7232,7 @@ abstract class _UnlinkedEnumMixin implements idl.UnlinkedEnum {
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class UnlinkedEnumValueBuilder extends Object
@@ -7380,7 +7380,7 @@ abstract class _UnlinkedEnumValueMixin implements idl.UnlinkedEnumValue {
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class UnlinkedExecutableBuilder extends Object
@@ -8369,7 +8369,7 @@ abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class UnlinkedExportNonPublicBuilder extends Object
@@ -8555,7 +8555,7 @@ abstract class _UnlinkedExportNonPublicMixin
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class UnlinkedExportPublicBuilder extends Object
@@ -8732,7 +8732,7 @@ abstract class _UnlinkedExportPublicMixin implements idl.UnlinkedExportPublic {
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class UnlinkedExprBuilder extends Object
@@ -9073,7 +9073,7 @@ abstract class _UnlinkedExprMixin implements idl.UnlinkedExpr {
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class UnlinkedImportBuilder extends Object
@@ -9488,7 +9488,7 @@ abstract class _UnlinkedImportMixin implements idl.UnlinkedImport {
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class UnlinkedParamBuilder extends Object
@@ -10089,7 +10089,7 @@ abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class UnlinkedPartBuilder extends Object
@@ -10244,7 +10244,7 @@ abstract class _UnlinkedPartMixin implements idl.UnlinkedPart {
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class UnlinkedPublicNameBuilder extends Object
@@ -10438,7 +10438,7 @@ abstract class _UnlinkedPublicNameMixin implements idl.UnlinkedPublicName {
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class UnlinkedPublicNamespaceBuilder extends Object
@@ -10635,7 +10635,7 @@ abstract class _UnlinkedPublicNamespaceMixin
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class UnlinkedReferenceBuilder extends Object
@@ -10754,7 +10754,7 @@ abstract class _UnlinkedReferenceMixin implements idl.UnlinkedReference {
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class UnlinkedTypedefBuilder extends Object
@@ -11126,7 +11126,7 @@ abstract class _UnlinkedTypedefMixin implements idl.UnlinkedTypedef {
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class UnlinkedTypeParamBuilder extends Object
@@ -11347,7 +11347,7 @@ abstract class _UnlinkedTypeParamMixin implements idl.UnlinkedTypeParam {
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class UnlinkedUnitBuilder extends Object
@@ -12150,7 +12150,7 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }
 
 class UnlinkedVariableBuilder extends Object
@@ -12662,5 +12662,5 @@ abstract class _UnlinkedVariableMixin implements idl.UnlinkedVariable {
       };
 
   @override
-  String toString() => convert.JSON.encode(toJson());
+  String toString() => convert.json.encode(toJson());
 }

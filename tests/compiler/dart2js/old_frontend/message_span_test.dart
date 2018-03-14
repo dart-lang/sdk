@@ -146,7 +146,7 @@ main() {
       DiagnosticCollector collector = new DiagnosticCollector();
       CompilationResult result = await runCompiler(
           memorySourceFiles: {'main.dart': test.code},
-          options: [Flags.analyzeOnly],
+          options: [Flags.analyzeOnly, Flags.useOldFrontend],
           diagnosticHandler: collector,
           cachedCompiler: cachedCompiler);
       cachedCompiler = result.compiler;

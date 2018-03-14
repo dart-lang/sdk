@@ -18,11 +18,9 @@ void main() {
         await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     Compiler compiler = result.compiler;
 
-    lookupLibrary(name) {
-      return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
-    }
-
-    var main = compiler.frontendStrategy.elementEnvironment.mainFunction;
+    var env = compiler.backendClosedWorldForTesting.elementEnvironment;
+    lookupLibrary(name) => env.lookupLibrary(Uri.parse(name));
+    var main = env.mainFunction;
     Expect.isNotNull(main, "Could not find 'main'");
 
     var outputUnitForEntity =
@@ -33,14 +31,14 @@ void main() {
     var classes = backend.emitter.neededClasses;
     var inputElement = classes.where((e) => e.name == 'InputElement').single;
     dynamic lib1 = lookupLibrary("memory:lib1.dart");
-    var foo1 = lib1.find("foo1");
+    var foo1 = env.lookupLibraryMember(lib1, "foo1");
     dynamic lib2 = lookupLibrary("memory:lib2.dart");
-    var foo2 = lib2.find("foo2");
+    var foo2 = env.lookupLibraryMember(lib2, "foo2");
     dynamic lib3 = lookupLibrary("memory:lib3.dart");
-    var foo3 = lib3.find("foo3");
+    var foo3 = env.lookupLibraryMember(lib3, "foo3");
     dynamic lib4 = lookupLibrary("memory:lib4.dart");
-    var bar1 = lib4.find("bar1");
-    var bar2 = lib4.find("bar2");
+    var bar1 = env.lookupLibraryMember(lib4, "bar1");
+    var bar2 = env.lookupLibraryMember(lib4, "bar2");
 
     OutputUnit ou_lib1 = outputUnitForEntity(foo1);
     OutputUnit ou_lib2 = outputUnitForEntity(foo2);

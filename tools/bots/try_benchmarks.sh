@@ -246,6 +246,7 @@ EOF
       out/ReleaseX64/dart-sdk \
       out/ReleaseSIMDBC64/dart \
       out/ReleaseX64/gen/kernel-service.dart.snapshot \
+      out/ReleaseX64/gen/runtime/bin/precompiler_entry_points.json \
       out/ReleaseX64/dart \
       out/ReleaseX64/dart_bootstrap \
       out/ReleaseX64/run_vm_tests \
@@ -366,6 +367,7 @@ EOF
       out/ReleaseX64/dart-sdk \
       out/ReleaseSIMDBC64/dart \
       out/ReleaseX64/gen/kernel-service.dart.snapshot \
+      out/ReleaseX64/gen/runtime/bin/precompiler_entry_points.json \
       out/ReleaseX64/dart \
       out/ReleaseX64/dart_bootstrap \
       out/ReleaseX64/run_vm_tests \
@@ -393,7 +395,6 @@ main() {
 EOF
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages hello.dart
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages --checked hello.dart
-    out/ReleaseX64/dart --profile-period=10000 --packages=.packages --dfe=out/ReleaseX64/gen/kernel-service.dart.snapshot hello.dart
     out/ReleaseX64/dart_bootstrap --packages=.packages --use-blobs --snapshot-kind=app-aot --snapshot=blob.bin hello.dart
     out/ReleaseX64/dart_precompiled_runtime --profile-period=10000 blob.bin
     DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/dart2 --profile-period=10000 --packages=.packages hello.dart

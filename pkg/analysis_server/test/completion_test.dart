@@ -294,27 +294,6 @@ void r() {
   }
 }''', <String>["1+toUpperCase", "2-getKeys"]);
 
-    // Type propagation.
-    buildTests('testCommentSnippets053', '''
-class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
-void r() {
-  var v;
-  while (v is String) {
-    v.!1toUpperCase;
-    v.!2getKeys;
-  }
-}''', <String>["1+toUpperCase", "2-getKeys"]);
-
-    buildTests('testCommentSnippets054', '''
-class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
-void r() {
-  var v;
-  for (; v is String; v.!1isEmpty) {
-    v.!2toUpperCase;
-    v.!3getKeys;
-  }
-}''', <String>["1+isEmpty", "2+toUpperCase", "3-getKeys"]);
-
     buildTests('testCommentSnippets055', '''
 class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
 void r() {
@@ -323,25 +302,6 @@ void r() {
     v.!1toUpperCase;
   }
 }''', <String>["1+toUpperCase"]);
-
-    // Type propagation.
-    buildTests('testCommentSnippets056', '''
-class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
-void f(var v) {
-  if (v is!! String) {
-    return;
-  }
-  v.!1toUpperCase;
-}''', <String>["1+toUpperCase"]);
-
-    // Type propagation.
-    buildTests('testCommentSnippets057', '''
-class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
-void f(var v) {
-  if ((v as String).!2length == 0) {
-    v.!1toUpperCase;
-  }
-}''', <String>["1+toUpperCase", "2+length"]);
 
     buildTests(
         'testCommentSnippets058',
@@ -371,15 +331,6 @@ class Z {
     buildTests('testCommentSnippets061', '''
 class A{m(){!1f(3);!2}}n(){!3f(3);!4}f(x)=>x*3;''',
         <String>["1+f", "1+n", "2+f", "2+n", "3+f", "3+n", "4+f", "4+n"]);
-
-    // Type propagation.
-    buildTests('testCommentSnippets063', '''
-class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
-void r(var v) {
-  v.!1toUpperCase;
-  assert(v is String);
-  v.!2toUpperCase;
-}''', <String>["1-toUpperCase", "2+toUpperCase"]);
 
     buildTests('testCommentSnippets064', '''
 class Spline {
@@ -2363,8 +2314,7 @@ class A {
 
     // test analysis of untyped fields and top-level vars
     buildTests('test035', '''class Y {final x='hi';mth() {x.!1length;}}''',
-        <String>["1+length"],
-        failingTests: '1');
+        <String>["1+length"]);
 
     // TODO(scheglov) decide what to do with Type for untyped field (not
     // supported by the new store)

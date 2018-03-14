@@ -7008,6 +7008,65 @@ class B extends A {
     }
   }
 
+  test_inferredType_implicitCreation() async {
+    shouldCompareLibraryElements = false;
+    var library = await checkLibrary(r'''
+class A {
+  A();
+  A.named();
+}
+var a1 = A();
+var a2 = A.named();
+''');
+    if (isStrongMode) {
+      checkElementText(library, r'''
+class A {
+  A();
+  A.named();
+}
+A a1;
+A a2;
+''');
+    } else {
+      checkElementText(library, r'''
+class A {
+  A();
+  A.named();
+}
+dynamic a1;
+dynamic a2;
+''');
+    }
+  }
+
+  test_inferredType_implicitCreation_prefixed() async {
+    shouldCompareLibraryElements = false;
+    addLibrarySource('/foo.dart', '''
+class A {
+  A();
+  A.named();
+}
+''');
+    var library = await checkLibrary('''
+import 'foo.dart' as foo;
+var a1 = foo.A();
+var a2 = foo.A.named();
+''');
+    if (isStrongMode) {
+      checkElementText(library, r'''
+import 'foo.dart' as foo;
+A a1;
+A a2;
+''');
+    } else {
+      checkElementText(library, r'''
+import 'foo.dart' as foo;
+dynamic a1;
+dynamic a2;
+''');
+    }
+  }
+
   test_inferredType_usesSyntheticFunctionType_functionTypedParam() async {
     // AnalysisContext does not set the enclosing element for the synthetic
     // FunctionElement created for the [f, g] type argument.

@@ -263,6 +263,7 @@ library dart:core:
     - toRadixString
   - class Invocation
     - memberName
+    - typeArguments
     - positionalArguments
     - namedArguments
     - isMethod
@@ -369,6 +370,7 @@ library dart:core:
   - class MapEntry
     - key
     - value
+    - toString
   - class Null
     - hashCode
     - toString

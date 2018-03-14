@@ -8,8 +8,7 @@ class A {}
 /*class: B:deps=[method],explicit=[B<A>],needsArgs*/
 class B<T> {}
 
-/*ast.element: method:*/
-/*kernel.element: method:needsArgs*/
+/*element: method:*/
 method<T>() => new B<T>();
 
 main() {

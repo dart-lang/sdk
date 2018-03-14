@@ -30,7 +30,7 @@ class BatchRunner {
     ErrorSeverity batchResult = ErrorSeverity.NONE;
     // Read line from stdin.
     Stream<String> cmdLine =
-        stdin.transform(UTF8.decoder).transform(new LineSplitter());
+        stdin.transform(utf8.decoder).transform(new LineSplitter());
     cmdLine.listen((String line) async {
       // Maybe finish.
       if (line.isEmpty) {

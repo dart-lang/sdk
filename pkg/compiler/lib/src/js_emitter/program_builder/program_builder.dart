@@ -988,7 +988,12 @@ class ProgramBuilder {
 
   List<StubMethod> _generateInstantiationStubs(ClassEntity instantiationClass) {
     InstantiationStubGenerator generator = new InstantiationStubGenerator(
-        _task, _namer, _worldBuilder, _closedWorld, _sourceInformationStrategy);
+        _task,
+        _commonElements,
+        _namer,
+        _worldBuilder,
+        _closedWorld,
+        _sourceInformationStrategy);
     return generator.generateStubs(instantiationClass, null);
   }
 

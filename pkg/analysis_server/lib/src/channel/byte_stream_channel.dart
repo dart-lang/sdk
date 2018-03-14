@@ -51,7 +51,7 @@ class ByteStreamClientChannel implements ClientCommunicationChannel {
   @override
   Future<Response> sendRequest(Request request) async {
     String id = request.id;
-    output.write(JSON.encode(request.toJson()) + '\n');
+    output.write(json.encode(request.toJson()) + '\n');
     return await responseStream
         .firstWhere((Response response) => response.id == id);
   }
@@ -120,7 +120,7 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
       return;
     }
     ServerPerformanceStatistics.serverChannel.makeCurrentWhile(() {
-      String jsonEncoding = JSON.encode(notification.toJson());
+      String jsonEncoding = json.encode(notification.toJson());
       _outputLine(jsonEncoding);
       _instrumentationService.logNotification(jsonEncoding);
     });
@@ -134,7 +134,7 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
       return;
     }
     ServerPerformanceStatistics.serverChannel.makeCurrentWhile(() {
-      String jsonEncoding = JSON.encode(response.toJson());
+      String jsonEncoding = json.encode(response.toJson());
       _outputLine(jsonEncoding);
       _instrumentationService.logResponse(jsonEncoding);
     });

@@ -441,7 +441,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
             element.enclosingElement is ExecutableElement ||
         elementKind == ElementKind.PARAMETER &&
             element is ParameterElement &&
-            !element.isNamed ||
+            !element.isOptional ||
         false) {
       return;
     }
@@ -555,6 +555,16 @@ class _IndexContributor extends GeneralizingAstVisitor {
           element, IndexRelationKind.IS_REFERENCED_BY, offset, 0, true);
     }
     node.type.accept(this);
+  }
+
+  @override
+  visitExpression(Expression node) {
+    ParameterElement parameterElement = node.staticParameterElement;
+    if (parameterElement != null && parameterElement.isOptionalPositional) {
+      recordRelationOffset(parameterElement, IndexRelationKind.IS_REFERENCED_BY,
+          node.offset, 0, true);
+    }
+    super.visitExpression(node);
   }
 
   @override

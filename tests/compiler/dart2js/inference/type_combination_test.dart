@@ -761,7 +761,7 @@ runTests({bool useKernel}) async {
     }
     '''
       },
-      options: useKernel ? [Flags.useKernel] : [],
+      options: useKernel ? [] : [Flags.useOldFrontend],
       beforeRun: (compiler) => compiler.stopAfterTypeInference = true);
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;

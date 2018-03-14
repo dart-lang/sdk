@@ -57,6 +57,10 @@ class CallStructure {
   /// The names of the named arguments in canonicalized order.
   List<String> getOrderedNamedArguments() => const <String>[];
 
+  CallStructure get nonGeneric => typeArgumentCount == 0
+      ? this
+      : new CallStructure(argumentCount, namedArguments);
+
   /// A description of the argument structure.
   String structureToString() {
     StringBuffer sb = new StringBuffer();

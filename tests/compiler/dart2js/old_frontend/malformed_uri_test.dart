@@ -9,6 +9,7 @@ library dart2js.test.malformed_uri;
 
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
+import 'package:compiler/src/commandline_options.dart';
 import '../memory_compiler.dart';
 
 const MEMORY_SOURCE_FILES = const {
@@ -23,7 +24,9 @@ testMalformedUri() {
   asyncTest(() async {
     var collector = new DiagnosticCollector();
     await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES, diagnosticHandler: collector);
+        memorySourceFiles: MEMORY_SOURCE_FILES,
+        diagnosticHandler: collector,
+        options: [Flags.useOldFrontend]);
     Expect.equals(1, collector.errors.length);
   });
 }

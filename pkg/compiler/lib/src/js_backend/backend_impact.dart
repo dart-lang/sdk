@@ -794,6 +794,7 @@ class BackendImpacts {
         _commonElements.instantiate1,
         _commonElements.instantiate2,
         _commonElements.instantiate3,
+        _commonElements.instantiatedGenericFunctionType,
       ], instantiatedClasses: [
         _commonElements.instantiation1Class,
         _commonElements.instantiation2Class,

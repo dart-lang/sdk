@@ -14,6 +14,7 @@ library dart2js.test.generic_method_type_usage;
 
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import "package:compiler/src/diagnostics/messages.dart";
 import 'package:expect/expect.dart';
 import '../memory_compiler.dart';
@@ -90,7 +91,7 @@ Future runTest(Uri main, {MessageKind warning, MessageKind info}) async {
   OutputCollector output = new OutputCollector();
   await runCompiler(
       entryPoint: main,
-      options: const <String>["--generic-method-syntax"],
+      options: const <String>["--generic-method-syntax", Flags.useOldFrontend],
       memorySourceFiles: MEMORY_SOURCE_FILES,
       diagnosticHandler: diagnostics,
       outputProvider: output);

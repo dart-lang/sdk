@@ -66,7 +66,7 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
       references.add(constructor);
       operations.add(UnlinkedExprOperation.pushReference);
     } else {
-      serializeInstanceCreation(constructor, annotation.arguments);
+      serializeInstanceCreation(constructor, annotation.arguments, false);
     }
   }
 

@@ -51,7 +51,7 @@ Future analyze(Uri entryPoint,
         entryPoint: entryPoint,
         resolutionInputs: resolutionInputs,
         memorySourceFiles: sourceFiles,
-        options: [Flags.analyzeOnly],
+        options: [Flags.analyzeOnly, Flags.useOldFrontend],
         diagnosticHandler: diagnosticCollector);
     if (test != null) {
       Expect.equals(test.expectedErrorCount, diagnosticCollector.errors.length,

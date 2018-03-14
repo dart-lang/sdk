@@ -3472,7 +3472,7 @@ class UriData {
    * percent-escaped characters and returning byte values of each unescaped
    * character. The bytes will not be, e.g., UTF-8 decoded.
    */
-  List<int> contentAsBytes() {
+  Uint8List contentAsBytes() {
     String text = _text;
     int start = _separatorIndices.last + 1;
     if (isBase64) {

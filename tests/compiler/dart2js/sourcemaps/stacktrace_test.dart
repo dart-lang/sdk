@@ -82,8 +82,8 @@ Future runTest(Test test, String config,
       Flags.useNewSourceInfo,
       input,
     ]..addAll(options);
-    if (config == kernelMarker) {
-      arguments.add(Flags.useKernel);
+    if (config == astMarker) {
+      arguments.add(Flags.useOldFrontend);
     }
     print("Compiling dart2js ${arguments.join(' ')}");
     CompilationResult compilationResult = await entry.internalMain(arguments);

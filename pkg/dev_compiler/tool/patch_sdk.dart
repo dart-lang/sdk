@@ -10,6 +10,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:path/path.dart' as path;
 
@@ -66,7 +67,7 @@ void main(List<String> argv) {
 
     var libraryOut = path.join(sdkLibIn, library.path);
     var libraryOverride = path.join(patchDir, 'lib', library.path);
-    var libraryIn;
+    String libraryIn;
     if (library.path.contains(INTERNAL_PATH)) {
       libraryIn =
           path.join(privateIn, library.path.replaceAll(INTERNAL_PATH, ''));
@@ -265,10 +266,10 @@ class PatchApplier extends GeneralizingAstVisitor {
     }
   }
 
-  void _maybePatch(AstNode node) {
+  void _maybePatch(Declaration node) {
     if (node is FieldDeclaration) return;
 
-    var externalKeyword = (node as dynamic).externalKeyword;
+    Token externalKeyword = (node as dynamic).externalKeyword;
     if (externalKeyword == null) return;
 
     var name = _qualifiedName(node);
@@ -303,9 +304,9 @@ class PatchFinder extends GeneralizingAstVisitor {
   final String contents;
   final CompilationUnit unit;
 
-  final Map patches = <String, Declaration>{};
-  final Map mergeMembers = <String, List<ClassMember>>{};
-  final List mergeDeclarations = <CompilationUnitMember>[];
+  final patches = <String, Declaration>{};
+  final mergeMembers = <String, List<ClassMember>>{};
+  final mergeDeclarations = <CompilationUnitMember>[];
 
   PatchFinder.parseAndVisit(String contents)
       : contents = contents,
@@ -358,12 +359,12 @@ String _qualifiedName(Declaration node) {
     result = "${parent.name.name}.";
   }
 
-  var name = (node as dynamic).name;
+  SimpleIdentifier name = (node as dynamic).name;
   if (name != null) result += name.name;
 
   // Make sure setters and getters don't collide.
-  if ((node is FunctionDeclaration || node is MethodDeclaration) &&
-      (node as dynamic).isSetter) {
+  if (node is FunctionDeclaration && node.isSetter ||
+      node is MethodDeclaration && node.isSetter) {
     result += "=";
   }
 

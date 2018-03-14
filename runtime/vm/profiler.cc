@@ -31,8 +31,7 @@ static const intptr_t kMaxSamplesPerTick = 16;
 
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
 
-#if defined(HOST_OS_ANDROID) || defined(TARGET_ARCH_ARM64) ||                  \
-    defined(TARGET_ARCH_ARM)
+#if defined(TARGET_ARCH_ARM_6) || defined(TARGET_ARCH_ARM_5TE)
 DEFINE_FLAG(int,
             profile_period,
             10000,
@@ -419,7 +418,7 @@ static void DumpStackFrame(intptr_t frame_index, uword pc) {
       // Only attempt to symbolize Dart frames if we can safely iterate the
       // current isolate's heap.
       Code& code = Code::Handle(Code::LookupCodeInVmIsolate(pc));
-      if (!code.IsNull()) {
+      if (code.IsNull()) {
         code = Code::LookupCode(pc);  // In current isolate.
       }
       if (!code.IsNull()) {
@@ -934,23 +933,19 @@ static bool ValidateThreadStackBounds(uintptr_t fp,
 
 // Get |thread|'s stack boundary and verify that |sp| and |fp| are within
 // it. Return |false| if anything looks suspicious.
-static bool GetAndValidateThreadStackBounds(Thread* thread,
+static bool GetAndValidateThreadStackBounds(OSThread* os_thread,
+                                            Thread* thread,
                                             uintptr_t fp,
                                             uintptr_t sp,
                                             uword* stack_lower,
                                             uword* stack_upper) {
-  OSThread* os_thread = NULL;
-  if (thread != NULL) {
-    os_thread = thread->os_thread();
-  } else {
-    os_thread = OSThread::Current();
-  }
   ASSERT(os_thread != NULL);
   ASSERT(stack_lower != NULL);
   ASSERT(stack_upper != NULL);
 
 #if defined(USING_SIMULATOR)
-  const bool use_simulator_stack_bounds = thread->IsExecutingDartCode();
+  const bool use_simulator_stack_bounds =
+      thread != NULL && thread->IsExecutingDartCode();
   if (use_simulator_stack_bounds) {
     Isolate* isolate = thread->isolate();
     ASSERT(isolate != NULL);
@@ -1098,31 +1093,20 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
     }
   }
 
-  Thread* thread = Thread::Current();
-  if (thread == NULL) {
-    OS::PrintErr("Stack dump aborted because no current Dart thread.\n");
-    return;
-  }
-  OSThread* os_thread = thread->os_thread();
+  OSThread* os_thread = OSThread::Current();
   ASSERT(os_thread != NULL);
-  Isolate* isolate = thread->isolate();
-  if (!CheckIsolate(isolate)) {
-    OS::PrintErr("Stack dump aborted because CheckIsolate failed.\n");
-    return;
-  }
-
   OS::PrintErr("Dumping native stack trace for thread %" Px "\n",
                OSThread::ThreadIdToIntPtr(os_thread->trace_id()));
-
-  uword stack_lower = 0;
-  uword stack_upper = 0;
 
   if (!InitialRegisterCheck(pc, fp, sp)) {
     OS::PrintErr("Stack dump aborted because InitialRegisterCheck failed.\n");
     return;
   }
 
-  if (!GetAndValidateThreadStackBounds(thread, fp, sp, &stack_lower,
+  Thread* thread = Thread::Current();  // NULL if no current isolate.
+  uword stack_lower = 0;
+  uword stack_upper = 0;
+  if (!GetAndValidateThreadStackBounds(os_thread, thread, fp, sp, &stack_lower,
                                        &stack_upper)) {
     OS::PrintErr(
         "Stack dump aborted because GetAndValidateThreadStackBounds failed.\n");
@@ -1130,8 +1114,7 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
   }
 
   ProfilerNativeStackWalker native_stack_walker(
-      (isolate != NULL) ? isolate->main_port() : ILLEGAL_PORT, NULL, NULL,
-      stack_lower, stack_upper, pc, fp, sp);
+      ILLEGAL_PORT, NULL, NULL, stack_lower, stack_upper, pc, fp, sp);
   native_stack_walker.walk();
   OS::PrintErr("-- End of DumpStackTrace\n");
 }
@@ -1166,7 +1149,7 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
     return;
   }
 
-  if (!GetAndValidateThreadStackBounds(thread, fp, sp, &stack_lower,
+  if (!GetAndValidateThreadStackBounds(os_thread, thread, fp, sp, &stack_lower,
                                        &stack_upper)) {
     // Could not get stack boundary.
     return;
@@ -1352,7 +1335,7 @@ void Profiler::SampleThread(Thread* thread,
 
   uword stack_lower = 0;
   uword stack_upper = 0;
-  if (!GetAndValidateThreadStackBounds(thread, fp, sp, &stack_lower,
+  if (!GetAndValidateThreadStackBounds(os_thread, thread, fp, sp, &stack_lower,
                                        &stack_upper)) {
     AtomicOperations::IncrementInt64By(
         &counters_.single_frame_sample_get_and_validate_stack_bounds, 1);

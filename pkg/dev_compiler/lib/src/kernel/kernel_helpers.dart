@@ -9,12 +9,12 @@ import 'package:kernel/kernel.dart';
 Constructor unnamedConstructor(Class c) =>
     c.constructors.firstWhere((c) => c.name.name == '', orElse: () => null);
 
-/// Returns the enclosing library for reference [r].
-Library getLibrary(NamedNode n) {
-  while (n != null && n is! Library) {
-    n = n.parent;
+/// Returns the enclosing library for reference [node].
+Library getLibrary(NamedNode node) {
+  for (TreeNode n = node; n != null; n = n.parent) {
+    if (n is Library) return n;
   }
-  return n;
+  return null;
 }
 
 final Pattern _syntheticTypeCharacters = new RegExp('[&^#.]');
@@ -132,7 +132,7 @@ class ConstantVisitor extends ExpressionVisitor<bool> {
   final CoreTypes coreTypes;
   ConstantVisitor(this.coreTypes);
 
-  bool isConstant(Expression e) => e.accept(this);
+  bool isConstant(Expression e) => e.accept(this) as bool;
 
   defaultExpression(node) => false;
   defaultBasicLiteral(node) => true;
@@ -264,3 +264,31 @@ bool isInlineJS(Member e) =>
 // Usually we don't, so we can use the same type.
 bool isCovariant(VariableDeclaration p) =>
     p.isCovariant || p.isGenericCovariantImpl;
+
+/// Returns true iff this factory constructor just throws [UnsupportedError]/
+///
+/// `dart:html` has many of these.
+bool isUnsupportedFactoryConstructor(Procedure node) {
+  if (node.name.isPrivate && node.enclosingLibrary.importUri.scheme == 'dart') {
+    var body = node.function.body;
+    if (body is Block) {
+      var statements = body.statements;
+      if (statements.length == 1) {
+        var statement = statements[0];
+        if (statement is ExpressionStatement) {
+          var expr = statement.expression;
+          if (expr is Throw) {
+            var error = expr.expression;
+            if (error is ConstructorInvocation &&
+                error.target.enclosingClass.name == 'UnsupportedError') {
+              // HTML adds a lot of private constructors that are unreachable.
+              // Skip these.
+              return true;
+            }
+          }
+        }
+      }
+    }
+  }
+  return false;
+}

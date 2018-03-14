@@ -8,6 +8,7 @@ library dart2js.test.error_token;
 
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import "package:compiler/src/diagnostics/messages.dart";
 import 'package:expect/expect.dart';
 import '../memory_compiler.dart';
@@ -20,7 +21,8 @@ Future runTest(String code,
       entryPoint: Uri.parse('memory:main.dart'),
       memorySourceFiles: {'main.dart': code},
       diagnosticHandler: diagnostics,
-      outputProvider: output);
+      outputProvider: output,
+      options: [Flags.useOldFrontend]);
 
   Expect.equals(error != null ? 1 : 0, diagnostics.errors.length);
   if (error != null)

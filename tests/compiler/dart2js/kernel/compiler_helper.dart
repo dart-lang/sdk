@@ -37,7 +37,11 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
   CompilationResult result1 = await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
-      options: [Flags.analyzeAll, Flags.enableAssertMessage],
+      options: [
+        Flags.useOldFrontend,
+        Flags.analyzeAll,
+        Flags.enableAssertMessage
+      ],
       beforeRun: (compiler) {
         compiler.impactCacheDeleter.retainCachesForTesting = true;
       });
@@ -49,7 +53,7 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
   CompilationResult result2 = await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
-      options: [Flags.analyzeOnly, Flags.enableAssertMessage, Flags.useKernel],
+      options: [Flags.analyzeOnly, Flags.enableAssertMessage],
       beforeRun: (compiler) {
         compiler.impactCacheDeleter.retainCachesForTesting = true;
       });
@@ -139,7 +143,7 @@ Future<Compiler> compileWithDill(
   CompilationResult result = await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
-      options: [Flags.useKernel]..addAll(options),
+      options: options,
       diagnosticHandler: diagnosticHandler,
       outputProvider: compilerOutput,
       beforeRun: (compiler) {

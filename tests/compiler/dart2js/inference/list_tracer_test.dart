@@ -213,7 +213,7 @@ doTest(String allocation, {bool nullify, bool useKernel}) async {
   String source = generateTest(allocation);
   var result = await runCompiler(
       memorySourceFiles: {'main.dart': source},
-      options: useKernel ? [Flags.useKernel] : []);
+      options: useKernel ? [] : [Flags.useOldFrontend]);
   Expect.isTrue(result.isSuccess);
   var compiler = result.compiler;
   var typesInferrer = compiler.globalInference.typesInferrerInternal;

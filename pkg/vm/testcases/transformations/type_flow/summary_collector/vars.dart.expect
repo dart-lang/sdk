@@ -14,11 +14,10 @@ t3 = _Call direct [#lib::A::] (_T (#lib::A))
 a1 = _Join [dart.core::Object] (%a1, _T (#lib::A), _T (#lib::B))
 t5 = _Call direct [#lib::bar] (a1, _T (dart.core::int)+)
 t6 = _Call direct [#lib::B::] (_T (#lib::B))
-a2 = _Join [dart.core::Object] (_T {}?, %a2)
-t8 = _Call [dart.core::Object::==] (a1, a2)
-t9 = _Join [dart.core::Object] (a1, a2)
-t10 = _Narrow (t9 to _T (dart.core::Object)+?)
-RESULT: t10
+t7 = _Call [dart.core::Object::==] (a1, %a2)
+t8 = _Join [dart.core::Object] (a1, %a2)
+t9 = _Narrow (t8 to _T (dart.core::Object)+?)
+RESULT: t9
 ------------ #lib::bar ------------
 %a1 = _Parameter #0 [_T (dart.core::Object)+?]
 %a2 = _Parameter #1 [_T (dart.core::int)+?]

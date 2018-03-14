@@ -26,9 +26,7 @@ import 'package:kernel/core_types.dart';
 
 import '../deprecated_problems.dart' show Crash;
 
-import '../messages.dart' show getLocationFromNode;
-
-import '../parser.dart' show noLength;
+import '../messages.dart' show getLocationFromNode, noLength;
 
 /// Concrete class derived from [InferenceNode] to represent type inference of a
 /// field based on its initializer.

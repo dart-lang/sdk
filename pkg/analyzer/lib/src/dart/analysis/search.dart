@@ -118,9 +118,9 @@ class Search {
    * we just want reduce amount of data, not to make it absolute minimum.
    */
   Future<List<Declaration>> declarations(
-      RegExp regExp, int maxResults, List<String> files) async {
+      RegExp regExp, int maxResults, List<String> files,
+      {String onlyForFile}) async {
     List<Declaration> declarations = <Declaration>[];
-    UnlinkedUnit unlinkedUnit;
 
     DeclarationKind getExecutableKind(
         UnlinkedExecutable executable, bool topLevel) {
@@ -140,45 +140,12 @@ class Search {
       }
     }
 
-    void appendParameter(StringBuffer buffer, UnlinkedParam parameter) {
-      EntityRef type = parameter.type;
-      if (type?.entityKind == EntityRefKind.named) {
-        if (type.reference != null) {
-          UnlinkedReference typeRef = unlinkedUnit.references[type.reference];
-          buffer.write(typeRef.name);
-          buffer.write(' ');
-        }
-      }
-      buffer.write(parameter.name);
-    }
-
-    String getParametersString(List<UnlinkedParam> parameters) {
-      var buffer = new StringBuffer();
-      buffer.write('(');
-
-      bool isFirstParameter = true;
-      for (var parameter in parameters) {
-        if (isFirstParameter) {
-          isFirstParameter = false;
-        } else {
-          buffer.write(', ');
-        }
-        appendParameter(buffer, parameter);
-      }
-
-      buffer.write(')');
-      return buffer.toString();
-    }
-
-    String getExecutableParameters(UnlinkedExecutable executable) {
-      if (executable.kind == UnlinkedExecutableKind.getter) {
-        return null;
-      }
-      return getParametersString(executable.parameters);
-    }
-
     try {
       for (String path in _driver.addedFiles) {
+        if (onlyForFile != null && path != onlyForFile) {
+          continue;
+        }
+
         FileState file = _driver.fsState.getFileForPath(path);
         int fileIndex;
 
@@ -214,7 +181,22 @@ class Search {
               parameters));
         }
 
-        unlinkedUnit = file.unlinked;
+        UnlinkedUnit unlinkedUnit = file.unlinked;
+        var parameterComposer = new _UnlinkedParameterComposer(unlinkedUnit);
+
+        String getParametersString(List<UnlinkedParam> parameters) {
+          parameterComposer.clear();
+          parameterComposer.appendParameters(parameters);
+          return parameterComposer.buffer.toString();
+        }
+
+        String getExecutableParameters(UnlinkedExecutable executable) {
+          if (executable.kind == UnlinkedExecutableKind.getter) {
+            return null;
+          }
+          return getParametersString(executable.parameters);
+        }
+
         for (var class_ in unlinkedUnit.classes) {
           String className = class_.name;
           addDeclaration(
@@ -225,6 +207,7 @@ class Search {
               class_.nameOffset,
               class_.codeRange.offset,
               class_.codeRange.length);
+          parameterComposer.outerTypeParameters = class_.typeParameters;
 
           for (var field in class_.fields) {
             addDeclaration(field.name, DeclarationKind.FIELD, field.nameOffset,
@@ -233,17 +216,19 @@ class Search {
           }
 
           for (var executable in class_.executables) {
-            if (executable.name.isNotEmpty) {
-              addDeclaration(
-                  executable.name,
-                  getExecutableKind(executable, false),
-                  executable.nameOffset,
-                  executable.codeRange.offset,
-                  executable.codeRange.length,
-                  className: className,
-                  parameters: getExecutableParameters(executable));
-            }
+            parameterComposer.innerTypeParameters = executable.typeParameters;
+            addDeclaration(
+                executable.name,
+                getExecutableKind(executable, false),
+                executable.nameOffset,
+                executable.codeRange.offset,
+                executable.codeRange.length,
+                className: className,
+                parameters: getExecutableParameters(executable));
+            parameterComposer.innerTypeParameters = const [];
           }
+
+          parameterComposer.outerTypeParameters = const [];
         }
 
         for (var enum_ in unlinkedUnit.enums) {
@@ -256,6 +241,7 @@ class Search {
         }
 
         for (var executable in unlinkedUnit.executables) {
+          parameterComposer.outerTypeParameters = executable.typeParameters;
           addDeclaration(
               executable.name,
               getExecutableKind(executable, true),
@@ -266,6 +252,7 @@ class Search {
         }
 
         for (var typedef_ in unlinkedUnit.typedefs) {
+          parameterComposer.outerTypeParameters = typedef_.typeParameters;
           addDeclaration(
               typedef_.name,
               DeclarationKind.FUNCTION_TYPE_ALIAS,
@@ -273,6 +260,7 @@ class Search {
               typedef_.codeRange.offset,
               typedef_.codeRange.length,
               parameters: getParametersString(typedef_.parameters));
+          parameterComposer.outerTypeParameters = const [];
         }
 
         for (var variable in unlinkedUnit.variables) {
@@ -680,7 +668,7 @@ class Search {
       AstNode parent = node.parent;
       return parent is ClassDeclaration || parent is CompilationUnit;
     }));
-    if (parameter.isNamed) {
+    if (parameter.isOptional) {
       results.addAll(await _searchReferences(parameter));
     }
     return results;
@@ -1177,4 +1165,100 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor {
  */
 class _MaxNumberOfDeclarationsError {
   const _MaxNumberOfDeclarationsError();
+}
+
+/**
+ * Helper for composing parameter strings.
+ */
+class _UnlinkedParameterComposer {
+  final UnlinkedUnit unlinkedUnit;
+  final StringBuffer buffer = new StringBuffer();
+
+  List<UnlinkedTypeParam> outerTypeParameters = const [];
+  List<UnlinkedTypeParam> innerTypeParameters = const [];
+
+  _UnlinkedParameterComposer(this.unlinkedUnit);
+
+  void appendParameter(UnlinkedParam parameter) {
+    bool hasType = appendType(parameter.type);
+    if (hasType && parameter.name.isNotEmpty) {
+      buffer.write(' ');
+    }
+    buffer.write(parameter.name);
+    if (parameter.isFunctionTyped) {
+      appendParameters(parameter.parameters);
+    }
+  }
+
+  void appendParameters(List<UnlinkedParam> parameters) {
+    buffer.write('(');
+
+    bool isFirstParameter = true;
+    for (var parameter in parameters) {
+      if (isFirstParameter) {
+        isFirstParameter = false;
+      } else {
+        buffer.write(', ');
+      }
+      appendParameter(parameter);
+    }
+
+    buffer.write(')');
+  }
+
+  bool appendType(EntityRef type) {
+    EntityRefKind kind = type?.entityKind;
+    if (kind == EntityRefKind.named) {
+      if (type.reference != 0) {
+        UnlinkedReference typeRef = unlinkedUnit.references[type.reference];
+        buffer.write(typeRef.name);
+        appendTypeArguments(type);
+        return true;
+      }
+      if (type.paramReference != 0) {
+        int ref = type.paramReference;
+        if (ref <= innerTypeParameters.length) {
+          var param = innerTypeParameters[innerTypeParameters.length - ref];
+          buffer.write(param.name);
+          return true;
+        }
+        ref -= innerTypeParameters.length;
+        if (ref <= outerTypeParameters.length) {
+          var param = outerTypeParameters[outerTypeParameters.length - ref];
+          buffer.write(param.name);
+          return true;
+        }
+        return false;
+      }
+    }
+    if (kind == EntityRefKind.genericFunctionType) {
+      if (appendType(type.syntheticReturnType)) {
+        buffer.write(' ');
+      }
+      buffer.write('Function');
+      appendParameters(type.syntheticParams);
+      return true;
+    }
+    return false;
+  }
+
+  void appendTypeArguments(EntityRef type) {
+    if (type.typeArguments.isNotEmpty) {
+      buffer.write('<');
+      bool first = true;
+      for (var arguments in type.typeArguments) {
+        if (first) {
+          first = false;
+        } else {
+          buffer.write(', ');
+        }
+        appendType(arguments);
+      }
+      buffer.write('>');
+    }
+  }
+
+  void clear() {
+    buffer.clear();
+  }
 }

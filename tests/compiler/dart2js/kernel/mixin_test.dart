@@ -13,7 +13,6 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
-import 'package:compiler/src/resolution/class_hierarchy.dart';
 import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
@@ -111,15 +110,14 @@ Map<ClassEntity, String> generateClassEnv(
 
 main(List<String> args) {
   asyncTest(() async {
-    useOptimizedMixins = true;
-
     Uri entryPoint = await createTemp(Uri.parse('memory:main.dart'), SOURCE,
         printSteps: true);
 
     print(
         '---- compiler from ast -----------------------------------------------');
-    var result =
-        await runCompiler(entryPoint: entryPoint, options: [Flags.analyzeOnly]);
+    var result = await runCompiler(
+        entryPoint: entryPoint,
+        options: [Flags.analyzeOnly, Flags.useOldFrontend]);
     Compiler compiler1 = result.compiler;
 
     Compiler compiler2 = await compileWithDill(

@@ -4159,11 +4159,11 @@ class SsaAstGraphBuilder extends ast.Visitor
     TypeMask type = TypeMaskFactory.inferredTypeForSelector(
         selector, mask, globalInferenceResults);
     if (selector.isGetter) {
-      push(new HInvokeDynamicGetter(
-          selector, mask, null, inputs, type, sourceInformation));
+      push(new HInvokeDynamicGetter(selector, mask, null, inputs, isIntercepted,
+          type, sourceInformation));
     } else if (selector.isSetter) {
-      push(new HInvokeDynamicSetter(
-          selector, mask, null, inputs, type, sourceInformation));
+      push(new HInvokeDynamicSetter(selector, mask, null, inputs, isIntercepted,
+          type, sourceInformation));
     } else {
       push(new HInvokeDynamicMethod(
           selector, mask, inputs, type, const <DartType>[], sourceInformation,
@@ -4319,10 +4319,11 @@ class SsaAstGraphBuilder extends ast.Visitor
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HStatic].
     List<HInstruction> inputs = <HInstruction>[];
-    if (interceptorData.isInterceptedSelector(selector) &&
-        // Fields don't need an interceptor; consider generating HFieldGet/Set
-        // instead.
-        element.kind != ElementKind.FIELD) {
+    // Fields don't need an interceptor; consider generating HFieldGet/Set instead.
+
+    bool isIntercepted = interceptorData.isInterceptedSelector(selector) &&
+        element.kind != ElementKind.FIELD;
+    if (isIntercepted) {
       inputs.add(invokeInterceptor(receiver));
     }
     inputs.add(receiver);
@@ -4338,8 +4339,15 @@ class SsaAstGraphBuilder extends ast.Visitor
     } else {
       type = closedWorld.commonMasks.dynamicType;
     }
-    HInstruction instruction = new HInvokeSuper(element, currentNonClosureClass,
-        selector, inputs, type, const <DartType>[], sourceInformation,
+    HInstruction instruction = new HInvokeSuper(
+        element,
+        currentNonClosureClass,
+        selector,
+        inputs,
+        isIntercepted,
+        type,
+        const <DartType>[],
+        sourceInformation,
         isSetter: selector.isSetter || selector.isIndexSet);
     instruction.sideEffects =
         closedWorld.getSideEffectsOfSelector(selector, null);

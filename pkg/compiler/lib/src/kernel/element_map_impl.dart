@@ -453,6 +453,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
         return type.subst(typeVariables, typeParameters);
       }
 
+      returnType = subst(returnType);
       parameterTypes = parameterTypes.map(subst).toList();
       optionalParameterTypes = optionalParameterTypes.map(subst).toList();
       namedParameterTypes = namedParameterTypes.map(subst).toList();
@@ -485,6 +486,11 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   void _ensureCallType(IndexedClass cls, ClassData data) {
     if (!data.isCallTypeComputed) {
       data.isCallTypeComputed = true;
+      if (options.strongMode && !cls.isClosure) {
+        // In Dart 2, a regular class with a 'call' method is no longer a
+        // subtype of its function type.
+        return;
+      }
       MemberEntity callMethod = lookupClassMember(cls, Identifiers.call);
       if (callMethod != null) {
         if (callMethod.isFunction) {
@@ -1998,7 +2004,8 @@ class KernelClosedWorld extends ClosedWorldBase
             classHierarchyNodes,
             classSets) {
     computeRtiNeed(resolutionWorldBuilder, rtiNeedBuilder,
-        enableTypeAssertions: options.enableTypeAssertions);
+        enableTypeAssertions: options.enableTypeAssertions,
+        strongMode: options.strongMode);
   }
 
   @override
@@ -2456,7 +2463,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
       KernelScopeInfo info,
       KernelToLocalsMap localsMap,
       InterfaceType supertype,
-      {bool needsSignature}) {
+      {bool createSignatureMethod}) {
     InterfaceType memberThisType = member.enclosingClass != null
         ? _elementEnvironment.getThisType(member.enclosingClass)
         : null;
@@ -2525,7 +2532,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
     _buildClosureClassFields(closureClassInfo, member, memberThisType, info,
         localsMap, recordFieldsVisibleInScope, memberMap);
 
-    if (needsSignature) {
+    if (createSignatureMethod) {
       _constructSignatureMethod(closureClassInfo, memberMap, node,
           memberThisType, location, typeVariableAccess);
     }

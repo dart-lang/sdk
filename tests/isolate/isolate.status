@@ -69,6 +69,9 @@ isolate_stress_test: Pass, Slow # TODO(kasperl): Please triage.
 mandel_isolate_test: Pass, Timeout # TODO(kasperl): Please triage.
 unresolved_ports_test: Pass, Timeout # Issue 15610
 
+[ $compiler == dart2js && $runtime == d8 && $fasta ]
+isolate_stress_test: RuntimeError
+
 [ $compiler == dart2js && $runtime != d8 ]
 error_at_spawn_test: Skip # Issue 23876
 error_exit_at_spawn_test: Skip # Issue 23876
@@ -108,6 +111,33 @@ spawn_function_test: Fail # mirrors not supported
 stacktrace_message_test: Fail # mirrors not supported
 static_function_test: Fail # mirrors not supported
 unresolved_ports_test: Fail # mirrors not supported
+
+[ $compiler == dart2js && $fasta ]
+browser/compute_this_script_browser_test: RuntimeError # mirrors not supported
+browser/typed_data_message_test: RuntimeError # mirrors not supported
+compile_time_error_test/01: Crash
+count_test: RuntimeError # mirrors not supported
+cross_isolate_message_test: RuntimeError # mirrors not supported
+illegal_msg_function_test: RuntimeError # mirrors not supported
+illegal_msg_mirror_test: RuntimeError # mirrors not supported
+isolate_complex_messages_test: RuntimeError # mirrors not supported
+mandel_isolate_test: RuntimeError # mirrors not supported
+message2_test: RuntimeError # mirrors not supported
+message_test: RuntimeError # mirrors not supported
+mint_maker_test: RuntimeError # mirrors not supported
+nested_spawn2_test: RuntimeError # mirrors not supported
+nested_spawn_test: RuntimeError # mirrors not supported
+raw_port_test: RuntimeError # mirrors not supported
+remote_unittest_helper: RuntimeError # mirrors not supported
+request_reply_test: RuntimeError # mirrors not supported
+spawn_function_custom_class_test: RuntimeError # mirrors not supported
+spawn_function_test: RuntimeError # mirrors not supported
+stacktrace_message_test: RuntimeError # mirrors not supported
+static_function_test: RuntimeError # mirrors not supported
+unresolved_ports_test: RuntimeError # mirrors not supported
+
+[ $compiler == dart2js && $fasta && $host_checked ]
+deferred_in_isolate2_test: Crash
 
 [ $compiler == dart2js && $jscl ]
 browser/*: SkipByDesign # Browser specific tests

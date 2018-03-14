@@ -18,16 +18,29 @@ class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTest {
   bool get enableNewAnalysisDriver => true;
 
   @override // Passes with driver
+  test_conflictingGenericInterfaces_simple() =>
+      super.test_conflictingGenericInterfaces_simple();
+
+  @override // Passes with driver
+  test_conflictingGenericInterfaces_viaMixin() =>
+      super.test_conflictingGenericInterfaces_viaMixin();
+
+  @override // Passes with driver
+  test_mixinInference_conflictingSubstitution() =>
+      super.test_mixinInference_conflictingSubstitution();
+
+  @override // Passes with driver
   test_mixinInference_doNotIgnorePreviousExplicitMixins() =>
       super.test_mixinInference_doNotIgnorePreviousExplicitMixins();
 
   @override // Passes with driver
-  test_mixinInference_matchingClass() =>
-      super.test_mixinInference_matchingClass();
+  test_mixinInference_impossibleSubstitution() =>
+      super.test_mixinInference_impossibleSubstitution();
 
   @override // Passes with driver
-  test_mixinInference_matchingClass_inPreviousMixin() =>
-      super.test_mixinInference_matchingClass_inPreviousMixin();
+  test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause() =>
+      super
+          .test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause();
 
   @override // Passes with driver
   test_mixinInference_recursiveSubtypeCheck() =>

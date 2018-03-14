@@ -356,14 +356,14 @@ class _NullableLocalInference extends RecursiveAstVisitor {
   @override
   visitCatchClause(CatchClause node) {
     var e = node.exceptionParameter?.staticElement;
-    if (e != null) {
+    if (e is LocalVariableElement) {
       _locals.add(e);
       // TODO(jmesserly): we allow throwing of `null`, for better or worse.
       _nullableLocals.add(e);
     }
 
     e = node.stackTraceParameter?.staticElement;
-    if (e != null) _locals.add(e);
+    if (e is LocalVariableElement) _locals.add(e);
 
     super.visitCatchClause(node);
   }

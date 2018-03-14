@@ -100,7 +100,7 @@ abstract class TypeScriptTypePrinter extends _TypePrinterBase {
       if (node.paramTypes == null) {
         out('...any');
       } else {
-        outSeparated(", ", node.paramTypes.keys, (name) {
+        outSeparated(", ", node.paramTypes.keys, (Identifier name) {
           var paramType = node.paramTypes[name];
           visit(name);
           _outTypeAnnotation(paramType);

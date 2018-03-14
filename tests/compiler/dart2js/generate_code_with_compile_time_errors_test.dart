@@ -17,7 +17,7 @@ import 'output_collector.dart';
 const MEMORY_SOURCE_FILES = const {
   'main.dart': ''' 
 foo() {
- const list = [];
+ const [ new List() ];
 }
 
 main() {

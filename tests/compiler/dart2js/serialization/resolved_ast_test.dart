@@ -35,15 +35,16 @@ main(List<String> args) {
 
 Future check(SerializedData serializedData, Uri entryPoint,
     [Map<String, String> sourceFiles = const <String, String>{}]) async {
-  Compiler compilerNormal =
-      compilerFor(memorySourceFiles: sourceFiles, options: [Flags.analyzeAll]);
+  Compiler compilerNormal = compilerFor(
+      memorySourceFiles: sourceFiles,
+      options: [Flags.analyzeAll, Flags.useOldFrontend]);
   compilerNormal.impactCacheDeleter.retainCachesForTesting = true;
   await compilerNormal.run(entryPoint);
 
   Compiler compilerDeserialized = compilerFor(
       memorySourceFiles: serializedData.toMemorySourceFiles(sourceFiles),
       resolutionInputs: serializedData.toUris(),
-      options: [Flags.analyzeAll]);
+      options: [Flags.analyzeAll, Flags.useOldFrontend]);
   compilerDeserialized.impactCacheDeleter.retainCachesForTesting = true;
   await compilerDeserialized.run(entryPoint);
 

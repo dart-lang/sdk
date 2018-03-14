@@ -126,6 +126,21 @@ class D {}
     }
   }
 
+  test_onlyForFile() async {
+    var a = newFile(join(testFolder, 'a.dart'), content: 'class A {}').path;
+    newFile(join(testFolder, 'b.dart'), content: 'class B {}').path;
+
+    await _getDeclarations(file: a);
+
+    expect(declarationsResult.files, [a]);
+    expect(declarationsResult.declarations, hasLength(1));
+
+    var declaration = declarationsResult.declarations[0];
+    expect(declaration.name, 'A');
+    expect(declaration.kind, ElementKind.CLASS);
+    expect(declarationsResult.files[declaration.fileIndex], a);
+  }
+
   test_parameters() async {
     addTestFile(r'''
 void f(bool a, String b) {}
@@ -170,9 +185,10 @@ typedef tf2<T> = int Function<S>(T tp, S sp);
     assertHas('tf2', ElementKind.FUNCTION_TYPE_ALIAS);
   }
 
-  Future<Null> _getDeclarations({String pattern, int maxResults}) async {
+  Future<Null> _getDeclarations(
+      {String file, String pattern, int maxResults}) async {
     Request request = new SearchGetElementDeclarationsParams(
-            pattern: pattern, maxResults: maxResults)
+            file: file, pattern: pattern, maxResults: maxResults)
         .toRequest('0');
     Response response = await waitResponse(request);
 

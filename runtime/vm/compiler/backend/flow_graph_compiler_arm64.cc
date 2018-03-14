@@ -25,6 +25,7 @@ namespace dart {
 
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DECLARE_FLAG(bool, enable_simd_inline);
+DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 
 FlowGraphCompiler::~FlowGraphCompiler() {
   // BlockInfos are zone-allocated, so their destructors are not called.
@@ -39,7 +40,7 @@ bool FlowGraphCompiler::SupportsUnboxedDoubles() {
 }
 
 bool FlowGraphCompiler::SupportsUnboxedInt64() {
-  return false;
+  return FLAG_unbox_mints;
 }
 
 bool FlowGraphCompiler::SupportsUnboxedSimd128() {
@@ -47,8 +48,7 @@ bool FlowGraphCompiler::SupportsUnboxedSimd128() {
 }
 
 bool FlowGraphCompiler::CanConvertInt64ToDouble() {
-  // Unboxed int64 are not supported on ARM64.
-  return false;
+  return true;
 }
 
 bool FlowGraphCompiler::SupportsHardwareDivision() {

@@ -18,7 +18,7 @@ part of dart.convert;
  *     var decoded = base64.decode("YmzDpWLDpnJncsO4ZAo=");
  */
 const Base64Codec base64 = const Base64Codec();
-/** Deprecated, use [base64] instead. */
+@Deprecated("Use base64 instead")
 const Base64Codec BASE64 = base64;
 
 /**
@@ -35,8 +35,29 @@ const Base64Codec BASE64 = base64;
  *     var decoded = base64Url.decode("YmzDpWLDpnJncsO4ZAo=");
  */
 const Base64Codec base64Url = const Base64Codec.urlSafe();
-/** Deprecated, use [base64Url] instead. */
+@Deprecated("Use base64Url instead")
 const Base64Codec BASE64URL = base64Url;
+
+/**
+ * Encodes [bytes] using [base64](https://tools.ietf.org/html/rfc4648) encoding.
+ *
+ * Shorthand for [base64.encode].
+ */
+String base64Encode(List<int> bytes) => base64.encode(bytes);
+
+/**
+ * Encodes [bytes] using [base64url](https://tools.ietf.org/html/rfc4648) encoding.
+ *
+ * Shorthand for [base64url.encode].
+ */
+String base64UrlEncode(List<int> bytes) => base64Url.encode(bytes);
+
+/**
+ * Decodes [base64](https://tools.ietf.org/html/rfc4648) or [base64url](https://tools.ietf.org/html/rfc4648) encoded bytes.
+ *
+ * Shorthand for [base64.decode].
+ */
+Uint8List base64Decode(String source) => base64.decode(source);
 
 // Constants used in more than one class.
 const int _paddingChar = 0x3d; // '='.

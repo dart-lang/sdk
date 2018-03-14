@@ -23,17 +23,16 @@ import '../js_backend/js_interop_analysis.dart';
 import '../js_backend/namer.dart' show Namer;
 import '../js_backend/runtime_types.dart'
     show
+        ClassChecks,
         RuntimeTypesChecks,
         RuntimeTypesEncoder,
         Substitution,
-        TypeCheck,
-        TypeChecks;
+        TypeCheck;
 import '../js_emitter/sorter.dart';
 import '../js_model/closure.dart' show JClosureField;
 import '../util/util.dart' show Setlet;
 
 import 'code_emitter_task.dart' show CodeEmitterTask;
-import 'type_test_registry.dart' show TypeTestRegistry;
 
 // Function signatures used in the generation of runtime type information.
 typedef void FunctionTypeSignatureEmitter(
@@ -110,7 +109,11 @@ class RuntimeTypeGenerator {
   final RuntimeTypesEncoder _rtiEncoder;
   final JsInteropAnalysis _jsInteropAnalysis;
   final bool _useKernel;
+
+  /// ignore: UNUSED_FIELD
   final bool _strongMode;
+
+  /// ignore: UNUSED_FIELD
   final bool _disableRtiOptimization;
 
   RuntimeTypeGenerator(
@@ -126,17 +129,6 @@ class RuntimeTypeGenerator {
       this._useKernel,
       this._strongMode,
       this._disableRtiOptimization);
-
-  TypeTestRegistry get _typeTestRegistry => emitterTask.typeTestRegistry;
-
-  Iterable<ClassEntity> get checkedClasses =>
-      _typeTestRegistry.rtiChecks.checkedClasses;
-
-  Iterable<ClassEntity> get classesUsingTypeVariableTests =>
-      _typeTestRegistry.rtiChecks.classesUsingTypeVariableTests;
-
-  Iterable<FunctionType> get checkedFunctionTypes =>
-      _typeTestRegistry.rtiChecks.checkedFunctionTypes;
 
   /// Generates all properties necessary for is-checks on the [classElement].
   ///
@@ -174,6 +166,10 @@ class RuntimeTypeGenerator {
         }
       }
 
+      // TODO(johnniwinther): Avoid unneeded function type indices or
+      // signatures. We either need them for mirrors or because [type] is
+      // potentially a subtype of a checked function. Currently we eagerly
+      // generate a function type index or signature for all callable classes.
       if (storeFunctionTypeInMetadata && !type.containsTypeVariables) {
         // TODO(sigmund): use output unit of `method` (Issue #31032)
         OutputUnit outputUnit = _outputUnitData.mainOutputUnit;
@@ -186,27 +182,11 @@ class RuntimeTypeGenerator {
         if (_useKernel &&
             signature != null &&
             generatedCode[signature] != null) {
+          // Use precomputed signature function.
           encoding = generatedCode[signature];
         } else {
-          // With Dart 2, if disableRtiOptimization is true, then we might
-          // generate some code for classes that are not actually called,
-          // so following this path is "okay." Also, classes that have call
-          // methods are no longer a subtype of Function (and therefore we don't
-          // create a closure class), so this path is also acceptable.
-
-          // TODO(efortuna, johnniwinther): Verify that closures that use this
-          // path are in fact dead code. If this *not* actually dead code, we
-          // get to this point because TrivialRuntimeTypesChecksBuilder
-          // specifies that every subtype of Object and its types is "used"
-          // (ClassUse = true). However, on the codegen side, we only codegen
-          // entities that are actually reachable via treeshaking. To solve this
-          // issue, if disableRtiOptimization is turned on, we could literally
-          // in world_impact.dart loop through every subclass of Object and say
-          // that all types related to JClosureClasses are "used" so the go
-          // through the codegen queue and therefore we generate code for it.
-          // This seems not ideal though.
-          assert(!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-              (_useKernel && _strongMode && !method.enclosingClass.isClosure));
+          // TODO(efortuna): Reinsert assertion.
+          // Generate the signature on the fly.
           encoding = _rtiEncoder.getSignatureEncoding(
               emitterTask.emitter, type, thisAccess);
         }
@@ -260,29 +240,20 @@ class RuntimeTypeGenerator {
     Setlet<ClassEntity> generated = new Setlet<ClassEntity>();
 
     // Precomputed is checks.
-    TypeChecks typeChecks = _rtiChecks.requiredChecks;
-    Iterable<TypeCheck> classChecks = typeChecks[cls].checks;
-    if (classChecks != null) {
-      for (TypeCheck check in classChecks) {
-        if (!generated.contains(check.cls)) {
-          emitTypeCheck(check);
-          generated.add(check.cls);
+    ClassChecks classChecks = _rtiChecks.requiredChecks[cls];
+    Iterable<TypeCheck> typeChecks = classChecks.checks;
+    if (typeChecks != null) {
+      for (TypeCheck typeCheck in typeChecks) {
+        if (!generated.contains(typeCheck.cls)) {
+          emitTypeCheck(typeCheck);
+          generated.add(typeCheck.cls);
         }
       }
     }
 
-    // A class that defines a `call` method implicitly implements
-    // [Function] and needs checks for all typedefs that are used in is-checks.
-    if (checkedClasses.contains(_commonElements.functionClass) ||
-        checkedFunctionTypes.isNotEmpty) {
-      MemberEntity call =
-          _elementEnvironment.lookupLocalClassMember(cls, Identifiers.call);
-      if (call != null && call.isFunction) {
-        FunctionEntity callFunction = call;
-        FunctionType callType =
-            _elementEnvironment.getFunctionType(callFunction);
-        generateFunctionTypeSignature(callFunction, callType);
-      }
+    if (classChecks.functionType != null) {
+      generateFunctionTypeSignature(classChecks.functionType.callFunction,
+          classChecks.functionType.callType);
     }
   }
 }

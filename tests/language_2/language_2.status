@@ -5,29 +5,6 @@
 [ $compiler == app_jit ]
 deferred_inheritance_constraints_test/redirecting_constructor: Crash
 
-[ $compiler == dart2analyzer ]
-implicit_creation/implicit_const_context_constructor_generic_named_test: CompileTimeError
-implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError
-implicit_creation/implicit_const_context_constructor_named_test: CompileTimeError
-implicit_creation/implicit_const_context_constructor_test: CompileTimeError
-implicit_creation/implicit_const_context_list_test: CompileTimeError
-implicit_creation/implicit_const_context_map_test: CompileTimeError
-implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: CompileTimeError
-implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError
-implicit_creation/implicit_const_context_prefix_constructor_named_test: CompileTimeError
-implicit_creation/implicit_const_context_prefix_constructor_test: CompileTimeError
-implicit_creation/implicit_new_constructor_generic_named_test: CompileTimeError
-implicit_creation/implicit_new_constructor_generic_test: CompileTimeError
-implicit_creation/implicit_new_constructor_named_test: CompileTimeError
-implicit_creation/implicit_new_constructor_test: CompileTimeError
-implicit_creation/implicit_new_or_const_composite_test: CompileTimeError
-implicit_creation/implicit_new_or_const_generic_test: CompileTimeError
-implicit_creation/implicit_new_or_const_test: CompileTimeError
-implicit_creation/implicit_new_prefix_constructor_generic_named_test: CompileTimeError
-implicit_creation/implicit_new_prefix_constructor_generic_test: CompileTimeError
-implicit_creation/implicit_new_prefix_constructor_named_test: CompileTimeError
-implicit_creation/implicit_new_prefix_constructor_test: CompileTimeError
-
 [ $compiler != dart2analyzer ]
 switch_case_warn_test: Skip # Analyzer only, see language_analyzer2.status
 
@@ -126,10 +103,12 @@ built_in_identifier_type_annotation_test/15: Crash # Not supported by legacy VM 
 [ $compiler == none && $runtime == drt && !$checked ]
 assertion_initializer_const_error_test/01: Fail
 
-[ $compiler != spec_parser && !$checked && !$strong ]
+[ $compiler != spec_parser && $runtime != none && !$checked && !$strong ]
 closure_type_test: RuntimeError
 map_literal1_test/01: MissingCompileTimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/02: RuntimeError # Requires type check.
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError # Issue #31426
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError # Issue #31426
 
 [ $compiler != spec_parser && !$strong ]
 class_literal_static_test: MissingCompileTimeError # Requires strong mode
@@ -183,8 +162,6 @@ map_literal4_test/04: MissingCompileTimeError
 map_literal4_test/05: MissingCompileTimeError
 map_literal4_test/06: MissingCompileTimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/03: MissingCompileTimeError # Issue #31426
-nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError # Issue #31426
-nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError # Issue #31426
 number_identifier_test/05: MissingCompileTimeError
 number_identifier_test/08: MissingCompileTimeError
 number_identifier_test/09: MissingCompileTimeError
@@ -270,6 +247,7 @@ implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: 
 implicit_creation/implicit_const_context_prefix_constructor_generic_test: Fail # No support for implicit creation.
 implicit_creation/implicit_const_context_prefix_constructor_named_test: Fail # No support for implicit creation.
 implicit_creation/implicit_const_context_prefix_constructor_test: Fail # No support for implicit creation.
+implicit_creation/implicit_const_not_default_values_test/o.*: CompileTimeError # No support for implicit creation.
 implicit_creation/implicit_new_constructor_generic_named_test: Fail # No support for implicit creation.
 implicit_creation/implicit_new_constructor_named_test: Fail # No support for implicit creation.
 implicit_creation/implicit_new_or_const_composite_test: Fail # No support for implicit creation.

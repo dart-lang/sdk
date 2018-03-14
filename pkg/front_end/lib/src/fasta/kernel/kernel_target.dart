@@ -28,6 +28,7 @@ import 'package:kernel/ast.dart'
         Name,
         NamedExpression,
         NullLiteral,
+        Procedure,
         ProcedureKind,
         Program,
         Source,
@@ -51,14 +52,15 @@ import '../deprecated_problems.dart'
 
 import '../dill/dill_target.dart' show DillTarget;
 
+import '../dill/dill_member_builder.dart' show DillMemberBuilder;
+
 import '../messages.dart'
     show
         LocatedMessage,
         messageConstConstructorNonFinalField,
         messageConstConstructorNonFinalFieldCause,
+        noLength,
         templateSuperclassHasNoDefaultConstructor;
-
-import '../parser.dart' show noLength;
 
 import '../problems.dart' show unhandled;
 
@@ -114,6 +116,11 @@ class KernelTarget extends TargetImplementation {
   final List<LocatedMessage> errors = <LocatedMessage>[];
 
   final TypeBuilder dynamicType = new KernelNamedTypeBuilder("dynamic", null);
+
+  final NamedTypeBuilder objectType =
+      new KernelNamedTypeBuilder("Object", null);
+
+  final TypeBuilder bottomType = new KernelNamedTypeBuilder("Null", null);
 
   bool get strongMode => backendTarget.strongMode;
 
@@ -232,9 +239,11 @@ class KernelTarget extends TargetImplementation {
       dynamicType.bind(loader.coreLibrary["dynamic"]);
       loader.resolveParts();
       loader.computeLibraryScopes();
+      objectType.bind(loader.coreLibrary["Object"]);
+      bottomType.bind(loader.coreLibrary["Null"]);
       loader.resolveTypes();
       if (loader.target.strongMode) {
-        loader.instantiateToBound(dynamicType, objectClassBuilder);
+        loader.instantiateToBound(dynamicType, bottomType, objectClassBuilder);
       }
       List<SourceClassBuilder> myClasses = collectMyClasses();
       loader.checkSemantics(myClasses);
@@ -372,6 +381,10 @@ class KernelTarget extends TargetImplementation {
       Builder builder = loader.first.exportScope.lookup("main", -1, null);
       if (builder is KernelProcedureBuilder) {
         program.mainMethod = builder.procedure;
+      } else if (builder is DillMemberBuilder) {
+        if (builder.member is Procedure) {
+          program.mainMethod = builder.member;
+        }
       }
     }
 
@@ -415,7 +428,7 @@ class KernelTarget extends TargetImplementation {
     ticker.logMs("Installed default constructors");
   }
 
-  KernelClassBuilder get objectClassBuilder => loader.coreLibrary["Object"];
+  KernelClassBuilder get objectClassBuilder => objectType.builder;
 
   Class get objectClass => objectClassBuilder.cls;
 

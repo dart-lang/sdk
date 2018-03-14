@@ -321,6 +321,7 @@ abstract class int extends self::num {
 }
 abstract class Invocation extends self::Object {
   abstract get memberName() → self::Symbol;
+  get typeArguments() → self::List<self::Type>;
   abstract get positionalArguments() → self::List<dynamic>;
   abstract get namedArguments() → self::Map<self::Symbol, dynamic>;
   abstract get isMethod() → self::bool;
@@ -433,6 +434,7 @@ abstract class Map<K extends self::Object, V extends self::Object> extends self:
 class MapEntry<K extends self::Object, V extends self::Object> extends self::Object {
   final field self::MapEntry::K key;
   final field self::MapEntry::V value;
+  method toString() → self::String;
 }
 class Null extends self::Object {
   external get hashCode() → self::int;

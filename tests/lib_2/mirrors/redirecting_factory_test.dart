@@ -41,8 +41,8 @@ class Class<T1, T2> {
   factory Class.redirectingFactoryStringIntTypeParameters(a, b) =
       Class<String, int>.factoryNoOptional;
 
-  factory Class.redirectingFactoryStringTypeParameters(a, b) = Class
-        <String> // //# 02: static type warning
+  factory Class.redirectingFactoryStringTypeParameters(a, b) = Class //
+      <String> //# 02: static type warning
       .factoryNoOptional;
 
   factory Class.redirectingFactoryTypeParameters(a, b) =
@@ -55,7 +55,7 @@ class Class<T1, T2> {
 main() {
   var classMirror = reflectClass(Class);
 
-  var instanceMirror = classMirror.newInstance(const Symbol(''), [2]);
+  var instanceMirror = classMirror.newInstance(Symbol.empty, [2]);
   Expect.equals(2, instanceMirror.reflectee.field);
 
   instanceMirror =

@@ -13,9 +13,8 @@ import 'dart:io'
 
 import 'command_line_reporting.dart' show shouldThrowOn;
 
-import 'messages.dart' show LocatedMessage, isVerbose, templateUnspecified;
-
-import 'parser.dart' show noLength;
+import 'messages.dart'
+    show LocatedMessage, noLength, isVerbose, templateUnspecified;
 
 import 'severity.dart' show Severity;
 

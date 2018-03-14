@@ -177,7 +177,6 @@ main(List<String> args) {
     Compiler compiler = await runWithD8(memorySourceFiles: {
       'main.dart': SOURCE
     }, options: [
-      Flags.useKernel,
       Flags.strongMode,
       Flags.disableRtiOptimization,
     ], expectedOutput: OUTPUT, printJs: args.contains('-v'));

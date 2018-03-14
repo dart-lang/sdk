@@ -16,13 +16,12 @@ import 'messages.dart'
     show
         LocatedMessage,
         Message,
+        noLength,
         SummaryTemplate,
         Template,
         messagePlatformPrivateLibraryAccess,
         templateInternalProblemMissingSeverity,
         templateSourceBodySummary;
-
-import 'parser.dart' show noLength;
 
 import 'problems.dart' show internalProblem;
 

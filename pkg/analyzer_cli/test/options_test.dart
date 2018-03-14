@@ -75,7 +75,7 @@ main() {
         expect(options.strongMode, isFalse);
         expect(options.lintsAreFatal, isFalse);
         expect(options.useCFE, isFalse);
-        expect(options.previewDart2, isFalse);
+        expect(options.previewDart2, null);
       });
 
       test('batch', () {
@@ -255,6 +255,12 @@ main() {
         CommandLineOptions options =
             CommandLineOptions.parse(['--preview-dart-2', 'foo.dart']);
         expect(options.previewDart2, isTrue);
+      });
+
+      test('--no-preview-dart-2', () {
+        CommandLineOptions options =
+            CommandLineOptions.parse(['--no-preview-dart-2', 'foo.dart']);
+        expect(options.previewDart2, isFalse);
       });
     });
   });

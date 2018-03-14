@@ -92,7 +92,11 @@ main(List<String> arguments) {
     CompilationResult result = await runCompiler(
         memorySourceFiles: sourceFiles,
         entryPoint: entryPoint,
-        options: [Flags.analyzeAll, Flags.genericMethodSyntax]);
+        options: [
+          Flags.analyzeAll,
+          Flags.genericMethodSyntax,
+          Flags.useOldFrontend
+        ]);
     Compiler compiler = result.compiler;
     testSerialization(compiler.libraryLoader.libraries, compiler.reporter,
         compiler.resolution, compiler.libraryLoader,

@@ -290,17 +290,18 @@ class CompilerOptions {
       this.summaryOutPath});
 
   CompilerOptions.fromArguments(ArgResults args)
-      : sourceMap = args['source-map'],
-        sourceMapComment = args['source-map-comment'],
-        inlineSourceMap = args['inline-source-map'],
-        summarizeApi = args['summarize'],
-        summaryExtension = args['summary-extension'],
-        unsafeForceCompile = args['unsafe-force-compile'],
-        replCompile = args['repl-compile'],
-        emitMetadata = args['emit-metadata'],
-        closure = args['closure-experimental'],
-        bazelMapping = _parseBazelMappings(args['bazel-mapping']),
-        summaryOutPath = args['summary-out'];
+      : sourceMap = args['source-map'] as bool,
+        sourceMapComment = args['source-map-comment'] as bool,
+        inlineSourceMap = args['inline-source-map'] as bool,
+        summarizeApi = args['summarize'] as bool,
+        summaryExtension = args['summary-extension'] as String,
+        unsafeForceCompile = args['unsafe-force-compile'] as bool,
+        replCompile = args['repl-compile'] as bool,
+        emitMetadata = args['emit-metadata'] as bool,
+        closure = args['closure-experimental'] as bool,
+        bazelMapping =
+            _parseBazelMappings(args['bazel-mapping'] as List<String>),
+        summaryOutPath = args['summary-out'] as String;
 
   static void addArguments(ArgParser parser, {bool hide: true}) {
     parser
@@ -348,7 +349,7 @@ class CompilerOptions {
           help: 'location to write the summary file', hide: hide);
   }
 
-  static Map<String, String> _parseBazelMappings(Iterable argument) {
+  static Map<String, String> _parseBazelMappings(List<String> argument) {
     var mappings = <String, String>{};
     for (var mapping in argument) {
       var splitMapping = mapping.split(',');
@@ -543,7 +544,7 @@ Map placeSourceMap(
   // Convert to a local file path if it's not.
   sourceMapPath = path.fromUri(_sourceToUri(sourceMapPath));
   var sourceMapDir = path.dirname(path.absolute(sourceMapPath));
-  var list = new List.from(map['sources']);
+  var list = (map['sources'] as List).toList();
   map['sources'] = list;
 
   String makeRelative(String sourcePath) {
@@ -565,9 +566,9 @@ Map placeSourceMap(
   }
 
   for (int i = 0; i < list.length; i++) {
-    list[i] = makeRelative(list[i]);
+    list[i] = makeRelative(list[i] as String);
   }
-  map['file'] = makeRelative(map['file']);
+  map['file'] = makeRelative(map['file'] as String);
   return map;
 }
 

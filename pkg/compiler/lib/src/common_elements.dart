@@ -1074,6 +1074,8 @@ class CommonElements {
   FunctionEntity get instantiate1 => _findHelperFunction('instantiate1');
   FunctionEntity get instantiate2 => _findHelperFunction('instantiate2');
   FunctionEntity get instantiate3 => _findHelperFunction('instantiate3');
+  FunctionEntity get instantiatedGenericFunctionType =>
+      _findHelperFunction('instantiatedGenericFunctionType');
 
   // From dart:_internal
 

@@ -91,7 +91,7 @@ class ByteStreamClientChannelTest {
   test_sendRequest() {
     int assertCount = 0;
     Request request = new Request('72', 'foo.bar');
-    outputLineStream.first.then((line) => JSON.decode(line)).then((json) {
+    outputLineStream.first.then((line) => json.decode(line)).then((json) {
       expect(json[Request.ID], equals('72'));
       expect(json[Request.METHOD], equals('foo.bar'));
       inputSink.writeln('{"id":"73"}');

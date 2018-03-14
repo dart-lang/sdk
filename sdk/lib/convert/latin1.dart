@@ -11,13 +11,14 @@ part of dart.convert;
  * use cases.
  *
  * Examples:
- *
- *     var encoded = latin1.encode("blåbærgrød");
- *     var decoded = latin1.decode([0x62, 0x6c, 0xe5, 0x62, 0xe6,
- *                                  0x72, 0x67, 0x72, 0xf8, 0x64]);
+ * ```dart
+ * var encoded = latin1.encode("blåbærgrød");
+ * var decoded = latin1.decode([0x62, 0x6c, 0xe5, 0x62, 0xe6,
+ *                              0x72, 0x67, 0x72, 0xf8, 0x64]);
+ * ```
  */
 const Latin1Codec latin1 = const Latin1Codec();
-/** Deprecated, use [latin1] instead. */
+@Deprecated("Use latin1 instead")
 const Latin1Codec LATIN1 = latin1;
 
 const int _latin1Mask = 0xFF;
@@ -41,6 +42,8 @@ class Latin1Codec extends Encoding {
   const Latin1Codec({bool allowInvalid: false}) : _allowInvalid = allowInvalid;
 
   String get name => "iso-8859-1";
+
+  Uint8List encode(String source) => encoder.convert(source);
 
   /**
    * Decodes the Latin-1 [bytes] (a list of unsigned 8-bit integers) to the

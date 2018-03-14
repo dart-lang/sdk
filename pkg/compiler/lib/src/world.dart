@@ -1295,7 +1295,8 @@ class ClosedWorldImpl extends ClosedWorldBase with ClosedWorldRtiNeedMixin {
             classHierarchyNodes,
             classSets) {
     computeRtiNeed(resolutionWorldBuilder, rtiNeedBuilder,
-        enableTypeAssertions: options.enableTypeAssertions);
+        enableTypeAssertions: options.enableTypeAssertions,
+        strongMode: options.strongMode);
   }
 
   bool checkClass(ClassElement cls) => cls.isDeclaration;
@@ -1426,10 +1427,10 @@ abstract class ClosedWorldRtiNeedMixin implements ClosedWorld {
 
   void computeRtiNeed(ResolutionWorldBuilder resolutionWorldBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
-      {bool enableTypeAssertions}) {
+      {bool enableTypeAssertions, bool strongMode}) {
     _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(
         resolutionWorldBuilder, this,
-        enableTypeAssertions: enableTypeAssertions);
+        enableTypeAssertions: enableTypeAssertions, strongMode: strongMode);
   }
 
   RuntimeTypesNeed get rtiNeed => _rtiNeed;

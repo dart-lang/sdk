@@ -32,7 +32,7 @@ class GetServerPortTest extends AbstractAnalysisServerIntegrationTest {
     HttpClientRequest request = await client
         .getUrl(Uri.parse('http://localhost:${result.port}/status'));
     HttpClientResponse response = await request.close();
-    String responseBody = await UTF8.decodeStream(response);
+    String responseBody = await utf8.decodeStream(response);
     expect(responseBody, contains('<title>Analysis Server</title>'));
   }
 }

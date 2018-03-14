@@ -929,6 +929,15 @@ void Object::InitOnce(Isolate* isolate) {
   *background_compilation_error_ =
       LanguageError::New(error_str, Report::kBailout, Heap::kOld);
 
+  // Allocate the parameter arrays for method extractor types and names.
+  *extractor_parameter_types_ = Array::New(1, Heap::kOld);
+  extractor_parameter_types_->SetAt(0, Object::dynamic_type());
+  *extractor_parameter_names_ = Array::New(1, Heap::kOld);
+  // Fill in extractor_parameter_names_ later, after symbols are initialized
+  // (in Object::FinalizeVMIsolate). extractor_parameter_names_ object
+  // needs to be created earlier as VM isolate snapshot reader references it
+  // before Object::FinalizeVMIsolate.
+
   // Some thread fields need to be reinitialized as null constants have not been
   // initialized until now.
   Thread* thr = Thread::Current();
@@ -984,6 +993,10 @@ void Object::InitOnce(Isolate* isolate) {
   ASSERT(background_compilation_error_->IsLanguageError());
   ASSERT(!vm_isolate_snapshot_object_table_->IsSmi());
   ASSERT(vm_isolate_snapshot_object_table_->IsArray());
+  ASSERT(!extractor_parameter_types_->IsSmi());
+  ASSERT(extractor_parameter_types_->IsArray());
+  ASSERT(!extractor_parameter_names_->IsSmi());
+  ASSERT(extractor_parameter_names_->IsArray());
 }
 
 // An object visitor which will mark all visited objects. This is used to
@@ -1046,16 +1059,9 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   // Should only be run by the vm isolate.
   ASSERT(isolate == Dart::vm_isolate());
 
-  // Allocate the parameter arrays for method extractor types and names.
-  *extractor_parameter_types_ = Array::New(1, Heap::kOld);
-  extractor_parameter_types_->SetAt(0, Object::dynamic_type());
-  *extractor_parameter_names_ = Array::New(1, Heap::kOld);
+  // Finish initialization of extractor_parameter_names_ which was
+  // Started in Object::InitOnce()
   extractor_parameter_names_->SetAt(0, Symbols::This());
-
-  ASSERT(!extractor_parameter_types_->IsSmi());
-  ASSERT(extractor_parameter_types_->IsArray());
-  ASSERT(!extractor_parameter_names_->IsSmi());
-  ASSERT(extractor_parameter_names_->IsArray());
 
   // Set up names for all VM singleton classes.
   Class& cls = Class::Handle();
@@ -16799,7 +16805,18 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
                           space);
     }
     // In strong mode, subtyping rules of callable instances are restricted.
-    if (!isolate->strong()) {
+    if (isolate->strong()) {
+      // [this] is not a function type.
+      // If [other] is a function type, then [this] can't be a subtype of
+      // [other], according to Dart 2 subtyping rules.
+      // This check is needed to avoid falling through to class-based type
+      // tests, which yield incorrect result if [this] = _Closure class,
+      // and [other] is a function type, because class of a function type is
+      // also _Closure.
+      if (other.IsFunctionType()) {
+        return false;
+      }
+    } else {
       // Check if type S has a call() method of function type T.
       const Function& call_function =
           Function::Handle(zone, type_cls.LookupCallFunctionForTypeTest());
@@ -17613,9 +17630,24 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     // Canonicalize the type arguments.
     TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
     // In case the type is first canonicalized at runtime, its type argument
-    // vector may be longer than necessary. This is not an issue.
-    ASSERT(type_args.IsNull() ||
-           (type_args.Length() >= cls.NumTypeArguments()));
+    // vector may be longer than necessary. If so, reallocate a vector of the
+    // exact size to prevent multiple "canonical" types.
+    if (!type_args.IsNull()) {
+      const intptr_t num_type_args = cls.NumTypeArguments();
+      ASSERT(type_args.Length() >= num_type_args);
+      if (type_args.Length() > num_type_args) {
+        TypeArguments& new_type_args =
+            TypeArguments::Handle(zone, TypeArguments::New(num_type_args));
+        AbstractType& type_arg = AbstractType::Handle(zone);
+        for (intptr_t i = 0; i < num_type_args; i++) {
+          type_arg = type_args.TypeAt(i);
+          new_type_args.SetTypeAt(i, type_arg);
+        }
+        type_args = new_type_args.raw();
+        set_arguments(type_args);
+        SetHash(0);  // Flush cached hash value.
+      }
+    }
     type_args = type_args.Canonicalize(trail);
     if (IsCanonical()) {
       // Canonicalizing type_args canonicalized this type as a side effect.
@@ -22491,9 +22523,10 @@ int64_t Closure::ComputeHash() const {
     // code with identityHashCode of cached receiver.
     result = static_cast<uint32_t>(func.ComputeClosureHash());
     const Context& context = Context::Handle(zone, this->context());
-    const Object& receiver = Object::Handle(zone, context.At(0));
+    const Instance& receiver =
+        Instance::Handle(zone, Instance::RawCast(context.At(0)));
     const Object& receiverHash =
-        Object::Handle(zone, Instance::Cast(receiver).IdentityHashCode());
+        Object::Handle(zone, receiver.IdentityHashCode());
     if (receiverHash.IsError()) {
       Exceptions::PropagateError(Error::Cast(receiverHash));
       UNREACHABLE();

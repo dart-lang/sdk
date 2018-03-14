@@ -17,9 +17,6 @@ namespace dart {
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
-// TODO(johnmccutchan):
-// - Tests involving generics.
-
 int64_t SimpleInvoke(Dart_Handle lib, const char* method) {
   Dart_Handle result = Dart_Invoke(lib, NewString(method), 0, NULL);
   EXPECT_VALID(result);
@@ -3498,6 +3495,31 @@ TEST_CASE(IsolateReload_TypedefAddParameter) {
   Dart_Handle result = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(result);
   EXPECT_STREQ("false", SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_PatchStaticInitializerWithClosure) {
+  const char* kScript =
+      "dynamic field = (a) => 'a$a';\n"
+      "main() {\n"
+      "  dynamic f = field;\n"
+      "  return f('b');\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("ab", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "extraFunction() => 'Just here to change kernel offsets';\n"
+      "dynamic field = (_, __) => 'Not executed';\n"
+      "main() {\n"
+      "  dynamic f = field;\n"
+      "  return f('c');\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("ac", SimpleInvokeStr(lib, "main"));
 }
 
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

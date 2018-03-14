@@ -25,7 +25,11 @@ main(List<String> arguments) async {
     Uri entryPoint = Uri.base.resolve(nativeToUriPath(arguments.last));
     CompilationResult result = await runCompiler(
         entryPoint: entryPoint,
-        options: [Flags.analyzeOnly, '--categories=Client,Server']);
+        options: [
+          Flags.analyzeOnly,
+          '--categories=Client,Server',
+          Flags.useOldFrontend
+        ]);
     if (result.isSuccess) {
       checkRelatedTypes(result.compiler);
     }

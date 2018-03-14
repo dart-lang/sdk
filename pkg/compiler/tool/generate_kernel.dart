@@ -39,7 +39,7 @@ main(List<String> args) async {
     exit(1);
   }
 
-  Uri entry = Uri.base.resolve(flags.rest.first);
+  Uri entry = Uri.base.resolve(nativeToUriPath(flags.rest.first));
   var program = await kernelForProgram(entry, options);
   await writeProgramToBinary(program, flags['out']);
 }
@@ -53,4 +53,4 @@ ArgParser _argParser = new ArgParser()
 
 String _defaultPlatform = computePlatformBinariesLocation()
     .resolve('dart2js_platform.dill')
-    .toString();
+    .toFilePath();

@@ -122,21 +122,19 @@ testSyncNewInstance() {
   ClassMirror cm = reflectClass(E);
   InstanceMirror result;
 
-  result = cm.newInstance(const Symbol(''), ['X']);
+  result = cm.newInstance(Symbol.empty, ['X']);
   Expect.equals('X-B-null', result.reflectee.field);
-  result = cm.newInstance(const Symbol(''), ['X'], {const Symbol('b'): 'Y'});
+  result = cm.newInstance(Symbol.empty, ['X'], {const Symbol('b'): 'Y'});
   Expect.equals('X-Y-null', result.reflectee.field);
-  result = cm.newInstance(const Symbol(''), ['X'],
-      {const Symbol('c'): 'Z', const Symbol('b'): 'Y'});
+  result = cm.newInstance(
+      Symbol.empty, ['X'], {const Symbol('c'): 'Z', const Symbol('b'): 'Y'});
   Expect.equals('X-Y-Z', result.reflectee.field);
-  Expect.throwsNoSuchMethodError(() => cm.newInstance(const Symbol(''), []),
+  Expect.throwsNoSuchMethodError(() => cm.newInstance(Symbol.empty, []),
       'Insufficient positional arguments');
-  Expect.throwsNoSuchMethodError(
-      () => cm.newInstance(const Symbol(''), ['X', 'Y']),
+  Expect.throwsNoSuchMethodError(() => cm.newInstance(Symbol.empty, ['X', 'Y']),
       'Extra positional arguments');
   Expect.throwsNoSuchMethodError(
-      () =>
-          cm.newInstance(const Symbol(''), ['X'], {const Symbol('undef'): 'Y'}),
+      () => cm.newInstance(Symbol.empty, ['X'], {const Symbol('undef'): 'Y'}),
       'Unmatched named argument');
 
   result = cm.newInstance(const Symbol('b'), []);

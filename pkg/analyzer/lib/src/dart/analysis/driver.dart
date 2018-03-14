@@ -94,7 +94,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 49;
+  static const int DATA_VERSION = 50;
 
   /**
    * The number of exception contexts allowed to write. Once this field is
@@ -1901,7 +1901,7 @@ class AnalysisDriverScheduler {
     if (times == 0) {
       return new Future.value();
     }
-    return new Future.delayed(Duration.ZERO, () => _pumpEventQueue(times - 1));
+    return new Future.delayed(Duration.zero, () => _pumpEventQueue(times - 1));
   }
 }
 

@@ -202,24 +202,28 @@ class JsBuilder {
    * a list of [Node]s, which will be interpolated into the source at the '#'
    * signs.
    */
-  Expression call(String source, [var arguments]) {
+  Expression call(String source, [arguments]) {
     Template template = _findExpressionTemplate(source);
-    if (arguments == null) return template.instantiate([]);
+    if (arguments == null) return template.instantiate([]) as Expression;
     // We allow a single argument to be given directly.
     if (arguments is! List && arguments is! Map) arguments = [arguments];
-    return template.instantiate(arguments);
+    return template.instantiate(arguments) as Expression;
   }
 
   /**
    * Parses a JavaScript Statement, otherwise just like [call].
    */
-  Statement statement(String source, [var arguments]) {
+  Statement statement(String source, [arguments]) {
     Template template = _findStatementTemplate(source);
-    if (arguments == null) return template.instantiate([]);
+    if (arguments == null) return template.instantiate([]) as Statement;
     // We allow a single argument to be given directly.
     if (arguments is! List && arguments is! Map) arguments = [arguments];
-    return template.instantiate(arguments);
+    return template.instantiate(arguments) as Statement;
   }
+
+  Block block(String source, [arguments]) =>
+      statement(source, arguments) as Block;
+  Fun fun(String source, [arguments]) => call(source, arguments) as Fun;
 
   /**
    * Parses JavaScript written in the `JS` foreign instruction.
@@ -789,7 +793,7 @@ class MiniJsParser {
     return false;
   }
 
-  void error(message) {
+  void error(String message) {
     throw new MiniJsParserError(this, message);
   }
 
@@ -970,7 +974,7 @@ class MiniJsParser {
     return parseFun();
   }
 
-  Expression parseFun() {
+  Fun parseFun() {
     List<Parameter> params = <Parameter>[];
 
     expectCategory(LPAREN);
@@ -1222,7 +1226,7 @@ class MiniJsParser {
     var initialization = <VariableInitialization>[];
 
     do {
-      var declarator;
+      VariableBinding declarator;
       if (firstIdentifier != null) {
         declarator = new Identifier(firstIdentifier);
         firstIdentifier = null;
@@ -1269,17 +1273,18 @@ class MiniJsParser {
   ArrayBindingPattern parseArrayBindingPattern() {
     var variables = <DestructuredVariable>[];
     do {
-      var name;
-      var structure;
-      var defaultValue;
+      Identifier name;
+      BindingPattern structure;
+      Expression defaultValue;
 
       var declarator = parseVariableBinding();
-      if (declarator is Identifier)
+      if (declarator is Identifier) {
         name = declarator;
-      else if (declarator is BindingPattern)
+      } else if (declarator is BindingPattern) {
         structure = declarator;
-      else
+      } else {
         error("Unexpected LHS: $declarator");
+      }
 
       if (acceptString("=")) {
         defaultValue = parseExpression();
@@ -1296,8 +1301,8 @@ class MiniJsParser {
     var variables = <DestructuredVariable>[];
     do {
       var name = parseIdentifier();
-      var structure;
-      var defaultValue;
+      BindingPattern structure;
+      Expression defaultValue;
 
       if (acceptCategory(COLON)) {
         structure = parseBindingPattern();
@@ -1454,7 +1459,7 @@ class MiniJsParser {
     return new Throw(expression);
   }
 
-  Statement parseBreakOrContinue(constructor) {
+  Statement parseBreakOrContinue(Statement Function(String) constructor) {
     var identifier = lastToken;
     if (!skippedNewline && acceptCategory(ALPHA)) {
       expectSemicolon();
@@ -1546,7 +1551,7 @@ class MiniJsParser {
   Statement parseFunctionDeclaration() {
     String name = lastToken;
     expectCategory(ALPHA);
-    Expression fun = parseFun();
+    var fun = parseFun();
     return new FunctionDeclaration(new Identifier(name), fun);
   }
 
@@ -1565,7 +1570,7 @@ class MiniJsParser {
     return new Try(body, catchPart, finallyPart);
   }
 
-  SwitchClause parseSwitchClause() {
+  SwitchCase parseSwitchClause() {
     Expression expression = null;
     if (acceptString('case')) {
       expression = parseExpression();
@@ -1582,9 +1587,7 @@ class MiniJsParser {
         lastToken != 'default') {
       statements.add(parseStatement());
     }
-    return expression == null
-        ? new Default(new Block(statements))
-        : new Case(expression, new Block(statements));
+    return new SwitchCase(expression, new Block(statements));
   }
 
   Statement parseWhile() {
@@ -1611,7 +1614,7 @@ class MiniJsParser {
     Expression key = parseExpression();
     expectCategory(RPAREN);
     expectCategory(LBRACE);
-    List<SwitchClause> clauses = new List<SwitchClause>();
+    var clauses = new List<SwitchCase>();
     while (lastCategory != RBRACE) {
       clauses.add(parseSwitchClause());
     }
@@ -1638,7 +1641,7 @@ class MiniJsParser {
     expectCategory(LBRACE);
     var methods = new List<Method>();
     while (lastCategory != RBRACE) {
-      methods.add(parseMethodOrProperty(onlyMethods: true));
+      methods.add(parseMethodOrProperty(onlyMethods: true) as Method);
     }
     expectCategory(RBRACE);
     return new ClassExpression(name, heritage, methods);

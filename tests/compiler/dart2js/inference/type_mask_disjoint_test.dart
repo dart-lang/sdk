@@ -43,7 +43,7 @@ main() {
   runTests({bool useKernel}) async {
     CompilationResult result = await runCompiler(
         memorySourceFiles: {'main.dart': CODE},
-        options: useKernel ? [Flags.useKernel] : []);
+        options: useKernel ? [] : [Flags.useOldFrontend]);
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
     ClosedWorld world = compiler.backendClosedWorldForTesting;

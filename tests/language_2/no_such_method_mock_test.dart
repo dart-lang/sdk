@@ -97,9 +97,64 @@ void main() {
   Expect.isTrue(s.invocation.isSetter);
   Expect.isFalse(s.invocation.isMethod);
 
+  testMockTearoffs();
+  testMockCallable();
+
+  // TODO(jmesserly): enable these tests once we have implicit call tearoff.
+  // testMockCallableTearoff();
+}
+
+testMockCallable() {
   Callable call = new MockCallable();
   Expect.equals(42, call());
   Expect.equals(42, (call as dynamic)());
   Expect.equals(0, call.m());
   Expect.equals(0, (call as dynamic).m());
+}
+
+testMockCallableTearoff() {
+  var mock = new MockCallable();
+  Function f = mock;
+  Expect.equals(42, f());
+  Expect.equals(42, (f as dynamic)());
+  Expect.equals(f, mock.call);
+  Expect.equals(f.call, mock.call);
+  Expect.equals((f as dynamic).call, mock.call);
+  Expect.equals(f.call, (mock as dynamic).call);
+}
+
+typedef bool EatFoodType(String food);
+
+testMockTearoffs() {
+  var mock2 = new MockCat2();
+  var eat = mock2.eatFood;
+  var eat2 = (mock2 as dynamic).eatFood;
+
+  Expect.isTrue(eat is EatFoodType, 'eat is EatFoodType');
+  Expect.isTrue(eat2 is EatFoodType, 'eat2 is EatFoodType');
+  Expect.equals(eat, eat2, 'eat == eat2');
+  Expect.isTrue(eat.runtimeType == eat2.runtimeType,
+      'eat.runtimeType == eat2.runtimeType');
+
+  Expect.isTrue(eat("cat food"), 'eat("cat food")');
+  Expect.isFalse(eat(""), 'eat("")');
+  Expect.isTrue(eat2("cat food"), 'eat2("cat food")');
+  Expect.isFalse(eat2(""), 'eat2("")');
+
+  var g = new MockWithGenerics();
+  var doStuff = g.doStuff;
+  var doStuff2 = (g as dynamic).doStuff;
+
+  Expect.equals(doStuff, doStuff2, 'doStuff == doStuff2');
+  Expect.equals(doStuff.runtimeType, doStuff2.runtimeType,
+      'doStuff.runtimeType == doStuff2.runtimeType');
+
+  Expect.listEquals([int], doStuff(42));
+  Expect.listEquals([num], doStuff<num>(42));
+  Expect.listEquals([String], doStuff('hi'));
+
+  // no inference happens because `doStuff2` is dynamic.
+  Expect.listEquals([dynamic], doStuff2(42));
+  Expect.listEquals([num], doStuff2<num>(42));
+  Expect.listEquals([dynamic], doStuff2('hi'));
 }

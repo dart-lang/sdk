@@ -269,11 +269,11 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
         channelReady.complete(null);
       } else if (input is Map) {
         if (input.containsKey('id')) {
-          String encodedInput = JSON.encode(input);
+          String encodedInput = json.encode(input);
           instrumentationService.logPluginResponse(pluginId, encodedInput);
           onResponse(new Response.fromJson(input));
         } else if (input.containsKey('event')) {
-          String encodedInput = JSON.encode(input);
+          String encodedInput = json.encode(input);
           instrumentationService.logPluginNotification(pluginId, encodedInput);
           onNotification(new Notification.fromJson(input));
         }
@@ -285,10 +285,10 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
   @override
   void sendRequest(Request request) {
     if (_sendPort != null) {
-      Map<String, Object> json = request.toJson();
-      String encodedRequest = JSON.encode(json);
+      Map<String, Object> jsonData = request.toJson();
+      String encodedRequest = json.encode(jsonData);
       instrumentationService.logPluginRequest(pluginId, encodedRequest);
-      _sendPort.send(json);
+      _sendPort.send(jsonData);
     }
   }
 

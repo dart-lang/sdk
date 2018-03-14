@@ -9,7 +9,7 @@
 
 import "dart:_internal" as internal;
 
-import "dart:_internal" show patch;
+import "dart:_internal" show patch, IterableElementError;
 
 import "dart:typed_data" show Uint32List;
 
@@ -597,6 +597,29 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
       entry = entry.next;
     }
     return null;
+  }
+
+  E get first {
+    for (int i = 0; i < _buckets.length; i++) {
+      var entry = _buckets[i];
+      if (entry != null) {
+        return entry.key;
+      }
+    }
+    throw IterableElementError.noElement();
+  }
+
+  E get last {
+    for (int i = _buckets.length - 1; i >= 0; i--) {
+      var entry = _buckets[i];
+      if (entry != null) {
+        while (entry.next != null) {
+          entry = entry.next;
+        }
+        return entry.key;
+      }
+    }
+    throw IterableElementError.noElement();
   }
 
   // Set.

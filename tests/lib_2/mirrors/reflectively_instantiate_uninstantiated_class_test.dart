@@ -14,7 +14,7 @@ class Foo {
 main() {
   // Do NOT instantiate Foo.
   var m = reflectClass(Foo);
-  var instance = m.newInstance(const Symbol(''), []);
+  var instance = m.newInstance(Symbol.empty, []);
   print(instance);
   bool threw = false;
   try {

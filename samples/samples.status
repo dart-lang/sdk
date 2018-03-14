@@ -16,12 +16,6 @@ sample_extension/test/sample_extension_test: RuntimeError
 [ $compiler == precompiler ]
 sample_extension/test/*: Skip # These tests attempt to spawn another script using the precompiled runtime.
 
-# Skip tests that use dart:io
-[ $browser ]
-build_dart: Skip
-build_dart_simple: Skip
-sample_extension: Skip
-
 [ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
 
@@ -33,4 +27,10 @@ sample_extension/test/sample_extension_app_snapshot_test: Pass, RuntimeError # I
 
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
+
+# Skip tests that use dart:io
+[ $runtime == d8 || $browser ]
+build_dart/*: Skip
+build_dart_simple/*: Skip
+sample_extension/*: Skip
 

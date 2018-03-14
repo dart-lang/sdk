@@ -56,7 +56,7 @@ void main() {
     await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES,
         outputProvider: collector,
-        options: useKernel ? [Flags.useKernel] : []);
+        options: useKernel ? [] : [Flags.useOldFrontend]);
     String jsOutput = collector.getOutput('', OutputType.js);
 
     void has(String text) {

@@ -737,8 +737,7 @@ class _CompilerElementEnvironment extends ElementEnvironment {
 
   @override
   List<TypeVariableType> getFunctionTypeVariables(FunctionEntity function) {
-    throw new UnsupportedError(
-        "_CompilerElementEnvironment.getFunctionTypeVariables");
+    return const <TypeVariableType>[];
   }
 
   @override

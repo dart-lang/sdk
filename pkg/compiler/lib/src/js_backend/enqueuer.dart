@@ -192,6 +192,9 @@ class CodegenEnqueuer extends EnqueuerImpl {
         }
         break;
       case TypeUseKind.TYPE_LITERAL:
+        if (type is TypeVariableType) {
+          _worldBuilder.registerTypeVariableTypeLiteral(type);
+        }
         break;
     }
   }

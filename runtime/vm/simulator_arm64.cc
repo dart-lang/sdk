@@ -784,11 +784,27 @@ class Redirection {
   static Redirection* Get(uword external_function,
                           Simulator::CallKind call_kind,
                           int argument_count) {
-    Redirection* current;
-    for (current = list_; current != NULL; current = current->next_) {
+    MutexLocker ml(mutex_);
+
+    for (Redirection* current = list_; current != NULL;
+         current = current->next_) {
       if (current->external_function_ == external_function) return current;
     }
-    return new Redirection(external_function, call_kind, argument_count);
+
+    Redirection* redirection =
+        new Redirection(external_function, call_kind, argument_count);
+    redirection->next_ = list_;
+
+    // Use a memory fence to ensure all pending writes are written at the time
+    // of updating the list head, so the profiling thread always has a valid
+    // list to look at.
+    Redirection* old_head = list_;
+    Redirection* replaced_list_head =
+        AtomicOperations::CompareAndSwapPointer<Redirection>(&list_, old_head,
+                                                             redirection);
+    ASSERT(old_head == replaced_list_head);
+
+    return redirection;
   }
 
   static Redirection* FromHltInstruction(Instr* hlt_instruction) {
@@ -798,6 +814,10 @@ class Redirection {
     return reinterpret_cast<Redirection*>(addr_of_redirection);
   }
 
+  // Please note that this function is called by the signal handler of the
+  // profiling thread.  It can therefore run at any point in time and is not
+  // allowed to hold any locks - which is precisely the reason why the list is
+  // prepend-only and a memory fence is used when writing the list head [list_]!
   static uword FunctionForRedirect(uword address_of_hlt) {
     Redirection* current;
     for (current = list_; current != NULL; current = current->next_) {
@@ -816,18 +836,7 @@ class Redirection {
         call_kind_(call_kind),
         argument_count_(argument_count),
         hlt_instruction_(Instr::kSimulatorRedirectInstruction),
-        next_(list_) {
-    // Atomically prepend this element to the front of the global list.
-    // Note: Since elements are never removed, there is no ABA issue.
-    Redirection* list_head = list_;
-    do {
-      next_ = list_head;
-      list_head =
-          reinterpret_cast<Redirection*>(AtomicOperations::CompareAndSwapWord(
-              reinterpret_cast<uword*>(&list_), reinterpret_cast<uword>(next_),
-              reinterpret_cast<uword>(this)));
-    } while (list_head != next_);
-  }
+        next_(NULL) {}
 
   uword external_function_;
   Simulator::CallKind call_kind_;
@@ -835,9 +844,11 @@ class Redirection {
   uint32_t hlt_instruction_;
   Redirection* next_;
   static Redirection* list_;
+  static Mutex* mutex_;
 };
 
 Redirection* Redirection::list_ = NULL;
+Mutex* Redirection::mutex_ = new Mutex();
 
 uword Simulator::RedirectExternalReference(uword function,
                                            CallKind call_kind,
@@ -1689,19 +1700,19 @@ void Simulator::DecodeSystem(Instr* instr) {
 
 void Simulator::DecodeTestAndBranch(Instr* instr) {
   const int op = instr->Bit(24);
-  const int bitpos = instr->Bits(19, 4) | (instr->Bit(31) << 5);
+  const int bitpos = instr->Bits(19, 5) | (instr->Bit(31) << 5);
   const int64_t imm14 = instr->SImm14Field();
   const int64_t dest = get_pc() + (imm14 << 2);
   const Register rt = instr->RtField();
   const int64_t rt_val = get_register(rt, R31IsZR);
   if (op == 0) {
     // Format(instr, "tbz'sf 'rt, 'bitpos, 'dest14");
-    if ((rt_val & (1 << bitpos)) == 0) {
+    if ((rt_val & (1ll << bitpos)) == 0) {
       set_pc(dest);
     }
   } else {
     // Format(instr, "tbnz'sf 'rt, 'bitpos, 'dest14");
-    if ((rt_val & (1 << bitpos)) != 0) {
+    if ((rt_val & (1ll << bitpos)) != 0) {
       set_pc(dest);
     }
   }
@@ -2573,14 +2584,22 @@ void Simulator::DecodeMiscDP3Source(Instr* instr) {
     const uint64_t alu_out = static_cast<uint64_t>(res >> 64);
 #endif  // HOST_OS_WINDOWS
     set_register(instr, rd, alu_out, R31IsZR);
-  } else if ((instr->Bits(29, 3) == 4) && (instr->Bits(21, 3) == 5) &&
-             (instr->Bit(15) == 0)) {
-    // Format(instr, "umaddl 'rd, 'rn, 'rm, 'ra");
-    const uint64_t rn_val = static_cast<uint32_t>(get_wregister(rn, R31IsZR));
-    const uint64_t rm_val = static_cast<uint32_t>(get_wregister(rm, R31IsZR));
-    const uint64_t ra_val = get_register(ra, R31IsZR);
-    const uint64_t alu_out = ra_val + (rn_val * rm_val);
-    set_register(instr, rd, alu_out, R31IsZR);
+  } else if ((instr->Bits(29, 3) == 4) && (instr->Bit(15) == 0)) {
+    if (instr->Bits(21, 3) == 5) {
+      // Format(instr, "umaddl 'rd, 'rn, 'rm, 'ra");
+      const uint64_t rn_val = static_cast<uint32_t>(get_wregister(rn, R31IsZR));
+      const uint64_t rm_val = static_cast<uint32_t>(get_wregister(rm, R31IsZR));
+      const uint64_t ra_val = get_register(ra, R31IsZR);
+      const uint64_t alu_out = ra_val + (rn_val * rm_val);
+      set_register(instr, rd, alu_out, R31IsZR);
+    } else {
+      // Format(instr, "smaddl 'rd, 'rn, 'rm, 'ra");
+      const int64_t rn_val = static_cast<int32_t>(get_wregister(rn, R31IsZR));
+      const int64_t rm_val = static_cast<int32_t>(get_wregister(rm, R31IsZR));
+      const int64_t ra_val = get_register(ra, R31IsZR);
+      const int64_t alu_out = ra_val + (rn_val * rm_val);
+      set_register(instr, rd, alu_out, R31IsZR);
+    }
   } else {
     UnimplementedInstruction(instr);
   }

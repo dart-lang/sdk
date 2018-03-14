@@ -6,7 +6,8 @@
 // affect optimizations done on arrays.
 
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
+import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import '../memory_compiler.dart';
 
 const MEMORY_SOURCE_FILES = const {
@@ -32,7 +33,9 @@ main() {
 
 main() {
   asyncTest(() async {
-    var result = await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
+    var result = await runCompiler(
+        memorySourceFiles: MEMORY_SOURCE_FILES,
+        options: [Flags.useOldFrontend]);
     var compiler = result.compiler;
     var element = compiler.frontendStrategy.elementEnvironment.mainFunction;
     var code = compiler.backend.getGeneratedCode(element);

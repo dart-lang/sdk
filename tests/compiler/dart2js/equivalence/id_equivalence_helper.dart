@@ -440,7 +440,9 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
   args = args.toList();
   bool verbose = args.remove('-v');
   bool shouldContinue = args.remove('-c');
+  bool testAfterFailures = args.remove('-a');
   bool continued = false;
+  bool hasFailures = false;
 
   var relativeDir = dataDir.uri.path.replaceAll(Uri.base.path, '');
   print('Data dir: ${relativeDir}');
@@ -517,11 +519,14 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
       CompiledData compiledData1 = await computeData(
           entryPoint, memorySourceFiles, computeFromAst,
           computeClassData: computeClassDataFromAst,
-          options: testOptions,
+          options: [Flags.useOldFrontend]..addAll(testOptions),
           verbose: verbose,
           forUserLibrariesOnly: forUserLibrariesOnly,
           globalIds: annotations.globalData.keys);
-      await checkCode(code, annotations, compiledData1);
+      if (await checkCode(code, annotations, compiledData1,
+          fatalErrors: !testAfterFailures)) {
+        hasFailures = true;
+      }
     }
     if (skipForKernel.contains(name)) {
       print('--skipped for kernel--------------------------------------------');
@@ -531,23 +536,28 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
       CompiledData compiledData2 = await computeData(
           entryPoint, memorySourceFiles, computeFromKernel,
           computeClassData: computeClassDataFromKernel,
-          options: [Flags.useKernel]..addAll(testOptions),
+          options: testOptions,
           verbose: verbose,
           forUserLibrariesOnly: forUserLibrariesOnly,
           globalIds: annotations.globalData.keys);
-      await checkCode(code, annotations, compiledData2,
-          filterActualData: filterActualData);
+      if (await checkCode(code, annotations, compiledData2,
+          filterActualData: filterActualData,
+          fatalErrors: !testAfterFailures)) {
+        hasFailures = true;
+      }
     }
   }
+  Expect.isFalse(hasFailures, 'Errors found.');
 }
 
 final Set<String> userFiles = new Set<String>();
 
 /// Checks [compiledData] against the expected data in [expectedMap] derived
 /// from [code].
-Future checkCode(Map<Uri, AnnotatedCode> code,
+Future<bool> checkCode(Map<Uri, AnnotatedCode> code,
     MemberAnnotations<IdValue> expectedMaps, CompiledData compiledData,
-    {bool filterActualData(IdValue expected, ActualData actualData)}) async {
+    {bool filterActualData(IdValue expected, ActualData actualData),
+    bool fatalErrors: true}) async {
   IdData data = new IdData(code, expectedMaps, compiledData);
   bool hasFailure = false;
 
@@ -641,9 +651,10 @@ Future checkCode(Map<Uri, AnnotatedCode> code,
     print("Ids not found: ${missingIds}.");
     hasFailure = true;
   }
-  if (hasFailure) {
+  if (hasFailure && fatalErrors) {
     Expect.fail('Errors found.');
   }
+  return hasFailure;
 }
 
 /// Compute a [Spannable] from an [id] in the library [mainUri].
@@ -751,7 +762,7 @@ Future<bool> compareData(
   print('--from ast----------------------------------------------------------');
   CompiledData data1 = await computeData(
       entryPoint, memorySourceFiles, computeAstData,
-      options: options,
+      options: [Flags.useOldFrontend]..addAll(options),
       forUserLibrariesOnly: forUserLibrariesOnly,
       skipUnprocessedMembers: skipUnprocessedMembers,
       skipFailedCompilations: skipFailedCompilations);
@@ -759,7 +770,7 @@ Future<bool> compareData(
   print('--from kernel-------------------------------------------------------');
   CompiledData data2 = await computeData(
       entryPoint, memorySourceFiles, computeIrData,
-      options: [Flags.useKernel]..addAll(options),
+      options: options,
       forUserLibrariesOnly: forUserLibrariesOnly,
       skipUnprocessedMembers: skipUnprocessedMembers,
       skipFailedCompilations: skipFailedCompilations);

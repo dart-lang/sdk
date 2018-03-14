@@ -214,8 +214,17 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
               positionalParams[i], argTypes.values[firstParamIndex + i]);
         }
 
+        // TODO(dartbug.com/32292): make sure parameters are sorted in kernel
+        // AST and iterate parameters in parallel, without lookup.
+        final names = argTypes.names;
+        for (int i = 0; i < names.length; i++) {
+          final param = findNamedParameter(member.function, names[i]);
+          assertx(param != null);
+          _setInferredType(param,
+              argTypes.values[firstParamIndex + positionalParams.length + i]);
+        }
+
         // TODO(alexmarkov): figure out how to pass receiver type.
-        // TODO(alexmarkov): support named parameters
       }
     } else if (!member.isAbstract) {
       _setUnreachable(member);

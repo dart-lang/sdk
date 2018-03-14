@@ -15,6 +15,7 @@ main() {
   return dart2js.main([
     "--library-root=${libraryRoot.toFilePath()}",
     Flags.analyzeOnly,
+    Flags.useOldFrontend,
     "file with spaces.dart"
   ]);
 }

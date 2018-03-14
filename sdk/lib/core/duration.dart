@@ -76,37 +76,37 @@ class Duration implements Comparable<Duration> {
 
   static const Duration zero = const Duration(seconds: 0);
 
-  /** Deprecated, use [microsecondsPerMillisecond] instead. */
+  @Deprecated("Use microsecondsPerMillisecond instead")
   static const int MICROSECONDS_PER_MILLISECOND = microsecondsPerMillisecond;
-  /** Deprecated, use [millisecondsPerSecond] instead. */
+  @Deprecated("Use millisecondsPerSecond instead")
   static const int MILLISECONDS_PER_SECOND = millisecondsPerSecond;
-  /** Deprecated, use [secondsPerMinute] instead. */
+  @Deprecated("Use secondsPerMinute instead")
   static const int SECONDS_PER_MINUTE = secondsPerMinute;
-  /** Deprecated, use [minutesPerHour] instead. */
+  @Deprecated("Use minutesPerHour instead")
   static const int MINUTES_PER_HOUR = minutesPerHour;
-  /** Deprecated, use [hoursPerDay] instead. */
+  @Deprecated("Use hoursPerDay instead")
   static const int HOURS_PER_DAY = hoursPerDay;
-  /** Deprecated, use [microsecondsPerSecond] instead. */
+  @Deprecated("Use microsecondsPerSecond instead")
   static const int MICROSECONDS_PER_SECOND = microsecondsPerSecond;
-  /** Deprecated, use [microsecondsPerMinute] instead. */
+  @Deprecated("Use microsecondsPerMinute instead")
   static const int MICROSECONDS_PER_MINUTE = microsecondsPerMinute;
-  /** Deprecated, use [microsecondsPerHour] instead. */
+  @Deprecated("Use microsecondsPerHour instead")
   static const int MICROSECONDS_PER_HOUR = microsecondsPerHour;
-  /** Deprecated, use [microsecondsPerDay] instead. */
+  @Deprecated("Use microsecondsPerDay instead")
   static const int MICROSECONDS_PER_DAY = microsecondsPerDay;
-  /** Deprecated, use [millisecondsPerMinute] instead. */
+  @Deprecated("Use millisecondsPerMinute instead")
   static const int MILLISECONDS_PER_MINUTE = millisecondsPerMinute;
-  /** Deprecated, use [millisecondsPerHour] instead. */
+  @Deprecated("Use millisecondsPerHour instead")
   static const int MILLISECONDS_PER_HOUR = millisecondsPerHour;
-  /** Deprecated, use [millisecondsPerDay] instead. */
+  @Deprecated("Use millisecondsPerDay instead")
   static const int MILLISECONDS_PER_DAY = millisecondsPerDay;
-  /** Deprecated, use [secondsPerHour] instead. */
+  @Deprecated("Use secondsPerHour instead")
   static const int SECONDS_PER_HOUR = secondsPerHour;
-  /** Deprecated, use [secondsPerDay] instead. */
+  @Deprecated("Use secondsPerDay instead")
   static const int SECONDS_PER_DAY = secondsPerDay;
-  /** Deprecated, use [minutesPerDay] instead. */
+  @Deprecated("Use minutesPerDay instead")
   static const int MINUTES_PER_DAY = minutesPerDay;
-  /** Deprecated, use [zero] instead. */
+  @Deprecated("Use zero instead")
   static const Duration ZERO = zero;
 
   /*

@@ -272,7 +272,7 @@ class RequestDecoder extends JsonDecoder {
     buffer.write(expected);
     if (actual != null) {
       buffer.write('; found "');
-      buffer.write(JSON.encode(actual));
+      buffer.write(json.encode(actual));
       buffer.write('"');
     }
     return new RequestFailure(
@@ -282,7 +282,7 @@ class RequestDecoder extends JsonDecoder {
   @override
   dynamic missingKey(String jsonPath, String key) {
     return new RequestFailure(new Response.invalidParameter(
-        _request, jsonPath, 'Expected to contain key ${JSON.encode(key)}'));
+        _request, jsonPath, 'Expected to contain key ${json.encode(key)}'));
   }
 }
 
@@ -310,7 +310,7 @@ class ResponseDecoder extends JsonDecoder {
     buffer.write(expected);
     if (actual != null) {
       buffer.write(' found "');
-      buffer.write(JSON.encode(actual));
+      buffer.write(json.encode(actual));
       buffer.write('"');
     }
     buffer.write(' at ');

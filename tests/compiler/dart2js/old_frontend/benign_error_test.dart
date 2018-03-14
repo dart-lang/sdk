@@ -7,6 +7,7 @@
 import '../memory_compiler.dart';
 
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
@@ -28,7 +29,9 @@ testExamples(MessageKind kind) async {
     }
     DiagnosticCollector collector = new DiagnosticCollector();
     CompilationResult result = await runCompiler(
-        memorySourceFiles: example, diagnosticHandler: collector);
+        memorySourceFiles: example,
+        diagnosticHandler: collector,
+        options: [Flags.useOldFrontend]);
     Expect.isTrue(result.isSuccess);
     Expect
         .isTrue(collector.errors.any((message) => message.messageKind == kind));

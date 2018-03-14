@@ -62,13 +62,23 @@ flutter:
 ''', [PubspecWarningCode.ASSET_DOES_NOT_EXIST]);
   }
 
-  test_assetDoesNotExist_path_noError() {
+  test_assetDoesNotExist_path_inRoot_noError() {
     newFile('/sample/assets/my_icon.png');
     assertNoErrors('''
 name: sample
 flutter:
   assets:
     - assets/my_icon.png
+''');
+  }
+
+  test_assetDoesNotExist_path_inSubdir_noError() {
+    newFile('/sample/assets/images/2.0x/my_icon.png');
+    assertNoErrors('''
+name: sample
+flutter:
+  assets:
+    - assets/images/my_icon.png
 ''');
   }
 

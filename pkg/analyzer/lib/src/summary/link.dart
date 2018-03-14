@@ -2510,15 +2510,39 @@ class ExprTypeComputer {
     List<DartType> positionalArgTypes = _popList(numPositional);
 
     EntityRef ref = _getNextRef();
+
+    var typeArguments = new List<DartType>(ref.typeArguments.length);
+    for (int i = 0; i < ref.typeArguments.length; i++) {
+      typeArguments[i] = unit.resolveTypeRef(function, ref.typeArguments[i]);
+    }
+
+    _doInvokeConstructorImpl(ref, typeArguments, numNamed, numPositional,
+        namedArgNames, namedArgTypeList, positionalArgTypes);
+  }
+
+  /**
+   * Implements constructor invocation inference, and accepts the reference,
+   * type arguments, and types of arguments. It is used for explicit instance
+   * creation, and also for implicit creation, that looks like
+   * [UnlinkedExprOperation.invokeMethodRef].
+   */
+  void _doInvokeConstructorImpl(
+      EntityRef ref,
+      List<DartType> typeArguments,
+      int numNamed,
+      int numPositional,
+      List<String> namedArgNames,
+      List<DartType> namedArgTypeList,
+      List<DartType> positionalArgTypes) {
     ReferenceableElementForLink refElement = unit.resolveRef(ref.reference);
     ConstructorElementForLink constructorElement = refElement.asConstructor;
 
     if (constructorElement != null) {
       stack.add(() {
-        if (ref.typeArguments.isNotEmpty) {
+        if (typeArguments.isNotEmpty) {
           return constructorElement.enclosingClass.buildType((int i) {
-            if (i < ref.typeArguments.length) {
-              return unit.resolveTypeRef(function, ref.typeArguments[i]);
+            if (i < typeArguments.length) {
+              return typeArguments[i];
             } else {
               return null;
             }
@@ -2594,9 +2618,19 @@ class ExprTypeComputer {
     List<String> namedArgNames = _getNextStrings(numNamed);
     List<DartType> namedArgTypeList = _popList(numNamed);
     List<DartType> positionalArgTypes = _popList(numPositional);
+
     EntityRef ref = _getNextRef();
     ReferenceableElementForLink element = unit.resolveRef(ref.reference);
+
     List<DartType> typeArguments = _getTypeArguments();
+
+    // Check for implicit instance creation.
+    if (element.asClass != null || element.asConstructor != null) {
+      _doInvokeConstructorImpl(ref, typeArguments, numNamed, numPositional,
+          namedArgNames, namedArgTypeList, positionalArgTypes);
+      return;
+    }
+
     stack.add(() {
       DartType rawType = element.asStaticType;
       if (rawType is FunctionType) {
@@ -3232,6 +3266,9 @@ class FunctionElementForLink_Initializer extends Object
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
+  String toString() => _variable.toString();
+
+  @override
   void _setInferenceError(TopLevelInferenceErrorBuilder error) {
     assert(!_hasTypeBeenInferred);
     _inferenceError = error;
@@ -3357,6 +3394,9 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  String toString() => enclosingElement.toString();
 
   @override
   void _setInferenceError(TopLevelInferenceErrorBuilder error) {}

@@ -18,7 +18,6 @@ cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: SkipSlow # Issue 28198
 cc/IsolateReload_RunNewFieldInitializersWithGenerics: Fail # Issue 32299
 cc/Profiler_InliningIntervalBoundry: Skip # Differences in ia32, debug, release
 cc/SNPrint_BadArgs: Crash, Fail # These tests are expected to crash on all platforms.
-cc/Sleep: Skip # Flaky # Flaky on buildbot. Issue 5133 and 10409.
 dart/data_uri_import_test/none: SkipByDesign
 
 [ $builder_tag == asan ]
@@ -193,11 +192,7 @@ cc/Debugger_PrintBreakpointsToJSONArray: Fail
 cc/Debugger_Rewind_Optimized: SkipSlow
 cc/Debugger_SetBreakpointInPartOfLibrary: Crash
 cc/FunctionSourceFingerprint: Fail
-cc/GenerateSource: Skip # Cannot generate source from a kernel binary. 
-cc/IsolateReload_EnumDelete: Fail
-cc/IsolateReload_EnumReorderIdentical: Fail
-cc/IsolateReload_EnumToNotEnum: Skip
-cc/IsolateReload_NotEnumToEnum: Skip
+cc/GenerateSource: Skip # Cannot generate source from a kernel binary.
 cc/IsolateReload_NotTypedefToTypedef: Fail
 cc/IsolateReload_TypedefToNotTypedef: Fail
 cc/Parser_AllocateVariables_CaptureLoopVar: Fail
@@ -246,7 +241,6 @@ dart/data_uri_import_test/utf16: MissingRuntimeError
 dart/spawn_shutdown_test: SkipSlow
 
 [ $compiler == dartk && $runtime == vm && $system == macos ]
-cc/IsolateReload_EnumDelete: Crash
 cc/IsolateReload_LibraryLookup: Fail, Crash
 cc/IsolateReload_TearOff_AddArguments: Fail
 cc/IsolateReload_TearOff_Instance_Equality: Fail

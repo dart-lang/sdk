@@ -17,9 +17,7 @@ import '../base/processed_options.dart' show ProcessedOptions;
 
 import '../fasta/compiler_context.dart' show CompilerContext;
 
-import '../fasta/fasta_codes.dart' show messageMissingMain;
-
-import '../fasta/parser.dart' show noLength;
+import '../fasta/fasta_codes.dart' show messageMissingMain, noLength;
 
 import '../fasta/severity.dart' show Severity;
 

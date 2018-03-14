@@ -679,7 +679,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
           write(typeObjectField.name);
         }
         if (typeObjectField.value != null) {
-          write(' = ${JSON.encode(typeObjectField.value)}');
+          write(' = ${json.encode(typeObjectField.value)}');
         } else {
           write(': ');
           TypeVisitor typeVisitor = new TypeVisitor(api, short: true);
@@ -789,7 +789,7 @@ class TypeVisitor extends HierarchicalApiVisitor
         }
         write('": ');
         if (field.value != null) {
-          write(JSON.encode(field.value));
+          write(json.encode(field.value));
         } else {
           if (field.optional) {
             gray(() {

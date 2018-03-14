@@ -14,6 +14,7 @@ import '../js_backend/runtime_types.dart'
         RuntimeTypesChecksBuilder,
         RuntimeTypesSubstitutions;
 import '../js_backend/mirrors_data.dart';
+import '../options.dart';
 import '../universe/world_builder.dart';
 import '../world.dart' show ClosedWorld;
 
@@ -24,13 +25,14 @@ class TypeTestRegistry {
   /// used for RTI.
   Set<ClassEntity> _rtiNeededClasses;
 
+  final CompilerOptions _options;
   final CodegenWorldBuilder _codegenWorldBuilder;
   final ClosedWorld _closedWorld;
 
   RuntimeTypesChecks _rtiChecks;
 
-  TypeTestRegistry(
-      this._codegenWorldBuilder, this._closedWorld, this._elementEnvironment);
+  TypeTestRegistry(this._options, this._codegenWorldBuilder, this._closedWorld,
+      this._elementEnvironment);
 
   RuntimeTypesChecks get rtiChecks {
     assert(
@@ -71,15 +73,6 @@ class TypeTestRegistry {
     //     argument checks.
     addClassesWithSuperclasses(rtiChecks.requiredClasses);
 
-    // 2.  Add classes that contain checked generic function types. These are
-    //     needed to store the signature encoding.
-    for (FunctionType type in rtiChecks.checkedFunctionTypes) {
-      ClassEntity contextClass = DartTypes.getClassContext(type);
-      if (contextClass != null) {
-        _rtiNeededClasses.add(contextClass);
-      }
-    }
-
     bool canTearOff(MemberEntity function) {
       if (!function.isFunction ||
           function.isConstructor ||
@@ -103,7 +96,7 @@ class TypeTestRegistry {
           mirrorsData.isMemberAccessibleByReflection(element));
     }
 
-    // Find all types referenced from the types of elements that can be
+    // 2. Find all types referenced from the types of elements that can be
     // reflected on 'as functions'.
     liveMembers.where((MemberEntity element) {
       return canBeReflectedAsFunction(element) && canBeReified(element);
@@ -120,6 +113,7 @@ class TypeTestRegistry {
   }
 
   void computeRequiredTypeChecks(RuntimeTypesChecksBuilder rtiChecksBuilder) {
-    _rtiChecks = rtiChecksBuilder.computeRequiredChecks(_codegenWorldBuilder);
+    _rtiChecks = rtiChecksBuilder.computeRequiredChecks(_codegenWorldBuilder,
+        strongMode: _options.strongMode);
   }
 }

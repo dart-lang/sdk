@@ -93,6 +93,7 @@ class MockCompiler extends Compiler {
             options: new CompilerOptions(
                 entryPoint: new Uri(scheme: 'mock'),
                 libraryRoot: Uri.parse('placeholder_library_root_for_mock/'),
+                useKernel: false,
                 enableTypeAssertions: enableTypeAssertions,
                 enableUserAssertions: enableUserAssertions,
                 disableInlining: disableInlining,

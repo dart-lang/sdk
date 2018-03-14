@@ -1201,6 +1201,11 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
+   * file: FilePath (optional)
+   *
+   *   If this field is provided, return only declarations in this file. If
+   *   this field is missing, return declarations in all files.
+   *
    * pattern: String (optional)
    *
    *   The regular expression used to match the names of declarations. If this
@@ -1222,9 +1227,9 @@ abstract class IntegrationTestMixin {
    *   The list of the paths of files with declarations.
    */
   Future<SearchGetElementDeclarationsResult> sendSearchGetElementDeclarations(
-      {String pattern, int maxResults}) async {
+      {String file, String pattern, int maxResults}) async {
     var params = new SearchGetElementDeclarationsParams(
-            pattern: pattern, maxResults: maxResults)
+            file: file, pattern: pattern, maxResults: maxResults)
         .toJson();
     var result = await server.send("search.getElementDeclarations", params);
     ResponseDecoder decoder = new ResponseDecoder(null);
@@ -2169,11 +2174,12 @@ abstract class IntegrationTestMixin {
    *
    *   The outline associated with the file.
    *
-   * instrumentationEdits: List<SourceEdit>
+   * instrumentedCode: String (optional)
    *
-   *   If the file has Flutter widgets that can be rendered, the list of edits
-   *   that should be applied to the file to instrument widgets and associate
-   *   them with outline nodes.
+   *   If the file has Flutter widgets that can be rendered, this field has the
+   *   instrumented content of the file, that allows associating widgets with
+   *   corresponding outline nodes. If there are no widgets to render, this
+   *   field is absent.
    */
   Stream<FlutterOutlineParams> onFlutterOutline;
 

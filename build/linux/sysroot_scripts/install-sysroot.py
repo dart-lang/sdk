@@ -96,6 +96,7 @@ def main(args):
 def InstallDefaultSysrootForArch(target_arch):
   if target_arch == 'amd64':
     InstallSysroot('Wheezy', 'amd64')
+    InstallSysroot('Jessie', 'amd64')
   elif target_arch == 'arm':
     InstallSysroot('Wheezy', 'arm')
   elif target_arch == 'arm64':

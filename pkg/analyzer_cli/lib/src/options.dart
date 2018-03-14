@@ -167,9 +167,10 @@ class CommandLineOptions {
       : buildAnalysisOutput = args['build-analysis-output'],
         buildMode = args['build-mode'],
         buildModePersistentWorker = args['persistent_worker'],
-        buildSummaryInputs = args['build-summary-input'] as List<String>,
+        buildSummaryInputs =
+            (args['build-summary-input'] as List).cast<String>(),
         buildSummaryUnlinkedInputs =
-            args['build-summary-unlinked-input'] as List<String>,
+            (args['build-summary-unlinked-input'] as List).cast<String>(),
         buildSummaryOnly = args['build-summary-only'],
         buildSummaryOnlyUnlinked = args['build-summary-only-unlinked'],
         buildSummaryOutput = args['build-summary-output'],
@@ -191,7 +192,8 @@ class CommandLineOptions {
         machineFormat = args['format'] == 'machine',
         perfReport = args['x-perf-report'],
         useCFE = args['use-cfe'],
-        previewDart2 = args['preview-dart-2'],
+        previewDart2 =
+            args.wasParsed('preview-dart-2') ? args['preview-dart-2'] : null,
         batchMode = args['batch'],
         showPackageWarnings = args['show-package-warnings'] ||
             args['package-warnings'] ||
@@ -519,10 +521,7 @@ class CommandLineOptions {
           negatable: false,
           hide: hide)
       ..addFlag('preview-dart-2',
-          help: 'Enable the Dart 2.0 preview.',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide);
+          help: 'Enable the Dart 2.0 preview.', hide: hide);
 
     try {
       if (args.contains('--$ignoreUnrecognizedFlagsFlag')) {

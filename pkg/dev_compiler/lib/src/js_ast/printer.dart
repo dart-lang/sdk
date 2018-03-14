@@ -218,7 +218,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     context.exitNode(node);
   }
 
-  visitCommaSeparated(List<Node> nodes, int hasRequiredType,
+  visitCommaSeparated(List<Expression> nodes, int hasRequiredType,
       {bool newInForInit, bool newAtStatementBegin}) {
     for (int i = 0; i < nodes.length; i++) {
       if (i != 0) {
@@ -303,8 +303,8 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   }
 
   void ifOut(If node, bool shouldIndent) {
-    Node then = node.then;
-    Node elsePart = node.otherwise;
+    var then = node.then;
+    var elsePart = node.otherwise;
     bool hasElse = node.hasElse;
 
     // Handle dangling elses and a work-around for Android 4.0 stock browser.
@@ -524,19 +524,16 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     outIndentLn("}");
   }
 
-  visitCase(Case node) {
-    outIndent("case");
-    pendingSpace = true;
-    visitNestedExpression(node.expression, EXPRESSION,
-        newInForInit: false, newAtStatementBegin: false);
-    outLn(":");
-    if (!node.body.statements.isEmpty) {
-      blockOut(node.body, true, true);
+  visitSwitchCase(SwitchCase node) {
+    if (node.isDefault) {
+      outIndentLn("default:");
+    } else {
+      outIndent("case");
+      pendingSpace = true;
+      visitNestedExpression(node.expression, EXPRESSION,
+          newInForInit: false, newAtStatementBegin: false);
+      outLn(":");
     }
-  }
-
-  visitDefault(Default node) {
-    outIndentLn("default:");
     if (!node.body.statements.isEmpty) {
       blockOut(node.body, true, true);
     }
@@ -547,7 +544,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     blockBody(node.body, needsSeparation: false, needsNewline: true);
   }
 
-  void functionOut(Fun fun, Node name) {
+  void functionOut(Fun fun, Identifier name) {
     out("function");
     if (fun.isGenerator) out("*");
     if (name != null) {
@@ -648,29 +645,29 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
 
   visitDestructuredVariable(DestructuredVariable node) {
     var name = node.name;
-    var hasName = name != null;
-    if (hasName) {
-      if (name is LiteralString) {
-        out("[");
-        out(name.value);
-        out("]");
-      } else {
-        visit(name);
-      }
+    var property = node.property;
+    if (name != null) {
+      visit(node.name);
+    } else if (property != null) {
+      out("[");
+      visit(node.property);
+      out("]");
     }
-    if (node.structure != null) {
-      if (hasName) {
+    var structure = node.structure;
+    if (structure != null) {
+      if (name != null || property != null) {
         out(":");
         spaceOut();
       }
-      visit(node.structure);
+      visit(structure);
     }
     outTypeAnnotation(node.type);
-    if (node.defaultValue != null) {
+    var defaultValue = node.defaultValue;
+    if (defaultValue != null) {
       spaceOut();
       out("=");
       spaceOut();
-      visitNestedExpression(node.defaultValue, EXPRESSION,
+      visitNestedExpression(defaultValue, EXPRESSION,
           newInForInit: false, newAtStatementBegin: false);
     }
   }
@@ -693,9 +690,17 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     }
   }
 
-  visitVariableInitialization(VariableInitialization initialization) {
-    outClosureAnnotation(initialization);
-    visitAssignment(initialization);
+  visitVariableInitialization(VariableInitialization init) {
+    outClosureAnnotation(init);
+    visitNestedExpression(init.declaration, LEFT_HAND_SIDE,
+        newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
+    if (init.value != null) {
+      spaceOut();
+      out("=");
+      spaceOut();
+      visitNestedExpression(init.value, ASSIGNMENT,
+          newInForInit: inForInit, newAtStatementBegin: false);
+    }
   }
 
   visitConditional(Conditional cond) {
@@ -971,18 +976,19 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     outTypeAnnotation(fun.returnType);
     spaceOut();
     out("=>");
-    if (fun.body is Expression) {
+    var body = fun.body;
+    if (body is Expression) {
       spaceOut();
       // Object initializers require parenthesis to disambiguate
       // AssignmentExpression from FunctionBody. See:
       // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-arrow-function-definitions
       var needsParen = fun.body is ObjectInitializer;
       if (needsParen) out("(");
-      visitNestedExpression(fun.body, ASSIGNMENT,
+      visitNestedExpression(body, ASSIGNMENT,
           newInForInit: false, newAtStatementBegin: false);
       if (needsParen) out(")");
     } else {
-      blockBody(fun.body, needsSeparation: false, needsNewline: false);
+      blockBody(body as Block, needsSeparation: false, needsNewline: false);
     }
     localNamer.leaveScope();
   }
@@ -1233,7 +1239,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
         spaceOut();
       }
     }
-    nameSpecifierListOut(node.namedImports);
+    nameSpecifierListOut(node.namedImports, false);
     fromClauseOut(node.from);
     outSemicolonLn();
   }
@@ -1248,15 +1254,15 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   }
 
   visitExportClause(ExportClause node) {
-    nameSpecifierListOut(node.exports);
+    nameSpecifierListOut(node.exports, true);
     fromClauseOut(node.from);
   }
 
-  nameSpecifierListOut(List<NameSpecifier> names) {
+  nameSpecifierListOut(List<NameSpecifier> names, bool export) {
     if (names == null) return;
 
     if (names.length == 1 && names[0].name == '*') {
-      visit(names[0]);
+      nameSpecifierOut(names[0], export);
       return;
     }
 
@@ -1267,7 +1273,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
         out(',');
         spaceOut();
       }
-      visit(names[i]);
+      nameSpecifierOut(names[i], export);
     }
     spaceOut();
     out('}');
@@ -1281,22 +1287,28 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     }
   }
 
+  /// This is unused, see [nameSpecifierOut].
   visitNameSpecifier(NameSpecifier node) {
+    throw new UnsupportedError('visitNameSpecifier');
+  }
+
+  nameSpecifierOut(NameSpecifier node, bool export) {
     if (node.isStar) {
       out('*');
     } else {
-      var importName = node.name.name;
-      out(importName);
-
+      var name = node.name.name;
       if (node.asName == null) {
         // If our local was renamed, generate an implicit "as".
-        // This is a convenience feature so imports can be renamed.
+        // This is a convenience feature so imports and exports can be renamed.
         var localName = localNamer.getName(node.name);
-        if (localName != importName) {
+        if (localName != name) {
+          out(export ? localName : name);
           out(' as ');
-          out(localName);
+          out(export ? name : localName);
+          return;
         }
       }
+      out(name);
     }
     if (node.asName != null) {
       out(' as ');
@@ -1463,8 +1475,10 @@ class VarCollector extends BaseVisitor {
   }
 
   void visitVariableInitialization(VariableInitialization node) {
-    declareVariable(node.declaration);
-    if (node.value != null) node.value.accept(this);
+    // TODO(jmesserly): add ES6 support. Currently not needed because
+    // dart2js does not emit ES6 rest param or destructuring.
+    declareVariable(node.declaration as Identifier);
+    node.value?.accept(this);
   }
 
   void declareVariable(Identifier decl) {
@@ -1515,8 +1529,7 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
 
   bool visitCatch(Catch node) => node.body.accept(this);
   bool visitSwitch(Switch node) => false;
-  bool visitCase(Case node) => false;
-  bool visitDefault(Default node) => false;
+  bool visitSwitchCase(SwitchCase node) => false;
   bool visitFunctionDeclaration(FunctionDeclaration node) => false;
   bool visitLabeledStatement(LabeledStatement node) => node.body.accept(this);
   bool visitLiteralStatement(LiteralStatement node) => true;
@@ -1590,7 +1603,7 @@ class MinifyRenamer implements LocalNamer {
   // moving on to a0, a1, etc.
   String declareVariable(String oldName) {
     if (avoidRenaming(oldName)) return oldName;
-    var newName;
+    String newName;
     if (variableNumber + parameterNumber < LOWER_CASE_LETTERS) {
       // Variables start from z and go backwards, for better gzipability.
       newName = getNameNumber(oldName, LOWER_CASE_LETTERS - 1 - variableNumber);
@@ -1604,7 +1617,7 @@ class MinifyRenamer implements LocalNamer {
 
   String declareParameter(String oldName) {
     if (avoidRenaming(oldName)) return oldName;
-    var newName;
+    String newName;
     if (variableNumber + parameterNumber < LOWER_CASE_LETTERS) {
       newName = getNameNumber(oldName, parameterNumber);
     } else {

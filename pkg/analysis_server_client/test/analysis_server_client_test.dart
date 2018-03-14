@@ -62,15 +62,6 @@ void main() {
   });
 }
 
-Stream<List<int>> _goodMessage() async* {
-  yield UTF8.encoder.convert('Observatory listening on foo bar\n');
-  final sampleJson = {
-    'id': '0',
-    'result': {'foo': 'bar'}
-  };
-  yield UTF8.encoder.convert(JSON.encode(sampleJson));
-}
-
 final _badErrorMessage = {
   'code': 'someErrorCode',
   'message': 'something went wrong',
@@ -78,18 +69,27 @@ final _badErrorMessage = {
 };
 
 Stream<List<int>> _badMessage() async* {
-  yield UTF8.encoder.convert('Observatory listening on foo bar\n');
+  yield utf8.encoder.convert('Observatory listening on foo bar\n');
   final sampleJson = {'id': '0', 'error': _badErrorMessage};
-  yield UTF8.encoder.convert(JSON.encode(sampleJson));
+  yield utf8.encoder.convert(json.encode(sampleJson));
 }
 
 Stream<List<int>> _eventMessage() async* {
-  yield UTF8.encoder.convert('Observatory listening on foo bar\n');
+  yield utf8.encoder.convert('Observatory listening on foo bar\n');
   final sampleJson = {
     'event': 'fooEvent',
     'params': {'foo': 'bar', 'baz': 'bang'}
   };
-  yield UTF8.encoder.convert(JSON.encode(sampleJson));
+  yield utf8.encoder.convert(json.encode(sampleJson));
+}
+
+Stream<List<int>> _goodMessage() async* {
+  yield utf8.encoder.convert('Observatory listening on foo bar\n');
+  final sampleJson = {
+    'id': '0',
+    'result': {'foo': 'bar'}
+  };
+  yield utf8.encoder.convert(json.encode(sampleJson));
 }
 
 class MockProcess extends Mock implements Process {}

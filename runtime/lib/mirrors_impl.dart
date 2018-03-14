@@ -294,7 +294,7 @@ class _SyntheticAccessor implements MethodMirror {
   bool get isPrivate => _n(simpleName).startsWith('_');
 
   Symbol get qualifiedName => _computeQualifiedName(owner, simpleName);
-  Symbol get constructorName => const Symbol('');
+  Symbol get constructorName => Symbol.empty;
 
   TypeMirror get returnType => _target.type;
   List<ParameterMirror> get parameters {

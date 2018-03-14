@@ -295,7 +295,7 @@ Future test(
 
   CompilationResult result = await runCompiler(
       memorySourceFiles: sourceFiles,
-      options: [Flags.analyzeAll, Flags.analyzeOnly]);
+      options: [Flags.analyzeAll, Flags.analyzeOnly, Flags.useOldFrontend]);
   Compiler compiler = result.compiler;
   testMap.forEach((String filename, Test test) {
     LibraryElement library =

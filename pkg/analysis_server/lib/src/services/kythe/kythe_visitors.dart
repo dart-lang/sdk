@@ -992,28 +992,6 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
     // no children to visit
   }
 
-  void _handleVariableDeclaration(
-      Element element, SyntacticEntity syntacticEntity,
-      {String subKind, DartType type}) {
-    // variable
-    var variableVName = addNodeAndFacts(schema.VARIABLE_KIND,
-        element: element, subKind: subKind, completeFact: schema.DEFINITION);
-
-    // anchor
-    addAnchorEdgesContainingEdge(
-        syntacticEntity: syntacticEntity,
-        edges: [
-          schema.DEFINES_BINDING_EDGE,
-        ],
-        target: variableVName,
-        enclosingTarget: _enclosingVName);
-
-    // type
-    if (type != null) {
-      addEdge(variableVName, schema.TYPED_EDGE, _vNameFromType(type));
-    }
-  }
-
   /// Add a "ref/imports" edge from the passed [uriNode] location to the
   /// [referencedElement] [Element].  If the passed element is null, the edge is
   /// not written out.
@@ -1041,6 +1019,28 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
           edges: [schema.REF_IMPORTS_EDGE],
           target: packageVName,
           enclosingTarget: _enclosingFileVName);
+    }
+  }
+
+  void _handleVariableDeclaration(
+      Element element, SyntacticEntity syntacticEntity,
+      {String subKind, DartType type}) {
+    // variable
+    var variableVName = addNodeAndFacts(schema.VARIABLE_KIND,
+        element: element, subKind: subKind, completeFact: schema.DEFINITION);
+
+    // anchor
+    addAnchorEdgesContainingEdge(
+        syntacticEntity: syntacticEntity,
+        edges: [
+          schema.DEFINES_BINDING_EDGE,
+        ],
+        target: variableVName,
+        enclosingTarget: _enclosingVName);
+
+    // type
+    if (type != null) {
+      addEdge(variableVName, schema.TYPED_EDGE, _vNameFromType(type));
     }
   }
 
@@ -1308,11 +1308,11 @@ abstract class OutputUtils {
   }
 
   List<int> _encode(String str) {
-    return UTF8.encode(str);
+    return utf8.encode(str);
   }
 
   List<int> _encodeInt(int i) {
-    return UTF8.encode(i.toString());
+    return utf8.encode(i.toString());
   }
 
   /// Given all parameters for a [KytheVName] this method creates and returns a

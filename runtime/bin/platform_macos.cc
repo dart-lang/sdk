@@ -12,6 +12,7 @@
 #if !HOST_OS_IOS
 #include <crt_externs.h>  // NOLINT
 #endif                    // !HOST_OS_IOS
+#include <errno.h>        // NOLINT
 #include <mach-o/dyld.h>
 #include <signal.h>       // NOLINT
 #include <string.h>       // NOLINT
@@ -20,9 +21,8 @@
 #include <sys/utsname.h>  // NOLINT
 #include <unistd.h>       // NOLINT
 
-#include "bin/fdutils.h"
+#include "bin/console.h"
 #include "bin/file.h"
-#include "bin/log.h"
 
 namespace dart {
 namespace bin {
@@ -240,6 +240,7 @@ const char* Platform::ResolveExecutablePath() {
 }
 
 void Platform::Exit(int exit_code) {
+  Console::RestoreConfig();
   exit(exit_code);
 }
 

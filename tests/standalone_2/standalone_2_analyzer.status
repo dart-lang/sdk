@@ -29,13 +29,8 @@ package/scenarios/packages_file_only/packages_file_only_test: CompileTimeError
 
 [ $compiler == dart2analyzer && $system == windows ]
 package/package_isolate_test: Crash # Issue 28645
-package/scenarios/empty_packages_file/empty_packages_file_noimports_test: Crash # Issue 28645
 package/scenarios/empty_packages_file/empty_packages_file_option_test: Crash, Pass # Issue 28645
-package/scenarios/packages_file_strange_formatting/empty_lines_test: Crash # Issue 28645
 package/scenarios/packages_file_strange_formatting/empty_package_dir_test: Crash # Issue 28645
-package/scenarios/packages_file_strange_formatting/mixed_line_ends_test: Crash # Issue 28645
-package/scenarios/packages_option_only/packages_option_only_noimports_test: Crash # Issue 28645
-package/scenarios/packages_option_only/packages_option_only_test: Crash, CompileTimeError # Issue 28645
 
 [ $compiler == dart2analyzer && $strong ]
 io/directory_invalid_arguments_test: CompileTimeError

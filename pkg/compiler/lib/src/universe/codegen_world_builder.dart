@@ -266,7 +266,8 @@ abstract class CodegenWorldBuilderImpl extends WorldBuilderBase
 
     switch (dynamicUse.kind) {
       case DynamicUseKind.INVOKE:
-        registerDynamicInvocation(dynamicUse);
+        registerDynamicInvocation(
+            dynamicUse.selector, dynamicUse.typeArguments);
         if (_registerNewSelector(dynamicUse, _invokedNames)) {
           _process(_instanceMembersByName, (m) => m.invoke());
           return true;
@@ -422,12 +423,17 @@ abstract class CodegenWorldBuilderImpl extends WorldBuilderBase
         useSet.addAll(usage.normalUse());
         break;
       case StaticUseKind.DIRECT_INVOKE:
-        _MemberUsage instanceUsage =
-            _getMemberUsage(staticUse.element, memberUsed);
+        MemberEntity member = staticUse.element;
+        _MemberUsage instanceUsage = _getMemberUsage(member, memberUsed);
         memberUsed(instanceUsage.entity, instanceUsage.invoke());
         _instanceMembersByName[instanceUsage.entity.name]
             ?.remove(instanceUsage);
         useSet.addAll(usage.normalUse());
+        if (staticUse.typeArguments?.isNotEmpty ?? false) {
+          registerDynamicInvocation(
+              new Selector.call(member.memberName, staticUse.callStructure),
+              staticUse.typeArguments);
+        }
         break;
       case StaticUseKind.INLINING:
         break;
@@ -570,6 +576,26 @@ abstract class CodegenWorldBuilderImpl extends WorldBuilderBase
       addCompileTimeConstantForEmission(use.value);
     }
     return _constantValues.add(use.value);
+  }
+
+  @override
+  Iterable<Local> get genericLocalFunctions => const <Local>[];
+
+  @override
+  Iterable<FunctionEntity> get genericInstanceMethods {
+    List<FunctionEntity> functions = <FunctionEntity>[];
+
+    void processMemberUse(MemberEntity member, _MemberUsage memberUsage) {
+      if (member.isInstanceMember &&
+          member is FunctionEntity &&
+          memberUsage.hasUse &&
+          _elementEnvironment.getFunctionTypeVariables(member).isNotEmpty) {
+        functions.add(member);
+      }
+    }
+
+    _instanceMemberUsage.forEach(processMemberUse);
+    return functions;
   }
 }
 

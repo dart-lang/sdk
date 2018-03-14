@@ -27,7 +27,7 @@ void main(List<String> args) {
         memorySourceFiles: sourceFiles,
         resolutionInputs: resolutionInputs,
         diagnosticHandler: collector,
-        options: [Flags.analyzeAll]);
+        options: [Flags.analyzeAll, Flags.useOldFrontend]);
     Expect.isTrue(collector.errors.isNotEmpty,
         "Expected duplicate serialized library errors.");
   });

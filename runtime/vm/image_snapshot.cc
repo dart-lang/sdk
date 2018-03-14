@@ -95,11 +95,10 @@ void ImageWriter::WriteROData(WriteStream* stream) {
   }
 }
 
-AssemblyImageWriter::AssemblyImageWriter(uint8_t** assembly_buffer,
-                                         ReAlloc alloc,
-                                         intptr_t initial_size)
+AssemblyImageWriter::AssemblyImageWriter(Dart_StreamingWriteCallback callback,
+                                         void* callback_data)
     : ImageWriter(),
-      assembly_stream_(assembly_buffer, alloc, initial_size),
+      assembly_stream_(512 * KB, callback, callback_data),
       dwarf_(NULL) {
 #if defined(DART_PRECOMPILER)
   Zone* zone = Thread::Current()->zone();

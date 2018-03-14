@@ -3717,6 +3717,20 @@ class Wrong<T> {
 //        [expectedError(ParserErrorCode.GETTER_WITH_PARAMETERS, 9, 2)]);
   }
 
+  void test_illegalAssignmentToNonAssignable_assign_int() {
+    parseStatement("0 = 1;");
+    listener.assertErrors([
+      expectedError(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 0, 1)
+    ]);
+  }
+
+  void test_illegalAssignmentToNonAssignable_assign_this() {
+    parseStatement("this = 1;");
+    listener.assertErrors([
+      expectedError(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 0, 4)
+    ]);
+  }
+
   void test_illegalAssignmentToNonAssignable_postfix_minusMinus_literal() {
     parseExpression("0--", errors: [
       expectedError(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 1, 2)
@@ -3742,8 +3756,6 @@ class Wrong<T> {
   }
 
   void test_illegalAssignmentToNonAssignable_superAssigned() {
-    // TODO(brianwilkerson) When this test starts to pass, remove the test
-    // test_illegalAssignmentToNonAssignable_superAssigned.
     parseStatement("super = x;");
     listener.assertErrors(usingFastaParser
         ? [
@@ -4046,31 +4058,61 @@ class Wrong<T> {
   }
 
   void test_localFunctionDeclarationModifier_abstract() {
-    parseStatement("abstract f() {}");
-    listener.assertErrors([
-      expectedError(ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, 0, 8)
-    ]);
+    parseCompilationUnit("class C { m() { abstract f() {} } }",
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 16, 8),
+                expectedError(
+                    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 25, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 26, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 32, 1),
+              ]
+            : [
+                expectedError(
+                    ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, 16, 8)
+              ]);
   }
 
   void test_localFunctionDeclarationModifier_external() {
-    parseStatement("external f() {}");
-    listener.assertErrors([
-      expectedError(ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, 0, 8)
-    ]);
+    parseCompilationUnit("class C { m() { external f() {} } }",
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 16, 8),
+                expectedError(
+                    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 25, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 26, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 32, 1),
+              ]
+            : [
+                expectedError(
+                    ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, 16, 8)
+              ]);
   }
 
   void test_localFunctionDeclarationModifier_factory() {
-    parseStatement("factory f() {}");
-    listener.assertErrors([
-      expectedError(ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, 0, 7)
-    ]);
+    parseCompilationUnit("class C { m() { factory f() {} } }",
+        errors: usingFastaParser
+            ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 24, 1)]
+            : [
+                expectedError(
+                    ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, 16, 7)
+              ]);
   }
 
   void test_localFunctionDeclarationModifier_static() {
-    parseStatement("static f() {}");
-    listener.assertErrors([
-      expectedError(ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, 0, 6)
-    ]);
+    parseCompilationUnit("class C { m() { static f() {} } }",
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 16, 6),
+                expectedError(
+                    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 23, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 24, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 30, 1),
+              ]
+            : [
+                expectedError(
+                    ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, 16, 6)
+              ]);
   }
 
   void test_method_invalidTypeParameterComments() {
@@ -6583,6 +6625,17 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     var invocation = expression as MethodInvocation;
     expect(invocation.target, isNotNull);
     expect(invocation.methodName, isNotNull);
+    expect(invocation.typeArguments, isNotNull);
+    expect(invocation.argumentList, isNotNull);
+  }
+
+  void test_parseExpression_superMethodInvocation_typeArguments_chained() {
+    Expression expression = parseExpression('super.b.c<D>()');
+    MethodInvocation invocation = expression as MethodInvocation;
+    Expression target = invocation.target;
+    expect(target, new isInstanceOf<PropertyAccess>());
+    expect(invocation.methodName, isNotNull);
+    expect(invocation.methodName.name, 'c');
     expect(invocation.typeArguments, isNotNull);
     expect(invocation.argumentList, isNotNull);
   }

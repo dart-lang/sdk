@@ -16,8 +16,6 @@
     "exclude": [
       "^tests/compiler/dart2js/codegen_helper\\.dart",
       "^tests/compiler/dart2js/codegen/type_inference8_test\\.dart",
-      "^tests/compiler/dart2js/constant_expression_evaluate_test\\.dart",
-      "^tests/compiler/dart2js/constant_expression_test\\.dart",
       "^tests/compiler/dart2js/data/one_line_dart_program\\.dart",
       "^tests/compiler/dart2js/deferred/inline_restrictions_test\\.dart",
       "^tests/compiler/dart2js/deferred/load_graph_segmentation2_test\\.dart",
@@ -40,6 +38,8 @@
       "^tests/compiler/dart2js/mirrors/deferred_mirrors_test\\.dart",
       "^tests/compiler/dart2js/mirrors/mirrors_used_test\\.dart",
       "^tests/compiler/dart2js/mixin_typevariable_test\\.dart",
+      "^tests/compiler/dart2js/model/constant_expression_evaluate_test\\.dart",
+      "^tests/compiler/dart2js/model/constant_expression_test\\.dart",
       "^tests/compiler/dart2js/needs_no_such_method_test\\.dart",
       "^tests/compiler/dart2js/no_such_method_enabled_test\\.dart",
       "^tests/compiler/dart2js/output_collector\\.dart",
@@ -68,14 +68,10 @@
       "^tests/compiler/dart2js/sourcemaps/helpers/sourcemap_helper\\.dart",
       "^tests/compiler/dart2js/sourcemaps/helpers/sourcemap_html_helper\\.dart",
       "^tests/compiler/dart2js/sourcemaps/stacktrace_test\\.dart",
-      "^tests/compiler/dart2js/subtype_test\\.dart",
-      "^tests/compiler/dart2js/subtypeset_test\\.dart",
       "^tests/compiler/dart2js/token_naming_test\\.dart",
       "^tests/compiler/dart2js/type_representation_test\\.dart",
-      "^tests/compiler/dart2js/type_substitution_test\\.dart",
       "^tests/compiler/dart2js/type_variable_occurrence_test\\.dart",
       "^tests/compiler/dart2js/unused_empty_map_test\\.dart",
-      "^tests/compiler/dart2js/world_test\\.dart",
 
       "^tests/compiler/dart2js/path with spaces/.*"
     ]

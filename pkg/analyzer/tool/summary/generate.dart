@@ -521,7 +521,7 @@ class _CodeGenerator {
    * Enclose [s] in quotes, escaping as necessary.
    */
   String quoted(String s) {
-    return JSON.encode(s);
+    return json.encode(s);
   }
 
   void _generateBuilder(idlModel.ClassDeclaration cls) {
@@ -915,7 +915,7 @@ class _CodeGenerator {
       out();
       // Write toString().
       out('@override');
-      out('String toString() => convert.JSON.encode(toJson());');
+      out('String toString() => convert.json.encode(toJson());');
     });
     out('}');
   }

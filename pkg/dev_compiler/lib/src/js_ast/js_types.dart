@@ -84,7 +84,7 @@ class AnyTypeRef extends TypeRef {
   AnyTypeRef._() : super();
 
   factory AnyTypeRef() => _any;
-  accept(NodeVisitor visitor) => visitor.visitAnyTypeRef(this);
+  T accept<T>(NodeVisitor<T> visitor) => visitor.visitAnyTypeRef(this);
   void visitChildren(NodeVisitor visitor) {}
   _clone() => new AnyTypeRef();
 }
@@ -98,7 +98,7 @@ class UnknownTypeRef extends TypeRef {
   UnknownTypeRef._() : super();
 
   factory UnknownTypeRef() => _unknown;
-  accept(NodeVisitor visitor) => visitor.visitUnknownTypeRef(this);
+  T accept<T>(NodeVisitor<T> visitor) => visitor.visitUnknownTypeRef(this);
   void visitChildren(NodeVisitor visitor) {}
   _clone() => new UnknownTypeRef();
 }
@@ -107,7 +107,7 @@ class QualifiedTypeRef extends TypeRef {
   final List<Identifier> path;
   QualifiedTypeRef(this.path);
 
-  accept(NodeVisitor visitor) => visitor.visitQualifiedTypeRef(this);
+  T accept<T>(NodeVisitor<T> visitor) => visitor.visitQualifiedTypeRef(this);
   void visitChildren(NodeVisitor visitor) =>
       path.forEach((p) => p.accept(visitor));
   _clone() => new QualifiedTypeRef(path);
@@ -116,7 +116,7 @@ class QualifiedTypeRef extends TypeRef {
 class ArrayTypeRef extends TypeRef {
   final TypeRef elementType;
   ArrayTypeRef(this.elementType);
-  accept(NodeVisitor visitor) => visitor.visitArrayTypeRef(this);
+  T accept<T>(NodeVisitor<T> visitor) => visitor.visitArrayTypeRef(this);
   void visitChildren(NodeVisitor visitor) {
     elementType.accept(visitor);
   }
@@ -129,7 +129,7 @@ class GenericTypeRef extends TypeRef {
   final List<TypeRef> typeArgs;
   GenericTypeRef(this.rawType, this.typeArgs);
 
-  accept(NodeVisitor visitor) => visitor.visitGenericTypeRef(this);
+  T accept<T>(NodeVisitor<T> visitor) => visitor.visitGenericTypeRef(this);
   void visitChildren(NodeVisitor visitor) {
     rawType.accept(visitor);
     typeArgs.forEach((p) => p.accept(visitor));
@@ -142,7 +142,7 @@ class UnionTypeRef extends TypeRef {
   final List<TypeRef> types;
   UnionTypeRef(this.types);
 
-  accept(NodeVisitor visitor) => visitor.visitUnionTypeRef(this);
+  T accept<T>(NodeVisitor<T> visitor) => visitor.visitUnionTypeRef(this);
   void visitChildren(NodeVisitor visitor) {
     types.forEach((p) => p.accept(visitor));
   }
@@ -162,7 +162,7 @@ class OptionalTypeRef extends TypeRef {
   final TypeRef type;
   OptionalTypeRef(this.type);
 
-  accept(NodeVisitor visitor) => visitor.visitOptionalTypeRef(this);
+  T accept<T>(NodeVisitor<T> visitor) => visitor.visitOptionalTypeRef(this);
   void visitChildren(NodeVisitor visitor) {
     type.accept(visitor);
   }
@@ -177,7 +177,7 @@ class RecordTypeRef extends TypeRef {
   final Map<Identifier, TypeRef> types;
   RecordTypeRef(this.types);
 
-  accept(NodeVisitor visitor) => visitor.visitRecordTypeRef(this);
+  T accept<T>(NodeVisitor<T> visitor) => visitor.visitRecordTypeRef(this);
   void visitChildren(NodeVisitor visitor) {
     types.values.forEach((p) => p.accept(visitor));
   }
@@ -190,7 +190,7 @@ class FunctionTypeRef extends TypeRef {
   final Map<Identifier, TypeRef> paramTypes;
   FunctionTypeRef(this.returnType, this.paramTypes);
 
-  accept(NodeVisitor visitor) => visitor.visitFunctionTypeRef(this);
+  T accept<T>(NodeVisitor<T> visitor) => visitor.visitFunctionTypeRef(this);
   void visitChildren(NodeVisitor visitor) {
     returnType.accept(visitor);
     paramTypes.forEach((n, t) {

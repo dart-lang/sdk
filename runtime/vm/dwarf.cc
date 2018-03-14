@@ -51,7 +51,7 @@ class InliningNode : public ZoneAllocated {
   InliningNode* children_next;
 };
 
-Dwarf::Dwarf(Zone* zone, WriteStream* stream)
+Dwarf::Dwarf(Zone* zone, StreamingWriteStream* stream)
     : zone_(zone),
       stream_(stream),
       codes_(zone, 1024),

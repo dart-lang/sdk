@@ -99,8 +99,7 @@ main() {
 main() {
   asyncTest(() async {
     CompilationResult result = await runCompiler(
-        memorySourceFiles: {'main.dart': code},
-        options: [Flags.strongMode, Flags.useKernel]);
+        memorySourceFiles: {'main.dart': code}, options: [Flags.strongMode]);
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
     ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
@@ -108,11 +107,10 @@ main() {
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     ProgramLookup programLookup = new ProgramLookup(compiler);
 
-    CallStructure callStructure = new CallStructure(1, const <String>[], 1);
-
-    js.Name getName(String name) {
-      return compiler.backend.namer.invocationName(
-          new Selector.call(new PublicName(name), callStructure));
+    js.Name getName(String name, int typeArguments) {
+      return compiler.backend.namer.invocationName(new Selector.call(
+          new PublicName(name),
+          new CallStructure(1, const <String>[], typeArguments)));
     }
 
     void checkParameters(String name,
@@ -151,34 +149,33 @@ main() {
 
       js.Fun fun = method.code;
 
-      js.Name selector = getName(targetName);
+      js.Name selector = getName(targetName, expectedTypeArguments);
       bool callFound = false;
       forEachCall(fun, (js.Call node) {
         js.Expression target = node.target;
         if (target is js.PropertyAccess && target.selector == selector) {
           callFound = true;
           Expect.equals(
-              expectedTypeArguments,
+              1 + expectedTypeArguments,
               node.arguments.length,
               "Unexpected argument count in $function call to $targetName: "
               "${js.nodeToString(fun)}");
         }
       });
-      Expect.isTrue(callFound, "No call to $targetName in $function found.");
+      Expect.isTrue(callFound,
+          "No call to $targetName as '${selector.key}' in $function found.");
     }
 
     // The declarations should have type parameters only when needed by the
     // selector.
-    checkArguments('call1', 'method1', expectedTypeArguments: 2);
-    checkArguments('call1a', 'method1', expectedTypeArguments: 2);
-    checkArguments('call1b', 'method1', expectedTypeArguments: 2);
-    checkArguments('call2', 'method2', expectedTypeArguments: 2);
-    checkArguments('call2a', 'method2', expectedTypeArguments: 2);
-    checkArguments('call2b', 'method2', expectedTypeArguments: 2);
-    // TODO(johnniwinther): Avoid passing type arguments to selectors that
-    // never need type arguments.
-    checkArguments('call3', 'method3', expectedTypeArguments: 2 /*1*/);
-    checkArguments('call3a', 'method3', expectedTypeArguments: 2 /*1*/);
-    checkArguments('call3b', 'method3', expectedTypeArguments: 2 /*1*/);
+    checkArguments('call1', 'method1', expectedTypeArguments: 1);
+    checkArguments('call1a', 'method1', expectedTypeArguments: 1);
+    checkArguments('call1b', 'method1', expectedTypeArguments: 1);
+    checkArguments('call2', 'method2', expectedTypeArguments: 1);
+    checkArguments('call2a', 'method2', expectedTypeArguments: 1);
+    checkArguments('call2b', 'method2', expectedTypeArguments: 1);
+    checkArguments('call3', 'method3', expectedTypeArguments: 0);
+    checkArguments('call3a', 'method3', expectedTypeArguments: 0);
+    checkArguments('call3b', 'method3', expectedTypeArguments: 0);
   });
 }

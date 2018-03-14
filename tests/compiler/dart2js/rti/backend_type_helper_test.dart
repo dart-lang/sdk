@@ -18,7 +18,7 @@ main() {
   runTest({bool useKernel}) async {
     CompilationResult result = await runCompiler(
         entryPoint: Platform.script.resolve('data/subtype_named_args.dart'),
-        options: useKernel ? [Flags.useKernel] : []);
+        options: useKernel ? [] : [Flags.useOldFrontend]);
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
     ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;

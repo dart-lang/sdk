@@ -240,7 +240,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     List<Uri> invalidatedImportUris = <Uri>[];
 
     // Compute [builders] and [invalidatedImportUris].
-    addBuilderAndInvalidateUris(Uri uri, LibraryBuilder library) {
+    addBuilderAndInvalidateUris(Uri uri, LibraryBuilder library,
+        [bool recursive = true]) {
       builders[uri] = library;
       if (invalidatedFileUris.contains(uri) ||
           (uri != library.fileUri &&
@@ -250,9 +251,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               invalidatedFileUris.contains(library.library.fileUri))) {
         invalidatedImportUris.add(uri);
       }
+      if (!recursive) return;
       if (library is SourceLibraryBuilder) {
         for (var part in library.parts) {
-          addBuilderAndInvalidateUris(part.uri, part);
+          addBuilderAndInvalidateUris(part.uri, part, false);
+        }
+      } else if (library is DillLibraryBuilder) {
+        for (var part in library.library.parts) {
+          addBuilderAndInvalidateUris(part.fileUri, library, false);
         }
       }
     }
@@ -276,11 +282,19 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     // Remove all dependencies of [invalidatedImportUris] from builders.
     List<Uri> workList = invalidatedImportUris;
     while (workList.isNotEmpty) {
-      LibraryBuilder current = builders.remove(workList.removeLast());
+      Uri removed = workList.removeLast();
+      LibraryBuilder current = builders.remove(removed);
       // [current] is null if the corresponding key (URI) has already been
       // removed.
       if (current != null) {
         Set<Uri> s = directDependencies[current.uri];
+        if (current.uri != removed) {
+          if (s == null) {
+            s = directDependencies[removed];
+          } else {
+            s.addAll(directDependencies[removed]);
+          }
+        }
         if (s != null) {
           // [s] is null for leaves.
           for (Uri dependency in s) {
@@ -290,7 +304,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
     }
 
-    return builders.values.where((builder) => !builder.isPart).toList();
+    // Builders contain mappings from part uri to builder, meaning the same
+    // builder can exist multiple times in the values list.
+    Set<Uri> seenUris = new Set<Uri>();
+    List<LibraryBuilder> result = <LibraryBuilder>[];
+    for (var builder in builders.values) {
+      if (builder.isPart) continue;
+      if (!seenUris.add(builder.fileUri)) continue;
+      result.add(builder);
+    }
+    return result;
   }
 
   @override

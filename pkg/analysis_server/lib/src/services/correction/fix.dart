@@ -177,6 +177,7 @@ class DartFixKind {
       const FixKind('REMOVE_DEAD_CODE', 50, "Remove dead code");
   static const MAKE_FIELD_NOT_FINAL =
       const FixKind('MAKE_FIELD_NOT_FINAL', 50, "Make field '{0}' not final");
+  static const MAKE_FINAL = const FixKind('MAKE_FINAL', 50, "Make final");
   static const REMOVE_AWAIT = const FixKind('REMOVE_AWAIT', 50, "Remove await");
   static const REMOVE_EMPTY_CATCH =
       const FixKind('REMOVE_EMPTY_CATCH', 50, "Remove empty catch clause");

@@ -195,7 +195,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
     var result = exception;
     if (exception is UnimplementedError) {
       if (exception.message.startsWith(ERROR_PREFIX)) {
-        result = JSON.decode(exception.message.substring(ERROR_PREFIX.length));
+        result = json.decode(exception.message.substring(ERROR_PREFIX.length));
       }
     }
     processResponseResult(id, result);

@@ -114,10 +114,30 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    *
    * The [Iterator] of [elements] provides the order of the elements.
    *
-   * This constructor returns a growable list when [growable] is true;
+   * All the [elements] should be instances of [E].
+   * The `elements` iterable itself may have any element type, so this
+   * constructor can be used to down-cast a `List`, for example as:
+   * ```dart
+   * List<SuperType> superList = ...;
+   * List<SubType> subList =
+   *     new List<SubType>.from(superList.whereType<SubType>());
+   * ```
+   *
+   * This constructor creates a growable list when [growable] is true;
    * otherwise, it returns a fixed-length list.
    */
   external factory List.from(Iterable elements, {bool growable: true});
+
+  /**
+   * Creates a list from [elements].
+   *
+   * The [Iterator] of [elements] provides the order of the elements.
+   *
+   * This constructor creates a growable list when [growable] is true;
+   * otherwise, it returns a fixed-length list.
+   */
+  factory List.of(Iterable<E> elements, {bool growable: true}) =>
+      new List<E>.from(elements, growable: growable);
 
   /**
    * Generates a list of values.

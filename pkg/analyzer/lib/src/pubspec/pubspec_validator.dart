@@ -70,6 +70,31 @@ class PubspecValidator {
   }
 
   /**
+   * Return `true` if an asset (file) exists at the given absolute, normalized
+   * [assetPath] or in a subdirectory of the parent of the file.
+   */
+  bool _assetExistsAtPath(String assetPath) {
+    File assetFile = provider.getFile(assetPath);
+    if (assetFile.exists) {
+      return true;
+    }
+    String fileName = assetFile.shortName;
+    Folder assetFolder = assetFile.parent;
+    if (!assetFolder.exists) {
+      return false;
+    }
+    for (Resource child in assetFolder.getChildren()) {
+      if (child is Folder) {
+        File innerFile = child.getChildAssumingFile(fileName);
+        if (innerFile.exists) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
    * Return a map whose keys are the names of declared dependencies and whose
    * values are the specifications of those dependencies. The map is extracted
    * from the given [contents] using the given [key].
@@ -131,12 +156,13 @@ class PubspecValidator {
           if (entryValue is YamlScalar) {
             Object entry = entryValue.value;
             if (entry is String) {
-              if (!entry.startsWith('packages/')) {
+              if (entry.startsWith('packages/')) {
                 // TODO(brianwilkerson) Add validation of package references.
+              } else {
                 String normalizedEntry =
                     context.joinAll(path.posix.split(entry));
                 String assetPath = context.join(packageRoot, normalizedEntry);
-                if (!provider.getFile(assetPath).exists) {
+                if (!_assetExistsAtPath(assetPath)) {
                   _reportErrorForNode(
                       reporter,
                       entryValue,

@@ -17,6 +17,7 @@
 #include "vm/reusable_handles.h"
 #include "vm/service_isolate.h"
 #include "vm/symbols.h"
+#include "vm/thread.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 namespace dart {
@@ -60,7 +61,7 @@ class SimpleExpressionConverter {
         simple_value_ = &H.DartSymbolPlain(
             builder_->ReadStringReference());  // read index into string table.
         return true;
-      case kSpecialIntLiteral:
+      case kSpecializedIntLiteral:
         simple_value_ =
             &Integer::ZoneHandle(Z, Integer::New(static_cast<int32_t>(payload) -
                                                      SpecializedIntLiteralBias,
@@ -966,7 +967,7 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
   class_helper->SetJustRead(ClassHelper::kImplementedClasses);
   klass->set_interfaces(interfaces);
 
-  if (class_helper->is_abstract_) klass->set_is_abstract();
+  if (class_helper->is_abstract()) klass->set_is_abstract();
 }
 
 // Workaround for http://dartbug.com/32087: currently Kernel front-end
@@ -1015,6 +1016,9 @@ Class& KernelLoader::LoadClass(const Library& library,
   class_helper.ReadUntilIncluding(ClassHelper::kCanonicalName);
   Class& klass = LookupClass(class_helper.canonical_name_);
   klass.set_kernel_offset(class_offset - correction_offset_);
+
+  class_helper.ReadUntilIncluding(ClassHelper::kFlags);
+  if (class_helper.is_enum_class()) klass.set_is_enum_class();
 
   // The class needs to have a script because all the functions in the class
   // will inherit it.  The predicate Function::IsOptimizable uses the absence of
@@ -1070,7 +1074,6 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                                       ClassHelper* class_helper) {
   fields_.Clear();
   functions_.Clear();
-
   ActiveClassScope active_class_scope(&active_class_, &klass);
   if (library.raw() == Library::InternalLibrary() &&
       klass.Name() == Symbols::ClassID().raw()) {
@@ -1122,8 +1125,22 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       }
       fields_.Add(&field);
     }
-    klass.AddFields(fields_);
     class_helper->SetJustRead(ClassHelper::kFields);
+
+    if (I->use_dart_frontend() && klass.is_enum_class()) {
+      // Add static field 'const _deleted_enum_sentinel'.
+      // This field does not need to be of type E.
+      Field& deleted_enum_sentinel = Field::ZoneHandle(Z);
+      deleted_enum_sentinel = Field::New(
+          Symbols::_DeletedEnumSentinel(),
+          /* is_static = */ true,
+          /* is_final = */ true,
+          /* is_const = */ true,
+          /* is_reflectable = */ false, klass, Object::dynamic_type(),
+          TokenPosition::kNoSource, TokenPosition::kNoSource);
+      fields_.Add(&deleted_enum_sentinel);
+    }
+    klass.AddFields(fields_);
   }
 
   class_helper->ReadUntilExcluding(ClassHelper::kConstructors);
@@ -1590,8 +1607,22 @@ RawFunction* CreateFieldInitializerFunction(Thread* thread,
   String& init_name = String::Handle(zone, field.name());
   init_name = Symbols::FromConcat(thread, Symbols::InitPrefix(), init_name);
 
+  // Static field initializers are not added as members of their owning class,
+  // so they must be pre-emptively given a patch class to avoid the meaning of
+  // their kernel/token position changing during a reload. Compare
+  // Class::PatchFieldsAndFunctions().
+  // This might also be necessary for lazy computation of local var descriptors.
+  // Compare https://codereview.chromium.org//1317753004
+  const Script& script = Script::Handle(zone, field.Script());
+  const Class& field_owner = Class::Handle(zone, field.Owner());
+  const PatchClass& initializer_owner =
+      PatchClass::Handle(zone, PatchClass::New(field_owner, script));
+  const Library& lib = Library::Handle(zone, field_owner.library());
+  initializer_owner.set_library_kernel_data(
+      TypedData::Handle(zone, lib.kernel_data()));
+  initializer_owner.set_library_kernel_offset(lib.kernel_offset());
+
   // Create a static initializer.
-  const Object& owner = Object::Handle(field.RawOwner());
   const Function& initializer_fun = Function::Handle(
       zone, Function::New(init_name,
                           // TODO(alexmarkov): Consider creating a separate
@@ -1602,7 +1633,7 @@ RawFunction* CreateFieldInitializerFunction(Thread* thread,
                           false,  // is_abstract
                           false,  // is_external
                           false,  // is_native
-                          owner, TokenPosition::kNoSource));
+                          initializer_owner, TokenPosition::kNoSource));
   initializer_fun.set_kernel_offset(field.kernel_offset());
   initializer_fun.set_result_type(AbstractType::Handle(zone, field.type()));
   initializer_fun.set_is_debuggable(false);

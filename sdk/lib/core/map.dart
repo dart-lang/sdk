@@ -45,7 +45,7 @@ abstract class Map<K, V> {
    * Creates a [LinkedHashMap] instance that contains all key/value pairs of
    * [other].
    *
-   * The keys must all be assignable to [K] and the values to [V].
+   * The keys must all be instances of [K] and the values of [V].
    * The [other] map itself can have any type.
    *
    * A `LinkedHashMap` requires the keys to implement compatible
@@ -55,9 +55,18 @@ abstract class Map<K, V> {
   factory Map.from(Map other) = LinkedHashMap<K, V>.from;
 
   /**
+   * Creates a [LinkedHashMap] with the same keys and values as [other].
+   *
+   * A `LinkedHashMap` requires the keys to implement compatible
+   * `operator==` and `hashCode`, and it allows `null` as a key.
+   * It iterates in key insertion order.
+   */
+  factory Map.of(Map<K, V> other) = LinkedHashMap<K, V>.of;
+
+  /**
    * Creates an unmodifiable hash based map containing the entries of [other].
    *
-   * The keys must all be assignable to [K] and the values to [V].
+   * The keys must all be instances of [K] and the values of [V].
    * The [other] map itself can have any type.
    *
    * The map requires the keys to implement compatible
@@ -399,4 +408,6 @@ class MapEntry<K, V> {
   const factory MapEntry(K key, V value) = MapEntry<K, V>._;
 
   const MapEntry._(this.key, this.value);
+
+  String toString() => "MapEntry($key: $value)";
 }

@@ -51,11 +51,11 @@ class ProgramLookup {
   }
 
   Library getLibrary(LibraryEntity element) {
-    return getLibraryData(element).library;
+    return getLibraryData(element)?.library;
   }
 
   ClassData getClassData(ClassEntity element) {
-    return getLibraryData(element.library).getClassData(element);
+    return getLibraryData(element.library)?.getClassData(element);
   }
 
   Class getClass(ClassEntity element) {

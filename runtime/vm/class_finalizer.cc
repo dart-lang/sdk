@@ -4,6 +4,7 @@
 
 #include "vm/class_finalizer.h"
 
+#include "vm/compiler/jit/compiler.h"
 #include "vm/flags.h"
 #include "vm/hash_table.h"
 #include "vm/heap.h"
@@ -2719,27 +2720,21 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
 void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+
   const Field& index_field =
       Field::Handle(zone, enum_cls.LookupInstanceField(Symbols::Index()));
   ASSERT(!index_field.IsNull());
+
   const Field& name_field = Field::Handle(
       zone, enum_cls.LookupInstanceFieldAllowPrivate(Symbols::_name()));
   ASSERT(!name_field.IsNull());
-  const Field& values_field =
-      Field::Handle(zone, enum_cls.LookupStaticField(Symbols::Values()));
-  ASSERT(!values_field.IsNull());
-  ASSERT(Instance::Handle(zone, values_field.StaticValue()).IsArray());
-  Array& values_list =
-      Array::Handle(zone, Array::RawCast(values_field.StaticValue()));
-  const String& enum_name = String::Handle(enum_cls.ScrubbedName());
-  const String& name_prefix =
-      String::Handle(String::Concat(enum_name, Symbols::Dot()));
 
+  const String& enum_name = String::Handle(zone, enum_cls.ScrubbedName());
+
+  const Array& fields = Array::Handle(zone, enum_cls.fields());
   Field& field = Field::Handle(zone);
-  Instance& ordinal_value = Instance::Handle(zone);
   Instance& enum_value = Instance::Handle(zone);
-
-  String& enum_ident = String::Handle();
+  String& enum_ident = String::Handle(zone);
 
   enum_ident =
       Symbols::FromConcat(thread, Symbols::_DeletedEnumPrefix(), enum_name);
@@ -2750,44 +2745,70 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
   enum_value = enum_value.CheckAndCanonicalize(thread, &error_msg);
   ASSERT(!enum_value.IsNull());
   ASSERT(enum_value.IsCanonical());
-  field = enum_cls.LookupStaticField(Symbols::_DeletedEnumSentinel());
-  ASSERT(!field.IsNull());
-  field.SetStaticValue(enum_value, true);
-  field.RecordStore(enum_value);
+  const Field& sentinel = Field::Handle(
+      zone, enum_cls.LookupStaticField(Symbols::_DeletedEnumSentinel()));
+  ASSERT(!sentinel.IsNull());
+  sentinel.SetStaticValue(enum_value, true);
+  sentinel.RecordStore(enum_value);
 
-  const Array& fields = Array::Handle(zone, enum_cls.fields());
-  for (intptr_t i = 0; i < fields.Length(); i++) {
-    field = Field::RawCast(fields.At(i));
-    if (!field.is_static()) continue;
-    ordinal_value = field.StaticValue();
-    // The static fields that need to be initialized with enum instances
-    // contain the smi value of the ordinal number, which was stored in
-    // the field by the parser. Other fields contain non-smi values.
-    if (!ordinal_value.IsSmi()) continue;
-    enum_ident = field.name();
-    // Construct the string returned by toString.
-    ASSERT(!enum_ident.IsNull());
-    // For the user-visible name of the enumeration value, we need to
-    // unmangle private names.
-    if (enum_ident.CharAt(0) == '_') {
-      enum_ident = String::ScrubName(enum_ident);
+  if (thread->isolate()->use_dart_frontend()) {
+    Object& result = Object::Handle(zone);
+    for (intptr_t i = 0; i < fields.Length(); i++) {
+      field = Field::RawCast(fields.At(i));
+      if (!field.is_static() || !field.is_const() ||
+          (sentinel.raw() == field.raw())) {
+        continue;
+      }
+      field.SetStaticValue(Object::transition_sentinel());
+      result = Compiler::EvaluateStaticInitializer(field);
+      ASSERT(!result.IsError());
+      field.SetStaticValue(Instance::Cast(result), true);
+      field.RecordStore(Instance::Cast(result));
     }
-    enum_ident = Symbols::FromConcat(thread, name_prefix, enum_ident);
-    enum_value = Instance::New(enum_cls, Heap::kOld);
-    enum_value.SetField(index_field, ordinal_value);
-    enum_value.SetField(name_field, enum_ident);
-    enum_value = enum_value.CheckAndCanonicalize(thread, &error_msg);
-    ASSERT(!enum_value.IsNull());
-    ASSERT(enum_value.IsCanonical());
-    field.SetStaticValue(enum_value, true);
-    field.RecordStore(enum_value);
-    intptr_t ord = Smi::Cast(ordinal_value).Value();
-    ASSERT(ord < values_list.Length());
-    values_list.SetAt(ord, enum_value);
+  } else {
+    const String& name_prefix =
+        String::Handle(String::Concat(enum_name, Symbols::Dot()));
+    Instance& ordinal_value = Instance::Handle(zone);
+    Array& values_list = Array::Handle(zone);
+    const Field& values_field =
+        Field::Handle(zone, enum_cls.LookupStaticField(Symbols::Values()));
+    ASSERT(!values_field.IsNull());
+    ASSERT(Instance::Handle(zone, values_field.StaticValue()).IsArray());
+    values_list = Array::RawCast(values_field.StaticValue());
+    const Array& fields = Array::Handle(zone, enum_cls.fields());
+    for (intptr_t i = 0; i < fields.Length(); i++) {
+      field = Field::RawCast(fields.At(i));
+      if (!field.is_static()) continue;
+      ordinal_value = field.StaticValue();
+      // The static fields that need to be initialized with enum instances
+      // contain the smi value of the ordinal number, which was stored in
+      // the field by the parser. Other fields contain non-smi values.
+      if (!ordinal_value.IsSmi()) continue;
+      enum_ident = field.name();
+      // Construct the string returned by toString.
+      ASSERT(!enum_ident.IsNull());
+      // For the user-visible name of the enumeration value, we need to
+      // unmangle private names.
+      if (enum_ident.CharAt(0) == '_') {
+        enum_ident = String::ScrubName(enum_ident);
+      }
+      enum_ident = Symbols::FromConcat(thread, name_prefix, enum_ident);
+      enum_value = Instance::New(enum_cls, Heap::kOld);
+      enum_value.SetField(index_field, ordinal_value);
+      enum_value.SetField(name_field, enum_ident);
+      enum_value = enum_value.CheckAndCanonicalize(thread, &error_msg);
+      ASSERT(!enum_value.IsNull());
+      ASSERT(enum_value.IsCanonical());
+      field.SetStaticValue(enum_value, true);
+      field.RecordStore(enum_value);
+      intptr_t ord = Smi::Cast(ordinal_value).Value();
+      ASSERT(ord < values_list.Length());
+      values_list.SetAt(ord, enum_value);
+    }
+    values_list.MakeImmutable();
+    values_list ^= values_list.CheckAndCanonicalize(thread, &error_msg);
+    ASSERT(!values_list.IsNull());
   }
-  values_list.MakeImmutable();
-  values_list ^= values_list.CheckAndCanonicalize(thread, &error_msg);
-  ASSERT(!values_list.IsNull());
 }
 
 bool ClassFinalizer::IsSuperCycleFree(const Class& cls) {

@@ -87,7 +87,6 @@ bad_override_test/06: MissingCompileTimeError
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 bug31436_test: RuntimeError
-bug32353_test: RuntimeError
 bug32372_test: RuntimeError
 built_in_identifier_prefix_test: CompileTimeError
 call_constructor_on_unresolvable_class_test/01: MissingCompileTimeError
@@ -98,6 +97,7 @@ call_method_as_cast_test/02: RuntimeError
 call_method_as_cast_test/03: RuntimeError
 call_method_as_cast_test/04: RuntimeError
 call_method_as_cast_test/05: RuntimeError
+call_method_implicit_tear_off_assignable_test: RuntimeError
 call_method_implicit_tear_off_implements_function_test/01: RuntimeError
 call_method_implicit_tear_off_implements_function_test/02: RuntimeError
 call_method_implicit_tear_off_implements_function_test/03: RuntimeError
@@ -516,6 +516,7 @@ issue31596_super_test/02: MissingCompileTimeError
 issue31596_super_test/04: MissingCompileTimeError
 issue31596_super_test/05: RuntimeError
 issue31596_tearoff_test: RuntimeError
+issue32353_test: RuntimeError
 language_2/least_upper_bound_expansive_test/none: CompileTimeError
 least_upper_bound_expansive_test/none: CompileTimeError
 least_upper_bound_test/03: MissingCompileTimeError
@@ -1157,7 +1158,6 @@ implicit_downcast_during_variable_declaration_test: RuntimeError
 implicit_downcast_during_while_statement_test: RuntimeError
 issue31596_implement_covariant_test: RuntimeError
 issue31596_test: RuntimeError
-tearoff_dynamic_test: RuntimeError
 type_argument_in_super_type_test: RuntimeError
 type_check_const_function_typedef2_test: MissingCompileTimeError
 

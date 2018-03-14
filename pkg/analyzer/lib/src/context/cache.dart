@@ -905,7 +905,7 @@ class CacheEntry {
  */
 class CacheFlushManager<T> {
   final IsPriorityAnalysisTarget isPriorityAnalysisTarget;
-  final ResultCachingPolicy<T> policy;
+  final ResultCachingPolicy policy;
   final int maxActiveSize;
   final int maxIdleSize;
 
@@ -934,8 +934,7 @@ class CacheFlushManager<T> {
    */
   int maxSize;
 
-  CacheFlushManager(
-      ResultCachingPolicy<T> policy, this.isPriorityAnalysisTarget)
+  CacheFlushManager(ResultCachingPolicy policy, this.isPriorityAnalysisTarget)
       : policy = policy,
         maxActiveSize = policy.maxActiveSize,
         maxIdleSize = policy.maxIdleSize,

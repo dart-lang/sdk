@@ -14,6 +14,7 @@
 #include <zircon/status.h>
 #include <zircon/syscalls.h>
 
+#include "bin/console.h"
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
 #include "bin/file.h"
@@ -147,6 +148,7 @@ const char* Platform::ResolveExecutablePath() {
 }
 
 void Platform::Exit(int exit_code) {
+  Console::RestoreConfig();
   exit(exit_code);
 }
 

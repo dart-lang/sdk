@@ -1729,11 +1729,22 @@ a:focus, a:hover {
         <p>
           The length of the element.
         </p>
+      </dd><dt class="field"><b>codeOffset: int</b></dt><dd>
+        
+        <p>
+          The offset of the first character of the element code, which is
+          neither documentation, nor annotation.
+        </p>
+      </dd><dt class="field"><b>codeLength: int</b></dt><dd>
+        
+        <p>
+          The length of the element code.
+        </p>
       </dd><dt class="field"><b>children: List&lt;<a href="#type_Outline">Outline</a>&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
         
         <p>
           The children of the node. The field will be omitted if the node has no
-          children.
+          children. Children are sorted by offset.
         </p>
       </dd></dl></dd><dt class="typeDefinition"><a name="type_Position">Position: object</a></dt><dd>
     <p>

@@ -261,6 +261,16 @@ config("compiler") {
     cflags += [ "-fcolor-diagnostics" ]
   }
 
+  # C++14 compiler flags setup.
+  # ---------------------------
+  if (is_win) {
+    cc_std = [ "/std:c++14" ]
+  } else {
+    cc_std = [ "-std=c++14" ]
+  }
+  cflags_cc += cc_std
+  cflags_objcc += cc_std
+
   # Android-specific flags setup.
   # -----------------------------
   if (is_android) {
@@ -375,12 +385,13 @@ config("compiler_arm_fpu") {
 }
 
 config("compiler_arm_thumb") {
-  if (current_cpu == "arm" && arm_use_thumb && is_posix &&
-      !(is_mac || is_ios)) {
-    cflags = [ "-mthumb" ]
-    if (is_android && !is_clang) {
-      # Clang doesn't support this option.
-      cflags += [ "-mthumb-interwork" ]
+  if (current_cpu == "arm") {
+    if (arm_use_thumb) {
+      cflags = [ "-mthumb" ]
+      if (is_android && !is_clang) {  # Clang doesn't support this option.
+        cflags += [ "-mthumb-interwork" ]
+      }
+      asmflags = cflags
     }
   }
 }

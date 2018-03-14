@@ -299,7 +299,7 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
     return -1;
   }
 
-  String toString() => Maps.mapToString(this);
+  String toString() => MapBase.mapToString(this);
 
   LinkedHashMapCell _getTableCell(var table, var key) {
     return JS('var', '#[#]', table, key);

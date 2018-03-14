@@ -11,13 +11,14 @@ part of dart.convert;
  * use cases.
  *
  * Examples:
- *
- *     var encoded = ascii.encode("This is ASCII!");
- *     var decoded = ascii.decode([0x54, 0x68, 0x69, 0x73, 0x20, 0x69, 0x73,
- *                                 0x20, 0x41, 0x53, 0x43, 0x49, 0x49, 0x21]);
+ * ```dart
+ * var encoded = ascii.encode("This is ASCII!");
+ * var decoded = ascii.decode([0x54, 0x68, 0x69, 0x73, 0x20, 0x69, 0x73,
+ *                             0x20, 0x41, 0x53, 0x43, 0x49, 0x49, 0x21]);
+ * ```
  */
 const AsciiCodec ascii = const AsciiCodec();
-/** Deprecated, use [ascii] instead. */
+@Deprecated("Use ascii instead")
 const AsciiCodec ASCII = ascii;
 
 const int _asciiMask = 0x7F;
@@ -42,6 +43,8 @@ class AsciiCodec extends Encoding {
   const AsciiCodec({bool allowInvalid: false}) : _allowInvalid = allowInvalid;
 
   String get name => "us-ascii";
+
+  Uint8List encode(String source) => encoder.convert(source);
 
   /**
    * Decodes the ASCII [bytes] (a list of unsigned 7-bit integers) to the
@@ -82,12 +85,12 @@ class _UnicodeSubsetEncoder extends Converter<String, List<int>> {
    * If [start] and [end] are provided, only the substring
    * `string.substring(start, end)` is used as input to the conversion.
    */
-  List<int> convert(String string, [int start = 0, int end]) {
+  Uint8List convert(String string, [int start = 0, int end]) {
     int stringLength = string.length;
     RangeError.checkValidRange(start, end, stringLength);
     if (end == null) end = stringLength;
     int length = end - start;
-    List<int> result = new Uint8List(length);
+    var result = new Uint8List(length);
     for (int i = 0; i < length; i++) {
       var codeUnit = string.codeUnitAt(start + i);
       if ((codeUnit & ~_subsetMask) != 0) {

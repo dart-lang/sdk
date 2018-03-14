@@ -5,35 +5,12 @@
 [ $compiler == dart2js ]
 Language/Classes/Constructors/Generative_Constructors/execution_of_a_superinitializer_t01: RuntimeError # compiler cancelled: cannot resolve type T
 Language/Classes/Constructors/Generative_Constructors/execution_of_a_superinitializer_t01: RuntimeError, OK # co19 issue 258
-Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: Fail # Issue 13363
-Language/Classes/Constructors/Generative_Constructors/execution_t03: RuntimeError # https://github.com/dart-lang/sdk/issues/29596
-Language/Classes/Constructors/Generative_Constructors/initializing_formals_execution_t02: Fail # Issue 13363
-Language/Classes/Getters/static_getter_t02: CompileTimeError # Should be fixed with unified frontend. Issue 24534
-Language/Classes/Instance_Methods/same_name_setter_t01: Fail # Issue 21201
-Language/Classes/Setters/name_t01: CompileTimeError # Issue 5023
-Language/Classes/Setters/name_t02: CompileTimeError # Issue 5023
-Language/Classes/Setters/name_t03: RuntimeError # Issue 5023
-Language/Classes/Setters/name_t07: CompileTimeError # Issue 5023
-Language/Classes/Setters/static_setter_t06: RuntimeError # Should be fixed with unified frontend. Issue 23749
-Language/Classes/Static_Methods/same_name_method_and_setter_t01: CompileTimeError # Should be fixed with unified frontend. Issue 23749
-Language/Classes/definition_t23: CompileTimeError # Please triage this failure
-Language/Classes/same_name_type_variable_t01: Fail # Missing CT error on class with same name a type parameter
-Language/Classes/same_name_type_variable_t02: Fail # Missing CT error on member with same name a type parameter
-Language/Classes/same_name_type_variable_t03: Fail # Missing CT error on member with same name a type parameter
-Language/Classes/same_name_type_variable_t05: Fail # Missing CT error on member with same name a type parameter
-Language/Classes/same_name_type_variable_t06: Fail # Missing CT error on member with same name a type parameter
-Language/Classes/same_name_type_variable_t08: Fail # Missing CT error on member with same name a type parameter
-Language/Classes/same_name_type_variable_t09: Fail # Missing CT error on member with same name a type parameter
-Language/Errors_and_Warnings/compile_error_t06: MissingCompileTimeError # Please triage this failure
-Language/Errors_and_Warnings/compile_error_t07: MissingCompileTimeError # Please triage this failure
 Language/Expressions/Assignment/super_assignment_failed_t05: RuntimeError # Issue 25671
 Language/Expressions/Assignment/super_assignment_value_t02: RuntimeError # Please triage this failure
 Language/Expressions/Await_Expressions/evaluation_throws_t03: RuntimeError # Please triage this failure
 Language/Expressions/Await_Expressions/evaluation_throws_t04: RuntimeError # Please triage this failure
 Language/Expressions/Await_Expressions/evaluation_throws_t06: RuntimeError # Please triage this failure
 Language/Expressions/Await_Expressions/evaluation_throws_t07: RuntimeError # Please triage this failure
-Language/Expressions/Constants/identifier_denotes_a_constant_t06: MissingCompileTimeError # Issue 26580
-Language/Expressions/Constants/identifier_denotes_a_constant_t07: MissingCompileTimeError # Issue 26580
 Language/Expressions/Function_Invocation/async_cleanup_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 Language/Expressions/Function_Invocation/async_cleanup_t03: Skip # https://github.com/dart-lang/sdk/issues/28873
 Language/Expressions/Function_Invocation/async_cleanup_t05: Skip # https://github.com/dart-lang/sdk/issues/28873
@@ -44,10 +21,6 @@ Language/Expressions/Function_Invocation/async_generator_invokation_t10: Skip # 
 Language/Expressions/Function_Invocation/async_invokation_t04: RuntimeError, Pass # co19 issue 57
 Language/Expressions/Instance_Creation/New/evaluation_t19: RuntimeError # Please triage this failure
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError # Please triage this failure
-Language/Expressions/Instance_Creation/New/execution_t04: RuntimeError # https://github.com/dart-lang/sdk/issues/29596
-Language/Expressions/Instance_Creation/New/execution_t06: RuntimeError # https://github.com/dart-lang/sdk/issues/29596
-Language/Expressions/Maps/key_value_equals_operator_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Maps/static_type_dynamic_t01: CompileTimeError # Maybe ok. Issue 17207
 Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t01: MissingCompileTimeError # Issue 25496
 Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t02: MissingCompileTimeError # Issue 25496
 Language/Expressions/Numbers/syntax_t06: Fail # Issue 21098
@@ -66,15 +39,8 @@ Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/cla
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t06: MissingCompileTimeError # Issue 24332
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t07: MissingCompileTimeError # Issue 24332
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t08: MissingCompileTimeError # Issue 24332
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/no_such_method_t01: RuntimeError # Issue 24331
-Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/no_such_method_t01: RuntimeError # Issue 24331
 Language/Expressions/Shift/syntax_t01/14: MissingRuntimeError # Please triage this failure
-Language/Functions/External_Functions/not_connected_to_a_body_t01: CompileTimeError, OK # Issue 5021
-Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t01: CompileTimeError # Please triage this failure
-Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t02: CompileTimeError # Please triage this failure
-Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01/01: CompileTimeError # Please triage this failure
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: CompileTimeError # Please triage this failure
-Language/Libraries_and_Scripts/Scripts/top_level_main_t05: RuntimeError # Please triage this failure
 Language/Metadata/before_export_t01: RuntimeError # Please triage this failure
 Language/Metadata/before_import_t01: RuntimeError # Please triage this failure
 Language/Metadata/before_library_t01: RuntimeError # Please triage this failure
@@ -82,20 +48,7 @@ Language/Metadata/before_param_t09: RuntimeError # Please triage this failure
 Language/Metadata/before_type_param_t01: RuntimeError # Please triage this failure
 Language/Metadata/before_typedef_t01: RuntimeError # Please triage this failure
 Language/Metadata/before_variable_t01: RuntimeError # Please triage this failure
-Language/Mixins/Mixin_Application/static_warning_t01: CompileTimeError # Please triage this failure
-Language/Mixins/Mixin_Application/static_warning_t02: CompileTimeError # Please triage this failure
-Language/Mixins/Mixin_Application/superinterfaces_t06: CompileTimeError # Please triage this failure
-Language/Mixins/Mixin_Application/superinterfaces_t07: CompileTimeError # Please triage this failure
-Language/Mixins/Mixin_Application/syntax_t11: CompileTimeError # Please triage this failure
-Language/Mixins/Mixin_Application/syntax_t12: CompileTimeError # Please triage this failure
-Language/Mixins/Mixin_Application/syntax_t13: CompileTimeError # Please triage this failure
-Language/Mixins/Mixin_Application/syntax_t14: CompileTimeError # Please triage this failure
 Language/Mixins/Mixin_Application/syntax_t20: CompileTimeError # Please triage this failure
-Language/Mixins/Mixin_Application/syntax_t21: CompileTimeError # Please triage this failure
-Language/Mixins/Mixin_Application/syntax_t22: CompileTimeError # Please triage this failure
-Language/Mixins/Mixin_Application/syntax_t23: CompileTimeError # Please triage this failure
-Language/Mixins/Mixin_Application/syntax_t24: CompileTimeError # Please triage this failure
-Language/Mixins/Mixin_Application/syntax_t25: CompileTimeError # Please triage this failure
 Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Issue 24767
 Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Issue 24767
 Language/Mixins/deferred_t01: MissingCompileTimeError # Please triage this failure
@@ -104,9 +57,6 @@ Language/Mixins/reference_to_super_t01: MissingCompileTimeError # Please triage 
 Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t08: RuntimeError # Please triage this failure
 Language/Statements/Assert/syntax_t04: MissingCompileTimeError # This is legal Dart
 Language/Statements/Continue/async_loops_t09: Crash # Please triage this failure
-Language/Statements/Local_Function_Declaration/reference_before_declaration_t01: MissingCompileTimeError # Issue 21050
-Language/Statements/Local_Function_Declaration/reference_before_declaration_t03: MissingCompileTimeError # Issue 21050
-Language/Statements/Try/catch_scope_t01: RuntimeError # Please triage this failure
 Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t02: RuntimeError # Please triage this failure
 Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t03: Skip # https://github.com/dart-lang/sdk/issues/28873
 Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t05: Skip # https://github.com/dart-lang/sdk/issues/28873
@@ -120,14 +70,9 @@ Language/Types/Dynamic_Type_System/deferred_type_error_t01: RuntimeError # Pleas
 Language/Types/Interface_Types/subtype_t27: Skip # Times out or crashes. Issue 21174
 Language/Types/Interface_Types/subtype_t28: Pass, Fail, Crash # Stack overflow. Issue 25282
 Language/Types/Interface_Types/subtype_t30: Fail # Issue 14654
-Language/Types/Type_Void/syntax_t01: MissingCompileTimeError
-Language/Types/Type_Void/syntax_t04: MissingCompileTimeError
 Language/Types/Type_Void/syntax_t05: MissingCompileTimeError, Crash
 Language/Types/Type_Void/syntax_t08: MissingCompileTimeError
-Language/Variables/final_t01/01: CompileTimeError # co19 issue 77
-Language/Variables/final_t02/01: CompileTimeError # co19 issue 77
-Language/Variables/local_variable_t01: MissingCompileTimeError # Issue 21050
-LayoutTests/fast/css/font-face-cache-bug_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
+LayoutTests/fast/css/content/content-quotes-01_t01: Pass, RuntimeError
 LayoutTests/fast/dom/HTMLLinkElement/link-onload-stylesheet-with-import_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/dom/css-innerHTML_t01: SkipByDesign # Test is incorrect.
 LayoutTests/fast/dom/mutation-event-remove-inserted-node_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
@@ -145,6 +90,8 @@ LayoutTests/fast/replaced/table-percent-height_t01: Skip # https://github.com/da
 LayoutTests/fast/replaced/table-percent-width_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-image-margin_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/table/css-table-max-height_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
+LayoutTests/fast/table/fixed-table-layout-toggle-colwidth_t01: Pass, RuntimeError
+LayoutTests/fast/table/fixed-table-with-percent-width-inside-extra-large-div_t01: Pass, RuntimeError
 LayoutTests/fast/table/hittest-tablecell-right-edge_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/table/hittest-tablecell-with-borders-right-edge_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/table/table-all-rowspans-height-distribution-in-rows-except-overlapped_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
@@ -215,9 +162,6 @@ LibTest/isolate/Isolate/spawnUri_A02_t01: RuntimeError, Pass # Dart issue 15617
 LibTest/isolate/Isolate/spawn_A02_t02: RuntimeError, Pass # Dart issue 15617
 LibTest/isolate/Isolate/spawn_A04_t01: RuntimeError # Dart issue 15974
 LibTest/isolate/Isolate/spawn_A06_t06: Skip # Times out. Please triage this failure.
-LibTest/isolate/SendPort/send_A01_t01: CompileTimeError # co19-roll r706: Please triage this failure
-LibTest/isolate/SendPort/send_A01_t02: CompileTimeError # co19-roll r706: Please triage this failure
-LibTest/isolate/SendPort/send_A01_t03: CompileTimeError # co19-roll r706: Please triage this failure
 LibTest/math/MutableRectangle/boundingBox_A01_t01: RuntimeError, Pass # co19-roll r706: Please triage this failure.
 LibTest/math/Rectangle/boundingBox_A01_t01: RuntimeError, Pass # co19-roll r706: Please triage this failure.
 LibTest/math/pow_A04_t01: Fail # co19-roll r587: Please triage this failure
@@ -501,17 +445,10 @@ LayoutTests/fast/css/deprecated-flexbox-auto-min-size_t01: RuntimeError # Please
 LayoutTests/fast/css/ex-unit-with-no-x-height_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/first-child-display-change-inverse_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/focus-display-block-inline_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/css/font-face-cache-bug_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-insert-link_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/css/font-face-unicode-range-load_t01: Skip # Please triage this failure
-LayoutTests/fast/css/font-face-unicode-range-monospace_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-unicode-range-overlap-load_t01: Skip # Times out, Runtime error. Please triage this failure
-LayoutTests/fast/css/font-family-trailing-bracket-gunk_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/fontfaceset-download-error_t01: Skip # Timeout: issue 28722. Runtime error not triaged
 LayoutTests/fast/css/fontfaceset-events_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/css/fontfaceset-loadingdone_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/getComputedStyle/computed-style-cross-fade_t01: RuntimeError # co19 issue 14
 LayoutTests/fast/css/getComputedStyle/computed-style-font_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/getComputedStyle/font-family-fallback-reset_t01: RuntimeError # Please triage this failure
@@ -1053,7 +990,6 @@ LibTest/html/HttpRequestUpload/onError_A01_t02: Skip # Times out. Please triage 
 LibTest/html/HttpRequestUpload/onLoadEnd_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/HttpRequestUpload/onLoadStart_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/HttpRequestUpload/onLoad_A01_t01: Skip # Times out. Please triage this failure
-LibTest/html/IFrameElement/IFrameElement.created_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/attributeChanged_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/attributes_setter_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/blur_A01_t01: Skip # Times out. Please triage this failure
@@ -1108,14 +1044,6 @@ WebPlatformTest/Utils/test/asyncTestTimeout_t01: Skip # Times out. Please triage
 WebPlatformTest/custom-elements/concepts/type_A03_t01: RuntimeError # Please triage this failure
 WebPlatformTest/custom-elements/concepts/type_A05_t01: RuntimeError # Please triage this failure
 WebPlatformTest/custom-elements/concepts/type_A06_t01: RuntimeError # Please triage this failure
-WebPlatformTest/custom-elements/instantiating/createElementNS_A02_t01: RuntimeError # Issue 25155
-WebPlatformTest/custom-elements/instantiating/createElementNS_A03_t01: RuntimeError # Issue 25155
-WebPlatformTest/custom-elements/instantiating/createElementNS_A04_t01: RuntimeError # Please triage this failure
-WebPlatformTest/custom-elements/instantiating/createElement_A02_t01: RuntimeError # Issue 25155
-WebPlatformTest/custom-elements/instantiating/createElement_A03_t01: RuntimeError # Issue 25155
-WebPlatformTest/custom-elements/instantiating/createElement_A04_t01: RuntimeError # Please triage this failure
-WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t01: RuntimeError # Issue 25155
-WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t02: RuntimeError # Issue 25155
 WebPlatformTest/dom/EventTarget/dispatchEvent_A02_t01: RuntimeError # Please triage this failure
 WebPlatformTest/dom/EventTarget/dispatchEvent_A03_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/dom/events/type_A01_t01: RuntimeError # Please triage this failure
@@ -1420,6 +1348,9 @@ WebPlatformTest/webstorage/event_session_url_t01: Skip # Timeout. Please triage 
 LayoutTests/fast/dom/HTMLScriptElement/remove-source_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/event-listener-html-non-html-confusion_t01: RuntimeError # Please triage this failure
 
+[ $compiler == dart2js && $runtime == chrome && !$fasta ]
+LayoutTests/fast/canvas/gradient-addColorStop-with-invalid-color_t01: RuntimeError
+
 [ $compiler == dart2js && $runtime != chrome && $runtime != drt && $browser && $fast_startup ]
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-005_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/methods/test-001_t01: Fail # please triage
@@ -1516,6 +1447,12 @@ LibTest/async/DeferredLibrary/*: Skip # Issue 17458
 
 [ $compiler == dart2js && $runtime == d8 && $fast_startup ]
 LibTest/isolate/Isolate/spawn_A04_t04: Fail # Issue 27558
+
+[ $compiler == dart2js && $runtime == d8 && $fasta ]
+LayoutTests/*: SkipByDesign
+LibTest/html/*: SkipByDesign
+LibTest/html/Element/mouseEnterEvent_A01_t01: RuntimeError
+WebPlatformTest/*: SkipByDesign
 
 [ $compiler == dart2js && $runtime != d8 && $runtime != drt && $checked ]
 WebPlatformTest/custom-elements/instantiating/createElementNS_A04_t01: RuntimeError # Please triage this failure
@@ -2560,12 +2497,9 @@ LayoutTests/fast/css/dynamic-class-backdrop-pseudo_t01: RuntimeError # Please tr
 LayoutTests/fast/css/first-child-display-change-inverse_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/focus-display-block-inline_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-insert-link_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/css/font-family-trailing-bracket-gunk_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-property-priority_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-mix-inherit_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Uses FontFace class, not defined for this browser.
-LayoutTests/fast/css/fontfaceset-download-error_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/getComputedStyle/computed-style-border-image_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/getComputedStyle/computed-style-cross-fade_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/getComputedStyle/computed-style-font_t01: RuntimeError # Please triage this failure
@@ -4060,11 +3994,9 @@ LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: RuntimeErr
 LayoutTests/fast/css/font-face-unicode-range-load_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-unicode-range-overlap-load_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-family-initial-shorthand_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/font-family-trailing-bracket-gunk_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-mix-inherit_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Uses FontFace class, not defined for this browser
-LayoutTests/fast/css/fontfaceset-download-error_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/fontfaceset-download-error_t01: RuntimeError
 LayoutTests/fast/css/fontfaceset-events_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-loadingdone_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/getComputedStyle/computed-style-border-image_t01: RuntimeError # Please triage this failure
@@ -7044,6 +6976,302 @@ Language/Metadata/compilation_t10: Pass # mirrors not supported, fails for the w
 Language/Metadata/compilation_t11: Pass # mirrors not supported, fails for the wrong reason
 WebPlatformTest/shadow-dom/testcommon: Fail # mirrors not supported
 
+[ $compiler == dart2js && $fasta ]
+Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: MissingCompileTimeError
+Language/Classes/Constructors/Generative_Constructors/execution_t04: Crash
+Language/Classes/Constructors/Generative_Constructors/execution_t05: Crash
+Language/Classes/Constructors/Generative_Constructors/execution_t06: Crash
+Language/Classes/Constructors/Generative_Constructors/execution_t07: Crash
+Language/Classes/Constructors/Generative_Constructors/execution_t12: Crash
+Language/Classes/Constructors/Generative_Constructors/initializing_formals_execution_t02: MissingCompileTimeError
+Language/Classes/Constructors/Generative_Constructors/redirection_t03: Crash
+Language/Classes/Constructors/Generative_Constructors/redirection_t07: Crash
+Language/Classes/Constructors/Generative_Constructors/redirection_t08: Crash
+Language/Classes/Getters/same_name_method_t03: MissingCompileTimeError
+Language/Classes/Getters/same_name_method_t04: MissingCompileTimeError
+Language/Classes/Getters/same_name_method_t05: MissingCompileTimeError
+Language/Classes/Getters/same_name_method_t07: MissingCompileTimeError
+Language/Classes/Superinterfaces/more_than_once_t01: MissingCompileTimeError
+Language/Classes/Superinterfaces/superclass_as_superinterface_t01: MissingCompileTimeError
+Language/Classes/definition_t16: Crash
+Language/Classes/definition_t24: MissingCompileTimeError
+Language/Classes/same_name_instance_and_static_members_t01: MissingCompileTimeError
+Language/Classes/same_name_instance_and_static_members_t02: MissingCompileTimeError
+Language/Classes/same_name_instance_and_static_members_t03: MissingCompileTimeError
+Language/Classes/same_name_instance_and_static_members_t04: MissingCompileTimeError
+Language/Expressions/Assignment/expression_assignment_t07: RuntimeError
+Language/Expressions/Assignment/no_such_method_t01: RuntimeError
+Language/Expressions/Assignment/no_such_method_t02: RuntimeError
+Language/Expressions/Assignment/no_such_method_t03: RuntimeError
+Language/Expressions/Assignment/no_such_method_t04: RuntimeError
+Language/Expressions/Assignment/no_such_method_t05: RuntimeError
+Language/Expressions/Assignment/no_such_method_t06: RuntimeError
+Language/Expressions/Assignment/no_such_method_t07: RuntimeError
+Language/Expressions/Assignment/no_such_method_t08: RuntimeError
+Language/Expressions/Assignment/no_such_method_t09: RuntimeError
+Language/Expressions/Constants/bitwise_operators_t05: MissingCompileTimeError
+Language/Expressions/Constants/depending_on_itself_t03: Crash
+Language/Expressions/Constants/exception_t01: MissingCompileTimeError
+Language/Expressions/Constants/exception_t02: MissingCompileTimeError
+Language/Expressions/Constants/logical_expression_t04: MissingCompileTimeError
+Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: Crash
+Language/Expressions/Identifier_Reference/evaluation_variable_or_parameter_t02: RuntimeError
+Language/Expressions/Instance_Creation/Const/exception_t01: MissingCompileTimeError
+Language/Expressions/Maps/syntax_t08: Crash
+Language/Expressions/Method_Invocation/Ordinary_Invocation/evaluation_t08: RuntimeError
+Language/Expressions/Method_Invocation/Super_Invocation/accessible_instance_member_t02: Crash
+Language/Expressions/Method_Invocation/Super_Invocation/evaluation_t05: RuntimeError
+Language/Expressions/Method_Invocation/Super_Invocation/invocation_t02: Crash
+Language/Expressions/Null/instance_of_class_null_t01: RuntimeError
+Language/Expressions/Strings/String_Interpolation/syntax_t08: Crash
+Language/Expressions/Strings/multi_line_t11: Crash # Investiage: source-data from FE causes us to crash
+Language/Expressions/Strings/multi_line_t12: Crash
+Language/Expressions/Strings/multi_line_t13: Crash
+Language/Expressions/Strings/multi_line_t15: Crash
+Language/Expressions/Strings/multi_line_t16: Crash
+Language/Expressions/Strings/multi_line_t17: Crash
+Language/Expressions/Strings/multi_line_t18: Crash
+Language/Expressions/Strings/multi_line_t19: Crash
+Language/Expressions/Strings/multi_line_t20: Crash
+Language/Expressions/Strings/multi_line_t21: Crash
+Language/Expressions/Strings/multi_line_t22: Crash
+Language/Expressions/Strings/multi_line_t23: Crash
+Language/Expressions/Strings/multi_line_t24: Crash
+Language/Expressions/Strings/multi_line_t25: Crash
+Language/Expressions/Strings/multi_line_t28: Crash
+Language/Expressions/Strings/multi_line_t29: Crash
+Language/Expressions/Strings/multi_line_t32: Crash
+Language/Expressions/Strings/multi_line_t33: Crash
+Language/Expressions/This/placement_t04: Crash
+Language/Functions/External_Functions/not_connected_to_a_body_t01: RuntimeError
+Language/Functions/syntax_t09: Crash
+Language/Libraries_and_Scripts/Imports/same_name_t10: RuntimeError
+Language/Libraries_and_Scripts/Scripts/top_level_main_t01: CompileTimeError
+Language/Metadata/before_class_t01: RuntimeError
+Language/Metadata/before_ctor_t01: RuntimeError
+Language/Metadata/before_ctor_t02: RuntimeError
+Language/Metadata/before_factory_t01: RuntimeError
+Language/Metadata/before_function_t01: RuntimeError
+Language/Metadata/before_function_t02: RuntimeError
+Language/Metadata/before_function_t03: RuntimeError
+Language/Metadata/before_function_t04: RuntimeError
+Language/Metadata/before_function_t05: RuntimeError
+Language/Metadata/before_function_t06: RuntimeError
+Language/Metadata/before_function_t07: RuntimeError
+Language/Metadata/before_param_t01: RuntimeError
+Language/Metadata/before_param_t02: RuntimeError
+Language/Metadata/before_param_t03: RuntimeError
+Language/Metadata/before_param_t04: RuntimeError
+Language/Metadata/before_param_t05: RuntimeError
+Language/Metadata/before_param_t06: RuntimeError
+Language/Metadata/before_param_t07: RuntimeError
+Language/Metadata/before_param_t08: RuntimeError
+Language/Metadata/before_variable_t02: RuntimeError
+Language/Mixins/Mixin_Application/error_t01: MissingCompileTimeError
+Language/Mixins/Mixin_Application/error_t02: MissingCompileTimeError
+Language/Mixins/Mixin_Application/syntax_t23: RuntimeError
+Language/Mixins/Mixin_Application/syntax_t24: RuntimeError
+Language/Mixins/Mixin_Application/syntax_t25: RuntimeError
+Language/Statements/Continue/async_loops_t10: Timeout
+Language/Types/Type_Void/syntax_t09: MissingCompileTimeError
+LayoutTests/fast/canvas/gradient-addColorStop-with-invalid-color_t01: RuntimeError
+LayoutTests/fast/canvas/rgba-parsing_t01: RuntimeError
+LibTest/core/Invocation/namedArguments_A01_t01: RuntimeError
+LibTest/html/Document/dispatchEvent_A01_t01: Crash
+LibTest/html/Document/on_A01_t01: Crash
+LibTest/html/Document/on_A01_t02: Crash
+LibTest/html/HttpRequest/abort_A01_t01: Crash
+LibTest/html/HttpRequest/dispatchEvent_A01_t01: Crash
+LibTest/html/HttpRequest/getAllResponseHeaders_A01_t01: Crash
+LibTest/html/HttpRequest/getResponseHeader_A01_t01: Crash
+LibTest/html/HttpRequest/getString_A01_t01: Crash
+LibTest/html/HttpRequest/onAbort_A01_t01: Crash
+LibTest/html/HttpRequest/onLoadEnd_A01_t01: Crash
+LibTest/html/HttpRequest/onLoadStart_A01_t01: Crash
+LibTest/html/HttpRequest/onLoad_A01_t01: Crash
+LibTest/html/HttpRequest/onReadyStateChange_A01_t01: Crash
+LibTest/html/HttpRequest/overrideMimeType_A01_t01: Crash
+LibTest/html/HttpRequest/readyStateChangeEvent_A01_t01: Crash
+LibTest/html/HttpRequest/request_A01_t01: Crash
+LibTest/html/HttpRequest/responseText_A01_t01: Crash
+LibTest/html/HttpRequest/setRequestHeader_A01_t01: Crash
+LibTest/html/HttpRequest/statusText_A01_t01: Crash
+LibTest/html/HttpRequest/status_A01_t01: Crash
+LibTest/html/HttpRequestUpload/onAbort_A01_t01: Crash
+LibTest/html/IFrameElement/contentWindow_A01_t01: Crash
+LibTest/html/IFrameElement/dispatchEvent_A01_t01: Crash
+LibTest/html/Node/dispatchEvent_A01_t01: Crash
+LibTest/html/Window/dispatchEvent_A01_t01: Crash
+LibTest/html/Window/postMessage_A01_t02: Crash
+LibTest/html/Window/requestFileSystem_A02_t01: Crash
+LibTest/isolate/SendPort/send_A01_t03: RuntimeError
+WebPlatformTest/html/semantics/embedded-content/the-audio-element/audio_constructor_t01: RuntimeError
+
+[ $compiler == dart2js && $fasta && $host_checked ]
+Language/Classes/Constructors/Factories/redirecting_constructor_t03: Crash
+Language/Classes/Constructors/Generative_Constructors/execution_t04: Crash
+Language/Classes/Constructors/Generative_Constructors/execution_t05: Crash
+Language/Classes/Constructors/Generative_Constructors/execution_t06: Crash
+Language/Classes/Constructors/Generative_Constructors/execution_t07: Crash
+Language/Classes/Constructors/Generative_Constructors/execution_t12: Crash
+Language/Classes/Constructors/Generative_Constructors/redirection_t03: Crash
+Language/Classes/Constructors/Generative_Constructors/redirection_t07: Crash
+Language/Classes/Constructors/Generative_Constructors/redirection_t08: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t02: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t05: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t07: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t08: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t09: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t10: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t11: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t12: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t13: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t14: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t15: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t16: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t17: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t18: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t19: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t20: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t21: Crash
+Language/Classes/Instance_Methods/Operators/allowed_names_t22: Crash
+Language/Classes/definition_t16: Crash
+Language/Classes/member_definition_t04: Crash
+Language/Classes/member_definition_t06: Crash
+Language/Classes/member_definition_t07: Crash
+Language/Classes/member_definition_t08: Crash
+Language/Classes/member_definition_t09: Crash
+Language/Classes/member_definition_t10: Crash
+Language/Classes/member_definition_t11: Crash
+Language/Classes/member_definition_t12: Crash
+Language/Expressions/Constants/depending_on_itself_t03: Crash
+Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: Crash
+Language/Expressions/Maps/syntax_t08: Crash
+Language/Expressions/Method_Invocation/Super_Invocation/accessible_instance_member_t02: Crash
+Language/Expressions/Method_Invocation/Super_Invocation/evaluation_t05: Crash
+Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t03: Crash
+Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t04: Crash
+Language/Expressions/Method_Invocation/Super_Invocation/invocation_t02: Crash
+Language/Expressions/Strings/String_Interpolation/syntax_t08: Crash
+Language/Expressions/Strings/multi_line_t11: Crash
+Language/Expressions/Strings/multi_line_t12: Crash
+Language/Expressions/Strings/multi_line_t13: Crash
+Language/Expressions/Strings/multi_line_t15: Crash
+Language/Expressions/Strings/multi_line_t16: Crash
+Language/Expressions/Strings/multi_line_t17: Crash
+Language/Expressions/Strings/multi_line_t18: Crash
+Language/Expressions/Strings/multi_line_t19: Crash
+Language/Expressions/Strings/multi_line_t20: Crash
+Language/Expressions/Strings/multi_line_t21: Crash
+Language/Expressions/Strings/multi_line_t22: Crash
+Language/Expressions/Strings/multi_line_t23: Crash
+Language/Expressions/Strings/multi_line_t24: Crash
+Language/Expressions/Strings/multi_line_t25: Crash
+Language/Expressions/Strings/multi_line_t28: Crash
+Language/Expressions/Strings/multi_line_t29: Crash
+Language/Expressions/Strings/multi_line_t32: Crash
+Language/Expressions/Strings/multi_line_t33: Crash
+Language/Expressions/This/placement_t04: Crash
+Language/Functions/setter_modifier_t01: Crash
+Language/Functions/setter_modifier_t02: Crash
+Language/Functions/setter_modifier_t03: Crash
+Language/Functions/setter_modifier_t04: Crash
+Language/Functions/setter_modifier_t05: Crash
+Language/Functions/setter_modifier_t06: Crash
+Language/Functions/syntax_t09: Crash
+Language/Statements/For/syntax_t13: Crash
+Language/Statements/For/syntax_t20: Crash
+LibTest/core/Invocation/namedArguments_A01_t01: Crash
+LibTest/html/Document/dispatchEvent_A01_t01: Crash
+LibTest/html/Document/on_A01_t01: Crash
+LibTest/html/Document/on_A01_t02: Crash
+LibTest/html/HttpRequest/abort_A01_t01: Crash
+LibTest/html/HttpRequest/dispatchEvent_A01_t01: Crash
+LibTest/html/HttpRequest/getAllResponseHeaders_A01_t01: Crash
+LibTest/html/HttpRequest/getResponseHeader_A01_t01: Crash
+LibTest/html/HttpRequest/getString_A01_t01: Crash
+LibTest/html/HttpRequest/onAbort_A01_t01: Crash
+LibTest/html/HttpRequest/onError_A01_t02: Crash
+LibTest/html/HttpRequest/onLoadEnd_A01_t01: Crash
+LibTest/html/HttpRequest/onLoadStart_A01_t01: Crash
+LibTest/html/HttpRequest/onLoad_A01_t01: Crash
+LibTest/html/HttpRequest/onReadyStateChange_A01_t01: Crash
+LibTest/html/HttpRequest/overrideMimeType_A01_t01: Crash
+LibTest/html/HttpRequest/readyStateChangeEvent_A01_t01: Crash
+LibTest/html/HttpRequest/request_A01_t01: Crash
+LibTest/html/HttpRequest/responseText_A01_t01: Crash
+LibTest/html/HttpRequest/responseText_A01_t02: Crash
+LibTest/html/HttpRequest/setRequestHeader_A01_t01: Crash
+LibTest/html/HttpRequest/statusText_A01_t01: Crash
+LibTest/html/HttpRequest/status_A01_t01: Crash
+LibTest/html/HttpRequestUpload/onAbort_A01_t01: Crash
+LibTest/html/HttpRequestUpload/onError_A01_t02: Crash
+LibTest/html/HttpRequestUpload/onLoadEnd_A01_t01: Crash
+LibTest/html/HttpRequestUpload/onLoadStart_A01_t01: Crash
+LibTest/html/HttpRequestUpload/onLoad_A01_t01: Crash
+LibTest/html/IFrameElement/contentWindow_A01_t01: Crash
+LibTest/html/IFrameElement/dispatchEvent_A01_t01: Crash
+LibTest/html/Node/dispatchEvent_A01_t01: Crash
+LibTest/html/Window/dispatchEvent_A01_t01: Crash
+LibTest/html/Window/postMessage_A01_t02: Crash
+LibTest/html/Window/requestFileSystem_A01_t01: Crash
+LibTest/html/Window/requestFileSystem_A01_t02: Crash
+LibTest/html/Window/requestFileSystem_A02_t01: Crash
+
+[ $compiler == dart2js && !$fasta ]
+Language/Classes/Constructors/Generative_Constructors/execution_t03: RuntimeError # https://github.com/dart-lang/sdk/issues/29596
+Language/Classes/Getters/static_getter_t02: CompileTimeError # Should be fixed with unified frontend. Issue 24534
+Language/Classes/Instance_Methods/same_name_setter_t01: Fail # Issue 21201
+Language/Classes/Setters/name_t01: CompileTimeError # Issue 5023
+Language/Classes/Setters/name_t02: CompileTimeError # Issue 5023
+Language/Classes/Setters/name_t03: RuntimeError # Issue 5023
+Language/Classes/Setters/name_t07: CompileTimeError # Issue 5023
+Language/Classes/Setters/static_setter_t06: RuntimeError # Should be fixed with unified frontend. Issue 23749
+Language/Classes/Static_Methods/same_name_method_and_setter_t01: CompileTimeError # Should be fixed with unified frontend. Issue 23749
+Language/Classes/same_name_type_variable_t01: Fail # Missing CT error on class with same name a type parameter
+Language/Classes/same_name_type_variable_t02: Fail # Missing CT error on member with same name a type parameter
+Language/Classes/same_name_type_variable_t03: Fail # Missing CT error on member with same name a type parameter
+Language/Classes/same_name_type_variable_t05: Fail # Missing CT error on member with same name a type parameter
+Language/Classes/same_name_type_variable_t06: Fail # Missing CT error on member with same name a type parameter
+Language/Classes/same_name_type_variable_t08: Fail # Missing CT error on member with same name a type parameter
+Language/Classes/same_name_type_variable_t09: Fail # Missing CT error on member with same name a type parameter
+Language/Errors_and_Warnings/compile_error_t06: MissingCompileTimeError # Please triage this failure
+Language/Errors_and_Warnings/compile_error_t07: MissingCompileTimeError # Please triage this failure
+Language/Expressions/Constants/identifier_denotes_a_constant_t06: MissingCompileTimeError # Issue 26580
+Language/Expressions/Constants/identifier_denotes_a_constant_t07: MissingCompileTimeError # Issue 26580
+Language/Expressions/Instance_Creation/New/execution_t04: RuntimeError # https://github.com/dart-lang/sdk/issues/29596
+Language/Expressions/Instance_Creation/New/execution_t06: RuntimeError # https://github.com/dart-lang/sdk/issues/29596
+Language/Expressions/Maps/key_value_equals_operator_t02: CompileTimeError # Please triage this failure
+Language/Expressions/Maps/static_type_dynamic_t01: CompileTimeError # Maybe ok. Issue 17207
+Language/Functions/External_Functions/not_connected_to_a_body_t01: CompileTimeError, OK # Issue 5021
+Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t01: CompileTimeError # Please triage this failure
+Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t02: CompileTimeError # Please triage this failure
+Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01/01: CompileTimeError # Please triage this failure
+Language/Libraries_and_Scripts/Scripts/top_level_main_t05: RuntimeError # Please triage this failure
+Language/Mixins/Mixin_Application/static_warning_t01: CompileTimeError # Please triage this failure
+Language/Mixins/Mixin_Application/static_warning_t02: CompileTimeError # Please triage this failure
+Language/Mixins/Mixin_Application/superinterfaces_t06: CompileTimeError # Please triage this failure
+Language/Mixins/Mixin_Application/superinterfaces_t07: CompileTimeError # Please triage this failure
+Language/Mixins/Mixin_Application/syntax_t11: CompileTimeError # Please triage this failure
+Language/Mixins/Mixin_Application/syntax_t12: CompileTimeError # Please triage this failure
+Language/Mixins/Mixin_Application/syntax_t13: CompileTimeError # Please triage this failure
+Language/Mixins/Mixin_Application/syntax_t14: CompileTimeError # Please triage this failure
+Language/Mixins/Mixin_Application/syntax_t21: CompileTimeError # Please triage this failure
+Language/Mixins/Mixin_Application/syntax_t22: CompileTimeError # Please triage this failure
+Language/Mixins/Mixin_Application/syntax_t23: CompileTimeError # Please triage this failure
+Language/Mixins/Mixin_Application/syntax_t24: CompileTimeError # Please triage this failure
+Language/Mixins/Mixin_Application/syntax_t25: CompileTimeError # Please triage this failure
+Language/Statements/Local_Function_Declaration/reference_before_declaration_t01: MissingCompileTimeError # Issue 21050
+Language/Statements/Local_Function_Declaration/reference_before_declaration_t03: MissingCompileTimeError # Issue 21050
+Language/Statements/Try/catch_scope_t01: RuntimeError # Please triage this failure
+Language/Types/Type_Void/syntax_t02: CompileTimeError # Please triage this failure
+Language/Variables/final_t01/01: CompileTimeError # co19 issue 77
+Language/Variables/final_t02/01: CompileTimeError # co19 issue 77
+Language/Variables/local_variable_t01: MissingCompileTimeError # Issue 21050
+LibTest/isolate/SendPort/send_A01_t01: CompileTimeError # co19-roll r706: Please triage this failure
+LibTest/isolate/SendPort/send_A01_t02: CompileTimeError # co19-roll r706: Please triage this failure
+LibTest/isolate/SendPort/send_A01_t03: CompileTimeError # co19-roll r706: Please triage this failure
+
 [ $compiler == dart2js && $jscl ]
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError, OK # This is not rejected by V8. Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: RuntimeError # Issue 22200
@@ -7061,6 +7289,7 @@ LibTest/core/int/toDouble_A01_t01: RuntimeError, OK # Requires big int.
 LibTest/core/int/toRadixString_A01_t01: RuntimeError, OK # Bad test: uses Expect.fail, Expect.throws, assumes case of result, and uses unsupported radixes.
 
 [ $compiler == dart2js && $minified ]
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/no_such_method_t01: RuntimeError # Issue 32434
 LibTest/typed_data/Float32List/runtimeType_A01_t01: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32x4List/runtimeType_A01_t01: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float64List/runtimeType_A01_t01: Fail # co19-roll r559: Please triage this failure

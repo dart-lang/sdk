@@ -33,6 +33,12 @@ class AnalysisServerClient {
     return _process.stdin.flush();
   }
 
+  /// Force kill the server. Returns exit code future.
+  Future<int> kill() {
+    _process.kill();
+    return _process.exitCode;
+  }
+
   void listenToOutput({NotificationProcessor notificationProcessor}) {
     _process.stdout
         .transform((new Utf8Codec()).decoder)
@@ -42,7 +48,7 @@ class AnalysisServerClient {
       if (trimmedLine.startsWith('Observatory listening on ')) {
         return;
       }
-      final result = JSON.decoder.convert(trimmedLine) as Map;
+      final result = json.decoder.convert(trimmedLine) as Map;
       if (result.containsKey('id')) {
         final id = result['id'] as String;
         final completer = _pendingCommands.remove(id);
@@ -78,15 +84,9 @@ class AnalysisServerClient {
     }
     Completer completer = new Completer();
     _pendingCommands[id] = completer;
-    String commandAsJson = JSON.encode(command);
-    _process.stdin.add(UTF8.encoder.convert('$commandAsJson\n'));
+    String commandAsJson = json.encode(command);
+    _process.stdin.add(utf8.encoder.convert('$commandAsJson\n'));
     return completer.future;
-  }
-
-  /// Force kill the server. Returns exit code future.
-  Future<int> kill() {
-    _process.kill();
-    return _process.exitCode;
   }
 }
 

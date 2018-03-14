@@ -75,8 +75,8 @@ Future<String> compile(String code,
   if (trustJSInteropTypeAnnotations) {
     options.add(Flags.trustJSInteropTypeAnnotations);
   }
-  if (useKernel) {
-    options.add(Flags.useKernel);
+  if (!useKernel) {
+    options.add(Flags.useOldFrontend);
   }
   if (disableInlining) {
     options.add(Flags.disableInlining);
