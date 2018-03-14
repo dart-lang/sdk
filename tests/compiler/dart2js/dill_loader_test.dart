@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/diagnostics/spannable.dart' show Spannable;
 import 'package:compiler/src/elements/entities.dart'
@@ -58,8 +57,7 @@ main() {
         entryPoint: entryPoint,
         memorySourceFiles: {'main.dill': kernelBinary},
         diagnosticHandler: diagnostics,
-        outputProvider: output,
-        options: [Flags.useKernel]);
+        outputProvider: output);
     await compiler.setupSdk();
     await compiler.libraryLoader.loadLibrary(entryPoint);
 

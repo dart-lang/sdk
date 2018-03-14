@@ -1,4 +1,5 @@
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:expect/expect.dart';
 import '../memory_compiler.dart';
@@ -10,7 +11,9 @@ runTest(String code,
   print(code);
   DiagnosticCollector collector = new DiagnosticCollector();
   await runCompiler(
-      memorySourceFiles: {'main.dart': code}, diagnosticHandler: collector);
+      memorySourceFiles: {'main.dart': code},
+      diagnosticHandler: collector,
+      options: [Flags.useOldFrontend]);
   Expect.equals(0, collector.errors.length, "Unexpected errors.");
   Expect.listEquals(
       expectedWarnings,

@@ -18,11 +18,11 @@ void main() {
     Compiler compiler = result.compiler;
     var outputUnitForEntity =
         compiler.backend.outputUnitData.outputUnitForEntity;
+    var env = compiler.backendClosedWorldForTesting.elementEnvironment;
     var mainOutputUnit = compiler.backend.outputUnitData.mainOutputUnit;
-    dynamic lib =
-        compiler.libraryLoader.lookupLibrary(Uri.parse("memory:lib.dart"));
-    var f1 = lib.find("f1");
-    var f2 = lib.find("f2");
+    dynamic lib = env.lookupLibrary(Uri.parse("memory:lib.dart"));
+    var f1 = env.lookupLibraryMember(lib, "f1");
+    var f2 = env.lookupLibraryMember(lib, "f2");
     Expect.notEquals(mainOutputUnit, outputUnitForEntity(f1));
     Expect.equals(mainOutputUnit, outputUnitForEntity(f2));
   });

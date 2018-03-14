@@ -20,8 +20,8 @@ main(arg) {}
 main() {
   runTest({bool useKernel}) async {
     List<String> options = [Flags.enableCheckedMode];
-    if (useKernel) {
-      options.add(Flags.useKernel);
+    if (!useKernel) {
+      options.add(Flags.useOldFrontend);
     }
     CompilationResult result = await runCompiler(
         memorySourceFiles: {'main.dart': SOURCE}, options: options);

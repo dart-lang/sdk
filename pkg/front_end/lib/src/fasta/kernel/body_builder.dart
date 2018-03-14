@@ -6,6 +6,8 @@ library fasta.body_builder;
 
 import 'dart:core' hide MapEntry;
 
+import '../constant_context.dart' show ConstantContext;
+
 import '../fasta_codes.dart' as fasta;
 
 import '../fasta_codes.dart' show LocatedMessage, Message, noLength, Template;
@@ -58,6 +60,12 @@ import '../type_inference/type_inferrer.dart' show TypeInferrer;
 
 import '../type_inference/type_promotion.dart' show TypePromoter;
 
+import 'constness.dart' show Constness;
+
+import 'fangorn.dart' show Fangorn;
+
+import 'forest.dart' show Forest;
+
 import 'frontend_accessors.dart' show buildIsNull;
 
 import 'redirecting_factory_body.dart'
@@ -66,10 +74,6 @@ import 'redirecting_factory_body.dart'
         RedirectionTarget,
         getRedirectingFactoryBody,
         getRedirectionTarget;
-
-import 'forest.dart' show Forest;
-
-import 'fangorn.dart' show Fangorn;
 
 import '../names.dart';
 
@@ -168,7 +172,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
 
   CloneVisitor cloner;
 
-  bool constantExpressionRequired = false;
+  ConstantContext constantContext = ConstantContext.none;
 
   DartType currentLocalVariableType;
 
@@ -376,8 +380,8 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   @override
   void beginMetadata(Token token) {
     debugEvent("beginMetadata");
-    super.push(constantExpressionRequired);
-    constantExpressionRequired = true;
+    super.push(constantContext);
+    constantContext = ConstantContext.inferred;
   }
 
   @override
@@ -408,14 +412,14 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
             false);
       }
 
-      bool savedConstantExpressionRequired = pop();
+      ConstantContext savedConstantContext = pop();
       if (expression is! StaticAccessor) {
         push(wrapInCompileTimeError(
             toValue(expression), fasta.messageExpressionNotMetadata));
       } else {
         push(toValue(expression));
       }
-      constantExpressionRequired = savedConstantExpressionRequired;
+      constantContext = savedConstantContext;
     }
   }
 
@@ -881,15 +885,15 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   @override
   void beginCaseExpression(Token caseKeyword) {
     debugEvent("beginCaseExpression");
-    super.push(constantExpressionRequired);
-    constantExpressionRequired = true;
+    super.push(constantContext);
+    constantContext = ConstantContext.inferred;
   }
 
   @override
   void endCaseExpression(Token colon) {
     debugEvent("endCaseExpression");
     Expression expression = popForValue();
-    constantExpressionRequired = pop();
+    constantContext = pop();
     super.push(expression);
   }
 
@@ -1036,12 +1040,12 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     if (isGetter) {
       message = warnUnresolvedGet(kernelName, charOffset,
           isSuper: isSuper,
-          reportWarning: !constantExpressionRequired,
+          reportWarning: constantContext == ConstantContext.none,
           context: context);
     } else if (isSetter) {
       message = warnUnresolvedSet(kernelName, charOffset,
           isSuper: isSuper,
-          reportWarning: !constantExpressionRequired,
+          reportWarning: constantContext == ConstantContext.none,
           context: context);
     } else {
       if (argMessage != null) {
@@ -1052,11 +1056,11 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       } else {
         message = warnUnresolvedMethod(kernelName, charOffset,
             isSuper: isSuper,
-            reportWarning: !constantExpressionRequired,
+            reportWarning: constantContext == ConstantContext.none,
             context: context);
       }
     }
-    if (constantExpressionRequired) {
+    if (constantContext != ConstantContext.none) {
       // TODO(ahe): Use [error] below instead of building a compile-time error,
       // should be:
       //    return library.loader.throwCompileConstantError(error, charOffset);
@@ -1232,9 +1236,10 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     } else if (context.inDeclaration) {
       if (context == IdentifierContext.topLevelVariableDeclaration ||
           context == IdentifierContext.fieldDeclaration) {
-        constantExpressionRequired = member.isConst;
+        constantContext =
+            member.isConst ? ConstantContext.inferred : ConstantContext.none;
       }
-    } else if (constantExpressionRequired &&
+    } else if (constantContext != ConstantContext.none &&
         !context.allowedInConstantExpression) {
       deprecated_addCompileTimeError(
           token.charOffset, "Not a constant expression: $context");
@@ -1265,7 +1270,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       Name n = new Name(name, library.library);
       if (!isQualified && isInstanceContext) {
         assert(builder == null);
-        if (constantExpressionRequired || member.isField) {
+        if (constantContext != ConstantContext.none || member.isField) {
           return new UnresolvedAccessor(this, n, token);
         }
         return new ThisPropertyAccessor(this, token, n, lookupInstanceMember(n),
@@ -1278,7 +1283,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         return new UnresolvedAccessor(this, n, token);
       }
     } else if (builder.isTypeDeclaration) {
-      if (constantExpressionRequired &&
+      if (constantContext != ConstantContext.none &&
           builder.isTypeVariable &&
           !member.isConstructor) {
         deprecated_addCompileTimeError(
@@ -1290,7 +1295,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
           ? new DeferredAccessor(this, token, prefix, accessor)
           : accessor;
     } else if (builder.isLocal) {
-      if (constantExpressionRequired &&
+      if (constantContext != ConstantContext.none &&
           !builder.isConst &&
           !member.isConstructor) {
         deprecated_addCompileTimeError(
@@ -1314,7 +1319,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         return new VariableAccessor(this, token, builder.target);
       }
     } else if (builder.isInstanceMember) {
-      if (constantExpressionRequired &&
+      if (constantContext != ConstantContext.none &&
           !inInitializer &&
           // TODO(ahe): This is a hack because Fasta sets up the scope
           // "this.field" parameters according to old semantics. Under the new
@@ -1343,7 +1348,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
           ? new DeferredAccessor(this, token, prefix, accessor)
           : accessor;
     } else if (builder is PrefixBuilder) {
-      if (constantExpressionRequired && builder.deferred) {
+      if (constantContext != ConstantContext.none && builder.deferred) {
         deprecated_addCompileTimeError(
             charOffset,
             "'$name' can't be used in a constant expression because it's "
@@ -1367,7 +1372,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       }
       StaticAccessor accessor =
           new StaticAccessor.fromBuilder(this, builder, token, setter);
-      if (constantExpressionRequired) {
+      if (constantContext != ConstantContext.none) {
         Member readTarget = accessor.readTarget;
         if (!(readTarget is Field && readTarget.isConst ||
             // Static tear-offs are also compile time constants.
@@ -1574,7 +1579,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     assert(currentLocalVariableModifiers != -1);
     bool isConst = (currentLocalVariableModifiers & constMask) != 0;
     bool isFinal = (currentLocalVariableModifiers & finalMask) != 0;
-    assert(isConst == constantExpressionRequired);
+    assert(isConst == (constantContext == ConstantContext.inferred));
     push(new ShadowVariableDeclaration(identifier.name, functionNestingLevel,
         initializer: initializer,
         type: currentLocalVariableType,
@@ -1594,7 +1599,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   @override
   void handleNoFieldInitializer(Token token) {
     debugEvent("NoFieldInitializer");
-    if (constantExpressionRequired) {
+    if (constantContext != ConstantContext.none) {
       // Creating a null value to prevent the Dart VM from crashing.
       push(forest.literalNull(token));
     } else {
@@ -1621,15 +1626,17 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     super.push(currentLocalVariableType ?? NullValue.Type);
     currentLocalVariableType = type;
     currentLocalVariableModifiers = modifiers;
-    super.push(constantExpressionRequired);
-    constantExpressionRequired = (modifiers & constMask) != 0;
+    super.push(constantContext);
+    constantContext = ((modifiers & constMask) != 0)
+        ? ConstantContext.inferred
+        : ConstantContext.none;
   }
 
   @override
   void endVariablesDeclaration(int count, Token endToken) {
     debugEvent("VariablesDeclaration");
     List<VariableDeclaration> variables = popList(count);
-    constantExpressionRequired = pop();
+    constantContext = pop();
     currentLocalVariableType = pop();
     currentLocalVariableModifiers = pop();
     pop(); // Metadata.
@@ -1787,7 +1794,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     push(forest.literalList(
         typeArgument,
         expressions,
-        constKeyword != null || constantExpressionRequired,
+        constKeyword != null || constantContext == ConstantContext.inferred,
         constKeyword ?? beginToken));
   }
 
@@ -1845,7 +1852,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         keyType,
         valueType,
         entries,
-        constKeyword != null || constantExpressionRequired,
+        constKeyword != null || constantContext == ConstantContext.inferred,
         constKeyword ?? beginToken));
   }
 
@@ -1972,7 +1979,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     debugEvent("AsOperator");
     DartType type = pop();
     Expression expression = popForValue();
-    if (constantExpressionRequired) {
+    if (constantContext != ConstantContext.none) {
       push(deprecated_buildCompileTimeError(
           "Not a constant expression.", operator.charOffset));
     } else {
@@ -1996,7 +2003,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       typePromoter.handleIsCheck(isExpression, isInverted, operand.variable,
           type, functionNestingLevel);
     }
-    if (constantExpressionRequired) {
+    if (constantContext != ConstantContext.none) {
       push(deprecated_buildCompileTimeError(
           "Not a constant expression.", operator.charOffset));
     } else {
@@ -2036,7 +2043,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   void handleThrowExpression(Token throwToken, Token endToken) {
     debugEvent("ThrowExpression");
     Expression expression = popForValue();
-    if (constantExpressionRequired) {
+    if (constantContext != ConstantContext.none) {
       push(deprecated_buildCompileTimeError(
           "Not a constant expression.", throwToken.charOffset));
     } else {
@@ -2141,8 +2148,8 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
 
   @override
   void beginFormalParameters(Token token, MemberKind kind) {
-    super.push(constantExpressionRequired);
-    constantExpressionRequired = false;
+    super.push(constantContext);
+    constantContext = ConstantContext.none;
   }
 
   @override
@@ -2158,7 +2165,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         popList(count) ?? <VariableDeclaration>[],
         optional,
         beginToken.charOffset);
-    constantExpressionRequired = pop();
+    constantContext = pop();
     push(formals);
     if ((inCatchClause || functionNestingLevel != 0) &&
         kind != MemberKind.GeneralizedFunctionType) {
@@ -2412,10 +2419,11 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
 
   @override
   Expression buildStaticInvocation(Member target, Arguments arguments,
-      {bool isConst: false,
+      {Constness constness: Constness.implicit,
       int charOffset: -1,
       Member initialTarget,
       List<DartType> targetTypeArguments}) {
+    bool isConst = constness == Constness.explicitConst;
     initialTarget ??= target;
     List<TypeParameter> typeParameters = target.function.typeParameters;
     if (target is Constructor) {
@@ -2441,7 +2449,14 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
           argMessage: argMessage);
     }
     if (target is Constructor) {
-      if (isConst && !target.isConst) {
+      isConst =
+          isConst || constantContext != ConstantContext.none && target.isConst;
+      if (constness == Constness.implicit &&
+          target.isConst &&
+          constantContext != ConstantContext.inferred) {
+        return buildCompileTimeError(
+            fasta.messageCantDetermineConstness, charOffset, noLength);
+      } else if (isConst && !target.isConst) {
         return deprecated_buildCompileTimeError(
             "Not a const constructor.", charOffset);
       }
@@ -2451,7 +2466,14 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         ..fileOffset = charOffset;
     } else {
       Procedure procedure = target;
-      if (isConst && !procedure.isConst) {
+      isConst = isConst ||
+          constantContext != ConstantContext.none && procedure.isConst;
+      if (constness == Constness.implicit &&
+          procedure.isConst &&
+          constantContext != ConstantContext.inferred) {
+        return buildCompileTimeError(
+            fasta.messageCantDetermineConstness, charOffset, noLength);
+      } else if (isConst && !procedure.isConst) {
         return deprecated_buildCompileTimeError(
             "Not a const factory.", charOffset);
       } else if (procedure.isFactory) {
@@ -2550,33 +2572,33 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   @override
   void beginNewExpression(Token token) {
     debugEvent("beginNewExpression");
-    super.push(constantExpressionRequired);
-    if (constantExpressionRequired) {
+    super.push(constantContext);
+    if (constantContext != ConstantContext.none) {
       deprecated_addCompileTimeError(
           token.charOffset, "Not a constant expression.");
     }
-    constantExpressionRequired = false;
+    constantContext = ConstantContext.none;
   }
 
   @override
   void beginConstExpression(Token token) {
     debugEvent("beginConstExpression");
-    super.push(constantExpressionRequired);
-    constantExpressionRequired = true;
+    super.push(constantContext);
+    constantContext = ConstantContext.inferred;
   }
 
   @override
   void beginConstLiteral(Token token) {
     debugEvent("beginConstLiteral");
-    super.push(constantExpressionRequired);
-    constantExpressionRequired = true;
+    super.push(constantContext);
+    constantContext = ConstantContext.inferred;
   }
 
   @override
   void endConstLiteral(Token token) {
     debugEvent("endConstLiteral");
     var literal = pop();
-    constantExpressionRequired = pop();
+    constantContext = pop();
     push(literal);
   }
 
@@ -2606,7 +2628,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       type = accessor.declaration;
     }
 
-    bool savedConstantExpressionRequired = pop();
+    ConstantContext savedConstantContext = pop();
     if (type is TypeDeclarationBuilder) {
       Expression expression = buildConstructorInvocation(
           type,
@@ -2615,7 +2637,9 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
           name,
           typeArguments,
           token.charOffset,
-          optional("const", token) || optional("@", token));
+          optional("const", token) || optional("@", token)
+              ? Constness.explicitConst
+              : Constness.explicitNew);
       push(deferredPrefix != null
           ? wrapInDeferredCheck(expression, deferredPrefix, checkOffset)
           : expression);
@@ -2625,7 +2649,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       push(throwNoSuchMethodError(forest.literalNull(token),
           debugName(getNodeName(type), name), arguments, nameToken.charOffset));
     }
-    constantExpressionRequired = savedConstantExpressionRequired;
+    constantContext = savedConstantContext;
   }
 
   @override
@@ -2636,7 +2660,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       String name,
       List<DartType> typeArguments,
       int charOffset,
-      bool isConst) {
+      Constness constness) {
     if (arguments == null) {
       return deprecated_buildCompileTimeError(
           "No arguments.", nameToken.charOffset);
@@ -2705,7 +2729,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       if (target is Constructor ||
           (target is Procedure && target.kind == ProcedureKind.Factory)) {
         return buildStaticInvocation(target, arguments,
-            isConst: isConst,
+            constness: constness,
             charOffset: nameToken.charOffset,
             initialTarget: initialTarget,
             targetTypeArguments: targetTypeArguments);
@@ -2909,7 +2933,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         typeParameters: typeParameters, asyncMarker: asyncModifier)
       ..fileOffset = beginToken.charOffset
       ..fileEndOffset = token.charOffset);
-    if (constantExpressionRequired) {
+    if (constantContext != ConstantContext.none) {
       push(deprecated_buildCompileTimeError(
           "Not a constant expression.", formals.charOffset));
     } else {
@@ -3696,8 +3720,8 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   @override
   void deprecated_addCompileTimeError(int charOffset, String message,
       {bool wasHandled: false}) {
-    // TODO(ahe): If constantExpressionRequired is set, set it to false to
-    // avoid a long list of errors.
+    // TODO(ahe): Consider setting [constantContext] to `ConstantContext.none`
+    // to avoid a long list of errors.
     return library.addCompileTimeError(
         fasta.templateUnspecified.withArguments(message),
         charOffset,
@@ -3730,7 +3754,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         addProblemErrorIfConst(message, offset, length);
       }
       return const InvalidType();
-    } else if (constantExpressionRequired) {
+    } else if (constantContext != ConstantContext.none) {
       deprecated_addCompileTimeError(
           offset,
           "Type variable '${type.parameter.name}' can't be used as a constant "
@@ -3766,7 +3790,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       bool isImplicitCall: false,
       bool isSuper: false,
       Member interfaceTarget}) {
-    if (constantExpressionRequired && !isConstantExpression) {
+    if (constantContext != ConstantContext.none && !isConstantExpression) {
       return deprecated_buildCompileTimeError(
           "Not a constant expression.", offset);
     }
@@ -3838,7 +3862,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     // TODO(askesc): Instead of deciding on the severity, this method should
     // take two messages: one to use when a constant expression is
     // required and one to use otherwise.
-    if (constantExpressionRequired) {
+    if (constantContext != ConstantContext.none) {
       addCompileTimeError(message, charOffset, length, context: context);
     } else {
       library.addProblem(message, charOffset, length, uri, context: context);
@@ -3992,7 +4016,7 @@ class DelayedAssignment<Arguments> extends ContextAccessor<Arguments> {
   }
 
   Expression handleAssignment(bool voidContext) {
-    if (helper.constantExpressionRequired) {
+    if (helper.constantContext != ConstantContext.none) {
       return helper.deprecated_buildCompileTimeError(
           "Not a constant expression.", offsetForToken(token));
     }

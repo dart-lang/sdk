@@ -11,17 +11,23 @@ import '../memory_compiler.dart';
 
 main() {
   asyncTest(() async {
-    String oldMap = (await compile([])).getOutput('', OutputType.sourceMap);
-    String newMap = (await compile([Flags.useNewSourceInfo]))
+    String oldMap = (await compile([Flags.useOldFrontend]))
         .getOutput('', OutputType.sourceMap);
-    OutputCollector multiCollector1 = await compile([Flags.useMultiSourceInfo]);
+    String newMap =
+        (await compile([Flags.useOldFrontend, Flags.useNewSourceInfo]))
+            .getOutput('', OutputType.sourceMap);
+    OutputCollector multiCollector1 =
+        await compile([Flags.useOldFrontend, Flags.useMultiSourceInfo]);
     String multiMap1a = multiCollector1.getOutput('', OutputType.sourceMap);
     String multiMap1b =
         multiCollector1.getOutput('out.js', OutputType.sourceMap);
     Expect.equals(oldMap, multiMap1a);
     Expect.equals(newMap, multiMap1b);
-    OutputCollector multiCollector2 =
-        await compile([Flags.useMultiSourceInfo, Flags.useNewSourceInfo]);
+    OutputCollector multiCollector2 = await compile([
+      Flags.useOldFrontend,
+      Flags.useMultiSourceInfo,
+      Flags.useNewSourceInfo
+    ]);
     String multiMap2a = multiCollector2.getOutput('', OutputType.sourceMap);
     String multiMap2b =
         multiCollector2.getOutput('out.js', OutputType.sourceMap);

@@ -16,9 +16,9 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:mockito/mockito.dart';
 
 import '../../generated/test_support.dart';
 
@@ -362,8 +362,7 @@ class CacheEntryTest extends AbstractCacheTest {
   }
 
   test_getValue_flushResults() {
-    ResultCachingPolicy<int> cachingPolicy =
-        new SimpleResultCachingPolicy<int>(2, 2);
+    ResultCachingPolicy cachingPolicy = new SimpleResultCachingPolicy(2, 2);
     ResultDescriptor<int> descriptor1 = new ResultDescriptor<int>(
         'result1', null,
         cachingPolicy: cachingPolicy);
@@ -753,8 +752,7 @@ class CacheEntryTest extends AbstractCacheTest {
   }
 
   test_setValue_flushResults() {
-    ResultCachingPolicy<int> cachingPolicy =
-        new SimpleResultCachingPolicy<int>(2, 2);
+    ResultCachingPolicy cachingPolicy = new SimpleResultCachingPolicy(2, 2);
     ResultDescriptor<int> descriptor1 = new ResultDescriptor<int>(
         'result1', null,
         cachingPolicy: cachingPolicy);
@@ -785,8 +783,7 @@ class CacheEntryTest extends AbstractCacheTest {
   }
 
   test_setValue_flushResults_keepForPrioritySources() {
-    ResultCachingPolicy<int> cachingPolicy =
-        new SimpleResultCachingPolicy<int>(2, 2);
+    ResultCachingPolicy cachingPolicy = new SimpleResultCachingPolicy(2, 2);
     ResultDescriptor<int> newResult(String name) =>
         new ResultDescriptor<int>(name, null, cachingPolicy: cachingPolicy);
     ResultDescriptor<int> descriptor1 = newResult('result1');

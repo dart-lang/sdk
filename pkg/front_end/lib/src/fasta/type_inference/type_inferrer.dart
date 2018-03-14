@@ -875,9 +875,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     desugaredGet?.dispatchCategory = callKind;
     bool checkReturn = false;
-    if (callKind == DispatchCategory.interface &&
-        interfaceMember is Procedure) {
-      checkReturn = interfaceMember.isGenericContravariant;
+    if (callKind == DispatchCategory.interface) {
+      if (interfaceMember is Procedure) {
+        checkReturn = interfaceMember.isGenericContravariant;
+      } else if (interfaceMember is Field) {
+        checkReturn = interfaceMember.isGenericContravariant;
+      }
     }
     var replacedExpression = desugaredGet ?? expression;
     if (checkReturn) {

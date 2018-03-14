@@ -116,7 +116,7 @@ ContextBuilderOptions createContextBuilderOptions(ArgResults args,
   // Declared variables.
   //
   Map<String, String> declaredVariables = <String, String>{};
-  List<String> variables = args[defineVariableOption] as List<String>;
+  List<String> variables = (args[defineVariableOption] as List).cast<String>();
   for (String variable in variables) {
     int index = variable.indexOf('=');
     if (index < 0) {

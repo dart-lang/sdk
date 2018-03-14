@@ -129,13 +129,14 @@ abstract class HashSet<E> implements Set<E> {
    * two entries that are equal, but not identical, then the first one is
    * the one in the resulting set.
    *
-   * All the [elements] should be assignable to [E].
+   * All the [elements] should be instances of [E].
    * The `elements` iterable itself may have any element type, so this
    * constructor can be used to down-cast a `Set`, for example as:
-   *
-   *     Set<SuperType> superSet = ...;
-   *     Set<SubType> subSet =
-   *         new HashSet<SubType>.from(superSet.where((e) => e is SubType));
+   * ```dart
+   * Set<SuperType> superSet = ...;
+   * Set<SubType> subSet =
+   *     new HashSet<SubType>.from(superSet.whereType<SubType>());
+   * ```
    */
   factory HashSet.from(Iterable elements) {
     HashSet<E> result = new HashSet<E>();
@@ -144,6 +145,17 @@ abstract class HashSet<E> implements Set<E> {
     }
     return result;
   }
+
+  /**
+   * Create a hash set containing all [elements].
+   *
+   * Creates a hash set as by `new HashSet<E>()` and adds all given [elements]
+   * to the set. The elements are added in order. If [elements] contains
+   * two entries that are equal, but not identical, then the first one is
+   * the one in the resulting set.
+   */
+  factory HashSet.of(Iterable<E> elements) =>
+      new HashSet<E>()..addAll(elements);
 
   /**
    * Provides an iterator that iterates over the elements of this set.

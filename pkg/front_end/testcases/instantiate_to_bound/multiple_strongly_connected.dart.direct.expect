@@ -1,0 +1,62 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::Object> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B<X extends core::Object, Y extends core::Object> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class C<X extends core::Object, Y extends core::Object> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class D<X extends self::A<self::D::X>, Y extends self::A<self::D::Y>> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class E<W extends self::B<self::E::W, self::E::X>, X extends self::C<self::E::W, self::E::X>, Y extends self::B<self::E::Y, self::E::Z>, Z extends self::C<self::E::Y, self::E::Z>> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class F<V extends core::num, W extends self::B<self::F::W, self::F::X>, X extends self::C<self::F::W, self::F::X>, Y extends self::B<self::F::W, self::F::X>, Z extends self::C<self::F::Y, self::F::Z>> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class G<V extends core::num, W extends self::B<self::G::V, self::G::X>, X extends self::C<self::G::W, self::G::V>, Y extends self::B<self::G::W, self::G::X>, Z extends self::C<self::G::Y, self::G::Z>> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class H<S extends self::A<self::H::S>, T extends self::B<self::H::T, self::H::U>, U extends self::C<self::H::T, self::H::U>, V extends self::A<self::H::V>, W extends self::H::S, X extends self::H::T, Y extends self::H::U, Z extends self::H::V> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class I<T extends self::I::U, U extends self::I::Y, V extends (self::I::W) → dynamic, W extends (self::I::X) → dynamic, X extends (self::I::V) → dynamic, Y extends self::I::Z, Z extends self::I::T> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class J<S extends (self::J::U) → self::J::T, T extends (self::J::S) → self::J::U, U extends (self::J::T) → self::J::S, V extends self::J::W, W extends self::J::X, X extends (self::J::V) → self::J::Y, Y extends self::J::Z, Z extends self::J::X> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static field self::D<dynamic, dynamic> d;
+static field self::E<dynamic, dynamic, dynamic, dynamic> e;
+static field self::F<dynamic, dynamic, dynamic, dynamic, dynamic> f;
+static field self::G<dynamic, dynamic, dynamic, dynamic, dynamic> g;
+static field self::H<dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic> h;
+static field self::I<dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic> i;
+static field self::J<dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic> j;
+static method main() → dynamic {}

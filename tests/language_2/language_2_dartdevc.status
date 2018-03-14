@@ -393,6 +393,7 @@ const_types_test/34: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
 constant_string_interpolation2_test: RuntimeError # Issue 32194
 constants_test/05: MissingCompileTimeError
+constructor_call_as_function_test: CompileTimeError # Issue 32517
 constructor_redirect1_negative_test/01: MissingCompileTimeError
 constructor_redirect2_negative_test: MissingCompileTimeError
 constructor_redirect_test/01: MissingCompileTimeError
@@ -455,9 +456,28 @@ identical_const_test/01: MissingCompileTimeError
 identical_const_test/02: MissingCompileTimeError
 identical_const_test/03: MissingCompileTimeError
 identical_const_test/04: MissingCompileTimeError
+implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_constructor_named_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_constructor_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_prefix_constructor_named_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_prefix_constructor_test: CompileTimeError # Issue 32517
 implicit_creation/implicit_const_not_default_values_test/e.*: MissingCompileTimeError
-implicit_creation/implicit_new_or_const_composite_test: RuntimeError
-implicit_creation/implicit_new_or_const_test: RuntimeError
+implicit_creation/implicit_const_not_default_values_test/e12: Pass # Issue 32517
+implicit_creation/implicit_const_not_default_values_test/e15: Pass # Issue 32517
+implicit_creation/implicit_const_not_default_values_test/e18: Pass # Issue 32517
+implicit_creation/implicit_const_not_default_values_test/e21: Pass # Issue 32517
+implicit_creation/implicit_const_not_default_values_test/e24: Pass # Issue 32517
+implicit_creation/implicit_const_not_default_values_test/e27: Pass # Issue 32517
+implicit_creation/implicit_const_not_default_values_test/e3: Pass # Issue 32517
+implicit_creation/implicit_const_not_default_values_test/e30: Pass # Issue 32517
+implicit_creation/implicit_const_not_default_values_test/e6: Pass # Issue 32517
+implicit_creation/implicit_const_not_default_values_test/e9: Pass # Issue 32517
+implicit_creation/implicit_new_constructor_named_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_constructor_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_or_const_composite_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_or_const_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_prefix_constructor_named_test: CompileTimeError # Issue 32517
 implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/04: MissingCompileTimeError
 initializing_formal_type_annotation_test/01: MissingCompileTimeError

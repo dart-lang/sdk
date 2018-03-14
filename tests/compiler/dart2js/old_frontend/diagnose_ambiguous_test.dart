@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/compiler_new.dart' show Diagnostic;
 import 'package:expect/expect.dart';
 import '../memory_compiler.dart';
@@ -13,7 +14,7 @@ void main() {
     CompilationResult result = await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES,
         diagnosticHandler: collector,
-        options: ['--analyze-all']);
+        options: ['--analyze-all', Flags.useOldFrontend]);
 
     List<String> diagnostics = <String>[];
     collector.messages.forEach((CollectedMessage message) {

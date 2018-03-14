@@ -102,7 +102,7 @@ Future<ResultKind> mainInternal(List<String> args,
   await runWithD8(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
-      options: [Flags.useKernel, Flags.enableAssertMessage],
+      options: [Flags.enableAssertMessage],
       expectedOutput: OUTPUT);
 
   return ResultKind.success;

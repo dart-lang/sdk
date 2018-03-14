@@ -33,33 +33,23 @@ generic_test/01: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e1: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e10: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e11: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e12: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e13: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e14: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e15: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e16: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e17: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e18: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e19: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e2: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e20: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e21: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e22: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e23: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e24: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e25: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e26: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e27: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e28: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e29: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e3: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e30: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e4: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e5: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e6: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e7: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e8: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e9: MissingCompileTimeError
 
 [ $fasta ]
 abstract_factory_constructor_test/00: MissingCompileTimeError # Issue 32013.
@@ -510,10 +500,12 @@ partial_tearoff_instantiation_test/07: Crash # Issue http://dartbug.com/32340
 partial_tearoff_instantiation_test/08: Crash # Issue http://dartbug.com/32340
 partial_tearoff_instantiation_test/none: Crash # Issue http://dartbug.com/32340
 
+[ $compiler != dart2js && $compiler != dartk && $compiler != dartkp && $fasta ]
+const_optional_args_test/01: MissingCompileTimeError
+
 [ $compiler != dart2js && $fasta ]
 compile_time_constant_c_test/02: MissingCompileTimeError
 const_constructor_nonconst_field_test/01: MissingCompileTimeError
-const_optional_args_test/01: MissingCompileTimeError
 const_syntax_test/05: MissingCompileTimeError
 mixin_of_mixin_test/01: MissingCompileTimeError
 mixin_of_mixin_test/02: MissingCompileTimeError
@@ -633,6 +625,7 @@ const_nested_test: RuntimeError # KernelVM bug: Constant evaluation.
 const_string_test: RuntimeError
 constructor12_test: RuntimeError
 constructor3_test: Fail, OK, Pass
+constructor_call_as_function_test: CompileTimeError # Issue 32517
 ct_const2_test: Pass, Crash # Flaky
 ct_const_test: RuntimeError
 cyclic_type2_test: RuntimeError, CompileTimeError
@@ -675,7 +668,18 @@ generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
 generic_tearoff_test: CompileTimeError
 generic_tearoff_test: RuntimeError
 if_null_evaluation_order_test: Pass
+implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_constructor_named_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_constructor_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_prefix_constructor_named_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_prefix_constructor_test: CompileTimeError # Issue 32517
 implicit_creation/implicit_new_constructor_generic_test: Pass
+implicit_creation/implicit_new_constructor_named_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_constructor_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_or_const_composite_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_or_const_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_prefix_constructor_named_test: CompileTimeError # Issue 32517
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instantiate_tearoff_of_call_test: CompileTimeError
@@ -712,8 +716,8 @@ mock_writable_final_private_field_test: RuntimeError # Issue 30849
 named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.
 named_parameters_default_eq_test/none: RuntimeError
 nested_generic_closure_test: RuntimeError
-no_main_test/01: DartkCrash
 no_main_test/01: Skip
+no_main_test/01: DartkCrash
 no_such_method_mock_test: RuntimeError # Issue 31426
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError # Issue 31426
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError # Issue 31426
@@ -806,6 +810,7 @@ type_promotion_functions_test/06: Pass
 type_promotion_functions_test/07: Pass
 type_promotion_functions_test/08: Pass
 type_promotion_functions_test/10: Pass
+vm/precompiled_static_initializer_test: Pass, Slow
 
 [ $compiler == dartkp && $mode == product && $runtime == dart_precompiled && $strong ]
 vm/type_vm_test/28: MissingRuntimeError
@@ -1003,8 +1008,6 @@ generic_methods_recursive_bound_test/03: Crash, Pass
 generic_methods_recursive_bound_test/03: MissingRuntimeError
 generic_methods_recursive_bound_test/03: Pass
 generic_methods_reuse_type_variables_test: Pass
-generic_methods_tearoff_specialization_test: RuntimeError
-generic_methods_unused_parameter_test: RuntimeError # Issue 31402 (Variable declaration)
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Issue 31533
 generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
 generic_tearoff_test: CompileTimeError
@@ -1354,6 +1357,18 @@ compile_time_constant_k_test/02: MissingCompileTimeError
 compile_time_constant_k_test/03: MissingCompileTimeError
 compile_time_constant_static2_test/04: MissingCompileTimeError
 compile_time_constant_static3_test/04: MissingCompileTimeError
+constructor_call_as_function_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_constructor_named_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_constructor_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_prefix_constructor_named_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_prefix_constructor_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_constructor_named_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_constructor_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_or_const_composite_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_or_const_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_prefix_constructor_named_test: CompileTimeError # Issue 32517
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 issue18628_2_test/01: MissingCompileTimeError
@@ -1541,6 +1556,7 @@ const_types_test/40: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
 constructor13_test/01: MissingCompileTimeError
 constructor13_test/02: MissingCompileTimeError
+constructor_call_as_function_test: CompileTimeError # Issue 32517
 constructor_call_wrong_argument_count_negative_test: Fail
 constructor_duplicate_final_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/02: MissingCompileTimeError
@@ -1693,6 +1709,17 @@ if_null_assignment_static_test/41: MissingCompileTimeError
 if_null_assignment_static_test/42: MissingCompileTimeError
 if_null_precedence_test/06: MissingCompileTimeError
 if_null_precedence_test/07: MissingCompileTimeError
+implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_constructor_named_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_constructor_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_prefix_constructor_named_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_prefix_constructor_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_constructor_named_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_constructor_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_or_const_composite_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_or_const_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_prefix_constructor_named_test: CompileTimeError # Issue 32517
 implicit_this_test/02: MissingCompileTimeError
 import_combinators2_test/00: MissingCompileTimeError
 import_self_test/01: MissingCompileTimeError
@@ -2184,5 +2211,4 @@ unresolved_top_level_var_test: MissingCompileTimeError
 [ $compiler == dartk || $compiler == dartkp ]
 generic_function_bounds_test: RuntimeError # Issue 32076
 generic_test/01: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e.*: MissingCompileTimeError
 

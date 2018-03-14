@@ -162,7 +162,7 @@ Future<SerializationResult> serialize(Uri entryPoint,
   }
   OutputCollector outputCollector = new OutputCollector();
   Compiler compiler = compilerFor(
-      options: [Flags.resolveOnly],
+      options: [Flags.resolveOnly, Flags.useOldFrontend],
       memorySourceFiles: memorySourceFiles,
       resolutionInputs: resolutionInputs,
       outputProvider: outputCollector);
@@ -243,7 +243,7 @@ Future<List<SerializedData>> preserializeData(
         entryPoint: test.sourceFiles.isEmpty ? uriList.first : null,
         memorySourceFiles: sourceFiles,
         resolutionInputs: serializedData.toUris(),
-        options: [Flags.resolveOnly],
+        options: [Flags.resolveOnly, Flags.useOldFrontend],
         outputProvider: outputCollector);
     compiler.librariesToAnalyzeWhenRun = uriList;
     await compiler.run(null);

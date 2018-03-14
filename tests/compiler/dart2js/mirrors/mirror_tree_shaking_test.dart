@@ -5,6 +5,7 @@
 // Test that tree-shaking hasn't been turned off.
 
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/js_backend/js_backend.dart' show JavaScriptBackend;
 import 'package:compiler/src/js_backend/mirrors_analysis.dart';
@@ -15,7 +16,9 @@ main() {
   DiagnosticCollector collector = new DiagnosticCollector();
   asyncTest(() async {
     CompilationResult result = await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES, diagnosticHandler: collector);
+        memorySourceFiles: MEMORY_SOURCE_FILES,
+        diagnosticHandler: collector,
+        options: [Flags.useOldFrontend]);
     Compiler compiler = result.compiler;
     JavaScriptBackend backend = compiler.backend;
     Expect.isTrue(collector.errors.isEmpty);

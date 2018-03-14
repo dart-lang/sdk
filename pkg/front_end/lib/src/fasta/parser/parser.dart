@@ -93,6 +93,8 @@ import 'token_stream_rewriter.dart' show TokenStreamRewriter;
 import 'type_continuation.dart'
     show TypeContinuation, typeContinuationFromFormalParameterKind;
 
+import 'type_info.dart' show isGeneralizedFunctionType, isValidTypeReference;
+
 import 'util.dart' show closeBraceTokenFor, optional;
 
 /// An event generating parser of Dart programs. This parser expects all tokens
@@ -1466,20 +1468,6 @@ class Parser {
         : beforeStart;
   }
 
-  bool isValidTypeReference(Token token) {
-    int kind = token.kind;
-    if (IDENTIFIER_TOKEN == kind) return true;
-    if (KEYWORD_TOKEN == kind) {
-      TokenType type = token.type;
-      String value = type.lexeme;
-      return type.isPseudo ||
-          (type.isBuiltIn && optional('.', token.next)) ||
-          (identical(value, 'dynamic')) ||
-          (identical(value, 'void'));
-    }
-    return false;
-  }
-
   /// Returns `true` if [token] matches '<' type (',' type)* '>' '(', and
   /// otherwise returns `false`. The final '(' is not part of the grammar
   /// construct `typeArguments`, but it is required here such that type
@@ -2241,11 +2229,6 @@ class Parser {
         !identical(value, token.stringValue);
   }
 
-  bool isGeneralizedFunctionType(Token token) {
-    return optional('Function', token) &&
-        (optional('<', token.next) || optional('(', token.next));
-  }
-
   /// Parse a type, if it is appropriate to do so.
   ///
   /// If this method can parse a type, it will return the next (non-null) token
@@ -2880,41 +2863,40 @@ class Parser {
   }
 
   Token parseTypeArgumentsOpt(Token token) {
-    return parseStuffOpt(
-        token,
-        (t) => listener.beginTypeArguments(t),
-        (t) => parseType(t),
-        (c, bt, et) => listener.endTypeArguments(c, bt, et),
-        (t) => listener.handleNoTypeArguments(t));
-  }
-
-  Token parseTypeVariablesOpt(Token token) {
-    return parseStuffOpt(
-        token,
-        (t) => listener.beginTypeVariables(t),
-        (t) => parseTypeVariable(t),
-        (c, bt, et) => listener.endTypeVariables(c, bt, et),
-        (t) => listener.handleNoTypeVariables(t));
-  }
-
-  /// TODO(ahe): Clean this up.
-  Token parseStuffOpt(Token token, Function beginStuff, Function stuffParser,
-      Function endStuff, Function handleNoStuff) {
     Token next = token.next;
     if (optional('<', next)) {
       BeginToken begin = next;
       rewriteLtEndGroupOpt(begin);
-      beginStuff(begin);
+      listener.beginTypeArguments(begin);
       int count = 0;
       do {
-        token = stuffParser(token.next);
+        token = parseType(token.next);
         ++count;
       } while (optional(',', token.next));
       token = begin.endToken = ensureGt(token);
-      endStuff(count, begin, token);
-      return token;
+      listener.endTypeArguments(count, begin, token);
+    } else {
+      listener.handleNoTypeArguments(next);
     }
-    handleNoStuff(next);
+    return token;
+  }
+
+  Token parseTypeVariablesOpt(Token token) {
+    Token next = token.next;
+    if (optional('<', next)) {
+      BeginToken begin = next;
+      rewriteLtEndGroupOpt(begin);
+      listener.beginTypeVariables(begin);
+      int count = 0;
+      do {
+        token = parseTypeVariable(token.next);
+        ++count;
+      } while (optional(',', token.next));
+      token = begin.endToken = ensureGt(token);
+      listener.endTypeVariables(count, begin, token);
+    } else {
+      listener.handleNoTypeVariables(next);
+    }
     return token;
   }
 

@@ -48,7 +48,8 @@ void check(Map<String, List<String>> testFiles,
               entryPoint: Uri.parse('memory:$testFileName'),
               memorySourceFiles: {testFileName: testSources[testName]},
               diagnosticHandler: collector,
-              options: [Flags.analyzeOnly]..addAll(options),
+              options: [Flags.analyzeOnly, Flags.useOldFrontend]
+                ..addAll(options),
               showDiagnostics: verbose,
               cachedCompiler: cachedCompiler);
           var compiler = result.compiler;

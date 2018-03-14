@@ -52,8 +52,8 @@ main () {
 void main() {
   runTest({bool useKernel}) async {
     var options = [Flags.trustTypeAnnotations];
-    if (useKernel) {
-      options.add(Flags.useKernel);
+    if (!useKernel) {
+      options.add(Flags.useOldFrontend);
     }
     var result = await runCompiler(
         memorySourceFiles: {'main.dart': TEST}, options: options);

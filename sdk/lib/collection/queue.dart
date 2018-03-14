@@ -28,8 +28,25 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
    *
    * The element order in the queue is as if the elements were added using
    * [addLast] in the order provided by [elements.iterator].
+   *
+   * All the [elements] should be instances of [E].
+   * The `elements` iterable itself may have any element type, so this
+   * constructor can be used to down-cast a `Queue`, for example as:
+   * ```dart
+   * Queue<SuperType> superQueue = ...;
+   * Queue<SubType> subQueue =
+   *     new Queue<SubType>.from(superSet.whereType<SubType>());
+   * ```
    */
   factory Queue.from(Iterable elements) = ListQueue<E>.from;
+
+  /**
+   * Creates a queue from [elements].
+   *
+   * The element order in the queue is as if the elements were added using
+   * [addLast] in the order provided by [elements.iterator].
+   */
+  factory Queue.of(Iterable<E> elements) = ListQueue<E>.of;
 
   /**
    * Adapts [source] to be a `Queue<T>`.
@@ -312,6 +329,15 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
    *
    * The element order in the queue is as if the elements were added using
    * [addLast] in the order provided by [elements.iterator].
+   *
+   * All the [elements] should be instances of [E].
+   * The `elements` iterable itself may have any element type, so this
+   * constructor can be used to down-cast a `Queue`, for example as:
+   * ```dart
+   * Queue<SuperType> superQueue = ...;
+   * Queue<SubType> subQueue =
+   *     new DoubleLinkedQueue<SubType>.from(superQueue.whereType<SubType>());
+   * ```
    */
   factory DoubleLinkedQueue.from(Iterable elements) {
     Queue<E> list = new DoubleLinkedQueue<E>();
@@ -320,6 +346,15 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
     }
     return list;
   }
+
+  /**
+   * Creates a double-linked queue from [elements].
+   *
+   * The element order in the queue is as if the elements were added using
+   * [addLast] in the order provided by [elements.iterator].
+   */
+  factory DoubleLinkedQueue.of(Iterable<E> elements) =>
+      new DoubleLinkedQueue<E>()..addAll(elements);
 
   Queue<R> cast<R>() {
     Queue<Object> self = this;
@@ -579,7 +614,14 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
    * The elements are added to the queue, as by [addLast], in the order given by
    * `elements.iterator`.
    *
-   * All `elements` should be assignable to [E].
+   * All the [elements] should be instances of [E].
+   * The `elements` iterable itself may have any element type, so this
+   * constructor can be used to down-cast a `Queue`, for example as:
+   * ```dart
+   * Queue<SuperType> superQueue = ...;
+   * Queue<SubType> subQueue =
+   *     new ListQueue<SubType>.from(superQueue.whereType<SubType>());
+   * ```
    */
   factory ListQueue.from(Iterable elements) {
     if (elements is List) {
@@ -603,6 +645,15 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
       return result;
     }
   }
+
+  /**
+   * Create a `ListQueue` from [elements].
+   *
+   * The elements are added to the queue, as by [addLast], in the order given by
+   * `elements.iterator`.
+   */
+  factory ListQueue.of(Iterable<E> elements) =>
+      new ListQueue<E>()..addAll(elements);
 
   // Iterable interface.
 

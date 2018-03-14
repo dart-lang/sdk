@@ -34,7 +34,7 @@ Future<DiagnosticCollector> run(String source,
     {bool analyzeAll, bool expectSuccess}) async {
   DiagnosticCollector collector = new DiagnosticCollector();
 
-  List<String> options = [];
+  List<String> options = [Flags.useOldFrontend];
   if (analyzeAll) {
     options.add(Flags.analyzeAll);
   } else {

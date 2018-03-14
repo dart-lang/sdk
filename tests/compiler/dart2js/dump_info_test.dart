@@ -99,8 +99,8 @@ typedef void JsonTaking(Map<String, dynamic> json);
 
 jsonTest(String program, JsonTaking testFn, {bool useKernel}) async {
   var options = ['--out=out.js', Flags.dumpInfo];
-  if (useKernel) {
-    options.add(Flags.useKernel);
+  if (!useKernel) {
+    options.add(Flags.useOldFrontend);
   }
   var result = await runCompiler(
       memorySourceFiles: {'main.dart': program}, options: options);

@@ -973,20 +973,27 @@ class KernelLibraryBuilder
     return count;
   }
 
-  int instantiateToBound(TypeBuilder dynamicType, ClassBuilder objectClass) {
+  int instantiateToBound(TypeBuilder dynamicType, TypeBuilder bottomType,
+      ClassBuilder objectClass) {
     int count = 0;
 
     for (var declarationBuilder in libraryDeclaration.members.values) {
       if (declarationBuilder is KernelClassBuilder) {
         if (declarationBuilder.typeVariables != null) {
           declarationBuilder.calculatedBounds = calculateBounds(
-              declarationBuilder.typeVariables, dynamicType, objectClass);
+              declarationBuilder.typeVariables,
+              dynamicType,
+              bottomType,
+              objectClass);
           count += declarationBuilder.calculatedBounds.length;
         }
       } else if (declarationBuilder is KernelFunctionTypeAliasBuilder) {
         if (declarationBuilder.typeVariables != null) {
           declarationBuilder.calculatedBounds = calculateBounds(
-              declarationBuilder.typeVariables, dynamicType, objectClass);
+              declarationBuilder.typeVariables,
+              dynamicType,
+              bottomType,
+              objectClass);
           count += declarationBuilder.calculatedBounds.length;
         }
       }

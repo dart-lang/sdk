@@ -40,6 +40,7 @@ runCompiler(String main, List<String> options,
     }
   }
 
+  options = [Flags.useOldFrontend]..addAll(options);
   print('-----------------------------------------------');
   print('main source:\n$main');
   print('options: $options\n');

@@ -17,7 +17,7 @@ Future<String> compileSources(sources,
   var options = [];
   if (minify) options.add(Flags.minify);
   if (preserveUri) options.add(Flags.preserveUris);
-  if (useKernel) options.add(Flags.useKernel);
+  if (!useKernel) options.add(Flags.useOldFrontend);
   OutputCollector outputCollector = new OutputCollector();
   await runCompiler(
       memorySourceFiles: sources,

@@ -60,7 +60,7 @@ main() {
 runTest({bool useKernel}) async {
   CompilationResult result = await runCompiler(
       memorySourceFiles: MEMORY_SOURCE_FILES,
-      options: useKernel ? [Flags.useKernel] : []);
+      options: useKernel ? [] : [Flags.useOldFrontend]);
   Compiler compiler = result.compiler;
   ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
   Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');

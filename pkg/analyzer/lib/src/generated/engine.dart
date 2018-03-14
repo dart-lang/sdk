@@ -1444,8 +1444,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   bool preserveComments = true;
 
-  @override
-  bool strongMode = false;
+  bool _strongMode = false;
 
   /**
    * A flag indicating whether strong-mode inference hints should be
@@ -1679,6 +1678,13 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       _signature = new Uint8List.fromList(bytes).buffer.asUint32List();
     }
     return _signature;
+  }
+
+  @override
+  bool get strongMode => _strongMode || previewDart2;
+
+  void set strongMode(bool value) {
+    _strongMode = value;
   }
 
   @override

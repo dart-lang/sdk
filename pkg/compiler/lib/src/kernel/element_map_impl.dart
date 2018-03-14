@@ -2004,7 +2004,8 @@ class KernelClosedWorld extends ClosedWorldBase
             classHierarchyNodes,
             classSets) {
     computeRtiNeed(resolutionWorldBuilder, rtiNeedBuilder,
-        enableTypeAssertions: options.enableTypeAssertions);
+        enableTypeAssertions: options.enableTypeAssertions,
+        strongMode: options.strongMode);
   }
 
   @override
@@ -2686,7 +2687,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
         closureClassInfo.closureClassEntity,
         // SignatureMethod takes no arguments.
         const ParameterStructure(0, 0, const [], 0),
-        getAsyncMarker(closureSourceNode));
+        AsyncMarker.SYNC);
     _members.register<IndexedFunction, FunctionData>(
         signatureMethod,
         new SignatureFunctionData(

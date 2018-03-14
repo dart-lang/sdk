@@ -725,7 +725,7 @@ LayoutTests/fast/forms/form-attribute_t01: RuntimeError # Issue 25155
 LayoutTests/fast/forms/input-appearance-elementFromPoint_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/input-hit-test-border_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/forms/input-inputmode_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/input-width-height-attributes-without-renderer-loaded-image_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/forms/input-width-height-attributes-without-renderer-loaded-image_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/forms/listbox-selection-2_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/menulist-disabled-selected-option_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/menulist-selection-reset_t01: RuntimeError # Please triage this failure
@@ -1498,8 +1498,8 @@ LayoutTests/fast/canvas/webgl/array-bounds-clamping_t01: Pass, RuntimeError # Is
 LayoutTests/fast/canvas/webgl/attrib-location-length-limits_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/attrib-location-length-limits_t01: Pass, RuntimeError # Issue 29634
 LayoutTests/fast/canvas/webgl/bad-arguments-test_t01: Pass, RuntimeError # Issue 29634
-LayoutTests/fast/canvas/webgl/buffer-bind-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/buffer-bind-test_t01: Pass, RuntimeError # Issue 29634
+LayoutTests/fast/canvas/webgl/buffer-bind-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/buffer-data-array-buffer_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/canvas-2d-webgl-texture_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/canvas-2d-webgl-texture_t01: Pass, RuntimeError # Issue 29634
@@ -3700,6 +3700,10 @@ WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to
 
 [ $compiler == dart2js && $runtime == ff && !$checked ]
 LayoutTests/fast/xpath/invalid-resolver_t01: RuntimeError # Please triage this failure
+
+[ $compiler == dart2js && $runtime == ff && $fasta ]
+LibTest/html/Window/requestFileSystem_A01_t01: Crash
+LibTest/html/Window/requestFileSystem_A01_t02: Crash
 
 [ $compiler == dart2js && $runtime == ie11 ]
 Language/Expressions/Conditional/type_t04: Skip # Times out. Please triage this failure
@@ -6479,8 +6483,8 @@ LibTest/html/IFrameElement/createShadowRoot_A01_t01: RuntimeError # Please triag
 LibTest/html/IFrameElement/getClientRects_A01_t02: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/getNamespacedAttributes_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/innerHtml_A01_t01: RuntimeError # Please triage this failure
-LibTest/html/IFrameElement/isContentEditable_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/isContentEditable_A01_t01: RuntimeError, Pass # Fails 19 out of 20.
+LibTest/html/IFrameElement/isContentEditable_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/leftView_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/marginEdge_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/offsetTo_A01_t01: RuntimeError # Please triage this failure
@@ -6918,6 +6922,16 @@ LibTest/core/Map/Map_class_A01_t04: Slow, Pass # Please triage this failure
 LibTest/core/Uri/Uri_A06_t03: Slow, Pass # Please triage this failure
 LibTest/math/Point/operator_mult_A02_t01: RuntimeError # Issue 1533
 
+[ $compiler == dart2js && $checked && $fast_startup && $fasta && $minified ]
+Language/Libraries_and_Scripts/Imports/deferred_import_t02: RuntimeError
+
+[ $compiler == dart2js && $checked && $fasta && $host_checked ]
+Language/Classes/Constructors/Factories/function_type_t02: RuntimeError
+Language/Expressions/Instance_Creation/New/redirecting_factory_constructor_t02: RuntimeError
+Language/Generics/malformed_t02: Crash
+Language/Libraries_and_Scripts/Imports/deferred_import_t02: RuntimeError
+LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: RuntimeError
+
 [ $compiler == dart2js && !$checked && $enable_asserts ]
 Language/Statements/Assert/execution_t01: SkipByDesign # Unspec'd feature.
 Language/Statements/Assert/execution_t02: SkipByDesign # Unspec'd feature.
@@ -7015,7 +7029,6 @@ Language/Expressions/Constants/exception_t01: MissingCompileTimeError
 Language/Expressions/Constants/exception_t02: MissingCompileTimeError
 Language/Expressions/Constants/logical_expression_t04: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: Crash
-Language/Expressions/Identifier_Reference/evaluation_variable_or_parameter_t02: RuntimeError
 Language/Expressions/Instance_Creation/Const/exception_t01: MissingCompileTimeError
 Language/Expressions/Maps/syntax_t08: Crash
 Language/Expressions/Method_Invocation/Ordinary_Invocation/evaluation_t08: RuntimeError
@@ -7217,6 +7230,19 @@ LibTest/html/Window/postMessage_A01_t02: Crash
 LibTest/html/Window/requestFileSystem_A01_t01: Crash
 LibTest/html/Window/requestFileSystem_A01_t02: Crash
 LibTest/html/Window/requestFileSystem_A02_t01: Crash
+
+[ $compiler == dart2js && $fasta && $minified ]
+Language/Expressions/Assignment/expression_assignment_failed_t01: RuntimeError
+Language/Expressions/Assignment/expression_assignment_failed_t02: RuntimeError
+Language/Expressions/Assignment/expression_assignment_value_t02: RuntimeError
+Language/Expressions/Assignment/indexed_expression_t04: RuntimeError
+Language/Expressions/Function_Invocation/Function_Expression_Invocation/property_extraction_t02: RuntimeError
+Language/Expressions/Method_Invocation/Ordinary_Invocation/method_lookup_failed_t02: RuntimeError
+Language/Expressions/Method_Invocation/Ordinary_Invocation/method_lookup_failed_t03: RuntimeError
+LibTest/core/Invocation/memberName_A01_t01: RuntimeError
+
+[ $compiler == dart2js && $fasta && !$minified ]
+Language/Expressions/Identifier_Reference/evaluation_variable_or_parameter_t02: RuntimeError
 
 [ $compiler == dart2js && !$fasta ]
 Language/Classes/Constructors/Generative_Constructors/execution_t03: RuntimeError # https://github.com/dart-lang/sdk/issues/29596

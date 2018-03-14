@@ -80,7 +80,12 @@ class Assembler : public ValueObject {
   static bool IsSafe(const Object& value) { return true; }
   static bool IsSafeSmi(const Object& value) { return false; }
 
-// Bytecodes.
+  enum CanBeSmi {
+    kValueIsNotSmi,
+    kValueCanBeSmi,
+  };
+
+  // Bytecodes.
 
 #define DECLARE_EMIT(Name, Signature, Fmt0, Fmt1, Fmt2)                        \
   void Name(PARAMS_##Signature);

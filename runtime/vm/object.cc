@@ -16805,7 +16805,18 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
                           space);
     }
     // In strong mode, subtyping rules of callable instances are restricted.
-    if (!isolate->strong()) {
+    if (isolate->strong()) {
+      // [this] is not a function type.
+      // If [other] is a function type, then [this] can't be a subtype of
+      // [other], according to Dart 2 subtyping rules.
+      // This check is needed to avoid falling through to class-based type
+      // tests, which yield incorrect result if [this] = _Closure class,
+      // and [other] is a function type, because class of a function type is
+      // also _Closure.
+      if (other.IsFunctionType()) {
+        return false;
+      }
+    } else {
       // Check if type S has a call() method of function type T.
       const Function& call_function =
           Function::Handle(zone, type_cls.LookupCallFunctionForTypeTest());

@@ -95,7 +95,7 @@ abstract class LinkedHashSet<E> implements Set<E> {
    * Creates a linked hash set as by `new LinkedHashSet<E>()` and adds each
    * element of `elements` to this set in the order they are iterated.
    *
-   * All the [elements] should be assignable to [E].
+   * All the [elements] should be instances of [E].
    * The `elements` iterable itself may have any element type,
    * so this constructor can be used to down-cast a `Set`, for example as:
    *
@@ -110,6 +110,15 @@ abstract class LinkedHashSet<E> implements Set<E> {
     }
     return result;
   }
+
+  /**
+   * Create a linked hash set from [elements].
+   *
+   * Creates a linked hash set as by `new LinkedHashSet<E>()` and adds each
+   * element of `elements` to this set in the order they are iterated.
+   */
+  factory LinkedHashSet.of(Iterable<E> elements) =>
+      new LinkedHashSet<E>()..addAll(elements);
 
   /**
    * Executes a function on each element of the set.

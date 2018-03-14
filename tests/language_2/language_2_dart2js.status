@@ -584,6 +584,18 @@ type_argument_in_super_type_test: RuntimeError
 assertion_test: RuntimeError, OK
 
 [ $compiler == dart2js && !$checked && $fasta ]
+constructor_call_as_function_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_prefix_constructor_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_constructor_named_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_prefix_constructor_named_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_constructor_named_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_constructor_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_constructor_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_or_const_composite_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_or_const_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_prefix_constructor_named_test: CompileTimeError # Issue 32517
+
 cascaded_forwarding_stubs_generic_test: RuntimeError
 cascaded_forwarding_stubs_test: RuntimeError
 checked_setter3_test: RuntimeError # Issue 31128
@@ -859,7 +871,6 @@ generic_instanceof_test: RuntimeError
 generic_list_checked_test: RuntimeError
 generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
 generic_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_test/none: RuntimeError
 generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node S.
 getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
@@ -1066,18 +1077,10 @@ typevariable_substitution2_test/02: RuntimeError
 [ $compiler == dart2js && $fasta ]
 async_error_timing_test: Crash
 bug31436_test: RuntimeError
-call_method_as_cast_test/01: RuntimeError
-call_method_as_cast_test/02: RuntimeError
-call_method_as_cast_test/04: RuntimeError
-call_method_as_cast_test/05: RuntimeError
 call_method_function_typed_value_test/02: RuntimeError
 call_method_function_typed_value_test/04: RuntimeError
 call_method_function_typed_value_test/06: RuntimeError
 call_method_function_typed_value_test/08: RuntimeError
-call_method_is_check_test/01: RuntimeError
-call_method_is_check_test/02: RuntimeError
-call_method_is_check_test/04: RuntimeError
-call_method_is_check_test/05: RuntimeError
 call_method_must_not_be_field_test/03: RuntimeError # Issue 32155
 call_method_must_not_be_getter_test/03: RuntimeError # Issue 32155
 call_with_no_such_method_test: RuntimeError
@@ -1434,6 +1437,7 @@ function_subtype_bound_closure5_test: RuntimeError
 function_subtype_bound_closure5a_test: RuntimeError
 function_subtype_bound_closure6_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
+function_subtype_call0_test: RuntimeError
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_cast1_test: RuntimeError
@@ -2290,6 +2294,7 @@ function_subtype_bound_closure5_test: RuntimeError
 function_subtype_bound_closure5a_test: RuntimeError
 function_subtype_bound_closure6_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
+function_subtype_call0_test: RuntimeError
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_cast1_test: RuntimeError

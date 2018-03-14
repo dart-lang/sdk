@@ -28,7 +28,7 @@ main() {
       var result = await runCompiler(
           entryPoint: entryPoint,
           memorySourceFiles: {main: test},
-          options: useKernel ? [Flags.useKernel] : []);
+          options: useKernel ? [] : [Flags.useOldFrontend]);
       Expect.isTrue(result.isSuccess);
       var compiler = result.compiler;
       var closedWorld = compiler.backendClosedWorldForTesting;

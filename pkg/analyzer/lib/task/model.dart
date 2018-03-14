@@ -350,8 +350,7 @@ abstract class ListResultDescriptor<E> implements ResultDescriptor<List<E>> {
    * values associated with this result will remain in the cache.
    */
   factory ListResultDescriptor(String name, List<E> defaultValue,
-          {ResultCachingPolicy<List<E>> cachingPolicy}) =
-      ListResultDescriptorImpl<E>;
+      {ResultCachingPolicy cachingPolicy}) = ListResultDescriptorImpl<E>;
 
   @override
   ListTaskInput<E> of(AnalysisTarget target, {bool flushOnAccess: false});
@@ -434,7 +433,7 @@ class ModificationTimeMismatchError {
  *
  * Clients may implement this class when implementing plugins.
  */
-abstract class ResultCachingPolicy<T> {
+abstract class ResultCachingPolicy {
   /**
    * Return the maximum total size of results that can be kept in the cache
    * while analysis is in progress.
@@ -450,7 +449,7 @@ abstract class ResultCachingPolicy<T> {
   /**
    * Return the size of the given [object].
    */
-  int measure(T object);
+  int measure(Object object);
 }
 
 /**
@@ -475,12 +474,12 @@ abstract class ResultDescriptor<V> {
    * never evicted from the cache, and removed only when they are invalidated.
    */
   factory ResultDescriptor(String name, V defaultValue,
-      {ResultCachingPolicy<V> cachingPolicy}) = ResultDescriptorImpl<V>;
+      {ResultCachingPolicy cachingPolicy}) = ResultDescriptorImpl<V>;
 
   /**
    * Return the caching policy for results described by this descriptor.
    */
-  ResultCachingPolicy<V> get cachingPolicy;
+  ResultCachingPolicy get cachingPolicy;
 
   /**
    * Return the default value for results described by this descriptor.

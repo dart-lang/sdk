@@ -40,8 +40,8 @@ Future<Null> test(List<String> arguments, List<String> expectedOutput,
     {List<String> groupOutputs: const <String>[], bool useKernel}) async {
   List<String> options = new List<String>.from(arguments)
     ..add("--library-root=${Uri.base.resolve('sdk/')}");
-  if (useKernel) {
-    options.add(Flags.useKernel);
+  if (!useKernel) {
+    options.add(Flags.useOldFrontend);
   }
   print('--------------------------------------------------------------------');
   print('dart2js ${options.join(' ')}');

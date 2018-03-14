@@ -10,6 +10,7 @@ library dart2js.test.import_mirrors;
 import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/diagnostics/messages.dart'
     show MessageKind, MessageTemplate;
 import '../memory_compiler.dart';
@@ -309,7 +310,7 @@ Future test(Map sourceFiles,
     expectedPaths = [expectedPaths];
   }
   var collector = new DiagnosticCollector();
-  var options = [];
+  var options = [Flags.useOldFrontend];
   if (verbose) {
     options.add('--verbose');
   }

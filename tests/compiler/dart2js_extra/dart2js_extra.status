@@ -13,9 +13,6 @@ no_such_method_test: Fail # Wrong Invocation.memberName.
 statements_test: Fail
 typed_locals_test: Pass, Fail
 
-[ $compiler == dart2js && !$checked ]
-closure_signature_unneeded_test: RuntimeError # Too eager signature generation.
-
 [ $compiler != dart2js ]
 dummy_compiler_test: SkipByDesign # Issue 30773. Test should be migrated as a unit test of dart2js, is only intended to test self-hosting.
 
@@ -90,6 +87,9 @@ minus_zero_test/01: MissingCompileTimeError
 mirrors_used_warning2_test: Crash
 mirrors_used_warning_test/minif: Crash
 mirrors_used_warning_test/none: Crash
+
+[ $compiler == dart2js && !$checked ]
+closure_signature_unneeded_test: RuntimeError # Too eager signature generation.
 
 [ $compiler == dart2js && $csp ]
 deferred_custom_loader_test: SkipByDesign # Issue 25683
@@ -198,7 +198,7 @@ string_interpolation_dynamic_test: Fail # CRLF handling clarified, see Issue 235
 string_interpolation_test: Fail # CRLF handling clarified, see Issue 23562
 
 [ $compiler == dart2js && !$host_checked ]
-dummy_compiler_test: Slow, Pass
+dummy_compiler_test: RuntimeError, Slow # Issue 32439. self-hosting doesn't work with CFE yet.
 
 [ $compiler == dart2js && $minified ]
 code_motion_exception_test: Skip # Requires unminified operator names.

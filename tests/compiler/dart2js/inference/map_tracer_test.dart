@@ -234,7 +234,7 @@ doTest(String allocation,
   String source = generateTest(allocation);
   var result = await runCompiler(
       memorySourceFiles: {'main.dart': source},
-      options: useKernel ? [Flags.useKernel] : []);
+      options: useKernel ? [] : [Flags.useOldFrontend]);
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
   TypeMask keyType, valueType;

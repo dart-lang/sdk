@@ -1,7 +1,6 @@
 # Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
-
 iterable_where_type_test: RuntimeError # Disabled.  Issue 32463
 
 [ $compiler == dart2analyzer ]
@@ -146,6 +145,10 @@ uri_base_test: RuntimeError # D8 uses a custom uri scheme for Uri.base
 [ $compiler == dart2js && $runtime != none ]
 regexp/pcre_test: Pass, Slow # Issue 21593
 
+[ $compiler == dart2js && $runtime != none && !$strong ]
+collection_of_test: RuntimeError # Strong mode test
+map_of_test: RuntimeError # Strong mode test
+
 [ $compiler == dart2js && $runtime == safari ]
 regexp/lookahead_test: RuntimeError
 regexp/no-extensions_test: RuntimeError
@@ -203,6 +206,7 @@ uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is e
 [ $compiler == dart2js && $fasta ]
 int_from_environment_test: Pass # Issue 31762
 int_parse_radix_test/none: Pass # Issue 31762
+map_entry_test: RuntimeError
 
 [ $compiler == dart2js && $fasta && $host_checked && $strong ]
 apply3_test: RuntimeError
@@ -322,6 +326,9 @@ shuffle_test: RuntimeError
 
 [ $compiler == dart2js && !$fasta ]
 *: SkipByDesign
+
+[ $compiler == dart2js && $strong ]
+collection_of_test: RuntimeError
 
 [ $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $compiler != fasta ]
 iterable_element_at_test/static: MissingCompileTimeError
@@ -523,6 +530,9 @@ symbol_reserved_word_test/09: RuntimeError # Issue 29921
 symbol_reserved_word_test/12: RuntimeError # Issue 29921
 symbol_test/none: RuntimeError # Issue 29921
 typed_data_with_limited_ints_test: Skip # dartdevc doesn't know about --limit-ints-to-64-bits
+
+[ $runtime == vm && !$strong ]
+collection_of_test: RuntimeError
 
 [ !$checked && !$strong ]
 core_runtime_types_static_test: MissingCompileTimeError

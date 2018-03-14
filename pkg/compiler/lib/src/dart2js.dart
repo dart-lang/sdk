@@ -139,7 +139,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   bool showWarnings;
   bool showHints;
   bool enableColors;
-  bool useKernel = false;
+  bool useKernel = true;
   Uri platformBinaries = computePlatformBinariesLocation();
   // List of provided options that imply that output is expected.
   List<String> optionsImplyCompilation = <String>[];
@@ -287,10 +287,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     passThrough('--categories=${categories.join(",")}');
   }
 
-  void setUseKernel(String argument) {
-    useKernel = true;
-    // TODO(sigmund): reenable hints (Issue #32111)
-    showHints = false;
+  void setUseOldFrontend(String argument) {
+    useKernel = false;
     passThrough(argument);
   }
 
@@ -347,8 +345,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(
         '--output-type=dart|--output-type=dart-multi|--output-type=js',
         setOutputType),
-    new OptionHandler(Flags.useKernel, setUseKernel),
-    new OptionHandler(Flags.useOldFrontend, ignoreOption),
+    new OptionHandler(Flags.useKernel, ignoreOption),
+    new OptionHandler(Flags.useOldFrontend, setUseOldFrontend),
     new OptionHandler(Flags.platformBinaries, setPlatformBinaries),
     new OptionHandler(Flags.noFrequencyBasedMinification, passThrough),
     new OptionHandler(Flags.verbose, setVerbose),
@@ -598,6 +596,8 @@ Future<api.CompilationResult> compile(List<String> argv,
   Uri script = currentDirectory.resolve(arguments[0]);
   if (useKernel) {
     diagnosticHandler.autoReadFileUri = true;
+    // TODO(sigmund): reenable hints (Issue #32111)
+    diagnosticHandler.showHints = showHints = false;
   }
   CompilerOptions compilerOptions = new CompilerOptions.parse(
       entryPoint: script,

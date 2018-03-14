@@ -100,6 +100,9 @@ abstract class HashMap<K, V> implements Map<K, V> {
 
   /**
    * Creates a [HashMap] that contains all key/value pairs of [other].
+   *
+   * The keys must all be instances of [K] and the values of [V].
+   * The [other] map itself can have any type.
    */
   factory HashMap.from(Map other) {
     Map<K, V> result = new HashMap<K, V>();
@@ -108,6 +111,11 @@ abstract class HashMap<K, V> implements Map<K, V> {
     });
     return result;
   }
+
+  /**
+   * Creates a [HashMap] that contains all key/value pairs of [other].
+   */
+  factory HashMap.of(Map<K, V> other) => new HashMap<K, V>()..addAll(other);
 
   /**
    * Creates a [HashMap] where the keys and values are computed from the

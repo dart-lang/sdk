@@ -34,7 +34,7 @@ main() {
     CompilationResult result = await runCompiler(
         memorySourceFiles: {'main.dart': TEST},
         outputProvider: outputCollector,
-        options: useKernel ? [Flags.useKernel] : []);
+        options: useKernel ? [] : [Flags.useOldFrontend]);
     Compiler compiler = result.compiler;
     ClosedWorldBase closedWorld =
         compiler.resolutionWorldBuilder.closedWorldForTesting;

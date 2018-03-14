@@ -19,8 +19,9 @@ void main() {
       print("Copying '${sunflowerDir.path}' to '${tmpDir.path}'.");
       copyDirectory(sunflowerDir, tmpDir);
       String ext = Platform.isWindows ? '.bat' : '';
-      String command = path.normalize(path.join(
-          path.fromUri(Platform.script), '../../../../../sdk/bin/pub${ext}'));
+      String command = path.fromUri(Uri
+          .parse(Platform.resolvedExecutable)
+          .resolve('dart-sdk/bin/pub${ext}'));
       String file = path.join(tmpDir.path, 'build/web/sunflower.dart.js');
 
       // sunflower/pubspec.yaml only depends on package:browser for Dartium, we

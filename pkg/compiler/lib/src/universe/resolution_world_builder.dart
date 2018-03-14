@@ -11,6 +11,11 @@ abstract class ResolutionWorldBuilder implements WorldBuilder, OpenWorld {
   /// Used by the mirror tracking system to find all live closure instances.
   void forEachLocalFunction(void f(MemberEntity member, Local localFunction));
 
+  /// Set of (live) local functions (closures).
+  ///
+  /// A live function is one whose enclosing member function has been enqueued.
+  Iterable<Local> get localFunctions;
+
   /// Set of (live) local functions (closures) whose signatures reference type
   /// variables.
   ///

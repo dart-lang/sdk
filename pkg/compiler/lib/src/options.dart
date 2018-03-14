@@ -336,7 +336,8 @@ class CompilerOptions implements DiagnosticOptions {
         outputUri: _extractUriOption(options, '--out='),
         platformConfigUri:
             _resolvePlatformConfigFromOptions(libraryRoot, options),
-        platformBinaries: platformBinaries,
+        platformBinaries: platformBinaries ??
+            _extractUriOption(options, '--platform-binaries='),
         preserveComments: _hasOption(options, Flags.preserveComments),
         preserveUris: _hasOption(options, Flags.preserveUris),
         resolutionInputs: resolutionInputs,
@@ -352,7 +353,7 @@ class CompilerOptions implements DiagnosticOptions {
         trustTypeAnnotations: _hasOption(options, Flags.trustTypeAnnotations),
         useContentSecurityPolicy:
             _hasOption(options, Flags.useContentSecurityPolicy),
-        useKernel: _hasOption(options, Flags.useKernel),
+        useKernel: !_hasOption(options, Flags.useOldFrontend),
         useFrequencyNamer:
             !_hasOption(options, Flags.noFrequencyBasedMinification),
         useMultiSourceInfo: _hasOption(options, Flags.useMultiSourceInfo),
@@ -419,7 +420,7 @@ class CompilerOptions implements DiagnosticOptions {
       bool trustPrimitives: false,
       bool trustTypeAnnotations: false,
       bool useContentSecurityPolicy: false,
-      bool useKernel: false,
+      bool useKernel: true,
       bool useFrequencyNamer: true,
       bool useMultiSourceInfo: false,
       bool useNewSourceInfo: false,
@@ -450,9 +451,7 @@ class CompilerOptions implements DiagnosticOptions {
       }
     }
     if (useKernel && platformBinaries == null) {
-      throw new ArgumentError(
-          "${Flags.useKernel} is only supported in combination "
-          "with ${Flags.platformBinaries}");
+      throw new ArgumentError("Missing required ${Flags.platformBinaries}");
     }
     return new CompilerOptions._(entryPoint, libraryRoot, packageRoot,
         packageConfig, packagesDiscoveryProvider, environment,
@@ -559,7 +558,7 @@ class CompilerOptions implements DiagnosticOptions {
       this.trustPrimitives: false,
       this.trustTypeAnnotations: false,
       this.useContentSecurityPolicy: false,
-      this.useKernel: false,
+      this.useKernel: true,
       this.useFrequencyNamer: false,
       this.useMultiSourceInfo: false,
       this.useNewSourceInfo: false,

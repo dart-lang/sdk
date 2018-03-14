@@ -144,7 +144,7 @@ CompilerImpl compilerFor(
     PackagesDiscoveryProvider packagesDiscoveryProvider}) {
   Uri libraryRoot = Uri.base.resolve('sdk/');
   Uri platformBinaries;
-  if (options.contains(Flags.useKernel)) {
+  if (!options.contains(Flags.useOldFrontend)) {
     platformBinaries = computePlatformBinariesLocation();
   }
 
@@ -293,7 +293,5 @@ DiagnosticHandler createDiagnosticHandler(DiagnosticHandler diagnosticHandler,
 }
 
 main() {
-  runCompiler(
-      memorySourceFiles: {'main.dart': 'main() {}'},
-      options: [Flags.useKernel]);
+  runCompiler(memorySourceFiles: {'main.dart': 'main() {}'});
 }

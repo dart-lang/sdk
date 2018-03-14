@@ -87,6 +87,9 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
 
   /**
    * Creates a [LinkedHashMap] that contains all key value pairs of [other].
+   *
+   * The keys must all be instances of [K] and the values to [V].
+   * The [other] map itself can have any type.
    */
   factory LinkedHashMap.from(Map other) {
     LinkedHashMap<K, V> result = new LinkedHashMap<K, V>();
@@ -95,6 +98,12 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
     });
     return result;
   }
+
+  /**
+   * Creates a [LinkedHashMap] that contains all key value pairs of [other].
+   */
+  factory LinkedHashMap.of(Map<K, V> other) =>
+      new LinkedHashMap<K, V>()..addAll(other);
 
   /**
    * Creates a [LinkedHashMap] where the keys and values are computed from the

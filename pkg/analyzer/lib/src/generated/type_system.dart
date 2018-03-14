@@ -309,9 +309,28 @@ class StrongTypeSystemImpl extends TypeSystem {
   DartType instantiateToBounds(DartType type,
       {List<bool> hasError, Map<TypeParameterType, DartType> knownTypes}) {
     List<TypeParameterElement> typeFormals = typeFormalsAsElements(type);
+    List<DartType> arguments = instantiateTypeFormalsToBounds(typeFormals,
+        hasError: hasError, knownTypes: knownTypes);
+    if (arguments == null) {
+      return type;
+    }
+
+    return instantiateType(type, arguments);
+  }
+
+  /**
+   * Given uninstantiated [typeFormals], instantiate them to their bounds.
+   * See the issue for the algorithm description.
+   *
+   * https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397
+   */
+  List<DartType> instantiateTypeFormalsToBounds(
+      List<TypeParameterElement> typeFormals,
+      {List<bool> hasError,
+      Map<TypeParameterType, DartType> knownTypes}) {
     int count = typeFormals.length;
     if (count == 0) {
-      return type;
+      return null;
     }
 
     Set<TypeParameterType> all = new Set<TypeParameterType>();
@@ -394,7 +413,7 @@ class StrongTypeSystemImpl extends TypeSystem {
 
     List<DartType> orderedArguments =
         typeFormals.map((p) => defaults[p.type]).toList();
-    return instantiateType(type, orderedArguments);
+    return orderedArguments;
   }
 
   @override
@@ -1223,6 +1242,13 @@ abstract class TypeSystem {
   }
 
   /**
+   * Given uninstantiated [typeFormals], instantiate them to their bounds.
+   */
+  List<DartType> instantiateTypeFormalsToBounds(
+      List<TypeParameterElement> typeFormals,
+      {List<bool> hasError});
+
+  /**
    * Return `true` if the [leftType] is assignable to the [rightType] (that is,
    * if leftType <==> rightType).
    */
@@ -1528,6 +1554,13 @@ class TypeSystemImpl extends TypeSystem {
       return instantiateType(type, typeArguments);
     }
     return type;
+  }
+
+  @override
+  List<DartType> instantiateTypeFormalsToBounds(
+      List<TypeParameterElement> typeFormals,
+      {List<bool> hasError}) {
+    return null;
   }
 
   @override

@@ -599,7 +599,7 @@ Future testData(TestData data) async {
     print(
         '--test ast----------------------------------------------------------');
     await runTest(
-        [Flags.analyzeAll],
+        [Flags.useOldFrontend, Flags.analyzeAll],
         (Compiler compiler, FieldEntity field) => new AstEvaluationEnvironment(
             compiler,
             constantRequired: field.isConst));
@@ -607,8 +607,7 @@ Future testData(TestData data) async {
   if (!skipKernelList.contains(data.name)) {
     print(
         '--test kernel-------------------------------------------------------');
-    await runTest([Flags.useKernel, Flags.analyzeOnly],
-        (Compiler compiler, FieldEntity field) {
+    await runTest([Flags.analyzeOnly], (Compiler compiler, FieldEntity field) {
       KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
       KernelToElementMap elementMap = frontendStrategy.elementMap;
       return new KernelEvaluationEnvironment(elementMap, null, field,

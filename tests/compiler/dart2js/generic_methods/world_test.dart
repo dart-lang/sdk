@@ -86,8 +86,7 @@ main(args) {
 main() {
   asyncTest(() async {
     CompilationResult result = await runCompiler(
-        memorySourceFiles: {'main.dart': code},
-        options: [Flags.useKernel, Flags.strongMode]);
+        memorySourceFiles: {'main.dart': code}, options: [Flags.strongMode]);
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
     CodegenWorldBuilder worldBuilder = compiler.codegenWorldBuilder;

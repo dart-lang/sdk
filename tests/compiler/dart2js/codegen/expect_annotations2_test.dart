@@ -42,7 +42,7 @@ void main() {
     await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES,
         outputProvider: collector,
-        options: useKernel ? [Flags.useKernel] : []);
+        options: useKernel ? [] : [Flags.useOldFrontend]);
     // Simply check that the constants of the small functions are still in the
     // output, and that we don't see the result of constant folding.
     String jsOutput = collector.getOutput('', OutputType.js);

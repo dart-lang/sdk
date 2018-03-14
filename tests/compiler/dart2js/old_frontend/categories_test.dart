@@ -4,6 +4,7 @@
 
 import "package:expect/expect.dart";
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 
 import "../memory_compiler.dart";
 
@@ -11,7 +12,7 @@ runTest(String source, String categories, int expectedErrors) async {
   var collector = new DiagnosticCollector();
   await runCompiler(
       memorySourceFiles: {"main.dart": source},
-      options: ["--categories=$categories"],
+      options: ["--categories=$categories", Flags.useOldFrontend],
       diagnosticHandler: collector);
   Expect.equals(expectedErrors, collector.errors.length);
   Expect.equals(0, collector.warnings.length);

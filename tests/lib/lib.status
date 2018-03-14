@@ -164,6 +164,7 @@ mirrors/metadata_allowed_values_test/13: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/14: MissingCompileTimeError
 mirrors/metadata_nested_constructor_call_test/03: MissingCompileTimeError
 mirrors/metadata_nested_constructor_call_test/04: MissingCompileTimeError
+mirrors/metadata_nested_constructor_call_test/06: MissingCompileTimeError # Issue 32517
 mirrors/native_class_test: CompileTimeError
 mirrors/variable_is_const_test/01: MissingCompileTimeError
 typed_data/int32x4_bigint_test: CompileTimeError
@@ -245,8 +246,17 @@ async/zone_create_timer2_test: RuntimeError # Timer interface not supported: Iss
 async/zone_empty_description2_test: RuntimeError # Timer interface not supported: Issue 7728.
 mirrors/mirrors_reader_test: Skip # Running in v8 suffices. Issue 16589 - RuntimeError.  Issue 22130 - Crash (out of memory).
 
+[ $compiler == dart2js && $browser && !$csp && $fast_startup && $fasta ]
+async/stream_iterator_test: RuntimeError
+
 [ $compiler == dart2js && $checked ]
 convert/utf85_test: Pass, Slow # Issue 12029.
+
+[ $compiler == dart2js && $checked && $fast_startup && $fasta && $minified ]
+async/stream_listen_zone_test: RuntimeError
+
+[ $compiler == dart2js && $checked && $fasta && $host_checked ]
+async/stream_listen_zone_test: RuntimeError
 
 [ $compiler == dart2js && $fast_startup ]
 mirrors/*: Fail # mirrors not supported

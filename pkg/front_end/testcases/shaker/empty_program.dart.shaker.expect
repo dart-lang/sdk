@@ -370,6 +370,7 @@ library dart:core:
   - class MapEntry
     - key
     - value
+    - toString
   - class Null
     - hashCode
     - toString

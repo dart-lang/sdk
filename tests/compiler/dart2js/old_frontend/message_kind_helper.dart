@@ -69,8 +69,11 @@ Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
     Compiler compiler = compilerFor(
         memorySourceFiles: example,
         diagnosticHandler: collector,
-        options: [Flags.analyzeOnly, Flags.enableExperimentalMirrors]
-          ..addAll(template.options),
+        options: [
+          Flags.analyzeOnly,
+          Flags.enableExperimentalMirrors,
+          Flags.useOldFrontend
+        ]..addAll(template.options),
         cachedCompiler: cachedCompiler);
 
     return compiler.run(Uri.parse('memory:main.dart')).then((_) {

@@ -115,8 +115,9 @@ main(List<String> args) {
 
     print(
         '---- compiler from ast -----------------------------------------------');
-    var result =
-        await runCompiler(entryPoint: entryPoint, options: [Flags.analyzeOnly]);
+    var result = await runCompiler(
+        entryPoint: entryPoint,
+        options: [Flags.analyzeOnly, Flags.useOldFrontend]);
     Compiler compiler1 = result.compiler;
 
     Compiler compiler2 = await compileWithDill(

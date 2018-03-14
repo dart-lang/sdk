@@ -234,18 +234,6 @@ class C {
     await super.test_import_invalidUri_metadata();
   }
 
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
-  test_instantiateToBounds_boundRefersToEarlierTypeArgument() async {
-    await super.test_instantiateToBounds_boundRefersToEarlierTypeArgument();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
-  test_instantiateToBounds_boundRefersToLaterTypeArgument() async {
-    await super.test_instantiateToBounds_boundRefersToLaterTypeArgument();
-  }
-
   @override
   @failingTest
   test_invalid_annotation_prefixed_constructor() {

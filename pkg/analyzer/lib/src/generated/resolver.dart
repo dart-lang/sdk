@@ -8397,7 +8397,9 @@ class TypeNameResolver {
       }
     } else {
       if (element is GenericTypeAliasElementImpl) {
-        type = element.typeAfterSubstitution(null) ?? dynamicType;
+        List<DartType> typeArguments =
+            typeSystem.instantiateTypeFormalsToBounds(element.typeParameters);
+        type = element.typeAfterSubstitution(typeArguments) ?? dynamicType;
       } else {
         type = typeSystem.instantiateToBounds(type);
       }

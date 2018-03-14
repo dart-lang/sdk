@@ -10,9 +10,9 @@ import 'memory_compiler.dart';
 main() {
   asyncTest(() async {
     print('--test from ast---------------------------------------------------');
-    await test([]);
+    await test([Flags.useOldFrontend]);
     print('--test from kernel------------------------------------------------');
-    await test([Flags.useKernel]);
+    await test([]);
   });
 }
 

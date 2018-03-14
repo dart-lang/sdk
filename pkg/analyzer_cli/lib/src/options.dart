@@ -167,9 +167,10 @@ class CommandLineOptions {
       : buildAnalysisOutput = args['build-analysis-output'],
         buildMode = args['build-mode'],
         buildModePersistentWorker = args['persistent_worker'],
-        buildSummaryInputs = args['build-summary-input'] as List<String>,
+        buildSummaryInputs =
+            (args['build-summary-input'] as List).cast<String>(),
         buildSummaryUnlinkedInputs =
-            args['build-summary-unlinked-input'] as List<String>,
+            (args['build-summary-unlinked-input'] as List).cast<String>(),
         buildSummaryOnly = args['build-summary-only'],
         buildSummaryOnlyUnlinked = args['build-summary-only-unlinked'],
         buildSummaryOutput = args['build-summary-output'],

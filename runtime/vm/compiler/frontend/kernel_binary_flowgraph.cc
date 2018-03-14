@@ -2770,7 +2770,6 @@ Instance& StreamingConstantEvaluator::EvaluateExpression(intptr_t offset,
       case kConstStaticInvocation:
         EvaluateStaticInvocation();
         break;
-      case kConstructorInvocation:
       case kConstConstructorInvocation:
         EvaluateConstructorInvocationInternal();
         break;
@@ -2795,11 +2794,9 @@ Instance& StreamingConstantEvaluator::EvaluateExpression(intptr_t offset,
       case kAsExpression:
         EvaluateAsExpression();
         break;
-      case kListLiteral:
       case kConstListLiteral:
         EvaluateListLiteralInternal();
         break;
-      case kMapLiteral:
       case kConstMapLiteral:
         EvaluateMapLiteralInternal();
         break;

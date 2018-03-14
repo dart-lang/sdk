@@ -188,7 +188,8 @@ version: 1.3.2
     createProject();
     addTestFile('''
 main() {
-  print(UNKNOWN);
+  final int foo;
+  print(foo);
 }
 ''');
     await waitForTasksFinished();

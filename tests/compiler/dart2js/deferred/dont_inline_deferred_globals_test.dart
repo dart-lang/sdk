@@ -19,7 +19,7 @@ void main() {
     CompilationResult result = await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES,
         outputProvider: collector,
-        options: useKernel ? [Flags.useKernel] : []);
+        options: useKernel ? [] : [Flags.useOldFrontend]);
     Compiler compiler = result.compiler;
     var closedWorld = compiler.backendClosedWorldForTesting;
     var elementEnvironment = closedWorld.elementEnvironment;
