@@ -14,10 +14,6 @@
 
 // These are not always defined in the header files. See:
 // https://msdn.microsoft.com/en-us/library/windows/desktop/ms686033(v=vs.85).aspx
-#ifndef ENABLE_VIRTUAL_TERMINAL_INPUT
-#define ENABLE_VIRTUAL_TERMINAL_INPUT 0x0200
-#endif
-
 #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
 #define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
 #endif
@@ -52,6 +48,9 @@ class ConsoleWin {
     // Try to set the bits for ANSI support, but swallow any failures.
     saved_stdout_mode_ =
         ModifyMode(STD_OUTPUT_HANDLE, ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+    saved_stderr_mode_ =
+        ModifyMode(STD_ERROR_HANDLE, ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+    saved_stdin_mode_ = ModifyMode(STD_INPUT_HANDLE, 0);
 
     // TODO(28984): Due to issue #29104, we cannot set
     // ENABLE_VIRTUAL_TERMINAL_INPUT here, as it causes ENABLE_PROCESSED_INPUT
@@ -65,6 +64,12 @@ class ConsoleWin {
     if (saved_stdout_mode_ != kInvalidFlag) {
       CleanupDevices("CONOUT$", STD_OUTPUT_HANDLE, saved_stdout_mode_);
       saved_stdout_mode_ = kInvalidFlag;
+    }
+    if (saved_stderr_mode_ != kInvalidFlag) {
+      CleanupDevices("CONERR$", STD_ERROR_HANDLE, saved_stderr_mode_);
+    }
+    if (saved_stdin_mode_ != kInvalidFlag) {
+      CleanupDevices("CONIN$", STD_INPUT_HANDLE, saved_stdin_mode_);
     }
     if (saved_output_cp_ != kInvalidFlag) {
       SetConsoleOutputCP(saved_output_cp_);
@@ -80,6 +85,8 @@ class ConsoleWin {
   static int saved_output_cp_;
   static int saved_input_cp_;
   static DWORD saved_stdout_mode_;
+  static DWORD saved_stderr_mode_;
+  static DWORD saved_stdin_mode_;
 
   static BOOL WINAPI SignalHandler(DWORD signal) {
     if (signal == CTRL_C_EVENT) {
@@ -91,8 +98,11 @@ class ConsoleWin {
   static DWORD ModifyMode(DWORD handle, DWORD flags) {
     HANDLE h = GetStdHandle(handle);
     DWORD mode;
-    DWORD old_mode = 0;
+    DWORD old_mode = kInvalidFlag;
 
+    /// GetConsoleMode fails if this instance of the VM isn't attached to a
+    /// console. In that case, we'll just return kInvalidFlag and won't try
+    /// to reset the state when we cleanup.
     if ((h != INVALID_HANDLE_VALUE) && GetConsoleMode(h, &mode)) {
       old_mode = mode;
       if (flags != 0) {
@@ -128,6 +138,8 @@ class ConsoleWin {
 int ConsoleWin::saved_output_cp_ = ConsoleWin::kInvalidFlag;
 int ConsoleWin::saved_input_cp_ = ConsoleWin::kInvalidFlag;
 DWORD ConsoleWin::saved_stdout_mode_ = ConsoleWin::kInvalidFlag;
+DWORD ConsoleWin::saved_stderr_mode_ = ConsoleWin::kInvalidFlag;
+DWORD ConsoleWin::saved_stdin_mode_ = ConsoleWin::kInvalidFlag;
 
 void Console::SaveConfig() {
   ConsoleWin::Initialize();
