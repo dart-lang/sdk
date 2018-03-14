@@ -4050,11 +4050,12 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
  private:
   friend class JitCallSpecializer;  // For ASSERT(initialization_).
 
-  bool CanValueBeSmi() const {
+  Assembler::CanBeSmi CanValueBeSmi() const {
     const intptr_t cid = value()->Type()->ToNullableCid();
     // Write barrier is skipped for nullable and non-nullable smis.
     ASSERT(cid != kSmiCid);
-    return (cid == kDynamicCid);
+    return cid == kDynamicCid ? Assembler::kValueCanBeSmi
+                              : Assembler::kValueIsNotSmi;
   }
 
   const Field& field_;
@@ -4191,11 +4192,12 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  bool CanValueBeSmi() const {
+  Assembler::CanBeSmi CanValueBeSmi() const {
     const intptr_t cid = value()->Type()->ToNullableCid();
     // Write barrier is skipped for nullable and non-nullable smis.
     ASSERT(cid != kSmiCid);
-    return (cid == kDynamicCid);
+    return cid == kDynamicCid ? Assembler::kValueCanBeSmi
+                              : Assembler::kValueIsNotSmi;
   }
 
   const Field& field_;
