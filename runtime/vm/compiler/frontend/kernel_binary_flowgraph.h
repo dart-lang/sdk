@@ -158,12 +158,12 @@ class FieldHelper {
   enum Field {
     kStart,  // tag.
     kCanonicalName,
+    kSourceUriIndex,
     kPosition,
     kEndPosition,
     kFlags,
     kFlags2,
     kName,
-    kSourceUriIndex,
     kAnnotations,
     kType,
     kInitializer,
@@ -244,12 +244,12 @@ class ProcedureHelper {
   enum Field {
     kStart,  // tag.
     kCanonicalName,
+    kSourceUriIndex,
     kPosition,
     kEndPosition,
     kKind,
     kFlags,
     kName,
-    kSourceUriIndex,
     kAnnotations,
     kForwardingStubSuperTarget,
     kForwardingStubInterfaceTarget,
@@ -327,11 +327,11 @@ class ConstructorHelper {
   enum Field {
     kStart,  // tag.
     kCanonicalName,
+    kSourceUriIndex,
     kPosition,
     kEndPosition,
     kFlags,
     kName,
-    kSourceUriIndex,
     kAnnotations,
     kFunction,
     kInitializers,
@@ -386,11 +386,11 @@ class ClassHelper {
   enum Field {
     kStart,  // tag.
     kCanonicalName,
+    kSourceUriIndex,
     kPosition,
     kEndPosition,
     kFlags,
     kNameIndex,
-    kSourceUriIndex,
     kAnnotations,
     kTypeParameters,
     kSuperClass,

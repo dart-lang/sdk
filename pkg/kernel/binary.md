@@ -238,15 +238,15 @@ type LibraryDependency {
 }
 
 type LibraryPart {
-  List<Expression> annotations;
   UriReference fileUri;
+  List<Expression> annotations;
 }
 
 type Typedef {
   CanonicalNameReference canonicalName;
+  UriReference fileUri;
   FileOffset fileOffset;
   StringReference name;
-  UriReference fileUri;
   List<Expression> annotations;
   List<TypeParameter> typeParameters;
   DartType type;
@@ -279,12 +279,12 @@ enum ClassLevel { Type = 0, Hierarchy = 1, Mixin = 2, Body = 3, }
 type Class extends Node {
   Byte tag = 2;
   CanonicalNameReference canonicalName;
+  // An absolute path URI to the .dart file from which the class was created.
+  UriReference fileUri;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
   Byte flags (isAbstract, isEnum, xx); // Where xx is index into ClassLevel
   StringReference name;
-  // An absolute path URI to the .dart file from which the class was created.
-  UriReference fileUri;
   List<Expression> annotations;
   List<TypeParameter> typeParameters;
   Option<DartType> superClass;
@@ -306,14 +306,14 @@ abstract type Member extends Node {}
 type Field extends Member {
   Byte tag = 4;
   CanonicalNameReference canonicalName;
+  // An absolute path URI to the .dart file from which the field was created.
+  UriReference fileUri;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
   Byte flags (isFinal, isConst, isStatic, hasImplicitGetter, hasImplicitSetter,
               isCovariant, isGenericCovariantImpl, isGenericCovariantInterface);
   Byte flags2 (isGenericContravariant);
   Name name;
-  // An absolute path URI to the .dart file from which the field was created.
-  UriReference fileUri;
   List<Expression> annotations;
   DartType type;
   Option<Expression> initializer;
@@ -322,11 +322,11 @@ type Field extends Member {
 type Constructor extends Member {
   Byte tag = 5;
   CanonicalNameReference canonicalName;
+  UriReference fileUri;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
   Byte flags (isConst, isExternal, isSynthetic);
   Name name;
-  UriReference fileUri;
   List<Expression> annotations;
   FunctionNode function;
   List<Initializer> initializers;
@@ -345,6 +345,8 @@ enum ProcedureKind {
 type Procedure extends Member {
   Byte tag = 6;
   CanonicalNameReference canonicalName;
+  // An absolute path URI to the .dart file from which the class was created.
+  UriReference fileUri;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
   Byte kind; // Index into the ProcedureKind enum above.
@@ -352,8 +354,6 @@ type Procedure extends Member {
               isGenericContravariant, isForwardingSemiStub,
               isRedirectingFactoryConstructor);
   Name name;
-  // An absolute path URI to the .dart file from which the class was created.
-  UriReference fileUri;
   List<Expression> annotations;
   // Only present if the 'isForwardingStub' flag is set.
   Option<MemberReference> forwardingStubSuperTarget;
@@ -365,11 +365,11 @@ type Procedure extends Member {
 type RedirectingFactoryConstructor extends Member {
   Byte tag = 107;
   CanonicalNameReference canonicalName;
+  UriReference fileUri;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
   Byte flags;
   Name name;
-  UriReference fileUri;
   List<Expression> annotations;
   MemberReference targetReference;
   List<DartType> typeArguments;

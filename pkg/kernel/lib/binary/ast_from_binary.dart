@@ -714,8 +714,8 @@ class BinaryBuilder {
   }
 
   LibraryPart readLibraryPart(Library library) {
-    var annotations = readExpressionList();
     var fileUri = readUriReference();
+    var annotations = readExpressionList();
     return new LibraryPart(annotations, fileUri)..parent = library;
   }
 
@@ -727,9 +727,9 @@ class BinaryBuilder {
     if (node == null) {
       node = new Typedef(null, null, reference: reference);
     }
+    Uri fileUri = readUriReference();
     int fileOffset = readOffset();
     String name = readStringReference();
-    Uri fileUri = readUriReference();
     node.annotations = readAnnotationList(node);
     readAndPushTypeParameterList(node.typeParameters, node);
     var type = readDartType();
@@ -768,6 +768,8 @@ class BinaryBuilder {
     if (node == null) {
       node = new Class(reference: reference)..level = ClassLevel.Temporary;
     }
+
+    var fileUri = readUriReference();
     node.fileOffset = readOffset();
     node.fileEndOffset = readOffset();
     int flags = readByte();
@@ -780,7 +782,6 @@ class BinaryBuilder {
       node.level = level;
     }
     var name = readStringOrNullIfEmpty();
-    var fileUri = readUriReference();
     var annotations = readAnnotationList(node);
     assert(() {
       debugPath.add(node.name ?? 'normal-class');
@@ -840,12 +841,12 @@ class BinaryBuilder {
     if (node == null) {
       node = new Field(null, reference: reference);
     }
+    var fileUri = readUriReference();
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
     int flags = readByte();
     int flags2 = readByte();
     var name = readName();
-    var fileUri = readUriReference();
     var annotations = readAnnotationList(node);
     assert(() {
       debugPath.add(node.name?.name ?? 'field');
@@ -881,11 +882,11 @@ class BinaryBuilder {
     if (node == null) {
       node = new Constructor(null, reference: reference);
     }
+    var fileUri = readUriReference();
     var fileOffset = readOffset();
     var fileEndOffset = readOffset();
     var flags = readByte();
     var name = readName();
-    var fileUri = readUriReference();
     var annotations = readAnnotationList(node);
     assert(() {
       debugPath.add(node.name?.name ?? 'constructor');
@@ -925,13 +926,13 @@ class BinaryBuilder {
     if (node == null) {
       node = new Procedure(null, null, null, reference: reference);
     }
+    var fileUri = readUriReference();
     var fileOffset = readOffset();
     var fileEndOffset = readOffset();
     int kindIndex = readByte();
     var kind = ProcedureKind.values[kindIndex];
     var flags = readByte();
     var name = readName();
-    var fileUri = readUriReference();
     var annotations = readAnnotationList(node);
     assert(() {
       debugPath.add(node.name?.name ?? 'procedure');
@@ -982,11 +983,11 @@ class BinaryBuilder {
     if (node == null) {
       node = new RedirectingFactoryConstructor(null, reference: reference);
     }
+    var fileUri = readUriReference();
     var fileOffset = readOffset();
     var fileEndOffset = readOffset();
     var flags = readByte();
     var name = readName();
-    var fileUri = readUriReference();
     var annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'redirecting-factory-constructor');
     var targetReference = readMemberReference();

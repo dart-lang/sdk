@@ -190,12 +190,22 @@ class BinaryPrinter extends Visitor implements BinarySink {
     type.accept(this);
   }
 
-  void writeUriReference(Uri uri) {
-    int index = 0; // equivalent to index = _sourceUriIndexer[""];
+  // The currently active file uri where we are writing [TreeNode]s from.  If
+  // this is set to `null` we cannot write file offsets.  The [writeOffset]
+  // helper function will ensure this.
+  Uri _activeFileUri;
+
+  // Returns the new active file uri.
+  Uri writeUriReference(Uri uri) {
     if (_knownSourceUri.contains(uri)) {
-      index = _sourceUriIndexer.put(uri == null ? "" : "$uri");
+      final int index = _sourceUriIndexer.put(uri == null ? "" : "$uri");
+      writeUInt30(index);
+      return uri;
+    } else {
+      final int index = 0; // equivalent to index = _sourceUriIndexer[""];
+      writeUInt30(index);
+      return null;
     }
-    writeUInt30(index);
   }
 
   void writeList<T>(List<T> items, void writeItem(T x)) {
@@ -528,6 +538,10 @@ class BinaryPrinter extends Visitor implements BinarySink {
   }
 
   writeOffset(int offset) {
+    if (_activeFileUri == null) {
+      offset = TreeNode.noOffset;
+    }
+
     // TODO(jensj): Delta-encoding.
     // File offset ranges from -1 and up,
     // but is here saved as unsigned (thus the +1)
@@ -569,7 +583,10 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeCanonicalNameReference(getCanonicalNameOfLibrary(node));
     writeStringReference(node.name ?? '');
     // TODO(jensj): We save (almost) the same URI twice.
-    writeUriReference(node.fileUri);
+
+    final Uri activeFileUriSaved = _activeFileUri;
+    _activeFileUri = writeUriReference(node.fileUri);
+
     writeAnnotationList(node.annotations);
     writeLibraryDependencies(node);
     writeAdditionalExports(node.additionalExports);
@@ -582,6 +599,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
     procedureOffsets = <int>[];
     writeNodeList(node.procedures);
     procedureOffsets.add(getBufferOffset());
+
+    _activeFileUri = activeFileUriSaved;
 
     // Fixed-size ints at the end used as an index.
     assert(classOffsets.length > 0);
@@ -645,20 +664,27 @@ class BinaryPrinter extends Visitor implements BinarySink {
     if (_metadataSubsections != null) {
       _recordNodeOffsetForMetadataMapping(node);
     }
+    final Uri activeFileUriSaved = _activeFileUri;
+    _activeFileUri = writeUriReference(node.fileUri);
     writeNodeList(node.annotations);
-    writeUriReference(node.fileUri);
+    _activeFileUri = activeFileUriSaved;
   }
 
   void visitTypedef(Typedef node) {
     writeCanonicalNameReference(getCanonicalNameOfTypedef(node));
+
+    final Uri activeFileUriSaved = _activeFileUri;
+    _activeFileUri = writeUriReference(node.fileUri);
+
     writeOffset(node.fileOffset);
     writeStringReference(node.name);
-    writeUriReference(node.fileUri);
     writeAnnotationList(node.annotations);
     _typeParameterIndexer.enter(node.typeParameters);
     writeNodeList(node.typeParameters);
     writeNode(node.type);
     _typeParameterIndexer.exit(node.typeParameters);
+
+    _activeFileUri = activeFileUriSaved;
   }
 
   void writeAnnotation(Expression annotation) {
@@ -698,11 +724,15 @@ class BinaryPrinter extends Visitor implements BinarySink {
     }
     writeByte(Tag.Class);
     writeCanonicalNameReference(getCanonicalNameOfClass(node));
+
+    final Uri activeFileUriSaved = _activeFileUri;
+    _activeFileUri = writeUriReference(node.fileUri);
+
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(flags);
     writeStringReference(node.name ?? '');
-    writeUriReference(node.fileUri);
+
     writeAnnotationList(node.annotations);
     _typeParameterIndexer.enter(node.typeParameters);
     writeNodeList(node.typeParameters);
@@ -716,6 +746,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
     procedureOffsets.add(getBufferOffset());
     writeNodeList(node.redirectingFactoryConstructors);
     _typeParameterIndexer.exit(node.typeParameters);
+
+    _activeFileUri = activeFileUriSaved;
 
     assert(procedureOffsets.length > 0);
     for (int offset in procedureOffsets) {
@@ -733,11 +765,15 @@ class BinaryPrinter extends Visitor implements BinarySink {
     _variableIndexer = new VariableIndexer();
     writeByte(Tag.Constructor);
     writeCanonicalNameReference(getCanonicalNameOfMember(node));
+
+    final Uri activeFileUriSaved = _activeFileUri;
+    _activeFileUri = writeUriReference(node.fileUri);
+
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.flags);
     writeName(node.name ?? _emptyName);
-    writeUriReference(node.fileUri);
+
     writeAnnotationList(node.annotations);
     assert(node.function.typeParameters.isEmpty);
     writeNode(node.function);
@@ -745,6 +781,9 @@ class BinaryPrinter extends Visitor implements BinarySink {
     _variableIndexer.restoreScope(node.function.positionalParameters.length +
         node.function.namedParameters.length);
     writeNodeList(node.initializers);
+
+    _activeFileUri = activeFileUriSaved;
+
     _variableIndexer = null;
   }
 
@@ -757,16 +796,22 @@ class BinaryPrinter extends Visitor implements BinarySink {
     _variableIndexer = new VariableIndexer();
     writeByte(Tag.Procedure);
     writeCanonicalNameReference(getCanonicalNameOfMember(node));
+
+    final Uri activeFileUriSaved = _activeFileUri;
+    _activeFileUri = writeUriReference(node.fileUri);
+
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.kind.index);
     writeByte(node.flags);
     writeName(node.name ?? '');
-    writeUriReference(node.fileUri);
     writeAnnotationList(node.annotations);
     writeOptionalReference(node.forwardingStubSuperTargetReference);
     writeOptionalReference(node.forwardingStubInterfaceTargetReference);
     writeOptionalNode(node.function);
+
+    _activeFileUri = activeFileUriSaved;
+
     _variableIndexer = null;
 
     assert((node.forwardingStubSuperTarget != null) ||
@@ -780,15 +825,21 @@ class BinaryPrinter extends Visitor implements BinarySink {
     _variableIndexer = new VariableIndexer();
     writeByte(Tag.Field);
     writeCanonicalNameReference(getCanonicalNameOfMember(node));
+
+    final Uri activeFileUriSaved = _activeFileUri;
+    _activeFileUri = writeUriReference(node.fileUri);
+
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.flags);
     writeByte(node.flags2);
     writeName(node.name);
-    writeUriReference(node.fileUri);
     writeAnnotationList(node.annotations);
     writeNode(node.type);
     writeOptionalNode(node.initializer);
+
+    _activeFileUri = activeFileUriSaved;
+
     _variableIndexer = null;
   }
 
@@ -801,11 +852,15 @@ class BinaryPrinter extends Visitor implements BinarySink {
     _variableIndexer.pushScope();
     _typeParameterIndexer.enter(node.typeParameters);
     writeCanonicalNameReference(getCanonicalNameOfMember(node));
+
+    final Uri activeFileUriSaved = _activeFileUri;
+    _activeFileUri = writeUriReference(node.fileUri);
+
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.flags);
     writeName(node.name);
-    writeUriReference(node.fileUri);
+
     writeAnnotationList(node.annotations);
     writeReference(node.targetReference);
     writeNodeList(node.typeArguments);
@@ -815,6 +870,9 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeVariableDeclarationList(node.positionalParameters);
     writeVariableDeclarationList(node.namedParameters);
     _typeParameterIndexer.exit(node.typeParameters);
+
+    _activeFileUri = activeFileUriSaved;
+
     _variableIndexer.popScope();
     _variableIndexer = null;
   }

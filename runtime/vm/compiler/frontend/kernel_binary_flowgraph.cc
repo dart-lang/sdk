@@ -131,11 +131,17 @@ void FieldHelper::ReadUntilExcluding(Field field,
       canonical_name_ =
           builder_->ReadCanonicalNameReference();  // read canonical_name.
       if (++next_read_ == field) return;
+    case kSourceUriIndex:
+      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
+      builder_->current_script_id_ = source_uri_index_;
+      if (++next_read_ == field) return;
     case kPosition:
       position_ = builder_->ReadPosition(false);  // read position.
+      builder_->record_token_position(position_);
       if (++next_read_ == field) return;
     case kEndPosition:
       end_position_ = builder_->ReadPosition(false);  // read end position.
+      builder_->record_token_position(end_position_);
       if (++next_read_ == field) return;
     case kFlags:
       flags_ = builder_->ReadFlags();
@@ -145,12 +151,6 @@ void FieldHelper::ReadUntilExcluding(Field field,
       if (++next_read_ == field) return;
     case kName:
       builder_->SkipName();  // read name.
-      if (++next_read_ == field) return;
-    case kSourceUriIndex:
-      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
-      builder_->current_script_id_ = source_uri_index_;
-      builder_->record_token_position(position_);
-      builder_->record_token_position(end_position_);
       if (++next_read_ == field) return;
     case kAnnotations: {
       annotation_count_ = builder_->ReadListLength();  // read list length.
@@ -200,11 +200,17 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       canonical_name_ =
           builder_->ReadCanonicalNameReference();  // read canonical_name.
       if (++next_read_ == field) return;
+    case kSourceUriIndex:
+      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
+      builder_->current_script_id_ = source_uri_index_;
+      if (++next_read_ == field) return;
     case kPosition:
       position_ = builder_->ReadPosition(false);  // read position.
+      builder_->record_token_position(position_);
       if (++next_read_ == field) return;
     case kEndPosition:
       end_position_ = builder_->ReadPosition(false);  // read end position.
+      builder_->record_token_position(end_position_);
       if (++next_read_ == field) return;
     case kKind:
       kind_ = static_cast<Kind>(builder_->ReadByte());
@@ -214,12 +220,6 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
     case kName:
       builder_->SkipName();  // read name.
-      if (++next_read_ == field) return;
-    case kSourceUriIndex:
-      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
-      builder_->current_script_id_ = source_uri_index_;
-      builder_->record_token_position(position_);
-      builder_->record_token_position(end_position_);
       if (++next_read_ == field) return;
     case kAnnotations: {
       annotation_count_ = builder_->ReadListLength();  // read list length.
@@ -261,23 +261,23 @@ void ConstructorHelper::ReadUntilExcluding(Field field) {
       canonical_name_ =
           builder_->ReadCanonicalNameReference();  // read canonical_name.
       if (++next_read_ == field) return;
+    case kSourceUriIndex:
+      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
+      builder_->current_script_id_ = source_uri_index_;
+      if (++next_read_ == field) return;
     case kPosition:
       position_ = builder_->ReadPosition();  // read position.
+      builder_->record_token_position(position_);
       if (++next_read_ == field) return;
     case kEndPosition:
       end_position_ = builder_->ReadPosition();  // read end position.
+      builder_->record_token_position(end_position_);
       if (++next_read_ == field) return;
     case kFlags:
       flags_ = builder_->ReadFlags();
       if (++next_read_ == field) return;
     case kName:
       builder_->SkipName();  // read name.
-      if (++next_read_ == field) return;
-    case kSourceUriIndex:
-      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
-      builder_->current_script_id_ = source_uri_index_;
-      builder_->record_token_position(position_);
-      builder_->record_token_position(end_position_);
       if (++next_read_ == field) return;
     case kAnnotations: {
       annotation_count_ = builder_->ReadListLength();  // read list length.
@@ -316,22 +316,23 @@ void ClassHelper::ReadUntilExcluding(Field field) {
       canonical_name_ =
           builder_->ReadCanonicalNameReference();  // read canonical_name.
       if (++next_read_ == field) return;
+    case kSourceUriIndex:
+      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
+      builder_->current_script_id_ = source_uri_index_;
+      if (++next_read_ == field) return;
     case kPosition:
       position_ = builder_->ReadPosition(false);  // read position.
+      builder_->record_token_position(position_);
       if (++next_read_ == field) return;
     case kEndPosition:
       end_position_ = builder_->ReadPosition();  // read end position.
+      builder_->record_token_position(end_position_);
       if (++next_read_ == field) return;
     case kFlags:
       flags_ = builder_->ReadFlags();  // read flags.
       if (++next_read_ == field) return;
     case kNameIndex:
       name_index_ = builder_->ReadStringReference();  // read name index.
-      if (++next_read_ == field) return;
-    case kSourceUriIndex:
-      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
-      builder_->current_script_id_ = source_uri_index_;
-      builder_->record_token_position(position_);
       if (++next_read_ == field) return;
     case kAnnotations: {
       annotation_count_ = builder_->ReadListLength();  // read list length.
@@ -5692,15 +5693,15 @@ void StreamingFlowGraphBuilder::SkipLibraryDependency() {
 }
 
 void StreamingFlowGraphBuilder::SkipLibraryPart() {
-  SkipListOfExpressions();  // Read annotations.
   ReadUInt();               // Read source_uri_index.
+  SkipListOfExpressions();  // Read annotations.
 }
 
 void StreamingFlowGraphBuilder::SkipLibraryTypedef() {
   SkipCanonicalNameReference();  // read canonical name.
+  ReadUInt();                    // read source_uri_index.
   ReadPosition();                // read position.
   SkipStringReference();         // read name index.
-  ReadUInt();                    // read source_uri_index.
   SkipListOfExpressions();       // read annotations.
   SkipTypeParametersList();      // read type parameters.
   SkipDartType();                // read type.
