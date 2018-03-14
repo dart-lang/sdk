@@ -38,6 +38,15 @@ issue23244_test: RuntimeError # 23244
 [ $compiler == dart2js && $runtime == ff ]
 round_test: Pass, Fail, OK # Fixed in ff 35. Common JavaScript engine Math.round bug.
 
+[ $compiler == dart2js && $runtime == ff && $fasta ]
+conditional_import_string_test: RuntimeError
+conditional_import_test: RuntimeError
+config_import_corelib_test: RuntimeError
+library_env_test/has_io_support: RuntimeError
+
+[ $compiler == dart2js && $runtime != ff && $fasta ]
+stacktrace_test: RuntimeError # Issue 12698
+
 [ $compiler == dart2js && $runtime == jsshell && !$fasta ]
 async_star_no_cancel2_test: RuntimeError # Need triage
 async_star_no_cancel_test: RuntimeError # Need triage
@@ -60,6 +69,11 @@ string_literals_test: RuntimeError # Issue 27533
 [ $compiler == dart2js && $browser && $csp && !$fast_startup ]
 conditional_import_string_test: Fail # Issue 30615
 conditional_import_test: Fail # Issue 30615
+
+[ $compiler == dart2js && $browser && $fast_startup && $fasta ]
+async_await_test: RuntimeError
+async_star_pause_test: RuntimeError
+async_star_test: RuntimeError
 
 [ $compiler == dart2js && $browser && !$fasta ]
 config_import_test: Fail # Test flag is not passed to the compiler.
@@ -257,13 +271,7 @@ cyclic_constructor_test/01: Crash # Stack Overflow
 deferred_constraints_constants_test/none: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_constants_test/reference_after_load: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' has no instance getter 'mixinApplicationClasses'.
-mixin_mixin4_test: RuntimeError
-mixin_mixin5_test: RuntimeError
-mixin_mixin6_test: RuntimeError
-mixin_mixin_bound2_test: RuntimeError
-mixin_mixin_bound_test: RuntimeError
 stacktrace_demangle_ctors_test: RuntimeError
-stacktrace_test: RuntimeError
 super_call4_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 
 [ $compiler == dart2js && $fast_startup && $fasta && !$fasta ]
@@ -561,7 +569,6 @@ stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/none: RuntimeError
 stacktrace_rethrow_error_test/withtraceparameter: RuntimeError
 stacktrace_rethrow_nonerror_test: RuntimeError
-stacktrace_test: RuntimeError # Issue 12698
 static_getter_no_setter1_test/01: RuntimeError
 static_getter_no_setter2_test/01: RuntimeError
 static_getter_no_setter3_test/01: RuntimeError
@@ -795,3 +802,4 @@ mixin_mixin_bound_test: RuntimeError, OK # Issue 31054: runtimeType.toString not
 mixin_mixin_type_arguments_test: RuntimeError, OK # Issue 31054: runtimeType.toString not preserved in minified code.
 regress_21795_test: RuntimeError, OK # Issue 31054: runtimeType.toString not preserved in minified code.
 stack_trace_test: RuntimeError, OK # Stack trace not preserved in minified code.
+

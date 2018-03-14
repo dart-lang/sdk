@@ -3701,6 +3701,10 @@ WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to
 [ $compiler == dart2js && $runtime == ff && !$checked ]
 LayoutTests/fast/xpath/invalid-resolver_t01: RuntimeError # Please triage this failure
 
+[ $compiler == dart2js && $runtime == ff && $fasta ]
+LibTest/html/Window/requestFileSystem_A01_t01: Crash
+LibTest/html/Window/requestFileSystem_A01_t02: Crash
+
 [ $compiler == dart2js && $runtime == ie11 ]
 Language/Expressions/Conditional/type_t04: Skip # Times out. Please triage this failure
 Language/Expressions/Identifier_Reference/evaluation_function_t02: Skip # Times out. Please triage this failure
