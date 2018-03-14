@@ -662,7 +662,7 @@ void KernelLoader::walk_incremental_kernel(BitVector* modified_libs) {
     builder_.SetOffset(kernel_offset);
     LibraryHelper library_helper(&builder_);
     library_helper.ReadUntilIncluding(LibraryHelper::kCanonicalName);
-    dart::Library& lib = LookupLibrary(library_helper.canonical_name_);
+    dart::Library& lib = LookupLibraryOrNull(library_helper.canonical_name_);
     if (!lib.IsNull() && !lib.is_dart_scheme()) {
       // This is a library that already exists so mark it as being modified.
       modified_libs->Add(lib.index());
@@ -1602,6 +1602,18 @@ void KernelLoader::SetupFieldAccessorFunction(const Class& klass,
     function.SetParameterNameAt(pos, Symbols::Value());
     pos++;
   }
+}
+
+Library& KernelLoader::LookupLibraryOrNull(NameIndex library) {
+  Library* handle = NULL;
+  if (!libraries_.Lookup(library, &handle)) {
+    const String& url = H.DartString(H.CanonicalNameString(library));
+    handle = &Library::Handle(Z, Library::LookupLibrary(thread_, url));
+    if (!handle->IsNull()) {
+      libraries_.Insert(library, handle);
+    }
+  }
+  return *handle;
 }
 
 Library& KernelLoader::LookupLibrary(NameIndex library) {
