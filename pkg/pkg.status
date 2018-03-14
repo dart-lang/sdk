@@ -169,14 +169,14 @@ front_end/test/mixin_export_test: RuntimeError # Issue 30576
 [ $compiler == dart2js && $runtime == drt ]
 async/test/stream_zip_test: RuntimeError, Pass # Issue 18548
 
-[ $compiler == dart2js && $browser ]
-crypto/test/sha1_test: Slow, Pass
-crypto/test/sha256_test: Slow, Pass
-
-[ $compiler == dart2js && $browser && $fast_startup && $fasta ]
+[ $compiler == dart2js && $system == linux && $browser && $fast_startup && $fasta ]
 analysis_server_client/test/analysis_server_client_test: RuntimeError
 js_ast/test/printer_callback_test: RuntimeError
 js_ast/test/string_escape_test: RuntimeError
+
+[ $compiler == dart2js && $browser ]
+crypto/test/sha1_test: Slow, Pass
+crypto/test/sha256_test: Slow, Pass
 
 [ $compiler == dart2js && $checked ]
 crypto/test/base64_test: Slow, Pass

@@ -504,6 +504,21 @@ isolate/message_test: Skip # Issue 12627
 [ $compiler == dart2js && $system == linux ]
 html/interactive_geolocation_test: Skip # Requires allowing geo location.
 
+[ $compiler == dart2js && $system == linux && $browser && !$csp && $fast_startup && $fasta ]
+async/stream_iterator_test: RuntimeError
+html/fileapi_directory_reader_test: RuntimeError
+html/fileapi_directory_test: RuntimeError
+html/fileapi_file_entry_test: RuntimeError
+html/fileapi_file_test: RuntimeError
+html/fileapi_supported_test: RuntimeError
+html/fileapi_supported_throws_test: RuntimeError
+html/websql_test: RuntimeError
+isolate/browser/package_resolve_browser_hook2_test: RuntimeError
+isolate/browser/package_resolve_browser_test: RuntimeError
+
+[ $compiler == dart2js && $system == linux && $browser && $fast_startup && $fasta ]
+isolate/browser/package_resolve_browser_hook_test: RuntimeError
+
 [ $compiler == dart2js && $system == windows ]
 html/xhr_test: RuntimeError
 
@@ -519,21 +534,6 @@ js/null_test: RuntimeError # Issue 30652
 [ $compiler == dart2js && $browser && $csp ]
 html/custom/element_upgrade_test: Fail # Issue 17298
 html/custom/js_custom_test: Fail # Issue 14643
-
-[ $compiler == dart2js && $browser && !$csp && $fast_startup && $fasta ]
-async/stream_iterator_test: RuntimeError
-html/fileapi_directory_reader_test: RuntimeError
-html/fileapi_directory_test: RuntimeError
-html/fileapi_file_entry_test: RuntimeError
-html/fileapi_file_test: RuntimeError
-html/fileapi_supported_test: RuntimeError
-html/fileapi_supported_throws_test: RuntimeError
-html/websql_test: RuntimeError
-isolate/browser/package_resolve_browser_hook2_test: RuntimeError
-isolate/browser/package_resolve_browser_test: RuntimeError
-
-[ $compiler == dart2js && $browser && $fast_startup && $fasta ]
-isolate/browser/package_resolve_browser_hook_test: RuntimeError
 
 [ $compiler == dart2js && !$browser && $fast_startup ]
 isolate/isolate_current_test: Fail # please triage

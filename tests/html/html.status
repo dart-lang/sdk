@@ -397,6 +397,9 @@ xhr_test/xhr: Pass, Fail # Issue 11602
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
 websql_test: Pass # Triage, seen some double reporting on windows.
 
+[ $compiler == dart2js && $system == linux && !$csp && $fast_startup && $fasta ]
+websql_test/Database/Database: RuntimeError
+
 [ $compiler == dart2js && $browser ]
 custom/created_callback_test: Fail # Support for created constructor. Issue 14835
 fontface_loaded_test: Fail # Support for promises.
@@ -484,9 +487,6 @@ js_typed_interop_window_property_test: SkipByDesign
 js_util_test: SkipByDesign
 mirrors_js_typed_interop_test: SkipByDesign
 postmessage_structured_test: SkipByDesign
-
-[ $compiler == dart2js && !$csp && $fast_startup && $fasta ]
-websql_test/Database/Database: RuntimeError
 
 [ $compiler == dart2js && $fast_startup ]
 custom/mirrors_2_test: Fail # mirrors not supported

@@ -16,6 +16,12 @@ vm/*: Skip # Issue 12699
 [ $arch == ia32 && $compiler == dart2js && $runtime == d8 ]
 new_expression2_negative_test: Pass, Crash # Flaky, issue 31131
 
+[ $builder_tag == win7 && $compiler == dart2js && $fasta ]
+deep_nesting2_negative_test: Crash
+illegal_declaration_test/01: Crash
+issue1578_negative_test: Crash
+regress_23051_test/01: Crash
+
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
 await_future_test: Pass, Timeout # Issue 26735
 
@@ -63,17 +69,17 @@ regress_23996_test: RuntimeError # Jsshell does not provide non-zero timers, Iss
 [ $compiler == dart2js && $runtime == safari ]
 round_test: Fail, OK # Common JavaScript engine Math.round bug.
 
-[ $compiler == dart2js && $system == windows && ($runtime == chrome || $runtime == ff) ]
+[ $compiler == dart2js && $system == linux && $browser && !$csp && $fast_startup && $fasta ]
+async_await_test: RuntimeError
+async_star_pause_test: RuntimeError
+async_star_test: RuntimeError
+
+[ $compiler == dart2js && $system == windows && !$fasta && ($runtime == chrome || $runtime == ff) ]
 string_literals_test: RuntimeError # Issue 27533
 
 [ $compiler == dart2js && $browser && $csp && !$fast_startup ]
 conditional_import_string_test: Fail # Issue 30615
 conditional_import_test: Fail # Issue 30615
-
-[ $compiler == dart2js && $browser && !$csp && $fast_startup && $fasta ]
-async_await_test: RuntimeError
-async_star_pause_test: RuntimeError
-async_star_test: RuntimeError
 
 [ $compiler == dart2js && $browser && !$fasta ]
 config_import_test: Fail # Test flag is not passed to the compiler.
