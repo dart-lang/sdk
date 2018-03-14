@@ -70,7 +70,7 @@ string_literals_test: RuntimeError # Issue 27533
 conditional_import_string_test: Fail # Issue 30615
 conditional_import_test: Fail # Issue 30615
 
-[ $compiler == dart2js && $browser && $fast_startup && $fasta ]
+[ $compiler == dart2js && $browser && !$csp && $fast_startup && $fasta ]
 async_await_test: RuntimeError
 async_star_pause_test: RuntimeError
 async_star_test: RuntimeError
@@ -174,7 +174,6 @@ factory_redirection_test/13: Fail
 factory_redirection_test/14: Fail
 generalized_void_syntax_test: RuntimeError
 generic_functions_test: RuntimeError
-generic_methods_generic_function_parameter_test: Crash # NoSuchMethodError: The getter 'parent' was called on null.
 generic_methods_test: RuntimeError
 internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' has no instance getter 'mixinApplicationClasses'.
 list_literal1_test/01: MissingCompileTimeError
@@ -261,6 +260,9 @@ assertion_test: RuntimeError # Issue 12748
 [ $compiler == dart2js && !$checked && $fasta ]
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 
+[ $compiler == dart2js && !$checked && $fasta && $minified ]
+f_bounded_quantification5_test: RuntimeError
+
 [ $compiler == dart2js && !$checked && !$fasta && $minified ]
 f_bounded_quantification5_test: Fail, OK # Issue 12605
 
@@ -273,10 +275,6 @@ deferred_constraints_constants_test/reference_after_load: Crash # Unsupported op
 internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' has no instance getter 'mixinApplicationClasses'.
 stacktrace_demangle_ctors_test: RuntimeError
 super_call4_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-
-[ $compiler == dart2js && $fast_startup && $fasta && !$fasta ]
-canonical_const3_test: CompileTimeError
-mixin_issue10216_2_test: RuntimeError
 
 [ $compiler == dart2js && $fast_startup && !$fasta ]
 assertion_initializer_const_error2_test/*: Crash
@@ -628,7 +626,6 @@ syntax_test/26: Crash # 'file:*/pkg/compiler/lib/src/kernel/env.dart': Failed as
 [ $compiler == dart2js && $fasta && $minified ]
 deferred_load_library_wrong_args_test/01: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred_redirecting_factory_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-f_bounded_quantification5_test: RuntimeError
 internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' has no instance getter 'mixinApplicationClasses'.
 stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/withtraceparameter: RuntimeError # Issue 12698

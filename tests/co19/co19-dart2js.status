@@ -6922,6 +6922,9 @@ LibTest/core/Map/Map_class_A01_t04: Slow, Pass # Please triage this failure
 LibTest/core/Uri/Uri_A06_t03: Slow, Pass # Please triage this failure
 LibTest/math/Point/operator_mult_A02_t01: RuntimeError # Issue 1533
 
+[ $compiler == dart2js && $checked && $fast_startup && $fasta && $minified ]
+Language/Libraries_and_Scripts/Imports/deferred_import_t02: RuntimeError
+
 [ $compiler == dart2js && $checked && $fasta && $host_checked ]
 Language/Classes/Constructors/Factories/function_type_t02: RuntimeError
 Language/Expressions/Instance_Creation/New/redirecting_factory_constructor_t02: RuntimeError

@@ -485,13 +485,13 @@ js_util_test: SkipByDesign
 mirrors_js_typed_interop_test: SkipByDesign
 postmessage_structured_test: SkipByDesign
 
+[ $compiler == dart2js && !$csp && $fast_startup && $fasta ]
+websql_test/Database/Database: RuntimeError
+
 [ $compiler == dart2js && $fast_startup ]
 custom/mirrors_2_test: Fail # mirrors not supported
 custom/mirrors_test: Fail # mirrors not supported
 mirrors_js_typed_interop_test: Fail # mirrors not supported
-
-[ $compiler == dart2js && $fast_startup && $fasta ]
-websql_test/Database/Database: RuntimeError
 
 [ $compiler == dart2js && $fasta ]
 custom/mirrors_2_test: RuntimeError

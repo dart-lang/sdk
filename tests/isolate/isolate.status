@@ -86,10 +86,12 @@ timer_isolate_test: Fail, OK # Needs Timer to run.
 cross_isolate_message_test: Skip # Issue 12627
 message_test: Skip # Issue 12627
 
-[ $compiler == dart2js && $browser && $fast_startup && $fasta ]
+[ $compiler == dart2js && $browser && !$csp && $fast_startup && $fasta ]
 browser/package_resolve_browser_hook2_test: RuntimeError
-browser/package_resolve_browser_hook_test: RuntimeError
 browser/package_resolve_browser_test: RuntimeError
+
+[ $compiler == dart2js && $browser && $fast_startup && $fasta ]
+browser/package_resolve_browser_hook_test: RuntimeError
 
 [ $compiler == dart2js && !$browser && $fast_startup ]
 isolate_current_test: Fail # please triage
