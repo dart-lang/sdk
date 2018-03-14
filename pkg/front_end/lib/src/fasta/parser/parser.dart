@@ -2863,41 +2863,40 @@ class Parser {
   }
 
   Token parseTypeArgumentsOpt(Token token) {
-    return parseStuffOpt(
-        token,
-        (t) => listener.beginTypeArguments(t),
-        (t) => parseType(t),
-        (c, bt, et) => listener.endTypeArguments(c, bt, et),
-        (t) => listener.handleNoTypeArguments(t));
-  }
-
-  Token parseTypeVariablesOpt(Token token) {
-    return parseStuffOpt(
-        token,
-        (t) => listener.beginTypeVariables(t),
-        (t) => parseTypeVariable(t),
-        (c, bt, et) => listener.endTypeVariables(c, bt, et),
-        (t) => listener.handleNoTypeVariables(t));
-  }
-
-  /// TODO(ahe): Clean this up.
-  Token parseStuffOpt(Token token, Function beginStuff, Function stuffParser,
-      Function endStuff, Function handleNoStuff) {
     Token next = token.next;
     if (optional('<', next)) {
       BeginToken begin = next;
       rewriteLtEndGroupOpt(begin);
-      beginStuff(begin);
+      listener.beginTypeArguments(begin);
       int count = 0;
       do {
-        token = stuffParser(token.next);
+        token = parseType(token.next);
         ++count;
       } while (optional(',', token.next));
       token = begin.endToken = ensureGt(token);
-      endStuff(count, begin, token);
-      return token;
+      listener.endTypeArguments(count, begin, token);
+    } else {
+      listener.handleNoTypeArguments(next);
     }
-    handleNoStuff(next);
+    return token;
+  }
+
+  Token parseTypeVariablesOpt(Token token) {
+    Token next = token.next;
+    if (optional('<', next)) {
+      BeginToken begin = next;
+      rewriteLtEndGroupOpt(begin);
+      listener.beginTypeVariables(begin);
+      int count = 0;
+      do {
+        token = parseTypeVariable(token.next);
+        ++count;
+      } while (optional(',', token.next));
+      token = begin.endToken = ensureGt(token);
+      listener.endTypeVariables(count, begin, token);
+    } else {
+      listener.handleNoTypeVariables(next);
+    }
     return token;
   }
 
