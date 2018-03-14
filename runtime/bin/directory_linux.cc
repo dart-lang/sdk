@@ -23,6 +23,7 @@
 #include "bin/namespace.h"
 #include "bin/platform.h"
 #include "platform/signal_blocker.h"
+#include "vm/unicode.h"
 
 namespace dart {
 namespace bin {
@@ -120,6 +121,11 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
   // ports.
   errno = 0;
   dirent* entry = readdir(reinterpret_cast<DIR*>(lister_));
+  if (entry != NULL) {
+    const uint8_t* d_name = reinterpret_cast<uint8_t *>(entry->d_name);
+    if (!Utf8::IsValid(d_name, strlen(entry->d_name)))
+      return kListError;
+  }
   if (entry != NULL) {
     if (!listing->path_buffer().Add(entry->d_name)) {
       done_ = true;
