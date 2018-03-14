@@ -331,6 +331,19 @@ class TokenInfoTest {
     // TOOD(danrubel): dynamic, do, other keywords, malformed, recovery
     // <T>
 
+    expectComplexInfo('G<int double> g',
+        required: true,
+        tokenAfter: 'g',
+        expectedCalls: [
+          'handleIdentifier G typeReference',
+          'beginTypeArguments <',
+          'handleIdentifier int typeReference',
+          'handleNoTypeArguments double',
+          'handleType int double',
+          'endTypeArguments 1 < >',
+          'handleType G double',
+        ]);
+
     expectInfo(noTypeInfo, 'C<>', required: false);
     expectComplexInfo('C<>', required: true, expectedCalls: [
       'handleIdentifier C typeReference',

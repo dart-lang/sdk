@@ -238,9 +238,17 @@ class ComplexTypeInfo implements TypeInfo {
       listener.endFunctionType(functionToken, token.next);
     }
 
-    assert(
-        identical(token, end) || (optional('>', token) && optional('>>', end)));
-    return token;
+    // There are two situations in which the [token] != [end]:
+    // Valid code:    identifier `<` identifier `<` identifier `>>`
+    //    where `>>` is replaced by two tokens.
+    // Invalid code:  identifier `<` identifier identifier `>`
+    //    where a synthetic `>` is inserted between the identifiers.
+    assert(identical(token, end) || optional('>', token));
+
+    // During recovery, [token] may be a synthetic that was inserted in the
+    // middle of the type reference. In this situation, return [end] so that it
+    // matches [skipType], and so that the next token to be parsed is correct.
+    return token.isSynthetic ? end : token;
   }
 
   @override
