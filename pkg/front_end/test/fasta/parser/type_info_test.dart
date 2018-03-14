@@ -230,11 +230,19 @@ class TokenInfoTest {
     expectInfo(noTypeInfo, 'C<T>;', required: false);
     expectInfo(noTypeInfo, 'C<T>(', required: false);
     expectInfo(noTypeInfo, 'C<T> do', required: false);
+    expectInfo(noTypeInfo, 'C<void>', required: false);
 
     expectInfo(simpleTypeArgumentsInfo, 'C<T>', required: true);
     expectInfo(simpleTypeArgumentsInfo, 'C<T>;', required: true);
     expectInfo(simpleTypeArgumentsInfo, 'C<T>(', required: true);
     expectInfo(simpleTypeArgumentsInfo, 'C<T> do', required: true);
+    expectComplexInfo('C<void>', required: true, expectedCalls: [
+      'handleIdentifier C typeReference',
+      'beginTypeArguments <',
+      'handleVoidKeyword void',
+      'endTypeArguments 1 < >',
+      'handleType C ',
+    ]);
 
     expectInfo(simpleTypeArgumentsInfo, 'C<T> foo');
     expectInfo(simpleTypeArgumentsInfo, 'C<T> get');

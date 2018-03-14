@@ -113,7 +113,8 @@ TypeInfo computeType(final Token token, bool required) {
   if (optional('<', next)) {
     if (next.endGroup != null) {
       next = next.next;
-      if (isValidTypeReference(next)) {
+      // identifier `<` `void` `>` is handled by ComplexTypeInfo.
+      if (isValidTypeReference(next) && !identical('void', next.stringValue)) {
         next = next.next;
         if (optional('>', next)) {
           // We've seen identifier `<` identifier `>`
