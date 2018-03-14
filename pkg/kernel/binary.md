@@ -924,6 +924,11 @@ type Block extends Statement {
   List<Statement> statements;
 }
 
+type AssertBlock extends Statement {
+  Byte tag = 81;
+  List<Statement> statements;
+}
+
 type EmptyStatement extends Statement {
   Byte tag = 63;
 }

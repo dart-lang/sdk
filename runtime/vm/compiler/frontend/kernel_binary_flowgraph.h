@@ -1101,6 +1101,7 @@ class StreamingFlowGraphBuilder {
   void SkipOptionalDartType();
   void SkipInterfaceType(bool simple);
   void SkipFunctionType(bool simple);
+  void SkipStatementList();
   void SkipListOfExpressions();
   void SkipListOfDartTypes();
   void SkipListOfStrings();
@@ -1347,6 +1348,7 @@ class StreamingFlowGraphBuilder {
   Fragment BuildExpressionStatement();
   Fragment BuildBlock();
   Fragment BuildEmptyStatement();
+  Fragment BuildAssertBlock();
   Fragment BuildAssertStatement();
   Fragment BuildLabeledStatement();
   Fragment BuildBreakStatement();

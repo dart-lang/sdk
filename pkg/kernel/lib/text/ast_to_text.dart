@@ -1447,6 +1447,21 @@ class Printer extends Visitor<Null> {
     endLine('}');
   }
 
+  visitAssertBlock(AssertBlock node) {
+    writeIndentation();
+    writeSpaced('assert');
+    if (node.statements.isEmpty) {
+      endLine('{}');
+      return;
+    }
+    endLine('{');
+    ++indentation;
+    node.statements.forEach(writeNode);
+    --indentation;
+    writeIndentation();
+    endLine('}');
+  }
+
   visitEmptyStatement(EmptyStatement node) {
     writeIndentation();
     endLine(';');

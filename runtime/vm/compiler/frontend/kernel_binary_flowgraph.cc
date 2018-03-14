@@ -1600,7 +1600,27 @@ void StreamingScopeBuilder::VisitStatement() {
     }
     case kEmptyStatement:
       return;
-    case kAssertStatement: {
+    case kAssertBlock:
+      if (I->asserts()) {
+        PositionScope scope(builder_->reader_);
+        intptr_t offset =
+            builder_->ReaderOffset() - 1;  // -1 to include tag byte.
+
+        EnterScope(offset);
+
+        intptr_t list_length =
+            builder_->ReadListLength();  // read number of statements.
+        for (intptr_t i = 0; i < list_length; ++i) {
+          VisitStatement();  // read ith statement.
+        }
+
+        ExitScope(builder_->reader_->min_position(),
+                  builder_->reader_->max_position());
+      } else {
+        builder_->SkipStatementList();
+      }
+      return;
+    case kAssertStatement:
       if (I->asserts()) {
         VisitExpression();              // Read condition.
         builder_->ReadPosition();       // read condition start offset.
@@ -1619,7 +1639,6 @@ void StreamingScopeBuilder::VisitStatement() {
         }
       }
       return;
-    }
     case kLabeledStatement:
       VisitStatement();  // read body.
       return;
@@ -4947,6 +4966,8 @@ Fragment StreamingFlowGraphBuilder::BuildStatement() {
       return BuildBlock();
     case kEmptyStatement:
       return BuildEmptyStatement();
+    case kAssertBlock:
+      return BuildAssertBlock();
     case kAssertStatement:
       return BuildAssertStatement();
     case kLabeledStatement:
@@ -5192,6 +5213,13 @@ void StreamingFlowGraphBuilder::SkipFunctionType(bool simple) {
   }
 
   SkipDartType();  // read return type.
+}
+
+void StreamingFlowGraphBuilder::SkipStatementList() {
+  intptr_t list_length = ReadListLength();  // read list length.
+  for (intptr_t i = 0; i < list_length; ++i) {
+    SkipStatement();  // read ith expression.
+  }
 }
 
 void StreamingFlowGraphBuilder::SkipListOfExpressions() {
@@ -5509,25 +5537,22 @@ void StreamingFlowGraphBuilder::SkipStatement() {
     case kExpressionStatement:
       SkipExpression();  // read expression.
       return;
-    case kBlock: {
-      intptr_t list_length = ReadListLength();  // read number of statements.
-      for (intptr_t i = 0; i < list_length; ++i) {
-        SkipStatement();  // read ith statement.
-      }
+    case kBlock:
+      SkipStatementList();
       return;
-    }
     case kEmptyStatement:
       return;
-    case kAssertStatement: {
+    case kAssertBlock:
+      SkipStatementList();
+      return;
+    case kAssertStatement:
       SkipExpression();     // Read condition.
       ReadPosition();       // read condition start offset.
       ReadPosition();       // read condition end offset.
-      Tag tag = ReadTag();  // read (first part of) message.
-      if (tag == kSomething) {
+      if (ReadTag() == kSomething) {
         SkipExpression();  // read (rest of) message.
       }
       return;
-    }
     case kLabeledStatement:
       SkipStatement();  // read body.
       return;
@@ -8229,6 +8254,30 @@ Fragment StreamingFlowGraphBuilder::BuildBlock() {
 
 Fragment StreamingFlowGraphBuilder::BuildEmptyStatement() {
   return Fragment();
+}
+
+Fragment StreamingFlowGraphBuilder::BuildAssertBlock() {
+  if (!I->asserts()) {
+    SkipStatementList();
+    return Fragment();
+  }
+
+  intptr_t offset = ReaderOffset() - 1;  // Include the tag.
+
+  Fragment instructions;
+
+  instructions += EnterScope(offset);
+  intptr_t list_length = ReadListLength();  // read number of statements.
+  for (intptr_t i = 0; i < list_length; ++i) {
+    if (instructions.is_open()) {
+      instructions += BuildStatement();  // read ith statement.
+    } else {
+      SkipStatement();  // read ith statement.
+    }
+  }
+  instructions += ExitScope(offset);
+
+  return instructions;
 }
 
 Fragment StreamingFlowGraphBuilder::BuildAssertStatement() {

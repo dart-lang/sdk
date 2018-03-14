@@ -1468,6 +1468,8 @@ class BinaryBuilder {
         return new ExpressionStatement(readExpression());
       case Tag.Block:
         return readBlock();
+      case Tag.AssertBlock:
+        return readAssertBlock();
       case Tag.EmptyStatement:
         return new EmptyStatement();
       case Tag.AssertStatement:
@@ -1610,6 +1612,13 @@ class BinaryBuilder {
     var body = readStatementList();
     variableStack.length = stackHeight;
     return new Block(body);
+  }
+
+  AssertBlock readAssertBlock() {
+    int stackHeight = variableStack.length;
+    var body = readStatementList();
+    variableStack.length = stackHeight;
+    return new AssertBlock(body);
   }
 
   Supertype readSupertype() {

@@ -823,6 +823,11 @@ class TypeCheckingVisitor
   }
 
   @override
+  visitAssertBlock(AssertBlock node) {
+    node.statements.forEach(visitStatement);
+  }
+
+  @override
   visitBreakStatement(BreakStatement node) {}
 
   @override

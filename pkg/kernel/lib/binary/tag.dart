@@ -91,6 +91,7 @@ class Tag {
   static const int VariableDeclaration = 78;
   static const int FunctionDeclaration = 79;
   static const int AsyncForInStatement = 80;
+  static const int AssertBlock = 81;
 
   static const int TypedefType = 87;
   static const int VectorType = 88;

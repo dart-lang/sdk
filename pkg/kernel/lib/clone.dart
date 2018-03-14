@@ -300,6 +300,10 @@ class CloneVisitor implements TreeVisitor {
     return new Block(node.statements.map(clone).toList());
   }
 
+  visitAssertBlock(AssertBlock node) {
+    return new AssertBlock(node.statements.map(clone).toList());
+  }
+
   visitEmptyStatement(EmptyStatement node) {
     return new EmptyStatement();
   }

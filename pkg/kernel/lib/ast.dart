@@ -3814,9 +3814,12 @@ class Block extends Statement {
   final List<Statement> statements;
 
   Block(this.statements) {
+    // Ensure statements is mutable.
+    assert((statements
+          ..add(null)
+          ..removeLast()) !=
+        null);
     setParents(statements, this);
-    statements.add(null);
-    statements.removeLast();
   }
 
   accept(StatementVisitor v) => v.visitBlock(this);
@@ -3828,6 +3831,40 @@ class Block extends Statement {
 
   transformChildren(Transformer v) {
     transformList(statements, v, this);
+  }
+
+  void addStatement(Statement node) {
+    statements.add(node);
+    node.parent = this;
+  }
+}
+
+/// A block that is only executed when asserts are enabled.
+///
+/// Sometimes arbitrary statements must be guarded by whether asserts are
+/// enabled.  For example, when a subexpression of an assert in async code is
+/// linearized and named, it can produce such a block of statements.
+class AssertBlock extends Statement {
+  final List<Statement> statements;
+
+  AssertBlock(this.statements) {
+    // Ensure statements is mutable.
+    assert((statements
+          ..add(null)
+          ..removeLast()) !=
+        null);
+    setParents(statements, this);
+  }
+
+  accept(StatementVisitor v) => v.visitAssertBlock(this);
+  accept1(StatementVisitor1 v, arg) => v.visitAssertBlock(this, arg);
+
+  transformChildren(Transformer v) {
+    transformList(statements, v, this);
+  }
+
+  visitChildren(Visitor v) {
+    visitList(statements, v);
   }
 
   void addStatement(Statement node) {

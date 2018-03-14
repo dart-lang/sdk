@@ -3227,6 +3227,13 @@ class ProgramCompiler
   visitEmptyStatement(EmptyStatement node) => new JS.EmptyStatement();
 
   @override
+  visitAssertBlock(AssertBlock node) {
+    // AssertBlocks are introduced by the VM-specific async elimination
+    // transformation.  We do not expect them to arise here.
+    throw new UnsupportedError('compilation of an assert block');
+  }
+
+  @override
   visitAssertStatement(AssertStatement node) {
     // TODO(jmesserly): only emit in checked mode.
     var condition = node.condition;

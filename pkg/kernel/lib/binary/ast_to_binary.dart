@@ -1331,6 +1331,13 @@ class BinaryPrinter extends Visitor implements BinarySink {
     _variableIndexer.popScope();
   }
 
+  visitAssertBlock(AssertBlock node) {
+    _variableIndexer.pushScope();
+    writeByte(Tag.AssertBlock);
+    writeNodeList(node.statements);
+    _variableIndexer.popScope();
+  }
+
   visitEmptyStatement(EmptyStatement node) {
     writeByte(Tag.EmptyStatement);
   }

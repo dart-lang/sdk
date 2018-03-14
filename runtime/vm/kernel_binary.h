@@ -104,6 +104,7 @@ static const uint32_t kBinaryFormatVersion = 3;
   V(VariableDeclaration, 78)                                                   \
   V(FunctionDeclaration, 79)                                                   \
   V(AsyncForInStatement, 80)                                                   \
+  V(AssertBlock, 81)                                                           \
   V(TypedefType, 87)                                                           \
   V(VectorType, 88)                                                            \
   V(BottomType, 89)                                                            \
