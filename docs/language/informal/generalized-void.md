@@ -2,17 +2,15 @@
 
 **Author**: eernst@
 
+**Version**: 0.9 (2018-02-22)
+
 **Status**: Under implementation.
 
-**This document** is an informal specification of the generalized support
-in Dart 1.x for the type `void`. Dart 2 will have a very similar kind of
-generalized support for `void`, without the function type subtype exception
-that this feature includes for backward compatibility in Dart 1.x. This
-document specifies the feature for Dart 1.x and indicates how Dart 2
-differs at relevant points.
+**This document** is a feature specification of the generalized support
+in Dart 2 for the type `void`.
 
-**The feature** described here, *generalized void*, allows for using the
-type `void` as a type annotation and as a type argument.
+**The feature** described here, *generalized void*, allows for using
+`void` as a type annotation and as a type argument.
 
 The **motivation** for allowing the extended usage is that it helps
 developers state the intent that a particular **value should be
@@ -30,34 +28,34 @@ covariantly. For instance, the class `Future<T>` uses return types
 like `Future<T>` and `Stream<T>`, and it uses `T` as a parameter type of a
 callback in the method `then`.
 
-Note that using the value of an expression of type `void` is not
+Note that using the value of an expression of type void is not
 technically dangerous, doing so does not violate any constraints at the
-level of the language semantics.  By using the type `void`, developers
+level of the language semantics.  By using the type void, developers
 indicate that the value of the corresponding expression evaluation is
 meaningless. Hence, there is **no requirement** for the generalized void
 mechanism to be strict and **sound**. However, it is the intention that the
 mechanism should be sufficiently sound to make the mechanism helpful and
 non-frustrating in practice.
 
-No constraints are imposed on which values may be given type `void`, so in
+No constraints are imposed on which values may be given type void, so in
 that sense `void` can be considered to be just another name for the type
 `Object`, flagged as useless. Note that this is an approximate rule in
 Dart 1.x, it fails to hold for function types; it does hold in Dart 2.
 
 The mechanisms helping developers to avoid using the value of an expression
-of type `void` are divided into **two phases**. This document specifies the
+of type void are divided into **two phases**. This document specifies the
 first phase.
 
 The **first phase** uses restrictions which are based on syntactic criteria
 in order to ensure that direct usage of the value of an expression of type
-`void` is a static warning (in Dart 2: an error). A few exceptions are
+void is a compile-time error. A few exceptions are
 allowed, e.g., type casts, such that developers can explicitly make the
 choice to use such a value. The general rule is that for every expression
-of type `void`, its value must be ignored.
+of type void, its value must be ignored.
 
 The **second phase** will deal with casts and preservation of
 voidness. Some casts will cause derived expressions to switch from having
-type `void` to having some other type, and hence those casts introduce the
+type void to having some other type, and hence those casts introduce the
 possibility that "a void value" will get passed and used. Here is an
 example:
 
@@ -88,7 +86,7 @@ typeNotVoid ::= // NEW
 type ::= // ENTIRE RULE MODIFIED
     typeNotVoid | 'void'
 redirectingFactoryConstructorSignature ::=
-    'const'? 'factory' identifier ('.' identifier)? 
+    'const'? 'factory' identifier ('.' identifier)?
     formalParameterList `=' typeNotVoid ('.' identifier)?
 superclass ::=
     'extends' typeNotVoid
@@ -211,7 +209,7 @@ the type void is treated as being the built-in class `Object`.
 are erased to regular function types during compilation. Hence there is no
 need to specify the the typing relations for generic function types. In
 Dart 2, the subtype relationship for generic function types follows from
-the rule that `void` is treated as `Object`.*
+the rule that the type void is treated as `Object`.*
 
 Consider a function type _T_ where the return type is the type void. In
 Dart 1.x, the dynamic more-specific-than relation, `<<`, and the dynamic
@@ -236,78 +234,108 @@ we were to consistently treat the type void as `Object` at run time (as in
 Dart 2) then this assignment would be permitted (but we would then use
 voidness preservation to detect and avoid this situation at compile time).*
 
-*The semantics of checked mode checks involving types where the type void
+*The semantics of dynamic checks involving types where the type void
 occurs is determined by the semantics of subtype tests, so we do not
 specify that separately.*
 
-An instantiation of a generic class `G` is malbounded if it contains `void`
-as an actual type argument for a formal type parameter, unless that type
-parameter does not have a bound, or it has a bound which is the built-in
-class `Object`, or `dynamic`.
+It is a compile-time error to use `void` as the bound of a type variable.
+
+An instantiation of a generic class `G` is malbounded if it contains the
+type void as an actual type argument for a formal type parameter, unless
+that type parameter does not have a bound, or it has a bound which is the
+built-in class `Object`, or `dynamic`.
 
 *The treatment of malbounded types follows the current specification.*
 
+
 ## Static Analysis
 
-For the static analysis, the more-specific-than relation, `<<`, and the
-subtype relation, `<:`, are determined by the same rules as described above
-for the dynamic semantics, for both Dart 1.x and Dart 2.
+For the static analysis, the subtype relation, `<:`, is determined by the
+same rules as described above for the dynamic semantics.
 
-*That is, the type void is considered to be equivalent to the built-in
-class `Object` in Dart 1.x, except when used as a return type, in which
-case it is effectively considered to be a proper supertype of `Object`. In
-Dart 2 subtyping, the type void is consistently considered to be equivalent
-to the built-in class `Object`. As mentioned, this document does not
-specify voidness preservation; however, when voidness preservation checks
-are added we get an effect in Dart 2 which is similar to the special
-treatment of void as a return type in Dart 1.x: The function type downcast
-which will be rejected in Dart 1.x (at run time, with a static warning at
-compile time) will become a voidness preservation violation, i.e., a
-compile-time error.*
+*That is, the type void, for the purposes of subtyping, is considered to be
+equivalent to the built-in class `Object`. As mentioned, this document does
+not specify voidness preservation. However, when voidness preservation
+checks are added we will get (among other things) an effect which is
+similar to the special treatment of void as a return type which was used in
+Dart 1.x: In Dart 1.x, an implicit downcast from `void Function()` to
+`Object Function()` will fail at run time, but with voidness preservation
+it will be a compile-time error.*
 
-It is a static warning for an expression to have type void (in Dart 2: a
-compile-time error), except for the following situations:
+It is a compile-time error to evaluate an expression of type void, except
+for the following situations:
 
-*   In an expressionStatement `e;`, e may have type void.
+*   In an expressionStatement `e;`, `e` may have type void.
 *   In the initialization and increment expressions of a for-loop,
     `for (e1; e2; e3) {..}`, `e1` and `e3` may have type void.
-*   In a typeCast `e as T`, `e` may have type void.
+*   In a type cast `e as T`, `e` may have type void.
 *   In a parenthesized expression `(e)`, `e` may have type void.
+*   In a conditional expression `e ? e1 : e2`, `e1` and `e2` may have the
+    type void; the static type of the conditional expression is then the
+    type void. (*This is true even if one of the branches has a different
+    type.*)
+*   If _N1_ and _N2_ are non-terminals in the Dart grammar, and there is a
+    derivation of the form _N1 --> N2_, and _N2_ can have type void, then
+    _N1_ can also have type void for such a derivation. *In this derivation
+    no additional tokens are included, it is only the non-terminal which
+    changes.*
 *   In a return statement `return e;`, when the return type of the innermost
     enclosing function is the type void, `e` may have type void.
+*   An initializing expression for a variable of type void may have the type
+    void.
+*   An actual parameter expression corresponding to a formal parameter whose
+    statically known type annotation is the type void may have the type void.
+*   In an expression of the form `e1 = e2` where `e1` is an
+    assignableExpression denoting a variable or parameter of type void, `e2` may
+    have the type void.
+*   Assume that `e` is an expression ending in a `cascadeSection` of the
+    form `'..' S s = e1` where `S` is of the form `(cascadeSelector
+    argumentPart*) (assignableSelector argumentPart*)*` and `e1` is an
+    `expressionWithoutCascade`. If `s` is an `assignableSelector` of the
+    form `'.' identifier` or `'?.' identifier` where the static type of the
+    `identifier` is the type void, `e1` may have type void; otherwise, if
+    `s` is an `assignableSelector` of the form `'[' e0 ']'` where the
+    static type of the first formal parameter in the statically known
+    declaration of operator `[]=` is the type void, `e0` may have type
+    void; also, if the static type of the second formal parameter is the
+    type void, `e1` may have type void.
 
-*Note that the parenthesized expression itself has type void, so it is
-again subject to the same constraints. Also note that we may not allow
-return statements returning an expression of type void in Dart 2, but
-it is allowed here for backward compatibility.*
+*The rule about non-terminals is needed in order to allow, say, `void x = b
+? (y) : e2;` where `y` has type void: `y` is an identifier which is derived
+from primary, which is derived from postfixExpression, from
+unaryExpression, from multiplicativeExpression, etc. Only if we allow such
+a (trivial) multiplicativeExpression can we allow the corresponding
+(trivial) unaryExpression, etc., all the way down to identifier, and all
+the way up to expression, which is needed for the initialization of `x`.*
 
-*The value yielded by an expression of type void must be discarded (and
-hence ignored), except when explicitly subjected to a type cast. This
+*The general rule is that the value yielded by an expression of type void
+must be discarded (and hence ignored), except when explicitly subjected to
+a type cast, or when returned or assigned to a target of type void. This
 "makes it hard to use a meaningless value", but leaves a small escape hatch
 open for the cases where the developer knows that the typing misrepresents
 the actual situation.*
 
-It is a static warning (in Dart 2: a compile-time error) if a return
-statement `return e;` occurs such that the innermost enclosing function
-has return type `void` and the static type of `e` is not the type void.
+It is a compile-time error if a return statement `return e;` occurs such
+that the innermost enclosing function has return type `void` and the static
+type of `e` is not the type void.
 
-It is a static warning (in Dart 2: a compile-time error) if a function
-marked `async*`, or `sync*` has return type `void`.
+It is a compile-time error if a function marked `async*`, or `sync*` has
+return type `void`.
 
 *Note that it is allowed for an `async` function to have return type
 `void`. This serves to indicate that said function performs a
 "fire-and-forget" operation, that is, it is not even useful for the caller
 to synchronize with the completion of that task.*
 
-It is a static warning (Dart 2: a compile-time error) for a for-in
-statement to have an iterator expression of type `T` such that
-`Iterator<void>` is the most specific instantiation of `Iterator` that is a
-superinterface of `T`, unless the iteration variable has type void.
+It is a compile-time error for a for-in statement to have an iterator
+expression of type `T` such that `Iterator<void>` is the most specific
+instantiation of `Iterator` that is a superinterface of `T`, unless the
+iteration variable has type void.
 
-It is a static warning (Dart 2: a compile-time error) for an asynchronous
-for-in statement to have a stream expression of type `T` such that
-`Stream<void>` is the most specific instantiation of `Stream` that is a
-superinterface of `T`, unless the iteration variable has type void.
+It is a compile-time error for an asynchronous for-in statement to have a
+stream expression of type `T` such that `Stream<void>` is the most specific
+instantiation of `Stream` that is a superinterface of `T`, unless the
+iteration variable has type void.
 
 *Hence, `for (Object x in <void>[]) {}` and
 `await for (int x in new Stream<void>.empty()) {}` are errors, whereas
@@ -320,13 +348,16 @@ parameter of a generic class or function is statically known to be the type
 void. In this case, the bound is considered to be the built-in class
 `Object`.
 
-In Dart 2, it is a compile-time error when a method declaration _D2_ with
-return type void overrides a method declaration _D1_ whose return type is
-not void.
+It is a compile-time error when a method declaration _D2_ with return type
+void overrides a method declaration _D1_ whose return type is not void.
 
-*This rule is a special case of voidness preservation, which is needed in
-order to maintain the discipline which arises naturally from the function
-type subtype rules in Dart 1.x concerning void as a return type.*
+*This rule is a special case of voidness preservation, which maintains the
+discipline which arises naturally from the function type subtype rules in
+Dart 1.x concerning void as a return type. It also matches the conceptual
+interpretation that a value of type void can be anything, but it should be
+discarded: This ensures that a subtype can be used where the supertype is
+expected (also known as Liskov substitutability), because it is always
+considered safe to ignore the value of an expression evaluation.*
 
 ## Discussion
 
@@ -355,6 +386,12 @@ the type void. This motivated the decision to treat such a void-valued
 bound as `Object`.
 
 ## Updates
+
+*   February 22nd 2018, v0.9: Added several new contexts where an
+    expression with static type void may be evaluated, such that pure data
+    transfers to a target of type void are allowed. For instance, a void
+    expression may be passed as an actual argument to a parameter of type
+    void.
 
 *   August 22nd 2017: Reworded specification of reified types to deal with
     only such values which may be obtained at run time (previously mentioned
