@@ -973,6 +973,12 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   }
 
   @override
+  TypeExpr visitAssertBlock(AssertBlock node) {
+    node.statements.forEach(_visit);
+    return null;
+  }
+
+  @override
   TypeExpr visitBreakStatement(BreakStatement node) => null;
 
   @override
