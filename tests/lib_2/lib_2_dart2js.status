@@ -529,7 +529,7 @@ isolate/isolate_current_test: Fail # please triage
 convert/utf85_test: Pass, Slow # Issue 12029.
 html/js_function_getter_trust_types_test: Skip # --trust-type-annotations incompatible with --checked
 
-[ $compiler == dart2js && $checked && $fasta && $host_checked ]
+[ $compiler == dart2js && $checked && $fasta ]
 async/stream_listen_zone_test: RuntimeError
 
 [ $compiler == dart2js && $csp && ($runtime == chrome || $runtime == chromeOnAndroid || $runtime == ff || $runtime == safari) ]

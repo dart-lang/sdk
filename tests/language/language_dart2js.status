@@ -251,34 +251,17 @@ assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 f_bounded_quantification5_test: Fail, OK # Issue 12605
 
 [ $compiler == dart2js && $fast_startup && $fasta ]
-arithmetic_canonicalization_test: RuntimeError
-assertion_initializer_const_error2_test/none: CompileTimeError
 constructor_redirect1_negative_test: Crash # Stack Overflow
 constructor_redirect2_negative_test: Crash # Stack Overflow
-constructor_redirect2_test/01: MissingCompileTimeError
 cyclic_constructor_test/01: Crash # Stack Overflow
-deferred_constraints_constants_test/default_argument2: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_constants_test/none: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_constants_test/reference_after_load: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
-deferred_constraints_type_annotation_test/as_operation: RuntimeError
-deferred_constraints_type_annotation_test/catch_check: RuntimeError
-deferred_constraints_type_annotation_test/is_check: RuntimeError
-deferred_load_constants_test/none: RuntimeError
-generic_field_mixin4_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in () for j:constructor(C3.).
-generic_field_mixin5_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in () for j:constructor(C3.).
-generic_field_mixin_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in () for j:constructor(C3.).
-generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
 internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' has no instance getter 'mixinApplicationClasses'.
 mixin_mixin4_test: RuntimeError
 mixin_mixin5_test: RuntimeError
 mixin_mixin6_test: RuntimeError
-mixin_mixin7_test: RuntimeError
 mixin_mixin_bound2_test: RuntimeError
 mixin_mixin_bound_test: RuntimeError
-mixin_mixin_test: RuntimeError
-null_test/02: MissingCompileTimeError
-null_test/03: MissingCompileTimeError
-redirecting_factory_long_test: RuntimeError
 stacktrace_demangle_ctors_test: RuntimeError
 stacktrace_test: RuntimeError
 super_call4_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
@@ -812,4 +795,3 @@ mixin_mixin_bound_test: RuntimeError, OK # Issue 31054: runtimeType.toString not
 mixin_mixin_type_arguments_test: RuntimeError, OK # Issue 31054: runtimeType.toString not preserved in minified code.
 regress_21795_test: RuntimeError, OK # Issue 31054: runtimeType.toString not preserved in minified code.
 stack_trace_test: RuntimeError, OK # Stack trace not preserved in minified code.
-
