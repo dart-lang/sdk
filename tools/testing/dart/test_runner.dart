@@ -34,6 +34,7 @@ import 'utils.dart';
 const int browserCrashExitCode = -10;
 const int parseFailExitCode = 245;
 const int slowTimeoutMultiplier = 4;
+const int extraSlowTimeoutMultiplier = 8;
 const int nonUtfFakeExitCode = 0xFFFD;
 
 const cannotOpenDisplayMessage = 'Gtk-WARNING **: cannot open display';
@@ -175,6 +176,8 @@ class TestCase extends UniqueObject {
     var result = configuration.timeout;
     if (expectedOutcomes.contains(Expectation.slow)) {
       result *= slowTimeoutMultiplier;
+    } else if (expectedOutcomes.contains(Expectation.extraSlow)) {
+      result *= extraSlowTimeoutMultiplier;
     }
     return result;
   }
