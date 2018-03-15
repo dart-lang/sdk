@@ -1168,7 +1168,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     }
     class_helper->SetJustRead(ClassHelper::kFields);
 
-    if (I->use_dart_frontend() && klass.is_enum_class()) {
+    if (klass.is_enum_class()) {
       // Add static field 'const _deleted_enum_sentinel'.
       // This field does not need to be of type E.
       Field& deleted_enum_sentinel = Field::ZoneHandle(Z);
