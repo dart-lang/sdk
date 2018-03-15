@@ -1,16 +1,24 @@
+## 2.0.0-dev.XX.0
+(Add new changes here, and they will be copied to the
+ change section for the next dev version)
+
+### Language
+
+#### Strong Mode
 
 ### Core library changes
 
-* `dart:core`
-  * Temporarily disabled the `whereType` method until generic methods are
-    enabled on all platforms
-    ([issue 32463](https://github.com/dart-lang/sdk/issues/32463)).
-  * Changed return type of `UriData.dataAsBytes` to `Uint8List`.
-* `dart:convert`
-  * Added `jsonEncode`, `jsonDecode`, `base64Encode`, `base64UrlEncode` and
-    `base64Decode` top-level functions.
-  * Changed return type of `encode` on `AsciiCodec` and `Latin1Codec`,
-    and `convert` on `AsciiEncoder`, `Latin1Encoder`, to `Uint8List`.
+### Dart VM
+
+### Tool Changes
+
+#### Pub
+
+#### Other Tools
+
+## 2.0.0-dev.38.0
+
+## 2.0.0-dev.37.0
 
 ### Tool Changes
 
@@ -42,6 +50,21 @@
 
     * this is the first version of dart2js that no longer supports
       `--package-root`, which long ago was deprecated in favor of `--packages`.
+
+## 2.0.0-dev.36.0
+
+### Core library changes
+
+* `dart:core`
+  * Temporarily disabled the `whereType` method until generic methods are
+    enabled on all platforms
+    ([issue 32463](https://github.com/dart-lang/sdk/issues/32463)).
+  * Changed return type of `UriData.dataAsBytes` to `Uint8List`.
+* `dart:convert`
+  * Added `jsonEncode`, `jsonDecode`, `base64Encode`, `base64UrlEncode` and
+    `base64Decode` top-level functions.
+  * Changed return type of `encode` on `AsciiCodec` and `Latin1Codec`,
+    and `convert` on `AsciiEncoder`, `Latin1Encoder`, to `Uint8List`.
 
 ## 2.0.0
 
