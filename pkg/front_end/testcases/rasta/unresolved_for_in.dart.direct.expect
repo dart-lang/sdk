@@ -32,6 +32,11 @@ class Fisk extends core::Object {
     }
   }
 }
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/rasta/unresolved_for_in.dart:23:10: Error: Expected an identifier, but got '1'.
+    for (1 in x) {
+         ^", "pkg/front_end/testcases/rasta/unresolved_for_in.dart:43:8: Error: Expected an identifier, but got '1'.
+  for (1 in arguments) {
+       ^"]/* from null */;
 static method main(dynamic arguments) → dynamic {
   new self::Fisk::•();
   for (final dynamic #t6 in arguments) {

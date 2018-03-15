@@ -991,8 +991,6 @@ Language/Statements/For/Asynchronous_For_in/execution_t03: CompileTimeError
 Language/Statements/For/For_Loop/execution_t07: CompileTimeError
 Language/Statements/For/For_Loop/execution_t08: CompileTimeError
 Language/Statements/For/syntax_t07: CompileTimeError
-Language/Statements/For/syntax_t12: MissingCompileTimeError
-Language/Statements/For/syntax_t19: MissingCompileTimeError
 Language/Statements/If/condition_evaluation_t01: CompileTimeError
 Language/Statements/If/condition_evaluation_t02: CompileTimeError
 Language/Statements/If/type_t06: CompileTimeError
@@ -1714,10 +1712,6 @@ Language/Mixins/Mixin_Application/syntax_t20: CompileTimeError
 Language/Mixins/declaring_constructor_t05: MissingCompileTimeError
 Language/Mixins/declaring_constructor_t06: MissingCompileTimeError
 Language/Statements/Continue/label_t07: MissingCompileTimeError
-Language/Statements/For/syntax_t12: MissingCompileTimeError
-Language/Statements/For/syntax_t13: MissingCompileTimeError
-Language/Statements/For/syntax_t19: MissingCompileTimeError
-Language/Statements/For/syntax_t20: MissingCompileTimeError
 Language/Statements/Switch/equal_operator_t01: MissingCompileTimeError
 Language/Statements/Switch/equal_operator_t02: MissingCompileTimeError
 Language/Statements/Switch/expressions_t01: MissingCompileTimeError
