@@ -8401,7 +8401,13 @@ class TypeNameResolver {
             typeSystem.instantiateTypeFormalsToBounds(element.typeParameters);
         type = element.typeAfterSubstitution(typeArguments) ?? dynamicType;
       } else {
-        type = typeSystem.instantiateToBounds(type);
+        DartType redirectedType =
+            _inferTypeArgumentsForRedirectedConstructor(node, type);
+        if (redirectedType != null) {
+          type = redirectedType;
+        } else {
+          type = typeSystem.instantiateToBounds(type);
+        }
       }
     }
     typeName.staticType = type;
@@ -8507,6 +8513,34 @@ class TypeNameResolver {
       }
     }
     return type;
+  }
+
+  /**
+   * If the [node] is the type name in a redirected factory constructor,
+   * infer type arguments using the enclosing class declaration. Return `null`
+   * otherwise.
+   */
+  DartType _inferTypeArgumentsForRedirectedConstructor(
+      TypeName node, DartType type) {
+    AstNode constructorName = node.parent;
+    AstNode enclosingConstructor = constructorName?.parent;
+    TypeSystem ts = typeSystem;
+    if (constructorName is ConstructorName &&
+        enclosingConstructor is ConstructorDeclaration &&
+        enclosingConstructor.redirectedConstructor == constructorName &&
+        type is InterfaceType &&
+        ts is StrongTypeSystemImpl) {
+      ClassDeclaration enclosingClassNode = enclosingConstructor.parent;
+      ClassElement enclosingClassElement = enclosingClassNode.element;
+      if (enclosingClassElement == type.element) {
+        return type;
+      } else {
+        InterfaceType contextType = enclosingClassElement.type;
+        return ts.inferGenericFunctionOrType(
+            type, const <ParameterElement>[], const <DartType>[], contextType);
+      }
+    }
+    return null;
   }
 
   /**
