@@ -256,13 +256,13 @@ cc/IsolateReload_LibraryHide: Crash
 cc/IsolateReload_LibraryShow: Crash
 
 [ $compiler == dartk && $system == linux ]
-cc/IsolateReload_LibraryLookup: Crash
+cc/IsolateReload_LibraryLookup: Fail, Crash
 cc/IsolateReload_TearOff_AddArguments: Fail
 cc/IsolateReload_TearOff_Instance_Equality: Fail
 cc/IsolateReload_TearOff_List_Set: Fail
 
 [ $compiler == dartk && $system == windows ]
-cc/IsolateReload_LibraryLookup: Crash
+cc/IsolateReload_LibraryLookup: Fail, Crash
 cc/IsolateReload_TearOff_AddArguments: Fail
 cc/IsolateReload_TearOff_Instance_Equality: Fail
 cc/IsolateReload_TearOff_List_Set: Fail
@@ -284,7 +284,7 @@ cc/DartGeneratedArrayLiteralMessages: Crash # Issue 32190
 cc/FullSnapshot1: Crash # Issue 32190
 cc/IsolateReload_LibraryImportAdded: Crash # Issue 32190
 cc/IsolateReload_LibraryImportRemoved: Fail # Issue 32190
-cc/IsolateReload_LibraryLookup: Crash # Issue 32190
+cc/IsolateReload_LibraryLookup: Fail, Crash # Issue 32190
 cc/Mixin_PrivateSuperResolutionCrossLibraryShouldFail: Fail, Crash # Issue 32190
 cc/StackMapGC: Crash # Issue 32190
 
