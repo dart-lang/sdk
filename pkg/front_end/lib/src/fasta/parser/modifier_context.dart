@@ -278,11 +278,9 @@ class ModifierRecoveryContext2 {
   }
 
   /// Parse modifiers for variable declarations.
-  Token parseVariableDeclarationModifiers(
-      Token token, TypeContinuation typeContinuation,
+  Token parseVariableDeclarationModifiers(Token token,
       {Token varFinalOrConst}) {
-    token = parseModifiers(token, typeContinuation,
-        varFinalOrConst: varFinalOrConst);
+    token = parseModifiers(token, null, varFinalOrConst: varFinalOrConst);
 
     reportExtraneousModifier(abstractToken);
     reportExtraneousModifier(covariantToken);
