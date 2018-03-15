@@ -447,6 +447,9 @@ class FixProcessor {
       if (name == LintNames.empty_statements) {
         await _addFix_removeEmptyStatement();
       }
+      if (name == LintNames.non_constant_identifier_names) {
+        await _addFix_renameToCamelCase();
+      }
       if (name == LintNames.prefer_collection_literals) {
         await _addFix_replaceWithLiteral();
       }
@@ -2362,6 +2365,47 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNUSED_IMPORT);
   }
 
+  Future<Null> _addFix_renameToCamelCase() async {
+    if (node is! SimpleIdentifier) {
+      return;
+    }
+    SimpleIdentifier identifier = this.node;
+
+    // Prepare the new name.
+    List<String> words = identifier.name.split('_');
+    if (words.length < 2) {
+      return;
+    }
+    var newName = words.first + words.skip(1).map((w) => capitalize(w)).join();
+
+    // Find references to the identifier.
+    List<SimpleIdentifier> references;
+    Element element = identifier.staticElement;
+    if (element is LocalVariableElement) {
+      AstNode root = node.getAncestor((node) => node is Block);
+      references = findLocalElementReferences(root, element);
+    } else if (element is ParameterElement) {
+      if (!element.isNamed) {
+        AstNode root = node.getAncestor((node) =>
+            node.parent is ClassDeclaration || node.parent is CompilationUnit);
+        references = findLocalElementReferences(root, element);
+      }
+    }
+    if (references == null) {
+      return;
+    }
+
+    // Compute the change.
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      for (var reference in references) {
+        builder.addSimpleReplacement(range.node(reference), newName);
+      }
+    });
+    _addFixFromBuilder(changeBuilder, DartFixKind.RENAME_TO_CAMEL_CASE,
+        args: [newName]);
+  }
+
   Future<Null> _addFix_replaceFinalWithConst() async {
     if (node is VariableDeclarationList) {
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
@@ -3435,6 +3479,8 @@ class LintNames {
   static const String empty_catches = 'empty_catches';
   static const String empty_constructor_bodies = 'empty_constructor_bodies';
   static const String empty_statements = 'empty_statements';
+  static const String non_constant_identifier_names =
+      'non_constant_identifier_names';
   static const String prefer_collection_literals = 'prefer_collection_literals';
   static const String prefer_conditional_assignment =
       'prefer_conditional_assignment';

@@ -211,6 +211,8 @@ class DartFixKind {
       'REMOVE_UNUSED_CATCH_STACK', 50, "Remove unused stack trace variable");
   static const REMOVE_UNUSED_IMPORT =
       const FixKind('REMOVE_UNUSED_IMPORT', 50, "Remove unused import");
+  static const RENAME_TO_CAMEL_CASE =
+      const FixKind('RENAME_TO_CAMEL_CASE', 50, "Rename to '{0}'");
   static const REPLACE_BOOLEAN_WITH_BOOL = const FixKind(
       'REPLACE_BOOLEAN_WITH_BOOL', 50, "Replace 'boolean' with 'bool'");
   static const REPLACE_FINAL_WITH_CONST = const FixKind(

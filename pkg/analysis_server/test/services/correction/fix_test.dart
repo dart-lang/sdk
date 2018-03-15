@@ -97,12 +97,7 @@ bool test() {
 
   assertNoFix(FixKind kind) async {
     AnalysisError error = await _findErrorToFix();
-    List<Fix> fixes = await _computeFixes(error);
-    for (Fix fix in fixes) {
-      if (fix.kind == kind) {
-        fail('Unexpected fix $kind in\n${fixes.join('\n')}');
-      }
-    }
+    await _assertNoFix(kind, error);
   }
 
   List<LinkedEditSuggestion> expectedSuggestions(
@@ -136,6 +131,15 @@ bool test() {
     expect(group.positions, unorderedEquals(expectedPositions));
     if (expectedSuggestions != null) {
       expect(group.suggestions, unorderedEquals(expectedSuggestions));
+    }
+  }
+
+  Future _assertNoFix(FixKind kind, AnalysisError error) async {
+    List<Fix> fixes = await _computeFixes(error);
+    for (Fix fix in fixes) {
+      if (fix.kind == kind) {
+        fail('Unexpected fix $kind in\n${fixes.join('\n')}');
+      }
     }
   }
 
@@ -5938,6 +5942,11 @@ class LintFixTest extends BaseFixProcessorTest {
     resultCode = SourceEdit.applySequence(testCode, change.edits[0].edits);
   }
 
+  @override
+  assertNoFix(FixKind kind) async {
+    await _assertNoFix(kind, error);
+  }
+
   Future<Null> findLint(String src, String lintCode, {int length: 1}) async {
     int errorOffset = src.indexOf('/*LINT*/');
     await resolveTestUnit(src.replaceAll('/*LINT*/', ''));
@@ -6794,6 +6803,115 @@ class C {
 class C {
   int f;
   C(this.f);
+}
+''');
+  }
+
+  test_renameToCamelCase_BAD_parameter_optionalNamed() async {
+    String src = '''
+foo({int /*LINT*/my_integer_variable}) {
+  print(my_integer_variable);
+}
+''';
+    await findLint(src, LintNames.non_constant_identifier_names);
+    await assertNoFix(DartFixKind.RENAME_TO_CAMEL_CASE);
+  }
+
+  test_renameToCamelCase_OK_localVariable() async {
+    String src = '''
+main() {
+  int /*LINT*/my_integer_variable = 42;
+  int foo;
+  print(my_integer_variable);
+  print(foo);
+}
+''';
+    await findLint(src, LintNames.non_constant_identifier_names);
+
+    await applyFix(DartFixKind.RENAME_TO_CAMEL_CASE);
+
+    verifyResult('''
+main() {
+  int myIntegerVariable = 42;
+  int foo;
+  print(myIntegerVariable);
+  print(foo);
+}
+''');
+  }
+
+  test_renameToCamelCase_OK_parameter_closure() async {
+    String src = '''
+main() {
+  [0, 1, 2].forEach((/*LINT*/my_integer_variable) {
+    print(my_integer_variable);
+  });
+}
+''';
+    await findLint(src, LintNames.non_constant_identifier_names);
+
+    await applyFix(DartFixKind.RENAME_TO_CAMEL_CASE);
+
+    verifyResult('''
+main() {
+  [0, 1, 2].forEach((myIntegerVariable) {
+    print(myIntegerVariable);
+  });
+}
+''');
+  }
+
+  test_renameToCamelCase_OK_parameter_function() async {
+    String src = '''
+main(int /*LINT*/my_integer_variable) {
+  print(my_integer_variable);
+}
+''';
+    await findLint(src, LintNames.non_constant_identifier_names);
+
+    await applyFix(DartFixKind.RENAME_TO_CAMEL_CASE);
+
+    verifyResult('''
+main(int myIntegerVariable) {
+  print(myIntegerVariable);
+}
+''');
+  }
+
+  test_renameToCamelCase_OK_parameter_method() async {
+    String src = '''
+class A {
+  main(int /*LINT*/my_integer_variable) {
+    print(my_integer_variable);
+  }
+}
+''';
+    await findLint(src, LintNames.non_constant_identifier_names);
+
+    await applyFix(DartFixKind.RENAME_TO_CAMEL_CASE);
+
+    verifyResult('''
+class A {
+  main(int myIntegerVariable) {
+    print(myIntegerVariable);
+  }
+}
+''');
+  }
+
+  test_renameToCamelCase_OK_parameter_optionalPositional() async {
+    String src = '''
+main([int /*LINT*/my_integer_variable]) {
+  print(my_integer_variable);
+}
+''';
+    await findLint(src, LintNames.non_constant_identifier_names);
+
+    await applyFix(DartFixKind.RENAME_TO_CAMEL_CASE);
+
+    verifyResult('''
+main([int myIntegerVariable]) {
+  print(myIntegerVariable);
 }
 ''');
   }
