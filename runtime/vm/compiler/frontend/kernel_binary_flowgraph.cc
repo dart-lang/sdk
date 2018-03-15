@@ -131,11 +131,17 @@ void FieldHelper::ReadUntilExcluding(Field field,
       canonical_name_ =
           builder_->ReadCanonicalNameReference();  // read canonical_name.
       if (++next_read_ == field) return;
+    case kSourceUriIndex:
+      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
+      builder_->current_script_id_ = source_uri_index_;
+      if (++next_read_ == field) return;
     case kPosition:
       position_ = builder_->ReadPosition(false);  // read position.
+      builder_->record_token_position(position_);
       if (++next_read_ == field) return;
     case kEndPosition:
       end_position_ = builder_->ReadPosition(false);  // read end position.
+      builder_->record_token_position(end_position_);
       if (++next_read_ == field) return;
     case kFlags:
       flags_ = builder_->ReadFlags();
@@ -145,12 +151,6 @@ void FieldHelper::ReadUntilExcluding(Field field,
       if (++next_read_ == field) return;
     case kName:
       builder_->SkipName();  // read name.
-      if (++next_read_ == field) return;
-    case kSourceUriIndex:
-      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
-      builder_->current_script_id_ = source_uri_index_;
-      builder_->record_token_position(position_);
-      builder_->record_token_position(end_position_);
       if (++next_read_ == field) return;
     case kAnnotations: {
       annotation_count_ = builder_->ReadListLength();  // read list length.
@@ -200,11 +200,17 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       canonical_name_ =
           builder_->ReadCanonicalNameReference();  // read canonical_name.
       if (++next_read_ == field) return;
+    case kSourceUriIndex:
+      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
+      builder_->current_script_id_ = source_uri_index_;
+      if (++next_read_ == field) return;
     case kPosition:
       position_ = builder_->ReadPosition(false);  // read position.
+      builder_->record_token_position(position_);
       if (++next_read_ == field) return;
     case kEndPosition:
       end_position_ = builder_->ReadPosition(false);  // read end position.
+      builder_->record_token_position(end_position_);
       if (++next_read_ == field) return;
     case kKind:
       kind_ = static_cast<Kind>(builder_->ReadByte());
@@ -214,12 +220,6 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
     case kName:
       builder_->SkipName();  // read name.
-      if (++next_read_ == field) return;
-    case kSourceUriIndex:
-      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
-      builder_->current_script_id_ = source_uri_index_;
-      builder_->record_token_position(position_);
-      builder_->record_token_position(end_position_);
       if (++next_read_ == field) return;
     case kAnnotations: {
       annotation_count_ = builder_->ReadListLength();  // read list length.
@@ -261,23 +261,23 @@ void ConstructorHelper::ReadUntilExcluding(Field field) {
       canonical_name_ =
           builder_->ReadCanonicalNameReference();  // read canonical_name.
       if (++next_read_ == field) return;
+    case kSourceUriIndex:
+      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
+      builder_->current_script_id_ = source_uri_index_;
+      if (++next_read_ == field) return;
     case kPosition:
       position_ = builder_->ReadPosition();  // read position.
+      builder_->record_token_position(position_);
       if (++next_read_ == field) return;
     case kEndPosition:
       end_position_ = builder_->ReadPosition();  // read end position.
+      builder_->record_token_position(end_position_);
       if (++next_read_ == field) return;
     case kFlags:
       flags_ = builder_->ReadFlags();
       if (++next_read_ == field) return;
     case kName:
       builder_->SkipName();  // read name.
-      if (++next_read_ == field) return;
-    case kSourceUriIndex:
-      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
-      builder_->current_script_id_ = source_uri_index_;
-      builder_->record_token_position(position_);
-      builder_->record_token_position(end_position_);
       if (++next_read_ == field) return;
     case kAnnotations: {
       annotation_count_ = builder_->ReadListLength();  // read list length.
@@ -316,22 +316,23 @@ void ClassHelper::ReadUntilExcluding(Field field) {
       canonical_name_ =
           builder_->ReadCanonicalNameReference();  // read canonical_name.
       if (++next_read_ == field) return;
+    case kSourceUriIndex:
+      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
+      builder_->current_script_id_ = source_uri_index_;
+      if (++next_read_ == field) return;
     case kPosition:
       position_ = builder_->ReadPosition(false);  // read position.
+      builder_->record_token_position(position_);
       if (++next_read_ == field) return;
     case kEndPosition:
       end_position_ = builder_->ReadPosition();  // read end position.
+      builder_->record_token_position(end_position_);
       if (++next_read_ == field) return;
     case kFlags:
       flags_ = builder_->ReadFlags();  // read flags.
       if (++next_read_ == field) return;
     case kNameIndex:
       name_index_ = builder_->ReadStringReference();  // read name index.
-      if (++next_read_ == field) return;
-    case kSourceUriIndex:
-      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
-      builder_->current_script_id_ = source_uri_index_;
-      builder_->record_token_position(position_);
       if (++next_read_ == field) return;
     case kAnnotations: {
       annotation_count_ = builder_->ReadListLength();  // read list length.
@@ -1599,7 +1600,27 @@ void StreamingScopeBuilder::VisitStatement() {
     }
     case kEmptyStatement:
       return;
-    case kAssertStatement: {
+    case kAssertBlock:
+      if (I->asserts()) {
+        PositionScope scope(builder_->reader_);
+        intptr_t offset =
+            builder_->ReaderOffset() - 1;  // -1 to include tag byte.
+
+        EnterScope(offset);
+
+        intptr_t list_length =
+            builder_->ReadListLength();  // read number of statements.
+        for (intptr_t i = 0; i < list_length; ++i) {
+          VisitStatement();  // read ith statement.
+        }
+
+        ExitScope(builder_->reader_->min_position(),
+                  builder_->reader_->max_position());
+      } else {
+        builder_->SkipStatementList();
+      }
+      return;
+    case kAssertStatement:
       if (I->asserts()) {
         VisitExpression();              // Read condition.
         builder_->ReadPosition();       // read condition start offset.
@@ -1618,7 +1639,6 @@ void StreamingScopeBuilder::VisitStatement() {
         }
       }
       return;
-    }
     case kLabeledStatement:
       VisitStatement();  // read body.
       return;
@@ -4946,6 +4966,8 @@ Fragment StreamingFlowGraphBuilder::BuildStatement() {
       return BuildBlock();
     case kEmptyStatement:
       return BuildEmptyStatement();
+    case kAssertBlock:
+      return BuildAssertBlock();
     case kAssertStatement:
       return BuildAssertStatement();
     case kLabeledStatement:
@@ -5191,6 +5213,13 @@ void StreamingFlowGraphBuilder::SkipFunctionType(bool simple) {
   }
 
   SkipDartType();  // read return type.
+}
+
+void StreamingFlowGraphBuilder::SkipStatementList() {
+  intptr_t list_length = ReadListLength();  // read list length.
+  for (intptr_t i = 0; i < list_length; ++i) {
+    SkipStatement();  // read ith expression.
+  }
 }
 
 void StreamingFlowGraphBuilder::SkipListOfExpressions() {
@@ -5508,25 +5537,22 @@ void StreamingFlowGraphBuilder::SkipStatement() {
     case kExpressionStatement:
       SkipExpression();  // read expression.
       return;
-    case kBlock: {
-      intptr_t list_length = ReadListLength();  // read number of statements.
-      for (intptr_t i = 0; i < list_length; ++i) {
-        SkipStatement();  // read ith statement.
-      }
+    case kBlock:
+      SkipStatementList();
       return;
-    }
     case kEmptyStatement:
       return;
-    case kAssertStatement: {
+    case kAssertBlock:
+      SkipStatementList();
+      return;
+    case kAssertStatement:
       SkipExpression();     // Read condition.
       ReadPosition();       // read condition start offset.
       ReadPosition();       // read condition end offset.
-      Tag tag = ReadTag();  // read (first part of) message.
-      if (tag == kSomething) {
+      if (ReadTag() == kSomething) {
         SkipExpression();  // read (rest of) message.
       }
       return;
-    }
     case kLabeledStatement:
       SkipStatement();  // read body.
       return;
@@ -5692,15 +5718,15 @@ void StreamingFlowGraphBuilder::SkipLibraryDependency() {
 }
 
 void StreamingFlowGraphBuilder::SkipLibraryPart() {
-  SkipListOfExpressions();  // Read annotations.
   ReadUInt();               // Read source_uri_index.
+  SkipListOfExpressions();  // Read annotations.
 }
 
 void StreamingFlowGraphBuilder::SkipLibraryTypedef() {
   SkipCanonicalNameReference();  // read canonical name.
+  ReadUInt();                    // read source_uri_index.
   ReadPosition();                // read position.
   SkipStringReference();         // read name index.
-  ReadUInt();                    // read source_uri_index.
   SkipListOfExpressions();       // read annotations.
   SkipTypeParametersList();      // read type parameters.
   SkipDartType();                // read type.
@@ -8228,6 +8254,30 @@ Fragment StreamingFlowGraphBuilder::BuildBlock() {
 
 Fragment StreamingFlowGraphBuilder::BuildEmptyStatement() {
   return Fragment();
+}
+
+Fragment StreamingFlowGraphBuilder::BuildAssertBlock() {
+  if (!I->asserts()) {
+    SkipStatementList();
+    return Fragment();
+  }
+
+  intptr_t offset = ReaderOffset() - 1;  // Include the tag.
+
+  Fragment instructions;
+
+  instructions += EnterScope(offset);
+  intptr_t list_length = ReadListLength();  // read number of statements.
+  for (intptr_t i = 0; i < list_length; ++i) {
+    if (instructions.is_open()) {
+      instructions += BuildStatement();  // read ith statement.
+    } else {
+      SkipStatement();  // read ith statement.
+    }
+  }
+  instructions += ExitScope(offset);
+
+  return instructions;
 }
 
 Fragment StreamingFlowGraphBuilder::BuildAssertStatement() {

@@ -21,10 +21,11 @@ void transformLibraries(
   }
 }
 
-Program transformProgram(CoreTypes coreTypes, Program program, bool syncAsync) {
+Component transformComponent(
+    CoreTypes coreTypes, Component component, bool syncAsync) {
   var helper = new HelperNodes.fromCoreTypes(coreTypes);
   var rewriter = new RecursiveContinuationRewriter(helper, syncAsync);
-  return rewriter.rewriteProgram(program);
+  return rewriter.rewriteComponent(component);
 }
 
 Procedure transformProcedure(
@@ -48,7 +49,7 @@ class RecursiveContinuationRewriter extends Transformer {
 
   RecursiveContinuationRewriter(this.helper, this.syncAsync);
 
-  Program rewriteProgram(Program node) {
+  Component rewriteComponent(Component node) {
     return node.accept(this);
   }
 
@@ -394,8 +395,73 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     return null;
   }
 
+  TreeNode visitAssertBlock(AssertBlock stmt) {
+    var saved = statements;
+    statements = <Statement>[];
+    for (var statement in stmt.statements) {
+      statement.accept(this);
+    }
+    saved.add(new Block(statements));
+    statements = saved;
+    return null;
+  }
+
   TreeNode visitAssertStatement(AssertStatement stmt) {
-    // TODO!
+    var condEffects = <Statement>[];
+    var cond = expressionRewriter.rewrite(stmt.condition, condEffects);
+    if (stmt.message == null) {
+      stmt.condition = cond..parent = stmt;
+      // If the translation of the condition produced a non-empty list of
+      // statements, ensure they are guarded by whether asserts are enabled.
+      statements.add(
+          condEffects.isEmpty ? stmt : new AssertBlock(condEffects..add(stmt)));
+      return null;
+    }
+
+    // The translation depends on the translation of the message, by cases.
+    Statement result;
+    var msgEffects = <Statement>[];
+    stmt.message = expressionRewriter.rewrite(stmt.message, msgEffects)
+      ..parent = stmt;
+    if (condEffects.isEmpty) {
+      if (msgEffects.isEmpty) {
+        // The condition rewrote to ([], C) and the message rewrote to ([], M).
+        // The result is
+        //
+        // assert(C, M)
+        stmt.condition = cond..parent = stmt;
+        result = stmt;
+      } else {
+        // The condition rewrote to ([], C) and the message rewrote to (S*, M)
+        // where S* is non-empty.  The result is
+        //
+        // assert { if (C) {} else { S*; assert(false, M); }}
+        stmt.condition = new BoolLiteral(false)..parent = stmt;
+        result = new AssertBlock([
+          new IfStatement(
+              cond, new EmptyStatement(), new Block(msgEffects..add(stmt)))
+        ]);
+      }
+    } else {
+      if (msgEffects.isEmpty) {
+        // The condition rewrote to (S*, C) where S* is non-empty and the
+        // message rewrote to ([], M).  The result is
+        //
+        // assert { S*; assert(C, M); }
+        stmt.condition = cond..parent = stmt;
+        condEffects.add(stmt);
+      } else {
+        // The condition rewrote to (S0*, C) and the message rewrote to (S1*, M)
+        // where both S0* and S1* are non-empty.  The result is
+        //
+        // assert { S0*; if (C) {} else { S1*; assert(false, M); }}
+        stmt.condition = new BoolLiteral(false)..parent = stmt;
+        condEffects.add(new IfStatement(
+            cond, new EmptyStatement(), new Block(msgEffects..add(stmt))));
+      }
+      result = new AssertBlock(condEffects);
+    }
+    statements.add(result);
     return null;
   }
 

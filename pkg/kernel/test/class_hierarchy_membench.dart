@@ -22,7 +22,7 @@ Options:
 ${argParser.usage}
 """;
 
-/// Builds N copies of the class hierarchy for the given program.
+/// Builds N copies of the class hierarchy for the given component.
 /// Pass --print-metrics to the Dart VM to measure the memory use.
 main(List<String> args) {
   if (args.length == 0) {
@@ -36,14 +36,14 @@ main(List<String> args) {
   }
   String filename = options.rest.single;
 
-  Program program = loadProgramFromBinary(filename);
+  Component component = loadComponentFromBinary(filename);
 
   int copyCount = int.parse(options['count']);
 
   ClassHierarchy buildHierarchy() {
     return options['basic']
-        ? new BasicClassHierarchy(program)
-        : new ClassHierarchy(program);
+        ? new BasicClassHierarchy(component)
+        : new ClassHierarchy(component);
   }
 
   List<ClosedWorldClassHierarchy> keepAlive = <ClosedWorldClassHierarchy>[];

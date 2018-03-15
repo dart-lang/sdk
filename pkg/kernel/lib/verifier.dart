@@ -6,8 +6,8 @@ library kernel.checks;
 import 'ast.dart';
 import 'transformations/flags.dart';
 
-void verifyProgram(Program program) {
-  VerifyingVisitor.check(program);
+void verifyComponent(Component component) {
+  VerifyingVisitor.check(component);
 }
 
 class VerificationError {
@@ -40,7 +40,7 @@ class VerificationError {
 
 enum TypedefState { Done, BeingChecked }
 
-/// Checks that a kernel program is well-formed.
+/// Checks that a kernel component is well-formed.
 ///
 /// This does not include any kind of type checking.
 class VerifyingVisitor extends RecursiveVisitor {
@@ -67,8 +67,8 @@ class VerifyingVisitor extends RecursiveVisitor {
 
   TreeNode get context => currentMember ?? currentClass;
 
-  static void check(Program program) {
-    program.accept(new VerifyingVisitor());
+  static void check(Component component) {
+    component.accept(new VerifyingVisitor());
   }
 
   defaultTreeNode(TreeNode node) {
@@ -165,9 +165,9 @@ class VerifyingVisitor extends RecursiveVisitor {
     }
   }
 
-  visitProgram(Program program) {
+  visitComponent(Component component) {
     try {
-      for (var library in program.libraries) {
+      for (var library in component.libraries) {
         for (var class_ in library.classes) {
           if (!classes.add(class_)) {
             problem(class_, "Class '$class_' declared more than once.");
@@ -183,9 +183,9 @@ class VerifyingVisitor extends RecursiveVisitor {
           class_.members.forEach(declareMember);
         }
       }
-      visitChildren(program);
+      visitChildren(component);
     } finally {
-      for (var library in program.libraries) {
+      for (var library in component.libraries) {
         library.members.forEach(undeclareMember);
         for (var class_ in library.classes) {
           class_.members.forEach(undeclareMember);

@@ -36,12 +36,12 @@ main(List<String> args) {
   }
   String filename = options.rest.single;
 
-  Program program = loadProgramFromBinary(filename);
+  Component component = loadComponentFromBinary(filename);
 
   ClassHierarchy buildHierarchy() {
     return options['basic']
-        ? new BasicClassHierarchy(program)
-        : new ClassHierarchy(program);
+        ? new BasicClassHierarchy(component)
+        : new ClassHierarchy(component);
   }
 
   var watch = new Stopwatch()..start();

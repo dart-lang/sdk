@@ -21,12 +21,12 @@ main(List<String> args) {
     print(usage);
     exit(1);
   }
-  var program = loadProgramFromBinary(args[0]);
-  var coreTypes = new CoreTypes(program);
-  var hierarchy = new ClassHierarchy(program);
-  var shaker = new TreeShaker(coreTypes, hierarchy, program);
-  shaker.transform(program);
-  new TreeShakingSanityCheck(shaker).visit(program);
+  var component = loadComponentFromBinary(args[0]);
+  var coreTypes = new CoreTypes(component);
+  var hierarchy = new ClassHierarchy(component);
+  var shaker = new TreeShaker(coreTypes, hierarchy, component);
+  shaker.transform(component);
+  new TreeShakingSanityCheck(shaker).visit(component);
 }
 
 class TreeShakingSanityCheck extends RecursiveVisitor {

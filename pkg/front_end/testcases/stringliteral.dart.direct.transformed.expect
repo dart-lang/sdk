@@ -1,0 +1,16 @@
+library;
+import self as self;
+
+static field dynamic color = "brown";
+static field dynamic thing = "lazy dog";
+static field dynamic phrase = "The quick ${self::color} fox
+jumped over the ${self::thing}.
+";
+static field dynamic adjacent = "${self::color}${self::color}${self::color}";
+static field dynamic linebreaks = "${self::color}
+${self::color}
+${self::color}";
+static field dynamic other = "${self::color}
+ is 
+${self::color}";
+static method main() → dynamic {}

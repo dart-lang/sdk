@@ -234,6 +234,7 @@ class KernelLoader {
 
   void LoadLibraryImportsAndExports(Library* library);
 
+  Library& LookupLibraryOrNull(NameIndex library);
   Library& LookupLibrary(NameIndex library);
   Class& LookupClass(NameIndex klass);
 

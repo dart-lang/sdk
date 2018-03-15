@@ -1,0 +1,37 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → void
+    : super self::A::•()
+    ;
+}
+class C extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  set x1(covariant self::A value) → void {}
+  set x2(self::A value) → void {}
+  set x3(covariant self::A value) → void {}
+  set x4(self::A value) → void {}
+  set x5(covariant self::A value) → void {}
+  set x6(covariant self::B value) → void {}
+}
+class D extends self::C {
+  synthetic constructor •() → void
+    : super self::C::•()
+    ;
+  set x1(self::B value) → void {}
+  set x2(covariant self::B value) → void {}
+  set x3(covariant self::B value) → void {}
+  set x4(self::B value) → void {}
+  set x5(covariant core::String value) → void {}
+  set x6(covariant self::A value) → void {}
+}
+static method main() → dynamic {}

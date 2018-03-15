@@ -1,0 +1,15 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test() → dynamic {
+  core::Object x;
+  core::Function f;
+  x.call();
+  x.call(3);
+  f.call(5, 2);
+  x.call();
+  f.call;
+  f.call(5, 2);
+}
+static method main() → dynamic {}

@@ -17,7 +17,7 @@ import 'package:async_helper/async_helper.dart' show asyncTest;
 
 import 'package:expect/expect.dart' show Expect;
 
-import 'package:kernel/ast.dart' show Program;
+import 'package:kernel/ast.dart' show Component;
 
 import 'package:kernel/binary/limited_ast_to_binary.dart'
     show LimitedBinaryPrinter;
@@ -308,21 +308,21 @@ Future<bool> rebuild(IncrementalKernelGenerator compiler, Uri outputUri) async {
   compiler.invalidate(Uri.parse("org-dartlang-test:///a.dart"));
   compiler.invalidate(Uri.parse("org-dartlang-test:///b.dart"));
   compiler.invalidate(Uri.parse("org-dartlang-test:///c.dart"));
-  var program = await compiler.computeDelta();
-  if (program != null && !program.libraries.isEmpty) {
-    await writeProgram(program, outputUri);
+  var component = await compiler.computeDelta();
+  if (component != null && !component.libraries.isEmpty) {
+    await writeProgram(component, outputUri);
     return true;
   }
   return false;
 }
 
-Future<Null> writeProgram(Program program, Uri outputUri) async {
+Future<Null> writeProgram(Component component, Uri outputUri) async {
   var sink = new File.fromUri(outputUri).openWrite();
   // TODO(sigmund): the incremental generator should always filter these
   // libraries instead.
   new LimitedBinaryPrinter(
           sink, (library) => library.importUri.scheme != 'dart', false)
-      .writeProgramFile(program);
+      .writeComponentFile(component);
   await sink.close();
 }
 

@@ -114,16 +114,16 @@ class FrontEndCompiler {
   /// Each value is the compilation result of the key library.
   final Map<Uri, LibraryCompilationResult> _results = {};
 
-  /// The [Program] with currently valid libraries. When a file is invalidated,
-  /// we remove the file, its library, and everything affected from [_program].
-  Program _program = new Program();
+  /// The [Component] with currently valid libraries. When a file is invalidated,
+  /// we remove the file, its library, and everything affected from [_component].
+  Component _component = new Component();
 
   /// Each key is the file system URI of a library.
   /// Each value is the libraries that directly depend on the key library.
   final Map<Uri, Set<Uri>> _directLibraryDependencies = {};
 
   /// Each key is the file system URI of a library.
-  /// Each value is the [Library] that is still in the [_program].
+  /// Each value is the [Library] that is still in the [_component].
   final Map<Uri, Library> _uriToLibrary = {};
 
   /// Each key is the file system URI of a part.
@@ -227,9 +227,9 @@ class FrontEndCompiler {
         var dillTarget =
             new DillTarget(_options.ticker, uriTranslator, _options.target);
 
-        // Append all libraries what we still have in the current program.
+        // Append all libraries what we still have in the current component.
         await _logger.runAsync('Load dill libraries', () async {
-          dillTarget.loader.appendLibraries(_program);
+          dillTarget.loader.appendLibraries(_component);
           await dillTarget.buildOutlines();
         });
 
@@ -238,23 +238,23 @@ class FrontEndCompiler {
             uriTranslator, new AnalyzerMetadataCollector());
         kernelTarget.read(uri);
 
-        // Compile the entry point into the new program.
-        _program = await _logger.runAsync('Compile', () async {
-          await kernelTarget.buildOutlines(nameRoot: _program.root);
-          return await kernelTarget.buildProgram() ?? _program;
+        // Compile the entry point into the new component.
+        _component = await _logger.runAsync('Compile', () async {
+          await kernelTarget.buildOutlines(nameRoot: _component.root);
+          return await kernelTarget.buildComponent() ?? _component;
         });
 
         // TODO(scheglov) Only for new libraries?
-        _program.computeCanonicalNames();
+        _component.computeCanonicalNames();
 
         _logger.run('Compute dependencies', _computeDependencies);
 
         // TODO(scheglov) Can we keep the same instance?
         var types = new TypeEnvironment(
-            new CoreTypes(_program), new ClassHierarchy(_program));
+            new CoreTypes(_component), new ClassHierarchy(_component));
 
         // Add results for new libraries.
-        for (var library in _program.libraries) {
+        for (var library in _component.libraries) {
           if (!_results.containsKey(library.importUri)) {
             Map<Uri, List<CollectedResolution>> libraryResolutions =
                 kernelTarget.resolutions[library.fileUri];
@@ -276,7 +276,7 @@ class FrontEndCompiler {
             }
 
             var libraryResult = new LibraryCompilationResult(
-                _program, types, library.importUri, library, files);
+                _component, types, library.importUri, library, files);
             _results[library.importUri] = libraryResult;
           }
         }
@@ -299,9 +299,9 @@ class FrontEndCompiler {
       if (library == null) return;
 
       // Invalidate the library.
-      _program.libraries.remove(library);
-      _program.root.removeChild('${library.importUri}');
-      _program.uriToSource.remove(libraryUri);
+      _component.libraries.remove(library);
+      _component.root.removeChild('${library.importUri}');
+      _component.uriToSource.remove(libraryUri);
       _results.remove(library.importUri);
 
       // Recursively invalidate dependencies.
@@ -314,7 +314,7 @@ class FrontEndCompiler {
     invalidateLibrary(libraryUri);
   }
 
-  /// Recompute [_directLibraryDependencies] for the current [_program].
+  /// Recompute [_directLibraryDependencies] for the current [_component].
   void _computeDependencies() {
     _directLibraryDependencies.clear();
     _uriToLibrary.clear();
@@ -341,8 +341,8 @@ class FrontEndCompiler {
       }
     }
 
-    // Record dependencies for every library in the program.
-    _program.libraries.forEach(processLibrary);
+    // Record dependencies for every library in the component.
+    _component.libraries.forEach(processLibrary);
   }
 
   Future<T> _runWithFrontEndContext<T>(String msg, Future<T> f()) async {
@@ -355,13 +355,13 @@ class FrontEndCompiler {
 
 /// The compilation result for a single library.
 class LibraryCompilationResult {
-  /// The full current [Program]. It has all libraries that are required by
+  /// The full current [Component]. It has all libraries that are required by
   /// this library, but might also have other libraries, that are not required.
   ///
   /// The object is mutable, and is changed when files are invalidated.
-  final Program program;
+  final Component component;
 
-  /// The [TypeEnvironment] for the [program].
+  /// The [TypeEnvironment] for the [component].
   final TypeEnvironment types;
 
   /// The absolute URI of the library.
@@ -374,7 +374,7 @@ class LibraryCompilationResult {
   final Map<Uri, FileCompilationResult> files;
 
   LibraryCompilationResult(
-      this.program, this.types, this.uri, this.kernel, this.files);
+      this.component, this.types, this.uri, this.kernel, this.files);
 }
 
 /// The [DietListener] that record resolution information.

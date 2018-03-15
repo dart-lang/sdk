@@ -264,8 +264,6 @@ Language/Statements/Continue/label_t09: MissingCompileTimeError
 Language/Statements/Continue/label_t10: MissingCompileTimeError
 Language/Statements/Continue/label_t11: MissingCompileTimeError
 Language/Statements/Do/condition_type_t02: MissingCompileTimeError
-Language/Statements/For/syntax_t12: MissingCompileTimeError
-Language/Statements/For/syntax_t19: MissingCompileTimeError
 Language/Statements/Labels/scope_t05: MissingCompileTimeError
 Language/Statements/Switch/equal_operator_t01: MissingCompileTimeError
 Language/Statements/Switch/equal_operator_t02: MissingCompileTimeError

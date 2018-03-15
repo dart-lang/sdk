@@ -52,7 +52,7 @@ class BulkCompiler {
         (CompilerContext context) async {
       (await context.options.loadSdkSummary(null))?.computeCanonicalNames();
       CompilerResult result = await generateKernelInternal();
-      result?.program?.unbindCanonicalNames();
+      result?.component?.unbindCanonicalNames();
       return null;
     });
   }

@@ -43,8 +43,8 @@ class DillTarget extends TargetImplementation {
   }
 
   @override
-  Future<Null> buildProgram() {
-    return new Future<Null>.sync(() => unsupported("buildProgram", -1, null));
+  Future<Null> buildComponent() {
+    return new Future<Null>.sync(() => unsupported("buildComponent", -1, null));
   }
 
   @override

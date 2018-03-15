@@ -1,0 +1,5 @@
+library;
+import self as self;
+
+static field dynamic x = 2;
+static method main() → dynamic {}

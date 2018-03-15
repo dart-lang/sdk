@@ -1216,12 +1216,12 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
   @override
   NativeBasicData get nativeBasicData => _frontendStrategy.nativeBasicData;
 
-  /// Adds libraries in [program] to the set of libraries.
+  /// Adds libraries in [component] to the set of libraries.
   ///
-  /// The main method of the first program is used as the main method for the
+  /// The main method of the first component is used as the main method for the
   /// compilation.
-  void addProgram(ir.Program program) {
-    _env.addProgram(program);
+  void addProgram(ir.Component component) {
+    _env.addProgram(component);
   }
 
   @override

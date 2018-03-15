@@ -190,12 +190,22 @@ class BinaryPrinter extends Visitor implements BinarySink {
     type.accept(this);
   }
 
-  void writeUriReference(Uri uri) {
-    int index = 0; // equivalent to index = _sourceUriIndexer[""];
+  // The currently active file uri where we are writing [TreeNode]s from.  If
+  // this is set to `null` we cannot write file offsets.  The [writeOffset]
+  // helper function will ensure this.
+  Uri _activeFileUri;
+
+  // Returns the new active file uri.
+  Uri writeUriReference(Uri uri) {
     if (_knownSourceUri.contains(uri)) {
-      index = _sourceUriIndexer.put(uri == null ? "" : "$uri");
+      final int index = _sourceUriIndexer.put(uri == null ? "" : "$uri");
+      writeUInt30(index);
+      return uri;
+    } else {
+      final int index = 0; // equivalent to index = _sourceUriIndexer[""];
+      writeUInt30(index);
+      return null;
     }
-    writeUInt30(index);
   }
 
   void writeList<T>(List<T> items, void writeItem(T x)) {
@@ -237,12 +247,12 @@ class BinaryPrinter extends Visitor implements BinarySink {
     }
   }
 
-  void writeLinkTable(Program program) {
+  void writeLinkTable(Component component) {
     _binaryOffsetForLinkTable = getBufferOffset();
     writeList(_canonicalNameList, writeCanonicalNameEntry);
   }
 
-  void indexLinkTable(Program program) {
+  void indexLinkTable(Component component) {
     _canonicalNameList = <CanonicalName>[];
     void visitCanonicalName(CanonicalName node) {
       node.index = _canonicalNameList.length;
@@ -250,20 +260,20 @@ class BinaryPrinter extends Visitor implements BinarySink {
       node.children.forEach(visitCanonicalName);
     }
 
-    for (var library in program.libraries) {
+    for (var library in component.libraries) {
       if (!shouldWriteLibraryCanonicalNames(library)) continue;
       visitCanonicalName(library.canonicalName);
       _knownCanonicalNameNonRootTops.add(library.canonicalName);
     }
   }
 
-  /// Compute canonical names for the whole program or parts of it.
-  void computeCanonicalNames(Program program) {
-    program.computeCanonicalNames();
+  /// Compute canonical names for the whole component or parts of it.
+  void computeCanonicalNames(Component component) {
+    component.computeCanonicalNames();
   }
 
   /// Return `true` if all canonical names of the [library] should be written
-  /// into the link table.  If some libraries of the program are skipped,
+  /// into the link table.  If some libraries of the component are skipped,
   /// then all the additional names referenced by the libraries that are written
   /// by [writeLibraries] are automatically added.
   bool shouldWriteLibraryCanonicalNames(Library library) => true;
@@ -278,31 +288,31 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeStringReference(node.name);
   }
 
-  void writeProgramFile(Program program) {
-    computeCanonicalNames(program);
-    final programOffset = getBufferOffset();
-    writeUInt32(Tag.ProgramFile);
+  void writeComponentFile(Component component) {
+    computeCanonicalNames(component);
+    final componentOffset = getBufferOffset();
+    writeUInt32(Tag.ComponentFile);
     writeUInt32(Tag.BinaryFormatVersion);
-    indexLinkTable(program);
-    indexUris(program);
-    // Note: must write metadata payloads before any other node in the program
+    indexLinkTable(component);
+    indexUris(component);
+    // Note: must write metadata payloads before any other node in the component
     // to collect references to nodes contained within metadata payloads.
-    _writeMetadataPayloads(program);
+    _writeMetadataPayloads(component);
     if (_metadataSubsections != null) {
-      _recordNodeOffsetForMetadataMappingImpl(program, programOffset);
+      _recordNodeOffsetForMetadataMappingImpl(component, componentOffset);
     }
     libraryOffsets = <int>[];
-    CanonicalName main = getCanonicalNameOfMember(program.mainMethod);
+    CanonicalName main = getCanonicalNameOfMember(component.mainMethod);
     if (main != null) {
       checkCanonicalName(main);
     }
-    writeLibraries(program);
-    writeUriToSource(program.uriToSource);
-    writeLinkTable(program);
-    _writeMetadataMappingSection(program);
+    writeLibraries(component);
+    writeUriToSource(component.uriToSource);
+    writeLinkTable(component);
+    _writeMetadataMappingSection(component);
     writeStringTable(stringIndexer);
     writeConstantTable(_constantIndexer);
-    writeProgramIndex(program, program.libraries);
+    writeComponentIndex(component, component.libraries);
 
     _flush();
   }
@@ -323,16 +333,16 @@ class BinaryPrinter extends Visitor implements BinarySink {
   }
 
   /// Collect and write out all metadata contained in metadata repositories
-  /// associated with the program.
+  /// associated with the component.
   ///
   /// Non-empty metadata subsections will be collected in [_metadataSubsections]
-  /// and used to generate metadata mappings after all nodes in the program
+  /// and used to generate metadata mappings after all nodes in the component
   /// are written and all node offsets are known.
   ///
-  /// Note: must write metadata payloads before any other node in the program
+  /// Note: must write metadata payloads before any other node in the component
   /// to collect references to nodes contained within metadata payloads.
-  void _writeMetadataPayloads(Program program) {
-    program.metadata.forEach((tag, repository) {
+  void _writeMetadataPayloads(Component component) {
+    component.metadata.forEach((tag, repository) {
       if (repository.mapping.isEmpty) {
         return;
       }
@@ -379,13 +389,13 @@ class BinaryPrinter extends Visitor implements BinarySink {
     }
   }
 
-  void _writeMetadataMappingSection(Program program) {
+  void _writeMetadataMappingSection(Component component) {
     if (_metadataSubsections == null) {
       writeUInt32(0); // Empty section.
       return;
     }
 
-    _recordNodeOffsetForMetadataMappingImpl(program, 0);
+    _recordNodeOffsetForMetadataMappingImpl(component, 0);
 
     // RList<MetadataMapping> metadataMappings
     for (var subsection in _metadataSubsections) {
@@ -413,12 +423,12 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeUInt32(_metadataSubsections.length);
   }
 
-  /// Write all of some of the libraries of the [program].
-  void writeLibraries(Program program) {
-    program.libraries.forEach(writeNode);
+  /// Write all of some of the libraries of the [component].
+  void writeLibraries(Component component) {
+    component.libraries.forEach(writeNode);
   }
 
-  void writeProgramIndex(Program program, List<Library> libraries) {
+  void writeComponentIndex(Component component, List<Library> libraries) {
     // Fixed-size ints at the end used as an index.
     assert(_binaryOffsetForSourceTable >= 0);
     writeUInt32(_binaryOffsetForSourceTable);
@@ -429,7 +439,7 @@ class BinaryPrinter extends Visitor implements BinarySink {
     assert(_binaryOffsetForConstantTable >= 0);
     writeUInt32(_binaryOffsetForConstantTable);
 
-    CanonicalName main = getCanonicalNameOfMember(program.mainMethod);
+    CanonicalName main = getCanonicalNameOfMember(component.mainMethod);
     if (main == null) {
       writeUInt32(0);
     } else {
@@ -446,8 +456,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeUInt32(getBufferOffset() + 4); // total size.
   }
 
-  void indexUris(Program program) {
-    _knownSourceUri.addAll(program.uriToSource.keys);
+  void indexUris(Component component) {
+    _knownSourceUri.addAll(component.uriToSource.keys);
   }
 
   void writeUriToSource(Map<Uri, Source> uriToSource) {
@@ -528,6 +538,10 @@ class BinaryPrinter extends Visitor implements BinarySink {
   }
 
   writeOffset(int offset) {
+    if (_activeFileUri == null) {
+      offset = TreeNode.noOffset;
+    }
+
     // TODO(jensj): Delta-encoding.
     // File offset ranges from -1 and up,
     // but is here saved as unsigned (thus the +1)
@@ -569,7 +583,10 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeCanonicalNameReference(getCanonicalNameOfLibrary(node));
     writeStringReference(node.name ?? '');
     // TODO(jensj): We save (almost) the same URI twice.
-    writeUriReference(node.fileUri);
+
+    final Uri activeFileUriSaved = _activeFileUri;
+    _activeFileUri = writeUriReference(node.fileUri);
+
     writeAnnotationList(node.annotations);
     writeLibraryDependencies(node);
     writeAdditionalExports(node.additionalExports);
@@ -582,6 +599,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
     procedureOffsets = <int>[];
     writeNodeList(node.procedures);
     procedureOffsets.add(getBufferOffset());
+
+    _activeFileUri = activeFileUriSaved;
 
     // Fixed-size ints at the end used as an index.
     assert(classOffsets.length > 0);
@@ -645,20 +664,27 @@ class BinaryPrinter extends Visitor implements BinarySink {
     if (_metadataSubsections != null) {
       _recordNodeOffsetForMetadataMapping(node);
     }
+    final Uri activeFileUriSaved = _activeFileUri;
+    _activeFileUri = writeUriReference(node.fileUri);
     writeNodeList(node.annotations);
-    writeUriReference(node.fileUri);
+    _activeFileUri = activeFileUriSaved;
   }
 
   void visitTypedef(Typedef node) {
     writeCanonicalNameReference(getCanonicalNameOfTypedef(node));
+
+    final Uri activeFileUriSaved = _activeFileUri;
+    _activeFileUri = writeUriReference(node.fileUri);
+
     writeOffset(node.fileOffset);
     writeStringReference(node.name);
-    writeUriReference(node.fileUri);
     writeAnnotationList(node.annotations);
     _typeParameterIndexer.enter(node.typeParameters);
     writeNodeList(node.typeParameters);
     writeNode(node.type);
     _typeParameterIndexer.exit(node.typeParameters);
+
+    _activeFileUri = activeFileUriSaved;
   }
 
   void writeAnnotation(Expression annotation) {
@@ -698,11 +724,15 @@ class BinaryPrinter extends Visitor implements BinarySink {
     }
     writeByte(Tag.Class);
     writeCanonicalNameReference(getCanonicalNameOfClass(node));
+
+    final Uri activeFileUriSaved = _activeFileUri;
+    _activeFileUri = writeUriReference(node.fileUri);
+
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(flags);
     writeStringReference(node.name ?? '');
-    writeUriReference(node.fileUri);
+
     writeAnnotationList(node.annotations);
     _typeParameterIndexer.enter(node.typeParameters);
     writeNodeList(node.typeParameters);
@@ -716,6 +746,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
     procedureOffsets.add(getBufferOffset());
     writeNodeList(node.redirectingFactoryConstructors);
     _typeParameterIndexer.exit(node.typeParameters);
+
+    _activeFileUri = activeFileUriSaved;
 
     assert(procedureOffsets.length > 0);
     for (int offset in procedureOffsets) {
@@ -733,11 +765,15 @@ class BinaryPrinter extends Visitor implements BinarySink {
     _variableIndexer = new VariableIndexer();
     writeByte(Tag.Constructor);
     writeCanonicalNameReference(getCanonicalNameOfMember(node));
+
+    final Uri activeFileUriSaved = _activeFileUri;
+    _activeFileUri = writeUriReference(node.fileUri);
+
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.flags);
     writeName(node.name ?? _emptyName);
-    writeUriReference(node.fileUri);
+
     writeAnnotationList(node.annotations);
     assert(node.function.typeParameters.isEmpty);
     writeNode(node.function);
@@ -745,6 +781,9 @@ class BinaryPrinter extends Visitor implements BinarySink {
     _variableIndexer.restoreScope(node.function.positionalParameters.length +
         node.function.namedParameters.length);
     writeNodeList(node.initializers);
+
+    _activeFileUri = activeFileUriSaved;
+
     _variableIndexer = null;
   }
 
@@ -757,16 +796,22 @@ class BinaryPrinter extends Visitor implements BinarySink {
     _variableIndexer = new VariableIndexer();
     writeByte(Tag.Procedure);
     writeCanonicalNameReference(getCanonicalNameOfMember(node));
+
+    final Uri activeFileUriSaved = _activeFileUri;
+    _activeFileUri = writeUriReference(node.fileUri);
+
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.kind.index);
     writeByte(node.flags);
     writeName(node.name ?? '');
-    writeUriReference(node.fileUri);
     writeAnnotationList(node.annotations);
     writeOptionalReference(node.forwardingStubSuperTargetReference);
     writeOptionalReference(node.forwardingStubInterfaceTargetReference);
     writeOptionalNode(node.function);
+
+    _activeFileUri = activeFileUriSaved;
+
     _variableIndexer = null;
 
     assert((node.forwardingStubSuperTarget != null) ||
@@ -780,15 +825,21 @@ class BinaryPrinter extends Visitor implements BinarySink {
     _variableIndexer = new VariableIndexer();
     writeByte(Tag.Field);
     writeCanonicalNameReference(getCanonicalNameOfMember(node));
+
+    final Uri activeFileUriSaved = _activeFileUri;
+    _activeFileUri = writeUriReference(node.fileUri);
+
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.flags);
     writeByte(node.flags2);
     writeName(node.name);
-    writeUriReference(node.fileUri);
     writeAnnotationList(node.annotations);
     writeNode(node.type);
     writeOptionalNode(node.initializer);
+
+    _activeFileUri = activeFileUriSaved;
+
     _variableIndexer = null;
   }
 
@@ -801,11 +852,15 @@ class BinaryPrinter extends Visitor implements BinarySink {
     _variableIndexer.pushScope();
     _typeParameterIndexer.enter(node.typeParameters);
     writeCanonicalNameReference(getCanonicalNameOfMember(node));
+
+    final Uri activeFileUriSaved = _activeFileUri;
+    _activeFileUri = writeUriReference(node.fileUri);
+
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.flags);
     writeName(node.name);
-    writeUriReference(node.fileUri);
+
     writeAnnotationList(node.annotations);
     writeReference(node.targetReference);
     writeNodeList(node.typeArguments);
@@ -815,6 +870,9 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeVariableDeclarationList(node.positionalParameters);
     writeVariableDeclarationList(node.namedParameters);
     _typeParameterIndexer.exit(node.typeParameters);
+
+    _activeFileUri = activeFileUriSaved;
+
     _variableIndexer.popScope();
     _variableIndexer = null;
   }
@@ -1269,6 +1327,13 @@ class BinaryPrinter extends Visitor implements BinarySink {
   visitBlock(Block node) {
     _variableIndexer.pushScope();
     writeByte(Tag.Block);
+    writeNodeList(node.statements);
+    _variableIndexer.popScope();
+  }
+
+  visitAssertBlock(AssertBlock node) {
+    _variableIndexer.pushScope();
+    writeByte(Tag.AssertBlock);
     writeNodeList(node.statements);
     _variableIndexer.popScope();
   }
@@ -1759,7 +1824,7 @@ class GlobalIndexer extends TreeVisitor {
     }
   }
 
-  visitProgram(Program node) {
+  visitComponent(Component node) {
     buildIndexForList(node.libraries);
   }
 

@@ -88,7 +88,7 @@ class KernelContext {
       // This is probably OK, because we consume them lazily.
       var libraryMap = <String, kernel.Library>{};
       var libraryExistMap = <String, bool>{};
-      for (var library in compilationResult.program.libraries) {
+      for (var library in compilationResult.component.libraries) {
         String uriStr = library.importUri.toString();
         libraryMap[uriStr] = library;
         FileState file = fsState.getFileForUri(library.importUri);

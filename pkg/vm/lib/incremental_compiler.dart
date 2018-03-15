@@ -15,32 +15,32 @@ import 'package:kernel/kernel.dart';
 /// accepted.
 class IncrementalCompiler {
   IncrementalKernelGenerator _generator;
-  List<Program> _pendingDeltas;
+  List<Component> _pendingDeltas;
   CompilerOptions _compilerOptions;
 
   IncrementalCompiler(this._compilerOptions, Uri entryPoint,
       {Uri bootstrapDill}) {
     _generator = new IncrementalKernelGenerator(
         _compilerOptions, entryPoint, bootstrapDill);
-    _pendingDeltas = <Program>[];
+    _pendingDeltas = <Component>[];
   }
 
-  /// Recompiles invalidated files, produces incremental program.
+  /// Recompiles invalidated files, produces incremental component.
   ///
   /// If [entryPoint] is specified, that points to new entry point for the
   /// compilation. Otherwise, previously set entryPoint is used.
-  Future<Program> compile({Uri entryPoint}) async {
-    Program program = await _generator.computeDelta(entryPoint: entryPoint);
+  Future<Component> compile({Uri entryPoint}) async {
+    Component component = await _generator.computeDelta(entryPoint: entryPoint);
     final bool firstDelta = _pendingDeltas.isEmpty;
-    _pendingDeltas.add(program);
+    _pendingDeltas.add(component);
     if (firstDelta) {
-      return program;
+      return component;
     }
 
     // If more than one delta is pending, we need to combine them.
     Procedure mainMethod;
     Map<Uri, Library> combined = <Uri, Library>{};
-    for (Program delta in _pendingDeltas) {
+    for (Component delta in _pendingDeltas) {
       if (delta.mainMethod != null) {
         mainMethod = delta.mainMethod;
       }
@@ -48,7 +48,7 @@ class IncrementalCompiler {
         combined[library.importUri] = library;
       }
     }
-    return new Program(libraries: combined.values.toList())
+    return new Component(libraries: combined.values.toList())
       ..mainMethod = mainMethod;
   }
 

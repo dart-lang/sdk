@@ -246,9 +246,6 @@ async/zone_create_timer2_test: RuntimeError # Timer interface not supported: Iss
 async/zone_empty_description2_test: RuntimeError # Timer interface not supported: Issue 7728.
 mirrors/mirrors_reader_test: Skip # Running in v8 suffices. Issue 16589 - RuntimeError.  Issue 22130 - Crash (out of memory).
 
-[ $compiler == dart2js && $browser && !$csp && $fast_startup && $fasta ]
-async/stream_iterator_test: RuntimeError
-
 [ $compiler == dart2js && $checked ]
 convert/utf85_test: Pass, Slow # Issue 12029.
 

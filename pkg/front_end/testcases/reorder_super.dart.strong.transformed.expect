@@ -1,0 +1,40 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class B extends core::Object {
+  field core::num x;
+  field core::String y;
+  constructor •(core::num x, core::String y) → void
+    : self::B::x = x, self::B::y = y, super core::Object::•() {
+    self::events = self::events.{core::String::+}("super(${this.{self::B::x}}, ${this.{self::B::y}})
+");
+  }
+}
+class C extends self::B {
+  final field dynamic z;
+  constructor •() → void
+    : final core::int #t1 = self::f(1), final core::String #t2 = self::g(2), self::C::z = self::f(3), super self::B::•(#t1, #t2)
+    ;
+}
+static field core::String events = "";
+static method f(dynamic x) → core::int {
+  self::events = self::events.{core::String::+}("f(${x})
+");
+  return 0;
+}
+static method g(dynamic x) → core::String {
+  self::events = self::events.{core::String::+}("g(${x})
+");
+  return "foo";
+}
+static method main() → dynamic {
+  new self::C::•();
+  if(!self::events.{core::String::==}("f(1)
+g(2)
+f(3)
+super(0, foo)
+")) {
+    throw "Unexpected sequence of events: ${self::events}";
+  }
+}

@@ -91,6 +91,7 @@ class Tag {
   static const int VariableDeclaration = 78;
   static const int FunctionDeclaration = 79;
   static const int AsyncForInStatement = 80;
+  static const int AssertBlock = 81;
 
   static const int TypedefType = 87;
   static const int VectorType = 88;
@@ -129,7 +130,7 @@ class Tag {
 
   static const int SpecializedIntLiteralBias = 3;
 
-  static const int ProgramFile = 0x90ABCDEF;
+  static const int ComponentFile = 0x90ABCDEF;
 
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.

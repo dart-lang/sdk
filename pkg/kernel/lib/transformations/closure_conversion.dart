@@ -4,7 +4,7 @@
 
 library kernel.transformations.closure_conversion;
 
-import '../ast.dart' show Program, Library;
+import '../ast.dart' show Component, Library;
 
 import '../core_types.dart' show CoreTypes;
 
@@ -14,13 +14,13 @@ import 'closure/info.dart' show ClosureInfo;
 
 import 'closure/invalidate_closures.dart';
 
-Program transformProgram(CoreTypes coreTypes, Program program) {
+Component transformComponent(CoreTypes coreTypes, Component component) {
   var info = new ClosureInfo();
-  info.visitProgram(program);
+  info.visitComponent(component);
 
   var convert = new ClosureConverter(coreTypes, info);
-  program = convert.visitProgram(program);
-  return new InvalidateClosures().visitProgram(program);
+  component = convert.visitComponent(component);
+  return new InvalidateClosures().visitComponent(component);
 }
 
 void transformLibraries(CoreTypes coreTypes, List<Library> libraries) {

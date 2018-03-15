@@ -8,7 +8,7 @@ import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart'
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/testing/mock_sdk_program.dart';
+import 'package:kernel/testing/mock_sdk_component.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -23,7 +23,7 @@ main() {
 class InterfaceResolverTest {
   final Library testLib;
 
-  final Program program;
+  final Component component;
 
   final CoreTypes coreTypes;
 
@@ -35,14 +35,14 @@ class InterfaceResolverTest {
 
   InterfaceResolverTest()
       : this._(new Library(Uri.parse('org-dartlang:///test.dart'), name: 'lib'),
-            createMockSdkProgram());
+            createMockSdkComponent());
 
-  InterfaceResolverTest._(this.testLib, Program program)
-      : program = program..libraries.add(testLib..parent = program),
-        coreTypes = new CoreTypes(program);
+  InterfaceResolverTest._(this.testLib, Component component)
+      : component = component..libraries.add(testLib..parent = component),
+        coreTypes = new CoreTypes(component);
 
   ClassHierarchy get classHierarchy {
-    return cachedClassHierarchy ??= new ClassHierarchy(program);
+    return cachedClassHierarchy ??= new ClassHierarchy(component);
   }
 
   TypeSchemaEnvironment get typeEnvironment {
@@ -84,7 +84,7 @@ class InterfaceResolverTest {
       expect(interfaceMember, same(member));
     }
 
-    check(new ClassHierarchy(program));
+    check(new ClassHierarchy(component));
   }
 
   Procedure getCandidate(Class class_, bool setter) {

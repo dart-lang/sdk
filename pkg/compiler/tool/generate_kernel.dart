@@ -40,8 +40,8 @@ main(List<String> args) async {
   }
 
   Uri entry = Uri.base.resolve(nativeToUriPath(flags.rest.first));
-  var program = await kernelForProgram(entry, options);
-  await writeProgramToBinary(program, flags['out']);
+  var component = await kernelForProgram(entry, options);
+  await writeComponentToBinary(component, flags['out']);
 }
 
 ArgParser _argParser = new ArgParser()

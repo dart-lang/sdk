@@ -106,7 +106,7 @@ class _SignalController {
       return;
     }
     _id = id;
-    var socket = new _RawSocket(new _NativeSocket.watch(id));
+    var socket = new _RawSocket(new _NativeSocket.watchSignal(id));
     socket.listen((event) {
       if (event == RawSocketEvent.READ) {
         var bytes = socket.read();

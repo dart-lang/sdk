@@ -90,7 +90,7 @@ class KernelSourceInformationBuilder
     ir.Location location;
     if (offset != null) {
       location = node.location;
-      location = node.enclosingProgram.getLocation(location.file, offset);
+      location = node.enclosingComponent.getLocation(location.file, offset);
     } else {
       while (node != null && node.fileOffset == ir.TreeNode.noOffset) {
         node = node.parent;

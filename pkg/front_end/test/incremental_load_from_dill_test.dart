@@ -15,11 +15,11 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
 import 'package:front_end/src/fasta/kernel/utils.dart'
-    show writeProgramToFile, serializeProgram;
+    show writeComponentToFile, serializeComponent;
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
 import 'package:kernel/kernel.dart'
-    show Class, EmptyStatement, Library, Procedure, Program;
+    show Class, EmptyStatement, Library, Procedure, Component;
 
 import 'package:front_end/src/fasta/fasta_codes.dart' show LocatedMessage;
 
@@ -366,16 +366,16 @@ void testDisappearingLibrary() async {
     IncrementalCompiler compiler =
         new IncrementalKernelGenerator(options, main);
     Stopwatch stopwatch = new Stopwatch()..start();
-    var program = await compiler.computeDelta();
-    throwOnEmptyMixinBodies(program);
+    var component = await compiler.computeDelta();
+    throwOnEmptyMixinBodies(component);
     print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
-    libCount2 = serializeProgram(program);
-    if (program.libraries.length != 2) {
-      throw "Expected 2 libraries, got ${program.libraries.length}";
+    libCount2 = serializeComponent(component);
+    if (component.libraries.length != 2) {
+      throw "Expected 2 libraries, got ${component.libraries.length}";
     }
-    if (program.libraries[0].fileUri != main) {
+    if (component.libraries[0].fileUri != main) {
       throw "Expected the first library to have uri $main but was "
-          "${program.libraries[0].fileUri}";
+          "${component.libraries[0].fileUri}";
     }
   }
 
@@ -399,11 +399,11 @@ void testDisappearingLibrary() async {
     compiler.invalidate(main);
     compiler.invalidate(b);
     Stopwatch stopwatch = new Stopwatch()..start();
-    var program = await compiler.computeDelta();
-    throwOnEmptyMixinBodies(program);
+    var component = await compiler.computeDelta();
+    throwOnEmptyMixinBodies(component);
     print("Bootstrapped compile took ${stopwatch.elapsedMilliseconds} ms");
-    if (program.libraries.length != 1) {
-      throw "Expected 1 library, got ${program.libraries.length}";
+    if (component.libraries.length != 1) {
+      throw "Expected 1 library, got ${component.libraries.length}";
     }
   }
 }
@@ -434,22 +434,22 @@ Future<bool> normalCompile(Uri input, Uri output,
     {CompilerOptions options}) async {
   options ??= getOptions(false);
   IncrementalCompiler compiler = new IncrementalKernelGenerator(options, input);
-  var program = await compiler.computeDelta();
-  throwOnEmptyMixinBodies(program);
-  await writeProgramToFile(program, output);
+  var component = await compiler.computeDelta();
+  throwOnEmptyMixinBodies(component);
+  await writeComponentToFile(component, output);
   return compiler.initializedFromDill;
 }
 
-void throwOnEmptyMixinBodies(Program program) {
-  int empty = countEmptyMixinBodies(program);
+void throwOnEmptyMixinBodies(Component component) {
+  int empty = countEmptyMixinBodies(component);
   if (empty != 0) {
     throw "Expected 0 empty bodies in mixins, but found $empty";
   }
 }
 
-int countEmptyMixinBodies(Program program) {
+int countEmptyMixinBodies(Component component) {
   int empty = 0;
-  for (Library lib in program.libraries) {
+  for (Library lib in component.libraries) {
     for (Class c in lib.classes) {
       if (c.isSyntheticMixinImplementation) {
         // Assume mixin
@@ -476,7 +476,7 @@ Future<bool> bootstrapCompile(
   var bootstrappedProgram = await compiler.computeDelta();
   throwOnEmptyMixinBodies(bootstrappedProgram);
   bool result = compiler.initializedFromDill;
-  await writeProgramToFile(bootstrappedProgram, output);
+  await writeComponentToFile(bootstrappedProgram, output);
   for (Uri invalidateUri in invalidateUris) {
     compiler.invalidate(invalidateUri);
   }

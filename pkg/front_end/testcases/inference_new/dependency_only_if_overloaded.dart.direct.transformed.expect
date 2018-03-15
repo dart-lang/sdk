@@ -1,0 +1,14 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field core::int intValue = 0;
+static field core::num numValue = 0;
+static field core::double doubleValue = 0.0;
+static field dynamic a = () → dynamic => self::intValue.+(self::b);
+static field dynamic b = self::a.call();
+static field dynamic c = () → dynamic => self::numValue.+(self::d);
+static field dynamic d = self::c.call();
+static field dynamic e = () → dynamic => self::doubleValue.+(self::f);
+static field dynamic f = self::e.call();
+static method main() → dynamic {}

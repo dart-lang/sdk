@@ -35,12 +35,12 @@ class TestMetadataRepository extends MetadataRepository<Metadata> {
 
   void writeToBinary(Metadata metadata, BinarySink sink) {
     sink.writeNodeReference(metadata.parent);
-    sink.writeByteList(UTF8.encode(metadata.self));
+    sink.writeByteList(utf8.encode(metadata.self));
   }
 
   Metadata readFromBinary(BinarySource source) {
     final parent = source.readNodeReference();
-    final string = UTF8.decode(source.readByteList());
+    final string = utf8.decode(source.readByteList());
     return new Metadata(parent, string);
   }
 }
@@ -58,12 +58,12 @@ class BytesBuilderSink implements Sink<List<int>> {
 }
 
 /// Visitor that assigns [Metadata] object created with [Metadata.forNode] to
-/// each supported node in the program.
+/// each supported node in the component.
 class Annotator extends RecursiveVisitor<Null> {
   final TestMetadataRepository repository;
 
-  Annotator(Program program)
-      : repository = program.metadata[TestMetadataRepository.kTag];
+  Annotator(Component component)
+      : repository = component.metadata[TestMetadataRepository.kTag];
 
   defaultTreeNode(TreeNode node) {
     super.defaultTreeNode(node);
@@ -72,19 +72,19 @@ class Annotator extends RecursiveVisitor<Null> {
     }
   }
 
-  static void annotate(Program p) {
+  static void annotate(Component p) {
     globalDebuggingNames = new NameSystem();
     p.accept(new Annotator(p));
   }
 }
 
-/// Visitor that checks that each supported node in the program has correct
+/// Visitor that checks that each supported node in the component has correct
 /// metadata.
 class Validator extends RecursiveVisitor<Null> {
   final TestMetadataRepository repository;
 
-  Validator(Program program)
-      : repository = program.metadata[TestMetadataRepository.kTag];
+  Validator(Component component)
+      : repository = component.metadata[TestMetadataRepository.kTag];
 
   defaultTreeNode(TreeNode node) {
     super.defaultTreeNode(node);
@@ -97,22 +97,22 @@ class Validator extends RecursiveVisitor<Null> {
     }
   }
 
-  static void validate(Program p) {
+  static void validate(Component p) {
     globalDebuggingNames = new NameSystem();
     p.accept(new Validator(p));
   }
 }
 
-Program fromBinary(List<int> bytes) {
-  var program = new Program();
-  program.addMetadataRepository(new TestMetadataRepository());
-  new BinaryBuilderWithMetadata(bytes).readSingleFileProgram(program);
-  return program;
+Component fromBinary(List<int> bytes) {
+  var component = new Component();
+  component.addMetadataRepository(new TestMetadataRepository());
+  new BinaryBuilderWithMetadata(bytes).readSingleFileComponent(component);
+  return component;
 }
 
-List<int> toBinary(Program p) {
+List<int> toBinary(Component p) {
   final sink = new BytesBuilderSink();
-  new BinaryPrinter(sink).writeProgramFile(p);
+  new BinaryPrinter(sink).writeComponentFile(p);
   return sink.builder.takeBytes();
 }
 
@@ -123,12 +123,12 @@ main() {
     final List<int> platformBinary =
         await new File(platform.toFilePath()).readAsBytes();
 
-    final program = fromBinary(platformBinary);
-    Annotator.annotate(program);
-    Validator.validate(program);
+    final component = fromBinary(platformBinary);
+    Annotator.annotate(component);
+    Validator.validate(component);
 
-    final annotatedProgramBinary = toBinary(program);
-    final annotatedProgramFromBinary = fromBinary(annotatedProgramBinary);
-    Validator.validate(annotatedProgramFromBinary);
+    final annotatedComponentBinary = toBinary(component);
+    final annotatedComponentFromBinary = fromBinary(annotatedComponentBinary);
+    Validator.validate(annotatedComponentFromBinary);
   });
 }

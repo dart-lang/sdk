@@ -93,7 +93,13 @@ import 'token_stream_rewriter.dart' show TokenStreamRewriter;
 import 'type_continuation.dart'
     show TypeContinuation, typeContinuationFromFormalParameterKind;
 
-import 'type_info.dart' show isGeneralizedFunctionType, isValidTypeReference;
+import 'type_info.dart'
+    show
+        TypeInfo,
+        computeType,
+        isGeneralizedFunctionType,
+        isValidTypeReference,
+        noTypeInfo;
 
 import 'util.dart' show closeBraceTokenFor, optional;
 
@@ -5508,13 +5514,92 @@ class Parser {
     return token;
   }
 
-  Token parseVariablesDeclaration(Token token) {
-    token = parseMetadataStar(token);
-    return parseVariablesDeclarationMaybeSemicolon(token, true);
+  /// Parse the metadata, modifiers, and type of a local declaration and return
+  /// the last token consumed. If a local variable declaration or local
+  /// function declaration is not found, then return the starting token.
+  Token parseLocalDeclarationStartOpt(final Token start) {
+    Token token = start;
+    Token next = token.next;
+    if (optional('@', next)) {
+      token = parseMetadataStar(token);
+      next = token.next;
+    }
+
+    TypeContinuation typeContinuation;
+    Token varFinalOrConst;
+    if (isModifier(next)) {
+      if (optional('var', next)) {
+        typeContinuation = TypeContinuation.OptionalAfterVar;
+        varFinalOrConst = token = token.next;
+        next = token.next;
+      } else if (optional('final', next) || optional('const', next)) {
+        typeContinuation = TypeContinuation.Optional;
+        varFinalOrConst = token = token.next;
+        next = token.next;
+      }
+
+      if (isModifier(next)) {
+        // Recovery
+        ModifierRecoveryContext2 modifierContext =
+            new ModifierRecoveryContext2(this);
+        token = modifierContext.parseVariableDeclarationModifiers(
+            token, typeContinuation,
+            varFinalOrConst: varFinalOrConst);
+        next = token.next;
+
+        varFinalOrConst = modifierContext.varFinalOrConst;
+        typeContinuation = modifierContext.typeContinuation;
+        modifierContext = null;
+      }
+    }
+
+    Token beforeType = token;
+    TypeInfo typeInfo = computeType(beforeType, false);
+    token = typeInfo.skipType(beforeType);
+    next = token.next;
+
+    if (next.isIdentifier) {
+      if (optional('<', next.next) || optional('(', next.next)) {
+        // Found an expression or local function declaration.
+        // TODO(danrubel): Process local function declarations.
+        return start;
+      }
+    }
+
+    if (token == start) {
+      // If no annotation, modifier, or type, and this is not a local function
+      // then return without consuming any tokens because this is not
+      // a local declaration.
+      return start;
+    }
+
+    if (!optional('@', start.next)) {
+      listener.beginMetadataStar(start.next);
+      listener.endMetadataStar(0);
+    }
+    token = typeInfo.parseType(beforeType, this);
+    next = token.next;
+
+    // If there is not an identifier, then allow ensureIdentifier to report an
+    // error and don't report errors here.
+    if (next.isIdentifier) {
+      if (varFinalOrConst == null) {
+        if (typeInfo == noTypeInfo) {
+          reportRecoverableError(next, fasta.messageMissingConstFinalVarOrType);
+        }
+      } else if (optional('var', varFinalOrConst)) {
+        if (typeInfo != noTypeInfo) {
+          reportRecoverableError(varFinalOrConst, fasta.messageTypeAfterVar);
+        }
+      }
+    }
+
+    listener.beginVariablesDeclaration(next, varFinalOrConst);
+    return token;
   }
 
-  Token parseVariablesDeclarationMaybeSemicolon(
-      Token token, bool endWithSemicolon) {
+  Token parseVariablesDeclaration(Token token) {
+    token = parseMetadataStar(token);
     Token next = token.next;
 
     TypeContinuation typeContinuation;
@@ -5544,16 +5629,30 @@ class Parser {
       }
     }
 
-    token = parseType(token, typeContinuation ?? TypeContinuation.Required,
-        null, MemberKind.Local);
-    return parseVariablesDeclarationMaybeSemicolonRest(
-        token, varFinalOrConst, endWithSemicolon);
+    TypeInfo typeInfo = computeType(token, false);
+    if (varFinalOrConst == null) {
+      if (typeInfo == noTypeInfo) {
+        // If there is no modifer, no type, and no identifier
+        // then let parseVariablesDeclarationMaybeSemicolonRest
+        // report a missing identifier rather than reporting two errors.
+        if (token.next.isIdentifier) {
+          reportRecoverableError(
+              token.next, fasta.messageMissingConstFinalVarOrType);
+        }
+      }
+    } else if (optional('var', varFinalOrConst)) {
+      if (typeInfo != noTypeInfo) {
+        reportRecoverableError(token.next, fasta.messageTypeAfterVar);
+      }
+    }
+    token = typeInfo.parseType(token, this);
+
+    listener.beginVariablesDeclaration(token.next, varFinalOrConst);
+    return parseVariablesDeclarationRest(token, true);
   }
 
-  Token parseVariablesDeclarationMaybeSemicolonRest(
-      Token token, Token varFinalOrConst, bool endWithSemicolon) {
+  Token parseVariablesDeclarationRest(Token token, bool endWithSemicolon) {
     int count = 1;
-    listener.beginVariablesDeclaration(token.next, varFinalOrConst);
     token = parseOptionallyInitializedIdentifier(token);
     while (optional(',', token.next)) {
       token = parseOptionallyInitializedIdentifier(token.next);
@@ -5646,57 +5745,47 @@ class Parser {
     }
     token = leftParenthesis;
 
-    Token beforeIdentifier;
-    final String stringValue = token.next.stringValue;
-    if (identical(stringValue, ';')) {
+    token = parseLocalDeclarationStartOpt(token);
+    Token beforeIdentifier = token;
+    if (token != leftParenthesis) {
+      token = parseVariablesDeclarationRest(token, false);
+    } else if (optional(';', token.next)) {
       listener.handleNoExpression(token.next);
     } else {
-      if (identical('@', stringValue) ||
-          identical('var', stringValue) ||
-          identical('final', stringValue) ||
-          identical('const', stringValue)) {
-        token = parseMetadataStar(token);
-        beforeIdentifier = skipTypeReferenceOpt(token, false);
-        // TODO(ahe, danrubel): Generate type events and call
-        // parseVariablesDeclarationNoSemicolonRest instead.
-        token = parseVariablesDeclarationMaybeSemicolon(token, false);
-      } else {
-        beforeIdentifier = skipTypeReferenceOpt(token, false);
-        if (token == beforeIdentifier) {
-          // No type found, just parse expression
-          token = parseExpression(token);
-        } else {
-          // TODO(ahe, danrubel): Generate type events and call
-          // parseVariablesDeclarationNoSemicolonRest instead.
-          token = parseMetadataStar(token);
-          token = parseVariablesDeclarationMaybeSemicolon(token, false);
-        }
-      }
+      token = parseExpression(token);
     }
 
     Token next = token.next;
-    if (optional('in', next)) {
-      if (awaitToken != null && !inAsync) {
-        reportRecoverableError(next, fasta.messageAwaitForNotAsync);
+    if (!optional('in', next)) {
+      if (optional(':', next)) {
+        reportRecoverableError(next, fasta.messageColonInPlaceOfIn);
+        // Fall through to process `for ( ... in ... )`
+      } else {
+        // Process `for ( ... ; ... ; ... )`
+        if (awaitToken != null) {
+          reportRecoverableError(awaitToken, fasta.messageInvalidAwaitFor);
+        }
+        return parseForRest(token, forKeyword, leftParenthesis);
       }
-      if (beforeIdentifier != null &&
-          optional('=', beforeIdentifier.next.next)) {
-        reportRecoverableError(beforeIdentifier.next.next,
-            fasta.messageInitializedVariableInForEach);
-      }
-      return parseForInRest(awaitToken, forKeyword, leftParenthesis, token);
-    } else if (optional(':', next)) {
-      reportRecoverableError(next, fasta.messageColonInPlaceOfIn);
-      if (awaitToken != null && !inAsync) {
-        reportRecoverableError(next, fasta.messageAwaitForNotAsync);
-      }
-      return parseForInRest(awaitToken, forKeyword, leftParenthesis, token);
-    } else {
-      if (awaitToken != null) {
-        reportRecoverableError(awaitToken, fasta.messageInvalidAwaitFor);
-      }
-      return parseForRest(forKeyword, leftParenthesis, token);
     }
+
+    // Process `for ( ... in ... )`
+    Token identifier = beforeIdentifier.next;
+    if (!identifier.isIdentifier) {
+      reportRecoverableErrorWithToken(
+          identifier, fasta.templateExpectedIdentifier);
+    } else if (identifier != token) {
+      if (optional('=', identifier.next)) {
+        reportRecoverableError(
+            identifier.next, fasta.messageInitializedVariableInForEach);
+      } else {
+        reportRecoverableErrorWithToken(
+            identifier.next, fasta.templateUnexpectedToken);
+      }
+    } else if (awaitToken != null && !inAsync) {
+      reportRecoverableError(next, fasta.messageAwaitForNotAsync);
+    }
+    return parseForInRest(token, awaitToken, forKeyword, leftParenthesis);
   }
 
   /// This method parses the portion of the forLoopParts that starts with the
@@ -5709,8 +5798,7 @@ class Parser {
   ///   identifier 'in' expression
   /// ;
   /// ```
-  Token parseForRest(Token forToken, Token leftParenthesis, Token token) {
-    // TODO(brianwilkerson): Consider moving `token` to be the first parameter.
+  Token parseForRest(Token token, Token forToken, Token leftParenthesis) {
     Token leftSeparator = ensureSemicolon(token);
     if (optional(';', leftSeparator.next)) {
       token = parseEmptyStatement(leftSeparator);
@@ -5730,7 +5818,10 @@ class Parser {
         break;
       }
     }
-    expect(')', token);
+    if (token != leftParenthesis.endGroup) {
+      reportRecoverableErrorWithToken(token, fasta.templateUnexpectedToken);
+      token = leftParenthesis.endGroup;
+    }
     listener.beginForStatementBody(token.next);
     LoopState savedLoopState = loopState;
     loopState = LoopState.InsideLoop;
@@ -5754,8 +5845,7 @@ class Parser {
   /// ;
   /// ```
   Token parseForInRest(
-      Token awaitToken, Token forKeyword, Token leftParenthesis, Token token) {
-    // TODO(brianwilkerson): Consider moving `token` to be the first parameter.
+      Token token, Token awaitToken, Token forKeyword, Token leftParenthesis) {
     Token inKeyword = token.next;
     assert(optional('in', inKeyword) || optional(':', inKeyword));
     listener.beginForInExpression(inKeyword.next);

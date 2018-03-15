@@ -11,9 +11,9 @@ import '../metadata/procedure_attributes.dart';
 /// Assumes strong mode and closed world. If a procedure can not be riched
 /// via dynamic invocation from anywhere then annotates it with appropriate
 /// [ProcedureAttributeMetadata] annotation.
-Program transformProgram(Program program) {
-  new NoDynamicUsesAnnotator(program).visitProgram(program);
-  return program;
+Component transformComponent(Component component) {
+  new NoDynamicUsesAnnotator(component).visitComponent(component);
+  return component;
 }
 
 enum Action { get, set, invoke }
@@ -56,14 +56,14 @@ class NoDynamicUsesAnnotator {
   final DynamicSelectorsCollector _selectors;
   final ProcedureAttributesMetadataRepository _metadata;
 
-  NoDynamicUsesAnnotator(Program program)
-      : _selectors = DynamicSelectorsCollector.collect(program),
+  NoDynamicUsesAnnotator(Component component)
+      : _selectors = DynamicSelectorsCollector.collect(component),
         _metadata = new ProcedureAttributesMetadataRepository() {
-    program.addMetadataRepository(_metadata);
+    component.addMetadataRepository(_metadata);
   }
 
-  visitProgram(Program program) {
-    for (var library in program.libraries) {
+  visitComponent(Component component) {
+    for (var library in component.libraries) {
       for (var klass in library.classes) {
         visitClass(klass);
       }
@@ -142,14 +142,14 @@ class DynamicSelectorsCollector extends RecursiveVisitor<Null> {
   final Set<Selector> nonThisSelectors = new Set<Selector>();
   final Set<Selector> tearOffSelectors = new Set<Selector>();
 
-  static DynamicSelectorsCollector collect(Program program) {
+  static DynamicSelectorsCollector collect(Component component) {
     final v = new DynamicSelectorsCollector();
-    v.visitProgram(program);
+    v.visitComponent(component);
 
     // We only populate [nonThisSelectors] and [tearOffSelectors] inside the
-    // non-dynamic case (for efficiency reasons) while visiting the [Program].
+    // non-dynamic case (for efficiency reasons) while visiting the [Component].
     //
-    // After the recursive visit of [Program] we complete the sets here.
+    // After the recursive visit of [Component] we complete the sets here.
     for (final Selector selector in v.dynamicSelectors) {
       // All dynamic getters can be tearoffs.
       if (selector.action == Action.get) {

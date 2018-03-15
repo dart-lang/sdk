@@ -5,7 +5,7 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/testing/mock_sdk_program.dart';
+import 'package:kernel/testing/mock_sdk_component.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:test/test.dart';
@@ -19,8 +19,8 @@ main() {
 
 @reflectiveTest
 class ClosedWorldClassHierarchyTest extends _ClassHierarchyTest {
-  ClassHierarchy createClassHierarchy(Program program) {
-    return new ClassHierarchy(program);
+  ClassHierarchy createClassHierarchy(Component component) {
+    return new ClassHierarchy(component);
   }
 
   void test_applyChanges() {
@@ -142,7 +142,7 @@ class H extends self::G implements self::C, self::A {}
 }
 
 abstract class _ClassHierarchyTest {
-  Program program;
+  Component component;
   CoreTypes coreTypes;
 
   /// The test library.
@@ -152,7 +152,7 @@ abstract class _ClassHierarchyTest {
 
   /// Return the new or existing instance of [ClassHierarchy].
   ClassHierarchy get hierarchy {
-    return _hierarchy ??= createClassHierarchy(program);
+    return _hierarchy ??= createClassHierarchy(component);
   }
 
   Class get objectClass => coreTypes.objectClass;
@@ -199,7 +199,7 @@ abstract class _ClassHierarchyTest {
         implementedTypes: implements_.map((c) => c.asThisSupertype).toList()));
   }
 
-  ClassHierarchy createClassHierarchy(Program program);
+  ClassHierarchy createClassHierarchy(Component component);
 
   Procedure newEmptyGetter(String name,
       {DartType returnType: const DynamicType(), bool isAbstract: false}) {
@@ -229,13 +229,13 @@ abstract class _ClassHierarchyTest {
 
   void setUp() {
     // Start with mock SDK libraries.
-    program = createMockSdkProgram();
-    coreTypes = new CoreTypes(program);
+    component = createMockSdkComponent();
+    coreTypes = new CoreTypes(component);
 
     // Add the test library.
     library = new Library(Uri.parse('org-dartlang:///test.dart'), name: 'test');
-    library.parent = program;
-    program.libraries.add(library);
+    library.parent = component;
+    component.libraries.add(library);
   }
 
   /// 2. A non-abstract member is inherited from a superclass, and in the

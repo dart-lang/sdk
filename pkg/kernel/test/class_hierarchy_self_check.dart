@@ -12,13 +12,13 @@ import 'self_check_util.dart';
 
 main(List<String> args) {
   runSelfCheck(args, (String filename) {
-    testClassHierarchyOnProgram(loadProgramFromBinary(filename));
+    testClassHierarchyOnComponent(loadComponentFromBinary(filename));
   });
 }
 
-void testClassHierarchyOnProgram(Program program, {bool verbose: false}) {
-  BasicClassHierarchy basic = new BasicClassHierarchy(program);
-  ClosedWorldClassHierarchy classHierarchy = new ClassHierarchy(program);
+void testClassHierarchyOnComponent(Component component, {bool verbose: false}) {
+  BasicClassHierarchy basic = new BasicClassHierarchy(component);
+  ClosedWorldClassHierarchy classHierarchy = new ClassHierarchy(component);
   int total = classHierarchy.classes.length;
   int progress = 0;
   for (var class1 in classHierarchy.classes) {

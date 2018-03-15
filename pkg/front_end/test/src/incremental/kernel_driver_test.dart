@@ -567,9 +567,9 @@ int getValue() {
           'dart.async::Future<dart.core::String>');
 
       // We should be able to serialize the libraries without SDK.
-      var program =
-          new Program(nameRoot: kernelResult.nameRoot, libraries: allLibraries);
-      serializeProgram(program,
+      var component = new Component(
+          nameRoot: kernelResult.nameRoot, libraries: allLibraries);
+      serializeComponent(component,
           filter: (library) => !library.importUri.isScheme('dart'));
     }
 
@@ -710,43 +710,43 @@ main() {
 
     KernelSequenceResult result = await driver.getKernelSequence(bUri);
 
-    Program program = new Program(
+    Component component = new Component(
         nameRoot: result.nameRoot, libraries: _allLibraries(result));
 
     String initialKernelText;
     List<int> bytes;
     {
-      Library initialLibrary = _getLibraryFromProgram(program, bUri);
+      Library initialLibrary = _getLibraryFromProgram(component, bUri);
       initialKernelText = _getLibraryText(initialLibrary);
 
-      bytes = serializeProgram(program,
+      bytes = serializeComponent(component,
           filter: (library) => library.importUri == bUri);
 
-      // Remove b.dart from the program.
-      // So, the program is now ready for re-adding the library.
-      program.mainMethod = null;
-      program.libraries.remove(initialLibrary);
-      program.root.removeChild(initialLibrary.importUri.toString());
+      // Remove b.dart from the component.
+      // So, the component is now ready for re-adding the library.
+      component.mainMethod = null;
+      component.libraries.remove(initialLibrary);
+      component.root.removeChild(initialLibrary.importUri.toString());
     }
 
     // Load b.dart from bytes using the initial name root, so that
     // serialized canonical names can be linked to corresponding nodes.
     Library loadedLibrary;
     {
-      var programForLoading = new Program(nameRoot: program.root);
+      var programForLoading = new Component(nameRoot: component.root);
       var reader = new BinaryBuilder(bytes);
-      reader.readProgram(programForLoading);
+      reader.readComponent(programForLoading);
       loadedLibrary = _getLibraryFromProgram(programForLoading, bUri);
     }
 
-    // Add the library into the program.
-    program.libraries.add(loadedLibrary);
-    loadedLibrary.parent = program;
-    program.mainMethod = loadedLibrary.procedures
+    // Add the library into the component.
+    component.libraries.add(loadedLibrary);
+    loadedLibrary.parent = component;
+    component.mainMethod = loadedLibrary.procedures
         .firstWhere((procedure) => procedure.name.name == 'main');
 
     expect(_getLibraryText(loadedLibrary), initialKernelText);
-    verifyProgram(program);
+    verifyComponent(component);
   }
 
   test_updatePackageSourceUsingFileUri() async {
@@ -1023,8 +1023,8 @@ import 'b.dart';
     fail('No library found with URI "$uri"');
   }
 
-  Library _getLibraryFromProgram(Program program, Uri uri) {
-    for (var library in program.libraries) {
+  Library _getLibraryFromProgram(Component component, Uri uri) {
+    for (var library in component.libraries) {
       if (library.importUri == uri) return library;
     }
     fail('No library found with URI "$uri"');

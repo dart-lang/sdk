@@ -9,7 +9,7 @@ import 'package:async_helper/async_helper.dart' show asyncTest;
 import 'package:expect/expect.dart' show Expect;
 
 import 'package:kernel/ast.dart'
-    show Program, RecursiveVisitor, Procedure, AssertStatement;
+    show Component, RecursiveVisitor, Procedure, AssertStatement;
 
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions;
@@ -142,7 +142,7 @@ void main() {
         Expect.fail("Unexpected error: $formatted");
       }
       ..strongMode = true;
-    Program p = await compileScript(test.source,
+    Component p = await compileScript(test.source,
         options: options, fileName: 'synthetic-test.dart');
     Expect.isNotNull(p);
     VerifyingVisitor visitor = new VerifyingVisitor(test);

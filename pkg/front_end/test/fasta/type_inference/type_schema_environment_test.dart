@@ -7,7 +7,7 @@ import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart'
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/testing/mock_sdk_program.dart';
+import 'package:kernel/testing/mock_sdk_component.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,14 +29,14 @@ class TypeSchemaEnvironmentTest {
 
   final testLib = new Library(Uri.parse('org-dartlang:///test.dart'));
 
-  Program program;
+  Component component;
 
   CoreTypes coreTypes;
 
   TypeSchemaEnvironmentTest() {
-    program = createMockSdkProgram();
-    program.libraries.add(testLib..parent = program);
-    coreTypes = new CoreTypes(program);
+    component = createMockSdkComponent();
+    component.libraries.add(testLib..parent = component);
+    coreTypes = new CoreTypes(component);
   }
 
   InterfaceType get doubleType => coreTypes.doubleClass.rawType;
@@ -714,7 +714,7 @@ class TypeSchemaEnvironmentTest {
 
   TypeSchemaEnvironment _makeEnv() {
     return new TypeSchemaEnvironment(
-        coreTypes, new ClassHierarchy(program), true);
+        coreTypes, new ClassHierarchy(component), true);
   }
 
   DartType _map(DartType key, DartType value) =>

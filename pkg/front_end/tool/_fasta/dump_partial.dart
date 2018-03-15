@@ -16,18 +16,18 @@ main(List<String> args) {
     return;
   }
 
-  var program = _loadProgram(args);
-  writeProgramToText(program);
+  var component = _loadComponent(args);
+  writeComponentToText(component);
 }
 
-/// Creates a program that contains all of the context code marked as external,
+/// Creates a component that contains all of the context code marked as external,
 /// and all libraries defined in partial.dill as they are written in that file.
-Program _loadProgram(List<String> args) {
+Component _loadComponent(List<String> args) {
   List<int> partialInput = new File(args[0]).readAsBytesSync();
 
-  var context = new Program();
+  var context = new Component();
   for (var i = 1; i < args.length; i++) {
-    loadProgramFromBinary(args[i], context);
+    loadComponentFromBinary(args[i], context);
   }
 
   Set<Uri> libraries = _definedLibraries(partialInput, context);
@@ -36,30 +36,30 @@ Program _loadProgram(List<String> args) {
   // of libraries that are mentioned in more than one .dill file. In order to
   // keep the contents of partial.dill intact, we build a new context that
   // excludes those libraries defined in partial.dill.
-  List<int> contextBytes = serializeProgram(context,
+  List<int> contextBytes = serializeComponent(context,
       filter: (l) => !libraries.contains(l.importUri));
-  var program = new Program();
-  loadProgramFromBytes(contextBytes, program);
-  _updateIsExternal(program, true);
-  loadProgramFromBytes(partialInput, program);
-  return program;
+  var component = new Component();
+  loadComponentFromBytes(contextBytes, component);
+  _updateIsExternal(component, true);
+  loadComponentFromBytes(partialInput, component);
+  return component;
 }
 
 /// Compute the set of libraries defined in [partialDill].
 ///
-/// The [context] program contains all other libraries that may be needed to
+/// The [context] component contains all other libraries that may be needed to
 /// properly deserialize partialDill.
 ///
 /// Note: This function will mutate [context] in place.
 // TODO(sigmund): simplify and get rid of [context]. We could do that with a
 // custom deserialization, but it will be easier to do once .dill has
 // random-access support.
-Set<Uri> _definedLibraries(List<int> partialDill, Program context) {
+Set<Uri> _definedLibraries(List<int> partialDill, Component context) {
   _updateIsExternal(context, true);
 
   // This implicitly sets `isExternal = false` on all libraries defined in the
   // partial.dill file.
-  loadProgramFromBytes(partialDill, context);
+  loadComponentFromBytes(partialDill, context);
   var result = context.libraries
       .where((l) => !l.isExternal)
       .map((l) => l.importUri)
@@ -68,6 +68,6 @@ Set<Uri> _definedLibraries(List<int> partialDill, Program context) {
   return result;
 }
 
-void _updateIsExternal(Program program, bool toValue) {
-  program.libraries.forEach((lib) => lib.isExternal = toValue);
+void _updateIsExternal(Component component, bool toValue) {
+  component.libraries.forEach((lib) => lib.isExternal = toValue);
 }

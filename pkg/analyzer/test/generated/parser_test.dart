@@ -3219,7 +3219,7 @@ class Foo {
   void test_expectedTypeName_is_void() {
     parseExpression("x is void)",
         expectedEndOffset: 9,
-        errors: [expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 4, 4)]);
+        errors: [expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 5, 4)]);
   }
 
   void test_exportAsType() {
@@ -3793,6 +3793,52 @@ class Wrong<T> {
     listener.assertErrors([
       expectedError(ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, 11, 1)
     ]);
+  }
+
+  void test_initializedVariableInForEach_var() {
+    Statement statement = parseStatement('for (var a = 0 in foo) {}');
+    expectNotNullIfNoErrors(statement);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, 11, 1)
+    ]);
+  }
+
+  void test_initializedVariableInForEach_annotation() {
+    Statement statement = parseStatement('for (@Foo var a = 0 in foo) {}');
+    expectNotNullIfNoErrors(statement);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, 16, 1)
+    ]);
+  }
+
+  void test_initializedVariableInForEach_localFunction() {
+    Statement statement = parseStatement('for (f()) {}');
+    expectNotNullIfNoErrors(statement);
+    listener.assertErrors(usingFastaParser
+        ? [
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1),
+            expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 1),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1)
+          ]
+        : [
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
+            expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 1),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1)
+          ]);
+  }
+
+  void test_initializedVariableInForEach_localFunction2() {
+    Statement statement = parseStatement('for (T f()) {}');
+    expectNotNullIfNoErrors(statement);
+    listener.assertErrors(usingFastaParser
+        ? [
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1)
+          ]
+        : [
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 5, 1),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1)
+          ]);
   }
 
   void test_invalidAwaitInFor() {

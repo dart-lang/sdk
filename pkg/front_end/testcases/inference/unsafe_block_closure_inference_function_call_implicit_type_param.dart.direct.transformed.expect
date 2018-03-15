@@ -1,0 +1,11 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  dynamic v = self::f<dynamic>(() → dynamic {
+    return 1;
+  });
+}
+static method f<T extends core::Object>(() → self::f::T g) → core::List<self::f::T>
+  return <self::f::T>[g.call()];

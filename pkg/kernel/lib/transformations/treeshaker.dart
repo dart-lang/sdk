@@ -10,13 +10,13 @@ import '../core_types.dart';
 import '../type_environment.dart';
 import '../library_index.dart';
 
-Program transformProgram(
-    CoreTypes coreTypes, ClassHierarchy hierarchy, Program program,
+Component transformComponent(
+    CoreTypes coreTypes, ClassHierarchy hierarchy, Component component,
     {List<ProgramRoot> programRoots, bool strongMode: false}) {
-  new TreeShaker(coreTypes, hierarchy, program,
+  new TreeShaker(coreTypes, hierarchy, component,
           programRoots: programRoots, strongMode: strongMode)
-      .transform(program);
-  return program;
+      .transform(component);
+  return component;
 }
 
 enum ProgramRootKind {
@@ -94,7 +94,7 @@ class ProgramRoot {
 class TreeShaker {
   final CoreTypes coreTypes;
   final ClosedWorldClassHierarchy hierarchy;
-  final Program program;
+  final Component component;
   final bool strongMode;
   final List<ProgramRoot> programRoots;
 
@@ -175,9 +175,10 @@ class TreeShaker {
   /// the mirrors library.
   bool get forceShaking => programRoots != null && programRoots.isNotEmpty;
 
-  TreeShaker(CoreTypes coreTypes, ClassHierarchy hierarchy, Program program,
+  TreeShaker(CoreTypes coreTypes, ClassHierarchy hierarchy, Component component,
       {bool strongMode: false, List<ProgramRoot> programRoots})
-      : this._internal(coreTypes, hierarchy, program, strongMode, programRoots);
+      : this._internal(
+            coreTypes, hierarchy, component, strongMode, programRoots);
 
   bool isMemberBodyUsed(Member member) {
     return _usedMembers.containsKey(member);
@@ -216,15 +217,15 @@ class TreeShaker {
     return _classRetention[index];
   }
 
-  /// Applies the tree shaking results to the program.
+  /// Applies the tree shaking results to the component.
   ///
   /// This removes unused classes, members, and hierarchy data.
-  void transform(Program program) {
+  void transform(Component component) {
     if (isUsingMirrors) return; // Give up if using mirrors.
-    new _TreeShakingTransformer(this).transform(program);
+    new _TreeShakingTransformer(this).transform(component);
   }
 
-  TreeShaker._internal(this.coreTypes, this.hierarchy, this.program,
+  TreeShaker._internal(this.coreTypes, this.hierarchy, this.component,
       this.strongMode, this.programRoots)
       : this._dispatchedNames = new List<Set<Name>>(hierarchy.classes.length),
         this._usedMembersWithHost =
@@ -246,19 +247,20 @@ class TreeShaker {
   }
 
   void _build() {
-    if (program.mainMethod == null) {
-      throw 'Cannot perform tree shaking on a program without a main method';
+    if (component.mainMethod == null) {
+      throw 'Cannot perform tree shaking on a component without a main method';
     }
-    if (program.mainMethod.function.positionalParameters.length > 0) {
+    if (component.mainMethod.function.positionalParameters.length > 0) {
       // The main method takes a List<String> as argument.
       _addInstantiatedExternalSubclass(coreTypes.listClass);
       _addInstantiatedExternalSubclass(coreTypes.stringClass);
     }
     _addDispatchedName(coreTypes.objectClass, new Name('noSuchMethod'));
     _addPervasiveUses();
-    _addUsedMember(null, program.mainMethod);
+    _addUsedMember(null, component.mainMethod);
     if (programRoots != null) {
-      var table = new LibraryIndex(program, programRoots.map((r) => r.library));
+      var table =
+          new LibraryIndex(component, programRoots.map((r) => r.library));
       for (var root in programRoots) {
         _addUsedRoot(root, table);
       }
@@ -1030,7 +1032,7 @@ class _TreeShakingTransformer extends Transformer {
     return isUsed ? target : null;
   }
 
-  void transform(Program program) {
+  void transform(Component component) {
     for (Expression node in shaker._typedCalls) {
       // We should not leave dangling references, so if the target of a typed
       // call has been removed, we must remove the reference.  The receiver of
@@ -1044,7 +1046,7 @@ class _TreeShakingTransformer extends Transformer {
         node.interfaceTarget = _translateInterfaceTarget(node.interfaceTarget);
       }
     }
-    for (var library in program.libraries) {
+    for (var library in component.libraries) {
       if (!shaker.forceShaking && library.importUri.scheme == 'dart') {
         // The backend expects certain things to be present in the core
         // libraries, so we currently don't shake off anything there.

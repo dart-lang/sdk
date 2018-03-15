@@ -211,6 +211,27 @@
     },
     {
       "builders": [
+        "vm-kernel-legacy-linux-release-x64"
+      ],
+      "meta": {
+        "description": "Tests the vm with dartk in legacy mode."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["runtime_kernel"]
+        },
+        {
+          "name": "vm legacy tests",
+          "arguments": ["--compiler=dartk"],
+          "fileset": "vm-kernel",
+          "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-kernel-precomp-linux-release-simarm",
         "vm-kernel-precomp-linux-release-simarm64",
         "vm-kernel-precomp-win-release-x64"

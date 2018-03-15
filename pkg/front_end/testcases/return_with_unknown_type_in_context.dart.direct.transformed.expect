@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method f(core::List<dynamic> x) → core::bool {
+  return x.expand((dynamic y) → dynamic {
+    return y.split(",");
+  }).any((dynamic y) → dynamic => y.==("z"));
+}
+static method main() → dynamic {}

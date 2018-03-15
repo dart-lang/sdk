@@ -4,7 +4,7 @@
 
 import 'dart:async' show Future;
 
-import 'package:kernel/kernel.dart' show Program;
+import 'package:kernel/kernel.dart' show Component;
 
 import 'package:kernel/target/targets.dart' show Target;
 
@@ -46,7 +46,7 @@ InitializedCompilerState initializeCompiler(InitializedCompilerState oldState,
   return new InitializedCompilerState(options, processedOpts);
 }
 
-Future<Program> compile(InitializedCompilerState state, bool verbose,
+Future<Component> compile(InitializedCompilerState state, bool verbose,
     FileSystem fileSystem, ErrorHandler onError, Uri input) async {
   CompilerOptions options = state.options;
   options
@@ -62,9 +62,9 @@ Future<Program> compile(InitializedCompilerState state, bool verbose,
   var compilerResult = await CompilerContext.runWithOptions(processedOpts,
       (CompilerContext context) async {
     var compilerResult = await generateKernelInternal();
-    Program program = compilerResult?.program;
-    if (program == null) return null;
-    if (program.mainMethod == null) {
+    Component component = compilerResult?.component;
+    if (component == null) return null;
+    if (component.mainMethod == null) {
       context.options.report(
           messageMissingMain.withLocation(input, -1, noLength), Severity.error);
       return null;
@@ -72,5 +72,5 @@ Future<Program> compile(InitializedCompilerState state, bool verbose,
     return compilerResult;
   });
 
-  return compilerResult?.program;
+  return compilerResult?.component;
 }

@@ -815,8 +815,7 @@ class ResolutionLibraryLoaderTask extends CompilerTask
   }
 }
 
-/// A loader that builds a kernel IR representation of the program (or set of
-/// libraries).
+/// A loader that builds a kernel IR representation of the component.
 ///
 /// It supports loading both .dart source files or pre-compiled .dill files.
 /// When given .dart source files, it invokes the shared frontend
@@ -832,7 +831,7 @@ class KernelLibraryLoaderTask extends CompilerTask
   final api.CompilerInput compilerInput;
 
   /// Holds the mapping of Kernel IR to KElements that is constructed as a
-  /// result of loading a program.
+  /// result of loading a component.
   final KernelToElementMapForImpactImpl _elementMap;
 
   final bool verbose;
@@ -847,7 +846,7 @@ class KernelLibraryLoaderTask extends CompilerTask
       : _allLoadedLibraries = new List<LibraryEntity>(),
         super(measurer);
 
-  /// Loads an entire Kernel [Program] from a file on disk (note, not just a
+  /// Loads an entire Kernel [Component] from a file on disk (note, not just a
   /// library, so this name is actually a bit of a misnomer).
   // TODO(efortuna): Rename this once the Element library loader class goes
   // away.
@@ -855,12 +854,12 @@ class KernelLibraryLoaderTask extends CompilerTask
       {bool skipFileWithPartOfTag: false}) {
     return measure(() async {
       var isDill = resolvedUri.path.endsWith('.dill');
-      ir.Program program;
+      ir.Component component;
       if (isDill) {
         api.Input input = await compilerInput.readFromUri(resolvedUri,
             inputKind: api.InputKind.binary);
-        program = new ir.Program();
-        new BinaryBuilder(input.data).readProgram(program);
+        component = new ir.Component();
+        new BinaryBuilder(input.data).readComponent(component);
       } else {
         bool strongMode = _elementMap.options.strongMode;
         String platform = strongMode
@@ -871,28 +870,28 @@ class KernelLibraryLoaderTask extends CompilerTask
             new Dart2jsTarget(new TargetFlags(strongMode: strongMode)),
             platformBinaries.resolve(platform),
             _packageConfig);
-        program = await fe.compile(
+        component = await fe.compile(
             initializedCompilerState,
             verbose,
             new CompilerFileSystem(compilerInput),
             (e) => reportFrontEndMessage(reporter, e),
             resolvedUri);
       }
-      if (program == null) return null;
-      return createLoadedLibraries(program);
+      if (component == null) return null;
+      return createLoadedLibraries(component);
     });
   }
 
   // Only visible for unit testing.
-  LoadedLibraries createLoadedLibraries(ir.Program program) {
-    _elementMap.addProgram(program);
+  LoadedLibraries createLoadedLibraries(ir.Component component) {
+    _elementMap.addProgram(component);
     LibraryEntity rootLibrary = null;
-    Iterable<ir.Library> libraries = program.libraries;
-    if (program.mainMethod != null) {
-      var root = program.mainMethod.enclosingLibrary;
+    Iterable<ir.Library> libraries = component.libraries;
+    if (component.mainMethod != null) {
+      var root = component.mainMethod.enclosingLibrary;
       rootLibrary = _elementMap.lookupLibrary(root.importUri);
 
-      // Filter unreachable libraries: [Program] was built by linking in the
+      // Filter unreachable libraries: [Component] was built by linking in the
       // entire SDK libraries, not all of them are used. We include anything
       // that is reachable from `main`. Note that all internal libraries that
       // the compiler relies on are reachable from `dart:core`.
@@ -907,7 +906,7 @@ class KernelLibraryLoaderTask extends CompilerTask
       search(root);
 
       // Libraries dependencies do not show implicit imports to `dart:core`.
-      var dartCore = program.libraries.firstWhere((lib) {
+      var dartCore = component.libraries.firstWhere((lib) {
         return lib.importUri.scheme == 'dart' && lib.importUri.path == 'core';
       });
       search(dartCore);

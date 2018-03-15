@@ -93,41 +93,41 @@ abstract class Target {
   bool get enableSuperMixins => false;
 
   /// Perform target-specific transformations on the outlines stored in
-  /// [Program] when generating summaries.
+  /// [Component] when generating summaries.
   ///
   /// This transformation is used to add metadata on outlines and to filter
   /// unnecessary information before generating program summaries. This
   /// transformation is not applied when compiling full kernel programs to
   /// prevent affecting the internal invariants of the compiler and accidentally
   /// slowing down compilation.
-  void performOutlineTransformations(Program program) {}
+  void performOutlineTransformations(Component component) {}
 
-  /// Perform target-specific modular transformations on the given program.
+  /// Perform target-specific modular transformations on the given component.
   ///
-  /// These transformations should not be whole-program transformations.  They
-  /// should expect that the program will contain external libraries.
-  void performModularTransformationsOnProgram(
-      CoreTypes coreTypes, ClassHierarchy hierarchy, Program program,
+  /// These transformations should not be whole-component transformations.  They
+  /// should expect that the component will contain external libraries.
+  void performModularTransformationsOnComponent(
+      CoreTypes coreTypes, ClassHierarchy hierarchy, Component component,
       {void logger(String msg)}) {
     performModularTransformationsOnLibraries(
-        coreTypes, hierarchy, program.libraries,
+        coreTypes, hierarchy, component.libraries,
         logger: logger);
   }
 
   /// Perform target-specific modular transformations on the given libraries.
   ///
   /// The intent of this method is to perform the transformations only on some
-  /// subset of the program libraries and avoid packing them into a temporary
-  /// [Program] instance to pass into [performModularTransformationsOnProgram].
+  /// subset of the component libraries and avoid packing them into a temporary
+  /// [Component] instance to pass into [performModularTransformationsOnComponent].
   ///
   /// Note that the following should be equivalent:
   ///
-  ///     target.performModularTransformationsOnProgram(coreTypes, program);
+  ///     target.performModularTransformationsOnComponent(coreTypes, component);
   ///
   /// and
   ///
   ///     target.performModularTransformationsOnLibraries(
-  ///         coreTypes, program.libraries);
+  ///         coreTypes, component.libraries);
   void performModularTransformationsOnLibraries(
       CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
       {void logger(String msg)});
@@ -138,10 +138,10 @@ abstract class Target {
   /// correctness.  Everything should work if a simple and fast linker chooses
   /// not to apply these transformations.
   ///
-  /// Note that [performGlobalTransformations] doesn't have -OnProgram and
+  /// Note that [performGlobalTransformations] doesn't have -OnComponent and
   /// -OnLibraries alternatives, because the global knowledge required by the
-  /// transformations is assumed to be retrieved from a [Program] instance.
-  void performGlobalTransformations(CoreTypes coreTypes, Program program,
+  /// transformations is assumed to be retrieved from a [Component] instance.
+  void performGlobalTransformations(CoreTypes coreTypes, Component component,
       {void logger(String msg)});
 
   /// Whether a platform library may define a restricted type, such as `bool`,
@@ -223,7 +223,7 @@ class NoneTarget extends Target {
   void performModularTransformationsOnLibraries(
       CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
       {void logger(String msg)}) {}
-  void performGlobalTransformations(CoreTypes coreTypes, Program program,
+  void performGlobalTransformations(CoreTypes coreTypes, Component component,
       {void logger(String msg)}) {}
 
   @override

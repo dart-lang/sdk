@@ -191,31 +191,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_expectedTypeName_as_void() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Expected: true
-    //   Actual: <false>
-    //
-    //   package:test                                                       expect
-    //   test/generated/parser_fasta_test.dart 2974:5                       ParserProxy._run
-    //   test/generated/parser_fasta_test.dart 2661:34                      FastaParserTestCase._runParser
-    super.test_expectedTypeName_as_void();
-  }
-
-  @override
-  @failingTest
-  void test_expectedTypeName_is_void() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Expected: true
-    //   Actual: <false>
-    //
-    //   package:test                                                       expect
-    //   test/generated/parser_fasta_test.dart 2999:5                       ParserProxy._run
-    super.test_expectedTypeName_is_void();
-  }
-
-  @override
-  @failingTest
   void test_getterInFunction_block_noReturnType() {
     // TODO(brianwilkerson) Does not recover.
     //   type 'ExpressionStatementImpl' is not a subtype of type 'FunctionDeclarationStatement' of 'statement' where

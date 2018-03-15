@@ -23,25 +23,25 @@ import 'element_map_impl.dart';
 import 'element_map_mixins.dart';
 import 'kelements.dart' show KImport;
 
-/// Environment for fast lookup of program libraries.
+/// Environment for fast lookup of component libraries.
 class ProgramEnv {
-  final Set<ir.Program> _programs = new Set<ir.Program>();
+  final Set<ir.Component> _programs = new Set<ir.Component>();
 
   Map<Uri, LibraryEnv> _libraryMap;
 
   /// TODO(johnniwinther): Handle arbitrary load order if needed.
   ir.Member get mainMethod => _programs.first?.mainMethod;
 
-  void addProgram(ir.Program program) {
-    if (_programs.add(program)) {
+  void addProgram(ir.Component component) {
+    if (_programs.add(component)) {
       if (_libraryMap != null) {
-        _addLibraries(program);
+        _addLibraries(component);
       }
     }
   }
 
-  void _addLibraries(ir.Program program) {
-    for (ir.Library library in program.libraries) {
+  void _addLibraries(ir.Component component) {
+    for (ir.Library library in component.libraries) {
       _libraryMap[library.importUri] = new LibraryEnv(library);
     }
   }
@@ -49,8 +49,8 @@ class ProgramEnv {
   void _ensureLibraryMap() {
     if (_libraryMap == null) {
       _libraryMap = <Uri, LibraryEnv>{};
-      for (ir.Program program in _programs) {
-        _addLibraries(program);
+      for (ir.Component component in _programs) {
+        _addLibraries(component);
       }
     }
   }

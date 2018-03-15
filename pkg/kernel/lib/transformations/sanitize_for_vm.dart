@@ -9,8 +9,8 @@ import '../ast.dart';
 ///
 /// VM-specific constraints that don't fit in anywhere else can be put here.
 class SanitizeForVM {
-  void transform(Program program) {
-    for (var library in program.libraries) {
+  void transform(Component component) {
+    for (var library in component.libraries) {
       for (var class_ in library.classes) {
         if (class_.constructors.isEmpty && class_.procedures.isEmpty) {
           class_.addMember(new Constructor(

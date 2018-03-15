@@ -662,7 +662,7 @@ void KernelLoader::walk_incremental_kernel(BitVector* modified_libs) {
     builder_.SetOffset(kernel_offset);
     LibraryHelper library_helper(&builder_);
     library_helper.ReadUntilIncluding(LibraryHelper::kCanonicalName);
-    dart::Library& lib = LookupLibrary(library_helper.canonical_name_);
+    dart::Library& lib = LookupLibraryOrNull(library_helper.canonical_name_);
     if (!lib.IsNull() && !lib.is_dart_scheme()) {
       // This is a library that already exists so mark it as being modified.
       modified_libs->Add(lib.index());
@@ -983,9 +983,29 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
 // dart:-scheme libraries to look like they looked like in legacy pipeline:
 //
 //               dart:libname/filename.dart
+//               dart:libname/runtime/lib/filename.dart
+//               dart:libname/runtime/bin/filename.dart
 //
 void KernelLoader::FixCoreLibraryScriptUri(const Library& library,
                                            const Script& script) {
+  struct Helper {
+    static bool EndsWithCString(const String& haystack,
+                                const char* needle,
+                                intptr_t needle_length,
+                                intptr_t end_pos) {
+      const intptr_t start = end_pos - needle_length + 1;
+      if (start >= 0) {
+        for (intptr_t i = 0; i < needle_length; i++) {
+          if (haystack.CharAt(start + i) != needle[i]) {
+            return false;
+          }
+        }
+        return true;
+      }
+      return false;
+    }
+  };
+
   if (library.is_dart_scheme()) {
     String& url = String::Handle(zone_, script.url());
     if (!url.StartsWith(Symbols::DartScheme())) {
@@ -997,9 +1017,28 @@ void KernelLoader::FixCoreLibraryScriptUri(const Library& library,
         pos--;
       }
 
+      static const char* kRuntimeLib = "runtime/lib/";
+      static const intptr_t kRuntimeLibLen = strlen(kRuntimeLib);
+      const bool inside_runtime_lib =
+          Helper::EndsWithCString(url, kRuntimeLib, kRuntimeLibLen, pos);
+
+      static const char* kRuntimeBin = "runtime/bin/";
+      static const intptr_t kRuntimeBinLen = strlen(kRuntimeBin);
+      const bool inside_runtime_bin =
+          Helper::EndsWithCString(url, kRuntimeBin, kRuntimeBinLen, pos);
+
+      String& tmp = String::Handle(zone_);
       url = String::SubString(url, pos + 1);
+      if (inside_runtime_lib) {
+        tmp = String::New("runtime/lib", Heap::kNew);
+        url = String::Concat(tmp, url);
+      } else if (inside_runtime_bin) {
+        tmp = String::New("runtime/bin", Heap::kNew);
+        url = String::Concat(tmp, url);
+      }
+      tmp = library.url();
       url = String::Concat(Symbols::Slash(), url);
-      url = String::Concat(String::Handle(zone_, library.url()), url);
+      url = String::Concat(tmp, url);
       script.set_url(url);
     }
   }
@@ -1017,9 +1056,6 @@ Class& KernelLoader::LoadClass(const Library& library,
   Class& klass = LookupClass(class_helper.canonical_name_);
   klass.set_kernel_offset(class_offset - correction_offset_);
 
-  class_helper.ReadUntilIncluding(ClassHelper::kFlags);
-  if (class_helper.is_enum_class()) klass.set_is_enum_class();
-
   // The class needs to have a script because all the functions in the class
   // will inherit it.  The predicate Function::IsOptimizable uses the absence of
   // a script to detect test functions that should not be optimized.
@@ -1034,6 +1070,9 @@ Class& KernelLoader::LoadClass(const Library& library,
     class_helper.ReadUntilIncluding(ClassHelper::kPosition);
     klass.set_token_pos(class_helper.position_);
   }
+
+  class_helper.ReadUntilIncluding(ClassHelper::kFlags);
+  if (class_helper.is_enum_class()) klass.set_is_enum_class();
 
   class_helper.ReadUntilIncluding(ClassHelper::kAnnotations);
   class_helper.ReadUntilExcluding(ClassHelper::kTypeParameters);
@@ -1088,16 +1127,18 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       intptr_t field_offset = builder_.ReaderOffset() - correction_offset_;
       ActiveMemberScope active_member(&active_class_, NULL);
       FieldHelper field_helper(&builder_);
-      field_helper.ReadUntilExcluding(FieldHelper::kName);
 
+      field_helper.ReadUntilIncluding(FieldHelper::kSourceUriIndex);
+      const Object& script_class =
+          ClassForScriptAt(klass, field_helper.source_uri_index_);
+
+      field_helper.ReadUntilExcluding(FieldHelper::kName);
       const String& name = builder_.ReadNameAsFieldName();
       field_helper.SetJustRead(FieldHelper::kName);
       field_helper.ReadUntilExcluding(FieldHelper::kType);
       const AbstractType& type =
           T.BuildTypeWithoutFinalization();  // read type.
       field_helper.SetJustRead(FieldHelper::kType);
-      const Object& script_class =
-          ClassForScriptAt(klass, field_helper.source_uri_index_);
 
       const bool is_reflectable =
           field_helper.position_.IsReal() &&
@@ -1153,6 +1194,16 @@ void KernelLoader::FinishClassLoading(const Class& klass,
 
     const String& name =
         H.DartConstructorName(constructor_helper.canonical_name_);
+
+    // We can have synthetic constructors, which will not have a source uri
+    // attached to them (which means the index into the source uri table is 0,
+    // see `package:kernel/binary/ast_to_binary::writeUriReference`.
+    const Object* owner = &klass;
+    const intptr_t source_uri_index = constructor_helper.source_uri_index_;
+    if (source_uri_index != 0) {
+      owner = &ClassForScriptAt(klass, source_uri_index);
+    }
+
     Function& function = Function::ZoneHandle(
         Z, Function::New(name, RawFunction::kConstructor,
                          false,  // is_static
@@ -1160,7 +1211,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                          false,  // is_abstract
                          constructor_helper.IsExternal(),
                          false,  // is_native
-                         klass, constructor_helper.position_));
+                         *owner, constructor_helper.position_));
     function.set_end_token_pos(constructor_helper.end_position_);
     functions_.Add(&function);
     function.set_kernel_offset(constructor_offset);
@@ -1551,6 +1602,18 @@ void KernelLoader::SetupFieldAccessorFunction(const Class& klass,
     function.SetParameterNameAt(pos, Symbols::Value());
     pos++;
   }
+}
+
+Library& KernelLoader::LookupLibraryOrNull(NameIndex library) {
+  Library* handle = NULL;
+  if (!libraries_.Lookup(library, &handle)) {
+    const String& url = H.DartString(H.CanonicalNameString(library));
+    handle = &Library::Handle(Z, Library::LookupLibrary(thread_, url));
+    if (!handle->IsNull()) {
+      libraries_.Insert(library, handle);
+    }
+  }
+  return *handle;
 }
 
 Library& KernelLoader::LookupLibrary(NameIndex library) {

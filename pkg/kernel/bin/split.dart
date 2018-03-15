@@ -25,7 +25,7 @@ void usage() {
 
 main(args) async {
   CommandLineHelper.requireExactlyOneArgument(true, args, usage);
-  Program binary = CommandLineHelper.tryLoadDill(args[0], usage);
+  Component binary = CommandLineHelper.tryLoadDill(args[0], usage);
 
   int part = 1;
   binary.libraries.forEach((lib) => lib.isExternal = true);
@@ -36,19 +36,19 @@ main(args) async {
         lib.name == "nativewrappers") continue;
     lib.isExternal = false;
     String path = args[0] + ".part${part++}.dill";
-    await writeProgramToFile(binary, path);
+    await writeComponentToFile(binary, path);
     print("Wrote $path");
     lib.isExternal = true;
   }
 }
 
-Future<Null> writeProgramToFile(Program program, String path) async {
+Future<Null> writeComponentToFile(Component component, String path) async {
   File output = new File(path);
   IOSink sink = output.openWrite();
   try {
     BinaryPrinter printer =
         new LimitedBinaryPrinter(sink, (lib) => !lib.isExternal, false);
-    printer.writeProgramFile(program);
+    printer.writeComponentFile(component);
   } finally {
     await sink.close();
   }

@@ -36,9 +36,9 @@ class NativeTypeSet {
   final _nativeTypes = new HashSet<Class>.identity();
   final _pendingLibraries = new HashSet<Library>.identity();
 
-  NativeTypeSet(Program program)
-      : sdk = new LibraryIndex.coreLibraries(program),
-        coreTypes = new CoreTypes(program) {
+  NativeTypeSet(Component component)
+      : sdk = new LibraryIndex.coreLibraries(component),
+        coreTypes = new CoreTypes(component) {
     // First, core types:
     // TODO(vsm): If we're analyzing against the main SDK, those
     // types are not explicitly annotated.

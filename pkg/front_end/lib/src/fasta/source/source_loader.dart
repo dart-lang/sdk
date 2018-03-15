@@ -15,7 +15,7 @@ import 'package:kernel/ast.dart'
         Expression,
         Library,
         LibraryDependency,
-        Program,
+        Component,
         Supertype;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -544,7 +544,7 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Checked restricted supertypes");
   }
 
-  void buildProgram() {
+  void buildComponent() {
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
         SourceLibraryBuilder sourceLibrary = library;
@@ -554,10 +554,10 @@ class SourceLoader<L> extends Loader<L> {
         }
       }
     });
-    ticker.logMs("Built program");
+    ticker.logMs("Built component");
   }
 
-  Program computeFullProgram() {
+  Component computeFullProgram() {
     Set<Library> libraries = new Set<Library>();
     List<Library> workList = <Library>[];
     builders.forEach((Uri uri, LibraryBuilder library) {
@@ -575,7 +575,7 @@ class SourceLoader<L> extends Loader<L> {
         }
       }
     }
-    return new Program()..libraries.addAll(libraries);
+    return new Component()..libraries.addAll(libraries);
   }
 
   void computeHierarchy() {
@@ -614,8 +614,8 @@ class SourceLoader<L> extends Loader<L> {
 
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
 
-  void computeCoreTypes(Program program) {
-    coreTypes = new CoreTypes(program);
+  void computeCoreTypes(Component component) {
+    coreTypes = new CoreTypes(component);
     ticker.logMs("Computed core types");
   }
 

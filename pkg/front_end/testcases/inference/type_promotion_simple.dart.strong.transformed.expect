@@ -1,0 +1,10 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::num n = null;
+  if(n is core::int) {
+    core::int i = n{core::int};
+  }
+}

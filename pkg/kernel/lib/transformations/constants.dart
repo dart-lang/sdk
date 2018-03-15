@@ -26,23 +26,23 @@ import '../type_environment.dart';
 import '../class_hierarchy.dart';
 import 'treeshaker.dart' show findNativeName;
 
-Program transformProgram(Program program, ConstantsBackend backend,
+Component transformComponent(Component component, ConstantsBackend backend,
     {bool keepFields: false,
     bool strongMode: false,
     bool enableAsserts: false,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy}) {
-  coreTypes ??= new CoreTypes(program);
-  hierarchy ??= new ClassHierarchy(program);
+  coreTypes ??= new CoreTypes(component);
+  hierarchy ??= new ClassHierarchy(component);
 
   final typeEnvironment =
       new TypeEnvironment(coreTypes, hierarchy, strongMode: strongMode);
 
-  transformLibraries(program.libraries, backend, coreTypes, typeEnvironment,
+  transformLibraries(component.libraries, backend, coreTypes, typeEnvironment,
       keepFields: keepFields,
       strongMode: strongMode,
       enableAsserts: enableAsserts);
-  return program;
+  return component;
 }
 
 void transformLibraries(List<Library> libraries, ConstantsBackend backend,

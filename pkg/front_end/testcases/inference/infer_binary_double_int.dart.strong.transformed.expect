@@ -1,0 +1,30 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field core::bool a_equal = 1.0.{core::num::==}(2);
+static field core::bool a_notEqual = !1.0.{core::num::==}(2);
+static field core::double a_add = 1.0.{core::double::+}(2);
+static field core::double a_subtract = 1.0.{core::double::-}(2);
+static field core::double a_multiply = 1.0.{core::double::*}(2);
+static field core::double a_divide = 1.0.{core::double::/}(2);
+static field core::int a_floorDivide = 1.0.{core::double::~/}(2);
+static field core::bool a_greater = 1.0.{core::num::>}(2);
+static field core::bool a_less = 1.0.{core::num::<}(2);
+static field core::bool a_greaterEqual = 1.0.{core::num::>=}(2);
+static field core::bool a_lessEqual = 1.0.{core::num::<=}(2);
+static field core::double a_modulo = 1.0.{core::double::%}(2);
+static method main() → dynamic {
+  self::a_equal;
+  self::a_notEqual;
+  self::a_add;
+  self::a_subtract;
+  self::a_multiply;
+  self::a_divide;
+  self::a_floorDivide;
+  self::a_greater;
+  self::a_less;
+  self::a_greaterEqual;
+  self::a_lessEqual;
+  self::a_modulo;
+}

@@ -1,0 +1,9 @@
+library test;
+import self as self;
+
+static field dynamic t = true;
+static field dynamic a = throw 0;
+static field dynamic b = (throw 0) ? 1 : 2;
+static field dynamic c = self::t ? throw 1 : 2;
+static field dynamic d = self::t ? 1 : throw 2;
+static method main() → dynamic {}

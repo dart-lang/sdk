@@ -5,7 +5,7 @@ import 'dart:isolate';
 
 import 'package:args/src/arg_results.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
-import 'package:kernel/ast.dart' show Program;
+import 'package:kernel/ast.dart' show Component;
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:vm/incremental_compiler.dart';
@@ -359,7 +359,7 @@ Future<int> main() async {
 
       String boundaryKey;
       stdoutStreamController.stream
-          .transform(UTF8.decoder)
+          .transform(utf8.decoder)
           .transform(const LineSplitter())
           .listen((String s) {
         const String RESULT_OUTPUT_SPACE = 'result ';
@@ -378,7 +378,7 @@ Future<int> main() async {
       final _MockedIncrementalCompiler generator =
           new _MockedIncrementalCompiler();
       when(generator.compile())
-          .thenAnswer((_) => new Future<Program>.value(new Program()));
+          .thenAnswer((_) => new Future<Component>.value(new Component()));
       final _MockedBinaryPrinterFactory printerFactory =
           new _MockedBinaryPrinterFactory();
       when(printerFactory.newBinaryPrinter(any))
@@ -466,7 +466,7 @@ Future<int> main() async {
 
       String boundaryKey;
       stdoutStreamController.stream
-          .transform(UTF8.decoder)
+          .transform(utf8.decoder)
           .transform(const LineSplitter())
           .listen((String s) {
         const String RESULT_OUTPUT_SPACE = 'result ';
@@ -511,6 +511,29 @@ Future<int> main() async {
         }
       });
       expect(await allDone.future, true);
+    });
+
+    test('compile and recompile with MultiRootFileSystem', () async {
+      var file = new File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("main() {}\n");
+      new File('${tempDir.path}/.packages')
+        ..createSync()
+        ..writeAsStringSync("\n");
+      var dillFile = new File('${tempDir.path}/app.dill');
+      expect(dillFile.existsSync(), equals(false));
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--strong',
+        '--incremental',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--packages=test-scheme:///.packages',
+        '--filesystem-root=${tempDir.path}',
+        '--filesystem-scheme=test-scheme',
+        'test-scheme:///foo.dart'
+      ];
+      int exitcode = await starter(args);
+      expect(exitcode, equals(0));
     });
   });
   return 0;

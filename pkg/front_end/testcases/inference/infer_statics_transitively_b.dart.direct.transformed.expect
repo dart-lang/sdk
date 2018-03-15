@@ -1,0 +1,7 @@
+library;
+import self as self;
+
+static final field dynamic b1 = 2;
+static method main() → dynamic {
+  self::b1;
+}

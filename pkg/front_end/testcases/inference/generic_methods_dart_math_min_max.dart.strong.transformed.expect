@@ -1,0 +1,43 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:math" as math;
+
+static method printInt(core::int x) → void
+  return core::print(x);
+static method printDouble(core::double x) → void
+  return core::print(x);
+static method myMax(core::num x, core::num y) → core::num
+  return math::max<core::num>(x, y);
+static method f() → dynamic {
+  self::printInt(math::max<core::int>(1, 2));
+  self::printInt(math::min<core::int>(1, 2));
+  self::printDouble(math::max<core::double>(1.0, 2.0));
+  self::printDouble(math::min<core::double>(1.0, 2.0));
+  self::printInt(self::myMax(1, 2) as{TypeError} core::int);
+  self::printInt(self::myMax(1, 2) as core::int);
+  self::printInt(math::max<core::int>(1, let final core::double #t1 = 2.0 in let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_dart_math_min_max.dart:29:71: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+      /*@typeArgs=int*/ max(1, /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 2.0));
+                                                                      ^"));
+  self::printInt(math::min<core::int>(1, let final core::double #t2 = 2.0 in let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_dart_math_min_max.dart:31:71: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+      /*@typeArgs=int*/ min(1, /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 2.0));
+                                                                      ^"));
+  self::printDouble(math::max<core::double>(let final core::int #t3 = 1 in let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_dart_math_min_max.dart:33:71: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::double'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::double'.
+      /*@typeArgs=double*/ max(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 1, 2.0));
+                                                                      ^", 2.0));
+  self::printDouble(math::min<core::double>(let final core::int #t4 = 1 in let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_dart_math_min_max.dart:35:71: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::double'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::double'.
+      /*@typeArgs=double*/ min(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 1, 2.0));
+                                                                      ^", 2.0));
+  self::printInt(math::min<core::int>(let final core::String #t5 = "hi" in let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_dart_math_min_max.dart:39:46: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+      /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ \"hi\",
+                                             ^", let final core::String #t6 = "there" in let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_dart_math_min_max.dart:40:46: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+      /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ \"there\"));
+                                             ^"));
+}
+static method main() → dynamic {}

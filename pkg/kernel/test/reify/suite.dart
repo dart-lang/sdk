@@ -30,7 +30,7 @@ import 'package:front_end/src/fasta/testing/kernel_chain.dart'
 import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, StdioProcess, Step, runMe;
 
-import 'package:kernel/ast.dart' show Program;
+import 'package:kernel/ast.dart' show Component;
 
 import 'package:kernel/transformations/generic_types_reification.dart'
     as generic_types_reification;
@@ -96,11 +96,11 @@ class NotReifiedTarget extends VmClosureConvertedTarget {
 
   // Tree shaking needs to be disabled, because Generic Types Reification
   // transformation relies on certain runtime libraries to be present in
-  // the program that is being transformed. If the tree shaker is enabled,
+  // the component that is being transformed. If the tree shaker is enabled,
   // it just deletes everything from those libraries, because they aren't
-  // used in the program being transform prior to the transformation.
+  // used in the component being transformed prior to the transformation.
   @override
-  void performTreeShaking(CoreTypes coreTypes, Program program) {}
+  void performTreeShaking(CoreTypes coreTypes, Component component) {}
 
   // Adds the necessary runtime libraries.
   @override
@@ -111,16 +111,18 @@ class NotReifiedTarget extends VmClosureConvertedTarget {
   }
 }
 
-class GenericTypesReification extends Step<Program, Program, TestContext> {
+class GenericTypesReification extends Step<Component, Component, TestContext> {
   const GenericTypesReification();
 
   String get name => "generic types reification";
 
-  Future<Result<Program>> run(Program program, TestContext testContext) async {
+  Future<Result<Component>> run(
+      Component component, TestContext testContext) async {
     try {
-      CoreTypes coreTypes = new CoreTypes(program);
-      program = generic_types_reification.transformProgram(coreTypes, program);
-      return pass(program);
+      CoreTypes coreTypes = new CoreTypes(component);
+      component =
+          generic_types_reification.transformComponent(coreTypes, component);
+      return pass(component);
     } catch (e, s) {
       return crash(e, s);
     }

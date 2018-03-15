@@ -8,7 +8,7 @@ import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/kernel_generator_impl.dart';
-import 'package:kernel/kernel.dart' show Program;
+import 'package:kernel/kernel.dart' show Component;
 import 'package:kernel/target/targets.dart' show Target;
 
 import '../api_prototype/compiler_options.dart';
@@ -19,10 +19,10 @@ export 'compiler_state.dart';
 export '../api_prototype/compilation_message.dart';
 
 class DdcResult {
-  final Program program;
-  final List<Program> inputSummaries;
+  final Component component;
+  final List<Component> inputSummaries;
 
-  DdcResult(this.program, this.inputSummaries);
+  DdcResult(this.component, this.inputSummaries);
 }
 
 Future<InitializedCompilerState> initializeCompiler(
@@ -85,10 +85,10 @@ Future<DdcResult> compile(InitializedCompilerState compilerState,
 
   var compilerResult = await generateKernel(processedOpts);
 
-  var program = compilerResult?.program;
-  if (program == null) return null;
+  var component = compilerResult?.component;
+  if (component == null) return null;
 
   // This should be cached.
   var summaries = await processedOpts.loadInputSummaries(null);
-  return new DdcResult(program, summaries);
+  return new DdcResult(component, summaries);
 }

@@ -6,7 +6,7 @@ import 'dart:async' show Future;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
-import 'package:kernel/kernel.dart' show CanonicalName, Location, Program;
+import 'package:kernel/kernel.dart' show CanonicalName, Component, Location;
 
 import 'package:kernel/target/targets.dart' show Target, TargetFlags;
 
@@ -98,23 +98,23 @@ class ProcessedOptions {
 
   /// The SDK summary, or `null` if it has not been read yet.
   ///
-  /// A summary, also referred to as "outline" internally, is a [Program] where
+  /// A summary, also referred to as "outline" internally, is a [Component] where
   /// all method bodies are left out. In essence, it contains just API
   /// signatures and constants. When strong-mode is enabled, the summary already
   /// includes inferred types.
-  Program _sdkSummaryProgram;
+  Component _sdkSummaryProgram;
 
   /// The summary for each uri in `options.inputSummaries`.
   ///
-  /// A summary, also referred to as "outline" internally, is a [Program] where
+  /// A summary, also referred to as "outline" internally, is a [Component] where
   /// all method bodies are left out. In essence, it contains just API
   /// signatures and constants. When strong-mode is enabled, the summary already
   /// includes inferred types.
-  List<Program> _inputSummariesPrograms;
+  List<Component> _inputSummariesPrograms;
 
   /// Other programs that are meant to be linked and compiled with the input
   /// sources.
-  List<Program> _linkedDependencies;
+  List<Component> _linkedDependencies;
 
   /// The location of the SDK, or `null` if the location hasn't been determined
   /// yet.
@@ -306,18 +306,18 @@ class ProcessedOptions {
   Target get target => _target ??=
       _raw.target ?? new VmTarget(new TargetFlags(strongMode: strongMode));
 
-  /// Get an outline program that summarizes the SDK, if any.
+  /// Get an outline component that summarizes the SDK, if any.
   // TODO(sigmund): move, this doesn't feel like an "option".
-  Future<Program> loadSdkSummary(CanonicalName nameRoot) async {
+  Future<Component> loadSdkSummary(CanonicalName nameRoot) async {
     if (_sdkSummaryProgram == null) {
       if (sdkSummary == null) return null;
       var bytes = await loadSdkSummaryBytes();
-      _sdkSummaryProgram = loadProgram(bytes, nameRoot);
+      _sdkSummaryProgram = loadComponent(bytes, nameRoot);
     }
     return _sdkSummaryProgram;
   }
 
-  void set sdkSummaryComponent(Program platform) {
+  void set sdkSummaryComponent(Component platform) {
     if (_sdkSummaryProgram != null) {
       throw new StateError("sdkSummary already loaded.");
     }
@@ -327,42 +327,42 @@ class ProcessedOptions {
   /// Get the summary programs for each of the underlying `inputSummaries`
   /// provided via [CompilerOptions].
   // TODO(sigmund): move, this doesn't feel like an "option".
-  Future<List<Program>> loadInputSummaries(CanonicalName nameRoot) async {
+  Future<List<Component>> loadInputSummaries(CanonicalName nameRoot) async {
     if (_inputSummariesPrograms == null) {
       var uris = _raw.inputSummaries;
-      if (uris == null || uris.isEmpty) return const <Program>[];
+      if (uris == null || uris.isEmpty) return const <Component>[];
       // TODO(sigmund): throttle # of concurrent opreations.
       var allBytes = await Future
           .wait(uris.map((uri) => fileSystem.entityForUri(uri).readAsBytes()));
       _inputSummariesPrograms =
-          allBytes.map((bytes) => loadProgram(bytes, nameRoot)).toList();
+          allBytes.map((bytes) => loadComponent(bytes, nameRoot)).toList();
     }
     return _inputSummariesPrograms;
   }
 
   /// Load each of the [CompilerOptions.linkedDependencies] programs.
   // TODO(sigmund): move, this doesn't feel like an "option".
-  Future<List<Program>> loadLinkDependencies(CanonicalName nameRoot) async {
+  Future<List<Component>> loadLinkDependencies(CanonicalName nameRoot) async {
     if (_linkedDependencies == null) {
       var uris = _raw.linkedDependencies;
-      if (uris == null || uris.isEmpty) return const <Program>[];
+      if (uris == null || uris.isEmpty) return const <Component>[];
       // TODO(sigmund): throttle # of concurrent opreations.
       var allBytes = await Future
           .wait(uris.map((uri) => fileSystem.entityForUri(uri).readAsBytes()));
       _linkedDependencies =
-          allBytes.map((bytes) => loadProgram(bytes, nameRoot)).toList();
+          allBytes.map((bytes) => loadComponent(bytes, nameRoot)).toList();
     }
     return _linkedDependencies;
   }
 
   /// Helper to load a .dill file from [uri] using the existing [nameRoot].
-  Program loadProgram(List<int> bytes, CanonicalName nameRoot) {
-    Program program = new Program(nameRoot: nameRoot);
+  Component loadComponent(List<int> bytes, CanonicalName nameRoot) {
+    Component component = new Component(nameRoot: nameRoot);
     // TODO(ahe): Pass file name to BinaryBuilder.
     // TODO(ahe): Control lazy loading via an option.
     new BinaryBuilder(bytes, filename: null, disableLazyReading: false)
-        .readProgram(program);
-    return program;
+        .readComponent(component);
+    return component;
   }
 
   /// Get the [UriTranslator] which resolves "package:" and "dart:" URIs.

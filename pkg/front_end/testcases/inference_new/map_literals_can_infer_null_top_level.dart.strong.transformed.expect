@@ -1,0 +1,8 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field core::Map<core::Null, core::Null> x = <core::Null, core::Null>{null: null};
+static method main() → dynamic {
+  self::x;
+}

@@ -13,12 +13,13 @@ import '../metadata/direct_call.dart';
 
 /// Devirtualization of method invocations based on the class hierarchy
 /// analysis. Assumes strong mode and closed world.
-Program transformProgram(CoreTypes coreTypes, Program program) {
+Component transformComponent(CoreTypes coreTypes, Component component) {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
-  final hierarchy = new ClassHierarchy(program,
+  final hierarchy = new ClassHierarchy(component,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
-  new CHADevirtualization(coreTypes, program, hierarchy).visitProgram(program);
-  return program;
+  new CHADevirtualization(coreTypes, component, hierarchy)
+      .visitComponent(component);
+  return component;
 }
 
 /// Base class for implementing devirtualization of method invocations.
@@ -33,12 +34,12 @@ abstract class Devirtualization extends RecursiveVisitor<Null> {
   Set<Name> _objectMemberNames;
 
   Devirtualization(
-      CoreTypes coreTypes, Program program, ClassHierarchy hierarchy)
+      CoreTypes coreTypes, Component component, ClassHierarchy hierarchy)
       : _metadata = new DirectCallMetadataRepository() {
     _objectMemberNames = new Set<Name>.from(hierarchy
         .getInterfaceMembers(coreTypes.objectClass)
         .map((Member m) => m.name));
-    program.addMetadataRepository(_metadata);
+    component.addMetadataRepository(_metadata);
   }
 
   bool isMethod(Member member) => (member is Procedure) && !member.isGetter;
@@ -141,8 +142,8 @@ abstract class Devirtualization extends RecursiveVisitor<Null> {
 class CHADevirtualization extends Devirtualization {
   final ClosedWorldClassHierarchy _hierarchy;
 
-  CHADevirtualization(CoreTypes coreTypes, Program program, this._hierarchy)
-      : super(coreTypes, program, _hierarchy);
+  CHADevirtualization(CoreTypes coreTypes, Component component, this._hierarchy)
+      : super(coreTypes, component, _hierarchy);
 
   @override
   DirectCallMetadata getDirectCall(TreeNode node, Member target,

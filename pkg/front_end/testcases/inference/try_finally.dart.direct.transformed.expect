@@ -1,0 +1,13 @@
+library test;
+import self as self;
+
+static method test(() → void f) → void {
+  try {
+    dynamic x = 0;
+    f.call();
+  }
+  finally {
+    dynamic x = 0;
+  }
+}
+static method main() → dynamic {}

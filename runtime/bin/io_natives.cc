@@ -146,7 +146,7 @@ namespace bin {
   V(Socket_RecvFrom, 1)                                                        \
   V(Socket_SendTo, 6)                                                          \
   V(Socket_SetOption, 4)                                                       \
-  V(Socket_SetSocketId, 2)                                                     \
+  V(Socket_SetSocketId, 3)                                                     \
   V(Socket_WriteList, 4)                                                       \
   V(Stdin_ReadByte, 1)                                                         \
   V(Stdin_GetEchoMode, 1)                                                      \

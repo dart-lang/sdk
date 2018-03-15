@@ -15,7 +15,7 @@ import 'package:test/test.dart';
 
 const bool kDumpActualResult = const bool.fromEnvironment('dump.actual.result');
 
-Future<Program> compileTestCaseToKernelProgram(Uri sourceUri) async {
+Future<Component> compileTestCaseToKernelProgram(Uri sourceUri) async {
   final platformKernel =
       computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
   final options = new CompilerOptions()

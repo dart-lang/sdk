@@ -1,0 +1,6 @@
+library test;
+import self as self;
+
+static field dynamic x = () → dynamic => self::y;
+static field dynamic y = () → dynamic => self::x;
+static method main() → dynamic {}

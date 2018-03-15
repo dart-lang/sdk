@@ -35,12 +35,23 @@ class Socket : public ReferenceCounted<Socket> {
     kFinalizerNormal,
     kFinalizerListening,
     kFinalizerStdio,
+    kFinalizerSignal,
+  };
+
+  // Keep in sync with constants in _NativeSocket in socket_patch.dart.
+  enum SocketType {
+    kTcpSocket = 18,
+    kUdpSocket = 19,
+    kInternalSocket = 20,
+    kInternalSignalSocket = 21,
   };
 
   explicit Socket(intptr_t fd);
 
   intptr_t fd() const { return fd_; }
   void SetClosedFd();
+
+  Dart_Port isolate_port() const { return isolate_port_; }
 
   Dart_Port port() const { return port_; }
   void set_port(Dart_Port port) { port_ = port; }
@@ -84,6 +95,10 @@ class Socket : public ReferenceCounted<Socket> {
     short_socket_write_ = short_socket_write;
   }
 
+  static bool IsSignalSocketFlag(intptr_t flag) {
+    return ((flag & (0x1 << kInternalSignalSocket)) != 0);
+  }
+
  private:
   ~Socket() {
     ASSERT(fd_ == kClosedFd);
@@ -97,6 +112,7 @@ class Socket : public ReferenceCounted<Socket> {
   static bool short_socket_write_;
 
   intptr_t fd_;
+  Dart_Port isolate_port_;
   Dart_Port port_;
   uint8_t* udp_receive_buffer_;
 

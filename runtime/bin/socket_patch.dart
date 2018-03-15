@@ -280,14 +280,19 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   static const int TYPE_TYPE_MASK = TYPE_LISTENING_SOCKET | PIPE_SOCKET;
 
   // Protocol flags.
+  // Keep in sync with SocketType enum in socket.h.
   static const int TCP_SOCKET = 18;
   static const int UDP_SOCKET = 19;
   static const int INTERNAL_SOCKET = 20;
+  static const int INTERNAL_SIGNAL_SOCKET = 21;
   static const int TYPE_TCP_SOCKET = 1 << TCP_SOCKET;
   static const int TYPE_UDP_SOCKET = 1 << UDP_SOCKET;
   static const int TYPE_INTERNAL_SOCKET = 1 << INTERNAL_SOCKET;
-  static const int TYPE_PROTOCOL_MASK =
-      TYPE_TCP_SOCKET | TYPE_UDP_SOCKET | TYPE_INTERNAL_SOCKET;
+  static const int TYPE_INTERNAL_SIGNAL_SOCKET = 1 << INTERNAL_SIGNAL_SOCKET;
+  static const int TYPE_PROTOCOL_MASK = TYPE_TCP_SOCKET |
+      TYPE_UDP_SOCKET |
+      TYPE_INTERNAL_SOCKET |
+      TYPE_INTERNAL_SIGNAL_SOCKET;
 
   // Native port messages.
   static const HOST_NAME_LOOKUP = 0;
@@ -581,15 +586,21 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
 
   _NativeSocket.pipe() : typeFlags = TYPE_PIPE;
 
-  _NativeSocket.watch(int id)
-      : typeFlags = TYPE_NORMAL_SOCKET | TYPE_INTERNAL_SOCKET {
+  _NativeSocket._watchCommon(int id, int type)
+      : typeFlags = TYPE_NORMAL_SOCKET | type {
     isClosedWrite = true;
-    nativeSetSocketId(id);
+    nativeSetSocketId(id, typeFlags);
   }
+
+  _NativeSocket.watchSignal(int id)
+      : this._watchCommon(id, TYPE_INTERNAL_SIGNAL_SOCKET);
+
+  _NativeSocket.watch(int id) : this._watchCommon(id, TYPE_INTERNAL_SOCKET);
 
   bool get isListening => (typeFlags & TYPE_LISTENING_SOCKET) != 0;
   bool get isPipe => (typeFlags & TYPE_PIPE) != 0;
   bool get isInternal => (typeFlags & TYPE_INTERNAL_SOCKET) != 0;
+  bool get isInternalSignal => (typeFlags & TYPE_INTERNAL_SIGNAL_SOCKET) != 0;
   bool get isTcp => (typeFlags & TYPE_TCP_SOCKET) != 0;
   bool get isUdp => (typeFlags & TYPE_UDP_SOCKET) != 0;
 
@@ -612,13 +623,13 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     if (result != null) {
       available -= result.length;
       // TODO(ricow): Remove when we track internal and pipe uses.
-      assert(resourceInfo != null || isPipe || isInternal);
+      assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
       if (resourceInfo != null) {
         resourceInfo.totalRead += result.length;
       }
     }
     // TODO(ricow): Remove when we track internal and pipe uses.
-    assert(resourceInfo != null || isPipe || isInternal);
+    assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
     if (resourceInfo != null) {
       resourceInfo.didRead();
     }
@@ -639,13 +650,13 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       // emit read events.
       available = nativeAvailable();
       // TODO(ricow): Remove when we track internal and pipe uses.
-      assert(resourceInfo != null || isPipe || isInternal);
+      assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
       if (resourceInfo != null) {
         resourceInfo.totalRead += result.data.length;
       }
     }
     // TODO(ricow): Remove when we track internal and pipe uses.
-    assert(resourceInfo != null || isPipe || isInternal);
+    assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
     if (resourceInfo != null) {
       resourceInfo.didRead();
     }
@@ -689,7 +700,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     // Negate the result, as stated above.
     if (result < 0) result = -result;
     // TODO(ricow): Remove when we track internal and pipe uses.
-    assert(resourceInfo != null || isPipe || isInternal);
+    assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
     if (resourceInfo != null) {
       resourceInfo.addWrite(result);
     }
@@ -710,7 +721,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       result = 0;
     }
     // TODO(ricow): Remove when we track internal and pipe uses.
-    assert(resourceInfo != null || isPipe || isInternal);
+    assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
     if (resourceInfo != null) {
       resourceInfo.addWrite(result);
     }
@@ -730,7 +741,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     socket.localAddress = address;
     setupResourceInfo(socket);
     // TODO(ricow): Remove when we track internal and pipe uses.
-    assert(resourceInfo != null || isPipe || isInternal);
+    assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
     if (resourceInfo != null) {
       // We track this as read one byte.
       resourceInfo.addRead(1);
@@ -850,7 +861,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           assert(isClosing);
           assert(!isClosed);
           // TODO(ricow): Remove/update when we track internal and pipe uses.
-          assert(resourceInfo != null || isPipe || isInternal);
+          assert(
+              resourceInfo != null || isPipe || isInternal || isInternalSignal);
           if (resourceInfo != null) {
             _SocketResourceInfo.SocketClosed(resourceInfo);
           }
@@ -1084,7 +1096,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     if (result is OSError) throw result;
   }
 
-  void nativeSetSocketId(int id) native "Socket_SetSocketId";
+  void nativeSetSocketId(int id, int typeFlags) native "Socket_SetSocketId";
   nativeAvailable() native "Socket_Available";
   nativeRead(int len) native "Socket_Read";
   nativeRecvFrom() native "Socket_RecvFrom";

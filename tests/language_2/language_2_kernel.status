@@ -694,8 +694,6 @@ library_env_test/has_no_mirror_support: RuntimeError
 local_function2_test/none: RuntimeError
 local_function3_test/none: RuntimeError
 local_function_test/none: RuntimeError
-main_not_a_function_test: Skip
-main_not_a_function_test: DartkCrash
 main_test/03: RuntimeError
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError

@@ -97,7 +97,16 @@ template("dart2js_compile") {
 
   compiled_action(target_name) {
     tool = "../../runtime/bin:dart"
-    inputs = sdk_lib_files + compiler_files + dev_compiler_files
+    deps = [
+      "../compiler:compile_dart2js_platform",
+      "../compiler:compile_dart2js_platform_strong",
+    ]
+    inputs = sdk_lib_files + compiler_files + dev_compiler_files + [
+               "$root_out_dir/dart2js_platform.dill",
+               "$root_out_dir/dart2js_outline.dill",
+               "$root_out_dir/dart2js_platform_strong.dill",
+               "$root_out_dir/dart2js_outline_strong.dill",
+             ]
     outputs = [
       out,
     ]
@@ -233,10 +242,10 @@ dart_action("dartdevc_sdk") {
 group("dartdevc_test") {
   deps = [
     ":dartdevc",
-    ":dartdevk",
     ":dartdevc_sdk",
     ":dartdevc_sdk_kernel_summary",
     ":dartdevc_test_pkg",
+    ":dartdevk",
     "../../sdk:create_sdk",
   ]
 }

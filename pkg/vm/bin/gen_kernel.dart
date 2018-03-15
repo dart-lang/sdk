@@ -8,7 +8,7 @@ import 'dart:io';
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
-import 'package:kernel/kernel.dart' show Program;
+import 'package:kernel/kernel.dart' show Component;
 import 'package:kernel/src/tool/batch_util.dart' as batch_util;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/target/vm.dart' show VmTarget;
@@ -29,15 +29,14 @@ final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
   ..addFlag('strong-mode', help: 'Enable strong mode', defaultsTo: true)
   ..addFlag('sync-async', help: 'Start `async` functions synchronously')
   ..addFlag('embed-sources',
-      help: 'Embed source files in the generated kernel program',
+      help: 'Embed source files in the generated kernel component',
       defaultsTo: true)
   ..addFlag('tfa',
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
       defaultsTo: true)
-  ..addOption('entry-points',
-      help: 'Path to JSON file with the list of entry points',
-      allowMultiple: true);
+  ..addMultiOption('entry-points',
+      help: 'Path to JSON file with the list of entry points');
 
 final String _usage = '''
 Usage: dart pkg/vm/bin/gen_kernel.dart --platform vm_platform_strong.dill [options] input.dart
@@ -99,17 +98,17 @@ Future<int> compile(List<String> arguments) async {
     ..onError = errorDetector
     ..embedSourceText = options['embed-sources'];
 
-  Program program = await compileToKernel(
+  Component component = await compileToKernel(
       Uri.base.resolveUri(new Uri.file(filename)), compilerOptions,
       aot: aot, useGlobalTypeFlowAnalysis: tfa, entryPoints: entryPoints);
 
-  if (errorDetector.hasCompilationErrors || (program == null)) {
+  if (errorDetector.hasCompilationErrors || (component == null)) {
     return _compileTimeErrorExitCode;
   }
 
   final IOSink sink = new File(kernelBinaryFilename).openWrite();
   final BinaryPrinter printer = new BinaryPrinter(sink);
-  printer.writeProgramFile(program);
+  printer.writeComponentFile(component);
   await sink.close();
 
   return 0;

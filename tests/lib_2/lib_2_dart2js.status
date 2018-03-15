@@ -411,9 +411,6 @@ html/webgl_1_test: Pass, Fail # Issue 8219
 html/websql_test: Fail
 isolate/kill_self_synchronously_test: RuntimeError
 
-[ $compiler == dart2js && $runtime == ff && $fast_startup && $fasta ]
-html/fileapi_entry_test: RuntimeError
-
 [ $compiler == dart2js && $runtime == ie11 ]
 html/element_types_content_test: RuntimeError # Issue 29922
 html/element_types_datalist_test: RuntimeError # Issue 29922
@@ -519,21 +516,6 @@ js/null_test: RuntimeError # Issue 30652
 [ $compiler == dart2js && $browser && $csp ]
 html/custom/element_upgrade_test: Fail # Issue 17298
 html/custom/js_custom_test: Fail # Issue 14643
-
-[ $compiler == dart2js && $browser && !$csp && $fast_startup && $fasta ]
-async/stream_iterator_test: RuntimeError
-html/fileapi_directory_reader_test: RuntimeError
-html/fileapi_directory_test: RuntimeError
-html/fileapi_file_entry_test: RuntimeError
-html/fileapi_file_test: RuntimeError
-html/fileapi_supported_test: RuntimeError
-html/fileapi_supported_throws_test: RuntimeError
-html/websql_test: RuntimeError
-isolate/browser/package_resolve_browser_hook2_test: RuntimeError
-isolate/browser/package_resolve_browser_test: RuntimeError
-
-[ $compiler == dart2js && $browser && $fast_startup && $fasta ]
-isolate/browser/package_resolve_browser_hook_test: RuntimeError
 
 [ $compiler == dart2js && !$browser && $fast_startup ]
 isolate/isolate_current_test: Fail # please triage

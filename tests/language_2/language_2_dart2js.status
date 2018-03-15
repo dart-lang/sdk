@@ -2390,6 +2390,7 @@ invocation_mirror_test: RuntimeError
 issue18628_2_test/01: MissingCompileTimeError
 issue21079_test: RuntimeError
 issue23244_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+issue28498_test: Crash
 issue31596_override_test/07: MissingCompileTimeError
 issue31596_override_test/08: MissingCompileTimeError
 issue31596_super_test/01: CompileTimeError

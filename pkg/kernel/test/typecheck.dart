@@ -11,7 +11,7 @@ import 'dart:io';
 final String usage = '''
 Usage: typecheck FILE.dill
 
-Runs the strong mode type checker on the given program.
+Runs the strong mode type checker on the given component.
 ''';
 
 main(List<String> args) {
@@ -19,10 +19,10 @@ main(List<String> args) {
     print(usage);
     exit(1);
   }
-  var program = loadProgramFromBinary(args[0]);
-  var coreTypes = new CoreTypes(program);
-  var hierarchy = new ClassHierarchy(program);
-  new TestTypeChecker(coreTypes, hierarchy).checkProgram(program);
+  var component = loadComponentFromBinary(args[0]);
+  var coreTypes = new CoreTypes(component);
+  var hierarchy = new ClassHierarchy(component);
+  new TestTypeChecker(coreTypes, hierarchy).checkComponent(component);
 }
 
 class TestTypeChecker extends TypeChecker {

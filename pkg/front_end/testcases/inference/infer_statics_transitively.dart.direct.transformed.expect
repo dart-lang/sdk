@@ -1,0 +1,12 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "./infer_statics_transitively_a.dart" as inf;
+
+static final field dynamic m1 = inf::a1;
+static final field dynamic m2 = inf::A::a2;
+static method foo() → dynamic {
+  core::int i;
+  i = self::m1;
+}
+static method main() → dynamic {}

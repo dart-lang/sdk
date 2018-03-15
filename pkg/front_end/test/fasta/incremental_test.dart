@@ -10,7 +10,7 @@ import "dart:convert" show JsonEncoder;
 
 import "dart:io" show File;
 
-import "package:kernel/ast.dart" show Program;
+import "package:kernel/ast.dart" show Component;
 
 import "package:testing/testing.dart"
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
@@ -146,7 +146,7 @@ class RunCompilations extends Step<TestCase, TestCase, Context> {
         return edits == 0 ? fail(test, "No sources found") : pass(test);
       }
       var compiler = context.compiler;
-      Program program = await compiler.computeDelta(entryPoint: entryPoint);
+      Component component = await compiler.computeDelta(entryPoint: entryPoint);
       List<CompilationMessage> errors = context.takeErrors();
       if (test.expectations[edits].hasCompileTimeError) {
         if (errors.isEmpty) {
@@ -155,7 +155,7 @@ class RunCompilations extends Step<TestCase, TestCase, Context> {
       } else if (errors.isNotEmpty) {
         return fail(
             test, "Unexpected compile-time errors:\n  ${errors.join('\n  ')}");
-      } else if (program.libraries.length < 1) {
+      } else if (component.libraries.length < 1) {
         return fail(test, "The compiler detected no changes");
       }
     }

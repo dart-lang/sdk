@@ -11,9 +11,9 @@ const String varRegexp = "#t[0-9]+";
 
 const String tvarRegexp = "#T[0-9]+";
 
-/// Checks that the verifier correctly find errors in invalid programs.
+/// Checks that the verifier correctly find errors in invalid components.
 ///
-/// The frontend should never generate invalid programs, so we have to test
+/// The frontend should never generate invalid components, so we have to test
 /// these by manually constructing invalid ASTs.
 ///
 /// We mostly test negative cases here, as we get plenty of positive cases by
@@ -66,7 +66,7 @@ main() {
   negativeTest('Class redeclared',
       "Class 'test_lib::OtherClass' declared more than once.",
       (TestHarness test) {
-    return test.otherClass; // Test harness also adds otherClass to program.
+    return test.otherClass; // Test harness also adds otherClass to component.
   });
   negativeTest('Class type parameter redeclared',
       matches("Type parameter 'test_lib::Test::$tvarRegexp' redeclared\\."),
@@ -478,18 +478,18 @@ main() {
   });
 }
 
-checkHasError(Program program, Matcher matcher) {
+checkHasError(Component component, Matcher matcher) {
   try {
-    verifyProgram(program);
+    verifyComponent(component);
   } on VerificationError catch (e) {
     expect(e.details, matcher);
     return;
   }
-  fail('Failed to reject invalid program:\n${programToString(program)}');
+  fail('Failed to reject invalid component:\n${componentToString(component)}');
 }
 
 class TestHarness {
-  Program program;
+  Component component;
   Class objectClass;
   Library stubLibrary;
 
@@ -541,18 +541,18 @@ class TestHarness {
   }
 
   TestHarness() {
-    setupProgram();
+    setupComponent();
   }
 
-  void setupProgram() {
-    program = new Program();
+  void setupComponent() {
+    component = new Component();
     stubLibrary = new Library(Uri.parse('dart:core'));
-    program.libraries.add(stubLibrary..parent = program);
+    component.libraries.add(stubLibrary..parent = component);
     stubLibrary.name = 'dart.core';
     objectClass = new Class(name: 'Object');
     stubLibrary.addClass(objectClass);
     enclosingLibrary = new Library(Uri.parse('file://test.dart'));
-    program.libraries.add(enclosingLibrary..parent = program);
+    component.libraries.add(enclosingLibrary..parent = component);
     enclosingLibrary.name = 'test_lib';
     classTypeParameter = makeTypeParameter('T');
     enclosingClass = new Class(
@@ -578,7 +578,7 @@ negativeTest(String name, matcher, TreeNode makeTestCase(TestHarness test)) {
   test(name, () {
     var test = new TestHarness();
     test.addNode(makeTestCase(test));
-    checkHasError(test.program, matcher);
+    checkHasError(test.component, matcher);
   });
 }
 
@@ -586,6 +586,6 @@ positiveTest(String name, TreeNode makeTestCase(TestHarness test)) {
   test(name, () {
     var test = new TestHarness();
     test.addNode(makeTestCase(test));
-    verifyProgram(test.program);
+    verifyComponent(test.component);
   });
 }

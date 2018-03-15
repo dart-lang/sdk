@@ -4,7 +4,7 @@
 
 import 'dart:async' show Future;
 
-import 'package:kernel/kernel.dart' show Program;
+import 'package:kernel/kernel.dart' show Component;
 
 import '../base/processed_options.dart' show ProcessedOptions;
 
@@ -22,9 +22,8 @@ abstract class IncrementalKernelGenerator {
         bootstrapDill);
   }
 
-  /// Returns a component (nee program) whose libraries are the recompiled
-  /// libraries.
-  Future<Program> computeDelta({Uri entryPoint});
+  /// Returns a component whose libraries are the recompiled libraries.
+  Future<Component> computeDelta({Uri entryPoint});
 
   /// Remove the file associated with the given file [uri] from the set of
   /// valid files.  This guarantees that those files will be re-read on the

@@ -1,0 +1,13 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef ToValue<T extends core::Object> = (T) → void;
+static method main() → dynamic {
+  function f<T extends core::Object>(T x) → (T) → void
+    return null;
+  dynamic x = f.call<core::int>(42);
+  dynamic y = f.call(42);
+  (core::int) → void takesInt = x;
+  takesInt = y;
+}

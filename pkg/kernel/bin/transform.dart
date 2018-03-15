@@ -37,8 +37,7 @@ ArgParser parser = new ArgParser()
       negatable: false,
       help: 'Be verbose (e.g. prints transformed main library).',
       defaultsTo: false)
-  ..addOption('embedder-entry-points-manifest',
-      allowMultiple: true,
+  ..addMultiOption('embedder-entry-points-manifest',
       help: 'A path to a file describing entrypoints '
           '(lines of the form `<library>,<class>,<member>`).')
   ..addOption('transformation',
@@ -83,23 +82,23 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
   List<treeshaker.ProgramRoot> programRoots =
       parseProgramRoots(embedderEntryPointManifests);
 
-  var program = loadProgramFromBinary(input);
+  var component = loadComponentFromBinary(input);
 
-  final coreTypes = new CoreTypes(program);
-  final hierarchy = new ClassHierarchy(program);
+  final coreTypes = new CoreTypes(component);
+  final hierarchy = new ClassHierarchy(component);
   switch (options['transformation']) {
     case 'continuation':
-      program = cont.transformProgram(coreTypes, program, syncAsync);
+      component = cont.transformComponent(coreTypes, component, syncAsync);
       break;
     case 'resolve-mixins':
       mix.transformLibraries(
-          new NoneTarget(null), coreTypes, hierarchy, program.libraries);
+          new NoneTarget(null), coreTypes, hierarchy, component.libraries);
       break;
     case 'closures':
-      program = closures.transformProgram(coreTypes, program);
+      component = closures.transformComponent(coreTypes, component);
       break;
     case 'coq':
-      program = coq.transformProgram(coreTypes, program);
+      component = coq.transformComponent(coreTypes, component);
       break;
     case 'constants':
       // We use the -D defines supplied to this VM instead of explicitly using a
@@ -107,17 +106,18 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
       final Map<String, String> defines = null;
       final VmConstantsBackend backend =
           new VmConstantsBackend(defines, coreTypes);
-      program = constants.transformProgram(program, backend);
+      component = constants.transformComponent(component, backend);
       break;
     case 'treeshake':
-      program = treeshaker.transformProgram(coreTypes, hierarchy, program,
+      component = treeshaker.transformComponent(coreTypes, hierarchy, component,
           programRoots: programRoots);
       break;
     case 'methodcall':
-      program = method_call.transformProgram(coreTypes, hierarchy, program);
+      component =
+          method_call.transformComponent(coreTypes, hierarchy, component);
       break;
     case 'empty':
-      program = empty.transformProgram(program);
+      component = empty.transformComponent(component);
       break;
     default:
       throw 'Unknown transformation';
@@ -126,17 +126,17 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
   // TODO(30631): Fix the verifier so we can check that the transform produced
   // valid output.
   //
-  // verifyProgram(program);
+  // verifyComponent(component);
 
   if (format == 'text') {
-    writeProgramToText(program, path: output);
+    writeComponentToText(component, path: output);
   } else {
     assert(format == 'bin');
-    await writeProgramToBinary(program, output);
+    await writeComponentToBinary(component, output);
   }
 
   if (verbose) {
-    writeLibraryToText(program.mainMethod.parent as Library);
+    writeLibraryToText(component.mainMethod.parent as Library);
   }
 
   return CompilerOutcome.Ok;

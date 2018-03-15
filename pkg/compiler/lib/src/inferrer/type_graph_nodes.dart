@@ -323,7 +323,7 @@ class ParameterAssignments extends IterableBase<TypeInformation> {
 }
 
 /**
- * A node representing a resolved element of the program. The kind of
+ * A node representing a resolved element of the component. The kind of
  * elements that need an [ElementTypeInformation] are:
  *
  * - Functions (including getters and setters)

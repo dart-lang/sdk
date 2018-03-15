@@ -43,6 +43,7 @@ namespace bin {
 Socket::Socket(intptr_t fd)
     : ReferenceCounted(),
       fd_(fd),
+      isolate_port_(Dart_GetMainPortId()),
       port_(ILLEGAL_PORT),
       udp_receive_buffer_(NULL) {}
 

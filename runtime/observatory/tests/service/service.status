@@ -8,6 +8,7 @@ get_isolate_rpc_test: Pass, RuntimeError # Issue 29324
 get_retained_size_rpc_test: Pass, RuntimeError # Issue 28193
 isolate_lifecycle_test: Pass, RuntimeError # Issue 24174
 reload_sources_test: Pass, Slow # Reload is slow on the bots
+valid_source_locations_test: Pass, Slow # Generally slow, even in release-x64.
 
 [ $arch == arm ]
 process_service_test: Pass, Fail # Issue 24344
@@ -97,3 +98,4 @@ step_through_getter_test: RuntimeError # Debugging StringConcatenation doesn't w
 # Skip all service tests because random reloads interfere.
 [ $hot_reload || $hot_reload_rollback ]
 *: SkipByDesign # The service tests should run without being reloaded.
+

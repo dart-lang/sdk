@@ -1,0 +1,11 @@
+library test;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+static method test() → dynamic {
+  asy::Future<core::int> f;
+  asy::Future<core::List<core::int>> b = f.then((dynamic x) → dynamic => <dynamic>[]).whenComplete(() → dynamic {});
+  b = f.then((dynamic x) → dynamic => <dynamic>[]);
+}
+static method main() → dynamic {}
