@@ -5144,6 +5144,7 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
 
   Dart_Handle result;
   if (I->use_dart_frontend()) {
+    // TODO(kernel): Fix callers to use Dart_LoadScriptFromKernel.
     if ((source == Api::Null()) || (source == NULL)) {
       RETURN_NULL_ERROR(source);
     }
@@ -5260,13 +5261,14 @@ DART_EXPORT void* Dart_ReadKernelBinary(const uint8_t* buffer,
   return NULL;
 #else
   kernel::Program* program =
-      ReadPrecompiledKernelFromBuffer(buffer, buffer_len);
+      kernel::Program::ReadFromBuffer(buffer, buffer_len);
   program->set_release_buffer_callback(callback);
   return program;
 #endif
 }
 
-DART_EXPORT Dart_Handle Dart_LoadKernel(void* kernel_program) {
+DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
+                                                  intptr_t buffer_size) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
 #else
@@ -5284,9 +5286,8 @@ DART_EXPORT Dart_Handle Dart_LoadKernel(void* kernel_program) {
   CHECK_CALLBACK_STATE(T);
   CHECK_COMPILATION_ALLOWED(I);
 
-  // NOTE: Now the VM owns the [kernel_program] memory!
-  // We will promptly delete it when done.
-  kernel::Program* program = reinterpret_cast<kernel::Program*>(kernel_program);
+  kernel::Program* program = kernel::Program::ReadFromBuffer(
+      buffer, buffer_size, false /* take_buffer_ownership */);
   const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program);
   delete program;
 
@@ -5509,6 +5510,7 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
   }
   Dart_Handle result;
   if (I->use_dart_frontend()) {
+    // TODO(kernel): Fix callers to use Dart_LoadLibraryFromKernel.
     void* kernel_pgm = reinterpret_cast<void*>(source);
     result = LoadKernelProgram(T, url_str, kernel_pgm);
     if (::Dart_IsError(result)) {
@@ -5570,6 +5572,29 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
     }
   }
   return result;
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+}
+
+DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
+                                                   intptr_t buffer_size) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
+#else
+  DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
+  StackZone zone(T);
+  Isolate* I = T->isolate();
+
+  CHECK_CALLBACK_STATE(T);
+  CHECK_COMPILATION_ALLOWED(I);
+
+  kernel::Program* program = kernel::Program::ReadFromBuffer(
+      buffer, buffer_size, false /* take_buffer_ownership */);
+  const Object& result =
+      kernel::KernelLoader::LoadEntireProgram(program, false);
+  delete program;
+
+  return Api::NewHandle(T, result.raw());
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 

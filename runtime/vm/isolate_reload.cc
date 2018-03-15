@@ -585,11 +585,11 @@ void IsolateReloadContext::Reload(bool force_reload,
     intptr_t num_libs = libs.Length();
     modified_libs_ = new (Z) BitVector(Z, num_libs);
 
-    // ReadPrecompiledKernelFromFile checks to see if the file at
+    // ReadKernelFromFile checks to see if the file at
     // root_script_url is a valid .dill file. If that's the case, a Program*
     // is returned. Otherwise, this is likely a source file that needs to be
-    // compiled, so ReadPrecompiledKernelFromFile returns NULL.
-    kernel_program.set(ReadPrecompiledKernelFromFile(root_script_url));
+    // compiled, so ReadKernelFromFile returns NULL.
+    kernel_program.set(kernel::Program::ReadFromFile(root_script_url));
     if (kernel_program.get() == NULL) {
       TransitionVMToNative transition(thread);
       Dart_SourceFile* modified_scripts = NULL;
@@ -613,7 +613,7 @@ void IsolateReloadContext::Reload(bool force_reload,
       }
       did_kernel_compilation = true;
       kernel_program.set(
-          ReadPrecompiledKernelFromBuffer(retval.kernel, retval.kernel_size));
+          kernel::Program::ReadFromBuffer(retval.kernel, retval.kernel_size));
     }
 
     kernel_program.get()->set_release_buffer_callback(ReleaseFetchedBytes);

@@ -77,9 +77,7 @@ Program* Program::ReadFrom(Reader* reader, bool take_buffer_ownership) {
   return program;
 }
 
-}  // namespace kernel
-
-kernel::Program* ReadPrecompiledKernelFromFile(const char* script_uri) {
+Program* Program::ReadFromFile(const char* script_uri) {
   Thread* thread = Thread::Current();
   if (script_uri == NULL) {
     return NULL;
@@ -108,11 +106,13 @@ kernel::Program* ReadPrecompiledKernelFromFile(const char* script_uri) {
   return kernel_program;
 }
 
-kernel::Program* ReadPrecompiledKernelFromBuffer(const uint8_t* buffer,
-                                                 intptr_t buffer_length) {
+Program* Program::ReadFromBuffer(const uint8_t* buffer,
+                                 intptr_t buffer_length,
+                                 bool take_buffer_ownership) {
   kernel::Reader reader(buffer, buffer_length);
-  return kernel::Program::ReadFrom(&reader);
+  return kernel::Program::ReadFrom(&reader, take_buffer_ownership);
 }
 
+}  // namespace kernel
 }  // namespace dart
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

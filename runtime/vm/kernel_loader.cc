@@ -192,49 +192,50 @@ KernelLoader::KernelLoader(Program* program)
   initialize_fields();
 }
 
-Object& KernelLoader::LoadEntireProgram(Program* program) {
+Object& KernelLoader::LoadEntireProgram(Program* program,
+                                        bool process_pending_classes) {
   if (program->is_single_program()) {
     KernelLoader loader(program);
-    return loader.LoadProgram();
-  } else {
-    kernel::Reader reader(program->kernel_data(), program->kernel_data_size());
-    GrowableArray<intptr_t> subprogram_file_starts;
-    index_programs(&reader, &subprogram_file_starts);
-
-    Thread* thread = Thread::Current();
-    Zone* zone = thread->zone();
-    Library& library = Library::Handle(zone);
-    // Create "fake programs" for each sub-program.
-    intptr_t subprogram_count = subprogram_file_starts.length() - 1;
-    for (intptr_t i = 0; i < subprogram_count; ++i) {
-      intptr_t subprogram_start = subprogram_file_starts.At(i);
-      intptr_t subprogram_end = subprogram_file_starts.At(i + 1);
-      reader.set_raw_buffer(program->kernel_data() + subprogram_start);
-      reader.set_size(subprogram_end - subprogram_start);
-      reader.set_offset(0);
-      Program* subprogram = Program::ReadFrom(&reader, false);
-      ASSERT(subprogram->is_single_program());
-      KernelLoader loader(subprogram);
-      Object& load_result = loader.LoadProgram(false);
-      if (load_result.IsError()) return load_result;
-
-      if (library.IsNull() && load_result.IsLibrary()) {
-        library ^= load_result.raw();
-      }
-
-      delete subprogram;
-    }
-
-    if (!ClassFinalizer::ProcessPendingClasses()) {
-      // Class finalization failed -> sticky error would be set.
-      Error& error = Error::Handle(zone);
-      error = thread->sticky_error();
-      thread->clear_sticky_error();
-      return error;
-    }
-
-    return library;
+    return loader.LoadProgram(process_pending_classes);
   }
+
+  kernel::Reader reader(program->kernel_data(), program->kernel_data_size());
+  GrowableArray<intptr_t> subprogram_file_starts;
+  index_programs(&reader, &subprogram_file_starts);
+
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Library& library = Library::Handle(zone);
+  // Create "fake programs" for each sub-program.
+  intptr_t subprogram_count = subprogram_file_starts.length() - 1;
+  for (intptr_t i = 0; i < subprogram_count; ++i) {
+    intptr_t subprogram_start = subprogram_file_starts.At(i);
+    intptr_t subprogram_end = subprogram_file_starts.At(i + 1);
+    reader.set_raw_buffer(program->kernel_data() + subprogram_start);
+    reader.set_size(subprogram_end - subprogram_start);
+    reader.set_offset(0);
+    Program* subprogram = Program::ReadFrom(&reader, false);
+    ASSERT(subprogram->is_single_program());
+    KernelLoader loader(subprogram);
+    Object& load_result = loader.LoadProgram(false);
+    if (load_result.IsError()) return load_result;
+
+    if (library.IsNull() && load_result.IsLibrary()) {
+      library ^= load_result.raw();
+    }
+
+    delete subprogram;
+  }
+
+  if (process_pending_classes && !ClassFinalizer::ProcessPendingClasses()) {
+    // Class finalization failed -> sticky error would be set.
+    Error& error = Error::Handle(zone);
+    error = thread->sticky_error();
+    thread->clear_sticky_error();
+    return error;
+  }
+
+  return library;
 }
 
 void KernelLoader::index_programs(

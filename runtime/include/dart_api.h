@@ -862,9 +862,6 @@ Dart_CreateIsolate(const char* script_uri,
  *
  * Requires there to be no current isolate.
  *
- * After this call, the `kernel_program` needs to be supplied to a call to
- * `Dart_LoadKernel()` which will then take ownership of the memory.
- *
  * \param script_uri The main source file or snapshot this isolate will load.
  *   The VM will provide this URI to the Dart_IsolateCreateCallback when a child
  *   isolate is created by Isolate.spawn. The embedder should use a URI that
@@ -2870,17 +2867,18 @@ Dart_LoadScriptFromSnapshot(const uint8_t* script_snapshot_buffer,
                             intptr_t script_snapshot_size);
 
 /**
- * Loads a dart application via an in-memory kernel program.
+ * Loads the root library for the current isolate.
  *
- * \param kernel_program The kernel program obtained via
- *        `Dart_ReadKernelBinary`.
+ * Requires there to be no current root library.
  *
- * The VM will take ownership of the `kernel_program` object.
+ * \param buffer A buffer which contains a kernel binary (see
+ *               pkg/kernel/binary.md).
+ * \param buffer_size Length of the passed in buffer.
  *
- * \return If no error occurs, the Library object corresponding to the root
- *   script is returned. Otherwise an error handle is returned.
+ * \return A handle to the root library, or an error.
  */
-DART_EXPORT Dart_Handle Dart_LoadKernel(void* kernel_program);
+DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* kernel_buffer,
+                                                  intptr_t kernel_size);
 
 /**
  * Constructs an in-memory kernel program form a binary.
@@ -3006,6 +3004,19 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
                                          intptr_t column_offset);
 
 /**
+ * Called by the embedder to load a partial program. Does not set the root
+ * library.
+ *
+ * \param buffer A buffer which contains a kernel binary (see
+ *               pkg/kernel/binary.md).
+ * \param buffer_size Length of the passed in buffer.
+ *
+ * \return A handle to the main library of the compilation unit, or an error.
+ */
+DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* kernel_buffer,
+                                                   intptr_t kernel_buffer_size);
+
+/**
  * Imports a library into another library, optionally with a prefix.
  * If no prefix is required, an empty string or Dart_Null() can be
  * supplied.
@@ -3062,7 +3073,6 @@ DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
                                         Dart_Handle source,
                                         intptr_t line_offset,
                                         intptr_t column_offset);
-/* TODO(turnidge): Rename to Dart_LibraryLoadSource? */
 
 /**
  * Loads a patch source string into a library.

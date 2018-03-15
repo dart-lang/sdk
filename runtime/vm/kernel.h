@@ -77,6 +77,11 @@ class Program {
    */
   static Program* ReadFrom(Reader* reader, bool take_buffer_ownership = true);
 
+  static Program* ReadFromFile(const char* script_uri);
+  static Program* ReadFromBuffer(const uint8_t* buffer,
+                                 intptr_t buffer_length,
+                                 bool take_buffer_ownership = true);
+
   bool is_single_program() { return single_program_; }
   NameIndex main_method() { return main_method_reference_; }
   intptr_t source_table_offset() const { return source_table_offset_; }
@@ -195,12 +200,6 @@ bool FieldHasFunctionLiteralInitializer(const Field& field,
                                         TokenPosition* end);
 
 }  // namespace kernel
-
-kernel::Program* ReadPrecompiledKernelFromFile(const char* script_uri);
-
-kernel::Program* ReadPrecompiledKernelFromBuffer(const uint8_t* buffer,
-                                                 intptr_t buffer_length);
-
 }  // namespace dart
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
