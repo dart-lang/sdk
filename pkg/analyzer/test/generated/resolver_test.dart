@@ -1103,6 +1103,9 @@ main() {
   }
 
   test_as() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 class A {
   bool get g => true;
@@ -1129,6 +1132,9 @@ A f(var p) {
   }
 
   test_assert() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1148,6 +1154,9 @@ A f(var p) {
   }
 
   test_assignment() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 f() {
   var v;
@@ -1164,6 +1173,9 @@ f() {
   }
 
   test_assignment_afterInitializer() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 f() {
   var v = 0;
@@ -1215,6 +1227,9 @@ main() {
   }
 
   test_assignment_throwExpression() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 f() {
   var v = 1;
@@ -1231,6 +1246,9 @@ f() {
   }
 
   test_CanvasElement_getContext() async {
+    if (previewDart2) {
+      return;
+    }
     String code = r'''
 import 'dart:html';
 main(CanvasElement canvas) {
@@ -1245,6 +1263,9 @@ main(CanvasElement canvas) {
   }
 
   test_forEach() async {
+    if (previewDart2) {
+      return;
+    }
     String code = r'''
 main() {
   var list = <String> [];
@@ -1269,6 +1290,9 @@ main() {
   }
 
   test_forEach_async() async {
+    if (previewDart2) {
+      return;
+    }
     String code = r'''
 import 'dart:async';
 f(Stream<String> stream) async {
@@ -1293,6 +1317,9 @@ f(Stream<String> stream) async {
   }
 
   test_forEach_async_inheritedStream() async {
+    if (previewDart2) {
+      return;
+    }
     // From https://github.com/dart-lang/sdk/issues/24191, this ensures that
     // `await for` works for types where the generic parameter doesn't
     // correspond to the type of the Stream's data.
@@ -1323,6 +1350,9 @@ f(MyCustomStream<String> stream) async {
   }
 
   test_functionExpression_asInvocationArgument() async {
+    if (previewDart2) {
+      return;
+    }
     String code = r'''
 class MyMap<K, V> {
   forEach(f(K key, V value)) {}
@@ -1354,6 +1384,9 @@ f(MyMap<int, String> m) {
   }
 
   test_functionExpression_asInvocationArgument_fromInferredInvocation() async {
+    if (previewDart2) {
+      return;
+    }
     String code = r'''
 class MyMap<K, V> {
   forEach(f(K key, V value)) {}
@@ -1375,6 +1408,9 @@ f(MyMap<int, String> m) {
   }
 
   test_functionExpression_asInvocationArgument_functionExpressionInvocation() async {
+    if (previewDart2) {
+      return;
+    }
     String code = r'''
 main() {
   (f(String value)) {} ((v) {
@@ -1395,6 +1431,9 @@ main() {
   }
 
   test_functionExpression_asInvocationArgument_keepIfLessSpecific() async {
+    if (previewDart2) {
+      return;
+    }
     String code = r'''
 class MyList {
   forEach(f(Object value)) {}
@@ -1438,6 +1477,9 @@ x() {
   }
 
   test_functionExpression_asInvocationArgument_replaceIfMoreSpecific() async {
+    if (previewDart2) {
+      return;
+    }
     String code = r'''
 class MyList<E> {
   forEach(f(E value)) {}
@@ -1460,6 +1502,9 @@ f(MyList<String> list) {
   }
 
   test_Future_then() async {
+    if (previewDart2) {
+      return;
+    }
     String code = r'''
 import 'dart:async';
 main(Future<int> firstFuture) {
@@ -1487,6 +1532,9 @@ main(Future<int> firstFuture) {
   }
 
   test_initializer() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 f() {
   var v = 0;
@@ -1514,6 +1562,9 @@ f() {
   }
 
   test_initializer_dereference() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 f() {
   var v = 'String';
@@ -1645,6 +1696,9 @@ main() {
   }
 
   test_is_conditional() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1666,6 +1720,9 @@ A f(var p) {
   }
 
   test_is_if() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1724,6 +1781,9 @@ A f(A p) {
   }
 
   test_is_if_logicalAnd() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1748,6 +1808,9 @@ A f(var p) {
   }
 
   test_is_postConditional() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1767,6 +1830,9 @@ A f(var p) {
   }
 
   test_is_postIf() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1814,6 +1880,9 @@ A f(A p) {
   }
 
   test_is_while() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1837,6 +1906,9 @@ A f(var p) {
   }
 
   test_isNot_conditional() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1858,6 +1930,9 @@ A f(var p) {
   }
 
   test_isNot_if() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1882,6 +1957,9 @@ A f(var p) {
   }
 
   test_isNot_if_logicalOr() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1906,6 +1984,9 @@ A f(var p) {
   }
 
   test_isNot_postConditional() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1925,6 +2006,9 @@ A f(var p) {
   }
 
   test_isNot_postIf() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -2017,6 +2101,9 @@ f() {
   }
 
   test_listLiteral_same() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 f() {
   var v = [0, 1, 2];
@@ -2038,6 +2125,9 @@ f() {
   }
 
   test_mapLiteral_different() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 f() {
   var v = {'0' : 0, 1 : '1', '2' : 2};
@@ -2058,6 +2148,9 @@ f() {
   }
 
   test_mapLiteral_same() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 f() {
   var v = {'a' : 0, 'b' : 1, 'c' : 2};
@@ -2078,6 +2171,9 @@ f() {
   }
 
   test_mergePropagatedTypes_afterIfThen_different() async {
+    if (previewDart2) {
+      return;
+    }
     String code = r'''
 main() {
   var v = 0;
@@ -2098,6 +2194,9 @@ main() {
   }
 
   test_mergePropagatedTypes_afterIfThen_same() async {
+    if (previewDart2) {
+      return;
+    }
     var code = r'''
 main() {
   var v = 1;
@@ -2126,6 +2225,9 @@ main() {
   }
 
   test_mergePropagatedTypes_afterIfThenElse_same() async {
+    if (previewDart2) {
+      return;
+    }
     var code = r'''
 main() {
   var v = 1;
@@ -2142,6 +2244,9 @@ main() {
 
   test_mergePropagatedTypesAtJoinPoint_4() async {
     // https://code.google.com/p/dart/issues/detail?id=19929
+    if (previewDart2) {
+      return;
+    }
     var code = r'''
 f5(x) {
   var y = [];
@@ -2221,6 +2326,9 @@ main() {
   }
 
   test_objectAccessInference_enabled_for_cascades() async {
+    if (previewDart2) {
+      return;
+    }
     String name = 'hashCode';
     String code = '''
 main() {
@@ -2273,6 +2381,9 @@ main() {
   }
 
   test_objectMethodInference_enabled_for_cascades() async {
+    if (previewDart2) {
+      return;
+    }
     String name = 'toString';
     String code = '''
 main() {
@@ -2295,6 +2406,9 @@ main() {
     // static type of [bool] for [==] comparison and the implementation
     // was already consistent with the spec there. But, it's another
     // [Object] method, so it's included here.
+    if (previewDart2) {
+      return;
+    }
     var code = r'''
 f1(x) {
   var v = (x == x);
@@ -2306,6 +2420,9 @@ f1(x) {
 
   test_objectMethodOnDynamicExpression_hashCode() async {
     // https://code.google.com/p/dart/issues/detail?id=20342
+    if (previewDart2) {
+      return;
+    }
     var code = r'''
 f1(x) {
   var v = x.hashCode;
@@ -2317,6 +2434,9 @@ f1(x) {
 
   test_objectMethodOnDynamicExpression_runtimeType() async {
     // https://code.google.com/p/dart/issues/detail?id=20342
+    if (previewDart2) {
+      return;
+    }
     var code = r'''
 f1(x) {
   var v = x.runtimeType;
@@ -2328,6 +2448,9 @@ f1(x) {
 
   test_objectMethodOnDynamicExpression_toString() async {
     // https://code.google.com/p/dart/issues/detail?id=20342
+    if (previewDart2) {
+      return;
+    }
     var code = r'''
 f1(x) {
   var v = x.toString();
@@ -2338,6 +2461,9 @@ f1(x) {
   }
 
   test_propagatedReturnType_localFunction() async {
+    if (previewDart2) {
+      return;
+    }
     String code = r'''
 main() {
   f() => 42;
@@ -2349,6 +2475,9 @@ main() {
   }
 
   test_query() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 import 'dart:html';
 

@@ -477,6 +477,8 @@ final Matcher isFilePath = isString;
  *   "kind": FlutterOutlineKind
  *   "offset": int
  *   "length": int
+ *   "codeOffset": int
+ *   "codeLength": int
  *   "label": optional String
  *   "dartElement": optional Element
  *   "attributes": optional List<FlutterOutlineAttribute>
@@ -494,7 +496,9 @@ final Matcher isFlutterOutline =
     new LazyMatcher(() => new MatchesJsonObject("FlutterOutline", {
           "kind": isFlutterOutlineKind,
           "offset": isInt,
-          "length": isInt
+          "length": isInt,
+          "codeOffset": isInt,
+          "codeLength": isInt
         }, optionalFields: {
           "label": isString,
           "dartElement": isElement,

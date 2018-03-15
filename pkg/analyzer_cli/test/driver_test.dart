@@ -854,7 +854,7 @@ class OptionsTest extends BaseTest {
   test_analysisOptions_excludes() async {
     await drive('data/exclude_test_project',
         options: 'data/exclude_test_project/$optionsFileName');
-    _expectUndefinedClassErrorsWithoutExclusions(usePreviewDart2);
+    _expectUndefinedClassErrorsWithoutExclusions();
   }
 
   test_analysisOptions_excludesRelativeToAnalysisOptions_explicit() async {
@@ -862,7 +862,7 @@ class OptionsTest extends BaseTest {
     // has to then understand that.
     await drive('data/exclude_test_project',
         options: 'data/exclude_test_project/$optionsFileName');
-    _expectUndefinedClassErrorsWithoutExclusions(usePreviewDart2);
+    _expectUndefinedClassErrorsWithoutExclusions();
   }
 
   test_analysisOptions_excludesRelativeToAnalysisOptions_inferred() async {
@@ -870,7 +870,7 @@ class OptionsTest extends BaseTest {
     // analysis_options above lib. The exclude is relative to the project, not
     // the analyzed path, and it has to then understand that.
     await drive('data/exclude_test_project/lib', options: null);
-    _expectUndefinedClassErrorsWithoutExclusions(usePreviewDart2);
+    _expectUndefinedClassErrorsWithoutExclusions();
   }
 
   test_analyzeFilesInDifferentContexts() async {
@@ -989,7 +989,8 @@ class OptionsTest extends BaseTest {
         options: 'data/options_tests_project/$optionsFileName');
   }
 
-  void _expectUndefinedClassErrorsWithoutExclusions(bool isStrong) {
+  void _expectUndefinedClassErrorsWithoutExclusions() {
+    bool isStrong = usePreviewDart2 || new AnalysisOptionsImpl().previewDart2;
     final String issueType = isStrong ? 'error' : 'warning';
     expect(bulletToDash(outSink),
         contains("$issueType - Undefined class 'IncludedUndefinedClass'"));

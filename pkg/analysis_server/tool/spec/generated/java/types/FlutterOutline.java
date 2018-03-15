@@ -53,6 +53,17 @@ public class FlutterOutline {
   private final int length;
 
   /**
+   * The offset of the first character of the element code, which is neither documentation, nor
+   * annotation.
+   */
+  private final int codeOffset;
+
+  /**
+   * The length of the element code.
+   */
+  private final int codeLength;
+
+  /**
    * The text label of the node children of the node. It is provided for any
    * FlutterOutlineKind.GENERIC node, where better information is not available.
    */
@@ -120,10 +131,12 @@ public class FlutterOutline {
   /**
    * Constructor for {@link FlutterOutline}.
    */
-  public FlutterOutline(String kind, int offset, int length, String label, Element dartElement, List<FlutterOutlineAttribute> attributes, String className, String parentAssociationLabel, String variableName, List<FlutterOutline> children, Integer id, String renderConstructor, Integer stateOffset, Integer stateLength) {
+  public FlutterOutline(String kind, int offset, int length, int codeOffset, int codeLength, String label, Element dartElement, List<FlutterOutlineAttribute> attributes, String className, String parentAssociationLabel, String variableName, List<FlutterOutline> children, Integer id, String renderConstructor, Integer stateOffset, Integer stateLength) {
     this.kind = kind;
     this.offset = offset;
     this.length = length;
+    this.codeOffset = codeOffset;
+    this.codeLength = codeLength;
     this.label = label;
     this.dartElement = dartElement;
     this.attributes = attributes;
@@ -145,6 +158,8 @@ public class FlutterOutline {
         ObjectUtilities.equals(other.kind, kind) &&
         other.offset == offset &&
         other.length == length &&
+        other.codeOffset == codeOffset &&
+        other.codeLength == codeLength &&
         ObjectUtilities.equals(other.label, label) &&
         ObjectUtilities.equals(other.dartElement, dartElement) &&
         ObjectUtilities.equals(other.attributes, attributes) &&
@@ -164,6 +179,8 @@ public class FlutterOutline {
     String kind = jsonObject.get("kind").getAsString();
     int offset = jsonObject.get("offset").getAsInt();
     int length = jsonObject.get("length").getAsInt();
+    int codeOffset = jsonObject.get("codeOffset").getAsInt();
+    int codeLength = jsonObject.get("codeLength").getAsInt();
     String label = jsonObject.get("label") == null ? null : jsonObject.get("label").getAsString();
     Element dartElement = jsonObject.get("dartElement") == null ? null : Element.fromJson(jsonObject.get("dartElement").getAsJsonObject());
     List<FlutterOutlineAttribute> attributes = jsonObject.get("attributes") == null ? null : FlutterOutlineAttribute.fromJsonArray(jsonObject.get("attributes").getAsJsonArray());
@@ -175,7 +192,7 @@ public class FlutterOutline {
     String renderConstructor = jsonObject.get("renderConstructor") == null ? null : jsonObject.get("renderConstructor").getAsString();
     Integer stateOffset = jsonObject.get("stateOffset") == null ? null : jsonObject.get("stateOffset").getAsInt();
     Integer stateLength = jsonObject.get("stateLength") == null ? null : jsonObject.get("stateLength").getAsInt();
-    return new FlutterOutline(kind, offset, length, label, dartElement, attributes, className, parentAssociationLabel, variableName, children, id, renderConstructor, stateOffset, stateLength);
+    return new FlutterOutline(kind, offset, length, codeOffset, codeLength, label, dartElement, attributes, className, parentAssociationLabel, variableName, children, id, renderConstructor, stateOffset, stateLength);
   }
 
   public static List<FlutterOutline> fromJsonArray(JsonArray jsonArray) {
@@ -212,6 +229,21 @@ public class FlutterOutline {
    */
   public String getClassName() {
     return className;
+  }
+
+  /**
+   * The length of the element code.
+   */
+  public int getCodeLength() {
+    return codeLength;
+  }
+
+  /**
+   * The offset of the first character of the element code, which is neither documentation, nor
+   * annotation.
+   */
+  public int getCodeOffset() {
+    return codeOffset;
   }
 
   /**
@@ -306,6 +338,8 @@ public class FlutterOutline {
     builder.append(kind);
     builder.append(offset);
     builder.append(length);
+    builder.append(codeOffset);
+    builder.append(codeLength);
     builder.append(label);
     builder.append(dartElement);
     builder.append(attributes);
@@ -325,6 +359,8 @@ public class FlutterOutline {
     jsonObject.addProperty("kind", kind);
     jsonObject.addProperty("offset", offset);
     jsonObject.addProperty("length", length);
+    jsonObject.addProperty("codeOffset", codeOffset);
+    jsonObject.addProperty("codeLength", codeLength);
     if (label != null) {
       jsonObject.addProperty("label", label);
     }
@@ -379,6 +415,10 @@ public class FlutterOutline {
     builder.append(offset + ", ");
     builder.append("length=");
     builder.append(length + ", ");
+    builder.append("codeOffset=");
+    builder.append(codeOffset + ", ");
+    builder.append("codeLength=");
+    builder.append(codeLength + ", ");
     builder.append("label=");
     builder.append(label + ", ");
     builder.append("dartElement=");

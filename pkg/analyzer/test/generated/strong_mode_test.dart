@@ -2476,6 +2476,68 @@ num test(Iterable values) => values.fold(values.first as num, max);
     _isInstantiationOf(_hasElement(elementA))([_isNum, _isNum])(type);
   }
 
+  test_redirectedConstructor_named() async {
+    Source source = addSource(r'''
+class A<T, U> implements B<T, U> {
+  A.named();
+}
+
+class B<T2, U2> {
+  factory B() = A.named;
+}
+   ''');
+    TestAnalysisResult result = await computeAnalysisResult(source);
+    assertNoErrors(source);
+
+    ClassDeclaration b = result.unit.declarations[1];
+    ConstructorDeclaration bConstructor = b.members[0];
+    ConstructorName redirected = bConstructor.redirectedConstructor;
+
+    TypeName typeName = redirected.type;
+    expect(typeName.type.toString(), 'A<T2, U2>');
+    expect(typeName.type.toString(), 'A<T2, U2>');
+
+    var constructorMember = redirected.staticElement;
+    expect(constructorMember.toString(), 'A.named() → A<T2, U2>');
+    expect(redirected.name.staticElement, constructorMember);
+  }
+
+  test_redirectedConstructor_self() async {
+    Source source = addSource(r'''
+class A<T> {
+  A();
+  factory A.redirected() = A;
+}
+   ''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_redirectedConstructor_unnamed() async {
+    Source source = addSource(r'''
+class A<T, U> implements B<T, U> {
+  A();
+}
+
+class B<T2, U2> {
+  factory B() = A;
+}
+   ''');
+    TestAnalysisResult result = await computeAnalysisResult(source);
+    assertNoErrors(source);
+
+    ClassDeclaration b = result.unit.declarations[1];
+    ConstructorDeclaration bConstructor = b.members[0];
+    ConstructorName redirected = bConstructor.redirectedConstructor;
+
+    TypeName typeName = redirected.type;
+    expect(typeName.type.toString(), 'A<T2, U2>');
+    expect(typeName.type.toString(), 'A<T2, U2>');
+
+    expect(redirected.name, isNull);
+    expect(redirected.staticElement.toString(), 'A() → A<T2, U2>');
+  }
+
   test_redirectingConstructor_propagation() async {
     String code = r'''
       class A {

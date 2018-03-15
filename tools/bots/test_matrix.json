@@ -249,16 +249,6 @@
           ]
         },
         {
-          "name": "vm tests",
-          "arguments": [
-            "--compiler=dartkp",
-            "--runtime=dart_precompiled",
-            "--use-blobs"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 10
-        },
-        {
           "name": "strong vm tests",
           "arguments": [
             "--compiler=dartkp",
@@ -288,13 +278,6 @@
           ]
         },
         {
-          "name": "vm tests",
-          "arguments": [
-            "--compiler=dartkp","--runtime=dart_precompiled"],
-          "fileset": "vm-kernel",
-          "shards": 10
-        },
-        {
           "name": "strong vm tests",
           "arguments": [
             "--compiler=dartkp",
@@ -321,16 +304,6 @@
             "runtime_kernel",
             "dart_precompiled_runtime"
           ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "--compiler=dartkp",
-            "--runtime=dart_precompiled",
-            "--vm-options=--no-enable-malloc-hooks"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 10
         },
         {
           "name": "strong vm tests",
@@ -401,12 +374,6 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": ["runtime_kernel"]
-        },
-        {
-          "name": "vm tests",
-          "arguments": ["--compiler=dartk"],
-          "fileset": "vm-kernel",
-          "shards": 10
         },
         {
           "name": "strong vm tests",
@@ -673,16 +640,6 @@
           "arguments": [
             "runtime_kernel"
           ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "--builder-tag=optimization_counter_threshold",
-            "--compiler=dartk",
-            "--vm-options=--optimization-counter-threshold=5"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 10
         },
         {
           "name": "strong vm tests",

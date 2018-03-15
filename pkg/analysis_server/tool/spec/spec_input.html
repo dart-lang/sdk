@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.19.0</version>
+  <version>1.20.0</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -3095,6 +3095,19 @@
         <ref>int</ref>
         <p>
           The length of the element.
+        </p>
+      </field>
+      <field name="codeOffset">
+        <ref>int</ref>
+        <p>
+          The offset of the first character of the element code, which is
+          neither documentation, nor annotation.
+        </p>
+      </field>
+      <field name="codeLength">
+        <ref>int</ref>
+        <p>
+          The length of the element code.
         </p>
       </field>
       <field name="label" optional="true">

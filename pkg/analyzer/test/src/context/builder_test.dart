@@ -631,7 +631,11 @@ b:${pathContext.toUri(packageB)}
   }
 
   void test_findSdk_noPackageMap_html_spec() {
-    DartSdk sdk = builder.findSdk(null, new AnalysisOptionsImpl());
+    DartSdk sdk = builder.findSdk(
+        null,
+        new AnalysisOptionsImpl()
+          ..previewDart2 = false
+          ..strongMode = false);
     expect(sdk, isNotNull);
     Source htmlSource = sdk.mapDartUri('dart:html');
     expect(

@@ -71,7 +71,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   bool get isSharedFrontEnd => false;
 
   /**
-   * Return `true` if resynthesizing should be done is strong mode.
+   * Return `true` if resynthesizing should be done in strong mode.
    */
   bool get isStrongMode;
 
@@ -1183,7 +1183,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   DartSdk createDartSdk() => AbstractContextTest.SHARED_MOCK_SDK;
 
   /**
-   * Determine the analysis options that should be used for this test.
+   * Create the analysis options that should be used for this test.
    */
   AnalysisOptionsImpl createOptions() => new AnalysisOptionsImpl();
 

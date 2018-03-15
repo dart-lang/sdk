@@ -78,7 +78,7 @@ class ArgumentsTest {
     expect(options.defaultPackagesDirectoryPath, isNull);
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
     expect(defaultOptions, isNotNull);
-    expect(defaultOptions.strongMode, false);
+    expect(defaultOptions.strongMode, defaultOptions.previewDart2);
     expect(defaultOptions.declarationCasts, true);
     expect(defaultOptions.implicitCasts, true);
     expect(defaultOptions.implicitDynamic, true);

@@ -6593,6 +6593,10 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
     // Verify that all of the arguments are, or could be, constant expressions.
     //
     for (Expression argument in argumentList.arguments) {
+      argument = argument.unParenthesized;
+      if (argument is NamedExpression) {
+        argument = (argument as NamedExpression).expression.unParenthesized;
+      }
       if (argument is InstanceCreationExpression) {
         if (!argument.isConst) {
           return false;

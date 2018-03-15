@@ -742,7 +742,7 @@ class A {
   void m() {
     A();
   }
-}''', [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
+}''', previewDart2 ? [] : [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
   }
 
   test_invocationOfNonFunction_localGenericFunction() async {
@@ -1527,10 +1527,12 @@ main() {
   test_undefinedGetter_typeLiteral_conditionalAccess() async {
     // When applied to a type literal, the conditional access operator '?.'
     // cannot be used to access instance getters of Type.
+    // TODO(brianwilkerson) We cannot verify in previewDart2 because hashCode
+    // isn't resolved.
     await assertErrorsInCode('''
 class A {}
 f() => A?.hashCode;
-''', [StaticTypeWarningCode.UNDEFINED_GETTER]);
+''', [StaticTypeWarningCode.UNDEFINED_GETTER], verify: !previewDart2);
   }
 
   test_undefinedGetter_wrongNumberOfTypeArguments_tooLittle() async {
@@ -1681,13 +1683,20 @@ f() => A?.toString();
   }
 
   test_undefinedMethodWithConstructor() async {
-    await assertErrorsInCode(r'''
+    // TODO(brianwilkerson) We cannot verify in previewDart2 because 'C' could
+    // not be resolved.
+    await assertErrorsInCode(
+        r'''
 class C {
   C.m();
 }
 f() {
   C c = C.m();
-}''', [StaticTypeWarningCode.UNDEFINED_METHOD_WITH_CONSTRUCTOR]);
+}''',
+        previewDart2
+            ? []
+            : [StaticTypeWarningCode.UNDEFINED_METHOD_WITH_CONSTRUCTOR],
+        verify: !previewDart2);
   }
 
   test_undefinedOperator_indexBoth() async {
@@ -1809,13 +1818,20 @@ class B extends A {
   }
 
   test_undefinedSuperOperator_indexSetter() async {
-    await assertErrorsInUnverifiedCode(r'''
+    await assertErrorsInUnverifiedCode(
+        r'''
 class A {}
 class B extends A {
   operator []=(index, value) {
     return super[index] = 0;
   }
-}''', [StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
+}''',
+        previewDart2
+            ? [
+                StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+                StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR
+              ]
+            : [StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
   }
 
   test_undefinedSuperSetter() async {

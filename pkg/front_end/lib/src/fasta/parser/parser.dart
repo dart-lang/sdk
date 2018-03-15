@@ -5525,15 +5525,12 @@ class Parser {
       next = token.next;
     }
 
-    TypeContinuation typeContinuation;
     Token varFinalOrConst;
     if (isModifier(next)) {
       if (optional('var', next)) {
-        typeContinuation = TypeContinuation.OptionalAfterVar;
         varFinalOrConst = token = token.next;
         next = token.next;
       } else if (optional('final', next) || optional('const', next)) {
-        typeContinuation = TypeContinuation.Optional;
         varFinalOrConst = token = token.next;
         next = token.next;
       }
@@ -5542,13 +5539,11 @@ class Parser {
         // Recovery
         ModifierRecoveryContext2 modifierContext =
             new ModifierRecoveryContext2(this);
-        token = modifierContext.parseVariableDeclarationModifiers(
-            token, typeContinuation,
+        token = modifierContext.parseVariableDeclarationModifiers(token,
             varFinalOrConst: varFinalOrConst);
         next = token.next;
 
         varFinalOrConst = modifierContext.varFinalOrConst;
-        typeContinuation = modifierContext.typeContinuation;
         modifierContext = null;
       }
     }
@@ -5602,15 +5597,12 @@ class Parser {
     token = parseMetadataStar(token);
     Token next = token.next;
 
-    TypeContinuation typeContinuation;
     Token varFinalOrConst;
     if (isModifier(next)) {
       if (optional('var', next)) {
-        typeContinuation = TypeContinuation.OptionalAfterVar;
         varFinalOrConst = token = token.next;
         next = token.next;
       } else if (optional('final', next) || optional('const', next)) {
-        typeContinuation = TypeContinuation.Optional;
         varFinalOrConst = token = token.next;
         next = token.next;
       }
@@ -5619,12 +5611,10 @@ class Parser {
         // Recovery
         ModifierRecoveryContext2 modifierContext =
             new ModifierRecoveryContext2(this);
-        token = modifierContext.parseVariableDeclarationModifiers(
-            token, typeContinuation,
+        token = modifierContext.parseVariableDeclarationModifiers(token,
             varFinalOrConst: varFinalOrConst);
 
         varFinalOrConst = modifierContext.varFinalOrConst;
-        typeContinuation = modifierContext.typeContinuation;
         modifierContext = null;
       }
     }

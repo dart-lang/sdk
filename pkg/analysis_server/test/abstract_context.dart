@@ -57,6 +57,8 @@ class AbstractContextTest extends Object with ResourceProviderMixin {
 
   AnalysisDriver get driver => _driver;
 
+  bool get previewDart2 => driver.analysisOptions.previewDart2;
+
   void addFlutterPackage() {
     Folder libFolder = configureFlutterPackage(resourceProvider);
     packageMap['flutter'] = [libFolder];

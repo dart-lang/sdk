@@ -169,6 +169,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
         importUri: importUri,
         isDeprecated: isDeprecated,
         elemFile: elemFile,
+        elemKind: ElementKind.CLASS,
         elemOffset: elemOffset);
     Element element = cs.element;
     expect(element, isNotNull);
@@ -205,6 +206,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     CompletionSuggestion cs = assertSuggest(name,
         relevance: relevance,
         importUri: importUri,
+        elemKind: ElementKind.CONSTRUCTOR,
         elemOffset: elemOffset,
         defaultArgListString: defaultArgListString,
         defaultArgumentListTextRanges: defaultArgumentListTextRanges);

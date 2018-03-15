@@ -12,15 +12,15 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/element_search.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 
 import 'mock_sdk.dart';
 
@@ -62,6 +62,8 @@ class AbstractContextTest {
    * Return `true` if strong mode should be enabled for this test.
    */
   bool get enableStrongMode => false;
+
+  bool get previewDart2 => driver.analysisOptions.previewDart2;
 
   /**
    * Return the analysis session associated with the driver.

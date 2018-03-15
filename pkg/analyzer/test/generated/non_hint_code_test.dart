@@ -622,7 +622,11 @@ class B implements A {
   int c;
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertNoErrors(source);
+    }
     verify([source]);
   }
 
@@ -642,7 +646,11 @@ class B extends A {
   int c;
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertNoErrors(source);
+    }
     verify([source]);
   }
 
@@ -831,7 +839,11 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (previewDart2) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
+    } else {
+      assertNoErrors(source);
+    }
   }
 
   test_undefinedMethod_assignmentExpression_inSubtype() async {
@@ -870,7 +882,11 @@ f() {
   a.b();
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (previewDart2) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else {
+      assertNoErrors(source);
+    }
   }
 
   test_undefinedMethod_unionType_all() async {
@@ -925,7 +941,11 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (previewDart2) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    } else {
+      assertNoErrors(source);
+    }
   }
 
   test_undefinedOperator_indexBoth_inSubtype() async {
@@ -940,7 +960,11 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (previewDart2) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    } else {
+      assertNoErrors(source);
+    }
   }
 
   test_undefinedOperator_indexGetter_inSubtype() async {
@@ -955,7 +979,11 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (previewDart2) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    } else {
+      assertNoErrors(source);
+    }
   }
 
   test_undefinedOperator_indexSetter_inSubtype() async {
@@ -970,7 +998,11 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (previewDart2) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    } else {
+      assertNoErrors(source);
+    }
   }
 
   test_undefinedOperator_postfixExpression() async {
@@ -1010,12 +1042,16 @@ class B extends A {
   set b(x) {}
 }
 f(var a) {
-  if(a is A) {
+  if (a is A) {
     a.b = 0;
   }
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (previewDart2) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
+    } else {
+      assertNoErrors(source);
+    }
   }
 
   test_unnecessaryCast_13855_parameter_A() async {
@@ -1067,7 +1103,11 @@ void g(bool c) {
   (c ? f(): new Future.value(0) as Future<int>).then((int value) {});
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (previewDart2 && enableNewAnalysisDriver) {
+      assertErrors(source, [HintCode.UNNECESSARY_CAST]);
+    } else {
+      assertNoErrors(source);
+    }
     verify([source]);
   }
 
