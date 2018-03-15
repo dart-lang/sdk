@@ -22,7 +22,6 @@ import '../parser.dart'
         FormalParameterKind,
         IdentifierContext,
         MemberKind,
-        closeBraceTokenFor,
         lengthForToken,
         lengthOfSpan,
         offsetForToken,
@@ -816,8 +815,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   @override
   void handleParenthesizedExpression(Token token) {
     debugEvent("ParenthesizedExpression");
-    push(new ParenthesizedExpression(
-        this, popForValue(), closeBraceTokenFor(token)));
+    push(new ParenthesizedExpression(this, popForValue(), token.endGroup));
   }
 
   @override
@@ -1786,7 +1784,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         addProblem(
             fasta.messageListLiteralTooManyTypeArguments,
             offsetForToken(beginToken),
-            lengthOfSpan(beginToken, closeBraceTokenFor(beginToken)));
+            lengthOfSpan(beginToken, beginToken.endGroup));
       } else if (library.loader.target.strongMode) {
         typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass);
       }
@@ -1834,7 +1832,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         addProblem(
             fasta.messageListLiteralTypeArgumentMismatch,
             offsetForToken(beginToken),
-            lengthOfSpan(beginToken, closeBraceTokenFor(beginToken)));
+            lengthOfSpan(beginToken, beginToken.endGroup));
       } else {
         if (library.loader.target.strongMode) {
           keyType =

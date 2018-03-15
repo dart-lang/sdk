@@ -26,8 +26,7 @@ import '../fasta_codes.dart'
 
 import '../kernel/body_builder.dart' show BodyBuilder;
 
-import '../parser.dart'
-    show IdentifierContext, MemberKind, Parser, closeBraceTokenFor, optional;
+import '../parser.dart' show IdentifierContext, MemberKind, Parser, optional;
 
 import '../problems.dart' show internalProblem, unexpected;
 
@@ -475,8 +474,7 @@ class DietListener extends StackListener {
     Object name = pop();
     Token metadata = pop();
     checkEmpty(beginToken.charOffset);
-    if (bodyToken == null ||
-        optional("=", closeBraceTokenFor(bodyToken).next)) {
+    if (bodyToken == null || optional("=", bodyToken.endGroup.next)) {
       // TODO(ahe): Don't skip this. We need to compile metadata and
       // redirecting factory bodies.
       return;
