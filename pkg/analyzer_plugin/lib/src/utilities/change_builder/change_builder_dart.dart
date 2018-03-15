@@ -388,7 +388,19 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write(prefix2);
       writeln('// TODO: implement $memberName');
 
-      if (returnType.isVoid) {
+      if (isSetter) {
+        if (!isAbstract) {
+          write(prefix2);
+          selectAll(() {
+            write('super.');
+            write(memberName);
+            write(' = ');
+            write(parameters[0].name);
+            write(';');
+          });
+          writeln();
+        }
+      } else if (returnType.isVoid) {
         if (!isAbstract) {
           write(prefix2);
           selectAll(() {
@@ -402,18 +414,6 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
               write(parameters[i].name);
             }
             write(');');
-          });
-          writeln();
-        }
-      } else if (isSetter) {
-        if (!isAbstract) {
-          write(prefix2);
-          selectAll(() {
-            write('super.');
-            write(memberName);
-            write(' = ');
-            write(parameters[0].name);
-            write(';');
           });
           writeln();
         }

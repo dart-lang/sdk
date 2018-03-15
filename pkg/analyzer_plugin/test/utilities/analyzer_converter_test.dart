@@ -407,7 +407,11 @@ class A {
       expect(location.startColumn, 16);
     }
     expect(element.parameters, isNull);
-    expect(element.returnType, 'dynamic');
+    if (previewDart2) {
+      expect(element.returnType, 'int');
+    } else {
+      expect(element.returnType, 'dynamic');
+    }
     expect(
         element.flags, plugin.Element.FLAG_CONST | plugin.Element.FLAG_STATIC);
   }
