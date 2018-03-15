@@ -10952,6 +10952,8 @@ class FileKind implements Enum {
  *   "kind": FlutterOutlineKind
  *   "offset": int
  *   "length": int
+ *   "codeOffset": int
+ *   "codeLength": int
  *   "label": optional String
  *   "dartElement": optional Element
  *   "attributes": optional List<FlutterOutlineAttribute>
@@ -10973,6 +10975,10 @@ class FlutterOutline implements HasToJson {
   int _offset;
 
   int _length;
+
+  int _codeOffset;
+
+  int _codeLength;
 
   String _label;
 
@@ -11039,6 +11045,34 @@ class FlutterOutline implements HasToJson {
   void set length(int value) {
     assert(value != null);
     this._length = value;
+  }
+
+  /**
+   * The offset of the first character of the element code, which is neither
+   * documentation, nor annotation.
+   */
+  int get codeOffset => _codeOffset;
+
+  /**
+   * The offset of the first character of the element code, which is neither
+   * documentation, nor annotation.
+   */
+  void set codeOffset(int value) {
+    assert(value != null);
+    this._codeOffset = value;
+  }
+
+  /**
+   * The length of the element code.
+   */
+  int get codeLength => _codeLength;
+
+  /**
+   * The length of the element code.
+   */
+  void set codeLength(int value) {
+    assert(value != null);
+    this._codeLength = value;
   }
 
   /**
@@ -11206,6 +11240,7 @@ class FlutterOutline implements HasToJson {
   }
 
   FlutterOutline(FlutterOutlineKind kind, int offset, int length,
+      int codeOffset, int codeLength,
       {String label,
       Element dartElement,
       List<FlutterOutlineAttribute> attributes,
@@ -11220,6 +11255,8 @@ class FlutterOutline implements HasToJson {
     this.kind = kind;
     this.offset = offset;
     this.length = length;
+    this.codeOffset = codeOffset;
+    this.codeLength = codeLength;
     this.label = label;
     this.dartElement = dartElement;
     this.attributes = attributes;
@@ -11257,6 +11294,20 @@ class FlutterOutline implements HasToJson {
         length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "length");
+      }
+      int codeOffset;
+      if (json.containsKey("codeOffset")) {
+        codeOffset =
+            jsonDecoder.decodeInt(jsonPath + ".codeOffset", json["codeOffset"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "codeOffset");
+      }
+      int codeLength;
+      if (json.containsKey("codeLength")) {
+        codeLength =
+            jsonDecoder.decodeInt(jsonPath + ".codeLength", json["codeLength"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "codeLength");
       }
       String label;
       if (json.containsKey("label")) {
@@ -11319,7 +11370,7 @@ class FlutterOutline implements HasToJson {
         stateLength = jsonDecoder.decodeInt(
             jsonPath + ".stateLength", json["stateLength"]);
       }
-      return new FlutterOutline(kind, offset, length,
+      return new FlutterOutline(kind, offset, length, codeOffset, codeLength,
           label: label,
           dartElement: dartElement,
           attributes: attributes,
@@ -11342,6 +11393,8 @@ class FlutterOutline implements HasToJson {
     result["kind"] = kind.toJson();
     result["offset"] = offset;
     result["length"] = length;
+    result["codeOffset"] = codeOffset;
+    result["codeLength"] = codeLength;
     if (label != null) {
       result["label"] = label;
     }
@@ -11390,6 +11443,8 @@ class FlutterOutline implements HasToJson {
       return kind == other.kind &&
           offset == other.offset &&
           length == other.length &&
+          codeOffset == other.codeOffset &&
+          codeLength == other.codeLength &&
           label == other.label &&
           dartElement == other.dartElement &&
           listEqual(
@@ -11416,6 +11471,8 @@ class FlutterOutline implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     hash = JenkinsSmiHash.combine(hash, offset.hashCode);
     hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, codeOffset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, codeLength.hashCode);
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
     hash = JenkinsSmiHash.combine(hash, dartElement.hashCode);
     hash = JenkinsSmiHash.combine(hash, attributes.hashCode);

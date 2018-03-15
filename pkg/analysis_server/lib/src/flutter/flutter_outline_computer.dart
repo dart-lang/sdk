@@ -135,6 +135,8 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
         protocol.FlutterOutlineKind.DART_ELEMENT,
         dartOutline.offset,
         dartOutline.length,
+        dartOutline.codeOffset,
+        dartOutline.codeLength,
         dartElement: dartOutline.element);
     if (dartOutline.children != null) {
       flutterOutline.children = dartOutline.children.map(_convert).toList();
@@ -206,7 +208,11 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
       }
 
       return new protocol.FlutterOutline(
-          protocol.FlutterOutlineKind.NEW_INSTANCE, node.offset, node.length,
+          protocol.FlutterOutlineKind.NEW_INSTANCE,
+          node.offset,
+          node.length,
+          node.offset,
+          node.length,
           className: className,
           attributes: attributes,
           children: children,
@@ -229,7 +235,8 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
       }
 
       int id = _addInstrumentationEdits(node);
-      return new protocol.FlutterOutline(kind, node.offset, node.length,
+      return new protocol.FlutterOutline(
+          kind, node.offset, node.length, node.offset, node.length,
           className: className,
           variableName: variableName,
           label: label,

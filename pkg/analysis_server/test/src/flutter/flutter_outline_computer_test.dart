@@ -8,7 +8,6 @@ import 'package:analysis_server/src/flutter/flutter_outline_computer.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -183,22 +182,56 @@ class MyWidget extends StatelessWidget {
     {
       int offset = testCode.indexOf('new Column');
       int length = testCode.indexOf('; // Column') - offset;
-      _expect(columnOutline, offset: offset, length: length);
+      expect(columnOutline.offset, offset);
+      expect(columnOutline.length, length);
     }
 
     {
       var textOutline = columnOutline.children[0];
       String text = "const Text('aaa')";
       int offset = testCode.indexOf(text);
-      _expect(textOutline, offset: offset, length: text.length);
+      expect(textOutline.offset, offset);
+      expect(textOutline.length, text.length);
     }
 
     {
       var textOutline = columnOutline.children[1];
       String text = "const Text('bbb')";
       int offset = testCode.indexOf(text);
-      _expect(textOutline, offset: offset, length: text.length);
+      expect(textOutline.offset, offset);
+      expect(textOutline.length, text.length);
     }
+  }
+
+  test_codeOffsetLength() async {
+    FlutterOutline unitOutline = await _computeOutline('''
+import 'package:flutter/widgets.dart';
+
+/// Comment
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Container();
+  }
+}
+''');
+    var myWidget = unitOutline.children[0];
+    expect(myWidget.offset, 40);
+    expect(myWidget.length, 137);
+    expect(myWidget.codeOffset, 52);
+    expect(myWidget.codeLength, 125);
+
+    var build = myWidget.children[0];
+    expect(build.offset, 95);
+    expect(build.length, 80);
+    expect(build.codeOffset, 107);
+    expect(build.codeLength, 68);
+
+    var container = build.children[0];
+    expect(container.offset, 155);
+    expect(container.length, 15);
+    expect(container.codeOffset, 155);
+    expect(container.codeLength, 15);
   }
 
   test_genericLabel_invocation() async {
@@ -490,12 +523,6 @@ class MyWidget extends StatelessWidget {
     computer = new FlutterOutlineComputer(
         testPath, testCode, analysisResult.lineInfo, analysisResult.unit);
     return computer.compute();
-  }
-
-  void _expect(FlutterOutline outline,
-      {@required int offset, @required int length}) {
-    expect(outline.offset, offset);
-    expect(outline.length, length);
   }
 
   Future<FlutterOutlineAttribute> _getAttribute(
