@@ -1,0 +1,13 @@
+library test;
+import self as self;
+
+static method test(() → dynamic f, () → dynamic g) → dynamic {
+  try {
+    f.call();
+  }
+  on dynamic catch(final dynamic _) {
+    g.call();
+    rethrow;
+  }
+}
+static method main() → dynamic {}

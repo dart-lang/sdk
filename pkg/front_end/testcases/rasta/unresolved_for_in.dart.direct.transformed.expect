@@ -1,0 +1,59 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef VoidFunction = () → void;
+class Fisk extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method it1(dynamic x) → dynamic {
+    for (final dynamic #t1 in x) {
+      this.key = #t1;
+      core::print(this.key);
+    }
+    for (final dynamic #t2 in x) {
+      let dynamic _ = null in throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Fisk, 34, const <core::Type>[], <dynamic>[#t2].toList(growable: false), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+      core::print(self::Fisk);
+    }
+    for (final dynamic #t3 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:17:10: Error: Expected lvalue, but got Instance of 'PrefixBuilder'
+    for (collection in x) {
+         ^" in x) {
+      core::print(invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart: Error: A library can't be used as an expression.");
+    }
+    for (final dynamic #t4 in x) {
+      let dynamic _ = null in throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#VoidFunction, 34, const <core::Type>[], <dynamic>[#t4].toList(growable: false), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+      core::print(() → void);
+    }
+    for (final dynamic #t5 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:23:10: Error: Expected lvalue, but got 1
+    for (1 in x) {
+         ^" in x) {
+      core::print(this.key);
+    }
+  }
+}
+static method main(dynamic arguments) → dynamic {
+  new self::Fisk::•();
+  for (final dynamic #t6 in arguments) {
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#key, 34, const <core::Type>[], <dynamic>[#t6].toList(growable: false), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#key, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+  }
+  for (final dynamic #t7 in arguments) {
+    let dynamic _ = null in throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Fisk, 34, const <core::Type>[], <dynamic>[#t7].toList(growable: false), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    core::print(self::Fisk);
+  }
+  for (final dynamic #t8 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:37:8: Error: Expected lvalue, but got Instance of 'PrefixBuilder'
+  for (collection in arguments) {
+       ^" in arguments) {
+    core::print(invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart: Error: A library can't be used as an expression.");
+  }
+  for (final dynamic #t9 in arguments) {
+    let dynamic _ = null in throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#VoidFunction, 34, const <core::Type>[], <dynamic>[#t9].toList(growable: false), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    core::print(() → void);
+  }
+  for (final dynamic #t10 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:43:8: Error: Expected lvalue, but got 1
+  for (1 in arguments) {
+       ^" in arguments) {
+    core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#key, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+  }
+}

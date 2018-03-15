@@ -1,0 +1,11 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field dynamic x = throw self::f<dynamic>();
+static method f<T extends core::Object>() → self::f::T
+  return null;
+static method g() → void {
+  dynamic x = throw self::f<dynamic>();
+}
+static method main() → dynamic {}

@@ -1,0 +1,15 @@
+library test;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+static method test() → dynamic {
+  asy::Future<core::int> base;
+  asy::Future<core::bool> f = base.{asy::Future::then}<core::bool>((core::int x) → core::bool {
+    return x.{core::num::==}(0);
+  });
+  asy::Future<core::bool> g = base.{asy::Future::then}<core::bool>((core::int x) → core::bool => x.{core::num::==}(0));
+  asy::Future<core::bool> b = f;
+  b = g;
+}
+static method main() → dynamic {}

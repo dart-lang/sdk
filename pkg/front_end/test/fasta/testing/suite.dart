@@ -149,6 +149,13 @@ class FastaContext extends ChainContext {
       }
       if (fullCompile && !skipVm) {
         steps.add(const Transform());
+        if (!ignoreExpectations) {
+          steps.add(new MatchExpectation(
+              fullCompile
+              ? ".${generateExpectationName(strongMode)}.transformed.expect"
+              : ".outline.transformed.expect",
+              updateExpectations: updateExpectations));
+        }
         steps.add(const WriteDill());
         steps.add(const Run());
       }

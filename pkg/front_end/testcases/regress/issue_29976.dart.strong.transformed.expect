@@ -1,0 +1,8 @@
+library;
+import self as self;
+
+static method #main() → dynamic {
+  throw "pkg/front_end/testcases/regress/issue_29976.dart:8:3: Error: Expected a String, but got ')'.
+  )
+  ^";
+}

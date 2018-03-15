@@ -1,0 +1,51 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  set onlySetter(dynamic value) → void {
+    core::print("C.onlySetter called with ${value}.");
+  }
+  method testC() → dynamic {
+    try {
+      core::print(this.onlySetter);
+      throw "No error thrown";
+    }
+    on core::NoSuchMethodError catch(final core::NoSuchMethodError e) {
+      core::print("Expected error: ${e}");
+    }
+    this.{self::C::onlySetter} = "hest";
+  }
+  method testD() → dynamic {
+    core::print(this.onlySetter);
+    this.{self::C::onlySetter} = "hest";
+  }
+}
+class D extends self::C {
+  synthetic constructor •() → void
+    : super self::C::•()
+    ;
+  get onlySetter() → core::String
+    return "D.onlySetter called.";
+  set onlySetter(dynamic value) → void {
+    core::print("D.onlySetter called with ${value}.");
+  }
+}
+static set onlySetter(dynamic value) → void {
+  core::print("onlySetter called with ${value}.");
+}
+static method main() → dynamic {
+  try {
+    core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#onlySetter, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+    throw "No error thrown";
+  }
+  on core::NoSuchMethodError catch(final core::NoSuchMethodError e) {
+    core::print("Expected error: ${e}");
+  }
+  self::onlySetter = "fisk";
+  new self::C::•().testC();
+  new self::D::•().testD();
+}

@@ -1,0 +1,14 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:math" as math;
+
+static method f() → dynamic {
+  core::num x;
+  dynamic y;
+  core::num a = math::max<dynamic>(x, y);
+  core::Object b = math::max<dynamic>(x, y);
+  dynamic c = math::max<dynamic>(x, y);
+  dynamic d = math::max<dynamic>(x, y);
+}
+static method main() → dynamic {}

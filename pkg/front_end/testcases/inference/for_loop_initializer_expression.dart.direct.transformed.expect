@@ -1,0 +1,13 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method test() → void {
+  core::num x;
+  for (final dynamic #t1 = x = 0; x.<(10); x = x.+(1)) {
+    if(x is core::int) {
+      dynamic y = x{core::int};
+    }
+  }
+}
+static method main() → dynamic {}

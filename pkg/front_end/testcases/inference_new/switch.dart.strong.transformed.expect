@@ -1,0 +1,29 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object> extends core::Object {
+  const constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method f<T extends core::Object>() → self::f::T
+  return null;
+static method test(self::C<core::int> x) → void {
+  #L1:
+  switch(x) {
+    #L2:
+    case const self::C::•<core::int>():
+      {
+        core::int y = 0;
+        break #L1;
+      }
+    #L3:
+    default:
+      {
+        core::int y = 0;
+        break #L1;
+      }
+  }
+}
+static method main() → dynamic {}

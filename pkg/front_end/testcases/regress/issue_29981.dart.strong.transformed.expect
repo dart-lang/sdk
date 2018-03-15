@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object> extends core::Object {
+  field self::C<dynamic> field = null;
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_29981.dart:6:3: Error: 'C' expects 1 type arguments.
+  C<String, String> field;
+  ^"]/* from null */;
+static method main() → dynamic {
+  core::print(new self::C::•<dynamic>());
+}

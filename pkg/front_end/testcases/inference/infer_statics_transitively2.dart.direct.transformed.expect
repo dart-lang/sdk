@@ -1,0 +1,16 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static const field dynamic x1 = 1;
+static final field dynamic x2 = 1;
+static final field dynamic y1 = self::x1;
+static final field dynamic y2 = self::x2;
+static method foo() → dynamic {
+  core::int i;
+  i = self::y1;
+  i = self::y2;
+}
+static method main() → dynamic {
+  self::foo();
+}
