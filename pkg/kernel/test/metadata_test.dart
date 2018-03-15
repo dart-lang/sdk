@@ -35,12 +35,12 @@ class TestMetadataRepository extends MetadataRepository<Metadata> {
 
   void writeToBinary(Metadata metadata, BinarySink sink) {
     sink.writeNodeReference(metadata.parent);
-    sink.writeByteList(UTF8.encode(metadata.self));
+    sink.writeByteList(utf8.encode(metadata.self));
   }
 
   Metadata readFromBinary(BinarySource source) {
     final parent = source.readNodeReference();
-    final string = UTF8.decode(source.readByteList());
+    final string = utf8.decode(source.readByteList());
     return new Metadata(parent, string);
   }
 }

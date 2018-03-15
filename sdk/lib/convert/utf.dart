@@ -27,7 +27,7 @@ const int UNICODE_BOM_CHARACTER_RUNE = unicodeBomCharacterRune;
  *                                0x72, 0x67, 0x72, 0xc3, 0xb8, 0x64]);
  */
 const Utf8Codec utf8 = const Utf8Codec();
-@Deprecated("Use Utf8Codec instead")
+@Deprecated("Use utf8 instead")
 const Utf8Codec UTF8 = utf8;
 
 /**

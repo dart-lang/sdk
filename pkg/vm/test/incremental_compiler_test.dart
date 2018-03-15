@@ -96,7 +96,7 @@ main() {
       });
 
       Completer<String> portLineCompleter = new Completer<String>();
-      vm.stdout.transform(UTF8.decoder).transform(splitter).listen((String s) {
+      vm.stdout.transform(utf8.decoder).transform(splitter).listen((String s) {
         print("vm stdout: $s");
         if (!portLineCompleter.isCompleted) {
           portLineCompleter.complete(s);
@@ -104,7 +104,7 @@ main() {
       });
 
       vm.stderr
-          .transform(UTF8.decoder)
+          .transform(utf8.decoder)
           .transform(splitter)
           .toList()
           .then((err) {

@@ -37,8 +37,7 @@ ArgParser parser = new ArgParser()
       negatable: false,
       help: 'Be verbose (e.g. prints transformed main library).',
       defaultsTo: false)
-  ..addOption('embedder-entry-points-manifest',
-      allowMultiple: true,
+  ..addMultiOption('embedder-entry-points-manifest',
       help: 'A path to a file describing entrypoints '
           '(lines of the form `<library>,<class>,<member>`).')
   ..addOption('transformation',

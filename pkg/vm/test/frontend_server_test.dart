@@ -359,7 +359,7 @@ Future<int> main() async {
 
       String boundaryKey;
       stdoutStreamController.stream
-          .transform(UTF8.decoder)
+          .transform(utf8.decoder)
           .transform(const LineSplitter())
           .listen((String s) {
         const String RESULT_OUTPUT_SPACE = 'result ';
@@ -466,7 +466,7 @@ Future<int> main() async {
 
       String boundaryKey;
       stdoutStreamController.stream
-          .transform(UTF8.decoder)
+          .transform(utf8.decoder)
           .transform(const LineSplitter())
           .listen((String s) {
         const String RESULT_OUTPUT_SPACE = 'result ';

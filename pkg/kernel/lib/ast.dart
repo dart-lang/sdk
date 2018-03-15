@@ -64,7 +64,7 @@
 ///
 library kernel.ast;
 
-import 'dart:convert' show UTF8;
+import 'dart:convert' show utf8;
 
 import 'visitor.dart';
 export 'visitor.dart';
@@ -5842,7 +5842,7 @@ class Source {
     RangeError.checkValueInInterval(line, 1, lineStarts.length, 'line');
     if (source == null) return null;
 
-    cachedText ??= UTF8.decode(source, allowMalformed: true);
+    cachedText ??= utf8.decode(source, allowMalformed: true);
     // -1 as line numbers start at 1.
     int index = line - 1;
     if (index + 1 == lineStarts.length) {

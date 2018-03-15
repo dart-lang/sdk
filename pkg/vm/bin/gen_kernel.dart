@@ -35,9 +35,8 @@ final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
       defaultsTo: true)
-  ..addOption('entry-points',
-      help: 'Path to JSON file with the list of entry points',
-      allowMultiple: true);
+  ..addMultiOption('entry-points',
+      help: 'Path to JSON file with the list of entry points');
 
 final String _usage = '''
 Usage: dart pkg/vm/bin/gen_kernel.dart --platform vm_platform_strong.dill [options] input.dart

@@ -5,7 +5,7 @@
 /// Handling of native code and entry points.
 library vm.transformations.type_flow.native_code;
 
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 import 'dart:core' hide Type;
 import 'dart:io' show File;
 
@@ -183,16 +183,16 @@ class NativeCodeOracle {
   /// 'runtime/vm/compiler/aot/entry_points_json.md'.
   void processEntryPointsJSON(
       String jsonString, EntryPointsListener entryPointsListener) {
-    final json = JSON.decode(jsonString);
+    final jsonObject = json.decode(jsonString);
 
-    final roots = json['roots'];
+    final roots = jsonObject['roots'];
     if (roots != null) {
       for (var root in roots) {
         _addRoot(new Map<String, String>.from(root), entryPointsListener);
       }
     }
 
-    final nativeMethods = json['native-methods'];
+    final nativeMethods = jsonObject['native-methods'];
     if (nativeMethods != null) {
       nativeMethods.forEach((name, actions) {
         _nativeMethods[name] = new List<Map<String, dynamic>>.from(

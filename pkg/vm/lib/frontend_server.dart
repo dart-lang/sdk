@@ -51,9 +51,8 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
       defaultsTo: false)
-  ..addOption('entry-points',
-      help: 'Path to JSON file with the list of entry points',
-      allowMultiple: true)
+  ..addMultiOption('entry-points',
+      help: 'Path to JSON file with the list of entry points')
   ..addFlag('link-platform',
       help:
           'When in batch mode, link platform kernel file into result kernel file.'
@@ -73,10 +72,10 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
       help: 'Target model that determines what core libraries are available',
       allowed: <String>['vm', 'flutter'],
       defaultsTo: 'vm')
-  ..addOption('filesystem-root',
+  ..addMultiOption('filesystem-root',
       help: 'File path that is used as a root in virtual filesystem used in'
-          ' compiled kernel files. When used --output-dill should be provided as well.',
-      allowMultiple: true,
+          ' compiled kernel files. When used --output-dill should be provided'
+          ' as well.',
       hide: true)
   ..addOption('filesystem-scheme',
       help:
@@ -412,7 +411,7 @@ void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
   String boundaryKey;
   String recompileFilename;
   input
-      .transform(UTF8.decoder)
+      .transform(utf8.decoder)
       .transform(const LineSplitter())
       .listen((String string) async {
     switch (state) {
