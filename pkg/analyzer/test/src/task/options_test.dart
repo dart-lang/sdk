@@ -23,8 +23,8 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
 
 import '../../generated/test_support.dart';
-import '../context/abstract_context.dart';
 import '../../resource_utils.dart';
+import '../context/abstract_context.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -53,6 +53,7 @@ class ContextConfigurationTest extends AbstractContextTest {
       optionsProvider.getOptionsFromString(source);
 
   test_configure_bad_options_contents() {
+    (analysisOptions as AnalysisOptionsImpl).previewDart2 = false;
     configureContext('''
 analyzer:
   strong-mode:true # misformatted
@@ -156,6 +157,7 @@ analyzer:
   }
 
   test_configure_strong_mode_bad_value() {
+    (analysisOptions as AnalysisOptionsImpl).previewDart2 = false;
     configureContext('''
 analyzer:
   strong-mode: foo
@@ -280,36 +282,20 @@ class ErrorCodeValuesTest {
   }
 }
 
-@reflectiveTest
-class GenerateOldOptionsErrorsTaskTest extends AbstractContextTest {
-  final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
+class ErrorProcessorMatcher extends Matcher {
+  final ErrorProcessor required;
 
-  String get optionsFilePath => '/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}';
+  ErrorProcessorMatcher(this.required);
 
-  test_does_analyze_old_options_files() {
-    validate('''
-analyzer:
-  strong-mode: true
-    ''', [AnalysisOptionsHintCode.DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME]);
-  }
+  @override
+  Description describe(Description desc) => desc
+    ..add("an ErrorProcessor setting ${required.code} to ${required.severity}");
 
-  test_finds_issues_in_old_options_files() {
-    validate('''
-analyzer:
-  strong_mode: true
-    ''', [
-      AnalysisOptionsHintCode.DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME,
-      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES
-    ]);
-  }
-
-  void validate(String content, List<ErrorCode> expected) {
-    final Source source = newSource(optionsFilePath, content);
-    var options = optionsProvider.getOptionsFromSource(source);
-    final OptionsFileValidator validator = new OptionsFileValidator(source);
-    var errors = validator.validate(options);
-    expect(errors.map((AnalysisError e) => e.errorCode),
-        unorderedEquals(expected));
+  @override
+  bool matches(dynamic o, Map<dynamic, dynamic> options) {
+    return o is ErrorProcessor &&
+        o.code.toUpperCase() == required.code.toUpperCase() &&
+        o.severity == required.severity;
   }
 }
 
@@ -491,6 +477,39 @@ analyzer:
 }
 
 @reflectiveTest
+class GenerateOldOptionsErrorsTaskTest extends AbstractContextTest {
+  final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
+
+  String get optionsFilePath => '/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}';
+
+  test_does_analyze_old_options_files() {
+    validate('''
+analyzer:
+  strong-mode: true
+    ''', [AnalysisOptionsHintCode.DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME]);
+  }
+
+  test_finds_issues_in_old_options_files() {
+    validate('''
+analyzer:
+  strong_mode: true
+    ''', [
+      AnalysisOptionsHintCode.DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME,
+      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES
+    ]);
+  }
+
+  void validate(String content, List<ErrorCode> expected) {
+    final Source source = newSource(optionsFilePath, content);
+    var options = optionsProvider.getOptionsFromSource(source);
+    final OptionsFileValidator validator = new OptionsFileValidator(source);
+    var errors = validator.validate(options);
+    expect(errors.map((AnalysisError e) => e.errorCode),
+        unorderedEquals(expected));
+  }
+}
+
+@reflectiveTest
 class OptionsFileValidatorTest {
   final OptionsFileValidator validator =
       new OptionsFileValidator(new TestSource());
@@ -555,6 +574,13 @@ analyzer:
 ''', []);
   }
 
+  test_analyzer_strong_mode_false_deprecated() {
+    validate('''
+analyzer:
+  strong-mode: false
+    ''', [AnalysisOptionsHintCode.SPEC_MODE_DEPRECATED]);
+  }
+
   test_analyzer_supported_exclude() {
     validate('''
 analyzer:
@@ -575,13 +601,6 @@ analyzer:
 analyzer:
   strong-mode: w00t
     ''', [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
-  }
-
-  test_analyzer_strong_mode_false_deprecated() {
-    validate('''
-analyzer:
-  strong-mode: false
-    ''', [AnalysisOptionsHintCode.SPEC_MODE_DEPRECATED]);
   }
 
   test_analyzer_unsupported_option() {
@@ -694,23 +713,6 @@ linter:
     final options = new AnalysisOptionsImpl();
     applyToAnalysisOptions(options, map);
     return options;
-  }
-}
-
-class ErrorProcessorMatcher extends Matcher {
-  final ErrorProcessor required;
-
-  ErrorProcessorMatcher(this.required);
-
-  @override
-  Description describe(Description desc) => desc
-    ..add("an ErrorProcessor setting ${required.code} to ${required.severity}");
-
-  @override
-  bool matches(dynamic o, Map<dynamic, dynamic> options) {
-    return o is ErrorProcessor &&
-        o.code.toUpperCase() == required.code.toUpperCase() &&
-        o.severity == required.severity;
   }
 }
 

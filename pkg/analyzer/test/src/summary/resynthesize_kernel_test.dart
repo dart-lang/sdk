@@ -205,21 +205,21 @@ class C {
   @override
   test_futureOr() async {
     // TODO(brianwilkerson) Triage this failure.
-    await super.test_futureOr();
+    fail('Inconsistent results');
   }
 
   @failingTest
   @override
   test_futureOr_const() async {
     // TODO(brianwilkerson) Triage this failure.
-    await super.test_futureOr_const();
+    fail('Inconsistent results');
   }
 
   @failingTest
   @override
   test_futureOr_inferred() async {
     // TODO(brianwilkerson) Triage this failure.
-    await super.test_futureOr_inferred();
+    fail('Inconsistent results');
   }
 
   test_getElement_unit() async {

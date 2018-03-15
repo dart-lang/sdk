@@ -1103,7 +1103,11 @@ void g(bool c) {
   (c ? f(): new Future.value(0) as Future<int>).then((int value) {});
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (previewDart2 && enableNewAnalysisDriver) {
+      assertErrors(source, [HintCode.UNNECESSARY_CAST]);
+    } else {
+      assertNoErrors(source);
+    }
     verify([source]);
   }
 

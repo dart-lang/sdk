@@ -76,7 +76,11 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
     EmbedderSdk sdk = new EmbedderSdk(resourceProvider, locator.embedderYamls);
     sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = false;
     sdk.useSummary = true;
-    expect(sdk.getLinkedBundle(), isNotNull);
+    if (sdk.analysisOptions.previewDart2) {
+      expect(sdk.getLinkedBundle(), isNull);
+    } else {
+      expect(sdk.getLinkedBundle(), isNotNull);
+    }
   }
 
   void test_getLinkedBundle_strong() {

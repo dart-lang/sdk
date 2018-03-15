@@ -124,7 +124,11 @@ class C implements A, B {
     ClassElement classC = unit.getType('C');
     MethodElement methodC = classC.getMethod(methodName);
     ParameterElement parameterC = methodC.parameters[0];
-    expect(parameterC.type.isDynamic, isTrue);
+    if (previewDart2) {
+      expect(parameterC.type.isDynamic, isFalse);
+    } else {
+      expect(parameterC.type.isDynamic, isTrue);
+    }
 
     _runInferrer(unit);
 
@@ -174,7 +178,11 @@ class C implements A, B {
     ClassElement classC = unit.getType('C');
     MethodElement methodC = classC.getMethod(methodName);
     ParameterElement parameterC = methodC.parameters[0];
-    expect(parameterC.type.isDynamic, isTrue);
+    if (previewDart2) {
+      expect(parameterC.type.isDynamic, isFalse);
+    } else {
+      expect(parameterC.type.isDynamic, isTrue);
+    }
 
     _runInferrer(unit);
 
@@ -195,7 +203,11 @@ class C<E> implements A<E> {
     DartType typeCE = classC.typeParameters[0].type;
     MethodElement methodC = classC.getMethod(methodName);
     ParameterElement parameterC = methodC.parameters[0];
-    expect(parameterC.type.isDynamic, isTrue);
+    if (previewDart2) {
+      expect(parameterC.type.isDynamic, isFalse);
+    } else {
+      expect(parameterC.type.isDynamic, isTrue);
+    }
     expect(methodC.type.typeArguments, [typeCE]);
 
     _runInferrer(unit);
@@ -286,7 +298,11 @@ class C<E> implements A<E>, B<E> {
 ''');
     ClassElement classC = unit.getType('C');
     MethodElement methodC = classC.getMethod(methodName);
-    expect(methodC.returnType.isDynamic, isTrue);
+    if (previewDart2) {
+      expect(methodC.returnType.isDynamic, isFalse);
+    } else {
+      expect(methodC.returnType.isDynamic, isTrue);
+    }
 
     _runInferrer(unit);
 
@@ -311,7 +327,11 @@ class C implements A, B {
     DartType expectedType = methodA.returnType;
     ClassElement classC = unit.getType('C');
     MethodElement methodC = classC.getMethod(methodName);
-    expect(methodC.returnType.isDynamic, isTrue);
+    if (previewDart2) {
+      expect(methodC.returnType.isDynamic, isFalse);
+    } else {
+      expect(methodC.returnType.isDynamic, isTrue);
+    }
 
     _runInferrer(unit);
 
@@ -336,7 +356,11 @@ class C implements A, B {
     DartType expectedType = methodA.returnType;
     ClassElement classC = unit.getType('C');
     MethodElement methodC = classC.getMethod(methodName);
-    expect(methodC.returnType.isDynamic, isTrue);
+    if (previewDart2) {
+      expect(methodC.returnType.isDynamic, isFalse);
+    } else {
+      expect(methodC.returnType.isDynamic, isTrue);
+    }
 
     _runInferrer(unit);
 
@@ -379,7 +403,11 @@ class B extends A {
     MethodElement methodA = classA.getMethod(methodName);
     ClassElement classB = unit.getType('B');
     MethodElement methodB = classB.getMethod(methodName);
-    expect(methodB.returnType.isDynamic, isTrue);
+    if (previewDart2) {
+      expect(methodB.returnType.isDynamic, isFalse);
+    } else {
+      expect(methodB.returnType.isDynamic, isTrue);
+    }
 
     _runInferrer(unit);
 
@@ -399,7 +427,11 @@ class B<E> extends A<E> {
     ClassElement classB = unit.getType('B');
     DartType typeBE = classB.typeParameters[0].type;
     MethodElement methodB = classB.getMethod(methodName);
-    expect(methodB.returnType.isDynamic, isTrue);
+    if (previewDart2) {
+      expect(methodB.returnType.isDynamic, isFalse);
+    } else {
+      expect(methodB.returnType.isDynamic, isTrue);
+    }
     expect(methodB.type.typeArguments, [typeBE]);
 
     _runInferrer(unit);
