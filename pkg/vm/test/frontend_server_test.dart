@@ -512,6 +512,29 @@ Future<int> main() async {
       });
       expect(await allDone.future, true);
     });
+
+    test('compile and recompile with MultiRootFileSystem', () async {
+      var file = new File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("main() {}\n");
+      new File('${tempDir.path}/.packages')
+        ..createSync()
+        ..writeAsStringSync("\n");
+      var dillFile = new File('${tempDir.path}/app.dill');
+      expect(dillFile.existsSync(), equals(false));
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--strong',
+        '--incremental',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--packages=test-scheme:///.packages',
+        '--filesystem-root=${tempDir.path}',
+        '--filesystem-scheme=test-scheme',
+        'test-scheme:///foo.dart'
+      ];
+      int exitcode = await starter(args);
+      expect(exitcode, equals(0));
+    });
   });
   return 0;
 }
