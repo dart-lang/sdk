@@ -4156,6 +4156,9 @@ main() {
   }
 
   test_invokeConstructorUsingNew() async {
+    if (previewDart2) {
+      return;
+    }
     await resolveTestUnit('''
 class C {
   C.c();

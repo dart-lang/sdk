@@ -3513,7 +3513,17 @@ class FakeFlutter {
 }
 ''');
     _setCaretLocation();
-    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_CENTER, '''
+    if (previewDart2) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_CENTER, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return /*caret*/Center(child: new Container());
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_CENTER, '''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
@@ -3521,6 +3531,7 @@ class FakeFlutter {
   }
 }
 ''');
+    }
   }
 
   test_flutterWrapCenter_OK_implicitNew() async {
@@ -3559,7 +3570,24 @@ class FakeFlutter {
 }
 ''');
     _setCaretLocation();
-    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_COLUMN, '''
+    if (previewDart2) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_COLUMN, '''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Container(
+      child: Column(
+        children: <Widget>[
+          new /*caret*/Text('aaa'),
+        ],
+      ),
+    );
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_COLUMN, '''
 import 'package:flutter/widgets.dart';
 
 class FakeFlutter {
@@ -3574,6 +3602,7 @@ class FakeFlutter {
   }
 }
 ''');
+    }
   }
 
   test_flutterWrapColumn_OK_coversWidgets() async {
@@ -3595,7 +3624,29 @@ class FakeFlutter {
 }
 ''');
     _setStartEndSelection();
-    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_COLUMN, '''
+    if (previewDart2) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_COLUMN, '''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Row(children: [
+      new Text('aaa'),
+// start
+      Column(
+        children: <Widget>[
+          new Text('bbb'),
+          new Text('ccc'),
+        ],
+      ),
+// end
+      new Text('ddd'),
+    ]);
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_COLUMN, '''
 import 'package:flutter/widgets.dart';
 
 class FakeFlutter {
@@ -3615,6 +3666,7 @@ class FakeFlutter {
   }
 }
 ''');
+    }
   }
 
   test_flutterWrapColumn_OK_implicitNew() async {
@@ -3670,7 +3722,20 @@ class FakeFlutter {
 }
 ''');
     _setCaretLocation();
-    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_PADDING, '''
+    if (previewDart2) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_PADDING, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return /*caret*/Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: new Container(),
+    );
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_PADDING, '''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
@@ -3681,6 +3746,7 @@ class FakeFlutter {
   }
 }
 ''');
+    }
   }
 
   test_flutterWrapRow_OK() async {
@@ -3702,7 +3768,29 @@ class FakeFlutter {
 }
 ''');
     _setStartEndSelection();
-    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_ROW, '''
+    if (previewDart2) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_ROW, '''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Column(children: [
+      new Text('aaa'),
+// start
+      Row(
+        children: <Widget>[
+          new Text('bbb'),
+          new Text('ccc'),
+        ],
+      ),
+// end
+      new Text('ddd'),
+    ]);
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_ROW, '''
 import 'package:flutter/widgets.dart';
 
 class FakeFlutter {
@@ -3722,6 +3810,7 @@ class FakeFlutter {
   }
 }
 ''');
+    }
   }
 
   test_flutterWrapWidget_BAD_minimal() async {
@@ -3836,7 +3925,30 @@ class FakeFlutter {
 }
 ''');
     _setCaretLocation();
-    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+    if (previewDart2) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return new Container(
+// start
+      child: widget(
+        child: new /*caret*/DefaultTextStyle(
+          child: new Row(
+            children: <Widget>[
+              new Container(
+              ),
+            ],
+          ),
+        ),
+      ),
+// end
+    );
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
@@ -3857,6 +3969,7 @@ class FakeFlutter {
   }
 }
 ''');
+    }
   }
 
   test_flutterWrapWidget_OK_multiLines_eol2() async {
@@ -3881,7 +3994,30 @@ class FakeFlutter {\r
 }\r
 ''');
     _setCaretLocation();
-    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+    if (previewDart2) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {\r
+  main() {\r
+    return new Container(\r
+// start\r
+      child: widget(\r
+        child: new /*caret*/DefaultTextStyle(\r
+          child: new Row(\r
+            children: <Widget>[\r
+              new Container(\r
+              ),\r
+            ],\r
+          ),\r
+        ),\r
+      ),\r
+// end\r
+    );\r
+  }\r
+}\r
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {\r
   main() {\r
@@ -3902,6 +4038,7 @@ class FakeFlutter {\r
   }\r
 }\r
 ''');
+    }
   }
 
   test_flutterWrapWidget_OK_singleLine1() async {
@@ -3917,7 +4054,19 @@ class FakeFlutter {
 }
 ''');
     _setCaretLocation();
-    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+    if (previewDart2) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+// start
+    return /*caret*/widget(child: new Container());
+// end
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
@@ -3927,6 +4076,7 @@ class FakeFlutter {
   }
 }
 ''');
+    }
   }
 
   test_flutterWrapWidget_OK_singleLine2() async {
@@ -3940,7 +4090,17 @@ class FakeFlutter {
 }
 ''');
     _setCaretLocation();
-    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+    if (previewDart2) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return widget(child: new ClipRect./*caret*/rect());
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
@@ -3948,6 +4108,7 @@ class FakeFlutter {
   }
 }
 ''');
+    }
   }
 
   test_flutterWrapWidget_OK_variable() async {
@@ -3962,7 +4123,18 @@ class FakeFlutter {
 }
 ''');
     _setCaretLocation();
-    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+    if (previewDart2) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    var container = new Container();
+    return /*caret*/widget(child: container);
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
@@ -3971,6 +4143,7 @@ class FakeFlutter {
   }
 }
 ''');
+    }
   }
 
   test_importAddShow_BAD_hasShow() async {
