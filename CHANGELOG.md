@@ -14,6 +14,8 @@
 
 #### Pub
 
+* fixed bug in dart2js transformer when using the common front-end.
+
 #### Other Tools
 
 ## 2.0.0-dev.38.0
@@ -22,7 +24,7 @@
 
 ### Tool Changes
 
-* dart2js
+#### dart2js
 
   * The dart2js compiler now uses the common front-end by default. This is a
     step towards supporting Dart 2.0. At this time dart2js has no semantic
@@ -50,6 +52,10 @@
 
     * this is the first version of dart2js that no longer supports
       `--package-root`, which long ago was deprecated in favor of `--packages`.
+
+#### Pub
+
+* dart2js transformer runs with the common front-end.
 
 ## 2.0.0-dev.36.0
 
