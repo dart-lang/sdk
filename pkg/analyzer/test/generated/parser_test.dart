@@ -3219,7 +3219,7 @@ class Foo {
   void test_expectedTypeName_is_void() {
     parseExpression("x is void)",
         expectedEndOffset: 9,
-        errors: [expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 4, 4)]);
+        errors: [expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 5, 4)]);
   }
 
   void test_exportAsType() {

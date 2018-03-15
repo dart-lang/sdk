@@ -45,7 +45,8 @@ import 'package:front_end/src/fasta/messages.dart'
         messageMissingAssignableSelector,
         messageNativeClauseShouldBeAnnotation,
         messageStaticConstructor,
-        templateDuplicateLabelInSwitchStatement;
+        templateDuplicateLabelInSwitchStatement,
+        templateExpectedType;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
     show Builder, KernelLibraryBuilder, Scope;
 import 'package:front_end/src/fasta/quote.dart';
@@ -897,6 +898,17 @@ class AstBuilder extends ScopeListener {
     debugEvent("AsOperator");
 
     TypeAnnotation type = pop();
+    if (type is TypeName) {
+      Identifier name = type.name;
+      if (name is SimpleIdentifier) {
+        if (name.name == 'void') {
+          Token token = name.beginToken;
+          // TODO(danrubel): This needs to be reported during fasta resolution.
+          handleRecoverableError(
+              templateExpectedType.withArguments(token), token, token);
+        }
+      }
+    }
     Expression expression = pop();
     push(ast.asExpression(expression, asOperator, type));
   }
@@ -929,6 +941,17 @@ class AstBuilder extends ScopeListener {
     debugEvent("IsOperator");
 
     TypeAnnotation type = pop();
+    if (type is TypeName) {
+      Identifier name = type.name;
+      if (name is SimpleIdentifier) {
+        if (name.name == 'void') {
+          Token token = name.beginToken;
+          // TODO(danrubel): This needs to be reported during fasta resolution.
+          handleRecoverableError(
+              templateExpectedType.withArguments(token), token, token);
+        }
+      }
+    }
     Expression expression = pop();
     push(ast.isExpression(expression, isOperator, not, type));
   }
