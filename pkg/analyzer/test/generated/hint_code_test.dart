@@ -172,7 +172,11 @@ class A {
   n(void f(int i)) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    if (previewDart2) {
+      assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    } else {
+      assertErrors(source, [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    }
     verify([source]);
   }
 
@@ -191,7 +195,44 @@ m() {
 }
 n(int i) {}''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    if (previewDart2) {
+      assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    } else {
+      assertErrors(source, [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    }
+    verify([source]);
+  }
+
+  test_canBeNullAfterNullAware_after_cascade() async {
+    Source source = addSource(r'''
+m(x) {
+  x..a?.b.c;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+    verify([source]);
+  }
+
+  test_canBeNullAfterNullAware_before_cascade() async {
+    Source source = addSource(r'''
+m(x) {
+  x?.a..m();
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+    verify([source]);
+  }
+
+  test_canBeNullAfterNullAware_cascade_parenthesis() async {
+    Source source = addSource(r'''
+m(x) {
+  (x?.a)..m();
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
     verify([source]);
   }
 
@@ -259,39 +300,6 @@ m(x) {
     Source source = addSource(r'''
 m(x) {
   x?.a.b;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
-    verify([source]);
-  }
-
-  test_canBeNullAfterNullAware_after_cascade() async {
-    Source source = addSource(r'''
-m(x) {
-  x..a?.b.c;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
-    verify([source]);
-  }
-
-  test_canBeNullAfterNullAware_before_cascade() async {
-    Source source = addSource(r'''
-m(x) {
-  x?.a..m();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
-    verify([source]);
-  }
-
-  test_canBeNullAfterNullAware_cascade_parenthesis() async {
-    Source source = addSource(r'''
-m(x) {
-  (x?.a)..m();
 }
 ''');
     await computeAnalysisResult(source);
@@ -1163,7 +1171,11 @@ f(x, y) {
   var v = (x / y).toInt();
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DIVISION_OPTIMIZATION]);
+    if (previewDart2) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [HintCode.DIVISION_OPTIMIZATION]);
+    }
     verify([source]);
   }
 
@@ -1429,7 +1441,11 @@ f(var y) {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
+    if (previewDart2) {
+      assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    } else {
+      assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
+    }
     verify([source]);
   }
 
@@ -1441,7 +1457,11 @@ f(var y) {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
+    if (previewDart2) {
+      assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    } else {
+      assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
+    }
     verify([source]);
   }
 
@@ -1463,7 +1483,11 @@ f(var y) {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
+    if (previewDart2) {
+      assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    } else {
+      assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
+    }
     verify([source]);
   }
 
@@ -1483,7 +1507,11 @@ main() {
   int n = p1 + p2;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
+    if (previewDart2) {
+      assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    } else {
+      assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
+    }
     verify([source]);
   }
 
@@ -2299,26 +2327,6 @@ Future<int> f() async {}
     verify([source]);
   }
 
-  test_no_missingReturn_async_futureVoid() async {
-    Source source = addSource('''
-import 'dart:async';
-Future<void> f() async {}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_no_missingReturn_async_futureOrVoid() async {
-    Source source = addSource('''
-import 'dart:async';
-FutureOr<void> f(Future f) async {}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_missingReturn_factory() async {
     Source source = addSource(r'''
 class A {
@@ -2526,6 +2534,107 @@ class C extends A {
     verify([source]);
   }
 
+  test_no_missingReturn_async_futureOrVoid() async {
+    Source source = addSource('''
+import 'dart:async';
+FutureOr<void> f(Future f) async {}
+''');
+    await computeAnalysisResult(source);
+    if (previewDart2) {
+      assertErrors(source, [HintCode.MISSING_RETURN]);
+    } else {
+      assertNoErrors(source);
+    }
+    verify([source]);
+  }
+
+  test_no_missingReturn_async_futureVoid() async {
+    Source source = addSource('''
+import 'dart:async';
+Future<void> f() async {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_nullAwareBeforeOperator_minus() async {
+    Source source = addSource(r'''
+m(x) {
+  x?.a - '';
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NULL_AWARE_BEFORE_OPERATOR]);
+    verify([source]);
+  }
+
+  test_nullAwareBeforeOperator_ok_assignment() async {
+    Source source = addSource(r'''
+m(x) {
+  x?.a = '';
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_nullAwareBeforeOperator_ok_equal_equal() async {
+    Source source = addSource(r'''
+m(x) {
+  x?.a == '';
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_nullAwareBeforeOperator_ok_is() async {
+    Source source = addSource(r'''
+m(x) {
+  x?.a is String;
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_nullAwareBeforeOperator_ok_is_not() async {
+    Source source = addSource(r'''
+m(x) {
+  x?.a is! String;
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_nullAwareBeforeOperator_ok_not_equal() async {
+    Source source = addSource(r'''
+m(x) {
+  x?.a != '';
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_nullAwareBeforeOperator_ok_question_question() async {
+    Source source = addSource(r'''
+m(x) {
+  x?.a ?? true;
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_nullAwareInCondition_assert() async {
     Source source = addSource(r'''
 m(x) {
@@ -2677,83 +2786,6 @@ m(x) {
 ''');
     await computeAnalysisResult(source);
     assertErrors(source, [HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR]);
-    verify([source]);
-  }
-
-  test_nullAwareBeforeOperator_minus() async {
-    Source source = addSource(r'''
-m(x) {
-  x?.a - '';
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.NULL_AWARE_BEFORE_OPERATOR]);
-    verify([source]);
-  }
-
-  test_nullAwareBeforeOperator_ok_equal_equal() async {
-    Source source = addSource(r'''
-m(x) {
-  x?.a == '';
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_nullAwareBeforeOperator_ok_not_equal() async {
-    Source source = addSource(r'''
-m(x) {
-  x?.a != '';
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_nullAwareBeforeOperator_ok_question_question() async {
-    Source source = addSource(r'''
-m(x) {
-  x?.a ?? true;
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_nullAwareBeforeOperator_ok_assignment() async {
-    Source source = addSource(r'''
-m(x) {
-  x?.a = '';
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_nullAwareBeforeOperator_ok_is() async {
-    Source source = addSource(r'''
-m(x) {
-  x?.a is String;
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_nullAwareBeforeOperator_ok_is_not() async {
-    Source source = addSource(r'''
-m(x) {
-  x?.a is! String;
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
     verify([source]);
   }
 
@@ -3786,7 +3818,11 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNDEFINED_GETTER]);
+    if (previewDart2) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
+    } else {
+      assertErrors(source, [HintCode.UNDEFINED_GETTER]);
+    }
   }
 
   test_undefinedGetter_message() async {
@@ -3846,7 +3882,11 @@ f() {
   a.notAMethodOnString();
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNDEFINED_METHOD]);
+    if (previewDart2) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else {
+      assertErrors(source, [HintCode.UNDEFINED_METHOD]);
+    }
   }
 
   test_undefinedMethod_assignmentExpression() async {
@@ -3860,7 +3900,11 @@ class B {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNDEFINED_METHOD]);
+    if (previewDart2) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [HintCode.UNDEFINED_METHOD]);
+    }
   }
 
   test_undefinedOperator_binaryExpression() async {
@@ -3872,7 +3916,11 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
+    if (previewDart2) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    } else {
+      assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
+    }
   }
 
   test_undefinedOperator_indexBoth() async {
@@ -3884,7 +3932,11 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
+    if (previewDart2) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    } else {
+      assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
+    }
   }
 
   test_undefinedOperator_indexGetter() async {
@@ -3896,7 +3948,11 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
+    if (previewDart2) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    } else {
+      assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
+    }
   }
 
   test_undefinedOperator_indexSetter() async {
@@ -3908,7 +3964,11 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
+    if (previewDart2) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    } else {
+      assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
+    }
   }
 
   test_undefinedOperator_postfixExpression() async {
@@ -3920,7 +3980,11 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
+    if (previewDart2) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
+    }
   }
 
   test_undefinedOperator_prefixExpression() async {
@@ -3932,7 +3996,11 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
+    if (previewDart2) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
+    }
   }
 
   test_undefinedSetter() async {
@@ -3944,7 +4012,11 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNDEFINED_SETTER]);
+    if (previewDart2) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
+    } else {
+      assertErrors(source, [HintCode.UNDEFINED_SETTER]);
+    }
   }
 
   test_undefinedSetter_message() async {

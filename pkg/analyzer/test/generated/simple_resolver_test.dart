@@ -145,14 +145,18 @@ class A {
     }
     // get parameter
     Expression rhs = assignment.rightHandSide;
-    expect(rhs.staticParameterElement, isNull);
+    expect(rhs.staticParameterElement, previewDart2 ? isNotNull : isNull);
     ParameterElement parameter = rhs.propagatedParameterElement;
-    expect(parameter, isNotNull);
-    expect(parameter.displayName, "x");
-    // validate
-    ClassElement classA = unit.element.types[0];
-    PropertyAccessorElement setter = classA.accessors[0];
-    expect(setter.parameters[0], same(parameter));
+    if (previewDart2) {
+      expect(parameter, isNull);
+    } else {
+      expect(parameter, isNotNull);
+      expect(parameter.displayName, "x");
+      // validate
+      ClassElement classA = unit.element.types[0];
+      PropertyAccessorElement setter = classA.accessors[0];
+      expect(setter.parameters[0], same(parameter));
+    }
   }
 
   test_argumentResolution_setter_propagated_propertyAccess() async {
@@ -176,14 +180,18 @@ class B {
     }
     // get parameter
     Expression rhs = assignment.rightHandSide;
-    expect(rhs.staticParameterElement, isNull);
+    expect(rhs.staticParameterElement, previewDart2 ? isNotNull : isNull);
     ParameterElement parameter = rhs.propagatedParameterElement;
-    expect(parameter, isNotNull);
-    expect(parameter.displayName, "x");
-    // validate
-    ClassElement classB = unit.element.types[1];
-    PropertyAccessorElement setter = classB.accessors[0];
-    expect(setter.parameters[0], same(parameter));
+    if (previewDart2) {
+      expect(parameter, isNull);
+    } else {
+      expect(parameter, isNotNull);
+      expect(parameter.displayName, "x");
+      // validate
+      ClassElement classB = unit.element.types[1];
+      PropertyAccessorElement setter = classB.accessors[0];
+      expect(setter.parameters[0], same(parameter));
+    }
   }
 
   test_argumentResolution_setter_static() async {
@@ -1838,10 +1846,22 @@ class _SimpleResolverTest_localVariable_types_invoked
         found[0] = true;
         // check static type
         DartType staticType = node.staticType;
-        expect(staticType, same(test.typeProvider.dynamicType));
+        if (test.previewDart2) {
+          expect(staticType is FunctionType, isTrue);
+          FunctionType functionType = staticType;
+          expect(
+              functionType.parameters[0].type, same(test.typeProvider.intType));
+          expect(functionType.returnType, same(test.typeProvider.stringType));
+        } else {
+          expect(staticType, same(test.typeProvider.dynamicType));
+        }
         // check propagated type
         FunctionType propagatedType = node.propagatedType as FunctionType;
-        expect(propagatedType.returnType, test.typeProvider.stringType);
+        if (test.previewDart2) {
+          expect(propagatedType, isNull);
+        } else {
+          expect(propagatedType.returnType, test.typeProvider.stringType);
+        }
       } on AnalysisException catch (e, stackTrace) {
         thrownException[0] = new CaughtException(e, stackTrace);
       }

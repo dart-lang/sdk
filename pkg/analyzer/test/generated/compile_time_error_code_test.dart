@@ -32,10 +32,15 @@ class A<T> {
   const A();
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
-      StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
-    ]);
+    if (previewDart2) {
+      assertErrors(
+          source, [StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
+        StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
+      ]);
+    }
     verify([source]);
   }
 
@@ -46,10 +51,15 @@ class A<T> {
   const A();
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
-      StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
-    ]);
+    if (previewDart2) {
+      assertErrors(
+          source, [StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
+        StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
+      ]);
+    }
     verify([source]);
   }
 
@@ -61,8 +71,12 @@ class A<E> {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST]);
+    if (previewDart2) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST]);
+    }
     verify([source]);
   }
 
@@ -74,8 +88,12 @@ class A<E> {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP]);
+    if (previewDart2) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP]);
+    }
     verify([source]);
   }
 
@@ -84,14 +102,23 @@ class A<E> {
 class A {}
 class C = A with String, num;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      useCFE
-          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
-          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
-      useCFE
-          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
-          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
-    ]);
+    if (previewDart2) {
+      assertErrors(source, [
+        StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_MIXIN,
+        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
+        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+      ]);
+    } else if (useCFE) {
+      assertErrors(source, [
+        CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+        CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+      ]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
+        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+      ]);
+    }
     verify([source]);
   }
 }
@@ -1360,16 +1387,26 @@ class Foo {
   test_constInitializedWithNonConstValue_missingConstInListLiteral() async {
     Source source = addSource("const List L = [0];");
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    if ((analysisContext?.analysisOptions ?? driver.analysisOptions)
+        .previewDart2) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source,
+          [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    }
     verify([source]);
   }
 
   test_constInitializedWithNonConstValue_missingConstInMapLiteral() async {
     Source source = addSource("const Map M = {'a' : 0};");
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    if ((analysisContext?.analysisOptions ?? driver.analysisOptions)
+        .previewDart2) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source,
+          [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    }
     verify([source]);
   }
 

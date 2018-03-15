@@ -58,10 +58,6 @@ class ResynthesizeAstStrongTest extends _ResynthesizeAstTest {
   @override
   bool get isStrongMode => true;
 
-  @override
-  AnalysisOptionsImpl createOptions() =>
-      super.createOptions()..strongMode = true;
-
   @failingTest // See dartbug.com/32290
   test_const_constructor_inferred_args() =>
       test_const_constructor_inferred_args();
@@ -239,8 +235,6 @@ abstract class _AstResynthesizeTestMixinInterface {
 
 abstract class _ResynthesizeAstTest extends ResynthesizeTest
     with _AstResynthesizeTestMixin {
-  bool get isStrongMode;
-
   bool get shouldCompareLibraryElements;
 
   @override
@@ -265,8 +259,17 @@ abstract class _ResynthesizeAstTest extends ResynthesizeTest
   DartSdk createDartSdk() => AbstractContextTest.SHARED_MOCK_SDK;
 
   @override
-  AnalysisOptionsImpl createOptions() =>
-      super.createOptions()..strongMode = isStrongMode;
+  AnalysisOptionsImpl createOptions() {
+    if (isStrongMode) {
+      return super.createOptions()
+        ..previewDart2 = true
+        ..strongMode = true;
+    } else {
+      return super.createOptions()
+        ..previewDart2 = false
+        ..strongMode = false;
+    }
+  }
 
   test_getElement_constructor_named() async {
     String text = 'class C { C.named(); }';

@@ -323,8 +323,10 @@ g(h(_A a)) {}''');
     expect(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, error.errorCode);
     String message = error.message;
     expect(message.indexOf("_A") != -1, isTrue);
-    expect(message.indexOf("lib1.dart") != -1, isTrue);
-    expect(message.indexOf("lib2.dart") != -1, isTrue);
+    if (!previewDart2) {
+      expect(message.indexOf("lib1.dart") != -1, isTrue);
+      expect(message.indexOf("lib2.dart") != -1, isTrue);
+    }
   }
 
   test_argumentTypeNotAssignable_annotation_namedConstructor() async {
@@ -494,7 +496,11 @@ main() {
   acceptFunNumOptBool(funNumBool);
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_CAST_FUNCTION]);
+    } else {
+      assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    }
     verify([source]);
   }
 
@@ -1321,8 +1327,15 @@ class A {
   A(String this.x) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE]);
+    if (previewDart2) {
+      assertErrors(source, [
+        StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
+        StrongModeCode.INVALID_PARAMETER_DECLARATION
+      ]);
+    } else {
+      assertErrors(
+          source, [StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE]);
+    }
     verify([source]);
   }
 
@@ -1513,6 +1526,487 @@ class B = Object with A;''');
     verify([source]);
   }
 
+  test_generalizedVoid_assignmentToVoidParameterOk() async {
+    // Note: the spec may decide to disallow this, but at this point that seems
+    // highly unlikely.
+    Source source = addSource(r'''
+void main() {
+  void x;
+  f(x);
+}
+void f(void x) {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_generalizedVoid_assignToVoid_notStrong_error() async {
+    // See StrongModeStaticTypeAnalyzer2Test.test_generalizedVoid_assignToVoidOk
+    // for testing that this does not have errors in strong mode.
+    Source source = addSource(r'''
+void main() {
+  void x;
+  x = 42;
+}
+''');
+    await computeAnalysisResult(source);
+    if (previewDart2) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    }
+  }
+
+  test_generalizedVoid_invocationOfVoidFieldError() async {
+    Source source = addSource(r'''
+class Container<T>{
+  T value;
+}
+void main(Container<void> voidContainer) {
+  voidContainer.value();
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_invocationOfVoidLocalError() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  x();
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_invocationOfVoidResultError() async {
+    Source source = addSource(r'''
+void main() {
+  main()();
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_invocationOfVoidToplevelError() async {
+    Source source = addSource(r'''
+void x;
+void main() {
+  x();
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_throwVoidValueError() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  throw x;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_useOfInForeachIterableError() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  for (var v in x) {}
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_useOfVoidAsIndexAssignError() async {
+    Source source = addSource(r'''
+void main(List list) {
+  void x;
+  list[x] = null;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_useOfVoidAsIndexError() async {
+    Source source = addSource(r'''
+void main(List list) {
+  void x;
+  list[x];
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_useOfVoidAssignedToDynamicError() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  dynamic z = x;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_useOfVoidByIndexingError() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  x[0];
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_useOfVoidCallMethodError() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  x.toString();
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_useOfVoidCallMethodWithNullError() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  x?.toString();
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_useOfVoidCallSetterError() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  x.foo = null;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_useOfVoidCascadeError() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  x..toString();
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_useOfVoidCastsOk() async {
+    Source source = addSource(r'''
+void use(dynamic x) { }
+void main() {
+  void x;
+  use(x as int);
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_generalizedVoid_useOfVoidInConditionalConditionError() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  x ? null : null;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  @failingTest
+  test_generalizedVoid_useOfVoidInConditionalLhsError() async {
+    // TODO(mfairhurst) Enable this.
+    Source source = addSource(r'''
+void main(bool c) {
+  void x;
+  c ? x : null;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  @failingTest
+  test_generalizedVoid_useOfVoidInConditionalRhsError() async {
+    // TODO(mfairhurst) Enable this.
+    Source source = addSource(r'''
+void main(bool c) {
+  void x;
+  c ? null : x;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_useOfVoidInDoWhileConditionError() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  do {} while (x);
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_useOfVoidInExpStmtOk() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  x;
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  @failingTest // This test may be completely invalid.
+  test_generalizedVoid_useOfVoidInForeachVariableError() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  for (x in [1, 2]) {}
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_useOfVoidInForPartsOk() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  for (x; false; x) {}
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_generalizedVoid_useOfVoidInIsTestError() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  x is int;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_useOfVoidInListLiteralError() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  <dynamic>[x];
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_useOfVoidInListLiteralOk() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  <void>[x]; // not strong mode; we have to specify <void>.
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_generalizedVoid_useOfVoidInMapLiteralKeyError() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  var m2 = <dynamic, int>{x : 4};
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_useOfVoidInMapLiteralKeyOk() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  var m2 = <void, int>{x : 4}; // not strong mode; we have to specify <void>.
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_generalizedVoid_useOfVoidInMapLiteralValueError() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  var m1 = <int, dynamic>{4: x};
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_useOfVoidInMapLiteralValueOk() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  var m1 = <int, void>{4: x}; // not strong mode; we have to specify <void>.
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_generalizedVoid_useOfVoidInNullOperatorLhsError() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  x ?? 499;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_useOfVoidInNullOperatorRhsOk() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  null ?? x;
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_generalizedVoid_useOfVoidInSpecialAssignmentError() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  x += 1;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_useOfVoidInSwitchExpressionError() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  switch(x) {}
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_useOfVoidInWhileConditionError() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  while (x) {};
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_useOfVoidNullPropertyAccessError() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  x?.foo;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_useOfVoidPropertyAccessError() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  x.foo;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  @failingTest
+  test_generalizedVoid_useOfVoidReturnInNonVoidFunctionError() async {
+    // TODO(mfairhurst) Get this test to pass once codebase is compliant.
+    Source source = addSource(r'''
+dynamic main() {
+  void x;
+  return x;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
+  }
+
+  test_generalizedVoid_useOfVoidReturnInVoidFunctionOk() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  return x;
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_generalizedVoid_useOfVoidWhenArgumentError() async {
+    Source source = addSource(r'''
+void use(dynamic x) { }
+void main() {
+  void x;
+  use(x);
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_useOfVoidWithInitializerOk() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  void y = x;
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
   test_importDuplicatedLibraryNamed() async {
     Source source = addSource(r'''
 library test;
@@ -1568,8 +2062,12 @@ class B extends A {
   String get g { return 'a'; }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertErrors(
+          source, [StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE]);
+    }
     verify([source]);
   }
 
@@ -1582,10 +2080,17 @@ class B extends A {
   int f;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE,
-      StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE
-    ]);
+    if (previewDart2) {
+      assertErrors(source, [
+        StrongModeCode.INVALID_METHOD_OVERRIDE,
+        StrongModeCode.INVALID_METHOD_OVERRIDE
+      ]);
+    } else {
+      assertErrors(source, [
+        StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE,
+        StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE
+      ]);
+    }
     verify([source]);
   }
 
@@ -1603,8 +2108,12 @@ class B extends A {
   String get getter => null;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertErrors(
+          source, [StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE]);
+    }
     verify([source]);
   }
 
@@ -1620,8 +2129,12 @@ class B implements I<int>, J<String> {
   double get g => null;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertErrors(
+          source, [StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE]);
+    }
     verify([source]);
   }
 
@@ -1634,8 +2147,12 @@ class B implements A {
   m({String a}) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertErrors(
+          source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE]);
+    }
     verify([source]);
   }
 
@@ -1648,8 +2165,12 @@ class B implements A {
   m(String a) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertErrors(source,
+          [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
+    }
     verify([source]);
   }
 
@@ -1662,8 +2183,12 @@ class B extends A {
   m(String a) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertErrors(source,
+          [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
+    }
     verify([source]);
   }
 
@@ -1679,8 +2204,15 @@ class B extends I<int> implements J<String> {
   m(double d) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
+    if (previewDart2) {
+      assertErrors(source, [
+        StrongModeCode.INVALID_METHOD_OVERRIDE,
+        StrongModeCode.INVALID_METHOD_OVERRIDE
+      ]);
+    } else {
+      assertErrors(source,
+          [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
+    }
     verify([source]);
   }
 
@@ -1697,8 +2229,12 @@ class B extends A {
   m(String n) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertErrors(source,
+          [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
+    }
     verify([source]);
   }
 
@@ -1715,8 +2251,12 @@ class B implements I<int>, J<String> {
   m(double d) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertErrors(source,
+          [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
+    }
     verify([source]);
   }
 
@@ -1729,8 +2269,12 @@ class B implements A {
   m([String a]) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [StaticWarningCode.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertErrors(source,
+          [StaticWarningCode.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE]);
+    }
     verify([source]);
   }
 
@@ -1747,8 +2291,12 @@ class B extends A {
   m([String n]) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [StaticWarningCode.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertErrors(source,
+          [StaticWarningCode.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE]);
+    }
     verify([source]);
   }
 
@@ -1761,8 +2309,12 @@ class B implements A {
   String m() { return 'a'; }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertErrors(
+          source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
+    }
     verify([source]);
   }
 
@@ -1777,8 +2329,12 @@ class C implements B {
   String m() { return 'a'; }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertErrors(
+          source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
+    }
     verify([source]);
   }
 
@@ -1791,8 +2347,12 @@ class B extends Object with A {
   String m() { return 'a'; }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertErrors(
+          source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
+    }
     verify([source]);
   }
 
@@ -1805,8 +2365,12 @@ class B extends A {
   String m() { return 'a'; }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertErrors(
+          source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
+    }
     verify([source]);
   }
 
@@ -1821,8 +2385,12 @@ class C extends B {
   String m() { return 'a'; }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertErrors(
+          source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
+    }
     verify([source]);
   }
 
@@ -1839,8 +2407,12 @@ class B extends A {
   String m() => '';
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertErrors(
+          source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
+    }
     verify([source]);
   }
 
@@ -1853,8 +2425,12 @@ class B extends A {
   void m() {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertErrors(
+          source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
+    }
     verify([source]);
   }
 
@@ -1871,9 +2447,13 @@ class B extends A {
 }
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL
-    ]);
+    if (previewDart2) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [
+        StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL
+      ]);
+    }
     verify([source]);
   }
 
@@ -1890,8 +2470,12 @@ class B extends A {
 }
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED]);
+    if (previewDart2) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source,
+          [StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED]);
+    }
     verify([source]);
   }
 
@@ -1974,8 +2558,12 @@ class B extends A {
   m({int p : 1}) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED]);
+    if (previewDart2) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source,
+          [StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED]);
+    }
     verify([source]);
   }
 
@@ -1988,9 +2576,13 @@ class B extends A {
   m([int p = 1]) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL
-    ]);
+    if (previewDart2) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [
+        StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL
+      ]);
+    }
     verify([source]);
   }
 
@@ -2003,7 +2595,11 @@ class B extends A {
   m({a}) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_NAMED]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_NAMED]);
+    }
     verify([source]);
   }
 
@@ -2016,7 +2612,11 @@ class B extends A {
   m({a, c}) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_NAMED]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_NAMED]);
+    }
     verify([source]);
   }
 
@@ -2029,7 +2629,11 @@ class B extends A {
   m([a]) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_POSITIONAL]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_POSITIONAL]);
+    }
     verify([source]);
   }
 
@@ -2042,7 +2646,11 @@ class B extends A {
   m(a, b, [c]) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_POSITIONAL]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_POSITIONAL]);
+    }
     verify([source]);
   }
 
@@ -2055,7 +2663,11 @@ class B extends A {
   m(a, [c, d]) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_POSITIONAL]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_POSITIONAL]);
+    }
     verify([source]);
   }
 
@@ -2068,7 +2680,11 @@ class B extends A {
   m(a, b) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_REQUIRED]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_REQUIRED]);
+    }
     verify([source]);
   }
 
@@ -2081,8 +2697,12 @@ class B extends A {
   void set s(String v) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertErrors(source,
+          [StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE]);
+    }
     verify([source]);
   }
 
@@ -2099,8 +2719,16 @@ class B extends A {
   set setter14(String _) => null;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE]);
+    if (previewDart2) {
+      assertErrors(source, [
+        StrongModeCode.INVALID_METHOD_OVERRIDE,
+        StrongModeCode.INVALID_METHOD_OVERRIDE,
+        StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_BASE
+      ]);
+    } else {
+      assertErrors(source,
+          [StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE]);
+    }
     verify([source]);
   }
 
@@ -2118,8 +2746,12 @@ class B extends A {
   set setter14(String _) => null;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertErrors(source,
+          [StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE]);
+    }
     verify([source]);
   }
 
@@ -2135,8 +2767,12 @@ class B implements I<int>, J<String> {
   set s(double d) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    } else {
+      assertErrors(source,
+          [StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE]);
+    }
     verify([source]);
   }
 
@@ -2242,10 +2878,14 @@ class C {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      StaticWarningCode.MIXED_RETURN_TYPES,
-      StaticWarningCode.MIXED_RETURN_TYPES
-    ]);
+    if (previewDart2) {
+      assertErrors(source, [StaticWarningCode.RETURN_WITHOUT_VALUE]);
+    } else {
+      assertErrors(source, [
+        StaticWarningCode.MIXED_RETURN_TYPES,
+        StaticWarningCode.MIXED_RETURN_TYPES
+      ]);
+    }
     verify([source]);
   }
 
@@ -2467,8 +3107,12 @@ abstract class D {
 }
 class E extends C implements D {}''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
+    if (previewDart2) {
+      assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_BASE]);
+    } else {
+      assertErrors(source,
+          [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
+    }
     verify([source]);
   }
 
@@ -3025,7 +3669,11 @@ int f(int x) {
 Null f() {return;}
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.RETURN_WITHOUT_VALUE]);
+    if (previewDart2) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [StaticWarningCode.RETURN_WITHOUT_VALUE]);
+    }
   }
 
   test_staticAccessToInstanceMember_method_invocation() async {
@@ -3369,7 +4017,11 @@ main(FuncA f) {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    if (previewDart2) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    }
   }
 
   test_typeTestNonType() async {
@@ -3586,492 +4238,6 @@ f(var p) {
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
   }
 
-  test_voidReturnForGetter() async {
-    Source source = addSource(r'''
-class S {
-  void get value {}
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-  }
-
-  test_generalizedVoid_assignToVoid_notStrong_error() async {
-    // See StrongModeStaticTypeAnalyzer2Test.test_generalizedVoid_assignToVoidOk
-    // for testing that this does not have errors in strong mode.
-    Source source = addSource(r'''
-void main() {
-  void x;
-  x = 42;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
-  }
-
-  test_generalizedVoid_useOfVoidInExpStmtOk() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  x;
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-  }
-
-  test_generalizedVoid_useOfVoidInForPartsOk() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  for (x; false; x) {}
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-  }
-
-  test_generalizedVoid_useOfVoidCastsOk() async {
-    Source source = addSource(r'''
-void use(dynamic x) { }
-void main() {
-  void x;
-  use(x as int);
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-  }
-
-  test_generalizedVoid_useOfVoidInIsTestError() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  x is int;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_useOfVoidInConditionalConditionError() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  x ? null : null;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  @failingTest
-  test_generalizedVoid_useOfVoidInConditionalLhsError() async {
-    // TODO(mfairhurst) Enable this.
-    Source source = addSource(r'''
-void main(bool c) {
-  void x;
-  c ? x : null;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  @failingTest
-  test_generalizedVoid_useOfVoidInConditionalRhsError() async {
-    // TODO(mfairhurst) Enable this.
-    Source source = addSource(r'''
-void main(bool c) {
-  void x;
-  c ? null : x;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_useOfVoidWhenArgumentError() async {
-    Source source = addSource(r'''
-void use(dynamic x) { }
-void main() {
-  void x;
-  use(x);
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_useOfVoidWithInitializerOk() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  void y = x;
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-  }
-
-  test_generalizedVoid_useOfVoidAssignedToDynamicError() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  dynamic z = x;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_throwVoidValueError() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  throw x;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_useOfVoidInListLiteralOk() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  <void>[x]; // not strong mode; we have to specify <void>.
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-  }
-
-  test_generalizedVoid_useOfVoidInListLiteralError() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  <dynamic>[x];
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_useOfVoidInMapLiteralValueOk() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  var m1 = <int, void>{4: x}; // not strong mode; we have to specify <void>.
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-  }
-
-  test_generalizedVoid_useOfVoidInMapLiteralValueError() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  var m1 = <int, dynamic>{4: x};
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_useOfVoidInMapLiteralKeyOk() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  var m2 = <void, int>{x : 4}; // not strong mode; we have to specify <void>.
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-  }
-
-  test_generalizedVoid_useOfVoidInMapLiteralKeyError() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  var m2 = <dynamic, int>{x : 4};
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_useOfVoidInNullOperatorLhsError() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  x ?? 499;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_useOfVoidInNullOperatorRhsOk() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  null ?? x;
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-  }
-
-  @failingTest
-  test_generalizedVoid_useOfVoidReturnInNonVoidFunctionError() async {
-    // TODO(mfairhurst) Get this test to pass once codebase is compliant.
-    Source source = addSource(r'''
-dynamic main() {
-  void x;
-  return x;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
-  }
-
-  test_generalizedVoid_useOfVoidReturnInVoidFunctionOk() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  return x;
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-  }
-
-  test_generalizedVoid_useOfVoidInWhileConditionError() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  while (x) {};
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_useOfVoidInDoWhileConditionError() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  do {} while (x);
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_useOfInForeachIterableError() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  for (var v in x) {}
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  @failingTest // This test may be completely invalid.
-  test_generalizedVoid_useOfVoidInForeachVariableError() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  for (x in [1, 2]) {}
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_useOfVoidInSpecialAssignmentError() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  x += 1;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_useOfVoidCallMethodError() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  x.toString();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_useOfVoidCallMethodWithNullError() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  x?.toString();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_useOfVoidCascadeError() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  x..toString();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_invocationOfVoidToplevelError() async {
-    Source source = addSource(r'''
-void x;
-void main() {
-  x();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_invocationOfVoidLocalError() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  x();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_invocationOfVoidFieldError() async {
-    Source source = addSource(r'''
-class Container<T>{
-  T value;
-}
-void main(Container<void> voidContainer) {
-  voidContainer.value();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_invocationOfVoidResultError() async {
-    Source source = addSource(r'''
-void main() {
-  main()();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_useOfVoidByIndexingError() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  x[0];
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_useOfVoidAsIndexError() async {
-    Source source = addSource(r'''
-void main(List list) {
-  void x;
-  list[x];
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_useOfVoidAsIndexAssignError() async {
-    Source source = addSource(r'''
-void main(List list) {
-  void x;
-  list[x] = null;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_useOfVoidInSwitchExpressionError() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  switch(x) {}
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_useOfVoidPropertyAccessError() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  x.foo;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_useOfVoidCallSetterError() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  x.foo = null;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_useOfVoidNullPropertyAccessError() async {
-    Source source = addSource(r'''
-void main() {
-  void x;
-  x?.foo;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-  }
-
-  test_generalizedVoid_assignmentToVoidParameterOk() async {
-    // Note: the spec may decide to disallow this, but at this point that seems
-    // highly unlikely.
-    Source source = addSource(r'''
-void main() {
-  void x;
-  f(x);
-}
-void f(void x) {}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-  }
-
   test_useOfVoidResult_assignmentExpression_function() async {
     Source source = addSource(r'''
 void f() {}
@@ -4100,6 +4266,19 @@ class A {
     verify([source]);
   }
 
+  test_useOfVoidResult_inForLoop_error() async {
+    Source source = addSource(r'''
+class A {
+  void m() {}
+  n() {
+    for(Object a = m();;) {}
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+    verify([source]);
+  }
+
   test_useOfVoidResult_inForLoop_ok() async {
     Source source = addSource(r'''
 class A {
@@ -4113,12 +4292,12 @@ class A {
     verify([source]);
   }
 
-  test_useOfVoidResult_inForLoop_error() async {
+  test_useOfVoidResult_variableDeclaration_function_error() async {
     Source source = addSource(r'''
+void f() {}
 class A {
-  void m() {}
   n() {
-    for(Object a = m();;) {}
+    Object a = f();
   }
 }''');
     await computeAnalysisResult(source);
@@ -4139,16 +4318,19 @@ class A {
     verify([source]);
   }
 
-  test_useOfVoidResult_variableDeclaration_function_error() async {
+  test_useOfVoidResult_variableDeclaration_method2() async {
     Source source = addSource(r'''
-void f() {}
 class A {
+  void m() {}
   n() {
-    Object a = f();
+    Object a = m(), b = m();
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+    assertErrors(source, [
+      StaticWarningCode.USE_OF_VOID_RESULT,
+      StaticWarningCode.USE_OF_VOID_RESULT
+    ]);
     verify([source]);
   }
 
@@ -4178,19 +4360,12 @@ class A {
     verify([source]);
   }
 
-  test_useOfVoidResult_variableDeclaration_method2() async {
+  test_voidReturnForGetter() async {
     Source source = addSource(r'''
-class A {
-  void m() {}
-  n() {
-    Object a = m(), b = m();
-  }
+class S {
+  void get value {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      StaticWarningCode.USE_OF_VOID_RESULT,
-      StaticWarningCode.USE_OF_VOID_RESULT
-    ]);
-    verify([source]);
+    assertNoErrors(source);
   }
 }
