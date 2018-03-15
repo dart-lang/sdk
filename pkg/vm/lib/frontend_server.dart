@@ -17,10 +17,6 @@ import 'package:args/args.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystemEntity;
-// Use of multi_root_file_system.dart directly from front_end package is a
-// temporarily solution while we are looking for better home for that
-// functionality.
-import 'package:front_end/src/multi_root_file_system.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/binary/limited_ast_to_binary.dart';
@@ -72,18 +68,7 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addOption('target',
       help: 'Target model that determines what core libraries are available',
       allowed: <String>['vm', 'flutter'],
-      defaultsTo: 'vm')
-  ..addOption('filesystem-root',
-      help: 'File path that is used as a root in virtual filesystem used in'
-          ' compiled kernel files. When used --output-dill should be provided as well.',
-      allowMultiple: true,
-      hide: true)
-  ..addOption('filesystem-scheme',
-      help:
-          'Scheme that is used in virtual filesystem set up via --filesystem-root'
-          ' option',
-      defaultsTo: 'org-dartlang-root',
-      hide: true);
+      defaultsTo: 'vm');
 
 String usage = '''
 Usage: server [options] [input.dart]
@@ -177,7 +162,7 @@ class FrontendCompiler implements CompilerInterface {
   final ProgramTransformer transformer;
 
   void setMainSourceFilename(String filename) {
-    final Uri filenameUri = _getFileOrUri(filename);
+    final Uri filenameUri = Uri.base.resolveUri(new Uri.file(filename));
     _mainSource = filenameUri;
   }
 
@@ -202,25 +187,12 @@ class FrontendCompiler implements CompilerInterface {
         (options['strong'] ? 'platform_strong.dill' : 'platform.dill');
     final CompilerOptions compilerOptions = new CompilerOptions()
       ..sdkRoot = sdkRoot
-      ..packagesFileUri = _getFileOrUri(_options['packages'])
+      ..packagesFileUri = options['packages'] != null
+          ? Uri.base.resolveUri(new Uri.file(options['packages']))
+          : null
       ..strongMode = options['strong']
       ..sdkSummary = sdkRoot.resolve(platformKernelDill)
       ..reportMessages = true;
-    if (options.wasParsed('filesystem-root')) {
-      List<Uri> rootUris = <Uri>[];
-      for (String root in options['filesystem-root']) {
-        rootUris.add(Uri.base.resolveUri(new Uri.file(root)));
-      }
-      compilerOptions.fileSystem = new MultiRootFileSystem(
-          options['filesystem-scheme'], rootUris, compilerOptions.fileSystem);
-
-      if (_options['output-dill'] == null) {
-        print("When --filesystem-root is specified it is required to specify"
-            " --output-dill option that points to physical file system location"
-            " of a target dill file.");
-        exit(1);
-      }
-    }
 
     final TargetFlags targetFlags =
         new TargetFlags(strongMode: options['strong']);
@@ -345,22 +317,6 @@ class FrontendCompiler implements CompilerInterface {
   void resetIncrementalCompiler() {
     _generator = _createGenerator(new Uri.file(_kernelBinaryFilenameFull));
     _kernelBinaryFilename = _kernelBinaryFilenameFull;
-  }
-
-  Uri _getFileOrUri(String fileOrUri) {
-    if (fileOrUri == null) {
-      return null;
-    }
-    if (_options['filesystem-root'] != null) {
-      // This is a hack.
-      // Only expect uri when filesystem-root option is specified. It has to
-      // be uri for filesystem-root use case because mapping is done on
-      // scheme-basis.
-      // This is so that we don't deal with Windows files paths that can not
-      // be processed as uris.
-      return Uri.base.resolve(fileOrUri);
-    }
-    return Uri.base.resolveUri(new Uri.file(fileOrUri));
   }
 
   IncrementalCompiler _createGenerator(Uri bootstrapDill) {
