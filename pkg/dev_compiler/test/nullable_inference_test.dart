@@ -465,9 +465,9 @@ void main() {
 /// to be produced in the set of expressions that cannot be null by DDC's null
 /// inference.
 Future expectNotNull(String code, String expectedNotNull) async {
-  var program = await kernelCompile(code);
+  var component = await kernelCompile(code);
   var collector = new NotNullCollector();
-  program.accept(collector);
+  component.accept(collector);
   var actualNotNull =
       collector.notNullExpressions.map((e) => e.toString()).join(', ');
   expect(actualNotNull, equals(expectedNotNull));
@@ -485,7 +485,7 @@ class _TestRecursiveVisitor extends RecursiveVisitor<void> {
   int _functionNesting = 0;
 
   @override
-  visitProgram(Program node) {
+  visitComponent(Component node) {
     inference ??= new NullableInference(new JSTypeRep(
         new TypeSchemaEnvironment(
             new CoreTypes(node), new ClassHierarchy(node), true),
@@ -495,7 +495,7 @@ class _TestRecursiveVisitor extends RecursiveVisitor<void> {
       inference.allowNotNullDeclarations = useAnnotations;
       inference.allowPackageMetaAnnotations = useAnnotations;
     }
-    super.visitProgram(node);
+    super.visitComponent(node);
   }
 
   @override
@@ -542,7 +542,7 @@ class ExpectAllNotNull extends _TestRecursiveVisitor {
 fe.InitializedCompilerState _compilerState;
 final _fileSystem = new MemoryFileSystem(new Uri.file('/memory/'));
 
-Future<Program> kernelCompile(String code) async {
+Future<Component> kernelCompile(String code) async {
   var succeeded = true;
   void errorHandler(fe.CompilationMessage error) {
     if (error.severity == fe.Severity.error) {
@@ -577,5 +577,5 @@ const nullCheck = const _NullCheck();
   fe.DdcResult result =
       await fe.compile(_compilerState, [mainUri], errorHandler);
   expect(succeeded, true);
-  return result.program;
+  return result.component;
 }

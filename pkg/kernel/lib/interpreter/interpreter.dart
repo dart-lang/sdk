@@ -22,14 +22,14 @@ class Interpreter {
   static MainEnvironment mainEnvironment =
       new MainEnvironment(<Member, Location>{});
 
-  final Program program;
+  final Component component;
   final StatementExecuter visitor = new StatementExecuter();
 
-  Interpreter(this.program);
+  Interpreter(this.component);
 
   void run() {
-    assert(program.libraries.isEmpty);
-    Procedure mainMethod = program.mainMethod;
+    assert(component.libraries.isEmpty);
+    Procedure mainMethod = component.mainMethod;
 
     if (mainMethod == null) return;
 

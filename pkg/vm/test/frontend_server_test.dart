@@ -5,7 +5,7 @@ import 'dart:isolate';
 
 import 'package:args/src/arg_results.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
-import 'package:kernel/ast.dart' show Program;
+import 'package:kernel/ast.dart' show Component;
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:vm/incremental_compiler.dart';
@@ -378,7 +378,7 @@ Future<int> main() async {
       final _MockedIncrementalCompiler generator =
           new _MockedIncrementalCompiler();
       when(generator.compile())
-          .thenAnswer((_) => new Future<Program>.value(new Program()));
+          .thenAnswer((_) => new Future<Component>.value(new Component()));
       final _MockedBinaryPrinterFactory printerFactory =
           new _MockedBinaryPrinterFactory();
       when(printerFactory.newBinaryPrinter(any))

@@ -130,7 +130,7 @@ class Tag {
 
   static const int SpecializedIntLiteralBias = 3;
 
-  static const int ProgramFile = 0x90ABCDEF;
+  static const int ComponentFile = 0x90ABCDEF;
 
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.

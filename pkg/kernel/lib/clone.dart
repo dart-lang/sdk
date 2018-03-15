@@ -572,7 +572,7 @@ class CloneVisitor implements TreeVisitor {
     return new LocalInitializer(clone(node.variable));
   }
 
-  visitProgram(Program node) {
+  visitComponent(Component node) {
     return defaultTreeNode(node);
   }
 

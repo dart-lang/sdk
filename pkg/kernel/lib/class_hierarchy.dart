@@ -20,11 +20,11 @@ abstract class MixinInferrer {
 /// TODO(scheglov) Several methods are not used, or used only in tests.
 /// Check if these methods are not useful and should be removed .
 abstract class ClassHierarchy {
-  factory ClassHierarchy(Program program,
+  factory ClassHierarchy(Component component,
       {HandleAmbiguousSupertypes onAmbiguousSupertypes,
       MixinInferrer mixinInferrer}) {
     int numberOfClasses = 0;
-    for (var library in program.libraries) {
+    for (var library in component.libraries) {
       numberOfClasses += library.classes.length;
     }
     onAmbiguousSupertypes ??= (Class cls, Supertype a, Supertype b) {
@@ -34,7 +34,7 @@ abstract class ClassHierarchy {
       }
     };
     return new ClosedWorldClassHierarchy._internal(
-        program, numberOfClasses, onAmbiguousSupertypes)
+        component, numberOfClasses, onAmbiguousSupertypes)
       .._initialize(mixinInferrer);
   }
 
@@ -46,7 +46,7 @@ abstract class ClassHierarchy {
   /// Returns the unique index of the [class_].
   int getClassIndex(Class class_);
 
-  /// True if the program contains another class that is a subtype of given one.
+  /// True if the component contains another class that is a subtype of given one.
   bool hasProperSubtypes(Class class_);
 
   /// Returns the number of steps in the longest inheritance path from [class_]
@@ -332,10 +332,10 @@ abstract class ClassHierarchy {
 class ClosedWorldClassHierarchy implements ClassHierarchy {
   final HandleAmbiguousSupertypes _onAmbiguousSupertypes;
 
-  /// The [Program] that this class hierarchy represents.
-  final Program _program;
+  /// The [Component] that this class hierarchy represents.
+  final Component _component;
 
-  /// All classes in the program.
+  /// All classes in the component.
   ///
   /// The list is ordered so that classes occur after their super classes.
   final List<Class> classes;
@@ -346,7 +346,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   final List<Class> _classesByTopDownIndex;
 
   ClosedWorldClassHierarchy._internal(
-      this._program, int numberOfClasses, this._onAmbiguousSupertypes)
+      this._component, int numberOfClasses, this._onAmbiguousSupertypes)
       : classes = new List<Class>(numberOfClasses),
         _classesByTopDownIndex = new List<Class>(numberOfClasses);
 
@@ -680,7 +680,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   @override
   ClassHierarchy applyChanges(Iterable<Class> classes) {
     if (classes.isEmpty) return this;
-    return new ClassHierarchy(_program,
+    return new ClassHierarchy(_component,
         onAmbiguousSupertypes: _onAmbiguousSupertypes);
   }
 
@@ -700,7 +700,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   void _initialize(MixinInferrer mixinInferrer) {
     // Build the class ordering based on a topological sort.
-    for (var library in _program.libraries) {
+    for (var library in _component.libraries) {
       for (var classNode in library.classes) {
         _topologicalSortVisit(classNode);
       }

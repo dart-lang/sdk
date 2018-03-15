@@ -401,7 +401,7 @@ class C {
     // Remember Kernel libraries produced by the compiler.
     var libraryMap = <String, kernel.Library>{};
     var libraryExistMap = <String, bool>{};
-    for (var library in libraryResult.program.libraries) {
+    for (var library in libraryResult.component.libraries) {
       String uriStr = library.importUri.toString();
       libraryMap[uriStr] = library;
       FileState file = fsState.getFileForUri(library.importUri);

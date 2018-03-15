@@ -44,10 +44,10 @@ class ProgramCompiler
 
   /// Maps a library URI import, that is not in [_libraries], to the
   /// corresponding Kernel summary module we imported it with.
-  final _importToSummary = new Map<Library, Program>.identity();
+  final _importToSummary = new Map<Library, Component>.identity();
 
   /// Maps a summary to the file URI we used to load it from disk.
-  final _summaryToUri = new Map<Program, Uri>.identity();
+  final _summaryToUri = new Map<Component, Uri>.identity();
 
   /// Imported libraries, and the temporaries used to refer to them.
   final _imports = new Map<Library, JS.TemporaryId>();
@@ -92,7 +92,7 @@ class ProgramCompiler
   /// The current source file URI for emitting in the source map.
   Uri _currentUri;
 
-  Program _program;
+  Component _component;
 
   Library _currentLibrary;
 
@@ -200,13 +200,13 @@ class ProgramCompiler
 
   final NullableInference _nullableInference;
 
-  factory ProgramCompiler(Program program,
+  factory ProgramCompiler(Component component,
       {bool emitMetadata: true,
       bool replCompile: false,
       Map<String, String> declaredVariables: const {}}) {
-    var nativeTypes = new NativeTypeSet(program);
+    var nativeTypes = new NativeTypeSet(component);
     var types = new TypeSchemaEnvironment(
-        nativeTypes.coreTypes, new ClassHierarchy(program), true);
+        nativeTypes.coreTypes, new ClassHierarchy(component), true);
     return new ProgramCompiler._(
         nativeTypes, new JSTypeRep(types, nativeTypes.sdk),
         emitMetadata: emitMetadata,
@@ -246,11 +246,11 @@ class ProgramCompiler
   ClassHierarchy get hierarchy => types.hierarchy;
 
   JS.Program emitProgram(
-      Program p, List<Program> summaries, List<Uri> summaryUris) {
+      Component p, List<Component> summaries, List<Uri> summaryUris) {
     if (_moduleItems.isNotEmpty) {
       throw new StateError('Can only call emitModule once.');
     }
-    _program = p;
+    _component = p;
 
     for (var i = 0; i < summaries.length; i++) {
       var summary = summaries[i];
@@ -3185,7 +3185,7 @@ class ProgramCompiler
     if (offset == -1) return null;
     var fileUri = _currentUri;
     if (fileUri == null) return null;
-    var loc = _program.getLocation(fileUri, offset);
+    var loc = _component.getLocation(fileUri, offset);
     if (loc == null) return null;
     return new SourceLocation(offset,
         sourceUrl: fileUri, line: loc.line - 1, column: loc.column - 1);

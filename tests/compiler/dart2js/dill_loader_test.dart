@@ -15,7 +15,7 @@ import 'package:compiler/src/script.dart' show Script;
 import 'package:compiler/src/apiimpl.dart' show CompilerImpl;
 import "package:expect/expect.dart";
 import 'package:front_end/src/api_prototype/front_end.dart';
-import 'package:front_end/src/fasta/kernel/utils.dart' show serializeProgram;
+import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
 import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:front_end/src/compute_platform_binaries_location.dart'
@@ -52,7 +52,7 @@ main() {
       ..verify = true;
 
     List<int> kernelBinary =
-        serializeProgram(await kernelForProgram(uri, options));
+        serializeComponent(await kernelForProgram(uri, options));
     CompilerImpl compiler = compilerFor(
         entryPoint: entryPoint,
         memorySourceFiles: {'main.dill': kernelBinary},

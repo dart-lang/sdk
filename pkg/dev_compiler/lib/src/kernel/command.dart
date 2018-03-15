@@ -197,12 +197,12 @@ Future<CompilerResult> _compile(List<String> args,
   if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
 
   // Useful for debugging:
-  writeProgramToText(result.program, path: output + '.txt');
+  writeComponentToText(result.component, path: output + '.txt');
 
   // TODO(jmesserly): Save .dill file so other modules can link in this one.
-  //await writeProgramToBinary(program, output);
+  //await writeComponentToBinary(component, output);
   var jsModule = compileToJSModule(
-      result.program, result.inputSummaries, summaryUris, declaredVariables);
+      result.component, result.inputSummaries, summaryUris, declaredVariables);
   var jsCode = jsProgramToCode(jsModule, moduleFormat,
       buildSourceMap: argResults['source-map'] as bool,
       jsUrl: path.toUri(output).toString(),
@@ -219,7 +219,7 @@ Future<CompilerResult> _compile(List<String> args,
   return new CompilerResult(compilerState, true);
 }
 
-JS.Program compileToJSModule(Program p, List<Program> summaries,
+JS.Program compileToJSModule(Component p, List<Component> summaries,
     List<Uri> summaryUris, Map<String, String> declaredVariables) {
   var compiler = new ProgramCompiler(p, declaredVariables: declaredVariables);
   return compiler.emitProgram(p, summaries, summaryUris);

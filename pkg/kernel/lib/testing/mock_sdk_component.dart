@@ -4,8 +4,8 @@
 
 import 'package:kernel/ast.dart';
 
-/// Returns a [Program] object containing empty definitions of core SDK classes.
-Program createMockSdkProgram() {
+/// Returns a [Component] object containing empty definitions of core SDK classes.
+Component createMockSdkComponent() {
   var coreLib = new Library(Uri.parse('dart:core'), name: 'dart.core');
   var asyncLib = new Library(Uri.parse('dart:async'), name: 'dart.async');
   var internalLib =
@@ -64,5 +64,5 @@ Program createMockSdkProgram() {
   addClass(asyncLib, class_('Stream', typeParameters: [typeParam('T')]));
   addClass(internalLib, class_('Symbol'));
 
-  return new Program(libraries: [coreLib, asyncLib, internalLib]);
+  return new Component(libraries: [coreLib, asyncLib, internalLib]);
 }

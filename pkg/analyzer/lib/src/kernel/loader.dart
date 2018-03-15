@@ -90,7 +90,7 @@ abstract class ReferenceLevelLoader {
 }
 
 class DartLoader implements ReferenceLevelLoader {
-  final ast.Program program;
+  final ast.Component component;
   final ApplicationRoot applicationRoot;
   final Bimap<ClassElement, ast.Class> _classes =
       new Bimap<ClassElement, ast.Class>();
@@ -119,7 +119,7 @@ class DartLoader implements ReferenceLevelLoader {
 
   bool get strongMode => context.analysisOptions.strongMode;
 
-  DartLoader(this.program, DartOptions options, Packages packages,
+  DartLoader(this.component, DartOptions options, Packages packages,
       {DartSdk dartSdk,
       AnalysisContext context,
       this.ignoreRedirectingFactories: true})
@@ -145,7 +145,7 @@ class DartLoader implements ReferenceLevelLoader {
         ..isExternal = true
         ..name = getLibraryName(element)
         ..fileUri = element.source.uri;
-      program.libraries.add(library..parent = program);
+      component.libraries.add(library..parent = component);
       _libraries[element] = library;
     }
     return library;
@@ -732,7 +732,7 @@ class DartLoader implements ReferenceLevelLoader {
     }
   }
 
-  void loadSdkInterface(ast.Program program, Target target) {
+  void loadSdkInterface(ast.Component component, Target target) {
     var requiredSdkMembers = target.requiredSdkClasses;
     for (var libraryUri in requiredSdkMembers.keys) {
       var source = context.sourceFactory.forUri2(Uri.parse(libraryUri));
@@ -764,8 +764,8 @@ class DartLoader implements ReferenceLevelLoader {
         }
       }
     }
-    for (int i = 0; i < program.libraries.length; ++i) {
-      var library = program.libraries[i];
+    for (int i = 0; i < component.libraries.length; ++i) {
+      var library = component.libraries[i];
       if (compileSdk || library.importUri.scheme != 'dart') {
         ensureLibraryIsLoaded(library);
       }
@@ -777,7 +777,7 @@ class DartLoader implements ReferenceLevelLoader {
   /// This operation may be expensive and should only be used for diagnostics.
   List<String> getLoadedFileNames() {
     var list = <String>[];
-    for (var library in program.libraries) {
+    for (var library in component.libraries) {
       LibraryElement element = context.computeLibraryElement(context
           .sourceFactory
           .forUri2(applicationRoot.absoluteUri(library.importUri)));
@@ -829,14 +829,14 @@ class DartLoader implements ReferenceLevelLoader {
         new ast.Name('main'),
         ast.ProcedureKind.Method,
         new ast.FunctionNode(new ast.ExpressionStatement(new ast.Throw(
-            new ast.StringLiteral('Program has no main method')))),
+            new ast.StringLiteral('Component has no main method')))),
         isStatic: true)
       ..fileUri = library.fileUri;
     library.addMember(main);
     return main;
   }
 
-  void loadProgram(Uri mainLibrary, {Target target, bool compileSdk}) {
+  void loadComponent(Uri mainLibrary, {Target target, bool compileSdk}) {
     ast.Library library = getLibraryReferenceFromUri(mainLibrary);
     ensureLibraryIsLoaded(library);
     var mainMethod = _getMainMethod(mainLibrary);
@@ -844,7 +844,7 @@ class DartLoader implements ReferenceLevelLoader {
     if (mainMethod == null) {
       mainMethod = _makeMissingMainMethod(library);
     }
-    program.mainMethod = mainMethod;
+    component.mainMethod = mainMethod;
     for (LibraryElement libraryElement in libraryElements) {
       for (CompilationUnitElement compilationUnitElement
           in libraryElement.units) {
@@ -858,7 +858,7 @@ class DartLoader implements ReferenceLevelLoader {
           // The source's contents could not be accessed.
           sourceCode = const <int>[];
         }
-        program.uriToSource[source.uri] =
+        component.uriToSource[source.uri] =
             new ast.Source(lineInfo.lineStarts, sourceCode);
       }
     }
@@ -896,7 +896,7 @@ class DartLoaderBatch {
   String lastPackagePath;
   bool lastStrongMode;
 
-  Future<DartLoader> getLoader(ast.Program program, DartOptions options,
+  Future<DartLoader> getLoader(ast.Component component, DartOptions options,
       {String packageDiscoveryPath}) async {
     if (dartSdk == null ||
         lastSdk != options.sdk ||
@@ -912,7 +912,7 @@ class DartLoaderBatch {
       packages = await createPackages(options.packagePath,
           discoveryPath: packageDiscoveryPath);
     }
-    return new DartLoader(program, options, packages, dartSdk: dartSdk);
+    return new DartLoader(component, options, packages, dartSdk: dartSdk);
   }
 }
 

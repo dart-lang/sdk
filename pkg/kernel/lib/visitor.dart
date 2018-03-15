@@ -255,7 +255,7 @@ class TreeVisitor<R>
   R visitSwitchCase(SwitchCase node) => defaultTreeNode(node);
   R visitCatch(Catch node) => defaultTreeNode(node);
   R visitMapEntry(MapEntry node) => defaultTreeNode(node);
-  R visitProgram(Program node) => defaultTreeNode(node);
+  R visitComponent(Component node) => defaultTreeNode(node);
 }
 
 class DartTypeVisitor<R> {

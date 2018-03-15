@@ -21,7 +21,7 @@ class AnalyzerMetadata {
   /// Return the [AnalyzerMetadata] for the [node], or `null` absent.
   static AnalyzerMetadata forNode(kernel.TreeNode node) {
     var repository =
-        node.enclosingProgram.metadata[AnalyzerMetadataRepository.TAG];
+        node.enclosingComponent.metadata[AnalyzerMetadataRepository.TAG];
     if (repository != null) {
       return repository.mapping[node];
     }

@@ -24,7 +24,7 @@ import 'package:front_end/src/multi_root_file_system.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/binary/limited_ast_to_binary.dart';
-import 'package:kernel/kernel.dart' show Program, loadProgramFromBytes;
+import 'package:kernel/kernel.dart' show Component, loadComponentFromBytes;
 import 'package:kernel/target/targets.dart';
 import 'package:path/path.dart' as path;
 import 'package:usage/uuid/uuid.dart';
@@ -142,7 +142,7 @@ abstract class CompilerInterface {
 }
 
 abstract class ProgramTransformer {
-  void transform(Program program);
+  void transform(Component component);
 }
 
 /// Class that for test mocking purposes encapsulates creation of [BinaryPrinter].
@@ -225,13 +225,13 @@ class FrontendCompiler implements CompilerInterface {
         new TargetFlags(strongMode: options['strong']);
     compilerOptions.target = getTarget(options['target'], targetFlags);
 
-    Program program;
+    Component component;
     if (options['incremental']) {
       _compilerOptions = compilerOptions;
       _generator = generator ??
           _createGenerator(new Uri.file(_kernelBinaryFilenameFull));
       await invalidateIfBootstrapping();
-      program = await _runWithPrintRedirection(() => _generator.compile());
+      component = await _runWithPrintRedirection(() => _generator.compile());
     } else {
       if (options['link-platform']) {
         // TODO(aam): Remove linkedDependencies once platform is directly embedded
@@ -240,26 +240,26 @@ class FrontendCompiler implements CompilerInterface {
           sdkRoot.resolve(platformKernelDill)
         ];
       }
-      program = await _runWithPrintRedirection(() => compileToKernel(
+      component = await _runWithPrintRedirection(() => compileToKernel(
           _mainSource, compilerOptions,
           aot: options['aot'],
           useGlobalTypeFlowAnalysis: options['tfa'],
           entryPoints: options['entry-points']));
     }
-    if (program != null) {
+    if (component != null) {
       if (transformer != null) {
-        transformer.transform(program);
+        transformer.transform(component);
       }
 
       final IOSink sink = new File(_kernelBinaryFilename).openWrite();
       final BinaryPrinter printer = printerFactory.newBinaryPrinter(sink);
-      printer.writeProgramFile(program);
+      printer.writeComponentFile(component);
       await sink.close();
       _outputStream.writeln('$boundaryKey $_kernelBinaryFilename');
 
       final String depfile = options['depfile'];
       if (depfile != null) {
-        await _writeDepfile(program, _kernelBinaryFilename, depfile);
+        await _writeDepfile(component, _kernelBinaryFilename, depfile);
       }
 
       _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
@@ -275,11 +275,11 @@ class FrontendCompiler implements CompilerInterface {
       final File f = new File(_kernelBinaryFilenameFull);
       if (!f.existsSync()) return null;
 
-      final Program program = loadProgramFromBytes(f.readAsBytesSync());
-      for (Uri uri in program.uriToSource.keys) {
+      final Component component = loadComponentFromBytes(f.readAsBytesSync());
+      for (Uri uri in component.uriToSource.keys) {
         if ('$uri' == '') continue;
 
-        final List<int> oldBytes = program.uriToSource[uri].source;
+        final List<int> oldBytes = component.uriToSource[uri].source;
         final FileSystemEntity entity =
             _compilerOptions.fileSystem.entityForUri(uri);
         if (!await entity.exists()) {
@@ -314,7 +314,7 @@ class FrontendCompiler implements CompilerInterface {
     if (filename != null) {
       setMainSourceFilename(filename);
     }
-    final Program deltaProgram =
+    final Component deltaProgram =
         await _generator.compile(entryPoint: _mainSource);
 
     if (deltaProgram != null && transformer != null) {
@@ -323,7 +323,7 @@ class FrontendCompiler implements CompilerInterface {
 
     final IOSink sink = new File(_kernelBinaryFilename).openWrite();
     final BinaryPrinter printer = printerFactory.newBinaryPrinter(sink);
-    printer.writeProgramFile(deltaProgram);
+    printer.writeComponentFile(deltaProgram);
     await sink.close();
     _outputStream.writeln('$boundaryKey $_kernelBinaryFilename');
     _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
@@ -390,11 +390,11 @@ String _escapePath(String path) {
 }
 
 // https://ninja-build.org/manual.html#_depfile
-void _writeDepfile(Program program, String output, String depfile) async {
+void _writeDepfile(Component component, String output, String depfile) async {
   final IOSink file = new File(depfile).openWrite();
   file.write(_escapePath(output));
   file.write(':');
-  for (Uri dep in program.uriToSource.keys) {
+  for (Uri dep in component.uriToSource.keys) {
     file.write(' ');
     file.write(_escapePath(dep.toFilePath()));
   }

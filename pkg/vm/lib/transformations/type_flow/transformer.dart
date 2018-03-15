@@ -30,21 +30,21 @@ const bool kDumpClassHierarchy =
 
 /// Whole-program type flow analysis and transformation.
 /// Assumes strong mode and closed world.
-Program transformProgram(
-    CoreTypes coreTypes, Program program, List<String> entryPoints) {
+Component transformComponent(
+    CoreTypes coreTypes, Component component, List<String> entryPoints) {
   if ((entryPoints == null) || entryPoints.isEmpty) {
     throw 'Error: unable to perform global type flow analysis without entry points.';
   }
 
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
-  final hierarchy = new ClassHierarchy(program,
+  final hierarchy = new ClassHierarchy(component,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
   final types = new TypeEnvironment(coreTypes, hierarchy, strongMode: true);
-  final libraryIndex = new LibraryIndex.all(program);
+  final libraryIndex = new LibraryIndex.all(component);
 
   if (kDumpAllSummaries) {
     Statistics.reset();
-    new CreateAllSummariesVisitor(types).visitProgram(program);
+    new CreateAllSummariesVisitor(types).visitComponent(component);
     Statistics.print("All summaries statistics");
   }
 
@@ -54,7 +54,7 @@ Program transformProgram(
   final typeFlowAnalysis = new TypeFlowAnalysis(hierarchy, types, libraryIndex,
       entryPointsJSONFiles: entryPoints);
 
-  Procedure main = program.mainMethod;
+  Procedure main = component.mainMethod;
   final Selector mainSelector = new DirectSelector(main);
   typeFlowAnalysis.addRawCall(mainSelector);
   typeFlowAnalysis.process();
@@ -67,11 +67,12 @@ Program transformProgram(
 
   final transformsStopWatch = new Stopwatch()..start();
 
-  new DropMethodBodiesVisitor(typeFlowAnalysis).visitProgram(program);
+  new DropMethodBodiesVisitor(typeFlowAnalysis).visitComponent(component);
 
-  new TFADevirtualization(program, typeFlowAnalysis).visitProgram(program);
+  new TFADevirtualization(component, typeFlowAnalysis)
+      .visitComponent(component);
 
-  new AnnotateKernel(program, typeFlowAnalysis).visitProgram(program);
+  new AnnotateKernel(component, typeFlowAnalysis).visitComponent(component);
 
   transformsStopWatch.stop();
 
@@ -80,15 +81,15 @@ Program transformProgram(
 
   Statistics.print("TFA statistics");
 
-  return program;
+  return component;
 }
 
 /// Devirtualization based on results of type flow analysis.
 class TFADevirtualization extends Devirtualization {
   final TypeFlowAnalysis _typeFlowAnalysis;
 
-  TFADevirtualization(Program program, this._typeFlowAnalysis)
-      : super(_typeFlowAnalysis.environment.coreTypes, program,
+  TFADevirtualization(Component component, this._typeFlowAnalysis)
+      : super(_typeFlowAnalysis.environment.coreTypes, component,
             _typeFlowAnalysis.environment.hierarchy);
 
   @override
@@ -138,11 +139,11 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
   final InferredTypeMetadataRepository _inferredTypeMetadata;
   final UnreachableNodeMetadataRepository _unreachableNodeMetadata;
 
-  AnnotateKernel(Program program, this._typeFlowAnalysis)
+  AnnotateKernel(Component component, this._typeFlowAnalysis)
       : _inferredTypeMetadata = new InferredTypeMetadataRepository(),
         _unreachableNodeMetadata = new UnreachableNodeMetadataRepository() {
-    program.addMetadataRepository(_inferredTypeMetadata);
-    program.addMetadataRepository(_unreachableNodeMetadata);
+    component.addMetadataRepository(_inferredTypeMetadata);
+    component.addMetadataRepository(_unreachableNodeMetadata);
   }
 
   InferredType _convertType(Type type) {

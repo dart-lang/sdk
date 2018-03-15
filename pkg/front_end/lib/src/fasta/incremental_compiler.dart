@@ -8,7 +8,7 @@ import 'dart:async' show Future;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
-import 'package:kernel/kernel.dart' show Library, Procedure, Program, Source;
+import 'package:kernel/kernel.dart' show Library, Procedure, Component, Source;
 
 import '../api_prototype/incremental_kernel_generator.dart'
     show IncrementalKernelGenerator;
@@ -52,10 +52,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       : ticker = context.options.ticker;
 
   @override
-  Future<Program> computeDelta({Uri entryPoint}) async {
+  Future<Component> computeDelta({Uri entryPoint}) async {
     ticker.reset();
     entryPoint ??= context.options.inputs.single;
-    return context.runInContext<Future<Program>>((CompilerContext c) async {
+    return context.runInContext<Future<Component>>((CompilerContext c) async {
       IncrementalCompilerData data = new IncrementalCompilerData();
       if (dillLoadedData == null) {
         UriTranslator uriTranslator = await c.options.getUriTranslator();
@@ -67,7 +67,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           try {
             bytesLength += await initializeFromDill(summaryBytes, c, data);
           } catch (e) {
-            // We might have loaded x out of y libraries into the program.
+            // We might have loaded x out of y libraries into the component.
             // To avoid any unforeseen problems start over.
             bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
           }
@@ -131,10 +131,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       await userCode.buildOutlines();
 
-      // This is not the full program. It is the program including all
+      // This is not the full program. It is the component including all
       // libraries loaded from .dill files.
-      Program programWithDill =
-          await userCode.buildProgram(verify: c.options.verify);
+      Component programWithDill =
+          await userCode.buildComponent(verify: c.options.verify);
 
       List<Library> libraries =
           new List<Library>.from(userCode.loader.libraries);
@@ -158,11 +158,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         });
       }
 
-      // This is the incremental program.
+      // This component represents the parts of the program that were
+      // recompiled.
       Procedure mainMethod = programWithDill == null
           ? data.userLoadedUriMain
           : programWithDill.mainMethod;
-      return new Program(libraries: libraries, uriToSource: data.uriToSource)
+      return new Component(libraries: libraries, uriToSource: data.uriToSource)
         ..mainMethod = mainMethod;
     });
   }
@@ -174,9 +175,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
     if (summaryBytes != null) {
       ticker.logMs("Read ${c.options.sdkSummary}");
-      data.program = new Program();
+      data.component = new Component();
       new BinaryBuilder(summaryBytes, disableLazyReading: false)
-          .readProgram(data.program);
+          .readComponent(data.component);
       ticker.logMs("Deserialized ${c.options.sdkSummary}");
       bytesLength += summaryBytes.length;
     }
@@ -194,32 +195,32 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       List<int> initializationBytes = await entity.readAsBytes();
       if (initializationBytes != null) {
         Set<Uri> prevLibraryUris = new Set<Uri>.from(
-            data.program.libraries.map((Library lib) => lib.importUri));
+            data.component.libraries.map((Library lib) => lib.importUri));
         ticker.logMs("Read $initializeFromDillUri");
 
         // We're going to output all we read here so lazy loading it
         // doesn't make sense.
         new BinaryBuilder(initializationBytes, disableLazyReading: true)
-            .readProgram(data.program);
+            .readComponent(data.component);
 
         initializedFromDill = true;
         bytesLength += initializationBytes.length;
-        for (Library lib in data.program.libraries) {
+        for (Library lib in data.component.libraries) {
           if (prevLibraryUris.contains(lib.importUri)) continue;
           data.importUriToOrder[lib.importUri] = data.importUriToOrder.length;
         }
-        data.userLoadedUriMain = data.program.mainMethod;
+        data.userLoadedUriMain = data.component.mainMethod;
         data.includeUserLoadedLibraries = true;
-        data.uriToSource.addAll(data.program.uriToSource);
+        data.uriToSource.addAll(data.component.uriToSource);
       }
     }
     return bytesLength;
   }
 
   void appendLibraries(IncrementalCompilerData data, int bytesLength) {
-    if (data.program != null) {
+    if (data.component != null) {
       dillLoadedData.loader
-          .appendLibraries(data.program, byteCount: bytesLength);
+          .appendLibraries(data.component, byteCount: bytesLength);
     }
     ticker.logMs("Appended libraries");
   }
@@ -327,7 +328,7 @@ class IncrementalCompilerData {
   Map<Uri, Source> uriToSource;
   Map<Uri, int> importUriToOrder;
   Procedure userLoadedUriMain;
-  Program program;
+  Component component;
 
   IncrementalCompilerData() {
     reset();
@@ -338,6 +339,6 @@ class IncrementalCompilerData {
     uriToSource = <Uri, Source>{};
     importUriToOrder = <Uri, int>{};
     userLoadedUriMain = null;
-    program = null;
+    component = null;
   }
 }

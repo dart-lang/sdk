@@ -61,15 +61,15 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
 }
 
 class MemoryKernelLibraryLoaderTask extends KernelLibraryLoaderTask {
-  final ir.Program program;
+  final ir.Component component;
 
   MemoryKernelLibraryLoaderTask(KernelToElementMapForImpact elementMap,
-      DiagnosticReporter reporter, Measurer measurer, this.program)
+      DiagnosticReporter reporter, Measurer measurer, this.component)
       : super(null, null, elementMap, null, reporter, measurer);
 
   Future<LoadedLibraries> loadLibrary(Uri resolvedUri,
       {bool skipFileWithPartOfTag: false}) async {
-    return createLoadedLibraries(program);
+    return createLoadedLibraries(component);
   }
 }
 

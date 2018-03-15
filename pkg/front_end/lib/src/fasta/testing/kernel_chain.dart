@@ -13,7 +13,7 @@ import 'dart:io' show Directory, File, IOSink;
 
 import 'dart:typed_data' show Uint8List;
 
-import 'package:kernel/ast.dart' show Library, Program;
+import 'package:kernel/ast.dart' show Library, Component;
 
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
@@ -21,7 +21,7 @@ import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 import 'package:kernel/error_formatter.dart' show ErrorFormatter;
 
-import 'package:kernel/kernel.dart' show loadProgramFromBinary;
+import 'package:kernel/kernel.dart' show loadComponentFromBinary;
 
 import 'package:kernel/naive_type_checker.dart' show StrongModeTypeChecker;
 
@@ -42,16 +42,16 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 
 import '../compiler_context.dart';
 
-import '../kernel/verifier.dart' show verifyProgram;
+import '../kernel/verifier.dart' show verifyComponent;
 
-class Print extends Step<Program, Program, ChainContext> {
+class Print extends Step<Component, Component, ChainContext> {
   const Print();
 
   String get name => "print";
 
-  Future<Result<Program>> run(Program program, _) async {
+  Future<Result<Component>> run(Component component, _) async {
     StringBuffer sb = new StringBuffer();
-    for (Library library in program.libraries) {
+    for (Library library in component.libraries) {
       Printer printer = new Printer(sb);
       if (library.importUri.scheme != "dart" &&
           library.importUri.scheme != "package") {
@@ -59,54 +59,59 @@ class Print extends Step<Program, Program, ChainContext> {
       }
     }
     print("$sb");
-    return pass(program);
+    return pass(component);
   }
 }
 
-class Verify extends Step<Program, Program, ChainContext> {
+class Verify extends Step<Component, Component, ChainContext> {
   final bool fullCompile;
 
   const Verify(this.fullCompile);
 
   String get name => "verify";
 
-  Future<Result<Program>> run(Program program, ChainContext context) async {
+  Future<Result<Component>> run(
+      Component component, ChainContext context) async {
     var options = new ProcessedOptions(new CompilerOptions());
     return await CompilerContext.runWithOptions(options, (_) async {
-      var errors =
-          verifyProgram(program, isOutline: !fullCompile, skipPlatform: true);
+      var errors = verifyComponent(component,
+          isOutline: !fullCompile, skipPlatform: true);
       if (errors.isEmpty) {
-        return pass(program);
+        return pass(component);
       } else {
-        return new Result<Program>(
+        return new Result<Component>(
             null, context.expectationSet["VerificationError"], errors, null);
       }
     });
   }
 }
 
-class TypeCheck extends Step<Program, Program, ChainContext> {
+class TypeCheck extends Step<Component, Component, ChainContext> {
   const TypeCheck();
 
   String get name => "typeCheck";
 
-  Future<Result<Program>> run(Program program, ChainContext context) async {
+  Future<Result<Component>> run(
+      Component component, ChainContext context) async {
     var errorFormatter = new ErrorFormatter();
     var checker =
-        new StrongModeTypeChecker(errorFormatter, program, ignoreSdk: true);
-    checker.checkProgram(program);
+        new StrongModeTypeChecker(errorFormatter, component, ignoreSdk: true);
+    checker.checkComponent(component);
     if (errorFormatter.numberOfFailures == 0) {
-      return pass(program);
+      return pass(component);
     } else {
       errorFormatter.failures.forEach(print);
       print('------- Found ${errorFormatter.numberOfFailures} errors -------');
-      return new Result<Program>(null, context.expectationSet["TypeCheckError"],
-          '${errorFormatter.numberOfFailures} type errors', null);
+      return new Result<Component>(
+          null,
+          context.expectationSet["TypeCheckError"],
+          '${errorFormatter.numberOfFailures} type errors',
+          null);
     }
   }
 }
 
-class MatchExpectation extends Step<Program, Program, ChainContext> {
+class MatchExpectation extends Step<Component, Component, ChainContext> {
   final String suffix;
 
   // TODO(ahe): This is true by default which doesn't match well with the class
@@ -117,8 +122,8 @@ class MatchExpectation extends Step<Program, Program, ChainContext> {
 
   String get name => "match expectations";
 
-  Future<Result<Program>> run(Program program, _) async {
-    Library library = program.libraries
+  Future<Result<Component>> run(Component component, _) async {
+    Library library = component.libraries
         .firstWhere((Library library) => library.importUri.scheme != "dart");
     Uri uri = library.importUri;
     Uri base = uri.resolve(".");
@@ -135,37 +140,37 @@ class MatchExpectation extends Step<Program, Program, ChainContext> {
           return fail(null, "$uri doesn't match ${expectedFile.uri}\n$diff");
         }
       } else {
-        return pass(program);
+        return pass(component);
       }
     }
     if (updateExpectations) {
       await openWrite(expectedFile.uri, (IOSink sink) {
         sink.writeln(actual.trim());
       });
-      return pass(program);
+      return pass(component);
     } else {
-      return fail(program, """
+      return fail(component, """
 Please create file ${expectedFile.path} with this content:
 $actual""");
     }
   }
 }
 
-class WriteDill extends Step<Program, Uri, ChainContext> {
+class WriteDill extends Step<Component, Uri, ChainContext> {
   const WriteDill();
 
   String get name => "write .dill";
 
-  Future<Result<Uri>> run(Program program, _) async {
+  Future<Result<Uri>> run(Component component, _) async {
     Directory tmp = await Directory.systemTemp.createTemp();
     Uri uri = tmp.uri.resolve("generated.dill");
     File generated = new File.fromUri(uri);
     IOSink sink = generated.openWrite();
     try {
       try {
-        new BinaryPrinter(sink).writeProgramFile(program);
+        new BinaryPrinter(sink).writeComponentFile(component);
       } finally {
-        program.unbindCanonicalNames();
+        component.unbindCanonicalNames();
       }
     } catch (e, s) {
       return fail(uri, e, s);
@@ -184,7 +189,7 @@ class ReadDill extends Step<Uri, Uri, ChainContext> {
 
   Future<Result<Uri>> run(Uri uri, _) async {
     try {
-      loadProgramFromBinary(uri.toFilePath());
+      loadComponentFromBinary(uri.toFilePath());
     } catch (e, s) {
       return fail(uri, e, s);
     }
@@ -192,34 +197,34 @@ class ReadDill extends Step<Uri, Uri, ChainContext> {
   }
 }
 
-class Copy extends Step<Program, Program, ChainContext> {
+class Copy extends Step<Component, Component, ChainContext> {
   const Copy();
 
-  String get name => "copy program";
+  String get name => "copy component";
 
-  Future<Result<Program>> run(Program program, _) async {
+  Future<Result<Component>> run(Component component, _) async {
     BytesCollector sink = new BytesCollector();
-    new BinaryPrinter(sink).writeProgramFile(program);
-    program.unbindCanonicalNames();
+    new BinaryPrinter(sink).writeComponentFile(component);
+    component.unbindCanonicalNames();
     Uint8List bytes = sink.collect();
-    new BinaryBuilder(bytes).readProgram(program);
-    return pass(program);
+    new BinaryBuilder(bytes).readComponent(component);
+    return pass(component);
   }
 }
 
 /// A `package:testing` step that runs the `package:front_end` compiler to
-/// generate a kernel program for an individual file.
+/// generate a kernel component for an individual file.
 ///
 /// Most options are hard-coded, but if necessary they could be moved to the
 /// [CompileContext] object in the future.
-class Compile extends Step<TestDescription, Program, CompileContext> {
+class Compile extends Step<TestDescription, Component, CompileContext> {
   const Compile();
 
   String get name => "fasta compilation";
 
-  Future<Result<Program>> run(
+  Future<Result<Component>> run(
       TestDescription description, CompileContext context) async {
-    Result<Program> result;
+    Result<Component> result;
     reportError(CompilationMessage error) {
       result ??= fail(null, error.message);
     }
@@ -241,7 +246,7 @@ class Compile extends Step<TestDescription, Program, CompileContext> {
         computePlatformBinariesLocation().resolve("vm_platform.dill"),
       ];
     }
-    Program p = await kernelForProgram(description.uri, options);
+    Component p = await kernelForProgram(description.uri, options);
     return result ??= pass(p);
   }
 }

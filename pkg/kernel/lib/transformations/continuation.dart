@@ -21,10 +21,11 @@ void transformLibraries(
   }
 }
 
-Program transformProgram(CoreTypes coreTypes, Program program, bool syncAsync) {
+Component transformComponent(
+    CoreTypes coreTypes, Component component, bool syncAsync) {
   var helper = new HelperNodes.fromCoreTypes(coreTypes);
   var rewriter = new RecursiveContinuationRewriter(helper, syncAsync);
-  return rewriter.rewriteProgram(program);
+  return rewriter.rewriteComponent(component);
 }
 
 Procedure transformProcedure(
@@ -48,7 +49,7 @@ class RecursiveContinuationRewriter extends Transformer {
 
   RecursiveContinuationRewriter(this.helper, this.syncAsync);
 
-  Program rewriteProgram(Program node) {
+  Component rewriteComponent(Component node) {
     return node.accept(this);
   }
 

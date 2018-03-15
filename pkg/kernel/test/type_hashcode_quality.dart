@@ -15,9 +15,9 @@ void main(List<String> args) {
     print(usage);
     exit(1);
   }
-  Program program = loadProgramFromBinary(args[0]);
+  Component component = loadComponentFromBinary(args[0]);
   var visitor = new DartTypeCollector();
-  program.accept(visitor);
+  component.accept(visitor);
   print('''
 Types:      ${visitor.numberOfTypes}
 Collisions: ${visitor.numberOfCollisions}''');

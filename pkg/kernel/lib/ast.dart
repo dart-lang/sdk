@@ -153,7 +153,7 @@ abstract class TreeNode extends Node {
     parent = null;
   }
 
-  Program get enclosingProgram => parent?.enclosingProgram;
+  Component get enclosingComponent => parent?.enclosingComponent;
 
   /// Returns the best known source location of the given AST node, or `null` if
   /// the node is orphaned.
@@ -436,7 +436,7 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   String toString() => debugLibraryName(this);
 
   Location _getLocationInEnclosingFile(int offset) {
-    return _getLocationInProgram(enclosingProgram, fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 }
 
@@ -929,7 +929,7 @@ class Class extends NamedNode implements FileUriNode {
   }
 
   Location _getLocationInEnclosingFile(int offset) {
-    return _getLocationInProgram(enclosingProgram, fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 }
 
@@ -1210,7 +1210,7 @@ class Field extends Member {
   DartType get setterType => isMutable ? type : const BottomType();
 
   Location _getLocationInEnclosingFile(int offset) {
-    return _getLocationInProgram(enclosingProgram, fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 }
 
@@ -1298,7 +1298,7 @@ class Constructor extends Member {
   DartType get setterType => const BottomType();
 
   Location _getLocationInEnclosingFile(int offset) {
-    return _getLocationInProgram(enclosingProgram, fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 }
 
@@ -1428,7 +1428,7 @@ class RedirectingFactoryConstructor extends Member {
   DartType get setterType => const BottomType();
 
   Location _getLocationInEnclosingFile(int offset) {
-    return _getLocationInProgram(enclosingProgram, fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 }
 
@@ -1671,7 +1671,7 @@ class Procedure extends Member {
   }
 
   Location _getLocationInEnclosingFile(int offset) {
-    return _getLocationInProgram(enclosingProgram, fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 }
 
@@ -4923,7 +4923,7 @@ class InterfaceType extends DartType {
 ///
 /// * Access to Vectors is untyped.
 ///
-/// * Vectors can be used by various transformations of Kernel programs.
+/// * Vectors can be used by various transformations of Kernel components.
 /// Currently they are used by Closure Conversion to represent closure contexts.
 class VectorType extends DartType {
   const VectorType();
@@ -5583,11 +5583,11 @@ class TypeLiteralConstant extends Constant {
 }
 
 // ------------------------------------------------------------------------
-//                                PROGRAM
+//                                COMPONENT
 // ------------------------------------------------------------------------
 
-/// A way to bundle up all the libraries in a program.
-class Program extends TreeNode {
+/// A way to bundle up libraries in a component.
+class Component extends TreeNode {
   final CanonicalName root;
 
   final List<Library> libraries;
@@ -5605,7 +5605,7 @@ class Program extends TreeNode {
   /// Reference to the main method in one of the libraries.
   Reference mainMethodName;
 
-  Program(
+  Component(
       {CanonicalName nameRoot,
       List<Library> libraries,
       Map<Uri, Source> uriToSource})
@@ -5614,7 +5614,7 @@ class Program extends TreeNode {
         uriToSource = uriToSource ?? <Uri, Source>{} {
     if (libraries != null) {
       for (int i = 0; i < libraries.length; ++i) {
-        // The libraries are owned by this program, and so are their canonical
+        // The libraries are owned by this component, and so are their canonical
         // names if they exist.
         Library library = libraries[i];
         library.parent = this;
@@ -5643,7 +5643,7 @@ class Program extends TreeNode {
     mainMethodName = getMemberReference(main);
   }
 
-  accept(TreeVisitor v) => v.visitProgram(this);
+  accept(TreeVisitor v) => v.visitComponent(this);
 
   visitChildren(Visitor v) {
     visitList(libraries, v);
@@ -5654,7 +5654,7 @@ class Program extends TreeNode {
     transformList(libraries, v, this);
   }
 
-  Program get enclosingProgram => this;
+  Component get enclosingComponent => this;
 
   /// Translates an offset to line and column numbers in the given file.
   Location getLocation(Uri file, int offset) {
@@ -5977,9 +5977,9 @@ CanonicalName getCanonicalNameOfTypedef(Typedef typedef_) {
 /// static analysis and runtime behavior of the library are unaffected.
 const informative = null;
 
-Location _getLocationInProgram(Program program, Uri fileUri, int offset) {
-  if (program != null) {
-    return program.getLocation(fileUri, offset);
+Location _getLocationInComponent(Component component, Uri fileUri, int offset) {
+  if (component != null) {
+    return component.getLocation(fileUri, offset);
   } else {
     return new Location(fileUri, TreeNode.noOffset, TreeNode.noOffset);
   }

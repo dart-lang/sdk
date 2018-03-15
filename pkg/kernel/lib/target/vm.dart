@@ -68,7 +68,7 @@ class VmTarget extends Target {
   }
 
   @override
-  void performGlobalTransformations(CoreTypes coreTypes, Program program,
+  void performGlobalTransformations(CoreTypes coreTypes, Component component,
       {void logger(String msg)}) {}
 
   @override

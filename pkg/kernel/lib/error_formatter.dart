@@ -41,9 +41,9 @@ Incompatible override of ${superMember} with ${ownMember}:
     if (fileOffset != TreeNode.noOffset) {
       final fileUri = _fileUriOf(context);
 
-      final program = context.enclosingProgram;
-      final source = program.uriToSource[fileUri];
-      final location = program.getLocation(fileUri, fileOffset);
+      final component = context.enclosingComponent;
+      final source = component.uriToSource[fileUri];
+      final location = component.getLocation(fileUri, fileOffset);
       final lineStart = source.lineStarts[location.line - 1];
       final lineEnd = (location.line < source.lineStarts.length)
           ? source.lineStarts[location.line]

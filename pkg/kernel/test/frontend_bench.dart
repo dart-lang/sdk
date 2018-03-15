@@ -48,14 +48,14 @@ main(List<String> args) {
   var uri = new Uri(scheme: 'file', path: new File(path).absolute.path);
   var packages =
       getPackagesDirectory(new Uri(scheme: 'file', path: packagePath));
-  Program repository = new Program();
+  Component repository = new Component();
 
   new DartLoader(
           repository,
           new DartOptions(
               strongMode: strongMode, sdk: sdk, packagePath: packagePath),
           packages)
-      .loadProgram(uri);
+      .loadComponent(uri);
 
   CacheEntry.recomputedCounts.forEach((key, value) {
     print('Recomputed $key $value times');

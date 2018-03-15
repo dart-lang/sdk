@@ -14,7 +14,7 @@ import 'package:kernel/ast.dart'
         Library,
         Member,
         Procedure,
-        Program,
+        Component,
         StaticInvocation,
         SuperMethodInvocation,
         SuperPropertyGet,
@@ -37,11 +37,11 @@ import '../type_inference/type_schema.dart' show TypeSchemaVisitor, UnknownType;
 import 'redirecting_factory_body.dart'
     show RedirectingFactoryBody, getRedirectingFactoryBody;
 
-List<LocatedMessage> verifyProgram(Program program,
+List<LocatedMessage> verifyComponent(Component component,
     {bool isOutline: false, bool skipPlatform: false}) {
   FastaVerifyingVisitor verifier =
       new FastaVerifyingVisitor(isOutline, skipPlatform);
-  program.accept(verifier);
+  component.accept(verifier);
   return verifier.errors;
 }
 

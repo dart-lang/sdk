@@ -8,7 +8,7 @@ import 'package:async_helper/async_helper.dart' show asyncTest;
 
 import 'package:expect/expect.dart' show Expect;
 
-import 'package:kernel/ast.dart' show Program;
+import 'package:kernel/ast.dart' show Component;
 
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions;
@@ -55,28 +55,28 @@ test({bool sdkFromSource}) async {
   IncrementalCompiler compiler =
       new IncrementalCompiler(new CompilerContext(options));
 
-  Program program = await compiler.computeDelta();
+  Component component = await compiler.computeDelta();
 
   if (sdkFromSource) {
-    // Expect that the new program contains at least the following libraries:
+    // Expect that the new component contains at least the following libraries:
     // dart:core, dart:async, and hello.dart.
     Expect.isTrue(
-        program.libraries.length > 2, "${program.libraries.length} <= 2");
+        component.libraries.length > 2, "${component.libraries.length} <= 2");
   } else {
-    // Expect that the new program contains exactly hello.dart.
+    // Expect that the new component contains exactly hello.dart.
     Expect.isTrue(
-        program.libraries.length == 1, "${program.libraries.length} != 1");
+        component.libraries.length == 1, "${component.libraries.length} != 1");
   }
 
   compiler.invalidate(helloDart);
 
-  program = await compiler.computeDelta(entryPoint: helloDart);
-  // Expect that the new program contains exactly hello.dart
+  component = await compiler.computeDelta(entryPoint: helloDart);
+  // Expect that the new component contains exactly hello.dart
   Expect.isTrue(
-      program.libraries.length == 1, "${program.libraries.length} != 1");
+      component.libraries.length == 1, "${component.libraries.length} != 1");
 
-  program = await compiler.computeDelta(entryPoint: helloDart);
-  Expect.isTrue(program.libraries.isEmpty);
+  component = await compiler.computeDelta(entryPoint: helloDart);
+  Expect.isTrue(component.libraries.isEmpty);
 }
 
 void main() {

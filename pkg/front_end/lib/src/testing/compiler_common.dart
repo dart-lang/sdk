@@ -7,10 +7,10 @@ library front_end.testing.compiler_options_common;
 
 import 'dart:async' show Future;
 
-import 'package:kernel/ast.dart' show Library, Program;
+import 'package:kernel/ast.dart' show Library, Component;
 
 import '../api_prototype/front_end.dart'
-    show CompilerOptions, kernelForBuildUnit, kernelForProgram, summaryFor;
+    show CompilerOptions, kernelForComponent, kernelForProgram, summaryFor;
 
 import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 
@@ -26,7 +26,7 @@ import '../testing/hybrid_file_system.dart' show HybridFileSystem;
 /// compiles the entry whose name is [fileName].
 ///
 /// Wraps [kernelForProgram] with some default testing options (see [setup]).
-Future<Program> compileScript(dynamic scriptOrSources,
+Future<Component> compileScript(dynamic scriptOrSources,
     {fileName: 'main.dart',
     List<String> inputSummaries: const [],
     List<String> linkedDependencies: const [],
@@ -44,17 +44,17 @@ Future<Program> compileScript(dynamic scriptOrSources,
   return await kernelForProgram(toTestUri(fileName), options);
 }
 
-/// Generate a program for a modular complation unit.
+/// Generate a component for a modular complation unit.
 ///
-/// Wraps [kernelForBuildUnit] with some default testing options (see [setup]).
-Future<Program> compileUnit(List<String> inputs, Map<String, dynamic> sources,
+/// Wraps [kernelForComponent] with some default testing options (see [setup]).
+Future<Component> compileUnit(List<String> inputs, Map<String, dynamic> sources,
     {List<String> inputSummaries: const [],
     List<String> linkedDependencies: const [],
     CompilerOptions options}) async {
   options ??= new CompilerOptions();
   await setup(options, sources,
       inputSummaries: inputSummaries, linkedDependencies: linkedDependencies);
-  return await kernelForBuildUnit(inputs.map(toTestUri).toList(), options);
+  return await kernelForComponent(inputs.map(toTestUri).toList(), options);
 }
 
 /// Generate a summary for a modular complation unit.
@@ -136,8 +136,8 @@ String _invalidLibrariesSpec = '''
 bool isDartCoreLibrary(Library lib) => isDartCore(lib.importUri);
 bool isDartCore(Uri uri) => uri.scheme == 'dart' && uri.path == 'core';
 
-/// Find a library in [program] whose Uri ends with the given [suffix]
-Library findLibrary(Program program, String suffix) {
-  return program.libraries
+/// Find a library in [component] whose Uri ends with the given [suffix]
+Library findLibrary(Component component, String suffix) {
+  return component.libraries
       .firstWhere((lib) => lib.importUri.path.endsWith(suffix));
 }

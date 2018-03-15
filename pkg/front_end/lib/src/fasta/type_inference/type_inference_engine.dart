@@ -229,7 +229,7 @@ abstract class TypeInferenceEngine {
   /// corresponding fields.
   void finishTopLevelInitializingFormals();
 
-  /// Gets ready to do top level type inference for the program having the given
+  /// Gets ready to do top level type inference for the component having the given
   /// [hierarchy], using the given [coreTypes].
   void prepareTopLevel(CoreTypes coreTypes, ClassHierarchy hierarchy);
 

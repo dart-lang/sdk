@@ -69,7 +69,7 @@ class Dart2jsTarget extends Target {
       {void logger(String msg)}) {}
 
   @override
-  void performGlobalTransformations(CoreTypes coreTypes, Program program,
+  void performGlobalTransformations(CoreTypes coreTypes, Component component,
       {void logger(String msg)}) {}
 
   @override

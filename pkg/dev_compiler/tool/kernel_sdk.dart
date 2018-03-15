@@ -39,13 +39,13 @@ Future main(List<String> args) async {
     ..target = target;
 
   var inputs = target.extraRequiredLibraries.map(Uri.parse).toList();
-  var program = await kernelForBuildUnit(inputs, options);
+  var component = await kernelForComponent(inputs, options);
 
   var outputDir = path.dirname(outputPath);
   await new Directory(outputDir).create(recursive: true);
-  await writeProgramToBinary(program, outputPath);
+  await writeComponentToBinary(component, outputPath);
 
-  var jsModule = compileToJSModule(program, [], [], {});
+  var jsModule = compileToJSModule(component, [], [], {});
   var moduleFormats = {
     'amd': ModuleFormat.amd,
     'common': ModuleFormat.common,

@@ -42,11 +42,11 @@ main() {
       file.writeAsStringSync("main() {}\n");
 
       IncrementalCompiler compiler = new IncrementalCompiler(options, file.uri);
-      Program program = await compiler.compile();
+      Component component = await compiler.compile();
 
       final StringBuffer buffer = new StringBuffer();
       new Printer(buffer, showExternal: false, showMetadata: true)
-          .writeLibraryFile(program.mainMethod.enclosingLibrary);
+          .writeLibraryFile(component.mainMethod.enclosingLibrary);
       expect(
           buffer.toString(),
           equals('library;\n'
@@ -75,10 +75,10 @@ main() {
           "openReceivePortSoWeWontDie() { new RawReceivePort(); }\n");
 
       IncrementalCompiler compiler = new IncrementalCompiler(options, file.uri);
-      Program program = await compiler.compile();
+      Component component = await compiler.compile();
 
       File outputFile = new File('${systemTempDir.path}/foo.dart.dill');
-      await _writeProgramToFile(program, outputFile);
+      await _writeProgramToFile(component, outputFile);
 
       final List<String> vmArgs = [
         '--trace_reload',
@@ -126,8 +126,8 @@ main() {
       compiler.accept();
 
       // Confirm that without changes VM reloads nothing.
-      program = await compiler.compile();
-      await _writeProgramToFile(program, outputFile);
+      component = await compiler.compile();
+      await _writeProgramToFile(component, outputFile);
       var reloadResult = await remoteVm.reload(new Uri.file(outputFile.path));
       expect(reloadResult['success'], isTrue);
       expect(reloadResult['details']['loadedLibraryCount'], equals(0));
@@ -135,16 +135,16 @@ main() {
       // Introduce a change that force VM to reject the change.
       fileBar.writeAsStringSync("class A<T,U> { int _a; }\n");
       compiler.invalidate(fileBar.uri);
-      program = await compiler.compile();
-      await _writeProgramToFile(program, outputFile);
+      component = await compiler.compile();
+      await _writeProgramToFile(component, outputFile);
       reloadResult = await remoteVm.reload(new Uri.file(outputFile.path));
       expect(reloadResult['success'], isFalse);
 
       // Fix a change so VM is happy to accept the change.
       fileBar.writeAsStringSync("class A<T> { int _a; hi() => _a; }\n");
       compiler.invalidate(fileBar.uri);
-      program = await compiler.compile();
-      await _writeProgramToFile(program, outputFile);
+      component = await compiler.compile();
+      await _writeProgramToFile(component, outputFile);
       reloadResult = await remoteVm.reload(new Uri.file(outputFile.path));
       expect(reloadResult['success'], isTrue);
       expect(reloadResult['details']['loadedLibraryCount'], equals(2));
@@ -155,11 +155,11 @@ main() {
   });
 }
 
-_writeProgramToFile(Program program, File outputFile) async {
+_writeProgramToFile(Component component, File outputFile) async {
   final IOSink sink = outputFile.openWrite();
   final BinaryPrinter printer = new LimitedBinaryPrinter(
       sink, (_) => true /* predicate */, false /* excludeUriToSource */);
-  printer.writeProgramFile(program);
+  printer.writeComponentFile(component);
   await sink.close();
 }
 

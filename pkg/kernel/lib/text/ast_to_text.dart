@@ -131,9 +131,10 @@ String debugNodeToString(Node node) {
   return '$buffer';
 }
 
-String programToString(Program node) {
+String componentToString(Component node) {
   StringBuffer buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: new NameSystem()).writeProgramFile(node);
+  new Printer(buffer, syntheticNames: new NameSystem())
+      .writeComponentFile(node);
   return '$buffer';
 }
 
@@ -395,21 +396,21 @@ class Printer extends Visitor<Null> {
 
     endLine();
     var inner =
-        new Printer._inner(this, imports, library.enclosingProgram?.metadata);
+        new Printer._inner(this, imports, library.enclosingComponent?.metadata);
     library.typedefs.forEach(inner.writeNode);
     library.classes.forEach(inner.writeNode);
     library.fields.forEach(inner.writeNode);
     library.procedures.forEach(inner.writeNode);
   }
 
-  void writeProgramFile(Program program) {
-    ImportTable imports = new ProgramImportTable(program);
-    var inner = new Printer._inner(this, imports, program.metadata);
+  void writeComponentFile(Component component) {
+    ImportTable imports = new ComponentImportTable(component);
+    var inner = new Printer._inner(this, imports, component.metadata);
     writeWord('main');
     writeSpaced('=');
-    inner.writeMemberReferenceFromReference(program.mainMethodName);
+    inner.writeMemberReferenceFromReference(component.mainMethodName);
     endLine(';');
-    for (var library in program.libraries) {
+    for (var library in component.libraries) {
       if (library.isExternal) {
         if (!showExternal) {
           continue;

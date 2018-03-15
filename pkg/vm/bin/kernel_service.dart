@@ -33,7 +33,7 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/testing/hybrid_file_system.dart';
-import 'package:kernel/kernel.dart' show Program;
+import 'package:kernel/kernel.dart' show Component;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/target/vm.dart' show VmTarget;
 import 'package:vm/incremental_compiler.dart';
@@ -109,11 +109,11 @@ abstract class Compiler {
       };
   }
 
-  Future<Program> compile(Uri script) {
+  Future<Component> compile(Uri script) {
     return runWithPrintToStderr(() => compileInternal(script));
   }
 
-  Future<Program> compileInternal(Uri script);
+  Future<Component> compileInternal(Uri script);
 }
 
 class IncrementalCompilerWrapper extends Compiler {
@@ -127,7 +127,7 @@ class IncrementalCompilerWrapper extends Compiler {
             syncAsync: syncAsync);
 
   @override
-  Future<Program> compileInternal(Uri script) async {
+  Future<Component> compileInternal(Uri script) async {
     if (generator == null) {
       generator = new IncrementalCompiler(options, script);
     }
@@ -153,10 +153,10 @@ class SingleShotCompilerWrapper extends Compiler {
             syncAsync: syncAsync);
 
   @override
-  Future<Program> compileInternal(Uri script) async {
+  Future<Component> compileInternal(Uri script) async {
     return requireMain
         ? kernelForProgram(script, options)
-        : kernelForBuildUnit([script], options..chaseDependencies = true);
+        : kernelForComponent([script], options..chaseDependencies = true);
   }
 }
 
@@ -306,19 +306,19 @@ Future _processLoadRequest(request) async {
       print("DFE: scriptUri: ${script}");
     }
 
-    Program program = await compiler.compile(script);
+    Component component = await compiler.compile(script);
 
     if (compiler.errors.isNotEmpty) {
       // TODO(sigmund): the compiler prints errors to the console, so we
       // shouldn't print those messages again here.
       result = new CompilationResult.errors(compiler.errors);
     } else {
-      // We serialize the program excluding vm_platform.dill because the VM has
+      // We serialize the component excluding vm_platform.dill because the VM has
       // these sources built-in. Everything loaded as a summary in
       // [kernelForProgram] is marked `external`, so we can use that bit to
       // decide what to exclude.
       result = new CompilationResult.ok(
-          serializeProgram(program, filter: (lib) => !lib.isExternal));
+          serializeComponent(component, filter: (lib) => !lib.isExternal));
     }
   } catch (error, stack) {
     result = new CompilationResult.crash(error, stack);

@@ -8,9 +8,9 @@ import '../ast.dart';
 import '../kernel.dart';
 import '../visitor.dart';
 
-Program transformProgram(Program program) {
-  new EmptyTransformer().visitProgram(program);
-  return program;
+Component transformComponent(Component component) {
+  new EmptyTransformer().visitComponent(component);
+  return component;
 }
 
 class EmptyTransformer extends Transformer {}

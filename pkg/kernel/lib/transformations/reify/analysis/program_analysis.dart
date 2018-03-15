@@ -98,9 +98,9 @@ class ProgramAnalysis extends Visitor {
 
 bool _analyzeAll(Library library) => true;
 
-ProgramKnowledge analyze(Program program,
+ProgramKnowledge analyze(Component component,
     {LibraryFilter analyzeLibrary: _analyzeAll}) {
   ProgramKnowledge knowledge = new ProgramKnowledge();
-  program.accept(new ProgramAnalysis(knowledge, analyzeLibrary));
+  component.accept(new ProgramAnalysis(knowledge, analyzeLibrary));
   return knowledge;
 }

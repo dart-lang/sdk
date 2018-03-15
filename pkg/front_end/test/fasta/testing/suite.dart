@@ -21,7 +21,7 @@ import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
 
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
 
-import 'package:kernel/ast.dart' show Library, Program;
+import 'package:kernel/ast.dart' show Library, Component;
 
 import 'package:testing/testing.dart'
     show
@@ -60,7 +60,7 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart'
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
-import 'package:kernel/kernel.dart' show loadProgramFromBytes;
+import 'package:kernel/kernel.dart' show loadComponentFromBytes;
 
 import 'package:kernel/target/targets.dart' show TargetFlags;
 
@@ -108,10 +108,11 @@ class FastaContext extends ChainContext {
   final Uri vm;
   final bool strongMode;
   final bool onlyCrashes;
-  final Map<Program, KernelTarget> programToTarget = <Program, KernelTarget>{};
+  final Map<Component, KernelTarget> programToTarget =
+      <Component, KernelTarget>{};
   final Uri platformBinaries;
   Uri platformUri;
-  Program platform;
+  Component platform;
 
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(JSON.decode(EXPECTATIONS));
@@ -169,11 +170,11 @@ class FastaContext extends ChainContext {
     }
   }
 
-  Future<Program> loadPlatform() async {
+  Future<Component> loadPlatform() async {
     if (platform == null) {
       await ensurePlatformUris();
-      platform =
-          loadProgramFromBytes(new File.fromUri(platformUri).readAsBytesSync());
+      platform = loadComponentFromBytes(
+          new File.fromUri(platformUri).readAsBytesSync());
     }
     return platform;
   }
@@ -261,7 +262,7 @@ class Run extends Step<Uri, int, FastaContext> {
   }
 }
 
-class Outline extends Step<TestDescription, Program, FastaContext> {
+class Outline extends Step<TestDescription, Component, FastaContext> {
   final bool fullCompile;
 
   final AstKind astKind;
@@ -279,14 +280,14 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
 
   bool get isCompiler => fullCompile;
 
-  Future<Result<Program>> run(
+  Future<Result<Component>> run(
       TestDescription description, FastaContext context) async {
     var options = new ProcessedOptions(new CompilerOptions());
     return await CompilerContext.runWithOptions(options, (_) async {
       // Disable colors to ensure that expectation files are the same across
       // platforms and independent of stdin/stderr.
       CompilerContext.current.disableColors();
-      Program platform = await context.loadPlatform();
+      Component platform = await context.loadPlatform();
       Ticker ticker = new Ticker();
       DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator,
           new TestVmTarget(new TargetFlags(strongMode: strongMode)));
@@ -301,7 +302,7 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
           : new KernelTarget(
               StandardFileSystem.instance, false, dillTarget, uriTranslator);
 
-      Program p;
+      Component p;
       try {
         sourceTarget.read(description.uri);
         await dillTarget.buildOutlines();
@@ -313,7 +314,7 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
         }
         p = await sourceTarget.buildOutlines();
         if (fullCompile) {
-          p = await sourceTarget.buildProgram();
+          p = await sourceTarget.buildComponent();
           instrumentation?.finish();
           if (instrumentation != null && instrumentation.hasProblems) {
             if (updateComments) {
@@ -333,14 +334,15 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
   }
 }
 
-class Transform extends Step<Program, Program, FastaContext> {
+class Transform extends Step<Component, Component, FastaContext> {
   const Transform();
 
-  String get name => "transform program";
+  String get name => "transform component";
 
-  Future<Result<Program>> run(Program program, FastaContext context) async {
-    KernelTarget sourceTarget = context.programToTarget[program];
-    context.programToTarget.remove(program);
+  Future<Result<Component>> run(
+      Component component, FastaContext context) async {
+    KernelTarget sourceTarget = context.programToTarget[component];
+    context.programToTarget.remove(component);
     TestVmTarget backendTarget = sourceTarget.backendTarget;
     backendTarget.enabled = true;
     try {
@@ -350,7 +352,7 @@ class Transform extends Step<Program, Program, FastaContext> {
     } finally {
       backendTarget.enabled = false;
     }
-    return pass(program);
+    return pass(component);
   }
 }
 
@@ -371,10 +373,10 @@ class TestVmTarget extends VmTarget {
     }
   }
 
-  void performGlobalTransformations(CoreTypes coreTypes, Program program,
+  void performGlobalTransformations(CoreTypes coreTypes, Component component,
       {void logger(String msg)}) {
     if (enabled) {
-      super.performGlobalTransformations(coreTypes, program, logger: logger);
+      super.performGlobalTransformations(coreTypes, component, logger: logger);
     }
   }
 }

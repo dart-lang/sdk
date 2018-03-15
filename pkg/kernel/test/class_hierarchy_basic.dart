@@ -25,8 +25,8 @@ class BasicClassHierarchy {
   final List<Class> classes = <Class>[];
   final Map<Class, int> classIndex = <Class, int>{};
 
-  BasicClassHierarchy(Program program) {
-    for (var library in program.libraries) {
+  BasicClassHierarchy(Component component) {
+    for (var library in component.libraries) {
       for (var classNode in library.classes) {
         buildSuperTypeSets(classNode);
         buildSuperTypeInstantiations(classNode);

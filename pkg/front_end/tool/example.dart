@@ -7,22 +7,22 @@ import 'dart:async';
 import 'package:front_end/src/api_prototype/kernel_generator.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
-import 'package:kernel/kernel.dart' show Program;
+import 'package:kernel/kernel.dart' show Component;
 
-Future dumpToSink(Program program, StreamSink<List<int>> sink) {
-  new BinaryPrinter(sink).writeProgramFile(program);
+Future dumpToSink(Component component, StreamSink<List<int>> sink) {
+  new BinaryPrinter(sink).writeComponentFile(component);
   return sink.close();
 }
 
 Future kernelToSink(Uri entry, StreamSink<List<int>> sink) async {
-  var program = await kernelForProgram(
+  var component = await kernelForProgram(
       entry,
       new CompilerOptions()
         ..sdkRoot = new Uri.file('sdk')
         ..packagesFileUri = new Uri.file('.packages')
         ..onError = (e) => print(e.message));
 
-  await dumpToSink(program, sink);
+  await dumpToSink(component, sink);
 }
 
 main(args) async {

@@ -512,8 +512,8 @@ void outputCoqStoreValidity(CoqLibInfo info) {
       "Definition ast_store_validity (ast : ast_store) : Prop := \n$clause\n.");
 }
 
-Program transformProgram(CoreTypes coreTypes, Program program) {
-  for (Library lib in program.libraries) {
+Component transformComponent(CoreTypes coreTypes, Component component) {
+  for (Library lib in component.libraries) {
     // TODO(30610): Ideally we'd output to the file in the coq annotation on the
     // library name, but currently fasta throws away annotations on libraries.
     // Instead, we just special case "kernel.ast" and output to stdout.
@@ -524,5 +524,5 @@ Program transformProgram(CoreTypes coreTypes, Program program) {
     outputCoqImports();
     outputCoqSyntax(info);
   }
-  return program;
+  return component;
 }

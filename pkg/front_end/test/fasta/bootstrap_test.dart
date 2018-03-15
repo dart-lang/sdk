@@ -12,9 +12,9 @@ import 'package:testing/testing.dart' show StdioProcess;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
-import 'package:kernel/ast.dart' show Program;
+import 'package:kernel/ast.dart' show Component;
 
-import 'package:kernel/text/ast_to_text.dart' show programToString;
+import 'package:kernel/text/ast_to_text.dart' show componentToString;
 
 Future main() async {
   asyncStart();
@@ -31,8 +31,8 @@ Future main() async {
     await compare(compiledOnceOutput, compiledTwiceOutput);
     await runCompiler(compiledTwiceOutput, outline, outlineOutput);
     try {
-      // Test that compare actually works by comparing the compile program to
-      // the outline program (which are different, but similar).
+      // Test that compare actually works by comparing the compiled component
+      // to the outline component (which are different, but similar).
       await compare(compiledOnceOutput, outlineOutput, silent: true);
       throw "Expected an error.";
     } on ComparisonFailed {
@@ -78,13 +78,13 @@ Future compare(Uri a, Uri b, {bool silent: false}) async {
   if (!silent) {
     print("$a is different from $b");
   }
-  Program programA = new Program();
-  Program programB = new Program();
-  new BinaryBuilder(bytesA, filename: a.toFilePath()).readProgram(programA);
-  new BinaryBuilder(bytesB, filename: b.toFilePath()).readProgram(programB);
+  Component programA = new Component();
+  Component programB = new Component();
+  new BinaryBuilder(bytesA, filename: a.toFilePath()).readComponent(programA);
+  new BinaryBuilder(bytesB, filename: b.toFilePath()).readComponent(programB);
   RegExp splitLines = new RegExp('^', multiLine: true);
-  List<String> linesA = programToString(programA).split(splitLines);
-  List<String> linesB = programToString(programB).split(splitLines);
+  List<String> linesA = componentToString(programA).split(splitLines);
+  List<String> linesB = componentToString(programB).split(splitLines);
   for (int i = 0; i < linesA.length && i < linesB.length; i++) {
     String lineA = linesA[i].trimRight();
     String lineB = linesB[i].trimRight();

@@ -14,22 +14,22 @@ import 'package:front_end/src/api_prototype/kernel_generator.dart'
 import 'package:front_end/src/api_prototype/compilation_message.dart'
     show CompilationMessage, Severity;
 import 'package:front_end/src/fasta/severity.dart' show Severity;
-import 'package:kernel/ast.dart' show Program;
+import 'package:kernel/ast.dart' show Component;
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'transformations/devirtualization.dart' as devirtualization
-    show transformProgram;
+    show transformComponent;
 import 'transformations/no_dynamic_invocations_annotator.dart'
-    as no_dynamic_invocations_annotator show transformProgram;
+    as no_dynamic_invocations_annotator show transformComponent;
 import 'transformations/type_flow/transformer.dart' as globalTypeFlow
-    show transformProgram;
+    show transformComponent;
 
 /// Generates a kernel representation of the program whose main library is in
 /// the given [source]. Intended for whole program (non-modular) compilation.
 ///
 /// VM-specific replacement of [kernelForProgram].
 ///
-Future<Program> compileToKernel(Uri source, CompilerOptions options,
+Future<Component> compileToKernel(Uri source, CompilerOptions options,
     {bool aot: false,
     bool useGlobalTypeFlowAnalysis: false,
     List<String> entryPoints}) async {
@@ -38,32 +38,32 @@ Future<Program> compileToKernel(Uri source, CompilerOptions options,
       new ErrorDetector(previousErrorHandler: options.onError);
   options.onError = errorDetector;
 
-  final program = await kernelForProgram(source, options);
+  final component = await kernelForProgram(source, options);
 
   // Restore error handler (in case 'options' are reused).
   options.onError = errorDetector.previousErrorHandler;
 
-  // Run global transformations only if program is correct.
-  if (aot && (program != null) && !errorDetector.hasCompilationErrors) {
+  // Run global transformations only if component is correct.
+  if (aot && (component != null) && !errorDetector.hasCompilationErrors) {
     _runGlobalTransformations(
-        program, options.strongMode, useGlobalTypeFlowAnalysis, entryPoints);
+        component, options.strongMode, useGlobalTypeFlowAnalysis, entryPoints);
   }
 
-  return program;
+  return component;
 }
 
-_runGlobalTransformations(Program program, bool strongMode,
+_runGlobalTransformations(Component component, bool strongMode,
     bool useGlobalTypeFlowAnalysis, List<String> entryPoints) {
   if (strongMode) {
-    final coreTypes = new CoreTypes(program);
+    final coreTypes = new CoreTypes(component);
 
     if (useGlobalTypeFlowAnalysis) {
-      globalTypeFlow.transformProgram(coreTypes, program, entryPoints);
+      globalTypeFlow.transformComponent(coreTypes, component, entryPoints);
     } else {
-      devirtualization.transformProgram(coreTypes, program);
+      devirtualization.transformComponent(coreTypes, component);
     }
 
-    no_dynamic_invocations_annotator.transformProgram(program);
+    no_dynamic_invocations_annotator.transformComponent(component);
   }
 }
 

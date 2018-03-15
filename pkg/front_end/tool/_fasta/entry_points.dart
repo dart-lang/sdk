@@ -13,7 +13,7 @@ import 'dart:io' show File, exitCode, stderr, stdin, stdout;
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 
 import 'package:kernel/kernel.dart'
-    show CanonicalName, Library, Program, Source, loadProgramFromBytes;
+    show CanonicalName, Library, Component, Source, loadComponentFromBytes;
 
 import 'package:kernel/target/targets.dart' show TargetFlags, targets;
 
@@ -34,7 +34,7 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
 
 import 'package:front_end/src/fasta/kernel/utils.dart'
-    show printProgramText, writeProgramToFile;
+    show printComponentText, writeComponentToFile;
 
 import 'package:front_end/src/fasta/severity.dart' show Severity;
 
@@ -91,7 +91,7 @@ class BatchCompiler {
 
   Uri platformUri;
 
-  Program platformComponent;
+  Component platformComponent;
 
   BatchCompiler(this.lines);
 
@@ -233,10 +233,10 @@ class CompileTask {
     await dillTarget.buildOutlines();
     var outline = await kernelTarget.buildOutlines();
     if (c.options.debugDump && output != null) {
-      printProgramText(outline, libraryFilter: kernelTarget.isSourceLibrary);
+      printComponentText(outline, libraryFilter: kernelTarget.isSourceLibrary);
     }
     if (output != null) {
-      await writeProgramToFile(outline, output);
+      await writeComponentToFile(outline, output);
       ticker.logMs("Wrote outline to ${output.toFilePath()}");
     }
     return kernelTarget;
@@ -245,35 +245,37 @@ class CompileTask {
   Future<Uri> compile({bool sansPlatform: false}) async {
     KernelTarget kernelTarget = await buildOutline();
     Uri uri = c.options.output;
-    Program program = await kernelTarget.buildProgram(verify: c.options.verify);
+    Component component =
+        await kernelTarget.buildComponent(verify: c.options.verify);
     if (c.options.debugDump) {
-      printProgramText(program, libraryFilter: kernelTarget.isSourceLibrary);
+      printComponentText(component,
+          libraryFilter: kernelTarget.isSourceLibrary);
     }
     if (sansPlatform) {
-      program.computeCanonicalNames();
-      Program userCode = new Program(
-          nameRoot: program.root,
-          uriToSource: new Map<Uri, Source>.from(program.uriToSource));
-      userCode.mainMethodName = program.mainMethodName;
-      for (Library library in program.libraries) {
+      component.computeCanonicalNames();
+      Component userCode = new Component(
+          nameRoot: component.root,
+          uriToSource: new Map<Uri, Source>.from(component.uriToSource));
+      userCode.mainMethodName = component.mainMethodName;
+      for (Library library in component.libraries) {
         if (library.importUri.scheme != "dart") {
           userCode.libraries.add(library);
         }
       }
-      program = userCode;
+      component = userCode;
     }
     if (uri.scheme == "file") {
-      await writeProgramToFile(program, uri);
-      ticker.logMs("Wrote program to ${uri.toFilePath()}");
+      await writeComponentToFile(component, uri);
+      ticker.logMs("Wrote component to ${uri.toFilePath()}");
     }
     return uri;
   }
 }
 
-/// Load the [Program] from the given [uri] and append its libraries
+/// Load the [Component] from the given [uri] and append its libraries
 /// to the [dillTarget].
 void _appendDillForUri(DillTarget dillTarget, Uri uri) {
   var bytes = new File.fromUri(uri).readAsBytesSync();
-  var platformProgram = loadProgramFromBytes(bytes);
+  var platformProgram = loadComponentFromBytes(bytes);
   dillTarget.loader.appendLibraries(platformProgram, byteCount: bytes.length);
 }

@@ -23,7 +23,8 @@ import 'package:front_end/src/kernel_generator_impl.dart';
 import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
 
 import 'package:front_end/src/fasta/get_dependencies.dart' show getDependencies;
-import 'package:front_end/src/fasta/kernel/utils.dart' show writeProgramToFile;
+import 'package:front_end/src/fasta/kernel/utils.dart'
+    show writeComponentToFile;
 
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/target/vm.dart' show VmTarget;
@@ -216,8 +217,8 @@ Future<List<Uri>> compilePlatform(
           false,
           inputs),
       buildSummary: true,
-      buildProgram: true);
-  await writeProgramToFile(result.program, output);
+      buildComponent: true);
+  await writeComponentToFile(result.component, output);
   return result.deps;
 }
 

@@ -11,7 +11,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, Step, runMe;
 
-import 'package:kernel/ast.dart' show Program, Library;
+import 'package:kernel/ast.dart' show Component, Library;
 
 import 'package:kernel/transformations/argument_extraction.dart'
     as argument_extraction;
@@ -74,19 +74,19 @@ Future<ClosureConversionContext> createContext(
 }
 
 class ArgumentExtraction
-    extends Step<Program, Program, ClosureConversionContext> {
+    extends Step<Component, Component, ClosureConversionContext> {
   const ArgumentExtraction();
 
   String get name => "argument extraction";
 
-  Future<Result<Program>> run(
-      Program program, ClosureConversionContext context) async {
+  Future<Result<Component>> run(
+      Component component, ClosureConversionContext context) async {
     try {
-      CoreTypes coreTypes = new CoreTypes(program);
-      Library library = program.libraries
+      CoreTypes coreTypes = new CoreTypes(component);
+      Library library = component.libraries
           .firstWhere((Library library) => library.importUri.scheme != "dart");
       argument_extraction.transformLibraries(coreTypes, <Library>[library]);
-      return pass(program);
+      return pass(component);
     } catch (e, s) {
       return crash(e, s);
     }
@@ -94,19 +94,19 @@ class ArgumentExtraction
 }
 
 class ClosureConversion
-    extends Step<Program, Program, ClosureConversionContext> {
+    extends Step<Component, Component, ClosureConversionContext> {
   const ClosureConversion();
 
   String get name => "closure conversion";
 
-  Future<Result<Program>> run(
-      Program program, ClosureConversionContext testContext) async {
+  Future<Result<Component>> run(
+      Component component, ClosureConversionContext testContext) async {
     try {
-      CoreTypes coreTypes = new CoreTypes(program);
-      Library library = program.libraries
+      CoreTypes coreTypes = new CoreTypes(component);
+      Library library = component.libraries
           .firstWhere((Library library) => library.importUri.scheme != "dart");
       closure_conversion.transformLibraries(coreTypes, <Library>[library]);
-      return pass(program);
+      return pass(component);
     } catch (e, s) {
       return crash(e, s);
     }

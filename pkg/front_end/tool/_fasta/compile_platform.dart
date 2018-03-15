@@ -18,7 +18,8 @@ import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/deprecated_problems.dart'
     show deprecated_InputError;
 
-import 'package:front_end/src/fasta/kernel/utils.dart' show writeProgramToFile;
+import 'package:front_end/src/fasta/kernel/utils.dart'
+    show writeComponentToFile;
 
 import 'package:front_end/src/fasta/severity.dart' show Severity;
 
@@ -67,7 +68,7 @@ Future compilePlatformInternal(
   }
 
   var result =
-      await generateKernelInternal(buildSummary: true, buildProgram: true);
+      await generateKernelInternal(buildSummary: true, buildComponent: true);
   if (result == null) {
     exitCode = 1;
     // Note: an error should have been reported by now.
@@ -76,10 +77,10 @@ Future compilePlatformInternal(
   }
   new File.fromUri(outlineOutput).writeAsBytesSync(result.summary);
   c.options.ticker.logMs("Wrote outline to ${outlineOutput.toFilePath()}");
-  await writeProgramToFile(result.program, fullOutput,
+  await writeComponentToFile(result.component, fullOutput,
       filter: (lib) => !lib.isExternal);
 
-  c.options.ticker.logMs("Wrote program to ${fullOutput.toFilePath()}");
+  c.options.ticker.logMs("Wrote component to ${fullOutput.toFilePath()}");
 
   List<Uri> deps = result.deps.toList();
   deps.addAll(await getDependencies(Platform.script,
