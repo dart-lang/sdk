@@ -166,11 +166,19 @@ class _DirectInvocation extends _Invocation {
       case CallKind.FieldInitializer:
         assertx(args.values.isEmpty);
         assertx(args.names.isEmpty);
-        fieldValue.setValue(
-            typeFlowAnalysis
-                .getSummary(field)
-                .apply(args, typeFlowAnalysis.hierarchyCache, typeFlowAnalysis),
-            typeFlowAnalysis);
+        Type initializerResult = typeFlowAnalysis
+            .getSummary(field)
+            .apply(args, typeFlowAnalysis.hierarchyCache, typeFlowAnalysis);
+        if (field.isStatic &&
+            !field.isConst &&
+            initializerResult is! NullableType) {
+          // If initializer of a static field throws an exception,
+          // then field is initialized with null value.
+          // TODO(alexmarkov): Try to prove that static field initializer
+          // does not throw exception.
+          initializerResult = new Type.nullable(initializerResult);
+        }
+        fieldValue.setValue(initializerResult, typeFlowAnalysis);
         return const EmptyType();
     }
 

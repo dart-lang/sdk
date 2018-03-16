@@ -22,12 +22,12 @@ class B extends core::Object implements self::I {
 [@vm.unreachable.metadata=]  method foo(dynamic x) → void
     throw "TFA Error: #lib::B::foo";
 }
-[@vm.inferred-type.metadata=#lib::B]static field self::I ii = new self::B::•();
-static method bar([@vm.inferred-type.metadata=#lib::B] self::I i) → void {
+[@vm.inferred-type.metadata=#lib::B?]static field self::I ii = new self::B::•();
+static method bar([@vm.inferred-type.metadata=#lib::B?] self::I i) → void {
   if(i is self::A) {
     [@vm.unreachable.metadata=] i{self::A}.{self::A::foo}(42);
   }
 }
 static method main(core::List<core::String> args) → dynamic {
-  self::bar([@vm.inferred-type.metadata=#lib::B] self::ii);
+  self::bar([@vm.inferred-type.metadata=#lib::B?] self::ii);
 }
