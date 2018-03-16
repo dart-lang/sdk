@@ -68,6 +68,7 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
 
     // Compute instrumented code.
     if (widgets.isNotEmpty) {
+      _rewriteRelativeDirectives();
       instrumentationEdits.sort((a, b) => b.offset - a.offset);
       instrumentedCode =
           SourceEdit.applySequence(content, instrumentationEdits);
@@ -338,6 +339,25 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
       return buffer.toString();
     }
     return node.toString();
+  }
+
+  /// The instrumented code is put into a temporary directory for Dart VM to
+  /// run. So, any relative URIs must be changed to corresponding absolute URIs.
+  void _rewriteRelativeDirectives() {
+    for (var directive in unit.directives) {
+      if (directive is UriBasedDirective) {
+        String uriContent = directive.uriContent;
+        Source source = directive.uriSource;
+        if (uriContent != null && source != null) {
+          try {
+            if (!Uri.parse(uriContent).isAbsolute) {
+              instrumentationEdits.add(new SourceEdit(directive.uri.offset,
+                  directive.uri.length, "'${source.uri}'"));
+            }
+          } on FormatException {}
+        }
+      }
+    }
   }
 }
 
