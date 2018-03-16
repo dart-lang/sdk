@@ -55,6 +55,10 @@ const Map<String, List<String>> WHITE_LIST = const {
     "Duplicated library name 'kernel.transformations.closure.converter'",
   ],
 
+  "pkg/kernel/lib/binary/ast_to_binary.dart": const [
+    "'void' is not a subtype of bound 'Object' for type variable",
+  ],
+
   "pkg/compiler/lib/src/js_backend/runtime_types.dart": const [
     "'void' is not a subtype of bound 'Object' for type variable",
   ],
