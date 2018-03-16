@@ -10,3 +10,4 @@ linter.iml
 .atom
 /.vscode
 /.history
+.dart_tool
