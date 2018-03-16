@@ -250,7 +250,6 @@ regexp/regexp_test: RuntimeError
 regexp/regress-regexp-codeflush_test: RuntimeError
 regexp/standalones_test: RuntimeError
 splay_tree_from_iterable_test: RuntimeError
-stacktrace_fromstring_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 string_from_list_test: RuntimeError
 string_fromcharcodes_test: RuntimeError
 string_replace_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
@@ -303,7 +302,6 @@ regexp/regexp_test: RuntimeError
 regexp/regress-regexp-codeflush_test: RuntimeError
 regexp/standalones_test: RuntimeError
 splay_tree_from_iterable_test: RuntimeError
-stacktrace_fromstring_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 string_from_list_test: RuntimeError
 string_fromcharcodes_test: RuntimeError
 string_replace_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
