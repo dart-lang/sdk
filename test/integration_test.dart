@@ -548,6 +548,43 @@ defineTests() {
       });
     });
 
+    group('avoid_renaming_method_parameters', () {
+      IOSink currentOut = outSink;
+      CollectingSink collectingOut = new CollectingSink();
+
+      setUp(() {
+        exitCode = 0;
+        outSink = collectingOut;
+      });
+
+      tearDown(() {
+        collectingOut.buffer.clear();
+        outSink = currentOut;
+        exitCode = 0;
+      });
+
+      test('lint lib/ sources and non-lib/ sources', () async {
+        await dartlint.main([
+          '--packages',
+          'test/_data/avoid_renaming_method_parameters/_packages',
+          'test/_data/avoid_renaming_method_parameters',
+          '--rules=avoid_renaming_method_parameters'
+        ]);
+        expect(exitCode, 1);
+        expect(
+            collectingOut.trim(),
+            stringContainsInOrder([
+              'a.dart 29:6 [lint] Don\'t rename parameters of overridden methods.',
+              'a.dart 31:12 [lint] Don\'t rename parameters of overridden methods.',
+              'a.dart 32:9 [lint] Don\'t rename parameters of overridden methods.',
+              'a.dart 34:7 [lint] Don\'t rename parameters of overridden methods.',
+              'a.dart 35:6 [lint] Don\'t rename parameters of overridden methods.',
+              'a.dart 36:6 [lint] Don\'t rename parameters of overridden methods.',
+              '3 files analyzed, 6 issues found',
+            ]));
+      });
+    });
+
     group('examples', () {
       test('all.yaml', () {
         String src = readFile('example/all.yaml');
