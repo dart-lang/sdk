@@ -364,6 +364,7 @@ class FixProcessor {
       await _addFix_useStaticAccess_property();
     }
     if (errorCode == StaticTypeWarningCode.INVALID_ASSIGNMENT) {
+      await _addFix_addExplicitCast();
       await _addFix_changeTypeAnnotation();
     }
     if (errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION) {
@@ -497,6 +498,74 @@ class FixProcessor {
         builder.convertFunctionFromSyncToAsync(body, typeProvider);
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.ADD_ASYNC);
+    }
+  }
+
+  Future<Null> _addFix_addExplicitCast() async {
+    if (coveredNode is! Expression) {
+      return;
+    }
+    Expression target = coveredNode;
+    DartType fromType = target.staticType;
+    DartType toType;
+    AstNode parent = target.parent;
+    if (parent is AssignmentExpression && target == parent.rightHandSide) {
+      toType = parent.leftHandSide.staticType;
+    } else if (parent is VariableDeclaration && target == parent.initializer) {
+      toType = parent.name.staticType;
+    } else {
+      return;
+    }
+    bool needsParentheses = target.precedence < 15;
+    if (_isDartCoreList(fromType) && _isDartCoreList(toType)) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        if (needsParentheses) {
+          builder.addSimpleInsertion(target.offset, '(');
+        }
+        builder.addInsertion(target.end, (DartEditBuilder builder) {
+          if (needsParentheses) {
+            builder.write(')');
+          }
+          builder.write('.cast<');
+          builder.writeType((toType as InterfaceType).typeArguments[0]);
+          builder.write('>()');
+        });
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.ADD_EXPLICIT_CAST);
+    } else if (_isDartCoreMap(fromType) && _isDartCoreMap(toType)) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        if (needsParentheses) {
+          builder.addSimpleInsertion(target.offset, '(');
+        }
+        builder.addInsertion(target.end, (DartEditBuilder builder) {
+          if (needsParentheses) {
+            builder.write(')');
+          }
+          builder.write('.cast<');
+          builder.writeType((toType as InterfaceType).typeArguments[0]);
+          builder.write(', ');
+          builder.writeType((toType as InterfaceType).typeArguments[1]);
+          builder.write('>()');
+        });
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.ADD_EXPLICIT_CAST);
+    } else {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        if (needsParentheses) {
+          builder.addSimpleInsertion(target.offset, '(');
+        }
+        builder.addInsertion(target.end, (DartEditBuilder builder) {
+          if (needsParentheses) {
+            builder.write(')');
+          }
+          builder.write(' as ');
+          builder.writeType(toType);
+        });
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.ADD_EXPLICIT_CAST);
     }
   }
 
@@ -3351,6 +3420,28 @@ class FixProcessor {
   bool _isAwaitNode() {
     AstNode node = this.node;
     return node is SimpleIdentifier && node.name == 'await';
+  }
+
+  bool _isDartCoreList(DartType type) {
+    if (type is! InterfaceType) {
+      return false;
+    }
+    ClassElement element = type.element;
+    if (element == null) {
+      return false;
+    }
+    return element.name == "List" && element.library.isDartCore;
+  }
+
+  bool _isDartCoreMap(DartType type) {
+    if (type is! InterfaceType) {
+      return false;
+    }
+    ClassElement element = type.element;
+    if (element == null) {
+      return false;
+    }
+    return element.name == "Map" && element.library.isDartCore;
   }
 
   bool _isLibSrcPath(String path) {

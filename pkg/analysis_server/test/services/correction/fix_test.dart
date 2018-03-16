@@ -385,6 +385,158 @@ main() async {
 ''');
   }
 
+  test_addExplicitCast_assignment_general() async {
+    await resolveTestUnit('''
+f(A a) {
+  B b;
+  b = a;
+}
+class A {}
+class B {}
+''');
+    await assertHasFix(DartFixKind.ADD_EXPLICIT_CAST, '''
+f(A a) {
+  B b;
+  b = a as B;
+}
+class A {}
+class B {}
+''');
+  }
+
+  test_addExplicitCast_assignment_list() async {
+    await resolveTestUnit('''
+f(List<A> a) {
+  List<B> b;
+  b = a.where((e) => e is B).toList();
+}
+class A {}
+class B {}
+''');
+    await assertHasFix(DartFixKind.ADD_EXPLICIT_CAST, '''
+f(List<A> a) {
+  List<B> b;
+  b = a.where((e) => e is B).toList().cast<B>();
+}
+class A {}
+class B {}
+''');
+  }
+
+  test_addExplicitCast_assignment_map() async {
+    await resolveTestUnit('''
+f(Map<A, B> a) {
+  Map<B, A> b;
+  b = a;
+}
+class A {}
+class B {}
+''');
+    await assertHasFix(DartFixKind.ADD_EXPLICIT_CAST, '''
+f(Map<A, B> a) {
+  Map<B, A> b;
+  b = a.cast<B, A>();
+}
+class A {}
+class B {}
+''');
+  }
+
+  test_addExplicitCast_assignment_needsParens() async {
+    await resolveTestUnit('''
+f(A a) {
+  B b;
+  b = a..m();
+}
+class A {
+  int m() => 0;
+}
+class B {}
+''');
+    await assertHasFix(DartFixKind.ADD_EXPLICIT_CAST, '''
+f(A a) {
+  B b;
+  b = (a..m()) as B;
+}
+class A {
+  int m() => 0;
+}
+class B {}
+''');
+  }
+
+  test_addExplicitCast_declaration_general() async {
+    await resolveTestUnit('''
+f(A a) {
+  B b = a;
+}
+class A {}
+class B {}
+''');
+    await assertHasFix(DartFixKind.ADD_EXPLICIT_CAST, '''
+f(A a) {
+  B b = a as B;
+}
+class A {}
+class B {}
+''');
+  }
+
+  test_addExplicitCast_declaration_list() async {
+    await resolveTestUnit('''
+f(List<A> a) {
+  List<B> b = a.where((e) => e is B).toList();
+}
+class A {}
+class B {}
+''');
+    await assertHasFix(DartFixKind.ADD_EXPLICIT_CAST, '''
+f(List<A> a) {
+  List<B> b = a.where((e) => e is B).toList().cast<B>();
+}
+class A {}
+class B {}
+''');
+  }
+
+  test_addExplicitCast_declaration_map() async {
+    await resolveTestUnit('''
+f(Map<A, B> a) {
+  Map<B, A> b = a;
+}
+class A {}
+class B {}
+''');
+    await assertHasFix(DartFixKind.ADD_EXPLICIT_CAST, '''
+f(Map<A, B> a) {
+  Map<B, A> b = a.cast<B, A>();
+}
+class A {}
+class B {}
+''');
+  }
+
+  test_addExplicitCast_declaration_needsParens() async {
+    await resolveTestUnit('''
+f(A a) {
+  B b = a..m();
+}
+class A {
+  int m() => 0;
+}
+class B {}
+''');
+    await assertHasFix(DartFixKind.ADD_EXPLICIT_CAST, '''
+f(A a) {
+  B b = (a..m()) as B;
+}
+class A {
+  int m() => 0;
+}
+class B {}
+''');
+  }
+
   test_addFieldFormalParameters_hasRequiredParameter() async {
     await resolveTestUnit('''
 class Test {

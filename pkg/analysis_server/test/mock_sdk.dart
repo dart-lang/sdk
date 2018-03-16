@@ -130,6 +130,7 @@ abstract class Iterable<E> {
   bool get isEmpty;
   Iterable<T> map<T>(T f(E e)) => null;
   T fold<T>(T initialValue, T combine(T previousValue, E element));
+  List<E> toList({bool growable: true});
 }
 
 class List<E> implements Iterable<E> {
@@ -140,6 +141,7 @@ class List<E> implements Iterable<E> {
   void operator []=(int index, E value) {}
   Iterator<E> get iterator => null;
   void clear() {}
+  Iterable<E> where(bool test(E element)) {}
 
   bool get isEmpty => false;
   E get first => null;
