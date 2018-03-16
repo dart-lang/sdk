@@ -160,7 +160,7 @@ abstract class Iterable<E> {
    * if it is already an `Iterable<R>`.
    *
    * It means that `someIterable.cast<Object>().toList()` is not guaranteed
-   * to return precisley a `List<Object>`, but it may return a subtype.
+   * to return precisely a `List<Object>`, but it may return a subtype.
    */
   Iterable<R> cast<R>() {
     Iterable<Object> self = this;
