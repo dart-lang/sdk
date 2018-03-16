@@ -557,7 +557,7 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Built component");
   }
 
-  Component computeFullProgram() {
+  Component computeFullComponent() {
     Set<Library> libraries = new Set<Library>();
     List<Library> workList = <Library>[];
     builders.forEach((Uri uri, LibraryBuilder library) {
@@ -580,7 +580,7 @@ class SourceLoader<L> extends Loader<L> {
 
   void computeHierarchy() {
     List<List> ambiguousTypesRecords = [];
-    hierarchy = new ClassHierarchy(computeFullProgram(),
+    hierarchy = new ClassHierarchy(computeFullComponent(),
         onAmbiguousSupertypes: (Class cls, Supertype a, Supertype b) {
       if (ambiguousTypesRecords != null) {
         ambiguousTypesRecords.add([cls, a, b]);
@@ -694,7 +694,7 @@ class SourceLoader<L> extends Loader<L> {
     // TODO(paulberry): could we make this unnecessary by not clearing class
     // inference info?
     typeInferenceEngine.classHierarchy = hierarchy = new ClassHierarchy(
-        computeFullProgram(),
+        computeFullComponent(),
         onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
     ticker.logMs("Performed top level inference");
   }

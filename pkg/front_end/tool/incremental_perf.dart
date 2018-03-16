@@ -134,12 +134,12 @@ Future benchmark(
   collector.start("Initial compilation");
   var generator = new IncrementalKernelGenerator(compilerOptions, entryUri);
 
-  var program = await generator.computeDelta();
+  var component = await generator.computeDelta();
   collector.stop("Initial compilation");
   if (verbose) {
-    print("Libraries changed: ${program.libraries.length}");
+    print("Libraries changed: ${component.libraries.length}");
   }
-  if (program.libraries.length < 1) {
+  if (component.libraries.length < 1) {
     throw "No libraries were changed";
   }
 
@@ -148,13 +148,13 @@ Future benchmark(
     await applyEdits(
         changeSet.edits, overlayFs, generator, uriTranslator, verbose);
     collector.start(name);
-    program = await generator.computeDelta();
+    component = await generator.computeDelta();
     collector.stop(name);
     if (verbose) {
       print("Change '${changeSet.name}' - "
-          "Libraries changed: ${program.libraries.length}");
+          "Libraries changed: ${component.libraries.length}");
     }
-    if (program.libraries.length < 1) {
+    if (component.libraries.length < 1) {
       throw "No libraries were changed";
     }
   }

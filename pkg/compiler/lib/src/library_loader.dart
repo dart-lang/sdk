@@ -884,7 +884,7 @@ class KernelLibraryLoaderTask extends CompilerTask
 
   // Only visible for unit testing.
   LoadedLibraries createLoadedLibraries(ir.Component component) {
-    _elementMap.addProgram(component);
+    _elementMap.addComponent(component);
     LibraryEntity rootLibrary = null;
     Iterable<ir.Library> libraries = component.libraries;
     if (component.mainMethod != null) {

@@ -94,17 +94,17 @@ Future<CompilerResult> generateKernelInternal(
 
     var kernelTarget = new KernelTarget(fs, false, dillTarget, uriTranslator);
     options.inputs.forEach(kernelTarget.read);
-    Component summaryProgram =
+    Component summaryComponent =
         await kernelTarget.buildOutlines(nameRoot: nameRoot);
     List<int> summary = null;
     if (buildSummary) {
       if (options.verify) {
-        for (var error in verifyComponent(summaryProgram)) {
+        for (var error in verifyComponent(summaryComponent)) {
           options.report(error, Severity.error);
         }
       }
       if (options.debugDump) {
-        printComponentText(summaryProgram,
+        printComponentText(summaryComponent,
             libraryFilter: kernelTarget.isSourceLibrary);
       }
 
@@ -113,20 +113,21 @@ Future<CompilerResult> generateKernelInternal(
       // Note: we don't pass the library argument to the constructor to
       // preserve the the libraries parent pointer (it should continue to point
       // to the component within KernelTarget).
-      var trimmedSummaryProgram = new Component(nameRoot: summaryProgram.root)
-        ..libraries.addAll(truncateSummary
-            ? kernelTarget.loader.libraries
-            : summaryProgram.libraries);
-      trimmedSummaryProgram.metadata.addAll(summaryProgram.metadata);
+      var trimmedSummaryComponent =
+          new Component(nameRoot: summaryComponent.root)
+            ..libraries.addAll(truncateSummary
+                ? kernelTarget.loader.libraries
+                : summaryComponent.libraries);
+      trimmedSummaryComponent.metadata.addAll(summaryComponent.metadata);
 
       // As documented, we only run outline transformations when we are building
       // summaries without building a full component (at this time, that's
       // the only need we have for these transformations).
       if (!buildComponent) {
-        options.target.performOutlineTransformations(trimmedSummaryProgram);
+        options.target.performOutlineTransformations(trimmedSummaryComponent);
         options.ticker.logMs("Transformed outline");
       }
-      summary = serializeComponent(trimmedSummaryProgram);
+      summary = serializeComponent(trimmedSummaryComponent);
       options.ticker.logMs("Generated outline");
     }
 

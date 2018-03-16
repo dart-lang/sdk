@@ -107,7 +107,7 @@ main() {
       expect(exceptionThrown, isTrue);
     }, skip: true /* Issue 30194 */);
 
-    test('generated component contains source-info', () async {
+    test('generated program contains source-info', () async {
       var component = await compileScript('a() => print("hi"); main() {}',
           fileName: 'a.dart');
       // Kernel always store an empty '' key in the map, so there is always at

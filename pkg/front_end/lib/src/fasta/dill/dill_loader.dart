@@ -25,7 +25,7 @@ class DillLoader extends Loader<Library> {
   /// Source targets are compiled against these binary libraries.
   final libraries = <Library>[];
 
-  /// Sources for all appended programs.
+  /// Sources for all appended components.
   final Map<Uri, Source> uriToSource = <Uri, Source>{};
 
   DillLoader(TargetImplementation target) : super(target);

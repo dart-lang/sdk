@@ -1220,8 +1220,8 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
   ///
   /// The main method of the first component is used as the main method for the
   /// compilation.
-  void addProgram(ir.Component component) {
-    _env.addProgram(component);
+  void addComponent(ir.Component component) {
+    _env.addComponent(component);
   }
 
   @override
