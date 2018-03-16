@@ -457,6 +457,25 @@ bool Thread::ZoneIsOwnedByThread(Zone* zone) const {
   return false;
 }
 
+void Thread::SetHighWatermark(intptr_t value) {
+  zone_high_watermark_ = value;
+
+#if !defined(PRODUCT)
+  if ((isolate()->name() != NULL)) {
+    TimelineEvent* event = Timeline::GetZoneStream()->StartEvent();
+    if (event != NULL) {
+      event->Counter(strdup(isolate()->name()));
+      event->set_owns_label(true);
+      // Prevent Catapult from showing "isolateId" as another series.
+      event->set_isolate_id(ILLEGAL_PORT);
+      event->SetNumArguments(1);
+      event->FormatArgument(0, "zoneHighWatermark", "%" Pd, value);
+      event->Complete();
+    }
+  }
+#endif
+}
+
 void Thread::DeferOOBMessageInterrupts() {
   MonitorLocker ml(thread_lock_);
   defer_oob_messages_count_++;

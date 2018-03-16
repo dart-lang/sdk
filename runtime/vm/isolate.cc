@@ -2709,8 +2709,6 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
     thread = thread_registry()->GetFreeThreadLocked(this, is_mutator);
     ASSERT(thread != NULL);
 
-    thread->ResetHighWatermark();
-
     // Set up other values and set the TLS value.
     thread->isolate_ = this;
     ASSERT(heap() != NULL);
@@ -2731,6 +2729,8 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
     }
     Thread::SetCurrent(thread);
     os_thread->EnableThreadInterrupts();
+
+    thread->ResetHighWatermark();
   }
   return thread;
 }
