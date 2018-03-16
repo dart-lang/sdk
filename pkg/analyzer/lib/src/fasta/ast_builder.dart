@@ -2083,7 +2083,6 @@ class AstBuilder extends ScopeListener {
     FormalParameterList parameters = pop();
     SimpleIdentifier name = pop();
     TypeAnnotation returnType = pop();
-    pop(); // modifiers
     TypeParameterList typeParameters = pop();
     FunctionExpression functionExpression =
         ast.functionExpression(typeParameters, parameters, body);

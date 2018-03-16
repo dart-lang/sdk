@@ -2859,7 +2859,6 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     var returnType = pop();
     var hasImplicitReturnType = returnType == null;
     returnType ??= const DynamicType();
-    pop(); // Modifiers.
     exitFunction();
     List<TypeParameter> typeParameters = typeVariableBuildersToKernel(pop());
     FunctionNode function = formals.addToFunction(new FunctionNode(body,

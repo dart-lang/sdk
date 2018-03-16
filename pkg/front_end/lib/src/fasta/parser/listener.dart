@@ -327,7 +327,6 @@ class Listener {
   /// A function declaration.
   ///
   /// Substructures:
-  /// - Modifiers
   /// - Return type
   /// - Name
   /// - Type variables

@@ -2522,7 +2522,6 @@ class Parser {
               Token beforeFormals = parseTypeVariablesOpt(token);
 
               listener.beginLocalFunctionDeclaration(begin);
-              listener.handleModifiers(0);
               if (voidToken != null) {
                 listener.handleVoidKeyword(voidToken);
               } else {
@@ -2541,7 +2540,6 @@ class Parser {
                 // followed by '{', '=>', 'async', or 'sync'.
                 parseTypeVariablesOpt(token);
                 listener.beginLocalFunctionDeclaration(begin);
-                listener.handleModifiers(0);
                 if (voidToken != null) {
                   listener.handleVoidKeyword(voidToken);
                 } else {
@@ -2568,7 +2566,6 @@ class Parser {
               Token formals = parseTypeVariablesOpt(token);
 
               listener.beginLocalFunctionDeclaration(token);
-              listener.handleModifiers(0);
               listener.handleNoType(token);
               return parseNamedFunctionRest(beforeToken, begin, formals, false);
             }
@@ -2580,7 +2577,6 @@ class Parser {
                 // followed by `'{'`, `'=>'`, `'async'`, or `'sync'`.
                 parseTypeVariablesOpt(token);
                 listener.beginLocalFunctionDeclaration(token);
-                listener.handleModifiers(0);
                 listener.handleNoType(token);
                 return parseNamedFunctionRest(beforeToken, begin, gt, false);
               }
@@ -2631,7 +2627,6 @@ class Parser {
 
         Token formals = parseTypeVariablesOpt(name);
         listener.beginNamedFunctionExpression(begin);
-        listener.handleModifiers(0);
         if (hasReturnType) {
           if (voidToken != null) {
             listener.handleVoidKeyword(voidToken);
@@ -4002,7 +3997,6 @@ class Parser {
   /// - Type variables.
   /// - `beginLocalFunctionDeclaration` if [isFunctionExpression] is false,
   ///   otherwise `beginNamedFunctionExpression`.
-  /// - Modifiers.
   /// - Return type.
   Token parseNamedFunctionRest(
       Token beforeName, Token begin, Token formals, bool isFunctionExpression) {

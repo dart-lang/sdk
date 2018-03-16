@@ -550,7 +550,7 @@ class NodeListener extends ElementListener {
     // The name can be an identifier or a send in case of named constructors.
     Expression name = popNode();
     TypeAnnotation type = popNode();
-    Modifiers modifiers = popNode();
+    Modifiers modifiers = new Modifiers(new NodeList.empty());
     NodeList typeVariables = popNode();
     pushNode(new FunctionExpression(name, typeVariables, formals, body, type,
         modifiers, initializers, null, asyncModifier));
@@ -565,7 +565,7 @@ class NodeListener extends ElementListener {
     // The name can be an identifier or a send in case of named constructors.
     Expression name = popNode();
     TypeAnnotation type = popNode();
-    Modifiers modifiers = popNode();
+    Modifiers modifiers = new Modifiers(new NodeList.empty());
     NodeList typeVariables = popNode();
     pushNode(new FunctionDeclaration(new FunctionExpression(name, typeVariables,
         formals, body, type, modifiers, initializers, null, asyncModifier)));
