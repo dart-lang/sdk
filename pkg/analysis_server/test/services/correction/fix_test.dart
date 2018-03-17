@@ -465,6 +465,25 @@ class B {}
 ''');
   }
 
+  test_addExplicitCast_assignment_set() async {
+    await resolveTestUnit('''
+f(Set<A> a) {
+  Set<B> b;
+  b = a;
+}
+class A {}
+class B {}
+''');
+    await assertHasFix(DartFixKind.ADD_EXPLICIT_CAST, '''
+f(Set<A> a) {
+  Set<B> b;
+  b = a.cast<B>();
+}
+class A {}
+class B {}
+''');
+  }
+
   test_addExplicitCast_declaration_general() async {
     await resolveTestUnit('''
 f(A a) {
@@ -533,6 +552,23 @@ f(A a) {
 class A {
   int m() => 0;
 }
+class B {}
+''');
+  }
+
+  test_addExplicitCast_declaration_set() async {
+    await resolveTestUnit('''
+f(Set<A> a) {
+  Set<B> b = a;
+}
+class A {}
+class B {}
+''');
+    await assertHasFix(DartFixKind.ADD_EXPLICIT_CAST, '''
+f(Set<A> a) {
+  Set<B> b = a.cast<B>();
+}
+class A {}
 class B {}
 ''');
   }

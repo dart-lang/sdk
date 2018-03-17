@@ -516,8 +516,14 @@ class FixProcessor {
     } else {
       return;
     }
+    // TODO(brianwilkerson) I think it's more efficient to invoke `cast` before
+    // invoking `toList()`, so check to see whether the cast should be inserted
+    // before the end of the expression.
+    // TODO(brianwilkerson) We should not produce a fix if the target is an
+    // invocation of the `cast` method.
     bool needsParentheses = target.precedence < 15;
-    if (_isDartCoreList(fromType) && _isDartCoreList(toType)) {
+    if ((_isDartCoreList(fromType) && _isDartCoreList(toType)) ||
+        (_isDartCoreSet(fromType) && _isDartCoreSet(toType))) {
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         if (needsParentheses) {
@@ -3442,6 +3448,17 @@ class FixProcessor {
       return false;
     }
     return element.name == "Map" && element.library.isDartCore;
+  }
+
+  bool _isDartCoreSet(DartType type) {
+    if (type is! InterfaceType) {
+      return false;
+    }
+    ClassElement element = type.element;
+    if (element == null) {
+      return false;
+    }
+    return element.name == "Set" && element.library.isDartCore;
   }
 
   bool _isLibSrcPath(String path) {

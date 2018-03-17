@@ -137,6 +137,7 @@ class List<E> implements Iterable<E> {
   List();
   void add(E value) {}
   void addAll(Iterable<E> iterable) {}
+  List<R> cast<R>();
   E operator [](int index) => null;
   void operator []=(int index, E value) {}
   Iterator<E> get iterator => null;
@@ -149,6 +150,7 @@ class List<E> implements Iterable<E> {
 }
 
 abstract class Map<K, V> extends Object {
+  Map<RK, RV> cast<RK, RV>();
   bool containsKey(Object key);
   Iterable<K> get keys;
 }
@@ -156,6 +158,10 @@ abstract class Map<K, V> extends Object {
 external bool identical(Object a, Object b);
 
 void print(Object object) {}
+
+class Set<E> implements Iterable<E> {
+  Set<R> cast<R>();
+}
 
 class Uri {
   static List<int> parseIPv6Address(String host, [int start = 0, int end]) {
@@ -169,7 +175,6 @@ class Uri {
 class _Override { const _Override(); }
 const Object override = const _Override();
 ''');
-
   static const MockSdkLibrary LIB_ASYNC =
       const MockSdkLibrary('dart:async', '/lib/async/async.dart', '''
 library dart.async;
