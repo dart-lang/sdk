@@ -887,9 +887,9 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolateFromKernel(const char* script_uri,
                                                       void* callback_data,
                                                       char** error);
 /**
- * Shuts down the current isolate. After this call, the current isolate
- * is NULL. Invokes the shutdown callback and any callbacks of remaining
- * weak persistent handles.
+ * Shuts down the current isolate. After this call, the current isolate is NULL.
+ * Any current scopes created by Dart_EnterScope will be exited. Invokes the
+ * shutdown callback and any callbacks of remaining weak persistent handles.
  *
  * Requires there to be a current isolate.
  */

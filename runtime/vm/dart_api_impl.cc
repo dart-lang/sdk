@@ -1192,6 +1192,16 @@ DART_EXPORT void Dart_ShutdownIsolate() {
   Isolate* I = T->isolate();
   CHECK_ISOLATE(I);
   I->WaitForOutstandingSpawns();
+
+  // Release any remaining API scopes.
+  ApiLocalScope* scope = T->api_top_scope();
+  while (scope != NULL) {
+    ApiLocalScope* previous = scope->previous();
+    delete scope;
+    scope = previous;
+  }
+  T->set_api_top_scope(NULL);
+
   {
     StackZone zone(T);
     HandleScope handle_scope(T);
