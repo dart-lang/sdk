@@ -175,34 +175,6 @@ static void ReleaseFetchedBytes(uint8_t* buffer) {
   free(buffer);
 }
 
-Dart_Handle DFE::ReadKernelBinary(Dart_Isolate isolate,
-                                  const char* url_string) {
-  ASSERT(!Dart_IsServiceIsolate(isolate) && !Dart_IsKernelIsolate(isolate));
-  // First check if the URL points to a Kernel IR file in which case we
-  // skip the compilation step and directly reload the file.
-  const uint8_t* kernel_ir = NULL;
-  intptr_t kernel_ir_size = -1;
-  if (!TryReadKernelFile(url_string, &kernel_ir, &kernel_ir_size)) {
-    // We have a source file, compile it into a kernel ir first.
-    // TODO(asiva): We will have to change this API to pass in a list of files
-    // that have changed. For now just pass in the main url_string and have it
-    // recompile the script.
-    // TODO(aam): When Frontend is ready, VM should be passing vm_outline.dill
-    // instead of vm_platform.dill to Frontend for compilation.
-    Dart_KernelCompilationResult kresult =
-        Dart_CompileToKernel(url_string, platform_dill, platform_dill_size);
-    if (kresult.status != Dart_KernelCompilationStatus_Ok) {
-      return Dart_NewApiError(kresult.error);
-    }
-    kernel_ir = kresult.kernel;
-    kernel_ir_size = kresult.kernel_size;
-  }
-  void* kernel_program =
-      Dart_ReadKernelBinary(kernel_ir, kernel_ir_size, ReleaseFetchedBytes);
-  ASSERT(kernel_program != NULL);
-  return Dart_NewExternalTypedData(Dart_TypedData_kUint64, kernel_program, 1);
-}
-
 class WindowsPathSanitizer {
  public:
   explicit WindowsPathSanitizer(const char* path) {
