@@ -318,6 +318,7 @@ html/svg_test: RuntimeError
 html/svgelement_test: RuntimeError
 html/table_test: RuntimeError
 html/text_event_test: RuntimeError
+html/touchevent_test: RuntimeError
 html/track_element_constructor_test: RuntimeError
 html/transferables_test: RuntimeError
 html/transition_event_test: RuntimeError
