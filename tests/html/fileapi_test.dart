@@ -43,7 +43,7 @@ main() {
 
       test('directoryDoesntExist', () {
         return fs.root.getDirectory('directory2').catchError((error) {
-          expect(error.code, equals(DomError.NOT_FOUND_ERR));
+          expect(error.code, equals(DomException.NOT_FOUND));
         }, test: (e) => e is DomError);
       });
 
@@ -61,7 +61,7 @@ main() {
 
       test('fileDoesntExist', () {
         return fs.root.getFile('file2').catchError((error) {
-          expect(error.code, equals(DomError.NOT_FOUND_ERR));
+          expect(error.code, equals(DomException.NOT_FOUND));
         }, test: (e) => e is DomError);
       });
 
@@ -139,7 +139,7 @@ main() {
           expect(entry.fullPath, '/dir_moveTo/movedFile');
           return fs.root.getFile('file4');
         }).catchError((error) {
-          expect(error.code, equals(DomError.NOT_FOUND_ERR));
+          expect(error.code, equals(DomEDomException.NOT_FOUND));
         }, test: (e) => e is DomError);
       });
 

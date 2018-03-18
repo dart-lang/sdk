@@ -22,7 +22,7 @@ main() {
       var expectation = TouchEvent.supported ? returnsNormally : throws;
 
       expect(() {
-        var e = new TouchEvent(null, null, null, 'touch');
+        var e = new TouchEvent('touch');
         expect(e is TouchEvent, true);
       }, expectation);
     });
