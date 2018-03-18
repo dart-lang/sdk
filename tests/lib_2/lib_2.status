@@ -98,7 +98,6 @@ html/notification_test: Fail # Safari doesn't let us access the fields of the No
 html/rtc_test: Fail
 html/shadow_dom_test: Fail
 html/speechrecognition_test: Fail
-html/touchevent_test: Fail # Safari does not support TouchEvents
 html/webgl_1_test: Pass, Fail # Issue 8219
 html/worker_api_test: Skip # Issue 13221
 typed_data/float32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
