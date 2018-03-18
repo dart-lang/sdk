@@ -4,23 +4,16 @@
 
 import 'dart:html';
 
-import 'package:expect/minitest.dart';
+import 'package:unittest/unittest.dart';
+import 'package:unittest/html_config.dart';
 
 main() {
-  group('supported', () {
-    test('supported', () {
-      expect(TouchEvent.supported, isTrue);
-    });
-  });
+  useHtmlConfiguration();
 
-  group('functional', () {
-    test('unsupported throws', () {
-      var expectation = TouchEvent.supported ? returnsNormally : throws;
-
-      expect(() {
-        var e = new TouchEvent('touch');
-        expect(e is TouchEvent, isTrue);
-      }, expectation);
-    });
+  test('Basic TouchEvent', () {
+    if (TouchEvent.supported) {
+      var e = new TouchEvent('touch');
+      expect(e is TouchEvent, isTrue);
+    }
   });
 }

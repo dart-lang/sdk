@@ -130,27 +130,6 @@ createCustomUpgrader(Type customElementClass, $this) => $this;
 typedef void FontFaceSetForEachCallback(
     FontFace fontFace, FontFace fontFaceAgain, FontFaceSet set);
 
-// TODO(terry): Chrome 63
-class _JenkinsSmiHash {
-  // TODO(11617): This class should be optimized and standardized elsewhere.
-
-  static int combine(int hash, int value) {
-    hash = 0x1fffffff & (hash + value);
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-
-  static int hash2(a, b) => finish(combine(combine(0, a), b));
-
-  static int hash4(a, b, c, d) =>
-      finish(combine(combine(combine(combine(0, a), b), c), d));
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -45024,7 +45003,7 @@ abstract class _DocumentType extends Node implements ChildNode {
 
 }
 
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -45032,7 +45011,96 @@ abstract class _DocumentType extends Node implements ChildNode {
 @DomName('DOMRect')
 @Experimental() // untriaged
 @Native("DOMRect")
-class _DomRect extends DomRectReadOnly {
+class _DomRect extends DomRectReadOnly implements Rectangle {
+  // NOTE! All code below should be common with RectangleBase.
+  String toString() {
+    return 'Rectangle ($left, $top) $width x $height';
+  }
+
+  bool operator ==(other) {
+    if (other is! Rectangle) return false;
+    return left == other.left &&
+        top == other.top &&
+        width == other.width &&
+        height == other.height;
+  }
+
+  int get hashCode => _JenkinsSmiHash.hash4(
+      left.hashCode, top.hashCode, width.hashCode, height.hashCode);
+
+  /**
+   * Computes the intersection of `this` and [other].
+   *
+   * The intersection of two axis-aligned rectangles, if any, is always another
+   * axis-aligned rectangle.
+   *
+   * Returns the intersection of this and `other`, or null if they don't
+   * intersect.
+   */
+  Rectangle intersection(Rectangle other) {
+    var x0 = max(left, other.left);
+    var x1 = min(left + width, other.left + other.width);
+
+    if (x0 <= x1) {
+      var y0 = max(top, other.top);
+      var y1 = min(top + height, other.top + other.height);
+
+      if (y0 <= y1) {
+        return new Rectangle(x0, y0, x1 - x0, y1 - y0);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Returns true if `this` intersects [other].
+   */
+  bool intersects(Rectangle<num> other) {
+    return (left <= other.left + other.width &&
+        other.left <= left + width &&
+        top <= other.top + other.height &&
+        other.top <= top + height);
+  }
+
+  /**
+   * Returns a new rectangle which completely contains `this` and [other].
+   */
+  Rectangle boundingBox(Rectangle other) {
+    var right = max(this.left + this.width, other.left + other.width);
+    var bottom = max(this.top + this.height, other.top + other.height);
+
+    var left = min(this.left, other.left);
+    var top = min(this.top, other.top);
+
+    return new Rectangle(left, top, right - left, bottom - top);
+  }
+
+  /**
+   * Tests whether `this` entirely contains [another].
+   */
+  bool containsRectangle(Rectangle<num> another) {
+    return left <= another.left &&
+        left + width >= another.left + another.width &&
+        top <= another.top &&
+        top + height >= another.top + another.height;
+  }
+
+  /**
+   * Tests whether [another] is inside or along the edges of `this`.
+   */
+  bool containsPoint(Point<num> another) {
+    return another.x >= left &&
+        another.x <= left + width &&
+        another.y >= top &&
+        another.y <= top + height;
+  }
+
+  Point get topLeft => new Point(this.left, this.top);
+  Point get topRight => new Point(this.left + this.width, this.top);
+  Point get bottomRight =>
+      new Point(this.left + this.width, this.top + this.height);
+  Point get bottomLeft => new Point(this.left, this.top + this.height);
+
   // To suppress missing implicit constructor warnings.
   factory _DomRect._() {
     throw new UnsupportedError("Not supported");
@@ -45112,6 +45180,43 @@ class _DomRect extends DomRectReadOnly {
   @DocsEditable()
   @Experimental() // untriaged
   static Rectangle _fromRect_2() native;
+}
+
+/**
+ * This is the [Jenkins hash function][1] but using masking to keep
+ * values in SMI range.
+ *
+ * [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
+ *
+ * Use:
+ * Hash each value with the hash of the previous value, then get the final
+ * hash by calling finish.
+ *
+ *     var hash = 0;
+ *     for (var value in values) {
+ *       hash = JenkinsSmiHash.combine(hash, value.hashCode);
+ *     }
+ *     hash = JenkinsSmiHash.finish(hash);
+ */
+class _JenkinsSmiHash {
+  // TODO(11617): This class should be optimized and standardized elsewhere.
+
+  static int combine(int hash, int value) {
+    hash = 0x1fffffff & (hash + value);
+    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
+    return hash ^ (hash >> 6);
+  }
+
+  static int finish(int hash) {
+    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
+    hash = hash ^ (hash >> 11);
+    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
+  }
+
+  static int hash2(a, b) => finish(combine(combine(0, a), b));
+
+  static int hash4(a, b, c, d) =>
+      finish(combine(combine(combine(combine(0, a), b), c), d));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

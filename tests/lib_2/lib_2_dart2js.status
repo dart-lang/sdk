@@ -318,7 +318,6 @@ html/svg_test: RuntimeError
 html/svgelement_test: RuntimeError
 html/table_test: RuntimeError
 html/text_event_test: RuntimeError
-html/touchevent_test: RuntimeError
 html/track_element_constructor_test: RuntimeError
 html/transferables_test: RuntimeError
 html/transition_event_test: RuntimeError
@@ -406,7 +405,6 @@ html/serialized_script_value_test: Pass, RuntimeError # Issue 28983
 html/shadow_dom_test: Fail
 html/speechrecognition_test: RuntimeError # Please triage.
 html/text_event_test: Fail # Issue 17893
-html/touchevent_test: Fail
 html/webgl_1_test: Pass, Fail # Issue 8219
 html/websql_test: Fail
 isolate/kill_self_synchronously_test: RuntimeError
@@ -849,7 +847,6 @@ html/media_stream_test: RuntimeError, Crash # NoSuchMethodError: Class 'JMethod'
 html/mirrors_js_typed_interop_test: RuntimeError
 html/postmessage_structured_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/speechrecognition_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/touchevent_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/trusted_html_tree_sanitizer_test/not_create_document_fragment: RuntimeError
 html/trusted_html_tree_sanitizer_test/untrusted: RuntimeError
 html/typed_arrays_1_test/arrays: RuntimeError

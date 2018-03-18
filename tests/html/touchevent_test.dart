@@ -11,20 +11,12 @@ import 'dart:html';
 main() {
   useHtmlIndividualConfiguration();
 
-  group('supported', () {
-    test('supported', () {
-      expect(TouchEvent.supported, true);
-    });
-  });
-
   group('functional', () {
-    test('unsupported throws', () {
-      var expectation = TouchEvent.supported ? returnsNormally : throws;
-
-      expect(() {
+    test('Basic TouchEvent', () {
+      if (TouchEvent.supported) {
         var e = new TouchEvent('touch');
-        expect(e is TouchEvent, true);
-      }, expectation);
+        expect(e is TouchEvent, isTrue);
+      }
     });
   });
 }

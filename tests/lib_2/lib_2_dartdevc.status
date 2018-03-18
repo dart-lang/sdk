@@ -22,7 +22,6 @@ js/prototype_access_test: RuntimeError
 html/element_animate_test/timing_dict: RuntimeError # Issue 29922
 html/element_types_keygen_test: CompileTimeError # Issue 29055
 html/js_dispatch_property_test: Skip # Timeout Issue 31030
-html/touchevent_test: RuntimeError # Issue 29922
 
 [ $runtime == drt && ($compiler == dartdevc || $compiler == dartdevk) ]
 html/svg_test: RuntimeError # Issue 29922

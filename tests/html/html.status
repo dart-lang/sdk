@@ -501,7 +501,6 @@ indexeddb_5_test: RuntimeError
 js_typed_interop_default_arg_test/explicit_argument: RuntimeError
 js_typed_interop_test/static_method_tearoff_1: RuntimeError
 mirrors_js_typed_interop_test: SkipByDesign
-websql_test/Database/Database: Pass, RuntimeError
 
 [ $compiler == dart2js && $fasta && $host_checked ]
 fontface_loaded_test: Crash
