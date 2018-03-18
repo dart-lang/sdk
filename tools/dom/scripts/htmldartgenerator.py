@@ -545,7 +545,6 @@ class HtmlDartGenerator(object):
     # Hack to ignore the constructor used by JavaScript.
     if ((self._interface.id == 'HTMLImageElement' or
          self._interface.id == 'Blob' or
-         self._interface.id == 'TouchEvent' or
          self._interface.id == 'DOMException')
       and not constructor_info.pure_dart_constructor):
       return
@@ -604,8 +603,14 @@ class HtmlDartGenerator(object):
             inits.Emit('    if ($E != null) e.$E = $E;\n', E=param_info.name)
     else:
       custom_factory_ctr = self._interface.id in _custom_factories
-      constructor_full_name = constructor_info._ConstructorFullName(
+      if self._interface_type_info.has_generated_interface():
+        constructor_full_name = constructor_info._ConstructorFullName(
           self._DartType)
+      else:
+        # The interface is suppress_interface so use the implementation_name not
+        # the dart_type.
+        constructor_full_name = self._interface_type_info.implementation_name()
+        factory_name = constructor_full_name
 
       def GenerateCall(
           stmts_emitter, call_emitter,

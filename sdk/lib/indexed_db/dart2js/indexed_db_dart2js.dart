@@ -512,6 +512,15 @@ class Database extends EventTarget {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
+
+@DomName('IDBObserverCallback')
+@Experimental() // untriaged
+typedef void ObserverCallback(ObserverChanges changes);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 @DomName('IDBFactory')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
@@ -579,21 +588,9 @@ class IdbFactory extends Interceptor {
     }
   }
 
-  @DomName('IDBFactory.getDatabaseNames')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental()
-  Future<List<String>> getDatabaseNames() {
-    try {
-      var request = _webkitGetDatabaseNames();
-
-      return _completeRequest(request);
-    } catch (e, stacktrace) {
-      return new Future.error(e, stacktrace);
-    }
-  }
-
   /**
    * Checks to see if getDatabaseNames is supported by the current platform.
+   * TODO(terry): Should be able to always return false?
    */
   bool get supportsDatabaseNames {
     return supported &&
@@ -622,17 +619,6 @@ class IdbFactory extends Interceptor {
   @Creates('Request')
   @Creates('Database')
   OpenDBRequest _open(String name, [int version]) native;
-
-  @JSName('webkitGetDatabaseNames')
-  @DomName('IDBFactory.webkitGetDatabaseNames')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  @Returns('Request')
-  @Creates('Request')
-  @Creates('DomStringList')
-  Request _webkitGetDatabaseNames() native;
 }
 
 /**
@@ -762,7 +748,7 @@ class Index extends Interceptor {
 
   @DomName('IDBIndex.name')
   @DocsEditable()
-  final String name;
+  String name;
 
   @DomName('IDBIndex.objectStore')
   @DocsEditable()
@@ -788,12 +774,12 @@ class Index extends Interceptor {
   @DomName('IDBIndex.getAll')
   @DocsEditable()
   @Experimental() // untriaged
-  Request getAll(Object range, [int maxCount]) native;
+  Request getAll(Object query, [int count]) native;
 
   @DomName('IDBIndex.getAllKeys')
   @DocsEditable()
   @Experimental() // untriaged
-  Request getAllKeys(Object range, [int maxCount]) native;
+  Request getAllKeys(Object query, [int count]) native;
 
   @JSName('getKey')
   @DomName('IDBIndex.getKey')
@@ -874,6 +860,11 @@ class KeyRange extends Interceptor {
   @DocsEditable()
   static KeyRange bound_(Object lower, Object upper,
       [bool lowerOpen, bool upperOpen]) native;
+
+  @DomName('IDBKeyRange.includes')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool includes(Object key) native;
 
   @JSName('lowerBound')
   @DomName('IDBKeyRange.lowerBound')
@@ -1046,7 +1037,7 @@ class ObjectStore extends Interceptor {
 
   @DomName('IDBObjectStore.name')
   @DocsEditable()
-  final String name;
+  String name;
 
   @DomName('IDBObjectStore.transaction')
   @DocsEditable()
@@ -1131,12 +1122,17 @@ class ObjectStore extends Interceptor {
   @DomName('IDBObjectStore.getAll')
   @DocsEditable()
   @Experimental() // untriaged
-  Request getAll(Object range, [int maxCount]) native;
+  Request getAll(Object query, [int count]) native;
 
   @DomName('IDBObjectStore.getAllKeys')
   @DocsEditable()
   @Experimental() // untriaged
-  Request getAllKeys(Object range, [int maxCount]) native;
+  Request getAllKeys(Object query, [int count]) native;
+
+  @DomName('IDBObjectStore.getKey')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Request getKey(Object key) native;
 
   @DomName('IDBObjectStore.index')
   @DocsEditable()
@@ -1211,6 +1207,106 @@ class ObjectStore extends Interceptor {
     });
     return controller.stream;
   }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('IDBObservation')
+@Experimental() // untriaged
+@Native("IDBObservation")
+class Observation extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory Observation._() {
+    throw new UnsupportedError("Not supported");
+  }
+
+  @DomName('IDBObservation.key')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Object key;
+
+  @DomName('IDBObservation.type')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String type;
+
+  @DomName('IDBObservation.value')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Object value;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('IDBObserver')
+@Experimental() // untriaged
+@Native("IDBObserver")
+class Observer extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory Observer._() {
+    throw new UnsupportedError("Not supported");
+  }
+
+  @DomName('IDBObserver.IDBObserver')
+  @DocsEditable()
+  factory Observer(ObserverCallback callback) {
+    return Observer._create_1(callback);
+  }
+  static Observer _create_1(callback) =>
+      JS('Observer', 'new IDBObserver(#)', callback);
+
+  @DomName('IDBObserver.observe')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void observe(Database db, Transaction tx, Map options) {
+    var options_1 = convertDartToNative_Dictionary(options);
+    _observe_1(db, tx, options_1);
+    return;
+  }
+
+  @JSName('observe')
+  @DomName('IDBObserver.observe')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _observe_1(Database db, Transaction tx, options) native;
+
+  @DomName('IDBObserver.unobserve')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void unobserve(Database db) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('IDBObserverChanges')
+@Experimental() // untriaged
+@Native("IDBObserverChanges")
+class ObserverChanges extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory ObserverChanges._() {
+    throw new UnsupportedError("Not supported");
+  }
+
+  @DomName('IDBObserverChanges.database')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Database database;
+
+  @DomName('IDBObserverChanges.records')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Object records;
+
+  @DomName('IDBObserverChanges.transaction')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Transaction transaction;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -236,6 +236,7 @@ class IDLNode(object):
       'ParentInterface': 'parent',
       'Id': 'name',
       'Interface': 'interfaces',
+      'Callback_Function': 'callback_functions',
       'Callback': 'is_callback',
       'Partial': 'is_partial',
       'Operation': 'operations',
@@ -396,6 +397,23 @@ class IDLFile(IDLNode):
 
     self.interfaces = self._convert_all(ast, 'Interface', IDLInterface)
     self.dictionaries = self._convert_all(ast, 'Dictionary', IDLDictionary)
+
+    if len(ast.callback_functions) > 0:
+      callback_functions = self._convert_all(ast, 'Callback_Function', IDLCallbackFunction)
+      for callback_function in callback_functions:
+        for annotation in callback_function.annotations:
+          callback = callback_function.annotations[annotation]
+          cb_interface = IDLInterface(None, callback.name)
+          cb_interface.ext_attrs['Callback'] = None
+          op = IDLOperation(None, cb_interface.id, "handleEvent")
+          op.type = IDLType(callback.idl_type)
+          op.type = resolveTypedef(op.type)
+
+          if len(callback.arguments) > 0:
+            op.arguments = self._convert_all(callback, 'Argument', IDLArgument)
+
+          cb_interface.operations = [op]
+          self.interfaces.append(cb_interface)
 
     is_blink = not(isinstance(ast, list)) and ast.__module__ == 'idl_definitions'
 
@@ -640,6 +658,7 @@ class IDLType(IDLNode):
 
           # TODO(terry): Handled USVString as a DOMString.
           type_name = type_name.replace('USVString', 'DOMString', 1)
+          type_name = type_name.replace('HTMLString', 'DOMString', 1)
 
           # TODO(terry); WindowTimers setInterval/setTimeout overloads with a
           #              Function type - map to any until the IDL uses union.
@@ -693,6 +712,12 @@ class IDLEnum(IDLNode):
 
     # TODO(terry): Need to handle emitting of enums for dart:html
 
+class IDLCallbackFunction(IDLNode):
+  """IDLNode for 'callback [type] [id]' declarations."""
+  def __init__(self, ast):
+    IDLNode.__init__(self, ast)
+    self._convert_annotations(ast)
+    self.type = self._convert_first(ast, 'Type', IDLType)
 
 class IDLTypeDef(IDLNode):
   """IDLNode for 'typedef [type] [id]' declarations."""
@@ -729,6 +754,14 @@ class IDLDictionaryMembers(IDLDictNode):
       value = IDLDictionaryMember(member, js_name)
       self[name] = value
 
+def generate_callback(interface_name, result_type, arguments):
+  syn_op = IDLOperation(None, interface_name, 'callback')
+
+  syn_op.type = resolveTypedef(result_type)
+  syn_op.arguments = arguments
+
+  return syn_op
+
 def generate_operation(interface_name, result_type_name, oper_name, arguments):
   """ Synthesize an IDLOperation with no AST used for support of setlike."""
   """ Arguments is a list of argument where each argument is:
@@ -740,8 +773,8 @@ def generate_operation(interface_name, result_type_name, oper_name, arguments):
   syn_op.type = resolveTypedef(syn_op.type)
 
   for argument in arguments:
-    arg = IDLArgument(None, argument[1]);
-    arg.type = argument[0];
+    arg = IDLArgument(None, argument[1])
+    arg.type = argument[0]
     arg.optional = argument[2] if len(argument) > 2 else False
     syn_op.arguments.append(arg)
 
@@ -800,8 +833,12 @@ class IDLInterface(IDLNode):
   """IDLInterface node contains operations, attributes, constants,
   as well as parent references."""
 
-  def __init__(self, ast):
+  def __init__(self, ast, id=None):
     IDLNode.__init__(self, ast)
+
+    if id:
+      self.id = id
+
     self._convert_ext_attrs(ast)
     self._convert_annotations(ast)
 
@@ -821,7 +858,7 @@ class IDLInterface(IDLNode):
     self.operations = self._convert_all(ast, 'Operation',
       lambda ast: IDLOperation(ast, self.doc_js_name))
 
-    if ast.setlike:
+    if not(id) and ast.setlike:
       setlike_ops = generate_setLike_operations_properties(self, ast.setlike)
       for op in setlike_ops:
         self.operations.append(op)
@@ -903,7 +940,7 @@ class IDLOperation(IDLMember):
       self.specials = []
       self.is_static = False
       self.arguments = []
-      return;
+      return
 
     self.type = self._convert_first(ast, 'ReturnType', IDLType)
     self.type = resolveTypedef(self.type)

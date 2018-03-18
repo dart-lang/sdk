@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartdevc ]
+html/element_types_keygen_test: CompileTimeError # Chrome 57 keygen removed
 html/xhr_test: Pass, Slow
 
 [ $compiler == dartdevk ]
@@ -19,7 +20,7 @@ js/prototype_access_test: RuntimeError
 
 [ $runtime == chrome && ($compiler == dartdevc || $compiler == dartdevk) ]
 html/element_animate_test/timing_dict: RuntimeError # Issue 29922
-html/element_types_keygen_test: RuntimeError # Issue 29055
+html/element_types_keygen_test: CompileTimeError # Issue 29055
 html/js_dispatch_property_test: Skip # Timeout Issue 31030
 html/touchevent_test: RuntimeError # Issue 29922
 
@@ -103,12 +104,10 @@ html/mediasource_test: RuntimeError # Issue 29922
 html/no_linked_scripts_htmltest: Skip # Issue 29919
 html/notification_permission_test: Timeout # Issue 32002
 html/scripts_htmltest: Skip # Issue 29919
-html/transferables_test: CompileTimeError # Issue 30975
 html/transition_event_test: Pass, RuntimeError, Timeout # Issue 29922, this test seems flaky
 html/two_scripts_htmltest: Skip # Issue 29919
 html/webgl_extensions_test: RuntimeError # Issue 31017
 html/worker_api_test: RuntimeError # Issue 29922
-html/xhr_cross_origin_test/functional: RuntimeError # Issue 29922
 isolate/*: SkipByDesign # No support for dart:isolate in dart4web (http://dartbug.com/30538)
 js/null_test: RuntimeError # Issue 30652
 math/double_pow_test: RuntimeError # Issue 29922

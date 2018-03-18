@@ -236,7 +236,6 @@ const int STENCIL_BUFFER_BIT = RenderingContext.STENCIL_BUFFER_BIT;
 const int STENCIL_CLEAR_VALUE = RenderingContext.STENCIL_CLEAR_VALUE;
 const int STENCIL_FAIL = RenderingContext.STENCIL_FAIL;
 const int STENCIL_FUNC = RenderingContext.STENCIL_FUNC;
-const int STENCIL_INDEX = RenderingContext.STENCIL_INDEX;
 const int STENCIL_INDEX8 = RenderingContext.STENCIL_INDEX8;
 const int STENCIL_PASS_DEPTH_FAIL = RenderingContext.STENCIL_PASS_DEPTH_FAIL;
 const int STENCIL_PASS_DEPTH_PASS = RenderingContext.STENCIL_PASS_DEPTH_PASS;

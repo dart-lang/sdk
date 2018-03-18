@@ -187,6 +187,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** True if the ctrl key is pressed during this event. */
   bool get ctrlKey => _parent.ctrlKey;
   int get detail => _parent.detail;
+  bool get isComposing => _parent.isComposing;
   String get key => _parent.key;
   /**
    * Accessor to the part of the keyboard that the key was pressed from (one of
@@ -234,5 +235,6 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
 
   @Experimental() // untriaged
   bool get repeat => throw new UnimplementedError();
+  bool get isComposed => throw new UnimplementedError();
   dynamic get _get_view => throw new UnimplementedError();
 }

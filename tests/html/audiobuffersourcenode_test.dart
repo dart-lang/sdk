@@ -19,7 +19,7 @@ main() {
         var ctx = new AudioContext();
         AudioBufferSourceNode node = ctx.createBufferSource();
         expect(node is AudioBufferSourceNode, isTrue);
-        node.start(ctx.currentTime, 0, 2);
+        node.start2(ctx.currentTime, 0, 2);
         expect(node is AudioBufferSourceNode, isTrue);
       }
     });

@@ -177,7 +177,6 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   @DomName('Window.console')
   Console get console => Console._safeConsole;
 
-
   /**
    * Access a sandboxed file system of the specified `size`. If `persistent` is
    * true, the application will request permission from the user to create
@@ -210,6 +209,10 @@ $!MEMBERS
   /// Stream of `beforeunload` events handled by this [Window].
   @DomName('Window.onbeforeunload')
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
+
+  /// Stream of `wheel` events handled by this [Window].
+  @DomName('Window.onWheel')
+  Stream<WheelEvent> get onWheel => Element.wheelEvent.forTarget(this);
 
   /**
    * Moves this window to a specific position.

@@ -56,5 +56,12 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     } while (target != null && target != currentTarget.parent);
     throw new StateError('No selector matched for populating matchedTarget.');
   }
+
+  @DomName('Event.path')
+  @DocsEditable()
+  @Experimental()
+  List<EventTarget> get path =>
+    JS('bool', '!!#.composedPath', this) ? composedPath() : [];
+
 $!MEMBERS
 }

@@ -5,8 +5,7 @@ import 'package:unittest/html_config.dart';
 import 'dart:html';
 
 main() {
-  var isRectList =
-      predicate((x) => x is List<Rectangle>, 'is a List<Rectangle>');
+  var isRectList = predicate((x) => x is DomRectList, 'is a DomRectList');
 
   insertTestDiv() {
     var element = new Element.tag('div');

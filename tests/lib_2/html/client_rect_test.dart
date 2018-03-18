@@ -3,8 +3,7 @@ import 'dart:html';
 import 'package:expect/minitest.dart';
 
 main() {
-  var isRectList =
-      predicate((x) => x is List<Rectangle>, 'is a List<Rectangle>');
+  var isRectList = predicate((x) => x is DomRectList, 'is a DomRectList');
 
   insertTestDiv() {
     var element = new Element.tag('div');

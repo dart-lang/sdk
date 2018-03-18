@@ -1,6 +1,6 @@
 # Upgrading Dart's SDK for HTML (blink IDLs).
 #
-# Typically this is done using the Dart integration branch (as it has to be
+# Typically this is done using the Dart WebCore branch (as it has to be
 # staged to get most things working).
 #
 # Enlist in third_party/WebCore:
@@ -9,7 +9,7 @@
 #      > git clone https://github.com/dart-lang/webcore.git WebCore
 #
 # To update all *.idl, *.py, LICENSE files, and IDLExtendedAttributes.txt:
-#      > cd src/dart
+#      > cd sdk
 #      > python tools/dom/scripts/idlsync.py
 #
 # Display blink files to delete, copy, update, and collisions to review:
@@ -30,6 +30,7 @@
 #
 # Finally, commit the files in dart/third_party/WebCore.
 
+import errno
 import optparse
 import os.path
 import re
@@ -40,24 +41,22 @@ import time
 
 from shutil import copyfile
 
-# Dartium DEPS file from the DEPS file checked into the dart-lang/sdk integration
-# branch.
-DEPS_GIT = ('https://raw.githubusercontent.com/dart-lang/sdk/integration/'
-            'tools/deps/dartium.deps/DEPS')
+# Dart DEPS file checked into the dart-lang/sdk master.
+DEPS_GIT = "https://raw.githubusercontent.com/dart-lang/sdk/master/DEPS"
 CHROME_TRUNK = "https://chromium.googlesource.com"
-WEBKIT_URL_PATTERN = r'"dartium_chromium_commit": "(\S+)",'
-DEPS_PATTERNS = {
-    'webkit': (CHROME_TRUNK, WEBKIT_URL_PATTERN),
-}
+WEBKIT_SHA_PATTERN = r'"WebCore_rev": "(\S+)",'
 
-# Dartium/Chromium remote (GIT repository)
-GIT_REMOTES_CHROMIUM = 'https://chromium.googlesource.com/dart/dartium/src.git'
+# Chromium remote (GIT repository)
+GIT_REMOTES_CHROMIUM = 'https://chromium.googlesource.com/chromium/src.git'
 
 # location of this file
-SOURCE_FILE_DIR = 'src/dart/tools/dom/scripts'
+SOURCE_FILE_DIR = 'tools/dom/scripts'
 
 WEBKIT_SOURCE = 'src/third_party/WebKit/Source'
-WEBCORE_SOURCE = 'src/dart/third_party/WebCore'
+WEBCORE_SOURCE = 'third_party/WebCore'
+
+WEBKIT_BLINK_SOURCE = 'src/third_party/blink'
+WEBCORE_BLINK_SOURCE = 'third_party/WebCore/blink'
 
 # Never automatically git add bindings/IDLExtendedAttributes.txt this file has
 # been modified by Dart but is usually changed by WebKit blink too.
@@ -68,6 +67,10 @@ IDL_EXTENDED_ATTRIBUTES_FILE = 'IDLExtendedAttributes.txt'
 # The scripts in the above directory is the source for our Dart generators that
 # is driven from the blink IDL parser AST
 DART_SDK_GENERATOR_SCRIPTS = 'bindings/dart/scripts'
+
+# The __init__.py files allow Python to treat directories as packages. Used to
+# allow Dart's Python scripts to interact with Chrome's IDL parsing scripts.
+PYTHON_INITS = '__init__.py'
 
 # sub directories containing IDLs (core and modules) from the base directory
 # src/third_party/WebKit/Source
@@ -89,15 +92,23 @@ options = None
 
 warning_messages = []
 
-# Is --check passed in.
-def isChecked():
+# Is --dry_run passed in.
+def isDryRun():
   global options
-  return options['check'] is not None
+  return options['dry_run'] is not None
 
 # Is --verbose passed in.
 def isVerbose():
   global options
   return options['verbose'] is not None
+
+# If --WebKit= is specified then compute the directory of the Chromium
+# source.
+def chromiumDirectory():
+  global options
+  if options['chromium_dir'] is not None:
+    return os.path.expanduser(options['chromium_dir'])
+  return os.cwd()
 
 def RunCommand(cmd, valid_exits=[0]):
   """Executes a shell command and return its stdout."""
@@ -136,8 +147,13 @@ def subpath(path, base_dir):
 # source_dir is the src/third_party/WebKit/Source location (blink)
 # destination_dir is the src/dart/third_party/WebCore location
 # returns idls_copied, py_copied, other_copied
-def copy_files(source_dir, destination_dir):
+def copy_files(source_dir, src_prefix, destination_dir):
   original_cwd = os.getcwd()
+  try:
+    os.makedirs(destination_dir)
+  except OSError as e:
+    if e.errno != errno.EEXIST:
+      raise
   os.chdir(destination_dir)
 
   idls = 0                  # *.idl files copied
@@ -161,8 +177,14 @@ def copy_files(source_dir, destination_dir):
           else:
             others += 1
           src_file = os.path.join(root, f)
-          dst_root = root.replace(WEBKIT_SOURCE, WEBCORE_SOURCE)
-          dst_file = os.path.join(dst_root, f)
+
+          # Compute the destination path using sdk/third_party/WebCore
+          subdir_root = src_file[src_file.rfind(src_prefix) + len(src_prefix):]
+          if subdir_root.startswith(os.path.sep):
+            subdir_root = subdir_root[1:]
+          dst_file = os.path.join(destination_dir, subdir_root)
+
+          # Need to make src/third_party/WebKit/Source/* to sdk/third_party/WebCore/*
 
           destination = os.path.dirname(dst_file)
           if not os.path.exists(destination):
@@ -170,16 +192,17 @@ def copy_files(source_dir, destination_dir):
 
           has_Dart_fix_me = anyDartFixMe(dst_file)
 
-          if not isChecked():
+          if not isDryRun():
             copyfile(src_file, dst_file)
           if isVerbose():
-            print('...copying %s' % os.path.split(dst_file)[1])
+            #print('...copying %s' % os.path.split(dst_file)[1])
+            print('...copying %s' % dst_file)
           if f == IDL_EXTENDED_ATTRIBUTES_FILE:
             warning_messages.append(dst_file)
           else:
             if has_Dart_fix_me:
               warning_messages.append(dst_file)
-            if not (isChecked() or has_Dart_fix_me):
+            if not (isDryRun() or has_Dart_fix_me):
               # git add the file
               RunCommand(['git', 'add', dst_file])
 
@@ -196,21 +219,24 @@ def remove_obsolete_webcore_files(webcore_dir, webkit_dir, subdir):
   files_to_delete = []
 
   original_cwd = os.getcwd()
-  os.chdir(webcore_dir)
 
-  for (root, _, files) in os.walk(os.path.join(webcore_dir, subdir), topdown=False):
-    dir_portion = subpath(root, webcore_dir)
-    for f in files:
-      # Never automatically deleted any Dart generator scripts (these are the
-      # original sources in WebCore).
-      if dir_portion != DART_SDK_GENERATOR_SCRIPTS:
-        check_file = os.path.join(dir_portion, f)
-        check_file_full_path = os.path.join(webkit_dir, check_file)
-        if not os.path.exists(check_file_full_path):
-          if not isChecked():
-            # Remove the file using git
-            RunCommand(['git', 'rm', check_file])
-          files_to_delete.append(check_file)
+  if os.path.exists(webcore_dir):
+    os.chdir(webcore_dir)
+
+    for (root, _, files) in os.walk(os.path.join(webcore_dir, subdir), topdown=False):
+      dir_portion = subpath(root, webcore_dir)
+      for f in files:
+        # Never automatically deleted any Dart generator scripts (these are the
+        # original sources in WebCore).
+        if dir_portion != DART_SDK_GENERATOR_SCRIPTS:
+          check_file = os.path.join(dir_portion, f)
+          check_file_full_path = os.path.join(webkit_dir, check_file)
+          if not os.path.exists(check_file_full_path) and \
+             not(check_file_full_path.endswith(PYTHON_INITS)):
+            if not isDryRun():
+              # Remove the file using git
+              RunCommand(['git', 'rm', check_file])
+            files_to_delete.append(check_file)
 
   os.chdir(original_cwd)
 
@@ -218,15 +244,18 @@ def remove_obsolete_webcore_files(webcore_dir, webkit_dir, subdir):
 
 def ParseOptions():
   parser = optparse.OptionParser()
-  parser.add_option('--verbose', '-v', dest='verbose', action='store_false',
+  parser.add_option('--chromium', '-c', dest='chromium_dir', action='store', type='string',
+                    help='WebKit Chrome directory (e.g., --chromium=~/chrome63', default=None)
+  parser.add_option('--verbose', '-v', dest='verbose', action='store_true',
                     help='Dump all information', default=None)
-  parser.add_option('--check', '-c', dest='check', action='store_false',
+  parser.add_option('--dry_run', '-d', dest='dry_run', action='store_true',
                     help='Display results without adding, updating or deleting any files', default=None)
   args, _ = parser.parse_args()
 
   argOptions = {}
+  argOptions['chromium_dir'] = args.chromium_dir
   argOptions['verbose'] = args.verbose
-  argOptions['check'] = args.check
+  argOptions['dry_run'] = args.dry_run
   return argOptions
 
 # Fetch the DEPS file in src/dart/tools/deps/dartium.deps/DEPS from the GIT repro.
@@ -244,33 +273,67 @@ def ValidateGitRemotes():
   print 'ERROR: Unable to find dart/dartium/src repository %s' % GIT_REMOTES_CHROMIUM
   return False
 
-def getCurrentDartiumSHA():
+def getChromiumSHA():
   cwd = os.getcwd()
+  chromiumDir = chromiumDirectory()
+
+  webkit_dir = os.path.join(chromiumDir, WEBKIT_SOURCE)
+  os.chdir(webkit_dir)
+
+  if ValidateGitRemotes():
+    chromium_sha = RunCommand(['git', 'log', '--format=format:%H', '-1'])
+  else:
+    chromium_sha = -1
+
+  os.chdir(cwd)
+  return chromium_sha
+
+def getCurrentDartSHA():
+  cwd = os.getcwd()
+
   if cwd.endswith('dart'):
-    # In src/dart 
+    # In src/dart
     src_dir, _ = os.path.split(cwd)
-  elif cwd.endswith('src'):
+  elif cwd.endswith('sdk'):
     src_dir = cwd
   else:
-    src_dir = os.path.join(cwd, 'src')
+    src_dir = os.path.join(cwd, 'sdk')
   os.chdir(src_dir)
 
   if ValidateGitRemotes():
-    dartium_sha = RunCommand(['git', 'log', '--format=format:%H', '-1'])
+    dart_sha = RunCommand(['git', 'log', '--format=format:%H', '-1'])
   else:
-    dartium_sha = -1
+    dart_sha = -1
 
   os.chdir(cwd)
-  return dartium_sha
+  return dart_sha
 
 # Returns the SHA of the Dartium/Chromiun in the DEPS file.
-def GetDEPSDartiumGitRevision(deps, component):
+def GetDEPSWebCoreGitRevision(deps, component):
   """Returns a tuple with the (dartium chromium repo, latest revision)."""
-  url_base, url_pattern = DEPS_PATTERNS[component]
-  url = url_base + re.search(url_pattern, deps).group(1)
+  foundIt = re.search(WEBKIT_SHA_PATTERN, deps)
+  #url_base, url_pattern = DEPS_PATTERNS[component]
+  #url = url_base + re.search(url_pattern, deps).group(1)
   # Get the SHA for the Chromium/WebKit changes for Dartium.
-  revision = url[len(url_base):]
+  #revision = url[len(url_base):]
+  revision = foundIt.group(1)[1:]
+  print '%s' % revision
   return revision
+
+def copy_subdir(src, src_prefix, dest, subdir):
+  idls_deleted = remove_obsolete_webcore_files(dest, src, subdir)
+  print "%s files removed in WebCore %s" % (idls_deleted.__len__(), subdir)
+  if isVerbose():
+    for delete_file in idls_deleted:
+      print "    %s" % delete_file
+
+  idls_copied, py_copied, other_copied = copy_files(os.path.join(src, subdir), src_prefix, dest)
+  if idls_copied > 0:
+    print "Copied %s IDLs to %s" % (idls_copied, subdir)
+  if py_copied > 0:
+    print "Copied %s PYs to %s" % (py_copied, subdir)
+  if other_copied > 0:
+    print "Copied %s other to %s\n" % (other_copied, subdir)
 
 def main():
   global options
@@ -282,29 +345,40 @@ def main():
 
   base_directory = current_dir[:current_dir.rfind(SOURCE_FILE_DIR)]
 
-  # Validate that the DEPS SHA matches the SHA of the chromium/dartium branch.
+  # Validate DEPS WebCore_rev SHA DOES NOT match the SHA of chromium master.
   deps = GetDepsFromGit()
-  revision = GetDEPSDartiumGitRevision(deps, 'webkit')
-  dartium_sha = getCurrentDartiumSHA()
-  if not(revision == dartium_sha):
-    print "ERROR: Chromium/Dartium SHA in DEPS doesn't match the GIT branch."
+  webcore_revision = GetDEPSWebCoreGitRevision(deps, 'webkit')
+  chromium_sha = getChromiumSHA()
+  if webcore_revision == chromium_sha:
+    print "ERROR: Nothing to update in WebCore, WebCore_rev SHA in DEPS " \
+          "matches Chromium GIT master SHA in %s" % options['webkit_dir']
     return
 
   start_time = time.time()
+
+  # Copy scripts from third_party/blink/tools to third_party/WebCore/blink/tools
+  #
+  # This also implies that the files:
+  #     WebCore/bindings/scripts/code_generator_web_agent_api.py
+  #     WebCore/bindings/scripts/utilities.py
+  #
+  # Need to have sys.path.append at beginning of the above files changed from:
+  #
+  #    sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', '..',
+  #                                 'third_party', 'blink', 'tools'))
+  # to
+  #
+  #    sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..',
+  #                                 'blink', 'tools'))
+  #
+  webkit_blink_dir = os.path.join(chromiumDirectory(), WEBKIT_BLINK_SOURCE)
+  webcore_blink_dir = os.path.join(base_directory, WEBCORE_BLINK_SOURCE)
+  copy_subdir(webkit_blink_dir, WEBKIT_BLINK_SOURCE, webcore_blink_dir, "")
+
+  chromium_webkit_dir = os.path.join(chromiumDirectory(), WEBKIT_SOURCE)
+  dart_webcore_dir = os.path.join(base_directory, WEBCORE_SOURCE)
   for subdir in SUBDIRS:
-    webkit_dir = os.path.join(base_directory, WEBKIT_SOURCE) 
-    webcore_dir = os.path.join(base_directory, WEBCORE_SOURCE)
-
-    idls_deleted = remove_obsolete_webcore_files(webcore_dir, webkit_dir, subdir)
-    print "%s files removed in WebCore %s" % (idls_deleted.__len__(), subdir)
-    if isVerbose():
-      for delete_file in idls_deleted:
-        print "    %s" % delete_file
-
-    idls_copied, py_copied, other_copied = copy_files(os.path.join(webkit_dir, subdir), webcore_dir)
-    print "Copied %s IDLs to %s" % (idls_copied, subdir)
-    print "Copied %s PYs to %s" % (py_copied, subdir)
-    print "Copied %s other to %s\n" % (other_copied, subdir)
+    copy_subdir(chromium_webkit_dir, WEBKIT_SOURCE, dart_webcore_dir, subdir)
 
   end_time = time.time()
 

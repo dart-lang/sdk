@@ -56,6 +56,11 @@ $!MEMBERS
   @deprecated
   bool get supportsRegister => supportsRegisterElement;
 
+  void registerElement(String tag, Type customElementClass,
+      {String extendsTag}) {
+        registerElement2(tag, {'prototype': customElementClass, 'extends': extendsTag});
+  }
+
   @DomName('Document.createElement')
   @ForceInline() // Almost all call sites have one argument.
   Element createElement(String tagName, [String typeExtension]) {
