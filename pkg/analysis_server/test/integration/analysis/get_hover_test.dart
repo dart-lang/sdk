@@ -108,7 +108,6 @@ main() {
           expect(info.parameter, matches(parameterRegexp));
         }
       }
-      expect(info.propagatedType, equals(propagatedType));
       if (staticTypeRegexps == null) {
         expect(info.staticType, isNull);
       } else {

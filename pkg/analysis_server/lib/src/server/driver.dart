@@ -316,6 +316,8 @@ class Driver implements ServerStarter {
     analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
     if (results.wasParsed(PREVIEW_DART2)) {
       analysisServerOptions.previewDart2 = results[PREVIEW_DART2];
+    } else {
+      analysisServerOptions.previewDart2 = true;
     }
     analysisServerOptions.useCFE = results[USE_CFE];
 
