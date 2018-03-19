@@ -35,6 +35,8 @@ class MockAnalysisErrorInfo extends Mock implements AnalysisErrorInfo {}
 
 class MockErrorCode extends Mock implements ErrorCode {}
 
+class MockErrorSeverity extends Mock implements ErrorSeverity {}
+
 class MockErrorType extends Mock implements ErrorType {}
 
 class MockFile extends Mock implements File {}
