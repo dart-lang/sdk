@@ -1236,6 +1236,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
             }
           }
 
+          _currentSession.put(libraryElement: resolvedUnit?.element?.library);
+
           // Return the result, full or partial.
           _logger.writeln('Computed new analysis result.');
           AnalysisResult result = _getAnalysisResultFromBytes(

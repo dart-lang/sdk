@@ -42,9 +42,16 @@ class AnalysisSessionImplTest {
 
   test_getLibraryByUri() async {
     String uri = 'uri';
-    LibraryElement element = new LibraryElementImpl(null, null, null, null);
-    driver.libraryMap[uri] = element;
-    expect(await session.getLibraryByUri(uri), element);
+
+    var source = new _SourceMock(Uri.parse(uri));
+    var unit = new CompilationUnitElementImpl('')
+      ..librarySource = source
+      ..source = source;
+    var library = new LibraryElementImpl(null, null, null, null)
+      ..definingCompilationUnit = unit;
+
+    driver.libraryMap[uri] = library;
+    expect(await session.getLibraryByUri(uri), library);
   }
 
   test_getParsedAst() async {
@@ -202,5 +209,17 @@ class MockAnalysisDriver implements AnalysisDriver {
   @override
   Future<ParseResult> parseFile(String path) async {
     return parseResult;
+  }
+}
+
+class _SourceMock implements Source {
+  @override
+  final Uri uri;
+
+  _SourceMock(this.uri);
+
+  @override
+  noSuchMethod(Invocation invocation) {
+    throw new StateError('Unexpected invocation of ${invocation.memberName}');
   }
 }

@@ -2973,41 +2973,13 @@ class AssistProcessor {
   /// does not export a class with such name.
   Future<ClassElement> _getExportedClass(
       String libraryUri, String className) async {
-    var libraryElement = await _getLibraryByUri(libraryUri);
+    var libraryElement = await session.getLibraryByUri(libraryUri);
     var element = libraryElement.exportNamespace.get(className);
     if (element is ClassElement) {
       return element;
     } else {
       return null;
     }
-  }
-
-  /// Return the [LibraryElement] for the library with the given [uri].
-  Future<LibraryElement> _getLibraryByUri(String uri) async {
-    var libraryElement = libraryCache[uri];
-    if (libraryElement == null) {
-      void walkLibraries(LibraryElement library) {
-        var libraryUri = library.source.uri.toString();
-        if (libraryCache[libraryUri] == null) {
-          libraryCache[libraryUri] = library;
-          library.importedLibraries.forEach(walkLibraries);
-          library.exportedLibraries.forEach(walkLibraries);
-        }
-      }
-
-      // Fill the cache with all libraries referenced from the unit.
-      walkLibraries(unitLibraryElement);
-
-      // The library might be already in the cache.
-      libraryElement = libraryCache[uri];
-
-      // If still not found, build a new library element.
-      if (libraryElement == null) {
-        libraryElement = await session.getLibraryByUri(uri);
-        libraryCache[uri] = libraryElement;
-      }
-    }
-    return libraryElement;
   }
 
   /**
