@@ -101,6 +101,9 @@ class OverrideContributor implements DartCompletionContributor {
     }
 
     SourceRange selectionRange = builder.selectionRange;
+    if (selectionRange == null) {
+      return null;
+    }
     int offsetDelta = targetId.offset + replacement.indexOf(completion);
     String displayText =
         displayTextBuffer.isNotEmpty ? displayTextBuffer.toString() : null;
