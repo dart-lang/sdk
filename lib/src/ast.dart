@@ -300,7 +300,7 @@ class _ElementVisitorAdapter extends GeneralizingElementVisitor {
 }
 
 bool hasErrorWithConstantVerifier(AstNode node) {
-  final cu = _getCompilationUnit(node);
+  final cu = getCompilationUnit(node);
   final listener = new HasConstErrorListener();
   node.accept(new ConstantVerifier(
       new ErrorReporter(listener, cu.element.source),
@@ -311,19 +311,13 @@ bool hasErrorWithConstantVerifier(AstNode node) {
 }
 
 bool hasErrorWithConstantVisitor(AstNode node) {
-  final cu = _getCompilationUnit(node);
+  final cu = getCompilationUnit(node);
   final listener = new HasConstErrorListener();
   node.accept(new ConstantVisitor(
       new ConstantEvaluationEngine(cu.element.context.typeProvider,
           cu.element.context.declaredVariables),
       new ErrorReporter(listener, cu.element.source)));
   return listener.hasConstError;
-}
-
-CompilationUnit _getCompilationUnit(AstNode node) {
-  AstNode result = node;
-  while (result is! CompilationUnit) result = result.parent;
-  return result;
 }
 
 class HasConstErrorListener extends AnalysisErrorListener {
