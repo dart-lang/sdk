@@ -246,18 +246,12 @@ AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_name) {
 }
 
 static void WriteSnapshotFile(const char* filename,
-                              bool write_magic_number,
                               const uint8_t* buffer,
                               const intptr_t size) {
   File* file = File::Open(NULL, filename, File::kWriteTruncate);
   if (file == NULL) {
     ErrorExit(kErrorExitCode, "Unable to open file %s for writing snapshot\n",
               filename);
-  }
-
-  if (write_magic_number) {
-    // Write the magic number to indicate file is a script snapshot.
-    DartUtils::WriteSnapshotMagicNumber(file);
   }
 
   if (!file->WriteFully(buffer, size)) {
@@ -332,7 +326,7 @@ void Snapshot::GenerateScript(const char* snapshot_filename) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }
 
-  WriteSnapshotFile(snapshot_filename, true, buffer, size);
+  WriteSnapshotFile(snapshot_filename, buffer, size);
 }
 
 void Snapshot::GenerateAppJIT(const char* snapshot_filename) {

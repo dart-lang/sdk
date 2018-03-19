@@ -450,7 +450,6 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
     } break;
     case Dart_kScriptTag:
       if (payload_type == DartUtils::kSnapshotMagicNumber) {
-        DartUtils::SkipSnapshotMagicNumber(&payload, &payload_length);
         dart_result = Dart_LoadScriptFromSnapshot(payload, payload_length);
         reload_extensions = true;
       } else if (payload_type == DartUtils::kKernelMagicNumber) {

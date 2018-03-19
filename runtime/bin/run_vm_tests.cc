@@ -179,7 +179,6 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
     bin::DartUtils::ReadFile(&payload, &payload_length, file);
     bin::DartUtils::CloseFile(file);
 
-    bin::DartUtils::SkipSnapshotMagicNumber(&payload, &payload_length);
     Dart_Handle result = Dart_LoadScriptFromSnapshot(payload, payload_length);
     CHECK_RESULT(result);
   }

@@ -190,9 +190,10 @@ class Serializer : public StackResource {
   }
 
   void FillHeader(Snapshot::Kind kind) {
-    int64_t* data = reinterpret_cast<int64_t*>(stream_.buffer());
-    data[Snapshot::kLengthIndex] = stream_.bytes_written();
-    data[Snapshot::kSnapshotFlagIndex] = kind;
+    Snapshot* header = reinterpret_cast<Snapshot*>(stream_.buffer());
+    header->set_magic();
+    header->set_length(stream_.bytes_written());
+    header->set_kind(kind);
   }
 
   void WriteVersionAndFeatures(bool is_vm_snapshot);

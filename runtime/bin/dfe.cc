@@ -110,10 +110,12 @@ void DFE::Init() {
   // platform_dill is not NULL implies that platform_strong_dill is also
   // not NULL.
   if (platform_program_ == NULL) {
+    ASSERT(Dart_IsKernel(platform_dill, platform_dill_size));
     platform_program_ =
         Dart_ReadKernelBinary(platform_dill, platform_dill_size, NoopRelease);
   }
   if (platform_strong_program_ == NULL) {
+    ASSERT(Dart_IsKernel(platform_strong_dill, platform_strong_dill_size));
     platform_strong_program_ = Dart_ReadKernelBinary(
         platform_strong_dill, platform_strong_dill_size, NoopRelease);
   }

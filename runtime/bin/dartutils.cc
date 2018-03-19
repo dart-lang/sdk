@@ -413,19 +413,6 @@ DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const uint8_t* buffer,
   return kUnknownMagicNumber;
 }
 
-void DartUtils::WriteSnapshotMagicNumber(File* file) {
-  // Write a magic number and version information into the snapshot file.
-  bool bytes_written = file->WriteFully(snapshot_magic_number.bytes,
-                                        snapshot_magic_number.length);
-  ASSERT(bytes_written);
-}
-
-void DartUtils::SkipSnapshotMagicNumber(const uint8_t** buffer,
-                                        intptr_t* buffer_length) {
-  *buffer += snapshot_magic_number.length;
-  *buffer_length -= snapshot_magic_number.length;
-}
-
 Dart_Handle DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
                                              Dart_Handle internal_lib,
                                              bool is_service_isolate,

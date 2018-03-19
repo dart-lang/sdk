@@ -217,10 +217,6 @@ class DartUtils {
   static MagicNumber SniffForMagicNumber(const uint8_t* text_buffer,
                                          intptr_t buffer_len);
 
-  // Write a magic number to indicate a script snapshot file.
-  static void WriteSnapshotMagicNumber(File* file);
-  static void SkipSnapshotMagicNumber(const uint8_t** buffer, intptr_t* length);
-
   // Global state that stores the original working directory..
   static const char* original_working_directory;
 

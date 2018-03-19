@@ -1532,6 +1532,21 @@ Dart_CreateScriptSnapshot(uint8_t** script_snapshot_buffer,
   return Api::Success();
 }
 
+DART_EXPORT bool Dart_IsSnapshot(const uint8_t* buffer, intptr_t buffer_size) {
+  if (buffer_size < Snapshot::kHeaderSize) {
+    return false;
+  }
+  return Snapshot::SetupFromBuffer(buffer) != NULL;
+}
+
+DART_EXPORT bool Dart_IsKernel(const uint8_t* buffer, intptr_t buffer_size) {
+  if (buffer_size < 4) {
+    return false;
+  }
+  return (buffer[0] == 0x90) && (buffer[1] == 0xab) && (buffer[2] == 0xcd) &&
+         (buffer[3] == 0xef);
+}
+
 DART_EXPORT bool Dart_IsDart2Snapshot(const uint8_t* snapshot_buffer) {
   if (snapshot_buffer == NULL) {
     return false;

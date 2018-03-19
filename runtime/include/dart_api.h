@@ -1027,6 +1027,27 @@ Dart_CreateScriptSnapshot(uint8_t** script_snapshot_buffer,
                           intptr_t* script_snapshot_size);
 
 /**
+ * Returns whether the buffer contains a snapshot created by
+ * Dart_Create*Snapshot.
+ *
+ * \param buffer Pointer to a buffer that might contain a snapshot.
+ * \param buffer_size Size of the buffer.
+ *
+ * \return Whether the buffer contains a snapshot (core, app or script).
+ */
+DART_EXPORT bool Dart_IsSnapshot(const uint8_t* buffer, intptr_t buffer_size);
+
+/**
+ * Returns whether the buffer contains a kernel file.
+ *
+ * \param buffer Pointer to a buffer that might contain a kernel binary.
+ * \param buffer_size Size of the buffer.
+ *
+ * \return Whether the buffer contains a kernel binary (full or partial).
+ */
+DART_EXPORT bool Dart_IsKernel(const uint8_t* buffer, intptr_t buffer_size);
+
+/**
  * Returns true if snapshot_buffer contains a Dart2 snapshot.
  *
  * \param snapshot_buffer Pointer to a buffer that contains the snapshot
