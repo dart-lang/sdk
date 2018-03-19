@@ -26,6 +26,7 @@ import 'package:linter/src/rules/avoid_returning_null.dart';
 import 'package:linter/src/rules/avoid_returning_this.dart';
 import 'package:linter/src/rules/avoid_setters_without_getters.dart';
 import 'package:linter/src/rules/avoid_slow_async_io.dart';
+import 'package:linter/src/rules/avoid_types_as_parameter_names.dart';
 import 'package:linter/src/rules/avoid_types_on_closure_parameters.dart';
 import 'package:linter/src/rules/avoid_unused_constructor_parameters.dart';
 import 'package:linter/src/rules/await_only_futures.dart';
@@ -135,6 +136,7 @@ void registerLintRules() {
     ..register(new AvoidReturningThis())
     ..register(new AvoidSettersWithoutGetters())
     ..register(new AvoidSlowAsyncIo())
+    ..register(new AvoidTypesAsParameterNames())
     ..register(new AvoidUnusedConstructorParameters())
     ..register(new AwaitOnlyFutures())
     ..registerDefault(new CamelCaseTypes())
