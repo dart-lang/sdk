@@ -6725,6 +6725,26 @@ const x = 1;
     expect(x.constantValue.toIntValue(), 1);
   }
 
+  test_currentSession() async {
+    var a = _p('/a.dart');
+
+    provider.newFile(a, 'var V = 1;');
+    await driver.getResult(a);
+
+    var session1 = driver.currentSession;
+    expect(session1, isNotNull);
+
+    provider.updateFile(a, 'var V = 2;');
+    driver.changeFile(a);
+    await driver.getResult(a);
+
+    var session2 = driver.currentSession;
+    expect(session2, isNotNull);
+
+    // We get a new session.
+    expect(session2, isNot(session1));
+  }
+
   test_errors_uriDoesNotExist_export() async {
     addTestFile(r'''
 export 'foo.dart';
