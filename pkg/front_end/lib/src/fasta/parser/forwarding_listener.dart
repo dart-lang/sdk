@@ -141,8 +141,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginFactoryMethod(Token lastConsumed) {
-    listener?.beginFactoryMethod(lastConsumed);
+  void beginFactoryMethod(
+      Token lastConsumed, Token externalToken, Token constToken) {
+    listener?.beginFactoryMethod(lastConsumed, externalToken, constToken);
   }
 
   @override

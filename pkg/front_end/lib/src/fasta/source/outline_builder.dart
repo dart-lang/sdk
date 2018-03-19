@@ -1035,8 +1035,11 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void beginFactoryMethod(Token lastConsumed) {
+  void beginFactoryMethod(
+      Token lastConsumed, Token externalToken, Token constToken) {
     library.beginNestedDeclaration("#factory_method", hasMembers: false);
+    push((externalToken != null ? externalMask : 0) |
+        (constToken != null ? constMask : 0));
   }
 
   @override
@@ -1051,7 +1054,7 @@ class OutlineBuilder extends UnhandledListener {
     List<FormalParameterBuilder> formals = pop();
     int formalsOffset = pop();
     var name = pop();
-    int modifiers = Modifier.validate(pop());
+    int modifiers = pop();
     List<MetadataBuilder> metadata = pop();
     String documentationComment = getDocumentationComment(beginToken);
     library.addFactoryMethod(

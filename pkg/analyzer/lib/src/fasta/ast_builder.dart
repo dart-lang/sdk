@@ -1465,7 +1465,7 @@ class AstBuilder extends ScopeListener {
   }
 
   void beginTopLevelMethod(Token lastConsumed, Token externalToken) {
-    push(new _Modifiers(externalToken != null ? [externalToken] : []));
+    push(new _Modifiers()..externalKeyword = externalToken);
   }
 
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
@@ -1996,6 +1996,14 @@ class AstBuilder extends ScopeListener {
 
     SimpleIdentifier name = pop();
     push(ast.variableDeclaration(name, null, null));
+  }
+
+  @override
+  void beginFactoryMethod(
+      Token lastConsumed, Token externalToken, Token constToken) {
+    push(new _Modifiers()
+      ..externalKeyword = externalToken
+      ..finalConstOrVarKeyword = constToken);
   }
 
   @override

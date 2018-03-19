@@ -1009,6 +1009,27 @@ class NodeListener extends ElementListener {
   }
 
   @override
+  void beginFactoryMethod(
+      Token lastConsumed, Token externalToken, Token constToken) {
+    if (externalToken != null) {
+      Link<Node> poppedNodes = const Link<Node>();
+      if (constToken != null) {
+        poppedNodes = poppedNodes.prepend(new Identifier(constToken));
+      }
+      poppedNodes = poppedNodes.prepend(new Identifier(externalToken));
+      NodeList modifierNodes = new NodeList(null, poppedNodes, null, ' ');
+      pushNode(new Modifiers(modifierNodes));
+    } else if (constToken != null) {
+      Link<Node> poppedNodes = const Link<Node>();
+      poppedNodes = poppedNodes.prepend(new Identifier(constToken));
+      NodeList modifierNodes = new NodeList(null, poppedNodes, null, ' ');
+      pushNode(new Modifiers(modifierNodes));
+    } else {
+      pushNode(Modifiers.EMPTY);
+    }
+  }
+
+  @override
   void endFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
     super.endFactoryMethod(beginToken, factoryKeyword, endToken);

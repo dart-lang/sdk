@@ -224,7 +224,8 @@ class Listener {
     logEvent("ExpressionStatement");
   }
 
-  void beginFactoryMethod(Token lastConsumed) {}
+  void beginFactoryMethod(
+      Token lastConsumed, Token externalToken, Token constToken) {}
 
   void endFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {

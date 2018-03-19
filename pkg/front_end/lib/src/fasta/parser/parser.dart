@@ -3885,28 +3885,17 @@ class Parser {
       varFinalOrConst = context.varFinalOrConst;
     }
 
-    int modifierCount = 0;
-    if (externalToken != null) {
-      listener.handleModifier(externalToken);
-      ++modifierCount;
-    }
     if (staticOrCovariant != null) {
       reportRecoverableErrorWithToken(
           staticOrCovariant, fasta.templateExtraneousModifier);
     }
-    if (varFinalOrConst != null) {
-      if (optional('const', varFinalOrConst)) {
-        listener.handleModifier(varFinalOrConst);
-        ++modifierCount;
-      } else {
-        reportRecoverableErrorWithToken(
-            varFinalOrConst, fasta.templateExtraneousModifier);
-        varFinalOrConst = null;
-      }
+    if (varFinalOrConst != null && !optional('const', varFinalOrConst)) {
+      reportRecoverableErrorWithToken(
+          varFinalOrConst, fasta.templateExtraneousModifier);
+      varFinalOrConst = null;
     }
-    listener.handleModifiers(modifierCount);
 
-    listener.beginFactoryMethod(beforeStart);
+    listener.beginFactoryMethod(beforeStart, externalToken, varFinalOrConst);
     token = parseConstructorReference(token);
     token = parseFormalParametersRequiredOpt(token, MemberKind.Factory);
     Token asyncToken = token.next;
