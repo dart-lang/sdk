@@ -4,12 +4,14 @@
 iterable_where_type_test: RuntimeError # Disabled.  Issue 32463
 
 [ $compiler == dart2analyzer ]
+bigint_from_test: CompileTimeError # Issue 32585
 compare_to2_test: CompileTimeError # invalid test
 int_parse_radix_bad_handler_test: MissingCompileTimeError
 iterable_element_at_test/static: Pass
 num_sign_test: Crash, Pass # Issue 31768
 
 [ $compiler == dart2js ]
+bigint_from_test: RuntimeError # Issue 32589
 date_time11_test: RuntimeError, Pass # Fails when US is on winter time, issue 31285.
 int_parse_radix_test/badTypes: RuntimeError # wrong exception returned
 iterable_where_type_test: RuntimeError # issue 31718
@@ -20,6 +22,7 @@ error_stack_trace_test/static: MissingCompileTimeError
 
 [ $compiler == dartdevk ]
 apply3_test: RuntimeError
+bigint_from_test: RuntimeError # Issue 32589
 bool_from_environment2_test/03: Crash
 int_modulo_arith_test/modPow: RuntimeError
 int_modulo_arith_test/none: RuntimeError
@@ -343,6 +346,7 @@ bool_from_environment2_test/03: MissingCompileTimeError
 string_from_environment3_test/03: MissingCompileTimeError
 
 [ $compiler == dartdevc && $runtime != none ]
+bigint_from_test: CompileTimeError # Issue 32585
 compare_to2_test: CompileTimeError # invalid test
 null_nosuchmethod_test/01: RuntimeError # Issue 32088
 symbol_operator_test: RuntimeError # Issue 29921

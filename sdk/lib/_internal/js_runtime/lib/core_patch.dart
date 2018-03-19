@@ -1198,7 +1198,7 @@ class _BigIntImpl implements BigInt {
     unshiftedDigits[3] = 0x10 | (bits[6] & 0xF);
 
     var unshiftedBig = new _BigIntImpl._normalized(false, 4, unshiftedDigits);
-    _BigIntImpl absResult;
+    _BigIntImpl absResult = unshiftedBig;
     if (exponent < 0) {
       absResult = unshiftedBig >> -exponent;
     } else if (exponent > 0) {
