@@ -386,6 +386,18 @@ class ElementListener extends Listener {
   }
 
   @override
+  void beginTopLevelMethod(Token lastConsumed, Token externalToken) {
+    if (externalToken == null) {
+      pushNode(Modifiers.EMPTY);
+    } else {
+      Link<Node> poppedNodes = const Link<Node>();
+      poppedNodes = poppedNodes.prepend(new Identifier(externalToken));
+      NodeList modifierNodes = new NodeList(null, poppedNodes, null, ' ');
+      pushNode(new Modifiers(modifierNodes));
+    }
+  }
+
+  @override
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
     bool hasParseError = currentMemberHasParseError;
     memberErrors = memberErrors.tail;

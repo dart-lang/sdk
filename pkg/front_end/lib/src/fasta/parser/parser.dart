@@ -3129,16 +3129,7 @@ class Parser {
 
   Token parseTopLevelMethod(Token beforeStart, Token externalToken,
       Token beforeType, Token getOrSet, Token beforeName) {
-    listener.beginTopLevelMethod(beforeStart);
-
-    // TODO(danrubel): Consider passing modifiers via endTopLevelMethod
-    // rather than handleModifier and handleModifiers
-    if (externalToken != null) {
-      listener.handleModifier(externalToken);
-      listener.handleModifiers(1);
-    } else {
-      listener.handleModifiers(0);
-    }
+    listener.beginTopLevelMethod(beforeStart, externalToken);
 
     if (beforeType == null) {
       listener.handleNoType(beforeName);

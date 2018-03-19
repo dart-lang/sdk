@@ -1464,6 +1464,10 @@ class AstBuilder extends ScopeListener {
     }
   }
 
+  void beginTopLevelMethod(Token lastConsumed, Token externalToken) {
+    push(new _Modifiers(externalToken != null ? [externalToken] : []));
+  }
+
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
     // TODO(paulberry): set up scopes properly to resolve parameters and type
     // variables.

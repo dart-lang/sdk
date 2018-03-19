@@ -816,7 +816,7 @@ class Listener {
     logEvent("TopLevelFields");
   }
 
-  void beginTopLevelMethod(Token lastConsumed) {}
+  void beginTopLevelMethod(Token lastConsumed, Token externalToken) {}
 
   /// Handle the end of a top level method.  Substructures:
   /// - metadata

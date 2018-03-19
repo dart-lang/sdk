@@ -440,8 +440,9 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void beginTopLevelMethod(Token lastConsumed) {
+  void beginTopLevelMethod(Token lastConsumed, Token externalToken) {
     library.beginNestedDeclaration("#method", hasMembers: false);
+    push(externalToken != null ? externalMask : 0);
   }
 
   @override
@@ -462,7 +463,10 @@ class OutlineBuilder extends UnhandledListener {
         isAbstract = false;
       }
     }
-    int modifiers = Modifier.validate(pop(), isAbstract: isAbstract);
+    int modifiers = pop();
+    if (isAbstract) {
+      modifiers |= abstractMask;
+    }
     List<MetadataBuilder> metadata = pop();
     String documentationComment = getDocumentationComment(beginToken);
     checkEmpty(beginToken.charOffset);

@@ -368,8 +368,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginTopLevelMethod(Token lastConsumed) {
-    listener?.beginTopLevelMethod(lastConsumed);
+  void beginTopLevelMethod(Token lastConsumed, Token externalToken) {
+    listener?.beginTopLevelMethod(lastConsumed, externalToken);
   }
 
   @override
