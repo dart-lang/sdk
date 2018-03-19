@@ -246,6 +246,7 @@ Still need entries for all changes to dart:html since 1.x
     `timeout`.
   * `Stdin.hasTerminal` added, which is true if stdin is attached to a terminal.
   * `WebSocket` added static `userAgent` property.
+  * `RandomAccessFile.close` returns `Future<void>`
 
 * `dart:isolate`
 
