@@ -484,7 +484,7 @@ async/timer_not_available_test: RuntimeError
 [ $compiler == dart2js && $runtime == safari ]
 html/audiobuffersourcenode_test: RuntimeError
 html/client_rect_test: RuntimeError # Issue 32572
-html/css_test/functional: RuntimeError # Issue 32576
+html/css_test/functional/functional: RuntimeError # Issue 32576
 html/custom/attribute_changed_callback_test: RuntimeError, Timeout
 html/custom/constructor_calls_created_synchronously_test: Pass, Timeout
 html/custom/created_callback_test: Pass, Timeout
@@ -496,7 +496,7 @@ html/file_sample_test: Skip # FileSystem not supported on Safari.
 html/fileapi_supported_throws_test: Skip # FileSystem not supported on Safari
 html/js_mock_test: RuntimeError # Issue 32286
 html/svgelement_test: RuntimeError # Issue 32571
-html/svgelement_test/getBoundingClientRect: RuntimeError # Issue 32571
+html/svgelement_test/getBoundingClientRect/getBoundingClientRect: RuntimeError # Issue 32571
 html/xhr_test: RuntimeError
 isolate/cross_isolate_message_test: Skip # Issue 12627
 isolate/message_test: Skip # Issue 12627
