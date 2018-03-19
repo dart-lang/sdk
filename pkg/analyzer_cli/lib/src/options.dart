@@ -393,15 +393,13 @@ class CommandLineOptions {
           defaultsTo: false,
           negatable: false,
           hide: hide)
-      ..addOption('build-summary-input',
+      ..addMultiOption('build-summary-input',
           help: 'Path to a linked summary file that contains information from '
               'a previous analysis run; may be specified multiple times.',
-          allowMultiple: true,
           hide: hide)
-      ..addOption('build-summary-unlinked-input',
+      ..addMultiOption('build-summary-unlinked-input',
           help: 'Path to an unlinked summary file that contains information '
               'from a previous analysis run; may be specified multiple times.',
-          allowMultiple: true,
           hide: hide)
       ..addOption('build-summary-output',
           help: 'Specifies the path to the file where the full summary '
@@ -508,11 +506,10 @@ class CommandLineOptions {
           defaultsTo: false,
           negatable: false,
           hide: hide)
-      ..addOption('url-mapping',
+      ..addMultiOption('url-mapping',
           help: '--url-mapping=libraryUri,/path/to/library.dart directs the '
               'analyzer to use "library.dart" as the source for an import '
               'of "libraryUri".',
-          allowMultiple: true,
           splitCommas: false,
           hide: hide)
       ..addFlag('use-cfe',

@@ -52,8 +52,8 @@ String priorityFile;
 String source;
 
 ArgParser _createArgParser() => new ArgParser()
-  ..addOption(METRIC_NAME_OPTION,
-      help: 'metric name (defaults to `analysis`)', allowMultiple: true)
+  ..addMultiOption(METRIC_NAME_OPTION,
+      help: 'metric name (defaults to `analysis`)')
   ..addOption(SOURCE_OPTION, help: 'full path to source directory for analysis')
   ..addOption(PRIORITY_FILE_OPTION,
       help: '(optional) full path to a priority file');

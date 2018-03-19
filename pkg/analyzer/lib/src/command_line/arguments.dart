@@ -196,9 +196,8 @@ void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
   //
   // Hidden flags and options.
   //
-  parser.addOption(defineVariableOption,
+  parser.addMultiOption(defineVariableOption,
       abbr: 'D',
-      allowMultiple: true,
       help: 'Define environment variables. For example, "-Dfoo=bar" defines an '
           'environment variable named "foo" whose value is "bar".',
       hide: hide);
@@ -291,7 +290,7 @@ List<String> filterUnknownArguments(List<String> args, ArgParser parser) {
   Set<String> knownAbbreviations = new HashSet<String>();
   parser.options.forEach((String name, Option option) {
     knownOptions.add(name);
-    String abbreviation = option.abbreviation;
+    String abbreviation = option.abbr;
     if (abbreviation != null) {
       knownAbbreviations.add(abbreviation);
     }

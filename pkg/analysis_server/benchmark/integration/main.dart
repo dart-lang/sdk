@@ -75,9 +75,8 @@ ArgParser get argParser {
       help: '<filePath>\n'
           'The input file specifying how this client should interact with the server.\n'
           'If the input file name is "stdin", then the instructions are read from standard input.');
-  _argParser.addOption(MAP_OPTION,
+  _argParser.addMultiOption(MAP_OPTION,
       abbr: 'm',
-      allowMultiple: true,
       splitCommas: false,
       help: '<oldSrcPath>,<newSrcPath>\n'
           'This option defines a mapping from the original source directory <oldSrcPath>\n'
