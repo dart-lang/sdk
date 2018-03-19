@@ -285,6 +285,11 @@ class TypeConverter implements DartTypeVisitor<DartType, EntityConverter> {
   DartType visitVoidType(VoidType type, EntityConverter converter) {
     return const VoidType();
   }
+
+  @override
+  DartType visitFutureOrType(FutureOrType type, EntityConverter converter) {
+    return new FutureOrType(visit(type.typeArgument, converter));
+  }
 }
 
 const String jsElementPrefix = 'j:';

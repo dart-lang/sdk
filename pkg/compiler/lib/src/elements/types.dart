@@ -65,6 +65,9 @@ abstract class DartType {
   ///     void Function<T>(T t)
   bool get isFunctionTypeVariable => false;
 
+  /// Is `true` if this type is a `FutureOr` type.
+  bool get isFutureOr => false;
+
   /// Is `true` if this type is a malformed type.
   bool get isMalformed => false;
 
@@ -188,7 +191,7 @@ class InterfaceType extends DartType {
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! InterfaceType) return false;
-    return _equals(other, null);
+    return _equalsInternal(other, null);
   }
 
   bool _equals(DartType other, _Assumptions assumptions) {
@@ -425,7 +428,7 @@ class FunctionTypeVariable extends DartType {
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! FunctionTypeVariable) return false;
-    return _equals(other, null);
+    return false;
   }
 
   @override
@@ -728,6 +731,52 @@ class FunctionType extends DartType {
   }
 }
 
+class FutureOrType extends DartType {
+  final DartType typeArgument;
+
+  FutureOrType(this.typeArgument);
+
+  @override
+  bool get isFutureOr => true;
+
+  @override
+  DartType subst(List<DartType> arguments, List<DartType> parameters) {
+    DartType newTypeArgument = typeArgument.subst(arguments, parameters);
+    if (identical(typeArgument, newTypeArgument)) return this;
+    return new FutureOrType(newTypeArgument);
+  }
+
+  R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
+      visitor.visitFutureOrType(this, argument);
+
+  int get hashCode => typeArgument.hashCode * 13;
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! FutureOrType) return false;
+    return _equalsInternal(other, null);
+  }
+
+  bool _equals(DartType other, _Assumptions assumptions) {
+    if (identical(this, other)) return true;
+    if (other is! FutureOrType) return false;
+    return _equalsInternal(other, assumptions);
+  }
+
+  bool _equalsInternal(FutureOrType other, _Assumptions assumptions) {
+    return typeArgument._equals(other.typeArgument, assumptions);
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('FutureOr');
+    sb.write('<');
+    sb.write(typeArgument);
+    sb.write('>');
+    return sb.toString();
+  }
+}
+
 /// Helper method for performing substitution of a list of types.
 ///
 /// If no types are changed by the substitution, the [types] is returned
@@ -778,6 +827,8 @@ abstract class DartTypeVisitor<R, A> {
   R visitTypedefType(covariant TypedefType type, A argument) => null;
 
   R visitDynamicType(covariant DynamicType type, A argument) => null;
+
+  R visitFutureOrType(covariant FutureOrType type, A argument) => null;
 }
 
 abstract class BaseDartTypeVisitor<R, A> extends DartTypeVisitor<R, A> {
@@ -808,6 +859,10 @@ abstract class BaseDartTypeVisitor<R, A> extends DartTypeVisitor<R, A> {
 
   @override
   R visitDynamicType(covariant DynamicType type, A argument) =>
+      visitType(type, argument);
+
+  @override
+  R visitFutureOrType(covariant FutureOrType type, A argument) =>
       visitType(type, argument);
 }
 
@@ -1078,13 +1133,31 @@ abstract class MoreSpecificVisitor<T extends DartType>
   bool invalidCallableType(covariant DartType callType, covariant DartType s) {
     return !isMoreSpecific(callType, s);
   }
+
+  bool visitFutureOrType(FutureOrType t, covariant DartType s) {
+    return false;
+  }
 }
 
 /// Type visitor that determines the subtype relation two types.
 abstract class SubtypeVisitor<T extends DartType>
     extends MoreSpecificVisitor<T> {
-  bool isSubtype(T t, T s) {
-    return t.treatAsDynamic || isMoreSpecific(t, s);
+  bool isSubtype(DartType t, DartType s) {
+    if (t.treatAsDynamic) return true;
+    if (s.isFutureOr) {
+      FutureOrType sFutureOr = s;
+      if (isSubtype(t, sFutureOr.typeArgument)) {
+        return true;
+      } else if (t.isInterfaceType) {
+        InterfaceType tInterface = t;
+        if (tInterface.element == commonElements.futureClass &&
+            isSubtype(
+                tInterface.typeArguments.single, sFutureOr.typeArgument)) {
+          return true;
+        }
+      }
+    }
+    return isMoreSpecific(t, s);
   }
 
   bool isAssignable(T t, T s) {
@@ -1110,6 +1183,14 @@ abstract class SubtypeVisitor<T extends DartType>
   bool invalidCallableType(covariant DartType callType, covariant DartType s) {
     return !isSubtype(callType, s);
   }
+
+  bool visitFutureOrType(FutureOrType t, covariant DartType s) {
+    if (s.isFutureOr) {
+      FutureOrType sFutureOr = s;
+      return isSubtype(t.typeArgument, sFutureOr.typeArgument);
+    }
+    return false;
+  }
 }
 
 /// Type visitor that determines one type could a subtype of another given the
@@ -1117,7 +1198,7 @@ abstract class SubtypeVisitor<T extends DartType>
 /// `false` only if we are sure no such substitution exists.
 abstract class PotentialSubtypeVisitor<T extends DartType>
     extends SubtypeVisitor<T> {
-  bool isSubtype(T t, T s) {
+  bool isSubtype(DartType t, DartType s) {
     if (t is TypeVariableType || s is TypeVariableType) {
       return true;
     }

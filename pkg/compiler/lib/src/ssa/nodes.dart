@@ -1348,6 +1348,9 @@ abstract class HInstruction implements Spannable {
     if (type.isFunctionType || type.isMalformed) {
       return new HTypeConversion(type, kind,
           closedWorld.commonMasks.dynamicType, this, sourceInformation);
+    } else if (type.isFutureOr) {
+      // TODO(johnniwinther): Handle conversion to FutureOr.
+      return this;
     }
     assert(type.isInterfaceType);
     if (kind == HTypeConversion.BOOLEAN_CONVERSION_CHECK) {

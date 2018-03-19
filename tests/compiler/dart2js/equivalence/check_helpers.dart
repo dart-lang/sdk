@@ -678,6 +678,13 @@ class DartTypePrinter implements DartTypeVisitor {
     sb.write('void');
   }
 
+  @override
+  visitFutureOrType(FutureOrType type, _) {
+    sb.write('FutureOr<');
+    visit(type.typeArgument);
+    sb.write('>');
+  }
+
   String getText() => sb.toString();
 }
 
