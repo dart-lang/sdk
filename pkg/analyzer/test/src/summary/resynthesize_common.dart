@@ -9917,6 +9917,7 @@ unit: foo.dart
   }
 
   test_unused_type_parameter() async {
+    shouldCompareLibraryElements = false;
     var library = await checkLibrary('''
 class C<T> {
   void f() {}
