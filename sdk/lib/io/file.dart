@@ -235,6 +235,15 @@ abstract class File implements FileSystemEntity {
   factory File.fromUri(Uri uri) => new File(uri.toFilePath());
 
   /**
+   * Creates a File object from a raw path, that is, a sequence of bytes
+   * as represented by the OS.
+   */
+  factory File.fromRawPath(Uint8List rawPath) {
+    // TODO(powdercloud): Handle overrides (see File constructor for example).
+    return new _File.fromRawPath(rawPath);
+  }
+
+  /**
    * Create the file. Returns a `Future<File>` that completes with
    * the file when it has been created.
    *

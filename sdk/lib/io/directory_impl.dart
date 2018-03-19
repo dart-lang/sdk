@@ -5,13 +5,14 @@
 part of dart.io;
 
 class _Directory extends FileSystemEntity implements Directory {
-  final String path;
+  Uint8List rawPath;
 
-  _Directory(this.path) {
+  _Directory(String path) {
     if (path is! String) {
-      throw new ArgumentError('${Error.safeToString(path)} '
-          'is not a String');
+      throw new ArgumentError(
+          '${Error.safeToString(path)} is not a String');
     }
+    this.rawPath = new Uint8List.fromList(utf8.encode(path));
   }
 
   external static _current(_Namespace namespace);
