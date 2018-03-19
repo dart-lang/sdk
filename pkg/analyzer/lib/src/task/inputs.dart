@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.task.inputs;
-
 import 'dart:collection';
 
 import 'package:analyzer/task/model.dart';
@@ -109,7 +107,7 @@ abstract class ListTaskInputMixin<E> implements ListTaskInput<E> {
   }
 
   MapTaskInput<AnalysisTarget, V> toMapOf<V>(ResultDescriptor<V> valueResult) {
-    return (this as ListTaskInputImpl<AnalysisTarget>).toMap(valueResult.of);
+    return (this as ListTaskInputImpl<AnalysisTarget>).toMap<V>(valueResult.of);
   }
 }
 
@@ -650,6 +648,10 @@ class SimpleTaskInputBuilder<V> implements TaskInputBuilder<V> {
     if (_state != _AT) {
       throw new StateError(
           'Cannot set the result value when there is no current result');
+    }
+    if (value is! V) {
+      throw new StateError(
+          'Cannot build $input: computed ${value.runtimeType}, needed $V');
     }
     _resultValue = value as V;
     _resultSet = true;

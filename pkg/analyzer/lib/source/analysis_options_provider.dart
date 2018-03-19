@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.source.analysis_options_provider;
-
 import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
@@ -155,7 +153,7 @@ class AnalysisOptionsProvider {
   ///
   Map<String, YamlNode> merge(
           Map<String, YamlNode> defaults, Map<String, YamlNode> overrides) =>
-      new Merger().merge(defaults, overrides) as Map<String, YamlNode>;
+      new Merger().mergeMap(defaults, overrides);
 
   /// Read the contents of [source] as a string.
   /// Returns null if source is null or does not exist.

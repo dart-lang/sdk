@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.all_the_rest_test;
-
 import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -33,7 +31,6 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:mockito/mockito.dart' show Mock, when;
 import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
@@ -151,17 +148,17 @@ class DartUriResolverTest extends _SimpleDartSdkTest {
   }
 
   void test_restoreAbsolute_library() {
-    Source source = new _SourceMock();
+    _SourceMock source = new _SourceMock();
     Uri fileUri = resourceProvider.pathContext.toUri(coreCorePath);
-    when(source.uri).thenReturn(fileUri);
+    source.uri = fileUri;
     Uri dartUri = resolver.restoreAbsolute(source);
     expect(dartUri.toString(), 'dart:core');
   }
 
   void test_restoreAbsolute_part() {
-    Source source = new _SourceMock();
+    _SourceMock source = new _SourceMock();
     Uri fileUri = resourceProvider.pathContext.toUri(coreIntPath);
-    when(source.uri).thenReturn(fileUri);
+    source.uri = fileUri;
     Uri dartUri = resolver.restoreAbsolute(source);
     expect(dartUri.toString(), 'dart:core/int.dart');
   }
@@ -2089,4 +2086,12 @@ part of dart.core;
   }
 }
 
-class _SourceMock extends Mock implements Source {}
+class _SourceMock implements Source {
+  @override
+  Uri uri;
+
+  @override
+  noSuchMethod(Invocation invocation) {
+    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+  }
+}

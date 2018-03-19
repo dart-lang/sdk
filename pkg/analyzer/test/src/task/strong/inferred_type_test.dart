@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.task.strong.inferred_type_test;
-
 import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -4071,7 +4069,7 @@ var v = f<dynamic>(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
 
   @failingTest
   test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1() async {
-    // Note: (f/*<dynamic>*/) is nort properly resulting in an instantiated
+    // Note: (f<dynamic>) is not properly resulting in an instantiated
     // function type due to dartbug.com/25824.
     var mainUnit = await checkFileElement('''
 List<T> f<T>(T g()) => <T>[g()];
@@ -4104,11 +4102,11 @@ var v = f<int>(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
 
   @failingTest
   test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1() async {
-    // TODO(paulberry): for some reason (f/*<int>) is nort properly resulting
+    // TODO(paulberry): for some reason (f<int>) is not properly resulting
     // in an instantiated function type.
     var mainUnit = await checkFileElement('''
 List<T> f<T>(T g()) => <T>[g()];
-var v = (f/int>)(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
+var v = (f<int>)(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
 ''');
     var v = mainUnit.topLevelVariables[0];
     expect(v.name, 'v');
@@ -4337,7 +4335,7 @@ class InferredTypeTest extends AbstractStrongTest with InferredTypeMixin {
   @override
   Future<CompilationUnitElement> checkFileElement(String content) async {
     CompilationUnit unit = await checkFile(content);
-    return (unit).element;
+    return unit.element;
   }
 }
 

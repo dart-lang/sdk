@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.task.options_work_manager_test;
-
 import 'package:analyzer/error/error.dart' show AnalysisError;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/cache.dart';
@@ -22,7 +20,6 @@ import 'package:analyzer/src/task/options_work_manager.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -46,7 +43,7 @@ class OptionsWorkManagerOldFileTest extends OptionsWorkManagerTest {
 }
 
 abstract class OptionsWorkManagerTest {
-  InternalAnalysisContext context = new _InternalAnalysisContextMock();
+  _InternalAnalysisContextMock context = new _InternalAnalysisContextMock();
   AnalysisCache cache;
   OptionsWorkManager manager;
 
@@ -125,8 +122,8 @@ abstract class OptionsWorkManagerTest {
   }
 
   void test_applyPriorityTargets() {
-    when(context.shouldErrorsBeAnalyzed(source2)).thenReturn(true);
-    when(context.shouldErrorsBeAnalyzed(source3)).thenReturn(true);
+    context.setShouldErrorsBeAnalyzed(source2, true);
+    context.setShouldErrorsBeAnalyzed(source3, true);
     manager.priorityResultQueue
         .add(new TargetedResult(source1, ANALYSIS_OPTIONS_ERRORS));
     manager.priorityResultQueue
@@ -258,13 +255,14 @@ abstract class OptionsWorkManagerTest {
   }
 }
 
-class _InternalAnalysisContextMock extends Mock
-    implements InternalAnalysisContext {
+class _InternalAnalysisContextMock implements InternalAnalysisContext {
   @override
   CachePartition privateAnalysisCachePartition;
 
   @override
   AnalysisCache analysisCache;
+
+  Map<Source, bool> shouldErrorsBeAnalyzedMap = <Source, bool>{};
 
   Map<Source, ChangeNoticeImpl> _pendingNotices = <Source, ChangeNoticeImpl>{};
 
@@ -296,4 +294,18 @@ class _InternalAnalysisContextMock extends Mock
   @override
   ChangeNoticeImpl getNotice(Source source) =>
       _pendingNotices.putIfAbsent(source, () => new ChangeNoticeImpl(source));
+
+  @override
+  noSuchMethod(Invocation invocation) {
+    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+  }
+
+  void setShouldErrorsBeAnalyzed(Source source, bool value) {
+    shouldErrorsBeAnalyzedMap[source] = value;
+  }
+
+  @override
+  bool shouldErrorsBeAnalyzed(Source source) {
+    return shouldErrorsBeAnalyzedMap[source];
+  }
 }

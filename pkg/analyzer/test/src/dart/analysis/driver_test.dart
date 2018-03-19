@@ -30,7 +30,6 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/base/performance_logger.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -6869,22 +6868,18 @@ aaa() {}
 bbb() {}
 ''');
 
-    Source generatedSource = new _SourceMock();
-    when(generatedSource.uri).thenReturn(uri);
-    when(generatedSource.fullName).thenReturn(generatedPath);
+    Source generatedSource = new _SourceMock(generatedPath, uri);
 
-    when(generatedUriResolver.resolveAbsolute(uri, uri))
-        .thenReturn(generatedSource);
-    when(generatedUriResolver.restoreAbsolute(any))
-        .thenAnswer((Invocation invocation) {
-      Source source = invocation.positionalArguments[0];
+    generatedUriResolver.resolveAbsoluteFunction =
+        (uri, actualUri) => generatedSource;
+    generatedUriResolver.restoreAbsoluteFunction = (Source source) {
       String path = source.fullName;
       if (path == templatePath || path == generatedPath) {
         return uri;
       } else {
         return null;
       }
-    });
+    };
 
     driver.addFile(templatePath);
 
@@ -8797,4 +8792,17 @@ part 'part2.dart';
   String _p(String path) => provider.convertPath(path);
 }
 
-class _SourceMock extends Mock implements Source {}
+class _SourceMock implements Source {
+  @override
+  final String fullName;
+
+  @override
+  final Uri uri;
+
+  _SourceMock(this.fullName, this.uri);
+
+  @override
+  noSuchMethod(Invocation invocation) {
+    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+  }
+}

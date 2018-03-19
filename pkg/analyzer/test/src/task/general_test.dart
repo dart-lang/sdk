@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.task.general_test;
-
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -55,11 +52,11 @@ class GetContentTaskTest extends EngineTestCase {
   }
 
   test_perform() {
-    AnalysisContext context = new _MockContext();
+    _MockContext context = new _MockContext();
     Source target = new TestSource();
     GetContentTask task = new GetContentTask(context, target);
-    when(context.getContents(target))
-        .thenReturn(new TimestampedData<String>(42, 'foo'));
+    context.getContentsResponse[target] =
+        () => new TimestampedData<String>(42, 'foo');
     task.perform();
     expect(task.caughtException, isNull);
     expect(task.outputs, hasLength(2));
@@ -68,10 +65,10 @@ class GetContentTaskTest extends EngineTestCase {
   }
 
   void test_perform_exception() {
-    AnalysisContext context = new _MockContext();
+    _MockContext context = new _MockContext();
     Source target = new TestSource();
     GetContentTask task = new GetContentTask(context, target);
-    when(context.getContents(target)).thenThrow('My exception!');
+    context.getContentsResponse[target] = () => throw 'My exception!';
     task.perform();
     expect(task.caughtException, isNull);
     expect(task.outputs, hasLength(2));
@@ -80,4 +77,23 @@ class GetContentTaskTest extends EngineTestCase {
   }
 }
 
-class _MockContext extends Mock implements AnalysisContext {}
+class _MockContext implements AnalysisContext {
+  Map<Source, TimestampedData<String> Function()> getContentsResponse =
+      <Source, TimestampedData<String> Function()>{};
+
+  String get name => 'mock';
+
+  @override
+  TimestampedData<String> getContents(Source source) {
+    TimestampedData<String> Function() response = getContentsResponse[source];
+    if (response == null) {
+      fail('Unexpected invocation of getContents');
+    }
+    return response();
+  }
+
+  @override
+  noSuchMethod(Invocation invocation) {
+    fail('Unexpected invocation of ${invocation.memberName}');
+  }
+}
