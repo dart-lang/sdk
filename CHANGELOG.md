@@ -10,6 +10,11 @@
 
 ### Dart VM
 
+### Dart Web Libraries
+
+  * The Web libraries re-genereated using Chrome 63 WebIDLs see
+    https://github.com/dart-lang/sdk/wiki/Chrome-63-Dart-Web-Libraries for details.
+
 ### Tool Changes
 
 #### Pub

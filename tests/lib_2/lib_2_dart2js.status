@@ -407,7 +407,6 @@ html/shadow_dom_test: Fail
 html/speechrecognition_test: RuntimeError # Please triage.
 html/text_event_test: Fail # Issue 17893
 html/webgl_1_test: Pass, Fail # Issue 8219
-html/websql_test: Fail
 isolate/kill_self_synchronously_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == ie11 ]
