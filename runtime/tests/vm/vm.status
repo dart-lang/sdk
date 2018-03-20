@@ -64,9 +64,9 @@ dart/redirection_type_shuffling_test/00: RuntimeError
 dart/redirection_type_shuffling_test/none: RuntimeError
 
 [ $compiler != dartk ]
-cc/IsolateReload_KernelIncrementalCompile: Skip
-cc/IsolateReload_KernelIncrementalCompileAppAndLib: Skip
-cc/IsolateReload_KernelIncrementalCompileGenerics: Skip
+cc/IsolateReload_KernelIncrementalCompile: SkipByDesign
+cc/IsolateReload_KernelIncrementalCompileAppAndLib: SkipByDesign
+cc/IsolateReload_KernelIncrementalCompileGenerics: SkipByDesign
 cc/Mixin_PrivateSuperResolution: Skip
 cc/Mixin_PrivateSuperResolutionCrossLibraryShouldFail: Skip
 
@@ -77,7 +77,7 @@ dart/data_uri_import_test/badencodeddate: CompileTimeError
 dart/byte_array_test: Skip # Incompatible flag --disable_alloc_stubs_after_gc
 
 [ $mode == debug ]
-cc/CorelibIsolateStartup: Skip # This is a benchmark that is not informative in debug mode.
+cc/CorelibIsolateStartup: SkipByDesign # This is a benchmark that is not informative in debug mode.
 cc/VerifyExplicit_Crash: Crash # Negative tests of VerifiedMemory should crash iff in DEBUG mode. TODO(koda): Improve support for negative tests.
 cc/VerifyImplicit_Crash: Crash # Negative tests of VerifiedMemory should crash iff in DEBUG mode. TODO(koda): Improve support for negative tests.
 dart/spawn_shutdown_test: Pass, Slow # VM Shutdown test, It can take some time for all the isolates to shutdown in a Debug build.
@@ -88,8 +88,8 @@ dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 [ $runtime != vm ]
 dart/hello_fuchsia_test: SkipByDesign # This is a test for fuchsia OS
 dart/snapshot_version_test: SkipByDesign # Spawns processes
-dart/spawn_infinite_loop_test: Skip # VM shutdown test
-dart/spawn_shutdown_test: Skip # VM Shutdown test
+dart/spawn_infinite_loop_test: SkipByDesign # VM shutdown test
+dart/spawn_shutdown_test: SkipByDesign # VM Shutdown test
 
 [ $system == fuchsia ]
 cc/CorelibIsolateStartup: Skip # OOM crash can bring down the OS.
@@ -142,7 +142,6 @@ cc/Dart2JSCompileAll: SkipSlow # Timeout.
 *: Skip # Issue 28649
 
 [ $compiler == dartk && $mode == debug && $runtime == vm ]
-cc/InjectNativeFields1: Crash
 cc/PrintJSON: Crash
 cc/Service_TokenStream: Crash
 
@@ -154,14 +153,12 @@ cc/StackTraceMallocHookLengthTest: Fail # Please triage.
 
 [ $compiler == dartk && $mode == release && $runtime == vm ]
 cc/CorelibIsolateStartup: Timeout, Pass
-cc/InjectNativeFields1: Fail
 cc/Service_TokenStream: Fail
 
 [ $compiler == dartk && $runtime == vm ]
 cc/CanonicalizationInScriptSnapshots: Fail
 cc/Class_ComputeEndTokenPos: Crash
 cc/DartAPI_CurrentStackTraceInfo: Fail
-cc/DartAPI_InjectNativeFields1: Skip
 cc/DartAPI_InvokeNoSuchMethod: Fail
 cc/DartAPI_Invoke_CrossLibrary: Crash
 cc/DartAPI_IsolateSetCheckedMode: Skip # Checked mode is not relevant for dart 2?
@@ -175,7 +172,6 @@ cc/DartAPI_LoadPatch: Crash
 cc/DartAPI_LoadPatchSignatureMismatch: Crash
 cc/DartAPI_LoadSource: Crash
 cc/DartAPI_LoadSource_LateLoad: Crash
-cc/DartAPI_NativeFieldAccess: Fail
 cc/DartAPI_ParsePatchLibrary: Crash
 cc/DartAPI_PropagateError: Fail
 cc/DartAPI_StackOverflowStackTraceInfoArrowFunction: Fail
@@ -194,12 +190,6 @@ cc/FunctionSourceFingerprint: Fail
 cc/GenerateSource: Skip # Cannot generate source from a kernel binary.
 cc/IsolateReload_NotTypedefToTypedef: Fail
 cc/IsolateReload_TypedefToNotTypedef: Fail
-cc/Parser_AllocateVariables_CaptureLoopVar: Fail
-cc/Parser_AllocateVariables_CapturedVar: Fail
-cc/Parser_AllocateVariables_Issue7681: Fail
-cc/Parser_AllocateVariables_MiddleChain: Fail
-cc/Parser_AllocateVariables_NestedCapturedVar: Fail
-cc/Parser_AllocateVariables_TwoChains: Fail
 cc/Profiler_BasicSourcePositionOptimized: Skip
 cc/Profiler_BinaryOperatorSourcePositionOptimized: Skip
 cc/Profiler_GetSourceReport: Fail
@@ -244,11 +234,6 @@ cc/IsolateReload_LibraryLookup: Fail, Crash
 cc/IsolateReload_TearOff_AddArguments: Fail
 cc/IsolateReload_TearOff_Instance_Equality: Fail
 cc/IsolateReload_TearOff_List_Set: Fail
-cc/Parser_AllocateVariables_CaptureLoopVar: Crash
-cc/Parser_AllocateVariables_Issue7681: Crash
-cc/Parser_AllocateVariables_MiddleChain: Crash
-cc/Parser_AllocateVariables_NestedCapturedVar: Crash
-cc/Parser_AllocateVariables_TwoChains: Crash
 
 [ $compiler == dartk && $runtime == vm && $strong ]
 cc/IsolateReload_LibraryHide: Crash
@@ -278,7 +263,7 @@ cc/DartAPI_LazyLoadDeoptimizes: Crash # Issue 32190
 cc/DartAPI_NativePortPostInteger: Crash # Issue 32190
 cc/DartAPI_NativePortReceiveInteger: Timeout # Issue 32190
 cc/DartAPI_NativePortReceiveNull: Timeout # Issue 32190
-cc/DartAPI_NewNativePort: Crash,Timeout # Issue 32190
+cc/DartAPI_NewNativePort: Crash, Timeout # Issue 32190
 cc/DartGeneratedArrayLiteralMessages: Crash # Issue 32190
 cc/FullSnapshot1: Crash # Issue 32190
 cc/IsolateReload_LibraryImportAdded: Crash # Issue 32190
@@ -361,6 +346,15 @@ cc/RegenerateAllocStubs: Skip # This test is meaningless for DBC as allocation s
 
 [ $compiler == dart2analyzer || $compiler == dart2js ]
 dart/data_uri*test: Skip # Data uri's not supported by dart2js or the analyzer.
+
+# Tests for VM parser aren't valid for Dart 2.
+[ $compiler == dartk || $compiler == dartkp ]
+cc/Parser_AllocateVariables_CaptureLoopVar: SkipByDesign
+cc/Parser_AllocateVariables_CapturedVar: SkipByDesign
+cc/Parser_AllocateVariables_Issue7681: SkipByDesign
+cc/Parser_AllocateVariables_MiddleChain: SkipByDesign
+cc/Parser_AllocateVariables_NestedCapturedVar: SkipByDesign
+cc/Parser_AllocateVariables_TwoChains: SkipByDesign
 
 [ $compiler == precompiler || $mode == product ]
 cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors

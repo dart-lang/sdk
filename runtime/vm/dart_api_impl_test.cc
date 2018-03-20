@@ -3931,57 +3931,6 @@ static Dart_NativeFunction native_field_lookup(Dart_Handle name,
   return reinterpret_cast<Dart_NativeFunction>(&NativeFieldLookup);
 }
 
-TEST_CASE(DartAPI_InjectNativeFields1) {
-  const char* kScriptChars =
-      "class NativeFields extends NativeFieldsWrapper {\n"
-      "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
-      "  int fld1;\n"
-      "  final int fld2;\n"
-      "  static int fld3;\n"
-      "  static const int fld4 = 10;\n"
-      "}\n"
-      "NativeFields testMain() {\n"
-      "  NativeFields obj = new NativeFields(10, 20);\n"
-      "  return obj;\n"
-      "}\n";
-  Dart_Handle result;
-
-  const int kNumNativeFields = 4;
-
-  // Create a test library.
-  Dart_Handle lib =
-      TestCase::LoadTestScript(kScriptChars, NULL, USER_TEST_URI, false);
-
-  // Create a native wrapper class with native fields.
-  result = Dart_CreateNativeWrapperClass(lib, NewString("NativeFieldsWrapper"),
-                                         kNumNativeFields);
-  EXPECT_VALID(result);
-  result = Dart_FinalizeLoading(false);
-  EXPECT_VALID(result);
-
-  // Load up a test script in the test library.
-
-  // Invoke a function which returns an object of type NativeFields.
-  result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
-  EXPECT_VALID(result);
-  CHECK_API_SCOPE(thread);
-  HANDLESCOPE(thread);
-  Instance& obj = Instance::Handle();
-  obj ^= Api::UnwrapHandle(result);
-  const Class& cls = Class::Handle(obj.clazz());
-  // We expect the newly created "NativeFields" object to have
-  // 2 dart instance fields (fld1, fld2) and a reference to the native fields.
-  // Hence the size of an instance of "NativeFields" should be
-  // (1 + 2) * kWordSize + size of object header.
-  // We check to make sure the instance size computed by the VM matches
-  // our expectations.
-  intptr_t header_size = sizeof(RawObject);
-  EXPECT_EQ(
-      Utils::RoundUp(((1 + 2) * kWordSize) + header_size, kObjectAlignment),
-      cls.instance_size());
-  EXPECT_EQ(kNumNativeFields, cls.num_native_fields());
-}
-
 TEST_CASE(DartAPI_InjectNativeFields2) {
   const char* kScriptChars =
       "class NativeFields extends NativeFieldsWrapper {\n"
@@ -4260,55 +4209,6 @@ static void TestNativeFields(Dart_Handle retobj) {
   EXPECT_VALID(result);
   result = Dart_IntegerToInt64(result, &value);
   EXPECT_EQ(20, value);
-}
-
-TEST_CASE(DartAPI_NativeFieldAccess) {
-  const char* kScriptChars =
-      "class NativeFields extends NativeFieldsWrapper {\n"
-      "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
-      "  int fld0;\n"
-      "  int fld1;\n"
-      "  final int fld2;\n"
-      "  static int fld3;\n"
-      "  static const int fld4 = 10;\n"
-      "}\n"
-      "NativeFields testMain() {\n"
-      "  NativeFields obj = new NativeFields(10, 20);\n"
-      "  return obj;\n"
-      "}\n";
-  const int kNumNativeFields = 4;
-
-  // Create a test library.
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, native_field_lookup,
-                                             USER_TEST_URI, false);
-
-  // Create a native wrapper class with native fields.
-  Dart_Handle result = Dart_CreateNativeWrapperClass(
-      lib, NewString("NativeFieldsWrapper"), kNumNativeFields);
-  EXPECT_VALID(result);
-  result = Dart_FinalizeLoading(false);
-  EXPECT_VALID(result);
-
-  // Load up a test script in it.
-
-  // Invoke a function which returns an object of type NativeFields.
-  Dart_Handle retobj = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
-  EXPECT_VALID(retobj);
-
-  // Now access and set various instance fields of the returned object.
-  TestNativeFields(retobj);
-
-  // Test that accessing an error handle propagates the error.
-  Dart_Handle error = Api::NewError("myerror");
-  intptr_t field_value = 0;
-
-  result = Dart_GetNativeInstanceField(error, 0, &field_value);
-  EXPECT(Dart_IsError(result));
-  EXPECT_STREQ("myerror", Dart_GetError(result));
-
-  result = Dart_SetNativeInstanceField(error, 0, 1);
-  EXPECT(Dart_IsError(result));
-  EXPECT_STREQ("myerror", Dart_GetError(result));
 }
 
 TEST_CASE(DartAPI_ImplicitNativeFieldAccess) {
