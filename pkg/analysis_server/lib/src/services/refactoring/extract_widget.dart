@@ -105,15 +105,14 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     String file = unitElement.source.fullName;
     var changeBuilder = new DartChangeBuilder(sessionHelper.session);
     await changeBuilder.addFileEdit(file, (builder) {
-      ClassDeclaration enclosingClass =
-          _expression.getAncestor((n) => n is ClassDeclaration);
-      // TODO(scheglov) Check for extracting not from a class.
+      CompilationUnitMember enclosingUnitMember = _expression.getAncestor(
+          (n) => n is CompilationUnitMember && n.parent is CompilationUnit);
 
       builder.addReplacement(range.node(_expression), (builder) {
         builder.write('new $name()');
       });
 
-      builder.addInsertion(enclosingClass.end, (builder) {
+      builder.addInsertion(enclosingUnitMember.end, (builder) {
         builder.writeln();
         builder.writeln();
         builder.writeClassDeclaration(name,

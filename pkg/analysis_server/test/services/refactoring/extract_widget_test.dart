@@ -121,6 +121,86 @@ class Test extends StatelessWidget {
 ''');
   }
 
+  test_expression_localFunction() async {
+    addFlutterPackage();
+    await indexTestUnit('''
+import 'package:flutter/material.dart';
+
+Widget main() {
+  Widget foo() {
+    return new Row(
+      children: <Widget>[
+        new Text('AAA'),
+        new Text('BBB'),
+      ],
+    );
+  }
+  return foo();
+}
+''');
+    _createRefactoringForStringOffset('new Text');
+
+    await _assertSuccessfulRefactoring('''
+import 'package:flutter/material.dart';
+
+Widget main() {
+  Widget foo() {
+    return new Row(
+      children: <Widget>[
+        new Test(),
+        new Text('BBB'),
+      ],
+    );
+  }
+  return foo();
+}
+
+class Test extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Text('AAA');
+  }
+}
+''');
+  }
+
+  test_expression_topFunction() async {
+    addFlutterPackage();
+    await indexTestUnit('''
+import 'package:flutter/material.dart';
+
+Widget main() {
+  return new Row(
+    children: <Widget>[
+      new Text('AAA'),
+      new Text('BBB'),
+    ],
+  );
+}
+''');
+    _createRefactoringForStringOffset('new Text');
+
+    await _assertSuccessfulRefactoring('''
+import 'package:flutter/material.dart';
+
+Widget main() {
+  return new Row(
+    children: <Widget>[
+      new Test(),
+      new Text('BBB'),
+    ],
+  );
+}
+
+class Test extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Text('AAA');
+  }
+}
+''');
+  }
+
   test_refactoringName() async {
     addFlutterPackage();
     await indexTestUnit('''
