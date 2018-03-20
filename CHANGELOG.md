@@ -1,3 +1,9 @@
+# 0.1.45
+
+* fix for `invariant_booleans` when analyzing for loops with no condition
+* new `avoid_types_as_parameter_names` lint
+* new `avoid_renaming_method_parameters` lint
+
 # 0.1.44
 
 * new `avoid_relative_lib_imports` lint
