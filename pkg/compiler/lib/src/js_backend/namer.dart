@@ -15,13 +15,7 @@ import '../common/names.dart' show Identifiers, Names, Selectors;
 import '../constants/values.dart';
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
-import '../elements/elements.dart'
-    show
-        ClassElement,
-        Element,
-        Elements,
-        MemberElement,
-        MixinApplicationElement;
+import '../elements/elements.dart' show Element, Elements, MemberElement;
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../elements/jumps.dart';
@@ -578,7 +572,7 @@ class Namer {
     _literalLazyGetterPrefix = new StringBackedName(lazyGetterPrefix);
   }
 
-  ElementEnvironment get _elementEnvironment => _closedWorld.elementEnvironment;
+  ElementEnvironment get elementEnvironment => _closedWorld.elementEnvironment;
 
   CommonElements get _commonElements => _closedWorld.commonElements;
 
@@ -983,10 +977,10 @@ class Namer {
     bool isPrivate = Name.isPrivateName(fieldName);
     LibraryEntity memberLibrary = element.library;
     ClassEntity lookupClass =
-        _elementEnvironment.getSuperClass(element.enclosingClass);
+        elementEnvironment.getSuperClass(element.enclosingClass);
     while (lookupClass != null) {
       MemberEntity foundMember =
-          _elementEnvironment.lookupLocalClassMember(lookupClass, fieldName);
+          elementEnvironment.lookupLocalClassMember(lookupClass, fieldName);
       if (foundMember != null) {
         if (foundMember.isField) {
           if (!isPrivate || memberLibrary == foundMember.library) {
@@ -996,7 +990,7 @@ class Namer {
           }
         }
       }
-      lookupClass = _elementEnvironment.getSuperClass(lookupClass);
+      lookupClass = elementEnvironment.getSuperClass(lookupClass);
     }
     return false;
   }
