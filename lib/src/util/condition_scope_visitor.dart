@@ -330,6 +330,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   /// not mean anything afterwards.
   bool _isRelevantOutsideOfForStatement(ForStatement node) =>
       !breakScope.hasBreak(node) &&
+      node.condition != null &&
       DartTypeUtilities
           .traverseNodesInDFS(node.condition)
           .where((n) => n is SimpleIdentifier)
