@@ -66,8 +66,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginClassDeclaration(Token beginToken, Token name) {
-    listener?.beginClassDeclaration(beginToken, name);
+  void beginClassDeclaration(Token begin, Token abstractToken, Token name) {
+    listener?.beginClassDeclaration(begin, abstractToken, name);
   }
 
   @override
@@ -299,8 +299,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginNamedMixinApplication(Token beginToken, Token name) {
-    listener?.beginNamedMixinApplication(beginToken, name);
+  void beginNamedMixinApplication(
+      Token begin, Token abstractToken, Token name) {
+    listener?.beginNamedMixinApplication(begin, abstractToken, name);
   }
 
   @override

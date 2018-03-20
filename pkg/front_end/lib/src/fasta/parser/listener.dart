@@ -93,7 +93,7 @@ class Listener {
   /// Handle the beginning of a class declaration.
   /// [beginToken] may be the same as [name], or may point to modifiers
   /// (or extraneous modifiers in the case of recovery) preceding [name].
-  void beginClassDeclaration(Token beginToken, Token name) {}
+  void beginClassDeclaration(Token begin, Token abstractToken, Token name) {}
 
   /// Handle an extends clause in a class declaration. Substructures:
   /// - supertype (may be a mixin application)
@@ -405,7 +405,8 @@ class Listener {
   /// Handle the beginning of a named mixin application.
   /// [beginToken] may be the same as [name], or may point to modifiers
   /// (or extraneous modifiers in the case of recovery) preceding [name].
-  void beginNamedMixinApplication(Token beginToken, Token name) {}
+  void beginNamedMixinApplication(
+      Token begin, Token abstractToken, Token name) {}
 
   /// Handle the end of a named mixin declaration.  Substructures:
   /// - metadata

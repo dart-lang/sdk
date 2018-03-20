@@ -122,14 +122,26 @@ class NodeListener extends ElementListener {
   }
 
   @override
+  void beginClassDeclaration(Token begin, Token abstractToken, Token name) {
+    if (abstractToken == null) {
+      pushNode(Modifiers.EMPTY);
+    } else {
+      Link<Node> poppedNodes = const Link<Node>();
+      poppedNodes = poppedNodes.prepend(new Identifier(abstractToken));
+      NodeList modifierNodes = new NodeList(null, poppedNodes, null, ' ');
+      pushNode(new Modifiers(modifierNodes));
+    }
+  }
+
+  @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     NodeList body = popNode();
     NodeList interfaces = popNode();
     TokenNode extendsNode = popNode();
     Node supertype = popNode();
+    Modifiers modifiers = popNode();
     NodeList typeParameters = popNode();
     Identifier name = popNode();
-    Modifiers modifiers = popNode();
     // TODO(danrubel): can we remove the extends keyword from ClassNode ?
     pushNode(new ClassNode(modifiers, name, typeParameters, supertype,
         interfaces, beginToken, extendsNode.token, body, endToken));
@@ -216,9 +228,9 @@ class NodeListener extends ElementListener {
       Token equals, Token implementsKeyword, Token endToken) {
     NodeList interfaces = (implementsKeyword != null) ? popNode() : null;
     Node mixinApplication = popNode();
+    Modifiers modifiers = popNode();
     NodeList typeParameters = popNode();
     Identifier name = popNode();
-    Modifiers modifiers = popNode();
     pushNode(new NamedMixinApplication(name, typeParameters, modifiers,
         mixinApplication, interfaces, beginToken, endToken));
   }

@@ -1646,23 +1646,18 @@ class Parser {
       Token token, Token beforeAbstractToken) {
     token = token.next;
     listener.beginClassOrNamedMixinApplication(token);
-    Token begin = beforeAbstractToken?.next ?? token;
-    if (beforeAbstractToken != null) {
-      token = parseModifier(beforeAbstractToken).next;
-      listener.handleModifiers(1);
-    } else {
-      listener.handleModifiers(0);
-    }
+    Token abstractToken = beforeAbstractToken?.next;
+    Token begin = abstractToken ?? token;
     Token classKeyword = token;
     expect("class", token);
     Token name =
         ensureIdentifier(token, IdentifierContext.classOrNamedMixinDeclaration);
     token = parseTypeVariablesOpt(name);
     if (optional('=', token.next)) {
-      listener.beginNamedMixinApplication(begin, name);
+      listener.beginNamedMixinApplication(begin, abstractToken, name);
       return parseNamedMixinApplication(token, begin, classKeyword);
     } else {
-      listener.beginClassDeclaration(begin, name);
+      listener.beginClassDeclaration(begin, abstractToken, name);
       return parseClass(token, begin, classKeyword);
     }
   }

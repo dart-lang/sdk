@@ -362,23 +362,26 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void beginClassDeclaration(Token begin, Token name) {
+  void beginClassDeclaration(Token begin, Token abstractToken, Token name) {
     debugEvent("beginNamedMixinApplication");
     List<TypeVariableBuilder> typeVariables = pop();
     push(typeVariables ?? NullValue.TypeVariables);
     library.currentDeclaration
       ..name = name.lexeme
       ..typeVariables = typeVariables;
+    push(abstractToken != null ? abstractMask : 0);
   }
 
   @override
-  void beginNamedMixinApplication(Token beginToken, Token name) {
+  void beginNamedMixinApplication(
+      Token begin, Token abstractToken, Token name) {
     debugEvent("beginNamedMixinApplication");
     List<TypeVariableBuilder> typeVariables = pop();
     push(typeVariables ?? NullValue.TypeVariables);
     library.currentDeclaration
       ..name = name.lexeme
       ..typeVariables = typeVariables;
+    push(abstractToken != null ? abstractMask : 0);
   }
 
   @override
@@ -408,13 +411,13 @@ class OutlineBuilder extends UnhandledListener {
     List<TypeBuilder> interfaces = pop(NullValue.TypeBuilderList);
     int supertypeOffset = pop();
     TypeBuilder supertype = pop();
+    int modifiers = pop();
     List<TypeVariableBuilder> typeVariables = pop();
     int charOffset = pop();
     String name = pop();
     if (typeVariables != null && supertype is MixinApplicationBuilder) {
       supertype.typeVariables = typeVariables;
     }
-    int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
 
     library.addClass(
@@ -713,10 +716,10 @@ class OutlineBuilder extends UnhandledListener {
     String documentationComment = getDocumentationComment(beginToken);
     List<TypeBuilder> interfaces = popIfNotNull(implementsKeyword);
     TypeBuilder mixinApplication = pop();
+    int modifiers = pop();
     List<TypeVariableBuilder> typeVariables = pop();
     int charOffset = pop();
     String name = pop();
-    int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
     library.addNamedMixinApplication(documentationComment, metadata, name,
         typeVariables, modifiers, mixinApplication, interfaces, charOffset);

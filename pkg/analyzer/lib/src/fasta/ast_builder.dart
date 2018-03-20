@@ -1719,8 +1719,9 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void beginClassDeclaration(Token beginToken, Token name) {
+  void beginClassDeclaration(Token begin, Token abstractToken, Token name) {
     assert(classDeclaration == null);
+    push(new _Modifiers()..abstractKeyword = abstractToken);
   }
 
   @override
@@ -1773,9 +1774,9 @@ class AstBuilder extends ScopeListener {
     ImplementsClause implementsClause = pop(NullValue.IdentifierList);
     WithClause withClause = pop(NullValue.WithClause);
     ExtendsClause extendsClause = pop(NullValue.ExtendsClause);
+    _Modifiers modifiers = pop();
     TypeParameterList typeParameters = pop();
     SimpleIdentifier name = pop();
-    _Modifiers modifiers = pop();
     Token abstractKeyword = modifiers?.abstractKeyword;
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, classKeyword);
@@ -1835,6 +1836,12 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
+  void beginNamedMixinApplication(
+      Token begin, Token abstractToken, Token name) {
+    push(new _Modifiers()..abstractKeyword = abstractToken);
+  }
+
+  @override
   void endMixinApplication(Token withKeyword) {
     assert(optionalOrNull('with', withKeyword));
     debugEvent("MixinApplication");
@@ -1862,9 +1869,9 @@ class AstBuilder extends ScopeListener {
     var superclass = mixinApplication.supertype;
     var withClause = ast.withClause(
         mixinApplication.withKeyword, mixinApplication.mixinTypes);
+    _Modifiers modifiers = pop();
     TypeParameterList typeParameters = pop();
     SimpleIdentifier name = pop();
-    _Modifiers modifiers = pop();
     Token abstractKeyword = modifiers?.abstractKeyword;
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);

@@ -350,13 +350,26 @@ class ElementListener extends Listener {
   }
 
   @override
+  void beginNamedMixinApplication(
+      Token begin, Token abstractToken, Token name) {
+    if (abstractToken == null) {
+      pushNode(Modifiers.EMPTY);
+    } else {
+      Link<Node> poppedNodes = const Link<Node>();
+      poppedNodes = poppedNodes.prepend(new Identifier(abstractToken));
+      NodeList modifierNodes = new NodeList(null, poppedNodes, null, ' ');
+      pushNode(new Modifiers(modifierNodes));
+    }
+  }
+
+  @override
   void endNamedMixinApplication(Token beginToken, Token classKeyword,
       Token equals, Token implementsKeyword, Token endToken) {
     NodeList interfaces = (implementsKeyword != null) ? popNode() : null;
     MixinApplication mixinApplication = popNode();
+    Modifiers modifiers = popNode();
     NodeList typeParameters = popNode();
     Identifier name = popNode();
-    Modifiers modifiers = popNode();
     NamedMixinApplication namedMixinApplication = new NamedMixinApplication(
         name,
         typeParameters,
