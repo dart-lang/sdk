@@ -45,7 +45,7 @@ bool isJSAnnotation(Expression value) =>
 bool isPublicJSAnnotation(Expression value) =>
     _annotationIsFromJSLibrary('JS', value);
 
-bool isJSAnonymousAnnotation(Expression value) =>
+bool _isJSAnonymousAnnotation(Expression value) =>
     _annotationIsFromJSLibrary('_Anonymous', value);
 
 bool _isBuiltinAnnotation(
@@ -80,20 +80,36 @@ bool isNativeAnnotation(Expression value) =>
     _isBuiltinAnnotation(value, '_js_helper', 'Native');
 
 bool isJSAnonymousType(Class namedClass) {
-  return _isJSNative(namedClass) &&
-      findAnnotation(namedClass, isJSAnonymousAnnotation) != null;
+  return hasJSInteropAnnotation(namedClass) &&
+      findAnnotation(namedClass, _isJSAnonymousAnnotation) != null;
 }
 
-// TODO(jmesserly): rename this after port
-bool isJSElement(NamedNode n) {
+/// Returns true iff the class has an `@JS(...)` annotation from `package:js`.
+///
+/// Note: usually [_usesJSInterop] should be used instead of this.
+//
+// TODO(jmesserly): I think almost all uses of this should be replaced with
+// [_usesJSInterop], which also checks that the library is marked with `@JS`.
+//
+// Right now we have inconsistencies: sometimes we'll respect `@JS` on the
+// class itself, other places we require it on the library. Also members are
+// inconsistent: sometimes they need to have `@JS` on them, other times they
+// need to be `external` in an `@JS` class.
+bool hasJSInteropAnnotation(Class c) => c.annotations.any(isPublicJSAnnotation);
+
+/// Returns true iff this element is a JS interop member.
+///
+/// The element's library must have `@JS(...)` annotation from `package:js`.
+/// If the element is a class, it must also be marked with `@JS`. Other
+/// elements, such as class members and top-level functions/accessors, should
+/// be marked `external`.
+bool usesJSInterop(NamedNode n) {
   var library = getLibrary(n);
   return library != null &&
-      _isJSNative(library) &&
-      (n is Procedure && n.isExternal || n is Class && _isJSNative(n));
+      library.annotations.any(isPublicJSAnnotation) &&
+      (n is Procedure && n.isExternal ||
+          n is Class && n.annotations.any(isPublicJSAnnotation));
 }
-
-bool _isJSNative(NamedNode n) =>
-    findAnnotation(n, isPublicJSAnnotation) != null;
 
 /// Returns the name value of the `JSExportName` annotation (when compiling
 /// the SDK), or `null` if there's none. This is used to control the name

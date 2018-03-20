@@ -92,6 +92,14 @@ bool isBuiltinAnnotation(
 /// If [node] has annotation matching [test] and the first argument is a
 /// string, this returns the string value.
 ///
+/// Calls [findAnnotation] followed by [getNameFromAnnotation].
+String getAnnotationName(NamedNode node, bool test(Expression value)) {
+  return getNameFromAnnotation(findAnnotation(node, test));
+}
+
+/// If [node] is an annotation and the first argument is a string, this returns
+/// the string value.
+///
 /// For example
 ///
 ///     class MyAnnotation {
@@ -103,15 +111,11 @@ bool isBuiltinAnnotation(
 ///     @MyAnnotation('FooBar')
 ///     main() { ... }
 ///
-/// If we match the annotation for the `@MyAnnotation('FooBar')` this will
-/// return the string `'FooBar'`.
-String getAnnotationName(NamedNode node, bool test(Expression value)) {
-  var match = findAnnotation(node, test);
-  if (match is ConstructorInvocation && match.arguments.positional.isNotEmpty) {
-    var first = _followConstFields(match.arguments.positional[0]);
-    if (first is StringLiteral) {
-      return first.value;
-    }
+/// Given teh node for `@MyAnnotation('FooBar')` this will return `'FooBar'`.
+String getNameFromAnnotation(ConstructorInvocation node) {
+  if (node != null && node.arguments.positional.isNotEmpty) {
+    var first = _followConstFields(node.arguments.positional[0]);
+    if (first is StringLiteral) return first.value;
   }
   return null;
 }

@@ -93,4 +93,5 @@ main() {
 
   regress31049();
   regress31050();
+  regress31117();
 }

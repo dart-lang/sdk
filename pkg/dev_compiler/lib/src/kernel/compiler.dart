@@ -431,19 +431,27 @@ class ProgramCompiler
     assert(_currentLibrary == null);
     _currentLibrary = library;
 
-    // `dart:_runtime` uses a different order for bootstrapping.
-    bool bootstrap = isSdkInternalRuntime(library);
-    if (bootstrap) _emitLibraryProcedures(library);
-
-    library.classes.forEach(_emitClass);
-    library.typedefs.forEach(_emitTypedef);
-    if (bootstrap) {
-      _moduleItems.add(_emitInternalSdkFields(library.fields));
-    } else {
+    if (isSdkInternalRuntime(library)) {
+      // `dart:_runtime` uses a different order for bootstrapping.
+      //
+      // Functions are first because we use them to associate type info
+      // (such as `dart.fn`), then classes/typedefs, then fields
+      // (which instantiate classes).
+      //
+      // For other libraries, we start with classes/types, because functions
+      // often use classes/types from the library in their signature.
+      //
+      // TODO(jmesserly): we can merge these once we change signatures to be
+      // lazily associated at the tear-off point for top-level functions.
       _emitLibraryProcedures(library);
-      var fields = library.fields;
-      if (fields.isNotEmpty)
-        _moduleItems.add(_emitLazyFields(emitLibraryName(library), fields));
+      library.classes.forEach(_emitClass);
+      library.typedefs.forEach(_emitTypedef);
+      _emitTopLevelFields(library.fields);
+    } else {
+      library.classes.forEach(_emitClass);
+      library.typedefs.forEach(_emitTypedef);
+      _emitLibraryProcedures(library);
+      _emitTopLevelFields(library.fields);
     }
 
     _currentLibrary = null;
@@ -551,7 +559,7 @@ class ProgramCompiler
     body.addAll(jsCtors);
 
     // Emit things that come after the ES6 `class ... { ... }`.
-    var jsPeerNames = _getJSPeerNames(c);
+    var jsPeerNames = _extensionTypes.getNativePeers(c);
     if (jsPeerNames.length == 1 && c.typeParameters.isNotEmpty) {
       // Special handling for JSArray<E>
       body.add(_callHelperStatement('setExtensionBaseClass(#, #.global.#);',
@@ -1102,7 +1110,8 @@ class ProgramCompiler
             .toStatement());
       }
     } else if (fields.isNotEmpty) {
-      body.add(_emitLazyFields(_emitTopLevelName(c), fields));
+      body.add(_emitLazyFields(_emitTopLevelName(c), fields,
+          (n) => _emitStaticMemberName(n.name.name)));
     }
   }
 
@@ -1567,7 +1576,7 @@ class ProgramCompiler
     var virtualFields = _classProperties.virtualFields;
 
     var jsMethods = <JS.Method>[];
-    bool hasJsPeer = findAnnotation(c, isJsPeerInterface) != null;
+    bool hasJsPeer = _extensionTypes.isNativeClass(c);
     bool hasIterator = false;
 
     if (c == coreTypes.objectClass) {
@@ -2056,25 +2065,6 @@ class ProgramCompiler
   JS.Expression _instantiateAnnotation(Expression node) =>
       _visitExpression(node);
 
-  /// Gets the JS peer for this Dart type if any, otherwise null.
-  ///
-  /// For example for dart:_interceptors `JSArray` this will return "Array",
-  /// referring to the JavaScript built-in `Array` type.
-  List<String> _getJSPeerNames(Class c) {
-    var jsPeerNames = getAnnotationName(
-        c,
-        (a) =>
-            isJsPeerInterface(a) ||
-            isNativeAnnotation(a) && _extensionTypes.isNativeClass(c));
-    if (c == coreTypes.objectClass) return ['Object'];
-    if (jsPeerNames == null) return [];
-
-    // Omit the special name "!nonleaf" and any future hacks starting with "!"
-    var result =
-        jsPeerNames.split(',').where((peer) => !peer.startsWith("!")).toList();
-    return result;
-  }
-
   void _registerExtensionType(
       Class c, String jsPeerName, List<JS.Statement> body) {
     var className = _emitTopLevelName(c);
@@ -2115,50 +2105,55 @@ class ProgramCompiler
     _moduleItems.add(result);
   }
 
-  /// Treat dart:_runtime fields as safe to eagerly evaluate.
-  // TODO(jmesserly): it'd be nice to avoid this special case.
-  JS.Statement _emitInternalSdkFields(Iterable<Field> fields) {
-    var lazyFields = <Field>[];
-    var savedUri = _currentUri;
+  void _emitTopLevelFields(List<Field> fields) {
+    if (isSdkInternalRuntime(_currentLibrary)) {
+      /// Treat dart:_runtime fields as safe to eagerly evaluate.
+      // TODO(jmesserly): it'd be nice to avoid this special case.
+      var lazyFields = <Field>[];
+      var savedUri = _currentUri;
+      for (var field in fields) {
+        // Skip our magic undefined constant.
+        if (field.name.name == 'undefined') continue;
 
-    for (var field in fields) {
-      // Skip our magic undefined constant.
-      if (field.name.name == 'undefined') continue;
-
-      var init = field.initializer;
-      if (init == null ||
-          init is BasicLiteral ||
-          init is StaticInvocation && isInlineJS(init.target) ||
-          init is ConstructorInvocation &&
-              isSdkInternalRuntime(init.target.enclosingLibrary)) {
-        _currentUri = field.fileUri;
-        _moduleItems.add(js.statement('# = #;', [
-          _emitTopLevelName(field),
-          _visitInitializer(init, field.annotations)
-        ]));
-      } else {
-        lazyFields.add(field);
+        var init = field.initializer;
+        if (init == null ||
+            init is BasicLiteral ||
+            init is StaticInvocation && isInlineJS(init.target) ||
+            init is ConstructorInvocation &&
+                isSdkInternalRuntime(init.target.enclosingLibrary)) {
+          _currentUri = field.fileUri;
+          _moduleItems.add(js.statement('# = #;', [
+            _emitTopLevelName(field),
+            _visitInitializer(init, field.annotations)
+          ]));
+        } else {
+          lazyFields.add(field);
+        }
       }
+
+      _currentUri = savedUri;
+      fields = lazyFields;
     }
 
-    _currentUri = savedUri;
-    return _emitLazyFields(emitLibraryName(_currentLibrary), lazyFields);
+    if (fields.isEmpty) return;
+    _moduleItems.add(_emitLazyFields(
+        emitLibraryName(_currentLibrary), fields, _emitTopLevelMemberName));
   }
 
-  JS.Statement _emitLazyFields(JS.Expression objExpr, Iterable<Field> fields) {
+  JS.Statement _emitLazyFields(JS.Expression objExpr, Iterable<Field> fields,
+      JS.Expression Function(Field f) emitFieldName) {
     var accessors = <JS.Method>[];
     var savedUri = _currentUri;
 
     for (var field in fields) {
       _currentUri = field.fileUri;
-      var name = field.name.name;
-      var access = _emitStaticMemberName(name);
+      var access = emitFieldName(field);
       accessors.add(new JS.Method(access, _emitStaticFieldInitializer(field),
           isGetter: true)
         ..sourceInformation = _hoverComment(
             new JS.PropertyAccess(objExpr, access),
             field.fileOffset,
-            name.length));
+            field.name.name.length));
 
       // TODO(jmesserly): currently uses a dummy setter to indicate writable.
       if (!field.isFinal && !field.isConst) {
@@ -2415,7 +2410,7 @@ class ProgramCompiler
   }
 
   JS.Expression _emitJSInteropStaticMemberName(NamedNode n) {
-    if (!isJSElement(n)) return null;
+    if (!usesJSInterop(n)) return null;
     var name = getAnnotationName(n, isPublicJSAnnotation);
     if (name != null) {
       if (name.contains('.')) {
@@ -2431,13 +2426,21 @@ class ProgramCompiler
 
   JS.PropertyAccess _emitTopLevelNameNoInterop(NamedNode n,
       {String suffix: ''}) {
+    return new JS.PropertyAccess(emitLibraryName(getLibrary(n)),
+        _emitTopLevelMemberName(n, suffix: suffix));
+  }
+
+  /// Emits the member name portion of a top-level member.
+  ///
+  /// NOTE: usually you should use [_emitTopLevelName] instead of this. This
+  /// function does not handle JS interop.
+  JS.Expression _emitTopLevelMemberName(NamedNode n, {String suffix: ''}) {
     var name = getJSExportName(n) ?? getTopLevelName(n);
-    return new JS.PropertyAccess(
-        emitLibraryName(getLibrary(n)), _propertyName(name + suffix));
+    return _propertyName(name + suffix);
   }
 
   String _getJSNameWithoutGlobal(NamedNode n) {
-    if (!isJSElement(n)) return null;
+    if (!usesJSInterop(n)) return null;
     var libraryJSName = getAnnotationName(getLibrary(n), isPublicJSAnnotation);
     var jsName =
         getAnnotationName(n, isPublicJSAnnotation) ?? getTopLevelName(n);
@@ -2695,8 +2698,8 @@ class ProgramCompiler
             _emitConstructorAccess(type), _constructorName(c.name.name));
   }
 
-  /// Emits an expression that lets you access statics on an [element] from code.
-  JS.Expression _emitStaticAccess(Class c) {
+  /// Emits an expression that lets you access statics on an [c] from code.
+  JS.Expression _emitStaticClassName(Class c) {
     _declareBeforeUse(c);
     return _emitTopLevelName(c);
   }
@@ -3799,7 +3802,7 @@ class ProgramCompiler
       }
     } else if (member is Procedure &&
         !member.isAccessor &&
-        !_isJSNative(member.enclosingClass)) {
+        !hasJSInteropAnnotation(member.enclosingClass)) {
       return _callHelper('bind(#, #)', [jsReceiver, jsName]);
     } else {
       return new JS.PropertyAccess(jsReceiver, jsName);
@@ -3828,7 +3831,7 @@ class ProgramCompiler
     var jsTarget = _emitSuperTarget(target);
     if (target is Procedure &&
         !target.isAccessor &&
-        !_isJSNative(target.enclosingClass)) {
+        !hasJSInteropAnnotation(target.enclosingClass)) {
       return _callHelper('bind(this, #, #)', [jsTarget.selector, jsTarget]);
     }
     return jsTarget;
@@ -4329,7 +4332,7 @@ class ProgramCompiler
   JS.Expression _emitStaticTarget(Member target) {
     var c = target.enclosingClass;
     if (c != null) {
-      return new JS.PropertyAccess(_emitStaticAccess(c),
+      return new JS.PropertyAccess(_emitStaticClassName(c),
           _emitStaticMemberName(target.name.name, target));
     }
     return _emitTopLevelName(target);
@@ -4530,7 +4533,7 @@ class ProgramCompiler
     var args = node.arguments;
     var ctor = node.target;
     var ctorClass = ctor.enclosingClass;
-    if (ctor.isExternal && _isJSNative(ctorClass)) {
+    if (ctor.isExternal && hasJSInteropAnnotation(ctorClass)) {
       return _emitJSInteropNew(ctor, args);
     }
 
@@ -4607,7 +4610,7 @@ class ProgramCompiler
 
   JS.Expression _emitJSInteropNew(Member ctor, Arguments args) {
     var ctorClass = ctor.enclosingClass;
-    if (_isObjectLiteral(ctorClass)) return _emitObjectLiteral(args);
+    if (isJSAnonymousType(ctorClass)) return _emitObjectLiteral(args);
     return new JS.New(_emitConstructorName(ctorClass.rawType, ctor),
         _emitArgumentList(args, types: false));
   }
@@ -4627,12 +4630,6 @@ class ProgramCompiler
     var c = identity ? identityHashSetImplClass : linkedHashSetImplClass;
     return _emitType(new InterfaceType(c, typeArgs));
   }
-
-  bool _isObjectLiteral(Class c) {
-    return _isJSNative(c) && c.annotations.any(isJSAnonymousAnnotation);
-  }
-
-  bool _isJSNative(Class c) => c.annotations.any(isPublicJSAnnotation);
 
   JS.Expression _emitObjectLiteral(Arguments node) {
     var args = _emitArgumentList(node);

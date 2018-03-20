@@ -6,6 +6,7 @@ import 'dart:collection';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/library_index.dart';
+import 'kernel_helpers.dart' show getNameFromAnnotation;
 
 /// Contains information about native JS types (those types provided by the
 /// implementation) that are also provided by the Dart SDK.
@@ -64,18 +65,6 @@ class NativeTypeSet {
     _addPendingExtensionTypes(sdk.getLibrary('dart:web_sql'));
   }
 
-  bool _isNative(Class c) {
-    for (var annotation in c.annotations) {
-      if (annotation is ConstructorInvocation) {
-        var c = annotation.target.enclosingClass;
-        if (c.name == 'Native' || c.name == 'JsPeerInterface') {
-          if (c.enclosingLibrary.importUri.scheme == 'dart') return true;
-        }
-      }
-    }
-    return false;
-  }
-
   void _addExtensionType(Class c, [bool mustBeNative = false]) {
     if (c == coreTypes.objectClass) return;
     if (_extensibleTypes.contains(c) || _nativeTypes.contains(c)) {
@@ -129,4 +118,32 @@ class NativeTypeSet {
       _processPending(c) && _extensibleTypes.contains(c);
 
   bool hasNativeSubtype(Class c) => isNativeInterface(c) || isNativeClass(c);
+
+  /// Gets the JS peer for this Dart type if any, otherwise null.
+  ///
+  /// For example for dart:_interceptors `JSArray` this will return "Array",
+  /// referring to the JavaScript built-in `Array` type.
+  List<String> getNativePeers(Class c) {
+    if (c == coreTypes.objectClass) return ['Object'];
+    var names = getNameFromAnnotation(_getNativeAnnotation(c));
+    if (names == null) return const [];
+
+    // Omit the special name "!nonleaf" and any future hacks starting with "!"
+    return names.split(',').where((peer) => !peer.startsWith("!")).toList();
+  }
+}
+
+bool _isNative(Class c) => _getNativeAnnotation(c) != null;
+
+ConstructorInvocation _getNativeAnnotation(Class c) {
+  for (var annotation in c.annotations) {
+    if (annotation is ConstructorInvocation) {
+      var c = annotation.target.enclosingClass;
+      if ((c.name == 'Native' || c.name == 'JsPeerInterface') &&
+          c.enclosingLibrary.importUri.scheme == 'dart') {
+        return annotation;
+      }
+    }
+  }
+  return null;
 }
