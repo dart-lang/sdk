@@ -6,9 +6,11 @@ library source_map_name_test;
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/io/source_information.dart';
+import 'package:compiler/src/io/kernel_source_information.dart';
+import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import '../memory_compiler.dart';
 
 const String SOURCE = '''
@@ -71,22 +73,25 @@ main() {
 }
 ''';
 
-check(Entity element, String expectedName) {
-  String name = computeElementNameForSourceMaps(element);
-  Expect.equals(expectedName, name,
-      "Unexpected name '$name' for $element, expected '$expectedName'.");
-}
-
 main() {
   asyncTest(() async {
-    CompilationResult result =
-        await runCompiler(memorySourceFiles: {'main.dart': SOURCE});
+    CompilationResult result = await runCompiler(
+        memorySourceFiles: {'main.dart': SOURCE},
+        options: [Flags.disableInlining]);
     Compiler compiler = result.compiler;
+    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
     var env = compiler.backendClosedWorldForTesting.elementEnvironment;
     LibraryEntity mainApp = env.mainLibrary;
 
-    Entity lookup(String name) {
-      Entity element;
+    check(MemberEntity element, String expectedName) {
+      String name = computeKernelElementNameForSourceMaps(
+          backendStrategy.elementMap, element);
+      Expect.equals(expectedName, name,
+          "Unexpected name '$name' for $element, expected '$expectedName'.");
+    }
+
+    MemberEntity lookup(String name) {
+      MemberEntity element;
       int dotPosition = name.indexOf('.');
       if (dotPosition != -1) {
         String clsName = name.substring(0, dotPosition);
@@ -95,8 +100,6 @@ main() {
         var subname = name.substring(dotPosition + 1);
         element = env.lookupLocalClassMember(cls, subname) ??
             env.lookupConstructor(cls, subname);
-      } else if (name.substring(0, 1) == name.substring(0, 1).toUpperCase()) {
-        element = env.lookupClass(mainApp, name);
       } else {
         element = env.lookupLibraryMember(mainApp, name);
       }
@@ -125,7 +128,6 @@ main() {
         env.forEachNestedClosure(element, (closure) {
           String expectedName = expectedClosureNames[index];
           check(closure, expectedName);
-          check(closure.enclosingClass, expectedName);
           index++;
         });
       }
@@ -133,28 +135,28 @@ main() {
 
     checkName('toplevelField');
     checkName('toplevelMethod');
-    // TODO(johnniwinther): improve closure names.
-    checkName('toplevelAnonymous', ['toplevelAnonymous_closure']);
-    checkName('toplevelLocal', ['toplevelLocal_localMethod']);
-    checkName('Class');
+    checkName('toplevelAnonymous', ['toplevelAnonymous.<anonymous function>']);
+    checkName('toplevelLocal', ['toplevelLocal.localMethod']);
     checkName('main');
 
     checkName('Class.staticField');
     checkName('Class.staticMethod');
-    checkName('Class.staticAnonymous', ['Class_staticAnonymous_closure']);
-    checkName('Class.staticLocal', ['Class_staticLocal_localMethod']);
+    checkName('Class.staticAnonymous',
+        ['Class.staticAnonymous.<anonymous function>']);
+    checkName('Class.staticLocal', ['Class.staticLocal.localMethod']);
 
-    checkName('Class', ['Class_closure'], 'Class.');
-    checkName('Class.named', ['Class\$named_localMethod']);
+    checkName('Class', ['Class.<anonymous function>'], 'Class.');
+    checkName('Class.named', ['Class.named.localMethod']);
 
     checkName('Class.instanceField');
     checkName('Class.instanceMethod');
-    checkName('Class.instanceAnonymous', ['Class_instanceAnonymous_closure']);
-    checkName('Class.instanceLocal', ['Class_instanceLocal_localMethod']);
+    checkName('Class.instanceAnonymous',
+        ['Class.instanceAnonymous.<anonymous function>']);
+    checkName('Class.instanceLocal', ['Class.instanceLocal.localMethod']);
     checkName('Class.instanceNestedLocal', [
-      'Class_instanceNestedLocal_localMethod',
-      'Class_instanceNestedLocal_localMethod_closure',
-      'Class_instanceNestedLocal_localMethod_nestedLocalMethod'
+      'Class.instanceNestedLocal.localMethod',
+      'Class.instanceNestedLocal.localMethod.<anonymous function>',
+      'Class.instanceNestedLocal.localMethod.nestedLocalMethod'
     ]);
   });
 }
