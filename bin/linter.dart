@@ -68,10 +68,9 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
     ..addFlag('strong', help: 'Use strong-mode analyzer.')
     ..addOption('config', abbr: 'c', help: 'Use configuration from this file.')
     ..addOption('dart-sdk', help: 'Custom path to a Dart SDK.')
-    ..addOption('rules',
+    ..addMultiOption('rules',
         help: 'A list of lint rules to run. For example: '
-            'avoid_as,annotate_overrides',
-        allowMultiple: true)
+            'avoid_as,annotate_overrides')
     ..addOption('packages',
         help: 'Path to the package resolution configuration file, which\n'
             'supplies a mapping of package names to paths.  This option\n'
