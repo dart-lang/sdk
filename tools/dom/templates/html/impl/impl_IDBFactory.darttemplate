@@ -63,21 +63,9 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
   }
 
-  @DomName('IDBFactory.getDatabaseNames')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental()
-  Future<List<String>> getDatabaseNames() {
-    try {
-      var request = _webkitGetDatabaseNames();
-
-      return _completeRequest(request);
-    } catch (e, stacktrace) {
-      return new Future.error(e, stacktrace);
-    }
-  }
-
   /**
    * Checks to see if getDatabaseNames is supported by the current platform.
+   * TODO(terry): Should be able to always return false?
    */
   bool get supportsDatabaseNames {
     return supported && JS('bool',

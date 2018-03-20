@@ -39,6 +39,7 @@ abstract class CompilerConfiguration {
   bool get _isStrong => _configuration.isStrong;
   bool get _isHostChecked => _configuration.isHostChecked;
   bool get _useSdk => _configuration.useSdk;
+  bool get _useEnableAsserts => _configuration.useEnableAsserts;
 
   /// Only some subclasses support this check, but we statically allow calling
   /// it on [CompilerConfiguration].
@@ -190,6 +191,9 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       args.add('--enable_asserts');
       args.add('--enable_type_checks');
     }
+    if (_useEnableAsserts) {
+      args.add('--enable_asserts');
+    }
     if (_configuration.hotReload) {
       args.add('--hot-reload-test-mode');
     } else if (_configuration.hotReloadRollback) {
@@ -249,6 +253,9 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
     if (_isChecked) {
       args.add('--enable_asserts');
       args.add('--enable_type_checks');
+    }
+    if (_useEnableAsserts) {
+      args.add('--enable_asserts');
     }
     if (_configuration.hotReload) {
       args.add('--hot-reload-test-mode');

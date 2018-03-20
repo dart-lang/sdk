@@ -13,6 +13,24 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
       document._caretRangeFromPoint(point.x, point.y);
 $!MEMBERS
 
+  @DomName('Range.getClientRects')
+  @DocsEditable()
+  @Returns('DomRectList|Null')
+  @Creates('DomRectList')
+  List<Rectangle> getClientRects() {
+    var value = _getClientRects();
+
+    // If no prototype we need one for the world to hookup to the proper Dart class.
+    var jsProto = JS('', '#.prototype', value);
+    if (jsProto == null) {
+      JS('', '#.prototype = Object.create(null)', value);
+    }
+
+    applyExtension('DOMRectList', value);
+
+    return value;
+  }
+
   /**
    * Checks if createContextualFragment is supported.
    *

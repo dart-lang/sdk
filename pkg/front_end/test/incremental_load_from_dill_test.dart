@@ -473,25 +473,25 @@ Future<bool> bootstrapCompile(
   for (Uri invalidateUri in invalidateUris) {
     compiler.invalidate(invalidateUri);
   }
-  var bootstrappedProgram = await compiler.computeDelta();
-  throwOnEmptyMixinBodies(bootstrappedProgram);
+  var bootstrappedComponent = await compiler.computeDelta();
+  throwOnEmptyMixinBodies(bootstrappedComponent);
   bool result = compiler.initializedFromDill;
-  await writeComponentToFile(bootstrappedProgram, output);
+  await writeComponentToFile(bootstrappedComponent, output);
   for (Uri invalidateUri in invalidateUris) {
     compiler.invalidate(invalidateUri);
   }
 
-  var partialProgram = await compiler.computeDelta();
-  throwOnEmptyMixinBodies(partialProgram);
-  var emptyProgram = await compiler.computeDelta();
-  throwOnEmptyMixinBodies(emptyProgram);
+  var partialComponent = await compiler.computeDelta();
+  throwOnEmptyMixinBodies(partialComponent);
+  var emptyComponent = await compiler.computeDelta();
+  throwOnEmptyMixinBodies(emptyComponent);
 
   var fullLibUris =
-      bootstrappedProgram.libraries.map((lib) => lib.importUri).toList();
+      bootstrappedComponent.libraries.map((lib) => lib.importUri).toList();
   var partialLibUris =
-      partialProgram.libraries.map((lib) => lib.importUri).toList();
+      partialComponent.libraries.map((lib) => lib.importUri).toList();
   var emptyLibUris =
-      emptyProgram.libraries.map((lib) => lib.importUri).toList();
+      emptyComponent.libraries.map((lib) => lib.importUri).toList();
 
   if (performSizeTests) {
     Expect.isTrue(fullLibUris.length > partialLibUris.length);

@@ -72,8 +72,7 @@ class CommandLineParser {
       List<String> allowed,
       Map<String, String> allowedHelp,
       String defaultsTo,
-      void callback(value),
-      bool allowMultiple: false}) {
+      void callback(value)}) {
     _knownFlags.add(name);
     _parser.addOption(name,
         abbr: abbr,
@@ -81,8 +80,7 @@ class CommandLineParser {
         allowed: allowed,
         allowedHelp: allowedHelp,
         defaultsTo: defaultsTo,
-        callback: callback,
-        allowMultiple: allowMultiple);
+        callback: callback);
   }
 
   /// Generates a string displaying usage information for the defined options.
@@ -318,6 +316,8 @@ class Driver implements ServerStarter {
     analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
     if (results.wasParsed(PREVIEW_DART2)) {
       analysisServerOptions.previewDart2 = results[PREVIEW_DART2];
+    } else {
+      analysisServerOptions.previewDart2 = true;
     }
     analysisServerOptions.useCFE = results[USE_CFE];
 

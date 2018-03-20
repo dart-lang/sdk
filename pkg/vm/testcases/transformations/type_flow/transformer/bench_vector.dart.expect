@@ -18,19 +18,19 @@ class _Vector extends core::Object {
   operator []=([@vm.inferred-type.metadata=!] core::int i, core::double value) → void {
     [@vm.unreachable.metadata=] [@vm.direct-call.metadata=#lib::_Vector::_elements] [@vm.inferred-type.metadata=dart.typed_data::_Float64List] this.{self::_Vector::_elements}.{core::List::[]=}([@vm.unreachable.metadata=] i.{core::num::+}([@vm.direct-call.metadata=#lib::_Vector::_offset] [@vm.inferred-type.metadata=!] this.{self::_Vector::_offset}), value);
   }
-  operator *([@vm.inferred-type.metadata=#lib::_Vector] self::_Vector a) → core::double {
+  operator *([@vm.inferred-type.metadata=#lib::_Vector?] self::_Vector a) → core::double {
     core::double result = 0.0;
     for (core::int i = 0; i.{core::num::<}([@vm.direct-call.metadata=#lib::_Vector::_length] [@vm.inferred-type.metadata=!] this.{self::_Vector::_length}); i = i.{core::num::+}(1))
-      result = [@vm.direct-call.metadata=dart.core::_Double::+??] [@vm.inferred-type.metadata=dart.core::_Double] result.{core::double::+}([@vm.direct-call.metadata=dart.core::_Double::*] [@vm.inferred-type.metadata=dart.core::_Double] [@vm.direct-call.metadata=#lib::_Vector::[]] [@vm.inferred-type.metadata=dart.core::_Double] this.{self::_Vector::[]}(i).{core::double::*}([@vm.direct-call.metadata=#lib::_Vector::[]] [@vm.inferred-type.metadata=dart.core::_Double] a.{self::_Vector::[]}(i)));
+      result = [@vm.direct-call.metadata=dart.core::_Double::+??] [@vm.inferred-type.metadata=dart.core::_Double] result.{core::double::+}([@vm.direct-call.metadata=dart.core::_Double::*] [@vm.inferred-type.metadata=dart.core::_Double] [@vm.direct-call.metadata=#lib::_Vector::[]] [@vm.inferred-type.metadata=dart.core::_Double] this.{self::_Vector::[]}(i).{core::double::*}([@vm.direct-call.metadata=#lib::_Vector::[]??] [@vm.inferred-type.metadata=dart.core::_Double] a.{self::_Vector::[]}(i)));
     return result;
   }
 }
-[@vm.inferred-type.metadata=#lib::_Vector]static field self::_Vector v = new self::_Vector::•(10);
-[@vm.inferred-type.metadata=dart.core::_Double]static field core::double x = 0.0;
+[@vm.inferred-type.metadata=#lib::_Vector?]static field self::_Vector v = new self::_Vector::•(10);
+[@vm.inferred-type.metadata=dart.core::_Double?]static field core::double x = 0.0;
 static method main(core::List<core::String> args) → dynamic {
   core::Stopwatch timer = let final core::Stopwatch #t1 = new core::Stopwatch::•() in let final dynamic #t2 = [@vm.direct-call.metadata=dart.core::Stopwatch::start] #t1.{core::Stopwatch::start}() in #t1;
   for (core::int i = 0; i.{core::num::<}(100000000); i = i.{core::num::+}(1)) {
-    self::x = [@vm.direct-call.metadata=dart.core::_Double::+] [@vm.inferred-type.metadata=dart.core::_Double] [@vm.inferred-type.metadata=dart.core::_Double] self::x.{core::double::+}([@vm.direct-call.metadata=#lib::_Vector::*] [@vm.inferred-type.metadata=dart.core::_Double] [@vm.inferred-type.metadata=#lib::_Vector] self::v.{self::_Vector::*}([@vm.inferred-type.metadata=#lib::_Vector] self::v));
+    self::x = [@vm.direct-call.metadata=dart.core::_Double::+??] [@vm.inferred-type.metadata=dart.core::_Double] [@vm.inferred-type.metadata=dart.core::_Double?] self::x.{core::double::+}([@vm.direct-call.metadata=#lib::_Vector::*??] [@vm.inferred-type.metadata=dart.core::_Double] [@vm.inferred-type.metadata=#lib::_Vector?] self::v.{self::_Vector::*}([@vm.inferred-type.metadata=#lib::_Vector?] self::v));
   }
   [@vm.direct-call.metadata=dart.core::Stopwatch::stop] timer.{core::Stopwatch::stop}();
   core::print("Elapsed ${[@vm.direct-call.metadata=dart.core::Stopwatch::elapsedMilliseconds] timer.{core::Stopwatch::elapsedMilliseconds}}ms, result ${self::x}");

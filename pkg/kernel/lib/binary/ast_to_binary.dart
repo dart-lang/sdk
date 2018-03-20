@@ -15,7 +15,7 @@ import 'dart:collection';
 ///
 /// A [BinaryPrinter] can be used to write one file and must then be
 /// discarded.
-class BinaryPrinter extends Visitor implements BinarySink {
+class BinaryPrinter implements Visitor<void>, BinarySink {
   VariableIndexer _variableIndexer;
   LabelIndexer _labelIndexer;
   SwitchCaseIndexer _switchCaseIndexer;
@@ -576,7 +576,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
 
   bool insideExternalLibrary = false;
 
-  visitLibrary(Library node) {
+  @override
+  void visitLibrary(Library node) {
     insideExternalLibrary = node.isExternal;
     libraryOffsets.add(getBufferOffset());
     writeByte(insideExternalLibrary ? 1 : 0);
@@ -714,7 +715,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
         levelFlags;
   }
 
-  visitClass(Class node) {
+  @override
+  void visitClass(Class node) {
     classOffsets.add(getBufferOffset());
 
     int flags = _encodeClassFlags(node.isAbstract, node.isEnum,
@@ -758,7 +760,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
 
   static final Name _emptyName = new Name('');
 
-  visitConstructor(Constructor node) {
+  @override
+  void visitConstructor(Constructor node) {
     if (node.canonicalName == null) {
       throw 'Missing canonical name for $node';
     }
@@ -787,7 +790,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
     _variableIndexer = null;
   }
 
-  visitProcedure(Procedure node) {
+  @override
+  void visitProcedure(Procedure node) {
     procedureOffsets.add(getBufferOffset());
 
     if (node.canonicalName == null) {
@@ -818,7 +822,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
         !(node.isForwardingStub && node.function.body != null));
   }
 
-  visitField(Field node) {
+  @override
+  void visitField(Field node) {
     if (node.canonicalName == null) {
       throw 'Missing canonical name for $node';
     }
@@ -843,7 +848,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
     _variableIndexer = null;
   }
 
-  visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
+  @override
+  void visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
     if (node.canonicalName == null) {
       throw 'Missing canonical name for $node';
     }
@@ -877,45 +883,52 @@ class BinaryPrinter extends Visitor implements BinarySink {
     _variableIndexer = null;
   }
 
-  visitInvalidInitializer(InvalidInitializer node) {
+  @override
+  void visitInvalidInitializer(InvalidInitializer node) {
     writeByte(Tag.InvalidInitializer);
     writeByte(node.isSynthetic ? 1 : 0);
   }
 
-  visitFieldInitializer(FieldInitializer node) {
+  @override
+  void visitFieldInitializer(FieldInitializer node) {
     writeByte(Tag.FieldInitializer);
     writeByte(node.isSynthetic ? 1 : 0);
     writeReference(node.fieldReference);
     writeNode(node.value);
   }
 
-  visitSuperInitializer(SuperInitializer node) {
+  @override
+  void visitSuperInitializer(SuperInitializer node) {
     writeByte(Tag.SuperInitializer);
     writeByte(node.isSynthetic ? 1 : 0);
     writeReference(node.targetReference);
     writeNode(node.arguments);
   }
 
-  visitRedirectingInitializer(RedirectingInitializer node) {
+  @override
+  void visitRedirectingInitializer(RedirectingInitializer node) {
     writeByte(Tag.RedirectingInitializer);
     writeByte(node.isSynthetic ? 1 : 0);
     writeReference(node.targetReference);
     writeNode(node.arguments);
   }
 
-  visitLocalInitializer(LocalInitializer node) {
+  @override
+  void visitLocalInitializer(LocalInitializer node) {
     writeByte(Tag.LocalInitializer);
     writeByte(node.isSynthetic ? 1 : 0);
     writeVariableDeclaration(node.variable);
   }
 
-  visitAssertInitializer(AssertInitializer node) {
+  @override
+  void visitAssertInitializer(AssertInitializer node) {
     writeByte(Tag.AssertInitializer);
     writeByte(node.isSynthetic ? 1 : 0);
     writeNode(node.statement);
   }
 
-  visitFunctionNode(FunctionNode node) {
+  @override
+  void visitFunctionNode(FunctionNode node) {
     writeByte(Tag.FunctionNode);
     assert(_variableIndexer != null);
     _variableIndexer.pushScope();
@@ -942,13 +955,15 @@ class BinaryPrinter extends Visitor implements BinarySink {
     _variableIndexer.popScope();
   }
 
-  visitInvalidExpression(InvalidExpression node) {
+  @override
+  void visitInvalidExpression(InvalidExpression node) {
     writeByte(Tag.InvalidExpression);
     writeOffset(node.fileOffset);
     writeStringReference(node.message ?? '');
   }
 
-  visitVariableGet(VariableGet node) {
+  @override
+  void visitVariableGet(VariableGet node) {
     assert(_variableIndexer != null);
     int index = _variableIndexer[node.variable];
     assert(index != null);
@@ -966,7 +981,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
     }
   }
 
-  visitVariableSet(VariableSet node) {
+  @override
+  void visitVariableSet(VariableSet node) {
     assert(_variableIndexer != null);
     int index = _variableIndexer[node.variable];
     if (index & Tag.SpecializedPayloadMask == index) {
@@ -983,7 +999,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
     }
   }
 
-  visitPropertyGet(PropertyGet node) {
+  @override
+  void visitPropertyGet(PropertyGet node) {
     writeByte(Tag.PropertyGet);
     writeOffset(node.fileOffset);
     writeByte(node.flags);
@@ -992,7 +1009,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeReference(node.interfaceTargetReference);
   }
 
-  visitPropertySet(PropertySet node) {
+  @override
+  void visitPropertySet(PropertySet node) {
     writeByte(Tag.PropertySet);
     writeOffset(node.fileOffset);
     writeByte(node.flags);
@@ -1002,14 +1020,16 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeReference(node.interfaceTargetReference);
   }
 
-  visitSuperPropertyGet(SuperPropertyGet node) {
+  @override
+  void visitSuperPropertyGet(SuperPropertyGet node) {
     writeByte(Tag.SuperPropertyGet);
     writeOffset(node.fileOffset);
     writeName(node.name);
     writeReference(node.interfaceTargetReference);
   }
 
-  visitSuperPropertySet(SuperPropertySet node) {
+  @override
+  void visitSuperPropertySet(SuperPropertySet node) {
     writeByte(Tag.SuperPropertySet);
     writeOffset(node.fileOffset);
     writeName(node.name);
@@ -1017,7 +1037,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeReference(node.interfaceTargetReference);
   }
 
-  visitDirectPropertyGet(DirectPropertyGet node) {
+  @override
+  void visitDirectPropertyGet(DirectPropertyGet node) {
     writeByte(Tag.DirectPropertyGet);
     writeOffset(node.fileOffset);
     writeByte(node.flags);
@@ -1025,7 +1046,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeReference(node.targetReference);
   }
 
-  visitDirectPropertySet(DirectPropertySet node) {
+  @override
+  void visitDirectPropertySet(DirectPropertySet node) {
     writeByte(Tag.DirectPropertySet);
     writeOffset(node.fileOffset);
     writeByte(node.flags);
@@ -1034,20 +1056,23 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeNode(node.value);
   }
 
-  visitStaticGet(StaticGet node) {
+  @override
+  void visitStaticGet(StaticGet node) {
     writeByte(Tag.StaticGet);
     writeOffset(node.fileOffset);
     writeReference(node.targetReference);
   }
 
-  visitStaticSet(StaticSet node) {
+  @override
+  void visitStaticSet(StaticSet node) {
     writeByte(Tag.StaticSet);
     writeOffset(node.fileOffset);
     writeReference(node.targetReference);
     writeNode(node.value);
   }
 
-  visitMethodInvocation(MethodInvocation node) {
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
     writeByte(Tag.MethodInvocation);
     writeOffset(node.fileOffset);
     writeByte(node.flags);
@@ -1057,7 +1082,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeReference(node.interfaceTargetReference);
   }
 
-  visitSuperMethodInvocation(SuperMethodInvocation node) {
+  @override
+  void visitSuperMethodInvocation(SuperMethodInvocation node) {
     writeByte(Tag.SuperMethodInvocation);
     writeOffset(node.fileOffset);
     writeName(node.name);
@@ -1065,7 +1091,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeReference(node.interfaceTargetReference);
   }
 
-  visitDirectMethodInvocation(DirectMethodInvocation node) {
+  @override
+  void visitDirectMethodInvocation(DirectMethodInvocation node) {
     writeByte(Tag.DirectMethodInvocation);
     writeOffset(node.fileOffset);
     writeByte(node.flags);
@@ -1074,14 +1101,16 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeNode(node.arguments);
   }
 
-  visitStaticInvocation(StaticInvocation node) {
+  @override
+  void visitStaticInvocation(StaticInvocation node) {
     writeByte(node.isConst ? Tag.ConstStaticInvocation : Tag.StaticInvocation);
     writeOffset(node.fileOffset);
     writeReference(node.targetReference);
     writeNode(node.arguments);
   }
 
-  visitConstructorInvocation(ConstructorInvocation node) {
+  @override
+  void visitConstructorInvocation(ConstructorInvocation node) {
     writeByte(node.isConst
         ? Tag.ConstConstructorInvocation
         : Tag.ConstructorInvocation);
@@ -1090,19 +1119,22 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeNode(node.arguments);
   }
 
-  visitArguments(Arguments node) {
+  @override
+  void visitArguments(Arguments node) {
     writeUInt30(node.positional.length + node.named.length);
     writeNodeList(node.types);
     writeNodeList(node.positional);
     writeNodeList(node.named);
   }
 
-  visitNamedExpression(NamedExpression node) {
+  @override
+  void visitNamedExpression(NamedExpression node) {
     writeStringReference(node.name);
     writeNode(node.value);
   }
 
-  visitNot(Not node) {
+  @override
+  void visitNot(Not node) {
     writeByte(Tag.Not);
     writeNode(node.operand);
   }
@@ -1117,14 +1149,16 @@ class BinaryPrinter extends Visitor implements BinarySink {
     throw 'Not a logical operator: $operator';
   }
 
-  visitLogicalExpression(LogicalExpression node) {
+  @override
+  void visitLogicalExpression(LogicalExpression node) {
     writeByte(Tag.LogicalExpression);
     writeNode(node.left);
     writeByte(logicalOperatorIndex(node.operator));
     writeNode(node.right);
   }
 
-  visitConditionalExpression(ConditionalExpression node) {
+  @override
+  void visitConditionalExpression(ConditionalExpression node) {
     writeByte(Tag.ConditionalExpression);
     writeNode(node.condition);
     writeNode(node.then);
@@ -1132,20 +1166,23 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeOptionalNode(node.staticType);
   }
 
-  visitStringConcatenation(StringConcatenation node) {
+  @override
+  void visitStringConcatenation(StringConcatenation node) {
     writeByte(Tag.StringConcatenation);
     writeOffset(node.fileOffset);
     writeNodeList(node.expressions);
   }
 
-  visitIsExpression(IsExpression node) {
+  @override
+  void visitIsExpression(IsExpression node) {
     writeByte(Tag.IsExpression);
     writeOffset(node.fileOffset);
     writeNode(node.operand);
     writeNode(node.type);
   }
 
-  visitAsExpression(AsExpression node) {
+  @override
+  void visitAsExpression(AsExpression node) {
     writeByte(Tag.AsExpression);
     writeOffset(node.fileOffset);
     writeByte(node.flags);
@@ -1153,12 +1190,14 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeNode(node.type);
   }
 
-  visitStringLiteral(StringLiteral node) {
+  @override
+  void visitStringLiteral(StringLiteral node) {
     writeByte(Tag.StringLiteral);
     writeStringReference(node.value);
   }
 
-  visitIntLiteral(IntLiteral node) {
+  @override
+  void visitIntLiteral(IntLiteral node) {
     writeInteger(node.value);
   }
 
@@ -1182,7 +1221,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
     }
   }
 
-  visitDoubleLiteral(DoubleLiteral node) {
+  @override
+  void visitDoubleLiteral(DoubleLiteral node) {
     writeDouble(node.value);
   }
 
@@ -1192,47 +1232,56 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeStringReference('$value');
   }
 
-  visitBoolLiteral(BoolLiteral node) {
+  @override
+  void visitBoolLiteral(BoolLiteral node) {
     writeByte(node.value ? Tag.TrueLiteral : Tag.FalseLiteral);
   }
 
-  visitNullLiteral(NullLiteral node) {
+  @override
+  void visitNullLiteral(NullLiteral node) {
     writeByte(Tag.NullLiteral);
   }
 
-  visitSymbolLiteral(SymbolLiteral node) {
+  @override
+  void visitSymbolLiteral(SymbolLiteral node) {
     writeByte(Tag.SymbolLiteral);
     writeStringReference(node.value);
   }
 
-  visitTypeLiteral(TypeLiteral node) {
+  @override
+  void visitTypeLiteral(TypeLiteral node) {
     writeByte(Tag.TypeLiteral);
     writeNode(node.type);
   }
 
-  visitThisExpression(ThisExpression node) {
+  @override
+  void visitThisExpression(ThisExpression node) {
     writeByte(Tag.ThisExpression);
   }
 
-  visitRethrow(Rethrow node) {
+  @override
+  void visitRethrow(Rethrow node) {
     writeByte(Tag.Rethrow);
     writeOffset(node.fileOffset);
   }
 
-  visitThrow(Throw node) {
+  @override
+  void visitThrow(Throw node) {
     writeByte(Tag.Throw);
     writeOffset(node.fileOffset);
     writeNode(node.expression);
   }
 
-  visitListLiteral(ListLiteral node) {
+  @override
+  void visitListLiteral(ListLiteral node) {
     writeByte(node.isConst ? Tag.ConstListLiteral : Tag.ListLiteral);
     writeOffset(node.fileOffset);
     writeNode(node.typeArgument);
     writeNodeList(node.expressions);
   }
 
-  visitMapLiteral(MapLiteral node) {
+  @override
+  void visitMapLiteral(MapLiteral node) {
     writeByte(node.isConst ? Tag.ConstMapLiteral : Tag.MapLiteral);
     writeOffset(node.fileOffset);
     writeNode(node.keyType);
@@ -1240,70 +1289,82 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeNodeList(node.entries);
   }
 
-  visitMapEntry(MapEntry node) {
+  @override
+  void visitMapEntry(MapEntry node) {
     // Note: there is no tag on MapEntry
     writeNode(node.key);
     writeNode(node.value);
   }
 
-  visitAwaitExpression(AwaitExpression node) {
+  @override
+  void visitAwaitExpression(AwaitExpression node) {
     writeByte(Tag.AwaitExpression);
     writeNode(node.operand);
   }
 
-  visitFunctionExpression(FunctionExpression node) {
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
     writeByte(Tag.FunctionExpression);
     writeOffset(node.fileOffset);
     writeNode(node.function);
   }
 
-  visitLet(Let node) {
+  @override
+  void visitLet(Let node) {
     writeByte(Tag.Let);
     writeVariableDeclaration(node.variable);
     writeNode(node.body);
     --_variableIndexer.stackHeight;
   }
 
-  visitInstantiation(Instantiation node) {
+  @override
+  void visitInstantiation(Instantiation node) {
     writeByte(Tag.Instantiation);
     writeNode(node.expression);
     writeNodeList(node.typeArguments);
   }
 
-  visitLoadLibrary(LoadLibrary node) {
+  @override
+  void visitLoadLibrary(LoadLibrary node) {
     writeByte(Tag.LoadLibrary);
     writeLibraryDependencyReference(node.import);
   }
 
-  visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
+  @override
+  void visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
     writeByte(Tag.CheckLibraryIsLoaded);
     writeLibraryDependencyReference(node.import);
   }
 
-  visitVectorCreation(VectorCreation node) {
+  @override
+  void visitVectorCreation(VectorCreation node) {
     writeByte(Tag.VectorCreation);
     writeUInt30(node.length);
   }
 
-  visitVectorGet(VectorGet node) {
+  @override
+  void visitVectorGet(VectorGet node) {
     writeByte(Tag.VectorGet);
     writeNode(node.vectorExpression);
     writeUInt30(node.index);
   }
 
-  visitVectorSet(VectorSet node) {
+  @override
+  void visitVectorSet(VectorSet node) {
     writeByte(Tag.VectorSet);
     writeNode(node.vectorExpression);
     writeUInt30(node.index);
     writeNode(node.value);
   }
 
-  visitVectorCopy(VectorCopy node) {
+  @override
+  void visitVectorCopy(VectorCopy node) {
     writeByte(Tag.VectorCopy);
     writeNode(node.vectorExpression);
   }
 
-  visitClosureCreation(ClosureCreation node) {
+  @override
+  void visitClosureCreation(ClosureCreation node) {
     writeByte(Tag.ClosureCreation);
     writeReference(node.topLevelFunctionReference);
     writeNode(node.contextVector);
@@ -1319,30 +1380,35 @@ class BinaryPrinter extends Visitor implements BinarySink {
     }
   }
 
-  visitExpressionStatement(ExpressionStatement node) {
+  @override
+  void visitExpressionStatement(ExpressionStatement node) {
     writeByte(Tag.ExpressionStatement);
     writeNode(node.expression);
   }
 
-  visitBlock(Block node) {
+  @override
+  void visitBlock(Block node) {
     _variableIndexer.pushScope();
     writeByte(Tag.Block);
     writeNodeList(node.statements);
     _variableIndexer.popScope();
   }
 
-  visitAssertBlock(AssertBlock node) {
+  @override
+  void visitAssertBlock(AssertBlock node) {
     _variableIndexer.pushScope();
     writeByte(Tag.AssertBlock);
     writeNodeList(node.statements);
     _variableIndexer.popScope();
   }
 
-  visitEmptyStatement(EmptyStatement node) {
+  @override
+  void visitEmptyStatement(EmptyStatement node) {
     writeByte(Tag.EmptyStatement);
   }
 
-  visitAssertStatement(AssertStatement node) {
+  @override
+  void visitAssertStatement(AssertStatement node) {
     writeByte(Tag.AssertStatement);
     writeNode(node.condition);
     writeOffset(node.conditionStartOffset);
@@ -1350,7 +1416,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeOptionalNode(node.message);
   }
 
-  visitLabeledStatement(LabeledStatement node) {
+  @override
+  void visitLabeledStatement(LabeledStatement node) {
     if (_labelIndexer == null) {
       _labelIndexer = new LabelIndexer();
     }
@@ -1360,32 +1427,37 @@ class BinaryPrinter extends Visitor implements BinarySink {
     _labelIndexer.exit();
   }
 
-  visitConstantExpression(ConstantExpression node) {
+  @override
+  void visitConstantExpression(ConstantExpression node) {
     writeByte(Tag.ConstantExpression);
     writeConstantReference(node.constant);
   }
 
-  visitBreakStatement(BreakStatement node) {
+  @override
+  void visitBreakStatement(BreakStatement node) {
     writeByte(Tag.BreakStatement);
     writeOffset(node.fileOffset);
     writeUInt30(_labelIndexer[node.target]);
   }
 
-  visitWhileStatement(WhileStatement node) {
+  @override
+  void visitWhileStatement(WhileStatement node) {
     writeByte(Tag.WhileStatement);
     writeOffset(node.fileOffset);
     writeNode(node.condition);
     writeNode(node.body);
   }
 
-  visitDoStatement(DoStatement node) {
+  @override
+  void visitDoStatement(DoStatement node) {
     writeByte(Tag.DoStatement);
     writeOffset(node.fileOffset);
     writeNode(node.body);
     writeNode(node.condition);
   }
 
-  visitForStatement(ForStatement node) {
+  @override
+  void visitForStatement(ForStatement node) {
     _variableIndexer.pushScope();
     writeByte(Tag.ForStatement);
     writeOffset(node.fileOffset);
@@ -1396,7 +1468,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
     _variableIndexer.popScope();
   }
 
-  visitForInStatement(ForInStatement node) {
+  @override
+  void visitForInStatement(ForInStatement node) {
     _variableIndexer.pushScope();
     writeByte(node.isAsync ? Tag.AsyncForInStatement : Tag.ForInStatement);
     writeOffset(node.fileOffset);
@@ -1407,7 +1480,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
     _variableIndexer.popScope();
   }
 
-  visitSwitchStatement(SwitchStatement node) {
+  @override
+  void visitSwitchStatement(SwitchStatement node) {
     if (_switchCaseIndexer == null) {
       _switchCaseIndexer = new SwitchCaseIndexer();
     }
@@ -1419,7 +1493,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
     _switchCaseIndexer.exit(node);
   }
 
-  visitSwitchCase(SwitchCase node) {
+  @override
+  void visitSwitchCase(SwitchCase node) {
     // Note: there is no tag on SwitchCase.
     int length = node.expressions.length;
     writeUInt30(length);
@@ -1431,13 +1506,15 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeNode(node.body);
   }
 
-  visitContinueSwitchStatement(ContinueSwitchStatement node) {
+  @override
+  void visitContinueSwitchStatement(ContinueSwitchStatement node) {
     writeByte(Tag.ContinueSwitchStatement);
     writeOffset(node.fileOffset);
     writeUInt30(_switchCaseIndexer[node.target]);
   }
 
-  visitIfStatement(IfStatement node) {
+  @override
+  void visitIfStatement(IfStatement node) {
     writeByte(Tag.IfStatement);
     writeOffset(node.fileOffset);
     writeNode(node.condition);
@@ -1445,13 +1522,15 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeStatementOrEmpty(node.otherwise);
   }
 
-  visitReturnStatement(ReturnStatement node) {
+  @override
+  void visitReturnStatement(ReturnStatement node) {
     writeByte(Tag.ReturnStatement);
     writeOffset(node.fileOffset);
     writeOptionalNode(node.expression);
   }
 
-  visitTryCatch(TryCatch node) {
+  @override
+  void visitTryCatch(TryCatch node) {
     writeByte(Tag.TryCatch);
     writeNode(node.body);
     if (node.catches.any((Catch c) => c.stackTrace != null)) {
@@ -1464,7 +1543,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeNodeList(node.catches);
   }
 
-  visitCatch(Catch node) {
+  @override
+  void visitCatch(Catch node) {
     // Note: there is no tag on Catch.
     _variableIndexer.pushScope();
     writeOffset(node.fileOffset);
@@ -1475,20 +1555,23 @@ class BinaryPrinter extends Visitor implements BinarySink {
     _variableIndexer.popScope();
   }
 
-  visitTryFinally(TryFinally node) {
+  @override
+  void visitTryFinally(TryFinally node) {
     writeByte(Tag.TryFinally);
     writeNode(node.body);
     writeNode(node.finalizer);
   }
 
-  visitYieldStatement(YieldStatement node) {
+  @override
+  void visitYieldStatement(YieldStatement node) {
     writeByte(Tag.YieldStatement);
     writeOffset(node.fileOffset);
     writeByte(node.flags);
     writeNode(node.expression);
   }
 
-  visitVariableDeclaration(VariableDeclaration node) {
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
     writeByte(Tag.VariableDeclaration);
     writeVariableDeclaration(node);
   }
@@ -1523,30 +1606,36 @@ class BinaryPrinter extends Visitor implements BinarySink {
     }
   }
 
-  visitFunctionDeclaration(FunctionDeclaration node) {
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     writeByte(Tag.FunctionDeclaration);
     writeOffset(node.fileOffset);
     writeVariableDeclaration(node.variable);
     writeNode(node.function);
   }
 
-  visitBottomType(BottomType node) {
+  @override
+  void visitBottomType(BottomType node) {
     writeByte(Tag.BottomType);
   }
 
-  visitInvalidType(InvalidType node) {
+  @override
+  void visitInvalidType(InvalidType node) {
     writeByte(Tag.InvalidType);
   }
 
-  visitDynamicType(DynamicType node) {
+  @override
+  void visitDynamicType(DynamicType node) {
     writeByte(Tag.DynamicType);
   }
 
-  visitVoidType(VoidType node) {
+  @override
+  void visitVoidType(VoidType node) {
     writeByte(Tag.VoidType);
   }
 
-  visitInterfaceType(InterfaceType node) {
+  @override
+  void visitInterfaceType(InterfaceType node) {
     if (node.typeArguments.isEmpty) {
       writeByte(Tag.SimpleInterfaceType);
       writeReference(node.className);
@@ -1557,7 +1646,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
     }
   }
 
-  visitSupertype(Supertype node) {
+  @override
+  void visitSupertype(Supertype node) {
     if (node.typeArguments.isEmpty) {
       writeByte(Tag.SimpleInterfaceType);
       writeReference(node.className);
@@ -1568,7 +1658,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
     }
   }
 
-  visitFunctionType(FunctionType node) {
+  @override
+  void visitFunctionType(FunctionType node) {
     if (node.requiredParameterCount == node.positionalParameters.length &&
         node.typeParameters.isEmpty &&
         node.namedParameters.isEmpty &&
@@ -1593,40 +1684,248 @@ class BinaryPrinter extends Visitor implements BinarySink {
     }
   }
 
-  visitNamedType(NamedType node) {
+  @override
+  void visitNamedType(NamedType node) {
     writeStringReference(node.name);
     writeNode(node.type);
   }
 
-  visitTypeParameterType(TypeParameterType node) {
+  @override
+  void visitTypeParameterType(TypeParameterType node) {
     writeByte(Tag.TypeParameterType);
     writeUInt30(_typeParameterIndexer[node.parameter]);
     writeOptionalNode(node.promotedBound);
   }
 
-  visitVectorType(VectorType node) {
+  @override
+  void visitVectorType(VectorType node) {
     writeByte(Tag.VectorType);
   }
 
-  visitTypedefType(TypedefType node) {
+  @override
+  void visitTypedefType(TypedefType node) {
     writeByte(Tag.TypedefType);
     writeReference(node.typedefReference);
     writeNodeList(node.typeArguments);
   }
 
-  visitTypeParameter(TypeParameter node) {
+  @override
+  void visitTypeParameter(TypeParameter node) {
     writeByte(node.flags);
     writeAnnotationList(node.annotations);
     writeStringReference(node.name ?? '');
     writeNode(node.bound);
   }
 
-  defaultConstant(Constant node) {
-    throw 'Implement handling of ${node.runtimeType}';
+  // ================================================================
+  // These are nodes that are never serialized directly.  Reaching one
+  // during serialization is an error.
+  @override
+  void defaultNode(Node node) {
+    throw new UnsupportedError('serialization of generic Nodes');
   }
 
-  defaultNode(Node node) {
-    throw 'Unsupported node: $node';
+  @override
+  void defaultConstant(Constant node) {
+    throw new UnsupportedError('serialization of generic Constants');
+  }
+
+  @override
+  void defaultBasicLiteral(BasicLiteral node) {
+    throw new UnsupportedError('serialization of generic BasicLiterals');
+  }
+
+  @override
+  void defaultConstantReference(Constant node) {
+    throw new UnsupportedError('serialization of generic Constant references');
+  }
+
+  @override
+  void defaultDartType(DartType node) {
+    throw new UnsupportedError('serialization of generic DartTypes');
+  }
+
+  @override
+  void defaultExpression(Expression node) {
+    throw new UnsupportedError('serialization of generic Expressions');
+  }
+
+  @override
+  void defaultInitializer(Initializer node) {
+    throw new UnsupportedError('serialization of generic Initializers');
+  }
+
+  @override
+  void defaultMember(Member node) {
+    throw new UnsupportedError('serialization of generic Members');
+  }
+
+  @override
+  void defaultMemberReference(Member node) {
+    throw new UnsupportedError('serialization of generic Member references');
+  }
+
+  @override
+  void defaultStatement(Statement node) {
+    throw new UnsupportedError('serialization of generic Statements');
+  }
+
+  @override
+  void defaultTreeNode(TreeNode node) {
+    throw new UnsupportedError('serialization of generic TreeNodes');
+  }
+
+  @override
+  void visitBoolConstant(BoolConstant node) {
+    throw new UnsupportedError('serialization of BoolConstants');
+  }
+
+  @override
+  void visitBoolConstantReference(BoolConstant node) {
+    throw new UnsupportedError('serialization of BoolConstant references');
+  }
+
+  @override
+  void visitClassReference(Class node) {
+    throw new UnsupportedError('serialization of Class references');
+  }
+
+  @override
+  void visitConstructorReference(Constructor node) {
+    throw new UnsupportedError('serialization of Constructor references');
+  }
+
+  @override
+  void visitDoubleConstant(DoubleConstant node) {
+    throw new UnsupportedError('serialization of DoubleConstants');
+  }
+
+  @override
+  void visitDoubleConstantReference(DoubleConstant node) {
+    throw new UnsupportedError('serialization of DoubleConstant references');
+  }
+
+  @override
+  void visitFieldReference(Field node) {
+    throw new UnsupportedError('serialization of Field references');
+  }
+
+  @override
+  void visitInstanceConstant(InstanceConstant node) {
+    throw new UnsupportedError('serialization of InstanceConstants');
+  }
+
+  @override
+  void visitInstanceConstantReference(InstanceConstant node) {
+    throw new UnsupportedError('serialization of InstanceConstant references');
+  }
+
+  @override
+  void visitIntConstant(IntConstant node) {
+    throw new UnsupportedError('serialization of IntConstants');
+  }
+
+  @override
+  void visitIntConstantReference(IntConstant node) {
+    throw new UnsupportedError('serialization of IntConstant references');
+  }
+
+  @override
+  void visitLibraryDependency(LibraryDependency node) {
+    throw new UnsupportedError('serialization of LibraryDependencys');
+  }
+
+  @override
+  void visitLibraryPart(LibraryPart node) {
+    throw new UnsupportedError('serialization of LibraryParts');
+  }
+
+  @override
+  void visitListConstant(ListConstant node) {
+    throw new UnsupportedError('serialization of ListConstants');
+  }
+
+  @override
+  void visitListConstantReference(ListConstant node) {
+    throw new UnsupportedError('serialization of ListConstant references');
+  }
+
+  @override
+  void visitMapConstant(MapConstant node) {
+    throw new UnsupportedError('serialization of MapConstants');
+  }
+
+  @override
+  void visitMapConstantReference(MapConstant node) {
+    throw new UnsupportedError('serialization of MapConstant references');
+  }
+
+  @override
+  void visitName(Name node) {
+    throw new UnsupportedError('serialization of Names');
+  }
+
+  @override
+  void visitNullConstant(NullConstant node) {
+    throw new UnsupportedError('serialization of NullConstants');
+  }
+
+  @override
+  void visitNullConstantReference(NullConstant node) {
+    throw new UnsupportedError('serialization of NullConstant references');
+  }
+
+  @override
+  void visitProcedureReference(Procedure node) {
+    throw new UnsupportedError('serialization of Procedure references');
+  }
+
+  @override
+  void visitComponent(Component node) {
+    throw new UnsupportedError('serialization of Components');
+  }
+
+  @override
+  void visitRedirectingFactoryConstructorReference(
+      RedirectingFactoryConstructor node) {
+    throw new UnsupportedError(
+        'serialization of RedirectingFactoryConstructor references');
+  }
+
+  @override
+  void visitStringConstant(StringConstant node) {
+    throw new UnsupportedError('serialization of StringConstants');
+  }
+
+  @override
+  void visitStringConstantReference(StringConstant node) {
+    throw new UnsupportedError('serialization of StringConstant references');
+  }
+
+  @override
+  void visitTearOffConstant(TearOffConstant node) {
+    throw new UnsupportedError('serialization of TearOffConstants ');
+  }
+
+  @override
+  void visitTearOffConstantReference(TearOffConstant node) {
+    throw new UnsupportedError('serialization of TearOffConstant references');
+  }
+
+  @override
+  void visitTypeLiteralConstant(TypeLiteralConstant node) {
+    throw new UnsupportedError('serialization of TypeLiteralConstants');
+  }
+
+  @override
+  void visitTypeLiteralConstantReference(TypeLiteralConstant node) {
+    throw new UnsupportedError(
+        'serialization of TypeLiteralConstant references');
+  }
+
+  @override
+  void visitTypedefReference(Typedef node) {
+    throw new UnsupportedError('serialization of Typedef references');
   }
 }
 

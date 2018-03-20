@@ -102,7 +102,7 @@ class ProcessedOptions {
   /// all method bodies are left out. In essence, it contains just API
   /// signatures and constants. When strong-mode is enabled, the summary already
   /// includes inferred types.
-  Component _sdkSummaryProgram;
+  Component _sdkSummaryComponent;
 
   /// The summary for each uri in `options.inputSummaries`.
   ///
@@ -110,9 +110,9 @@ class ProcessedOptions {
   /// all method bodies are left out. In essence, it contains just API
   /// signatures and constants. When strong-mode is enabled, the summary already
   /// includes inferred types.
-  List<Component> _inputSummariesPrograms;
+  List<Component> _inputSummariesComponents;
 
-  /// Other programs that are meant to be linked and compiled with the input
+  /// Other components that are meant to be linked and compiled with the input
   /// sources.
   List<Component> _linkedDependencies;
 
@@ -282,6 +282,14 @@ class ProcessedOptions {
           Severity.internalProblem);
       return false;
     }
+
+    for (Uri source in _raw.linkedDependencies) {
+      if (!await fileSystem.entityForUri(source).exists()) {
+        reportWithoutLocation(
+            templateInputFileNotFound.withArguments(source), Severity.error);
+        return false;
+      }
+    }
     return true;
   }
 
@@ -309,38 +317,38 @@ class ProcessedOptions {
   /// Get an outline component that summarizes the SDK, if any.
   // TODO(sigmund): move, this doesn't feel like an "option".
   Future<Component> loadSdkSummary(CanonicalName nameRoot) async {
-    if (_sdkSummaryProgram == null) {
+    if (_sdkSummaryComponent == null) {
       if (sdkSummary == null) return null;
       var bytes = await loadSdkSummaryBytes();
-      _sdkSummaryProgram = loadComponent(bytes, nameRoot);
+      _sdkSummaryComponent = loadComponent(bytes, nameRoot);
     }
-    return _sdkSummaryProgram;
+    return _sdkSummaryComponent;
   }
 
   void set sdkSummaryComponent(Component platform) {
-    if (_sdkSummaryProgram != null) {
+    if (_sdkSummaryComponent != null) {
       throw new StateError("sdkSummary already loaded.");
     }
-    _sdkSummaryProgram = platform;
+    _sdkSummaryComponent = platform;
   }
 
   /// Get the summary programs for each of the underlying `inputSummaries`
   /// provided via [CompilerOptions].
   // TODO(sigmund): move, this doesn't feel like an "option".
   Future<List<Component>> loadInputSummaries(CanonicalName nameRoot) async {
-    if (_inputSummariesPrograms == null) {
+    if (_inputSummariesComponents == null) {
       var uris = _raw.inputSummaries;
       if (uris == null || uris.isEmpty) return const <Component>[];
       // TODO(sigmund): throttle # of concurrent opreations.
       var allBytes = await Future
           .wait(uris.map((uri) => fileSystem.entityForUri(uri).readAsBytes()));
-      _inputSummariesPrograms =
+      _inputSummariesComponents =
           allBytes.map((bytes) => loadComponent(bytes, nameRoot)).toList();
     }
-    return _inputSummariesPrograms;
+    return _inputSummariesComponents;
   }
 
-  /// Load each of the [CompilerOptions.linkedDependencies] programs.
+  /// Load each of the [CompilerOptions.linkedDependencies] components.
   // TODO(sigmund): move, this doesn't feel like an "option".
   Future<List<Component>> loadLinkDependencies(CanonicalName nameRoot) async {
     if (_linkedDependencies == null) {

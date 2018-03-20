@@ -1145,110 +1145,51 @@ argument_assignability_function_typed_test/05: RuntimeError
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
-async_and_or_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_catch_regression_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_foreign_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-async_await_syntax_test/a01a: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/a02a: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/a03a: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/a03b: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/a05a: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/a05b: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/a06a: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/a09a: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/a11c: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/a11d: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/a12g: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/b01a: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/b02a: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/b03a: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/b05a: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/b06a: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/b09a: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/b11c: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/b11d: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/b12g: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/c01a: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/c02a: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/c03a: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/c05a: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/c06a: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/c09a: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/d01a: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/d02a: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/d03a: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/d05a: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/d06a: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_syntax_test/d09a: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_await_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-async_await_test/03: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-async_await_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-async_break_in_finally_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_call_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_cascade_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_congruence_local_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_congruence_method_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_congruence_top_level_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_congruence_unnamed_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_continue_label_test/await_in_body: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_continue_label_test/await_in_condition: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_continue_label_test/await_in_init: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_continue_label_test/await_in_update: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_continue_label_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_control_structures_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+async_await_syntax_test/a06a: RuntimeError
+async_await_syntax_test/b06a: RuntimeError
+async_await_syntax_test/c06a: RuntimeError
+async_await_syntax_test/d06a: RuntimeError
+async_await_test/02: RuntimeError
+async_await_test/03: RuntimeError
+async_await_test/none: RuntimeError
+async_congruence_local_test/none: RuntimeError
+async_congruence_method_test/none: RuntimeError
+async_congruence_top_level_test: RuntimeError
+async_congruence_unnamed_test/none: RuntimeError
 async_error_timing_test: RuntimeError
-async_finally_rethrow_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
 async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
-async_regression_23058_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_rethrow_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
 async_return_types_test/nestedFuture: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_return_types_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+async_return_types_test/none: RuntimeError
 async_return_types_test/tooManyTypeParameters: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
 async_return_types_test/wrongReturnType: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_star_await_pauses_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-async_star_cancel_and_throw_in_finally_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+async_star_await_pauses_test: RuntimeError
+async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_cancel_while_paused_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_star_no_cancel2_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_star_no_cancel_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_star_pause_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_star_regression_2238_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-async_star_regression_23116_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_star_regression_fisk_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_star_stream_take_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-async_star_take_reyield_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_star_test/01: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic method: selector=Selector(operator, *, arity=1), mask=[subclass=JSUInt32], HTypeInfoReadVariable(ListQueue.E)].
-async_star_test/02: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic method: selector=Selector(operator, *, arity=1), mask=[subclass=JSUInt32], HTypeInfoReadVariable(ListQueue.E)].
-async_star_test/03: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic method: selector=Selector(operator, *, arity=1), mask=[subclass=JSUInt32], HTypeInfoReadVariable(ListQueue.E)].
-async_star_test/04: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic method: selector=Selector(operator, *, arity=1), mask=[subclass=JSUInt32], HTypeInfoReadVariable(ListQueue.E)].
-async_star_test/05: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic method: selector=Selector(operator, *, arity=1), mask=[subclass=JSUInt32], HTypeInfoReadVariable(ListQueue.E)].
-async_star_test/none: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic method: selector=Selector(operator, *, arity=1), mask=[subclass=JSUInt32], HTypeInfoReadVariable(ListQueue.E)].
-async_switch_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_switch_test/withDefault: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-async_this_bound_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_throw_in_catch_test/forceAwait: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_throw_in_catch_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-asyncstar_concat_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-asyncstar_throw_in_catch_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-asyncstar_yield_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-asyncstar_yieldstar_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-await_and_ifnull_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-await_backwards_compatibility_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-await_exceptions_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-await_for_cancel_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-await_for_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-await_for_use_local_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-await_future_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-await_in_cascade_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-await_nonfuture_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+async_star_no_cancel2_test: RuntimeError
+async_star_no_cancel_test: RuntimeError
+async_star_pause_test: RuntimeError
+async_star_regression_2238_test: RuntimeError
+async_star_regression_23116_test: RuntimeError
+async_star_regression_fisk_test: RuntimeError
+async_star_stream_take_test: RuntimeError
+async_star_take_reyield_test: RuntimeError
+async_star_test/01: RuntimeError
+async_star_test/02: RuntimeError
+async_star_test/03: RuntimeError
+async_star_test/04: RuntimeError
+async_star_test/05: RuntimeError
+async_star_test/none: RuntimeError
+async_test: RuntimeError
+asyncstar_concat_test: RuntimeError
+asyncstar_yield_test: RuntimeError
+asyncstar_yieldstar_test: RuntimeError
+await_for_cancel_test: RuntimeError
+await_for_test: RuntimeError
+await_for_use_local_test: RuntimeError
 await_not_started_immediately_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-await_null_aware_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-await_postfix_expr_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-await_regression_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-await_started_immediately_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-await_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+await_test: RuntimeError
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
@@ -1263,9 +1204,9 @@ branches_test: Crash # 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dar
 call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
 canonical_const2_test: RuntimeError, OK # non JS number semantics
-cha_deopt1_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-cha_deopt2_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-cha_deopt3_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+cha_deopt1_test: RuntimeError
+cha_deopt2_test: RuntimeError
+cha_deopt3_test: RuntimeError
 check_member_static_test/01: MissingCompileTimeError
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
@@ -1332,7 +1273,6 @@ covariant_subtyping_unsafe_call1_test: RuntimeError
 covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
 ct_const_test: CompileTimeError
-custom_await_stack_trace_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
 cyclic_constructor_test/01: Crash # Issue 30856
 cyclic_type_variable_test/01: MissingCompileTimeError
 cyclic_type_variable_test/02: MissingCompileTimeError
@@ -1342,44 +1282,40 @@ cyclic_typedef_test/10: Crash # Stack Overflow
 cyclic_typedef_test/11: Crash # Stack Overflow
 default_factory2_test/01: MissingCompileTimeError
 default_factory_test/01: MissingCompileTimeError
-deferred_closurize_load_library_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-deferred_constant_list_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-deferred_constraints_constants_test/default_argument2: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-deferred_constraints_constants_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-deferred_constraints_constants_test/reference_after_load: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-deferred_constraints_type_annotation_test/new: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-deferred_constraints_type_annotation_test/new_generic1: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-deferred_constraints_type_annotation_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-deferred_constraints_type_annotation_test/static_method: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-deferred_constraints_type_annotation_test/type_annotation_non_deferred: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-deferred_function_type_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-deferred_global_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-deferred_import_core_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+deferred_closurize_load_library_test: RuntimeError
+deferred_constant_list_test: RuntimeError
+deferred_constraints_constants_test/none: RuntimeError
+deferred_constraints_constants_test/reference_after_load: RuntimeError
+deferred_constraints_type_annotation_test/new: RuntimeError
+deferred_constraints_type_annotation_test/new_generic1: RuntimeError
+deferred_constraints_type_annotation_test/none: RuntimeError
+deferred_constraints_type_annotation_test/static_method: RuntimeError
+deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError
+deferred_function_type_test: RuntimeError
+deferred_global_test: RuntimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
-deferred_inlined_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-deferred_load_constants_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-deferred_load_inval_code_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+deferred_inlined_test: RuntimeError
+deferred_load_constants_test/none: RuntimeError
+deferred_load_inval_code_test: RuntimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
-deferred_load_library_wrong_args_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-deferred_mixin_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-deferred_no_such_method_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+deferred_mixin_test: RuntimeError
+deferred_no_such_method_test: RuntimeError
 deferred_not_loaded_check_test: RuntimeError # Test out of date. Issue 31933
-deferred_only_constant_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-deferred_optimized_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-deferred_redirecting_factory_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-deferred_regression_22995_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-deferred_regression_28678_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-deferred_shadow_load_library_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+deferred_only_constant_test: RuntimeError
+deferred_optimized_test: RuntimeError
+deferred_redirecting_factory_test: RuntimeError
+deferred_regression_22995_test: RuntimeError
+deferred_regression_28678_test: RuntimeError
+deferred_shadow_load_library_test: RuntimeError
 deferred_shared_and_unshared_classes_test: CompileTimeError
-deferred_static_seperate_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-deferred_super_dependency_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-deferred_type_dependency_test/as: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-deferred_type_dependency_test/is: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-deferred_type_dependency_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-deferred_type_dependency_test/type_annotation: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+deferred_static_seperate_test: RuntimeError
+deferred_type_dependency_test/as: RuntimeError
+deferred_type_dependency_test/is: RuntimeError
+deferred_type_dependency_test/none: RuntimeError
+deferred_type_dependency_test/type_annotation: RuntimeError
 double_int_to_string_test: RuntimeError, OK # non JS number semantics
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
@@ -1412,19 +1348,10 @@ field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
-flatten_test/01: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-flatten_test/02: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-flatten_test/03: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-flatten_test/04: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-flatten_test/05: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-flatten_test/06: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-flatten_test/07: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-flatten_test/08: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-flatten_test/09: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-flatten_test/10: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-flatten_test/11: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-flatten_test/12: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-flatten_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+flatten_test/05: MissingRuntimeError
+flatten_test/08: MissingRuntimeError
+flatten_test/09: MissingRuntimeError
+flatten_test/12: MissingRuntimeError
 full_stacktrace1_test: RuntimeError # Issue 12698
 full_stacktrace2_test: RuntimeError # Issue 12698
 full_stacktrace3_test: RuntimeError # Issue 12698
@@ -1462,8 +1389,7 @@ function_type_alias4_test: RuntimeError
 function_type_alias_test: RuntimeError
 function_type_call_getter2_test/none: RuntimeError
 function_type_test: RuntimeError
-generic_async_star_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-generic_async_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+generic_async_star_test: RuntimeError
 generic_closure_test/01: RuntimeError
 generic_closure_test/none: RuntimeError
 generic_field_mixin6_test/none: RuntimeError
@@ -1541,8 +1467,7 @@ issue31596_override_test/07: MissingCompileTimeError
 issue31596_override_test/08: MissingCompileTimeError
 issue31596_super_test/01: CompileTimeError
 issue31596_super_test/03: CompileTimeError
-issue_1751477_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-known_identifier_usage_error_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+known_identifier_usage_error_test/none: RuntimeError
 left_shift_test: RuntimeError # non JS number semantics
 library_env_test/has_mirror_support: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
@@ -1782,28 +1707,15 @@ redirecting_factory_reflection_test: RuntimeError
 reg_exp_test: RuntimeError
 regress_13462_1_test: RuntimeError
 regress_18535_test: RuntimeError
-regress_22443_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-regress_22445_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-regress_22579_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-regress_22728_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-regress_22777_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+regress_22443_test: RuntimeError
 regress_23089_test: Crash # Stack Overflow
 regress_23408_test: CompileTimeError
-regress_23498_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-regress_23500_test/01: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-regress_23500_test/02: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-regress_23500_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-regress_23996_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+regress_23996_test: RuntimeError
 regress_24283_test: RuntimeError # non JS number semantics
-regress_24935_test/01: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-regress_24935_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-regress_26175_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-regress_26668_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-regress_26948_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+regress_24935_test/none: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
-regress_27659_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
 regress_28255_test: RuntimeError
-regress_28278_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+regress_28278_test: RuntimeError
 regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError
 regress_29784_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ok).
@@ -1817,7 +1729,7 @@ setter_override_test/00: MissingCompileTimeError
 setter_override_test/01: MissingCompileTimeError
 setter_override_test/02: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
-shadow_parameter_and_local_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+shadow_parameter_and_local_test: RuntimeError
 stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/withtraceparameter: RuntimeError # Issue 12698
@@ -1830,12 +1742,6 @@ string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
 super_call4_test: CompileTimeError
 super_getter_setter_test: CompileTimeError
-super_in_async1_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-super_in_async2_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-super_in_async3_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-super_in_async4_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-super_in_async5_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-super_in_async6_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
 super_no_such_method1_test: CompileTimeError
 super_no_such_method2_test: CompileTimeError
 super_no_such_method3_test: CompileTimeError
@@ -1853,8 +1759,6 @@ switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
 sync_generator2_test/41: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_impl.dart': Failed assertion: line 939 pos 18: 'asyncMarker == AsyncMarker.SYNC': is not true.
 sync_generator2_test/52: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_impl.dart': Failed assertion: line 939 pos 18: 'asyncMarker == AsyncMarker.SYNC': is not true.
-sync_generator2_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-syncstar_yieldstar_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
 syntax_test/04: Crash # 'file:*/pkg/compiler/lib/src/kernel/env.dart': Failed assertion: line 322 pos 16: '!name.contains('#')': is not true.
 syntax_test/05: Crash # 'file:*/pkg/compiler/lib/src/kernel/env.dart': Failed assertion: line 322 pos 16: '!name.contains('#')': is not true.
 syntax_test/06: Crash # 'file:*/pkg/compiler/lib/src/kernel/env.dart': Failed assertion: line 322 pos 16: '!name.contains('#')': is not true.
@@ -1914,7 +1818,6 @@ type_variable_bounds_test/11: MissingCompileTimeError
 type_variable_promotion_test: RuntimeError
 typedef_is_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
-unused_overridden_async_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
 vm/async_await_catch_stacktrace_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 vm/await_synchronous_future_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
 vm/causal_async_exception_stack2_test: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic method: selector=Selector(operator, *, arity=1), mask=[subclass=JSUInt32], HTypeInfoReadVariable(ListQueue.E)].
@@ -1987,7 +1890,7 @@ void_type_usage_test/param_null_equals2: Crash # 'package:front_end/src/fasta/ty
 void_type_usage_test/paren_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 wrong_number_type_arguments_test/01: MissingCompileTimeError
 wrong_number_type_arguments_test/none: Pass
-yieldstar_pause_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+yieldstar_pause_test: RuntimeError
 
 [ $compiler == dart2js && $fasta && $minified && $strong ]
 abstract_factory_constructor_test/00: MissingCompileTimeError
@@ -2003,110 +1906,51 @@ argument_assignability_function_typed_test/05: RuntimeError
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
-async_and_or_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_catch_regression_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_foreign_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-async_await_syntax_test/a01a: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/a02a: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/a03a: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/a03b: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/a05a: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/a05b: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/a06a: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/a09a: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/a11c: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/a11d: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/a12g: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/b01a: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/b02a: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/b03a: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/b05a: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/b06a: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/b09a: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/b11c: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/b11d: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/b12g: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/c01a: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/c02a: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/c03a: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/c05a: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/c06a: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/c09a: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/d01a: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/d02a: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/d03a: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/d05a: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/d06a: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_syntax_test/d09a: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_await_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-async_await_test/03: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-async_await_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-async_break_in_finally_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_call_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_cascade_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_congruence_local_test/none: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_congruence_method_test/none: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_congruence_top_level_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_congruence_unnamed_test/none: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_continue_label_test/await_in_body: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_continue_label_test/await_in_condition: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_continue_label_test/await_in_init: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_continue_label_test/await_in_update: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_continue_label_test/none: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_control_structures_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+async_await_syntax_test/a06a: RuntimeError
+async_await_syntax_test/b06a: RuntimeError
+async_await_syntax_test/c06a: RuntimeError
+async_await_syntax_test/d06a: RuntimeError
+async_await_test/02: RuntimeError
+async_await_test/03: RuntimeError
+async_await_test/none: RuntimeError
+async_congruence_local_test/none: RuntimeError
+async_congruence_method_test/none: RuntimeError
+async_congruence_top_level_test: RuntimeError
+async_congruence_unnamed_test/none: RuntimeError
 async_error_timing_test: RuntimeError
-async_finally_rethrow_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
 async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
-async_regression_23058_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_rethrow_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
 async_return_types_test/nestedFuture: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_return_types_test/none: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+async_return_types_test/none: RuntimeError
 async_return_types_test/tooManyTypeParameters: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
 async_return_types_test/wrongReturnType: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_star_await_pauses_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-async_star_cancel_and_throw_in_finally_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+async_star_await_pauses_test: RuntimeError
+async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_cancel_while_paused_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_star_no_cancel2_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_star_no_cancel_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_star_pause_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_star_regression_2238_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-async_star_regression_23116_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_star_regression_fisk_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_star_stream_take_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-async_star_take_reyield_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_star_test/01: Crash # Wrong number of template arguments, given 2, expected 1
-async_star_test/02: Crash # Wrong number of template arguments, given 2, expected 1
-async_star_test/03: Crash # Wrong number of template arguments, given 2, expected 1
-async_star_test/04: Crash # Wrong number of template arguments, given 2, expected 1
-async_star_test/05: Crash # Wrong number of template arguments, given 2, expected 1
-async_star_test/none: Crash # Wrong number of template arguments, given 2, expected 1
-async_switch_test/none: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_switch_test/withDefault: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-async_this_bound_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_throw_in_catch_test/forceAwait: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_throw_in_catch_test/none: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-asyncstar_concat_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-asyncstar_throw_in_catch_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-asyncstar_yield_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-asyncstar_yieldstar_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-await_and_ifnull_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-await_backwards_compatibility_test/none: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-await_exceptions_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-await_for_cancel_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-await_for_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-await_for_use_local_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-await_future_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-await_in_cascade_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-await_nonfuture_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+async_star_no_cancel2_test: RuntimeError
+async_star_no_cancel_test: RuntimeError
+async_star_pause_test: RuntimeError
+async_star_regression_2238_test: RuntimeError
+async_star_regression_23116_test: RuntimeError
+async_star_regression_fisk_test: RuntimeError
+async_star_stream_take_test: RuntimeError
+async_star_take_reyield_test: RuntimeError
+async_star_test/01: RuntimeError
+async_star_test/02: RuntimeError
+async_star_test/03: RuntimeError
+async_star_test/04: RuntimeError
+async_star_test/05: RuntimeError
+async_star_test/none: RuntimeError
+async_test: RuntimeError
+asyncstar_concat_test: RuntimeError
+asyncstar_yield_test: RuntimeError
+asyncstar_yieldstar_test: RuntimeError
+await_for_cancel_test: RuntimeError
+await_for_test: RuntimeError
+await_for_use_local_test: RuntimeError
 await_not_started_immediately_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-await_null_aware_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-await_postfix_expr_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-await_regression_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-await_started_immediately_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-await_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+await_test: RuntimeError
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
@@ -2120,9 +1964,9 @@ branch_canonicalization_test: RuntimeError
 call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
 canonical_const2_test: RuntimeError, OK # non JS number semantics
-cha_deopt1_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-cha_deopt2_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-cha_deopt3_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+cha_deopt1_test: RuntimeError
+cha_deopt2_test: RuntimeError
+cha_deopt3_test: RuntimeError
 check_member_static_test/01: MissingCompileTimeError
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
@@ -2188,7 +2032,6 @@ covariant_subtyping_unsafe_call1_test: RuntimeError
 covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
 ct_const_test: CompileTimeError
-custom_await_stack_trace_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
 cyclic_constructor_test/01: Crash # Issue 30856
 cyclic_type_variable_test/01: MissingCompileTimeError
 cyclic_type_variable_test/02: MissingCompileTimeError
@@ -2198,44 +2041,40 @@ cyclic_typedef_test/10: Crash # Stack Overflow
 cyclic_typedef_test/11: Crash # Stack Overflow
 default_factory2_test/01: MissingCompileTimeError
 default_factory_test/01: MissingCompileTimeError
-deferred_closurize_load_library_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-deferred_constant_list_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-deferred_constraints_constants_test/default_argument2: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-deferred_constraints_constants_test/none: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-deferred_constraints_constants_test/reference_after_load: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-deferred_constraints_type_annotation_test/new: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-deferred_constraints_type_annotation_test/new_generic1: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-deferred_constraints_type_annotation_test/none: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-deferred_constraints_type_annotation_test/static_method: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-deferred_constraints_type_annotation_test/type_annotation_non_deferred: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-deferred_function_type_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-deferred_global_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-deferred_import_core_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+deferred_closurize_load_library_test: RuntimeError
+deferred_constant_list_test: RuntimeError
+deferred_constraints_constants_test/none: RuntimeError
+deferred_constraints_constants_test/reference_after_load: RuntimeError
+deferred_constraints_type_annotation_test/new: RuntimeError
+deferred_constraints_type_annotation_test/new_generic1: RuntimeError
+deferred_constraints_type_annotation_test/none: RuntimeError
+deferred_constraints_type_annotation_test/static_method: RuntimeError
+deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError
+deferred_function_type_test: RuntimeError
+deferred_global_test: RuntimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
-deferred_inlined_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-deferred_load_constants_test/none: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-deferred_load_inval_code_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+deferred_inlined_test: RuntimeError
+deferred_load_constants_test/none: RuntimeError
+deferred_load_inval_code_test: RuntimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
-deferred_load_library_wrong_args_test/none: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-deferred_mixin_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-deferred_no_such_method_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+deferred_mixin_test: RuntimeError
+deferred_no_such_method_test: RuntimeError
 deferred_not_loaded_check_test: RuntimeError # Test out of date. Issue 31933
-deferred_only_constant_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-deferred_optimized_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-deferred_redirecting_factory_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-deferred_regression_22995_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-deferred_regression_28678_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-deferred_shadow_load_library_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+deferred_only_constant_test: RuntimeError
+deferred_optimized_test: RuntimeError
+deferred_redirecting_factory_test: RuntimeError
+deferred_regression_22995_test: RuntimeError
+deferred_regression_28678_test: RuntimeError
+deferred_shadow_load_library_test: RuntimeError
 deferred_shared_and_unshared_classes_test: CompileTimeError
-deferred_static_seperate_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-deferred_super_dependency_test/none: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-deferred_type_dependency_test/as: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-deferred_type_dependency_test/is: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-deferred_type_dependency_test/none: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-deferred_type_dependency_test/type_annotation: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+deferred_static_seperate_test: RuntimeError
+deferred_type_dependency_test/as: RuntimeError
+deferred_type_dependency_test/is: RuntimeError
+deferred_type_dependency_test/none: RuntimeError
+deferred_type_dependency_test/type_annotation: RuntimeError
 double_int_to_string_test: RuntimeError, OK # non JS number semantics
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
@@ -2269,19 +2108,10 @@ field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
-flatten_test/01: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-flatten_test/02: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-flatten_test/03: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-flatten_test/04: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-flatten_test/05: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-flatten_test/06: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-flatten_test/07: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-flatten_test/08: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-flatten_test/09: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-flatten_test/10: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-flatten_test/11: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-flatten_test/12: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-flatten_test/none: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+flatten_test/05: MissingRuntimeError
+flatten_test/08: MissingRuntimeError
+flatten_test/09: MissingRuntimeError
+flatten_test/12: MissingRuntimeError
 full_stacktrace1_test: RuntimeError # Issue 12698
 full_stacktrace2_test: RuntimeError # Issue 12698
 full_stacktrace3_test: RuntimeError # Issue 12698
@@ -2319,8 +2149,7 @@ function_type_alias4_test: RuntimeError
 function_type_alias_test: RuntimeError
 function_type_call_getter2_test/none: RuntimeError
 function_type_test: RuntimeError
-generic_async_star_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-generic_async_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+generic_async_star_test: RuntimeError
 generic_field_mixin6_test/none: RuntimeError
 generic_function_bounds_test: RuntimeError
 generic_function_dcall_test: RuntimeError
@@ -2390,13 +2219,11 @@ invocation_mirror_test: RuntimeError
 issue18628_2_test/01: MissingCompileTimeError
 issue21079_test: RuntimeError
 issue23244_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-issue28498_test: Crash
 issue31596_override_test/07: MissingCompileTimeError
 issue31596_override_test/08: MissingCompileTimeError
 issue31596_super_test/01: CompileTimeError
 issue31596_super_test/03: CompileTimeError
-issue_1751477_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-known_identifier_usage_error_test/none: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+known_identifier_usage_error_test/none: RuntimeError
 left_shift_test: RuntimeError # non JS number semantics
 library_env_test/has_mirror_support: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
@@ -2633,28 +2460,15 @@ reg_exp_test: RuntimeError
 regress_13462_1_test: RuntimeError
 regress_18535_test: RuntimeError
 regress_21795_test: RuntimeError # Issue 12605
-regress_22443_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-regress_22445_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-regress_22579_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-regress_22728_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-regress_22777_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+regress_22443_test: RuntimeError
 regress_23089_test: Crash # Stack Overflow
 regress_23408_test: CompileTimeError
-regress_23498_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-regress_23500_test/01: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-regress_23500_test/02: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-regress_23500_test/none: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-regress_23996_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+regress_23996_test: RuntimeError
 regress_24283_test: RuntimeError, OK # Requires 64 bit numbers.
-regress_24935_test/01: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-regress_24935_test/none: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-regress_26175_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-regress_26668_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-regress_26948_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+regress_24935_test/none: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
-regress_27659_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
 regress_28255_test: RuntimeError
-regress_28278_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+regress_28278_test: RuntimeError
 regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError
 regress_29784_test/01: Crash # Issue 29784
@@ -2668,7 +2482,7 @@ setter_override_test/00: MissingCompileTimeError
 setter_override_test/01: MissingCompileTimeError
 setter_override_test/02: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
-shadow_parameter_and_local_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+shadow_parameter_and_local_test: RuntimeError
 stack_trace_test: RuntimeError, OK # Stack trace not preserved in minified code.
 stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
@@ -2682,12 +2496,6 @@ string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
 super_call4_test: CompileTimeError
 super_getter_setter_test: CompileTimeError
-super_in_async1_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-super_in_async2_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-super_in_async3_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-super_in_async4_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-super_in_async5_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-super_in_async6_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
 super_no_such_method1_test: CompileTimeError
 super_no_such_method2_test: CompileTimeError
 super_no_such_method3_test: CompileTimeError
@@ -2704,8 +2512,6 @@ switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
 symbol_conflict_test: RuntimeError # Issue 23857
-sync_generator2_test/none: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-syncstar_yieldstar_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
 syntax_test/28: MissingCompileTimeError
 syntax_test/29: MissingCompileTimeError
 syntax_test/30: MissingCompileTimeError
@@ -2743,7 +2549,6 @@ type_variable_bounds_test/11: MissingCompileTimeError
 type_variable_promotion_test: RuntimeError
 typedef_is_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
-unused_overridden_async_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
 vm/async_await_catch_stacktrace_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 vm/await_synchronous_future_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
 vm/causal_async_exception_stack2_test: Crash # Wrong number of template arguments, given 2, expected 1
@@ -2780,7 +2585,7 @@ void_type_usage_test/conditional3_return_to_void: MissingCompileTimeError
 void_type_usage_test/conditional_return_to_void: MissingCompileTimeError
 wrong_number_type_arguments_test/01: MissingCompileTimeError
 wrong_number_type_arguments_test/none: Pass
-yieldstar_pause_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+yieldstar_pause_test: RuntimeError
 
 [ $compiler == dart2js && $fasta && $strong ]
 mixin_type_parameter5_test: RuntimeError

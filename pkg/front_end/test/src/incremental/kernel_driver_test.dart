@@ -716,7 +716,7 @@ main() {
     String initialKernelText;
     List<int> bytes;
     {
-      Library initialLibrary = _getLibraryFromProgram(component, bUri);
+      Library initialLibrary = _getLibraryFromComponent(component, bUri);
       initialKernelText = _getLibraryText(initialLibrary);
 
       bytes = serializeComponent(component,
@@ -733,10 +733,10 @@ main() {
     // serialized canonical names can be linked to corresponding nodes.
     Library loadedLibrary;
     {
-      var programForLoading = new Component(nameRoot: component.root);
+      var componentForLoading = new Component(nameRoot: component.root);
       var reader = new BinaryBuilder(bytes);
-      reader.readComponent(programForLoading);
-      loadedLibrary = _getLibraryFromProgram(programForLoading, bUri);
+      reader.readComponent(componentForLoading);
+      loadedLibrary = _getLibraryFromComponent(componentForLoading, bUri);
     }
 
     // Add the library into the component.
@@ -1023,7 +1023,7 @@ import 'b.dart';
     fail('No library found with URI "$uri"');
   }
 
-  Library _getLibraryFromProgram(Component component, Uri uri) {
+  Library _getLibraryFromComponent(Component component, Uri uri) {
     for (var library in component.libraries) {
       if (library.importUri == uri) return library;
     }

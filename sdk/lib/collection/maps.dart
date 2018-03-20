@@ -113,7 +113,7 @@ abstract class MapMixin<K, V> implements Map<K, V> {
     if (this.containsKey(key)) {
       return this[key] = update(this[key]);
     }
-    if (ifAbsent == null) {
+    if (ifAbsent != null) {
       return this[key] = ifAbsent();
     }
     throw new ArgumentError.value(key, "key", "Key not in map.");

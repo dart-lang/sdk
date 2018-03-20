@@ -144,6 +144,16 @@ Expression climbPropertyAccess(AstNode node) {
 }
 
 /**
+ * Return references to the [element] inside the [root] node.
+ */
+List<SimpleIdentifier> findLocalElementReferences(
+    AstNode root, LocalElement element) {
+  var collector = new _ElementReferenceCollector(element);
+  root.accept(collector);
+  return collector.references;
+}
+
+/**
  * TODO(scheglov) replace with nodes once there will be [CompilationUnit.getComments].
  *
  * Returns [SourceRange]s of all comments in [unit].
@@ -1460,6 +1470,20 @@ class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor {
             parent.realTarget != null ||
         parent is PrefixedIdentifier && parent.identifier == node ||
         parent is PropertyAccess && parent.target == node;
+  }
+}
+
+class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
+  final Element element;
+  final List<SimpleIdentifier> references = [];
+
+  _ElementReferenceCollector(this.element);
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.staticElement == element) {
+      references.add(node);
+    }
   }
 }
 

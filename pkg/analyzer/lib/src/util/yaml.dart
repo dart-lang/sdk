@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.util.yaml;
-
 import 'dart:collection';
 
 /// If all of the elements of [list] are strings, return a list of strings
@@ -55,13 +53,16 @@ class Merger {
   }
 
   /// Merge lists, avoiding duplicates.
-  List mergeList(List l1, List l2) =>
-      new List()..addAll(l1)..addAll(l2.where((item) => !l1.contains(item)));
+  List<E> mergeList<E>(List<E> l1, List<E> l2) =>
+      new List<E>()..addAll(l1)..addAll(l2.where((item) => !l1.contains(item)));
 
   /// Merge maps (recursively).
-  Map mergeMap(Map m1, Map m2) {
-    Map merged = new HashMap()..addAll(m1);
+  Map<K, V> mergeMap<K, V>(Map<K, V> m1, Map<K, V> m2) {
+    Map<K, V> merged = new HashMap<K, V>()..addAll(m1);
     m2.forEach((k, v) {
+      // TODO(brianwilkerson) This fails when merging two Map<String, YamlNode>
+      // objects and the result of `merge` is a HashMap (because the YamlNodes
+      // were YamlMaps.
       merged[k] = merge(merged[k], v);
     });
     return merged;

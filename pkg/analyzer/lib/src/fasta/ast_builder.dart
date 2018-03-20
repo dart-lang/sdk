@@ -1464,6 +1464,10 @@ class AstBuilder extends ScopeListener {
     }
   }
 
+  void beginTopLevelMethod(Token lastConsumed, Token externalToken) {
+    push(new _Modifiers()..externalKeyword = externalToken);
+  }
+
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
     // TODO(paulberry): set up scopes properly to resolve parameters and type
     // variables.
@@ -1995,6 +1999,14 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
+  void beginFactoryMethod(
+      Token lastConsumed, Token externalToken, Token constToken) {
+    push(new _Modifiers()
+      ..externalKeyword = externalToken
+      ..finalConstOrVarKeyword = constToken);
+  }
+
+  @override
   void endFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
     assert(optional('factory', factoryKeyword));
@@ -2083,7 +2095,6 @@ class AstBuilder extends ScopeListener {
     FormalParameterList parameters = pop();
     SimpleIdentifier name = pop();
     TypeAnnotation returnType = pop();
-    pop(); // modifiers
     TypeParameterList typeParameters = pop();
     FunctionExpression functionExpression =
         ast.functionExpression(typeParameters, parameters, body);

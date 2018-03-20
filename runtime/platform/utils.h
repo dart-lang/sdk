@@ -290,6 +290,17 @@ class Utils {
     return bit_cast<int64_t, double>(a) == bit_cast<int64_t, double>(b);
   }
 
+  // A double-to-integer conversion that avoids undefined behavior.
+  // Out of range values and NaNs are converted to minimum value
+  // for type T.
+  template <typename T>
+  static T SafeDoubleToInt(double v) {
+    const double min = static_cast<double>(std::numeric_limits<T>::min());
+    const double max = static_cast<double>(std::numeric_limits<T>::max());
+    return (min <= v && v <= max) ? static_cast<T>(v)
+                                  : std::numeric_limits<T>::min();
+  }
+
   // dart2js represents integers as double precision floats, which can
   // represent anything in the range -2^53 ... 2^53.
   static bool IsJavascriptInt(int64_t value) {

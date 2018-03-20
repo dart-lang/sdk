@@ -94,7 +94,7 @@ vars = {
   "http_retry_tag": "@0.1.0",
   "http_tag" : "@0.11.3+16",
   "http_throttle_tag" : "@1.0.1",
-  "idl_parser_rev": "@7fbe68cab90c38147dee4f48c30ad0d496c17915",
+  "idl_parser_rev": "@5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
   "intl_tag": "@0.15.2",
   "isolate_tag": "@1.1.0",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
@@ -143,7 +143,7 @@ vars = {
   "utf_tag": "@0.9.0+4",
   "watcher_tag": "@0.9.7+7",
   "web_socket_channel_tag": "@1.0.7",
-  "WebCore_rev": "@3c45690813c112373757bbef53de1602a62af609",
+  "WebCore_rev": "@fb11e887f77919450e497344da570d780e078bc8",
   "yaml_tag": "@2.1.13",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
 }

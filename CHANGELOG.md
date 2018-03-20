@@ -1,3 +1,5 @@
+## 2.0.0-dev.40.0
+
 ## 2.0.0-dev.39.0
 ### Tool Changes
 #### Pub
@@ -227,6 +229,7 @@ Still need entries for all changes to dart:html since 1.x
     `timeout`.
   * `Stdin.hasTerminal` added, which is true if stdin is attached to a terminal.
   * `WebSocket` added static `userAgent` property.
+  * `RandomAccessFile.close` returns `Future<void>`
 
 * `dart:isolate`
 
@@ -274,22 +277,36 @@ Still need entries for all changes to dart:web_audio,web_gl,web_sql since 1.x
 
 ### Tool Changes
 
-* Analyzer
+#### Analyzer
 
-  * The analyzer will no longer issue a warning when a generic type parameter
-    is used as the type in an instance check. For example:
+* The analyzer will no longer issue a warning when a generic type parameter
+  is used as the type in an instance check. For example:
+
+  ```dart
+  test<T>() {
+    print(3 is T); // No warning
+  }
+  ```
+
+* New static checking of `@visibleForTesting` elements. Accessing a method,
+  function, class, etc. annotated with `@visibleForTesting` from a file _not_
+  in a `test/` directory will result in a new hint ([issue 28273]).
+* Static analysis now respects functions annotated with `@alwaysThrows`
+  ([issue 31384]).
+* New hints added:
+  * `NULL_AWARE_BEFORE_OPERATOR` when an operator is used after a null-aware
+    access. For example:
 
     ```dart
-    test<T>() {
-      print(3 is T); // No warning
-    }
+    x?.a - ''; // HINT
     ```
 
-  * New static checking of `@visibleForTesting` elements. Accessing a method,
-    function, class, etc. annotated with `@visibleForTesting` from a file _not_
-    in a `test/` directory will result in a new hint ([issue 28273]).
-  * Static analysis now respects functions annotated with `@alwaysThrows`
-    ([issue 31384]).
+  * `NULL_AWARE_IN_LOGICAL_OPERATOR` when an expression with null-aware access
+    is used as a condition in logical operators. For example:
+
+    ```dart
+    x.a || x?.b; // HINT
+    ```
 
 [issue 28273]: https://github.com/dart-lang/sdk/issues/28273
 [issue 31384]: https://github.com/dart-lang/sdk/issues/31384

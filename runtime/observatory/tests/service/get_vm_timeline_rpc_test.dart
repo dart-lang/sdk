@@ -75,6 +75,10 @@ void allEventsHaveIsolateNumber(List events) {
       // Skip meta-data events.
       continue;
     }
+    if (event['ph'] == 'C') {
+      // Skip counter events, where an isolate id makes Catapult hard to read.
+      continue;
+    }
     if (event['name'] == 'Runnable' && event['ph'] == 'i') {
       // Skip Runnable events which don't have an isolate.
       continue;

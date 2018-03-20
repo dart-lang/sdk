@@ -364,6 +364,7 @@ class FixProcessor {
       await _addFix_useStaticAccess_property();
     }
     if (errorCode == StaticTypeWarningCode.INVALID_ASSIGNMENT) {
+      await _addFix_addExplicitCast();
       await _addFix_changeTypeAnnotation();
     }
     if (errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION) {
@@ -447,6 +448,9 @@ class FixProcessor {
       if (name == LintNames.empty_statements) {
         await _addFix_removeEmptyStatement();
       }
+      if (name == LintNames.non_constant_identifier_names) {
+        await _addFix_renameToCamelCase();
+      }
       if (name == LintNames.prefer_collection_literals) {
         await _addFix_replaceWithLiteral();
       }
@@ -494,6 +498,80 @@ class FixProcessor {
         builder.convertFunctionFromSyncToAsync(body, typeProvider);
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.ADD_ASYNC);
+    }
+  }
+
+  Future<Null> _addFix_addExplicitCast() async {
+    if (coveredNode is! Expression) {
+      return;
+    }
+    Expression target = coveredNode;
+    DartType fromType = target.staticType;
+    DartType toType;
+    AstNode parent = target.parent;
+    if (parent is AssignmentExpression && target == parent.rightHandSide) {
+      toType = parent.leftHandSide.staticType;
+    } else if (parent is VariableDeclaration && target == parent.initializer) {
+      toType = parent.name.staticType;
+    } else {
+      return;
+    }
+    // TODO(brianwilkerson) I think it's more efficient to invoke `cast` before
+    // invoking `toList()`, so check to see whether the cast should be inserted
+    // before the end of the expression.
+    // TODO(brianwilkerson) We should not produce a fix if the target is an
+    // invocation of the `cast` method.
+    bool needsParentheses = target.precedence < 15;
+    if ((_isDartCoreList(fromType) && _isDartCoreList(toType)) ||
+        (_isDartCoreSet(fromType) && _isDartCoreSet(toType))) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        if (needsParentheses) {
+          builder.addSimpleInsertion(target.offset, '(');
+        }
+        builder.addInsertion(target.end, (DartEditBuilder builder) {
+          if (needsParentheses) {
+            builder.write(')');
+          }
+          builder.write('.cast<');
+          builder.writeType((toType as InterfaceType).typeArguments[0]);
+          builder.write('>()');
+        });
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.ADD_EXPLICIT_CAST);
+    } else if (_isDartCoreMap(fromType) && _isDartCoreMap(toType)) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        if (needsParentheses) {
+          builder.addSimpleInsertion(target.offset, '(');
+        }
+        builder.addInsertion(target.end, (DartEditBuilder builder) {
+          if (needsParentheses) {
+            builder.write(')');
+          }
+          builder.write('.cast<');
+          builder.writeType((toType as InterfaceType).typeArguments[0]);
+          builder.write(', ');
+          builder.writeType((toType as InterfaceType).typeArguments[1]);
+          builder.write('>()');
+        });
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.ADD_EXPLICIT_CAST);
+    } else {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        if (needsParentheses) {
+          builder.addSimpleInsertion(target.offset, '(');
+        }
+        builder.addInsertion(target.end, (DartEditBuilder builder) {
+          if (needsParentheses) {
+            builder.write(')');
+          }
+          builder.write(' as ');
+          builder.writeType(toType);
+        });
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.ADD_EXPLICIT_CAST);
     }
   }
 
@@ -2362,6 +2440,47 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNUSED_IMPORT);
   }
 
+  Future<Null> _addFix_renameToCamelCase() async {
+    if (node is! SimpleIdentifier) {
+      return;
+    }
+    SimpleIdentifier identifier = this.node;
+
+    // Prepare the new name.
+    List<String> words = identifier.name.split('_');
+    if (words.length < 2) {
+      return;
+    }
+    var newName = words.first + words.skip(1).map((w) => capitalize(w)).join();
+
+    // Find references to the identifier.
+    List<SimpleIdentifier> references;
+    Element element = identifier.staticElement;
+    if (element is LocalVariableElement) {
+      AstNode root = node.getAncestor((node) => node is Block);
+      references = findLocalElementReferences(root, element);
+    } else if (element is ParameterElement) {
+      if (!element.isNamed) {
+        AstNode root = node.getAncestor((node) =>
+            node.parent is ClassDeclaration || node.parent is CompilationUnit);
+        references = findLocalElementReferences(root, element);
+      }
+    }
+    if (references == null) {
+      return;
+    }
+
+    // Compute the change.
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      for (var reference in references) {
+        builder.addSimpleReplacement(range.node(reference), newName);
+      }
+    });
+    _addFixFromBuilder(changeBuilder, DartFixKind.RENAME_TO_CAMEL_CASE,
+        args: [newName]);
+  }
+
   Future<Null> _addFix_replaceFinalWithConst() async {
     if (node is VariableDeclarationList) {
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
@@ -3309,6 +3428,39 @@ class FixProcessor {
     return node is SimpleIdentifier && node.name == 'await';
   }
 
+  bool _isDartCoreList(DartType type) {
+    if (type is! InterfaceType) {
+      return false;
+    }
+    ClassElement element = type.element;
+    if (element == null) {
+      return false;
+    }
+    return element.name == "List" && element.library.isDartCore;
+  }
+
+  bool _isDartCoreMap(DartType type) {
+    if (type is! InterfaceType) {
+      return false;
+    }
+    ClassElement element = type.element;
+    if (element == null) {
+      return false;
+    }
+    return element.name == "Map" && element.library.isDartCore;
+  }
+
+  bool _isDartCoreSet(DartType type) {
+    if (type is! InterfaceType) {
+      return false;
+    }
+    ClassElement element = type.element;
+    if (element == null) {
+      return false;
+    }
+    return element.name == "Set" && element.library.isDartCore;
+  }
+
   bool _isLibSrcPath(String path) {
     List<String> parts = resourceProvider.pathContext.split(path);
     for (int i = 0; i < parts.length - 2; i++) {
@@ -3435,6 +3587,8 @@ class LintNames {
   static const String empty_catches = 'empty_catches';
   static const String empty_constructor_bodies = 'empty_constructor_bodies';
   static const String empty_statements = 'empty_statements';
+  static const String non_constant_identifier_names =
+      'non_constant_identifier_names';
   static const String prefer_collection_literals = 'prefer_collection_literals';
   static const String prefer_conditional_assignment =
       'prefer_conditional_assignment';

@@ -2100,6 +2100,12 @@ class TypeRepresentationGenerator
       return finish(visit(unaliasedType, emitter));
     }
   }
+
+  @override
+  jsAst.Expression visitFutureOrType(FutureOrType type, Emitter argument) {
+    // TODO(johnniwinther,sigmund): Implement runtime semantics for `FutureOr`.
+    return getDynamicValue();
+  }
 }
 
 class TypeCheckMapping implements TypeChecks {

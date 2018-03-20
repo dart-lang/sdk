@@ -1601,7 +1601,7 @@ static bool ToIntegerConstant(Value* value, int64_t* result) {
   const Object& constant = value->BoundConstant();
   if (constant.IsDouble()) {
     const Double& double_constant = Double::Cast(constant);
-    *result = static_cast<int64_t>(double_constant.value());
+    *result = Utils::SafeDoubleToInt<int64_t>(double_constant.value());
     return (static_cast<double>(*result) == double_constant.value());
   } else if (constant.IsSmi()) {
     *result = Smi::Cast(constant).Value();

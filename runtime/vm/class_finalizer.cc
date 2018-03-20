@@ -2751,7 +2751,7 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
   sentinel.SetStaticValue(enum_value, true);
   sentinel.RecordStore(enum_value);
 
-  if (thread->isolate()->use_dart_frontend()) {
+  if (enum_cls.kernel_offset() > 0) {
     Object& result = Object::Handle(zone);
     for (intptr_t i = 0; i < fields.Length(); i++) {
       field = Field::RawCast(fields.At(i));

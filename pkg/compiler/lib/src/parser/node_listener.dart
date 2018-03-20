@@ -550,7 +550,7 @@ class NodeListener extends ElementListener {
     // The name can be an identifier or a send in case of named constructors.
     Expression name = popNode();
     TypeAnnotation type = popNode();
-    Modifiers modifiers = popNode();
+    Modifiers modifiers = new Modifiers(new NodeList.empty());
     NodeList typeVariables = popNode();
     pushNode(new FunctionExpression(name, typeVariables, formals, body, type,
         modifiers, initializers, null, asyncModifier));
@@ -565,7 +565,7 @@ class NodeListener extends ElementListener {
     // The name can be an identifier or a send in case of named constructors.
     Expression name = popNode();
     TypeAnnotation type = popNode();
-    Modifiers modifiers = popNode();
+    Modifiers modifiers = new Modifiers(new NodeList.empty());
     NodeList typeVariables = popNode();
     pushNode(new FunctionDeclaration(new FunctionExpression(name, typeVariables,
         formals, body, type, modifiers, initializers, null, asyncModifier)));
@@ -1006,6 +1006,27 @@ class NodeListener extends ElementListener {
   @override
   void handleEmptyStatement(Token token) {
     pushNode(new EmptyStatement(token));
+  }
+
+  @override
+  void beginFactoryMethod(
+      Token lastConsumed, Token externalToken, Token constToken) {
+    if (externalToken != null) {
+      Link<Node> poppedNodes = const Link<Node>();
+      if (constToken != null) {
+        poppedNodes = poppedNodes.prepend(new Identifier(constToken));
+      }
+      poppedNodes = poppedNodes.prepend(new Identifier(externalToken));
+      NodeList modifierNodes = new NodeList(null, poppedNodes, null, ' ');
+      pushNode(new Modifiers(modifierNodes));
+    } else if (constToken != null) {
+      Link<Node> poppedNodes = const Link<Node>();
+      poppedNodes = poppedNodes.prepend(new Identifier(constToken));
+      NodeList modifierNodes = new NodeList(null, poppedNodes, null, ' ');
+      pushNode(new Modifiers(modifierNodes));
+    } else {
+      pushNode(Modifiers.EMPTY);
+    }
   }
 
   @override

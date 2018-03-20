@@ -94,7 +94,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 52;
+  static const int DATA_VERSION = 53;
 
   /**
    * The number of exception contexts allowed to write. Once this field is
@@ -326,11 +326,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   /**
    * The current analysis session.
-   *
-   * TODO(brianwilkerson) Create a new session when the current session might
-   * produce inconsistent results.
    */
-  AnalysisSession _currentSession;
+  AnalysisSessionImpl _currentSession;
 
   /**
    * Create a new instance of [AnalysisDriver].
@@ -356,7 +353,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _sourceFactory = sourceFactory.clone(),
         _sdkBundle = sdkBundle,
         _externalSummaries = externalSummaries {
-    _currentSession = new AnalysisSessionImpl(this);
+    _createNewSession();
     _onResults = _resultController.stream.asBroadcastStream();
     _testView = new AnalysisDriverTestView(this);
     _createFileTracker();
@@ -1122,6 +1119,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * of state.
    */
   void _changeHook() {
+    _createNewSession();
     _priorityResults.clear();
     _scheduler.notify(this);
   }
@@ -1237,6 +1235,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
               _allCachedResults[unitFile.path] = result;
             }
           }
+
+          _currentSession.put(libraryElement: resolvedUnit?.element?.library);
 
           // Return the result, full or partial.
           _logger.writeln('Computed new analysis result.');
@@ -1382,6 +1382,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _sourceFactory,
         _externalSummaries,
         fsState);
+  }
+
+  /**
+   * Create a new analysis session, so invalidating the current one.
+   */
+  void _createNewSession() {
+    _currentSession = new AnalysisSessionImpl(this);
   }
 
   /**

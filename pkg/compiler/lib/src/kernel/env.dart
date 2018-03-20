@@ -25,15 +25,15 @@ import 'kelements.dart' show KImport;
 
 /// Environment for fast lookup of component libraries.
 class ProgramEnv {
-  final Set<ir.Component> _programs = new Set<ir.Component>();
+  final Set<ir.Component> _components = new Set<ir.Component>();
 
   Map<Uri, LibraryEnv> _libraryMap;
 
   /// TODO(johnniwinther): Handle arbitrary load order if needed.
-  ir.Member get mainMethod => _programs.first?.mainMethod;
+  ir.Member get mainMethod => _components.first?.mainMethod;
 
-  void addProgram(ir.Component component) {
-    if (_programs.add(component)) {
+  void addComponent(ir.Component component) {
+    if (_components.add(component)) {
       if (_libraryMap != null) {
         _addLibraries(component);
       }
@@ -49,7 +49,7 @@ class ProgramEnv {
   void _ensureLibraryMap() {
     if (_libraryMap == null) {
       _libraryMap = <Uri, LibraryEnv>{};
-      for (ir.Component component in _programs) {
+      for (ir.Component component in _components) {
         _addLibraries(component);
       }
     }

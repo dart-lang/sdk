@@ -276,6 +276,6 @@ class CompileTask {
 /// to the [dillTarget].
 void _appendDillForUri(DillTarget dillTarget, Uri uri) {
   var bytes = new File.fromUri(uri).readAsBytesSync();
-  var platformProgram = loadComponentFromBytes(bytes);
-  dillTarget.loader.appendLibraries(platformProgram, byteCount: bytes.length);
+  var platformComponent = loadComponentFromBytes(bytes);
+  dillTarget.loader.appendLibraries(platformComponent, byteCount: bytes.length);
 }

@@ -4,8 +4,6 @@
 
 // TODO(jmesserly): this file needs to be refactored, it's a port from
 // package:dev_compiler's tests
-library analyzer.test.src.task.strong.strong_test_helper;
-
 import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -371,7 +369,7 @@ class AbstractStrongTest {
       List<String> nonnullableTypes: AnalysisOptionsImpl.NONNULLABLE_TYPES,
       bool superMixins: false}) async {
     addFile(content);
-    return check(
+    return await check(
         declarationCasts: declarationCasts,
         implicitCasts: implicitCasts,
         implicitDynamic: implicitDynamic,

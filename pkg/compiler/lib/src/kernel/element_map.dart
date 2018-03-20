@@ -130,7 +130,7 @@ abstract class KernelToElementMapForImpact extends KernelToElementMap {
   ///
   /// The main method of the first component is used as the main method for the
   /// compilation.
-  void addProgram(ir.Component component);
+  void addComponent(ir.Component component);
 
   /// Returns the [ConstructorEntity] corresponding to a super initializer in
   /// [constructor].

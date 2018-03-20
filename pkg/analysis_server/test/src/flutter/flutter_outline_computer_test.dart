@@ -376,6 +376,118 @@ class MyWidget extends StatelessWidget {
     expect(myWidget.renderConstructor, isNull);
   }
 
+  test_render_instrumentedCode_registerWidgets() async {
+    await _computeOutline('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  MyWidget.forDesignTime();
+
+  @override
+  Widget build(BuildContext context) {
+    return new Row(
+      children: <Widget>[
+        new Text('aaa'),
+        new Text('bbb'),
+      ],
+    );
+  }
+}
+''');
+    expect(
+        computer.instrumentedCode,
+        r'''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  MyWidget.forDesignTime();
+
+  @override
+  Widget build(BuildContext context) {
+    return _registerWidgetInstance(0, new Row(
+      children: <Widget>[
+        _registerWidgetInstance(1, new Text('aaa')),
+        _registerWidgetInstance(2, new Text('bbb')),
+      ],
+    ));
+  }
+}
+''' +
+            FlutterOutlineComputer.RENDER_APPEND);
+  }
+
+  test_render_instrumentedCode_rewriteUri_file() async {
+    testPath = resourceProvider.convertPath('/home/user/test/test.dart');
+    var libFile = newFile('/home/user/test/my_lib.dart', content: '');
+
+    await _computeOutline('''
+import 'package:flutter/widgets.dart';
+import 'my_lib.dart';
+
+class MyWidget extends StatelessWidget {
+  MyWidget.forDesignTime();
+
+  @override
+  Widget build(BuildContext context) {
+    return new Container();
+  }
+}
+''');
+    expect(
+        computer.instrumentedCode,
+        '''
+import 'package:flutter/widgets.dart';
+import '${libFile.toUri()}';
+
+class MyWidget extends StatelessWidget {
+  MyWidget.forDesignTime();
+
+  @override
+  Widget build(BuildContext context) {
+    return _registerWidgetInstance(0, new Container());
+  }
+}
+''' +
+            FlutterOutlineComputer.RENDER_APPEND);
+  }
+
+  test_render_instrumentedCode_rewriteUri_package() async {
+    packageMap['test'] = [newFolder('/home/user/test/lib')];
+
+    testPath = resourceProvider.convertPath('/home/user/test/lib/test.dart');
+    newFile('/home/user/test/lib/my_lib.dart', content: '');
+
+    await _computeOutline('''
+import 'package:flutter/widgets.dart';
+import 'my_lib.dart';
+
+class MyWidget extends StatelessWidget {
+  MyWidget.forDesignTime();
+
+  @override
+  Widget build(BuildContext context) {
+    return new Container();
+  }
+}
+''');
+    expect(
+        computer.instrumentedCode,
+        '''
+import 'package:flutter/widgets.dart';
+import 'package:test/my_lib.dart';
+
+class MyWidget extends StatelessWidget {
+  MyWidget.forDesignTime();
+
+  @override
+  Widget build(BuildContext context) {
+    return _registerWidgetInstance(0, new Container());
+  }
+}
+''' +
+            FlutterOutlineComputer.RENDER_APPEND);
+  }
+
   test_render_stateful_createState_blockBody() async {
     FlutterOutline unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
@@ -448,27 +560,6 @@ class MyWidget extends StatelessWidget {
     expect(myWidget.renderConstructor, 'forDesignTime');
     expect(myWidget.stateOffset, isNull);
     expect(myWidget.stateLength, isNull);
-
-    expect(
-        computer.instrumentedCode,
-        r'''
-import 'package:flutter/widgets.dart';
-
-class MyWidget extends StatelessWidget {
-  MyWidget.forDesignTime();
-
-  @override
-  Widget build(BuildContext context) {
-    return _registerWidgetInstance(0, new Row(
-      children: <Widget>[
-        _registerWidgetInstance(1, new Text('aaa')),
-        _registerWidgetInstance(2, new Text('bbb')),
-      ],
-    ));
-  }
-}
-''' +
-            FlutterOutlineComputer.RENDER_APPEND);
 
     var build = myWidget.children[1];
 

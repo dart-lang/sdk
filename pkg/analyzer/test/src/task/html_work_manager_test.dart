@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.task.html_work_manager_test;
-
 import 'package:analyzer/error/error.dart' show AnalysisError;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/error/codes.dart' show HtmlErrorCode;
 import 'package:analyzer/src/generated/engine.dart'
     show
@@ -24,7 +23,6 @@ import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/html.dart';
 import 'package:analyzer/task/model.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -63,7 +61,7 @@ class HtmlWorkManagerIntegrationTest {
     // the work manager was constructed. This used to create a failure
     // case for test_onResultInvalidated_scheduleInvalidLibraries so its
     // tested here.
-    context.sourceFactory = new _SourceFactoryMock();
+    context.sourceFactory = new SourceFactoryImpl(<UriResolver>[]);
 
     // now just do the same checks as
     // test_onResultInvalidated_scheduleInvalidLibraries
@@ -82,7 +80,7 @@ class HtmlWorkManagerIntegrationTest {
 
 @reflectiveTest
 class HtmlWorkManagerTest {
-  InternalAnalysisContext context = new _InternalAnalysisContextMock();
+  _InternalAnalysisContextMock context = new _InternalAnalysisContextMock();
   AnalysisCache cache;
   HtmlWorkManager manager;
 
@@ -155,8 +153,8 @@ class HtmlWorkManagerTest {
   }
 
   void test_applyPriorityTargets() {
-    when(context.shouldErrorsBeAnalyzed(source2)).thenReturn(true);
-    when(context.shouldErrorsBeAnalyzed(source3)).thenReturn(true);
+    context.setShouldErrorsBeAnalyzed(source2, true);
+    context.setShouldErrorsBeAnalyzed(source3, true);
     manager.priorityResultQueue.add(new TargetedResult(source1, HTML_ERRORS));
     manager.priorityResultQueue.add(new TargetedResult(source2, HTML_ERRORS));
     // -source1 +source3
@@ -284,7 +282,7 @@ class HtmlWorkManagerTest {
   }
 
   void test_onAnalysisOptionsChanged() {
-    when(context.exists(any)).thenReturn(true);
+    context.everythingExists = true;
     // set cache values
     entry1.setValue(DART_SCRIPTS, [], []);
     entry1.setValue(HTML_DOCUMENT, null, []);
@@ -314,7 +312,7 @@ class HtmlWorkManagerTest {
   }
 
   void test_onSourceFactoryChanged() {
-    when(context.exists(any)).thenReturn(true);
+    context.everythingExists = true;
     // set cache values
     entry1.setValue(DART_SCRIPTS, [], []);
     entry1.setValue(HTML_DOCUMENT, null, []);
@@ -348,13 +346,16 @@ class HtmlWorkManagerTest {
   }
 }
 
-class _InternalAnalysisContextMock extends Mock
-    implements InternalAnalysisContext {
+class _InternalAnalysisContextMock implements InternalAnalysisContext {
   @override
   CachePartition privateAnalysisCachePartition;
 
   @override
   AnalysisCache analysisCache;
+
+  bool everythingExists = false;
+
+  Map<Source, bool> shouldErrorsBeAnalyzedMap = <Source, bool>{};
 
   // The production version is a stream that carries messages from the cache
   // since the cache changes. Here, we can just pass the inner stream because
@@ -368,6 +369,11 @@ class _InternalAnalysisContextMock extends Mock
 
   @override
   get onResultInvalidated => analysisCache.onResultInvalidated;
+
+  @override
+  bool exists(Source source) {
+    return everythingExists;
+  }
 
   @override
   CacheEntry getCacheEntry(AnalysisTarget target) {
@@ -397,6 +403,18 @@ class _InternalAnalysisContextMock extends Mock
     return _pendingNotices.putIfAbsent(
         source, () => new ChangeNoticeImpl(source));
   }
-}
 
-class _SourceFactoryMock extends Mock implements SourceFactory {}
+  @override
+  noSuchMethod(Invocation invocation) {
+    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+  }
+
+  void setShouldErrorsBeAnalyzed(Source source, bool value) {
+    shouldErrorsBeAnalyzedMap[source] = value;
+  }
+
+  @override
+  bool shouldErrorsBeAnalyzed(Source source) {
+    return shouldErrorsBeAnalyzedMap[source];
+  }
+}

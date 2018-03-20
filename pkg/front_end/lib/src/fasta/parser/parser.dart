@@ -101,7 +101,7 @@ import 'type_info.dart'
         isValidTypeReference,
         noTypeInfo;
 
-import 'util.dart' show closeBraceTokenFor, optional;
+import 'util.dart' show optional;
 
 /// An event generating parser of Dart programs. This parser expects all tokens
 /// in a linked list (aka a token stream).
@@ -1076,7 +1076,7 @@ class Parser {
       listener.endFormalParameters(0, token, token, kind);
       return reportUnexpectedToken(token);
     }
-    Token closeBrace = closeBraceTokenFor(token);
+    Token closeBrace = token.endGroup;
     listener.endFormalParameters(0, token, closeBrace, kind);
     return closeBrace;
   }
@@ -1488,7 +1488,7 @@ class Parser {
     /// [isValidMethodTypeArguments].
     Token tryParseMethodTypeArguments(Token token) {
       if (!identical(token.kind, LT_TOKEN)) return null;
-      Token endToken = closeBraceTokenFor(token);
+      Token endToken = token.endGroup;
       if (endToken == null ||
           !identical(endToken.next.kind, OPEN_PAREN_TOKEN)) {
         return null;
@@ -1596,7 +1596,7 @@ class Parser {
 
   Token skipBlock(Token token) {
     token = ensureBlock(token, null);
-    Token closeBrace = closeBraceTokenFor(token);
+    Token closeBrace = token.endGroup;
     if (closeBrace == null ||
         !identical(closeBrace.kind, $CLOSE_CURLY_BRACKET)) {
       return reportUnmatchedToken(token).next;
@@ -2278,7 +2278,7 @@ class Parser {
     /// The tokens before the start of type variables of function types seen
     /// during analysis. Notice that the tokens in this list might precede
     /// either `'<'` or `'('` as not all function types have type parameters.
-    /// Also, it is safe to assume that [closeBraceTokenFor] will return
+    /// Also, it is safe to assume that token.endGroup will return
     /// non-null for all of the tokens following these tokens.
     Link<Token> typeVariableStarters = const Link<Token>();
 
@@ -2316,7 +2316,7 @@ class Parser {
           token = beforeToken.next;
         }
         if (optional("<", token)) {
-          Token close = closeBraceTokenFor(token);
+          Token close = token.endGroup;
           if (close != null &&
               (optional(">", close) || optional(">>", close))) {
             // We found some type arguments.
@@ -2338,7 +2338,7 @@ class Parser {
       while (optional("Function", token)) {
         Token typeVariableStart = token;
         if (optional("<", token.next)) {
-          Token close = closeBraceTokenFor(token.next);
+          Token close = token.next.endGroup;
           if (close != null && optional(">", close)) {
             beforeToken = previousToken(token, close);
             token = close;
@@ -2348,7 +2348,7 @@ class Parser {
         }
         if (optional("(", token.next)) {
           // This is a function type.
-          Token close = closeBraceTokenFor(token.next);
+          Token close = token.next.endGroup;
           assert(optional(")", close));
           looksLikeType = true;
           functionTypes++;
@@ -2398,7 +2398,7 @@ class Parser {
         Token functionToken = next;
         if (optional("<", next.next)) {
           // Skip type parameters, they were parsed above.
-          next = closeBraceTokenFor(next.next);
+          next = next.next.endGroup;
         }
         token = parseFormalParametersRequiredOpt(
             next, MemberKind.GeneralizedFunctionType);
@@ -2439,12 +2439,12 @@ class Parser {
       }
       token = token.next;
       if (optional('<', token)) {
-        Token closeBrace = closeBraceTokenFor(token);
+        Token closeBrace = token.endGroup;
         if (closeBrace == null) return false;
         token = closeBrace.next;
       }
       if (optional('(', token)) {
-        return looksLikeFunctionBody(closeBraceTokenFor(token).next);
+        return looksLikeFunctionBody(token.endGroup.next);
       }
       return false;
     }
@@ -2513,7 +2513,7 @@ class Parser {
             return parseVariablesDeclaration(beforeBegin);
           } else if (OPEN_PAREN_TOKEN == afterIdKind) {
             // We are looking at `type identifier '('`.
-            if (looksLikeFunctionBody(closeBraceTokenFor(afterId).next)) {
+            if (looksLikeFunctionBody(afterId.endGroup.next)) {
               // We are looking at `type identifier '(' ... ')'` followed
               // `( '{' | '=>' | 'async' | 'sync' )`.
 
@@ -2522,7 +2522,6 @@ class Parser {
               Token beforeFormals = parseTypeVariablesOpt(token);
 
               listener.beginLocalFunctionDeclaration(begin);
-              listener.handleModifiers(0);
               if (voidToken != null) {
                 listener.handleVoidKeyword(voidToken);
               } else {
@@ -2533,16 +2532,14 @@ class Parser {
             }
           } else if (identical(afterIdKind, LT_TOKEN)) {
             // We are looking at `type identifier '<'`.
-            Token beforeFormals = closeBraceTokenFor(afterId);
+            Token beforeFormals = afterId.endGroup;
             if (beforeFormals?.next != null &&
                 optional("(", beforeFormals.next)) {
-              if (looksLikeFunctionBody(
-                  closeBraceTokenFor(beforeFormals.next).next)) {
+              if (looksLikeFunctionBody(beforeFormals.next.endGroup.next)) {
                 // We are looking at "type identifier '<' ... '>' '(' ... ')'"
                 // followed by '{', '=>', 'async', or 'sync'.
                 parseTypeVariablesOpt(token);
                 listener.beginLocalFunctionDeclaration(begin);
-                listener.handleModifiers(0);
                 if (voidToken != null) {
                   listener.handleVoidKeyword(voidToken);
                 } else {
@@ -2560,7 +2557,7 @@ class Parser {
           if (optional(':', token.next)) {
             return parseLabeledStatement(beforeToken);
           } else if (optional('(', token.next)) {
-            if (looksLikeFunctionBody(closeBraceTokenFor(token.next).next)) {
+            if (looksLikeFunctionBody(token.next.endGroup.next)) {
               // We are looking at `identifier '(' ... ')'` followed by `'{'`,
               // `'=>'`, `'async'`, or `'sync'`.
 
@@ -2569,19 +2566,17 @@ class Parser {
               Token formals = parseTypeVariablesOpt(token);
 
               listener.beginLocalFunctionDeclaration(token);
-              listener.handleModifiers(0);
               listener.handleNoType(token);
               return parseNamedFunctionRest(beforeToken, begin, formals, false);
             }
           } else if (optional('<', token.next)) {
-            Token gt = closeBraceTokenFor(token.next);
+            Token gt = token.next.endGroup;
             if (gt?.next != null && optional("(", gt.next)) {
-              if (looksLikeFunctionBody(closeBraceTokenFor(gt.next).next)) {
+              if (looksLikeFunctionBody(gt.next.endGroup.next)) {
                 // We are looking at `identifier '<' ... '>' '(' ... ')'`
                 // followed by `'{'`, `'=>'`, `'async'`, or `'sync'`.
                 parseTypeVariablesOpt(token);
                 listener.beginLocalFunctionDeclaration(token);
-                listener.handleModifiers(0);
                 listener.handleNoType(token);
                 return parseNamedFunctionRest(beforeToken, begin, gt, false);
               }
@@ -2632,7 +2627,6 @@ class Parser {
 
         Token formals = parseTypeVariablesOpt(name);
         listener.beginNamedFunctionExpression(begin);
-        listener.handleModifiers(0);
         if (hasReturnType) {
           if (voidToken != null) {
             listener.handleVoidKeyword(voidToken);
@@ -2760,7 +2754,7 @@ class Parser {
 
         Token inlineFunctionTypeStart;
         if (optional("<", token)) {
-          Token closer = closeBraceTokenFor(token);
+          Token closer = token.endGroup;
           if (closer != null) {
             if (optional("(", closer.next)) {
               if (varFinalOrConst != null) {
@@ -2778,7 +2772,7 @@ class Parser {
                 varFinalOrConst, fasta.messageFunctionTypedParameterVar);
           }
           inlineFunctionTypeStart = beforeToken;
-          beforeToken = closeBraceTokenFor(token);
+          beforeToken = token.endGroup;
           token = beforeToken.next;
         }
 
@@ -3135,16 +3129,7 @@ class Parser {
 
   Token parseTopLevelMethod(Token beforeStart, Token externalToken,
       Token beforeType, Token getOrSet, Token beforeName) {
-    listener.beginTopLevelMethod(beforeStart);
-
-    // TODO(danrubel): Consider passing modifiers via endTopLevelMethod
-    // rather than handleModifier and handleModifiers
-    if (externalToken != null) {
-      listener.handleModifier(externalToken);
-      listener.handleModifiers(1);
-    } else {
-      listener.handleModifiers(0);
-    }
+    listener.beginTopLevelMethod(beforeStart, externalToken);
 
     if (beforeType == null) {
       listener.handleNoType(beforeName);
@@ -3561,7 +3546,7 @@ class Parser {
     if (!optional('{', token)) {
       token = ensureBlock(previousToken, fasta.templateExpectedClassBody);
     }
-    Token closeBrace = closeBraceTokenFor(token);
+    Token closeBrace = token.endGroup;
     if (closeBrace == null ||
         !identical(closeBrace.kind, $CLOSE_CURLY_BRACKET)) {
       return reportUnmatchedToken(token).next;
@@ -3900,28 +3885,17 @@ class Parser {
       varFinalOrConst = context.varFinalOrConst;
     }
 
-    int modifierCount = 0;
-    if (externalToken != null) {
-      listener.handleModifier(externalToken);
-      ++modifierCount;
-    }
     if (staticOrCovariant != null) {
       reportRecoverableErrorWithToken(
           staticOrCovariant, fasta.templateExtraneousModifier);
     }
-    if (varFinalOrConst != null) {
-      if (optional('const', varFinalOrConst)) {
-        listener.handleModifier(varFinalOrConst);
-        ++modifierCount;
-      } else {
-        reportRecoverableErrorWithToken(
-            varFinalOrConst, fasta.templateExtraneousModifier);
-        varFinalOrConst = null;
-      }
+    if (varFinalOrConst != null && !optional('const', varFinalOrConst)) {
+      reportRecoverableErrorWithToken(
+          varFinalOrConst, fasta.templateExtraneousModifier);
+      varFinalOrConst = null;
     }
-    listener.handleModifiers(modifierCount);
 
-    listener.beginFactoryMethod(beforeStart);
+    listener.beginFactoryMethod(beforeStart, externalToken, varFinalOrConst);
     token = parseConstructorReference(token);
     token = parseFormalParametersRequiredOpt(token, MemberKind.Factory);
     Token asyncToken = token.next;
@@ -4003,7 +3977,6 @@ class Parser {
   /// - Type variables.
   /// - `beginLocalFunctionDeclaration` if [isFunctionExpression] is false,
   ///   otherwise `beginNamedFunctionExpression`.
-  /// - Modifiers.
   /// - Return type.
   Token parseNamedFunctionRest(
       Token beforeName, Token begin, Token formals, bool isFunctionExpression) {
@@ -4518,7 +4491,7 @@ class Parser {
           //   Foo() : map = {};
           //   Foo.x() : map = true ? {} : {};
           // }
-          token = closeBraceTokenFor(next.next) ?? next;
+          token = next.next.endGroup ?? next;
           next = token.next;
           continue;
         }
@@ -4529,10 +4502,10 @@ class Parser {
           //   Foo() : map = <String, Foo>{};
           //   Foo.x() : map = true ? <String, Foo>{} : <String, Foo>{};
           // }
-          token = closeBraceTokenFor(next.next) ?? next;
+          token = next.next.endGroup ?? next;
           next = token.next;
           if (identical(next.stringValue, '{')) {
-            token = closeBraceTokenFor(next) ?? next;
+            token = next.endGroup ?? next;
             next = token.next;
           }
           continue;
@@ -4542,7 +4515,7 @@ class Parser {
         break;
       }
       if (next is BeginToken) {
-        token = closeBraceTokenFor(next) ?? next;
+        token = next.endGroup ?? next;
       } else {
         if (next is ErrorToken) {
           reportErrorToken(next, false);
@@ -4882,7 +4855,7 @@ class Parser {
   Token parseParenthesizedExpressionOrFunctionLiteral(Token token) {
     Token next = token.next;
     assert(optional('(', next));
-    Token nextToken = closeBraceTokenFor(next).next;
+    Token nextToken = next.endGroup.next;
     int kind = nextToken.kind;
     if (mayParseFunctionExpressions) {
       if ((identical(kind, FUNCTION_TOKEN) ||
@@ -5071,7 +5044,7 @@ class Parser {
   Token parseLiteralFunctionSuffix(Token token) {
     Token next = token.next;
     assert(optional('(', next));
-    Token closeBrace = closeBraceTokenFor(next);
+    Token closeBrace = next.endGroup;
     if (closeBrace != null) {
       Token nextToken = closeBrace.next;
       int kind = nextToken.kind;
@@ -5098,7 +5071,7 @@ class Parser {
   Token parseLiteralListOrMapOrFunction(Token token, Token constKeyword) {
     Token next = token.next;
     assert(optional('<', next));
-    Token closeBrace = closeBraceTokenFor(next);
+    Token closeBrace = next.endGroup;
     if (constKeyword == null &&
         closeBrace != null &&
         identical(closeBrace.next.kind, OPEN_PAREN_TOKEN)) {
@@ -5382,7 +5355,7 @@ class Parser {
     Token next = token.next;
     listener.handleNoArguments(next);
     if (optional('(', next)) {
-      return closeBraceTokenFor(next);
+      return next.endGroup;
     } else {
       return token;
     }

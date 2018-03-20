@@ -104,18 +104,18 @@ class H extends core::Object {
     return new self::T7::•();
   }
 }
-[@vm.inferred-type.metadata=#lib::B]static field self::A bb = new self::B::•();
-[@vm.inferred-type.metadata=#lib::D]static field self::A dd = new self::D::•();
+[@vm.inferred-type.metadata=#lib::B?]static field self::A bb = new self::B::•();
+[@vm.inferred-type.metadata=#lib::D?]static field self::A dd = new self::D::•();
 [@vm.inferred-type.metadata=dart.core::Null?]static field core::Function unknown;
 static method getDynamic() → dynamic
   return self::unknown.call();
 static method main(core::List<core::String> args) → dynamic {
-  core::print([@vm.inferred-type.metadata=#lib::T1] [@vm.inferred-type.metadata=#lib::B] self::bb.{self::A::foo}());
-  core::print([@vm.inferred-type.metadata=#lib::T1] [@vm.inferred-type.metadata=#lib::B] self::bb.{self::A::bar});
-  core::print([@vm.inferred-type.metadata=#lib::T1] [@vm.inferred-type.metadata=#lib::B] self::bb.{self::A::bazz}(1, 2, 3, 4));
-  core::print([@vm.inferred-type.metadata=#lib::T2] [@vm.inferred-type.metadata=#lib::D] self::dd.{self::A::foo}());
-  core::print([@vm.inferred-type.metadata=#lib::T2] [@vm.inferred-type.metadata=#lib::D] self::dd.{self::A::bar});
-  core::print([@vm.inferred-type.metadata=#lib::T2] [@vm.inferred-type.metadata=#lib::D] self::dd.{self::A::bazz}(1, 2, 3, 4));
+  core::print([@vm.inferred-type.metadata=#lib::T1] [@vm.inferred-type.metadata=#lib::B?] self::bb.{self::A::foo}());
+  core::print([@vm.inferred-type.metadata=#lib::T1] [@vm.inferred-type.metadata=#lib::B?] self::bb.{self::A::bar});
+  core::print([@vm.inferred-type.metadata=#lib::T1] [@vm.inferred-type.metadata=#lib::B?] self::bb.{self::A::bazz}(1, 2, 3, 4));
+  core::print([@vm.inferred-type.metadata=#lib::T2] [@vm.inferred-type.metadata=#lib::D?] self::dd.{self::A::foo}());
+  core::print([@vm.inferred-type.metadata=#lib::T2] [@vm.inferred-type.metadata=#lib::D?] self::dd.{self::A::bar});
+  core::print([@vm.inferred-type.metadata=#lib::T2] [@vm.inferred-type.metadata=#lib::D?] self::dd.{self::A::bazz}(1, 2, 3, 4));
   new self::E::•();
   self::A xx = self::getDynamic() as{TypeError} self::A;
   core::print([@vm.inferred-type.metadata=!] xx.{self::A::bar});

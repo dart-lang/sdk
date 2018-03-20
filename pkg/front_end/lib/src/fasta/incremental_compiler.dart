@@ -133,7 +133,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       // This is not the full program. It is the component including all
       // libraries loaded from .dill files.
-      Component programWithDill =
+      Component componentWithDill =
           await userCode.buildComponent(verify: c.options.verify);
 
       List<Library> libraries =
@@ -160,9 +160,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       // This component represents the parts of the program that were
       // recompiled.
-      Procedure mainMethod = programWithDill == null
+      Procedure mainMethod = componentWithDill == null
           ? data.userLoadedUriMain
-          : programWithDill.mainMethod;
+          : componentWithDill.mainMethod;
       return new Component(libraries: libraries, uriToSource: data.uriToSource)
         ..mainMethod = mainMethod;
     });

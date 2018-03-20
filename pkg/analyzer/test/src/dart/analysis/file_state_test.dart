@@ -17,7 +17,6 @@ import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/base/performance_logger.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -38,7 +37,8 @@ class FileSystemStateTest {
   final FileContentOverlay contentOverlay = new FileContentOverlay();
 
   final StringBuffer logBuffer = new StringBuffer();
-  final UriResolver generatedUriResolver = new _GeneratedUriResolverMock();
+  final _GeneratedUriResolverMock generatedUriResolver =
+      new _GeneratedUriResolverMock();
   SourceFactory sourceFactory;
   PerformanceLog logger;
 
@@ -493,12 +493,10 @@ part 'not-a2.dart';
     String templatePath = _p('/aaa/lib/foo.dart');
     String generatedPath = _p('/generated/aaa/lib/foo.dart');
 
-    Source generatedSource = new _SourceMock();
-    when(generatedSource.fullName).thenReturn(generatedPath);
-    when(generatedSource.uri).thenReturn(uri);
+    Source generatedSource = new _SourceMock(generatedPath, uri);
 
-    when(generatedUriResolver.resolveAbsolute(uri, uri))
-        .thenReturn(generatedSource);
+    generatedUriResolver.resolveAbsoluteFunction =
+        (uri, actualUri) => generatedSource;
 
     expect(fileSystemState.hasUri(templatePath), isFalse);
     expect(fileSystemState.hasUri(generatedPath), isTrue);
@@ -792,6 +790,44 @@ set _V3(_) {}
   }
 }
 
-class _GeneratedUriResolverMock extends Mock implements UriResolver {}
+class _GeneratedUriResolverMock implements UriResolver {
+  Source Function(Uri, Uri) resolveAbsoluteFunction;
 
-class _SourceMock extends Mock implements Source {}
+  Uri Function(Source) restoreAbsoluteFunction;
+
+  @override
+  noSuchMethod(Invocation invocation) {
+    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+  }
+
+  @override
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+    if (resolveAbsoluteFunction != null) {
+      return resolveAbsoluteFunction(uri, actualUri);
+    }
+    return null;
+  }
+
+  @override
+  Uri restoreAbsolute(Source source) {
+    if (restoreAbsoluteFunction != null) {
+      return restoreAbsoluteFunction(source);
+    }
+    return null;
+  }
+}
+
+class _SourceMock implements Source {
+  @override
+  final String fullName;
+
+  @override
+  final Uri uri;
+
+  _SourceMock(this.fullName, this.uri);
+
+  @override
+  noSuchMethod(Invocation invocation) {
+    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+  }
+}

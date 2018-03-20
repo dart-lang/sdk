@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart'
     show ClassElement, CompilationUnitElement, Element;
 import 'package:analyzer/dart/element/type.dart' show DartType, InterfaceType;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
+import 'element_helpers.dart' show getAnnotationName, isBuiltinAnnotation;
 
 /// Contains information about native JS types (those types provided by the
 /// implementation) that are also provided by the Dart SDK.
@@ -150,4 +151,21 @@ class ExtensionTypeSet {
 
   bool hasNativeSubtype(DartType type) =>
       isNativeInterface(type.element) || isNativeClass(type.element);
+
+  /// Gets the JS peer for this Dart type if any, otherwise null.
+  ///
+  /// For example for dart:_interceptors `JSArray` this will return "Array",
+  /// referring to the JavaScript built-in `Array` type.
+  List<String> getNativePeers(ClassElement classElem) {
+    if (classElem.type.isObject) return ['Object'];
+    var names = getAnnotationName(
+        classElem,
+        (a) =>
+            isBuiltinAnnotation(a, '_js_helper', 'JsPeerInterface') ||
+            isBuiltinAnnotation(a, '_js_helper', 'Native'));
+    if (names == null) return [];
+
+    // Omit the special name "!nonleaf" and any future hacks starting with "!"
+    return names.split(',').where((peer) => !peer.startsWith("!")).toList();
+  }
 }

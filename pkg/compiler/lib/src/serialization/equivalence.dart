@@ -723,6 +723,12 @@ class TypeEquivalence
       FunctionTypeVariable type, ResolutionDartType other) {
     throw new UnsupportedError("Function type variables are not supported.");
   }
+
+  @override
+  bool visitFutureOrType(
+      covariant FutureOrType type, covariant ResolutionDartType other) {
+    throw new UnsupportedError("FutureOr is not supported.");
+  }
 }
 
 /// Visitor that checks for structural equivalence of [ConstantExpression]s.

@@ -3899,6 +3899,15 @@ class C<T> {
     expectStaticInvokeType('m();', '() → T');
   }
 
+  test_issue32396() async {
+    await resolveTestUnit(r'''
+class C<E> {
+  static T g<T>(T e) => null;
+  static final h = g;
+}
+''');
+  }
+
   test_notInstantiatedBound_direct_class_class() async {
     String code = r'''
 class A<T extends int> {}

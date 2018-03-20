@@ -206,8 +206,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginFactoryMethod(Token lastConsumed) {
-    super.beginFactoryMethod(lastConsumed);
+  void beginFactoryMethod(
+      Token lastConsumed, Token externalToken, Token constToken) {
+    super.beginFactoryMethod(lastConsumed, externalToken, constToken);
     begin('FactoryMethod');
   }
 
@@ -480,8 +481,8 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginTopLevelMethod(Token lastConsumed) {
-    super.beginTopLevelMethod(lastConsumed);
+  void beginTopLevelMethod(Token lastConsumed, Token externalToken) {
+    super.beginTopLevelMethod(lastConsumed, externalToken);
     begin('TopLevelMethod');
   }
 

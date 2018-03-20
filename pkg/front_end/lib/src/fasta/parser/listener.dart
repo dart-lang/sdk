@@ -224,7 +224,8 @@ class Listener {
     logEvent("ExpressionStatement");
   }
 
-  void beginFactoryMethod(Token lastConsumed) {}
+  void beginFactoryMethod(
+      Token lastConsumed, Token externalToken, Token constToken) {}
 
   void endFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
@@ -327,7 +328,6 @@ class Listener {
   /// A function declaration.
   ///
   /// Substructures:
-  /// - Modifiers
   /// - Return type
   /// - Name
   /// - Type variables
@@ -817,7 +817,7 @@ class Listener {
     logEvent("TopLevelFields");
   }
 
-  void beginTopLevelMethod(Token lastConsumed) {}
+  void beginTopLevelMethod(Token lastConsumed, Token externalToken) {}
 
   /// Handle the end of a top level method.  Substructures:
   /// - metadata

@@ -461,13 +461,23 @@ class CodeGenerator extends Object
       e is PropertyInducingElement &&
           ((e.getter?.isExternal ?? false) || (e.setter?.isExternal ?? false));
 
-  bool _isJSElement(Element e) =>
+  /// Returns true iff this element is a JS interop member.
+  ///
+  /// The element's library must have `@JS(...)` annotation from `package:js`.
+  ///
+  /// If the element is a class, it must also be marked with `@JS`. Other
+  /// elements, such as class members and top-level functions/accessors, should
+  /// be marked `external`.
+  //
+  // TODO(jmesserly): if the element is a member, shouldn't we check that the
+  // class is a JS interop class?
+  bool _usesJSInterop(Element e) =>
       e?.library != null &&
-      _isJSNative(e.library) &&
-      (_isExternal(e) || e is ClassElement && _isJSNative(e));
+      _hasJSInteropAnnotation(e.library) &&
+      (_isExternal(e) || e is ClassElement && _hasJSInteropAnnotation(e));
 
   String _getJSNameWithoutGlobal(Element e) {
-    if (!_isJSElement(e)) return null;
+    if (!_usesJSInterop(e)) return null;
     var libraryJSName = getAnnotationName(e.library, isPublicJSAnnotation);
     var jsName =
         getAnnotationName(e, isPublicJSAnnotation) ?? _getElementName(e);
@@ -492,7 +502,7 @@ class CodeGenerator extends Object
   }
 
   JS.Expression _emitJSInteropStaticMemberName(Element e) {
-    if (!_isJSElement(e)) return null;
+    if (!_usesJSInterop(e)) return null;
     var name = getAnnotationName(e, isPublicJSAnnotation);
     if (name != null) {
       if (name.contains('.')) {
@@ -873,7 +883,7 @@ class CodeGenerator extends Object
   JS.Statement _emitClassDeclaration(Declaration classNode,
       ClassElement classElem, List<ClassMember> members) {
     // If this class is annotated with `@JS`, then there is nothing to emit.
-    if (findAnnotation(classElem, isPublicJSAnnotation) != null) return null;
+    if (_hasJSInteropAnnotation(classElem)) return null;
 
     // If this is a JavaScript type, emit it now and then exit.
     var jsTypeDef = _emitJSType(classElem);
@@ -921,7 +931,7 @@ class CodeGenerator extends Object
     body.addAll(jsCtors);
 
     // Emit things that come after the ES6 `class ... { ... }`.
-    var jsPeerNames = _getJSPeerNames(classElem);
+    var jsPeerNames = _extensionTypes.getNativePeers(classElem);
     if (jsPeerNames.length == 1 && classElem.typeParameters.isNotEmpty) {
       // Special handling for JSArray<E>
       body.add(_callHelperStatement('setExtensionBaseClass(#, #.global.#);',
@@ -1466,7 +1476,7 @@ class CodeGenerator extends Object
     var virtualFields = _classProperties.virtualFields;
 
     var jsMethods = <JS.Method>[];
-    bool hasJsPeer = findAnnotation(classElem, isJsPeerInterface) != null;
+    bool hasJsPeer = _extensionTypes.isNativeClass(classElem);
     bool hasIterator = false;
 
     if (type.isObject) {
@@ -1875,25 +1885,6 @@ class CodeGenerator extends Object
     }
   }
 
-  /// Gets the JS peer for this Dart type if any, otherwise null.
-  ///
-  /// For example for dart:_interceptors `JSArray` this will return "Array",
-  /// referring to the JavaScript built-in `Array` type.
-  List<String> _getJSPeerNames(ClassElement classElem) {
-    var jsPeerNames = getAnnotationName(
-        classElem,
-        (a) =>
-            isJsPeerInterface(a) ||
-            isNativeAnnotation(a) && _extensionTypes.isNativeClass(classElem));
-    if (classElem.type.isObject) return ['Object'];
-    if (jsPeerNames == null) return [];
-
-    // Omit the special name "!nonleaf" and any future hacks starting with "!"
-    var result =
-        jsPeerNames.split(',').where((peer) => !peer.startsWith("!")).toList();
-    return result;
-  }
-
   void _registerExtensionType(
       ClassElement classElem, String jsPeerName, List<JS.Statement> body) {
     var className = _emitTopLevelName(classElem);
@@ -2015,7 +2006,7 @@ class CodeGenerator extends Object
       var type = classElem.type;
       void addField(FieldElement e, JS.Expression value) {
         var args = [
-          _emitStaticAccess(classElem),
+          _emitStaticClassName(classElem),
           _declareMemberName(e.getter),
           value
         ];
@@ -2033,7 +2024,7 @@ class CodeGenerator extends Object
         if (f.type != type) continue;
         // static const E id_i = const E(i);
         values.add(new JS.PropertyAccess(
-            _emitStaticAccess(classElem), _declareMemberName(f.getter)));
+            _emitStaticClassName(classElem), _declareMemberName(f.getter)));
         var enumValue = _callHelper('const(new (#.#)(#))', [
           _emitConstructorAccess(type),
           _constructorName(''),
@@ -2051,7 +2042,8 @@ class CodeGenerator extends Object
         .map((f) => members[f] as VariableDeclaration)
         .toList();
     if (lazyStatics.isNotEmpty) {
-      body.add(_emitLazyFields(_emitTopLevelName(classElem), lazyStatics));
+      body.add(_emitLazyFields(_emitStaticClassName(classElem), lazyStatics,
+          (e) => _emitStaticMemberName(e.name, e)));
     }
   }
 
@@ -3105,12 +3097,20 @@ class CodeGenerator extends Object
 
       // A static native element should just forward directly to the
       // JS type's member.
+      //
+      // TODO(jmesserly): this code path seems broken. It doesn't exist
+      // elsewhere, such as [_emitAccess], so it will only take affect for
+      // unqualified static access inside of the the same class.
+      //
+      // If we want this feature to work, we'll need to implement it in the
+      // standard [_emitStaticClassName] code path, which will need to know the
+      // member we're calling so it can determine whether to use the Dart class
+      // name or the native JS class name.
       if (isStatic && _isExternal(element)) {
-        var nativeName = getAnnotationName(classElem, isNativeAnnotation);
-        if (nativeName != null) {
+        var nativeName = _extensionTypes.getNativePeers(classElem);
+        if (nativeName.isNotEmpty) {
           var memberName = getAnnotationName(element, isJSName) ?? member;
-          return js
-              .call('#.#.#', [_callHelper('global'), nativeName, memberName]);
+          return _callHelper('global.#.#', [nativeName[0], memberName]);
         }
       }
 
@@ -3118,16 +3118,16 @@ class CodeGenerator extends Object
       // For method tear-offs, we ensure it's a bound method.
       if (element is MethodElement &&
           !inInvocationContext(node) &&
-          !_isJSNative(classElem)) {
+          !_hasJSInteropAnnotation(classElem)) {
         if (isStatic) {
           // TODO(jmesserly): instead of looking up the function type, we could
           // simply emit it here.
           return _callHelper(
-              'tagStatic(#, #)', [_emitStaticAccess(classElem), member]);
+              'tagStatic(#, #)', [_emitStaticClassName(classElem), member]);
         }
         return _callHelper('bind(this, #)', member);
       }
-      var target = isStatic ? _emitStaticAccess(classElem) : new JS.This();
+      var target = isStatic ? _emitStaticClassName(classElem) : new JS.This();
       return new JS.PropertyAccess(target, member);
     }
 
@@ -3318,10 +3318,10 @@ class CodeGenerator extends Object
     return _emitJSInterop(type.element) ?? _emitType(type, nameType: nameType);
   }
 
-  /// Emits an expression that lets you access statics on an [element] from code.
-  JS.Expression _emitStaticAccess(ClassElement element) {
-    _declareBeforeUse(element);
-    return _emitTopLevelName(element);
+  /// Emits an expression that lets you access statics on an [c] from code.
+  JS.Expression _emitStaticClassName(ClassElement c) {
+    _declareBeforeUse(c);
+    return _emitTopLevelName(c);
   }
 
   /// Emits a Dart [type] into code.
@@ -3406,9 +3406,17 @@ class CodeGenerator extends Object
   }
 
   JS.PropertyAccess _emitTopLevelNameNoInterop(Element e, {String suffix: ''}) {
-    var name = getJSExportName(e) ?? _getElementName(e);
     return new JS.PropertyAccess(
-        emitLibraryName(e.library), _propertyName(name + suffix));
+        emitLibraryName(e.library), _emitTopLevelMemberName(e, suffix: suffix));
+  }
+
+  /// Emits the member name portion of a top-level member.
+  ///
+  /// NOTE: usually you should use [_emitTopLevelName] instead of this. This
+  /// function does not handle JS interop.
+  JS.Expression _emitTopLevelMemberName(Element e, {String suffix: ''}) {
+    var name = getJSExportName(e) ?? _getElementName(e);
+    return _propertyName(name + suffix);
   }
 
   @override
@@ -3592,7 +3600,7 @@ class CodeGenerator extends Object
     var member = _emitMemberName(field.name,
         isStatic: isStatic, type: classElem.type, element: field.setter);
     jsTarget = isStatic
-        ? (new JS.PropertyAccess(_emitStaticAccess(classElem), member)
+        ? (new JS.PropertyAccess(_emitStaticClassName(classElem), member)
           ..sourceInformation = _nodeSpan(id))
         : _emitTargetAccess(jsTarget, member, field.setter, id);
     return _visitExpression(right).toAssignExpression(jsTarget);
@@ -3688,12 +3696,12 @@ class CodeGenerator extends Object
       if (member is PropertyAccessorElement) {
         var field = member.variable;
         if (field is FieldElement) {
-          return _emitStaticAccess(field.enclosingElement)
+          return _emitStaticClassName(field.enclosingElement)
             ..sourceInformation = _nodeSpan(target);
         }
       }
       if (member is MethodElement) {
-        return _emitStaticAccess(member.enclosingElement)
+        return _emitStaticClassName(member.enclosingElement)
           ..sourceInformation = _nodeSpan(target);
       }
     }
@@ -4241,7 +4249,8 @@ class CodeGenerator extends Object
 
   /// Emits a list of top-level field.
   void _emitTopLevelFields(List<VariableDeclaration> fields) {
-    _moduleItems.add(_emitLazyFields(emitLibraryName(currentLibrary), fields));
+    _moduleItems.add(_emitLazyFields(
+        emitLibraryName(currentLibrary), fields, _emitTopLevelMemberName));
   }
 
   /// Treat dart:_runtime fields as safe to eagerly evaluate.
@@ -4284,18 +4293,19 @@ class CodeGenerator extends Object
   }
 
   JS.Statement _emitLazyFields(
-      JS.Expression objExpr, List<VariableDeclaration> fields) {
+      JS.Expression objExpr,
+      List<VariableDeclaration> fields,
+      JS.Expression Function(Element e) emitFieldName) {
     var accessors = <JS.Method>[];
 
     for (var node in fields) {
-      var name = node.name.name;
       var element = node.element;
-      var access = _emitStaticMemberName(name, element);
+      var access = emitFieldName(element);
       accessors.add(closureAnnotate(
           new JS.Method(
               access,
               js.call('function() { return #; }',
-                  _visitInitializer(node.initializer, node.element)) as JS.Fun,
+                  _visitInitializer(node.initializer, element)) as JS.Fun,
               isGetter: true)
             ..sourceInformation = _hoverComment(
                 new JS.PropertyAccess(objExpr, access), node.name),
@@ -4390,7 +4400,7 @@ class CodeGenerator extends Object
       // Native factory constructors are JS constructors - use new here.
       var ctor = _emitConstructorName(element, type);
       if (ctorNode != null) ctor.sourceInformation = _nodeSpan(ctorNode);
-      return element.isFactory && !_isJSNative(classElem)
+      return element.isFactory && !_hasJSInteropAnnotation(classElem)
           ? new JS.Call(ctor, args)
           : new JS.New(ctor, args);
     }
@@ -4399,11 +4409,22 @@ class CodeGenerator extends Object
   }
 
   bool _isObjectLiteral(Element classElem) {
-    return _isJSNative(classElem) &&
+    return _hasJSInteropAnnotation(classElem) &&
         findAnnotation(classElem, isJSAnonymousAnnotation) != null;
   }
 
-  bool _isJSNative(Element e) =>
+  /// Returns true iff the class has an `@JS(...)` annotation from `package:js`.
+  ///
+  /// Note: usually [_usesJSInterop] should be used instead of this.
+  //
+  // TODO(jmesserly): I think almost all uses of this should be replaced with
+  // [_usesJSInterop], which also checks that the library is marked with `@JS`.
+  //
+  // Right now we have inconsistencies: sometimes we'll respect `@JS` on the
+  // class itself, other places we require it on the library. Also members are
+  // inconsistent: sometimes they need to have `@JS` on them, other times they
+  // need to be `external` in an `@JS` class.
+  bool _hasJSInteropAnnotation(Element e) =>
       findAnnotation(e, isPublicJSAnnotation) != null;
 
   JS.Expression _emitObjectLiteral(ArgumentList argumentList) {
@@ -5219,7 +5240,7 @@ class CodeGenerator extends Object
         result = _callHelper('#(#)', [memberName, jsTarget]);
       }
     } else if (accessor is MethodElement &&
-        !_isJSNative(accessor.enclosingElement)) {
+        !_hasJSInteropAnnotation(accessor.enclosingElement)) {
       if (isStatic) {
         result = _callHelper('tagStatic(#, #)', [jsTarget, jsName]);
       } else if (isSuper) {

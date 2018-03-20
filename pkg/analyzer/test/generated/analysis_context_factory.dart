@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.analysis_context_factory;
-
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -303,6 +301,7 @@ class AnalysisContextFactory {
     ];
     canvasElement.fields = canvasElement.accessors
         .map((PropertyAccessorElement accessor) => accessor.variable)
+        .cast<FieldElement>()
         .toList();
     ClassElementImpl documentElement =
         ElementFactory.classElement("Document", elementType);

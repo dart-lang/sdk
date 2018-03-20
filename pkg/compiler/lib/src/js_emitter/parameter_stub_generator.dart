@@ -74,6 +74,8 @@ class ParameterStubGenerator {
 
     ParameterStructure parameterStructure = member.parameterStructure;
     int positionalArgumentCount = callStructure.positionalArgumentCount;
+    assert(callStructure.typeArgumentCount == 0 ||
+        callStructure.typeArgumentCount == parameterStructure.typeParameters);
     bool needsTypeArguments =
         callStructure.typeArgumentCount != parameterStructure.typeParameters;
     if (positionalArgumentCount == parameterStructure.totalParameters &&
@@ -109,7 +111,7 @@ class ParameterStubGenerator {
     List<jsAst.Expression> argumentsBuffer = new List<jsAst.Expression>(
         parameterStructure.totalParameters +
             extraArgumentCount +
-            parameterStructure.typeParameters);
+            (needsTypeArguments ? parameterStructure.typeParameters : 0));
 
     int count = 0;
     if (isInterceptedMethod) {

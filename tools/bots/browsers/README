@@ -1,0 +1,20 @@
+This directory contains the hashes of tar.gz files uploaded to cloud storage.
+Steps in the test.py script run "download_from_google_storage"
+to download these tarfiles and unpack them, if the browser cache directory exists.
+These tar files contain browser installations on the different platforms.
+We currently download Chrome.
+
+The downloads use the --auto-platform feature, so that only the browsers for the
+current platform (linux, macos, or windows) is downloaded. This requires
+the subdirectories to have the special names "linux", "win", and "mac", which
+the download_from_google_storage script in depot_tools is hardcoded to
+recognize.
+
+The download is intended to run on bots from the swarming pools, and they
+download to a named cache directory called "browsers" on those swarming bots.
+
+To upload new versions of these tar files, use the "upload_to_google_storage"
+tool in depot_tools, after replacing the existing downloaded browser in-place
+with the new version.
+
+Currently, we only have the Chrome browser for Linux uploaded.

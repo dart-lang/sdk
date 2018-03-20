@@ -32,6 +32,11 @@ class AnalysisSessionImpl implements AnalysisSession {
   TypeSystem _typeSystem;
 
   /**
+   * The cache of libraries for URIs.
+   */
+  final Map<String, LibraryElement> _uriToLibraryCache = {};
+
+  /**
    * Initialize a newly created analysis session.
    */
   AnalysisSessionImpl(this._driver);
@@ -70,9 +75,14 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
-  Future<LibraryElement> getLibraryByUri(String uri) {
+  Future<LibraryElement> getLibraryByUri(String uri) async {
     _checkConsistency();
-    return _driver.getLibraryByUri(uri);
+    var libraryElement = _uriToLibraryCache[uri];
+    if (libraryElement == null) {
+      libraryElement = await _driver.getLibraryByUri(uri);
+      _fillUriToLibraryCache(libraryElement);
+    }
+    return libraryElement;
   }
 
   @override
@@ -113,12 +123,41 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   /**
+   * Put information into the session, so it is available even though it is
+   * not yet requested by the user. We want to put only information that is
+   * already available directly, or can be derived from available information
+   * very cheaply.
+   */
+  void put({LibraryElement libraryElement}) {
+    if (libraryElement != null) {
+      _fillUriToLibraryCache(libraryElement);
+    }
+  }
+
+  /**
    * Check to see that results from this session will be consistent, and throw
    * an [InconsistentAnalysisException] if they might not be.
    */
   void _checkConsistency() {
     if (_driver.currentSession != this) {
       throw new InconsistentAnalysisException();
+    }
+  }
+
+  /**
+   * Fill the [_uriToLibraryCache] with libraries referenced from the
+   * given [library].
+   */
+  void _fillUriToLibraryCache(LibraryElement library) {
+    Source source = library.source;
+    if (source == null) {
+      print('zzzzz');
+    }
+    String uri = source.uri.toString();
+    if (_uriToLibraryCache[uri] == null) {
+      _uriToLibraryCache[uri] = library;
+      library.importedLibraries.forEach(_fillUriToLibraryCache);
+      library.exportedLibraries.forEach(_fillUriToLibraryCache);
     }
   }
 }

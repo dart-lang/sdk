@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.task.strong_mode_test;
-
 import 'dart:async';
 
 import 'package:analyzer/dart/element/element.dart';
@@ -468,7 +466,7 @@ class VariableGathererTest extends ResolverTestCase {
     VariableFilter filter = (variable) => true;
     VariableGatherer gatherer = new VariableGatherer(filter);
     expect(gatherer, isNotNull);
-    expect(gatherer.filter, filter);
+    expect(gatherer.filter, same(filter));
   }
 
   test_creation_withoutFilter() async {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.generated.testing.test_type_provider;
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -732,6 +730,7 @@ class TestTypeProvider extends TypeProviderBase {
     element.accessors = accessors;
     element.fields = accessors
         .map((PropertyAccessorElement accessor) => accessor.variable)
+        .cast<FieldElement>()
         .toList();
   }
 }

@@ -27,8 +27,8 @@ main() {
   setUp(() => customElementsReady.then((_) {
         if (!registered) {
           registered = true;
-          document.registerElement(A.tag, A);
-          document.registerElement(B.tag, B);
+          document.registerElement2(A.tag, {'prototype': A});
+          document.registerElement2(B.tag, {'prototype': B});
         }
       }));
 

@@ -108,7 +108,7 @@ class FastaContext extends ChainContext {
   final Uri vm;
   final bool strongMode;
   final bool onlyCrashes;
-  final Map<Component, KernelTarget> programToTarget =
+  final Map<Component, KernelTarget> componentToTarget =
       <Component, KernelTarget>{};
   final Uri platformBinaries;
   Uri platformUri;
@@ -153,8 +153,8 @@ class FastaContext extends ChainContext {
         if (!ignoreExpectations) {
           steps.add(new MatchExpectation(
               fullCompile
-              ? ".${generateExpectationName(strongMode)}.transformed.expect"
-              : ".outline.transformed.expect",
+                  ? ".${generateExpectationName(strongMode)}.transformed.expect"
+                  : ".outline.transformed.expect",
               updateExpectations: updateExpectations));
         }
         steps.add(const WriteDill());
@@ -327,8 +327,8 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       } on deprecated_InputError catch (e, s) {
         return fail(null, e.error, s);
       }
-      context.programToTarget.clear();
-      context.programToTarget[p] = sourceTarget;
+      context.componentToTarget.clear();
+      context.componentToTarget[p] = sourceTarget;
       return pass(p);
     });
   }
@@ -341,8 +341,8 @@ class Transform extends Step<Component, Component, FastaContext> {
 
   Future<Result<Component>> run(
       Component component, FastaContext context) async {
-    KernelTarget sourceTarget = context.programToTarget[component];
-    context.programToTarget.remove(component);
+    KernelTarget sourceTarget = context.componentToTarget[component];
+    context.componentToTarget.remove(component);
     TestVmTarget backendTarget = sourceTarget.backendTarget;
     backendTarget.enabled = true;
     try {

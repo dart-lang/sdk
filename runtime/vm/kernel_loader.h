@@ -123,7 +123,8 @@ class ClassIndex {
 class KernelLoader {
  public:
   explicit KernelLoader(Program* program);
-  static Object& LoadEntireProgram(Program* program);
+  static Object& LoadEntireProgram(Program* program,
+                                   bool process_pending_classes = true);
 
   // Returns the library containing the main procedure, null if there
   // was no main procedure, or a failure object if there was an error.

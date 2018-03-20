@@ -152,19 +152,16 @@ const char* Snapshot::KindToCString(Kind kind) {
   }
 }
 
-// TODO(5411462): Temporary setup of snapshot for testing purposes,
-// the actual creation of a snapshot maybe done differently.
 const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
   ASSERT(raw_memory != NULL);
-  ASSERT(kHeaderSize == sizeof(Snapshot));
-  ASSERT(kLengthIndex == length_offset());
-  ASSERT((kSnapshotFlagIndex * sizeof(int64_t)) == kind_offset());
-  ASSERT((kHeapObjectTag & kInlined));
   const Snapshot* snapshot = reinterpret_cast<const Snapshot*>(raw_memory);
+  if (!snapshot->check_magic()) {
+    return NULL;
+  }
   // If the raw length is negative or greater than what the local machine can
   // handle, then signal an error.
-  int64_t snapshot_length = ReadUnaligned(&snapshot->unaligned_length_);
-  if ((snapshot_length < 0) || (snapshot_length > kIntptrMax)) {
+  int64_t length = snapshot->large_length();
+  if ((length < 0) || (length > kIntptrMax)) {
     return NULL;
   }
   return snapshot;

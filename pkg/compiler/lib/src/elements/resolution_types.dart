@@ -132,6 +132,9 @@ abstract class ResolutionDartType implements DartType {
   @override
   bool get isFunctionTypeVariable => false;
 
+  @override
+  bool get isFutureOr => false;
+
   /// Is [: true :] if this type is a malformed type.
   bool get isMalformed => false;
 

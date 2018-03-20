@@ -16,7 +16,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/base/performance_logger.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../../context/mock_sdk.dart';
@@ -54,7 +53,8 @@ class BaseAnalysisDriverTest {
   final StringBuffer logBuffer = new StringBuffer();
   PerformanceLog logger;
 
-  final UriResolver generatedUriResolver = new _GeneratedUriResolverMock();
+  final _GeneratedUriResolverMock generatedUriResolver =
+      new _GeneratedUriResolverMock();
   AnalysisDriverScheduler scheduler;
   AnalysisDriver driver;
   final List<AnalysisStatus> allStatuses = <AnalysisStatus>[];
@@ -65,12 +65,12 @@ class BaseAnalysisDriverTest {
   String testFile;
   String testCode;
 
-  bool get disableChangesAndCacheAllResults => false;
-
   /**
    * Whether to enable the Dart 2.0 Common Front End.
    */
   bool useCFE = false;
+
+  bool get disableChangesAndCacheAllResults => false;
 
   void addTestFile(String content, {bool priority: false}) {
     testCode = content;
@@ -169,4 +169,29 @@ class _ElementVisitorFunctionWrapper extends GeneralizingElementVisitor {
   }
 }
 
-class _GeneratedUriResolverMock extends Mock implements UriResolver {}
+class _GeneratedUriResolverMock implements UriResolver {
+  Source Function(Uri, Uri) resolveAbsoluteFunction;
+
+  Uri Function(Source) restoreAbsoluteFunction;
+
+  @override
+  noSuchMethod(Invocation invocation) {
+    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+  }
+
+  @override
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+    if (resolveAbsoluteFunction != null) {
+      return resolveAbsoluteFunction(uri, actualUri);
+    }
+    return null;
+  }
+
+  @override
+  Uri restoreAbsolute(Source source) {
+    if (restoreAbsoluteFunction != null) {
+      return restoreAbsoluteFunction(source);
+    }
+    return null;
+  }
+}

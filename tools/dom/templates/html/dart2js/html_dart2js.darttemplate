@@ -46,6 +46,7 @@ import 'dart:svg' as svg;
 import 'dart:svg' show Matrix;
 import 'dart:svg' show SvgSvgElement;
 import 'dart:web_audio' as web_audio;
+import 'dart:web_audio' show AudioBuffer, AudioTrack, AudioTrackList;
 import 'dart:web_gl' as gl;
 import 'dart:web_gl' show RenderingContext,RenderingContext2;
 import 'dart:web_sql';
@@ -87,6 +88,7 @@ part '$AUXILIARY_DIR/ReadyState.dart';
 part '$AUXILIARY_DIR/WrappedList.dart';
 part '$AUXILIARY_DIR/_HttpRequestUtils.dart';
 part '$AUXILIARY_DIR/_ListIterators.dart';
+part '$AUXILIARY_DIR/dart2js_Console.dart';
 part '$AUXILIARY_DIR/dart2js_Conversions.dart';
 part '$AUXILIARY_DIR/dart2js_CustomElementSupport.dart';
 part '$AUXILIARY_DIR/dart2js_DOMImplementation.dart';
@@ -121,7 +123,7 @@ HtmlDocument get document =>
 // Workaround for tags like <cite> that lack their own Element subclass --
 // Dart issue 1990.
 @Native("HTMLElement")
-class HtmlElement extends Element {
+class HtmlElement extends Element implements NoncedElement {
   factory HtmlElement() { throw new UnsupportedError("Not supported"); }
 
   /**
@@ -130,6 +132,10 @@ class HtmlElement extends Element {
    * This can only be called by subclasses from their created constructor.
    */
   HtmlElement.created() : super.created();
+
+  // From NoncedElement
+  @DomName('HTMLElement.nonce')
+  String nonce;
 }
 
 createCustomUpgrader(Type customElementClass, $this) => $this;
@@ -142,3 +148,4 @@ createCustomUpgrader(Type customElementClass, $this) => $this;
 @Experimental() // untriaged
 typedef void FontFaceSetForEachCallback(
     FontFace fontFace, FontFace fontFaceAgain, FontFaceSet set);
+

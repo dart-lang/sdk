@@ -63,7 +63,6 @@ main() {
     expect(currentAnalysisErrors[path], isNotEmpty);
   }
 
-  @failingTest
   test_updateContent_multipleAdds() async {
     String pathname = sourcePath('test.dart');
     writeFile(pathname, r'''

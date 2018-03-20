@@ -418,7 +418,7 @@ class KernelDriver {
         if (bytes != null) {
           return _logger.runAsync('Read serialized libraries', () async {
             var component = new Component(nameRoot: nameRoot);
-            _readProgram(component, bytes);
+            _readComponent(component, bytes);
             await appendNewDillLibraries(component);
 
             return new LibraryCycleResult(
@@ -557,7 +557,7 @@ class KernelDriver {
   /// configured metadata factory.  The [component] must be ready to read these
   /// libraries, i.e. either the [bytes] represent a full component with all
   /// dependencies, or the [component] already has all required dependencies.
-  void _readProgram(Component component, List<int> bytes) {
+  void _readComponent(Component component, List<int> bytes) {
     if (_metadataFactory != null) {
       var repository = _metadataFactory.newRepositoryForReading();
       component.addMetadataRepository(repository);

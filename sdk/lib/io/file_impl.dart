@@ -685,15 +685,13 @@ class _RandomAccessFile implements RandomAccessFile {
     }
   }
 
-  Future<RandomAccessFile> close() {
+  Future<void> close() {
     return _dispatch(_FILE_CLOSE, [null], markClosed: true).then((result) {
-      if (result != -1) {
-        closed = closed || (result == 0);
-        _maybePerformCleanup();
-        return this;
-      } else {
+      if (result == -1) {
         throw new FileSystemException("Cannot close file", path);
       }
+      closed = closed || (result == 0);
+      _maybePerformCleanup();
     });
   }
 

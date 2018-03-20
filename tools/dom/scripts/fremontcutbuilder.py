@@ -5,12 +5,14 @@
 
 import database
 import databasebuilder
+import idlnode
 import logging.config
 import os.path
 import sys
 import time
 import utilities
 import dependency
+from idlnode import IDLType, resolveTypedef
 
 _logger = logging.getLogger('fremontcutbuilder')
 
@@ -36,6 +38,30 @@ FEATURE_DEFINES = [
     'ENABLE_WEB_AUDIO', # Not on Android
 ]
 
+
+# Resolve all typedefs encountered while parsing (see idlnode.py), resolve any typedefs not resolved
+# during parsing.  This must be done before the database is created, merged, and augmented to
+# exact type matching.  Typedefs can be encountered in any IDL and usage can cross IDL boundaries. 
+def ResolveAllTypedefs(all_interfaces):
+    # Resolve all typedefs.
+    for interface, db_Opts in all_interfaces:
+        def IsIdentified(idl_node):
+            node_name = idl_node.id if idl_node.id else 'parent'
+            for idl_type in idl_node.all(idlnode.IDLType):
+                # One last check is the type a typedef in an IDL file (the typedefs
+                # are treated as global).
+                resolvedType = resolveTypedef(idl_type)
+                if (resolvedType != idl_type):
+                    idl_type.id = resolvedType.id
+                    idl_type.nullable = resolvedType.nullable
+                    continue
+            return True
+
+        interface.constants = filter(IsIdentified, interface.constants)
+        interface.attributes = filter(IsIdentified, interface.attributes)
+        interface.operations = filter(IsIdentified, interface.operations)
+        interface.parents = filter(IsIdentified, interface.parents)
+
 def build_database(idl_files, database_dir, feature_defines=None,
                    logging_level=logging.WARNING, examine_idls=False):
   """This code reconstructs the FremontCut IDL database from W3C,
@@ -54,8 +80,8 @@ def build_database(idl_files, database_dir, feature_defines=None,
   dependency.set_builder(builder)
 
   # TODO(vsm): Move this to a README.
-  # This is the Dart SVN revision.
-  webkit_revision = '1060'
+  # This is the Chrome revision.
+  webkit_revision = '63'
 
   # TODO(vsm): Reconcile what is exposed here and inside WebKit code
   # generation.  We need to recheck this periodically for now.
@@ -87,6 +113,9 @@ def build_database(idl_files, database_dir, feature_defines=None,
       dart_options, True)
 
   start_time = time.time()
+
+  # All typedefs MUST be resolved here before any database fixups (merging, implements, etc.)
+  ResolveAllTypedefs(builder._imported_interfaces)
 
   # Merging:
   builder.merge_imported_interfaces()

@@ -158,10 +158,8 @@ $!MEMBERS
    * `<input is="x-bar"></input>`
    *
    */
-  void registerElement(String tag, Type customElementClass,
-      {String extendsTag}) {
-    _registerCustomElement(JS('', 'window'), this, tag, customElementClass,
-        extendsTag);
+  Function registerElement2(String tag, [Map options]) {
+    return _registerCustomElement(JS('', 'window'), this, tag, options);
   }
 
   /** *Deprecated*: use [registerElement] instead. */

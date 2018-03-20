@@ -17,12 +17,6 @@ bool optional(String value, Token token) {
   return identical(value, token.stringValue);
 }
 
-/// Returns the close brace, bracket, or parenthesis of [left]. For '<', it may
-/// return null.
-Token closeBraceTokenFor(Token token) {
-  return token is BeginToken ? token.endGroup : null;
-}
-
 /// Returns the token before the close brace, bracket, or parenthesis
 /// associated with [left]. For '<', it may return `null`.
 Token beforeCloseBraceTokenFor(BeginToken left) {

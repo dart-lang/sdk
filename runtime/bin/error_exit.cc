@@ -21,7 +21,6 @@ void ErrorExit(int exit_code, const char* format, ...) {
   Log::VPrintErr(format, arguments);
   va_end(arguments);
 
-  Dart_ExitScope();
   Dart_ShutdownIsolate();
 
   // Terminate process exit-code handler.

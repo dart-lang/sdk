@@ -8,6 +8,7 @@
 library compiler.api.legacy;
 
 import 'dart:async' show EventSink, Future;
+import 'dart:convert' show utf8;
 
 import '../compiler.dart';
 import '../compiler_new.dart';
@@ -37,7 +38,7 @@ class LegacyCompilerInput implements CompilerInput {
           return sourceFile;
         case InputKind.binary:
           if (data is String) {
-            data = data.codeUnits;
+            data = utf8.encode(data);
           }
           return new Binary(uri, data);
       }

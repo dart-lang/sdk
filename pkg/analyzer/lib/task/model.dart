@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.task.model;
-
 import 'dart:collection';
 import 'dart:developer';
 
@@ -179,6 +177,10 @@ abstract class AnalysisTask {
   E getRequiredInput<E>(String name) {
     if (inputs == null || !inputs.containsKey(name)) {
       throw new AnalysisException("Could not $description: missing $name");
+    }
+    if (inputs[name] is! E) {
+      throw new AnalysisException(
+          "Could not $description: $name is a ${inputs[name].runtimeType} rather than a $E");
     }
     return inputs[name] as E;
   }

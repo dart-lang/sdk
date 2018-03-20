@@ -78,13 +78,13 @@ Future compare(Uri a, Uri b, {bool silent: false}) async {
   if (!silent) {
     print("$a is different from $b");
   }
-  Component programA = new Component();
-  Component programB = new Component();
-  new BinaryBuilder(bytesA, filename: a.toFilePath()).readComponent(programA);
-  new BinaryBuilder(bytesB, filename: b.toFilePath()).readComponent(programB);
+  Component componentA = new Component();
+  Component componentB = new Component();
+  new BinaryBuilder(bytesA, filename: a.toFilePath()).readComponent(componentA);
+  new BinaryBuilder(bytesB, filename: b.toFilePath()).readComponent(componentB);
   RegExp splitLines = new RegExp('^', multiLine: true);
-  List<String> linesA = componentToString(programA).split(splitLines);
-  List<String> linesB = componentToString(programB).split(splitLines);
+  List<String> linesA = componentToString(componentA).split(splitLines);
+  List<String> linesB = componentToString(componentB).split(splitLines);
   for (int i = 0; i < linesA.length && i < linesB.length; i++) {
     String lineA = linesA[i].trimRight();
     String lineB = linesB[i].trimRight();

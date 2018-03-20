@@ -1371,7 +1371,11 @@ class _ReferenceInfo {
         } else {
           // For a type that refers to a generic executable, the type arguments are
           // not supposed to include the arguments to the executable itself.
-          numTypeArguments = enclosing?.numTypeParameters ?? 0;
+          if (element is MethodElementHandle && !element.isStatic) {
+            numTypeArguments = enclosing?.numTypeParameters ?? 0;
+          } else {
+            numTypeArguments = 0;
+          }
           computer = () => this.element as FunctionTypedElement;
         }
         // TODO(paulberry): Is it a bug that we have to pass `false` for

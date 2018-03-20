@@ -246,3 +246,12 @@ bool isUnsupportedFactoryConstructor(ConstructorDeclaration node) {
   }
   return false;
 }
+
+bool isBuiltinAnnotation(
+    DartObjectImpl value, String libraryName, String annotationName) {
+  var e = value?.type?.element;
+  if (e?.name != annotationName) return false;
+  var uri = e.source.uri;
+  var path = uri.pathSegments[0];
+  return uri.scheme == 'dart' && path == libraryName;
+}

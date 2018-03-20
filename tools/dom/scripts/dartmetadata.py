@@ -107,8 +107,8 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
     ],
 
     'Element.getBoundingClientRect': [
-        "@Creates('_ClientRect')",
-        "@Returns('_ClientRect|Null')", # TODO(sra): Verify and remove Null.
+        "@Creates('_DomRect')",
+        "@Returns('_DomRect|Null')", # TODO(sra): Verify and remove Null.
     ],
 
     # Methods returning Window can return a local window, or a cross-frame

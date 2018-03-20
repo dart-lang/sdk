@@ -13,6 +13,7 @@ import os
 import re
 from generator import *
 from htmldartgenerator import *
+from htmlrenamer import generateCallbackInterface
 
 _logger = logging.getLogger('systemhtml')
 
@@ -35,8 +36,6 @@ _safe_to_ignore_shadowing_members = monitored.Set('systemhtml._safe_to_ignore_sh
     ])
 
 _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
-    'AudioBufferSourceNode.start',
-    'AudioBufferSourceNode.stop',
     'AudioContext.createGain',
     'AudioContext.createScriptProcessor',
     'CanvasRenderingContext2D.drawImage',
@@ -128,6 +127,7 @@ _js_custom_constructors = monitored.Set('systemhtml._js_custom_constructors', [
     'Blob',
     'Comment',
     'MutationObserver',
+    'PaymentRequest',
     'RTCIceCandidate',
     'RTCPeerConnection',
     'RTCSessionDescription',
@@ -504,6 +504,8 @@ class HtmlDartInterfaceGenerator(object):
     elif 'Callback' in self._interface.ext_attrs:
       if len(GetCallbackHandlers(self._interface)) > 0:
         self.GenerateCallback()
+      elif generateCallbackInterface(self._interface.id):
+        self.GenerateInterface()
       else:
         return
     else:
@@ -846,6 +848,13 @@ class Dart2JSBackend(HtmlDartGenerator):
     return argument.optional
 
   def EmitStaticFactoryOverload(self, constructor_info, name, arguments):
+    if self._interface_type_info.has_generated_interface():
+      # Use dart_type name, we're generating.
+      interface_name = self._interface_type_info.interface_name()
+    else:
+      # Use the implementation name the interface is suppressed.
+      interface_name = self._interface_type_info.implementation_name()
+
     index = len(arguments)
     arguments = constructor_info.ParametersAsArgumentList(index)
     if arguments:
@@ -853,7 +862,7 @@ class Dart2JSBackend(HtmlDartGenerator):
     self._members_emitter.Emit(
         "  static $INTERFACE_NAME $NAME($PARAMETERS) => "
           "JS('$INTERFACE_NAME', 'new $CTOR_NAME($PLACEHOLDERS)'$ARGUMENTS);\n",
-        INTERFACE_NAME=self._interface_type_info.interface_name(),
+        INTERFACE_NAME=interface_name,
         NAME=name,
         # TODO(antonm): add types to parameters.
         PARAMETERS=constructor_info.ParametersAsArgumentList(index),
@@ -931,12 +940,16 @@ class Dart2JSBackend(HtmlDartGenerator):
           ' JS("void", "#[#] = #", this, index, value); }',
           TYPE=self._NarrowInputType(element_type))
     else:
+      theType = self._NarrowInputType(element_type)
+      if theType == 'DomRectList':
+          theType = '';
+
       self._members_emitter.Emit(
           '\n'
           '  void operator[]=(int index, $TYPE value) {\n'
           '    throw new UnsupportedError("Cannot assign element of immutable List.");\n'
           '  }\n',
-          TYPE=self._NarrowInputType(element_type))
+          TYPE=theType)
 
     self.EmitListMixin(self._DartType(element_type), nullable)
 
@@ -1019,7 +1032,7 @@ class Dart2JSBackend(HtmlDartGenerator):
           RENAME=rename,
           ANNOTATIONS=metadata,
           NAME=html_name,
-          TYPE=output_type)
+          TYPE=input_type if output_type == 'double' else output_type)
 
   def _AddAttributeUsingProperties(self, attribute, html_name, read_only):
     self._AddRenamingGetter(attribute, html_name)
@@ -1124,8 +1137,25 @@ class Dart2JSBackend(HtmlDartGenerator):
     else:
       self._AddDirectNativeOperation(info, html_name)
 
+  def _computeResultType(self, checkType):
+    # TODO(terry): Work around bug in dart2js compiler e.g.,
+    #     typedef void CustomElementConstructor();
+    #     CustomElementConstructor registerElement(String type, [Map options])
+    # Needs to become:
+    #     Function registerElement(String type, [Map options])
+    resultType = checkType
+    if self._database.HasInterface(resultType):
+        resultInterface = self._database.GetInterface(resultType)
+        if 'Callback' in resultInterface.ext_attrs:
+            resultType = 'Function'
+    return resultType
+
+
   def _AddDirectNativeOperation(self, info, html_name):
     force_optional = True if html_name.startswith('_') else False
+
+    resultType = self._computeResultType(info.type_name)
+
     self._members_emitter.Emit(
         '\n'
         '  $RENAME$METADATA$MODIFIERS$TYPE $NAME($PARAMS) native;\n',
@@ -1133,20 +1163,23 @@ class Dart2JSBackend(HtmlDartGenerator):
         METADATA=self._Metadata(info.type_name, info.declared_name,
             self.SecureOutputType(info.type_name)),
         MODIFIERS='static ' if info.IsStatic() else '',
-        TYPE=self.SecureOutputType(info.type_name, False, True),
+        TYPE=self.SecureOutputType(resultType, False, True),
         NAME=html_name,
         PARAMS=info.ParametersAsDeclaration(self._NarrowInputType, force_optional))
 
   def _AddOperationWithConversions(self, info, html_name):
     # Assert all operations have same return type.
     assert len(set([op.type.id for op in info.operations])) == 1
-    output_conversion = self._OutputConversion(info.type_name,
+
+    resultType = self._computeResultType(info.type_name)
+
+    output_conversion = self._OutputConversion(resultType,
                                                info.declared_name)
     if output_conversion:
       return_type = output_conversion.output_type
       native_return_type = output_conversion.input_type
     else:
-      return_type = self._NarrowInputType(info.type_name)
+      return_type = resultType if resultType == 'Function' else self._NarrowInputType(resultType)
       native_return_type = return_type
 
     parameter_names = [param_info.name for param_info in info.param_infos]

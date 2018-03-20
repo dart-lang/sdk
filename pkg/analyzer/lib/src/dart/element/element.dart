@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.dart.element.element;
-
 import 'dart:collection';
 import 'dart:math' show min;
 
@@ -802,6 +800,7 @@ class ClassElementImpl extends AbstractClassElementImpl
         _interfaces = _unlinkedClass.interfaces
             .map((EntityRef t) => context.resolveTypeRef(this, t))
             .where(_isClassInterfaceType)
+            .cast<InterfaceType>()
             .toList(growable: false);
       }
     }
@@ -938,6 +937,7 @@ class ClassElementImpl extends AbstractClassElementImpl
         _mixins = _unlinkedClass.mixins
             .map((EntityRef t) => context.resolveTypeRef(this, t))
             .where(_isClassInterfaceType)
+            .cast<InterfaceType>()
             .toList(growable: false);
       }
     }

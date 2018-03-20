@@ -334,6 +334,9 @@ class TypeSystem<T> {
       }
     } else if (annotation.isTypedef || annotation.isFunctionType) {
       otherType = functionType.type;
+    } else if (annotation.isFutureOr) {
+      // TODO(johnniwinther): Support narrowing of FutureOr.
+      return type;
     } else {
       assert(annotation.isTypeVariable);
       // TODO(ngeoffray): Narrow to bound.
