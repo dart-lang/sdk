@@ -201,7 +201,7 @@ dart2js:
 
     mirrors:
       uri: "mirrors/mirrors.dart"
-      patches: "_internal/js_runtime/lib/mirrors_patch.dart"
+      patches: "_internal/js_runtime/lib/mirrors_patch_cfe.dart"
 
     typed_data:
       uri: "typed_data/typed_data.dart"
