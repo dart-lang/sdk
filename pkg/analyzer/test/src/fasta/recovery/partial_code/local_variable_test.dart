@@ -157,23 +157,7 @@ class LocalVariableTest extends PartialCodeTest {
               "int _s_;",
               allFailing: true),
           new TestDescriptor(
-              'typeName', 'int a', [ParserErrorCode.EXPECTED_TOKEN], "int a;",
-              failing: [
-                'assert',
-                'break',
-                'continue',
-                'do',
-                'if',
-                'for',
-                'labeled',
-                'localFunctionNonVoid',
-                'localFunctionVoid',
-                'localVariable',
-                'switch',
-                'try',
-                'return',
-                'while'
-              ]),
+              'typeName', 'int a', [ParserErrorCode.EXPECTED_TOKEN], "int a;"),
           new TestDescriptor(
               'var',
               'var',

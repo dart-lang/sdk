@@ -570,6 +570,13 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
+  void test_localFunction_annotation() {
+    // TODO(danrubel): Update fasta to allow metadata before local function.
+    super.test_localFunction_annotation();
+  }
+
+  @override
+  @failingTest
   void test_method_invalidTypeParameterComments() {
     // TODO(brianwilkerson) Does not recover.
     //   type 'DeclaredSimpleIdentifier' is not a subtype of type 'TypeAnnotation' of 'returnType' where
@@ -677,38 +684,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     //   package:test                                                       expect
     //   test/generated/parser_fasta_test.dart 3506:7                       ParserProxy._run
     super.test_missingFunctionBody_invalid();
-  }
-
-  @override
-  @failingTest
-  void test_missingFunctionParameters_local_nonVoid_block() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_FUNCTION_PARAMETERS, found 0
-    super.test_missingFunctionParameters_local_nonVoid_block();
-  }
-
-  @override
-  @failingTest
-  void test_missingFunctionParameters_local_nonVoid_expression() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_FUNCTION_PARAMETERS, found 0
-    super.test_missingFunctionParameters_local_nonVoid_expression();
-  }
-
-  @override
-  @failingTest
-  void test_missingFunctionParameters_local_void_block() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_FUNCTION_PARAMETERS, found 0
-    super.test_missingFunctionParameters_local_void_block();
-  }
-
-  @override
-  @failingTest
-  void test_missingFunctionParameters_local_void_expression() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_FUNCTION_PARAMETERS, found 0
-    super.test_missingFunctionParameters_local_void_expression();
   }
 
   @override
@@ -1788,20 +1763,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Unhandled compile-time error:
     // A function expression can't have a name.
     super.test_functionExpression_named();
-  }
-
-  @override
-  @failingTest
-  void test_incompleteLocalVariable_beforeIdentifier() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incompleteLocalVariable_beforeIdentifier();
-  }
-
-  @override
-  @failingTest
-  void test_incompleteLocalVariable_beforeKeyword() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incompleteLocalVariable_beforeKeyword();
   }
 
   @override

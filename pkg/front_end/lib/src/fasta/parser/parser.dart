@@ -99,7 +99,8 @@ import 'type_info.dart'
         computeType,
         isGeneralizedFunctionType,
         isValidTypeReference,
-        noTypeInfo;
+        noTypeInfo,
+        voidTypeInfo;
 
 import 'util.dart' show optional;
 
@@ -2494,98 +2495,6 @@ class Parser {
         }
         continue optional;
 
-      case TypeContinuation.ExpressionStatementOrDeclaration:
-        assert(begin.isIdentifier || identical(begin.stringValue, 'void'));
-        if (!inPlainSync && optional("await", begin)) {
-          return parseExpressionStatement(beforeBegin);
-        }
-
-        if (looksLikeType && token.isIdentifier) {
-          Token afterId = token.next;
-
-          int afterIdKind = afterId.kind;
-          if (looksLikeVariableDeclarationEnd(afterIdKind)) {
-            // We are looking at `type identifier` followed by
-            // `(',' | '=' | ';')`.
-
-            // TODO(ahe): Generate type events and call
-            // parseVariablesDeclarationRest instead.
-            return parseVariablesDeclaration(beforeBegin);
-          } else if (OPEN_PAREN_TOKEN == afterIdKind) {
-            // We are looking at `type identifier '('`.
-            if (looksLikeFunctionBody(afterId.endGroup.next)) {
-              // We are looking at `type identifier '(' ... ')'` followed
-              // `( '{' | '=>' | 'async' | 'sync' )`.
-
-              // Although it looks like there are no type variables here, they
-              // may get injected from a comment.
-              Token beforeFormals = parseTypeVariablesOpt(token);
-
-              listener.beginLocalFunctionDeclaration(begin);
-              if (voidToken != null) {
-                listener.handleVoidKeyword(voidToken);
-              } else {
-                commitType();
-              }
-              return parseNamedFunctionRest(
-                  beforeToken, begin, beforeFormals, false);
-            }
-          } else if (identical(afterIdKind, LT_TOKEN)) {
-            // We are looking at `type identifier '<'`.
-            Token beforeFormals = afterId.endGroup;
-            if (beforeFormals?.next != null &&
-                optional("(", beforeFormals.next)) {
-              if (looksLikeFunctionBody(beforeFormals.next.endGroup.next)) {
-                // We are looking at "type identifier '<' ... '>' '(' ... ')'"
-                // followed by '{', '=>', 'async', or 'sync'.
-                parseTypeVariablesOpt(token);
-                listener.beginLocalFunctionDeclaration(begin);
-                if (voidToken != null) {
-                  listener.handleVoidKeyword(voidToken);
-                } else {
-                  commitType();
-                }
-                return parseNamedFunctionRest(
-                    beforeToken, begin, beforeFormals, false);
-              }
-            }
-          }
-          // Fall-through to expression statement.
-        } else {
-          beforeToken = beforeBegin;
-          token = begin;
-          if (optional(':', token.next)) {
-            return parseLabeledStatement(beforeToken);
-          } else if (optional('(', token.next)) {
-            if (looksLikeFunctionBody(token.next.endGroup.next)) {
-              // We are looking at `identifier '(' ... ')'` followed by `'{'`,
-              // `'=>'`, `'async'`, or `'sync'`.
-
-              // Although it looks like there are no type variables here, they
-              // may get injected from a comment.
-              Token formals = parseTypeVariablesOpt(token);
-
-              listener.beginLocalFunctionDeclaration(token);
-              listener.handleNoType(token);
-              return parseNamedFunctionRest(beforeToken, begin, formals, false);
-            }
-          } else if (optional('<', token.next)) {
-            Token gt = token.next.endGroup;
-            if (gt?.next != null && optional("(", gt.next)) {
-              if (looksLikeFunctionBody(gt.next.endGroup.next)) {
-                // We are looking at `identifier '<' ... '>' '(' ... ')'`
-                // followed by `'{'`, `'=>'`, `'async'`, or `'sync'`.
-                parseTypeVariablesOpt(token);
-                listener.beginLocalFunctionDeclaration(token);
-                listener.handleNoType(token);
-                return parseNamedFunctionRest(beforeToken, begin, gt, false);
-              }
-            }
-            // Fall through to expression statement.
-          }
-        }
-        return parseExpressionStatement(beforeBegin);
-
       case TypeContinuation.ExpressionStatementOrConstDeclaration:
         Token identifier;
         if (looksLikeType && token.isIdentifier) {
@@ -3990,7 +3899,7 @@ class Parser {
           beforeName.next, fasta.messageNamedFunctionExpression);
     }
     listener.endFunctionName(begin, token);
-    token = parseFormalParametersOpt(formals, MemberKind.Local);
+    token = parseFormalParametersRequiredOpt(formals, MemberKind.Local);
     token = parseInitializersOpt(token);
     token = parseAsyncOptBody(token, isFunctionExpression, false);
     if (isFunctionExpression) {
@@ -4278,10 +4187,14 @@ class Parser {
   }
 
   Token parseStatementX(Token token) {
-    final value = token.next.stringValue;
     if (identical(token.next.kind, IDENTIFIER_TOKEN)) {
+      if (optional(':', token.next.next)) {
+        return parseLabeledStatement(token);
+      }
       return parseExpressionStatementOrDeclaration(token);
-    } else if (identical(value, '{')) {
+    }
+    final value = token.next.stringValue;
+    if (identical(value, '{')) {
       return parseBlock(token);
     } else if (identical(value, 'return')) {
       return parseReturnStatement(token);
@@ -4334,10 +4247,15 @@ class Parser {
       return parseExpressionStatementOrConstDeclaration(token);
     } else if (isModifier(token.next)) {
       return parseVariablesDeclaration(token);
+    } else if (!inPlainSync && identical(value, 'await')) {
+      return parseExpressionStatement(token);
     } else if (token.next.isIdentifier) {
+      if (optional(':', token.next.next)) {
+        return parseLabeledStatement(token);
+      }
       return parseExpressionStatementOrDeclaration(token);
     } else if (identical(value, '@')) {
-      return parseVariablesDeclaration(token);
+      return parseExpressionStatementOrDeclaration(token);
     } else {
       return parseExpressionStatement(token);
     }
@@ -4386,10 +4304,6 @@ class Parser {
     return token;
   }
 
-  Token parseExpressionStatementOrDeclaration(Token token) {
-    return parseType(token, TypeContinuation.ExpressionStatementOrDeclaration);
-  }
-
   Token parseExpressionStatementOrConstDeclaration(Token token) {
     Token next = token.next;
     assert(optional('const', next));
@@ -4424,9 +4338,7 @@ class Parser {
   /// ```
   Token parseLabeledStatement(Token token) {
     Token next = token.next;
-    // TODO(brianwilkerson): Enable this assert.
-    // `parseType` is allowing `void` to be a label.
-//    assert(next.isIdentifier);
+    assert(next.isIdentifier);
     assert(optional(':', next.next));
     int labelCount = 0;
     do {
@@ -5487,10 +5399,46 @@ class Parser {
     return token;
   }
 
-  /// Parse the metadata, modifiers, and type of a local declaration and return
-  /// the last token consumed. If a local variable declaration or local
-  /// function declaration is not found, then return the starting token.
-  Token parseLocalDeclarationStartOpt(final Token start) {
+  /// Returns true if [token] could be the start of a function declaration
+  /// without a return type.
+  bool looksLikeLocalFunction(Token token) {
+    if (token.isIdentifier) {
+      token = token.next;
+      if (optional('<', token)) {
+        Token closeBrace = token.endGroup;
+        if (closeBrace == null) {
+          return false;
+        }
+        token = closeBrace.next;
+      }
+      if (optional('(', token)) {
+        token = token.endGroup.next;
+        return optional('{', token) ||
+            optional('=>', token) ||
+            optional('async', token) ||
+            optional('sync', token);
+      } else if (optional('=>', token)) {
+        // Recovery: Looks like a local function that is missing parenthesis.
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// This method has two modes based upon [onlyParseVariableDeclarationStart].
+  ///
+  /// If [onlyParseVariableDeclarationStart] is `false` (the default) then this
+  /// method will parse a local variable declaration, a local function,
+  /// or an expression statement, and then return the last consumed token.
+  ///
+  /// If [onlyParseVariableDeclarationStart] is `true` then this method
+  /// will only parse the metadata, modifiers, and type of a local variable
+  /// declaration if it exists. It is the responsibility of the caller to
+  /// call [parseVariablesDeclarationRest] to finish parsing the local variable
+  /// declaration. If a local variable declaration is not found then this
+  /// method will return [start].
+  Token parseExpressionStatementOrDeclaration(final Token start,
+      [bool onlyParseVariableDeclarationStart = false]) {
     Token token = start;
     Token next = token.next;
     if (optional('@', next)) {
@@ -5526,31 +5474,54 @@ class Parser {
     token = typeInfo.skipType(beforeType);
     next = token.next;
 
-    if (next.isIdentifier) {
-      if (optional('<', next.next) || optional('(', next.next)) {
-        // Found an expression or local function declaration.
-        // TODO(danrubel): Process local function declarations.
+    if (onlyParseVariableDeclarationStart) {
+      if (token == start) {
+        // If no annotation, modifier, or type, then return without consuming
+        // any tokens because this is not a local variable declaration.
         return start;
       }
+      // Fall through to parse the start of a local variable declaration.
+    } else if (looksLikeLocalFunction(next) &&
+        // TODO(danrubel): allow metadata before local function
+        !optional('@', start.next)) {
+      // Parse a local function declaration.
+      if (varFinalOrConst != null) {
+        reportRecoverableErrorWithToken(
+            varFinalOrConst, fasta.templateExtraneousModifier);
+      }
+      Token beforeFormals = parseTypeVariablesOpt(next);
+      listener.beginLocalFunctionDeclaration(start.next);
+      token = typeInfo.parseType(beforeType, this);
+      next = token.next;
+      return parseNamedFunctionRest(token, start.next, beforeFormals, false);
     }
 
     if (token == start) {
       // If no annotation, modifier, or type, and this is not a local function
-      // then return without consuming any tokens because this is not
-      // a local declaration.
-      return start;
+      // then this must be an expression statement.
+      return parseExpressionStatement(start);
+    }
+    if (next.type.isBuiltIn &&
+        beforeType == start &&
+        typeInfo != voidTypeInfo) {
+      // Detect situations such as identifier `as` identifier
+      // and treat those as expressions.
+      int kind = next.next.kind;
+      if (EQ_TOKEN != kind && SEMICOLON_TOKEN != kind && COMMA_TOKEN != kind) {
+        if (onlyParseVariableDeclarationStart) {
+          if (!optional('in', next.next)) {
+            return start;
+          }
+        } else {
+          return parseExpressionStatement(start);
+        }
+      }
     }
 
-    if (!optional('@', start.next)) {
-      listener.beginMetadataStar(start.next);
-      listener.endMetadataStar(0);
-    }
-    token = typeInfo.parseType(beforeType, this);
-    next = token.next;
-
-    // If there is not an identifier, then allow ensureIdentifier to report an
-    // error and don't report errors here.
     if (next.isIdentifier) {
+      // Only report these errors if there is an identifier. If there is not an
+      // identifier, then allow ensureIdentifier to report an error
+      // and don't report errors here.
       if (varFinalOrConst == null) {
         if (typeInfo == noTypeInfo) {
           reportRecoverableError(next, fasta.messageMissingConstFinalVarOrType);
@@ -5562,7 +5533,16 @@ class Parser {
       }
     }
 
+    if (!optional('@', start.next)) {
+      listener.beginMetadataStar(start.next);
+      listener.endMetadataStar(0);
+    }
+    token = typeInfo.parseType(beforeType, this);
+    next = token.next;
     listener.beginVariablesDeclaration(next, varFinalOrConst);
+    if (!onlyParseVariableDeclarationStart) {
+      token = parseVariablesDeclarationRest(token, true);
+    }
     return token;
   }
 
@@ -5708,8 +5688,15 @@ class Parser {
     }
     token = leftParenthesis;
 
-    token = parseLocalDeclarationStartOpt(token);
+    // Pass `true` so that the [parseExpressionStatementOrDeclaration] only
+    // parses the metadata, modifiers, and type of a local variable
+    // declaration if it exists. This enables capturing [beforeIdentifier]
+    // for later error reporting.
+    token = parseExpressionStatementOrDeclaration(token, true);
     Token beforeIdentifier = token;
+
+    // Parse the remainder of the local variable declaration
+    // or an expression if no local variable declaration was found.
     if (token != leftParenthesis) {
       token = parseVariablesDeclarationRest(token, false);
     } else if (optional(';', token.next)) {
@@ -5721,6 +5708,7 @@ class Parser {
     Token next = token.next;
     if (!optional('in', next)) {
       if (optional(':', next)) {
+        // Recovery
         reportRecoverableError(next, fasta.messageColonInPlaceOfIn);
         // Fall through to process `for ( ... in ... )`
       } else {
