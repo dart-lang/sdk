@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/refactoring/convert_getter_to_metho
 import 'package:analysis_server/src/services/refactoring/convert_method_to_getter.dart';
 import 'package:analysis_server/src/services/refactoring/extract_local.dart';
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
+import 'package:analysis_server/src/services/refactoring/extract_widget.dart';
 import 'package:analysis_server/src/services/refactoring/inline_local.dart';
 import 'package:analysis_server/src/services/refactoring/inline_method.dart';
 import 'package:analysis_server/src/services/refactoring/rename_class_member.dart';
@@ -19,6 +20,7 @@ import 'package:analysis_server/src/services/refactoring/rename_library.dart';
 import 'package:analysis_server/src/services/refactoring/rename_local.dart';
 import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
@@ -210,6 +212,43 @@ abstract class ExtractMethodRefactoring implements Refactoring {
   /**
    * Validates that the [name] is a valid identifier and is appropriate for a
    * method.
+   *
+   * It does not perform all the checks (such as checking for conflicts with any
+   * existing names in any of the scopes containing the current name), as many
+   * of these checks require search engine. Use [checkFinalConditions] for this
+   * level of checking.
+   */
+  RefactoringStatus checkName();
+}
+
+/**
+ * [Refactoring] to extract a widget creation expression or a method returning
+ * a widget, into a new stateless or stateful widget.
+ */
+abstract class ExtractWidgetRefactoring implements Refactoring {
+  /**
+   * Returns a new [ExtractWidgetRefactoring] instance.
+   */
+  factory ExtractWidgetRefactoring(SearchEngine searchEngine,
+      AnalysisSession session, CompilationUnit unit, int offset) {
+    return new ExtractWidgetRefactoringImpl(
+        searchEngine, session, unit, offset);
+  }
+
+  /**
+   * The name that the class should be given.
+   */
+  void set name(String name);
+
+  /**
+   * Set to `true` if a subclass of `StatefulWidget` should be extracted,
+   * otherwise a subclass of `StatelessWidget` will be extracted.
+   */
+  void set stateful(bool stateful);
+
+  /**
+   * Validates that the [name] is a valid identifier and is appropriate for a
+   * class.
    *
    * It does not perform all the checks (such as checking for conflicts with any
    * existing names in any of the scopes containing the current name), as many
