@@ -3790,14 +3790,6 @@ class Wrong<T> {
     ]);
   }
 
-  void test_initializedVariableInForEach_var() {
-    Statement statement = parseStatement('for (var a = 0 in foo) {}');
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrors([
-      expectedError(ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, 11, 1)
-    ]);
-  }
-
   void test_initializedVariableInForEach_annotation() {
     Statement statement = parseStatement('for (@Foo var a = 0 in foo) {}');
     expectNotNullIfNoErrors(statement);
@@ -3835,6 +3827,14 @@ class Wrong<T> {
             expectedError(ParserErrorCode.EXPECTED_TOKEN, 5, 1),
             expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1)
           ]);
+  }
+
+  void test_initializedVariableInForEach_var() {
+    Statement statement = parseStatement('for (var a = 0 in foo) {}');
+    expectNotNullIfNoErrors(statement);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, 11, 1)
+    ]);
   }
 
   void test_invalidAwaitInFor() {
@@ -4099,6 +4099,23 @@ class Wrong<T> {
     expect(unit, isNotNull);
   }
 
+  void test_localFunction_annotation() {
+    CompilationUnit unit =
+        parseCompilationUnit("class C { m() { @Foo f() {} } }");
+    expect(unit.declarations, hasLength(1));
+    ClassDeclaration declaration = unit.declarations[0];
+    expect(declaration.members, hasLength(1));
+    MethodDeclaration member = declaration.members[0];
+    BlockFunctionBody body = member.body;
+    expect(body.block.statements, hasLength(1));
+    FunctionDeclarationStatement statement = body.block.statements[0];
+    if (usingFastaParser) {
+      expect(statement.functionDeclaration.metadata, hasLength(1));
+      Annotation metadata = statement.functionDeclaration.metadata[0];
+      expect(metadata.name.name, 'Foo');
+    }
+  }
+
   void test_localFunctionDeclarationModifier_abstract() {
     parseCompilationUnit("class C { m() { abstract f() {} } }",
         errors: usingFastaParser
@@ -4155,23 +4172,6 @@ class Wrong<T> {
                 expectedError(
                     ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, 16, 6)
               ]);
-  }
-
-  void test_localFunction_annotation() {
-    CompilationUnit unit =
-        parseCompilationUnit("class C { m() { @Foo f() {} } }");
-    expect(unit.declarations, hasLength(1));
-    ClassDeclaration declaration = unit.declarations[0];
-    expect(declaration.members, hasLength(1));
-    MethodDeclaration member = declaration.members[0];
-    BlockFunctionBody body = member.body;
-    expect(body.block.statements, hasLength(1));
-    FunctionDeclarationStatement statement = body.block.statements[0];
-    if (usingFastaParser) {
-      expect(statement.functionDeclaration.metadata, hasLength(1));
-      Annotation metadata = statement.functionDeclaration.metadata[0];
-      expect(metadata.name.name, 'Foo');
-    }
   }
 
   void test_method_invalidTypeParameterComments() {
@@ -15271,6 +15271,15 @@ abstract class StatementParserTestMixin implements AbstractParserTestCase {
     expect(statement.finallyBlock, isNotNull);
   }
 
+  void test_parseVariableDeclaration_equals_builtIn() {
+    VariableDeclarationStatement statement = parseStatement('int set = 0;');
+    assertNoErrors();
+    expect(statement.semicolon, isNotNull);
+    VariableDeclarationList variableList = statement.variables;
+    expect(variableList, isNotNull);
+    expect(variableList.variables, hasLength(1));
+  }
+
   void test_parseVariableDeclarationListAfterMetadata_const_noType() {
     var declarationList = parseVariableDeclarationList('const a');
     assertNoErrors();
@@ -15407,15 +15416,6 @@ abstract class StatementParserTestMixin implements AbstractParserTestCase {
 
   void test_parseVariableDeclarationStatementAfterMetadata_single() {
     var statement = parseStatement('var x;') as VariableDeclarationStatement;
-    assertNoErrors();
-    expect(statement.semicolon, isNotNull);
-    VariableDeclarationList variableList = statement.variables;
-    expect(variableList, isNotNull);
-    expect(variableList.variables, hasLength(1));
-  }
-
-  void test_parseVariableDeclaration_equals_builtIn() {
-    VariableDeclarationStatement statement = parseStatement('int set = 0;');
     assertNoErrors();
     expect(statement.semicolon, isNotNull);
     VariableDeclarationList variableList = statement.variables;
@@ -16947,9 +16947,8 @@ enum E {
     expect(declaration.propertyKeyword, isNotNull);
   }
 
-  @failingTest
   void test_parseGenericTypeAlias_noTypeParameters() {
-    createParser('F = int Function(int);');
+    createParser('typedef F = int Function(int);');
     GenericTypeAlias alias = parseFullCompilationUnitMember();
     expect(alias, isNotNull);
     assertNoErrors();
@@ -16961,9 +16960,8 @@ enum E {
     expect(alias.semicolon, isNotNull);
   }
 
-  @failingTest
   void test_parseGenericTypeAlias_typeParameters() {
-    createParser('F<T> = T Function(T);');
+    createParser('typedef F<T> = T Function(T);');
     GenericTypeAlias alias = parseFullCompilationUnitMember();
     expect(alias, isNotNull);
     assertNoErrors();

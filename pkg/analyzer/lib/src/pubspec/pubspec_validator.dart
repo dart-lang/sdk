@@ -100,7 +100,7 @@ class PubspecValidator {
    * from the given [contents] using the given [key].
    */
   Map<dynamic, YamlNode> _getDeclaredDependencies(
-      ErrorReporter reporter, Map<String, YamlNode> contents, String key) {
+      ErrorReporter reporter, Map<dynamic, YamlNode> contents, String key) {
     YamlNode field = contents[key];
     if (field == null) {
       return <String, YamlNode>{};
