@@ -165,7 +165,6 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
       DART_KERNEL_ISOLATE_NAME, main, isolate_snapshot_data,
       isolate_snapshot_instructions, flags, isolate_data, error);
   if (isolate == NULL) {
-    *error = strdup("Failed to create isolate");
     delete isolate_data;
     return NULL;
   }

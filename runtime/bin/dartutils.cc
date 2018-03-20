@@ -368,6 +368,7 @@ DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const char* filename) {
   if (File::GetType(NULL, filename, true) == File::kIsFile) {
     File* file = File::Open(NULL, filename, File::kRead);
     if (file != NULL) {
+      RefCntReleaseScope<File> rs(file);
       intptr_t max_magic_length = 0;
       max_magic_length =
           Utils::Maximum(max_magic_length, snapshot_magic_number.length);
@@ -382,7 +383,6 @@ DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const char* filename) {
       if (file->ReadFully(&header, max_magic_length)) {
         magic_number = DartUtils::SniffForMagicNumber(header, sizeof(header));
       }
-      file->Close();
     }
   }
   return magic_number;
