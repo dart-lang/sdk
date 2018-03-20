@@ -1191,8 +1191,12 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
 
           if ((phi != NULL) && isolate()->strong() &&
               FLAG_use_strong_mode_types) {
-            phi->UpdateType(
-                CompileType::FromAbstractType(load->local().type()));
+            // Assign type to phi only if phi was not copied from another local.
+            const auto* phis = phi->block()->phis();
+            if ((index < phis->length()) && ((*phis)[index] == phi)) {
+              phi->UpdateType(
+                  CompileType::FromAbstractType(load->local().type()));
+            }
           }
         } else if (drop != NULL) {
           // Drop temps from the environment.
