@@ -22,12 +22,7 @@ import 'package:front_end/src/fasta/parser.dart'
 import 'package:front_end/src/fasta/scanner.dart' hide StringToken;
 import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
 import 'package:front_end/src/scanner/token.dart'
-    show
-        StringToken,
-        SyntheticBeginToken,
-        SyntheticStringToken,
-        SyntheticToken,
-        CommentToken;
+    show StringToken, SyntheticBeginToken, SyntheticStringToken, SyntheticToken;
 
 import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/messages.dart'
@@ -205,7 +200,7 @@ class AstBuilder extends ScopeListener {
       String value = unescapeString(token.lexeme);
       push(ast.simpleStringLiteral(token, value));
     } else {
-      List parts = popList(1 + interpolationCount * 2);
+      List<Object> parts = popTypedList(1 + interpolationCount * 2);
       Token first = parts.first;
       Token last = parts.last;
       Quote quote = analyzeQuote(first.lexeme);
@@ -250,7 +245,7 @@ class AstBuilder extends ScopeListener {
   void handleStringJuxtaposition(int literalCount) {
     debugEvent("StringJuxtaposition");
 
-    push(ast.adjacentStrings(popList(literalCount)));
+    push(ast.adjacentStrings(popTypedList(literalCount)));
   }
 
   void endArguments(int count, Token leftParenthesis, Token rightParenthesis) {
@@ -258,7 +253,7 @@ class AstBuilder extends ScopeListener {
     assert(optional(')', rightParenthesis));
     debugEvent("Arguments");
 
-    List expressions = popList(count);
+    List<Expression> expressions = popTypedList(count);
     ArgumentList arguments =
         ast.argumentList(leftParenthesis, expressions, rightParenthesis);
     push(ast.methodInvocation(null, null, null, null, arguments));
@@ -382,7 +377,7 @@ class AstBuilder extends ScopeListener {
     assert(optional('}', rightBracket));
     debugEvent("BlockFunctionBody");
 
-    List statements = popList(count);
+    List<Statement> statements = popTypedList(count);
     if (leftBracket != null) {
       exitLocalScope();
     }
@@ -542,7 +537,7 @@ class AstBuilder extends ScopeListener {
     assert(optional(':', colon));
     debugEvent("Initializers");
 
-    List<Object> initializerObjects = popList(count) ?? const [];
+    List<Object> initializerObjects = popTypedList(count) ?? const [];
     if (!isFullAst) return;
 
     push(colon);
@@ -608,7 +603,7 @@ class AstBuilder extends ScopeListener {
     debugEvent("VariableInitializer");
 
     Expression initializer = pop();
-    Identifier identifier = pop();
+    SimpleIdentifier identifier = pop();
     // TODO(ahe): Don't push initializers, instead install them.
     push(ast.variableDeclaration(identifier, assignmentOperator, initializer));
   }
@@ -676,7 +671,7 @@ class AstBuilder extends ScopeListener {
     assert(optionalOrNull(';', semicolon));
     debugEvent("VariablesDeclaration");
 
-    List<VariableDeclaration> variables = popList(count);
+    List<VariableDeclaration> variables = popTypedList(count);
     _Modifiers modifiers = pop(NullValue.Modifiers);
     TypeAnnotation type = pop();
     Token keyword = modifiers?.finalConstOrVarKeyword;
@@ -703,7 +698,7 @@ class AstBuilder extends ScopeListener {
     assert(optional('}', rightBracket));
     debugEvent("Block");
 
-    List<Statement> statements = popList(count) ?? <Statement>[];
+    List<Statement> statements = popTypedList(count) ?? <Statement>[];
     exitLocalScope();
     push(ast.block(leftBracket, statements, rightBracket));
   }
@@ -722,7 +717,7 @@ class AstBuilder extends ScopeListener {
     debugEvent("ForStatement");
 
     Statement body = pop();
-    List<Expression> updates = popList(updateExpressionCount);
+    List<Expression> updates = popTypedList(updateExpressionCount);
     Statement conditionStatement = pop();
     Object initializerPart = pop();
     exitLocalScope();
@@ -766,7 +761,7 @@ class AstBuilder extends ScopeListener {
     assert(optional(']', rightBracket));
     debugEvent("LiteralList");
 
-    List<Expression> expressions = popList(count);
+    List<Expression> expressions = popTypedList(count);
     TypeArgumentList typeArguments = pop();
     push(ast.listLiteral(
         constKeyword, typeArguments, leftBracket, expressions, rightBracket));
@@ -819,7 +814,7 @@ class AstBuilder extends ScopeListener {
     assert(optional('}', rightBracket));
     debugEvent("LiteralMap");
 
-    List<MapLiteralEntry> entries = popList(count) ?? <MapLiteralEntry>[];
+    List<MapLiteralEntry> entries = popTypedList(count) ?? <MapLiteralEntry>[];
     TypeArgumentList typeArguments = pop();
     push(ast.mapLiteral(
         constKeyword, typeArguments, leftBracket, entries, rightBracket));
@@ -838,7 +833,7 @@ class AstBuilder extends ScopeListener {
     assert(optional('#', hashToken));
     debugEvent("LiteralSymbol");
 
-    List<Token> components = popList(tokenCount);
+    List<Token> components = popTypedList(tokenCount);
     push(ast.symbolLiteral(hashToken, components));
   }
 
@@ -1006,7 +1001,7 @@ class AstBuilder extends ScopeListener {
     debugEvent("OptionalFormalParameters");
 
     push(new _OptionalFormalParameters(
-        popList(count), leftDelimeter, rightDelimeter));
+        popTypedList(count), leftDelimeter, rightDelimeter));
   }
 
   void handleValuedFormalParameter(Token equals, Token token) {
@@ -1103,7 +1098,7 @@ class AstBuilder extends ScopeListener {
     Comment comment = _findComment(metadata,
         thisKeyword ?? typeOrFunctionTypedParameter?.beginToken ?? nameToken);
 
-    FormalParameter node;
+    NormalFormalParameter node;
     if (typeOrFunctionTypedParameter is FunctionTypedFormalParameter) {
       // This is a temporary AST node that was constructed in
       // [endFunctionTypedFormalParameter]. We now deconstruct it and create
@@ -1153,16 +1148,17 @@ class AstBuilder extends ScopeListener {
     }
 
     ParameterKind analyzerKind = _toAnalyzerParameterKind(kind);
+    FormalParameter parameter = node;
     if (analyzerKind != ParameterKind.REQUIRED) {
-      node = ast.defaultFormalParameter(
+      parameter = ast.defaultFormalParameter(
           node, analyzerKind, defaultValue?.separator, defaultValue?.value);
     } else if (defaultValue != null) {
       // An error is reported if a required parameter has a default value.
       // Record it as named parameter for recovery.
-      node = ast.defaultFormalParameter(node, ParameterKind.NAMED,
+      parameter = ast.defaultFormalParameter(node, ParameterKind.NAMED,
           defaultValue.separator, defaultValue.value);
     }
-    push(node);
+    push(parameter);
   }
 
   @override
@@ -1188,7 +1184,7 @@ class AstBuilder extends ScopeListener {
     assert(optional(')', rightParen));
     debugEvent("FormalParameters");
 
-    List rawParameters = popList(count) ?? const <Object>[];
+    List<Object> rawParameters = popTypedList(count) ?? const <Object>[];
     List<FormalParameter> parameters = <FormalParameter>[];
     Token leftDelimiter;
     Token rightDelimiter;
@@ -1211,7 +1207,7 @@ class AstBuilder extends ScopeListener {
     assert(optional('}', rightBracket));
     debugEvent("SwitchBlock");
 
-    List<List<SwitchMember>> membersList = popList(caseCount);
+    List<List<SwitchMember>> membersList = popTypedList(caseCount);
     exitBreakTarget();
     exitLocalScope();
     List<SwitchMember> members =
@@ -1250,9 +1246,9 @@ class AstBuilder extends ScopeListener {
         : optional(':', colonAfterDefault));
     debugEvent("SwitchCase");
 
-    List<Statement> statements = popList(statementCount);
-    List<SwitchMember> members = popList(expressionCount) ?? [];
-    List<Label> labels = popList(labelCount);
+    List<Statement> statements = popTypedList(statementCount);
+    List<SwitchMember> members = popTypedList(expressionCount) ?? [];
+    List<Label> labels = popTypedList(labelCount);
     if (defaultKeyword != null) {
       members.add(ast.switchDefault(
           <Label>[], defaultKeyword, colonAfterDefault, <Statement>[]));
@@ -1338,7 +1334,7 @@ class AstBuilder extends ScopeListener {
     debugEvent("TryStatement");
 
     Block finallyBlock = popIfNotNull(finallyKeyword);
-    List<CatchClause> catchClauses = popList(catchCount);
+    List<CatchClause> catchClauses = popTypedList(catchCount);
     Block body = pop();
     push(ast.tryStatement(
         tryKeyword, body, catchClauses, finallyKeyword, finallyBlock));
@@ -1460,7 +1456,7 @@ class AstBuilder extends ScopeListener {
     if (count == 0) {
       push(NullValue.Modifiers);
     } else {
-      push(new _Modifiers(popList(count)));
+      push(new _Modifiers(popTypedList(count)));
     }
   }
 
@@ -1621,7 +1617,7 @@ class AstBuilder extends ScopeListener {
     assert(firstIdentifier.isIdentifier);
     debugEvent("DottedName");
 
-    List<SimpleIdentifier> components = popList(count);
+    List<SimpleIdentifier> components = popTypedList(count);
     push(ast.dottedName(components));
   }
 
@@ -1674,14 +1670,14 @@ class AstBuilder extends ScopeListener {
   void endConditionalUris(int count) {
     debugEvent("ConditionalUris");
 
-    push(popList(count) ?? NullValue.ConditionalUris);
+    push(popTypedList<Configuration>(count) ?? NullValue.ConditionalUris);
   }
 
   @override
   void handleIdentifierList(int count) {
     debugEvent("IdentifierList");
 
-    push(popList(count) ?? NullValue.IdentifierList);
+    push(popTypedList<SimpleIdentifier>(count) ?? NullValue.IdentifierList);
   }
 
   @override
@@ -1703,9 +1699,15 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
+  void endCombinators(int count) {
+    debugEvent("Combinators");
+    push(popTypedList<Combinator>(count) ?? NullValue.Combinators);
+  }
+
+  @override
   void endTypeList(int count) {
     debugEvent("TypeList");
-    push(popList(count) ?? NullValue.TypeList);
+    push(popTypedList<TypeName>(count) ?? NullValue.TypeList);
   }
 
   @override
@@ -1753,7 +1755,7 @@ class AstBuilder extends ScopeListener {
     debugEvent("ClassImplements");
 
     if (implementsKeyword != null) {
-      List<TypeName> interfaces = popList(interfacesCount);
+      List<TypeName> interfaces = popTypedList(interfacesCount);
       push(ast.implementsClause(implementsKeyword, interfaces));
     } else {
       push(NullValue.IdentifierList);
@@ -1894,7 +1896,7 @@ class AstBuilder extends ScopeListener {
     debugEvent("LabeledStatement");
 
     Statement statement = pop();
-    List<Label> labels = popList(labelCount);
+    List<Label> labels = popTypedList(labelCount);
     push(ast.labeledStatement(labels, statement));
   }
 
@@ -1975,7 +1977,7 @@ class AstBuilder extends ScopeListener {
     if (libraryNameOrUri is StringLiteral) {
       uri = libraryNameOrUri;
     } else {
-      name = ast.libraryIdentifier(libraryNameOrUri);
+      name = ast.libraryIdentifier(libraryNameOrUri as List<SimpleIdentifier>);
     }
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, partKeyword);
@@ -2118,7 +2120,7 @@ class AstBuilder extends ScopeListener {
     assert(optional(';', semicolon));
     debugEvent("TopLevelFields");
 
-    List<VariableDeclaration> variables = popList(count);
+    List<VariableDeclaration> variables = popTypedList(count);
     TypeAnnotation type = pop();
     _Modifiers modifiers = pop();
     Token keyword = modifiers?.finalConstOrVarKeyword;
@@ -2154,7 +2156,7 @@ class AstBuilder extends ScopeListener {
     assert(optional('>', endToken));
     debugEvent("TypeVariables");
 
-    List<TypeParameter> typeParameters = popList(count);
+    List<TypeParameter> typeParameters = popTypedList(count);
     push(ast.typeParameterList(beginToken, typeParameters, endToken));
   }
 
@@ -2374,8 +2376,15 @@ class AstBuilder extends ScopeListener {
         // this).
         type = null;
       }
-      declarations.add(ast.genericTypeAlias(comment, metadata, typedefKeyword,
-          name, templateParameters, equals, type, semicolon));
+      declarations.add(ast.genericTypeAlias(
+          comment,
+          metadata,
+          typedefKeyword,
+          name,
+          templateParameters,
+          equals,
+          type as GenericFunctionType,
+          semicolon));
     }
   }
 
@@ -2385,7 +2394,7 @@ class AstBuilder extends ScopeListener {
     assert(optional('{', leftBrace));
     debugEvent("Enum");
 
-    List<EnumConstantDeclaration> constants = popList(count);
+    List<EnumConstantDeclaration> constants = popTypedList(count);
     SimpleIdentifier name = pop();
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, enumKeyword);
@@ -2399,7 +2408,7 @@ class AstBuilder extends ScopeListener {
     assert(optional('>', rightBracket));
     debugEvent("TypeArguments");
 
-    List<TypeAnnotation> arguments = popList(count);
+    List<TypeAnnotation> arguments = popTypedList(count);
     push(ast.typeArgumentList(leftBracket, arguments, rightBracket));
   }
 
@@ -2408,7 +2417,7 @@ class AstBuilder extends ScopeListener {
     assert(optional(';', semicolon));
     debugEvent("Fields");
 
-    List<VariableDeclaration> variables = popList(count);
+    List<VariableDeclaration> variables = popTypedList(count);
     TypeAnnotation type = pop();
     _Modifiers modifiers = pop();
     var variableList = ast.variableDeclarationList(
@@ -2476,7 +2485,7 @@ class AstBuilder extends ScopeListener {
   void endMetadataStar(int count) {
     debugEvent("MetadataStar");
 
-    push(popList(count) ?? NullValue.Metadata);
+    push(popTypedList<Annotation>(count) ?? NullValue.Metadata);
   }
 
   ParameterKind _toAnalyzerParameterKind(FormalParameterKind type) {
@@ -2817,7 +2826,7 @@ class AstBuilder extends ScopeListener {
 
   /// Parse a documentation comment. Return the documentation comment that was
   /// parsed, or `null` if there was no comment.
-  Comment _parseDocumentationCommentOpt(CommentToken commentToken) {
+  Comment _parseDocumentationCommentOpt(Token commentToken) {
     List<Token> tokens = <Token>[];
     while (commentToken != null) {
       if (commentToken.lexeme.startsWith('/**') ||
@@ -2900,6 +2909,25 @@ class AstBuilder extends ScopeListener {
   /// [value].
   bool optionalOrNull(String value, Token token) {
     return token == null || identical(value, token.stringValue);
+  }
+
+  List<T> popTypedList<T>(int count, [List<T> list]) {
+    if (count == 0) return null;
+    assert(stack.arrayLength >= count);
+
+    final table = stack.array;
+    final length = stack.arrayLength;
+
+    final tailList = list ?? new List<T>.filled(count, null, growable: true);
+    final startIndex = length - count;
+    for (int i = 0; i < count; i++) {
+      final value = table[startIndex + i];
+      tailList[i] = value is NullValue ? null : value;
+      table[startIndex + i] = null;
+    }
+    stack.arrayLength -= count;
+
+    return tailList;
   }
 }
 
