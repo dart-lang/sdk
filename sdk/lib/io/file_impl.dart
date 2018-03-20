@@ -203,17 +203,19 @@ class _FileStreamConsumer extends StreamConsumer<List<int>> {
 
 // Class for encapsulating the native implementation of files.
 class _File extends FileSystemEntity implements File {
-  Uint8List rawPath;
+  Uint8List _rawPath;
 
   _File(String path) {
     if (path is! String) {
       throw new ArgumentError(
           '${Error.safeToString(path)} is not a String');
     }
-    this.rawPath = new Uint8List.fromList(utf8.encode(path));
+    this._rawPath = new Uint8List.fromList(utf8.encode(path));
   }
 
-  _File.fromRawPath(this.rawPath) {}
+  _File.fromRawPath(this._rawPath);
+
+  Uint8List get rawPath => _rawPath;
 
   // WARNING:
   // Calling this function will increase the reference count on the native

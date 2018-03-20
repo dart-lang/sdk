@@ -243,8 +243,14 @@ FileStat: type $type
  *   files and directories.
  */
 abstract class FileSystemEntity {
-  String get path => utf8.decode(rawPath);
   Uint8List get rawPath;
+
+  String _cachedPath;
+
+  String get path {
+    if (_cachedPath != null) return _cachedPath;
+    return _cachedPath = utf8.decode(rawPath);
+  }
 
   /**
    * Returns a [Uri] representing the file system entity's location.

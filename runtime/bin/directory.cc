@@ -449,7 +449,7 @@ bool SyncDirectoryListing::HandleFile(const char* file_name) {
     return false;
   }
   memmove(buffer, file_name, file_name_length);
-  Dart_Handle constructor_name = DartUtils::NewString("fromRawPath");
+  Dart_Handle constructor_name = from_raw_path_string_;
   Dart_Handle file = Dart_New(file_type_, constructor_name, 1, &file_name_dart);
   Dart_Handle result = Dart_Invoke(results_, add_string_, 1, &file);
   if (Dart_IsError(result)) {
