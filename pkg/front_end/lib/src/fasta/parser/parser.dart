@@ -29,7 +29,6 @@ import '../../scanner/token.dart'
 
 import '../scanner/token_constants.dart'
     show
-        CLOSE_CURLY_BRACKET_TOKEN,
         COMMA_TOKEN,
         DOUBLE_TOKEN,
         EOF_TOKEN,
@@ -2281,18 +2280,8 @@ class Parser {
     {
       // Analyse the next tokens to see if they could be a type.
 
-      if (continuation ==
-          TypeContinuation.ExpressionStatementOrConstDeclaration) {
-        // This is a special case. The first token is `const` and we need to
-        // analyze the tokens following the const keyword.
-        assert(optional("const", token.next));
-        beforeBegin = token;
-        begin = beforeToken = token.next;
-        token = beforeToken.next;
-      } else {
-        beforeToken = beforeBegin = token;
-        token = begin = token.next;
-      }
+      beforeToken = beforeBegin = token;
+      token = begin = token.next;
 
       if (optional("void", token)) {
         // `void` is a type.
@@ -2408,17 +2397,6 @@ class Parser {
       return token;
     }
 
-    /// Returns true if [kind] could be the end of a variable declaration.
-    bool looksLikeVariableDeclarationEnd(int kind) {
-      return EQ_TOKEN == kind ||
-          SEMICOLON_TOKEN == kind ||
-          COMMA_TOKEN == kind ||
-          // Recovery: Return true for these additional invalid situations
-          // in which we assume a missing semicolon.
-          OPEN_CURLY_BRACKET_TOKEN == kind ||
-          CLOSE_CURLY_BRACKET_TOKEN == kind;
-    }
-
     /// Returns true if [token] could be the start of a function body.
     bool looksLikeFunctionBody(Token token) {
       return optional('{', token) ||
@@ -2489,27 +2467,6 @@ class Parser {
           return null; // This isn't a type, it's a new-style typedef.
         }
         continue optional;
-
-      case TypeContinuation.ExpressionStatementOrConstDeclaration:
-        Token identifier;
-        if (looksLikeType && token.isIdentifier) {
-          identifier = token;
-        } else if (begin.next.isIdentifier) {
-          identifier = begin.next;
-        }
-        if (identifier != null) {
-          if (looksLikeVariableDeclarationEnd(identifier.next.kind)) {
-            // We are looking at "const type identifier" followed by '=', ';',
-            // or ','.
-
-            // TODO(ahe): Generate type events and call
-            // parseVariablesDeclarationRest instead.
-            return parseVariablesDeclaration(beforeBegin);
-          }
-          // Fall-through to expression statement.
-        }
-
-        return parseExpressionStatement(beforeBegin);
 
       case TypeContinuation.SendOrFunctionLiteral:
         Token beforeName;
@@ -4174,7 +4131,7 @@ class Parser {
       if (optional(':', token.next.next)) {
         return parseLabeledStatement(token);
       }
-      return parseExpressionStatementOrDeclaration(token);
+      return parseExpressionStatementOrDeclarationAfterModifiers(token, token);
     }
     final value = token.next.stringValue;
     if (identical(value, '{')) {
@@ -4182,7 +4139,13 @@ class Parser {
     } else if (identical(value, 'return')) {
       return parseReturnStatement(token);
     } else if (identical(value, 'var') || identical(value, 'final')) {
-      return parseVariablesDeclaration(token);
+      Token varOrFinal = token.next;
+      if (isModifier(varOrFinal.next)) {
+        return parseExpressionStatementOrDeclaration(token);
+      } else {
+        return parseExpressionStatementOrDeclarationAfterModifiers(
+            varOrFinal, token, varOrFinal);
+      }
     } else if (identical(value, 'if')) {
       return parseIfStatement(token);
     } else if (identical(value, 'await') && optional('for', token.next.next)) {
@@ -4194,8 +4157,6 @@ class Parser {
     } else if (identical(value, 'throw') && optional(';', token.next.next)) {
       // TODO(kasperl): Stop dealing with throw here.
       return parseRethrowStatement(token);
-    } else if (identical(value, 'void')) {
-      return parseExpressionStatementOrDeclaration(token);
     } else if (identical(value, 'while')) {
       return parseWhileStatement(token);
     } else if (identical(value, 'do')) {
@@ -4228,8 +4189,6 @@ class Parser {
       throw "Internal error: Unknown asyncState: '$asyncState'.";
     } else if (identical(value, 'const')) {
       return parseExpressionStatementOrConstDeclaration(token);
-    } else if (isModifier(token.next)) {
-      return parseVariablesDeclaration(token);
     } else if (!inPlainSync && identical(value, 'await')) {
       return parseExpressionStatement(token);
     } else if (token.next.isIdentifier) {
@@ -4237,10 +4196,8 @@ class Parser {
         return parseLabeledStatement(token);
       }
       return parseExpressionStatementOrDeclaration(token);
-    } else if (identical(value, '@')) {
-      return parseExpressionStatementOrDeclaration(token);
     } else {
-      return parseExpressionStatement(token);
+      return parseExpressionStatementOrDeclaration(token);
     }
   }
 
@@ -4285,17 +4242,6 @@ class Parser {
           begin, fasta.messageGeneratorReturnsValue);
     }
     return token;
-  }
-
-  Token parseExpressionStatementOrConstDeclaration(Token token) {
-    Token next = token.next;
-    assert(optional('const', next));
-    if (next.next.isModifier) {
-      return parseVariablesDeclaration(token);
-    } else {
-      return parseType(
-          token, TypeContinuation.ExpressionStatementOrConstDeclaration);
-    }
   }
 
   /// ```
@@ -5408,6 +5354,32 @@ class Parser {
     return false;
   }
 
+  Token parseExpressionStatementOrConstDeclaration(final Token start) {
+    Token constToken = start.next;
+    assert(optional('const', constToken));
+    if (!isModifier(constToken.next)) {
+      TypeInfo typeInfo = computeType(constToken, false);
+      if (typeInfo == noTypeInfo) {
+        Token next = constToken.next;
+        if (!next.isIdentifier) {
+          return parseExpressionStatement(start);
+        }
+        next = next.next;
+        if (!(optional('=', next) ||
+            // Recovery
+            next.isKeywordOrIdentifier ||
+            optional(';', next) ||
+            optional(',', next) ||
+            optional('{', next))) {
+          return parseExpressionStatement(start);
+        }
+      }
+      return parseExpressionStatementOrDeclarationAfterModifiers(
+          constToken, start, constToken, typeInfo);
+    }
+    return parseExpressionStatementOrDeclaration(start);
+  }
+
   /// This method has two modes based upon [onlyParseVariableDeclarationStart].
   ///
   /// If [onlyParseVariableDeclarationStart] is `false` (the default) then this
@@ -5452,20 +5424,23 @@ class Parser {
       }
     }
 
-    Token beforeType = token;
-    TypeInfo typeInfo = computeType(beforeType, false);
-    token = typeInfo.skipType(beforeType);
-    next = token.next;
+    return parseExpressionStatementOrDeclarationAfterModifiers(
+        token, start, varFinalOrConst, null, onlyParseVariableDeclarationStart);
+  }
 
-    if (onlyParseVariableDeclarationStart) {
-      if (token == start) {
-        // If no annotation, modifier, or type, then return without consuming
-        // any tokens because this is not a local variable declaration.
-        return start;
-      }
-      // Fall through to parse the start of a local variable declaration.
-    } else if (looksLikeLocalFunction(next) &&
-        // TODO(danrubel): allow metadata before local function
+  /// See [parseExpressionStatementOrDeclaration]
+  Token parseExpressionStatementOrDeclarationAfterModifiers(
+      final Token beforeType, final Token start,
+      [Token varFinalOrConst = null,
+      TypeInfo typeInfo,
+      bool onlyParseVariableDeclarationStart = false]) {
+    typeInfo ??= computeType(beforeType, false);
+    Token token = typeInfo.skipType(beforeType);
+    Token next = token.next;
+
+    if (!onlyParseVariableDeclarationStart &&
+        looksLikeLocalFunction(next) &&
+        // TODO(danrubel): Add support for metadata before local function
         !optional('@', start.next)) {
       // Parse a local function declaration.
       if (varFinalOrConst != null) {
@@ -5482,12 +5457,16 @@ class Parser {
     if (token == start) {
       // If no annotation, modifier, or type, and this is not a local function
       // then this must be an expression statement.
-      return parseExpressionStatement(start);
+      if (onlyParseVariableDeclarationStart) {
+        return start;
+      } else {
+        return parseExpressionStatement(start);
+      }
     }
     if (next.type.isBuiltIn &&
         beforeType == start &&
         typeInfo != voidTypeInfo) {
-      // Detect situations such as identifier `as` identifier
+      // Detect expressions such as identifier `as` identifier
       // and treat those as expressions.
       int kind = next.next.kind;
       if (EQ_TOKEN != kind && SEMICOLON_TOKEN != kind && COMMA_TOKEN != kind) {
@@ -5527,54 +5506,6 @@ class Parser {
       token = parseVariablesDeclarationRest(token, true);
     }
     return token;
-  }
-
-  Token parseVariablesDeclaration(Token token) {
-    token = parseMetadataStar(token);
-    Token next = token.next;
-
-    Token varFinalOrConst;
-    if (isModifier(next)) {
-      if (optional('var', next)) {
-        varFinalOrConst = token = token.next;
-        next = token.next;
-      } else if (optional('final', next) || optional('const', next)) {
-        varFinalOrConst = token = token.next;
-        next = token.next;
-      }
-
-      if (isModifier(next)) {
-        // Recovery
-        ModifierRecoveryContext2 modifierContext =
-            new ModifierRecoveryContext2(this);
-        token = modifierContext.parseVariableDeclarationModifiers(token,
-            varFinalOrConst: varFinalOrConst);
-
-        varFinalOrConst = modifierContext.varFinalOrConst;
-        modifierContext = null;
-      }
-    }
-
-    TypeInfo typeInfo = computeType(token, false);
-    if (varFinalOrConst == null) {
-      if (typeInfo == noTypeInfo) {
-        // If there is no modifer, no type, and no identifier
-        // then let parseVariablesDeclarationMaybeSemicolonRest
-        // report a missing identifier rather than reporting two errors.
-        if (token.next.isIdentifier) {
-          reportRecoverableError(
-              token.next, fasta.messageMissingConstFinalVarOrType);
-        }
-      }
-    } else if (optional('var', varFinalOrConst)) {
-      if (typeInfo != noTypeInfo) {
-        reportRecoverableError(token.next, fasta.messageTypeAfterVar);
-      }
-    }
-    token = typeInfo.parseType(token, this);
-
-    listener.beginVariablesDeclaration(token.next, varFinalOrConst);
-    return parseVariablesDeclarationRest(token, true);
   }
 
   Token parseVariablesDeclarationRest(Token token, bool endWithSemicolon) {

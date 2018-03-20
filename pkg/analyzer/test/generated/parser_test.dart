@@ -4119,13 +4119,7 @@ class Wrong<T> {
   void test_localFunctionDeclarationModifier_abstract() {
     parseCompilationUnit("class C { m() { abstract f() {} } }",
         errors: usingFastaParser
-            ? [
-                expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 16, 8),
-                expectedError(
-                    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 25, 1),
-                expectedError(ParserErrorCode.EXPECTED_TOKEN, 26, 1),
-                expectedError(ParserErrorCode.EXPECTED_TOKEN, 32, 1),
-              ]
+            ? [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 16, 8)]
             : [
                 expectedError(
                     ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, 16, 8)
@@ -4135,13 +4129,7 @@ class Wrong<T> {
   void test_localFunctionDeclarationModifier_external() {
     parseCompilationUnit("class C { m() { external f() {} } }",
         errors: usingFastaParser
-            ? [
-                expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 16, 8),
-                expectedError(
-                    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 25, 1),
-                expectedError(ParserErrorCode.EXPECTED_TOKEN, 26, 1),
-                expectedError(ParserErrorCode.EXPECTED_TOKEN, 32, 1),
-              ]
+            ? [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 16, 8)]
             : [
                 expectedError(
                     ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, 16, 8)
@@ -4161,13 +4149,7 @@ class Wrong<T> {
   void test_localFunctionDeclarationModifier_static() {
     parseCompilationUnit("class C { m() { static f() {} } }",
         errors: usingFastaParser
-            ? [
-                expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 16, 6),
-                expectedError(
-                    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 23, 1),
-                expectedError(ParserErrorCode.EXPECTED_TOKEN, 24, 1),
-                expectedError(ParserErrorCode.EXPECTED_TOKEN, 30, 1),
-              ]
+            ? [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 16, 6)]
             : [
                 expectedError(
                     ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, 16, 6)
@@ -5561,7 +5543,7 @@ void main() {
     // this would be a better error message.
     parseStatement("var int x;");
     listener.assertErrors(usingFastaParser
-        ? [expectedError(ParserErrorCode.VAR_AND_TYPE, 4, 3)]
+        ? [expectedError(ParserErrorCode.VAR_AND_TYPE, 0, 3)]
         : [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 8, 1)]);
   }
 
@@ -15281,7 +15263,7 @@ abstract class StatementParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseVariableDeclarationListAfterMetadata_const_noType() {
-    var declarationList = parseVariableDeclarationList('const a');
+    var declarationList = parseVariableDeclarationList('const a = 0');
     assertNoErrors();
     expect(declarationList.keyword.lexeme, 'const');
     expect(declarationList.type, isNull);
