@@ -12,6 +12,7 @@ import 'index_test.dart' as index;
 import 'mutex_test.dart' as mutex;
 import 'referenced_names_test.dart' as referenced_names;
 import 'search_test.dart' as search_test;
+import 'session_helper_test.dart' as session_helper_test;
 import 'session_test.dart' as session_test;
 
 main() {
@@ -24,6 +25,7 @@ main() {
     mutex.main();
     referenced_names.main();
     search_test.main();
+    session_helper_test.main();
     session_test.main();
   }, name: 'analysis');
 }

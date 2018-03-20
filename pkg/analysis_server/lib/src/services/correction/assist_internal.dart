@@ -22,6 +22,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -46,6 +47,16 @@ class AssistProcessor {
    */
   AnalysisDriver driver;
 
+  /**
+   * The analysis session to be used to create the change builder.
+   */
+  AnalysisSession session;
+
+  /**
+   * The helper wrapper around the [session].
+   */
+  AnalysisSessionHelper sessionHelper;
+
   Source source;
   String file;
 
@@ -68,10 +79,10 @@ class AssistProcessor {
 
   TypeProvider _typeProvider;
 
-  final Map<String, LibraryElement> libraryCache = {};
-
   AssistProcessor(DartAssistContext dartContext) {
     driver = dartContext.analysisDriver;
+    session = driver.currentSession;
+    sessionHelper = new AnalysisSessionHelper(session);
     // source
     source = dartContext.source;
     file = dartContext.source.fullName;
@@ -94,11 +105,6 @@ class AssistProcessor {
    * Returns the EOL to use for this [CompilationUnit].
    */
   String get eol => utils.endOfLine;
-
-  /**
-   * Return the analysis session to be used to create the change builder.
-   */
-  AnalysisSession get session => driver.currentSession;
 
   TypeProvider get typeProvider {
     if (_typeProvider == null) {
@@ -1394,10 +1400,13 @@ class AssistProcessor {
     }));
     buildText = SourceEdit.applySequence(buildText, buildTextEdits.reversed);
 
-    var statefulWidgetClass =
-        await _getExportedClass(flutter.WIDGETS_LIBRARY_URI, 'StatefulWidget');
+    var statefulWidgetClass = await sessionHelper.getClass(
+        flutter.WIDGETS_LIBRARY_URI, 'StatefulWidget');
     var stateClass =
-        await _getExportedClass(flutter.WIDGETS_LIBRARY_URI, 'State');
+        await sessionHelper.getClass(flutter.WIDGETS_LIBRARY_URI, 'State');
+    if (statefulWidgetClass == null || stateClass == null) {
+      return;
+    }
     var stateType = stateClass.type.instantiate([widgetClassElement.type]);
 
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
@@ -1658,7 +1667,10 @@ class AssistProcessor {
     ClassElement parentClassElement;
     if (parentLibraryUri != null && parentClassName != null) {
       parentClassElement =
-          await _getExportedClass(parentLibraryUri, parentClassName);
+          await sessionHelper.getClass(parentLibraryUri, parentClassName);
+      if (parentClassElement == null) {
+        return;
+      }
     }
 
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
@@ -1735,9 +1747,12 @@ class AssistProcessor {
         @required String parentLibraryUri,
         @required String parentClassName}) async {
       ClassElement parentClassElement =
-          await _getExportedClass(parentLibraryUri, parentClassName);
+          await sessionHelper.getClass(parentLibraryUri, parentClassName);
       ClassElement widgetClassElement =
-          await _getExportedClass(flutter.WIDGETS_LIBRARY_URI, 'Widget');
+          await sessionHelper.getClass(flutter.WIDGETS_LIBRARY_URI, 'Widget');
+      if (parentClassElement == null || widgetClassElement == null) {
+        return;
+      }
 
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
@@ -2965,20 +2980,6 @@ class AssistProcessor {
         });
         _addAssistFromBuilder(changeBuilder, kind);
       }
-    }
-  }
-
-  /// Return the [ClassElement] with the given [className] that is exported
-  /// from the library with the given [libraryUri], or `null` if the libary
-  /// does not export a class with such name.
-  Future<ClassElement> _getExportedClass(
-      String libraryUri, String className) async {
-    var libraryElement = await session.getLibraryByUri(libraryUri);
-    var element = libraryElement.exportNamespace.get(className);
-    if (element is ClassElement) {
-      return element;
-    } else {
-      return null;
     }
   }
 
