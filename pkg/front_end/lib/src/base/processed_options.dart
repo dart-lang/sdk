@@ -282,6 +282,14 @@ class ProcessedOptions {
           Severity.internalProblem);
       return false;
     }
+
+    for (Uri source in _raw.linkedDependencies) {
+      if (!await fileSystem.entityForUri(source).exists()) {
+        reportWithoutLocation(
+            templateInputFileNotFound.withArguments(source), Severity.error);
+        return false;
+      }
+    }
     return true;
   }
 
