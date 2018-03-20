@@ -15884,6 +15884,24 @@ class Element extends Node
   @deprecated
   void enteredView() {}
 
+  @DomName('Element.getClientRects')
+  @DocsEditable()
+  @Returns('DomRectList|Null')
+  @Creates('DomRectList')
+  List<Rectangle> getClientRects() {
+    var value = _getClientRects();
+
+    // If no prototype we need one for the world to hookup to the proper Dart class.
+    var jsProto = JS('', '#.prototype', value);
+    if (jsProto == null) {
+      JS('', '#.prototype = Object.create(null)', value);
+    }
+
+    applyExtension('DOMRectList', value);
+
+    return value;
+  }
+
   /** *Deprecated*: override [detached] instead. */
   @Experimental()
   @deprecated
@@ -17634,6 +17652,7 @@ class Element extends Node
   @Returns('_DomRect|Null')
   Rectangle getBoundingClientRect() native;
 
+  @JSName('getClientRects')
   /**
    * Returns a list of bounding rectangles for each box associated with this
    * element.
@@ -17650,7 +17669,7 @@ class Element extends Node
   @DocsEditable()
   @Returns('DomRectList|Null')
   @Creates('DomRectList')
-  List<Rectangle> getClientRects() native;
+  List<Rectangle> _getClientRects() native;
 
   /**
    * Returns a list of shadow DOM insertion points to which this element is
@@ -33600,11 +33619,12 @@ class Range extends Interceptor {
   @DocsEditable()
   Rectangle getBoundingClientRect() native;
 
+  @JSName('getClientRects')
   @DomName('Range.getClientRects')
   @DocsEditable()
   @Returns('DomRectList|Null')
   @Creates('DomRectList')
-  List<Rectangle> getClientRects() native;
+  List<Rectangle> _getClientRects() native;
 
   @DomName('Range.insertNode')
   @DocsEditable()
@@ -33649,6 +33669,24 @@ class Range extends Interceptor {
   @DomName('Range.surroundContents')
   @DocsEditable()
   void surroundContents(Node newParent) native;
+
+  @DomName('Range.getClientRects')
+  @DocsEditable()
+  @Returns('DomRectList|Null')
+  @Creates('DomRectList')
+  List<Rectangle> getClientRects() {
+    var value = _getClientRects();
+
+    // If no prototype we need one for the world to hookup to the proper Dart class.
+    var jsProto = JS('', '#.prototype', value);
+    if (jsProto == null) {
+      JS('', '#.prototype = Object.create(null)', value);
+    }
+
+    applyExtension('DOMRectList', value);
+
+    return value;
+  }
 
   /**
    * Checks if createContextualFragment is supported.

@@ -61,7 +61,6 @@ convert/streamed_conversion_utf8_encode_test: Pass, Timeout # Issue 29922
 convert/utf85_test: Slow, Pass
 html/async_spawnuri_test: RuntimeError # Issue 29922
 html/async_test: RuntimeError # Issue 29922
-html/client_rect_test: RuntimeError # Issue 29922, seems to be a reified type problem with DOMClientRect
 html/custom/attribute_changed_callback_test: Skip # Issue 31577
 html/custom/constructor_calls_created_synchronously_test: Skip # Issue 31577
 html/custom/created_callback_test: RuntimeError
