@@ -5785,23 +5785,38 @@ TEST_CASE(DartAPI_LookupLibrary) {
   const char* kScriptChars =
       "import 'library1_dart';"
       "main() {}";
+  const char* kLibrary1 = "file:///library1_dart";
   const char* kLibrary1Chars =
-      "library library1_dart;"
-      "import 'library2_dart';";
+      "library library1;"
+      "final x = 0;";
 
-  // Create a test library and Load up a test script in it.
-  Dart_Handle url = NewString(TestCase::url());
-  Dart_Handle source = NewString(kScriptChars);
-  Dart_Handle result = Dart_SetLibraryTagHandler(library_handler);
-  EXPECT_VALID(result);
-  result = Dart_LoadScript(url, Dart_Null(), source, 0, 0);
-  EXPECT_VALID(result);
+  Dart_Handle url;
+  Dart_Handle result;
 
-  url = NewString("library1_dart");
-  source = NewString(kLibrary1Chars);
-  result = Dart_LoadLibrary(url, Dart_Null(), source, 0, 0);
-  EXPECT_VALID(result);
+  // Create a test library and load up a test script in it.
+  if (FLAG_use_dart_frontend) {
+    TestCase::AddTestLib("file:///library1_dart", kLibrary1Chars);
+    // LoadTestScript resets the LibraryTagHandler, which we don't want when
+    // using the VM compiler, so we only use it with the Dart frontend for this
+    // test.
+    result = TestCase::LoadTestScript(kScriptChars, NULL, TestCase::url());
+    EXPECT_VALID(result);
+  } else {
+    Dart_Handle source = NewString(kScriptChars);
+    url = NewString(TestCase::url());
 
+    result = Dart_SetLibraryTagHandler(library_handler);
+    EXPECT_VALID(result);
+
+    result = Dart_LoadScript(url, Dart_Null(), source, 0, 0);
+    EXPECT_VALID(result);
+
+    url = NewString(kLibrary1);
+    source = NewString(kLibrary1Chars);
+    result = Dart_LoadLibrary(url, Dart_Null(), source, 0, 0);
+  }
+
+  url = NewString(kLibrary1);
   result = Dart_LookupLibrary(url);
   EXPECT_VALID(result);
 

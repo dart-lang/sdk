@@ -175,7 +175,6 @@ cc/DartAPI_LoadPatch: Crash
 cc/DartAPI_LoadPatchSignatureMismatch: Crash
 cc/DartAPI_LoadSource: Crash
 cc/DartAPI_LoadSource_LateLoad: Crash
-cc/DartAPI_LookupLibrary: Crash
 cc/DartAPI_NativeFieldAccess: Fail
 cc/DartAPI_ParsePatchLibrary: Crash
 cc/DartAPI_PropagateError: Fail
