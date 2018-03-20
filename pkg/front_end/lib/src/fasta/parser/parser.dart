@@ -2972,29 +2972,15 @@ class Parser {
       Token beforeName,
       MemberKind memberKind,
       TypeContinuation typeContinuation) {
-    // TODO(danrubel): Consider passing modifiers via endTopLevelField
-    // rather than using handleModifier and handleModifiers.
-    int modifierCount = 0;
     if (externalToken != null) {
       reportRecoverableError(externalToken, fasta.messageExternalField);
     }
-    if (staticToken != null) {
-      listener.handleModifier(staticToken);
-      ++modifierCount;
-    } else if (covariantToken != null) {
+    if (covariantToken != null) {
       if (varFinalOrConst != null && optional('final', varFinalOrConst)) {
         reportRecoverableError(covariantToken, fasta.messageFinalAndCovariant);
         covariantToken = null;
-      } else {
-        listener.handleModifier(covariantToken);
-        ++modifierCount;
       }
     }
-    if (varFinalOrConst != null) {
-      listener.handleModifier(varFinalOrConst);
-      ++modifierCount;
-    }
-    listener.handleModifiers(modifierCount);
 
     bool isTopLevel = memberKind == MemberKind.TopLevelField;
 
@@ -3024,9 +3010,11 @@ class Parser {
     }
     token = ensureSemicolon(token);
     if (isTopLevel) {
-      listener.endTopLevelFields(fieldCount, beforeStart.next, token);
+      listener.endTopLevelFields(staticToken, covariantToken, varFinalOrConst,
+          fieldCount, beforeStart.next, token);
     } else {
-      listener.endFields(fieldCount, beforeStart.next, token);
+      listener.endFields(staticToken, covariantToken, varFinalOrConst,
+          fieldCount, beforeStart.next, token);
     }
     return token;
   }

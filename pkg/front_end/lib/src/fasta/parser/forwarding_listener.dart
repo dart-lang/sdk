@@ -565,8 +565,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endFields(int count, Token beginToken, Token endToken) {
-    listener?.endFields(count, beginToken, endToken);
+  void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
+      int count, Token beginToken, Token endToken) {
+    listener?.endFields(staticToken, covariantToken, varFinalOrConst, count,
+        beginToken, endToken);
   }
 
   @override
@@ -811,8 +813,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endTopLevelFields(int count, Token beginToken, Token endToken) {
-    listener?.endTopLevelFields(count, beginToken, endToken);
+  void endTopLevelFields(Token staticToken, Token covariantToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+    listener?.endTopLevelFields(staticToken, covariantToken, varFinalOrConst,
+        count, beginToken, endToken);
   }
 
   @override

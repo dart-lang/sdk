@@ -706,10 +706,12 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endFields(int count, Token beginToken, Token endToken) {
+  void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
+      int count, Token beginToken, Token endToken) {
     // beginMember --> endFields, endMember
     expectIn('Member');
-    super.endFields(count, beginToken, endToken);
+    super.endFields(staticToken, covariantToken, varFinalOrConst, count,
+        beginToken, endToken);
   }
 
   @override
@@ -1001,9 +1003,11 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endTopLevelFields(int count, Token beginToken, Token endToken) {
+  void endTopLevelFields(Token staticToken, Token covariantToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     end('TopLevelMember');
-    super.endTopLevelFields(count, beginToken, endToken);
+    super.endTopLevelFields(staticToken, covariantToken, varFinalOrConst, count,
+        beginToken, endToken);
   }
 
   @override

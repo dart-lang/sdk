@@ -2116,13 +2116,17 @@ class AstBuilder extends ScopeListener {
     debugEvent("FunctionName");
   }
 
-  void endTopLevelFields(int count, Token beginToken, Token semicolon) {
+  void endTopLevelFields(Token staticToken, Token covariantToken,
+      Token varFinalOrConst, int count, Token beginToken, Token semicolon) {
     assert(optional(';', semicolon));
     debugEvent("TopLevelFields");
 
     List<VariableDeclaration> variables = popTypedList(count);
     TypeAnnotation type = pop();
-    _Modifiers modifiers = pop();
+    _Modifiers modifiers = new _Modifiers()
+      ..staticKeyword = staticToken
+      ..covariantKeyword = covariantToken
+      ..finalConstOrVarKeyword = varFinalOrConst;
     Token keyword = modifiers?.finalConstOrVarKeyword;
     var variableList =
         ast.variableDeclarationList(null, null, keyword, type, variables);
@@ -2413,13 +2417,17 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endFields(int count, Token beginToken, Token semicolon) {
+  void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
+      int count, Token beginToken, Token semicolon) {
     assert(optional(';', semicolon));
     debugEvent("Fields");
 
     List<VariableDeclaration> variables = popTypedList(count);
     TypeAnnotation type = pop();
-    _Modifiers modifiers = pop();
+    _Modifiers modifiers = new _Modifiers()
+      ..staticKeyword = staticToken
+      ..covariantKeyword = covariantToken
+      ..finalConstOrVarKeyword = varFinalOrConst;
     var variableList = ast.variableDeclarationList(
         null, null, modifiers?.finalConstOrVarKeyword, type, variables);
     Token covariantKeyword = modifiers?.covariantKeyword;

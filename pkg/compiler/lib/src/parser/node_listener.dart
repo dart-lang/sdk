@@ -250,10 +250,12 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endTopLevelFields(int count, Token beginToken, Token endToken) {
+  void endTopLevelFields(Token staticToken, Token covariantToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     NodeList variables = makeNodeList(count, null, endToken, ",");
     TypeAnnotation type = popNode();
-    Modifiers modifiers = popNode();
+    Modifiers modifiers =
+        newFieldModifiers(staticToken, covariantToken, varFinalOrConst);
     pushNode(new VariableDefinitions(type, modifiers, variables));
   }
 
@@ -763,10 +765,12 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFields(int count, Token beginToken, Token endToken) {
+  void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
+      int count, Token beginToken, Token endToken) {
     NodeList variables = makeNodeList(count, null, endToken, ",");
     TypeAnnotation type = popNode();
-    Modifiers modifiers = popNode();
+    Modifiers modifiers =
+        newFieldModifiers(staticToken, covariantToken, varFinalOrConst);
     pushNode(new VariableDefinitions(type, modifiers, variables));
   }
 

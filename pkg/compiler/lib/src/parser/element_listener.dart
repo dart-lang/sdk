@@ -425,7 +425,8 @@ class ElementListener extends Listener {
   }
 
   @override
-  void endTopLevelFields(int count, Token beginToken, Token endToken) {
+  void endTopLevelFields(Token staticToken, Token covariantToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     bool hasParseError = currentMemberHasParseError;
     memberErrors = memberErrors.tail;
     void buildFieldElement(Identifier name, VariableList fields) {
@@ -434,9 +435,28 @@ class ElementListener extends Listener {
 
     NodeList variables = makeNodeList(count, null, null, ",");
     popNode(); // type
-    Modifiers modifiers = popNode();
+    Modifiers modifiers =
+        newFieldModifiers(staticToken, covariantToken, varFinalOrConst);
     buildFieldElements(modifiers, variables, compilationUnitElement,
         buildFieldElement, beginToken, endToken, hasParseError);
+  }
+
+  Modifiers newFieldModifiers(
+      Token staticToken, Token covariantToken, Token varFinalOrConst) {
+    Link<Node> modifierNodes = const Link<Node>();
+    if (varFinalOrConst != null) {
+      modifierNodes = modifierNodes.prepend(new Identifier(varFinalOrConst));
+    }
+    if (covariantToken != null) {
+      modifierNodes = modifierNodes.prepend(new Identifier(covariantToken));
+    }
+    if (staticToken != null) {
+      modifierNodes = modifierNodes.prepend(new Identifier(staticToken));
+    }
+    if (!modifierNodes.isNotEmpty) {
+      return Modifiers.EMPTY;
+    }
+    return new Modifiers(new NodeList(null, modifierNodes, null, ' '));
   }
 
   @override

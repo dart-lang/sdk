@@ -117,9 +117,11 @@ class MemberListener extends NodeListener {
   }
 
   @override
-  void endFields(int count, Token beginToken, Token endToken) {
+  void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
+      int count, Token beginToken, Token endToken) {
     bool hasParseError = memberErrors.head;
-    super.endFields(count, beginToken, endToken);
+    super.endFields(staticToken, covariantToken, varFinalOrConst, count,
+        beginToken, endToken);
     VariableDefinitions variableDefinitions = popNode();
     Modifiers modifiers = variableDefinitions.modifiers;
     pushNode(null);

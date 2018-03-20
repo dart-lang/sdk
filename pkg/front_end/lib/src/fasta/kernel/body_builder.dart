@@ -429,13 +429,15 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   }
 
   @override
-  void endTopLevelFields(int count, Token beginToken, Token endToken) {
+  void endTopLevelFields(Token staticToken, Token covariantToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     debugEvent("TopLevelFields");
     push(count);
   }
 
   @override
-  void endFields(int count, Token beginToken, Token endToken) {
+  void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
+      int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
     push(count);
   }
@@ -471,7 +473,6 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       }
     }
     pop(); // Type.
-    pop(); // Modifiers.
     List annotations = pop();
     if (annotations != null) {
       _typeInferrer.inferMetadata(this, annotations);

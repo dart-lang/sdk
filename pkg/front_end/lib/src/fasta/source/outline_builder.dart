@@ -42,7 +42,9 @@ import '../modifier.dart'
         Var,
         abstractMask,
         constMask,
-        externalMask;
+        covariantMask,
+        externalMask,
+        staticMask;
 
 import '../operator.dart'
     show
@@ -974,11 +976,14 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void endTopLevelFields(int count, Token beginToken, Token endToken) {
+  void endTopLevelFields(Token staticToken, Token covariantToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     debugEvent("endTopLevelFields");
     List fieldsInfo = popList(count * 4);
     TypeBuilder type = pop();
-    int modifiers = Modifier.validate(pop());
+    int modifiers = (staticToken != null ? staticMask : 0) |
+        (covariantToken != null ? covariantMask : 0) |
+        Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
     List<MetadataBuilder> metadata = pop();
     String documentationComment = getDocumentationComment(beginToken);
     library.addFields(
@@ -987,11 +992,14 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void endFields(int count, Token beginToken, Token endToken) {
+  void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
+      int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
     List fieldsInfo = popList(count * 4);
     TypeBuilder type = pop();
-    int modifiers = Modifier.validate(pop());
+    int modifiers = (staticToken != null ? staticMask : 0) |
+        (covariantToken != null ? covariantMask : 0) |
+        Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
     List<MetadataBuilder> metadata = pop();
     String documentationComment = getDocumentationComment(beginToken);
     library.addFields(

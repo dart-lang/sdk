@@ -257,7 +257,8 @@ class Listener {
   /// - Variable declarations (count times)
   ///
   /// Doesn't have a corresponding begin event, use [beginMember] instead.
-  void endFields(int count, Token beginToken, Token endToken) {
+  void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
+      int count, Token beginToken, Token endToken) {
     logEvent("Fields");
   }
 
@@ -807,14 +808,14 @@ class Listener {
 
   /// Handle the end of a top level variable declaration.  Substructures:
   /// - Metadata
-  /// - Modifiers
   /// - Type
   /// - Repeated [count] times:
   ///   - Variable name (identifier)
   ///   - Field initializer
   /// Doesn't have a corresponding begin event.
   /// Use [beginTopLevelMember] instead.
-  void endTopLevelFields(int count, Token beginToken, Token endToken) {
+  void endTopLevelFields(Token staticToken, Token covariantToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     logEvent("TopLevelFields");
   }
 
