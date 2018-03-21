@@ -124,6 +124,9 @@ async/stream_first_where_test/badType: MissingCompileTimeError
 async/stream_last_where_test/badType: MissingCompileTimeError
 mirrors/redirecting_factory_different_type_test/02: MissingCompileTimeError
 
+[ !$strong && $compiler != fasta ]
+async/future_or_type_test: Fail # Strong mode implements FutureOr, non-strong treats it as dynamic.
+
 [ $builder_tag == mac10_7 && $runtime == safari ]
 typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set
