@@ -68,6 +68,7 @@ vars = {
   "crypto_tag" : "@2.0.2+1",
   "csslib_tag" : "@0.14.1",
   "dart2js_info_tag" : "@0.5.5+1",
+  "browser_tag" : "@0.10.0+2",
 
   # Note: updates to dart_style have to be coordinated carefully with
   # the infrastructure-team so that the internal formatter in
@@ -207,6 +208,9 @@ Var("dart_root") + "/tests/co19_2/src":
   Var("dart_root") + "/third_party/pkg/boolean_selector":
       Var("dart_git") + "boolean_selector.git" +
       Var("boolean_selector_tag"),
+  Var("dart_root") + "/third_party/pkg/browser":
+      Var("dart_git") + "browser.git" +
+      Var("browser_tag"),
   Var("dart_root") + "/third_party/pkg/charcode":
       Var("dart_git") + "charcode.git" + Var("charcode_tag"),
   Var("dart_root") + "/third_party/pkg/cli_util":
