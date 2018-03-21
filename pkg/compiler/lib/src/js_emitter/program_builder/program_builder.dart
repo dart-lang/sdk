@@ -678,7 +678,6 @@ class ProgramBuilder {
         _task.emitter, _commonElements, _namer, _worldBuilder, _closedWorld,
         enableMinification: _options.enableMinification);
     RuntimeTypeGenerator runtimeTypeGenerator = new RuntimeTypeGenerator(
-        _elementEnvironment,
         _commonElements,
         _closureDataLookup,
         _outputUnitData,
@@ -688,8 +687,7 @@ class ProgramBuilder {
         _rtiEncoder,
         _jsInteropAnalysis,
         _options.useKernel,
-        _options.strongMode,
-        _options.disableRtiOptimization);
+        _options.strongMode);
 
     void visitMember(MemberEntity member) {
       if (member.isInstanceMember && !member.isAbstract && !member.isField) {

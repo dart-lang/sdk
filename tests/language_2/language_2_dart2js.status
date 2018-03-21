@@ -1418,7 +1418,6 @@ generic_methods_unused_parameter_test: Crash # Assertion failure: kind=special,m
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
-generic_test: RuntimeError
 getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError

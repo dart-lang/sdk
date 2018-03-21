@@ -11,8 +11,7 @@ import '../closure.dart'
         ClosureConversionTask,
         ScopeInfo;
 import '../common.dart';
-import '../common/names.dart' show Identifiers;
-import '../common_elements.dart' show CommonElements, ElementEnvironment;
+import '../common_elements.dart' show CommonElements;
 import '../deferred_load.dart' show OutputUnit, OutputUnitData;
 import '../elements/elements.dart' show ClassElement, MethodElement;
 import '../elements/entities.dart';
@@ -24,6 +23,7 @@ import '../js_backend/namer.dart' show Namer;
 import '../js_backend/runtime_types.dart'
     show
         ClassChecks,
+        ClassFunctionType,
         RuntimeTypesChecks,
         RuntimeTypesEncoder,
         Substitution,
@@ -35,8 +35,7 @@ import '../util/util.dart' show Setlet;
 import 'code_emitter_task.dart' show CodeEmitterTask;
 
 // Function signatures used in the generation of runtime type information.
-typedef void FunctionTypeSignatureEmitter(
-    FunctionEntity method, FunctionType methodType);
+typedef void FunctionTypeSignatureEmitter(ClassFunctionType classFunctionType);
 
 class TypeTest {
   final jsAst.Name name;
@@ -99,7 +98,6 @@ class TypeTestProperties {
 }
 
 class RuntimeTypeGenerator {
-  final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
   final ClosureConversionTask _closureDataLookup;
   final OutputUnitData _outputUnitData;
@@ -109,15 +107,9 @@ class RuntimeTypeGenerator {
   final RuntimeTypesEncoder _rtiEncoder;
   final JsInteropAnalysis _jsInteropAnalysis;
   final bool _useKernel;
-
-  /// ignore: UNUSED_FIELD
   final bool _strongMode;
 
-  /// ignore: UNUSED_FIELD
-  final bool _disableRtiOptimization;
-
   RuntimeTypeGenerator(
-      this._elementEnvironment,
       this._commonElements,
       this._closureDataLookup,
       this._outputUnitData,
@@ -127,8 +119,15 @@ class RuntimeTypeGenerator {
       this._rtiEncoder,
       this._jsInteropAnalysis,
       this._useKernel,
-      this._strongMode,
-      this._disableRtiOptimization);
+      this._strongMode);
+
+  /**
+   * Generate "is tests" for [cls] itself, and the "is tests" for the
+   * classes it implements and type argument substitution functions for these
+   * tests.   We don't need to add the "is tests" of the super class because
+   * they will be inherited at runtime, but we may need to generate the
+   * substitutions, because they may have changed.
+   */
 
   /// Generates all properties necessary for is-checks on the [classElement].
   ///
@@ -149,49 +148,54 @@ class RuntimeTypeGenerator {
         failedAt(classElement));
 
     // TODO(johnniwinther): Include function signatures in [ClassChecks].
-    void generateFunctionTypeSignature(
-        FunctionEntity method, FunctionType type) {
+    void generateFunctionTypeSignature(ClassFunctionType classFunctionType) {
+      FunctionEntity method = classFunctionType.callFunction;
+      FunctionType type = classFunctionType.callType;
       assert(!(method is MethodElement && !method.isImplementation));
-      jsAst.Expression thisAccess = new jsAst.This();
-      if (method.enclosingClass.isClosure) {
-        ScopeInfo scopeInfo = _closureDataLookup.getScopeInfo(method);
-        if (scopeInfo is ClosureRepresentationInfo) {
-          FieldEntity thisLocal = scopeInfo.thisFieldEntity;
-          if (thisLocal != null) {
-            assert(
-                thisLocal is ClosureFieldElement || thisLocal is JClosureField);
-            jsAst.Name thisName = _namer.instanceFieldPropertyName(thisLocal);
-            thisAccess = js('this.#', thisName);
-          }
-        }
-      }
 
       // TODO(johnniwinther): Avoid unneeded function type indices or
       // signatures. We either need them for mirrors or because [type] is
       // potentially a subtype of a checked function. Currently we eagerly
       // generate a function type index or signature for all callable classes.
       if (storeFunctionTypeInMetadata && !type.containsTypeVariables) {
+        // TODO(johnniwinther,efortuna): Should we use the scheme for Dart 2?
         // TODO(sigmund): use output unit of `method` (Issue #31032)
         OutputUnit outputUnit = _outputUnitData.mainOutputUnit;
         result.functionTypeIndex =
             emitterTask.metadataCollector.reifyType(type, outputUnit);
       } else {
-        jsAst.Expression encoding;
-        MemberEntity signature = _elementEnvironment.lookupLocalClassMember(
-            method.enclosingClass, Identifiers.signature);
-        if (_useKernel &&
-            signature != null &&
-            generatedCode[signature] != null) {
-          // Use precomputed signature function.
-          encoding = generatedCode[signature];
+        jsAst.Expression encoding =
+            generatedCode[classFunctionType.signatureFunction];
+        if (classFunctionType.signatureFunction != null) {
+          // Use precomputed signature function if live.
         } else {
-          // TODO(efortuna): Reinsert assertion.
-          // Generate the signature on the fly.
+          assert(!_useKernel || !_strongMode);
+          // Generate the signature on the fly. This is only supported for
+          // Dart 1.
+
+          jsAst.Expression thisAccess = new jsAst.This();
+          if (method.enclosingClass.isClosure) {
+            ScopeInfo scopeInfo = _closureDataLookup.getScopeInfo(method);
+            if (scopeInfo is ClosureRepresentationInfo) {
+              FieldEntity thisLocal = scopeInfo.thisFieldEntity;
+              if (thisLocal != null) {
+                assert(thisLocal is ClosureFieldElement ||
+                    thisLocal is JClosureField);
+                jsAst.Name thisName =
+                    _namer.instanceFieldPropertyName(thisLocal);
+                thisAccess = js('this.#', thisName);
+              }
+            }
+          }
+
           encoding = _rtiEncoder.getSignatureEncoding(
               emitterTask.emitter, type, thisAccess);
         }
-        jsAst.Name operatorSignature = _namer.asName(_namer.operatorSignature);
-        result.addSignature(classElement, operatorSignature, encoding);
+        if (encoding != null) {
+          jsAst.Name operatorSignature =
+              _namer.asName(_namer.operatorSignature);
+          result.addSignature(classElement, operatorSignature, encoding);
+        }
       }
     }
 
@@ -226,13 +230,6 @@ class RuntimeTypeGenerator {
     return result;
   }
 
-  /**
-   * Generate "is tests" for [cls] itself, and the "is tests" for the
-   * classes it implements and type argument substitution functions for these
-   * tests.   We don't need to add the "is tests" of the super class because
-   * they will be inherited at runtime, but we may need to generate the
-   * substitutions, because they may have changed.
-   */
   void _generateIsTestsOn(
       ClassEntity cls,
       FunctionTypeSignatureEmitter generateFunctionTypeSignature,
@@ -252,8 +249,7 @@ class RuntimeTypeGenerator {
     }
 
     if (classChecks.functionType != null) {
-      generateFunctionTypeSignature(classChecks.functionType.callFunction,
-          classChecks.functionType.callType);
+      generateFunctionTypeSignature(classChecks.functionType);
     }
   }
 }

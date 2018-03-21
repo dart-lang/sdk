@@ -1684,13 +1684,26 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
 ClassFunctionType _computeFunctionType(
     ElementEnvironment _elementEnvironment, ClassEntity cls,
     {bool strongMode}) {
-  if (strongMode && !cls.isClosure) return null;
+  FunctionEntity signatureFunction;
+  if (cls.isClosure) {
+    // Use signature function if available.
+    signatureFunction =
+        _elementEnvironment.lookupLocalClassMember(cls, Identifiers.signature);
+    if (signatureFunction == null && strongMode) {
+      // In Dart 2, a closure only needs its function type if it has a
+      // signature function.
+      return null;
+    }
+  } else if (strongMode) {
+    // Only closures have function type in Dart 2.
+    return null;
+  }
   MemberEntity call =
       _elementEnvironment.lookupLocalClassMember(cls, Identifiers.call);
   if (call != null && call.isFunction) {
     FunctionEntity callFunction = call;
     FunctionType callType = _elementEnvironment.getFunctionType(callFunction);
-    return new ClassFunctionType(callFunction, callType);
+    return new ClassFunctionType(callFunction, callType, signatureFunction);
   }
   return null;
 }
@@ -2340,12 +2353,17 @@ class ClassChecks {
 /// a class.
 class ClassFunctionType {
   /// The `call` function that defines the function type.
-  final MemberEntity callFunction;
+  final FunctionEntity callFunction;
 
   /// The type of the `call` function.
   final FunctionType callType;
 
-  ClassFunctionType(this.callFunction, this.callType);
+  /// The signature function for the function type.
+  ///
+  /// This is used for Dart 2.
+  final FunctionEntity signatureFunction;
+
+  ClassFunctionType(this.callFunction, this.callType, this.signatureFunction);
 }
 
 /// Runtime type usage for a class.
