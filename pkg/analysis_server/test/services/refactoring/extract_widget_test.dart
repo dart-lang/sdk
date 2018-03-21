@@ -201,6 +201,418 @@ class Test extends StatelessWidget {
 ''');
   }
 
+  test_invocation_enclosingClass() async {
+    addFlutterPackage();
+    await indexTestUnit(r'''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new GestureDetector(
+      child: new Text(''),
+      onTap: () {
+        foo();
+      },
+    );
+  }
+
+  void foo() {}
+}
+''');
+    _createRefactoringForStringOffset('new GestureDetector');
+
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
+  }
+
+  test_invocation_otherClass() async {
+    addFlutterPackage();
+    await indexTestUnit(r'''
+import 'package:flutter/material.dart';
+
+class C {
+  void foo() {}
+}
+
+class MyWidget extends StatelessWidget {
+  C c = new C();
+
+  @override
+  Widget build(BuildContext context) {
+    return new GestureDetector(
+      child: new Text(''),
+      onTap: () {
+        c.foo();
+      },
+    );
+  }
+}
+''');
+    _createRefactoringForStringOffset('new GestureDetector');
+
+    await _assertSuccessfulRefactoring('''
+import 'package:flutter/material.dart';
+
+class C {
+  void foo() {}
+}
+
+class MyWidget extends StatelessWidget {
+  C c = new C();
+
+  @override
+  Widget build(BuildContext context) {
+    return new Test(c);
+  }
+}
+
+class Test extends StatelessWidget {
+  final C c;
+
+  Test(this.c);
+
+  @override
+  Widget build(BuildContext context) {
+    return new GestureDetector(
+      child: new Text(''),
+      onTap: () {
+        c.foo();
+      },
+    );
+  }
+}
+''');
+  }
+
+  test_parameters_field_read_enclosingClass() async {
+    addFlutterPackage();
+    await indexTestUnit(r'''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  String field;
+
+  @override
+  Widget build(BuildContext context) {
+    return new Text(field);
+  }
+}
+''');
+    _createRefactoringForStringOffset('new Text');
+
+    await _assertSuccessfulRefactoring('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  String field;
+
+  @override
+  Widget build(BuildContext context) {
+    return new Test(field);
+  }
+}
+
+class Test extends StatelessWidget {
+  final String field;
+
+  Test(this.field);
+
+  @override
+  Widget build(BuildContext context) {
+    return new Text(field);
+  }
+}
+''');
+  }
+
+  test_parameters_field_read_otherClass() async {
+    addFlutterPackage();
+    await indexTestUnit(r'''
+import 'package:flutter/material.dart';
+
+class C {
+  String field;
+}
+
+class MyWidget extends StatelessWidget {
+  C c = new C();
+
+  @override
+  Widget build(BuildContext context) {
+    return new Text(c.field);
+  }
+}
+''');
+    _createRefactoringForStringOffset('new Text');
+
+    await _assertSuccessfulRefactoring('''
+import 'package:flutter/material.dart';
+
+class C {
+  String field;
+}
+
+class MyWidget extends StatelessWidget {
+  C c = new C();
+
+  @override
+  Widget build(BuildContext context) {
+    return new Test(c);
+  }
+}
+
+class Test extends StatelessWidget {
+  final C c;
+
+  Test(this.c);
+
+  @override
+  Widget build(BuildContext context) {
+    return new Text(c.field);
+  }
+}
+''');
+  }
+
+  test_parameters_field_read_topLevelVariable() async {
+    addFlutterPackage();
+    await indexTestUnit(r'''
+import 'package:flutter/material.dart';
+
+String field;
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Text(field);
+  }
+}
+''');
+    _createRefactoringForStringOffset('new Text');
+
+    await _assertSuccessfulRefactoring('''
+import 'package:flutter/material.dart';
+
+String field;
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Test();
+  }
+}
+
+class Test extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Text(field);
+  }
+}
+''');
+  }
+
+  test_parameters_field_write_enclosingClass() async {
+    addFlutterPackage();
+    await indexTestUnit(r'''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  String field;
+
+  @override
+  Widget build(BuildContext context) {
+    return new GestureDetector(
+      child: new Text(''),
+      onTap: () {
+        field = '';
+      },
+    );
+  }
+}
+''');
+    _createRefactoringForStringOffset('new GestureDetector');
+
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
+  }
+
+  test_parameters_field_write_otherClass() async {
+    addFlutterPackage();
+    await indexTestUnit(r'''
+import 'package:flutter/material.dart';
+
+class C {
+  String field;
+}
+
+class MyWidget extends StatelessWidget {
+  C c = new C();
+
+  @override
+  Widget build(BuildContext context) {
+    return new GestureDetector(
+      child: new Text(''),
+      onTap: () {
+        c.field = '';
+      },
+    );
+  }
+}
+''');
+    _createRefactoringForStringOffset('new GestureDetector');
+
+    await _assertSuccessfulRefactoring('''
+import 'package:flutter/material.dart';
+
+class C {
+  String field;
+}
+
+class MyWidget extends StatelessWidget {
+  C c = new C();
+
+  @override
+  Widget build(BuildContext context) {
+    return new Test(c);
+  }
+}
+
+class Test extends StatelessWidget {
+  final C c;
+
+  Test(this.c);
+
+  @override
+  Widget build(BuildContext context) {
+    return new GestureDetector(
+      child: new Text(''),
+      onTap: () {
+        c.field = '';
+      },
+    );
+  }
+}
+''');
+  }
+
+  test_parameters_local_read_enclosingScope() async {
+    addFlutterPackage();
+    await indexTestUnit(r'''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    String local;
+    return new Text(local);
+  }
+}
+''');
+    _createRefactoringForStringOffset('new Text');
+
+    await _assertSuccessfulRefactoring('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    String local;
+    return new Test(local);
+  }
+}
+
+class Test extends StatelessWidget {
+  final String local;
+
+  Test(this.local);
+
+  @override
+  Widget build(BuildContext context) {
+    return new Text(local);
+  }
+}
+''');
+  }
+
+  test_parameters_local_write_enclosingScope() async {
+    addFlutterPackage();
+    await indexTestUnit(r'''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    String local;
+    return new GestureDetector(
+      child: new Text(''),
+      onTap: () {
+        local = '';
+      },
+    );
+  }
+}
+''');
+    _createRefactoringForStringOffset('new GestureDetector');
+
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
+  }
+
+  test_parameters_readField_readLocal() async {
+    addFlutterPackage();
+    await indexTestUnit(r'''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  String field;
+
+  @override
+  Widget build(BuildContext context) {
+    String local;
+    return new Column(
+      children: <Widget>[
+        new Text(field),
+        new Text(local),
+      ],
+    );
+  }
+}
+''');
+    _createRefactoringForStringOffset('new Column');
+
+    await _assertSuccessfulRefactoring('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  String field;
+
+  @override
+  Widget build(BuildContext context) {
+    String local;
+    return new Test(field, local);
+  }
+}
+
+class Test extends StatelessWidget {
+  final String field;
+  final String local;
+
+  Test(this.field, this.local);
+
+  @override
+  Widget build(BuildContext context) {
+    return new Column(
+      children: <Widget>[
+        new Text(field),
+        new Text(local),
+      ],
+    );
+  }
+}
+''');
+  }
+
   test_refactoringName() async {
     addFlutterPackage();
     await indexTestUnit('''

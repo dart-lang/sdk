@@ -16,8 +16,9 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/source.dart' show SourceRange;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -47,6 +48,16 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   bool stateful = false;
 
   /**
+   * If [offset] is in a class, the element of this class, `null` otherwise.
+   */
+  ClassElement _enclosingClass;
+
+//  /**
+//   * If [_expression] is being extracted, the
+//   */
+//  SourceRange _expressionRange;
+
+  /**
    * The widget creation expression to extract.
    */
   InstanceCreationExpression _expression;
@@ -56,9 +67,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 //   */
 //  MethodDeclaration _method;
 
-  List<RefactoringMethodParameter> _parameters = [];
-  Map<String, RefactoringMethodParameter> _parametersMap = {};
-  Map<String, List<SourceRange>> _parameterReferencesMap = {};
+  List<_Parameter> _parameters = [];
 
   ExtractWidgetRefactoringImpl(
       this.searchEngine, AnalysisSession session, this.unit, this.offset)
@@ -108,18 +117,48 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       CompilationUnitMember enclosingUnitMember = _expression.getAncestor(
           (n) => n is CompilationUnitMember && n.parent is CompilationUnit);
 
+      // Replace the expression with the new widget creation.
       builder.addReplacement(range.node(_expression), (builder) {
-        builder.write('new $name()');
+        builder.write('new $name(');
+
+        for (var parameter in _parameters) {
+          if (parameter != _parameters.first) {
+            builder.write(', ');
+          }
+          builder.write(parameter.name);
+        }
+
+        builder.write(')');
       });
 
+      // Add the new widget class declaration.
       builder.addInsertion(enclosingUnitMember.end, (builder) {
         builder.writeln();
         builder.writeln();
         builder.writeClassDeclaration(name,
             superclass: classStatelessWidget.type, membersWriter: () {
-          builder.writeln('  @override');
-          builder.write('  ');
+          if (_parameters.isNotEmpty) {
+            // Add the fields for the parameters.
+            for (var parameter in _parameters) {
+              builder.write('  final ');
+              builder.writeType(parameter.type);
+              builder.write(' ');
+              builder.write(parameter.name);
+              builder.writeln(';');
+            }
+            builder.writeln();
 
+            // Add the constructor.
+            builder.write('  ');
+            builder.writeConstructorDeclaration(name,
+                fieldNames: _parameters.map((e) => e.name).toList());
+            builder.writeln();
+            builder.writeln();
+          }
+
+          builder.writeln('  @override');
+
+          builder.write('  ');
           builder.writeType(classWidget.type);
           builder.write(' build(');
           builder.writeType(classBuildContext.type);
@@ -151,6 +190,13 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
    */
   RefactoringStatus _checkSelection() {
     AstNode node = new NodeLocator2(offset, offset).searchWithin(unit);
+
+    // Find the enclosing class.
+    ClassDeclaration enclosingClassNode =
+        node?.getAncestor((n) => n is ClassDeclaration);
+    if (enclosingClassNode != null) {
+      _enclosingClass = enclosingClassNode.element;
+    }
 
     // new MyWidget(...)
     if (node is InstanceCreationExpression && isWidgetCreation(node)) {
@@ -198,14 +244,73 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   }
 
   /**
-   * Prepares information about used variables, which should be turned into
-   * parameters.
+   * Prepare referenced local variables and fields, that should be turned
+   * into the widget class fields and constructor parameters.
    */
   Future<RefactoringStatus> _initializeParameters() async {
-    _parameters.clear();
-    _parametersMap.clear();
-    _parameterReferencesMap.clear();
-    // TODO(scheglov) Find parameters.
-    return new RefactoringStatus();
+    var collector = new _ParametersCollector(
+        _enclosingClass, _expression != null ? range.node(_expression) : null);
+    _expression.accept(collector);
+
+    _parameters
+      ..clear()
+      ..addAll(collector.parameters);
+
+    return collector.status;
+  }
+}
+
+class _Parameter {
+  final String name;
+  final DartType type;
+
+  _Parameter(this.name, this.type);
+}
+
+class _ParametersCollector extends RecursiveAstVisitor<void> {
+  final ClassElement enclosingClass;
+  final SourceRange expressionRange;
+
+  final RefactoringStatus status = new RefactoringStatus();
+  final List<_Parameter> parameters = [];
+
+  _ParametersCollector(this.enclosingClass, this.expressionRange);
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    Element element = node.staticElement;
+    if (element == null) {
+      return;
+    }
+    String elementName = element.displayName;
+
+    DartType type;
+    if (element is MethodElement) {
+      if (element.enclosingElement == enclosingClass) {
+        status.addError(
+            "Reference to an enclosing class method cannot be extracted.");
+      }
+    } else if (element is LocalVariableElement) {
+      if (node.inSetterContext() &&
+          expressionRange != null &&
+          !expressionRange.contains(element.nameOffset)) {
+        status.addError("Write to '$elementName' cannot be extracted.");
+      } else {
+        type = element.type;
+      }
+    } else if (element is PropertyAccessorElement) {
+      PropertyInducingElement field = element.variable;
+      if (field.enclosingElement == enclosingClass) {
+        if (node.inSetterContext()) {
+          status.addError("Write to '$elementName' cannot be extracted.");
+        } else {
+          type = field.type;
+        }
+      }
+    }
+
+    if (type != null) {
+      parameters.add(new _Parameter(elementName, type));
+    }
   }
 }
