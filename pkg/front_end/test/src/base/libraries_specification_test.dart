@@ -197,6 +197,43 @@ main() {
       expect(spec.specificationFor('none').libraryInfoFor('c').uri,
           Uri.parse('org-dartlang-test:///one/two/c/main.dart'));
     });
+
+    test('environment_overrides entry must be a map', () async {
+      var jsonString = '{"vm" : {"libraries": {"core": {"uri": "main.dart"}},'
+          '"environment_overrides": []}}';
+      expect(
+          () => LibrariesSpecification.parse(
+              Uri.parse('org-dartlang-test:///f.json'), jsonString),
+          throwsA((e) => e is LibrariesSpecificationException));
+    });
+
+    test('environment_overrides values must be bool', () async {
+      var jsonString = '{"vm" : {"libraries": {"core": {"uri": "main.dart"}},'
+          '"environment_overrides": {"core": 3}}}';
+      expect(
+          () => LibrariesSpecification.parse(
+              Uri.parse('org-dartlang-test:///f.json'), jsonString),
+          throwsA((e) => e is LibrariesSpecificationException));
+    });
+
+    test('environment_overrides correspond to existing libraries', () async {
+      var jsonString = '{"vm" : {"libraries": {"core": {"uri": "main.dart"}},'
+          '"environment_overrides": {"ui": false}}}';
+      expect(
+          () => LibrariesSpecification.parse(
+              Uri.parse('org-dartlang-test:///f.json'), jsonString),
+          throwsA((e) => e is LibrariesSpecificationException));
+    });
+
+    test('environment_overrides can be read from the public API', () async {
+      var jsonString = '{"vm" : {"libraries": {"core": {"uri": "main.dart"}},'
+          '"environment_overrides": {"core": false}}}';
+      var spec = LibrariesSpecification.parse(
+          Uri.parse('org-dartlang-test:///one/two/f.json'), jsonString);
+      expect(
+          spec.specificationFor('vm').environmentOverrideFor('core'), "false");
+      expect(spec.specificationFor('vm').environmentOverrideFor('ui'), null);
+    });
   });
 
   group('toJson', () {
@@ -226,6 +263,9 @@ main() {
                 "uri": "c/main.dart",
                 "patches": []
               }
+          },
+          "environment_overrides": {
+              "c" : false
           }
         }
       }
