@@ -1342,6 +1342,37 @@ class B extends A {
     }
   }
 
+  test_writeParameter() async {
+    String path = provider.convertPath('/test.dart');
+    String content = 'class A {}';
+    addSource(path, content);
+
+    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
+      builder.addInsertion(content.length - 1, (EditBuilder builder) {
+        (builder as DartEditBuilder).writeParameter('a');
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('a'));
+  }
+
+  test_writeParameter_type() async {
+    String path = provider.convertPath('/test.dart');
+    String content = 'class A {}';
+    addSource(path, content);
+    DartType typeA = await _getType(path, 'A');
+
+    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
+      builder.addInsertion(content.length - 1, (EditBuilder builder) {
+        (builder as DartEditBuilder).writeParameter('a', type: typeA);
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('A a'));
+  }
+
   test_writeParameterMatchingArgument() async {
     String path = provider.convertPath('/test.dart');
     String content = r'''
@@ -1477,22 +1508,6 @@ f(int i, String s) {
     });
     SourceEdit edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('String s, int i'));
-  }
-
-  test_writeParameterSource() async {
-    String path = provider.convertPath('/test.dart');
-    String content = 'class A {}';
-    addSource(path, content);
-    DartType typeA = await _getType(path, 'A');
-
-    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeParameterSource(typeA, 'a');
-      });
-    });
-    SourceEdit edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('A a'));
   }
 
   test_writeType_dynamic() async {

@@ -450,6 +450,24 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
+  void writeParameter(String name,
+      {StringBuffer displayTextBuffer,
+      ExecutableElement methodBeingCopied,
+      DartType type}) {
+    String parameterSource;
+    if (type != null) {
+      _EnclosingElementFinder finder = new _EnclosingElementFinder();
+      finder.find(dartFileEditBuilder.unit, offset);
+      parameterSource = _getTypeSource(
+          type, finder.enclosingClass, finder.enclosingExecutable,
+          parameterName: name, methodBeingCopied: methodBeingCopied);
+    } else {
+      parameterSource = name;
+    }
+    write(parameterSource, displayTextBuffer: displayTextBuffer);
+  }
+
+  @override
   void writeParameterMatchingArgument(
       Expression argument, int index, Set<String> usedNames) {
     // append type name
@@ -497,9 +515,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         }
       }
       // parameter
-      writeParameterSource(parameter.type, parameter.name,
+      writeParameter(parameter.name,
+          displayTextBuffer: displayTextBuffer,
           methodBeingCopied: methodBeingCopied,
-          displayTextBuffer: displayTextBuffer);
+          type: parameter.type);
       // default value
       String defaultCode = parameter.defaultValueCode;
       if (defaultCode != null) {
@@ -542,17 +561,6 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (hasNamedParameters) {
       write('}');
     }
-  }
-
-  @override
-  void writeParameterSource(DartType type, String name,
-      {StringBuffer displayTextBuffer, ExecutableElement methodBeingCopied}) {
-    _EnclosingElementFinder finder = new _EnclosingElementFinder();
-    finder.find(dartFileEditBuilder.unit, offset);
-    String parameterSource = _getTypeSource(
-        type, finder.enclosingClass, finder.enclosingExecutable,
-        parameterName: name, methodBeingCopied: methodBeingCopied);
-    write(parameterSource, displayTextBuffer: displayTextBuffer);
   }
 
   @override
