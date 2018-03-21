@@ -125,7 +125,7 @@ xsltprocessor_test/supported: Fail # IE11 Feature support statuses - These resul
 audiobuffersourcenode_test/functional: RuntimeError
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
-css_test/functional/functional: RuntimeError # Issue 32576
+css_test/functional: RuntimeError # Issue 32576
 element_animate_test: Fail # Element.animate not supported on these browsers.
 element_test: Pass, Fail # Issue 21434
 element_types_test/supported_content: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
@@ -151,7 +151,7 @@ notification_test/constructors: Fail # Safari doesn't let us access the fields o
 rtc_test/supported: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
 shadow_dom_test/supported: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
 speechrecognition_test/supported: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
-svgelement_test/getBoundingClientRect/getBoundingClientRect: RuntimeError # Issue 32572
+svgelement_test/getBoundingClientRect: RuntimeError # Issue 32572
 touchevent_test/supported: Fail # Safari does not support TouchEvents
 webgl_1_test: Pass, Fail # Issue 8219
 worker_api_test: Skip # Issue 13221
