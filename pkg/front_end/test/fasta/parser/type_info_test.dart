@@ -22,6 +22,7 @@ class TokenInfoTest {
     TypeInfo typeInfo = noTypeInfo;
     Token start = scanString('before ;').tokens;
     Token expectedEnd = start;
+    expect(typeInfo.couldBeExpression, isFalse);
     expect(typeInfo.skipType(start), expectedEnd);
 
     TypeInfoListener listener = new TypeInfoListener();
@@ -34,6 +35,7 @@ class TokenInfoTest {
     Token start = scanString('before void ;').tokens;
     Token expectedEnd = start.next;
     expect(typeInfo.skipType(start), expectedEnd);
+    expect(typeInfo.couldBeExpression, isFalse);
 
     TypeInfoListener listener = new TypeInfoListener();
     expect(typeInfo.parseType(start, new Parser(listener)), expectedEnd);
@@ -45,6 +47,7 @@ class TokenInfoTest {
     Token start = scanString('before C.a ;').tokens;
     Token expectedEnd = start.next.next.next;
     expect(typeInfo.skipType(start), expectedEnd);
+    expect(typeInfo.couldBeExpression, isTrue);
 
     TypeInfoListener listener = new TypeInfoListener();
     expect(typeInfo.parseType(start, new Parser(listener)), expectedEnd);
@@ -62,6 +65,7 @@ class TokenInfoTest {
     Token start = scanString('before C ;').tokens;
     Token expectedEnd = start.next;
     expect(typeInfo.skipType(start), expectedEnd);
+    expect(typeInfo.couldBeExpression, isTrue);
 
     TypeInfoListener listener = new TypeInfoListener();
     expect(typeInfo.parseType(start, new Parser(listener)), expectedEnd);
@@ -77,6 +81,7 @@ class TokenInfoTest {
     Token start = scanString('before C<T> ;').tokens;
     Token expectedEnd = start.next.next.next.next;
     expect(typeInfo.skipType(start), expectedEnd);
+    expect(typeInfo.couldBeExpression, isFalse);
 
     TypeInfoListener listener = new TypeInfoListener();
     expect(typeInfo.parseType(start, new Parser(listener)), expectedEnd);
@@ -590,6 +595,7 @@ void compute(
     TypeInfoListener listener = new TypeInfoListener();
     Parser parser = new Parser(listener);
     expect(typeInfo.start, start.next, reason: source);
+    expect(typeInfo.couldBeExpression, isFalse);
     expectEnd(expectedAfter, typeInfo.skipType(start));
     expectEnd(expectedAfter, typeInfo.parseType(start, parser));
     if (expectedCalls != null) {

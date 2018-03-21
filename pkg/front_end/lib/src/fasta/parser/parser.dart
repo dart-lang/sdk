@@ -98,8 +98,7 @@ import 'type_info.dart'
         computeType,
         isGeneralizedFunctionType,
         isValidTypeReference,
-        noTypeInfo,
-        voidTypeInfo;
+        noTypeInfo;
 
 import 'util.dart' show optional;
 
@@ -5466,7 +5465,7 @@ class Parser {
     }
     if (next.type.isBuiltIn &&
         beforeType == start &&
-        typeInfo != voidTypeInfo) {
+        typeInfo.couldBeExpression) {
       // Detect expressions such as identifier `as` identifier
       // and treat those as expressions.
       int kind = next.next.kind;

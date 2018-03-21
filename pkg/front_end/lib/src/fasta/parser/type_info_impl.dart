@@ -21,6 +21,9 @@ class NoTypeInfo implements TypeInfo {
   const NoTypeInfo();
 
   @override
+  bool get couldBeExpression => false;
+
+  @override
   Token parseType(Token token, Parser parser) {
     parser.listener.handleNoType(token);
     return token;
@@ -35,6 +38,9 @@ class NoTypeInfo implements TypeInfo {
 /// See documentation on the [prefixedTypeInfo] const.
 class PrefixedTypeInfo implements TypeInfo {
   const PrefixedTypeInfo();
+
+  @override
+  bool get couldBeExpression => true;
 
   @override
   Token parseType(Token token, Parser parser) {
@@ -66,6 +72,9 @@ class PrefixedTypeInfo implements TypeInfo {
 /// See documentation on the [simpleTypeArgumentsInfo] const.
 class SimpleTypeArgumentsInfo implements TypeInfo {
   const SimpleTypeArgumentsInfo();
+
+  @override
+  bool get couldBeExpression => false;
 
   @override
   Token parseType(Token token, Parser parser) {
@@ -100,6 +109,9 @@ class SimpleTypeInfo implements TypeInfo {
   const SimpleTypeInfo();
 
   @override
+  bool get couldBeExpression => true;
+
+  @override
   Token parseType(Token token, Parser parser) {
     token = token.next;
     assert(token.isKeywordOrIdentifier);
@@ -119,6 +131,9 @@ class SimpleTypeInfo implements TypeInfo {
 /// See documentation on the [voidTypeInfo] const.
 class VoidTypeInfo implements TypeInfo {
   const VoidTypeInfo();
+
+  @override
+  bool get couldBeExpression => false;
 
   @override
   Token parseType(Token token, Parser parser) {

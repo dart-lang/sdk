@@ -33,6 +33,12 @@ import 'util.dart' show optional;
 /// [TypeInfo] provides information that has collected by [computeType]
 /// about a particular type reference.
 abstract class TypeInfo {
+  /// Return `true` if the tokens comprising the type represented by the
+  /// receiver could be interpreted as a valid standalone expression.
+  /// For example, `A` or `A.b` could be interpreted as a type references
+  /// or as expressions, while `A<T>` only looks like a type reference.
+  bool get couldBeExpression;
+
   /// Call this function when it's known that the token after [token] is a type.
   /// This function will call the appropriate event methods on the [Parser]'s
   /// listener to handle the type. This may modify the token stream
@@ -195,6 +201,9 @@ class ComplexTypeInfo implements TypeInfo {
   bool gftHasReturnType;
 
   ComplexTypeInfo(Token beforeStart) : this.start = beforeStart.next;
+
+  @override
+  bool get couldBeExpression => false;
 
   @override
   Token parseType(Token token, Parser parser) {
