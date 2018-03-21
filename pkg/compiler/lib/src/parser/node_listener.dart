@@ -581,6 +581,7 @@ class NodeListener extends ElementListener {
     TypeAnnotation type = popNode();
     Modifiers modifiers = new Modifiers(new NodeList.empty());
     NodeList typeVariables = popNode();
+    popNode(); // Metadata.
     pushNode(new FunctionDeclaration(new FunctionExpression(name, typeVariables,
         formals, body, type, modifiers, initializers, null, asyncModifier)));
   }

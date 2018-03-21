@@ -570,13 +570,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_localFunction_annotation() {
-    // TODO(danrubel): Update fasta to allow metadata before local function.
-    super.test_localFunction_annotation();
-  }
-
-  @override
-  @failingTest
   void test_method_invalidTypeParameterComments() {
     // TODO(brianwilkerson) Does not recover.
     //   type 'DeclaredSimpleIdentifier' is not a subtype of type 'TypeAnnotation' of 'returnType' where

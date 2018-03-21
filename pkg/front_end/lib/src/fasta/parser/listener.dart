@@ -323,12 +323,15 @@ class Listener {
   }
 
   /// Handle the beginning of a local function declaration.  Substructures:
+  /// - Metadata
   /// - Type variables
   void beginLocalFunctionDeclaration(Token token) {}
 
   /// A function declaration.
   ///
   /// Substructures:
+  /// - Metadata
+  /// - Type variables
   /// - Return type
   /// - Name
   /// - Type variables
@@ -917,6 +920,9 @@ class Listener {
     logEvent("FunctionExpression");
   }
 
+  /// Handle the start of a variables declaration.  Substructures:
+  /// - Metadata
+  /// - Type
   void beginVariablesDeclaration(Token token, Token varFinalOrConst) {}
 
   void endVariablesDeclaration(int count, Token endToken) {

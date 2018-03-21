@@ -5438,14 +5438,15 @@ class Parser {
     Token token = typeInfo.skipType(beforeType);
     Token next = token.next;
 
-    if (!onlyParseVariableDeclarationStart &&
-        looksLikeLocalFunction(next) &&
-        // TODO(danrubel): Add support for metadata before local function
-        !optional('@', start.next)) {
+    if (!onlyParseVariableDeclarationStart && looksLikeLocalFunction(next)) {
       // Parse a local function declaration.
       if (varFinalOrConst != null) {
         reportRecoverableErrorWithToken(
             varFinalOrConst, fasta.templateExtraneousModifier);
+      }
+      if (!optional('@', start.next)) {
+        listener.beginMetadataStar(start.next);
+        listener.endMetadataStar(0);
       }
       Token beforeFormals = parseTypeVariablesOpt(next);
       listener.beginLocalFunctionDeclaration(start.next);

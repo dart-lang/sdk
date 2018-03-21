@@ -2862,6 +2862,9 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     returnType ??= const DynamicType();
     exitFunction();
     List<TypeParameter> typeParameters = typeVariableBuildersToKernel(pop());
+    if (!isFunctionExpression) {
+      pop(); // Metadata.
+    }
     FunctionNode function = formals.addToFunction(new FunctionNode(body,
         typeParameters: typeParameters,
         asyncMarker: asyncModifier,

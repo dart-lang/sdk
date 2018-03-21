@@ -2105,10 +2105,11 @@ class AstBuilder extends ScopeListener {
     SimpleIdentifier name = pop();
     TypeAnnotation returnType = pop();
     TypeParameterList typeParameters = pop();
+    List<Annotation> metadata = pop(NullValue.Metadata);
     FunctionExpression functionExpression =
         ast.functionExpression(typeParameters, parameters, body);
     push(ast.functionDeclarationStatement(ast.functionDeclaration(
-        null, null, null, returnType, null, name, functionExpression)));
+        null, metadata, null, returnType, null, name, functionExpression)));
   }
 
   @override
