@@ -5027,15 +5027,11 @@ TEST_CASE(DartAPI_Invoke_CrossLibrary) {
       "void _imported() {}\n";
 
   // Load lib1
-  Dart_Handle url = NewString("library1_url");
-  Dart_Handle source = NewString(kLibrary1Chars);
-  Dart_Handle lib1 = Dart_LoadLibrary(url, Dart_Null(), source, 0, 0);
+  Dart_Handle lib1 = TestCase::LoadTestLibrary("library1_url", kLibrary1Chars);
   EXPECT_VALID(lib1);
 
   // Load lib2
-  url = NewString("library2_url");
-  source = NewString(kLibrary2Chars);
-  Dart_Handle lib2 = Dart_LoadLibrary(url, Dart_Null(), source, 0, 0);
+  Dart_Handle lib2 = TestCase::LoadTestLibrary("library2_url", kLibrary2Chars);
   EXPECT_VALID(lib2);
 
   // Import lib2 from lib1

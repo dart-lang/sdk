@@ -160,7 +160,6 @@ cc/CanonicalizationInScriptSnapshots: Fail
 cc/Class_ComputeEndTokenPos: Crash
 cc/DartAPI_CurrentStackTraceInfo: Fail
 cc/DartAPI_InvokeNoSuchMethod: Fail
-cc/DartAPI_Invoke_CrossLibrary: Crash
 cc/DartAPI_IsolateSetCheckedMode: Skip # Checked mode is not relevant for dart 2?
 cc/DartAPI_IsolateShutdownRunDartCode: Skip # Flaky
 cc/DartAPI_LazyLoadDeoptimizes: Fail
