@@ -1888,7 +1888,24 @@ class Parser {
   /// identifier in the given [context], create a synthetic identifier, report
   /// an error, and return the synthetic identifier.
   Token ensureIdentifier(Token token, IdentifierContext context) {
+    assert(context != null);
     Token next = token.next;
+    if (next.kind == IDENTIFIER_TOKEN) {
+      listener.handleIdentifier(next, context);
+      return next;
+    }
+    Token identifier = context.ensureIdentifier(token, this);
+    // TODO(danrubel): Once refactoring is complete,
+    // context.ensureIdentifier should never return null.
+    if (identifier != null) {
+      assert(identifier.isKeywordOrIdentifier);
+      listener.handleIdentifier(identifier, context);
+      return identifier;
+    }
+
+    // TODO(danrubel): Roll everything beyond this point into the
+    // ensureIdentifier methods in the various IdentifierContext subclasses.
+
     if (!next.isIdentifier) {
       if (optional("void", next)) {
         reportRecoverableError(next, fasta.messageInvalidVoid);
@@ -2044,9 +2061,6 @@ class Parser {
       followingValues = [';', 'hide', 'show', 'deferred', 'as'];
     } else if (context == IdentifierContext.labelDeclaration) {
       followingValues = [':'];
-    } else if (context == IdentifierContext.libraryName ||
-        context == IdentifierContext.libraryNameContinuation) {
-      followingValues = ['.', ';'];
     } else if (context == IdentifierContext.literalSymbol ||
         context == IdentifierContext.literalSymbolContinuation) {
       followingValues = ['.', ';'];

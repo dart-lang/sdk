@@ -799,14 +799,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_nonIdentifierLibraryName_library() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME, found 0
-    super.test_nonIdentifierLibraryName_library();
-  }
-
-  @override
-  @failingTest
   void test_setterInFunction_block() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.SETTER_IN_FUNCTION, found 0

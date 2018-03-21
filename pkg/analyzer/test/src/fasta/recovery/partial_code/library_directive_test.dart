@@ -12,20 +12,6 @@ main() {
 
 class LibraryDirectivesTest extends PartialCodeTest {
   buildAll() {
-    List<String> allExceptEof = <String>[
-      'import',
-      'export',
-      'part',
-      'class',
-      'typedef',
-      'functionVoid',
-      'functionNonVoid',
-      'var',
-      'const',
-      'final',
-      'getter',
-      'setter'
-    ];
     buildTests(
         'library_directive',
         [
@@ -37,7 +23,7 @@ class LibraryDirectivesTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               'library _s_;',
-              failing: allExceptEof),
+              failing: ['functionNonVoid', 'getter']),
           new TestDescriptor('name', 'library lib',
               [ParserErrorCode.EXPECTED_TOKEN], 'library lib;'),
           new TestDescriptor(
@@ -48,7 +34,7 @@ class LibraryDirectivesTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               'library lib._s_;',
-              failing: allExceptEof),
+              failing: ['functionNonVoid', 'getter']),
           new TestDescriptor('nameDotName', 'library lib.a',
               [ParserErrorCode.EXPECTED_TOKEN], 'library lib.a;'),
         ],

@@ -4845,7 +4845,9 @@ class Wrong<T> {
 
   void test_nonIdentifierLibraryName_library() {
     CompilationUnit unit = parseCompilationUnit("library 'lib';", errors: [
-      expectedError(ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME, 8, 5)
+      usingFastaParser
+          ? expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 5)
+          : expectedError(ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME, 8, 5)
     ]);
     expect(unit, isNotNull);
   }
@@ -13773,6 +13775,24 @@ class C {}
     expectNotNullIfNoErrors(identifier);
     listener.assertNoErrors();
     expect(identifier.name, name);
+  }
+
+  void test_parseLibraryIdentifier_builtin() {
+    String name = "deferred";
+    LibraryIdentifier identifier = parseLibraryIdentifier(name);
+    expectNotNullIfNoErrors(identifier);
+    listener.assertNoErrors();
+    expect(identifier.name, name);
+    expect(identifier.beginToken.type.isBuiltIn, isTrue);
+  }
+
+  void test_parseLibraryIdentifier_pseudo() {
+    String name = "await";
+    LibraryIdentifier identifier = parseLibraryIdentifier(name);
+    expectNotNullIfNoErrors(identifier);
+    listener.assertNoErrors();
+    expect(identifier.name, name);
+    expect(identifier.beginToken.type.isPseudo, isTrue);
   }
 
   void test_parseOptionalReturnType() {
