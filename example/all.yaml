@@ -24,6 +24,7 @@ linter:
     - avoid_returning_null
     - avoid_returning_this
     - avoid_setters_without_getters
+    - avoid_single_cascade_in_expression_statements
     - avoid_slow_async_io
     - avoid_types_as_parameter_names
     - avoid_types_on_closure_parameters
