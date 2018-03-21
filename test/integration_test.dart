@@ -585,6 +585,38 @@ defineTests() {
       });
     });
 
+    group('avoid_private_typedef_functions', () {
+      IOSink currentOut = outSink;
+      CollectingSink collectingOut = new CollectingSink();
+
+      setUp(() {
+        exitCode = 0;
+        outSink = collectingOut;
+      });
+
+      tearDown(() {
+        collectingOut.buffer.clear();
+        outSink = currentOut;
+        exitCode = 0;
+      });
+
+      test('handles parts', () async {
+        await dartlint.main([
+          'test/_data/avoid_private_typedef_functions/lib.dart',
+          'test/_data/avoid_private_typedef_functions/part.dart',
+          '--rules=avoid_private_typedef_functions'
+        ]);
+        expect(exitCode, 1);
+        expect(
+            collectingOut.trim(),
+            stringContainsInOrder([
+              'lib.dart 9:1 [lint] Avoid private typedef functions.',
+              'part.dart 9:1 [lint] Avoid private typedef functions.',
+              '2 files analyzed, 2 issues found',
+            ]));
+      });
+    });
+
     group('examples', () {
       test('all.yaml', () {
         String src = readFile('example/all.yaml');

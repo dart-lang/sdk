@@ -19,6 +19,7 @@ import 'package:linter/src/rules/avoid_function_literals_in_foreach_calls.dart';
 import 'package:linter/src/rules/avoid_init_to_null.dart';
 import 'package:linter/src/rules/avoid_null_checks_in_equality_operators.dart';
 import 'package:linter/src/rules/avoid_positional_boolean_parameters.dart';
+import 'package:linter/src/rules/avoid_private_typedef_functions.dart';
 import 'package:linter/src/rules/avoid_relative_lib_imports.dart';
 import 'package:linter/src/rules/avoid_renaming_method_parameters.dart';
 import 'package:linter/src/rules/avoid_return_types_on_setters.dart';
@@ -129,6 +130,7 @@ void registerLintRules() {
     ..register(new AvoidInitToNull())
     ..register(new AvoidNullChecksInEqualityOperators())
     ..register(new AvoidPositionalBooleanParameters())
+    ..register(new AvoidPrivateTypedefFunctions())
     ..register(new AvoidRelativeLibImports())
     ..register(new AvoidRenamingMethodParameters())
     ..register(new AvoidReturningNull())
