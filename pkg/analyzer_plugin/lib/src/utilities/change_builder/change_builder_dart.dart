@@ -182,17 +182,20 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     bool typeRequired = true;
     if (isConst) {
       write(Keyword.CONST.lexeme);
+      write(' ');
       typeRequired = false;
     } else if (isFinal) {
       write(Keyword.FINAL.lexeme);
+      write(' ');
       typeRequired = false;
     }
     if (type != null) {
       writeType(type, groupName: typeGroupName, required: true);
+      write(' ');
     } else if (typeRequired) {
       write(Keyword.VAR.lexeme);
+      write(' ');
     }
-    write(' ');
     if (nameGroupName != null) {
       addSimpleLinkedEdit(nameGroupName, name);
     } else {

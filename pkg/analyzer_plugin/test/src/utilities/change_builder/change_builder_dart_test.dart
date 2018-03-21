@@ -519,6 +519,23 @@ import 'aaa.dart';
     expect(edit.replacement, equalsIgnoringWhitespace('const f;'));
   }
 
+  test_writeFieldDeclaration_isConst_type() async {
+    String path = provider.convertPath('/test.dart');
+    String content = 'class A {}';
+    addSource(path, content);
+    DartType typeA = await _getType(path, 'A');
+
+    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
+      builder.addInsertion(content.length - 1, (EditBuilder builder) {
+        (builder as DartEditBuilder)
+            .writeFieldDeclaration('f', isConst: true, type: typeA);
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('const A f;'));
+  }
+
   test_writeFieldDeclaration_isFinal() async {
     String path = provider.convertPath('/test.dart');
     String content = 'class A {}';
@@ -532,6 +549,23 @@ import 'aaa.dart';
     });
     SourceEdit edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('final f;'));
+  }
+
+  test_writeFieldDeclaration_isFinal_type() async {
+    String path = provider.convertPath('/test.dart');
+    String content = 'class A {}';
+    addSource(path, content);
+    DartType typeA = await _getType(path, 'A');
+
+    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
+      builder.addInsertion(content.length - 1, (EditBuilder builder) {
+        (builder as DartEditBuilder)
+            .writeFieldDeclaration('f', isFinal: true, type: typeA);
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('final A f;'));
   }
 
   test_writeFieldDeclaration_isStatic() async {
