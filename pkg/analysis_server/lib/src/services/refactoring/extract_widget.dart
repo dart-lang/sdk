@@ -135,48 +135,56 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       builder.addInsertion(enclosingUnitMember.end, (builder) {
         builder.writeln();
         builder.writeln();
-        builder.writeClassDeclaration(name,
-            superclass: classStatelessWidget.type, membersWriter: () {
-          if (_parameters.isNotEmpty) {
-            // Add the fields for the parameters.
-            for (var parameter in _parameters) {
-              builder.write('  final ');
-              builder.writeType(parameter.type);
-              builder.write(' ');
-              builder.write(parameter.name);
-              builder.writeln(';');
+        builder.writeClassDeclaration(
+          name,
+          superclass: classStatelessWidget.type,
+          membersWriter: () {
+            if (_parameters.isNotEmpty) {
+              // Add the fields for the parameters.
+              for (var parameter in _parameters) {
+                builder.write('  ');
+                builder.writeFieldDeclaration(parameter.name,
+                    isFinal: true, type: parameter.type);
+                builder.writeln();
+              }
+              builder.writeln();
+
+              // Add the constructor.
+              builder.write('  ');
+              builder.writeConstructorDeclaration(name,
+                  fieldNames: _parameters.map((e) => e.name).toList());
+              builder.writeln();
+              builder.writeln();
             }
-            builder.writeln();
 
-            // Add the constructor.
+            // Widget build(BuildContext context) { ... }
+            builder.writeln('  @override');
             builder.write('  ');
-            builder.writeConstructorDeclaration(name,
-                fieldNames: _parameters.map((e) => e.name).toList());
-            builder.writeln();
-            builder.writeln();
-          }
+            builder.writeFunctionDeclaration(
+              'build',
+              returnType: classWidget.type,
+              parameterWriter: () {
+                builder.writeParameter('context', type: classBuildContext.type);
+              },
+              bodyWriter: () {
+                String indentOld = utils.getLinePrefix(_expression.offset);
+                String indentNew = '    ';
 
-          builder.writeln('  @override');
+                String code = utils.getNodeText(_expression);
+                code = code.replaceAll(
+                    new RegExp('^$indentOld', multiLine: true), indentNew);
 
-          builder.write('  ');
-          builder.writeType(classWidget.type);
-          builder.write(' build(');
-          builder.writeType(classBuildContext.type);
-          builder.writeln(' context) {');
+                builder.writeln('{');
 
-          String indentOld = utils.getLinePrefix(_expression.offset);
-          String indentNew = '    ';
+                builder.write('    return ');
+                builder.write(code);
+                builder.writeln(';');
 
-          String widgetSrc = utils.getNodeText(_expression);
-          widgetSrc = widgetSrc.replaceAll(
-              new RegExp("^$indentOld", multiLine: true), indentNew);
-
-          builder.write('    return ');
-          builder.write(widgetSrc);
-          builder.writeln(';');
-
-          builder.writeln('  }');
-        });
+                builder.writeln('  }');
+              },
+            );
+          },
+        );
       });
     });
     return changeBuilder.sourceChange;
