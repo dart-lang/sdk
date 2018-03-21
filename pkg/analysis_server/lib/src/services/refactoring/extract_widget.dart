@@ -274,6 +274,8 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
   final RefactoringStatus status = new RefactoringStatus();
   final List<_Parameter> parameters = [];
 
+  List<ClassElement> enclosingClasses;
+
   _ParametersCollector(this.enclosingClass, this.expressionRange);
 
   @override
@@ -286,7 +288,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
 
     DartType type;
     if (element is MethodElement) {
-      if (element.enclosingElement == enclosingClass) {
+      if (_isMemberOfEnclosingClass(element)) {
         status.addError(
             "Reference to an enclosing class method cannot be extracted.");
       }
@@ -300,7 +302,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
       }
     } else if (element is PropertyAccessorElement) {
       PropertyInducingElement field = element.variable;
-      if (field.enclosingElement == enclosingClass) {
+      if (_isMemberOfEnclosingClass(field)) {
         if (node.inSetterContext()) {
           status.addError("Write to '$elementName' cannot be extracted.");
         } else {
@@ -312,5 +314,21 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
     if (type != null) {
       parameters.add(new _Parameter(elementName, type));
     }
+  }
+
+  /**
+   * Return `true` if the given [element] is a member of the [enclosingClass]
+   * or one of its supertypes, interfaces, or mixins.
+   */
+  bool _isMemberOfEnclosingClass(Element element) {
+    if (enclosingClass != null) {
+      if (enclosingClasses == null) {
+        enclosingClasses = <ClassElement>[]
+          ..add(enclosingClass)
+          ..addAll(enclosingClass.allSupertypes.map((t) => t.element));
+      }
+      return enclosingClasses.contains(element.enclosingElement);
+    }
+    return false;
   }
 }

@@ -226,6 +226,33 @@ class MyWidget extends StatelessWidget {
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
   }
 
+  test_invocation_enclosingSuperClass() async {
+    addFlutterPackage();
+    await indexTestUnit(r'''
+import 'package:flutter/material.dart';
+
+abstract class MyInterface {
+  void foo();
+}
+
+abstract class MyWidget extends StatelessWidget implements MyInterface {
+  @override
+  Widget build(BuildContext context) {
+    return new GestureDetector(
+      child: new Text(''),
+      onTap: () {
+        foo();
+      },
+    );
+  }
+}
+''');
+    _createRefactoringForStringOffset('new GestureDetector');
+
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
+  }
+
   test_invocation_otherClass() async {
     addFlutterPackage();
     await indexTestUnit(r'''
@@ -420,6 +447,33 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   String field;
 
+  @override
+  Widget build(BuildContext context) {
+    return new GestureDetector(
+      child: new Text(''),
+      onTap: () {
+        field = '';
+      },
+    );
+  }
+}
+''');
+    _createRefactoringForStringOffset('new GestureDetector');
+
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
+  }
+
+  test_parameters_field_write_enclosingSuperClass() async {
+    addFlutterPackage();
+    await indexTestUnit(r'''
+import 'package:flutter/material.dart';
+
+abstract class MySuperWidget extends StatelessWidget {
+  String field;
+}
+
+class MyWidget extends MySuperWidget {
   @override
   Widget build(BuildContext context) {
     return new GestureDetector(
