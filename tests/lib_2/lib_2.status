@@ -124,7 +124,7 @@ async/stream_first_where_test/badType: MissingCompileTimeError
 async/stream_last_where_test/badType: MissingCompileTimeError
 mirrors/redirecting_factory_different_type_test/02: MissingCompileTimeError
 
-[ !$strong && $compiler != fasta ]
+[ !$strong && $compiler != fasta && $compiler != dart2analyzer ]
 async/future_or_type_test: Fail # Strong mode implements FutureOr, non-strong treats it as dynamic.
 
 [ $builder_tag == mac10_7 && $runtime == safari ]
