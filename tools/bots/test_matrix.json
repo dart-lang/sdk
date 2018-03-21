@@ -615,13 +615,17 @@
         },
         {
           "name": "vm tests",
-          "arguments": ["--vm-options=--optimization-counter-threshold=5"]
+          "arguments": [
+            "--vm-options=--optimization-counter-threshold=5",
+            "--builder-tag=optimization_counter_threshold"
+          ]
         },
         {
           "name": "checked vm tests",
           "arguments": [
             "--checked",
-            "--vm-options=--optimization-counter-threshold=5"
+            "--vm-options=--optimization-counter-threshold=5",
+            "--builder-tag=optimization_counter_threshold"
           ]
         }
       ]
