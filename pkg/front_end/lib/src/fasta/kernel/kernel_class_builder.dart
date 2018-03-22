@@ -342,11 +342,11 @@ abstract class KernelClassBuilder
     List<Member> concrete = hierarchy.getDispatchTargets(cls);
     List<Member> declared = hierarchy.getDeclaredMembers(cls);
     for (Member member in hierarchy.getInterfaceMembers(cls)) {
-      if (ClassHierarchy.findMemberByName(concrete, member.name) == null &&
+      if ((member is Procedure) &&
+          ClassHierarchy.findMemberByName(concrete, member.name) == null &&
           !existingForwardersNames.contains(member.name)) {
         if (ClassHierarchy.findMemberByName(declared, member.name) != null) {
-          Procedure procedure = member;
-          procedure.isNoSuchMethodForwarder = true;
+          member.isNoSuchMethodForwarder = true;
         } else {
           addNoSuchMethodForwarderForProcedure(member, hierarchy);
         }
