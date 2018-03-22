@@ -350,6 +350,7 @@ abstract class KernelClassBuilder
         } else {
           addNoSuchMethodForwarderForProcedure(member, hierarchy);
         }
+        existingForwardersNames.add(member.name);
       }
     }
   }
