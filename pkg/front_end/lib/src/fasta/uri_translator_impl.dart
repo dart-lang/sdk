@@ -45,6 +45,10 @@ class UriTranslatorImpl implements UriTranslator {
     return null;
   }
 
+  @override
+  String environmentOverrideFor(String libraryName) =>
+      dartLibraries.environmentOverrideFor(libraryName);
+
   /// Return the file URI that corresponds to the given `dart` URI, or `null`
   /// if there is no corresponding Dart library registered.
   Uri _translateDartUri(Uri uri) {
