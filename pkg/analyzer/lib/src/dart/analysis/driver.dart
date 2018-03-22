@@ -326,6 +326,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   /**
    * The current analysis session.
+   *
+   * TODO(brianwilkerson) Create a new session when the current session might
+   * produce inconsistent results.
    */
   AnalysisSessionImpl _currentSession;
 
@@ -353,7 +356,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _sourceFactory = sourceFactory.clone(),
         _sdkBundle = sdkBundle,
         _externalSummaries = externalSummaries {
-    _createNewSession();
+    _currentSession = new AnalysisSessionImpl(this);
     _onResults = _resultController.stream.asBroadcastStream();
     _testView = new AnalysisDriverTestView(this);
     _createFileTracker();
@@ -1119,7 +1122,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * of state.
    */
   void _changeHook() {
-    _createNewSession();
     _priorityResults.clear();
     _scheduler.notify(this);
   }
@@ -1382,13 +1384,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _sourceFactory,
         _externalSummaries,
         fsState);
-  }
-
-  /**
-   * Create a new analysis session, so invalidating the current one.
-   */
-  void _createNewSession() {
-    _currentSession = new AnalysisSessionImpl(this);
   }
 
   /**
