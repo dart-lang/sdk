@@ -1,16 +1,19 @@
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-library kernel.target.runner;
+library kernel.target.flutter_runner;
 
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/target/vm.dart' show VmTarget;
 
-class RunnerTarget extends VmTarget {
-  RunnerTarget(TargetFlags flags) : super(flags);
+class FlutterRunnerTarget extends VmTarget {
+  FlutterRunnerTarget(TargetFlags flags) : super(flags);
 
   @override
-  String get name => 'runner';
+  String get name => 'flutter_runner';
+
+  @override
+  bool get enableSuperMixins => true;
 
   // This is the order that bootstrap libraries are loaded according to
   // `runtime/vm/object_store.h`.
@@ -33,10 +36,12 @@ class RunnerTarget extends VmTarget {
         'dart:nativewrappers',
         'dart:io',
 
-        // Required for dart_runner.
+        // Required for flutter_runner.
         'dart:fuchsia.builtin',
         'dart:zircon',
         'dart:fuchsia',
         'dart:vmservice_io',
+        'dart:ui',
+        'dart:mozart.internal',
       ];
 }

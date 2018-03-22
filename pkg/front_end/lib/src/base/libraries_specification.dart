@@ -106,10 +106,16 @@ class LibrariesSpecification {
   const LibrariesSpecification(
       [this._targets = const <String, TargetLibrariesSpecification>{}]);
 
-  /// The library specification for a given [target], or null if none is
+  /// The library specification for a given [target], or throws if none is
   /// available.
-  TargetLibrariesSpecification specificationFor(String target) =>
-      _targets[target];
+  TargetLibrariesSpecification specificationFor(String target) {
+    var targetSpec = _targets[target];
+    if (targetSpec == null) {
+      throw new LibrariesSpecificationException(
+        'No library specification for target "$target"');
+    }
+    return targetSpec;
+  }
 
   /// Parse the given [json] as a library specification, resolving any relative
   /// paths from [baseUri].
