@@ -312,6 +312,51 @@ class Test extends StatelessWidget {
 ''');
   }
 
+  test_method() async {
+    addFlutterPackage();
+    await indexTestUnit('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return createColumn();
+  }
+  
+  Widget createColumn() {
+    var a = new Text('AAA');
+    var b = new Text('BBB');
+    return new Column(
+      children: <Widget>[a, b],
+    );
+  }
+}
+''');
+    _createRefactoringForStringOffset('createColumn() {');
+
+    await _assertSuccessfulRefactoring('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Test();
+  }
+}
+
+class Test extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var a = new Text('AAA');
+    var b = new Text('BBB');
+    return new Column(
+      children: <Widget>[a, b],
+    );
+  }
+}
+''');
+  }
+
   test_parameters_field_read_enclosingClass() async {
     addFlutterPackage();
     await indexTestUnit(r'''
