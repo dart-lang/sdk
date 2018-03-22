@@ -585,3 +585,11 @@ class CloneVisitor implements TreeVisitor {
     return defaultTreeNode(node);
   }
 }
+
+class CloneWithoutBody extends CloneVisitor {
+  CloneWithoutBody({Map<TypeParameter, DartType> typeSubstitution})
+      : super(typeSubstitution: typeSubstitution);
+
+  @override
+  TreeNode cloneFunctionNodeBody(FunctionNode node) => null;
+}
