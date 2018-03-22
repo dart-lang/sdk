@@ -1625,6 +1625,7 @@ no_such_method_mock_test: RuntimeError
 no_such_method_test: RuntimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError
+nosuchmethod_forwarding/nosuchmethod_forwarding_arguments_test: RuntimeError
 null_no_such_method_test: CompileTimeError
 null_test/mirrors: RuntimeError
 null_test/none: RuntimeError
@@ -2386,6 +2387,7 @@ no_such_method_native_test: RuntimeError
 no_such_method_test: RuntimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError
+nosuchmethod_forwarding/nosuchmethod_forwarding_arguments_test: RuntimeError
 null_no_such_method_test: CompileTimeError
 null_test/mirrors: RuntimeError
 null_test/none: RuntimeError
@@ -2609,4 +2611,3 @@ mixin_mixin6_test: RuntimeError # Issue 31054
 mixin_mixin_bound2_test: RuntimeError # Issue 31054
 mixin_mixin_bound_test: RuntimeError # Issue 31054
 mixin_mixin_type_arguments_test: RuntimeError # Issue 31054
-
