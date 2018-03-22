@@ -3108,29 +3108,7 @@ main() {
           MessageKind.MALFORMED_STRING_LITERAL,
           r"A '$' has special meaning inside a string, and must be followed by "
           "an identifier or an expression in curly braces ({}).",
-          howToFix: r"Try adding a backslash (\) to escape the '$'.",
-          examples: const [
-            r"""
-main() {
-  return '$';
-}
-""",
-            r'''
-main() {
-  return "$";
-}
-''',
-            r"""
-main() {
-  return '''$''';
-}
-""",
-            r'''
-main() {
-  return """$""";
-}
-'''
-          ]),
+          howToFix: r"Try adding a backslash (\) to escape the '$'."),
 
       MessageKind.UNTERMINATED_COMMENT: const MessageTemplate(
           MessageKind.UNTERMINATED_COMMENT,

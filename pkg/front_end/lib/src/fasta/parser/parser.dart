@@ -1851,10 +1851,14 @@ class Parser {
 
   Token parseStringPart(Token token) {
     token = token.next;
-    if (token.kind != STRING_TOKEN) {
-      token =
-          reportUnrecoverableErrorWithToken(token, fasta.templateExpectedString)
-              .next;
+    while (token.kind != STRING_TOKEN) {
+      if (token is ErrorToken) {
+        reportErrorToken(token, true);
+      } else {
+        token = reportUnrecoverableErrorWithToken(
+            token, fasta.templateExpectedString);
+      }
+      token = token.next;
     }
     listener.handleStringPart(token);
     return token;

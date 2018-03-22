@@ -112,44 +112,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     with ErrorParserTestMixin {
   @override
   @failingTest
-  void test_expectedInterpolationIdentifier() {
-    // TODO(brianwilkerson) Does not recover.
-    //   RangeError: Value not in range: -1
-    //   dart:core                                                          _StringBase.substring
-    //   package:front_end/src/fasta/quote.dart 130:12                      unescapeLastStringPart
-    //   package:analyzer/src/fasta/ast_builder.dart 187:17                 AstBuilder.endLiteralString
-    //   test/generated/parser_fasta_listener.dart 896:14                   ForwardingTestListener.endLiteralString
-    //   package:front_end/src/fasta/parser/parser.dart 3497:14             Parser.parseSingleLiteralString
-    //   package:front_end/src/fasta/parser/parser.dart 3434:13             Parser.parseLiteralString
-    //   package:front_end/src/fasta/parser/parser.dart 3133:14             Parser.parsePrimary
-    //   package:front_end/src/fasta/parser/parser.dart 3097:14             Parser.parseUnaryExpression
-    //   package:front_end/src/fasta/parser/parser.dart 2968:13             Parser.parsePrecedenceExpression
-    //   package:front_end/src/fasta/parser/parser.dart 2942:11             Parser.parseExpression
-    //   test/generated/parser_fasta_test.dart 2929:39                      ParserProxy._run
-    super.test_expectedInterpolationIdentifier();
-  }
-
-  @override
-  @failingTest
-  void test_expectedInterpolationIdentifier_emptyString() {
-    // TODO(brianwilkerson) Does not recover.
-    //   RangeError: Value not in range: -1
-    //   dart:core                                                          _StringBase.substring
-    //   package:front_end/src/fasta/quote.dart 130:12                      unescapeLastStringPart
-    //   package:analyzer/src/fasta/ast_builder.dart 187:17                 AstBuilder.endLiteralString
-    //   test/generated/parser_fasta_listener.dart 896:14                   ForwardingTestListener.endLiteralString
-    //   package:front_end/src/fasta/parser/parser.dart 3497:14             Parser.parseSingleLiteralString
-    //   package:front_end/src/fasta/parser/parser.dart 3434:13             Parser.parseLiteralString
-    //   package:front_end/src/fasta/parser/parser.dart 3133:14             Parser.parsePrimary
-    //   package:front_end/src/fasta/parser/parser.dart 3097:14             Parser.parseUnaryExpression
-    //   package:front_end/src/fasta/parser/parser.dart 2968:13             Parser.parsePrecedenceExpression
-    //   package:front_end/src/fasta/parser/parser.dart 2942:11             Parser.parseExpression
-    //   test/generated/parser_fasta_test.dart 2929:39                      ParserProxy._run
-    super.test_expectedInterpolationIdentifier_emptyString();
-  }
-
-  @override
-  @failingTest
   void test_expectedListOrMapLiteral() {
     // TODO(brianwilkerson) Does not recover.
     //   type 'IntegerLiteralImpl' is not a subtype of type 'TypedLiteral' in type cast where
@@ -325,25 +287,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     //   package:front_end/src/fasta/parser/parser.dart 2942:11             Parser.parseExpression
     //   test/generated/parser_fasta_test.dart 3196:39                      ParserProxy._run
     super.test_invalidHexEscape_tooFewDigits();
-  }
-
-  @override
-  @failingTest
-  void test_invalidInterpolationIdentifier_startWithDigit() {
-    // TODO(brianwilkerson) Does not recover.
-    //   RangeError: Value not in range: -1
-    //   dart:core                                                          _StringBase.substring
-    //   package:front_end/src/fasta/quote.dart 130:12                      unescapeLastStringPart
-    //   package:analyzer/src/fasta/ast_builder.dart 181:17                 AstBuilder.endLiteralString
-    //   test/generated/parser_fasta_listener.dart 896:14                   ForwardingTestListener.endLiteralString
-    //   package:front_end/src/fasta/parser/parser.dart 3497:14             Parser.parseSingleLiteralString
-    //   package:front_end/src/fasta/parser/parser.dart 3434:13             Parser.parseLiteralString
-    //   package:front_end/src/fasta/parser/parser.dart 3133:14             Parser.parsePrimary
-    //   package:front_end/src/fasta/parser/parser.dart 3097:14             Parser.parseUnaryExpression
-    //   package:front_end/src/fasta/parser/parser.dart 2968:13             Parser.parsePrecedenceExpression
-    //   package:front_end/src/fasta/parser/parser.dart 2942:11             Parser.parseExpression
-    //   test/generated/parser_fasta_test.dart 3196:39                      ParserProxy._run
-    super.test_invalidInterpolationIdentifier_startWithDigit();
   }
 
   @override

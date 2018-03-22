@@ -3076,7 +3076,7 @@ class Foo {
   void test_expectedInterpolationIdentifier() {
     StringLiteral literal = parseExpression("'\$x\$'", errors: [
       fe.Scanner.useFasta
-          ? expectedError(ScannerErrorCode.MISSING_IDENTIFIER, 3, 1)
+          ? expectedError(ScannerErrorCode.MISSING_IDENTIFIER, 4, 1)
           : expectedError(ParserErrorCode.MISSING_IDENTIFIER, 3, 1)
     ]);
     expectNotNullIfNoErrors(literal);
