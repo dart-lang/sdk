@@ -38,6 +38,8 @@ main() async {
       "The parameter 'value' of the method 'A::child' has type");
   await runPassingTest(testInvalidateExportOfMain);
   await runPassingTest(testInvalidatePart);
+  await runFailingTest(testCalculatedBoundsNoStrongMode,
+      "Normally compiled and bootstrapped compile differs");
 }
 
 void runFailingTest(dynamic test, String expectContains) async {
@@ -62,6 +64,49 @@ void runPassingTest(dynamic test) async {
   } finally {
     outDir.deleteSync(recursive: true);
   }
+}
+
+/// Test compiling in non-strong-mode where when compiling without initializing
+/// from dill it currently compiles as
+/// `method foo(tes2::B<dynamic> cls) → void {}`
+/// whereas when initializing from dill it currently compiles as
+/// `method foo(tes2::B<core::String> cls) → void {}`
+void testCalculatedBoundsNoStrongMode() async {
+  final Uri a = outDir.uri.resolve("testCalculatedBounds_a.dart");
+  final Uri b = outDir.uri.resolve("testCalculatedBounds_b.dart");
+
+  Uri output = outDir.uri.resolve("testCalculatedBounds_full.dill");
+  Uri bootstrappedOutput =
+      outDir.uri.resolve("testCalculatedBounds_full_from_bootstrap.dill");
+
+  new File.fromUri(a).writeAsStringSync("""
+    import 'testCalculatedBounds_b.dart';
+
+    class A {
+      void foo(B cls) {}
+    }
+    """);
+  new File.fromUri(b).writeAsStringSync("""
+    abstract class B<T extends String> {}
+    """);
+
+  Stopwatch stopwatch = new Stopwatch()..start();
+  await normalCompile(a, output, options: getOptions(false));
+  print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
+
+  stopwatch.reset();
+  bool bootstrapResult = await bootstrapCompile(
+      a, bootstrappedOutput, output, [a],
+      options: getOptions(false));
+  print("Bootstrapped compile(s) from ${output.pathSegments.last} "
+      "took ${stopwatch.elapsedMilliseconds} ms");
+  Expect.isTrue(bootstrapResult);
+
+  // Compare the two files.
+  List<int> normalDillData = new File.fromUri(output).readAsBytesSync();
+  List<int> bootstrappedDillData =
+      new File.fromUri(bootstrappedOutput).readAsBytesSync();
+  checkBootstrappedIsEqual(normalDillData, bootstrappedDillData);
 }
 
 /// Invalidate a part file.
@@ -315,12 +360,17 @@ void testDart2jsCompile() async {
 
 void checkBootstrappedIsEqual(
     List<int> normalDillData, List<int> bootstrappedDillData) {
-  Expect.equals(normalDillData.length, bootstrappedDillData.length);
-  for (int i = 0; i < normalDillData.length; ++i) {
+  int length = normalDillData.length;
+  if (bootstrappedDillData.length < length) {
+    length = bootstrappedDillData.length;
+  }
+  for (int i = 0; i < length; ++i) {
     if (normalDillData[i] != bootstrappedDillData[i]) {
-      Expect.fail("Normally compiled and bootstrapped compile differs.");
+      Expect.fail("Normally compiled and bootstrapped compile differs "
+          "at byte ${i+1}.");
     }
   }
+  Expect.equals(normalDillData.length, bootstrappedDillData.length);
 }
 
 /// Compile an application with n libraries, then
