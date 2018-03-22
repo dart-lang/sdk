@@ -73,7 +73,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
           }
         }
-        appendLibraries(data, bytesLength);
+        appendLibraries(data, bytesLength, uriTranslator);
 
         try {
           await dillLoadedData.buildOutlines();
@@ -84,7 +84,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           initializedFromDill = false;
           data.reset();
           bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
-          appendLibraries(data, bytesLength);
+          appendLibraries(data, bytesLength, uriTranslator);
           await dillLoadedData.buildOutlines();
         }
         summaryBytes = null;
@@ -132,7 +132,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       await userCode.buildOutlines();
 
-      // This is not the full program. It is the component including all
+      // This is not the full component. It is the component including all
       // libraries loaded from .dill files.
       Component componentWithDill =
           await userCode.buildComponent(verify: c.options.verify);
@@ -159,7 +159,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         });
       }
 
-      // This component represents the parts of the program that were
+      // This component represents the parts of the component that were
       // recompiled.
       Procedure mainMethod = componentWithDill == null
           ? data.userLoadedUriMain
@@ -223,8 +223,22 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     return bytesLength;
   }
 
-  void appendLibraries(IncrementalCompilerData data, int bytesLength) {
+  void appendLibraries(IncrementalCompilerData data, int bytesLength,
+      UriTranslator uriTranslator) {
     if (data.component != null) {
+      List<Library> keepLibraries = <Library>[];
+      for (Library lib in data.component.libraries) {
+        if (lib.importUri.scheme != "package" ||
+            uriTranslator.translate(lib.importUri, false) != null) {
+          keepLibraries.add(lib);
+        } else {
+          print("Skipping $lib");
+        }
+      }
+      data.component.libraries
+        ..clear()
+        ..addAll(keepLibraries);
+
       dillLoadedData.loader
           .appendLibraries(data.component, byteCount: bytesLength);
     }

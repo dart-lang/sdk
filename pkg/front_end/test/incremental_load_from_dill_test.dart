@@ -171,9 +171,11 @@ void newWorldTest(bool strong, List worlds) async {
     }
     Map<String, String> sourceFiles = world["sources"];
     for (String filename in sourceFiles.keys) {
-      fs
-          .entityForUri(base.resolve(filename))
-          .writeAsStringSync(sourceFiles[filename]);
+      String data = sourceFiles[filename] ?? "";
+      if (filename == ".packages") {
+        data = data.replaceAll(r"${outDirUri}", "${base}");
+      }
+      fs.entityForUri(base.resolve(filename)).writeAsStringSync(data);
     }
 
     CompilerOptions options = getOptions(strong);
