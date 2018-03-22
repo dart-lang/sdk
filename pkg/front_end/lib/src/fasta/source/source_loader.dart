@@ -632,6 +632,15 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Checked overrides");
   }
 
+  void addNoSuchMethodForwarders(List<SourceClassBuilder> sourceClasses) {
+    for (SourceClassBuilder builder in sourceClasses) {
+      if (builder.library.loader == this) {
+        builder.addNoSuchMethodForwarders(hierarchy);
+      }
+    }
+    ticker.logMs("Added noSuchMethod forwarders");
+  }
+
   void createTypeInferenceEngine() {
     typeInferenceEngine =
         new ShadowTypeInferenceEngine(instrumentation, target.strongMode);
