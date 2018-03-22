@@ -10893,6 +10893,158 @@ class ExtractMethodOptions extends RefactoringOptions {
 }
 
 /**
+ * extractWidget feedback
+ *
+ * {
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class ExtractWidgetFeedback extends RefactoringFeedback {
+  ExtractWidgetFeedback();
+
+  factory ExtractWidgetFeedback.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      return new ExtractWidgetFeedback();
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "extractWidget feedback", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is ExtractWidgetFeedback) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * extractWidget options
+ *
+ * {
+ *   "name": String
+ *   "stateful": bool
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class ExtractWidgetOptions extends RefactoringOptions {
+  String _name;
+
+  bool _stateful;
+
+  /**
+   * The name that the widget class should be given.
+   */
+  String get name => _name;
+
+  /**
+   * The name that the widget class should be given.
+   */
+  void set name(String value) {
+    assert(value != null);
+    this._name = value;
+  }
+
+  /**
+   * True if a StatefulWidget should be created.
+   */
+  bool get stateful => _stateful;
+
+  /**
+   * True if a StatefulWidget should be created.
+   */
+  void set stateful(bool value) {
+    assert(value != null);
+    this._stateful = value;
+  }
+
+  ExtractWidgetOptions(String name, bool stateful) {
+    this.name = name;
+    this.stateful = stateful;
+  }
+
+  factory ExtractWidgetOptions.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String name;
+      if (json.containsKey("name")) {
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "name");
+      }
+      bool stateful;
+      if (json.containsKey("stateful")) {
+        stateful =
+            jsonDecoder.decodeBool(jsonPath + ".stateful", json["stateful"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "stateful");
+      }
+      return new ExtractWidgetOptions(name, stateful);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "extractWidget options", json);
+    }
+  }
+
+  factory ExtractWidgetOptions.fromRefactoringParams(
+      EditGetRefactoringParams refactoringParams, Request request) {
+    return new ExtractWidgetOptions.fromJson(
+        new RequestDecoder(request), "options", refactoringParams.options);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["name"] = name;
+    result["stateful"] = stateful;
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is ExtractWidgetOptions) {
+      return name == other.name && stateful == other.stateful;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, stateful.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * FileKind
  *
  * enum {

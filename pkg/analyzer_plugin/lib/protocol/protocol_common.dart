@@ -4667,6 +4667,7 @@ class Position implements HasToJson {
  *   CONVERT_METHOD_TO_GETTER
  *   EXTRACT_LOCAL_VARIABLE
  *   EXTRACT_METHOD
+ *   EXTRACT_WIDGET
  *   INLINE_LOCAL_VARIABLE
  *   INLINE_METHOD
  *   MOVE_FILE
@@ -4689,6 +4690,9 @@ class RefactoringKind implements Enum {
   static const RefactoringKind EXTRACT_METHOD =
       const RefactoringKind._("EXTRACT_METHOD");
 
+  static const RefactoringKind EXTRACT_WIDGET =
+      const RefactoringKind._("EXTRACT_WIDGET");
+
   static const RefactoringKind INLINE_LOCAL_VARIABLE =
       const RefactoringKind._("INLINE_LOCAL_VARIABLE");
 
@@ -4710,6 +4714,7 @@ class RefactoringKind implements Enum {
     CONVERT_METHOD_TO_GETTER,
     EXTRACT_LOCAL_VARIABLE,
     EXTRACT_METHOD,
+    EXTRACT_WIDGET,
     INLINE_LOCAL_VARIABLE,
     INLINE_METHOD,
     MOVE_FILE,
@@ -4732,6 +4737,8 @@ class RefactoringKind implements Enum {
         return EXTRACT_LOCAL_VARIABLE;
       case "EXTRACT_METHOD":
         return EXTRACT_METHOD;
+      case "EXTRACT_WIDGET":
+        return EXTRACT_WIDGET;
       case "INLINE_LOCAL_VARIABLE":
         return INLINE_LOCAL_VARIABLE;
       case "INLINE_METHOD":

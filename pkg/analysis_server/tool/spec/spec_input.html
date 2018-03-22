@@ -4237,6 +4237,29 @@
       </field>
     </options>
   </refactoring>
+  <refactoring kind="EXTRACT_WIDGET">
+    <p>
+      Create a new class that extends either StatelessWidget or StatefulWidget,
+      whose build() method is the widget creation expression, or a method
+      returning a Flutter widget, at the specified offset.
+    </p>
+    <feedback>
+    </feedback>
+    <options>
+      <field name="name">
+        <ref>String</ref>
+        <p>
+          The name that the widget class should be given.
+        </p>
+      </field>
+      <field name="stateful">
+        <ref>bool</ref>
+        <p>
+          True if a StatefulWidget should be created.
+        </p>
+      </field>
+    </options>
+  </refactoring>
   <refactoring kind="INLINE_LOCAL_VARIABLE">
     <p>
       Inline the initializer expression of a local variable in

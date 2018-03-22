@@ -193,6 +193,9 @@ RefactoringFeedback refactoringFeedbackFromJson(
   if (kind == RefactoringKind.EXTRACT_METHOD) {
     return new ExtractMethodFeedback.fromJson(jsonDecoder, jsonPath, json);
   }
+  if (kind == RefactoringKind.EXTRACT_WIDGET) {
+    return new ExtractWidgetFeedback.fromJson(jsonDecoder, jsonPath, json);
+  }
   if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
     return new InlineLocalVariableFeedback.fromJson(
         jsonDecoder, jsonPath, json);
@@ -217,6 +220,9 @@ RefactoringOptions refactoringOptionsFromJson(JsonDecoder jsonDecoder,
   }
   if (kind == RefactoringKind.EXTRACT_METHOD) {
     return new ExtractMethodOptions.fromJson(jsonDecoder, jsonPath, json);
+  }
+  if (kind == RefactoringKind.EXTRACT_WIDGET) {
+    return new ExtractWidgetOptions.fromJson(jsonDecoder, jsonPath, json);
   }
   if (kind == RefactoringKind.INLINE_METHOD) {
     return new InlineMethodOptions.fromJson(jsonDecoder, jsonPath, json);
