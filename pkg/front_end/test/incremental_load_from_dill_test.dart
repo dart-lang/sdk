@@ -182,6 +182,21 @@ void newWorldTest(bool strong, List worlds) async {
     options.fileSystem = fs;
     options.sdkRoot = null;
     options.sdkSummary = sdkSummary;
+    bool gotError = false;
+    List<String> formattedErrors = <String>[];
+    bool gotWarning = false;
+    List<String> formattedWarnings = <String>[];
+
+    options.onProblem = (LocatedMessage message, Severity severity,
+        String formatted, int line, int column) {
+      if (severity == Severity.error) {
+        gotError = true;
+        formattedErrors.add(formatted);
+      } else if (severity == Severity.warning) {
+        gotWarning = true;
+        formattedWarnings.add(formatted);
+      }
+    };
 
     Uri entry = base.resolve(world["entry"]);
     IncrementalCompiler compiler =
@@ -195,6 +210,16 @@ void newWorldTest(bool strong, List worlds) async {
 
     Stopwatch stopwatch = new Stopwatch()..start();
     Component component = await compiler.computeDelta();
+    if (world["errors"] == true && !gotError) {
+      throw "Expected error, but didn't get any.";
+    } else if (world["errors"] != true && gotError) {
+      throw "Got unexpected error(s): $formattedErrors.";
+    }
+    if (world["warnings"] == true && !gotWarning) {
+      throw "Expected warning, but didn't get any.";
+    } else if (world["warnings"] != true && gotWarning) {
+      throw "Got unexpected warnings(s): $formattedWarnings.";
+    }
     throwOnEmptyMixinBodies(component);
     print("Compile took ${stopwatch.elapsedMilliseconds} ms");
     newestWholeComponent = serializeComponent(component);
