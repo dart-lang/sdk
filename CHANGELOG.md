@@ -19,6 +19,10 @@
 * `build` and `serve` now print a deprecation warning pointing users to
   https://webdev.dartlang.org/dart-2 ([issue 1823][pub#1823]).
 
+[pub#1823]: https://github.com/dart-lang/pub/issues/1823
+[pub#1826]: https://github.com/dart-lang/pub/issues/1826
+[pub#1827]: https://github.com/dart-lang/pub/issues/1827
+
 ## 2.0.0-dev.40.0
 
 ### Core library changes
