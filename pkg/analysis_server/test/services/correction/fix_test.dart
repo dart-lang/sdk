@@ -416,7 +416,7 @@ class B {}
     await assertHasFix(DartFixKind.ADD_EXPLICIT_CAST, '''
 f(List<A> a) {
   List<B> b;
-  b = a.where((e) => e is B).toList().cast<B>();
+  b = a.where((e) => e is B).cast<B>().toList();
 }
 class A {}
 class B {}
@@ -484,6 +484,29 @@ class B {}
 ''');
   }
 
+  test_addExplicitCast_BAD_as() async {
+    await resolveTestUnit('''
+f(A a) {
+  C c = a as B;
+}
+class A {}
+class B {}
+class C {}
+''');
+    await assertNoFix(DartFixKind.ADD_EXPLICIT_CAST);
+  }
+
+  test_addExplicitCast_BAD_cast() async {
+    await resolveTestUnit('''
+f(List<A> a) {
+  List<B> b = a.cast<A>();
+}
+class A {}
+class B {}
+''');
+    await assertNoFix(DartFixKind.ADD_EXPLICIT_CAST);
+  }
+
   test_addExplicitCast_declaration_general() async {
     await resolveTestUnit('''
 f(A a) {
@@ -511,7 +534,7 @@ class B {}
 ''');
     await assertHasFix(DartFixKind.ADD_EXPLICIT_CAST, '''
 f(List<A> a) {
-  List<B> b = a.where((e) => e is B).toList().cast<B>();
+  List<B> b = a.where((e) => e is B).cast<B>().toList();
 }
 class A {}
 class B {}
