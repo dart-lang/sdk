@@ -423,19 +423,14 @@ class CloneVisitor implements TreeVisitor {
 
   visitProcedure(Procedure node) {
     return new Procedure(node.name, node.kind, clone(node.function),
-        isAbstract: node.isAbstract,
-        isStatic: node.isStatic,
-        isExternal: node.isExternal,
-        isConst: node.isConst,
-        isForwardingStub: node.isForwardingStub,
-        isForwardingSemiStub: node.isForwardingSemiStub,
         transformerFlags: node.transformerFlags,
         fileUri: _activeFileUri,
         forwardingStubSuperTarget: node.forwardingStubSuperTarget,
         forwardingStubInterfaceTarget: node.forwardingStubInterfaceTarget)
       ..fileOffset = _cloneFileOffset(node.fileOffset)
       ..fileEndOffset = _cloneFileOffset(node.fileEndOffset)
-      ..isGenericContravariant = node.isGenericContravariant;
+      ..isGenericContravariant = node.isGenericContravariant
+      ..flags = node.flags;
   }
 
   visitField(Field node) {

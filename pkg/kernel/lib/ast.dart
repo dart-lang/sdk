@@ -1539,6 +1539,7 @@ class Procedure extends Member {
   static const int FlagForwardingSemiStub = 1 << 6;
   // TODO(29841): Remove this flag after the issue is resolved.
   static const int FlagRedirectingFactoryConstructor = 1 << 7;
+  static const int FlagNoSuchMethodForwarder = 1 << 8;
 
   bool get isStatic => flags & FlagStatic != 0;
   bool get isAbstract => flags & FlagAbstract != 0;
@@ -1581,6 +1582,8 @@ class Procedure extends Member {
   /// and forwarding to [forwardingStubSuperTarget].
   bool get isSyntheticForwarder => isForwardingStub && !isForwardingSemiStub;
 
+  bool get isNoSuchMethodForwarder => flags & FlagNoSuchMethodForwarder != 0;
+
   void set isStatic(bool value) {
     flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
   }
@@ -1618,6 +1621,13 @@ class Procedure extends Member {
     flags = value
         ? (flags | FlagRedirectingFactoryConstructor)
         : (flags & ~FlagRedirectingFactoryConstructor);
+  }
+
+  void set isNoSuchMethodForwarder(bool value) {
+    assert(isAbstract);
+    flags = value
+        ? (flags | FlagNoSuchMethodForwarder)
+        : (flags & ~FlagNoSuchMethodForwarder);
   }
 
   bool get isInstanceMember => !isStatic;
