@@ -168,7 +168,8 @@ static RawTypeArguments* NewTypeArguments(
 }
 
 ParsedFunction::ParsedFunction(Thread* thread, const Function& function)
-    : thread_(thread),
+    : is_no_such_method_forwarder_(false),
+      thread_(thread),
       function_(function),
       code_(Code::Handle(zone(), function.unoptimized_code())),
       node_sequence_(NULL),

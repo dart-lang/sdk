@@ -1304,6 +1304,8 @@ void KernelLoader::LoadProcedure(const Library& library,
   const String& name = H.DartProcedureName(procedure_helper.canonical_name_);
   bool is_method = in_class && !procedure_helper.IsStatic();
   bool is_abstract = procedure_helper.IsAbstract();
+  bool is_no_such_method_forwarder = procedure_helper.IsNoSuchMethodForwarder();
+
   bool is_external = procedure_helper.IsExternal();
   String* native_name = NULL;
   intptr_t annotation_count;
@@ -1377,13 +1379,20 @@ void KernelLoader::LoadProcedure(const Library& library,
   }
   const Object& script_class =
       ClassForScriptAt(owner, procedure_helper.source_uri_index_);
+  RawFunction::Kind kind = GetFunctionType(procedure_helper.kind_);
+  is_no_such_method_forwarder &= kind == RawFunction::kRegularFunction;
   Function& function = Function::ZoneHandle(
-      Z, Function::New(name, GetFunctionType(procedure_helper.kind_),
+      Z, Function::New(name, kind,
                        !is_method,  // is_static
                        false,       // is_const
-                       is_abstract, is_external,
+                       is_abstract && !is_no_such_method_forwarder, is_external,
                        native_name != NULL,  // is_native
                        script_class, procedure_helper.position_));
+  if (is_no_such_method_forwarder) {
+    // Not inlinable yet because its implementation is generic against the call
+    // site in a way that makes assumptions about the stack frame layout.
+    function.set_is_inlinable(false);
+  }
   function.set_end_token_pos(procedure_helper.end_position_);
   functions_.Add(&function);
   function.set_kernel_offset(procedure_offset);

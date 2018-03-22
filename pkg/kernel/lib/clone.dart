@@ -430,7 +430,8 @@ class CloneVisitor implements TreeVisitor {
       ..fileOffset = _cloneFileOffset(node.fileOffset)
       ..fileEndOffset = _cloneFileOffset(node.fileEndOffset)
       ..isGenericContravariant = node.isGenericContravariant
-      ..flags = node.flags;
+      ..flags = node.flags
+      ..flags2 = node.flags2;
   }
 
   visitField(Field node) {

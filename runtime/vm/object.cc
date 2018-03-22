@@ -7191,7 +7191,9 @@ RawFunction* Function::ImplicitClosureFunction() const {
   // In strong mode, change covariant parameter types to Object in the implicit
   // closure of a method compiled by kernel.
   // The VM's parser erases covariant types immediately in strong mode.
-  if (thread->isolate()->strong() && !is_static() && (kernel_offset() > 0)) {
+  do {
+    if (is_static() || kernel_offset() == 0) break;
+
     const Script& function_script = Script::Handle(zone, script());
     kernel::TranslationHelper translation_helper(thread);
     kernel::StreamingFlowGraphBuilder builder(
@@ -7200,7 +7202,10 @@ RawFunction* Function::ImplicitClosureFunction() const {
     translation_helper.InitFromScript(function_script);
     builder.SetOffset(kernel_offset());
 
-    builder.ReadUntilFunctionNode();
+    closure_function.set_is_inlinable(!builder.ReadUntilFunctionNode(NULL));
+
+    if (!thread->isolate()->strong()) break;
+
     kernel::FunctionNodeHelper fn_helper(&builder);
 
     // Check the positional parameters, including the optional positional ones.
@@ -7231,7 +7236,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
                                             object_type);
       }
     }
-  }
+  } while (false);
   const Type& signature_type =
       Type::Handle(zone, closure_function.SignatureType());
   if (!signature_type.IsFinalized()) {
