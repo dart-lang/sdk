@@ -562,6 +562,25 @@ class BaseFlowGraphBuilder {
   // Drop given number of temps from the stack but preserve top of the stack.
   Fragment DropTempsPreserveTop(intptr_t num_temps_to_drop);
 
+  // Create a pseudo-local variable for a location on the expression stack.
+  // Note: SSA construction currently does not support inserting Phi functions
+  // for expression stack locations - only real local variables are supported.
+  // This means that you can't use MakeTemporary in a way that would require
+  // a Phi in SSA form. For example example below will be miscompiled or
+  // will crash debug VM with assertion when building SSA for optimizing 
+  // compiler:
+  //
+  //     t = MakeTemporary()
+  //     Branch B1 or B2
+  //     B1:
+  //       StoreLocal(t, v0)
+  //       goto B3
+  //     B2:
+  //       StoreLocal(t, v1)
+  //       goto B3
+  //     B3:
+  //       LoadLocal(t)
+  //
   LocalVariable* MakeTemporary();
 
   Fragment PushArgument();

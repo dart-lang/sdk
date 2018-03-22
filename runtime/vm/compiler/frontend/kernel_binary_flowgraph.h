@@ -1156,8 +1156,10 @@ class StreamingFlowGraphBuilder {
   const TypeArguments& PeekArgumentsInstantiatedType(const Class& klass);
   intptr_t PeekArgumentsCount();
 
-  LocalVariable* LookupVariable(intptr_t kernel_offset);
+  // See BaseFlowGraphBuilder::MakeTemporary.
   LocalVariable* MakeTemporary();
+
+  LocalVariable* LookupVariable(intptr_t kernel_offset);
   RawFunction* LookupMethodByMember(NameIndex target,
                                     const String& method_name);
   Function& FindMatchingFunctionAnyArgs(const Class& klass, const String& name);
