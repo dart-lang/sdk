@@ -553,21 +553,66 @@ static Dart_NativeFunction PropagateError_native_lookup(
   return reinterpret_cast<Dart_NativeFunction>(&PropagateErrorNative);
 }
 
-TEST_CASE(DartAPI_PropagateError) {
+TEST_CASE(DartAPI_PropagateCompileTimeError) {
   const char* kScriptChars =
       "raiseCompileError() {\n"
       "  return missing_semicolon\n"
-      "}\n"
-      "\n"
-      "void throwException() {\n"
-      "  throw new Exception('myException');\n"
       "}\n"
       "\n"
       "void nativeFunc(closure) native 'Test_nativeFunc';\n"
       "\n"
       "void Func1() {\n"
       "  nativeFunc(() => raiseCompileError());\n"
+      "}\n";
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars, &PropagateError_native_lookup);
+  Dart_Handle result;
+
+  // Use Dart_PropagateError to propagate the error.
+  use_throw_exception = false;
+  use_set_return = false;
+
+  result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
+  EXPECT(Dart_IsError(result));
+
+  if (FLAG_use_dart_frontend) {
+    EXPECT_SUBSTRING("Expected ';' before this.", Dart_GetError(result));
+  } else {
+    EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
+  }
+
+  // Use Dart_SetReturnValue to propagate the error.
+  use_throw_exception = false;
+  use_set_return = true;
+
+  result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
+  EXPECT(Dart_IsError(result));
+  if (FLAG_use_dart_frontend) {
+    EXPECT_SUBSTRING("Expected ';' before this.", Dart_GetError(result));
+  } else {
+    EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
+  }
+
+  // Use Dart_ThrowException to propagate the error.
+  use_throw_exception = true;
+  use_set_return = false;
+
+  result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
+  EXPECT(Dart_IsError(result));
+  if (FLAG_use_dart_frontend) {
+    EXPECT_SUBSTRING("Expected ';' before this.", Dart_GetError(result));
+  } else {
+    EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
+  }
+}
+
+TEST_CASE(DartAPI_PropagateError) {
+  const char* kScriptChars =
+      "void throwException() {\n"
+      "  throw new Exception('myException');\n"
       "}\n"
+      "\n"
+      "void nativeFunc(closure) native 'Test_nativeFunc';\n"
       "\n"
       "void Func2() {\n"
       "  nativeFunc(() => throwException());\n"
@@ -580,10 +625,6 @@ TEST_CASE(DartAPI_PropagateError) {
   use_throw_exception = false;
   use_set_return = false;
 
-  result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
-  EXPECT(Dart_IsError(result));
-  EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
-
   result = Dart_Invoke(lib, NewString("Func2"), 0, NULL);
   EXPECT(Dart_IsError(result));
   EXPECT(Dart_ErrorHasException(result));
@@ -593,10 +634,6 @@ TEST_CASE(DartAPI_PropagateError) {
   use_throw_exception = false;
   use_set_return = true;
 
-  result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
-  EXPECT(Dart_IsError(result));
-  EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
-
   result = Dart_Invoke(lib, NewString("Func2"), 0, NULL);
   EXPECT(Dart_IsError(result));
   EXPECT(Dart_ErrorHasException(result));
@@ -605,10 +642,6 @@ TEST_CASE(DartAPI_PropagateError) {
   // Use Dart_ThrowException to propagate the error.
   use_throw_exception = true;
   use_set_return = false;
-
-  result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
-  EXPECT(Dart_IsError(result));
-  EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
 
   result = Dart_Invoke(lib, NewString("Func2"), 0, NULL);
   EXPECT(Dart_IsError(result));
