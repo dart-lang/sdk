@@ -151,12 +151,12 @@
         "patches": "_internal/js_runtime/lib/async_patch.dart",
         "uri": "async/async.dart"
       },
+      "_interceptors": {
+        "uri": "_internal/js_runtime/lib/interceptors.dart"
+      },
       "mirrors": {
         "patches": "_internal/js_runtime/lib/mirrors_patch_cfe.dart",
         "uri": "mirrors/mirrors.dart"
-      },
-      "_interceptors": {
-        "uri": "_internal/js_runtime/lib/interceptors.dart"
       },
       "_js_embedded_names": {
         "uri": "_internal/js_runtime/lib/shared/embedded_names.dart"
@@ -236,6 +236,10 @@
       },
       "indexed_db": {
         "uri": "indexed_db/dart2js/indexed_db_dart2js.dart"
+      },
+      "_js": {
+        "patches": "js/_js_client.dart",
+        "uri": "js/_js.dart"
       },
       "convert": {
         "patches": "_internal/js_runtime/lib/convert_patch.dart",

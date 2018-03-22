@@ -202,7 +202,8 @@ abstract class LibraryLoaderTask implements LibraryProvider, CompilerTask {
     "math": "_internal/js_runtime/lib/math_patch.dart",
     "mirrors": "_internal/js_runtime/lib/mirrors_patch.dart",
     "typed_data": "_internal/js_runtime/lib/typed_data_patch.dart",
-    "_internal": "_internal/js_runtime/lib/internal_patch.dart"
+    "_internal": "_internal/js_runtime/lib/internal_patch.dart",
+    "_js": "js/_js_client.dart",
   };
 
   /// Returns the location of the patch-file associated with [libraryName]

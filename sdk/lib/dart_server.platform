@@ -37,6 +37,7 @@ web_gl: unsupported:
 web_sql: unsupported:
 _chrome: unsupported:
 js: unsupported:
+_js: unsupported:
 js_util: unsupported:
 _mirror_helper: unsupported:
 _internal: internal/internal.dart

@@ -192,6 +192,10 @@ dart2js:
     js:
       uri: "js/dart2js/js_dart2js.dart"
 
+    _js:
+      uri: "js/_js.dart"
+      patches: "js/_js_client.dart"
+
     js_util:
       uri: "js_util/dart2js/js_util_dart2js.dart"
 
