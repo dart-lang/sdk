@@ -324,6 +324,8 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
   intptr_t line_number = 0;
   intptr_t column_number = 0;
   const char* cstr = "";
+  const char* test_lib =
+      FLAG_use_dart_frontend ? "file:///test-lib" : "test-lib";
 
   // Top frame is inspectStack().
   Dart_ActivationFrame frame;
@@ -335,7 +337,7 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
   Dart_StringToCString(function_name, &cstr);
   EXPECT_STREQ("inspectStack", cstr);
   Dart_StringToCString(script_url, &cstr);
-  EXPECT_STREQ("test-lib", cstr);
+  EXPECT_STREQ(test_lib, cstr);
   EXPECT_EQ(1, line_number);
   EXPECT_EQ(47, column_number);
 
@@ -348,7 +350,7 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
   Dart_StringToCString(function_name, &cstr);
   EXPECT_STREQ("foo", cstr);
   Dart_StringToCString(script_url, &cstr);
-  EXPECT_STREQ("test-lib", cstr);
+  EXPECT_STREQ(test_lib, cstr);
   EXPECT_EQ(2, line_number);
   EXPECT_EQ(20, column_number);
 
@@ -363,7 +365,7 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
     Dart_StringToCString(function_name, &cstr);
     EXPECT_STREQ("foo", cstr);
     Dart_StringToCString(script_url, &cstr);
-    EXPECT_STREQ("test-lib", cstr);
+    EXPECT_STREQ(test_lib, cstr);
     EXPECT_EQ(2, line_number);
     EXPECT_EQ(37, column_number);
   }
@@ -377,7 +379,7 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
   Dart_StringToCString(function_name, &cstr);
   EXPECT_STREQ("testMain", cstr);
   Dart_StringToCString(script_url, &cstr);
-  EXPECT_STREQ("test-lib", cstr);
+  EXPECT_STREQ(test_lib, cstr);
   EXPECT_EQ(3, line_number);
   EXPECT_EQ(15, column_number);
 

@@ -158,7 +158,6 @@ cc/Service_TokenStream: Fail
 [ $compiler == dartk && $runtime == vm ]
 cc/CanonicalizationInScriptSnapshots: Fail
 cc/Class_ComputeEndTokenPos: Crash
-cc/DartAPI_CurrentStackTraceInfo: Fail
 cc/DartAPI_InvokeNoSuchMethod: Fail
 cc/DartAPI_IsolateSetCheckedMode: Skip # Checked mode is not relevant for dart 2?
 cc/DartAPI_IsolateShutdownRunDartCode: Skip # Flaky

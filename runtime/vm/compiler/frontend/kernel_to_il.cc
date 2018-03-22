@@ -1457,7 +1457,7 @@ Fragment FlowGraphBuilder::NativeCall(const String* name,
   ArgumentArray arguments = GetArguments(num_args);
   NativeCallInstr* call =
       new (Z) NativeCallInstr(name, function, FLAG_link_natives_lazily,
-                              TokenPosition::kNoSource, arguments);
+                              function->end_token_pos(), arguments);
   Push(call);
   return Fragment(call);
 }
