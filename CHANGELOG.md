@@ -4,26 +4,25 @@
 
 ### Language
 
-#### Strong Mode
+### Core library changes
+
+### Tool Changes
+
+## 2.0.0-dev.40.0
 
 ### Core library changes
 
-### Dart VM
+* The Web libraries were re-genereated using Chrome 63 WebIDLs.
+  See https://github.com/dart-lang/sdk/wiki/Chrome-63-Dart-Web-Libraries for
+  details.
 
-### Dart Web Libraries
-
-  * The Web libraries re-genereated using Chrome 63 WebIDLs see
-    https://github.com/dart-lang/sdk/wiki/Chrome-63-Dart-Web-Libraries for details.
+## 2.0.0-dev.39.0
 
 ### Tool Changes
 
 #### Pub
 
 * fixed bug in dart2js transformer when using the common front-end.
-
-#### Other Tools
-
-## 2.0.0-dev.38.0
 
 ## 2.0.0-dev.37.0
 
