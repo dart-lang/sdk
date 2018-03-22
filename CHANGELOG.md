@@ -8,6 +8,17 @@
 
 ### Tool Changes
 
+#### Pub
+
+* Pub will now automatically retry HTTP requests that fail with an IO error
+  ([issue 1826][pub#1826]).
+
+* `pub deps` now includes the SDK version. This makes the output more helpful
+  when included in bug reports ([issue 1827][pub#1827]).
+
+* `build` and `serve` now print a deprecation warning pointing users to
+  https://webdev.dartlang.org/dart-2 ([issue 1823][pub#1823]).
+
 ## 2.0.0-dev.40.0
 
 ### Core library changes
