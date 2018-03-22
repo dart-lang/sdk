@@ -8,12 +8,13 @@ import 'dart:async' show Future;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
-import 'package:kernel/kernel.dart' show Library, Procedure, Component, Source;
+import 'package:kernel/kernel.dart'
+    show Component, Library, LibraryPart, Procedure, Source;
+
+import '../api_prototype/file_system.dart' show FileSystemEntity;
 
 import '../api_prototype/incremental_kernel_generator.dart'
     show IncrementalKernelGenerator;
-
-import '../api_prototype/file_system.dart' show FileSystemEntity;
 
 import 'builder/builder.dart' show LibraryBuilder;
 
@@ -198,6 +199,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             data.component.libraries.map((Library lib) => lib.importUri));
         ticker.logMs("Read $initializeFromDillUri");
 
+        Set<Uri> sdkUris = data.component.uriToSource.keys.toSet();
+
         // We're going to output all we read here so lazy loading it
         // doesn't make sense.
         new BinaryBuilder(initializationBytes, disableLazyReading: true)
@@ -211,7 +214,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
         data.userLoadedUriMain = data.component.mainMethod;
         data.includeUserLoadedLibraries = true;
-        data.uriToSource.addAll(data.component.uriToSource);
+        for (Uri uri in data.component.uriToSource.keys) {
+          if (sdkUris.contains(uri)) continue;
+          data.uriToSource[uri] = data.component.uriToSource[uri];
+        }
       }
     }
     return bytesLength;
@@ -254,11 +260,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
       if (!recursive) return;
       if (library is SourceLibraryBuilder) {
-        for (var part in library.parts) {
+        for (LibraryBuilder part in library.parts) {
           addBuilderAndInvalidateUris(part.uri, part, false);
         }
       } else if (library is DillLibraryBuilder) {
-        for (var part in library.library.parts) {
+        for (LibraryPart part in library.library.parts) {
           addBuilderAndInvalidateUris(part.fileUri, library, false);
         }
       }
@@ -309,7 +315,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     // builder can exist multiple times in the values list.
     Set<Uri> seenUris = new Set<Uri>();
     List<LibraryBuilder> result = <LibraryBuilder>[];
-    for (var builder in builders.values) {
+    for (LibraryBuilder builder in builders.values) {
       if (builder.isPart) continue;
       if (!seenUris.add(builder.fileUri)) continue;
       result.add(builder);

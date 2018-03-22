@@ -40,6 +40,7 @@ main() async {
   await runPassingTest(testInvalidatePart);
   await runFailingTest(testCalculatedBoundsNoStrongMode,
       "Normally compiled and bootstrapped compile differs");
+  await runPassingTest(testMixinFromSdk);
 }
 
 void runFailingTest(dynamic test, String expectContains) async {
@@ -109,6 +110,48 @@ void testCalculatedBoundsNoStrongMode() async {
   checkBootstrappedIsEqual(normalDillData, bootstrappedDillData);
 }
 
+/// Test using a mixin from the sdk and invalidationg it.
+/// This at some point made the output program when initializing from
+/// dill include source code from the sdk.
+void testMixinFromSdk() async {
+  final Uri a = outDir.uri.resolve("testMixinFromSdk_a.dart");
+
+  Uri output = outDir.uri.resolve("testMixinFromSdk_full.dill");
+  Uri bootstrappedOutput =
+      outDir.uri.resolve("testMixinFromSdk_full_from_bootstrap.dill");
+
+  new File.fromUri(a).writeAsStringSync("""
+    import 'dart:collection';
+
+    class Foo extends Object with ListMixin<int> {
+      int length = 0;
+      int operator [](int index) {
+        return 42;
+      }
+
+      void operator []=(int index, int value) {}
+    }
+    """);
+
+  Stopwatch stopwatch = new Stopwatch()..start();
+  await normalCompile(a, output, options: getOptions(true));
+  print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
+
+  stopwatch.reset();
+  bool bootstrapResult = await bootstrapCompile(
+      a, bootstrappedOutput, output, [a],
+      options: getOptions(true));
+  print("Bootstrapped compile(s) from ${output.pathSegments.last} "
+      "took ${stopwatch.elapsedMilliseconds} ms");
+  Expect.isTrue(bootstrapResult);
+
+  // Compare the two files.
+  List<int> normalDillData = new File.fromUri(output).readAsBytesSync();
+  List<int> bootstrappedDillData =
+      new File.fromUri(bootstrappedOutput).readAsBytesSync();
+  checkBootstrappedIsEqual(normalDillData, bootstrappedDillData);
+}
+
 /// Invalidate a part file.
 void testInvalidatePart() async {
   final Uri a = outDir.uri.resolve("testInvalidatePart_a.dart");
@@ -145,7 +188,7 @@ void testInvalidatePart() async {
   stopwatch.reset();
   bool bootstrapResult = await bootstrapCompile(
       a, bootstrappedOutput, output, [b],
-      performSizeTests: true, options: getOptions(true));
+      options: getOptions(true));
   print("Bootstrapped compile(s) from ${output.pathSegments.last} "
       "took ${stopwatch.elapsedMilliseconds} ms");
   Expect.isTrue(bootstrapResult);
@@ -180,7 +223,7 @@ void testInvalidateExportOfMain() async {
   stopwatch.reset();
   bool bootstrapResult = await bootstrapCompile(
       a, bootstrappedOutput, output, [a],
-      performSizeTests: true, options: getOptions(true));
+      options: getOptions(true));
   print("Bootstrapped compile(s) from ${output.pathSegments.last} "
       "took ${stopwatch.elapsedMilliseconds} ms");
   Expect.isTrue(bootstrapResult);
@@ -223,7 +266,7 @@ void testStrongModeMixins2() async {
   stopwatch.reset();
   bool bootstrapResult = await bootstrapCompile(
       a, bootstrappedOutput, output, [a],
-      performSizeTests: true, options: getOptions(true));
+      options: getOptions(true));
   print("Bootstrapped compile(s) from ${output.pathSegments.last} "
       "took ${stopwatch.elapsedMilliseconds} ms");
   Expect.isTrue(bootstrapResult);
@@ -262,7 +305,7 @@ void testStrongModeMixins() async {
   stopwatch.reset();
   bool bootstrapResult = await bootstrapCompile(
       a, bootstrappedOutput, output, [a],
-      performSizeTests: true, options: getOptions(true));
+      options: getOptions(true));
   print("Bootstrapped compile(s) from ${output.pathSegments.last} "
       "took ${stopwatch.elapsedMilliseconds} ms");
   Expect.isTrue(bootstrapResult);
@@ -298,9 +341,8 @@ void testDeferredLibrary() async {
   print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
 
   stopwatch.reset();
-  bool bootstrapResult = await bootstrapCompile(
-      input, bootstrappedOutput, output, [],
-      performSizeTests: false);
+  bool bootstrapResult =
+      await bootstrapCompile(input, bootstrappedOutput, output, []);
   print("Bootstrapped compile(s) from ${output.pathSegments.last} "
       "took ${stopwatch.elapsedMilliseconds} ms");
   Expect.isTrue(bootstrapResult);
@@ -516,7 +558,7 @@ int countEmptyMixinBodies(Component component) {
 
 Future<bool> bootstrapCompile(
     Uri input, Uri output, Uri bootstrapWith, List<Uri> invalidateUris,
-    {bool performSizeTests: true, CompilerOptions options}) async {
+    {CompilerOptions options}) async {
   options ??= getOptions(false);
   IncrementalCompiler compiler =
       new IncrementalKernelGenerator(options, input, bootstrapWith);
@@ -543,11 +585,10 @@ Future<bool> bootstrapCompile(
   var emptyLibUris =
       emptyComponent.libraries.map((lib) => lib.importUri).toList();
 
-  if (performSizeTests) {
-    Expect.isTrue(fullLibUris.length > partialLibUris.length);
-    Expect.isTrue(partialLibUris.isNotEmpty);
-    Expect.isTrue(emptyLibUris.isEmpty);
-  }
+  Expect.isTrue(fullLibUris.length > partialLibUris.length ||
+      partialLibUris.length == invalidateUris.length);
+  Expect.isTrue(partialLibUris.isNotEmpty || invalidateUris.isEmpty);
+  Expect.isTrue(emptyLibUris.isEmpty);
 
   return result;
 }
