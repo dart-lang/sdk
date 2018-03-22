@@ -3212,6 +3212,11 @@ class Parser {
         ? fasta.templateExpectedButGot.withArguments('{')
         : template.withArguments(token);
     reportRecoverableError(next, message);
+    return insertBlock(token);
+  }
+
+  Token insertBlock(Token token) {
+    Token next = token.next;
     Token replacement = link(
         new SyntheticBeginToken(TokenType.OPEN_CURLY_BRACKET, next.offset),
         new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, next.offset));
@@ -5614,8 +5619,9 @@ class Parser {
       Token closeParen =
           semicolon.setNext(new SyntheticToken(TokenType.CLOSE_PAREN, offset));
       openParen.endGroup = closeParen;
-
       closeParen.setNext(leftParenthesis);
+      insertBlock(closeParen);
+
       leftParenthesis = openParen;
     }
     token = leftParenthesis;
