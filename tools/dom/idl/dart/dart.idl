@@ -493,8 +493,8 @@ interface AudioBufferSourceNode {
 };
 
 [DartSupplemental]
-interface AudioBufferSourceNode {
-    [DartName=start2] void start(optional double when = 0, optional double grainOffset, optional double grainDuration);
+interface AudioScheduledSourceNode {
+    [DartName=start2] void start(optional double when);
 };
 
 // Remove operations webkitRequestFullscreen replaced w/ requestFullscreen.
