@@ -57,6 +57,7 @@ declare_args() {
 # ......dart_native_api.h
 # ......dart_tools_api.h
 # ....lib/
+# ......libraries.json
 # ......dart_client.platform
 # ......dart_server.platform
 # ......dart_shared.platform
@@ -779,6 +780,20 @@ copy("copy_headers") {
   ]
 }
 
+# This rule copies libraries.json files to lib/
+copy("copy_libraries_specification") {
+  visibility = [ ":create_common_sdk" ]
+  sources = [
+    "lib/libraries.json",
+  ]
+  deps = [
+    ":copy_libraries",
+  ]
+  outputs = [
+    "$root_out_dir/dart-sdk/lib/{{source_file_part}}",
+  ]
+}
+
 # This rule copies .platform files to lib/
 copy("copy_platform_files") {
   visibility = [ ":create_common_sdk" ]
@@ -924,6 +939,7 @@ group("create_common_sdk") {
     ":copy_headers",
     ":copy_libraries_dart",
     ":copy_license",
+    ":copy_libraries_specification",
     ":copy_platform_files",
     ":copy_pub_assets",
     ":copy_readme",
