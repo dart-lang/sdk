@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/util/dart_type_utilities.dart';
 
 const _desc = r'Avoid single cascade in expression statements.';
 
@@ -26,8 +25,9 @@ o.m();
 ''';
 
 class AvoidSingleCascadeInExpressionStatements extends LintRule {
-  AvoidSingleCascadeInExpressionStatements() : super(
-          name: 'avoid_single_cascade_in_expression_statements',
+  AvoidSingleCascadeInExpressionStatements()
+      : super(
+            name: 'avoid_single_cascade_in_expression_statements',
             description: _desc,
             details: _details,
             group: Group.style);
@@ -43,7 +43,8 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitCascadeExpression(CascadeExpression node) {
-    if (node.cascadeSections.length == 1 && node.parent is ExpressionStatement) {
+    if (node.cascadeSections.length == 1 &&
+        node.parent is ExpressionStatement) {
       rule.reportLint(node);
     }
   }
