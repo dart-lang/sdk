@@ -8,12 +8,12 @@
 
 type: simple
 name: testMixinFromSdk
-entry: testCalculatedBounds_a.dart
+entry: testMixinFromSdk_a.dart
 strong: true
 invalidate:
-  - testCalculatedBounds_a.dart
+  - testMixinFromSdk_a.dart
 sources:
-  testCalculatedBounds_a.dart: |
+  testMixinFromSdk_a.dart: |
     import 'dart:collection';
 
     class Foo extends Object with ListMixin<int> {

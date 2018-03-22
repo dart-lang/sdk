@@ -28,6 +28,8 @@ import 'dill/dill_target.dart' show DillTarget;
 
 import 'kernel/kernel_target.dart' show KernelTarget;
 
+import 'library_graph.dart' show LibraryGraph;
+
 import 'source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'ticker.dart' show Ticker;
@@ -140,32 +142,61 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       List<Library> libraries =
           new List<Library>.from(userCode.loader.libraries);
       data.uriToSource.addAll(userCode.uriToSource);
-      if (data.includeUserLoadedLibraries) {
-        for (LibraryBuilder library in reusedLibraries) {
-          if (library.fileUri.scheme == "dart") continue;
-          assert(library is DillLibraryBuilder);
-          libraries.add((library as DillLibraryBuilder).library);
-        }
-
-        // For now ensure original order of libraries to produce bit-perfect
-        // output.
-        libraries.sort((a, b) {
-          int aOrder = data.importUriToOrder[a.importUri];
-          int bOrder = data.importUriToOrder[b.importUri];
-          if (aOrder != null && bOrder != null) return aOrder - bOrder;
-          if (aOrder != null) return -1;
-          if (bOrder != null) return 1;
-          return 0;
-        });
-      }
-
-      // This component represents the parts of the component that were
-      // recompiled.
       Procedure mainMethod = componentWithDill == null
           ? data.userLoadedUriMain
           : componentWithDill.mainMethod;
+      if (data.includeUserLoadedLibraries) {
+        addUserLoadedLibraries(libraries, mainMethod, reusedLibraries, data);
+      }
+
+      // This is the incremental component.
       return new Component(libraries: libraries, uriToSource: data.uriToSource)
         ..mainMethod = mainMethod;
+    });
+  }
+
+  void addUserLoadedLibraries(List<Library> libraries, Procedure mainMethod,
+      List<LibraryBuilder> reusedLibraries, IncrementalCompilerData data) {
+    Map<Uri, Library> libraryMap = <Uri, Library>{};
+    for (Library library in libraries) {
+      libraryMap[library.fileUri] = library;
+    }
+    List<Uri> worklist = new List<Uri>.from(libraryMap.keys);
+    worklist.add(mainMethod?.enclosingLibrary?.fileUri);
+
+    Map<Uri, Library> potentialLibraries = <Uri, Library>{};
+    for (LibraryBuilder library in reusedLibraries) {
+      if (library.fileUri.scheme == "dart") continue;
+      assert(library is DillLibraryBuilder);
+      Library lib = (library as DillLibraryBuilder).library;
+      potentialLibraries[library.fileUri] = lib;
+      libraryMap[library.fileUri] = lib;
+    }
+
+    LibraryGraph graph = new LibraryGraph(libraryMap);
+    while (worklist.isNotEmpty) {
+      Uri uri = worklist.removeLast();
+      if (libraryMap.containsKey(uri)) {
+        for (Uri neighbor in graph.neighborsOf(uri)) {
+          worklist.add(neighbor);
+        }
+        libraryMap.remove(uri);
+        Library library = potentialLibraries[uri];
+        if (library != null) {
+          libraries.add(library);
+        }
+      }
+    }
+
+    // For now ensure original order of libraries to produce bit-perfect
+    // output.
+    libraries.sort((a, b) {
+      int aOrder = data.importUriToOrder[a.importUri];
+      int bOrder = data.importUriToOrder[b.importUri];
+      if (aOrder != null && bOrder != null) return aOrder - bOrder;
+      if (aOrder != null) return -1;
+      if (bOrder != null) return 1;
+      return 0;
     });
   }
 
