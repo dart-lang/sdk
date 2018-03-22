@@ -148,6 +148,19 @@
     },
 
     {
+      "name": "incremental_load_from_dill",
+      "kind": "Chain",
+      "source": "test/incremental_load_from_dill_test.dart",
+      "path": "testcases/incremental_initialize_from_dill/",
+      "status": "testcases/incremental_initialize_from_dill/status.status",
+      "pattern": [
+        "\\.yaml$"
+      ],
+      "exclude": [
+      ]
+    },
+
+    {
       "name": "sdk",
       "kind": "Chain",
       "source": "test/fasta/sdk_test.dart",
