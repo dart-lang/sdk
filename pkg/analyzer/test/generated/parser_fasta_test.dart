@@ -175,22 +175,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_expectedToken_whileMissingInDoStatement() {
-    // TODO(brianwilkerson) Does not recover.
-    //   NoSuchMethodError: Class 'SimpleToken' has no instance getter 'endGroup'.
-    //   Receiver: Instance of 'SimpleToken'
-    //   Tried calling: endGroup
-    //   dart:core                                                          Object.noSuchMethod
-    //   package:front_end/src/fasta/parser/parser.dart 3212:26             Parser.parseParenthesizedExpression
-    //   package:front_end/src/fasta/parser/parser.dart 3781:13             Parser.parseDoWhileStatement
-    //   package:front_end/src/fasta/parser/parser.dart 2756:14             Parser.parseStatementX
-    //   package:front_end/src/fasta/parser/parser.dart 2722:20             Parser.parseStatement
-    //   test/generated/parser_fasta_test.dart 2973:39                      ParserProxy._run
-    super.test_expectedToken_whileMissingInDoStatement();
-  }
-
-  @override
-  @failingTest
   void test_getterInFunction_block_noReturnType() {
     // TODO(brianwilkerson) Does not recover.
     //   type 'ExpressionStatementImpl' is not a subtype of type 'FunctionDeclarationStatement' of 'statement' where

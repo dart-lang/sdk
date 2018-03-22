@@ -3192,7 +3192,7 @@ class Foo {
   void test_expectedToken_whileMissingInDoStatement() {
     parseStatement("do {} (x);");
     listener
-        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1)]);
+        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 1)]);
   }
 
   void test_expectedTypeName_as() {

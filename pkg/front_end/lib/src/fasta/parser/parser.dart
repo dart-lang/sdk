@@ -5774,12 +5774,19 @@ class Parser {
     listener.beginDoWhileStatementBody(doToken.next);
     LoopState savedLoopState = loopState;
     loopState = LoopState.InsideLoop;
-    token = parseStatement(doToken).next;
+    token = parseStatement(doToken);
     loopState = savedLoopState;
     listener.endDoWhileStatementBody(token);
-    Token whileToken = token;
-    expect('while', token);
-    token = parseParenthesizedExpression(token);
+    Token whileToken = token.next;
+    if (!optional('while', whileToken)) {
+      reportRecoverableError(
+          whileToken, fasta.templateExpectedButGot.withArguments('while'));
+      whileToken = rewriter
+          .insertTokenAfter(token,
+              new SyntheticKeywordToken(Keyword.WHILE, whileToken.charOffset))
+          .next;
+    }
+    token = parseParenthesizedExpression(whileToken);
     token = ensureSemicolon(token);
     listener.endDoWhileStatement(doToken, whileToken, token);
     return token;
