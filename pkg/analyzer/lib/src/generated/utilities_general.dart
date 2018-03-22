@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.generated.utilities_general;
-
 import 'dart:async';
 import 'dart:collection';
 import 'dart:developer' show UserTag;
+
+import 'package:yaml/yaml.dart';
 
 export 'package:front_end/src/base/jenkins_smi_hash.dart' show JenkinsSmiHash;
 
@@ -27,6 +27,9 @@ bool isTrue(Object value) =>
  * value could not be converted.
  */
 bool toBool(Object value) {
+  if (value is YamlScalar) {
+    value = (value as YamlScalar).value;
+  }
   if (value is bool) {
     return value;
   }

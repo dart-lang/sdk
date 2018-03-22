@@ -34,6 +34,7 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/batch_mode.dart';
 import 'package:analyzer_cli/src/build_mode.dart';
@@ -76,9 +77,9 @@ telemetry.Analytics get analytics => (_analytics ??=
     telemetry.createAnalyticsInstance(_analyticsID, 'analyzer-cli'));
 
 /// Test this option map to see if it specifies lint rules.
-bool containsLintRuleEntry(Map<String, YamlNode> options) {
-  var linterNode = options['linter'];
-  return linterNode is YamlMap && linterNode.containsKey('rules');
+bool containsLintRuleEntry(YamlMap options) {
+  YamlNode linterNode = getValue(options, 'linter');
+  return linterNode is YamlMap && getValue(linterNode, 'rules') != null;
 }
 
 /// Make sure that we create an analytics instance that doesn't send for this

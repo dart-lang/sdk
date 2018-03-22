@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.context.context_builder;
-
 import 'dart:collection';
 import 'dart:core';
 
@@ -435,7 +433,7 @@ class ContextBuilder {
 
     AnalysisOptionsImpl options = createDefaultOptions();
     File optionsFile = getOptionsFile(path);
-    Map<String, YamlNode> optionMap;
+    YamlMap optionMap;
 
     if (optionsFile != null) {
       try {

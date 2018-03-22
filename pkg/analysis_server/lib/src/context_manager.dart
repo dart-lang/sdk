@@ -647,16 +647,16 @@ class ContextManagerImpl implements ContextManager {
   /**
    * Process [options] for the given context [info].
    */
-  void processOptionsForDriver(ContextInfo info,
-      AnalysisOptionsImpl analysisOptions, Map<String, Object> options) {
+  void processOptionsForDriver(
+      ContextInfo info, AnalysisOptionsImpl analysisOptions, YamlMap options) {
     if (options == null) {
       return;
     }
 
     // Check for embedded options.
-    Map embeddedOptions = _getEmbeddedOptions(info);
+    YamlMap embeddedOptions = _getEmbeddedOptions(info);
     if (embeddedOptions != null) {
-      options = _toStringMap(new Merger().merge(embeddedOptions, options));
+      options = new Merger().merge(embeddedOptions, options);
     }
 
     applyToAnalysisOptions(analysisOptions, options);
@@ -1127,8 +1127,8 @@ class ContextManagerImpl implements ContextManager {
     ContextInfo info = new ContextInfo(this, parent, folder, packagesFile,
         normalizedPackageRoots[folder.path], disposition);
 
-    File optionsFile = null;
-    Map<String, Object> optionMap = null;
+    File optionsFile;
+    YamlMap optionMap;
     try {
       AnalysisOptionsProvider provider =
           _createAnalysisOptionsProvider(disposition.packages);
@@ -1306,7 +1306,7 @@ class ContextManagerImpl implements ContextManager {
   /// skipped.
   ///
   /// Returns null if there are no embedded/configured options.
-  Map _getEmbeddedOptions(ContextInfo info) {
+  YamlMap _getEmbeddedOptions(ContextInfo info) {
     Map embeddedOptions = null;
     EmbedderYamlLocator locator =
         info.disposition.getEmbedderLocator(resourceProvider);
@@ -1628,25 +1628,6 @@ class ContextManagerImpl implements ContextManager {
       }
     }
     return false;
-  }
-
-  /**
-   * If the given [object] is a map, and all of the keys in the map are strings,
-   * return a map containing the same mappings. Otherwise, return `null`.
-   */
-  Map<String, Object> _toStringMap(Object object) {
-    if (object is Map) {
-      Map<String, Object> stringMap = new HashMap<String, Object>();
-      for (var key in object.keys) {
-        if (key is String) {
-          stringMap[key] = object[key];
-        } else {
-          return null;
-        }
-      }
-      return stringMap;
-    }
-    return null;
   }
 
   void _updateContextPackageUriResolver(Folder contextFolder) {

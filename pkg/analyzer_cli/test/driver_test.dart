@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer_cli.test.driver;
-
 import 'dart:async';
 import 'dart:io';
 
@@ -699,8 +697,7 @@ class LinterTest extends BaseTest {
   String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
 
   test_containsLintRuleEntry() async {
-    Map<String, YamlNode> options;
-    options = _parseOptions('''
+    YamlMap options = _parseOptions('''
 linter:
   rules:
     - foo
@@ -772,7 +769,7 @@ linter:
     expect(getLints(driver.context), isEmpty);
   }
 
-  Map<String, YamlNode> _parseOptions(String src) =>
+  YamlMap _parseOptions(String src) =>
       new AnalysisOptionsProvider().getOptionsFromString(src);
 
   Future<Null> _runLinter_defaultLints() async {
