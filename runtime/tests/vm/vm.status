@@ -267,7 +267,6 @@ cc/IsolateReload_LibraryImportAdded: Crash # Issue 32190
 cc/IsolateReload_LibraryImportRemoved: Fail # Issue 32190
 cc/IsolateReload_LibraryLookup: Fail, Crash # Issue 32190
 cc/Mixin_PrivateSuperResolutionCrossLibraryShouldFail: Fail, Crash # Issue 32190
-cc/StackMapGC: Crash # Issue 32190
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
