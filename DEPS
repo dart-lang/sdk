@@ -92,7 +92,7 @@ vars = {
   "http_io_tag": "@35dc43c9144cf7ed4236843dacd62ebaf89df21a",
   "http_multi_server_tag" : "@2.0.4",
   "http_parser_tag" : "@3.1.1",
-  "http_retry_tag": "@0.1.0",
+  "http_retry_tag": "@0.1.1",
   "http_tag" : "@0.11.3+16",
   "http_throttle_tag" : "@1.0.1",
   "idl_parser_rev": "@5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
