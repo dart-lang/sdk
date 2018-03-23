@@ -514,16 +514,36 @@ class FixProcessor {
     } else if (parent is VariableDeclaration && target == parent.initializer) {
       toType = parent.name.staticType;
     } else {
+      // TODO(brianwilkerson) Handle function arguments.
       return;
     }
-    // TODO(brianwilkerson) I think it's more efficient to invoke `cast` before
-    // invoking `toList()`, so check to see whether the cast should be inserted
-    // before the end of the expression.
-    // TODO(brianwilkerson) We should not produce a fix if the target is an
-    // invocation of the `cast` method.
+    // TODO(brianwilkerson) Handle `toSet` in a manner similar to the below.
+    if (_isToListMethodInvocation(target)) {
+      Expression targetTarget = (target as MethodInvocation).target;
+      if (targetTarget != null) {
+        DartType targetTargetType = targetTarget.staticType;
+        if (_isDartCoreIterable(targetTargetType) ||
+            _isDartCoreList(targetTargetType) ||
+            _isDartCoreMap(targetTargetType) ||
+            _isDartCoreSet(targetTargetType)) {
+          target = targetTarget;
+          fromType = targetTargetType;
+        }
+      }
+    }
+    if (target is AsExpression) {
+      // TODO(brianwilkerson) Consider updating the right operand.
+      return;
+    }
     bool needsParentheses = target.precedence < 15;
-    if ((_isDartCoreList(fromType) && _isDartCoreList(toType)) ||
+    if (((_isDartCoreIterable(fromType) || _isDartCoreList(fromType)) &&
+            _isDartCoreList(toType)) ||
         (_isDartCoreSet(fromType) && _isDartCoreSet(toType))) {
+      if (_isCastMethodInvocation(target)) {
+        // TODO(brianwilkerson) Consider updating the type arguments to the
+        // `cast` invocation.
+        return;
+      }
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         if (needsParentheses) {
@@ -540,6 +560,11 @@ class FixProcessor {
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.ADD_EXPLICIT_CAST);
     } else if (_isDartCoreMap(fromType) && _isDartCoreMap(toType)) {
+      if (_isCastMethodInvocation(target)) {
+        // TODO(brianwilkerson) Consider updating the type arguments to the
+        // `cast` invocation.
+        return;
+      }
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         if (needsParentheses) {
@@ -3428,38 +3453,50 @@ class FixProcessor {
     return node is SimpleIdentifier && node.name == 'await';
   }
 
-  bool _isDartCoreList(DartType type) {
-    if (type is! InterfaceType) {
+  bool _isCastMethodElement(MethodElement method) {
+    if (method.name != 'cast') {
       return false;
     }
-    ClassElement element = type.element;
-    if (element == null) {
-      return false;
-    }
-    return element.name == "List" && element.library.isDartCore;
+    ClassElement definingClass = method.enclosingElement;
+    return _isDartCoreIterableElement(definingClass) ||
+        _isDartCoreListElement(definingClass) ||
+        _isDartCoreMapElement(definingClass) ||
+        _isDartCoreSetElement(definingClass);
   }
 
-  bool _isDartCoreMap(DartType type) {
-    if (type is! InterfaceType) {
-      return false;
+  bool _isCastMethodInvocation(Expression expression) {
+    if (expression is MethodInvocation) {
+      Element element = expression.methodName.staticElement;
+      return element is MethodElement && _isCastMethodElement(element);
     }
-    ClassElement element = type.element;
-    if (element == null) {
-      return false;
-    }
-    return element.name == "Map" && element.library.isDartCore;
+    return false;
   }
 
-  bool _isDartCoreSet(DartType type) {
-    if (type is! InterfaceType) {
-      return false;
-    }
-    ClassElement element = type.element;
-    if (element == null) {
-      return false;
-    }
-    return element.name == "Set" && element.library.isDartCore;
-  }
+  bool _isDartCoreIterable(DartType type) =>
+      type is InterfaceType && _isDartCoreIterableElement(type.element);
+
+  bool _isDartCoreIterableElement(ClassElement element) =>
+      element != null &&
+      element.name == "Iterable" &&
+      element.library.isDartCore;
+
+  bool _isDartCoreList(DartType type) =>
+      type is InterfaceType && _isDartCoreListElement(type.element);
+
+  bool _isDartCoreListElement(ClassElement element) =>
+      element != null && element.name == "List" && element.library.isDartCore;
+
+  bool _isDartCoreMap(DartType type) =>
+      type is InterfaceType && _isDartCoreMapElement(type.element);
+
+  bool _isDartCoreMapElement(ClassElement element) =>
+      element != null && element.name == "Map" && element.library.isDartCore;
+
+  bool _isDartCoreSet(DartType type) =>
+      type is InterfaceType && _isDartCoreSetElement(type.element);
+
+  bool _isDartCoreSetElement(ClassElement element) =>
+      element != null && element.name == "Set" && element.library.isDartCore;
 
   bool _isLibSrcPath(String path) {
     List<String> parts = resourceProvider.pathContext.split(path);
@@ -3493,6 +3530,23 @@ class FixProcessor {
     }
 
     return true;
+  }
+
+  bool _isToListMethodElement(MethodElement method) {
+    if (method.name != 'toList') {
+      return false;
+    }
+    ClassElement definingClass = method.enclosingElement;
+    return _isDartCoreIterableElement(definingClass) ||
+        _isDartCoreListElement(definingClass);
+  }
+
+  bool _isToListMethodInvocation(Expression expression) {
+    if (expression is MethodInvocation) {
+      Element element = expression.methodName.staticElement;
+      return element is MethodElement && _isToListMethodElement(element);
+    }
+    return false;
   }
 
   /**

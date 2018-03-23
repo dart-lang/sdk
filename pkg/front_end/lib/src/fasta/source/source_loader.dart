@@ -561,7 +561,9 @@ class SourceLoader<L> extends Loader<L> {
     Set<Library> libraries = new Set<Library>();
     List<Library> workList = <Library>[];
     builders.forEach((Uri uri, LibraryBuilder library) {
-      if (!library.isPart && !library.isPatch) {
+      if (!library.isPart &&
+          !library.isPatch &&
+          (library.loader == this || library.fileUri.scheme == "dart")) {
         if (libraries.add(library.target)) {
           workList.add(library.target);
         }
@@ -628,6 +630,15 @@ class SourceLoader<L> extends Loader<L> {
       }
     }
     ticker.logMs("Checked overrides");
+  }
+
+  void addNoSuchMethodForwarders(List<SourceClassBuilder> sourceClasses) {
+    for (SourceClassBuilder builder in sourceClasses) {
+      if (builder.library.loader == this) {
+        builder.addNoSuchMethodForwarders(hierarchy);
+      }
+    }
+    ticker.logMs("Added noSuchMethod forwarders");
   }
 
   void createTypeInferenceEngine() {
@@ -799,5 +810,10 @@ class SourceLoader<L> extends Loader<L> {
       instrumentation.record(context.uri, context.charOffset, "context",
           new InstrumentationValueLiteral(context.code.name));
     }
+  }
+
+  void releaseAncillaryResources() {
+    hierarchy = null;
+    typeInferenceEngine = null;
   }
 }

@@ -101,6 +101,8 @@ class RunKernelTask : public ThreadPool::Task {
         OS::PrintErr(DART_KERNEL_ISOLATE_NAME ": Isolate creation error: %s\n",
                      error);
       }
+      free(error);
+      error = NULL;
       KernelIsolate::SetKernelIsolate(NULL);
       KernelIsolate::FinishedInitializing();
       return;

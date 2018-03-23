@@ -83,8 +83,14 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
       env.Environment environment,
       DiagnosticReporter reporter,
       Measurer measurer) {
-    return new KernelLibraryLoaderTask(_options.platformBinaries,
-        _options.packageConfig, _elementMap, compilerInput, reporter, measurer,
+    return new KernelLibraryLoaderTask(
+        _options.librariesSpecificationUri,
+        _options.platformBinaries,
+        _options.packageConfig,
+        _elementMap,
+        compilerInput,
+        reporter,
+        measurer,
         verbose: _options.verbose,
         initializedCompilerState: initializedCompilerState);
   }

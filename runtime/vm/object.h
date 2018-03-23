@@ -8168,8 +8168,10 @@ class TypedData : public Instance {
 
 #define TYPED_GETTER_SETTER(name, type)                                        \
   type Get##name(intptr_t byte_offset) const {                                 \
-    NoSafepointScope no_safepoint;                                             \
-    return ReadUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)));      \
+    ASSERT((byte_offset >= 0) &&                                               \
+           (byte_offset + static_cast<intptr_t>(sizeof(type)) - 1) <           \
+               LengthInBytes());                                               \
+    return ReadUnaligned(ReadOnlyDataAddr<type>(byte_offset));                 \
   }                                                                            \
   void Set##name(intptr_t byte_offset, type value) const {                     \
     NoSafepointScope no_safepoint;                                             \
@@ -8295,6 +8297,18 @@ class TypedData : public Instance {
   }
 
  private:
+  // Provides const access to non-pointer, non-aligned data within the object.
+  // Such access does not need a write barrier, but it is *not* GC-safe, since
+  // the object might move.
+  //
+  // Therefore this method is private and the call-sites in this class need to
+  // ensure the returned pointer does not escape.
+  template <typename FieldType>
+  const FieldType* ReadOnlyDataAddr(intptr_t byte_offset) const {
+    return reinterpret_cast<const FieldType*>((raw_ptr()->data()) +
+                                              byte_offset);
+  }
+
   static intptr_t element_size(intptr_t index) {
     ASSERT(0 <= index && index < kNumElementSizes);
     intptr_t size = element_size_table[index];

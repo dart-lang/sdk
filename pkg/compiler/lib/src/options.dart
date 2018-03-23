@@ -100,6 +100,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// and in the emitted output of the compiler.
   bool get hasBuildId => buildId != _UNDETERMINED_BUILD_ID;
 
+  /// Whether to compile for the server category. This is used to compile to JS
+  /// that is intended to be run on server-side VMs like nodejs.
+  final bool compileForServer;
+
   /// Location where to generate a map containing details of how deferred
   /// libraries are subdivided.
   final Uri deferredMapUri;
@@ -177,7 +181,11 @@ class CompilerOptions implements DiagnosticOptions {
   final Uri outputUri;
 
   /// Location of the platform configuration file.
+  // TODO(sigmund): deprecate and remove, use only [librariesSpecificationUri]
   final Uri platformConfigUri;
+
+  /// Location of the libraries specification file.
+  final Uri librariesSpecificationUri;
 
   /// Location of the kernel platform `.dill` files.
   final Uri platformBinaries;
@@ -305,6 +313,7 @@ class CompilerOptions implements DiagnosticOptions {
         analyzeSignaturesOnly: _hasOption(options, Flags.analyzeSignaturesOnly),
         buildId: _extractStringOption(
             options, '--build-id=', _UNDETERMINED_BUILD_ID),
+        compileForServer: _resolveCompileForServerFromOptions(options),
         deferredMapUri: _extractUriOption(options, '--deferred-map='),
         fatalWarnings: _hasOption(options, Flags.fatalWarnings),
         terseDiagnostics: _hasOption(options, Flags.terse),
@@ -336,6 +345,7 @@ class CompilerOptions implements DiagnosticOptions {
         outputUri: _extractUriOption(options, '--out='),
         platformConfigUri:
             _resolvePlatformConfigFromOptions(libraryRoot, options),
+        librariesSpecificationUri: _resolveLibrariesSpecification(libraryRoot),
         platformBinaries: platformBinaries ??
             _extractUriOption(options, '--platform-binaries='),
         preserveComments: _hasOption(options, Flags.preserveComments),
@@ -382,6 +392,7 @@ class CompilerOptions implements DiagnosticOptions {
       bool analyzeOnly: false,
       bool analyzeSignaturesOnly: false,
       String buildId: _UNDETERMINED_BUILD_ID,
+      bool compileForServer: false,
       Uri deferredMapUri: null,
       bool fatalWarnings: false,
       bool terseDiagnostics: false,
@@ -406,6 +417,7 @@ class CompilerOptions implements DiagnosticOptions {
       bool kernelGlobalInference: false,
       Uri outputUri: null,
       Uri platformConfigUri: null,
+      Uri librariesSpecificationUri: null,
       Uri platformBinaries: null,
       bool preserveComments: false,
       bool preserveUris: false,
@@ -463,6 +475,7 @@ class CompilerOptions implements DiagnosticOptions {
             analyzeOnly || analyzeSignaturesOnly || analyzeAll || resolveOnly,
         analyzeSignaturesOnly: analyzeSignaturesOnly,
         buildId: buildId,
+        compileForServer: compileForServer,
         deferredMapUri: deferredMapUri,
         fatalWarnings: fatalWarnings,
         terseDiagnostics: terseDiagnostics,
@@ -488,6 +501,7 @@ class CompilerOptions implements DiagnosticOptions {
         outputUri: outputUri,
         platformConfigUri: platformConfigUri ??
             _resolvePlatformConfig(libraryRoot, null, const []),
+        librariesSpecificationUri: _resolveLibrariesSpecification(libraryRoot),
         platformBinaries: platformBinaries,
         preserveComments: preserveComments,
         preserveUris: preserveUris,
@@ -520,6 +534,7 @@ class CompilerOptions implements DiagnosticOptions {
       this.analyzeOnly: false,
       this.analyzeSignaturesOnly: false,
       this.buildId: _UNDETERMINED_BUILD_ID,
+      this.compileForServer: false,
       this.deferredMapUri: null,
       this.fatalWarnings: false,
       this.terseDiagnostics: false,
@@ -543,6 +558,7 @@ class CompilerOptions implements DiagnosticOptions {
       this.generateSourceMap: true,
       this.outputUri: null,
       this.platformConfigUri: null,
+      this.librariesSpecificationUri: null,
       this.platformBinaries: null,
       this.preserveComments: false,
       this.preserveUris: false,
@@ -583,6 +599,7 @@ class CompilerOptions implements DiagnosticOptions {
       analyzeOnly,
       analyzeSignaturesOnly,
       buildId,
+      compileForServer,
       deferredMapUri,
       fatalWarnings,
       terseDiagnostics,
@@ -607,6 +624,7 @@ class CompilerOptions implements DiagnosticOptions {
       kernelGlobalInference,
       outputUri,
       platformConfigUri,
+      librariesSpecificationUri,
       platformBinaries,
       preserveComments,
       preserveUris,
@@ -645,6 +663,7 @@ class CompilerOptions implements DiagnosticOptions {
         analyzeSignaturesOnly:
             analyzeSignaturesOnly ?? options.analyzeSignaturesOnly,
         buildId: buildId ?? options.buildId,
+        compileForServer: compileForServer ?? options.compileForServer,
         deferredMapUri: deferredMapUri ?? options.deferredMapUri,
         fatalWarnings: fatalWarnings ?? options.fatalWarnings,
         terseDiagnostics: terseDiagnostics ?? options.terseDiagnostics,
@@ -678,6 +697,8 @@ class CompilerOptions implements DiagnosticOptions {
         generateSourceMap: generateSourceMap ?? options.generateSourceMap,
         outputUri: outputUri ?? options.outputUri,
         platformConfigUri: platformConfigUri ?? options.platformConfigUri,
+        librariesSpecificationUri:
+            librariesSpecificationUri ?? options.librariesSpecificationUri,
         platformBinaries: platformBinaries ?? options.platformBinaries,
         preserveComments: preserveComments ?? options.preserveComments,
         preserveUris: preserveUris ?? options.preserveUris,
@@ -790,12 +811,20 @@ Uri _resolvePlatformConfig(
   }
 }
 
+bool _resolveCompileForServerFromOptions(List<String> options) {
+  var categories = _extractCsvOption(options, '--categories=');
+  return categories.length == 1 && categories.single == 'Server';
+}
+
 Uri _resolvePlatformConfigFromOptions(Uri libraryRoot, List<String> options) {
   return _resolvePlatformConfig(
       libraryRoot,
       _extractStringOption(options, "--platform-config=", null),
       _extractCsvOption(options, '--categories='));
 }
+
+Uri _resolveLibrariesSpecification(Uri libraryRoot) =>
+    libraryRoot.resolve('lib/libraries.json');
 
 /// Locations of the platform descriptor files relative to the library root.
 const String _clientPlatform = "lib/dart_client.platform";

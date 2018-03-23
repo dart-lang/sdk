@@ -353,6 +353,7 @@ type Procedure extends Member {
   Byte flags (isStatic, isAbstract, isExternal, isConst, isForwardingStub,
               isGenericContravariant, isForwardingSemiStub,
               isRedirectingFactoryConstructor);
+  Byte flags2 (isNoSuchMethodForwarder);
   Name name;
   List<Expression> annotations;
   // Only present if the 'isForwardingStub' flag is set.

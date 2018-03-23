@@ -65,7 +65,7 @@ class MemoryKernelLibraryLoaderTask extends KernelLibraryLoaderTask {
 
   MemoryKernelLibraryLoaderTask(KernelToElementMapForImpact elementMap,
       DiagnosticReporter reporter, Measurer measurer, this.component)
-      : super(null, null, elementMap, null, reporter, measurer);
+      : super(null, null, null, elementMap, null, reporter, measurer);
 
   Future<LoadedLibraries> loadLibrary(Uri resolvedUri,
       {bool skipFileWithPartOfTag: false}) async {

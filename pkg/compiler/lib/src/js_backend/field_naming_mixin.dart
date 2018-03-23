@@ -207,10 +207,10 @@ class _MixinFieldNamingScope extends _FieldNamingScope {
   @override
   Map<Entity, jsAst.Name> get names => registry.globalNames;
 
-  _MixinFieldNamingScope.mixin(ClassElement cls, _FieldNamingRegistry registry)
+  _MixinFieldNamingScope.mixin(ClassEntity cls, _FieldNamingRegistry registry)
       : super.rootScope(cls, registry);
 
-  _MixinFieldNamingScope.mixedIn(MixinApplicationElement container,
+  _MixinFieldNamingScope.mixedIn(ClassEntity container,
       _FieldNamingScope superScope, _FieldNamingRegistry registry)
       : super.inherit(container, superScope, registry);
 

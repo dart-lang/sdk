@@ -24,5 +24,12 @@ abstract class UriTranslator {
   ///
   /// Note: this only translates the URI, there is no guarantee that the
   /// corresponding file exists in the file system.
-  Uri translate(Uri uri);
+  ///
+  /// If [reportMessage] is true a message will be reported via
+  /// [CompilerContext.current].
+  Uri translate(Uri uri, [bool reportMessage = true]);
+
+  /// Return the value of `dart.library.name`, if it was overriden in the
+  /// library specification file, otherwise return null.
+  String environmentOverrideFor(String libraryName);
 }

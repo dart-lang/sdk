@@ -5,6 +5,8 @@
 import 'package:analyzer/src/lint/config.dart';
 import 'package:test/test.dart';
 
+import '../util/yaml_test.dart';
+
 main() {
   defineTests();
 }
@@ -145,7 +147,7 @@ linter:
         };
         options['linter'] = lintOptions;
 
-        var config = parseConfig(options);
+        var config = parseConfig(wrap(options));
         expect(config, isNotNull);
         expect(config.ruleConfigs, hasLength(1));
       });
@@ -157,7 +159,7 @@ linter:
         };
         options['linter'] = lintOptions;
 
-        var config = parseConfig(options);
+        var config = parseConfig(wrap(options));
         expect(config, isNotNull);
         expect(config.ruleConfigs, hasLength(1));
       });
@@ -169,7 +171,7 @@ linter:
         };
         options['linter'] = lintOptions;
 
-        var config = parseConfig(options);
+        var config = parseConfig(wrap(options));
         expect(config, isNotNull);
         expect(config.ruleConfigs, hasLength(1));
       });
@@ -183,7 +185,7 @@ linter:
         };
         options['linter'] = lintOptions;
 
-        var config = parseConfig(options);
+        var config = parseConfig(wrap(options));
         expect(config, isNotNull);
         expect(config.ruleConfigs, hasLength(1));
       });
@@ -197,7 +199,7 @@ linter:
         };
         options['linter'] = lintOptions;
 
-        var config = parseConfig(options);
+        var config = parseConfig(wrap(options));
         expect(config, isNotNull);
         expect(config.ruleConfigs, hasLength(1));
       });

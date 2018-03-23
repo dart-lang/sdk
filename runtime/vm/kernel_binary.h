@@ -163,10 +163,15 @@ static const int MetadataPayloadOffset = HeaderSize;  // Right after header.
 class Reader {
  public:
   Reader(const uint8_t* buffer, intptr_t size)
-      : raw_buffer_(buffer), typed_data_(NULL), size_(size), offset_(0) {}
+      : thread_(NULL),
+        raw_buffer_(buffer),
+        typed_data_(NULL),
+        size_(size),
+        offset_(0) {}
 
   explicit Reader(const TypedData& typed_data)
-      : raw_buffer_(NULL),
+      : thread_(Thread::Current()),
+        raw_buffer_(NULL),
         typed_data_(&typed_data),
         size_(typed_data.IsNull() ? 0 : typed_data.Length()),
         offset_(0) {}
@@ -184,11 +189,13 @@ class Reader {
 
   uint32_t ReadUInt32At(intptr_t offset) const {
     ASSERT((size_ >= 4) && (offset >= 0) && (offset <= size_ - 4));
-
-    const uint8_t* buffer = this->buffer();
-    uint32_t value = (buffer[offset + 0] << 24) | (buffer[offset + 1] << 16) |
-                     (buffer[offset + 2] << 8) | (buffer[offset + 3] << 0);
-    return value;
+    uint32_t value;
+    if (raw_buffer_ != NULL) {
+      value = *reinterpret_cast<const uint32_t*>(raw_buffer_ + offset);
+    } else {
+      value = typed_data_->GetUint32(offset);
+    }
+    return Utils::BigEndianToHost32(value);
   }
 
   uint32_t ReadFromIndexNoReset(intptr_t end_offset,
@@ -323,14 +330,14 @@ class Reader {
   void CopyDataToVMHeap(const TypedData& typed_data,
                         intptr_t offset,
                         intptr_t size) {
-    NoSafepointScope no_safepoint;
+    NoSafepointScope no_safepoint(thread_);
     memmove(typed_data.DataAddr(0), buffer() + offset, size);
   }
 
   uint8_t* CopyDataIntoZone(Zone* zone, intptr_t offset, intptr_t length) {
     uint8_t* buffer_ = zone->Alloc<uint8_t>(length);
     {
-      NoSafepointScope no_safepoint;
+      NoSafepointScope no_safepoint(thread_);
       memmove(buffer_, buffer() + offset, length);
     }
     return buffer_;
@@ -341,10 +348,11 @@ class Reader {
     if (raw_buffer_ != NULL) {
       return raw_buffer_;
     }
-    NoSafepointScope no_safepoint;
+    NoSafepointScope no_safepoint(thread_);
     return reinterpret_cast<uint8_t*>(typed_data_->DataAddr(0));
   }
 
+  Thread* thread_;
   const uint8_t* raw_buffer_;
   const TypedData* typed_data_;
   intptr_t size_;

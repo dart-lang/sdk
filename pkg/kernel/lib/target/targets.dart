@@ -76,6 +76,15 @@ abstract class Target {
   /// promotion do not slow down compilation too much.
   bool get disableTypeInference => false;
 
+  /// A derived class may change this to `true` to enable forwarders to
+  /// user-defined `noSuchMethod` that are generated for each abstract member
+  /// if such `noSuchMethod` is present.
+  ///
+  /// The forwarders are abstract [Procedure]s with [isNoSuchMethodForwarder]
+  /// bit set.  The implementation of the behavior of such forwarders is up
+  /// for the target backend.
+  bool get enableNoSuchMethodForwarders => false;
+
   /// A derived class may change this to `true` to enable Flutter specific
   /// "super-mixins" semantics.
   ///

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.source.error_processor;
-
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/error_processor.dart';
@@ -14,9 +12,10 @@ import 'package:analyzer/src/task/options.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
-import 'package:yaml/src/yaml_node.dart';
+import 'package:yaml/yaml.dart';
 
 import '../generated/test_support.dart';
+import '../src/util/yaml_test.dart';
 
 main() {
   AnalysisError invalid_assignment =
@@ -124,11 +123,11 @@ analyzer:
       });
 
       test('string map', () {
-        var options = {
+        var options = wrap({
           'invalid_assignment': 'unsupported_action', // should be skipped
           'missing_return': 'false',
           'unused_local_variable': 'error'
-        };
+        });
         var errorConfig = new ErrorConfig(options);
         expect(errorConfig.processors, hasLength(2));
 
@@ -170,8 +169,7 @@ AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
 ErrorProcessor processor;
 
 void configureOptions(String options) {
-  Map<String, YamlNode> optionMap =
-      optionsProvider.getOptionsFromString(options);
+  YamlMap optionMap = optionsProvider.getOptionsFromString(options);
   applyToAnalysisOptions(context.analysisOptions, optionMap);
 }
 

@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method noSuchMethod(core::Invocation i) → dynamic {
+    return null;
+  }
+  abstract no-such-method-forwarder method foo() → void;
+}
+static method main() → dynamic {}

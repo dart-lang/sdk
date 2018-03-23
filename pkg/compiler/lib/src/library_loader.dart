@@ -202,7 +202,8 @@ abstract class LibraryLoaderTask implements LibraryProvider, CompilerTask {
     "math": "_internal/js_runtime/lib/math_patch.dart",
     "mirrors": "_internal/js_runtime/lib/mirrors_patch.dart",
     "typed_data": "_internal/js_runtime/lib/typed_data_patch.dart",
-    "_internal": "_internal/js_runtime/lib/internal_patch.dart"
+    "_internal": "_internal/js_runtime/lib/internal_patch.dart",
+    "_js": "js/_js_client.dart",
   };
 
   /// Returns the location of the patch-file associated with [libraryName]
@@ -823,6 +824,7 @@ class ResolutionLibraryLoaderTask extends CompilerTask
 // TODO(sigmund): move this class to a new file under src/kernel/.
 class KernelLibraryLoaderTask extends CompilerTask
     implements LibraryLoaderTask {
+  final Uri librariesSpecification;
   final Uri platformBinaries;
   final Uri _packageConfig;
 
@@ -840,9 +842,16 @@ class KernelLibraryLoaderTask extends CompilerTask
 
   fe.InitializedCompilerState initializedCompilerState;
 
-  KernelLibraryLoaderTask(this.platformBinaries, this._packageConfig,
-      this._elementMap, this.compilerInput, this.reporter, Measurer measurer,
-      {this.verbose: false, this.initializedCompilerState})
+  KernelLibraryLoaderTask(
+      this.librariesSpecification,
+      this.platformBinaries,
+      this._packageConfig,
+      this._elementMap,
+      this.compilerInput,
+      this.reporter,
+      Measurer measurer,
+      {this.verbose: false,
+      this.initializedCompilerState})
       : _allLoadedLibraries = new List<LibraryEntity>(),
         super(measurer);
 
@@ -862,12 +871,16 @@ class KernelLibraryLoaderTask extends CompilerTask
         new BinaryBuilder(input.data).readComponent(component);
       } else {
         bool strongMode = _elementMap.options.strongMode;
+        String targetName =
+            _elementMap.options.compileForServer ? "dart2js_server" : "dart2js";
         String platform = strongMode
-            ? 'dart2js_platform_strong.dill'
-            : 'dart2js_platform.dill';
+            ? '${targetName}_platform_strong.dill'
+            : '${targetName}_platform.dill';
         initializedCompilerState = fe.initializeCompiler(
             initializedCompilerState,
-            new Dart2jsTarget(new TargetFlags(strongMode: strongMode)),
+            new Dart2jsTarget(
+                targetName, new TargetFlags(strongMode: strongMode)),
+            librariesSpecification,
             platformBinaries.resolve(platform),
             _packageConfig);
         component = await fe.compile(

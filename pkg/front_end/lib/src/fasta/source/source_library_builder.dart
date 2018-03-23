@@ -244,6 +244,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     const String prefix = "dart.library.";
     if (!dottedName.startsWith(prefix)) return "";
     dottedName = dottedName.substring(prefix.length);
+    String override =
+        loader.target.uriTranslator.environmentOverrideFor(dottedName);
+    if (override != null) return override;
 
     LibraryBuilder imported =
         loader.builders[new Uri(scheme: "dart", path: dottedName)];

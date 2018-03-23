@@ -206,10 +206,9 @@ class AudioBufferSourceNode extends AudioScheduledSourceNode {
   @DocsEditable()
   final AudioParam playbackRate;
 
-  @JSName('start')
   @DomName('AudioBufferSourceNode.start')
   @DocsEditable()
-  void start2([num when, num grainOffset, num grainDuration]) native;
+  void start([num when, num grainOffset, num grainDuration]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -599,10 +598,11 @@ class AudioScheduledSourceNode extends AudioNode {
   static const EventStreamProvider<Event> endedEvent =
       const EventStreamProvider<Event>('ended');
 
+  @JSName('start')
   @DomName('AudioScheduledSourceNode.start')
   @DocsEditable()
   @Experimental() // untriaged
-  void start([num when]) native;
+  void start2([num when]) native;
 
   @DomName('AudioScheduledSourceNode.stop')
   @DocsEditable()

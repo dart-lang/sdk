@@ -30,6 +30,12 @@
 ///             "convert": {
 ///                "uri": "convert/convert.dart",
 ///             }
+///             "mirrors": {
+///                "uri": "mirrors/mirrors.dart",
+///             }
+///         }
+///         "environment_overrides": {
+///             "mirrors": false
 ///         }
 ///       }
 ///     }
@@ -38,9 +44,8 @@
 ///   - a top level entry for each target. Keys are target names (e.g. "vm"
 ///     above), and values contain the entire specification of a target.
 ///
-///   - each target specification is a map. Today only one key ("libraries") is
-///     supported, but this may be extended in the future to add more
-///     information on each target.
+///   - each target specification is a map. Today two keys are supported:
+///     "libraries" and "environment_overrides".
 ///
 ///   - The "libraries" entry contains details for how each platform library is
 ///     implemented. The entry is a map, where keys are the name of the platform
@@ -58,6 +63,20 @@
 ///     which will be resolved relative to the location of the library
 ///     specification file.
 ///
+///   - The "environment_overrides" entry contains rules to override the value
+///     of environment variables that are derived from the platform libraries.
+///
+///     By default every platform library that is available in the "libraries"
+///     section implicitly defines an environment variable `dart.library.name`
+///     as `"true"`, to indicate that the library is supported.  Some backends
+///     override this to allow imports to a platform library, but still report
+///     that the library is not supported in conditional imports and const
+///     `fromEnvironment` expressions.
+///
+///     A name key listed in the "environment_overrides" section must match the
+///     name of a library in the "libraries" section. The value is a bool,
+///     however, since the libraries are assumed to be supported by default, we
+///     only expect users to use `false`.
 ///
 /// Note: we currently have several different files that need to be updated
 /// when changing libraries, sources, and patch files:
@@ -68,6 +87,9 @@
 /// we are in the process of unifying them all under this format (see
 /// https://github.com/dart-lang/sdk/issues/28836), but for now we need to pay
 /// close attention to change them consistently.
+
+// TODO(sigmund): consider moving the overrides directly into the libraries
+// section (e.g. add a "supported: false" entry).
 
 // TODO(sigmund): move this file to a shared package.
 import 'dart:convert' show JSON;
@@ -84,10 +106,16 @@ class LibrariesSpecification {
   const LibrariesSpecification(
       [this._targets = const <String, TargetLibrariesSpecification>{}]);
 
-  /// The library specification for a given [target], or null if none is
+  /// The library specification for a given [target], or throws if none is
   /// available.
-  TargetLibrariesSpecification specificationFor(String target) =>
-      _targets[target];
+  TargetLibrariesSpecification specificationFor(String target) {
+    var targetSpec = _targets[target];
+    if (targetSpec == null) {
+      throw new LibrariesSpecificationException(
+        'No library specification for target "$target"');
+    }
+    return targetSpec;
+  }
 
   /// Parse the given [json] as a library specification, resolving any relative
   /// paths from [baseUri].
@@ -153,8 +181,28 @@ class LibrariesSpecification {
         }
         libraries[name] = new LibraryInfo(name, uri, patches);
       });
-      targets[targetName] =
-          new TargetLibrariesSpecification(targetName, libraries);
+      Map<String, bool> environmentOverrides = <String, bool>{};
+      if (targetData.containsKey("environment_overrides")) {
+        var overridesData = targetData["environment_overrides"];
+        if (overridesData is! Map) {
+          return _reportError(
+              "environment_overrides entry for '$targetName' is not a map");
+        }
+        overridesData.forEach((String name, value) {
+          if (!libraries.containsKey(name)) {
+            return _reportError(
+                "entry '$name' does not correspond to an existing library "
+                "in '$targetName'");
+          }
+          if (value is bool) {
+            environmentOverrides[name] = value;
+          } else {
+            return _reportError("entry '$name' is not a bool");
+          }
+        });
+      }
+      targets[targetName] = new TargetLibrariesSpecification(
+          targetName, libraries, environmentOverrides);
     });
     return new LibrariesSpecification(targets);
   }
@@ -180,6 +228,10 @@ class LibrariesSpecification {
         };
       });
       result[targetName] = {'libraries': libraries};
+      if (target._environmentOverrides.isNotEmpty) {
+        result[targetName]['environment_overrides'] =
+            target._environmentOverrides;
+      }
     });
     return result;
   }
@@ -192,11 +244,21 @@ class TargetLibrariesSpecification {
 
   final Map<String, LibraryInfo> _libraries;
 
+  final Map<String, bool> _environmentOverrides;
+
   const TargetLibrariesSpecification(this.targetName,
-      [this._libraries = const <String, LibraryInfo>{}]);
+      [this._libraries = const <String, LibraryInfo>{},
+      this._environmentOverrides = const <String, bool>{}]);
 
   /// Details about a library whose import is `dart:$name`.
   LibraryInfo libraryInfoFor(String name) => _libraries[name];
+
+  /// Environment override for a library whose import is `dart:$name`. The value
+  /// can be "true", "false", or null if no override was given.
+  String environmentOverrideFor(String name) {
+    var override = _environmentOverrides[name];
+    return override == null ? null : "$override";
+  }
 }
 
 /// Information about a `dart:` library in a specific target platform.

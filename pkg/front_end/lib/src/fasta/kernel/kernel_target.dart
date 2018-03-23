@@ -264,6 +264,9 @@ class KernelTarget extends TargetImplementation {
         loader.performTopLevelInference(myClasses);
       }
       loader.checkOverrides(myClasses);
+      if (backendTarget.enableNoSuchMethodForwarders) {
+        loader.addNoSuchMethodForwarders(myClasses);
+      }
     } on deprecated_InputError catch (e) {
       ticker.logMs("Got deprecated_InputError");
       handleInputError(e, isFullComponent: false);
@@ -355,6 +358,13 @@ class KernelTarget extends TargetImplementation {
           (LocatedMessage message) => new ExpressionStatement(new Throw(
               new StringLiteral(context.format(message, Severity.error)))))));
     }
+
+    // Clear libraries to avoid having 'the same' library added in both outline
+    // and body building. As loader.libraries is used in the incremental
+    // compiler that will causes problems (i.e. it cannot serialize because 2
+    // libraries has the same URI).
+    loader.libraries.clear();
+
     loader.libraries.add(library.library);
     library.build(loader.coreLibrary);
     return link(<Library>[library.library]);

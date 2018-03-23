@@ -14,6 +14,7 @@ await: Fail
 bug21938: TypeCheckError
 bug30695: TypeCheckError
 bug31124: RuntimeError # Test has an intentional error
+bug32629: Fail # Test has an intentional error
 call: Fail
 cascade: Fail
 casts: Fail

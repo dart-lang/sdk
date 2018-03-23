@@ -167,6 +167,7 @@ multiline_newline_test/03r: RuntimeError
 multiline_newline_test/none: RuntimeError
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 nested_generic_closure_test: CompileTimeError
+nosuchmethod_forwarding/nosuchmethod_forwarding_arguments_test: RuntimeError # Issue 31425
 override_inheritance_field_test/04: CompileTimeError
 override_inheritance_field_test/06: CompileTimeError
 override_inheritance_field_test/26: CompileTimeError
@@ -612,6 +613,7 @@ named_constructor_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 no_such_method_mock_test: RuntimeError # Issue 31425
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError # Issue 31425
+nosuchmethod_forwarding/nosuchmethod_forwarding_arguments_test: RuntimeError # Issue 31425
 nsm5_test: MissingCompileTimeError
 null2_test: RuntimeError # Issue 32194
 null_method_test: RuntimeError # Issue 32194
@@ -885,4 +887,3 @@ switch_label_test: RuntimeError # Issue 29920; UnimplementedError: node <ShadowC
 switch_try_catch_test: RuntimeError # Issue 29920; Expect.throws: Unexpected 'UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
 truncdiv_test: RuntimeError # Issue 29920; Expect.throws fails: Did not throw
 vm/*: SkipByDesign # VM only tests.; VM only tests.
-

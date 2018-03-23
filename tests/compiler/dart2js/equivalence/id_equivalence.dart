@@ -28,6 +28,9 @@ enum IdKind {
 abstract class Id {
   IdKind get kind;
   bool get isGlobal;
+
+  /// Display name for this id.
+  String get descriptor;
 }
 
 class IdValue {
@@ -155,6 +158,8 @@ class ElementId implements Id {
 
   String get name => className != null ? '$className.$memberName' : memberName;
 
+  String get descriptor => 'member $name';
+
   String toString() => 'element:$name';
 }
 
@@ -177,6 +182,8 @@ class ClassId implements Id {
 
   String get name => className;
 
+  String get descriptor => 'class $name';
+
   String toString() => 'class:$name';
 }
 
@@ -198,6 +205,8 @@ class NodeId implements Id {
     return value == other.value && kind == other.kind;
   }
 
+  String get descriptor => 'offset $value ($kind)';
+
   String toString() => '$kind:$value';
 }
 
@@ -217,8 +226,12 @@ class ActualData {
     }
   }
 
+  String get objectText {
+    return 'object `${'$object'.replaceAll('\n', '')}` (${object.runtimeType})';
+  }
+
   String toString() =>
-      'ActualData(value=$value,sourceSpan=$sourceSpan,object=$object)';
+      'ActualData(value=$value,sourceSpan=$sourceSpan,object=$objectText)';
 }
 
 abstract class DataRegistry {
@@ -432,14 +445,16 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
         case SendStructureKind.INCOMPATIBLE_INVOKE:
           switch (sendStructure.semantics.kind) {
             case AccessKind.EXPRESSION:
-              computeForNode(node, createInvokeId(node.argumentsNode));
+              computeForNode(node,
+                  createInvokeId(node.typeArgumentsNode ?? node.argumentsNode));
               break;
             case AccessKind.LOCAL_VARIABLE:
             case AccessKind.FINAL_LOCAL_VARIABLE:
             case AccessKind.PARAMETER:
             case AccessKind.FINAL_PARAMETER:
               computeForNode(node, createAccessId(node));
-              computeForNode(node, createInvokeId(node.argumentsNode));
+              computeForNode(node,
+                  createInvokeId(node.typeArgumentsNode ?? node.argumentsNode));
               break;
             case AccessKind.STATIC_FIELD:
             case AccessKind.FINAL_STATIC_FIELD:
@@ -449,13 +464,17 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
             case AccessKind.SUPER_FIELD:
             case AccessKind.SUPER_FINAL_FIELD:
             case AccessKind.SUPER_GETTER:
-              computeForNode(node, createInvokeId(node.argumentsNode));
+              computeForNode(node,
+                  createInvokeId(node.typeArgumentsNode ?? node.argumentsNode));
               break;
             case AccessKind.TOPLEVEL_GETTER:
               if (elements[node].isDeferredLoaderGetter) {
                 computeForNode(node, createInvokeId(node.selector));
               } else {
-                computeForNode(node, createInvokeId(node.argumentsNode));
+                computeForNode(
+                    node,
+                    createInvokeId(
+                        node.typeArgumentsNode ?? node.argumentsNode));
               }
               break;
             default:

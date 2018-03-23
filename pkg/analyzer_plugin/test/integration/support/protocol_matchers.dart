@@ -726,6 +726,7 @@ final Matcher isRefactoringFeedback =
  *   CONVERT_METHOD_TO_GETTER
  *   EXTRACT_LOCAL_VARIABLE
  *   EXTRACT_METHOD
+ *   EXTRACT_WIDGET
  *   INLINE_LOCAL_VARIABLE
  *   INLINE_METHOD
  *   MOVE_FILE
@@ -738,6 +739,7 @@ final Matcher isRefactoringKind = new MatchesEnum("RefactoringKind", [
   "CONVERT_METHOD_TO_GETTER",
   "EXTRACT_LOCAL_VARIABLE",
   "EXTRACT_METHOD",
+  "EXTRACT_WIDGET",
   "INLINE_LOCAL_VARIABLE",
   "INLINE_METHOD",
   "MOVE_FILE",

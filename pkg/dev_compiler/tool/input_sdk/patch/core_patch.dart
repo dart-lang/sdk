@@ -1219,6 +1219,7 @@ class _BigIntImpl implements BigInt {
   /// Does *not* clear digits below ds.
   static void _lsh(
       Uint16List xDigits, int xUsed, int n, Uint16List resultDigits) {
+    assert(xUsed > 0);
     final digitShift = n ~/ _digitBits;
     final bitShift = n % _digitBits;
     final carryBitShift = _digitBits - bitShift;
@@ -1248,6 +1249,7 @@ class _BigIntImpl implements BigInt {
     if (shiftAmount < 0) {
       throw new ArgumentError("shift-amount must be posititve $shiftAmount");
     }
+    if (_isZero) return this;
     final digitShift = shiftAmount ~/ _digitBits;
     final bitShift = shiftAmount % _digitBits;
     if (bitShift == 0) {
@@ -1283,6 +1285,7 @@ class _BigIntImpl implements BigInt {
   // resultDigits[0..resultUsed-1] = xDigits[0..xUsed-1] >> n.
   static void _rsh(
       Uint16List xDigits, int xUsed, int n, Uint16List resultDigits) {
+    assert(xUsed > 0);
     final digitsShift = n ~/ _digitBits;
     final bitShift = n % _digitBits;
     final carryBitShift = _digitBits - bitShift;
@@ -1310,6 +1313,7 @@ class _BigIntImpl implements BigInt {
     if (shiftAmount < 0) {
       throw new ArgumentError("shift-amount must be posititve $shiftAmount");
     }
+    if (_isZero) return this;
     final digitShift = shiftAmount ~/ _digitBits;
     final bitShift = shiftAmount % _digitBits;
     if (bitShift == 0) {
@@ -1552,6 +1556,7 @@ class _BigIntImpl implements BigInt {
    */
   _BigIntImpl operator &(BigInt bigInt) {
     _BigIntImpl other = bigInt;
+    if (_isZero || other._isZero) return zero;
     if (_isNegative == other._isNegative) {
       if (_isNegative) {
         // (-this) & (-other) == ~(this-1) & ~(other-1)
@@ -1591,6 +1596,8 @@ class _BigIntImpl implements BigInt {
    */
   _BigIntImpl operator |(BigInt bigInt) {
     _BigIntImpl other = bigInt;
+    if (_isZero) return other;
+    if (other._isZero) return this;
     if (_isNegative == other._isNegative) {
       if (_isNegative) {
         // (-this) | (-other) == ~(this-1) | ~(other-1)
@@ -1631,6 +1638,8 @@ class _BigIntImpl implements BigInt {
    */
   _BigIntImpl operator ^(BigInt bigInt) {
     _BigIntImpl other = bigInt;
+    if (_isZero) return other;
+    if (other._isZero) return this;
     if (_isNegative == other._isNegative) {
       if (_isNegative) {
         // (-this) ^ (-other) == ~(this-1) ^ ~(other-1) == (this-1) ^ (other-1)
@@ -1665,6 +1674,7 @@ class _BigIntImpl implements BigInt {
    * This maps any integer `x` to `-x - 1`.
    */
   _BigIntImpl operator ~() {
+    if (_isZero) return _minusOne;
     if (_isNegative) {
       // ~(-this) == ~(~(this-1)) == this-1
       return _absSubSetSign(one, false);
@@ -1677,6 +1687,8 @@ class _BigIntImpl implements BigInt {
   /// Addition operator.
   _BigIntImpl operator +(BigInt bigInt) {
     _BigIntImpl other = bigInt;
+    if (_isZero) return other;
+    if (other._isZero) return this;
     var isNegative = _isNegative;
     if (isNegative == other._isNegative) {
       // this + other == this + other
@@ -1694,6 +1706,8 @@ class _BigIntImpl implements BigInt {
   /// Subtraction operator.
   _BigIntImpl operator -(BigInt bigInt) {
     _BigIntImpl other = bigInt;
+    if (_isZero) return -other;
+    if (other._isZero) return this;
     var isNegative = _isNegative;
     if (isNegative != other._isNegative) {
       // this - (-other) == this + other

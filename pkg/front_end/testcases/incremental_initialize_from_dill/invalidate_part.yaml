@@ -1,0 +1,26 @@
+# Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Invalidate a part file.
+
+type: simple
+name: testInvalidatePart
+entry: testInvalidatePart_a.dart
+strong: true
+invalidate:
+  - testInvalidatePart_b.dart
+sources:
+  testInvalidatePart_a.dart: |
+    library a;
+    import 'testInvalidatePart_c.dart';
+    part 'testInvalidatePart_b.dart';
+  testInvalidatePart_b.dart: |
+    part of a;
+    b() { print("b"); }
+  testInvalidatePart_c.dart: |
+    library c;
+    part 'testInvalidatePart_d.dart';
+  testInvalidatePart_d.dart: |
+    part of c;
+    d() { print("d"); }

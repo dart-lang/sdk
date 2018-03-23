@@ -26,6 +26,9 @@ class VmTarget extends Target {
   bool get strongMode => flags.strongMode;
 
   @override
+  bool get enableNoSuchMethodForwarders => true;
+
+  @override
   String get name => 'vm';
 
   // This is the order that bootstrap libraries are loaded according to

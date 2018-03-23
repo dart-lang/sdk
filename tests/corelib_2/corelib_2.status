@@ -87,6 +87,9 @@ symbol_test/03: MissingCompileTimeError
 [ !$strong ]
 cast_test: SkipByDesign # Uses generic method parameters.
 
+[ $arch == ia32 && $builder_tag == optimization_counter_threshold ]
+bigint_from_test: RuntimeError # Issue 32619
+
 [ $arch == simarmv5te && ($runtime == dart_precompiled || $runtime == vm) ]
 int_parse_radix_test/*: Pass, Slow
 integer_parsed_mul_div_vm_test: Pass, Slow
@@ -213,10 +216,8 @@ map_entry_test: RuntimeError
 
 [ $compiler == dart2js && $fasta && $host_checked && $strong ]
 apply3_test: RuntimeError
-apply_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
 bigint_test: RuntimeError
 cast_test: RuntimeError
-date_time11_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
 dynamic_nosuchmethod_test: RuntimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
 growable_list_test: RuntimeError # Concurrent modifications test always runs
@@ -232,7 +233,6 @@ iterable_reduce_test: Crash # NoSuchMethodError: The getter 'isDynamic' was call
 iterable_return_type_test/01: RuntimeError # Issue 20085
 iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
 iterable_to_list_test/01: RuntimeError # Issue 26501
-iterable_where_type_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
 list_concurrent_modify_test: RuntimeError # dart2js does not fully implement these
 list_test/01: RuntimeError
 list_test/none: RuntimeError

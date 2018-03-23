@@ -1,11 +1,35 @@
+## 2.0.0-dev.41.0
+
+### Tool Changes
+
+#### Pub
+
+* Pub will now automatically retry HTTP requests that fail with an IO error
+  ([issue 1826][pub#1826]).
+
+* `pub deps` now includes the SDK version. This makes the output more helpful
+  when included in bug reports ([issue 1827][pub#1827]).
+
+* `build` and `serve` now print a deprecation warning pointing users to
+  https://webdev.dartlang.org/dart-2 ([issue 1823][pub#1823]).
+
+[pub#1823]: https://github.com/dart-lang/pub/issues/1823
+[pub#1826]: https://github.com/dart-lang/pub/issues/1826
+[pub#1827]: https://github.com/dart-lang/pub/issues/1827
+
 ## 2.0.0-dev.40.0
+
+### Core library changes
+
+* The Web libraries were re-genereated using Chrome 63 WebIDLs.
+  See https://github.com/dart-lang/sdk/wiki/Chrome-63-Dart-Web-Libraries for
+  details.
 
 ## 2.0.0-dev.39.0
 ### Tool Changes
 #### Pub
-  * fixed bug in dart2js transformer when using the common front-end.
 
-## 2.0.0-dev.38.0
+* fixed bug in dart2js transformer when using the common front-end.
 
 ## 2.0.0-dev.37.0
 ### Tool Changes

@@ -1,3 +1,38 @@
+## 0.31.2-alpha.1
+
+* Don't expect type arguments for class type parameters of static methods.
+  (#32396)
+* Beginnings of changes to make analyzer code --preview-dart-2 safe, though
+  this version is not vetted for that.
+* Infer type arguments in constructor redirections (#30855)
+* Report errors on "as void" and "is void".
+* Fix instantiating typedefs to bounds (#32114)
+* preview-dart-2 implies strong-mode now and other preview-dart-2 fixes.
+* Store method invocation arguments in summaries when needed for inference (partial fix for #32394)
+* Fix top-level inference and implicit creation (#32397)
+* Do not hint when only a responsive asset exists (#32250)
+* Do not hint when using a deprecated parameter in the defining function
+  (#32468)
+* Fix parsing of super expressions (#32393)
+* Disable conflicting generics test in the task model (#32421)
+* Change how we find analysis roots (#31343, #31344)
+* Fix problem with AST re-writing interacting poorly with inference (#32342)
+* Disallow if a class inconsistently implements a generic interface.
+* Infer void for operator[]= return in task mode for DDC (#32241)
+* Finish and improve mixin type inference in the analyzer (#32146, #32353, #32372)
+* Many enhancements to getElementDeclarations() (#29510, #32495)
+* Remove hint when there's no return from a Future<void> and async method.
+* Add a code range to ElementDeclaration (#29510)
+* Many, many fasta parser changes and improvements.
+* Add missing void annotation (#32161)
+* Add more null-aware hints (#32239)
+* Fix implicit new/const computation (#32221)
+* Treat invocations on dynamic as unknown, except for return type of == (#32173)
+* Fix crash in generic function type argument of unresolved class (#32162)
+* Fix path formatting on windows (#32095)
+* front_end implementation of mixin type inference (#31984)
+* analysis_options no longer breaks some properties (#31345)
+
 ## 0.31.2-alpha.0
 
 * front_end handling of callable classes (#32064)

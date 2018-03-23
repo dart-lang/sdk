@@ -724,7 +724,9 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
     // Run a downward traversal from the root, compute preorder numbers for
     // each class, and build their subtype sets as interval lists.
-    _topDownSortVisit(_infoFor[classes[0]]);
+    if (classes.isNotEmpty) {
+      _topDownSortVisit(_infoFor[classes[0]]);
+    }
 
     // Now that the intervals for subclass, mixer, and implementer queries are
     // built, we may infer and record supertypes for the classes.

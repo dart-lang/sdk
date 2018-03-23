@@ -66,8 +66,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginClassDeclaration(Token beginToken, Token name) {
-    listener?.beginClassDeclaration(beginToken, name);
+  void beginClassDeclaration(Token begin, Token abstractToken, Token name) {
+    listener?.beginClassDeclaration(begin, abstractToken, name);
   }
 
   @override
@@ -299,8 +299,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginNamedMixinApplication(Token beginToken, Token name) {
-    listener?.beginNamedMixinApplication(beginToken, name);
+  void beginNamedMixinApplication(
+      Token begin, Token abstractToken, Token name) {
+    listener?.beginNamedMixinApplication(begin, abstractToken, name);
   }
 
   @override
@@ -564,8 +565,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endFields(int count, Token beginToken, Token endToken) {
-    listener?.endFields(count, beginToken, endToken);
+  void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
+      int count, Token beginToken, Token endToken) {
+    listener?.endFields(staticToken, covariantToken, varFinalOrConst, count,
+        beginToken, endToken);
   }
 
   @override
@@ -810,8 +813,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endTopLevelFields(int count, Token beginToken, Token endToken) {
-    listener?.endTopLevelFields(count, beginToken, endToken);
+  void endTopLevelFields(Token staticToken, Token covariantToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+    listener?.endTopLevelFields(staticToken, covariantToken, varFinalOrConst,
+        count, beginToken, endToken);
   }
 
   @override

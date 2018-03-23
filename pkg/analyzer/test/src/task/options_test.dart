@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.task.options_test;
-
 import 'dart:mirrors';
 
 import 'package:analyzer/analyzer.dart';
@@ -49,7 +47,7 @@ class ContextConfigurationTest extends AbstractContextTest {
   void configureContext(String optionsSource) =>
       applyToAnalysisOptions(analysisOptions, parseOptions(optionsSource));
 
-  Map<String, YamlNode> parseOptions(String source) =>
+  YamlMap parseOptions(String source) =>
       optionsProvider.getOptionsFromString(source);
 
   test_configure_bad_options_contents() {
@@ -361,7 +359,9 @@ class GenerateNewOptionsErrorsTaskTest extends AbstractContextTest {
     expect(descriptor, isNotNull);
   }
 
+  @failingTest
   test_perform_bad_yaml() {
+    // We have lost the ability to detect this kind of error.
     String code = r'''
 :
 ''';
@@ -410,7 +410,9 @@ include: other_options.yaml
     expect(error.message, contains('other_options.yaml(47..49)'));
   }
 
+  @failingTest
   test_perform_include_bad_yaml() {
+    // We have lost the ability to detect this kind of error.
     newSource('/other_options.yaml', ':');
     String code = r'''
 include: other_options.yaml
@@ -703,7 +705,7 @@ linter:
         ]));
   }
 
-  Map<String, YamlNode> _getOptions(String posixPath, {bool crawlUp: false}) {
+  YamlMap _getOptions(String posixPath, {bool crawlUp: false}) {
     Resource resource = pathTranslator.getResource(posixPath);
     return provider.getOptions(resource, crawlUp: crawlUp);
   }

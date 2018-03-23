@@ -176,6 +176,18 @@ abstract class DartEditBuilder implements EditBuilder {
       {StringBuffer displayTextBuffer});
 
   /**
+   * Write the code for a single parameter with the given [name].
+   *
+   * If a [methodBeingCopied] is provided, then type parameters defined by that
+   * method are assumed to be part of what is being written and hence valid
+   * types.
+   *
+   * If a [type] is provided, then it will be used as the type of the parameter.
+   */
+  void writeParameter(String name,
+      {ExecutableElement methodBeingCopied, DartType type});
+
+  /**
    * Write the code for a parameter that would match the given [argument]. The
    * name of the parameter will be generated based on the type of the argument,
    * but if the argument type is not known the [index] will be used to compose
@@ -201,17 +213,6 @@ abstract class DartEditBuilder implements EditBuilder {
    * [arguments]. The surrounding parentheses are *not* written.
    */
   void writeParametersMatchingArguments(ArgumentList arguments);
-
-  /**
-   * Write the code for a single parameter with the given [type] and [name].
-   * The [type] can be `null` if no type is to be specified for the parameter.
-   *
-   * If a [methodBeingCopied] is provided, then type parameters defined by that
-   * method are assumed to be part of what is being written and hence valid
-   * types.
-   */
-  void writeParameterSource(DartType type, String name,
-      {ExecutableElement methodBeingCopied});
 
   /**
    * Write the code for a type annotation for the given [type]. If the [type] is

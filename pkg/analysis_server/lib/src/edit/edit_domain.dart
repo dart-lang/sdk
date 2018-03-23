@@ -25,6 +25,7 @@ import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -207,11 +208,9 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future getFixes(Request request) async {
-    var params = new EditGetFixesParams.fromRequest(request);
+    EditGetFixesParams params = new EditGetFixesParams.fromRequest(request);
     String file = params.file;
     int offset = params.offset;
-
-    List<AnalysisErrorFixes> errorFixesList = <AnalysisErrorFixes>[];
     //
     // Allow plugins to start computing fixes.
     //
@@ -228,29 +227,12 @@ class EditDomainHandler extends AbstractRequestHandler {
     //
     // Compute fixes associated with server-generated errors.
     //
-    AnalysisResult result = await server.getAnalysisResult(file);
-    if (result != null) {
-      CompilationUnit unit = result.unit;
-      LineInfo lineInfo = result.lineInfo;
-      int requestLine = lineInfo.getLocation(offset).lineNumber;
-      for (engine.AnalysisError error in result.errors) {
-        int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-        if (errorLine == requestLine) {
-          var context = new _DartFixContextImpl(server.resourceProvider,
-              result.driver, new AstProviderForDriver(driver), unit, error);
-          List<Fix> fixes =
-              await new DefaultFixContributor().internalComputeFixes(context);
-          if (fixes.isNotEmpty) {
-            fixes.sort(Fix.SORT_BY_RELEVANCE);
-            AnalysisError serverError =
-                newAnalysisError_fromEngine(lineInfo, error);
-            AnalysisErrorFixes errorFixes = new AnalysisErrorFixes(serverError);
-            errorFixesList.add(errorFixes);
-            fixes.forEach((fix) {
-              errorFixes.fixes.add(fix.change);
-            });
-          }
-        }
+    List<AnalysisErrorFixes> errorFixesList = null;
+    while (errorFixesList == null) {
+      try {
+        errorFixesList = await _computeServerErrorFixes(driver, file, offset);
+      } on InconsistentAnalysisException {
+        // Loop around to try again to compute the fixes.
       }
     }
     //
@@ -529,6 +511,41 @@ class EditDomainHandler extends AbstractRequestHandler {
     SourceFileEdit fileEdit = new SourceFileEdit(file, fileStamp, edits: edits);
     server.sendResponse(
         new EditSortMembersResult(fileEdit).toResponse(request.id));
+  }
+
+  /**
+   * Compute and return the fixes associated with server-generated errors.
+   */
+  Future<List<AnalysisErrorFixes>> _computeServerErrorFixes(
+      AnalysisDriver driver, String file, int offset) async {
+    List<AnalysisErrorFixes> errorFixesList = <AnalysisErrorFixes>[];
+    AnalysisResult result = await server.getAnalysisResult(file);
+    if (result != null) {
+      CompilationUnit unit = result.unit;
+      LineInfo lineInfo = result.lineInfo;
+      int requestLine = lineInfo.getLocation(offset).lineNumber;
+      for (engine.AnalysisError error in result.errors) {
+        int errorLine = lineInfo.getLocation(error.offset).lineNumber;
+        if (errorLine == requestLine) {
+          AstProvider astProvider = new AstProviderForDriver(driver);
+          DartFixContext context = new _DartFixContextImpl(
+              server.resourceProvider, result.driver, astProvider, unit, error);
+          List<Fix> fixes =
+              await new DefaultFixContributor().internalComputeFixes(context);
+          if (fixes.isNotEmpty) {
+            fixes.sort(Fix.SORT_BY_RELEVANCE);
+            AnalysisError serverError =
+                newAnalysisError_fromEngine(lineInfo, error);
+            AnalysisErrorFixes errorFixes = new AnalysisErrorFixes(serverError);
+            errorFixesList.add(errorFixes);
+            fixes.forEach((fix) {
+              errorFixes.fixes.add(fix.change);
+            });
+          }
+        }
+      }
+    }
+    return errorFixesList;
   }
 
   Response _getAvailableRefactorings(Request request) {

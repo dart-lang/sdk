@@ -44,7 +44,7 @@ class DartChangeBuilderImpl extends ChangeBuilderImpl
   @override
   Future<Null> addFileEdit(
           String path, void buildFileEdit(DartFileEditBuilder builder)) =>
-      super.addFileEdit(path, buildFileEdit);
+      super.addFileEdit(path, (builder) => buildFileEdit(builder));
 
   @override
   Future<DartFileEditBuilderImpl> createFileEditBuilder(String path) async {
@@ -76,7 +76,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void addLinkedEdit(String groupName,
           void buildLinkedEdit(DartLinkedEditBuilder builder)) =>
-      super.addLinkedEdit(groupName, buildLinkedEdit);
+      super.addLinkedEdit(groupName, (builder) => buildLinkedEdit(builder));
 
   @override
   LinkedEditBuilderImpl createLinkedEditBuilder() {
@@ -182,17 +182,20 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     bool typeRequired = true;
     if (isConst) {
       write(Keyword.CONST.lexeme);
+      write(' ');
       typeRequired = false;
     } else if (isFinal) {
       write(Keyword.FINAL.lexeme);
+      write(' ');
       typeRequired = false;
     }
     if (type != null) {
       writeType(type, groupName: typeGroupName, required: true);
+      write(' ');
     } else if (typeRequired) {
       write(Keyword.VAR.lexeme);
+      write(' ');
     }
-    write(' ');
     if (nameGroupName != null) {
       addSimpleLinkedEdit(nameGroupName, name);
     } else {
@@ -447,6 +450,24 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
+  void writeParameter(String name,
+      {StringBuffer displayTextBuffer,
+      ExecutableElement methodBeingCopied,
+      DartType type}) {
+    String parameterSource;
+    if (type != null) {
+      _EnclosingElementFinder finder = new _EnclosingElementFinder();
+      finder.find(dartFileEditBuilder.unit, offset);
+      parameterSource = _getTypeSource(
+          type, finder.enclosingClass, finder.enclosingExecutable,
+          parameterName: name, methodBeingCopied: methodBeingCopied);
+    } else {
+      parameterSource = name;
+    }
+    write(parameterSource, displayTextBuffer: displayTextBuffer);
+  }
+
+  @override
   void writeParameterMatchingArgument(
       Expression argument, int index, Set<String> usedNames) {
     // append type name
@@ -494,9 +515,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         }
       }
       // parameter
-      writeParameterSource(parameter.type, parameter.name,
+      writeParameter(parameter.name,
+          displayTextBuffer: displayTextBuffer,
           methodBeingCopied: methodBeingCopied,
-          displayTextBuffer: displayTextBuffer);
+          type: parameter.type);
       // default value
       String defaultCode = parameter.defaultValueCode;
       if (defaultCode != null) {
@@ -539,17 +561,6 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (hasNamedParameters) {
       write('}');
     }
-  }
-
-  @override
-  void writeParameterSource(DartType type, String name,
-      {StringBuffer displayTextBuffer, ExecutableElement methodBeingCopied}) {
-    _EnclosingElementFinder finder = new _EnclosingElementFinder();
-    finder.find(dartFileEditBuilder.unit, offset);
-    String parameterSource = _getTypeSource(
-        type, finder.enclosingClass, finder.enclosingExecutable,
-        parameterName: name, methodBeingCopied: methodBeingCopied);
-    write(parameterSource, displayTextBuffer: displayTextBuffer);
   }
 
   @override
@@ -1149,12 +1160,12 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   void addInsertion(int offset, void buildEdit(DartEditBuilder builder)) =>
-      super.addInsertion(offset, buildEdit);
+      super.addInsertion(offset, (builder) => buildEdit(builder));
 
   @override
   void addReplacement(
           SourceRange range, void buildEdit(DartEditBuilder builder)) =>
-      super.addReplacement(range, buildEdit);
+      super.addReplacement(range, (builder) => buildEdit(builder));
 
   @override
   void convertFunctionFromSyncToAsync(

@@ -468,6 +468,7 @@ LayoutTests/fast/css/invalidation/targeted-class-shadow-combinator_t01: RuntimeE
 LayoutTests/fast/css/max-device-aspect-ratio_t01: RuntimeError, Pass # Issue 28998
 LayoutTests/fast/css/media-query-recovery_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/modify-ua-rules-from-javascript_t01: RuntimeError
+LayoutTests/fast/css/padding-no-renderer_t01: Pass, RuntimeError
 LayoutTests/fast/css/parsing-at-rule-recovery_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-css-allowed-string-characters_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-page-rule_t01: RuntimeError # Please triage this failure

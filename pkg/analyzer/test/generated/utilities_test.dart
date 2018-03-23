@@ -2903,7 +2903,7 @@ class MultipleMapIteratorTest extends EngineTestCase {
 
   void test_singleMap_empty() {
     Map<String, String> map = new HashMap<String, String>();
-    MultipleMapIterator<String, String> iterator = _iterator(<Map>[map]);
+    MultipleMapIterator<String, String> iterator = _iterator([map]);
     expect(iterator.moveNext(), isFalse);
     expect(() => iterator.key, throwsStateError);
     expect(() => iterator.value, throwsStateError);
@@ -2939,7 +2939,8 @@ class MultipleMapIteratorTest extends EngineTestCase {
     expect(iterator.moveNext(), isFalse);
   }
 
-  MultipleMapIterator<String, String> _iterator(List<Map> maps) {
+  MultipleMapIterator<String, String> _iterator(
+      List<Map<String, String>> maps) {
     return new MultipleMapIterator<String, String>(maps);
   }
 }

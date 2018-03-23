@@ -27,7 +27,9 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
-import 'package:kernel/type_algebra.dart' show Substitution;
+import 'package:kernel/clone.dart' show CloneWithoutBody;
+
+import 'package:kernel/type_algebra.dart' show Substitution, getSubstitutionMap;
 
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
@@ -50,6 +52,8 @@ import '../fasta_codes.dart'
         templateOverrideTypeMismatchReturnType,
         templateOverrideTypeVariablesMismatch,
         templateRedirectionTargetNotFound;
+
+import '../names.dart' show noSuchMethodName;
 
 import '../problems.dart' show unexpected, unhandled, unimplemented;
 
@@ -282,6 +286,73 @@ abstract class KernelClassBuilder
       }
       // TODO(ahe): Handle other cases: accessors, operators, and fields.
     });
+  }
+
+  // TODO(dmitryas): Find a better place for this routine.
+  static bool hasUserDefinedNoSuchMethod(
+      Class klass, ClassHierarchy hierarchy) {
+    Member noSuchMethod = hierarchy.getDispatchTarget(klass, noSuchMethodName);
+    // `Object` doesn't have a superclass reference.
+    return noSuchMethod != null &&
+        noSuchMethod.enclosingClass.superclass != null;
+  }
+
+  void addNoSuchMethodForwarderForProcedure(
+      Procedure procedure, ClassHierarchy hierarchy) {
+    CloneWithoutBody cloner = new CloneWithoutBody(
+        typeSubstitution: getSubstitutionMap(
+            hierarchy.getClassAsInstanceOf(cls, procedure.enclosingClass)));
+    Procedure cloned = cloner.clone(procedure);
+    cloned.isAbstract = true;
+    cloned.isNoSuchMethodForwarder = true;
+
+    String name = cloned.name.name;
+    cls.procedures.add(cloned);
+    cloned.parent = cls;
+    DillMemberBuilder memberBuilder = new DillMemberBuilder(cloned, this);
+    memberBuilder.next = scopeBuilder[name];
+    scopeBuilder.addMember(name, memberBuilder);
+  }
+
+  void addNoSuchMethodForwarders(ClassHierarchy hierarchy) {
+    if (!hasUserDefinedNoSuchMethod(cls, hierarchy)) {
+      return;
+    }
+
+    Set<Name> existingForwardersNames = new Set<Name>();
+    if (cls.superclass != null &&
+        hasUserDefinedNoSuchMethod(cls.superclass, hierarchy)) {
+      List<Member> concrete = hierarchy.getDispatchTargets(cls.superclass);
+      for (Member member in hierarchy.getInterfaceMembers(cls.superclass)) {
+        if (ClassHierarchy.findMemberByName(concrete, member.name) == null) {
+          existingForwardersNames.add(member.name);
+        }
+      }
+    }
+    if (cls.mixedInClass != null &&
+        hasUserDefinedNoSuchMethod(cls.mixedInClass, hierarchy)) {
+      List<Member> concrete = hierarchy.getDispatchTargets(cls.mixedInClass);
+      for (Member member in hierarchy.getInterfaceMembers(cls.mixedInClass)) {
+        if (ClassHierarchy.findMemberByName(concrete, member.name) == null) {
+          existingForwardersNames.add(member.name);
+        }
+      }
+    }
+
+    List<Member> concrete = hierarchy.getDispatchTargets(cls);
+    List<Member> declared = hierarchy.getDeclaredMembers(cls);
+    for (Member member in hierarchy.getInterfaceMembers(cls)) {
+      if ((member is Procedure) &&
+          ClassHierarchy.findMemberByName(concrete, member.name) == null &&
+          !existingForwardersNames.contains(member.name)) {
+        if (ClassHierarchy.findMemberByName(declared, member.name) != null) {
+          member.isNoSuchMethodForwarder = true;
+        } else {
+          addNoSuchMethodForwarderForProcedure(member, hierarchy);
+        }
+        existingForwardersNames.add(member.name);
+      }
+    }
   }
 
   Uri _getMemberUri(Member member) {

@@ -497,7 +497,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           actualType = getCalleeType(callMember, actualType);
           var conditional = new ConditionalExpression(nullCheck,
               new NullLiteral()..fileOffset = fileOffset, tearOff, actualType);
-          var let = new Let(t, conditional);
+          var let = new Let(t, conditional)..fileOffset = fileOffset;
           parent?.replaceChild(expression, let);
           expression = let;
         }

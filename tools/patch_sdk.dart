@@ -29,7 +29,6 @@ import 'package:front_end/src/fasta/kernel/utils.dart'
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/target/vm.dart' show VmTarget;
 import 'package:kernel/target/flutter.dart' show FlutterTarget;
-import 'package:vm/target/runner.dart' show RunnerTarget;
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 
 /// Set of input files that were read by this script to generate patched SDK.
@@ -134,17 +133,13 @@ Future _main(List<String> argv) async {
       target = new VmTarget(flags);
       break;
 
-    case 'runner':
-      target = new RunnerTarget(flags);
-      break;
-
     case 'flutter':
     case 'flutter_release':
       target = new FlutterTarget(flags);
       break;
 
     case 'dart2js':
-      target = new Dart2jsTarget(flags);
+      target = new Dart2jsTarget("dart2js", flags);
       break;
 
     default:

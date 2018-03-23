@@ -112,44 +112,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     with ErrorParserTestMixin {
   @override
   @failingTest
-  void test_expectedInterpolationIdentifier() {
-    // TODO(brianwilkerson) Does not recover.
-    //   RangeError: Value not in range: -1
-    //   dart:core                                                          _StringBase.substring
-    //   package:front_end/src/fasta/quote.dart 130:12                      unescapeLastStringPart
-    //   package:analyzer/src/fasta/ast_builder.dart 187:17                 AstBuilder.endLiteralString
-    //   test/generated/parser_fasta_listener.dart 896:14                   ForwardingTestListener.endLiteralString
-    //   package:front_end/src/fasta/parser/parser.dart 3497:14             Parser.parseSingleLiteralString
-    //   package:front_end/src/fasta/parser/parser.dart 3434:13             Parser.parseLiteralString
-    //   package:front_end/src/fasta/parser/parser.dart 3133:14             Parser.parsePrimary
-    //   package:front_end/src/fasta/parser/parser.dart 3097:14             Parser.parseUnaryExpression
-    //   package:front_end/src/fasta/parser/parser.dart 2968:13             Parser.parsePrecedenceExpression
-    //   package:front_end/src/fasta/parser/parser.dart 2942:11             Parser.parseExpression
-    //   test/generated/parser_fasta_test.dart 2929:39                      ParserProxy._run
-    super.test_expectedInterpolationIdentifier();
-  }
-
-  @override
-  @failingTest
-  void test_expectedInterpolationIdentifier_emptyString() {
-    // TODO(brianwilkerson) Does not recover.
-    //   RangeError: Value not in range: -1
-    //   dart:core                                                          _StringBase.substring
-    //   package:front_end/src/fasta/quote.dart 130:12                      unescapeLastStringPart
-    //   package:analyzer/src/fasta/ast_builder.dart 187:17                 AstBuilder.endLiteralString
-    //   test/generated/parser_fasta_listener.dart 896:14                   ForwardingTestListener.endLiteralString
-    //   package:front_end/src/fasta/parser/parser.dart 3497:14             Parser.parseSingleLiteralString
-    //   package:front_end/src/fasta/parser/parser.dart 3434:13             Parser.parseLiteralString
-    //   package:front_end/src/fasta/parser/parser.dart 3133:14             Parser.parsePrimary
-    //   package:front_end/src/fasta/parser/parser.dart 3097:14             Parser.parseUnaryExpression
-    //   package:front_end/src/fasta/parser/parser.dart 2968:13             Parser.parsePrecedenceExpression
-    //   package:front_end/src/fasta/parser/parser.dart 2942:11             Parser.parseExpression
-    //   test/generated/parser_fasta_test.dart 2929:39                      ParserProxy._run
-    super.test_expectedInterpolationIdentifier_emptyString();
-  }
-
-  @override
-  @failingTest
   void test_expectedListOrMapLiteral() {
     // TODO(brianwilkerson) Does not recover.
     //   type 'IntegerLiteralImpl' is not a subtype of type 'TypedLiteral' in type cast where
@@ -171,22 +133,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     //
     //   test/generated/parser_test.dart 2652:29                            FastaParserTestCase&ErrorParserTestMixin.test_expectedStringLiteral
     super.test_expectedStringLiteral();
-  }
-
-  @override
-  @failingTest
-  void test_expectedToken_whileMissingInDoStatement() {
-    // TODO(brianwilkerson) Does not recover.
-    //   NoSuchMethodError: Class 'SimpleToken' has no instance getter 'endGroup'.
-    //   Receiver: Instance of 'SimpleToken'
-    //   Tried calling: endGroup
-    //   dart:core                                                          Object.noSuchMethod
-    //   package:front_end/src/fasta/parser/parser.dart 3212:26             Parser.parseParenthesizedExpression
-    //   package:front_end/src/fasta/parser/parser.dart 3781:13             Parser.parseDoWhileStatement
-    //   package:front_end/src/fasta/parser/parser.dart 2756:14             Parser.parseStatementX
-    //   package:front_end/src/fasta/parser/parser.dart 2722:20             Parser.parseStatement
-    //   test/generated/parser_fasta_test.dart 2973:39                      ParserProxy._run
-    super.test_expectedToken_whileMissingInDoStatement();
   }
 
   @override
@@ -341,25 +287,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     //   package:front_end/src/fasta/parser/parser.dart 2942:11             Parser.parseExpression
     //   test/generated/parser_fasta_test.dart 3196:39                      ParserProxy._run
     super.test_invalidHexEscape_tooFewDigits();
-  }
-
-  @override
-  @failingTest
-  void test_invalidInterpolationIdentifier_startWithDigit() {
-    // TODO(brianwilkerson) Does not recover.
-    //   RangeError: Value not in range: -1
-    //   dart:core                                                          _StringBase.substring
-    //   package:front_end/src/fasta/quote.dart 130:12                      unescapeLastStringPart
-    //   package:analyzer/src/fasta/ast_builder.dart 181:17                 AstBuilder.endLiteralString
-    //   test/generated/parser_fasta_listener.dart 896:14                   ForwardingTestListener.endLiteralString
-    //   package:front_end/src/fasta/parser/parser.dart 3497:14             Parser.parseSingleLiteralString
-    //   package:front_end/src/fasta/parser/parser.dart 3434:13             Parser.parseLiteralString
-    //   package:front_end/src/fasta/parser/parser.dart 3133:14             Parser.parsePrimary
-    //   package:front_end/src/fasta/parser/parser.dart 3097:14             Parser.parseUnaryExpression
-    //   package:front_end/src/fasta/parser/parser.dart 2968:13             Parser.parsePrecedenceExpression
-    //   package:front_end/src/fasta/parser/parser.dart 2942:11             Parser.parseExpression
-    //   test/generated/parser_fasta_test.dart 3196:39                      ParserProxy._run
-    super.test_invalidInterpolationIdentifier_startWithDigit();
   }
 
   @override
@@ -681,38 +608,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_missingFunctionParameters_local_nonVoid_block() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_FUNCTION_PARAMETERS, found 0
-    super.test_missingFunctionParameters_local_nonVoid_block();
-  }
-
-  @override
-  @failingTest
-  void test_missingFunctionParameters_local_nonVoid_expression() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_FUNCTION_PARAMETERS, found 0
-    super.test_missingFunctionParameters_local_nonVoid_expression();
-  }
-
-  @override
-  @failingTest
-  void test_missingFunctionParameters_local_void_block() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_FUNCTION_PARAMETERS, found 0
-    super.test_missingFunctionParameters_local_void_block();
-  }
-
-  @override
-  @failingTest
-  void test_missingFunctionParameters_local_void_expression() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_FUNCTION_PARAMETERS, found 0
-    super.test_missingFunctionParameters_local_void_expression();
-  }
-
-  @override
-  @failingTest
   void test_missingFunctionParameters_topLevel_void_block() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.MISSING_FUNCTION_PARAMETERS, found 0
@@ -827,14 +722,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.NON_CONSTRUCTOR_FACTORY, found 0
     super.test_nonConstructorFactory_method();
-  }
-
-  @override
-  @failingTest
-  void test_nonIdentifierLibraryName_library() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME, found 0
-    super.test_nonIdentifierLibraryName_library();
   }
 
   @override
@@ -1788,20 +1675,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Unhandled compile-time error:
     // A function expression can't have a name.
     super.test_functionExpression_named();
-  }
-
-  @override
-  @failingTest
-  void test_incompleteLocalVariable_beforeIdentifier() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incompleteLocalVariable_beforeIdentifier();
-  }
-
-  @override
-  @failingTest
-  void test_incompleteLocalVariable_beforeKeyword() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incompleteLocalVariable_beforeKeyword();
   }
 
   @override

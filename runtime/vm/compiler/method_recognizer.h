@@ -146,14 +146,15 @@ namespace dart {
   V(_Smi, ~, Smi_bitNegate, Smi, 0x67299f4f)                                   \
   V(_Smi, get:bitLength, Smi_bitLength, Smi, 0x25b3cb0a)                       \
   V(_Smi, _bitAndFromSmi, Smi_bitAndFromSmi, Smi, 0x562d5047)                  \
-  V(_Bigint, _lsh, Bigint_lsh, Dynamic, 0x7b99f80e)                            \
-  V(_Bigint, _rsh, Bigint_rsh, Dynamic, 0x5262b3a1)                            \
-  V(_Bigint, _absAdd, Bigint_absAdd, Dynamic, 0x07cad968)                      \
-  V(_Bigint, _absSub, Bigint_absSub, Dynamic, 0x1bf1bb4c)                      \
-  V(_Bigint, _mulAdd, Bigint_mulAdd, Dynamic, 0x229759b7)                      \
-  V(_Bigint, _sqrAdd, Bigint_sqrAdd, Dynamic, 0x5212b81f)                      \
-  V(_Bigint, _estQuotientDigit, Bigint_estQuotientDigit, Dynamic, 0x4dd342fe)  \
-  V(_Montgomery, _mulMod, Montgomery_mulMod, Dynamic, 0x17a515ac)              \
+  V(_BigIntImpl, _lsh, Bigint_lsh, Dynamic, 0x5b6cfc8b)                        \
+  V(_BigIntImpl, _rsh, Bigint_rsh, Dynamic, 0x6ff14a49)                        \
+  V(_BigIntImpl, _absAdd, Bigint_absAdd, Dynamic, 0x5bf14238)                  \
+  V(_BigIntImpl, _absSub, Bigint_absSub, Dynamic, 0x1de5bd32)                  \
+  V(_BigIntImpl, _mulAdd, Bigint_mulAdd, Smi, 0x6f277966)                      \
+  V(_BigIntImpl, _sqrAdd, Bigint_sqrAdd, Smi, 0x68e4c8ea)                      \
+  V(_BigIntImpl, _estimateQuotientDigit, Bigint_estQuotientDigit, Smi,         \
+    0x35456d91)                                                                \
+  V(_BigIntMontgomeryReduction, _mulMod, Montgomery_mulMod, Smi, 0x0f7b0375)   \
   V(_Double, >, Double_greaterThan, Bool, 0x4f1375a3)                          \
   V(_Double, >=, Double_greaterEqualThan, Bool, 0x4260c184)                    \
   V(_Double, <, Double_lessThan, Bool, 0x365d1eba)                             \
@@ -460,14 +461,14 @@ namespace dart {
   V(::, sin, MathSin, 0x6b7bd98c)                                              \
   V(::, sqrt, MathSqrt, 0x70482cf3)                                            \
   V(::, tan, MathTan, 0x3bcd772a)                                              \
-  V(_Bigint, _lsh, Bigint_lsh, 0x7b99f80e)                                     \
-  V(_Bigint, _rsh, Bigint_rsh, 0x5262b3a1)                                     \
-  V(_Bigint, _absAdd, Bigint_absAdd, 0x07cad968)                               \
-  V(_Bigint, _absSub, Bigint_absSub, 0x1bf1bb4c)                               \
-  V(_Bigint, _mulAdd, Bigint_mulAdd, 0x229759b7)                               \
-  V(_Bigint, _sqrAdd, Bigint_sqrAdd, 0x5212b81f)                               \
-  V(_Bigint, _estQuotientDigit, Bigint_estQuotientDigit, 0x4dd342fe)           \
-  V(_Montgomery, _mulMod, Montgomery_mulMod, 0x17a515ac)                       \
+  V(_BigIntImpl, _lsh, Bigint_lsh, 0x5b6cfc8b)                                 \
+  V(_BigIntImpl, _rsh, Bigint_rsh, 0x6ff14a49)                                 \
+  V(_BigIntImpl, _absAdd, Bigint_absAdd, 0x5bf14238)                           \
+  V(_BigIntImpl, _absSub, Bigint_absSub, 0x1de5bd32)                           \
+  V(_BigIntImpl, _mulAdd, Bigint_mulAdd, 0x6f277966)                           \
+  V(_BigIntImpl, _sqrAdd, Bigint_sqrAdd, 0x68e4c8ea)                           \
+  V(_BigIntImpl, _estimateQuotientDigit, Bigint_estQuotientDigit, 0x35456d91)  \
+  V(_BigIntMontgomeryReduction, _mulMod, Montgomery_mulMod, 0x0f7b0375)        \
   V(_Double, >, Double_greaterThan, 0x4f1375a3)                                \
   V(_Double, >=, Double_greaterEqualThan, 0x4260c184)                          \
   V(_Double, <, Double_lessThan, 0x365d1eba)                                   \

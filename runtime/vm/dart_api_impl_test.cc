@@ -324,6 +324,8 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
   intptr_t line_number = 0;
   intptr_t column_number = 0;
   const char* cstr = "";
+  const char* test_lib =
+      FLAG_use_dart_frontend ? "file:///test-lib" : "test-lib";
 
   // Top frame is inspectStack().
   Dart_ActivationFrame frame;
@@ -335,7 +337,7 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
   Dart_StringToCString(function_name, &cstr);
   EXPECT_STREQ("inspectStack", cstr);
   Dart_StringToCString(script_url, &cstr);
-  EXPECT_STREQ("test-lib", cstr);
+  EXPECT_STREQ(test_lib, cstr);
   EXPECT_EQ(1, line_number);
   EXPECT_EQ(47, column_number);
 
@@ -348,7 +350,7 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
   Dart_StringToCString(function_name, &cstr);
   EXPECT_STREQ("foo", cstr);
   Dart_StringToCString(script_url, &cstr);
-  EXPECT_STREQ("test-lib", cstr);
+  EXPECT_STREQ(test_lib, cstr);
   EXPECT_EQ(2, line_number);
   EXPECT_EQ(20, column_number);
 
@@ -363,7 +365,7 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
     Dart_StringToCString(function_name, &cstr);
     EXPECT_STREQ("foo", cstr);
     Dart_StringToCString(script_url, &cstr);
-    EXPECT_STREQ("test-lib", cstr);
+    EXPECT_STREQ(test_lib, cstr);
     EXPECT_EQ(2, line_number);
     EXPECT_EQ(37, column_number);
   }
@@ -377,7 +379,7 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
   Dart_StringToCString(function_name, &cstr);
   EXPECT_STREQ("testMain", cstr);
   Dart_StringToCString(script_url, &cstr);
-  EXPECT_STREQ("test-lib", cstr);
+  EXPECT_STREQ(test_lib, cstr);
   EXPECT_EQ(3, line_number);
   EXPECT_EQ(15, column_number);
 
@@ -551,21 +553,66 @@ static Dart_NativeFunction PropagateError_native_lookup(
   return reinterpret_cast<Dart_NativeFunction>(&PropagateErrorNative);
 }
 
-TEST_CASE(DartAPI_PropagateError) {
+TEST_CASE(DartAPI_PropagateCompileTimeError) {
   const char* kScriptChars =
       "raiseCompileError() {\n"
       "  return missing_semicolon\n"
-      "}\n"
-      "\n"
-      "void throwException() {\n"
-      "  throw new Exception('myException');\n"
       "}\n"
       "\n"
       "void nativeFunc(closure) native 'Test_nativeFunc';\n"
       "\n"
       "void Func1() {\n"
       "  nativeFunc(() => raiseCompileError());\n"
+      "}\n";
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars, &PropagateError_native_lookup);
+  Dart_Handle result;
+
+  // Use Dart_PropagateError to propagate the error.
+  use_throw_exception = false;
+  use_set_return = false;
+
+  result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
+  EXPECT(Dart_IsError(result));
+
+  if (FLAG_use_dart_frontend) {
+    EXPECT_SUBSTRING("Expected ';' before this.", Dart_GetError(result));
+  } else {
+    EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
+  }
+
+  // Use Dart_SetReturnValue to propagate the error.
+  use_throw_exception = false;
+  use_set_return = true;
+
+  result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
+  EXPECT(Dart_IsError(result));
+  if (FLAG_use_dart_frontend) {
+    EXPECT_SUBSTRING("Expected ';' before this.", Dart_GetError(result));
+  } else {
+    EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
+  }
+
+  // Use Dart_ThrowException to propagate the error.
+  use_throw_exception = true;
+  use_set_return = false;
+
+  result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
+  EXPECT(Dart_IsError(result));
+  if (FLAG_use_dart_frontend) {
+    EXPECT_SUBSTRING("Expected ';' before this.", Dart_GetError(result));
+  } else {
+    EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
+  }
+}
+
+TEST_CASE(DartAPI_PropagateError) {
+  const char* kScriptChars =
+      "void throwException() {\n"
+      "  throw new Exception('myException');\n"
       "}\n"
+      "\n"
+      "void nativeFunc(closure) native 'Test_nativeFunc';\n"
       "\n"
       "void Func2() {\n"
       "  nativeFunc(() => throwException());\n"
@@ -578,10 +625,6 @@ TEST_CASE(DartAPI_PropagateError) {
   use_throw_exception = false;
   use_set_return = false;
 
-  result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
-  EXPECT(Dart_IsError(result));
-  EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
-
   result = Dart_Invoke(lib, NewString("Func2"), 0, NULL);
   EXPECT(Dart_IsError(result));
   EXPECT(Dart_ErrorHasException(result));
@@ -591,10 +634,6 @@ TEST_CASE(DartAPI_PropagateError) {
   use_throw_exception = false;
   use_set_return = true;
 
-  result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
-  EXPECT(Dart_IsError(result));
-  EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
-
   result = Dart_Invoke(lib, NewString("Func2"), 0, NULL);
   EXPECT(Dart_IsError(result));
   EXPECT(Dart_ErrorHasException(result));
@@ -603,10 +642,6 @@ TEST_CASE(DartAPI_PropagateError) {
   // Use Dart_ThrowException to propagate the error.
   use_throw_exception = true;
   use_set_return = false;
-
-  result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
-  EXPECT(Dart_IsError(result));
-  EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
 
   result = Dart_Invoke(lib, NewString("Func2"), 0, NULL);
   EXPECT(Dart_IsError(result));
@@ -3931,57 +3966,6 @@ static Dart_NativeFunction native_field_lookup(Dart_Handle name,
   return reinterpret_cast<Dart_NativeFunction>(&NativeFieldLookup);
 }
 
-TEST_CASE(DartAPI_InjectNativeFields1) {
-  const char* kScriptChars =
-      "class NativeFields extends NativeFieldsWrapper {\n"
-      "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
-      "  int fld1;\n"
-      "  final int fld2;\n"
-      "  static int fld3;\n"
-      "  static const int fld4 = 10;\n"
-      "}\n"
-      "NativeFields testMain() {\n"
-      "  NativeFields obj = new NativeFields(10, 20);\n"
-      "  return obj;\n"
-      "}\n";
-  Dart_Handle result;
-
-  const int kNumNativeFields = 4;
-
-  // Create a test library.
-  Dart_Handle lib =
-      TestCase::LoadTestScript(kScriptChars, NULL, USER_TEST_URI, false);
-
-  // Create a native wrapper class with native fields.
-  result = Dart_CreateNativeWrapperClass(lib, NewString("NativeFieldsWrapper"),
-                                         kNumNativeFields);
-  EXPECT_VALID(result);
-  result = Dart_FinalizeLoading(false);
-  EXPECT_VALID(result);
-
-  // Load up a test script in the test library.
-
-  // Invoke a function which returns an object of type NativeFields.
-  result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
-  EXPECT_VALID(result);
-  CHECK_API_SCOPE(thread);
-  HANDLESCOPE(thread);
-  Instance& obj = Instance::Handle();
-  obj ^= Api::UnwrapHandle(result);
-  const Class& cls = Class::Handle(obj.clazz());
-  // We expect the newly created "NativeFields" object to have
-  // 2 dart instance fields (fld1, fld2) and a reference to the native fields.
-  // Hence the size of an instance of "NativeFields" should be
-  // (1 + 2) * kWordSize + size of object header.
-  // We check to make sure the instance size computed by the VM matches
-  // our expectations.
-  intptr_t header_size = sizeof(RawObject);
-  EXPECT_EQ(
-      Utils::RoundUp(((1 + 2) * kWordSize) + header_size, kObjectAlignment),
-      cls.instance_size());
-  EXPECT_EQ(kNumNativeFields, cls.num_native_fields());
-}
-
 TEST_CASE(DartAPI_InjectNativeFields2) {
   const char* kScriptChars =
       "class NativeFields extends NativeFieldsWrapper {\n"
@@ -4260,55 +4244,6 @@ static void TestNativeFields(Dart_Handle retobj) {
   EXPECT_VALID(result);
   result = Dart_IntegerToInt64(result, &value);
   EXPECT_EQ(20, value);
-}
-
-TEST_CASE(DartAPI_NativeFieldAccess) {
-  const char* kScriptChars =
-      "class NativeFields extends NativeFieldsWrapper {\n"
-      "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
-      "  int fld0;\n"
-      "  int fld1;\n"
-      "  final int fld2;\n"
-      "  static int fld3;\n"
-      "  static const int fld4 = 10;\n"
-      "}\n"
-      "NativeFields testMain() {\n"
-      "  NativeFields obj = new NativeFields(10, 20);\n"
-      "  return obj;\n"
-      "}\n";
-  const int kNumNativeFields = 4;
-
-  // Create a test library.
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, native_field_lookup,
-                                             USER_TEST_URI, false);
-
-  // Create a native wrapper class with native fields.
-  Dart_Handle result = Dart_CreateNativeWrapperClass(
-      lib, NewString("NativeFieldsWrapper"), kNumNativeFields);
-  EXPECT_VALID(result);
-  result = Dart_FinalizeLoading(false);
-  EXPECT_VALID(result);
-
-  // Load up a test script in it.
-
-  // Invoke a function which returns an object of type NativeFields.
-  Dart_Handle retobj = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
-  EXPECT_VALID(retobj);
-
-  // Now access and set various instance fields of the returned object.
-  TestNativeFields(retobj);
-
-  // Test that accessing an error handle propagates the error.
-  Dart_Handle error = Api::NewError("myerror");
-  intptr_t field_value = 0;
-
-  result = Dart_GetNativeInstanceField(error, 0, &field_value);
-  EXPECT(Dart_IsError(result));
-  EXPECT_STREQ("myerror", Dart_GetError(result));
-
-  result = Dart_SetNativeInstanceField(error, 0, 1);
-  EXPECT(Dart_IsError(result));
-  EXPECT_STREQ("myerror", Dart_GetError(result));
 }
 
 TEST_CASE(DartAPI_ImplicitNativeFieldAccess) {
@@ -5127,15 +5062,11 @@ TEST_CASE(DartAPI_Invoke_CrossLibrary) {
       "void _imported() {}\n";
 
   // Load lib1
-  Dart_Handle url = NewString("library1_url");
-  Dart_Handle source = NewString(kLibrary1Chars);
-  Dart_Handle lib1 = Dart_LoadLibrary(url, Dart_Null(), source, 0, 0);
+  Dart_Handle lib1 = TestCase::LoadTestLibrary("library1_url", kLibrary1Chars);
   EXPECT_VALID(lib1);
 
   // Load lib2
-  url = NewString("library2_url");
-  source = NewString(kLibrary2Chars);
-  Dart_Handle lib2 = Dart_LoadLibrary(url, Dart_Null(), source, 0, 0);
+  Dart_Handle lib2 = TestCase::LoadTestLibrary("library2_url", kLibrary2Chars);
   EXPECT_VALID(lib2);
 
   // Import lib2 from lib1
@@ -5785,23 +5716,38 @@ TEST_CASE(DartAPI_LookupLibrary) {
   const char* kScriptChars =
       "import 'library1_dart';"
       "main() {}";
+  const char* kLibrary1 = "file:///library1_dart";
   const char* kLibrary1Chars =
-      "library library1_dart;"
-      "import 'library2_dart';";
+      "library library1;"
+      "final x = 0;";
 
-  // Create a test library and Load up a test script in it.
-  Dart_Handle url = NewString(TestCase::url());
-  Dart_Handle source = NewString(kScriptChars);
-  Dart_Handle result = Dart_SetLibraryTagHandler(library_handler);
-  EXPECT_VALID(result);
-  result = Dart_LoadScript(url, Dart_Null(), source, 0, 0);
-  EXPECT_VALID(result);
+  Dart_Handle url;
+  Dart_Handle result;
 
-  url = NewString("library1_dart");
-  source = NewString(kLibrary1Chars);
-  result = Dart_LoadLibrary(url, Dart_Null(), source, 0, 0);
-  EXPECT_VALID(result);
+  // Create a test library and load up a test script in it.
+  if (FLAG_use_dart_frontend) {
+    TestCase::AddTestLib("file:///library1_dart", kLibrary1Chars);
+    // LoadTestScript resets the LibraryTagHandler, which we don't want when
+    // using the VM compiler, so we only use it with the Dart frontend for this
+    // test.
+    result = TestCase::LoadTestScript(kScriptChars, NULL, TestCase::url());
+    EXPECT_VALID(result);
+  } else {
+    Dart_Handle source = NewString(kScriptChars);
+    url = NewString(TestCase::url());
 
+    result = Dart_SetLibraryTagHandler(library_handler);
+    EXPECT_VALID(result);
+
+    result = Dart_LoadScript(url, Dart_Null(), source, 0, 0);
+    EXPECT_VALID(result);
+
+    url = NewString(kLibrary1);
+    source = NewString(kLibrary1Chars);
+    result = Dart_LoadLibrary(url, Dart_Null(), source, 0, 0);
+  }
+
+  url = NewString(kLibrary1);
   result = Dart_LookupLibrary(url);
   EXPECT_VALID(result);
 

@@ -125,7 +125,8 @@ class CompilerContext {
     return current.enableColorsCached ??= computeEnableColors(current);
   }
 
-  static void clear() {
+  void clear() {
     StringToken.canonicalizer.clear();
+    errors.clear();
   }
 }

@@ -27,18 +27,24 @@ import 'compiler_state.dart' show InitializedCompilerState;
 
 export 'compiler_state.dart' show InitializedCompilerState;
 
-InitializedCompilerState initializeCompiler(InitializedCompilerState oldState,
-    Target target, Uri sdkUri, Uri packagesFileUri) {
+InitializedCompilerState initializeCompiler(
+    InitializedCompilerState oldState,
+    Target target,
+    Uri librariesSpecificationUri,
+    Uri sdkPlatformUri,
+    Uri packagesFileUri) {
   if (oldState != null &&
       oldState.options.packagesFileUri == packagesFileUri &&
-      oldState.options.linkedDependencies[0] == sdkUri) {
+      oldState.options.librariesSpecificationUri == librariesSpecificationUri &&
+      oldState.options.linkedDependencies[0] == sdkPlatformUri) {
     return oldState;
   }
 
   CompilerOptions options = new CompilerOptions()
     ..target = target
     ..strongMode = target.strongMode
-    ..linkedDependencies = [sdkUri]
+    ..linkedDependencies = [sdkPlatformUri]
+    ..librariesSpecificationUri = librariesSpecificationUri
     ..packagesFileUri = packagesFileUri;
 
   ProcessedOptions processedOpts = new ProcessedOptions(options, false, []);

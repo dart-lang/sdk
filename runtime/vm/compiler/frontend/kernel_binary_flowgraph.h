@@ -276,6 +276,10 @@ class ProcedureHelper {
     kRedirectingFactoryConstructor = 1 << 7,
   };
 
+  enum Flag2 {
+    kNoSuchMethodForwarder = 1 << 0,
+  };
+
   explicit ProcedureHelper(StreamingFlowGraphBuilder* builder) {
     builder_ = builder;
     next_read_ = kStart;
@@ -298,12 +302,16 @@ class ProcedureHelper {
   bool IsRedirectingFactoryConstructor() {
     return (flags_ & kRedirectingFactoryConstructor) != 0;
   }
+  bool IsNoSuchMethodForwarder() {
+    return (flags2_ & kNoSuchMethodForwarder) != 0;
+  }
 
   NameIndex canonical_name_;
   TokenPosition position_;
   TokenPosition end_position_;
   Kind kind_;
   uint8_t flags_;
+  uint8_t flags2_;
   intptr_t source_uri_index_;
   intptr_t annotation_count_;
 
@@ -1042,7 +1050,9 @@ class StreamingFlowGraphBuilder {
   // If a 'ParsedFunction' is provided for 'set_forwarding_stub', this method
   // will attach the forwarding stub target reference to the parsed function if
   // it crosses a procedure node for a concrete forwarding stub.
-  void ReadUntilFunctionNode(ParsedFunction* set_forwarding_stub = NULL);
+  //
+  // Returns 'true' if discovered a no-such-method forwarder.
+  bool ReadUntilFunctionNode(ParsedFunction* set_forwarding_stub = NULL);
   intptr_t ReadListLength();
 
   enum DispatchCategory { Interface, ViaThis, Closure, DynamicDispatch };
@@ -1071,7 +1081,9 @@ class StreamingFlowGraphBuilder {
   Fragment BuildInitializers(const Class& parent_class);
   FlowGraph* BuildGraphOfImplicitClosureFunction(const Function& function);
   FlowGraph* BuildGraphOfFunction(bool constructor);
-  FlowGraph* BuildGraphOfForwardingStub(const Function& function);
+  FlowGraph* BuildGraphOfNoSuchMethodForwarder(
+      const Function& function,
+      bool is_implicit_closure_function);
 
   intptr_t GetOffsetForSourceInfo(intptr_t index);
 
@@ -1156,8 +1168,10 @@ class StreamingFlowGraphBuilder {
   const TypeArguments& PeekArgumentsInstantiatedType(const Class& klass);
   intptr_t PeekArgumentsCount();
 
-  LocalVariable* LookupVariable(intptr_t kernel_offset);
+  // See BaseFlowGraphBuilder::MakeTemporary.
   LocalVariable* MakeTemporary();
+
+  LocalVariable* LookupVariable(intptr_t kernel_offset);
   RawFunction* LookupMethodByMember(NameIndex target,
                                     const String& method_name);
   Function& FindMatchingFunctionAnyArgs(const Class& klass, const String& name);

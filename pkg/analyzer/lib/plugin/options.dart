@@ -4,8 +4,6 @@
 
 /// Support for client code that wants to consume options contributed to the
 /// analysis options file.
-library analyzer.plugin.options;
-
 import 'package:analyzer/error/listener.dart';
 import 'package:yaml/yaml.dart';
 
@@ -41,5 +39,5 @@ import 'package:yaml/yaml.dart';
 ///
 abstract class OptionsValidator {
   /// Validate [options], reporting any errors to the given [reporter].
-  void validate(ErrorReporter reporter, Map<String, YamlNode> options);
+  void validate(ErrorReporter reporter, YamlMap options);
 }

@@ -68,6 +68,7 @@ vars = {
   "crypto_tag" : "@2.0.2+1",
   "csslib_tag" : "@0.14.1",
   "dart2js_info_tag" : "@0.5.5+1",
+  "browser_tag" : "@0.10.0+2",
 
   # Note: updates to dart_style have to be coordinated carefully with
   # the infrastructure-team so that the internal formatter in
@@ -99,7 +100,7 @@ vars = {
   "isolate_tag": "@1.1.0",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@2.0.6",
-  "linter_tag": "@0.1.44",
+  "linter_tag": "@0.1.45",
   "logging_tag": "@0.11.3+1",
   "markdown_tag": "@1.1.1",
   "matcher_tag": "@0.12.1+4",
@@ -115,7 +116,7 @@ vars = {
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "@1.3.4",
   "protobuf_tag": "@0.7.1",
-  "pub_rev": "@dbe8be2bb8bca9b26ba7bd583272c62f9a0153fd",
+  "pub_rev": "@875d35005a7d33f367d70a3e31e9d3bad5d1ebd8",
   "pub_semver_tag": "@1.3.2",
   "quiver_tag": "@5aaa3f58c48608af5b027444d561270b53f15dbf",
   "resource_rev":"@af5a5bf65511943398146cf146e466e5f0b95cb9",
@@ -207,6 +208,9 @@ Var("dart_root") + "/tests/co19_2/src":
   Var("dart_root") + "/third_party/pkg/boolean_selector":
       Var("dart_git") + "boolean_selector.git" +
       Var("boolean_selector_tag"),
+  Var("dart_root") + "/third_party/pkg/browser":
+      Var("dart_git") + "browser.git" +
+      Var("browser_tag"),
   Var("dart_root") + "/third_party/pkg/charcode":
       Var("dart_git") + "charcode.git" + Var("charcode_tag"),
   Var("dart_root") + "/third_party/pkg/cli_util":

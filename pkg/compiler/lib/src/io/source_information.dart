@@ -279,6 +279,8 @@ class OffsetSourceLocation extends AbstractSourceLocation {
 
 /// Compute the source map name for [element]. If [callStructure] is non-null
 /// it is used to name the parameter stub for [element].
+// TODO(johnniwinther): Merge this with `computeKernelElementNameForSourceMaps`
+// when the old frontend is removed.
 String computeElementNameForSourceMaps(Entity element,
     [CallStructure callStructure]) {
   if (element is AstElement) {

@@ -1,0 +1,25 @@
+# Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile in strong mode. Use mixins.
+
+type: simple
+name: testStrongModeMixins2
+entry: testStrongModeMixins2_a.dart
+strong: true
+invalidate:
+  - testStrongModeMixins2_a.dart
+sources:
+  testStrongModeMixins2_a.dart: |
+    import 'testStrongModeMixins2_b.dart';
+    class A extends Object with B<C>, D<Object> {}
+  testStrongModeMixins2_b.dart: |
+    abstract class B<ChildType extends Object> extends Object {
+      ChildType get child => null;
+      set child(ChildType value) {}
+    }
+
+    class C extends Object {}
+
+    abstract class D<T extends Object> extends Object with B<T> {}

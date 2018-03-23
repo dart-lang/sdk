@@ -19,6 +19,5 @@ dependencies:
   yaml: ^2.1.2
 dev_dependencies:
   test_reflective_loader: ^0.1.0
-  mockito: ^2.0.2
   test: ^0.12.0
   usage: ^3.2.0+1

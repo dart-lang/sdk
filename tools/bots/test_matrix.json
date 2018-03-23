@@ -11,12 +11,21 @@
       ".packages"
     ],
     "dart2js": [
-      "out/ReleaseX64/",
-      "xcodebuild/ReleaseX64/",
-      "tools/",
-      "tests/",
+      ".packages",
+      "out/ReleaseIA32/dart-sdk/",
+      "out/ReleaseX64/dart-sdk/",
       "pkg/",
-      ".packages"
+      "runtime/tests/",
+      "samples-dev/",
+      "samples/",
+      "tests/",
+      "third_party/d8/",
+      "third_party/observatory_pub_packages/packages/web_components/",
+      "third_party/pkg/",
+      "third_party/pkg_tested/",
+      "tools/",
+      "xcodebuild/ReleaseIA32/dart-sdk/",
+      "xcodebuild/ReleaseX64/dart-sdk/"
     ],
     "vm_debug": [
       "out/DebugIA32/",
@@ -615,13 +624,17 @@
         },
         {
           "name": "vm tests",
-          "arguments": ["--vm-options=--optimization-counter-threshold=5"]
+          "arguments": [
+            "--vm-options=--optimization-counter-threshold=5",
+            "--builder-tag=optimization_counter_threshold"
+          ]
         },
         {
           "name": "checked vm tests",
           "arguments": [
             "--checked",
-            "--vm-options=--optimization-counter-threshold=5"
+            "--vm-options=--optimization-counter-threshold=5",
+            "--builder-tag=optimization_counter_threshold"
           ]
         }
       ]
@@ -880,32 +893,6 @@
           "fileset": "dart2js"
         },
         {
-          "name": "dart2js fast-startup tests",
-          "arguments": [
-            "--use-sdk",
-            "--compiler=dart2js",
-            "--dart2js-batch",
-            "--reset-browser-configuration",
-            "--fast-startup"
-          ],
-          "exclude_tests": ["observatory_ui", "co19"],
-          "shards": 4,
-          "fileset": "dart2js"
-        },
-        {
-          "name": "dart2js fast-startup co19 tests",
-          "arguments": [
-            "--use-sdk",
-            "--compiler=dart2js",
-            "--dart2js-batch",
-            "--reset-browser-configuration",
-            "--fast-startup"
-          ],
-          "tests": ["co19"],
-          "shards": 4,
-          "fileset": "dart2js"
-        },
-        {
           "name": "dart2js package tests",
           "arguments": [
             "--use-sdk",
@@ -934,9 +921,51 @@
             "--reset-browser-configuration"
           ],
           "tests": ["dart2js_extra","dart2js_native"]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "dart2js-faststartup-linux-x64-chrome"
+      ],
+      "meta": {
+        "description":
+          "These builders run dart2js tests with the --fast-startup option."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["create_sdk"]
         },
         {
-          "name": "dart2js fast-startup pkg tests",
+          "name": "dart2js fast-startup tests",
+          "arguments": [
+            "--use-sdk",
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--fast-startup"
+          ],
+          "exclude_tests": ["observatory_ui", "co19"],
+          "shards": 4,
+          "fileset": "dart2js"
+        },
+        {
+          "name": "dart2js fast-startup co19 tests",
+          "arguments": [
+            "--use-sdk",
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--fast-startup"
+          ],
+          "tests": ["co19"],
+          "shards": 4,
+          "fileset": "dart2js"
+        },
+        {
+          "name": "dart2js fast-startup package tests",
           "arguments": [
             "--use-sdk",
             "--compiler=dart2js",

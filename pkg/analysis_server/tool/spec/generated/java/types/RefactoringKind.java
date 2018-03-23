@@ -23,6 +23,8 @@ public class RefactoringKind {
 
   public static final String EXTRACT_METHOD = "EXTRACT_METHOD";
 
+  public static final String EXTRACT_WIDGET = "EXTRACT_WIDGET";
+
   public static final String INLINE_LOCAL_VARIABLE = "INLINE_LOCAL_VARIABLE";
 
   public static final String INLINE_METHOD = "INLINE_METHOD";

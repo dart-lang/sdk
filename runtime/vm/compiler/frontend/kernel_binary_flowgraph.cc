@@ -8,6 +8,8 @@
 #include "vm/compiler/jit/compiler.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
+#include "vm/resolver.h"
+#include "vm/stack_frame.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -18,6 +20,7 @@ namespace kernel {
 #define H (translation_helper_)
 #define T (type_translator_)
 #define I Isolate::Current()
+#define B (flow_graph_builder_)
 
 static bool IsFieldInitializer(const Function& function, Zone* zone) {
   return (function.kind() == RawFunction::kImplicitStaticFinalGetter) &&
@@ -217,6 +220,7 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
     case kFlags:
       flags_ = builder_->ReadFlags();
+      flags2_ = builder_->ReadFlags();
       if (++next_read_ == field) return;
     case kName:
       builder_->SkipName();  // read name.
@@ -1084,7 +1088,7 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
     case RawFunction::kIrregexpFunction:
       UNREACHABLE();
   }
-  if (needs_expr_temp_) {
+  if (needs_expr_temp_ || parsed_function_->is_no_such_method_forwarder()) {
     scope_->AddVariable(parsed_function_->EnsureExpressionTemp());
   }
   parsed_function_->AllocateVariables();
@@ -3747,8 +3751,8 @@ void StreamingFlowGraphBuilder::DiscoverEnclosingElements(
   }
 }
 
-void StreamingFlowGraphBuilder::ReadUntilFunctionNode(
-    ParsedFunction* set_forwarding_stub) {
+bool StreamingFlowGraphBuilder::ReadUntilFunctionNode(
+    ParsedFunction* parsed_function) {
   const Tag tag = PeekTag();
   if (tag == kProcedure) {
     ProcedureHelper procedure_helper(this);
@@ -3757,17 +3761,22 @@ void StreamingFlowGraphBuilder::ReadUntilFunctionNode(
       // Running a procedure without a function node doesn't make sense.
       UNREACHABLE();
     }
-    if (set_forwarding_stub != NULL && flow_graph_builder_ &&
+    if (parsed_function != NULL && flow_graph_builder_ != nullptr &&
         procedure_helper.IsForwardingStub() && !procedure_helper.IsAbstract()) {
       ASSERT(procedure_helper.forwarding_stub_super_target_ != -1);
-      set_forwarding_stub->MarkForwardingStub(
+      parsed_function->MarkForwardingStub(
           procedure_helper.forwarding_stub_super_target_);
     }
+    if (parsed_function != NULL && flow_graph_builder_ != nullptr &&
+        procedure_helper.IsNoSuchMethodForwarder()) {
+      parsed_function->set_is_no_such_method_forwarder(true);
+    }
+    return procedure_helper.IsNoSuchMethodForwarder();
     // Now at start of FunctionNode.
   } else if (tag == kConstructor) {
     ConstructorHelper constructor_helper(this);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kFunction);
-    return;
+    return false;
     // Now at start of FunctionNode.
     // Notice that we also have a list of initializers after that!
   } else if (tag == kFunctionNode) {
@@ -3776,6 +3785,7 @@ void StreamingFlowGraphBuilder::ReadUntilFunctionNode(
     ReportUnexpectedTag("a procedure, a constructor or a function node", tag);
     UNREACHABLE();
   }
+  return false;
 }
 
 StringIndex StreamingFlowGraphBuilder::GetNameFromVariableDeclaration(
@@ -4322,6 +4332,219 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
                 flow_graph_builder_->last_used_block_id_, prologue_info);
 }
 
+FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
+    const Function& function,
+    bool is_implicit_closure_function) {
+  // The prologue builder needs the default parameter values.
+  SetupDefaultParameterValues();
+
+  TargetEntryInstr* normal_entry = B->BuildTargetEntry();
+  PrologueInfo prologue_info(-1, -1);
+  BlockEntryInstr* instruction_cursor =
+      B->BuildPrologue(normal_entry, &prologue_info);
+
+  B->graph_entry_ = new (Z) GraphEntryInstr(*parsed_function(), normal_entry,
+                                            Compiler::kNoOSRDeoptId);
+
+  Fragment body(instruction_cursor);
+  body += B->CheckStackOverflowInPrologue();
+
+  // If we are inside the tearoff wrapper function (implicit closure), we need
+  // to extract the receiver from the context. We just replace it directly on
+  // the stack to simplify the rest of the code.
+  if (is_implicit_closure_function) {
+    if (parsed_function()->has_arg_desc_var()) {
+      body += B->LoadArgDescriptor();
+      body += LoadField(ArgumentsDescriptor::count_offset());
+      body += LoadLocal(parsed_function()->current_context_var());
+      body += B->LoadField(Context::variable_offset(0));
+      body += B->StoreFpRelativeSlot(kWordSize * kParamEndSlotFromFp);
+      body += Drop();
+    } else {
+      body += LoadLocal(parsed_function()->current_context_var());
+      body += B->LoadField(Context::variable_offset(0));
+      body += B->StoreFpRelativeSlot(
+          kWordSize * (kParamEndSlotFromFp + function.NumParameters()));
+      body += Drop();
+    }
+  }
+
+  FunctionNodeHelper function_node_helper(this);
+  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
+
+  if (function.NeedsArgumentTypeChecks(I)) {
+    AlternativeReadingScope _(reader_);
+    body += BuildArgumentTypeChecks();
+  }
+
+  function_node_helper.ReadUntilExcluding(
+      FunctionNodeHelper::kPositionalParameters);
+
+  body += NullConstant();
+  LocalVariable* result = MakeTemporary();
+
+  // Do "++argument_count" if any type arguments were passed.
+  LocalVariable* argument_count_var = parsed_function()->expression_temp_var();
+  body += IntConstant(0);
+  body += StoreLocal(TokenPosition::kNoSource, argument_count_var);
+  body += Drop();
+  if (function.IsGeneric() && Isolate::Current()->reify_generic_functions()) {
+    Fragment test_generic;
+    JoinEntryInstr* join = BuildJoinEntry();
+
+    TargetEntryInstr *passed_type_args, *not_passed_type_args;
+    test_generic += B->LoadArgDescriptor();
+    test_generic += LoadField(ArgumentsDescriptor::type_args_len_offset());
+    test_generic += IntConstant(0);
+    test_generic += BranchIfEqual(&not_passed_type_args, &passed_type_args,
+                                  /*negate=*/false);
+
+    Fragment passed_type_args_frag(passed_type_args);
+    passed_type_args_frag += IntConstant(1);
+    passed_type_args_frag +=
+        StoreLocal(TokenPosition::kNoSource, argument_count_var);
+    passed_type_args_frag += Drop();
+    passed_type_args_frag += Goto(join);
+
+    Fragment not_passed_type_args_frag(not_passed_type_args);
+    not_passed_type_args_frag += Goto(join);
+
+    body += Fragment(test_generic.entry, join);
+  }
+
+  if (function.HasOptionalParameters()) {
+    body += B->LoadArgDescriptor();
+    body += LoadField(ArgumentsDescriptor::count_offset());
+  } else {
+    body += IntConstant(function.NumParameters());
+  }
+  body += LoadLocal(argument_count_var);
+  body += B->SmiBinaryOp(Token::kADD, /* truncate= */ true);
+  LocalVariable* argument_count = MakeTemporary();
+
+  // We are generating code like the following:
+  //
+  // var arguments = new Array<dynamic>(argument_count);
+  //
+  // for (int i = 0; i < argument_count; ++i) {
+  //   arguments[i] = LoadFpRelativeSlot(
+  //       kWordSize * (kParamEndSlotFromFp + argument_count - i));
+  // }
+  body += Constant(TypeArguments::ZoneHandle(Z, TypeArguments::null()));
+  body += LoadLocal(argument_count);
+  body += CreateArray();
+  LocalVariable* arguments = MakeTemporary();
+
+  {
+    // int i = 0
+    LocalVariable* index = parsed_function()->expression_temp_var();
+    body += IntConstant(0);
+    body += StoreLocal(TokenPosition::kNoSource, index);
+    body += Drop();
+
+    TargetEntryInstr* body_entry;
+    TargetEntryInstr* loop_exit;
+
+    Fragment condition;
+    // i < argument_count
+    condition += LoadLocal(index);
+    condition += LoadLocal(argument_count);
+    condition += B->SmiRelationalOp(Token::kLT);
+    condition += BranchIfTrue(&body_entry, &loop_exit, /*negate=*/false);
+
+    Fragment loop_body(body_entry);
+
+    // arguments[i] = LoadFpRelativeSlot(
+    //     kWordSize * (kParamEndSlotFromFp + argument_count - i));
+    loop_body += LoadLocal(arguments);
+    loop_body += LoadLocal(index);
+    loop_body += LoadLocal(argument_count);
+    loop_body += LoadLocal(index);
+    loop_body += B->SmiBinaryOp(Token::kSUB, /*truncate=*/true);
+    loop_body += B->LoadFpRelativeSlot(kWordSize * kParamEndSlotFromFp);
+    loop_body += StoreIndexed(kArrayCid);
+    loop_body += Drop();
+
+    // ++i
+    loop_body += LoadLocal(index);
+    loop_body += IntConstant(1);
+    loop_body += B->SmiBinaryOp(Token::kADD, /*truncate=*/true);
+    loop_body += StoreLocal(TokenPosition::kNoSource, index);
+    loop_body += Drop();
+
+    JoinEntryInstr* join = BuildJoinEntry();
+    loop_body += Goto(join);
+
+    Fragment loop(join);
+    loop += condition;
+
+    Instruction* entry =
+        new (Z) GotoInstr(join, Thread::Current()->GetNextDeoptId());
+    body += Fragment(entry, loop_exit);
+  }
+
+  // Load receiver.
+  if (is_implicit_closure_function) {
+    body += LoadLocal(parsed_function()->current_context_var());
+    body += B->LoadField(Context::variable_offset(0));
+  } else {
+    LocalScope* scope = parsed_function()->node_sequence()->scope();
+    body += LoadLocal(scope->VariableAt(0));
+  }
+  body += PushArgument();
+
+  body += Constant(String::ZoneHandle(Z, function.name()));
+  body += PushArgument();
+
+  if (!parsed_function()->has_arg_desc_var()) {
+    // If there is no variable for the arguments descriptor (this function's
+    // signature doesn't require it), then we need to create one.
+    Array& args_desc = Array::ZoneHandle(
+        Z, ArgumentsDescriptor::New(0, function.NumParameters()));
+    body += Constant(args_desc);
+  } else {
+    body += B->LoadArgDescriptor();
+  }
+  body += PushArgument();
+
+  body += LoadLocal(arguments);
+  body += PushArgument();
+
+  // false -> this is not super NSM
+  body += Constant(Bool::False());
+  body += PushArgument();
+
+  const Class& mirror_class =
+      Class::Handle(Z, Library::LookupCoreClass(Symbols::InvocationMirror()));
+  ASSERT(!mirror_class.IsNull());
+  const Function& allocation_function = Function::ZoneHandle(
+      Z, mirror_class.LookupStaticFunction(
+             Library::PrivateCoreLibName(Symbols::AllocateInvocationMirror())));
+  ASSERT(!allocation_function.IsNull());
+  body += StaticCall(TokenPosition::kMinSource, allocation_function,
+                     /* argument_count = */ 4, ICData::kStatic);
+  body += PushArgument();  // For the call to noSuchMethod.
+
+  body += InstanceCall(TokenPosition::kNoSource, Symbols::NoSuchMethod(),
+                       Token::kILLEGAL, 2, 1);
+  body += StoreLocal(TokenPosition::kNoSource, result);
+  body += Drop();
+
+  body += Drop();  // arguments
+  body += Drop();  // argument count
+
+  AbstractType& return_type = AbstractType::Handle(function.result_type());
+  if (!return_type.IsDynamicType() && !return_type.IsVoidType() &&
+      !return_type.IsObjectType()) {
+    body += flow_graph_builder_->AssertAssignable(
+        TokenPosition::kNoSource, return_type, Symbols::Empty());
+  }
+  body += Return(TokenPosition::kNoSource);
+
+  return new (Z) FlowGraph(*parsed_function(), B->graph_entry_,
+                           B->last_used_block_id_, prologue_info);
+}
+
 Fragment StreamingFlowGraphBuilder::BuildArgumentTypeChecks(
     TypeChecksToBuild mode /*= kDefaultTypeChecks*/) {
   FunctionNodeHelper function_node_helper(this);
@@ -4783,6 +5006,18 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
   ActiveMemberScope active_member(active_class(), &outermost_function);
   ActiveTypeParametersScope active_type_params(active_class(), function, Z);
 
+  SetOffset(kernel_offset);
+
+  // We need to read out the NSM-forwarder bit before we can build scopes.
+  switch (function.kind()) {
+    case RawFunction::kImplicitClosureFunction:
+    case RawFunction::kRegularFunction: {
+      AlternativeReadingScope alt(reader_);
+      ReadUntilFunctionNode(parsed_function());  // read until function node.
+    }
+    default: {}
+  }
+
   // The IR builder will create its own local variables and scopes, and it
   // will not need an AST.  The code generator will assume that there is a
   // local variable stack slot allocated for the current context and (I
@@ -4790,19 +5025,21 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
   // requires allocating an unused expression temporary variable.
   set_scopes(parsed_function()->EnsureKernelScopes());
 
-  SetOffset(kernel_offset);
-
   switch (function.kind()) {
-    case RawFunction::kClosureFunction:
-    case RawFunction::kImplicitClosureFunction:
-    case RawFunction::kConvertedClosureFunction:
     case RawFunction::kRegularFunction:
+    case RawFunction::kImplicitClosureFunction:
+      if (ReadUntilFunctionNode(parsed_function())) {
+        return BuildGraphOfNoSuchMethodForwarder(
+            function, function.IsImplicitClosureFunction());
+      } else if (function.IsImplicitClosureFunction()) {
+        return BuildGraphOfImplicitClosureFunction(function);
+      }
+    // fallthrough intended
+    case RawFunction::kClosureFunction:
+    case RawFunction::kConvertedClosureFunction:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction: {
       ReadUntilFunctionNode(parsed_function());  // read until function node.
-      if (function.IsImplicitClosureFunction()) {
-        return BuildGraphOfImplicitClosureFunction(function);
-      }
       return BuildGraphOfFunction(false);
     }
     case RawFunction::kConstructor: {

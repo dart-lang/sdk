@@ -105,10 +105,7 @@ abstract class AnalysisSession {
  * might be inconsistent with any previously returned results.
  */
 class InconsistentAnalysisException extends AnalysisException {
-  /**
-   * Initialize a newly created exception to have the given [message] and
-   * [cause].
-   */
-  InconsistentAnalysisException([String message, CaughtException cause])
-      : super(message, cause);
+  InconsistentAnalysisException()
+      : super('Requested result might be inconsistent with previously '
+            'returned results');
 }

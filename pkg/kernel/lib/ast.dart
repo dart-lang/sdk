@@ -1451,6 +1451,7 @@ class RedirectingFactoryConstructor extends Member {
 class Procedure extends Member {
   ProcedureKind kind;
   int flags = 0;
+  int flags2 = 0;
   // function is null if and only if abstract, external.
   FunctionNode function;
 
@@ -1539,6 +1540,7 @@ class Procedure extends Member {
   static const int FlagForwardingSemiStub = 1 << 6;
   // TODO(29841): Remove this flag after the issue is resolved.
   static const int FlagRedirectingFactoryConstructor = 1 << 7;
+  static const int Flag2NoSuchMethodForwarder = 1 << 0;
 
   bool get isStatic => flags & FlagStatic != 0;
   bool get isAbstract => flags & FlagAbstract != 0;
@@ -1581,6 +1583,8 @@ class Procedure extends Member {
   /// and forwarding to [forwardingStubSuperTarget].
   bool get isSyntheticForwarder => isForwardingStub && !isForwardingSemiStub;
 
+  bool get isNoSuchMethodForwarder => flags2 & Flag2NoSuchMethodForwarder != 0;
+
   void set isStatic(bool value) {
     flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
   }
@@ -1618,6 +1622,13 @@ class Procedure extends Member {
     flags = value
         ? (flags | FlagRedirectingFactoryConstructor)
         : (flags & ~FlagRedirectingFactoryConstructor);
+  }
+
+  void set isNoSuchMethodForwarder(bool value) {
+    assert(isAbstract);
+    flags2 = value
+        ? (flags2 | Flag2NoSuchMethodForwarder)
+        : (flags2 & ~Flag2NoSuchMethodForwarder);
   }
 
   bool get isInstanceMember => !isStatic;

@@ -423,19 +423,15 @@ class CloneVisitor implements TreeVisitor {
 
   visitProcedure(Procedure node) {
     return new Procedure(node.name, node.kind, clone(node.function),
-        isAbstract: node.isAbstract,
-        isStatic: node.isStatic,
-        isExternal: node.isExternal,
-        isConst: node.isConst,
-        isForwardingStub: node.isForwardingStub,
-        isForwardingSemiStub: node.isForwardingSemiStub,
         transformerFlags: node.transformerFlags,
         fileUri: _activeFileUri,
         forwardingStubSuperTarget: node.forwardingStubSuperTarget,
         forwardingStubInterfaceTarget: node.forwardingStubInterfaceTarget)
       ..fileOffset = _cloneFileOffset(node.fileOffset)
       ..fileEndOffset = _cloneFileOffset(node.fileEndOffset)
-      ..isGenericContravariant = node.isGenericContravariant;
+      ..isGenericContravariant = node.isGenericContravariant
+      ..flags = node.flags
+      ..flags2 = node.flags2;
   }
 
   visitField(Field node) {
@@ -589,4 +585,12 @@ class CloneVisitor implements TreeVisitor {
   visitTypedef(Typedef node) {
     return defaultTreeNode(node);
   }
+}
+
+class CloneWithoutBody extends CloneVisitor {
+  CloneWithoutBody({Map<TypeParameter, DartType> typeSubstitution})
+      : super(typeSubstitution: typeSubstitution);
+
+  @override
+  TreeNode cloneFunctionNodeBody(FunctionNode node) => null;
 }

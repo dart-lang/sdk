@@ -150,9 +150,6 @@ class AnalysisSessionImpl implements AnalysisSession {
    */
   void _fillUriToLibraryCache(LibraryElement library) {
     Source source = library.source;
-    if (source == null) {
-      print('zzzzz');
-    }
     String uri = source.uri.toString();
     if (_uriToLibraryCache[uri] == null) {
       _uriToLibraryCache[uri] = library;

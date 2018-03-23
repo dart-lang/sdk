@@ -93,7 +93,7 @@ class Listener {
   /// Handle the beginning of a class declaration.
   /// [beginToken] may be the same as [name], or may point to modifiers
   /// (or extraneous modifiers in the case of recovery) preceding [name].
-  void beginClassDeclaration(Token beginToken, Token name) {}
+  void beginClassDeclaration(Token begin, Token abstractToken, Token name) {}
 
   /// Handle an extends clause in a class declaration. Substructures:
   /// - supertype (may be a mixin application)
@@ -257,7 +257,8 @@ class Listener {
   /// - Variable declarations (count times)
   ///
   /// Doesn't have a corresponding begin event, use [beginMember] instead.
-  void endFields(int count, Token beginToken, Token endToken) {
+  void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
+      int count, Token beginToken, Token endToken) {
     logEvent("Fields");
   }
 
@@ -322,12 +323,15 @@ class Listener {
   }
 
   /// Handle the beginning of a local function declaration.  Substructures:
+  /// - Metadata
   /// - Type variables
   void beginLocalFunctionDeclaration(Token token) {}
 
   /// A function declaration.
   ///
   /// Substructures:
+  /// - Metadata
+  /// - Type variables
   /// - Return type
   /// - Name
   /// - Type variables
@@ -405,7 +409,8 @@ class Listener {
   /// Handle the beginning of a named mixin application.
   /// [beginToken] may be the same as [name], or may point to modifiers
   /// (or extraneous modifiers in the case of recovery) preceding [name].
-  void beginNamedMixinApplication(Token beginToken, Token name) {}
+  void beginNamedMixinApplication(
+      Token begin, Token abstractToken, Token name) {}
 
   /// Handle the end of a named mixin declaration.  Substructures:
   /// - metadata
@@ -806,14 +811,14 @@ class Listener {
 
   /// Handle the end of a top level variable declaration.  Substructures:
   /// - Metadata
-  /// - Modifiers
   /// - Type
   /// - Repeated [count] times:
   ///   - Variable name (identifier)
   ///   - Field initializer
   /// Doesn't have a corresponding begin event.
   /// Use [beginTopLevelMember] instead.
-  void endTopLevelFields(int count, Token beginToken, Token endToken) {
+  void endTopLevelFields(Token staticToken, Token covariantToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     logEvent("TopLevelFields");
   }
 
@@ -915,6 +920,9 @@ class Listener {
     logEvent("FunctionExpression");
   }
 
+  /// Handle the start of a variables declaration.  Substructures:
+  /// - Metadata
+  /// - Type
   void beginVariablesDeclaration(Token token, Token varFinalOrConst) {}
 
   void endVariablesDeclaration(int count, Token endToken) {

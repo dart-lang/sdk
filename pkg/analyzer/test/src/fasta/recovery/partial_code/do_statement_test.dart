@@ -55,7 +55,7 @@ class DoStatementTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "do {} while (_s_);",
-              allFailing: true),
+              failing: ['while']),
           new TestDescriptor(
               'while',
               'do {} while',

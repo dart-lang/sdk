@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.hint_code_test;
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -14,6 +12,7 @@ import 'package:analyzer/src/task/options.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../src/util/yaml_test.dart';
 import 'resolver_test_case.dart';
 
 main() {
@@ -3053,13 +3052,15 @@ main() {
 
   test_strongMode_downCastCompositeWarn() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    applyToAnalysisOptions(options, {
-      AnalyzerOptions.analyzer: {
-        AnalyzerOptions.errors: {
-          StrongModeCode.DOWN_CAST_COMPOSITE.name: 'warning'
-        },
-      }
-    });
+    applyToAnalysisOptions(
+        options,
+        wrap({
+          AnalyzerOptions.analyzer: {
+            AnalyzerOptions.errors: {
+              StrongModeCode.DOWN_CAST_COMPOSITE.name: 'warning'
+            },
+          }
+        }));
     options.strongMode = true;
     options.strongModeHints = false;
     resetWith(options: options);

@@ -202,7 +202,7 @@ TEST_CASE(StackMapGC) {
       "    return i + k; }"
       "  static int moo() {"
       "    var i = A.foo();"
-      "    Expect.equals(30, i);"
+      "    if (i != 30) throw '$i != 30';"
       "  }\n"
       "}\n";
   // First setup the script and compile the script.
