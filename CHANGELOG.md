@@ -8,6 +8,10 @@
 
 ### Tool Changes
 
+## 2.0.0-dev.42.0
+
+### Tool Changes
+
 #### dart2js
 
 * Fixed bug where dart2js crashed when invoked from `pub build` and `pub serve`
@@ -24,10 +28,6 @@
 [sdk#32561]: https://github.com/dart-lang/sdk/issues/32561
 [sdk#32600]: https://github.com/dart-lang/sdk/issues/32600
 
-## 2.0.0-dev.41.0
-
-### Tool Changes
-
 #### Pub
 
 * Pub will now automatically retry HTTP requests that fail with an IO error
@@ -42,6 +42,10 @@
 [pub#1823]: https://github.com/dart-lang/pub/issues/1823
 [pub#1826]: https://github.com/dart-lang/pub/issues/1826
 [pub#1827]: https://github.com/dart-lang/pub/issues/1827
+
+## 2.0.0-dev.41.0
+
+Not released, due to a failure in the pub tool.
 
 ## 2.0.0-dev.40.0
 
