@@ -6,9 +6,12 @@
 [ $compiler == dart2js ]
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853
 bit_operations_test: RuntimeError, OK # non JS number semantics
+config_import_corelib_test: CompileTimeError # we need a special platform.dill file for categories=all. Once we fix that, all dart:* are supported when using '--categories=all' so this will become a RuntimeError, OK.
 config_import_test: RuntimeError # Test flag is not passed to the compiler.
 double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in dart2js; bug #11551.
 issue23244_test: RuntimeError # Isolates - enum canonicalization - Issue 23244
+library_env_test/has_mirror_support: RuntimeError, OK
+library_env_test/has_no_html_support: RuntimeError, OK
 null_test/mirrors: SkipByDesign # Uses mirrors.
 vm/*: SkipByDesign # Tests for the VM.
 
@@ -176,12 +179,14 @@ round_test: Fail, OK # Common JavaScript engine Math.round bug.
 string_literals_test: Pass, RuntimeError # Failures on dart2js-win7-chrome-4-4-be and dart2js-win7-ie11ff-4-4-be
 
 [ $compiler == dart2js && $browser ]
-library_env_test/has_io_support: RuntimeError # Issue 27398
-library_env_test/has_no_io_support: Pass # Issue 27398
+library_env_test/has_io_support: RuntimeError, OK # dart2js doesn't support io when compiling on --categories=Client
 
 [ $compiler == dart2js && $browser && $csp && !$fast_startup ]
 conditional_import_string_test: Fail # Issue 30615
 conditional_import_test: Fail # Issue 30615
+
+[ $compiler == dart2js && !$browser ]
+library_env_test/has_no_io_support: RuntimeError, OK # dart2js supports io when using '--categories=all'.
 
 [ $compiler == dart2js && $checked ]
 covariant_subtyping_test: CompileTimeError
@@ -584,24 +589,23 @@ type_argument_in_super_type_test: RuntimeError
 assertion_test: RuntimeError, OK
 
 [ $compiler == dart2js && !$checked && $fasta ]
+cascaded_forwarding_stubs_generic_test: RuntimeError
+cascaded_forwarding_stubs_test: RuntimeError
+checked_setter3_test: RuntimeError # Issue 31128
 constructor_call_as_function_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_prefix_constructor_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_new_constructor_named_test: CompileTimeError # Issue 32517
+forwarding_semi_stub_test: RuntimeError
+forwarding_stub_tearoff_generic_test: RuntimeError
+forwarding_stub_tearoff_test: RuntimeError
 implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_prefix_constructor_named_test: CompileTimeError # Issue 32517
 implicit_creation/implicit_const_context_constructor_named_test: CompileTimeError # Issue 32517
 implicit_creation/implicit_const_context_constructor_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_prefix_constructor_named_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_context_prefix_constructor_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_new_constructor_named_test: CompileTimeError # Issue 32517
 implicit_creation/implicit_new_constructor_test: CompileTimeError # Issue 32517
 implicit_creation/implicit_new_or_const_composite_test: CompileTimeError # Issue 32517
 implicit_creation/implicit_new_or_const_test: CompileTimeError # Issue 32517
 implicit_creation/implicit_new_prefix_constructor_named_test: CompileTimeError # Issue 32517
-
-cascaded_forwarding_stubs_generic_test: RuntimeError
-cascaded_forwarding_stubs_test: RuntimeError
-checked_setter3_test: RuntimeError # Issue 31128
-forwarding_semi_stub_test: RuntimeError
-forwarding_stub_tearoff_generic_test: RuntimeError
-forwarding_stub_tearoff_test: RuntimeError
 implicit_downcast_during_assignment_test: RuntimeError
 implicit_downcast_during_combiner_test: RuntimeError
 implicit_downcast_during_compound_assignment_test: RuntimeError
@@ -1231,8 +1235,6 @@ compile_time_constant_static5_test/11: CompileTimeError
 compile_time_constant_static5_test/16: CompileTimeError
 compile_time_constant_static5_test/21: CompileTimeError
 compile_time_constant_static5_test/23: CompileTimeError
-conditional_import_string_test: CompileTimeError
-conditional_import_test: CompileTimeError
 conditional_rewrite_test: RuntimeError
 config_import_corelib_test: CompileTimeError
 config_import_test: RuntimeError
@@ -1854,8 +1856,8 @@ void_type_usage_test/conditional2_conditional: Crash # 'package:front_end/src/fa
 void_type_usage_test/conditional2_dynamic_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_for: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_literal_list_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
-void_type_usage_test/conditional2_literal_map_value_init2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_literal_map_value_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional2_literal_map_value_init2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_parens: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_return: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
@@ -1871,8 +1873,8 @@ void_type_usage_test/conditional3_conditional: Crash # 'package:front_end/src/fa
 void_type_usage_test/conditional3_dynamic_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_for: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_literal_list_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
-void_type_usage_test/conditional3_literal_map_value_init2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_literal_map_value_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional3_literal_map_value_init2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_parens: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_return: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
@@ -1990,8 +1992,6 @@ compile_time_constant_static5_test/11: CompileTimeError
 compile_time_constant_static5_test/16: CompileTimeError
 compile_time_constant_static5_test/21: CompileTimeError
 compile_time_constant_static5_test/23: CompileTimeError
-conditional_import_string_test: CompileTimeError
-conditional_import_test: CompileTimeError
 conditional_rewrite_test: RuntimeError
 config_import_corelib_test: CompileTimeError
 config_import_test: RuntimeError

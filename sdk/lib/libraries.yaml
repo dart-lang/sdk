@@ -259,3 +259,7 @@ dart2js:
 
     _metadata:
       uri: "html/html_common/metadata.dart"
+
+  environment_overrides:
+    io: false
+    mirrors: false

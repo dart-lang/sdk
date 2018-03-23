@@ -177,7 +177,11 @@ class CompilerOptions implements DiagnosticOptions {
   final Uri outputUri;
 
   /// Location of the platform configuration file.
+  // TODO(sigmund): deprecate and remove, use only [librariesSpecificationUri]
   final Uri platformConfigUri;
+
+  /// Location of the libraries specification file.
+  final Uri librariesSpecificationUri;
 
   /// Location of the kernel platform `.dill` files.
   final Uri platformBinaries;
@@ -336,6 +340,7 @@ class CompilerOptions implements DiagnosticOptions {
         outputUri: _extractUriOption(options, '--out='),
         platformConfigUri:
             _resolvePlatformConfigFromOptions(libraryRoot, options),
+        librariesSpecificationUri: _resolveLibrariesSpecification(libraryRoot),
         platformBinaries: platformBinaries ??
             _extractUriOption(options, '--platform-binaries='),
         preserveComments: _hasOption(options, Flags.preserveComments),
@@ -406,6 +411,7 @@ class CompilerOptions implements DiagnosticOptions {
       bool kernelGlobalInference: false,
       Uri outputUri: null,
       Uri platformConfigUri: null,
+      Uri librariesSpecificationUri: null,
       Uri platformBinaries: null,
       bool preserveComments: false,
       bool preserveUris: false,
@@ -488,6 +494,7 @@ class CompilerOptions implements DiagnosticOptions {
         outputUri: outputUri,
         platformConfigUri: platformConfigUri ??
             _resolvePlatformConfig(libraryRoot, null, const []),
+        librariesSpecificationUri: _resolveLibrariesSpecification(libraryRoot),
         platformBinaries: platformBinaries,
         preserveComments: preserveComments,
         preserveUris: preserveUris,
@@ -543,6 +550,7 @@ class CompilerOptions implements DiagnosticOptions {
       this.generateSourceMap: true,
       this.outputUri: null,
       this.platformConfigUri: null,
+      this.librariesSpecificationUri: null,
       this.platformBinaries: null,
       this.preserveComments: false,
       this.preserveUris: false,
@@ -607,6 +615,7 @@ class CompilerOptions implements DiagnosticOptions {
       kernelGlobalInference,
       outputUri,
       platformConfigUri,
+      librariesSpecificationUri,
       platformBinaries,
       preserveComments,
       preserveUris,
@@ -678,6 +687,8 @@ class CompilerOptions implements DiagnosticOptions {
         generateSourceMap: generateSourceMap ?? options.generateSourceMap,
         outputUri: outputUri ?? options.outputUri,
         platformConfigUri: platformConfigUri ?? options.platformConfigUri,
+        librariesSpecificationUri:
+            librariesSpecificationUri ?? options.librariesSpecificationUri,
         platformBinaries: platformBinaries ?? options.platformBinaries,
         preserveComments: preserveComments ?? options.preserveComments,
         preserveUris: preserveUris ?? options.preserveUris,
@@ -796,6 +807,9 @@ Uri _resolvePlatformConfigFromOptions(Uri libraryRoot, List<String> options) {
       _extractStringOption(options, "--platform-config=", null),
       _extractCsvOption(options, '--categories='));
 }
+
+Uri _resolveLibrariesSpecification(Uri libraryRoot) =>
+    libraryRoot.resolve('lib/libraries.json');
 
 /// Locations of the platform descriptor files relative to the library root.
 const String _clientPlatform = "lib/dart_client.platform";

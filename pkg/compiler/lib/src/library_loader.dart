@@ -824,6 +824,7 @@ class ResolutionLibraryLoaderTask extends CompilerTask
 // TODO(sigmund): move this class to a new file under src/kernel/.
 class KernelLibraryLoaderTask extends CompilerTask
     implements LibraryLoaderTask {
+  final Uri librariesSpecification;
   final Uri platformBinaries;
   final Uri _packageConfig;
 
@@ -841,9 +842,16 @@ class KernelLibraryLoaderTask extends CompilerTask
 
   fe.InitializedCompilerState initializedCompilerState;
 
-  KernelLibraryLoaderTask(this.platformBinaries, this._packageConfig,
-      this._elementMap, this.compilerInput, this.reporter, Measurer measurer,
-      {this.verbose: false, this.initializedCompilerState})
+  KernelLibraryLoaderTask(
+      this.librariesSpecification,
+      this.platformBinaries,
+      this._packageConfig,
+      this._elementMap,
+      this.compilerInput,
+      this.reporter,
+      Measurer measurer,
+      {this.verbose: false,
+      this.initializedCompilerState})
       : _allLoadedLibraries = new List<LibraryEntity>(),
         super(measurer);
 
@@ -869,7 +877,7 @@ class KernelLibraryLoaderTask extends CompilerTask
         initializedCompilerState = fe.initializeCompiler(
             initializedCompilerState,
             new Dart2jsTarget(new TargetFlags(strongMode: strongMode)),
-            null,
+            librariesSpecification,
             platformBinaries.resolve(platform),
             _packageConfig);
         component = await fe.compile(
