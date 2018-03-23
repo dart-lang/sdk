@@ -43,7 +43,7 @@ main() {
     Uri entryPoint = Uri.parse('memory:main.dill');
 
     var options = new CompilerOptions()
-      ..target = new Dart2jsTarget(new TargetFlags())
+      ..target = new Dart2jsTarget("dart2js", new TargetFlags())
       ..packagesFileUri = Uri.base.resolve('.packages')
       ..linkedDependencies = <Uri>[
         computePlatformBinariesLocation().resolve("dart2js_platform.dill"),

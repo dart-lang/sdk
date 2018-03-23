@@ -100,6 +100,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// and in the emitted output of the compiler.
   bool get hasBuildId => buildId != _UNDETERMINED_BUILD_ID;
 
+  /// Whether to compile for the server category. This is used to compile to JS
+  /// that is intended to be run on server-side VMs like nodejs.
+  final bool compileForServer;
+
   /// Location where to generate a map containing details of how deferred
   /// libraries are subdivided.
   final Uri deferredMapUri;
@@ -309,6 +313,7 @@ class CompilerOptions implements DiagnosticOptions {
         analyzeSignaturesOnly: _hasOption(options, Flags.analyzeSignaturesOnly),
         buildId: _extractStringOption(
             options, '--build-id=', _UNDETERMINED_BUILD_ID),
+        compileForServer: _resolveCompileForServerFromOptions(options),
         deferredMapUri: _extractUriOption(options, '--deferred-map='),
         fatalWarnings: _hasOption(options, Flags.fatalWarnings),
         terseDiagnostics: _hasOption(options, Flags.terse),
@@ -387,6 +392,7 @@ class CompilerOptions implements DiagnosticOptions {
       bool analyzeOnly: false,
       bool analyzeSignaturesOnly: false,
       String buildId: _UNDETERMINED_BUILD_ID,
+      bool compileForServer: false,
       Uri deferredMapUri: null,
       bool fatalWarnings: false,
       bool terseDiagnostics: false,
@@ -469,6 +475,7 @@ class CompilerOptions implements DiagnosticOptions {
             analyzeOnly || analyzeSignaturesOnly || analyzeAll || resolveOnly,
         analyzeSignaturesOnly: analyzeSignaturesOnly,
         buildId: buildId,
+        compileForServer: compileForServer,
         deferredMapUri: deferredMapUri,
         fatalWarnings: fatalWarnings,
         terseDiagnostics: terseDiagnostics,
@@ -527,6 +534,7 @@ class CompilerOptions implements DiagnosticOptions {
       this.analyzeOnly: false,
       this.analyzeSignaturesOnly: false,
       this.buildId: _UNDETERMINED_BUILD_ID,
+      this.compileForServer: false,
       this.deferredMapUri: null,
       this.fatalWarnings: false,
       this.terseDiagnostics: false,
@@ -591,6 +599,7 @@ class CompilerOptions implements DiagnosticOptions {
       analyzeOnly,
       analyzeSignaturesOnly,
       buildId,
+      compileForServer,
       deferredMapUri,
       fatalWarnings,
       terseDiagnostics,
@@ -654,6 +663,7 @@ class CompilerOptions implements DiagnosticOptions {
         analyzeSignaturesOnly:
             analyzeSignaturesOnly ?? options.analyzeSignaturesOnly,
         buildId: buildId ?? options.buildId,
+        compileForServer: compileForServer ?? options.compileForServer,
         deferredMapUri: deferredMapUri ?? options.deferredMapUri,
         fatalWarnings: fatalWarnings ?? options.fatalWarnings,
         terseDiagnostics: terseDiagnostics ?? options.terseDiagnostics,
@@ -799,6 +809,11 @@ Uri _resolvePlatformConfig(
     assert(categories.contains("Server"));
     return libraryRoot.resolve(_serverPlatform);
   }
+}
+
+bool _resolveCompileForServerFromOptions(List<String> options) {
+  var categories = _extractCsvOption(options, '--categories=');
+  return categories.length == 1 && categories.single == 'Server';
 }
 
 Uri _resolvePlatformConfigFromOptions(Uri libraryRoot, List<String> options) {

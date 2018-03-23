@@ -38,7 +38,10 @@ import 'command_line.dart' show withGlobalOptions;
 const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
 
 Future main(List<String> arguments) async {
-  targets["dart2js"] = (TargetFlags flags) => new Dart2jsTarget(flags);
+  targets["dart2js"] =
+      (TargetFlags flags) => new Dart2jsTarget("dart2js", flags);
+  targets["dart2js_server"] =
+      (TargetFlags flags) => new Dart2jsTarget("dart2js_server", flags);
   targets["dart_runner"] = (TargetFlags flags) => new DartRunnerTarget(flags);
   targets["flutter_runner"] =
       (TargetFlags flags) => new FlutterRunnerTarget(flags);

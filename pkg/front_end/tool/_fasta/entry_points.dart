@@ -49,7 +49,10 @@ const bool summary = const bool.fromEnvironment("summary", defaultValue: false);
 const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
 
 compileEntryPoint(List<String> arguments) async {
-  targets["dart2js"] = (TargetFlags flags) => new Dart2jsTarget(flags);
+  targets["dart2js"] =
+      (TargetFlags flags) => new Dart2jsTarget("dart2js", flags);
+  targets["dart2js_server"] =
+      (TargetFlags flags) => new Dart2jsTarget("dart2js_server", flags);
 
   // Timing results for each iteration
   List<double> elapsedTimes = <double>[];

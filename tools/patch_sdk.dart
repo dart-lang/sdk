@@ -139,7 +139,7 @@ Future _main(List<String> argv) async {
       break;
 
     case 'dart2js':
-      target = new Dart2jsTarget(flags);
+      target = new Dart2jsTarget("dart2js", flags);
       break;
 
     default:

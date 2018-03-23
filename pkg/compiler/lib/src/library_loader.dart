@@ -871,12 +871,15 @@ class KernelLibraryLoaderTask extends CompilerTask
         new BinaryBuilder(input.data).readComponent(component);
       } else {
         bool strongMode = _elementMap.options.strongMode;
+        String targetName =
+            _elementMap.options.compileForServer ? "dart2js_server" : "dart2js";
         String platform = strongMode
-            ? 'dart2js_platform_strong.dill'
-            : 'dart2js_platform.dill';
+            ? '${targetName}_platform_strong.dill'
+            : '${targetName}_platform.dill';
         initializedCompilerState = fe.initializeCompiler(
             initializedCompilerState,
-            new Dart2jsTarget(new TargetFlags(strongMode: strongMode)),
+            new Dart2jsTarget(
+                targetName, new TargetFlags(strongMode: strongMode)),
             librariesSpecification,
             platformBinaries.resolve(platform),
             _packageConfig);
