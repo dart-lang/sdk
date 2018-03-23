@@ -205,11 +205,11 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
     // We added fields, now add the method parameters.
     if (_method != null) {
-      // TODO(scheglov) test for method parameters
       for (var parameter in _method.parameters.parameters) {
         if (parameter is NormalFormalParameter) {
           _parameters.add(new _Parameter(
-              parameter.identifier.name, parameter.element.type));
+              parameter.identifier.name, parameter.element.type,
+              isMethodParameter: true));
         }
       }
     }
@@ -231,10 +231,29 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     var collector = new _MethodInvocationsCollector(_method.element);
     _enclosingClassNode.accept(collector);
     for (var invocation in collector.invocations) {
-      builder.addReplacement(range.node(invocation), (builder) {
-        // TODO(scheglov) use arguments
-        _writeWidgetInstantiation(builder);
-      });
+      builder.addReplacement(
+        range.startEnd(invocation, invocation.argumentList.leftParenthesis),
+        (builder) {
+          builder.write('new $name(');
+
+          // Insert field references.
+          for (var parameter in _parameters) {
+            if (parameter.isMethodParameter) {
+              break;
+            }
+            if (parameter != _parameters.first) {
+              builder.write(', ');
+            }
+            builder.write(parameter.name);
+          }
+
+          // Separate references to fields and method arguments.
+          if (_parameters.isNotEmpty &&
+              invocation.argumentList.arguments.isNotEmpty) {
+            builder.write(', ');
+          }
+        },
+      );
     }
   }
 
@@ -336,7 +355,10 @@ class _Parameter {
   final String name;
   final DartType type;
 
-  _Parameter(this.name, this.type);
+  /// Whether the parameter is a parameter of the method being extracted.
+  final bool isMethodParameter;
+
+  _Parameter(this.name, this.type, {this.isMethodParameter = false});
 }
 
 class _ParametersCollector extends RecursiveAstVisitor<void> {

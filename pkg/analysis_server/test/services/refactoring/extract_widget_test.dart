@@ -357,6 +357,73 @@ class Test extends StatelessWidget {
 ''');
   }
 
+  test_method_parameters() async {
+    addFlutterPackage();
+    await indexTestUnit(r'''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  String foo;
+
+  @override
+  Widget build(BuildContext context) {
+    int bar = 1;
+    return new Row(
+      children: <Widget>[
+        createColumn('aaa', bar),
+        createColumn('bbb', 2),
+      ],
+    );
+  }
+  
+  Widget createColumn(String p1, int p2) {
+    var a = new Text('$foo $p1');
+    var b = new Text('$p2');
+    return new Column(
+      children: <Widget>[a, b],
+    );
+  }
+}
+''');
+    _createRefactoringForStringOffset('createColumn(String');
+
+    await _assertSuccessfulRefactoring(r'''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  String foo;
+
+  @override
+  Widget build(BuildContext context) {
+    int bar = 1;
+    return new Row(
+      children: <Widget>[
+        new Test(foo, 'aaa', bar),
+        new Test(foo, 'bbb', 2),
+      ],
+    );
+  }
+}
+
+class Test extends StatelessWidget {
+  final String foo;
+  final String p1;
+  final int p2;
+
+  Test(this.foo, this.p1, this.p2);
+
+  @override
+  Widget build(BuildContext context) {
+    var a = new Text('$foo $p1');
+    var b = new Text('$p2');
+    return new Column(
+      children: <Widget>[a, b],
+    );
+  }
+}
+''');
+  }
+
   test_parameters_field_read_enclosingClass() async {
     addFlutterPackage();
     await indexTestUnit(r'''
