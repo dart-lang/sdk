@@ -49,6 +49,7 @@ AnalysisOptions _buildAnalyzerOptions(LinterOptions options) {
   AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
   analysisOptions.strongMode = options.strongMode;
   analysisOptions.hint = false;
+  analysisOptions.previewDart2 = options.previewDart2;
   analysisOptions.lint = options.enableLints;
   analysisOptions.generateSdkErrors = options.showSdkWarnings;
   analysisOptions.enableTiming = options.enableTiming;
@@ -81,6 +82,9 @@ class DriverOptions {
 
   /// Whether to use Dart's Strong Mode analyzer.
   bool strongMode = true;
+
+  /// Whether to use Dart 2.0 features.
+  bool previewDart2 = false;
 
   /// The mock SDK (to speed up testing) or `null` to use the actual SDK.
   DartSdk mockSdk;
