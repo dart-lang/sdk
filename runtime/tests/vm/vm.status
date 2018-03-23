@@ -183,7 +183,7 @@ cc/DebuggerAPI_ScriptGetTokenInfo_MultiLineInterpolation: Fail
 cc/Debugger_PrintBreakpointsToJSONArray: Fail
 cc/Debugger_Rewind_Optimized: SkipSlow
 cc/Debugger_SetBreakpointInPartOfLibrary: Crash
-cc/FunctionSourceFingerprint: Fail
+cc/FunctionSourceFingerprint: Fail # Issue 30756
 cc/GenerateSource: Skip # Cannot generate source from a kernel binary.
 cc/IsolateReload_NotTypedefToTypedef: Fail
 cc/IsolateReload_TypedefToNotTypedef: Fail
