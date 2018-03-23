@@ -960,9 +960,11 @@ class OptionsTest extends BaseTest {
 
   @failingTest
   test_useCFE() async {
-    await drive('data/options_tests_project/test_file.dart',
-        args: ['--use-cfe']);
-    expect(driver.context.analysisOptions.useFastaParser, isTrue);
+    // Disabled until integration with the CFE has been restarted.
+    fail('Times out when run on a VM with --preview-dart-2 enabled');
+//    await drive('data/options_tests_project/test_file.dart',
+//        args: ['--use-cfe']);
+//    expect(driver.context.analysisOptions.useFastaParser, isTrue);
   }
 
   test_withFlags_overrideFatalWarning() async {
