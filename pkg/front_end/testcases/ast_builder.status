@@ -6,6 +6,7 @@
 # generating analyzer ASTs and connecting up type inference information.
 annotation_top: Crash
 argument_mismatch: Fail
+bug32629: Fail
 dynamic_and_void: Fail
 illegal_named_function_expression: Crash
 illegal_named_function_expression_scope: Crash
