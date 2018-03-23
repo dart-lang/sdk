@@ -4210,16 +4210,19 @@ class Wrong<T> {
     createParser('f<E>(E extends num p);');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors([
-      expectedError(
-          ParserErrorCode.MISSING_IDENTIFIER, 0, 0), // `extends` is a keyword
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0), // comma
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0), // close paren
-      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 0, 0)
-    ]);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 7)]
+        : [
+            expectedError(ParserErrorCode.MISSING_IDENTIFIER, 0,
+                0), // `extends` is a keyword
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0), // comma
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0), // close paren
+            expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 0, 0)
+          ]);
     expect(member, new isInstanceOf<MethodDeclaration>());
     MethodDeclaration method = member;
-    expect(method.parameters.toString(), '(E, extends)',
+    expect(
+        method.parameters.toString(), usingFastaParser ? '(E)' : '(E, extends)',
         reason: 'parser recovers what it can');
   }
 
@@ -4270,13 +4273,17 @@ class Wrong<T> {
     createParser('void m<E, hello!>() {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors([
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0) /*>*/,
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 0, 0),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0) /*(*/,
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0) /*)*/,
-      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 0, 0)
-    ]);
+    listener.assertErrors(usingFastaParser
+        ? [
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 15, 1) /*>*/
+          ]
+        : [
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0) /*>*/,
+            expectedError(ParserErrorCode.MISSING_IDENTIFIER, 0, 0),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0) /*(*/,
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0) /*)*/,
+            expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 0, 0)
+          ]);
     expect(member, new isInstanceOf<MethodDeclaration>());
     MethodDeclaration method = member;
     expect(method.typeParameters.toString(), '<E, hello>',

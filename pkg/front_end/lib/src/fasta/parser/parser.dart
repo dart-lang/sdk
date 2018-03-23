@@ -2767,10 +2767,19 @@ class Parser {
       listener.beginTypeVariables(begin);
       int count = 0;
       do {
-        token = parseTypeVariable(token.next);
+        token = parseTypeVariable(next);
+        next = token.next;
         ++count;
-      } while (optional(',', token.next));
-      token = begin.endToken = ensureGt(token);
+      } while (optional(',', next));
+      if (next == begin.endToken) {
+        token = next;
+      } else if (begin.endToken != null) {
+        reportRecoverableError(
+            next, fasta.templateExpectedToken.withArguments('>'));
+        token = begin.endToken;
+      } else {
+        token = begin.endToken = ensureGt(token);
+      }
       listener.endTypeVariables(count, begin, token);
     } else {
       listener.handleNoTypeVariables(next);
