@@ -81,6 +81,10 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   /// Map of the scoping information that corresponds to a particular entity.
   Map<MemberEntity, ScopeInfo> _scopeMap = <MemberEntity, ScopeInfo>{};
   Map<ir.Node, CapturedScope> _capturedScopesMap = <ir.Node, CapturedScope>{};
+  // Indicates the type variables (if any) that are captured in a given
+  // Signature function.
+  Map<MemberEntity, CapturedScope> _capturedScopeForSignatureMap =
+      <MemberEntity, CapturedScope>{};
 
   Map<MemberEntity, ClosureRepresentationInfo> _memberClosureRepresentationMap =
       <MemberEntity, ClosureRepresentationInfo>{};
@@ -226,6 +230,27 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
         // Add also for the call method.
         _scopeMap[closureClassInfo.callMethod] = closureClassInfo;
         _scopeMap[closureClassInfo.signatureMethod] = closureClassInfo;
+
+        // Set up capturedScope for signature method. This is distinct from
+        // _capturedScopesMap because there is no corresponding ir.Node for the
+        // signature.
+        if (localFunctionNeedsSignature(functionNode.parent) &&
+            model.capturedScopesMap[functionNode] != null) {
+          KernelCapturedScope capturedScope =
+              model.capturedScopesMap[functionNode];
+          assert(capturedScope is! KernelCapturedLoopScope);
+          KernelCapturedScope signatureCapturedScope =
+              new KernelCapturedScope.forSignature(capturedScope);
+          _updateScopeBasedOnRtiNeed(
+              signatureCapturedScope,
+              classNeedsTypeArguments,
+              methodNeedsTypeArguments,
+              localFunctionNeedsTypeArguments,
+              member);
+          _capturedScopeForSignatureMap[closureClassInfo.signatureMethod] =
+              new JsCapturedScope.from(
+                  {}, signatureCapturedScope, localsMap, _elementMap);
+        }
         callMethods.add(closureClassInfo.callMethod);
       }
     });
@@ -304,8 +329,9 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       case MemberKind.constructor:
       case MemberKind.constructorBody:
       case MemberKind.closureCall:
-      case MemberKind.signature:
         return _capturedScopesMap[definition.node] ?? const CapturedScope();
+      case MemberKind.signature:
+        return _capturedScopeForSignatureMap[entity] ?? const CapturedScope();
       default:
         throw failedAt(entity, "Unexpected member definition $definition");
     }
@@ -471,6 +497,23 @@ class KernelCapturedScope extends KernelScopeInfo {
             thisUsedAsFreeVariable,
             thisUsedAsFreeVariableIfNeedsRti,
             hasThisLocal);
+
+  // Loops through the free variables of an existing KernelCapturedScope and
+  // creates a new KernelCapturedScope that only captures type variables.
+  KernelCapturedScope.forSignature(KernelCapturedScope scope)
+      : this(
+            _empty,
+            null,
+            _empty,
+            scope.freeVariables.where(
+                (ir.Node variable) => variable is TypeVariableTypeWithContext),
+            scope.freeVariablesForRti,
+            scope.thisUsedAsFreeVariable,
+            scope.thisUsedAsFreeVariableIfNeedsRti,
+            scope.hasThisLocal);
+
+  // Silly hack because we don't have const sets.
+  static final Set<ir.VariableDeclaration> _empty = new Set();
 
   bool get requiresContextBox => boxedVariables.isNotEmpty;
 }

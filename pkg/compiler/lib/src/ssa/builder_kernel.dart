@@ -900,7 +900,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   /// that no corresponding ir.Node actually exists for it. We just use the
   /// targetElement.
   void buildMethodSignature(ir.FunctionNode originalClosureNode) {
-    openFunction(targetElement, originalClosureNode);
+    openFunction(targetElement);
     List<HInstruction> typeArguments = <HInstruction>[];
 
     // Add function type variables.
