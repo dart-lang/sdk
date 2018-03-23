@@ -87,9 +87,6 @@ symbol_test/03: MissingCompileTimeError
 [ !$strong ]
 cast_test: SkipByDesign # Uses generic method parameters.
 
-[ $arch == ia32 && $builder_tag == optimization_counter_threshold ]
-bigint_from_test: RuntimeError # Issue 32619
-
 [ $arch == simarmv5te && ($runtime == dart_precompiled || $runtime == vm) ]
 int_parse_radix_test/*: Pass, Slow
 integer_parsed_mul_div_vm_test: Pass, Slow
