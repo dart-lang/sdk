@@ -70,10 +70,6 @@ string_literals_test: RuntimeError # Issue 27533
 config_import_test: RuntimeError # Test flag is not passed to the compiler.
 library_env_test/has_io_support: RuntimeError, OK # dart2js doesn't support io when using '--categories=Client'.
 
-[ $compiler == dart2js && $browser && $csp && !$fast_startup ]
-conditional_import_string_test: Fail # Issue 30615
-conditional_import_test: Fail # Issue 30615
-
 [ $compiler == dart2js && !$browser ]
 library_env_test/has_no_io_support: RuntimeError, OK # dart2js supports io when using '--categories=all'.
 
