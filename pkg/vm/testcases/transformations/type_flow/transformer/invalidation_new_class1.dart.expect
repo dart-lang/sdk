@@ -7,6 +7,11 @@ class T1 extends core::Object {
     : super core::Object::•()
     ;
 }
+class T2 extends core::Object {
+[@vm.unreachable.metadata=]  synthetic constructor •() → void
+    : super core::Object::•()
+    throw "TFA Error: #lib::T2::";
+}
 abstract class A extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
@@ -19,6 +24,13 @@ class B extends self::A {
     ;
   method foo() → dynamic
     return new self::T1::•();
+}
+class C extends core::Object implements self::B {
+[@vm.unreachable.metadata=]  synthetic constructor •() → void
+    : super core::Object::•()
+    throw "TFA Error: #lib::C::";
+[@vm.unreachable.metadata=]  method foo() → dynamic
+    throw "TFA Error: #lib::C::foo";
 }
 class Intermediate extends core::Object {
   synthetic constructor •() → void

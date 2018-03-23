@@ -136,25 +136,23 @@ void MethodRecognizer::InitializeState() {
 
 #define SET_RECOGNIZED_KIND(class_name, function_name, enum_name, type, fp)    \
   func = Library::GetFunction(libs, #class_name, #function_name);              \
-  if (!func.IsNull()) {                                                        \
-    CHECK_FINGERPRINT3(func, class_name, function_name, enum_name, fp);        \
-    func.set_recognized_kind(k##enum_name);                                    \
-  } else if (!FLAG_precompiled_mode) {                                         \
+  if (func.IsNull()) {                                                         \
     OS::PrintErr("Missing %s::%s\n", #class_name, #function_name);             \
     UNREACHABLE();                                                             \
-  }
+  }                                                                            \
+  CHECK_FINGERPRINT3(func, class_name, function_name, enum_name, fp);          \
+  func.set_recognized_kind(k##enum_name);
 
   RECOGNIZED_LIST(SET_RECOGNIZED_KIND);
 
 #define SET_FUNCTION_BIT(class_name, function_name, dest, fp, setter, value)   \
   func = Library::GetFunction(libs, #class_name, #function_name);              \
-  if (!func.IsNull()) {                                                        \
-    CHECK_FINGERPRINT3(func, class_name, function_name, dest, fp);             \
-    func.setter(value);                                                        \
-  } else if (!FLAG_precompiled_mode) {                                         \
+  if (func.IsNull()) {                                                         \
     OS::PrintErr("Missing %s::%s\n", #class_name, #function_name);             \
     UNREACHABLE();                                                             \
-  }
+  }                                                                            \
+  CHECK_FINGERPRINT3(func, class_name, function_name, dest, fp);               \
+  func.setter(value);
 
 #define SET_IS_ALWAYS_INLINE(class_name, function_name, dest, fp)              \
   SET_FUNCTION_BIT(class_name, function_name, dest, fp, set_always_inline, true)

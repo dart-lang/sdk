@@ -33,12 +33,8 @@ class NativeCodeOracle {
   final Map<String, List<Map<String, dynamic>>> _nativeMethods =
       <String, List<Map<String, dynamic>>>{};
   final LibraryIndex _libraryIndex;
-  final Set<Member> _membersReferencedFromNativeCode = new Set<Member>();
 
   NativeCodeOracle(this._libraryIndex);
-
-  bool isMemberReferencedFromNativeCode(Member member) =>
-      _membersReferencedFromNativeCode.contains(member);
 
   /// Simulate the execution of a native method by adding its entry points
   /// using [entryPointsListener]. Returns result type of the native method.
@@ -175,8 +171,6 @@ class NativeCodeOracle {
 
         entryPointsListener.addRawCall(selector);
       }
-
-      _membersReferencedFromNativeCode.add(member);
     } else {
       throw 'Bad entry point: unrecognized action "$action" in $rootDesc';
     }

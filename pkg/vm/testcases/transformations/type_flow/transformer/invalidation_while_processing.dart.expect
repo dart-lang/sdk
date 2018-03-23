@@ -3,6 +3,9 @@ import self as self;
 import "dart:core" as core;
 
 abstract class I extends core::Object {
+[@vm.unreachable.metadata=]  synthetic constructor •() → void
+    : super core::Object::•()
+    throw "TFA Error: #lib::I::";
   abstract method foo() → void;
 }
 class T1 extends core::Object implements self::I {

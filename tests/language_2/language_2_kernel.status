@@ -924,14 +924,10 @@ assertion_initializer_const_error_test/01: Pass
 async_star_cancel_while_paused_test: RuntimeError
 async_star_pause_test: Fail, OK
 async_star_test/02: RuntimeError, CompileTimeError # Issue 31402 (Invocation arguments)
-bad_override_test/03: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-bad_override_test/04: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-bad_override_test/05: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
 built_in_identifier_prefix_test: CompileTimeError
 call_method_must_not_be_field_test/03: RuntimeError # Issue 32265
 call_method_must_not_be_getter_test/03: RuntimeError # Issue 32265
 call_with_no_such_method_test: RuntimeError
-check_member_static_test/02: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
 checked_setter3_test/01: MissingCompileTimeError
 checked_setter3_test/02: MissingCompileTimeError
 checked_setter3_test/03: MissingCompileTimeError
@@ -986,15 +982,8 @@ external_test/10: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/13: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/20: MissingRuntimeError # KernelVM bug: Unbound external.
 factory3_test/01: Pass
-fauxverride_test/03: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-fauxverride_test/05: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
 field_increment_bailout_test: SkipByDesign
 field_initialization_order_test: Fail, OK
-field_override3_test/00: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-field_override3_test/01: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-field_override3_test/02: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-field_override3_test/03: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-field_override4_test/02: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
 flatten_test/05: MissingRuntimeError
 flatten_test/08: MissingRuntimeError
 flatten_test/09: MissingRuntimeError
@@ -1017,10 +1006,6 @@ generic_methods_reuse_type_variables_test: Pass
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Issue 31533
 generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
 generic_tearoff_test: CompileTimeError
-getter_override2_test/02: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-getter_override_test/00: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-getter_override_test/01: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-getter_override_test/02: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
 hello_dart_test: Skip # Incompatible flag: --compile_all
 implicit_closure_test: Skip # Incompatible flag: --use_slow_path
 implicit_creation/implicit_new_constructor_generic_test: Pass
@@ -1078,10 +1063,6 @@ method_override5_test/03: MissingCompileTimeError
 method_override6_test/01: MissingCompileTimeError
 method_override6_test/02: MissingCompileTimeError
 method_override6_test/03: MissingCompileTimeError
-method_override7_test/00: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-method_override7_test/01: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-method_override7_test/02: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-method_override8_test/01: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
 method_override_test: CompileTimeError # Issue 31616
 mixin_illegal_super_use_test: Skip # Issues 24478 and 23773
 mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
@@ -1095,10 +1076,6 @@ null_no_such_method_test: CompileTimeError # Issue 31533
 null_test/mirrors: Skip # Uses mirrors.
 null_test/none: SkipByDesign
 overridden_no_such_method_test: SkipByDesign
-override_field_method2_negative_test: Fail # Issue 32613: override check is missing in CFE.
-override_field_method4_negative_test: Fail # Issue 32613: override check is missing in CFE.
-override_field_method5_negative_test: Fail # Issue 32613: override check is missing in CFE.
-override_field_test/01: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
 override_inheritance_field_test/04: CompileTimeError # Issue 31616
 override_inheritance_field_test/06: CompileTimeError # Issue 31616
 override_inheritance_field_test/26: CompileTimeError # Issue 31616
@@ -1106,11 +1083,6 @@ override_inheritance_field_test/29: CompileTimeError # Issue 31616
 override_inheritance_generic_test/02: CompileTimeError
 override_inheritance_method_test/28: CompileTimeError
 override_inheritance_method_test/29: CompileTimeError
-override_inheritance_mixed_test/01: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-override_inheritance_mixed_test/02: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-override_inheritance_mixed_test/03: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-override_inheritance_mixed_test/04: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-override_inheritance_mixed_test/08: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
 override_inheritance_mixed_test/08: Pass # Correctly passes.
 parser_quirks_test: CompileTimeError # Issue 31533
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
@@ -1128,8 +1100,6 @@ regress_29025_test: CompileTimeError # Issue 31402 (Variable declaration)
 regress_29405_test: CompileTimeError # Issue 31402 (Invocation arguments)
 regress_30339_test: CompileTimeError # Issue 31402 (Variable declaration)
 setter_no_getter_test/01: Pass, CompileTimeError # Issue 31533 (started passing after switching to batch-mode)
-setter_override_test/00: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-setter_override_test/03: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
 stacktrace_demangle_ctors_test: RuntimeError
 string_interpolate_test: CompileTimeError # Issue 31533
 string_interpolation_and_buffer_test: RuntimeError # Issue 31402 (Return and yield statements)

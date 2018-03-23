@@ -12,6 +12,11 @@ class T2 extends core::Object {
     : super core::Object::•()
     ;
 }
+class T3 extends core::Object {
+[@vm.unreachable.metadata=]  synthetic constructor •() → void
+    : super core::Object::•()
+    throw "TFA Error: #lib::T3::";
+}
 class T4 extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
@@ -51,7 +56,7 @@ class B extends self::A {
   abstract no-such-method-forwarder method foo() → dynamic;
   abstract no-such-method-forwarder method bazz(dynamic a1, dynamic a2, dynamic a3, [dynamic a4, dynamic a5]) → dynamic;
 }
-abstract class C extends core::Object {
+class C extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
@@ -71,6 +76,8 @@ class E extends core::Object implements self::A {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
+[@vm.unreachable.metadata=]  method foo() → dynamic
+    throw "TFA Error: #lib::E::foo";
   method noSuchMethod(core::Invocation invocation) → dynamic {
     return new self::T4::•();
   }
@@ -81,6 +88,8 @@ class F extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
+[@vm.unreachable.metadata=]  method twoArg(dynamic a1, dynamic a2) → dynamic
+    throw "TFA Error: #lib::F::twoArg";
   method noSuchMethod(core::Invocation invocation) → dynamic {
     return new self::T2::•();
   }

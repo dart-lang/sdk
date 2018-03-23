@@ -18,9 +18,6 @@ const bool kPrintDebug =
 const bool kPrintStats =
     const bool.fromEnvironment('global.type.flow.print.stats');
 
-const bool kRemoveAsserts =
-    const bool.fromEnvironment('global.type.flow.remove.asserts');
-
 /// Extended 'assert': always checks condition.
 assertx(bool cond, {details}) {
   if (!cond) {
@@ -77,13 +74,6 @@ class Statistics {
   static int invocationsInvalidated = 0;
   static int recursiveInvocationsApproximated = 0;
   static int typeConeSpecializations = 0;
-  static int classesDropped = 0;
-  static int membersDropped = 0;
-  static int methodBodiesDropped = 0;
-  static int fieldInitializersDropped = 0;
-  static int constructorBodiesDropped = 0;
-  static int callsDropped = 0;
-  static int throwExpressionsPruned = 0;
 
   /// Resets statistic counters.
   static void reset() {
@@ -94,14 +84,6 @@ class Statistics {
     usedCachedResultsOfInvocations = 0;
     invocationsInvalidated = 0;
     recursiveInvocationsApproximated = 0;
-    typeConeSpecializations = 0;
-    classesDropped = 0;
-    membersDropped = 0;
-    methodBodiesDropped = 0;
-    fieldInitializersDropped = 0;
-    constructorBodiesDropped = 0;
-    callsDropped = 0;
-    throwExpressionsPruned = 0;
   }
 
   static void print(String caption) {
@@ -114,13 +96,6 @@ class Statistics {
     ${invocationsInvalidated} invocations invalidated
     ${recursiveInvocationsApproximated} recursive invocations approximated
     ${typeConeSpecializations} type cones specialized
-    ${classesDropped} classes dropped
-    ${membersDropped} members dropped
-    ${methodBodiesDropped} method bodies dropped
-    ${fieldInitializersDropped} field initializers dropped
-    ${constructorBodiesDropped} constructor bodies dropped
-    ${callsDropped} calls dropped
-    ${throwExpressionsPruned} throw expressions pruned
     """);
   }
 }
