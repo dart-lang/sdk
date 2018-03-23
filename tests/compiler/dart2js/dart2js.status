@@ -10,7 +10,8 @@ codegen/load_elimination_test: Pass, Slow
 codegen/logical_expression_test: Fail # Issue 17027
 codegen/simple_function_subtype_test: Fail # simple_function_subtype_test is temporarily(?) disabled due to new method for building function type tests.
 deferred_loading/deferred_loading_test: Slow, Pass
-equivalence/id_equivalence_test: Pass, Slow
+equivalence/id_equivalence1_test: Pass, Slow
+equivalence/id_equivalence2_test: Pass, Slow
 generate_code_with_compile_time_errors_test: RuntimeError # not supported yet with the new FE.
 in_user_code_test: RuntimeError # analyze-only with CFE is not complete (Issues 32512, 32513)
 inference/inference0_test: Slow, Pass

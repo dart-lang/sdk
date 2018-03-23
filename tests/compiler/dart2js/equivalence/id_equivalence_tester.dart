@@ -15,24 +15,27 @@ import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:compiler/src/resolution/access_semantics.dart';
 import 'package:compiler/src/resolution/send_structure.dart';
 import 'package:compiler/src/tree/nodes.dart' as ast;
+import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:sourcemap_testing/src/annotated_code_helper.dart';
-import '../equivalence/id_equivalence.dart';
-import '../equivalence/id_equivalence_helper.dart';
+import 'id_equivalence.dart';
+import 'id_equivalence_helper.dart';
 
-const List<String> dataDirectories = const <String>[
+const List<String> dataDirectories1 = const <String>[
   '../closure/data',
   '../inference/data',
+  '../inlining/data',
+];
+
+const List<String> dataDirectories2 = const <String>[
   '../jumps/data',
+  '../rti/data',
+  '../rti/emission',
 ];
 
 const List<String> skipList = const <String>[
-  // TODO(johnniwinther): Fix these when kernel provides a unique offset for
-  // `()` in `foo[0]()`.
-  'closure_tracer.dart',
-  'closure_tracer_28919.dart',
-  'index_call.dart',
-  'map_tracer_const.dart',
+  // Unpatched external functions are not supported in the legacy frontend.
+  'external.dart',
   // Id equivalence doesn't support libraries.
   'mixin_constructor_default_parameter_values.dart',
   // Id equivalence doesn't support unused constructors.
@@ -42,14 +45,22 @@ const List<String> skipList = const <String>[
 ];
 
 main(List<String> args) {
+  mainInternal(args, []..addAll(dataDirectories1)..addAll(dataDirectories2));
+}
+
+mainInternal(List<String> args, Iterable<String> dataDirectories) {
+  args = args.toList();
+  bool shouldContinue = args.remove('-c');
+  bool continued = false;
   asyncTest(() async {
+    bool hasFailures = false;
     for (String path in dataDirectories) {
       Directory dataDir = new Directory.fromUri(Platform.script.resolve(path));
       await for (FileSystemEntity entity in dataDir.list()) {
-        if (args.isNotEmpty && !args.contains(entity.uri.pathSegments.last)) {
-          continue;
-        }
-        if (skipList.contains(entity.uri.pathSegments.last)) {
+        String name = entity.uri.pathSegments.last;
+        if (args.isNotEmpty && !args.contains(name) && !continued) continue;
+        if (shouldContinue) continued = true;
+        if (skipList.contains(name)) {
           print('Skipping ${entity.uri}');
           continue;
         }
@@ -65,11 +76,14 @@ main(List<String> args) {
         Map<String, String> memorySourceFiles = {
           entryPoint.path: code.sourceCode
         };
-        await compareData(entryPoint, memorySourceFiles, computeAstMemberData,
-            computeIrMemberData,
-            options: [Flags.disableTypeInference, stopAfterTypeInference]);
+        if (!await compareData(entity.uri, entryPoint, memorySourceFiles,
+            computeAstMemberData, computeIrMemberData,
+            options: [Flags.disableTypeInference, stopAfterTypeInference])) {
+          hasFailures = true;
+        }
       }
     }
+    Expect.isFalse(hasFailures, 'Errors found.');
   });
 }
 

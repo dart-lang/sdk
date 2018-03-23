@@ -82,6 +82,19 @@ typedef void ComputeClassDataFunction(
 
 const String stopAfterTypeInference = 'stopAfterTypeInference';
 
+/// Reports [message] as an error using [spannable] as error location.
+void reportError(
+    DiagnosticReporter reporter, Spannable spannable, String message) {
+  reporter
+      .reportErrorMessage(spannable, MessageKind.GENERIC, {'text': message});
+}
+
+/// Display name used for compilation using the old dart2js frontend.
+const String astName = 'dart2js old frontend';
+
+/// Display name used for compilation using the new common frontend.
+const String kernelName = 'kernel';
+
 /// Compute actual data for all members defined in the program with the
 /// [entryPoint] and [memorySourceFiles].
 ///
@@ -468,7 +481,7 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     }
 
     print('----------------------------------------------------------------');
-    print('Test: $name');
+    print('Test file: ${entity.uri}');
     // Pretend this is a dart2js_native test to allow use of 'native' keyword
     // and import of private libraries.
     String commonTestPath = 'sdk/tests/compiler';
@@ -523,7 +536,7 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
           verbose: verbose,
           forUserLibrariesOnly: forUserLibrariesOnly,
           globalIds: annotations.globalData.keys);
-      if (await checkCode(code, annotations, compiledData1,
+      if (await checkCode(astName, entity.uri, code, annotations, compiledData1,
           fatalErrors: !testAfterFailures)) {
         hasFailures = true;
       }
@@ -540,7 +553,8 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
           verbose: verbose,
           forUserLibrariesOnly: forUserLibrariesOnly,
           globalIds: annotations.globalData.keys);
-      if (await checkCode(code, annotations, compiledData2,
+      if (await checkCode(
+          kernelName, entity.uri, code, annotations, compiledData2,
           filterActualData: filterActualData,
           fatalErrors: !testAfterFailures)) {
         hasFailures = true;
@@ -554,12 +568,17 @@ final Set<String> userFiles = new Set<String>();
 
 /// Checks [compiledData] against the expected data in [expectedMap] derived
 /// from [code].
-Future<bool> checkCode(Map<Uri, AnnotatedCode> code,
-    MemberAnnotations<IdValue> expectedMaps, CompiledData compiledData,
+Future<bool> checkCode(
+    String mode,
+    Uri mainFileUri,
+    Map<Uri, AnnotatedCode> code,
+    MemberAnnotations<IdValue> expectedMaps,
+    CompiledData compiledData,
     {bool filterActualData(IdValue expected, ActualData actualData),
     bool fatalErrors: true}) async {
   IdData data = new IdData(code, expectedMaps, compiledData);
   bool hasFailure = false;
+  Set<Uri> neededDiffs = new Set<Uri>();
 
   void checkActualMap(
       Map<Id, ActualData> actualMap, Map<Id, IdValue> expectedMap,
@@ -567,14 +586,15 @@ Future<bool> checkCode(Map<Uri, AnnotatedCode> code,
     bool hasLocalFailure = false;
     actualMap.forEach((Id id, ActualData actualData) {
       IdValue actual = actualData.value;
+
       if (!expectedMap.containsKey(id)) {
         if (actual.value != '') {
-          reportHere(
+          reportError(
               data.compiler.reporter,
               actualData.sourceSpan,
-              'Id $id = ${colors.red('$actual')} for ${actualData.object} '
-              '(${actualData.object.runtimeType}) '
-              'not expected in ${expectedMap.keys}');
+              'EXTRA $mode DATA for ${id.descriptor} = '
+              '${colors.red('$actual')} for ${actualData.objectText}. '
+              'Data was expected for these ids: ${expectedMap.keys}');
           if (filterActualData == null || filterActualData(null, actualData)) {
             hasLocalFailure = true;
           }
@@ -582,11 +602,11 @@ Future<bool> checkCode(Map<Uri, AnnotatedCode> code,
       } else {
         IdValue expected = expectedMap[id];
         if (actual != expected) {
-          reportHere(
+          reportError(
               data.compiler.reporter,
               actualData.sourceSpan,
-              'Object: ${actualData.object} '
-              '(${actualData.object.runtimeType})\n '
+              'UNEXPECTED $mode DATA for ${id.descriptor}: '
+              'Object: ${actualData.objectText}\n '
               'expected: ${colors.green('$expected')}\n '
               'actual: ${colors.red('$actual')}');
           if (filterActualData == null ||
@@ -599,9 +619,7 @@ Future<bool> checkCode(Map<Uri, AnnotatedCode> code,
     if (hasLocalFailure) {
       hasFailure = true;
       if (uri != null) {
-        print('--annotations diff [${uri.pathSegments.last}]-------------');
-        print(data.diffCode(uri));
-        print('----------------------------------------------------------');
+        neededDiffs.add(uri);
       }
     }
   }
@@ -612,29 +630,23 @@ Future<bool> checkCode(Map<Uri, AnnotatedCode> code,
   checkActualMap(data.actualMaps.globalData, data.expectedMaps.globalData);
 
   Set<Id> missingIds = new Set<Id>();
-  StringBuffer combinedAnnotationsDiff = new StringBuffer();
   void checkMissing(Map<Id, IdValue> expectedMap, Map<Id, ActualData> actualMap,
       [Uri uri]) {
     expectedMap.forEach((Id id, IdValue expected) {
       if (!actualMap.containsKey(id)) {
         missingIds.add(id);
-        StringBuffer sb = new StringBuffer();
-        for (Id id in actualMap.keys.where((d) => d.kind == id.kind)) {
-          sb.write('\n  $id');
-        }
+        String message = 'MISSING $mode DATA for ${id.descriptor}: '
+            'Expected ${colors.green('$expected')}';
         if (uri != null) {
-          reportHere(
-              data.compiler.reporter,
-              computeSpannable(data.elementEnvironment, uri, id),
-              'Expected $expected for id $id missing in${sb}');
+          reportError(data.compiler.reporter,
+              computeSpannable(data.elementEnvironment, uri, id), message);
         } else {
-          print('Expected $expected for id $id missing in${sb}');
+          print(message);
         }
       }
     });
     if (missingIds.isNotEmpty && uri != null) {
-      combinedAnnotationsDiff.write('Missing in $uri:\n');
-      combinedAnnotationsDiff.write('${data.diffCode(uri)}\n');
+      neededDiffs.add(uri);
     }
   }
 
@@ -642,13 +654,13 @@ Future<bool> checkCode(Map<Uri, AnnotatedCode> code,
     checkMissing(expectedMap, data.actualMaps[uri], uri);
   });
   checkMissing(data.expectedMaps.globalData, data.actualMaps.globalData);
-  if (combinedAnnotationsDiff.isNotEmpty) {
-    print('--annotations diff--------------------------------------------');
-    print(combinedAnnotationsDiff.toString());
-    print('--------------------------------------------------------------');
+  for (Uri uri in neededDiffs) {
+    print('--annotations diff [${uri.pathSegments.last}]-------------');
+    print(data.diffCode(uri));
+    print('----------------------------------------------------------');
   }
   if (missingIds.isNotEmpty) {
-    print("Ids not found: ${missingIds}.");
+    print("MISSING ids: ${missingIds}.");
     hasFailure = true;
   }
   if (hasFailure && fatalErrors) {
@@ -749,6 +761,7 @@ void computeExpectedMap(Uri sourceUri, AnnotatedCode code,
 }
 
 Future<bool> compareData(
+    Uri mainFileUri,
     Uri entryPoint,
     Map<String, String> memorySourceFiles,
     ComputeMemberDataFunction computeAstData,
@@ -775,14 +788,15 @@ Future<bool> compareData(
       skipUnprocessedMembers: skipUnprocessedMembers,
       skipFailedCompilations: skipFailedCompilations);
   if (data2 == null) return false;
-  await compareCompiledData(data1, data2,
+  await compareCompiledData(mainFileUri, data1, data2,
       whiteList: whiteList,
       skipMissingUris: !forUserLibrariesOnly,
       verbose: verbose);
   return true;
 }
 
-Future compareCompiledData(CompiledData data1, CompiledData data2,
+Future compareCompiledData(
+    Uri mainFileUri, CompiledData data1, CompiledData data2,
     {bool skipMissingUris: false,
     bool verbose: false,
     bool whiteList(Uri uri, Id id)}) async {
@@ -831,9 +845,20 @@ Future compareCompiledData(CompiledData data1, CompiledData data2,
     actualMap1.forEach((Id id, ActualData actualData1) {
       IdValue value1 = actualData1.value;
       IdValue value2 = actualMap2[id]?.value;
+
       if (value1 != value2) {
-        reportHere(data1.compiler.reporter, actualData1.sourceSpan,
-            '$id: from source:${value1},from dill:${value2}');
+        String message;
+        if (value2 != null) {
+          String prefix = 'DATA MISMATCH for ${id.descriptor}';
+          message = '$prefix: Data from $astName: ${value1}, '
+              'data from $kernelName: ${value2}';
+        } else {
+          String prefix = 'MISSING $kernelName DATA for ${id.descriptor}, '
+              'object = ${actualData1.objectText}';
+          message = '$prefix: Data from $astName: ${value1}, '
+              'no data from $kernelName';
+        }
+        reportError(data1.compiler.reporter, actualData1.sourceSpan, message);
         if (!whiteList(uri1, id)) {
           hasErrors = hasErrorsInUri = true;
         }
@@ -843,15 +868,24 @@ Future compareCompiledData(CompiledData data1, CompiledData data2,
       IdValue value2 = actualData2.value;
       IdValue value1 = actualMap1[id]?.value;
       if (value1 != value2) {
-        reportHere(data2.compiler.reporter, actualData2.sourceSpan,
-            '$id: from source:${value1},from dill:${value2}');
+        String prefix = 'EXTRA $kernelName DATA for ${id.descriptor}, '
+            'object = ${actualData2.objectText}';
+        String message =
+            '$prefix: Data from $kernelName: ${value2}, no data from $astName';
+        reportError(data1.compiler.reporter, actualData2.sourceSpan, message);
         if (!whiteList(uri1, id)) {
           hasErrors = hasErrorsInUri = true;
         }
       }
     });
     if (hasErrorsInUri) {
-      print('--annotations diff $uri1---------------------------------------');
+      Uri fileUri;
+      if (data1.compiler.mainLibraryUri == uri1) {
+        fileUri = mainFileUri;
+      } else {
+        fileUri = uri1;
+      }
+      print('--annotations diff for: $fileUri -------------------------------');
       print(withAnnotations(
           sourceCode1,
           data1.computeDiffAnnotationsAgainst(actualMap1, actualMap2, uri1,

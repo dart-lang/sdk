@@ -72,7 +72,7 @@ Future<bool> mainInternal(List<String> args,
 Future<bool> testUri(Uri uri,
     {bool verbose: false, bool whiteList(Uri uri, Id id)}) {
   return compareData(
-      uri, const {}, computeMemberAstTypeMasks, computeMemberIrTypeMasks,
+      uri, uri, const {}, computeMemberAstTypeMasks, computeMemberIrTypeMasks,
       options: [stopAfterTypeInference],
       forUserLibrariesOnly: false,
       skipUnprocessedMembers: true,
