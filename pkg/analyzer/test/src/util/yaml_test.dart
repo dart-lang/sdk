@@ -153,7 +153,7 @@ YamlNode wrap(Object value) {
     List wrappedElements = value.map((e) => wrap(e)).toList();
     return new YamlList.internal(wrappedElements, null, CollectionStyle.BLOCK);
   } else if (value is Map) {
-    Map wrappedEntries = {};
+    Map<dynamic, YamlNode> wrappedEntries = <dynamic, YamlNode>{};
     value.forEach((k, v) {
       wrappedEntries[wrap(k)] = wrap(v);
     });
