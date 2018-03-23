@@ -1128,8 +1128,8 @@ bool isFunctionSubtypeV2(var s, var sEnv, var t, var tEnv) {
   // Check the remaining parameters of [t] with the first optional parameters
   // of [s].
   for (; tPos < tParametersLen; sPos++, tPos++) {
-    if (!isSubtypeV2(getIndex(tOptionalParameterTypes, tPos), tEnv,
-        getIndex(sParameterTypes, sPos), sEnv)) {
+    if (!isSubtypeV2(getIndex(tParameterTypes, tPos), tEnv,
+        getIndex(sOptionalParameterTypes, sPos), sEnv)) {
       return false;
     }
   }

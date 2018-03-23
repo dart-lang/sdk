@@ -1079,7 +1079,6 @@ type_variable_conflict2_test/02: MissingCompileTimeError
 typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && $fasta ]
-async_error_timing_test: Crash
 bug31436_test: RuntimeError
 call_method_function_typed_value_test/02: RuntimeError
 call_method_function_typed_value_test/04: RuntimeError
@@ -1907,10 +1906,6 @@ argument_assignability_function_typed_test/05: RuntimeError
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
-async_await_syntax_test/a06a: RuntimeError
-async_await_syntax_test/b06a: RuntimeError
-async_await_syntax_test/c06a: RuntimeError
-async_await_syntax_test/d06a: RuntimeError
 async_await_test/02: RuntimeError
 async_await_test/03: RuntimeError
 async_await_test/none: RuntimeError
@@ -1918,25 +1913,16 @@ async_congruence_local_test/none: RuntimeError
 async_congruence_method_test/none: RuntimeError
 async_congruence_top_level_test: RuntimeError
 async_congruence_unnamed_test/none: RuntimeError
-async_error_timing_test: RuntimeError
 async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
 async_return_types_test/nestedFuture: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_return_types_test/none: RuntimeError
 async_return_types_test/tooManyTypeParameters: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
 async_return_types_test/wrongReturnType: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
 async_star_await_pauses_test: RuntimeError
-async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_cancel_while_paused_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_star_no_cancel2_test: RuntimeError
-async_star_no_cancel_test: RuntimeError
-async_star_pause_test: RuntimeError
 async_star_regression_2238_test: RuntimeError
-async_star_regression_23116_test: RuntimeError
-async_star_regression_fisk_test: RuntimeError
 async_star_stream_take_test: RuntimeError
-async_star_take_reyield_test: RuntimeError
 async_star_test/01: RuntimeError
 async_star_test/02: RuntimeError
 async_star_test/03: RuntimeError
@@ -1944,14 +1930,7 @@ async_star_test/04: RuntimeError
 async_star_test/05: RuntimeError
 async_star_test/none: RuntimeError
 async_test: RuntimeError
-asyncstar_concat_test: RuntimeError
-asyncstar_yield_test: RuntimeError
-asyncstar_yieldstar_test: RuntimeError
-await_for_cancel_test: RuntimeError
-await_for_test: RuntimeError
-await_for_use_local_test: RuntimeError
 await_not_started_immediately_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-await_test: RuntimeError
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
@@ -2114,14 +2093,9 @@ flatten_test/12: MissingRuntimeError
 full_stacktrace1_test: RuntimeError # Issue 12698
 full_stacktrace2_test: RuntimeError # Issue 12698
 full_stacktrace3_test: RuntimeError # Issue 12698
-function_subtype2_test: RuntimeError
 function_subtype3_test: RuntimeError
-function_subtype_bound_closure2_test: RuntimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
-function_subtype_bound_closure5_test: RuntimeError
-function_subtype_bound_closure5a_test: RuntimeError
-function_subtype_bound_closure6_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
 function_subtype_call0_test: RuntimeError
 function_subtype_call1_test: RuntimeError
@@ -2133,22 +2107,15 @@ function_subtype_closure1_test: RuntimeError
 function_subtype_factory1_test: RuntimeError
 function_subtype_inline1_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
-function_subtype_local2_test: RuntimeError
-function_subtype_local5_test: RuntimeError
 function_subtype_not1_test: RuntimeError
-function_subtype_optional1_test: RuntimeError
-function_subtype_optional2_test: RuntimeError
 function_subtype_regression_ddc_588_test: RuntimeError
 function_subtype_setter0_test: RuntimeError
-function_subtype_simple2_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias2_test: RuntimeError
 function_type_alias4_test: RuntimeError
-function_type_alias_test: RuntimeError
 function_type_call_getter2_test/none: RuntimeError
 function_type_test: RuntimeError
-generic_async_star_test: RuntimeError
 generic_field_mixin6_test/none: RuntimeError
 generic_function_bounds_test: RuntimeError
 generic_function_dcall_test: RuntimeError
@@ -2222,7 +2189,6 @@ issue31596_override_test/07: MissingCompileTimeError
 issue31596_override_test/08: MissingCompileTimeError
 issue31596_super_test/01: CompileTimeError
 issue31596_super_test/03: CompileTimeError
-known_identifier_usage_error_test/none: RuntimeError
 left_shift_test: RuntimeError # non JS number semantics
 library_env_test/has_mirror_support: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
@@ -2232,9 +2198,6 @@ local_function2_test/none: RuntimeError
 local_function3_test/none: RuntimeError
 local_function_test/none: RuntimeError
 main_test/03: RuntimeError
-main_test/20: RuntimeError
-main_test/22: RuntimeError
-main_test/44: RuntimeError
 malbounded_instantiation_test/01: MissingCompileTimeError
 malbounded_instantiation_test/02: MissingCompileTimeError
 malbounded_instantiation_test/03: MissingCompileTimeError
@@ -2463,9 +2426,7 @@ regress_21795_test: RuntimeError # Issue 12605
 regress_22443_test: RuntimeError
 regress_23089_test: Crash # Stack Overflow
 regress_23408_test: CompileTimeError
-regress_23996_test: RuntimeError
 regress_24283_test: RuntimeError, OK # Requires 64 bit numbers.
-regress_24935_test/none: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
 regress_28255_test: RuntimeError
 regress_28278_test: RuntimeError
@@ -2482,7 +2443,6 @@ setter_override_test/00: MissingCompileTimeError
 setter_override_test/01: MissingCompileTimeError
 setter_override_test/02: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
-shadow_parameter_and_local_test: RuntimeError
 stack_trace_test: RuntimeError, OK # Stack trace not preserved in minified code.
 stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
@@ -2547,7 +2507,6 @@ type_variable_bounds_test/06: MissingCompileTimeError
 type_variable_bounds_test/08: MissingCompileTimeError
 type_variable_bounds_test/11: MissingCompileTimeError
 type_variable_promotion_test: RuntimeError
-typedef_is_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
 vm/async_await_catch_stacktrace_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 vm/await_synchronous_future_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
@@ -2585,7 +2544,6 @@ void_type_usage_test/conditional3_return_to_void: MissingCompileTimeError
 void_type_usage_test/conditional_return_to_void: MissingCompileTimeError
 wrong_number_type_arguments_test/01: MissingCompileTimeError
 wrong_number_type_arguments_test/none: Pass
-yieldstar_pause_test: RuntimeError
 
 [ $compiler == dart2js && $fasta && $strong ]
 mixin_type_parameter5_test: RuntimeError
