@@ -22,8 +22,9 @@ abstract class IncrementalKernelGenerator {
         bootstrapDill);
   }
 
-  /// Returns a component whose libraries are the recompiled libraries.
-  Future<Component> computeDelta({Uri entryPoint});
+  /// Returns a component whose libraries are the recompiled libraries,
+  /// or - in the case of [fullComponent] - a full Component.
+  Future<Component> computeDelta({Uri entryPoint, bool fullComponent});
 
   /// Remove the file associated with the given file [uri] from the set of
   /// valid files.  This guarantees that those files will be re-read on the

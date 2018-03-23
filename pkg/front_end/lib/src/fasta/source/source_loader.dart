@@ -811,4 +811,9 @@ class SourceLoader<L> extends Loader<L> {
           new InstrumentationValueLiteral(context.code.name));
     }
   }
+
+  void releaseAncillaryResources() {
+    hierarchy = null;
+    typeInferenceEngine = null;
+  }
 }
