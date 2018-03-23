@@ -392,6 +392,8 @@ class _Environment implements Environment {
     if (libraryName.startsWith("_")) return null;
 
     Uri libraryUri = compiler.resolvedUriTranslator.sdkLibraries[libraryName];
+    // TODO(sigmund): use libraries.json instead of .platform files, then simply
+    // use the `supported` bit.
     if (libraryUri != null && libraryUri.scheme != "unsupported") {
       // Dart2js always "supports" importing 'dart:mirrors' but will abort
       // the compilation at a later point if the backend doesn't support
@@ -399,6 +401,7 @@ class _Environment implements Environment {
       if (libraryName == 'mirrors') {
         return compiler.backend.supportsReflection ? "true" : null;
       }
+      if (libraryName == 'isolate') return null;
       return "true";
     }
 

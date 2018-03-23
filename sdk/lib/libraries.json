@@ -227,6 +227,7 @@
       },
       "isolate": {
         "patches": "_internal/js_runtime/lib/isolate_patch.dart",
+        "supported": false,
         "uri": "isolate/isolate.dart"
       },
       "developer": {
@@ -332,6 +333,7 @@
       },
       "isolate": {
         "patches": "_internal/js_runtime/lib/isolate_patch.dart",
+        "supported": false,
         "uri": "isolate/isolate.dart"
       },
       "developer": {

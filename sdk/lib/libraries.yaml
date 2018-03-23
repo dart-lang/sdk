@@ -189,6 +189,7 @@ dart2js:
     isolate:
       uri: "isolate/isolate.dart"
       patches: "_internal/js_runtime/lib/isolate_patch.dart"
+      supported: false
 
     js:
       uri: "js/dart2js/js_dart2js.dart"
@@ -295,6 +296,7 @@ dart2js_server:
     isolate:
       uri: "isolate/isolate.dart"
       patches: "_internal/js_runtime/lib/isolate_patch.dart"
+      supported: false
 
     js:
       uri: "js/dart2js/js_dart2js.dart"
