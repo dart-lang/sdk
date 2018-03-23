@@ -959,9 +959,11 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitAssertStatement(AssertStatement node) {
-    _visit(node.condition);
-    if (node.message != null) {
-      _visit(node.message);
+    if (!kRemoveAsserts) {
+      _visit(node.condition);
+      if (node.message != null) {
+        _visit(node.message);
+      }
     }
     return null;
   }
@@ -974,7 +976,9 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitAssertBlock(AssertBlock node) {
-    node.statements.forEach(_visit);
+    if (!kRemoveAsserts) {
+      node.statements.forEach(_visit);
+    }
     return null;
   }
 
@@ -1146,7 +1150,9 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   visitAssertInitializer(AssertInitializer node) {
-    _visit(node.statement);
+    if (!kRemoveAsserts) {
+      _visit(node.statement);
+    }
   }
 
   @override

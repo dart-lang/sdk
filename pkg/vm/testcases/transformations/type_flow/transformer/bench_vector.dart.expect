@@ -10,13 +10,10 @@ class _Vector extends core::Object {
   constructor •([@vm.inferred-type.metadata=!] core::int size) → void
     : self::_Vector::_offset = 0, self::_Vector::_length = size, self::_Vector::_elements = [@vm.inferred-type.metadata=dart.typed_data::_Float64List] typ::Float64List::•(size), super core::Object::•()
     ;
-[@vm.unreachable.metadata=]  constructor fromVOL(core::List<core::double> values, core::int offset, core::int length) → void
-    : self::_Vector::_offset = offset, self::_Vector::_length = length, self::_Vector::_elements = values, super core::Object::•()
-    throw "TFA Error: #lib::_Vector::fromVOL";
   operator [](core::int i) → core::double
     return [@vm.direct-call.metadata=dart.typed_data::_Float64List::[]] [@vm.inferred-type.metadata=dart.core::_Double] [@vm.direct-call.metadata=#lib::_Vector::_elements] [@vm.inferred-type.metadata=dart.typed_data::_Float64List] this.{self::_Vector::_elements}.{core::List::[]}(i.{core::num::+}([@vm.direct-call.metadata=#lib::_Vector::_offset] [@vm.inferred-type.metadata=!] this.{self::_Vector::_offset}));
   operator []=([@vm.inferred-type.metadata=!] core::int i, core::double value) → void {
-    [@vm.unreachable.metadata=] [@vm.direct-call.metadata=#lib::_Vector::_elements] [@vm.inferred-type.metadata=dart.typed_data::_Float64List] this.{self::_Vector::_elements}.{core::List::[]=}([@vm.unreachable.metadata=] i.{core::num::+}([@vm.direct-call.metadata=#lib::_Vector::_offset] [@vm.inferred-type.metadata=!] this.{self::_Vector::_offset}), value);
+    let dynamic #t1 = [@vm.direct-call.metadata=#lib::_Vector::_elements] [@vm.inferred-type.metadata=dart.typed_data::_Float64List] this.{self::_Vector::_elements} in let dynamic #t2 = i in let dynamic #t3 = [@vm.direct-call.metadata=#lib::_Vector::_offset] [@vm.inferred-type.metadata=!] this.{self::_Vector::_offset} in throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
   }
   operator *([@vm.inferred-type.metadata=#lib::_Vector?] self::_Vector a) → core::double {
     core::double result = 0.0;
@@ -28,7 +25,7 @@ class _Vector extends core::Object {
 [@vm.inferred-type.metadata=#lib::_Vector?]static field self::_Vector v = new self::_Vector::•(10);
 [@vm.inferred-type.metadata=dart.core::_Double?]static field core::double x = 0.0;
 static method main(core::List<core::String> args) → dynamic {
-  core::Stopwatch timer = let final core::Stopwatch #t1 = new core::Stopwatch::•() in let final dynamic #t2 = [@vm.direct-call.metadata=dart.core::Stopwatch::start] #t1.{core::Stopwatch::start}() in #t1;
+  core::Stopwatch timer = let final core::Stopwatch #t4 = new core::Stopwatch::•() in let final dynamic #t5 = [@vm.direct-call.metadata=dart.core::Stopwatch::start] #t4.{core::Stopwatch::start}() in #t4;
   for (core::int i = 0; i.{core::num::<}(100000000); i = i.{core::num::+}(1)) {
     self::x = [@vm.direct-call.metadata=dart.core::_Double::+??] [@vm.inferred-type.metadata=dart.core::_Double] [@vm.inferred-type.metadata=dart.core::_Double?] self::x.{core::double::+}([@vm.direct-call.metadata=#lib::_Vector::*??] [@vm.inferred-type.metadata=dart.core::_Double] [@vm.inferred-type.metadata=#lib::_Vector?] self::v.{self::_Vector::*}([@vm.inferred-type.metadata=#lib::_Vector?] self::v));
   }
