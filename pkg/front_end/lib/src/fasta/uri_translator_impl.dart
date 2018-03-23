@@ -46,8 +46,11 @@ class UriTranslatorImpl implements UriTranslator {
   }
 
   @override
-  String environmentOverrideFor(String libraryName) =>
-      dartLibraries.environmentOverrideFor(libraryName);
+  bool isLibrarySupported(String libraryName) {
+    // TODO(sigmund): change this to `?? false` when all backends provide the
+    // `libraries.json` file by default (Issue #32657).
+    return dartLibraries.libraryInfoFor(libraryName)?.isSupported ?? true;
+  }
 
   /// Return the file URI that corresponds to the given `dart` URI, or `null`
   /// if there is no corresponding Dart library registered.

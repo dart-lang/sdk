@@ -184,6 +184,7 @@ dart2js:
     io:
       uri: "io/io.dart"
       patches: "_internal/js_runtime/lib/io_patch.dart"
+      supported: false
 
     isolate:
       uri: "isolate/isolate.dart"
@@ -206,6 +207,7 @@ dart2js:
     mirrors:
       uri: "mirrors/mirrors.dart"
       patches: "_internal/js_runtime/lib/mirrors_patch_cfe.dart"
+      supported: false
 
     typed_data:
       uri: "typed_data/typed_data.dart"
@@ -260,10 +262,6 @@ dart2js:
     _metadata:
       uri: "html/html_common/metadata.dart"
 
-  environment_overrides:
-    io: false
-    mirrors: false
-
 dart2js_server:
   libraries:
     async:
@@ -292,6 +290,7 @@ dart2js_server:
     io:
       uri: "io/io.dart"
       patches: "_internal/js_runtime/lib/io_patch.dart"
+      supported: false
 
     isolate:
       uri: "isolate/isolate.dart"
@@ -314,6 +313,7 @@ dart2js_server:
     mirrors:
       uri: "mirrors/mirrors.dart"
       patches: "_internal/js_runtime/lib/mirrors_patch_cfe.dart"
+      supported: false
 
     typed_data:
       uri: "typed_data/typed_data.dart"
@@ -352,7 +352,3 @@ dart2js_server:
 
     _async_await_error_codes:
       uri: "_internal/js_runtime/lib/shared/async_await_error_codes.dart"
-
-  environment_overrides:
-    io: false
-    mirrors: false

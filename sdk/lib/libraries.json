@@ -146,10 +146,6 @@
     }
   },
   "dart2js": {
-    "environment_overrides": {
-      "mirrors": false,
-      "io": false
-    },
     "libraries": {
       "async": {
         "patches": "_internal/js_runtime/lib/async_patch.dart",
@@ -160,6 +156,7 @@
       },
       "mirrors": {
         "patches": "_internal/js_runtime/lib/mirrors_patch_cfe.dart",
+        "supported": false,
         "uri": "mirrors/mirrors.dart"
       },
       "_js_embedded_names": {
@@ -167,6 +164,7 @@
       },
       "io": {
         "patches": "_internal/js_runtime/lib/io_patch.dart",
+        "supported": false,
         "uri": "io/io.dart"
       },
       "_internal": {
@@ -268,10 +266,6 @@
     }
   },
   "dart2js_server": {
-    "environment_overrides": {
-      "mirrors": false,
-      "io": false
-    },
     "libraries": {
       "async": {
         "patches": "_internal/js_runtime/lib/async_patch.dart",
@@ -279,6 +273,7 @@
       },
       "mirrors": {
         "patches": "_internal/js_runtime/lib/mirrors_patch_cfe.dart",
+        "supported": false,
         "uri": "mirrors/mirrors.dart"
       },
       "_interceptors": {
@@ -289,6 +284,7 @@
       },
       "io": {
         "patches": "_internal/js_runtime/lib/io_patch.dart",
+        "supported": false,
         "uri": "io/io.dart"
       },
       "_internal": {
