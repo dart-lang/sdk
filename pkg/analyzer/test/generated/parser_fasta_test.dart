@@ -135,42 +135,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     super.test_expectedStringLiteral();
   }
 
-  @override
-  @failingTest
-  void test_getterInFunction_block_noReturnType() {
-    // TODO(brianwilkerson) Does not recover.
-    //   type 'ExpressionStatementImpl' is not a subtype of type 'FunctionDeclarationStatement' of 'statement' where
-    //   ExpressionStatementImpl is from package:analyzer/src/dart/ast/ast.dart
-    //   FunctionDeclarationStatement is from package:analyzer/dart/ast/ast.dart
-    //
-    //   test/generated/parser_test.dart 3019:9                             FastaParserTestCase&ErrorParserTestMixin.test_getterInFunction_block_noReturnType
-    super.test_getterInFunction_block_noReturnType();
-  }
-
-  @override
-  @failingTest
-  void test_getterInFunction_block_returnType() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.GETTER_IN_FUNCTION, found 0
-    super.test_getterInFunction_block_returnType();
-  }
-
-  @override
-  @failingTest
-  void test_getterInFunction_expression_noReturnType() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.GETTER_IN_FUNCTION, found 0
-    super.test_getterInFunction_expression_noReturnType();
-  }
-
-  @override
-  @failingTest
-  void test_getterInFunction_expression_returnType() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.GETTER_IN_FUNCTION, found 0
-    super.test_getterInFunction_expression_returnType();
-  }
-
   void test_getterNativeWithBody() {
     createParser('String get m native "str" => 0;');
     parser.parseClassMember('C') as MethodDeclaration;

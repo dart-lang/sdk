@@ -3677,29 +3677,45 @@ class Wrong<T> {
   }
 
   void test_getterInFunction_block_noReturnType() {
-    FunctionDeclarationStatement statement =
-        parseStatement("get x { return _x; }");
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.GETTER_IN_FUNCTION, 0, 3)]);
-    expect(statement.functionDeclaration.functionExpression.parameters, isNull);
+    Statement result =
+        parseStatement("get x { return _x; }", expectedEndOffset: 4);
+    if (usingFastaParser) {
+      // Fasta considers `get` to be an identifier in this situation.
+      ExpressionStatement statement = result;
+      listener
+          .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)]);
+      expect(statement.expression.toSource(), 'get');
+    } else {
+      FunctionDeclarationStatement statement = result;
+      listener.assertErrors(
+          [expectedError(ParserErrorCode.GETTER_IN_FUNCTION, 0, 3)]);
+      expect(
+          statement.functionDeclaration.functionExpression.parameters, isNull);
+    }
   }
 
   void test_getterInFunction_block_returnType() {
-    parseStatement("int get x { return _x; }");
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.GETTER_IN_FUNCTION, 4, 3)]);
+    // Fasta considers `get` to be an identifier in this situation.
+    parseStatement("int get x { return _x; }", expectedEndOffset: 8);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1)]
+        : [expectedError(ParserErrorCode.GETTER_IN_FUNCTION, 4, 3)]);
   }
 
   void test_getterInFunction_expression_noReturnType() {
-    parseStatement("get x => _x;");
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.GETTER_IN_FUNCTION, 0, 3)]);
+    // Fasta considers `get` to be an identifier in this situation.
+    parseStatement("get x => _x;", expectedEndOffset: 4);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)]
+        : [expectedError(ParserErrorCode.GETTER_IN_FUNCTION, 0, 3)]);
   }
 
   void test_getterInFunction_expression_returnType() {
-    parseStatement("int get x => _x;");
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.GETTER_IN_FUNCTION, 4, 3)]);
+    // Fasta considers `get` to be an identifier in this situation.
+    parseStatement("int get x => _x;", expectedEndOffset: 8);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1)]
+        : [expectedError(ParserErrorCode.GETTER_IN_FUNCTION, 4, 3)]);
   }
 
   void test_getterWithParameters() {
