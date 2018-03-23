@@ -1,4 +1,4 @@
-## 2.0.0-dev.41.0
+## 2.0.0-dev.42.0
 
 ### Tool Changes
 
@@ -16,6 +16,10 @@
 [pub#1823]: https://github.com/dart-lang/pub/issues/1823
 [pub#1826]: https://github.com/dart-lang/pub/issues/1826
 [pub#1827]: https://github.com/dart-lang/pub/issues/1827
+
+## 2.0.0-dev.41.0
+
+Not released, due to a failure in the pub tool.
 
 ## 2.0.0-dev.40.0
 

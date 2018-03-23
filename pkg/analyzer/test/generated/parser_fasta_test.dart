@@ -135,42 +135,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     super.test_expectedStringLiteral();
   }
 
-  @override
-  @failingTest
-  void test_getterInFunction_block_noReturnType() {
-    // TODO(brianwilkerson) Does not recover.
-    //   type 'ExpressionStatementImpl' is not a subtype of type 'FunctionDeclarationStatement' of 'statement' where
-    //   ExpressionStatementImpl is from package:analyzer/src/dart/ast/ast.dart
-    //   FunctionDeclarationStatement is from package:analyzer/dart/ast/ast.dart
-    //
-    //   test/generated/parser_test.dart 3019:9                             FastaParserTestCase&ErrorParserTestMixin.test_getterInFunction_block_noReturnType
-    super.test_getterInFunction_block_noReturnType();
-  }
-
-  @override
-  @failingTest
-  void test_getterInFunction_block_returnType() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.GETTER_IN_FUNCTION, found 0
-    super.test_getterInFunction_block_returnType();
-  }
-
-  @override
-  @failingTest
-  void test_getterInFunction_expression_noReturnType() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.GETTER_IN_FUNCTION, found 0
-    super.test_getterInFunction_expression_noReturnType();
-  }
-
-  @override
-  @failingTest
-  void test_getterInFunction_expression_returnType() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.GETTER_IN_FUNCTION, found 0
-    super.test_getterInFunction_expression_returnType();
-  }
-
   void test_getterNativeWithBody() {
     createParser('String get m native "str" => 0;');
     parser.parseClassMember('C') as MethodDeclaration;
@@ -496,57 +460,14 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   }
 
   @override
-  @failingTest
   void test_method_invalidTypeParameterComments() {
-    // TODO(brianwilkerson) Does not recover.
-    //   type 'DeclaredSimpleIdentifier' is not a subtype of type 'TypeAnnotation' of 'returnType' where
-    //   DeclaredSimpleIdentifier is from package:analyzer/src/dart/ast/ast.dart
-    //   TypeAnnotation is from package:analyzer/dart/ast/ast.dart
-    //
-    //   package:analyzer/src/fasta/ast_builder.dart 1620:33                AstBuilder.endMethod
-    //   test/generated/parser_fasta_listener.dart 926:14                   ForwardingTestListener.endMethod
-    //   package:front_end/src/fasta/parser/parser.dart 2433:14             Parser.parseMethod
-    //   package:front_end/src/fasta/parser/parser.dart 2323:11             Parser.parseMember
-    //   test/generated/parser_fasta_test.dart 3438:39                      ParserProxy._run
-    super.test_method_invalidTypeParameterComments();
-  }
-
-  @override
-  @failingTest
-  void test_method_invalidTypeParameterExtends() {
-    // TODO(brianwilkerson) Does not recover.
-    //   type 'FormalParameterListImpl' is not a subtype of type 'TypeParameterList' of 'typeParameters' where
-    //   FormalParameterListImpl is from package:analyzer/src/dart/ast/ast.dart
-    //   TypeParameterList is from package:analyzer/dart/ast/ast.dart
-    //
-    //   package:analyzer/src/fasta/ast_builder.dart 1618:40                AstBuilder.endMethod
-    //   test/generated/parser_fasta_listener.dart 926:14                   ForwardingTestListener.endMethod
-    //   package:front_end/src/fasta/parser/parser.dart 2433:14             Parser.parseMethod
-    //   package:front_end/src/fasta/parser/parser.dart 2323:11             Parser.parseMember
-    //   test/generated/parser_fasta_test.dart 3438:39                      ParserProxy._run
-    super.test_method_invalidTypeParameterExtends();
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 
   @override
   void test_method_invalidTypeParameterExtendsComment() {
     // Fasta no longer supports type comment based syntax
     // super.test_method_invalidTypeParameterExtendsComment();
-  }
-
-  @override
-  @failingTest
-  void test_method_invalidTypeParameters() {
-    // TODO(brianwilkerson) Does not recover.
-    //   type 'DeclaredSimpleIdentifier' is not a subtype of type 'TypeAnnotation' of 'returnType' where
-    //   DeclaredSimpleIdentifier is from package:analyzer/src/dart/ast/ast.dart
-    //   TypeAnnotation is from package:analyzer/dart/ast/ast.dart
-    //
-    //   package:analyzer/src/fasta/ast_builder.dart 1620:33                AstBuilder.endMethod
-    //   test/generated/parser_fasta_listener.dart 926:14                   ForwardingTestListener.endMethod
-    //   package:front_end/src/fasta/parser/parser.dart 2433:14             Parser.parseMethod
-    //   package:front_end/src/fasta/parser/parser.dart 2323:11             Parser.parseMember
-    //   test/generated/parser_fasta_test.dart 3438:39                      ParserProxy._run
-    super.test_method_invalidTypeParameters();
   }
 
   @override

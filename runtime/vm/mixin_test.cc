@@ -84,18 +84,23 @@ TEST_CASE(Mixin_PrivateSuperResolutionCrossLibraryShouldFail) {
     }};
   // clang-format on
 
+  Isolate* isolate = Isolate::Current();
   Dart_Handle lib = TestCase::LoadTestScriptWithDFE(
       sizeof(sourcefiles) / sizeof(Dart_SourceFile), sourcefiles,
       /* resolver= */ NULL, /* finalize= */ true, /* incrementally= */ true);
-  EXPECT_VALID(lib);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  const char* result_str = NULL;
-  EXPECT(Dart_IsString(result));
-  EXPECT_VALID(Dart_StringToCString(result, &result_str));
-  EXPECT_STREQ(
-      "NoSuchMethodError: Super class of class 'D' has no instance method "
-      "'_bar'.",
-      result_str);
+  if (isolate->strong()) {
+    EXPECT_ERROR(lib, "Error: Superclass has no method named '_bar'.");
+  } else {
+    EXPECT_VALID(lib);
+    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+    const char* result_str = NULL;
+    EXPECT(Dart_IsString(result));
+    EXPECT_VALID(Dart_StringToCString(result, &result_str));
+    EXPECT_STREQ(
+        "NoSuchMethodError: Super class of class 'D' has no instance method "
+        "'_bar'.",
+        result_str);
+  }
 }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 

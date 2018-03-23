@@ -2767,10 +2767,19 @@ class Parser {
       listener.beginTypeVariables(begin);
       int count = 0;
       do {
-        token = parseTypeVariable(token.next);
+        token = parseTypeVariable(next);
+        next = token.next;
         ++count;
-      } while (optional(',', token.next));
-      token = begin.endToken = ensureGt(token);
+      } while (optional(',', next));
+      if (next == begin.endToken) {
+        token = next;
+      } else if (begin.endToken != null) {
+        reportRecoverableError(
+            next, fasta.templateExpectedToken.withArguments('>'));
+        token = begin.endToken;
+      } else {
+        token = begin.endToken = ensureGt(token);
+      }
       listener.endTypeVariables(count, begin, token);
     } else {
       listener.handleNoTypeVariables(next);
@@ -5491,14 +5500,18 @@ class Parser {
         typeInfo.couldBeExpression) {
       // Detect expressions such as identifier `as` identifier
       // and treat those as expressions.
-      int kind = next.next.kind;
-      if (EQ_TOKEN != kind && SEMICOLON_TOKEN != kind && COMMA_TOKEN != kind) {
-        if (onlyParseVariableDeclarationStart) {
-          if (!optional('in', next.next)) {
-            return start;
+      if (optional('as', next) || optional('is', next)) {
+        int kind = next.next.kind;
+        if (EQ_TOKEN != kind &&
+            SEMICOLON_TOKEN != kind &&
+            COMMA_TOKEN != kind) {
+          if (onlyParseVariableDeclarationStart) {
+            if (!optional('in', next.next)) {
+              return start;
+            }
+          } else {
+            return parseExpressionStatement(start);
           }
-        } else {
-          return parseExpressionStatement(start);
         }
       }
     }
