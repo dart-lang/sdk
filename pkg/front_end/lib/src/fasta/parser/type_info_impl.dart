@@ -6,13 +6,16 @@ library fasta.parser.type_info_impl;
 
 import '../../scanner/token.dart' show Token;
 
+import '../fasta_codes.dart' as fasta;
+
 import 'identifier_context.dart' show IdentifierContext;
 
 import 'listener.dart' show Listener;
 
 import 'parser.dart' show Parser;
 
-import 'type_info.dart' show TypeInfo, simpleTypeInfo;
+import 'type_info.dart'
+    show insertSyntheticIdentifierAfter, simpleTypeInfo, TypeInfo;
 
 import 'util.dart' show optional;
 
@@ -22,6 +25,18 @@ class NoTypeInfo implements TypeInfo {
 
   @override
   bool get couldBeExpression => false;
+
+  @override
+  Token ensureTypeNotVoid(Token token, Parser parser) {
+    parser.reportRecoverableErrorWithToken(
+        token.next, fasta.templateExpectedType);
+    insertSyntheticIdentifierAfter(token, parser);
+    return simpleTypeInfo.parseTypeNotVoid(token, parser);
+  }
+
+  @override
+  Token parseTypeNotVoid(Token token, Parser parser) =>
+      parseType(token, parser);
 
   @override
   Token parseType(Token token, Parser parser) {
@@ -41,6 +56,14 @@ class PrefixedTypeInfo implements TypeInfo {
 
   @override
   bool get couldBeExpression => true;
+
+  @override
+  Token ensureTypeNotVoid(Token token, Parser parser) =>
+      parseType(token, parser);
+
+  @override
+  Token parseTypeNotVoid(Token token, Parser parser) =>
+      parseType(token, parser);
 
   @override
   Token parseType(Token token, Parser parser) {
@@ -77,6 +100,14 @@ class SimpleTypeArgumentsInfo implements TypeInfo {
   bool get couldBeExpression => false;
 
   @override
+  Token ensureTypeNotVoid(Token token, Parser parser) =>
+      parseType(token, parser);
+
+  @override
+  Token parseTypeNotVoid(Token token, Parser parser) =>
+      parseType(token, parser);
+
+  @override
   Token parseType(Token token, Parser parser) {
     Token start = token = token.next;
     assert(token.isKeywordOrIdentifier);
@@ -87,7 +118,7 @@ class SimpleTypeArgumentsInfo implements TypeInfo {
     assert(optional('<', token));
     listener.beginTypeArguments(token);
 
-    token = simpleTypeInfo.parseType(token, parser);
+    token = simpleTypeInfo.parseTypeNotVoid(token, parser);
 
     token = token.next;
     assert(optional('>', token));
@@ -112,6 +143,14 @@ class SimpleTypeInfo implements TypeInfo {
   bool get couldBeExpression => true;
 
   @override
+  Token ensureTypeNotVoid(Token token, Parser parser) =>
+      parseType(token, parser);
+
+  @override
+  Token parseTypeNotVoid(Token token, Parser parser) =>
+      parseType(token, parser);
+
+  @override
   Token parseType(Token token, Parser parser) {
     token = token.next;
     assert(token.isKeywordOrIdentifier);
@@ -134,6 +173,17 @@ class VoidTypeInfo implements TypeInfo {
 
   @override
   bool get couldBeExpression => false;
+
+  @override
+  Token ensureTypeNotVoid(Token token, Parser parser) {
+    // Report an error, then parse `void` as if it were a type name.
+    parser.reportRecoverableError(token.next, fasta.messageInvalidVoid);
+    return simpleTypeInfo.parseTypeNotVoid(token, parser);
+  }
+
+  @override
+  Token parseTypeNotVoid(Token token, Parser parser) =>
+      ensureTypeNotVoid(token, parser);
 
   @override
   Token parseType(Token token, Parser parser) {

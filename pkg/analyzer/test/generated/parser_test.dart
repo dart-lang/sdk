@@ -3681,6 +3681,7 @@ class Wrong<T> {
         parseStatement("get x { return _x; }", expectedEndOffset: 4);
     if (usingFastaParser) {
       // Fasta considers `get` to be an identifier in this situation.
+      // TODO(danrubel): Investigate better recovery.
       ExpressionStatement statement = result;
       listener
           .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)]);
@@ -5590,6 +5591,7 @@ void main() {
 
   void test_varAsTypeName_as() {
     parseExpression("x as var",
+        expectedEndOffset: 5,
         errors: usingFastaParser
             ? [expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 5, 3)]
             : [expectedError(ParserErrorCode.VAR_AS_TYPE_NAME, 7, 3)]);

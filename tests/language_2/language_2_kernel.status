@@ -243,7 +243,6 @@ syntax_test/32: MissingCompileTimeError
 syntax_test/33: MissingCompileTimeError
 syntax_test/60: MissingCompileTimeError
 syntax_test/61: MissingCompileTimeError
-syntax_test/62: MissingCompileTimeError
 type_variable_bounds2_test: MissingCompileTimeError
 type_variable_bounds3_test/00: MissingCompileTimeError
 type_variable_bounds4_test/01: MissingCompileTimeError

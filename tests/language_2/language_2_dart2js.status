@@ -1133,7 +1133,6 @@ partial_tearoff_instantiation_test/06: Pass # for the wrong reason.
 partial_tearoff_instantiation_test/07: Pass # for the wrong reason.
 partial_tearoff_instantiation_test/08: Pass # for the wrong reason.
 partial_tearoff_instantiation_test/none: CompileTimeError
-syntax_test/62: Crash
 
 [ $compiler == dart2js && $fasta && $host_checked && $strong ]
 abstract_factory_constructor_test/00: MissingCompileTimeError

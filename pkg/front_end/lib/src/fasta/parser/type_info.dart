@@ -4,7 +4,7 @@
 
 library fasta.parser.type_info;
 
-import '../../scanner/token.dart' show Token, TokenType;
+import '../../scanner/token.dart' show SyntheticStringToken, Token, TokenType;
 
 import '../scanner/token_constants.dart' show IDENTIFIER_TOKEN, KEYWORD_TOKEN;
 
@@ -39,7 +39,20 @@ abstract class TypeInfo {
   /// or as expressions, while `A<T>` only looks like a type reference.
   bool get couldBeExpression;
 
-  /// Call this function when it's known that the token after [token] is a type.
+  /// Call this function when the token after [token] must be a type (not void).
+  /// This function will call the appropriate event methods on the [Parser]'s
+  /// listener to handle the type, inserting a synthetic type reference if
+  /// necessary. This may modify the token stream when parsing `>>` in valid
+  /// code or during recovery.
+  Token ensureTypeNotVoid(Token token, Parser parser);
+
+  /// Call this function to parse an optional type (not void) after [token].
+  /// This function will call the appropriate event methods on the [Parser]'s
+  /// listener to handle the type. This may modify the token stream
+  /// when parsing `>>` in valid code or during recovery.
+  Token parseTypeNotVoid(Token token, Parser parser);
+
+  /// Call this function to parse an optional type or void after [token].
   /// This function will call the appropriate event methods on the [Parser]'s
   /// listener to handle the type. This may modify the token stream
   /// when parsing `>>` in valid code or during recovery.
@@ -71,6 +84,13 @@ const TypeInfo prefixedTypeInfo = const PrefixedTypeInfo();
 /// [computeType] when the type reference is of the form:
 /// identifier `<` identifier `>`.
 const TypeInfo simpleTypeArgumentsInfo = const SimpleTypeArgumentsInfo();
+
+Token insertSyntheticIdentifierAfter(Token token, Parser parser) {
+  Token identifier = new SyntheticStringToken(
+      TokenType.IDENTIFIER, '', token.next.charOffset, 0);
+  parser.rewriter.insertTokenAfter(token, identifier);
+  return identifier;
+}
 
 bool isGeneralizedFunctionType(Token token) {
   return optional('Function', token) &&
@@ -206,6 +226,14 @@ class ComplexTypeInfo implements TypeInfo {
   bool get couldBeExpression => false;
 
   @override
+  Token ensureTypeNotVoid(Token token, Parser parser) =>
+      parseType(token, parser);
+
+  @override
+  Token parseTypeNotVoid(Token token, Parser parser) =>
+      parseType(token, parser);
+
+  @override
   Token parseType(Token token, Parser parser) {
     assert(identical(token.next, start));
     Listener listener = parser.listener;
@@ -219,7 +247,7 @@ class ComplexTypeInfo implements TypeInfo {
       // A function type without return type.
       // Push the non-existing return type first. The loop below will
       // generate the full type.
-      noTypeInfo.parseType(token, parser);
+      noTypeInfo.parseTypeNotVoid(token, parser);
     } else if (optional('void', token.next)) {
       token = voidTypeInfo.parseType(token, parser);
     } else {

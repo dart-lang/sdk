@@ -2748,10 +2748,19 @@ class Parser {
       listener.beginTypeArguments(begin);
       int count = 0;
       do {
-        token = parseType(token.next);
+        token = parseType(next);
+        next = token.next;
         ++count;
-      } while (optional(',', token.next));
-      token = begin.endToken = ensureGt(token);
+      } while (optional(',', next));
+      if (next == begin.endToken) {
+        token = next;
+      } else if (begin.endToken != null) {
+        reportRecoverableError(
+            next, fasta.templateExpectedToken.withArguments('>'));
+        token = begin.endToken;
+      } else {
+        token = begin.endToken = ensureGt(token);
+      }
       listener.endTypeArguments(count, begin, token);
     } else {
       listener.handleNoTypeArguments(next);
@@ -5328,7 +5337,7 @@ class Parser {
     if (optional('!', token.next)) {
       not = token = token.next;
     }
-    token = parseType(token);
+    token = computeType(token, true).ensureTypeNotVoid(token, this);
     Token next = token.next;
     listener.handleIsOperator(operator, not, next);
     String value = next.stringValue;
@@ -5348,7 +5357,7 @@ class Parser {
   Token parseAsOperatorRest(Token token) {
     Token operator = token = token.next;
     assert(optional('as', operator));
-    token = parseType(token);
+    token = computeType(token, true).ensureTypeNotVoid(token, this);
     Token next = token.next;
     listener.handleAsOperator(operator, next);
     String value = next.stringValue;
