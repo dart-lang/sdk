@@ -3,23 +3,33 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async' show Future;
+
 import 'dart:io' show Directory, File;
 
 import 'package:expect/expect.dart' show Expect;
 
+import 'package:front_end/src/base/processed_options.dart'
+    show ProcessedOptions;
+
+import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
+
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
-import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
-    show IncrementalKernelGenerator;
+
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
+
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
+
 import 'package:front_end/src/fasta/fasta_codes.dart' show LocatedMessage;
+
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
+
 import 'package:front_end/src/fasta/kernel/utils.dart'
     show writeComponentToFile, serializeComponent;
+
 import 'package:front_end/src/fasta/severity.dart' show Severity;
 
 import 'package:kernel/kernel.dart'
@@ -116,11 +126,17 @@ void simpleTest(
   Uri entryPointUri;
   Set<String> invalidateFilenames = invalidate?.toSet() ?? new Set<String>();
   List<Uri> invalidateUris = <Uri>[];
+  Uri packagesUri;
   for (String filename in sourceFiles.keys) {
     Uri uri = outDir.uri.resolve(filename);
     if (filename == entryPoint) entryPointUri = uri;
     if (invalidateFilenames.contains(filename)) invalidateUris.add(uri);
-    new File.fromUri(uri).writeAsStringSync(sourceFiles[filename]);
+    String source = sourceFiles[filename];
+    if (filename == ".packages") {
+      source = substituteVariables(source, outDir.uri);
+      packagesUri = uri;
+    }
+    new File.fromUri(uri).writeAsStringSync(source);
   }
 
   Uri output = outDir.uri.resolve("${testName}_full.dill");
@@ -128,7 +144,11 @@ void simpleTest(
       outDir.uri.resolve("${testName}_full_from_initialized.dill");
 
   Stopwatch stopwatch = new Stopwatch()..start();
-  await normalCompile(entryPointUri, output, options: getOptions(strong));
+  CompilerOptions options = getOptions(strong);
+  if (packagesUri != null) {
+    options.packagesFileUri = packagesUri;
+  }
+  await normalCompile(entryPointUri, output, options: options);
   print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
 
   stopwatch.reset();
@@ -170,18 +190,24 @@ void newWorldTest(bool strong, List worlds) async {
       expectInitializeFromDill = true;
     }
     Map<String, String> sourceFiles = world["sources"];
+    Uri packagesUri;
     for (String filename in sourceFiles.keys) {
       String data = sourceFiles[filename] ?? "";
+      Uri uri = base.resolve(filename);
       if (filename == ".packages") {
-        data = data.replaceAll(r"${outDirUri}", "${base}");
+        data = substituteVariables(data, base);
+        packagesUri = uri;
       }
-      fs.entityForUri(base.resolve(filename)).writeAsStringSync(data);
+      fs.entityForUri(uri).writeAsStringSync(data);
     }
 
     CompilerOptions options = getOptions(strong);
     options.fileSystem = fs;
     options.sdkRoot = null;
     options.sdkSummary = sdkSummary;
+    if (packagesUri != null) {
+      options.packagesFileUri = packagesUri;
+    }
     bool gotError = false;
     List<String> formattedErrors = <String>[];
     bool gotWarning = false;
@@ -199,8 +225,8 @@ void newWorldTest(bool strong, List worlds) async {
     };
 
     Uri entry = base.resolve(world["entry"]);
-    IncrementalCompiler compiler =
-        new IncrementalKernelGenerator(options, entry, initializeFrom);
+    TestIncrementalCompiler compiler =
+        new TestIncrementalCompiler(options, entry, initializeFrom);
 
     if (world["invalidate"] != null) {
       for (var filename in world["invalidate"]) {
@@ -227,13 +253,27 @@ void newWorldTest(bool strong, List worlds) async {
       throw "Expected ${world["expectedLibraryCount"]} libraries, "
           "got ${component.libraries.length}";
     }
-    if (component.libraries[0].fileUri != entry) {
+    if (component.libraries[0].importUri != entry) {
       throw "Expected the first library to have uri $entry but was "
-          "${component.libraries[0].fileUri}";
+          "${component.libraries[0].importUri}";
     }
     if (compiler.initializedFromDill != expectInitializeFromDill) {
       throw "Expected that initializedFromDill would be "
           "$expectInitializeFromDill but was ${compiler.initializedFromDill}";
+    }
+    if (world["invalidate"] != null) {
+      Expect.equals(world["invalidate"].length,
+          compiler.invalidatedImportUrisForTesting.length);
+      List expectedInvalidatedUri = world["expectedInvalidatedUri"];
+      if (expectedInvalidatedUri != null) {
+        Expect.setEquals(
+            expectedInvalidatedUri
+                .map((s) => Uri.parse(substituteVariables(s, base))),
+            compiler.invalidatedImportUrisForTesting);
+      }
+    } else {
+      Expect.isNull(compiler.invalidatedImportUrisForTesting);
+      Expect.isNull(world["expectedInvalidatedUri"]);
     }
   }
 }
@@ -274,7 +314,8 @@ CompilerOptions getOptions(bool strong) {
 Future<bool> normalCompile(Uri input, Uri output,
     {CompilerOptions options}) async {
   options ??= getOptions(false);
-  IncrementalCompiler compiler = new IncrementalKernelGenerator(options, input);
+  TestIncrementalCompiler compiler =
+      new TestIncrementalCompiler(options, input);
   Component component = await compiler.computeDelta();
   throwOnEmptyMixinBodies(component);
   await writeComponentToFile(component, output);
@@ -285,8 +326,8 @@ Future<bool> initializedCompile(
     Uri input, Uri output, Uri initializeWith, List<Uri> invalidateUris,
     {CompilerOptions options}) async {
   options ??= getOptions(false);
-  IncrementalCompiler compiler =
-      new IncrementalKernelGenerator(options, input, initializeWith);
+  TestIncrementalCompiler compiler =
+      new TestIncrementalCompiler(options, input, initializeWith);
   for (Uri invalidateUri in invalidateUris) {
     compiler.invalidate(invalidateUri);
   }
@@ -339,4 +380,24 @@ int countEmptyMixinBodies(Component component) {
     }
   }
   return empty;
+}
+
+String substituteVariables(String source, Uri base) {
+  return source.replaceAll(r"${outDirUri}", "${base}");
+}
+
+class TestIncrementalCompiler extends IncrementalCompiler {
+  List<Uri> invalidatedImportUrisForTesting;
+
+  TestIncrementalCompiler(CompilerOptions options, Uri entryPoint,
+      [Uri initializeFrom])
+      : super(
+            new CompilerContext(
+                new ProcessedOptions(options, false, [entryPoint])),
+            initializeFrom);
+
+  @override
+  void recordInvalidatedImportUrisForTesting(List<Uri> uris) {
+    invalidatedImportUrisForTesting = uris.isEmpty ? null : uris.toList();
+  }
 }

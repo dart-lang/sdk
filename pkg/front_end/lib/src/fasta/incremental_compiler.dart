@@ -262,8 +262,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         if (lib.importUri.scheme != "package" ||
             uriTranslator.translate(lib.importUri, false) != null) {
           keepLibraries.add(lib);
-        } else {
-          print("Skipping $lib");
         }
       }
       data.component.libraries
@@ -320,6 +318,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       userCode.loader.builders.forEach(addBuilderAndInvalidateUris);
     }
 
+    recordInvalidatedImportUrisForTesting(invalidatedImportUris);
+
     BuilderGraph graph = new BuilderGraph(builders);
 
     // Compute direct dependencies for each import URI (the reverse of the
@@ -372,6 +372,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   void invalidate(Uri uri) {
     invalidatedUris.add(uri);
   }
+
+  void recordInvalidatedImportUrisForTesting(List<Uri> uris) {}
 }
 
 class IncrementalCompilerData {
