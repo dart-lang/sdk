@@ -26,8 +26,7 @@ import 'dill/dill_library_builder.dart' show DillLibraryBuilder;
 
 import 'dill/dill_target.dart' show DillTarget;
 
-import 'kernel/kernel_incremental_target.dart'
-    show KernelIncrementalTarget, KernelIncrementalTargetErroneousComponent;
+import 'kernel/kernel_target.dart' show KernelTarget;
 
 import 'library_graph.dart' show LibraryGraph;
 
@@ -50,14 +49,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   final Uri initializeFromDillUri;
   bool initializedFromDill = false;
 
-  KernelIncrementalTarget userCode;
+  KernelTarget userCode;
 
   IncrementalCompiler(this.context, [this.initializeFromDillUri])
       : ticker = context.options.ticker;
 
   @override
-  Future<Component> computeDelta(
-      {Uri entryPoint, bool fullComponent: false}) async {
+  Future<Component> computeDelta({Uri entryPoint}) async {
     ticker.reset();
     entryPoint ??= context.options.inputs.single;
     return context.runInContext<Future<Component>>((CompilerContext c) async {
@@ -120,13 +118,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         ticker.logMs("Decided to reuse ${reusedLibraries.length}"
             " of ${userCode.loader.builders.length} libraries");
       }
-      reusedLibraries.addAll(platformBuilders);
 
-      KernelIncrementalTarget userCodeOld = userCode;
-      userCode = new KernelIncrementalTarget(
+      reusedLibraries.addAll(platformBuilders);
+      userCode = new KernelTarget(
           c.fileSystem, false, dillLoadedData, dillLoadedData.uriTranslator,
           uriToSource: c.uriToSource);
-
       for (LibraryBuilder library in reusedLibraries) {
         userCode.loader.builders[library.uri] = library;
         if (library.uri.scheme == "dart" && library.uri.path == "core") {
@@ -134,30 +130,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       }
 
-      Component componentWithDill;
-      try {
-        userCode.read(entryPoint);
-        await userCode.buildOutlines();
+      userCode.read(entryPoint);
 
-        // This is not the full component. It is the component including all
-        // libraries loaded from .dill files.
-        componentWithDill =
-            await userCode.buildComponent(verify: c.options.verify);
-      } on KernelIncrementalTargetErroneousComponent {
-        List<Library> librariesWithSdk = userCode.component.libraries;
-        List<Library> libraries = <Library>[];
-        for (Library lib in librariesWithSdk) {
-          if (lib.fileUri.scheme == "dart") continue;
-          libraries.add(lib);
-          break;
-        }
-        userCode.loader.builders.clear();
-        userCode = userCodeOld;
-        return new Component(
-            libraries: libraries, uriToSource: data.uriToSource);
-      }
-      userCodeOld?.loader?.builders?.clear();
-      userCodeOld = null;
+      await userCode.buildOutlines();
+
+      // This is not the full component. It is the component including all
+      // libraries loaded from .dill files.
+      Component componentWithDill =
+          await userCode.buildComponent(verify: c.options.verify);
 
       List<Library> libraries =
           new List<Library>.from(userCode.loader.libraries);
@@ -165,12 +145,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       Procedure mainMethod = componentWithDill == null
           ? data.userLoadedUriMain
           : componentWithDill.mainMethod;
-      if (data.includeUserLoadedLibraries || fullComponent) {
-        addReusedLibraries(libraries, mainMethod, reusedLibraries, data);
+      if (data.includeUserLoadedLibraries) {
+        addUserLoadedLibraries(libraries, mainMethod, reusedLibraries, data);
       }
-
-      // Clean up.
-      userCode.loader.releaseAncillaryResources();
 
       // This is the incremental component.
       return new Component(libraries: libraries, uriToSource: data.uriToSource)
@@ -178,7 +155,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     });
   }
 
-  void addReusedLibraries(List<Library> libraries, Procedure mainMethod,
+  void addUserLoadedLibraries(List<Library> libraries, Procedure mainMethod,
       List<LibraryBuilder> reusedLibraries, IncrementalCompilerData data) {
     Map<Uri, Library> libraryMap = <Uri, Library>{};
     for (Library library in libraries) {
@@ -187,30 +164,28 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     List<Uri> worklist = new List<Uri>.from(libraryMap.keys);
     worklist.add(mainMethod?.enclosingLibrary?.fileUri);
 
-    Map<Uri, Library> potentiallyReferencedLibraries = <Uri, Library>{};
+    Map<Uri, Library> potentialLibraries = <Uri, Library>{};
     for (LibraryBuilder library in reusedLibraries) {
       if (library.fileUri.scheme == "dart") continue;
-      Library lib = library.target;
-      potentiallyReferencedLibraries[library.fileUri] = lib;
+      assert(library is DillLibraryBuilder);
+      Library lib = (library as DillLibraryBuilder).library;
+      potentialLibraries[library.fileUri] = lib;
       libraryMap[library.fileUri] = lib;
     }
 
     LibraryGraph graph = new LibraryGraph(libraryMap);
-    while (worklist.isNotEmpty && potentiallyReferencedLibraries.isNotEmpty) {
+    while (worklist.isNotEmpty) {
       Uri uri = worklist.removeLast();
       if (libraryMap.containsKey(uri)) {
         for (Uri neighbor in graph.neighborsOf(uri)) {
           worklist.add(neighbor);
         }
         libraryMap.remove(uri);
-        Library library = potentiallyReferencedLibraries.remove(uri);
+        Library library = potentialLibraries[uri];
         if (library != null) {
           libraries.add(library);
         }
       }
-    }
-    for (Uri uri in potentiallyReferencedLibraries.keys) {
-      userCode.loader.builders.remove(uri);
     }
 
     // For now ensure original order of libraries to produce bit-perfect

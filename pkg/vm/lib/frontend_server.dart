@@ -256,6 +256,7 @@ class FrontendCompiler implements CompilerInterface {
       printer.writeComponentFile(component);
       await sink.close();
       _outputStream.writeln('$boundaryKey $_kernelBinaryFilename');
+
       final String depfile = options['depfile'];
       if (depfile != null) {
         await _writeDepfile(component, _kernelBinaryFilename, depfile);
@@ -269,10 +270,6 @@ class FrontendCompiler implements CompilerInterface {
 
   Future<Null> invalidateIfBootstrapping() async {
     if (_kernelBinaryFilename != _kernelBinaryFilenameFull) return null;
-    // If the generator is initialized bootstrapping is not in effect anyway,
-    // so there's no reason to spend time invalidating what should be
-    // invalidated by the normal approach anyway.
-    if (_generator.initialized) return null;
 
     try {
       final File f = new File(_kernelBinaryFilenameFull);
@@ -345,7 +342,7 @@ class FrontendCompiler implements CompilerInterface {
 
   @override
   void resetIncrementalCompiler() {
-    _generator.resetDeltaState();
+    _generator = _createGenerator(new Uri.file(_kernelBinaryFilenameFull));
     _kernelBinaryFilename = _kernelBinaryFilenameFull;
   }
 
