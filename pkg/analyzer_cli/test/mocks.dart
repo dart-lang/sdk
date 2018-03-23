@@ -2,26 +2,179 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer_cli.test.mocks;
-
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_cli/src/options.dart';
-import 'package:mockito/mockito.dart';
 
-class MockAnalysisError extends Mock implements AnalysisError {}
+class MockAnalysisError implements AnalysisError {
+  @override
+  MockSource source;
 
-class MockAnalysisErrorInfo extends Mock implements AnalysisErrorInfo {}
+  @override
+  MockErrorCode errorCode;
 
-class MockCommandLineOptions extends Mock implements CommandLineOptions {}
+  @override
+  int offset;
 
-class MockErrorCode extends Mock implements ErrorCode {}
+  @override
+  String message;
 
-class MockErrorType extends Mock implements ErrorType {}
+  @override
+  bool isStaticOnly;
 
-class MockLineInfo extends Mock implements LineInfo {}
+  @override
+  int length;
 
-class MockLineInfo_Location extends Mock implements LineInfo_Location {}
+  MockAnalysisError(this.source, this.errorCode, this.offset, this.message);
 
-class MockSource extends Mock implements Source {}
+  @override
+  String get correction => null;
+}
+
+class MockAnalysisErrorInfo implements AnalysisErrorInfo {
+  @override
+  LineInfo lineInfo;
+
+  @override
+  List<AnalysisError> errors;
+
+  MockAnalysisErrorInfo(this.lineInfo, this.errors);
+}
+
+class MockCommandLineOptions implements CommandLineOptions {
+  bool enableTypeChecks = false;
+  bool infosAreFatal = false;
+  bool machineFormat = false;
+  bool verbose = false;
+  bool color = false;
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class MockErrorCode implements ErrorCode {
+  @override
+  ErrorType type;
+
+  @override
+  ErrorSeverity errorSeverity;
+
+  @override
+  String name;
+
+  MockErrorCode(this.type, this.errorSeverity, this.name);
+
+  @override
+  String get correction {
+    throw new StateError('Unexpected invocation of correction');
+  }
+
+  @override
+  String get message {
+    throw new StateError('Unexpected invocation of message');
+  }
+
+  @override
+  String get uniqueName {
+    throw new StateError('Unexpected invocation of uniqueName');
+  }
+}
+
+class MockLineInfo implements LineInfo {
+  MockLineInfo_Location defaultLocation;
+
+  MockLineInfo({this.defaultLocation});
+
+  @override
+  int get lineCount {
+    throw new StateError('Unexpected invocation of lineCount');
+  }
+
+  @override
+  List<int> get lineStarts {
+    throw new StateError('Unexpected invocation of lineStarts');
+  }
+
+  @override
+  LineInfo_Location getLocation(int offset) {
+    if (defaultLocation != null) {
+      return defaultLocation;
+    }
+    throw new StateError('Unexpected invocation of getLocation');
+  }
+
+  @override
+  int getOffsetOfLine(int lineNumber) {
+    throw new StateError('Unexpected invocation of getOffsetOfLine');
+  }
+
+  @override
+  int getOffsetOfLineAfter(int offset) {
+    throw new StateError('Unexpected invocation of getOffsetOfLineAfter');
+  }
+}
+
+class MockLineInfo_Location implements LineInfo_Location {
+  @override
+  int lineNumber;
+
+  @override
+  int columnNumber;
+
+  MockLineInfo_Location(this.lineNumber, this.columnNumber);
+}
+
+class MockSource implements Source {
+  @override
+  String fullName;
+
+  MockSource(this.fullName);
+
+  @override
+  TimestampedData<String> get contents {
+    throw new StateError('Unexpected invocation of contents');
+  }
+
+  @override
+  String get encoding {
+    throw new StateError('Unexpected invocation of encoding');
+  }
+
+  @override
+  bool get isInSystemLibrary {
+    throw new StateError('Unexpected invocation of isInSystemLibrary');
+  }
+
+  @override
+  Source get librarySource {
+    throw new StateError('Unexpected invocation of librarySource');
+  }
+
+  @override
+  int get modificationStamp {
+    throw new StateError('Unexpected invocation of modificationStamp');
+  }
+
+  @override
+  String get shortName {
+    throw new StateError('Unexpected invocation of shortName');
+  }
+
+  @override
+  Source get source {
+    throw new StateError('Unexpected invocation of source');
+  }
+
+  @override
+  Uri get uri {
+    throw new StateError('Unexpected invocation of uri');
+  }
+
+  @override
+  UriKind get uriKind => null; //UriKind.FILE_URI;
+
+  @override
+  bool exists() {
+    throw new StateError('Unexpected invocation of exists');
+  }
+}

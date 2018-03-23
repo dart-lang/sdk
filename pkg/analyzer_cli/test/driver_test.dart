@@ -34,7 +34,8 @@ main() {
     // defineReflectiveTests(ExitCodesTest_UseCFE);
     defineReflectiveTests(LinterTest);
     defineReflectiveTests(LinterTest_PreviewDart2);
-    defineReflectiveTests(LinterTest_UseCFE);
+    // Disabled until integration with the CFE has been restarted.
+//    defineReflectiveTests(LinterTest_UseCFE);
     defineReflectiveTests(NonDartFilesTest);
     defineReflectiveTests(OptionsTest);
     defineReflectiveTests(OptionsTest_PreviewDart2);

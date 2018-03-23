@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer_cli.test.formatter;
-
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:test/test.dart' hide ErrorFormatter;
-import 'package:mockito/mockito.dart';
 
 import 'mocks.dart';
 
@@ -27,11 +24,11 @@ main() {
       stats = new AnalysisStats();
 
       options = new MockCommandLineOptions();
-      when(options.enableTypeChecks).thenReturn(false);
-      when(options.infosAreFatal).thenReturn(false);
-      when(options.machineFormat).thenReturn(false);
-      when(options.verbose).thenReturn(false);
-      when(options.color).thenReturn(false);
+      options.enableTypeChecks = false;
+      options.infosAreFatal = false;
+      options.machineFormat = false;
+      options.verbose = false;
+      options.color = false;
 
       reporter = new HumanErrorFormatter(out, options, stats);
     });
@@ -74,27 +71,13 @@ main() {
 
 MockAnalysisErrorInfo mockError(ErrorType type, ErrorSeverity severity) {
   // ErrorInfo
-  var info = new MockAnalysisErrorInfo();
-  var error = new MockAnalysisError();
-  var lineInfo = new MockLineInfo();
-  var location = new MockLineInfo_Location();
-  when(location.columnNumber).thenReturn(3);
-  when(location.lineNumber).thenReturn(3);
-  when(lineInfo.getLocation(any)).thenReturn(location);
-  when(info.lineInfo).thenReturn(lineInfo);
+  var location = new MockLineInfo_Location(3, 3);
+  var lineInfo = new MockLineInfo(defaultLocation: location);
 
   // Details
-  var code = new MockErrorCode();
-  when(code.type).thenReturn(type);
-  when(code.errorSeverity).thenReturn(severity);
-  when(code.name).thenReturn('mock_code');
-  when(error.errorCode).thenReturn(code);
-  when(error.message).thenReturn('MSG');
-  when(error.offset).thenReturn(20);
-  var source = new MockSource();
-  when(source.fullName).thenReturn('/foo/bar/baz.dart');
-  when(error.source).thenReturn(source);
-  when(info.errors).thenReturn([error]);
+  var code = new MockErrorCode(type, severity, 'mock_code');
+  var source = new MockSource('/foo/bar/baz.dart');
+  var error = new MockAnalysisError(source, code, 20, 'MSG');
 
-  return info;
+  return new MockAnalysisErrorInfo(lineInfo, [error]);
 }
