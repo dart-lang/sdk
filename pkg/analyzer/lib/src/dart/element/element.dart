@@ -6228,7 +6228,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    */
   final KernelLibraryResynthesizerContext _kernelContext;
 
-  final UnlinkedUnit _unlinkedDefiningUnit;
+  final UnlinkedUnit unlinkedDefiningUnit;
 
   /**
    * The compilation unit that defines this library.
@@ -6306,7 +6306,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   LibraryElementImpl(this.context, String name, int offset, this.nameLength)
       : resynthesizerContext = null,
         _kernelContext = null,
-        _unlinkedDefiningUnit = null,
+        unlinkedDefiningUnit = null,
         super(name, offset);
 
   /**
@@ -6314,7 +6314,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    */
   LibraryElementImpl.forKernel(this.context, this._kernelContext)
       : resynthesizerContext = null,
-        _unlinkedDefiningUnit = null,
+        unlinkedDefiningUnit = null,
         nameLength = _kernelContext.library.name?.length ?? 0,
         super.forKernel(null) {
     _name = _kernelContext.library.name ?? '';
@@ -6333,14 +6333,14 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       : nameLength = name != null ? name.length : 0,
         resynthesizerContext = null,
         _kernelContext = null,
-        _unlinkedDefiningUnit = null,
+        unlinkedDefiningUnit = null,
         super.forNode(name);
 
   /**
    * Initialize using the given serialized information.
    */
   LibraryElementImpl.forSerialized(this.context, String name, int offset,
-      this.nameLength, this.resynthesizerContext, this._unlinkedDefiningUnit)
+      this.nameLength, this.resynthesizerContext, this.unlinkedDefiningUnit)
       : _kernelContext = null,
         super.forSerialized(null) {
     _name = name;
@@ -6389,8 +6389,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       var metadata = AnalyzerMetadata.forNode(_kernelContext.library);
       return metadata?.documentationComment;
     }
-    if (_unlinkedDefiningUnit != null) {
-      return _unlinkedDefiningUnit.libraryDocumentationComment?.text;
+    if (unlinkedDefiningUnit != null) {
+      return unlinkedDefiningUnit.libraryDocumentationComment?.text;
     }
     return super.documentationComment;
   }
@@ -6442,12 +6442,12 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
             .map((k) => new ExportElementImpl.forKernel(this, k))
             .toList(growable: false);
       }
-      if (_unlinkedDefiningUnit != null) {
+      if (unlinkedDefiningUnit != null) {
         List<UnlinkedExportNonPublic> unlinkedNonPublicExports =
-            _unlinkedDefiningUnit.exports;
+            unlinkedDefiningUnit.exports;
         List<UnlinkedExportPublic> unlinkedPublicExports =
-            _unlinkedDefiningUnit.publicNamespace.exports;
-        assert(_unlinkedDefiningUnit.exports.length ==
+            unlinkedDefiningUnit.publicNamespace.exports;
+        assert(unlinkedDefiningUnit.exports.length ==
             unlinkedPublicExports.length);
         int length = unlinkedNonPublicExports.length;
         if (length != 0) {
@@ -6476,7 +6476,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * given list of [exports].
    */
   void set exports(List<ExportElement> exports) {
-    _assertNotResynthesized(_unlinkedDefiningUnit);
+    _assertNotResynthesized(unlinkedDefiningUnit);
     for (ExportElement exportElement in exports) {
       (exportElement as ExportElementImpl).enclosingElement = this;
     }
@@ -6488,8 +6488,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     if (_kernelContext != null) {
       return _kernelContext.hasExtUri;
     }
-    if (_unlinkedDefiningUnit != null) {
-      List<UnlinkedImport> unlinkedImports = _unlinkedDefiningUnit.imports;
+    if (unlinkedDefiningUnit != null) {
+      List<UnlinkedImport> unlinkedImports = unlinkedDefiningUnit.imports;
       for (UnlinkedImport import in unlinkedImports) {
         if (DartUriResolver.isDartExtUri(import.uri)) {
           return true;
@@ -6570,23 +6570,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
         // Set imports into the field.
         _imports = imports;
       }
-      if (_unlinkedDefiningUnit != null) {
-        List<UnlinkedImport> unlinkedImports = _unlinkedDefiningUnit.imports;
-        int length = unlinkedImports.length;
-        if (length != 0) {
-          List<ImportElement> imports = new List<ImportElement>();
-          LinkedLibrary linkedLibrary = resynthesizerContext.linkedLibrary;
-          for (int i = 0; i < length; i++) {
-            int dependency = linkedLibrary.importDependencies[i];
-            ImportElementImpl importElement =
-                new ImportElementImpl.forSerialized(
-                    unlinkedImports[i], dependency, library);
-            imports.add(importElement);
-          }
-          _imports = imports;
-        } else {
-          _imports = const <ImportElement>[];
-        }
+      if (unlinkedDefiningUnit != null) {
+        _imports = buildImportsFromSummary(this, unlinkedDefiningUnit.imports,
+            resynthesizerContext.linkedLibrary.importDependencies);
       }
     }
     return _imports ?? ImportElement.EMPTY_LIST;
@@ -6597,7 +6583,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * given list of [imports].
    */
   void set imports(List<ImportElement> imports) {
-    _assertNotResynthesized(_unlinkedDefiningUnit);
+    _assertNotResynthesized(unlinkedDefiningUnit);
     for (ImportElement importElement in imports) {
       (importElement as ImportElementImpl).enclosingElement = this;
       PrefixElementImpl prefix = importElement.prefix as PrefixElementImpl;
@@ -6756,10 +6742,10 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
         _metadata = definingUnit._kernelContext
             .buildAnnotations(_kernelContext.library.annotations);
       }
-      if (_unlinkedDefiningUnit != null) {
+      if (unlinkedDefiningUnit != null) {
         _metadata = _buildAnnotations(
             _definingCompilationUnit as CompilationUnitElementImpl,
-            _unlinkedDefiningUnit.libraryAnnotations);
+            unlinkedDefiningUnit.libraryAnnotations);
         return _metadata;
       }
     }
@@ -6783,19 +6769,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @override
-  List<PrefixElement> get prefixes {
-    if (_prefixes == null) {
-      HashSet<PrefixElement> prefixes = new HashSet<PrefixElement>();
-      for (ImportElement element in imports) {
-        PrefixElement prefix = element.prefix;
-        if (prefix != null) {
-          prefixes.add(prefix);
-        }
-      }
-      _prefixes = prefixes.toList(growable: false);
-    }
-    return _prefixes;
-  }
+  List<PrefixElement> get prefixes =>
+      _prefixes ??= buildPrefixesFromImports(imports);
 
   @override
   Namespace get publicNamespace {
@@ -6975,6 +6950,35 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     safelyVisitChildren(exports, visitor);
     safelyVisitChildren(imports, visitor);
     safelyVisitChildren(_parts, visitor);
+  }
+
+  static List<ImportElement> buildImportsFromSummary(LibraryElement library,
+      List<UnlinkedImport> unlinkedImports, List<int> importDependencies) {
+    int length = unlinkedImports.length;
+    if (length != 0) {
+      List<ImportElement> imports = new List<ImportElement>();
+      for (int i = 0; i < length; i++) {
+        int dependency = importDependencies[i];
+        ImportElementImpl importElement = new ImportElementImpl.forSerialized(
+            unlinkedImports[i], dependency, library);
+        imports.add(importElement);
+      }
+      return imports;
+    } else {
+      return const <ImportElement>[];
+    }
+  }
+
+  static List<PrefixElement> buildPrefixesFromImports(
+      List<ImportElement> imports) {
+    HashSet<PrefixElement> prefixes = new HashSet<PrefixElement>();
+    for (ImportElement element in imports) {
+      PrefixElement prefix = element.prefix;
+      if (prefix != null) {
+        prefixes.add(prefix);
+      }
+    }
+    return prefixes.toList(growable: false);
   }
 
   /**
@@ -8718,7 +8722,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
       if (_unlinkedImport != null) {
         LibraryElementImpl library = enclosingElement as LibraryElementImpl;
         int prefixId = _unlinkedImport.prefixReference;
-        return _name = library._unlinkedDefiningUnit.references[prefixId].name;
+        return _name = library.unlinkedDefiningUnit.references[prefixId].name;
       }
     }
     return super.name;

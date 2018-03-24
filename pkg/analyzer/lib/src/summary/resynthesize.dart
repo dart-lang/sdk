@@ -24,6 +24,86 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 
+/// An instance of [LibraryResynthesizer] is responsible for resynthesizing the
+/// elements in a single library from that library's summary.
+abstract class LibraryResynthesizer {
+  /// Builds the export namespace for the library by aggregating together its
+  /// public namespace and export names.
+  Namespace buildExportNamespace();
+
+  /// Builds the public namespace for the library.
+  Namespace buildPublicNamespace();
+}
+
+/// [LibraryResynthesizerContextMixin] contains methods useful for implementing
+/// the [LibraryResynthesizerContext] interface.
+abstract class LibraryResynthesizerContextMixin
+    implements LibraryResynthesizerContext {
+  /// Gets the associated [LibraryResynthesizer].
+  LibraryResynthesizer get resynthesizer;
+
+  @override
+  Namespace buildExportNamespace() => resynthesizer.buildExportNamespace();
+
+  @override
+  Namespace buildPublicNamespace() => resynthesizer.buildPublicNamespace();
+}
+
+/// [LibraryResynthesizerMixin] contains methods useful for implementing the
+/// [LibraryResynthesizer] interface.
+abstract class LibraryResynthesizerMixin implements LibraryResynthesizer {
+  /// Gets the library element being resynthesized.
+  LibraryElement get library;
+
+  /// Gets the list of export names created during summary linking.
+  List<LinkedExportName> get linkedExportNames;
+
+  /// Builds or retrieves an [Element] for the entity referred to by the given
+  /// [exportName].
+  Element buildExportName(LinkedExportName exportName);
+
+  @override
+  Namespace buildExportNamespace() {
+    Namespace publicNamespace = library.publicNamespace;
+    List<LinkedExportName> exportNames = linkedExportNames;
+    Map<String, Element> definedNames = new HashMap<String, Element>();
+    // Start by populating all the public names from [publicNamespace].
+    publicNamespace.definedNames.forEach((String name, Element element) {
+      definedNames[name] = element;
+    });
+    // Add all the names from [exportNames].
+    for (LinkedExportName exportName in exportNames) {
+      definedNames.putIfAbsent(
+          exportName.name, () => buildExportName(exportName));
+    }
+    return new Namespace(definedNames);
+  }
+
+  @override
+  Namespace buildPublicNamespace() =>
+      new NamespaceBuilder().createPublicNamespaceForLibrary(library);
+}
+
+/// Data structure used during resynthesis to record all the information that is
+/// known about how to resynthesize a single entry in [LinkedUnit.references]
+/// (and its associated entry in [UnlinkedUnit.references], if it exists).
+abstract class ReferenceInfo {
+  /// The element referred to by this reference, or `null` if there is no
+  /// associated element (e.g. because it is a reference to an undefined
+  /// entity).
+  Element get element;
+
+  /// The enclosing [_ReferenceInfo], or `null` for top-level elements.
+  ReferenceInfo get enclosing;
+
+  /// The name of the entity referred to by this reference.
+  String get name;
+
+  /// If this reference refers to a non-generic type, the type it refers to.
+  /// Otherwise `null`.
+  DartType get type;
+}
+
 /**
  * Implementation of [ElementResynthesizer] used when resynthesizing an element
  * model from summaries.
@@ -297,13 +377,45 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
   }
 }
 
+/// An instance of [_UnitResynthesizer] is responsible for resynthesizing the
+/// elements in a single unit from that unit's summary.
+abstract class UnitResynthesizer {
+  /// Gets the [TypeProvider], which may be used to create core types.
+  TypeProvider get typeProvider;
+
+  /// Builds a [DartType] object based on a [EntityRef].  This [DartType]
+  /// may refer to elements in other libraries than the library being
+  /// deserialized, so handles may be used to avoid having to deserialize other
+  /// libraries in the process.
+  DartType buildType(ElementImpl context, EntityRef type);
+
+  /// Returns the defining type for a [ConstructorElement] by applying
+  /// [typeArgumentRefs] to the given linked [info].  Returns [DynamicTypeImpl]
+  /// if the [info] is unresolved.
+  DartType createConstructorDefiningType(ElementImpl context,
+      ReferenceInfo info, List<EntityRef> typeArgumentRefs);
+
+  /// Determines if the given [type] has implicit type arguments.
+  bool doesTypeHaveImplicitArguments(ParameterizedType type);
+
+  /// Returns the [ConstructorElement] corresponding to the given linked [info],
+  /// using the [classType] which has already been computed (e.g. by
+  /// [createConstructorDefiningType]).  Both cases when [info] is a
+  /// [ClassElement] and [ConstructorElement] are supported.
+  ConstructorElement getConstructorForInfo(
+      InterfaceType classType, ReferenceInfo info);
+
+  /// Returns the [ReferenceInfo] with the given [index].
+  ReferenceInfo getReferenceInfo(int index);
+}
+
 /**
  * Builder of [Expression]s from [UnlinkedExpr]s.
  */
 class _ConstExprBuilder {
   static const ARGUMENT_LIST = 'ARGUMENT_LIST';
 
-  final _UnitResynthesizer resynthesizer;
+  final UnitResynthesizer resynthesizer;
   final ElementImpl context;
   final UnlinkedExpr uc;
 
@@ -554,7 +666,7 @@ class _ConstExprBuilder {
    * Build the identifier sequence (a single or prefixed identifier, or a
    * property access) corresponding to the given reference [info].
    */
-  Expression _buildIdentifierSequence(_ReferenceInfo info) {
+  Expression _buildIdentifierSequence(ReferenceInfo info) {
     Expression enclosing;
     if (info.enclosing != null) {
       enclosing = _buildIdentifierSequence(info.enclosing);
@@ -582,8 +694,7 @@ class _ConstExprBuilder {
   TypeAnnotation _buildTypeAst(DartType type) {
     List<TypeAnnotation> argumentNodes;
     if (type is ParameterizedType) {
-      if (!resynthesizer.libraryResynthesizer.typesWithImplicitTypeArguments
-          .contains(type)) {
+      if (!resynthesizer.doesTypeHaveImplicitArguments(type)) {
         List<DartType> typeArguments = type.typeArguments;
         argumentNodes = typeArguments.every((a) => a.isDynamic)
             ? null
@@ -645,7 +756,7 @@ class _ConstExprBuilder {
 
   void _pushInstanceCreation() {
     EntityRef ref = uc.references[refPtr++];
-    _ReferenceInfo info = resynthesizer.getReferenceInfo(ref.reference);
+    ReferenceInfo info = resynthesizer.getReferenceInfo(ref.reference);
     // prepare ConstructorElement
     TypeName typeNode;
     String constructorName;
@@ -663,10 +774,10 @@ class _ConstExprBuilder {
         _push(name);
         return;
       }
-      InterfaceType definingType = resynthesizer._createConstructorDefiningType(
+      InterfaceType definingType = resynthesizer.createConstructorDefiningType(
           context, info, ref.typeArguments);
       constructorElement =
-          resynthesizer._getConstructorForInfo(definingType, info);
+          resynthesizer.getConstructorForInfo(definingType, info);
       typeNode = _buildTypeAst(definingType);
     } else {
       if (info.enclosing != null) {
@@ -721,7 +832,7 @@ class _ConstExprBuilder {
   void _pushInvokeMethodRef() {
     List<Expression> arguments = _buildArguments();
     EntityRef ref = uc.references[refPtr++];
-    _ReferenceInfo info = resynthesizer.getReferenceInfo(ref.reference);
+    ReferenceInfo info = resynthesizer.getReferenceInfo(ref.reference);
     Expression node = _buildIdentifierSequence(info);
     TypeArgumentList typeArguments;
     int numTypeArguments = uc.ints[intPtr++];
@@ -772,7 +883,7 @@ class _ConstExprBuilder {
 
   void _pushReference() {
     EntityRef ref = uc.references[refPtr++];
-    _ReferenceInfo info = resynthesizer.getReferenceInfo(ref.reference);
+    ReferenceInfo info = resynthesizer.getReferenceInfo(ref.reference);
     Expression node = _buildIdentifierSequence(info);
     if (node is Identifier && node.staticElement == null) {
       throw const _UnresolvedReferenceException();
@@ -814,11 +925,9 @@ class _DeferredInitializerElement extends FunctionElementHandle {
   ElementLocation get location => actualElement.location;
 }
 
-/**
- * An instance of [_LibraryResynthesizer] is responsible for resynthesizing the
- * elements in a single library from that library's summary.
- */
-class _LibraryResynthesizer {
+/// Specialization of [LibraryResynthesizer] for resynthesis from linked
+/// summaries.
+class _LibraryResynthesizer extends LibraryResynthesizerMixin {
   /**
    * The [SummaryResynthesizer] which is being used to obtain summaries.
    */
@@ -874,6 +983,9 @@ class _LibraryResynthesizer {
     isCoreLibrary = libraryUri == 'dart:core';
   }
 
+  @override
+  List<LinkedExportName> get linkedExportNames => linkedLibrary.exportNames;
+
   /**
    * Resynthesize a [NamespaceCombinator].
    */
@@ -885,10 +997,7 @@ class _LibraryResynthesizer {
     }
   }
 
-  /**
-   * Build an [ElementHandle] referring to the entity referred to by the given
-   * [exportName].
-   */
+  @override
   ElementHandle buildExportName(LinkedExportName exportName) {
     String name = exportName.name;
     if (exportName.kind == ReferenceKind.topLevelPropertyAccessor &&
@@ -924,25 +1033,6 @@ class _LibraryResynthesizer {
         throw new StateError('Unexpected export name kind: ${exportName.kind}');
     }
     return null;
-  }
-
-  /**
-   * Build the export namespace for the library by aggregating together its
-   * [publicNamespace] and [exportNames].
-   */
-  Namespace buildExportNamespace(
-      Namespace publicNamespace, List<LinkedExportName> exportNames) {
-    Map<String, Element> definedNames = new HashMap<String, Element>();
-    // Start by populating all the public names from [publicNamespace].
-    publicNamespace.definedNames.forEach((String name, Element element) {
-      definedNames[name] = element;
-    });
-    // Add all the names from [exportNames].
-    for (LinkedExportName exportName in exportNames) {
-      definedNames.putIfAbsent(
-          exportName.name, () => buildExportName(exportName));
-    }
-    return new Namespace(definedNames);
   }
 
   /**
@@ -1080,7 +1170,8 @@ class _LibraryResynthesizer {
 /**
  * Implementation of [LibraryResynthesizerContext] for [_LibraryResynthesizer].
  */
-class _LibraryResynthesizerContext implements LibraryResynthesizerContext {
+class _LibraryResynthesizerContext extends LibraryResynthesizerContextMixin
+    implements LibraryResynthesizerContext {
   final _LibraryResynthesizer resynthesizer;
 
   _LibraryResynthesizerContext(this.resynthesizer);
@@ -1094,22 +1185,9 @@ class _LibraryResynthesizerContext implements LibraryResynthesizerContext {
   }
 
   @override
-  Namespace buildExportNamespace() {
-    LibraryElementImpl library = resynthesizer.library;
-    return resynthesizer.buildExportNamespace(
-        library.publicNamespace, resynthesizer.linkedLibrary.exportNames);
-  }
-
-  @override
   LibraryElement buildImportedLibrary(int dependency) {
     String depUri = resynthesizer.linkedLibrary.dependencies[dependency].uri;
     return _getLibraryByRelativeUri(depUri);
-  }
-
-  @override
-  Namespace buildPublicNamespace() {
-    LibraryElementImpl library = resynthesizer.library;
-    return new NamespaceBuilder().createPublicNamespaceForLibrary(library);
   }
 
   @override
@@ -1141,25 +1219,17 @@ class _LibraryResynthesizerContext implements LibraryResynthesizerContext {
   }
 }
 
-/**
- * Data structure used during resynthesis to record all the information that is
- * known about how to resynthesize a single entry in [LinkedUnit.references]
- * (and its associated entry in [UnlinkedUnit.references], if it exists).
- */
-class _ReferenceInfo {
+/// Specialization of [ReferenceInfo] for resynthesis from linked summaries.
+class _ReferenceInfo extends ReferenceInfo {
   /**
    * The [_LibraryResynthesizer] which is being used to obtain summaries.
    */
   final _LibraryResynthesizer libraryResynthesizer;
 
-  /**
-   * The enclosing [_ReferenceInfo], or `null` for top-level elements.
-   */
+  @override
   final _ReferenceInfo enclosing;
 
-  /**
-   * The name of the entity referred to by this reference.
-   */
+  @override
   final String name;
 
   /**
@@ -1167,11 +1237,7 @@ class _ReferenceInfo {
    */
   final bool isDeclarableType;
 
-  /**
-   * The element referred to by this reference, or `null` if there is no
-   * associated element (e.g. because it is a reference to an undefined
-   * entity).
-   */
+  @override
   final Element element;
 
   /**
@@ -1211,10 +1277,7 @@ class _ReferenceInfo {
     }
   }
 
-  /**
-   * If this reference refers to a non-generic type, the type it refers to.
-   * Otherwise `null`.
-   */
+  @override
   DartType get type {
     if (_type == null) {
       _type = _buildType(true, 0, (_) => DynamicTypeImpl.instance, const []);
@@ -1471,11 +1534,8 @@ class _ResynthesizerContext implements ResynthesizerContext {
   }
 }
 
-/**
- * An instance of [_UnitResynthesizer] is responsible for resynthesizing the
- * elements in a single unit from that unit's summary.
- */
-class _UnitResynthesizer {
+/// Specialization of [UnitResynthesizer] for resynthesis from linked summaries.
+class _UnitResynthesizer extends UnitResynthesizer {
   /**
    * The [_LibraryResynthesizer] which is being used to obtain summaries.
    */
@@ -1562,6 +1622,7 @@ class _UnitResynthesizer {
   SummaryResynthesizer get summaryResynthesizer =>
       libraryResynthesizer.summaryResynthesizer;
 
+  @override
   TypeProvider get typeProvider => summaryResynthesizer.typeProvider;
 
   /**
@@ -1669,12 +1730,7 @@ class _UnitResynthesizer {
     return buildType(context, type);
   }
 
-  /**
-   * Build a [DartType] object based on a [EntityRef].  This [DartType]
-   * may refer to elements in other libraries than the library being
-   * deserialized, so handles are used to avoid having to deserialize other
-   * libraries in the process.
-   */
+  @override
   DartType buildType(ElementImpl context, EntityRef type,
       {bool defaultVoid: false,
       bool instantiateToBoundsAllowed: true,
@@ -1795,9 +1851,46 @@ class _UnitResynthesizer {
     return variablesData;
   }
 
-  /**
-   * Return [_ReferenceInfo] with the given [index], lazily resolving it.
-   */
+  @override
+  DartType createConstructorDefiningType(ElementImpl context,
+      covariant _ReferenceInfo info, List<EntityRef> typeArgumentRefs) {
+    bool isClass = info.element is ClassElement;
+    _ReferenceInfo classInfo = isClass ? info : info.enclosing;
+    if (classInfo == null) {
+      return DynamicTypeImpl.instance;
+    }
+    List<DartType> typeArguments =
+        typeArgumentRefs.map((t) => buildType(context, t)).toList();
+    return classInfo.buildType(true, typeArguments.length, (i) {
+      if (i < typeArguments.length) {
+        return typeArguments[i];
+      } else {
+        return DynamicTypeImpl.instance;
+      }
+    }, const <int>[]);
+  }
+
+  @override
+  bool doesTypeHaveImplicitArguments(ParameterizedType type) =>
+      libraryResynthesizer.typesWithImplicitTypeArguments.contains(type);
+
+  @override
+  ConstructorElement getConstructorForInfo(
+      InterfaceType classType, covariant _ReferenceInfo info) {
+    ConstructorElement element;
+    Element infoElement = info.element;
+    if (infoElement is ConstructorElement) {
+      element = infoElement;
+    } else if (infoElement is ClassElement) {
+      element = infoElement.unnamedConstructor;
+    }
+    if (element != null && info.numTypeParameters != 0) {
+      return new ConstructorMember(element, classType);
+    }
+    return element;
+  }
+
+  @override
   _ReferenceInfo getReferenceInfo(int index) {
     _ReferenceInfo result = referenceInfos[index];
     if (result == null) {
@@ -1943,61 +2036,17 @@ class _UnitResynthesizer {
   }
 
   /**
-   * Return the defining type for a [ConstructorElement] by applying
-   * [typeArgumentRefs] to the given linked [info].  Return [DynamicTypeImpl]
-   * if the [info] is unresolved.
-   */
-  DartType _createConstructorDefiningType(ElementImpl context,
-      _ReferenceInfo info, List<EntityRef> typeArgumentRefs) {
-    bool isClass = info.element is ClassElement;
-    _ReferenceInfo classInfo = isClass ? info : info.enclosing;
-    if (classInfo == null) {
-      return DynamicTypeImpl.instance;
-    }
-    List<DartType> typeArguments =
-        typeArgumentRefs.map((t) => buildType(context, t)).toList();
-    return classInfo.buildType(true, typeArguments.length, (i) {
-      if (i < typeArguments.length) {
-        return typeArguments[i];
-      } else {
-        return DynamicTypeImpl.instance;
-      }
-    }, const <int>[]);
-  }
-
-  /**
    * Return the [ConstructorElement] corresponding to the given [entry].
    */
   ConstructorElement _getConstructorForEntry(
       ElementImpl context, EntityRef entry) {
     _ReferenceInfo info = getReferenceInfo(entry.reference);
     DartType type =
-        _createConstructorDefiningType(context, info, entry.typeArguments);
+        createConstructorDefiningType(context, info, entry.typeArguments);
     if (type is InterfaceType) {
-      return _getConstructorForInfo(type, info);
+      return getConstructorForInfo(type, info);
     }
     return null;
-  }
-
-  /**
-   * Return the [ConstructorElement] corresponding to the given linked [info],
-   * using the [classType] which has already been computed (e.g. by
-   * [_createConstructorDefiningType]).  Both cases when [info] is a
-   * [ClassElement] and [ConstructorElement] are supported.
-   */
-  ConstructorElement _getConstructorForInfo(
-      InterfaceType classType, _ReferenceInfo info) {
-    ConstructorElement element;
-    Element infoElement = info.element;
-    if (infoElement is ConstructorElement) {
-      element = infoElement;
-    } else if (infoElement is ClassElement) {
-      element = infoElement.unnamedConstructor;
-    }
-    if (element != null && info.numTypeParameters != 0) {
-      return new ConstructorMember(element, classType);
-    }
-    return element;
   }
 
   /**
