@@ -381,6 +381,7 @@ unicode_test: RuntimeError # Issue 18061: German double S.
 apply_test/01: RuntimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
+apply_generic_function_test: RuntimeError
 iterable_fold_test/02: RuntimeError
 iterable_reduce_test/01: CompileTimeError # Issue 31533
 iterable_reduce_test/none: RuntimeError
