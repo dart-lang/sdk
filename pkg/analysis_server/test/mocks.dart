@@ -14,7 +14,7 @@ import 'package:analyzer/file_system/memory_file_system.dart' as resource;
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:mockito/mockito.dart';
+import 'package:front_end/src/base/timestamped_data.dart';
 import 'package:test/test.dart';
 
 /**
@@ -202,10 +202,43 @@ class MockSocket<T> implements WebSocket {
 }
 
 class MockSource extends StringTypedMock implements Source {
+  @override
+  TimestampedData<String> contents = null;
+
+  @override
+  String encoding = null;
+
+  @override
+  String fullName = null;
+
+  @override
+  bool isInSystemLibrary = null;
+
+  @override
+  Source librarySource = null;
+
+  @override
+  int modificationStamp = null;
+
+  @override
+  String shortName = null;
+
+  @override
+  Source source = null;
+
+  @override
+  Uri uri = null;
+
+  @override
+  UriKind uriKind = null;
+
   MockSource([String name = 'mocked.dart']) : super(name);
+
+  @override
+  bool exists() => null;
 }
 
-class StringTypedMock extends Mock {
+class StringTypedMock {
   String _toString;
 
   StringTypedMock(this._toString);

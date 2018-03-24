@@ -9,7 +9,6 @@ import 'dart:io';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/src/channel/byte_stream_channel.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -238,11 +237,6 @@ class ByteStreamServerChannelTest {
   test_sendNotification_exceptionInSink() async {
     // This IOSink asynchronously throws an exception on any writeln().
     var outputSink = new _IOSinkMock();
-    when(outputSink.writeln(any)).thenAnswer((answer) {
-      new Timer(new Duration(milliseconds: 10), () {
-        throw '42';
-      });
-    });
 
     var channel = new ByteStreamServerChannel(
         null, outputSink, InstrumentationService.NULL_SERVICE);
@@ -267,4 +261,41 @@ class ByteStreamServerChannelTest {
   }
 }
 
-class _IOSinkMock extends Mock implements IOSink {}
+class _IOSinkMock implements IOSink {
+  @override
+  Encoding encoding;
+
+  @override
+  Future done = null;
+
+  @override
+  void add(List<int> data) {}
+
+  @override
+  void addError(Object error, [StackTrace stackTrace]) {}
+
+  @override
+  Future addStream(Stream<List<int>> stream) {}
+
+  @override
+  Future close() {}
+
+  @override
+  Future flush() {}
+
+  @override
+  void write(Object obj) {}
+
+  @override
+  void writeAll(Iterable objects, [String separator = ""]) {}
+
+  @override
+  void writeCharCode(int charCode) {}
+
+  @override
+  void writeln([Object obj = ""]) {
+    new Timer(new Duration(milliseconds: 10), () {
+      throw '42';
+    });
+  }
+}

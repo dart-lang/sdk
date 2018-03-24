@@ -213,19 +213,20 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
   test_addPluginToContextRoot_pubspec() async {
     // We can't successfully run pub until after the analyzer_plugin package has
     // been published.
-    io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
-    String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
-    await withPubspecPlugin(test: (String pluginPath) async {
-      ContextRoot contextRoot = new ContextRoot(pkgPath, []);
-      await manager.addPluginToContextRoot(contextRoot, pluginPath);
-      String packagesPath =
-          resourceProvider.pathContext.join(pluginPath, '.packages');
-      File packagesFile = resourceProvider.getFile(packagesPath);
-      bool exists = packagesFile.exists;
-      await manager.stopAll();
-      expect(exists, isTrue, reason: '.packages file was not created');
-    });
-    pkg1Dir.deleteSync(recursive: true);
+    fail('Cannot run pub');
+//    io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
+//    String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
+//    await withPubspecPlugin(test: (String pluginPath) async {
+//      ContextRoot contextRoot = new ContextRoot(pkgPath, []);
+//      await manager.addPluginToContextRoot(contextRoot, pluginPath);
+//      String packagesPath =
+//          resourceProvider.pathContext.join(pluginPath, '.packages');
+//      File packagesFile = resourceProvider.getFile(packagesPath);
+//      bool exists = packagesFile.exists;
+//      await manager.stopAll();
+//      expect(exists, isTrue, reason: '.packages file was not created');
+//    });
+//    pkg1Dir.deleteSync(recursive: true);
   }
 
   test_broadcastRequest_many() async {
@@ -774,6 +775,7 @@ abstract class PluginTestSupport {
    */
   String _defaultPluginContent() {
     return r'''
+import 'dart:async';
 import 'dart:isolate';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -800,8 +802,8 @@ class MinimalPlugin extends ServerPlugin {
   String get version => '0.0.1';
 
   @override
-  AnalysisHandleWatchEventsResult handleAnalysisHandleWatchEvents(
-          AnalysisHandleWatchEventsParams parameters) =>
+  Future<AnalysisHandleWatchEventsResult> handleAnalysisHandleWatchEvents(
+      AnalysisHandleWatchEventsParams parameters) async =>
     new AnalysisHandleWatchEventsResult();
 
   @override
