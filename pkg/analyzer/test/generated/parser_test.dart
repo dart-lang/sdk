@@ -3960,9 +3960,8 @@ class Wrong<T> {
     expectNotNullIfNoErrors(unit);
     listener.assertErrors(usingFastaParser
         ? [
-            expectedError(ParserErrorCode.EXPECTED_TOKEN, 23, 5),
-            expectedError(ParserErrorCode.MISSING_KEYWORD_OPERATOR, 28, 1),
-            expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 28, 0)
+            expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 23, 5),
+            expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 28, 1)
           ]
         : [
             expectedError(ParserErrorCode.EXPECTED_TOKEN, 14, 8),
@@ -15861,7 +15860,7 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     for (Keyword keyword in Keyword.values) {
       if (keyword.isBuiltIn || keyword.isPseudo) {
         String lexeme = keyword.lexeme;
-        if (lexeme == 'Function' && !usingFastaParser) continue;
+        if (lexeme == 'Function') continue;
         parseCompilationUnit('$lexeme(x) => 0;');
         parseCompilationUnit('class C {$lexeme(x) => 0;}');
       }
@@ -15873,6 +15872,7 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
       for (Keyword keyword in Keyword.values) {
         if (keyword.isBuiltIn || keyword.isPseudo) {
           String lexeme = keyword.lexeme;
+          if (lexeme == 'Function') continue;
           // The fasta type resolution phase will report an error
           // on type arguments on `dynamic` (e.g. `dynamic<int>`).
           parseCompilationUnit('$lexeme<T>(x) => 0;');

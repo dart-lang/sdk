@@ -116,6 +116,17 @@ bool isValidTypeReference(Token token) {
 TypeInfo computeType(final Token token, bool required) {
   Token next = token.next;
   if (!isValidTypeReference(next)) {
+    if (next.type.isBuiltIn) {
+      Token afterType = next.next;
+      if (optional('<', afterType) && afterType.endGroup != null) {
+        // Recovery: built-in used as a type
+        return new ComplexTypeInfo(token)
+            .computeSimpleWithTypeArguments(required);
+      } else if (isGeneralizedFunctionType(afterType)) {
+        // Recovery: built-in used as a type
+        return new ComplexTypeInfo(token).computeIdentifierGFT(required);
+      }
+    }
     return noTypeInfo;
   }
 
@@ -318,7 +329,7 @@ class ComplexTypeInfo implements TypeInfo {
   /// Given identifier `Function` non-identifier, compute the type
   /// and return the receiver or one of the [TypeInfo] constants.
   TypeInfo computeIdentifierGFT(bool required) {
-    assert(isValidTypeReference(start));
+    assert(isValidTypeReference(start) || start.type.isBuiltIn);
     assert(optional('Function', start.next));
     computeRest(start.next, required);
 
@@ -328,7 +339,7 @@ class ComplexTypeInfo implements TypeInfo {
   /// Given identifier `<` ... `>`, compute the type
   /// and return the receiver or one of the [TypeInfo] constants.
   TypeInfo computeSimpleWithTypeArguments(bool required) {
-    assert(isValidTypeReference(start));
+    assert(isValidTypeReference(start) || start.type.isBuiltIn);
     typeArguments = start.next;
     assert(optional('<', typeArguments));
 

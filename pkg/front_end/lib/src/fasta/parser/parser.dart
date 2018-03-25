@@ -3052,6 +3052,14 @@ class Parser {
         reportRecoverableError(token, fasta.messageGetterWithFormals);
       }
     } else if (!isGetter) {
+      if (optional('operator', name)) {
+        Token next = name.next;
+        if (next.isOperator) {
+          name = next;
+        } else if (isUnaryMinus(next)) {
+          name = next.next;
+        }
+      }
       reportRecoverableError(name, missingParameterMessage(kind));
     }
   }
@@ -3471,6 +3479,11 @@ class Parser {
   bool isModifierOrFactory(Token next) =>
       optional('factory', next) || isModifier(next);
 
+  bool isUnaryMinus(Token token) =>
+      token.kind == IDENTIFIER_TOKEN &&
+      token.lexeme == 'unary' &&
+      optional('-', token.next);
+
   /// Parse a class member.
   ///
   /// This method is only invoked from outside the parser. As a result, this
@@ -3551,14 +3564,8 @@ class Parser {
     listener.beginMember();
 
     Token beforeType = token;
-    // TODO(danrubel): Consider changing the listener contract
-    // so that the type reference can be parsed immediately
-    // rather than skipped now and parsed later.
-    token = skipTypeReferenceOpt(token, true);
-    if (token == beforeType) {
-      // There is no type reference.
-      beforeType = null;
-    }
+    TypeInfo typeInfo = computeType(token, false);
+    token = typeInfo.skipType(token);
     next = token.next;
 
     Token getOrSet;
@@ -3568,12 +3575,6 @@ class Parser {
         if (next.next.isIdentifier) {
           getOrSet = token = next;
           next = token.next;
-          if (!next.isIdentifier) {
-            // Recovery
-            insertSyntheticIdentifier(
-                token, IdentifierContext.methodDeclaration);
-            next = token.next;
-          }
         }
         // Fall through to continue parsing `get` or `set` as an identifier.
       } else if (identical(value, 'factory')) {
@@ -3589,20 +3590,39 @@ class Parser {
         // `operator` can be used as an identifier as in
         // `int operator<T>()` or `int operator = 2`
         if (next2.isUserDefinableOperator && next2.endGroup == null) {
-          token = parseMethod(beforeStart, externalToken, staticToken,
-              covariantToken, varFinalOrConst, beforeType, getOrSet, token);
+          token = parseMethod(
+              beforeStart,
+              externalToken,
+              staticToken,
+              covariantToken,
+              varFinalOrConst,
+              beforeType,
+              typeInfo,
+              getOrSet,
+              token);
           listener.endMember();
           return token;
         } else if (optional('===', next2) ||
             (next2.isOperator &&
                 !optional('=', next2) &&
                 !optional('<', next2))) {
+          // Recovery: Invalid operator
+          return parseInvalidOperatorDeclaration(beforeStart, externalToken,
+              staticToken, covariantToken, varFinalOrConst, beforeType);
+        } else if (isUnaryMinus(next2)) {
           // Recovery
-          token = next2;
-          insertSyntheticIdentifier(token, IdentifierContext.methodDeclaration,
-              message: fasta.templateInvalidOperator.withArguments(token),
-              messageOnToken: token);
-          next = token.next;
+          token = parseMethod(
+              beforeStart,
+              externalToken,
+              staticToken,
+              covariantToken,
+              varFinalOrConst,
+              beforeType,
+              typeInfo,
+              getOrSet,
+              token);
+          listener.endMember();
+          return token;
         }
         // Fall through to continue parsing `operator` as an identifier.
       } else if (!next.isIdentifier ||
@@ -3618,12 +3638,25 @@ class Parser {
             covariantToken,
             varFinalOrConst,
             beforeType,
+            typeInfo,
             getOrSet,
             typeContinuation);
       }
+    } else if (typeInfo == noTypeInfo && varFinalOrConst == null) {
+      Token next2 = next.next;
+      if (next2.isUserDefinableOperator && next2.endGroup == null) {
+        String value = next2.next.stringValue;
+        if (identical(value, '(') ||
+            identical(value, '{') ||
+            identical(value, '=>')) {
+          // Recovery: Missing `operator` keyword
+          return parseInvalidOperatorDeclaration(beforeStart, externalToken,
+              staticToken, covariantToken, varFinalOrConst, beforeType);
+        }
+      }
     }
-    // At this point, token is before the name, and next is the name
 
+    // At this point, token is before the name, and next is the name
     next = next.next;
     String value = next.stringValue;
     if (getOrSet != null ||
@@ -3632,13 +3665,22 @@ class Parser {
         identical(value, '<') ||
         identical(value, '.') ||
         identical(value, '=>')) {
-      token = parseMethod(beforeStart, externalToken, staticToken,
-          covariantToken, varFinalOrConst, beforeType, getOrSet, token);
+      token = parseMethod(
+          beforeStart,
+          externalToken,
+          staticToken,
+          covariantToken,
+          varFinalOrConst,
+          beforeType,
+          typeInfo,
+          getOrSet,
+          token);
     } else {
       if (getOrSet != null) {
         reportRecoverableErrorWithToken(
             getOrSet, fasta.templateExtraneousModifier);
       }
+      // TODO(danrubel): Use typeInfo when parsing fields.
       token = parseFields(
           beforeStart,
           externalToken,
@@ -3663,6 +3705,7 @@ class Parser {
       Token covariantToken,
       Token varFinalOrConst,
       Token beforeType,
+      TypeInfo typeInfo,
       Token getOrSet,
       Token beforeName) {
     bool isOperator = getOrSet == null && optional('operator', beforeName.next);
@@ -3701,11 +3744,7 @@ class Parser {
     listener.beginMethod(externalToken, staticToken, covariantToken,
         varFinalOrConst, beforeName.next);
 
-    if (beforeType == null) {
-      listener.handleNoType(beforeName);
-    } else {
-      parseType(beforeType, TypeContinuation.Optional);
-    }
+    typeInfo.parseType(beforeType, this);
 
     Token token;
     if (isOperator) {
@@ -3832,6 +3871,12 @@ class Parser {
       }
     } else if (optional('(', next)) {
       return ensureIdentifier(beforeToken, IdentifierContext.operatorName);
+    } else if (isUnaryMinus(next)) {
+      // Recovery
+      reportRecoverableErrorWithToken(next, fasta.templateUnexpectedToken);
+      next = next.next;
+      listener.handleOperatorName(token, next);
+      return next;
     } else {
       // Recovery
       // The user has specified an invalid operator name.
@@ -6283,6 +6328,51 @@ class Parser {
     return beforeToken;
   }
 
+  /// Recover from finding an operator declaration missing the `operator`
+  /// keyword. The metadata for the member, if any, has already been parsed
+  /// (and events have already been generated).
+  Token parseInvalidOperatorDeclaration(
+      Token beforeStart,
+      Token externalToken,
+      Token staticToken,
+      Token covariantToken,
+      Token varFinalOrConst,
+      Token beforeType) {
+    TypeInfo typeInfo = computeType(beforeType, true);
+
+    Token beforeName = typeInfo.skipType(beforeType);
+    Token next = beforeName.next;
+
+    if (optional('operator', next)) {
+      next = next.next;
+    } else {
+      reportRecoverableError(next, fasta.messageMissingOperatorKeyword);
+      rewriter.insertTokenAfter(
+          beforeName, new SyntheticToken(Keyword.OPERATOR, next.offset));
+    }
+
+    assert((next.isOperator && next.endGroup == null) || optional('===', next));
+    if (!next.isUserDefinableOperator) {
+      beforeName = next;
+      insertSyntheticIdentifier(beforeName, IdentifierContext.methodDeclaration,
+          message: fasta.templateInvalidOperator.withArguments(next),
+          messageOnToken: next);
+    }
+
+    Token token = parseMethod(
+        beforeStart,
+        externalToken,
+        staticToken,
+        covariantToken,
+        varFinalOrConst,
+        beforeType,
+        typeInfo,
+        null,
+        beforeName);
+    listener.endMember();
+    return token;
+  }
+
   /// Recover from finding an invalid class member. The metadata for the member,
   /// if any, has already been parsed (and events have already been generated).
   /// The member was expected to start with the token after [token].
@@ -6294,6 +6384,7 @@ class Parser {
       Token covariantToken,
       Token varFinalOrConst,
       Token beforeType,
+      TypeInfo typeInfo,
       Token getOrSet,
       TypeContinuation typeContinuation) {
     Token next = token.next;
@@ -6305,13 +6396,15 @@ class Parser {
       return reportAndSkipEnumInClass(next);
     } else if (identical(value, 'typedef')) {
       return reportAndSkipTypedefInClass(next);
+    } else if (next.isOperator) {
+      return parseInvalidOperatorDeclaration(beforeStart, externalToken,
+          staticToken, covariantToken, varFinalOrConst, beforeType);
     }
 
     bool looksLikeMethod = getOrSet != null ||
         identical(value, '(') ||
         identical(value, '=>') ||
-        identical(value, '{') ||
-        next.isOperator;
+        identical(value, '{');
     if (token == beforeStart && !looksLikeMethod) {
       // Ensure we make progress.
       // TODO(danrubel): Provide a more specific error message for extra ';'.
@@ -6320,35 +6413,30 @@ class Parser {
       token = next;
     } else {
       // Looks like a partial declaration.
-      if (next.isUserDefinableOperator) {
-        reportRecoverableError(next, fasta.messageMissingOperatorKeyword);
-        // Insert a synthetic 'operator'.
+      reportRecoverableError(
+          next, fasta.templateExpectedIdentifier.withArguments(next));
+      // Insert a synthetic identifier and continue parsing.
+      if (!next.isIdentifier) {
         rewriter.insertTokenAfter(
-            token, new SyntheticToken(Keyword.OPERATOR, next.offset));
-      } else {
-        if (next.isOperator) {
-          reportRecoverableErrorWithToken(next, fasta.templateInvalidOperator);
-          token = next;
-          next = token.next;
-        } else {
-          reportRecoverableError(
-              next, fasta.templateExpectedIdentifier.withArguments(next));
-        }
-        // Insert a synthetic identifier and continue parsing.
-        if (!next.isIdentifier) {
-          rewriter.insertTokenAfter(
-              token,
-              new SyntheticStringToken(
-                  TokenType.IDENTIFIER,
-                  '#synthetic_identifier_${next.charOffset}',
-                  next.charOffset,
-                  0));
-        }
+            token,
+            new SyntheticStringToken(
+                TokenType.IDENTIFIER,
+                '#synthetic_identifier_${next.charOffset}',
+                next.charOffset,
+                0));
       }
 
       if (looksLikeMethod) {
-        token = parseMethod(beforeStart, externalToken, staticToken,
-            covariantToken, varFinalOrConst, beforeType, getOrSet, token);
+        token = parseMethod(
+            beforeStart,
+            externalToken,
+            staticToken,
+            covariantToken,
+            varFinalOrConst,
+            beforeType,
+            typeInfo,
+            getOrSet,
+            token);
       } else {
         token = parseFields(
             beforeStart,
