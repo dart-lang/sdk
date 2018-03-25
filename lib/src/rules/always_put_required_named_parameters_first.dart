@@ -58,7 +58,7 @@ class Visitor extends SimpleAstVisitor {
   visitFormalParameterList(FormalParameterList node) {
     bool nonRequiredSeen = false;
     for (DefaultFormalParameter param
-        in node.parameters.where((p) => p.kind == ParameterKind.NAMED)) {
+        in node.parameters.where((p) => p.isNamed)) {
       if (param.metadata.any((a) => _isRequired(a.element))) {
         if (nonRequiredSeen) {
           rule.reportLintForToken(param.identifier.token);

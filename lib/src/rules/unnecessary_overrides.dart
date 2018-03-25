@@ -134,10 +134,21 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
       if (param.type != superParam.type) return false;
       if (param.name != superParam.name) return false;
       if (param.isCovariant != superParam.isCovariant) return false;
-      if (param.parameterKind != superParam.parameterKind) return false;
+      if (!_sameKind(param, superParam)) return false;
       if (param.defaultValueCode != superParam.defaultValueCode) return false;
     }
     return true;
+  }
+
+  bool _sameKind(ParameterElement first, ParameterElement second) {
+    if (first.isNotOptional) {
+      return second.isNotOptional;
+    } else if (first.isOptionalPositional) {
+      return second.isOptionalPositional;
+    } else if (first.isNamed) {
+      return second.isNamed;
+    }
+    throw new ArgumentError('Unhandled kind of parameter.');
   }
 }
 

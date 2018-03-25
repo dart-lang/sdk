@@ -39,9 +39,6 @@ new Button(ButtonState.enabled);
 bool _hasInheritedMethod(MethodDeclaration node) =>
     DartTypeUtilities.lookUpInheritedMethod(node) != null;
 
-bool _isNamedParameter(FormalParameter node) =>
-    node.kind == ParameterKind.NAMED;
-
 class AvoidPositionalBooleanParameters extends LintRule {
   _Visitor _visitor;
   AvoidPositionalBooleanParameters()
@@ -101,5 +98,5 @@ class _Visitor extends SimpleAstVisitor {
   bool _isFormalParameterToLint(FormalParameter node) =>
       DartTypeUtilities.implementsInterface(
           node.identifier.bestType, 'bool', 'dart.core') &&
-      !_isNamedParameter(node);
+      !node.isNamed;
 }

@@ -77,7 +77,7 @@ class Visitor extends SimpleAstVisitor {
   visitFormalParameterList(FormalParameterList node) {
     final params = node.parameters
         // only named parameters
-        .where((p) => p.kind == ParameterKind.NAMED)
+        .where((p) => p.isNamed)
         .map((p) => p as DefaultFormalParameter)
         // without default value
         .where((p) => p.defaultValue == null)

@@ -141,7 +141,7 @@ class DartTypeUtilities {
     final positionalParameters = <Element>[];
     final positionalArguments = <Element>[];
     for (final parameter in parameters) {
-      if (parameter.kind == ParameterKind.NAMED) {
+      if (parameter.isNamed) {
         namedParameters[parameter.identifier.name] =
             parameter.identifier.bestElement;
       } else {
