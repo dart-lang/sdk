@@ -487,7 +487,9 @@ final Matcher isFilePath = isString;
  *   "variableName": optional String
  *   "children": optional List<FlutterOutline>
  *   "id": optional int
+ *   "isWidgetClass": optional bool
  *   "renderConstructor": optional String
+ *   "stateClassName": optional String
  *   "stateOffset": optional int
  *   "stateLength": optional int
  * }
@@ -508,7 +510,9 @@ final Matcher isFlutterOutline =
           "variableName": isString,
           "children": isListOf(isFlutterOutline),
           "id": isInt,
+          "isWidgetClass": isBool,
           "renderConstructor": isString,
+          "stateClassName": isString,
           "stateOffset": isInt,
           "stateLength": isInt
         }));

@@ -3172,6 +3172,14 @@
           with this node.
         </p>
       </field>
+      <field name="isWidgetClass" optional="true">
+        <ref>bool</ref>
+        <p>
+          True if the node is a widget class, so it can potentially be
+          rendered, even if it does not yet have the rendering constructor.
+          This field is omitted if the node is not a widget class.
+        </p>
+      </field>
       <field name="renderConstructor" optional="true">
         <ref>String</ref>
         <p>
@@ -3181,19 +3189,26 @@
           widget class that can be rendered.
         </p>
       </field>
+      <field name="stateClassName" optional="true">
+        <ref>String</ref>
+        <p>
+          If the node is a StatefulWidget, and its state class is defined in
+          the same file, the name of the state class.
+        </p>
+      </field>
       <field name="stateOffset" optional="true">
         <ref>int</ref>
         <p>
-          If the node is a StatefulWidget that can be rendered, and its State
-          class is defined in the same file, the offset of the State class code
+          If the node is a StatefulWidget that can be rendered, and its state
+          class is defined in the same file, the offset of the state class code
           in the file.
         </p>
       </field>
       <field name="stateLength" optional="true">
         <ref>int</ref>
         <p>
-          If the node is a StatefulWidget that can be rendered, and its State
-          class is defined in the same file, the length of the State class code
+          If the node is a StatefulWidget that can be rendered, and its state
+          class is defined in the same file, the length of the state class code
           in the file.
         </p>
       </field>
