@@ -8,6 +8,5 @@ description:
 homepage: http://github.com/dart-lang/sdk/pkg/analysis_server_client
 dev_dependencies:
   test: ">=0.12.0 <0.13.0"
-  mockito: ^2.0.2
 environment:
   sdk: ">=1.0.0 < 2.0.0-dev.infinity"
