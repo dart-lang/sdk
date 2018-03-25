@@ -90,7 +90,7 @@ class Visitor extends SimpleAstVisitor {
       if (field?.element != null &&
           !resolutionMap
               .elementDeclaredByVariableDeclaration(field)
-              .isOverride) {
+              .hasOverride) {
         ExecutableElement member = getOverriddenMember(field.element);
         if (member != null) {
           rule.reportLint(field);
@@ -102,7 +102,7 @@ class Visitor extends SimpleAstVisitor {
   @override
   visitMethodDeclaration(MethodDeclaration node) {
     if (node?.element != null &&
-        !resolutionMap.elementDeclaredByMethodDeclaration(node).isOverride) {
+        !resolutionMap.elementDeclaredByMethodDeclaration(node).hasOverride) {
       ExecutableElement member = getOverriddenMember(node.element);
       if (member != null) {
         rule.reportLint(node.name);

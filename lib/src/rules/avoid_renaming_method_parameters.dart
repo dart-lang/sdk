@@ -74,12 +74,10 @@ class Visitor extends SimpleAstVisitor {
 
     if (parentMethod == null) return;
 
-    final parameters = node.parameters.parameters
-        .where((p) => p.kind != ParameterKind.NAMED)
-        .toList();
-    final parentParameters = parentMethod.parameters
-        .where((p) => p.parameterKind != ParameterKind.NAMED)
-        .toList();
+    final parameters =
+        node.parameters.parameters.where((p) => !p.isNamed).toList();
+    final parentParameters =
+        parentMethod.parameters.where((p) => !p.isNamed).toList();
     int count = math.min(parameters.length, parentParameters.length);
     for (var i = 0; i < count; i++) {
       if (parentParameters.length <= i) break;
