@@ -330,8 +330,15 @@ class ContextBuilder {
     Resource location = _findPackagesLocation(path);
     if (location is File) {
       List<int> fileBytes = location.readAsBytesSync();
-      Map<String, Uri> map =
-          parse(fileBytes, resourceProvider.pathContext.toUri(location.path));
+      Map<String, Uri> map;
+      try {
+        map =
+            parse(fileBytes, resourceProvider.pathContext.toUri(location.path));
+      } catch (exception) {
+        // If we cannot read the file, then we respond as if the file did not
+        // exist.
+        return Packages.noPackages;
+      }
       resolveSymbolicLinks(map);
       return new MapPackages(map);
     } else if (location is Folder) {
