@@ -105,6 +105,10 @@ abstract class ReferenceInfo {
   /// The enclosing [_ReferenceInfo], or `null` for top-level elements.
   ReferenceInfo get enclosing;
 
+  /// Indicates whether the thing being referenced has at least one type
+  /// parameter.
+  bool get hasTypeParameters;
+
   /// The name of the entity referred to by this reference.
   String get name;
 
@@ -398,6 +402,12 @@ abstract class UnitResynthesizer {
   /// libraries in the process.
   DartType buildType(ElementImpl context, EntityRef type);
 
+  /// Builds a [DartType] object based on [ReferenceInfo], which should refer to
+  /// a class, by filling in the type arguments as appropriate, and performing
+  /// instantiate to bounds if necessary.
+  DartType buildTypeForClassInfo(ReferenceInfo info, int numTypeArguments,
+      DartType getTypeArgument(int i));
+
   /// Returns the defining type for a [ConstructorElement] by applying
   /// [typeArgumentRefs] to the given linked [info].  Returns [DynamicTypeImpl]
   /// if the [info] is unresolved.
@@ -416,6 +426,45 @@ abstract class UnitResynthesizer {
 
   /// Returns the [ReferenceInfo] with the given [index].
   ReferenceInfo getReferenceInfo(int index);
+}
+
+/// [UnitResynthesizerMixin] contains methods useful for implementing the
+/// [UnitResynthesizer] interface.
+abstract class UnitResynthesizerMixin implements UnitResynthesizer {
+  @override
+  DartType createConstructorDefiningType(ElementImpl context,
+      ReferenceInfo info, List<EntityRef> typeArgumentRefs) {
+    bool isClass = info.element is ClassElement;
+    ReferenceInfo classInfo = isClass ? info : info.enclosing;
+    if (classInfo == null) {
+      return DynamicTypeImpl.instance;
+    }
+    List<DartType> typeArguments =
+        typeArgumentRefs.map((t) => buildType(context, t)).toList();
+    return buildTypeForClassInfo(classInfo, typeArguments.length, (i) {
+      if (i < typeArguments.length) {
+        return typeArguments[i];
+      } else {
+        return DynamicTypeImpl.instance;
+      }
+    });
+  }
+
+  @override
+  ConstructorElement getConstructorForInfo(
+      InterfaceType classType, ReferenceInfo info) {
+    ConstructorElement element;
+    Element infoElement = info.element;
+    if (infoElement is ConstructorElement) {
+      element = infoElement;
+    } else if (infoElement is ClassElement) {
+      element = infoElement.unnamedConstructor;
+    }
+    if (element != null && info.hasTypeParameters) {
+      return new ConstructorMember(element, classType);
+    }
+    return element;
+  }
 }
 
 /**
@@ -1280,6 +1329,9 @@ class _ReferenceInfo extends ReferenceInfo {
   }
 
   @override
+  bool get hasTypeParameters => numTypeParameters != 0;
+
+  @override
   DartType get type {
     if (_type == null) {
       _type = _buildType(true, 0, (_) => DynamicTypeImpl.instance, const []);
@@ -1537,7 +1589,7 @@ class _ResynthesizerContext implements ResynthesizerContext {
 }
 
 /// Specialization of [UnitResynthesizer] for resynthesis from linked summaries.
-class _UnitResynthesizer extends UnitResynthesizer {
+class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
   /**
    * The [_LibraryResynthesizer] which is being used to obtain summaries.
    */
@@ -1783,6 +1835,11 @@ class _UnitResynthesizer extends UnitResynthesizer {
     }
   }
 
+  @override
+  DartType buildTypeForClassInfo(covariant _ReferenceInfo info,
+          int numTypeArguments, DartType getTypeArgument(int i)) =>
+      info.buildType(true, numTypeArguments, getTypeArgument, const <int>[]);
+
   UnitExplicitTopLevelAccessors buildUnitExplicitTopLevelAccessors() {
     Map<String, TopLevelVariableElementImpl> implicitVariables =
         new HashMap<String, TopLevelVariableElementImpl>();
@@ -1854,43 +1911,8 @@ class _UnitResynthesizer extends UnitResynthesizer {
   }
 
   @override
-  DartType createConstructorDefiningType(ElementImpl context,
-      covariant _ReferenceInfo info, List<EntityRef> typeArgumentRefs) {
-    bool isClass = info.element is ClassElement;
-    _ReferenceInfo classInfo = isClass ? info : info.enclosing;
-    if (classInfo == null) {
-      return DynamicTypeImpl.instance;
-    }
-    List<DartType> typeArguments =
-        typeArgumentRefs.map((t) => buildType(context, t)).toList();
-    return classInfo.buildType(true, typeArguments.length, (i) {
-      if (i < typeArguments.length) {
-        return typeArguments[i];
-      } else {
-        return DynamicTypeImpl.instance;
-      }
-    }, const <int>[]);
-  }
-
-  @override
   bool doesTypeHaveImplicitArguments(ParameterizedType type) =>
       _typesWithImplicitTypeArguments[type] != null;
-
-  @override
-  ConstructorElement getConstructorForInfo(
-      InterfaceType classType, covariant _ReferenceInfo info) {
-    ConstructorElement element;
-    Element infoElement = info.element;
-    if (infoElement is ConstructorElement) {
-      element = infoElement;
-    } else if (infoElement is ClassElement) {
-      element = infoElement.unnamedConstructor;
-    }
-    if (element != null && info.numTypeParameters != 0) {
-      return new ConstructorMember(element, classType);
-    }
-    return element;
-  }
 
   @override
   _ReferenceInfo getReferenceInfo(int index) {

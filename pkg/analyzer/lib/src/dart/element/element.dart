@@ -1136,15 +1136,8 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   @override
-  ConstructorElement getNamedConstructor(String name) {
-    for (ConstructorElement element in constructors) {
-      String elementName = element.name;
-      if (elementName != null && elementName == name) {
-        return element;
-      }
-    }
-    return null;
-  }
+  ConstructorElement getNamedConstructor(String name) =>
+      getNamedConstructorFromList(name, constructors);
 
   @override
   bool isSuperConstructorAccessible(ConstructorElement constructor) {
@@ -1458,6 +1451,17 @@ class ClassElementImpl extends AbstractClassElementImpl
         }
       }
     }
+  }
+
+  static ConstructorElement getNamedConstructorFromList(
+      String name, List<ConstructorElement> constructors) {
+    for (ConstructorElement element in constructors) {
+      String elementName = element.name;
+      if (elementName != null && elementName == name) {
+        return element;
+      }
+    }
+    return null;
   }
 
   /**
