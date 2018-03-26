@@ -1,3 +1,11 @@
+# 0.1.46
+
+* performance fixes for library prefix testing (`library_prefixes`)
+* new `avoid_bool_literals_in_conditional_expressions` lint
+* new `prefer_equal_for_default_values` lint
+* new `avoid_private_typedef_functions` lint
+* new `avoid_single_cascade_in_expression_statements` lint
+
 # 0.1.45
 
 * fix for `invariant_booleans` when analyzing for loops with no condition
