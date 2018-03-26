@@ -58,6 +58,7 @@ main() {
   });
 
   group('library prefixes', () {
+    //TODO(pq): add more positive cases.
     var good = [
       'foo_bar',
       'foo',
@@ -67,6 +68,9 @@ main() {
       'p21',
       'p1ll0',
       '_foo',
+      // Ensure multiple underscores don't cause issues (#940).
+      'abc_def_ghi_jkl_mnomnomno_abcabcabc__defdefdefdef__ghighighighi',
+      'abc_____def____ghi_jkl__mnomnomno_abcabcabc__defdefdefdef___ghighighighi',
       r'$foo',
       '__foo',
       r'$_foo',
@@ -74,6 +78,7 @@ main() {
     ];
     testEach(good, isValidLibraryPrefix, isTrue);
 
+    //TODO(pq): add more negative cases.
     var bad = [
       'JSON',
       'JS',
@@ -88,6 +93,9 @@ main() {
       r'$$foo',
       r'$_$foo',
       r'_$foo',
+      '__',
+      '_',
+      '_1',
     ];
     testEach(bad, isValidLibraryPrefix, isFalse);
   });
