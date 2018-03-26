@@ -66,6 +66,28 @@ class MyWidget extends StatelessWidget {
     assertRefactoringStatusOK(refactoring.checkName());
   }
 
+  test_checkName_alreadyDeclared() async {
+    addFlutterPackage();
+    await indexTestUnit('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Container();
+  }
+}
+
+class Test {}
+''');
+    _createRefactoringForStringOffset('new Container');
+
+    refactoring.name = 'Test';
+    assertRefactoringStatus(
+        refactoring.checkName(), RefactoringProblemSeverity.ERROR,
+        expectedMessage: "Library already declares class with name 'Test'.");
+  }
+
   test_expression() async {
     addFlutterPackage();
     await indexTestUnit('''
