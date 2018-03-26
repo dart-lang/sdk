@@ -360,6 +360,8 @@ class SourceLoader<L> extends Loader<L> {
 
   void instantiateToBound(TypeBuilder dynamicType, TypeBuilder bottomType,
       ClassBuilder objectClass) {
+    if (!target.strongMode) return;
+
     int count = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
@@ -633,6 +635,8 @@ class SourceLoader<L> extends Loader<L> {
   }
 
   void addNoSuchMethodForwarders(List<SourceClassBuilder> sourceClasses) {
+    if (!target.backendTarget.enableNoSuchMethodForwarders) return;
+
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this) {
         builder.addNoSuchMethodForwarders(hierarchy);

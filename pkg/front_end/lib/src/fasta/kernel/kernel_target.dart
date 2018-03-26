@@ -242,9 +242,7 @@ class KernelTarget extends TargetImplementation {
       objectType.bind(loader.coreLibrary["Object"]);
       bottomType.bind(loader.coreLibrary["Null"]);
       loader.resolveTypes();
-      if (loader.target.strongMode) {
-        loader.instantiateToBound(dynamicType, bottomType, objectClassBuilder);
-      }
+      loader.instantiateToBound(dynamicType, bottomType, objectClassBuilder);
       List<SourceClassBuilder> myClasses = collectMyClasses();
       loader.checkSemantics(myClasses);
       loader.finishTypeVariables(objectClassBuilder);
@@ -264,9 +262,7 @@ class KernelTarget extends TargetImplementation {
         loader.performTopLevelInference(myClasses);
       }
       loader.checkOverrides(myClasses);
-      if (backendTarget.enableNoSuchMethodForwarders) {
-        loader.addNoSuchMethodForwarders(myClasses);
-      }
+      loader.addNoSuchMethodForwarders(myClasses);
     } on deprecated_InputError catch (e) {
       ticker.logMs("Got deprecated_InputError");
       handleInputError(e, isFullComponent: false);
