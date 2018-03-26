@@ -24,6 +24,15 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 
+/**
+ * Expando for marking types with implicit type arguments, which are the same as
+ * type parameter bounds (in strong mode), or `dynamic` (in spec mode).
+ *
+ * If a type is associated with a non-null value in this expando, then it has
+ * implicit type arguments.
+ */
+final _typesWithImplicitTypeArguments = new Expando();
+
 /// An instance of [LibraryResynthesizer] is responsible for resynthesizing the
 /// elements in a single library from that library's summary.
 abstract class LibraryResynthesizer {
@@ -970,13 +979,6 @@ class _LibraryResynthesizer extends LibraryResynthesizerMixin {
   final Map<String, CompilationUnitElementImpl> resynthesizedUnits =
       <String, CompilationUnitElementImpl>{};
 
-  /**
-   * Types with implicit type arguments, which are the same as type parameter
-   * bounds (in strong mode), or `dynamic` (in spec mode).
-   */
-  final Set<DartType> typesWithImplicitTypeArguments =
-      new Set<DartType>.identity();
-
   _LibraryResynthesizer(this.summaryResynthesizer, this.linkedLibrary,
       this.unlinkedUnits, this.librarySource) {
     libraryUri = librarySource.uri.toString();
@@ -1356,7 +1358,7 @@ class _ReferenceInfo extends ReferenceInfo {
       // Mark the type as having implicit type arguments, so that we don't
       // attempt to request them during constant expression resynthesizing.
       if (typeArguments == null) {
-        libraryResynthesizer.typesWithImplicitTypeArguments.add(type);
+        _typesWithImplicitTypeArguments[type] = true;
       }
       // Done.
       return type;
@@ -1872,7 +1874,7 @@ class _UnitResynthesizer extends UnitResynthesizer {
 
   @override
   bool doesTypeHaveImplicitArguments(ParameterizedType type) =>
-      libraryResynthesizer.typesWithImplicitTypeArguments.contains(type);
+      _typesWithImplicitTypeArguments[type] != null;
 
   @override
   ConstructorElement getConstructorForInfo(
