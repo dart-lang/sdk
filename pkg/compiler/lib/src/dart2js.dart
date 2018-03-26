@@ -599,17 +599,15 @@ Future<api.CompilationResult> compile(List<String> argv,
     // TODO(sigmund): reenable hints (Issue #32111)
     diagnosticHandler.showHints = showHints = false;
   }
-  CompilerOptions compilerOptions = new CompilerOptions.parse(
-      entryPoint: script,
-      libraryRoot: libraryRoot,
-      packageRoot: packageRoot,
-      packageConfig: packageConfig,
-      platformBinaries: platformBinaries,
-      packagesDiscoveryProvider: findPackages,
-      resolutionInputs: resolutionInputs,
-      resolutionOutput: resolveOnly ? resolutionOutput : null,
-      options: options,
-      environment: environment)
+  CompilerOptions compilerOptions = CompilerOptions.parse(options,
+      libraryRoot: libraryRoot, platformBinaries: platformBinaries)
+    ..entryPoint = script
+    ..packageRoot = packageRoot
+    ..packageConfig = packageConfig
+    ..environment = environment
+    ..packagesDiscoveryProvider = findPackages
+    ..resolutionInputs = resolutionInputs
+    ..resolutionOutput = (resolveOnly ? resolutionOutput : null)
     ..kernelInitializedCompilerState = kernelInitializedCompilerState;
   return compileFunc(
           compilerOptions, inputProvider, diagnosticHandler, outputProvider)
@@ -1004,8 +1002,9 @@ void _useSerializedDataForDartCore(CompileFunc oldCompileFunc) {
           }
         }
       }
-      options = CompilerOptions.copy(options,
-          resolutionInputs: resolutionInputs, compileOnly: compileOnly);
+      options
+        ..resolutionInputs = resolutionInputs
+        ..compileOnly = compileOnly;
     }
     return oldCompileFunc(options, input, compilerDiagnostics, compilerOutput);
   }
@@ -1019,13 +1018,13 @@ void _useSerializedDataForDartCore(CompileFunc oldCompileFunc) {
       api.CompilerDiagnostics compilerDiagnostics,
       api.CompilerOutput compilerOutput,
       [List<_SerializedData> serializedData]) {
-    CompilerOptions options = CompilerOptions.copy(compilerOptions,
-        entryPoint: entryPoint,
-        resolutionOutput: serializedUri,
-        analyzeAll: true,
-        analyzeOnly: true,
-        resolveOnly: true);
-    return compileWithSerializedData(options, compilerInput,
+    compilerOptions
+      ..entryPoint = entryPoint
+      ..resolutionOutput = serializedUri
+      ..analyzeAll = true
+      ..analyzeOnly = true
+      ..resolveOnly = true;
+    return compileWithSerializedData(compilerOptions, compilerInput,
         compilerDiagnostics, compilerOutput, serializedData);
   }
 

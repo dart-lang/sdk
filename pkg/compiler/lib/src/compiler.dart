@@ -184,6 +184,8 @@ abstract class Compiler {
       this.environment: const _EmptyEnvironment(),
       MakeReporterFunction makeReporter})
       : this.options = options {
+    options.deriveOptions();
+    options.validate();
     CompilerTask kernelFrontEndTask;
     selfTask = new GenericTask('self', measurer);
     _outputProvider = new _CompilerOutput(this, outputProvider);

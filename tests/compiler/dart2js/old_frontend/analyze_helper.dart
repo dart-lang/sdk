@@ -258,11 +258,9 @@ Future analyze(
       provider,
       null,
       handler,
-      new CompilerOptions.parse(
-          libraryRoot: libraryRoot,
-          packageConfig: packageConfig,
-          options: options,
-          environment: {}));
+      CompilerOptions.parse(options, libraryRoot: libraryRoot)
+        ..packageConfig = packageConfig
+        ..environment = {});
   String MESSAGE = """
 
 

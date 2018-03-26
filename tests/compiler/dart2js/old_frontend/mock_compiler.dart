@@ -90,22 +90,22 @@ class MockCompiler extends Compiler {
       LibrarySourceProvider this.librariesOverride})
       : sourceFiles = new Map<String, SourceFile>(),
         super(
-            options: new CompilerOptions(
-                entryPoint: new Uri(scheme: 'mock'),
-                libraryRoot: Uri.parse('placeholder_library_root_for_mock/'),
-                useKernel: false,
-                enableTypeAssertions: enableTypeAssertions,
-                enableUserAssertions: enableUserAssertions,
-                disableInlining: disableInlining,
-                enableAssertMessage: true,
-                enableMinification: enableMinification,
-                disableTypeInference: disableTypeInference,
-                analyzeAll: analyzeAll,
-                analyzeOnly: analyzeOnly,
-                preserveComments: preserveComments,
-                trustTypeAnnotations: trustTypeAnnotations,
-                trustJSInteropTypeAnnotations: trustJSInteropTypeAnnotations,
-                shownPackageWarnings: const []),
+            options: new CompilerOptions()
+              ..entryPoint = new Uri(scheme: 'mock')
+              ..libraryRoot = Uri.parse('placeholder_library_root_for_mock/')
+              ..useKernel = false
+              ..enableTypeAssertions = enableTypeAssertions
+              ..enableUserAssertions = enableUserAssertions
+              ..disableInlining = disableInlining
+              ..enableAssertMessage = true
+              ..enableMinification = enableMinification
+              ..disableTypeInference = disableTypeInference
+              ..analyzeAll = analyzeAll
+              ..analyzeOnly = analyzeOnly
+              ..preserveComments = preserveComments
+              ..trustTypeAnnotations = trustTypeAnnotations
+              ..trustJSInteropTypeAnnotations = trustJSInteropTypeAnnotations
+              ..shownPackageWarnings = const [],
             outputProvider: outputProvider) {
     deferredLoadTask = new MockDeferredLoadTask(this);
 

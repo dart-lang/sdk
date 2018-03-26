@@ -47,11 +47,10 @@ runCompiler(String main, List<String> options,
   asyncStart();
   OutputCollector outputCollector = new OutputCollector();
   Future<CompilationResult> result = compile(
-      new CompilerOptions.parse(
-          entryPoint: new Uri(scheme: 'main'),
-          libraryRoot: new Uri(scheme: 'lib', path: '/'),
-          packageRoot: new Uri(scheme: 'package', path: '/'),
-          options: options),
+      CompilerOptions.parse(options,
+          libraryRoot: new Uri(scheme: 'lib', path: '/'))
+        ..entryPoint = new Uri(scheme: 'main')
+        ..packageRoot = new Uri(scheme: 'package', path: '/'),
       new LegacyCompilerInput(localProvider),
       new LegacyCompilerDiagnostics(localHandler),
       outputCollector);
