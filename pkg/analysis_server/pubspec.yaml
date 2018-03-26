@@ -22,5 +22,5 @@ dependencies:
   yaml: any
 dev_dependencies:
   html: any
-  test_reflective_loader: ^0.1.0
+  test_reflective_loader: ^0.1.4
   test: ^0.12.17
