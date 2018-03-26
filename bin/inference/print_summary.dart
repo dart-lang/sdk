@@ -93,6 +93,4 @@ class _Counter extends RecursiveInfoVisitor {
 const _groupColors = const [_YELLOW_COLOR, _NO_COLOR];
 
 const _NO_COLOR = "\x1b[0m";
-const _GREEN_COLOR = "\x1b[32m";
 const _YELLOW_COLOR = "\x1b[33m";
-const _WHITE_COLOR = "\x1b[37m";

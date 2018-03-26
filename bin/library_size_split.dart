@@ -109,7 +109,7 @@ main(args) async {
   all.sort((a, b) => sizes[a].compareTo(sizes[b]));
   var realTotal = info.program.size;
   var longest = 0;
-  var rows = [];
+  var rows = <_Row>[];
   _addRow(String label, int value) {
     rows.add(new _Row(label, value));
     longest = max(longest, label.length);
