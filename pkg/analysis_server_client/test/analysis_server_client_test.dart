@@ -122,13 +122,13 @@ class MockStdin implements IOSink {
   void addError(Object error, [StackTrace stackTrace]) {}
 
   @override
-  Future addStream(Stream<List<int>> stream) {}
+  Future addStream(Stream<List<int>> stream) => null;
 
   @override
-  Future close() {}
+  Future close() => null;
 
   @override
-  Future flush() {}
+  Future flush() => null;
 
   @override
   void write(Object obj) {}
