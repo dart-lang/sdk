@@ -726,13 +726,13 @@ class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String local;
-    return new Text(local);
+    return new Text('$local $local');
   }
 }
 ''');
     _createRefactoringForStringOffset('new Text');
 
-    await _assertSuccessfulRefactoring('''
+    await _assertSuccessfulRefactoring(r'''
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
@@ -750,7 +750,7 @@ class Test extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Text(local);
+    return new Text('$local $local');
   }
 }
 ''');

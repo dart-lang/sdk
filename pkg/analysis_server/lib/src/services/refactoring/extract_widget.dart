@@ -387,6 +387,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
   final SourceRange expressionRange;
 
   final RefactoringStatus status = new RefactoringStatus();
+  final Set<Element> uniqueElements = new Set<Element>();
   final List<_Parameter> parameters = [];
 
   List<ClassElement> enclosingClasses;
@@ -426,7 +427,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
       }
     }
 
-    if (type != null) {
+    if (type != null && uniqueElements.add(element)) {
       parameters.add(new _Parameter(elementName, type));
     }
   }
