@@ -7,6 +7,7 @@ Language/Classes/definition_t24: MissingCompileTimeError
 Language/Types/Type_Void/syntax_t08: MissingCompileTimeError
 Language/Types/Type_Void/syntax_t09: MissingCompileTimeError
 LayoutTests/*: Skip # TODO(ahe): Make dart:html available.
+LibTest/collection/Maps/*: Skip # Maps class no longer exists.
 LibTest/html/*: Skip # TODO(ahe): Make dart:html available.
 WebPlatformTest/*: Skip # TODO(ahe): Make dart:html available.
 

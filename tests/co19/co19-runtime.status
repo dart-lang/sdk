@@ -303,6 +303,7 @@ Language/Types/Type_Void/syntax_t09: MissingCompileTimeError # Issue co19/30264
 LayoutTests/fast/*: SkipByDesign # DOM not supported on VM.
 LibTest/collection/ListBase/ListBase_class_A01_t01: RuntimeError # Large integers
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: RuntimeError # Large integers
+LibTest/collection/Maps/*: Skip # Maps class no longer exists
 LibTest/core/Duration/inDays_A01_t01: RuntimeError # Large integers
 LibTest/core/Duration/inHours_A01_t01: RuntimeError # Large integers
 LibTest/core/Duration/inMilliseconds_A01_t01: RuntimeError # Large integers

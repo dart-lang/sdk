@@ -6,6 +6,10 @@
 
 ### Core library changes
 
+* `dart:collection`
+  * Removed `Maps` class. Extend `MapBase` or mix in `MapMixin` instead to
+    provide map method implementations for a class.
+
 ### Tool Changes
 
 ## 2.0.0-dev.42.0

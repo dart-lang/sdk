@@ -334,7 +334,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
       int compare(K key1, K key2),
       bool isValidKey(potentialKey)}) {
     SplayTreeMap<K, V> map = new SplayTreeMap<K, V>(compare, isValidKey);
-    Maps._fillMapWithMappedIterable(map, iterable, key, value);
+    MapBase._fillMapWithMappedIterable(map, iterable, key, value);
     return map;
   }
 
@@ -352,7 +352,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   factory SplayTreeMap.fromIterables(Iterable<K> keys, Iterable<V> values,
       [int compare(K key1, K key2), bool isValidKey(potentialKey)]) {
     SplayTreeMap<K, V> map = new SplayTreeMap<K, V>(compare, isValidKey);
-    Maps._fillMapWithIterables(map, keys, values);
+    MapBase._fillMapWithIterables(map, keys, values);
     return map;
   }
 

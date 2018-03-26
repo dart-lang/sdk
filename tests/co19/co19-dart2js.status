@@ -116,6 +116,7 @@ LibTest/collection/LinkedHashSet/LinkedHashSet.from_A03_t01: RuntimeError # Plea
 LibTest/collection/LinkedList/add_A01_t01: Pass, Slow # Slow tests that needs extra time to finish.
 LibTest/collection/ListBase/ListBase_class_A01_t01: RuntimeError # Please triage this failure
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: RuntimeError # Please triage this failure
+LibTest/collection/Maps/*: Skip # Maps class no longer exists
 LibTest/convert/JsonCodec/encode_A01_t01: RuntimeError # code.google.com/p/co19/issues/detail?id=735
 LibTest/convert/JsonCodec/encode_A01_t02: RuntimeError # code.google.com/p/co19/issues/detail?id=735
 LibTest/convert/JsonDecoder/fuse_A01_t01: RuntimeError # co19-roll r667: Please triage this failure

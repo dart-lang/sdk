@@ -3,6 +3,8 @@
 # BSD-style license that can be found in the LICENSE file.
 iterable_where_type_test: RuntimeError # Disabled.  Issue 32463
 
+maps_test: Skip # Maps class no longer exists
+
 [ $compiler == dart2analyzer ]
 bigint_from_test: CompileTimeError # Issue 32585
 compare_to2_test: CompileTimeError # invalid test

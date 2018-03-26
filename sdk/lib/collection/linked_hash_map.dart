@@ -121,7 +121,7 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   factory LinkedHashMap.fromIterable(Iterable iterable,
       {K key(element), V value(element)}) {
     LinkedHashMap<K, V> map = new LinkedHashMap<K, V>();
-    Maps._fillMapWithMappedIterable(map, iterable, key, value);
+    MapBase._fillMapWithMappedIterable(map, iterable, key, value);
     return map;
   }
 
@@ -138,7 +138,7 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
    */
   factory LinkedHashMap.fromIterables(Iterable<K> keys, Iterable<V> values) {
     LinkedHashMap<K, V> map = new LinkedHashMap<K, V>();
-    Maps._fillMapWithIterables(map, keys, values);
+    MapBase._fillMapWithIterables(map, keys, values);
     return map;
   }
 }

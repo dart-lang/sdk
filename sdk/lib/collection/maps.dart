@@ -49,6 +49,48 @@ abstract class MapBase<K, V> extends MapMixin<K, V> {
 
     return result.toString();
   }
+
+  static _id(x) => x;
+
+  /**
+   * Fills a [Map] with key/value pairs computed from [iterable].
+   *
+   * This method is used by [Map] classes in the named constructor
+   * `fromIterable`.
+   */
+  static void _fillMapWithMappedIterable(
+      Map map, Iterable iterable, key(element), value(element)) {
+    key ??= _id;
+    value ??= _id;
+
+    for (var element in iterable) {
+      map[key(element)] = value(element);
+    }
+  }
+
+  /**
+   * Fills a map by associating the [keys] to [values].
+   *
+   * This method is used by [Map] classes in the named constructor
+   * `fromIterables`.
+   */
+  static void _fillMapWithIterables(Map map, Iterable keys, Iterable values) {
+    Iterator keyIterator = keys.iterator;
+    Iterator valueIterator = values.iterator;
+
+    bool hasNextKey = keyIterator.moveNext();
+    bool hasNextValue = valueIterator.moveNext();
+
+    while (hasNextKey && hasNextValue) {
+      map[keyIterator.current] = valueIterator.current;
+      hasNextKey = keyIterator.moveNext();
+      hasNextValue = valueIterator.moveNext();
+    }
+
+    if (hasNextKey || hasNextValue) {
+      throw new ArgumentError("Iterables do not have same length.");
+    }
+  }
 }
 
 /**
@@ -346,110 +388,4 @@ class UnmodifiableMapView<K, V> extends MapView<K, V>
 
   Map<RK, RV> retype<RK, RV>() =>
       new UnmodifiableMapView<RK, RV>(_map.retype<RK, RV>());
-}
-
-/**
- * Helper class which implements complex [Map] operations
- * in term of basic ones ([Map.keys], [Map.[]],
- * [Map.[]=] and [Map.remove].)  Not all methods are
- * necessary to implement each particular operation.
- *
- * Deprecated. Will be removed in Dart 2.
- */
-class Maps {
-  static bool containsValue(Map map, Object value) {
-    for (final v in map.values) {
-      if (v == value) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  static bool containsKey(Map map, Object key) {
-    for (final k in map.keys) {
-      if (k == key) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  static putIfAbsent(Map map, key, ifAbsent()) {
-    if (map.containsKey(key)) {
-      return map[key];
-    }
-    final v = ifAbsent();
-    map[key] = v;
-    return v;
-  }
-
-  static clear(Map map) {
-    for (final k in map.keys.toList()) {
-      map.remove(k);
-    }
-  }
-
-  static forEach(Map map, void f(key, value)) {
-    for (final k in map.keys) {
-      f(k, map[k]);
-    }
-  }
-
-  static Iterable getValues(Map map) {
-    return map.keys.map((key) => map[key]);
-  }
-
-  static int length(Map map) => map.keys.length;
-
-  static bool isEmpty(Map map) => map.keys.isEmpty;
-
-  static bool isNotEmpty(Map map) => map.keys.isNotEmpty;
-
-  /**
-   * Do not use. This entire class will be removed.
-   *
-   * Use [MapBase.mapToString] instead.
-   */
-  static String mapToString(Map m) => MapBase.mapToString(m);
-
-  static _id(x) => x;
-
-  /**
-   * Fills a map with key/value pairs computed from [iterable].
-   *
-   * This method is used by Map classes in the named constructor fromIterable.
-   */
-  static void _fillMapWithMappedIterable(
-      Map map, Iterable iterable, key(element), value(element)) {
-    if (key == null) key = _id;
-    if (value == null) value = _id;
-
-    for (var element in iterable) {
-      map[key(element)] = value(element);
-    }
-  }
-
-  /**
-   * Fills a map by associating the [keys] to [values].
-   *
-   * This method is used by Map classes in the named constructor fromIterables.
-   */
-  static void _fillMapWithIterables(Map map, Iterable keys, Iterable values) {
-    Iterator keyIterator = keys.iterator;
-    Iterator valueIterator = values.iterator;
-
-    bool hasNextKey = keyIterator.moveNext();
-    bool hasNextValue = valueIterator.moveNext();
-
-    while (hasNextKey && hasNextValue) {
-      map[keyIterator.current] = valueIterator.current;
-      hasNextKey = keyIterator.moveNext();
-      hasNextValue = valueIterator.moveNext();
-    }
-
-    if (hasNextKey || hasNextValue) {
-      throw new ArgumentError("Iterables do not have same length.");
-    }
-  }
 }
