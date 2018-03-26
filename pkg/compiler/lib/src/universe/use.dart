@@ -512,6 +512,8 @@ enum TypeUseKind {
   INSTANTIATION,
   MIRROR_INSTANTIATION,
   NATIVE_INSTANTIATION,
+  IMPLICIT_CAST,
+  PARAMETER_CHECK,
 }
 
 /// Use of a [DartType].
@@ -535,9 +537,27 @@ class TypeUse {
     return new TypeUse.internal(type, TypeUseKind.AS_CAST);
   }
 
-  /// [type] used as a type annotation, like `T foo;`.
+  /// [type] used as a type annotation in Dart 1, like `T foo;`.
   factory TypeUse.checkedModeCheck(DartType type) {
     return new TypeUse.internal(type, TypeUseKind.CHECKED_MODE_CHECK);
+  }
+
+  /// [type] used as a parameter type or field type in Dart 2, like `T` in:
+  ///
+  ///    method(T t) {}
+  ///    T field;
+  ///
+  factory TypeUse.parameterCheck(DartType type) {
+    return new TypeUse.internal(type, TypeUseKind.PARAMETER_CHECK);
+  }
+
+  /// [type] used in an implicit cast in Dart 2, like `T` in
+  ///
+  ///    dynamic foo = new Object();
+  ///    T bar = foo; // Implicitly `T bar = foo as T`.
+  ///
+  factory TypeUse.implicitCast(DartType type) {
+    return new TypeUse.internal(type, TypeUseKind.IMPLICIT_CAST);
   }
 
   /// [type] used in a on type catch clause, like `try {} on T catch (e) {}`.
