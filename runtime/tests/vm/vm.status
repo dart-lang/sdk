@@ -257,10 +257,6 @@ cc/Service_Code: Fail
 [ $compiler == dartk && $strong ]
 cc/DartAPI_ImportLibrary3: Fail # Issue 32190
 cc/DartAPI_LazyLoadDeoptimizes: Crash # Issue 32190
-cc/DartAPI_NativePortPostInteger: Crash # Issue 32190
-cc/DartAPI_NativePortReceiveInteger: Timeout # Issue 32190
-cc/DartAPI_NativePortReceiveNull: Timeout # Issue 32190
-cc/DartAPI_NewNativePort: Crash, Timeout # Issue 32190
 cc/DartGeneratedArrayLiteralMessages: Crash # Issue 32190
 cc/FullSnapshot1: Crash # Issue 32190
 cc/IsolateReload_LibraryImportAdded: Crash # Issue 32190
