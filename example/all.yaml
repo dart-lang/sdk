@@ -10,6 +10,7 @@ linter:
     - annotate_overrides
     - avoid_annotating_with_dynamic
     - avoid_as
+    - avoid_bool_literals_in_conditional_expressions
     - avoid_catches_without_on_clauses
     - avoid_catching_errors
     - avoid_classes_with_only_static_members
