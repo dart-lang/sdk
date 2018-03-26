@@ -1219,19 +1219,20 @@ Fragment FlowGraphBuilder::TryCatch(int try_handler_index) {
   return Fragment(body.entry, entry);
 }
 
-Fragment FlowGraphBuilder::CheckStackOverflowInPrologue() {
+Fragment FlowGraphBuilder::CheckStackOverflowInPrologue(
+    TokenPosition position) {
   if (IsInlining()) {
     // If we are inlining don't actually attach the stack check.  We must still
     // create the stack check in order to allocate a deopt id.
-    CheckStackOverflow();
+    CheckStackOverflow(position);
     return Fragment();
   }
-  return CheckStackOverflow();
+  return CheckStackOverflow(position);
 }
 
-Fragment FlowGraphBuilder::CheckStackOverflow() {
-  return Fragment(new (Z) CheckStackOverflowInstr(
-      TokenPosition::kNoSource, loop_depth_, GetNextDeoptId()));
+Fragment FlowGraphBuilder::CheckStackOverflow(TokenPosition position) {
+  return Fragment(
+      new (Z) CheckStackOverflowInstr(position, loop_depth_, GetNextDeoptId()));
 }
 
 Fragment FlowGraphBuilder::CloneContext(intptr_t num_context_variables) {
@@ -2331,7 +2332,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfMethodExtractor(
   graph_entry_ = new (Z)
       GraphEntryInstr(*parsed_function_, normal_entry, Compiler::kNoOSRDeoptId);
   Fragment body(normal_entry);
-  body += CheckStackOverflowInPrologue();
+  body += CheckStackOverflowInPrologue(method.token_pos());
   body += BuildImplicitClosureCreation(function);
   body += Return(TokenPosition::kNoSource);
 
@@ -2368,7 +2369,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
   parsed_function_->set_default_parameter_values(default_values);
 
   Fragment body(instruction_cursor);
-  body += CheckStackOverflowInPrologue();
+  body += CheckStackOverflowInPrologue(function.token_pos());
 
   // The receiver is the first argument to noSuchMethod, and it is the first
   // argument passed to the dispatcher function.
@@ -2503,7 +2504,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
       GraphEntryInstr(*parsed_function_, normal_entry, Compiler::kNoOSRDeoptId);
 
   Fragment body(instruction_cursor);
-  body += CheckStackOverflowInPrologue();
+  body += CheckStackOverflowInPrologue(function.token_pos());
 
   LocalScope* scope = parsed_function_->node_sequence()->scope();
 

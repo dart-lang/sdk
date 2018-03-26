@@ -1249,7 +1249,7 @@ class StreamingFlowGraphBuilder {
   Fragment InstantiateType(const AbstractType& type);
   Fragment CreateArray();
   Fragment StoreIndexed(intptr_t class_id);
-  Fragment CheckStackOverflow();
+  Fragment CheckStackOverflow(TokenPosition position);
   Fragment CloneContext(intptr_t num_context_variables);
   Fragment TranslateFinallyFinalizers(TryFinallyBlock* outer_finally,
                                       intptr_t target_context_depth);

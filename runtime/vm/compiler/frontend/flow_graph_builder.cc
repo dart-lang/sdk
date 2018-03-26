@@ -3872,12 +3872,9 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     // if we inline or not.
     if (!function.IsImplicitGetterFunction() &&
         !function.IsImplicitSetterFunction()) {
-      // We want the stack overlow error to be reported at the opening '{' or
-      // at the '=>' location. So, we get the sequence node corresponding to the
-      // body inside |node| and use its token position.
-      ASSERT(node->length() > 0);
+      // Stack overflow error is reported at the function token position.
       CheckStackOverflowInstr* check = new (Z) CheckStackOverflowInstr(
-          node->NodeAt(0)->token_pos(), 0, owner()->GetNextDeoptId());
+          function.token_pos(), 0, owner()->GetNextDeoptId());
       // If we are inlining don't actually attach the stack check. We must still
       // create the stack check in order to allocate a deopt id.
       if (!owner()->IsInlining()) {
