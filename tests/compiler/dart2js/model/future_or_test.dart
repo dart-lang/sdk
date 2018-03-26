@@ -4,6 +4,7 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:expect/expect.dart';
 import '../type_test_helper.dart';
@@ -26,13 +27,40 @@ FutureOr<FutureOr<num>> futureOrFutureOrNum() async => null;
 
 Future<Null> futureNull() async => null;
 FutureOr<Null> futureOrNull() async => null;
+
+void returnVoid() {}
+
+class C<T> {
+  Future<T> futureT() async => null;
+  FutureOr<T> futureOrT() async => null;
+}
 ''',
         compileMode: CompileMode.kernel,
         options: [Flags.strongMode]);
-    DartType getReturnType(String name, String expectedType) {
-      FunctionType type = env.getMemberType(name);
+    FunctionType getFunctionType(String name, String expectedType,
+        [ClassEntity cls]) {
+      FunctionType type = env.getMemberType(name, cls);
+      Expect.isNotNull(type,
+          "Member $name not found${cls != null ? ' in class $cls' : ''}.");
+      Expect.equals(
+          expectedType,
+          '${type}',
+          "Unexpected type for $name"
+          "${cls != null ? ' in class $cls' : ''}.");
+      return type;
+    }
+
+    DartType getReturnType(String name, String expectedType,
+        [ClassEntity cls]) {
+      FunctionType type = env.getMemberType(name, cls);
+      Expect.isNotNull(type,
+          "Member $name not found${cls != null ? ' in class $cls' : ''}.");
       DartType returnType = type.returnType;
-      Expect.equals(expectedType, '${returnType}');
+      Expect.equals(
+          expectedType,
+          '${returnType}',
+          "Unexpected return type for $name"
+          "${cls != null ? ' in class $cls' : ''}.");
       return returnType;
     }
 
@@ -61,28 +89,45 @@ FutureOr<Null> futureOrNull() async => null;
     FutureOrType futureOrNull = getReturnType('futureOrNull', 'FutureOr<Null>');
     DartType Null_ = futureOrNull.typeArgument;
 
+    ClassEntity C = env.getClass('C');
+    DartType futureT = getReturnType('futureT', 'Future<C.T>', C);
+    FutureOrType futureOrT = getReturnType('futureOrT', 'FutureOr<C.T>', C);
+    DartType T = futureOrT.typeArgument;
+    Expect.isTrue(futureOrT.containsTypeVariables);
+    futureOrT.forEachTypeVariable((t) => Expect.equals(T, t));
+
+    DartType returnVoid = getFunctionType('returnVoid', 'void Function()');
+    DartType returnFutureNull =
+        getFunctionType('futureOrNull', 'FutureOr<Null> Function()');
+
     List<DartType> all = [
       Object_,
       num_,
       int_,
       Null_,
       ListNum,
+      T,
       futureNum,
       futureOrNum,
       futureInt,
       futureNull,
       futureListNum,
+      futureT,
       futureOrInt,
       futureOrNull,
       futureOrListNum,
       futureFutureNum,
       futureOrFutureOrNum,
+      futureOrT,
+      returnVoid,
+      returnFutureNull,
     ];
 
     Map<DartType, List<DartType>> expectedSubtypesMap = {
       num_: [futureOrNum, futureOrFutureOrNum],
       int_: [num_, futureOrInt, futureOrNum, futureOrFutureOrNum],
       ListNum: [futureOrListNum],
+      T: [futureOrT],
       futureNum: [futureOrNum, futureOrFutureOrNum],
       futureInt: [futureNum, futureOrNum, futureOrInt, futureOrFutureOrNum],
       futureNull: [
@@ -95,18 +140,21 @@ FutureOr<Null> futureOrNull() async => null;
         futureOrListNum,
         futureFutureNum,
         futureOrFutureOrNum,
-        futureOrNull,
+        futureT,
+        futureOrT,
       ],
       futureListNum: [futureOrListNum],
       futureFutureNum: [futureOrFutureOrNum],
       futureOrNum: [futureOrFutureOrNum],
       futureOrInt: [futureOrNum, futureOrFutureOrNum],
       futureOrNull: [
+        futureOrT,
         futureOrNum,
         futureOrInt,
         futureOrListNum,
-        futureOrFutureOrNum
+        futureOrFutureOrNum,
       ],
+      returnFutureNull: [returnVoid],
     };
 
     for (DartType t in all) {

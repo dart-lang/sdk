@@ -336,6 +336,9 @@ class Emitter extends js_emitter.EmitterBase {
       case JsBuiltin.isFunctionType:
         return backend.rtiEncoder.templateForIsFunctionType;
 
+      case JsBuiltin.isFutureOrType:
+        return backend.rtiEncoder.templateForIsFutureOrType;
+
       case JsBuiltin.rawRtiToJsConstructorName:
         return jsAst.js.expressionTemplateFor("#.$typeNameProperty");
 

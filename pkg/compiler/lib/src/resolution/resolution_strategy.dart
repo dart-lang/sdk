@@ -647,8 +647,8 @@ class _CompilerElementEnvironment extends ElementEnvironment {
     }
     if (member == null && required) {
       failedAt(
-          member,
-          "The library '${library.libraryName}' does not "
+          library,
+          "The library '${library.canonicalUri}' does not "
           "contain required member: '$name'.");
     }
     return member?.declaration;

@@ -847,6 +847,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return node;
     } else if (type.isFunctionType) {
       return node;
+    } else if (type.isFutureOr) {
+      return node;
     }
 
     if (type == commonElements.objectType || type.treatAsDynamic) {
@@ -919,6 +921,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return node;
       }
       if (type.isTypeVariable) {
+        return node;
+      }
+      if (type.isFutureOr) {
+        HInstruction input = node.checkedInput;
+        // `null` always passes type conversion.
+        if (input.isNull()) return input;
+        // TODO(johnniwinther): Optimize FutureOr type conversions.
         return node;
       }
       if (!type.treatAsRaw) {
@@ -2467,6 +2476,8 @@ class SsaTypeConversionInserter extends HBaseVisitor
     if (!instruction.isRawCheck) {
       return;
     } else if (type.isTypedef) {
+      return;
+    } else if (type.isFutureOr) {
       return;
     }
     InterfaceType interfaceType = type;

@@ -68,35 +68,12 @@ covariant_tear_off_type_test: RuntimeError
 
 [ $compiler == dart2js && $runtime != none && $checked ]
 assert_with_message_test: RuntimeError
-function_subtype_bound_closure1_test: RuntimeError
-function_subtype_bound_closure2_test: RuntimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
-function_subtype_bound_closure5_test: RuntimeError
-function_subtype_bound_closure5a_test: RuntimeError
-function_subtype_bound_closure6_test: RuntimeError
-function_subtype_bound_closure7_test: RuntimeError
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
-function_subtype_cast0_test: RuntimeError
 function_subtype_cast1_test: RuntimeError
-function_subtype_cast2_test: RuntimeError
-function_subtype_cast3_test: RuntimeError
-function_subtype_checked0_test: RuntimeError
-function_subtype_local1_test: RuntimeError
-function_subtype_local2_test: RuntimeError
-function_subtype_local5_test: RuntimeError
-function_subtype_named1_test: RuntimeError
-function_subtype_named2_test: RuntimeError
-function_subtype_not0_test: RuntimeError
 function_subtype_not1_test: RuntimeError
-function_subtype_not2_test: RuntimeError
-function_subtype_not3_test: RuntimeError
-function_subtype_optional1_test: RuntimeError
-function_subtype_optional2_test: RuntimeError
-function_subtype_top_level1_test: RuntimeError
-function_subtype_typearg2_test: RuntimeError
-function_subtype_typearg3_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
 function_type/function_type0_test: RuntimeError # Issue 30476
 function_type/function_type10_test: RuntimeError # Issue 30476
@@ -125,7 +102,10 @@ function_type/function_type32_test: RuntimeError # Issue 30476
 function_type/function_type33_test: RuntimeError # Issue 30476
 function_type/function_type34_test: RuntimeError # Issue 30476
 function_type/function_type36_test: RuntimeError # Issue 30476
+function_type/function_type38_test: RuntimeError # Issue 30476
 function_type/function_type3_test: RuntimeError # Issue 30476
+function_type/function_type40_test: RuntimeError # Issue 30476
+function_type/function_type42_test: RuntimeError # Issue 30476
 function_type/function_type44_test: RuntimeError # Issue 30476
 function_type/function_type45_test: RuntimeError # Issue 30476
 function_type/function_type46_test: RuntimeError # Issue 30476
@@ -167,7 +147,6 @@ function_type/function_type90_test: RuntimeError # Issue 30476
 function_type/function_type96_test: RuntimeError # Issue 30476
 function_type/function_type9_test: RuntimeError # Issue 30476
 function_type_alias2_test: RuntimeError
-function_type_alias3_test: RuntimeError
 function_type_alias4_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == safari ]
@@ -196,10 +175,13 @@ inline_super_field_test: Crash
 typedef_is_test: Crash
 
 [ $compiler == dart2js && $checked && $fasta && $strong ]
-assertion_initializer_const_function_test/01: MissingCompileTimeError
-assertion_test: RuntimeError
+assign_instance_method_test: RuntimeError
+async_await_foreign_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
+async_star_pause_test: RuntimeError
+async_star_regression_23116_test: RuntimeError
 async_star_test/02: RuntimeError
+await_test: RuntimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
@@ -207,8 +189,6 @@ bit_operations_test/03: RuntimeError
 bit_operations_test/04: RuntimeError
 bit_operations_test/none: RuntimeError
 branch_canonicalization_test: RuntimeError
-built_in_identifier_test: RuntimeError # Issue 28815
-call_function_apply_test: RuntimeError # Issue 23873
 canonical_const2_test: RuntimeError, OK # non JS number semantics
 check_member_static_test/02: MissingCompileTimeError
 checked_method_error_order_test: RuntimeError
@@ -358,7 +338,6 @@ final_attempt_reinitialization_test/02: MissingCompileTimeError
 full_stacktrace1_test: RuntimeError # Issue 12698
 full_stacktrace2_test: RuntimeError # Issue 12698
 full_stacktrace3_test: RuntimeError # Issue 12698
-function_type_alias_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError # Issue #30176.
 generic_closure_test/01: RuntimeError
 generic_closure_test/none: RuntimeError
@@ -583,15 +562,16 @@ covariance_setter_test/04: RuntimeError
 covariance_setter_test/05: RuntimeError
 covariance_setter_test/06: RuntimeError
 recursive_mixin_test: RuntimeError # no check without --checked
-type_argument_in_super_type_test: RuntimeError
 
 [ $compiler == dart2js && !$checked && !$enable_asserts ]
 assertion_test: RuntimeError, OK
 
 [ $compiler == dart2js && !$checked && $fasta ]
+bool_check_test: RuntimeError
+bool_condition_check_test: RuntimeError
+bug31436_test: RuntimeError
 cascaded_forwarding_stubs_generic_test: RuntimeError
 cascaded_forwarding_stubs_test: RuntimeError
-checked_setter3_test: RuntimeError # Issue 31128
 constructor_call_as_function_test: CompileTimeError # Issue 32517
 forwarding_semi_stub_test: RuntimeError
 forwarding_stub_tearoff_generic_test: RuntimeError
@@ -606,33 +586,6 @@ implicit_creation/implicit_new_constructor_test: CompileTimeError # Issue 32517
 implicit_creation/implicit_new_or_const_composite_test: CompileTimeError # Issue 32517
 implicit_creation/implicit_new_or_const_test: CompileTimeError # Issue 32517
 implicit_creation/implicit_new_prefix_constructor_named_test: CompileTimeError # Issue 32517
-implicit_downcast_during_assignment_test: RuntimeError
-implicit_downcast_during_combiner_test: RuntimeError
-implicit_downcast_during_compound_assignment_test: RuntimeError
-implicit_downcast_during_conditional_expression_test: RuntimeError
-implicit_downcast_during_constructor_initializer_test: RuntimeError
-implicit_downcast_during_do_test: RuntimeError
-implicit_downcast_during_factory_constructor_invocation_test: RuntimeError
-implicit_downcast_during_field_declaration_test: RuntimeError
-implicit_downcast_during_for_condition_test: RuntimeError
-implicit_downcast_during_for_initializer_expression_test: RuntimeError
-implicit_downcast_during_for_initializer_var_test: RuntimeError
-implicit_downcast_during_if_null_assignment_test: RuntimeError
-implicit_downcast_during_if_statement_test: RuntimeError
-implicit_downcast_during_indexed_assignment_test: RuntimeError
-implicit_downcast_during_indexed_compound_assignment_test: RuntimeError
-implicit_downcast_during_indexed_get_test: RuntimeError
-implicit_downcast_during_indexed_if_null_assignment_test: RuntimeError
-implicit_downcast_during_logical_expression_test: RuntimeError
-implicit_downcast_during_map_literal_test: RuntimeError
-implicit_downcast_during_method_invocation_test: RuntimeError
-implicit_downcast_during_not_test: RuntimeError
-implicit_downcast_during_null_aware_method_invocation_test: RuntimeError
-implicit_downcast_during_return_test: RuntimeError
-implicit_downcast_during_static_method_invocation_test: RuntimeError
-implicit_downcast_during_super_method_invocation_test: RuntimeError
-implicit_downcast_during_variable_declaration_test: RuntimeError
-implicit_downcast_during_while_statement_test: RuntimeError
 issue31596_implement_covariant_test: RuntimeError
 issue31596_super_test/02: MissingCompileTimeError
 issue31596_super_test/04: MissingCompileTimeError
@@ -680,8 +633,6 @@ bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
 bit_operations_test: RuntimeError
-bool_check_test: RuntimeError
-bool_condition_check_test: RuntimeError
 branch_canonicalization_test: RuntimeError
 call_function_apply_test: RuntimeError # Issue 23873
 canonical_const2_test: RuntimeError, OK # non JS number semantics
@@ -862,8 +813,6 @@ function_subtype_typearg5_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias2_test: RuntimeError
 function_type_alias_test: RuntimeError
-function_type_call_getter2_test/none: RuntimeError
-function_type_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError # Issue #30176.
 generic_closure_test/01: RuntimeError
 generic_closure_test/none: RuntimeError
@@ -1079,7 +1028,6 @@ type_variable_conflict2_test/02: MissingCompileTimeError
 typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && $fasta ]
-bug31436_test: RuntimeError
 call_method_function_typed_value_test/02: RuntimeError
 call_method_function_typed_value_test/04: RuntimeError
 call_method_function_typed_value_test/06: RuntimeError
@@ -1087,27 +1035,13 @@ call_method_function_typed_value_test/08: RuntimeError
 call_method_must_not_be_field_test/03: RuntimeError # Issue 32155
 call_method_must_not_be_getter_test/03: RuntimeError # Issue 32155
 call_with_no_such_method_test: RuntimeError
-callable_test/none: RuntimeError
 checked_setter2_test: RuntimeError # Issue 31128
 checked_setter_test: RuntimeError # Issue 31128
 const_dynamic_type_literal_test/03: Pass # but it shouldn't until we fix issue 17207
 extract_type_arguments_test: Crash # Issue 31371
 function_propagation_test: RuntimeError
-function_type_call_getter2_test/none: RuntimeError
 generic_test/01: MissingCompileTimeError # front end does not validate `extends`
-implicit_downcast_during_constructor_invocation_test: RuntimeError
-implicit_downcast_during_for_in_element_test: RuntimeError
-implicit_downcast_during_for_in_iterable_test: RuntimeError
-implicit_downcast_during_function_literal_arrow_test: RuntimeError
-implicit_downcast_during_function_literal_return_test: RuntimeError
-implicit_downcast_during_invocation_test: RuntimeError
-implicit_downcast_during_list_literal_test: RuntimeError
-implicit_downcast_during_redirecting_initializer_test: RuntimeError
-implicit_downcast_during_return_async_test: RuntimeError
-implicit_downcast_during_super_initializer_test: RuntimeError
 implicit_downcast_during_yield_star_test: RuntimeError
-implicit_downcast_during_yield_test: RuntimeError
-instantiate_tearoff_after_contravariance_check_test: RuntimeError
 instantiate_tearoff_of_call_test: RuntimeError
 instantiate_tearoff_test: RuntimeError
 mixin_type_parameter_inference_error_test/none: CompileTimeError
@@ -1141,16 +1075,9 @@ abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError
 abstract_syntax_test/00: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
-argument_assignability_function_typed_test/03: RuntimeError
-argument_assignability_function_typed_test/04: RuntimeError
-argument_assignability_function_typed_test/05: RuntimeError
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
-async_await_syntax_test/a06a: RuntimeError
-async_await_syntax_test/b06a: RuntimeError
-async_await_syntax_test/c06a: RuntimeError
-async_await_syntax_test/d06a: RuntimeError
 async_await_test/02: RuntimeError
 async_await_test/03: RuntimeError
 async_await_test/none: RuntimeError
@@ -1158,25 +1085,16 @@ async_congruence_local_test/none: RuntimeError
 async_congruence_method_test/none: RuntimeError
 async_congruence_top_level_test: RuntimeError
 async_congruence_unnamed_test/none: RuntimeError
-async_error_timing_test: RuntimeError
 async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
 async_return_types_test/nestedFuture: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_return_types_test/none: RuntimeError
 async_return_types_test/tooManyTypeParameters: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
 async_return_types_test/wrongReturnType: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
 async_star_await_pauses_test: RuntimeError
-async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_cancel_while_paused_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_star_no_cancel2_test: RuntimeError
-async_star_no_cancel_test: RuntimeError
-async_star_pause_test: RuntimeError
 async_star_regression_2238_test: RuntimeError
-async_star_regression_23116_test: RuntimeError
-async_star_regression_fisk_test: RuntimeError
 async_star_stream_take_test: RuntimeError
-async_star_take_reyield_test: RuntimeError
 async_star_test/01: RuntimeError
 async_star_test/02: RuntimeError
 async_star_test/03: RuntimeError
@@ -1184,23 +1102,13 @@ async_star_test/04: RuntimeError
 async_star_test/05: RuntimeError
 async_star_test/none: RuntimeError
 async_test: RuntimeError
-asyncstar_concat_test: RuntimeError
-asyncstar_yield_test: RuntimeError
-asyncstar_yieldstar_test: RuntimeError
-await_for_cancel_test: RuntimeError
-await_for_test: RuntimeError
-await_for_use_local_test: RuntimeError
 await_not_started_immediately_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-await_test: RuntimeError
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
 bit_operations_test: RuntimeError
-bool_check_test: RuntimeError
-bool_condition_check_test: RuntimeError
-bool_test: RuntimeError
 branch_canonicalization_test: RuntimeError
 branches_test: Crash # 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart': Failed assertion: line 441 pos 16: 'identical(combiner.arguments.positional[0], rhs)': is not true.
 call_non_method_field_test/01: MissingCompileTimeError
@@ -1219,7 +1127,6 @@ class_literal_static_test/07: MissingCompileTimeError
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart': Failed assertion: line 641 pos 12: 'isClosed()': is not true.
-closure_type_test: RuntimeError
 compile_time_constant_d_test: CompileTimeError
 compile_time_constant_e_test: CompileTimeError
 compile_time_constant_k_test/01: MissingCompileTimeError
@@ -1355,44 +1262,23 @@ flatten_test/12: MissingRuntimeError
 full_stacktrace1_test: RuntimeError # Issue 12698
 full_stacktrace2_test: RuntimeError # Issue 12698
 full_stacktrace3_test: RuntimeError # Issue 12698
-function_subtype2_test: RuntimeError
 function_subtype3_test: RuntimeError
-function_subtype_bound_closure2_test: RuntimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
-function_subtype_bound_closure5_test: RuntimeError
-function_subtype_bound_closure5a_test: RuntimeError
-function_subtype_bound_closure6_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
 function_subtype_call0_test: RuntimeError
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_cast1_test: RuntimeError
-function_subtype_checked0_test: RuntimeError
-function_subtype_closure0_test: RuntimeError
-function_subtype_closure1_test: RuntimeError
-function_subtype_factory1_test: RuntimeError
-function_subtype_inline1_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
-function_subtype_local2_test: RuntimeError
-function_subtype_local5_test: RuntimeError
 function_subtype_not1_test: RuntimeError
-function_subtype_optional1_test: RuntimeError
-function_subtype_optional2_test: RuntimeError
-function_subtype_regression_ddc_588_test: RuntimeError
 function_subtype_setter0_test: RuntimeError
-function_subtype_simple2_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias2_test: RuntimeError
 function_type_alias4_test: RuntimeError
-function_type_alias_test: RuntimeError
-function_type_call_getter2_test/none: RuntimeError
-function_type_test: RuntimeError
-generic_async_star_test: RuntimeError
 generic_closure_test/01: RuntimeError
 generic_closure_test/none: RuntimeError
-generic_field_mixin6_test/none: RuntimeError
 generic_function_bounds_test: RuntimeError
 generic_function_dcall_test: RuntimeError
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError
@@ -1423,8 +1309,6 @@ getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
 getter_override_test/03: MissingCompileTimeError
-getters_setters2_test/01: RuntimeError
-getters_setters2_test/none: RuntimeError
 identical_closure2_test: RuntimeError # non JS number semantics
 identical_const_test/01: MissingCompileTimeError
 identical_const_test/02: MissingCompileTimeError
@@ -1433,7 +1317,6 @@ identical_const_test/04: MissingCompileTimeError
 if_null_precedence_test/none: RuntimeError
 implicit_creation/implicit_new_or_const_composite_test: RuntimeError
 implicit_creation/implicit_new_or_const_test: RuntimeError
-implicit_downcast_during_return_async_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/04: MissingCompileTimeError
 inferrer_synthesized_constructor_test: RuntimeError
@@ -1441,7 +1324,6 @@ infinity_test: RuntimeError # non JS number semantics - Issue 4984
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instance_creation_in_function_annotation_test: RuntimeError
-instantiate_tearoff_after_contravariance_check_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 instantiate_tearoff_of_call_test: CompileTimeError
 instantiate_tearoff_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 int64_literal_test/01: RuntimeError
@@ -1466,7 +1348,6 @@ issue31596_override_test/07: MissingCompileTimeError
 issue31596_override_test/08: MissingCompileTimeError
 issue31596_super_test/01: CompileTimeError
 issue31596_super_test/03: CompileTimeError
-known_identifier_usage_error_test/none: RuntimeError
 left_shift_test: RuntimeError # non JS number semantics
 library_env_test/has_mirror_support: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
@@ -1476,9 +1357,6 @@ local_function2_test/none: RuntimeError
 local_function3_test/none: RuntimeError
 local_function_test/none: RuntimeError
 main_test/03: RuntimeError
-main_test/20: RuntimeError
-main_test/22: RuntimeError
-main_test/44: RuntimeError
 malbounded_instantiation_test/01: MissingCompileTimeError
 malbounded_instantiation_test/02: MissingCompileTimeError
 malbounded_instantiation_test/03: MissingCompileTimeError
@@ -1632,7 +1510,6 @@ null_test/none: RuntimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError, OK # non JS number semantics
 operator2_negative_test: Crash # 'file:*/pkg/compiler/lib/src/kernel/env.dart': Failed assertion: line 322 pos 16: '!name.contains('#')': is not true.
-operator4_test: RuntimeError
 operator_test: Crash # 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart': Failed assertion: line 441 pos 16: 'identical(combiner.arguments.positional[0], rhs)': is not true.
 overridden_no_such_method_test: RuntimeError
 override_field_method1_negative_test: Fail
@@ -1710,9 +1587,7 @@ regress_18535_test: RuntimeError
 regress_22443_test: RuntimeError
 regress_23089_test: Crash # Stack Overflow
 regress_23408_test: CompileTimeError
-regress_23996_test: RuntimeError
 regress_24283_test: RuntimeError # non JS number semantics
-regress_24935_test/none: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
 regress_28255_test: RuntimeError
 regress_28278_test: RuntimeError
@@ -1721,7 +1596,6 @@ regress_29405_test: CompileTimeError
 regress_29784_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ok).
 regress_29784_test/02: MissingCompileTimeError # Issue 29784
 regress_30339_test: CompileTimeError
-regress_31591_test: RuntimeError
 runtime_type_function_test: RuntimeError
 setter4_test: MissingCompileTimeError
 setter_no_getter_test/01: CompileTimeError
@@ -1729,7 +1603,6 @@ setter_override_test/00: MissingCompileTimeError
 setter_override_test/01: MissingCompileTimeError
 setter_override_test/02: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
-shadow_parameter_and_local_test: RuntimeError
 stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/withtraceparameter: RuntimeError # Issue 12698
@@ -1816,8 +1689,6 @@ type_variable_bounds_test/06: MissingCompileTimeError
 type_variable_bounds_test/08: MissingCompileTimeError
 type_variable_bounds_test/11: MissingCompileTimeError
 type_variable_promotion_test: RuntimeError
-typedef_is_test: RuntimeError
-typevariable_substitution2_test/02: RuntimeError
 vm/async_await_catch_stacktrace_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 vm/await_synchronous_future_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
 vm/causal_async_exception_stack2_test: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic method: selector=Selector(operator, *, arity=1), mask=[subclass=JSUInt32], HTypeInfoReadVariable(ListQueue.E)].
@@ -1890,7 +1761,6 @@ void_type_usage_test/param_null_equals2: Crash # 'package:front_end/src/fasta/ty
 void_type_usage_test/paren_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 wrong_number_type_arguments_test/01: MissingCompileTimeError
 wrong_number_type_arguments_test/none: Pass
-yieldstar_pause_test: RuntimeError
 
 [ $compiler == dart2js && $fasta && $minified && $strong ]
 abstract_factory_constructor_test/00: MissingCompileTimeError
@@ -1900,9 +1770,6 @@ abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError
 abstract_syntax_test/00: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
-argument_assignability_function_typed_test/03: RuntimeError
-argument_assignability_function_typed_test/04: RuntimeError
-argument_assignability_function_typed_test/05: RuntimeError
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
@@ -1937,9 +1804,6 @@ bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
 bit_operations_test: RuntimeError
-bool_check_test: RuntimeError
-bool_condition_check_test: RuntimeError
-bool_test: RuntimeError
 branch_canonicalization_test: RuntimeError
 call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
@@ -1956,7 +1820,6 @@ class_literal_static_test/03: MissingCompileTimeError
 class_literal_static_test/07: MissingCompileTimeError
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
-closure_type_test: RuntimeError
 compile_time_constant_d_test: CompileTimeError
 compile_time_constant_e_test: CompileTimeError
 compile_time_constant_k_test/01: MissingCompileTimeError
@@ -2101,22 +1964,13 @@ function_subtype_call0_test: RuntimeError
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_cast1_test: RuntimeError
-function_subtype_checked0_test: RuntimeError
-function_subtype_closure0_test: RuntimeError
-function_subtype_closure1_test: RuntimeError
-function_subtype_factory1_test: RuntimeError
-function_subtype_inline1_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 function_subtype_not1_test: RuntimeError
-function_subtype_regression_ddc_588_test: RuntimeError
 function_subtype_setter0_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias2_test: RuntimeError
 function_type_alias4_test: RuntimeError
-function_type_call_getter2_test/none: RuntimeError
-function_type_test: RuntimeError
-generic_field_mixin6_test/none: RuntimeError
 generic_function_bounds_test: RuntimeError
 generic_function_dcall_test: RuntimeError
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError
@@ -2147,8 +2001,6 @@ getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
 getter_override_test/03: MissingCompileTimeError
-getters_setters2_test/01: RuntimeError
-getters_setters2_test/none: RuntimeError
 identical_closure2_test: RuntimeError # non JS number semantics
 identical_const_test/01: MissingCompileTimeError
 identical_const_test/02: MissingCompileTimeError
@@ -2157,7 +2009,6 @@ identical_const_test/04: MissingCompileTimeError
 if_null_precedence_test/none: RuntimeError
 implicit_creation/implicit_new_or_const_composite_test: RuntimeError
 implicit_creation/implicit_new_or_const_test: RuntimeError
-implicit_downcast_during_return_async_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/04: MissingCompileTimeError
 inferrer_synthesized_constructor_test: RuntimeError
@@ -2355,7 +2206,6 @@ null_test/mirrors: RuntimeError
 null_test/none: RuntimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError, OK # non JS number semantics
-operator4_test: RuntimeError
 overridden_no_such_method_test: RuntimeError
 override_field_method1_negative_test: Fail
 override_field_method2_negative_test: Fail
@@ -2435,7 +2285,6 @@ regress_29405_test: CompileTimeError
 regress_29784_test/01: Crash # Issue 29784
 regress_29784_test/02: MissingCompileTimeError # Issue 29784
 regress_30339_test: CompileTimeError
-regress_31591_test: RuntimeError
 runtime_type_function_test: RuntimeError
 setter4_test: MissingCompileTimeError
 setter_no_getter_test/01: CompileTimeError
@@ -2507,7 +2356,6 @@ type_variable_bounds_test/06: MissingCompileTimeError
 type_variable_bounds_test/08: MissingCompileTimeError
 type_variable_bounds_test/11: MissingCompileTimeError
 type_variable_promotion_test: RuntimeError
-typevariable_substitution2_test/02: RuntimeError
 vm/async_await_catch_stacktrace_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 vm/await_synchronous_future_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
 vm/causal_async_exception_stack2_test: Crash # Wrong number of template arguments, given 2, expected 1

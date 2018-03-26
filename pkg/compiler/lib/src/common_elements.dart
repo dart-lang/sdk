@@ -1030,6 +1030,8 @@ class CommonElements {
   FunctionEntity get functionTypeTest =>
       _findHelperFunction('functionTypeTest');
 
+  FunctionEntity get futureOrTest => _findHelperFunction('futureOrTest');
+
   FunctionEntity get checkSubtypeOfRuntimeType =>
       _findHelperFunction('checkSubtypeOfRuntimeType');
 

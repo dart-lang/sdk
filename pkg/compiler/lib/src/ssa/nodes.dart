@@ -1345,12 +1345,9 @@ abstract class HInstruction implements Spannable {
     if (type.isDynamic) return this;
     if (type.isVoid) return this;
     if (type == closedWorld.commonElements.objectType) return this;
-    if (type.isFunctionType || type.isMalformed) {
+    if (type.isFunctionType || type.isMalformed || type.isFutureOr) {
       return new HTypeConversion(type, kind,
           closedWorld.commonMasks.dynamicType, this, sourceInformation);
-    } else if (type.isFutureOr) {
-      // TODO(johnniwinther): Handle conversion to FutureOr.
-      return this;
     }
     assert(type.isInterfaceType);
     if (kind == HTypeConversion.BOOLEAN_CONVERSION_CHECK) {
@@ -2995,14 +2992,19 @@ class HIs extends HInstruction {
             typeExpression, [expression], RAW_CHECK, type, sourceInformation,
             useInstanceOf: true);
 
-  HIs.raw(
+  factory HIs.raw(
       DartType typeExpression,
       HInstruction expression,
       HInterceptor interceptor,
       TypeMask type,
-      SourceInformation sourceInformation)
-      : this.internal(typeExpression, [expression, interceptor], RAW_CHECK,
-            type, sourceInformation);
+      SourceInformation sourceInformation) {
+    assert(
+        (typeExpression.isFunctionType || typeExpression.isInterfaceType) &&
+            typeExpression.treatAsRaw,
+        "Unexpected raw is-test type: $typeExpression");
+    return new HIs.internal(typeExpression, [expression, interceptor],
+        RAW_CHECK, type, sourceInformation);
+  }
 
   HIs.compound(DartType typeExpression, HInstruction expression,
       HInstruction call, TypeMask type, SourceInformation sourceInformation)
@@ -3171,6 +3173,10 @@ class HTypeConversion extends HCheck {
         checkedType == other.checkedType &&
         receiverTypeCheckSelector == other.receiverTypeCheckSelector;
   }
+
+  String toString() => 'HTypeConversion(type=$typeExpression,kind=$kind,'
+      '${hasTypeRepresentation ? 'representation=$typeRepresentation,' : ''}'
+      'checkedInput=$checkedInput)';
 }
 
 /// The [HTypeKnown] instruction marks a value with a refined type.

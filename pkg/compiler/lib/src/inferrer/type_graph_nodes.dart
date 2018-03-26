@@ -1963,6 +1963,9 @@ TypeMask _narrowType(
     return type;
   } else if (annotation.isTypedef || annotation.isFunctionType) {
     otherType = closedWorld.commonMasks.functionType;
+  } else if (annotation.isFutureOr) {
+    // TODO(johnniwinther): Narrow FutureOr types.
+    return type;
   } else {
     assert(annotation.isTypeVariable || annotation.isFunctionTypeVariable);
     // TODO(ngeoffray): Narrow to bound.

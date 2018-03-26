@@ -1733,6 +1733,11 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
     // cased in the builder, nested invalid types are treated as `dynamic`.
     return const DynamicType();
   }
+
+  @override
+  DartType visitBottomType(ir.BottomType node) {
+    return elementMap.commonElements.nullType;
+  }
 }
 
 /// [native.BehaviorBuilder] for kernel based elements.

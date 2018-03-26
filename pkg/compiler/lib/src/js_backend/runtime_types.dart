@@ -616,6 +616,10 @@ abstract class RuntimeTypesEncoder {
   /// is a function type.
   jsAst.Template get templateForIsFunctionType;
 
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is a FutureOr type.
+  jsAst.Template get templateForIsFutureOrType;
+
   jsAst.Name get getFunctionThatReturnsNullName;
 
   /// Returns a [jsAst.Expression] representing the given [type]. Type variables
@@ -1737,6 +1741,13 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
     return _representationGenerator.templateForIsFunctionType;
   }
 
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is a FutureOr type.
+  @override
+  jsAst.Template get templateForIsFutureOrType {
+    return _representationGenerator.templateForIsFutureOrType;
+  }
+
   @override
   jsAst.Expression getTypeRepresentation(
       Emitter emitter, DartType type, OnVariableCallback onVariable,
@@ -1987,6 +1998,12 @@ class TypeRepresentationGenerator
     return jsAst.js.expressionTemplateFor("'${namer.functionTypeTag}' in #");
   }
 
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is a FutureOr type.
+  jsAst.Template get templateForIsFutureOrType {
+    return jsAst.js.expressionTemplateFor("'${namer.futureOrTag}' in #");
+  }
+
   jsAst.Expression visitFunctionType(FunctionType type, Emitter emitter) {
     List<jsAst.Property> properties = <jsAst.Property>[];
 
@@ -2115,9 +2132,21 @@ class TypeRepresentationGenerator
   }
 
   @override
-  jsAst.Expression visitFutureOrType(FutureOrType type, Emitter argument) {
-    // TODO(johnniwinther,sigmund): Implement runtime semantics for `FutureOr`.
-    return getDynamicValue();
+  jsAst.Expression visitFutureOrType(FutureOrType type, Emitter emitter) {
+    List<jsAst.Property> properties = <jsAst.Property>[];
+
+    void addProperty(String name, jsAst.Expression value) {
+      properties.add(new jsAst.Property(js.string(name), value));
+    }
+
+    // Type representations for FutureOr have a property which is a tag marking
+    // them as FutureOr types. The value is not used, so '1' is just a dummy.
+    addProperty(namer.futureOrTag, js.number(1));
+    if (!type.typeArgument.treatAsDynamic) {
+      addProperty(namer.futureOrTypeTag, visit(type.typeArgument, emitter));
+    }
+
+    return new jsAst.ObjectInitializer(properties);
   }
 }
 

@@ -89,6 +89,19 @@ class FunctionTypeRepresentationCheckedModeHelper extends CheckedModeHelper {
   }
 }
 
+class FutureOrRepresentationCheckedModeHelper extends CheckedModeHelper {
+  const FutureOrRepresentationCheckedModeHelper(String name) : super(name);
+
+  CallStructure get callStructure => CallStructure.TWO_ARGS;
+
+  void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
+      HTypeConversion node, List<jsAst.Expression> arguments) {
+    assert(node.typeExpression.isFutureOr);
+    codegen.use(node.typeRepresentation);
+    arguments.add(codegen.pop());
+  }
+}
+
 class SubtypeCheckedModeHelper extends CheckedModeHelper {
   const SubtypeCheckedModeHelper(String name) : super(name);
 
@@ -149,6 +162,8 @@ class CheckedModeHelpers {
     const PropertyCheckedModeHelper('propertyTypeCheck'),
     const FunctionTypeRepresentationCheckedModeHelper('functionTypeCast'),
     const FunctionTypeRepresentationCheckedModeHelper('functionTypeCheck'),
+    const FutureOrRepresentationCheckedModeHelper('futureOrCast'),
+    const FutureOrRepresentationCheckedModeHelper('futureOrCheck'),
   ];
 
   // Checked mode helpers indexed by name.
@@ -214,6 +229,10 @@ class CheckedModeHelpers {
 
     if (type.isFunctionType) {
       return typeCast ? 'functionTypeCast' : 'functionTypeCheck';
+    }
+
+    if (type.isFutureOr) {
+      return typeCast ? 'futureOrCast' : 'futureOrCheck';
     }
 
     assert(type.isInterfaceType,

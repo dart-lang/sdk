@@ -655,6 +655,10 @@ class Namer {
         return asName(functionTypeOptionalParametersTag);
       case JsGetName.FUNCTION_TYPE_NAMED_PARAMETERS_TAG:
         return asName(functionTypeNamedParametersTag);
+      case JsGetName.FUTURE_OR_TAG:
+        return asName(futureOrTag);
+      case JsGetName.FUTURE_OR_TYPE_ARGUMENT_TAG:
+        return asName(futureOrTypeTag);
       case JsGetName.IS_INDEXABLE_FIELD_NAME:
         return operatorIs(_commonElements.jsIndexingBehaviorInterface);
       case JsGetName.NULL_CLASS_TYPE_NAME:
@@ -663,6 +667,8 @@ class Namer {
         return runtimeTypeName(_commonElements.objectClass);
       case JsGetName.FUNCTION_CLASS_TYPE_NAME:
         return runtimeTypeName(_commonElements.functionClass);
+      case JsGetName.FUTURE_CLASS_TYPE_NAME:
+        return runtimeTypeName(_commonElements.futureClass);
       default:
         throw failedAt(spannable, 'Error: Namer has no name for "$name".');
     }
@@ -1639,6 +1645,10 @@ class Namer {
   String get functionTypeNamedParametersTag => r'named';
 
   String get functionTypeGenericBoundsTag => r'bounds';
+
+  String get futureOrTag => r'futureOr';
+
+  String get futureOrTypeTag => r'type';
 
   Map<ResolutionFunctionType, jsAst.Name> functionTypeNameMap =
       new HashMap<ResolutionFunctionType, jsAst.Name>();

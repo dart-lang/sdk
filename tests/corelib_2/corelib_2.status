@@ -13,7 +13,6 @@ num_sign_test: Crash, Pass # Issue 31768
 [ $compiler == dart2js ]
 bigint_from_test: RuntimeError # Issue 32589
 date_time11_test: RuntimeError, Pass # Fails when US is on winter time, issue 31285.
-int_parse_radix_test/badTypes: RuntimeError # wrong exception returned
 iterable_where_type_test: RuntimeError # issue 31718
 list_unmodifiable_test: Pass, RuntimeError # Issue 28712
 
@@ -224,9 +223,7 @@ integer_to_radix_string_test/01: RuntimeError
 integer_to_radix_string_test/02: RuntimeError
 integer_to_radix_string_test/none: RuntimeError
 integer_to_string_test/01: RuntimeError
-iterable_fold_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
 iterable_followed_by_test: RuntimeError
-iterable_reduce_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
 iterable_return_type_test/01: RuntimeError # Issue 20085
 iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
 iterable_to_list_test/01: RuntimeError # Issue 26501
@@ -275,9 +272,7 @@ integer_to_radix_string_test/01: RuntimeError
 integer_to_radix_string_test/02: RuntimeError
 integer_to_radix_string_test/none: RuntimeError
 integer_to_string_test/01: RuntimeError
-iterable_fold_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
 iterable_followed_by_test: RuntimeError
-iterable_reduce_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
 iterable_return_type_test/01: RuntimeError # Issue 20085
 iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
 iterable_to_list_test/01: RuntimeError # Issue 26501
@@ -304,10 +299,10 @@ regexp/standalones_test: RuntimeError
 splay_tree_from_iterable_test: RuntimeError
 string_from_list_test: RuntimeError
 string_fromcharcodes_test: RuntimeError
-string_replace_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
 string_split_test/checkedstore: RuntimeError # Issue 30548: does not check stores into List<String>
 string_split_test/none: RuntimeError
 string_test: RuntimeError
+string_replace_test: RuntimeError
 symbol_operator_test/03: RuntimeError
 symbol_operator_test/none: RuntimeError
 symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
@@ -316,7 +311,6 @@ uri_parameters_all_test: RuntimeError
 uri_test: RuntimeError
 
 [ $compiler == dart2js && $fasta && $strong ]
-map_update_test: Crash # Issue 32453
 null_nosuchmethod_test: RuntimeError # Fails if type checks are skipped.
 shuffle_test: RuntimeError
 
