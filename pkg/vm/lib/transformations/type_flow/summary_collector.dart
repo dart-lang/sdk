@@ -804,7 +804,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         .getDispatchTarget(_superclass, node.name, setter: true);
     if (target != null) {
       assertx((target is Field) || ((target is Procedure) && target.isSetter));
-      return _makeCall(node,
+      _makeCall(node,
           new DirectSelector(target, callKind: CallKind.PropertySet), args);
     }
     return value;
