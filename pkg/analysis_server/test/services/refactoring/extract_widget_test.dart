@@ -164,6 +164,39 @@ class Test extends StatelessWidget {
 ''');
   }
 
+  test_expression_onTypeName() async {
+    addFlutterPackage();
+    await indexTestUnit('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Container();
+  }
+}
+''');
+    _createRefactoringForStringOffset('tainer(');
+
+    await _assertSuccessfulRefactoring('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Test();
+  }
+}
+
+class Test extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Container();
+  }
+}
+''');
+  }
+
   test_expression_topFunction() async {
     addFlutterPackage();
     await indexTestUnit('''

@@ -139,8 +139,9 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     _enclosingClassElement = _enclosingClassNode?.element;
 
     // new MyWidget(...)
-    if (node is InstanceCreationExpression && isWidgetCreation(node)) {
-      _expression = node;
+    InstanceCreationExpression newExpression = identifyNewExpression(node);
+    if (isWidgetCreation(newExpression)) {
+      _expression = newExpression;
       return new RefactoringStatus();
     }
 
