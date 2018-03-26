@@ -10944,15 +10944,12 @@ class ExtractWidgetFeedback extends RefactoringFeedback {
  *
  * {
  *   "name": String
- *   "stateful": bool
  * }
  *
  * Clients may not extend, implement or mix-in this class.
  */
 class ExtractWidgetOptions extends RefactoringOptions {
   String _name;
-
-  bool _stateful;
 
   /**
    * The name that the widget class should be given.
@@ -10967,22 +10964,8 @@ class ExtractWidgetOptions extends RefactoringOptions {
     this._name = value;
   }
 
-  /**
-   * True if a StatefulWidget should be created.
-   */
-  bool get stateful => _stateful;
-
-  /**
-   * True if a StatefulWidget should be created.
-   */
-  void set stateful(bool value) {
-    assert(value != null);
-    this._stateful = value;
-  }
-
-  ExtractWidgetOptions(String name, bool stateful) {
+  ExtractWidgetOptions(String name) {
     this.name = name;
-    this.stateful = stateful;
   }
 
   factory ExtractWidgetOptions.fromJson(
@@ -10997,14 +10980,7 @@ class ExtractWidgetOptions extends RefactoringOptions {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "name");
       }
-      bool stateful;
-      if (json.containsKey("stateful")) {
-        stateful =
-            jsonDecoder.decodeBool(jsonPath + ".stateful", json["stateful"]);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, "stateful");
-      }
-      return new ExtractWidgetOptions(name, stateful);
+      return new ExtractWidgetOptions(name);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "extractWidget options", json);
     }
@@ -11020,7 +10996,6 @@ class ExtractWidgetOptions extends RefactoringOptions {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["name"] = name;
-    result["stateful"] = stateful;
     return result;
   }
 
@@ -11030,7 +11005,7 @@ class ExtractWidgetOptions extends RefactoringOptions {
   @override
   bool operator ==(other) {
     if (other is ExtractWidgetOptions) {
-      return name == other.name && stateful == other.stateful;
+      return name == other.name;
     }
     return false;
   }
@@ -11039,7 +11014,6 @@ class ExtractWidgetOptions extends RefactoringOptions {
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = JenkinsSmiHash.combine(hash, stateful.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

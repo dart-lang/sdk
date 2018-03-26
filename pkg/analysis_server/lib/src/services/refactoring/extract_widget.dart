@@ -44,9 +44,6 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   @override
   String name;
 
-  @override
-  bool stateful = false;
-
   /// If [offset] is in a class, the node of this class, `null` otherwise.
   ClassDeclaration _enclosingClassNode;
 

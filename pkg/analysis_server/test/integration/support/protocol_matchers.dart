@@ -2482,12 +2482,10 @@ final Matcher isExtractWidgetFeedback = new LazyMatcher(
  *
  * {
  *   "name": String
- *   "stateful": bool
  * }
  */
-final Matcher isExtractWidgetOptions = new LazyMatcher(() =>
-    new MatchesJsonObject(
-        "extractWidget options", {"name": isString, "stateful": isBool}));
+final Matcher isExtractWidgetOptions = new LazyMatcher(
+    () => new MatchesJsonObject("extractWidget options", {"name": isString}));
 
 /**
  * flutter.outline params

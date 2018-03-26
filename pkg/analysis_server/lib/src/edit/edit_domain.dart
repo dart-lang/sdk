@@ -1070,7 +1070,6 @@ class _RefactoringManager {
       ExtractWidgetRefactoring extractRefactoring = this.refactoring;
       ExtractWidgetOptions extractOptions = params.options;
       extractRefactoring.name = extractOptions.name;
-      extractRefactoring.stateful = extractOptions.stateful;
       return extractRefactoring.checkName();
     }
     if (refactoring is InlineMethodRefactoring) {
