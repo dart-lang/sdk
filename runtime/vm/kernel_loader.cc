@@ -1388,11 +1388,7 @@ void KernelLoader::LoadProcedure(const Library& library,
                        is_abstract && !is_no_such_method_forwarder, is_external,
                        native_name != NULL,  // is_native
                        script_class, procedure_helper.position_));
-  if (is_no_such_method_forwarder) {
-    // Not inlinable yet because its implementation is generic against the call
-    // site in a way that makes assumptions about the stack frame layout.
-    function.set_is_inlinable(false);
-  }
+  function.set_is_no_such_method_forwarder(is_no_such_method_forwarder);
   function.set_end_token_pos(procedure_helper.end_position_);
   functions_.Add(&function);
   function.set_kernel_offset(procedure_offset);

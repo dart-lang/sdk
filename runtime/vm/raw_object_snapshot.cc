@@ -738,8 +738,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
 #if !defined(DART_PRECOMPILED_RUNTIME)
     kernel_offset = reader->Read<int32_t>();
 #endif
-    func.set_num_fixed_parameters(reader->Read<int16_t>());
-    func.set_num_optional_parameters(reader->Read<int16_t>());
+    func.set_packed_fields(reader->Read<uint32_t>());
     func.set_kind_tag(reader->Read<uint32_t>());
     func.set_token_pos(TokenPosition::SnapshotDecode(token_pos));
     func.set_end_token_pos(TokenPosition::SnapshotDecode(end_token_pos));
@@ -809,8 +808,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
     writer->Write<int32_t>(ptr()->end_token_pos_.SnapshotEncode());
     writer->Write<int32_t>(ptr()->kernel_offset_);
 #endif
-    writer->Write<int16_t>(ptr()->num_fixed_parameters_);
-    writer->Write<int16_t>(ptr()->num_optional_parameters_);
+    writer->Write<uint32_t>(ptr()->packed_fields_);
     writer->Write<uint32_t>(ptr()->kind_tag_);
 #if !defined(DART_PRECOMPILED_RUNTIME)
     if (is_optimized) {

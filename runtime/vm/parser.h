@@ -220,17 +220,7 @@ class ParsedFunction : public ZoneAllocated {
     return raw_parameters_[i];
   }
 
-  bool is_no_such_method_forwarder() const {
-    return is_no_such_method_forwarder_;
-  }
-
-  void set_is_no_such_method_forwarder(bool value) {
-    is_no_such_method_forwarder_ = value;
-  }
-
  private:
-  bool is_no_such_method_forwarder_;
-
   Thread* thread_;
   const Function& function_;
   Code& code_;

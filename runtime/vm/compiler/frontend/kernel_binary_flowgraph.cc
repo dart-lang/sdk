@@ -1088,7 +1088,7 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
     case RawFunction::kIrregexpFunction:
       UNREACHABLE();
   }
-  if (needs_expr_temp_ || parsed_function_->is_no_such_method_forwarder()) {
+  if (needs_expr_temp_ || function.is_no_such_method_forwarder()) {
     scope_->AddVariable(parsed_function_->EnsureExpressionTemp());
   }
   parsed_function_->AllocateVariables();
@@ -3751,7 +3751,7 @@ void StreamingFlowGraphBuilder::DiscoverEnclosingElements(
   }
 }
 
-bool StreamingFlowGraphBuilder::ReadUntilFunctionNode(
+void StreamingFlowGraphBuilder::ReadUntilFunctionNode(
     ParsedFunction* parsed_function) {
   const Tag tag = PeekTag();
   if (tag == kProcedure) {
@@ -3767,16 +3767,10 @@ bool StreamingFlowGraphBuilder::ReadUntilFunctionNode(
       parsed_function->MarkForwardingStub(
           procedure_helper.forwarding_stub_super_target_);
     }
-    if (parsed_function != NULL && flow_graph_builder_ != nullptr &&
-        procedure_helper.IsNoSuchMethodForwarder()) {
-      parsed_function->set_is_no_such_method_forwarder(true);
-    }
-    return procedure_helper.IsNoSuchMethodForwarder();
     // Now at start of FunctionNode.
   } else if (tag == kConstructor) {
     ConstructorHelper constructor_helper(this);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kFunction);
-    return false;
     // Now at start of FunctionNode.
     // Notice that we also have a list of initializers after that!
   } else if (tag == kFunctionNode) {
@@ -3785,7 +3779,6 @@ bool StreamingFlowGraphBuilder::ReadUntilFunctionNode(
     ReportUnexpectedTag("a procedure, a constructor or a function node", tag);
     UNREACHABLE();
   }
-  return false;
 }
 
 StringIndex StreamingFlowGraphBuilder::GetNameFromVariableDeclaration(
@@ -5028,7 +5021,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
   switch (function.kind()) {
     case RawFunction::kRegularFunction:
     case RawFunction::kImplicitClosureFunction:
-      if (ReadUntilFunctionNode(parsed_function())) {
+      ReadUntilFunctionNode(parsed_function());
+      if (function.is_no_such_method_forwarder()) {
         return BuildGraphOfNoSuchMethodForwarder(
             function, function.IsImplicitClosureFunction());
       } else if (function.IsImplicitClosureFunction()) {

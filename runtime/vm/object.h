@@ -2419,34 +2419,47 @@ class Function : public Object {
 #endif
   }
 
+  bool is_no_such_method_forwarder() const {
+    return RawFunction::PackedIsNoSuchMethodForwarder::decode(
+        raw_ptr()->packed_fields_);
+  }
+
+  void set_is_no_such_method_forwarder(bool value) const;
+
   intptr_t num_fixed_parameters() const {
-    return raw_ptr()->num_fixed_parameters_;
+    return RawFunction::PackedNumFixedParameters::decode(
+        raw_ptr()->packed_fields_);
   }
   void set_num_fixed_parameters(intptr_t value) const;
 
+  uint32_t packed_fields() const { return raw_ptr()->packed_fields_; }
+  void set_packed_fields(uint32_t packed_fields) const;
+
   bool HasOptionalParameters() const {
-    return raw_ptr()->num_optional_parameters_ != 0;
-  }
-  bool HasOptionalPositionalParameters() const {
-    return raw_ptr()->num_optional_parameters_ > 0;
+    return RawFunction::PackedNumOptionalParameters::decode(
+               raw_ptr()->packed_fields_) > 0;
   }
   bool HasOptionalNamedParameters() const {
-    return raw_ptr()->num_optional_parameters_ < 0;
+    return HasOptionalParameters() &&
+           RawFunction::PackedHasNamedOptionalParameters::decode(
+               raw_ptr()->packed_fields_);
+  }
+  bool HasOptionalPositionalParameters() const {
+    return HasOptionalParameters() && !HasOptionalNamedParameters();
   }
   intptr_t NumOptionalParameters() const {
-    const intptr_t num_opt_params = raw_ptr()->num_optional_parameters_;
-    return (num_opt_params >= 0) ? num_opt_params : -num_opt_params;
+    return RawFunction::PackedNumOptionalParameters::decode(
+        raw_ptr()->packed_fields_);
   }
   void SetNumOptionalParameters(intptr_t num_optional_parameters,
                                 bool are_optional_positional) const;
 
   intptr_t NumOptionalPositionalParameters() const {
-    const intptr_t num_opt_params = raw_ptr()->num_optional_parameters_;
-    return (num_opt_params > 0) ? num_opt_params : 0;
+    return HasOptionalPositionalParameters() ? NumOptionalParameters() : 0;
   }
+
   intptr_t NumOptionalNamedParameters() const {
-    const intptr_t num_opt_params = raw_ptr()->num_optional_parameters_;
-    return (num_opt_params < 0) ? -num_opt_params : 0;
+    return HasOptionalNamedParameters() ? NumOptionalParameters() : 0;
   }
 
   intptr_t NumParameters() const;
