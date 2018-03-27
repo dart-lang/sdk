@@ -1380,7 +1380,6 @@ void KernelLoader::LoadProcedure(const Library& library,
   const Object& script_class =
       ClassForScriptAt(owner, procedure_helper.source_uri_index_);
   RawFunction::Kind kind = GetFunctionType(procedure_helper.kind_);
-  is_no_such_method_forwarder &= kind == RawFunction::kRegularFunction;
   Function& function = Function::ZoneHandle(
       Z, Function::New(name, kind,
                        !is_method,  // is_static

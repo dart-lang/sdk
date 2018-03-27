@@ -5024,6 +5024,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
   switch (function.kind()) {
     case RawFunction::kRegularFunction:
     case RawFunction::kImplicitClosureFunction:
+    case RawFunction::kGetterFunction:
+    case RawFunction::kSetterFunction: {
       ReadUntilFunctionNode(parsed_function());
       if (function.is_no_such_method_forwarder()) {
         return BuildGraphOfNoSuchMethodForwarder(
@@ -5031,11 +5033,10 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
       } else if (function.IsImplicitClosureFunction()) {
         return BuildGraphOfImplicitClosureFunction(function);
       }
+    }
     // fallthrough intended
     case RawFunction::kClosureFunction:
-    case RawFunction::kConvertedClosureFunction:
-    case RawFunction::kGetterFunction:
-    case RawFunction::kSetterFunction: {
+    case RawFunction::kConvertedClosureFunction: {
       ReadUntilFunctionNode(parsed_function());  // read until function node.
       return BuildGraphOfFunction(false);
     }
