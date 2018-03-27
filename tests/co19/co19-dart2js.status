@@ -2964,6 +2964,7 @@ LayoutTests/fast/filesystem/file-writer-write-overlapped_t01: RuntimeError # Ple
 LayoutTests/fast/filesystem/filesystem-reference_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/filesystem/filesystem-unserializable_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/filesystem/filesystem-uri-origin_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/filesystem/input-access-entries_t01: RuntimeError # See issue 143
 LayoutTests/fast/filesystem/op-copy_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/filesystem/op-get-entry_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/filesystem/op-get-metadata_t01: RuntimeError # Please triage this failure
@@ -3236,6 +3237,7 @@ LayoutTests/fast/text/find-russian_t01: RuntimeError # Please triage this failur
 LayoutTests/fast/text/find-soft-hyphen_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/international/iso-8859-8_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/international/listbox-width-rtl_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/text/international/rtl-text-wrapping_t01: RuntimeError # See issue 143
 LayoutTests/fast/text/international/thai-offsetForPosition-inside-character_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/line-break-after-question-mark_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/line-breaks-after-hyphen-before-number_t01: RuntimeError # Please triage this failure
@@ -6337,6 +6339,7 @@ LayoutTests/fast/table/min-width-html-block-table_t01: Pass, RuntimeError # Plea
 LayoutTests/fast/table/min-width-html-inline-table_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/table/nested-tables-with-div-offset_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/padding-height-and-override-height_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/table/resize-table-binding-cell_t01: RuntimeError # See issue 143
 LayoutTests/fast/table/switch-table-layout-dynamic-cells_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/switch-table-layout-multiple-section_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/switch-table-layout_t01: RuntimeError # Please triage this failure
