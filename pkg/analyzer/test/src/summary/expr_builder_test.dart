@@ -94,9 +94,12 @@ class ExprBuilderTest extends AbstractSingleUnitTest
   }
 
   void checkSimpleExpression(String expressionText,
-      {String extraDeclarations: ''}) {
-    checkTopLevelVariable(
-        'var x = $expressionText;\n$extraDeclarations', expressionText);
+      {String expectedText,
+      String extraDeclarations: '',
+      bool requireValidConst: false}) {
+    checkTopLevelVariable('var x = $expressionText;\n$extraDeclarations',
+        expectedText ?? expressionText,
+        requireValidConst: requireValidConst);
   }
 
   void checkTopLevelVariable(String sourceText, String expectedText,
@@ -117,6 +120,40 @@ class ExprBuilderTest extends AbstractSingleUnitTest
 
   void test_and() {
     checkSimpleExpression('false && true');
+  }
+
+  void test_assignToIndex() {
+    checkSimpleExpression('items[0] = 1',
+        extraDeclarations: 'var items = [0, 1, 2]');
+  }
+
+  void test_assignToIndex_compound_multiply() {
+    checkSimpleExpression('items[0] *= 1',
+        extraDeclarations: 'var items = [0, 1, 2]');
+  }
+
+  void test_assignToProperty() {
+    checkSimpleExpression('new A().f = 1', extraDeclarations: r'''
+class A {
+  int f = 0;
+}
+''');
+  }
+
+  void test_assignToProperty_compound_plus() {
+    checkSimpleExpression('new A().f += 1', extraDeclarations: r'''
+class A {
+  int f = 0;
+}
+''');
+  }
+
+  void test_assignToProperty_compound_suffixIncrement() {
+    checkSimpleExpression('new A().f++', extraDeclarations: r'''
+class A {
+  int f = 0;
+}
+''');
   }
 
   void test_assignToRef() {
@@ -141,6 +178,20 @@ class ExprBuilderTest extends AbstractSingleUnitTest
 
   void test_bitXor() {
     checkSimpleExpression('0 ^ 1');
+  }
+
+  void test_cascade() {
+    // Cascade sections don't matter for type inference.
+    // The type of a cascade is the type of the target.
+    checkSimpleExpression('new C()..f1 = 1..m(2, 3)..f2 = 4',
+        extraDeclarations: r'''
+class C {
+  int f1;
+  int f2;
+  int m(int a, int b) => 0;
+}
+''',
+        expectedText: 'new C()');
   }
 
   void test_closure_invalid_const() {
@@ -236,6 +287,11 @@ class ExprBuilderTest extends AbstractSingleUnitTest
     checkSimpleExpression('0 == 1');
   }
 
+  void test_extractIndex() {
+    checkSimpleExpression('items[0]',
+        extraDeclarations: 'var items = [0, 1, 2]');
+  }
+
   void test_extractProperty() {
     checkSimpleExpression("'x'.length");
   }
@@ -257,11 +313,31 @@ class ExprBuilderTest extends AbstractSingleUnitTest
   }
 
   void test_invokeConstructor_const() {
-    checkSimpleExpression('const C()', extraDeclarations: '''
+    checkSimpleExpression('const C()',
+        extraDeclarations: '''
 class C {
   const C();
 }
+''',
+        requireValidConst: true);
+  }
+
+  void test_invokeMethod() {
+    checkSimpleExpression('new C().foo(1, 2)', extraDeclarations: r'''
+class C {
+  int foo(int a, int b) => 0;
+}
 ''');
+  }
+
+  void test_invokeMethod_typeArguments() {
+    checkSimpleExpression('new C().foo<int, double>(1, 2.3)',
+        extraDeclarations: r'''
+class C {
+  int foo<T, U>(T a, U b) => 0;
+}
+''',
+        expectedText: 'new C().foo<int, double>()');
   }
 
   void test_invokeMethodRef() {
@@ -379,5 +455,21 @@ class C {
 
   void test_subtract() {
     checkSimpleExpression('0 - 1');
+  }
+
+  void test_throwException() {
+    checkSimpleExpression('throw 0');
+  }
+
+  void test_typeCast() {
+    checkSimpleExpression('0 as num');
+  }
+
+  void test_typeCheck() {
+    checkSimpleExpression('0 is num');
+  }
+
+  void test_typeCheck_negated() {
+    checkSimpleExpression('0 is! num', expectedText: '!(0 is num)');
   }
 }

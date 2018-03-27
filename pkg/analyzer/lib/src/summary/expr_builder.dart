@@ -179,9 +179,16 @@ class ExprBuilder {
             _push(AstTestFactory.conditionalExpression(
                 condition, thenExpr, elseExpr));
             break;
-          // invokeMethodRef
           case UnlinkedExprOperation.invokeMethodRef:
             _pushInvokeMethodRef();
+            break;
+          case UnlinkedExprOperation.invokeMethod:
+            List<Expression> arguments = _buildArguments();
+            TypeArgumentList typeArguments = _buildTypeArguments();
+            Expression target = _pop();
+            String name = uc.strings[stringPtr++];
+            _push(AstTestFactory.methodInvocation3(
+                target, name, typeArguments, arguments));
             break;
           // containers
           case UnlinkedExprOperation.makeUntypedList:
@@ -223,6 +230,7 @@ class ExprBuilder {
             _pushBinary(TokenType.QUESTION_QUESTION);
             break;
           case UnlinkedExprOperation.await:
+            // TODO(scheglov) No test, requires closures.
             Expression expression = _pop();
             _push(AstTestFactory.awaitExpression(expression));
             break;
@@ -233,18 +241,45 @@ class ExprBuilder {
             var ref = _createReference();
             _push(_createAssignment(ref));
             break;
+          case UnlinkedExprOperation.typeCast:
+            Expression expression = _pop();
+            TypeAnnotation type = _newTypeName();
+            _push(AstTestFactory.asExpression(expression, type));
+            break;
+          case UnlinkedExprOperation.typeCheck:
+            Expression expression = _pop();
+            TypeAnnotation type = _newTypeName();
+            _push(AstTestFactory.isExpression(expression, false, type));
+            break;
+          case UnlinkedExprOperation.throwException:
+            Expression expression = _pop();
+            _push(AstTestFactory.throwExpression2(expression));
+            break;
+          case UnlinkedExprOperation.assignToProperty:
+            Expression target = _pop();
+            String name = uc.strings[stringPtr++];
+            SimpleIdentifier propertyNode = AstTestFactory.identifier3(name);
+            PropertyAccess propertyAccess =
+                AstTestFactory.propertyAccess(target, propertyNode);
+            _push(_createAssignment(propertyAccess));
+            break;
+          case UnlinkedExprOperation.assignToIndex:
+            Expression index = _pop();
+            Expression target = _pop();
+            IndexExpression indexExpression =
+                AstTestFactory.indexExpression(target, index);
+            _push(_createAssignment(indexExpression));
+            break;
+          case UnlinkedExprOperation.extractIndex:
+            Expression index = _pop();
+            Expression target = _pop();
+            _push(AstTestFactory.indexExpression(target, index));
+            break;
           case UnlinkedExprOperation.pushSuper:
           case UnlinkedExprOperation.pushThis:
             throw const _InvalidConstantException(); // TODO(paulberry)
-          case UnlinkedExprOperation.assignToProperty:
-          case UnlinkedExprOperation.assignToIndex:
-          case UnlinkedExprOperation.extractIndex:
-          case UnlinkedExprOperation.invokeMethod:
           case UnlinkedExprOperation.cascadeSectionBegin:
           case UnlinkedExprOperation.cascadeSectionEnd:
-          case UnlinkedExprOperation.typeCast:
-          case UnlinkedExprOperation.typeCheck:
-          case UnlinkedExprOperation.throwException:
           case UnlinkedExprOperation.pushLocalFunctionReference:
           case UnlinkedExprOperation.pushError:
           case UnlinkedExprOperation.pushTypedAbstract:
@@ -510,8 +545,11 @@ class ExprBuilder {
       throw const _InvalidConstantException();
     }
     // create InstanceCreationExpression
-    InstanceCreationExpression instanceCreation = AstTestFactory
-        .instanceCreationExpression(Keyword.CONST, constructorNode, arguments);
+    InstanceCreationExpression instanceCreation =
+        AstTestFactory.instanceCreationExpression(
+            requireValidConst ? Keyword.CONST : Keyword.NEW,
+            constructorNode,
+            arguments);
     instanceCreation.staticElement = constructorElement;
     _push(instanceCreation);
   }
@@ -521,16 +559,7 @@ class ExprBuilder {
     EntityRef ref = uc.references[refPtr++];
     ReferenceInfo info = resynthesizer.getReferenceInfo(ref.reference);
     Expression node = _buildIdentifierSequence(info);
-    TypeArgumentList typeArguments;
-    int numTypeArguments = uc.ints[intPtr++];
-    if (numTypeArguments > 0) {
-      List<TypeAnnotation> typeNames =
-          new List<TypeAnnotation>(numTypeArguments);
-      for (int i = 0; i < numTypeArguments; i++) {
-        typeNames[i] = _newTypeName();
-      }
-      typeArguments = AstTestFactory.typeArgumentList(typeNames);
-    }
+    TypeArgumentList typeArguments = _buildTypeArguments();
     if (node is SimpleIdentifier) {
       _push(astFactory.methodInvocation(
           null,
@@ -541,6 +570,19 @@ class ExprBuilder {
     } else {
       throw new UnimplementedError('For ${node?.runtimeType}: $node');
     }
+  }
+
+  TypeArgumentList _buildTypeArguments() {
+    int numTypeArguments = uc.ints[intPtr++];
+    if (numTypeArguments == 0) {
+      return null;
+    }
+
+    var typeNames = new List<TypeAnnotation>(numTypeArguments);
+    for (int i = 0; i < numTypeArguments; i++) {
+      typeNames[i] = _newTypeName();
+    }
+    return AstTestFactory.typeArgumentList(typeNames);
   }
 
   void _pushList(TypeArgumentList typeArguments) {

@@ -8415,11 +8415,11 @@ class ToSourceVisitor2 implements AstVisitor<Object> {
 
   @override
   Object visitBinaryExpression(BinaryExpression node) {
-    safelyVisitNode(node.leftOperand);
+    _writeOperand(node, node.leftOperand);
     sink.write(' ');
     sink.write(node.operator.lexeme);
     sink.write(' ');
-    safelyVisitNode(node.rightOperand);
+    _writeOperand(node, node.rightOperand);
     return null;
   }
 
@@ -9125,7 +9125,7 @@ class ToSourceVisitor2 implements AstVisitor<Object> {
 
   @override
   Object visitPostfixExpression(PostfixExpression node) {
-    safelyVisitNode(node.operand);
+    _writeOperand(node, node.operand);
     sink.write(node.operator.lexeme);
     return null;
   }
@@ -9141,7 +9141,7 @@ class ToSourceVisitor2 implements AstVisitor<Object> {
   @override
   Object visitPrefixExpression(PrefixExpression node) {
     sink.write(node.operator.lexeme);
-    safelyVisitNode(node.operand);
+    _writeOperand(node, node.operand);
     return null;
   }
 
@@ -9396,5 +9396,18 @@ class ToSourceVisitor2 implements AstVisitor<Object> {
     safelyVisitNode(node.expression);
     sink.write(";");
     return null;
+  }
+
+  void _writeOperand(Expression node, Expression operand) {
+    if (operand != null) {
+      bool needsParenthesis = operand.precedence < node.precedence;
+      if (needsParenthesis) {
+        sink.write('(');
+      }
+      operand.accept(this);
+      if (needsParenthesis) {
+        sink.write(')');
+      }
+    }
   }
 }

@@ -1209,6 +1209,16 @@ class ToSourceVisitor2Test extends EngineTestCase {
             TokenType.PLUS, AstTestFactory.identifier3("b")));
   }
 
+  void test_visitBinaryExpression_precedence() {
+    var a = AstTestFactory.identifier3('a');
+    var b = AstTestFactory.identifier3('b');
+    var c = AstTestFactory.identifier3('c');
+    _assertSource(
+        'a * (b + c)',
+        AstTestFactory.binaryExpression(a, TokenType.STAR,
+            AstTestFactory.binaryExpression(b, TokenType.PLUS, c)));
+  }
+
   void test_visitBlock_empty() {
     _assertSource("{}", AstTestFactory.block());
   }
@@ -3098,6 +3108,15 @@ class ToSourceVisitor2Test extends EngineTestCase {
         "-a",
         AstTestFactory.prefixExpression(
             TokenType.MINUS, AstTestFactory.identifier3("a")));
+  }
+
+  void test_visitPrefixExpression_precedence() {
+    var a = AstTestFactory.identifier3('a');
+    var b = AstTestFactory.identifier3('b');
+    _assertSource(
+        '!(a == b)',
+        AstTestFactory.prefixExpression(TokenType.BANG,
+            AstTestFactory.binaryExpression(a, TokenType.EQ_EQ, b)));
   }
 
   void test_visitPropertyAccess() {
