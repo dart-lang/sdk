@@ -83,6 +83,7 @@ linter:
     - prefer_interpolation_to_compose_strings
     - prefer_is_empty
     - prefer_is_not_empty
+    - prefer_iterable_whereType
     - prefer_single_quotes
     - prefer_typing_uninitialized_variables
     - public_member_api_docs
