@@ -3099,14 +3099,14 @@ class ProgramCompiler
 
   JS.Statement _emitFunctionScopedBody(FunctionNode f) {
     var jsBody = _visitStatement(f.body);
-    if (f.asyncMarker == AsyncMarker.Sync) {
+    if (f.positionalParameters.isNotEmpty || f.namedParameters.isNotEmpty) {
       // Handle shadowing of parameters by local varaibles, which is allowed in
       // Dart but not in JS.
       //
-      // We only handle this for normal (sync) functions. Generator-based
-      // functions (sync*, async, and async*) have their bodies placed
-      // in an inner function scope that is a separate scope from the
-      // parameters, so they avoid this problem.
+      // We need this for all function types, including generator-based ones
+      // (sync*/async/async*). Our code generator assumes it can emit names for
+      // named argument initialization, and sync* functions also emit locally
+      // modified parameters into the function's scope.
       var parameterNames = new HashSet<String>()
         ..addAll(f.positionalParameters.map((p) => p.name))
         ..addAll(f.namedParameters.map((p) => p.name));
