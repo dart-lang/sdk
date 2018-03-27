@@ -381,6 +381,13 @@ interface ImageData {
     [DartSuppress] readonly attribute any dataUnion;
 };
 
+[DartSupplemental,
+  CustomConstructor,
+  Constructor()
+]
+interface MessageChannel {
+};
+
 // See https://chromiumcodereview.appspot.com/15901002 for the V8 implementation of
 // TextEncoder/TextDecoder
 [DartSuppress]

@@ -114,13 +114,13 @@ main() {
         treeSanitizer: new NullTreeSanitizer());
     document.documentElement.children.add(listElement);
 
-    var elements = document.queryAll('li');
+    var elements = document.querySelectorAll('li');
     expect(elements.style.backgroundColor, equals('red'));
     expect(elements.style.borderLeftWidth, equals('10px'));
-    elements = document.queryAll('.baz');
+    elements = document.querySelectorAll('.baz');
     expect(elements.style.backgroundColor, equals('black'));
     expect(elements.style.borderLeftWidth, equals(''));
-    elements = document.queryAll('.bar');
+    elements = document.querySelectorAll('.bar');
     expect(elements.style.backgroundColor, equals('red'));
   });
 
@@ -134,25 +134,25 @@ main() {
         treeSanitizer: new NullTreeSanitizer());
     document.documentElement.children.add(listElement);
 
-    var elements = document.queryAll('li');
+    var elements = document.querySelectorAll('li');
     elements.style.backgroundColor = 'green';
     expect(elements.style.backgroundColor, equals('green'));
     expect(elements.style.borderLeftWidth, equals('10px'));
 
-    elements = document.queryAll('.baz');
+    elements = document.querySelectorAll('.baz');
     expect(elements.style.backgroundColor, equals('green'));
     elements.style.backgroundColor = 'yellow';
     expect(elements.style.backgroundColor, equals('yellow'));
     expect(elements.style.borderLeftWidth, equals(''));
 
-    elements = document.queryAll('.bar');
+    elements = document.querySelectorAll('.bar');
     expect(elements.style.backgroundColor, equals('green'));
-    elements = document.queryAll('#wat');
+    elements = document.querySelectorAll('#wat');
     expect(elements.style.backgroundColor, equals('yellow'));
 
     elements.style.borderLeftWidth = '18px';
     expect(elements.style.borderLeftWidth, equals('18px'));
-    elements = document.queryAll('li');
+    elements = document.querySelectorAll('li');
     expect(elements.style.borderLeftWidth, equals('10px'));
   });
 

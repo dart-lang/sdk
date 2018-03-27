@@ -9925,9 +9925,6 @@
     "dart_action": "unstable",
     "members": {
       "IDBVersionChangeEvent": {},
-      "Xyzzy": {
-        "support_level": "untriaged"
-      },
       "dataLoss": {
         "support_level": "untriaged"
       },
@@ -19156,7 +19153,20 @@
     "support_level": "untriaged"
   },
   "ServiceWorker": {
-    "members": {},
+    "members": {
+      "onerror": {
+        "support_level": "untriaged"
+      },
+      "postMessage": {
+        "support_level": "untriaged"
+      },
+      "scriptURL": {
+        "support_level": "untriaged"
+      },
+      "state": {
+        "support_level": "untriaged"
+      }
+    },
     "support_level": "untriaged"
   },
   "ServiceWorkerClient": {

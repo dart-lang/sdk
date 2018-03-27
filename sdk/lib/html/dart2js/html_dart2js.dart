@@ -12377,25 +12377,6 @@ class Document extends Node {
   ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
       new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
 
-  /**
-   * Alias for [querySelector]. Note this function is deprecated because its
-   * semantics will be changing in the future.
-   */
-  @deprecated
-  @Experimental()
-  @DomName('Document.querySelector')
-  Element query(String relativeSelectors) => querySelector(relativeSelectors);
-
-  /**
-   * Alias for [querySelectorAll]. Note this function is deprecated because its
-   * semantics will be changing in the future.
-   */
-  @deprecated
-  @Experimental()
-  @DomName('Document.querySelectorAll')
-  ElementList<T> queryAll<T extends Element>(String relativeSelectors) =>
-      querySelectorAll(relativeSelectors);
-
   /// Checks if [registerElement] is supported on the current platform.
   bool get supportsRegisterElement {
     return JS('bool', '("registerElement" in #)', this);
@@ -12560,26 +12541,6 @@ class DocumentFragment extends Node
         validator: validator, treeSanitizer: treeSanitizer));
   }
 
-  /** 
-   * Alias for [querySelector]. Note this function is deprecated because its
-   * semantics will be changing in the future.
-   */
-  @deprecated
-  @Experimental()
-  @DomName('DocumentFragment.querySelector')
-  Element query(String relativeSelectors) {
-    return querySelector(relativeSelectors);
-  }
-
-  /** 
-   * Alias for [querySelectorAll]. Note this function is deprecated because its
-   * semantics will be changing in the future.
-   */
-  @deprecated
-  @Experimental()
-  @DomName('DocumentFragment.querySelectorAll')
-  ElementList<T> queryAll<T extends Element>(String relativeSelectors) =>
-      querySelectorAll(relativeSelectors);
   // To suppress missing implicit constructor warnings.
   factory DocumentFragment._() {
     throw new UnsupportedError("Not supported");
@@ -15708,25 +15669,6 @@ class Element extends Node
       new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
 
   /**
-   * Alias for [querySelector]. Note this function is deprecated because its
-   * semantics will be changing in the future.
-   */
-  @deprecated
-  @DomName('Element.querySelector')
-  @Experimental()
-  Element query(String relativeSelectors) => querySelector(relativeSelectors);
-
-  /**
-   * Alias for [querySelectorAll]. Note this function is deprecated because its
-   * semantics will be changing in the future.
-   */
-  @deprecated
-  @DomName('Element.querySelectorAll')
-  @Experimental()
-  ElementList<T> queryAll<T extends Element>(String relativeSelectors) =>
-      querySelectorAll(relativeSelectors);
-
-  /**
    * The set of CSS classes applied to this element.
    *
    * This set makes it easy to add, remove or toggle the classes applied to
@@ -15888,8 +15830,6 @@ class Element extends Node
 
   @DomName('Element.getClientRects')
   @DocsEditable()
-  @Returns('DomRectList|Null')
-  @Creates('DomRectList')
   List<Rectangle> getClientRects() {
     var value = _getClientRects();
 
@@ -15959,31 +15899,6 @@ class Element extends Node
    * Called by the DOM whenever an attribute on this has been changed.
    */
   void attributeChanged(String name, String oldValue, String newValue) {}
-
-  // Hooks to support custom WebComponents.
-
-  @Creates('Null') // Set from Dart code; does not instantiate a native type.
-  Element _xtag;
-
-  /**
-   * Experimental support for [web components][wc]. This field stores a
-   * reference to the component implementation. It was inspired by Mozilla's
-   * [x-tags][] project. Please note: in the future it may be possible to
-   * `extend Element` from your class, in which case this field will be
-   * deprecated.
-   *
-   * If xtag has not been set, it will simply return `this` [Element].
-   *
-   * [wc]: http://dvcs.w3.org/hg/webcomponents/raw-file/tip/explainer/index.html
-   * [x-tags]: http://x-tags.org/
-   */
-  // Note: return type is `dynamic` for convenience to suppress warnings when
-  // members of the component are used. The actual type is a subtype of Element.
-  get xtag => _xtag != null ? _xtag : this;
-
-  set xtag(Element value) {
-    _xtag = value;
-  }
 
   @DomName('Element.localName')
   @DocsEditable()
@@ -17669,8 +17584,8 @@ class Element extends Node
    */
   @DomName('Element.getClientRects')
   @DocsEditable()
-  @Returns('DomRectList|Null')
   @Creates('DomRectList')
+  @Returns('DomRectList|Null')
   List<Rectangle> _getClientRects() native;
 
   /**
@@ -19287,8 +19202,8 @@ class ExtendableMessageEvent extends ExtendableEvent {
   @DomName('ExtendableMessageEvent.source')
   @DocsEditable()
   @Experimental() // untriaged
-  @Creates('Client|_ServiceWorker|MessagePort')
-  @Returns('Client|_ServiceWorker|MessagePort|Null')
+  @Creates('Client|ServiceWorker|MessagePort')
+  @Returns('Client|ServiceWorker|MessagePort|Null')
   final Object source;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22019,48 +21934,6 @@ class HtmlDocument extends Document {
   @DomName('Document.elementFromPoint')
   Element elementFromPoint(int x, int y) {
     return _elementFromPoint(x, y);
-  }
-
-  /**
-   * Checks if the getCssCanvasContext API is supported on the current platform.
-   *
-   * See also:
-   *
-   * * [getCssCanvasContext]
-   */
-  static bool get supportsCssCanvasContext =>
-      JS('bool', '!!(document.getCSSCanvasContext)');
-
-  /**
-   * Gets a CanvasRenderingContext which can be used as the CSS background of an
-   * element.
-   *
-   * CSS:
-   *
-   *     background: -webkit-canvas(backgroundCanvas)
-   *
-   * Generate the canvas:
-   *
-   *     var context = document.getCssCanvasContext('2d', 'backgroundCanvas',
-   *         100, 100);
-   *     context.fillStyle = 'red';
-   *     context.fillRect(0, 0, 100, 100);
-   *
-   * See also:
-   *
-   * * [supportsCssCanvasContext]
-   * * [CanvasElement.getContext]
-   */
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  @DomName('Document.getCSSCanvasContext')
-  CanvasRenderingContext getCssCanvasContext(
-      String contextId, String name, int width, int height) {
-    if (HtmlDocument.supportsCssCanvasContext)
-      return JS('CanvasRenderingContext', '#.getCSSCanvasContext(#, #, #, #)',
-          this, contextId, name, width, height);
-    throw new UnsupportedError("Not supported");
   }
 
   @DomName('Document.head')
@@ -26920,6 +26793,14 @@ class MessageChannel extends Interceptor {
   factory MessageChannel._() {
     throw new UnsupportedError("Not supported");
   }
+
+  @DomName('MessageChannel.MessageChannel')
+  @DocsEditable()
+  factory MessageChannel() {
+    return MessageChannel._create_1();
+  }
+  static MessageChannel _create_1() =>
+      JS('MessageChannel', 'new MessageChannel()');
 
   @DomName('MessageChannel.port1')
   @DocsEditable()
@@ -33674,8 +33555,6 @@ class Range extends Interceptor {
 
   @DomName('Range.getClientRects')
   @DocsEditable()
-  @Returns('DomRectList|Null')
-  @Creates('DomRectList')
   List<Rectangle> getClientRects() {
     var value = _getClientRects();
 
@@ -35796,6 +35675,47 @@ class SensorErrorEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 @DocsEditable()
+@DomName('ServiceWorker')
+@Experimental() // untriaged
+@Native("ServiceWorker")
+class ServiceWorker extends EventTarget implements AbstractWorker {
+  // To suppress missing implicit constructor warnings.
+  factory ServiceWorker._() {
+    throw new UnsupportedError("Not supported");
+  }
+
+  @DomName('ServiceWorker.errorEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> errorEvent =
+      const EventStreamProvider<Event>('error');
+
+  @JSName('scriptURL')
+  @DomName('ServiceWorker.scriptURL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String scriptUrl;
+
+  @DomName('ServiceWorker.state')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String state;
+
+  @DomName('ServiceWorker.postMessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void postMessage(Object message, [List<Object> transfer]) native;
+
+  @DomName('ServiceWorker.onerror')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<Event> get onError => errorEvent.forTarget(this);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
 @DomName('ServiceWorkerContainer')
 @Experimental() // untriaged
 @Native("ServiceWorkerContainer")
@@ -35814,7 +35734,7 @@ class ServiceWorkerContainer extends EventTarget {
   @DomName('ServiceWorkerContainer.controller')
   @DocsEditable()
   @Experimental() // untriaged
-  final _ServiceWorker controller;
+  final ServiceWorker controller;
 
   @DomName('ServiceWorkerContainer.ready')
   @DocsEditable()
@@ -35960,7 +35880,7 @@ class ServiceWorkerRegistration extends EventTarget {
   @DomName('ServiceWorkerRegistration.active')
   @DocsEditable()
   @Experimental() // untriaged
-  final _ServiceWorker active;
+  final ServiceWorker active;
 
   @DomName('ServiceWorkerRegistration.backgroundFetch')
   @DocsEditable()
@@ -35970,7 +35890,7 @@ class ServiceWorkerRegistration extends EventTarget {
   @DomName('ServiceWorkerRegistration.installing')
   @DocsEditable()
   @Experimental() // untriaged
-  final _ServiceWorker installing;
+  final ServiceWorker installing;
 
   @DomName('ServiceWorkerRegistration.navigationPreload')
   @DocsEditable()
@@ -36000,7 +35920,7 @@ class ServiceWorkerRegistration extends EventTarget {
   @DomName('ServiceWorkerRegistration.waiting')
   @DocsEditable()
   @Experimental() // untriaged
-  final _ServiceWorker waiting;
+  final ServiceWorker waiting;
 
   @DomName('ServiceWorkerRegistration.getNotifications')
   @DocsEditable()
@@ -45911,21 +45831,6 @@ abstract class _Response extends Body {
 // BSD-style license that can be found in the LICENSE file.
 
 @DocsEditable()
-@DomName('ServiceWorker')
-@Experimental() // untriaged
-@Native("ServiceWorker")
-abstract class _ServiceWorker extends EventTarget implements AbstractWorker {
-  // To suppress missing implicit constructor warnings.
-  factory _ServiceWorker._() {
-    throw new UnsupportedError("Not supported");
-  }
-}
-
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
 @DomName('SpeechRecognitionResultList')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechrecognitionresultlist
 @Experimental()
@@ -51523,22 +51428,6 @@ void Function(T1, T2) _wrapBinaryZone<T1, T2>(void Function(T1, T2) callback) {
   if (callback == null) return null;
   return Zone.current.bindBinaryCallbackGuarded(callback);
 }
-
-/**
- * Alias for [querySelector]. Note this function is deprecated because its
- * semantics will be changing in the future.
- */
-@deprecated
-@Experimental()
-Element query(String relativeSelectors) => document.query(relativeSelectors);
-/**
- * Alias for [querySelectorAll]. Note this function is deprecated because its
- * semantics will be changing in the future.
- */
-@deprecated
-@Experimental()
-ElementList<Element> queryAll(String relativeSelectors) =>
-    document.queryAll(relativeSelectors);
 
 /**
  * Finds the first descendant element of this document that matches the

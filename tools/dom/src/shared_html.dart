@@ -19,22 +19,6 @@ void Function(T1, T2) _wrapBinaryZone<T1, T2>(void Function(T1, T2) callback) {
 }
 
 /**
- * Alias for [querySelector]. Note this function is deprecated because its
- * semantics will be changing in the future.
- */
-@deprecated
-@Experimental()
-Element query(String relativeSelectors) => document.query(relativeSelectors);
-/**
- * Alias for [querySelectorAll]. Note this function is deprecated because its
- * semantics will be changing in the future.
- */
-@deprecated
-@Experimental()
-ElementList<Element> queryAll(String relativeSelectors) =>
-    document.queryAll(relativeSelectors);
-
-/**
  * Finds the first descendant element of this document that matches the
  * specified group of selectors.
  *

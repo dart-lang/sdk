@@ -128,7 +128,6 @@ _removed_html_interfaces = [
   'RadioNodeList',  # Folded onto NodeList in dart2js.
   'Rect',
   'Response', # TODO: Symbol conflicts with Angular: dartbug.com/20937
-  'ServiceWorker',
   'SQLTransactionSync', # Workers
   'SQLTransactionSyncCallback', # Workers
   'SVGAltGlyphDefElement', # Webkit only.
@@ -429,7 +428,6 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Screen.availLeft',
   'Screen.availTop',
   'Screen.availWidth',
-  'ServiceWorkerGlobalScope.fetch',
   'ShadowRoot.resetStyleInheritance',
   'Storage.clear',
   'Storage.getItem',
@@ -856,8 +854,6 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'MouseEvent.x',
     'MouseEvent.y',
     'Navigator.bluetooth',
-    'Navigator.registerServiceWorker',
-    'Navigator.unregisterServiceWorker',
     'Navigator.isProtocolHandlerRegistered',
     'Navigator.unregisterProtocolHandler',
     'Navigator.usb',
@@ -886,7 +882,6 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'ParentNode.append',
     'ParentNode.prepend',
     'RTCPeerConnection.generateCertificate',
-    'ServiceWorkerMessageEvent.data',
     'ShadowRoot.getElementsByTagNameNS',
     'SVGElement.getPresentationAttribute',
     'SVGElementInstance.on:wheel',
