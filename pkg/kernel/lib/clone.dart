@@ -470,6 +470,9 @@ class CloneVisitor implements TreeVisitor {
     var newNode = new TypeParameter(node.name);
     typeSubstitution[node] = new TypeParameterType(newNode);
     newNode.bound = visitType(node.bound);
+    if (node.defaultType != null) {
+      newNode.defaultType = visitType(node.defaultType);
+    }
     return newNode..flags = node.flags;
   }
 

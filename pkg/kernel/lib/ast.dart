@@ -5220,6 +5220,13 @@ class TypeParameter extends TreeNode {
   /// be set to the root class for type parameters without an explicit bound.
   DartType bound;
 
+  /// The default value of the type variable. It is used to provide the
+  /// corresponding missing type argument in type annotations and as the
+  /// fall-back type value in type inference at compile time. At run time,
+  /// [defaultType] is used by the backends in place of the missing type
+  /// argument of a dynamic invocation of a generic function.
+  DartType defaultType;
+
   TypeParameter([this.name, this.bound]);
 
   // Must match serialized bit positions.

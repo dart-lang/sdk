@@ -1750,6 +1750,7 @@ class BinaryBuilder {
     node.annotations = readAnnotationList(node);
     node.name = readStringOrNullIfEmpty();
     node.bound = readDartType();
+    node.defaultType = readDartTypeOption();
   }
 
   Arguments readArguments() {

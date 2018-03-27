@@ -80,6 +80,32 @@ void FunctionNodeHelper::ReadUntilExcluding(Field field) {
   }
 }
 
+void TypeParameterHelper::ReadUntilExcluding(Field field) {
+  for (; next_read_ < field; ++next_read_) {
+    switch (next_read_) {
+      case kFlags:
+        flags_ = builder_->ReadFlags();
+        break;
+      case kAnnotations:
+        builder_->SkipListOfExpressions();  // read annotations.
+        break;
+      case kName:
+        name_index_ = builder_->ReadStringReference();  // read name index.
+        break;
+      case kBound:
+        builder_->SkipDartType();
+        break;
+      case kDefaultType:
+        if (builder_->ReadTag() == kSomething) {
+          builder_->SkipDartType();
+        }
+        break;
+      case kEnd:
+        return;
+    }
+  }
+}
+
 void VariableDeclarationHelper::ReadUntilExcluding(Field field) {
   if (field <= next_read_) return;
 
@@ -1189,10 +1215,14 @@ void StreamingScopeBuilder::VisitFunctionNode() {
   intptr_t list_length =
       builder_->ReadListLength();  // read type_parameters list length.
   for (intptr_t i = 0; i < list_length; ++i) {
-    builder_->ReadFlags();              // read flags.
-    builder_->SkipListOfExpressions();  // read annotations.
-    builder_->SkipStringReference();    // read ith name index.
+    TypeParameterHelper helper(builder_);
+    helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kBound);
     VisitDartType();                    // read ith bound.
+    helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kDefaultType);
+    if (builder_->ReadTag() == kSomething) {
+      VisitDartType();  // read ith default type.
+    }
+    helper.Finish();
   }
   function_node_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
 
@@ -1977,10 +2007,14 @@ void StreamingScopeBuilder::VisitFunctionType(bool simple) {
     intptr_t list_length =
         builder_->ReadListLength();  // read type_parameters list length.
     for (int i = 0; i < list_length; ++i) {
-      builder_->SkipFlags();              // read flags.
-      builder_->SkipListOfExpressions();  // read annotations.
-      builder_->SkipStringReference();    // read string index (name).
-      VisitDartType();                    // read dart type.
+      TypeParameterHelper helper(builder_);
+      helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kBound);
+      VisitDartType();  // read bound.
+      helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kDefaultType);
+      if (builder_->ReadTag() == kSomething) {
+        VisitDartType();  // read default type.
+      }
+      helper.Finish();
     }
     builder_->ReadUInt();  // read required parameter count.
     builder_->ReadUInt();  // read total parameter count.
@@ -4569,10 +4603,11 @@ Fragment StreamingFlowGraphBuilder::BuildArgumentTypeChecks(
     }
     TypeParameter& forwarding_param = TypeParameter::Handle(Z);
     for (intptr_t i = 0; i < num_type_params; ++i) {
-      ReadFlags();                                         // skip flags
-      SkipListOfExpressions();                             // skip annotations
-      String& name = H.DartSymbolObfuscate(ReadStringReference());  // read name
+      TypeParameterHelper helper(this);
+      helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kBound);
+      String& name = H.DartSymbolObfuscate(helper.name_index_);
       AbstractType& bound = T.BuildType();                 // read bound
+      helper.Finish();
 
       if (forwarding_target != NULL) {
         forwarding_param ^= forwarding_params.TypeAt(i);
@@ -5488,10 +5523,8 @@ void StreamingFlowGraphBuilder::SkipListOfVariableDeclarations() {
 void StreamingFlowGraphBuilder::SkipTypeParametersList() {
   intptr_t list_length = ReadListLength();  // read list length.
   for (intptr_t i = 0; i < list_length; ++i) {
-    SkipFlags();              // read ith flags.
-    SkipListOfExpressions();  // read annotations.
-    SkipStringReference();    // read ith name index.
-    SkipDartType();           // read ith bound.
+    TypeParameterHelper helper(this);
+    helper.Finish();
   }
 }
 
@@ -9603,15 +9636,14 @@ void StreamingFlowGraphBuilder::LoadAndSetupTypeParameters(
   {
     AlternativeReadingScope alt(reader_);
     for (intptr_t i = 0; i < type_parameter_count; i++) {
-      SkipFlags();
-      SkipListOfExpressions();  // read annotations.
+      TypeParameterHelper helper(this);
+      helper.Finish();
       parameter = TypeParameter::New(
           set_on_class ? *active_class->klass : Class::Handle(Z),
           parameterized_function, i,
-          H.DartSymbolObfuscate(ReadStringReference()),  // read ith name index.
+          H.DartSymbolObfuscate(helper.name_index_),  // read ith name index.
           null_bound, TokenPosition::kNoSource);
       type_parameters.SetTypeAt(i, parameter);
-      SkipDartType();  // read guard.
     }
   }
 
@@ -9629,9 +9661,8 @@ void StreamingFlowGraphBuilder::LoadAndSetupTypeParameters(
 
   // Step b) Fill in the bounds of all [TypeParameter]s.
   for (intptr_t i = 0; i < type_parameter_count; i++) {
-    SkipFlags();
-    SkipListOfExpressions();  // read annotations.
-    SkipStringReference();    // read ith name index.
+    TypeParameterHelper helper(this);
+    helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kBound);
 
     // TODO(github.com/dart-lang/kernel/issues/42): This should be handled
     // by the frontend.
@@ -9648,6 +9679,8 @@ void StreamingFlowGraphBuilder::LoadAndSetupTypeParameters(
       }
       parameter.set_bound(bound);
     }
+
+    helper.Finish();
   }
 }
 
