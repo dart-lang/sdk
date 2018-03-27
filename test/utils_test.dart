@@ -69,6 +69,7 @@ main() {
       'p1ll0',
       '_foo',
       // Ensure multiple underscores don't cause issues (#940).
+      'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa__aa',
       'abc_def_ghi_jkl_mnomnomno_abcabcabc__defdefdefdef__ghighighighi',
       'abc_____def____ghi_jkl__mnomnomno_abcabcabc__defdefdefdef___ghighighighi',
       r'$foo',
