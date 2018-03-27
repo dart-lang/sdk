@@ -9343,6 +9343,8 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   @override
   ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
 
+  UnlinkedVariable get unlinkedVariableForTesting => _unlinkedVariable;
+
   @override
   T accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitTopLevelVariableElement(this);
