@@ -121,8 +121,6 @@ class HtmlElement extends Element implements NoncedElement {
   String nonce;
 }
 
-createCustomUpgrader(Type customElementClass, $this) => $this;
-
 /**
  * Emitted for any setlike IDL entry needs a callback signature.
  * Today there is only one.
