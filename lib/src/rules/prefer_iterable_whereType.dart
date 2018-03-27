@@ -51,7 +51,7 @@ class Visitor extends SimpleAstVisitor {
     }
 
     final args = node.argumentList?.arguments;
-    if (args.length != 1) return;
+    if (args == null || args.length != 1) return;
 
     final arg = args.first;
     if (arg is FunctionExpression) {
@@ -65,15 +65,11 @@ class Visitor extends SimpleAstVisitor {
         final statement = body.block.statements.first;
         if (statement is ReturnStatement) {
           expression = statement.expression;
-        } else {
-          return;
         }
       } else if (body is ExpressionFunctionBody) {
         expression = body.expression;
-      } else {
-        return;
       }
-      expression = expression.unParenthesized;
+      expression = expression?.unParenthesized;
       if (expression is IsExpression) {
         final target = expression.expression;
         if (target is SimpleIdentifier &&
