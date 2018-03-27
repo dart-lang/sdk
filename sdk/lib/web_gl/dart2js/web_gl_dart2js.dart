@@ -1,5 +1,7 @@
 /**
  * 3D programming in the browser.
+ *
+ * {@category Web}
  */
 library dart.dom.web_gl;
 

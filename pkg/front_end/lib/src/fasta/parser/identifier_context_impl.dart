@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../scanner/token.dart' show SyntheticStringToken, Token, TokenType;
+import '../../scanner/token.dart' show Token;
 
 import '../fasta_codes.dart' as fasta;
 
@@ -11,6 +11,8 @@ import '../scanner/token_constants.dart' show IDENTIFIER_TOKEN;
 import 'identifier_context.dart';
 
 import 'parser.dart' show Parser;
+
+import 'type_info.dart' show insertSyntheticIdentifierAfter;
 
 import 'util.dart' show optional;
 
@@ -63,11 +65,4 @@ class LibraryIdentifierContext extends IdentifierContext {
       optional('set', token) ||
       optional('var', token) ||
       optional('void', token);
-}
-
-Token insertSyntheticIdentifierAfter(Token token, Parser parser) {
-  Token identifier =
-      new SyntheticStringToken(TokenType.IDENTIFIER, '', token.charOffset, 0);
-  parser.rewriter.insertTokenAfter(token, identifier);
-  return identifier;
 }

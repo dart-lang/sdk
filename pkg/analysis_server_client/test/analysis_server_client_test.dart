@@ -7,23 +7,19 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analysis_server_client/analysis_server_client.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 void main() {
-  Process _process;
+  MockProcess process;
   AnalysisServerClient serverWrapper;
 
   setUp(() async {
-    _process = new MockProcess();
-    final _mockStdin = new MockStdin();
-    serverWrapper = new AnalysisServerClient(_process);
-    when(_process.stdin).thenReturn(_mockStdin);
-    when(_mockStdin.add).thenReturn(null);
+    process = new MockProcess();
+    serverWrapper = new AnalysisServerClient(process);
   });
 
   test('test_listenToOutput_good', () async {
-    when(_process.stdout).thenAnswer((_) => _goodMessage());
+    process.stdout = _goodMessage();
 
     final future = serverWrapper.send('blahMethod', null);
     serverWrapper.listenToOutput();
@@ -35,7 +31,7 @@ void main() {
   });
 
   test('test_listenToOutput_error', () async {
-    when(_process.stdout).thenAnswer((_) => _badMessage());
+    process.stdout = _badMessage();
     final future = serverWrapper.send('blahMethod', null);
     future.catchError((e) {
       expect(e, new isInstanceOf<ServerErrorMessage>());
@@ -48,7 +44,7 @@ void main() {
   });
 
   test('test_listenToOutput_event', () async {
-    when(_process.stdout).thenAnswer((_) => _eventMessage());
+    process.stdout = _eventMessage();
 
     void eventHandler(String event, Map<String, Object> params) {
       expect(event, 'fooEvent');
@@ -92,6 +88,57 @@ Stream<List<int>> _goodMessage() async* {
   yield utf8.encoder.convert(json.encode(sampleJson));
 }
 
-class MockProcess extends Mock implements Process {}
+class MockProcess implements Process {
+  @override
+  Stream<List<int>> stderr;
 
-class MockStdin extends Mock implements List {}
+  @override
+  IOSink stdin = new MockStdin();
+
+  @override
+  Stream<List<int>> stdout;
+
+  @override
+  Future<int> get exitCode => null;
+
+  @override
+  int get pid => null;
+
+  @override
+  bool kill([ProcessSignal signal = ProcessSignal.SIGTERM]) => null;
+}
+
+class MockStdin implements IOSink {
+  @override
+  Encoding encoding;
+
+  @override
+  Future get done => null;
+
+  @override
+  void add(List<int> data) {}
+
+  @override
+  void addError(Object error, [StackTrace stackTrace]) {}
+
+  @override
+  Future addStream(Stream<List<int>> stream) => null;
+
+  @override
+  Future close() => null;
+
+  @override
+  Future flush() => null;
+
+  @override
+  void write(Object obj) {}
+
+  @override
+  void writeAll(Iterable objects, [String separator = ""]) {}
+
+  @override
+  void writeCharCode(int charCode) {}
+
+  @override
+  void writeln([Object obj = ""]) {}
+}

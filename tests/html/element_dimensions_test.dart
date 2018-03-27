@@ -46,7 +46,7 @@ main() {
     setUp(initDiv);
 
     test('contentEdge.height', () {
-      var all1 = queryAll('#test');
+      var all1 = querySelectorAll('#test');
 
       expect(all1.contentEdge.height, 10);
       expect(all1[0].getComputedStyle().getPropertyValue('height'), '10px');
@@ -72,7 +72,7 @@ main() {
     });
 
     test('contentEdge.height with border-box', () {
-      var all1 = queryAll('#test');
+      var all1 = querySelectorAll('#test');
       div.style.boxSizing = 'border-box';
       expect(all1.contentEdge.height, 2);
       div.style.padding = '20pc';
@@ -82,7 +82,7 @@ main() {
     });
 
     test('contentEdge.width', () {
-      var all1 = queryAll('#test');
+      var all1 = querySelectorAll('#test');
       expect(all1.contentEdge.width, 11);
       expect(all1[0].getComputedStyle().getPropertyValue('width'), '11px');
 
@@ -105,7 +105,7 @@ main() {
     });
 
     test('contentEdge.width with border-box', () {
-      var all1 = queryAll('#test');
+      var all1 = querySelectorAll('#test');
       div.style.boxSizing = 'border-box';
       expect(all1.contentEdge.width, 3);
       div.style.padding = '20pc';
@@ -115,7 +115,7 @@ main() {
     });
 
     test('paddingEdge.height', () {
-      var all1 = queryAll('#test');
+      var all1 = querySelectorAll('#test');
       expect(all1.paddingEdge.height, 18);
       all1[0].style.visibility = 'hidden';
       expect(all1.paddingEdge.height, 18);
@@ -130,7 +130,7 @@ main() {
     });
 
     test('paddingEdge.height with border-box', () {
-      var all1 = queryAll('#test');
+      var all1 = querySelectorAll('#test');
       div.style.boxSizing = 'border-box';
       expect(all1.paddingEdge.height, 10);
       div.style.padding = '20pc';
@@ -140,7 +140,7 @@ main() {
     });
 
     test('paddingEdge.width', () {
-      var all1 = queryAll('#test');
+      var all1 = querySelectorAll('#test');
       expect(all1.paddingEdge.width, 19);
       all1[0].style.visibility = 'hidden';
       expect(all1.paddingEdge.width, 19);
@@ -156,7 +156,7 @@ main() {
     });
 
     test('paddingEdge.width with border-box', () {
-      var all1 = queryAll('#test');
+      var all1 = querySelectorAll('#test');
       div.style.boxSizing = 'border-box';
       expect(all1.paddingEdge.width, 11);
       div.style.padding = '20pc';
@@ -166,7 +166,7 @@ main() {
     });
 
     test('borderEdge.height and marginEdge.height', () {
-      var all1 = queryAll('#test');
+      var all1 = querySelectorAll('#test');
       expect(div.borderEdge.height, 18);
       expect(div.marginEdge.height, 30);
       expect(all1.borderEdge.height, 18);
@@ -185,7 +185,7 @@ main() {
     });
 
     test('borderEdge.height and marginEdge.height with border-box', () {
-      var all1 = queryAll('#test');
+      var all1 = querySelectorAll('#test');
       div.style.boxSizing = 'border-box';
       expect(all1.borderEdge.height, 10);
       expect(all1.marginEdge.height, 22);
@@ -198,7 +198,7 @@ main() {
     });
 
     test('borderEdge.width and marginEdge.width', () {
-      var all1 = queryAll('#test');
+      var all1 = querySelectorAll('#test');
       expect(all1.borderEdge.width, 19);
       expect(all1.marginEdge.width, 31);
 
@@ -213,7 +213,7 @@ main() {
     });
 
     test('borderEdge.width and marginEdge.width with border-box', () {
-      var all1 = queryAll('#test');
+      var all1 = querySelectorAll('#test');
       div.style.boxSizing = 'border-box';
       expect(all1.borderEdge.width, 11);
       expect(all1.marginEdge.width, 23);
@@ -229,7 +229,7 @@ main() {
       div.style.border = '1px solid #fff';
       div.style.margin = '6px 7px';
       div.style.padding = '4px 5px';
-      var all1 = queryAll('#test');
+      var all1 = querySelectorAll('#test');
 
       expect(all1.borderEdge.left, all1[0].getBoundingClientRect().left);
       expect(all1.borderEdge.top, all1[0].getBoundingClientRect().top);
@@ -249,7 +249,7 @@ main() {
       div.style.border = '1px solid #fff';
       div.style.margin = '6px 7px';
       div.style.padding = '4px 5px';
-      var all1 = queryAll('div');
+      var all1 = querySelectorAll('div');
       all1.contentEdge.height = new Dimension.px(200);
       all1.contentEdge.height = 200;
       for (Element elem in all1) {

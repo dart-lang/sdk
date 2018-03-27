@@ -221,7 +221,9 @@ class DartUnitOutlineComputer {
             isStatic: isStatic),
         location: _getLocationNode(nameNode),
         parameters: parametersStr,
-        returnType: returnTypeStr);
+        returnType: returnTypeStr,
+        typeParameters:
+            _getTypeParametersStr(functionExpression.typeParameters));
     List<Outline> contents = _addFunctionBodyOutlines(functionExpression.body);
     return _nodeOutline(function, element, contents);
   }
@@ -271,7 +273,8 @@ class DartUnitOutlineComputer {
             isStatic: method.isStatic),
         location: _getLocationNode(nameNode),
         parameters: parametersStr,
-        returnType: returnTypeStr);
+        returnType: returnTypeStr,
+        typeParameters: _getTypeParametersStr(method.typeParameters));
     List<Outline> contents = _addFunctionBodyOutlines(method.body);
     return _nodeOutline(method, element, contents);
   }

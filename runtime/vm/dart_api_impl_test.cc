@@ -247,7 +247,7 @@ void VerifyStackOverflowStackTraceInfo(const char* script,
   Dart_StringToCString(function_name, &cstr);
   EXPECT_STREQ(top_frame_func_name, cstr);
   Dart_StringToCString(script_url, &cstr);
-  EXPECT_STREQ("test-lib", cstr);
+  EXPECT_STREQ(TestCase::url(), cstr);
   EXPECT_EQ(expected_line_number, line_number);
   EXPECT_EQ(expected_column_number, column_number);
 
@@ -259,15 +259,19 @@ void VerifyStackOverflowStackTraceInfo(const char* script,
 }
 
 TEST_CASE(DartAPI_StackOverflowStackTraceInfoBraceFunction1) {
+  int line = 2;
+  int col = FLAG_use_dart_frontend ? 10 : 3;
   VerifyStackOverflowStackTraceInfo(
       "class C {\n"
       "  static foo(int i) { foo(i); }\n"
       "}\n"
       "testMain() => C.foo(10);\n",
-      "C.foo", "testMain", 2, 21);
+      "C.foo", "testMain", line, col);
 }
 
 TEST_CASE(DartAPI_StackOverflowStackTraceInfoBraceFunction2) {
+  int line = 2;
+  int col = FLAG_use_dart_frontend ? 10 : 3;
   VerifyStackOverflowStackTraceInfo(
       "class C {\n"
       "  static foo(int i, int j) {\n"
@@ -275,16 +279,18 @@ TEST_CASE(DartAPI_StackOverflowStackTraceInfoBraceFunction2) {
       "  }\n"
       "}\n"
       "testMain() => C.foo(10, 11);\n",
-      "C.foo", "testMain", 2, 28);
+      "C.foo", "testMain", line, col);
 }
 
 TEST_CASE(DartAPI_StackOverflowStackTraceInfoArrowFunction) {
+  int line = 2;
+  int col = FLAG_use_dart_frontend ? 10 : 3;
   VerifyStackOverflowStackTraceInfo(
       "class C {\n"
       "  static foo(int i) => foo(i);\n"
       "}\n"
       "testMain() => C.foo(10);\n",
-      "C.foo", "testMain", 2, 21);
+      "C.foo", "testMain", line, col);
 }
 
 TEST_CASE(DartAPI_OutOfMemoryStackTraceInfo) {
@@ -6868,7 +6874,7 @@ VM_UNIT_TEST_CASE(DartAPI_NewNativePort) {
       "void callPort(SendPort port) {\n"
       "  var receivePort = new RawReceivePort();\n"
       "  var replyPort = receivePort.sendPort;\n"
-      "  port.send([replyPort]);\n"
+      "  port.send(<dynamic>[replyPort]);\n"
       "  receivePort.handler = (message) {\n"
       "    receivePort.close();\n"
       "    throw new Exception(message);\n"
@@ -6942,7 +6948,7 @@ TEST_CASE(DartAPI_NativePortPostInteger) {
       "void callPort(SendPort port) {\n"
       "  var receivePort = new RawReceivePort();\n"
       "  var replyPort = receivePort.sendPort;\n"
-      "  port.send([replyPort]);\n"
+      "  port.send(<dynamic>[replyPort]);\n"
       "  receivePort.handler = (message) {\n"
       "    receivePort.close();\n"
       "    throw new Exception(message);\n"
@@ -7008,7 +7014,7 @@ TEST_CASE(DartAPI_NativePortReceiveNull) {
       "  var receivePort = new RawReceivePort();\n"
       "  var replyPort = receivePort.sendPort;\n"
       "  port.send(null);\n"
-      "  port.send([replyPort]);\n"
+      "  port.send(<dynamic>[replyPort]);\n"
       "  receivePort.handler = (message) {\n"
       "    receivePort.close();\n"
       "    throw new Exception(message);\n"
@@ -7060,7 +7066,7 @@ TEST_CASE(DartAPI_NativePortReceiveInteger) {
       "  var receivePort = new RawReceivePort();\n"
       "  var replyPort = receivePort.sendPort;\n"
       "  port.send(321);\n"
-      "  port.send([replyPort]);\n"
+      "  port.send(<dynamic>[replyPort]);\n"
       "  receivePort.handler = (message) {\n"
       "    receivePort.close();\n"
       "    throw new Exception(message);\n"

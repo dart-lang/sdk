@@ -36,12 +36,12 @@ class C extends HtmlElement {
       return;
     }
 
-    var t = div.query('#t');
-    var v = div.query('#v');
-    var w = div.query('#w');
+    var t = div.querySelector('#t');
+    var v = div.querySelector('#v');
+    var w = div.querySelector('#w');
 
-    expect(query('x-b:not(:unresolved)'), this);
-    expect(queryAll(':unresolved'), [v, w]);
+    expect(querySelector('x-b:not(:unresolved)'), this);
+    expect(querySelectorAll(':unresolved'), [v, w]);
 
     // As per:
     // http://www.w3.org/TR/2013/WD-custom-elements-20130514/#serializing-and-parsing
@@ -94,7 +94,7 @@ main() {
     upgradeCustomElements(div);
 
     expect(C.createdInvocations, 2);
-    expect(div.query('#w') is B, isTrue);
+    expect(div.querySelector('#w') is B, isTrue);
   });
 
   test('nesting of constructors', NestedElement.test);

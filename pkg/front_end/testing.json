@@ -161,35 +161,6 @@
     },
 
     {
-      "name": "incremental_bulk_compiler_smoke",
-      "kind": "Chain",
-      "source": "test/incremental_bulk_compiler_smoke_test.dart",
-      "path": "../../tests/",
-      "status": "testcases/incremental_bulk_compiler_smoke.status",
-      "pattern": [
-        "/language_2/accessor_conflict_export2_test\\.dart$",
-        "/language_2/accessor_conflict_export_test\\.dart$",
-        "/language_2/regress_14348_test\\.dart$",
-        "/language_2/regress_18535_test\\.dart$"
-      ],
-      "exclude": [
-      ]
-    },
-
-    {
-      "name": "incremental_bulk_compiler_full",
-      "kind": "Chain",
-      "source": "test/incremental_bulk_compiler_full.dart",
-      "path": "../../tests/",
-      "status": "testcases/incremental_bulk_compiler_full.status",
-      "pattern": [
-        "language_2/.*_test\\.dart$"
-      ],
-      "exclude": [
-      ]
-    },
-
-    {
       "name": "sdk",
       "kind": "Chain",
       "source": "test/fasta/sdk_test.dart",

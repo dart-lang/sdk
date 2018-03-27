@@ -336,6 +336,9 @@ class Emitter extends js_emitter.EmitterBase {
       case JsBuiltin.isFunctionType:
         return backend.rtiEncoder.templateForIsFunctionType;
 
+      case JsBuiltin.isFutureOrType:
+        return backend.rtiEncoder.templateForIsFutureOrType;
+
       case JsBuiltin.rawRtiToJsConstructorName:
         return jsAst.js.expressionTemplateFor("#.$typeNameProperty");
 
@@ -1049,8 +1052,7 @@ class Emitter extends js_emitter.EmitterBase {
   jsAst.Expression generateLibraryDescriptor(
       LibraryEntity library, Fragment fragment) {
     dynamic uri = "";
-    if (!compiler.options.enableMinification ||
-        backend.mirrorsData.mustPreserveUris) {
+    if (!compiler.options.enableMinification) {
       uri = library.canonicalUri;
       if (uri.scheme == 'file' && compiler.options.outputUri != null) {
         uri =

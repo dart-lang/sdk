@@ -4,10 +4,10 @@
 
 [ $compiler == fasta ]
 Language/Classes/definition_t24: MissingCompileTimeError
-Language/Types/Type_Void/syntax_t05: MissingCompileTimeError
 Language/Types/Type_Void/syntax_t08: MissingCompileTimeError
 Language/Types/Type_Void/syntax_t09: MissingCompileTimeError
 LayoutTests/*: Skip # TODO(ahe): Make dart:html available.
+LibTest/collection/Maps/*: Skip # Maps class no longer exists.
 LibTest/html/*: Skip # TODO(ahe): Make dart:html available.
 WebPlatformTest/*: Skip # TODO(ahe): Make dart:html available.
 
@@ -1079,7 +1079,6 @@ Language/Types/Static_Types/malformed_type_t06: CompileTimeError
 Language/Types/Type_Declarations/Typedef/self_reference_t08: Crash
 Language/Types/Type_Declarations/Typedef/self_reference_t09: Crash
 Language/Types/Type_Declarations/Typedef/syntax_t01: CompileTimeError
-Language/Types/Type_Void/syntax_t05: MissingCompileTimeError
 Language/Types/Type_Void/syntax_t08: MissingCompileTimeError
 Language/Types/Type_Void/syntax_t09: MissingCompileTimeError
 Language/Variables/constant_variable_t01: CompileTimeError

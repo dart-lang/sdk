@@ -1,0 +1,2 @@
+dartdoc:
+  categoryOrder: ["VM", "Web"]

@@ -12,11 +12,9 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
 import 'memory_compiler.dart' show runCompiler, OutputCollector;
 
-Future<String> compileSources(sources,
-    {bool minify, bool preserveUri, bool useKernel}) async {
+Future<String> compileSources(sources, {bool minify, bool useKernel}) async {
   var options = [];
   if (minify) options.add(Flags.minify);
-  if (preserveUri) options.add(Flags.preserveUris);
   if (!useKernel) options.add(Flags.useOldFrontend);
   OutputCollector outputCollector = new OutputCollector();
   await runCompiler(
@@ -27,21 +25,16 @@ Future<String> compileSources(sources,
 }
 
 Future test(sources, {bool libName, bool fileName, bool useKernel}) {
-  return compileSources(sources,
-      minify: false, preserveUri: false, useKernel: useKernel).then((output) {
+  return compileSources(sources, minify: false, useKernel: useKernel)
+      .then((output) {
     // Unminified the sources should always contain the library name and the
     // file name.
     Expect.isTrue(output.contains("main_lib"));
     Expect.isTrue(output.contains("main.dart"));
   }).then((_) {
-    compileSources(sources, minify: true, preserveUri: false).then((output) {
+    compileSources(sources, minify: true, useKernel: useKernel).then((output) {
       Expect.equals(libName, output.contains("main_lib"));
       Expect.isFalse(output.contains("main.dart"));
-    });
-  }).then((_) {
-    compileSources(sources, minify: true, preserveUri: true).then((output) {
-      Expect.equals(libName, output.contains("main_lib"));
-      Expect.equals(fileName, output.contains("main.dart"));
     });
   });
 }

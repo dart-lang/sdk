@@ -17,8 +17,6 @@ class IncrementalCompiler {
   IncrementalKernelGenerator _generator;
   List<Component> _pendingDeltas;
   CompilerOptions _compilerOptions;
-  bool initialized = false;
-  bool fullComponent = false;
 
   IncrementalCompiler(this._compilerOptions, Uri entryPoint,
       {Uri bootstrapDill}) {
@@ -32,10 +30,7 @@ class IncrementalCompiler {
   /// If [entryPoint] is specified, that points to new entry point for the
   /// compilation. Otherwise, previously set entryPoint is used.
   Future<Component> compile({Uri entryPoint}) async {
-    Component component = await _generator.computeDelta(
-        entryPoint: entryPoint, fullComponent: fullComponent);
-    initialized = true;
-    fullComponent = false;
+    Component component = await _generator.computeDelta(entryPoint: entryPoint);
     final bool firstDelta = _pendingDeltas.isEmpty;
     _pendingDeltas.add(component);
     if (firstDelta) {
@@ -68,10 +63,5 @@ class IncrementalCompiler {
   /// next [compile] call.
   invalidate(Uri uri) {
     _generator.invalidate(uri);
-  }
-
-  resetDeltaState() {
-    _pendingDeltas.clear();
-    fullComponent = true;
   }
 }

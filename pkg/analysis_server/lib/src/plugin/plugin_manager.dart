@@ -805,7 +805,7 @@ class PluginManager {
     if (contents is YamlMap) {
       YamlNode dependencies = contents['dependencies'];
       if (dependencies is YamlMap) {
-        return dependencies.keys;
+        return dependencies.keys.cast<String>();
       }
     }
     return const <String>[];
@@ -1069,7 +1069,7 @@ class PluginSession {
     sendRequest(new PluginShutdownParams());
     new Future.delayed(WAIT_FOR_SHUTDOWN_DURATION, () {
       if (channel != null) {
-        channel.kill();
+        channel?.kill();
         channel = null;
       }
     });

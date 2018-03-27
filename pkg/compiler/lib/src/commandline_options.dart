@@ -48,7 +48,6 @@ class Flags {
   static const String noFrequencyBasedMinification =
       '--no-frequency-based-minification';
   static const String noSourceMaps = '--no-source-maps';
-  static const String preserveComments = '--preserve-comments';
   static const String preserveUris = '--preserve-uris';
   static const String showPackageWarnings = '--show-package-warnings';
   static const String suppressHints = '--suppress-hints';

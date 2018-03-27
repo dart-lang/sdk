@@ -596,8 +596,7 @@ class FunctionSerializationCluster : public SerializationCluster {
         s->Write<int32_t>(func->ptr()->kernel_offset_);
       }
 #endif
-      s->Write<int16_t>(func->ptr()->num_fixed_parameters_);
-      s->Write<int16_t>(func->ptr()->num_optional_parameters_);
+      s->Write<uint32_t>(func->ptr()->packed_fields_);
       s->Write<uint32_t>(func->ptr()->kind_tag_);
     }
   }
@@ -660,8 +659,7 @@ class FunctionDeserializationCluster : public DeserializationCluster {
         func->ptr()->kernel_offset_ = d->Read<int32_t>();
       }
 #endif
-      func->ptr()->num_fixed_parameters_ = d->Read<int16_t>();
-      func->ptr()->num_optional_parameters_ = d->Read<int16_t>();
+      func->ptr()->packed_fields_ = d->Read<uint32_t>();
       func->ptr()->kind_tag_ = d->Read<uint32_t>();
       if (kind == Snapshot::kFullAOT) {
         // Omit fields used to support de/reoptimization.

@@ -26,8 +26,24 @@ class TokenInfoTest {
     expect(typeInfo.skipType(start), expectedEnd);
 
     TypeInfoListener listener = new TypeInfoListener();
+    expect(typeInfo.ensureTypeNotVoid(start, new Parser(listener)),
+        new isInstanceOf<SyntheticStringToken>());
+    expect(listener.calls, [
+      'handleIdentifier  typeReference',
+      'handleNoTypeArguments ;',
+      'handleType  ;',
+    ]);
+    expect(listener.errors, [new ExpectedError(codeExpectedType, 7, 1)]);
+
+    listener = new TypeInfoListener();
+    expect(typeInfo.parseTypeNotVoid(start, new Parser(listener)), expectedEnd);
+    expect(listener.calls, ['handleNoType before']);
+    expect(listener.errors, isNull);
+
+    listener = new TypeInfoListener();
     expect(typeInfo.parseType(start, new Parser(listener)), expectedEnd);
     expect(listener.calls, ['handleNoType before']);
+    expect(listener.errors, isNull);
   }
 
   void test_voidType() {
@@ -38,8 +54,28 @@ class TokenInfoTest {
     expect(typeInfo.couldBeExpression, isFalse);
 
     TypeInfoListener listener = new TypeInfoListener();
+    expect(
+        typeInfo.ensureTypeNotVoid(start, new Parser(listener)), expectedEnd);
+    expect(listener.calls, [
+      'handleIdentifier void typeReference',
+      'handleNoTypeArguments ;',
+      'handleType void ;',
+    ]);
+    expect(listener.errors, [new ExpectedError(codeInvalidVoid, 7, 4)]);
+
+    listener = new TypeInfoListener();
+    expect(typeInfo.parseTypeNotVoid(start, new Parser(listener)), expectedEnd);
+    expect(listener.calls, [
+      'handleIdentifier void typeReference',
+      'handleNoTypeArguments ;',
+      'handleType void ;',
+    ]);
+    expect(listener.errors, [new ExpectedError(codeInvalidVoid, 7, 4)]);
+
+    listener = new TypeInfoListener();
     expect(typeInfo.parseType(start, new Parser(listener)), expectedEnd);
     expect(listener.calls, ['handleVoidKeyword void']);
+    expect(listener.errors, isNull);
   }
 
   void test_prefixedTypeInfo() {
@@ -49,15 +85,27 @@ class TokenInfoTest {
     expect(typeInfo.skipType(start), expectedEnd);
     expect(typeInfo.couldBeExpression, isTrue);
 
-    TypeInfoListener listener = new TypeInfoListener();
-    expect(typeInfo.parseType(start, new Parser(listener)), expectedEnd);
-    expect(listener.calls, [
-      'handleIdentifier C prefixedTypeReference',
-      'handleIdentifier a typeReferenceContinuation',
-      'handleQualified .',
-      'handleNoTypeArguments ;',
-      'handleType C ;',
-    ]);
+    TypeInfoListener listener;
+    assertResult(Token actualEnd) {
+      expect(actualEnd, expectedEnd);
+      expect(listener.calls, [
+        'handleIdentifier C prefixedTypeReference',
+        'handleIdentifier a typeReferenceContinuation',
+        'handleQualified .',
+        'handleNoTypeArguments ;',
+        'handleType C ;',
+      ]);
+      expect(listener.errors, isNull);
+    }
+
+    listener = new TypeInfoListener();
+    assertResult(typeInfo.ensureTypeNotVoid(start, new Parser(listener)));
+
+    listener = new TypeInfoListener();
+    assertResult(typeInfo.parseTypeNotVoid(start, new Parser(listener)));
+
+    listener = new TypeInfoListener();
+    assertResult(typeInfo.parseType(start, new Parser(listener)));
   }
 
   void test_simpleTypeInfo() {
@@ -67,13 +115,25 @@ class TokenInfoTest {
     expect(typeInfo.skipType(start), expectedEnd);
     expect(typeInfo.couldBeExpression, isTrue);
 
-    TypeInfoListener listener = new TypeInfoListener();
-    expect(typeInfo.parseType(start, new Parser(listener)), expectedEnd);
-    expect(listener.calls, [
-      'handleIdentifier C typeReference',
-      'handleNoTypeArguments ;',
-      'handleType C ;',
-    ]);
+    TypeInfoListener listener;
+    assertResult(Token actualEnd) {
+      expect(actualEnd, expectedEnd);
+      expect(listener.calls, [
+        'handleIdentifier C typeReference',
+        'handleNoTypeArguments ;',
+        'handleType C ;',
+      ]);
+      expect(listener.errors, isNull);
+    }
+
+    listener = new TypeInfoListener();
+    assertResult(typeInfo.ensureTypeNotVoid(start, new Parser(listener)));
+
+    listener = new TypeInfoListener();
+    assertResult(typeInfo.parseTypeNotVoid(start, new Parser(listener)));
+
+    listener = new TypeInfoListener();
+    assertResult(typeInfo.parseType(start, new Parser(listener)));
   }
 
   void test_simpleTypeArgumentsInfo() {
@@ -83,17 +143,29 @@ class TokenInfoTest {
     expect(typeInfo.skipType(start), expectedEnd);
     expect(typeInfo.couldBeExpression, isFalse);
 
-    TypeInfoListener listener = new TypeInfoListener();
-    expect(typeInfo.parseType(start, new Parser(listener)), expectedEnd);
-    expect(listener.calls, [
-      'handleIdentifier C typeReference',
-      'beginTypeArguments <',
-      'handleIdentifier T typeReference',
-      'handleNoTypeArguments >',
-      'handleType T >',
-      'endTypeArguments 1 < >',
-      'handleType C ;',
-    ]);
+    TypeInfoListener listener;
+    assertResult(Token actualEnd) {
+      expect(actualEnd, expectedEnd);
+      expect(listener.calls, [
+        'handleIdentifier C typeReference',
+        'beginTypeArguments <',
+        'handleIdentifier T typeReference',
+        'handleNoTypeArguments >',
+        'handleType T >',
+        'endTypeArguments 1 < >',
+        'handleType C ;',
+      ]);
+      expect(listener.errors, isNull);
+    }
+
+    listener = new TypeInfoListener();
+    assertResult(typeInfo.ensureTypeNotVoid(start, new Parser(listener)));
+
+    listener = new TypeInfoListener();
+    assertResult(typeInfo.parseTypeNotVoid(start, new Parser(listener)));
+
+    listener = new TypeInfoListener();
+    assertResult(typeInfo.parseType(start, new Parser(listener)));
   }
 
   void test_computeType_basic() {
@@ -346,7 +418,7 @@ class TokenInfoTest {
           'handleNoTypeArguments double',
           'handleType int double',
           'endTypeArguments 1 < >',
-          'handleType G double',
+          'handleType G g',
         ],
         expectedErrors: [
           error(codeExpectedToken, 6, 6)
@@ -592,24 +664,29 @@ void compute(
   TypeInfo typeInfo = computeType(start, required);
   expect(typeInfo, expectedInfo, reason: source);
   if (typeInfo is ComplexTypeInfo) {
-    TypeInfoListener listener = new TypeInfoListener();
-    Parser parser = new Parser(listener);
     expect(typeInfo.start, start.next, reason: source);
     expect(typeInfo.couldBeExpression, isFalse);
     expectEnd(expectedAfter, typeInfo.skipType(start));
-    expectEnd(expectedAfter, typeInfo.parseType(start, parser));
-    if (expectedCalls != null) {
-      // TypeInfoListener listener2 = new TypeInfoListener();
-      // new Parser(listener2).parseType(start, TypeContinuation.Required);
-      // print('[');
-      // for (String call in listener2.calls) {
-      //   print("'$call',");
-      // }
-      // print(']');
 
-      expect(listener.calls, expectedCalls, reason: source);
+    TypeInfoListener listener;
+    assertResult(Token actualEnd) {
+      expectEnd(expectedAfter, actualEnd);
+      if (expectedCalls != null) {
+        // TypeInfoListener listener2 = new TypeInfoListener();
+        // new Parser(listener2).parseType(start, TypeContinuation.Required);
+        // print('[');
+        // for (String call in listener2.calls) {
+        //   print("'$call',");
+        // }
+        // print(']');
+
+        expect(listener.calls, expectedCalls, reason: source);
+      }
+      expect(listener.errors, expectedErrors, reason: source);
     }
-    expect(listener.errors, expectedErrors, reason: source);
+
+    listener = new TypeInfoListener();
+    assertResult(typeInfo.parseType(start, new Parser(listener)));
   } else {
     assert(expectedErrors == null);
   }

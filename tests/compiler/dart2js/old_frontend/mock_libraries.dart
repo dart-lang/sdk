@@ -207,6 +207,9 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'functionTypeTest': r'functionTypeTest(f, t) {}',
   'functionTypeCast': r'functionTypeCast(f, t) { return f; }',
   'functionTypeCheck': r'functionTypeCheck(f, t) { return f; }',
+  'futureOrTest': r'futureOrTest(f, t) {}',
+  'futureOrCast': r'futureOrCast(f, t) { return f; }',
+  'futureOrCheck': r'futureOrCheck(f, t) { return f; }',
   'getFallThroughError': 'getFallThroughError() {}',
   'getIsolateAffinityTag': 'getIsolateAffinityTag(_) {}',
   'getRuntimeTypeArgument':
@@ -473,6 +476,5 @@ void reflectType(Type t) => js.disableTreeShaking();
 const String DEFAULT_JS_MIRRORS_SOURCE = r'''
 disableTreeShaking(){}
 preserveMetadata(){}
-preserveUris(){}
 preserveLibraryNames(){}
 ''';

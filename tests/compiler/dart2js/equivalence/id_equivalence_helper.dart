@@ -201,6 +201,7 @@ Future<CompiledData> computeData(
     elementEnvironment.lookupLibrary(Uri.parse('dart:collection')),
     commonElements.interceptorsLibrary,
     commonElements.jsHelperLibrary,
+    commonElements.asyncLibrary,
   ];
 
   ClassEntity getGlobalClass(String className) {

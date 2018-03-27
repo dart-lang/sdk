@@ -30,6 +30,8 @@ class A {
       return null;
     } else if (invoke.memberName == #test6) {
       return 1;
+    } else if (invoke.memberName == #test7) {
+      return "hi";
     } else if (invoke.memberName == #allTogetherNow) {
       Expect.equals(invoke.typeArguments.length, 2);
       Expect.equals(invoke.typeArguments[0].toString(), "num");
@@ -50,6 +52,9 @@ class A {
   void test4([String x]);
   void test5<T extends num>(T x);
   String test6();
+
+  int get test7;
+  void set test7(int x);
 
   T allTogetherNow<T, S extends T>(S x1, {List<T> foo: const <Null>[]});
 }
@@ -79,6 +84,9 @@ main() {
 
   Expect.throwsTypeError(() => a.test6());
   Expect.throwsTypeError(() => (a.test6 as dynamic)());
+
+  Expect.throwsTypeError(() => a.test7);
+  Expect.throwsTypeError(() => (a as dynamic).test7 = "hi");
 
   a.allTogetherNow<num, double>(2.0, foo: const <num>[3, 4]);
 }

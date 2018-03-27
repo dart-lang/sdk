@@ -4672,7 +4672,6 @@ class Position implements HasToJson {
  *   INLINE_METHOD
  *   MOVE_FILE
  *   RENAME
- *   SORT_MEMBERS
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -4703,9 +4702,6 @@ class RefactoringKind implements Enum {
 
   static const RefactoringKind RENAME = const RefactoringKind._("RENAME");
 
-  static const RefactoringKind SORT_MEMBERS =
-      const RefactoringKind._("SORT_MEMBERS");
-
   /**
    * A list containing all of the enum values that are defined.
    */
@@ -4718,8 +4714,7 @@ class RefactoringKind implements Enum {
     INLINE_LOCAL_VARIABLE,
     INLINE_METHOD,
     MOVE_FILE,
-    RENAME,
-    SORT_MEMBERS
+    RENAME
   ];
 
   @override
@@ -4747,8 +4742,6 @@ class RefactoringKind implements Enum {
         return MOVE_FILE;
       case "RENAME":
         return RENAME;
-      case "SORT_MEMBERS":
-        return SORT_MEMBERS;
     }
     throw new Exception('Illegal enum value: $name');
   }

@@ -182,16 +182,14 @@ CompilerImpl compilerFor(
     outputProvider = const NullCompilerOutput();
   }
 
-  CompilerOptions compilerOptions = new CompilerOptions.parse(
-      entryPoint: entryPoint,
-      resolutionInputs: resolutionInputs,
-      libraryRoot: libraryRoot,
-      packageRoot: packageRoot,
-      options: options,
-      environment: {},
-      platformBinaries: platformBinaries,
-      packageConfig: packageConfig,
-      packagesDiscoveryProvider: packagesDiscoveryProvider);
+  CompilerOptions compilerOptions = CompilerOptions.parse(options,
+      libraryRoot: libraryRoot, platformBinaries: platformBinaries)
+    ..entryPoint = entryPoint
+    ..resolutionInputs = resolutionInputs
+    ..packageRoot = packageRoot
+    ..environment = {}
+    ..packageConfig = packageConfig
+    ..packagesDiscoveryProvider = packagesDiscoveryProvider;
   if (compilerOptions.strongMode) {
     compilerOptions.kernelInitializedCompilerState =
         strongKernelInitializedCompilerState;

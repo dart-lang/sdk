@@ -171,9 +171,6 @@ cc/DartAPI_LoadPatchSignatureMismatch: Crash
 cc/DartAPI_LoadSource: Crash
 cc/DartAPI_LoadSource_LateLoad: Crash
 cc/DartAPI_ParsePatchLibrary: Crash
-cc/DartAPI_StackOverflowStackTraceInfoArrowFunction: Fail
-cc/DartAPI_StackOverflowStackTraceInfoBraceFunction1: Fail
-cc/DartAPI_StackOverflowStackTraceInfoBraceFunction2: Fail
 cc/DebuggerAPI_BreakpointStubPatching: Fail
 cc/DebuggerAPI_GetClosureInfo: Fail
 cc/DebuggerAPI_InterruptIsolate: SkipSlow
@@ -257,10 +254,6 @@ cc/Service_Code: Fail
 [ $compiler == dartk && $strong ]
 cc/DartAPI_ImportLibrary3: Fail # Issue 32190
 cc/DartAPI_LazyLoadDeoptimizes: Crash # Issue 32190
-cc/DartAPI_NativePortPostInteger: Crash # Issue 32190
-cc/DartAPI_NativePortReceiveInteger: Timeout # Issue 32190
-cc/DartAPI_NativePortReceiveNull: Timeout # Issue 32190
-cc/DartAPI_NewNativePort: Crash, Timeout # Issue 32190
 cc/DartGeneratedArrayLiteralMessages: Crash # Issue 32190
 cc/FullSnapshot1: Crash # Issue 32190
 cc/IsolateReload_LibraryImportAdded: Crash # Issue 32190

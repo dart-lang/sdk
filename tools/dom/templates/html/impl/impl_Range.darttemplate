@@ -15,8 +15,6 @@ $!MEMBERS
 
   @DomName('Range.getClientRects')
   @DocsEditable()
-  @Returns('DomRectList|Null')
-  @Creates('DomRectList')
   List<Rectangle> getClientRects() {
     var value = _getClientRects();
 

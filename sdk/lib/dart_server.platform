@@ -36,9 +36,9 @@ web_audio: unsupported:
 web_gl: unsupported:
 web_sql: unsupported:
 _chrome: unsupported:
-js: unsupported:
-_js: unsupported:
-js_util: unsupported:
+js: js/dart2js/js_dart2js.dart
+_js: js/_js.dart
+js_util: js_util/dart2js/js_util_dart2js.dart
 _mirror_helper: unsupported:
 _internal: internal/internal.dart
 _js_helper: _internal/js_runtime/lib/js_helper.dart

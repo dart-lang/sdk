@@ -728,6 +728,7 @@ class _RefactoringManager {
   bool get _requiresOptions {
     return refactoring is ExtractLocalRefactoring ||
         refactoring is ExtractMethodRefactoring ||
+        refactoring is ExtractWidgetRefactoring ||
         refactoring is InlineMethodRefactoring ||
         refactoring is RenameRefactoring;
   }
@@ -902,6 +903,15 @@ class _RefactoringManager {
             false, <RefactoringMethodParameter>[], <int>[], <int>[]);
       }
     }
+    if (kind == RefactoringKind.EXTRACT_WIDGET) {
+      CompilationUnit unit = await server.getResolvedCompilationUnit(file);
+      if (unit != null) {
+        var analysisSession = server.getAnalysisDriver(file).currentSession;
+        refactoring = new ExtractWidgetRefactoring(
+            searchEngine, analysisSession, unit, offset);
+        feedback = new ExtractWidgetFeedback();
+      }
+    }
     if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
       CompilationUnit unit = await server.getResolvedCompilationUnit(file);
       if (unit != null) {
@@ -1054,6 +1064,12 @@ class _RefactoringManager {
         extractRefactoring.parameters = extractOptions.parameters;
       }
       extractRefactoring.returnType = extractOptions.returnType;
+      return extractRefactoring.checkName();
+    }
+    if (refactoring is ExtractWidgetRefactoring) {
+      ExtractWidgetRefactoring extractRefactoring = this.refactoring;
+      ExtractWidgetOptions extractOptions = params.options;
+      extractRefactoring.name = extractOptions.name;
       return extractRefactoring.checkName();
     }
     if (refactoring is InlineMethodRefactoring) {

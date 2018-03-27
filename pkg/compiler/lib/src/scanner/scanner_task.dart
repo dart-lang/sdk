@@ -11,27 +11,14 @@ import '../parser/diet_parser_task.dart' show DietParserTask;
 import '../script.dart' show Script;
 import 'package:front_end/src/fasta/scanner.dart'
     show Scanner, StringScanner, Token, Utf8BytesScanner;
-import 'package:front_end/src/fasta/scanner/token_constants.dart' as Tokens
-    show COMMENT_TOKEN, EOF_TOKEN;
-import '../tokens/token_map.dart' show TokenMap;
 import '../io/source_file.dart';
 
 class ScannerTask extends CompilerTask {
   final DietParserTask _dietParser;
-  final bool _preserveComments;
-  final TokenMap _commentMap;
   final DiagnosticReporter reporter;
 
-  ScannerTask(this._dietParser, this.reporter, Measurer measurer,
-      {bool preserveComments: false, TokenMap commentMap})
-      : _preserveComments = preserveComments,
-        _commentMap = commentMap,
-        super(measurer) {
-    if (_preserveComments && _commentMap == null) {
-      throw new ArgumentError(
-          "commentMap must be provided if preserveComments is true");
-    }
-  }
+  ScannerTask(this._dietParser, this.reporter, Measurer measurer)
+      : super(measurer);
 
   String get name => 'Scanner';
 
@@ -63,10 +50,7 @@ class ScannerTask extends CompilerTask {
 
   void scanElements(CompilationUnitElement compilationUnit) {
     Script script = compilationUnit.script;
-    Token tokens = scanFile(script.file, includeComments: _preserveComments);
-    if (_preserveComments) {
-      tokens = processAndStripComments(tokens);
-    }
+    Token tokens = scanFile(script.file);
     _dietParser.dietParse(compilationUnit, tokens);
   }
 
@@ -81,27 +65,5 @@ class ScannerTask extends CompilerTask {
     return measure(() {
       return new StringScanner(source, includeComments: false).tokenize();
     });
-  }
-
-  Token processAndStripComments(Token currentToken) {
-    Token firstToken = currentToken;
-    Token prevToken;
-    while (currentToken.kind != Tokens.EOF_TOKEN) {
-      if (identical(currentToken.kind, Tokens.COMMENT_TOKEN)) {
-        Token firstCommentToken = currentToken;
-        while (identical(currentToken.kind, Tokens.COMMENT_TOKEN)) {
-          currentToken = currentToken.next;
-        }
-        _commentMap[currentToken] = firstCommentToken;
-        if (prevToken == null) {
-          firstToken = currentToken;
-        } else {
-          prevToken.next = currentToken;
-        }
-      }
-      prevToken = currentToken;
-      currentToken = currentToken.next;
-    }
-    return firstToken;
   }
 }

@@ -233,10 +233,13 @@ String runtimeTypeToStringV2(var rti, List<String> genericContext) {
     }
     return '${genericContext[genericContext.length - index - 1]}';
   }
-  String functionPropertyName = JS_GET_NAME(JsGetName.FUNCTION_TYPE_TAG);
-  if (JS('bool', 'typeof #[#] != "undefined"', rti, functionPropertyName)) {
+  if (isDartFunctionType(rti)) {
     // TODO(sra): If there is a typedef tag, use the typedef name.
     return _functionRtiToStringV2(rti, genericContext);
+  }
+  if (isDartFutureOrType(rti)) {
+    var typeArgument = getFutureOrArgument(rti);
+    return 'FutureOr<${runtimeTypeToStringV2(typeArgument, genericContext)}>';
   }
   // We should not get here.
   return 'unknown-reified-type';
@@ -703,13 +706,51 @@ computeSignature(var signature, var context, var contextName) {
   return invokeOn(signature, context, typeArguments);
 }
 
-/**
- * Returns `true` if the runtime type representation [type] is a supertype of
- * [Null].
- */
+/// Returns `true` if the runtime type representation [type] is a supertype of
+/// [Null].
+@ForceInline()
 bool isSupertypeOfNull(var type) {
+  return JS_GET_FLAG('STRONG_MODE')
+      ? isSupertypeOfNullBase(type) || isSupertypeOfNullRecursive(type)
+      : isSupertypeOfNullBase(type);
+}
+
+/// Returns `true` if the runtime type representation [type] is a simple
+/// supertype of [Null].
+///
+/// This method doesn't handle `FutureOr<Null>`. This is handle by
+/// [isSupertypeOfNullRecursive] because it requires a recursive check.
+@ForceInline()
+bool isSupertypeOfNullBase(var type) {
   // `null` means `dynamic`.
   return type == null || isDartObjectTypeRti(type) || isNullTypeRti(type);
+}
+
+/// Returns `true` if the runtime type representation [type] is a `FutureOr`
+/// type that is a supertype of [Null].
+///
+/// This method is recursive to be able to handle both `FutureOr<Null>` and
+/// `FutureOr<FutureOr<Null>>` etc.
+bool isSupertypeOfNullRecursive(var type) {
+  if (isDartFutureOrType(type)) {
+    var typeArgument = getFutureOrArgument(type);
+    return isSupertypeOfNullBase(type) ||
+        isSupertypeOfNullRecursive(typeArgument);
+  }
+  return false;
+}
+
+/// Returns the type argument of the `FutureOr` runtime type representation
+/// [type].
+///
+/// For instance `num` of `FutureOr<num>`.
+@ForceInline()
+Object getFutureOrArgument(var type) {
+  assert(isDartFutureOrType(type));
+  var typeArgumentTag = JS_GET_NAME(JsGetName.FUTURE_OR_TYPE_ARGUMENT_TAG);
+  return hasField(type, typeArgumentTag)
+      ? getField(type, typeArgumentTag)
+      : null;
 }
 
 /**
@@ -850,7 +891,14 @@ bool isSubtypeV2(var s, var sEnv, var t, var tEnv) {
   // TODO(sra): void is a top type.
 
   // [s] is a top type?
-  if (s == null) return false;
+  if (s == null) {
+    if (isDartFutureOrType(t)) {
+      // [t] is FutureOr<T>. Check [s] <: T.
+      var tTypeArgument = getFutureOrArgument(t);
+      return isSubtypeV2(s, sEnv, tTypeArgument, tEnv);
+    }
+    return false;
+  }
 
   // Generic function type parameters must match exactly, which would have
   // exited earlier. The de Bruijn indexing ensures the representation as a
@@ -874,8 +922,39 @@ bool isSubtypeV2(var s, var sEnv, var t, var tEnv) {
   }
 
   // Get the object describing the class and check for the subtyping flag
-  // constructed from the type of [t].
+  // constructed from the type of [s].
   var typeOfS = isJsArray(s) ? getIndex(s, 0) : s;
+
+  if (isDartFutureOrType(t)) {
+    // [t] is FutureOr<T>
+    var tTypeArgument = getFutureOrArgument(t);
+    if (isDartFutureOrType(s)) {
+      // [S] is FutureOr<S>. Check S <: T
+      var sTypeArgument = getFutureOrArgument(s);
+      return isSubtypeV2(sTypeArgument, sEnv, tTypeArgument, tEnv);
+    } else if (isSubtypeV2(s, sEnv, tTypeArgument, tEnv)) {
+      // `true` because [s] <: T.
+      return true;
+    } else {
+      // Check [s] <: Future<T>.
+      String futureClass = JS_GET_NAME(JsGetName.FUTURE_CLASS_TYPE_NAME);
+      if (!builtinIsSubtype(typeOfS, futureClass)) {
+        // [s] doesn't implement Future.
+        return false;
+      }
+      var typeOfSPrototype = JS('', '#.prototype', typeOfS);
+      var field = '${JS_GET_NAME(JsGetName.OPERATOR_AS_PREFIX)}${futureClass}';
+      var futureSubstitution = getField(typeOfSPrototype, field);
+      var futureArguments = substitute(futureSubstitution, getArguments(s));
+      var futureArgument =
+          isJsArray(futureArguments) ? getIndex(futureArguments, 0) : null;
+      // [s] implements Future<S>. Check S <: T.
+      return isSubtypeV2(futureArgument, sEnv, tTypeArgument, tEnv);
+    }
+  }
+
+  // Get the object describing the class and check for the subtyping flag
+  // constructed from the type of [t].
   var typeOfT = isJsArray(t) ? getIndex(t, 0) : t;
 
   // Check for a subtyping flag.
@@ -1128,8 +1207,8 @@ bool isFunctionSubtypeV2(var s, var sEnv, var t, var tEnv) {
   // Check the remaining parameters of [t] with the first optional parameters
   // of [s].
   for (; tPos < tParametersLen; sPos++, tPos++) {
-    if (!isSubtypeV2(getIndex(tOptionalParameterTypes, tPos), tEnv,
-        getIndex(sParameterTypes, sPos), sEnv)) {
+    if (!isSubtypeV2(getIndex(tParameterTypes, tPos), tEnv,
+        getIndex(sOptionalParameterTypes, sPos), sEnv)) {
       return false;
     }
   }

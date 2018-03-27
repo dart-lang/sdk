@@ -84,7 +84,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "@1.0.10",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "@v0.17.1+1",
+  "dartdoc_tag" : "@v0.18.0",
   "fixnum_tag": "@0.10.5",
   "func_rev": "@25eec48146a58967d75330075ab376b3838b18a8",
   "glob_tag": "@1.1.5",
@@ -100,7 +100,7 @@ vars = {
   "isolate_tag": "@1.1.0",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@2.0.6",
-  "linter_tag": "@0.1.45",
+  "linter_tag": "@0.1.46",
   "logging_tag": "@0.11.3+1",
   "markdown_tag": "@1.1.1",
   "matcher_tag": "@0.12.1+4",
@@ -136,7 +136,7 @@ vars = {
   "test_descriptor_tag": "@1.0.3",
   "test_process_tag": "@1.0.1",
   "term_glyph_tag": "@1.0.0",
-  "test_reflective_loader_tag": "@0.1.3",
+  "test_reflective_loader_tag": "@0.1.4",
   "test_tag": "@0.12.30+1",
   "tuple_tag": "@v1.0.1",
   "typed_data_tag": "@1.1.3",

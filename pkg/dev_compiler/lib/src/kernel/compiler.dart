@@ -1215,9 +1215,11 @@ class ProgramCompiler
       }
     }
 
-    for (var member in c.procedures) {
-      if (member.isAbstract) continue;
-
+    var classProcedures = c.procedures.where((p) => !p.isAbstract).toList();
+    for (var m in _classProperties.mockMembers.values) {
+      if (m is Procedure) classProcedures.add(m);
+    }
+    for (var member in classProcedures) {
       // Static getters/setters cannot be called with dynamic dispatch, nor
       // can they be torn off.
       // TODO(jmesserly): can we attach static method type info at the tearoff
@@ -1228,7 +1230,7 @@ class ProgramCompiler
       }
 
       var name = member.name.name;
-      var reifiedType = _getMemberRuntimeType(member);
+      var reifiedType = _getMemberRuntimeType(member, c);
 
       // Don't add redundant signatures for inherited methods whose signature
       // did not change.  If we are not overriding, or if the thing we are
@@ -1241,15 +1243,10 @@ class ProgramCompiler
           : null;
 
       var needsSignature = memberOverride == null ||
-          reifiedType !=
-              Substitution
-                  .fromSupertype(hierarchy.getClassAsInstanceOf(
-                      c, memberOverride.enclosingClass))
-                  .substituteType(_getMemberRuntimeType(memberOverride));
+          reifiedType != _getMemberRuntimeType(memberOverride, c);
 
       if (needsSignature) {
-        var type = _emitAnnotatedFunctionType(reifiedType, member.annotations,
-            function: member.function);
+        var type = _emitAnnotatedFunctionType(reifiedType, member);
         var property = new JS.Property(_declareMemberName(member), type);
         var signatures = getSignatureList(member);
         signatures.add(property);
@@ -1269,14 +1266,18 @@ class ProgramCompiler
 
     var instanceFields = <JS.Property>[];
     var staticFields = <JS.Property>[];
-    for (var field in c.fields) {
+
+    var classFields = c.fields.toList();
+    for (var m in _classProperties.mockMembers.values) {
+      if (m is Field) classFields.add(m);
+    }
+    for (var field in classFields) {
       // Only instance fields need to be saved for dynamic dispatch.
       var isStatic = field.isStatic;
       if (!emitMetadata && isStatic) continue;
 
       var memberName = _declareMemberName(field);
-      var fieldSig = _emitFieldSignature(field.type,
-          metadata: field.annotations, isFinal: field.isFinal);
+      var fieldSig = _emitFieldSignature(field, c);
       (isStatic ? staticFields : instanceFields)
           .add(new JS.Property(memberName, fieldSig));
     }
@@ -1288,8 +1289,7 @@ class ProgramCompiler
       for (var ctor in c.constructors) {
         var memberName = _constructorName(ctor.name.name);
         var type = _emitAnnotatedFunctionType(
-            ctor.function.functionType.withoutTypeParameters, ctor.annotations,
-            function: ctor.function, nameType: false, definite: true);
+            ctor.function.functionType.withoutTypeParameters, ctor);
         constructors.add(new JS.Property(memberName, type));
       }
     }
@@ -1303,41 +1303,54 @@ class ProgramCompiler
     }
   }
 
-  JS.Expression _emitFieldSignature(DartType type,
-      {List<Expression> metadata, bool isFinal: true}) {
+  JS.Expression _emitFieldSignature(Field field, Class fromClass) {
+    var type = _getTypeFromClass(field.type, field.enclosingClass, fromClass);
     var args = [_emitType(type)];
-    if (emitMetadata && metadata != null && metadata.isNotEmpty) {
+    var annotations = field.annotations;
+    if (emitMetadata && annotations != null && annotations.isNotEmpty) {
+      var savedUri = _currentUri;
+      _currentUri = field.enclosingClass.fileUri;
       args.add(new JS.ArrayInitializer(
-          metadata.map(_instantiateAnnotation).toList()));
+          annotations.map(_instantiateAnnotation).toList()));
+      _currentUri = savedUri;
     }
-    return _callHelper(isFinal ? 'finalFieldType(#)' : 'fieldType(#)', [args]);
+    return _callHelper(
+        field.isFinal ? 'finalFieldType(#)' : 'fieldType(#)', [args]);
   }
 
-  FunctionType _getMemberRuntimeType(Member member) {
+  FunctionType _getMemberRuntimeType(Member member, Class fromClass) {
     var f = member.function;
     if (f == null) {
-      assert(member is Field);
-      return new FunctionType([], member.getterType);
+      return (member as Field).type;
     }
-
+    FunctionType result;
     if (!f.positionalParameters.any(isCovariant) &&
         !f.namedParameters.any(isCovariant)) {
-      return f.functionType;
+      result = f.functionType;
+    } else {
+      reifyParameter(VariableDeclaration p) =>
+          isCovariant(p) ? coreTypes.objectClass.thisType : p.type;
+      reifyNamedParameter(VariableDeclaration p) =>
+          new NamedType(p.name, reifyParameter(p));
+
+      // TODO(jmesserly): do covariant type parameter bounds also need to be
+      // reified as `Object`?
+      result = new FunctionType(
+          f.positionalParameters.map(reifyParameter).toList(), f.returnType,
+          namedParameters: f.namedParameters.map(reifyNamedParameter).toList()
+            ..sort(),
+          typeParameters: f.functionType.typeParameters,
+          requiredParameterCount: f.requiredParameterCount);
     }
+    return _getTypeFromClass(result, member.enclosingClass, fromClass)
+        as FunctionType;
+  }
 
-    reifyParameter(VariableDeclaration p) =>
-        isCovariant(p) ? coreTypes.objectClass.thisType : p.type;
-    reifyNamedParameter(VariableDeclaration p) =>
-        new NamedType(p.name, reifyParameter(p));
-
-    // TODO(jmesserly): do covariant type parameter bounds also need to be
-    // reified as `Object`?
-    return new FunctionType(
-        f.positionalParameters.map(reifyParameter).toList(), f.returnType,
-        namedParameters: f.namedParameters.map(reifyNamedParameter).toList()
-          ..sort(),
-        typeParameters: f.functionType.typeParameters,
-        requiredParameterCount: f.requiredParameterCount);
+  DartType _getTypeFromClass(DartType type, Class superclass, Class subclass) {
+    if (identical(superclass, subclass)) return type;
+    return Substitution
+        .fromSupertype(hierarchy.getClassAsInstanceOf(subclass, superclass))
+        .substituteType(type);
   }
 
   JS.Expression _emitConstructor(Constructor node, List<Field> fields,
@@ -1704,8 +1717,9 @@ class ProgramCompiler
 
     if (superMember == null) return [];
 
-    var superSubstition = Substitution.fromSupertype(hierarchy
-        .getClassAsInstanceOf(enclosingClass, superMember.enclosingClass));
+    substituteType(DartType t) {
+      return _getTypeFromClass(t, superMember.enclosingClass, enclosingClass);
+    }
 
     var name = _declareMemberName(member);
     if (member.isSetter) {
@@ -1717,10 +1731,8 @@ class ProgramCompiler
       return [
         new JS.Method(
             name,
-            js.fun('function(x) { return super.# = #._check(x); }', [
-              name,
-              _emitType(superSubstition.substituteType(superMember.setterType))
-            ]),
+            js.fun('function(x) { return super.# = #._check(x); }',
+                [name, _emitType(substituteType(superMember.setterType))]),
             isSetter: true),
         new JS.Method(name, js.fun('function() { return super.#; }', [name]),
             isGetter: true)
@@ -1728,8 +1740,8 @@ class ProgramCompiler
     }
     assert(!member.isAccessor);
 
-    var superMethodType = superSubstition
-        .substituteType(superMember.function.functionType) as FunctionType;
+    var superMethodType =
+        substituteType(superMember.function.functionType) as FunctionType;
     var function = member.function;
 
     var body = <JS.Statement>[];
@@ -1881,6 +1893,7 @@ class ProgramCompiler
         new JS.ObjectInitializer(invocationProps)
       ]);
 
+      returnType = _getTypeFromClass(returnType, member.enclosingClass, c);
       if (!types.isTop(returnType)) {
         fnBody = js.call('#._check(#)', [_emitType(returnType), fnBody]);
       }
@@ -1898,32 +1911,17 @@ class ProgramCompiler
     }
 
     if (member is Field) {
-      jsMethods.add(implementMockMember(
-          const <TypeParameter>[],
-          const <VariableDeclaration>[],
-          ProcedureKind.Getter,
-          Substitution
-              .fromSupertype(
-                  hierarchy.getClassAsInstanceOf(c, member.enclosingClass))
-              .substituteType(member.type)));
+      jsMethods
+          .add(implementMockMember([], [], ProcedureKind.Getter, member.type));
       if (!member.isFinal) {
         jsMethods.add(implementMockMember(
-            const <TypeParameter>[],
-            const <VariableDeclaration>[],
-            ProcedureKind.Setter,
-            new DynamicType()));
+            [], [], ProcedureKind.Setter, new DynamicType()));
       }
     } else {
-      Procedure procedure = member as Procedure;
-      FunctionNode function = procedure.function;
+      var procedure = member as Procedure;
+      var f = procedure.function;
       jsMethods.add(implementMockMember(
-          function.typeParameters,
-          function.namedParameters,
-          procedure.kind,
-          Substitution
-              .fromSupertype(
-                  hierarchy.getClassAsInstanceOf(c, member.enclosingClass))
-              .substituteType(function.returnType)));
+          f.typeParameters, f.namedParameters, procedure.kind, f.returnType));
     }
   }
 
@@ -2680,11 +2678,19 @@ class ProgramCompiler
     return _nameType(type, _callHelper(helperCall, [typeParts]));
   }
 
-  JS.Expression _emitAnnotatedFunctionType(
-      FunctionType type, List<Expression> metadata,
-      {FunctionNode function, bool nameType: true, bool definite: false}) {
-    var result = visitFunctionType(type, function: function);
-    return _emitAnnotatedResult(result, metadata);
+  JS.Expression _emitAnnotatedFunctionType(FunctionType type, Member member) {
+    var result = visitFunctionType(type, function: member.function);
+
+    var annotations = member.annotations;
+    if (emitMetadata && annotations != null && annotations.isNotEmpty) {
+      // TODO(jmesserly): should we disable source info for annotations?
+      var savedUri = _currentUri;
+      _currentUri = member.enclosingClass.fileUri;
+      result = new JS.ArrayInitializer(
+          [result]..addAll(annotations.map(_instantiateAnnotation)));
+      _currentUri = savedUri;
+    }
+    return result;
   }
 
   /// Emits an expression that lets you access statics on a [type] from code.
@@ -3093,14 +3099,14 @@ class ProgramCompiler
 
   JS.Statement _emitFunctionScopedBody(FunctionNode f) {
     var jsBody = _visitStatement(f.body);
-    if (f.asyncMarker == AsyncMarker.Sync) {
+    if (f.positionalParameters.isNotEmpty || f.namedParameters.isNotEmpty) {
       // Handle shadowing of parameters by local varaibles, which is allowed in
       // Dart but not in JS.
       //
-      // We only handle this for normal (sync) functions. Generator-based
-      // functions (sync*, async, and async*) have their bodies placed
-      // in an inner function scope that is a separate scope from the
-      // parameters, so they avoid this problem.
+      // We need this for all function types, including generator-based ones
+      // (sync*/async/async*). Our code generator assumes it can emit names for
+      // named argument initialization, and sync* functions also emit locally
+      // modified parameters into the function's scope.
       var parameterNames = new HashSet<String>()
         ..addAll(f.positionalParameters.map((p) => p.name))
         ..addAll(f.namedParameters.map((p) => p.name));

@@ -1,0 +1,53 @@
+------------ #lib::T:: ------------
+%this = _Parameter #0 [_T (#lib::T)+]
+t1 = _Call direct [dart.core::Object::] (%this)
+RESULT: _T {}?
+------------ #lib::A:: ------------
+%this = _Parameter #0 [_T (#lib::A)+]
+t1 = _Call direct [dart.core::Object::] (%this)
+RESULT: _T {}?
+------------ #lib::A::foo ------------
+
+RESULT: _T {}?
+------------ #lib::B:: ------------
+%this = _Parameter #0 [_T (#lib::B)+]
+t1 = _Call direct [#lib::A::] (%this)
+RESULT: _T {}?
+------------ #lib::B::foo ------------
+%this = _Parameter #0 [_T (#lib::B)+]
+%x = _Parameter #1 [_T ANY?]
+RESULT: _T {}?
+------------ #lib::B::testPropertySet ------------
+%this = _Parameter #0 [_T (#lib::B)+]
+%x = _Parameter #1 [_T ANY?]
+t2 = _Call set [#lib::B::foo] (%this, %x)
+t3 = _Call direct [#lib::use] (%x)
+RESULT: _T {}?
+------------ #lib::B::testDynamicPropertySet ------------
+%this = _Parameter #0 [_T (#lib::B)+]
+%x = _Parameter #1 [_T ANY?]
+%y = _Parameter #2 [_T ANY?]
+t3 = _Call dynamic set [foo] (%x, %y)
+t4 = _Call direct [#lib::use] (%y)
+RESULT: _T {}?
+------------ #lib::B::testSuperPropertySet ------------
+%this = _Parameter #0 [_T (#lib::B)+]
+%x = _Parameter #1 [_T ANY?]
+t2 = _Call direct set [#lib::A::foo] (%this, %x)
+t3 = _Call direct [#lib::use] (%x)
+RESULT: _T {}?
+------------ #lib::B::testStaticPropertySet ------------
+%this = _Parameter #0 [_T (#lib::B)+]
+%x = _Parameter #1 [_T ANY?]
+t2 = _Call direct set [#lib::B::bar] (%x)
+t3 = _Call direct [#lib::use] (%x)
+RESULT: _T {}?
+------------ #lib::B::bar ------------
+
+RESULT: _T {}?
+------------ #lib::use ------------
+%x = _Parameter #0 [_T ANY?]
+RESULT: _T {}?
+------------ #lib::main ------------
+
+RESULT: _T {}?

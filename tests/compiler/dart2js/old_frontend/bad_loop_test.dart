@@ -35,10 +35,10 @@ main() {
       provider,
       new LegacyCompilerOutput(),
       new LegacyCompilerDiagnostics(diagnosticHandler),
-      new CompilerOptions(
-          libraryRoot: libraryRoot,
-          useKernel: false,
-          packageRoot: packageRoot));
+      new CompilerOptions()
+        ..libraryRoot = libraryRoot
+        ..useKernel = false
+        ..packageRoot = packageRoot);
   asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
         Expect.isTrue(compiler.compilationFailed);
         Expect.equals(5, errorCount);

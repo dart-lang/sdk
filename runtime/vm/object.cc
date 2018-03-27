@@ -6216,26 +6216,33 @@ void Function::set_kind_tag(uint32_t value) const {
   StoreNonPointer(&raw_ptr()->kind_tag_, static_cast<uint32_t>(value));
 }
 
+void Function::set_packed_fields(uint32_t packed_fields) const {
+  StoreNonPointer(&raw_ptr()->packed_fields_, packed_fields);
+}
+
 void Function::set_num_fixed_parameters(intptr_t value) const {
   ASSERT(value >= 0);
-  ASSERT(Utils::IsInt(16, value));
-  StoreNonPointer(&raw_ptr()->num_fixed_parameters_,
-                  static_cast<int16_t>(value));
+  ASSERT(Utils::IsUint(RawFunction::kMaxFixedParametersBits, value));
+  const uint32_t* original = &raw_ptr()->packed_fields_;
+  StoreNonPointer(original, RawFunction::PackedNumFixedParameters::update(
+                                value, *original));
 }
 
-void Function::set_num_optional_parameters(intptr_t value) const {
-  // A positive value indicates positional params, a negative one named params.
-  ASSERT(Utils::IsInt(16, value));
-  StoreNonPointer(&raw_ptr()->num_optional_parameters_,
-                  static_cast<int16_t>(value));
+void Function::set_is_no_such_method_forwarder(bool value) const {
+  const uint32_t* original = &raw_ptr()->packed_fields_;
+  StoreNonPointer(original, RawFunction::PackedIsNoSuchMethodForwarder::update(
+                                value ? 1 : 0, *original));
 }
 
-void Function::SetNumOptionalParameters(intptr_t num_optional_parameters,
+void Function::SetNumOptionalParameters(intptr_t value,
                                         bool are_optional_positional) const {
-  ASSERT(num_optional_parameters >= 0);
-  set_num_optional_parameters(are_optional_positional
-                                  ? num_optional_parameters
-                                  : -num_optional_parameters);
+  ASSERT(Utils::IsUint(RawFunction::kMaxOptionalParametersBits, value));
+  uint32_t packed_fields = raw_ptr()->packed_fields_;
+  packed_fields = RawFunction::PackedHasNamedOptionalParameters::update(
+      !are_optional_positional, packed_fields);
+  packed_fields =
+      RawFunction::PackedNumOptionalParameters::update(value, packed_fields);
+  set_packed_fields(packed_fields);
 }
 
 bool Function::IsOptimizable() const {
@@ -6268,10 +6275,12 @@ void Function::SetIsOptimizable(bool value) const {
 
 bool Function::CanBeInlined() const {
 #if defined(PRODUCT)
-  return is_inlinable() && !is_external() && !is_generated_body();
+  return is_inlinable() && !is_external() && !is_generated_body() &&
+         !is_no_such_method_forwarder();
 #else
   Thread* thread = Thread::Current();
   return is_inlinable() && !is_external() && !is_generated_body() &&
+         !is_no_such_method_forwarder() &&
          !thread->isolate()->debugger()->HasBreakpoint(*this, thread->zone());
 #endif
 }
@@ -6949,7 +6958,8 @@ RawFunction* Function::New(const String& name,
   NOT_IN_PRECOMPILED(result.set_token_pos(token_pos));
   NOT_IN_PRECOMPILED(result.set_end_token_pos(token_pos));
   result.set_num_fixed_parameters(0);
-  result.set_num_optional_parameters(0);
+  result.SetNumOptionalParameters(0, false);
+  result.set_is_no_such_method_forwarder(false);
   NOT_IN_PRECOMPILED(result.set_usage_counter(0));
   NOT_IN_PRECOMPILED(result.set_deoptimization_counter(0));
   NOT_IN_PRECOMPILED(result.set_optimized_instruction_count(0));
@@ -7187,13 +7197,13 @@ RawFunction* Function::ImplicitClosureFunction() const {
     closure_function.SetParameterNameAt(i, param_name);
   }
   closure_function.set_kernel_offset(kernel_offset());
+  closure_function.set_is_no_such_method_forwarder(
+      is_no_such_method_forwarder());
 
   // In strong mode, change covariant parameter types to Object in the implicit
   // closure of a method compiled by kernel.
   // The VM's parser erases covariant types immediately in strong mode.
-  do {
-    if (is_static() || kernel_offset() == 0) break;
-
+  if (thread->isolate()->strong() && !is_static() && kernel_offset() > 0) {
     const Script& function_script = Script::Handle(zone, script());
     kernel::TranslationHelper translation_helper(thread);
     kernel::StreamingFlowGraphBuilder builder(
@@ -7202,9 +7212,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
     translation_helper.InitFromScript(function_script);
     builder.SetOffset(kernel_offset());
 
-    closure_function.set_is_inlinable(!builder.ReadUntilFunctionNode(NULL));
-
-    if (!thread->isolate()->strong()) break;
+    builder.ReadUntilFunctionNode();
 
     kernel::FunctionNodeHelper fn_helper(&builder);
 
@@ -7236,7 +7244,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
                                             object_type);
       }
     }
-  } while (false);
+  }
   const Type& signature_type =
       Type::Handle(zone, closure_function.SignatureType());
   if (!signature_type.IsFinalized()) {

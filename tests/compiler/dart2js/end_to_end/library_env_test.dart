@@ -84,10 +84,10 @@ class CustomCompiler extends CompilerImpl {
             const DummyCompilerInput(),
             const NullCompilerOutput(),
             const DummyCompilerDiagnostics(),
-            new CompilerOptions.parse(
-                libraryRoot: Uri.base.resolve("sdk/"),
-                options: ['--platform-binaries=$platformDir']..addAll(options),
-                environment: environment));
+            CompilerOptions.parse(
+                ['--platform-binaries=$platformDir']..addAll(options),
+                libraryRoot: Uri.base.resolve("sdk/"))
+              ..environment = environment);
 }
 
 runTest() async {

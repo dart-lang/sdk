@@ -3062,7 +3062,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             _emitter.emitter,
             node.dartType,
             (TypeVariableType variable) => arguments[index++]);
-        assert(index == node.inputs.length);
+        assert(
+            index == node.inputs.length,
+            "Not all input is read for type ${node.dartType}: "
+            "$index of ${node.inputs}.");
         push(result);
         return;
 

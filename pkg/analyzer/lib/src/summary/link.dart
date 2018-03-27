@@ -778,6 +778,10 @@ class ClassElementForLink_Class extends ClassElementForLink
   }
 
   @override
+  ConstructorElement getNamedConstructor(String name) =>
+      ClassElementImpl.getNamedConstructorFromList(name, constructors);
+
+  @override
   void link(CompilationUnitElementInBuildUnit compilationUnit) {
     // Force mixins to be inferred by calling this.mixins.  We don't need the
     // return value from the getter; we just need it to execute and record the

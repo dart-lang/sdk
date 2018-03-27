@@ -33,7 +33,7 @@ main() {
 
   test('is', () {
     try {
-      var list = document.query('#browsers');
+      var list = document.querySelector('#browsers');
       expect(list, isDataListElement);
     } catch (e) {
       expect(DataListElement.supported, false);
@@ -42,8 +42,8 @@ main() {
 
   test('list', () {
     try {
-      var list = document.query('#browsers') as DataListElement;
-      var input = document.query('#input') as InputElement;
+      var list = document.querySelector('#browsers') as DataListElement;
+      var input = document.querySelector('#input') as InputElement;
       expect(input.list, list);
     } catch (e) {
       expect(DataListElement.supported, false);
@@ -52,7 +52,8 @@ main() {
 
   test('options', () {
     try {
-      var options = (document.query('#browsers') as DataListElement).options;
+      var options =
+          (document.querySelector('#browsers') as DataListElement).options;
       expect(options.length, 5);
     } catch (e) {
       expect(DataListElement.supported, false);

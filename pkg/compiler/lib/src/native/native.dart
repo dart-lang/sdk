@@ -24,7 +24,7 @@ const Iterable<String> _allowedDartSchemePaths = const <String>[
   'web_sql'
 ];
 
-bool maybeEnableNative(Uri uri, {bool allowNativeExtensions: false}) {
+bool maybeEnableNative(Uri uri) {
   bool allowedTestLibrary() {
     String scriptName = uri.path;
     return scriptName.contains('tests/compiler/dart2js_native') ||
@@ -36,5 +36,5 @@ bool maybeEnableNative(Uri uri, {bool allowNativeExtensions: false}) {
     return _allowedDartSchemePaths.contains(uri.path);
   }
 
-  return allowedTestLibrary() || allowedDartLibary() || allowNativeExtensions;
+  return allowedTestLibrary() || allowedDartLibary();
 }

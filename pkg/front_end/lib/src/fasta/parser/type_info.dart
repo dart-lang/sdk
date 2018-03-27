@@ -4,7 +4,7 @@
 
 library fasta.parser.type_info;
 
-import '../../scanner/token.dart' show Token, TokenType;
+import '../../scanner/token.dart' show SyntheticStringToken, Token, TokenType;
 
 import '../scanner/token_constants.dart' show IDENTIFIER_TOKEN, KEYWORD_TOKEN;
 
@@ -39,7 +39,20 @@ abstract class TypeInfo {
   /// or as expressions, while `A<T>` only looks like a type reference.
   bool get couldBeExpression;
 
-  /// Call this function when it's known that the token after [token] is a type.
+  /// Call this function when the token after [token] must be a type (not void).
+  /// This function will call the appropriate event methods on the [Parser]'s
+  /// listener to handle the type, inserting a synthetic type reference if
+  /// necessary. This may modify the token stream when parsing `>>` in valid
+  /// code or during recovery.
+  Token ensureTypeNotVoid(Token token, Parser parser);
+
+  /// Call this function to parse an optional type (not void) after [token].
+  /// This function will call the appropriate event methods on the [Parser]'s
+  /// listener to handle the type. This may modify the token stream
+  /// when parsing `>>` in valid code or during recovery.
+  Token parseTypeNotVoid(Token token, Parser parser);
+
+  /// Call this function to parse an optional type or void after [token].
   /// This function will call the appropriate event methods on the [Parser]'s
   /// listener to handle the type. This may modify the token stream
   /// when parsing `>>` in valid code or during recovery.
@@ -72,6 +85,13 @@ const TypeInfo prefixedTypeInfo = const PrefixedTypeInfo();
 /// identifier `<` identifier `>`.
 const TypeInfo simpleTypeArgumentsInfo = const SimpleTypeArgumentsInfo();
 
+Token insertSyntheticIdentifierAfter(Token token, Parser parser) {
+  Token identifier = new SyntheticStringToken(
+      TokenType.IDENTIFIER, '', token.next.charOffset, 0);
+  parser.rewriter.insertTokenAfter(token, identifier);
+  return identifier;
+}
+
 bool isGeneralizedFunctionType(Token token) {
   return optional('Function', token) &&
       (optional('<', token.next) || optional('(', token.next));
@@ -96,6 +116,17 @@ bool isValidTypeReference(Token token) {
 TypeInfo computeType(final Token token, bool required) {
   Token next = token.next;
   if (!isValidTypeReference(next)) {
+    if (next.type.isBuiltIn) {
+      Token afterType = next.next;
+      if (optional('<', afterType) && afterType.endGroup != null) {
+        // Recovery: built-in used as a type
+        return new ComplexTypeInfo(token)
+            .computeSimpleWithTypeArguments(required);
+      } else if (isGeneralizedFunctionType(afterType)) {
+        // Recovery: built-in used as a type
+        return new ComplexTypeInfo(token).computeIdentifierGFT(required);
+      }
+    }
     return noTypeInfo;
   }
 
@@ -206,6 +237,14 @@ class ComplexTypeInfo implements TypeInfo {
   bool get couldBeExpression => false;
 
   @override
+  Token ensureTypeNotVoid(Token token, Parser parser) =>
+      parseType(token, parser);
+
+  @override
+  Token parseTypeNotVoid(Token token, Parser parser) =>
+      parseType(token, parser);
+
+  @override
   Token parseType(Token token, Parser parser) {
     assert(identical(token.next, start));
     Listener listener = parser.listener;
@@ -219,7 +258,7 @@ class ComplexTypeInfo implements TypeInfo {
       // A function type without return type.
       // Push the non-existing return type first. The loop below will
       // generate the full type.
-      noTypeInfo.parseType(token, parser);
+      noTypeInfo.parseTypeNotVoid(token, parser);
     } else if (optional('void', token.next)) {
       token = voidTypeInfo.parseType(token, parser);
     } else {
@@ -290,7 +329,7 @@ class ComplexTypeInfo implements TypeInfo {
   /// Given identifier `Function` non-identifier, compute the type
   /// and return the receiver or one of the [TypeInfo] constants.
   TypeInfo computeIdentifierGFT(bool required) {
-    assert(isValidTypeReference(start));
+    assert(isValidTypeReference(start) || start.type.isBuiltIn);
     assert(optional('Function', start.next));
     computeRest(start.next, required);
 
@@ -300,7 +339,7 @@ class ComplexTypeInfo implements TypeInfo {
   /// Given identifier `<` ... `>`, compute the type
   /// and return the receiver or one of the [TypeInfo] constants.
   TypeInfo computeSimpleWithTypeArguments(bool required) {
-    assert(isValidTypeReference(start));
+    assert(isValidTypeReference(start) || start.type.isBuiltIn);
     typeArguments = start.next;
     assert(optional('<', typeArguments));
 

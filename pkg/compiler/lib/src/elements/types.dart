@@ -746,6 +746,12 @@ class FutureOrType extends DartType {
     return new FutureOrType(newTypeArgument);
   }
 
+  bool get containsTypeVariables => typeArgument.containsTypeVariables;
+
+  void forEachTypeVariable(f(TypeVariableType variable)) {
+    typeArgument.forEachTypeVariable(f);
+  }
+
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
       visitor.visitFutureOrType(this, argument);
 

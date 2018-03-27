@@ -67,7 +67,7 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
     unit.accept(new _FlutterOutlineBuilder(this));
 
     // Compute instrumented code.
-    if (widgets.isNotEmpty) {
+    if (widgets.values.any((w) => w.hasDesignTimeConstructor)) {
       _rewriteRelativeDirectives();
       instrumentationEdits.sort((a, b) => b.offset - a.offset);
       instrumentedCode =
@@ -147,7 +147,11 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
     if (dartOutline.element.kind == protocol.ElementKind.CLASS) {
       var widget = widgets[dartOutline.element.location.offset];
       if (widget != null) {
-        flutterOutline.renderConstructor = CONSTRUCTOR_NAME;
+        flutterOutline.isWidgetClass = true;
+        if (widget.hasDesignTimeConstructor) {
+          flutterOutline.renderConstructor = CONSTRUCTOR_NAME;
+        }
+        flutterOutline.stateClassName = widget.state?.name?.name;
         flutterOutline.stateOffset = widget.state?.offset;
         flutterOutline.stateLength = widget.state?.length;
       }
@@ -302,17 +306,17 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
         int nameOffset = widget.name.offset;
 
         var designTimeConstructor = widget.getConstructor(CONSTRUCTOR_NAME);
-        if (designTimeConstructor == null) {
-          continue;
-        }
+        bool hasDesignTimeConstructor = designTimeConstructor != null;
 
         InterfaceType superType = widget.element.supertype;
         if (isExactlyStatelessWidgetType(superType)) {
-          widgets[nameOffset] = new _WidgetClass(nameOffset);
+          widgets[nameOffset] =
+              new _WidgetClass(nameOffset, hasDesignTimeConstructor);
         } else if (isExactlyStatefulWidgetType(superType)) {
           ClassDeclaration state = _findState(widget);
           if (state != null) {
-            widgets[nameOffset] = new _WidgetClass(nameOffset, state);
+            widgets[nameOffset] =
+                new _WidgetClass(nameOffset, hasDesignTimeConstructor, state);
           }
         }
       }
@@ -388,8 +392,11 @@ class _FlutterOutlineBuilder extends GeneralizingAstVisitor<void> {
 class _WidgetClass {
   final int nameOffset;
 
+  /// Is `true` if has `forDesignTime` constructor, so can be rendered.
+  final bool hasDesignTimeConstructor;
+
   /// If a `StatefulWidget` with the `State` in the same file.
   final ClassDeclaration state;
 
-  _WidgetClass(this.nameOffset, [this.state]);
+  _WidgetClass(this.nameOffset, this.hasDesignTimeConstructor, [this.state]);
 }

@@ -1088,7 +1088,7 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
     case RawFunction::kIrregexpFunction:
       UNREACHABLE();
   }
-  if (needs_expr_temp_ || parsed_function_->is_no_such_method_forwarder()) {
+  if (needs_expr_temp_ || function.is_no_such_method_forwarder()) {
     scope_->AddVariable(parsed_function_->EnsureExpressionTemp());
   }
   parsed_function_->AllocateVariables();
@@ -2991,8 +2991,8 @@ void StreamingConstantEvaluator::EvaluateGetStringLength(
 }
 
 void StreamingConstantEvaluator::EvaluatePropertyGet() {
-  TokenPosition position = builder_->ReadPosition();  // read position.
-  builder_->ReadFlags();                              // read flags.
+  const TokenPosition position = builder_->ReadPosition();  // read position.
+  builder_->ReadFlags();                                    // read flags.
   intptr_t expression_offset = builder_->ReaderOffset();
   builder_->SkipExpression();                            // read receiver.
   StringIndex name = builder_->ReadNameAsStringIndex();  // read name.
@@ -3751,7 +3751,7 @@ void StreamingFlowGraphBuilder::DiscoverEnclosingElements(
   }
 }
 
-bool StreamingFlowGraphBuilder::ReadUntilFunctionNode(
+void StreamingFlowGraphBuilder::ReadUntilFunctionNode(
     ParsedFunction* parsed_function) {
   const Tag tag = PeekTag();
   if (tag == kProcedure) {
@@ -3767,16 +3767,10 @@ bool StreamingFlowGraphBuilder::ReadUntilFunctionNode(
       parsed_function->MarkForwardingStub(
           procedure_helper.forwarding_stub_super_target_);
     }
-    if (parsed_function != NULL && flow_graph_builder_ != nullptr &&
-        procedure_helper.IsNoSuchMethodForwarder()) {
-      parsed_function->set_is_no_such_method_forwarder(true);
-    }
-    return procedure_helper.IsNoSuchMethodForwarder();
     // Now at start of FunctionNode.
   } else if (tag == kConstructor) {
     ConstructorHelper constructor_helper(this);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kFunction);
-    return false;
     // Now at start of FunctionNode.
     // Notice that we also have a list of initializers after that!
   } else if (tag == kFunctionNode) {
@@ -3785,7 +3779,6 @@ bool StreamingFlowGraphBuilder::ReadUntilFunctionNode(
     ReportUnexpectedTag("a procedure, a constructor or a function node", tag);
     UNREACHABLE();
   }
-  return false;
 }
 
 StringIndex StreamingFlowGraphBuilder::GetNameFromVariableDeclaration(
@@ -3819,7 +3812,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldInitializer() {
       *parsed_function(), normal_entry, Compiler::kNoOSRDeoptId);
 
   Fragment body(normal_entry);
-  body += flow_graph_builder_->CheckStackOverflowInPrologue();
+  body +=
+      flow_graph_builder_->CheckStackOverflowInPrologue(field_helper.position_);
   if (field_helper.IsConst()) {
     // this will (potentially) read the initializer, but reset the position.
     body += Constant(constant_evaluator_.EvaluateExpression(ReaderOffset()));
@@ -4191,7 +4185,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
       *parsed_function(), normal_entry, Compiler::kNoOSRDeoptId);
 
   Fragment body(instruction_cursor);
-  body += flow_graph_builder_->CheckStackOverflowInPrologue();
+  body +=
+      flow_graph_builder_->CheckStackOverflowInPrologue(function.token_pos());
 
   // Forwarding the type parameters is complicated by our approach to
   // implementing the partial tearoff instantiation.
@@ -4347,7 +4342,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
                                             Compiler::kNoOSRDeoptId);
 
   Fragment body(instruction_cursor);
-  body += B->CheckStackOverflowInPrologue();
+  body += B->CheckStackOverflowInPrologue(function.token_pos());
 
   // If we are inside the tearoff wrapper function (implicit closure), we need
   // to extract the receiver from the context. We just replace it directly on
@@ -4724,7 +4719,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
   }
 
   if (!dart_function.is_native())
-    body += flow_graph_builder_->CheckStackOverflowInPrologue();
+    body += flow_graph_builder_->CheckStackOverflowInPrologue(
+        dart_function.token_pos());
   intptr_t context_size =
       parsed_function()->node_sequence()->scope()->num_context_variables();
   if (context_size > 0) {
@@ -5028,17 +5024,19 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
   switch (function.kind()) {
     case RawFunction::kRegularFunction:
     case RawFunction::kImplicitClosureFunction:
-      if (ReadUntilFunctionNode(parsed_function())) {
+    case RawFunction::kGetterFunction:
+    case RawFunction::kSetterFunction: {
+      ReadUntilFunctionNode(parsed_function());
+      if (function.is_no_such_method_forwarder()) {
         return BuildGraphOfNoSuchMethodForwarder(
             function, function.IsImplicitClosureFunction());
       } else if (function.IsImplicitClosureFunction()) {
         return BuildGraphOfImplicitClosureFunction(function);
       }
+    }
     // fallthrough intended
     case RawFunction::kClosureFunction:
-    case RawFunction::kConvertedClosureFunction:
-    case RawFunction::kGetterFunction:
-    case RawFunction::kSetterFunction: {
+    case RawFunction::kConvertedClosureFunction: {
       ReadUntilFunctionNode(parsed_function());  // read until function node.
       return BuildGraphOfFunction(false);
     }
@@ -6377,8 +6375,8 @@ Fragment StreamingFlowGraphBuilder::StoreIndexed(intptr_t class_id) {
   return flow_graph_builder_->StoreIndexed(class_id);
 }
 
-Fragment StreamingFlowGraphBuilder::CheckStackOverflow() {
-  return flow_graph_builder_->CheckStackOverflow();
+Fragment StreamingFlowGraphBuilder::CheckStackOverflow(TokenPosition position) {
+  return flow_graph_builder_->CheckStackOverflow(position);
 }
 
 Fragment StreamingFlowGraphBuilder::CloneContext(
@@ -8628,7 +8626,7 @@ Fragment StreamingFlowGraphBuilder::BuildBreakStatement() {
 
 Fragment StreamingFlowGraphBuilder::BuildWhileStatement() {
   loop_depth_inc();
-  ReadPosition();  // read position.
+  const TokenPosition position = ReadPosition();  // read position.
 
   bool negate;
   Fragment condition = TranslateCondition(&negate);  // read condition.
@@ -8645,7 +8643,7 @@ Fragment StreamingFlowGraphBuilder::BuildWhileStatement() {
     body += Goto(join);
 
     Fragment loop(join);
-    loop += CheckStackOverflow();
+    loop += CheckStackOverflow(position);
     loop += condition;
     entry = new (Z) GotoInstr(join, Thread::Current()->GetNextDeoptId());
   } else {
@@ -8658,8 +8656,8 @@ Fragment StreamingFlowGraphBuilder::BuildWhileStatement() {
 
 Fragment StreamingFlowGraphBuilder::BuildDoStatement() {
   loop_depth_inc();
-  ReadPosition();                    // read position.
-  Fragment body = BuildStatement();  // read body.
+  const TokenPosition position = ReadPosition();  // read position.
+  Fragment body = BuildStatement();               // read body.
 
   if (body.is_closed()) {
     SkipExpression();  // read condition.
@@ -8670,7 +8668,7 @@ Fragment StreamingFlowGraphBuilder::BuildDoStatement() {
   bool negate;
   JoinEntryInstr* join = BuildJoinEntry();
   Fragment loop(join);
-  loop += CheckStackOverflow();
+  loop += CheckStackOverflow(position);
   loop += body;
   loop += TranslateCondition(&negate);  // read condition.
   TargetEntryInstr* loop_repeat;
@@ -8688,7 +8686,7 @@ Fragment StreamingFlowGraphBuilder::BuildDoStatement() {
 Fragment StreamingFlowGraphBuilder::BuildForStatement() {
   intptr_t offset = ReaderOffset() - 1;  // Include the tag.
 
-  ReadPosition();  // read position.
+  const TokenPosition position = ReadPosition();  // read position.
 
   Fragment declarations;
 
@@ -8735,7 +8733,7 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement() {
     body += Goto(join);
 
     Fragment loop(join);
-    loop += CheckStackOverflow();
+    loop += CheckStackOverflow(position);
     loop += condition;
   } else {
     declarations += condition;
@@ -8753,7 +8751,7 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement() {
 Fragment StreamingFlowGraphBuilder::BuildForInStatement(bool async) {
   intptr_t offset = ReaderOffset() - 1;  // Include the tag.
 
-  ReadPosition();                                // read position.
+  const TokenPosition position = ReadPosition();  // read position.
   TokenPosition body_position = ReadPosition();  // read body position.
   intptr_t variable_kernel_position = ReaderOffset() + data_program_offset_;
   SkipVariableDeclaration();  // read variable.
@@ -8800,7 +8798,7 @@ Fragment StreamingFlowGraphBuilder::BuildForInStatement(bool async) {
     body += Goto(join);
 
     Fragment loop(join);
-    loop += CheckStackOverflow();
+    loop += CheckStackOverflow(position);
     loop += condition;
   } else {
     instructions += condition;

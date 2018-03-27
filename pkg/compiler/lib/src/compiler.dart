@@ -63,7 +63,6 @@ import 'script.dart' show Script;
 import 'serialization/task.dart' show SerializationTask;
 import 'ssa/nodes.dart' show HInstruction;
 import 'package:front_end/src/fasta/scanner.dart' show StringToken, Token;
-import 'tokens/token_map.dart' show TokenMap;
 import 'tree/tree.dart' show Node, TypeAnnotation;
 import 'typechecker.dart' show TypeCheckerTask;
 import 'types/types.dart' show GlobalTypeInferenceTask;
@@ -94,11 +93,6 @@ abstract class Compiler {
   ParsingContext _parsingContext;
 
   ImpactStrategy impactStrategy = const ImpactStrategy();
-
-  /**
-   * Map from token to the first preceding comment token.
-   */
-  final TokenMap commentMap = new TokenMap();
 
   /// Options provided from command-line arguments.
   final CompilerOptions options;
@@ -184,6 +178,8 @@ abstract class Compiler {
       this.environment: const _EmptyEnvironment(),
       MakeReporterFunction makeReporter})
       : this.options = options {
+    options.deriveOptions();
+    options.validate();
     CompilerTask kernelFrontEndTask;
     selfTask = new GenericTask('self', measurer);
     _outputProvider = new _CompilerOutput(this, outputProvider);
@@ -271,8 +267,7 @@ abstract class Compiler {
   ///
   /// Override this to mock the scanner for testing.
   ScannerTask createScannerTask() =>
-      new ScannerTask(dietParser, reporter, measurer,
-          preserveComments: options.preserveComments, commentMap: commentMap);
+      new ScannerTask(dietParser, reporter, measurer);
 
   /// Creates the resolution object.
   ///

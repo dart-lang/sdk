@@ -10,6 +10,7 @@
  */
 import 'dart:async';
 
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
@@ -23,6 +24,7 @@ main() {
 
 @reflectiveTest
 class ReanalyzeTest extends AbstractAnalysisServerIntegrationTest {
+  @TestTimeout(const Timeout.factor(2))
   test_reanalyze_concurrent() {
     String pathname = sourcePath('test.dart');
     String text = '''

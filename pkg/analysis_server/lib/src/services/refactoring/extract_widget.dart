@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
+import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/analyzer.dart';
@@ -18,6 +19,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
+import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceRange;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -41,9 +43,6 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
   @override
   String name;
-
-  @override
-  bool stateful = false;
 
   /// If [offset] is in a class, the node of this class, `null` otherwise.
   ClassDeclaration _enclosingClassNode;
@@ -105,7 +104,25 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
   @override
   RefactoringStatus checkName() {
-    return validateClassName(name);
+    RefactoringStatus result = new RefactoringStatus();
+
+    // Validate the name.
+    result.addStatus(validateClassName(name));
+
+    // Check for duplicate declarations.
+    if (!result.hasFatalError) {
+      visitLibraryTopLevelElements(libraryElement, (element) {
+        if (hasDisplayName(element, name)) {
+          String message = format(
+              "Library already declares {0} with name '{1}'.",
+              getElementKindName(element),
+              name);
+          result.addError(message, newLocation_fromElement(element));
+        }
+      });
+    }
+
+    return result;
   }
 
   @override
@@ -139,8 +156,9 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     _enclosingClassElement = _enclosingClassNode?.element;
 
     // new MyWidget(...)
-    if (node is InstanceCreationExpression && isWidgetCreation(node)) {
-      _expression = node;
+    InstanceCreationExpression newExpression = identifyNewExpression(node);
+    if (isWidgetCreation(newExpression)) {
+      _expression = newExpression;
       return new RefactoringStatus();
     }
 
@@ -366,6 +384,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
   final SourceRange expressionRange;
 
   final RefactoringStatus status = new RefactoringStatus();
+  final Set<Element> uniqueElements = new Set<Element>();
   final List<_Parameter> parameters = [];
 
   List<ClassElement> enclosingClasses;
@@ -405,7 +424,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
       }
     }
 
-    if (type != null) {
+    if (type != null && uniqueElements.add(element)) {
       parameters.add(new _Parameter(elementName, type));
     }
   }

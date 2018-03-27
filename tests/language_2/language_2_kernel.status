@@ -243,7 +243,6 @@ syntax_test/32: MissingCompileTimeError
 syntax_test/33: MissingCompileTimeError
 syntax_test/60: MissingCompileTimeError
 syntax_test/61: MissingCompileTimeError
-syntax_test/62: MissingCompileTimeError
 type_variable_bounds2_test: MissingCompileTimeError
 type_variable_bounds3_test/00: MissingCompileTimeError
 type_variable_bounds4_test/01: MissingCompileTimeError
@@ -791,6 +790,7 @@ assertion_initializer_const_error2_test/cc09: MissingCompileTimeError # Not repo
 assertion_initializer_const_error2_test/cc10: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc11: MissingCompileTimeError # Not reporting failed assert() at compile time.
 redirecting_factory_reflection_test: RuntimeError
+
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of

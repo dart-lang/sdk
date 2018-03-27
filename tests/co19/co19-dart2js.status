@@ -69,19 +69,40 @@ Language/Types/Dynamic_Type_System/deferred_type_error_t01: RuntimeError # Pleas
 Language/Types/Interface_Types/subtype_t27: Skip # Times out or crashes. Issue 21174
 Language/Types/Interface_Types/subtype_t28: Pass, Fail, Crash # Stack overflow. Issue 25282
 Language/Types/Interface_Types/subtype_t30: Fail # Issue 14654
-Language/Types/Type_Void/syntax_t05: MissingCompileTimeError, Crash
 Language/Types/Type_Void/syntax_t08: MissingCompileTimeError
+LayoutTests/fast/borders/border-color-visited_t01: RuntimeError # See issue 143
+LayoutTests/fast/canvas/fillText-shadow_t01: RuntimeError # See issue 143
 LayoutTests/fast/css/content/content-quotes-01_t01: Pass, RuntimeError
 LayoutTests/fast/css/font-face-cache-bug_t01: Pass, RuntimeError
 LayoutTests/fast/css/fontfaceset-loadingdone_t01: Pass, RuntimeError
+LayoutTests/fast/css/misplaced-charset_t01: RuntimeError # See issue 143
+LayoutTests/fast/css/pseudo-empty-dynamic-empty_t01: RuntimeError # See issue 143
+LayoutTests/fast/css/remove-class-name_t01: RuntimeError # See issue 143
 LayoutTests/fast/dom/HTMLLinkElement/link-onload-stylesheet-with-import_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
+LayoutTests/fast/dom/HTMLTableElement/createCaption_t01: RuntimeError # See issue 143
+LayoutTests/fast/dom/HTMLTableElement/early-acid3-66-excerpt_t01: RuntimeError # See issue 143
+LayoutTests/fast/dom/HTMLTableRowElement/insertCell_t01: RuntimeError # See issue 143
+LayoutTests/fast/dom/Range/create-contextual-fragment-script-unmark-already-started_t01: RuntimeError # See issue 143
+LayoutTests/fast/dom/clone-node-style_t01: RuntimeError # See issue 143
 LayoutTests/fast/dom/css-innerHTML_t01: SkipByDesign # Test is incorrect.
+LayoutTests/fast/dom/icon-url-change_t01: RuntimeError # See issue 143
+LayoutTests/fast/dom/icon-url-list_t01: RuntimeError # See issue 143
 LayoutTests/fast/dom/mutation-event-remove-inserted-node_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/dom/shadow/event-path-not-in-document_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
+LayoutTests/fast/dom/shared-inline-style-after-node-removal_t01: RuntimeError # See issue 143
 LayoutTests/fast/dom/subtree-modified-attributes_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
+LayoutTests/fast/events/form-onchange_t01: RuntimeError # See issue 143
+LayoutTests/fast/events/onerror-bubbling_t01: RuntimeError # See issue 143
 LayoutTests/fast/files/file-reader-done-reading-abort_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
+LayoutTests/fast/forms/autofocus-attribute_t01: RuntimeError # See issue 143
+LayoutTests/fast/forms/autofocus-opera-004_t01: RuntimeError # See issue 143
+LayoutTests/fast/forms/autofocus-opera-005_t01: RuntimeError # See issue 143
+LayoutTests/fast/forms/autofocus-opera-008_t01: RuntimeError # See issue 143
 LayoutTests/fast/forms/input-implicit-length-limit_t01: SkipByDesign # Test is not about Dart, but about a DOM-only webkit bug that has been fixed.
+LayoutTests/fast/forms/interactive-validation-attach-assertion_t01: RuntimeError # See issue 143
 LayoutTests/fast/forms/search-popup-crasher_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
+LayoutTests/fast/forms/select-namedItem_t01: RuntimeError # See issue 143
+LayoutTests/fast/forms/select-reset-multiple-selections-4-single-selection_t01: RuntimeError # See issue 143
 LayoutTests/fast/loader/loadInProgress_t01: Skip # Issue 23466
 LayoutTests/fast/loader/stateobjects/replacestate-in-onunload_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/media/mq-parsing_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
@@ -111,12 +132,15 @@ LayoutTests/fast/transforms/scrollIntoView-transformed_t01: Skip # https://githu
 LayoutTests/fast/writing-mode/percentage-margins-absolute_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-abort_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/xpath/4XPath/Core/test_core_functions_t02: Skip # https://github.com/dart-lang/sdk/issues/28873
+LayoutTests/fast/xpath/4XPath/Core/test_location_path_t01: RuntimeError # See issue 143
+LayoutTests/fast/xpath/4XPath/Core/test_step_t01: RuntimeError # See issue 143
 LayoutTests/fast/xpath/ambiguous-operators_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LibTest/async/Future/Future.delayed_A01_t02: Pass, Fail # Issue 15524
 LibTest/collection/LinkedHashSet/LinkedHashSet.from_A03_t01: RuntimeError # Please triage this failure.
 LibTest/collection/LinkedList/add_A01_t01: Pass, Slow # Slow tests that needs extra time to finish.
 LibTest/collection/ListBase/ListBase_class_A01_t01: RuntimeError # Please triage this failure
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: RuntimeError # Please triage this failure
+LibTest/collection/Maps/*: Skip # Maps class no longer exists
 LibTest/convert/JsonCodec/encode_A01_t01: RuntimeError # code.google.com/p/co19/issues/detail?id=735
 LibTest/convert/JsonCodec/encode_A01_t02: RuntimeError # code.google.com/p/co19/issues/detail?id=735
 LibTest/convert/JsonDecoder/fuse_A01_t01: RuntimeError # co19-roll r667: Please triage this failure
@@ -148,6 +172,8 @@ LibTest/core/int/operator_remainder_A01_t01: RuntimeError, OK # Requires bigints
 LibTest/core/int/operator_right_shift_A01_t01: RuntimeError, OK # Expects negative result from bit-operation.
 LibTest/core/int/toDouble_A01_t01: RuntimeError, OK # co19 issue 200
 LibTest/html/Element/addEventListener_A01_t04: Skip # https://github.com/dart-lang/sdk/issues/28873
+LibTest/html/Element/queryAll_A01_t01: RuntimeError # See issue 143
+LibTest/html/Element/query_A01_t01: RuntimeError # See issue 143
 LibTest/html/HttpRequest/responseType_A01_t03: CompileTimeError # co19-roll r706: Please triage this failure
 LibTest/html/IFrameElement/addEventListener_A01_t04: Skip # https://github.com/dart-lang/sdk/issues/28873
 LibTest/html/IFrameElement/enteredView_A01_t01: CompileTimeError # co19-roll r706: Please triage this failure
@@ -276,10 +302,22 @@ LibTest/typed_data/Uint8List/Uint8List_A02_t01: Fail # co19-roll r576: Please tr
 Utils/tests/Expect/identical_A01_t01: Fail # co19-roll r546: Please triage this failure
 WebPlatformTest/Utils/test/asyncTestFail_t02: Skip # https://github.com/dart-lang/sdk/issues/28873
 WebPlatformTest/Utils/test/testFail_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t01: RuntimeError # See issue 143
+WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t02: RuntimeError # See issue 143
+WebPlatformTest/custom-elements/instantiating/isAttribute_A02_t01: RuntimeError # See issue 143
+WebPlatformTest/custom-elements/instantiating/isAttribute_A03_t01: RuntimeError # See issue 143
+WebPlatformTest/custom-elements/instantiating/localName_A01_t01: RuntimeError # See issue 143
 WebPlatformTest/dom/EventTarget/dispatchEvent_A02_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 WebPlatformTest/dom/nodes/DOMImplementation-createHTMLDocument_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Document-createElement_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Element-childElementCount-nochild_t01: CompileTimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/html/dom/elements/global-attributes/classlist-nonstring_t01: RuntimeError # See issue 143
+WebPlatformTest/html/semantics/forms/the-textarea-element/textarea-type_t01: RuntimeError # See issue 143
+WebPlatformTest/html/semantics/tabular-data/the-table-element/insertRow-method_t01: RuntimeError # See issue 143
+WebPlatformTest/html/semantics/tabular-data/the-table-element/insertRow-method_t02: RuntimeError # See issue 143
+WebPlatformTest/html/semantics/tabular-data/the-table-element/tBodies_t01: RuntimeError # See issue 143
+WebPlatformTest/html/semantics/text-level-semantics/the-a-element/a.text-getter_t01: RuntimeError # See issue 143
+WebPlatformTest/html/semantics/text-level-semantics/the-a-element/a.text-setter_t01: RuntimeError # See issue 143
 WebPlatformTest/webstorage/event_local_storageeventinit_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure.
 WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure

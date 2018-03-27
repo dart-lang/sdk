@@ -2874,15 +2874,16 @@ class CodeGenerator extends Object
   JS.Block _emitFunctionScopedBody(
       FunctionBody body, ExecutableElement element) {
     var block = body.accept(this) as JS.Block;
-    if (!body.isAsynchronous && !body.isGenerator) {
+    if (element.parameters.isNotEmpty) {
       // Handle shadowing of parameters by local varaibles, which is allowed in
       // Dart but not in JS.
       //
-      // We only handle this for normal (sync) functions. Generator-based
-      // functions (sync*, async, and async*) have their bodies placed
-      // in an inner function scope that is a separate scope from the
-      // parameters, so they avoid this problem.
-      var parameterNames = element.parameters.map((e) => e.name).toSet();
+      // We need this for all function types, including generator-based ones
+      // (sync*/async/async*). Our code generator assumes it can emit names for
+      // named argument initialization, and sync* functions also emit locally
+      // modified parameters into the function's scope.
+      var parameterNames =
+          new HashSet<String>.from(element.parameters.map((e) => e.name));
       return block.toScopedBlock(parameterNames);
     }
     return block;

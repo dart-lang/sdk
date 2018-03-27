@@ -49,7 +49,7 @@ class PosixConsole {
   static void SaveMode(intptr_t fd, tcflag_t* flag) {
     ASSERT(flag != NULL);
     struct termios term;
-    int status = NO_RETRY_EXPECTED(tcgetattr(fd, &term));
+    int status = TEMP_FAILURE_RETRY(tcgetattr(fd, &term));
     if (status != 0) {
       return;
     }
@@ -61,12 +61,12 @@ class PosixConsole {
       return;
     }
     struct termios term;
-    int status = NO_RETRY_EXPECTED(tcgetattr(fd, &term));
+    int status = TEMP_FAILURE_RETRY(tcgetattr(fd, &term));
     if (status != 0) {
       return;
     }
     term.c_lflag = flag;
-    NO_RETRY_EXPECTED(tcsetattr(fd, TCSANOW, &term));
+    VOID_TEMP_FAILURE_RETRY(tcsetattr(fd, TCSANOW, &term));
   }
 
   DISALLOW_ALLOCATION();

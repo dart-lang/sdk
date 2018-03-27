@@ -168,8 +168,7 @@ static RawTypeArguments* NewTypeArguments(
 }
 
 ParsedFunction::ParsedFunction(Thread* thread, const Function& function)
-    : is_no_such_method_forwarder_(false),
-      thread_(thread),
+    : thread_(thread),
       function_(function),
       code_(Code::Handle(zone(), function.unoptimized_code())),
       node_sequence_(NULL),
@@ -7789,8 +7788,10 @@ void Parser::AddFormalParamsToFunction(const ParamList* params,
   ASSERT((params->num_optional_parameters > 0) ==
          (params->has_optional_positional_parameters ||
           params->has_optional_named_parameters));
-  if (!Utils::IsInt(16, params->num_fixed_parameters) ||
-      !Utils::IsInt(16, params->num_optional_parameters)) {
+  if (!Utils::IsUint(RawFunction::kMaxFixedParametersBits,
+                     params->num_fixed_parameters) ||
+      !Utils::IsUint(RawFunction::kMaxOptionalParametersBits,
+                     params->num_optional_parameters)) {
     const Script& script = Script::Handle(Class::Handle(func.Owner()).script());
     Report::MessageF(Report::kError, script, func.token_pos(),
                      Report::AtLocation, "too many formal parameters");

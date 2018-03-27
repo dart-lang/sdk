@@ -536,6 +536,13 @@ class BackendImpacts {
         new BackendImpact(staticUses: [/*helpers.functionTypeTestMetaHelper*/]);
   }
 
+  BackendImpact _futureOrTypeCheck;
+
+  BackendImpact get futureOrTypeCheck {
+    return _futureOrTypeCheck ??=
+        new BackendImpact(staticUses: [_commonElements.futureOrTest]);
+  }
+
   BackendImpact _nativeTypeCheck;
 
   BackendImpact get nativeTypeCheck {

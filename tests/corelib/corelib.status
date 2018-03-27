@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+maps_test: Skip # Maps class no longer exists
+
 [ $compiler == dart2analyzer ]
 *: Skip
 

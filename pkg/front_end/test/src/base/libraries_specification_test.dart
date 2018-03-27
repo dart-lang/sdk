@@ -198,41 +198,54 @@ main() {
           Uri.parse('org-dartlang-test:///one/two/c/main.dart'));
     });
 
-    test('environment_overrides entry must be a map', () async {
-      var jsonString = '{"vm" : {"libraries": {"core": {"uri": "main.dart"}},'
-          '"environment_overrides": []}}';
+    test('supported entry must be bool', () async {
+      var jsonString = '{"vm" : {"libraries": {"core": '
+          '{"uri": "main.dart", "supported": 3}},';
       expect(
           () => LibrariesSpecification.parse(
               Uri.parse('org-dartlang-test:///f.json'), jsonString),
           throwsA((e) => e is LibrariesSpecificationException));
     });
 
-    test('environment_overrides values must be bool', () async {
-      var jsonString = '{"vm" : {"libraries": {"core": {"uri": "main.dart"}},'
-          '"environment_overrides": {"core": 3}}}';
-      expect(
-          () => LibrariesSpecification.parse(
-              Uri.parse('org-dartlang-test:///f.json'), jsonString),
-          throwsA((e) => e is LibrariesSpecificationException));
-    });
+    test('supported entry is copied correctly when parsing', () async {
+      var jsonString = '''
+      {
+        "vm": {
+          "libraries": {
+              "foo" : {
+                "uri": "a/main.dart",
+                "patches": [
+                  "a/p1.dart",
+                  "a/p2.dart"
+                ],
+                "supported": false
 
-    test('environment_overrides correspond to existing libraries', () async {
-      var jsonString = '{"vm" : {"libraries": {"core": {"uri": "main.dart"}},'
-          '"environment_overrides": {"ui": false}}}';
-      expect(
-          () => LibrariesSpecification.parse(
-              Uri.parse('org-dartlang-test:///f.json'), jsonString),
-          throwsA((e) => e is LibrariesSpecificationException));
-    });
-
-    test('environment_overrides can be read from the public API', () async {
-      var jsonString = '{"vm" : {"libraries": {"core": {"uri": "main.dart"}},'
-          '"environment_overrides": {"core": false}}}';
+              },
+              "bar" : {
+                "uri": "b/main.dart",
+                "patches": [
+                  "b/p3.dart"
+                ],
+                "supported": true
+              },
+              "baz" : {
+                "uri": "b/main.dart",
+                "patches": [
+                  "b/p3.dart"
+                ]
+              }
+          }
+        }
+      }
+      ''';
       var spec = LibrariesSpecification.parse(
           Uri.parse('org-dartlang-test:///one/two/f.json'), jsonString);
       expect(
-          spec.specificationFor('vm').environmentOverrideFor('core'), "false");
-      expect(spec.specificationFor('vm').environmentOverrideFor('ui'), null);
+          spec.specificationFor('vm').libraryInfoFor('foo').isSupported, false);
+      expect(
+          spec.specificationFor('vm').libraryInfoFor('bar').isSupported, true);
+      expect(
+          spec.specificationFor('vm').libraryInfoFor('baz').isSupported, true);
     });
   });
 
@@ -247,7 +260,8 @@ main() {
                 "patches": [
                   "a/p1.dart",
                   "a/p2.dart"
-                ]
+                ],
+                "supported": false
               },
               "bar" : {
                 "uri": "b/main.dart",
@@ -263,9 +277,6 @@ main() {
                 "uri": "c/main.dart",
                 "patches": []
               }
-          },
-          "environment_overrides": {
-              "c" : false
           }
         }
       }

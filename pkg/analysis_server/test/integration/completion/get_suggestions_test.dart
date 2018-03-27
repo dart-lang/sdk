@@ -110,10 +110,9 @@ main() {
     standardAnalysisSetup(subscribeStatus: false);
     // Missing file and no overlay
     //sendAnalysisUpdateContent({path: new AddContentOverlay(content)});
-    var errorToken = 'exception from server';
     return sendCompletionGetSuggestions(path, 0).catchError((e) {
       // Exception expected
-      return errorToken;
+      return null;
     }).then((result) {
       expect(result, new isInstanceOf<CompletionGetSuggestionsResult>());
     });

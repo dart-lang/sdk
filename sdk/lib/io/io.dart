@@ -185,6 +185,8 @@
  * (the program blocks waiting for user to type information):
  *
  *      String inputText = stdin.readLineSync();
+ *
+ * {@category VM}
  */
 library dart.io;
 

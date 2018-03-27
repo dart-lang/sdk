@@ -1,6 +1,30 @@
+## 2.0.0-dev.43.0
+
 ## 2.0.0-dev.42.0
 
+### Core library changes
+
+* `dart:collection`
+  * Removed `Maps` class. Extend `MapBase` or mix in `MapMixin` instead to
+    provide map method implementations for a class.
+
 ### Tool Changes
+
+#### dart2js
+
+* Fixed bug where dart2js crashed when invoked from `pub build` and `pub serve`
+  when given files that contain non-ASCII characters ([issue 32561][sdk#32561]).
+
+* Fixed `--no-frequency-based-minification`, which was not working together with
+  the common front-end ([issue 32600][sdk#32600]).
+
+* Support `--categories=Server` with the common front-end. This included also
+  fixes for the constant value `bool.fromEnvironment("*")` of
+  "dart.libraries.io", "dart.libraries.mirrors", "dart.libraries.isolate", and
+  "dart.libraries.html".
+
+[sdk#32561]: https://github.com/dart-lang/sdk/issues/32561
+[sdk#32600]: https://github.com/dart-lang/sdk/issues/32600
 
 #### Pub
 
@@ -33,7 +57,7 @@ Not released, due to a failure in the pub tool.
 ### Tool Changes
 #### Pub
 
-* fixed bug in dart2js transformer when using the common front-end.
+* Fixed bug in dart2js transformer when using the common front-end.
 
 ## 2.0.0-dev.37.0
 ### Tool Changes

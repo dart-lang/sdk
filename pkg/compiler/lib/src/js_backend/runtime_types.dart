@@ -616,6 +616,10 @@ abstract class RuntimeTypesEncoder {
   /// is a function type.
   jsAst.Template get templateForIsFunctionType;
 
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is a FutureOr type.
+  jsAst.Template get templateForIsFutureOrType;
+
   jsAst.Name get getFunctionThatReturnsNullName;
 
   /// Returns a [jsAst.Expression] representing the given [type]. Type variables
@@ -768,11 +772,11 @@ class TypeVariableTests {
       {bool forRtiNeeds: true})
       : explicitIsChecks = new Set<DartType>.from(worldBuilder.isChecks) {
     _setupDependencies(elementEnvironment, commonElements, worldBuilder);
-    _propagateTests(elementEnvironment, worldBuilder);
+    _propagateTests(commonElements, elementEnvironment, worldBuilder);
     if (forRtiNeeds) {
       _propagateLiterals(elementEnvironment, worldBuilder);
     }
-    _collectResults(elementEnvironment, types, worldBuilder,
+    _collectResults(commonElements, elementEnvironment, types, worldBuilder,
         forRtiNeeds: forRtiNeeds);
   }
 
@@ -902,6 +906,14 @@ class TypeVariableTests {
 
   void _setupDependencies(ElementEnvironment elementEnvironment,
       CommonElements commonElements, WorldBuilder worldBuilder) {
+    /// Register that if `node.entity` needs type arguments then so do entities
+    /// whose type variables occur in [type].
+    ///
+    /// For instance if `A` needs type arguments then so does `B` in:
+    ///
+    ///   class A<T> {}
+    ///   class B<T> { m() => new A<T>(); }
+    ///
     void registerDependencies(RtiNode node, DartType type) {
       type.forEachTypeVariable((TypeVariableType typeVariable) {
         Entity typeDeclaration = typeVariable.element.typeDeclaration;
@@ -943,18 +955,40 @@ class TypeVariableTests {
           .addDependency(_getClassNode(commonElements.mapClass));
     }
 
-    worldBuilder.isChecks.forEach((DartType type) {
+    void processCheckedType(DartType type) {
       if (type is InterfaceType) {
-        registerDependencies(_getClassNode(type.element), type);
+        // Register that if [cls] needs type arguments then so do the entities
+        // that declare type variables occurring in [type].
+        ClassEntity cls = type.element;
+        registerDependencies(_getClassNode(cls), type);
       }
-    });
+      if (type is FutureOrType) {
+        // [type] is `FutureOr<X>`.
+
+        // For the implied `is Future<X>` test, register that if `Future` needs
+        // type arguments then so do the entities that declare type variables
+        // occurring in `type.typeArgument`.
+        registerDependencies(
+            _getClassNode(commonElements.futureClass), type.typeArgument);
+        // Process `type.typeArgument` for the implied `is X` test.
+        processCheckedType(type.typeArgument);
+      }
+    }
+
+    worldBuilder.isChecks.forEach(processCheckedType);
+
     worldBuilder.instantiatedTypes.forEach((InterfaceType type) {
-      registerDependencies(_getClassNode(type.element), type);
+      // Register that if [cls] needs type arguments then so do the entities
+      // that declare type variables occurring in [type].
+      ClassEntity cls = type.element;
+      registerDependencies(_getClassNode(cls), type);
     });
 
     worldBuilder.forEachStaticTypeArgument(
         (Entity entity, Iterable<DartType> typeArguments) {
       for (DartType type in typeArguments) {
+        // Register that if [entity] needs type arguments then so do the
+        // entities that declare type variables occurring in [type].
         registerDependencies(
             _getMethodNode(elementEnvironment, worldBuilder, entity), type);
       }
@@ -971,6 +1005,8 @@ class TypeVariableTests {
             _getMethodNode(elementEnvironment, worldBuilder, entity);
         if (node.selectorApplies(selector)) {
           for (DartType type in typeArguments) {
+            // Register that if `node.entity` needs type arguments then so do
+            // the entities that declare type variables occurring in [type].
             registerDependencies(node, type);
           }
         }
@@ -982,21 +1018,26 @@ class TypeVariableTests {
     });
   }
 
-  void _propagateTests(
+  void _propagateTests(CommonElements commonElements,
       ElementEnvironment elementEnvironment, WorldBuilder worldBuilder) {
-    worldBuilder.isChecks.forEach((DartType type) {
+    void processType(DartType type, {bool direct: true}) {
       if (type.isTypeVariable) {
         TypeVariableType typeVariableType = type;
         TypeVariableEntity variable = typeVariableType.element;
         if (variable.typeDeclaration is ClassEntity) {
-          _getClassNode(variable.typeDeclaration).markDirectTest();
+          _getClassNode(variable.typeDeclaration).markTest(direct: direct);
         } else {
           _getMethodNode(
                   elementEnvironment, worldBuilder, variable.typeDeclaration)
-              .markDirectTest();
+              .markTest(direct: direct);
         }
+      } else if (type is FutureOrType) {
+        _getClassNode(commonElements.futureClass).markIndirectTest();
+        processType(type.typeArgument, direct: false);
       }
-    });
+    }
+
+    worldBuilder.isChecks.forEach(processType);
   }
 
   void _propagateLiterals(
@@ -1014,9 +1055,36 @@ class TypeVariableTests {
     });
   }
 
-  void _collectResults(ElementEnvironment elementEnvironment, DartTypes types,
+  void _collectResults(
+      CommonElements commonElements,
+      ElementEnvironment elementEnvironment,
+      DartTypes types,
       WorldBuilder worldBuilder,
       {bool forRtiNeeds: true}) {
+    /// Register the implicit is-test of [type].
+    ///
+    /// If [type] is of the form `FutureOr<X>`, also register the implicit
+    /// is-tests of `Future<X>` and `X`.
+    void addImplicitCheck(DartType type) {
+      if (implicitIsChecks.add(type)) {
+        if (type is FutureOrType) {
+          addImplicitCheck(commonElements.futureType(type.typeArgument));
+          addImplicitCheck(type.typeArgument);
+        }
+      }
+    }
+
+    void addImplicitChecks(Iterable<DartType> types) {
+      types.forEach(addImplicitCheck);
+    }
+
+    worldBuilder.isChecks.forEach((DartType type) {
+      if (type is FutureOrType) {
+        addImplicitCheck(commonElements.futureType(type.typeArgument));
+        addImplicitCheck(type.typeArgument);
+      }
+    });
+
     // Compute type arguments of classes that use one of their type variables in
     // is-checks and add the is-checks that they imply.
     _classes.forEach((ClassEntity cls, ClassNode node) {
@@ -1031,7 +1099,7 @@ class TypeVariableTests {
         InterfaceType instance = types.asInstanceOf(type, cls);
         if (instance != null) {
           for (DartType argument in instance.typeArguments) {
-            implicitIsChecks.add(argument.unaliased);
+            addImplicitCheck(argument.unaliased);
           }
         }
       }
@@ -1042,7 +1110,7 @@ class TypeVariableTests {
       if (!_getMethodNode(elementEnvironment, worldBuilder, function).hasTest) {
         return;
       }
-      implicitIsChecks.addAll(typeArguments);
+      addImplicitChecks(typeArguments);
     });
 
     if (forRtiNeeds) {
@@ -1059,7 +1127,7 @@ class TypeVariableTests {
                 .add(node.entity);
           }
           if (node.hasTest) {
-            implicitIsChecks.addAll(typeArguments);
+            addImplicitChecks(typeArguments);
           }
         }
       }
@@ -1135,6 +1203,7 @@ abstract class RtiNode {
 
   bool get hasUse => hasTest || hasLiteral;
 
+  /// Register that if [entity] needs type arguments then so does `node.entity`.
   bool addDependency(RtiNode node) {
     if (entity == node.entity) {
       // Skip trivial dependencies; if [entity] needs type arguments so does
@@ -1143,6 +1212,10 @@ abstract class RtiNode {
     }
     _dependencies ??= new Set<RtiNode>();
     return _dependencies.add(node);
+  }
+
+  void markTest({bool direct}) {
+    setTestState(direct ? 1 : 2);
   }
 
   void markDirectTest() {
@@ -1393,6 +1466,10 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
           if (type.isFunctionType) {
             checkClosures(potentialSubtypeOf: type);
           }
+          if (type is FutureOrType) {
+            potentiallyNeedTypeArguments(
+                closedWorld.commonElements.futureClass);
+          }
         }
       });
     }
@@ -1561,7 +1638,6 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
       classUseMapForTesting = classUseMap;
     }
 
-    Set<ClassEntity> checkedClasses = new Set<ClassEntity>();
     Set<FunctionType> checkedFunctionTypes = new Set<FunctionType>();
 
     TypeVisitor liveTypeVisitor =
@@ -1618,11 +1694,14 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
     codegenWorldBuilder.forEachStaticTypeArgument(processMethodTypeArguments);
     codegenWorldBuilder.forEachDynamicTypeArgument(processMethodTypeArguments);
 
+    bool isFunctionChecked = false;
+
     void processCheckedType(DartType t) {
       if (t is FunctionType) {
         checkedFunctionTypes.add(t);
       } else if (t is InterfaceType) {
-        checkedClasses.add(t.element);
+        isFunctionChecked =
+            isFunctionChecked || t.element == _commonElements.functionClass;
       }
       testedTypeVisitor.visitType(t, false);
     }
@@ -1638,8 +1717,7 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
     // In Dart 2, a closure class implements the function type of its `call`
     // method and needs a signature function for testing its function type
     // against typedefs and function types that are used in is-checks.
-    if (checkedClasses.contains(_commonElements.functionClass) ||
-        checkedFunctionTypes.isNotEmpty) {
+    if (isFunctionChecked || checkedFunctionTypes.isNotEmpty) {
       Set<ClassEntity> processedClasses = new Set<ClassEntity>();
 
       void processClass(ClassEntity cls) {
@@ -1735,6 +1813,13 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
   @override
   jsAst.Template get templateForIsFunctionType {
     return _representationGenerator.templateForIsFunctionType;
+  }
+
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is a FutureOr type.
+  @override
+  jsAst.Template get templateForIsFutureOrType {
+    return _representationGenerator.templateForIsFutureOrType;
   }
 
   @override
@@ -1987,6 +2072,12 @@ class TypeRepresentationGenerator
     return jsAst.js.expressionTemplateFor("'${namer.functionTypeTag}' in #");
   }
 
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is a FutureOr type.
+  jsAst.Template get templateForIsFutureOrType {
+    return jsAst.js.expressionTemplateFor("'${namer.futureOrTag}' in #");
+  }
+
   jsAst.Expression visitFunctionType(FunctionType type, Emitter emitter) {
     List<jsAst.Property> properties = <jsAst.Property>[];
 
@@ -2115,9 +2206,21 @@ class TypeRepresentationGenerator
   }
 
   @override
-  jsAst.Expression visitFutureOrType(FutureOrType type, Emitter argument) {
-    // TODO(johnniwinther,sigmund): Implement runtime semantics for `FutureOr`.
-    return getDynamicValue();
+  jsAst.Expression visitFutureOrType(FutureOrType type, Emitter emitter) {
+    List<jsAst.Property> properties = <jsAst.Property>[];
+
+    void addProperty(String name, jsAst.Expression value) {
+      properties.add(new jsAst.Property(js.string(name), value));
+    }
+
+    // Type representations for FutureOr have a property which is a tag marking
+    // them as FutureOr types. The value is not used, so '1' is just a dummy.
+    addProperty(namer.futureOrTag, js.number(1));
+    if (!type.typeArgument.treatAsDynamic) {
+      addProperty(namer.futureOrTypeTag, visit(type.typeArgument, emitter));
+    }
+
+    return new jsAst.ObjectInitializer(properties);
   }
 }
 

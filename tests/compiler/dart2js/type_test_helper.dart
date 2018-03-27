@@ -232,7 +232,7 @@ class TypeEnvironment {
     } else if (member is FunctionEntity) {
       return elementEnvironment.getFunctionType(member);
     }
-    throw 'Unexpected member: $member';
+    throw 'Unexpected member: $member for ${name}, cls=$cls';
   }
 
   DartType getClosureType(String name, [ClassEntity cls]) {

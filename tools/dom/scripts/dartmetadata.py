@@ -105,10 +105,13 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Creates('NodeList')",
       "@Returns('NodeList')",
     ],
-
     'Element.getBoundingClientRect': [
         "@Creates('_DomRect')",
         "@Returns('_DomRect|Null')", # TODO(sra): Verify and remove Null.
+    ],
+    'Element.getClientRects': [
+        "@Creates('DomRectList')",
+        "@Returns('DomRectList|Null')",
     ],
 
     # Methods returning Window can return a local window, or a cross-frame
@@ -174,8 +177,8 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
     # TODO(sra): We could determine the following by parsing the compound IDL
     # type.
     'ExtendableMessageEvent.source': [
-      "@Creates('Client|_ServiceWorker|MessagePort')",
-      "@Returns('Client|_ServiceWorker|MessagePort|Null')",
+      "@Creates('Client|ServiceWorker|MessagePort')",
+      "@Returns('Client|ServiceWorker|MessagePort|Null')",
     ],
 
     'File.lastModifiedDate': [
@@ -350,7 +353,7 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
 
     'ServiceWorkerMessageEvent.source': [
       "@Creates('Null')",
-      "@Returns('_ServiceWorker|MessagePort')",
+      "@Returns('ServiceWorker|MessagePort')",
      ],
 
     'ShadowRoot.getElementsByClassName': [

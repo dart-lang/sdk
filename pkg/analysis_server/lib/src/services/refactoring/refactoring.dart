@@ -241,12 +241,6 @@ abstract class ExtractWidgetRefactoring implements Refactoring {
   void set name(String name);
 
   /**
-   * Set to `true` if a subclass of `StatefulWidget` should be extracted,
-   * otherwise a subclass of `StatelessWidget` will be extracted.
-   */
-  void set stateful(bool stateful);
-
-  /**
    * Validates that the [name] is a valid identifier and is appropriate for a
    * class.
    *

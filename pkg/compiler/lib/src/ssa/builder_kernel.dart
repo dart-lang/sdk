@@ -900,7 +900,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   /// that no corresponding ir.Node actually exists for it. We just use the
   /// targetElement.
   void buildMethodSignature(ir.FunctionNode originalClosureNode) {
-    openFunction(targetElement, originalClosureNode);
+    openFunction(targetElement);
     List<HInstruction> typeArguments = <HInstruction>[];
 
     // Add function type variables.
@@ -1843,7 +1843,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
       HInstruction converted = typeBuilder.buildTypeConversion(
           expressionInstruction,
           localsHandler.substInContext(type),
-          HTypeConversion.CAST_TYPE_CHECK,
+          node.isTypeError
+              ? HTypeConversion.CHECKED_MODE_CHECK
+              : HTypeConversion.CAST_TYPE_CHECK,
           sourceInformation: sourceInformation);
       if (converted != expressionInstruction) {
         add(converted);
@@ -4362,13 +4364,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
 
-    if (type is ir.DynamicType) {
+    DartType typeValue =
+        localsHandler.substInContext(_elementMap.getDartType(type));
+
+    if (typeValue.treatAsDynamic) {
       stack.add(graph.addConstantBool(true, closedWorld));
       return;
     }
-
-    DartType typeValue =
-        localsHandler.substInContext(_elementMap.getDartType(type));
 
     if (typeValue is FunctionType) {
       HInstruction representation =
@@ -4378,6 +4380,22 @@ class KernelSsaGraphBuilder extends ir.Visitor
         representation,
       ];
       _pushStaticInvocation(_commonElements.functionTypeTest, inputs,
+          commonMasks.boolType, const <DartType>[],
+          sourceInformation: sourceInformation);
+      HInstruction call = pop();
+      push(new HIs.compound(typeValue, expression, call, commonMasks.boolType,
+          sourceInformation));
+      return;
+    }
+
+    if (typeValue is FutureOrType) {
+      HInstruction representation =
+          typeBuilder.analyzeTypeArgument(typeValue, sourceElement);
+      List<HInstruction> inputs = <HInstruction>[
+        expression,
+        representation,
+      ];
+      _pushStaticInvocation(_commonElements.futureOrTest, inputs,
           commonMasks.boolType, const <DartType>[],
           sourceInformation: sourceInformation);
       HInstruction call = pop();

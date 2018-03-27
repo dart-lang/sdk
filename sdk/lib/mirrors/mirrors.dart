@@ -52,6 +52,8 @@
  * result of user feedback. This library is platform dependent and therefore it
  * has implementations for both dart2js and the Dart VM. Both are under
  * development and may not support all operations yet.
+ *
+ * {@category VM}
  */
 library dart.mirrors;
 

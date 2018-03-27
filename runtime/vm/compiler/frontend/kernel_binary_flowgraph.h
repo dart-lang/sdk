@@ -1050,9 +1050,7 @@ class StreamingFlowGraphBuilder {
   // If a 'ParsedFunction' is provided for 'set_forwarding_stub', this method
   // will attach the forwarding stub target reference to the parsed function if
   // it crosses a procedure node for a concrete forwarding stub.
-  //
-  // Returns 'true' if discovered a no-such-method forwarder.
-  bool ReadUntilFunctionNode(ParsedFunction* set_forwarding_stub = NULL);
+  void ReadUntilFunctionNode(ParsedFunction* set_forwarding_stub = NULL);
   intptr_t ReadListLength();
 
   enum DispatchCategory { Interface, ViaThis, Closure, DynamicDispatch };
@@ -1251,7 +1249,7 @@ class StreamingFlowGraphBuilder {
   Fragment InstantiateType(const AbstractType& type);
   Fragment CreateArray();
   Fragment StoreIndexed(intptr_t class_id);
-  Fragment CheckStackOverflow();
+  Fragment CheckStackOverflow(TokenPosition position);
   Fragment CloneContext(intptr_t num_context_variables);
   Fragment TranslateFinallyFinalizers(TryFinallyBlock* outer_finally,
                                       intptr_t target_context_depth);

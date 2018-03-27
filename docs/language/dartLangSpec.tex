@@ -6415,11 +6415,9 @@ A multiplicative expression of the form \SUPER{} $op$ $e_2$ is equivalent to the
 
 \LMHash{}
 The static type of an multiplicative expression is usually determined by the signature given in the declaration of the operator used.
-However, invocations of the operators \code{*}, \code{\%} and \code{\~{}/} of class \code{int} are treated specially by the typechecker.
+However, invocations of the operators \code{*} and \code{\%} of class \code{int} are treated specially by the typechecker.
 The static type of an expression $e_1 * e_2$ where $e_1$ has static type \code{int} is \code{int} if the static type of $e_2$ is \code{int}, and \code{double} if the static type of $e_2$ is \code{double}.
 The static type of an expression $e_1 \% e_2$ where $e_1$ has static type \code{int} is \code{int} if the static type of $e_2$ is \code{int}, and \code{double} if the static type of $e_2$ is \code{double}.
-The static type of an expression \code{$e_1$ \~{}/ $e_2$} where $e_1$ has static type \code{int} is \code{int} if the static type of $e_2$ is \code{int}.
-
 
 \subsection{Unary Expressions}
 \LMLabel{unaryExpressions}

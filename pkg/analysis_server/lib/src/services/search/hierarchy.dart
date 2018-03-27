@@ -58,7 +58,7 @@ List<Element> getClassMembers(ClassElement clazz, [String name]) {
 Future<Set<ClassElement>> getDirectSubClasses(
     SearchEngine searchEngine, ClassElement seed) async {
   List<SearchMatch> matches = await searchEngine.searchSubtypes(seed);
-  return matches.map((match) => match.element).toSet();
+  return matches.map((match) => match.element).cast<ClassElement>().toSet();
 }
 
 /**

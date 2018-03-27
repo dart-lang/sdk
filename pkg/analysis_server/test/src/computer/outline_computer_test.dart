@@ -144,7 +144,7 @@ MyWidget
 class OutlineComputerTest extends AbstractOutlineComputerTest {
   test_class() async {
     Outline unitOutline = await _computeOutline('''
-class A<K, V> {
+abstract class A<K, V> {
   int fa, fb;
   String fc;
   A(int i, String s);
@@ -152,15 +152,18 @@ class A<K, V> {
   A._privateName(num p);
   static String ma(int pa) => null;
   _mb(int pb);
+  R mc<R, P>(P p) {}
   String get propA => null;
   set propB(int v) {}
 }
 class B {
   B(int p);
-}");
+}
+String fa(int pa) => null;
+R fb<R, P>(P p) {}
 ''');
     List<Outline> topOutlines = unitOutline.children;
-    expect(topOutlines, hasLength(2));
+    expect(topOutlines, hasLength(4));
     // A
     {
       Outline outline_A = topOutlines[0];
@@ -177,7 +180,7 @@ class B {
       expect(element_A.returnType, null);
       // A children
       List<Outline> outlines_A = outline_A.children;
-      expect(outlines_A, hasLength(10));
+      expect(outlines_A, hasLength(11));
       {
         Outline outline = outlines_A[0];
         Element element = outline.element;
@@ -280,6 +283,22 @@ class B {
       {
         Outline outline = outlines_A[8];
         Element element = outline.element;
+        expect(element.kind, ElementKind.METHOD);
+        expect(element.name, "mc");
+        {
+          Location location = element.location;
+          expect(location.offset, testCode.indexOf("mc<R, P>"));
+          expect(location.length, "mc".length);
+        }
+        expect(element.parameters, "(P p)");
+        expect(element.returnType, "R");
+        expect(element.typeParameters, "<R, P>");
+        expect(element.isAbstract, isFalse);
+        expect(element.isStatic, isFalse);
+      }
+      {
+        Outline outline = outlines_A[9];
+        Element element = outline.element;
         expect(element.kind, ElementKind.GETTER);
         expect(element.name, "propA");
         {
@@ -291,7 +310,7 @@ class B {
         expect(element.returnType, "String");
       }
       {
-        Outline outline = outlines_A[9];
+        Outline outline = outlines_A[10];
         Element element = outline.element;
         expect(element.kind, ElementKind.SETTER);
         expect(element.name, "propB");
@@ -334,6 +353,37 @@ class B {
         expect(element.parameters, "(int p)");
         expect(element.returnType, isNull);
       }
+    }
+    {
+      Outline outline = topOutlines[2];
+      Element element = outline.element;
+      expect(element.kind, ElementKind.FUNCTION);
+      expect(element.name, "fa");
+      {
+        Location location = element.location;
+        expect(location.offset, testCode.indexOf("fa(int pa)"));
+        expect(location.length, "ma".length);
+      }
+      expect(element.parameters, "(int pa)");
+      expect(element.returnType, "String");
+      expect(element.isAbstract, isFalse);
+      expect(element.isStatic, isTrue);
+    }
+    {
+      Outline outline = topOutlines[3];
+      Element element = outline.element;
+      expect(element.kind, ElementKind.FUNCTION);
+      expect(element.name, "fb");
+      {
+        Location location = element.location;
+        expect(location.offset, testCode.indexOf("fb<R, P>"));
+        expect(location.length, "fb".length);
+      }
+      expect(element.parameters, "(P p)");
+      expect(element.returnType, "R");
+      expect(element.typeParameters, "<R, P>");
+      expect(element.isAbstract, isFalse);
+      expect(element.isStatic, isTrue);
     }
   }
 

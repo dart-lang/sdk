@@ -29,7 +29,7 @@ main() {
     expect(sessionStorage, equals(window.sessionStorage));
   });
   test('unknown', () {
-    var test = document.query('#test');
+    var test = document.querySelector('#test');
     expect(element, equals(test));
   });
 }

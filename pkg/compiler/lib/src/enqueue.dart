@@ -356,6 +356,12 @@ class ResolutionEnqueuer extends EnqueuerImpl {
       case TypeUseKind.CATCH_TYPE:
         _registerIsCheck(type);
         break;
+      case TypeUseKind.IMPLICIT_CAST:
+        // TODO(johnniwinther): Register implicit casts conditionally on
+        // `enableTypeAssertions`.
+        _registerIsCheck(type);
+        break;
+      case TypeUseKind.PARAMETER_CHECK:
       case TypeUseKind.CHECKED_MODE_CHECK:
         if (_options.enableTypeAssertions) {
           _registerIsCheck(type);

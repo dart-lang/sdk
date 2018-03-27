@@ -336,7 +336,23 @@ class MyWidget extends StatelessWidget {
 }
 ''');
     var myWidget = unitOutline.children[0];
+    expect(myWidget.isWidgetClass, isTrue);
     expect(myWidget.renderConstructor, isNull);
+    expect(myWidget.stateClassName, isNull);
+    expect(myWidget.stateOffset, isNull);
+    expect(myWidget.stateLength, isNull);
+
+    expect(computer.instrumentedCode, isNull);
+  }
+
+  test_render_BAD_notWidget() async {
+    FlutterOutline unitOutline = await _computeOutline('''
+class C {}
+''');
+    var myWidget = unitOutline.children[0];
+    expect(myWidget.isWidgetClass, isNull);
+    expect(myWidget.renderConstructor, isNull);
+    expect(myWidget.stateClassName, isNull);
     expect(myWidget.stateOffset, isNull);
     expect(myWidget.stateLength, isNull);
 
@@ -373,6 +389,7 @@ class MyWidget extends StatelessWidget {
 
     // There is forDesignTime() constructor, but we don't handle parts.
     var myWidget = unitOutline.children[0];
+    expect(myWidget.isWidgetClass, isNull);
     expect(myWidget.renderConstructor, isNull);
   }
 
@@ -510,6 +527,7 @@ class MyWidgetState extends State<MyWidget> {
 ''');
     var myWidget = unitOutline.children[0];
     expect(myWidget.renderConstructor, 'forDesignTime');
+    expect(myWidget.stateClassName, 'MyWidgetState');
     expect(myWidget.stateOffset, 192);
     expect(myWidget.stateLength, 130);
   }
@@ -533,7 +551,9 @@ class MyWidgetState extends State<MyWidget> {
 }
 ''');
     var myWidget = unitOutline.children[0];
+    expect(myWidget.isWidgetClass, isTrue);
     expect(myWidget.renderConstructor, 'forDesignTime');
+    expect(myWidget.stateClassName, 'MyWidgetState');
     expect(myWidget.stateOffset, 178);
     expect(myWidget.stateLength, 130);
   }
@@ -557,7 +577,9 @@ class MyWidget extends StatelessWidget {
 }
 ''');
     var myWidget = unitOutline.children[0];
+    expect(myWidget.isWidgetClass, isTrue);
     expect(myWidget.renderConstructor, 'forDesignTime');
+    expect(myWidget.stateClassName, isNull);
     expect(myWidget.stateOffset, isNull);
     expect(myWidget.stateLength, isNull);
 

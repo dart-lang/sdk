@@ -10,7 +10,6 @@ import '../elements/elements.dart' show AbstractFieldElement, Element;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
-import '../options.dart';
 import '../world.dart';
 import '../universe/world_builder.dart';
 import '../util/emptyset.dart';
@@ -38,10 +37,6 @@ abstract class MirrorsData {
 
   /// True if a call to disableTreeShaking has been seen.
   bool get isTreeShakingDisabled;
-
-  /// True if a call to preserveUris has been seen and the preserve-uris flag
-  /// is set.
-  bool get mustPreserveUris;
 
   /// Set of symbols that the user has requested for reflection.
   Iterable<String> get symbolsUsed;
@@ -175,10 +170,6 @@ abstract class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
   /// True if there isn't sufficient @MirrorsUsed data.
   bool hasInsufficientMirrorsUsed = false;
 
-  /// True if a call to preserveUris has been seen and the preserve-uris flag
-  /// is set.
-  bool mustPreserveUris = false;
-
   /// Set of symbols that the user has requested for reflection.
   final Set<String> symbolsUsed = new Set<String>();
 
@@ -197,13 +188,11 @@ abstract class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
   // TODO(johnniwinther): Avoid the need for this.
   final Compiler _compiler;
 
-  final CompilerOptions _options;
-
   final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
 
-  MirrorsDataImpl(this._compiler, this._options, this._elementEnvironment,
-      this._commonElements);
+  MirrorsDataImpl(
+      this._compiler, this._elementEnvironment, this._commonElements);
 
   void registerUsedMember(MemberEntity member) {
     if (member == _commonElements.disableTreeShakingMarker) {
@@ -212,8 +201,6 @@ abstract class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
       mustPreserveNames = true;
     } else if (member == _commonElements.preserveMetadataMarker) {
       mustRetainMetadata = true;
-    } else if (member == _commonElements.preserveUrisMarker) {
-      if (_options.preserveUris) mustPreserveUris = true;
     } else if (member == _commonElements.preserveLibraryNamesMarker) {
       mustRetainLibraryNames = true;
     }

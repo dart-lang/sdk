@@ -169,6 +169,12 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           onIsCheck(type, transformed);
           hasAsCast = true;
           break;
+        case TypeUseKind.IMPLICIT_CAST:
+          // TODO(johnniwinther): Register implicit casts conditionally on
+          // `enableTypeAssertions`.
+          onIsCheck(type, transformed);
+          break;
+        case TypeUseKind.PARAMETER_CHECK:
         case TypeUseKind.CHECKED_MODE_CHECK:
           if (_options.enableTypeAssertions) {
             onIsCheck(type, transformed);
@@ -320,6 +326,9 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
     if (type is InterfaceType && _nativeBasicData.isNativeClass(type.element)) {
       registerImpact(_impacts.nativeTypeCheck);
+    }
+    if (type is FutureOrType) {
+      registerImpact(_impacts.futureOrTypeCheck);
     }
   }
 }

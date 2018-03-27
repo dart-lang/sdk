@@ -487,7 +487,9 @@ final Matcher isFilePath = isString;
  *   "variableName": optional String
  *   "children": optional List<FlutterOutline>
  *   "id": optional int
+ *   "isWidgetClass": optional bool
  *   "renderConstructor": optional String
+ *   "stateClassName": optional String
  *   "stateOffset": optional int
  *   "stateLength": optional int
  * }
@@ -508,7 +510,9 @@ final Matcher isFlutterOutline =
           "variableName": isString,
           "children": isListOf(isFlutterOutline),
           "id": isInt,
+          "isWidgetClass": isBool,
           "renderConstructor": isString,
+          "stateClassName": isString,
           "stateOffset": isInt,
           "stateLength": isInt
         }));
@@ -1103,7 +1107,6 @@ final Matcher isRefactoringFeedback =
  *   INLINE_METHOD
  *   MOVE_FILE
  *   RENAME
- *   SORT_MEMBERS
  * }
  */
 final Matcher isRefactoringKind = new MatchesEnum("RefactoringKind", [
@@ -1115,8 +1118,7 @@ final Matcher isRefactoringKind = new MatchesEnum("RefactoringKind", [
   "INLINE_LOCAL_VARIABLE",
   "INLINE_METHOD",
   "MOVE_FILE",
-  "RENAME",
-  "SORT_MEMBERS"
+  "RENAME"
 ]);
 
 /**
@@ -2478,12 +2480,10 @@ final Matcher isExtractWidgetFeedback = new LazyMatcher(
  *
  * {
  *   "name": String
- *   "stateful": bool
  * }
  */
-final Matcher isExtractWidgetOptions = new LazyMatcher(() =>
-    new MatchesJsonObject(
-        "extractWidget options", {"name": isString, "stateful": isBool}));
+final Matcher isExtractWidgetOptions = new LazyMatcher(
+    () => new MatchesJsonObject("extractWidget options", {"name": isString}));
 
 /**
  * flutter.outline params

@@ -66,6 +66,28 @@ class MyWidget extends StatelessWidget {
     assertRefactoringStatusOK(refactoring.checkName());
   }
 
+  test_checkName_alreadyDeclared() async {
+    addFlutterPackage();
+    await indexTestUnit('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Container();
+  }
+}
+
+class Test {}
+''');
+    _createRefactoringForStringOffset('new Container');
+
+    refactoring.name = 'Test';
+    assertRefactoringStatus(
+        refactoring.checkName(), RefactoringProblemSeverity.ERROR,
+        expectedMessage: "Library already declares class with name 'Test'.");
+  }
+
   test_expression() async {
     addFlutterPackage();
     await indexTestUnit('''
@@ -159,6 +181,39 @@ class Test extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return new Text('AAA');
+  }
+}
+''');
+  }
+
+  test_expression_onTypeName() async {
+    addFlutterPackage();
+    await indexTestUnit('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Container();
+  }
+}
+''');
+    _createRefactoringForStringOffset('tainer(');
+
+    await _assertSuccessfulRefactoring('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Test();
+  }
+}
+
+class Test extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Container();
   }
 }
 ''');
@@ -671,13 +726,13 @@ class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String local;
-    return new Text(local);
+    return new Text('$local $local');
   }
 }
 ''');
     _createRefactoringForStringOffset('new Text');
 
-    await _assertSuccessfulRefactoring('''
+    await _assertSuccessfulRefactoring(r'''
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
@@ -695,7 +750,7 @@ class Test extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Text(local);
+    return new Text('$local $local');
   }
 }
 ''');

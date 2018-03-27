@@ -279,10 +279,10 @@ abstract class TypeBuilder {
       return new HTypeConversion.withTypeRepresentation(
           type, kind, subtype, original, typeVariable)
         ..sourceInformation = sourceInformation;
-    } else if (type.isFunctionType) {
+    } else if (type.isFunctionType || type.isFutureOr) {
       HInstruction reifiedType =
           analyzeTypeArgument(type, builder.sourceElement);
-      // TypeMasks don't encode function types.
+      // TypeMasks don't encode function types or FutureOr types.
       TypeMask refinedMask = original.instructionType;
       return new HTypeConversion.withTypeRepresentation(
           type, kind, refinedMask, original, reifiedType)

@@ -26,39 +26,39 @@ main() {
     new CanvasElement()
   ]);
 
-  test('queryAll', () {
-    List<Node> all = queryAll('*');
+  test('querySelectorAll', () {
+    List<Node> all = querySelectorAll('*');
     for (var e in all) {
       expect(e, isElement);
     }
   });
 
-  test('document.queryAll', () {
-    List<Element> all1 = queryAll('*');
-    List<Element> all2 = document.queryAll('*');
+  test('document.querySelectorAll', () {
+    List<Element> all1 = querySelectorAll('*');
+    List<Element> all2 = document.querySelectorAll('*');
     expect(all1.length, equals(all2.length));
     for (var i = 0; i < all1.length; ++i) {
       expect(all1[i], equals(all2[i]));
     }
   });
 
-  test('queryAll-canvas', () {
-    var all = queryAll('canvas');
+  test('querySelectorAll-canvas', () {
+    var all = querySelectorAll('canvas');
     for (var e in all) {
       expect(e, isCanvasElement);
     }
     expect(all.length, equals(2));
   });
 
-  test('queryAll-contains', () {
-    List<Element> all = queryAll('*');
+  test('querySelectorAll-contains', () {
+    List<Element> all = querySelectorAll('*');
     for (var e in all) {
       expect(all.contains(e), isTrue);
     }
   });
 
-  test('queryAll-where', () {
-    List<Element> all = queryAll('*');
+  test('querySelectorAll-where', () {
+    List<Element> all = querySelectorAll('*');
     var canvases = all.where((e) => e is CanvasElement);
     for (var e in canvases) {
       expect(e is CanvasElement, isTrue);
@@ -66,8 +66,8 @@ main() {
     expect(canvases.length, equals(2));
   });
 
-  test('node.queryAll', () {
-    List<Element> list = div.queryAll('*');
+  test('node.querySelectorAll', () {
+    List<Element> list = div.querySelectorAll('*');
     expect(list.length, equals(5));
     expect(list[0], isDivElement);
     expect(list[1], isCanvasElement);
@@ -77,7 +77,7 @@ main() {
   });
 
   test('immutable', () {
-    List<Element> list = div.queryAll('*');
+    List<Element> list = div.querySelectorAll('*');
     int len = list.length;
     expect(() {
       list.add(new DivElement());

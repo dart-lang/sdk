@@ -33,6 +33,4 @@ public class RefactoringKind {
 
   public static final String RENAME = "RENAME";
 
-  public static final String SORT_MEMBERS = "SORT_MEMBERS";
-
 }

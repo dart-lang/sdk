@@ -363,6 +363,16 @@ enum JsGetName {
   /// JavaScript.
   FUNCTION_TYPE_NAMED_PARAMETERS_TAG,
 
+  /// Name used to tag a FutureOr type.
+  FUTURE_OR_TAG,
+
+  /// Name used to tag type arguments types in FutureOr type representations in
+  /// JavaScript.
+  FUTURE_OR_TYPE_ARGUMENT_TAG,
+
+  /// String representation of the type of the Future class.
+  FUTURE_CLASS_TYPE_NAME,
+
   /// Field name used for determining if an object or its interceptor has
   /// JavaScript indexing behavior.
   IS_INDEXABLE_FIELD_NAME,
@@ -402,6 +412,11 @@ enum JsBuiltin {
   ///
   ///     JS_BUILTIN('bool', JsBuiltin.isFunctionType, o)
   isFunctionType,
+
+  /// Returns true if the given type is a FutureOr type.
+  ///
+  ///     JS_BUILTIN('bool', JsBuiltin.isFutureOrType, o)
+  isFutureOrType,
 
   /// Returns the JavaScript-constructor name given an rti encoding.
   ///

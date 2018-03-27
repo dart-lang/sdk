@@ -881,6 +881,9 @@ class RawFunction : public RawObject {
     kAsyncGen = kAsyncBit | kGeneratorBit,
   };
 
+  static constexpr intptr_t kMaxFixedParametersBits = 15;
+  static constexpr intptr_t kMaxOptionalParametersBits = 15;
+
  private:
   // So that the SkippedCodeFunctions::DetachCode can null out the code fields.
   friend class SkippedCodeFunctions;
@@ -933,8 +936,24 @@ class RawFunction : public RawObject {
   NOT_IN_PRECOMPILED(TokenPosition token_pos_);
   NOT_IN_PRECOMPILED(TokenPosition end_token_pos_);
   uint32_t kind_tag_;                          // See Function::KindTagBits.
-  int16_t num_fixed_parameters_;
-  int16_t num_optional_parameters_;  // > 0: positional; < 0: named.
+  uint32_t packed_fields_;
+
+  typedef BitField<uint32_t, bool, 0, 1> PackedIsNoSuchMethodForwarder;
+  typedef BitField<uint32_t, bool, PackedIsNoSuchMethodForwarder::kNextBit, 1>
+      PackedHasNamedOptionalParameters;
+  typedef BitField<uint32_t,
+                   uint16_t,
+                   PackedHasNamedOptionalParameters::kNextBit,
+                   kMaxFixedParametersBits>
+      PackedNumFixedParameters;
+  typedef BitField<uint32_t,
+                   uint16_t,
+                   PackedNumFixedParameters::kNextBit,
+                   kMaxOptionalParametersBits>
+      PackedNumOptionalParameters;
+  static_assert(PackedNumOptionalParameters::kNextBit <=
+                    kBitsPerWord * sizeof(decltype(packed_fields_)),
+                "RawFunction::packed_fields_ bitfields don't align.");
 
 #define JIT_FUNCTION_COUNTERS(F)                                               \
   F(intptr_t, intptr_t, kernel_offset)                                         \

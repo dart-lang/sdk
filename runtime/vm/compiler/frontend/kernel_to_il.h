@@ -567,7 +567,7 @@ class BaseFlowGraphBuilder {
   // for expression stack locations - only real local variables are supported.
   // This means that you can't use MakeTemporary in a way that would require
   // a Phi in SSA form. For example example below will be miscompiled or
-  // will crash debug VM with assertion when building SSA for optimizing 
+  // will crash debug VM with assertion when building SSA for optimizing
   // compiler:
   //
   //     t = MakeTemporary()
@@ -714,8 +714,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                            intptr_t handler_index,
                            bool needs_stacktrace);
   Fragment TryCatch(int try_handler_index);
-  Fragment CheckStackOverflowInPrologue();
-  Fragment CheckStackOverflow();
+  Fragment CheckStackOverflowInPrologue(TokenPosition position);
+  Fragment CheckStackOverflow(TokenPosition position);
   Fragment CloneContext(intptr_t num_context_variables);
   Fragment CreateArray();
   Fragment InstanceCall(TokenPosition position,

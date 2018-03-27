@@ -143,8 +143,9 @@ abstract class AbstractAnalysisServerIntegrationTest
    * analysis to finish.
    */
   Future<ServerStatusParams> get analysisFinished {
-    Completer completer = new Completer();
-    StreamSubscription subscription;
+    Completer<ServerStatusParams> completer =
+        new Completer<ServerStatusParams>();
+    StreamSubscription<ServerStatusParams> subscription;
     // This will only work if the caller has already subscribed to
     // SERVER_STATUS (e.g. using sendServerSetSubscriptions(['STATUS']))
     outOfTestExpect(_subscribedToServerStatus, isTrue);

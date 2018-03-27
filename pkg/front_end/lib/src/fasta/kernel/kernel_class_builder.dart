@@ -320,12 +320,23 @@ abstract class KernelClassBuilder
     }
 
     Set<Name> existingForwardersNames = new Set<Name>();
+    Set<Name> existingSetterForwardersNames = new Set<Name>();
     if (cls.superclass != null &&
         hasUserDefinedNoSuchMethod(cls.superclass, hierarchy)) {
       List<Member> concrete = hierarchy.getDispatchTargets(cls.superclass);
       for (Member member in hierarchy.getInterfaceMembers(cls.superclass)) {
         if (ClassHierarchy.findMemberByName(concrete, member.name) == null) {
           existingForwardersNames.add(member.name);
+        }
+      }
+
+      List<Member> concreteSetters =
+          hierarchy.getDispatchTargets(cls.superclass, setters: true);
+      for (Member member
+          in hierarchy.getInterfaceMembers(cls.superclass, setters: true)) {
+        if (ClassHierarchy.findMemberByName(concreteSetters, member.name) ==
+            null) {
+          existingSetterForwardersNames.add(member.name);
         }
       }
     }
@@ -337,12 +348,22 @@ abstract class KernelClassBuilder
           existingForwardersNames.add(member.name);
         }
       }
+
+      List<Member> concreteSetters =
+          hierarchy.getDispatchTargets(cls.superclass, setters: true);
+      for (Member member
+          in hierarchy.getInterfaceMembers(cls.superclass, setters: true)) {
+        if (ClassHierarchy.findMemberByName(concreteSetters, member.name) ==
+            null) {
+          existingSetterForwardersNames.add(member.name);
+        }
+      }
     }
 
     List<Member> concrete = hierarchy.getDispatchTargets(cls);
     List<Member> declared = hierarchy.getDeclaredMembers(cls);
     for (Member member in hierarchy.getInterfaceMembers(cls)) {
-      if ((member is Procedure) &&
+      if (member is Procedure &&
           ClassHierarchy.findMemberByName(concrete, member.name) == null &&
           !existingForwardersNames.contains(member.name)) {
         if (ClassHierarchy.findMemberByName(declared, member.name) != null) {
@@ -351,6 +372,25 @@ abstract class KernelClassBuilder
           addNoSuchMethodForwarderForProcedure(member, hierarchy);
         }
         existingForwardersNames.add(member.name);
+      }
+    }
+
+    List<Member> concreteSetters =
+        hierarchy.getDispatchTargets(cls, setters: true);
+    List<Member> declaredSetters =
+        hierarchy.getDeclaredMembers(cls, setters: true);
+    for (Member member in hierarchy.getInterfaceMembers(cls, setters: true)) {
+      if (member is Procedure &&
+          ClassHierarchy.findMemberByName(concreteSetters, member.name) ==
+              null &&
+          !existingSetterForwardersNames.contains(member.name)) {
+        if (ClassHierarchy.findMemberByName(declaredSetters, member.name) !=
+            null) {
+          member.isNoSuchMethodForwarder = true;
+        } else {
+          addNoSuchMethodForwarderForProcedure(member, hierarchy);
+        }
+        existingSetterForwardersNames.add(member.name);
       }
     }
   }

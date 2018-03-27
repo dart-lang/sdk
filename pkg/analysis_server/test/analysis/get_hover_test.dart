@@ -549,6 +549,58 @@ main() {
     }
   }
 
+  test_instanceCreation_noKeyword_const() async {
+    addTestFile('''
+library my.library;
+class A {
+  const A(int i);
+}
+main() {
+  var a = A(0);
+}
+''');
+    HoverInformation hover = await prepareHover('A(0)');
+    // range
+    expect(hover.offset, findOffset('A(0)'));
+    expect(hover.length, 'A(0)'.length);
+    // element
+    expect(hover.containingLibraryName, 'my.library');
+    expect(hover.containingLibraryPath, testFile);
+    expect(hover.dartdoc, isNull);
+    expect(hover.elementDescription, '(const) A(int i) → A');
+    expect(hover.elementKind, 'constructor');
+    // types
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+    // no parameter
+    expect(hover.parameter, isNull);
+  }
+
+  test_instanceCreation_noKeyword_new() async {
+    addTestFile('''
+library my.library;
+class A {}
+main() {
+  var a = A();
+}
+''');
+    HoverInformation hover = await prepareHover('A()');
+    // range
+    expect(hover.offset, findOffset('A()'));
+    expect(hover.length, 'A()'.length);
+    // element
+    expect(hover.containingLibraryName, 'my.library');
+    expect(hover.containingLibraryPath, testFile);
+    expect(hover.dartdoc, isNull);
+    expect(hover.elementDescription, '(new) A() → A');
+    expect(hover.elementKind, 'constructor');
+    // types
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+    // no parameter
+    expect(hover.parameter, isNull);
+  }
+
   test_noHoverInfo() async {
     addTestFile('''
 library my.library;

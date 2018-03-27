@@ -922,6 +922,17 @@ copy("copy_license") {
   ]
 }
 
+# This rule copies the dartdoc_options.yaml file.
+copy("copy_dartdoc_options") {
+  visibility = [ ":create_common_sdk" ]
+  sources = [
+    "../dartdoc_options.yaml",
+  ]
+  outputs = [
+    "$root_out_dir/dart-sdk/dartdoc_options.yaml",
+  ]
+}
+
 # This rule copies the API readme file to lib/
 copy("copy_api_readme") {
   visibility = [ ":create_common_sdk" ]
@@ -942,6 +953,7 @@ group("create_common_sdk") {
     ":copy_api_readme",
     ":copy_dart",
     ":copy_dartdoc_files",
+    ":copy_dartdoc_options",
     ":copy_headers",
     ":copy_libraries_dart",
     ":copy_license",

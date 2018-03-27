@@ -4,8 +4,6 @@
 
 library fasta.builder_graph;
 
-import 'package:kernel/kernel.dart' show LibraryDependency, LibraryPart;
-
 import 'package:kernel/util/graph.dart' show Graph;
 
 import 'builder/builder.dart' show LibraryBuilder;
@@ -51,15 +49,22 @@ class BuilderGraph implements Graph<Uri> {
       }
     } else if (library is DillLibraryBuilder) {
       // Imports and exports
-      for (LibraryDependency dependency in library.library.dependencies) {
-        Uri uri = dependency.targetLibrary.importUri;
+      for (var dependency in library.library.dependencies) {
+        var uriString;
+        if (dependency.importedLibraryReference.node != null) {
+          uriString = '${dependency.targetLibrary.importUri}';
+        } else {
+          uriString =
+              '${dependency.importedLibraryReference.canonicalName.name}';
+        }
+        Uri uri = Uri.parse(uriString);
         if (builders.containsKey(uri)) {
           yield uri;
         }
       }
 
       // Parts
-      for (LibraryPart part in library.library.parts) {
+      for (var part in library.library.parts) {
         Uri uri = part.fileUri;
         if (builders.containsKey(uri)) {
           yield uri;

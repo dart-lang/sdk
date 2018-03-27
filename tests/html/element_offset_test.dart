@@ -69,15 +69,15 @@ main() {
     setUp(initPage);
 
     test('offsetTo', () {
-      var itema = query('.item-a');
-      var itemb = query('.item-b');
-      var item1 = query('.item-1');
-      var itemii = query('.item-ii');
-      var level1 = query('.level-1');
-      var baz = query('.baz');
-      var bar = query('.bar');
-      var qux = query('.qux');
-      var quux = query('.quux');
+      var itema = querySelector('.item-a');
+      var itemb = querySelector('.item-b');
+      var item1 = querySelector('.item-1');
+      var itemii = querySelector('.item-ii');
+      var level1 = querySelector('.level-1');
+      var baz = querySelector('.baz');
+      var bar = querySelector('.bar');
+      var qux = querySelector('.qux');
+      var quux = querySelector('.quux');
 
       var point = itema.offsetTo(itemii);
       expect(point.x, 40);
@@ -102,14 +102,14 @@ main() {
     });
 
     test('documentOffset', () {
-      var bar = query('.bar');
-      var baz = query('.baz');
-      var qux = query('.qux');
-      var quux = query('.quux');
-      var itema = query('.item-a');
-      var itemb = query('.item-b');
-      var item1 = query('.item-1');
-      var itemii = query('.item-ii');
+      var bar = querySelector('.bar');
+      var baz = querySelector('.baz');
+      var qux = querySelector('.qux');
+      var quux = querySelector('.quux');
+      var itema = querySelector('.item-a');
+      var itemb = querySelector('.item-b');
+      var item1 = querySelector('.item-1');
+      var itemii = querySelector('.item-ii');
 
       expect(itema.documentOffset.x, 88);
       expect(itema.documentOffset.y, inInclusiveRange(111, 160));

@@ -53,6 +53,10 @@ class DartUnitHoverComputer {
         }
         // description
         hover.elementDescription = element.toString();
+        if (node is InstanceCreationExpression && node.keyword == null) {
+          String prefix = node.isConst ? '(const) ' : '(new) ';
+          hover.elementDescription = prefix + hover.elementDescription;
+        }
         hover.elementKind = element.kind.displayName;
         hover.isDeprecated = element.hasDeprecated;
         // not local element

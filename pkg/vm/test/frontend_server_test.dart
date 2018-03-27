@@ -377,7 +377,6 @@ Future<int> main() async {
 
       final _MockedIncrementalCompiler generator =
           new _MockedIncrementalCompiler();
-      when(generator.initialized).thenAnswer((_) => false);
       when(generator.compile())
           .thenAnswer((_) => new Future<Component>.value(new Component()));
       final _MockedBinaryPrinterFactory printerFactory =

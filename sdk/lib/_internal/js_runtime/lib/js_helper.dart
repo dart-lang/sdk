@@ -96,6 +96,14 @@ bool isDartFunctionType(Object type) {
       'returns:bool;effects:none;depends:none', JsBuiltin.isFunctionType, type);
 }
 
+/// Returns true if the given [type] is a FutureOr type object.
+// TODO(floitsch): move this to foreign_helper.dart or similar.
+@ForceInline()
+bool isDartFutureOrType(Object type) {
+  return JS_BUILTIN(
+      'returns:bool;effects:none;depends:none', JsBuiltin.isFutureOrType, type);
+}
+
 /// Retrieves the class name from type information stored on the constructor of
 /// [type].
 // TODO(floitsch): move this to foreign_helper.dart or similar.
@@ -3513,6 +3521,12 @@ checkMalformedType(value, message) {
   if (value == null) return value;
   throw new TypeErrorImplementation.fromMessage(message);
 }
+
+futureOrTest(o, futureOrRti) => checkSubtypeOfRuntimeType(o, futureOrRti);
+
+futureOrCheck(o, futureOrRti) => assertSubtypeOfRuntimeType(o, futureOrRti);
+
+futureOrCast(o, futureOrRti) => subtypeOfRuntimeTypeCast(o, futureOrRti);
 
 @NoInline()
 void checkDeferredIsLoaded(String loadId, String uri) {
