@@ -1087,6 +1087,8 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
     }
   }
 
+  bool isClassAllocated(Class c) => hierarchyCache.allocatedClasses.contains(c);
+
   Call callSite(TreeNode node) => summaryCollector.callSites[node];
 
   Type fieldType(Field field) => _fieldValues[field]?.value;
