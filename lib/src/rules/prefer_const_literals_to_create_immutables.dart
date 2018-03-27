@@ -101,7 +101,7 @@ class Visitor extends SimpleAstVisitor {
     if (literal.isConst) return;
 
     // looking for parent instance creation to check if class is immutable
-    var node = literal;
+    AstNode node = literal;
     while (node is! InstanceCreationExpression &&
         (node is ParenthesizedExpression ||
             node is ArgumentList ||
