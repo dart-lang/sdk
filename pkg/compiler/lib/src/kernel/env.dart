@@ -8,7 +8,7 @@ import 'package:front_end/src/fasta/kernel/redirecting_factory_body.dart' as ir;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/clone.dart';
 import 'package:kernel/type_algebra.dart';
-import 'package:collection/algorithms.dart' show mergeSort; // a stable sort.
+import 'package:collection/collection.dart' show mergeSort; // a stable sort.
 
 import '../common.dart';
 import '../constants/constructors.dart';
