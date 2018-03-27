@@ -78,6 +78,8 @@
  * This expression creates a JavaScript array:
  *
  *     var jsArray = new JsObject.jsify([1, 2, 3]);
+ *
+ * {@category Web}
  */
 library dart.js;
 

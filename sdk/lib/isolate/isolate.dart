@@ -11,6 +11,8 @@
  * To use this library in your code:
  *
  *     import 'dart:isolate';
+ *
+ * {@category VM}
  */
 library dart.isolate;
 

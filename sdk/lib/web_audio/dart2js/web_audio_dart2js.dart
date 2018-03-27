@@ -1,5 +1,7 @@
 /**
  * High-fidelity audio programming in the browser.
+ *
+ * {@category Web}
  */
 library dart.dom.web_audio;
 

@@ -69,6 +69,8 @@
  *
  * [IndexedDB reference](http://docs.webplatform.org/wiki/apis/indexeddb)
  * provides wiki-style docs about indexedDB
+ *
+ * {@category Web}
  */
 library dart.dom.indexed_db;
 

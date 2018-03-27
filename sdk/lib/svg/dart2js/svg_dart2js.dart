@@ -5,6 +5,8 @@
  * For details about the features and syntax of SVG, a W3C standard,
  * refer to the
  * [Scalable Vector Graphics Specification](http://www.w3.org/TR/SVG/).
+ *
+ * {@category Web}
  */
 library dart.dom.svg;
 

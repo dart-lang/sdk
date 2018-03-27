@@ -21,6 +21,8 @@
  * * For even more examples, see
  * [Dart HTML5 Samples](https://github.com/dart-lang/dart-html5-samples)
  * on Github.
+ *
+ * {@category Web}
  */
 library dart.dom.html;
 
