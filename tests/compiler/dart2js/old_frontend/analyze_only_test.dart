@@ -164,14 +164,6 @@ main() {
     Expect.isTrue(warnings.isEmpty);
   });
 
-  // Test that --allow-native-extensions works.
-  runCompiler("""main() {}
-      foo() native 'foo';""", [Flags.analyzeOnly, Flags.allowNativeExtensions],
-      (String code, List errors, List warnings) {
-    Expect.isNull(code);
-    Expect.isTrue(errors.isEmpty);
-    Expect.isTrue(warnings.isEmpty);
-  });
   runCompiler("""main() {}
       foo() native 'foo';""", [Flags.analyzeOnly],
       (String code, List errors, List warnings) {

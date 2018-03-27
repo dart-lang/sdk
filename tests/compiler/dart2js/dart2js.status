@@ -67,7 +67,6 @@ sourcemaps/source_mapping_invokes_test: Pass, Slow
 sourcemaps/source_mapping_operators_test: Pass, Slow
 sourcemaps/source_mapping_test: Pass, Slow
 subtype_test: Slow, Pass
-uri_retention_test: Fail # Issue 26504
 
 [ $mode == debug ]
 deferred/load_graph_segmentation_test: Pass, Slow

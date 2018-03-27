@@ -599,12 +599,6 @@ class CommonElements {
   FunctionEntity get preserveMetadataMarker =>
       _preserveMetadataMarker ??= _findMirrorsFunction('preserveMetadata');
 
-  /// Holds the method "preserveUris" in js_mirrors when
-  /// dart:mirrors has been loaded.
-  FunctionEntity _preserveUrisMarker;
-  FunctionEntity get preserveUrisMarker =>
-      _preserveUrisMarker ??= _findMirrorsFunction('preserveUris');
-
   /// Holds the method "preserveLibraryNames" in js_mirrors when
   /// dart:mirrors has been loaded.
   FunctionEntity _preserveLibraryNamesMarker;

@@ -106,11 +106,9 @@ class CompilerImpl extends Compiler {
     Uri resourceUri = translateUri(node, readableUri);
     if (resourceUri == null) return _synthesizeScript(readableUri);
     if (resourceUri.scheme == 'dart-ext') {
-      if (!options.allowNativeExtensions) {
-        reporter.withCurrentElement(element, () {
-          reporter.reportErrorMessage(node, MessageKind.DART_EXT_NOT_SUPPORTED);
-        });
-      }
+      reporter.withCurrentElement(element, () {
+        reporter.reportErrorMessage(node, MessageKind.DART_EXT_NOT_SUPPORTED);
+      });
       return _synthesizeScript(readableUri);
     }
 

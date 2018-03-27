@@ -125,7 +125,6 @@ Future<api.CompilationResult> compile(List<String> argv,
   bool wantHelp = false;
   bool wantVersion = false;
   bool analyzeOnly = false;
-  bool allowNativeExtensions = false;
   bool trustTypeAnnotations = false;
   bool checkedMode = false;
   List<String> hints = <String>[];
@@ -205,8 +204,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   }
 
   void setAllowNativeExtensions(String argument) {
-    allowNativeExtensions = true;
-    passThrough(argument);
+    helpAndFail("Option '${Flags.allowNativeExtensions}' is not supported.");
   }
 
   void setVerbose(_) {
@@ -319,7 +317,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.syncAsync, passThrough),
     new OptionHandler(Flags.initializingFormalAccess, ignoreOption),
     new OptionHandler(Flags.minify, passThrough),
-    new OptionHandler(Flags.preserveUris, passThrough),
+    new OptionHandler(Flags.preserveUris, ignoreOption),
     new OptionHandler('--force-strip=.*', setStrip),
     new OptionHandler(Flags.disableDiagnosticColors, (_) {
       enableColors = false;
@@ -442,13 +440,6 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   if (packageRoot != null && packageConfig != null) {
     helpAndFail("Cannot specify both '--package-root' and '--packages.");
-  }
-
-  if (!analyzeOnly) {
-    if (allowNativeExtensions) {
-      helpAndFail("Option '${Flags.allowNativeExtensions}' is only supported "
-          "in combination with the '${Flags.analyzeOnly}' option.");
-    }
   }
 
   options.add('--out=$out');
@@ -652,10 +643,6 @@ Supported options:
 
   --show-package-warnings
     Show warnings and hints generated from packages.
-
-  --preserve-uris
-    Preserve the source URIs in the reflection data. Without this flag the
-    `uri` getter for `LibraryMirror`s is mangled in minified mode.
 
   --csp
     Disable dynamic generation of code in the generated output. This is

@@ -70,9 +70,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// dart:html for unit testing purposes.
   bool allowMockCompilation = false;
 
-  /// Whether the native extension syntax is supported by the frontend.
-  bool allowNativeExtensions = false;
-
   /// Whether to resolve all functions in the program, not just those reachable
   /// from main. This implies [analyzeOnly] is true as well.
   bool analyzeAll = false;
@@ -190,9 +187,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// Location of the kernel platform `.dill` files.
   Uri platformBinaries;
 
-  /// Whether to emit URIs in the reflection metadata.
-  bool preserveUris = false;
-
   /// The locations of serialized data used for resolution.
   List<Uri> resolutionInputs;
 
@@ -277,12 +271,6 @@ class CompilerOptions implements DiagnosticOptions {
   // -------------------------------------------------
   // TODO(sigmund): delete these as we delete the underlying features
 
-  /// Whether to preserve comments while scanning (only use for dart:mirrors).
-  bool preserveComments = false;
-
-  /// Strip option used by dart2dart.
-  List<String> strips = const [];
-
   /// Whether to start `async` functions synchronously.
   bool startAsyncSynchronously = false;
 
@@ -292,7 +280,6 @@ class CompilerOptions implements DiagnosticOptions {
     return new CompilerOptions()
       ..libraryRoot = libraryRoot
       ..allowMockCompilation = _hasOption(options, Flags.allowMockCompilation)
-      ..allowNativeExtensions = _hasOption(options, Flags.allowNativeExtensions)
       ..analyzeAll = _hasOption(options, Flags.analyzeAll)
       ..analyzeMain = _hasOption(options, Flags.analyzeMain)
       ..analyzeOnly = _hasOption(options, Flags.analyzeOnly)
@@ -334,11 +321,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..librariesSpecificationUri = _resolveLibrariesSpecification(libraryRoot)
       ..platformBinaries =
           platformBinaries ?? _extractUriOption(options, '--platform-binaries=')
-      ..preserveComments = _hasOption(options, Flags.preserveComments)
-      ..preserveUris = _hasOption(options, Flags.preserveUris)
       ..resolveOnly = _hasOption(options, Flags.resolveOnly)
       ..sourceMapUri = _extractUriOption(options, '--source-map=')
-      ..strips = _extractCsvOption(options, '--force-strip=')
       ..strongMode = _hasOption(options, Flags.strongMode)
       ..testMode = _hasOption(options, Flags.testMode)
       ..trustJSInteropTypeAnnotations =
@@ -373,13 +357,6 @@ class CompilerOptions implements DiagnosticOptions {
     }
     if (packageRoot != null && !packageRoot.path.endsWith("/")) {
       throw new ArgumentError("[packageRoot] must end with a /");
-    }
-    if (!analyzeOnly) {
-      if (allowNativeExtensions) {
-        throw new ArgumentError(
-            "${Flags.allowNativeExtensions} is only supported in combination "
-            "with ${Flags.analyzeOnly}");
-      }
     }
     if (useKernel && platformBinaries == null) {
       throw new ArgumentError("Missing required ${Flags.platformBinaries}");

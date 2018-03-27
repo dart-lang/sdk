@@ -77,7 +77,6 @@ class MockCompiler extends Compiler {
       bool disableTypeInference: false,
       bool analyzeAll: false,
       bool analyzeOnly: false,
-      bool preserveComments: false,
       // Our unit tests check code generation output that is
       // affected by inlining support.
       bool disableInlining: true,
@@ -102,7 +101,6 @@ class MockCompiler extends Compiler {
               ..disableTypeInference = disableTypeInference
               ..analyzeAll = analyzeAll
               ..analyzeOnly = analyzeOnly
-              ..preserveComments = preserveComments
               ..trustTypeAnnotations = trustTypeAnnotations
               ..trustJSInteropTypeAnnotations = trustJSInteropTypeAnnotations
               ..shownPackageWarnings = const [],

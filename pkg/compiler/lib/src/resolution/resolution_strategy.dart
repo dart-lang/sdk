@@ -37,7 +37,6 @@ import '../js_backend/runtime_types.dart';
 import '../library_loader.dart';
 import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../native/resolver.dart';
-import '../options.dart';
 import '../patch_parser.dart';
 import '../resolved_uri_translator.dart';
 import '../serialization/task.dart';
@@ -121,7 +120,7 @@ class ResolutionFrontEndStrategy extends FrontendStrategyBase
 
   MirrorsDataBuilder createMirrorsDataBuilder() {
     return new ResolutionMirrorsData(
-        _compiler, _compiler.options, elementEnvironment, commonElements);
+        _compiler, elementEnvironment, commonElements);
   }
 
   MirrorsResolutionAnalysis createMirrorsResolutionAnalysis(
@@ -1038,9 +1037,9 @@ class ResolutionWorkItemBuilder extends WorkItemBuilder {
 }
 
 class ResolutionMirrorsData extends MirrorsDataImpl {
-  ResolutionMirrorsData(Compiler compiler, CompilerOptions options,
+  ResolutionMirrorsData(Compiler compiler,
       ElementEnvironment elementEnvironment, CommonElements commonElements)
-      : super(compiler, options, elementEnvironment, commonElements);
+      : super(compiler, elementEnvironment, commonElements);
 
   @override
   bool isClassInjected(covariant ClassElement cls) => cls.isInjected;

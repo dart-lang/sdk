@@ -266,7 +266,7 @@ class KernelWorkItem implements ResolutionWorkItem {
 class MirrorsDataBuilderImpl extends MirrorsDataImpl {
   MirrorsDataBuilderImpl(
       ElementEnvironment elementEnvironment, CommonElements commonElements)
-      : super(null, null, elementEnvironment, commonElements);
+      : super(null, elementEnvironment, commonElements);
 
   @override
   void registerUsedMember(MemberEntity member) {}
