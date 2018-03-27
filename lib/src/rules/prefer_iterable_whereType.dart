@@ -49,12 +49,16 @@ class Visitor extends SimpleAstVisitor {
         node.target.bestType, 'Iterable', 'dart.core')) {
       return;
     }
-    final arg = node.argumentList.arguments?.first;
-    String param;
-    Expression expression;
+
+    final args = node.argumentList?.arguments;
+    if (args.length != 1) return;
+
+    final arg = args.first;
     if (arg is FunctionExpression) {
-      param = arg.parameters.parameters.first.identifier.name;
+      if (arg.parameters.parameters.length != 1) return;
+
       final body = arg.body;
+      Expression expression;
       if (body is BlockFunctionBody) {
         final statements = body.block.statements;
         if (statements.length != 1) return;
@@ -69,12 +73,13 @@ class Visitor extends SimpleAstVisitor {
       } else {
         return;
       }
-    }
-    expression = expression.unParenthesized;
-    if (expression is IsExpression) {
-      final target = expression.expression;
-      if (target is SimpleIdentifier && target.name == param) {
-        rule.reportLint(node.methodName);
+      expression = expression.unParenthesized;
+      if (expression is IsExpression) {
+        final target = expression.expression;
+        if (target is SimpleIdentifier &&
+            target.name == arg.parameters.parameters.first.identifier.name) {
+          rule.reportLint(node.methodName);
+        }
       }
     }
   }

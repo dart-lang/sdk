@@ -14,6 +14,7 @@ main() {
   l.where((e) => (e is String)); // LINT
   l.where((e) => e.f is String); // OK
   l.where((e) => l is String); // OK
+  l.where(p); // OK
   l.where(// OK
       (e) {
     print('');
@@ -21,6 +22,8 @@ main() {
   });
   l.whereType<String>(); // OK
 }
+
+bool p(e) => e is String;
 
 class A {
   bool where() => true;
