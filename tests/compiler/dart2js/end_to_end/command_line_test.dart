@@ -21,35 +21,10 @@ main() {
     await test(['foo.dart']);
     await test([Flags.useOldFrontend], exitCode: 1);
     await test([Flags.useOldFrontend, 'foo.dart']);
-    await test([Flags.useOldFrontend, Flags.resolveOnly, 'foo.dart'],
-        resolveOnly: true, resolutionOutput: Uri.base.resolve('out.data'));
-    await test(
-        [Flags.useOldFrontend, '--resolution-input=bar.dart', 'foo.dart'],
-        resolutionInputs: [Uri.base.resolve('bar.dart')]);
-    await test(
-        [
-          Flags.useOldFrontend,
-          Flags.resolveOnly,
-          '--resolution-input=bar.dart',
-          'foo.dart'
-        ],
-        resolveOnly: true,
-        resolutionOutput: Uri.base.resolve('out.data'),
-        resolutionInputs: [Uri.base.resolve('bar.dart')]);
-    await test([
-      Flags.useOldFrontend,
-      Flags.resolveOnly,
-      '--resolution-input=out.data',
-      'foo.dart'
-    ], exitCode: 1);
   });
 }
 
-Future test(List<String> arguments,
-    {int exitCode,
-    bool resolveOnly: false,
-    Uri resolutionOutput,
-    List<Uri> resolutionInputs}) async {
+Future test(List<String> arguments, {int exitCode}) async {
   print('--------------------------------------------------------------------');
   print('dart2js ${arguments.join(' ')}');
   print('--------------------------------------------------------------------');
@@ -75,17 +50,6 @@ Future test(List<String> arguments,
   Expect.equals(exitCode, actualExitCode, "Unexpected exit code");
   if (actualExitCode == null) {
     Expect.isNotNull(options, "Missing options object");
-    Expect.equals(
-        resolveOnly, options.resolveOnly, "Unexpected resolveOnly value");
-    Expect.equals(resolutionOutput, options.resolutionOutput,
-        "Unexpected resolutionOutput value");
-    if (resolutionInputs == null) {
-      Expect.isNull(
-          options.resolutionInputs, "Unexpected resolutionInputs value");
-    } else {
-      Expect.listEquals(resolutionInputs, options.resolutionInputs,
-          "Unexpected resolutionInputs value");
-    }
   }
 
   entry.compileFunc = oldCompileFunc;

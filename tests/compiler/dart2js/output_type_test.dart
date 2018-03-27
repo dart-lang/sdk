@@ -116,17 +116,6 @@ main() {
         ]..addAll(additionOptionals),
         expectedOutput,
         useKernel: useKernel);
-
-    if (!useKernel) {
-      // Option --resolve-only is only supported for the old frontend.
-      await test([
-        'tests/compiler/dart2js/deferred/data/deferred_helper.dart',
-        '--out=custom.data',
-        '--resolve-only',
-      ], [
-        'custom.data',
-      ], useKernel: useKernel);
-    }
   }
 
   asyncTest(() async {

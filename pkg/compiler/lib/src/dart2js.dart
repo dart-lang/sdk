@@ -115,20 +115,16 @@ Future<api.CompilationResult> compile(List<String> argv,
   Stopwatch wallclock = new Stopwatch()..start();
   stackTraceFilePrefix = '$currentDirectory';
   Uri libraryRoot = currentDirectory;
+  bool outputSpecified = false;
   Uri out = currentDirectory.resolve('out.js');
   Uri sourceMapOut = currentDirectory.resolve('out.js.map');
-  List<Uri> resolutionInputs;
   List<String> bazelPaths;
   Uri packageConfig = null;
   Uri packageRoot = null;
   List<String> options = new List<String>();
-  List<String> explicitOutputArguments = <String>[];
   bool wantHelp = false;
   bool wantVersion = false;
   bool analyzeOnly = false;
-  bool analyzeAll = false;
-  bool resolveOnly = false;
-  Uri resolutionOutput = currentDirectory.resolve('out.data');
   bool allowNativeExtensions = false;
   bool trustTypeAnnotations = false;
   bool checkedMode = false;
@@ -141,13 +137,9 @@ Future<api.CompilationResult> compile(List<String> argv,
   bool enableColors;
   bool useKernel = true;
   Uri platformBinaries = computePlatformBinariesLocation();
-  // List of provided options that imply that output is expected.
-  List<String> optionsImplyCompilation = <String>[];
-  bool hasDisallowUnsafeEval = false;
   Map<String, dynamic> environment = new Map<String, dynamic>();
 
   void passThrough(String argument) => options.add(argument);
-
   void ignoreOption(String argument) {}
 
   if (BUILD_ID != null) {
@@ -168,23 +160,21 @@ Future<api.CompilationResult> compile(List<String> argv,
   }
 
   void setOutput(Iterator<String> arguments) {
-    explicitOutputArguments.add(arguments.current);
+    outputSpecified = true;
     String path;
     if (arguments.current == '-o') {
       if (!arguments.moveNext()) {
         helpAndFail('Error: Missing file after -o option.');
       }
-      explicitOutputArguments.add(arguments.current);
       path = arguments.current;
     } else {
       path = extractParameter(arguments.current);
     }
-    resolutionOutput = out = currentDirectory.resolve(nativeToUriPath(path));
+    out = currentDirectory.resolve(nativeToUriPath(path));
     sourceMapOut = Uri.parse('$out.map');
   }
 
   void setOutputType(String argument) {
-    optionsImplyCompilation.add(argument);
     if (argument == '--output-type=dart' ||
         argument == '--output-type=dart-multi') {
       helpAndFail(
@@ -193,22 +183,14 @@ Future<api.CompilationResult> compile(List<String> argv,
     }
   }
 
-  void setResolutionInput(String argument) {
-    resolutionInputs = <Uri>[];
-    String parts = extractParameter(argument);
-    for (String part in parts.split(',')) {
-      resolutionInputs.add(currentDirectory.resolve(nativeToUriPath(part)));
-    }
+  setStrip(String argument) {
+    helpAndFail("Option '--force-strip' is not in use now that"
+        "--output-type=dart is no longer supported.");
   }
 
   void setBazelPaths(String argument) {
     String paths = extractParameter(argument);
     bazelPaths = <String>[]..addAll(paths.split(','));
-  }
-
-  void setResolveOnly(String argument) {
-    resolveOnly = true;
-    passThrough(argument);
   }
 
   String getDepsOutput(Iterable<Uri> sourceFiles) {
@@ -217,23 +199,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     return filenames.join("\n");
   }
 
-  implyCompilation(String argument) {
-    optionsImplyCompilation.add(argument);
-    passThrough(argument);
-  }
-
-  setStrip(String argument) {
-    helpAndFail("Option '--force-strip' is not in use now that"
-        "--output-type=dart is no longer supported.");
-  }
-
   void setAnalyzeOnly(String argument) {
     analyzeOnly = true;
-    passThrough(argument);
-  }
-
-  void setAnalyzeAll(String argument) {
-    analyzeAll = true;
     passThrough(argument);
   }
 
@@ -249,15 +216,7 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   void setTrustTypeAnnotations(String argument) {
     trustTypeAnnotations = true;
-    implyCompilation(argument);
-  }
-
-  void setTrustJSInteropTypeAnnotations(String argument) {
-    implyCompilation(argument);
-  }
-
-  void setTrustPrimitives(String argument) {
-    implyCompilation(argument);
+    passThrough(argument);
   }
 
   void setCheckedMode(String argument) {
@@ -321,7 +280,7 @@ Future<api.CompilationResult> compile(List<String> argv,
           setCheckedMode(Flags.enableCheckedMode);
           break;
         case 'm':
-          implyCompilation(Flags.minify);
+          passThrough(Flags.minify);
           break;
         default:
           throw 'Internal error: "$shortOption" did not match';
@@ -333,13 +292,14 @@ Future<api.CompilationResult> compile(List<String> argv,
   List<OptionHandler> handlers = <OptionHandler>[
     new OptionHandler('-[chvm?]+', handleShortOptions),
     new OptionHandler('--throw-on-error(?:=[0-9]+)?', handleThrowOnError),
-    new OptionHandler(Flags.suppressWarnings, (_) {
+    new OptionHandler(Flags.suppressWarnings, (String argument) {
       showWarnings = false;
-      passThrough(Flags.suppressWarnings);
+      passThrough(argument);
     }),
     new OptionHandler(Flags.fatalWarnings, passThrough),
-    new OptionHandler(Flags.suppressHints, (_) {
+    new OptionHandler(Flags.suppressHints, (String argument) {
       showHints = false;
+      passThrough(argument);
     }),
     // TODO(sigmund): remove entirely after Dart 1.20
     new OptionHandler(
@@ -353,12 +313,12 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.version, (_) => wantVersion = true),
     new OptionHandler('--library-root=.+', setLibraryRoot),
     new OptionHandler('--out=.+|-o.*', setOutput, multipleArguments: true),
-    new OptionHandler(Flags.allowMockCompilation, passThrough),
+    new OptionHandler(Flags.allowMockCompilation, ignoreOption),
     new OptionHandler(Flags.fastStartup, passThrough),
     new OptionHandler(Flags.genericMethodSyntax, ignoreOption),
     new OptionHandler(Flags.syncAsync, passThrough),
     new OptionHandler(Flags.initializingFormalAccess, ignoreOption),
-    new OptionHandler('${Flags.minify}|-m', implyCompilation),
+    new OptionHandler('${Flags.minify}|-m', passThrough),
     new OptionHandler(Flags.preserveUris, passThrough),
     new OptionHandler('--force-strip=.*', setStrip),
     new OptionHandler(Flags.disableDiagnosticColors, (_) {
@@ -370,35 +330,29 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler('--enable[_-]checked[_-]mode|--checked',
         (_) => setCheckedMode(Flags.enableCheckedMode)),
     new OptionHandler(Flags.enableAsserts, passThrough),
-    new OptionHandler(Flags.trustTypeAnnotations,
-        (_) => setTrustTypeAnnotations(Flags.trustTypeAnnotations)),
-    new OptionHandler(Flags.trustPrimitives,
-        (_) => setTrustPrimitives(Flags.trustPrimitives)),
-    new OptionHandler(
-        Flags.trustJSInteropTypeAnnotations,
-        (_) => setTrustJSInteropTypeAnnotations(
-            Flags.trustJSInteropTypeAnnotations)),
+    new OptionHandler(Flags.trustTypeAnnotations, setTrustTypeAnnotations),
+    new OptionHandler(Flags.trustPrimitives, passThrough),
+    new OptionHandler(Flags.trustJSInteropTypeAnnotations, passThrough),
     new OptionHandler(r'--help|/\?|/h', (_) => wantHelp = true),
     new OptionHandler('--packages=.+', setPackageConfig),
     new OptionHandler('--package-root=.+|-p.+', setPackageRoot),
-    new OptionHandler(Flags.analyzeAll, setAnalyzeAll),
+    new OptionHandler(Flags.analyzeAll, passThrough),
     new OptionHandler(Flags.analyzeOnly, setAnalyzeOnly),
     new OptionHandler(Flags.noSourceMaps, passThrough),
-    new OptionHandler(Option.resolutionInput, setResolutionInput),
+    new OptionHandler(Option.resolutionInput, ignoreOption),
     new OptionHandler(Option.bazelPaths, setBazelPaths),
-    new OptionHandler(Flags.resolveOnly, setResolveOnly),
+    new OptionHandler(Flags.resolveOnly, ignoreOption),
     new OptionHandler(Flags.analyzeSignaturesOnly, setAnalyzeOnly),
     new OptionHandler(Flags.disableNativeLiveTypeAnalysis, passThrough),
     new OptionHandler('--categories=.*', setCategories),
-    new OptionHandler(Flags.disableInlining, implyCompilation),
-    new OptionHandler(Flags.disableProgramSplit, implyCompilation),
-    new OptionHandler(Flags.disableTypeInference, implyCompilation),
-    new OptionHandler(Flags.disableRtiOptimization, implyCompilation),
+    new OptionHandler(Flags.disableInlining, passThrough),
+    new OptionHandler(Flags.disableProgramSplit, passThrough),
+    new OptionHandler(Flags.disableTypeInference, passThrough),
+    new OptionHandler(Flags.disableRtiOptimization, passThrough),
     new OptionHandler(Flags.terse, passThrough),
-    new OptionHandler('--deferred-map=.+', implyCompilation),
-    new OptionHandler(Flags.dumpInfo, implyCompilation),
-    new OptionHandler(
-        '--disallow-unsafe-eval', (_) => hasDisallowUnsafeEval = true),
+    new OptionHandler('--deferred-map=.+', passThrough),
+    new OptionHandler(Flags.dumpInfo, passThrough),
+    new OptionHandler('--disallow-unsafe-eval', ignoreOption),
     new OptionHandler(Option.showPackageWarnings, passThrough),
     new OptionHandler(Flags.useContentSecurityPolicy, passThrough),
     new OptionHandler(Flags.enableExperimentalMirrors, passThrough),
@@ -408,19 +362,10 @@ Future<api.CompilationResult> compile(List<String> argv,
     // TODO(floitsch): remove conditional directives flag.
     // We don't provide the info-message yet, since we haven't publicly
     // launched the feature yet.
-    new OptionHandler(Flags.conditionalDirectives, (_) {}),
-    new OptionHandler('--enable-async', (_) {
-      hints.add("Option '--enable-async' is no longer needed. "
-          "Async-await is supported by default.");
-    }),
-    new OptionHandler('--enable-null-aware-operators', (_) {
-      hints.add("Option '--enable-null-aware-operators' is no longer needed. "
-          "Null aware operators are supported by default.");
-    }),
-    new OptionHandler('--enable-enum', (_) {
-      hints.add("Option '--enable-enum' is no longer needed. "
-          "Enums are supported by default.");
-    }),
+    new OptionHandler(Flags.conditionalDirectives, ignoreOption),
+    new OptionHandler('--enable-async', ignoreOption),
+    new OptionHandler('--enable-null-aware-operators', ignoreOption),
+    new OptionHandler('--enable-enum', ignoreOption),
     new OptionHandler(Flags.allowNativeExtensions, setAllowNativeExtensions),
     new OptionHandler(Flags.generateCodeWithCompileTimeErrors, passThrough),
     new OptionHandler(Flags.useMultiSourceInfo, passThrough),
@@ -482,16 +427,6 @@ Future<api.CompilationResult> compile(List<String> argv,
     helpAndExit(wantHelp, wantVersion, diagnosticHandler.verbose);
   }
 
-  if (hasDisallowUnsafeEval) {
-    String precompiledName = relativize(
-        currentDirectory,
-        RandomAccessFileOutputProvider.computePrecompiledUri(out),
-        Platform.isWindows);
-    helpAndFail("Option '--disallow-unsafe-eval' has been removed."
-        " Instead, the compiler generates a file named"
-        " '$precompiledName'.");
-  }
-
   if (arguments.isEmpty) {
     helpAndFail('No Dart file specified.');
   }
@@ -509,37 +444,6 @@ Future<api.CompilationResult> compile(List<String> argv,
     helpAndFail("Cannot specify both '--package-root' and '--packages.");
   }
 
-  List<String> optionsImplyOutput = <String>[]
-    ..addAll(optionsImplyCompilation)
-    ..addAll(explicitOutputArguments);
-  if (resolveOnly && !optionsImplyCompilation.isEmpty) {
-    diagnosticHandler.info(
-        "Options $optionsImplyCompilation indicate that compilation is "
-        "expected, but compilation is turned off by the option "
-        "'${Flags.resolveOnly}'.",
-        api.Diagnostic.INFO);
-  } else if ((analyzeOnly || analyzeAll) && !optionsImplyOutput.isEmpty) {
-    if (analyzeAll && !analyzeOnly) {
-      diagnosticHandler.info(
-          "Option '${Flags.analyzeAll}' implies '${Flags.analyzeOnly}'.",
-          api.Diagnostic.INFO);
-    }
-    diagnosticHandler.info(
-        "Options $optionsImplyOutput indicate that output is expected, "
-        "but compilation is turned off by the option '${Flags.analyzeOnly}'.",
-        api.Diagnostic.INFO);
-  }
-  if (resolveOnly) {
-    if (resolutionInputs != null &&
-        resolutionInputs.contains(resolutionOutput)) {
-      helpAndFail("Resolution input '${resolutionOutput}' can't be used as "
-          "resolution output. Use the '--out' option to specify another "
-          "resolution output.");
-    }
-    analyzeOnly = analyzeAll = true;
-  } else if (analyzeAll) {
-    analyzeOnly = true;
-  }
   if (!analyzeOnly) {
     if (allowNativeExtensions) {
       helpAndFail("Option '${Flags.allowNativeExtensions}' is only supported "
@@ -552,9 +456,7 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   RandomAccessFileOutputProvider outputProvider =
       new RandomAccessFileOutputProvider(out, sourceMapOut,
-          onInfo: diagnosticHandler.info,
-          onFailure: fail,
-          resolutionOutput: resolveOnly ? resolutionOutput : null);
+          onInfo: diagnosticHandler.info, onFailure: fail);
 
   api.CompilationResult compilationDone(api.CompilationResult result) {
     if (analyzeOnly) return result;
@@ -585,7 +487,7 @@ Future<api.CompilationResult> compile(List<String> argv,
       for (String filename in outputProvider.allOutputFiles) {
         print("  $filename");
       }
-    } else if (explicitOutputArguments.isNotEmpty) {
+    } else if (outputSpecified) {
       String input = uriPathToNative(arguments[0]);
       String output = relativize(currentDirectory, out, Platform.isWindows);
       print('Dart file ($input) compiled to JavaScript: $output');
@@ -606,8 +508,6 @@ Future<api.CompilationResult> compile(List<String> argv,
     ..packageConfig = packageConfig
     ..environment = environment
     ..packagesDiscoveryProvider = findPackages
-    ..resolutionInputs = resolutionInputs
-    ..resolutionOutput = (resolveOnly ? resolutionOutput : null)
     ..kernelInitializedCompilerState = kernelInitializedCompilerState;
   return compileFunc(
           compilerOptions, inputProvider, diagnosticHandler, outputProvider)

@@ -324,17 +324,6 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
   RandomAccessFileOutputProvider(this.out, this.sourceMapOut,
       {this.onInfo, this.onFailure, this.resolutionOutput});
 
-  static Uri computePrecompiledUri(Uri out) {
-    String extension = 'precompiled.js';
-    String outPath = out.path;
-    if (outPath.endsWith('.js')) {
-      outPath = outPath.substring(0, outPath.length - 3);
-      return out.resolve('$outPath.$extension');
-    } else {
-      return out.resolve(extension);
-    }
-  }
-
   Uri createUri(String name, String extension, OutputType type) {
     Uri uri;
     // TODO(johnniwinther): Unify handle of [name] and [extension] to prepare
