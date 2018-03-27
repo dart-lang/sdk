@@ -318,7 +318,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.genericMethodSyntax, ignoreOption),
     new OptionHandler(Flags.syncAsync, passThrough),
     new OptionHandler(Flags.initializingFormalAccess, ignoreOption),
-    new OptionHandler('${Flags.minify}|-m', passThrough),
+    new OptionHandler(Flags.minify, passThrough),
     new OptionHandler(Flags.preserveUris, passThrough),
     new OptionHandler('--force-strip=.*', setStrip),
     new OptionHandler(Flags.disableDiagnosticColors, (_) {
