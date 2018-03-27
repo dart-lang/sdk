@@ -238,6 +238,11 @@ class FindTypeVisitor extends BaseResolutionDartTypeVisitor<bool, Null> {
   bool visitTypeVariableType(TypeVariableType type, _) {
     return type.element.typeDeclaration == entity;
   }
+
+  @override
+  bool visitFutureOrType(FutureOrType type, _) {
+    return type.typeArgument.accept(this, null);
+  }
 }
 
 abstract class AstMixin implements ComputeValueMixin<ast.Node> {

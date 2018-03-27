@@ -327,6 +327,9 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     if (type is InterfaceType && _nativeBasicData.isNativeClass(type.element)) {
       registerImpact(_impacts.nativeTypeCheck);
     }
+    if (type is FutureOrType) {
+      registerImpact(_impacts.futureOrTypeCheck);
+    }
   }
 }
 
