@@ -64,7 +64,6 @@ template("build_libdart_vm") {
     configs += [
                  "..:dart_arch_config",
                  "..:dart_config",
-                 "..:dart_os_config",
                ] + extra_configs
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
@@ -91,17 +90,24 @@ template("build_libdart_vm") {
 }
 
 build_libdart_vm("libdart_vm_jit") {
-  extra_configs = [ "..:dart_maybe_product_config" ]
+  extra_configs = [
+    "..:dart_maybe_product_config",
+    "..:dart_os_config",
+  ]
 }
 
 build_libdart_vm("libdart_vm_jit_product") {
-  extra_configs = [ "..:dart_product_config" ]
+  extra_configs = [
+    "..:dart_product_config",
+    "..:dart_os_config",
+  ]
 }
 
 build_libdart_vm("libdart_vm_precompiled_runtime") {
   extra_configs = [
     "..:dart_maybe_product_config",
     "..:dart_precompiled_runtime_config",
+    "..:dart_os_config",
   ]
 }
 
@@ -109,6 +115,7 @@ build_libdart_vm("libdart_vm_precompiled_runtime_product") {
   extra_configs = [
     "..:dart_product_config",
     "..:dart_precompiled_runtime_config",
+    "..:dart_os_config",
   ]
 }
 
@@ -116,6 +123,7 @@ build_libdart_vm("libdart_vm_nosnapshot") {
   extra_configs = [
     "..:dart_maybe_product_config",
     "..:dart_no_snapshot_config",
+    "..:dart_os_config",
   ]
 }
 
@@ -124,6 +132,7 @@ build_libdart_vm("libdart_vm_nosnapshot_with_precompiler") {
     "..:dart_maybe_product_config",
     "..:dart_precompiler_config",
     "..:dart_no_snapshot_config",
+    "..:dart_os_config",
   ]
 }
 
@@ -132,6 +141,25 @@ build_libdart_vm("libdart_vm_nosnapshot_with_precompiler_product") {
     "..:dart_product_config",
     "..:dart_precompiler_config",
     "..:dart_no_snapshot_config",
+    "..:dart_os_config",
+  ]
+}
+
+build_libdart_vm("libdart_vm_nosnapshot_with_precompiler_fuchsia") {
+  extra_configs = [
+    "..:dart_maybe_product_config",
+    "..:dart_precompiler_config",
+    "..:dart_no_snapshot_config",
+    "..:dart_os_fuchsia_config",
+  ]
+}
+
+build_libdart_vm("libdart_vm_nosnapshot_with_precompiler_product_fuchsia") {
+  extra_configs = [
+    "..:dart_product_config",
+    "..:dart_precompiler_config",
+    "..:dart_no_snapshot_config",
+    "..:dart_os_fuchsia_config",
   ]
 }
 
@@ -139,6 +167,7 @@ build_libdart_vm("libdart_vm_with_precompiler") {
   extra_configs = [
     "..:dart_maybe_product_config",
     "..:dart_precompiler_config",
+    "..:dart_os_config",
   ]
 }
 
@@ -146,6 +175,7 @@ build_libdart_vm("libdart_vm_with_precompiler_product") {
   extra_configs = [
     "..:dart_product_config",
     "..:dart_precompiler_config",
+    "..:dart_os_config",
   ]
 }
 
@@ -212,7 +242,6 @@ template("build_libdart_lib") {
     configs += [
                  "..:dart_arch_config",
                  "..:dart_config",
-                 "..:dart_os_config",
                ] + extra_configs
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
@@ -276,6 +305,7 @@ template("generate_core_libraries") {
     extra_configs = [
       "..:dart_maybe_product_config",
       "..:dart_precompiler_config",
+      "..:dart_os_config",
     ]
     extra_deps = libdeps
     extra_sources = all_libsources + [ "bootstrap.cc" ] + liboutputs
@@ -285,6 +315,27 @@ template("generate_core_libraries") {
     extra_configs = [
       "..:dart_product_config",
       "..:dart_precompiler_config",
+      "..:dart_os_config",
+    ]
+    extra_deps = libdeps
+    extra_sources = all_libsources + [ "bootstrap.cc" ] + liboutputs
+  }
+
+  build_libdart_lib("libdart_lib_nosnapshot_with_precompiler_fuchsia") {
+    extra_configs = [
+      "..:dart_maybe_product_config",
+      "..:dart_precompiler_config",
+      "..:dart_os_fuchsia_config",
+    ]
+    extra_deps = libdeps
+    extra_sources = all_libsources + [ "bootstrap.cc" ] + liboutputs
+  }
+
+  build_libdart_lib("libdart_lib_nosnapshot_with_precompiler_product_fuchsia") {
+    extra_configs = [
+      "..:dart_product_config",
+      "..:dart_precompiler_config",
+      "..:dart_os_fuchsia_config",
     ]
     extra_deps = libdeps
     extra_sources = all_libsources + [ "bootstrap.cc" ] + liboutputs
@@ -294,6 +345,7 @@ template("generate_core_libraries") {
     extra_configs = [
       "..:dart_maybe_product_config",
       "..:dart_precompiler_config",
+      "..:dart_os_config",
     ]
     extra_deps = libdeps
     extra_sources = all_libsources + [ "bootstrap_nocore.cc" ]
@@ -303,18 +355,25 @@ template("generate_core_libraries") {
     extra_configs = [
       "..:dart_product_config",
       "..:dart_precompiler_config",
+      "..:dart_os_config",
     ]
     extra_deps = libdeps
     extra_sources = all_libsources + [ "bootstrap_nocore.cc" ]
   }
 
   build_libdart_lib("libdart_lib_jit") {
-    extra_configs = [ "..:dart_maybe_product_config" ]
+    extra_configs = [
+      "..:dart_maybe_product_config",
+      "..:dart_os_config",
+    ]
     extra_sources = all_libsources + [ "bootstrap_nocore.cc" ]
   }
 
   build_libdart_lib("libdart_lib_jit_product") {
-    extra_configs = [ "..:dart_product_config" ]
+    extra_configs = [
+      "..:dart_product_config",
+      "..:dart_os_config",
+    ]
     extra_sources = all_libsources + [ "bootstrap_nocore.cc" ]
   }
 
@@ -322,6 +381,7 @@ template("generate_core_libraries") {
     extra_configs = [
       "..:dart_maybe_product_config",
       "..:dart_precompiled_runtime_config",
+      "..:dart_os_config",
     ]
     extra_sources = all_libsources + [ "bootstrap_nocore.cc" ]
   }
@@ -330,6 +390,7 @@ template("generate_core_libraries") {
     extra_configs = [
       "..:dart_product_config",
       "..:dart_precompiled_runtime_config",
+      "..:dart_os_config",
     ]
     extra_sources = all_libsources + [ "bootstrap_nocore.cc" ]
   }

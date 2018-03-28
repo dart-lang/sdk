@@ -247,7 +247,6 @@ template("build_libdart_builtin") {
     configs += [
                  "..:dart_arch_config",
                  "..:dart_config",
-                 "..:dart_os_config",
                ] + extra_configs
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
@@ -293,11 +292,31 @@ template("build_libdart_builtin") {
 }
 
 build_libdart_builtin("libdart_builtin") {
-  extra_configs = [ "..:dart_maybe_product_config" ]
+  extra_configs = [
+    "..:dart_maybe_product_config",
+    "..:dart_os_config",
+  ]
 }
 
 build_libdart_builtin("libdart_builtin_product") {
-  extra_configs = [ "..:dart_product_config" ]
+  extra_configs = [
+    "..:dart_product_config",
+    "..:dart_os_config",
+  ]
+}
+
+build_libdart_builtin("libdart_builtin_fuchsia") {
+  extra_configs = [
+    "..:dart_maybe_product_config",
+    "..:dart_os_fuchsia_config",
+  ]
+}
+
+build_libdart_builtin("libdart_builtin_product_fuchsia") {
+  extra_configs = [
+    "..:dart_product_config",
+    "..:dart_os_fuchsia_config",
+  ]
 }
 
 template("build_gen_snapshot") {
@@ -313,7 +332,6 @@ template("build_gen_snapshot") {
     configs += [
                  "..:dart_arch_config",
                  "..:dart_config",
-                 "..:dart_os_config",
                  "..:dart_precompiler_config",
                ] + extra_configs
     if (is_fuchsia) {
@@ -391,7 +409,10 @@ template("build_gen_snapshot") {
 }
 
 build_gen_snapshot("gen_snapshot") {
-  extra_configs = [ "..:dart_maybe_product_config" ]
+  extra_configs = [
+    "..:dart_maybe_product_config",
+    "..:dart_os_config",
+  ]
   extra_deps = [
     ":gen_snapshot_dart_io",
     ":libdart_builtin",
@@ -400,11 +421,38 @@ build_gen_snapshot("gen_snapshot") {
 }
 
 build_gen_snapshot("gen_snapshot_product") {
-  extra_configs = [ "..:dart_product_config" ]
+  extra_configs = [
+    "..:dart_product_config",
+    "..:dart_os_config",
+  ]
   extra_deps = [
     ":gen_snapshot_dart_io_product",
     ":libdart_builtin_product",
     "..:libdart_nosnapshot_with_precompiler_product",
+  ]
+}
+
+build_gen_snapshot("gen_snapshot_fuchsia") {
+  extra_configs = [
+    "..:dart_maybe_product_config",
+    "..:dart_os_fuchsia_config",
+  ]
+  extra_deps = [
+    ":gen_snapshot_dart_io_fuchsia",
+    ":libdart_builtin_fuchsia",
+    "..:libdart_nosnapshot_with_precompiler_fuchsia",
+  ]
+}
+
+build_gen_snapshot("gen_snapshot_product_fuchsia") {
+  extra_configs = [
+    "..:dart_product_config",
+    "..:dart_os_fuchsia_config",
+  ]
+  extra_deps = [
+    ":gen_snapshot_dart_io_product_fuchsia",
+    ":libdart_builtin_product_fuchsia",
+    "..:libdart_nosnapshot_with_precompiler_product_fuchsia",
   ]
 }
 
@@ -419,7 +467,6 @@ template("build_gen_snapshot_dart_io") {
     configs += [
                  "..:dart_arch_config",
                  "..:dart_config",
-                 "..:dart_os_config",
                  "..:dart_precompiler_config",
                ] + extra_configs
     deps = []
@@ -466,11 +513,31 @@ template("build_gen_snapshot_dart_io") {
 }
 
 build_gen_snapshot_dart_io("gen_snapshot_dart_io") {
-  extra_configs = [ "..:dart_maybe_product_config" ]
+  extra_configs = [
+    "..:dart_maybe_product_config",
+    "..:dart_os_config",
+  ]
 }
 
 build_gen_snapshot_dart_io("gen_snapshot_dart_io_product") {
-  extra_configs = [ "..:dart_product_config" ]
+  extra_configs = [
+    "..:dart_product_config",
+    "..:dart_os_config",
+  ]
+}
+
+build_gen_snapshot_dart_io("gen_snapshot_dart_io_fuchsia") {
+  extra_configs = [
+    "..:dart_maybe_product_config",
+    "..:dart_os_fuchsia_config",
+  ]
+}
+
+build_gen_snapshot_dart_io("gen_snapshot_dart_io_product_fuchsia") {
+  extra_configs = [
+    "..:dart_product_config",
+    "..:dart_os_fuchsia_config",
+  ]
 }
 
 # A source set for the implementation of 'dart:io' library.
@@ -1066,9 +1133,11 @@ if (is_fuchsia) {
       ":hello_fuchsia",
     ]
 
-    binaries = [ {
-          name = "hello_fuchsia.dart"
-        } ]
+    binaries = [
+      {
+        name = "hello_fuchsia.dart"
+      },
+    ]
   }
 }
 

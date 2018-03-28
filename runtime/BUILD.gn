@@ -81,6 +81,13 @@ config("dart_os_config") {
   }
 }
 
+# We need to build gen_snapshot targeting Fuchsia during a build of the SDK
+# targeting Mac and Linux. This configuration is used to unconditionally target
+# Fuchsia. It should not be combined with dart_os_config.
+config("dart_os_fuchsia_config") {
+  defines = [ "TARGET_OS_FUCHSIA" ]
+}
+
 config("dart_arch_config") {
   defines = []
 
@@ -194,7 +201,6 @@ template("libdart_library") {
     configs += [
                  ":dart_arch_config",
                  ":dart_config",
-                 ":dart_os_config",
                ] + extra_configs
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
@@ -221,7 +227,10 @@ template("libdart_library") {
 }
 
 libdart_library("libdart_jit") {
-  extra_configs = [ ":dart_maybe_product_config" ]
+  extra_configs = [
+    ":dart_maybe_product_config",
+    ":dart_os_config",
+  ]
   extra_deps = [
     "platform:libdart_platform",
     "vm:libdart_lib_jit",
@@ -230,7 +239,10 @@ libdart_library("libdart_jit") {
 }
 
 libdart_library("libdart_jit_product") {
-  extra_configs = [ ":dart_product_config" ]
+  extra_configs = [
+    ":dart_product_config",
+    ":dart_os_config",
+  ]
   extra_deps = [
     "platform:libdart_platform_product",
     "vm:libdart_lib_jit_product",
@@ -242,6 +254,7 @@ libdart_library("libdart_precompiled_runtime") {
   extra_configs = [
     ":dart_maybe_product_config",
     ":dart_precompiled_runtime_config",
+    ":dart_os_config",
   ]
   extra_deps = [
     "platform:libdart_platform",
@@ -254,6 +267,7 @@ libdart_library("libdart_precompiled_runtime_product") {
   extra_configs = [
     ":dart_product_config",
     ":dart_precompiled_runtime_config",
+    ":dart_os_config",
   ]
   extra_deps = [
     "platform:libdart_platform_product",
@@ -267,6 +281,7 @@ libdart_library("libdart_nosnapshot_with_precompiler") {
     ":dart_maybe_product_config",
     ":dart_no_snapshot_config",
     ":dart_precompiler_config",
+    ":dart_os_config",
   ]
   extra_deps = [
     "platform:libdart_platform",
@@ -280,6 +295,7 @@ libdart_library("libdart_nosnapshot_with_precompiler_product") {
     ":dart_product_config",
     ":dart_no_snapshot_config",
     ":dart_precompiler_config",
+    ":dart_os_config",
   ]
   extra_deps = [
     "platform:libdart_platform_product",
@@ -288,10 +304,39 @@ libdart_library("libdart_nosnapshot_with_precompiler_product") {
   ]
 }
 
+libdart_library("libdart_nosnapshot_with_precompiler_fuchsia") {
+  extra_configs = [
+    ":dart_maybe_product_config",
+    ":dart_no_snapshot_config",
+    ":dart_precompiler_config",
+    ":dart_os_fuchsia_config",
+  ]
+  extra_deps = [
+    "platform:libdart_platform_fuchsia",
+    "vm:libdart_lib_nosnapshot_with_precompiler_fuchsia",
+    "vm:libdart_vm_nosnapshot_with_precompiler_fuchsia",
+  ]
+}
+
+libdart_library("libdart_nosnapshot_with_precompiler_product_fuchsia") {
+  extra_configs = [
+    ":dart_product_config",
+    ":dart_no_snapshot_config",
+    ":dart_precompiler_config",
+    ":dart_os_fuchsia_config",
+  ]
+  extra_deps = [
+    "platform:libdart_platform_product_fuchsia",
+    "vm:libdart_lib_nosnapshot_with_precompiler_product_fuchsia",
+    "vm:libdart_vm_nosnapshot_with_precompiler_product_fuchsia",
+  ]
+}
+
 libdart_library("libdart_with_precompiler") {
   extra_configs = [
     ":dart_maybe_product_config",
     ":dart_precompiler_config",
+    ":dart_os_config",
   ]
   extra_deps = [
     "platform:libdart_platform",
@@ -304,6 +349,7 @@ libdart_library("libdart_with_precompiler_product") {
   extra_configs = [
     ":dart_product_config",
     ":dart_precompiler_config",
+    ":dart_os_config",
   ]
   extra_deps = [
     "platform:libdart_platform_product",
