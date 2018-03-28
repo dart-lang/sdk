@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing isolate communication with
 // typed objects.
-// VMOptions=--checked
 
 library TypedMessageTest;
 

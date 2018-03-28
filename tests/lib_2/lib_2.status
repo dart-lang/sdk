@@ -163,6 +163,7 @@ html/transition_event_test: Skip # Times out. Issue 22167
 [ !$checked && !$strong ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
 async/multiple_timer_test: Pass, Fail # Timing related
+isolate/issue_24243_parent_isolate_test: SkipByDesign # Requires type checks.
 
 [ !$fasta && $strong ]
 mirrors/redirecting_factory_test: CompileTimeError # Issue 30855
