@@ -3435,7 +3435,8 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   void beginTypeVariables(Token token) {
     debugEvent("beginTypeVariables");
     OutlineBuilder listener = new OutlineBuilder(library);
-    new ClassMemberParser(listener).parseTypeVariablesOpt(token.previous);
+    new ClassMemberParser(listener)
+        .parseTypeVariablesOpt(new Token.eof(-1)..next = token);
     enterFunctionTypeScope(listener.pop());
   }
 
