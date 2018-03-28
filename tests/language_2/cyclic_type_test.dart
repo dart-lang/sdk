@@ -35,11 +35,11 @@ main() {
 
   var d;
   d = new Derived(); // //# 00: continued
-  Expect.equals("Derived", d.t.toString()); // //# 00: continued
+  Expect.equals("Derived<dynamic>", d.t.toString()); // //# 00: continued
   d = new Derived<bool>(); // //# 00: continued
   Expect.equals("Derived<bool>", d.t.toString()); // //# 00: continued
   d = new Derived<Derived>(); // //# 00: continued
-  Expect.equals("Derived<Derived>", d.t.toString()); // //# 00: continued
+  Expect.equals("Derived<Derived<dynamic>>", d.t.toString()); // //# 00: continued
 
   d = new Derived(); // //# 01: continued
 
@@ -50,23 +50,23 @@ main() {
   Expect.equals("Derived<Derived<int>>", d.t.toString()); // //# 01: continued
 
   d = new Derived(); // //# 02: continued
-  Expect.equals("Derived<Derived>", d.t.toString()); // //# 02: continued
+  Expect.equals("Derived<Derived<dynamic>>", d.t.toString()); // //# 02: continued
   d = new Derived<bool>(); // //# 02: continued
   Expect.equals("Derived<Derived<bool>>", d.t.toString()); // //# 02: continued
   d = new Derived<Derived>(); // //# 02: continued
-  Expect.equals("Derived<Derived<Derived>>", d.t.toString()); // //# 02: continued
+  Expect.equals("Derived<Derived<Derived<dynamic>>>", d.t.toString()); // //# 02: continued
 
   d = new Derived1(); // //# 03: continued
-  Expect.equals("Derived2", d.t.toString()); // //# 03: continued
+  Expect.equals("Derived2<dynamic>", d.t.toString()); // //# 03: continued
   d = new Derived2(); // //# 03: continued
-  Expect.equals("Derived1", d.t.toString()); // //# 03: continued
+  Expect.equals("Derived1<dynamic>", d.t.toString()); // //# 03: continued
   d = new Derived2<Derived1<int>>(); // //# 03: continued
   Expect.equals("Derived1<Derived1<int>>", d.t.toString()); // //# 03: continued
 
   d = new Derived1(); // //# 04: continued
-  Expect.equals("Derived2", d.t.toString()); // //# 04: continued
+  Expect.equals("Derived2<dynamic>", d.t.toString()); // //# 04: continued
   d = new Derived2(); // //# 04: continued
-  Expect.equals("Derived1<Derived2>", d.t.toString()); // //# 04: continued
+  Expect.equals("Derived1<Derived2<dynamic>>", d.t.toString()); // //# 04: continued
   d = new Derived2<Derived1<int>>(); // //# 04: continued
   Expect.equals("Derived1<Derived2<Derived1<int>>>", d.t.toString()); // //# 04: continued
 }

@@ -1285,7 +1285,9 @@ async_star_regression_2238_test: CompileTimeError, RuntimeError
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 constructor3_test: Fail, OK, Pass
 cyclic_type2_test: Fail, OK
+cyclic_type_test/00: RuntimeError, OK # Not running in strong mode.
 cyclic_type_test/02: Fail, OK # Non-contractive types are not supported in the vm.
+cyclic_type_test/03: RuntimeError, OK # Not running in strong mode.
 cyclic_type_test/04: Fail, OK
 deferred_redirecting_factory_test: Fail, Crash # Issue 23408
 duplicate_export_negative_test: Fail # Issue 6134
@@ -1293,12 +1295,14 @@ dynamic_prefix_core_test/01: RuntimeError # Issue 12478
 example_constructor_test: Fail, OK
 export_ambiguous_main_negative_test: Fail # Issue 14763
 field_initialization_order_test: Fail, OK
+f_bounded_quantification4_test: RuntimeError, OK # Not running in strong mode.
 generic_methods_bounds_test/02: MissingRuntimeError
 library_env_test/has_html_support: RuntimeError, OK
 library_env_test/has_no_io_support: RuntimeError, OK
 main_not_a_function_test: Skip
 mixin_illegal_super_use_test: Skip # Issues 24478 and 23773
 mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
+mixin_mixin6_test: RuntimeError, OK # Not running in strong mode.
 multiline_strings_test: Fail # Issue 23020
 no_main_test/01: Skip
 regress_19413_test: MissingCompileTimeError

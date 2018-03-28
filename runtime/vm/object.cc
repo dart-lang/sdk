@@ -3550,8 +3550,13 @@ RawString* Class::GenerateUserVisibleName() const {
       return Symbols::List().raw();
 #endif  // !defined(PRODUCT)
   }
-  const String& name = String::Handle(Name());
-  return String::ScrubName(name);
+  String& name = String::Handle(Name());
+  name = String::ScrubName(name);
+  if (name.raw() == Symbols::FutureImpl().raw() &&
+      library() == Library::AsyncLibrary()) {
+    return Symbols::Future().raw();
+  }
+  return name.raw();
 }
 
 void Class::set_script(const Script& value) const {
@@ -4778,7 +4783,6 @@ RawString* TypeArguments::SubvectorName(intptr_t from_index,
                                         NameVisibility name_visibility) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  ASSERT(from_index + len <= Length());
   String& name = String::Handle(zone);
   const intptr_t num_strings =
       (len == 0) ? 2 : 2 * len + 1;  // "<""T"", ""T"">".
@@ -4786,8 +4790,14 @@ RawString* TypeArguments::SubvectorName(intptr_t from_index,
   pieces.Add(Symbols::LAngleBracket());
   AbstractType& type = AbstractType::Handle(zone);
   for (intptr_t i = 0; i < len; i++) {
-    type = TypeAt(from_index + i);
-    name = type.BuildName(name_visibility);
+    if (from_index + i < Length()) {
+      type = TypeAt(from_index + i);
+      name = type.BuildName(name_visibility);
+    } else {
+      // Show dynamic type argument in strong mode.
+      ASSERT(thread->isolate()->strong());
+      name = Symbols::Dynamic().raw();
+    }
     pieces.Add(name);
     if (i < len - 1) {
       pieces.Add(Symbols::CommaSpace());
@@ -16529,8 +16539,10 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
         num_type_params = num_args;
       } else {
         ASSERT(num_args == 0);  // Type is raw.
-        // No need to fill up with "dynamic".
-        num_type_params = 0;
+        // No need to fill up with "dynamic", unless running in strong mode.
+        if (!thread->isolate()->strong()) {
+          num_type_params = 0;
+        }
       }
     } else {
       // The actual type argument vector can be longer than necessary, because
@@ -16549,7 +16561,8 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
   GrowableHandlePtrArray<const String> pieces(zone, 4);
   pieces.Add(class_name);
   if ((num_type_params == 0) ||
-      args.IsRaw(first_type_param_index, num_type_params)) {
+      (!thread->isolate()->strong() &&
+       args.IsRaw(first_type_param_index, num_type_params))) {
     // Do nothing.
   } else {
     const String& args_name = String::Handle(
@@ -22532,7 +22545,7 @@ int64_t Closure::ComputeHash() const {
   const Function& func = Function::Handle(zone, function());
   uint32_t result = 0;
   if (func.IsImplicitInstanceClosureFunction()) {
-    // Implicit instance closures are not unqiue, so combine function's hash
+    // Implicit instance closures are not unique, so combine function's hash
     // code with identityHashCode of cached receiver.
     result = static_cast<uint32_t>(func.ComputeClosureHash());
     const Context& context = Context::Handle(zone, this->context());

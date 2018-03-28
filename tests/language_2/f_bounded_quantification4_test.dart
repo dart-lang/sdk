@@ -11,5 +11,5 @@ class A<T extends B<T>> {}
 class B<T> extends A {}
 
 main() {
-  Expect.equals("B<B>", new B<B>().runtimeType.toString());
+  Expect.equals("B<B<dynamic>>", new B<B>().runtimeType.toString());
 }
