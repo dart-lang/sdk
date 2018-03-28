@@ -4983,12 +4983,15 @@ class ResolverVisitor extends ScopedVisitor {
    */
   ResolverVisitor(LibraryElement definingLibrary, Source source,
       TypeProvider typeProvider, AnalysisErrorListener errorListener,
-      {Scope nameScope})
+      {Scope nameScope,
+      bool propagateTypes: true,
+      reportConstEvaluationErrors: true})
       : super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
     AnalysisOptions options = definingLibrary.context.analysisOptions;
     this.strongMode = options.strongMode;
-    this.elementResolver = new ElementResolver(this);
+    this.elementResolver = new ElementResolver(this,
+        reportConstEvaluationErrors: reportConstEvaluationErrors);
     this.typeSystem = definingLibrary.context.typeSystem;
     bool strongModeHints = false;
     if (options is AnalysisOptionsImpl) {
@@ -6597,15 +6600,12 @@ class ResolverVisitor extends ScopedVisitor {
    * serialized.
    */
   bool _hasSerializedConstantInitializer(ParameterElement parameter) {
-    if (LibraryElementImpl.hasResolutionCapability(
-        definingLibrary, LibraryResolutionCapability.constantExpressions)) {
-      Element executable = parameter.enclosingElement;
-      if (executable is MethodElement) {
-        return true;
-      }
-      if (executable is FunctionElement) {
-        return executable.enclosingElement is CompilationUnitElement;
-      }
+    Element executable = parameter.enclosingElement;
+    if (executable is MethodElement ||
+        executable is FunctionElement &&
+            executable.enclosingElement is CompilationUnitElement) {
+      return LibraryElementImpl.hasResolutionCapability(
+          definingLibrary, LibraryResolutionCapability.constantExpressions);
     }
     return false;
   }

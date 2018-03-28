@@ -197,18 +197,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
 
   @override
   PropertyAccessorElement getSetter(String setterName) {
-    // TODO (jwren) revisit- should we append '=' here or require clients to
-    // include it?
-    // Do we need the check for isSetter below?
-    if (!StringUtilities.endsWithChar(setterName, 0x3D)) {
-      setterName += '=';
-    }
-    for (PropertyAccessorElement accessor in accessors) {
-      if (accessor.isSetter && accessor.name == setterName) {
-        return accessor;
-      }
-    }
-    return null;
+    return getSetterFromAccessors(setterName, accessors);
   }
 
   @override
@@ -393,6 +382,22 @@ abstract class AbstractClassElementImpl extends ElementImpl
       return getImpl(classElement.actualElement);
     }
     return classElement as AbstractClassElementImpl;
+  }
+
+  static PropertyAccessorElement getSetterFromAccessors(
+      String setterName, List<PropertyAccessorElement> accessors) {
+    // TODO (jwren) revisit- should we append '=' here or require clients to
+    // include it?
+    // Do we need the check for isSetter below?
+    if (!StringUtilities.endsWithChar(setterName, 0x3D)) {
+      setterName += '=';
+    }
+    for (PropertyAccessorElement accessor in accessors) {
+      if (accessor.isSetter && accessor.name == setterName) {
+        return accessor;
+      }
+    }
+    return null;
   }
 }
 
@@ -8463,8 +8468,10 @@ class ParameterElementImpl extends VariableElementImpl
         _type = new FunctionTypeImpl(typeElement);
         typeElement.type = _type;
       } else {
-        _type = enclosingUnit.resynthesizerContext
-            .resolveLinkedType(this, _unlinkedParam.inferredTypeSlot);
+        if (_unlinkedParam.inferredTypeSlot != 0) {
+          _type = enclosingUnit.resynthesizerContext
+              .resolveLinkedType(this, _unlinkedParam.inferredTypeSlot);
+        }
         declaredType = enclosingUnit.resynthesizerContext
             .resolveTypeRef(this, _unlinkedParam.type, declaredType: true);
       }
