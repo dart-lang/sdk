@@ -156,7 +156,11 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
                  CountScopedHandles());
   }
   if (scoped_blocks_->next_block() == NULL) {
-    scoped_blocks_->set_next_block(new HandlesBlock(NULL));
+    HandlesBlock* block = new HandlesBlock(NULL);
+    if (block == NULL) {
+      OUT_OF_MEMORY();
+    }
+    scoped_blocks_->set_next_block(block);
   }
   scoped_blocks_ = scoped_blocks_->next_block();
   scoped_blocks_->set_next_handle_slot(0);
@@ -203,7 +207,9 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
                  CountScopedHandles());
   }
   zone_blocks_ = new HandlesBlock(zone_blocks_);
-  ASSERT(zone_blocks_ != NULL);
+  if (zone_blocks_ == NULL) {
+    OUT_OF_MEMORY();
+  }
 }
 
 #if defined(DEBUG)
