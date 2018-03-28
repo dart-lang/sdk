@@ -4318,7 +4318,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
 
-    // TODO(sra): For JS-interop targets, process arguments differently.
     List<HInstruction> arguments = <HInstruction>[];
     if (constructor.isGenerativeConstructor &&
         nativeData.isNativeOrExtendsNative(constructor.enclosingClass) &&
@@ -4328,8 +4327,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
     List<DartType> typeArguments =
         _getConstructorTypeArguments(constructor, node.arguments);
-    arguments.addAll(_visitArgumentsForStaticTarget(
-        target.function, node.arguments, typeArguments, sourceInformation));
+    arguments.addAll(closedWorld.nativeData.isJsInteropMember(constructor)
+        ? _visitArgumentsForNativeStaticTarget(target.function, node.arguments)
+        : _visitArgumentsForStaticTarget(
+            target.function, node.arguments, typeArguments, sourceInformation));
     if (commonElements.isSymbolConstructor(constructor)) {
       constructor = commonElements.symbolValidatedConstructor;
     }

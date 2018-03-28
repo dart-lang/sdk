@@ -95,6 +95,7 @@ closure_signature_unneeded_test: RuntimeError # Too eager signature generation.
 deferred_custom_loader_test: SkipByDesign # Issue 25683
 deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loading.
 deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed loading.
+js_interop_optional_arg_test: RuntimeError # Issue 31082
 js_interop_test: RuntimeError # Issue 31082
 
 [ $compiler == dart2js && $fast_startup ]
