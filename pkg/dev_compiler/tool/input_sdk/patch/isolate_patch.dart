@@ -4,30 +4,22 @@
 
 // Patch file for the dart:isolate library.
 
-import 'dart:_js_helper' show patch;
-import 'dart:_isolate_helper'
-    show CapabilityImpl, IsolateNatives, ReceivePortImpl, RawReceivePortImpl;
+import 'dart:_js_helper' show patch, NoReifyGeneric;
 
 @patch
 class Isolate {
-  static final _currentIsolateCache = IsolateNatives.currentIsolate;
-
   // `current` must be a getter, not just a final field,
   // to match the external declaration.
   @patch
-  static Isolate get current => _currentIsolateCache;
+  static Isolate get current => _unsupported();
 
   @patch
-  static Future<Uri> get packageRoot {
-    throw new UnsupportedError("Isolate.packageRoot");
-  }
+  static Future<Uri> get packageRoot => _unsupported();
 
   @patch
-  static Future<Uri> get packageConfig {
-    throw new UnsupportedError("Isolate.packageConfig");
-  }
+  static Future<Uri> get packageConfig => _unsupported();
 
-  static Uri _packageBase = Uri.base.resolve(IsolateNatives.packagesBase);
+  static Uri _packageBase = Uri.base.resolve('packages/');
 
   @patch
   static Future<Uri> resolvePackageUri(Uri packageUri) async {
@@ -37,199 +29,90 @@ class Isolate {
 
   @patch
   static Future<Isolate> spawn<T>(void entryPoint(T message), T message,
-      {bool paused: false,
-      bool errorsAreFatal,
-      SendPort onExit,
-      SendPort onError}) {
-    bool forcePause =
-        (errorsAreFatal != null) || (onExit != null) || (onError != null);
-    try {
-      // TODO: Consider passing the errorsAreFatal/onExit/onError values
-      //       as arguments to the internal spawnUri instead of setting
-      //       them after the isolate has been created.
-      return IsolateNatives
-          .spawnFunction(entryPoint, message, paused || forcePause)
-          .then((msg) {
-        var isolate = new Isolate(msg[1],
-            pauseCapability: msg[2], terminateCapability: msg[3]);
-        if (forcePause) {
-          if (errorsAreFatal != null) {
-            isolate.setErrorsFatal(errorsAreFatal);
-          }
-          if (onExit != null) {
-            isolate.addOnExitListener(onExit);
-          }
-          if (onError != null) {
-            isolate.addErrorListener(onError);
-          }
-          if (!paused) {
-            isolate.resume(isolate.pauseCapability);
-          }
-        }
-        return isolate;
-      });
-    } catch (e, st) {
-      return new Future<Isolate>.error(e, st);
-    }
-  }
+          {bool paused: false,
+          bool errorsAreFatal,
+          SendPort onExit,
+          SendPort onError}) =>
+      _unsupported();
 
   @patch
   static Future<Isolate> spawnUri(Uri uri, List<String> args, var message,
-      {bool paused: false,
-      SendPort onExit,
-      SendPort onError,
-      bool errorsAreFatal,
-      bool checked,
-      Map<String, String> environment,
-      Uri packageRoot,
-      Uri packageConfig,
-      bool automaticPackageResolution: false}) {
-    if (environment != null) throw new UnimplementedError("environment");
-    if (packageRoot != null) throw new UnimplementedError("packageRoot");
-    if (packageConfig != null) throw new UnimplementedError("packageConfig");
-    // TODO(lrn): Figure out how to handle the automaticPackageResolution
-    // parameter.
-    bool forcePause =
-        (errorsAreFatal != null) || (onExit != null) || (onError != null);
-    try {
-      if (args is List<String>) {
-        for (int i = 0; i < args.length; i++) {
-          if (args[i] is! String) {
-            throw new ArgumentError("Args must be a list of Strings $args");
-          }
-        }
-      } else if (args != null) {
-        throw new ArgumentError("Args must be a list of Strings $args");
-      }
-      // TODO: Handle [packageRoot] somehow, possibly by throwing.
-      // TODO: Consider passing the errorsAreFatal/onExit/onError values
-      //       as arguments to the internal spawnUri instead of setting
-      //       them after the isolate has been created.
-      return IsolateNatives
-          .spawnUri(uri, args, message, paused || forcePause)
-          .then((msg) {
-        var isolate = new Isolate(msg[1],
-            pauseCapability: msg[2], terminateCapability: msg[3]);
-        if (forcePause) {
-          if (errorsAreFatal != null) {
-            isolate.setErrorsFatal(errorsAreFatal);
-          }
-          if (onExit != null) {
-            isolate.addOnExitListener(onExit);
-          }
-          if (onError != null) {
-            isolate.addErrorListener(onError);
-          }
-          if (!paused) {
-            isolate.resume(isolate.pauseCapability);
-          }
-        }
-        return isolate;
-      });
-    } catch (e, st) {
-      return new Future<Isolate>.error(e, st);
-    }
-  }
+          {bool paused: false,
+          SendPort onExit,
+          SendPort onError,
+          bool errorsAreFatal,
+          bool checked,
+          Map<String, String> environment,
+          Uri packageRoot,
+          Uri packageConfig,
+          bool automaticPackageResolution: false}) =>
+      _unsupported();
 
   @patch
-  void _pause(Capability resumeCapability) {
-    var message = new List(3)
-      ..[0] = "pause"
-      ..[1] = pauseCapability
-      ..[2] = resumeCapability;
-    controlPort.send(message);
-  }
+  void _pause(Capability resumeCapability) => _unsupported();
 
   @patch
-  void resume(Capability resumeCapability) {
-    var message = new List(2)
-      ..[0] = "resume"
-      ..[1] = resumeCapability;
-    controlPort.send(message);
-  }
+  void resume(Capability resumeCapability) => _unsupported();
 
   @patch
-  void addOnExitListener(SendPort responsePort, {Object response}) {
-    // TODO(lrn): Can we have an internal method that checks if the receiving
-    // isolate of a SendPort is still alive?
-    var message = new List(3)
-      ..[0] = "add-ondone"
-      ..[1] = responsePort
-      ..[2] = response;
-    controlPort.send(message);
-  }
+  void addOnExitListener(SendPort responsePort, {Object response}) =>
+      _unsupported();
 
   @patch
-  void removeOnExitListener(SendPort responsePort) {
-    var message = new List(2)
-      ..[0] = "remove-ondone"
-      ..[1] = responsePort;
-    controlPort.send(message);
-  }
+  void removeOnExitListener(SendPort responsePort) => _unsupported();
 
   @patch
-  void setErrorsFatal(bool errorsAreFatal) {
-    var message = new List(3)
-      ..[0] = "set-errors-fatal"
-      ..[1] = terminateCapability
-      ..[2] = errorsAreFatal;
-    controlPort.send(message);
-  }
+  void setErrorsFatal(bool errorsAreFatal) => _unsupported();
 
   @patch
-  void kill({int priority: beforeNextEvent}) {
-    controlPort.send(["kill", terminateCapability, priority]);
-  }
+  void kill({int priority: beforeNextEvent}) => _unsupported();
+  @patch
+  void ping(SendPort responsePort,
+          {Object response, int priority: immediate}) =>
+      _unsupported();
 
   @patch
-  void ping(SendPort responsePort, {Object response, int priority: immediate}) {
-    var message = new List(4)
-      ..[0] = "ping"
-      ..[1] = responsePort
-      ..[2] = priority
-      ..[3] = response;
-    controlPort.send(message);
-  }
+  void addErrorListener(SendPort port) => _unsupported();
 
   @patch
-  void addErrorListener(SendPort port) {
-    var message = new List(2)
-      ..[0] = "getErrors"
-      ..[1] = port;
-    controlPort.send(message);
-  }
-
-  @patch
-  void removeErrorListener(SendPort port) {
-    var message = new List(2)
-      ..[0] = "stopErrors"
-      ..[1] = port;
-    controlPort.send(message);
-  }
+  void removeErrorListener(SendPort port) => _unsupported();
 }
 
 /** Default factory for receive ports. */
 @patch
 class ReceivePort {
   @patch
-  factory ReceivePort() = ReceivePortImpl;
+  factory ReceivePort() = _ReceivePort;
 
   @patch
-  factory ReceivePort.fromRawReceivePort(RawReceivePort rawPort) {
-    return new ReceivePortImpl.fromRawReceivePort(rawPort);
-  }
+  factory ReceivePort.fromRawReceivePort(RawReceivePort rawPort) =>
+      _unsupported();
+}
+
+/// ReceivePort is supported by dev_compiler because async test packages
+/// (async_helper, unittest) create a dummy receive port to keep the Dart VM
+/// alive.
+class _ReceivePort extends Stream implements ReceivePort {
+  close() {}
+
+  get sendPort => _unsupported();
+
+  listen(onData, {onError, onDone, cancelOnError}) => _unsupported();
 }
 
 @patch
 class RawReceivePort {
   @patch
-  factory RawReceivePort([void handler(event)]) {
-    return new RawReceivePortImpl(handler);
-  }
+  factory RawReceivePort([void handler(event)]) => _unsupported();
 }
 
 @patch
 class Capability {
   @patch
-  factory Capability() = CapabilityImpl;
+  factory Capability() => _unsupported();
+}
+
+@NoReifyGeneric()
+T _unsupported<T>() {
+  throw new UnsupportedError('dart:isolate is not supported on dart4web');
 }

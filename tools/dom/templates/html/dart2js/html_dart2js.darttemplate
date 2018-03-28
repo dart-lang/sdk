@@ -63,7 +63,6 @@ import 'dart:_interceptors' show
     findConstructorForNativeSubclassType,
     getNativeInterceptor,
     setDispatchProperty;
-import 'dart:_isolate_helper' show IsolateNatives;
 import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT;
 
 export 'dart:math' show Rectangle, Point;

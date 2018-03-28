@@ -66,25 +66,6 @@ class SyncIterable<E> extends IterableBase<E> {
 }
 
 class Primitives {
-  /// Isolate-unique ID for caching [JsClosureMirror.function].
-  /// Note the initial value is used by the first isolate (or if there are no
-  /// isolates), new isolates will update this value to avoid conflicts by
-  /// calling [initializeStatics].
-  static String mirrorFunctionCacheName = '\$cachedFunction';
-
-  /// Isolate-unique ID for caching [JsInstanceMirror._invoke].
-  static String mirrorInvokeCacheName = '\$cachedInvocation';
-
-  /// Called when creating a new isolate (see _IsolateContext constructor in
-  /// isolate_helper.dart).
-  /// Please don't add complicated code to this method, as it will impact
-  /// start-up performance.
-  static void initializeStatics(int id) {
-    // Benchmarking shows significant performance improvements if this is a
-    // fixed value.
-    mirrorFunctionCacheName += '_$id';
-    mirrorInvokeCacheName += '_$id';
-  }
 
   @NoInline()
   static int _parseIntError(String source, int handleError(String source)) {
@@ -196,7 +177,7 @@ class Primitives {
     return result;
   }
 
-  /** [: r"$".codeUnitAt(0) :] */
+  /** `r"$".codeUnitAt(0)` */
   static const int DOLLAR_CHAR_VALUE = 36;
 
   static int dateNow() => JS('int', r'Date.now()');
@@ -485,9 +466,6 @@ class Primitives {
     }
     JS('void', '#[#] = #', object, key, value);
   }
-
-  static StackTrace extractStackTrace(Error error) =>
-      getTraceFromException(error);
 }
 
 /**

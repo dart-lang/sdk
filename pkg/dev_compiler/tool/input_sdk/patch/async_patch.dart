@@ -4,16 +4,9 @@
 
 // Patch file for the dart:async library.
 
-import 'dart:_js_helper'
-    show patch, Primitives, ReifyFunctionTypes, DartIterator;
+import 'dart:_js_helper' show patch, ReifyFunctionTypes;
 import 'dart:_isolate_helper'
-    show
-        IsolateNatives,
-        TimerImpl,
-        global,
-        leaveJsAsync,
-        enterJsAsync,
-        isWorker;
+    show TimerImpl, global, leaveJsAsync, enterJsAsync;
 
 import 'dart:_foreign_helper' show JS, JSExportName;
 
