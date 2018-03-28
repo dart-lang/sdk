@@ -72,9 +72,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     }
     if (entity == node.rightParenthesis) {
       _addExpressionKeywords(node);
-      Token previous = (entity as Token).previous;
+      Token previous = node.findPrevious(entity as Token);
       if (previous.isSynthetic) {
-        previous = previous.previous;
+        previous = node.findPrevious(previous);
       }
       if (previous.lexeme == ')') {
         _addSuggestion(Keyword.ASYNC);
@@ -129,9 +129,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       Expression expression = (entity as ExpressionStatement).expression;
       if (expression is SimpleIdentifier) {
         Token token = expression.token;
-        Token previous = token.previous;
+        Token previous = node.findPrevious(token);
         if (previous.isSynthetic) {
-          previous = previous.previous;
+          previous = node.findPrevious(previous);
         }
         Token next = token.next;
         if (next.isSynthetic) {
@@ -283,9 +283,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   @override
   visitForEachStatement(ForEachStatement node) {
     if (entity == node.inKeyword) {
-      Token previous = node.inKeyword.previous;
+      Token previous = node.findPrevious(node.inKeyword);
       if (previous is SyntheticStringToken && previous.lexeme == 'in') {
-        previous = previous.previous;
+        previous = node.findPrevious(previous);
       }
       if (previous != null && previous.type == TokenType.EQ) {
         _addSuggestions([
@@ -757,7 +757,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   static bool _isPreviousTokenSynthetic(Object entity, TokenType type) {
     if (entity is AstNode) {
       Token token = entity.beginToken;
-      Token previousToken = token.previous;
+      Token previousToken = entity.findPrevious(token);
       return previousToken.isSynthetic && previousToken.type == type;
     }
     return false;
