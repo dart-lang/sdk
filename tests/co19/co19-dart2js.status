@@ -6165,6 +6165,7 @@ LayoutTests/fast/forms/ValidityState-customError_t01: RuntimeError # Please tria
 LayoutTests/fast/forms/ValidityState-typeMismatch-email_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/autocomplete_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/autofocus-input-css-style-change_t01: Pass, RuntimeError # Fails 7 out of 10.
+LayoutTests/fast/forms/autofocus-opera-007_t01: RuntimeError # See issue 143
 LayoutTests/fast/forms/button-baseline-and-collapsing_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/button/button-disabled-blur_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/checkValidity-001_t01: RuntimeError # co19 issue 142
@@ -6339,7 +6340,6 @@ LayoutTests/fast/table/min-width-html-block-table_t01: Pass, RuntimeError # Plea
 LayoutTests/fast/table/min-width-html-inline-table_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/table/nested-tables-with-div-offset_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/padding-height-and-override-height_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/table/resize-table-binding-cell_t01: RuntimeError # See issue 143
 LayoutTests/fast/table/switch-table-layout-dynamic-cells_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/switch-table-layout-multiple-section_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/switch-table-layout_t01: RuntimeError # Please triage this failure
