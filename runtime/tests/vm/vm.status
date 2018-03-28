@@ -156,21 +156,11 @@ cc/CorelibIsolateStartup: Timeout, Pass
 cc/Service_TokenStream: Fail
 
 [ $compiler == dartk && $runtime == vm ]
-cc/CanonicalizationInScriptSnapshots: Fail
 cc/Class_ComputeEndTokenPos: Crash
 cc/DartAPI_InvokeNoSuchMethod: Fail
-cc/DartAPI_IsolateSetCheckedMode: Skip # Checked mode is not relevant for dart 2?
 cc/DartAPI_IsolateShutdownRunDartCode: Skip # Flaky
 cc/DartAPI_LazyLoadDeoptimizes: Fail
 cc/DartAPI_LoadLibrary: Crash
-cc/DartAPI_LoadLibraryPatch_Error1: Fail
-cc/DartAPI_LoadLibraryPatch_Error2: Fail
-cc/DartAPI_LoadLibraryPatch_Error3: Fail
-cc/DartAPI_LoadPatch: Crash
-cc/DartAPI_LoadPatchSignatureMismatch: Crash
-cc/DartAPI_LoadSource: Crash
-cc/DartAPI_LoadSource_LateLoad: Crash
-cc/DartAPI_ParsePatchLibrary: Crash
 cc/DebuggerAPI_BreakpointStubPatching: Fail
 cc/DebuggerAPI_GetClosureInfo: Fail
 cc/DebuggerAPI_InterruptIsolate: SkipSlow
@@ -181,7 +171,6 @@ cc/Debugger_PrintBreakpointsToJSONArray: Fail
 cc/Debugger_Rewind_Optimized: SkipSlow
 cc/Debugger_SetBreakpointInPartOfLibrary: Crash
 cc/FunctionSourceFingerprint: Fail # Issue 30756
-cc/GenerateSource: Skip # Cannot generate source from a kernel binary.
 cc/IsolateReload_NotTypedefToTypedef: Fail
 cc/IsolateReload_TypedefToNotTypedef: Fail
 cc/Profiler_BasicSourcePositionOptimized: Skip
@@ -189,21 +178,6 @@ cc/Profiler_BinaryOperatorSourcePositionOptimized: Skip
 cc/Profiler_GetSourceReport: Fail
 cc/Profiler_SourcePositionOptimized: Fail
 cc/Profiler_SourcePositionOptimized: Skip
-cc/ScriptSnapshot: Crash
-cc/ScriptSnapshot2: Crash
-cc/SourcePosition_Async: Crash
-cc/SourcePosition_BitwiseOperations: Crash
-cc/SourcePosition_ForLoop: Crash
-cc/SourcePosition_If: Crash
-cc/SourcePosition_IfElse: Crash
-cc/SourcePosition_InstanceCalls: Crash
-cc/SourcePosition_InstanceFields: Crash
-cc/SourcePosition_LoadIndexed: Crash
-cc/SourcePosition_StoreIndexed: Crash
-cc/SourcePosition_Switch: Crash
-cc/SourcePosition_TryCatchFinally: Crash
-cc/SourcePosition_While: Crash
-cc/SourcePosition_WhileContinueBreak: Crash
 cc/SourceReport_CallSites_PolymorphicCall: Fail
 cc/SourceReport_CallSites_SimpleCall: Fail
 cc/SourceReport_Coverage_AllFunctions: Fail
@@ -335,14 +309,40 @@ cc/RegenerateAllocStubs: Skip # This test is meaningless for DBC as allocation s
 [ $compiler == dart2analyzer || $compiler == dart2js ]
 dart/data_uri*test: Skip # Data uri's not supported by dart2js or the analyzer.
 
-# Tests for VM parser aren't valid for Dart 2.
+# Tests that use functionality not supported in Dart 2.
 [ $compiler == dartk || $compiler == dartkp ]
-cc/Parser_AllocateVariables_CaptureLoopVar: SkipByDesign
+cc/CanonicalizationInScriptSnapshots: SkipByDesign # Script snapshots unsupported.
+cc/DartAPI_IsolateSetCheckedMode: SkipByDesign # Checked mode is not relevant for dart 2?
+cc/DartAPI_LoadLibraryPatch_Error1: SkipByDesign # Dart_LibraryLoadPatch unsupported.
+cc/DartAPI_LoadLibraryPatch_Error2: SkipByDesign
+cc/DartAPI_LoadLibraryPatch_Error3: SkipByDesign
+cc/DartAPI_LoadPatch: SkipByDesign
+cc/DartAPI_LoadPatchSignatureMismatch: SkipByDesign
+cc/DartAPI_LoadSource: SkipByDesign # Dart_LoadSource unsupported.
+cc/DartAPI_LoadSource_LateLoad: SkipByDesign
+cc/DartAPI_ParsePatchLibrary: SkipByDesign
+cc/GenerateSource: Skip # Cannot generate source from a kernel binary.
+cc/Parser_AllocateVariables_CaptureLoopVar: SkipByDesign # VM parser tests.
 cc/Parser_AllocateVariables_CapturedVar: SkipByDesign
 cc/Parser_AllocateVariables_Issue7681: SkipByDesign
 cc/Parser_AllocateVariables_MiddleChain: SkipByDesign
 cc/Parser_AllocateVariables_NestedCapturedVar: SkipByDesign
 cc/Parser_AllocateVariables_TwoChains: SkipByDesign
+cc/ScriptSnapshot: SkipByDesign # Script snapshots unsupported.
+cc/ScriptSnapshot2: SkipByDesign
+cc/SourcePosition_Async: SkipByDesign # VM parser tests (Issue 32704)
+cc/SourcePosition_BitwiseOperations: SkipByDesign
+cc/SourcePosition_ForLoop: SkipByDesign
+cc/SourcePosition_If: SkipByDesign
+cc/SourcePosition_IfElse: SkipByDesign
+cc/SourcePosition_InstanceCalls: SkipByDesign
+cc/SourcePosition_InstanceFields: SkipByDesign
+cc/SourcePosition_LoadIndexed: SkipByDesign
+cc/SourcePosition_StoreIndexed: SkipByDesign
+cc/SourcePosition_Switch: SkipByDesign
+cc/SourcePosition_TryCatchFinally: SkipByDesign
+cc/SourcePosition_While: SkipByDesign
+cc/SourcePosition_WhileContinueBreak: SkipByDesign
 
 [ $compiler == precompiler || $mode == product ]
 cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
