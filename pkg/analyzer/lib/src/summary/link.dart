@@ -1816,7 +1816,7 @@ class ConstParameterNode extends ConstNode {
     List<ConstNode> dependencies = <ConstNode>[];
     collectDependencies(
         dependencies,
-        parameterElement._unlinkedParam.initializer?.bodyExpr,
+        parameterElement.unlinkedParam.initializer?.bodyExpr,
         parameterElement.compilationUnit);
     return dependencies;
   }
@@ -3083,7 +3083,7 @@ class FieldFormalParameterElementForLink extends ParameterElementForLink
       if (enclosingConstructor is ConstructorElement) {
         Element enclosingClass = enclosingConstructor.enclosingElement;
         if (enclosingClass is ClassElement) {
-          FieldElement field = enclosingClass.getField(_unlinkedParam.name);
+          FieldElement field = enclosingClass.getField(unlinkedParam.name);
           if (field != null && !field.isSynthetic) {
             _field = field;
           }
@@ -3141,11 +3141,11 @@ class FunctionElementForLink_FunctionTypedParam extends Object
   @override
   DartType get returnType {
     if (_returnType == null) {
-      if (enclosingElement._unlinkedParam.type == null) {
+      if (enclosingElement.unlinkedParam.type == null) {
         _returnType = DynamicTypeImpl.instance;
       } else {
         _returnType = enclosingElement.compilationUnit.resolveTypeRef(
-            enclosingElement, enclosingElement._unlinkedParam.type);
+            enclosingElement, enclosingElement.unlinkedParam.type);
       }
     }
     return _returnType;
@@ -4443,7 +4443,7 @@ class ParameterElementForLink implements ParameterElementImpl {
   /**
    * The unlinked representation of the parameter in the summary.
    */
-  final UnlinkedParam _unlinkedParam;
+  final UnlinkedParam unlinkedParam;
 
   /**
    * The innermost enclosing element that can declare type parameters.
@@ -4475,16 +4475,16 @@ class ParameterElementForLink implements ParameterElementImpl {
   DartType _declaredType;
   bool _inheritsCovariant = false;
 
-  ParameterElementForLink(this.enclosingElement, this._unlinkedParam,
+  ParameterElementForLink(this.enclosingElement, this.unlinkedParam,
       this._typeParameterContext, this.compilationUnit, this._parameterIndex) {
-    if (_unlinkedParam.initializer?.bodyExpr != null) {
+    if (unlinkedParam.initializer?.bodyExpr != null) {
       _constNode = new ConstParameterNode(this);
     }
     if (compilationUnit is CompilationUnitElementInDependency) {
       _inheritsCovariant =
           (compilationUnit as CompilationUnitElementInDependency)
               .parametersInheritingCovariant
-              .contains(_unlinkedParam.inheritsCovariantSlot);
+              .contains(unlinkedParam.inheritsCovariantSlot);
     }
   }
 
@@ -4514,11 +4514,11 @@ class ParameterElementForLink implements ParameterElementImpl {
   }
 
   @override
-  String get displayName => _unlinkedParam.name;
+  String get displayName => unlinkedParam.name;
 
   @override
   bool get hasImplicitType =>
-      !_unlinkedParam.isFunctionTyped && _unlinkedParam.type == null;
+      !unlinkedParam.isFunctionTyped && unlinkedParam.type == null;
 
   @override
   String get identifier => name;
@@ -4536,7 +4536,7 @@ class ParameterElementForLink implements ParameterElementImpl {
     if (isExplicitlyCovariant || inheritsCovariant) {
       return true;
     }
-    for (UnlinkedExpr annotation in _unlinkedParam.annotations) {
+    for (UnlinkedExpr annotation in unlinkedParam.annotations) {
       if (annotation.operations.length == 1 &&
           annotation.operations[0] == UnlinkedExprOperation.pushReference) {
         ReferenceableElementForLink element =
@@ -4552,7 +4552,7 @@ class ParameterElementForLink implements ParameterElementImpl {
   }
 
   @override
-  bool get isExplicitlyCovariant => _unlinkedParam.isExplicitlyCovariant;
+  bool get isExplicitlyCovariant => unlinkedParam.isExplicitlyCovariant;
 
   @override
   bool get isNamed => parameterKind == ParameterKind.NAMED;
@@ -4574,11 +4574,11 @@ class ParameterElementForLink implements ParameterElementImpl {
       parameterKind == ParameterKind.REQUIRED;
 
   @override
-  String get name => _unlinkedParam.name;
+  String get name => unlinkedParam.name;
 
   @override
   ParameterKind get parameterKind {
-    switch (_unlinkedParam.kind) {
+    switch (unlinkedParam.kind) {
       case UnlinkedParamKind.required:
         return ParameterKind.REQUIRED;
       case UnlinkedParamKind.positional:
@@ -4594,21 +4594,21 @@ class ParameterElementForLink implements ParameterElementImpl {
     if (_inferredType != null) {
       return _inferredType;
     } else if (_declaredType == null) {
-      if (_unlinkedParam.isFunctionTyped) {
+      if (unlinkedParam.isFunctionTyped) {
         _declaredType = new FunctionTypeImpl(
             new FunctionElementForLink_FunctionTypedParam(
-                this, _typeParameterContext, _unlinkedParam.parameters));
-      } else if (_unlinkedParam.type == null) {
+                this, _typeParameterContext, unlinkedParam.parameters));
+      } else if (unlinkedParam.type == null) {
         if (!compilationUnit.isInBuildUnit) {
           _inferredType = compilationUnit.getLinkedType(
-              this, _unlinkedParam.inferredTypeSlot);
+              this, unlinkedParam.inferredTypeSlot);
           return _inferredType;
         } else {
           _declaredType = DynamicTypeImpl.instance;
         }
       } else {
         _declaredType =
-            compilationUnit.resolveTypeRef(this, _unlinkedParam.type);
+            compilationUnit.resolveTypeRef(this, unlinkedParam.type);
       }
     }
     return _declaredType;
@@ -4631,12 +4631,12 @@ class ParameterElementForLink implements ParameterElementImpl {
    */
   void link(CompilationUnitElementInBuildUnit compilationUnit) {
     compilationUnit._storeLinkedType(
-        _unlinkedParam.inferredTypeSlot, _inferredType, _typeParameterContext);
+        unlinkedParam.inferredTypeSlot, _inferredType, _typeParameterContext);
     compilationUnit._storeLinkedTypeError(
-        _unlinkedParam.inferredTypeSlot, _inferenceError);
+        unlinkedParam.inferredTypeSlot, _inferenceError);
     if (inheritsCovariant) {
       compilationUnit
-          ._storeInheritsCovariant(_unlinkedParam.inheritsCovariantSlot);
+          ._storeInheritsCovariant(unlinkedParam.inheritsCovariantSlot);
     }
   }
 

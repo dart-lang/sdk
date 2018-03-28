@@ -93,20 +93,21 @@ class ExprBuilderTest extends AbstractSingleUnitTest
         requireValidConst: true);
   }
 
-  void checkSimpleExpression(String expressionText,
+  Expression checkSimpleExpression(String expressionText,
       {String expectedText,
       String extraDeclarations: '',
       bool requireValidConst: false}) {
-    checkTopLevelVariable('var x = $expressionText;\n$extraDeclarations',
+    return checkTopLevelVariable('var x = $expressionText;\n$extraDeclarations',
         expectedText ?? expressionText,
         requireValidConst: requireValidConst);
   }
 
-  void checkTopLevelVariable(String sourceText, String expectedText,
+  Expression checkTopLevelVariable(String sourceText, String expectedText,
       {String variableName: 'x', bool requireValidConst: false}) {
     Expression expr = buildTopLevelVariable(sourceText,
         variableName: variableName, requireValidConst: requireValidConst);
     expect(expr.toString(), expectedText);
+    return expr;
   }
 
   TestSummaryResynthesizer encodeSource(String text) {
@@ -158,6 +159,10 @@ class A {
 
   void test_assignToRef() {
     checkSimpleExpression('y = 0', extraDeclarations: 'var y;');
+  }
+
+  void test_await() {
+    checkSimpleExpression('() async => await 0');
   }
 
   void test_bitAnd() {
@@ -428,12 +433,66 @@ class C {
     checkSimpleExpression('() => 0');
   }
 
+  void test_pushLocalFunctionReference_async() {
+    checkSimpleExpression('() async => 0');
+  }
+
+  void test_pushLocalFunctionReference_block() {
+    checkSimpleExpression('() {}');
+  }
+
   void test_pushLocalFunctionReference_namedParam_untyped() {
     checkSimpleExpression('({x}) => 0');
   }
 
+  void test_pushLocalFunctionReference_nested() {
+    var expr =
+        checkSimpleExpression('(x) => (y) => x + y') as FunctionExpression;
+    var outerFunctionElement = expr.element;
+    var xElement = outerFunctionElement.parameters[0];
+    var x = expr.parameters.parameters[0];
+    expect(x.element, same(xElement));
+    var outerBody = expr.body as ExpressionFunctionBody;
+    var outerBodyExpr = outerBody.expression as FunctionExpression;
+    var innerFunctionElement = outerBodyExpr.element;
+    var yElement = innerFunctionElement.parameters[0];
+    var y = outerBodyExpr.parameters.parameters[0];
+    expect(y.element, same(yElement));
+    var innerBody = outerBodyExpr.body as ExpressionFunctionBody;
+    var innerBodyExpr = innerBody.expression as BinaryExpression;
+    var xRef = innerBodyExpr.leftOperand as SimpleIdentifier;
+    var yRef = innerBodyExpr.rightOperand as SimpleIdentifier;
+    expect(xRef.staticElement, same(xElement));
+    expect(yRef.staticElement, same(yElement));
+  }
+
+  void test_pushLocalFunctionReference_paramReference() {
+    var expr = checkSimpleExpression('(x, y) => x + y') as FunctionExpression;
+    var localFunctionElement = expr.element;
+    var xElement = localFunctionElement.parameters[0];
+    var yElement = localFunctionElement.parameters[1];
+    var x = expr.parameters.parameters[0];
+    var y = expr.parameters.parameters[1];
+    expect(x.element, same(xElement));
+    expect(y.element, same(yElement));
+    var body = expr.body as ExpressionFunctionBody;
+    var bodyExpr = body.expression as BinaryExpression;
+    var xRef = bodyExpr.leftOperand as SimpleIdentifier;
+    var yRef = bodyExpr.rightOperand as SimpleIdentifier;
+    expect(xRef.staticElement, same(xElement));
+    expect(yRef.staticElement, same(yElement));
+  }
+
   void test_pushLocalFunctionReference_positionalParam_untyped() {
     checkSimpleExpression('([x]) => 0');
+  }
+
+  void test_pushLocalFunctionReference_requiredParam_typed() {
+    var expr = checkSimpleExpression('(int x) => 0', expectedText: '(x) => 0')
+        as FunctionExpression;
+    var functionElement = expr.element;
+    var xElement = functionElement.parameters[0] as ParameterElementImpl;
+    expect(xElement.type.toString(), 'int');
   }
 
   void test_pushLocalFunctionReference_requiredParam_untyped() {

@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
@@ -33,21 +34,14 @@ class ExprBuilder {
 
   final List<UnlinkedExecutable> localFunctions;
 
-  ExprBuilder(this.resynthesizer, this.context, this.uc,
-      {this.requireValidConst: true, this.localFunctions});
+  final Map<String, ParameterElement> parametersInScope;
 
-  /**
-   * Return the [ConstructorElement] enclosing [context].
-   */
-  ConstructorElement get _enclosingConstructor {
-    for (Element e = context; e != null; e = e.enclosingElement) {
-      if (e is ConstructorElement) {
-        return e;
-      }
-    }
-    throw new StateError(
-        'Unable to find the enclosing constructor of $context');
-  }
+  ExprBuilder(this.resynthesizer, this.context, this.uc,
+      {this.requireValidConst: true,
+      this.localFunctions,
+      Map<String, ParameterElement> parametersInScope})
+      : this.parametersInScope =
+            parametersInScope ?? _parametersInScope(context);
 
   Expression build() {
     if (requireValidConst && !uc.isValidConst) {
@@ -220,17 +214,13 @@ class ExprBuilder {
           case UnlinkedExprOperation.pushParameter:
             String name = uc.strings[stringPtr++];
             SimpleIdentifier identifier = AstTestFactory.identifier3(name);
-            identifier.staticElement = _enclosingConstructor.parameters
-                .firstWhere((parameter) => parameter.name == name,
-                    orElse: () => throw new StateError(
-                        'Unable to resolve constructor parameter: $name'));
+            identifier.staticElement = parametersInScope[name];
             _push(identifier);
             break;
           case UnlinkedExprOperation.ifNull:
             _pushBinary(TokenType.QUESTION_QUESTION);
             break;
           case UnlinkedExprOperation.await:
-            // TODO(scheglov) No test, requires closures.
             Expression expression = _pop();
             _push(AstTestFactory.awaitExpression(expression));
             break;
@@ -341,6 +331,19 @@ class ExprBuilder {
     return AstTestFactory.propertyAccess(enclosing, property);
   }
 
+  TypeArgumentList _buildTypeArguments() {
+    int numTypeArguments = uc.ints[intPtr++];
+    if (numTypeArguments == 0) {
+      return null;
+    }
+
+    var typeNames = new List<TypeAnnotation>(numTypeArguments);
+    for (int i = 0; i < numTypeArguments; i++) {
+      typeNames[i] = _newTypeName();
+    }
+    return AstTestFactory.typeArgumentList(typeNames);
+  }
+
   TypeAnnotation _buildTypeAst(DartType type) {
     List<TypeAnnotation> argumentNodes;
     if (type is ParameterizedType) {
@@ -423,11 +426,16 @@ class ExprBuilder {
   PropertyAccessorElement _getStringLengthElement() =>
       resynthesizer.typeProvider.stringType.getGetter('length');
 
-  FormalParameter _makeParameter(UnlinkedParam param) {
-    var simpleParam = AstTestFactory.simpleFormalParameter(null, param.name);
-    if (param.kind == UnlinkedParamKind.positional) {
+  FormalParameter _makeParameter(ParameterElementImpl param) {
+    SimpleFormalParameterImpl simpleParam =
+        AstTestFactory.simpleFormalParameter(null, param.name);
+    simpleParam.identifier.staticElement = param;
+    simpleParam.element = param;
+    var unlinkedParam = param.unlinkedParam;
+    FormalParameter paramAst;
+    if (unlinkedParam.kind == UnlinkedParamKind.positional) {
       return AstTestFactory.positionalFormalParameter(simpleParam, null);
-    } else if (param.kind == UnlinkedParamKind.named) {
+    } else if (unlinkedParam.kind == UnlinkedParamKind.named) {
       return AstTestFactory.namedFormalParameter(simpleParam, null);
     } else {
       return simpleParam;
@@ -574,19 +582,6 @@ class ExprBuilder {
     }
   }
 
-  TypeArgumentList _buildTypeArguments() {
-    int numTypeArguments = uc.ints[intPtr++];
-    if (numTypeArguments == 0) {
-      return null;
-    }
-
-    var typeNames = new List<TypeAnnotation>(numTypeArguments);
-    for (int i = 0; i < numTypeArguments; i++) {
-      typeNames[i] = _newTypeName();
-    }
-    return AstTestFactory.typeArgumentList(typeNames);
-  }
-
   void _pushList(TypeArgumentList typeArguments) {
     int count = uc.ints[intPtr++];
     List<Expression> elements = <Expression>[];
@@ -603,18 +598,45 @@ class ExprBuilder {
     assert(popCount == 0);
     int functionIndex = uc.ints[intPtr++];
     var localFunction = localFunctions[functionIndex];
-    // TODO(paulberry): need to create a sub-element for the local function;
-    // don't just pass along context.
-    var bodyExpr = new ExprBuilder(
-            resynthesizer, context, localFunction.bodyExpr,
-            requireValidConst: requireValidConst)
-        .build();
-    var parameters = localFunction.parameters.map(_makeParameter).toList();
-    _push(astFactory.functionExpression(
-        null,
-        AstTestFactory.formalParameterList(parameters),
-        astFactory.expressionFunctionBody(null,
-            TokenFactory.tokenFromType(TokenType.FUNCTION), bodyExpr, null)));
+    var parametersInScope =
+        new Map<String, ParameterElement>.from(this.parametersInScope);
+    var functionElement =
+        new FunctionElementImpl.forSerialized(localFunction, context);
+    for (ParameterElementImpl parameter in functionElement.parameters) {
+      parametersInScope[parameter.name] = parameter;
+      if (parameter.unlinkedParam.type == null) {
+        // Store a type of `dynamic` for the parameter; this prevents
+        // resynthesis from trying to read a type out of the summary (which
+        // wouldn't work anyway, since nested functions don't have their
+        // parameter types stored in the summary anyhow).
+        parameter.type = resynthesizer.typeProvider.dynamicType;
+      }
+    }
+    var parameters = functionElement.parameters.map(_makeParameter).toList();
+    var asyncKeyword = localFunction.isAsynchronous
+        ? TokenFactory.tokenFromKeyword(Keyword.ASYNC)
+        : null;
+    FunctionBody functionBody;
+    if (localFunction.bodyExpr == null) {
+      // Most likely the original source code contained a block function body
+      // here.  Block function bodies aren't supported by the summary mechanism.
+      // But they are tolerated when their presence doesn't affect inferred
+      // types.
+      functionBody = AstTestFactory.blockFunctionBody(AstTestFactory.block());
+    } else {
+      var bodyExpr = new ExprBuilder(
+              resynthesizer, functionElement, localFunction.bodyExpr,
+              requireValidConst: requireValidConst,
+              parametersInScope: parametersInScope,
+              localFunctions: localFunction.localFunctions)
+          .build();
+      functionBody = astFactory.expressionFunctionBody(asyncKeyword,
+          TokenFactory.tokenFromType(TokenType.FUNCTION), bodyExpr, null);
+    }
+    var functionExpression = astFactory.functionExpression(
+        null, AstTestFactory.formalParameterList(parameters), functionBody);
+    functionExpression.element = functionElement;
+    _push(functionExpression);
   }
 
   void _pushMap(TypeArgumentList typeArguments) {
@@ -649,6 +671,23 @@ class ExprBuilder {
     if (requireValidConst) {
       throw const _InvalidConstantException();
     }
+  }
+
+  /// Figures out the default value of [parametersInScope] based on [context].
+  ///
+  /// If [context] is (or contains) a constructor, then its parameters are used.
+  /// Otherwise, no parameters are considered to be in scope.
+  static Map<String, ParameterElement> _parametersInScope(Element context) {
+    var result = <String, ParameterElement>{};
+    for (Element e = context; e != null; e = e.enclosingElement) {
+      if (e is ConstructorElement) {
+        for (var parameter in e.parameters) {
+          result[parameter.name] = parameter;
+        }
+        return result;
+      }
+    }
+    return result;
   }
 }
 
