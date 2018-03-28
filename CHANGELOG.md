@@ -12,6 +12,13 @@
 
 ### Tool Changes
 
+#### Pub
+
+* Pub has a brand new version solver! It supports all the same features as the
+  old version solver, but it's much less likely to stall out on difficult
+  package graphs, and it's much clearer about why a solution can't be found when
+  version solving fails.
+
 ## 2.0.0-dev.42.0
 
 ### Tool Changes
