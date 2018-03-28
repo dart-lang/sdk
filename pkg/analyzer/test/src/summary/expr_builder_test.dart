@@ -322,10 +322,26 @@ class C {
         requireValidConst: true);
   }
 
+  void test_invokeConstructor_generic_hasTypeArguments() {
+    checkSimpleExpression('new Map<int, List<String>>()');
+  }
+
+  void test_invokeConstructor_generic_noTypeArguments() {
+    checkSimpleExpression('new Map()');
+  }
+
   void test_invokeMethod() {
     checkSimpleExpression('new C().foo(1, 2)', extraDeclarations: r'''
 class C {
   int foo(int a, int b) => 0;
+}
+''');
+  }
+
+  void test_invokeMethod_namedArguments() {
+    checkSimpleExpression('new C().foo(a: 1, c: 3)', extraDeclarations: r'''
+class C {
+  int foo({int a, int b, int c}) => 0;
 }
 ''');
   }
@@ -443,6 +459,18 @@ class C {
 
   void test_pushReference() {
     checkSimpleExpression('int');
+  }
+
+  void test_pushReference_sequence() {
+    checkSimpleExpression('a.b.f', extraDeclarations: r'''
+var a = new A();
+class A {
+  B b = new B();
+}
+class B {
+  int f = 0;
+}
+''');
   }
 
   void test_pushString() {

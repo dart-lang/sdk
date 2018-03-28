@@ -333,7 +333,7 @@ class ExprBuilder {
         ..staticElement = element;
       return AstTestFactory.identifier(enclosing, identifier);
     }
-    if (element == null) {
+    if (requireValidConst && element == null) {
       throw const _InvalidConstantException();
     }
     SimpleIdentifier property = AstTestFactory.identifier3(info.name)
