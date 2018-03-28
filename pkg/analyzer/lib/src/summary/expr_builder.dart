@@ -405,6 +405,8 @@ class ExprBuilder {
         return postfix(TokenType.PLUS_PLUS);
       case UnlinkedExprAssignOperator.postfixDecrement:
         return postfix(TokenType.MINUS_MINUS);
+      default:
+        throw new UnimplementedError('Unexpected UnlinkedExprAssignOperator');
     }
   }
 
