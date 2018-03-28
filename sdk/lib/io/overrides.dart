@@ -79,6 +79,11 @@ abstract class IOOverrides {
       // Link
       Link Function(String) createLink,
 
+      // Socket
+      Future<Socket> Function(dynamic, int,
+              {dynamic sourceAddress, Duration timeout})
+          socketConnect,
+
       // Optional Zone parameters
       ZoneSpecification zoneSpecification,
       Function onError}) {
@@ -108,6 +113,9 @@ abstract class IOOverrides {
 
       // Link
       createLink,
+
+      // Socket
+      socketConnect,
     );
     return _asyncRunZoned<R>(body,
         zoneValues: {_ioOverridesToken: overrides},
@@ -236,9 +244,22 @@ abstract class IOOverrides {
   // Link
 
   /// Returns a new [Link] object for the given [path].
+  ///
   /// When this override is installed, this function overrides the behavior of
   /// `new Link()` and `new Link.fromUri()`.
   Link createLink(String path) => new _Link(path);
+
+  // Socket
+
+  /// Asynchronously returns a [Socket] connected to the given host and port.
+  ///
+  /// When this override is installed, this functions overrides the behavior of
+  /// `Socet.connect(...)`.
+  Future<Socket> socketConnect(host, int port,
+      {sourceAddress, Duration timeout}) {
+    return Socket._connect(host, port,
+        sourceAddress: sourceAddress, timeout: timeout);
+  }
 }
 
 class _IOOverridesScope extends IOOverrides {
@@ -270,6 +291,10 @@ class _IOOverridesScope extends IOOverrides {
   // Link
   Link Function(String) _createLink;
 
+  // Socket
+  Future<Socket> Function(dynamic, int,
+      {dynamic sourceAddress, Duration timeout}) _socketConnect;
+
   _IOOverridesScope(
     // Directory
     this._createDirectory,
@@ -296,6 +321,9 @@ class _IOOverridesScope extends IOOverrides {
 
     // Link
     this._createLink,
+
+    // Socket
+    this._socketConnect,
   );
 
   // Directory
@@ -390,6 +418,7 @@ class _IOOverridesScope extends IOOverrides {
     return super.fsWatch(path, events, recursive);
   }
 
+  @override
   bool fsWatchIsSupported() {
     if (_fsWatchIsSupported != null) return _fsWatchIsSupported();
     if (_previous != null) return _previous.fsWatchIsSupported();
@@ -402,5 +431,21 @@ class _IOOverridesScope extends IOOverrides {
     if (_createLink != null) return _createLink(path);
     if (_previous != null) return _previous.createLink(path);
     return super.createLink(path);
+  }
+
+  // Socket
+  @override
+  Future<Socket> socketConnect(host, int port,
+      {sourceAddress, Duration timeout}) {
+    if (_socketConnect != null) {
+      return _socketConnect(host, port,
+          sourceAddress: sourceAddress, timeout: timeout);
+    }
+    if (_previous != null) {
+      return _previous.socketConnect(host, port,
+          sourceAddress: sourceAddress, timeout: timeout);
+    }
+    return super.socketConnect(host, port,
+        sourceAddress: sourceAddress, timeout: timeout);
   }
 }

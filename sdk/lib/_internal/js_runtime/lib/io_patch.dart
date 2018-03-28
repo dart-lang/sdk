@@ -465,7 +465,7 @@ class RawSocket {
 @patch
 class Socket {
   @patch
-  static Future<Socket> connect(host, int port,
+  static Future<Socket> _connect(host, int port,
       {sourceAddress, Duration timeout}) {
     throw new UnsupportedError("Socket constructor");
   }

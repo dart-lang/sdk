@@ -9,6 +9,8 @@
 * `dart:collection`
   * Removed `Maps` class. Extend `MapBase` or mix in `MapMixin` instead to
     provide map method implementations for a class.
+* `dart:io`
+  * Added `IOOverrides.socketConnect`.
 
 ### Tool Changes
 

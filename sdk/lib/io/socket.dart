@@ -536,7 +536,18 @@ abstract class Socket implements Stream<List<int>>, IOSink {
    * [timeout]. On timeout, a [SocketException] is thrown and all ongoing
    * connection attempts to [host] are cancelled.
    */
-  external static Future<Socket> connect(host, int port,
+  static Future<Socket> connect(host, int port,
+      {sourceAddress, Duration timeout}) {
+    final IOOverrides overrides = IOOverrides.current;
+    if (overrides == null) {
+      return Socket._connect(host, port,
+          sourceAddress: sourceAddress, timeout: timeout);
+    }
+    return overrides.socketConnect(host, port,
+        sourceAddress: sourceAddress, timeout: timeout);
+  }
+
+  external static Future<Socket> _connect(host, int port,
       {sourceAddress, Duration timeout});
 
   /**
