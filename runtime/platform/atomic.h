@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef RUNTIME_VM_ATOMIC_H_
-#define RUNTIME_VM_ATOMIC_H_
+#ifndef RUNTIME_PLATFORM_ATOMIC_H_
+#define RUNTIME_PLATFORM_ATOMIC_H_
 
 #include "platform/globals.h"
 
-#include "vm/allocation.h"
+#include "platform/allocation.h"
 
 namespace dart {
 
@@ -55,17 +55,17 @@ class AtomicOperations : public AllStatic {
 }  // namespace dart
 
 #if defined(HOST_OS_ANDROID)
-#include "vm/atomic_android.h"
+#include "platform/atomic_android.h"
 #elif defined(HOST_OS_FUCHSIA)
-#include "vm/atomic_fuchsia.h"
+#include "platform/atomic_fuchsia.h"
 #elif defined(HOST_OS_LINUX)
-#include "vm/atomic_linux.h"
+#include "platform/atomic_linux.h"
 #elif defined(HOST_OS_MACOS)
-#include "vm/atomic_macos.h"
+#include "platform/atomic_macos.h"
 #elif defined(HOST_OS_WINDOWS)
-#include "vm/atomic_win.h"
+#include "platform/atomic_win.h"
 #else
 #error Unknown target os.
 #endif
 
-#endif  // RUNTIME_VM_ATOMIC_H_
+#endif  // RUNTIME_PLATFORM_ATOMIC_H_

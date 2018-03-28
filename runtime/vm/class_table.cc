@@ -4,7 +4,7 @@
 
 #include "vm/class_table.h"
 
-#include "vm/atomic.h"
+#include "platform/atomic.h"
 #include "vm/flags.h"
 #include "vm/freelist.h"
 #include "vm/growable_array.h"

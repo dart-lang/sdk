@@ -11,7 +11,7 @@
 #include <fcntl.h>
 #include <cstdlib>
 
-#include "vm/atomic.h"
+#include "platform/atomic.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
 #include "vm/lockers.h"

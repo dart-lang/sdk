@@ -5,9 +5,9 @@
 #ifndef RUNTIME_VM_TIMER_H_
 #define RUNTIME_VM_TIMER_H_
 
+#include "platform/atomic.h"
 #include "platform/utils.h"
 #include "vm/allocation.h"
-#include "vm/atomic.h"
 #include "vm/flags.h"
 #include "vm/os.h"
 

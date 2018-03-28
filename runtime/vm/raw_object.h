@@ -6,7 +6,7 @@
 #define RUNTIME_VM_RAW_OBJECT_H_
 
 #include "platform/assert.h"
-#include "vm/atomic.h"
+#include "platform/atomic.h"
 #include "vm/exceptions.h"
 #include "vm/globals.h"
 #include "vm/snapshot.h"
