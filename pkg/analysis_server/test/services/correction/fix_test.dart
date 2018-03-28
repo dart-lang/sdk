@@ -596,6 +596,32 @@ class B {}
 ''');
   }
 
+  test_addFieldFormalParameters_flutter() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  final int a;
+  final int b;
+  final int c;
+
+  MyWidget({Key key, this.a}) : super(key: key);
+}
+''');
+    await assertHasFix(DartFixKind.ADD_FIELD_FORMAL_PARAMETERS, '''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  final int a;
+  final int b;
+  final int c;
+
+  MyWidget({Key key, this.a, this.b, this.c}) : super(key: key);
+}
+''');
+  }
+
   test_addFieldFormalParameters_hasRequiredParameter() async {
     await resolveTestUnit('''
 class Test {
@@ -1619,6 +1645,87 @@ class Test {
   final int c;
 
   Test(this.a, this.c);
+}
+''');
+  }
+
+  test_createConstructor_forFinalFields_flutter() async {
+    addFlutterPackage();
+    errorFilter = (AnalysisError error) {
+      return error.message.contains("'a'");
+    };
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  final int a;
+  final int b = 2;
+  final int c;
+}
+''');
+    await assertHasFix(DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS, '''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  final int a;
+  final int b = 2;
+  final int c;
+
+  const MyWidget({Key key, this.a, this.c}) : super(key: key);
+}
+''');
+  }
+
+  test_createConstructor_forFinalFields_flutter_childLast() async {
+    addFlutterPackage();
+    errorFilter = (AnalysisError error) {
+      return error.message.contains("'a'");
+    };
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  final int a;
+  final Widget child;
+  final int b;
+}
+''');
+    await assertHasFix(DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS, '''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  final int a;
+  final Widget child;
+  final int b;
+
+  const MyWidget({Key key, this.a, this.b, this.child}) : super(key: key);
+}
+''');
+  }
+
+  test_createConstructor_forFinalFields_flutter_childrenLast() async {
+    addFlutterPackage();
+    errorFilter = (AnalysisError error) {
+      return error.message.contains("'a'");
+    };
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  final int a;
+  final List<Widget> children;
+  final int b;
+}
+''');
+    await assertHasFix(DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS, '''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  final int a;
+  final List<Widget> children;
+  final int b;
+
+  const MyWidget({Key key, this.a, this.b, this.children}) : super(key: key);
 }
 ''');
   }
