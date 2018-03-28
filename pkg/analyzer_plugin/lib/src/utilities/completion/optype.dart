@@ -335,7 +335,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
         index = 0;
       } else if (entity == node.rightParenthesis) {
         // Parser ignores trailing commas
-        if (node.rightParenthesis.previous?.lexeme == ',') {
+        Token previous = node.findPrevious(node.rightParenthesis);
+        if (previous?.lexeme == ',') {
           index = node.arguments.length;
         } else {
           index = node.arguments.length - 1;
@@ -598,10 +599,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   @override
   void visitFormalParameterList(FormalParameterList node) {
     dynamic entity = this.entity;
-    if (entity is Token && entity.previous != null) {
-      TokenType type = entity.previous.type;
-      if (type == TokenType.OPEN_PAREN || type == TokenType.COMMA) {
-        optype.includeTypeNameSuggestions = true;
+    if (entity is Token) {
+      Token previous = node.findPrevious(entity);
+      if (previous != null) {
+        TokenType type = previous.type;
+        if (type == TokenType.OPEN_PAREN || type == TokenType.COMMA) {
+          optype.includeTypeNameSuggestions = true;
+        }
       }
     }
     // Handle default normal parameter just as a normal parameter.
@@ -844,7 +848,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
         // identifier to be a keyword and inserts a synthetic identifier
         (node.identifier != null &&
             node.identifier.isSynthetic &&
-            identical(entity, node.identifier.beginToken.previous))) {
+            identical(entity, node.findPrevious(node.identifier.beginToken)))) {
       optype.isPrefixed = true;
       if (node.parent is TypeName && node.parent.parent is ConstructorName) {
         optype.includeConstructorSuggestions = true;
@@ -1031,9 +1035,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   bool _isEntityPrevTokenSynthetic() {
     Object entity = this.entity;
-    if (entity is AstNode &&
-        (entity.beginToken.previous?.isSynthetic ?? false)) {
-      return true;
+    if (entity is AstNode) {
+      Token previous = entity.findPrevious(entity.beginToken);
+      if (previous?.isSynthetic ?? false) {
+        return true;
+      }
     }
     return false;
   }

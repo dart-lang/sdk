@@ -165,7 +165,7 @@ class CompletionTarget {
       }
       for (var entity in containingNode.childEntities) {
         if (entity is Token) {
-          if (_isCandidateToken(entity, offset)) {
+          if (_isCandidateToken(containingNode, entity, offset)) {
             // Try to replace with a comment token.
             Token commentToken = _getContainingCommentToken(entity, offset);
             if (commentToken != null) {
@@ -184,7 +184,7 @@ class CompletionTarget {
           // If the last token in the node isn't a candidate target, then
           // neither the node nor any of its descendants can possibly be the
           // completion target, so we can skip the node entirely.
-          if (!_isCandidateToken(entity.endToken, offset)) {
+          if (!_isCandidateToken(containingNode, entity.endToken, offset)) {
             continue;
           }
 
@@ -278,14 +278,14 @@ class CompletionTarget {
     Token token = droppedToken ??
         (entity is AstNode ? (entity as AstNode).beginToken : entity);
     if (token != null && requestOffset < token.offset) {
-      token = token.previous;
+      token = containingNode.findPrevious(token);
     }
     if (token != null) {
       if (requestOffset == token.offset && !isKeywordOrIdentifier(token)) {
         // If the insertion point is at the beginning of the current token
         // and the current token is not an identifier
         // then check the previous token to see if it should be replaced
-        token = token.previous;
+        token = containingNode.findPrevious(token);
       }
       if (token != null && isKeywordOrIdentifier(token)) {
         if (token.offset <= requestOffset && requestOffset <= token.end) {
@@ -296,7 +296,7 @@ class CompletionTarget {
       if (token is StringToken) {
         SimpleStringLiteral uri =
             astFactory.simpleStringLiteral(token, token.lexeme);
-        Keyword keyword = token.previous?.keyword;
+        Keyword keyword = containingNode.findPrevious(token)?.keyword;
         if (keyword == Keyword.IMPORT ||
             keyword == Keyword.EXPORT ||
             keyword == Keyword.PART) {
@@ -318,7 +318,7 @@ class CompletionTarget {
   bool isDoubleOrIntLiteral() {
     var entity = this.entity;
     if (entity is Token) {
-      TokenType previousTokenType = entity.previous?.type;
+      TokenType previousTokenType = containingNode.findPrevious(entity)?.type;
       return previousTokenType == TokenType.DOUBLE ||
           previousTokenType == TokenType.INT;
     }
@@ -405,7 +405,8 @@ class CompletionTarget {
       }
       if (entity == argList.rightParenthesis) {
         // Parser ignores trailing commas
-        if (argList.rightParenthesis.previous?.lexeme == ',') {
+        Token previous = containingNode.findPrevious(argList.rightParenthesis);
+        if (previous?.lexeme == ',') {
           return args.length;
         }
         return args.length - 1;
@@ -508,7 +509,7 @@ class CompletionTarget {
     // candidate entity if its first token is.
     Token beginToken = node.beginToken;
     if (beginToken.type.isKeyword || beginToken.type == TokenType.IDENTIFIER) {
-      return _isCandidateToken(beginToken, offset);
+      return _isCandidateToken(node, beginToken, offset);
     }
 
     // Otherwise, the node is a candidate entity only if the offset is before
@@ -522,7 +523,7 @@ class CompletionTarget {
    * Determine whether [token] could possibly be the [entity] for a
    * [CompletionTarget] associated with the given [offset].
    */
-  static bool _isCandidateToken(Token token, int offset) {
+  static bool _isCandidateToken(AstNode node, Token token, int offset) {
     if (token == null) {
       return false;
     }
@@ -541,7 +542,7 @@ class CompletionTarget {
     }
     // If the current token is synthetic, then check the previous token
     // because it may have been dropped from the parse tree
-    Token previous = token.previous;
+    Token previous = node.findPrevious(token);
     if (offset < previous.end) {
       return true;
     } else if (offset == previous.end) {

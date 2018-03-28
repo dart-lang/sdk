@@ -24,6 +24,7 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
 
 /**
  * Two or more string literals that are implicitly concatenated because of being
@@ -987,6 +988,9 @@ abstract class AstNodeImpl implements AstNode {
     }
     return _propertyMap[name] as E;
   }
+
+  Token findPrevious(Token target) =>
+      util.findPrevious(beginToken, target) ?? parent?.findPrevious(target);
 
   @override
   void setProperty(String name, Object value) {
