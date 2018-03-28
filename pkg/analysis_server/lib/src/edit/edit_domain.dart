@@ -939,20 +939,44 @@ class _RefactoringManager {
       AstNode node = await server.getNodeAtOffset(file, offset);
       Element element = server.getElementOfNode(node);
       if (node != null && element != null) {
+        int feedbackOffset = node.offset;
+        int feedbackLength = node.length;
+
         if (element is FieldFormalParameterElement) {
           element = (element as FieldFormalParameterElement).field;
         }
-        // climb from "Class" in "new Class.named()" to "Class.named"
-        if (node.parent is TypeName && node.parent.parent is ConstructorName) {
-          ConstructorName constructor = node.parent.parent;
-          node = constructor;
-          element = constructor.staticElement;
+
+        // Use the prefix offset/length when renaming an import directive.
+        if (node is ImportDirective && element is ImportElement) {
+          if (node.prefix != null) {
+            feedbackOffset = node.prefix.offset;
+            feedbackLength = node.prefix.length;
+          } else {
+            feedbackOffset = -1;
+            feedbackLength = 0;
+          }
         }
+
+        // Canonicalize to ConstructorName.
+        var constructorName = _canonicalizeToConstructorName(node);
+        if (constructorName != null) {
+          node = constructorName;
+          element = constructorName.staticElement;
+          // Use the constructor name offset/length.
+          if (constructorName.name != null) {
+            feedbackOffset = constructorName.name.offset;
+            feedbackLength = constructorName.name.length;
+          } else {
+            feedbackOffset = -1;
+            feedbackLength = 0;
+          }
+        }
+
         // do create the refactoring
         refactoring = new RenameRefactoring(
             searchEngine, server.getAstProvider(file), element);
-        feedback =
-            new RenameFeedback(node.offset, node.length, 'kind', 'oldName');
+        feedback = new RenameFeedback(
+            feedbackOffset, feedbackLength, 'kind', 'oldName');
       }
     }
     if (refactoring == null) {
@@ -1086,6 +1110,32 @@ class _RefactoringManager {
       return renameRefactoring.checkNewName();
     }
     return new RefactoringStatus();
+  }
+
+  /**
+   * If the [node] is a constructor reference, return the corresponding
+   * [ConstructorName], or `null` otherwise.
+   */
+  static ConstructorName _canonicalizeToConstructorName(AstNode node) {
+    var parent = node.parent;
+    var parent2 = parent?.parent;
+
+    // "named" in "Class.named".
+    if (parent is ConstructorName) {
+      return parent;
+    }
+
+    // "Class" in "Class.named".
+    if (parent is TypeName && parent2 is ConstructorName) {
+      return parent2;
+    }
+
+    // Canonicalize "new Class.named()" to "Class.named".
+    if (node is InstanceCreationExpression) {
+      return node.constructorName;
+    }
+
+    return null;
   }
 }
 
