@@ -259,6 +259,11 @@ bool isExactlyStatelessWidgetType(DartType type) {
       _isExactWidget(type.element, _STATELESS_WIDGET_NAME, _WIDGET_URI);
 }
 
+/// Return `true` if the given [element] is the Flutter class `State`.
+bool isExactState(ClassElement element) {
+  return _isExactWidget(element, _STATE_NAME, _WIDGET_URI);
+}
+
 /**
  * Return `true` if the given [type] is the Flutter class `Center`.
  */
