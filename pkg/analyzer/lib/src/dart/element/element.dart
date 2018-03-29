@@ -1968,12 +1968,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   ClassElement getType(String className) {
-    for (ClassElement type in types) {
-      if (type.name == className) {
-        return type;
-      }
-    }
-    return null;
+    return getTypeFromTypes(className, types);
   }
 
   /**
@@ -2012,6 +2007,16 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     safelyVisitChildren(functionTypeAliases, visitor);
     safelyVisitChildren(types, visitor);
     safelyVisitChildren(topLevelVariables, visitor);
+  }
+
+  static ClassElement getTypeFromTypes(
+      String className, List<ClassElement> types) {
+    for (ClassElement type in types) {
+      if (type.name == className) {
+        return type;
+      }
+    }
+    return null;
   }
 }
 
@@ -6818,13 +6823,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * using types provided by [typeProvider].
    */
   void createLoadLibraryFunction(TypeProvider typeProvider) {
-    FunctionElementImpl function =
-        new FunctionElementImpl(FunctionElement.LOAD_LIBRARY_NAME, -1);
-    function.isSynthetic = true;
-    function.enclosingElement = this;
-    function.returnType = typeProvider.futureDynamicType;
-    function.type = new FunctionTypeImpl(function);
-    _loadLibraryFunction = function;
+    _loadLibraryFunction =
+        createLoadLibraryFunctionForLibrary(typeProvider, this);
   }
 
   @override
@@ -6870,30 +6870,12 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   List<ImportElement> getImportsWithPrefix(PrefixElement prefixElement) {
-    var imports = this.imports;
-    int count = imports.length;
-    List<ImportElement> importList = new List<ImportElement>();
-    for (int i = 0; i < count; i++) {
-      if (identical(imports[i].prefix, prefixElement)) {
-        importList.add(imports[i]);
-      }
-    }
-    return importList;
+    return getImportsWithPrefixFromImports(prefixElement, imports);
   }
 
   @override
   ClassElement getType(String className) {
-    ClassElement type = _definingCompilationUnit.getType(className);
-    if (type != null) {
-      return type;
-    }
-    for (CompilationUnitElement part in _parts) {
-      type = part.getType(className);
-      if (type != null) {
-        return type;
-      }
-    }
-    return null;
+    return getTypeFromParts(className, _definingCompilationUnit, _parts);
   }
 
   /** Given an update to this library which may have added or deleted edges
@@ -6988,6 +6970,17 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return prefixes.toList(growable: false);
   }
 
+  static FunctionElementImpl createLoadLibraryFunctionForLibrary(
+      TypeProvider typeProvider, LibraryElement library) {
+    FunctionElementImpl function =
+        new FunctionElementImpl(FunctionElement.LOAD_LIBRARY_NAME, -1);
+    function.isSynthetic = true;
+    function.enclosingElement = library;
+    function.returnType = typeProvider.futureDynamicType;
+    function.type = new FunctionTypeImpl(function);
+    return function;
+  }
+
   /**
    * Return the [LibraryElementImpl] of the given [element].
    */
@@ -6996,6 +6989,35 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       return getImpl(element.actualElement);
     }
     return element as LibraryElementImpl;
+  }
+
+  static List<ImportElement> getImportsWithPrefixFromImports(
+      PrefixElement prefixElement, List<ImportElement> imports) {
+    int count = imports.length;
+    List<ImportElement> importList = new List<ImportElement>();
+    for (int i = 0; i < count; i++) {
+      if (identical(imports[i].prefix, prefixElement)) {
+        importList.add(imports[i]);
+      }
+    }
+    return importList;
+  }
+
+  static ClassElement getTypeFromParts(
+      String className,
+      CompilationUnitElement definingCompilationUnit,
+      List<CompilationUnitElement> parts) {
+    ClassElement type = definingCompilationUnit.getType(className);
+    if (type != null) {
+      return type;
+    }
+    for (CompilationUnitElement part in parts) {
+      type = part.getType(className);
+      if (type != null) {
+        return type;
+      }
+    }
+    return null;
   }
 
   /**
