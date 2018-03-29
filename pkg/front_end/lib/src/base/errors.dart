@@ -31,7 +31,7 @@ abstract class ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const ErrorCode(this.name, this.message, [this.correction]);
+  const ErrorCode(this.name, this.message, {this.correction});
 
   /**
    * The severity of the error.

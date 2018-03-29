@@ -144,8 +144,8 @@ class YamlErrorCode extends ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const YamlErrorCode(String name, String message, [String correction])
-      : super(name, message, correction);
+  const YamlErrorCode(String name, String message, {String correction})
+      : super(name, message, correction: correction);
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;

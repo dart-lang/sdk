@@ -4869,8 +4869,9 @@ class ResolverErrorCode extends ErrorCode {
           'PART_OF_UNNAMED_LIBRARY',
           "Library is unnamed. Expected a URI not a library name '{0}' in the "
           "part-of directive.",
-          "Try changing the part-of directive to a URI, or try including a"
-          " different part.");
+          correction:
+              "Try changing the part-of directive to a URI, or try including a"
+              " different part.");
 
   /**
    * Initialize a newly created error code to have the given [name]. The message
@@ -4878,8 +4879,8 @@ class ResolverErrorCode extends ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const ResolverErrorCode(String name, String message, [String correction])
-      : super(name, message, correction);
+  const ResolverErrorCode(String name, String message, {String correction})
+      : super(name, message, correction: correction);
 
   @override
   ErrorSeverity get errorSeverity => type.severity;
