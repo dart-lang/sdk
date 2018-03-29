@@ -2223,9 +2223,9 @@ Fragment FlowGraphBuilder::EvaluateAssertion() {
                     ICData::kStatic);
 }
 
-Fragment FlowGraphBuilder::CheckBooleanInCheckedMode() {
+Fragment FlowGraphBuilder::CheckBoolean() {
   Fragment instructions;
-  if (I->type_checks()) {
+  if (I->strong() || I->type_checks() || I->asserts()) {
     LocalVariable* top_of_stack = MakeTemporary();
     instructions += LoadLocal(top_of_stack);
     instructions += AssertBool();

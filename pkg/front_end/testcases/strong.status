@@ -106,6 +106,7 @@ inference/mixin_inference_outwards_3: TypeCheckError
 inference/mixin_inference_outwards_4: TypeCheckError
 inference/mixin_inference_unification_1: TypeCheckError
 inference/mixin_inference_unification_2: TypeCheckError
+inference/override_equals: RuntimeError
 inference/unresolved_super: TypeCheckError
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: Fail # Issue #25824
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Fail # Issue #25824

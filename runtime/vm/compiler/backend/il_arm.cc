@@ -437,14 +437,15 @@ static void EmitAssertBoolean(Register reg,
   // Call the runtime if the object is not bool::true or bool::false.
   ASSERT(locs->always_calls());
   Label done;
+  Isolate* isolate = Isolate::Current();
 
-  if (Isolate::Current()->type_checks()) {
+  if (isolate->type_checks() || isolate->strong()) {
     __ CompareObject(reg, Bool::True());
     __ b(&done, EQ);
     __ CompareObject(reg, Bool::False());
     __ b(&done, EQ);
   } else {
-    ASSERT(Isolate::Current()->asserts());
+    ASSERT(isolate->asserts());
     __ CompareObject(reg, Object::null_instance());
     __ b(&done, NE);
   }

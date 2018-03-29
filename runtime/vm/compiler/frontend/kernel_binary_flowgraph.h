@@ -1316,7 +1316,7 @@ class StreamingFlowGraphBuilder {
   JoinEntryInstr* BuildJoinEntry(intptr_t try_index);
   Fragment Goto(JoinEntryInstr* destination);
   Fragment BuildImplicitClosureCreation(const Function& target);
-  Fragment CheckBooleanInCheckedMode();
+  Fragment CheckBoolean();
   Fragment CheckAssignableInCheckedMode(const AbstractType& dst_type,
                                         const String& dst_name);
   Fragment CheckArgumentType(LocalVariable* variable, const AbstractType& type);

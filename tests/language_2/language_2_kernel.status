@@ -584,13 +584,9 @@ regress_30339_test: RuntimeError
 type_variable_bounds4_test/01: RuntimeError
 
 [ $compiler == dartk && $runtime == vm && !$checked && $strong ]
-bool_check_test: RuntimeError
-bool_condition_check_test: RuntimeError
 compile_time_constant_static2_test/04: MissingCompileTimeError
 compile_time_constant_static3_test/04: MissingCompileTimeError
 conditional_rewrite_test: RuntimeError # Issue 31402 (Not)
-field_override_optimization_test: RuntimeError
-if_null_precedence_test/none: RuntimeError
 type_error_test: RuntimeError # Issue 31402 (Variable declaration)
 
 # ===== dartk + vm status lines =====
@@ -888,13 +884,9 @@ type_variable_bounds4_test/01: RuntimeError
 [ $compiler == dartkp && $runtime == dart_precompiled && !$checked && $strong ]
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
-bool_check_test: RuntimeError
-bool_condition_check_test: RuntimeError
 compile_time_constant_static2_test/04: MissingCompileTimeError
 compile_time_constant_static3_test/04: MissingCompileTimeError
 conditional_rewrite_test: RuntimeError # Issue 31402 (Not)
-field_override_optimization_test: RuntimeError
-if_null_precedence_test/none: RuntimeError
 implicit_downcast_during_combiner_test: RuntimeError
 implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_conditional_expression_test: RuntimeError

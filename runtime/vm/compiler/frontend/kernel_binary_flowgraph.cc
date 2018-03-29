@@ -2010,7 +2010,8 @@ void StreamingScopeBuilder::VisitFunctionType(bool simple) {
       TypeParameterHelper helper(builder_);
       helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kBound);
       VisitDartType();  // read bound.
-      helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kDefaultType);
+      helper.ReadUntilExcludingAndSetJustRead(
+          TypeParameterHelper::kDefaultType);
       if (builder_->ReadTag() == kSomething) {
         VisitDartType();  // read default type.
       }
@@ -6490,8 +6491,8 @@ Fragment StreamingFlowGraphBuilder::BuildImplicitClosureCreation(
   return flow_graph_builder_->BuildImplicitClosureCreation(target);
 }
 
-Fragment StreamingFlowGraphBuilder::CheckBooleanInCheckedMode() {
-  return flow_graph_builder_->CheckBooleanInCheckedMode();
+Fragment StreamingFlowGraphBuilder::CheckBoolean() {
+  return flow_graph_builder_->CheckBoolean();
 }
 
 Fragment StreamingFlowGraphBuilder::CheckAssignableInCheckedMode(
@@ -6550,7 +6551,7 @@ Fragment StreamingFlowGraphBuilder::TranslateCondition(bool* negate) {
     SkipBytes(1);  // Skip Not tag, thus go directly to the inner expression.
   }
   Fragment instructions = BuildExpression();  // read expression.
-  instructions += CheckBooleanInCheckedMode();
+  instructions += CheckBoolean();
   return instructions;
 }
 
@@ -7785,7 +7786,7 @@ Fragment StreamingFlowGraphBuilder::BuildNot(TokenPosition* position) {
   if (position != NULL) *position = TokenPosition::kNoSource;
 
   Fragment instructions = BuildExpression();  // read expression.
-  instructions += CheckBooleanInCheckedMode();
+  instructions += CheckBoolean();
   instructions += BooleanNegate();
   return instructions;
 }
@@ -8569,7 +8570,7 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement() {
   instructions += BuildExpression();  // read condition.
   instructions += PushArgument();
   instructions += EvaluateAssertion();
-  instructions += CheckBooleanInCheckedMode();
+  instructions += CheckBoolean();
   instructions += Constant(Bool::True());
   instructions += BranchIfEqual(&then, &otherwise, false);
 
