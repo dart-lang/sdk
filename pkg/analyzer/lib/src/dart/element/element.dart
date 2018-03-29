@@ -6618,8 +6618,13 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   bool get isDartCore => name == "dart.core";
 
   @override
-  bool get isInSdk =>
-      StringUtilities.startsWith5(name, 0, 0x64, 0x61, 0x72, 0x74, 0x2E);
+  bool get isInSdk {
+    Uri uri = definingCompilationUnit.source?.uri;
+    if (uri != null) {
+      return DartUriResolver.isDartUri(uri);
+    }
+    return false;
+  }
 
   /**
    * Return `true` if the receiver directly or indirectly imports the
