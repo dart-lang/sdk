@@ -588,11 +588,11 @@ Supported options:
   -o <file>, --out=<file>
     Generate the output into <file>.
 
-  -c, --enable-checked-mode, --checked
-    Insert runtime type checks and enable assertions (checked mode).
-
   -m, --minify
     Generate minified output.
+
+  --enable-asserts
+    Enable assertions.
 
   -h, /h, /?, --help
     Display this message (add -v for information about all options).
