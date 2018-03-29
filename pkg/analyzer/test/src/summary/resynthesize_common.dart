@@ -9359,13 +9359,19 @@ dynamic x;
     }
   }
 
-  @failingTest
   test_type_inference_closure_with_function_typed_parameter() async {
-    // TODO(paulberry, scheglov): get this test to pass.  See dartbug.com/32708.
     var library = await checkLibrary('''
 var x = (int f(String x)) => 0;
 ''');
-    checkElementText(library, '''TODO(paulberry, scheglov)''');
+    if (isStrongMode) {
+      checkElementText(library, '''
+((String) → int) → int x;
+''');
+    } else {
+      checkElementText(library, '''
+dynamic x;
+''');
+    }
   }
 
   test_type_inference_closure_with_function_typed_parameter_new() async {

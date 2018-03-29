@@ -236,7 +236,7 @@ EntityRefBuilder _createLinkedType(
       // TODO(paulberry): do I need to store type arguments?
       return result;
     }
-    if (element is GenericFunctionTypeElementForLink) {
+    if (element is GenericFunctionTypeElementImpl) {
       // Function types are their own type parameter context
       typeParameterContext = element;
       result.entityKind = EntityRefKind.genericFunctionType;
@@ -2931,7 +2931,7 @@ class GenericFunctionTypeElementForLink extends Object
         TypeParameterizedElementMixin,
         ParameterParentElementForLink,
         ReferenceableElementForLink
-    implements GenericFunctionTypeElement, ElementImpl {
+    implements GenericFunctionTypeElementImpl, ElementImpl {
   @override
   final CompilationUnitElementForLink enclosingUnit;
 

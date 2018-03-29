@@ -7043,16 +7043,15 @@ set speed2(int ms) {}
   }
 
   test_removeTypeAnnotation_avoidTypesOnClosureParameters_FunctionTypedFormalParameter() async {
-    // Note: explicit type `Function` to work around dartbug.com/32708.
     String src = '''
-Function functionWithFunction = (/*LINT*/int f(int x)) => f(0);
+var functionWithFunction = (/*LINT*/int f(int x)) => f(0);
 ''';
     await findLint(src, LintNames.avoid_types_on_closure_parameters);
 
     await applyFix(DartFixKind.REPLACE_WITH_IDENTIFIER);
 
     verifyResult('''
-Function functionWithFunction = (f) => f(0);
+var functionWithFunction = (f) => f(0);
 ''');
   }
 
