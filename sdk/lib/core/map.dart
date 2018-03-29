@@ -226,10 +226,11 @@ abstract class Map<K, V> {
   /**
    * Returns the value for the given [key] or null if [key] is not in the map.
    *
-   * Some maps allows keys to have `null` as a value. For those maps, a lookup
-   * using this operator cannot be used to distinguish between a key not being
-   * in the map and the key having a null value. Methods like [containsKey] or
-   * [putIfAbsent] can be use if the distinction is important.
+   * Some maps allow keys to have `null` as a value.
+   * For those maps, a lookup using this operator cannot distinguish between a
+   * key not being in the map and the key having a `null` value.
+   * Methods like [containsKey] or [putIfAbsent] can be used if the distinction
+   * is important.
    */
   V operator [](Object key);
 
