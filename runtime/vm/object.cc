@@ -16815,6 +16815,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
     return false;  // TODO(regis): We should return "maybe after instantiation".
   }
   const Class& type_cls = Class::Handle(zone, type_class());
+  const Class& other_type_cls = Class::Handle(zone, other.type_class());
   // Function types cannot be handled by Class::TypeTest().
   const bool other_is_dart_function_type = other.IsDartFunctionType();
   if (other_is_dart_function_type || other.IsFunctionType()) {
@@ -16831,18 +16832,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
                           space);
     }
     // In strong mode, subtyping rules of callable instances are restricted.
-    if (isolate->strong()) {
-      // [this] is not a function type.
-      // If [other] is a function type, then [this] can't be a subtype of
-      // [other], according to Dart 2 subtyping rules.
-      // This check is needed to avoid falling through to class-based type
-      // tests, which yield incorrect result if [this] = _Closure class,
-      // and [other] is a function type, because class of a function type is
-      // also _Closure.
-      if (other.IsFunctionType()) {
-        return false;
-      }
-    } else {
+    if (!isolate->strong()) {
       // Check if type S has a call() method of function type T.
       const Function& call_function =
           Function::Handle(zone, type_cls.LookupCallFunctionForTypeTest());
@@ -16863,6 +16853,19 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
         }
       }
     }
+    if (other.IsFunctionType() && !other_type_cls.IsTypedefClass()) {
+      // [this] is not a function type (and, in non-strong mode, does not
+      // declare a compatible call() method as verified above). Therefore,
+      // non-function type [this] cannot be a subtype of function type [other],
+      // unless [other] is not only a function type, but also a named typedef.
+      // Indeed a typedef also behaves as a regular class-based type (with type
+      // arguments when generic).
+      // This check is needed to avoid falling through to class-based type
+      // tests, which yield incorrect result if [this] = _Closure class,
+      // and [other] is a function type, because class of a function type is
+      // also _Closure (unless [other] is a typedef).
+      return false;
+    }
   }
   if (IsFunctionType()) {
     // In strong mode, check if 'other' is 'FutureOr'.
@@ -16874,7 +16877,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
     return false;
   }
   return type_cls.TypeTest(test_kind, TypeArguments::Handle(zone, arguments()),
-                           Class::Handle(zone, other.type_class()),
+                           other_type_cls,
                            TypeArguments::Handle(zone, other.arguments()),
                            bound_error, bound_trail, space);
 }
