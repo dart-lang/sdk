@@ -15,7 +15,6 @@ import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/string_source.dart' show StringSource;
 import 'package:cli_util/cli_util.dart' show getSdkPath;
 import 'package:linter/src/utils.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../bin/linter.dart' as dartlint;
@@ -125,11 +124,8 @@ void defineLinterEngineTests() {
         expect(linter.errors.contains(error), isTrue);
       });
       test('pubspec visitor error handling', () {
-        var rule = new MockRule();
         var visitor = new MockPubVisitor();
-        when(visitor.visitPackageAuthor(any))
-            .thenAnswer((_) => throw new Exception());
-        when(rule.getPubspecVisitor()).thenReturn(visitor);
+        var rule = new MockRule()..pubspecVisitor = visitor;
 
         var reporter = new MockReporter();
         new SourceLinter(new LinterOptions([rule]), reporter: reporter)

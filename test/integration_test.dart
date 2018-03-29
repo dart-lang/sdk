@@ -8,7 +8,6 @@ import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -676,5 +675,3 @@ Map<String, YamlNode> _getOptionsFromString(String optionsSource) {
   }
   return options;
 }
-
-class MockProcessResult extends Mock implements ProcessResult {}
