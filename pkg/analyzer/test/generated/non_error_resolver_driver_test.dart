@@ -31,4 +31,7 @@ class NonErrorResolverTest_Driver extends NonErrorResolverTest {
   @override // Passes with driver
   test_infer_mixin_with_substitution_functionType() =>
       super.test_infer_mixin_with_substitution_functionType();
+
+  @override // Passes with driver
+  test_issue_32394() => super.test_issue_32394();
 }

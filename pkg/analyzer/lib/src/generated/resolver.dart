@@ -4999,7 +4999,8 @@ class ResolverVisitor extends ScopedVisitor {
     }
     this.inferenceContext = new InferenceContext._(
         typeProvider, typeSystem, strongModeHints, errorReporter);
-    this.typeAnalyzer = new StaticTypeAnalyzer(this);
+    this.typeAnalyzer =
+        new StaticTypeAnalyzer(this, propagateTypes: propagateTypes);
   }
 
   /**
@@ -5723,7 +5724,8 @@ class ResolverVisitor extends ScopedVisitor {
     }
     // Clone the ASTs for default formal parameters, so that we can use them
     // during constant evaluation.
-    if (!_hasSerializedConstantInitializer(element)) {
+    if (element is ConstVariableElement &&
+        !_hasSerializedConstantInitializer(element)) {
       (element as ConstVariableElement).constantInitializer =
           _createCloner().cloneNode(node.defaultValue);
     }

@@ -432,7 +432,6 @@ class ExprBuilder {
     simpleParam.identifier.staticElement = param;
     simpleParam.element = param;
     var unlinkedParam = param.unlinkedParam;
-    FormalParameter paramAst;
     if (unlinkedParam.kind == UnlinkedParamKind.positional) {
       return AstTestFactory.positionalFormalParameter(simpleParam, null);
     } else if (unlinkedParam.kind == UnlinkedParamKind.named) {
@@ -570,13 +569,17 @@ class ExprBuilder {
     ReferenceInfo info = resynthesizer.getReferenceInfo(ref.reference);
     Expression node = _buildIdentifierSequence(info);
     TypeArgumentList typeArguments = _buildTypeArguments();
+    var period = TokenFactory.tokenFromType(TokenType.PERIOD);
+    var argumentList = AstTestFactory.argumentList(arguments);
     if (node is SimpleIdentifier) {
       _push(astFactory.methodInvocation(
-          null,
-          TokenFactory.tokenFromType(TokenType.PERIOD),
-          node,
-          typeArguments,
-          AstTestFactory.argumentList(arguments)));
+          null, period, node, typeArguments, argumentList));
+    } else if (node is PropertyAccess) {
+      _push(astFactory.methodInvocation(
+          node.target, period, node.propertyName, typeArguments, argumentList));
+    } else if (node is PrefixedIdentifier) {
+      _push(astFactory.methodInvocation(
+          node.prefix, period, node.identifier, typeArguments, argumentList));
     } else {
       throw new UnimplementedError('For ${node?.runtimeType}: $node');
     }
