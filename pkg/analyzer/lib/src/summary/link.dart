@@ -5233,7 +5233,11 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
   DartType buildTypeForClassInfo(
       info, int numTypeArguments, DartType Function(int i) getTypeArgument) {
     ClassElementForLink class_ = info.element;
-    if (numTypeArguments == 0) return class_.typeWithDefaultBounds;
+    if (numTypeArguments == 0) {
+      DartType type = class_.typeWithDefaultBounds;
+      _typesWithImplicitArguments[type] = true;
+      return type;
+    }
     return class_.buildType(getTypeArgument, const []);
   }
 

@@ -6660,6 +6660,43 @@ D<T> f<T>() {}
     }
   }
 
+  test_infer_instanceCreation_fromArguments() async {
+    var library = await checkLibrary('''
+class A {}
+
+class B extends A {}
+
+class S<T extends A> {
+  S(T _);
+}
+
+var s = new S(new B());
+''');
+    if (isStrongMode) {
+      checkElementText(library, '''
+class A {
+}
+class B extends A {
+}
+class S<T extends A> {
+  S(T _);
+}
+S<B> s;
+''');
+    } else {
+      checkElementText(library, '''
+class A {
+}
+class B extends A {
+}
+class S<T extends A> {
+  S(T _);
+}
+dynamic s;
+''');
+    }
+  }
+
   test_infer_property_set() async {
     var library = await checkLibrary('''
 class A {
