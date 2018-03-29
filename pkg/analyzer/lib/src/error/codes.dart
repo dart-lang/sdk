@@ -2399,7 +2399,7 @@ class CompileTimeErrorCode extends ErrorCode {
    */
   static const CompileTimeErrorCode UNDEFINED_CLASS =
       const CompileTimeErrorCode('UNDEFINED_CLASS', "Undefined class '{0}'.",
-          correction: "Try defining the class.");
+          correction: "Try defining the class.", isUnresolvedIdentifier: true);
 
   /**
    * 7.6.1 Generative Constructors: Let <i>C</i> be the class in which the
@@ -2575,8 +2575,11 @@ class CompileTimeErrorCode extends ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const CompileTimeErrorCode(String name, String message, {String correction})
-      : super(name, message, correction: correction);
+  const CompileTimeErrorCode(String name, String message,
+      {String correction, bool isUnresolvedIdentifier: false})
+      : super(name, message,
+            correction: correction,
+            isUnresolvedIdentifier: isUnresolvedIdentifier);
 
   @override
   ErrorSeverity get errorSeverity => ErrorType.COMPILE_TIME_ERROR.severity;
@@ -2844,7 +2847,8 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode('NON_TYPE_AS_TYPE_ARGUMENT',
           "The name '{0}' isn't a type so it can't be used as a type argument.",
           correction: "Try correcting the name to an existing type, or "
-              "defining a type named '{0}'.");
+              "defining a type named '{0}'.",
+          isUnresolvedIdentifier: true);
 
   /**
    * 13.11 Return: It is a static type warning if the type of <i>e</i> may not
@@ -2954,7 +2958,8 @@ class StaticTypeWarningCode extends ErrorCode {
           'UNDEFINED_FUNCTION', "The function '{0}' isn't defined.",
           correction: "Try importing the library that defines '{0}', "
               "correcting the name to the name of an existing function, or "
-              "defining a function named '{0}'.");
+              "defining a function named '{0}'.",
+          isUnresolvedIdentifier: true);
 
   /**
    * 12.17 Getter Invocation: Let <i>T</i> be the static type of <i>e</i>. It is
@@ -3229,8 +3234,11 @@ class StaticTypeWarningCode extends ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const StaticTypeWarningCode(String name, String message, {String correction})
-      : super(name, message, correction: correction);
+  const StaticTypeWarningCode(String name, String message,
+      {String correction, bool isUnresolvedIdentifier: false})
+      : super(name, message,
+            correction: correction,
+            isUnresolvedIdentifier: isUnresolvedIdentifier);
 
   @override
   ErrorSeverity get errorSeverity => ErrorType.STATIC_TYPE_WARNING.severity;
@@ -4550,7 +4558,8 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode UNDEFINED_CLASS = const StaticWarningCode(
       'UNDEFINED_CLASS', "Undefined class '{0}'.",
       correction: "Try changing the name to the name of an existing class, or "
-          "creating a class with the name '{0}'.");
+          "creating a class with the name '{0}'.",
+      isUnresolvedIdentifier: true);
 
   /**
    * Same as [UNDEFINED_CLASS], but to catch using "boolean" instead of "bool".
@@ -4587,7 +4596,8 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode UNDEFINED_IDENTIFIER =
       const StaticWarningCode('UNDEFINED_IDENTIFIER', "Undefined name '{0}'.",
           correction: "Try correcting the name to one that is defined, or "
-              "defining the name.");
+              "defining the name.",
+          isUnresolvedIdentifier: true);
 
   /**
    * If the identifier is 'await', be helpful about it.
@@ -4713,8 +4723,12 @@ class StaticWarningCode extends ErrorCode {
    * given [correction] template.
    */
   const StaticWarningCode(String name, String message,
-      {String correction, this.isStrongModeError = true})
-      : super(name, message, correction: correction);
+      {String correction,
+      this.isStrongModeError = true,
+      bool isUnresolvedIdentifier: false})
+      : super(name, message,
+            correction: correction,
+            isUnresolvedIdentifier: isUnresolvedIdentifier);
 
   @override
   ErrorSeverity get errorSeverity => ErrorType.STATIC_WARNING.severity;
