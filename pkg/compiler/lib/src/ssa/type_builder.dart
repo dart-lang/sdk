@@ -55,7 +55,6 @@ abstract class TypeBuilder {
 
   /// Create an instruction to simply trust the provided type.
   HInstruction _trustType(HInstruction original, DartType type) {
-    assert(builder.options.trustTypeAnnotations);
     assert(type != null);
     TypeMask mask = trustTypeMask(type);
     if (mask == null) return original;
@@ -65,7 +64,6 @@ abstract class TypeBuilder {
   /// Produces code that checks the runtime type is actually the type specified
   /// by attempting a type conversion.
   HInstruction _checkType(HInstruction original, DartType type, int kind) {
-    assert(builder.options.enableTypeAssertions);
     assert(type != null);
     type = builder.localsHandler.substInContext(type);
     HInstruction other = buildTypeConversion(original, type, kind);
@@ -78,16 +76,33 @@ abstract class TypeBuilder {
     return other;
   }
 
+  HInstruction potentiallyCheckOrTrustTypeOfParameter(
+      HInstruction original, DartType type) {
+    if (type == null) return original;
+    HInstruction checkedOrTrusted = original;
+    if (builder.options.parameterCheckPolicy.isTrusted) {
+      checkedOrTrusted = _trustType(original, type);
+    } else if (builder.options.parameterCheckPolicy.isEmitted) {
+      checkedOrTrusted =
+          _checkType(original, type, HTypeConversion.CHECKED_MODE_CHECK);
+    }
+    if (checkedOrTrusted == original) return original;
+    builder.add(checkedOrTrusted);
+    return checkedOrTrusted;
+  }
+
   /// Depending on the context and the mode, wrap the given type in an
   /// instruction that checks the type is what we expect or automatically
   /// trusts the written type.
-  HInstruction potentiallyCheckOrTrustType(HInstruction original, DartType type,
+  HInstruction potentiallyCheckOrTrustTypeOfAssignment(
+      HInstruction original, DartType type,
       {int kind: HTypeConversion.CHECKED_MODE_CHECK}) {
     if (type == null) return original;
+    if (builder.options.strongMode) return original;
     HInstruction checkedOrTrusted = original;
-    if (builder.options.trustTypeAnnotations) {
+    if (builder.options.assignmentCheckPolicy.isTrusted) {
       checkedOrTrusted = _trustType(original, type);
-    } else if (builder.options.enableTypeAssertions) {
+    } else if (builder.options.assignmentCheckPolicy.isEmitted) {
       checkedOrTrusted = _checkType(original, type, kind);
     }
     if (checkedOrTrusted == original) return original;
@@ -240,6 +255,7 @@ abstract class TypeBuilder {
   void potentiallyCheckInlinedParameterTypes(FunctionEntity function);
 
   bool get checkOrTrustTypes =>
+      builder.options.strongMode ||
       builder.options.enableTypeAssertions ||
       builder.options.trustTypeAnnotations;
 

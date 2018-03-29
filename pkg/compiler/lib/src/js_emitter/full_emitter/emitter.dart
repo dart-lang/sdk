@@ -1956,6 +1956,7 @@ class Emitter extends js_emitter.EmitterBase {
     if (compiler.options.strongMode) flavor.write(', strong');
     if (compiler.options.trustPrimitives) flavor.write(', trust primitives');
     if (compiler.options.trustTypeAnnotations) flavor.write(', trust types');
+    if (compiler.options.omitImplicitChecks) flavor.write(', omit checks');
     flavor.write(', full emitter');
     if (compiler.options.useContentSecurityPolicy) flavor.write(', CSP');
     if (_closedWorld.backendUsage.isMirrorsUsed) flavor.write(', mirrors');

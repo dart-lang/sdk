@@ -479,12 +479,12 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   }
 
   TypeMask potentiallyNarrowType(TypeMask mask, InferrerEngine inferrer) {
-    if (!inferrer.options.trustTypeAnnotations &&
-        !inferrer.options.enableTypeAssertions &&
-        !inferrer.trustTypeAnnotations(_member)) {
-      return mask;
+    if (inferrer.options.assignmentCheckPolicy.isTrusted ||
+        inferrer.options.assignmentCheckPolicy.isEmitted ||
+        inferrer.trustTypeAnnotations(_member)) {
+      return _potentiallyNarrowType(mask, inferrer);
     }
-    return _potentiallyNarrowType(mask, inferrer);
+    return mask;
   }
 
   TypeMask _potentiallyNarrowType(TypeMask mask, InferrerEngine inferrer);
@@ -787,15 +787,17 @@ class ParameterTypeInformation extends ElementTypeInformation {
   }
 
   TypeMask potentiallyNarrowType(TypeMask mask, InferrerEngine inferrer) {
-    if (!inferrer.options.trustTypeAnnotations &&
-        !inferrer.trustTypeAnnotations(_method)) {
-      return mask;
+    if (inferrer.options.parameterCheckPolicy.isTrusted ||
+        inferrer.trustTypeAnnotations(_method)) {
+      // When type assertions are enabled (aka checked mode), we have to always
+      // ignore type annotations to ensure that the checks are actually inserted
+      // into the function body and retained until runtime.
+      // TODO(sigmund): is this still applicable? investigate if we can use also
+      // narrow when isChecked is true.
+      assert(!inferrer.options.enableTypeAssertions);
+      return _narrowType(inferrer.closedWorld, mask, _type);
     }
-    // When type assertions are enabled (aka checked mode), we have to always
-    // ignore type annotations to ensure that the checks are actually inserted
-    // into the function body and retained until runtime.
-    assert(!inferrer.options.enableTypeAssertions);
-    return _narrowType(inferrer.closedWorld, mask, _type);
+    return mask;
   }
 
   TypeMask computeType(InferrerEngine inferrer) {

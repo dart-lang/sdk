@@ -794,8 +794,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     // If the method is intercepted, we want the actual receiver
     // to be the first parameter.
     graph.entry.addBefore(graph.entry.last, parameter);
-    HInstruction value =
-        typeBuilder.potentiallyCheckOrTrustType(parameter, field.type);
+    HInstruction value = typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
+        parameter, field.type);
     add(new HFieldSet(field, thisInstruction, value));
     return closeFunction();
   }
@@ -813,7 +813,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     openFunction(variable, node);
     visit(initializer);
     HInstruction value = pop();
-    value = typeBuilder.potentiallyCheckOrTrustType(value, variable.type);
+    value = typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
+        value, variable.type);
     // In the case of multiple declarations (and some definitions) on the same
     // line, the source pointer needs to point to the right initialized
     // variable. So find the specific initialized variable we are referring to.
@@ -1298,8 +1299,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       } else {
         fields.add(member);
         ResolutionDartType type = localsHandler.substInContext(member.type);
-        constructorArguments
-            .add(typeBuilder.potentiallyCheckOrTrustType(value, type));
+        constructorArguments.add(
+            typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(value, type));
       }
     }, includeSuperAndInjectedMembers: true);
 
@@ -1519,7 +1520,7 @@ class SsaAstGraphBuilder extends ast.Visitor
           //       new A("foo");  // invalid in checked mode.
           //
           // Only the final target is allowed to check for the argument types.
-          newParameter = typeBuilder.potentiallyCheckOrTrustType(
+          newParameter = typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
               newParameter, parameterElement.type);
         }
         localsHandler.directLocals[parameterElement] = newParameter;
@@ -1604,7 +1605,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     HInstruction value = pop();
     if (typeBuilder.checkOrTrustTypes) {
       ResolutionInterfaceType boolType = commonElements.boolType;
-      return typeBuilder.potentiallyCheckOrTrustType(value, boolType,
+      return typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
+          value, boolType,
           kind: HTypeConversion.BOOLEAN_CONVERSION_CHECK);
     }
     HInstruction result = new HBoolify(value, commonMasks.boolType)
@@ -2417,7 +2419,8 @@ class SsaAstGraphBuilder extends ast.Visitor
         pop();
       } else {
         FieldElement field = element;
-        value = typeBuilder.potentiallyCheckOrTrustType(value, field.type);
+        value = typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
+            value, field.type);
         addWithPosition(new HStaticStore(field, value), location);
       }
       stack.add(value);
@@ -2433,8 +2436,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       if (value.sourceElement == null) {
         value.sourceElement = local;
       }
-      HInstruction checkedOrTrusted =
-          typeBuilder.potentiallyCheckOrTrustType(value, local.type);
+      HInstruction checkedOrTrusted = typeBuilder
+          .potentiallyCheckOrTrustTypeOfAssignment(value, local.type);
       if (!identical(checkedOrTrusted, value)) {
         pop();
         stack.add(checkedOrTrusted);
@@ -3643,8 +3646,8 @@ class SsaAstGraphBuilder extends ast.Visitor
 
     // Finally, if we called a redirecting factory constructor, check the type.
     if (isRedirected) {
-      HInstruction checked =
-          typeBuilder.potentiallyCheckOrTrustType(newInstance, type);
+      HInstruction checked = typeBuilder
+          .potentiallyCheckOrTrustTypeOfAssignment(newInstance, type);
       if (checked != newInstance) {
         pop();
         stack.add(checked);
@@ -5326,7 +5329,8 @@ class SsaAstGraphBuilder extends ast.Visitor
           return;
         }
       } else {
-        value = typeBuilder.potentiallyCheckOrTrustType(value, returnType);
+        value = typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
+            value, returnType);
       }
     }
 
@@ -7088,7 +7092,7 @@ class AstTypeBuilder extends TypeBuilder {
     signature.forEachParameter((_parameter) {
       ParameterElement parameter = _parameter;
       HInstruction argument = builder.localsHandler.readLocal(parameter);
-      potentiallyCheckOrTrustType(argument, parameter.type);
+      potentiallyCheckOrTrustTypeOfParameter(argument, parameter.type);
     });
   }
 }

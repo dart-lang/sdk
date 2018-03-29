@@ -214,6 +214,24 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to trust type annotations during inference and optimizations.
   bool trustTypeAnnotations = false;
 
+  /// Whether to omit implicit strong mode checks.
+  bool omitImplicitChecks = false;
+
+  /// What should the compiler do with type assertions of assignments.
+  ///
+  /// This is an internal configuration option derived from other flags.
+  CheckPolicy assignmentCheckPolicy;
+
+  /// What should the compiler do with parameter type assertions.
+  ///
+  /// This is an internal configuration option derived from other flags.
+  CheckPolicy parameterCheckPolicy;
+
+  /// What should the compiler do with implicit downcasts.
+  ///
+  /// This is an internal configuration option derived from other flags.
+  CheckPolicy implicitDowncastCheckPolicy;
+
   /// Whether to generate code compliant with content security policy (CSP).
   bool useContentSecurityPolicy = false;
 
@@ -324,6 +342,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..resolveOnly = _hasOption(options, Flags.resolveOnly)
       ..sourceMapUri = _extractUriOption(options, '--source-map=')
       ..strongMode = _hasOption(options, Flags.strongMode)
+      ..omitImplicitChecks = _hasOption(options, Flags.omitImplicitChecks)
       ..testMode = _hasOption(options, Flags.testMode)
       ..trustJSInteropTypeAnnotations =
           _hasOption(options, Flags.trustJSInteropTypeAnnotations)
@@ -371,6 +390,33 @@ class CompilerOptions implements DiagnosticOptions {
       platformConfigUri = _resolvePlatformConfig(libraryRoot, null, const []);
     }
     librariesSpecificationUri = _resolveLibrariesSpecification(libraryRoot);
+
+    if (strongMode) {
+      // Strong mode represents implicit downcasts explicitly, so assignments
+      // checks provide no additional value.
+      assignmentCheckPolicy = CheckPolicy.ignored;
+      if (omitImplicitChecks) {
+        parameterCheckPolicy = CheckPolicy.trusted;
+        implicitDowncastCheckPolicy = CheckPolicy.trusted;
+      } else {
+        parameterCheckPolicy = CheckPolicy.checked;
+        implicitDowncastCheckPolicy = CheckPolicy.checked;
+      }
+    } else {
+      // The implicit-downcast representation is a strong-mode only feature.
+      implicitDowncastCheckPolicy = CheckPolicy.ignored;
+
+      if (enableTypeAssertions) {
+        assignmentCheckPolicy = CheckPolicy.checked;
+        parameterCheckPolicy = CheckPolicy.checked;
+      } else if (trustTypeAnnotations) {
+        assignmentCheckPolicy = CheckPolicy.trusted;
+        parameterCheckPolicy = CheckPolicy.trusted;
+      } else {
+        assignmentCheckPolicy = CheckPolicy.ignored;
+        parameterCheckPolicy = CheckPolicy.ignored;
+      }
+    }
   }
 
   /// Returns `true` if warnings and hints are shown for all packages.
@@ -392,6 +438,28 @@ class CompilerOptions implements DiagnosticOptions {
     }
     return false;
   }
+}
+
+/// Policy for what to do with a type assertion check.
+///
+/// This enum-like class is used to configure how the compiler treats type
+/// assertions during global type inference and codegen.
+class CheckPolicy {
+  /// Whether the type assertion should be trusted.
+  final bool isTrusted;
+
+  /// Whether the type assertion should be emitted and checked.
+  final bool isEmitted;
+
+  /// Whether the type assertion should be ignored.
+  final bool isIgnored;
+
+  const CheckPolicy(
+      {this.isTrusted: false, this.isEmitted: false, this.isIgnored: false});
+
+  static const trusted = const CheckPolicy(isTrusted: true);
+  static const checked = const CheckPolicy(isEmitted: true);
+  static const ignored = const CheckPolicy(isIgnored: true);
 }
 
 String _extractStringOption(

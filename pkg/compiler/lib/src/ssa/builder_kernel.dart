@@ -320,15 +320,16 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // If the method is intercepted, we want the actual receiver
       // to be the first parameter.
       graph.entry.addBefore(graph.entry.last, parameter);
-      HInstruction value = typeBuilder.potentiallyCheckOrTrustType(
+      HInstruction value = typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
           parameter, _getDartTypeIfValid(node.type));
       add(new HFieldSet(field, thisInstruction, value));
     } else {
       if (node.initializer != null) {
         node.initializer.accept(this);
         HInstruction fieldValue = pop();
-        HInstruction checkInstruction = typeBuilder.potentiallyCheckOrTrustType(
-            fieldValue, _getDartTypeIfValid(node.type));
+        HInstruction checkInstruction =
+            typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
+                fieldValue, _getDartTypeIfValid(node.type));
         stack.add(checkInstruction);
       } else {
         stack.add(graph.addConstantNull(closedWorld));
@@ -353,7 +354,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     HInstruction value = pop();
     if (typeBuilder.checkOrTrustTypes) {
       InterfaceType type = commonElements.boolType;
-      return typeBuilder.potentiallyCheckOrTrustType(value, type,
+      return typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(value, type,
           kind: HTypeConversion.BOOLEAN_CONVERSION_CHECK);
     }
     HInstruction result = new HBoolify(value, commonMasks.boolType);
@@ -475,8 +476,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         fields.add(member);
         DartType type = _elementMap.elementEnvironment.getFieldType(member);
         type = localsHandler.substInContext(type);
-        constructorArguments
-            .add(typeBuilder.potentiallyCheckOrTrustType(value, type));
+        constructorArguments.add(
+            typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(value, type));
       }
     });
 
@@ -982,7 +983,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         return;
       }
       HInstruction newParameter = localsHandler.directLocals[local];
-      newParameter = typeBuilder.potentiallyCheckOrTrustType(
+      newParameter = typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
           newParameter, _getDartTypeIfValid(variable.type));
       localsHandler.directLocals[local] = newParameter;
     }
@@ -1268,9 +1269,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
           return;
         }
       } else {
-        if (!options.strongMode) {
-          value = typeBuilder.potentiallyCheckOrTrustType(value, _returnType);
-        }
+        value = typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
+            value, _returnType);
       }
     }
     handleInTryStatement();
@@ -1519,7 +1519,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
           const <DartType>[], sourceInformation);
 
       Local loopVariableLocal = localsMap.getLocalVariable(node.variable);
-      HInstruction value = typeBuilder.potentiallyCheckOrTrustType(
+      HInstruction value = typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
           pop(), _getDartTypeIfValid(node.variable.type));
       localsHandler.updateLocal(loopVariableLocal, value,
           sourceInformation: sourceInformation);
@@ -1839,7 +1839,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         assert(type is MethodTypeVariableType);
         stack.add(expressionInstruction);
       }
-    } else {
+    } else if (!node.isTypeError ||
+        options.implicitDowncastCheckPolicy.isEmitted) {
       HInstruction converted = typeBuilder.buildTypeConversion(
           expressionInstruction,
           localsHandler.substInContext(type),
@@ -1851,6 +1852,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         add(converted);
       }
       stack.add(converted);
+    } else {
+      stack.add(expressionInstruction);
     }
   }
 
@@ -2697,7 +2700,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     } else {
       add(new HStaticStore(
           _elementMap.getMember(staticTarget),
-          typeBuilder.potentiallyCheckOrTrustType(
+          typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
               value, _getDartTypeIfValid(staticTarget.setterType))));
     }
     stack.add(value);
@@ -2837,7 +2840,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     stack.add(value);
     localsHandler.updateLocal(
         local,
-        typeBuilder.potentiallyCheckOrTrustType(
+        typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
             value, _getDartTypeIfValid(variable.type)),
         sourceInformation: sourceInformation);
   }
@@ -5595,7 +5598,7 @@ class KernelTypeBuilder extends TypeBuilder {
     forEachOrderedParameter(_globalLocalsMap, _elementMap, function,
         (Local parameter) {
       HInstruction argument = builder.localsHandler.readLocal(parameter);
-      potentiallyCheckOrTrustType(
+      potentiallyCheckOrTrustTypeOfParameter(
           argument, localsMap.getLocalType(_elementMap, parameter));
     });
   }

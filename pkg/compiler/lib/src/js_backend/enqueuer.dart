@@ -187,13 +187,17 @@ class CodegenEnqueuer extends EnqueuerImpl {
         _registerIsCheck(type);
         break;
       case TypeUseKind.IMPLICIT_CAST:
-        // TODO(johnniwinther): Register implicit casts conditionally on
-        // `enableTypeAssertions`.
-        _registerIsCheck(type);
+        if (_options.implicitDowncastCheckPolicy.isEmitted) {
+          _registerIsCheck(type);
+        }
         break;
       case TypeUseKind.PARAMETER_CHECK:
+        if (_options.parameterCheckPolicy.isEmitted) {
+          _registerIsCheck(type);
+        }
+        break;
       case TypeUseKind.CHECKED_MODE_CHECK:
-        if (_options.enableTypeAssertions) {
+        if (_options.assignmentCheckPolicy.isEmitted) {
           _registerIsCheck(type);
         }
         break;

@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*class: global#Map:deps=[Class],indirect,needsArgs*/
-/*class: global#LinkedHashMap:deps=[Map],explicit=[LinkedHashMap<LinkedHashMap.K,LinkedHashMap.V>],implicit=[LinkedHashMap.K,LinkedHashMap.V],indirect,needsArgs*/
-/*class: global#JsLinkedHashMap:deps=[LinkedHashMap],explicit=[JsLinkedHashMap.K,JsLinkedHashMap.V],implicit=[JsLinkedHashMap.K,JsLinkedHashMap.V],indirect,needsArgs*/
-/*class: global#double:explicit=[double],implicit=[double]*/
+/*class: global#Map:deps=[Class],needsArgs*/
+/*class: global#LinkedHashMap:deps=[Map],needsArgs*/
+/*class: global#JsLinkedHashMap:deps=[LinkedHashMap],implicit=[JsLinkedHashMap.K],needsArgs*/
+/*class: global#double:explicit=[double]*/
 /*class: global#JSDouble:*/
 
 main() {
@@ -15,8 +15,7 @@ main() {
   set is Set<String>;
 }
 
-/*ast.class: Class:needsArgs*/
-/*kernel.class: Class:implicit=[Class.S,Class.T],indirect,needsArgs*/
+/*class: Class:needsArgs*/
 class Class<T, S> {
   m() {
     return <T, S>{};

@@ -342,13 +342,17 @@ abstract class DeferredLoadTask extends CompilerTask {
               _collectTypeDependencies(type, elements);
               break;
             case TypeUseKind.IMPLICIT_CAST:
-              // TODO(johnniwinther): Collect implicit casts conditionally on
-              // `enableTypeAssertions`.
-              _collectTypeDependencies(type, elements);
+              if (compiler.options.implicitDowncastCheckPolicy.isEmitted) {
+                _collectTypeDependencies(type, elements);
+              }
               break;
             case TypeUseKind.PARAMETER_CHECK:
+              if (compiler.options.parameterCheckPolicy.isEmitted) {
+                _collectTypeDependencies(type, elements);
+              }
+              break;
             case TypeUseKind.CHECKED_MODE_CHECK:
-              if (compiler.options.enableTypeAssertions) {
+              if (compiler.options.assignmentCheckPolicy.isEmitted) {
                 _collectTypeDependencies(type, elements);
               }
               break;
