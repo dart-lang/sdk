@@ -28,6 +28,7 @@ import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show
         AnalysisContext,
@@ -1201,6 +1202,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
                 useCFE: _analysisOptions.useFastaParser,
                 frontEndCompiler: _frontEndCompiler);
           } else {
+            if (!_fsState.getFileForUri(Uri.parse('dart:core')).exists) {
+              return _newMissingDartLibraryResult(file, 'dart:core');
+            }
+            if (!_fsState.getFileForUri(Uri.parse('dart:async')).exists) {
+              return _newMissingDartLibraryResult(file, 'dart:async');
+            }
             libraryContext = await _createLibraryContext(library);
             analyzer = new LibraryAnalyzer(
                 _logger,
@@ -1503,6 +1510,30 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
 
     return null;
+  }
+
+  /**
+   * We detected that one of the required `dart` libraries is missing.
+   * Return the empty analysis result with the error.
+   */
+  AnalysisResult _newMissingDartLibraryResult(
+      FileState file, String missingUri) {
+    // TODO(scheglov) Find a better way to report this.
+    return new AnalysisResult(
+        this,
+        _sourceFactory,
+        file.path,
+        file.uri,
+        file.exists,
+        null,
+        file.lineInfo,
+        null,
+        null,
+        [
+          new AnalysisError(file.source, 0, 0,
+              CompileTimeErrorCode.MISSING_DART_LIBRARY, [missingUri])
+        ],
+        null);
   }
 
   void _reportException(String path, exception, StackTrace stackTrace) {

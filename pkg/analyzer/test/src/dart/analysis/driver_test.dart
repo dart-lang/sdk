@@ -7844,6 +7844,28 @@ import 'b.dart';
     expect(driver.knownFiles, isNot(contains(b)));
   }
 
+  test_missingDartLibrary_async() async {
+    provider.getFile(MockSdk.FULL_URI_MAP['dart:async']).delete();
+    addTestFile('class C {}');
+
+    ErrorsResult result = await driver.getErrors(testFile);
+    expect(result.errors, hasLength(1));
+
+    AnalysisError error = result.errors[0];
+    expect(error.errorCode, CompileTimeErrorCode.MISSING_DART_LIBRARY);
+  }
+
+  test_missingDartLibrary_core() async {
+    provider.getFile(MockSdk.FULL_URI_MAP['dart:core']).delete();
+    addTestFile('class C {}');
+
+    ErrorsResult result = await driver.getErrors(testFile);
+    expect(result.errors, hasLength(1));
+
+    AnalysisError error = result.errors[0];
+    expect(error.errorCode, CompileTimeErrorCode.MISSING_DART_LIBRARY);
+  }
+
   test_parseFile_notAbsolutePath() async {
     try {
       await driver.parseFile('not_absolute.dart');

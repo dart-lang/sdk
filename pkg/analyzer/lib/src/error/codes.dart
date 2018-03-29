@@ -1609,6 +1609,11 @@ class CompileTimeErrorCode extends ErrorCode {
           "expression.",
           correction: "Try adding the keyword 'const' before the literal.");
 
+  static const CompileTimeErrorCode MISSING_DART_LIBRARY =
+      const CompileTimeErrorCode(
+          'MISSING_DART_LIBRARY', "Required library '{0}' is missing.",
+          correction: "Check your Dart SDK installation for completeness.");
+
   /**
    * 9 Mixins: It is a compile-time error if a declared or derived mixin
    * explicitly declares a constructor.
