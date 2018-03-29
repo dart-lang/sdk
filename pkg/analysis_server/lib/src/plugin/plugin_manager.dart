@@ -690,7 +690,8 @@ class PluginManager {
         ProcessResult result = Process.runSync(pubPath, <String>['get'],
             stderrEncoding: utf8,
             stdoutEncoding: utf8,
-            workingDirectory: pluginFolder.path);
+            workingDirectory: pluginFolder.path,
+            environment: {_pubEnvironmentKey: _getPubEnvironmentValue()});
         if (result.exitCode != 0) {
           StringBuffer buffer = new StringBuffer();
           buffer.writeln('Failed to run pub get');
@@ -828,6 +829,33 @@ class PluginManager {
         .putIfAbsent(plugin, () => <String, List<int>>{})
         .putIfAbsent(method, () => <int>[])
         .add(time);
+  }
+
+  /**
+   * The console environment key used by the pub tool.
+   */
+  static const String _pubEnvironmentKey = 'PUB_ENVIRONMENT';
+
+  /**
+   * Returns the environment value that should be used when running pub.
+   *
+   * Includes any existing environment value, if one exists.
+   */
+  static String _getPubEnvironmentValue() {
+    // DO NOT update this function without contacting kevmoo.
+    // We have server-side tooling that assumes the values are consistent.
+    var values = <String>[];
+
+    var existing = Platform.environment[_pubEnvironmentKey];
+
+    // If there is an existing value for this var, make sure to include it.
+    if ((existing != null) && existing.isNotEmpty) {
+      values.add(existing);
+    }
+
+    values.add('analysis_server.plugin_manager');
+
+    return values.join(':');
   }
 }
 
