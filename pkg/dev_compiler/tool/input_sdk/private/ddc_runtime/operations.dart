@@ -323,10 +323,10 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
 })()''');
 
 dcall(f, @rest args) =>
-    _checkAndCall(f, _getRuntimeType(f), JS('', 'void 0'), null, args, 'call');
+    _checkAndCall(f, null, JS('', 'void 0'), null, args, 'call');
 
-dgcall(f, typeArgs, @rest args) => _checkAndCall(
-    f, _getRuntimeType(f), JS('', 'void 0'), typeArgs, args, 'call');
+dgcall(f, typeArgs, @rest args) =>
+    _checkAndCall(f, null, JS('', 'void 0'), typeArgs, args, 'call');
 
 /// Helper for REPL dynamic invocation variants that make a best effort to
 /// enable accessing private members across library boundaries.
