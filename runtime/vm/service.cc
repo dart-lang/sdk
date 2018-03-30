@@ -4049,6 +4049,37 @@ static bool SetFlag(Thread* thread, JSONStream* js) {
     PrintMissingParamError(js, "value");
     return true;
   }
+
+  if (Flags::Lookup(flag_name) == NULL) {
+    JSONObject jsobj(js);
+    jsobj.AddProperty("type", "Error");
+    jsobj.AddProperty("message", "Cannot set flag: flag not found");
+    return true;
+  }
+
+  // Changing most flags at runtime is dangerous because e.g., it may leave the
+  // behavior generated code and the runtime out of sync.
+  const char* kAllowedFlags[] = {
+      "pause_isolates_on_start",
+      "pause_isolates_on_exit",
+      "pause_isolates_on_unhandled_exceptions",
+  };
+
+  bool allowed = false;
+  for (size_t i = 0; i < ARRAY_SIZE(kAllowedFlags); i++) {
+    if (strcmp(flag_name, kAllowedFlags[i]) == 0) {
+      allowed = true;
+      break;
+    }
+  }
+
+  if (!allowed) {
+    JSONObject jsobj(js);
+    jsobj.AddProperty("type", "Error");
+    jsobj.AddProperty("message", "Cannot set flag: cannot change at runtime");
+    return true;
+  }
+
   const char* error = NULL;
   if (Flags::SetFlag(flag_name, flag_value, &error)) {
     PrintSuccess(js);
@@ -4330,7 +4361,7 @@ static const ServiceMethodDescriptor service_methods_[] = {
     request_heap_snapshot_params },
   { "setExceptionPauseMode", SetExceptionPauseMode,
     set_exception_pause_mode_params },
-  { "_setFlag", SetFlag,
+  { "setFlag", SetFlag,
     set_flags_params },
   { "setLibraryDebuggable", SetLibraryDebuggable,
     set_library_debuggable_params },
