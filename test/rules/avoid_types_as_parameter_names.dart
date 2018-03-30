@@ -27,3 +27,5 @@ m4(f(num a, {int})) => null; // LINT
 m5(f(double a, [bool])) => null; // LINT
 m6(int Function(int) f)=> null; // OK
 m7(f(Undefined)) => null; // LINT
+
+final void Function(Object, [StackTrace]) onError = null; // OK

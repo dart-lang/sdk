@@ -43,6 +43,8 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitFormalParameterList(FormalParameterList node) {
+    if (node.parent is GenericFunctionType) return;
+
     // TODO(a14n) test that parameter name matches a existing type. No api to do
     // that for now.
     for (final parameter in node.parameters) {
