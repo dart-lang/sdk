@@ -1536,18 +1536,6 @@ static MessageHandler::MessageStatus RunIsolate(uword parameter) {
     Function& func = Function::Handle(thread->zone());
     func ^= result.raw();
 
-    // TODO(turnidge): Currently we need a way to force a one-time
-    // breakpoint for all spawned isolates to support isolate
-    // debugging.  Remove this once the vmservice becomes the standard
-    // way to debug. Set the breakpoint on the static function instead
-    // of its implicit closure function because that latter is merely
-    // a dispatcher that is marked as undebuggable.
-#if !defined(PRODUCT)
-    if (FLAG_break_at_isolate_spawn) {
-      isolate->debugger()->OneTimeBreakAtEntry(func);
-    }
-#endif
-
     func = func.ImplicitClosureFunction();
 
     const Array& capabilities = Array::Handle(Array::New(2));
