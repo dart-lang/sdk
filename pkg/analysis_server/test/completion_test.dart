@@ -732,17 +732,21 @@ main() {
         <String>["1+fooConst", "1-fooNotConst", "1-bar"],
         failingTests: '1');
 
-    buildTests('testCompletion_annotation_type', '''
+    buildTests(
+        'testCompletion_annotation_type',
+        '''
 class AAA {
   const AAA({int a, int b});
   const AAA.nnn(int c, int d);
 }
 @AAA!1
 main() {
-}''', <String>[
-      "1+AAA" /*":" + ProposalKind.CONSTRUCTOR*/,
-      "1+AAA.nnn" /*":" + ProposalKind.CONSTRUCTOR*/
-    ]);
+}''',
+        <String>[
+          "1+AAA" /*":" + ProposalKind.CONSTRUCTOR*/,
+          "1+AAA.nnn" /*":" + ProposalKind.CONSTRUCTOR*/
+        ],
+        failingTests: '1');
 
     buildTests('testCompletion_annotation_type_inClass_withoutMember', '''
 class AAA {

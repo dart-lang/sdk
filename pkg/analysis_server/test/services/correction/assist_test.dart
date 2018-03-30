@@ -3541,7 +3541,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
-    return /*caret*/Container();
+    return /*caret*/new Container();
   }
 }
 ''');
@@ -3550,7 +3550,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
-    return /*caret*/Center(child: Container());
+    return /*caret*/new Center(child: new Container());
   }
 }
 ''');
@@ -3677,7 +3677,7 @@ import 'package:flutter/widgets.dart';
 
 main() {
   return Container(
-    child: /*caret*/Text('aaa'),
+    child: /*caret*/new Text('aaa'),
   );
 }
 ''');
@@ -3687,9 +3687,9 @@ import 'package:flutter/widgets.dart';
 
 main() {
   return Container(
-    child: /*caret*/Column(
+    child: /*caret*/new Column(
       children: <Widget>[
-        Text('aaa'),
+        new Text('aaa'),
       ],
     ),
   );
