@@ -27,10 +27,9 @@ main() {
   Expect.throwsCastError(() => c as NullToObject); //# 02: ok
   Expect.throwsCastError(() => c as Function); //# 03: ok
 
-  // The same goes for class `D`, except that it is a subtype of `Function`
-  // because it is explicitly declared to be so.
+  // The same goes for class `D`: `implements Function` is ignored in Dart 2.
   D d = new D();
   Expect.throwsCastError(() => d as BToB); //# 04: ok
   Expect.throwsCastError(() => d as NullToObject); //# 05: ok
-  Expect.identical(d as Function, d); //# 06: ok
+  Expect.throwsCastError(() => d as Function); //# 06: ok
 }

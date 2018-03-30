@@ -2251,11 +2251,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * In the event that the algorithm fails (which might occur due to a bug in
    * the analyzer), `null` is returned.
    */
-  static InterfaceType computeLeastUpperBound(
-      InterfaceType i, InterfaceType j) {
+  static InterfaceType computeLeastUpperBound(InterfaceType i, InterfaceType j,
+      {bool strong = false}) {
     // compute set of supertypes
-    Set<InterfaceType> si = computeSuperinterfaceSet(i);
-    Set<InterfaceType> sj = computeSuperinterfaceSet(j);
+    Set<InterfaceType> si = computeSuperinterfaceSet(i, strong: strong);
+    Set<InterfaceType> sj = computeSuperinterfaceSet(j, strong: strong);
     // union si with i and sj with j
     si.add(i);
     sj.add(j);
@@ -2279,8 +2279,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    *
    * See [computeLeastUpperBound].
    */
-  static Set<InterfaceType> computeSuperinterfaceSet(InterfaceType type) =>
-      _computeSuperinterfaceSet(type, new HashSet<InterfaceType>());
+  static Set<InterfaceType> computeSuperinterfaceSet(InterfaceType type,
+          {bool strong = false}) =>
+      _computeSuperinterfaceSet(type, new HashSet<InterfaceType>(), strong);
 
   /**
    * Return the type from the [types] list that has the longest inheritance path
@@ -2443,22 +2444,27 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * Add all of the superinterfaces of the given [type] to the given [set].
    * Return the [set] as a convenience.
    *
+   * If [strong] mode is enabled (Dart 2), then the `Function` interface is
+   * ignored and not treated as a superinterface.
+   *
    * See [computeSuperinterfaceSet], and [computeLeastUpperBound].
    */
   static Set<InterfaceType> _computeSuperinterfaceSet(
-      InterfaceType type, HashSet<InterfaceType> set) {
+      InterfaceType type, HashSet<InterfaceType> set, bool strong) {
     Element element = type.element;
     if (element != null) {
       List<InterfaceType> superinterfaces = type.interfaces;
       for (InterfaceType superinterface in superinterfaces) {
-        if (set.add(superinterface)) {
-          _computeSuperinterfaceSet(superinterface, set);
+        if (!strong || !superinterface.isDartCoreFunction) {
+          if (set.add(superinterface)) {
+            _computeSuperinterfaceSet(superinterface, set, strong);
+          }
         }
       }
       InterfaceType supertype = type.superclass;
-      if (supertype != null) {
+      if (supertype != null && (!strong || !supertype.isDartCoreFunction)) {
         if (set.add(supertype)) {
-          _computeSuperinterfaceSet(supertype, set);
+          _computeSuperinterfaceSet(supertype, set, strong);
         }
       }
     }

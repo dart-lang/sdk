@@ -755,8 +755,32 @@ class CodeGenerator extends Object
     // `C<T>.add` check in CoercionReifier, so it does not reach this point;
     // rather we check for it explicitly when emitting methods and fields.
     // However we do reify the `c.f` check, so we must not eliminate it.
-    var isRequiredForSoundness = CoercionReifier.isRequiredForSoundness(node);
-    if (!isRequiredForSoundness && rules.isSubtypeOf(from, to)) return jsFrom;
+    var isImplicit = CoercionReifier.isImplicit(node);
+    if (!isImplicit && rules.isSubtypeOf(from, to)) return jsFrom;
+
+    // Handle implicit tearoff of the `.call` method.
+    //
+    // TODO(jmesserly): this is handled here rather than in CoercionReifier, in
+    // hopes that we can remove that extra visit and tree cloning step (which
+    // has been error prone because AstCloner isn't used much, and making
+    // synthetic resolved Analyzer ASTs is difficult).
+    if (isImplicit &&
+        from is InterfaceType &&
+        rules.acceptsFunctionType(to) &&
+        !_usesJSInterop(from.element)) {
+      // Dart allows an implicit coercion from an interface type to a function
+      // type, via a tearoff of the `call` method.
+      var callMethod = from.lookUpInheritedMethod('call');
+      if (callMethod != null) {
+        var callName = _emitMemberName('call', type: from, element: callMethod);
+        var callTearoff = _callHelper('bindCall(#, #)', [jsFrom, callName]);
+        if (rules.isSubtypeOf(callMethod.type, to)) return callTearoff;
+
+        // We may still need an implicit coercion as well, if another downcast
+        // is involved.
+        return js.call('#._check(#)', [_emitType(to), callTearoff]);
+      }
+    }
 
     // All Dart number types map to a JS double.
     if (_typeRep.isNumber(from) && _typeRep.isNumber(to)) {
@@ -772,7 +796,7 @@ class CodeGenerator extends Object
       return jsFrom;
     }
 
-    var code = isRequiredForSoundness ? '#._check(#)' : '#.as(#)';
+    var code = isImplicit ? '#._check(#)' : '#.as(#)';
     return js.call(code, [_emitType(to), jsFrom]);
   }
 
@@ -1033,7 +1057,7 @@ class CodeGenerator extends Object
             '}',
             [className, _runtimeModule, className]));
         body.add(js.statement(
-            '#._check = function check_String(o) {'
+            '#._check = function check_Function(o) {'
             '  if (typeof o == "function" || o == null) return o;'
             '  return #.as(o, #, true);'
             '}',
@@ -1318,7 +1342,6 @@ class CodeGenerator extends Object
 
     var supertype = classElem.supertype;
     var hasUnnamedSuper = _hasUnnamedConstructor(supertype.element);
-    var isCallable = isCallableClass(classElem);
 
     void emitMixinConstructors(JS.Expression className, [InterfaceType mixin]) {
       var supertype = classElem.supertype;
@@ -1340,11 +1363,8 @@ class CodeGenerator extends Object
           ctorBody
               .add(_emitSuperConstructorCall(className, ctor.name, jsParams));
         }
-        body.add(_addConstructorToClass(
-            className,
-            ctor.name,
-            _finishConstructorFunction(
-                jsParams, new JS.Block(ctorBody), isCallable)));
+        body.add(_addConstructorToClass(className, ctor.name,
+            new JS.Fun(jsParams, new JS.Block(ctorBody))));
       }
     }
 
@@ -1902,17 +1922,7 @@ class CodeGenerator extends Object
       JS.Expression className,
       Map<Element, Declaration> memberMap,
       Declaration classNode) {
-    var isCallable = isCallableClass(classElem);
-
     var body = <JS.Statement>[];
-    if (isCallable) {
-      // Our class instances will have JS `typeof this == "function"`,
-      // so make sure to attach the runtime type information the same way
-      // we would do it for function types.
-      body.add(js.statement('#.prototype[#] = #;',
-          [className, _callHelper('_runtimeType'), className]));
-    }
-
     if (classElem.isMixinApplication) {
       // We already handled this when we defined the class.
       return body;
@@ -1923,7 +1933,6 @@ class CodeGenerator extends Object
     }
 
     if (classElem.isEnum) {
-      assert(!isCallable, 'enums should not be callable');
       addConstructor('', js.call('function(x) { this.index = x; }'));
       return body;
     }
@@ -1944,7 +1953,7 @@ class CodeGenerator extends Object
 
       addConstructor(
           '',
-          _finishConstructorFunction([], new JS.Block(ctorBody), isCallable)
+          new JS.Fun([], new JS.Block(ctorBody))
             ..sourceInformation = _functionEnd(classNode));
       return body;
     }
@@ -1956,8 +1965,7 @@ class CodeGenerator extends Object
       var ctor = memberMap[element] as ConstructorDeclaration;
       if (ctor.body is NativeFunctionBody) continue;
 
-      addConstructor(
-          element.name, _emitConstructor(ctor, fields, isCallable, className));
+      addConstructor(element.name, _emitConstructor(ctor, fields, className));
     }
 
     // If classElement has only factory constructors, and it can be mixed in,
@@ -2286,11 +2294,8 @@ class CodeGenerator extends Object
     }
   }
 
-  JS.Expression _emitConstructor(
-      ConstructorDeclaration node,
-      List<VariableDeclaration> fields,
-      bool isCallable,
-      JS.Expression className) {
+  JS.Expression _emitConstructor(ConstructorDeclaration node,
+      List<VariableDeclaration> fields, JS.Expression className) {
     var params = _emitFormalParameters(node.parameters?.parameters);
 
     var savedFunction = _currentFunction;
@@ -2302,27 +2307,7 @@ class CodeGenerator extends Object
     _superAllowed = savedSuperAllowed;
     _currentFunction = savedFunction;
 
-    return _finishConstructorFunction(params, body, isCallable)
-      ..sourceInformation = _functionEnd(node);
-  }
-
-  JS.Expression _finishConstructorFunction(
-      List<JS.Parameter> params, JS.Block body, bool isCallable) {
-    // We consider a class callable if it inherits from anything with a `call`
-    // method. As a result, we can know the callable JS function was created
-    // at the first constructor that was hit.
-    if (!isCallable) return new JS.Fun(params, body);
-    return js.call(r'''function callableClass(#) {
-          if (typeof this !== "function") {
-            function self(...args) {
-              return self.call.apply(self, args);
-            }
-            self.__proto__ = this.__proto__;
-            callableClass.call(self, #);
-            return self;
-          }
-          #
-        }''', [params, params, body]);
+    return new JS.Fun(params, body)..sourceInformation = _functionEnd(node);
   }
 
   FunctionType _getMemberRuntimeType(ExecutableElement element) {
@@ -3669,20 +3654,11 @@ class CodeGenerator extends Object
     if (target == null || isLibraryPrefix(target)) {
       return _emitFunctionCall(node);
     }
-    if (node.methodName.name == 'call') {
-      var targetType = resolutionMap.staticTypeForExpression(target);
-      if (targetType is FunctionType) {
-        // Call methods on function types should be handled as regular function
-        // invocations.
-        return _emitFunctionCall(node, node.target);
-      }
-      if (targetType.isDartCoreFunction || targetType.isDynamic) {
-        // TODO(vsm): Can a call method take generic type parameters?
-        return _emitDynamicInvoke(
-            _visitExpression(target),
-            _emitInvokeTypeArguments(node),
-            _emitArgumentList(node.argumentList));
-      }
+    if (node.methodName.name == 'call' &&
+        _isDirectCallable(target.staticType)) {
+      // Call methods on function types should be handled as regular function
+      // invocations.
+      return _emitFunctionCall(node, node.target);
     }
 
     return _emitMethodCall(target, node);
@@ -3807,6 +3783,16 @@ class CodeGenerator extends Object
       return _callHelper('#(#, #)', [name, jsTarget, args]);
     }
     jsTarget = _emitTargetAccess(jsTarget, jsName, element, node.methodName);
+    // Handle `o.m(a)` where `o.m` is a getter returning a class with `call`.
+    if (element is PropertyAccessorElement) {
+      var fromType = element.returnType;
+      if (fromType is InterfaceType) {
+        var callName = _getImplicitCallTarget(fromType);
+        if (callName != null) {
+          jsTarget = new JS.PropertyAccess(jsTarget, callName);
+        }
+      }
+    }
     var castTo = getImplicitOperationCast(node);
     if (castTo != null) {
       jsTarget = js.call('#._check(#)', [_emitType(castTo), jsTarget]);
@@ -3893,6 +3879,15 @@ class CodeGenerator extends Object
       return _emitDynamicInvoke(fn, typeArgs, args);
     }
     if (typeArgs != null) args.insertAll(0, typeArgs);
+
+    var targetType = function.staticType;
+    if (targetType is InterfaceType) {
+      var callName = _getImplicitCallTarget(targetType);
+      if (callName != null) {
+        return js.call('#.#(#)', [fn, callName, args]);
+      }
+    }
+
     return new JS.Call(fn, args);
   }
 
@@ -5143,7 +5138,7 @@ class CodeGenerator extends Object
     if (isLibraryPrefix(node.prefix)) {
       return visitSimpleIdentifier(node.identifier, node.prefix);
     } else {
-      return _emitAccess(node.prefix, node.identifier, node.staticType);
+      return _emitPropertyGet(node.prefix, node.identifier, node.staticType);
     }
   }
 
@@ -5152,7 +5147,8 @@ class CodeGenerator extends Object
     if (node.operator.lexeme == '?.' && isNullable(node.target)) {
       return _emitNullSafe(node);
     }
-    return _emitAccess(_getTarget(node), node.propertyName, node.staticType);
+    return _emitPropertyGet(
+        _getTarget(node), node.propertyName, node.staticType);
   }
 
   JS.Expression _emitNullSafe(Expression node) {
@@ -5202,27 +5198,30 @@ class CodeGenerator extends Object
   }
 
   /// Shared code for [PrefixedIdentifier] and [PropertyAccess].
-  JS.Expression _emitAccess(
-      Expression target, SimpleIdentifier memberId, DartType resultType) {
+  JS.Expression _emitPropertyGet(
+      Expression receiver, SimpleIdentifier memberId, DartType resultType) {
     var accessor = memberId.staticElement;
+    var memberName = memberId.name;
+    var receiverType = getStaticType(receiver);
+    if (memberName == 'call' && _isDirectCallable(receiverType)) {
+      // Tearoff of `call` on a function type is a no-op;
+      return _visitExpression(receiver);
+    }
+
     // If `member` is a getter/setter, get the corresponding
     var field = _getNonAccessorElement(accessor);
-    String memberName = memberId.name;
-    var typeArgs = _getTypeArgs(accessor, resultType);
-
     bool isStatic = field is ClassMemberElement && field.isStatic;
     var jsName = _emitMemberName(memberName,
-        type: getStaticType(target), isStatic: isStatic, element: accessor);
-    if (isDynamicInvoke(target)) {
+        type: receiverType, isStatic: isStatic, element: accessor);
+    if (isDynamicInvoke(receiver)) {
       return _callHelper('#(#, #)', [
         _emitDynamicOperationName('dload'),
-        _visitExpression(target),
+        _visitExpression(receiver),
         jsName
       ]);
     }
 
-    var jsTarget = _emitTarget(target, accessor, isStatic);
-
+    var jsTarget = _emitTarget(receiver, accessor, isStatic);
     var isSuper = jsTarget is JS.Super;
     if (isSuper &&
         accessor.isSynthetic &&
@@ -5234,7 +5233,7 @@ class CodeGenerator extends Object
     }
 
     JS.Expression result;
-    if (_isObjectMemberCall(target, memberName)) {
+    if (_isObjectMemberCall(receiver, memberName)) {
       if (_isObjectMethod(memberName)) {
         result = _callHelper('bind(#, #)', [jsTarget, jsName]);
       } else {
@@ -5253,9 +5252,20 @@ class CodeGenerator extends Object
     } else {
       result = _emitTargetAccess(jsTarget, jsName, accessor, memberId);
     }
+
+    var typeArgs = _getTypeArgs(accessor, resultType);
     return typeArgs == null
         ? result
         : _callHelper('gbind(#, #)', [result, typeArgs]);
+  }
+
+  bool _isDirectCallable(DartType t) =>
+      t is FunctionType || t is InterfaceType && _usesJSInterop(t.element);
+
+  JS.Expression _getImplicitCallTarget(InterfaceType fromType) {
+    var callMethod = fromType.lookUpInheritedMethod('call');
+    if (callMethod == null || _usesJSInterop(fromType.element)) return null;
+    return _emitMemberName('call', type: fromType, element: callMethod);
   }
 
   JS.LiteralString _emitDynamicOperationName(String name) =>
@@ -5898,7 +5908,7 @@ class CodeGenerator extends Object
       if (op == '&&') return shortCircuit('# && #');
       if (op == '||') return shortCircuit('# || #');
     }
-    if (node is AsExpression && CoercionReifier.isRequiredForSoundness(node)) {
+    if (node is AsExpression && CoercionReifier.isImplicit(node)) {
       assert(node.staticType == types.boolType);
       return _callHelper('dtest(#)', _visitExpression(node.expression));
     }

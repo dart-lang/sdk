@@ -15,16 +15,37 @@ class Foo<T> {
   testInt() => new FunctionLike<int>() is T;
 }
 
+class Bar<T> {
+  testString() {
+    Function f = new FunctionLike<String>();
+    return f is T;
+  }
+
+  testInt() {
+    Function f = new FunctionLike<int>();
+    return f is T;
+  }
+}
+
 typedef String ReturnString(Object arg);
 typedef int ReturnInt(Object arg);
 
 main() {
-  var stringFoo = new Foo<ReturnString>();
-  var intFoo = new Foo<ReturnInt>();
+  {
+    var stringFoo = new Foo<ReturnString>();
+    var intFoo = new Foo<ReturnInt>();
+    Expect.isFalse(stringFoo.testString());
+    Expect.isFalse(stringFoo.testInt());
+    Expect.isFalse(intFoo.testString());
+    Expect.isFalse(intFoo.testInt());
+  }
 
-  Expect.isTrue(stringFoo.testString());
-  Expect.isFalse(stringFoo.testInt());
-
-  Expect.isFalse(intFoo.testString());
-  Expect.isTrue(intFoo.testInt());
+  {
+    var stringBar = new Bar<ReturnString>();
+    var intBar = new Bar<ReturnInt>();
+    Expect.isTrue(stringBar.testString());
+    Expect.isFalse(stringBar.testInt());
+    Expect.isFalse(intBar.testString());
+    Expect.isTrue(intBar.testInt());
+  }
 }

@@ -8,7 +8,6 @@ abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeE
 abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue #30568
 abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # Issue #30568
 bad_initializer2_negative_test: Fail # Issue 14880
-black_listed_test/none: Fail # Issue 14228
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Issue 28813
 cascade_test/none: Fail # Issue 11577
@@ -1144,9 +1143,6 @@ accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
-call_method_implicit_tear_off_assignable_test: CompileTimeError # Issue 32426
-call_method_override_test/01: MissingCompileTimeError
-call_method_override_test/02: MissingCompileTimeError
 cascaded_forwarding_stubs_test: CompileTimeError
 config_import_corelib_test: CompileTimeError
 conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Crashes or times out
@@ -1282,6 +1278,7 @@ async_congruence_local_test/02: MissingCompileTimeError
 async_congruence_method_test/01: MissingCompileTimeError
 async_congruence_unnamed_test/01: MissingCompileTimeError
 async_congruence_unnamed_test/02: MissingCompileTimeError
+black_listed_test/none: Fail # Issue 14228
 built_in_identifier_type_annotation_test/35: MissingCompileTimeError # Issue 28813
 built_in_identifier_type_annotation_test/36: MissingCompileTimeError # Issue 28813
 built_in_identifier_type_annotation_test/37: MissingCompileTimeError # Issue 28813
@@ -1302,6 +1299,7 @@ built_in_identifier_type_annotation_test/70: MissingCompileTimeError # Issue 288
 built_in_identifier_type_annotation_test/72: MissingCompileTimeError # Issue 28813
 built_in_identifier_type_annotation_test/78: MissingCompileTimeError # Issue 28813
 built_in_identifier_type_annotation_test/81: MissingCompileTimeError # Issue 28813
+call_method_implicit_invoke_local_test/05: MissingCompileTimeError
 call_method_implicit_tear_off_assignable_test: StaticWarning
 call_method_implicit_tear_off_implements_function_test/03: StaticWarning
 call_method_implicit_tear_off_test/03: StaticWarning

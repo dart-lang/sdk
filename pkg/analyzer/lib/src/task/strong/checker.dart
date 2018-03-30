@@ -77,19 +77,6 @@ bool hasStrictArrow(Expression expression) {
   return element is FunctionElement || element is MethodElement;
 }
 
-/// Summarizes the assignability relationship between two types
-/// considering both the fuzzy arrow semantics and the sound
-/// semantics.  Summary indicates whether 1) a cast is needed
-/// on assignment, and 2) whether a fuzzy arrow warning should
-/// be emitted.
-enum _FuzzyStatus {
-  needsCastFuzzy, // Needs a cast, relies on fuzzy arrows
-  needsCastSound, // Needs a cast, no fuzzy arrows
-  noCastFuzzy, // No cast, but uses fuzzy arrows
-  noCastSound, // No cast, not fuzzy arrows
-  unrelated // Not assignable as function types
-}
-
 /// Given a generic class [element] find its covariant upper bound, using
 /// the type system [rules].
 ///
@@ -1111,13 +1098,16 @@ class CodeChecker extends RecursiveAstVisitor {
     return rules.anyParameterType(ft, (pt) => pt.isDynamic);
   }
 
-  /// Given an expression [expr] of type [fromType], summarize what casts
-  /// and fuzzy arrow hints (if any) should be emitted when assigning to
-  /// a location of type [to]
-  _FuzzyStatus _checkFuzzyStatus(
+  /// Given an expression [expr] of type [fromType], returns true if an implicit
+  /// downcast is required, false if it is not, or null if the types are
+  /// unrelated.
+  ///
+  /// This also issues fuzzy arrow hints (if any).
+  bool _checkFunctionTypeCasts(
       Expression expr, FunctionType to, DartType fromType) {
     var strict = hasStrictArrow(expr);
     var toFuzzy = rules.functionTypeToFuzzyType(to);
+    bool callTearoff = false;
     FunctionType from;
     if (fromType is FunctionType) {
       from = fromType;
@@ -1125,48 +1115,50 @@ class CodeChecker extends RecursiveAstVisitor {
       from = rules.getCallMethodType(fromType);
       // Methods are always strict
       strict = true;
+      callTearoff = true;
     }
     if (from == null) {
-      return _FuzzyStatus.unrelated;
+      return null; // unrelated
     }
 
     var fromFuzzy = strict ? from : rules.functionTypeToFuzzyType(from);
 
     if (rules.isSubtypeOf(from, to)) {
-      // Sound subtype, so no fuzzy arrow warning
-      if (rules.isSubtypeOf(fromFuzzy, toFuzzy)) {
-        // No cast needed for fuzzy arrows
-        return _FuzzyStatus.noCastSound;
-      } else {
-        // Sound, but need cast because the from type
-        // is fuzzy, and the to type isn't.
-        return _FuzzyStatus.needsCastSound;
-      }
+      // Sound subtype, so no fuzzy arrow warning.
+      //
+      // However we may still need cast, because the from type is fuzzy and the
+      // to type isn't. Or if we have an call tearoff.
+      return callTearoff || !rules.isSubtypeOf(fromFuzzy, toFuzzy);
     }
 
     // If it's a subtype in the fuzzy system, don't cast, since we do
     // dynamic calls for the check.
     if (rules.isSubtypeOf(fromFuzzy, toFuzzy)) {
-      // A subtype in the fuzzy system, but reverse subtype in sound system
+      // A subtype in the fuzzy system, but reverse subtype in sound system.
       // This will eventually become a downcast (which will probably fail).
       // But for the transition, it is better to issue a fuzzy arrow hint
-      // since we still do the dynamic calls anyway
-      return _FuzzyStatus.noCastFuzzy;
+      // since we still do the dynamic calls anyway.
+      _recordMessage(
+          expr, StrongModeCode.USES_DYNAMIC_AS_BOTTOM, [fromType, to]);
+      return callTearoff;
     }
 
     if (rules.isSubtypeOf(to, from)) {
-      // Assignable in the sound system, but needs cast
+      // Assignable in the sound system, but needs cast.
+      //
       // Either unrelated in fuzzy system, or already a cast, so just cast
-      // and don't warn
-      return _FuzzyStatus.needsCastSound;
+      // and don't warn.
+      return true;
     }
 
     // Only assignable with fuzzy arrows, and it needs a cast
     if (rules.isSubtypeOf(toFuzzy, fromFuzzy)) {
-      return _FuzzyStatus.needsCastFuzzy;
+      _recordMessage(
+          expr, StrongModeCode.USES_DYNAMIC_AS_BOTTOM, [fromType, to]);
+      return true;
     }
 
-    return _FuzzyStatus.unrelated;
+    return null;
   }
 
   /// Returns true if we need an implicit cast of [expr] from [from] type to
@@ -1186,22 +1178,8 @@ class CodeChecker extends RecursiveAstVisitor {
     if (from.isVoid) return null;
 
     if (to is FunctionType) {
-      switch (_checkFuzzyStatus(expr, to, from)) {
-        case _FuzzyStatus.noCastFuzzy:
-          _recordMessage(
-              expr, StrongModeCode.USES_DYNAMIC_AS_BOTTOM, [from, to]);
-          return false;
-        case _FuzzyStatus.needsCastFuzzy:
-          _recordMessage(
-              expr, StrongModeCode.USES_DYNAMIC_AS_BOTTOM, [from, to]);
-          return true;
-        case _FuzzyStatus.noCastSound:
-          return false;
-        case _FuzzyStatus.needsCastSound:
-          return true;
-        default:
-          break;
-      }
+      bool needsCast = _checkFunctionTypeCasts(expr, to, from);
+      if (needsCast != null) return needsCast;
     }
 
     // fromT <: toT, no coercion needed.
@@ -1210,12 +1188,13 @@ class CodeChecker extends RecursiveAstVisitor {
     }
 
     // Down cast or legal sideways cast, coercion needed.
-    if (rules.isAssignableTo(from, to, isDeclarationCast: isDeclarationCast))
+    if (rules.isAssignableTo(from, to, isDeclarationCast: isDeclarationCast)) {
       return true;
+    }
 
     // Special case for FutureOr to handle returned values from async functions.
     // In this case, we're more permissive than assignability.
-    if (to.element == typeProvider.futureOrType.element) {
+    if (to.isDartAsyncFutureOr) {
       var to1 = (to as InterfaceType).typeArguments[0];
       var to2 = typeProvider.futureType.instantiate([to1]);
       return _needsImplicitCast(expr, to1, from: from) == true ||
@@ -1257,6 +1236,16 @@ class CodeChecker extends RecursiveAstVisitor {
     if (rules.isSubtypeOf(from, to)) {
       _markImplicitCast(expr, to, opAssign: opAssign);
       return;
+    }
+
+    // If this is an implicit tearoff, we need to mark the cast, but we don't
+    // want to warn if it's a legal subtype.
+    if (from is InterfaceType && rules.acceptsFunctionType(to)) {
+      var type = rules.getCallMethodType(from);
+      if (type != null && rules.isSubtypeOf(type, to)) {
+        _markImplicitCast(expr, to, opAssign: opAssign);
+        return;
+      }
     }
 
     // Inference "casts":

@@ -307,9 +307,6 @@ class FixProcessor {
         errorCode == HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS) {
       await _addFix_addMissingRequiredArgument();
     }
-    if (errorCode == StaticWarningCode.FUNCTION_WITHOUT_CALL) {
-      await _addFix_addMissingMethodCall();
-    }
     if (errorCode == StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR) {
       await _addFix_createConstructor_named();
     }

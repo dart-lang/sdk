@@ -673,7 +673,9 @@ void main() {
     /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(3);
   }
   {
-    A f = /*warning:USES_DYNAMIC_AS_BOTTOM*/new B();
+    A f = /*warning:USES_DYNAMIC_AS_BOTTOM,error:INVALID_CAST_NEW_EXPR*/new B();
+    B b = new B();
+    f = /*warning:USES_DYNAMIC_AS_BOTTOM, info:DOWN_CAST_COMPOSITE*/b;
     int x;
     double y;
     x = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f(3);
@@ -686,7 +688,9 @@ void main() {
     /*info:DYNAMIC_INVOKE*/g.col(42.0);
     /*info:DYNAMIC_INVOKE*/g.foo(42.0);
     /*info:DYNAMIC_INVOKE*/g.x;
-    A f = /*warning:USES_DYNAMIC_AS_BOTTOM*/new B();
+    A f = /*warning:USES_DYNAMIC_AS_BOTTOM, error:INVALID_CAST_NEW_EXPR*/new B();
+    B b = new B();
+    f = /*warning:USES_DYNAMIC_AS_BOTTOM, info:DOWN_CAST_COMPOSITE*/b;
     /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(42.0);
     /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/foo(42.0);
     /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_GETTER*/x;
@@ -1335,9 +1339,9 @@ void main() {
         f = d2i;
         f = /*warning:USES_DYNAMIC_AS_BOTTOM*/i2d;
         f = d2d;
-        f = /*warning:USES_DYNAMIC_AS_BOTTOM*/ci2i;
+        f = /*warning:USES_DYNAMIC_AS_BOTTOM, info:DOWN_CAST_COMPOSITE*/ci2i;
         f = cd2i;
-        f = /*warning:USES_DYNAMIC_AS_BOTTOM*/ci2d;
+        f = /*warning:USES_DYNAMIC_AS_BOTTOM, info:DOWN_CAST_COMPOSITE*/ci2d;
         f = cd2d;
       }
       {
@@ -1348,8 +1352,8 @@ void main() {
         f = /*warning:USES_DYNAMIC_AS_BOTTOM, info:DOWN_CAST_COMPOSITE*/d2d; // Fuzzy downcast
         f = ci2i;
         f = cd2i;
-        f = /*error:INVALID_ASSIGNMENT, info:DOWN_CAST_COMPOSITE*/ci2d;
-        f = /*error:INVALID_ASSIGNMENT*/cd2d;
+        f = /*info:DOWN_CAST_COMPOSITE*/ci2d;
+        f = /*info:DOWN_CAST_COMPOSITE*/cd2d;
       }
     }
   ''');
@@ -1391,8 +1395,8 @@ void main() {
         f = /*warning:USES_DYNAMIC_AS_BOTTOM, info:DOWN_CAST_COMPOSITE*/d2d;
         f = ci2i;
         f = cd2i;
-        f = /*error:INVALID_ASSIGNMENT, info:DOWN_CAST_COMPOSITE*/ci2d;
-        f = /*error:INVALID_ASSIGNMENT*/cd2d;
+        f = /*info:DOWN_CAST_COMPOSITE*/ci2d;
+        f = /*info:DOWN_CAST_COMPOSITE*/cd2d;
       }
       { 
         int Function(dynamic) f;
@@ -1400,10 +1404,10 @@ void main() {
         f = d2i;
         f = /*info:DOWN_CAST_COMPOSITE*/i2d;
         f = /*info:DOWN_CAST_COMPOSITE*/d2d;
-        f = /*warning:USES_DYNAMIC_AS_BOTTOM*/ci2i;
+        f = /*warning:USES_DYNAMIC_AS_BOTTOM,info:DOWN_CAST_COMPOSITE*/ci2i;
         f = cd2i;
-        f = /*error:INVALID_ASSIGNMENT, info:DOWN_CAST_COMPOSITE*/ci2d;
-        f = /*error:INVALID_ASSIGNMENT, info:DOWN_CAST_COMPOSITE*/cd2d;
+        f = /*info:DOWN_CAST_COMPOSITE*/ci2d;
+        f = /*info:DOWN_CAST_COMPOSITE*/cd2d;
       }
       { 
         dynamic Function(int) f;
@@ -1422,9 +1426,9 @@ void main() {
         f = d2i;
         f = /*warning:USES_DYNAMIC_AS_BOTTOM*/i2d;
         f = d2d;
-        f = /*warning:USES_DYNAMIC_AS_BOTTOM*/ci2i;
+        f = /*warning:USES_DYNAMIC_AS_BOTTOM,info:DOWN_CAST_COMPOSITE*/ci2i;
         f = cd2i;
-        f = /*warning:USES_DYNAMIC_AS_BOTTOM*/ci2d;
+        f = /*warning:USES_DYNAMIC_AS_BOTTOM,info:DOWN_CAST_COMPOSITE*/ci2d;
         f = cd2d;
       }
     }
@@ -2031,7 +2035,7 @@ void main() {
      f = /*error:INVALID_ASSIGNMENT*/i2i;
      f = /*error:INVALID_ASSIGNMENT*/n2n;
      f = /*info:UNNECESSARY_CAST,info:DOWN_CAST_IMPLICIT*/i2i as Object;
-     f = /*info:UNNECESSARY_CAST,info:DOWN_CAST_IMPLICIT*/n2n as Function;
+     f = /*info:UNNECESSARY_CAST,error:INVALID_ASSIGNMENT*/n2n as Function;
    }
    {
      B f;
@@ -2040,7 +2044,7 @@ void main() {
      f = /*error:INVALID_ASSIGNMENT*/i2i;
      f = /*error:INVALID_ASSIGNMENT*/n2n;
      f = /*info:UNNECESSARY_CAST,info:DOWN_CAST_IMPLICIT*/i2i as Object;
-     f = /*info:UNNECESSARY_CAST,info:DOWN_CAST_IMPLICIT*/n2n as Function;
+     f = /*info:UNNECESSARY_CAST,error:INVALID_ASSIGNMENT*/n2n as Function;
    }
    {
      Function f;

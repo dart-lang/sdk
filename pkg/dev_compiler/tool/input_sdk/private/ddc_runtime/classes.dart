@@ -196,7 +196,7 @@ bool isJsInterop(obj) {
   if (obj == null) return false;
   if (JS('bool', 'typeof # === "function"', obj)) {
     // A function is a Dart function if it has runtime type information.
-    return _getRuntimeType(obj) == null;
+    return JS('bool', '#[#] == null', obj, _runtimeType);
   }
   // Primitive types are not JS interop types.
   if (JS('bool', 'typeof # !== "object"', obj)) return false;

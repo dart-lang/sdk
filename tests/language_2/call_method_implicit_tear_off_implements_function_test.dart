@@ -47,11 +47,18 @@ void check4(FutureOr<NullToObject> f) {
 }
 
 void check5(Function f) {
-  Expect.identical(c, f);
+  Expect.isFalse(identical(c, f));
+  Expect.equals(c.call, f);
+  B b = new B();
+  Expect.identical(f(b), b);
 }
 
 void check6(FutureOr<Function> f) {
-  Expect.identical(c, f);
+  Expect.isFalse(identical(c, f));
+  Expect.equals(c.call, f);
+  B b = new B();
+  Function f2 = f;
+  Expect.identical(f2(b), b);
 }
 
 void check7(C x) {
@@ -84,9 +91,9 @@ main() {
   check2(c); //# 02: ok
   check3(c); //# 03: ok
   check4(c); //# 04: ok
-  // Does not tear off c.call
   check5(c); //# 05: ok
   check6(c); //# 06: ok
+  // Does not tear off c.call
   check7(c); //# 07: ok
   check8(c); //# 08: ok
   check9(c); //# 09: ok

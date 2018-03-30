@@ -6211,11 +6211,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * See [StaticWarningCode.FUNCTION_WITHOUT_CALL].
    */
   void _checkImplementsFunctionWithoutCall(AstNode className) {
-    ClassElement classElement = _enclosingClass;
-    if (classElement == null) {
+    if (_options.strongMode) {
+      // `implements Function` is ignored in strong mode/Dart 2.
       return;
     }
-    if (classElement.isAbstract) {
+    ClassElement classElement = _enclosingClass;
+    if (classElement == null || classElement.isAbstract) {
       return;
     }
     if (!_typeSystem.isSubtypeOf(

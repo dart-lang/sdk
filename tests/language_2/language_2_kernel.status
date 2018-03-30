@@ -596,9 +596,12 @@ async_star_cancel_while_paused_test: RuntimeError
 async_star_pause_test: Fail, OK
 async_star_test/02: RuntimeError # Issue 31402 (Invocation arguments)
 built_in_identifier_prefix_test: CompileTimeError
+call_method_as_cast_test/06: RuntimeError
+call_method_implicit_tear_off_implements_function_test/05: RuntimeError
+call_method_implicit_tear_off_implements_function_test/06: RuntimeError
+call_method_is_check_test/06: RuntimeError
 call_method_must_not_be_field_test/03: RuntimeError # Issue 32265
 call_method_must_not_be_getter_test/03: RuntimeError # Issue 32265
-call_with_no_such_method_test: RuntimeError
 compile_time_constant_k_test/01: MissingCompileTimeError
 compile_time_constant_k_test/02: MissingCompileTimeError
 compile_time_constant_k_test/03: MissingCompileTimeError
@@ -649,10 +652,6 @@ flatten_test/09: MissingRuntimeError
 flatten_test/12: MissingRuntimeError
 for_in_side_effects_test/01: MissingCompileTimeError
 function_propagation_test: RuntimeError
-function_subtype3_test: RuntimeError
-function_subtype_call0_test: RuntimeError, OK
-function_subtype_call1_test: RuntimeError
-function_subtype_call2_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 function_type_alias6_test/none: RuntimeError
 generic_function_dcall_test: RuntimeError
@@ -994,10 +993,6 @@ flatten_test/09: MissingRuntimeError
 flatten_test/12: MissingRuntimeError
 for_in_side_effects_test/01: MissingCompileTimeError
 function_propagation_test: RuntimeError
-function_subtype3_test: RuntimeError
-function_subtype_call0_test: RuntimeError, OK
-function_subtype_call1_test: RuntimeError
-function_subtype_call2_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 function_type_alias6_test/none: RuntimeError
 generic_function_dcall_test: RuntimeError
@@ -1360,6 +1355,7 @@ type_promotion_functions_test/none: CompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError
 
 [ $compiler == fasta && !$strong ]
+call_method_implicit_invoke_local_test/05: MissingCompileTimeError
 invalid_override_in_mixin_test/01: MissingCompileTimeError
 map_literal1_test/01: MissingCompileTimeError
 

@@ -692,7 +692,7 @@ getFunctionTypeMirror(AbstractFunctionType type) {
   return type;
 }
 
-bool isType(obj) => JS('', '# === #', _getRuntimeType(obj), Type);
+bool isType(obj) => JS('', '#[#] === #', obj, _runtimeType, Type);
 
 void checkTypeBound(type, bound, name) {
   if (JS('bool', '#', isSubtype(type, bound))) return;
@@ -715,7 +715,7 @@ String typeName(type) => JS('', '''(() => {
   }
 
   // Instance types
-  let tag = $_getRuntimeType($type);
+  let tag = $type[$_runtimeType];
   if (tag === $Type) {
     let name = $type.name;
     let args = $getGenericArgs($type);
@@ -744,11 +744,6 @@ String typeName(type) => JS('', '''(() => {
   return "JSObject<" + $type.name + ">";
 })()''');
 
-/// Returns `true` if we have a non-generic function type representation or the
-/// type for `Function`, which is a supertype of all functions in Dart.
-bool _isFunctionType(type) => JS('bool', '# instanceof # || # === #', type,
-    AbstractFunctionType, type, Function);
-
 /// Returns true if [ft1] <: [ft2].
 /// Returns false if [ft1] </: [ft2] in both spec and strong mode
 /// Returns null if [ft1] </: [ft2] in strong mode, but spec mode
@@ -757,14 +752,6 @@ bool _isFunctionType(type) => JS('bool', '# instanceof # || # === #', type,
 /// position, and hence the direction of the check for function types
 /// corresponds to the direction of the check according to the Dart spec.
 isFunctionSubtype(ft1, ft2, isCovariant) => JS('', '''(() => {
-  if ($ft2 === $Function) {
-    return true;
-  }
-
-  if ($ft1 === $Function) {
-    return false;
-  }
-
   let ret1 = $ft1.returnType;
   let ret2 = $ft2.returnType;
 
@@ -915,25 +902,24 @@ bool _isSubtype(t1, t2, isCovariant) => JS('', '''(() => {
   // "Traditional" name-based subtype check.  Avoid passing
   // function types to the class subtype checks, since we don't
   // currently distinguish between generic typedefs and classes.
-  if (!($t1 instanceof $AbstractFunctionType) &&
-      !($t2 instanceof $AbstractFunctionType)) {
-    let result = $isClassSubType($t1, $t2, $isCovariant);
-    if (result === true || result === null) return result;
-  }
+  if (!($t2 instanceof $AbstractFunctionType)) {
+    // t2 is an interface type.
 
-  if ($t2 instanceof $AnonymousJSType) {
+    if ($t1 instanceof $AbstractFunctionType) {
+      // Function types are only subtypes of interface types `Function` (and top
+      // types, handled already above).
+      return $t2 === $Function;
+    }
+
     // All JS types are subtypes of anonymous JS types.
-    return $t1 === $jsobject;
+    if ($t1 === $jsobject && $t2 instanceof $AnonymousJSType) return true;
+
+    // Compare two interface types:
+    return $isClassSubType($t1, $t2, $isCovariant);
   }
 
   // Function subtyping.
-
-  // Handle Objects with call methods.  Those are functions
-  // even if they do not *nominally* subtype core.Function.
-  if (!$_isFunctionType($t1)) {
-    $t1 = $getMethodType($t1, 'call');
-    if ($t1 == null) return false;
-  }
+  if (!($t1 instanceof $AbstractFunctionType)) return false;
 
   // Unwrap typedefs.
   if ($t1 instanceof $Typedef) $t1 = $t1.functionType;
@@ -949,7 +935,8 @@ bool _isSubtype(t1, t2, isCovariant) => JS('', '''(() => {
     //
     // where TFresh is a list of fresh type variables that both g1 and g2 will
     // be instantiated with.
-    if ($t1.formalCount !== $t2.formalCount) return false;
+    let formalCount = $t1.formalCount;
+    if (formalCount !== $t2.formalCount) return false;
 
     // Using either function's type formals will work as long as they're both
     // instantiated with the same ones. The instantiate operation is guaranteed
@@ -969,24 +956,20 @@ bool _isSubtype(t1, t2, isCovariant) => JS('', '''(() => {
     let t1Bounds = $t1.instantiateTypeBounds(fresh);
     let t2Bounds = $t2.instantiateTypeBounds(fresh);
     // TODO(jmesserly): we could optimize for the common case of no bounds.
-    for (let i = 0; i < $t1.formalCount; i++) {
+    for (let i = 0; i < formalCount; i++) {
       if (!$_isSubtype(t2Bounds[i], t1Bounds[i], !$isCovariant)) {
         return false;
       }
     }
 
-    return $isFunctionSubtype(
-        $t1.instantiate(fresh), $t2.instantiate(fresh), $isCovariant);
+    $t1 = $t1.instantiate(fresh);
+    $t2 = $t2.instantiate(fresh);
+  } else if ($t2 instanceof $GenericFunctionType) {
+    return false;
   }
-
-  if ($t2 instanceof $GenericFunctionType) return false;
 
   // Handle non-generic functions.
-  if ($_isFunctionType($t1) && $_isFunctionType($t2)) {
-    return $isFunctionSubtype($t1, $t2, $isCovariant);
-  }
-
-  return false;
+  return $isFunctionSubtype($t1, $t2, $isCovariant);
 })()''');
 
 isClassSubType(t1, t2, isCovariant) => JS('', '''(() => {
@@ -1001,9 +984,11 @@ isClassSubType(t1, t2, isCovariant) => JS('', '''(() => {
   if ($t1 instanceof $LazyJSType) $t1 = $t1.rawJSTypeForCheck();
   if ($t2 instanceof $LazyJSType) $t2 = $t2.rawJSTypeForCheck();
 
-  if ($t1 == $t2) return true;
+  if ($t1 === $t2) return true;
+  if ($t1 === $Object) return false;
 
-  if ($t1 == $Object) return false;
+  // Classes cannot subtype `Function` or vice versa.
+  if ($t1 === $Function || $t2 === $Function) return false;
 
   // If t1 is a JS Object, we may not hit core.Object.
   if ($t1 == null) return $t2 == $Object || $t2 == $dynamic;
@@ -1085,8 +1070,7 @@ Object extractTypeArguments<T>(T instance, Function f) {
   // The signature of this method guarantees that instance is a T, so we
   // should have a valid non-empty list at this point.
   assert(typeArgs != null && typeArgs.isNotEmpty);
-  return _checkAndCall(
-      f, _getRuntimeType(f), JS('', 'void 0'), typeArgs, [], 'call');
+  return callFunction(f, typeArgs, []);
 }
 
 // Let t2 = T<T1, ..., Tn>

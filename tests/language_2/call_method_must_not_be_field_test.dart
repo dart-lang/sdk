@@ -25,4 +25,5 @@ main() {
   c.call(); //# 04: ok
   void Function() f = c.call; //# 05: ok
   d.call(); //# 06: ok
+  (d.call)(); //# 07: ok
 }

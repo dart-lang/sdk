@@ -548,7 +548,6 @@ typed_data_with_limited_ints_test: Skip # dart2js and dartdevc don't know about 
 [ $runtime != none && ($compiler == dartdevc || $compiler == dartdevk) ]
 apply2_test: RuntimeError # Issue 29921
 apply3_test: RuntimeError # Issue 29921
-apply_test/01: RuntimeError # Issue 32157
 bigint_test: Pass, Slow
 compare_to2_test: RuntimeError # Issue 30170
 date_time10_test: RuntimeError # Issue 29921

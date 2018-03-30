@@ -5,6 +5,7 @@
 // TODO(jmesserly): this file needs to be refactored, it's a port from
 // package:dev_compiler's tests
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -79,45 +80,45 @@ void _expectErrors(AnalysisOptions analysisOptions, CompilationUnit unit,
     List<AnalysisError> actualErrors) {
   var expectedErrors = _findExpectedErrors(unit.beginToken);
 
-  // Sort both lists: by offset, then level, then name.
-  actualErrors.sort((x, y) {
-    int delta = x.offset.compareTo(y.offset);
-    if (delta != 0) return delta;
-
-    delta = _errorSeverity(analysisOptions, x)
-        .compareTo(_errorSeverity(analysisOptions, y));
-    if (delta != 0) return delta;
-
-    return _errorCodeName(x.errorCode).compareTo(_errorCodeName(y.errorCode));
-  });
-  expectedErrors.sort((x, y) {
-    int delta = x.offset.compareTo(y.offset);
-    if (delta != 0) return delta;
-
-    delta = x.severity.compareTo(y.severity);
-    if (delta != 0) return delta;
-
-    return x.typeName.compareTo(y.typeName);
-  });
+  var actualMap = new SplayTreeMap<int, List<AnalysisError>>();
+  for (var e in actualErrors) {
+    actualMap.putIfAbsent(e.offset, () => []).add(e);
+  }
+  var expectedMap = new SplayTreeMap<int, List<_ErrorExpectation>>();
+  for (var e in expectedErrors) {
+    expectedMap.putIfAbsent(e.offset, () => []).add(e);
+  }
 
   // Categorize the differences, if any.
   var unreported = <_ErrorExpectation>[];
-  var different = <_ErrorExpectation, AnalysisError>{};
+  var different = <List<_ErrorExpectation>, List<AnalysisError>>{};
 
-  for (var expected in expectedErrors) {
-    AnalysisError actual = expected._removeMatchingActual(actualErrors);
-    if (actual != null) {
-      if (_errorSeverity(analysisOptions, actual) != expected.severity ||
-          _errorCodeName(actual.errorCode) != expected.typeName) {
-        different[expected] = actual;
+  expectedMap.forEach((offset, expectedList) {
+    var actualList = actualMap[offset] ?? [];
+
+    var unmatched = <_ErrorExpectation>[];
+    for (var expected in expectedList) {
+      var match = actualList.firstWhere(
+          (a) => expected.matches(analysisOptions, a),
+          orElse: () => null);
+      if (match != null) {
+        actualList.remove(match);
+        if (actualList.isEmpty) actualMap.remove(offset);
+      } else {
+        unmatched.add(expected);
       }
-    } else {
-      unreported.add(expected);
     }
-  }
+
+    if (actualList.isEmpty) {
+      unreported.addAll(unmatched);
+    } else if (unmatched.isNotEmpty) {
+      different[unmatched] = actualList;
+      actualMap.remove(offset);
+    }
+  });
 
   // Whatever is left was an unexpected error.
-  List<AnalysisError> unexpected = actualErrors;
+  List<AnalysisError> unexpected = actualMap.values.expand((a) => a).toList();
 
   if (unreported.isNotEmpty || unexpected.isNotEmpty || different.isNotEmpty) {
     _reportFailure(analysisOptions, unit, unreported, unexpected, different);
@@ -178,7 +179,7 @@ void _reportFailure(
     CompilationUnit unit,
     List<_ErrorExpectation> unreported,
     List<AnalysisError> unexpected,
-    Map<_ErrorExpectation, AnalysisError> different) {
+    Map<List<_ErrorExpectation>, List<AnalysisError>> different) {
   // Get the source code. This reads the data again, but it's safe because
   // all tests use memory file system.
   var sourceCode =
@@ -195,15 +196,17 @@ void _reportFailure(
         span.message(error.message);
   }
 
-  String formatExpectedError(_ErrorExpectation error) {
+  String formatExpectedError(_ErrorExpectation error, {bool showSource: true}) {
     int offset = error.offset;
+    var severity = error.severity.displayName;
+    var result = '@$offset $severity:${error.typeName}';
+    if (!showSource) return result;
     var span = _createSpanHelper(
         unit.lineInfo,
         offset,
         resolutionMap.elementDeclaredByCompilationUnit(unit).source,
         sourceCode);
-    var severity = error.severity.displayName;
-    return '@$offset $severity:${error.typeName}\n' + span.message('');
+    return '$result\n${span.message('')}';
   }
 
   var message = new StringBuffer();
@@ -220,8 +223,13 @@ void _reportFailure(
   if (different.isNotEmpty) {
     message.writeln('Errors that were reported, but different than expected:');
     different.forEach((expected, actual) {
-      message.writeln('Expected: ' + formatExpectedError(expected));
-      message.writeln('Actual: ' + formatActualError(actual));
+      // The source location is the same for the expected and actual, so we only
+      // print it once.
+      message.writeln('Expected: ' +
+          expected
+              .map((e) => formatExpectedError(e, showSource: false))
+              .join(', '));
+      message.writeln('Actual: ' + actual.map(formatActualError).join(', '));
     });
     message.writeln();
   }
@@ -426,17 +434,12 @@ class _ErrorExpectation {
 
   _ErrorExpectation(this.offset, this.severity, this.typeName);
 
-  String toString() => '@$offset ${severity.displayName}: [$typeName]';
-
-  AnalysisError _removeMatchingActual(List<AnalysisError> actualErrors) {
-    for (var actual in actualErrors) {
-      if (actual.offset == offset) {
-        actualErrors.remove(actual);
-        return actual;
-      }
-    }
-    return null;
+  bool matches(AnalysisOptions options, AnalysisError e) {
+    return _errorSeverity(options, e) == severity &&
+        _errorCodeName(e.errorCode) == typeName;
   }
+
+  String toString() => '@$offset ${severity.displayName}: [$typeName]';
 
   static _ErrorExpectation parse(int offset, String descriptor) {
     descriptor = descriptor.trim();
