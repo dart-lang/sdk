@@ -45,6 +45,7 @@ export 'package:kernel/ast.dart'
         ReturnStatement,
         Statement,
         StaticGet,
+        StaticInvocation,
         StringConcatenation,
         SuperInitializer,
         SwitchCase,

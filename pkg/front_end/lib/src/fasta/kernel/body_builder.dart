@@ -76,6 +76,8 @@ import 'redirecting_factory_body.dart'
 
 import '../names.dart';
 
+import 'constness_evaluator.dart' show evaluateConstness, ConstnessEffect;
+
 import 'fasta_accessors.dart';
 
 import 'kernel_api.dart';
@@ -182,6 +184,12 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   /// If non-null, records instance fields which have already been initialized
   /// and where that was.
   Map<String, int> initializedFields;
+
+  /// Constructor invocations (either generative or factory) with not specified
+  /// `new` or `const` keywords.  The constness for these should be inferred
+  /// based on the subexpressions.
+  List<Expression> constructorInvocationsWithImplicitConstness =
+      new List<Expression>();
 
   BodyBuilder(
       KernelLibraryBuilder library,
@@ -685,6 +693,50 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       unhandled("${builder.runtimeType}", "finishFunction", builder.charOffset,
           builder.fileUri);
     }
+
+    inferConstness();
+  }
+
+  // Infers constness of the constructor invocations collected so far in
+  // [constructorInvocationsWithImplicitConstness], then clears out the list.
+  void inferConstness() {
+    // The algorithm below takes advantage of the fact that for each expression
+    // that needs constness inference comes after all its subexpressions that
+    // also need constness inference in
+    // [constructorInvocationsWithImplicitConstness].
+    for (Expression invocation in constructorInvocationsWithImplicitConstness) {
+      if (invocation is ConstructorInvocation) {
+        ConstnessEffect constness =
+            evaluateConstness(invocation, coreTypes).effect;
+        if (constness == ConstnessEffect.taintedConst) {
+          // TODO(dmitryas): Find a better way to unwrap the error node.
+          ShadowSyntheticExpression errorMessage = buildCompileTimeError(
+              fasta.messageCantDetermineConstness,
+              invocation.fileOffset,
+              noLength);
+          invocation.replaceWith(errorMessage.desugared);
+        } else {
+          invocation.isConst = constness == ConstnessEffect.allowedConst;
+        }
+      } else if (invocation is StaticInvocation) {
+        ConstnessEffect constness =
+            evaluateConstness(invocation, coreTypes).effect;
+        if (constness == ConstnessEffect.taintedConst) {
+          // TODO(dmitryas): Find a better way to unwrap the error node.
+          ShadowSyntheticExpression errorMessage = buildCompileTimeError(
+              fasta.messageCantDetermineConstness,
+              invocation.fileOffset,
+              noLength);
+          invocation.replaceWith(errorMessage.desugared);
+        } else {
+          invocation.isConst = constness == ConstnessEffect.allowedConst;
+        }
+      } else {
+        unhandled("${invocation.runtimeType}", "inferConstness",
+            invocation.fileOffset, invocation.location.file);
+      }
+    }
+    constructorInvocationsWithImplicitConstness.clear();
   }
 
   @override
@@ -2133,6 +2185,20 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   }
 
   @override
+  void beginFormalParameterDefaultValueExpression() {
+    super.push(constantContext);
+    constantContext = ConstantContext.needsExplicitConst;
+  }
+
+  @override
+  void endFormalParameterDefaultValueExpression() {
+    debugEvent("FormalParameterDefaultValueExpression");
+    var defaultValueExpression = pop();
+    constantContext = pop();
+    push(defaultValueExpression);
+  }
+
+  @override
   void handleValuedFormalParameter(Token equals, Token token) {
     debugEvent("ValuedFormalParameter");
     Expression initializer = popForValue();
@@ -2448,38 +2514,57 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
           argMessage: argMessage);
     }
     if (target is Constructor) {
-      isConst =
-          isConst || constantContext != ConstantContext.none && target.isConst;
-      if (constness == Constness.implicit &&
-          target.isConst &&
-          constantContext != ConstantContext.inferred) {
+      if (constantContext == ConstantContext.needsExplicitConst &&
+          constness == Constness.implicit) {
         return buildCompileTimeError(
             fasta.messageCantDetermineConstness, charOffset, noLength);
-      } else if (isConst && !target.isConst) {
+      }
+      isConst =
+          isConst || constantContext != ConstantContext.none && target.isConst;
+      if ((isConst || constantContext == ConstantContext.inferred) &&
+          !target.isConst) {
         return deprecated_buildCompileTimeError(
             "Not a const constructor.", charOffset);
       }
-      return new ShadowConstructorInvocation(target, targetTypeArguments,
-          initialTarget, forest.castArguments(arguments),
+      ShadowConstructorInvocation invocation = new ShadowConstructorInvocation(
+          target,
+          targetTypeArguments,
+          initialTarget,
+          forest.castArguments(arguments),
           isConst: isConst)
         ..fileOffset = charOffset;
+      if (constness == Constness.implicit &&
+          target.isConst &&
+          constantContext != ConstantContext.inferred) {
+        constructorInvocationsWithImplicitConstness.add(invocation);
+      }
+      return invocation;
     } else {
       Procedure procedure = target;
-      isConst = isConst ||
-          constantContext != ConstantContext.none && procedure.isConst;
-      if (constness == Constness.implicit &&
-          procedure.isConst &&
-          constantContext != ConstantContext.inferred) {
-        return buildCompileTimeError(
-            fasta.messageCantDetermineConstness, charOffset, noLength);
-      } else if (isConst && !procedure.isConst) {
-        return deprecated_buildCompileTimeError(
-            "Not a const factory.", charOffset);
-      } else if (procedure.isFactory) {
-        return new ShadowFactoryConstructorInvocation(target,
-            targetTypeArguments, initialTarget, forest.castArguments(arguments),
-            isConst: isConst)
-          ..fileOffset = charOffset;
+      if (procedure.isFactory) {
+        isConst = isConst ||
+            constantContext != ConstantContext.none && procedure.isConst;
+        if ((isConst || constantContext == ConstantContext.inferred) &&
+            !procedure.isConst) {
+          return deprecated_buildCompileTimeError(
+              "Not a const factory.", charOffset);
+        }
+        if (constantContext == ConstantContext.needsExplicitConst &&
+            constness == Constness.implicit) {
+          return buildCompileTimeError(
+              fasta.messageCantDetermineConstness, charOffset, noLength);
+        }
+        ShadowFactoryConstructorInvocation invocation =
+            new ShadowFactoryConstructorInvocation(target, targetTypeArguments,
+                initialTarget, forest.castArguments(arguments),
+                isConst: isConst)
+              ..fileOffset = charOffset;
+        if (constness == Constness.implicit &&
+            procedure.isConst &&
+            constantContext != ConstantContext.inferred) {
+          constructorInvocationsWithImplicitConstness.add(invocation);
+        }
+        return invocation;
       } else {
         return new ShadowStaticInvocation(
             target, forest.castArguments(arguments),

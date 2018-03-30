@@ -1004,6 +1004,14 @@ class AstBuilder extends ScopeListener {
         popTypedList(count), leftDelimeter, rightDelimeter));
   }
 
+  @override
+  void beginFormalParameterDefaultValueExpression() {}
+
+  @override
+  void endFormalParameterDefaultValueExpression() {
+    debugEvent("FormalParameterDefaultValueExpression");
+  }
+
   void handleValuedFormalParameter(Token equals, Token token) {
     assert(optional('=', equals) || optional(':', equals));
     debugEvent("ValuedFormalParameter");

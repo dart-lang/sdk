@@ -21,9 +21,7 @@ static method test() → dynamic {
   invalid-expression "pkg/front_end/testcases/magic_const.dart:18:9: Error: Not a const constructor.
   const NotConstant();
         ^";
-  invalid-expression "pkg/front_end/testcases/magic_const.dart:19:3: Error: The keyword 'const' or 'new' is required here. Due to an implementation limit, the compiler isn't able to infer 'const' or 'new' here.
-  Constant();
-  ^";
+  const self::Constant::•();
   const dynamic x = const self::Constant::•();
   invalid-expression "pkg/front_end/testcases/magic_const.dart:21:8: Error: The keyword 'const' or 'new' is required here. Due to an implementation limit, the compiler isn't able to infer 'const' or 'new' here.
   bool.fromEnvironment(\"fisk\");

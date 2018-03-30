@@ -623,7 +623,6 @@ const_nested_test: RuntimeError # KernelVM bug: Constant evaluation.
 const_string_test: RuntimeError
 constructor12_test: RuntimeError
 constructor3_test: Fail, OK, Pass
-constructor_call_as_function_test: CompileTimeError # Issue 32517
 ct_const2_test: Pass, Crash # Flaky
 ct_const_test: RuntimeError
 cyclic_type2_test: RuntimeError, CompileTimeError
@@ -662,18 +661,7 @@ generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
 generic_tearoff_test: CompileTimeError
 generic_tearoff_test: RuntimeError
 if_null_evaluation_order_test: Pass
-implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_constructor_named_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_constructor_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_prefix_constructor_named_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_prefix_constructor_test: CompileTimeError # Issue 32517
 implicit_creation/implicit_new_constructor_generic_test: Pass
-implicit_creation/implicit_new_constructor_named_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_new_constructor_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_new_or_const_composite_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_new_or_const_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_new_prefix_constructor_named_test: CompileTimeError # Issue 32517
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instantiate_tearoff_of_call_test: CompileTimeError
@@ -1218,7 +1206,6 @@ const_constructor3_test/04: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
 cyclic_typedef_test/10: Crash
 cyclic_typedef_test/11: Crash
-deferred_constraints_constants_test/default_argument2: MissingCompileTimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
 deferred_shared_and_unshared_classes_test: CompileTimeError
 duplicate_implements_test/01: MissingCompileTimeError
@@ -1236,8 +1223,6 @@ field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
 field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
-function_type_parameter2_negative_test: Fail
-function_type_parameter_negative_test: Fail
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
@@ -1359,28 +1344,12 @@ call_method_implicit_invoke_local_test/05: MissingCompileTimeError
 invalid_override_in_mixin_test/01: MissingCompileTimeError
 map_literal1_test/01: MissingCompileTimeError
 
-[ $runtime == vm && $fasta ]
-implicit_creation/implicit_new_or_const_composite_test: RuntimeError
-implicit_creation/implicit_new_or_const_test: RuntimeError
-
 [ $fasta && $strong ]
 compile_time_constant_k_test/01: MissingCompileTimeError
 compile_time_constant_k_test/02: MissingCompileTimeError
 compile_time_constant_k_test/03: MissingCompileTimeError
 compile_time_constant_static2_test/04: MissingCompileTimeError
 compile_time_constant_static3_test/04: MissingCompileTimeError
-constructor_call_as_function_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_constructor_named_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_constructor_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_prefix_constructor_named_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_prefix_constructor_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_new_constructor_named_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_new_constructor_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_new_or_const_composite_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_new_or_const_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_new_prefix_constructor_named_test: CompileTimeError # Issue 32517
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 issue18628_2_test/01: MissingCompileTimeError
@@ -1547,14 +1516,9 @@ const_constructor2_test/22: MissingCompileTimeError
 const_constructor2_test/24: MissingCompileTimeError
 const_constructor3_test/02: MissingCompileTimeError
 const_constructor3_test/04: MissingCompileTimeError
-const_error_multiply_initialized_test/01: MissingCompileTimeError
-const_error_multiply_initialized_test/02: MissingCompileTimeError
-const_error_multiply_initialized_test/03: MissingCompileTimeError
-const_error_multiply_initialized_test/04: MissingCompileTimeError
 const_init2_test/02: MissingCompileTimeError
 const_native_factory_test: MissingCompileTimeError
 const_syntax_test/08: MissingCompileTimeError
-const_syntax_test/09: MissingCompileTimeError
 const_syntax_test/10: MissingCompileTimeError
 const_types_test/01: MissingCompileTimeError
 const_types_test/02: MissingCompileTimeError
@@ -1568,7 +1532,6 @@ const_types_test/40: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
 constructor13_test/01: MissingCompileTimeError
 constructor13_test/02: MissingCompileTimeError
-constructor_call_as_function_test: CompileTimeError # Issue 32517
 constructor_call_wrong_argument_count_negative_test: Fail
 constructor_duplicate_final_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/02: MissingCompileTimeError
@@ -1576,7 +1539,6 @@ constructor_named_arguments_test/01: MissingCompileTimeError
 constructor_redirect1_negative_test/none: MissingCompileTimeError
 create_unresolved_type_test/01: MissingCompileTimeError
 cyclic_typedef_test/13: MissingCompileTimeError
-deferred_constraints_constants_test/default_argument2: MissingCompileTimeError
 deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
 deferred_constraints_type_annotation_test/catch_check: MissingCompileTimeError
 deferred_constraints_type_annotation_test/is_check: MissingCompileTimeError
@@ -1643,7 +1605,6 @@ final_attempt_reinitialization_test/02: MissingCompileTimeError
 final_for_in_variable_test: MissingCompileTimeError
 final_param_test: MissingCompileTimeError
 final_super_field_set_test: MissingCompileTimeError
-final_syntax_test/09: MissingCompileTimeError
 final_syntax_test/10: MissingCompileTimeError
 final_variable_assignment_test/01: MissingCompileTimeError
 final_variable_assignment_test/02: MissingCompileTimeError
@@ -1667,8 +1628,6 @@ function_type_call_getter2_test/02: MissingCompileTimeError
 function_type_call_getter2_test/03: MissingCompileTimeError
 function_type_call_getter2_test/04: MissingCompileTimeError
 function_type_call_getter2_test/05: MissingCompileTimeError
-function_type_parameter2_negative_test: Fail
-function_type_parameter_negative_test: Fail
 fuzzy_arrows_test/01: MissingCompileTimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
@@ -1721,17 +1680,6 @@ if_null_assignment_static_test/41: MissingCompileTimeError
 if_null_assignment_static_test/42: MissingCompileTimeError
 if_null_precedence_test/06: MissingCompileTimeError
 if_null_precedence_test/07: MissingCompileTimeError
-implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_constructor_named_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_constructor_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_prefix_constructor_named_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_prefix_constructor_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_new_constructor_named_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_new_constructor_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_new_or_const_composite_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_new_or_const_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_new_prefix_constructor_named_test: CompileTimeError # Issue 32517
 implicit_this_test/02: MissingCompileTimeError
 import_combinators2_test/00: MissingCompileTimeError
 import_self_test/01: MissingCompileTimeError

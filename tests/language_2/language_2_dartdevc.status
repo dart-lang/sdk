@@ -352,7 +352,6 @@ const_types_test/34: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
 constant_string_interpolation2_test: RuntimeError # Issue 32194
 constants_test/05: MissingCompileTimeError
-constructor_call_as_function_test: CompileTimeError # Issue 32517
 constructor_redirect1_negative_test/01: MissingCompileTimeError
 constructor_redirect2_negative_test: MissingCompileTimeError
 constructor_redirect_test/01: MissingCompileTimeError
@@ -366,7 +365,6 @@ cyclic_typedef_test/10: Crash
 cyclic_typedef_test/11: Crash
 default_factory2_test/01: MissingCompileTimeError
 default_factory_test/01: MissingCompileTimeError
-deferred_constraints_constants_test/default_argument2: MissingCompileTimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
@@ -398,8 +396,6 @@ field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
 function_propagation_test: RuntimeError
 function_subtype_closure0_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
-function_type_parameter2_negative_test: Fail
-function_type_parameter_negative_test: Fail
 generic_function_bounds_test: RuntimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
@@ -415,28 +411,17 @@ identical_const_test/01: MissingCompileTimeError
 identical_const_test/02: MissingCompileTimeError
 identical_const_test/03: MissingCompileTimeError
 identical_const_test/04: MissingCompileTimeError
-implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_constructor_named_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_constructor_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_prefix_constructor_named_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_prefix_constructor_test: CompileTimeError # Issue 32517
 implicit_creation/implicit_const_not_default_values_test/e.*: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e12: Pass # Issue 32517
-implicit_creation/implicit_const_not_default_values_test/e15: Pass # Issue 32517
-implicit_creation/implicit_const_not_default_values_test/e18: Pass # Issue 32517
-implicit_creation/implicit_const_not_default_values_test/e21: Pass # Issue 32517
-implicit_creation/implicit_const_not_default_values_test/e24: Pass # Issue 32517
-implicit_creation/implicit_const_not_default_values_test/e27: Pass # Issue 32517
-implicit_creation/implicit_const_not_default_values_test/e3: Pass # Issue 32517
-implicit_creation/implicit_const_not_default_values_test/e30: Pass # Issue 32517
-implicit_creation/implicit_const_not_default_values_test/e6: Pass # Issue 32517
-implicit_creation/implicit_const_not_default_values_test/e9: Pass # Issue 32517
-implicit_creation/implicit_new_constructor_named_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_new_constructor_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_new_or_const_composite_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_new_or_const_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_new_prefix_constructor_named_test: CompileTimeError # Issue 32517
+implicit_creation/implicit_const_not_default_values_test/e12: Pass
+implicit_creation/implicit_const_not_default_values_test/e15: Pass
+implicit_creation/implicit_const_not_default_values_test/e18: Pass
+implicit_creation/implicit_const_not_default_values_test/e21: Pass
+implicit_creation/implicit_const_not_default_values_test/e24: Pass
+implicit_creation/implicit_const_not_default_values_test/e27: Pass
+implicit_creation/implicit_const_not_default_values_test/e3: Pass
+implicit_creation/implicit_const_not_default_values_test/e30: Pass
+implicit_creation/implicit_const_not_default_values_test/e6: Pass
+implicit_creation/implicit_const_not_default_values_test/e9: Pass
 implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/04: MissingCompileTimeError
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
@@ -844,3 +829,4 @@ switch_label_test: RuntimeError # Issue 29920; UnimplementedError: node <ShadowC
 switch_try_catch_test: RuntimeError # Issue 29920; Expect.throws: Unexpected 'UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
 truncdiv_test: RuntimeError # Issue 29920; Expect.throws fails: Did not throw
 vm/*: SkipByDesign # VM only tests.; VM only tests.
+

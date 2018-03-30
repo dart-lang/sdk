@@ -780,6 +780,17 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
+  void beginFormalParameterDefaultValueExpression() {
+    // Ignored for now.
+  }
+
+  @override
+  void endFormalParameterDefaultValueExpression() {
+    debugEvent("FormalParameterDefaultValueExpression");
+    // Ignored for now.
+  }
+
+  @override
   void handleValuedFormalParameter(Token equals, Token token) {
     debugEvent("ValuedFormalParameter");
     // Ignored for now.

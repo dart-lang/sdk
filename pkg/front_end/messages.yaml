@@ -2037,5 +2037,4 @@ CantDetermineConstness:
   template: "The keyword 'const' or 'new' is required here. Due to an implementation limit, the compiler isn't able to infer 'const' or 'new' here."
   severity: ERROR
   expression:
-    - "Object()"
     - "bool.fromEnvironment('fisk')"

@@ -2713,7 +2713,9 @@ class Parser {
         String value = token.stringValue;
         if ((identical('=', value)) || (identical(':', value))) {
           Token equal = token;
+          listener.beginFormalParameterDefaultValueExpression();
           beforeToken = parseExpression(token);
+          listener.endFormalParameterDefaultValueExpression();
           token = beforeToken.next;
           listener.handleValuedFormalParameter(equal, token);
           if (isMandatoryFormalParameterKind(parameterKind)) {

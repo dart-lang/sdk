@@ -1164,6 +1164,12 @@ class Listener {
     logEvent("UnaryPrefixAssignmentExpression");
   }
 
+  void beginFormalParameterDefaultValueExpression() {}
+
+  void endFormalParameterDefaultValueExpression() {
+    logEvent("FormalParameterDefaultValueExpression");
+  }
+
   void handleValuedFormalParameter(Token equals, Token token) {
     logEvent("ValuedFormalParameter");
   }

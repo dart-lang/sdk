@@ -556,19 +556,8 @@ assertion_test: RuntimeError, OK
 [ $compiler == dart2js && !$checked && $fasta ]
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
-constructor_call_as_function_test: CompileTimeError # Issue 32517
 forwarding_stub_tearoff_generic_test: RuntimeError
 forwarding_stub_tearoff_test: RuntimeError
-implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_constructor_named_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_constructor_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_prefix_constructor_named_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_const_context_prefix_constructor_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_new_constructor_named_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_new_constructor_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_new_or_const_composite_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_new_or_const_test: CompileTimeError # Issue 32517
-implicit_creation/implicit_new_prefix_constructor_named_test: CompileTimeError # Issue 32517
 issue31596_implement_covariant_test: RuntimeError
 issue31596_super_test/02: MissingCompileTimeError
 issue31596_super_test/04: MissingCompileTimeError
@@ -1994,8 +1983,6 @@ identical_const_test/02: MissingCompileTimeError
 identical_const_test/03: MissingCompileTimeError
 identical_const_test/04: MissingCompileTimeError
 if_null_precedence_test/none: RuntimeError
-implicit_creation/implicit_new_or_const_composite_test: RuntimeError
-implicit_creation/implicit_new_or_const_test: RuntimeError
 implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/04: MissingCompileTimeError
 infinity_test: RuntimeError # non JS number semantics - Issue 4984
