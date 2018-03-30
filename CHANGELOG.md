@@ -9,6 +9,14 @@
 * `dart:collection`
   * Removed `Maps` class. Extend `MapBase` or mix in `MapMixin` instead to
     provide map method implementations for a class.
+* `dart:html`
+  * Removed deprecated `query` and `queryAll` use `querySelector` and `queryAllSelector`.
+  * Removed experimental `Document` method `getCSSCanvasContext` and property
+    `supportsCssCanvasContext`.
+  * Removed obsolete `Element` property `xtag` no longer supported in browsers.
+  * Exposed `ServiceWorker` class.
+  * Added constructor to `MessageChannel` and `MessagePort` `addEventListener` automatically calls
+    `start` method to receive queued messages.
 * `dart:io`
   * Added `IOOverrides.socketConnect`.
 

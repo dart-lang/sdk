@@ -289,6 +289,7 @@ html/localstorage_test: RuntimeError
 html/location_test: RuntimeError
 html/media_stream_test: RuntimeError
 html/mediasource_test: RuntimeError
+html/message_channel_test: RuntimeError
 html/messageevent_test: RuntimeError
 html/mirrors_js_typed_interop_test: RuntimeError
 html/mouse_event_test: RuntimeError
