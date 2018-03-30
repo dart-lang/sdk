@@ -1800,10 +1800,11 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
   final CommonElements commonElements;
   final TypeRepresentationGenerator _representationGenerator;
 
-  RuntimeTypesEncoderImpl(this.namer, this._elementEnvironment,
-      this.commonElements, bool strongMode)
+  RuntimeTypesEncoderImpl(
+      this.namer, this._elementEnvironment, this.commonElements,
+      {bool strongMode})
       : _representationGenerator =
-            new TypeRepresentationGenerator(namer, strongMode);
+            new TypeRepresentationGenerator(namer, strongMode: strongMode);
 
   @override
   bool isSimpleFunctionType(FunctionType type) {
@@ -2008,7 +2009,8 @@ class TypeRepresentationGenerator
   Map<TypeVariableType, jsAst.Expression> typedefBindings;
   List<FunctionTypeVariable> functionTypeVariables = <FunctionTypeVariable>[];
 
-  TypeRepresentationGenerator(this.namer, this._strongMode);
+  TypeRepresentationGenerator(this.namer, {bool strongMode})
+      : _strongMode = strongMode;
 
   /**
    * Creates a type representation for [type]. [onVariable] is called to provide

@@ -51,10 +51,14 @@ List<FunctionTypeData> signatures = const <FunctionTypeData>[
       "dynamic", "9", "(int a, String b, {List<int> c, dynamic d})"),
   const FunctionTypeData(
       "dynamic", "10", "(void Function(int a, [dynamic b]) f)"),
+  const FunctionTypeData("FutureOr<int>", "11",
+      "<T extends num, S>(FutureOr<T> a, S b, List<void> c)"),
 ];
 
 testTypeRepresentations({bool useKernel, bool strongMode}) async {
   String source = '''
+import 'dart:async';
+
 ${createTypedefs(signatures, prefix: 'Typedef')}
 ${createMethods(signatures, prefix: 'm')}
 
@@ -73,7 +77,7 @@ main() {
   JavaScriptBackend backend = compiler.backend;
 
   TypeRepresentationGenerator typeRepresentation =
-      new TypeRepresentationGenerator(backend.namer, false);
+      new TypeRepresentationGenerator(backend.namer, strongMode: strongMode);
 
   Expression onVariable(TypeVariableType _variable) {
     TypeVariableType variable = _variable;
@@ -110,11 +114,16 @@ main() {
   ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   String func = backend.namer.functionTypeTag;
-  String retvoid = backend.namer.functionTypeVoidReturnTag;
   String ret = backend.namer.functionTypeReturnTypeTag;
+  String retvoid = strongMode
+      ? '$ret: -1'
+      : '${backend.namer.functionTypeVoidReturnTag}: true';
   String args = backend.namer.functionTypeRequiredParametersTag;
   String opt = backend.namer.functionTypeOptionalParametersTag;
   String named = backend.namer.functionTypeNamedParametersTag;
+  String bounds = backend.namer.functionTypeGenericBoundsTag;
+  String futureOr = backend.namer.futureOrTag;
+  String futureOrType = backend.namer.futureOrTypeTag;
   String typedefTag = backend.namer.typedefTag;
 
   ClassEntity List_ = findClass(closedWorld, 'List');
@@ -126,6 +135,8 @@ main() {
   TypeVariableType Map_V =
       elementEnvironment.getThisType(Map_).typeArguments[1];
 
+  InterfaceType Object_ = closedWorld.commonElements.objectType;
+  InterfaceType num_ = closedWorld.commonElements.numType;
   InterfaceType int_ = closedWorld.commonElements.intType;
   InterfaceType String_ = closedWorld.commonElements.stringType;
   DartType dynamic_ = closedWorld.commonElements.dynamicType;
@@ -139,6 +150,7 @@ main() {
   DartType Typedef8_ = findFieldType(closedWorld, 'Typedef8');
   DartType Typedef9_ = findFieldType(closedWorld, 'Typedef9');
   DartType Typedef10_ = findFieldType(closedWorld, 'Typedef10');
+  DartType Typedef11_ = findFieldType(closedWorld, 'Typedef11');
 
   String List_rep = getJsName(List_);
   String List_E_rep = stringify(onVariable(List_E));
@@ -146,6 +158,8 @@ main() {
   String Map_K_rep = stringify(onVariable(Map_K));
   String Map_V_rep = stringify(onVariable(Map_V));
 
+  String Object_rep = getJsName(Object_.element);
+  String num_rep = getJsName(num_.element);
   String int_rep = getJsName(int_.element);
   String String_rep = getJsName(String_.element);
 
@@ -168,6 +182,7 @@ main() {
   String Typedef8_tag = getTypedefTag(Typedef8_);
   String Typedef9_tag = getTypedefTag(Typedef9_);
   String Typedef10_tag = getTypedefTag(Typedef10_);
+  String Typedef11_tag = getTypedefTag(Typedef11_);
 
   expect(int_, '$int_rep');
   expect(String_, '$String_rep');
@@ -181,11 +196,9 @@ main() {
   expect(instantiate(List_, [dynamic_]), '$List_rep');
   // List<int>
   expect(instantiate(List_, [int_]), '[$List_rep, $int_rep]');
-  // List<Typedef>
-  expect(
-      instantiate(List_, [Typedef1_]),
-      '[$List_rep, {$func: 1, $retvoid: true}]',
-      '[$List_rep, {$func: 1, $retvoid: true$Typedef1_tag}]');
+  // List<Typedef1>
+  expect(instantiate(List_, [Typedef1_]), '[$List_rep, {$func: 1, $retvoid}]',
+      '[$List_rep, {$func: 1, $retvoid$Typedef1_tag}]');
   expect(
       instantiate(List_, [Typedef2_]),
       '[$List_rep, {$func: 1, $ret: $int_rep}]',
@@ -232,11 +245,23 @@ main() {
   expect(
       instantiate(List_, [Typedef10_]),
       '[$List_rep, {$func: 1, '
-      '$args: [{$func: 1, $retvoid: true, '
+      '$args: [{$func: 1, $retvoid, '
       '$args: [$int_rep], $opt: [,]}]}]',
       '[$List_rep, {$func: 1, '
-      '$args: [{$func: 1, $retvoid: true, '
+      '$args: [{$func: 1, $retvoid, '
       '$args: [$int_rep], $opt: [,]}]$Typedef10_tag}]');
+  if (!strongMode) {
+    expect(
+        instantiate(List_, [Typedef11_]),
+        '[$List_rep, {$func: 1, $args: [,, [$List_rep,,]]}]',
+        '[$List_rep, {$func: 1, $args: [,, [$List_rep,,]]$Typedef11_tag}]');
+  } else {
+    expect(
+        instantiate(List_, [Typedef11_]),
+        '[$List_rep, {$func: 1, $bounds: [$num_rep, $Object_rep], '
+        '$ret: {$futureOr: 1, $futureOrType: $int_rep}, '
+        '$args: [{$futureOr: 1, $futureOrType: 0}, 1, [$List_rep, -1]]}]');
+  }
 
   // Map<K,V>
   expect(elementEnvironment.getThisType(Map_),
@@ -250,7 +275,7 @@ main() {
       instantiate(Map_, [int_, String_]), '[$Map_rep, $int_rep, $String_rep]');
 
   // void m1() {}
-  expect(findFunctionType(closedWorld, 'm1'), '{$func: 1, $retvoid: true}');
+  expect(findFunctionType(closedWorld, 'm1'), '{$func: 1, $retvoid}');
 
   // int m2() => 0;
   expect(findFunctionType(closedWorld, 'm2'), '{$func: 1, $ret: $int_rep}');
@@ -297,5 +322,17 @@ main() {
       findFunctionType(closedWorld, 'm10'),
       '{$func: 1, $args:'
       ' [{$func: 1,'
-      ' $retvoid: true, $args: [$int_rep], $opt: [,]}]}');
+      ' $retvoid, $args: [$int_rep], $opt: [,]}]}');
+
+  // FutureOr<int> m11<T, S>(FutureOr<T> a, S b, List<void> c) {}
+  if (!strongMode) {
+    expect(findFunctionType(closedWorld, 'm11'),
+        '{$func: 1, $args: [,, [$List_rep,,]]}');
+  } else {
+    expect(
+        findFunctionType(closedWorld, 'm11'),
+        '{$func: 1, $bounds: [$num_rep, $Object_rep], '
+        '$ret: {$futureOr: 1, $futureOrType: $int_rep}, '
+        '$args: [{$futureOr: 1, $futureOrType: 0}, 1, [$List_rep, -1]]}');
+  }
 }
