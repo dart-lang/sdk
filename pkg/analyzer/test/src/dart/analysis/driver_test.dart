@@ -7845,7 +7845,7 @@ import 'b.dart';
   }
 
   test_missingDartLibrary_async() async {
-    provider.getFile(MockSdk.FULL_URI_MAP['dart:async']).delete();
+    provider.getFile(_p(MockSdk.FULL_URI_MAP['dart:async'])).delete();
     addTestFile('class C {}');
 
     ErrorsResult result = await driver.getErrors(testFile);
@@ -7856,7 +7856,7 @@ import 'b.dart';
   }
 
   test_missingDartLibrary_core() async {
-    provider.getFile(MockSdk.FULL_URI_MAP['dart:core']).delete();
+    provider.getFile(_p(MockSdk.FULL_URI_MAP['dart:core'])).delete();
     addTestFile('class C {}');
 
     ErrorsResult result = await driver.getErrors(testFile);
