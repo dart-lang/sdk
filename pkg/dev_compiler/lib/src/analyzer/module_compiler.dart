@@ -113,12 +113,14 @@ class ModuleCompiler {
           new InputPackagesResultProvider(context, summaryData);
     }
     options.declaredVariables.forEach(context.declaredVariables.define);
-    context.declaredVariables.define('dart.isVM', 'false');
-
-    // TODO(vsm): Should this be hardcoded?
-    context.declaredVariables.define('dart.library.html', 'true');
-    context.declaredVariables.define('dart.library.io', 'false');
-    context.declaredVariables.define('dart.library.ui', 'false');
+    context.declaredVariables
+      ..define('dart.isVM', 'false')
+      // TODO(vsm): Should this be hardcoded?
+      ..define('dart.library.html', 'true')
+      ..define('dart.library.io', 'false')
+      ..define('dart.library.ui', 'false')
+      ..define('dart.library.mirrors', 'false')
+      ..define('dart.library.isolate', 'false');
 
     if (!context.analysisOptions.strongMode) {
       throw new ArgumentError('AnalysisContext must be strong mode');
