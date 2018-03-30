@@ -466,7 +466,7 @@ class JsBuilder {
   }
 
   Iterable<Literal> joinLiterals(Iterable<Literal> list, Literal separator) {
-    return new _InterleaveIterable(list, separator);
+    return new _InterleaveIterable<Literal>(list, separator);
   }
 
   LiteralString quoteName(Name name, {allowNull: false}) {
@@ -1574,9 +1574,9 @@ class MiniJsParser {
   }
 }
 
-class _InterleaveIterator implements Iterator<Node> {
-  Iterator<Node> source;
-  Node separator;
+class _InterleaveIterator<T extends Node> implements Iterator<T> {
+  Iterator<T> source;
+  T separator;
   bool isNextSeparator = false;
   bool isInitialized = false;
 
@@ -1594,19 +1594,19 @@ class _InterleaveIterator implements Iterator<Node> {
     }
   }
 
-  Node get current {
+  T get current {
     if (isNextSeparator) return separator;
     return source.current;
   }
 }
 
-class _InterleaveIterable extends IterableBase {
-  Iterable<Node> source;
-  Node separator;
+class _InterleaveIterable<T extends Node> extends IterableBase<T> {
+  Iterable<T> source;
+  T separator;
 
   _InterleaveIterable(this.source, this.separator);
 
-  Iterator<Node> get iterator {
-    return new _InterleaveIterator(source.iterator, separator);
+  Iterator<T> get iterator {
+    return new _InterleaveIterator<T>(source.iterator, separator);
   }
 }

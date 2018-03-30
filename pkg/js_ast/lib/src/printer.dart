@@ -1297,7 +1297,7 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
 
   bool visitProgram(Program node) => false;
 
-  bool visitNode(Statement node) {
+  bool visitNode(Node node) {
     context.error("Forgot node: $node");
     return null;
   }
