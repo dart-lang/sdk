@@ -54,6 +54,18 @@ bool Platform::Initialize() {
     perror("Setting signal handler failed");
     return false;
   }
+
+  // tcsetattr raises SIGTTOU if we try to set console attributes when
+  // backgrounded, which suspends the process. Ignoring the signal prevents
+  // us from being suspended and lets us fail gracefully instead.
+  sigset_t signal_mask;
+  sigemptyset(&signal_mask);
+  sigaddset(&signal_mask, SIGTTOU);
+  if (sigprocmask(SIG_BLOCK, &signal_mask, NULL) < 0) {
+    perror("Setting signal handler failed");
+    return false;
+  }
+
   act.sa_flags = SA_SIGINFO;
   act.sa_sigaction = &segv_handler;
   if (sigemptyset(&act.sa_mask) != 0) {
