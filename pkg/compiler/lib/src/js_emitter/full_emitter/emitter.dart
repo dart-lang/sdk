@@ -339,6 +339,12 @@ class Emitter extends js_emitter.EmitterBase {
       case JsBuiltin.isFutureOrType:
         return backend.rtiEncoder.templateForIsFutureOrType;
 
+      case JsBuiltin.isVoidType:
+        return backend.rtiEncoder.templateForIsVoidType;
+
+      case JsBuiltin.isDynamicType:
+        return backend.rtiEncoder.templateForIsDynamicType;
+
       case JsBuiltin.rawRtiToJsConstructorName:
         return jsAst.js.expressionTemplateFor("#.$typeNameProperty");
 

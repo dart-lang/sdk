@@ -92,6 +92,9 @@ String isCheckPropertyToJsConstructorName(String isCheckProperty) {
 // TODO(floitsch): move this to foreign_helper.dart or similar.
 @ForceInline()
 bool isDartFunctionType(Object type) {
+  // Function type test is using the `in` operator which doesn't work on
+  // primitive types.
+  assert(!(type == null || type is num || type is String));
   return JS_BUILTIN(
       'returns:bool;effects:none;depends:none', JsBuiltin.isFunctionType, type);
 }
@@ -100,8 +103,17 @@ bool isDartFunctionType(Object type) {
 // TODO(floitsch): move this to foreign_helper.dart or similar.
 @ForceInline()
 bool isDartFutureOrType(Object type) {
+  // FutureOr test is using the `in` operator which doesn't work on primitive
+  // types.
+  assert(!(type == null || type is num || type is String));
   return JS_BUILTIN(
       'returns:bool;effects:none;depends:none', JsBuiltin.isFutureOrType, type);
+}
+
+@ForceInline()
+bool isDartVoidTypeRti(Object type) {
+  return JS_BUILTIN(
+      'returns:bool;effects:none;depends:none', JsBuiltin.isVoidType, type);
 }
 
 /// Retrieves the class name from type information stored on the constructor of
@@ -160,6 +172,14 @@ bool isNullType(Object type) {
       JsBuiltin.isGivenTypeRti,
       type,
       JS_GET_NAME(JsGetName.NULL_CLASS_TYPE_NAME));
+}
+
+/// Returns whether the given type is the dynamic type.
+// TODO(floitsch): move this to foreign_helper.dart or similar.
+@ForceInline()
+bool isDartDynamicTypeRti(type) {
+  return JS_BUILTIN(
+      'returns:bool;effects:none;depends:none', JsBuiltin.isDynamicType, type);
 }
 
 /// Returns whether the given type is _the_ Dart Object type.
