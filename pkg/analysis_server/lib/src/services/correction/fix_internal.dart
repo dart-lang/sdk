@@ -607,32 +607,6 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_addMissingMethodCall() async {
-    ClassDeclaration targetClass = node.parent as ClassDeclaration;
-    int insertOffset = targetClass.end - 1;
-    // prepare environment
-    String prefix = utils.getIndent(1);
-    String prefix2 = utils.getIndent(2);
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addInsertion(insertOffset, (DartEditBuilder builder) {
-        builder.selectHere();
-        builder.write(prefix);
-        builder.write('call() {');
-        // TO-DO
-        builder.write(eol);
-        builder.write(prefix2);
-        builder.write('// TODO: implement call');
-        builder.write(eol);
-        // close method
-        builder.write(prefix);
-        builder.write('}');
-        builder.write(eol);
-      });
-    });
-    _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_MISSING_METHOD_CALL);
-  }
-
   Future<Null> _addFix_addMissingParameter() async {
     if (node is ArgumentList && node.parent is MethodInvocation) {
       ArgumentList argumentList = node;
