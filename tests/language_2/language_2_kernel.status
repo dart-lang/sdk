@@ -908,9 +908,12 @@ bad_override_test/03: MissingCompileTimeError # Issue 32613: override check is m
 bad_override_test/04: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
 bad_override_test/05: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
 built_in_identifier_prefix_test: CompileTimeError
+call_method_as_cast_test/06: RuntimeError
+call_method_implicit_tear_off_implements_function_test/05: RuntimeError
+call_method_implicit_tear_off_implements_function_test/06: RuntimeError
+call_method_is_check_test/06: RuntimeError
 call_method_must_not_be_field_test/03: RuntimeError # Issue 32265
 call_method_must_not_be_getter_test/03: RuntimeError # Issue 32265
-call_with_no_such_method_test: RuntimeError
 check_member_static_test/02: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
 checked_setter3_test/01: MissingCompileTimeError
 checked_setter3_test/02: MissingCompileTimeError
