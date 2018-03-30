@@ -108,7 +108,7 @@ vars = {
   "mockito_tag": "@a92db054fba18bc2d605be7670aee74b7cadc00a",
   "mustache4dart_tag" : "@v2.1.0",
   "oauth2_tag": "@1.1.0",
-  "observatory_pub_packages_rev": "@4c282bb240b68f407c8c7779a65c68eeb0139dc6",
+  "observatory_pub_packages_rev": "@d3a3aebefbd35aa30fe7bbc2889b772b398f7d7f",
   "package_config_tag": "@1.0.3",
   "package_resolver_tag": "@1.0.2+1",
   "path_tag": "@1.5.1",
