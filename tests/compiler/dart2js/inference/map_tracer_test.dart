@@ -12,6 +12,7 @@ import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 
 import 'type_mask_test_helper.dart';
+import '../helpers/element_lookup.dart';
 import '../memory_compiler.dart';
 
 String generateTest(String mapAllocation) {
