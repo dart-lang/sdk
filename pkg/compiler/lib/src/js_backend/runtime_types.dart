@@ -2332,7 +2332,7 @@ class FunctionArgumentCollector
     visit(type, inFunctionType);
   }
 
-  collectAll(List<DartType> types, {bool inFunctionType: false}) {
+  collectAll(Iterable<DartType> types, {bool inFunctionType: false}) {
     for (DartType type in types) {
       visit(type, inFunctionType);
     }
@@ -2354,6 +2354,8 @@ class FunctionArgumentCollector
     collectAll(type.parameterTypes, inFunctionType: true);
     collectAll(type.optionalParameterTypes, inFunctionType: true);
     collectAll(type.namedParameterTypes, inFunctionType: true);
+    collectAll(type.typeVariables.map((type) => type.bound),
+        inFunctionType: true);
   }
 }
 

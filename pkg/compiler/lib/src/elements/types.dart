@@ -77,8 +77,8 @@ abstract class DartType {
   /// Is `true` if this type is the 'Object' type defined in 'dart:core'.
   bool get isObject => false;
 
-  /// Applies [f] to each occurence of a [ResolutionTypeVariableType] within
-  /// this type.
+  /// Applies [f] to each occurence of a [TypeVariableType] within this
+  /// type. This excludes function type variables, whether free or bound.
   void forEachTypeVariable(f(TypeVariableType variable)) {}
 
   /// Performs the substitution `[arguments[i]/parameters[i]]this`.
@@ -525,13 +525,15 @@ class FunctionType extends DartType {
       this.typedefType);
 
   bool get containsTypeVariables {
-    return returnType.containsTypeVariables ||
+    return typeVariables.any((type) => type.bound.containsTypeVariables) ||
+        returnType.containsTypeVariables ||
         parameterTypes.any((type) => type.containsTypeVariables) ||
         optionalParameterTypes.any((type) => type.containsTypeVariables) ||
         namedParameterTypes.any((type) => type.containsTypeVariables);
   }
 
   void forEachTypeVariable(f(TypeVariableType variable)) {
+    typeVariables.forEach((type) => type.bound.forEachTypeVariable(f));
     returnType.forEachTypeVariable(f);
     parameterTypes.forEach((type) => type.forEachTypeVariable(f));
     optionalParameterTypes.forEach((type) => type.forEachTypeVariable(f));
@@ -1283,7 +1285,7 @@ abstract class DartTypes {
           TypeVariableType typeVariable, DartType bound));
 
   /// Returns the [ClassEntity] which declares the type variables occurring in
-  // [type], or `null` if [type] does not contain type variables.
+  // [type], or `null` if [type] does not contain class type variables.
   static ClassEntity getClassContext(DartType type) {
     ClassEntity contextClass;
     type.forEachTypeVariable((TypeVariableType typeVariable) {
