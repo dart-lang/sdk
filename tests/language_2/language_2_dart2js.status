@@ -1258,19 +1258,16 @@ generic_function_bounds_test: RuntimeError
 generic_function_dcall_test: RuntimeError
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError
-generic_function_type_within_type_argument_test: RuntimeError
 generic_function_typedef_test/01: RuntimeError
 generic_instanceof2_test: RuntimeError
 generic_instanceof_test: RuntimeError
 generic_is_check_test: RuntimeError
-generic_method_types_test/01: RuntimeError
 generic_method_types_test/02: RuntimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_bounds_test/02: MissingRuntimeError
 generic_methods_dynamic_test/02: MissingRuntimeError
 generic_methods_dynamic_test/04: MissingRuntimeError
 generic_methods_generic_class_tearoff_test: RuntimeError
-generic_methods_generic_function_parameter_test: RuntimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
@@ -1292,15 +1289,12 @@ identical_const_test/02: MissingCompileTimeError
 identical_const_test/03: MissingCompileTimeError
 identical_const_test/04: MissingCompileTimeError
 if_null_precedence_test/none: RuntimeError
-implicit_creation/implicit_new_or_const_composite_test: RuntimeError
-implicit_creation/implicit_new_or_const_test: RuntimeError
 implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/04: MissingCompileTimeError
 infinity_test: RuntimeError # non JS number semantics - Issue 4984
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instance_creation_in_function_annotation_test: RuntimeError
-instantiate_tearoff_after_contravariance_check_test: RuntimeError
 instantiate_tearoff_of_call_test: CompileTimeError
 instantiate_tearoff_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 int64_literal_test/01: RuntimeError
@@ -1949,19 +1943,16 @@ generic_function_bounds_test: RuntimeError
 generic_function_dcall_test: RuntimeError
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError
-generic_function_type_within_type_argument_test: RuntimeError
 generic_function_typedef_test/01: RuntimeError
 generic_instanceof2_test: RuntimeError
 generic_instanceof_test: RuntimeError
 generic_is_check_test: RuntimeError
-generic_method_types_test/01: RuntimeError
 generic_method_types_test/02: RuntimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_bounds_test/02: MissingRuntimeError
 generic_methods_dynamic_test/02: MissingRuntimeError
 generic_methods_dynamic_test/04: MissingRuntimeError
 generic_methods_generic_class_tearoff_test: RuntimeError
-generic_methods_generic_function_parameter_test: RuntimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
@@ -1989,7 +1980,6 @@ infinity_test: RuntimeError # non JS number semantics - Issue 4984
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instance_creation_in_function_annotation_test: RuntimeError
-instantiate_tearoff_after_contravariance_check_test: RuntimeError
 instantiate_tearoff_of_call_test: CompileTimeError
 int64_literal_test/01: RuntimeError
 int64_literal_test/02: RuntimeError

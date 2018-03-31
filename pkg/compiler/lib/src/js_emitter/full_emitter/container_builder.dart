@@ -42,6 +42,11 @@ class ContainerBuilder extends CodeEmitterHelper {
     bool needStructuredInfo =
         canTearOff || canBeReflected || canBeApplied || hasSuperAlias;
 
+    bool isIntercepted = false;
+    if (method is InstanceMethod) {
+      isIntercepted = method.isIntercepted;
+    }
+
     emitter.interceptorEmitter.recordMangledNameOfMemberMethod(member, name);
 
     if (!needStructuredInfo) {
@@ -73,7 +78,8 @@ class ContainerBuilder extends CodeEmitterHelper {
     // M+1. Call name of first stub.
     // ...
     // N.   Getter name for tearOff.
-    // N+1. (Required parameter count << 1) + (member.isAccessor ? 1 : 0).
+    // N+1. (Required parameter count << 2) + (member.isAccessor ? 2 : 0) +
+    //        (isIntercepted ? 1 : 0)
     // N+2. (Optional parameter count << 1) +
     //                      (parameters.optionalParametersAreNamed ? 1 : 0).
     // N+3. Index to function type in constant pool.
@@ -116,8 +122,9 @@ class ContainerBuilder extends CodeEmitterHelper {
 
     // On [requiredParameterCount], the lower bit is set if this method can be
     // called reflectively.
-    int requiredParameterCount = parameters.requiredParameters << 1;
-    if (member.isGetter || member.isSetter) requiredParameterCount++;
+    int requiredParameterCount = parameters.requiredParameters << 2;
+    if (member.isGetter || member.isSetter) requiredParameterCount += 2;
+    if (isIntercepted) requiredParameterCount += 1;
 
     int optionalParameterCount = parameters.optionalParameters << 1;
     if (parameters.namedParameters.isNotEmpty) optionalParameterCount++;

@@ -602,8 +602,8 @@ class ReflectionInfo {
 
     int requiredParametersInfo =
         JS('int', '#[#]', data, REQUIRED_PARAMETERS_INFO);
-    int requiredParameterCount = JS('int', '# >> 1', requiredParametersInfo);
-    bool isAccessor = (requiredParametersInfo & 1) == 1;
+    int requiredParameterCount = JS('int', '# >> 2', requiredParametersInfo);
+    bool isAccessor = (requiredParametersInfo & 2) == 2;
 
     int optionalParametersInfo =
         JS('int', '#[#]', data, OPTIONAL_PARAMETERS_INFO);
