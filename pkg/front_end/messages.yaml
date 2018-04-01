@@ -927,7 +927,12 @@ SetterWithWrongNumberOfFormals:
 CatchSyntax:
   template: "'catch' must be followed by '(identifier)' or '(identifier, identifier)'."
   tip: "No types are needed, the first is given by 'on', the second is always 'StackTrace'."
+  analyzerCode: CATCH_SYNTAX
   dart2jsCode: "*ignored*"
+  statement:
+    - "try {} catch {}"
+    - "try {} catch () {}"
+    - "try {} catch (e,) {}"
 
 SuperNullAware:
   template: "'super' can't be null."

@@ -67,6 +67,12 @@ class ParserErrorCode extends ErrorCode {
       "A break statement can't be used outside of a loop or switch statement.",
       correction: "Try removing the break statement.");
 
+  static const ParserErrorCode CATCH_SYNTAX = const ParserErrorCode(
+      'CATCH_SYNTAX',
+      "'catch' must be followed by '(identifier)' or '(identifier, identifier)'.",
+      correction:
+          "No types are needed, the first is given by 'on', the second is always 'StackTrace'.");
+
   static const ParserErrorCode CLASS_IN_CLASS = const ParserErrorCode(
       'CLASS_IN_CLASS', "Classes can't be declared inside other classes.",
       correction: "Try moving the class to the top-level.");

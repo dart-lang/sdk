@@ -53,23 +53,19 @@ class TryStatementTest extends PartialCodeTest {
           new TestDescriptor(
               'catch',
               'try {} catch',
-              [
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
+              [ParserErrorCode.CATCH_SYNTAX, ParserErrorCode.EXPECTED_TOKEN],
               "try {} catch (e) {}",
-              allFailing: true),
+              failing: ['block']),
           new TestDescriptor(
               'catch_leftParen',
               'try {} catch (',
               [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN,
+                ScannerErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.CATCH_SYNTAX,
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "try {} catch (e) {}",
-              allFailing: true),
+              failing: allExceptEof),
           new TestDescriptor(
               'catch_identifier',
               'try {} catch (e',
@@ -80,12 +76,12 @@ class TryStatementTest extends PartialCodeTest {
               'catch_identifierComma',
               'try {} catch (e, ',
               [
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.CATCH_SYNTAX,
                 ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN
+                ScannerErrorCode.EXPECTED_TOKEN
               ],
               "try {} catch (e, _s_) {}",
-              allFailing: true),
+              failing: allExceptEof),
           new TestDescriptor(
               'catch_identifierCommaIdentifier',
               'try {} catch (e, s',
@@ -101,23 +97,19 @@ class TryStatementTest extends PartialCodeTest {
           new TestDescriptor(
               'on_catch',
               'try {} on A catch',
-              [
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
+              [ParserErrorCode.CATCH_SYNTAX, ParserErrorCode.EXPECTED_TOKEN],
               "try {} on A catch (e) {}",
-              allFailing: true),
+              failing: ['block']),
           new TestDescriptor(
               'on_catch_leftParen',
               'try {} on A catch (',
               [
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.CATCH_SYNTAX,
                 ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN
+                ScannerErrorCode.EXPECTED_TOKEN
               ],
               "try {} on A catch (e) {}",
-              allFailing: true),
+              failing: allExceptEof),
           new TestDescriptor(
               'on_catch_identifier',
               'try {} on A catch (e',
@@ -128,12 +120,12 @@ class TryStatementTest extends PartialCodeTest {
               'on_catch_identifierComma',
               'try {} on A catch (e, ',
               [
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.CATCH_SYNTAX,
                 ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN
+                ScannerErrorCode.EXPECTED_TOKEN
               ],
               "try {} on A catch (e, _s_) {}",
-              allFailing: true),
+              failing: allExceptEof),
           new TestDescriptor(
               'on_catch_identifierCommaIdentifier',
               'try {} on A catch (e, s',

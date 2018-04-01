@@ -40,8 +40,6 @@ CantInferTypeDueToInconsistentOverrides/analyzerCode: Fail
 CantInferTypeDueToInconsistentOverrides/example: Fail
 CantUseSuperBoundedTypeForInstanceCreation/analyzerCode: Fail
 CantUseSuperBoundedTypeForInstanceCreation/example: Fail
-CatchSyntax/analyzerCode: Fail
-CatchSyntax/example: Fail
 ColonInPlaceOfIn/example: Fail
 ConflictsWithConstructor/analyzerCode: Fail
 ConflictsWithConstructor/example: Fail

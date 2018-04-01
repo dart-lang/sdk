@@ -480,6 +480,7 @@ const Code<Null> codeCatchSyntax = messageCatchSyntax;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCatchSyntax = const MessageCode("CatchSyntax",
+    analyzerCode: "CATCH_SYNTAX",
     dart2jsCode: "*ignored*",
     message:
         r"""'catch' must be followed by '(identifier)' or '(identifier, identifier)'.""",

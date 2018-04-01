@@ -321,6 +321,7 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT,
   ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
   ParserErrorCode.BREAK_OUTSIDE_OF_LOOP,
+  ParserErrorCode.CATCH_SYNTAX,
   ParserErrorCode.CLASS_IN_CLASS,
   ParserErrorCode.COLON_IN_PLACE_OF_IN,
   ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE,

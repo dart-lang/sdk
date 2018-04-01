@@ -6009,29 +6009,51 @@ class Parser {
       Token comma = null;
       if (identical(value, 'catch')) {
         catchKeyword = token;
+
         Token openParens = catchKeyword.next;
-        Token exceptionName = openParens.next;
-        Token commaOrCloseParens = exceptionName.next;
-        Token traceName = commaOrCloseParens.next;
-        Token closeParens = traceName.next;
         if (!optional("(", openParens)) {
-          // Handled below by parseFormalParameters.
-        } else if (!exceptionName.isIdentifier) {
+          reportRecoverableError(openParens, fasta.messageCatchSyntax);
+          BeginToken open = new SyntheticBeginToken(
+              TokenType.OPEN_PAREN, openParens.charOffset);
+          Token identifier = open.setNext(new SyntheticStringToken(
+              TokenType.IDENTIFIER, '', openParens.charOffset));
+          Token close = identifier.setNext(
+              new SyntheticToken(TokenType.CLOSE_PAREN, openParens.charOffset));
+          open.endGroup = close;
+          rewriter.insertTokenAfter(catchKeyword, open);
+          openParens = open;
+        }
+
+        Token exceptionName = openParens.next;
+        if (!exceptionName.isIdentifier) {
           reportRecoverableError(exceptionName, fasta.messageCatchSyntax);
-        } else if (optional(")", commaOrCloseParens)) {
+          if (!exceptionName.isKeywordOrIdentifier) {
+            exceptionName = new SyntheticStringToken(
+                TokenType.IDENTIFIER, '', exceptionName.charOffset, 0);
+            rewriter.insertTokenAfter(openParens, exceptionName);
+          }
+        }
+
+        Token commaOrCloseParens = exceptionName.next;
+        if (optional(")", commaOrCloseParens)) {
           // OK: `catch (identifier)`.
         } else if (!optional(",", commaOrCloseParens)) {
           reportRecoverableError(exceptionName, fasta.messageCatchSyntax);
         } else {
           comma = commaOrCloseParens;
+          Token traceName = comma.next;
           if (!traceName.isIdentifier) {
             reportRecoverableError(exceptionName, fasta.messageCatchSyntax);
-          } else if (!optional(")", closeParens)) {
+            if (!traceName.isKeywordOrIdentifier) {
+              traceName = new SyntheticStringToken(
+                  TokenType.IDENTIFIER, '', traceName.charOffset, 0);
+              rewriter.insertTokenAfter(comma, traceName);
+            }
+          } else if (!optional(")", traceName.next)) {
             reportRecoverableError(exceptionName, fasta.messageCatchSyntax);
           }
         }
-        lastConsumed =
-            parseFormalParametersRequiredOpt(token, MemberKind.Catch);
+        lastConsumed = parseFormalParameters(catchKeyword, MemberKind.Catch);
         token = lastConsumed.next;
       }
       listener.endCatchClause(token);
