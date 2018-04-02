@@ -14,13 +14,12 @@
 #include <zircon/syscalls/object.h>
 #include <zircon/types.h>
 
+#include <fuchsia/cpp/time_zone.h>
+
 #include "lib/app/cpp/environment_services.h"
-#include "lib/time_service/fidl/time_service.fidl.h"
 
 #include "platform/assert.h"
 #include "vm/zone.h"
-
-static constexpr char kTimeServiceName[] = "time_service::TimeService";
 
 namespace dart {
 
@@ -42,17 +41,18 @@ intptr_t OS::ProcessId() {
 }
 
 static zx_status_t GetTimeServicePtr(
-    time_service::TimeServiceSyncPtr* time_svc) {
+    time_zone::TimezoneSyncPtr* time_svc) {
   zx::channel service_root = app::subtle::CreateStaticServiceRootHandle();
-  zx::channel time_svc_channel = GetSynchronousProxy(time_svc).TakeChannel();
-  return fdio_service_connect_at(service_root.get(), kTimeServiceName,
+  zx::channel time_svc_channel = time_svc->NewRequest().TakeChannel();
+  return fdio_service_connect_at(service_root.get(),
+                                 time_zone::Timezone::Name_,
                                  time_svc_channel.release());
 }
 
 static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
                                                  int32_t* local_offset,
                                                  int32_t* dst_offset) {
-  time_service::TimeServiceSyncPtr time_svc;
+  time_zone::TimezoneSyncPtr time_svc;
   zx_status_t status = GetTimeServicePtr(&time_svc);
   if (status == ZX_OK) {
     time_svc->GetTimezoneOffsetMinutes(seconds_since_epoch * 1000, local_offset,
@@ -64,9 +64,9 @@ static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
 }
 
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
-  time_service::TimeServiceSyncPtr time_svc;
+  time_zone::TimezoneSyncPtr time_svc;
   if (GetTimeServicePtr(&time_svc) == ZX_OK) {
-    f1dl::String res;
+    fidl::StringPtr res;
     time_svc->GetTimezoneId(&res);
     char* tz_name = Thread::Current()->zone()->Alloc<char>(res->size() + 1);
     memmove(tz_name, res->data(), res->size());

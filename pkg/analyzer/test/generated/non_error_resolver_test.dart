@@ -3619,6 +3619,26 @@ f(S s) async {
     verify([source]);
   }
 
+  @failingTest // Fails with the old task model
+  test_issue_32394() async {
+    Source source = addSource('''
+var x = y.map((a) => a.toString());
+var y = [3];
+var z = x.toList();
+
+void main() {
+  String p = z;
+}
+''');
+    var result = await computeAnalysisResult(source);
+    var z = result.unit.element.topLevelVariables
+        .where((e) => e.name == 'z')
+        .single;
+    expect(z.type.toString(), 'List<String>');
+    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    verify([source]);
+  }
+
   test_listElementTypeNotAssignable() async {
     Source source = addSource(r'''
 var v1 = <int> [42];

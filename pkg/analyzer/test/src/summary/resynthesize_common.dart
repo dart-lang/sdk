@@ -2919,25 +2919,11 @@ const dynamic V = const
 class C {}
 const V = const C.named();
 ''', allowErrors: true);
-    if (isSharedFrontEnd) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C {
 }
 const dynamic V = #invalidConst;
 ''');
-    } else if (isStrongMode) {
-      checkElementText(library, r'''
-class C {
-}
-const C V = #invalidConst;
-''');
-    } else {
-      checkElementText(library, r'''
-class C {
-}
-const dynamic V = #invalidConst;
-''');
-    }
   }
 
   test_const_invokeConstructor_named_unresolved2() async {
@@ -2960,22 +2946,10 @@ class C {
 import 'a.dart' as p;
 const V = const p.C.named();
 ''', allowErrors: true);
-    if (isSharedFrontEnd) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart' as p;
 const dynamic V = #invalidConst;
 ''');
-    } else if (isStrongMode) {
-      checkElementText(library, r'''
-import 'a.dart' as p;
-const C V = #invalidConst;
-''');
-    } else {
-      checkElementText(library, r'''
-import 'a.dart' as p;
-const dynamic V = #invalidConst;
-''');
-    }
   }
 
   test_const_invokeConstructor_named_unresolved4() async {
@@ -3007,25 +2981,11 @@ const dynamic V = #invalidConst;
 class C<T> {}
 const V = const C.named();
 ''', allowErrors: true);
-    if (isSharedFrontEnd) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C<T> {
 }
 const dynamic V = #invalidConst;
 ''');
-    } else if (isStrongMode) {
-      checkElementText(library, r'''
-class C<T> {
-}
-const C<dynamic> V = #invalidConst;
-''');
-    } else {
-      checkElementText(library, r'''
-class C<T> {
-}
-const dynamic V = #invalidConst;
-''');
-    }
   }
 
   test_const_invokeConstructor_unnamed() async {
@@ -6455,6 +6415,19 @@ dynamic get y {}
 ''');
   }
 
+  @failingTest
+  test_implicitConstructor_named_const() async {
+    // TODO(paulberry, scheglov): get this to pass
+    var library = await checkLibrary('''
+class C {
+  final Object x;
+  const C.named(this.x);
+}
+const x = C.named(42);
+''');
+    checkElementText(library, 'TODO(paulberry, scheglov)');
+  }
+
   test_implicitTopLevelVariable_getterFirst() async {
     var library =
         await checkLibrary('int get x => 0; void set x(int value) {}');
@@ -6631,6 +6604,195 @@ import 'b.dart';
 C c;
 D d;
 ''');
+  }
+
+  @failingTest
+  void test_infer_generic_typedef_complex() async {
+    // TODO(paulberry, scheglov): get this test to pass.
+    var library = await checkLibrary('''
+typedef F<T> = D<T,U> Function<U>();
+class C<V> {
+  const C(F<V> f);
+}
+class D<T,U> {}
+D<int,U> f<U>() => null;
+const x = const C(f);
+''');
+    checkElementText(library, '''TODO(paulberry, scheglov)''');
+  }
+
+  void test_infer_generic_typedef_simple() async {
+    var library = await checkLibrary('''
+typedef F = D<T> Function<T>();
+class C {
+  const C(F f);
+}
+class D<T> {}
+D<T> f<T>() => null;
+const x = const C(f);
+''');
+    if (isStrongMode) {
+      checkElementText(library, '''
+typedef F = D<T> Function<T>();
+class C {
+  const C(<T>() → D<T> f);
+}
+class D<T> {
+}
+const C x = const
+        C/*location: test.dart;C*/(
+        f/*location: test.dart;f*/);
+D<T> f<T>() {}
+''');
+    } else {
+      checkElementText(library, '''
+typedef F = D<T> Function<T>();
+class C {
+  const C(<T>() → D<T> f);
+}
+class D<T> {
+}
+const dynamic x = const
+        C/*location: test.dart;C*/(
+        f/*location: test.dart;f*/);
+D<T> f<T>() {}
+''');
+    }
+  }
+
+  test_infer_instanceCreation_fromArguments() async {
+    var library = await checkLibrary('''
+class A {}
+
+class B extends A {}
+
+class S<T extends A> {
+  S(T _);
+}
+
+var s = new S(new B());
+''');
+    if (isStrongMode) {
+      checkElementText(library, '''
+class A {
+}
+class B extends A {
+}
+class S<T extends A> {
+  S(T _);
+}
+S<B> s;
+''');
+    } else {
+      checkElementText(library, '''
+class A {
+}
+class B extends A {
+}
+class S<T extends A> {
+  S(T _);
+}
+dynamic s;
+''');
+    }
+  }
+
+  test_infer_property_set() async {
+    var library = await checkLibrary('''
+class A {
+  B b;
+}
+class B {
+  C get c => null;
+  void set c(C value) {}
+}
+class C {}
+class D extends C {}
+var a = new A();
+var x = a.b.c ??= new D();
+''');
+    if (isStrongMode) {
+      checkElementText(library, '''
+class A {
+  B b;
+}
+class B {
+  C get c {}
+  void set c(C value) {}
+}
+class C {
+}
+class D extends C {
+}
+A a;
+C x;
+''');
+    } else {
+      checkElementText(library, '''
+class A {
+  B b;
+}
+class B {
+  C get c {}
+  void set c(C value) {}
+}
+class C {
+}
+class D extends C {
+}
+dynamic a;
+dynamic x;
+''');
+    }
+  }
+
+  test_inference_issue_32394() async {
+    // Test the type inference involed in dartbug.com/32394
+    var library = await checkLibrary('''
+var x = y.map((a) => a.toString());
+var y = [3];
+var z = x.toList();
+''');
+    if (isStrongMode) {
+      checkElementText(library, '''
+Iterable<String> x;
+List<int> y;
+List<String> z;
+''');
+    } else {
+      checkElementText(library, '''
+dynamic x;
+dynamic y;
+dynamic z;
+''');
+    }
+  }
+
+  test_inference_map() async {
+    var library = await checkLibrary('''
+class C {
+  int p;
+}
+var x = <C>[];
+var y = x.map((c) => c.p);
+''');
+    if (isStrongMode) {
+      checkElementText(library, '''
+class C {
+  int p;
+}
+List<C> x;
+Iterable<int> y;
+''');
+    } else {
+      checkElementText(library, '''
+class C {
+  int p;
+}
+dynamic x;
+dynamic y;
+''');
+    }
   }
 
   test_inferred_function_type_for_variable_in_generic_function() async {
@@ -9176,6 +9338,120 @@ Map<dynamic, dynamic> m;
     checkElementText(library, r'''
 dynamic d;
 ''');
+  }
+
+  test_type_inference_based_on_loadLibrary() async {
+    addLibrarySource('/a.dart', '');
+    var library = await checkLibrary('''
+import 'a.dart' deferred as a;
+var x = a.loadLibrary;
+''');
+    if (isStrongMode) {
+      checkElementText(library, '''
+import 'a.dart' deferred as a;
+() → Future<dynamic> x;
+''');
+    } else {
+      checkElementText(library, '''
+import 'a.dart' deferred as a;
+dynamic x;
+''');
+    }
+  }
+
+  test_type_inference_closure_with_function_typed_parameter() async {
+    var library = await checkLibrary('''
+var x = (int f(String x)) => 0;
+''');
+    if (isStrongMode) {
+      checkElementText(library, '''
+((String) → int) → int x;
+''');
+    } else {
+      checkElementText(library, '''
+dynamic x;
+''');
+    }
+  }
+
+  test_type_inference_closure_with_function_typed_parameter_new() async {
+    var library = await checkLibrary('''
+var x = (int Function(String) f) => 0;
+''');
+    if (isStrongMode) {
+      checkElementText(library, '''
+((String) → int) → int x;
+''');
+    } else {
+      checkElementText(library, '''
+dynamic x;
+''');
+    }
+  }
+
+  test_type_inference_depends_on_exported_variable() async {
+    addLibrarySource('/a.dart', 'export "b.dart";');
+    addLibrarySource('/b.dart', 'var x = 0;');
+    var library = await checkLibrary('''
+import 'a.dart';
+var y = x;
+''');
+    if (isStrongMode) {
+      checkElementText(library, '''
+import 'a.dart';
+int y;
+''');
+    } else {
+      checkElementText(library, '''
+import 'a.dart';
+dynamic y;
+''');
+    }
+  }
+
+  test_type_inference_nested_function() async {
+    var library = await checkLibrary('''
+var x = (t) => (u) => t + u;
+''');
+    if (isStrongMode) {
+      checkElementText(library, '''
+(dynamic) → (dynamic) → dynamic x;
+''');
+    } else {
+      checkElementText(library, '''
+dynamic x;
+''');
+    }
+  }
+
+  test_type_inference_nested_function_with_parameter_types() async {
+    var library = await checkLibrary('''
+var x = (int t) => (int u) => t + u;
+''');
+    if (isStrongMode) {
+      checkElementText(library, '''
+(int) → (int) → int x;
+''');
+    } else {
+      checkElementText(library, '''
+dynamic x;
+''');
+    }
+  }
+
+  test_type_inference_of_closure_with_default_value() async {
+    var library = await checkLibrary('''
+var x = ([y: 0]) => y;
+''');
+    if (isStrongMode) {
+      checkElementText(library, '''
+([dynamic]) → dynamic x;
+''');
+    } else {
+      checkElementText(library, '''
+dynamic x;
+''');
+    }
   }
 
   test_type_invalid_topLevelVariableElement_asType() async {

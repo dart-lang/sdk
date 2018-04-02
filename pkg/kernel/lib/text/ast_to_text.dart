@@ -1842,6 +1842,10 @@ class Printer extends Visitor<Null> {
     writeWord(getTypeParameterName(node));
     writeSpaced('extends');
     writeType(node.bound);
+    if (node.defaultType != null) {
+      writeSpaced('=');
+      writeType(node.defaultType);
+    }
   }
 
   visitConstantExpression(ConstantExpression node) {

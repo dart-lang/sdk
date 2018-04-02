@@ -97,17 +97,15 @@ class _ForwardingMetadataEntry extends _MetadataEntry implements Placeholder {
   _ForwardingMetadataEntry([this.debug]);
 
   _MetadataEntry get forwardTo {
-    assert(isBound);
+    assert(isBound, 'unbound $this $debug');
     return _forwardTo;
   }
 
   jsAst.Expression get entry {
-    assert(isBound);
     return forwardTo.entry;
   }
 
   int get value {
-    assert(isBound);
     return forwardTo.value;
   }
 

@@ -2964,6 +2964,7 @@ LayoutTests/fast/filesystem/file-writer-write-overlapped_t01: RuntimeError # Ple
 LayoutTests/fast/filesystem/filesystem-reference_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/filesystem/filesystem-unserializable_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/filesystem/filesystem-uri-origin_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/filesystem/input-access-entries_t01: RuntimeError # See issue 143
 LayoutTests/fast/filesystem/op-copy_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/filesystem/op-get-entry_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/filesystem/op-get-metadata_t01: RuntimeError # Please triage this failure
@@ -3236,6 +3237,7 @@ LayoutTests/fast/text/find-russian_t01: RuntimeError # Please triage this failur
 LayoutTests/fast/text/find-soft-hyphen_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/international/iso-8859-8_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/international/listbox-width-rtl_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/text/international/rtl-text-wrapping_t01: RuntimeError # See issue 143
 LayoutTests/fast/text/international/thai-offsetForPosition-inside-character_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/line-break-after-question-mark_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/line-breaks-after-hyphen-before-number_t01: RuntimeError # Please triage this failure
@@ -6163,6 +6165,7 @@ LayoutTests/fast/forms/ValidityState-customError_t01: RuntimeError # Please tria
 LayoutTests/fast/forms/ValidityState-typeMismatch-email_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/autocomplete_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/autofocus-input-css-style-change_t01: Pass, RuntimeError # Fails 7 out of 10.
+LayoutTests/fast/forms/autofocus-opera-007_t01: RuntimeError # See issue 143
 LayoutTests/fast/forms/button-baseline-and-collapsing_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/button/button-disabled-blur_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/checkValidity-001_t01: RuntimeError # co19 issue 142

@@ -144,13 +144,13 @@ abstract class ElementSuggestionBuilder {
   /**
    * Add a suggestion based upon the given element.
    */
-  void addSuggestion(Element element,
+  CompletionSuggestion addSuggestion(Element element,
       {String prefix,
       int relevance: DART_RELEVANCE_DEFAULT,
       String elementCompletion}) {
     if (element.isPrivate) {
       if (element.library != containingLibrary) {
-        return;
+        return null;
       }
     }
     String completion = elementCompletion ?? element.displayName;
@@ -162,7 +162,7 @@ abstract class ElementSuggestionBuilder {
       }
     }
     if (completion == null || completion.length <= 0) {
-      return;
+      return null;
     }
     CompletionSuggestion suggestion = createSuggestion(element,
         completion: completion, kind: kind, relevance: relevance);
@@ -195,7 +195,7 @@ abstract class ElementSuggestionBuilder {
                 typeParameters: getter.element.typeParameters,
                 parameters: null,
                 returnType: getter.returnType);
-            return;
+            return existingSuggestion;
           }
 
           // Cache lone getter/setter so that it can be paired
@@ -206,6 +206,7 @@ abstract class ElementSuggestionBuilder {
         suggestions.add(suggestion);
       }
     }
+    return suggestion;
   }
 }
 

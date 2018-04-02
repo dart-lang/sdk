@@ -76,11 +76,51 @@ class FunctionNodeHelper {
   intptr_t next_read_;
 };
 
-struct TypeParameterHelper {
+class TypeParameterHelper {
+ public:
+  enum Field {
+    kStart,  // tag.
+    kFlags,
+    kAnnotations,
+    kName,
+    kBound,
+    kDefaultType,
+    kEnd,
+  };
+
   enum Flag {
     kIsGenericCovariantImpl = 1 << 0,
     kIsGenericCovariantInterface = 1 << 1
   };
+
+  explicit TypeParameterHelper(StreamingFlowGraphBuilder* builder) {
+    builder_ = builder;
+    next_read_ = kStart;
+  }
+
+  void ReadUntilIncluding(Field field) {
+    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
+  }
+
+  void ReadUntilExcluding(Field field);
+
+  void SetNext(Field field) { next_read_ = field; }
+  void SetJustRead(Field field) { next_read_ = field + 1; }
+
+  void ReadUntilExcludingAndSetJustRead(Field field) {
+    ReadUntilExcluding(field);
+    SetJustRead(field);
+  }
+
+  void Finish() { ReadUntilExcluding(kEnd); }
+
+  TokenPosition position_;
+  uint8_t flags_;
+  StringIndex name_index_;
+
+ private:
+  StreamingFlowGraphBuilder* builder_;
+  intptr_t next_read_;
 };
 
 // Helper class that reads a kernel VariableDeclaration from binary.
@@ -1276,7 +1316,7 @@ class StreamingFlowGraphBuilder {
   JoinEntryInstr* BuildJoinEntry(intptr_t try_index);
   Fragment Goto(JoinEntryInstr* destination);
   Fragment BuildImplicitClosureCreation(const Function& target);
-  Fragment CheckBooleanInCheckedMode();
+  Fragment CheckBoolean();
   Fragment CheckAssignableInCheckedMode(const AbstractType& dst_type,
                                         const String& dst_name);
   Fragment CheckArgumentType(LocalVariable* variable, const AbstractType& type);
@@ -1434,6 +1474,7 @@ class StreamingFlowGraphBuilder {
   friend class StreamingDartTypeTranslator;
   friend class StreamingScopeBuilder;
   friend class VariableDeclarationHelper;
+  friend class TypeParameterHelper;
 };
 
 class AlternativeScriptScope {

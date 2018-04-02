@@ -63,7 +63,7 @@ bool _isTop(DartType t) {
       identical(t, UnknownInferredType.instance);
 }
 
-typedef bool _GuardedSubtypeChecker<T>(T t1, T t2, Set<TypeImpl> visitedTypes);
+typedef bool _GuardedSubtypeChecker<T>(T t1, T t2, Set<DartType> visitedTypes);
 
 /**
  * Implementation of [TypeSystem] using the strong mode rules.
@@ -111,16 +111,31 @@ class StrongTypeSystemImpl extends TypeSystem {
   FunctionType functionTypeToFuzzyType(FunctionType t) =>
       _replaceDynamicParameters(t, typeProvider.nullType);
 
-  /**
-   * Given a type t, if t is an interface type with a call method
-   * defined, return the function type for the call method, otherwise
-   * return null.
-   */
+  /// Given a type t, if t is an interface type with a call method
+  /// defined, return the function type for the call method, otherwise
+  /// return null.
   FunctionType getCallMethodType(DartType t) {
     if (t is InterfaceType) {
       return t.lookUpInheritedMethod("call")?.type;
     }
     return null;
+  }
+
+  /// Returns true iff the type [t] accepts function types, and requires an
+  /// implicit coercion if interface types with a `call` method are passed in.
+  ///
+  /// This is true for:
+  /// - all function types
+  /// - the special type `Function` that is a supertype of all function types
+  /// - `FutureOr<T>` where T is one of the two cases above.
+  ///
+  /// Note that this returns false if [t] is a top type such as Object.
+  bool acceptsFunctionType(DartType t) {
+    if (t == null) return false;
+    if (t.isDartAsyncFutureOr) {
+      return acceptsFunctionType((t as InterfaceType).typeArguments[0]);
+    }
+    return t is FunctionType || t.isDartCoreFunction;
   }
 
   /// Computes the greatest lower bound of [type1] and [type2].
@@ -182,7 +197,7 @@ class StrongTypeSystemImpl extends TypeSystem {
   DartType getLeastNullableSupertype(InterfaceType type) {
     // compute set of supertypes
     List<InterfaceType> s = InterfaceTypeImpl
-        .computeSuperinterfaceSet(type)
+        .computeSuperinterfaceSet(type, strong: true)
         .where(isNullableType)
         .toList();
     return InterfaceTypeImpl.computeTypeAtMaxUniqueDepth(s);
@@ -419,6 +434,13 @@ class StrongTypeSystemImpl extends TypeSystem {
   @override
   bool isAssignableTo(DartType fromType, DartType toType,
       {bool isDeclarationCast = false}) {
+    if (fromType is InterfaceType) {
+      var callMethodType = getCallMethodType(fromType);
+      if (callMethodType != null && isAssignableTo(callMethodType, toType)) {
+        return true;
+      }
+    }
+
     // An actual subtype
     if (isSubtypeOf(fromType, toType)) {
       return true;
@@ -739,15 +761,11 @@ class StrongTypeSystemImpl extends TypeSystem {
     return "${type?.element?.library?.identifier},$type";
   }
 
-  /**
-   * Guard against loops in the class hierarchy
-   */
-  _GuardedSubtypeChecker<DartType> _guard(
-      _GuardedSubtypeChecker<DartType> check) {
-    return (DartType t1, DartType t2, Set<TypeImpl> visitedTypes) {
-      if (visitedTypes == null) {
-        visitedTypes = new HashSet<TypeImpl>();
-      }
+  /// Guard against loops in the class hierarchy.
+  _GuardedSubtypeChecker<T> _guard<T extends DartType>(
+      _GuardedSubtypeChecker<T> check) {
+    return (T t1, T t2, Set<DartType> visitedTypes) {
+      visitedTypes ??= new HashSet<DartType>();
       if (t1 == null || !visitedTypes.add(t1)) {
         return false;
       }
@@ -802,7 +820,8 @@ class StrongTypeSystemImpl extends TypeSystem {
       lub.typeArguments = tArgs;
       return lub;
     }
-    return InterfaceTypeImpl.computeLeastUpperBound(type1, type2) ??
+    return InterfaceTypeImpl.computeLeastUpperBound(type1, type2,
+            strong: isStrong) ??
         typeProvider.dynamicType;
   }
 
@@ -811,22 +830,24 @@ class StrongTypeSystemImpl extends TypeSystem {
   /// This will always assume function types use fuzzy arrows, in other words
   /// that dynamic parameters of f1 and f2 are treated as bottom.
   bool _isFunctionSubtypeOf(
-      FunctionType f1, FunctionType f2, Set<TypeImpl> visitedTypes) {
+      FunctionType f1, FunctionType f2, Set<DartType> visitedTypes) {
     return FunctionTypeImpl.relate(f1, f2, isSubtypeOf, instantiateToBounds,
         parameterRelation: (p1, p2) =>
             _isSubtypeOf(p2.type, p1.type, visitedTypes));
   }
 
   bool _isInterfaceSubtypeOf(
-      InterfaceType i1, InterfaceType i2, Set<TypeImpl> visitedTypes) {
-    if (identical(i1, i2)) {
+      InterfaceType i1, InterfaceType i2, Set<DartType> visitedTypes) {
+    // Note: we should never reach `_isInterfaceSubtypeOf` with `i2 == Object`,
+    // because top types are eliminated before `isSubtypeOf` calls this.
+    if (identical(i1, i2) || i2.isObject) {
       return true;
     }
 
-    // Guard recursive calls
-    _GuardedSubtypeChecker<InterfaceType> guardedInterfaceSubtype = _guard(
-        (DartType i1, DartType i2, Set<TypeImpl> visitedTypes) =>
-            _isInterfaceSubtypeOf(i1, i2, visitedTypes));
+    // Object cannot subtype anything but itself (handled above).
+    if (i1.isObject) {
+      return false;
+    }
 
     if (i1.element == i2.element) {
       List<DartType> tArgs1 = i1.typeArguments;
@@ -844,14 +865,14 @@ class StrongTypeSystemImpl extends TypeSystem {
       return true;
     }
 
-    if (i2.isDartCoreFunction &&
-        i1.element.getMethod("call")?.isStatic == false) {
-      return true;
-    }
-
-    if (i1.isObject) {
+    // Classes types cannot subtype `Function` or vice versa.
+    if (i1.isDartCoreFunction || i2.isDartCoreFunction) {
       return false;
     }
+
+    // Guard recursive calls
+    _GuardedSubtypeChecker<InterfaceType> guardedInterfaceSubtype =
+        _guard(_isInterfaceSubtypeOf);
 
     if (guardedInterfaceSubtype(i1.superclass, i2, visitedTypes)) {
       return true;
@@ -872,7 +893,7 @@ class StrongTypeSystemImpl extends TypeSystem {
     return false;
   }
 
-  bool _isSubtypeOf(DartType t1, DartType t2, Set<TypeImpl> visitedTypes) {
+  bool _isSubtypeOf(DartType t1, DartType t2, Set<DartType> visitedTypes) {
     if (identical(t1, t2)) {
       return true;
     }
@@ -947,19 +968,10 @@ class StrongTypeSystemImpl extends TypeSystem {
     }
 
     // Guard recursive calls
-    _GuardedSubtypeChecker<FunctionType> guardedIsFunctionSubtype = _guard(
-        (DartType t1, DartType t2, Set<TypeImpl> visitedTypes) =>
-            _isFunctionSubtypeOf(
-                t1 as FunctionType, t2 as FunctionType, visitedTypes));
+    _GuardedSubtypeChecker<FunctionType> guardedIsFunctionSubtype =
+        _guard(_isFunctionSubtypeOf);
 
-    // An interface type can only subtype a function type if
-    // the interface type declares a call method with a type
-    // which is a super type of the function type.
-    if (t1 is InterfaceType && t2 is FunctionType) {
-      var callType = getCallMethodType(t1);
-      return callType != null &&
-          guardedIsFunctionSubtype(callType, t2, visitedTypes);
-    }
+    if (t1 is InterfaceType && t2 is FunctionType) return false;
 
     // Two interface types
     if (t1 is InterfaceType && t2 is InterfaceType) {
@@ -1194,12 +1206,21 @@ abstract class TypeSystem {
       return _typeParameterLeastUpperBound(type1, type2);
     }
 
-    // The least upper bound of a function type and an interface type T is the
-    // least upper bound of Function and T.
+    // In Dart 1, the least upper bound of a function type and an interface type
+    // T is the least upper bound of Function and T.
+    //
+    // In Dart 2, the result is `Function` iff T is `Function`, otherwise the
+    // result is `Object`.
     if (type1 is FunctionType && type2 is InterfaceType) {
+      if (isStrong) {
+        return type2.isDartCoreFunction ? type2 : typeProvider.objectType;
+      }
       type1 = typeProvider.functionType;
     }
     if (type2 is FunctionType && type1 is InterfaceType) {
+      if (isStrong) {
+        return type1.isDartCoreFunction ? type1 : typeProvider.objectType;
+      }
       type2 = typeProvider.functionType;
     }
 
@@ -2080,10 +2101,6 @@ class _GenericInferrer {
       }
       return;
     }
-    if (i2.isDartCoreFunction &&
-        i1.element.getMethod("call")?.isStatic == false) {
-      return;
-    }
     if (i1.isObject) {
       return;
     }
@@ -2216,14 +2233,6 @@ class _GenericInferrer {
     if (t1 is InterfaceType && t2 is InterfaceType) {
       _matchInterfaceSubtypeOf(t1, t2, visited, origin, covariant: covariant);
       return;
-    }
-
-    // An interface type can only subtype a function type if
-    // the interface type declares a call method with a type
-    // which is a super type of the function type.
-    if (t1 is InterfaceType) {
-      t1 = _typeSystem.getCallMethodType(t1);
-      if (t1 == null) return;
     }
 
     if (t1 is FunctionType && t2 is FunctionType) {

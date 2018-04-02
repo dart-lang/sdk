@@ -60,10 +60,16 @@ class KernelImpactBuilder extends ir.Visitor {
     if (kind != null && !type.isDynamic) {
       switch (kind) {
         case TypeUseKind.CHECKED_MODE_CHECK:
-          impactBuilder.registerTypeUse(new TypeUse.checkedModeCheck(type));
+          if (!_options.strongMode) {
+            impactBuilder.registerTypeUse(new TypeUse.checkedModeCheck(type));
+          }
           break;
         case TypeUseKind.PARAMETER_CHECK:
-          impactBuilder.registerTypeUse(new TypeUse.parameterCheck(type));
+          if (!_options.strongMode) {
+            impactBuilder.registerTypeUse(new TypeUse.checkedModeCheck(type));
+          } else {
+            impactBuilder.registerTypeUse(new TypeUse.parameterCheck(type));
+          }
           break;
         case TypeUseKind.IMPLICIT_CAST:
           impactBuilder.registerTypeUse(new TypeUse.implicitCast(type));
@@ -83,11 +89,7 @@ class KernelImpactBuilder extends ir.Visitor {
   /// Add checked-mode type use for the parameter type and constant for the
   /// default value of [parameter].
   void handleParameter(ir.VariableDeclaration parameter) {
-    checkType(
-        parameter.type,
-        _options.strongMode
-            ? TypeUseKind.PARAMETER_CHECK
-            : TypeUseKind.CHECKED_MODE_CHECK);
+    checkType(parameter.type, TypeUseKind.PARAMETER_CHECK);
     registerSeenClasses(parameter.type);
     visitNode(parameter.initializer);
   }
@@ -95,7 +97,7 @@ class KernelImpactBuilder extends ir.Visitor {
   /// Add checked-mode type use for parameter and return types, and add
   /// constants for default values.
   void handleSignature(ir.FunctionNode node, {bool checkReturnType: true}) {
-    if (checkReturnType && !_options.strongMode) {
+    if (checkReturnType) {
       checkType(node.returnType, TypeUseKind.CHECKED_MODE_CHECK);
     }
     registerSeenClasses(node.returnType);
@@ -104,11 +106,7 @@ class KernelImpactBuilder extends ir.Visitor {
   }
 
   ResolutionImpact buildField(ir.Field field) {
-    checkType(
-        field.type,
-        _options.strongMode
-            ? TypeUseKind.PARAMETER_CHECK
-            : TypeUseKind.CHECKED_MODE_CHECK);
+    checkType(field.type, TypeUseKind.PARAMETER_CHECK);
     registerSeenClasses(field.type);
     if (field.initializer != null) {
       visitNode(field.initializer);
@@ -243,8 +241,8 @@ class KernelImpactBuilder extends ir.Visitor {
   @override
   void visitListLiteral(ir.ListLiteral literal) {
     visitNodes(literal.expressions);
-    DartType elementType = checkType(literal.typeArgument,
-        _options.strongMode ? null : TypeUseKind.CHECKED_MODE_CHECK);
+    DartType elementType =
+        checkType(literal.typeArgument, TypeUseKind.CHECKED_MODE_CHECK);
     registerSeenClasses(literal.typeArgument);
 
     impactBuilder.registerListLiteral(new ListLiteralUse(
@@ -256,10 +254,10 @@ class KernelImpactBuilder extends ir.Visitor {
   @override
   void visitMapLiteral(ir.MapLiteral literal) {
     visitNodes(literal.entries);
-    DartType keyType = checkType(literal.keyType,
-        _options.strongMode ? null : TypeUseKind.CHECKED_MODE_CHECK);
-    DartType valueType = checkType(literal.valueType,
-        _options.strongMode ? null : TypeUseKind.CHECKED_MODE_CHECK);
+    DartType keyType =
+        checkType(literal.keyType, TypeUseKind.CHECKED_MODE_CHECK);
+    DartType valueType =
+        checkType(literal.valueType, TypeUseKind.CHECKED_MODE_CHECK);
     registerSeenClasses(literal.keyType);
     registerSeenClasses(literal.valueType);
     impactBuilder.registerMapLiteral(new MapLiteralUse(
@@ -594,9 +592,7 @@ class KernelImpactBuilder extends ir.Visitor {
 
   @override
   void visitVariableDeclaration(ir.VariableDeclaration node) {
-    if (!_options.strongMode) {
-      checkType(node.type, TypeUseKind.CHECKED_MODE_CHECK);
-    }
+    checkType(node.type, TypeUseKind.CHECKED_MODE_CHECK);
     registerSeenClasses(node.type);
     if (node.initializer != null) {
       visitNode(node.initializer);

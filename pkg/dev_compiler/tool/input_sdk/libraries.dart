@@ -162,11 +162,6 @@ const Map<String, LibraryInfo> libraries = const {
       categories: "",
       documented: false,
       platforms: DART2JS_PLATFORM),
-  "_js_embedded_names": const LibraryInfo(
-      "_internal/js_runtime/lib/shared/embedded_names.dart",
-      categories: "",
-      documented: false,
-      platforms: DART2JS_PLATFORM),
   "_metadata": const LibraryInfo("html/html_common/metadata.dart",
       categories: "", documented: false, platforms: DART2JS_PLATFORM),
   "_debugger": const LibraryInfo("_internal/js_runtime/lib/debugger.dart",

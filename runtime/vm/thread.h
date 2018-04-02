@@ -7,8 +7,8 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
+#include "platform/atomic.h"
 #include "platform/safe_stack.h"
-#include "vm/atomic.h"
 #include "vm/bitfield.h"
 #include "vm/globals.h"
 #include "vm/handles.h"

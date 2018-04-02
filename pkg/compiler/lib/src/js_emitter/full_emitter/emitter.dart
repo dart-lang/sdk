@@ -339,6 +339,12 @@ class Emitter extends js_emitter.EmitterBase {
       case JsBuiltin.isFutureOrType:
         return backend.rtiEncoder.templateForIsFutureOrType;
 
+      case JsBuiltin.isVoidType:
+        return backend.rtiEncoder.templateForIsVoidType;
+
+      case JsBuiltin.isDynamicType:
+        return backend.rtiEncoder.templateForIsDynamicType;
+
       case JsBuiltin.rawRtiToJsConstructorName:
         return jsAst.js.expressionTemplateFor("#.$typeNameProperty");
 
@@ -1956,6 +1962,7 @@ class Emitter extends js_emitter.EmitterBase {
     if (compiler.options.strongMode) flavor.write(', strong');
     if (compiler.options.trustPrimitives) flavor.write(', trust primitives');
     if (compiler.options.trustTypeAnnotations) flavor.write(', trust types');
+    if (compiler.options.omitImplicitChecks) flavor.write(', omit checks');
     flavor.write(', full emitter');
     if (compiler.options.useContentSecurityPolicy) flavor.write(', CSP');
     if (_closedWorld.backendUsage.isMirrorsUsed) flavor.write(', mirrors');

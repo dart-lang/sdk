@@ -42,6 +42,9 @@ class Flags {
   /// front-end is the default.
   static const String useOldFrontend = '--use-old-frontend';
   static const String strongMode = '--strong';
+  static const String previewDart2 = '--preview-dart-2';
+  static const String omitImplicitChecks = '--omit-implicit-checks';
+
   static const String platformBinaries = '--platform-binaries=.+';
 
   static const String minify = '--minify';

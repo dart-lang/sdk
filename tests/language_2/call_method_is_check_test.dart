@@ -27,10 +27,9 @@ main() {
   Expect.isFalse(c is NullToObject); //# 02: ok
   Expect.isFalse(c is Function); //# 03: ok
 
-  // The same goes for class `D`, except that it is a subtype of `Function`
-  // because it is explicitly declared to be so.
+  // The same goes for class `D`: `implements Function` is ignored in Dart 2.
   D d = new D();
   Expect.isFalse(d is BToB); //# 04: ok
   Expect.isFalse(d is NullToObject); //# 05: ok
-  Expect.isTrue(d is Function); //# 06: ok
+  Expect.isFalse(d is Function); //# 06: ok
 }

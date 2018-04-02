@@ -1,11 +1,11 @@
 Note: this dev version of the protocol contains not yet released functionality,
 and is subject to change.
 
-# Dart VM Service Protocol 3.6-dev
+# Dart VM Service Protocol 3.8-dev
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.5_ of the Dart VM Service Protocol. This
+This document describes of _version 3.8-dev_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -44,6 +44,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
 	- [removeBreakpoint](#removebreakpoint)
 	- [resume](#resume)
 	- [setExceptionPauseMode](#setexceptionpausemode)
+	- [setFlag](#setflag)
 	- [setLibraryDebuggable](#setlibrarydebuggable)
 	- [setName](#setname)
 	- [setVMName](#setvmname)
@@ -757,6 +758,24 @@ None | Do not pause isolate on thrown exceptions
 Unhandled | Pause isolate on unhandled exceptions
 All  | Pause isolate on all thrown exceptions
 
+### setFlag
+
+```
+Success setFlag(string name,
+                string value)
+```
+
+The _setFlag_ RPC is used to set a VM flag at runtime. Returns an error if the
+named flag does not exist, the flag may not be set at runtime, or the value is
+of the wrong type for the flag.
+
+The following flags may be set at runtime:
+
+ * pause_isolates_on_start
+ * pause_isolates_on_exit
+ * pause_isolates_on_unhandled_exceptions
+
+See [Success](#success).
 
 ### setLibraryDebuggable
 
@@ -2629,6 +2648,7 @@ version | comments
 3.3 | Pause event now indicates if the isolate is paused at an await, yield, or yield* suspension point via the 'atAsyncSuspension' field. Resume command now supports the step parameter 'OverAsyncSuspension'. A Breakpoint added synthetically by an 'OverAsyncSuspension' resume command identifies itself as such via the 'isSyntheticAsyncContinuation' field.
 3.4 | Add the superType and mixin fields to Class. Added new pause event 'None'.
 3.5 | Add the error field to SourceReportRange.  Clarify definition of token position.  Add "Isolate must be paused" error code.
-3.6 (unreleased) | Add 'scopeStartTokenPos', 'scopeEndTokenPos', and 'declarationTokenPos' to BoundVariable. Add 'PausePostRequest' event kind. Add 'Rewind' StepOption. Add error code 107 (isolate cannot resume). Add 'reloadSources' RPC and related error codes. Add optional parameter 'scope' to 'evaluate' and 'evaluateInFrame'.
+3.6 | Add 'scopeStartTokenPos', 'scopeEndTokenPos', and 'declarationTokenPos' to BoundVariable. Add 'PausePostRequest' event kind. Add 'Rewind' StepOption. Add error code 107 (isolate cannot resume). Add 'reloadSources' RPC and related error codes. Add optional parameter 'scope' to 'evaluate' and 'evaluateInFrame'.
+3.7 | Add 'setFlag'.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

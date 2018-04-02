@@ -138,32 +138,6 @@ class JSExportName {
 }
 
 /**
- * Returns the isolate in which this code is running.
- */
-IsolateContext JS_CURRENT_ISOLATE_CONTEXT() {}
-
-abstract class IsolateContext {
-  /// Holds a (native) JavaScript instance of Isolate, see
-  /// finishIsolateConstructorFunction in emitter.dart.
-  get isolateStatics;
-}
-
-/**
- * Invokes [function] in the context of [isolate].
- */
-JS_CALL_IN_ISOLATE(isolate, Function function) {}
-
-/**
- * Sets the current isolate to [isolate].
- */
-void JS_SET_CURRENT_ISOLATE(isolate) {}
-
-/**
- * Creates an isolate and returns it.
- */
-JS_CREATE_ISOLATE() {}
-
-/**
  * Returns the JavaScript constructor function for Dart's Object class.
  * This can be used for type tests, as in
  *
@@ -204,11 +178,6 @@ String JS_FUNCTION_CLASS_NAME() {}
  * interceptor has JavaScript indexing behavior.
  */
 String JS_IS_INDEXABLE_FIELD_NAME() {}
-
-/**
- * Returns the object corresponding to Namer.CURRENT_ISOLATE.
- */
-JS_CURRENT_ISOLATE() {}
 
 /// Returns the name used for generated function types on classes and methods.
 String JS_SIGNATURE_NAME() {}
@@ -251,11 +220,6 @@ String JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG() {}
 
 /// Returns the JS name for [name] from the Namer.
 String JS_GET_NAME(String name) {}
-
-/// Reads an embedded global.
-///
-/// The [name] should be a constant defined in the `_embedded_names` library.
-JS_EMBEDDED_GLOBAL(String typeDescription, String name) {}
 
 /// Returns the state of a flag that is determined by the state of the compiler
 /// when the program has been analyzed.

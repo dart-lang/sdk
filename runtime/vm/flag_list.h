@@ -50,8 +50,6 @@
     "Run optimizing compilation in background")                                \
   R(background_compilation_stop_alot, false, bool, false,                      \
     "Stress test system: stop background compiler often.")                     \
-  R(break_at_isolate_spawn, false, bool, false,                                \
-    "Insert a one-time breakpoint at the entrypoint for all spawned isolates") \
   P(causal_async_stacks, bool, !USING_PRODUCT, "Improved async stacks")        \
   P(collect_code, bool, true, "Attempt to GC infrequently used code.")         \
   P(collect_dynamic_function_names, bool, true,                                \

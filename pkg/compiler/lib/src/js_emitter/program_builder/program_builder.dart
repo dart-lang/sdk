@@ -922,6 +922,9 @@ class ProgramBuilder {
       assert(element is! ConstructorBodyEntity, failedAt(element));
     }
 
+    bool isIntercepted =
+        _closedWorld.interceptorData.isInterceptedMethod(element);
+
     js.Name callName = null;
     if (canTearOff) {
       Selector callSelector =
@@ -951,6 +954,7 @@ class ProgramBuilder {
         needsTearOff: canTearOff,
         tearOffName: tearOffName,
         isClosureCallMethod: isClosureCallMethod,
+        isIntercepted: isIntercepted,
         aliasName: aliasName,
         canBeApplied: canBeApplied,
         canBeReflected: canBeReflected,

@@ -483,8 +483,6 @@ class FragmentEmitter {
   FragmentEmitter(this.compiler, this.namer, this.backend, this.constantEmitter,
       this.modelEmitter, this._closedWorld);
 
-  InterceptorData get _interceptorData => _closedWorld.interceptorData;
-
   js.Expression generateEmbeddedGlobalAccess(String global) =>
       modelEmitter.generateEmbeddedGlobalAccess(global);
 
@@ -1110,8 +1108,7 @@ class FragmentEmitter {
 
     bool isIntercepted = false;
     if (method is InstanceMethod) {
-      FunctionEntity element = method.element;
-      isIntercepted = _interceptorData.isInterceptedMethod(element);
+      isIntercepted = method.isIntercepted;
     }
     int requiredParameterCount = 0;
     js.Expression optionalParameterDefaultValues = new js.LiteralNull();

@@ -10,10 +10,6 @@
 #include "bin/dartutils.h"
 #include "bin/platform.h"
 
-#include "vm/dart_api_impl.h"
-#include "vm/object.h"
-#include "vm/object_store.h"
-
 namespace dart {
 namespace bin {
 

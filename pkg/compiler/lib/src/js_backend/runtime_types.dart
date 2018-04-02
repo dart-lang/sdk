@@ -620,6 +620,14 @@ abstract class RuntimeTypesEncoder {
   /// is a FutureOr type.
   jsAst.Template get templateForIsFutureOrType;
 
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is the void type.
+  jsAst.Template get templateForIsVoidType;
+
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is the dynamic type.
+  jsAst.Template get templateForIsDynamicType;
+
   jsAst.Name get getFunctionThatReturnsNullName;
 
   /// Returns a [jsAst.Expression] representing the given [type]. Type variables
@@ -1792,10 +1800,11 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
   final CommonElements commonElements;
   final TypeRepresentationGenerator _representationGenerator;
 
-  RuntimeTypesEncoderImpl(this.namer, this._elementEnvironment,
-      this.commonElements, bool strongMode)
+  RuntimeTypesEncoderImpl(
+      this.namer, this._elementEnvironment, this.commonElements,
+      {bool strongMode})
       : _representationGenerator =
-            new TypeRepresentationGenerator(namer, strongMode);
+            new TypeRepresentationGenerator(namer, strongMode: strongMode);
 
   @override
   bool isSimpleFunctionType(FunctionType type) {
@@ -1820,6 +1829,20 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
   @override
   jsAst.Template get templateForIsFutureOrType {
     return _representationGenerator.templateForIsFutureOrType;
+  }
+
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is the void type.
+  @override
+  jsAst.Template get templateForIsVoidType {
+    return _representationGenerator.templateForIsVoidType;
+  }
+
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is the dynamic type.
+  @override
+  jsAst.Template get templateForIsDynamicType {
+    return _representationGenerator.templateForIsDynamicType;
   }
 
   @override
@@ -1986,7 +2009,8 @@ class TypeRepresentationGenerator
   Map<TypeVariableType, jsAst.Expression> typedefBindings;
   List<FunctionTypeVariable> functionTypeVariables = <FunctionTypeVariable>[];
 
-  TypeRepresentationGenerator(this.namer, this._strongMode);
+  TypeRepresentationGenerator(this.namer, {bool strongMode})
+      : _strongMode = strongMode;
 
   /**
    * Creates a type representation for [type]. [onVariable] is called to provide
@@ -2014,6 +2038,8 @@ class TypeRepresentationGenerator
   }
 
   jsAst.Expression getDynamicValue() => js('null');
+
+  jsAst.Expression getVoidValue() => js('-1');
 
   @override
   jsAst.Expression visit(DartType type, Emitter emitter) =>
@@ -2078,6 +2104,18 @@ class TypeRepresentationGenerator
     return jsAst.js.expressionTemplateFor("'${namer.futureOrTag}' in #");
   }
 
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is the void type.
+  jsAst.Template get templateForIsVoidType {
+    return jsAst.js.expressionTemplateFor("# === -1");
+  }
+
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is the dynamic type.
+  jsAst.Template get templateForIsDynamicType {
+    return jsAst.js.expressionTemplateFor("# == null");
+  }
+
   jsAst.Expression visitFunctionType(FunctionType type, Emitter emitter) {
     List<jsAst.Property> properties = <jsAst.Property>[];
 
@@ -2102,7 +2140,7 @@ class TypeRepresentationGenerator
           visitList(type.typeVariables.map((v) => v.bound).toList(), emitter));
     }
 
-    if (type.returnType.isVoid) {
+    if (!_strongMode && type.returnType.isVoid) {
       addProperty(namer.functionTypeVoidReturnTag, js('true'));
     } else if (!type.returnType.treatAsDynamic) {
       addProperty(
@@ -2140,12 +2178,11 @@ class TypeRepresentationGenerator
 
   jsAst.Expression visitMalformedType(MalformedType type, Emitter emitter) {
     // Treat malformed types as dynamic at runtime.
-    return js('null');
+    return getDynamicValue();
   }
 
   jsAst.Expression visitVoidType(VoidType type, Emitter emitter) {
-    // TODO(ahe): Reify void type ("null" means "dynamic").
-    return js('null');
+    return _strongMode ? getVoidValue() : getDynamicValue();
   }
 
   jsAst.Expression visitTypedefType(
@@ -2295,7 +2332,7 @@ class FunctionArgumentCollector
     visit(type, inFunctionType);
   }
 
-  collectAll(List<DartType> types, {bool inFunctionType: false}) {
+  collectAll(Iterable<DartType> types, {bool inFunctionType: false}) {
     for (DartType type in types) {
       visit(type, inFunctionType);
     }
@@ -2317,6 +2354,8 @@ class FunctionArgumentCollector
     collectAll(type.parameterTypes, inFunctionType: true);
     collectAll(type.optionalParameterTypes, inFunctionType: true);
     collectAll(type.namedParameterTypes, inFunctionType: true);
+    collectAll(type.typeVariables.map((type) => type.bound),
+        inFunctionType: true);
   }
 }
 

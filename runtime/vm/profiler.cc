@@ -6,8 +6,8 @@
 #include "platform/memory_sanitizer.h"
 #include "platform/utils.h"
 
+#include "platform/atomic.h"
 #include "vm/allocation.h"
-#include "vm/atomic.h"
 #include "vm/code_patcher.h"
 #include "vm/debugger.h"
 #include "vm/instructions.h"

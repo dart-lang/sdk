@@ -43,7 +43,6 @@ import 'dart:web_audio' show AudioBuffer, AudioTrack, AudioTrackList;
 import 'dart:web_gl' as gl;
 import 'dart:web_gl' show RenderingContext, RenderingContext2;
 import 'dart:web_sql';
-import 'dart:_isolate_helper' show IsolateNatives;
 import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -120,8 +119,6 @@ class HtmlElement extends Element implements NoncedElement {
   @DomName('HTMLElement.nonce')
   String nonce;
 }
-
-createCustomUpgrader(Type customElementClass, $this) => $this;
 
 /**
  * Emitted for any setlike IDL entry needs a callback signature.
@@ -26926,15 +26923,27 @@ class MessageEvent extends Event {
   void _initMessageEvent_1(typeArg, canBubbleArg, cancelableArg, dataArg,
       originArg, lastEventIdArg, sourceArg, List<MessagePort> portsArg) native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@DocsEditable()
+// WARNING: Do not edit - generated code.
+
 @DomName('MessagePort')
 @Unstable()
 @Native("MessagePort")
 class MessagePort extends EventTarget {
+  void addEventListener(String type, EventListener listener,
+      [bool useCapture]) {
+    // Messages posted to ports are initially paused, allowing listeners to be
+    // setup, start() needs to be explicitly invoked to begin handling messages.
+    if (type == 'message') {
+      start();
+    }
+
+    super.addEventListener(type, listener, useCapture);
+  }
+
   // To suppress missing implicit constructor warnings.
   factory MessagePort._() {
     throw new UnsupportedError("Not supported");
@@ -26986,6 +26995,7 @@ class MessagePort extends EventTarget {
   @DocsEditable()
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

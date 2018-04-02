@@ -307,7 +307,7 @@ class LocalsHandler<T> {
   void update(Local local, TypeInformation type, T node, DartType staticType,
       {bool isSetIfNull: false}) {
     assert(type != null);
-    if (options.trustTypeAnnotations || options.enableTypeAssertions) {
+    if (!options.assignmentCheckPolicy.isIgnored) {
       type = types.narrowType(type, staticType);
     }
     updateLocal() {

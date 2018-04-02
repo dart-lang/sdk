@@ -4869,8 +4869,9 @@ class ResolverErrorCode extends ErrorCode {
           'PART_OF_UNNAMED_LIBRARY',
           "Library is unnamed. Expected a URI not a library name '{0}' in the "
           "part-of directive.",
-          "Try changing the part-of directive to a URI, or try including a"
-          " different part.");
+          correction:
+              "Try changing the part-of directive to a URI, or try including a"
+              " different part.");
 
   /**
    * Initialize a newly created error code to have the given [name]. The message
@@ -4878,8 +4879,8 @@ class ResolverErrorCode extends ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const ResolverErrorCode(String name, String message, [String correction])
-      : super(name, message, correction);
+  const ResolverErrorCode(String name, String message, {String correction})
+      : super(name, message, correction: correction);
 
   @override
   ErrorSeverity get errorSeverity => type.severity;
@@ -4983,12 +4984,15 @@ class ResolverVisitor extends ScopedVisitor {
    */
   ResolverVisitor(LibraryElement definingLibrary, Source source,
       TypeProvider typeProvider, AnalysisErrorListener errorListener,
-      {Scope nameScope})
+      {Scope nameScope,
+      bool propagateTypes: true,
+      reportConstEvaluationErrors: true})
       : super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
     AnalysisOptions options = definingLibrary.context.analysisOptions;
     this.strongMode = options.strongMode;
-    this.elementResolver = new ElementResolver(this);
+    this.elementResolver = new ElementResolver(this,
+        reportConstEvaluationErrors: reportConstEvaluationErrors);
     this.typeSystem = definingLibrary.context.typeSystem;
     bool strongModeHints = false;
     if (options is AnalysisOptionsImpl) {
@@ -4996,7 +5000,8 @@ class ResolverVisitor extends ScopedVisitor {
     }
     this.inferenceContext = new InferenceContext._(
         typeProvider, typeSystem, strongModeHints, errorReporter);
-    this.typeAnalyzer = new StaticTypeAnalyzer(this);
+    this.typeAnalyzer =
+        new StaticTypeAnalyzer(this, propagateTypes: propagateTypes);
   }
 
   /**
@@ -5720,7 +5725,8 @@ class ResolverVisitor extends ScopedVisitor {
     }
     // Clone the ASTs for default formal parameters, so that we can use them
     // during constant evaluation.
-    if (!_hasSerializedConstantInitializer(element)) {
+    if (element is ConstVariableElement &&
+        !_hasSerializedConstantInitializer(element)) {
       (element as ConstVariableElement).constantInitializer =
           _createCloner().cloneNode(node.defaultValue);
     }
@@ -6597,15 +6603,12 @@ class ResolverVisitor extends ScopedVisitor {
    * serialized.
    */
   bool _hasSerializedConstantInitializer(ParameterElement parameter) {
-    if (LibraryElementImpl.hasResolutionCapability(
-        definingLibrary, LibraryResolutionCapability.constantExpressions)) {
-      Element executable = parameter.enclosingElement;
-      if (executable is MethodElement) {
-        return true;
-      }
-      if (executable is FunctionElement) {
-        return executable.enclosingElement is CompilationUnitElement;
-      }
+    Element executable = parameter.enclosingElement;
+    if (executable is MethodElement ||
+        executable is FunctionElement &&
+            executable.enclosingElement is CompilationUnitElement) {
+      return LibraryElementImpl.hasResolutionCapability(
+          definingLibrary, LibraryResolutionCapability.constantExpressions);
     }
     return false;
   }

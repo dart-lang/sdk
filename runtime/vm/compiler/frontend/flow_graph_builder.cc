@@ -945,7 +945,7 @@ BlockEntryInstr* TestGraphVisitor::CreateFalseSuccessor() const {
 
 void TestGraphVisitor::ReturnValue(Value* value) {
   Isolate* isolate = Isolate::Current();
-  if (isolate->type_checks() || isolate->asserts()) {
+  if (isolate->strong() || isolate->type_checks() || isolate->asserts()) {
     value = Bind(new (Z) AssertBooleanInstr(condition_token_pos(), value,
                                             owner()->GetNextDeoptId()));
   }
@@ -1290,7 +1290,7 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     node->left()->Visit(&for_left);
     EffectGraphVisitor empty(owner());
     Isolate* isolate = Isolate::Current();
-    if (isolate->type_checks() || isolate->asserts()) {
+    if (isolate->strong() || isolate->type_checks() || isolate->asserts()) {
       ValueGraphVisitor for_right(owner());
       node->right()->Visit(&for_right);
       Value* right_value = for_right.value();
@@ -1354,7 +1354,7 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     node->right()->Visit(&for_right);
     Value* right_value = for_right.value();
     Isolate* isolate = Isolate::Current();
-    if (isolate->type_checks() || isolate->asserts()) {
+    if (isolate->strong() || isolate->type_checks() || isolate->asserts()) {
       right_value = for_right.Bind(new (Z) AssertBooleanInstr(
           node->right()->token_pos(), right_value, owner()->GetNextDeoptId()));
     }
@@ -1626,7 +1626,7 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
         owner()->ic_data_array(), owner()->GetNextDeoptId());
     if (node->kind() == Token::kNE) {
       Isolate* isolate = Isolate::Current();
-      if (isolate->type_checks() || isolate->asserts()) {
+      if (isolate->strong() || isolate->type_checks() || isolate->asserts()) {
         Value* value = Bind(result);
         result = new (Z) AssertBooleanInstr(node->token_pos(), value,
                                             owner()->GetNextDeoptId());
@@ -1670,7 +1670,7 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
     Append(for_value);
     Value* value = for_value.value();
     Isolate* isolate = Isolate::Current();
-    if (isolate->type_checks() || isolate->asserts()) {
+    if (isolate->strong() || isolate->type_checks() || isolate->asserts()) {
       value = Bind(new (Z) AssertBooleanInstr(
           node->operand()->token_pos(), value, owner()->GetNextDeoptId()));
     }

@@ -32,8 +32,7 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
   /// True if the `as` [node] is a required runtime check for soundness.
   // TODO(sra): Find a better way to recognize reified coercion, since we
   // can't set the isSynthetic attribute.
-  static bool isRequiredForSoundness(AsExpression node) =>
-      node.asOperator.offset == 0;
+  static bool isImplicit(AsExpression node) => node.asOperator.offset == 0;
 
   /// Creates an implicit cast for expression [e] to [toType].
   static Expression castExpression(Expression e, DartType toType) {

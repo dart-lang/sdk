@@ -18,24 +18,25 @@ DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
 PUB_PATH = os.path.join(DART_ROOT, 'third_party', 'pkg',
                         'pub', 'bin', 'pub.dart')
 IGNORE_PATTERNS = shutil.ignore_patterns(
-    '*.map',
+    '$sdk',
     '*.concat.js',
-    '*.scriptUrls',
+    '*.log',
+    '*.map',
     '*.precompiled.js',
-    'bower.json',
-    'package.json',
+    '*.scriptUrls',
+    '*_buildLogs*',
+    '*~',
     'CustomElements.*',
-    'dart_support.*',
-    'interop_support.*',
     'HTMLImports.*',
     'MutationObserver.*',
     'ShadowDOM.*',
-    'webcomponents.*',
-    'webcomponents-lite.js',
+    'bower.json',
+    'dart_support.*',
+    'interop_support.*',
+    'package.json',
     'unittest*',
-    '*_buildLogs*',
-    '*.log',
-    '*~')
+    'webcomponents-lite.js',
+    'webcomponents.*')
 
 usage = """observatory_tool.py [options]"""
 

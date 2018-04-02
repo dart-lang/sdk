@@ -34,7 +34,8 @@ public class RenameFeedback extends RefactoringFeedback {
   public static final List<RenameFeedback> EMPTY_LIST = Lists.newArrayList();
 
   /**
-   * The offset to the beginning of the name selected to be renamed.
+   * The offset to the beginning of the name selected to be renamed, or -1 if the name does not exist
+   * yet.
    */
   private final int offset;
 
@@ -113,7 +114,8 @@ public class RenameFeedback extends RefactoringFeedback {
   }
 
   /**
-   * The offset to the beginning of the name selected to be renamed.
+   * The offset to the beginning of the name selected to be renamed, or -1 if the name does not exist
+   * yet.
    */
   public int getOffset() {
     return offset;

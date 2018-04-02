@@ -15196,6 +15196,77 @@ abstract class StatementParserTestMixin implements AbstractParserTestCase {
     expect(statement.finallyBlock, isNull);
   }
 
+  void test_parseTryStatement_catch_error_missingCatchParam() {
+    var statement = parseStatement('try {} catch () {}') as TryStatement;
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.CATCH_SYNTAX, 14, 1)]
+        : [
+            expectedError(ParserErrorCode.MISSING_IDENTIFIER, 14, 1),
+          ]);
+    expect(statement.tryKeyword, isNotNull);
+    expect(statement.body, isNotNull);
+    NodeList<CatchClause> catchClauses = statement.catchClauses;
+    expect(catchClauses, hasLength(1));
+    CatchClause clause = catchClauses[0];
+    expect(clause.onKeyword, isNull);
+    expect(clause.exceptionType, isNull);
+    expect(clause.catchKeyword, isNotNull);
+    expect(clause.exceptionParameter, isNotNull);
+    expect(clause.comma, isNull);
+    expect(clause.stackTraceParameter, isNull);
+    expect(clause.body, isNotNull);
+    expect(statement.finallyKeyword, isNull);
+    expect(statement.finallyBlock, isNull);
+  }
+
+  void test_parseTryStatement_catch_error_missingCatchTrace() {
+    var statement = parseStatement('try {} catch (e,) {}') as TryStatement;
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.CATCH_SYNTAX, 14, 1)]
+        : [
+            expectedError(ParserErrorCode.MISSING_IDENTIFIER, 14, 1),
+          ]);
+    expect(statement.tryKeyword, isNotNull);
+    expect(statement.body, isNotNull);
+    NodeList<CatchClause> catchClauses = statement.catchClauses;
+    expect(catchClauses, hasLength(1));
+    CatchClause clause = catchClauses[0];
+    expect(clause.onKeyword, isNull);
+    expect(clause.exceptionType, isNull);
+    expect(clause.catchKeyword, isNotNull);
+    expect(clause.exceptionParameter, isNotNull);
+    expect(clause.comma, isNotNull);
+    expect(clause.stackTraceParameter, isNotNull);
+    expect(clause.body, isNotNull);
+    expect(statement.finallyKeyword, isNull);
+    expect(statement.finallyBlock, isNull);
+  }
+
+  void test_parseTryStatement_catch_error_missingCatchParen() {
+    var statement = parseStatement('try {} catch {}') as TryStatement;
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.CATCH_SYNTAX, 13, 1)]
+        : [
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 13, 1),
+            expectedError(ParserErrorCode.MISSING_IDENTIFIER, 13, 1),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 13, 1)
+          ]);
+    expect(statement.tryKeyword, isNotNull);
+    expect(statement.body, isNotNull);
+    NodeList<CatchClause> catchClauses = statement.catchClauses;
+    expect(catchClauses, hasLength(1));
+    CatchClause clause = catchClauses[0];
+    expect(clause.onKeyword, isNull);
+    expect(clause.exceptionType, isNull);
+    expect(clause.catchKeyword, isNotNull);
+    expect(clause.exceptionParameter, isNotNull);
+    expect(clause.comma, isNull);
+    expect(clause.stackTraceParameter, isNull);
+    expect(clause.body, isNotNull);
+    expect(statement.finallyKeyword, isNull);
+    expect(statement.finallyBlock, isNull);
+  }
+
   void test_parseTryStatement_catch_finally() {
     var statement =
         parseStatement('try {} catch (e, s) {} finally {}') as TryStatement;

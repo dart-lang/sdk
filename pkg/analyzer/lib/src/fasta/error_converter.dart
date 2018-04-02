@@ -52,6 +52,10 @@ class FastaErrorReporter {
             length,
             [lexeme()]);
         return;
+      case "CATCH_SYNTAX":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.CATCH_SYNTAX, offset, length);
+        return;
       case "CLASS_IN_CLASS":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.CLASS_IN_CLASS, offset, length);

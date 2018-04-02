@@ -840,7 +840,15 @@ class IsolateNatives {
    * pass messages along to the isolate running in the worker.
    */
   static void _processWorkerMessage(/* Worker */ sender, e) {
-    var msg = _deserializeMessage(_getEventData(e));
+    // Since we are listening on a global event, be graceful about other
+    // messages that may not belong to the isolate communication.
+    // See Issue #32438
+    var data = _getEventData(e);
+    if (!_isIsolateMessage(data)) return;
+
+    var msg = _deserializeMessage(data);
+    if (msg is! JSObject && msg is! Map) return;
+
     switch (msg['command']) {
       case 'start':
         _globalState.currentManagerId = msg['id'];

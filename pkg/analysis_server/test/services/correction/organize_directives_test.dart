@@ -185,6 +185,27 @@ main() {
 }''', removeUnresolved: true, removeUnused: true);
   }
 
+  test_remove_unusedImports_hasUnresolvedError() async {
+    Future<void> check(String declaration) async {
+      String code = '''
+import 'dart:async';
+$declaration
+''';
+      await _computeUnitAndErrors(code);
+      _assertOrganize(code, removeUnused: true);
+    }
+
+    await check('main() { Unresolved v; }');
+    await check('main() { new Unresolved(); }');
+    await check('main() { const Unresolved(); }');
+    await check('main() { unresolvedFunction(); }');
+    await check('main() { print(unresolvedVariable); }');
+    await check('main() { unresolvedVariable = 0; }');
+    await check('main() { Unresolved.field = 0; }');
+    await check('class A extends Unresolved {}');
+    await check('List<Unresolved> v;');
+  }
+
   test_sort() async {
     await _computeUnitAndErrors(r'''
 library lib;

@@ -23,4 +23,19 @@ enum ConstantContext {
   /// This means that `Object()` and `[]` are equivalent to `const Object()` and
   /// `const []` respectively. `new Object()` is a compile-time error.
   inferred,
+
+  /// In a context that allows only constant values, but requires them to be
+  /// defined as `const` explicitly.  For example, in default values of optional
+  /// and named parameters.
+  ///
+  /// The following code should emit a compile-time error:
+  ///
+  ///     class Bar { const Bar(); }
+  ///     class Foo { void foo({Bar bar: Bar()}) {} }
+  ///
+  /// The following code should compile without errors:
+  ///
+  ///     class Bar { const Bar(); }
+  ///     class Foo { void foo({Bar bar: const Bar()}) {} }
+  needsExplicitConst,
 }

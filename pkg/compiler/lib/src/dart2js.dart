@@ -127,6 +127,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   bool analyzeOnly = false;
   bool trustTypeAnnotations = false;
   bool checkedMode = false;
+  bool strongMode = false;
   List<String> hints = <String>[];
   bool verbose;
   bool throwOnError;
@@ -220,6 +221,11 @@ Future<api.CompilationResult> compile(List<String> argv,
   void setCheckedMode(String argument) {
     checkedMode = true;
     passThrough(argument);
+  }
+
+  void setStrongMode(_) {
+    strongMode = true;
+    passThrough(Flags.strongMode);
   }
 
   void addInEnvironment(String argument) {
@@ -355,7 +361,9 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.useContentSecurityPolicy, passThrough),
     new OptionHandler(Flags.enableExperimentalMirrors, passThrough),
     new OptionHandler(Flags.enableAssertMessage, passThrough),
-    new OptionHandler(Flags.strongMode, passThrough),
+    new OptionHandler(Flags.strongMode, setStrongMode),
+    new OptionHandler(Flags.previewDart2, setStrongMode),
+    new OptionHandler(Flags.omitImplicitChecks, passThrough),
 
     // TODO(floitsch): remove conditional directives flag.
     // We don't provide the info-message yet, since we haven't publicly
@@ -433,9 +441,14 @@ Future<api.CompilationResult> compile(List<String> argv,
     helpAndFail('Extra arguments: ${extra.join(" ")}');
   }
 
-  if (checkedMode && trustTypeAnnotations) {
-    helpAndFail("Option '${Flags.trustTypeAnnotations}' may not be used in "
-        "checked mode.");
+  if (trustTypeAnnotations) {
+    if (checkedMode) {
+      helpAndFail("Option '${Flags.trustTypeAnnotations}' may not be used in "
+          "checked mode.");
+    } else if (strongMode) {
+      hints.add("Option '--trust-type-annotations' is not available "
+          "in strong mode. Try usign '--omit-implicit-checks' instead.");
+    }
   }
 
   if (packageRoot != null && packageConfig != null) {
@@ -588,11 +601,11 @@ Supported options:
   -o <file>, --out=<file>
     Generate the output into <file>.
 
-  -c, --enable-checked-mode, --checked
-    Insert runtime type checks and enable assertions (checked mode).
-
   -m, --minify
     Generate minified output.
+
+  --enable-asserts
+    Enable assertions.
 
   -h, /h, /?, --help
     Display this message (add -v for information about all options).
@@ -656,16 +669,25 @@ Supported options:
     usually results in larger JavaScript files with faster startup.
     Note: the dart:mirrors library is not supported with this option.
 
+  --preview-dart-2
+    Preview of all Dart 2.0 semantics, this includes generic methods and strong
+    mode type checks.
+
+    This flag is mainly for early dogfooding and will be removed when all
+    features are shipped.
+
 The following advanced options can help reduce the size of the generated code,
 but they may cause programs to behave unexpectedly if assumptions are not met.
 Only turn on these flags if you have enough test coverage to ensure they are
 safe to use:
 
-  --trust-type-annotations
-    Assume that all types are correct. This option allows the compiler to drop
-    type checks and to rely on local type information for optimizations. Use
-    this option only if you have enough testing to ensure that your program
-    works in strong mode or checked mode.
+  --omit-implicit-checks
+    Omit implicit runtime checks, such as parameter checks and implicit
+    downcasts. These checks are included by default in strong mode. By
+    using this flag the checks are removed, however the compiler will assume
+    that all such checks were valid and may use this information for
+    optimizations. Use this option only if you have enough testing to ensure
+    that your program works with the checks.
 
   --trust-primitives
     Assume that operations on numbers, strings, and lists have valid inputs.

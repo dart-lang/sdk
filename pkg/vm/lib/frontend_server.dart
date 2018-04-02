@@ -17,6 +17,7 @@ import 'package:args/args.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystemEntity;
+import 'package:front_end/src/api_prototype/front_end.dart';
 // Use of multi_root_file_system.dart directly from front_end package is a
 // temporarily solution while we are looking for better home for that
 // functionality.
@@ -119,7 +120,8 @@ abstract class CompilerInterface {
   /// `options`. When `generator` parameter is omitted, new instance of
   /// `IncrementalKernelGenerator` is created by this method. Main use for this
   /// parameter is for mocking in tests.
-  Future<Null> compile(
+  /// Returns [true] if compilation was successful and produced no errors.
+  Future<bool> compile(
     String filename,
     ArgResults options, {
     IncrementalCompiler generator,
@@ -175,13 +177,15 @@ class FrontendCompiler implements CompilerInterface {
 
   final ProgramTransformer transformer;
 
+  final List<String> errors = new List<String>();
+
   void setMainSourceFilename(String filename) {
     final Uri filenameUri = _getFileOrUri(filename);
     _mainSource = filenameUri;
   }
 
   @override
-  Future<Null> compile(
+  Future<bool> compile(
     String filename,
     ArgResults options, {
     IncrementalCompiler generator,
@@ -204,7 +208,23 @@ class FrontendCompiler implements CompilerInterface {
       ..packagesFileUri = _getFileOrUri(_options['packages'])
       ..strongMode = options['strong']
       ..sdkSummary = sdkRoot.resolve(platformKernelDill)
-      ..reportMessages = true;
+      ..onProblem =
+          (message, Severity severity, String formatted, int line, int column) {
+        switch (severity) {
+          case Severity.error:
+          case Severity.errorLegacyWarning:
+          case Severity.internalProblem:
+            _outputStream.writeln(formatted);
+            errors.add(formatted);
+            break;
+          case Severity.nit:
+            break;
+          case Severity.warning:
+          case Severity.context:
+            _outputStream.writeln(formatted);
+            break;
+        }
+      };
     if (options.wasParsed('filesystem-root')) {
       List<Uri> rootUris = <Uri>[];
       for (String root in options['filesystem-root']) {
@@ -217,7 +237,7 @@ class FrontendCompiler implements CompilerInterface {
         print("When --filesystem-root is specified it is required to specify"
             " --output-dill option that points to physical file system location"
             " of a target dill file.");
-        exit(1);
+        return false;
       }
     }
 
@@ -265,7 +285,7 @@ class FrontendCompiler implements CompilerInterface {
       _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
     } else
       _outputStream.writeln(boundaryKey);
-    return null;
+    return errors.isEmpty;
   }
 
   Future<Null> invalidateIfBootstrapping() async {
@@ -516,8 +536,10 @@ Future<int> starter(
   );
 
   if (options.rest.isNotEmpty) {
-    await compiler.compile(options.rest[0], options, generator: generator);
-    return 0;
+    return await compiler.compile(options.rest[0], options,
+            generator: generator)
+        ? 0
+        : 254;
   }
 
   listenAndCompile(compiler, input ?? stdin, options, () {

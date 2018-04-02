@@ -15,10 +15,9 @@ import 'package:analyzer/dart/element/element.dart'
         ExecutableElement,
         FunctionElement,
         LibraryElement,
-        PropertyAccessorElement,
         TypeParameterizedElement;
 import 'package:analyzer/dart/element/type.dart'
-    show DartType, InterfaceType, ParameterizedType, FunctionType;
+    show DartType, InterfaceType, ParameterizedType;
 import 'package:analyzer/src/dart/element/type.dart' show DynamicTypeImpl;
 import 'package:analyzer/src/generated/constant.dart'
     show DartObject, DartObjectImpl;
@@ -182,26 +181,6 @@ bool hasNoSuchMethod(ClassElement classElement) {
 /// a mixin.
 bool isMixinAliasClass(ClassElement c) {
   return c.isMixinApplication && c.supertype.isObject && c.mixins.length == 1;
-}
-
-bool isCallableClass(ClassElement c) {
-  // See if we have a "call" with a statically known function type:
-  //
-  // - if it's a method, then it does because all methods do,
-  // - if it's a getter, check the return type.
-  //
-  // Other cases like a getter returning dynamic/Object/Function will be
-  // handled at runtime by the dynamic call mechanism. So we only
-  // concern ourselves with statically known function types.
-  //
-  // We can ignore `noSuchMethod` because:
-  // * `dynamic d; d();` without a declared `call` method is handled by dcall.
-  // * for `class C implements Callable { noSuchMethod(i) { ... } }` we find
-  //   the `call` method on the `Callable` interface.
-  var callMethod = c.type.lookUpInheritedGetterOrMethod('call');
-  return callMethod is PropertyAccessorElement
-      ? callMethod.returnType is FunctionType
-      : callMethod != null;
 }
 
 Uri uriForCompilationUnit(CompilationUnitElement unit) {

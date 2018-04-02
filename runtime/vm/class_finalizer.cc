@@ -2692,8 +2692,9 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   // Every class should have at least a constructor, unless it is a top level
   // class or a typedef class. The Kernel frontend does not create an implicit
   // constructor for abstract classes.
-  ASSERT(cls.IsTopLevel() || cls.IsTypedefClass() || cls.is_abstract() ||
-         (Array::Handle(cls.functions()).Length() > 0));
+  // Moreover, Dart 2 precompiler (TFA) can tree shake all members if unused.
+  ASSERT(FLAG_precompiled_mode || cls.IsTopLevel() || cls.IsTypedefClass() ||
+         cls.is_abstract() || (Array::Handle(cls.functions()).Length() > 0));
   // Resolve and finalize all member types.
   ResolveAndFinalizeMemberTypes(cls);
   // Run additional checks after all types are finalized.

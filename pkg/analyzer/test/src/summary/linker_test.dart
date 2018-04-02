@@ -339,7 +339,7 @@ var y = x;
 ''');
     LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
     expect(_getVariable(library.getContainedName('y')).inferredType.toString(),
-        '() → dynamic');
+        '() → Null');
   }
 
   void test_inferredType_closure_fromBundle_identifierSequence() {
@@ -399,7 +399,7 @@ class C {
     ClassElementForLink_Class cls = library.getContainedName('C');
     expect(cls.fields, hasLength(1));
     var field = cls.fields[0];
-    expect(field.type.toString(), '(<bottom>) → dynamic');
+    expect(field.type.toString(), '(<bottom>) → int');
   }
 
   void test_inferredType_instanceField_dynamic() {

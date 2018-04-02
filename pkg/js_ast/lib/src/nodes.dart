@@ -979,6 +979,8 @@ abstract class Name extends Literal
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitName(this, arg);
 
+  Name _clone();
+
   /// Returns a unique [key] for this name.
   ///
   /// The key is unrelated to the actual name and is not intended for human

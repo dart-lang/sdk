@@ -351,3 +351,13 @@ String createTypedefs(List<FunctionTypeData> dataList,
   sb.write(additionalData);
   return sb.toString();
 }
+
+/// Return source code that uses the function types in [dataList].
+String createUses(List<FunctionTypeData> dataList, {String prefix: ''}) {
+  StringBuffer sb = new StringBuffer();
+  for (int index = 0; index < dataList.length; index++) {
+    FunctionTypeData data = dataList[index];
+    sb.writeln('$prefix${data.name};');
+  }
+  return sb.toString();
+}

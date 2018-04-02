@@ -100,7 +100,7 @@ class UnknownJavaScriptObject extends JavaScriptObject {
 // it to be picked up as an extension type.
 @JsPeerInterface(name: 'TypeError')
 class NullError extends Interceptor implements NoSuchMethodError {
-  StackTrace get stackTrace => Primitives.extractStackTrace(this);
+  StackTrace get stackTrace => getTraceFromException(this);
 
   String toString() {
     // TODO(vsm): Distinguish between null reference errors and other
@@ -161,7 +161,7 @@ final Object jsNull = new JSNull();
 // it to be picked up as an extension type.
 @JsPeerInterface(name: 'RangeError')
 class JSRangeError extends Interceptor implements ArgumentError {
-  StackTrace get stackTrace => Primitives.extractStackTrace(this);
+  StackTrace get stackTrace => getTraceFromException(this);
 
   get invalidValue => null;
   get name => null;

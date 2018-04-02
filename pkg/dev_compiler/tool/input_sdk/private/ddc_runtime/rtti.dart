@@ -129,9 +129,6 @@ Type wrapType(type) {
 /// Given a WrappedType, return the internal runtime type object.
 unwrapType(WrappedType obj) => obj._wrappedType;
 
-/// Assumes that value is non-null
-_getRuntimeType(value) => JS('', '#[#]', value, _runtimeType);
-
 /// Return the module name for a raw library object.
 getModuleName(value) => JS('', '#[#]', value, _moduleName);
 

@@ -57,6 +57,28 @@ bind(obj, name, method) {
   return f;
 }
 
+/// Binds the `call` method of an interface type, handling null.
+///
+/// Essentially this works like `obj?.call`. It also handles the needs of
+/// [dsend]/[dcall], returning `null` if no method was found with the given
+/// canonical member [name].
+///
+/// [name] is typically `"call"` but it could be the [extensionSymbol] for
+/// `call`, if we define it on a native type, and [obj] is known statially to be
+/// a native type/interface with `call`.
+bindCall(obj, name) {
+  if (obj == null) return null;
+  var ftype = getMethodType(getType(obj), name);
+  if (ftype == null) return null;
+  var method = JS('', '#[#]', obj, name);
+  var f = JS('', '#.bind(#)', method, obj);
+  // TODO(jmesserly): canonicalize tearoffs.
+  JS('', '#._boundObject = #', f, obj);
+  JS('', '#._boundMethod = #', f, method);
+  JS('', '#[#] = #', f, _runtimeType, ftype);
+  return f;
+}
+
 tagStatic(type, name) {
   var f = JS('', '#.#', type, name);
   if (JS('', '#[#]', f, _runtimeType) == null) {
@@ -72,7 +94,7 @@ tagStatic(type, name) {
 gbind(f, @rest typeArgs) {
   var result =
       JS('', '(...args) => #.apply(null, #.concat(args))', f, typeArgs);
-  var sig = JS('', '#.instantiate(#)', _getRuntimeType(f), typeArgs);
+  var sig = JS('', '#[#].instantiate(#)', f, _runtimeType, typeArgs);
   tag(result, sig);
   return result;
 }
@@ -80,7 +102,10 @@ gbind(f, @rest typeArgs) {
 // Warning: dload, dput, and dsend assume they are never called on methods
 // implemented by the Object base class as those methods can always be
 // statically resolved.
-dload(obj, field) {
+dload(obj, field, [mirrors = undefined]) {
+  if (JS('bool', 'typeof # == "function" && # == "call"', obj, field)) {
+    return obj;
+  }
   var f = _canonicalMember(obj, field);
 
   trackCall(obj);
@@ -91,28 +116,16 @@ dload(obj, field) {
     if (hasMethod(type, f)) return bind(obj, f, null);
 
     // Always allow for JS interop objects.
-    if (isJsInterop(obj)) return JS('', '#[#]', obj, f);
+    if (!JS('bool', '#', mirrors) && isJsInterop(obj)) {
+      return JS('', '#[#]', obj, f);
+    }
   }
   return noSuchMethod(
       obj, new InvocationImpl(field, JS('', '[]'), isGetter: true));
 }
 
 // Version of dload that matches legacy mirrors behavior for JS types.
-dloadMirror(obj, field) {
-  var f = _canonicalMember(obj, field);
-
-  trackCall(obj);
-  if (f != null) {
-    var type = getType(obj);
-
-    if (hasField(type, f) || hasGetter(type, f)) return JS('', '#[#]', obj, f);
-    if (hasMethod(type, f)) return bind(obj, f, JS('', 'void 0'));
-
-    // Do not support calls on JS interop objects to match Dart2JS behavior.
-  }
-  return noSuchMethod(
-      obj, new InvocationImpl(field, JS('', '[]'), isGetter: true));
-}
+dloadMirror(obj, field) => dload(obj, field, true);
 
 _stripGenericArguments(type) {
   var genericClass = getGenericClass(type);
@@ -124,31 +137,20 @@ _stripGenericArguments(type) {
 // behavior for JS types.
 // TODO(jacobr): remove the type checking rules workaround when mirrors based
 // PageLoader code can generate the correct reified generic types.
-dputMirror(obj, field, value) {
-  var f = _canonicalMember(obj, field);
-  trackCall(obj);
-  if (f != null) {
-    var setterType = getSetterType(getType(obj), f);
-    if (setterType != null) {
-      setterType = _stripGenericArguments(setterType);
-      return JS('', '#[#] = #._check(#)', obj, f, setterType, value);
-    }
-  }
-  noSuchMethod(
-      obj, new InvocationImpl(field, JS('', '[#]', value), isSetter: true));
-  return value;
-}
+dputMirror(obj, field, value) => dput(obj, field, value, true);
 
-dput(obj, field, value) {
+dput(obj, field, value, [mirrors = undefined]) {
   var f = _canonicalMember(obj, field);
   trackCall(obj);
   if (f != null) {
     var setterType = getSetterType(getType(obj), f);
     if (setterType != null) {
+      if (JS('bool', '#', mirrors))
+        setterType = _stripGenericArguments(setterType);
       return JS('', '#[#] = #._check(#)', obj, f, setterType, value);
     }
     // Always allow for JS interop objects.
-    if (isJsInterop(obj)) {
+    if (!JS('bool', '#', mirrors) && isJsInterop(obj)) {
       return JS('', '#[#] = #', obj, f, value);
     }
   }
@@ -260,7 +262,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
   function callNSM() {
     return $noSuchMethod(originalTarget, new $InvocationImpl.new(
         $name, $args, {
-          namedArguments: $extractNamedArgs($args),
+          namedArguments: ${extractNamedArgs(args)},
           typeArguments: $typeArgs,
           isMethod: true
         }));
@@ -269,19 +271,15 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
     // We're not a function (and hence not a method either)
     // Grab the `call` method if it's not a function.
     if ($f != null) {
-      $ftype = $getMethodType($getType($f), 'call');
-      $f = f.call ? $bind($f, 'call') : void 0;
+      $f = ${bindCall(f, _canonicalMember(f, 'call'))};
+      $ftype = null;
     }
-    if (!($f instanceof Function)) {
-      return callNSM();
-    }
+    if ($f == null) return callNSM();
   }
   // If f is a function, but not a method (no method type)
   // then it should have been a function valued field, so
   // get the type from the function.
-  if ($ftype == null) {
-    $ftype = $_getRuntimeType($f);
-  }
+  if ($ftype == null) $ftype = $f[$_runtimeType];
 
   if ($ftype == null) {
     // TODO(leafp): Allow JS objects to go through?
@@ -322,11 +320,13 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
   return callNSM();
 })()''');
 
-dcall(f, @rest args) =>
-    _checkAndCall(f, _getRuntimeType(f), JS('', 'void 0'), null, args, 'call');
+dcall(f, @rest args) => callFunction(f, null, args);
 
-dgcall(f, typeArgs, @rest args) => _checkAndCall(
-    f, _getRuntimeType(f), JS('', 'void 0'), typeArgs, args, 'call');
+dgcall(f, typeArgs, @rest args) => callFunction(f, typeArgs, args);
+
+callFunction(f, typeArgs, args) {
+  return _checkAndCall(f, null, JS('', 'void 0'), typeArgs, args, 'call');
+}
 
 /// Helper for REPL dynamic invocation variants that make a best effort to
 /// enable accessing private members across library boundaries.
@@ -368,14 +368,13 @@ _dhelperRepl(object, field, callback) => JS('', '''(() => {
   return $callback(rawField);
 })()''');
 
-dloadRepl(obj, field) =>
-    _dhelperRepl(obj, field, (resolvedField) => dload(obj, resolvedField));
+dloadRepl(obj, field) => _dhelperRepl(obj, field, (f) => dload(obj, f, false));
 
-dputRepl(obj, field, value) => _dhelperRepl(
-    obj, field, (resolvedField) => dput(obj, resolvedField, value));
+dputRepl(obj, field, value) =>
+    _dhelperRepl(obj, field, (f) => dput(obj, f, value, false));
 
-callMethodRepl(obj, method, typeArgs, args) => _dhelperRepl(obj, method,
-    (resolvedField) => callMethod(obj, resolvedField, typeArgs, args, method));
+callMethodRepl(obj, method, typeArgs, args) => _dhelperRepl(
+    obj, method, (f) => callMethod(obj, f, typeArgs, args, method));
 
 dsendRepl(obj, method, @rest args) => callMethodRepl(obj, method, null, args);
 
@@ -384,6 +383,9 @@ dgsendRepl(obj, typeArgs, method, @rest args) =>
 
 /// Shared code for dsend, dindex, and dsetindex.
 callMethod(obj, name, typeArgs, args, displayName) {
+  if (JS('bool', 'typeof # == "function" && # == "call"', obj, name)) {
+    return callFunction(obj, typeArgs, args);
+  }
   var symbol = _canonicalMember(obj, name);
   if (symbol == null) {
     return noSuchMethod(

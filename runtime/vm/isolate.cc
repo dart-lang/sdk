@@ -7,8 +7,8 @@
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
 #include "platform/assert.h"
+#include "platform/atomic.h"
 #include "platform/text_buffer.h"
-#include "vm/atomic.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_observers.h"
 #include "vm/compiler/jit/compiler.h"
@@ -1535,18 +1535,6 @@ static MessageHandler::MessageStatus RunIsolate(uword parameter) {
     ASSERT(result.IsFunction());
     Function& func = Function::Handle(thread->zone());
     func ^= result.raw();
-
-    // TODO(turnidge): Currently we need a way to force a one-time
-    // breakpoint for all spawned isolates to support isolate
-    // debugging.  Remove this once the vmservice becomes the standard
-    // way to debug. Set the breakpoint on the static function instead
-    // of its implicit closure function because that latter is merely
-    // a dispatcher that is marked as undebuggable.
-#if !defined(PRODUCT)
-    if (FLAG_break_at_isolate_spawn) {
-      isolate->debugger()->OneTimeBreakAtEntry(func);
-    }
-#endif
 
     func = func.ImplicitClosureFunction();
 

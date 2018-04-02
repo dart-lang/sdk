@@ -157,6 +157,11 @@ class LinkMock extends FileSystemEntity implements Link {
   String targetSync() => null;
 }
 
+Future<Socket> socketConnect(host, int port,
+    {sourceAddress, Duration timeout}) {
+  return null;
+}
+
 Future<Null> ioOverridesRunTest() async {
   Future<Null> f = IOOverrides.runZoned(
     () async {
@@ -175,6 +180,7 @@ Future<Null> ioOverridesRunTest() async {
       Expect.isFalse(FileSystemEntity.isWatchSupported);
       Expect.isNull(new Directory("directory").watch());
       Expect.isTrue(new Link("link") is LinkMock);
+      Expect.isNull(Socket.connect(null, 0));
     },
     createDirectory: DirectoryMock.createDirectory,
     getCurrentDirectory: DirectoryMock.getCurrent,
@@ -190,6 +196,7 @@ Future<Null> ioOverridesRunTest() async {
     fsWatch: FileSystemWatcherMock.watch,
     fsWatchIsSupported: FileSystemWatcherMock.watchSupported,
     createLink: LinkMock.createLink,
+    socketConnect: socketConnect,
   );
   Expect.isFalse(new Directory("directory") is DirectoryMock);
   Expect.isTrue(new Directory("directory") is Directory);

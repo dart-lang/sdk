@@ -71,30 +71,34 @@ void Intrinsifier::InitializeState() {
   Error& error = Error::Handle(zone);
 
 #define SETUP_FUNCTION(class_name, function_name, destination, type, fp)       \
+  func = Function::null();                                                     \
   if (strcmp(#class_name, "::") == 0) {                                        \
     str = String::New(#function_name);                                         \
     func = lib.LookupFunctionAllowPrivate(str);                                \
   } else {                                                                     \
     str = String::New(#class_name);                                            \
     cls = lib.LookupClassAllowPrivate(str);                                    \
-    ASSERT(!cls.IsNull());                                                     \
-    error = cls.EnsureIsFinalized(thread);                                     \
-    if (!error.IsNull()) {                                                     \
-      OS::PrintErr("%s\n", error.ToErrorCString());                            \
+    ASSERT(FLAG_precompiled_mode || !cls.IsNull());                            \
+    if (!cls.IsNull()) {                                                       \
+      error = cls.EnsureIsFinalized(thread);                                   \
+      if (!error.IsNull()) {                                                   \
+        OS::PrintErr("%s\n", error.ToErrorCString());                          \
+      }                                                                        \
+      ASSERT(error.IsNull());                                                  \
+      if (#function_name[0] == '.') {                                          \
+        str = String::New(#class_name #function_name);                         \
+      } else {                                                                 \
+        str = String::New(#function_name);                                     \
+      }                                                                        \
+      func = cls.LookupFunctionAllowPrivate(str);                              \
     }                                                                          \
-    ASSERT(error.IsNull());                                                    \
-    if (#function_name[0] == '.') {                                            \
-      str = String::New(#class_name #function_name);                           \
-    } else {                                                                   \
-      str = String::New(#function_name);                                       \
-    }                                                                          \
-    func = cls.LookupFunctionAllowPrivate(str);                                \
   }                                                                            \
-  if (func.IsNull()) {                                                         \
+  if (!func.IsNull()) {                                                        \
+    func.set_is_intrinsic(true);                                               \
+  } else if (!FLAG_precompiled_mode) {                                         \
     FATAL2("Intrinsifier failed to find method %s in class %s\n",              \
            #function_name, #class_name);                                       \
-  }                                                                            \
-  func.set_is_intrinsic(true);
+  }
 
   // Set up all core lib functions that can be intrinsified.
   lib = Library::CoreLibrary();

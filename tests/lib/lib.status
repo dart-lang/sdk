@@ -164,7 +164,6 @@ mirrors/metadata_allowed_values_test/13: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/14: MissingCompileTimeError
 mirrors/metadata_nested_constructor_call_test/03: MissingCompileTimeError
 mirrors/metadata_nested_constructor_call_test/04: MissingCompileTimeError
-mirrors/metadata_nested_constructor_call_test/06: MissingCompileTimeError # Issue 32517
 mirrors/native_class_test: CompileTimeError
 mirrors/variable_is_const_test/01: MissingCompileTimeError
 typed_data/int32x4_bigint_test: CompileTimeError

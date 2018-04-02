@@ -70,6 +70,9 @@ class MockErrorCode implements ErrorCode {
   }
 
   @override
+  bool get isUnresolvedIdentifier => false;
+
+  @override
   String get message {
     throw new StateError('Unexpected invocation of message');
   }

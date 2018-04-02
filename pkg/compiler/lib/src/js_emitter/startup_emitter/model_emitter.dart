@@ -46,7 +46,6 @@ import '../../io/source_map_builder.dart' show SourceMapBuilder;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart'
     show JavaScriptBackend, Namer, ConstantEmitter, StringBackedName;
-import '../../js_backend/interceptor_data.dart';
 import '../../world.dart';
 import '../code_emitter_task.dart';
 import '../constant_ordering.dart' show ConstantOrdering;
@@ -233,6 +232,7 @@ class ModelEmitter {
     if (compiler.options.strongMode) flavor.write(', strong');
     if (compiler.options.trustPrimitives) flavor.write(', trust primitives');
     if (compiler.options.trustTypeAnnotations) flavor.write(', trust types');
+    if (compiler.options.omitImplicitChecks) flavor.write(', omit checks');
     flavor.write(', fast startup emitter');
     if (compiler.options.useContentSecurityPolicy) flavor.write(', CSP');
     return new js.Comment(generatedBy(compiler, flavor: '$flavor'));

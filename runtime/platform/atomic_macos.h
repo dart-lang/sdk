@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef RUNTIME_VM_ATOMIC_MACOS_H_
-#define RUNTIME_VM_ATOMIC_MACOS_H_
+#ifndef RUNTIME_PLATFORM_ATOMIC_MACOS_H_
+#define RUNTIME_PLATFORM_ATOMIC_MACOS_H_
 
-#if !defined RUNTIME_VM_ATOMIC_H_
+#if !defined RUNTIME_PLATFORM_ATOMIC_H_
 #error Do not include atomic_macos.h directly. Use atomic.h instead.
 #endif
 
@@ -57,4 +57,4 @@ inline uint32_t AtomicOperations::CompareAndSwapUint32(uint32_t* ptr,
 
 }  // namespace dart
 
-#endif  // RUNTIME_VM_ATOMIC_MACOS_H_
+#endif  // RUNTIME_PLATFORM_ATOMIC_MACOS_H_

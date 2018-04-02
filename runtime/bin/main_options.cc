@@ -63,10 +63,14 @@ ENUM_OPTIONS_LIST(ENUM_OPTION_DEFINITION)
 CB_OPTIONS_LIST(CB_OPTION_DEFINITION)
 #undef CB_OPTION_DEFINITION
 
+static bool checked_set = false;
+static bool preview_dart_2_set = false;
+
 static void SetPreviewDart2Options(CommandLineOptions* vm_options) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   Options::dfe()->set_use_dfe();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  preview_dart_2_set = true;
   vm_options->AddArgument("--strong");
   vm_options->AddArgument("--reify-generic-functions");
   vm_options->AddArgument("--limit-ints-to-64-bits");
@@ -125,7 +129,10 @@ void Options::PrintUsage() {
     Log::PrintErr(
 "Common options:\n"
 "--checked or -c\n"
-"  Insert runtime type checks and enable assertions (checked mode).\n"
+"  Insert runtime type checks and enable assertions (checked mode, not\n"
+"  compatible with --preview-dart-2).\n"
+"--enable-asserts\n"
+"  Enable assert statements.\n"
 "--help or -h\n"
 "  Display this message (add -v or --verbose for information about\n"
 "  all VM options).\n"
@@ -156,7 +163,10 @@ void Options::PrintUsage() {
     Log::PrintErr(
 "Supported options:\n"
 "--checked or -c\n"
-"  Insert runtime type checks and enable assertions (checked mode).\n"
+"  Insert runtime type checks and enable assertions (checked mode, not\n"
+"  compatible with --preview-dart-2).\n"
+"--enable-asserts\n"
+"  Enable assert statements.\n"
 "--help or -h\n"
 "  Display this message (add -v or --verbose for information about\n"
 "  all VM options).\n"
@@ -339,6 +349,7 @@ int Options::ParseArguments(int argc,
     } else {
       // Check if this flag is a potentially valid VM flag.
       const char* kChecked = "-c";
+      const char* kCheckedFull = "--checked";
       const char* kPackageRoot = "-p";
       if (strncmp(argv[i], kPackageRoot, strlen(kPackageRoot)) == 0) {
         // If argv[i] + strlen(kPackageRoot) is \0, then look in argv[i + 1]
@@ -356,8 +367,10 @@ int Options::ParseArguments(int argc,
         package_root_ = opt;
         i++;
         continue;  // '-p' is not a VM flag so don't add to vm options.
-      } else if (strncmp(argv[i], kChecked, strlen(kChecked)) == 0) {
-        vm_options->AddArgument("--checked");
+      } else if ((strncmp(argv[i], kChecked, strlen(kChecked)) == 0) ||
+                 (strncmp(argv[i], kCheckedFull, strlen(kCheckedFull)) == 0)) {
+        checked_set = true;
+        vm_options->AddArgument(kCheckedFull);
         i++;
         continue;  // '-c' is not a VM flag so don't add to vm options.
       } else if (!OptionProcessor::IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
@@ -432,6 +445,10 @@ int Options::ParseArguments(int argc,
     Log::PrintErr(
         "Specifying an option to generate a snapshot and"
         " run using a snapshot is invalid.\n");
+    return -1;
+  }
+  if (checked_set && preview_dart_2_set) {
+    Log::PrintErr("Flags --checked and --preview-dart-2 are not compatible.\n");
     return -1;
   }
 

@@ -14330,12 +14330,14 @@ class RenameFeedback extends RefactoringFeedback {
   String _oldName;
 
   /**
-   * The offset to the beginning of the name selected to be renamed.
+   * The offset to the beginning of the name selected to be renamed, or -1 if
+   * the name does not exist yet.
    */
   int get offset => _offset;
 
   /**
-   * The offset to the beginning of the name selected to be renamed.
+   * The offset to the beginning of the name selected to be renamed, or -1 if
+   * the name does not exist yet.
    */
   void set offset(int value) {
     assert(value != null);

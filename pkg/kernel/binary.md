@@ -1200,6 +1200,7 @@ type TypeParameter {
   List<Expression> annotations;
   StringReference name; // Cosmetic, may be empty, not unique.
   DartType bound; // 'dynamic' if no explicit bound was given.
+  Option<DartType> defaultType; // type used when the parameter is not passed
 }
 
 ```

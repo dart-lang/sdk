@@ -120,11 +120,14 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    */
   TypePromotionManager _promoteManager;
 
+  /// Whether constant evaluation errors should be reported during resolution.
+  final bool reportConstEvaluationErrors;
+
   /**
    * Initialize a newly created visitor to work for the given [_resolver] to
    * resolve the nodes in a compilation unit.
    */
-  ElementResolver(this._resolver) {
+  ElementResolver(this._resolver, {this.reportConstEvaluationErrors: true}) {
     this._definingLibrary = _resolver.definingLibrary;
     AnalysisOptions options = _definingLibrary.context.analysisOptions;
     _enableHints = options.hint;
@@ -578,7 +581,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     node.staticElement = invokedConstructor;
     ArgumentList argumentList = node.argumentList;
     List<ParameterElement> parameters = _resolveArgumentsToFunction(
-        node.isConst, argumentList, invokedConstructor);
+        reportConstEvaluationErrors && node.isConst,
+        argumentList,
+        invokedConstructor);
     if (parameters != null) {
       argumentList.correspondingStaticParameters = parameters;
     }

@@ -197,18 +197,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
 
   @override
   PropertyAccessorElement getSetter(String setterName) {
-    // TODO (jwren) revisit- should we append '=' here or require clients to
-    // include it?
-    // Do we need the check for isSetter below?
-    if (!StringUtilities.endsWithChar(setterName, 0x3D)) {
-      setterName += '=';
-    }
-    for (PropertyAccessorElement accessor in accessors) {
-      if (accessor.isSetter && accessor.name == setterName) {
-        return accessor;
-      }
-    }
-    return null;
+    return getSetterFromAccessors(setterName, accessors);
   }
 
   @override
@@ -393,6 +382,22 @@ abstract class AbstractClassElementImpl extends ElementImpl
       return getImpl(classElement.actualElement);
     }
     return classElement as AbstractClassElementImpl;
+  }
+
+  static PropertyAccessorElement getSetterFromAccessors(
+      String setterName, List<PropertyAccessorElement> accessors) {
+    // TODO (jwren) revisit- should we append '=' here or require clients to
+    // include it?
+    // Do we need the check for isSetter below?
+    if (!StringUtilities.endsWithChar(setterName, 0x3D)) {
+      setterName += '=';
+    }
+    for (PropertyAccessorElement accessor in accessors) {
+      if (accessor.isSetter && accessor.name == setterName) {
+        return accessor;
+      }
+    }
+    return null;
   }
 }
 
@@ -1963,12 +1968,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   ClassElement getType(String className) {
-    for (ClassElement type in types) {
-      if (type.name == className) {
-        return type;
-      }
-    }
-    return null;
+    return getTypeFromTypes(className, types);
   }
 
   /**
@@ -2007,6 +2007,16 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     safelyVisitChildren(functionTypeAliases, visitor);
     safelyVisitChildren(types, visitor);
     safelyVisitChildren(topLevelVariables, visitor);
+  }
+
+  static ClassElement getTypeFromTypes(
+      String className, List<ClassElement> types) {
+    for (ClassElement type in types) {
+      if (type.name == className) {
+        return type;
+      }
+    }
+    return null;
   }
 }
 
@@ -4833,8 +4843,8 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
       if (_kernel != null) {
         fieldName = _kernel.name;
       }
-      if (_unlinkedParam != null) {
-        fieldName = _unlinkedParam.name;
+      if (unlinkedParam != null) {
+        fieldName = unlinkedParam.name;
       }
       if (fieldName != null) {
         Element enclosingConstructor = enclosingElement;
@@ -4853,7 +4863,7 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
   }
 
   void set field(FieldElement field) {
-    _assertNotResynthesized(_unlinkedParam);
+    _assertNotResynthesized(unlinkedParam);
     _field = field;
   }
 
@@ -4862,9 +4872,7 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
 
   @override
   DartType get type {
-    if (_unlinkedParam != null &&
-        _unlinkedParam.type == null &&
-        field != null) {
+    if (unlinkedParam != null && unlinkedParam.type == null && field != null) {
       _type ??= field?.type ?? DynamicTypeImpl.instance;
     }
     return super.type;
@@ -4872,7 +4880,7 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
 
   @override
   void set type(DartType type) {
-    _assertNotResynthesized(_unlinkedParam);
+    _assertNotResynthesized(unlinkedParam);
     _type = type;
   }
 
@@ -6610,8 +6618,13 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   bool get isDartCore => name == "dart.core";
 
   @override
-  bool get isInSdk =>
-      StringUtilities.startsWith5(name, 0, 0x64, 0x61, 0x72, 0x74, 0x2E);
+  bool get isInSdk {
+    Uri uri = definingCompilationUnit.source?.uri;
+    if (uri != null) {
+      return DartUriResolver.isDartUri(uri);
+    }
+    return false;
+  }
 
   /**
    * Return `true` if the receiver directly or indirectly imports the
@@ -6815,13 +6828,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * using types provided by [typeProvider].
    */
   void createLoadLibraryFunction(TypeProvider typeProvider) {
-    FunctionElementImpl function =
-        new FunctionElementImpl(FunctionElement.LOAD_LIBRARY_NAME, -1);
-    function.isSynthetic = true;
-    function.enclosingElement = this;
-    function.returnType = typeProvider.futureDynamicType;
-    function.type = new FunctionTypeImpl(function);
-    _loadLibraryFunction = function;
+    _loadLibraryFunction =
+        createLoadLibraryFunctionForLibrary(typeProvider, this);
   }
 
   @override
@@ -6867,30 +6875,12 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   List<ImportElement> getImportsWithPrefix(PrefixElement prefixElement) {
-    var imports = this.imports;
-    int count = imports.length;
-    List<ImportElement> importList = new List<ImportElement>();
-    for (int i = 0; i < count; i++) {
-      if (identical(imports[i].prefix, prefixElement)) {
-        importList.add(imports[i]);
-      }
-    }
-    return importList;
+    return getImportsWithPrefixFromImports(prefixElement, imports);
   }
 
   @override
   ClassElement getType(String className) {
-    ClassElement type = _definingCompilationUnit.getType(className);
-    if (type != null) {
-      return type;
-    }
-    for (CompilationUnitElement part in _parts) {
-      type = part.getType(className);
-      if (type != null) {
-        return type;
-      }
-    }
-    return null;
+    return getTypeFromParts(className, _definingCompilationUnit, _parts);
   }
 
   /** Given an update to this library which may have added or deleted edges
@@ -6985,6 +6975,17 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return prefixes.toList(growable: false);
   }
 
+  static FunctionElementImpl createLoadLibraryFunctionForLibrary(
+      TypeProvider typeProvider, LibraryElement library) {
+    FunctionElementImpl function =
+        new FunctionElementImpl(FunctionElement.LOAD_LIBRARY_NAME, -1);
+    function.isSynthetic = true;
+    function.enclosingElement = library;
+    function.returnType = typeProvider.futureDynamicType;
+    function.type = new FunctionTypeImpl(function);
+    return function;
+  }
+
   /**
    * Return the [LibraryElementImpl] of the given [element].
    */
@@ -6993,6 +6994,35 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       return getImpl(element.actualElement);
     }
     return element as LibraryElementImpl;
+  }
+
+  static List<ImportElement> getImportsWithPrefixFromImports(
+      PrefixElement prefixElement, List<ImportElement> imports) {
+    int count = imports.length;
+    List<ImportElement> importList = new List<ImportElement>();
+    for (int i = 0; i < count; i++) {
+      if (identical(imports[i].prefix, prefixElement)) {
+        importList.add(imports[i]);
+      }
+    }
+    return importList;
+  }
+
+  static ClassElement getTypeFromParts(
+      String className,
+      CompilationUnitElement definingCompilationUnit,
+      List<CompilationUnitElement> parts) {
+    ClassElement type = definingCompilationUnit.getType(className);
+    if (type != null) {
+      return type;
+    }
+    for (CompilationUnitElement part in parts) {
+      type = part.getType(className);
+      if (type != null) {
+        return type;
+      }
+    }
+    return null;
   }
 
   /**
@@ -8001,7 +8031,7 @@ class ParameterElementImpl extends VariableElementImpl
   /**
    * The unlinked representation of the parameter in the summary.
    */
-  final UnlinkedParam _unlinkedParam;
+  final UnlinkedParam unlinkedParam;
 
   /**
    * The kernel of the element;
@@ -8036,7 +8066,7 @@ class ParameterElementImpl extends VariableElementImpl
    * [nameOffset].
    */
   ParameterElementImpl(String name, int nameOffset)
-      : _unlinkedParam = null,
+      : unlinkedParam = null,
         _kernel = null,
         super(name, nameOffset);
 
@@ -8045,14 +8075,14 @@ class ParameterElementImpl extends VariableElementImpl
    */
   ParameterElementImpl.forKernel(
       ElementImpl enclosingElement, this._kernel, this._parameterKind)
-      : _unlinkedParam = null,
+      : unlinkedParam = null,
         super.forKernel(enclosingElement);
 
   /**
    * Initialize a newly created parameter element to have the given [name].
    */
   ParameterElementImpl.forNode(Identifier name)
-      : _unlinkedParam = null,
+      : unlinkedParam = null,
         _kernel = null,
         super.forNode(name);
 
@@ -8060,7 +8090,7 @@ class ParameterElementImpl extends VariableElementImpl
    * Initialize using the given serialized information.
    */
   ParameterElementImpl.forSerialized(
-      this._unlinkedParam, ElementImpl enclosingElement)
+      this.unlinkedParam, ElementImpl enclosingElement)
       : _kernel = null,
         super.forSerialized(enclosingElement);
 
@@ -8106,27 +8136,27 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   int get codeLength {
-    if (_unlinkedParam != null) {
-      return _unlinkedParam.codeRange?.length;
+    if (unlinkedParam != null) {
+      return unlinkedParam.codeRange?.length;
     }
     return super.codeLength;
   }
 
   @override
   int get codeOffset {
-    if (_unlinkedParam != null) {
-      return _unlinkedParam.codeRange?.offset;
+    if (unlinkedParam != null) {
+      return unlinkedParam.codeRange?.offset;
     }
     return super.codeOffset;
   }
 
   @override
   String get defaultValueCode {
-    if (_unlinkedParam != null) {
-      if (_unlinkedParam.initializer?.bodyExpr == null) {
+    if (unlinkedParam != null) {
+      if (unlinkedParam.initializer?.bodyExpr == null) {
         return null;
       }
-      return _unlinkedParam.defaultValueCode;
+      return unlinkedParam.defaultValueCode;
     }
     return _defaultValueCode;
   }
@@ -8135,21 +8165,21 @@ class ParameterElementImpl extends VariableElementImpl
    * Set Dart code of the default value.
    */
   void set defaultValueCode(String defaultValueCode) {
-    _assertNotResynthesized(_unlinkedParam);
+    _assertNotResynthesized(unlinkedParam);
     this._defaultValueCode = StringUtilities.intern(defaultValueCode);
   }
 
   @override
   bool get hasImplicitType {
-    if (_unlinkedParam != null) {
-      return _unlinkedParam.type == null && !_unlinkedParam.isFunctionTyped;
+    if (unlinkedParam != null) {
+      return unlinkedParam.type == null && !unlinkedParam.isFunctionTyped;
     }
     return super.hasImplicitType;
   }
 
   @override
   void set hasImplicitType(bool hasImplicitType) {
-    _assertNotResynthesized(_unlinkedParam);
+    _assertNotResynthesized(unlinkedParam);
     super.hasImplicitType = hasImplicitType;
   }
 
@@ -8159,9 +8189,9 @@ class ParameterElementImpl extends VariableElementImpl
    * covariant parameter.
    */
   bool get inheritsCovariant {
-    if (_unlinkedParam != null) {
+    if (unlinkedParam != null) {
       return enclosingUnit.resynthesizerContext
-          .inheritsCovariant(_unlinkedParam.inheritsCovariantSlot);
+          .inheritsCovariant(unlinkedParam.inheritsCovariantSlot);
     } else {
       return _inheritsCovariant;
     }
@@ -8171,7 +8201,7 @@ class ParameterElementImpl extends VariableElementImpl
    * Record whether or not this parameter inherits from a covariant parameter.
    */
   void set inheritsCovariant(bool value) {
-    _assertNotResynthesized(_unlinkedParam);
+    _assertNotResynthesized(unlinkedParam);
     _inheritsCovariant = value;
   }
 
@@ -8183,8 +8213,8 @@ class ParameterElementImpl extends VariableElementImpl
           ..enclosingElement = this
           ..isSynthetic = true;
       }
-      if (_unlinkedParam != null) {
-        UnlinkedExecutable unlinkedInitializer = _unlinkedParam.initializer;
+      if (unlinkedParam != null) {
+        UnlinkedExecutable unlinkedInitializer = unlinkedParam.initializer;
         if (unlinkedInitializer != null) {
           _initializer =
               new FunctionElementImpl.forSerialized(unlinkedInitializer, this)
@@ -8202,7 +8232,7 @@ class ParameterElementImpl extends VariableElementImpl
    * [function].
    */
   void set initializer(FunctionElement function) {
-    _assertNotResynthesized(_unlinkedParam);
+    _assertNotResynthesized(unlinkedParam);
     super.initializer = function;
   }
 
@@ -8211,7 +8241,7 @@ class ParameterElementImpl extends VariableElementImpl
     if (_kernel != null) {
       return false;
     }
-    if (_unlinkedParam != null) {
+    if (unlinkedParam != null) {
       return false;
     }
     return super.isConst;
@@ -8219,7 +8249,7 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   void set isConst(bool isConst) {
-    _assertNotResynthesized(_unlinkedParam);
+    _assertNotResynthesized(unlinkedParam);
     super.isConst = isConst;
   }
 
@@ -8243,8 +8273,8 @@ class ParameterElementImpl extends VariableElementImpl
     if (_kernel != null) {
       return _kernel.isCovariant;
     }
-    if (_unlinkedParam != null) {
-      return _unlinkedParam.isExplicitlyCovariant;
+    if (unlinkedParam != null) {
+      return unlinkedParam.isExplicitlyCovariant;
     }
     return hasModifier(Modifier.COVARIANT);
   }
@@ -8253,7 +8283,7 @@ class ParameterElementImpl extends VariableElementImpl
    * Set whether this variable parameter is explicitly marked as being covariant.
    */
   void set isExplicitlyCovariant(bool isCovariant) {
-    _assertNotResynthesized(_unlinkedParam);
+    _assertNotResynthesized(unlinkedParam);
     setModifier(Modifier.COVARIANT, isCovariant);
   }
 
@@ -8262,15 +8292,15 @@ class ParameterElementImpl extends VariableElementImpl
     if (_kernel != null) {
       return _kernel.isFinal;
     }
-    if (_unlinkedParam != null) {
-      return _unlinkedParam.isFinal;
+    if (unlinkedParam != null) {
+      return unlinkedParam.isFinal;
     }
     return super.isFinal;
   }
 
   @override
   void set isFinal(bool isFinal) {
-    _assertNotResynthesized(_unlinkedParam);
+    _assertNotResynthesized(unlinkedParam);
     super.isFinal = isFinal;
   }
 
@@ -8288,9 +8318,9 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   List<ElementAnnotation> get metadata {
-    if (_unlinkedParam != null) {
+    if (unlinkedParam != null) {
       return _metadata ??=
-          _buildAnnotations(enclosingUnit, _unlinkedParam.annotations);
+          _buildAnnotations(enclosingUnit, unlinkedParam.annotations);
     }
     return super.metadata;
   }
@@ -8300,8 +8330,8 @@ class ParameterElementImpl extends VariableElementImpl
     if (_kernel != null) {
       return _kernel.name;
     }
-    if (_unlinkedParam != null) {
-      return _unlinkedParam.name;
+    if (unlinkedParam != null) {
+      return unlinkedParam.name;
     }
     return super.name;
   }
@@ -8309,22 +8339,22 @@ class ParameterElementImpl extends VariableElementImpl
   @override
   int get nameOffset {
     int offset = super.nameOffset;
-    if (offset == 0 && _unlinkedParam != null) {
+    if (offset == 0 && unlinkedParam != null) {
       if (isSynthetic ||
-          (_unlinkedParam.name.isEmpty &&
-              _unlinkedParam.kind != UnlinkedParamKind.named &&
+          (unlinkedParam.name.isEmpty &&
+              unlinkedParam.kind != UnlinkedParamKind.named &&
               enclosingElement is GenericFunctionTypeElement)) {
         return -1;
       }
-      return _unlinkedParam.nameOffset;
+      return unlinkedParam.nameOffset;
     }
     return offset;
   }
 
   @override
   ParameterKind get parameterKind {
-    if (_unlinkedParam != null && _parameterKind == null) {
-      switch (_unlinkedParam.kind) {
+    if (unlinkedParam != null && _parameterKind == null) {
+      switch (unlinkedParam.kind) {
         case UnlinkedParamKind.named:
           _parameterKind = ParameterKind.NAMED;
           break;
@@ -8340,7 +8370,7 @@ class ParameterElementImpl extends VariableElementImpl
   }
 
   void set parameterKind(ParameterKind parameterKind) {
-    _assertNotResynthesized(_unlinkedParam);
+    _assertNotResynthesized(unlinkedParam);
     _parameterKind = parameterKind;
   }
 
@@ -8357,9 +8387,9 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   TopLevelInferenceError get typeInferenceError {
-    if (_unlinkedParam != null) {
+    if (unlinkedParam != null) {
       return enclosingUnit.resynthesizerContext
-          .getTypeInferenceError(_unlinkedParam.inferredTypeSlot);
+          .getTypeInferenceError(unlinkedParam.inferredTypeSlot);
     }
     // We don't support type inference errors without linking.
     return null;
@@ -8372,12 +8402,12 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   SourceRange get visibleRange {
-    if (_unlinkedParam != null) {
-      if (_unlinkedParam.visibleLength == 0) {
+    if (unlinkedParam != null) {
+      if (unlinkedParam.visibleLength == 0) {
         return null;
       }
       return new SourceRange(
-          _unlinkedParam.visibleOffset, _unlinkedParam.visibleLength);
+          unlinkedParam.visibleOffset, unlinkedParam.visibleLength);
     }
     if (_visibleRangeLength < 0) {
       return null;
@@ -8393,7 +8423,7 @@ class ParameterElementImpl extends VariableElementImpl
   /**
    * Subclasses need this getter, see [ConstVariableElement._unlinkedConst].
    */
-  UnlinkedExpr get _unlinkedConst => _unlinkedParam?.initializer?.bodyExpr;
+  UnlinkedExpr get _unlinkedConst => unlinkedParam?.initializer?.bodyExpr;
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitParameterElement(this);
@@ -8426,7 +8456,7 @@ class ParameterElementImpl extends VariableElementImpl
    * [offset] with the given [length].
    */
   void setVisibleRange(int offset, int length) {
-    _assertNotResynthesized(_unlinkedParam);
+    _assertNotResynthesized(unlinkedParam);
     _visibleRangeOffset = offset;
     _visibleRangeLength = length;
   }
@@ -8446,27 +8476,29 @@ class ParameterElementImpl extends VariableElementImpl
       kernel.DartType type = _kernel.type;
       _type = enclosingUnit._kernelContext.getType(this, type);
     }
-    if (_unlinkedParam != null && _declaredType == null && _type == null) {
-      if (_unlinkedParam.isFunctionTyped) {
+    if (unlinkedParam != null && _declaredType == null && _type == null) {
+      if (unlinkedParam.isFunctionTyped) {
         CompilationUnitElementImpl enclosingUnit = this.enclosingUnit;
 
         var typeElement = new GenericFunctionTypeElementImpl.forOffset(-1);
         typeElement.enclosingElement = this;
 
         typeElement.parameters = ParameterElementImpl.resynthesizeList(
-            _unlinkedParam.parameters, typeElement,
+            unlinkedParam.parameters, typeElement,
             synthetic: isSynthetic);
 
         typeElement.returnType = enclosingUnit.resynthesizerContext
-            .resolveTypeRef(this, _unlinkedParam.type);
+            .resolveTypeRef(this, unlinkedParam.type);
 
         _type = new FunctionTypeImpl(typeElement);
         typeElement.type = _type;
       } else {
-        _type = enclosingUnit.resynthesizerContext
-            .resolveLinkedType(this, _unlinkedParam.inferredTypeSlot);
+        if (unlinkedParam.inferredTypeSlot != 0) {
+          _type = enclosingUnit.resynthesizerContext
+              .resolveLinkedType(this, unlinkedParam.inferredTypeSlot);
+        }
         declaredType = enclosingUnit.resynthesizerContext
-            .resolveTypeRef(this, _unlinkedParam.type, declaredType: true);
+            .resolveTypeRef(this, unlinkedParam.type, declaredType: true);
       }
     }
   }

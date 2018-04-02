@@ -451,7 +451,7 @@ class CommandLineOptions {
           hide: hide)
       ..addOption('x-package-warnings-prefix',
           help:
-              'Show warnings from package: imports that match the given prefix.',
+              'Show warnings from package: imports that match the given prefix (deprecated).',
           hide: hide)
       ..addFlag('enable-conditional-directives',
           help:
@@ -465,7 +465,7 @@ class CommandLineOptions {
           negatable: false,
           hide: hide)
       ..addFlag('sdk-warnings',
-          help: 'Show warnings from SDK imports.',
+          help: 'Show warnings from SDK imports (deprecated).',
           defaultsTo: false,
           negatable: false,
           hide: hide)
@@ -482,7 +482,8 @@ class CommandLineOptions {
       // TODO(brianwilkerson) Remove the following option after we're sure that
       // it's no longer being used.
       ..addFlag('enable-assert-initializers',
-          help: 'Enable parsing of asserts in constructor initializers.',
+          help:
+              'Enable parsing of asserts in constructor initializers (deprecated).',
           defaultsTo: null,
           negatable: false,
           hide: hide)
@@ -502,7 +503,7 @@ class CommandLineOptions {
           negatable: false,
           hide: hide)
       ..addFlag('package-warnings',
-          help: 'Show warnings from package: imports.',
+          help: 'Show warnings from package: imports (deprecated).',
           defaultsTo: false,
           negatable: false,
           hide: hide)
@@ -513,7 +514,8 @@ class CommandLineOptions {
           splitCommas: false,
           hide: hide)
       ..addFlag('use-cfe',
-          help: 'Enable the Dart 2.0 Common Front End implementation.',
+          help:
+              'Enable the Dart 2.0 Common Front End implementation (experimental).',
           defaultsTo: false,
           negatable: false,
           hide: hide)

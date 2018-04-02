@@ -418,6 +418,16 @@ enum JsBuiltin {
   ///     JS_BUILTIN('bool', JsBuiltin.isFutureOrType, o)
   isFutureOrType,
 
+  /// Returns true if the given type is the `void` type.
+  ///
+  ///     JS_BUILTIN('bool', JsBuiltin.isVoidType, o)
+  isVoidType,
+
+  /// Returns true if the given type is the `dynamic` type.
+  ///
+  ///     JS_BUILTIN('bool', JsBuiltin.isDynamicType, o)
+  isDynamicType,
+
   /// Returns the JavaScript-constructor name given an rti encoding.
   ///
   ///     JS_BUILTIN('String', JsBuiltin.rawRtiToJsConstructorName, rti)

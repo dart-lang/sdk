@@ -689,6 +689,8 @@ function $setupProgramName(programData, metadataOffset, typesOffset) {
       var getterStubName = ${readString("array", "index")};
       array = array.slice(++index);
       var requiredParameterInfo = ${readInt("array", "0")};
+      var isIntercepted = (requiredParameterInfo & 1) === 1;
+      requiredParameterInfo = requiredParameterInfo >> 1;
       var requiredParameterCount = requiredParameterInfo >> 1;
       var isAccessor = (requiredParameterInfo & 1) === 1;
       var isSetter = requiredParameterInfo === 3;
@@ -697,7 +699,6 @@ function $setupProgramName(programData, metadataOffset, typesOffset) {
       var optionalParameterCount = optionalParameterInfo >> 1;
       var optionalParametersAreNamed = (optionalParameterInfo & 1) === 1;
       var totalParameterCount = requiredParameterCount + optionalParameterCount;
-      var isIntercepted = totalParameterCount != funcs[0].length;
       var functionTypeIndex = ${readFunctionType("array", "2")};
       if (typeof functionTypeIndex == "number")
         ${readFunctionType("array", "2")} = functionTypeIndex + typesOffset;

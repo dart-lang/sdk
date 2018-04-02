@@ -19,6 +19,8 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'transformations/devirtualization.dart' as devirtualization
     show transformComponent;
+import 'transformations/mixin_deduplication.dart' as mixin_deduplication
+    show transformComponent;
 import 'transformations/no_dynamic_invocations_annotator.dart'
     as no_dynamic_invocations_annotator show transformComponent;
 import 'transformations/type_flow/transformer.dart' as globalTypeFlow
@@ -56,6 +58,14 @@ _runGlobalTransformations(Component component, bool strongMode,
     bool useGlobalTypeFlowAnalysis, List<String> entryPoints) {
   if (strongMode) {
     final coreTypes = new CoreTypes(component);
+
+    // TODO(alexmarkov, dmitryas): Consider doing canonicalization of identical
+    // mixin applications when creating mixin applications in frontend,
+    // so all backends (and all transformation passes from the very beginning)
+    // can benefit from mixin de-duplication.
+    // At least, in addition to VM/AOT case we should run this transformation
+    // when building a platform dill file for VM/JIT case.
+    mixin_deduplication.transformComponent(component);
 
     if (useGlobalTypeFlowAnalysis) {
       globalTypeFlow.transformComponent(coreTypes, component, entryPoints);

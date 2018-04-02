@@ -705,7 +705,6 @@ class ProgramCompiler
     }
 
     var hasUnnamedSuper = _hasUnnamedConstructor(superclass);
-    var isCallable = isCallableClass(c);
 
     void emitMixinConstructors(JS.Expression className, InterfaceType mixin) {
       JS.Statement mixinCtor;
@@ -727,10 +726,7 @@ class ProgramCompiler
           ctorBody.add(_emitSuperConstructorCall(className, name, jsParams));
         }
         body.add(_addConstructorToClass(
-            className,
-            name,
-            _finishConstructorFunction(
-                jsParams, new JS.Block(ctorBody), isCallable)));
+            className, name, new JS.Fun(jsParams, new JS.Block(ctorBody))));
       }
     }
 
@@ -823,17 +819,7 @@ class ProgramCompiler
 
   /// Defines all constructors for this class as ES5 constructors.
   List<JS.Statement> _defineConstructors(Class c, JS.Expression className) {
-    var isCallable = isCallableClass(c);
-
     var body = <JS.Statement>[];
-    if (isCallable) {
-      // Our class instances will have JS `typeof this == "function"`,
-      // so make sure to attach the runtime type information the same way
-      // we would do it for function types.
-      body.add(js.statement('#.prototype[#] = #;',
-          [className, _callHelper('_runtimeType'), className]));
-    }
-
     if (c.isSyntheticMixinImplementation || isMixinAliasClass(c)) {
       // We already handled this when we defined the class.
       return body;
@@ -846,8 +832,7 @@ class ProgramCompiler
     var fields = c.fields;
     for (var ctor in c.constructors) {
       if (ctor.isExternal) continue;
-      addConstructor(ctor.name.name,
-          _emitConstructor(ctor, fields, isCallable, className));
+      addConstructor(ctor.name.name, _emitConstructor(ctor, fields, className));
     }
 
     // If classElement has only factory constructors, and it can be mixed in,
@@ -1353,15 +1338,15 @@ class ProgramCompiler
         .substituteType(type);
   }
 
-  JS.Expression _emitConstructor(Constructor node, List<Field> fields,
-      bool isCallable, JS.Expression className) {
+  JS.Expression _emitConstructor(
+      Constructor node, List<Field> fields, JS.Expression className) {
     var params = _emitFormalParameters(node.function);
     var body = _withCurrentFunction(
         node.function,
         () => _superDisallowed(
             () => _emitConstructorBody(node, fields, className)));
 
-    return _finishConstructorFunction(params, new JS.Block(body), isCallable)
+    return new JS.Fun(params, new JS.Block(body))
       ..sourceInformation = _nodeEnd(node.fileEndOffset) ??
           _nodeEnd(node.enclosingClass.fileEndOffset);
   }
@@ -1470,25 +1455,6 @@ class ProgramCompiler
     if (ctor != null && !ctor.isSynthetic) return true;
     if (c.fields.any((f) => !f.isStatic)) return true;
     return _hasUnnamedSuperConstructor(c);
-  }
-
-  JS.Expression _finishConstructorFunction(
-      List<JS.Parameter> params, JS.Block body, bool isCallable) {
-    // We consider a class callable if it inherits from anything with a `call`
-    // method. As a result, we can know the callable JS function was created
-    // at the first constructor that was hit.
-    if (!isCallable) return new JS.Fun(params, body);
-    return js.call(r'''function callableClass(#) {
-          if (typeof this !== "function") {
-            function self(...args) {
-              return self.call.apply(self, args);
-            }
-            self.__proto__ = this.__proto__;
-            callableClass.call(self, #);
-            return self;
-          }
-          #
-        }''', [params, params, body]);
   }
 
   /// Initialize fields. They follow the sequence:
@@ -3788,8 +3754,17 @@ class ProgramCompiler
 
   JS.Expression _emitPropertyGet(Expression receiver, Member member,
       [String memberName]) {
-    var jsName = _emitMemberName(memberName ?? member.name.name,
-        type: receiver.getStaticType(types), member: member);
+    memberName ??= member.name.name;
+    var receiverType = receiver.getStaticType(types);
+    // TODO(jmesserly): should tearoff of `.call` on a function type be
+    // encoded as a different node, or possibly eliminated?
+    // (Regardless, we'll still need to handle the callable JS interop classes.)
+    if (memberName == 'call' && _isDirectCallable(receiverType)) {
+      // Tearoff of `call` on a function type is a no-op;
+      return _visitExpression(receiver);
+    }
+    var jsName =
+        _emitMemberName(memberName, type: receiverType, member: member);
     var jsReceiver = _visitExpression(receiver);
 
     // TODO(jmesserly): we need to mark an end span for property accessors so
@@ -3891,27 +3866,23 @@ class ProgramCompiler
     var receiverType = receiver.getStaticType(types);
     var typeArgs = arguments.types;
 
-    isDynamicOrFunction(DartType t) =>
-        t == coreTypes.functionClass.rawType || t == const DynamicType();
     bool isCallingDynamicField = target is Member &&
         target.hasGetter &&
-        isDynamicOrFunction(target.getterType);
+        _isDynamicOrFunction(target.getterType);
     if (name == 'call') {
-      if (isCallingDynamicField || isDynamicOrFunction(receiverType)) {
+      if (isCallingDynamicField || _isDynamicOrFunction(receiverType)) {
         if (typeArgs.isNotEmpty) {
           return _callHelper('dgcall(#, [#], #)', [
             jsReceiver,
             args.take(typeArgs.length),
             args.skip(typeArgs.length)
           ]);
-        } else {
-          return _callHelper('dcall(#, #)', [jsReceiver, args]);
         }
+        return _callHelper('dcall(#, #)', [jsReceiver, args]);
+      } else if (_isDirectCallable(receiverType)) {
+        // Call methods on function types should be handled as function calls.
+        return new JS.Call(jsReceiver, args);
       }
-
-      // Call methods on function types or interface types should be handled as
-      // regular function invocations.
-      return new JS.Call(jsReceiver, args);
     }
 
     var jsName = _emitMemberName(name, type: receiverType, member: target);
@@ -3933,8 +3904,34 @@ class ProgramCompiler
       assert(typeArgs.isEmpty); // Object methods don't take type args.
       return _callHelper('#(#, #)', [name, jsReceiver, args]);
     }
+    // TODO(jmesserly): remove when Kernel desugars this for us.
+    // Handle `o.m(a)` where `o.m` is a getter returning a class with `call`.
+    if (target is Field || target is Procedure && target.isAccessor) {
+      var fromType = target.getterType;
+      if (fromType is InterfaceType) {
+        var callName = _getImplicitCallTarget(fromType);
+        if (callName != null) {
+          return js.call('#.#.#(#)', [jsReceiver, jsName, callName, args]);
+        }
+      }
+    }
     return js.call('#.#(#)', [jsReceiver, jsName, args]);
   }
+
+  bool _isDirectCallable(DartType t) =>
+      t is FunctionType || t is InterfaceType && usesJSInterop(t.classNode);
+
+  JS.Expression _getImplicitCallTarget(InterfaceType from) {
+    var c = from.classNode;
+    var member = hierarchy.getInterfaceMember(c, new Name("call"));
+    if (member is Procedure && !member.isAccessor && !usesJSInterop(c)) {
+      return _emitMemberName('call', type: from, member: member);
+    }
+    return null;
+  }
+
+  _isDynamicOrFunction(DartType t) =>
+      t == coreTypes.functionClass.rawType || t == const DynamicType();
 
   JS.Expression _emitUnaryOperator(
       Expression expr, Member target, InvocationExpression node) {
@@ -4999,24 +4996,6 @@ class ProgramCompiler
 
   @override
   visitClosureCreation(ClosureCreation node) => defaultExpression(node);
-
-  bool isCallableClass(Class c) {
-    // See if we have a "call" with a statically known function type:
-    //
-    // - if it's a method, then it does because all methods do,
-    // - if it's a getter, check the return type.
-    //
-    // Other cases like a getter returning dynamic/Object/Function will be
-    // handled at runtime by the dynamic call mechanism. So we only
-    // concern ourselves with statically known function types.
-    //
-    // We can ignore `noSuchMethod` because:
-    // * `dynamic d; d();` without a declared `call` method is handled by dcall.
-    // * for `class C implements Callable { noSuchMethod(i) { ... } }` we find
-    //   the `call` method on the `Callable` interface.
-    var member = hierarchy.getInterfaceMember(c, new Name("call"));
-    return member != null && member.getterType is FunctionType;
-  }
 
   bool _reifyFunctionType(FunctionNode f) {
     if (_currentLibrary.importUri.scheme != 'dart') return true;

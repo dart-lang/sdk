@@ -189,7 +189,7 @@ class Error {
   }
 
   @patch
-  StackTrace get stackTrace => Primitives.extractStackTrace(this);
+  StackTrace get stackTrace => getTraceFromException(this);
 }
 
 @patch

@@ -7,7 +7,7 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
-#include "vm/atomic.h"
+#include "platform/atomic.h"
 #include "vm/base_isolate.h"
 #include "vm/class_table.h"
 #include "vm/exceptions.h"

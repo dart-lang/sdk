@@ -32,6 +32,7 @@ Future<int> main() async {
 
   group('batch compile with mocked compiler', () {
     final CompilerInterface compiler = new _MockedCompiler();
+    when(compiler.compile(any, any, generator: any)).thenReturn(true);
 
     test('compile from command line', () async {
       final List<String> args = <String>[
@@ -212,6 +213,7 @@ Future<int> main() async {
 
   group('interactive incremental compile with mocked compiler', () {
     final CompilerInterface compiler = new _MockedCompiler();
+    when(compiler.compile(any, any, generator: any)).thenReturn(true);
 
     final List<String> args = <String>[
       '--sdk-root',
@@ -405,6 +407,7 @@ Future<int> main() async {
 
     group('compile with output path', () {
       final CompilerInterface compiler = new _MockedCompiler();
+      when(compiler.compile(any, any, generator: any)).thenReturn(true);
 
       test('compile from command line', () async {
         final List<String> args = <String>[

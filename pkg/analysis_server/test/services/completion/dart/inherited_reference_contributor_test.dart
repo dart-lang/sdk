@@ -1,6 +1,7 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -123,6 +124,42 @@ class A extends E implements I with M {a() {^}}''');
     assertSuggestMethod('f2', 'F', null);
     assertSuggestMethod('i2', 'I', null);
     assertSuggestMethod('m2', 'M', 'int');
+  }
+
+  test_flutter_setState_hasPrefix() async {
+    var spaces_4 = ' ' * 4;
+    var spaces_6 = ' ' * 6;
+    await _check_flutter_setState(
+        '    setSt',
+        '''
+setState(() {
+$spaces_6
+$spaces_4});''',
+        20);
+  }
+
+  test_flutter_setState_longPrefix() async {
+    var spaces_6 = ' ' * 6;
+    var spaces_8 = ' ' * 8;
+    await _check_flutter_setState(
+        '      setSt',
+        '''
+setState(() {
+$spaces_8
+$spaces_6});''',
+        22);
+  }
+
+  test_flutter_setState_noPrefix() async {
+    var spaces_4 = ' ' * 4;
+    var spaces_6 = ' ' * 6;
+    await _check_flutter_setState(
+        '    ',
+        '''
+setState(() {
+$spaces_6
+$spaces_4});''',
+        20);
   }
 
   test_inherited() async {
@@ -603,5 +640,38 @@ class B extends A1 with A2 {
     assertNotSuggested('y1');
     assertNotSuggested('x2');
     assertNotSuggested('y2');
+  }
+
+  Future<void> _check_flutter_setState(
+      String line, String completion, int selectionOffset) async {
+    addFlutterPackage();
+    addTestSource('''
+import 'package:flutter/widgets.dart';
+
+class TestWidget extends StatefulWidget {
+  @override
+  TestWidgetState createState() {
+    return new TestWidgetState();
+  }
+}
+
+class TestWidgetState extends State<TestWidget> {
+  @override
+  Widget build(BuildContext context) {
+$line^
+  }
+}
+''');
+    await computeSuggestions();
+    CompletionSuggestion cs =
+        assertSuggest(completion, selectionOffset: selectionOffset);
+    expect(cs.selectionLength, 0);
+
+    // It is an invocation, but we don't need any additional info for it.
+    // So, all parameter information is absent.
+    expect(cs.parameterNames, isNull);
+    expect(cs.parameterTypes, isNull);
+    expect(cs.requiredParameterCount, isNull);
+    expect(cs.hasNamedParameters, isNull);
   }
 }

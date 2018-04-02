@@ -11,10 +11,9 @@ template("build_libdart_platform") {
   }
   static_library(target_name) {
     configs += [
-      "..:dart_arch_config",
-      "..:dart_config",
-      "..:dart_os_config",
-    ] + extra_configs
+                 "..:dart_arch_config",
+                 "..:dart_config",
+               ] + extra_configs
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
@@ -27,9 +26,29 @@ template("build_libdart_platform") {
 }
 
 build_libdart_platform("libdart_platform") {
-  extra_configs = [ "..:dart_maybe_product_config" ]
+  extra_configs = [
+    "..:dart_maybe_product_config",
+    "..:dart_os_config",
+  ]
 }
 
 build_libdart_platform("libdart_platform_product") {
-  extra_configs = [ "..:dart_product_config" ]
+  extra_configs = [
+    "..:dart_product_config",
+    "..:dart_os_config",
+  ]
+}
+
+build_libdart_platform("libdart_platform_fuchsia") {
+  extra_configs = [
+    "..:dart_maybe_product_config",
+    "..:dart_os_fuchsia_config",
+  ]
+}
+
+build_libdart_platform("libdart_platform_product_fuchsia") {
+  extra_configs = [
+    "..:dart_product_config",
+    "..:dart_os_fuchsia_config",
+  ]
 }

@@ -486,6 +486,9 @@ class InstanceMethod extends DartMethod {
   /// functions that can be torn off.
   final bool isClosureCallMethod;
 
+  /// True if the interceptor calling convention is used for this method.
+  final bool isIntercepted;
+
   InstanceMethod(FunctionEntity element, js.Name name, js.Expression code,
       List<ParameterStubMethod> parameterStubs, js.Name callName,
       {bool needsTearOff,
@@ -496,6 +499,7 @@ class InstanceMethod extends DartMethod {
       int requiredParameterCount,
       /* List | Map */ optionalParameterDefaultValues,
       this.isClosureCallMethod,
+      this.isIntercepted,
       js.Expression functionType})
       : super(element, name, code, parameterStubs, callName,
             needsTearOff: needsTearOff,

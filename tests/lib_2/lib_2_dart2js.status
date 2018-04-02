@@ -289,6 +289,7 @@ html/localstorage_test: RuntimeError
 html/location_test: RuntimeError
 html/media_stream_test: RuntimeError
 html/mediasource_test: RuntimeError
+html/message_channel_test: RuntimeError
 html/messageevent_test: RuntimeError
 html/mirrors_js_typed_interop_test: RuntimeError
 html/mouse_event_test: RuntimeError
@@ -371,6 +372,7 @@ html/fontface_loaded_test: RuntimeError
 html/html_mock_test: RuntimeError # Issue 31038
 html/input_element_attributes_test: RuntimeError
 html/interactive_media_test: RuntimeError
+html/js_dart_functions_test: RuntimeError # does not implement Dart 2 implicit `.call` tearoff
 html/js_extend_class_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == drt && !$checked ]

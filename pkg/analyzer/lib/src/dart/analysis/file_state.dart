@@ -149,7 +149,8 @@ class FileState {
       : isInExternalSummaries = true,
         path = null,
         fileUri = null,
-        source = null {
+        source = null,
+        _exists = true {
     _apiSignature = new Uint8List(16);
   }
 

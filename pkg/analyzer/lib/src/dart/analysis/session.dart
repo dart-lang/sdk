@@ -80,7 +80,7 @@ class AnalysisSessionImpl implements AnalysisSession {
     var libraryElement = _uriToLibraryCache[uri];
     if (libraryElement == null) {
       libraryElement = await _driver.getLibraryByUri(uri);
-      _fillUriToLibraryCache(libraryElement);
+      _uriToLibraryCache[uri] = libraryElement;
     }
     return libraryElement;
   }
@@ -123,38 +123,12 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   /**
-   * Put information into the session, so it is available even though it is
-   * not yet requested by the user. We want to put only information that is
-   * already available directly, or can be derived from available information
-   * very cheaply.
-   */
-  void put({LibraryElement libraryElement}) {
-    if (libraryElement != null) {
-      _fillUriToLibraryCache(libraryElement);
-    }
-  }
-
-  /**
    * Check to see that results from this session will be consistent, and throw
    * an [InconsistentAnalysisException] if they might not be.
    */
   void _checkConsistency() {
     if (_driver.currentSession != this) {
       throw new InconsistentAnalysisException();
-    }
-  }
-
-  /**
-   * Fill the [_uriToLibraryCache] with libraries referenced from the
-   * given [library].
-   */
-  void _fillUriToLibraryCache(LibraryElement library) {
-    Source source = library.source;
-    String uri = source.uri.toString();
-    if (_uriToLibraryCache[uri] == null) {
-      _uriToLibraryCache[uri] = library;
-      library.importedLibraries.forEach(_fillUriToLibraryCache);
-      library.exportedLibraries.forEach(_fillUriToLibraryCache);
     }
   }
 }

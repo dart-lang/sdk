@@ -783,7 +783,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment EvaluateAssertion();
   Fragment CheckVariableTypeInCheckedMode(const AbstractType& dst_type,
                                           const String& name_symbol);
-  Fragment CheckBooleanInCheckedMode();
+  Fragment CheckBoolean();
   Fragment CheckAssignable(const AbstractType& dst_type,
                            const String& dst_name);
 

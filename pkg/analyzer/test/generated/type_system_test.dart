@@ -189,6 +189,15 @@ class LeastUpperBoundTest extends LeastUpperBoundTestBase {
     _checkLeastUpperBound(type1, type2, expected);
   }
 
+  void test_typeParam_class_implements_Function() {
+    DartType typeA = ElementFactory.classElement('A', functionType).type;
+    TypeParameterElementImpl typeParamElement =
+        ElementFactory.typeParameterElement('T');
+    typeParamElement.bound = typeA;
+    DartType typeParam = typeParamElement.type;
+    _checkLeastUpperBound(typeParam, simpleFunctionType, functionType);
+  }
+
   /// Check least upper bound of the same class with different type parameters.
   void test_typeParameters_different() {
     // class List<int>
@@ -501,10 +510,9 @@ abstract class LeastUpperBoundTestBase extends BoundTestBase {
   }
 
   void test_typeParam_function_bounded() {
-    DartType typeA = ElementFactory.classElement('A', functionType).type;
     TypeParameterElementImpl typeParamElement =
         ElementFactory.typeParameterElement('T');
-    typeParamElement.bound = typeA;
+    typeParamElement.bound = functionType;
     DartType typeParam = typeParamElement.type;
     _checkLeastUpperBound(typeParam, simpleFunctionType, functionType);
   }
@@ -1551,6 +1559,15 @@ class StrongLeastUpperBoundTest extends LeastUpperBoundTestBase {
     _checkLeastUpperBound(typeParamT, typeParamS, typeParamS);
   }
 
+  void test_typeParam_class_implements_Function_ignored() {
+    DartType typeA = ElementFactory.classElement('A', functionType).type;
+    TypeParameterElementImpl typeParamElement =
+        ElementFactory.typeParameterElement('T');
+    typeParamElement.bound = typeA;
+    DartType typeParam = typeParamElement.type;
+    _checkLeastUpperBound(typeParam, simpleFunctionType, objectType);
+  }
+
   void test_typeParam_fBounded() {
     ClassElementImpl AClass = ElementFactory.classElement2('A', ["Q"]);
     InterfaceType AType = AClass.type;
@@ -1602,9 +1619,10 @@ class StrongSubtypingTest {
   InterfaceType get objectType => typeProvider.objectType;
   InterfaceType get stringType => typeProvider.stringType;
   DartType get voidType => VoidTypeImpl.instance;
+  InterfaceType get futureOrType => typeProvider.futureOrType;
 
   void setUp() {
-    typeProvider = new TestTypeProvider();
+    typeProvider = AnalysisContextFactory.contextWithCore().typeProvider;
     typeSystem = new StrongTypeSystemImpl(typeProvider);
   }
 
@@ -1634,7 +1652,7 @@ class StrongSubtypingTest {
         TypeBuilder.function(required: <DartType>[intType], result: objectType);
     InterfaceType bottom = classBottom.type;
 
-    _checkIsStrictSubtypeOf(bottom, top);
+    _checkIsNotSubtypeOf(bottom, top);
   }
 
   void test_classes() {
@@ -1687,6 +1705,26 @@ class StrongSubtypingTest {
       bottomType
     ];
     _checkGroups(voidType, equivalents: equivalents, subtypes: subtypes);
+  }
+
+  void test_function_subtypes_itself_top_types() {
+    var tops = [dynamicType, objectType, voidType];
+    // Add FutureOr<T> for T := dynamic, object, void
+    tops.addAll(tops.map((t) => futureOrType.instantiate([t])).toList());
+    // Add FutureOr<FutureOr<T>> for T := dynamic, object, void
+    tops.addAll(
+        tops.skip(3).map((t) => futureOrType.instantiate([t])).toList());
+
+    // Function should subtype all of those top types.
+    _checkGroups(functionType, supertypes: [
+      dynamicType,
+      objectType,
+      voidType,
+    ]);
+
+    // Create a non-identical but equal copy of Function, and verify subtyping
+    var copyOfFunction = new InterfaceTypeImpl(functionType.element, null);
+    _checkEquivalent(functionType, copyOfFunction);
   }
 
   void test_genericFunction_generic_monomorphic() {

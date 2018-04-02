@@ -106,9 +106,7 @@ void main() {
 
   testMockTearoffs();
   testMockCallable();
-
-  // TODO(jmesserly): enable these tests once we have implicit call tearoff.
-  // testMockCallableTearoff();
+  testMockCallableTearoff();
 }
 
 testMockCallable() {

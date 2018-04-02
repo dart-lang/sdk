@@ -3550,8 +3550,13 @@ RawString* Class::GenerateUserVisibleName() const {
       return Symbols::List().raw();
 #endif  // !defined(PRODUCT)
   }
-  const String& name = String::Handle(Name());
-  return String::ScrubName(name);
+  String& name = String::Handle(Name());
+  name = String::ScrubName(name);
+  if (name.raw() == Symbols::FutureImpl().raw() &&
+      library() == Library::AsyncLibrary()) {
+    return Symbols::Future().raw();
+  }
+  return name.raw();
 }
 
 void Class::set_script(const Script& value) const {
@@ -4778,7 +4783,6 @@ RawString* TypeArguments::SubvectorName(intptr_t from_index,
                                         NameVisibility name_visibility) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  ASSERT(from_index + len <= Length());
   String& name = String::Handle(zone);
   const intptr_t num_strings =
       (len == 0) ? 2 : 2 * len + 1;  // "<""T"", ""T"">".
@@ -4786,8 +4790,14 @@ RawString* TypeArguments::SubvectorName(intptr_t from_index,
   pieces.Add(Symbols::LAngleBracket());
   AbstractType& type = AbstractType::Handle(zone);
   for (intptr_t i = 0; i < len; i++) {
-    type = TypeAt(from_index + i);
-    name = type.BuildName(name_visibility);
+    if (from_index + i < Length()) {
+      type = TypeAt(from_index + i);
+      name = type.BuildName(name_visibility);
+    } else {
+      // Show dynamic type argument in strong mode.
+      ASSERT(thread->isolate()->strong());
+      name = Symbols::Dynamic().raw();
+    }
     pieces.Add(name);
     if (i < len - 1) {
       pieces.Add(Symbols::CommaSpace());
@@ -16529,8 +16539,10 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
         num_type_params = num_args;
       } else {
         ASSERT(num_args == 0);  // Type is raw.
-        // No need to fill up with "dynamic".
-        num_type_params = 0;
+        // No need to fill up with "dynamic", unless running in strong mode.
+        if (!thread->isolate()->strong()) {
+          num_type_params = 0;
+        }
       }
     } else {
       // The actual type argument vector can be longer than necessary, because
@@ -16549,7 +16561,8 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
   GrowableHandlePtrArray<const String> pieces(zone, 4);
   pieces.Add(class_name);
   if ((num_type_params == 0) ||
-      args.IsRaw(first_type_param_index, num_type_params)) {
+      (!thread->isolate()->strong() &&
+       args.IsRaw(first_type_param_index, num_type_params))) {
     // Do nothing.
   } else {
     const String& args_name = String::Handle(
@@ -16802,6 +16815,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
     return false;  // TODO(regis): We should return "maybe after instantiation".
   }
   const Class& type_cls = Class::Handle(zone, type_class());
+  const Class& other_type_cls = Class::Handle(zone, other.type_class());
   // Function types cannot be handled by Class::TypeTest().
   const bool other_is_dart_function_type = other.IsDartFunctionType();
   if (other_is_dart_function_type || other.IsFunctionType()) {
@@ -16818,18 +16832,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
                           space);
     }
     // In strong mode, subtyping rules of callable instances are restricted.
-    if (isolate->strong()) {
-      // [this] is not a function type.
-      // If [other] is a function type, then [this] can't be a subtype of
-      // [other], according to Dart 2 subtyping rules.
-      // This check is needed to avoid falling through to class-based type
-      // tests, which yield incorrect result if [this] = _Closure class,
-      // and [other] is a function type, because class of a function type is
-      // also _Closure.
-      if (other.IsFunctionType()) {
-        return false;
-      }
-    } else {
+    if (!isolate->strong()) {
       // Check if type S has a call() method of function type T.
       const Function& call_function =
           Function::Handle(zone, type_cls.LookupCallFunctionForTypeTest());
@@ -16850,6 +16853,19 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
         }
       }
     }
+    if (other.IsFunctionType() && !other_type_cls.IsTypedefClass()) {
+      // [this] is not a function type (and, in non-strong mode, does not
+      // declare a compatible call() method as verified above). Therefore,
+      // non-function type [this] cannot be a subtype of function type [other],
+      // unless [other] is not only a function type, but also a named typedef.
+      // Indeed a typedef also behaves as a regular class-based type (with type
+      // arguments when generic).
+      // This check is needed to avoid falling through to class-based type
+      // tests, which yield incorrect result if [this] = _Closure class,
+      // and [other] is a function type, because class of a function type is
+      // also _Closure (unless [other] is a typedef).
+      return false;
+    }
   }
   if (IsFunctionType()) {
     // In strong mode, check if 'other' is 'FutureOr'.
@@ -16861,7 +16877,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
     return false;
   }
   return type_cls.TypeTest(test_kind, TypeArguments::Handle(zone, arguments()),
-                           Class::Handle(zone, other.type_class()),
+                           other_type_cls,
                            TypeArguments::Handle(zone, other.arguments()),
                            bound_error, bound_trail, space);
 }
@@ -22532,7 +22548,7 @@ int64_t Closure::ComputeHash() const {
   const Function& func = Function::Handle(zone, function());
   uint32_t result = 0;
   if (func.IsImplicitInstanceClosureFunction()) {
-    // Implicit instance closures are not unqiue, so combine function's hash
+    // Implicit instance closures are not unique, so combine function's hash
     // code with identityHashCode of cached receiver.
     result = static_cast<uint32_t>(func.ComputeClosureHash());
     const Context& context = Context::Handle(zone, this->context());

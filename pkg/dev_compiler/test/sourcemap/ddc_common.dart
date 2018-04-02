@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library dev_compiler.test.sourcemap.ddc_common;
+
 import 'dart:io';
+import 'dart:mirrors' show currentMirrorSystem;
 
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:path/path.dart' as path;
@@ -127,10 +130,14 @@ String getWrapperContent(
   return """
     import { dart, _isolate_helper } from '${uriPathForwardSlashed(jsSdkPath)}';
     import { $inputFileNameNoExt } from '$outputFilename';
+
+    let global = new Function('return this;')();
+    $d8Preambles
+
     let main = $inputFileNameNoExt.main;
     dart.ignoreWhitelistedErrors(false);
     try {
-      _isolate_helper.startRootIsolate(main, []);
+      dartMainRunner(main, []);
     } catch(e) {
       console.error(e.toString(), dart.stackTrace(e).toString());
     }
@@ -181,3 +188,10 @@ String getWrapperHtmlContent(String jsRootDart, String outFileRootBuild) {
 </html>
 """;
 }
+
+Uri selfUri = currentMirrorSystem()
+    .findLibrary(#dev_compiler.test.sourcemap.ddc_common)
+    .uri;
+String d8Preambles = new File.fromUri(
+        selfUri.resolve('../../tool/input_sdk/private/preambles/d8.js'))
+    .readAsStringSync();

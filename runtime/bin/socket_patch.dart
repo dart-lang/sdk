@@ -1414,7 +1414,7 @@ class _ServerSocket extends Stream<Socket> implements ServerSocket {
 @patch
 class Socket {
   @patch
-  static Future<Socket> connect(host, int port,
+  static Future<Socket> _connect(host, int port,
       {sourceAddress, Duration timeout}) {
     return RawSocket
         .connect(host, port, sourceAddress: sourceAddress, timeout: timeout)

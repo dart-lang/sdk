@@ -6,7 +6,7 @@
 #define RUNTIME_VM_CLASS_TABLE_H_
 
 #include "platform/assert.h"
-#include "vm/atomic.h"
+#include "platform/atomic.h"
 #include "vm/bitfield.h"
 #include "vm/globals.h"
 

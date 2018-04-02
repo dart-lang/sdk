@@ -27,6 +27,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -107,6 +108,16 @@ class FixProcessor {
    */
   AnalysisDriver driver;
 
+  /**
+   * The analysis session to be used to create the change builder.
+   */
+  AnalysisSession session;
+
+  /**
+   * The helper wrapper around the [session].
+   */
+  AnalysisSessionHelper sessionHelper;
+
   String file;
   CompilationUnitElement unitElement;
   Source unitSource;
@@ -131,7 +142,11 @@ class FixProcessor {
     resourceProvider = dartContext.resourceProvider;
     astProvider = dartContext.astProvider;
     getTopLevelDeclarations = dartContext.getTopLevelDeclarations;
+
     driver = dartContext.analysisDriver;
+    session = driver.currentSession;
+    sessionHelper = new AnalysisSessionHelper(session);
+
     // unit
     unit = dartContext.unit;
     unitElement = unit.element;
@@ -153,11 +168,6 @@ class FixProcessor {
    * Returns the EOL to use for this [CompilationUnit].
    */
   String get eol => utils.endOfLine;
-
-  /**
-   * Return the analysis session to be used to create the change builder.
-   */
-  AnalysisSession get session => driver.currentSession;
 
   TypeProvider get typeProvider {
     if (_typeProvider == null) {
@@ -296,9 +306,6 @@ class FixProcessor {
     if (errorCode == HintCode.MISSING_REQUIRED_PARAM ||
         errorCode == HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS) {
       await _addFix_addMissingRequiredArgument();
-    }
-    if (errorCode == StaticWarningCode.FUNCTION_WITHOUT_CALL) {
-      await _addFix_addMissingMethodCall();
     }
     if (errorCode == StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR) {
       await _addFix_createConstructor_named();
@@ -598,32 +605,6 @@ class FixProcessor {
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.ADD_EXPLICIT_CAST);
     }
-  }
-
-  Future<Null> _addFix_addMissingMethodCall() async {
-    ClassDeclaration targetClass = node.parent as ClassDeclaration;
-    int insertOffset = targetClass.end - 1;
-    // prepare environment
-    String prefix = utils.getIndent(1);
-    String prefix2 = utils.getIndent(2);
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addInsertion(insertOffset, (DartEditBuilder builder) {
-        builder.selectHere();
-        builder.write(prefix);
-        builder.write('call() {');
-        // TO-DO
-        builder.write(eol);
-        builder.write(prefix2);
-        builder.write('// TODO: implement call');
-        builder.write(eol);
-        // close method
-        builder.write(prefix);
-        builder.write('}');
-        builder.write(eol);
-      });
-    });
-    _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_MISSING_METHOD_CALL);
   }
 
   Future<Null> _addFix_addMissingParameter() async {
@@ -1110,11 +1091,15 @@ class FixProcessor {
     if (node is! SimpleIdentifier || node.parent is! VariableDeclaration) {
       return;
     }
+
     ClassDeclaration classDeclaration =
         node.getAncestor((node) => node is ClassDeclaration);
     if (classDeclaration == null) {
       return;
     }
+    String className = classDeclaration.name.name;
+    InterfaceType superType = classDeclaration.element.supertype;
+
     // prepare names of uninitialized final fields
     List<String> fieldNames = <String>[];
     for (ClassMember member in classDeclaration.members) {
@@ -1130,15 +1115,50 @@ class FixProcessor {
     // prepare location for a new constructor
     ClassMemberLocation targetLocation =
         utils.prepareNewConstructorLocation(classDeclaration);
+
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
-        builder.write(targetLocation.prefix);
-        builder.writeConstructorDeclaration(classDeclaration.name.name,
-            fieldNames: fieldNames);
-        builder.write(targetLocation.suffix);
+    if (flutter.isExactlyStatelessWidgetType(superType) ||
+        flutter.isExactlyStatefulWidgetType(superType)) {
+      // Specialize for Flutter widgets.
+      ClassElement keyClass =
+          await sessionHelper.getClass(flutter.WIDGETS_LIBRARY_URI, 'Key');
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
+          builder.write(targetLocation.prefix);
+          builder.write('const ');
+          builder.write(className);
+          builder.write('({');
+          builder.writeType(keyClass.type);
+          builder.write(' key');
+
+          List<String> childrenFields = [];
+          for (String fieldName in fieldNames) {
+            if (fieldName == 'child' || fieldName == 'children') {
+              childrenFields.add(fieldName);
+              continue;
+            }
+            builder.write(', this.');
+            builder.write(fieldName);
+          }
+          for (String fieldName in childrenFields) {
+            builder.write(', this.');
+            builder.write(fieldName);
+          }
+
+          builder.write('}) : super(key: key);');
+          builder.write(targetLocation.suffix);
+        });
       });
-    });
+    } else {
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
+          builder.write(targetLocation.prefix);
+          builder.writeConstructorDeclaration(className,
+              fieldNames: fieldNames);
+          builder.write(targetLocation.suffix);
+        });
+      });
+    }
     _addFixFromBuilder(
         changeBuilder, DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS);
   }
@@ -2965,22 +2985,44 @@ class FixProcessor {
       return;
     }
     ConstructorDeclaration constructor = node.parent;
-    // add these fields
+    List<FormalParameter> parameters = constructor.parameters.parameters;
+
+    ClassDeclaration classNode = constructor.parent;
+    InterfaceType superType = classNode.element.supertype;
+
+    // Compute uninitialized final fields.
     List<FieldElement> fields =
         ErrorVerifier.computeNotInitializedFields(constructor);
     fields.retainWhere((FieldElement field) => field.isFinal);
-    // prepare new parameters code
+
+    // Prepare new parameters code.
     fields.sort((a, b) => a.nameOffset - b.nameOffset);
     String fieldParametersCode =
         fields.map((field) => 'this.${field.name}').join(', ');
-    // prepare the last required parameter
+
+    // Specialize for Flutter widgets.
+    if (flutter.isExactlyStatelessWidgetType(superType) ||
+        flutter.isExactlyStatefulWidgetType(superType)) {
+      if (parameters.isNotEmpty && parameters.last.isNamed) {
+        DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+          builder.addSimpleInsertion(
+              parameters.last.end, ', $fieldParametersCode');
+        });
+        _addFixFromBuilder(
+            changeBuilder, DartFixKind.ADD_FIELD_FORMAL_PARAMETERS);
+        return;
+      }
+    }
+
+    // Prepare the last required parameter.
     FormalParameter lastRequiredParameter;
-    List<FormalParameter> parameters = constructor.parameters.parameters;
     for (FormalParameter parameter in parameters) {
       if (parameter.isRequired) {
         lastRequiredParameter = parameter;
       }
     }
+
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       // append new field formal initializers

@@ -1,3 +1,14 @@
+## 2.0.0-dev.44.0
+
+### Tool Changes
+
+#### Pub
+
+* Pub has a brand new version solver! It supports all the same features as the
+  old version solver, but it's much less likely to stall out on difficult
+  package graphs, and it's much clearer about why a solution can't be found when
+  version solving fails.
+
 ## 2.0.0-dev.43.0
 
 ## 2.0.0-dev.42.0
@@ -7,6 +18,16 @@
 * `dart:collection`
   * Removed `Maps` class. Extend `MapBase` or mix in `MapMixin` instead to
     provide map method implementations for a class.
+* `dart:html`
+  * Removed deprecated `query` and `queryAll` use `querySelector` and `queryAllSelector`.
+  * Removed experimental `Document` method `getCSSCanvasContext` and property
+    `supportsCssCanvasContext`.
+  * Removed obsolete `Element` property `xtag` no longer supported in browsers.
+  * Exposed `ServiceWorker` class.
+  * Added constructor to `MessageChannel` and `MessagePort` `addEventListener` automatically calls
+    `start` method to receive queued messages.
+* `dart:io`
+  * Added `IOOverrides.socketConnect`.
 
 ### Tool Changes
 

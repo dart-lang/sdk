@@ -367,12 +367,15 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
   }
 
   // Add platform defined variables
-  declaredVariables['dart.isVM'] = 'false';
-
-  // TODO(vsm): Should this be hardcoded?
-  declaredVariables['dart.library.html'] = 'true';
-  declaredVariables['dart.library.io'] = 'false';
-  declaredVariables['dart.library.ui'] = 'false';
+  declaredVariables.addAll({
+    'dart.isVM': 'false',
+    // TODO(vsm): Should this be hardcoded?
+    'dart.library.html': 'true',
+    'dart.library.io': 'false',
+    'dart.library.ui': 'false',
+    'dart.library.mirrors': 'false',
+    'dart.library.isolate': 'false'
+  });
 
   return declaredVariables;
 }

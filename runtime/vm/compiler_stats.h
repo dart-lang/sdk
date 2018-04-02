@@ -5,8 +5,8 @@
 #ifndef RUNTIME_VM_COMPILER_STATS_H_
 #define RUNTIME_VM_COMPILER_STATS_H_
 
+#include "platform/atomic.h"
 #include "vm/allocation.h"
-#include "vm/atomic.h"
 #include "vm/flags.h"
 #include "vm/isolate.h"
 #include "vm/timer.h"

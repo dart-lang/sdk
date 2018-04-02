@@ -328,8 +328,6 @@ class_literal_test/01: RuntimeError
 class_literal_test/03: RuntimeError
 class_literal_test/07: RuntimeError
 config_import_test: RuntimeError # not supported by fasta
-const_error_multiply_initialized_test/02: MissingCompileTimeError
-const_error_multiply_initialized_test/04: MissingCompileTimeError
 const_evaluation_test/01: RuntimeError
 const_instance_field_test/01: MissingCompileTimeError
 const_map2_test/00: MissingCompileTimeError
@@ -342,7 +340,7 @@ constructor2_test: RuntimeError
 constructor3_test: RuntimeError
 constructor5_test: RuntimeError
 constructor6_test: RuntimeError
-constructor_call_as_function_test/01: CompileTimeError # Issue 32517
+constructor_call_as_function_test/01: MissingRuntimeError
 constructor_named_arguments_test/none: RuntimeError
 constructor_redirect1_negative_test: Crash # Issue 30856
 constructor_redirect2_negative_test: Crash # Issue 30856

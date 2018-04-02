@@ -489,7 +489,6 @@ class Debugger {
   Breakpoint* SetBreakpointAtLineCol(const String& script_url,
                                      intptr_t line_number,
                                      intptr_t column_number);
-  RawError* OneTimeBreakAtEntry(const Function& target_function);
 
   BreakpointLocation* BreakpointLocationAtLineCol(const String& script_url,
                                                   intptr_t line_number,
