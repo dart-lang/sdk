@@ -472,38 +472,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_missingAssignableSelector_identifiersAssigned() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Expected: true
-    //   Actual: <false>
-    //
-    //   package:test                                                       expect
-    //   test/generated/parser_fasta_test.dart 3439:5                       ParserProxy._run
-    super.test_missingAssignableSelector_identifiersAssigned();
-  }
-
-  @override
-  @failingTest
-  void test_missingAssignableSelector_superPropertyAccessAssigned() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Expected: true
-    //   Actual: <false>
-    //
-    //   package:test                                                       expect
-    //   test/generated/parser_fasta_test.dart 3488:5                       ParserProxy._run
-    super.test_missingAssignableSelector_superPropertyAccessAssigned();
-  }
-
-  @override
-  @failingTest
-  void test_missingEnumBody() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_ENUM_BODY, found 0
-    super.test_missingEnumBody();
-  }
-
-  @override
-  @failingTest
   void test_missingExpressionInThrow() {
     // TODO(brianwilkerson) Does not recover.
     //   type 'RethrowExpressionImpl' is not a subtype of type 'ThrowExpression' of 'expression' where

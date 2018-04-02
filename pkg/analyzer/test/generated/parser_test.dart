@@ -4291,7 +4291,7 @@ class Wrong<T> {
   }
 
   void test_missingAssignableSelector_identifiersAssigned() {
-    parseExpression("x.y = y;");
+    parseExpression("x.y = y;", expectedEndOffset: 7);
   }
 
   void test_missingAssignableSelector_prefix_minusMinus_literal() {
@@ -4324,7 +4324,7 @@ class Wrong<T> {
   }
 
   void test_missingAssignableSelector_superPropertyAccessAssigned() {
-    parseExpression("super.x = x;");
+    parseExpression("super.x = x;", expectedEndOffset: 11);
   }
 
   void test_missingCatchOrFinally() {
@@ -4373,11 +4373,19 @@ class Wrong<T> {
   }
 
   void test_missingEnumBody() {
-    createParser('enum E;');
+    createParser('enum E;', expectedEndOffset: 6);
     EnumDeclaration declaration = parseFullCompilationUnitMember();
     expectNotNullIfNoErrors(declaration);
     listener
         .assertErrors([expectedError(ParserErrorCode.MISSING_ENUM_BODY, 6, 1)]);
+  }
+
+  void test_missingEnumComma() {
+    createParser('enum E {one two}');
+    EnumDeclaration declaration = parseFullCompilationUnitMember();
+    expectNotNullIfNoErrors(declaration);
+    listener
+        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 3)]);
   }
 
   void test_missingExpressionInThrow() {

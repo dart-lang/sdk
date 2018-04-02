@@ -1598,6 +1598,31 @@ Message _withArgumentsExpectedDeclaration(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(Token token)> templateExpectedEnumBody = const Template<
+        Message Function(Token token)>(
+    messageTemplate: r"""Expected a enum body, but got '#lexeme'.""",
+    tipTemplate:
+        r"""An enum definition must have a body with at least one constant name.""",
+    withArguments: _withArgumentsExpectedEnumBody);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeExpectedEnumBody =
+    const Code<Message Function(Token token)>(
+        "ExpectedEnumBody", templateExpectedEnumBody,
+        analyzerCode: "MISSING_ENUM_BODY", dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExpectedEnumBody(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeExpectedEnumBody,
+      message: """Expected a enum body, but got '$lexeme'.""",
+      tip:
+          """An enum definition must have a body with at least one constant name.""",
+      arguments: {'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExpectedFunctionBody =
     const Template<Message Function(Token token)>(
         messageTemplate: r"""Expected a function body, but got '#lexeme'.""",
