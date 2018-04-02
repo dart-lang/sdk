@@ -4880,7 +4880,7 @@ class ResolverErrorCode extends ErrorCode {
    * given [correction] template.
    */
   const ResolverErrorCode(String name, String message, {String correction})
-      : super(name, message, correction: correction);
+      : super.temporary(name, message, correction: correction);
 
   @override
   ErrorSeverity get errorSeverity => type.severity;

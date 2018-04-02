@@ -703,7 +703,7 @@ class HintCode extends ErrorCode {
    * given [correction] template.
    */
   const HintCode(String name, String message, {String correction})
-      : super(name, message, correction: correction);
+      : super.temporary(name, message, correction: correction);
 
   @override
   ErrorSeverity get errorSeverity => ErrorType.HINT.severity;

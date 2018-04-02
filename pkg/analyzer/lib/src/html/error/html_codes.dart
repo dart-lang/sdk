@@ -29,7 +29,7 @@ class HtmlErrorCode extends ErrorCode {
    * given [correction] template.
    */
   const HtmlErrorCode(String name, String message, {String correction})
-      : super(name, message, correction: correction);
+      : super.temporary(name, message, correction: correction);
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
@@ -72,7 +72,7 @@ class HtmlWarningCode extends ErrorCode {
    * given [correction] template.
    */
   const HtmlWarningCode(String name, String message, {String correction})
-      : super(name, message, correction: correction);
+      : super.temporary(name, message, correction: correction);
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.WARNING;

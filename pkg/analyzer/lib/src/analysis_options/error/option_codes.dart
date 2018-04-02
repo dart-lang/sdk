@@ -41,7 +41,7 @@ class AnalysisOptionsErrorCode extends ErrorCode {
    */
   const AnalysisOptionsErrorCode(String name, String message,
       {String correction})
-      : super(name, message, correction: correction);
+      : super.temporary(name, message, correction: correction);
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
@@ -140,7 +140,7 @@ class AnalysisOptionsWarningCode extends ErrorCode {
    */
   const AnalysisOptionsWarningCode(String name, String message,
       {String correction})
-      : super(name, message, correction: correction);
+      : super.temporary(name, message, correction: correction);
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.WARNING;
@@ -178,7 +178,7 @@ class AnalysisOptionsHintCode extends ErrorCode {
    */
   const AnalysisOptionsHintCode(String name, String message,
       {String correction})
-      : super(name, message, correction: correction);
+      : super.temporary(name, message, correction: correction);
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
