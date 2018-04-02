@@ -17,7 +17,6 @@ async_helper:pkg/async_helper/lib
 barback:third_party/pkg/barback/lib
 bazel_worker:third_party/pkg/bazel_worker/lib
 boolean_selector:third_party/pkg/boolean_selector/lib
-browser:third_party/pkg/browser/lib
 charcode:third_party/pkg/charcode/lib
 charted:third_party/observatory_pub_packages/packages/charted/lib
 cli_util:third_party/pkg/cli_util/lib
