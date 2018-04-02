@@ -1236,6 +1236,7 @@ abstract class AnalysisOptions {
   /**
    * Return `true` to enable the use of URIs in part-of directives.
    */
+  @deprecated
   bool get enableUriInPartOf;
 
   /**
@@ -1417,9 +1418,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * A list of exclude patterns used to exclude some sources from analysis.
    */
   List<String> _excludePatterns;
-
-  @override
-  bool enableUriInPartOf = true;
 
   @override
   bool generateImplicitErrors = true;
@@ -1605,6 +1603,13 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @deprecated
   void set enableInitializingFormalAccess(bool enable) {}
 
+  @deprecated
+  @override
+  bool get enableUriInPartOf => true;
+
+  @deprecated
+  void set enableUriInPartOf(bool enable) {}
+
   @override
   List<ErrorProcessor> get errorProcessors =>
       _errorProcessors ??= const <ErrorProcessor>[];
@@ -1648,7 +1653,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.addBool(declarationCasts);
       buffer.addBool(enableLazyAssignmentOperators);
       buffer.addBool(enableSuperMixins);
-      buffer.addBool(enableUriInPartOf);
       buffer.addBool(implicitCasts);
       buffer.addBool(implicitDynamic);
       buffer.addBool(strongMode);
@@ -1696,7 +1700,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     enableLazyAssignmentOperators = false;
     enableSuperMixins = false;
     enableTiming = false;
-    enableUriInPartOf = true;
     _errorProcessors = null;
     _excludePatterns = null;
     generateImplicitErrors = true;

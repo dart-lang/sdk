@@ -6187,14 +6187,8 @@ part of lib;
 
     AnalysisResult libResult = await driver.getResult(lib);
     List<AnalysisError> errors = libResult.errors;
-    if (libResult.unit.element.context.analysisOptions.enableUriInPartOf) {
-      expect(errors, hasLength(1));
-      expect(errors[0].errorCode, ResolverErrorCode.PART_OF_UNNAMED_LIBRARY);
-    } else {
-      expect(errors, hasLength(1));
-      expect(errors[0].errorCode,
-          ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART);
-    }
+    expect(errors, hasLength(1));
+    expect(errors[0].errorCode, ResolverErrorCode.PART_OF_UNNAMED_LIBRARY);
   }
 
   test_analyze_resolveDirectives_error_partOfDifferentLibrary_byName() async {
