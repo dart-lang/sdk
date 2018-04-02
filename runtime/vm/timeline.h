@@ -442,6 +442,7 @@ class TimelineEvent {
   friend class TimelineEventRingRecorder;
   friend class TimelineEventStartupRecorder;
   friend class TimelineEventPlatformRecorder;
+  friend class TimelineEventFuchsiaRecorder;
   friend class TimelineStream;
   friend class TimelineTestHelper;
   DISALLOW_COPY_AND_ASSIGN(TimelineEvent);
@@ -860,37 +861,60 @@ class TimelineEventBlockIterator {
 // The TimelineEventPlatformRecorder records timeline events to a platform
 // specific destination. It's implementation is in the timeline_{linux,...}.cc
 // files.
-class TimelineEventPlatformRecorder : public TimelineEventFixedBufferRecorder {
+class TimelineEventPlatformRecorder : public TimelineEventRecorder {
  public:
-  explicit TimelineEventPlatformRecorder(intptr_t capacity = kDefaultCapacity);
+  TimelineEventPlatformRecorder();
   virtual ~TimelineEventPlatformRecorder();
 
-  static TimelineEventPlatformRecorder* CreatePlatformRecorder(
-      intptr_t capacity = kDefaultCapacity);
+  void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
+  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
 
-  const char* name() const;
+  // Called when |event| is completed. It is unsafe to keep a reference to
+  // |event| as it may be freed as soon as this function returns.
+  virtual void OnEvent(TimelineEvent* event) = 0;
+
+  virtual const char* name() const = 0;
 
  protected:
-  TimelineEventBlock* GetNewBlockLocked();
-  virtual void CompleteEvent(TimelineEvent* event);
+  TimelineEventBlock* GetNewBlockLocked() { return NULL; }
+  TimelineEventBlock* GetHeadBlockLocked() { return NULL; }
+  void Clear() {}
+  TimelineEvent* StartEvent();
+  void CompleteEvent(TimelineEvent* event);
 };
 
+#if defined(HOST_OS_FUCHSIA)
+// A recorder that sends events to Fuchsia's tracing app. See:
+// https://fuchsia.googlesource.com/garnet/+/master/docs/tracing_usage_guide.md
+class TimelineEventFuchsiaRecorder : public TimelineEventPlatformRecorder {
+ public:
+  TimelineEventFuchsiaRecorder() {}
+  virtual ~TimelineEventFuchsiaRecorder() {}
+
+  const char* name() const { return "Fuchsia"; }
+
+ private:
+  void OnEvent(TimelineEvent* event);
+};
+#endif  // defined(HOST_OS_FUCHSIA)
+
 #if defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX)
-// A recorder that writes events to Android Systrace. Events are also stored in
-// a buffer of fixed capacity. When the buffer is full, new events overwrite
-// old events. This class is exposed in this header file only so that
-// PrintSystrace can be visible to timeline_test.cc.
+// A recorder that writes events to Android Systrace. This class is exposed in
+// this header file only so that PrintSystrace can be visible to
+// timeline_test.cc.
 class TimelineEventSystraceRecorder : public TimelineEventPlatformRecorder {
  public:
-  explicit TimelineEventSystraceRecorder(intptr_t capacity = kDefaultCapacity);
+  TimelineEventSystraceRecorder();
   virtual ~TimelineEventSystraceRecorder();
 
   static intptr_t PrintSystrace(TimelineEvent* event,
                                 char* buffer,
                                 intptr_t buffer_size);
 
+  const char* name() const { return "Systrace"; }
+
  private:
-  virtual void CompleteEvent(TimelineEvent* event);
+  void OnEvent(TimelineEvent* event);
 
   int systrace_fd_;
 };
