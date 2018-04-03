@@ -500,14 +500,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_mixin_application_lacks_with_clause() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXPECTED_TOKEN, found 0
-    super.test_mixin_application_lacks_with_clause();
-  }
-
-  @override
-  @failingTest
   void test_nonConstructorFactory_field() {
     // TODO(brianwilkerson) Does not recover.
     //   Internal problem: Compiler cannot run without a compiler context.

@@ -1044,8 +1044,21 @@ class Parser {
   /// type has already been parsed.
   Token parseMixinApplicationRest(Token token) {
     Token withKeyword = token.next;
+    if (!optional('with', withKeyword)) {
+      reportRecoverableError(
+          withKeyword, fasta.templateExpectedButGot.withArguments('with'));
+      withKeyword =
+          new SyntheticKeywordToken(Keyword.WITH, withKeyword.charOffset);
+      rewriter.insertTokenAfter(token, withKeyword);
+      if (!isValidTypeReference(withKeyword.next)) {
+        rewriter.insertTokenAfter(
+            withKeyword,
+            new SyntheticStringToken(
+                TokenType.IDENTIFIER, '', withKeyword.charOffset));
+      }
+    }
     listener.beginMixinApplication(withKeyword);
-    expect('with', withKeyword);
+    assert(optional('with', withKeyword));
     token = parseTypeList(withKeyword);
     listener.endMixinApplication(withKeyword);
     return token;
