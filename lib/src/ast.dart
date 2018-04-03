@@ -146,11 +146,8 @@ bool isSimpleSetter(MethodDeclaration setter) {
 }
 
 /// Return the compilation unit of a node
-CompilationUnit getCompilationUnit(AstNode node) {
-  AstNode result = node;
-  while (result is! CompilationUnit) result = result.parent;
-  return result;
-}
+CompilationUnit getCompilationUnit(AstNode node) =>
+    node.getAncestor((a) => a is CompilationUnit);
 
 /// Return true if the given node is declared in a compilation unit that is in
 /// a `lib/` folder.

@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
+import 'package:linter/src/ast.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 import 'package:meta/meta.dart';
 
@@ -186,7 +187,7 @@ abstract class LeakDetectorVisitor extends SimpleAstVisitor {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    CompilationUnit unit = node.getAncestor((a) => a is CompilationUnit);
+    CompilationUnit unit = getCompilationUnit(node);
     node.fields.variables.forEach(_buildVariableReporter(
         unit, _fieldPredicateBuilders, rule, predicates));
   }
