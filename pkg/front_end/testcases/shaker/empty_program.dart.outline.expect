@@ -85,8 +85,8 @@ abstract class Stream<T extends core::Object> extends core::Object {
   get first() → self::Future<self::Stream::T>;
   get last() → self::Future<self::Stream::T>;
   get single() → self::Future<self::Stream::T>;
-  method firstWhere((self::Stream::T) → core::bool test, {() → dynamic defaultValue, () → self::Stream::T orElse}) → self::Future<self::Stream::T>;
-  method lastWhere((self::Stream::T) → core::bool test, {() → dynamic defaultValue, () → self::Stream::T orElse}) → self::Future<self::Stream::T>;
+  method firstWhere((self::Stream::T) → core::bool test, {() → self::Stream::T orElse}) → self::Future<self::Stream::T>;
+  method lastWhere((self::Stream::T) → core::bool test, {() → self::Stream::T orElse}) → self::Future<self::Stream::T>;
   method singleWhere((self::Stream::T) → core::bool test, {() → self::Stream::T orElse}) → self::Future<self::Stream::T>;
   method elementAt(core::int index) → self::Future<self::Stream::T>;
   method timeout(core::Duration timeLimit, {(self::EventSink<self::Stream::T>) → void onTimeout}) → self::Stream<self::Stream::T>;

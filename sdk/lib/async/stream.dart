@@ -1277,8 +1277,7 @@ abstract class Stream<T> {
    * The [defaultValue] parameter is deprecated, and [orElse] should be used
    * instead.
    */
-  Future<T> firstWhere(bool test(T element),
-      {@deprecated dynamic defaultValue(), T orElse()}) {
+  Future<T> firstWhere(bool test(T element), {T orElse()}) {
     _Future<T> future = new _Future();
     StreamSubscription subscription;
     subscription = this.listen(
@@ -1291,9 +1290,6 @@ abstract class Stream<T> {
         },
         onError: future._completeError,
         onDone: () {
-          if (orElse == null && defaultValue != null) {
-            orElse = () => defaultValue() as T;
-          }
           if (orElse != null) {
             _runUserCode(orElse, future._complete, future._completeError);
             return;
@@ -1322,8 +1318,7 @@ abstract class Stream<T> {
    * The [defaultValue] parameter is deprecated, and [orElse] should be used
    * instead.
    */
-  Future<T> lastWhere(bool test(T element),
-      {@deprecated dynamic defaultValue(), T orElse()}) {
+  Future<T> lastWhere(bool test(T element), {T orElse()}) {
     _Future<T> future = new _Future();
     T result = null;
     bool foundResult = false;
@@ -1342,9 +1337,6 @@ abstract class Stream<T> {
           if (foundResult) {
             future._complete(result);
             return;
-          }
-          if (orElse == null && defaultValue != null) {
-            orElse = () => defaultValue() as T;
           }
           if (orElse != null) {
             _runUserCode(orElse, future._complete, future._completeError);
