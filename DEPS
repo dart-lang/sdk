@@ -142,6 +142,7 @@ vars = {
   "usage_tag": "@3.3.0",
   "utf_tag": "@0.9.0+4",
   "watcher_tag": "@0.9.7+7",
+  "web_components_rev": "@8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_tag": "@1.0.7",
   "WebCore_rev": "@fb11e887f77919450e497344da570d780e078bc8",
   "yaml_tag": "@2.1.13",
@@ -349,6 +350,9 @@ Var("dart_root") + "/tests/co19_2/src":
       Var("dart_git") + "utf.git" + Var("utf_tag"),
   Var("dart_root") + "/third_party/pkg/watcher":
       Var("dart_git") + "watcher.git" + Var("watcher_tag"),
+  Var("dart_root") + "/third_party/pkg/web_components":
+      Var("dart_git") + "web-components.git" +
+      Var("web_components_rev"),
   Var("dart_root") + "/third_party/pkg/web_socket_channel":
       Var("dart_git") + "web_socket_channel.git" +
       Var("web_socket_channel_tag"),
