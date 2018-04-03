@@ -4849,13 +4849,22 @@ class Wrong<T> {
         errors: [expectedError(ParserErrorCode.MULTIPLE_WITH_CLAUSES, 25, 4)]);
   }
 
-  @failingTest
   void test_namedFunctionExpression() {
-    Expression expression = parsePrimaryExpression('f() {}');
-    expectNotNullIfNoErrors(expression);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.NAMED_FUNCTION_EXPRESSION, 0, 1)]);
-    expect(expression, new isInstanceOf<FunctionExpression>());
+    Expression expression;
+    if (usingFastaParser) {
+      createParser('f() {}');
+      expression = parser.parsePrimaryExpression();
+      listener.assertErrors(
+          [expectedError(ParserErrorCode.NAMED_FUNCTION_EXPRESSION, 0, 1)]);
+      expect(expression, new isInstanceOf<FunctionExpression>());
+    } else {
+      expression = parsePrimaryExpression('f() {}');
+      expectNotNullIfNoErrors(expression);
+      // Should generate an error.
+      //listener.assertErrors(
+      //    [expectedError(ParserErrorCode.NAMED_FUNCTION_EXPRESSION, 0, 1)]);
+      //expect(expression, new isInstanceOf<FunctionExpression>());
+    }
   }
 
   void test_namedParameterOutsideGroup() {

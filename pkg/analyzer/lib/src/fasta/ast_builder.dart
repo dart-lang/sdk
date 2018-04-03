@@ -2102,17 +2102,22 @@ class AstBuilder extends ScopeListener {
 
   @override
   void endNamedFunctionExpression(Token endToken) {
-    // TODO(scheglov): The logEvent() invocation is commented because it
-    // spams to the console. We already know that these test fail, uncomment
-    // when you are working on fixing them.
-//    logEvent("NamedFunctionExpression");
-    unhandled("NamedFunctionExpression", "$runtimeType", -1, uri);
+    debugEvent("NamedFunctionExpression");
+    FunctionBody body = pop();
+    if (isFullAst) {
+      pop(); // constructor initializers
+      pop(); // separator before constructor initializers
+    }
+    FormalParameterList parameters = pop();
+    pop(); // name
+    pop(); // returnType
+    TypeParameterList typeParameters = pop();
+    push(ast.functionExpression(typeParameters, parameters, body));
   }
 
   @override
   void endLocalFunctionDeclaration(Token token) {
     debugEvent("LocalFunctionDeclaration");
-
     FunctionBody body = pop();
     if (isFullAst) {
       pop(); // constructor initializers

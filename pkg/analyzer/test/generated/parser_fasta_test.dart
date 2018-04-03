@@ -508,27 +508,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_namedFunctionExpression() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Internal problem: Compiler cannot run without a compiler context.
-    //   Tip: Are calls to the compiler wrapped in CompilerContext.runInContext?
-    //   package:front_end/src/fasta/compiler_context.dart 81:7             CompilerContext.current
-    //   package:front_end/src/fasta/problems.dart 29:25                    internalProblem
-    //   package:front_end/src/fasta/problems.dart 41:10                    unhandled
-    //   package:front_end/src/fasta/source/stack_listener.dart 126:5       StackListener.logEvent
-    //   package:analyzer/src/fasta/ast_builder.dart 1548:5                 AstBuilder.endNamedFunctionExpression
-    //   test/generated/parser_fasta_listener.dart 938:14                   ForwardingTestListener.endNamedFunctionExpression
-    //   package:front_end/src/fasta/parser/parser.dart 2520:16             Parser.parseNamedFunctionRest
-    //   package:front_end/src/fasta/parser/parser.dart 1379:16             Parser.parseType
-    //   package:front_end/src/fasta/parser/parser.dart 3365:14             Parser.parseSendOrFunctionLiteral
-    //   package:front_end/src/fasta/parser/parser.dart 3127:14             Parser.parsePrimary
-    //   test/generated/parser_fasta_test.dart 3320:31                      FastaParserTestCase.parsePrimaryExpression.<fn>.<fn>
-    //   test/generated/parser_fasta_test.dart 3702:39                      ParserProxy._run
-    super.test_namedFunctionExpression();
-  }
-
-  @override
-  @failingTest
   void test_nonConstructorFactory_field() {
     // TODO(brianwilkerson) Does not recover.
     //   Internal problem: Compiler cannot run without a compiler context.
