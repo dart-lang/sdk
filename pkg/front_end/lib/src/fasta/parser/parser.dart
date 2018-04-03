@@ -4108,6 +4108,15 @@ class Parser {
     int statementCount = 0;
     if (!optional('{', next)) {
       // Recovery
+      // If `return` used instead of `=>`, then report an error and continue
+      if (optional('return', next)) {
+        reportRecoverableError(next, fasta.messageExpectedBody);
+        next = rewriter
+            .insertTokenAfter(next,
+                new SyntheticToken(TokenType.FUNCTION, next.next.charOffset))
+            .next;
+        return parseExpressionFunctionBody(next, ofFunctionExpression);
+      }
       // If there is a stray simple identifier in the function expression
       // because the user is typing (e.g. `() asy => null;`)
       // then report an error, skip the token, and continue parsing.
@@ -4155,12 +4164,6 @@ class Parser {
     Token begin = token;
     token = parseExpression(token);
     if (!ofFunctionExpression) {
-      // TODO(danrubel): Improve recovery and error message for `=> return`
-      // If the token is `return` and
-      // begin.next --> synthetic_id.next --> `return`
-      // then discard the synthetic identifier and associated events (how?),
-      // report an error on and skip the `return`,
-      // and call parseExpression again.
       token = ensureSemicolon(token);
       listener.handleExpressionFunctionBody(begin, token);
     } else {
@@ -4771,6 +4774,11 @@ class Parser {
         return parseAssert(token, Assert.Expression);
       } else if (token.next.isIdentifier) {
         return parseSendOrFunctionLiteral(token, context);
+      } else if (identical(value, "return")) {
+        // Recovery
+        token = token.next;
+        reportRecoverableErrorWithToken(token, fasta.templateUnexpectedToken);
+        return parsePrimary(token, context);
       } else {
         // Fall through to the recovery code.
       }

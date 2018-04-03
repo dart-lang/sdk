@@ -5423,15 +5423,7 @@ main() {
 
   void test_unexpectedToken_returnInExpressionFunctionBody() {
     parseCompilationUnit("f() => return null;",
-        errors: usingFastaParser
-            ? [
-                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 7, 6),
-                expectedError(ParserErrorCode.EXPECTED_TOKEN, 14, 4),
-                expectedError(
-                    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 14, 4),
-                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 14, 4)
-              ]
-            : [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 6)]);
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 6)]);
   }
 
   void test_unexpectedToken_semicolonBetweenClassMembers() {
