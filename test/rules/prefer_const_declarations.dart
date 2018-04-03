@@ -58,4 +58,7 @@ m() {
 
   // lint on final keyword
   final a = null; // LINT
+
+  // https://github.com/dart-lang/sdk/issues/32745
+  final b, c = 1; // OK
 }

@@ -75,8 +75,10 @@ class _Visitor extends SimpleAstVisitor {
   _visitVariableDeclarationList(VariableDeclarationList node) {
     if (node.isConst) return;
     if (!node.isFinal) return;
-    if (node.variables.every(
-        (declaration) => !hasErrorWithConstantVisitor(declaration.initializer)))
+    if (node.variables.every((declaration) =>
+        declaration.initializer != null &&
+        !hasErrorWithConstantVisitor(declaration.initializer))) {
       rule.reportLint(node);
+    }
   }
 }
