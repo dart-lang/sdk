@@ -10,7 +10,7 @@ const _desc = r'Avoid JavaScript rounded ints.';
 
 const _details = r'''
 
-**AVOID** integers that will be rounded.
+**AVOID** integer literals that will be rounded.
 
 When a program is compiled to JavaScript `int` and `double` become JavaScript
 Numbers. Too large integers (`value < Number.MIN_SAFE_INTEGER` or
