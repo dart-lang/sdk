@@ -4483,13 +4483,19 @@ class Wrong<T> {
   }
 
   void test_missingIdentifier_beforeClosingCurly() {
-    createParser('int}');
+    createParser('int}', expectedEndOffset: 3);
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors([
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 3, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)
-    ]);
+    listener.assertErrors(usingFastaParser
+        ? [
+            expectedError(
+                ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 0, 3),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 3, 1)
+          ]
+        : [
+            expectedError(ParserErrorCode.MISSING_IDENTIFIER, 3, 1),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)
+          ]);
   }
 
   void test_missingIdentifier_inEnum() {
@@ -4753,8 +4759,9 @@ class Wrong<T> {
   void test_missingVariableInForEach() {
     Statement statement = parseStatement('for (a < b in foo) {}');
     expectNotNullIfNoErrors(statement);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH, 5, 5)]);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 1)]
+        : [expectedError(ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH, 5, 5)]);
   }
 
   void test_mixedParameterGroups_namedPositional() {
@@ -4830,8 +4837,11 @@ class Wrong<T> {
   void test_multipleVariablesInForEach() {
     Statement statement = parseStatement('for (int a, b in foo) {}');
     expectNotNullIfNoErrors(statement);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH, 12, 1)]);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 10, 1)]
+        : [
+            expectedError(ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH, 12, 1)
+          ]);
   }
 
   void test_multipleWithClauses() {

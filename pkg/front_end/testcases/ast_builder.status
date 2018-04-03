@@ -48,7 +48,6 @@ override_check_two_substitutions: Fail
 override_check_with_covariant_modifier: Fail
 rasta/bad_default_constructor: VerificationError
 rasta/issue_000039: VerificationError
-rasta/issue_000042: Crash
 rasta/mandatory_parameter_initializer: VerificationError
 rasta/parser_error: VerificationError
 rasta/unresolved_for_in: Crash

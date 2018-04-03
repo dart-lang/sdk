@@ -500,58 +500,10 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_missingIdentifier_beforeClosingCurly() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Expected: an object with length of <1>
-    //   Actual: <Instance of 'Stack'>
-    //   Which: has length of <2>
-    //
-    //   package:test                                                       expect
-    //   test/generated/parser_fasta_test.dart 3547:7                       ParserProxy._run
-    super.test_missingIdentifier_beforeClosingCurly();
-  }
-
-  @override
-  @failingTest
-  void test_missingVariableInForEach() {
-    // TODO(brianwilkerson) Does not recover.
-    //   type 'BinaryExpressionImpl' is not a subtype of type 'VariableDeclarationStatement' in type cast where
-    //   BinaryExpressionImpl is from package:analyzer/src/dart/ast/ast.dart
-    //   VariableDeclarationStatement is from package:analyzer/dart/ast/ast.dart
-    //
-    //   dart:core                                                          Object._as
-    //   package:analyzer/src/fasta/ast_builder.dart 797:45                 AstBuilder.endForIn
-    //   test/generated/parser_fasta_listener.dart 751:14                   ForwardingTestListener.endForIn
-    //   package:front_end/src/fasta/parser/parser.dart 3755:14             Parser.parseForInRest
-    //   package:front_end/src/fasta/parser/parser.dart 3695:14             Parser.parseForStatement
-    //   package:front_end/src/fasta/parser/parser.dart 2745:14             Parser.parseStatementX
-    //   package:front_end/src/fasta/parser/parser.dart 2722:20             Parser.parseStatement
-    //   test/generated/parser_fasta_test.dart 3671:39                      ParserProxy._run
-    super.test_missingVariableInForEach();
-  }
-
-  @override
-  @failingTest
   void test_mixin_application_lacks_with_clause() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.EXPECTED_TOKEN, found 0
     super.test_mixin_application_lacks_with_clause();
-  }
-
-  @override
-  @failingTest
-  void test_multipleVariablesInForEach() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Bad state: Too many elements
-    //   dart:collection                                                    Object&ListMixin.single
-    //   package:analyzer/src/fasta/ast_builder.dart 808:38                 AstBuilder.endForIn
-    //   test/generated/parser_fasta_listener.dart 751:14                   ForwardingTestListener.endForIn
-    //   package:front_end/src/fasta/parser/parser.dart 3755:14             Parser.parseForInRest
-    //   package:front_end/src/fasta/parser/parser.dart 3695:14             Parser.parseForStatement
-    //   package:front_end/src/fasta/parser/parser.dart 2745:14             Parser.parseStatementX
-    //   package:front_end/src/fasta/parser/parser.dart 2722:20             Parser.parseStatement
-    //   test/generated/parser_fasta_test.dart 3702:39                      ParserProxy._run
-    super.test_multipleVariablesInForEach();
   }
 
   @override
