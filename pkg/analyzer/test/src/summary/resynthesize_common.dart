@@ -8597,6 +8597,39 @@ class C {
 ''');
   }
 
+  test_methodInvocation_implicitCall() async {
+    var library = await checkLibrary(r'''
+class A {
+  double call() => 0.0;
+}
+class B {
+  A a;
+}
+var c = new B().a();
+''');
+    if (isStrongMode) {
+      checkElementText(library, r'''
+class A {
+  double call() {}
+}
+class B {
+  A a;
+}
+double c;
+''');
+    } else {
+      checkElementText(library, r'''
+class A {
+  double call() {}
+}
+class B {
+  A a;
+}
+dynamic c;
+''');
+    }
+  }
+
   test_nameConflict_exportedAndLocal() async {
     namesThatCannotBeResolved.add('V');
     addLibrarySource('/a.dart', 'class C {}');

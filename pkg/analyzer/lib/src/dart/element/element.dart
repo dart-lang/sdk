@@ -203,7 +203,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
   @override
   MethodElement lookUpConcreteMethod(
           String methodName, LibraryElement library) =>
-      _first(_implementationsOfMethod(methodName).where(
+      _first(getImplementationsOfMethod(this, methodName).where(
           (MethodElement method) =>
               !method.isAbstract && method.isAccessibleIn(library)));
 
@@ -225,7 +225,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
   @override
   MethodElement lookUpInheritedConcreteMethod(
           String methodName, LibraryElement library) =>
-      _first(_implementationsOfMethod(methodName).where(
+      _first(getImplementationsOfMethod(this, methodName).where(
           (MethodElement method) =>
               !method.isAbstract &&
               method.isAccessibleIn(library) &&
@@ -243,15 +243,14 @@ abstract class AbstractClassElementImpl extends ElementImpl
   @override
   MethodElement lookUpInheritedMethod(
           String methodName, LibraryElement library) =>
-      _first(_implementationsOfMethod(methodName).where(
+      _first(getImplementationsOfMethod(this, methodName).where(
           (MethodElement method) =>
               method.isAccessibleIn(library) &&
               method.enclosingElement != this));
 
   @override
   MethodElement lookUpMethod(String methodName, LibraryElement library) =>
-      _first(_implementationsOfMethod(methodName)
-          .where((MethodElement method) => method.isAccessibleIn(library)));
+      lookUpMethodInClass(this, methodName, library);
 
   @override
   PropertyAccessorElement lookUpSetter(
@@ -264,17 +263,6 @@ abstract class AbstractClassElementImpl extends ElementImpl
     super.visitChildren(visitor);
     safelyVisitChildren(accessors, visitor);
     safelyVisitChildren(fields, visitor);
-  }
-
-  /**
-   * Return the first element from the given [iterable], or `null` if the
-   * iterable is empty.
-   */
-  E _first<E>(Iterable<E> iterable) {
-    if (iterable.isEmpty) {
-      return null;
-    }
-    return iterable.first;
   }
 
   /**
@@ -303,37 +291,6 @@ abstract class AbstractClassElementImpl extends ElementImpl
         getter = mixin.element?.getGetter(getterName);
         if (getter != null) {
           yield getter;
-        }
-      }
-      classElement = classElement.supertype?.element;
-    }
-  }
-
-  /**
-   * Return an iterable containing all of the implementations of a method with
-   * the given [methodName] that are defined in this class any any superclass of
-   * this class (but not in interfaces).
-   *
-   * The methods that are returned are not filtered in any way. In particular,
-   * they can include methods that are not visible in some context. Clients must
-   * perform any necessary filtering.
-   *
-   * The methods are returned based on the depth of their defining class; if
-   * this class contains a definition of the method it will occur first, if
-   * Object contains a definition of the method it will occur last.
-   */
-  Iterable<MethodElement> _implementationsOfMethod(String methodName) sync* {
-    ClassElement classElement = this;
-    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
-    while (classElement != null && visitedClasses.add(classElement)) {
-      MethodElement method = classElement.getMethod(methodName);
-      if (method != null) {
-        yield method;
-      }
-      for (InterfaceType mixin in classElement.mixins.reversed) {
-        method = mixin.element?.getMethod(methodName);
-        if (method != null) {
-          yield method;
         }
       }
       classElement = classElement.supertype?.element;
@@ -384,6 +341,37 @@ abstract class AbstractClassElementImpl extends ElementImpl
     return classElement as AbstractClassElementImpl;
   }
 
+  /**
+   * Return an iterable containing all of the implementations of a method with
+   * the given [methodName] that are defined in this class any any superclass of
+   * this class (but not in interfaces).
+   *
+   * The methods that are returned are not filtered in any way. In particular,
+   * they can include methods that are not visible in some context. Clients must
+   * perform any necessary filtering.
+   *
+   * The methods are returned based on the depth of their defining class; if
+   * this class contains a definition of the method it will occur first, if
+   * Object contains a definition of the method it will occur last.
+   */
+  static Iterable<MethodElement> getImplementationsOfMethod(
+      ClassElement classElement, String methodName) sync* {
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+    while (classElement != null && visitedClasses.add(classElement)) {
+      MethodElement method = classElement.getMethod(methodName);
+      if (method != null) {
+        yield method;
+      }
+      for (InterfaceType mixin in classElement.mixins.reversed) {
+        method = mixin.element?.getMethod(methodName);
+        if (method != null) {
+          yield method;
+        }
+      }
+      classElement = classElement.supertype?.element;
+    }
+  }
+
   static PropertyAccessorElement getSetterFromAccessors(
       String setterName, List<PropertyAccessorElement> accessors) {
     // TODO (jwren) revisit- should we append '=' here or require clients to
@@ -398,6 +386,23 @@ abstract class AbstractClassElementImpl extends ElementImpl
       }
     }
     return null;
+  }
+
+  static MethodElement lookUpMethodInClass(
+      ClassElement classElement, String methodName, LibraryElement library) {
+    return _first(getImplementationsOfMethod(classElement, methodName)
+        .where((MethodElement method) => method.isAccessibleIn(library)));
+  }
+
+  /**
+   * Return the first element from the given [iterable], or `null` if the
+   * iterable is empty.
+   */
+  static E _first<E>(Iterable<E> iterable) {
+    if (iterable.isEmpty) {
+      return null;
+    }
+    return iterable.first;
   }
 }
 

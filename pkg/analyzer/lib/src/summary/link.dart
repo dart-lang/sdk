@@ -527,6 +527,12 @@ abstract class ClassElementForLink extends Object
   void link(CompilationUnitElementInBuildUnit compilationUnit);
 
   @override
+  MethodElement lookUpMethod(String methodName, LibraryElement library) {
+    return AbstractClassElementImpl.lookUpMethodInClass(
+        this, methodName, library);
+  }
+
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
