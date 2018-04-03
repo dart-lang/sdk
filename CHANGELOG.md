@@ -2,7 +2,16 @@
 (Add new changes here, and they will be copied to the
  change section for the next dev version)
 
-### Language
+### Tool Changes
+
+#### Pub
+
+* Fix a bug where the version solver could crash when resolving a conflict
+  involving pre-release constraints ([issue 1856][pub#1856]).
+
+[pub#1856]: https://github.com/dart-lang/pub/issues/1856
+
+## 2.0.0-dev.44.0
 
 ### Core library changes
 
