@@ -161,6 +161,46 @@
     },
 
     {
+      "name": "incremental_bulk_compiler_smoke",
+      "kind": "Chain",
+      "source": "test/incremental_bulk_compiler_smoke_test.dart",
+      "path": "../../tests/",
+      "status": "testcases/incremental_bulk_compiler_smoke.status",
+      "pattern": [
+        "/language_2/accessor_conflict_export2_test\\.dart$",
+        "/language_2/accessor_conflict_export_test\\.dart$",
+        "/language_2/regress_14348_test\\.dart$",
+        "/language_2/regress_18535_test\\.dart$",
+        "/language_2/deferred_super_dependency_test\\.dart$",
+        "/language_2/export_ambiguous_main_test\\.dart$",
+        "/language_2/export_double_same_main_test\\.dart$",
+        "/language_2/export_main_test\\.dart$",
+        "/language_2/issue1578_negative_test\\.dart$",
+        "/language_2/missing_part_of_tag_test\\.dart$",
+        "/language_2/no_main_test\\.dart$",
+        "/language_2/regress_27957_test\\.dart$",
+        "/language_2/script1_negative_test\\.dart$",
+        "/language_2/script2_negative_test\\.dart$",
+        "/language_2/unbalanced_brace_test\\.dart$"
+      ],
+      "exclude": [
+      ]
+    },
+
+    {
+      "name": "incremental_bulk_compiler_full",
+      "kind": "Chain",
+      "source": "test/incremental_bulk_compiler_full.dart",
+      "path": "../../tests/",
+      "status": "testcases/incremental_bulk_compiler_full.status",
+      "pattern": [
+        "language_2/.*_test\\.dart$"
+      ],
+      "exclude": [
+      ]
+    },
+
+    {
       "name": "sdk",
       "kind": "Chain",
       "source": "test/fasta/sdk_test.dart",
