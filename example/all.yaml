@@ -14,6 +14,7 @@ linter:
     - avoid_catches_without_on_clauses
     - avoid_catching_errors
     - avoid_classes_with_only_static_members
+    - avoid_double_and_int_checks
     - avoid_empty_else
     - avoid_function_literals_in_foreach_calls
     - avoid_init_to_null
