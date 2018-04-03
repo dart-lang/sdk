@@ -1676,9 +1676,7 @@ class AssistProcessor {
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addReplacement(range.node(widgetExpr), (DartEditBuilder builder) {
-        if (!driver.analysisOptions.previewDart2) {
-          builder.write('new ');
-        }
+        builder.write('new ');
         if (parentClassElement == null) {
           builder.addSimpleLinkedEdit('WIDGET', 'widget');
         } else {
@@ -1757,9 +1755,7 @@ class AssistProcessor {
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addReplacement(selectedRange, (DartEditBuilder builder) {
-          if (!driver.analysisOptions.previewDart2) {
-            builder.write('new ');
-          }
+          builder.write('new ');
           builder.writeType(parentClassElement.type);
           builder.write('(');
 

@@ -130,16 +130,6 @@ class OpType {
     optype.inStaticMethodBody =
         mthDecl is MethodDeclaration && mthDecl.isStatic;
 
-    // If a value should be suggested, suggest also constructors.
-    if (optype.includeReturnValueSuggestions) {
-      // Careful: in angular plugin, `target.unit` may be null!
-      CompilationUnitElement unitElement = target.unit?.element;
-      if (unitElement != null &&
-          unitElement.context.analysisOptions.previewDart2) {
-        optype.includeConstructorSuggestions = true;
-      }
-    }
-
     // Compute the type required by the context and set filters.
     optype._computeRequiredTypeAndFilters(target);
 
