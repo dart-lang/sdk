@@ -67,6 +67,7 @@ import 'kernel_builder.dart'
         KernelFunctionTypeAliasBuilder,
         KernelInvalidTypeBuilder,
         KernelLibraryBuilder,
+        KernelPrefixBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
         LoadLibraryBuilder,
@@ -141,7 +142,7 @@ abstract class BuilderHelper<Arguments> {
   StaticGet makeStaticGet(Member readTarget, Token token);
 
   Expression wrapInDeferredCheck(
-      Expression expression, PrefixBuilder prefix, int charOffset);
+      Expression expression, KernelPrefixBuilder prefix, int charOffset);
 
   dynamic deprecated_addCompileTimeError(int charOffset, String message);
 

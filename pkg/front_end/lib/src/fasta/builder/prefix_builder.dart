@@ -4,9 +4,7 @@
 
 library fasta.prefix_builder;
 
-import 'package:kernel/ast.dart' show LibraryDependency;
-
-import 'builder.dart' show Builder, LibraryBuilder, Scope, LoadLibraryBuilder;
+import '../builder/builder.dart' show Builder, LibraryBuilder, Scope;
 
 class PrefixBuilder extends Builder {
   final String name;
@@ -15,26 +13,13 @@ class PrefixBuilder extends Builder {
 
   final LibraryBuilder parent;
 
-  final LibraryDependency dependency;
-
-  LoadLibraryBuilder loadLibraryBuilder;
-
   final bool deferred;
 
   @override
   final int charOffset;
 
-  PrefixBuilder(this.name, this.deferred, LibraryBuilder parent,
-      this.dependency, int charOffset)
-      : parent = parent,
-        charOffset = charOffset,
-        super(parent, charOffset, parent.fileUri) {
-    if (deferred) {
-      loadLibraryBuilder =
-          new LoadLibraryBuilder(parent, dependency, charOffset);
-      addToExportScope('loadLibrary', loadLibraryBuilder, charOffset);
-    }
-  }
+  PrefixBuilder(this.name, this.deferred, this.parent, this.charOffset)
+      : super(parent, charOffset, parent.fileUri);
 
   Builder lookup(String name, int charOffset, Uri fileUri) {
     return exportScope.lookup(name, charOffset, fileUri);
