@@ -1165,6 +1165,7 @@ Dart_CreateIsolate(const char* script_uri,
                    Dart_IsolateFlags* flags,
                    void* callback_data,
                    char** error) {
+  API_TIMELINE_DURATION(Thread::Current());
   return CreateIsolate(script_uri, main, snapshot_data, snapshot_instructions,
                        -1, NULL, flags, callback_data, error);
 }
@@ -1175,6 +1176,7 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolateFromKernel(const char* script_uri,
                                                       Dart_IsolateFlags* flags,
                                                       void* callback_data,
                                                       char** error) {
+  API_TIMELINE_DURATION(Thread::Current());
   // Setup default flags in case none were passed.
   Dart_IsolateFlags api_flags;
   if (flags == NULL) {
