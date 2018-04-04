@@ -1121,7 +1121,8 @@ class StreamingFlowGraphBuilder {
   FlowGraph* BuildGraphOfFunction(bool constructor);
   FlowGraph* BuildGraphOfNoSuchMethodForwarder(
       const Function& function,
-      bool is_implicit_closure_function);
+      bool is_implicit_closure_function,
+      bool throw_no_such_method_error = false);
 
   intptr_t GetOffsetForSourceInfo(intptr_t index);
 

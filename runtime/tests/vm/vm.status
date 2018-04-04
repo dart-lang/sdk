@@ -185,9 +185,6 @@ dart/spawn_shutdown_test: SkipSlow
 
 [ $compiler == dartk && $runtime == vm && $system == macos ]
 cc/IsolateReload_LibraryLookup: Fail, Crash
-cc/IsolateReload_TearOff_AddArguments: Fail
-cc/IsolateReload_TearOff_Instance_Equality: Fail
-cc/IsolateReload_TearOff_List_Set: Fail
 
 [ $compiler == dartk && $runtime == vm && $strong ]
 cc/IsolateReload_LibraryHide: Crash
@@ -195,15 +192,9 @@ cc/IsolateReload_LibraryShow: Crash
 
 [ $compiler == dartk && $system == linux ]
 cc/IsolateReload_LibraryLookup: Fail, Crash
-cc/IsolateReload_TearOff_AddArguments: Fail
-cc/IsolateReload_TearOff_Instance_Equality: Fail
-cc/IsolateReload_TearOff_List_Set: Fail
 
 [ $compiler == dartk && $system == windows ]
 cc/IsolateReload_LibraryLookup: Fail, Crash
-cc/IsolateReload_TearOff_AddArguments: Fail
-cc/IsolateReload_TearOff_Instance_Equality: Fail
-cc/IsolateReload_TearOff_List_Set: Fail
 cc/Profiler_ContextAllocation: Fail, Pass # Flaky on Windows --- sometimes give "profiler_test.cc: 1107: error: expected: !walker.Down()"
 cc/Profiler_FunctionTicks: Fail, Pass
 cc/Profiler_ToggleRecordAllocation: Fail, Pass

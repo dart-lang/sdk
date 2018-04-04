@@ -1527,6 +1527,99 @@ TEST_CASE(IsolateReload_TearOff_Instance_Equality) {
   EXPECT_NON_NULL(lib);
 }
 
+TEST_CASE(IsolateReload_TearOff_Parameter_Count_Mismatch) {
+  const char* kScript =
+      "import 'file:///test:isolate_reload_helper';\n"
+      "class C {\n"
+      "  static foo() => 'old';\n"
+      "}\n"
+      "main() {\n"
+      "  var f1 = C.foo;\n"
+      "  reloadTest();\n"
+      "  return f1();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+
+  const char* kReloadScript =
+      "import 'file:///test:isolate_reload_helper';\n"
+      "class C {\n"
+      "  static foo(i) => 'new:$i';\n"
+      "}\n"
+      "main() {\n"
+      "  var f1 = C.foo;\n"
+      "  reloadTest();\n"
+      "  return f1();\n"
+      "}\n";
+
+  TestCase::SetReloadTestScript(kReloadScript);
+
+  Dart_Handle error_handle = SimpleInvokeError(lib, "main");
+
+  const char* error;
+  if (TestCase::UsingDartFrontend()) {
+    error =
+        "NoSuchMethodError: Closure call with mismatched arguments: function "
+        "'C.foo'\n"
+        "Receiver: Closure: (dynamic) => dynamic from Function 'foo': static.\n"
+        "Tried calling: C.foo()\n"
+        "Found: C.foo(dynamic) => dynamic\n"
+        "#0      Object.noSuchMethod "
+        "(dart:core/runtime/libobject_patch.dart:46:5)\n"
+        "#1      main (file:///test-lib:8:12)";
+  } else {
+    error =
+        "NoSuchMethodError: Closure call with mismatched arguments: function "
+        "'C.foo'\n"
+        "Receiver: Closure: (dynamic) => dynamic from Function 'foo': static.\n"
+        "Tried calling: C.foo()\n"
+        "Found: C.foo(dynamic) => dynamic\n"
+        "#0      Object.noSuchMethod "
+        "(dart:core-patch/dart:core/object_patch.dart:46)\n"
+        "#1      main (test-lib:8:12)";
+  }
+  EXPECT_ERROR(error_handle, error);
+}
+
+TEST_CASE(IsolateReload_TearOff_Remove) {
+  const char* kScript =
+      "import 'file:///test:isolate_reload_helper';\n"
+      "class C {\n"
+      "  static foo({String bar: 'bar'}) => 'old';\n"
+      "}\n"
+      "main() {\n"
+      "  var f1 = C.foo;\n"
+      "  reloadTest();\n"
+      "  try {\n"
+      "    return f1();\n"
+      "  } catch(e) { return '$e'; }\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+
+  const char* kReloadScript =
+      "import 'file:///test:isolate_reload_helper';\n"
+      "class C {\n"
+      "}\n"
+      "main() {\n"
+      "  var f1;\n"
+      "  reloadTest();\n"
+      "  try {\n"
+      "    return f1();\n"
+      "  } catch(e) { return '$e'; }\n"
+      "}\n";
+
+  TestCase::SetReloadTestScript(kReloadScript);
+
+  EXPECT_SUBSTRING(
+      "NoSuchMethodError: No static method 'foo' declared in class 'C'.",
+      SimpleInvokeStr(lib, "main"));
+
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
+}
 TEST_CASE(IsolateReload_TearOff_Class_Identity) {
   const char* kScript =
       "import 'file:///test:isolate_reload_helper';\n"
