@@ -306,12 +306,8 @@ abstract class KernelClassBuilder
     cloned.isAbstract = true;
     cloned.isNoSuchMethodForwarder = true;
 
-    String name = cloned.name.name;
     cls.procedures.add(cloned);
     cloned.parent = cls;
-    DillMemberBuilder memberBuilder = new DillMemberBuilder(cloned, this);
-    memberBuilder.next = scopeBuilder[name];
-    scopeBuilder.addMember(name, memberBuilder);
   }
 
   void addNoSuchMethodForwarders(ClassHierarchy hierarchy) {
