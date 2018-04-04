@@ -3248,6 +3248,7 @@ ISOLATE_UNIT_TEST_CASE(ArrayNew_Overflow_Crash) {
 }
 
 TEST_CASE(StackTraceFormat) {
+  Isolate* isolate = Isolate::Current();
   const char* kScriptChars =
       "void baz() {\n"
       "  throw 'MyException';\n"
@@ -3290,20 +3291,28 @@ TEST_CASE(StackTraceFormat) {
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_ERROR(result,
-               "Unhandled exception:\n"
-               "MyException\n"
-               "#0      baz (test-lib:2:3)\n"
-               "#1      new _OtherClass._named (test-lib:7:5)\n"
-               "#2      globalVar= (test-lib:12:7)\n"
-               "#3      _bar (test-lib:16:3)\n"
-               "#4      MyClass.field (test-lib:25:5)\n"
-               "#5      MyClass.foo.fooHelper (test-lib:30:7)\n"
-               "#6      MyClass.foo (test-lib:32:14)\n"
-               "#7      new MyClass.<anonymous closure> (test-lib:21:12)\n"
-               "#8      new MyClass (test-lib:21:18)\n"
-               "#9      main.<anonymous closure> (test-lib:37:14)\n"
-               "#10     main (test-lib:37:24)");
+
+  const char* lib_url =
+      isolate->use_dart_frontend() ? "file:///test-lib" : "test-lib";
+  const size_t kExpectedLen = 512;
+  char expected[kExpectedLen];
+  snprintf(expected, kExpectedLen,
+           "Unhandled exception:\n"
+           "MyException\n"
+           "#0      baz (%1$s:2:3)\n"
+           "#1      new _OtherClass._named (%1$s:7:5)\n"
+           "#2      globalVar= (%1$s:12:7)\n"
+           "#3      _bar (%1$s:16:3)\n"
+           "#4      MyClass.field (%1$s:25:5)\n"
+           "#5      MyClass.foo.fooHelper (%1$s:30:7)\n"
+           "#6      MyClass.foo (%1$s:32:14)\n"
+           "#7      new MyClass.<anonymous closure> (%1$s:21:12)\n"
+           "#8      new MyClass (%1$s:21:18)\n"
+           "#9      main.<anonymous closure> (%1$s:37:14)\n"
+           "#10     main (%1$s:37:24)",
+           lib_url);
+
+  EXPECT_ERROR(result, expected);
 }
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveCrossGen) {

@@ -178,7 +178,6 @@ cc/SourceReport_Coverage_UnusedClass_ForceCompileError: Crash
 cc/SourceReport_Coverage_UnusedClass_NoForceCompile: Fail
 cc/SourceReport_MultipleReports: Fail
 cc/SourceReport_PossibleBreakpoints_Simple: Fail
-cc/StackTraceFormat: Fail
 cc/UseDartApi: Fail
 dart/data_uri_import_test/utf16: MissingRuntimeError
 dart/spawn_shutdown_test: SkipSlow
