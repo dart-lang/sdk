@@ -46,6 +46,7 @@ final _variables = {
   }),
   "minified": new _Variable.bool((c) => c.minified),
   "mode": new _Variable((c) => c.mode, Mode.names),
+  "preview_dart_2": new _Variable.bool((c) => c.previewDart2),
   "runtime": new _Variable(_runtimeName, Runtime.names),
   "spec_parser": new _Variable.bool((c) => c.compiler == Compiler.specParser),
   "strong": new _Variable.bool((c) => c.strong),
