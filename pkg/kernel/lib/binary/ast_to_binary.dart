@@ -665,10 +665,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     if (_metadataSubsections != null) {
       _recordNodeOffsetForMetadataMapping(node);
     }
-    final Uri activeFileUriSaved = _activeFileUri;
-    _activeFileUri = writeUriReference(node.fileUri);
     writeNodeList(node.annotations);
-    _activeFileUri = activeFileUriSaved;
+    writeStringReference(node.partUri);
   }
 
   void visitTypedef(Typedef node) {

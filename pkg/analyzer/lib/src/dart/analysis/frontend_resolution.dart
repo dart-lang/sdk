@@ -272,7 +272,7 @@ class FrontEndCompiler {
 
             addFileResult(library.fileUri);
             for (var part in library.parts) {
-              addFileResult(part.fileUri);
+              addFileResult(library.fileUri.resolve(part.partUri));
             }
 
             var libraryResult = new LibraryCompilationResult(
@@ -328,7 +328,7 @@ class FrontEndCompiler {
 
       // Remember libraries for parts.
       for (var part in library.parts) {
-        _partToLibrary[part.fileUri] = library.fileUri;
+        _partToLibrary[library.fileUri.resolve(part.partUri)] = library.fileUri;
       }
 
       // Record reverse dependencies.

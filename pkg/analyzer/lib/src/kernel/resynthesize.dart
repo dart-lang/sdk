@@ -201,7 +201,7 @@ class KernelResynthesizer implements ElementResynthesizer {
       // Build units for parts.
       var parts = new List<CompilationUnitElementImpl>(kernel.parts.length);
       for (int i = 0; i < kernel.parts.length; i++) {
-        var fileUri = kernel.parts[i].fileUri;
+        var fileUri = kernel.fileUri.resolve(kernel.parts[i].partUri);
         var unitContext = libraryContext._buildUnit("$fileUri");
         parts[i] = unitContext.unit;
       }
@@ -974,7 +974,8 @@ class _KernelUnitImpl implements KernelUnit {
   List<kernel.Expression> get annotations {
     if (_annotations == null) {
       for (var part in context.libraryContext.library.parts) {
-        if ("${part.fileUri}" == context.fileUri) {
+        if ("${context.libraryContext.library.fileUri.resolve(part.partUri)}" ==
+            context.fileUri) {
           return _annotations = part.annotations;
         }
       }

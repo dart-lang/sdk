@@ -60,7 +60,7 @@ class BuilderGraph implements Graph<Uri> {
 
       // Parts
       for (LibraryPart part in library.library.parts) {
-        Uri uri = part.fileUri;
+        Uri uri = library.uri.resolve(part.partUri);
         if (builders.containsKey(uri)) {
           yield uri;
         }

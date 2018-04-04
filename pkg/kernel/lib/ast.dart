@@ -523,14 +523,11 @@ class LibraryDependency extends TreeNode {
 ///     part <url>;
 ///
 /// optionally with metadata.
-class LibraryPart extends TreeNode implements FileUriNode {
+class LibraryPart extends TreeNode {
   final List<Expression> annotations;
-  final Uri fileUri;
+  final String partUri;
 
-  LibraryPart(List<Expression> annotations, Uri fileUri)
-      : this.byReference(annotations, fileUri);
-
-  LibraryPart.byReference(this.annotations, this.fileUri) {
+  LibraryPart(this.annotations, this.partUri) {
     setParents(annotations, this);
   }
 
