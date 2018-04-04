@@ -492,6 +492,7 @@ class ContextBuilder {
         }
       }
       if (ContextBuilderOptions.flutterRepo) {
+        // TODO(devoncarew): Should we still be auto-inserting this?
         const lintName = 'public_member_api_docs';
         Linter rule = options.lintRules.firstWhere(
             (Linter lint) => lint.name == lintName,

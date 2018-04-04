@@ -156,6 +156,9 @@ class ErrorFilterOptionValidator extends OptionsValidator {
   /// Lazily populated set of error codes (hashed for speedy lookup).
   static HashSet<String> _errorCodes;
 
+  /// Lazily populated set of lint codes.
+  Set<String> _lintCodes;
+
   /// Legal error code names.
   static Set<String> get errorCodes {
     if (_errorCodes == null) {
@@ -164,6 +167,14 @@ class ErrorFilterOptionValidator extends OptionsValidator {
       _errorCodes.addAll(errorCodeValues.map((ErrorCode code) => code.name));
     }
     return _errorCodes;
+  }
+
+  Set<String> get lintCodes {
+    if (_lintCodes == null) {
+      _lintCodes = new Set.from(
+          Registry.ruleRegistry.rules.map((rule) => rule.name.toUpperCase()));
+    }
+    return _lintCodes;
   }
 
   @override
@@ -176,7 +187,7 @@ class ErrorFilterOptionValidator extends OptionsValidator {
         filters.nodes.forEach((k, v) {
           if (k is YamlScalar) {
             value = toUpperCase(k.value);
-            if (!errorCodes.contains(value)) {
+            if (!errorCodes.contains(value) && !lintCodes.contains(value)) {
               reporter.reportErrorForSpan(
                   AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
                   k.span,

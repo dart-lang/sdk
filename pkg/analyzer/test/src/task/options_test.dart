@@ -544,6 +544,15 @@ analyzer:
     ''', [AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE]);
   }
 
+  test_analyzer_lint_codes_recognized() {
+    Registry.ruleRegistry.register(new TestRule());
+    validate('''
+analyzer:
+  errors:
+    fantastic_test_rule: ignore
+    ''', []);
+  }
+
   test_analyzer_language_supported() {
     validate('''
 analyzer:
