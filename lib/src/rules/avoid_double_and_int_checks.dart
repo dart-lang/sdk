@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
 
@@ -62,8 +63,10 @@ class Visitor extends SimpleAstVisitor {
             elseIsExpression is SimpleIdentifier &&
             ifExpression.name == elseIsExpression.name &&
             ifCondition.type.type == typeProvider.doubleType &&
-            elseCondition.type.type == typeProvider.intType) {
-          rule.reportLint(node);
+            elseCondition.type.type == typeProvider.intType &&
+            (ifExpression.bestElement is ParameterElement ||
+                ifExpression.bestElement is LocalVariableElement)) {
+          rule.reportLint(elseCondition);
         }
       }
     }
