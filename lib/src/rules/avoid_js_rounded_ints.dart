@@ -10,11 +10,15 @@ const _desc = r'Avoid JavaScript rounded ints.';
 
 const _details = r'''
 
-**AVOID** integer literals that will be rounded.
+**AVOID** integer literals that cannot be represented exactly when compiled to
+JavaScript.
 
 When a program is compiled to JavaScript `int` and `double` become JavaScript
 Numbers. Too large integers (`value < Number.MIN_SAFE_INTEGER` or
 `value > Number.MAX_SAFE_INTEGER`) may be rounded to the closest Number value.
+
+For instance `1000000000000000001` cannot be represented exactly as a JavaScript
+Number, so `1000000000000000000` will be used instead.
 
 **BAD:**
 ```
@@ -52,12 +56,5 @@ class Visitor extends SimpleAstVisitor {
     }
   }
 
-  bool isRounded(int value) {
-    int v = value.abs();
-    while (v > 9007199254740991) {
-      if (v.isOdd) return true;
-      v = v ~/ 2;
-    }
-    return false;
-  }
+  bool isRounded(int value) => value?.toDouble()?.toInt() != value;
 }
