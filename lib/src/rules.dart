@@ -15,6 +15,7 @@ import 'package:linter/src/rules/avoid_bool_literals_in_conditional_expressions.
 import 'package:linter/src/rules/avoid_catches_without_on_clauses.dart';
 import 'package:linter/src/rules/avoid_catching_errors.dart';
 import 'package:linter/src/rules/avoid_classes_with_only_static_members.dart';
+import 'package:linter/src/rules/avoid_double_and_int_checks.dart';
 import 'package:linter/src/rules/avoid_empty_else.dart';
 import 'package:linter/src/rules/avoid_function_literals_in_foreach_calls.dart';
 import 'package:linter/src/rules/avoid_init_to_null.dart';
@@ -131,6 +132,7 @@ void registerLintRules() {
     ..register(new AvoidCatchingErrors())
     ..register(new AvoidCatchesWithoutOnClauses())
     ..register(new AvoidClassesWithOnlyStaticMembers())
+    ..register(new AvoidDoubleAndIntChecks())
     ..register(new AvoidEmptyElse())
     ..register(new AvoidFunctionLiteralInForeachMethod())
     ..register(new AvoidInitToNull())
