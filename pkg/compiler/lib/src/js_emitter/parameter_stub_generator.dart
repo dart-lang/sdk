@@ -48,49 +48,48 @@ class ParameterStubGenerator {
   bool needsSuperGetter(FunctionEntity element) =>
       _codegenWorldBuilder.methodsNeedingSuperGetter.contains(element);
 
-  /**
-   * Generates stubs to handle invocation of methods with optional
-   * arguments.
-   *
-   * A method like `foo([x])` may be invoked by the following
-   * calls: `foo(), foo(1), foo(x: 1)`. This method generates the stub for the
-   * given [selector] and returns the generated [ParameterStubMethod].
-   *
-   * Returns null if no stub is needed.
-   *
-   * Members may be invoked in two ways: directly, or through a closure. In the
-   * latter case the caller invokes the closure's `call` method. This method
-   * accepts two selectors. The returned stub method has the corresponding
-   * name [ParameterStubMethod.name] and [ParameterStubMethod.callName] set if
-   * the input selector is non-null (and the member needs a stub).
-   */
+  /// Generates stubs to fill in missing optional named or positional arguments
+  /// and missing type arguments.  Returns `null` if no stub is needed.
+  ///
+  /// Methods like `foo([x])` and `bar({x})` may be invoked by the following
+  /// calls: `foo(), foo(1), bar(), bar(x: 1)`. This method generates the stub
+  /// for the given [selector] and returns the generated [ParameterStubMethod].
+  ///
+  /// Members may be invoked in two ways: directly, or through a closure. In the
+  /// latter case the caller invokes the tear-off closure's `call` method. This
+  /// method [generateParameterStub] accepts two selectors. The returned stub
+  /// method has the corresponding name [ParameterStubMethod.name] and
+  /// [ParameterStubMethod.callName] set if the input selector is non-null (and
+  /// the member needs a stub).
   ParameterStubMethod generateParameterStub(
       FunctionEntity member, Selector selector, Selector callSelector) {
-    CallStructure callStructure = selector.callStructure;
-    SourceInformationBuilder sourceInformationBuilder =
-        _sourceInformationStrategy.createBuilderForContext(member);
-    SourceInformation sourceInformation =
-        sourceInformationBuilder.buildStub(member, callStructure);
+    // The naming here can be a bit confusing. There is a call site somewhere
+    // that calls the stub via the [selector], which has a [CallStructure], so
+    // the *Call*Structure determines the *parameters* of the stub. The body of
+    // the stub calls the member which has a [ParameterStructure], so the
+    // *Parameter*Structure determines the *arguments* of the forwarding call.
 
+    CallStructure callStructure = selector.callStructure;
     ParameterStructure parameterStructure = member.parameterStructure;
     int positionalArgumentCount = callStructure.positionalArgumentCount;
     assert(callStructure.typeArgumentCount == 0 ||
         callStructure.typeArgumentCount == parameterStructure.typeParameters);
-    bool needsTypeArguments =
-        callStructure.typeArgumentCount != parameterStructure.typeParameters;
-    if (positionalArgumentCount == parameterStructure.totalParameters &&
-        !needsTypeArguments) {
-      assert(callStructure.isUnnamed);
-      return null;
-    }
-    if (parameterStructure.namedParameters.isNotEmpty &&
-        callStructure.namedArgumentCount ==
-            parameterStructure.namedParameters.length &&
-        !needsTypeArguments) {
-      // If the selector has the same number of named arguments as the element,
-      // we don't need to add a stub. The call site will hit the method
-      // directly.
-      return null;
+
+    // We don't need a stub if the arguments match the target parameters,
+    // i.e. there are no missing optional arguments or types. The selector
+    // applies to the member, so we can check using counts.
+    if (callStructure.typeArgumentCount == parameterStructure.typeParameters) {
+      if (positionalArgumentCount == parameterStructure.totalParameters) {
+        // Positional optional arguments are all provided.
+        assert(callStructure.isUnnamed);
+        return null;
+      }
+      if (parameterStructure.namedParameters.isNotEmpty &&
+          callStructure.namedArgumentCount ==
+              parameterStructure.namedParameters.length) {
+        // Named optional arguments are all provided.
+        return null;
+      }
     }
 
     List<String> names = callStructure.getOrderedNamedArguments();
@@ -105,19 +104,21 @@ class ParameterStubGenerator {
     String receiverArgumentName = r'$receiver';
 
     // The parameters that this stub takes.
-    List<jsAst.Parameter> parametersBuffer =
-        new List<jsAst.Parameter>(selector.argumentCount + extraArgumentCount);
+    List<jsAst.Parameter> stubParameters = new List<jsAst.Parameter>(
+        extraArgumentCount +
+            selector.argumentCount +
+            selector.typeArgumentCount);
     // The arguments that will be passed to the real method.
-    List<jsAst.Expression> argumentsBuffer = new List<jsAst.Expression>(
-        parameterStructure.totalParameters +
-            extraArgumentCount +
-            (needsTypeArguments ? parameterStructure.typeParameters : 0));
+    List<jsAst.Expression> targetArguments = new List<jsAst.Expression>(
+        extraArgumentCount +
+            parameterStructure.totalParameters +
+            parameterStructure.typeParameters);
 
     int count = 0;
     if (isInterceptedMethod) {
       count++;
-      parametersBuffer[0] = new jsAst.Parameter(receiverArgumentName);
-      argumentsBuffer[0] = js('#', receiverArgumentName);
+      stubParameters[0] = new jsAst.Parameter(receiverArgumentName);
+      targetArguments[0] = js('#', receiverArgumentName);
     }
 
     int optionalParameterStart = positionalArgumentCount + extraArgumentCount;
@@ -129,20 +130,20 @@ class ParameterStubGenerator {
       String jsName = _namer.safeVariableName(name);
       assert(jsName != receiverArgumentName);
       if (count < optionalParameterStart) {
-        parametersBuffer[count] = new jsAst.Parameter(jsName);
-        argumentsBuffer[count] = js('#', jsName);
+        stubParameters[count] = new jsAst.Parameter(jsName);
+        targetArguments[count] = js('#', jsName);
       } else {
         int index = names.indexOf(name);
         if (index != -1) {
           indexOfLastOptionalArgumentInParameters = count;
           // The order of the named arguments is not the same as the
           // one in the real method (which is in Dart source order).
-          argumentsBuffer[count] = js('#', jsName);
-          parametersBuffer[optionalParameterStart + index] =
+          targetArguments[count] = js('#', jsName);
+          stubParameters[optionalParameterStart + index] =
               new jsAst.Parameter(jsName);
         } else {
           if (value == null) {
-            argumentsBuffer[count] =
+            targetArguments[count] =
                 _emitter.constantReference(new NullConstantValue());
           } else {
             if (!value.isNull) {
@@ -150,19 +151,27 @@ class ParameterStubGenerator {
               // down to the native method.
               indexOfLastOptionalArgumentInParameters = count;
             }
-            argumentsBuffer[count] = _emitter.constantReference(value);
+            targetArguments[count] = _emitter.constantReference(value);
           }
         }
       }
       count++;
     });
-    if (needsTypeArguments) {
-      // ignore: unused_local_variable
+
+    if (parameterStructure.typeParameters > 0) {
+      int parameterIndex =
+          stubParameters.length - parameterStructure.typeParameters;
       for (TypeVariableType typeVariable
           in _closedWorld.elementEnvironment.getFunctionTypeVariables(member)) {
-        argumentsBuffer[count++] =
-            // TODO(johnniwinther): Insert the type variable bound instead.
-            _emitter.constantReference(new NullConstantValue());
+        if (selector.typeArgumentCount == 0) {
+          // TODO(32741): Insert the type variable bound instead of `null`.
+          targetArguments[count++] =
+              _emitter.constantReference(new NullConstantValue());
+        } else {
+          String jsName = '\$${typeVariable.element.name}';
+          stubParameters[parameterIndex++] = new jsAst.Parameter(jsName);
+          targetArguments[count++] = js('#', jsName);
+        }
       }
     }
 
@@ -172,8 +181,8 @@ class ParameterStubGenerator {
           member,
           isInterceptedMethod,
           _namer.invocationName(selector),
-          parametersBuffer,
-          argumentsBuffer,
+          stubParameters,
+          targetArguments,
           indexOfLastOptionalArgumentInParameters);
     } else if (member.isInstanceMember) {
       if (needsSuperGetter(member)) {
@@ -186,18 +195,23 @@ class ParameterStubGenerator {
         body = js.statement('return #.#.call(this, #);', [
           _emitterTask.prototypeAccess(superClass, hasBeenInstantiated: true),
           methodName,
-          argumentsBuffer
+          targetArguments
         ]);
       } else {
         body = js.statement('return this.#(#);',
-            [_namer.instanceMethodName(member), argumentsBuffer]);
+            [_namer.instanceMethodName(member), targetArguments]);
       }
     } else {
       body = js.statement('return #(#)',
-          [_emitter.staticFunctionAccess(member), argumentsBuffer]);
+          [_emitter.staticFunctionAccess(member), targetArguments]);
     }
 
-    jsAst.Fun function = js('function(#) { #; }', [parametersBuffer, body])
+    SourceInformationBuilder sourceInformationBuilder =
+        _sourceInformationStrategy.createBuilderForContext(member);
+    SourceInformation sourceInformation =
+        sourceInformationBuilder.buildStub(member, callStructure);
+
+    jsAst.Fun function = js('function(#) { #; }', [stubParameters, body])
         .withSourceInformation(sourceInformation);
 
     jsAst.Name name = member.isStatic ? null : _namer.invocationName(selector);
@@ -262,10 +276,8 @@ class ParameterStubGenerator {
     }
 
     assert(emptySelectorSet.isEmpty);
-    if (liveSelectors == null)
-      liveSelectors = const <Selector, SelectorConstraints>{};
-    if (callSelectors == null)
-      callSelectors = const <Selector, SelectorConstraints>{};
+    liveSelectors ??= const <Selector, SelectorConstraints>{};
+    callSelectors ??= const <Selector, SelectorConstraints>{};
 
     List<ParameterStubMethod> stubs = <ParameterStubMethod>[];
 

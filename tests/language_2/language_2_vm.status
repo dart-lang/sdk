@@ -1054,6 +1054,7 @@ covariance_type_parameter_test/03: RuntimeError
 covariance_type_parameter_test/none: RuntimeError
 covariant_subtyping_test: RuntimeError
 factory_implementation_test/00: Fail
+function_call_generic_test: RuntimeError # Type argument not inferred.
 function_type/function_type0_test: RuntimeError # Issue 30475
 function_type/function_type10_test: RuntimeError # Issue 30475
 function_type/function_type12_test: RuntimeError # Issue 30475

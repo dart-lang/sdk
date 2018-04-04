@@ -59,4 +59,6 @@ main() {
 
   check('[1, 2, 3, 4, 5, 6, 7, null, null, null]',
       Function.apply(memberFn2, [1, 2, 3, 4, 5, 6, 7]));
+
+  // TODO(sra): Apply of instantiations
 }
