@@ -126,3 +126,5 @@ incomplete_field_formal_parameter: Fail # Fasta doesn't recover well
 
 co19_language_metadata_syntax_t04: RuntimeError # Fasta doesn't recover well
 external_import: RuntimeError # Expected -- test uses import which doesn't exist.
+
+implicit_const_with_static_fields: Fail

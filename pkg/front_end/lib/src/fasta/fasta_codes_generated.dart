@@ -2870,6 +2870,35 @@ $string""", arguments: {'string': string});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            string)> templateInternalVisitorUnsupportedDefault = const Template<
+        Message Function(String string)>(
+    messageTemplate:
+        r"""Trying to invoke a default visiting method of a visitor on a node #string.""",
+    tipTemplate:
+        r"""Try invoking one of the specialized 'visit' methods instead.""",
+    withArguments: _withArgumentsInternalVisitorUnsupportedDefault);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)>
+    codeInternalVisitorUnsupportedDefault =
+    const Code<Message Function(String string)>(
+        "InternalVisitorUnsupportedDefault",
+        templateInternalVisitorUnsupportedDefault,
+        severity: Severity.internalProblem);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInternalVisitorUnsupportedDefault(String string) {
+  return new Message(codeInternalVisitorUnsupportedDefault,
+      message:
+          """Trying to invoke a default visiting method of a visitor on a node $string.""",
+      tip: """Try invoking one of the specialized 'visit' methods instead.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInterpolationInUri = messageInterpolationInUri;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

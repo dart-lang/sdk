@@ -1254,6 +1254,11 @@ InternalVerificationError:
     Verification of the generated program failed:
     #string
 
+InternalVisitorUnsupportedDefault:
+  template: "Trying to invoke a default visiting method of a visitor on a node #string."
+  tip: "Try invoking one of the specialized 'visit' methods instead."
+  severity: INTERNAL_PROBLEM
+
 LocalDefinitionHidesExport:
   template: "Local definition of '#name' hides export from '#uri'."
   severity: NIT
