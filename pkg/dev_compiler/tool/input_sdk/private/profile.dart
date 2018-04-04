@@ -61,21 +61,13 @@ List<List<Object>> getDynamicStats() {
     for (var record in _callMethodRecords) {
       var stackStr = JS('String', '#.stack', record.jsError);
       var frames = stackStr.split('\n');
-      var src = '';
       // Skip first two lines as the first couple frames are from the dart
       // runtime.
-      for (int i = 2; i < frames.length; ++i) {
-        var frame = frames[i];
-        var mappedFrame = _frameMappingCache.putIfAbsent(frame, () {
-          return stackTraceMapper('\n${frame}');
-        });
-        if (!mappedFrame.contains('dart:_runtime/operations.dart') &&
-            !mappedFrame.contains('dart:_debugger/profile.dart')) {
-          src = mappedFrame;
-
-          break;
-        }
-      }
+      var src = frames
+          .skip(2)
+          .map((f) =>
+              _frameMappingCache.putIfAbsent(f, () => stackTraceMapper('\n$f')))
+          .firstWhere((f) => !f.startsWith('dart:'), orElse: () => '');
 
       var actualTypeName = dart.typeName(record.type);
       callMethodStats
