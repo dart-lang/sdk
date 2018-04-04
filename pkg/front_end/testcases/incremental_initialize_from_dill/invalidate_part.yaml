@@ -4,23 +4,22 @@
 
 # Invalidate a part file.
 
-type: simple
-name: testInvalidatePart
-entry: testInvalidatePart_a.dart
+type: basic
+entry: a.dart
 strong: true
 invalidate:
-  - testInvalidatePart_b.dart
+  - b.dart
 sources:
-  testInvalidatePart_a.dart: |
+  a.dart: |
     library a;
-    import 'testInvalidatePart_c.dart';
-    part 'testInvalidatePart_b.dart';
-  testInvalidatePart_b.dart: |
+    import 'c.dart';
+    part 'b.dart';
+  b.dart: |
     part of a;
     b() { print("b"); }
-  testInvalidatePart_c.dart: |
+  c.dart: |
     library c;
-    part 'testInvalidatePart_d.dart';
-  testInvalidatePart_d.dart: |
+    part 'd.dart';
+  d.dart: |
     part of c;
     d() { print("d"); }

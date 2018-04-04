@@ -4,17 +4,16 @@
 
 # Compile in strong mode. Use mixins.
 
-type: simple
-name: testStrongModeMixins2
-entry: testStrongModeMixins2_a.dart
+type: basic
+entry: a.dart
 strong: true
 invalidate:
-  - testStrongModeMixins2_a.dart
+  - a.dart
 sources:
-  testStrongModeMixins2_a.dart: |
-    import 'testStrongModeMixins2_b.dart';
+  a.dart: |
+    import 'b.dart';
     class A extends Object with B<C>, D<Object> {}
-  testStrongModeMixins2_b.dart: |
+  b.dart: |
     abstract class B<ChildType extends Object> extends Object {
       ChildType get child => null;
       set child(ChildType value) {}

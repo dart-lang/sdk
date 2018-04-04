@@ -6,14 +6,13 @@
 # Make sure compiling from source and compiling where we initialize from dill
 # ends up including the same source code.
 
-type: simple
-name: testMixinFromSdk
-entry: testMixinFromSdk_a.dart
+type: basic
+entry: a.dart
 strong: true
 invalidate:
-  - testMixinFromSdk_a.dart
+  - a.dart
 sources:
-  testMixinFromSdk_a.dart: |
+  a.dart: |
     import 'dart:collection';
 
     class Foo extends Object with ListMixin<int> {

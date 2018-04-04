@@ -4,8 +4,7 @@
 
 # Test that invalidating a part of a package works with file URI.
 
-type: simple
-name: testDeferredLibrary
+type: basic
 entry: "package:dummy/main.dart"
 strong: false
 invalidate:

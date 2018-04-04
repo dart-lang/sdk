@@ -5,18 +5,17 @@
 # Test compiling in non-strong-mode from source and initializing from dill.
 # Make sure that any inference if done in the same way.
 
-type: simple
-name: testCalculatedBounds
-entry: testCalculatedBounds_a.dart
+type: basic
+entry: a.dart
 strong: false
 invalidate:
-  - testCalculatedBounds_a.dart
+  - a.dart
 sources:
-  testCalculatedBounds_a.dart: |
-    import 'testCalculatedBounds_b.dart';
+  a.dart: |
+    import 'b.dart';
 
     class A {
       void foo(B cls) {}
     }
-  testCalculatedBounds_b.dart: |
+  b.dart: |
     abstract class B<T extends String> {}
