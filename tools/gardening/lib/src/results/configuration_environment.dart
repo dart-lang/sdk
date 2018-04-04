@@ -98,7 +98,7 @@ class ConfigurationEnvironment implements Environment {
     if (variable == null) {
       // This shouldn't happen since we validate variables before evaluating
       // expressions.
-      throw new ArgumentError('Unknown variable "$variable".');
+      throw new ArgumentError('Unknown variable "$name".');
     }
 
     return variable.lookUp(_configuration);
