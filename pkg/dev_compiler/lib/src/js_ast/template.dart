@@ -352,6 +352,9 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     return (a) => makeExpression(a).toStatement();
   }
 
+  Instantiator<DebuggerStatement> visitDebuggerStatement(node) =>
+      (a) => new DebuggerStatement();
+
   Instantiator<EmptyStatement> visitEmptyStatement(EmptyStatement node) =>
       (a) => new EmptyStatement();
 

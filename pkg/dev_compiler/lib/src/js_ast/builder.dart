@@ -1379,6 +1379,11 @@ class MiniJsParser {
         return parseBreakOrContinue((label) => new Continue(label));
       }
 
+      if (acceptString('debugger')) {
+        expectSemicolon();
+        return new DebuggerStatement();
+      }
+
       if (acceptString('if')) return parseIfThenElse();
 
       if (acceptString('for')) return parseFor();

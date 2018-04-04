@@ -3186,9 +3186,13 @@ class ProgramCompiler
   @override
   visitExpressionStatement(ExpressionStatement node) {
     var expr = node.expression;
-    if (expr is StaticInvocation && isInlineJS(expr.target)) {
-      var inlineJS = _emitInlineJSCode(expr);
-      return inlineJS is JS.Statement ? inlineJS : inlineJS.toStatement();
+    if (expr is StaticInvocation) {
+      if (isInlineJS(expr.target)) {
+        return _emitInlineJSCode(expr).toStatement();
+      }
+      if (_isDebuggerCall(expr.target)) {
+        return _emitDebuggerCall(expr).toStatement();
+      }
     }
     return _visitExpression(expr).toStatement();
   }
@@ -4325,10 +4329,55 @@ class ProgramCompiler
     if (target == coreTypes.identicalProcedure) {
       return _emitCoreIdenticalCall(node.arguments.positional);
     }
+    if (_isDebuggerCall(target)) {
+      return _emitDebuggerCall(node) as JS.Expression;
+    }
 
     var fn = _emitStaticTarget(target);
     var args = _emitArgumentList(node.arguments);
     return new JS.Call(fn, args);
+  }
+
+  bool _isDebuggerCall(Procedure target) {
+    return target.name.name == 'debugger' &&
+        target.enclosingLibrary.importUri.toString() == 'dart:developer';
+  }
+
+  JS.Node _emitDebuggerCall(StaticInvocation node) {
+    var args = node.arguments.named;
+    var isStatement = node.parent is ExpressionStatement;
+    if (args.isEmpty) {
+      // Inline `debugger()` with no arguments, as a statement if possible,
+      // otherwise as an immediately invoked function.
+      return isStatement
+          ? js.statement('debugger;')
+          : js.call('(() => { debugger; return true})()');
+    }
+
+    // The signature of `debugger()` is:
+    //
+    //     bool debugger({bool when: true, String message})
+    //
+    // This code path handles the named arguments `when` and/or `message`.
+    // Both must be evaluated in the supplied order, and then `when` is used
+    // to decide whether to break or not.
+    //
+    // We also need to return the value of `when`.
+    var jsArgs = args.map(_emitNamedExpression).toList();
+    var when = args.length == 1
+        // For a single `when` argument, use it.
+        //
+        // For a single `message` argument, use `{message: ...}`, which
+        // coerces to true (the default value of `when`).
+        ? (args[0].name == 'when'
+            ? jsArgs[0].value
+            : new JS.ObjectInitializer(jsArgs))
+        // If we have both `message` and `when` arguments, evaluate them in
+        // order, then extract the `when` argument.
+        : js.call('#.when', new JS.ObjectInitializer(jsArgs));
+    return isStatement
+        ? js.statement('if (#) debugger;', when)
+        : js.call('# && (() => { debugger; return true })()', when);
   }
 
   /// Emits the target of a [StaticInvocation], [StaticGet], or [StaticSet].
@@ -4357,15 +4406,16 @@ class ProgramCompiler
         args.add(_visitExpression(arg));
       }
     }
-    var named = <JS.Property>[];
-    for (var arg in node.named) {
-      named.add(new JS.Property(
-          _propertyName(arg.name), _visitExpression(arg.value)));
-    }
-    if (named.isNotEmpty) {
-      args.add(new JS.ObjectInitializer(named));
+    if (node.named.isNotEmpty) {
+      args.add(new JS.ObjectInitializer(
+          node.named.map(_emitNamedExpression).toList()));
     }
     return args;
+  }
+
+  JS.Property _emitNamedExpression(NamedExpression arg) {
+    return new JS.Property(
+        _propertyName(arg.name), _visitExpression(arg.value));
   }
 
   /// Emits code for the `JS(...)` macro.
@@ -4453,9 +4503,8 @@ class ProgramCompiler
 
     var result = js.parseForeignJS(source).instantiate(jsArgs);
 
-    // `throw` is emitted as a statement by `parseForeignJS`.
     assert(result is JS.Expression ||
-        result is JS.Throw && node.parent is ExpressionStatement);
+        result is JS.Statement && node.parent is ExpressionStatement);
     return result;
   }
 

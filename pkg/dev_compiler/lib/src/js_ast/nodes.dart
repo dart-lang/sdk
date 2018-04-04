@@ -8,6 +8,7 @@ abstract class NodeVisitor<T> implements TypeRefVisitor<T> {
   T visitProgram(Program node);
 
   T visitBlock(Block node);
+  T visitDebuggerStatement(DebuggerStatement node);
   T visitExpressionStatement(ExpressionStatement node);
   T visitEmptyStatement(EmptyStatement node);
   T visitIf(If node);
@@ -119,6 +120,7 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitJump(Statement node) => visitStatement(node);
 
   T visitBlock(Block node) => visitStatement(node);
+  T visitDebuggerStatement(node) => visitStatement(node);
   T visitExpressionStatement(ExpressionStatement node) => visitStatement(node);
   T visitEmptyStatement(EmptyStatement node) => visitStatement(node);
   T visitIf(If node) => visitStatement(node);
@@ -1867,6 +1869,12 @@ class CommentExpression extends Expression {
   CommentExpression _clone() => new CommentExpression(comment, expression);
 
   void visitChildren(NodeVisitor visitor) => expression.accept(visitor);
+}
+
+class DebuggerStatement extends Statement {
+  T accept<T>(NodeVisitor<T> visitor) => visitor.visitDebuggerStatement(this);
+  DebuggerStatement _clone() => new DebuggerStatement();
+  void visitChildren(NodeVisitor visitor) {}
 }
 
 /**

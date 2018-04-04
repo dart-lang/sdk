@@ -3824,10 +3824,6 @@ class CodeGenerator extends Object
     return !isNullable(left) || !isNullable(right);
   }
 
-  bool _isCoreIdentical(Expression node) {
-    return node is Identifier && node.staticElement == _coreIdentical;
-  }
-
   JS.Expression _emitJSDoubleEq(List<JS.Expression> args,
       {bool negated = false}) {
     var op = negated ? '# != #' : '# == #';
@@ -3862,15 +3858,23 @@ class CodeGenerator extends Object
 
   /// Emits a function call, to a top-level function, local function, or
   /// an expression.
-  JS.Expression _emitFunctionCall(InvocationExpression node,
-      [Expression function]) {
+  JS.Node _emitFunctionCall(InvocationExpression node, [Expression function]) {
     function ??= node.function;
     var castTo = getImplicitOperationCast(function);
     if (castTo != null) {
       function = CoercionReifier.castExpression(function, castTo);
     }
-    if (_isCoreIdentical(function)) {
-      return _emitCoreIdenticalCall(node.argumentList.arguments);
+    if (function is Identifier) {
+      var element = function.staticElement;
+      if (element == _coreIdentical) {
+        return _emitCoreIdenticalCall(node.argumentList.arguments);
+      }
+      var uri = element.librarySource.uri;
+      if (uri.scheme == 'dart' &&
+          uri.path.startsWith('developer') &&
+          element.name == 'debugger') {
+        return _emitDebuggerCall(node);
+      }
     }
     var fn = _visitExpression(function);
     var args = _emitArgumentList(node.argumentList);
@@ -3889,6 +3893,47 @@ class CodeGenerator extends Object
     }
 
     return new JS.Call(fn, args);
+  }
+
+  JS.Node _emitDebuggerCall(InvocationExpression node) {
+    var args = node.argumentList.arguments;
+    var isStatement = node.parent is ExpressionStatement;
+    if (args.isEmpty) {
+      // Inline `debugger()` with no arguments, as a statement if possible,
+      // otherwise as an immediately invoked function.
+      return isStatement
+          ? js.statement('debugger;')
+          : js.call('(() => { debugger; return true})()');
+    }
+
+    // The signature of `debugger()` is:
+    //
+    //     bool debugger({bool when: true, String message})
+    //
+    // This code path handles the named arguments `when` and/or `message`.
+    // Both must be evaluated in the supplied order, and then `when` is used
+    // to decide whether to break or not.
+    //
+    // We also need to return the value of `when`.
+    var jsArgs = <JS.Property>[];
+    var foundWhen = false;
+    for (var arg in args) {
+      var namedArg = arg as NamedExpression;
+      if (namedArg.name.label.name == 'when') foundWhen = true;
+      jsArgs.add(visitNamedExpression(namedArg));
+    }
+    var when = jsArgs.length == 1
+        // For a single `when` argument, use it.
+        //
+        // For a single `message` argument, use `{message: ...}`, which
+        // coerces to true (the default value of `when`).
+        ? (foundWhen ? jsArgs[0].value : new JS.ObjectInitializer(jsArgs))
+        // If we have both `message` and `when` arguments, evaluate them in
+        // order, then extract the `when` argument.
+        : js.call('#.when', new JS.ObjectInitializer(jsArgs));
+    return isStatement
+        ? js.statement('if (#) debugger;', when)
+        : js.call('# && (() => { debugger; return true })()', when);
   }
 
   List<JS.Expression> _emitInvokeTypeArguments(InvocationExpression node) {
@@ -4029,12 +4074,12 @@ class CodeGenerator extends Object
 
     // `throw` is emitted as a statement by `parseForeignJS`.
     assert(result is JS.Expression ||
-        result is JS.Throw && node.parent is ExpressionStatement);
+        result is JS.Statement && node.parent is ExpressionStatement);
     return result;
   }
 
   @override
-  JS.Expression visitFunctionExpressionInvocation(
+  JS.Node visitFunctionExpressionInvocation(
           FunctionExpressionInvocation node) =>
       _emitFunctionCall(node);
 
