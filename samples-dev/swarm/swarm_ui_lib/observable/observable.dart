@@ -174,8 +174,8 @@ class ObservableList<T> extends AbstractObservable
 
   Iterable<T> get reversed => _internal.reversed;
 
-  void sort([int compare(var a, var b)]) {
-    if (compare == null) compare = Comparable.compare;
+  void sort([int compare(T a, T b)]) {
+    //if (compare == null) compare = (u, v) => Comparable.compare(u, v);
     _internal.sort(compare);
     recordGlobalChange();
   }
@@ -296,11 +296,11 @@ class ObservableList<T> extends AbstractObservable
     throw new UnimplementedError();
   }
 
-  List sublist(int start, [int end]) {
+  List<T> sublist(int start, [int end]) {
     throw new UnimplementedError();
   }
 
-  Iterable getRange(int start, int end) {
+  Iterable<T> getRange(int start, int end) {
     throw new UnimplementedError();
   }
 
@@ -331,16 +331,16 @@ class ObservableList<T> extends AbstractObservable
   }
 
   String join([String separator = ""]) => _internal.join(separator);
-  dynamic firstWhere(bool test(T value), {Object orElse()}) {
+  T firstWhere(bool test(T value), {T orElse()}) {
     return _internal.firstWhere(test, orElse: orElse);
   }
 
-  dynamic lastWhere(bool test(T value), {Object orElse()}) {
+  T lastWhere(bool test(T value), {T orElse()}) {
     return _internal.lastWhere(test, orElse: orElse);
   }
 
   void shuffle([random]) => throw new UnimplementedError();
-  bool remove(T element) => throw new UnimplementedError();
+  bool remove(Object element) => throw new UnimplementedError();
   void removeWhere(bool test(T element)) => throw new UnimplementedError();
   void retainWhere(bool test(T element)) => throw new UnimplementedError();
   List<T> toList({bool growable: true}) => throw new UnimplementedError();
