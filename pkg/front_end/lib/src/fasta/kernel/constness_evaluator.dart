@@ -328,13 +328,27 @@ class ConstnessEvaluator implements ExpressionVisitor<ConstnessInfo> {
   visitVariableGet(VariableGet node) {
     if (!node.variable.isConst) return const ConstnessInfo.decidedNew();
     // TODO(dmitryas): Handle the case of recursive dependencies.
+    // TODO(dmitryas): Find a way to get fileUri of the variable.
     return node.variable.initializer.accept(this);
   }
 
   @override
   visitStaticGet(StaticGet node) {
-    // TODO(dmitryas): Handle this case.
-    return const ConstnessInfo.taintedConst(null);
+    Member target = node.target;
+    if (target is Field) {
+      if (target.isConst) {
+        if (this.uri == target.fileUri) {
+          return target.initializer.accept(this);
+        }
+        return target.initializer
+            .accept(new ConstnessEvaluator(coreTypes, target.fileUri));
+      } else {
+        return const ConstnessInfo.decidedNew();
+      }
+    } else {
+      // TODO(dmitryas): Handle the case of a tear-off.
+      return const ConstnessInfo.taintedConst(null);
+    }
   }
 
   @override
