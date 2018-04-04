@@ -22,6 +22,20 @@ dart/data_uri_import_test/none: SkipByDesign
 
 [ $builder_tag == asan ]
 cc/CodeImmutability: Fail, OK # Address Sanitizer turns a crash into a failure.
+cc/IsolateReload_DanglingGetter_Class: Fail # Issue 28349
+cc/IsolateReload_DanglingGetter_Instance: Fail # Issue 28349
+cc/IsolateReload_LiveStack: Fail # Issue 28349
+cc/IsolateReload_PendingSuperCall: Fail # Issue 28349
+cc/IsolateReload_SmiFastPathStubs: Fail # Issue 28349
+cc/IsolateReload_TearOff_AddArguments: Fail # Issue 28349
+cc/IsolateReload_TearOff_AddArguments2: Fail # Issue 28349
+cc/IsolateReload_TearOff_Class_Identity: Fail # Issue 28349
+cc/IsolateReload_TearOff_Instance_Equality: Fail # Issue 28349
+cc/IsolateReload_TearOff_Library_Identity: Fail # Issue 28349
+cc/IsolateReload_TearOff_List_Set: Fail # Issue 28349
+cc/IsolateReload_TypeIdentity: Fail # Issue 28349
+cc/IsolateReload_TypeIdentityGeneric: Fail # Issue 28349
+cc/IsolateReload_TypeIdentityParameter: Fail # Issue 28349
 
 [ $compiler == app_jit ]
 dart/snapshot_version_test: Fail, OK # Expects to find script snapshot relative to Dart source.

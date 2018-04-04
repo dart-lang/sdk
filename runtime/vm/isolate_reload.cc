@@ -1356,7 +1356,10 @@ void IsolateReloadContext::Commit() {
   // used for morphing. It is therefore important that morphing takes
   // place prior to any heap walking.
   // So please keep this code at the top of Commit().
-  if (!MorphInstances()) {
+  if (HasInstanceMorphers()) {
+    // Perform shape shifting of instances if necessary.
+    MorphInstances();
+  } else {
     free(saved_class_table_);
     saved_class_table_ = NULL;
   }
@@ -1583,12 +1586,9 @@ class ObjectLocator : public ObjectVisitor {
   intptr_t count_;
 };
 
-bool IsolateReloadContext::MorphInstances() {
+void IsolateReloadContext::MorphInstances() {
   TIMELINE_SCOPE(MorphInstances);
-  if (!HasInstanceMorphers()) {
-    return false;
-  }
-
+  ASSERT(HasInstanceMorphers());
   if (FLAG_trace_reload) {
     LogBlock blocker;
     TIR_Print("MorphInstance: \n");
@@ -1606,9 +1606,7 @@ bool IsolateReloadContext::MorphInstances() {
 
   // Return if no objects are located.
   intptr_t count = locator.count();
-  if (count == 0) {
-    return false;
-  }
+  if (count == 0) return;
 
   TIR_Print("Found %" Pd " object%s subject to morphing.\n", count,
             (count > 1) ? "s" : "");
@@ -1642,7 +1640,6 @@ bool IsolateReloadContext::MorphInstances() {
   free(saved_class_table_);
   saved_class_table_ = NULL;
   Become::ElementsForwardIdentity(before, after);
-  return true;
 }
 
 void IsolateReloadContext::RunNewFieldInitializers() {
