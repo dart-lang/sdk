@@ -4320,6 +4320,11 @@ class Parser {
       return parseExpressionStatementOrConstDeclaration(token);
     } else if (!inPlainSync && identical(value, 'await')) {
       return parseExpressionStatement(token);
+    } else if (identical(value, 'set') && token.next.next.isIdentifier) {
+      // Recovery: invalid use of `get` or `set`
+      reportRecoverableErrorWithToken(
+          token.next, fasta.templateUnexpectedToken);
+      return parseStatementX(token.next);
     } else if (token.next.isIdentifier) {
       if (optional(':', token.next.next)) {
         return parseLabeledStatement(token);
