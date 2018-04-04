@@ -105,15 +105,19 @@ class _Assumptions {
   Map<FunctionTypeVariable, Set<FunctionTypeVariable>> _assumptionMap =
       <FunctionTypeVariable, Set<FunctionTypeVariable>>{};
 
-  /// Assume that [a] and [b] are equivalent.
-  void assume(FunctionTypeVariable a, FunctionTypeVariable b) {
+  void _addAssumption(FunctionTypeVariable a, FunctionTypeVariable b) {
     _assumptionMap
         .putIfAbsent(a, () => new Set<FunctionTypeVariable>.identity())
         .add(b);
   }
 
-  /// Remove the assumption that [a] and [b] are equivalent.
-  void forget(FunctionTypeVariable a, FunctionTypeVariable b) {
+  /// Assume that [a] and [b] are equivalent.
+  void assume(FunctionTypeVariable a, FunctionTypeVariable b) {
+    _addAssumption(a, b);
+    _addAssumption(b, a);
+  }
+
+  void _removeAssumption(FunctionTypeVariable a, FunctionTypeVariable b) {
     Set<FunctionTypeVariable> set = _assumptionMap[a];
     if (set != null) {
       set.remove(b);
@@ -123,9 +127,29 @@ class _Assumptions {
     }
   }
 
+  /// Remove the assumption that [a] and [b] are equivalent.
+  void forget(FunctionTypeVariable a, FunctionTypeVariable b) {
+    _removeAssumption(a, b);
+    _removeAssumption(b, a);
+  }
+
   /// Returns `true` if [a] and [b] are assumed to be equivalent.
   bool isAssumed(FunctionTypeVariable a, FunctionTypeVariable b) {
     return _assumptionMap[a]?.contains(b) ?? false;
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('_Assumptions(');
+    String comma = '';
+    _assumptionMap
+        .forEach((FunctionTypeVariable a, Set<FunctionTypeVariable> set) {
+      sb.write('$comma$a (${identityHashCode(a)})->'
+          '{${set.map((b) => '$b (${identityHashCode(b)})').join(',')}}');
+      comma = ',';
+    });
+    sb.write(')');
+    return sb.toString();
   }
 }
 
@@ -878,6 +902,7 @@ abstract class BaseDartTypeVisitor<R, A> extends DartTypeVisitor<R, A> {
 abstract class AbstractTypeRelation<T extends DartType>
     extends BaseDartTypeVisitor<bool, T> {
   CommonElements get commonElements;
+  bool get strongMode;
 
   final _Assumptions assumptions = new _Assumptions();
 
@@ -1103,18 +1128,32 @@ abstract class AbstractTypeRelation<T extends DartType>
 abstract class MoreSpecificVisitor<T extends DartType>
     extends AbstractTypeRelation<T> {
   bool isMoreSpecific(T t, T s) {
-    if (identical(t, s) || s.treatAsDynamic || t == commonElements.nullType) {
-      return true;
+    if (strongMode) {
+      if (identical(t, s) ||
+          s.treatAsDynamic ||
+          s.isVoid ||
+          s == commonElements.objectType ||
+          t == commonElements.nullType) {
+        return true;
+      }
+      if (t.treatAsDynamic) {
+        return false;
+      }
+    } else {
+      if (identical(t, s) || s.treatAsDynamic || t == commonElements.nullType) {
+        return true;
+      }
+      if (t.isVoid || s.isVoid) {
+        return false;
+      }
+      if (t.treatAsDynamic) {
+        return false;
+      }
+      if (s == commonElements.objectType) {
+        return true;
+      }
     }
-    if (t.isVoid || s.isVoid) {
-      return false;
-    }
-    if (t.treatAsDynamic) {
-      return false;
-    }
-    if (s == commonElements.objectType) {
-      return true;
-    }
+
     t = getUnaliased(t);
     s = getUnaliased(s);
 
@@ -1151,7 +1190,9 @@ abstract class MoreSpecificVisitor<T extends DartType>
 abstract class SubtypeVisitor<T extends DartType>
     extends MoreSpecificVisitor<T> {
   bool isSubtype(DartType t, DartType s) {
-    if (t.treatAsDynamic) return true;
+    if (!strongMode && t.treatAsDynamic) {
+      return true;
+    }
     if (s.isFutureOr) {
       FutureOrType sFutureOr = s;
       if (isSubtype(t, sFutureOr.typeArgument)) {
@@ -1177,10 +1218,12 @@ abstract class SubtypeVisitor<T extends DartType>
   }
 
   bool invalidFunctionReturnTypes(T t, T s) {
+    if (strongMode) return !isSubtype(t, s);
     return !s.isVoid && !isAssignable(t, s);
   }
 
   bool invalidFunctionParameterTypes(T t, T s) {
+    if (strongMode) return !isSubtype(s, t);
     return !isAssignable(t, s);
   }
 

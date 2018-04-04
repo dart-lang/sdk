@@ -146,6 +146,7 @@ abstract class _AbstractTypeRelationMixin
 class _KernelSubtypeVisitor extends SubtypeVisitor<DartType>
     with _AbstractTypeRelationMixin {
   final KernelToElementMapBase elementMap;
+  bool get strongMode => elementMap.options.strongMode;
 
   _KernelSubtypeVisitor(this.elementMap);
 }
@@ -153,6 +154,7 @@ class _KernelSubtypeVisitor extends SubtypeVisitor<DartType>
 class _KernelPotentialSubtypeVisitor extends PotentialSubtypeVisitor<DartType>
     with _AbstractTypeRelationMixin {
   final KernelToElementMapBase elementMap;
+  bool get strongMode => elementMap.options.strongMode;
 
   _KernelPotentialSubtypeVisitor(this.elementMap);
 }

@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart' hide MapEntry;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import 'package:kernel/visitor.dart' show RecursiveVisitor;
+import 'package:kernel/visitor.dart' show ExpressionVisitor;
 
 import '../names.dart'
     show
@@ -34,7 +34,9 @@ import '../names.dart'
         tildaName,
         unaryMinusName;
 
-import '../problems.dart' show unhandled;
+import '../fasta_codes.dart' show templateInternalVisitorUnsupportedDefault;
+
+import '../problems.dart' show unsupported;
 
 enum ConstnessEffect {
   decidedNew,
@@ -87,13 +89,31 @@ class ConstnessInfo {
 ///
 /// TODO(dmitryas): Share code with the constant evaluator from
 /// pkg/kernel/lib/transformations/constants.dart.
-class ConstnessEvaluator extends RecursiveVisitor<ConstnessInfo> {
+class ConstnessEvaluator implements ExpressionVisitor<ConstnessInfo> {
   final Map<Expression, ConstnessInfo> constnesses =
       <Expression, ConstnessInfo>{};
 
   final CoreTypes coreTypes;
 
-  ConstnessEvaluator(this.coreTypes);
+  /// [Uri] of the file containing the expressions that are to be evaluated.
+  final Uri uri;
+
+  ConstnessEvaluator(this.coreTypes, this.uri);
+
+  @override
+  defaultExpression(Expression node) {
+    return unsupported(
+        templateInternalVisitorUnsupportedDefault
+            .withArguments("${node.runtimeType}")
+            .message,
+        node?.fileOffset ?? -1,
+        uri);
+  }
+
+  @override
+  defaultBasicLiteral(BasicLiteral node) {
+    return defaultExpression(node);
+  }
 
   ConstnessInfo evaluate(Expression node) {
     return node.accept(this);
@@ -108,40 +128,41 @@ class ConstnessEvaluator extends RecursiveVisitor<ConstnessInfo> {
   }
 
   @override
-  defaultTreeNode(TreeNode node) {
-    unhandled(
-        "${node}", "defaultTreeNode", node.fileOffset, node.location.file);
-    return null;
-  }
-
   visitNullLiteral(NullLiteral node) {
     return const ConstnessInfo.allowedConst(ConstantKind.nullConstant);
   }
 
+  @override
   visitBoolLiteral(BoolLiteral node) {
     return const ConstnessInfo.allowedConst(ConstantKind.boolConstant);
   }
 
+  @override
   visitIntLiteral(IntLiteral node) {
     return const ConstnessInfo.allowedConst(ConstantKind.intConstant);
   }
 
+  @override
   visitDoubleLiteral(DoubleLiteral node) {
     return const ConstnessInfo.allowedConst(ConstantKind.doubleConstant);
   }
 
+  @override
   visitStringLiteral(StringLiteral node) {
     return const ConstnessInfo.allowedConst(ConstantKind.stringConstant);
   }
 
+  @override
   visitSymbolLiteral(SymbolLiteral node) {
     return const ConstnessInfo.allowedConst(ConstantKind.symbolConstant);
   }
 
+  @override
   visitTypeLiteral(TypeLiteral node) {
     return const ConstnessInfo.allowedConst(ConstantKind.typeConstant);
   }
 
+  @override
   visitListLiteral(ListLiteral node) {
     if (node.isConst) {
       return const ConstnessInfo.allowedConst(ConstantKind.listConstant);
@@ -149,6 +170,7 @@ class ConstnessEvaluator extends RecursiveVisitor<ConstnessInfo> {
     return const ConstnessInfo.decidedNew();
   }
 
+  @override
   visitMapLiteral(MapLiteral node) {
     if (node.isConst) {
       return const ConstnessInfo.allowedConst(ConstantKind.mapConstant);
@@ -156,6 +178,7 @@ class ConstnessEvaluator extends RecursiveVisitor<ConstnessInfo> {
     return const ConstnessInfo.decidedNew();
   }
 
+  @override
   visitConstructorInvocation(ConstructorInvocation node) {
     if (constnesses[node] != null) return constnesses[node];
 
@@ -193,6 +216,7 @@ class ConstnessEvaluator extends RecursiveVisitor<ConstnessInfo> {
         new ConstnessInfo(resultEffect, ConstantKind.interfaceConstant);
   }
 
+  @override
   visitMethodInvocation(MethodInvocation node) {
     Expression receiver = node.receiver;
     ConstnessInfo receiverConstness = receiver.accept(this);
@@ -244,6 +268,7 @@ class ConstnessEvaluator extends RecursiveVisitor<ConstnessInfo> {
     return const ConstnessInfo.decidedNew();
   }
 
+  @override
   visitLogicalExpression(LogicalExpression node) {
     ConstnessInfo left = node.left.accept(this);
     if (node.operator == doubleBarName) {
@@ -277,11 +302,13 @@ class ConstnessEvaluator extends RecursiveVisitor<ConstnessInfo> {
     return const ConstnessInfo.decidedNew();
   }
 
+  @override
   visitConditionalExpression(ConditionalExpression node) {
     // TODO(dmitryas): Handle this case after boolean constants are handled.
     return const ConstnessInfo.taintedConst(null);
   }
 
+  @override
   visitPropertyGet(PropertyGet node) {
     // TODO(dmitryas): Handle this case after fields are handled.
     ConstnessInfo receiverInfo = node.receiver.accept(this);
@@ -292,21 +319,25 @@ class ConstnessEvaluator extends RecursiveVisitor<ConstnessInfo> {
     return const ConstnessInfo.taintedConst(null);
   }
 
+  @override
   visitLet(Let node) {
     return node.body.accept(this);
   }
 
+  @override
   visitVariableGet(VariableGet node) {
     if (!node.variable.isConst) return const ConstnessInfo.decidedNew();
     // TODO(dmitryas): Handle the case of recursive dependencies.
     return node.variable.initializer.accept(this);
   }
 
+  @override
   visitStaticGet(StaticGet node) {
     // TODO(dmitryas): Handle this case.
     return const ConstnessInfo.taintedConst(null);
   }
 
+  @override
   visitStringConcatenation(StringConcatenation node) {
     List<ConstnessInfo> infos =
         new List<ConstnessInfo>(node.expressions.length);
@@ -325,6 +356,7 @@ class ConstnessEvaluator extends RecursiveVisitor<ConstnessInfo> {
     return new ConstnessInfo(effect, ConstantKind.stringConstant);
   }
 
+  @override
   visitStaticInvocation(StaticInvocation node) {
     // TODO(dmitryas): Handle this case better.
     Member target = node.target;
@@ -344,13 +376,165 @@ class ConstnessEvaluator extends RecursiveVisitor<ConstnessInfo> {
     return const ConstnessInfo.taintedConst(null);
   }
 
+  @override
   visitAsExpression(AsExpression node) {
     // TODO(dmitryas): Handle this case.
     return const ConstnessInfo.taintedConst(null);
   }
 
+  @override
   visitNot(Not node) {
     return node.operand.accept(this);
+  }
+
+  @override
+  visitInvalidExpression(InvalidExpression node) {
+    // TODO(dmitryas): Handle this case.
+    return const ConstnessInfo.taintedConst(null);
+  }
+
+  @override
+  visitVariableSet(VariableSet node) {
+    // TODO(dmitryas): Handle this case.
+    return const ConstnessInfo.taintedConst(null);
+  }
+
+  @override
+  visitPropertySet(PropertySet node) {
+    // TODO(dmitryas): Handle this case.
+    return const ConstnessInfo.taintedConst(null);
+  }
+
+  @override
+  visitDirectPropertyGet(DirectPropertyGet node) {
+    // TODO(dmitryas): Handle this case.
+    return const ConstnessInfo.taintedConst(null);
+  }
+
+  @override
+  visitDirectPropertySet(DirectPropertySet node) {
+    // TODO(dmitryas): Handle this case.
+    return const ConstnessInfo.taintedConst(null);
+  }
+
+  @override
+  visitSuperPropertyGet(SuperPropertyGet node) {
+    // TODO(dmitryas): Handle this case.
+    return const ConstnessInfo.taintedConst(null);
+  }
+
+  @override
+  visitSuperPropertySet(SuperPropertySet node) {
+    // TODO(dmitryas): Handle this case.
+    return const ConstnessInfo.taintedConst(null);
+  }
+
+  @override
+  visitStaticSet(StaticSet node) {
+    // TODO(dmitryas): Handle this case.
+    return const ConstnessInfo.taintedConst(null);
+  }
+
+  @override
+  visitDirectMethodInvocation(DirectMethodInvocation node) {
+    // TODO(dmitryas): Handle this case.
+    return const ConstnessInfo.taintedConst(null);
+  }
+
+  @override
+  visitSuperMethodInvocation(SuperMethodInvocation node) {
+    // TODO(dmitryas): Handle this case.
+    return const ConstnessInfo.taintedConst(null);
+  }
+
+  @override
+  visitIsExpression(IsExpression node) {
+    // TODO(dmitryas): Handle this case.
+    return const ConstnessInfo.taintedConst(null);
+  }
+
+  @override
+  visitThisExpression(ThisExpression node) {
+    // TODO(dmitryas): Handle this case.
+    return const ConstnessInfo.taintedConst(null);
+  }
+
+  @override
+  visitRethrow(Rethrow node) {
+    // TODO(dmitryas): Handle this case.
+    return const ConstnessInfo.taintedConst(null);
+  }
+
+  @override
+  visitThrow(Throw node) {
+    // TODO(dmitryas): Handle this case.
+    return const ConstnessInfo.taintedConst(null);
+  }
+
+  @override
+  visitAwaitExpression(AwaitExpression node) {
+    // TODO(dmitryas): Handle this case.
+    return const ConstnessInfo.taintedConst(null);
+  }
+
+  @override
+  visitFunctionExpression(FunctionExpression node) {
+    // TODO(dmitryas): Handle this case.
+    return const ConstnessInfo.taintedConst(null);
+  }
+
+  @override
+  visitConstantExpression(ConstantExpression node) {
+    // TODO(dmitryas): Handle this case.
+    return const ConstnessInfo.taintedConst(null);
+  }
+
+  @override
+  visitInstantiation(Instantiation node) {
+    // TODO(dmitryas): Handle this case.
+    return const ConstnessInfo.taintedConst(null);
+  }
+
+  @override
+  visitLoadLibrary(LoadLibrary node) {
+    // TODO(dmitryas): Handle this case.
+    return const ConstnessInfo.taintedConst(null);
+  }
+
+  @override
+  visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
+    // TODO(dmitryas): Handle this case.
+    return const ConstnessInfo.taintedConst(null);
+  }
+
+  @override
+  visitVectorCreation(VectorCreation node) {
+    // TODO(dmitryas): Handle this case.
+    return const ConstnessInfo.taintedConst(null);
+  }
+
+  @override
+  visitVectorGet(VectorGet node) {
+    // TODO(dmitryas): Handle this case.
+    return const ConstnessInfo.taintedConst(null);
+  }
+
+  @override
+  visitVectorSet(VectorSet node) {
+    // TODO(dmitryas): Handle this case.
+    return const ConstnessInfo.taintedConst(null);
+  }
+
+  @override
+  visitVectorCopy(VectorCopy node) {
+    // TODO(dmitryas): Handle this case.
+    return const ConstnessInfo.taintedConst(null);
+  }
+
+  @override
+  visitClosureCreation(ClosureCreation node) {
+    // TODO(dmitryas): Handle this case.
+    return const ConstnessInfo.taintedConst(null);
   }
 
   /// Tells the minimum constness effect assuming the following:
@@ -462,6 +646,7 @@ class ConstnessEvaluator extends RecursiveVisitor<ConstnessInfo> {
 }
 
 // TODO(32717): Remove this helper function when the issue is resolved.
-ConstnessInfo evaluateConstness(Expression expression, CoreTypes coreTypes) {
-  return new ConstnessEvaluator(coreTypes).evaluate(expression);
+ConstnessInfo evaluateConstness(
+    Expression expression, CoreTypes coreTypes, Uri uri) {
+  return new ConstnessEvaluator(coreTypes, uri).evaluate(expression);
 }

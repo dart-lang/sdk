@@ -769,12 +769,12 @@ abstract class NativeTypedArray extends NativeTypedData
 
 abstract class NativeTypedArrayOfDouble extends NativeTypedArray
     with ListMixin<double>, FixedLengthListMixin<double> {
-  num operator [](int index) {
+  double operator [](int index) {
     _checkValidIndex(index, this, this.length);
     return JS('num', '#[#]', this, index);
   }
 
-  void operator []=(int index, num value) {
+  void operator []=(int index, double value) {
     _checkValidIndex(index, this, this.length);
     JS('void', '#[#] = #', this, index, value);
   }

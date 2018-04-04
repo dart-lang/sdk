@@ -4,20 +4,25 @@
 
 import 'package:kernel/ast.dart'
     show
-        Member,
+        DartType,
+        DynamicType,
+        FunctionNode,
+        InterfaceType,
+        LibraryDependency,
         LoadLibrary,
+        Member,
+        Name,
         Procedure,
         ProcedureKind,
-        Name,
-        FunctionNode,
-        ReturnStatement,
-        LibraryDependency;
+        ReturnStatement;
 
-import 'builder.dart' show Builder, LibraryBuilder;
+import '../builder/builder.dart' show Builder;
+
+import 'kernel_library_builder.dart' show KernelLibraryBuilder;
 
 /// Builder to represent the `deferLibrary.loadLibrary` calls and tear-offs.
 class LoadLibraryBuilder extends Builder {
-  final LibraryBuilder parent;
+  final KernelLibraryBuilder parent;
 
   final LibraryDependency importDependency;
 
@@ -39,9 +44,14 @@ class LoadLibraryBuilder extends Builder {
     if (tearoff != null) return tearoff;
     LoadLibrary expression = createLoadLibrary(charOffset);
     String prefix = expression.import.name;
-    tearoff = new Procedure(new Name('__loadLibrary_$prefix', parent.target),
-        ProcedureKind.Method, new FunctionNode(new ReturnStatement(expression)),
-        fileUri: parent.target.fileUri, isStatic: true)
+    tearoff = new Procedure(
+        new Name('__loadLibrary_$prefix', parent.target),
+        ProcedureKind.Method,
+        new FunctionNode(new ReturnStatement(expression),
+            returnType: new InterfaceType(parent.loader.coreTypes.futureClass,
+                <DartType>[const DynamicType()])),
+        fileUri: parent.target.fileUri,
+        isStatic: true)
       ..fileOffset = charOffset;
     return tearoff;
   }

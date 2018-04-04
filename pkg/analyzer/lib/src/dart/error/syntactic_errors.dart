@@ -970,7 +970,7 @@ class ParserErrorCode extends ErrorCode {
    * given [correction] template.
    */
   const ParserErrorCode(String name, String message, {String correction})
-      : super(name, message, correction: correction);
+      : super.temporary(name, message, correction: correction);
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;

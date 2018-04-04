@@ -7,18 +7,10 @@ import 'dart:collection';
 /// Helpers for Analyzer's Element model and corelib model.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart'
-    show
-        ClassElement,
-        CompilationUnitElement,
-        Element,
-        ExecutableElement,
-        FunctionElement,
-        LibraryElement,
-        TypeParameterizedElement;
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart'
-    show DartType, InterfaceType, ParameterizedType;
-import 'package:analyzer/src/dart/element/type.dart' show DynamicTypeImpl;
+    show DartType, InterfaceType, ParameterizedType, FunctionType;
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart'
     show DartObject, DartObjectImpl;
 
@@ -181,6 +173,108 @@ bool hasNoSuchMethod(ClassElement classElement) {
 /// a mixin.
 bool isMixinAliasClass(ClassElement c) {
   return c.isMixinApplication && c.supertype.isObject && c.mixins.length == 1;
+}
+
+bool isCallableClass(ClassElement c) {
+  // See if we have a "call" with a statically known function type:
+  //
+  // - if it's a method, then it does because all methods do,
+  // - if it's a getter, check the return type.
+  //
+  // Other cases like a getter returning dynamic/Object/Function will be
+  // handled at runtime by the dynamic call mechanism. So we only
+  // concern ourselves with statically known function types.
+  //
+  // We can ignore `noSuchMethod` because:
+  // * `dynamic d; d();` without a declared `call` method is handled by dcall.
+  // * for `class C implements Callable { noSuchMethod(i) { ... } }` we find
+  //   the `call` method on the `Callable` interface.
+  var callMethod = c.type.lookUpInheritedGetterOrMethod('call');
+  return callMethod is PropertyAccessorElement
+      ? callMethod.returnType is FunctionType
+      : callMethod != null;
+}
+
+/// Returns true if [x] and [y] are equal, in other words, `x <: y` and `y <: x`
+/// and they have equivalent display form when printed.
+//
+// TODO(jmesserly): this exists to work around broken FunctionTypeImpl.== in
+// Analyzer. It has two bugs:
+// - typeArguments are considered, even though this has no semantic effect.
+//   For example: `int -> int` that resulted from `(<T>(T) -> T)<int>` will not
+//   equal another `int -> int`, even though they are the same type.
+// - named arguments are incorrectly treated as ordered, see
+//   https://github.com/dart-lang/sdk/issues/26126.
+bool typesAreEqual(DartType x, DartType y) {
+  if (identical(x, y)) return true;
+  if (x is FunctionType) {
+    if (y is FunctionType) {
+      if (x.typeFormals.length != y.typeFormals.length) {
+        return false;
+      }
+      // `<T>T -> T` should be equal to `<U>U -> U`
+      // To test this, we instantiate both types with the same (unique) type
+      // variables, and see if the result is equal.
+      if (x.typeFormals.isNotEmpty) {
+        var fresh = FunctionTypeImpl.relateTypeFormals(
+            x, y, (t, s, _, __) => typesAreEqual(t, s));
+        if (fresh == null) return false;
+        return typesAreEqual(x.instantiate(fresh), y.instantiate(fresh));
+      }
+
+      return typesAreEqual(x.returnType, y.returnType) &&
+          _argumentsAreEqual(x.normalParameterTypes, y.normalParameterTypes) &&
+          _argumentsAreEqual(
+              x.optionalParameterTypes, y.optionalParameterTypes) &&
+          _namedArgumentsAreEqual(x.namedParameterTypes, y.namedParameterTypes);
+    } else {
+      return false;
+    }
+  }
+  if (x is InterfaceType) {
+    return y is InterfaceType &&
+        x.element == y.element &&
+        _argumentsAreEqual(x.typeArguments, y.typeArguments);
+  }
+  return x == y;
+}
+
+bool _argumentsAreEqual(List<DartType> first, List<DartType> second) {
+  if (first.length != second.length) return false;
+  for (int i = 0; i < first.length; i++) {
+    if (!typesAreEqual(first[i], second[i])) return false;
+  }
+  return true;
+}
+
+bool _namedArgumentsAreEqual(
+    Map<String, DartType> xArgs, Map<String, DartType> yArgs) {
+  if (yArgs.length != xArgs.length) return false;
+  for (var name in xArgs.keys) {
+    var x = xArgs[name];
+    var y = yArgs[name];
+    if (y == null || !typesAreEqual(x, y)) return false;
+  }
+  return true;
+}
+
+/// Returns a valid hashCode for [t] for use with [typesAreEqual].
+int typeHashCode(DartType t) {
+  if (t is FunctionType) {
+    // TODO(jmesserly): this is from Analyzer; it's not a great hash function.
+    int code = typeHashCode(t.returnType);
+    for (var p in t.normalParameterTypes) {
+      code = (code << 1) + typeHashCode(p);
+    }
+    for (var p in t.optionalParameterTypes) {
+      code = (code << 1) + typeHashCode(p);
+    }
+    for (var p in t.namedParameterTypes.values) {
+      code ^= typeHashCode(p); // xor because named parameters are unordered.
+    }
+    return code;
+  }
+  return t.hashCode;
 }
 
 Uri uriForCompilationUnit(CompilationUnitElement unit) {

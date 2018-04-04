@@ -19,6 +19,10 @@ void return2(int i) {
 
 return3() => new T();
 
+void return4() {
+  return;
+}
+
 expr1() {
   new T();
 }

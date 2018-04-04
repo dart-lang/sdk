@@ -2449,12 +2449,12 @@ main() {
     await computeSuggestions();
 
     assertSuggestClass('A');
-    assertSuggestConstructor('A.a1');
-    assertSuggestConstructor('A.a2');
+    assertNotSuggested('A.a1');
+    assertNotSuggested('A.a2');
 
     assertSuggestClass('B');
-    assertSuggestConstructor('B.b1');
-    assertSuggestConstructor('B.b2');
+    assertNotSuggested('B.b1');
+    assertNotSuggested('B.b2');
   }
 
   test_ImportDirective_dart() async {

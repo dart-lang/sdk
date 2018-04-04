@@ -214,11 +214,12 @@ class Primitives {
 
   static String currentUri() {
     // In a browser return self.location.href.
-    if (JS('bool', '!!self.location')) {
-      return JS('String', 'self.location.href');
+    if (JS('bool', '!!#.location', dart.global_)) {
+      return JS('String', '#.location.href', dart.global_);
     }
 
-    return null;
+    // TODO(vsm): Consider supporting properly in non-browser settings.
+    return '';
   }
 
   // This is to avoid stack overflows due to very large argument arrays in
@@ -570,12 +571,20 @@ class UnknownJsTypeError extends Error {
  */
 final _stackTrace = JS('', 'Symbol("_stackTrace")');
 StackTrace getTraceFromException(exception) {
-  var error = JS('', 'dart.recordJsError(#)', exception);
+  var error = dart.recordJsError(exception);
   var trace = JS('StackTrace|Null', '#[#]', error, _stackTrace);
   if (trace != null) return trace;
   trace = new _StackTrace(error);
   JS('', '#[#] = #', error, _stackTrace, trace);
   return trace;
+}
+
+/**
+ * Called on rethrow to (potentially) set a different trace.
+ */
+void setTraceForException(exception, StackTrace trace) {
+  var error = dart.recordJsError(exception);
+  JS('', '#[#] = #', error, _stackTrace, trace);
 }
 
 class _StackTrace implements StackTrace {

@@ -619,11 +619,8 @@ main() {
     assertHasResult(CompletionSuggestionKind.INVOCATION, 'A',
         elementKind: ElementKind.CLASS);
 
-    // Both constructors - default and named, are suggested.
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 'A',
-        elementKind: ElementKind.CONSTRUCTOR);
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 'A.named',
-        elementKind: ElementKind.CONSTRUCTOR);
+    // No constructors suggested.
+    assertNoResult('A.named');
   }
 
   test_local_named_constructor() {

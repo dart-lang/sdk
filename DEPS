@@ -68,7 +68,6 @@ vars = {
   "crypto_tag" : "@2.0.2+1",
   "csslib_tag" : "@0.14.1",
   "dart2js_info_tag" : "@0.5.5+1",
-  "browser_tag" : "@0.10.0+2",
 
   # Note: updates to dart_style have to be coordinated carefully with
   # the infrastructure-team so that the internal formatter in
@@ -117,7 +116,7 @@ vars = {
   "pool_tag": "@1.3.4",
   "protobuf_tag": "@0.7.1",
   "pub_rev": "@4947e0b3cb3ec77e4e8fe0d3141ce4dc60f43256",
-  "pub_semver_tag": "@1.3.3",
+  "pub_semver_tag": "@1.3.4",
   "quiver_tag": "@5aaa3f58c48608af5b027444d561270b53f15dbf",
   "resource_rev":"@af5a5bf65511943398146cf146e466e5f0b95cb9",
   "root_certificates_rev": "@16ef64be64c7dfdff2b9f4b910726e635ccc519e",
@@ -143,6 +142,7 @@ vars = {
   "usage_tag": "@3.3.0",
   "utf_tag": "@0.9.0+4",
   "watcher_tag": "@0.9.7+7",
+  "web_components_rev": "@8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_tag": "@1.0.7",
   "WebCore_rev": "@fb11e887f77919450e497344da570d780e078bc8",
   "yaml_tag": "@2.1.13",
@@ -208,9 +208,6 @@ Var("dart_root") + "/tests/co19_2/src":
   Var("dart_root") + "/third_party/pkg/boolean_selector":
       Var("dart_git") + "boolean_selector.git" +
       Var("boolean_selector_tag"),
-  Var("dart_root") + "/third_party/pkg/browser":
-      Var("dart_git") + "browser.git" +
-      Var("browser_tag"),
   Var("dart_root") + "/third_party/pkg/charcode":
       Var("dart_git") + "charcode.git" + Var("charcode_tag"),
   Var("dart_root") + "/third_party/pkg/cli_util":
@@ -353,6 +350,9 @@ Var("dart_root") + "/tests/co19_2/src":
       Var("dart_git") + "utf.git" + Var("utf_tag"),
   Var("dart_root") + "/third_party/pkg/watcher":
       Var("dart_git") + "watcher.git" + Var("watcher_tag"),
+  Var("dart_root") + "/third_party/pkg/web_components":
+      Var("dart_git") + "web-components.git" +
+      Var("web_components_rev"),
   Var("dart_root") + "/third_party/pkg/web_socket_channel":
       Var("dart_git") + "web_socket_channel.git" +
       Var("web_socket_channel_tag"),

@@ -1798,6 +1798,8 @@ class Definition : public Instruction {
     return type_;
   }
 
+  bool HasType() const { return (type_ != NULL); }
+
   // Does this define a mint?
   inline bool IsMintDefinition();
 

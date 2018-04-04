@@ -1041,6 +1041,10 @@ partial_tearoff_instantiation_test/06: Pass # for the wrong reason.
 partial_tearoff_instantiation_test/07: Pass # for the wrong reason.
 partial_tearoff_instantiation_test/08: Pass # for the wrong reason.
 partial_tearoff_instantiation_test/none: CompileTimeError
+type_alias_equality_test/01: RuntimeError # Issue 31359
+type_alias_equality_test/02: RuntimeError # Issue 31359
+type_alias_equality_test/03: RuntimeError # Issue 31359
+type_alias_equality_test/04: RuntimeError # Issue 31359
 
 [ $compiler == dart2js && $fasta && $host_checked && $strong ]
 abstract_factory_constructor_test/00: MissingCompileTimeError

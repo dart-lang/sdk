@@ -1044,8 +1044,21 @@ class Parser {
   /// type has already been parsed.
   Token parseMixinApplicationRest(Token token) {
     Token withKeyword = token.next;
+    if (!optional('with', withKeyword)) {
+      reportRecoverableError(
+          withKeyword, fasta.templateExpectedButGot.withArguments('with'));
+      withKeyword =
+          new SyntheticKeywordToken(Keyword.WITH, withKeyword.charOffset);
+      rewriter.insertTokenAfter(token, withKeyword);
+      if (!isValidTypeReference(withKeyword.next)) {
+        rewriter.insertTokenAfter(
+            withKeyword,
+            new SyntheticStringToken(
+                TokenType.IDENTIFIER, '', withKeyword.charOffset));
+      }
+    }
     listener.beginMixinApplication(withKeyword);
-    expect('with', withKeyword);
+    assert(optional('with', withKeyword));
     token = parseTypeList(withKeyword);
     listener.endMixinApplication(withKeyword);
     return token;
@@ -1612,30 +1625,56 @@ class Parser {
     Token enumKeyword = token.next;
     assert(optional('enum', enumKeyword));
     listener.beginEnum(enumKeyword);
-    token =
-        ensureIdentifier(enumKeyword, IdentifierContext.enumDeclaration).next;
-    Token leftBrace = token;
-    expect('{', token);
+    token = ensureIdentifier(enumKeyword, IdentifierContext.enumDeclaration);
+    Token leftBrace = token.next;
     int count = 0;
-    do {
-      Token next = token.next;
-      if (optional('}', next)) {
-        token = next;
-        if (count == 0) {
-          reportRecoverableError(token, fasta.messageEnumDeclarationEmpty);
+    if (optional('{', leftBrace)) {
+      token = leftBrace;
+      while (true) {
+        Token next = token.next;
+        if (optional('}', next)) {
+          token = next;
+          if (count == 0) {
+            reportRecoverableError(token, fasta.messageEnumDeclarationEmpty);
+          }
+          break;
         }
-        break;
+        token = parseMetadataStar(token);
+        if (!identical(token.next, next)) {
+          listener.handleRecoverableError(
+              fasta.messageAnnotationOnEnumConstant, next, token);
+        }
+        token = ensureIdentifier(token, IdentifierContext.enumValueDeclaration);
+        next = token.next;
+        count++;
+        if (optional(',', next)) {
+          token = next;
+        } else if (optional('}', next)) {
+          token = next;
+          break;
+        } else {
+          // Recovery
+          if (next.isIdentifier) {
+            // If the next token is an identifier, assume a missing comma.
+            // TODO(danrubel): Consider improved recovery for missing `}`
+            // both here and when the scanner inserts a synthetic `}`
+            // for situations such as `enum Letter {a, b   Letter e;`.
+            reportRecoverableError(
+                next, fasta.templateExpectedButGot.withArguments(','));
+          } else {
+            // Otherwise assume a missing `}` and exit the loop
+            reportRecoverableError(
+                next, fasta.templateExpectedButGot.withArguments('}'));
+            token = leftBrace.endGroup;
+            break;
+          }
+        }
       }
-      token = parseMetadataStar(token);
-      if (!identical(token.next, next)) {
-        listener.handleRecoverableError(
-            fasta.messageAnnotationOnEnumConstant, next, token);
-      }
-      token =
-          ensureIdentifier(token, IdentifierContext.enumValueDeclaration).next;
-      count++;
-    } while (optional(',', token));
-    expect('}', token);
+    } else {
+      leftBrace = ensureBlock(token, fasta.templateExpectedEnumBody);
+      token = leftBrace.endGroup;
+    }
+    assert(optional('}', token));
     listener.endEnum(enumKeyword, leftBrace, count);
     return token;
   }
@@ -3238,7 +3277,7 @@ class Parser {
     if (optional('{', next)) return next;
     Message message = template == null
         ? fasta.templateExpectedButGot.withArguments('{')
-        : template.withArguments(token);
+        : template.withArguments(next);
     reportRecoverableError(next, message);
     return insertBlock(token);
   }
@@ -4082,6 +4121,15 @@ class Parser {
     int statementCount = 0;
     if (!optional('{', next)) {
       // Recovery
+      // If `return` used instead of `=>`, then report an error and continue
+      if (optional('return', next)) {
+        reportRecoverableError(next, fasta.messageExpectedBody);
+        next = rewriter
+            .insertTokenAfter(next,
+                new SyntheticToken(TokenType.FUNCTION, next.next.charOffset))
+            .next;
+        return parseExpressionFunctionBody(next, ofFunctionExpression);
+      }
       // If there is a stray simple identifier in the function expression
       // because the user is typing (e.g. `() asy => null;`)
       // then report an error, skip the token, and continue parsing.
@@ -4129,12 +4177,6 @@ class Parser {
     Token begin = token;
     token = parseExpression(token);
     if (!ofFunctionExpression) {
-      // TODO(danrubel): Improve recovery and error message for `=> return`
-      // If the token is `return` and
-      // begin.next --> synthetic_id.next --> `return`
-      // then discard the synthetic identifier and associated events (how?),
-      // report an error on and skip the `return`,
-      // and call parseExpression again.
       token = ensureSemicolon(token);
       listener.handleExpressionFunctionBody(begin, token);
     } else {
@@ -4745,6 +4787,11 @@ class Parser {
         return parseAssert(token, Assert.Expression);
       } else if (token.next.isIdentifier) {
         return parseSendOrFunctionLiteral(token, context);
+      } else if (identical(value, "return")) {
+        // Recovery
+        token = token.next;
+        reportRecoverableErrorWithToken(token, fasta.templateUnexpectedToken);
+        return parsePrimary(token, context);
       } else {
         // Fall through to the recovery code.
       }

@@ -1054,6 +1054,7 @@ covariance_type_parameter_test/03: RuntimeError
 covariance_type_parameter_test/none: RuntimeError
 covariant_subtyping_test: RuntimeError
 factory_implementation_test/00: Fail
+function_call_generic_test: RuntimeError # Type argument not inferred.
 function_type/function_type0_test: RuntimeError # Issue 30475
 function_type/function_type10_test: RuntimeError # Issue 30475
 function_type/function_type12_test: RuntimeError # Issue 30475
@@ -1340,6 +1341,10 @@ nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_arguments_test: RuntimeError
 nsm5_test: MissingCompileTimeError
 override_inheritance_no_such_method_test/05: MissingCompileTimeError
+type_alias_equality_test/01: RuntimeError # Issue 31359
+type_alias_equality_test/02: RuntimeError # Issue 31359
+type_alias_equality_test/03: RuntimeError # Issue 31359
+type_alias_equality_test/04: RuntimeError # Issue 31359
 
 [ $compiler == none && $runtime == vm && !$checked ]
 assertion_initializer_const_error_test/01: MissingCompileTimeError

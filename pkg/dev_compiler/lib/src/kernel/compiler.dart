@@ -75,12 +75,15 @@ class ProgramCompiler
   /// Let variables collected for the given function.
   List<JS.TemporaryId> _letVariables;
 
-  /// The class when it's emitting top-level code, used to order classes when
-  /// they extend each other.
+  /// The class that is emitting its base class or mixin references, otherwise
+  /// null.
   ///
-  /// This is not used when inside method bodies, or for other type information
-  /// such as `implements`.
-  Class _classEmittingTopLevel;
+  /// This is not used when inside the class method bodies, or for other type
+  /// information such as `implements`.
+  Class _classEmittingExtends;
+
+  /// The class that is emitting its signature information, otherwise null.
+  Class _classEmittingSignatures;
 
   /// The current element being loaded.
   /// We can use this to determine if we're loading top-level code or not:
@@ -522,8 +525,7 @@ class ProgramCompiler
   /// declarations are assumed to be available before we start execution.
   /// See [startTopLevel].
   void _declareBeforeUse(Class c) {
-    if (c == null) return;
-    if (identical(_currentClass, _classEmittingTopLevel)) _emitClass(c);
+    if (c != null && _emittingClassExtends) _emitClass(c);
   }
 
   JS.Statement _emitClassDeclaration(Class c) {
@@ -730,8 +732,8 @@ class ProgramCompiler
       }
     }
 
-    var savedTopLevelClass = _classEmittingTopLevel;
-    _classEmittingTopLevel = c;
+    var savedTopLevelClass = _classEmittingExtends;
+    _classEmittingExtends = c;
 
     // Unroll mixins.
     if (shouldDefer(supertype)) {
@@ -760,8 +762,6 @@ class ProgramCompiler
       mixinBody.add(
           _callHelperStatement('mixinMembers(#, #)', [classExpr, mixinClass]));
 
-      _classEmittingTopLevel = savedTopLevelClass;
-
       if (methods.isNotEmpty) {
         // However we may need to add some methods to this class that call
         // `super` such as covariance checks.
@@ -777,6 +777,8 @@ class ProgramCompiler
       }
 
       emitMixinConstructors(className, m);
+
+      _classEmittingExtends = savedTopLevelClass;
       return;
     }
 
@@ -812,9 +814,8 @@ class ProgramCompiler
       baseClass = mixinId;
     }
 
-    _classEmittingTopLevel = savedTopLevelClass;
-
     body.add(_emitClassStatement(c, className, baseClass, methods));
+    _classEmittingExtends = savedTopLevelClass;
   }
 
   /// Defines all constructors for this class as ES5 constructors.
@@ -1150,6 +1151,9 @@ class ProgramCompiler
   /// Emit the signature on the class recording the runtime type information
   void _emitClassSignature(
       Class c, JS.Expression className, List<JS.Statement> body) {
+    var savedClass = _classEmittingSignatures;
+    _classEmittingSignatures = c;
+
     if (c.implementedTypes.isNotEmpty) {
       body.add(js.statement('#[#.implements] = () => [#];', [
         className,
@@ -1286,6 +1290,8 @@ class ProgramCompiler
       body.add(_callHelperStatement('tagComputed(#, () => #.#);',
           [className, emitLibraryName(coreTypes.coreLibrary), 'Type']));
     }
+
+    _classEmittingSignatures = savedClass;
   }
 
   JS.Expression _emitFieldSignature(Field field, Class fromClass) {
@@ -1776,9 +1782,6 @@ class ProgramCompiler
   }
 
   /// Emits an expression that lets you access statics on a [type] from code.
-  ///
-  /// If [nameType] is true, then the type will be named.  In addition,
-  /// if [hoistType] is true, then the named type will be hoisted.
   JS.Expression emitConstructorAccess(InterfaceType type) {
     return _emitJSInterop(type.classNode) ?? visitInterfaceType(type);
   }
@@ -2054,8 +2057,8 @@ class ProgramCompiler
   void _emitTypedef(Typedef t) {
     var savedUri = _currentUri;
     _currentUri = t.fileUri;
-    var body = _callHelper(
-        'typedef(#, () => #)', [js.string(t.name, "'"), _emitType(t.type)]);
+    var body = _callHelper('typedef(#, () => #)',
+        [js.string(t.name, "'"), visitFunctionType(t.type)]);
 
     JS.Statement result;
     if (t.typeParameters.isNotEmpty) {
@@ -2489,8 +2492,8 @@ class ProgramCompiler
   JS.Expression _emitFunctionTagged(JS.Expression fn, FunctionType type,
       {bool topLevel: false}) {
     var lazy = topLevel && !_typeIsLoaded(type);
-    var typeRep = visitFunctionType(type);
-    return _callHelper(lazy ? 'lazyFn(#, () => #)' : 'fn(#, #)', [fn, typeRep]);
+    var typeRep = visitFunctionType(type, lazy: lazy);
+    return _callHelper(lazy ? 'lazyFn(#, #)' : 'fn(#, #)', [fn, typeRep]);
   }
 
   bool _typeIsLoaded(DartType type) {
@@ -2517,9 +2520,6 @@ class ProgramCompiler
     return _callHelper('throwUnimplementedError(#)',
         [js.escapedString('node <${node.runtimeType}> $message`$node`')]);
   }
-
-  JS.Expression _nameType(DartType type, JS.Expression typeRep) =>
-      _currentFunction != null ? _typeTable.nameType(type, typeRep) : typeRep;
 
   @override
   defaultDartType(type) => _emitInvalidNode(type);
@@ -2572,11 +2572,23 @@ class ProgramCompiler
       jsArgs = [];
     }
     if (jsArgs != null) {
-      return _nameType(type, _emitGenericClassType(type, jsArgs));
+      var typeRep = _emitGenericClassType(type, jsArgs);
+      return _cacheTypes ? _typeTable.nameType(type, typeRep) : typeRep;
     }
 
     return _emitTopLevelNameNoInterop(type.classNode);
   }
+
+  bool get _emittingClassSignatures =>
+      _currentClass != null &&
+      identical(_currentClass, _classEmittingSignatures);
+
+  bool get _emittingClassExtends =>
+      _currentClass != null && identical(_currentClass, _classEmittingExtends);
+
+  bool get _cacheTypes =>
+      !_emittingClassExtends && !_emittingClassSignatures ||
+      _currentFunction != null;
 
   JS.Expression _emitGenericClassType(
       InterfaceType t, Iterable<JS.Expression> typeArgs) {
@@ -2588,7 +2600,7 @@ class ProgramCompiler
   visitVectorType(type) => defaultDartType(type);
 
   @override
-  visitFunctionType(type, {bool lowerTypedef: false, FunctionNode function}) {
+  visitFunctionType(type, {FunctionNode function, bool lazy: false}) {
     var requiredTypes =
         type.positionalParameters.take(type.requiredParameterCount).toList();
     var requiredParams = function?.positionalParameters
@@ -2641,7 +2653,10 @@ class ProgramCompiler
     } else {
       helperCall = 'fnType(#)';
     }
-    return _nameType(type, _callHelper(helperCall, [typeParts]));
+    var typeRep = _callHelper(helperCall, [typeParts]);
+    return _cacheTypes
+        ? _typeTable.nameFunctionType(type, typeRep, lazy: lazy)
+        : typeRep;
   }
 
   JS.Expression _emitAnnotatedFunctionType(FunctionType type, Member member) {
@@ -2723,7 +2738,8 @@ class ProgramCompiler
     if (jsArgs != null) {
       var genericName =
           _emitTopLevelNameNoInterop(type.typedefNode, suffix: '\$');
-      return _nameType(type, new JS.Call(genericName, jsArgs));
+      var typeRep = new JS.Call(genericName, jsArgs);
+      return _cacheTypes ? _typeTable.nameType(type, typeRep) : typeRep;
     }
 
     return _emitTopLevelNameNoInterop(type.typedefNode);
@@ -3186,9 +3202,13 @@ class ProgramCompiler
   @override
   visitExpressionStatement(ExpressionStatement node) {
     var expr = node.expression;
-    if (expr is StaticInvocation && isInlineJS(expr.target)) {
-      var inlineJS = _emitInlineJSCode(expr);
-      return inlineJS is JS.Statement ? inlineJS : inlineJS.toStatement();
+    if (expr is StaticInvocation) {
+      if (isInlineJS(expr.target)) {
+        return _emitInlineJSCode(expr).toStatement();
+      }
+      if (_isDebuggerCall(expr.target)) {
+        return _emitDebuggerCall(expr).toStatement();
+      }
     }
     return _visitExpression(expr).toStatement();
   }
@@ -4325,10 +4345,55 @@ class ProgramCompiler
     if (target == coreTypes.identicalProcedure) {
       return _emitCoreIdenticalCall(node.arguments.positional);
     }
+    if (_isDebuggerCall(target)) {
+      return _emitDebuggerCall(node) as JS.Expression;
+    }
 
     var fn = _emitStaticTarget(target);
     var args = _emitArgumentList(node.arguments);
     return new JS.Call(fn, args);
+  }
+
+  bool _isDebuggerCall(Procedure target) {
+    return target.name.name == 'debugger' &&
+        target.enclosingLibrary.importUri.toString() == 'dart:developer';
+  }
+
+  JS.Node _emitDebuggerCall(StaticInvocation node) {
+    var args = node.arguments.named;
+    var isStatement = node.parent is ExpressionStatement;
+    if (args.isEmpty) {
+      // Inline `debugger()` with no arguments, as a statement if possible,
+      // otherwise as an immediately invoked function.
+      return isStatement
+          ? js.statement('debugger;')
+          : js.call('(() => { debugger; return true})()');
+    }
+
+    // The signature of `debugger()` is:
+    //
+    //     bool debugger({bool when: true, String message})
+    //
+    // This code path handles the named arguments `when` and/or `message`.
+    // Both must be evaluated in the supplied order, and then `when` is used
+    // to decide whether to break or not.
+    //
+    // We also need to return the value of `when`.
+    var jsArgs = args.map(_emitNamedExpression).toList();
+    var when = args.length == 1
+        // For a single `when` argument, use it.
+        //
+        // For a single `message` argument, use `{message: ...}`, which
+        // coerces to true (the default value of `when`).
+        ? (args[0].name == 'when'
+            ? jsArgs[0].value
+            : new JS.ObjectInitializer(jsArgs))
+        // If we have both `message` and `when` arguments, evaluate them in
+        // order, then extract the `when` argument.
+        : js.call('#.when', new JS.ObjectInitializer(jsArgs));
+    return isStatement
+        ? js.statement('if (#) debugger;', when)
+        : js.call('# && (() => { debugger; return true })()', when);
   }
 
   /// Emits the target of a [StaticInvocation], [StaticGet], or [StaticSet].
@@ -4357,15 +4422,16 @@ class ProgramCompiler
         args.add(_visitExpression(arg));
       }
     }
-    var named = <JS.Property>[];
-    for (var arg in node.named) {
-      named.add(new JS.Property(
-          _propertyName(arg.name), _visitExpression(arg.value)));
-    }
-    if (named.isNotEmpty) {
-      args.add(new JS.ObjectInitializer(named));
+    if (node.named.isNotEmpty) {
+      args.add(new JS.ObjectInitializer(
+          node.named.map(_emitNamedExpression).toList()));
     }
     return args;
+  }
+
+  JS.Property _emitNamedExpression(NamedExpression arg) {
+    return new JS.Property(
+        _propertyName(arg.name), _visitExpression(arg.value));
   }
 
   /// Emits code for the `JS(...)` macro.
@@ -4453,9 +4519,8 @@ class ProgramCompiler
 
     var result = js.parseForeignJS(source).instantiate(jsArgs);
 
-    // `throw` is emitted as a statement by `parseForeignJS`.
     assert(result is JS.Expression ||
-        result is JS.Throw && node.parent is ExpressionStatement);
+        result is JS.Statement && node.parent is ExpressionStatement);
     return result;
   }
 

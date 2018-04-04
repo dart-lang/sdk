@@ -216,12 +216,6 @@ class Parser {
   bool _enableOptionalNewAndConst = false;
 
   /**
-   * A flag indicating whether the parser is to allow URI's in part-of
-   * directives.
-   */
-  bool _enableUriInPartOf = true;
-
-  /**
    * A flag indicating whether parser is to parse function bodies.
    */
   bool _parseFunctionBodies = true;
@@ -351,15 +345,15 @@ class Parser {
   /**
    * Return `true` if the parser is to allow URI's in part-of directives.
    */
-  bool get enableUriInPartOf => _enableUriInPartOf;
+  @deprecated
+  bool get enableUriInPartOf => true;
 
   /**
    * Set whether the parser is to allow URI's in part-of directives to the given
    * [enable] flag.
    */
-  void set enableUriInPartOf(bool enable) {
-    _enableUriInPartOf = enable;
-  }
+  @deprecated
+  void set enableUriInPartOf(bool enable) {}
 
   /**
    * Return `true` if the current token is the first token of a return type that
@@ -7444,7 +7438,7 @@ class Parser {
   Directive _parsePartOfDirective(CommentAndMetadata commentAndMetadata) {
     Token partKeyword = getAndAdvance();
     Token ofKeyword = getAndAdvance();
-    if (enableUriInPartOf && _matches(TokenType.STRING)) {
+    if (_matches(TokenType.STRING)) {
       StringLiteral libraryUri = _parseUri();
       Token semicolon = _expect(TokenType.SEMICOLON);
       return astFactory.partOfDirective(

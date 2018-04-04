@@ -382,8 +382,8 @@ class AstBuilder {
   FormalParameterList formalParameterList(List<FormalParameter> params) {
     Token lp = new BeginToken(TokenType.OPEN_PAREN, 0);
     Token rp = new Token(TokenType.CLOSE_PAREN, 0);
-    bool hasOptional = params.any((p) => p.kind == ParameterKind.POSITIONAL);
-    bool hasNamed = params.any((p) => p.kind == ParameterKind.NAMED);
+    bool hasOptional = params.any((p) => p.isPositional);
+    bool hasNamed = params.any((p) => p.isNamed);
     assert(!(hasOptional && hasNamed));
     Token ld = null;
     Token rd = null;

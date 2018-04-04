@@ -537,7 +537,7 @@ class HInstructionList {
   }
 
   void detach(HInstruction instruction) {
-    assert(contains(instruction));
+    assert(_truncatedContainsForAssert(instruction));
     assert(instruction.isInBasicBlock());
     if (instruction.previous == null) {
       first = instruction.next;
@@ -565,6 +565,26 @@ class HInstructionList {
       if (identical(cursor, instruction)) return true;
       cursor = cursor.next;
     }
+
+    return false;
+  }
+
+  /// Linear search for [instruction], up to a limit of 100. Returns whether
+  /// the instruction is found or the list is too big.
+  ///
+  /// This is used for assertions only: some tests have pathological cases where
+  /// the basic blocks are huge (50K nodes!), and we found that checking for
+  /// [contains] within our assertions made compilation really slow.
+  bool _truncatedContainsForAssert(HInstruction instruction) {
+    HInstruction cursor = first;
+    int count = 0;
+    while (cursor != null) {
+      count++;
+      if (count > 100) return true;
+      if (identical(cursor, instruction)) return true;
+      cursor = cursor.next;
+    }
+
     return false;
   }
 }

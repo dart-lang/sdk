@@ -1058,19 +1058,8 @@ class AstBuilder extends ScopeListener {
     exitLocalScope();
     exitContinueTarget();
     exitBreakTarget();
-    if (variableOrDeclaration is SimpleIdentifier) {
-      push(ast.forEachStatementWithReference(
-          awaitToken,
-          forToken,
-          leftParenthesis,
-          variableOrDeclaration,
-          inKeyword,
-          iterator,
-          leftParenthesis?.endGroup,
-          body));
-    } else {
-      var statement = variableOrDeclaration as VariableDeclarationStatement;
-      VariableDeclarationList variableList = statement.variables;
+    if (variableOrDeclaration is VariableDeclarationStatement) {
+      VariableDeclarationList variableList = variableOrDeclaration.variables;
       push(ast.forEachStatementWithDeclaration(
           awaitToken,
           forToken,
@@ -1080,7 +1069,27 @@ class AstBuilder extends ScopeListener {
               variableList.metadata,
               variableList.keyword,
               variableList.type,
-              variableList.variables.single.name),
+              variableList.variables.first.name),
+          inKeyword,
+          iterator,
+          leftParenthesis?.endGroup,
+          body));
+    } else {
+      if (variableOrDeclaration is! SimpleIdentifier) {
+        // Parser has already reported the error.
+        if (!leftParenthesis.next.isIdentifier) {
+          parser.rewriter.insertTokenAfter(
+              leftParenthesis,
+              new SyntheticStringToken(
+                  TokenType.IDENTIFIER, '', leftParenthesis.next.charOffset));
+        }
+        variableOrDeclaration = ast.simpleIdentifier(leftParenthesis.next);
+      }
+      push(ast.forEachStatementWithReference(
+          awaitToken,
+          forToken,
+          leftParenthesis,
+          variableOrDeclaration,
           inKeyword,
           iterator,
           leftParenthesis?.endGroup,
@@ -2093,17 +2102,22 @@ class AstBuilder extends ScopeListener {
 
   @override
   void endNamedFunctionExpression(Token endToken) {
-    // TODO(scheglov): The logEvent() invocation is commented because it
-    // spams to the console. We already know that these test fail, uncomment
-    // when you are working on fixing them.
-//    logEvent("NamedFunctionExpression");
-    unhandled("NamedFunctionExpression", "$runtimeType", -1, uri);
+    debugEvent("NamedFunctionExpression");
+    FunctionBody body = pop();
+    if (isFullAst) {
+      pop(); // constructor initializers
+      pop(); // separator before constructor initializers
+    }
+    FormalParameterList parameters = pop();
+    pop(); // name
+    pop(); // returnType
+    TypeParameterList typeParameters = pop();
+    push(ast.functionExpression(typeParameters, parameters, body));
   }
 
   @override
   void endLocalFunctionDeclaration(Token token) {
     debugEvent("LocalFunctionDeclaration");
-
     FunctionBody body = pop();
     if (isFullAst) {
       pop(); // constructor initializers

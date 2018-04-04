@@ -4,12 +4,10 @@
 
 // Patch file for the dart:async library.
 
-import 'dart:_js_helper' show patch, ReifyFunctionTypes;
+import 'dart:_js_helper' show patch, setTraceForException, ReifyFunctionTypes;
 import 'dart:_isolate_helper'
     show TimerImpl, global, leaveJsAsync, enterJsAsync;
-
 import 'dart:_foreign_helper' show JS, JSExportName;
-
 import 'dart:_runtime' as dart;
 
 typedef void _Callback();
@@ -219,8 +217,6 @@ class Timer {
 
 @patch
 void _rethrow(Object error, StackTrace stackTrace) {
-  // TODO(rnystrom): Not needed by dev_compiler.
-  // error = wrapException(error);
-  JS("void", "#.stack = #", error, stackTrace.toString());
-  JS("void", "throw #", error);
+  setTraceForException(error, stackTrace);
+  dart.throw_(error);
 }

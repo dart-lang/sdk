@@ -15,7 +15,7 @@ import 'package:analyzer/error/error.dart';
  */
 class LintCode extends ErrorCode {
   const LintCode(String name, String message, {String correction})
-      : super(name, message, correction: correction);
+      : super.temporary(name, message, correction: correction);
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.INFO;

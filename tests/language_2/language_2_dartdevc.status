@@ -181,6 +181,10 @@ syntax_test/none: CompileTimeError
 truncdiv_test: RuntimeError # Issue 29920
 try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
+type_alias_equality_test/01: RuntimeError # Issue 31359
+type_alias_equality_test/02: RuntimeError # Issue 31359
+type_alias_equality_test/03: RuntimeError # Issue 31359
+type_alias_equality_test/04: RuntimeError # Issue 31359
 type_inference_circularity_test: MissingCompileTimeError
 type_inference_inconsistent_inheritance_test: MissingCompileTimeError
 type_promotion_functions_test/02: CompileTimeError # Issue 30895
@@ -394,6 +398,7 @@ field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
+function_call_generic_test: RuntimeError # Issue 32756. Crashes on dsend
 function_propagation_test: RuntimeError
 function_subtype_closure0_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
 generic_function_bounds_test: RuntimeError
@@ -650,6 +655,7 @@ syntax_test/32: MissingCompileTimeError
 syntax_test/33: MissingCompileTimeError
 tearoff_dynamic_test: RuntimeError # Issue 32194
 try_catch_test/01: MissingCompileTimeError
+type_alias_equality_test/02: RuntimeError # Issue 31359
 type_literal_test: RuntimeError # Expect.equals(expected: <Func>, actual: <(bool) => int>) fails.
 type_promotion_functions_test/02: CompileTimeError # Issue 31537
 type_promotion_functions_test/03: CompileTimeError # Issue 31537

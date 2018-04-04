@@ -4291,7 +4291,7 @@ class Wrong<T> {
   }
 
   void test_missingAssignableSelector_identifiersAssigned() {
-    parseExpression("x.y = y;");
+    parseExpression("x.y = y;", expectedEndOffset: 7);
   }
 
   void test_missingAssignableSelector_prefix_minusMinus_literal() {
@@ -4324,7 +4324,7 @@ class Wrong<T> {
   }
 
   void test_missingAssignableSelector_superPropertyAccessAssigned() {
-    parseExpression("super.x = x;");
+    parseExpression("super.x = x;", expectedEndOffset: 11);
   }
 
   void test_missingCatchOrFinally() {
@@ -4373,11 +4373,19 @@ class Wrong<T> {
   }
 
   void test_missingEnumBody() {
-    createParser('enum E;');
+    createParser('enum E;', expectedEndOffset: 6);
     EnumDeclaration declaration = parseFullCompilationUnitMember();
     expectNotNullIfNoErrors(declaration);
     listener
         .assertErrors([expectedError(ParserErrorCode.MISSING_ENUM_BODY, 6, 1)]);
+  }
+
+  void test_missingEnumComma() {
+    createParser('enum E {one two}');
+    EnumDeclaration declaration = parseFullCompilationUnitMember();
+    expectNotNullIfNoErrors(declaration);
+    listener
+        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 3)]);
   }
 
   void test_missingExpressionInThrow() {
@@ -4475,13 +4483,19 @@ class Wrong<T> {
   }
 
   void test_missingIdentifier_beforeClosingCurly() {
-    createParser('int}');
+    createParser('int}', expectedEndOffset: 3);
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors([
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 3, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)
-    ]);
+    listener.assertErrors(usingFastaParser
+        ? [
+            expectedError(
+                ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 0, 3),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 3, 1)
+          ]
+        : [
+            expectedError(ParserErrorCode.MISSING_IDENTIFIER, 3, 1),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)
+          ]);
   }
 
   void test_missingIdentifier_inEnum() {
@@ -4745,8 +4759,9 @@ class Wrong<T> {
   void test_missingVariableInForEach() {
     Statement statement = parseStatement('for (a < b in foo) {}');
     expectNotNullIfNoErrors(statement);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH, 5, 5)]);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 1)]
+        : [expectedError(ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH, 5, 5)]);
   }
 
   void test_mixedParameterGroups_namedPositional() {
@@ -4822,8 +4837,11 @@ class Wrong<T> {
   void test_multipleVariablesInForEach() {
     Statement statement = parseStatement('for (int a, b in foo) {}');
     expectNotNullIfNoErrors(statement);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH, 12, 1)]);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 10, 1)]
+        : [
+            expectedError(ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH, 12, 1)
+          ]);
   }
 
   void test_multipleWithClauses() {
@@ -4831,13 +4849,22 @@ class Wrong<T> {
         errors: [expectedError(ParserErrorCode.MULTIPLE_WITH_CLAUSES, 25, 4)]);
   }
 
-  @failingTest
   void test_namedFunctionExpression() {
-    Expression expression = parsePrimaryExpression('f() {}');
-    expectNotNullIfNoErrors(expression);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.NAMED_FUNCTION_EXPRESSION, 0, 1)]);
-    expect(expression, new isInstanceOf<FunctionExpression>());
+    Expression expression;
+    if (usingFastaParser) {
+      createParser('f() {}');
+      expression = parser.parsePrimaryExpression();
+      listener.assertErrors(
+          [expectedError(ParserErrorCode.NAMED_FUNCTION_EXPRESSION, 0, 1)]);
+      expect(expression, new isInstanceOf<FunctionExpression>());
+    } else {
+      expression = parsePrimaryExpression('f() {}');
+      expectNotNullIfNoErrors(expression);
+      // Should generate an error.
+      //listener.assertErrors(
+      //    [expectedError(ParserErrorCode.NAMED_FUNCTION_EXPRESSION, 0, 1)]);
+      //expect(expression, new isInstanceOf<FunctionExpression>());
+    }
   }
 
   void test_namedParameterOutsideGroup() {
@@ -5415,15 +5442,7 @@ main() {
 
   void test_unexpectedToken_returnInExpressionFunctionBody() {
     parseCompilationUnit("f() => return null;",
-        errors: usingFastaParser
-            ? [
-                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 7, 6),
-                expectedError(ParserErrorCode.EXPECTED_TOKEN, 14, 4),
-                expectedError(
-                    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 14, 4),
-                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 14, 4)
-              ]
-            : [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 6)]);
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 6)]);
   }
 
   void test_unexpectedToken_semicolonBetweenClassMembers() {

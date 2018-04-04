@@ -384,6 +384,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.MISSING_DIGIT, offset, length);
         return;
+      case "MISSING_ENUM_BODY":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_ENUM_BODY, offset, length);
+        return;
       case "MISSING_FUNCTION_BODY":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MISSING_FUNCTION_BODY, offset, length);

@@ -534,7 +534,6 @@ class LibraryAnalyzer {
 
     ErrorReporter libraryErrorReporter = _getErrorReporter(_library);
     LibraryIdentifier libraryNameNode = null;
-    bool hasPartDirective = false;
     var seenPartSources = new Set<Source>();
     var directivesToResolve = <Directive>[];
     int partIndex = 0;
@@ -571,7 +570,6 @@ class LibraryAnalyzer {
           }
         }
       } else if (directive is PartDirective) {
-        hasPartDirective = true;
         StringLiteral partUri = directive.uri;
 
         FileState partFile = _library.partedFiles[partIndex];
@@ -632,12 +630,8 @@ class LibraryAnalyzer {
       }
     }
 
-    if (hasPartDirective &&
-        libraryNameNode == null &&
-        !_context.analysisOptions.enableUriInPartOf) {
-      libraryErrorReporter.reportErrorForOffset(
-          ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART, 0, 0);
-    }
+    // TODO(brianwilkerson) Report the error
+    // ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART
 
     //
     // Resolve the relevant directives to the library element.

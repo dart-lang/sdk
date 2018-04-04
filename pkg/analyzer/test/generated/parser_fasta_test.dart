@@ -472,38 +472,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_missingAssignableSelector_identifiersAssigned() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Expected: true
-    //   Actual: <false>
-    //
-    //   package:test                                                       expect
-    //   test/generated/parser_fasta_test.dart 3439:5                       ParserProxy._run
-    super.test_missingAssignableSelector_identifiersAssigned();
-  }
-
-  @override
-  @failingTest
-  void test_missingAssignableSelector_superPropertyAccessAssigned() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Expected: true
-    //   Actual: <false>
-    //
-    //   package:test                                                       expect
-    //   test/generated/parser_fasta_test.dart 3488:5                       ParserProxy._run
-    super.test_missingAssignableSelector_superPropertyAccessAssigned();
-  }
-
-  @override
-  @failingTest
-  void test_missingEnumBody() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_ENUM_BODY, found 0
-    super.test_missingEnumBody();
-  }
-
-  @override
-  @failingTest
   void test_missingExpressionInThrow() {
     // TODO(brianwilkerson) Does not recover.
     //   type 'RethrowExpressionImpl' is not a subtype of type 'ThrowExpression' of 'expression' where
@@ -512,19 +480,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     //
     //   test/generated/parser_test.dart 3492:59                            FastaParserTestCase&ErrorParserTestMixin.test_missingExpressionInThrow_withCascade
     super.test_missingExpressionInThrow();
-  }
-
-  @override
-  @failingTest
-  void test_missingFunctionBody_invalid() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Expected: an object with length of <1>
-    //   Actual: <Instance of 'Stack'>
-    //   Which: has length of <0>
-    //
-    //   package:test                                                       expect
-    //   test/generated/parser_fasta_test.dart 3506:7                       ParserProxy._run
-    super.test_missingFunctionBody_invalid();
   }
 
   @override
@@ -541,83 +496,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.MISSING_FUNCTION_PARAMETERS, found 0
     super.test_missingFunctionParameters_topLevel_void_expression();
-  }
-
-  @override
-  @failingTest
-  void test_missingIdentifier_beforeClosingCurly() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Expected: an object with length of <1>
-    //   Actual: <Instance of 'Stack'>
-    //   Which: has length of <2>
-    //
-    //   package:test                                                       expect
-    //   test/generated/parser_fasta_test.dart 3547:7                       ParserProxy._run
-    super.test_missingIdentifier_beforeClosingCurly();
-  }
-
-  @override
-  @failingTest
-  void test_missingVariableInForEach() {
-    // TODO(brianwilkerson) Does not recover.
-    //   type 'BinaryExpressionImpl' is not a subtype of type 'VariableDeclarationStatement' in type cast where
-    //   BinaryExpressionImpl is from package:analyzer/src/dart/ast/ast.dart
-    //   VariableDeclarationStatement is from package:analyzer/dart/ast/ast.dart
-    //
-    //   dart:core                                                          Object._as
-    //   package:analyzer/src/fasta/ast_builder.dart 797:45                 AstBuilder.endForIn
-    //   test/generated/parser_fasta_listener.dart 751:14                   ForwardingTestListener.endForIn
-    //   package:front_end/src/fasta/parser/parser.dart 3755:14             Parser.parseForInRest
-    //   package:front_end/src/fasta/parser/parser.dart 3695:14             Parser.parseForStatement
-    //   package:front_end/src/fasta/parser/parser.dart 2745:14             Parser.parseStatementX
-    //   package:front_end/src/fasta/parser/parser.dart 2722:20             Parser.parseStatement
-    //   test/generated/parser_fasta_test.dart 3671:39                      ParserProxy._run
-    super.test_missingVariableInForEach();
-  }
-
-  @override
-  @failingTest
-  void test_mixin_application_lacks_with_clause() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXPECTED_TOKEN, found 0
-    super.test_mixin_application_lacks_with_clause();
-  }
-
-  @override
-  @failingTest
-  void test_multipleVariablesInForEach() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Bad state: Too many elements
-    //   dart:collection                                                    Object&ListMixin.single
-    //   package:analyzer/src/fasta/ast_builder.dart 808:38                 AstBuilder.endForIn
-    //   test/generated/parser_fasta_listener.dart 751:14                   ForwardingTestListener.endForIn
-    //   package:front_end/src/fasta/parser/parser.dart 3755:14             Parser.parseForInRest
-    //   package:front_end/src/fasta/parser/parser.dart 3695:14             Parser.parseForStatement
-    //   package:front_end/src/fasta/parser/parser.dart 2745:14             Parser.parseStatementX
-    //   package:front_end/src/fasta/parser/parser.dart 2722:20             Parser.parseStatement
-    //   test/generated/parser_fasta_test.dart 3702:39                      ParserProxy._run
-    super.test_multipleVariablesInForEach();
-  }
-
-  @override
-  @failingTest
-  void test_namedFunctionExpression() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Internal problem: Compiler cannot run without a compiler context.
-    //   Tip: Are calls to the compiler wrapped in CompilerContext.runInContext?
-    //   package:front_end/src/fasta/compiler_context.dart 81:7             CompilerContext.current
-    //   package:front_end/src/fasta/problems.dart 29:25                    internalProblem
-    //   package:front_end/src/fasta/problems.dart 41:10                    unhandled
-    //   package:front_end/src/fasta/source/stack_listener.dart 126:5       StackListener.logEvent
-    //   package:analyzer/src/fasta/ast_builder.dart 1548:5                 AstBuilder.endNamedFunctionExpression
-    //   test/generated/parser_fasta_listener.dart 938:14                   ForwardingTestListener.endNamedFunctionExpression
-    //   package:front_end/src/fasta/parser/parser.dart 2520:16             Parser.parseNamedFunctionRest
-    //   package:front_end/src/fasta/parser/parser.dart 1379:16             Parser.parseType
-    //   package:front_end/src/fasta/parser/parser.dart 3365:14             Parser.parseSendOrFunctionLiteral
-    //   package:front_end/src/fasta/parser/parser.dart 3127:14             Parser.parsePrimary
-    //   test/generated/parser_fasta_test.dart 3320:31                      FastaParserTestCase.parsePrimaryExpression.<fn>.<fn>
-    //   test/generated/parser_fasta_test.dart 3702:39                      ParserProxy._run
-    super.test_namedFunctionExpression();
   }
 
   @override

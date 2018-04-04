@@ -707,7 +707,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     for (Expression invocation in constructorInvocationsWithImplicitConstness) {
       if (invocation is ConstructorInvocation) {
         ConstnessEffect constness =
-            evaluateConstness(invocation, coreTypes).effect;
+            evaluateConstness(invocation, coreTypes, uri).effect;
         if (constness == ConstnessEffect.taintedConst) {
           // TODO(dmitryas): Find a better way to unwrap the error node.
           ShadowSyntheticExpression errorMessage = buildCompileTimeError(
@@ -720,7 +720,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         }
       } else if (invocation is StaticInvocation) {
         ConstnessEffect constness =
-            evaluateConstness(invocation, coreTypes).effect;
+            evaluateConstness(invocation, coreTypes, uri).effect;
         if (constness == ConstnessEffect.taintedConst) {
           // TODO(dmitryas): Find a better way to unwrap the error node.
           ShadowSyntheticExpression errorMessage = buildCompileTimeError(
@@ -3968,7 +3968,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
 
   @override
   Expression wrapInDeferredCheck(
-      Expression expression, PrefixBuilder prefix, int charOffset) {
+      Expression expression, KernelPrefixBuilder prefix, int charOffset) {
     var check = new VariableDeclaration.forValue(
         new CheckLibraryIsLoaded(prefix.dependency))
       ..fileOffset = charOffset;

@@ -153,7 +153,7 @@ class CheckedModeCompileTimeErrorCode extends ErrorCode {
    */
   const CheckedModeCompileTimeErrorCode(String name, String message,
       {String correction})
-      : super(name, message, correction: correction);
+      : super.temporary(name, message, correction: correction);
 
   @override
   ErrorSeverity get errorSeverity =>
@@ -2582,7 +2582,7 @@ class CompileTimeErrorCode extends ErrorCode {
    */
   const CompileTimeErrorCode(String name, String message,
       {String correction, bool isUnresolvedIdentifier: false})
-      : super(name, message,
+      : super.temporary(name, message,
             correction: correction,
             isUnresolvedIdentifier: isUnresolvedIdentifier);
 
@@ -3241,7 +3241,7 @@ class StaticTypeWarningCode extends ErrorCode {
    */
   const StaticTypeWarningCode(String name, String message,
       {String correction, bool isUnresolvedIdentifier: false})
-      : super(name, message,
+      : super.temporary(name, message,
             correction: correction,
             isUnresolvedIdentifier: isUnresolvedIdentifier);
 
@@ -4731,7 +4731,7 @@ class StaticWarningCode extends ErrorCode {
       {String correction,
       this.isStrongModeError = true,
       bool isUnresolvedIdentifier: false})
-      : super(name, message,
+      : super.temporary(name, message,
             correction: correction,
             isUnresolvedIdentifier: isUnresolvedIdentifier);
 
@@ -5053,7 +5053,7 @@ class StrongModeCode extends ErrorCode {
   const StrongModeCode(ErrorType type, String name, String message,
       {String correction})
       : type = type,
-        super('STRONG_MODE_$name', message, correction: correction);
+        super.temporary('STRONG_MODE_$name', message, correction: correction);
 
   @override
   ErrorSeverity get errorSeverity => type.severity;

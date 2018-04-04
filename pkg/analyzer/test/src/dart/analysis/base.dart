@@ -105,7 +105,6 @@ class BaseAnalysisDriverTest {
 
   AnalysisOptionsImpl createAnalysisOptions() => new AnalysisOptionsImpl()
     ..strongMode = true
-    ..enableUriInPartOf = true
     ..useFastaParser = useCFE;
 
   int findOffset(String search) {

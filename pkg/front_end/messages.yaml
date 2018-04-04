@@ -1254,6 +1254,11 @@ InternalVerificationError:
     Verification of the generated program failed:
     #string
 
+InternalVisitorUnsupportedDefault:
+  template: "Trying to invoke a default visiting method of a visitor on a node #string."
+  tip: "Try invoking one of the specialized 'visit' methods instead."
+  severity: INTERNAL_PROBLEM
+
 LocalDefinitionHidesExport:
   template: "Local definition of '#name' hides export from '#uri'."
   severity: NIT
@@ -1433,6 +1438,14 @@ TypeVariableDuplicatedNameCause:
 
 TypeVariableSameNameAsEnclosing:
   template: "A type variable can't have the same name as its enclosing declaration."
+
+ExpectedEnumBody:
+  template: "Expected a enum body, but got '#lexeme'."
+  tip: "An enum definition must have a body with at least one constant name."
+  analyzerCode: MISSING_ENUM_BODY
+  dart2jsCode: "*fatal*"
+  script:
+    - "enum E"
 
 EnumDeclarationEmpty:
   template: "An enum declaration can't be empty."

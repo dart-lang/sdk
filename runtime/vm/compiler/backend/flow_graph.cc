@@ -1191,9 +1191,16 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
 
           if ((phi != NULL) && isolate()->strong() &&
               FLAG_use_strong_mode_types) {
-            // Assign type to phi only if phi was not copied from another local.
-            const auto* phis = phi->block()->phis();
-            if ((index < phis->length()) && ((*phis)[index] == phi)) {
+            // Assign type to Phi if it doesn't have a type yet.
+            // For a Phi to appear in the local variable it either was placed
+            // there as incoming value by renaming or it was stored there by
+            // StoreLocal which took this Phi from another local via LoadLocal,
+            // to which this reasoning applies recursively.
+            // This means that we are guaranteed to process LoadLocal for a
+            // matching variable first.
+            if (!phi->HasType()) {
+              ASSERT((index < phi->block()->phis()->length()) &&
+                     ((*phi->block()->phis())[index] == phi));
               phi->UpdateType(
                   CompileType::FromAbstractType(load->local().type()));
             }

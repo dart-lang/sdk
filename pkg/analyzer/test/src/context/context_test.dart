@@ -733,19 +733,16 @@ library lib;
     expect(errors, hasLength(0));
   }
 
+  @failingTest
   void test_computeErrors_dart_part() {
     Source librarySource =
         addSource("/lib.dart", "library lib; part 'part.dart';");
     Source partSource = addSource("/part.dart", "part of 'lib';");
     context.parseCompilationUnit(librarySource);
     List<AnalysisError> errors = context.computeErrors(partSource);
-    if (context.analysisOptions.enableUriInPartOf) {
-      // TODO(28522)
-      // Should report that 'lib' isn't the correct URI.
-    } else {
-      expect(errors, isNotNull);
-      expect(errors.length > 0, isTrue);
-    }
+    expect(errors, isNotNull);
+    // TODO(28522)
+    fail("Should report that 'lib' isn't the correct URI.");
   }
 
   void test_computeErrors_dart_some() {

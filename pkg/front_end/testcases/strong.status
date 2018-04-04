@@ -33,6 +33,7 @@ function_in_field: Fail
 function_type_recovery: Fail
 functions: Fail
 hello: Fail
+implicit_const_with_static_fields: Fail
 implicit_this: Fail
 invocations: Fail
 literals: Fail

@@ -16,7 +16,7 @@ class Fisk extends core::Object {
       let dynamic _ = null in throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Fisk, 34, const <core::Type>[], <dynamic>[#t2].toList(growable: false), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
       core::print(self::Fisk);
     }
-    for (final dynamic #t3 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:17:10: Error: Expected lvalue, but got Instance of 'PrefixBuilder'
+    for (final dynamic #t3 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:17:10: Error: Expected lvalue, but got Instance of 'KernelPrefixBuilder'
     for (collection in x) {
          ^" in x) {
       core::print(invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart: Error: A library can't be used as an expression.");
@@ -47,7 +47,7 @@ static method main(dynamic arguments) → dynamic {
     let dynamic _ = null in throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Fisk, 34, const <core::Type>[], <dynamic>[#t7].toList(growable: false), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
     core::print(self::Fisk);
   }
-  for (final dynamic #t8 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:37:8: Error: Expected lvalue, but got Instance of 'PrefixBuilder'
+  for (final dynamic #t8 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:37:8: Error: Expected lvalue, but got Instance of 'KernelPrefixBuilder'
   for (collection in arguments) {
        ^" in arguments) {
     core::print(invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart: Error: A library can't be used as an expression.");

@@ -17,7 +17,6 @@ async_helper:pkg/async_helper/lib
 barback:third_party/pkg/barback/lib
 bazel_worker:third_party/pkg/bazel_worker/lib
 boolean_selector:third_party/pkg/boolean_selector/lib
-browser:third_party/pkg/browser/lib
 charcode:third_party/pkg/charcode/lib
 charted:third_party/observatory_pub_packages/packages/charted/lib
 cli_util:third_party/pkg/cli_util/lib
@@ -106,7 +105,6 @@ usage:third_party/pkg/usage/lib
 utf:third_party/pkg/utf/lib
 vm:pkg/vm/lib
 watcher:third_party/pkg/watcher/lib
-# Note: this is pointing to the observatory_pub_packages version of pkg/observe
-web_components:third_party/observatory_pub_packages/packages/web_components/lib
+web_components:third_party/pkg/web_components/lib
 web_socket_channel:third_party/pkg/web_socket_channel/lib
 yaml:third_party/pkg/yaml/lib

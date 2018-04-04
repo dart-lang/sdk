@@ -767,7 +767,6 @@ class BuildLibraryElementTaskTest extends _AbstractDartTaskTest {
   LibraryElement libraryElement;
 
   test_perform() {
-    enableUriInPartOf();
     _performBuildTask({
       '/lib.dart': '''
 library lib;
@@ -822,6 +821,7 @@ part of 'lib.dart';
         (libraryUnit.directives[2] as PartDirective).element, same(secondPart));
   }
 
+  @failingTest
   test_perform_error_missingLibraryDirectiveWithPart() {
     _performBuildTask({
       '/lib.dart': '''
@@ -835,15 +835,11 @@ part of my_lib;
 part of my_lib;
 '''
     });
-    if (context.analysisOptions.enableUriInPartOf) {
-      // TODO(28522)
-      // Should report that names are wrong.
-    } else {
-      _assertErrorsWithCodes(
-          [ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART]);
-    }
+    // TODO(28522)
+    fail('Should report that names are wrong.');
   }
 
+  @failingTest
   test_perform_error_missingLibraryDirectiveWithPart_noCommon() {
     _performBuildTask({
       '/lib.dart': '''
@@ -857,13 +853,8 @@ part of libA;
 part of libB;
 '''
     });
-    if (context.analysisOptions.enableUriInPartOf) {
-      // TODO(28522)
-      // Should report that names are wrong.
-    } else {
-      _assertErrorsWithCodes(
-          [ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART]);
-    }
+    // TODO(28522)
+    fail('Should report that names are wrong.');
   }
 
   test_perform_error_partDoesNotExist() {
@@ -4959,16 +4950,6 @@ class _AbstractDartTaskTest extends AbstractContextTest {
   void enableStrongMode() {
     AnalysisOptionsImpl options = context.analysisOptions;
     options.strongMode = true;
-    context.analysisOptions = options;
-  }
-
-  /**
-   * Enable the use of URIs in part-of directives in the current analysis
-   * context.
-   */
-  void enableUriInPartOf() {
-    AnalysisOptionsImpl options = context.analysisOptions;
-    options.enableUriInPartOf = true;
     context.analysisOptions = options;
   }
 

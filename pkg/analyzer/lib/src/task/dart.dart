@@ -1507,7 +1507,6 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     //
     LibraryIdentifier libraryNameNode = null;
     String partsLibraryName = _UNKNOWN_LIBRARY_NAME;
-    bool hasPartDirective = false;
     Set<Source> seenPartSources = new Set<Source>();
     FunctionElement entryPoint =
         _findEntryPoint(definingCompilationUnitElement);
@@ -1524,7 +1523,6 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
       } else if (directive is PartDirective) {
         StringLiteral partUri = directive.uri;
         Source partSource = directive.uriSource;
-        hasPartDirective = true;
         CompilationUnit partUnit = partUnitMap[partSource];
         if (partUnit != null) {
           CompilationUnitElementImpl partElement = partUnit.element;
@@ -1594,12 +1592,8 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
         }
       }
     }
-    if (hasPartDirective &&
-        libraryNameNode == null &&
-        !context.analysisOptions.enableUriInPartOf) {
-      errors.add(new AnalysisError(librarySource, 0, 0,
-          ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART));
-    }
+    // TODO(brianwilkerson) Report the error
+    // ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART
     //
     // Create and populate the library element.
     //
@@ -3769,7 +3763,6 @@ class ParseDartTask extends SourceBasedAnalysisTask {
         options.analyzeFunctionBodiesPredicate(_source);
     parser.parseGenericMethodComments = options.strongMode;
     parser.enableOptionalNewAndConst = options.previewDart2;
-    parser.enableUriInPartOf = options.enableUriInPartOf;
     CompilationUnit unit = parser.parseCompilationUnit(tokenStream);
     unit.lineInfo = lineInfo;
 

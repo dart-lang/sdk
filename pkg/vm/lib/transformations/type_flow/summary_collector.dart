@@ -1052,11 +1052,10 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitReturnStatement(ReturnStatement node) {
-    if (node.expression != null) {
-      TypeExpr ret = _visit(node.expression);
-      if (_returnValue != null) {
-        _returnValue.values.add(ret);
-      }
+    TypeExpr ret =
+        (node.expression != null) ? _visit(node.expression) : _nullType;
+    if (_returnValue != null) {
+      _returnValue.values.add(ret);
     }
     return null;
   }

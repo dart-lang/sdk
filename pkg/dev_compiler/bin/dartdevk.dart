@@ -37,7 +37,7 @@ Future runBatch(List<String> batchArgs) async {
   String line;
   fe.InitializedCompilerState compilerState;
 
-  while ((line = stdin.readLineSync(encoding: UTF8))?.isNotEmpty == true) {
+  while ((line = stdin.readLineSync(encoding: utf8))?.isNotEmpty == true) {
     tests++;
     var args = batchArgs.toList()..addAll(line.split(new RegExp(r'\s+')));
 

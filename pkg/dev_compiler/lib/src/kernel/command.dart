@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -113,13 +113,12 @@ Future<CompilerResult> _compile(List<String> args,
     ..addOption('packages', help: 'The package spec file to use.')
     ..addOption('dart-sdk-summary',
         help: 'The path to the Dart SDK summary file.', hide: true)
-    ..addOption('summary',
+    ..addMultiOption('summary',
         abbr: 's',
         help: 'path to a summary of a transitive dependency of this module.\n'
-            'This path should be under a provided summary-input-dir',
-        allowMultiple: true)
+            'This path should be under a provided summary-input-dir')
     ..addFlag('source-map', help: 'emit source mapping', defaultsTo: true)
-    ..addOption('summary-input-dir', allowMultiple: true)
+    ..addMultiOption('summary-input-dir')
     ..addOption('custom-app-scheme', defaultsTo: 'org-dartlang-app')
     // Ignore dart2js options that we don't support in DDC.
     ..addFlag('enable-enum', hide: true)
@@ -213,7 +212,7 @@ Future<CompilerResult> _compile(List<String> args,
   if (jsCode.sourceMap != null) {
     file = new File(output + '.map');
     if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
-    file.writeAsStringSync(JSON.encode(jsCode.sourceMap));
+    file.writeAsStringSync(json.encode(jsCode.sourceMap));
   }
 
   return new CompilerResult(compilerState, true);

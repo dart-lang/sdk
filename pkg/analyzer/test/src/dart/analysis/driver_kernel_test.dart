@@ -12,7 +12,6 @@ main() {
     // TODO(scheglov): Restore similar test coverage when the front-end API
     // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
     // defineReflectiveTests(AnalysisDriverTest_Kernel);
-    // defineReflectiveTests(AnalysisDriverResolutionTest_Kernel);
   });
 }
 
@@ -27,19 +26,6 @@ const potentialAnalyzerProblem = const Object();
 /// causing the rest of the method to be flagged as dead code.
 void _fail(String message) {
   fail(message);
-}
-
-@reflectiveTest
-class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
-  @override
-  bool get useCFE => true;
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31605')
-  test_constructor_redirected_generic() async {
-    await super.test_constructor_redirected_generic();
-  }
 }
 
 @reflectiveTest

@@ -44,7 +44,6 @@ class AnalysisOptionsImplTest {
     modifiedOptions.enableLazyAssignmentOperators = true;
     modifiedOptions.enableSuperMixins = true;
     modifiedOptions.enableTiming = true;
-    modifiedOptions.enableUriInPartOf = true;
     modifiedOptions.errorProcessors = [null];
     modifiedOptions.excludePatterns = ['a'];
     modifiedOptions.generateImplicitErrors = false;
@@ -69,7 +68,6 @@ class AnalysisOptionsImplTest {
         defaultOptions.enableLazyAssignmentOperators);
     expect(modifiedOptions.enableSuperMixins, defaultOptions.enableSuperMixins);
     expect(modifiedOptions.enableTiming, defaultOptions.enableTiming);
-    expect(modifiedOptions.enableUriInPartOf, defaultOptions.enableUriInPartOf);
     expect(modifiedOptions.errorProcessors, defaultOptions.errorProcessors);
     expect(modifiedOptions.excludePatterns, defaultOptions.excludePatterns);
     expect(modifiedOptions.generateImplicitErrors,
