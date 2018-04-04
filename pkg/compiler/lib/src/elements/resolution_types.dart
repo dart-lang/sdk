@@ -1084,6 +1084,7 @@ class ResolutionMoreSpecificVisitor
     extends MoreSpecificVisitor<ResolutionDartType>
     with AbstractTypeRelationMixin {
   final Resolution resolution;
+  bool get strongMode => false;
 
   ResolutionMoreSpecificVisitor(this.resolution);
 }
@@ -1091,6 +1092,7 @@ class ResolutionMoreSpecificVisitor
 class ResolutionSubtypeVisitor extends SubtypeVisitor<ResolutionDartType>
     with AbstractTypeRelationMixin {
   final Resolution resolution;
+  bool get strongMode => false;
 
   ResolutionSubtypeVisitor(this.resolution);
 }
@@ -1099,6 +1101,7 @@ class ResolutionPotentialSubtypeVisitor
     extends PotentialSubtypeVisitor<ResolutionDartType>
     with AbstractTypeRelationMixin {
   final Resolution resolution;
+  bool get strongMode => false;
 
   ResolutionPotentialSubtypeVisitor(this.resolution);
 }
