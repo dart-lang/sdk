@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
-import 'package:analyzer/src/generated/utilities_dart.dart';
 
 import '../js_ast/js_ast.dart' as JS;
 import 'module_compiler.dart' show CompilerOptions;
@@ -52,12 +51,10 @@ abstract class JSTypeRefCodegen {
         if (type is FunctionType && type.name == null) {
           var args = <JS.Identifier, JS.TypeRef>{};
           for (var param in type.parameters) {
-            if (param.parameterKind == ParameterKind.NAMED) break;
+            if (param.isNamed) break;
             var type = emitTypeRef(param.type);
             args[new JS.Identifier(param.name)] =
-                param.parameterKind == ParameterKind.POSITIONAL
-                    ? type.toOptional()
-                    : type;
+                param.isPositional ? type.toOptional() : type;
           }
           var namedParamType = emitNamedParamsArgType(type.parameters);
           if (namedParamType != null) {
@@ -85,7 +82,7 @@ abstract class JSTypeRefCodegen {
 
     var namedArgs = <JS.Identifier, JS.TypeRef>{};
     for (ParameterElement param in params) {
-      if (param.parameterKind != ParameterKind.NAMED) continue;
+      if (param.isPositional) continue;
       namedArgs[new JS.Identifier(param.name)] =
           emitTypeRef(param.type).toOptional();
     }

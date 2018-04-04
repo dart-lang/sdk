@@ -105,8 +105,7 @@ ArgParser ddcArgParser({bool hide: true}) {
         help: 'Ignore unrecognized command line flags.',
         defaultsTo: false,
         hide: hide)
-    ..addOption('out',
-        abbr: 'o', allowMultiple: true, help: 'Output file (required).')
+    ..addMultiOption('out', abbr: 'o', help: 'Output file (required).')
     ..addOption('module-root',
         help: 'Root module directory. Module paths are relative to this root.')
     ..addOption('library-root',
@@ -284,7 +283,7 @@ List<String> filterUnknownArguments(List<String> args, ArgParser parser) {
   Set<String> knownAbbreviations = new Set<String>();
   parser.options.forEach((String name, option) {
     knownOptions.add(name);
-    String abbreviation = option.abbreviation;
+    String abbreviation = option.abbr;
     if (abbreviation != null) {
       knownAbbreviations.add(abbreviation);
     }

@@ -4,7 +4,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 import 'dart:io';
 import 'package:args/args.dart' show ArgParser;
 import 'package:dev_compiler/src/compiler/module_builder.dart';
@@ -60,6 +60,6 @@ Future main(List<String> args) async {
     await new Directory(jsDir).create();
     var jsCode = jsProgramToCode(jsModule, format);
     await new File(jsPath).writeAsString(jsCode.code);
-    await new File('$jsPath.map').writeAsString(JSON.encode(jsCode.sourceMap));
+    await new File('$jsPath.map').writeAsString(json.encode(jsCode.sourceMap));
   }
 }

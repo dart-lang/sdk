@@ -268,7 +268,7 @@ class WebCompileCommand extends Command {
 
         // We emulate running code in the context of an existing library by
         // importing that library and all libraries it imports.
-        sb.write('import ${JSON.encode(existingLibrary)};\n');
+        sb.write('import ${json.encode(existingLibrary)};\n');
 
         for (ImportElement importElement in libraryElement.imports) {
           if (importElement.uri == null) continue;
@@ -281,7 +281,7 @@ class WebCompileCommand extends Command {
               !uri.startsWith('dart:')) {
             uri = path.normalize(path.join(dir, uri));
           }
-          sb.write('import ${JSON.encode(uri)}');
+          sb.write('import ${json.encode(uri)}');
           if (importElement.prefix != null)
             sb.write(' as ${importElement.prefix.name}');
           for (var combinator in importElement.combinators) {

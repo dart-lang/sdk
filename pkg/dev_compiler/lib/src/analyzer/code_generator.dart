@@ -2155,8 +2155,7 @@ class CodeGenerator extends Object
 
           var type = _emitAnnotatedFunctionType(
               reifiedType, annotationNode?.metadata,
-              parameters: annotationNode?.parameters?.parameters,
-              nameType: false);
+              parameters: annotationNode?.parameters?.parameters);
           var property = new JS.Property(_declareMemberName(method), type);
           if (method.isStatic) {
             staticMethods.add(property);
@@ -2222,8 +2221,7 @@ class CodeGenerator extends Object
           var annotationNode = annotatedMembers[accessor] as MethodDeclaration;
           var type = _emitAnnotatedFunctionType(
               reifiedType, annotationNode?.metadata,
-              parameters: annotationNode?.parameters?.parameters,
-              nameType: false);
+              parameters: annotationNode?.parameters?.parameters);
 
           var property = new JS.Property(_declareMemberName(accessor), type);
           if (isStatic) {
@@ -2279,8 +2277,7 @@ class CodeGenerator extends Object
           var memberName = _constructorName(ctor.name);
           var type = _emitAnnotatedFunctionType(
               ctor.type, annotationNode?.metadata,
-              parameters: annotationNode?.parameters?.parameters,
-              nameType: false);
+              parameters: annotationNode?.parameters?.parameters);
           constructors.add(new JS.Property(memberName, type));
         }
       }
@@ -2523,8 +2520,8 @@ class CodeGenerator extends Object
       var jsParam = _emitParameter(element)
         ..sourceInformation = _nodeStart(param.identifier);
 
-      if (param.kind != ParameterKind.REQUIRED) {
-        if (param.kind == ParameterKind.NAMED) {
+      if (param.isOptional) {
+        if (param.isNamed) {
           // Parameters will be passed using their real names, not the (possibly
           // renamed) local variable.
           var paramName = js.string(param.identifier.name, "'");
@@ -2548,7 +2545,8 @@ class CodeGenerator extends Object
               paramName,
             ]));
           }
-        } else if (param.kind == ParameterKind.POSITIONAL) {
+        } else {
+          assert(param.isOptionalPositional);
           var defaultValue = _defaultParamValue(param);
           if (defaultValue != null) {
             body.add(js.statement(
@@ -2744,8 +2742,8 @@ class CodeGenerator extends Object
   JS.Expression _emitFunctionTagged(JS.Expression fn, FunctionType type,
       {bool topLevel: false}) {
     var lazy = topLevel && !_typeIsLoaded(type);
-    var typeRep = _emitFunctionType(type);
-    return _callHelper(lazy ? 'lazyFn(#, () => #)' : 'fn(#, #)', [fn, typeRep]);
+    var typeRep = _emitFunctionType(type, lazy: lazy);
+    return _callHelper(lazy ? 'lazyFn(#, #)' : 'fn(#, #)', [fn, typeRep]);
   }
 
   /// Emits an arrow FunctionExpression node.
@@ -3192,13 +3190,6 @@ class CodeGenerator extends Object
     return result;
   }
 
-  JS.Expression _emitAnnotatedType(DartType type, List<Annotation> metadata,
-      {bool nameType: true}) {
-    metadata ??= [];
-    var typeName = _emitType(type, nameType: nameType);
-    return _emitAnnotatedResult(typeName, metadata);
-  }
-
   JS.Expression _emitFieldSignature(DartType type,
       {List<Annotation> metadata, bool isFinal: true}) {
     var args = [_emitType(type)];
@@ -3214,10 +3205,10 @@ class CodeGenerator extends Object
       {bool nameType: true}) {
     var result = <JS.Expression>[];
     for (int i = 0; i < types.length; ++i) {
-      var metadata = parameters != null
-          ? _parameterMetadata(parameters[i])
-          : <Annotation>[];
-      result.add(_emitAnnotatedType(types[i], metadata));
+      var metadata =
+          parameters != null ? _parameterMetadata(parameters[i]) : null;
+      var typeName = _emitType(types[i], nameType: nameType);
+      result.add(_emitAnnotatedResult(typeName, metadata));
     }
     return new JS.ArrayInitializer(result);
   }
@@ -3235,7 +3226,9 @@ class CodeGenerator extends Object
   /// Emit the pieces of a function type, as an array of return type,
   /// regular args, and optional/named args.
   JS.Expression _emitFunctionType(FunctionType type,
-      {List<FormalParameter> parameters, bool nameType: true}) {
+      {List<FormalParameter> parameters,
+      bool nameType = true,
+      bool lazy = false}) {
     var parameterTypes = type.normalParameterTypes;
     var optionalTypes = type.optionalParameterTypes;
     var namedTypes = type.namedParameterTypes;
@@ -3285,14 +3278,14 @@ class CodeGenerator extends Object
     }
     fullType = _callHelper(helperCall, [typeParts]);
     if (!nameType) return fullType;
-    return _typeTable.nameType(type, fullType);
+    return _typeTable.nameFunctionType(type, fullType, lazy: lazy);
   }
 
   JS.Expression _emitAnnotatedFunctionType(
       FunctionType type, List<Annotation> metadata,
-      {List<FormalParameter> parameters, bool nameType: true}) {
+      {List<FormalParameter> parameters}) {
     var result =
-        _emitFunctionType(type, parameters: parameters, nameType: nameType);
+        _emitFunctionType(type, parameters: parameters, nameType: false);
     return _emitAnnotatedResult(result, metadata);
   }
 
@@ -3300,8 +3293,8 @@ class CodeGenerator extends Object
   ///
   /// If [nameType] is true, then the type will be named.  In addition,
   /// if [hoistType] is true, then the named type will be hoisted.
-  JS.Expression _emitConstructorAccess(DartType type, {bool nameType: true}) {
-    return _emitJSInterop(type.element) ?? _emitType(type, nameType: nameType);
+  JS.Expression _emitConstructorAccess(DartType type) {
+    return _emitJSInterop(type.element) ?? _emitType(type);
   }
 
   /// Emits an expression that lets you access statics on an [c] from code.
@@ -3355,9 +3348,6 @@ class CodeGenerator extends Object
     // to canonicalize them too, at least when inside the same library.
     var name = type.name;
     if (name == '' || name == null) {
-      // TODO(jmesserly): should we change how typedefs work? They currently
-      // go through use similar logic as generic classes. This makes them
-      // different from universal function types.
       return _emitFunctionType(type as FunctionType, nameType: nameType);
     }
 
@@ -3730,7 +3720,7 @@ class CodeGenerator extends Object
         var params = new List<JS.Identifier>.from(
             _emitTypeFormals(method.typeParameters));
         for (var param in method.parameters) {
-          if (param.parameterKind == ParameterKind.NAMED) {
+          if (param.isNamed) {
             params.add(namedArgumentTemp);
             break;
           }
@@ -4112,7 +4102,7 @@ class CodeGenerator extends Object
   List<JS.Parameter> _emitParametersForElement(ExecutableElement member) {
     var jsParams = <JS.Identifier>[];
     for (var p in member.parameters) {
-      if (p.parameterKind != ParameterKind.NAMED) {
+      if (p.isPositional) {
         jsParams.add(new JS.Identifier(p.name));
       } else {
         jsParams.add(new JS.TemporaryId('namedArgs'));
@@ -4128,7 +4118,7 @@ class CodeGenerator extends Object
 
     var result = <JS.Parameter>[];
     for (var param in parameters) {
-      if (param.kind == ParameterKind.NAMED) {
+      if (param.isNamed) {
         result.add(namedArgumentTemp);
         break;
       }

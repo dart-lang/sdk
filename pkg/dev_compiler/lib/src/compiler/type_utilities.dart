@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show TypeParameterMember;
 import 'package:analyzer/dart/element/type.dart';
 
+import '../analyzer/element_helpers.dart';
 import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
 import 'js_names.dart' as JS;
@@ -41,7 +43,8 @@ class _CacheTable {
   // Use a LinkedHashMap to maintain key insertion order so the generated code
   // is stable under slight perturbation.  (If this is not good enough we could
   // sort by name to canonicalize order.)
-  final _names = <DartType, JS.TemporaryId>{};
+  final _names = new LinkedHashMap<DartType, JS.TemporaryId>(
+      equals: typesAreEqual, hashCode: typeHashCode);
   Iterable<DartType> get keys => _names.keys.toList();
 
   JS.Statement _dischargeType(DartType type) {
@@ -66,17 +69,6 @@ class _CacheTable {
   }
 
   bool isNamed(DartType type) => _names.containsKey(type);
-
-  /// If [type] is not already in the table, choose a new canonical
-  /// variable to contain it. Emit an expression which uses [typeRep] to
-  /// lazily initialize the cache in place.
-  JS.Expression nameType(DartType type, JS.Expression typeRep) {
-    var temp = _names[type];
-    if (temp == null) {
-      _names[type] = temp = chooseTypeName(type);
-    }
-    return js.call('# || (# = #)', [temp, temp, typeRep]);
-  }
 
   String _safeTypeName(String name) {
     if (name == "<bottom>") return "bottom";
@@ -124,7 +116,8 @@ class _CacheTable {
 /// _GeneratorTable tracks types which have been
 /// named and hoisted.
 class _GeneratorTable extends _CacheTable {
-  final _defs = <DartType, JS.Expression>{};
+  final _defs = new LinkedHashMap<DartType, JS.Expression>(
+      equals: typesAreEqual, hashCode: typeHashCode);
 
   final JS.Identifier _runtimeModule;
 
@@ -143,14 +136,14 @@ class _GeneratorTable extends _CacheTable {
 
   /// If [type] does not already have a generator name chosen for it,
   /// assign it one, using [typeRep] as the initializer for it.
-  /// Emit an expression which calls the generator name.
-  JS.Expression nameType(DartType type, JS.Expression typeRep) {
+  /// Emit the generator name.
+  JS.TemporaryId _nameType(DartType type, JS.Expression typeRep) {
     var temp = _names[type];
     if (temp == null) {
       _names[type] = temp = chooseTypeName(type);
       _defs[type] = typeRep;
     }
-    return js.call('#()', [temp]);
+    return temp;
   }
 }
 
@@ -200,30 +193,31 @@ class TypeTable {
   /// Given a type [type], and a JS expression [typeRep] which implements it,
   /// add the type and its representation to the table, returning an
   /// expression which implements the type (but which caches the value).
-  ///
-  /// If [hoist] is true, then the JS representation will be hoisted up
-  /// as far as possible and shared between instances of the type.  For
-  /// example, the generated code for dart.is(x, type) ends up as:
-  ///   let cacheVar;
-  ///   ...
-  ///   dart.is(x, (cacheVar || cacheVar = type))
-  ///
-  /// If [hoist] is false, the cache variable will be hoisted up as
-  /// far as possible and shared between instances of the type, but the
-  /// initializer expression will be emitted in place.  The generated code
-  /// for dart.is(x, type) in this case ends up as:
-  ///   let generator = () => (generator = dart.constFn(type))()
-  ///   ....
-  ///   dart.is(x, generator())
+  JS.Expression nameType(InterfaceType type, JS.Expression typeRep) {
+    if (!_generators.isNamed(type) && recordScopeDependencies(type)) {
+      return typeRep;
+    }
+    var name = _generators._nameType(type, typeRep);
+    return js.call('#()', [name]);
+  }
+
+  /// Like [nameType] but for function types.
   ///
   /// The boolean parameter [definite] distinguishes between definite function
   /// types and other types (since the same DartType may have different
   /// representations as definite and indefinite function types).
-  JS.Expression nameType(DartType type, JS.Expression typeRep) {
-    var table = _generators;
-    if (!table.isNamed(type)) {
-      if (recordScopeDependencies(type)) return typeRep;
+  ///
+  /// The boolean parameter [lazy] indicates that the resulting expression
+  /// should be a function that is invoked to compute the type, rather than the
+  /// type itself. This allows better integration with `lazyFn`, avoiding an
+  /// extra level of indirection.
+  JS.Expression nameFunctionType(FunctionType type, JS.Expression typeRep,
+      {bool lazy: false}) {
+    if (!_generators.isNamed(type) && recordScopeDependencies(type)) {
+      return lazy ? new JS.ArrowFun([], typeRep) : typeRep;
     }
-    return table.nameType(type, typeRep);
+
+    var name = _generators._nameType(type, typeRep);
+    return lazy ? name : js.call('#()', [name]);
   }
 }

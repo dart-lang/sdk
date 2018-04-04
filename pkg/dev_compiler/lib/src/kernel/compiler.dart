@@ -75,12 +75,15 @@ class ProgramCompiler
   /// Let variables collected for the given function.
   List<JS.TemporaryId> _letVariables;
 
-  /// The class when it's emitting top-level code, used to order classes when
-  /// they extend each other.
+  /// The class that is emitting its base class or mixin references, otherwise
+  /// null.
   ///
-  /// This is not used when inside method bodies, or for other type information
-  /// such as `implements`.
-  Class _classEmittingTopLevel;
+  /// This is not used when inside the class method bodies, or for other type
+  /// information such as `implements`.
+  Class _classEmittingExtends;
+
+  /// The class that is emitting its signature information, otherwise null.
+  Class _classEmittingSignatures;
 
   /// The current element being loaded.
   /// We can use this to determine if we're loading top-level code or not:
@@ -522,8 +525,7 @@ class ProgramCompiler
   /// declarations are assumed to be available before we start execution.
   /// See [startTopLevel].
   void _declareBeforeUse(Class c) {
-    if (c == null) return;
-    if (identical(_currentClass, _classEmittingTopLevel)) _emitClass(c);
+    if (c != null && _emittingClassExtends) _emitClass(c);
   }
 
   JS.Statement _emitClassDeclaration(Class c) {
@@ -730,8 +732,8 @@ class ProgramCompiler
       }
     }
 
-    var savedTopLevelClass = _classEmittingTopLevel;
-    _classEmittingTopLevel = c;
+    var savedTopLevelClass = _classEmittingExtends;
+    _classEmittingExtends = c;
 
     // Unroll mixins.
     if (shouldDefer(supertype)) {
@@ -760,8 +762,6 @@ class ProgramCompiler
       mixinBody.add(
           _callHelperStatement('mixinMembers(#, #)', [classExpr, mixinClass]));
 
-      _classEmittingTopLevel = savedTopLevelClass;
-
       if (methods.isNotEmpty) {
         // However we may need to add some methods to this class that call
         // `super` such as covariance checks.
@@ -777,6 +777,8 @@ class ProgramCompiler
       }
 
       emitMixinConstructors(className, m);
+
+      _classEmittingExtends = savedTopLevelClass;
       return;
     }
 
@@ -812,9 +814,8 @@ class ProgramCompiler
       baseClass = mixinId;
     }
 
-    _classEmittingTopLevel = savedTopLevelClass;
-
     body.add(_emitClassStatement(c, className, baseClass, methods));
+    _classEmittingExtends = savedTopLevelClass;
   }
 
   /// Defines all constructors for this class as ES5 constructors.
@@ -1150,6 +1151,9 @@ class ProgramCompiler
   /// Emit the signature on the class recording the runtime type information
   void _emitClassSignature(
       Class c, JS.Expression className, List<JS.Statement> body) {
+    var savedClass = _classEmittingSignatures;
+    _classEmittingSignatures = c;
+
     if (c.implementedTypes.isNotEmpty) {
       body.add(js.statement('#[#.implements] = () => [#];', [
         className,
@@ -1286,6 +1290,8 @@ class ProgramCompiler
       body.add(_callHelperStatement('tagComputed(#, () => #.#);',
           [className, emitLibraryName(coreTypes.coreLibrary), 'Type']));
     }
+
+    _classEmittingSignatures = savedClass;
   }
 
   JS.Expression _emitFieldSignature(Field field, Class fromClass) {
@@ -1776,9 +1782,6 @@ class ProgramCompiler
   }
 
   /// Emits an expression that lets you access statics on a [type] from code.
-  ///
-  /// If [nameType] is true, then the type will be named.  In addition,
-  /// if [hoistType] is true, then the named type will be hoisted.
   JS.Expression emitConstructorAccess(InterfaceType type) {
     return _emitJSInterop(type.classNode) ?? visitInterfaceType(type);
   }
@@ -2054,8 +2057,8 @@ class ProgramCompiler
   void _emitTypedef(Typedef t) {
     var savedUri = _currentUri;
     _currentUri = t.fileUri;
-    var body = _callHelper(
-        'typedef(#, () => #)', [js.string(t.name, "'"), _emitType(t.type)]);
+    var body = _callHelper('typedef(#, () => #)',
+        [js.string(t.name, "'"), visitFunctionType(t.type)]);
 
     JS.Statement result;
     if (t.typeParameters.isNotEmpty) {
@@ -2489,8 +2492,8 @@ class ProgramCompiler
   JS.Expression _emitFunctionTagged(JS.Expression fn, FunctionType type,
       {bool topLevel: false}) {
     var lazy = topLevel && !_typeIsLoaded(type);
-    var typeRep = visitFunctionType(type);
-    return _callHelper(lazy ? 'lazyFn(#, () => #)' : 'fn(#, #)', [fn, typeRep]);
+    var typeRep = visitFunctionType(type, lazy: lazy);
+    return _callHelper(lazy ? 'lazyFn(#, #)' : 'fn(#, #)', [fn, typeRep]);
   }
 
   bool _typeIsLoaded(DartType type) {
@@ -2517,9 +2520,6 @@ class ProgramCompiler
     return _callHelper('throwUnimplementedError(#)',
         [js.escapedString('node <${node.runtimeType}> $message`$node`')]);
   }
-
-  JS.Expression _nameType(DartType type, JS.Expression typeRep) =>
-      _currentFunction != null ? _typeTable.nameType(type, typeRep) : typeRep;
 
   @override
   defaultDartType(type) => _emitInvalidNode(type);
@@ -2572,11 +2572,23 @@ class ProgramCompiler
       jsArgs = [];
     }
     if (jsArgs != null) {
-      return _nameType(type, _emitGenericClassType(type, jsArgs));
+      var typeRep = _emitGenericClassType(type, jsArgs);
+      return _cacheTypes ? _typeTable.nameType(type, typeRep) : typeRep;
     }
 
     return _emitTopLevelNameNoInterop(type.classNode);
   }
+
+  bool get _emittingClassSignatures =>
+      _currentClass != null &&
+      identical(_currentClass, _classEmittingSignatures);
+
+  bool get _emittingClassExtends =>
+      _currentClass != null && identical(_currentClass, _classEmittingExtends);
+
+  bool get _cacheTypes =>
+      !_emittingClassExtends && !_emittingClassSignatures ||
+      _currentFunction != null;
 
   JS.Expression _emitGenericClassType(
       InterfaceType t, Iterable<JS.Expression> typeArgs) {
@@ -2588,7 +2600,7 @@ class ProgramCompiler
   visitVectorType(type) => defaultDartType(type);
 
   @override
-  visitFunctionType(type, {bool lowerTypedef: false, FunctionNode function}) {
+  visitFunctionType(type, {FunctionNode function, bool lazy: false}) {
     var requiredTypes =
         type.positionalParameters.take(type.requiredParameterCount).toList();
     var requiredParams = function?.positionalParameters
@@ -2641,7 +2653,10 @@ class ProgramCompiler
     } else {
       helperCall = 'fnType(#)';
     }
-    return _nameType(type, _callHelper(helperCall, [typeParts]));
+    var typeRep = _callHelper(helperCall, [typeParts]);
+    return _cacheTypes
+        ? _typeTable.nameFunctionType(type, typeRep, lazy: lazy)
+        : typeRep;
   }
 
   JS.Expression _emitAnnotatedFunctionType(FunctionType type, Member member) {
@@ -2723,7 +2738,8 @@ class ProgramCompiler
     if (jsArgs != null) {
       var genericName =
           _emitTopLevelNameNoInterop(type.typedefNode, suffix: '\$');
-      return _nameType(type, new JS.Call(genericName, jsArgs));
+      var typeRep = new JS.Call(genericName, jsArgs);
+      return _cacheTypes ? _typeTable.nameType(type, typeRep) : typeRep;
     }
 
     return _emitTopLevelNameNoInterop(type.typedefNode);

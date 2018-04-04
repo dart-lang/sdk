@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection' show HashSet, Queue;
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 import 'dart:io' show File;
 
 import 'package:analyzer/analyzer.dart'
@@ -340,11 +340,10 @@ class CompilerOptions {
               'allowing access to private members across library boundaries.',
           defaultsTo: false,
           hide: hide)
-      ..addOption('bazel-mapping',
+      ..addMultiOption('bazel-mapping',
           help:
               '--bazel-mapping=genfiles/to/library.dart,to/library.dart uses \n'
               'to/library.dart as the path for library.dart in source maps.',
-          allowMultiple: true,
           splitCommas: false,
           hide: hide)
       ..addOption('summary-out',
@@ -473,7 +472,7 @@ class JSModuleFile {
 
     var text = printer.getText();
     var rawSourceMap = options.inlineSourceMap
-        ? js.escapedString(JSON.encode(builtMap), "'").value
+        ? js.escapedString(json.encode(builtMap), "'").value
         : 'null';
     text = text.replaceFirst(sourceMapHoleID, rawSourceMap);
 
@@ -500,7 +499,7 @@ class JSModuleFile {
       // to sources in the original sourcemap. The name of this file is bogus
       // anyways, so it has very little effect on things.
       c += '\n//# sourceURL=${name.replaceAll("/", ".")}.js\n';
-      c = 'eval(${JSON.encode(c)});\n';
+      c = 'eval(${json.encode(c)});\n';
     }
 
     var file = new File(jsPath);
@@ -514,7 +513,7 @@ class JSModuleFile {
     if (code.sourceMap != null) {
       file = new File(mapPath);
       if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
-      file.writeAsStringSync(JSON.encode(code.sourceMap));
+      file.writeAsStringSync(json.encode(code.sourceMap));
     }
   }
 }
