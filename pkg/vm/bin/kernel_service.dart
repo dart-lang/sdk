@@ -86,24 +86,23 @@ abstract class Compiler {
       ..packagesFileUri = packagesUri
       ..sdkSummary = platformKernelPath
       ..verbose = verbose
-      ..onProblem =
-          (message, Severity severity, String formatted, int line, int column) {
+      ..onProblem = (message, Severity severity) {
         switch (severity) {
           case Severity.error:
           case Severity.errorLegacyWarning:
           case Severity.internalProblem:
             // TODO(sigmund): support emitting code with errors as long as they
             // are handled in the generated code (issue #30194).
-            errors.add(formatted);
-            stderr.writeln(formatted);
+            errors.add(message.formatted);
+            stderr.writeln(message.formatted);
             break;
           case Severity.nit:
             break;
           case Severity.warning:
-            if (!suppressWarnings) stderr.writeln(formatted);
+            if (!suppressWarnings) stderr.writeln(message.formatted);
             break;
           case Severity.context:
-            stderr.writeln(formatted);
+            stderr.writeln(message.formatted);
             break;
         }
       };

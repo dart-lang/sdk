@@ -208,20 +208,19 @@ class FrontendCompiler implements CompilerInterface {
       ..packagesFileUri = _getFileOrUri(_options['packages'])
       ..strongMode = options['strong']
       ..sdkSummary = sdkRoot.resolve(platformKernelDill)
-      ..onProblem =
-          (message, Severity severity, String formatted, int line, int column) {
+      ..onProblem = (message, Severity severity) {
         switch (severity) {
           case Severity.error:
           case Severity.errorLegacyWarning:
           case Severity.internalProblem:
-            _outputStream.writeln(formatted);
-            errors.add(formatted);
+            _outputStream.writeln(message.formatted);
+            errors.add(message.formatted);
             break;
           case Severity.nit:
             break;
           case Severity.warning:
           case Severity.context:
-            _outputStream.writeln(formatted);
+            _outputStream.writeln(message.formatted);
             break;
         }
       };

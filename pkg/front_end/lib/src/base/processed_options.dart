@@ -38,6 +38,7 @@ import '../fasta/deprecated_problems.dart' show deprecated_InputError;
 
 import '../fasta/fasta_codes.dart'
     show
+        FormattedMessage,
         LocatedMessage,
         Message,
         messageCantInferPackagesFromManyInputs,
@@ -209,12 +210,11 @@ class ProcessedOptions {
       int offset = message.charOffset;
       Uri uri = message.uri;
       Location location = offset == -1 ? null : getLocation(uri, offset);
-      _raw.onProblem(
-          message,
-          severity,
-          command_line_reporting.format(message, severity, location: location),
-          location?.line ?? -1,
-          location?.column ?? -1);
+      String formatted =
+          command_line_reporting.format(message, severity, location: location);
+      FormattedMessage formattedMessage = message.withFormatting(
+          formatted, location?.line ?? -1, location?.column ?? -1);
+      _raw.onProblem(formattedMessage, severity);
       if (command_line_reporting.shouldThrowOn(severity)) {
         if (verbose) print(StackTrace.current);
         throw new deprecated_InputError(

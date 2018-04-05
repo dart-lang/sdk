@@ -22,7 +22,7 @@ import "package:front_end/src/api_prototype/memory_file_system.dart"
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
-import 'package:front_end/src/fasta/fasta_codes.dart' show LocatedMessage;
+import 'package:front_end/src/fasta/fasta_codes.dart' show FormattedMessage;
 
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
@@ -206,14 +206,13 @@ void newWorldTest(bool strong, List worlds) async {
     bool gotWarning = false;
     List<String> formattedWarnings = <String>[];
 
-    options.onProblem = (LocatedMessage message, Severity severity,
-        String formatted, int line, int column) {
+    options.onProblem = (FormattedMessage problem, Severity severity) {
       if (severity == Severity.error) {
         gotError = true;
-        formattedErrors.add(formatted);
+        formattedErrors.add(problem.formatted);
       } else if (severity == Severity.warning) {
         gotWarning = true;
-        formattedWarnings.add(formatted);
+        formattedWarnings.add(problem.formatted);
       }
     };
 
@@ -289,10 +288,9 @@ CompilerOptions getOptions(bool strong) {
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
-    ..onProblem = (LocatedMessage message, Severity severity, String formatted,
-        int line, int column) {
+    ..onProblem = (FormattedMessage problem, Severity severity) {
       if (severity == Severity.error || severity == Severity.warning) {
-        Expect.fail("Unexpected error: $formatted");
+        Expect.fail("Unexpected error: ${problem.formatted}");
       }
     }
     ..strongMode = strong;

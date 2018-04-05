@@ -16,7 +16,7 @@ import "package:front_end/src/api_prototype/compiler_options.dart"
 import 'package:front_end/src/testing/compiler_common.dart' show compileScript;
 
 import 'package:front_end/src/fasta/fasta_codes.dart'
-    show LocatedMessage, codeSuperclassHasNoMethod;
+    show FormattedMessage, codeSuperclassHasNoMethod;
 
 import 'package:front_end/src/fasta/severity.dart' show Severity;
 
@@ -68,8 +68,7 @@ void main() {
 ''';
 
 ProblemHandler _makeProblemHandler(Set<String> names) {
-  return (LocatedMessage message, Severity severity, String formatted, int line,
-      int column) {
+  return (FormattedMessage message, Severity severity) {
     Expect.equals(Severity.error, severity);
     Expect.equals(codeSuperclassHasNoMethod, message.code);
     names.add(message.arguments['name']);

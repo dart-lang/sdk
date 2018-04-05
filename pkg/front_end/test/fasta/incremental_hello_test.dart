@@ -21,16 +21,15 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
-import 'package:front_end/src/fasta/fasta_codes.dart' show LocatedMessage;
+import 'package:front_end/src/fasta/fasta_codes.dart' show FormattedMessage;
 
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
 
 import 'package:front_end/src/fasta/severity.dart' show Severity;
 
-void problemHandler(LocatedMessage message, Severity severity, String formatted,
-    int line, int column) {
-  throw "Unexpected message: $formatted";
+void problemHandler(FormattedMessage message, Severity severity) {
+  throw "Unexpected message: ${message.formatted}";
 }
 
 test({bool sdkFromSource}) async {
