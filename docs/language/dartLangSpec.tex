@@ -2593,7 +2593,8 @@ A mixin application of the form \code{$S$ \WITH{} $M_1,\ \ldots, M_k$;} for the 
 \rationale{The name of the resulting class is necessary because it is part of the names of the introduced constructors.}
 
 \LMHash{}
-In both cases above, $C$ declares the same instance members as $M$ (respectively, $M_k$).
+In both cases above, $C$ declares the same instance members as $M$ (respectively, $M_k$),
+and it does not declare any static members.
 If any of the instance variables of $M$ (respectively, $M_k$) have initializers,
 they are executed in the instance scope of $M$ (respectively, $M_k$)
 to initialize the corresponding instance variables of $C$.

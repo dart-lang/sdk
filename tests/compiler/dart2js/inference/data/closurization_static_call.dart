@@ -23,18 +23,31 @@ class Class {
 
 // TODO(johnniwinther): Fix the refined type. Missing call methods in the closed
 // world leads to concluding [exact=Class].
-/*element: closurizedCallToString:[exact=JSString]*/
+/*ast.element: closurizedCallToString:[exact=JSString]*/
+/*kernel.element: closurizedCallToString:[exact=JSString]*/
+/*strong.element: closurizedCallToString:[empty]*/
 closurizedCallToString() {
   var c = new Class();
   c.call(); // Make `Class.call` live.
   var local = method;
-  local. /*invoke: [subtype=Function]*/ toString();
+  local
+      .
+      /*ast.invoke: [subtype=Function]*/
+      /*kernel.invoke: [subtype=Function]*/
+      /*strong.invoke: [subclass=Closure]*/
+      toString();
   local();
   local
-      . /*invoke: [exact=Class]*/
+      .
+      /*ast.invoke: [exact=Class]*/
+      /*kernel.invoke: [exact=Class]*/
+      /*strong.invoke: [empty]*/
       toString();
   local.call();
   return local
-      . /*invoke: [exact=Class]*/
+      .
+      /*ast.invoke: [exact=Class]*/
+      /*kernel.invoke: [exact=Class]*/
+      /*strong.invoke: [empty]*/
       toString();
 }

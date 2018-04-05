@@ -680,7 +680,7 @@ static inline void StoreUnaligned(T* ptr, T value) {
 // On Windows the reentrent version of strtok is called
 // strtok_s. Unify on the posix name strtok_r.
 #if defined(HOST_OS_WINDOWS)
-#define snprintf _snprintf
+#define snprintf _sprintf_p
 #define strtok_r strtok_s
 #endif
 

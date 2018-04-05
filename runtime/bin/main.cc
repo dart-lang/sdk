@@ -488,6 +488,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
                                                 Dart_IsolateFlags* flags,
                                                 char** error,
                                                 int* exit_code) {
+  int64_t start = Dart_TimelineGetMicros();
   ASSERT(script_uri != NULL);
   void* kernel_program = NULL;
   AppSnapshot* app_snapshot = NULL;
@@ -579,15 +580,21 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
 #if !defined(DART_PRECOMPILED_RUNTIME)
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  Dart_Isolate created_isolate = NULL;
   if (isolate == NULL) {
     delete isolate_data;
-    return NULL;
+  } else {
+    bool set_native_resolvers = (kernel_program || isolate_snapshot_data);
+    created_isolate = IsolateSetupHelper(
+        isolate, is_main_isolate, script_uri, package_root, packages_config,
+        set_native_resolvers, isolate_run_app_snapshot, error, exit_code);
   }
+  int64_t end = Dart_TimelineGetMicros();
+  Dart_TimelineEvent("CreateIsolateAndSetupHelper", start, end,
+                     Dart_Timeline_Event_Duration, 0, NULL, NULL);
 
-  bool set_native_resolvers = (kernel_program || isolate_snapshot_data);
-  return IsolateSetupHelper(isolate, is_main_isolate, script_uri, package_root,
-                            packages_config, set_native_resolvers,
-                            isolate_run_app_snapshot, error, exit_code);
+  return created_isolate;
 }
 
 #undef CHECK_RESULT

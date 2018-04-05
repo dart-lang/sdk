@@ -34,7 +34,7 @@ class App {
           // TODO(sigmund):  Consider eliminating the call to "wrap", for
           // instance, modify event listeners to always wrap, or extend DOM code
           // to intercept the beginning & end of each event loop
-          EventBatch.wrap((Event event) => onLoad()));
+          EventBatch.wrap((event) => onLoad()));
     }
   }
 

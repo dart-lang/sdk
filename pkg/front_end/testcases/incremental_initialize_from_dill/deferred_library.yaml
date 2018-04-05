@@ -5,17 +5,16 @@
 # Test loading from a dill file with a deferred library.
 # This is done by initializing from dill and making no changes/invalidations.
 
-type: simple
-name: testDeferredLibrary
-entry: testDeferredLibrary_main.dart
+type: basic
+entry: a.dart
 strong: false
 invalidate:
 sources:
-  testDeferredLibrary_main.dart: |
-    import 'testDeferredLibrary_b.dart' deferred as b;
+  a.dart: |
+    import 'b.dart' deferred as b;
 
     void main() {
       print(b.foo());
     }
-  testDeferredLibrary_b.dart: |
+  b.dart: |
     String foo() => "hello from foo in b";

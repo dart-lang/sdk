@@ -810,9 +810,17 @@ class KernelLibraryBuilder
     }
 
     for (KernelLibraryBuilder part in parts) {
-      library.addPart(new LibraryPart(<Expression>[], part.fileUri));
       part.addDependencies(library, seen);
     }
+  }
+
+  @override
+  void addPart(List<MetadataBuilder> metadata, String uri, int charOffset) {
+    super.addPart(metadata, uri, charOffset);
+    // TODO(ahe): [metadata] should be stored, evaluated, and added to [part].
+    LibraryPart part = new LibraryPart(<Expression>[], uri)
+      ..fileOffset = charOffset;
+    library.addPart(part);
   }
 
   @override

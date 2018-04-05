@@ -500,47 +500,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_nonConstructorFactory_field() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Internal problem: Compiler cannot run without a compiler context.
-    //   Tip: Are calls to the compiler wrapped in CompilerContext.runInContext?
-    //   package:front_end/src/fasta/compiler_context.dart 81:7             CompilerContext.current
-    //   package:front_end/src/fasta/problems.dart 29:25                    internalProblem
-    //   package:front_end/src/fasta/problems.dart 41:10                    unhandled
-    //   package:analyzer/src/fasta/ast_builder.dart 1498:7                 AstBuilder.endFactoryMethod
-    //   test/generated/parser_fasta_listener.dart 731:14                   ForwardingTestListener.endFactoryMethod
-    //   package:front_end/src/fasta/parser/parser.dart 2465:14             Parser.parseFactoryMethod
-    //   package:front_end/src/fasta/parser/parser.dart 2240:15             Parser.parseMember
-    //   test/generated/parser_fasta_test.dart 3702:39                      ParserProxy._run
-    super.test_nonConstructorFactory_field();
-  }
-
-  @override
-  @failingTest
-  void test_nonConstructorFactory_method() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.NON_CONSTRUCTOR_FACTORY, found 0
-    super.test_nonConstructorFactory_method();
-  }
-
-  @override
-  @failingTest
-  void test_setterInFunction_block() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.SETTER_IN_FUNCTION, found 0
-    super.test_setterInFunction_block();
-  }
-
-  @override
-  @failingTest
-  void test_setterInFunction_expression() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.SETTER_IN_FUNCTION, found 0
-    super.test_setterInFunction_expression();
-  }
-
-  @override
-  @failingTest
   void test_unexpectedToken_endOfFieldDeclarationStatement() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.UNEXPECTED_TOKEN, found 0

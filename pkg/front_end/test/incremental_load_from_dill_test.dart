@@ -93,10 +93,9 @@ class RunCompilations extends Step<TestData, TestData, Context> {
   Future<Result<TestData>> run(TestData data, Context context) async {
     YamlMap map = data.map;
     switch (map["type"]) {
-      case "simple":
-        await simpleTest(
+      case "basic":
+        await basicTest(
           map["sources"],
-          map["name"],
           map["entry"],
           map["strong"],
           map["invalidate"],
@@ -116,13 +115,8 @@ class RunCompilations extends Step<TestData, TestData, Context> {
   }
 }
 
-void simpleTest(
-    Map<String, String> sourceFiles,
-    String testName,
-    String entryPoint,
-    bool strong,
-    List<String> invalidate,
-    Directory outDir) async {
+void basicTest(Map<String, String> sourceFiles, String entryPoint, bool strong,
+    List<String> invalidate, Directory outDir) async {
   Uri entryPointUri;
   Set<String> invalidateFilenames = invalidate?.toSet() ?? new Set<String>();
   List<Uri> invalidateUris = <Uri>[];
@@ -139,9 +133,8 @@ void simpleTest(
     new File.fromUri(uri).writeAsStringSync(source);
   }
 
-  Uri output = outDir.uri.resolve("${testName}_full.dill");
-  Uri initializedOutput =
-      outDir.uri.resolve("${testName}_full_from_initialized.dill");
+  Uri output = outDir.uri.resolve("full.dill");
+  Uri initializedOutput = outDir.uri.resolve("full_from_initialized.dill");
 
   Stopwatch stopwatch = new Stopwatch()..start();
   CompilerOptions options = getOptions(strong);

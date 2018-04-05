@@ -21,7 +21,12 @@ class ClosureTracerVisitor extends TracerVisitor {
 
   ClosureTracerVisitor(this.tracedElements, ApplyableTypeInformation tracedType,
       InferrerEngine inferrer)
-      : super(tracedType, inferrer);
+      : super(tracedType, inferrer) {
+    assert(
+        tracedElements.every((f) => !f.isAbstract),
+        "Tracing abstract methods: "
+        "${tracedElements.where((f) => f.isAbstract)}");
+  }
 
   ApplyableTypeInformation get tracedType => super.tracedType;
 

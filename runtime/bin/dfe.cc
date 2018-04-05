@@ -253,13 +253,17 @@ void* DFE::CompileAndReadScript(const char* script_uri,
 }
 
 void* DFE::ReadScript(const char* script_uri) const {
+  int64_t start = Dart_TimelineGetMicros();
   const uint8_t* buffer = NULL;
   intptr_t buffer_length = -1;
   bool result = TryReadKernelFile(script_uri, &buffer, &buffer_length);
-  if (result) {
-    return Dart_ReadKernelBinary(buffer, buffer_length, ReleaseFetchedBytes);
-  }
-  return NULL;
+  void* read_binary =
+      result ? Dart_ReadKernelBinary(buffer, buffer_length, ReleaseFetchedBytes)
+             : NULL;
+  int64_t end = Dart_TimelineGetMicros();
+  Dart_TimelineEvent("DFE::ReadScript", start, end,
+                     Dart_Timeline_Event_Duration, 0, NULL, NULL);
+  return read_binary;
 }
 
 bool DFE::TryReadKernelFile(const char* script_uri,

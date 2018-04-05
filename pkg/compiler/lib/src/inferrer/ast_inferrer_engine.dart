@@ -58,7 +58,7 @@ class AstInferrerEngine extends InferrerEngineImpl<ast.Node> {
 
   FunctionEntity lookupCallMethod(covariant ClassElement cls) {
     MethodElement callMethod = cls.lookupMember(Identifiers.call);
-    if (callMethod == null) {
+    if (callMethod == null || callMethod.isAbstract) {
       callMethod = cls.lookupMember(Identifiers.noSuchMethod_);
     }
     return callMethod;

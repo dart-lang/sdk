@@ -4,14 +4,13 @@
 
 # Invalidate the entrypoint which just exports another file (which has main).
 
-type: simple
-name: testInvalidateExportOfMain
-entry: testInvalidateExportOfMain_a.dart
+type: basic
+entry: a.dart
 strong: true
 invalidate:
-  - testInvalidateExportOfMain_a.dart
+  - a.dart
 sources:
-  testInvalidateExportOfMain_a.dart: |
-    export 'testInvalidateExportOfMain_b.dart';
-  testInvalidateExportOfMain_b.dart: |
+  a.dart: |
+    export 'b.dart';
+  b.dart: |
     main() { print("hello"); }

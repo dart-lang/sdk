@@ -184,6 +184,10 @@ class NoSuchMethodError {
       : _receiver = receiver,
         _invocation = invocation as _InvocationMirror;
 
+  static void _throwNewInvocation(Object receiver, Invocation invocation) {
+    throw new NoSuchMethodError.withInvocation(receiver, invocation);
+  }
+
   // The compiler emits a call to _throwNew when it cannot resolve a static
   // method at compile time. The receiver is actually the literal class of the
   // unresolved method.

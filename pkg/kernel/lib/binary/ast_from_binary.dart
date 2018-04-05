@@ -715,9 +715,9 @@ class BinaryBuilder {
   }
 
   LibraryPart readLibraryPart(Library library) {
-    var fileUri = readUriReference();
-    var annotations = readExpressionList();
-    return new LibraryPart(annotations, fileUri)..parent = library;
+    List<Expression> annotations = readExpressionList();
+    String partUri = readStringReference();
+    return new LibraryPart(annotations, partUri)..parent = library;
   }
 
   Typedef readTypedef() {

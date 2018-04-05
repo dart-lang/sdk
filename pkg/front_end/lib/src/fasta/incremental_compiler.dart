@@ -336,7 +336,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       } else if (library is DillLibraryBuilder) {
         for (LibraryPart part in library.library.parts) {
-          addBuilderAndInvalidateUris(part.fileUri, library, false);
+          Uri partUri = library.uri.resolve(part.partUri);
+          addBuilderAndInvalidateUris(partUri, library, false);
         }
       }
     }

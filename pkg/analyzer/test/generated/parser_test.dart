@@ -4878,19 +4878,27 @@ class Wrong<T> {
   }
 
   void test_nonConstructorFactory_field() {
-    createParser('factory int x;');
+    createParser('factory int x;', expectedEndOffset: 12);
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, 0, 7)]);
+    listener.assertErrors(usingFastaParser
+        ? [
+            expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 12, 1),
+            expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 12, 1)
+          ]
+        : [expectedError(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, 0, 7)]);
   }
 
   void test_nonConstructorFactory_method() {
-    createParser('factory int m() {}');
+    createParser('factory int m() {}', expectedEndOffset: 12);
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, 0, 7)]);
+    listener.assertErrors(usingFastaParser
+        ? [
+            expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 12, 1),
+            expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 12, 1)
+          ]
+        : [expectedError(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, 0, 7)]);
   }
 
   void test_nonIdentifierLibraryName_library() {
@@ -5054,14 +5062,16 @@ class Wrong<T> {
 
   void test_setterInFunction_block() {
     parseStatement("set x(v) {_x = v;}");
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.SETTER_IN_FUNCTION, 0, 3)]);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 0, 3)]
+        : [expectedError(ParserErrorCode.SETTER_IN_FUNCTION, 0, 3)]);
   }
 
   void test_setterInFunction_expression() {
     parseStatement("set x(v) => _x = v;");
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.SETTER_IN_FUNCTION, 0, 3)]);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 0, 3)]
+        : [expectedError(ParserErrorCode.SETTER_IN_FUNCTION, 0, 3)]);
   }
 
   void test_staticAfterConst() {

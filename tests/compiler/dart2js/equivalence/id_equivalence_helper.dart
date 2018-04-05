@@ -95,6 +95,9 @@ const String astName = 'dart2js old frontend';
 /// Display name used for compilation using the new common frontend.
 const String kernelName = 'kernel';
 
+/// Display name used for strong mode compilation using the new common frontend.
+const String strongName = 'strong mode';
+
 /// Compute actual data for all members defined in the program with the
 /// [entryPoint] and [memorySourceFiles].
 ///
@@ -439,8 +442,10 @@ typedef void Callback();
 /// file and any supporting libraries.
 Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     ComputeMemberDataFunction computeFromKernel,
-    {List<String> skipForAst: const <String>[],
+    {bool testStrongMode: false,
+    List<String> skipForAst: const <String>[],
     List<String> skipForKernel: const <String>[],
+    List<String> skipForStrong: const <String>[],
     bool filterActualData(IdValue idValue, ActualData actualData),
     List<String> options: const <String>[],
     List<String> args: const <String>[],
@@ -476,7 +481,9 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
       testOptions.add(Flags.enableAsserts);
     } else if (name.endsWith('_strong.dart')) {
       strongModeOnlyTest = true;
-      testOptions.add(Flags.strongMode);
+      if (!testStrongMode) {
+        testOptions.add(Flags.strongMode);
+      }
     } else if (name.endsWith('_checked.dart')) {
       testOptions.add(Flags.enableCheckedMode);
     }
@@ -496,7 +503,8 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     };
     Map<String, MemberAnnotations<IdValue>> expectedMaps = {
       astMarker: new MemberAnnotations<IdValue>(),
-      kernelMarker: new MemberAnnotations<IdValue>()
+      kernelMarker: new MemberAnnotations<IdValue>(),
+      strongMarker: new MemberAnnotations<IdValue>(),
     };
     computeExpectedMap(entryPoint, code[entryPoint], expectedMaps);
     Map<String, String> memorySourceFiles = {
@@ -542,7 +550,8 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
         hasFailures = true;
       }
     }
-    if (skipForKernel.contains(name)) {
+    if (skipForKernel.contains(name) ||
+        (testStrongMode && strongModeOnlyTest)) {
       print('--skipped for kernel--------------------------------------------');
     } else {
       print('--from kernel---------------------------------------------------');
@@ -559,6 +568,27 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
           filterActualData: filterActualData,
           fatalErrors: !testAfterFailures)) {
         hasFailures = true;
+      }
+    }
+    if (testStrongMode) {
+      if (skipForStrong.contains(name)) {
+        print('--skipped for kernel (strong mode)----------------------------');
+      } else {
+        print('--from kernel (strong mode)-----------------------------------');
+        MemberAnnotations<IdValue> annotations = expectedMaps[strongMarker];
+        CompiledData compiledData2 = await computeData(
+            entryPoint, memorySourceFiles, computeFromKernel,
+            computeClassData: computeClassDataFromKernel,
+            options: [Flags.strongMode]..addAll(testOptions),
+            verbose: verbose,
+            forUserLibrariesOnly: forUserLibrariesOnly,
+            globalIds: annotations.globalData.keys);
+        if (await checkCode(
+            kernelName, entity.uri, code, annotations, compiledData2,
+            filterActualData: filterActualData,
+            fatalErrors: !testAfterFailures)) {
+          hasFailures = true;
+        }
       }
     }
   }
@@ -722,20 +752,24 @@ Spannable computeSpannable(
 
 const String astMarker = 'ast.';
 const String kernelMarker = 'kernel.';
+const String strongMarker = 'strong.';
 
-/// Compute two [MemberAnnotations] objects from [code] specifying the expected
-/// annotations we anticipate encountering; one corresponding to the old
-/// implementation, one for the new implementation.
+/// Compute three [MemberAnnotations] objects from [code] specifying the
+/// expected annotations we anticipate encountering; one corresponding to the
+/// old implementation, one for the new implementation, and one for the new
+/// implementation using strong mode.
 ///
 /// If an annotation starts with 'ast.' it is only expected for the old
-/// implementation and if it starts with 'kernel.' it is only expected for the
-/// new implementation. Otherwise it is expected for both implementations.
+/// implementation, if it starts with 'kernel.' it is only expected for the
+/// new implementation, and if it starts with 'strong.' it is only expected for
+/// strong mode (using the common frontend). Otherwise it is expected for all
+/// implementations.
 ///
 /// Most nodes have the same and expectations should match this by using
 /// annotations without prefixes.
 void computeExpectedMap(Uri sourceUri, AnnotatedCode code,
     Map<String, MemberAnnotations<IdValue>> maps) {
-  List<String> mapKeys = [astMarker, kernelMarker];
+  List<String> mapKeys = [astMarker, kernelMarker, strongMarker];
   Map<String, AnnotatedCode> split = splitByPrefixes(code, mapKeys);
 
   split.forEach((String marker, AnnotatedCode code) {

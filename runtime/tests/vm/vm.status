@@ -60,6 +60,7 @@ dart/wrap_around_in_range_analysis_test: SkipByDesign # The test requires int64.
 [ $compiler == dartk ]
 cc/DartAPI_New: Fail
 cc/DartAPI_TypeGetParameterizedTypes: Crash
+cc/IsolateReload_TearOff_Parameter_Count_Mismatch: Pass, Fail # Issue 32781
 dart/redirection_type_shuffling_test/00: RuntimeError
 dart/redirection_type_shuffling_test/none: RuntimeError
 
@@ -192,16 +193,12 @@ cc/SourceReport_Coverage_UnusedClass_ForceCompileError: Crash
 cc/SourceReport_Coverage_UnusedClass_NoForceCompile: Fail
 cc/SourceReport_MultipleReports: Fail
 cc/SourceReport_PossibleBreakpoints_Simple: Fail
-cc/StackTraceFormat: Fail
 cc/UseDartApi: Fail
 dart/data_uri_import_test/utf16: MissingRuntimeError
 dart/spawn_shutdown_test: SkipSlow
 
 [ $compiler == dartk && $runtime == vm && $system == macos ]
 cc/IsolateReload_LibraryLookup: Fail, Crash
-cc/IsolateReload_TearOff_AddArguments: Fail
-cc/IsolateReload_TearOff_Instance_Equality: Fail
-cc/IsolateReload_TearOff_List_Set: Fail
 
 [ $compiler == dartk && $runtime == vm && $strong ]
 cc/IsolateReload_LibraryHide: Crash
@@ -209,15 +206,9 @@ cc/IsolateReload_LibraryShow: Crash
 
 [ $compiler == dartk && $system == linux ]
 cc/IsolateReload_LibraryLookup: Fail, Crash
-cc/IsolateReload_TearOff_AddArguments: Fail
-cc/IsolateReload_TearOff_Instance_Equality: Fail
-cc/IsolateReload_TearOff_List_Set: Fail
 
 [ $compiler == dartk && $system == windows ]
 cc/IsolateReload_LibraryLookup: Fail, Crash
-cc/IsolateReload_TearOff_AddArguments: Fail
-cc/IsolateReload_TearOff_Instance_Equality: Fail
-cc/IsolateReload_TearOff_List_Set: Fail
 cc/Profiler_ContextAllocation: Fail, Pass # Flaky on Windows --- sometimes give "profiler_test.cc: 1107: error: expected: !walker.Down()"
 cc/Profiler_FunctionTicks: Fail, Pass
 cc/Profiler_ToggleRecordAllocation: Fail, Pass

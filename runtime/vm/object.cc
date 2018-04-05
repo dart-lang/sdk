@@ -3981,6 +3981,10 @@ bool Class::TypeTestNonRecursive(const Class& cls,
           continue;  // Another interface may work better.
         }
       }
+      // In Dart 2, implementing Function has no meaning.
+      if (isolate->strong() && interface_class.IsDartFunctionClass()) {
+        continue;
+      }
       if (interface_class.TypeTest(test_kind, interface_args, other,
                                    other_type_arguments, bound_error,
                                    bound_trail, space)) {

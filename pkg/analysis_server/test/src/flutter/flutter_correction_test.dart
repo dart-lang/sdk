@@ -2,12 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/flutter/flutter_correction.dart';
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -23,7 +19,8 @@ main() {
 @reflectiveTest
 class FlutterCorrectionTest extends AbstractSingleUnitTest {
   int offset;
-  int length;
+  int length = 0;
+  FlutterCorrections corrections;
 
   int findOffset(String search) {
     int offset = testCode.indexOf(search);
@@ -37,127 +34,76 @@ class FlutterCorrectionTest extends AbstractSingleUnitTest {
     packageMap['flutter'] = [configureFlutterPackage(resourceProvider)];
   }
 
-  test_wrapWidget_OK_multiLine() async {
+  test_addForDesignTimeConstructor_BAD_notClass() async {
+    await resolveTestUnit('var v = 42;');
+    offset = findOffset('v =');
+    _createCorrections();
+
+    SourceChange change = await corrections.addForDesignTimeConstructor();
+    expect(change, isNull);
+  }
+
+  test_addForDesignTimeConstructor_OK_hasConstructor() async {
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
+
 class MyWidget extends StatelessWidget {
+  MyWidget(String text);
+
   Widget build(BuildContext context) {
-    return /*start*/new Row(
-      children: [
-        new Text('aaa'),
-        new Text('bbb'),
-      ],
-    )/*end*/;
+    return new Container();
   }
 }
 ''');
-    _setStartEndSelection();
+    offset = findOffset('class MyWidget');
+    _createCorrections();
 
-    InterfaceType parentType = await _getContainerType();
-    SourceChange change = await _wrapWidget(parentType);
-
+    SourceChange change = await corrections.addForDesignTimeConstructor();
     _assertChange(change, r'''
 import 'package:flutter/widgets.dart';
+
 class MyWidget extends StatelessWidget {
+  MyWidget(String text);
+
+  MyWidget.forDesignTime() {
+    // TODO: add arguments
+    return new MyWidget();
+  }
+
   Widget build(BuildContext context) {
-    return new Container(
-      child: /*start*/new Row(
-        children: [
-          new Text('aaa'),
-          new Text('bbb'),
-        ],
-      )/*end*/,
-    );
+    return new Container();
   }
 }
 ''');
   }
 
-  test_wrapWidget_OK_multiLine_subChild() async {
+  test_addForDesignTimeConstructor_OK_noConstructor() async {
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
+
 class MyWidget extends StatelessWidget {
   Widget build(BuildContext context) {
-    return new Container(
-      child: /*start*/new Row(
-        children: [
-          new Text('aaa'),
-          new Text('bbb'),
-        ],
-      )/*end*/,
-    );
+    return new Container();
   }
 }
 ''');
-    _setStartEndSelection();
+    offset = findOffset('class MyWidget');
+    _createCorrections();
 
-    InterfaceType parentType = await _getContainerType();
-    SourceChange change = await _wrapWidget(parentType);
-
+    SourceChange change = await corrections.addForDesignTimeConstructor();
     _assertChange(change, r'''
 import 'package:flutter/widgets.dart';
+
 class MyWidget extends StatelessWidget {
+  MyWidget();
+
+  MyWidget.forDesignTime() {
+    // TODO: add arguments
+    return new MyWidget();
+  }
+
   Widget build(BuildContext context) {
-    return new Container(
-      child: new Container(
-        child: /*start*/new Row(
-          children: [
-            new Text('aaa'),
-            new Text('bbb'),
-          ],
-        )/*end*/,
-      ),
-    );
-  }
-}
-''');
-  }
-
-  test_wrapWidget_OK_oneLine_newInstance() async {
-    await resolveTestUnit('''
-import 'package:flutter/widgets.dart';
-class MyWidget extends StatelessWidget {
-  Widget build(BuildContext context) {
-    return /*start*/new Text('abc')/*end*/;
-  }
-}
-''');
-    _setStartEndSelection();
-
-    InterfaceType parentType = await _getContainerType();
-    SourceChange change = await _wrapWidget(parentType);
-
-    _assertChange(change, r'''
-import 'package:flutter/widgets.dart';
-class MyWidget extends StatelessWidget {
-  Widget build(BuildContext context) {
-    return new Container(child: /*start*/new Text('abc')/*end*/);
-  }
-}
-''');
-  }
-
-  test_wrapWidget_OK_oneLine_variable() async {
-    await resolveTestUnit('''
-import 'package:flutter/widgets.dart';
-class MyWidget extends StatelessWidget {
-  Widget build(BuildContext context) {
-    var text = new Text('abc');
-    return /*start*/text/*end*/;
-  }
-}
-''');
-    _setStartEndSelection();
-
-    InterfaceType parentType = await _getContainerType();
-    SourceChange change = await _wrapWidget(parentType);
-
-    _assertChange(change, r'''
-import 'package:flutter/widgets.dart';
-class MyWidget extends StatelessWidget {
-  Widget build(BuildContext context) {
-    var text = new Text('abc');
-    return new Container(child: /*start*/text/*end*/);
+    return new Container();
   }
 }
 ''');
@@ -178,27 +124,13 @@ class MyWidget extends StatelessWidget {
     expect(resultCode, expectedCode);
   }
 
-  Future<InterfaceType> _getContainerType() async {
-    LibraryElement widgetsLibrary = await testAnalysisResult.session
-        .getLibraryByUri('package:flutter/widgets.dart');
-    ClassElement containerElement =
-        widgetsLibrary.exportNamespace.get('Container');
-    return containerElement.type;
-  }
-
-  void _setStartEndSelection() {
-    offset = findOffset('/*start*/');
-    length = findOffset('/*end*/') + '/*end*/'.length - offset;
-  }
-
-  Future<SourceChange> _wrapWidget(InterfaceType parentType) async {
-    var corrections = new FlutterCorrections(
+  void _createCorrections() {
+    corrections = new FlutterCorrections(
         file: testFile,
         fileContent: testCode,
         selectionOffset: offset,
         selectionLength: length,
         session: testAnalysisResult.session,
         unit: testUnit);
-    return await corrections.wrapWidget(parentType);
   }
 }

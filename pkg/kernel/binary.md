@@ -238,8 +238,8 @@ type LibraryDependency {
 }
 
 type LibraryPart {
-  UriReference fileUri;
   List<Expression> annotations;
+  StringReference partUri;
 }
 
 type Typedef {

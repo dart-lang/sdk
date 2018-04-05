@@ -4206,10 +4206,27 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
 
 FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
     const Function& function) {
+  const Function& parent = Function::ZoneHandle(Z, function.parent_function());
+  const String& func_name = String::ZoneHandle(Z, parent.name());
+  const Class& owner = Class::ZoneHandle(Z, parent.Owner());
+  Function& target = Function::ZoneHandle(Z, owner.LookupFunction(func_name));
+
+  if (target.raw() != parent.raw()) {
+    DEBUG_ASSERT(Isolate::Current()->HasAttemptedReload());
+    if (target.IsNull() || (target.is_static() != parent.is_static()) ||
+        (target.kind() != parent.kind())) {
+      target = Function::null();
+    }
+  }
+
+  if (target.IsNull() ||
+      (parent.num_fixed_parameters() != target.num_fixed_parameters())) {
+    return BuildGraphOfNoSuchMethodForwarder(function, true,
+                                             parent.is_static());
+  }
+
   // The prologue builder needs the default parameter values.
   SetupDefaultParameterValues();
-
-  const Function& target = Function::ZoneHandle(Z, function.parent_function());
 
   TargetEntryInstr* normal_entry = flow_graph_builder_->BuildTargetEntry();
   PrologueInfo prologue_info(-1, -1);
@@ -4294,10 +4311,10 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
       AlternativeReadingScope _(reader_);
       body += BuildArgumentTypeChecks();
     } else {
-      // Check if target function was annotated with no-dynamic-invocations.
+      // Check if parent function was annotated with no-dynamic-invocations.
       const ProcedureAttributesMetadata attrs =
           procedure_attributes_metadata_helper_.GetProcedureAttributes(
-              target.kernel_offset());
+              parent.kernel_offset());
       if (!attrs.has_dynamic_invocations) {
         // If it was then we might need to build some checks in the
         // tear-off.
@@ -4347,9 +4364,11 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
     }
   }
 
-  // Forward them to the target.
+  // Forward them to the parent.
   intptr_t argument_count = positional_argument_count + named_argument_count;
-  if (!target.is_static()) ++argument_count;
+  if (!parent.is_static()) {
+    ++argument_count;
+  }
   body += StaticCall(TokenPosition::kNoSource, target, argument_count,
                      argument_names, ICData::kNoRebind,
                      /* result_type = */ NULL, type_args_len);
@@ -4362,9 +4381,13 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
                 flow_graph_builder_->last_used_block_id_, prologue_info);
 }
 
+// If throw_no_such_method_error is set to true (defaults to false), an
+// instance of NoSuchMethodError is thrown. Otherwise, the instance
+// noSuchMethod is called.
 FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     const Function& function,
-    bool is_implicit_closure_function) {
+    bool is_implicit_closure_function,
+    bool throw_no_such_method_error) {
   // The prologue builder needs the default parameter values.
   SetupDefaultParameterValues();
 
@@ -4515,8 +4538,26 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
 
   // Load receiver.
   if (is_implicit_closure_function) {
-    body += LoadLocal(parsed_function()->current_context_var());
-    body += B->LoadField(Context::variable_offset(0));
+    if (throw_no_such_method_error) {
+      const Function& parent =
+          Function::ZoneHandle(Z, function.parent_function());
+      const Class& owner = Class::ZoneHandle(Z, parent.Owner());
+      AbstractType& type = AbstractType::ZoneHandle(Z);
+      type ^= Type::New(owner, TypeArguments::Handle(Z), owner.token_pos(),
+                        Heap::kOld);
+      // If the current class is the result of a mixin application, we must
+      // use the class scope of the class from which the function originates.
+      if (owner.IsMixinApplication()) {
+        ClassFinalizer::FinalizeType(
+            Class::Handle(Z, parsed_function()->function().origin()), type);
+      } else {
+        type ^= ClassFinalizer::FinalizeType(owner, type);
+      }
+      body += Constant(type);
+    } else {
+      body += LoadLocal(parsed_function()->current_context_var());
+      body += B->LoadField(Context::variable_offset(0));
+    }
   } else {
     LocalScope* scope = parsed_function()->node_sequence()->scope();
     body += LoadLocal(scope->VariableAt(0));
@@ -4544,6 +4585,28 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   body += Constant(Bool::False());
   body += PushArgument();
 
+  if (throw_no_such_method_error) {
+    const Function& parent =
+        Function::ZoneHandle(Z, function.parent_function());
+    const Class& owner = Class::ZoneHandle(Z, parent.Owner());
+    InvocationMirror::Level im_level = owner.IsTopLevel()
+                                           ? InvocationMirror::kTopLevel
+                                           : InvocationMirror::kStatic;
+    InvocationMirror::Kind im_kind;
+    if (function.IsImplicitGetterFunction() || function.IsGetterFunction()) {
+      im_kind = InvocationMirror::kGetter;
+    } else if (function.IsImplicitSetterFunction() ||
+               function.IsSetterFunction()) {
+      im_kind = InvocationMirror::kSetter;
+    } else {
+      im_kind = InvocationMirror::kMethod;
+    }
+    body += IntConstant(InvocationMirror::EncodeType(im_level, im_kind));
+  } else {
+    body += NullConstant();
+  }
+  body += PushArgument();
+
   const Class& mirror_class =
       Class::Handle(Z, Library::LookupCoreClass(Symbols::InvocationMirror()));
   ASSERT(!mirror_class.IsNull());
@@ -4552,11 +4615,23 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
              Library::PrivateCoreLibName(Symbols::AllocateInvocationMirror())));
   ASSERT(!allocation_function.IsNull());
   body += StaticCall(TokenPosition::kMinSource, allocation_function,
-                     /* argument_count = */ 4, ICData::kStatic);
+                     /* argument_count = */ 5, ICData::kStatic);
   body += PushArgument();  // For the call to noSuchMethod.
 
-  body += InstanceCall(TokenPosition::kNoSource, Symbols::NoSuchMethod(),
-                       Token::kILLEGAL, 2, 1);
+  if (throw_no_such_method_error) {
+    const Class& klass = Class::ZoneHandle(
+        Z, Library::LookupCoreClass(Symbols::NoSuchMethodError()));
+    ASSERT(!klass.IsNull());
+    const Function& throw_function = Function::ZoneHandle(
+        Z,
+        klass.LookupStaticFunctionAllowPrivate(Symbols::ThrowNewInvocation()));
+    ASSERT(!throw_function.IsNull());
+    body += StaticCall(TokenPosition::kNoSource, throw_function, 2,
+                       ICData::kStatic);
+  } else {
+    body += InstanceCall(TokenPosition::kNoSource, Symbols::NoSuchMethod(),
+                         Token::kILLEGAL, 2, 1);
+  }
   body += StoreLocal(TokenPosition::kNoSource, result);
   body += Drop();
 
@@ -5987,8 +6062,8 @@ void StreamingFlowGraphBuilder::SkipLibraryDependency() {
 }
 
 void StreamingFlowGraphBuilder::SkipLibraryPart() {
-  ReadUInt();               // Read source_uri_index.
   SkipListOfExpressions();  // Read annotations.
+  SkipStringReference();    // Read part URI index.
 }
 
 void StreamingFlowGraphBuilder::SkipLibraryTypedef() {

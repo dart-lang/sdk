@@ -3040,6 +3040,11 @@ class CodeGenerator extends Object
     var element = accessor;
     if (accessor is PropertyAccessorElement) element = accessor.variable;
 
+    // If this is one of our compiler's temporary variables, return its JS form.
+    if (element is TemporaryVariableElement) {
+      return element.jsVariable;
+    }
+
     // Directly emit constants.
     if (element is VariableElement && element.isStatic && element.isConst) {
       var val = element.computeConstantValue() as DartObjectImpl;
@@ -3117,11 +3122,6 @@ class CodeGenerator extends Object
 
     if (element is ParameterElement) {
       return _emitParameter(element);
-    }
-
-    // If this is one of our compiler's temporary variables, return its JS form.
-    if (element is TemporaryVariableElement) {
-      return element.jsVariable;
     }
 
     return new JS.Identifier(name);
@@ -4920,7 +4920,8 @@ class CodeGenerator extends Object
 
     variable ??= new JS.TemporaryId(name);
 
-    var idElement = new TemporaryVariableElement.forNode(id, variable);
+    var idElement = new TemporaryVariableElement.forNode(id, variable)
+      ..enclosingElement = _currentElement;
     id.staticElement = idElement;
     id.staticType = type;
     setIsDynamicInvoke(id, dynamicInvoke ?? type.isDynamic);

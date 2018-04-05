@@ -25,6 +25,19 @@ const List<String> skipForKernel = const <String>[
   'mixin_constructor_default_parameter_values.dart',
 ];
 
+const List<String> skipForStrong = const <String>[
+  // TODO(johnniwinther): Remove this when issue 31767 is fixed.
+  'mixin_constructor_default_parameter_values.dart',
+  // These contain compile-time errors:
+  'erroneous_super_get.dart',
+  'erroneous_super_invoke.dart',
+  'erroneous_super_set.dart',
+  'switch3.dart',
+  'switch4.dart',
+  // TODO(johnniwinther): Make a strong mode clean version of this?
+  'call_in_loop.dart',
+];
+
 main(List<String> args) {
   runTests(args);
 }
@@ -35,10 +48,12 @@ runTests(List<String> args, [int shardIndex]) {
     await checkTests(
         dataDir, computeMemberAstTypeMasks, computeMemberIrTypeMasks,
         libDirectory: new Directory.fromUri(Platform.script.resolve('libs')),
+        testStrongMode: true,
         forUserLibrariesOnly: true,
         args: args,
         options: [stopAfterTypeInference],
         skipForKernel: skipForKernel,
+        skipForStrong: skipForStrong,
         shardIndex: shardIndex ?? 0,
         shards: shardIndex != null ? 2 : 1);
   });

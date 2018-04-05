@@ -174,7 +174,7 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
   FunctionEntity lookupCallMethod(ClassEntity cls) {
     FunctionEntity function =
         _elementEnvironment.lookupClassMember(cls, Identifiers.call);
-    if (function == null) {
+    if (function == null || function.isAbstract) {
       function =
           _elementEnvironment.lookupClassMember(cls, Identifiers.noSuchMethod_);
     }

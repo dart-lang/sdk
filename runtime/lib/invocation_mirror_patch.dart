@@ -57,15 +57,17 @@ class _InvocationMirror implements Invocation {
   }
 
   void _setMemberNameAndType() {
+    _type ??= 0;
     if (_functionName.startsWith("get:")) {
-      _type = _GETTER;
+      _type |= _GETTER;
       _memberName = new internal.Symbol.unvalidated(_functionName.substring(4));
     } else if (_functionName.startsWith("set:")) {
-      _type = _SETTER;
+      _type |= _SETTER;
       _memberName =
           new internal.Symbol.unvalidated(_functionName.substring(4) + "=");
     } else {
-      _type = _isSuperInvocation ? (_SUPER << _LEVEL_SHIFT) | _METHOD : _METHOD;
+      _type |=
+          _isSuperInvocation ? (_SUPER << _LEVEL_SHIFT) | _METHOD : _METHOD;
       _memberName = new internal.Symbol.unvalidated(_functionName);
     }
   }
@@ -188,14 +190,15 @@ class _InvocationMirror implements Invocation {
   }
 
   _InvocationMirror(this._functionName, this._argumentsDescriptor,
-      this._arguments, this._isSuperInvocation);
+      this._arguments, this._isSuperInvocation, this._type);
 
   _InvocationMirror._withoutType(this._functionName, this._typeArguments,
       this._positionalArguments, this._namedArguments, this._isSuperInvocation);
 
   static _allocateInvocationMirror(String functionName,
-      List argumentsDescriptor, List arguments, bool isSuperInvocation) {
+      List argumentsDescriptor, List arguments, bool isSuperInvocation,
+      [int type = null]) {
     return new _InvocationMirror(
-        functionName, argumentsDescriptor, arguments, isSuperInvocation);
+        functionName, argumentsDescriptor, arguments, isSuperInvocation, type);
   }
 }

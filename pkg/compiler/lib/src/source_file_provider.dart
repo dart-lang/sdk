@@ -497,4 +497,19 @@ class BazelInputProvider extends SourceFileProvider {
     }
     return result;
   }
+
+  @override
+  api.Input autoReadFromFile(Uri resourceUri) {
+    var path = resourceUri.path;
+    if (path.startsWith('/bazel-root')) {
+      path = path.substring('/bazel-root/'.length);
+      for (var dir in dirs) {
+        var file = dir.resolve(path);
+        if (new File.fromUri(file).existsSync()) {
+          return super.autoReadFromFile(file);
+        }
+      }
+    }
+    return null;
+  }
 }

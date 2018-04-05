@@ -280,5 +280,3 @@ rasta/issue_000046: Fail
 rasta/issue_000047: Fail
 rasta/native_is_illegal: Pass # Issue 29763
 rasta/type_with_parse_error: Fail
-
-implicit_const_with_static_fields: Fail

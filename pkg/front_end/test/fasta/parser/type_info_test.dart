@@ -181,16 +181,35 @@ class TokenInfoTest {
     expectInfo(noTypeInfo, 'operator *');
   }
 
+  void test_computeType_builtin() {
+    // Expect complex rather than simpleTypeInfo so that parseType reports
+    // an error for the builtin used as a type.
+    expectComplexInfo('abstract',
+        required: true,
+        expectedErrors: [error(codeBuiltInIdentifierAsType, 0, 8)]);
+    expectComplexInfo('export',
+        required: true,
+        expectedErrors: [error(codeBuiltInIdentifierAsType, 0, 6)]);
+    expectComplexInfo('abstract Function()',
+        required: false,
+        tokenAfter: 'Function',
+        expectedErrors: [error(codeBuiltInIdentifierAsType, 0, 8)]);
+    expectComplexInfo('export Function()',
+        required: false,
+        tokenAfter: 'Function',
+        expectedErrors: [error(codeBuiltInIdentifierAsType, 0, 6)]);
+  }
+
   void test_computeType_gft() {
-    expectComplexInfo('Function()', expectedCalls: [
+    expectComplexInfo('Function() m', tokenAfter: 'm', expectedCalls: [
       'handleNoTypeVariables (',
       'beginFunctionType Function',
       'handleNoType ',
       'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
       'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function ',
+      'endFunctionType Function m',
     ]);
-    expectComplexInfo('Function<T>()', expectedCalls: [
+    expectComplexInfo('Function<T>() m', tokenAfter: 'm', expectedCalls: [
       'beginTypeVariables <',
       'beginTypeVariable T',
       'beginMetadataStar T',
@@ -203,9 +222,9 @@ class TokenInfoTest {
       'handleNoType ',
       'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
       'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function ',
+      'endFunctionType Function m',
     ]);
-    expectComplexInfo('Function(int)', expectedCalls: [
+    expectComplexInfo('Function(int) m', tokenAfter: 'm', expectedCalls: [
       'handleNoTypeVariables (',
       'beginFunctionType Function',
       'handleNoType ',
@@ -222,9 +241,9 @@ class TokenInfoTest {
       'beginTypeVariables null null ) FormalParameterKind.mandatory '
           'MemberKind.GeneralizedFunctionType',
       'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function ',
+      'endFunctionType Function m',
     ]);
-    expectComplexInfo('Function<T>(int)', expectedCalls: [
+    expectComplexInfo('Function<T>(int) m', tokenAfter: 'm', expectedCalls: [
       'beginTypeVariables <',
       'beginTypeVariable T',
       'beginMetadataStar T',
@@ -247,11 +266,22 @@ class TokenInfoTest {
       'handleFormalParameterWithoutValue )',
       'beginTypeVariables null null ) FormalParameterKind.mandatory MemberKind.GeneralizedFunctionType',
       'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function ',
+      'endFunctionType Function m',
     ]);
-    expectComplexInfo('Function(int x)');
-    expectComplexInfo('Function<T>(int x)');
-    expectComplexInfo('Function<T>(int x) Function<T>(int x)');
+
+    expectInfo(noTypeInfo, 'Function(int x)', required: false);
+    expectInfo(noTypeInfo, 'Function<T>(int x)', required: false);
+
+    expectComplexInfo('Function(int x)', required: true);
+    expectComplexInfo('Function<T>(int x)', required: true);
+
+    expectComplexInfo('Function(int x) m', tokenAfter: 'm');
+    expectComplexInfo('Function<T>(int x) m', tokenAfter: 'm');
+    expectComplexInfo('Function<T>(int x) Function<T>(int x)',
+        required: false, tokenAfter: 'Function');
+    expectComplexInfo('Function<T>(int x) Function<T>(int x)', required: true);
+    expectComplexInfo('Function<T>(int x) Function<T>(int x) m',
+        tokenAfter: 'm');
   }
 
   void test_computeType_identifier() {
@@ -282,14 +312,25 @@ class TokenInfoTest {
   }
 
   void test_computeType_identifierComplex() {
-    expectComplexInfo('C Function()');
-    expectComplexInfo('C Function<T>()');
-    expectComplexInfo('C Function(int)');
-    expectComplexInfo('C Function<T>(int)');
-    expectComplexInfo('C Function(int x)');
-    expectComplexInfo('C Function<T>(int x)');
-    expectComplexInfo('C Function<T>(int x) Function<T>(int x)');
+    expectInfo(simpleTypeInfo, 'C Function()', required: false);
+    expectInfo(simpleTypeInfo, 'C Function<T>()', required: false);
+    expectInfo(simpleTypeInfo, 'C Function(int)', required: false);
+    expectInfo(simpleTypeInfo, 'C Function<T>(int)', required: false);
+    expectInfo(simpleTypeInfo, 'C Function(int x)', required: false);
+    expectInfo(simpleTypeInfo, 'C Function<T>(int x)', required: false);
+
+    expectComplexInfo('C Function()', required: true);
+    expectComplexInfo('C Function<T>()', required: true);
+    expectComplexInfo('C Function(int)', required: true);
+    expectComplexInfo('C Function<T>(int)', required: true);
+    expectComplexInfo('C Function(int x)', required: true);
+    expectComplexInfo('C Function<T>(int x)', required: true);
+    expectComplexInfo('C Function<T>(int x) Function<T>(int x)',
+        required: false, tokenAfter: 'Function');
+    expectComplexInfo('C Function<T>(int x) Function<T>(int x)',
+        required: true);
     expectComplexInfo('C Function(', // Scanner inserts synthetic ')'.
+        required: true,
         expectedCalls: [
           'handleNoTypeVariables (',
           'beginFunctionType C',
@@ -387,6 +428,7 @@ class TokenInfoTest {
 
   void test_computeType_identifierTypeArgGFT() {
     expectComplexInfo('C<T> Function(', // Scanner inserts synthetic ')'.
+        required: true,
         expectedCalls: [
           'handleNoTypeVariables (',
           'beginFunctionType C',
@@ -401,7 +443,10 @@ class TokenInfoTest {
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
           'endFunctionType Function ',
         ]);
-    expectComplexInfo('C<T> Function<T>(int x) Function<T>(int x)');
+    expectComplexInfo('C<T> Function<T>(int x) Function<T>(int x)',
+        required: false, tokenAfter: 'Function');
+    expectComplexInfo('C<T> Function<T>(int x) Function<T>(int x)',
+        required: true);
   }
 
   void test_computeType_identifierTypeArgRecovery() {
@@ -479,6 +524,7 @@ class TokenInfoTest {
 
   void test_computeType_prefixedGFT() {
     expectComplexInfo('C.a Function(', // Scanner inserts synthetic ')'.
+        required: true,
         expectedCalls: [
           'handleNoTypeVariables (',
           'beginFunctionType C',
@@ -491,7 +537,10 @@ class TokenInfoTest {
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
           'endFunctionType Function ',
         ]);
-    expectComplexInfo('C.a Function<T>(int x) Function<T>(int x)');
+    expectComplexInfo('C.a Function<T>(int x) Function<T>(int x)',
+        required: false, tokenAfter: 'Function');
+    expectComplexInfo('C.a Function<T>(int x) Function<T>(int x)',
+        required: true);
   }
 
   void test_computeType_prefixedTypeArg() {
@@ -522,6 +571,7 @@ class TokenInfoTest {
 
   void test_computeType_prefixedTypeArgGFT() {
     expectComplexInfo('C.a<T> Function<T>(int x) Function<T>(int x)',
+        required: true,
         expectedCalls: [
           'beginTypeVariables <',
           'beginTypeVariable T',
@@ -596,6 +646,7 @@ class TokenInfoTest {
     expectInfo(voidTypeInfo, 'void operator');
     expectInfo(voidTypeInfo, 'void Function');
     expectComplexInfo('void Function(', // Scanner inserts synthetic ')'.
+        required: true,
         expectedCalls: [
           'handleNoTypeVariables (',
           'beginFunctionType void',
@@ -607,7 +658,8 @@ class TokenInfoTest {
   }
 
   void test_computeType_voidComplex() {
-    expectComplexInfo('void Function()', expectedCalls: [
+    expectInfo(voidTypeInfo, 'void Function()', required: false);
+    expectComplexInfo('void Function()', required: true, expectedCalls: [
       'handleNoTypeVariables (',
       'beginFunctionType void',
       'handleVoidKeyword void',
@@ -615,12 +667,23 @@ class TokenInfoTest {
       'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
       'endFunctionType Function ',
     ]);
-    expectComplexInfo('void Function<T>()');
-    expectComplexInfo('void Function(int)');
-    expectComplexInfo('void Function<T>(int)');
-    expectComplexInfo('void Function(int x)');
-    expectComplexInfo('void Function<T>(int x)');
-    expectComplexInfo('void Function<T>(int x) Function<T>(int x)');
+
+    expectInfo(voidTypeInfo, 'void Function<T>()', required: false);
+    expectInfo(voidTypeInfo, 'void Function(int)', required: false);
+    expectInfo(voidTypeInfo, 'void Function<T>(int)', required: false);
+    expectInfo(voidTypeInfo, 'void Function(int x)', required: false);
+    expectInfo(voidTypeInfo, 'void Function<T>(int x)', required: false);
+
+    expectComplexInfo('void Function<T>()', required: true);
+    expectComplexInfo('void Function(int)', required: true);
+    expectComplexInfo('void Function<T>(int)', required: true);
+    expectComplexInfo('void Function(int x)', required: true);
+    expectComplexInfo('void Function<T>(int x)', required: true);
+
+    expectComplexInfo('void Function<T>(int x) Function<T>(int x)',
+        required: false, tokenAfter: 'Function');
+    expectComplexInfo('void Function<T>(int x) Function<T>(int x)',
+        required: true);
   }
 }
 

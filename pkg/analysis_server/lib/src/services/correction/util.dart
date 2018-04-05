@@ -1296,8 +1296,8 @@ class CorrectionUtils {
       TokenType operator = expression.operator.type;
       Expression le = expression.leftOperand;
       Expression re = expression.rightOperand;
-      _InvertedCondition ls = _invertCondition0(le);
-      _InvertedCondition rs = _invertCondition0(re);
+      _InvertedCondition ls = _InvertedCondition._simple(getNodeText(le));
+      _InvertedCondition rs = _InvertedCondition._simple(getNodeText(re));
       if (operator == TokenType.LT) {
         return _InvertedCondition._binary2(ls, " >= ", rs);
       }
@@ -1317,10 +1317,14 @@ class CorrectionUtils {
         return _InvertedCondition._binary2(ls, " == ", rs);
       }
       if (operator == TokenType.AMPERSAND_AMPERSAND) {
+        ls = _invertCondition0(le);
+        rs = _invertCondition0(re);
         return _InvertedCondition._binary(
             TokenType.BAR_BAR.precedence, ls, " || ", rs);
       }
       if (operator == TokenType.BAR_BAR) {
+        ls = _invertCondition0(le);
+        rs = _invertCondition0(re);
         return _InvertedCondition._binary(
             TokenType.AMPERSAND_AMPERSAND.precedence, ls, " && ", rs);
       }
