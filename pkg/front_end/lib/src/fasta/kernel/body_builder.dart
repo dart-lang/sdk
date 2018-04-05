@@ -76,7 +76,7 @@ import 'redirecting_factory_body.dart'
 
 import '../names.dart';
 
-import 'constness_evaluator.dart' show evaluateConstness, ConstnessEffect;
+import 'constness_evaluator.dart' show evaluateConstness;
 
 import 'fasta_accessors.dart';
 
@@ -496,6 +496,8 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         }
       }
     }
+
+    inferConstness();
   }
 
   @override
@@ -700,37 +702,11 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   // Infers constness of the constructor invocations collected so far in
   // [constructorInvocationsWithImplicitConstness], then clears out the list.
   void inferConstness() {
-    // The algorithm below takes advantage of the fact that for each expression
-    // that needs constness inference comes after all its subexpressions that
-    // also need constness inference in
-    // [constructorInvocationsWithImplicitConstness].
     for (Expression invocation in constructorInvocationsWithImplicitConstness) {
       if (invocation is ConstructorInvocation) {
-        ConstnessEffect constness =
-            evaluateConstness(invocation, coreTypes, uri).effect;
-        if (constness == ConstnessEffect.taintedConst) {
-          // TODO(dmitryas): Find a better way to unwrap the error node.
-          ShadowSyntheticExpression errorMessage = buildCompileTimeError(
-              fasta.messageCantDetermineConstness,
-              invocation.fileOffset,
-              noLength);
-          invocation.replaceWith(errorMessage.desugared);
-        } else {
-          invocation.isConst = constness == ConstnessEffect.allowedConst;
-        }
+        invocation.isConst = evaluateConstness(invocation, coreTypes, uri);
       } else if (invocation is StaticInvocation) {
-        ConstnessEffect constness =
-            evaluateConstness(invocation, coreTypes, uri).effect;
-        if (constness == ConstnessEffect.taintedConst) {
-          // TODO(dmitryas): Find a better way to unwrap the error node.
-          ShadowSyntheticExpression errorMessage = buildCompileTimeError(
-              fasta.messageCantDetermineConstness,
-              invocation.fileOffset,
-              noLength);
-          invocation.replaceWith(errorMessage.desugared);
-        } else {
-          invocation.isConst = constness == ConstnessEffect.allowedConst;
-        }
+        invocation.isConst = evaluateConstness(invocation, coreTypes, uri);
       } else {
         unhandled("${invocation.runtimeType}", "inferConstness",
             invocation.fileOffset, invocation.location.file);
@@ -2523,7 +2499,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       if (constantContext == ConstantContext.needsExplicitConst &&
           constness == Constness.implicit) {
         return buildCompileTimeError(
-            fasta.messageCantDetermineConstness, charOffset, noLength);
+            fasta.messageNeedExplicitConst, charOffset, noLength);
       }
       isConst =
           isConst || constantContext != ConstantContext.none && target.isConst;
@@ -2558,7 +2534,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         if (constantContext == ConstantContext.needsExplicitConst &&
             constness == Constness.implicit) {
           return buildCompileTimeError(
-              fasta.messageCantDetermineConstness, charOffset, noLength);
+              fasta.messageNeedExplicitConst, charOffset, noLength);
         }
         ShadowFactoryConstructorInvocation invocation =
             new ShadowFactoryConstructorInvocation(target, targetTypeArguments,

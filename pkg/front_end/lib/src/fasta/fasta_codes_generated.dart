@@ -359,16 +359,6 @@ Message _withArgumentsCannotReadSdkSpecification(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeCantDetermineConstness = messageCantDetermineConstness;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCantDetermineConstness = const MessageCode(
-    "CantDetermineConstness",
-    severity: Severity.error,
-    message:
-        r"""The keyword 'const' or 'new' is required here. Due to an implementation limit, the compiler isn't able to infer 'const' or 'new' here.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeCantInferPackagesFromManyInputs =
     messageCantInferPackagesFromManyInputs;
 
@@ -3758,6 +3748,18 @@ const MessageCode messageNativeClauseShouldBeAnnotation = const MessageCode(
     message: r"""Native clause in this form is deprecated.""",
     tip:
         r"""Try removing this native clause and adding @native() or @native('native-name') before the declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNeedExplicitConst = messageNeedExplicitConst;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNeedExplicitConst = const MessageCode(
+    "NeedExplicitConst",
+    analyzerCode: "NON_CONSTANT_DEFAULT_VALUE",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message: r"""An explicit 'const' keyword is expected here.""",
+    tip: r"""Put the 'const' keyword at this position.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

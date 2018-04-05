@@ -19,9 +19,7 @@ class C extends core::Object {
     : super core::Object::•()
     ;
   method fun() → dynamic {
-    invalid-expression "pkg/front_end/testcases/nested_implicit_const_with_env_var.dart:21:39: Error: The keyword 'const' or 'new' is required here. Due to an implementation limit, the compiler isn't able to infer 'const' or 'new' here.
-    /*@error=CantDetermineConstness*/ B(
-                                      ^";
+    const self::B::•(const self::A::•(self::foo));
   }
 }
 static const field core::int foo = const core::int::fromEnvironment("fisk");
