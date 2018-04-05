@@ -196,7 +196,7 @@ EMIT_NATIVE_CODE(AssertBoolean,
     __ Push(locs()->in(0).reg());
   }
   Isolate* isolate = Isolate::Current();
-  __ AssertBoolean((isolate->type_checks() || isolate->strong()) ? 1 : 0);
+  __ AssertBoolean(isolate->type_checks() ? 1 : 0);
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id(),
                                  token_pos());
   compiler->RecordAfterCall(this, FlowGraphCompiler::kHasResult);

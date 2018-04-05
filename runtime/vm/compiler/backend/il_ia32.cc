@@ -312,13 +312,13 @@ static void EmitAssertBoolean(Register reg,
   Label done;
   Isolate* isolate = Isolate::Current();
 
-  if (isolate->type_checks() || isolate->strong()) {
+  if (isolate->type_checks()) {
     __ CompareObject(reg, Bool::True());
     __ j(EQUAL, &done, Assembler::kNearJump);
     __ CompareObject(reg, Bool::False());
     __ j(EQUAL, &done, Assembler::kNearJump);
   } else {
-    ASSERT(isolate->asserts());
+    ASSERT(isolate->asserts() || isolate->strong());
     __ CompareObject(reg, Object::null_instance());
     __ j(NOT_EQUAL, &done, Assembler::kNearJump);
   }
