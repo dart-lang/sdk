@@ -1693,21 +1693,6 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
   return Api::Success();
 }
 
-DART_EXPORT Dart_Handle Dart_HandleMessages() {
-  Thread* T = Thread::Current();
-  Isolate* I = T->isolate();
-  CHECK_API_SCOPE(T);
-  CHECK_CALLBACK_STATE(T);
-  API_TIMELINE_BEGIN_END_BASIC(T);
-  TransitionNativeToVM transition(T);
-  if (I->message_handler()->HandleAllMessages() != MessageHandler::kOK) {
-    Dart_Handle error = Api::NewHandle(T, T->sticky_error());
-    T->clear_sticky_error();
-    return error;
-  }
-  return Api::Success();
-}
-
 DART_EXPORT Dart_Handle Dart_WaitForEvent(int64_t timeout_millis) {
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();

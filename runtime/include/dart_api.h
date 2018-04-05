@@ -1242,15 +1242,6 @@ DART_EXPORT Dart_Handle Dart_GetStickyError();
 DART_EXPORT Dart_Handle Dart_HandleMessage();
 
 /**
- * Handles all pending messages for the current isolate.
- *
- * May generate an unhandled exception error.
- *
- * \return A valid handle if no error occurs during the operation.
- */
-DART_EXPORT Dart_Handle Dart_HandleMessages();
-
-/**
  * Drains the microtask queue, then blocks the calling thread until the current
  * isolate recieves a message, then handles all messages.
  *
