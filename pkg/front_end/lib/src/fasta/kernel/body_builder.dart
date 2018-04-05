@@ -1071,7 +1071,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       LocatedMessage argMessage}) {
     Message message;
     Name kernelName = new Name(name, library.library);
-    LocatedMessage context;
+    List<LocatedMessage> context;
     if (candidate != null) {
       Uri uri = candidate.location.file;
       int offset = candidate.fileOffset;
@@ -1085,7 +1085,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         length = name.length;
         message = fasta.messageCandidateFound;
       }
-      context = message.withLocation(uri, offset, length);
+      context = [message.withLocation(uri, offset, length)];
     }
 
     if (isGetter) {
@@ -1131,7 +1131,9 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
 
   @override
   Message warnUnresolvedGet(Name name, int charOffset,
-      {bool isSuper: false, bool reportWarning: true, LocatedMessage context}) {
+      {bool isSuper: false,
+      bool reportWarning: true,
+      List<LocatedMessage> context}) {
     Message message = isSuper
         ? fasta.templateSuperclassHasNoGetter.withArguments(name.name)
         : fasta.templateGetterNotFound.withArguments(name.name);
@@ -1144,7 +1146,9 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
 
   @override
   Message warnUnresolvedSet(Name name, int charOffset,
-      {bool isSuper: false, bool reportWarning: true, LocatedMessage context}) {
+      {bool isSuper: false,
+      bool reportWarning: true,
+      List<LocatedMessage> context}) {
     Message message = isSuper
         ? fasta.templateSuperclassHasNoSetter.withArguments(name.name)
         : fasta.templateSetterNotFound.withArguments(name.name);
@@ -1157,7 +1161,9 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
 
   @override
   Message warnUnresolvedMethod(Name name, int charOffset,
-      {bool isSuper: false, bool reportWarning: true, LocatedMessage context}) {
+      {bool isSuper: false,
+      bool reportWarning: true,
+      List<LocatedMessage> context}) {
     String plainName = name.name;
     int dotIndex = plainName.lastIndexOf(".");
     if (dotIndex != -1) {
@@ -3624,7 +3630,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
 
   @override
   Expression buildCompileTimeError(Message message, int charOffset, int length,
-      {LocatedMessage context}) {
+      {List<LocatedMessage> context}) {
     library.addCompileTimeError(message, charOffset, length, uri,
         wasHandled: true, context: context);
     return new ShadowSyntheticExpression(library.loader
@@ -3681,7 +3687,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   }
 
   Statement buildCompileTimeErrorStatement(Message message, int charOffset,
-      {LocatedMessage context}) {
+      {List<LocatedMessage> context}) {
     return new ShadowExpressionStatement(
         buildCompileTimeError(message, charOffset, noLength, context: context));
   }
@@ -3733,9 +3739,11 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
                 .withArguments(name),
             offset,
             noLength,
-            context: fasta.templateFinalInstanceVariableAlreadyInitializedCause
-                .withArguments(name)
-                .withLocation(uri, builder.charOffset, noLength));
+            context: [
+              fasta.templateFinalInstanceVariableAlreadyInitializedCause
+                  .withArguments(name)
+                  .withLocation(uri, builder.charOffset, noLength)
+            ]);
         Builder constructor =
             library.loader.getDuplicatedFieldInitializerError();
         return buildInvalidInitializer(
@@ -3932,20 +3940,20 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
 
   @override
   void addCompileTimeError(Message message, int charOffset, int length,
-      {LocatedMessage context}) {
+      {List<LocatedMessage> context}) {
     library.addCompileTimeError(message, charOffset, length, uri,
         context: context);
   }
 
   @override
   void addProblem(Message message, int charOffset, int length,
-      {LocatedMessage context}) {
+      {List<LocatedMessage> context}) {
     library.addProblem(message, charOffset, length, uri, context: context);
   }
 
   @override
   void addProblemErrorIfConst(Message message, int charOffset, int length,
-      {LocatedMessage context}) {
+      {List<LocatedMessage> context}) {
     // TODO(askesc): Instead of deciding on the severity, this method should
     // take two messages: one to use when a constant expression is
     // required and one to use otherwise.

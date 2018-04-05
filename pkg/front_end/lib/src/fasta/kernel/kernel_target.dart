@@ -661,15 +661,11 @@ class KernelTarget extends TargetImplementation {
         fieldInitializers[constructor] = myFieldInitializers;
         if (constructor.isConst && nonFinalFields.isNotEmpty) {
           builder.addCompileTimeError(messageConstConstructorNonFinalField,
-              constructor.fileOffset, noLength);
-          // TODO(askesc): Put as context argument when multiple contexts
-          // are supported.
-          for (Field field in nonFinalFields) {
-            builder.addCompileTimeError(
-                messageConstConstructorNonFinalFieldCause,
-                field.fileOffset,
-                noLength);
-          }
+              constructor.fileOffset, noLength,
+              context: nonFinalFields
+                  .map((field) => messageConstConstructorNonFinalFieldCause
+                      .withLocation(field.fileUri, field.fileOffset, noLength))
+                  .toList());
           nonFinalFields.clear();
         }
       }

@@ -1249,6 +1249,10 @@ InternalProblemMissingSeverity:
   template: "Message code missing severity: #string"
   severity: INTERNAL_PROBLEM
 
+InternalProblemContextSeverity:
+  template: "Non-context message has context severity: #string"
+  severity: INTERNAL_PROBLEM
+
 InternalVerificationError:
   template: |
     Verification of the generated program failed:

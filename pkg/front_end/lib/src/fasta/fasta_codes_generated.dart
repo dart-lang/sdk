@@ -2581,6 +2581,28 @@ Message _withArgumentsInternalProblemConstructorNotFound(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)>
+    templateInternalProblemContextSeverity =
+    const Template<Message Function(String string)>(
+        messageTemplate:
+            r"""Non-context message has context severity: #string""",
+        withArguments: _withArgumentsInternalProblemContextSeverity);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeInternalProblemContextSeverity =
+    const Code<Message Function(String string)>(
+        "InternalProblemContextSeverity",
+        templateInternalProblemContextSeverity,
+        severity: Severity.internalProblem);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInternalProblemContextSeverity(String string) {
+  return new Message(codeInternalProblemContextSeverity,
+      message: """Non-context message has context severity: $string""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInternalProblemExtendingUnmodifiableScope =
     messageInternalProblemExtendingUnmodifiableScope;
 
