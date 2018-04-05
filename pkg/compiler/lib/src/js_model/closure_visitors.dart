@@ -68,6 +68,11 @@ class CapturedScopeBuilder extends ir.Visitor {
   /// have unique names.
   int _boxCounter = 0;
 
+  /// Set to `true` in the visitor if a type annotation is always needed.
+  ///
+  /// This is for instance the case for expressions like `o is T` and `o as T`.
+  bool _contextNeedsType = false;
+
   CapturedScopeBuilder(this._model, this._options, {bool hasThisLocal})
       : this._hasThisLocal = hasThisLocal;
 
@@ -464,14 +469,32 @@ class CapturedScopeBuilder extends ir.Visitor {
 
   @override
   visitTypeParameterType(ir.TypeParameterType type) {
-    _analyzeTypeVariable(type);
+    _analyzeTypeVariable(type, onlyIfNeedsRti: !_contextNeedsType);
   }
 
   @override
   visitTypeLiteral(ir.TypeLiteral node) {
-    if (node.type is ir.TypeParameterType) {
-      _analyzeTypeVariable(node.type, onlyIfNeedsRti: false);
-    }
+    bool oldContextNeedsType = _contextNeedsType;
+    _contextNeedsType = true;
+    node.visitChildren(this);
+    _contextNeedsType = oldContextNeedsType;
+  }
+
+  @override
+  visitIsExpression(ir.IsExpression node) {
+    bool oldContextNeedsType = _contextNeedsType;
+    _contextNeedsType = true;
+    node.visitChildren(this);
+    _contextNeedsType = oldContextNeedsType;
+  }
+
+  @override
+  visitAsExpression(ir.AsExpression node) {
+    bool oldContextNeedsType = _contextNeedsType;
+    _contextNeedsType =
+        !node.isTypeError || _options.implicitDowncastCheckPolicy.isEmitted;
+    node.visitChildren(this);
+    _contextNeedsType = oldContextNeedsType;
   }
 
   /// Returns true if the node is a field, or a constructor (factory or
