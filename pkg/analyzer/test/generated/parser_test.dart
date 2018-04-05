@@ -5589,7 +5589,7 @@ void main() {
 
   void test_varAndType_field() {
     parseCompilationUnit("class C { var int x; }",
-        errors: [expectedError(ParserErrorCode.VAR_AND_TYPE, 14, 3)]);
+        errors: [expectedError(ParserErrorCode.VAR_AND_TYPE, 10, 3)]);
   }
 
   void test_varAndType_local() {
@@ -5614,7 +5614,7 @@ void main() {
 
   void test_varAndType_topLevelVariable() {
     parseCompilationUnit("var int x;",
-        errors: [expectedError(ParserErrorCode.VAR_AND_TYPE, 4, 3)]);
+        errors: [expectedError(ParserErrorCode.VAR_AND_TYPE, 0, 3)]);
   }
 
   void test_varAsTypeName_as() {

@@ -2748,7 +2748,6 @@ class Parser {
 
     Token externalToken;
     Token varFinalOrConst;
-    TypeContinuation typeContinuation;
 
     if (isModifier(next)) {
       if (optional('external', next)) {
@@ -2757,32 +2756,27 @@ class Parser {
       }
       if (isModifier(next)) {
         if (optional('final', next)) {
-          typeContinuation = TypeContinuation.Optional;
           varFinalOrConst = token = next;
           next = token.next;
         } else if (optional('var', next)) {
-          typeContinuation = TypeContinuation.OptionalAfterVar;
           varFinalOrConst = token = next;
           next = token.next;
         } else if (optional('const', next)) {
-          typeContinuation = TypeContinuation.Optional;
           varFinalOrConst = token = next;
           next = token.next;
         }
         if (isModifier(next)) {
           ModifierRecoveryContext2 context = new ModifierRecoveryContext2(this);
-          token = context.parseTopLevelModifiers(token, typeContinuation,
+          token = context.parseTopLevelModifiers(token,
               externalToken: externalToken, varFinalOrConst: varFinalOrConst);
           next = token.next;
 
-          typeContinuation = context.typeContinuation;
           externalToken = context.externalToken;
           varFinalOrConst = context.varFinalOrConst;
           context = null;
         }
       }
     }
-    typeContinuation ??= TypeContinuation.Required;
 
     Token beforeType = token;
     TypeInfo typeInfo = computeType(token, false);
@@ -2878,12 +2872,8 @@ class Parser {
       reportRecoverableErrorWithToken(
           getOrSet, fasta.templateExtraneousModifier);
     }
-    // TODO(danrubel): Use typeInfo when parsing fields.
-    if (typeInfo == noTypeInfo) {
-      beforeType = null;
-    }
     return parseFields(beforeStart, externalToken, null, null, varFinalOrConst,
-        beforeType, token, MemberKind.TopLevelField, typeContinuation);
+        beforeType, typeInfo, token, true);
   }
 
   Token parseFields(
@@ -2893,9 +2883,9 @@ class Parser {
       Token covariantToken,
       Token varFinalOrConst,
       Token beforeType,
+      TypeInfo typeInfo,
       Token beforeName,
-      MemberKind memberKind,
-      TypeContinuation typeContinuation) {
+      bool isTopLevel) {
     if (externalToken != null) {
       reportRecoverableError(externalToken, fasta.messageExternalField);
     }
@@ -2905,19 +2895,18 @@ class Parser {
         covariantToken = null;
       }
     }
-
-    bool isTopLevel = memberKind == MemberKind.TopLevelField;
-
-    if (beforeType != null) {
-      parseType(beforeType, typeContinuation, null, memberKind);
-    } else if (varFinalOrConst != null) {
-      listener.handleNoType(beforeName);
+    if (typeInfo == noTypeInfo) {
+      if (varFinalOrConst == null) {
+        reportRecoverableError(
+            beforeName.next, fasta.messageMissingConstFinalVarOrType);
+      }
     } else {
-      // Recovery
-      reportRecoverableError(
-          beforeName.next, fasta.messageMissingConstFinalVarOrType);
-      listener.handleNoType(beforeName);
+      if (varFinalOrConst != null && optional('var', varFinalOrConst)) {
+        reportRecoverableError(varFinalOrConst, fasta.messageTypeAfterVar);
+      }
     }
+
+    typeInfo.parseType(beforeType, this);
 
     IdentifierContext context = isTopLevel
         ? IdentifierContext.topLevelVariableDeclaration
@@ -3432,7 +3421,6 @@ class Parser {
   Token parseClassMemberImpl(Token token) {
     Token beforeStart = token = parseMetadataStar(token);
 
-    TypeContinuation typeContinuation;
     Token covariantToken;
     Token externalToken;
     Token staticToken;
@@ -3454,22 +3442,19 @@ class Parser {
         }
         if (isModifier(next)) {
           if (optional('final', next)) {
-            typeContinuation = TypeContinuation.Optional;
             varFinalOrConst = token = next;
             next = token.next;
           } else if (optional('var', next)) {
-            typeContinuation = TypeContinuation.OptionalAfterVar;
             varFinalOrConst = token = next;
             next = token.next;
           } else if (optional('const', next) && covariantToken == null) {
-            typeContinuation = TypeContinuation.Optional;
             varFinalOrConst = token = next;
             next = token.next;
           }
           if (isModifier(next)) {
             ModifierRecoveryContext2 context =
                 new ModifierRecoveryContext2(this);
-            token = context.parseClassMemberModifiers(token, typeContinuation,
+            token = context.parseClassMemberModifiers(token,
                 externalToken: externalToken,
                 staticToken: staticToken,
                 covariantToken: covariantToken,
@@ -3481,13 +3466,11 @@ class Parser {
             staticToken = context.staticToken;
             varFinalOrConst = context.varFinalOrConst;
 
-            typeContinuation = context.typeContinuation;
             context = null;
           }
         }
       }
     }
-    typeContinuation ??= TypeContinuation.Required;
 
     listener.beginMember();
 
@@ -3567,8 +3550,7 @@ class Parser {
             varFinalOrConst,
             beforeType,
             typeInfo,
-            getOrSet,
-            typeContinuation);
+            getOrSet);
       }
     } else if (typeInfo == noTypeInfo && varFinalOrConst == null) {
       Token next2 = next.next;
@@ -3608,22 +3590,8 @@ class Parser {
         reportRecoverableErrorWithToken(
             getOrSet, fasta.templateExtraneousModifier);
       }
-      // TODO(danrubel): Use typeInfo when parsing fields.
-      if (typeInfo == noTypeInfo) {
-        beforeType = null;
-      }
-      token = parseFields(
-          beforeStart,
-          externalToken,
-          staticToken,
-          covariantToken,
-          varFinalOrConst,
-          beforeType,
-          token,
-          staticToken != null
-              ? MemberKind.StaticField
-              : MemberKind.NonStaticField,
-          typeContinuation);
+      token = parseFields(beforeStart, externalToken, staticToken,
+          covariantToken, varFinalOrConst, beforeType, typeInfo, token, false);
     }
     listener.endMember();
     return token;
@@ -6351,8 +6319,7 @@ class Parser {
       Token varFinalOrConst,
       Token beforeType,
       TypeInfo typeInfo,
-      Token getOrSet,
-      TypeContinuation typeContinuation) {
+      Token getOrSet) {
     Token next = token.next;
     String value = next.stringValue;
 
@@ -6404,10 +6371,6 @@ class Parser {
             getOrSet,
             token);
       } else {
-        // TODO(danrubel): Use typeInfo when parsing fields.
-        if (typeInfo == noTypeInfo) {
-          beforeType = null;
-        }
         token = parseFields(
             beforeStart,
             externalToken,
@@ -6415,9 +6378,9 @@ class Parser {
             covariantToken,
             varFinalOrConst,
             beforeType,
+            typeInfo,
             token,
-            MemberKind.NonStaticField,
-            typeContinuation);
+            false);
       }
     }
 
