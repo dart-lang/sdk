@@ -68,9 +68,11 @@ void main() {
 ''';
 
 ProblemHandler _makeProblemHandler(Set<String> names) {
-  return (FormattedMessage message, Severity severity) {
+  return (FormattedMessage message, Severity severity,
+      List<FormattedMessage> context) {
     Expect.equals(Severity.error, severity);
     Expect.equals(codeSuperclassHasNoMethod, message.code);
+    Expect.isTrue(context.isEmpty);
     names.add(message.arguments['name']);
   };
 }

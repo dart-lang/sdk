@@ -252,13 +252,9 @@ severity: $severity
           charOffset,
           fileUri);
     }
-    target.context
-        .report(message.withLocation(fileUri, charOffset, length), severity);
-    if (context != null) {
-      for (LocatedMessage contextMessage in context) {
-        target.context.report(contextMessage, Severity.context);
-      }
-    }
+    target.context.report(
+        message.withLocation(fileUri, charOffset, length), severity,
+        context: context);
     recordMessage(severity, message, charOffset, length, fileUri,
         context: context);
     if (severity == Severity.error) {

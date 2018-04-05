@@ -18,7 +18,7 @@ import 'compiler_state.dart';
 export 'compiler_state.dart';
 
 export '../api_prototype/standard_file_system.dart' show StandardFileSystem;
-export '../fasta/fasta_codes.dart' show LocatedMessage;
+export '../fasta/fasta_codes.dart' show FormattedMessage;
 export '../fasta/severity.dart' show Severity;
 
 Future<InitializedCompilerState> initializeCompiler(

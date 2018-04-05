@@ -137,7 +137,8 @@ void main() {
   asyncTest(() async {
     Test test = generateTest();
     CompilerOptions options = new CompilerOptions()
-      ..onProblem = (FormattedMessage message, Severity severity) {
+      ..onProblem = (FormattedMessage message, Severity severity,
+          List<FormattedMessage> context) {
         Expect.fail("Unexpected error: ${message.formatted}");
       }
       ..strongMode = true;

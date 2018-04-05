@@ -60,7 +60,8 @@ CompilerOptions getOptions(bool strong) {
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
-    ..onProblem = (FormattedMessage problem, Severity severity) {
+    ..onProblem = (FormattedMessage problem, Severity severity,
+        List<FormattedMessage> context) {
       // ignore
     }
     ..strongMode = strong;

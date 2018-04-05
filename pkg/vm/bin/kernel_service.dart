@@ -86,24 +86,32 @@ abstract class Compiler {
       ..packagesFileUri = packagesUri
       ..sdkSummary = platformKernelPath
       ..verbose = verbose
-      ..onProblem = (message, Severity severity) {
+      ..onProblem = (FormattedMessage message, Severity severity,
+          List<FormattedMessage> context) {
+        bool printMessage;
         switch (severity) {
           case Severity.error:
-          case Severity.errorLegacyWarning:
           case Severity.internalProblem:
             // TODO(sigmund): support emitting code with errors as long as they
             // are handled in the generated code (issue #30194).
+            printMessage = true;
             errors.add(message.formatted);
-            stderr.writeln(message.formatted);
             break;
           case Severity.nit:
+            printMessage = false;
             break;
           case Severity.warning:
-            if (!suppressWarnings) stderr.writeln(message.formatted);
+            printMessage = !suppressWarnings;
             break;
+          case Severity.errorLegacyWarning:
           case Severity.context:
+            throw "Unexpected severity: $severity";
+        }
+        if (printMessage) {
+          stderr.writeln(message.formatted);
+          for (FormattedMessage message in context) {
             stderr.writeln(message.formatted);
-            break;
+          }
         }
       };
   }

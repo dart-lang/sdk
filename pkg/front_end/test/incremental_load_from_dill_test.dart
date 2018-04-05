@@ -206,7 +206,8 @@ void newWorldTest(bool strong, List worlds) async {
     bool gotWarning = false;
     List<String> formattedWarnings = <String>[];
 
-    options.onProblem = (FormattedMessage problem, Severity severity) {
+    options.onProblem = (FormattedMessage problem, Severity severity,
+        List<FormattedMessage> context) {
       if (severity == Severity.error) {
         gotError = true;
         formattedErrors.add(problem.formatted);
@@ -288,7 +289,8 @@ CompilerOptions getOptions(bool strong) {
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
-    ..onProblem = (FormattedMessage problem, Severity severity) {
+    ..onProblem = (FormattedMessage problem, Severity severity,
+        List<FormattedMessage> context) {
       if (severity == Severity.error || severity == Severity.warning) {
         Expect.fail("Unexpected error: ${problem.formatted}");
       }

@@ -402,7 +402,8 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
           ..sdkSummary = computePlatformBinariesLocation()
               .resolve("vm_platform_strong.dill")
           ..fileSystem = new HybridFileSystem(suite.fileSystem)
-          ..onProblem = (FormattedMessage problem, Severity severity) {
+          ..onProblem = (FormattedMessage problem, Severity severity,
+              List<FormattedMessage> context) {
             problems.add([problem, severity]);
           }
           ..strongMode = true,

@@ -28,7 +28,8 @@ import 'package:front_end/src/fasta/incremental_compiler.dart'
 
 import 'package:front_end/src/fasta/severity.dart' show Severity;
 
-void problemHandler(FormattedMessage message, Severity severity) {
+void problemHandler(FormattedMessage message, Severity severity,
+    List<FormattedMessage> context) {
   throw "Unexpected message: ${message.formatted}";
 }
 
