@@ -1254,6 +1254,7 @@ LayoutTests/fast/canvas/webgl/WebGLContextEvent_t01: Pass, RuntimeError # 30174
 LayoutTests/fast/canvas/webgl/index-validation-verifies-too-many-indices_t01: RuntimeError, Pass # Please triage this flake
 LayoutTests/fast/canvas/webgl/premultiplyalpha-test_t01: RuntimeError, Pass # Please triage this flake
 LayoutTests/fast/canvas/webgl/triangle_t01: RuntimeError, Pass # Please triage this flake
+LayoutTests/fast/css/font-face-unicode-range-load_t01: Pass, Slow
 LayoutTests/fast/multicol/newmulticol/balance_t04: RuntimeError # Please triage this failure
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-inset-rounded-different-writing-modes-left_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-rounded-boxes_t02: RuntimeError # Please triage this failure
@@ -1284,6 +1285,7 @@ WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01: Skip # 
 [ $compiler == dart2js && $runtime == chrome && $system != macos ]
 LayoutTests/fast/canvas/webgl/context-lost-restored_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/zero-width-characters-complex-script_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/text/zero-width-characters_t01: RuntimeError, Pass # Please triage this failure
 
 [ $compiler == dart2js && $runtime == chrome && $system == windows ]
 Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t04: Pass, Slow # Issue 25940
