@@ -957,7 +957,8 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
 
 Isolate::~Isolate() {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  RELEASE_ASSERT(reload_context_ == NULL);
+  // TODO(32796): Re-enable assertion.
+  // RELEASE_ASSERT(reload_context_ == NULL);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   delete background_compiler_;
