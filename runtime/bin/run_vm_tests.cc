@@ -200,6 +200,12 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
   return isolate;
 }
 
+static void CleanupIsolate(void* callback_data) {
+  bin::IsolateData* isolate_data =
+      reinterpret_cast<bin::IsolateData*>(callback_data);
+  delete isolate_data;
+}
+
 static int Main(int argc, const char** argv) {
   // Flags being passed to the Dart VM.
   int dart_argc = 0;
@@ -269,7 +275,7 @@ static int Main(int argc, const char** argv) {
   const char* err_msg = Dart::InitOnce(
       dart::bin::vm_snapshot_data, dart::bin::vm_snapshot_instructions,
       CreateIsolateAndSetup /* create */, NULL /* shutdown */,
-      NULL /* cleanup */, NULL /* thread_exit */,
+      CleanupIsolate /* cleanup */, NULL /* thread_exit */,
       dart::bin::DartUtils::OpenFile, dart::bin::DartUtils::ReadFile,
       dart::bin::DartUtils::WriteFile, dart::bin::DartUtils::CloseFile,
       NULL /* entropy_source */, NULL /* get_service_assets */,

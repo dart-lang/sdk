@@ -3327,6 +3327,11 @@ VM_UNIT_TEST_CASE(DartAPI_Isolates) {
 }
 
 VM_UNIT_TEST_CASE(DartAPI_CurrentIsolateData) {
+  Dart_IsolateShutdownCallback saved_shutdown = Isolate::ShutdownCallback();
+  Dart_IsolateCleanupCallback saved_cleanup = Isolate::CleanupCallback();
+  Isolate::SetShutdownCallback(NULL);
+  Isolate::SetCleanupCallback(NULL);
+
   intptr_t mydata = 12345;
   Dart_Isolate isolate =
       TestCase::CreateTestIsolate(NULL, reinterpret_cast<void*>(mydata));
@@ -3334,6 +3339,9 @@ VM_UNIT_TEST_CASE(DartAPI_CurrentIsolateData) {
   EXPECT_EQ(mydata, reinterpret_cast<intptr_t>(Dart_CurrentIsolateData()));
   EXPECT_EQ(mydata, reinterpret_cast<intptr_t>(Dart_IsolateData(isolate)));
   Dart_ShutdownIsolate();
+
+  Isolate::SetShutdownCallback(saved_shutdown);
+  Isolate::SetCleanupCallback(saved_cleanup);
 }
 
 static Dart_Handle LoadScript(const char* url_str, const char* source) {
@@ -7250,31 +7258,41 @@ void BusyLoop_start(uword unused) {
   }
 }
 
-static void* saved_callback_data;
+static void* shutdown_callback_data;
 static void IsolateShutdownTestCallback(void* callback_data) {
-  saved_callback_data = callback_data;
+  shutdown_callback_data = callback_data;
+}
+static void* cleanup_callback_data;
+static void IsolateCleanupTestCallback(void* callback_data) {
+  cleanup_callback_data = callback_data;
 }
 
-VM_UNIT_TEST_CASE(DartAPI_IsolateShutdown) {
-  Dart_IsolateShutdownCallback saved = Isolate::ShutdownCallback();
+VM_UNIT_TEST_CASE(DartAPI_IsolateShutdownAndCleanup) {
+  Dart_IsolateShutdownCallback saved_shutdown = Isolate::ShutdownCallback();
+  Dart_IsolateCleanupCallback saved_cleanup = Isolate::CleanupCallback();
   Isolate::SetShutdownCallback(IsolateShutdownTestCallback);
+  Isolate::SetCleanupCallback(IsolateCleanupTestCallback);
 
-  saved_callback_data = NULL;
+  shutdown_callback_data = NULL;
+  cleanup_callback_data = NULL;
   void* my_data = reinterpret_cast<void*>(12345);
   // Create an isolate.
   Dart_Isolate isolate = TestCase::CreateTestIsolate(NULL, my_data);
   EXPECT(isolate != NULL);
 
   // The shutdown callback has not been called.
-  EXPECT_EQ(0, reinterpret_cast<intptr_t>(saved_callback_data));
+  EXPECT_EQ(0, reinterpret_cast<intptr_t>(shutdown_callback_data));
+  EXPECT_EQ(0, reinterpret_cast<intptr_t>(cleanup_callback_data));
 
   // Shutdown the isolate.
   Dart_ShutdownIsolate();
 
   // The shutdown callback has been called.
-  EXPECT_EQ(12345, reinterpret_cast<intptr_t>(saved_callback_data));
+  EXPECT_EQ(12345, reinterpret_cast<intptr_t>(shutdown_callback_data));
+  EXPECT_EQ(12345, reinterpret_cast<intptr_t>(cleanup_callback_data));
 
-  Isolate::SetShutdownCallback(saved);
+  Isolate::SetShutdownCallback(saved_shutdown);
+  Isolate::SetCleanupCallback(saved_cleanup);
 }
 
 static int64_t add_result = 0;
