@@ -239,8 +239,9 @@ class IsolateReloadContext {
 
   void CheckpointLibraries();
 
-  // Transforms the heap based on instance_morphers_.
-  void MorphInstances();
+  // Transforms the heap based on instance_morphers_. Return whether there was
+  // any morphing.
+  bool MorphInstances();
 
   void RunNewFieldInitializers();
 

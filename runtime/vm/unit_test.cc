@@ -196,7 +196,10 @@ static Dart_Handle IsolateReloadTestLibSource() {
 }
 
 static void ReloadTest(Dart_NativeArguments native_args) {
-  DART_CHECK_VALID(TestCase::TriggerReload());
+  Dart_Handle result = TestCase::TriggerReload();
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
 }
 
 static Dart_NativeFunction IsolateReloadTestNativeResolver(
@@ -266,7 +269,10 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
       sourcefiles_count, sourcefiles, incrementally);
 
   if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
-    return OS::SCreate(zone, "Compilation failed %s", compilation_result.error);
+    char* result =
+        OS::SCreate(zone, "Compilation failed %s", compilation_result.error);
+    free(compilation_result.error);
+    return result;
   }
   const uint8_t* kernel_file = compilation_result.kernel;
   intptr_t kernel_length = compilation_result.kernel_size;
@@ -500,11 +506,19 @@ Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
 
 #ifndef PRODUCT
 
-void TestCase::SetReloadTestScript(const char* script) {
+Dart_Handle TestCase::SetReloadTestScript(const char* script) {
   if (FLAG_use_dart_frontend) {
     Dart_SourceFile* sourcefiles = NULL;
     intptr_t num_files = BuildSourceFilesArray(&sourcefiles, script);
-    KernelIsolate::UpdateInMemorySources(num_files, sourcefiles);
+    Dart_KernelCompilationResult compilation_result =
+        KernelIsolate::UpdateInMemorySources(num_files, sourcefiles);
+    delete[] sourcefiles;
+    if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
+      Dart_Handle result = Dart_NewApiError(compilation_result.error);
+      free(compilation_result.error);
+      return result;
+    }
+    return Api::Success();
   } else {
     if (script_reload_key == kUnsetThreadLocalKey) {
       script_reload_key = OSThread::CreateThreadLocal();
@@ -514,15 +528,17 @@ void TestCase::SetReloadTestScript(const char* script) {
     // Store the new script in TLS.
     OSThread::SetThreadLocal(script_reload_key,
                              reinterpret_cast<uword>(script));
+    return Api::Success();
   }
 }
 
 Dart_Handle TestCase::TriggerReload() {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   JSONStream js;
   bool success = false;
   {
-    TransitionNativeToVM transition(Thread::Current());
+    TransitionNativeToVM transition(thread);
     success = isolate->ReloadSources(&js,
                                      false,  // force_reload
                                      NULL, NULL,
@@ -530,82 +546,48 @@ Dart_Handle TestCase::TriggerReload() {
     OS::PrintErr("RELOAD REPORT:\n%s\n", js.ToCString());
   }
 
+  Dart_Handle result = Dart_Null();
   if (success) {
-    return Dart_FinalizeLoading(false);
+    result = Dart_FinalizeLoading(false);
+  }
+
+  if (Dart_IsError(result)) {
+    // Keep load error.
+  } else if (isolate->reload_context()->reload_aborted()) {
+    result = Api::NewHandle(thread, isolate->reload_context()->error());
   } else {
-    return Dart_Null();
+    result = Dart_RootLibrary();
   }
-}
 
-Dart_Handle TestCase::GetReloadLibrary() {
-  Isolate* isolate = Isolate::Current();
-
-  if (isolate->reload_context() != NULL &&
-      isolate->reload_context()->reload_aborted()) {
-    return Dart_Null();
+  TransitionNativeToVM transition(thread);
+  if (isolate->reload_context() != NULL) {
+    isolate->DeleteReloadContext();
   }
-  return Dart_RootLibrary();
-}
 
-Dart_Handle TestCase::GetReloadErrorOrRootLibrary() {
-  Isolate* isolate = Isolate::Current();
-
-  if (isolate->reload_context() != NULL &&
-      isolate->reload_context()->reload_aborted()) {
-    // Return a handle to the error.
-    return Api::NewHandle(Thread::Current(),
-                          isolate->reload_context()->error());
-  }
-  return Dart_RootLibrary();
+  return result;
 }
 
 Dart_Handle TestCase::ReloadTestScript(const char* script) {
   if (FLAG_use_dart_frontend) {
     Dart_SourceFile* sourcefiles = NULL;
     intptr_t num_files = BuildSourceFilesArray(&sourcefiles, script);
-    KernelIsolate::UpdateInMemorySources(num_files, sourcefiles);
+    Dart_KernelCompilationResult compilation_result =
+        KernelIsolate::UpdateInMemorySources(num_files, sourcefiles);
     delete[] sourcefiles;
+    if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
+      Dart_Handle result = Dart_NewApiError(compilation_result.error);
+      free(compilation_result.error);
+      return result;
+    }
   } else {
     SetReloadTestScript(script);
   }
 
-  Dart_Handle result = TriggerReload();
-  if (Dart_IsError(result)) {
-    return result;
-  }
-
-  result = GetReloadErrorOrRootLibrary();
-
-  {
-    Thread* thread = Thread::Current();
-    TransitionNativeToVM transition(thread);
-    Isolate* isolate = thread->isolate();
-    if (isolate->reload_context() != NULL) {
-      isolate->DeleteReloadContext();
-    }
-  }
-
-  return result;
+  return TriggerReload();
 }
 
 Dart_Handle TestCase::ReloadTestKernel(const void* kernel) {
-  Dart_Handle result = TriggerReload();
-  if (Dart_IsError(result)) {
-    return result;
-  }
-
-  result = GetReloadErrorOrRootLibrary();
-
-  {
-    Thread* thread = Thread::Current();
-    TransitionNativeToVM transition(thread);
-    Isolate* isolate = thread->isolate();
-    if (isolate->reload_context() != NULL) {
-      isolate->DeleteReloadContext();
-    }
-  }
-
-  return result;
+  return TriggerReload();
 }
 
 #endif  // !PRODUCT

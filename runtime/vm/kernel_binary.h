@@ -160,7 +160,7 @@ static const int SourceTableFieldCountFromFirstLibraryOffset = 4;
 static const int HeaderSize = 8;  // 'magic', 'formatVersion'.
 static const int MetadataPayloadOffset = HeaderSize;  // Right after header.
 
-class Reader {
+class Reader : public ValueObject {
  public:
   Reader(const uint8_t* buffer, intptr_t size)
       : thread_(NULL),

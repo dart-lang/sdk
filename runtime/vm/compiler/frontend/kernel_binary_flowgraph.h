@@ -1010,7 +1010,7 @@ class StreamingFlowGraphBuilder {
       : flow_graph_builder_(flow_graph_builder),
         translation_helper_(flow_graph_builder->translation_helper_),
         zone_(flow_graph_builder->zone_),
-        reader_(new Reader(data)),
+        reader_(data),
         script_(Script::Handle(zone_, parsed_function()->function().script())),
         constant_evaluator_(this),
         type_translator_(this, /* finalize= */ true),
@@ -1032,7 +1032,7 @@ class StreamingFlowGraphBuilder {
       : flow_graph_builder_(NULL),
         translation_helper_(*translation_helper),
         zone_(zone),
-        reader_(new Reader(data_buffer, buffer_length)),
+        reader_(data_buffer, buffer_length),
         script_(Script::Handle(zone_)),
         constant_evaluator_(this),
         type_translator_(this, /* finalize= */ true),
@@ -1054,7 +1054,7 @@ class StreamingFlowGraphBuilder {
       : flow_graph_builder_(NULL),
         translation_helper_(*translation_helper),
         zone_(zone),
-        reader_(new Reader(data)),
+        reader_(data),
         script_(script),
         constant_evaluator_(this),
         type_translator_(this, /* finalize= */ true),
@@ -1068,7 +1068,7 @@ class StreamingFlowGraphBuilder {
         procedure_attributes_metadata_helper_(this),
         metadata_scanned_(false) {}
 
-  ~StreamingFlowGraphBuilder() { delete reader_; }
+  ~StreamingFlowGraphBuilder() {}
 
   FlowGraph* BuildGraph(intptr_t kernel_offset);
 
@@ -1174,7 +1174,7 @@ class StreamingFlowGraphBuilder {
   void record_yield_position(TokenPosition position);
   Tag ReadTag(uint8_t* payload = NULL);
   Tag PeekTag(uint8_t* payload = NULL);
-  uint8_t ReadFlags() { return reader_->ReadFlags(); }
+  uint8_t ReadFlags() { return reader_.ReadFlags(); }
 
   void loop_depth_inc();
   void loop_depth_dec();
@@ -1436,7 +1436,7 @@ class StreamingFlowGraphBuilder {
   FlowGraphBuilder* flow_graph_builder_;
   TranslationHelper& translation_helper_;
   Zone* zone_;
-  Reader* reader_;
+  Reader reader_;
   const Script& script_;
   StreamingConstantEvaluator constant_evaluator_;
   StreamingDartTypeTranslator type_translator_;

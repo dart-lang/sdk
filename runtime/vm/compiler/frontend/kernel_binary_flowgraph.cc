@@ -195,7 +195,7 @@ void FieldHelper::ReadUntilExcluding(Field field,
       if (builder_->ReadTag() == kSomething) {
         if (detect_function_literal_initializer &&
             builder_->PeekTag() == kFunctionExpression) {
-          AlternativeReadingScope alt(builder_->reader_);
+          AlternativeReadingScope alt(&builder_->reader_);
           Tag tag = builder_->ReadTag();
           ASSERT(tag == kFunctionExpression);
           builder_->ReadPosition();  // read position.
@@ -422,10 +422,10 @@ void ClassHelper::ReadUntilExcluding(Field field) {
     case kClassIndex:
       // Read class index.
       for (intptr_t i = 0; i < procedure_count_; ++i) {
-        builder_->reader_->ReadUInt32();
+        builder_->reader_.ReadUInt32();
       }
-      builder_->reader_->ReadUInt32();
-      builder_->reader_->ReadUInt32();
+      builder_->reader_.ReadUInt32();
+      builder_->reader_.ReadUInt32();
       if (++next_read_ == field) return;
     case kEnd:
       return;
@@ -510,15 +510,15 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
     case kLibraryIndex:
       // Read library index.
       for (intptr_t i = 0; i < class_count_; ++i) {
-        builder_->reader_->ReadUInt32();
+        builder_->reader_.ReadUInt32();
       }
-      builder_->reader_->ReadUInt32();
-      builder_->reader_->ReadUInt32();
+      builder_->reader_.ReadUInt32();
+      builder_->reader_.ReadUInt32();
       for (intptr_t i = 0; i < procedure_count_; ++i) {
-        builder_->reader_->ReadUInt32();
+        builder_->reader_.ReadUInt32();
       }
-      builder_->reader_->ReadUInt32();
-      builder_->reader_->ReadUInt32();
+      builder_->reader_.ReadUInt32();
+      builder_->reader_.ReadUInt32();
       if (++next_read_ == field) return;
     case kEnd:
       return;
@@ -693,7 +693,7 @@ bool DirectCallMetadataHelper::ReadMetadata(intptr_t node_offset,
     return false;
   }
 
-  AlternativeReadingScope alt(builder_->reader_, &H.metadata_payloads(),
+  AlternativeReadingScope alt(&builder_->reader_, &H.metadata_payloads(),
                               md_offset - MetadataPayloadOffset);
 
   *target_name = builder_->ReadCanonicalNameReference();
@@ -771,7 +771,7 @@ bool ProcedureAttributesMetadataHelper::ReadMetadata(
     return false;
   }
 
-  AlternativeReadingScope alt(builder_->reader_, &H.metadata_payloads(),
+  AlternativeReadingScope alt(&builder_->reader_, &H.metadata_payloads(),
                               md_offset - MetadataPayloadOffset);
 
   const int kDynamicUsesBit = 1 << 0;
@@ -801,7 +801,7 @@ InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
     return InferredTypeMetadata(kDynamicCid, true);
   }
 
-  AlternativeReadingScope alt(builder_->reader_, &H.metadata_payloads(),
+  AlternativeReadingScope alt(&builder_->reader_, &H.metadata_payloads(),
                               md_offset - MetadataPayloadOffset);
 
   const NameIndex kernel_name = builder_->ReadCanonicalNameReference();
@@ -967,7 +967,7 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
                   TypedData::Handle(Z, class_field.KernelData());
               ASSERT(!kernel_data.IsNull());
               intptr_t field_offset = class_field.kernel_offset();
-              AlternativeReadingScope alt(builder_->reader_, &kernel_data,
+              AlternativeReadingScope alt(&builder_->reader_, &kernel_data,
                                           field_offset);
               FieldHelper field_helper(builder_);
               field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
@@ -1169,7 +1169,7 @@ void StreamingScopeBuilder::VisitConstructor() {
         TypedData& kernel_data = TypedData::Handle(Z, class_field.KernelData());
         ASSERT(!kernel_data.IsNull());
         intptr_t field_offset = class_field.kernel_offset();
-        AlternativeReadingScope alt(builder_->reader_, &kernel_data,
+        AlternativeReadingScope alt(&builder_->reader_, &kernel_data,
                                     field_offset);
         FieldHelper field_helper(builder_);
         field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
@@ -1251,9 +1251,9 @@ void StreamingScopeBuilder::VisitFunctionNode() {
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kBody);
 
   if (builder_->ReadTag() == kSomething) {
-    PositionScope scope(builder_->reader_);
+    PositionScope scope(&builder_->reader_);
     VisitStatement();  // Read body
-    first_body_token_position_ = builder_->reader_->min_position();
+    first_body_token_position_ = builder_->reader_.min_position();
   }
 
   // Ensure that :await_jump_var, :await_ctx_var, :async_op and
@@ -1529,7 +1529,7 @@ void StreamingScopeBuilder::VisitExpression() {
       return;
     }
     case kLet: {
-      PositionScope scope(builder_->reader_);
+      PositionScope scope(&builder_->reader_);
       intptr_t offset =
           builder_->ReaderOffset() - 1;  // -1 to include tag byte.
 
@@ -1538,8 +1538,8 @@ void StreamingScopeBuilder::VisitExpression() {
       VisitVariableDeclaration();  // read variable declaration.
       VisitExpression();           // read expression.
 
-      ExitScope(builder_->reader_->min_position(),
-                builder_->reader_->max_position());
+      ExitScope(builder_->reader_.min_position(),
+                builder_->reader_.max_position());
       return;
     }
     case kBigIntLiteral:
@@ -1616,7 +1616,7 @@ void StreamingScopeBuilder::VisitStatement() {
       VisitExpression();  // read expression.
       return;
     case kBlock: {
-      PositionScope scope(builder_->reader_);
+      PositionScope scope(&builder_->reader_);
       intptr_t offset =
           builder_->ReaderOffset() - 1;  // -1 to include tag byte.
 
@@ -1628,15 +1628,15 @@ void StreamingScopeBuilder::VisitStatement() {
         VisitStatement();  // read ith statement.
       }
 
-      ExitScope(builder_->reader_->min_position(),
-                builder_->reader_->max_position());
+      ExitScope(builder_->reader_.min_position(),
+                builder_->reader_.max_position());
       return;
     }
     case kEmptyStatement:
       return;
     case kAssertBlock:
       if (I->asserts()) {
-        PositionScope scope(builder_->reader_);
+        PositionScope scope(&builder_->reader_);
         intptr_t offset =
             builder_->ReaderOffset() - 1;  // -1 to include tag byte.
 
@@ -1648,8 +1648,8 @@ void StreamingScopeBuilder::VisitStatement() {
           VisitStatement();  // read ith statement.
         }
 
-        ExitScope(builder_->reader_->min_position(),
-                  builder_->reader_->max_position());
+        ExitScope(builder_->reader_.min_position(),
+                  builder_->reader_.max_position());
       } else {
         builder_->SkipStatementList();
       }
@@ -1695,7 +1695,7 @@ void StreamingScopeBuilder::VisitStatement() {
       --depth_.loop_;
       return;
     case kForStatement: {
-      PositionScope scope(builder_->reader_);
+      PositionScope scope(&builder_->reader_);
 
       intptr_t offset =
           builder_->ReaderOffset() - 1;  // -1 to include tag byte.
@@ -1720,13 +1720,13 @@ void StreamingScopeBuilder::VisitStatement() {
       }
       VisitStatement();  // read body.
 
-      ExitScope(position, builder_->reader_->max_position());
+      ExitScope(position, builder_->reader_.max_position());
       --depth_.loop_;
       return;
     }
     case kForInStatement:
     case kAsyncForInStatement: {
-      PositionScope scope(builder_->reader_);
+      PositionScope scope(&builder_->reader_);
 
       intptr_t start_offset =
           builder_->ReaderOffset() - 1;  // -1 to include tag byte.
@@ -1747,17 +1747,17 @@ void StreamingScopeBuilder::VisitStatement() {
       EnterScope(start_offset);
 
       {
-        AlternativeReadingScope alt(builder_->reader_, offset);
+        AlternativeReadingScope alt(&builder_->reader_, offset);
         VisitVariableDeclaration();  // read variable.
       }
       VisitStatement();  // read body.
 
       if (!body_position.IsReal()) {
-        body_position = builder_->reader_->min_position();
+        body_position = builder_->reader_.min_position();
       }
       // TODO(jensj): From kernel_binary.cc
       // forinstmt->variable_->set_end_position(forinstmt->position_);
-      ExitScope(body_position, builder_->reader_->max_position());
+      ExitScope(body_position, builder_->reader_.max_position());
       --depth_.loop_;
       --depth_.for_in_;
       return;
@@ -1820,7 +1820,7 @@ void StreamingScopeBuilder::VisitStatement() {
       intptr_t catch_count =
           builder_->ReadListLength();  // read number of catches.
       for (intptr_t i = 0; i < catch_count; ++i) {
-        PositionScope scope(builder_->reader_);
+        PositionScope scope(&builder_->reader_);
         intptr_t offset = builder_->ReaderOffset();  // Catch has no tag.
 
         EnterScope(offset);
@@ -1837,8 +1837,8 @@ void StreamingScopeBuilder::VisitStatement() {
         }
         VisitStatement();  // read body.
 
-        ExitScope(builder_->reader_->min_position(),
-                  builder_->reader_->max_position());
+        ExitScope(builder_->reader_.min_position(),
+                  builder_->reader_.max_position());
       }
       --depth_.catch_;
       return;
@@ -1918,7 +1918,7 @@ void StreamingScopeBuilder::VisitArguments() {
 }
 
 void StreamingScopeBuilder::VisitVariableDeclaration() {
-  PositionScope scope(builder_->reader_);
+  PositionScope scope(&builder_->reader_);
 
   intptr_t kernel_offset_no_tag = builder_->ReaderOffset();
   VariableDeclarationHelper helper(builder_);
@@ -1939,7 +1939,7 @@ void StreamingScopeBuilder::VisitVariableDeclaration() {
 
   // Go to next token position so it ends *after* the last potentially
   // debuggable position in the initializer.
-  TokenPosition end_position = builder_->reader_->max_position();
+  TokenPosition end_position = builder_->reader_.max_position();
   if (end_position.IsReal()) {
     end_position.Next();
   }
@@ -2100,7 +2100,7 @@ void StreamingScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {
 
   int num_type_params = 0;
   {
-    AlternativeReadingScope _(builder_->reader_);
+    AlternativeReadingScope _(&builder_->reader_);
     num_type_params = builder_->ReadListLength();
   }
   // Adding this scope here informs the type translator the type parameters of
@@ -3823,7 +3823,7 @@ StringIndex StreamingFlowGraphBuilder::GetNameFromVariableDeclaration(
   ASSERT(!kernel_data.IsNull());
 
   // Temporarily go to the variable declaration, read the name.
-  AlternativeReadingScope alt(reader_, &kernel_data, kernel_offset);
+  AlternativeReadingScope alt(&reader_, &kernel_data, kernel_offset);
   VariableDeclarationHelper helper(this);
   helper.ReadUntilIncluding(VariableDeclarationHelper::kNameIndex);
   return helper.name_index_;
@@ -3934,7 +3934,7 @@ void StreamingFlowGraphBuilder::SetupDefaultParameterValues() {
     ZoneGrowableArray<const Instance*>* default_values =
         new ZoneGrowableArray<const Instance*>(Z, optional_parameter_count);
 
-    AlternativeReadingScope alt(reader_);
+    AlternativeReadingScope alt(&reader_);
     FunctionNodeHelper function_node_helper(this);
     function_node_helper.ReadUntilExcluding(
         FunctionNodeHelper::kPositionalParameters);
@@ -4031,7 +4031,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
   // Start by getting the position of the constructors initializer.
   intptr_t initializers_offset = -1;
   {
-    AlternativeReadingScope alt(reader_);
+    AlternativeReadingScope alt(&reader_);
     SkipFunctionNode();  // read constructors function node.
     initializers_offset = ReaderOffset();
   }
@@ -4044,7 +4044,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
   // (i.e. has a single initializer being of type kRedirectingInitializer).
   bool is_redirecting_constructor = false;
   {
-    AlternativeReadingScope alt(reader_, initializers_offset);
+    AlternativeReadingScope alt(&reader_, initializers_offset);
     intptr_t list_length = ReadListLength();  // read initializers list length.
     bool no_field_initializers = true;
     for (intptr_t i = 0; i < list_length; ++i) {
@@ -4067,7 +4067,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
         TypedData& kernel_data = TypedData::Handle(Z, class_field.KernelData());
         ASSERT(!kernel_data.IsNull());
         intptr_t field_offset = class_field.kernel_offset();
-        AlternativeReadingScope alt(reader_, &kernel_data, field_offset);
+        AlternativeReadingScope alt(&reader_, &kernel_data, field_offset);
         FieldHelper field_helper(this);
         field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
         Tag initializer_tag = ReadTag();  // read first part of initializer.
@@ -4088,7 +4088,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
   //     A(this.x) : super(expr), y = (expr);
   //   }
   {
-    AlternativeReadingScope alt(reader_, initializers_offset);
+    AlternativeReadingScope alt(&reader_, initializers_offset);
     intptr_t list_length = ReadListLength();  // read initializers list length.
     for (intptr_t i = 0; i < list_length; ++i) {
       Tag tag = ReadTag();
@@ -4308,7 +4308,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
     if (!target.NeedsArgumentTypeChecks(I)) {
       // Tearoffs of static methods needs to perform arguments checks since
       // static methods they forward to don't do it themselves.
-      AlternativeReadingScope _(reader_);
+      AlternativeReadingScope _(&reader_);
       body += BuildArgumentTypeChecks();
     } else {
       // Check if parent function was annotated with no-dynamic-invocations.
@@ -4318,7 +4318,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
       if (!attrs.has_dynamic_invocations) {
         // If it was then we might need to build some checks in the
         // tear-off.
-        AlternativeReadingScope _(reader_);
+        AlternativeReadingScope _(&reader_);
         body +=
             BuildArgumentTypeChecks(kTypeChecksForNoDynamicInvocationsTearOff);
       }
@@ -4426,7 +4426,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
 
   if (function.NeedsArgumentTypeChecks(I)) {
-    AlternativeReadingScope _(reader_);
+    AlternativeReadingScope _(&reader_);
     body += BuildArgumentTypeChecks();
   }
 
@@ -4885,7 +4885,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
       FunctionNodeHelper::kPositionalParameters);
   intptr_t first_parameter_offset = -1;
   {
-    AlternativeReadingScope alt(reader_);
+    AlternativeReadingScope alt(&reader_);
     intptr_t list_length = ReadListLength();  // read number of positionals.
     if (list_length > 0) {
       first_parameter_offset = ReaderOffset() + data_program_offset_;
@@ -4928,7 +4928,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
   // If we run in checked mode or strong mode, we have to check the type of the
   // passed arguments.
   if (dart_function.NeedsArgumentTypeChecks(I)) {
-    AlternativeReadingScope _(reader_);
+    AlternativeReadingScope _(&reader_);
     SetOffset(type_parameters_offset);
     body += BuildArgumentTypeChecks();
   }
@@ -5119,7 +5119,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
   switch (function.kind()) {
     case RawFunction::kImplicitClosureFunction:
     case RawFunction::kRegularFunction: {
-      AlternativeReadingScope alt(reader_);
+      AlternativeReadingScope alt(&reader_);
       ReadUntilFunctionNode(parsed_function());  // read until function node.
     }
     default: {}
@@ -5356,45 +5356,45 @@ Fragment StreamingFlowGraphBuilder::BuildStatement() {
 }
 
 intptr_t StreamingFlowGraphBuilder::ReaderOffset() {
-  return reader_->offset();
+  return reader_.offset();
 }
 
 void StreamingFlowGraphBuilder::SetOffset(intptr_t offset) {
-  reader_->set_offset(offset);
+  reader_.set_offset(offset);
 }
 
 void StreamingFlowGraphBuilder::SkipBytes(intptr_t bytes) {
-  reader_->set_offset(ReaderOffset() + bytes);
+  reader_.set_offset(ReaderOffset() + bytes);
 }
 
 bool StreamingFlowGraphBuilder::ReadBool() {
-  return reader_->ReadBool();
+  return reader_.ReadBool();
 }
 
 uint8_t StreamingFlowGraphBuilder::ReadByte() {
-  return reader_->ReadByte();
+  return reader_.ReadByte();
 }
 
 uint32_t StreamingFlowGraphBuilder::ReadUInt() {
-  return reader_->ReadUInt();
+  return reader_.ReadUInt();
 }
 
 uint32_t StreamingFlowGraphBuilder::ReadUInt32() {
-  return reader_->ReadUInt32();
+  return reader_.ReadUInt32();
 }
 
 uint32_t StreamingFlowGraphBuilder::PeekUInt() {
-  AlternativeReadingScope alt(reader_);
-  return reader_->ReadUInt();
+  AlternativeReadingScope alt(&reader_);
+  return reader_.ReadUInt();
 }
 
 uint32_t StreamingFlowGraphBuilder::PeekListLength() {
-  AlternativeReadingScope alt(reader_);
-  return reader_->ReadListLength();
+  AlternativeReadingScope alt(&reader_);
+  return reader_.ReadListLength();
 }
 
 intptr_t StreamingFlowGraphBuilder::ReadListLength() {
-  return reader_->ReadListLength();
+  return reader_.ReadListLength();
 }
 
 StringIndex StreamingFlowGraphBuilder::ReadStringReference() {
@@ -5402,7 +5402,7 @@ StringIndex StreamingFlowGraphBuilder::ReadStringReference() {
 }
 
 NameIndex StreamingFlowGraphBuilder::ReadCanonicalNameReference() {
-  return reader_->ReadCanonicalNameReference();
+  return reader_.ReadCanonicalNameReference();
 }
 
 StringIndex StreamingFlowGraphBuilder::ReadNameAsStringIndex() {
@@ -6077,7 +6077,7 @@ void StreamingFlowGraphBuilder::SkipLibraryTypedef() {
 }
 
 TokenPosition StreamingFlowGraphBuilder::ReadPosition(bool record) {
-  TokenPosition position = reader_->ReadPosition();
+  TokenPosition position = reader_.ReadPosition();
   if (record) {
     record_token_position(position);
   }
@@ -6099,11 +6099,11 @@ void StreamingFlowGraphBuilder::record_yield_position(TokenPosition position) {
 }
 
 Tag StreamingFlowGraphBuilder::ReadTag(uint8_t* payload) {
-  return reader_->ReadTag(payload);
+  return reader_.ReadTag(payload);
 }
 
 Tag StreamingFlowGraphBuilder::PeekTag(uint8_t* payload) {
-  return reader_->PeekTag(payload);
+  return reader_.PeekTag(payload);
 }
 
 void StreamingFlowGraphBuilder::loop_depth_inc() {
@@ -6209,7 +6209,7 @@ Value* StreamingFlowGraphBuilder::Pop() {
 
 Tag StreamingFlowGraphBuilder::PeekArgumentsFirstPositionalTag() {
   // read parts of arguments, then go back to before doing so.
-  AlternativeReadingScope alt(reader_);
+  AlternativeReadingScope alt(&reader_);
   ReadUInt();  // read number of arguments.
 
   SkipListOfDartTypes();  // Read list of types.
@@ -6227,7 +6227,7 @@ Tag StreamingFlowGraphBuilder::PeekArgumentsFirstPositionalTag() {
 const TypeArguments& StreamingFlowGraphBuilder::PeekArgumentsInstantiatedType(
     const Class& klass) {
   // read parts of arguments, then go back to before doing so.
-  AlternativeReadingScope alt(reader_);
+  AlternativeReadingScope alt(&reader_);
   ReadUInt();                               // read argument count.
   intptr_t list_length = ReadListLength();  // read types list length.
   return T.BuildInstantiatedTypeArguments(klass, list_length);  // read types.
@@ -6498,7 +6498,7 @@ Fragment StreamingFlowGraphBuilder::TranslateFinallyFinalizers(
     intptr_t target_context_depth) {
   // TranslateFinallyFinalizers can move the readers offset.
   // Save the current position and restore it afterwards.
-  AlternativeReadingScope alt(reader_);
+  AlternativeReadingScope alt(&reader_);
   return flow_graph_builder_->TranslateFinallyFinalizers(outer_finally,
                                                          target_context_depth);
 }
@@ -6649,7 +6649,7 @@ Fragment StreamingFlowGraphBuilder::BuildArguments(Array* argument_names,
   SkipListOfDartTypes();  // read list of types.
 
   {
-    AlternativeReadingScope _(reader_);
+    AlternativeReadingScope _(&reader_);
     if (positional_count == NULL) positional_count = &dummy;
     *positional_count = ReadListLength();  // read length of expression list
   }
@@ -7322,7 +7322,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   intptr_t type_args_len = 0;
   LocalVariable* type_arguments_temp = NULL;
   if (I->reify_generic_functions()) {
-    AlternativeReadingScope alt(reader_);
+    AlternativeReadingScope alt(&reader_);
     SkipExpression();                         // skip receiver
     SkipName();                               // skip method name
     ReadUInt();                               // read argument count.
@@ -7465,7 +7465,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
   Fragment instructions;
   intptr_t type_args_len = 0;
   if (I->reify_generic_functions()) {
-    AlternativeReadingScope alt(reader_);
+    AlternativeReadingScope alt(&reader_);
     SkipExpression();                         // skip receiver
     ReadCanonicalNameReference();             // skip target reference
     ReadUInt();                               // read argument count.
@@ -7531,7 +7531,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
 
   intptr_t type_args_len = 0;
   if (I->reify_generic_functions()) {
-    AlternativeReadingScope alt(reader_);
+    AlternativeReadingScope alt(&reader_);
     SkipName();                        // skip method name
     ReadUInt();                        // read argument count.
     type_args_len = ReadListLength();  // read types list length.
@@ -7546,7 +7546,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
   intptr_t argument_count;
   Array& argument_names = Array::Handle(Z);
   {
-    AlternativeReadingScope alt(reader_);
+    AlternativeReadingScope alt(&reader_);
     argument_count = ReadUInt();
     SkipListOfDartTypes();
 
@@ -7635,7 +7635,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
     Fragment instructions;
 
     if (I->reify_generic_functions()) {
-      AlternativeReadingScope alt(reader_);
+      AlternativeReadingScope alt(&reader_);
       ReadUInt();                               // read argument count.
       intptr_t list_length = ReadListLength();  // read types list length.
       if (list_length > 0) {
@@ -7727,7 +7727,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
     instructions += TranslateInstantiatedTypeArguments(type_arguments);
     instructions += PushArgument();
   } else if (!special_case_identical && I->reify_generic_functions()) {
-    AlternativeReadingScope alt(reader_);
+    AlternativeReadingScope alt(&reader_);
     ReadUInt();                               // read argument count.
     intptr_t list_length = ReadListLength();  // read types list length.
     if (list_length > 0) {
@@ -9710,7 +9710,7 @@ void StreamingFlowGraphBuilder::LoadAndSetupTypeParameters(
   // Step a) Create array of [TypeParameter] objects (without bound).
   type_parameters = TypeArguments::New(type_parameter_count);
   {
-    AlternativeReadingScope alt(reader_);
+    AlternativeReadingScope alt(&reader_);
     for (intptr_t i = 0; i < type_parameter_count; i++) {
       TypeParameterHelper helper(this);
       helper.Finish();
@@ -9987,55 +9987,55 @@ void StreamingFlowGraphBuilder::CollectTokenPositionsFor(
 }
 
 intptr_t StreamingFlowGraphBuilder::SourceTableSize() {
-  AlternativeReadingScope alt(reader_);
-  intptr_t library_count = reader_->ReadFromIndexNoReset(
-      reader_->size(), LibraryCountFieldCountFromEnd, 1, 0);
-  intptr_t source_table_offset = reader_->ReadFromIndexNoReset(
-      reader_->size(),
+  AlternativeReadingScope alt(&reader_);
+  intptr_t library_count = reader_.ReadFromIndexNoReset(
+      reader_.size(), LibraryCountFieldCountFromEnd, 1, 0);
+  intptr_t source_table_offset = reader_.ReadFromIndexNoReset(
+      reader_.size(),
       LibraryCountFieldCountFromEnd + 1 + library_count + 1 +
           SourceTableFieldCountFromFirstLibraryOffset,
       1, 0);
   SetOffset(source_table_offset);  // read source table offset.
-  return reader_->ReadUInt32();    // read source table size.
+  return reader_.ReadUInt32();     // read source table size.
 }
 
 intptr_t StreamingFlowGraphBuilder::GetOffsetForSourceInfo(intptr_t index) {
-  AlternativeReadingScope alt(reader_);
-  intptr_t library_count = reader_->ReadFromIndexNoReset(
-      reader_->size(), LibraryCountFieldCountFromEnd, 1, 0);
-  intptr_t source_table_offset = reader_->ReadFromIndexNoReset(
-      reader_->size(),
+  AlternativeReadingScope alt(&reader_);
+  intptr_t library_count = reader_.ReadFromIndexNoReset(
+      reader_.size(), LibraryCountFieldCountFromEnd, 1, 0);
+  intptr_t source_table_offset = reader_.ReadFromIndexNoReset(
+      reader_.size(),
       LibraryCountFieldCountFromEnd + 1 + library_count + 1 +
           SourceTableFieldCountFromFirstLibraryOffset,
       1, 0);
-  intptr_t next_field_offset = reader_->ReadUInt32();
+  intptr_t next_field_offset = reader_.ReadUInt32();
   SetOffset(source_table_offset);
-  intptr_t size = reader_->ReadUInt32();  // read source table size.
+  intptr_t size = reader_.ReadUInt32();  // read source table size.
 
-  return reader_->ReadFromIndexNoReset(next_field_offset, 0, size, index);
+  return reader_.ReadFromIndexNoReset(next_field_offset, 0, size, index);
 }
 
 String& StreamingFlowGraphBuilder::SourceTableUriFor(intptr_t index) {
-  AlternativeReadingScope alt(reader_);
+  AlternativeReadingScope alt(&reader_);
   SetOffset(GetOffsetForSourceInfo(index));
   intptr_t size = ReadUInt();  // read uri List<byte> size.
-  return H.DartString(reader_->CopyDataIntoZone(Z, ReaderOffset(), size), size,
+  return H.DartString(reader_.CopyDataIntoZone(Z, ReaderOffset(), size), size,
                       Heap::kOld);
 }
 
 String& StreamingFlowGraphBuilder::GetSourceFor(intptr_t index) {
-  AlternativeReadingScope alt(reader_);
+  AlternativeReadingScope alt(&reader_);
   SetOffset(GetOffsetForSourceInfo(index));
   SkipBytes(ReadUInt());       // skip uri.
   intptr_t size = ReadUInt();  // read source List<byte> size.
-  return H.DartString(reader_->CopyDataIntoZone(Z, ReaderOffset(), size), size,
+  return H.DartString(reader_.CopyDataIntoZone(Z, ReaderOffset(), size), size,
                       Heap::kOld);
 }
 
 RawTypedData* StreamingFlowGraphBuilder::GetLineStartsFor(intptr_t index) {
   // Line starts are delta encoded. So get the max delta first so that we
   // can store them as tighly as possible.
-  AlternativeReadingScope alt(reader_);
+  AlternativeReadingScope alt(&reader_);
   SetOffset(GetOffsetForSourceInfo(index));
   SkipBytes(ReadUInt());                         // skip uri.
   SkipBytes(ReadUInt());                         // skip source.

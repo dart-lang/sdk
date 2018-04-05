@@ -956,6 +956,10 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
 #undef REUSABLE_HANDLE_INITIALIZERS
 
 Isolate::~Isolate() {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  RELEASE_ASSERT(reload_context_ == NULL);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
   delete background_compiler_;
   background_compiler_ = NULL;
 

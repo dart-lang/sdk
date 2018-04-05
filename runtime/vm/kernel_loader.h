@@ -120,7 +120,7 @@ class ClassIndex {
   DISALLOW_COPY_AND_ASSIGN(ClassIndex);
 };
 
-class KernelLoader {
+class KernelLoader : public ValueObject {
  public:
   explicit KernelLoader(Program* program);
   static Object& LoadEntireProgram(Program* program,
@@ -301,11 +301,6 @@ class KernelLoader {
 
   GrowableArray<const Function*> functions_;
   GrowableArray<const Field*> fields_;
-};
-
-class ClassLoader {
- public:
-  void LoadClassMembers();
 };
 
 }  // namespace kernel
