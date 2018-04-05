@@ -1554,11 +1554,15 @@ TEST_CASE(IsolateReload_TearOff_Parameter_Count_Mismatch) {
       "}\n";
 
   TestCase::SetReloadTestScript(kReloadScript);
-
   Dart_Handle error_handle = SimpleInvokeError(lib, "main");
 
   const char* error;
-  if (TestCase::UsingDartFrontend()) {
+  if (TestCase::UsingStrongMode()) {
+    error =
+        "file:///test-lib:8:12: Error: Too few positional"
+        " arguments to function: 1 required, 0 given.\n"
+        "  return f1();";
+  } else if (TestCase::UsingDartFrontend()) {
     error =
         "NoSuchMethodError: Closure call with mismatched arguments: function "
         "'C.foo'\n"
