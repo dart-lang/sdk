@@ -2508,6 +2508,9 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   @override
   TypeInformation visitTopLevelGetterInvoke(ast.Send node, GetterElement getter,
       ast.NodeList arguments, CallStructure callStructure, _) {
+    if (getter.isDeferredLoaderGetter) {
+      return types.dynamicType;
+    }
     return handleStaticFieldOrGetterInvoke(node, getter);
   }
 
@@ -2661,6 +2664,9 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   @override
   TypeInformation visitTopLevelGetterGet(
       ast.Send node, GetterElement getter, _) {
+    if (getter.isDeferredLoaderGetter) {
+      return types.functionType;
+    }
     return handleStaticGetterGet(node, getter);
   }
 

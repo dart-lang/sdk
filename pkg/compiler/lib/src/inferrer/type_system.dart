@@ -376,6 +376,8 @@ class TypeSystem<T> {
   }
 
   MemberTypeInformation getInferredTypeOfMember(MemberEntity member) {
+    assert(!member.isAbstract,
+        failedAt(member, "Unexpected abstract member $member."));
     return memberTypeInformations.putIfAbsent(member, () {
       MemberTypeInformation typeInformation =
           strategy.createMemberTypeInformation(member);

@@ -105,6 +105,7 @@ class NoSuchMethodRegistryImpl implements NoSuchMethodRegistry {
 
   NsmCategory _categorizeImpl(FunctionEntity element) {
     assert(element.name == Identifiers.noSuchMethod_);
+    assert(!element.isAbstract);
     if (defaultImpls.contains(element)) {
       return NsmCategory.DEFAULT;
     }

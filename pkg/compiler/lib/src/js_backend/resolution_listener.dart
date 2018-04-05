@@ -201,7 +201,10 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     for (ClassEntity cls in recentClasses) {
       MemberEntity element = _elementEnvironment.lookupLocalClassMember(
           cls, Identifiers.noSuchMethod_);
-      if (element != null && element.isInstanceMember && element.isFunction) {
+      if (element != null &&
+          element.isInstanceMember &&
+          element.isFunction &&
+          !element.isAbstract) {
         _noSuchMethodRegistry.registerNoSuchMethod(element);
       }
     }

@@ -42,6 +42,9 @@ const List<String> skipList = const <String>[
   'final_field2.dart',
   // TODO(johnniwinther): Fix ast equivalence on instance fields in for.
   'field_type.dart',
+
+  // Kernel add synthetic nodes for tear off of loadLibrary.
+  'deferred_load_get.dart',
 ];
 
 main(List<String> args) {

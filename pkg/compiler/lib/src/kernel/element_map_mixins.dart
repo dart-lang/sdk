@@ -347,7 +347,7 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
       cls = elementEnvironment.getSuperClass(cls);
       MemberEntity member = elementEnvironment.lookupLocalClassMember(
           cls, Identifiers.noSuchMethod_);
-      if (member != null) {
+      if (member != null && !member.isAbstract) {
         if (member.isFunction) {
           FunctionEntity function = member;
           if (function.parameterStructure.positionalParameters >= 1) {
