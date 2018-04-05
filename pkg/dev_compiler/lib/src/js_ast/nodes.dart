@@ -331,6 +331,12 @@ abstract class Statement extends ModuleItem {
   /// JavaScript syntax error due to a redeclared identifier.
   bool shadows(Set<String> names) => false;
 
+  /// Whether this statement would always `return` if used as a funtion body.
+  ///
+  /// This is only well defined on the outermost block; it cannot be used for a
+  /// block inside of a loop (because of `break` and `continue`).
+  bool get alwaysReturns => false;
+
   /// If this statement [shadows] any name from [names], this will wrap it in a
   /// new scoped [Block].
   Statement toScopedBlock(Set<String> names) {
@@ -355,6 +361,10 @@ class Block extends Statement {
   Block.empty()
       : statements = <Statement>[],
         isScope = false;
+
+  @override
+  bool get alwaysReturns =>
+      statements.isNotEmpty && statements.last.alwaysReturns;
 
   @override
   Block toBlock() => this;
@@ -412,6 +422,10 @@ class If extends Statement {
 
   If(this.condition, this.then, this.otherwise);
   If.noElse(this.condition, this.then) : this.otherwise = null;
+
+  @override
+  bool get alwaysReturns =>
+      hasElse && then.alwaysReturns && otherwise.alwaysReturns;
 
   bool get hasElse => otherwise != null;
 
@@ -544,6 +558,9 @@ class Return extends Statement {
   final Expression value; // Can be null.
 
   Return([this.value = null]);
+
+  @override
+  bool get alwaysReturns => true;
 
   Statement toReturn() => this;
 
