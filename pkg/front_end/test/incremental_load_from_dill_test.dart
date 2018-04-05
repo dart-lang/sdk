@@ -328,6 +328,14 @@ Future<bool> initializedCompile(
   throwOnEmptyMixinBodies(initializedComponent);
   bool result = compiler.initializedFromDill;
   await writeComponentToFile(initializedComponent, output);
+
+  var initializedComponent2 = await compiler.computeDelta(fullComponent: true);
+  throwOnEmptyMixinBodies(initializedComponent2);
+  Expect.equals(initializedComponent.libraries.length,
+      initializedComponent2.libraries.length);
+  Expect.equals(initializedComponent.uriToSource.length,
+      initializedComponent2.uriToSource.length);
+
   for (Uri invalidateUri in invalidateUris) {
     compiler.invalidate(invalidateUri);
   }

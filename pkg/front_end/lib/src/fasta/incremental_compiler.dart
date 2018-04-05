@@ -45,6 +45,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   List<Uri> invalidatedUris = <Uri>[];
 
   DillTarget dillLoadedData;
+  Map<Uri, Source> dillLoadedDataUriToSource = <Uri, Source>{};
   List<LibraryBuilder> platformBuilders;
   Map<Uri, LibraryBuilder> userBuilders;
   final Uri initializeFromDillUri;
@@ -157,38 +158,49 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         userCode.loader.builders.clear();
         userCode = userCodeOld;
         return new Component(
-            libraries: libraries, uriToSource: data.uriToSource);
+            libraries: libraries, uriToSource: <Uri, Source>{});
       }
       userCodeOld?.loader?.builders?.clear();
       userCodeOld = null;
 
       List<Library> libraries =
           new List<Library>.from(userCode.loader.libraries);
-      data.uriToSource.addAll(userCode.uriToSource);
+      Map<Uri, Source> uriToSource =
+          new Map<Uri, Source>.from(dillLoadedDataUriToSource);
+      uriToSource.addAll(userCode.uriToSource);
       Procedure mainMethod = componentWithDill == null
           ? data.userLoadedUriMain
           : componentWithDill.mainMethod;
+
       if (data.includeUserLoadedLibraries || fullComponent) {
-        addReusedLibraries(libraries, mainMethod, reusedLibraries, data);
+        addReusedLibraries(
+            libraries, mainMethod, entryPoint, reusedLibraries, data);
       }
 
       // Clean up.
       userCode.loader.releaseAncillaryResources();
 
       // This is the incremental component.
-      return new Component(libraries: libraries, uriToSource: data.uriToSource)
+      return new Component(libraries: libraries, uriToSource: uriToSource)
         ..mainMethod = mainMethod;
     });
   }
 
-  void addReusedLibraries(List<Library> libraries, Procedure mainMethod,
-      List<LibraryBuilder> reusedLibraries, IncrementalCompilerData data) {
+  void addReusedLibraries(
+      List<Library> libraries,
+      Procedure mainMethod,
+      Uri entry,
+      List<LibraryBuilder> reusedLibraries,
+      IncrementalCompilerData data) {
     Map<Uri, Library> libraryMap = <Uri, Library>{};
     for (Library library in libraries) {
       libraryMap[library.fileUri] = library;
     }
     List<Uri> worklist = new List<Uri>.from(libraryMap.keys);
     worklist.add(mainMethod?.enclosingLibrary?.fileUri);
+    if (entry != null) {
+      worklist.add(entry);
+    }
 
     Map<Uri, Library> potentiallyReferencedLibraries = <Uri, Library>{};
     for (LibraryBuilder library in reusedLibraries) {
@@ -275,7 +287,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         data.includeUserLoadedLibraries = true;
         for (Uri uri in data.component.uriToSource.keys) {
           if (sdkUris.contains(uri)) continue;
-          data.uriToSource[uri] = data.component.uriToSource[uri];
+          dillLoadedDataUriToSource[uri] = data.component.uriToSource[uri];
         }
       }
     }
@@ -407,7 +419,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
 class IncrementalCompilerData {
   bool includeUserLoadedLibraries;
-  Map<Uri, Source> uriToSource;
   Map<Uri, int> importUriToOrder;
   Procedure userLoadedUriMain;
   Component component;
@@ -418,7 +429,6 @@ class IncrementalCompilerData {
 
   reset() {
     includeUserLoadedLibraries = false;
-    uriToSource = <Uri, Source>{};
     importUriToOrder = <Uri, int>{};
     userLoadedUriMain = null;
     component = null;
