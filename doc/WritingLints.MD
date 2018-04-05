@@ -62,9 +62,9 @@ Corresponding tests live in [test/rules](https://github.com/dart-lang/linter/tre
 
 Rule stubs can be generated with the [rule.dart](https://github.com/dart-lang/linter/blob/master/tool/rule.dart) 
 helper script and documentation gets generated with [doc.dart](https://github.com/dart-lang/linter/blob/master/tool/doc.dart). 
-Helper scripts can be invoked via `dart` or grinder (`pub run grinder docs:doc_location` and `pub run grinder rule:my_new_rule` respectively).  Using grinder, for example
+Helper scripts can be invoked via `dart` or grinder (`pub run grinder docs --dir=doc_location` and `pub run grinder rule --name=my_new_rule` respectively).  Using grinder, for example
 
-    $ pub run grinder rule:my_new_test
+    $ pub run grinder rule --name=my_new_test
     
 generates lint and test stubs in `lib/src/rules` and `test/rules`.
 
