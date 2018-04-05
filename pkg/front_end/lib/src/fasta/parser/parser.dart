@@ -1379,113 +1379,6 @@ class Parser {
     }
   }
 
-  /// If the token after [token] begins a valid type reference
-  /// or looks like a valid type reference, then return the last token
-  /// in that type reference, otherwise return [token].
-  ///
-  /// For example, it is an error when built-in keyword is being used as a type,
-  /// as in `abstract<t> foo`. In situations such as this, return the last
-  /// token in that type reference and assume the caller will report the error
-  /// and recover.
-  Token skipTypeReferenceOpt(Token token, bool inDeclaration) {
-    final Token beforeStart = token;
-    Token next = token.next;
-
-    TokenType type = next.type;
-    bool looksLikeTypeRef = false;
-    if (type != TokenType.IDENTIFIER) {
-      String value = next.stringValue;
-      if (identical(value, 'get') || identical(value, 'set')) {
-        // No type reference.
-        return beforeStart;
-      } else if (identical(value, 'factory') || identical(value, 'operator')) {
-        Token next2 = next.next;
-        if (!optional('<', next2) || next2.endGroup == null) {
-          // No type reference.
-          return beforeStart;
-        }
-        // Even though built-ins cannot be used as a type,
-        // it looks like its being used as such.
-      } else if (identical(value, 'void')) {
-        // Found type reference.
-        looksLikeTypeRef = true;
-      } else if (identical(value, 'Function')) {
-        // Found type reference.
-        return skipGenericFunctionType(token);
-      } else if (identical(value, 'typedef')) {
-        // `typedef` can be used as a prefix.
-        // For example: `typedef.A x = new typedef.A();`
-        if (!optional('.', next.next)) {
-          // No type reference.
-          return beforeStart;
-        }
-      } else if (!next.isIdentifier) {
-        // No type reference.
-        return beforeStart;
-      }
-    }
-    token = next;
-    next = token.next;
-
-    if (optional('.', next)) {
-      token = next;
-      next = token.next;
-      if (next.type != TokenType.IDENTIFIER) {
-        String value = next.stringValue;
-        if (identical(value, '<')) {
-          // Found a type reference, but missing an identifier after the period.
-          rewriteAndRecover(
-              token,
-              fasta.templateExpectedIdentifier.withArguments(next),
-              new SyntheticStringToken(
-                  TokenType.IDENTIFIER, '', next.charOffset, 0));
-          // Fall through to continue processing as a type reference.
-          next = token.next;
-        } else if (!next.isIdentifier) {
-          if (identical(value, 'void')) {
-            looksLikeTypeRef = true;
-            // Found a type reference, but the period
-            // and preceding identifier are both invalid.
-            reportRecoverableErrorWithToken(
-                token, fasta.templateUnexpectedToken);
-            // Fall through to continue processing as a type reference.
-          } else {
-            // No type reference.
-            return beforeStart;
-          }
-        }
-      }
-      token = next;
-      next = token.next;
-    }
-
-    if (optional('<', next)) {
-      token = next.endGroup;
-      if (token == null) {
-        // TODO(danrubel): Consider better recovery
-        // because this is probably a type reference.
-        return beforeStart;
-      }
-      next = token.next;
-      if (optional('(', next)) {
-        // No type reference - e.g. `f<E>()`.
-        return beforeStart;
-      }
-    }
-
-    if (optional('Function', next)) {
-      looksLikeTypeRef = true;
-      token = skipGenericFunctionType(token);
-      next = token.next;
-    }
-
-    return next.isIdentifier ||
-            (inDeclaration && next.isOperator && !optional('=', next)) ||
-            looksLikeTypeRef
-        ? token
-        : beforeStart;
-  }
-
   /// Returns `true` if [token] matches '<' type (',' type)* '>' '(', and
   /// otherwise returns `false`. The final '(' is not part of the grammar
   /// construct `typeArguments`, but it is required here such that type
@@ -2892,14 +2785,8 @@ class Parser {
     typeContinuation ??= TypeContinuation.Required;
 
     Token beforeType = token;
-    // TODO(danrubel): Consider changing the listener contract
-    // so that the type reference can be parsed immediately
-    // rather than skipped now and parsed later.
-    token = skipTypeReferenceOpt(token, true);
-    if (token == beforeType) {
-      // There is no type reference.
-      beforeType = null;
-    }
+    TypeInfo typeInfo = computeType(token, false);
+    token = typeInfo.skipType(token);
     next = token.next;
 
     Token getOrSet;
@@ -2984,12 +2871,16 @@ class Parser {
         }
       }
       return parseTopLevelMethod(
-          beforeStart, externalToken, beforeType, getOrSet, token);
+          beforeStart, externalToken, beforeType, typeInfo, getOrSet, token);
     }
 
     if (getOrSet != null) {
       reportRecoverableErrorWithToken(
           getOrSet, fasta.templateExtraneousModifier);
+    }
+    // TODO(danrubel): Use typeInfo when parsing fields.
+    if (typeInfo == noTypeInfo) {
+      beforeType = null;
     }
     return parseFields(beforeStart, externalToken, null, null, varFinalOrConst,
         beforeType, token, MemberKind.TopLevelField, typeContinuation);
@@ -3053,14 +2944,10 @@ class Parser {
   }
 
   Token parseTopLevelMethod(Token beforeStart, Token externalToken,
-      Token beforeType, Token getOrSet, Token beforeName) {
+      Token beforeType, TypeInfo typeInfo, Token getOrSet, Token beforeName) {
     listener.beginTopLevelMethod(beforeStart, externalToken);
 
-    if (beforeType == null) {
-      listener.handleNoType(beforeName);
-    } else {
-      parseType(beforeType, TypeContinuation.Optional);
-    }
+    typeInfo.parseType(beforeType, this);
     Token name = ensureIdentifier(
         beforeName, IdentifierContext.topLevelFunctionDeclaration);
 
@@ -3722,6 +3609,9 @@ class Parser {
             getOrSet, fasta.templateExtraneousModifier);
       }
       // TODO(danrubel): Use typeInfo when parsing fields.
+      if (typeInfo == noTypeInfo) {
+        beforeType = null;
+      }
       token = parseFields(
           beforeStart,
           externalToken,
@@ -4321,7 +4211,7 @@ class Parser {
     } else if (!inPlainSync && identical(value, 'await')) {
       return parseExpressionStatement(token);
     } else if (identical(value, 'set') && token.next.next.isIdentifier) {
-      // Recovery: invalid use of `get` or `set`
+      // Recovery: invalid use of `set`
       reportRecoverableErrorWithToken(
           token.next, fasta.templateUnexpectedToken);
       return parseStatementX(token.next);
@@ -6514,6 +6404,10 @@ class Parser {
             getOrSet,
             token);
       } else {
+        // TODO(danrubel): Use typeInfo when parsing fields.
+        if (typeInfo == noTypeInfo) {
+          beforeType = null;
+        }
         token = parseFields(
             beforeStart,
             externalToken,

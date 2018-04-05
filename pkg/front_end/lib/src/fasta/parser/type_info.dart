@@ -118,13 +118,25 @@ TypeInfo computeType(final Token token, bool required) {
   if (!isValidTypeReference(next)) {
     if (next.type.isBuiltIn) {
       Token afterType = next.next;
-      if (optional('<', afterType) && afterType.endGroup != null) {
+      if (optional('<', afterType) &&
+          afterType.endGroup != null &&
+          looksLikeName(afterType.endGroup.next)) {
         // Recovery: built-in used as a type
-        return new ComplexTypeInfo(token)
-            .computeSimpleWithTypeArguments(required);
-      } else if (isGeneralizedFunctionType(afterType)) {
-        // Recovery: built-in used as a type
-        return new ComplexTypeInfo(token).computeIdentifierGFT(required);
+        return new ComplexTypeInfo(token).computeBuiltinAsType(required);
+      } else {
+        String value = next.stringValue;
+        if (!identical('get', value) &&
+            !identical('set', value) &&
+            !identical('factory', value) &&
+            !identical('operator', value)) {
+          if (isGeneralizedFunctionType(afterType)) {
+            // Recovery: built-in used as a type
+            return new ComplexTypeInfo(token).computeBuiltinAsType(required);
+          } else if (required) {
+            // Recovery: built-in used as a type
+            return new ComplexTypeInfo(token).computeBuiltinAsType(required);
+          }
+        }
       }
     }
     return noTypeInfo;
@@ -216,7 +228,10 @@ TypeInfo computeType(final Token token, bool required) {
 /// Instances of [ComplexTypeInfo] are returned by [computeType] to represent
 /// type references that cannot be represented by the constants above.
 class ComplexTypeInfo implements TypeInfo {
+  /// The first token in the type reference.
   final Token start;
+
+  /// The last token in the type reference.
   Token end;
 
   /// Non-null if type arguments were seen during analysis.
@@ -311,9 +326,11 @@ class ComplexTypeInfo implements TypeInfo {
     assert(optional('Function', start));
     computeRest(start, required);
 
-    return gftHasReturnType != null
-        ? this
-        : required ? simpleTypeInfo : noTypeInfo;
+    if (gftHasReturnType == null) {
+      return required ? simpleTypeInfo : noTypeInfo;
+    }
+    assert(end != null);
+    return this;
   }
 
   /// Given void `Function` non-identifier, compute the type
@@ -323,23 +340,53 @@ class ComplexTypeInfo implements TypeInfo {
     assert(optional('Function', start.next));
     computeRest(start.next, required);
 
-    return gftHasReturnType != null ? this : voidTypeInfo;
+    if (gftHasReturnType == null) {
+      return voidTypeInfo;
+    }
+    assert(end != null);
+    return this;
+  }
+
+  /// Given a builtin, return the receiver so that parseType will report
+  /// an error for the builtin used as a type.
+  TypeInfo computeBuiltinAsType(bool required) {
+    assert(start.type.isBuiltIn);
+    end = start;
+    Token token = start.next;
+    if (optional('<', token)) {
+      typeArguments = token;
+      token = skipTypeArguments(typeArguments);
+      if (token == null) {
+        token = typeArguments;
+        typeArguments = null;
+      } else {
+        end = token;
+      }
+    }
+    computeRest(token, required);
+
+    assert(end != null);
+    return this;
   }
 
   /// Given identifier `Function` non-identifier, compute the type
   /// and return the receiver or one of the [TypeInfo] constants.
   TypeInfo computeIdentifierGFT(bool required) {
-    assert(isValidTypeReference(start) || start.type.isBuiltIn);
+    assert(isValidTypeReference(start));
     assert(optional('Function', start.next));
     computeRest(start.next, required);
 
-    return gftHasReturnType != null ? this : simpleTypeInfo;
+    if (gftHasReturnType == null) {
+      return simpleTypeInfo;
+    }
+    assert(end != null);
+    return this;
   }
 
   /// Given identifier `<` ... `>`, compute the type
   /// and return the receiver or one of the [TypeInfo] constants.
   TypeInfo computeSimpleWithTypeArguments(bool required) {
-    assert(isValidTypeReference(start) || start.type.isBuiltIn);
+    assert(isValidTypeReference(start));
     typeArguments = start.next;
     assert(optional('<', typeArguments));
 
@@ -350,9 +397,11 @@ class ComplexTypeInfo implements TypeInfo {
     end = token;
     computeRest(token.next, required);
 
-    return required || looksLikeName(end.next) || gftHasReturnType != null
-        ? this
-        : noTypeInfo;
+    if (!required && !looksLikeName(end.next) && gftHasReturnType == null) {
+      return noTypeInfo;
+    }
+    assert(end != null);
+    return this;
   }
 
   /// Given identifier `.` identifier, compute the type
@@ -377,9 +426,11 @@ class ComplexTypeInfo implements TypeInfo {
     }
     computeRest(token, required);
 
-    return required || looksLikeName(end.next) || gftHasReturnType != null
-        ? this
-        : noTypeInfo;
+    if (!required && !looksLikeName(end.next) && gftHasReturnType == null) {
+      return noTypeInfo;
+    }
+    assert(end != null);
+    return this;
   }
 
   void computeRest(Token token, bool required) {
@@ -400,6 +451,9 @@ class ComplexTypeInfo implements TypeInfo {
       token = token.endGroup;
       if (token == null) {
         break; // Not a function type.
+      }
+      if (!required && !token.next.isIdentifier) {
+        break; // `Function` used as the name in a function declaration.
       }
       assert(optional(')', token));
       gftHasReturnType ??= typeVariableStart != start;
