@@ -169,6 +169,7 @@ class Class6 {
   var field6a;
   /*ast.element: Class6.field6b:[exact=JSUInt31]*/
   /*kernel.element: Class6.field6b:[null|exact=JSUInt31]*/
+  /*strong.element: Class6.field6b:[null|exact=JSUInt31]*/
   var field6b;
 
   /*element: Class6.:[exact=Class6]*/
@@ -186,11 +187,13 @@ class SubClass6 extends Class6 {
 
   /*ast.element: SubClass6.access:[exact=JSUInt31]*/
   /*kernel.element: SubClass6.access:[null|exact=JSUInt31]*/
+  /*strong.element: SubClass6.access:[null|exact=JSUInt31]*/
   get access => super.field6b;
 }
 
 /*ast.element: subclassFieldWrite:[exact=JSUInt31]*/
 /*kernel.element: subclassFieldWrite:[null|exact=JSUInt31]*/
+/*strong.element: subclassFieldWrite:[null|exact=JSUInt31]*/
 subclassFieldWrite() {
   new Class6();
   return new SubClass6(). /*[exact=SubClass6]*/ access;
@@ -206,6 +209,7 @@ class Class9 {
   var field9a;
   /*ast.element: Class9.field9b:[exact=JSUInt31]*/
   /*kernel.element: Class9.field9b:[null|exact=JSUInt31]*/
+  /*strong.element: Class9.field9b:[null|exact=JSUInt31]*/
   var field9b;
 
   /*element: Class9.:[exact=Class9]*/
@@ -223,6 +227,7 @@ class SubClass9a extends Class9 {
 
   /*ast.element: SubClass9a.access:[exact=JSUInt31]*/
   /*kernel.element: SubClass9a.access:[null|exact=JSUInt31]*/
+  /*strong.element: SubClass9a.access:[null|exact=JSUInt31]*/
   get access => super.field9b;
 }
 
@@ -231,6 +236,7 @@ class SubClass9b extends Class9 {}
 
 /*ast.element: subclassesFieldWrite:[exact=JSUInt31]*/
 /*kernel.element: subclassesFieldWrite:[null|exact=JSUInt31]*/
+/*strong.element: subclassesFieldWrite:[null|exact=JSUInt31]*/
 subclassesFieldWrite() {
   new Class9();
   new SubClass9b();

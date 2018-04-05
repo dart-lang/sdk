@@ -64,8 +64,8 @@ recursiveLocalFunction() {
 /*element: namedLocalFunctionInvokeMissingArgument:[null|subclass=Object]*/
 namedLocalFunctionInvokeMissingArgument() {
   /*[exact=JSUInt31]*/ local(/*[empty]*/ x) => 0;
-  // ignore: NOT_ENOUGH_REQUIRED_ARGUMENTS
-  return local();
+  dynamic b = local;
+  return b();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -75,8 +75,8 @@ namedLocalFunctionInvokeMissingArgument() {
 /*element: namedLocalFunctionInvokeExtraArgument:[null|subclass=Object]*/
 namedLocalFunctionInvokeExtraArgument() {
   /*[exact=JSUInt31]*/ local() => 0;
-  // ignore: EXTRA_POSITIONAL_ARGUMENTS
-  return local(0);
+  dynamic b = local;
+  return b(0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -86,8 +86,8 @@ namedLocalFunctionInvokeExtraArgument() {
 /*element: namedLocalFunctionInvokeExtraNamedArgument:[null|subclass=Object]*/
 namedLocalFunctionInvokeExtraNamedArgument() {
   /*[exact=JSUInt31]*/ local() => 0;
-  // ignore: UNDEFINED_NAMED_PARAMETER
-  return local(a: 0);
+  dynamic b = local;
+  return b(a: 0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -47,9 +47,10 @@ test3() => new C(). /*invoke: [exact=C]*/ foo();
 test4() => (a ? new B() : new C()). /*invoke: [subclass=B]*/ foo();
 
 /*element: test5:Dictionary([subclass=JsLinkedHashMap], key: [empty], value: [null], map: {})*/
-test5() => (a ? new B() : new D())
-    // ignore: undefined_method
-    . /*invoke: Union([exact=B], [exact=D])*/ foo();
+test5() {
+  dynamic e = (a ? new B() : new D());
+  return e. /*invoke: Union([exact=B], [exact=D])*/ foo();
+}
 
 // Can hit A.noSuchMethod, D.noSuchMethod and Object.noSuchMethod.
 /*element: test6:Union([exact=JSDouble], [exact=JSUInt31])*/
@@ -57,31 +58,36 @@ test6() => a. /*invoke: Union([exact=D], [null|subclass=B])*/ bar();
 
 // Can hit A.noSuchMethod.
 /*element: test7:[exact=JSUInt31]*/
-test7() => new B()
-    // ignore: undefined_method
-    . /*invoke: [exact=B]*/ bar();
+test7() {
+  dynamic e = new B();
+  return e. /*invoke: [exact=B]*/ bar();
+}
 
 /*element: test8:[exact=JSUInt31]*/
-test8() => new C()
-    // ignore: undefined_method
-    . /*invoke: [exact=C]*/ bar();
+test8() {
+  dynamic e = new C();
+  return e. /*invoke: [exact=C]*/ bar();
+}
 
 /*element: test9:[exact=JSUInt31]*/
-test9() => (a ? new B() : new C())
-    // ignore: undefined_method
-    . /*invoke: [subclass=B]*/ bar();
+test9() {
+  dynamic e = (a ? new B() : new C());
+  return e. /*invoke: [subclass=B]*/ bar();
+}
 
 // Can hit A.noSuchMethod and D.noSuchMethod.
 /*element: test10:Union([exact=JSDouble], [exact=JSUInt31])*/
-test10() => (a ? new B() : new D())
-    // ignore: undefined_method
-    . /*invoke: Union([exact=B], [exact=D])*/ bar();
+test10() {
+  dynamic e = (a ? new B() : new D());
+  return e. /*invoke: Union([exact=B], [exact=D])*/ bar();
+}
 
 // Can hit D.noSuchMethod.
 /*element: test11:[exact=JSDouble]*/
-test11() => new D()
-    // ignore: undefined_method
-    . /*invoke: [exact=D]*/ bar();
+test11() {
+  dynamic e = new D();
+  return e. /*invoke: [exact=D]*/ bar();
+}
 
 /*element: main:[null]*/
 main() {

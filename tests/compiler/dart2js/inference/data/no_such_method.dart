@@ -16,8 +16,10 @@ class Class1 {
   noSuchMethod(/*[null|subclass=Object]*/ _) => 42;
 
   /*element: Class1.method:[exact=JSUInt31]*/
-  // ignore: UNDEFINED_GETTER
-  method() => this. /*[exact=Class1]*/ missingGetter;
+  method() {
+    dynamic a = this;
+    return a. /*[exact=Class1]*/ missingGetter;
+  }
 }
 
 /*element: missingGetter:[exact=JSUInt31]*/
@@ -33,8 +35,10 @@ class Class2 {
   noSuchMethod(/*[null|subclass=Object]*/ _) => 42;
 
   /*element: Class2.method:[exact=JSUInt31]*/
-  // ignore: UNDEFINED_METHOD
-  method() => this. /*invoke: [exact=Class2]*/ missingMethod();
+  method() {
+    dynamic a = this;
+    return a. /*invoke: [exact=Class2]*/ missingMethod();
+  }
 }
 
 /*element: missingMethod:[exact=JSUInt31]*/
@@ -52,9 +56,11 @@ class Class3 {
   }
 
   /*element: Class3.method:[null|subclass=Object]*/
-  // ignore: UNDEFINED_METHOD
-  method() => this. /*invoke: [exact=Class3]*/ missingMethod(
-      /*[null]*/ (/*[null|subclass=Object]*/ parameter) {})(0);
+  method() {
+    dynamic a = this;
+    return a. /*invoke: [exact=Class3]*/ missingMethod(
+        /*[null]*/ (/*[null|subclass=Object]*/ parameter) {})(0);
+  }
 }
 
 /*element: closureThroughMissingMethod:[null|subclass=Object]*/
@@ -79,10 +85,10 @@ class Class4 {
 
   /*element: Class4.method:[null]*/
   method() {
-    // ignore: UNDEFINED_SETTER
-    this. /*update: [exact=Class4]*/ missingSetter =
+    dynamic a = this;
+    a. /*update: [exact=Class4]*/ missingSetter =
         /*[null]*/ (/*[null|subclass=Object]*/ parameter) {};
-    this. /*invoke: [exact=Class4]*/ field(0);
+    a. /*invoke: [exact=Class4]*/ field(0);
   }
 }
 

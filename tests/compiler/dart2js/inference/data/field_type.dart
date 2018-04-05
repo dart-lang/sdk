@@ -351,6 +351,7 @@ class A16 {
   // TODO(johnniwinther): Investigate with these differ.
   /*ast.element: A16.f16:Union([exact=JSString], [exact=JSUInt31])*/
   /*kernel.element: A16.f16:Union([exact=JSString], [null|exact=JSUInt31])*/
+  /*strong.element: A16.f16:Union([exact=JSString], [null|exact=JSUInt31])*/
   var f16;
 
   /*element: A16.:[exact=A16]*/
@@ -463,13 +464,13 @@ class A20 {
 
   /*element: A20.:[exact=A20]*/
   A20() {
+    dynamic a = this;
     // TODO(johnniwinther): Fix ast equivalence on instance fields in for.
     /*iterator: [exact=A20]*/
     /*current: [exact=A20]*/
     /*moveNext: [exact=A20]*/
-    for (/*kernel.update: [exact=A20]*/ f20 in
-        // ignore: for_in_of_invalid_type
-        this) {}
+    for (/*kernel.update: [exact=A20]*/ /*strong.update: [exact=A20]*/ f20
+        in a) {}
   }
 
   /*element: A20.iterator:[exact=A20]*/
@@ -493,14 +494,13 @@ class A21 {
 
   /*element: A21.:[exact=A21]*/
   A21() {
+    dynamic a = this;
     /*iterator: [exact=A21]*/
     /*current: [null]*/
     /*moveNext: [null]*/
     for (
         // ignore: unused_local_variable
-        var i
-        // ignore: for_in_of_invalid_type
-        in this) {}
+        var i in a) {}
     /*update: [exact=A21]*/ f21 = 42;
   }
   /*element: A21.iterator:[null]*/
@@ -659,10 +659,9 @@ class B26 {
 
 /*element: test26:[null]*/
 test26() {
-  new A26(). /*update: [exact=A26]*/ f26 = [new B26(), new A26()]
+  new A26(). /*update: [exact=A26]*/ f26 = <dynamic>[new B26(), new A26()]
               /*Container([exact=JSExtendableArray], element: Union([exact=A26], [exact=B26]), length: 2)*/
               [0]
-          // ignore: undefined_getter
           . /*Union([exact=A26], [exact=B26])*/ f26
       /*invoke: [subclass=JSPositiveInt]*/ +
       42;
