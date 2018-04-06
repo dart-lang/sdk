@@ -2061,17 +2061,3 @@ ImplicitCallOfNonMethod:
   template: "Can't invoke the type '#type' because its declaration of `.call` is not a method."
   tip: "Change .call to a method or explicitly invoke .call."
   severity: ERROR
-
-NeedExplicitConst:
-  template: "An explicit 'const' keyword is expected here."
-  tip: "Put the 'const' keyword at this position."
-  severity: ERROR
-  analyzerCode: NON_CONSTANT_DEFAULT_VALUE # TODO(dmitryas): Ask the analyzer team if the code is correct.
-  dart2jsCode: "*fatal*"
-  script: >
-    class Foo {
-      const Foo();
-    }
-    class Bar {
-      const Bar([Foo foo = Foo()]);
-    }

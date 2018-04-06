@@ -7087,6 +7087,8 @@ Language/Expressions/Strings/multi_line_t32: Crash
 Language/Expressions/Strings/multi_line_t33: Crash
 Language/Expressions/This/placement_t04: Crash
 Language/Functions/External_Functions/not_connected_to_a_body_t01: RuntimeError
+Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: MissingCompileTimeError
+Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: MissingCompileTimeError
 Language/Functions/syntax_t09: Crash
 Language/Libraries_and_Scripts/Imports/same_name_t10: RuntimeError
 Language/Libraries_and_Scripts/Scripts/top_level_main_t01: CompileTimeError

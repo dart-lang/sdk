@@ -3762,18 +3762,6 @@ const MessageCode messageNativeClauseShouldBeAnnotation = const MessageCode(
         r"""Try removing this native clause and adding @native() or @native('native-name') before the declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeNeedExplicitConst = messageNeedExplicitConst;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNeedExplicitConst = const MessageCode(
-    "NeedExplicitConst",
-    analyzerCode: "NON_CONSTANT_DEFAULT_VALUE",
-    dart2jsCode: "*fatal*",
-    severity: Severity.error,
-    message: r"""An explicit 'const' keyword is expected here.""",
-    tip: r"""Put the 'const' keyword at this position.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(Token token)> templateNoFormals = const Template<
         Message Function(Token token)>(

@@ -29,12 +29,12 @@ main() {
 
     const cd1 = const C(const D<int>(42));
     const cd2 = C(D<int>(42)); // Const context.
-    var cd3 = C(D<int>(42)); // All constant, even in non-const context.
-    var cd4 = C(D<int>(x)); // x is a non-constant expression, so `new`.
-    var cd5 = C(d42); //  d42 is a non-constant expression, so `new`.
+    var cd3 = C(D<int>(42)); // Non-constant context, so `new`.
+    var cd4 = C(D<int>(x)); // Non-constant context, so `new`.
+    var cd5 = C(d42); // Non-constant context, so `new`.
 
     Expect.identical(cd1, cd2);
-    Expect.identical(cd1, cd3);
+    Expect.allDistinct([cd1, cd3]);
     Expect.allDistinct([cd1, cd4, cd5]);
   }
 
@@ -44,16 +44,16 @@ main() {
     const cl2 = C(clist); // Constant context.
     const cl3 = C(const <int>[37]); // Constant context.
     const cl4 = C(<int>[37]);
-    var cl5 = C(clist); // Constant argument, so const.
-    var cl6 = C(const <int>[37]); // Constant arg, so const.
-    var cl7 = C(list); // Non-constant arg.
-    var cl8 = C(<int>[37]); // Same if literal.
+    var cl5 = C(clist); // Non-constant context, so `new`.
+    var cl6 = C(const <int>[37]); // Non-constant context, so `new`.
+    var cl7 = C(list); // Non-constant context, so `new`.
+    var cl8 = C(<int>[37]); // Non-constant context, so `new`.
 
     Expect.identical(cl1, cl2);
     Expect.identical(cl1, cl3);
     Expect.identical(cl1, cl4);
-    Expect.identical(cl1, cl5);
-    Expect.identical(cl1, cl6);
+    Expect.allDistinct([cl1, cl5]);
+    Expect.allDistinct([cl1, cl6]);
     Expect.allDistinct([cl1, cl7, cl8]);
   }
 
@@ -62,15 +62,15 @@ main() {
     const cm1 = C(cmap); // Constant context.
     const cm2 = C(const <int, int>{19: 87}); // Constant context.
     const cm3 = C(<int, int>{19: 87}); // Constant context.
-    var cm4 = C(cmap); // Constant argument, so const.
-    var cm5 = C(const <int, int>{19: 87}); // Constant arg, so const.
-    var cm6 = C(map); // Non-constant arg, non-const context.
-    var cm7 = C(<int, int>{19: 87}); // Same if literal.
+    var cm4 = C(cmap); // Non-constant context, so `new`.
+    var cm5 = C(const <int, int>{19: 87}); // Non-constant context, so `new`.
+    var cm6 = C(map); // Non-constant context, so `new`.
+    var cm7 = C(<int, int>{19: 87}); // Non-constant context, so `new`.
 
     Expect.identical(cm1, cm2);
     Expect.identical(cm1, cm3);
-    Expect.identical(cm1, cm4);
-    Expect.identical(cm1, cm5);
+    Expect.allDistinct([cm1, cm4]);
+    Expect.allDistinct([cm1, cm5]);
     Expect.allDistinct([cm1, cm6, cm7]);
   }
 
@@ -93,8 +93,8 @@ main() {
 
     Expect.identical(n1, n2);
     Expect.identical(n1, n3);
-    Expect.identical(n1, n4);
-    Expect.identical(n1, n8);
+    Expect.allDistinct([n1, n4]);
+    Expect.allDistinct([n1, n8]);
     Expect.allDistinct([n1, n5, n6, n7, n9, n10, n11, n12, n13, n14]);
 
     Expect.identical(clist, n6.left);
@@ -128,12 +128,12 @@ main() {
     Expect.identical(n20, n22);
     Expect.identical(n20, n23);
     Expect.identical(n20, n24);
-    Expect.identical(n20, n25);
-    Expect.identical(n20, n26);
-    Expect.identical(n20, n27);
+    Expect.allDistinct([n20, n25]);
+    Expect.allDistinct([n20, n26]);
+    Expect.allDistinct([n20, n27]);
     Expect.allDistinct([n28, n29, n30, n31]);
-    Expect.identical(cc42, n28.left);
-    Expect.identical(cc42, n29.left);
+    Expect.allDistinct([cc42, n28.left]);
+    Expect.allDistinct([cc42, n29.left]);
     Expect.identical(cc42, n30.left);
     Expect.identical(cc42, n31.left);
     Expect.identical(clist, n29.right);
@@ -185,10 +185,10 @@ main() {
     // List literals are never const unless in const context.
     Expect.allDistinct([l20, l25, l26, l27, l28, l29, l30, l31]);
     Expect.identical(cc42, l25[0]);
-    Expect.identical(cc42, l26[0]);
-    Expect.identical(cc42, l27[0]);
-    Expect.identical(cc42, l28[0]);
-    Expect.identical(cc42, l29[0]);
+    Expect.allDistinct([cc42, l26[0]]);
+    Expect.allDistinct([cc42, l27[0]]);
+    Expect.allDistinct([cc42, l28[0]]);
+    Expect.allDistinct([cc42, l29[0]]);
     Expect.identical(cc42, l30[0]);
     Expect.identical(cc42, l31[0]);
     Expect.identical(clist, l25[1]);
@@ -236,10 +236,10 @@ main() {
     // Map literals are never const unless in const context.
     Expect.allDistinct([m20, m25, m26, m27, m28, m29, m30, m31]);
     Expect.identical(cc42, m25.keys.first);
-    Expect.identical(cc42, m26.keys.first);
-    Expect.identical(cc42, m27.keys.first);
-    Expect.identical(cc42, m28.keys.first);
-    Expect.identical(cc42, m29.keys.first);
+    Expect.allDistinct([cc42, m26.keys.first]);
+    Expect.allDistinct([cc42, m27.keys.first]);
+    Expect.allDistinct([cc42, m28.keys.first]);
+    Expect.allDistinct([cc42, m29.keys.first]);
     Expect.identical(cc42, m30.keys.first);
     Expect.identical(cc42, m31.keys.first);
     Expect.identical(clist, m25.values.first);

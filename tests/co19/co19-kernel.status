@@ -4,6 +4,8 @@
 
 [ $compiler == fasta ]
 Language/Classes/definition_t24: MissingCompileTimeError
+Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: MissingCompileTimeError
+Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: MissingCompileTimeError
 Language/Types/Type_Void/syntax_t08: MissingCompileTimeError
 Language/Types/Type_Void/syntax_t09: MissingCompileTimeError
 LayoutTests/*: Skip # TODO(ahe): Make dart:html available.

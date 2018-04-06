@@ -72,6 +72,7 @@ implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: 
 implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError
 implicit_creation/implicit_new_or_const_composite_test: RuntimeError
 implicit_creation/implicit_new_or_const_generic_test: RuntimeError
+implicit_creation/implicit_new_or_const_test: RuntimeError
 implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_indexed_compound_assignment_test: RuntimeError
 implicit_downcast_during_indexed_if_null_assignment_test: RuntimeError
@@ -404,6 +405,8 @@ field_override_test/01: MissingCompileTimeError
 function_call_generic_test: RuntimeError # Issue 32756. Crashes on dsend
 function_propagation_test: RuntimeError
 function_subtype_closure0_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
+function_type_parameter2_negative_test: Fail
+function_type_parameter_negative_test: Fail
 generic_function_bounds_test: RuntimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError

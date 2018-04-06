@@ -10,6 +10,6 @@ class C extends core::Object {
 }
 static const field core::int constTopLevelField = 42;
 static method main() → dynamic {
-  const self::C::•(self::C::constField);
-  const self::C::•(self::constTopLevelField);
+  new self::C::•(self::C::constField);
+  new self::C::•(self::constTopLevelField);
 }

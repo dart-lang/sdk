@@ -19,7 +19,7 @@ class C extends core::Object {
     : super core::Object::•()
     ;
   method fun() → dynamic {
-    const self::B::•(const self::A::•(self::foo));
+    new self::B::•(new self::A::•(self::foo));
   }
 }
 static const field core::int foo = const core::int::fromEnvironment("fisk");

@@ -76,8 +76,6 @@ import 'redirecting_factory_body.dart'
 
 import '../names.dart';
 
-import 'constness_evaluator.dart' show evaluateConstness;
-
 import 'fasta_accessors.dart';
 
 import 'kernel_api.dart';
@@ -184,12 +182,6 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   /// If non-null, records instance fields which have already been initialized
   /// and where that was.
   Map<String, int> initializedFields;
-
-  /// Constructor invocations (either generative or factory) with not specified
-  /// `new` or `const` keywords.  The constness for these should be inferred
-  /// based on the subexpressions.
-  List<Expression> constructorInvocationsWithImplicitConstness =
-      new List<Expression>();
 
   BodyBuilder(
       KernelLibraryBuilder library,
@@ -497,8 +489,6 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         }
       }
     }
-
-    inferConstness();
   }
 
   @override
@@ -696,24 +686,6 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       unhandled("${builder.runtimeType}", "finishFunction", builder.charOffset,
           builder.fileUri);
     }
-
-    inferConstness();
-  }
-
-  // Infers constness of the constructor invocations collected so far in
-  // [constructorInvocationsWithImplicitConstness], then clears out the list.
-  void inferConstness() {
-    for (Expression invocation in constructorInvocationsWithImplicitConstness) {
-      if (invocation is ConstructorInvocation) {
-        invocation.isConst = evaluateConstness(invocation, coreTypes, uri);
-      } else if (invocation is StaticInvocation) {
-        invocation.isConst = evaluateConstness(invocation, coreTypes, uri);
-      } else {
-        unhandled("${invocation.runtimeType}", "inferConstness",
-            invocation.fileOffset, invocation.location.file);
-      }
-    }
-    constructorInvocationsWithImplicitConstness.clear();
   }
 
   @override
@@ -2170,7 +2142,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   @override
   void beginFormalParameterDefaultValueExpression() {
     super.push(constantContext);
-    constantContext = ConstantContext.needsExplicitConst;
+    constantContext = ConstantContext.none;
   }
 
   @override
@@ -2497,11 +2469,6 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
           argMessage: argMessage);
     }
     if (target is Constructor) {
-      if (constantContext == ConstantContext.needsExplicitConst &&
-          constness == Constness.implicit) {
-        return buildCompileTimeError(
-            fasta.messageNeedExplicitConst, charOffset, noLength);
-      }
       isConst =
           isConst || constantContext != ConstantContext.none && target.isConst;
       if ((isConst || constantContext == ConstantContext.inferred) &&
@@ -2509,19 +2476,10 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         return deprecated_buildCompileTimeError(
             "Not a const constructor.", charOffset);
       }
-      ShadowConstructorInvocation invocation = new ShadowConstructorInvocation(
-          target,
-          targetTypeArguments,
-          initialTarget,
-          forest.castArguments(arguments),
+      return new ShadowConstructorInvocation(target, targetTypeArguments,
+          initialTarget, forest.castArguments(arguments),
           isConst: isConst)
         ..fileOffset = charOffset;
-      if (constness == Constness.implicit &&
-          target.isConst &&
-          constantContext != ConstantContext.inferred) {
-        constructorInvocationsWithImplicitConstness.add(invocation);
-      }
-      return invocation;
     } else {
       Procedure procedure = target;
       if (procedure.isFactory) {
@@ -2532,22 +2490,10 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
           return deprecated_buildCompileTimeError(
               "Not a const factory.", charOffset);
         }
-        if (constantContext == ConstantContext.needsExplicitConst &&
-            constness == Constness.implicit) {
-          return buildCompileTimeError(
-              fasta.messageNeedExplicitConst, charOffset, noLength);
-        }
-        ShadowFactoryConstructorInvocation invocation =
-            new ShadowFactoryConstructorInvocation(target, targetTypeArguments,
-                initialTarget, forest.castArguments(arguments),
-                isConst: isConst)
-              ..fileOffset = charOffset;
-        if (constness == Constness.implicit &&
-            procedure.isConst &&
-            constantContext != ConstantContext.inferred) {
-          constructorInvocationsWithImplicitConstness.add(invocation);
-        }
-        return invocation;
+        return new ShadowFactoryConstructorInvocation(target,
+            targetTypeArguments, initialTarget, forest.castArguments(arguments),
+            isConst: isConst)
+          ..fileOffset = charOffset;
       } else {
         return new ShadowStaticInvocation(
             target, forest.castArguments(arguments),
