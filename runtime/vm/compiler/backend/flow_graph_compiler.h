@@ -345,7 +345,7 @@ class FlowGraphCompiler : public ValueObject {
                                    const Register function_type_args_reg,
                                    const Register subtype_cache_reg,
                                    const Register dst_type_reg,
-                                   const Register dst_name_reg,
+                                   const Register scratch_reg,
                                    Label* done);
 
 // DBC emits calls very differently from all other architectures due to its
@@ -424,11 +424,15 @@ class FlowGraphCompiler : public ValueObject {
   // of going into the subtyping cache)
   static const intptr_t kMaxNumberOfCidRangesToTest = 4;
 
-  // Falls through to false.
+  // If [fall_through_if_inside] is `true`, then [outside_range_lbl] must be
+  // supplied, since it will be jumped to in the last case if the cid is outside
+  // the range.
   static void GenerateCidRangesCheck(Assembler* assembler,
                                      Register class_id_reg,
                                      const CidRangeVector& cid_ranges,
-                                     Label* is_subtype_lbl);
+                                     Label* inside_range_lbl,
+                                     Label* outside_range_lbl = NULL,
+                                     bool fall_through_if_inside = false);
 
   void EmitOptimizedInstanceCall(const StubEntry& stub_entry,
                                  const ICData& ic_data,

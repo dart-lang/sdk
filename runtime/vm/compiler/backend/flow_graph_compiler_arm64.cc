@@ -694,18 +694,34 @@ void FlowGraphCompiler::GenerateAssertAssignableAOT(
 
   const Register kSubtypeTestCacheReg = R3;
   const Register kDstTypeReg = R8;
-  const Register kDstNameReg = R4;
+  const Register kScratchReg = R4;
 
   Label done;
 
   GenerateAssertAssignableAOT(dst_type, dst_name, kInstanceReg,
                               kInstantiatorTypeArgumentsReg,
                               kFunctionTypeArgumentsReg, kSubtypeTestCacheReg,
-                              kDstTypeReg, kDstNameReg, &done);
+                              kDstTypeReg, kScratchReg, &done);
+
+  // We use 2 consecutive entries in the pool for the subtype cache and the
+  // destination name.  The second entry, namely [dst_name] seems to be unused,
+  // but it will be used by the code throwing a TypeError if the type test fails
+  // (see runtime/vm/runtime_entry.cc:TypeCheck).  It will use pattern matching
+  // on the call site to find out at which pool index the destination name is
+  // located.
+  const intptr_t sub_type_cache_index = __ object_pool_wrapper().AddObject(
+      Object::null_object(), Patchability::kPatchable);
+  const intptr_t sub_type_cache_offset =
+      ObjectPool::element_offset(sub_type_cache_index);
+  const intptr_t dst_name_index =
+      __ object_pool_wrapper().AddObject(dst_name, Patchability::kPatchable);
+  ASSERT((sub_type_cache_index + 1) == dst_name_index);
+  ASSERT(__ constant_pool_allowed());
 
   __ LoadField(R9,
                FieldAddress(kDstTypeReg,
                             AbstractType::type_test_stub_entry_point_offset()));
+  __ ldr(kSubtypeTestCacheReg, Address(PP, sub_type_cache_offset));
   __ blr(R9);
   EmitCallsiteMetadata(token_pos, deopt_id, RawPcDescriptors::kOther, locs);
   __ Bind(&done);
@@ -1190,13 +1206,14 @@ int FlowGraphCompiler::EmitTestAndCallCheckCid(Assembler* assembler,
                                                bool jump_on_miss) {
   intptr_t cid_start = range.cid_start;
   if (range.IsSingleCid()) {
-    __ CompareImmediate(class_id_reg, cid_start - bias);
-    __ b(label, jump_on_miss ? NE : EQ);
+    __ AddImmediateSetFlags(class_id_reg, class_id_reg, bias - cid_start);
+    __ BranchIf(jump_on_miss ? NOT_EQUAL : EQUAL, label);
+    bias = cid_start;
   } else {
     __ AddImmediate(class_id_reg, bias - cid_start);
     bias = cid_start;
     __ CompareImmediate(class_id_reg, range.Extent());
-    __ b(label, jump_on_miss ? HI : LS);  // Unsigned higher / less-or-equal.
+    __ BranchIf(jump_on_miss ? UNSIGNED_GREATER : UNSIGNED_LESS_EQUAL, label);
   }
   return bias;
 }

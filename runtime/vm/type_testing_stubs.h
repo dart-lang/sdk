@@ -63,7 +63,8 @@ class TypeTestingStubGenerator {
   static void BuildOptimizedSubtypeRangeCheck(Assembler* assembler,
                                               const CidRangeVector& ranges,
                                               Register class_id_reg,
-                                              Register instance_reg);
+                                              Register instance_reg,
+                                              bool smi_is_ok);
 
   static void BuildOptimizedSubclassRangeCheckWithTypeArguments(
       Assembler* assembler,

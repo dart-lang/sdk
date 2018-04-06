@@ -1937,7 +1937,6 @@ void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
   const Register kInstantiatorTypeArgumentsReg = R2;
   const Register kFunctionTypeArgumentsReg = R1;
   const Register kDstTypeReg = R8;
-  const Register kDstNameReg = R4;
   const Register kSubtypeTestCacheReg = R3;
 
   __ EnterStubFrame();
@@ -1956,6 +1955,10 @@ void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
   Label non_smi_value;
   __ BranchIfSmi(kInstanceReg, &call_runtime);
 
+  // If the subtype-cache is null, it needs to be lazily-created by the runtime.
+  __ CompareObject(kSubtypeTestCacheReg, Object::null_object());
+  __ BranchIf(EQUAL, &call_runtime);
+
   const Register kTmp = NOTFP;
 
   // If this is not a [Type] object, we'll go to the runtime.
@@ -1968,25 +1971,11 @@ void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
   __ ldrb(kTmp, FieldAddress(kDstTypeReg, Type::type_state_offset()));
   __ cmp(kTmp, Operand(RawType::kFinalizedInstantiated));
   __ BranchIf(NOT_EQUAL, &is_uninstantiated);
-
-  // Check whether this [Type] is with/without arguments.
-  __ LoadField(kTmp, FieldAddress(kDstTypeReg, Type::arguments_offset()));
-  __ CompareObject(kTmp, Object::null_object());
-  __ BranchIf(NOT_EQUAL, &is_instantiated);
-  // Fall through to &is_simple
+  // Fall through to &is_instantiated
 
   const intptr_t kRegsToSave = (1 << kSubtypeTestCacheReg) |
-                               (1 << kDstNameReg) | (1 << kDstTypeReg) |
+                               (1 << kDstTypeReg) |
                                (1 << kFunctionTypeArgumentsReg);
-  __ Bind(&is_simple);
-  {
-    __ PushList(kRegsToSave);
-    __ BranchLink(*StubCode::Subtype1TestCache_entry());
-    __ CompareObject(R1, Bool::True());
-    __ PopList(kRegsToSave);
-    __ BranchIf(EQUAL, &done);  // Cache said: yes.
-    __ Jump(&call_runtime);
-  }
 
   __ Bind(&is_instantiated);
   {
@@ -2025,11 +2014,11 @@ void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
   __ Push(kDstTypeReg);
   __ Push(kInstantiatorTypeArgumentsReg);
   __ Push(kFunctionTypeArgumentsReg);
-  __ Push(kDstNameReg);
+  __ PushObject(Object::null_object());
   __ Push(kSubtypeTestCacheReg);
   __ CallRuntime(kTypeCheckRuntimeEntry, 6);
   __ Pop(kSubtypeTestCacheReg);
-  __ Pop(kDstNameReg);
+  __ Drop(1);  // dst_name
   __ Pop(kFunctionTypeArgumentsReg);
   __ Pop(kInstantiatorTypeArgumentsReg);
   __ Pop(kDstTypeReg);

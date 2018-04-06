@@ -361,14 +361,55 @@ void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
+  // In AOT mode, we want to prevent spilling of the function/instantiator type
+  // argument vectors, since we preserve them.  So we make this a `kNoCall`
+  // summary.  Though most other registers can be modified by the type testing
+  // stubs we are calling.  To tell the register allocator about it, we reserve
+  // all the other registers as temporary registers.
+  // TODO(http://dartbug.com/32788): Simplify this.
+  const Register kInstanceReg = RAX;
+  const Register kInstantiatorTypeArgumentsReg = RDX;
+  const Register kFunctionTypeArgumentsReg = RCX;
+
+  const intptr_t kNonChangeableInputRegs =
+      (1 << kInstanceReg) | (1 << kInstantiatorTypeArgumentsReg) |
+      (1 << kFunctionTypeArgumentsReg);
+
   const intptr_t kNumInputs = 3;
-  const intptr_t kNumTemps = 0;
+
+  const intptr_t kNumTemps =
+      FLAG_precompiled_mode ? (Utils::CountOneBits64(kDartAvailableCpuRegs) -
+                               Utils::CountOneBits64(kNonChangeableInputRegs))
+                            : 0;
+
   LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(RAX));  // Value.
-  summary->set_in(1, Location::RegisterLocation(RDX));  // Instant. type args.
-  summary->set_in(2, Location::RegisterLocation(RCX));  // Function type args.
-  summary->set_out(0, Location::RegisterLocation(RAX));
+      LocationSummary(zone, kNumInputs, kNumTemps,
+                      FLAG_precompiled_mode ? LocationSummary::kNoCall
+                                            : LocationSummary::kCall);
+  summary->set_in(0, Location::RegisterLocation(kInstanceReg));  // Value.
+  summary->set_in(1,
+                  Location::RegisterLocation(
+                      kInstantiatorTypeArgumentsReg));  // Instant. type args.
+  summary->set_in(2, Location::RegisterLocation(
+                         kFunctionTypeArgumentsReg));  // Function type args.
+
+  // TODO(http://dartbug.com/32787): Use Location::SameAsFirstInput() instead,
+  // once register allocator no longer hits assertion.
+  summary->set_out(0, Location::RegisterLocation(kInstanceReg));
+
+  if (FLAG_precompiled_mode) {
+    // Let's reserve all registers except for the input ones.
+    intptr_t next_temp = 0;
+    for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+      const bool is_allocatable = ((1 << i) & kDartAvailableCpuRegs) != 0;
+      const bool is_input = ((1 << i) & kNonChangeableInputRegs) != 0;
+      if (is_allocatable && !is_input) {
+        summary->set_temp(next_temp++,
+                          Location::RegisterLocation(static_cast<Register>(i)));
+      }
+    }
+  }
+
   return summary;
 }
 

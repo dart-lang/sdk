@@ -1214,7 +1214,7 @@ bool FlowGraphCompiler::NeedsEdgeCounter(TargetEntryInstr* block) {
            (block == flow_graph().graph_entry()->normal_entry())));
 }
 
-// Allocate a register that is not explicitly blocked.
+// Allocate a register that is not explictly blocked.
 static Register AllocateFreeRegister(bool* blocked_registers) {
   for (intptr_t regno = 0; regno < kNumberOfCpuRegisters; regno++) {
     if (!blocked_registers[regno]) {
@@ -1879,18 +1879,32 @@ bool FlowGraphCompiler::GenerateSubtypeRangeCheck(Register class_id_reg,
 void FlowGraphCompiler::GenerateCidRangesCheck(Assembler* assembler,
                                                Register class_id_reg,
                                                const CidRangeVector& cid_ranges,
-                                               Label* is_subtype) {
-  Label fail;
+                                               Label* inside_range_lbl,
+                                               Label* outside_range_lbl,
+                                               bool fall_through_if_inside) {
+  // If there are no valid class ranges, the check will fail.  If we are
+  // supposed to fall-through in the positive case, we'll explicitly jump to
+  // the [outside_range_lbl].
+  if (cid_ranges.length() == 1 && cid_ranges[0].IsIllegalRange()) {
+    if (fall_through_if_inside) {
+      assembler->Jump(outside_range_lbl);
+    }
+    return;
+  }
+
   int bias = 0;
   for (intptr_t i = 0; i < cid_ranges.length(); ++i) {
     const CidRange& range = cid_ranges[i];
-    if (!range.IsIllegalRange()) {
-      bias = EmitTestAndCallCheckCid(assembler, is_subtype, class_id_reg, range,
-                                     bias,
-                                     /*jump_on_miss=*/false);
-    }
+    RELEASE_ASSERT(!range.IsIllegalRange());
+    const bool last_round = i == (cid_ranges.length() - 1);
+
+    Label* jump_label = last_round && fall_through_if_inside ? outside_range_lbl
+                                                             : inside_range_lbl;
+    const bool jump_on_miss = last_round && fall_through_if_inside;
+
+    bias = EmitTestAndCallCheckCid(assembler, jump_label, class_id_reg, range,
+                                   bias, jump_on_miss);
   }
-  assembler->Bind(&fail);
 }
 
 void FlowGraphCompiler::GenerateAssertAssignableAOT(
@@ -1901,7 +1915,7 @@ void FlowGraphCompiler::GenerateAssertAssignableAOT(
     const Register function_type_args_reg,
     const Register subtype_cache_reg,
     const Register dst_type_reg,
-    const Register dst_name_reg,
+    const Register scratch_reg,
     Label* done) {
   // If the int type is assignable to [dst_type] we special case it on the
   // caller side!
@@ -1929,9 +1943,6 @@ void FlowGraphCompiler::GenerateAssertAssignableAOT(
     if (hi != NULL) {
       const Class& type_class = Class::Handle(zone(), dst_type.type_class());
 
-      // We can use [dst_name_reg], there is no overlap of use.
-      const Register scratch_reg = dst_name_reg;
-
       bool used_cid_range_check = false;
       const bool can_use_simple_cid_range_test =
           hi->CanUseSubtypeRangeCheckFor(dst_type);
@@ -1953,10 +1964,6 @@ void FlowGraphCompiler::GenerateAssertAssignableAOT(
     }
     __ LoadObject(dst_type_reg, dst_type);
   }
-
-  __ LoadObject(dst_name_reg, dst_name);
-  __ LoadObject(subtype_cache_reg,
-                SubtypeTestCache::ZoneHandle(zone(), SubtypeTestCache::New()));
 }
 
 #undef __

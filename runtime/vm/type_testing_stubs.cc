@@ -349,8 +349,12 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
   // Check the cid ranges which are a subtype of [type].
   if (hi->CanUseSubtypeRangeCheckFor(type)) {
     const CidRangeVector& ranges = hi->SubtypeRangesForClass(type_class);
+
+    const Type& int_type = Type::Handle(Type::IntType());
+    const bool smi_is_ok = int_type.IsSubtypeOf(type, NULL, NULL, Heap::kNew);
+
     BuildOptimizedSubtypeRangeCheck(assembler, ranges, class_id_reg,
-                                    instance_reg);
+                                    instance_reg, smi_is_ok);
   } else {
     ASSERT(hi->CanUseGenericSubtypeRangeCheckFor(type));
 
@@ -380,13 +384,19 @@ void TypeTestingStubGenerator::BuildOptimizedSubtypeRangeCheck(
     Assembler* assembler,
     const CidRangeVector& ranges,
     Register class_id_reg,
-    Register instance_reg) {
-  __ LoadClassIdMayBeSmi(class_id_reg, instance_reg);
-
+    Register instance_reg,
+    bool smi_is_ok) {
   Label cid_range_failed, is_subtype;
-  FlowGraphCompiler::GenerateCidRangesCheck(assembler, class_id_reg, ranges,
-                                            &is_subtype);
-  __ Jump(&cid_range_failed);
+
+  if (smi_is_ok) {
+    __ LoadClassIdMayBeSmi(class_id_reg, instance_reg);
+  } else {
+    __ BranchIfSmi(instance_reg, &cid_range_failed);
+    __ LoadClassId(class_id_reg, instance_reg);
+  }
+
+  FlowGraphCompiler::GenerateCidRangesCheck(
+      assembler, class_id_reg, ranges, &is_subtype, &cid_range_failed, true);
   __ Bind(&is_subtype);
   __ Ret();
   __ Bind(&cid_range_failed);
@@ -460,8 +470,7 @@ void TypeTestingStubGenerator::BuildOptimizedSubclassRangeCheck(
 
   Label is_subtype;
   FlowGraphCompiler::GenerateCidRangesCheck(assembler, class_id_reg, ranges,
-                                            &is_subtype);
-  __ Jump(check_failed);
+                                            &is_subtype, check_failed, true);
   __ Bind(&is_subtype);
 }
 
@@ -505,9 +514,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
       const CidRangeVector& ranges = hi->SubtypeRangesForClass(type_class);
 
       Label is_subtype;
-      FlowGraphCompiler::GenerateCidRangesCheck(assembler, class_id_reg, ranges,
-                                                &is_subtype);
-      __ Jump(check_failed);
+      FlowGraphCompiler::GenerateCidRangesCheck(
+          assembler, class_id_reg, ranges, &is_subtype, check_failed, true);
       __ Bind(&is_subtype);
     }
   }

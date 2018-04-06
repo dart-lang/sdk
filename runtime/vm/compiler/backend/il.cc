@@ -151,6 +151,18 @@ bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
   Zone* zone = thread_->zone();
   const Class& type_class = Class::Handle(zone, type.type_class());
 
+  // The FutureOr<T> type cannot be handled by checking whether the instance is
+  // a subtype of FutureOr and then checking whether the type argument `T`
+  // matches.
+  //
+  // Instead we would need to perform multiple checks:
+  //
+  //    instance is Null || instance is T || instance is Future<T>
+  //
+  if (type_class.IsFutureOrClass()) {
+    return false;
+  }
+
   // We can use class id range checks only if we don't have to test type
   // arguments.
   //
@@ -187,6 +199,18 @@ bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
   const intptr_t num_type_parameters = type_class.NumTypeParameters();
   const intptr_t num_type_arguments = type_class.NumTypeArguments();
 
+  // The FutureOr<T> type cannot be handled by checking whether the instance is
+  // a subtype of FutureOr and then checking whether the type argument `T`
+  // matches.
+  //
+  // Instead we would need to perform multiple checks:
+  //
+  //    instance is Null || instance is T || instance is Future<T>
+  //
+  if (type_class.IsFutureOrClass()) {
+    return false;
+  }
+
   // This function should only be called for generic classes.
   ASSERT(type_class.NumTypeParameters() > 0 &&
          type.arguments() != TypeArguments::null());
@@ -212,7 +236,9 @@ bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
   AbstractType& type_arg = AbstractType::Handle(zone);
   for (intptr_t i = 0; i < num_type_parameters; ++i) {
     type_arg = ta.TypeAt(num_type_arguments - num_type_parameters + i);
-    if (!CanUseSubtypeRangeCheckFor(type_arg) && !type_arg.IsTypeParameter()) {
+    // NOTE: We can handle type parameters but it increases size by a
+    // significant amount.
+    if (!CanUseSubtypeRangeCheckFor(type_arg)) {
       return false;
     }
   }

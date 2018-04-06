@@ -1937,7 +1937,6 @@ void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
   const Register kInstantiatorTypeArgumentsReg = RDX;
   const Register kFunctionTypeArgumentsReg = RCX;
   const Register kDstTypeReg = RBX;
-  const Register kDstNameReg = R10;
   const Register kSubtypeTestCacheReg = R9;
 
   __ EnterStubFrame();
@@ -1955,6 +1954,10 @@ void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
   // [SubtypeTestCache]-based stubs do not handle [Smi]s.
   __ BranchIfSmi(kInstanceReg, &call_runtime);
 
+  // If the subtype-cache is null, it needs to be lazily-created by the runtime.
+  __ CompareObject(kSubtypeTestCacheReg, Object::null_object());
+  __ BranchIf(EQUAL, &call_runtime);
+
   const Register kTmp = RDI;
 
   // If this is not a [Type] object, we'll go to the runtime.
@@ -1967,28 +1970,11 @@ void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
   __ cmpb(FieldAddress(kDstTypeReg, Type::type_state_offset()),
           Immediate(RawType::kFinalizedInstantiated));
   __ BranchIf(NOT_EQUAL, &is_uninstantiated);
-
-  // Check whether this [Type] is with/without arguments.
-  __ LoadField(kTmp, FieldAddress(kDstTypeReg, Type::arguments_offset()));
-  __ CompareObject(kTmp, Object::null_object());
-  __ BranchIf(NOT_EQUAL, &is_instantiated);
-  // Fall through to &is_simple
-
-  __ Bind(&is_simple);
-  {
-    __ pushq(kDstNameReg);
-    __ Call(*StubCode::Subtype1TestCache_entry());
-    __ popq(kDstNameReg);
-    __ CompareObject(R8, Bool::True());
-    __ BranchIf(EQUAL, &done);  // Cache said: yes.
-    __ Jump(&call_runtime);
-  }
+  // Fall through to &is_instantiated
 
   __ Bind(&is_instantiated);
   {
-    __ pushq(kDstNameReg);
     __ Call(*StubCode::Subtype2TestCache_entry());
-    __ popq(kDstNameReg);
     __ CompareObject(R8, Bool::True());
     __ BranchIf(EQUAL, &done);  // Cache said: yes.
     __ Jump(&call_runtime);
@@ -1996,9 +1982,7 @@ void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
 
   __ Bind(&is_uninstantiated);
   {
-    __ pushq(kDstNameReg);
     __ Call(*StubCode::Subtype4TestCache_entry());
-    __ popq(kDstNameReg);
     __ CompareObject(R8, Bool::True());
     __ BranchIf(EQUAL, &done);  // Cache said: yes.
     // Fall through to runtime_call
@@ -2021,11 +2005,11 @@ void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
   __ pushq(kDstTypeReg);
   __ pushq(kInstantiatorTypeArgumentsReg);
   __ pushq(kFunctionTypeArgumentsReg);
-  __ pushq(kDstNameReg);
+  __ PushObject(Object::null_object());
   __ pushq(kSubtypeTestCacheReg);
   __ CallRuntime(kTypeCheckRuntimeEntry, 6);
   __ popq(kSubtypeTestCacheReg);
-  __ popq(kDstNameReg);
+  __ Drop(1);
   __ popq(kFunctionTypeArgumentsReg);
   __ popq(kInstantiatorTypeArgumentsReg);
   __ popq(kDstTypeReg);
