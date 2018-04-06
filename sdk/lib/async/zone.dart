@@ -388,7 +388,7 @@ abstract class Zone {
    * the current's zone behavior. All specification entries that are `null`
    * inherit the behavior from the parent zone (`this`).
    *
-   * The new zone inherits the stored values (accessed through [[]])
+   * The new zone inherits the stored values (accessed through [operator []])
    * of this zone and updates them with values from [zoneValues], which either
    * adds new values or overrides existing ones.
    *

@@ -48,7 +48,7 @@ abstract class HashMap<K, V> implements Map<K, V> {
    * for keys in order to place them in the hash table. If it is omitted, the
    * key's own [Object.hashCode] is used.
    *
-   * If using methods like [[]], [remove] and [containsKey] together
+   * If using methods like [operator []], [remove] and [containsKey] together
    * with a custom equality and hashcode, an extra `isValidKey` function
    * can be supplied. This function is called before calling [equals] or
    * [hashCode] with an argument that may not be a [K] instance, and if the
