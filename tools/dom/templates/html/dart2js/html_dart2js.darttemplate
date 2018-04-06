@@ -58,7 +58,7 @@ import 'dart:_js_helper' show
     findDispatchTagForInterceptorClass, setNativeSubclassDispatchRecord,
     makeLeafDispatchRecord, registerGlobalObject, applyExtension;
 import 'dart:_interceptors' show
-    Interceptor, JSExtendableArray, JSUInt31,
+    Interceptor, JavaScriptFunction, JSExtendableArray, JSUInt31,
     findInterceptorConstructorForType,
     findConstructorForNativeSubclassType,
     getNativeInterceptor,

@@ -70,6 +70,7 @@ import 'dart:_js_helper'
 import 'dart:_interceptors'
     show
         Interceptor,
+        JavaScriptFunction,
         JSExtendableArray,
         JSUInt31,
         findInterceptorConstructorForType,
@@ -50892,7 +50893,8 @@ Function _registerCustomElement(context, document, String tag, [Map options]) {
     JS('=Object', '#.extends = #', opts, extendsTagName);
   }
 
-  return JS('=Object', '#.registerElement(#, #)', document, tag, opts);
+  return JS(
+      'JavaScriptFunction', '#.registerElement(#, #)', document, tag, opts);
 }
 
 //// Called by Element.created to do validation & initialization.
