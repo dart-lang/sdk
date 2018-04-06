@@ -1270,13 +1270,15 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ j(NOT_ZERO, not_smi_or_overflow);
   switch (kind) {
     case Token::kADD: {
-      __ addq(RAX, RCX);
+      __ addl(RAX, RCX);
       __ j(OVERFLOW, not_smi_or_overflow);
+      __ movsxd(RAX, RAX);
       break;
     }
     case Token::kSUB: {
-      __ subq(RAX, RCX);
+      __ subl(RAX, RCX);
       __ j(OVERFLOW, not_smi_or_overflow);
+      __ movsxd(RAX, RAX);
       break;
     }
     case Token::kEQ: {

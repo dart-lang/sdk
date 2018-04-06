@@ -636,11 +636,11 @@ void Simulator::Exit(Thread* thread,
 // __builtin_s{add,sub,mul}_overflow() intrinsics here and below.
 // Note that they may clobber the output location even when there is overflow:
 // https://gcc.gnu.org/onlinedocs/gcc/Integer-Overflow-Builtins.html
-DART_FORCE_INLINE static bool SignedAddWithOverflow(intptr_t lhs,
-                                                    intptr_t rhs,
+DART_FORCE_INLINE static bool SignedAddWithOverflow(int32_t lhs,
+                                                    int32_t rhs,
                                                     intptr_t* out) {
   intptr_t res = 1;
-#if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
+#if defined(HOST_ARCH_IA32)
   asm volatile(
       "add %2, %1\n"
       "jo 1f;\n"
@@ -650,12 +650,25 @@ DART_FORCE_INLINE static bool SignedAddWithOverflow(intptr_t lhs,
       : "+r"(res), "+r"(lhs)
       : "r"(rhs), "r"(out)
       : "cc");
+#elif defined(HOST_ARCH_X64)
+  int64_t tmp;
+  asm volatile(
+      "addl %[rhs], %[lhs]\n"
+      "jo 1f;\n"
+      "xor %[res], %[res]\n"
+      "movslq %[lhs], %[tmp]\n"
+      "mov %[tmp], 0(%[out])\n"
+      "1: "
+      : [res] "+r"(res), [lhs] "+r"(lhs), [tmp] "=&r"(tmp)
+      : [rhs] "r"(rhs), [out] "r"(out)
+      : "cc");
 #elif defined(HOST_ARCH_ARM) || defined(HOST_ARCH_ARM64)
   asm volatile(
-      "adds %1, %1, %2;\n"
+      "adds %w1, %w1, %w2;\n"
       "bvs 1f;\n"
+      "sxtw %x1, %w1;\n"
       "mov %0, #0;\n"
-      "str %1, [%3, #0]\n"
+      "str %x1, [%3, #0]\n"
       "1:"
       : "+r"(res), "+r"(lhs)
       : "r"(rhs), "r"(out)
@@ -666,11 +679,11 @@ DART_FORCE_INLINE static bool SignedAddWithOverflow(intptr_t lhs,
   return (res != 0);
 }
 
-DART_FORCE_INLINE static bool SignedSubWithOverflow(intptr_t lhs,
-                                                    intptr_t rhs,
+DART_FORCE_INLINE static bool SignedSubWithOverflow(int32_t lhs,
+                                                    int32_t rhs,
                                                     intptr_t* out) {
   intptr_t res = 1;
-#if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
+#if defined(HOST_ARCH_IA32)
   asm volatile(
       "sub %2, %1\n"
       "jo 1f;\n"
@@ -680,12 +693,25 @@ DART_FORCE_INLINE static bool SignedSubWithOverflow(intptr_t lhs,
       : "+r"(res), "+r"(lhs)
       : "r"(rhs), "r"(out)
       : "cc");
+#elif defined(HOST_ARCH_X64)
+  int64_t tmp;
+  asm volatile(
+      "subl %[rhs], %[lhs]\n"
+      "jo 1f;\n"
+      "xor %[res], %[res]\n"
+      "movslq %[lhs], %[tmp]\n"
+      "mov %[tmp], 0(%[out])\n"
+      "1: "
+      : [res] "+r"(res), [lhs] "+r"(lhs), [tmp] "=&r"(tmp)
+      : [rhs] "r"(rhs), [out] "r"(out)
+      : "cc");
 #elif defined(HOST_ARCH_ARM) || defined(HOST_ARCH_ARM64)
   asm volatile(
-      "subs %1, %1, %2;\n"
+      "subs %w1, %w1, %w2;\n"
       "bvs 1f;\n"
+      "sxtw %x1, %w1;\n"
       "mov %0, #0;\n"
-      "str %1, [%3, #0]\n"
+      "str %x1, [%3, #0]\n"
       "1:"
       : "+r"(res), "+r"(lhs)
       : "r"(rhs), "r"(out)
@@ -696,11 +722,11 @@ DART_FORCE_INLINE static bool SignedSubWithOverflow(intptr_t lhs,
   return (res != 0);
 }
 
-DART_FORCE_INLINE static bool SignedMulWithOverflow(intptr_t lhs,
-                                                    intptr_t rhs,
+DART_FORCE_INLINE static bool SignedMulWithOverflow(int32_t lhs,
+                                                    int32_t rhs,
                                                     intptr_t* out) {
   intptr_t res = 1;
-#if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
+#if defined(HOST_ARCH_IA32)
   asm volatile(
       "imul %2, %1\n"
       "jo 1f;\n"
@@ -709,6 +735,18 @@ DART_FORCE_INLINE static bool SignedMulWithOverflow(intptr_t lhs,
       "1: "
       : "+r"(res), "+r"(lhs)
       : "r"(rhs), "r"(out)
+      : "cc");
+#elif defined(HOST_ARCH_X64)
+  int64_t tmp;
+  asm volatile(
+      "imull %[rhs], %[lhs]\n"
+      "jo 1f;\n"
+      "xor %[res], %[res]\n"
+      "movslq %[lhs], %[tmp]\n"
+      "mov %[tmp], 0(%[out])\n"
+      "1: "
+      : [res] "+r"(res), [lhs] "+r"(lhs), [tmp] "=&r"(tmp)
+      : [rhs] "r"(rhs), [out] "r"(out)
       : "cc");
 #elif defined(HOST_ARCH_ARM)
   asm volatile(
@@ -724,12 +762,12 @@ DART_FORCE_INLINE static bool SignedMulWithOverflow(intptr_t lhs,
 #elif defined(HOST_ARCH_ARM64)
   int64_t prod_lo = 0;
   asm volatile(
-      "mul %1, %2, %3\n"
-      "smulh %2, %2, %3\n"
-      "cmp %2, %1, ASR #63;\n"
+      "smull %x1, %w2, %w3\n"
+      "asr %x2, %x1, #63\n"
+      "cmp %x2, %x1, ASR #31;\n"
       "bne 1f;\n"
       "mov %0, #0;\n"
-      "str %1, [%4, #0]\n"
+      "str %x1, [%4, #0]\n"
       "1:"
       : "=r"(res), "+r"(prod_lo), "+r"(lhs)
       : "r"(rhs), "r"(out)
@@ -1971,11 +2009,7 @@ RawObject* Simulator::Call(const Code& code,
     if (rhs != 0) {
       const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);
       const intptr_t res = (lhs >> kSmiTagSize) / (rhs >> kSmiTagSize);
-#if defined(ARCH_IS_64_BIT)
-      const intptr_t untaggable = 0x4000000000000000LL;
-#else
       const intptr_t untaggable = 0x40000000L;
-#endif  // defined(ARCH_IS_64_BIT)
       if (res != untaggable) {
         *reinterpret_cast<intptr_t*>(&FP[rA]) = res << kSmiTagSize;
         pc++;
@@ -2001,11 +2035,12 @@ RawObject* Simulator::Call(const Code& code,
   {
     BYTECODE(Shl, A_B_C);
     const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]) >> kSmiTagSize;
-    if (static_cast<uintptr_t>(rhs) < kBitsPerWord) {
-      const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);
-      const intptr_t res = lhs << rhs;
+    const int kBitsPerInt32 = 32;
+    if (static_cast<uintptr_t>(rhs) < kBitsPerInt32) {
+      const int32_t lhs = reinterpret_cast<intptr_t>(FP[rB]);
+      const int32_t res = lhs << rhs;
       if (lhs == (res >> rhs)) {
-        *reinterpret_cast<intptr_t*>(&FP[rA]) = res;
+        *reinterpret_cast<intptr_t*>(&FP[rA]) = static_cast<intptr_t>(res);
         pc++;
       }
     }
@@ -2016,8 +2051,7 @@ RawObject* Simulator::Call(const Code& code,
     BYTECODE(Shr, A_B_C);
     const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]) >> kSmiTagSize;
     if (rhs >= 0) {
-      const intptr_t shift_amount =
-          (rhs >= kBitsPerWord) ? (kBitsPerWord - 1) : rhs;
+      const intptr_t shift_amount = (rhs >= 32) ? (32 - 1) : rhs;
       const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]) >> kSmiTagSize;
       *reinterpret_cast<intptr_t*>(&FP[rA]) = (lhs >> shift_amount)
                                               << kSmiTagSize;

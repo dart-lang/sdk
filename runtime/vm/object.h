@@ -7827,7 +7827,16 @@ class Array : public Instance {
   virtual uword ComputeCanonicalTableHash() const;
 
   static const intptr_t kBytesPerElement = kWordSize;
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+  // The length field is a Smi so that sets one limit on the max Array length.
+  // But we also need to be able to represent the length in bytes in an
+  // intptr_t, which is a different limit.  Either may be smaller.  We can't
+  // use Utils::Minimum here because it is not a const expression.
+  static const intptr_t kElementLimitDueToIntptrMax = static_cast<intptr_t>(
+      (kIntptrMax - sizeof(RawArray) - kObjectAlignment + kBytesPerElement) /
+      kBytesPerElement);
+  static const intptr_t kMaxElements = kSmiMax < kElementLimitDueToIntptrMax
+                                           ? kSmiMax
+                                           : kElementLimitDueToIntptrMax;
   static const intptr_t kMaxNewSpaceElements =
       (Heap::kNewAllocatableSize - sizeof(RawArray)) / kBytesPerElement;
 
