@@ -10,7 +10,8 @@ class A<T> {
 
   /*element: A.f:*/
   f() {
-    return /**/ (int t) {};
+    // TODO(johnniwinther): Optimize local function type signature need.
+    return /*ast.*/ /*kernel.*/ /*strong.needsSignature*/ (int t) {};
   }
 }
 

@@ -2,10 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*class: global#Map:instance*/
+/*ast.class: global#Map:instance*/
+/*kernel.class: global#Map:instance*/
+/*strong.class: global#Map:checkedInstance,checks=[],instance*/
+
 /*class: global#LinkedHashMap:*/
 /*class: global#JsLinkedHashMap:checks=[],instance*/
-/*class: global#double:checks=[],instance,typeArgument*/
+
+/*ast.class: global#double:checks=[],instance,typeArgument*/
+/*kernel.class: global#double:checks=[],instance,typeArgument*/
+/*strong.class: global#double:checkedInstance,checks=[],instance,typeArgument*/
+
 /*class: global#JSDouble:checks=[],instance*/
 
 main() {

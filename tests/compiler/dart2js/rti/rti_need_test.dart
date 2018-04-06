@@ -36,6 +36,12 @@ main(List<String> args) {
         computeClassDataFromAst: computeAstRtiClassNeed,
         computeClassDataFromKernel: computeKernelRtiClassNeed,
         options: [Flags.omitImplicitChecks], // only used in strong-mode
+        skipForStrong: [
+          'map_literal_checked.dart',
+          // TODO(johnniwinther): Optimize local function type signature need.
+          'subtype_named_args.dart',
+          'subtype_named_args1.dart',
+        ],
         args: args);
   });
 }

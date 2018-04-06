@@ -24,7 +24,9 @@ main(List<String> args) {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, computeJumpsData, computeKernelJumpsData,
         options: [Flags.disableTypeInference, stopAfterTypeInference],
-        args: args);
+        args: args,
+        // TODO(johnniwinther): Run tests with strong mode.
+        testStrongMode: false);
   });
 }
 

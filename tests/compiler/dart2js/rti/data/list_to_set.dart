@@ -4,8 +4,11 @@
 
 /*ast.class: global#List:deps=[Class,EmptyIterable,Iterable,JSArray,ListIterable,SetMixin,SubListIterable],explicit=[List],implicit=[List.E],indirect,needsArgs*/
 /*kernel.class: global#List:deps=[Class,EmptyIterable,Iterable,JSArray,ListIterable,SetMixin],explicit=[List],implicit=[List.E],indirect,needsArgs*/
+/*strong.class: global#List:deps=[Class,EmptyIterable,Iterable,JSArray,ListIterable,SetMixin],explicit=[List],implicit=[List.E],indirect,needsArgs*/
+
 /*ast.class: global#JSArray:deps=[List],explicit=[JSArray],implicit=[JSArray.E],indirect,needsArgs*/
 /*kernel.class: global#JSArray:deps=[EmptyIterable,List,ListIterable,SetMixin,SubListIterable],explicit=[JSArray],implicit=[JSArray.E],indirect,needsArgs*/
+/*strong.class: global#JSArray:deps=[EmptyIterable,List,ListIterable,SetMixin,SubListIterable],explicit=[JSArray],implicit=[JSArray.E],indirect,needsArgs*/
 
 main() {
   var c = new Class<int>();

@@ -442,7 +442,7 @@ typedef void Callback();
 /// file and any supporting libraries.
 Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     ComputeMemberDataFunction computeFromKernel,
-    {bool testStrongMode: false,
+    {bool testStrongMode: true,
     List<String> skipForAst: const <String>[],
     List<String> skipForKernel: const <String>[],
     List<String> skipForStrong: const <String>[],
@@ -584,7 +584,7 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
             forUserLibrariesOnly: forUserLibrariesOnly,
             globalIds: annotations.globalData.keys);
         if (await checkCode(
-            kernelName, entity.uri, code, annotations, compiledData2,
+            strongName, entity.uri, code, annotations, compiledData2,
             filterActualData: filterActualData,
             fatalErrors: !testAfterFailures)) {
           hasFailures = true;
