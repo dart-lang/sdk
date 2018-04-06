@@ -1,3 +1,12 @@
+# 0.1.47
+
+* new `avoid_double_and_int_checks` lint
+* fix to handle uninitialized vars in `prefer_const_declarations`
+* fix for generic function type handling in `avoid_types_as_parameter_names`
+* new `prefer_iterable_whereType` lint
+* new `prefer_generic_function_type_aliases` lint
+* Dart 2 compatibility fixes
+
 # 0.1.46
 
 * performance fixes for library prefix testing (`library_prefixes`)
