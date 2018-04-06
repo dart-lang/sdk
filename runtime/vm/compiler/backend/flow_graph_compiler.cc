@@ -1855,29 +1855,14 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
   }
 }
 
-bool FlowGraphCompiler::GenerateSubclassTypeCheck(Register class_id_reg,
+bool FlowGraphCompiler::GenerateSubtypeRangeCheck(Register class_id_reg,
                                                   const Class& type_class,
                                                   Label* is_subtype) {
   HierarchyInfo* hi = Thread::Current()->hierarchy_info();
   if (hi != NULL) {
-    // We test up to 4 different cid ranges, if we would need to test more in
-    // order to get a definite answer we fall back to the old mechanism (namely
-    // of going into the subtyping cache)
-    static const intptr_t kMaxNumberOfCidRangesToTest = 4;
-
     const CidRangeVector& ranges = hi->SubtypeRangesForClass(type_class);
     if (ranges.length() <= kMaxNumberOfCidRangesToTest) {
-      Label fail;
-      int bias = 0;
-      for (intptr_t i = 0; i < ranges.length(); ++i) {
-        const CidRange& range = ranges[i];
-        if (!range.IsIllegalRange()) {
-          bias = EmitTestAndCallCheckCid(assembler(), is_subtype, class_id_reg,
-                                         range, bias,
-                                         /*jump_on_miss=*/false);
-        }
-      }
-      __ Bind(&fail);
+      GenerateCidRangesCheck(assembler(), class_id_reg, ranges, is_subtype);
       return true;
     }
   }
@@ -1889,6 +1874,46 @@ bool FlowGraphCompiler::GenerateSubclassTypeCheck(Register class_id_reg,
     __ BranchIf(EQUAL, is_subtype);
   }
   return false;
+}
+
+void FlowGraphCompiler::GenerateCidRangesCheck(Assembler* assembler,
+                                               Register class_id_reg,
+                                               const CidRangeVector& cid_ranges,
+                                               Label* is_subtype) {
+  Label fail;
+  int bias = 0;
+  for (intptr_t i = 0; i < cid_ranges.length(); ++i) {
+    const CidRange& range = cid_ranges[i];
+    if (!range.IsIllegalRange()) {
+      bias = EmitTestAndCallCheckCid(assembler, is_subtype, class_id_reg, range,
+                                     bias,
+                                     /*jump_on_miss=*/false);
+    }
+  }
+  assembler->Bind(&fail);
+}
+
+void FlowGraphCompiler::GenerateAssertAssignableAOT(
+    const AbstractType& dst_type,
+    const String& dst_name,
+    const Register instance_reg,
+    const Register instantiator_type_args_reg,
+    const Register function_type_args_reg,
+    const Register subtype_cache_reg,
+    const Register dst_type_reg,
+    const Register dst_name_reg,
+    Label* done) {
+  // If the int type is assignable to [dst_type] we special case it on the
+  // caller side!
+  const Type& int_type = Type::Handle(zone(), Type::IntType());
+  if (int_type.IsSubtypeOf(dst_type, NULL, NULL, Heap::kOld)) {
+    __ BranchIfSmi(instance_reg, done);
+  }
+
+  __ LoadObject(dst_type_reg, dst_type);
+  __ LoadObject(dst_name_reg, dst_name);
+  __ LoadObject(subtype_cache_reg,
+                SubtypeTestCache::ZoneHandle(zone(), SubtypeTestCache::New()));
 }
 
 #undef __

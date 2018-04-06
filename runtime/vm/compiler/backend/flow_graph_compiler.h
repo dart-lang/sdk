@@ -332,6 +332,21 @@ class FlowGraphCompiler : public ValueObject {
                                 const AbstractType& dst_type,
                                 const String& dst_name,
                                 LocationSummary* locs);
+  void GenerateAssertAssignableAOT(TokenPosition token_pos,
+                                   intptr_t deopt_id,
+                                   const AbstractType& dst_type,
+                                   const String& dst_name,
+                                   LocationSummary* locs);
+
+  void GenerateAssertAssignableAOT(const AbstractType& dst_type,
+                                   const String& dst_name,
+                                   const Register instance_reg,
+                                   const Register instantiator_type_args_reg,
+                                   const Register function_type_args_reg,
+                                   const Register subtype_cache_reg,
+                                   const Register dst_type_reg,
+                                   const Register dst_name_reg,
+                                   Label* done);
 
 // DBC emits calls very differently from all other architectures due to its
 // interpreted nature.
@@ -400,9 +415,20 @@ class FlowGraphCompiler : public ValueObject {
   // Returns true if no further checks are necessary but the code coming after
   // the emitted code here is still required do a runtime call (for the negative
   // case of throwing an exception).
-  bool GenerateSubclassTypeCheck(Register class_id_reg,
+  bool GenerateSubtypeRangeCheck(Register class_id_reg,
                                  const Class& type_class,
                                  Label* is_subtype_lbl);
+
+  // We test up to 4 different cid ranges, if we would need to test more in
+  // order to get a definite answer we fall back to the old mechanism (namely
+  // of going into the subtyping cache)
+  static const intptr_t kMaxNumberOfCidRangesToTest = 4;
+
+  // Falls through to false.
+  static void GenerateCidRangesCheck(Assembler* assembler,
+                                     Register class_id_reg,
+                                     const CidRangeVector& cid_ranges,
+                                     Label* is_subtype_lbl);
 
   void EmitOptimizedInstanceCall(const StubEntry& stub_entry,
                                  const ICData& ic_data,

@@ -382,7 +382,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
 
   // Fast case for cid-range based checks.
   // Warning: This code destroys the contents of [kClassIdReg].
-  if (GenerateSubclassTypeCheck(kClassIdReg, type_class, is_instance_lbl)) {
+  if (GenerateSubtypeRangeCheck(kClassIdReg, type_class, is_instance_lbl)) {
     return false;
   }
 
@@ -630,13 +630,17 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   ASSERT(dst_type.IsMalformedOrMalbounded() ||
          (!dst_type.IsDynamicType() && !dst_type.IsObjectType() &&
           !dst_type.IsVoidType()));
-  // A null object is always assignable and is returned as result.
-  Label is_assignable, runtime_call;
-  __ CompareObject(RAX, Object::null_object());
-  __ j(EQUAL, &is_assignable);
 
+  const Register kInstantiatorTypeArgumentsReg = RDX;
+  const Register kFunctionTypeArgumentsReg = RCX;
+
+  // A null object is always assignable and is returned as result.
   // Generate throw new TypeError() if the type is malformed or malbounded.
   if (dst_type.IsMalformedOrMalbounded()) {
+    Label is_assignable;
+    __ CompareObject(RAX, Object::null_object());
+    __ j(EQUAL, &is_assignable);
+
     __ PushObject(Object::null_object());  // Make room for the result.
     __ pushq(RAX);                         // Push the source object.
     __ PushObject(dst_name);               // Push the name of the destination.
@@ -650,28 +654,65 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
     return;
   }
 
-  // Generate inline type check, linking to runtime call if not assignable.
-  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle(zone());
-  // The registers RAX, RCX, RDX are preserved across the call.
-  test_cache = GenerateInlineInstanceof(token_pos, dst_type, &is_assignable,
-                                        &runtime_call);
+  if (FLAG_precompiled_mode && !dst_type.IsDartFunctionType() &&
+      !dst_type.IsFunctionType() &&
+      (dst_type.IsType() || dst_type.IsTypeParameter())) {
+    GenerateAssertAssignableAOT(token_pos, deopt_id, dst_type, dst_name, locs);
+  } else {
+    Label is_assignable, runtime_call;
 
-  __ Bind(&runtime_call);
-  __ PushObject(Object::null_object());       // Make room for the result.
-  __ pushq(RAX);                              // Push the source object.
-  __ PushObject(dst_type);  // Push the type of the destination.
-  __ pushq(RDX);            // Instantiator type arguments.
-  __ pushq(RCX);            // Function type arguments.
-  __ PushObject(dst_name);  // Push the name of the destination.
-  __ LoadUniqueObject(RAX, test_cache);
-  __ pushq(RAX);
-  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 6, locs);
-  // Pop the parameters supplied to the runtime entry. The result of the
-  // type check runtime call is the checked value.
-  __ Drop(6);
-  __ popq(RAX);
+    // A null object is always assignable and is returned as result.
+    __ CompareObject(RAX, Object::null_object());
+    __ j(EQUAL, &is_assignable);
 
-  __ Bind(&is_assignable);
+    // Generate inline type check, linking to runtime call if not assignable.
+    SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle(zone());
+    // The registers RAX, RCX, RDX are preserved across the call.
+    test_cache = GenerateInlineInstanceof(token_pos, dst_type, &is_assignable,
+                                          &runtime_call);
+
+    __ Bind(&runtime_call);
+    __ PushObject(Object::null_object());  // Make room for the result.
+    __ pushq(RAX);                         // Push the source object.
+    __ PushObject(dst_type);               // Push the type of the destination.
+    __ pushq(kInstantiatorTypeArgumentsReg);
+    __ pushq(kFunctionTypeArgumentsReg);
+    __ PushObject(dst_name);  // Push the name of the destination.
+    __ LoadUniqueObject(RAX, test_cache);
+    __ pushq(RAX);
+    GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 6, locs);
+    // Pop the parameters supplied to the runtime entry. The result of the
+    // type check runtime call is the checked value.
+    __ Drop(6);
+    __ popq(RAX);
+    __ Bind(&is_assignable);
+  }
+}
+
+void FlowGraphCompiler::GenerateAssertAssignableAOT(
+    TokenPosition token_pos,
+    intptr_t deopt_id,
+    const AbstractType& dst_type,
+    const String& dst_name,
+    LocationSummary* locs) {
+  const Register kInstanceReg = RAX;
+  const Register kInstantiatorTypeArgumentsReg = RDX;
+  const Register kFunctionTypeArgumentsReg = RCX;
+
+  Label done;
+
+  const Register subtype_cache_reg = R9;
+  const Register dst_type_reg = RBX;
+  const Register dst_name_reg = R10;
+
+  GenerateAssertAssignableAOT(dst_type, dst_name, kInstanceReg,
+                              kInstantiatorTypeArgumentsReg,
+                              kFunctionTypeArgumentsReg, subtype_cache_reg,
+                              dst_type_reg, dst_name_reg, &done);
+
+  __ call(FieldAddress(RBX, AbstractType::type_test_stub_entry_point_offset()));
+  EmitCallsiteMetadata(token_pos, deopt_id, RawPcDescriptors::kOther, locs);
+  __ Bind(&done);
 }
 
 void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {

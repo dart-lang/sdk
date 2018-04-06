@@ -438,6 +438,8 @@ class Assembler : public ValueObject {
   void Bind(Label* label);
   void Jump(Label* label) { b(label); }
 
+  void LoadField(Register dst, FieldAddress address) { ldr(dst, address); }
+
   // Misc. functionality
   intptr_t CodeSize() const { return buffer_.Size(); }
   intptr_t prologue_offset() const { return prologue_offset_; }
@@ -1506,6 +1508,7 @@ class Assembler : public ValueObject {
 
   void EnterFrame(intptr_t frame_size);
   void LeaveFrame();
+  void Ret() { ret(LR); }
 
   void CheckCodePointer();
   void RestoreCodePointer();

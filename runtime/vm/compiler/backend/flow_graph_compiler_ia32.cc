@@ -384,7 +384,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
 
   // Fast case for cid-range based checks.
   // Warning: This code destroys the contents of [kClassIdReg].
-  if (GenerateSubclassTypeCheck(kClassIdReg, type_class, is_instance_lbl)) {
+  if (GenerateSubtypeRangeCheck(kClassIdReg, type_class, is_instance_lbl)) {
     return false;
   }
 

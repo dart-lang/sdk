@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
+
+#include "vm/stub_code.h"
+
 #if defined(TARGET_ARCH_X64) && !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/compiler/assembler/assembler.h"
@@ -15,8 +18,8 @@
 #include "vm/resolver.h"
 #include "vm/scavenger.h"
 #include "vm/stack_frame.h"
-#include "vm/stub_code.h"
 #include "vm/tags.h"
+#include "vm/type_testing_stubs.h"
 
 #define __ assembler->
 
@@ -1717,7 +1720,7 @@ void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
 //
 //   - TOS + 0: return address.
 //
-// Preserves R9/RAX/RCX/RDX.
+// Preserves R9/RAX/RCX/RDX, RBX.
 //
 // Result in R8: null -> not found, otherwise result (true or false).
 static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
@@ -1839,6 +1842,157 @@ void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
 // Preserves RCX/RDX.
 void StubCode::GenerateSubtype4TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 4);
+}
+
+// Used to test whether a given value is of a given type (different variants,
+// all have the same calling convention).
+//
+// Inputs:
+//   - R9  : RawSubtypeTestCache
+//   - RAX : instance to test against.
+//   - RDX : instantiator type arguments (if needed).
+//   - RCX : function type arguments (if needed).
+//
+//   - RBX : type to test against.
+//   - R10 : name of destination variable.
+//
+// Preserves R9/RAX/RCX/RDX, RBX, R10.
+//
+// Note of warning: The caller will not populate CODE_REG and we have therefore
+// no access to the pool.
+void StubCode::GenerateDefaultTypeTestStub(Assembler* assembler) {
+  Label done;
+
+  const Register kInstanceReg = RAX;
+  const Register kDstTypeReg = RBX;
+
+  // Fast case for 'null'.
+  __ CompareObject(kInstanceReg, Object::null_object());
+  __ BranchIf(EQUAL, &done);
+
+  // Fast case for 'int'.
+  Label not_smi;
+  __ BranchIfNotSmi(kInstanceReg, &not_smi);
+  __ CompareObject(kDstTypeReg, Object::ZoneHandle(Type::IntType()));
+  __ BranchIf(EQUAL, &done);
+  __ Bind(&not_smi);
+
+  // Tail call the [SubtypeTestCache]-based implementation.
+  __ movq(CODE_REG, Address(THR, Thread::slow_type_test_stub_offset()));
+  __ jmp(FieldAddress(CODE_REG, Code::entry_point_offset()));
+
+  __ Bind(&done);
+  __ Ret();
+}
+
+void StubCode::GenerateUnreachableTypeTestStub(Assembler* assembler) {
+  __ Breakpoint();
+}
+
+void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
+  Label done, call_runtime;
+
+  const Register kInstanceReg = RAX;
+  const Register kInstantiatorTypeArgumentsReg = RDX;
+  const Register kFunctionTypeArgumentsReg = RCX;
+  const Register kDstTypeReg = RBX;
+  const Register kDstNameReg = R10;
+  const Register kSubtypeTestCacheReg = R9;
+
+  __ EnterStubFrame();
+
+#ifdef DEBUG
+  // Guaranteed by caller.
+  Label no_error;
+  __ CompareObject(kInstanceReg, Object::null_object());
+  __ BranchIf(NOT_EQUAL, &no_error);
+  __ Breakpoint();
+  __ Bind(&no_error);
+#endif
+
+  // Need to handle slow cases of [Smi]s here because the
+  // [SubtypeTestCache]-based stubs do not handle [Smi]s.
+  __ BranchIfSmi(kInstanceReg, &call_runtime);
+
+  const Register kTmp = RDI;
+
+  // If this is not a [Type] object, we'll go to the runtime.
+  Label is_simple, is_instantiated, is_uninstantiated;
+  __ LoadClassId(kTmp, kDstTypeReg);
+  __ cmpq(kTmp, Immediate(kTypeCid));
+  __ BranchIf(NOT_EQUAL, &is_uninstantiated);
+
+  // Check whether this [Type] is instantiated/uninstantiated.
+  __ cmpb(FieldAddress(kDstTypeReg, Type::type_state_offset()),
+          Immediate(RawType::kFinalizedInstantiated));
+  __ BranchIf(NOT_EQUAL, &is_uninstantiated);
+
+  // Check whether this [Type] is with/without arguments.
+  __ LoadField(kTmp, FieldAddress(kDstTypeReg, Type::arguments_offset()));
+  __ CompareObject(kTmp, Object::null_object());
+  __ BranchIf(NOT_EQUAL, &is_instantiated);
+  // Fall through to &is_simple
+
+  __ Bind(&is_simple);
+  {
+    __ pushq(kDstNameReg);
+    __ Call(*StubCode::Subtype1TestCache_entry());
+    __ popq(kDstNameReg);
+    __ CompareObject(R8, Bool::True());
+    __ BranchIf(EQUAL, &done);  // Cache said: yes.
+    __ Jump(&call_runtime);
+  }
+
+  __ Bind(&is_instantiated);
+  {
+    __ pushq(kDstNameReg);
+    __ Call(*StubCode::Subtype2TestCache_entry());
+    __ popq(kDstNameReg);
+    __ CompareObject(R8, Bool::True());
+    __ BranchIf(EQUAL, &done);  // Cache said: yes.
+    __ Jump(&call_runtime);
+  }
+
+  __ Bind(&is_uninstantiated);
+  {
+    __ pushq(kDstNameReg);
+    __ Call(*StubCode::Subtype4TestCache_entry());
+    __ popq(kDstNameReg);
+    __ CompareObject(R8, Bool::True());
+    __ BranchIf(EQUAL, &done);  // Cache said: yes.
+    // Fall through to runtime_call
+  }
+
+  __ Bind(&call_runtime);
+
+  // We cannot really ensure here that dynamic/Object never occur here (though
+  // it is guaranteed at dart_precompiled_runtime time).  This is because we do
+  // constant evaluation with default stubs and only install optimized versions
+  // before writing out the AOT snapshot.  So dynamic/Object will run with
+  // default stub in constant evaluation.
+  __ CompareObject(kDstTypeReg, Type::dynamic_type());
+  __ BranchIf(EQUAL, &done);
+  __ CompareObject(kDstTypeReg, Type::Handle(Type::ObjectType()));
+  __ BranchIf(EQUAL, &done);
+
+  __ PushObject(Object::null_object());  // Make room for result.
+  __ pushq(kInstanceReg);
+  __ pushq(kDstTypeReg);
+  __ pushq(kInstantiatorTypeArgumentsReg);
+  __ pushq(kFunctionTypeArgumentsReg);
+  __ pushq(kDstNameReg);
+  __ pushq(kSubtypeTestCacheReg);
+  __ CallRuntime(kTypeCheckRuntimeEntry, 6);
+  __ popq(kSubtypeTestCacheReg);
+  __ popq(kDstNameReg);
+  __ popq(kFunctionTypeArgumentsReg);
+  __ popq(kInstantiatorTypeArgumentsReg);
+  __ popq(kDstTypeReg);
+  __ popq(kInstanceReg);
+  __ Drop(1);  // Discard return value.
+  __ Bind(&done);
+  __ LeaveStubFrame();
+  __ Ret();
 }
 
 // Return the current stack pointer address, used to stack alignment
