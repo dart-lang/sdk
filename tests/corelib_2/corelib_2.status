@@ -213,15 +213,7 @@ map_entry_test: RuntimeError
 
 [ $compiler == dart2js && $fasta && $host_checked && $strong ]
 apply3_test: RuntimeError
-bigint_parse_radix_test: RuntimeError
-bigint_test: RuntimeError
 cast_test: RuntimeError
-date_time2_test: RuntimeError
-date_time3_test: RuntimeError
-date_time4_test: RuntimeError
-date_time7_test: RuntimeError
-date_time_parse_test: RuntimeError
-date_time_test: RuntimeError
 dynamic_nosuchmethod_test: RuntimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
 growable_list_test: RuntimeError # Concurrent modifications test always runs
@@ -242,62 +234,9 @@ list_test/none: RuntimeError
 list_unmodifiable_test: RuntimeError
 main_test: RuntimeError
 nan_infinity_test/01: RuntimeError
-reg_exp_all_matches_test: RuntimeError
-reg_exp_cache_test: RuntimeError
-reg_exp_first_match_test: RuntimeError
-reg_exp_group_test: RuntimeError
-reg_exp_groups_test: RuntimeError
-reg_exp_start_end_test: RuntimeError
-reg_exp_string_match_test: RuntimeError
-regexp/UC16_test: RuntimeError
-regexp/alternatives_test: RuntimeError
-regexp/assertion_test: RuntimeError
-regexp/bol-with-multiline_test: RuntimeError
-regexp/bol_test: RuntimeError
-regexp/capture-3_test: RuntimeError
-regexp/capture_test: RuntimeError
-regexp/character-match-out-of-order_test: RuntimeError
-regexp/default_arguments_test: RuntimeError
-regexp/dotstar_test: RuntimeError
-regexp/early-acid3-86_test: RuntimeError
-regexp/ecma-regex-examples_test: RuntimeError
-regexp/extended-characters-match_test: RuntimeError
-regexp/find-first-asserted_test: RuntimeError
-regexp/global_test: RuntimeError
-regexp/indexof_test: RuntimeError
-regexp/invalid-range-in-class_test: RuntimeError
-regexp/lastindex_test: RuntimeError
-regexp/look-ahead_test: RuntimeError
-regexp/lookahead_test: RuntimeError
-regexp/loop-capture_test: RuntimeError
-regexp/many-brackets_test: RuntimeError
-regexp/no-extensions_test: RuntimeError
-regexp/non-bmp_test: RuntimeError
-regexp/non-capturing-backtracking_test: RuntimeError
-regexp/non-capturing-groups_test: RuntimeError
-regexp/non-greedy-parentheses_test: RuntimeError
-regexp/parentheses_test: RuntimeError
-regexp/pcre-test-4_test: RuntimeError
 regexp/pcre_test: RuntimeError
-regexp/range-bound-ffff_test: RuntimeError
-regexp/ranges-and-escaped-hyphens_test: RuntimeError
-regexp/regexp_escape_test: RuntimeError
-regexp/regexp_kde_test: RuntimeError
-regexp/regexp_test: RuntimeError
-regexp/regress-regexp-codeflush_test: RuntimeError
-regexp/regress-regexp-construct-result_test: RuntimeError
-regexp/repeat-match-waldemar_test: RuntimeError
-regexp/stack-overflow2_test: RuntimeError
-regexp/stack-overflow_test: RuntimeError
-regexp/standalones_test: RuntimeError
-regexp/unicode-handling_test: RuntimeError
-regexp/zero-length-alternatives_test: RuntimeError
-string_from_list_test: RuntimeError
 string_fromcharcodes_test: RuntimeError
-string_replace_test: RuntimeError
 string_split_test/checkedstore: RuntimeError # Issue 30548: does not check stores into List<String>
-string_split_test/none: RuntimeError
-string_test: RuntimeError
 symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
 uri_base_test: RuntimeError
 uri_parameters_all_test: RuntimeError
@@ -305,15 +244,7 @@ uri_test: RuntimeError
 
 [ $compiler == dart2js && $fasta && $minified && $strong ]
 apply3_test: RuntimeError
-bigint_parse_radix_test: RuntimeError
-bigint_test: RuntimeError
 cast_test: RuntimeError
-date_time2_test: RuntimeError
-date_time3_test: RuntimeError
-date_time4_test: RuntimeError
-date_time7_test: RuntimeError
-date_time_parse_test: RuntimeError
-date_time_test: RuntimeError
 dynamic_nosuchmethod_test: RuntimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
 growable_list_test: RuntimeError # Concurrent modifications test always runs
@@ -336,62 +267,9 @@ list_unmodifiable_test: RuntimeError
 main_test: RuntimeError
 nan_infinity_test/01: RuntimeError
 nsm_invocation_test: RuntimeError # Symbols don't match due to minifiaction.
-reg_exp_all_matches_test: RuntimeError
-reg_exp_cache_test: RuntimeError
-reg_exp_first_match_test: RuntimeError
-reg_exp_group_test: RuntimeError
-reg_exp_groups_test: RuntimeError
-reg_exp_start_end_test: RuntimeError
-reg_exp_string_match_test: RuntimeError
-regexp/UC16_test: RuntimeError
-regexp/alternatives_test: RuntimeError
-regexp/assertion_test: RuntimeError
-regexp/bol-with-multiline_test: RuntimeError
-regexp/bol_test: RuntimeError
-regexp/capture-3_test: RuntimeError
-regexp/capture_test: RuntimeError
-regexp/character-match-out-of-order_test: RuntimeError
-regexp/default_arguments_test: RuntimeError
-regexp/dotstar_test: RuntimeError
-regexp/early-acid3-86_test: RuntimeError
-regexp/ecma-regex-examples_test: RuntimeError
-regexp/extended-characters-match_test: RuntimeError
-regexp/find-first-asserted_test: RuntimeError
-regexp/global_test: RuntimeError
-regexp/indexof_test: RuntimeError
-regexp/invalid-range-in-class_test: RuntimeError
-regexp/lastindex_test: RuntimeError
-regexp/look-ahead_test: RuntimeError
-regexp/lookahead_test: RuntimeError
-regexp/loop-capture_test: RuntimeError
-regexp/many-brackets_test: RuntimeError
-regexp/no-extensions_test: RuntimeError
-regexp/non-bmp_test: RuntimeError
-regexp/non-capturing-backtracking_test: RuntimeError
-regexp/non-capturing-groups_test: RuntimeError
-regexp/non-greedy-parentheses_test: RuntimeError
-regexp/parentheses_test: RuntimeError
-regexp/pcre-test-4_test: RuntimeError
 regexp/pcre_test: RuntimeError
-regexp/range-bound-ffff_test: RuntimeError
-regexp/ranges-and-escaped-hyphens_test: RuntimeError
-regexp/regexp_escape_test: RuntimeError
-regexp/regexp_kde_test: RuntimeError
-regexp/regexp_test: RuntimeError
-regexp/regress-regexp-codeflush_test: RuntimeError
-regexp/regress-regexp-construct-result_test: RuntimeError
-regexp/repeat-match-waldemar_test: RuntimeError
-regexp/stack-overflow2_test: RuntimeError
-regexp/stack-overflow_test: RuntimeError
-regexp/standalones_test: RuntimeError
-regexp/unicode-handling_test: RuntimeError
-regexp/zero-length-alternatives_test: RuntimeError
-string_from_list_test: RuntimeError
 string_fromcharcodes_test: RuntimeError
-string_replace_test: RuntimeError
 string_split_test/checkedstore: RuntimeError # Issue 30548: does not check stores into List<String>
-string_split_test/none: RuntimeError
-string_test: RuntimeError
 symbol_operator_test/03: RuntimeError
 symbol_operator_test/none: RuntimeError
 symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.

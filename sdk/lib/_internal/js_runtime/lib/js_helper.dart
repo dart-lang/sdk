@@ -986,9 +986,12 @@ class Primitives {
     return null;
   }
 
-  // This is to avoid stack overflows due to very large argument arrays in
-  // apply().  It fixes http://dartbug.com/6919
-  static String _fromCharCodeApply(List<int> array) {
+  /// Version of `String.fromCharCode.apply` that chunks the conversion to avoid
+  /// stack overflows due to very large argument arrays.
+  ///
+  /// [array] is pre-validated as a JSArray of int values but is not typed as
+  /// <int> so it can be called with any JSArray.
+  static String _fromCharCodeApply(List array) {
     const kMaxApply = 500;
     int end = array.length;
     if (end <= kMaxApply) {

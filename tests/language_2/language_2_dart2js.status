@@ -1125,7 +1125,6 @@ const_list_test: RuntimeError
 const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
 const_map4_test: RuntimeError
-const_map_test: RuntimeError
 const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError, OK # constant identity based on JS constants
 const_switch_test/04: RuntimeError, OK # constant identity based on JS constants
@@ -1540,9 +1539,6 @@ redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 redirecting_factory_reflection_test: RuntimeError
-reg_ex2_test: RuntimeError
-reg_exp2_test: RuntimeError
-reg_exp_test: RuntimeError
 regress_13462_1_test: RuntimeError
 regress_18535_test: RuntimeError
 regress_22443_test: RuntimeError
@@ -1805,7 +1801,6 @@ const_list_test: RuntimeError
 const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
 const_map4_test: RuntimeError
-const_map_test: RuntimeError
 const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError, OK # constant identity based on JS constants
 const_switch_test/04: RuntimeError, OK # constant identity based on JS constants
@@ -2209,9 +2204,6 @@ redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 redirecting_factory_reflection_test: RuntimeError
-reg_ex2_test: RuntimeError
-reg_exp2_test: RuntimeError
-reg_exp_test: RuntimeError
 regress_13462_1_test: RuntimeError
 regress_18535_test: RuntimeError
 regress_21795_test: RuntimeError # Issue 12605
