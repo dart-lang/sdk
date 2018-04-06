@@ -115,11 +115,6 @@ identical_const_test/01: MissingCompileTimeError
 identical_const_test/02: MissingCompileTimeError
 identical_const_test/03: MissingCompileTimeError
 identical_const_test/04: MissingCompileTimeError
-implicit_creation/implicit_const_context_constructor_generic_named_test: CompileTimeError
-implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: CompileTimeError
-implicit_creation/implicit_new_constructor_generic_named_test: CompileTimeError
-implicit_creation/implicit_new_or_const_generic_test: CompileTimeError
-implicit_creation/implicit_new_prefix_constructor_generic_named_test: CompileTimeError
 implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/04: MissingCompileTimeError
 issue31596_override_test/07: MissingCompileTimeError
@@ -667,7 +662,6 @@ generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
 generic_tearoff_test: CompileTimeError
 generic_tearoff_test: RuntimeError
 if_null_evaluation_order_test: Pass
-implicit_creation/implicit_new_constructor_generic_test: Pass
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instantiate_tearoff_of_call_test: CompileTimeError
@@ -1010,7 +1004,6 @@ getter_override_test/01: MissingCompileTimeError # Issue 32613: override check i
 getter_override_test/02: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
 hello_dart_test: Skip # Incompatible flag: --compile_all
 implicit_closure_test: Skip # Incompatible flag: --use_slow_path
-implicit_creation/implicit_new_constructor_generic_test: Pass
 implicit_downcast_during_assignment_test: Pass # Correctly passes.
 implicit_downcast_during_combiner_test: Pass # Correctly passes.
 implicit_downcast_during_compound_assignment_test: Pass # Correctly passes.

@@ -952,6 +952,16 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void beginImplicitCreationExpression(Token token) {
+    listener?.beginImplicitCreationExpression(token);
+  }
+
+  @override
+  void endImplicitCreationExpression(Token token) {
+    listener?.endImplicitCreationExpression(token);
+  }
+
+  @override
   void handleEmptyStatement(Token token) {
     listener?.handleEmptyStatement(token);
   }

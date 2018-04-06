@@ -4566,9 +4566,24 @@ class Parser {
           token.next, POSTFIX_PRECEDENCE, allowCascades);
       listener.handleUnaryPrefixAssignmentExpression(operator);
       return token;
-    } else {
-      return parsePrimary(token, IdentifierContext.expression);
+    } else if (token.next.isIdentifier) {
+      Token identifier = token.next;
+      if (optional(".", identifier.next)) {
+        identifier = identifier.next.next;
+      }
+      if (identifier.isIdentifier) {
+        // Looking at `identifier ('.' identifier)?`.
+        if (optional("<", identifier.next)) {
+          BeginToken typeArguments = identifier.next;
+          Token endTypeArguments = typeArguments.endGroup;
+          if (endTypeArguments != null &&
+              optional(".", endTypeArguments.next)) {
+            return parseImplicitCreationExpression(token);
+          }
+        }
+      }
     }
+    return parsePrimary(token, IdentifierContext.expression);
   }
 
   Token parseArgumentOrIndexStar(Token token, Token typeArguments) {
@@ -4978,6 +4993,15 @@ class Parser {
     token = parseConstructorReference(newKeyword);
     token = parseRequiredArguments(token);
     listener.endNewExpression(newKeyword);
+    return token;
+  }
+
+  Token parseImplicitCreationExpression(Token token) {
+    Token begin = token;
+    listener.beginImplicitCreationExpression(token);
+    token = parseConstructorReference(token);
+    token = parseRequiredArguments(token);
+    listener.endImplicitCreationExpression(begin);
     return token;
   }
 

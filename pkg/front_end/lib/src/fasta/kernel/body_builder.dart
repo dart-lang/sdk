@@ -398,7 +398,8 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     pushQualifiedReference(beginToken.next, periodBeforeName);
     if (arguments != null) {
       push(arguments);
-      endNewExpression(beginToken);
+      buildConstructorReferenceInvocation(
+          beginToken, beginToken.offset, Constness.explicitConst);
       push(popForValue());
     } else {
       String name = pop();
@@ -2661,6 +2662,12 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   }
 
   @override
+  void beginImplicitCreationExpression(Token token) {
+    debugEvent("beginImplicitCreationExpression");
+    super.push(constantContext);
+  }
+
+  @override
   void endConstLiteral(Token token) {
     debugEvent("endConstLiteral");
     var literal = pop();
@@ -2671,7 +2678,12 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   @override
   void endNewExpression(Token token) {
     debugEvent("NewExpression");
-    Token nameToken = token.next;
+    buildConstructorReferenceInvocation(
+        token.next, token.offset, Constness.explicitNew);
+  }
+
+  void buildConstructorReferenceInvocation(
+      Token nameToken, int offset, Constness constness) {
     Arguments arguments = pop();
     String name = pop();
     List<DartType> typeArguments = pop();
@@ -2697,25 +2709,24 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     ConstantContext savedConstantContext = pop();
     if (type is TypeDeclarationBuilder) {
       Expression expression = buildConstructorInvocation(
-          type,
-          nameToken,
-          arguments,
-          name,
-          typeArguments,
-          token.charOffset,
-          optional("const", token) || optional("@", token)
-              ? Constness.explicitConst
-              : Constness.explicitNew);
+          type, nameToken, arguments, name, typeArguments, offset, constness);
       push(deferredPrefix != null
           ? wrapInDeferredCheck(expression, deferredPrefix, checkOffset)
           : expression);
     } else if (type is ErrorAccessor) {
       push(type.buildError(arguments));
     } else {
-      push(throwNoSuchMethodError(forest.literalNull(token),
+      push(throwNoSuchMethodError(storeOffset(forest.literalNull(null), offset),
           debugName(getNodeName(type), name), arguments, nameToken.charOffset));
     }
     constantContext = savedConstantContext;
+  }
+
+  @override
+  void endImplicitCreationExpression(Token token) {
+    debugEvent("ImplicitCreationExpression");
+    buildConstructorReferenceInvocation(
+        token, token.offset, Constness.implicit);
   }
 
   @override
@@ -2816,7 +2827,8 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   @override
   void endConstExpression(Token token) {
     debugEvent("endConstExpression");
-    endNewExpression(token);
+    buildConstructorReferenceInvocation(
+        token.next, token.offset, Constness.explicitConst);
   }
 
   @override

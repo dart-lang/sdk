@@ -516,6 +516,12 @@ class Listener {
     logEvent("DottedName");
   }
 
+  void beginImplicitCreationExpression(Token token) {}
+
+  void endImplicitCreationExpression(Token token) {
+    logEvent("ImplicitCreationExpression");
+  }
+
   void beginInitializedIdentifier(Token token) {}
 
   void endInitializedIdentifier(Token nameToken) {
