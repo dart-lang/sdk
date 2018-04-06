@@ -419,6 +419,9 @@ class CapturedScopeBuilder extends ir.Visitor {
       _capturedVariables.add(freeVariable);
       _markVariableAsUsed(freeVariable);
     }
+    for (ir.Node freeVariableForRti in savedScopeInfo.freeVariablesForRti) {
+      _markVariableAsUsed(freeVariableForRti, onlyForRtiChecks: true);
+    }
     if (_isInsideClosure && savedScopeInfo.thisUsedAsFreeVariable) {
       _currentScopeInfo.thisUsedAsFreeVariable = true;
     }
