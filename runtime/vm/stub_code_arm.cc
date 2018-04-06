@@ -17,7 +17,6 @@
 #include "vm/object_store.h"
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
-#include "vm/stub_code.h"
 #include "vm/tags.h"
 #include "vm/type_testing_stubs.h"
 
@@ -1865,26 +1864,66 @@ void StubCode::GenerateDefaultTypeTestStub(Assembler* assembler) {
   Label done;
 
   const Register kInstanceReg = R0;
-  const Register kDstTypeReg = R8;
-
   // Fast case for 'null'.
   __ CompareObject(kInstanceReg, Object::null_object());
   __ BranchIf(EQUAL, &done);
 
-  // Fast case for 'int'.
-  Label not_smi;
-  __ BranchIfNotSmi(kInstanceReg, &not_smi);
-  __ CompareObject(kDstTypeReg, Object::ZoneHandle(Type::IntType()));
-  __ BranchIf(EQUAL, &done);
-  __ Bind(&not_smi);
-
-  // Tail call the [SubtypeTestCache]-based implementation.
   __ ldr(CODE_REG, Address(THR, Thread::slow_type_test_stub_offset()));
   __ ldr(R9, FieldAddress(CODE_REG, Code::entry_point_offset()));
   __ bx(R9);
 
   __ Bind(&done);
   __ Ret();
+}
+
+void TypeTestingStubGenerator::BuildOptimizedTypeTestStub(
+    Assembler* assembler,
+    HierarchyInfo* hi,
+    const Type& type,
+    const Class& type_class) {
+  const Register kInstanceReg = R0;
+  const Register kClassIdReg = R9;
+
+  BuildOptimizedTypeTestStubFastCases(assembler, hi, type, type_class,
+                                      kInstanceReg, kClassIdReg);
+
+  __ ldr(CODE_REG, Address(THR, Thread::slow_type_test_stub_offset()));
+  __ ldr(TMP, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  __ bx(TMP);
+}
+
+void TypeTestingStubGenerator::
+    BuildOptimizedSubclassRangeCheckWithTypeArguments(Assembler* assembler,
+                                                      HierarchyInfo* hi,
+                                                      const Class& type_class,
+                                                      const TypeArguments& tp,
+                                                      const TypeArguments& ta) {
+  const Register kInstanceReg = R0;
+  const Register kInstanceTypeArguments = NOTFP;
+  const Register kClassIdReg = R9;
+
+  BuildOptimizedSubclassRangeCheckWithTypeArguments(
+      assembler, hi, type_class, tp, ta, kClassIdReg, kInstanceReg,
+      kInstanceTypeArguments);
+}
+
+void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
+    Assembler* assembler,
+    HierarchyInfo* hi,
+    const AbstractType& type_arg,
+    intptr_t type_param_value_offset_i,
+    Label* check_failed) {
+  const Register kInstantiatorTypeArgumentsReg = R2;
+  const Register kFunctionTypeArgumentsReg = R1;
+  const Register kInstanceTypeArguments = NOTFP;
+
+  const Register kClassIdReg = R9;
+  const Register kOwnTypeArgumentValue = TMP;
+
+  BuildOptimizedTypeArgumentValueCheck(
+      assembler, hi, type_arg, type_param_value_offset_i, kClassIdReg,
+      kInstanceTypeArguments, kInstantiatorTypeArgumentsReg,
+      kFunctionTypeArgumentsReg, kOwnTypeArgumentValue, check_failed);
 }
 
 void StubCode::GenerateUnreachableTypeTestStub(Assembler* assembler) {

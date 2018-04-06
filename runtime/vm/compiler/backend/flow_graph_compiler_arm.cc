@@ -725,7 +725,6 @@ void FlowGraphCompiler::GenerateAssertAssignableAOT(
                               kInstantiatorTypeArgumentsReg,
                               kFunctionTypeArgumentsReg, kSubtypeTestCacheReg,
                               kDstTypeReg, kDstNameReg, &done);
-
   __ LoadField(R9,
                FieldAddress(kDstTypeReg,
                             AbstractType::type_test_stub_entry_point_offset()));

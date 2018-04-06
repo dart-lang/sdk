@@ -143,7 +143,7 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
 bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
   ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
 
-  if (!type.IsInstantiated() || type.IsFunctionType() ||
+  if (!type.IsInstantiated() || !type.IsType() || type.IsFunctionType() ||
       type.IsDartFunctionType()) {
     return false;
   }
@@ -174,7 +174,7 @@ bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
     const AbstractType& type) {
   ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
 
-  if (type.IsFunctionType() || type.IsDartFunctionType()) {
+  if (!type.IsType() || type.IsFunctionType() || type.IsDartFunctionType()) {
     return false;
   }
 

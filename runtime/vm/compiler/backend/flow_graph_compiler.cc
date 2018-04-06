@@ -1910,7 +1910,50 @@ void FlowGraphCompiler::GenerateAssertAssignableAOT(
     __ BranchIfSmi(instance_reg, done);
   }
 
-  __ LoadObject(dst_type_reg, dst_type);
+  // We can handle certain types very efficiently on the call site (with a
+  // bailout to the normal stub, which will do a runtime call).
+  if (dst_type.IsTypeParameter()) {
+    const TypeParameter& type_param = TypeParameter::Cast(dst_type);
+    const Register kTypeArgumentsReg = type_param.IsClassTypeParameter()
+                                           ? instantiator_type_args_reg
+                                           : function_type_args_reg;
+
+    // Check if type arguments are null, i.e. equivalent to vector of dynamic.
+    __ CompareObject(kTypeArgumentsReg, Object::null_object());
+    __ BranchIf(EQUAL, done);
+    __ LoadField(dst_type_reg,
+                 FieldAddress(kTypeArgumentsReg, TypeArguments::type_at_offset(
+                                                     type_param.index())));
+  } else {
+    HierarchyInfo* hi = Thread::Current()->hierarchy_info();
+    if (hi != NULL) {
+      const Class& type_class = Class::Handle(zone(), dst_type.type_class());
+
+      // We can use [dst_name_reg], there is no overlap of use.
+      const Register scratch_reg = dst_name_reg;
+
+      bool used_cid_range_check = false;
+      const bool can_use_simple_cid_range_test =
+          hi->CanUseSubtypeRangeCheckFor(dst_type);
+      if (can_use_simple_cid_range_test) {
+        const CidRangeVector& ranges = hi->SubtypeRangesForClass(type_class);
+        if (ranges.length() <= kMaxNumberOfCidRangesToTest) {
+          __ LoadClassIdMayBeSmi(scratch_reg, instance_reg);
+          GenerateSubtypeRangeCheck(scratch_reg, type_class, done);
+          used_cid_range_check = true;
+        }
+      }
+
+      if (!used_cid_range_check && can_use_simple_cid_range_test &&
+          IsListClass(type_class)) {
+        __ LoadClassIdMayBeSmi(scratch_reg, instance_reg);
+        GenerateListTypeCheck(scratch_reg, done);
+        used_cid_range_check = true;
+      }
+    }
+    __ LoadObject(dst_type_reg, dst_type);
+  }
+
   __ LoadObject(dst_name_reg, dst_name);
   __ LoadObject(subtype_cache_reg,
                 SubtypeTestCache::ZoneHandle(zone(), SubtypeTestCache::New()));

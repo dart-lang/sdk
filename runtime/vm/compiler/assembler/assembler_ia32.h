@@ -566,6 +566,7 @@ class Assembler : public ValueObject {
 
   void CompareRegisters(Register a, Register b);
   void BranchIf(Condition condition, Label* label) { j(condition, label); }
+  void LoadField(Register dst, FieldAddress address) { movw(dst, address); }
 
   // Issues a move instruction if 'to' is not the same as 'from'.
   void MoveRegister(Register to, Register from);
