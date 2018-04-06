@@ -2,6 +2,14 @@
 (Add new changes here, and they will be copied to the
  change section for the next dev version)
 
+## 2.0.0-dev.45.0
+
+### Core library changes
+
+* `dart:async`
+  * Removed the deprecated `defaultValue` parameter on `Stream.firstWhere` and
+    `Stream.lastWhere`.
+
 ### Tool Changes
 
 #### Pub
