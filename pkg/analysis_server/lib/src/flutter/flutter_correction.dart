@@ -71,7 +71,7 @@ class FlutterCorrections {
             builder.write('  ');
           }
 
-          builder.writeln('$className.forDesignTime() {');
+          builder.writeln('factory $className.forDesignTime() {');
           builder.writeln('    // TODO: add arguments');
           builder.writeln('    return new $className();');
           builder.write('  }');
