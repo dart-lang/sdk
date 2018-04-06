@@ -277,6 +277,14 @@ ExpectedType:
   analyzerCode: EXPECTED_TYPE_NAME
   dart2jsCode: "*fatal*"
 
+MissingExpressionInThrow:
+  template: "Missing expression after 'throw'."
+  tip: "Add an expression after 'throw' or use 'rethrow' to throw a caught exception"
+  analyzerCode: MISSING_EXPRESSION_IN_THROW
+  dart2jsCode: "*fatal*"
+  statement:
+    - "throw;"
+
 MissingConstFinalVarOrType:
   template: "Variables must be declared using the keywords 'const', 'final', 'var' or a type name."
   tip: "Try adding the name of the type of the variable or the keyword 'var'."

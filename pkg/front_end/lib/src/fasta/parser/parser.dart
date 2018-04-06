@@ -4141,9 +4141,6 @@ class Parser {
       return parseForStatement(token, null);
     } else if (identical(value, 'rethrow')) {
       return parseRethrowStatement(token);
-    } else if (identical(value, 'throw') && optional(';', token.next.next)) {
-      // TODO(kasperl): Stop dealing with throw here.
-      return parseRethrowStatement(token);
     } else if (identical(value, 'while')) {
       return parseWhileStatement(token);
     } else if (identical(value, 'do')) {
@@ -5875,6 +5872,17 @@ class Parser {
   Token parseThrowExpression(Token token, bool allowCascades) {
     Token throwToken = token.next;
     assert(optional('throw', throwToken));
+    if (optional(';', throwToken.next)) {
+      // TODO(danrubel): Find a better way to intercept the parseExpression
+      // recovery to generate this error message rather than explicitly
+      // checking the next token as we are doing here.
+      reportRecoverableError(
+          throwToken.next, fasta.messageMissingExpressionInThrow);
+      rewriter.insertTokenAfter(
+          throwToken,
+          new SyntheticStringToken(
+              TokenType.STRING, '""', throwToken.next.charOffset, 0));
+    }
     token = allowCascades
         ? parseExpression(throwToken)
         : parseExpressionWithoutCascade(throwToken);
@@ -5889,14 +5897,8 @@ class Parser {
   /// ```
   Token parseRethrowStatement(Token token) {
     Token throwToken = token.next;
-    assert(optional('rethrow', throwToken) || optional('throw', throwToken));
+    assert(optional('rethrow', throwToken));
     listener.beginRethrowStatement(throwToken);
-    // TODO(kasperl): Disallow throw here.
-    if (optional('throw', throwToken)) {
-      expect('throw', throwToken);
-    } else {
-      expect('rethrow', throwToken);
-    }
     token = ensureSemicolon(throwToken);
     listener.endRethrowStatement(throwToken, token);
     return token;

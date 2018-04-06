@@ -768,7 +768,6 @@ Language/Expressions/Strings/static_type_t08: CompileTimeError
 Language/Expressions/Strings/static_type_t09: CompileTimeError
 Language/Expressions/This/placement_t04: MissingCompileTimeError
 Language/Expressions/This/static_type_t01: CompileTimeError
-Language/Expressions/Throw/syntax_t02: MissingCompileTimeError
 Language/Expressions/Throw/throw_various_types_t01: CompileTimeError
 Language/Expressions/Type_Cast/evaluation_t04: CompileTimeError
 Language/Expressions/Type_Cast/evaluation_t05: CompileTimeError
@@ -1697,7 +1696,6 @@ Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/cla
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t06: MissingCompileTimeError
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t07: MissingCompileTimeError
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t08: MissingCompileTimeError
-Language/Expressions/Throw/syntax_t02: MissingCompileTimeError
 Language/Libraries_and_Scripts/Exports/reexport_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/Exports/reexport_t02: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: CompileTimeError

@@ -3547,6 +3547,18 @@ const MessageCode messageMissingExponent = const MessageCode("MissingExponent",
         r"""Make sure there is an exponent, and remove any whitespace before it.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingExpressionInThrow = messageMissingExpressionInThrow;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingExpressionInThrow = const MessageCode(
+    "MissingExpressionInThrow",
+    analyzerCode: "MISSING_EXPRESSION_IN_THROW",
+    dart2jsCode: "*fatal*",
+    message: r"""Missing expression after 'throw'.""",
+    tip:
+        r"""Add an expression after 'throw' or use 'rethrow' to throw a caught exception""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMissingFunctionParameters =
     messageMissingFunctionParameters;
 
