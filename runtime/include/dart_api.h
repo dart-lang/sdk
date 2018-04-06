@@ -1059,17 +1059,6 @@ DART_EXPORT bool Dart_IsKernel(const uint8_t* buffer, intptr_t buffer_size);
 DART_EXPORT bool Dart_IsDart2Snapshot(const uint8_t* snapshot_buffer);
 
 /**
- * Schedules an interrupt for the specified isolate.
- *
- * When the isolate is interrupted, the isolate interrupt callback
- * will be invoked with 'isolate' as the current isolate (see
- * Dart_SetIsolateEventHandler).
- *
- * \param isolate The isolate to be interrupted.
- */
-DART_EXPORT void Dart_InterruptIsolate(Dart_Isolate isolate);
-
-/**
  * Make isolate runnable.
  *
  * When isolates are spawned this function is used to indicate that
