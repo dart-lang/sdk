@@ -709,11 +709,6 @@ class Assembler : public ValueObject {
     kValueCanBeSmi,
   };
 
-  enum CanBeHeapPointer {
-    kValueIsNotHeapPointer,
-    kValueCanBeHeapPointer,
-  };
-
   // Destroys value.
   void StoreIntoObject(Register object,      // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
@@ -936,26 +931,6 @@ class Assembler : public ValueObject {
                                            intptr_t index_scale,
                                            Register array,
                                            Register index);
-
-  void AssertSmiInRange(
-      Register object,
-      CanBeHeapPointer can_be_heap_pointer = kValueIsNotHeapPointer) {
-#if defined(DEBUG)
-    Register tmp = object == TMP ? TMP2 : TMP;
-    Label ok;
-    if (can_be_heap_pointer == kValueCanBeHeapPointer) {
-      testl(object, Immediate(kSmiTagMask));
-      ASSERT(kSmiTag == 0);
-      j(ZERO, &ok);
-    }
-    movsxd(tmp, object);
-    cmpq(tmp, object);
-    j(EQUAL, &ok);
-    Stop("Smi out of range");
-
-    Bind(&ok);
-#endif
-  }
 
   static Address VMTagAddress() {
     return Address(THR, Thread::vm_tag_offset());

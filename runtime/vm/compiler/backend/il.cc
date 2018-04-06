@@ -1552,10 +1552,10 @@ bool BinaryIntegerOpInstr::RightIsPowerOfTwoConstant() const {
   return Utils::IsPowerOfTwo(Utils::Abs(int_value));
 }
 
-static intptr_t SignificantRepresentationBits(Representation r) {
+static intptr_t RepresentationBits(Representation r) {
   switch (r) {
     case kTagged:
-      return 31;
+      return kBitsPerWord - 1;
     case kUnboxedInt32:
     case kUnboxedUint32:
       return 32;
@@ -1569,7 +1569,7 @@ static intptr_t SignificantRepresentationBits(Representation r) {
 
 static int64_t RepresentationMask(Representation r) {
   return static_cast<int64_t>(static_cast<uint64_t>(-1) >>
-                              (64 - SignificantRepresentationBits(r)));
+                              (64 - RepresentationBits(r)));
 }
 
 static bool ToIntegerConstant(Value* value, int64_t* result) {
@@ -2130,8 +2130,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
       break;
 
     case Token::kSHL: {
-      const intptr_t kMaxShift =
-          SignificantRepresentationBits(representation()) - 1;
+      const intptr_t kMaxShift = RepresentationBits(representation()) - 1;
       if (rhs == 0) {
         return left()->definition();
       } else if ((rhs < 0) || (rhs >= kMaxShift)) {
