@@ -84,5 +84,6 @@ server calls. This file is validated by `coverage_test.dart`.
 - [x] kythe.getKytheEntries
 
 ## flutter domain
+- [ ] flutter.getChangeAddForDesignTimeConstructor
 - [ ] flutter.setSubscriptions
 - [ ] flutter.outline

@@ -2118,6 +2118,40 @@ abstract class IntegrationTestMixin {
   }
 
   /**
+   * Return the change that adds the forDesignTime() constructor for the widget
+   * class at the given offset.
+   *
+   * Parameters
+   *
+   * file: FilePath
+   *
+   *   The file containing the code of the class.
+   *
+   * offset: int
+   *
+   *   The offset of the class in the code.
+   *
+   * Returns
+   *
+   * change: SourceChange
+   *
+   *   The change that adds the forDesignTime() constructor. If the change
+   *   cannot be produced, an error is returned.
+   */
+  Future<FlutterGetChangeAddForDesignTimeConstructorResult>
+      sendFlutterGetChangeAddForDesignTimeConstructor(
+          String file, int offset) async {
+    var params =
+        new FlutterGetChangeAddForDesignTimeConstructorParams(file, offset)
+            .toJson();
+    var result = await server.send(
+        "flutter.getChangeAddForDesignTimeConstructor", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new FlutterGetChangeAddForDesignTimeConstructorResult.fromJson(
+        decoder, 'result', result);
+  }
+
+  /**
    * Subscribe for services that are specific to individual files. All previous
    * subscriptions are replaced by the current set of subscriptions. If a given
    * service is not included as a key in the map then no files will be

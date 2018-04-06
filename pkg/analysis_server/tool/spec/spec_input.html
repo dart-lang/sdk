@@ -2630,6 +2630,35 @@
   <p>
     The analysis domain contains API’s related to Flutter support.
   </p>
+  <request method="getChangeAddForDesignTimeConstructor">
+    <p>
+      Return the change that adds the forDesignTime() constructor for the
+      widget class at the given offset.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file containing the code of the class.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the class in the code.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="change">
+        <ref>SourceChange</ref>
+        <p>
+          The change that adds the forDesignTime() constructor.
+          If the change cannot be produced, an error is returned.
+        </p>
+      </field>
+    </result>
+  </request>
   <request method="setSubscriptions">
     <p>
       Subscribe for services that are specific to individual files.
