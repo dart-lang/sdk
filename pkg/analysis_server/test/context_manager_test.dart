@@ -226,9 +226,9 @@ test_pack:lib/''');
     resourceProvider.newFile(pubspecPath, 'pubspec');
     // create a file in the "packages" folder
     String filePath1 = path.posix.join(projPath, 'packages', 'file1.dart');
-    resourceProvider.newFile(filePath1, 'contents');
+    File file1 = resourceProvider.newFile(filePath1, 'contents');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    expect(callbacks.currentFilePaths, unorderedEquals([filePath1]));
+    expect(callbacks.currentFilePaths, unorderedEquals([file1.path]));
     String filePath2 = path.posix.join(projPath, 'packages', 'file2.dart');
     resourceProvider.newFile(filePath2, 'contents');
     return pumpEventQueue().then((_) {

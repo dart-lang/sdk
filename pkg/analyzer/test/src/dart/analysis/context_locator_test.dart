@@ -436,7 +436,7 @@ class ContextLocatorImplTest extends Object with ResourceProviderMixin {
     Folder outerRootFolder = newFolder('/test/outer');
     File outerOptionsFile = newOptionsFile('/test/outer');
     File outerPackagesFile = newPackagesFile('/test/outer');
-    newOptionsFile('/test/outer/packages/inner');
+    File innerOptionsFile = newOptionsFile('/test/outer/packages/inner');
 
     List<ContextRoot> roots =
         contextLocator.locateRoots(includedPaths: [outerRootFolder.path]);
@@ -445,7 +445,7 @@ class ContextLocatorImplTest extends Object with ResourceProviderMixin {
     ContextRoot outerRoot = findRoot(roots, outerRootFolder);
     expect(outerRoot.includedPaths, unorderedEquals([outerRootFolder.path]));
     expect(outerRoot.excludedPaths,
-        unorderedEquals(['/test/outer/packages/inner']));
+        unorderedEquals([innerOptionsFile.parent.path]));
     expect(outerRoot.optionsFile, outerOptionsFile);
     expect(outerRoot.packagesFile, outerPackagesFile);
   }

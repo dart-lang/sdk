@@ -2,6 +2,17 @@
 (Add new changes here, and they will be copied to the
  change section for the next dev version)
 
+### Tool Changes
+
+#### Analyzer
+
+* The command line analyzer (dartanalyzer) and the analysis server no longer
+  treat directories named `packages` specially. Previously they had ignored
+  these directories - and their contents - from the point of view of analysis. Now
+  they'll be treated just as regular directories. This special-casing of
+  `packages` directories was to support using symlinks for package: resolution;
+  that functionality is now handled by `.packages` files.
+
 ## 2.0.0-dev.45.0
 
 ### Core library changes
@@ -18,15 +29,6 @@
   involving pre-release constraints ([issue 1856][pub#1856]).
 
 [pub#1856]: https://github.com/dart-lang/pub/issues/1856
-
-#### Analyzer
-
-* The command line analyzer (dartanalyzer) and the analysis server no longer
-  treat directories named `packages` specially. Previously they had ignored
-  these directories - and their contents - from the point of view of analysis. Now
-  they'll be treated just as regular directories. This special-casing of
-  `packages` directories was to support using symlinks for package: resolution;
-  that functionality is now handled by `.packages` files.
 
 
 ## 2.0.0-dev.44.0
