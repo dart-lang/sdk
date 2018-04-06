@@ -230,10 +230,10 @@ test_pack:lib/''');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     expect(callbacks.currentFilePaths, unorderedEquals([file1.path]));
     String filePath2 = path.posix.join(projPath, 'packages', 'file2.dart');
-    resourceProvider.newFile(filePath2, 'contents');
+    File file2 = resourceProvider.newFile(filePath2, 'contents');
     return pumpEventQueue().then((_) {
-      expect(
-          callbacks.currentFilePaths, unorderedEquals([filePath1, filePath2]));
+      expect(callbacks.currentFilePaths,
+          unorderedEquals([file1.path, file2.path]));
     });
   }
 
