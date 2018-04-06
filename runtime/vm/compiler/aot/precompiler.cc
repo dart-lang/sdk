@@ -272,6 +272,10 @@ void Precompiler::DoCompileAll(
 
       ClassFinalizer::SortClasses();
 
+      // Collects type usage information which allows us to decide when/how to
+      // optimize runtime type tests.
+      TypeUsageInfo type_usage_info(T);
+
       // The cid-ranges of subclasses of a class are e.g. used for is/as checks
       // as well as other type checks.
       HierarchyInfo hierarchy_info(T);
@@ -1897,6 +1901,12 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
   // "dynamic") we need to mark it as writable.
   Dart::vm_isolate()->heap()->WriteProtect(false);
 
+  TypeUsageInfo* type_usage_info = Thread::Current()->type_usage_info();
+
+  // At this point we're not generating any new code, so we build a picture of
+  // which types we might type-test against.
+  type_usage_info->BuildTypeUsageInformation();
+
   TypeTestingStubGenerator type_testing_stubs;
   Instructions& instr = Instructions::Handle();
   for (intptr_t i = 0; i < types.length(); i++) {
@@ -1906,8 +1916,14 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
     // corresponding to the class id, in Dart source code.
     if (type.IsResolved() && !type.IsMalformedOrMalbounded() &&
         (!type.IsType() || type.type_class_id() != kVectorCid)) {
-      instr = type_testing_stubs.OptimizedCodeForType(type);
-      type.SetTypeTestingStub(instr);
+      if (type_usage_info->IsUsedInTypeTest(type) || type.IsDynamicType() ||
+          type.IsObjectType()) {
+        instr = type_testing_stubs.OptimizedCodeForType(type);
+        type.SetTypeTestingStub(instr);
+
+        // Ensure we retain the type.
+        AddType(type);
+      }
     }
   }
   Dart::vm_isolate()->heap()->WriteProtect(true);

@@ -37,6 +37,7 @@ class Range;
 class RangeAnalysis;
 class RangeBoundary;
 class UnboxIntegerInstr;
+class TypeUsageInfo;
 
 // CompileType describes type of the value produced by the definition.
 //
@@ -351,23 +352,27 @@ class HierarchyInfo : public StackResource {
  public:
   explicit HierarchyInfo(Thread* thread)
       : StackResource(thread),
-        thread_(thread),
         cid_subtype_ranges_(NULL),
+        cid_subtype_ranges_abstract_(NULL),
         cid_subclass_ranges_(NULL) {
     thread->set_hierarchy_info(this);
   }
 
   ~HierarchyInfo() {
-    thread_->set_hierarchy_info(NULL);
+    thread()->set_hierarchy_info(NULL);
 
     delete[] cid_subtype_ranges_;
     cid_subtype_ranges_ = NULL;
+
+    delete[] cid_subtype_ranges_abstract_;
+    cid_subtype_ranges_abstract_ = NULL;
 
     delete[] cid_subclass_ranges_;
     cid_subclass_ranges_ = NULL;
   }
 
-  const CidRangeVector& SubtypeRangesForClass(const Class& klass);
+  const CidRangeVector& SubtypeRangesForClass(const Class& klass,
+                                              bool include_abstract = false);
   const CidRangeVector& SubclassRangesForClass(const Class& klass);
 
   bool InstanceOfHasClassRange(const AbstractType& type,
@@ -396,10 +401,11 @@ class HierarchyInfo : public StackResource {
   void BuildRangesFor(ClassTable* table,
                       CidRangeVector* ranges,
                       const Class& klass,
-                      bool use_subtype_test);
+                      bool use_subtype_test,
+                      bool include_abstract = false);
 
-  Thread* thread_;
   CidRangeVector* cid_subtype_ranges_;
+  CidRangeVector* cid_subtype_ranges_abstract_;
   CidRangeVector* cid_subclass_ranges_;
 };
 

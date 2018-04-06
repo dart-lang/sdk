@@ -5,6 +5,7 @@
 #include "vm/type_testing_stubs.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
+#include "vm/compiler/backend/il_printer.h"
 #include "vm/object_store.h"
 
 #define __ assembler->
@@ -511,9 +512,11 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
       __ BranchIf(NOT_EQUAL, check_failed);
     } else {
       const Class& type_class = Class::Handle(type_arg.type_class());
-      const CidRangeVector& ranges = hi->SubtypeRangesForClass(type_class);
+      const CidRangeVector& ranges =
+          hi->SubtypeRangesForClass(type_class, /*include_abstract=*/true);
 
       Label is_subtype;
+      __ SmiUntag(class_id_reg);
       FlowGraphCompiler::GenerateCidRangesCheck(
           assembler, class_id_reg, ranges, &is_subtype, check_failed, true);
       __ Bind(&is_subtype);
@@ -521,9 +524,433 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
   }
 }
 
+void RegisterTypeArgumentsUse(const Function& function,
+                              TypeUsageInfo* type_usage_info,
+                              const Class& klass,
+                              Definition* type_arguments) {
+  // The [type_arguments] can, in the general case, be any kind of [Definition]
+  // but generally (in order of expected frequency)
+  //
+  //   Case a)
+  //      type_arguments <- Constant(#null)
+  //      type_arguments <- Constant(#TypeArguments: [ ... ])
+  //
+  //   Case b)
+  //      type_arguments <- InstantiateTypeArguments(
+  //          <type-expr-with-parameters>, ita, fta)
+  //
+  //   Case c)
+  //      type_arguments <- LoadField(vx)
+  //      type_arguments <- LoadField(vx T{_ABC})
+  //      type_arguments <- LoadField(vx T{Type: class: '_ABC'})
+  //
+  //   Case d, e)
+  //      type_arguments <- LoadIndexedUnsafe(rbp[vx + 16]))
+  //      type_arguments <- Parameter(0)
+
+  if (ConstantInstr* constant = type_arguments->AsConstant()) {
+    const Object& object = constant->value();
+    ASSERT(object.IsNull() || object.IsTypeArguments());
+    const TypeArguments& type_arguments =
+        TypeArguments::Handle(TypeArguments::RawCast(object.raw()));
+    type_usage_info->UseTypeArgumentsInInstanceCreation(klass, type_arguments);
+  } else if (InstantiateTypeArgumentsInstr* instantiate =
+                 type_arguments->AsInstantiateTypeArguments()) {
+    const TypeArguments& ta = instantiate->type_arguments();
+    ASSERT(!ta.IsNull());
+    type_usage_info->UseTypeArgumentsInInstanceCreation(klass, ta);
+  } else if (LoadFieldInstr* load_field = type_arguments->AsLoadField()) {
+    Definition* instance = load_field->instance()->definition();
+    intptr_t cid = instance->Type()->ToNullableCid();
+    if (cid == kDynamicCid) {
+      // This is an approximation: If we only know the type, but not the cid, we
+      // might have a this-dispatch where we know it's either this class or any
+      // subclass.
+      // We try to strengthen this assumption furher down by checking the offset
+      // of the type argument vector, but generally speaking this could be a
+      // false-postive, which is still ok!
+      const AbstractType& type = *instance->Type()->ToAbstractType();
+      if (type.IsType()) {
+        const Class& type_class = Class::Handle(type.type_class());
+        if (type_class.NumTypeArguments() >= klass.NumTypeArguments()) {
+          cid = type_class.id();
+        }
+      }
+    }
+    if (cid != kDynamicCid) {
+      const Class& instance_klass =
+          Class::Handle(Isolate::Current()->class_table()->At(cid));
+      if (instance_klass.IsGeneric() &&
+          instance_klass.type_arguments_field_offset() ==
+              load_field->offset_in_bytes()) {
+        // This is a subset of Case c) above, namely forwarding the type
+        // argument vector.
+        //
+        // We use the declaration type arguments for the instance creation,
+        // which is a non-instantiated, expanded, type arguments vector.
+        const AbstractType& declaration_type =
+            AbstractType::Handle(instance_klass.DeclarationType());
+        TypeArguments& declaration_type_args =
+            TypeArguments::Handle(declaration_type.arguments());
+        type_usage_info->UseTypeArgumentsInInstanceCreation(
+            klass, declaration_type_args);
+      }
+    }
+  } else if (type_arguments->IsParameter() ||
+             type_arguments->IsLoadIndexedUnsafe()) {
+    // This happens in constructors with non-optional/optional parameters
+    // where we forward the type argument vector to object allocation.
+    //
+    // Theoretically this could be a false-positive, which is still ok, but
+    // practically it's guranteed that this is a forward of a type argument
+    // vector passed in by the caller.
+    if (function.IsFactory()) {
+      const Class& enclosing_class = Class::Handle(function.Owner());
+      const AbstractType& declaration_type =
+          AbstractType::Handle(enclosing_class.DeclarationType());
+      TypeArguments& declaration_type_args =
+          TypeArguments::Handle(declaration_type.arguments());
+      type_usage_info->UseTypeArgumentsInInstanceCreation(
+          klass, declaration_type_args);
+    }
+  } else {
+    // It can also be a phi node where the inputs are any of the above.
+    ASSERT(type_arguments->IsPhi());
+  }
+}
+
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+#else  // !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+
+void RegisterTypeArgumentsUse(const Function& function,
+                              TypeUsageInfo* type_usage_info,
+                              const Class& klass,
+                              Definition* type_arguments) {
+  // We only have a [TypeUsageInfo] object available durin AOT compilation.
+  UNREACHABLE();
+}
+
 #endif  // !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
 
 #undef __
+
+const TypeArguments& TypeArgumentInstantiator::InstantiateTypeArguments(
+    const Class& klass,
+    const TypeArguments& type_arguments) {
+  const intptr_t len = klass.NumTypeArguments();
+  TypeArguments* instantiated_type_arguments = type_arguments_handles_.Obtain();
+  *instantiated_type_arguments = TypeArguments::New(len);
+  for (intptr_t i = 0; i < len; ++i) {
+    type_ = type_arguments.TypeAt(i);
+    type_ = InstantiateType(klass, type_);
+    instantiated_type_arguments->SetTypeAt(i, type_);
+    ASSERT(type_.IsCanonical());
+  }
+  *instantiated_type_arguments =
+      instantiated_type_arguments->Canonicalize(NULL);
+  type_arguments_handles_.Release(instantiated_type_arguments);
+  return *instantiated_type_arguments;
+}
+
+RawAbstractType* TypeArgumentInstantiator::InstantiateType(
+    const Class& klass,
+    const AbstractType& type) {
+  if (type.IsTypeParameter()) {
+    const TypeParameter& parameter = TypeParameter::Cast(type);
+    ASSERT(parameter.IsClassTypeParameter());
+    ASSERT(parameter.IsFinalized());
+    if (instantiator_type_arguments_.IsNull()) {
+      return Type::DynamicType();
+    }
+    return instantiator_type_arguments_.TypeAt(parameter.index());
+  } else if (type.IsFunctionType()) {
+    // No support for function types yet.
+    UNREACHABLE();
+    return nullptr;
+  } else if (type.IsTypeRef()) {
+    // No support for recursive types.
+    UNREACHABLE();
+    return nullptr;
+  } else if (type.IsType()) {
+    if (type.IsInstantiated() || type.arguments() == TypeArguments::null()) {
+      return type.raw();
+    }
+
+    const Type& from = Type::Cast(type);
+    klass_ = from.type_class();
+
+    Type* to = type_handles_.Obtain();
+    TypeArguments* to_type_arguments = type_arguments_handles_.Obtain();
+
+    *to_type_arguments = TypeArguments::null();
+    *to = Type::New(klass_, *to_type_arguments, type.token_pos());
+
+    *to_type_arguments = from.arguments();
+    to->set_arguments(InstantiateTypeArguments(klass_, *to_type_arguments));
+    *to ^=
+        ClassFinalizer::FinalizeType(klass, *to, ClassFinalizer::kCanonicalize);
+
+    type_arguments_handles_.Release(to_type_arguments);
+    type_handles_.Release(to);
+
+    return to->raw();
+  }
+  UNREACHABLE();
+  return NULL;
+}
+
+TypeUsageInfo::TypeUsageInfo(Thread* thread)
+    : StackResource(thread),
+      zone_(thread->zone()),
+      finder_(zone_),
+      assert_assignable_types_(),
+      instance_creation_arguments_(
+          new TypeArgumentsSet[thread->isolate()->class_table()->NumCids()]),
+      klass_(Class::Handle(zone_)) {
+  thread->set_type_usage_info(this);
+}
+
+TypeUsageInfo::~TypeUsageInfo() {
+  thread()->set_type_usage_info(NULL);
+  delete[] instance_creation_arguments_;
+}
+
+void TypeUsageInfo::UseTypeInAssertAssignable(const AbstractType& type) {
+  if (!assert_assignable_types_.HasKey(&type)) {
+    AddTypeToSet(&assert_assignable_types_, &type);
+  }
+}
+
+void TypeUsageInfo::UseTypeArgumentsInInstanceCreation(
+    const Class& klass,
+    const TypeArguments& ta) {
+  if (ta.IsNull() || ta.IsCanonical()) {
+    // The Dart VM performs an optimization where it re-uses type argument
+    // vectors if the use-site needs a prefix of an already-existent type
+    // arguments vector.
+    //
+    // For example:
+    //
+    //    class Foo<K, V> {
+    //      foo() => new Bar<K>();
+    //    }
+    //
+    // So the length of the type arguments vector can be longer than the number
+    // of type arguments the class expects.
+    ASSERT(ta.IsNull() || klass.NumTypeArguments() <= ta.Length());
+
+    // If this is a non-instantiated [TypeArguments] object, then it referes to
+    // type parameters.  We need to ensure the type parameters in [ta] only
+    // refer to type parameters in the class.
+    if (!ta.IsNull() && !ta.IsInstantiated() &&
+        finder_.FindClass(ta).IsNull()) {
+      return;
+    }
+
+    klass_ = klass.raw();
+    while (klass_.NumTypeArguments() > 0) {
+      const intptr_t cid = klass_.id();
+      TypeArgumentsSet& set = instance_creation_arguments_[cid];
+      if (!set.HasKey(&ta)) {
+        set.Insert(&TypeArguments::ZoneHandle(zone_, ta.raw()));
+      }
+      klass_ = klass_.SuperClass();
+    }
+  }
+}
+
+void TypeUsageInfo::BuildTypeUsageInformation() {
+  ClassTable* class_table = thread()->isolate()->class_table();
+  const intptr_t cid_count = class_table->NumCids();
+
+  // Step 1) Propagate instantiated type argument vectors.
+  PropagateTypeArguments(class_table, cid_count);
+
+  // Step 2) Collect the type parameters we're interested in.
+  TypeParameterSet parameters_tested_against;
+  CollectTypeParametersUsedInAssertAssignable(&parameters_tested_against);
+
+  // Step 2) Add all types which flow into a type parameter we test against to
+  // the set of types tested against.
+  UpdateAssertAssignableTypes(class_table, cid_count,
+                              &parameters_tested_against);
+}
+
+void TypeUsageInfo::PropagateTypeArguments(ClassTable* class_table,
+                                           intptr_t cid_count) {
+  // See comment in .h file for what this method does.
+
+  Class& klass = Class::Handle(zone_);
+  TypeArguments& temp_type_arguments = TypeArguments::Handle(zone_);
+
+  // We cannot modify a set while we are iterating over it, so we delay the
+  // addition to the set to the point when iteration has finished and use this
+  // list as temporary storage.
+  GrowableObjectArray& delayed_type_argument_set =
+      GrowableObjectArray::Handle(zone_, GrowableObjectArray::New());
+
+  TypeArgumentInstantiator instantiator(zone_);
+
+  const intptr_t kPropgationRounds = 2;
+  for (intptr_t round = 0; round < kPropgationRounds; ++round) {
+    for (intptr_t cid = 0; cid < cid_count; ++cid) {
+      if (!class_table->IsValidIndex(cid) ||
+          !class_table->HasValidClassAt(cid)) {
+        continue;
+      }
+
+      klass = class_table->At(cid);
+      bool null_in_delayed_type_argument_set = false;
+      delayed_type_argument_set.SetLength(0);
+
+      auto it = instance_creation_arguments_[cid].GetIterator();
+      for (const TypeArguments** type_arguments = it.Next();
+           type_arguments != nullptr; type_arguments = it.Next()) {
+        // We have a "type allocation" with "klass<type_arguments[0:N]>".
+        if (!(*type_arguments)->IsNull() &&
+            !(*type_arguments)->IsInstantiated()) {
+          const Class& enclosing_class = finder_.FindClass(**type_arguments);
+          if (!klass.IsNull()) {
+            // We know that "klass<type_arguments[0:N]>" happens inside
+            // [enclosing_class].
+            if (enclosing_class.raw() != klass.raw()) {
+              // Now we try to instantiate [type_arguments] with all the known
+              // instantiator type argument vectors of the [enclosing_class].
+              const intptr_t enclosing_class_cid = enclosing_class.id();
+              TypeArgumentsSet& instantiator_set =
+                  instance_creation_arguments_[enclosing_class_cid];
+              auto it2 = instantiator_set.GetIterator();
+              for (const TypeArguments** instantiator_type_arguments =
+                       it2.Next();
+                   instantiator_type_arguments != nullptr;
+                   instantiator_type_arguments = it2.Next()) {
+                // We have also a "type allocation" with
+                // "enclosing_class<instantiator_type_arguments[0:M]>".
+                if ((*instantiator_type_arguments)->IsNull() ||
+                    (*instantiator_type_arguments)->IsInstantiated()) {
+                  temp_type_arguments = instantiator.Instantiate(
+                      klass, **type_arguments, **instantiator_type_arguments);
+                  if (temp_type_arguments.IsNull() &&
+                      !null_in_delayed_type_argument_set) {
+                    null_in_delayed_type_argument_set = true;
+                    delayed_type_argument_set.Add(temp_type_arguments);
+                  } else {
+                    delayed_type_argument_set.Add(temp_type_arguments);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // Now we add the [delayed_type_argument_set] elements to the set of
+      // instantiator type arguments of [klass] (and its superclasses).
+      if (delayed_type_argument_set.Length() > 0) {
+        while (klass.NumTypeArguments() > 0) {
+          TypeArgumentsSet& type_argument_set =
+              instance_creation_arguments_[klass.id()];
+          const intptr_t len = delayed_type_argument_set.Length();
+          for (intptr_t i = 0; i < len; ++i) {
+            temp_type_arguments =
+                TypeArguments::RawCast(delayed_type_argument_set.At(i));
+            if (!type_argument_set.HasKey(&temp_type_arguments)) {
+              type_argument_set.Insert(
+                  &TypeArguments::ZoneHandle(zone_, temp_type_arguments.raw()));
+            }
+          }
+          klass = klass.SuperClass();
+        }
+      }
+    }
+  }
+}
+
+void TypeUsageInfo::CollectTypeParametersUsedInAssertAssignable(
+    TypeParameterSet* set) {
+  TypeParameter& param = TypeParameter::Handle(zone_);
+  auto it = assert_assignable_types_.GetIterator();
+  for (const AbstractType** type = it.Next(); type != nullptr;
+       type = it.Next()) {
+    AddToSetIfParameter(set, *type, &param);
+  }
+}
+
+void TypeUsageInfo::UpdateAssertAssignableTypes(
+    ClassTable* class_table,
+    intptr_t cid_count,
+    TypeParameterSet* parameters_tested_against) {
+  Class& klass = Class::Handle(zone_);
+  TypeParameter& param = TypeParameter::Handle(zone_);
+  TypeArguments& params = TypeArguments::Handle(zone_);
+  AbstractType& type = AbstractType::Handle(zone_);
+
+  // Because Object/dynamic are common values for type parameters, we add them
+  // eagerly and avoid doing it down inside the loop.
+  type = Type::DynamicType();
+  UseTypeInAssertAssignable(type);
+  type = Type::ObjectType();
+  UseTypeInAssertAssignable(type);
+
+  for (intptr_t cid = 0; cid < cid_count; ++cid) {
+    if (!class_table->IsValidIndex(cid) || !class_table->HasValidClassAt(cid)) {
+      continue;
+    }
+    klass = class_table->At(cid);
+    if (klass.NumTypeArguments() <= 0) {
+      continue;
+    }
+
+    const intptr_t num_parameters = klass.NumTypeParameters();
+    params = klass.type_parameters();
+    for (intptr_t i = 0; i < num_parameters; ++i) {
+      param ^= params.TypeAt(i);
+      if (parameters_tested_against->HasKey(&param)) {
+        TypeArgumentsSet& ta_set = instance_creation_arguments_[cid];
+        auto it = ta_set.GetIterator();
+        for (const TypeArguments** ta = it.Next(); ta != nullptr;
+             ta = it.Next()) {
+          // We only add instantiated types to the set (and dynamic/Object were
+          // already handled above).
+          if (!(*ta)->IsNull()) {
+            type ^= (*ta)->TypeAt(i);
+            if (type.IsInstantiated()) {
+              UseTypeInAssertAssignable(type);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+void TypeUsageInfo::AddToSetIfParameter(TypeParameterSet* set,
+                                        const AbstractType* type,
+                                        TypeParameter* param) {
+  if (type->IsTypeParameter()) {
+    *param ^= type->raw();
+    if (!param->IsNull() && !set->HasKey(param)) {
+      set->Insert(&TypeParameter::Handle(zone_, param->raw()));
+    }
+  }
+}
+
+void TypeUsageInfo::AddTypeToSet(TypeSet* set, const AbstractType* type) {
+  if (!set->HasKey(type)) {
+    set->Insert(&AbstractType::ZoneHandle(zone_, type->raw()));
+  }
+}
+
+bool TypeUsageInfo::IsUsedInTypeTest(const AbstractType& type) {
+  const AbstractType* dereferenced_type = &type;
+  if (type.IsTypeRef()) {
+    dereferenced_type = &AbstractType::Handle(TypeRef::Cast(type).type());
+  }
+  if (dereferenced_type->IsResolved() && dereferenced_type->IsFinalized()) {
+    return assert_assignable_types_.HasKey(dereferenced_type);
+  }
+  return false;
+}
 
 }  // namespace dart

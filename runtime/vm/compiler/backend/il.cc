@@ -26,6 +26,7 @@
 #include "vm/scopes.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+#include "vm/type_testing_stubs.h"
 
 #include "vm/compiler/backend/il_printer.h"
 
@@ -45,23 +46,28 @@ DEFINE_FLAG(bool,
             "Support unboxed double and float32x4 fields.");
 DECLARE_FLAG(bool, eliminate_type_checks);
 
-const CidRangeVector& HierarchyInfo::SubtypeRangesForClass(const Class& klass) {
-  ClassTable* table = thread_->isolate()->class_table();
+const CidRangeVector& HierarchyInfo::SubtypeRangesForClass(
+    const Class& klass,
+    bool include_abstract) {
+  ClassTable* table = thread()->isolate()->class_table();
   const intptr_t cid_count = table->NumCids();
-  if (cid_subtype_ranges_ == NULL) {
-    cid_subtype_ranges_ = new CidRangeVector[cid_count];
+  CidRangeVector** cid_ranges =
+      include_abstract ? &cid_subtype_ranges_abstract_ : &cid_subtype_ranges_;
+  if (*cid_ranges == NULL) {
+    *cid_ranges = new CidRangeVector[cid_count];
   }
 
-  CidRangeVector& ranges = cid_subtype_ranges_[klass.id()];
+  CidRangeVector& ranges = (*cid_ranges)[klass.id()];
   if (ranges.length() == 0) {
-    BuildRangesFor(table, &ranges, klass, /*use_subtype_test=*/true);
+    BuildRangesFor(table, &ranges, klass, /*use_subtype_test=*/true,
+                   include_abstract);
   }
   return ranges;
 }
 
 const CidRangeVector& HierarchyInfo::SubclassRangesForClass(
     const Class& klass) {
-  ClassTable* table = thread_->isolate()->class_table();
+  ClassTable* table = thread()->isolate()->class_table();
   const intptr_t cid_count = table->NumCids();
   if (cid_subclass_ranges_ == NULL) {
     cid_subclass_ranges_ = new CidRangeVector[cid_count];
@@ -77,8 +83,9 @@ const CidRangeVector& HierarchyInfo::SubclassRangesForClass(
 void HierarchyInfo::BuildRangesFor(ClassTable* table,
                                    CidRangeVector* ranges,
                                    const Class& klass,
-                                   bool use_subtype_test) {
-  Zone* zone = thread_->zone();
+                                   bool use_subtype_test,
+                                   bool include_abstract) {
+  Zone* zone = thread()->zone();
   Class& cls = Class::Handle(zone);
 
   // Only really used if `use_subtype_test == true`.
@@ -91,8 +98,8 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
   for (intptr_t cid = kInstanceCid; cid < cid_count; ++cid) {
     // Create local zone because deep hierarchies may allocate lots of handles
     // within one iteration of this loop.
-    StackZone stack_zone(thread_);
-    HANDLESCOPE(thread_);
+    StackZone stack_zone(thread());
+    HANDLESCOPE(thread());
 
     if (!table->HasValidClassAt(cid)) continue;
     if (cid == kTypeArgumentsCid) continue;
@@ -100,7 +107,7 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
     if (cid == kDynamicCid) continue;
     if (cid == kNullCid) continue;
     cls = table->At(cid);
-    if (cls.is_abstract()) continue;
+    if (!include_abstract && cls.is_abstract()) continue;
     if (cls.is_patch()) continue;
     if (cls.IsTopLevel()) continue;
 
@@ -148,7 +155,7 @@ bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
     return false;
   }
 
-  Zone* zone = thread_->zone();
+  Zone* zone = thread()->zone();
   const Class& type_class = Class::Handle(zone, type.type_class());
 
   // The FutureOr<T> type cannot be handled by checking whether the instance is
@@ -194,7 +201,7 @@ bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
   // [CanUseSubtypeRangeCheckFor], since we handle type parameters in the type
   // expression in some cases (see below).
 
-  Zone* zone = thread_->zone();
+  Zone* zone = thread()->zone();
   const Class& type_class = Class::Handle(zone, type.type_class());
   const intptr_t num_type_parameters = type_class.NumTypeParameters();
   const intptr_t num_type_arguments = type_class.NumTypeArguments();
@@ -236,9 +243,7 @@ bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
   AbstractType& type_arg = AbstractType::Handle(zone);
   for (intptr_t i = 0; i < num_type_parameters; ++i) {
     type_arg = ta.TypeAt(num_type_arguments - num_type_parameters + i);
-    // NOTE: We can handle type parameters but it increases size by a
-    // significant amount.
-    if (!CanUseSubtypeRangeCheckFor(type_arg)) {
+    if (!CanUseSubtypeRangeCheckFor(type_arg) && !type_arg.IsTypeParameter()) {
       return false;
     }
   }
@@ -250,7 +255,8 @@ bool HierarchyInfo::InstanceOfHasClassRange(const AbstractType& type,
                                             intptr_t* lower_limit,
                                             intptr_t* upper_limit) {
   if (CanUseSubtypeRangeCheckFor(type)) {
-    const Class& type_class = Class::Handle(thread_->zone(), type.type_class());
+    const Class& type_class =
+        Class::Handle(thread()->zone(), type.type_class());
     const CidRangeVector& ranges = SubtypeRangesForClass(type_class);
     if (ranges.length() == 1) {
       const CidRange& range = ranges[0];
@@ -3791,6 +3797,14 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ArgumentsInfo args_info(type_args_len(), ArgumentCount(), argument_names());
   compiler->GenerateStaticCall(deopt_id(), token_pos(), function(), args_info,
                                locs(), *call_ic_data, rebind_rule_);
+  if (function().IsFactory()) {
+    TypeUsageInfo* type_usage_info = compiler->thread()->type_usage_info();
+    if (type_usage_info != nullptr) {
+      const Class& klass = Class::Handle(function().Owner());
+      RegisterTypeArgumentsUse(compiler->function(), type_usage_info, klass,
+                               ArgumentAt(0));
+    }
+  }
 #else
   const Array& arguments_descriptor = Array::Handle(
       zone, (ic_data() == NULL) ? GetArgumentsDescriptor()

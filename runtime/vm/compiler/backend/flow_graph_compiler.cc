@@ -31,6 +31,7 @@
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/timeline.h"
+#include "vm/type_testing_stubs.h"
 
 namespace dart {
 
@@ -1917,11 +1918,15 @@ void FlowGraphCompiler::GenerateAssertAssignableAOT(
     const Register dst_type_reg,
     const Register scratch_reg,
     Label* done) {
+  TypeUsageInfo* type_usage_info = thread()->type_usage_info();
+
   // If the int type is assignable to [dst_type] we special case it on the
   // caller side!
   const Type& int_type = Type::Handle(zone(), Type::IntType());
+  bool is_non_smi = false;
   if (int_type.IsSubtypeOf(dst_type, NULL, NULL, Heap::kOld)) {
     __ BranchIfSmi(instance_reg, done);
+    is_non_smi = true;
   }
 
   // We can handle certain types very efficiently on the call site (with a
@@ -1938,20 +1943,29 @@ void FlowGraphCompiler::GenerateAssertAssignableAOT(
     __ LoadField(dst_type_reg,
                  FieldAddress(kTypeArgumentsReg, TypeArguments::type_at_offset(
                                                      type_param.index())));
+    if (type_usage_info != NULL) {
+      type_usage_info->UseTypeInAssertAssignable(dst_type);
+    }
   } else {
     HierarchyInfo* hi = Thread::Current()->hierarchy_info();
     if (hi != NULL) {
       const Class& type_class = Class::Handle(zone(), dst_type.type_class());
 
+      bool check_handled_at_callsite = false;
       bool used_cid_range_check = false;
       const bool can_use_simple_cid_range_test =
           hi->CanUseSubtypeRangeCheckFor(dst_type);
       if (can_use_simple_cid_range_test) {
         const CidRangeVector& ranges = hi->SubtypeRangesForClass(type_class);
         if (ranges.length() <= kMaxNumberOfCidRangesToTest) {
-          __ LoadClassIdMayBeSmi(scratch_reg, instance_reg);
-          GenerateSubtypeRangeCheck(scratch_reg, type_class, done);
+          if (is_non_smi) {
+            __ LoadClassId(scratch_reg, instance_reg);
+          } else {
+            __ LoadClassIdMayBeSmi(scratch_reg, instance_reg);
+          }
+          GenerateCidRangesCheck(assembler(), scratch_reg, ranges, done);
           used_cid_range_check = true;
+          check_handled_at_callsite = true;
         }
       }
 
@@ -1960,6 +1974,14 @@ void FlowGraphCompiler::GenerateAssertAssignableAOT(
         __ LoadClassIdMayBeSmi(scratch_reg, instance_reg);
         GenerateListTypeCheck(scratch_reg, done);
         used_cid_range_check = true;
+      }
+
+      // If we haven't handled the positive case of the type check on the
+      // call-site, we want an optimized type testing stub and therefore record
+      // it in the [TypeUsageInfo].
+      if (!check_handled_at_callsite) {
+        ASSERT(type_usage_info != NULL);
+        type_usage_info->UseTypeInAssertAssignable(dst_type);
       }
     }
     __ LoadObject(dst_type_reg, dst_type);

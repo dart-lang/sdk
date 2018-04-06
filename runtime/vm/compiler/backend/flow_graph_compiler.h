@@ -287,6 +287,7 @@ class FlowGraphCompiler : public ValueObject {
   // Accessors.
   Assembler* assembler() const { return assembler_; }
   const ParsedFunction& parsed_function() const { return parsed_function_; }
+  const Function& function() const { return parsed_function_.function(); }
   const GrowableArray<BlockEntryInstr*>& block_order() const {
     return block_order_;
   }

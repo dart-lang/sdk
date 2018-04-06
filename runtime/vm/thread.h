@@ -55,6 +55,7 @@ class String;
 class TimelineStream;
 class TypeArguments;
 class TypeParameter;
+class TypeUsageInfo;
 class Zone;
 
 #define REUSABLE_HANDLE_LIST(V)                                                \
@@ -353,6 +354,18 @@ class Thread : public BaseThread {
     ASSERT((hierarchy_info_ == NULL && value != NULL) ||
            (hierarchy_info_ != NULL && value == NULL));
     hierarchy_info_ = value;
+  }
+
+  TypeUsageInfo* type_usage_info() const {
+    ASSERT(isolate_ != NULL);
+    return type_usage_info_;
+  }
+
+  void set_type_usage_info(TypeUsageInfo* value) {
+    ASSERT(isolate_ != NULL);
+    ASSERT((type_usage_info_ == NULL && value != NULL) ||
+           (type_usage_info_ != NULL && value == NULL));
+    type_usage_info_ = value;
   }
 
   int32_t no_callback_scope_depth() const { return no_callback_scope_depth_; }
@@ -795,6 +808,7 @@ class Thread : public BaseThread {
   // Compiler state:
   CHA* cha_;
   HierarchyInfo* hierarchy_info_;
+  TypeUsageInfo* type_usage_info_;
   intptr_t deopt_id_;  // Compilation specific counter.
   RawGrowableObjectArray* pending_functions_;
 
