@@ -65,14 +65,14 @@ class ContextRootTest {
     expect(contextRoot.isAnalyzed(filePath), isFalse);
   }
 
-  test_isAnalyzed_implicitlyExcluded_packages() {
-    String folderPath = provider.convertPath('/test/root/lib/packages');
-    provider.newFolder(folderPath);
-    expect(contextRoot.isAnalyzed(folderPath), isFalse);
-  }
-
   test_isAnalyzed_included() {
     String filePath = provider.convertPath('/test/root/lib/root.dart');
     expect(contextRoot.isAnalyzed(filePath), isTrue);
+  }
+
+  test_isAnalyzed_packagesDirectory_analyzed() {
+    String folderPath = provider.convertPath('/test/root/lib/packages');
+    provider.newFolder(folderPath);
+    expect(contextRoot.isAnalyzed(folderPath), isTrue);
   }
 }

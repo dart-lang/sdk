@@ -211,24 +211,6 @@ class ContextLocatorImplTest extends Object with ResourceProviderMixin {
     expect(outerRoot.packagesFile, outerPackagesFile);
   }
 
-  void test_locateRoots_nested_excluded_packages() {
-    Folder outerRootFolder = newFolder('/test/outer');
-    File outerOptionsFile = newOptionsFile('/test/outer');
-    File outerPackagesFile = newPackagesFile('/test/outer');
-    Folder excludedFolder = newFolder('/test/outer/packages');
-    newOptionsFile('/test/outer/packages/inner');
-
-    List<ContextRoot> roots =
-        contextLocator.locateRoots(includedPaths: [outerRootFolder.path]);
-    expect(roots, hasLength(1));
-
-    ContextRoot outerRoot = findRoot(roots, outerRootFolder);
-    expect(outerRoot.includedPaths, unorderedEquals([outerRootFolder.path]));
-    expect(outerRoot.excludedPaths, unorderedEquals([excludedFolder.path]));
-    expect(outerRoot.optionsFile, outerOptionsFile);
-    expect(outerRoot.packagesFile, outerPackagesFile);
-  }
-
   void test_locateRoots_nested_multiple() {
     Folder outerRootFolder = newFolder('/test/outer');
     File outerOptionsFile = newOptionsFile('/test/outer');
@@ -448,6 +430,24 @@ class ContextLocatorImplTest extends Object with ResourceProviderMixin {
     expect(outerRoot.excludedPaths, isEmpty);
     expect(outerRoot.optionsFile, outerOptionsFile);
     expect(outerRoot.packagesFile, overridePackagesFile);
+  }
+
+  void test_locateRoots_nested_packagesDirectory_included() {
+    Folder outerRootFolder = newFolder('/test/outer');
+    File outerOptionsFile = newOptionsFile('/test/outer');
+    File outerPackagesFile = newPackagesFile('/test/outer');
+    newOptionsFile('/test/outer/packages/inner');
+
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [outerRootFolder.path]);
+    expect(roots, hasLength(2));
+
+    ContextRoot outerRoot = findRoot(roots, outerRootFolder);
+    expect(outerRoot.includedPaths, unorderedEquals([outerRootFolder.path]));
+    expect(outerRoot.excludedPaths,
+        unorderedEquals(['/test/outer/packages/inner']));
+    expect(outerRoot.optionsFile, outerOptionsFile);
+    expect(outerRoot.packagesFile, outerPackagesFile);
   }
 
   void test_locateRoots_single_dir_directOptions_directPackages() {
