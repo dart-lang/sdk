@@ -746,6 +746,13 @@ class ConstantEquivalence
   }
 
   @override
+  bool visitAs(AsConstantExpression exp1, covariant AsConstantExpression exp2) {
+    return strategy.test(
+            exp1, exp2, 'expression', exp1.expression, exp2.expression) &&
+        strategy.testTypes(exp1, exp2, 'type', exp1.type, exp2.type);
+  }
+
+  @override
   bool visitBinary(
       BinaryConstantExpression exp1, covariant BinaryConstantExpression exp2) {
     return strategy.test(

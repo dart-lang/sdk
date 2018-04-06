@@ -16,6 +16,7 @@ import 'evaluation.dart';
 import 'values.dart';
 
 enum ConstantExpressionKind {
+  AS,
   BINARY,
   BOOL,
   BOOL_FROM_ENVIRONMENT,
@@ -820,6 +821,62 @@ class TypeConstantExpression extends ConstantExpression {
   @override
   InterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.typeType;
+}
+
+/// Cast expressions: these may be from either explicit or implicit `as`
+/// checks.
+class AsConstantExpression extends ConstantExpression {
+  final ConstantExpression expression;
+  final DartType type;
+
+  AsConstantExpression(this.expression, this.type);
+
+  ConstantExpressionKind get kind => ConstantExpressionKind.AS;
+
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    return visitor.visitAs(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('As(value=');
+    expression._createStructuredText(sb);
+    sb.write(',type=$type)');
+  }
+
+  @override
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    ConstantValue expressionValue =
+        expression.evaluate(environment, constantSystem);
+    DartType expressionType =
+        expressionValue.getType(environment.commonElements);
+    if (!constantSystem.isSubtype(environment.types, expressionType, type)) {
+      // TODO(sigmund): consider reporting different messages and error
+      // locations for implicit vs explicit casts.
+      environment.reportError(expression, MessageKind.INVALID_CONSTANT_CAST,
+          {'constant': expression, 'type': expressionType, 'castType': type});
+      return new NonConstantValue();
+    }
+    return expressionValue;
+  }
+
+  @override
+  ConstantExpression apply(NormalizedArguments arguments) {
+    return new AsConstantExpression(expression.apply(arguments), type);
+  }
+
+  @override
+  int _computeHashCode() => 13 * type.hashCode + 17 * expression.hashCode;
+
+  @override
+  bool _equals(AsConstantExpression other) {
+    return expression == other.expression && type == other.type;
+  }
+
+  @override
+  InterfaceType getKnownType(CommonElements commonElements) =>
+      expression.getKnownType(commonElements);
 }
 
 /// Reference to a constant top-level or static field.
@@ -2060,6 +2117,7 @@ abstract class ConstantExpressionVisitor<R, A> {
     return constant.accept(this, context);
   }
 
+  R visitAs(AsConstantExpression exp, A context);
   R visitBool(BoolConstantExpression exp, A context);
   R visitInt(IntConstantExpression exp, A context);
   R visitDouble(DoubleConstantExpression exp, A context);
@@ -2124,6 +2182,13 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
   @override
   void visit(ConstantExpression constant, [_]) {
     return constant.accept(this, null);
+  }
+
+  @override
+  void visitAs(AsConstantExpression exp, [_]) {
+    visit(exp.expression);
+    sb.write(' as ');
+    sb.write(exp.type);
   }
 
   @override

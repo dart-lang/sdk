@@ -18,6 +18,8 @@ import 'values.dart';
 abstract class EvaluationEnvironment {
   CommonElements get commonElements;
 
+  DartTypes get types;
+
   /// Read environments string passed in using the '-Dname=value' option.
   String readFromEnvironment(String name);
 

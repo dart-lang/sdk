@@ -249,8 +249,6 @@ const_constructor2_test/18: MissingCompileTimeError
 const_constructor2_test/20: MissingCompileTimeError
 const_constructor2_test/22: MissingCompileTimeError
 const_constructor2_test/24: MissingCompileTimeError
-const_constructor3_test/02: MissingCompileTimeError
-const_constructor3_test/04: MissingCompileTimeError
 const_dynamic_type_literal_test/02: MissingCompileTimeError
 const_error_multiply_initialized_test/02: MissingCompileTimeError
 const_error_multiply_initialized_test/04: MissingCompileTimeError
@@ -595,7 +593,6 @@ super_getter_setter_test: CompileTimeError
 vm/reflect_core_vm_test: Fail # mirrors not supported
 
 [ $compiler == dart2js && $fast_startup && $fasta && $strong ]
-assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_test/01: MissingCompileTimeError
 assertion_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
@@ -666,8 +663,6 @@ const_constructor2_test/18: MissingCompileTimeError
 const_constructor2_test/20: MissingCompileTimeError
 const_constructor2_test/22: MissingCompileTimeError
 const_constructor2_test/24: MissingCompileTimeError
-const_constructor3_test/02: MissingCompileTimeError
-const_constructor3_test/04: MissingCompileTimeError
 const_dynamic_type_literal_test/02: MissingCompileTimeError
 const_error_multiply_initialized_test/02: MissingCompileTimeError
 const_error_multiply_initialized_test/04: MissingCompileTimeError
@@ -1054,8 +1049,6 @@ abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError
 abstract_syntax_test/00: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
-assertion_initializer_const_error2_test/none: CompileTimeError
-assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
 async_await_test/02: RuntimeError
 async_await_test/03: RuntimeError
@@ -1111,8 +1104,6 @@ class_literal_static_test/07: MissingCompileTimeError
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart': Failed assertion: line 641 pos 12: 'isClosed()': is not true.
-compile_time_constant_d_test: CompileTimeError
-compile_time_constant_e_test: CompileTimeError
 compile_time_constant_k_test/01: MissingCompileTimeError
 compile_time_constant_k_test/02: MissingCompileTimeError
 compile_time_constant_k_test/03: MissingCompileTimeError
@@ -1127,9 +1118,6 @@ compile_time_constant_static5_test/23: CompileTimeError
 conditional_rewrite_test: RuntimeError
 config_import_corelib_test: CompileTimeError
 config_import_test: RuntimeError
-const_constructor2_test/11: CompileTimeError
-const_constructor2_test/12: CompileTimeError
-const_constructor3_test/03: CompileTimeError
 const_dynamic_type_literal_test/02: MissingCompileTimeError
 const_evaluation_test/01: RuntimeError
 const_instance_field_test/01: MissingCompileTimeError
@@ -1138,7 +1126,6 @@ const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
 const_map4_test: RuntimeError
 const_map_test: RuntimeError
-const_redirecting_factory_test: CompileTimeError
 const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError, OK # constant identity based on JS constants
 const_switch_test/04: RuntimeError, OK # constant identity based on JS constants
@@ -1150,13 +1137,11 @@ constructor_named_arguments_test/none: RuntimeError
 constructor_redirect1_negative_test/01: Crash # Stack Overflow
 constructor_redirect2_negative_test: Crash # Issue 30856
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
-constructor_redirect_test/none: CompileTimeError
 covariance_type_parameter_test/01: RuntimeError
 covariance_type_parameter_test/02: RuntimeError
 covariance_type_parameter_test/03: RuntimeError
 covariant_override/tear_off_type_test: RuntimeError
 covariant_subtyping_test: CompileTimeError
-ct_const_test: CompileTimeError
 cyclic_constructor_test/01: Crash # Issue 30856
 cyclic_type_test/00: RuntimeError
 cyclic_type_test/02: RuntimeError
@@ -1327,7 +1312,6 @@ left_shift_test: RuntimeError # non JS number semantics
 library_env_test/has_mirror_support: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
-library_prefixes_test: CompileTimeError
 local_function2_test/none: RuntimeError
 local_function3_test/none: RuntimeError
 local_function_test/none: RuntimeError
@@ -1747,8 +1731,6 @@ abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError
 abstract_syntax_test/00: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
-assertion_initializer_const_error2_test/none: CompileTimeError
-assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
 async_await_test/02: RuntimeError
 async_await_test/03: RuntimeError
@@ -1802,8 +1784,6 @@ class_literal_static_test/03: MissingCompileTimeError
 class_literal_static_test/07: MissingCompileTimeError
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
-compile_time_constant_d_test: CompileTimeError
-compile_time_constant_e_test: CompileTimeError
 compile_time_constant_k_test/01: MissingCompileTimeError
 compile_time_constant_k_test/02: MissingCompileTimeError
 compile_time_constant_k_test/03: MissingCompileTimeError
@@ -1818,9 +1798,6 @@ compile_time_constant_static5_test/23: CompileTimeError
 conditional_rewrite_test: RuntimeError
 config_import_corelib_test: CompileTimeError
 config_import_test: RuntimeError
-const_constructor2_test/11: CompileTimeError
-const_constructor2_test/12: CompileTimeError
-const_constructor3_test/03: CompileTimeError
 const_dynamic_type_literal_test/02: MissingCompileTimeError
 const_evaluation_test/01: RuntimeError
 const_instance_field_test/01: MissingCompileTimeError
@@ -1829,7 +1806,6 @@ const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
 const_map4_test: RuntimeError
 const_map_test: RuntimeError
-const_redirecting_factory_test: CompileTimeError
 const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError, OK # constant identity based on JS constants
 const_switch_test/04: RuntimeError, OK # constant identity based on JS constants
@@ -1841,13 +1817,11 @@ constructor_named_arguments_test/none: RuntimeError
 constructor_redirect1_negative_test/01: Crash # Stack Overflow
 constructor_redirect2_negative_test: Crash # Issue 30856
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
-constructor_redirect_test/none: CompileTimeError
 covariance_type_parameter_test/01: RuntimeError
 covariance_type_parameter_test/02: RuntimeError
 covariance_type_parameter_test/03: RuntimeError
 covariant_override/tear_off_type_test: RuntimeError
 covariant_subtyping_test: CompileTimeError
-ct_const_test: CompileTimeError
 cyclic_constructor_test/01: Crash # Issue 30856
 cyclic_type_variable_test/01: MissingCompileTimeError
 cyclic_type_variable_test/02: MissingCompileTimeError
@@ -2012,7 +1986,6 @@ left_shift_test: RuntimeError # non JS number semantics
 library_env_test/has_mirror_support: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
-library_prefixes_test: CompileTimeError
 local_function2_test/none: RuntimeError
 local_function3_test/none: RuntimeError
 local_function_test/none: RuntimeError
@@ -2363,6 +2336,8 @@ wrong_number_type_arguments_test/01: MissingCompileTimeError
 wrong_number_type_arguments_test/none: Pass
 
 [ $compiler == dart2js && $fasta && $strong ]
+const_constructor3_test/04: MissingCompileTimeError # OK - Subtype check uses JS number semantics.
+ct_const_test: RuntimeError
 mixin_type_parameter5_test: RuntimeError
 mixin_type_parameter6_test: RuntimeError
 

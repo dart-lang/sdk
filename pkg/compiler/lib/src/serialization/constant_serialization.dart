@@ -198,6 +198,11 @@ class ConstantSerializer
   void visitAssert(AssertConstantExpression exp, ObjectEncoder context) {
     throw new UnsupportedError("AssertConstantExpression is not supported.");
   }
+
+  @override
+  void visitAs(AsConstantExpression exp, ObjectEncoder encoder) {
+    throw new UnsupportedError("AsConstantExpression is not supported.");
+  }
 }
 
 /// Utility class for deserializing [ConstantExpression]s.
@@ -305,6 +310,7 @@ class ConstantDeserializer {
             decoder.getElement(Key.IMPORT) as ImportElement);
       case ConstantExpressionKind.SYNTHETIC:
       case ConstantExpressionKind.ASSERT:
+      case ConstantExpressionKind.AS:
     }
     throw new UnsupportedError("Unexpected constant kind: ${kind} in $decoder");
   }

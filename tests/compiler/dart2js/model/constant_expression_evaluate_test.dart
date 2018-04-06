@@ -94,6 +94,9 @@ class MemoryEnvironment implements EvaluationEnvironment {
   @override
   CommonElements get commonElements => _environment.commonElements;
 
+  @override
+  DartTypes get types => _environment.types;
+
   void reportWarning(
       ConstantExpression expression, MessageKind kind, Map arguments) {
     errors.add(new EvaluationError(kind, arguments));
