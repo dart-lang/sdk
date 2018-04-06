@@ -1779,21 +1779,6 @@ void StubCode::GenerateSubtype4TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 4);
 }
 
-void StubCode::GenerateDefaultTypeTestStub(Assembler* assembler) {
-  // Only used in AOT and therefore not on ia32.
-  __ Breakpoint();
-}
-
-void StubCode::GenerateUnreachableTypeTestStub(Assembler* assembler) {
-  // Only used in AOT and therefore not on ia32.
-  __ Breakpoint();
-}
-
-void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
-  // Only used in AOT and therefore not on ia32.
-  __ Breakpoint();
-}
-
 // Return the current stack pointer address, used to do stack alignment checks.
 // TOS + 0: return address
 // Result in EAX.

@@ -326,7 +326,6 @@ class SnapshotReader : public BaseReader {
   PassiveObject* PassiveObjectHandle() { return &pobj_; }
   Array* ArrayHandle() { return &array_; }
   Class* ClassHandle() { return &cls_; }
-  Code* CodeHandle() { return &code_; }
   String* StringHandle() { return &str_; }
   AbstractType* TypeHandle() { return &type_; }
   TypeArguments* TypeArgumentsHandle() { return &type_arguments_; }
@@ -372,9 +371,6 @@ class SnapshotReader : public BaseReader {
   PageSpace* old_space() const { return old_space_; }
 
  private:
-  void EnqueueTypePostprocessing(const AbstractType& type);
-  void RunDelayedTypePostprocessing();
-
   void EnqueueRehashingOfMap(const LinkedHashMap& map);
   RawObject* RunDelayedRehashingOfMaps();
 
@@ -438,7 +434,6 @@ class SnapshotReader : public BaseReader {
   Heap* heap_;            // Heap of the current isolate.
   PageSpace* old_space_;  // Old space of the current isolate.
   Class& cls_;            // Temporary Class handle.
-  Code& code_;            // Temporary Code handle.
   Object& obj_;           // Temporary Object handle.
   PassiveObject& pobj_;   // Temporary PassiveObject handle.
   Array& array_;          // Temporary Array handle.
@@ -455,7 +450,6 @@ class SnapshotReader : public BaseReader {
   UnhandledException& error_;      // Error handle.
   intptr_t max_vm_isolate_object_id_;
   ZoneGrowableArray<BackRefNode>* backward_references_;
-  GrowableObjectArray& types_to_postprocess_;
   GrowableObjectArray& objects_to_rehash_;
 
   friend class ApiError;
@@ -776,8 +770,6 @@ class SnapshotWriter : public BaseWriter {
   friend class RawSubtypeTestCache;
   friend class RawTokenStream;
   friend class RawType;
-  friend class RawTypeRef;
-  friend class RawBoundedType;
   friend class RawTypeArguments;
   friend class RawTypeParameter;
   friend class RawUserTag;

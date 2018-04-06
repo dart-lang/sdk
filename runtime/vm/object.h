@@ -42,10 +42,9 @@ class ArgumentsDescriptor;
 class Assembler;
 class Closure;
 class Code;
-class DeoptInstr;
 class DisassemblyFormatter;
+class DeoptInstr;
 class FinalizablePersistentHandle;
-class HierarchyInfo;
 class LocalScope;
 
 #define REUSABLE_FORWARD_DECLARATION(name) class Reusable##name##HandleScope;
@@ -556,7 +555,6 @@ class Object {
   // Initialize the VM isolate.
   static void InitNull(Isolate* isolate);
   static void InitOnce(Isolate* isolate);
-  static void FinishInitOnce(Isolate* isolate);
   static void FinalizeVMIsolate(Isolate* isolate);
 
   // Initialize a new isolate either from a Kernel IR, from source, or from a
@@ -4627,9 +4625,6 @@ class Code : public Object {
   }
 
   RawInstructions* instructions() const { return raw_ptr()->instructions_; }
-  static RawInstructions* InstructionsOf(const RawCode* code) {
-    return code->ptr()->instructions_;
-  }
 
   static intptr_t saved_instructions_offset() {
     return OFFSET_OF(RawCode, instructions_);
@@ -6101,16 +6096,6 @@ class AbstractType : public Instance {
       const TypeArguments& instantiator_type_args,
       const TypeArguments& function_type_args);
 
-  static intptr_t type_test_stub_entry_point_offset() {
-    return OFFSET_OF(RawAbstractType, type_test_stub_entry_point_);
-  }
-
-  uword type_test_stub_entry_point() const {
-    return raw_ptr()->type_test_stub_entry_point_;
-  }
-
-  void SetTypeTestingStub(const Instructions& instr) const;
-
  private:
   // Check the 'is subtype of' or 'is more specific than' relationship.
   bool TypeTest(TypeTestKind test_kind,
@@ -6149,12 +6134,6 @@ class Type : public AbstractType {
  public:
   static intptr_t type_class_id_offset() {
     return OFFSET_OF(RawType, type_class_id_);
-  }
-  static intptr_t arguments_offset() {
-    return OFFSET_OF(RawType, type_class_id_);
-  }
-  static intptr_t type_state_offset() {
-    return OFFSET_OF(RawType, type_state_);
   }
   static intptr_t hash_offset() { return OFFSET_OF(RawType, hash_); }
   virtual bool IsFinalized() const {

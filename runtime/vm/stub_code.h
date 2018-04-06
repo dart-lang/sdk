@@ -67,9 +67,6 @@ class SnapshotWriter;
   V(Subtype1TestCache)                                                         \
   V(Subtype2TestCache)                                                         \
   V(Subtype4TestCache)                                                         \
-  V(DefaultTypeTest)                                                           \
-  V(UnreachableTypeTest)                                                       \
-  V(SlowTypeTest)                                                              \
   V(CallClosureNoSuchMethod)                                                   \
   V(FrameAwaitingMaterialization)                                              \
   V(AsynchronousGapMarker)
@@ -85,9 +82,6 @@ class SnapshotWriter;
   V(Deoptimize)                                                                \
   V(DeoptimizeLazyFromReturn)                                                  \
   V(DeoptimizeLazyFromThrow)                                                   \
-  V(DefaultTypeTest)                                                           \
-  V(UnreachableTypeTest)                                                       \
-  V(SlowTypeTest)                                                              \
   V(FrameAwaitingMaterialization)                                              \
   V(AsynchronousGapMarker)
 

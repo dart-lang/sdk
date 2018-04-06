@@ -285,27 +285,6 @@ bool ReturnPattern::IsValid() const {
   return false;
 }
 
-#if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
-
-intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
-  // Calls to the type testing stubs look like:
-  //   ldr R3, [PP+idx]
-  //   blx R9
-
-  // Ensure the caller of the type testing stub (whose return address is [pc_])
-  // branched via the `blx R9` instruction.
-  ASSERT(*reinterpret_cast<uint32_t*>(pc_ - Instr::kInstrSize) == 0xe12fff39);
-  const uword load_instr_end = pc_ - Instr::kInstrSize;
-
-  Register reg;
-  intptr_t pool_index = -1;
-  InstructionPattern::DecodeLoadWordFromPool(load_instr_end, &reg, &pool_index);
-  ASSERT(reg == R3);
-  return pool_index;
-}
-
-#endif  // defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
-
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM

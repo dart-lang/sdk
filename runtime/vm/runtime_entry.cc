@@ -14,7 +14,6 @@
 #include "vm/deopt_instructions.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
-#include "vm/instructions.h"
 #include "vm/kernel_isolate.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
@@ -666,14 +665,9 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
       TypeArguments::CheckedHandle(zone, arguments.ArgAt(2));
   const TypeArguments& function_type_arguments =
       TypeArguments::CheckedHandle(zone, arguments.ArgAt(3));
-  String& dst_name = String::Handle(zone);
-  dst_name ^= arguments.ArgAt(4);
-  ASSERT(dst_name.IsNull() || dst_name.IsString());
-
-  SubtypeTestCache& cache = SubtypeTestCache::Handle(zone);
-  cache ^= arguments.ArgAt(5);
-  ASSERT(cache.IsNull() || cache.IsSubtypeTestCache());
-
+  const String& dst_name = String::CheckedHandle(zone, arguments.ArgAt(4));
+  const SubtypeTestCache& cache =
+      SubtypeTestCache::CheckedHandle(zone, arguments.ArgAt(5));
   ASSERT(!dst_type.IsMalformed());    // Already checked in code generator.
   ASSERT(!dst_type.IsMalbounded());   // Already checked in code generator.
   ASSERT(!dst_type.IsDynamicType());  // No need to check assignment.
@@ -706,85 +700,10 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
       ASSERT(isolate->type_checks());
       bound_error_message = String::New(bound_error.ToErrorCString());
     }
-    if (dst_name.IsNull()) {
-#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32) &&                 \
-    (defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME))
-      // Grab the [dst_name] from the pool.  It's stored at one pool slot after
-      // the subtype-test-cache.
-      DartFrameIterator iterator(thread,
-                                 StackFrameIterator::kNoCrossThreadIteration);
-      StackFrame* caller_frame = iterator.NextFrame();
-      const Code& caller_code =
-          Code::Handle(zone, caller_frame->LookupDartCode());
-      const ObjectPool& pool =
-          ObjectPool::Handle(zone, caller_code.object_pool());
-      TypeTestingStubCallPattern tts_pattern(caller_frame->pc());
-      const intptr_t stc_pool_idx = tts_pattern.GetSubtypeTestCachePoolIndex();
-      const intptr_t dst_name_idx = stc_pool_idx + 1;
-      dst_name ^= pool.ObjectAt(dst_name_idx);
-#else
-      UNREACHABLE();
-#endif
-    }
-
     Exceptions::CreateAndThrowTypeError(location, src_type, dst_type, dst_name,
                                         bound_error_message);
     UNREACHABLE();
   }
-
-  if (cache.IsNull()) {
-#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32) &&                 \
-    (defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME))
-
-#if defined(DART_PRECOMPILER)
-    if (FLAG_precompiled_mode) {
-#endif  // defined(DART_PRECOMPILER)
-
-      // We lazily create [SubtypeTestCache] for those call sites which actually
-      // need one and will patch the pool entry.
-      DartFrameIterator iterator(thread,
-                                 StackFrameIterator::kNoCrossThreadIteration);
-      StackFrame* caller_frame = iterator.NextFrame();
-      const Code& caller_code =
-          Code::Handle(zone, caller_frame->LookupDartCode());
-      const ObjectPool& pool =
-          ObjectPool::Handle(zone, caller_code.object_pool());
-      TypeTestingStubCallPattern tts_pattern(caller_frame->pc());
-      const intptr_t stc_pool_idx = tts_pattern.GetSubtypeTestCachePoolIndex();
-
-      // The pool entry must be initialized to `null` when we patch it.
-      ASSERT(pool.ObjectAt(stc_pool_idx) == Object::null());
-      cache = SubtypeTestCache::New();
-      pool.SetObjectAt(stc_pool_idx, cache);
-
-#if defined(DART_PRECOMPILER)
-    }
-#endif  // defined(DART_PRECOMPILER)
-
-#else
-    // WARNING: If we ever come here, it's a really bad sign, because it means
-    // that there was a type test, which generated code could not handle but we
-    // have no subtype cache.  Which means that this successfully-passing type
-    // check will always go to runtime.
-    //
-    // Currently there is one known case when this happens:
-    //
-    // The [FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest] is
-    // handling type checks against int/num specially: It generates a number of
-    // class-id checks.  Unfortunately it handles only normal implementations of
-    // 'int', such as kSmiCid, kMintCid, kBigintCid.  It will signal that there
-    // is no subtype-cache necessary on that call site, because all integer
-    // types have been handled.
-    //
-    // -> Though this is not true, due to (from runtime/lib/array_patch.dart):
-    //
-    //    class _GrowableArrayMarker implements int { }
-    //
-    // Because of this, we cannot have an `UNREACHABLE()` here, but rather just
-    // have a NOP and return `true`, to signal the type check passed.
-#endif  // defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
-  }
-
   UpdateTypeTestCache(src_instance, dst_type, instantiator_type_arguments,
                       function_type_arguments, Bool::True(), cache);
   arguments.SetReturn(src_instance);

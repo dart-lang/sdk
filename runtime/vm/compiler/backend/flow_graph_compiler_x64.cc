@@ -382,7 +382,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
 
   // Fast case for cid-range based checks.
   // Warning: This code destroys the contents of [kClassIdReg].
-  if (GenerateSubtypeRangeCheck(kClassIdReg, type_class, is_instance_lbl)) {
+  if (GenerateSubclassTypeCheck(kClassIdReg, type_class, is_instance_lbl)) {
     return false;
   }
 
@@ -630,17 +630,13 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   ASSERT(dst_type.IsMalformedOrMalbounded() ||
          (!dst_type.IsDynamicType() && !dst_type.IsObjectType() &&
           !dst_type.IsVoidType()));
-
-  const Register kInstantiatorTypeArgumentsReg = RDX;
-  const Register kFunctionTypeArgumentsReg = RCX;
-
   // A null object is always assignable and is returned as result.
+  Label is_assignable, runtime_call;
+  __ CompareObject(RAX, Object::null_object());
+  __ j(EQUAL, &is_assignable);
+
   // Generate throw new TypeError() if the type is malformed or malbounded.
   if (dst_type.IsMalformedOrMalbounded()) {
-    Label is_assignable;
-    __ CompareObject(RAX, Object::null_object());
-    __ j(EQUAL, &is_assignable);
-
     __ PushObject(Object::null_object());  // Make room for the result.
     __ pushq(RAX);                         // Push the source object.
     __ PushObject(dst_name);               // Push the name of the destination.
@@ -654,81 +650,28 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
     return;
   }
 
-  if (FLAG_precompiled_mode && !dst_type.IsDartFunctionType() &&
-      !dst_type.IsFunctionType() &&
-      (dst_type.IsType() || dst_type.IsTypeParameter())) {
-    GenerateAssertAssignableAOT(token_pos, deopt_id, dst_type, dst_name, locs);
-  } else {
-    Label is_assignable, runtime_call;
+  // Generate inline type check, linking to runtime call if not assignable.
+  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle(zone());
+  // The registers RAX, RCX, RDX are preserved across the call.
+  test_cache = GenerateInlineInstanceof(token_pos, dst_type, &is_assignable,
+                                        &runtime_call);
 
-    // A null object is always assignable and is returned as result.
-    __ CompareObject(RAX, Object::null_object());
-    __ j(EQUAL, &is_assignable);
+  __ Bind(&runtime_call);
+  __ PushObject(Object::null_object());  // Make room for the result.
+  __ pushq(RAX);                         // Push the source object.
+  __ PushObject(dst_type);               // Push the type of the destination.
+  __ pushq(RDX);                         // Instantiator type arguments.
+  __ pushq(RCX);                         // Function type arguments.
+  __ PushObject(dst_name);               // Push the name of the destination.
+  __ LoadUniqueObject(RAX, test_cache);
+  __ pushq(RAX);
+  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 6, locs);
+  // Pop the parameters supplied to the runtime entry. The result of the
+  // type check runtime call is the checked value.
+  __ Drop(6);
+  __ popq(RAX);
 
-    // Generate inline type check, linking to runtime call if not assignable.
-    SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle(zone());
-    // The registers RAX, RCX, RDX are preserved across the call.
-    test_cache = GenerateInlineInstanceof(token_pos, dst_type, &is_assignable,
-                                          &runtime_call);
-
-    __ Bind(&runtime_call);
-    __ PushObject(Object::null_object());  // Make room for the result.
-    __ pushq(RAX);                         // Push the source object.
-    __ PushObject(dst_type);               // Push the type of the destination.
-    __ pushq(kInstantiatorTypeArgumentsReg);
-    __ pushq(kFunctionTypeArgumentsReg);
-    __ PushObject(dst_name);  // Push the name of the destination.
-    __ LoadUniqueObject(RAX, test_cache);
-    __ pushq(RAX);
-    GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 6, locs);
-    // Pop the parameters supplied to the runtime entry. The result of the
-    // type check runtime call is the checked value.
-    __ Drop(6);
-    __ popq(RAX);
-    __ Bind(&is_assignable);
-  }
-}
-
-void FlowGraphCompiler::GenerateAssertAssignableAOT(
-    TokenPosition token_pos,
-    intptr_t deopt_id,
-    const AbstractType& dst_type,
-    const String& dst_name,
-    LocationSummary* locs) {
-  const Register kInstanceReg = RAX;
-  const Register kInstantiatorTypeArgumentsReg = RDX;
-  const Register kFunctionTypeArgumentsReg = RCX;
-
-  Label done;
-
-  const Register subtype_cache_reg = R9;
-  const Register kScratchReg = RBX;
-
-  GenerateAssertAssignableAOT(dst_type, dst_name, kInstanceReg,
-                              kInstantiatorTypeArgumentsReg,
-                              kFunctionTypeArgumentsReg, subtype_cache_reg,
-                              kScratchReg, kScratchReg, &done);
-
-  // We use 2 consecutive entries in the pool for the subtype cache and the
-  // destination name.  The second entry, namely [dst_name] seems to be unused,
-  // but it will be used by the code throwing a TypeError if the type test fails
-  // (see runtime/vm/runtime_entry.cc:TypeCheck).  It will use pattern matching
-  // on the call site to find out at which pool index the destination name is
-  // located.
-  const intptr_t sub_type_cache_index = __ object_pool_wrapper().AddObject(
-      Object::null_object(), Patchability::kPatchable);
-  const intptr_t sub_type_cache_offset =
-      ObjectPool::element_offset(sub_type_cache_index) - kHeapObjectTag;
-  const intptr_t dst_name_index =
-      __ object_pool_wrapper().AddObject(dst_name, Patchability::kPatchable);
-  ASSERT((sub_type_cache_index + 1) == dst_name_index);
-  ASSERT(__ constant_pool_allowed());
-
-  __ movq(subtype_cache_reg,
-          Address::AddressBaseImm32(PP, sub_type_cache_offset));
-  __ call(FieldAddress(RBX, AbstractType::type_test_stub_entry_point_offset()));
-  EmitCallsiteMetadata(token_pos, deopt_id, RawPcDescriptors::kOther, locs);
-  __ Bind(&done);
+  __ Bind(&is_assignable);
 }
 
 void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
@@ -1167,13 +1110,14 @@ int FlowGraphCompiler::EmitTestAndCallCheckCid(Assembler* assembler,
                                                bool jump_on_miss) {
   intptr_t cid_start = range.cid_start;
   if (range.IsSingleCid()) {
-    __ CompareImmediate(class_id_reg, cid_start - bias);
-    __ BranchIf(jump_on_miss ? NOT_EQUAL : EQUAL, label);
+    __ cmpl(class_id_reg, Immediate(cid_start - bias));
+    __ j(jump_on_miss ? NOT_EQUAL : EQUAL, label);
   } else {
     __ addl(class_id_reg, Immediate(bias - cid_start));
     bias = cid_start;
     __ cmpl(class_id_reg, Immediate(range.Extent()));
-    __ BranchIf(jump_on_miss ? UNSIGNED_GREATER : UNSIGNED_LESS_EQUAL, label);
+    __ j(jump_on_miss ? ABOVE : BELOW_EQUAL,
+         label);  // Unsigned higher / lower-or-equal.
   }
   return bias;
 }
