@@ -153,9 +153,6 @@ class CommandLineOptions {
   /// Whether to treat lints as fatal
   final bool lintsAreFatal;
 
-  /// Whether to use memory byte store for analysis driver.
-  final bool useAnalysisDriverMemoryByteStore;
-
   /// Emit output in a verbose mode.
   final bool verbose;
 
@@ -207,8 +204,6 @@ class CommandLineOptions {
         strongMode = args['strong'],
         implicitCasts = args[implicitCastsFlag],
         implicitDynamic = !args['no-implicit-dynamic'],
-        useAnalysisDriverMemoryByteStore =
-            args['use-analysis-driver-memory-byte-store'],
         verbose = args['verbose'],
         color = args['color'];
 
@@ -384,12 +379,12 @@ class CommandLineOptions {
           negatable: false,
           hide: hide)
       ..addOption('build-analysis-output',
-          help:
-              'Specifies the path to the file where analysis results should be written.',
+          help: 'Specifies the path to the file where analysis results should '
+              'be written.',
           hide: hide)
       ..addFlag('build-mode',
-          // TODO(paulberry): add more documentation.
-          help: 'Enable build mode.',
+          help: 'Run in build mode; '
+              'this is used to generate analyzer summaries for build systems.',
           defaultsTo: false,
           negatable: false,
           hide: hide)
