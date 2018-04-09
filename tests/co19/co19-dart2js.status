@@ -931,7 +931,7 @@ LayoutTests/fast/text/sub-pixel/text-scaling-vertical_t01: Pass, RuntimeError # 
 LayoutTests/fast/text/sub-pixel/text-scaling-webfont_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/text/text-combine-shrink-to-fit_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/window-find_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/text/zero-width-characters_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/text/zero-width-characters_t01: RuntimeError, Pass # Please triage this failure
 LayoutTests/fast/transforms/bounding-rect-zoom_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/transforms/hit-test-large-scale_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/url/anchor_t01: RuntimeError # Please triage this failure
@@ -1285,7 +1285,6 @@ WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01: Skip # 
 [ $compiler == dart2js && $runtime == chrome && $system != macos ]
 LayoutTests/fast/canvas/webgl/context-lost-restored_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/zero-width-characters-complex-script_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/text/zero-width-characters_t01: RuntimeError, Pass # Please triage this failure
 
 [ $compiler == dart2js && $runtime == chrome && $system == windows ]
 Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t04: Pass, Slow # Issue 25940
