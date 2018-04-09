@@ -581,7 +581,8 @@ class ConstructedConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       EvaluationEnvironment environment, ConstantSystem constantSystem) {
-    return environment.evaluateConstructor(target, () {
+    InterfaceType instanceType = computeInstanceType(environment);
+    return environment.evaluateConstructor(target, instanceType, () {
       InstanceData instanceData = computeInstanceData(environment);
       if (instanceData == null) {
         return new NonConstantValue();
@@ -608,8 +609,7 @@ class ConstructedConstantExpression extends ConstantExpression {
         }
       }
       if (isValidAsConstant) {
-        return new ConstructedConstantValue(
-            computeInstanceType(environment), fieldValues);
+        return new ConstructedConstantValue(instanceType, fieldValues);
       } else {
         return new NonConstantValue();
       }
@@ -851,7 +851,12 @@ class AsConstantExpression extends ConstantExpression {
         expression.evaluate(environment, constantSystem);
     DartType expressionType =
         expressionValue.getType(environment.commonElements);
-    if (!constantSystem.isSubtype(environment.types, expressionType, type)) {
+    DartType enclosingType = environment.enclosingConstructedType;
+    DartType superType = enclosingType != null
+        ? environment.substByContext(type, enclosingType)
+        : type;
+    if (!constantSystem.isSubtype(
+        environment.types, expressionType, superType)) {
       // TODO(sigmund): consider reporting different messages and error
       // locations for implicit vs explicit casts.
       environment.reportError(expression, MessageKind.INVALID_CONSTANT_CAST,

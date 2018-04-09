@@ -97,6 +97,10 @@ class MemoryEnvironment implements EvaluationEnvironment {
   @override
   DartTypes get types => _environment.types;
 
+  @override
+  InterfaceType get enclosingConstructedType =>
+      _environment.enclosingConstructedType;
+
   void reportWarning(
       ConstantExpression expression, MessageKind kind, Map arguments) {
     errors.add(new EvaluationError(kind, arguments));
@@ -109,9 +113,10 @@ class MemoryEnvironment implements EvaluationEnvironment {
     _environment.reportError(expression, kind, arguments);
   }
 
-  ConstantValue evaluateConstructor(
-      ConstructorEntity constructor, ConstantValue evaluate()) {
-    return _environment.evaluateConstructor(constructor, evaluate);
+  @override
+  ConstantValue evaluateConstructor(ConstructorEntity constructor,
+      InterfaceType type, ConstantValue evaluate()) {
+    return _environment.evaluateConstructor(constructor, type, evaluate);
   }
 
   ConstantValue evaluateField(FieldEntity field, ConstantValue evaluate()) {

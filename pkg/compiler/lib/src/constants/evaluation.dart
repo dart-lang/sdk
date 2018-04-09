@@ -20,6 +20,9 @@ abstract class EvaluationEnvironment {
 
   DartTypes get types;
 
+  /// Type in the enclosing constructed
+  InterfaceType get enclosingConstructedType;
+
   /// Read environments string passed in using the '-Dname=value' option.
   String readFromEnvironment(String name);
 
@@ -45,8 +48,8 @@ abstract class EvaluationEnvironment {
   void reportError(
       ConstantExpression expression, MessageKind kind, Map arguments);
 
-  ConstantValue evaluateConstructor(
-      ConstructorEntity constructor, ConstantValue evaluate());
+  ConstantValue evaluateConstructor(ConstructorEntity constructor,
+      InterfaceType type, ConstantValue evaluate());
 
   ConstantValue evaluateField(FieldEntity field, ConstantValue evaluate());
 
@@ -56,6 +59,7 @@ abstract class EvaluationEnvironment {
 
 abstract class EvaluationEnvironmentBase implements EvaluationEnvironment {
   Link<Spannable> _spannableStack = const Link<Spannable>();
+  InterfaceType enclosingConstructedType;
   final Set<FieldEntity> _currentlyEvaluatedFields = new Set<FieldEntity>();
   final bool constantRequired;
 
@@ -96,10 +100,13 @@ abstract class EvaluationEnvironmentBase implements EvaluationEnvironment {
   }
 
   @override
-  ConstantValue evaluateConstructor(
-      ConstructorEntity constructor, ConstantValue evaluate()) {
+  ConstantValue evaluateConstructor(ConstructorEntity constructor,
+      InterfaceType type, ConstantValue evaluate()) {
     _spannableStack = _spannableStack.prepend(constructor);
+    var old = enclosingConstructedType;
+    enclosingConstructedType = type;
     ConstantValue result = evaluate();
+    enclosingConstructedType = old;
     _spannableStack = _spannableStack.tail;
     return result;
   }
