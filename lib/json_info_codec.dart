@@ -165,6 +165,10 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
       ..compilationMoment = DateTime.parse(json['compilationMoment'])
       ..dart2jsVersion = json['dart2jsVersion']
       ..noSuchMethodEnabled = json['noSuchMethodEnabled']
+      ..isRuntimeTypeUsed = json['isRuntimeTypeUsed']
+      ..isIsolateInUse = json['isIsolateInUse']
+      ..isFunctionApplyUsed = json['isFunctionApplyUsed']
+      ..isMirrorsUsed = json['isMirrorsUsed']
       ..minified = json['minified'];
 
     // TODO(het): Revert this when the dart2js with the new codec is in stable
@@ -371,7 +375,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
       'outputUnits': info.outputUnits.map((u) => u.accept(this)).toList(),
       'dump_version': info.version,
       'deferredFiles': info.deferredFiles,
-      'dump_minor_version': '${info.minorVersion}',
+      'dump_minor_version': info.minorVersion,
       'program': info.program.accept(this)
     };
   }
@@ -386,6 +390,10 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
       'toJsonDuration': info.toJsonDuration.inMicroseconds,
       'dumpInfoDuration': info.dumpInfoDuration.inMicroseconds,
       'noSuchMethodEnabled': info.noSuchMethodEnabled,
+      'isRuntimeTypeUsed': info.isRuntimeTypeUsed,
+      'isIsolateInUse': info.isIsolateInUse,
+      'isFunctionApplyUsed': info.isFunctionApplyUsed,
+      'isMirrorsUsed': info.isMirrorsUsed,
       'minified': info.minified,
     };
   }

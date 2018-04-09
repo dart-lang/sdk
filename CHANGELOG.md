@@ -1,3 +1,8 @@
+## 0.5.6
+
+- Added `isRuntimeTypeUsed`, `isIsolateInUse`, `isFunctionApplyUsed` and `isMirrorsUsed` to
+  `ProgramInfo`.
+
 ## 0.5.5+1
 
 - Support the latest versions of `shelf` and `args` packages.

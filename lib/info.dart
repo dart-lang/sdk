@@ -167,7 +167,7 @@ class AllInfo {
   /// previous will continue to work after the change. This is typically
   /// increased when adding new entries to the file format.
   // Note: the dump-info.viewer app was written using a json parser version 3.2.
-  final int minorVersion = 0;
+  final int minorVersion = 1;
 
   AllInfo();
 
@@ -182,7 +182,22 @@ class ProgramInfo {
   Duration compilationDuration;
   Duration toJsonDuration;
   Duration dumpInfoDuration;
+
+  /// `true` if `noSuchMethod` is used.
   bool noSuchMethodEnabled;
+
+  /// `true` if `Object.runtimeType` is used.
+  bool isRuntimeTypeUsed;
+
+  /// `true` if the `dart:isolate` library is in use.
+  bool isIsolateInUse;
+
+  /// `true` if `Function.apply` is used.
+  bool isFunctionApplyUsed;
+
+  /// `true` if `dart:mirrors` features are used.
+  bool isMirrorsUsed;
+
   bool minified;
 
   ProgramInfo(
@@ -194,6 +209,10 @@ class ProgramInfo {
       this.toJsonDuration,
       this.dumpInfoDuration,
       this.noSuchMethodEnabled,
+      this.isRuntimeTypeUsed,
+      this.isIsolateInUse,
+      this.isFunctionApplyUsed,
+      this.isMirrorsUsed,
       this.minified});
 
   T accept<T>(InfoVisitor<T> visitor) => visitor.visitProgram(this);
