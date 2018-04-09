@@ -3226,7 +3226,7 @@ ASSEMBLER_TEST_RUN(PackedDoubleNegate, test) {
   EXPECT_FLOAT_EQ(-1.0, res, 0.000001f);
   EXPECT_DISASSEMBLY_NOT_WINDOWS_ENDS_WITH(
       "movups xmm10,[rax]\n"
-      "movq r11,[thr+0x...]\n"
+      "movq r11,[thr+0xf8]\n"
       "xorpd xmm10,[r11]\n"
       "movaps xmm0,xmm10\n"
       "pop thr\n"

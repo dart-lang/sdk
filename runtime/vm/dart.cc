@@ -217,7 +217,6 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
         return strdup("Precompiled runtime requires a precompiled snapshot");
 #else
         StubCode::InitOnce();
-        Object::FinishInitOnce(vm_isolate_);
         // MallocHooks can't be initialized until StubCode has been since stack
         // trace generation relies on stub methods that are generated in
         // StubCode::InitOnce().
@@ -235,7 +234,6 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
         // Must copy before leaving the zone.
         return strdup(error.ToErrorCString());
       }
-      Object::FinishInitOnce(vm_isolate_);
 #if !defined(PRODUCT)
       if (tds.enabled()) {
         tds.SetNumArguments(2);
@@ -264,7 +262,6 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
 #else
       vm_snapshot_kind_ = Snapshot::kNone;
       StubCode::InitOnce();
-      Object::FinishInitOnce(vm_isolate_);
       // MallocHooks can't be initialized until StubCode has been since stack
       // trace generation relies on stub methods that are generated in
       // StubCode::InitOnce().

@@ -102,15 +102,7 @@ class CodePatcher : public AllStatic {
                                 NativeFunction target,
                                 const Code& trampoline);
 #endif
-
-  static intptr_t GetSubtypeTestCachePoolIndex(uword return_address);
 };
-
-// Beginning from [addr] we compare [size] bytes with [pattern].  All [0..255]
-// values in [pattern] have to match, negative values are skipped.
-//
-// Example pattern: `[0x3d, 0x8b, -1, -1]`.
-bool MatchesPattern(uword addr, int16_t* pattern, intptr_t size);
 
 }  // namespace dart
 

@@ -373,8 +373,6 @@ class Precompiler : public ValueObject {
   void TraceConstFunctions();
   void CollectCallbackFields();
 
-  void AttachOptimizedTypeTestingStub();
-
   void TraceForRetainedFunctions();
   void DropFunctions();
   void DropFields();
