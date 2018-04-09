@@ -392,6 +392,9 @@ class InterceptorStubGenerator {
       for (int i = 0; i < selector.argumentCount; i++) {
         parameterNames.add('a$i');
       }
+      for (int i = 1; i <= selector.typeArgumentCount; i++) {
+        parameterNames.add('\$T$i');
+      }
     }
 
     jsAst.Name invocationName = _namer.invocationName(selector);
