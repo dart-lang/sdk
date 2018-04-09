@@ -698,6 +698,13 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   }
 
   @override
+  ConstantExpression visitInstantiation(ir.Instantiation node) {
+    // TODO(sigmund, sra): add a constant representation for instantiations.
+    // See issue 32774.
+    return visit(node.expression);
+  }
+
+  @override
   ConstantExpression visitNot(ir.Not node) {
     ConstantExpression expression = visit(node.operand);
     if (expression == null) return null;

@@ -1029,13 +1029,10 @@ mixin_type_parameter_inference_test/12: CompileTimeError
 mixin_type_parameter_inference_test/13: CompileTimeError
 mixin_type_parameter_inference_test/16: CompileTimeError
 mixin_type_parameter_inference_test/none: CompileTimeError
-partial_tearoff_instantiation_test/02: CompileTimeError
-partial_tearoff_instantiation_test/04: CompileTimeError
 partial_tearoff_instantiation_test/05: Pass # for the wrong reason.
 partial_tearoff_instantiation_test/06: Pass # for the wrong reason.
 partial_tearoff_instantiation_test/07: Pass # for the wrong reason.
 partial_tearoff_instantiation_test/08: Pass # for the wrong reason.
-partial_tearoff_instantiation_test/none: CompileTimeError
 type_alias_equality_test/01: RuntimeError # Issue 32784
 type_alias_equality_test/02: RuntimeError # Issue 32784
 type_alias_equality_test/03: RuntimeError # Issue 32784
@@ -1526,13 +1523,10 @@ override_inheritance_no_such_method_test/12: MissingCompileTimeError
 override_inheritance_no_such_method_test/13: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
 parser_quirks_test: CompileTimeError
-partial_tearoff_instantiation_test/02: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
-partial_tearoff_instantiation_test/04: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 partial_tearoff_instantiation_test/05: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 partial_tearoff_instantiation_test/06: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 partial_tearoff_instantiation_test/07: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 partial_tearoff_instantiation_test/08: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
-partial_tearoff_instantiation_test/none: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 prefix5_negative_test: Crash # 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart': Failed assertion: line 441 pos 16: 'identical(combiner.arguments.positional[0], rhs)': is not true.
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
