@@ -28,6 +28,20 @@ class Code;
 
 bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj);
 
+#if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
+
+class TypeTestingStubCallPattern : public ValueObject {
+ public:
+  explicit TypeTestingStubCallPattern(uword pc) : pc_(pc) {}
+
+  intptr_t GetSubtypeTestCachePoolIndex();
+
+ private:
+  const uword pc_;
+};
+
+#endif  // defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_INSTRUCTIONS_H_
