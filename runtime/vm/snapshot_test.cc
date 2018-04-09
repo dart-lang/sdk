@@ -253,10 +253,6 @@ void CheckMint(int64_t value) {
 // here covers most of the 64-bit range. On 32-bit platforms the smi
 // range covers most of the 32-bit range and values outside that
 // range are also represented as mints.
-#if defined(ARCH_IS_64_BIT)
-  EXPECT_EQ(Dart_CObject_kInt64, mint_cobject->type);
-  EXPECT_EQ(value, mint_cobject->value.as_int64);
-#else
   if (kMinInt32 < value && value < kMaxInt32) {
     EXPECT_EQ(Dart_CObject_kInt32, mint_cobject->type);
     EXPECT_EQ(value, mint_cobject->value.as_int32);
@@ -264,7 +260,6 @@ void CheckMint(int64_t value) {
     EXPECT_EQ(Dart_CObject_kInt64, mint_cobject->type);
     EXPECT_EQ(value, mint_cobject->value.as_int64);
   }
-#endif
 }
 
 TEST_CASE(SerializeMints) {

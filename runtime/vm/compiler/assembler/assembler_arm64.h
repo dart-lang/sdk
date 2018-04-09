@@ -1069,11 +1069,17 @@ class Assembler : public ValueObject {
     const Register crn = ConcreteRegister(rn);
     EmitFPIntCvtOp(SCVTFD, static_cast<Register>(vd), crn, kWord);
   }
-  void fcvtzds(Register rd, VRegister vn) {
+  void fcvtzdsx(Register rd, VRegister vn) {
     ASSERT(rd != R31);
     ASSERT(rd != CSP);
     const Register crd = ConcreteRegister(rd);
     EmitFPIntCvtOp(FCVTZDS, crd, static_cast<Register>(vn));
+  }
+  void fcvtzdsw(Register rd, VRegister vn) {
+    ASSERT(rd != R31);
+    ASSERT(rd != CSP);
+    const Register crd = ConcreteRegister(rd);
+    EmitFPIntCvtOp(FCVTZDS, crd, static_cast<Register>(vn), kWord);
   }
   void fmovdd(VRegister vd, VRegister vn) { EmitFPOneSourceOp(FMOVDD, vd, vn); }
   void fabsd(VRegister vd, VRegister vn) { EmitFPOneSourceOp(FABSD, vd, vn); }
@@ -1365,9 +1371,17 @@ class Assembler : public ValueObject {
     LslImmediate(dst, src, kSmiTagSize);
   }
 
-  void BranchIfNotSmi(Register reg, Label* label) { tbnz(label, reg, kSmiTag); }
+  void BranchIfNotSmi(Register reg, Label* label) {
+    ASSERT(kSmiTagMask == 1);
+    ASSERT(kSmiTag == 0);
+    tbnz(label, reg, 0);
+  }
 
-  void BranchIfSmi(Register reg, Label* label) { tbz(label, reg, kSmiTag); }
+  void BranchIfSmi(Register reg, Label* label) {
+    ASSERT(kSmiTagMask == 1);
+    ASSERT(kSmiTag == 0);
+    tbz(label, reg, 0);
+  }
 
   void Branch(const StubEntry& stub_entry,
               Register pp,
@@ -1449,6 +1463,11 @@ class Assembler : public ValueObject {
   enum CanBeSmi {
     kValueIsNotSmi,
     kValueCanBeSmi,
+  };
+
+  enum CanBeHeapPointer {
+    kValueIsNotHeapPointer,
+    kValueCanBeHeapPointer,
   };
 
   // Storing into an object.
@@ -1590,6 +1609,22 @@ class Assembler : public ValueObject {
                       Register addr,
                       Register tmp,
                       OperandSize sz);
+
+  void AssertSmiInRange(
+      Register object,
+      CanBeHeapPointer can_be_heap_pointer = kValueIsNotHeapPointer) {
+#if defined(DEBUG)
+    Label ok;
+    if (can_be_heap_pointer == kValueCanBeHeapPointer) {
+      BranchIfNotSmi(object, &ok);
+    }
+    cmp(object, Operand(object, SXTW, 0));
+    b(&ok, EQ);
+    Stop("Smi out of range");
+
+    Bind(&ok);
+#endif
+  }
 
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
