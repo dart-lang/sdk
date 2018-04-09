@@ -556,7 +556,7 @@ class A {
   const A(int i);
 }
 main() {
-  var a = A(0);
+  const a = A(0);
 }
 ''');
     HoverInformation hover = await prepareHover('A(0)');

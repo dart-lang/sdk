@@ -6558,7 +6558,7 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
     if (!isImplicit) {
       return keyword.keyword == Keyword.CONST;
     } else {
-      return inConstantContext || canBeConst();
+      return inConstantContext;
     }
   }
 
