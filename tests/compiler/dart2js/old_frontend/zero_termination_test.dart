@@ -16,7 +16,7 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
 import 'package:path/path.dart' as path;
 
-import 'end_to_end/launch_helper.dart' show launchDart2Js;
+import '../end_to_end/launch_helper.dart' show launchDart2Js;
 
 Uri pathOfData = Platform.script;
 Directory tempDir;
@@ -53,30 +53,35 @@ void check(ProcessResult result) {
   Expect.notEquals(0, result.exitCode);
   List<int> stdout = result.stdout;
   String stdoutString = utf8.decode(stdout);
-  Expect.isTrue(stdoutString.contains("Error"));
+  Expect.isTrue(stdoutString.contains("Error"), "stdout:\n$stdoutString");
   // Make sure the "499" from the last line is in the output.
-  Expect.isTrue(stdoutString.contains("499"));
+  Expect.isTrue(stdoutString.contains("499"), "stdout:\n$stdoutString");
 
   // Make sure that the output does not contain any 0 character.
   Expect.isFalse(stdout.contains(0));
 }
 
-Future testFile({bool useKernel}) async {
+Future testFile() async {
   String inFilePath =
       pathOfData.resolve('data/one_line_dart_program.dart').path;
-  List<String> args = [inFilePath, "--out=" + outFilePath];
-  if (!useKernel) args.add(Flags.useOldFrontend);
-
+  List<String> args = [
+    inFilePath,
+    "--out=" + outFilePath,
+    Flags.useOldFrontend
+  ];
   await cleanup();
   check(await launchDart2Js(args, noStdoutEncoding: true));
   await cleanup();
 }
 
-Future serverRunning(HttpServer server, {bool useKernel}) async {
+Future serverRunning(HttpServer server) async {
   int port = server.port;
   String inFilePath = "http://127.0.0.1:$port/data/one_line_dart_program.dart";
-  List<String> args = [inFilePath, "--out=" + outFilePath];
-  if (!useKernel) args.add(Flags.useOldFrontend);
+  List<String> args = [
+    inFilePath,
+    "--out=" + outFilePath,
+    Flags.useOldFrontend
+  ];
 
   server.listen(handleRequest);
   try {
@@ -88,22 +93,19 @@ Future serverRunning(HttpServer server, {bool useKernel}) async {
   }
 }
 
-Future testHttp({bool useKernel}) {
+Future testHttp() {
   return HttpServer
       .bind(InternetAddress.LOOPBACK_IP_V4, 0)
-      .then((HttpServer server) => serverRunning(server, useKernel: useKernel));
+      .then((HttpServer server) => serverRunning(server));
 }
 
-runTests({bool useKernel}) async {
+runTests() async {
   tempDir = Directory.systemTemp.createTempSync('directory_test');
   outFilePath = path.join(tempDir.path, "out.js");
 
   try {
-    await testFile(useKernel: useKernel);
-    if (!useKernel) {
-      // TODO(johnniwinther): Handle this test for kernel.
-      await testHttp(useKernel: useKernel);
-    }
+    await testFile();
+    await testHttp();
   } finally {
     await tempDir.delete(recursive: true);
   }
@@ -111,9 +113,6 @@ runTests({bool useKernel}) async {
 
 main() {
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
-    print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

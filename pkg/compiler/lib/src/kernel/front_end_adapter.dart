@@ -83,7 +83,7 @@ void reportFrontEndMessage(
   Spannable span;
   if (message.span != null) {
     span = new SourceSpan(message.span.start.sourceUrl,
-        message.span.start.offset, message.span.start.offset + 1);
+        message.span.start.offset, message.span.end.offset);
   } else {
     span = NO_LOCATION_SPANNABLE;
   }

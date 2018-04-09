@@ -9,6 +9,7 @@ import 'dart:math';
 import 'dart:typed_data' show Uint8List;
 
 import 'package:kernel/ast.dart' as kernel show Location, Source;
+
 import 'location_provider.dart' show LocationProvider;
 import '../../compiler_new.dart';
 
@@ -102,10 +103,6 @@ abstract class SourceFile<T> implements Input<T>, LocationProvider {
     if (colorize == null) {
       colorize = (text) => text;
     }
-    if (end > length) {
-      start = length - 1;
-      end = length;
-    }
 
     kernel.Location startLocation = kernelSource.getLocation(null, start);
     kernel.Location endLocation = kernelSource.getLocation(null, end);
@@ -142,9 +139,15 @@ abstract class SourceFile<T> implements Input<T>, LocationProvider {
         for (int line = lineStart; line <= lineEnd; line++) {
           String textLine = kernelSource.getTextLine(line + 1);
           if (line == lineStart) {
+            if (columnStart > textLine.length) {
+              columnStart = textLine.length;
+            }
             buf.write(textLine.substring(0, columnStart));
             buf.writeln(colorize(textLine.substring(columnStart)));
           } else if (line == lineEnd) {
+            if (columnEnd > textLine.length) {
+              columnEnd = textLine.length;
+            }
             buf.write(colorize(textLine.substring(0, columnEnd)));
             buf.writeln(textLine.substring(columnEnd));
           } else {
