@@ -9,6 +9,11 @@ notReturned() {
   1 + 1; // LINT
   foo; // LINT
   new MyClass().foo; // LINT
+  new MyClass()..foo; // LINT
+  new MyClass()
+    ..getter // OK
+    ..foo() // OK
+    ..foo; // LINT
   []; // LINT
   <dynamic, dynamic>{}; // LINT
   "blah"; // LINT
@@ -30,18 +35,22 @@ notReturned() {
 }
 
 asConditionAndReturnOk() {
-  if (true == someBool) {
-    // OK
+  if (true == someBool) // OK
+  {
     return 1 + 1; // OK
   } else if (false == someBool) {
     return foo; // OK
   }
-  while (new MyClass() != null) {
-    // OK
+  while (new MyClass() != null) // OK
+  {
     return new MyClass().foo; // OK
   }
-  for (; someBool ?? someBool;) {
-    // OK
+  while (null == someBool) // OK
+  {
+    return new MyClass()..foo; // LINT
+  }
+  for (; someBool ?? someBool;) // OK
+  {
     return <dynamic, dynamic>{}; // OK
   }
   do {} while ("blah".isEmpty); // OK
@@ -52,9 +61,11 @@ asConditionAndReturnOk() {
 
   () => new MyClass().foo; // LINT
   myfun() => new MyClass().foo; // OK
+  myfun2() => new MyClass()..foo; // LINT
 }
 
 myfun() => new MyClass().foo; // OK
+myfun2() => new MyClass()..foo; // LINT
 
 expressionBranching() {
   null ?? 1 + 1; // LINT
@@ -145,4 +156,6 @@ bool foo() => true;
 
 class MyClass {
   bool foo() => true;
+
+  get getter => true;
 }

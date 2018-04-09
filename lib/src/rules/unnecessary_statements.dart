@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
 
 const _desc = r'Avoid using unnecessary statements.';
@@ -76,6 +77,15 @@ class _Visitor extends SimpleAstVisitor {
     node.updaters?.forEach((u) {
       u.accept(reportNoClearEffect);
     });
+  }
+
+  @override
+  visitCascadeExpression(CascadeExpression node) {
+    for (var section in node.cascadeSections) {
+      if (section is PropertyAccess && section.bestType is FunctionType) {
+        reportNoClearEffect.rule.reportLint(section);
+      }
+    }
   }
 }
 
