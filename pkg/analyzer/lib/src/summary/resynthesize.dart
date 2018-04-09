@@ -7,8 +7,10 @@ library summary_resynthesizer;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -1119,6 +1121,11 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
   CompilationUnitElementImpl unit;
 
   /**
+   * The visitor to rewrite implicit `new` and `const`.
+   */
+  AstRewriteVisitor astRewriteVisitor;
+
+  /**
    * Map from slot id to the corresponding [EntityRef] object for linked types
    * (i.e. propagated and inferred types).
    */
@@ -1561,7 +1568,18 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
   }
 
   Expression _buildConstExpression(ElementImpl context, UnlinkedExpr uc) {
-    return new ExprBuilder(this, context, uc).build();
+    var expression = new ExprBuilder(this, context, uc).build();
+
+    if (expression != null && context.context.analysisOptions.previewDart2) {
+      astRewriteVisitor ??= new AstRewriteVisitor(libraryResynthesizer.library,
+          unit.source, typeProvider, AnalysisErrorListener.NULL_LISTENER,
+          addConstKeyword: true);
+      var container = astFactory.expressionStatement(expression, null);
+      expression.accept(astRewriteVisitor);
+      expression = container.expression;
+    }
+
+    return expression;
   }
 
   /**

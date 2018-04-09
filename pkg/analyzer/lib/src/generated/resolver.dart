@@ -18,6 +18,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
@@ -44,12 +45,14 @@ export 'package:analyzer/src/generated/type_system.dart';
  * feature.
  */
 class AstRewriteVisitor extends ScopedVisitor {
+  final bool addConstKeyword;
+
   /**
    * Initialize a newly created visitor.
    */
   AstRewriteVisitor(LibraryElement definingLibrary, Source source,
       TypeProvider typeProvider, AnalysisErrorListener errorListener,
-      {Scope nameScope})
+      {Scope nameScope, this.addConstKeyword: false})
       : super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope);
 
@@ -77,7 +80,7 @@ class AstRewriteVisitor extends ScopedVisitor {
         TypeName typeName = astFactory.typeName(methodName, node.typeArguments);
         InstanceCreationExpression instanceCreationExpression =
             astFactory.instanceCreationExpression(
-                null,
+                _getKeyword(node),
                 astFactory.constructorName(typeName, null, null),
                 node.argumentList);
         DartType type = _getType(element, node.typeArguments);
@@ -100,7 +103,7 @@ class AstRewriteVisitor extends ScopedVisitor {
           TypeName typeName = astFactory.typeName(target, node.typeArguments);
           InstanceCreationExpression instanceCreationExpression =
               astFactory.instanceCreationExpression(
-                  null,
+                  _getKeyword(node),
                   astFactory.constructorName(
                       typeName, node.operator, methodName),
                   node.argumentList);
@@ -124,7 +127,7 @@ class AstRewriteVisitor extends ScopedVisitor {
               node.typeArguments);
           InstanceCreationExpression instanceCreationExpression =
               astFactory.instanceCreationExpression(
-                  null,
+                  _getKeyword(node),
                   astFactory.constructorName(typeName, null, null),
                   node.argumentList);
           DartType type = _getType(prefixedElement, node.typeArguments);
@@ -145,7 +148,7 @@ class AstRewriteVisitor extends ScopedVisitor {
             TypeName typeName = astFactory.typeName(target, node.typeArguments);
             InstanceCreationExpression instanceCreationExpression =
                 astFactory.instanceCreationExpression(
-                    null,
+                    _getKeyword(node),
                     astFactory.constructorName(
                         typeName, node.operator, methodName),
                     node.argumentList);
@@ -159,6 +162,16 @@ class AstRewriteVisitor extends ScopedVisitor {
       }
     }
     return null;
+  }
+
+  /**
+   * Return the token that should be used in the [InstanceCreationExpression]
+   * that corresponds to the given invocation [node].
+   */
+  Token _getKeyword(MethodInvocation node) {
+    return addConstKeyword
+        ? new KeywordToken(Keyword.CONST, node.offset)
+        : null;
   }
 
   /**
