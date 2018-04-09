@@ -1843,10 +1843,7 @@ class Parser {
     // ensureIdentifier methods in the various IdentifierContext subclasses.
 
     if (!next.isIdentifier) {
-      if (optional("void", next)) {
-        reportRecoverableError(next, fasta.messageInvalidVoid);
-        token = next;
-      } else if (next is ErrorToken) {
+      if (next is ErrorToken) {
         // TODO(brianwilkerson): This preserves the current semantics, but the
         // listener should not be recovering from this case, so this needs to be
         // reworked to recover in this method (probably inside the outermost
@@ -1898,13 +1895,8 @@ class Parser {
         reportRecoverableErrorWithToken(
             next, fasta.templateBuiltInIdentifierInDeclaration);
       } else if (!optional("dynamic", next)) {
-        if (context == IdentifierContext.typeReference &&
-            optional('.', next.next)) {
-          // Built in identifiers may be used as a prefix
-        } else {
-          reportRecoverableErrorWithToken(
-              next, fasta.templateBuiltInIdentifierAsType);
-        }
+        reportRecoverableErrorWithToken(
+            next, fasta.templateBuiltInIdentifierAsType);
       }
       token = next;
     } else if (!inPlainSync && next.type.isPseudo) {
@@ -2016,8 +2008,7 @@ class Parser {
       followingValues = [';', '=', ','];
     } else if (context == IdentifierContext.typedefDeclaration) {
       followingValues = ['(', '<', ';'];
-    } else if (context == IdentifierContext.typeReference ||
-        context == IdentifierContext.typeReferenceContinuation) {
+    } else if (context == IdentifierContext.typeReferenceContinuation) {
       followingValues = ['>', ')', ']', '}', ',', ';'];
     } else if (context == IdentifierContext.typeVariableDeclaration) {
       followingValues = ['<', '>', ';', '}'];
