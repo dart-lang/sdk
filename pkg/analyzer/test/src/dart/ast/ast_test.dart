@@ -442,6 +442,8 @@ class InstanceCreationExpressionImplTest extends ResolverTestCase {
   String testSource;
   CompilationUnitImpl testUnit;
 
+  bool get enableNewAnalysisDriver => true;
+
   void assertIsConst(String snippet, bool isConst) {
     int index = testSource.indexOf(snippet);
     expect(index >= 0, isTrue);
@@ -460,6 +462,20 @@ class InstanceCreationExpressionImplTest extends ResolverTestCase {
   void resolve(String source) async {
     testSource = source;
     testUnit = await resolveSource2('/test.dart', source);
+  }
+
+  void
+      test_isConst_notInContext_constructor_const_constParam_identifier() async {
+    enablePreviewDart2();
+    await resolve('''
+var v = C(C.a);
+class C {
+  static const C a = C.c();
+  const C(c);
+  const C.c();
+}
+''');
+    assertIsConst("C(C", true);
   }
 
   void test_isConst_notInContext_constructor_const_constParam_named() async {
