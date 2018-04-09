@@ -6,7 +6,7 @@
 
 import 'dart:_js_helper' show argumentErrorValue, patch;
 import 'dart:_foreign_helper' show JS;
-import 'dart:_interceptors' show JSExtendableArray;
+import 'dart:_interceptors' show JSArray, JSExtendableArray;
 import 'dart:_internal' show MappedIterable, ListIterable;
 import 'dart:collection' show LinkedHashMap, MapBase;
 import 'dart:_native_typed_data' show NativeUint8List;
@@ -274,7 +274,7 @@ class _JsonMap extends MapBase<String, dynamic> {
     assert(!_isUpgraded);
     List keys = _data;
     if (keys == null) {
-      keys = _data = _getPropertyNames(_original);
+      keys = _data = new JSArray<String>.typed(_getPropertyNames(_original));
     }
     return JS('JSExtendableArray', '#', keys);
   }
