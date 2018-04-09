@@ -9685,7 +9685,6 @@ class ParserTestCase extends EngineTestCase
     parser.parseFunctionBodies = parseFunctionBodies;
     parser.enableNnbd = enableNnbd;
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
-    parser.enableUriInPartOf = enableUriInPartOf;
     parser.currentToken = tokenStream;
   }
 
