@@ -9,7 +9,6 @@ import 'package:grinder/grinder.dart';
 import 'doc.dart';
 import 'rule.dart';
 
-//TODO(pq): add a validate task.
 main(args) => grind(args);
 
 @Task('Generate lint rule docs.')
@@ -26,20 +25,27 @@ rule() {
   generateRule(name, outDir: Directory.current.path);
 }
 
-@Task('Format the linter sources.')
+@Task('Format linter sources.')
 format() {
-  var toFormat = existingSourceDirs.expand((dir) {
-    // Skip:
-    //   'test/rules'
-    //   'test/_data'
-    if (dir.path == 'test') {
-      return dir
-          .listSync(followLinks: false)
-          .where((dir) => dir.path != 'test/rules' && dir.path != 'test/_data');
-    }
-    return [dir];
-  });
   Pub.run('dart_style',
-      script: 'format',
-      arguments: ['--overwrite']..addAll(toFormat.map((dir) => dir.path)));
+      script: 'format', arguments: ['--overwrite']..addAll(sourcePaths));
 }
+
+@DefaultTask()
+@Task('Validate linter sources.')
+validate() {
+  Analyzer.analyze(sourcePaths, fatalWarnings: true);
+}
+
+List<FileSystemEntity> get sources => existingSourceDirs.expand((dir) {
+      // Skip:
+      //   'test/rules'
+      //   'test/_data'
+      if (dir.path == 'test') {
+        return dir.listSync(followLinks: false).where(
+            (dir) => dir.path != 'test/rules' && dir.path != 'test/_data');
+      }
+      return [dir];
+    });
+
+List<String> get sourcePaths => sources.map((dir) => dir.path);
