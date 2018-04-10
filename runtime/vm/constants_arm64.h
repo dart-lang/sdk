@@ -709,14 +709,14 @@ enum Shift {
 
 enum Extend {
   kNoExtend = -1,
-  UXTB = 0,  // Zero extend byte.
-  UXTH = 1,  // Zero extend halfword (16 bits).
-  UXTW = 2,  // Zero extend word (32 bits).
-  UXTX = 3,  // Zero extend doubleword (64 bits).
-  SXTB = 4,  // Sign extend byte.
-  SXTH = 5,  // Sign extend halfword (16 bits).
-  SXTW = 6,  // Sign extend word (32 bits).
-  SXTX = 7,  // Sign extend doubleword (64 bits).
+  UXTB = 0,
+  UXTH = 1,
+  UXTW = 2,
+  UXTX = 3,
+  SXTB = 4,
+  SXTH = 5,
+  SXTW = 6,
+  SXTX = 7,
   kMaxExtend = 8,
 };
 

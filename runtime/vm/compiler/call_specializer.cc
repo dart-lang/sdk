@@ -1558,10 +1558,10 @@ void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
 }
 
 void CallSpecializer::VisitLoadCodeUnits(LoadCodeUnitsInstr* instr) {
-  // Note that on ARM64 the result can always be packed into a Smi, so this
-  // is never triggered.
-  // TODO(zerny): Use kUnboxedUint32 once it is fully supported/optimized.
+// TODO(zerny): Use kUnboxedUint32 once it is fully supported/optimized.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
   if (!instr->can_pack_into_smi()) instr->set_representation(kUnboxedInt64);
+#endif
 }
 
 static bool CidTestResultsContains(const ZoneGrowableArray<intptr_t>& results,
