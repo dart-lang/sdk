@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: closure:Union([exact=JSDouble], [exact=JSUInt31])*/
+/*ast.element: closure:Union([exact=JSDouble], [exact=JSUInt31])*/
+/*kernel.element: closure:Union([exact=JSDouble], [exact=JSUInt31])*/
+/*strong.element: closure:[exact=JSUInt31]*/
 int closure(int /*Union([exact=JSDouble], [exact=JSUInt31])*/ x) {
   return x;
 }

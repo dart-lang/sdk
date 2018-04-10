@@ -589,7 +589,10 @@ testSpecialization2() {
   var a = topLevelGetter();
   // Make [a] a captured variable. This should disable receiver
   // specialization on [a].
-  (/*[null|subclass=Object]*/ () => a.toString())();
+  (/*ast.[null|subclass=Object]*/
+      /*kernel.[null|subclass=Object]*/
+      /*strong.[null|exact=JSString]*/
+      () => a.toString())();
   a - 42;
   return a;
 }
@@ -664,9 +667,13 @@ returnTopLevelGetter() => topLevelGetter;
 
 class A {
   factory A() = A.generative;
+
   /*element: A.generative:[exact=A]*/
   A.generative();
-  /*element: A.==:Union([exact=JSBool], [exact=JSUInt31])*/
+
+  /*ast.element: A.==:Union([exact=JSBool], [exact=JSUInt31])*/
+  /*kernel.element: A.==:Union([exact=JSBool], [exact=JSUInt31])*/
+  /*strong.element: A.==:[exact=JSBool]*/
   operator ==(/*Union([exact=JSString], [exact=JSUInt31])*/ other) =>
       42 as dynamic;
 

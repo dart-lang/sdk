@@ -477,6 +477,7 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     if (shouldContinue) continued = true;
     List<String> testOptions = options.toList();
     bool strongModeOnlyTest = false;
+    bool trustTypeAnnotations = false;
     if (name.endsWith('_ea.dart')) {
       testOptions.add(Flags.enableAsserts);
     } else if (name.endsWith('_strong.dart')) {
@@ -486,6 +487,8 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
       }
     } else if (name.endsWith('_checked.dart')) {
       testOptions.add(Flags.enableCheckedMode);
+    } else if (name.endsWith('_trust.dart')) {
+      trustTypeAnnotations = true;
     }
 
     print('----------------------------------------------------------------');
@@ -537,11 +540,15 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
       print('--skipped for ast-----------------------------------------------');
     } else {
       print('--from ast------------------------------------------------------');
+      List<String> options = [Flags.useOldFrontend]..addAll(testOptions);
+      if (trustTypeAnnotations) {
+        options.add(Flags.trustTypeAnnotations);
+      }
       MemberAnnotations<IdValue> annotations = expectedMaps[astMarker];
       CompiledData compiledData1 = await computeData(
           entryPoint, memorySourceFiles, computeFromAst,
           computeClassData: computeClassDataFromAst,
-          options: [Flags.useOldFrontend]..addAll(testOptions),
+          options: options,
           verbose: verbose,
           forUserLibrariesOnly: forUserLibrariesOnly,
           globalIds: annotations.globalData.keys);
@@ -555,11 +562,15 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
       print('--skipped for kernel--------------------------------------------');
     } else {
       print('--from kernel---------------------------------------------------');
+      List<String> options = []..addAll(testOptions);
+      if (trustTypeAnnotations) {
+        options.add(Flags.trustTypeAnnotations);
+      }
       MemberAnnotations<IdValue> annotations = expectedMaps[kernelMarker];
       CompiledData compiledData2 = await computeData(
           entryPoint, memorySourceFiles, computeFromKernel,
           computeClassData: computeClassDataFromKernel,
-          options: testOptions,
+          options: options,
           verbose: verbose,
           forUserLibrariesOnly: forUserLibrariesOnly,
           globalIds: annotations.globalData.keys);
@@ -575,11 +586,12 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
         print('--skipped for kernel (strong mode)----------------------------');
       } else {
         print('--from kernel (strong mode)-----------------------------------');
+        List<String> options = [Flags.strongMode]..addAll(testOptions);
         MemberAnnotations<IdValue> annotations = expectedMaps[strongMarker];
         CompiledData compiledData2 = await computeData(
             entryPoint, memorySourceFiles, computeFromKernel,
             computeClassData: computeClassDataFromKernel,
-            options: [Flags.strongMode]..addAll(testOptions),
+            options: options,
             verbose: verbose,
             forUserLibrariesOnly: forUserLibrariesOnly,
             globalIds: annotations.globalData.keys);
@@ -708,7 +720,7 @@ Spannable computeSpannable(
   } else if (id is ElementId) {
     String memberName = id.memberName;
     bool isSetter = false;
-    if (memberName != '[]=' && memberName.endsWith('=')) {
+    if (memberName != '[]=' && memberName != '==' && memberName.endsWith('=')) {
       isSetter = true;
       memberName = memberName.substring(0, memberName.length - 1);
     }

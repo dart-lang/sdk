@@ -55,7 +55,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
         // the phi thinks it has because new optimizations may imply
         // changing it.
         // In theory we would need to mark
-        // the type of all other incoming edges as "unitialized" and take this
+        // the type of all other incoming edges as "uninitialized" and take this
         // into account when doing the propagation inside the phis. Just
         // setting the propagated type is however easier.
         phi.instructionType = phi.inputs[0].instructionType;

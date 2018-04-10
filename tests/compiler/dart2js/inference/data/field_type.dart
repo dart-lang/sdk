@@ -608,7 +608,12 @@ class A24 {
             bar24();
 
   /*element: A24.+:Value([exact=JSString], value: "foo")*/
-  operator +(/*[exact=JSUInt31]*/ other) => 'foo';
+  operator +(
+          /*ast.[exact=JSUInt31]*/
+          /*kernel.[exact=JSUInt31]*/
+          /*strong.[empty]*/
+          other) =>
+      'foo';
 
   /*element: A24.bar24:[exact=JSDouble]*/
   bar24() => 42.5;

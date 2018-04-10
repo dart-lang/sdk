@@ -98,7 +98,6 @@ abstract class TypeBuilder {
       HInstruction original, DartType type,
       {int kind: HTypeConversion.CHECKED_MODE_CHECK}) {
     if (type == null) return original;
-    if (builder.options.strongMode) return original;
     HInstruction checkedOrTrusted = original;
     if (builder.options.assignmentCheckPolicy.isTrusted) {
       checkedOrTrusted = _trustType(original, type);
