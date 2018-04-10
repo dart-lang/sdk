@@ -7,7 +7,7 @@ import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:analyzer/context/context_root.dart';
-import 'package:analyzer/context/declared_variables.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart' as results;
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';

@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:analyzer/context/declared_variables.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/element/element.dart' show CompilationUnitElement;
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';

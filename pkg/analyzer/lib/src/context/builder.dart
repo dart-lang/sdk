@@ -6,7 +6,7 @@ import 'dart:collection';
 import 'dart:core';
 
 import 'package:analyzer/context/context_root.dart';
-import 'package:analyzer/context/declared_variables.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';

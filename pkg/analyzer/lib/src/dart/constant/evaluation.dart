@@ -4,7 +4,7 @@
 
 import 'dart:collection';
 
-import 'package:analyzer/context/declared_variables.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';

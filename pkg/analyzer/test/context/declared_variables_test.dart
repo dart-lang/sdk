@@ -4,7 +4,7 @@
 
 library analyzer.test.context.declared_variables_test;
 
-import 'package:analyzer/context/declared_variables.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
