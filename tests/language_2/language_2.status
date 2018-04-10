@@ -2,6 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+mixin_constructor_forwarding/const_constructor_test/none: CompileTimeError # Issue 32223
+mixin_constructor_forwarding/const_constructor_with_field_test/none: CompileTimeError # Issue 32223
+mixin_constructor_forwarding/optional_named_parameters_test/none: CompileTimeError # Issue 31543
+mixin_constructor_forwarding/optional_positional_parameters_test/none: CompileTimeError # Issue 31543
+
 [ $compiler == app_jit ]
 deferred_inheritance_constraints_test/redirecting_constructor: Crash
 
