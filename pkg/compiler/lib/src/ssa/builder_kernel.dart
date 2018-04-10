@@ -4114,7 +4114,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
           graph.addConstantStringFromName(internalName, closedWorld),
           graph.addConstant(kindConstant, closedWorld),
           argumentsInstruction,
-          argumentNamesInstruction
+          argumentNamesInstruction,
+          graph.addConstantInt(typeArguments.length, closedWorld),
         ],
         commonMasks.dynamicType,
         typeArguments);

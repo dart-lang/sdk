@@ -3198,7 +3198,8 @@ class SsaAstGraphBuilder extends ast.Visitor
           graph.addConstantStringFromName(internalName, closedWorld),
           graph.addConstant(kindConstant, closedWorld),
           argumentsInstruction,
-          argumentNamesInstruction
+          argumentNamesInstruction,
+          graph.addConstantInt(0, closedWorld), // type argument count.
         ],
         typeMask: commonMasks.dynamicType);
 
