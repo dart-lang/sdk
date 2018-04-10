@@ -8,6 +8,7 @@ type: basic
 entry: "package:dummy/main.dart"
 strong: false
 invalidate:
+  - b.dart
 sources:
   main.dart: |
     part "b.dart";

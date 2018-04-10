@@ -101,7 +101,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         userBuilders = <Uri, LibraryBuilder>{};
         platformBuilders = <LibraryBuilder>[];
         dillLoadedData.loader.builders.forEach((uri, builder) {
-          if (builder.fileUri.scheme == "dart") {
+          if (builder.uri.scheme == "dart") {
             platformBuilders.add(builder);
           } else {
             userBuilders[uri] = builder;
@@ -110,7 +110,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         if (userBuilders.isEmpty) userBuilders = null;
       }
 
-      List<Uri> invalidatedUris = this.invalidatedUris.toList();
+      Set<Uri> invalidatedUris = this.invalidatedUris.toSet();
       this.invalidatedUris.clear();
       if (fullComponent) {
         invalidatedUris.add(entryPoint);
@@ -156,7 +156,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         List<Library> librariesWithSdk = userCode.component.libraries;
         List<Library> libraries = <Library>[];
         for (Library lib in librariesWithSdk) {
-          if (lib.fileUri.scheme == "dart") continue;
+          if (lib.importUri.scheme == "dart") continue;
           libraries.add(lib);
           break;
         }
@@ -199,20 +199,20 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       IncrementalCompilerData data) {
     Map<Uri, Library> libraryMap = <Uri, Library>{};
     for (Library library in libraries) {
-      libraryMap[library.fileUri] = library;
+      libraryMap[library.importUri] = library;
     }
     List<Uri> worklist = new List<Uri>.from(libraryMap.keys);
-    worklist.add(mainMethod?.enclosingLibrary?.fileUri);
+    worklist.add(mainMethod?.enclosingLibrary?.importUri);
     if (entry != null) {
       worklist.add(entry);
     }
 
     Map<Uri, Library> potentiallyReferencedLibraries = <Uri, Library>{};
     for (LibraryBuilder library in reusedLibraries) {
-      if (library.fileUri.scheme == "dart") continue;
+      if (library.uri.scheme == "dart") continue;
       Library lib = library.target;
-      potentiallyReferencedLibraries[library.fileUri] = lib;
-      libraryMap[library.fileUri] = lib;
+      potentiallyReferencedLibraries[library.uri] = lib;
+      libraryMap[library.uri] = lib;
     }
 
     LibraryGraph graph = new LibraryGraph(libraryMap);
@@ -325,13 +325,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   List<LibraryBuilder> computeReusedLibraries(
-      Iterable<Uri> invalidatedUris, UriTranslator uriTranslator) {
+      Set<Uri> invalidatedUris, UriTranslator uriTranslator) {
     if (userCode == null && userBuilders == null) {
       return <LibraryBuilder>[];
     }
-
-    // [invalidatedUris] converted to a set.
-    Set<Uri> invalidatedFileUris = invalidatedUris.toSet();
 
     // Maps all non-platform LibraryBuilders from their import URI.
     Map<Uri, LibraryBuilder> builders = <Uri, LibraryBuilder>{};
@@ -340,30 +337,40 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     // etc.).
     List<Uri> invalidatedImportUris = <Uri>[];
 
+    bool isInvalidated(Uri importUri, Uri fileUri) {
+      if (invalidatedUris.contains(importUri) ||
+          (importUri != fileUri && invalidatedUris.contains(fileUri))) {
+        return true;
+      }
+      if (importUri.scheme == "package" &&
+          uriTranslator.translate(importUri, false) != fileUri) {
+        return true;
+      }
+      return false;
+    }
+
     // Compute [builders] and [invalidatedImportUris].
     addBuilderAndInvalidateUris(Uri uri, LibraryBuilder library,
         [bool recursive = true]) {
       builders[uri] = library;
-      if (invalidatedFileUris.contains(uri) ||
-          (uri != library.fileUri &&
-              invalidatedFileUris.contains(library.fileUri)) ||
-          (library is DillLibraryBuilder &&
-              uri != library.library.fileUri &&
-              invalidatedFileUris.contains(library.library.fileUri)) ||
-          (library.uri.scheme == "package" &&
-              uriTranslator.translate(library.uri, false) !=
-                  library.target.fileUri)) {
+      if (isInvalidated(uri, library.target.fileUri)) {
         invalidatedImportUris.add(uri);
       }
-      if (!recursive) return;
       if (library is SourceLibraryBuilder) {
         for (LibraryBuilder part in library.parts) {
-          addBuilderAndInvalidateUris(part.uri, part, false);
+          if (isInvalidated(part.uri, part.fileUri)) {
+            invalidatedImportUris.add(part.uri);
+            builders[part.uri] = part;
+          }
         }
       } else if (library is DillLibraryBuilder) {
-        for (LibraryPart part in library.library.parts) {
+        for (LibraryPart part in library.target.parts) {
           Uri partUri = library.uri.resolve(part.partUri);
-          addBuilderAndInvalidateUris(partUri, library, false);
+          Uri fileUri = library.library.fileUri.resolve(part.partUri);
+          if (isInvalidated(partUri, fileUri)) {
+            invalidatedImportUris.add(partUri);
+            builders[partUri] = library;
+          }
         }
       }
     }
@@ -417,7 +424,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     List<LibraryBuilder> result = <LibraryBuilder>[];
     for (LibraryBuilder builder in builders.values) {
       if (builder.isPart) continue;
-      if (!seenUris.add(builder.fileUri)) continue;
+      // TODO(jensj/ahe): This line can probably go away once
+      // https://dart-review.googlesource.com/47442 lands.
+      if (builder.isPatch) continue;
+      if (!seenUris.add(builder.uri)) continue;
       result.add(builder);
     }
     return result;
