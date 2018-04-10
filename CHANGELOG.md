@@ -25,6 +25,17 @@
 
 #### Pub
 
+* Fix a bug where the version solver could loop infinitely when resolving a
+  conflict involving pre-release constraints ([issue 1863][pub#1863]).
+
+[pub#1863]: https://github.com/dart-lang/pub/issues/1863
+
+## 2.0.0-dev.45.0
+
+### Tool Changes
+
+#### Pub
+
 * Fix a bug where the version solver could crash when resolving a conflict
   involving pre-release constraints ([issue 1856][pub#1856]).
 
