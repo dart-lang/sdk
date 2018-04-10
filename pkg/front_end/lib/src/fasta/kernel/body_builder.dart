@@ -325,7 +325,13 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       switchScope.unclaimedForwardDeclarations
           .forEach((String name, Builder builder) {
         if (outerSwitchScope == null) {
-          deprecated_addCompileTimeError(-1, "Label not found: '$name'.");
+          JumpTarget target = builder;
+          for (Statement statement in target.users) {
+            statement.parent.replaceChild(
+                statement,
+                wrapInCompileTimeErrorStatement(statement,
+                    fasta.templateLabelNotFound.withArguments(name)));
+          }
         } else {
           outerSwitchScope.forwardDeclareLabel(name, builder);
         }

@@ -630,12 +630,20 @@ ContinueWithoutLabelInCase:
     - "main() { switch (x) {case 1: continue;} }"
 
 DuplicateLabelInSwitchStatement:
-  template: "The label '#string' was already used in this switch statement."
+  template: "The label '#name' was already used in this switch statement."
   tip: "Try choosing a different name for this label."
   analyzerCode: DUPLICATE_LABEL_IN_SWITCH_STATEMENT
   dart2jsCode: "*fatal*"
   statement:
     - "switch (0) {l1: case 0: break; l1: case 1: break;}"
+
+LabelNotFound:
+  template: "Can't find label '#name'."
+  tip: "Try defining the label, or correcting the name to match an existing label."
+  analyzerCode: LABEL_UNDEFINED
+  dart2jsCode: "*fatal*"
+  statement:
+    - "switch (0) {case 0: continue L;}"
 
 InitializedVariableInForEach:
   template: "The loop variable in a for-each loop can't be initialized."

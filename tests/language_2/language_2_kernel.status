@@ -1328,7 +1328,6 @@ super_operator_index5_test: CompileTimeError
 super_operator_index6_test: CompileTimeError
 super_operator_index7_test: CompileTimeError
 super_operator_index8_test: CompileTimeError
-switch4_negative_test: Crash
 try_catch_test/01: MissingCompileTimeError
 type_promotion_functions_test/02: CompileTimeError
 type_promotion_functions_test/03: CompileTimeError
@@ -2060,7 +2059,6 @@ super_operator_index_test/04: MissingCompileTimeError
 super_operator_index_test/05: MissingCompileTimeError
 super_operator_index_test/06: MissingCompileTimeError
 super_operator_index_test/07: MissingCompileTimeError
-switch4_negative_test: Crash
 switch_fallthru_test/01: MissingCompileTimeError
 symbol_literal_test/01: MissingCompileTimeError
 sync_generator1_test/01: MissingCompileTimeError
