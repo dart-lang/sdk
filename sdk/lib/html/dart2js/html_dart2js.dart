@@ -44997,7 +44997,7 @@ abstract class _DocumentType extends Node implements ChildNode {
 @DocsEditable()
 @DomName('DOMRect')
 @Experimental() // untriaged
-@Native("DOMRect")
+@Native("ClientRect,DOMRect")
 class _DomRect extends DomRectReadOnly implements Rectangle {
   // NOTE! All code below should be common with RectangleBase.
   String toString() {
