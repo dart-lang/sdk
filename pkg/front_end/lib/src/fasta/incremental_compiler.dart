@@ -63,22 +63,27 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     entryPoint ??= context.options.inputs.single;
     return context.runInContext<Future<Component>>((CompilerContext c) async {
       IncrementalCompilerData data = new IncrementalCompilerData();
-      if (dillLoadedData == null) {
-        UriTranslator uriTranslator = await c.options.getUriTranslator();
-        ticker.logMs("Read packages file");
 
+      // TODO(jensj): We should only bypass the cache if .packages has been
+      // invalidated, but Flutter does not currently invalidate .packages.
+      UriTranslator uriTranslator =
+          await c.options.getUriTranslator(bypassCache: true);
+      ticker.logMs("Read packages file");
+
+      if (dillLoadedData == null) {
         List<int> summaryBytes = await c.options.loadSdkSummaryBytes();
         int bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
         if (initializeFromDillUri != null) {
           try {
-            bytesLength += await initializeFromDill(summaryBytes, c, data);
+            bytesLength +=
+                await initializeFromDill(summaryBytes, uriTranslator, c, data);
           } catch (e) {
             // We might have loaded x out of y libraries into the component.
             // To avoid any unforeseen problems start over.
             bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
           }
         }
-        appendLibraries(data, bytesLength, uriTranslator);
+        appendLibraries(data, bytesLength);
 
         try {
           await dillLoadedData.buildOutlines();
@@ -89,7 +94,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           initializedFromDill = false;
           data.reset();
           bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
-          appendLibraries(data, bytesLength, uriTranslator);
+          appendLibraries(data, bytesLength);
           await dillLoadedData.buildOutlines();
         }
         summaryBytes = null;
@@ -112,7 +117,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
 
       List<LibraryBuilder> reusedLibraries =
-          computeReusedLibraries(invalidatedUris);
+          computeReusedLibraries(invalidatedUris, uriTranslator);
       Set<Uri> reusedLibraryUris =
           new Set<Uri>.from(reusedLibraries.map((b) => b.uri));
       for (Uri uri in new Set<Uri>.from(dillLoadedData.loader.builders.keys)
@@ -128,7 +133,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       KernelIncrementalTarget userCodeOld = userCode;
       userCode = new KernelIncrementalTarget(
-          c.fileSystem, false, dillLoadedData, dillLoadedData.uriTranslator,
+          c.fileSystem, false, dillLoadedData, uriTranslator,
           uriToSource: c.uriToSource);
 
       for (LibraryBuilder library in reusedLibraries) {
@@ -258,7 +263,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   // This procedure will try to load the dill file and will crash if it cannot.
-  Future<int> initializeFromDill(List<int> summaryBytes, CompilerContext c,
+  Future<int> initializeFromDill(
+      List<int> summaryBytes,
+      UriTranslator uriTranslator,
+      CompilerContext c,
       IncrementalCompilerData data) async {
     int bytesLength = 0;
     FileSystemEntity entity =
@@ -277,6 +285,20 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         new BinaryBuilder(initializationBytes, disableLazyReading: true)
             .readComponent(data.component);
 
+        // Check the any package-urls still point to the same file
+        // (e.g. the package still exists and hasn't been updated).
+        for (Library lib in data.component.libraries) {
+          if (lib.importUri.scheme == "package" &&
+              uriTranslator.translate(lib.importUri, false) != lib.fileUri) {
+            // Package has been removed or updated.
+            // This library should be thrown away.
+            // Everything that depends on it should be thrown away.
+            // TODO(jensj): Anything that doesn't depend on it can be kept.
+            // For now just don't initialize from this dill.
+            throw "Changed package";
+          }
+        }
+
         initializedFromDill = true;
         bytesLength += initializationBytes.length;
         for (Library lib in data.component.libraries) {
@@ -294,27 +316,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     return bytesLength;
   }
 
-  void appendLibraries(IncrementalCompilerData data, int bytesLength,
-      UriTranslator uriTranslator) {
+  void appendLibraries(IncrementalCompilerData data, int bytesLength) {
     if (data.component != null) {
-      List<Library> keepLibraries = <Library>[];
-      for (Library lib in data.component.libraries) {
-        if (lib.importUri.scheme != "package" ||
-            uriTranslator.translate(lib.importUri, false) != null) {
-          keepLibraries.add(lib);
-        }
-      }
-      data.component.libraries
-        ..clear()
-        ..addAll(keepLibraries);
-
       dillLoadedData.loader
           .appendLibraries(data.component, byteCount: bytesLength);
     }
     ticker.logMs("Appended libraries");
   }
 
-  List<LibraryBuilder> computeReusedLibraries(Iterable<Uri> invalidatedUris) {
+  List<LibraryBuilder> computeReusedLibraries(
+      Iterable<Uri> invalidatedUris, UriTranslator uriTranslator) {
     if (userCode == null && userBuilders == null) {
       return <LibraryBuilder>[];
     }
@@ -338,7 +349,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               invalidatedFileUris.contains(library.fileUri)) ||
           (library is DillLibraryBuilder &&
               uri != library.library.fileUri &&
-              invalidatedFileUris.contains(library.library.fileUri))) {
+              invalidatedFileUris.contains(library.library.fileUri)) ||
+          (library.uri.scheme == "package" &&
+              uriTranslator.translate(library.uri, false) !=
+                  library.target.fileUri)) {
         invalidatedImportUris.add(uri);
       }
       if (!recursive) return;

@@ -68,6 +68,7 @@ void testDart2jsCompile() async {
     checkIsEqual(normalDillData, initializedDillData);
 
     // Also try without invalidating anything.
+    stopwatch.reset();
     initializeResult = await initializedCompile(
         dart2jsUrl, fullDillFromInitialized, initializeWith, []);
     Expect.equals(initializeExpect, initializeResult);

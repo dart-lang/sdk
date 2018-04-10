@@ -392,7 +392,11 @@ class ProcessedOptions {
   ///
   /// This is an asynchronous method since file system operations may be
   /// required to locate/read the packages file as well as SDK metadata.
-  Future<UriTranslatorImpl> getUriTranslator() async {
+  Future<UriTranslatorImpl> getUriTranslator({bool bypassCache: false}) async {
+    if (bypassCache) {
+      _uriTranslator = null;
+      _packages = null;
+    }
     if (_uriTranslator == null) {
       ticker.logMs("Started building UriTranslator");
       var libraries = await _computeLibrarySpecification();
