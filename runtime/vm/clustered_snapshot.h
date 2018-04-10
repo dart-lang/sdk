@@ -15,6 +15,7 @@
 #include "vm/heap.h"
 #include "vm/object.h"
 #include "vm/snapshot.h"
+#include "vm/type_testing_stubs.h"
 #include "vm/version.h"
 
 #if defined(DEBUG)
@@ -131,7 +132,8 @@ class Serializer : public StackResource {
              uint8_t** buffer,
              ReAlloc alloc,
              intptr_t initial_size,
-             ImageWriter* image_writer_);
+             ImageWriter* image_writer_,
+             bool vm_isolate);
   ~Serializer();
 
   intptr_t WriteVMSnapshot(const Array& symbols,
@@ -261,7 +263,10 @@ class Serializer : public StackResource {
   Snapshot::Kind kind() const { return kind_; }
   intptr_t next_ref_index() const { return next_ref_index_; }
 
+  bool for_vm_isolate() const { return vm_isolate_; }
+
  private:
+  TypeTestingStubFinder type_testing_stubs_;
   Heap* heap_;
   Zone* zone_;
   Snapshot::Kind kind_;
@@ -274,6 +279,7 @@ class Serializer : public StackResource {
   intptr_t num_written_objects_;
   intptr_t next_ref_index_;
   SmiObjectIdMap smi_ids_;
+  bool vm_isolate_;
 
 #if defined(SNAPSHOT_BACKTRACE)
   RawObject* current_parent_;
@@ -290,7 +296,8 @@ class Deserializer : public StackResource {
                const uint8_t* buffer,
                intptr_t size,
                const uint8_t* instructions_buffer,
-               const uint8_t* data_buffer);
+               const uint8_t* data_buffer,
+               bool vm_isolate);
   ~Deserializer();
 
   void ReadIsolateSnapshot(ObjectStore* object_store);
@@ -362,6 +369,7 @@ class Deserializer : public StackResource {
   intptr_t next_index() const { return next_ref_index_; }
   Heap* heap() const { return heap_; }
   Snapshot::Kind kind() const { return kind_; }
+  bool for_vm_isolate() const { return vm_isolate_; }
 
  private:
   Heap* heap_;
@@ -375,6 +383,7 @@ class Deserializer : public StackResource {
   RawArray* refs_;
   intptr_t next_ref_index_;
   DeserializationCluster** clusters_;
+  bool vm_isolate_;
 };
 
 class FullSnapshotWriter {

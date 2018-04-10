@@ -21,6 +21,7 @@
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+#include "vm/type_testing_stubs.h"
 
 #define __ compiler->assembler()->
 #define Z (compiler->zone())
@@ -393,14 +394,55 @@ void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
+  // In AOT mode, we want to prevent spilling of the function/instantiator type
+  // argument vectors, since we preserve them.  So we make this a `kNoCall`
+  // summary.  Though most other registers can be modified by the type testing
+  // stubs we are calling.  To tell the register allocator about it, we reserve
+  // all the other registers as temporary registers.
+  // TODO(http://dartbug.com/32788): Simplify this.
+  const Register kInstanceReg = R0;
+  const Register kInstantiatorTypeArgumentsReg = R1;
+  const Register kFunctionTypeArgumentsReg = R2;
+
+  const intptr_t kNonChangeableInputRegs =
+      (1 << kInstanceReg) | (1 << kInstantiatorTypeArgumentsReg) |
+      (1 << kFunctionTypeArgumentsReg);
+
   const intptr_t kNumInputs = 3;
-  const intptr_t kNumTemps = 0;
+
+  const intptr_t kNumTemps =
+      FLAG_precompiled_mode ? (Utils::CountOneBits64(kDartAvailableCpuRegs) -
+                               Utils::CountOneBits64(kNonChangeableInputRegs))
+                            : 0;
+
   LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(R0));  // Value.
-  summary->set_in(1, Location::RegisterLocation(R1));  // Instant. type args.
-  summary->set_in(2, Location::RegisterLocation(R2));  // Function type args.
-  summary->set_out(0, Location::RegisterLocation(R0));
+      LocationSummary(zone, kNumInputs, kNumTemps,
+                      FLAG_precompiled_mode ? LocationSummary::kCallCalleeSafe
+                                            : LocationSummary::kCall);
+  summary->set_in(0, Location::RegisterLocation(kInstanceReg));  // Value.
+  summary->set_in(1,
+                  Location::RegisterLocation(
+                      kInstantiatorTypeArgumentsReg));  // Instant. type args.
+  summary->set_in(2, Location::RegisterLocation(
+                         kFunctionTypeArgumentsReg));  // Function type args.
+
+  // TODO(http://dartbug.com/32787): Use Location::SameAsFirstInput() instead,
+  // once register allocator no longer hits assertion.
+  summary->set_out(0, Location::RegisterLocation(kInstanceReg));
+
+  if (FLAG_precompiled_mode) {
+    // Let's reserve all registers except for the input ones.
+    intptr_t next_temp = 0;
+    for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+      const bool is_allocatable = ((1 << i) & kDartAvailableCpuRegs) != 0;
+      const bool is_input = ((1 << i) & kNonChangeableInputRegs) != 0;
+      if (is_allocatable && !is_input) {
+        summary->set_temp(next_temp++,
+                          Location::RegisterLocation(static_cast<Register>(i)));
+      }
+    }
+  }
+
   return summary;
 }
 
@@ -2155,6 +2197,14 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
 }
 
 void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  TypeUsageInfo* type_usage_info = compiler->thread()->type_usage_info();
+  if (type_usage_info != nullptr) {
+    const Class& list_class = Class::Handle(
+        compiler->thread()->isolate()->class_table()->At(kArrayCid));
+    RegisterTypeArgumentsUse(compiler->function(), type_usage_info, list_class,
+                             element_type()->definition());
+  }
+
   const Register kLengthReg = R2;
   const Register kElemTypeReg = R1;
   const Register kResultReg = R0;
@@ -5665,6 +5715,13 @@ LocationSummary* AllocateObjectInstr::MakeLocationSummary(Zone* zone,
 }
 
 void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (ArgumentCount() == 1) {
+    TypeUsageInfo* type_usage_info = compiler->thread()->type_usage_info();
+    if (type_usage_info != nullptr) {
+      RegisterTypeArgumentsUse(compiler->function(), type_usage_info, cls_,
+                               ArgumentAt(0));
+    }
+  }
   const Code& stub = Code::ZoneHandle(
       compiler->zone(), StubCode::GetAllocationStubForClass(cls()));
   const StubEntry stub_entry(stub);

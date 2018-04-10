@@ -96,7 +96,7 @@ uword Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
     AllocateZoneHandle(Zone* zone) {
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
-  ASSERT(thread->zone() == zone);
+  ASSERT(zone->ContainsNestedZone(thread->zone()));
   ASSERT(thread->no_handle_scope_depth() == 0);
 #endif  // DEBUG
   Handles* handles = zone->handles();

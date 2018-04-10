@@ -83,6 +83,31 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
   __ Trap();
 }
 
+// TODO(kustermann): Don't generate this stub.
+void StubCode::GenerateDefaultTypeTestStub(Assembler* assembler) {
+  __ Trap();
+}
+
+// TODO(kustermann): Don't generate this stub.
+void StubCode::GenerateTopTypeTypeTestStub(Assembler* assembler) {
+  __ Trap();
+}
+
+// TODO(kustermann): Don't generate this stub.
+void StubCode::GenerateTypeRefTypeTestStub(Assembler* assembler) {
+  __ Trap();
+}
+
+// TODO(kustermann): Don't generate this stub.
+void StubCode::GenerateUnreachableTypeTestStub(Assembler* assembler) {
+  __ Trap();
+}
+
+// TODO(kustermann): Don't generate this stub.
+void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
+  __ Trap();
+}
+
 void StubCode::GenerateFrameAwaitingMaterializationStub(Assembler* assembler) {
   __ Trap();
 }
