@@ -473,6 +473,11 @@ interface DOMImplementation {
 };
 
 [DartSupplemental]
+interface DOMRect {
+    [DartSuppress] static DOMRect fromRect(optional DOMRectInit other);
+};
+
+[DartSupplemental]
 interface SVGSVGElement {
     [DartSuppress] attribute DOMString contentStyleType;
     [DartSuppress] attribute DOMString contentScriptType;

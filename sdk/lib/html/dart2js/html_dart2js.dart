@@ -45145,28 +45145,6 @@ class _DomRect extends DomRectReadOnly implements Rectangle {
   set y(num value) {
     JS("void", "#.y = #", this, value);
   }
-
-  @DomName('DOMRect.fromRect')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static Rectangle fromRect([Map other]) {
-    if (other != null) {
-      var other_1 = convertDartToNative_Dictionary(other);
-      return _fromRect_1(other_1);
-    }
-    return _fromRect_2();
-  }
-
-  @JSName('fromRect')
-  @DomName('DOMRect.fromRect')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static Rectangle _fromRect_1(other) native;
-  @JSName('fromRect')
-  @DomName('DOMRect.fromRect')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static Rectangle _fromRect_2() native;
 }
 
 /**
