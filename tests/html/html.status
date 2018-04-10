@@ -551,4 +551,3 @@ webgl_1_test: Pass, Fail # Issue 8219
 
 [ $system == windows || $runtime == drt && $system == macos ]
 xhr_test/xhr: Skip # Times out.  Issue 21527
-

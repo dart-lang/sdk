@@ -524,4 +524,3 @@ vm/regress_27201_test: Pass, Crash # Requires deferred libraries
 
 [ $compiler != dartk && $compiler != dartkp && $compiler != none || $compiler != dartk && $compiler != dartkp && $runtime != vm ]
 assert_initializer_test/*: Skip # not implemented yet, experiment is VM only.
-

@@ -238,4 +238,3 @@ function_send_test: Pass, Fail # Closure identity
 issue_21398_parent_isolate2_test: Crash # Requires deferred libraries
 message3_test/fun: Pass, Fail # Closure identity
 spawn_uri_nested_vm_test: Pass, Crash # Issue 28192
-

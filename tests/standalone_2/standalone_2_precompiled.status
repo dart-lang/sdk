@@ -76,4 +76,3 @@ package/scenarios/packages_option_only/packages_option_only_test: Skip
 [ $mode == product || $runtime == dart_precompiled ]
 io/code_collection_test: Skip # Incompatible flags
 no_assert_test: SkipByDesign # Requires checked mode.
-

@@ -197,4 +197,3 @@ unresolved_top_level_var_negative_test: Fail
 # modes are intended only for Dart 2.0 with strong mode enabled.
 [ $compiler == dartk || $compiler == dartkp ]
 *: Skip
-

@@ -70,7 +70,7 @@ class StatusFile {
   final String path;
   final List<StatusSection> sections = [];
 
-  int _lineCount = 0;
+  int _lineCount = 1;
 
   /// Constructor for creating a new [StatusFile]. Will not create the default
   /// section that status files have.
@@ -87,7 +87,7 @@ class StatusFile {
   ///
   /// Throws a [SyntaxError] if the file could not be parsed.
   StatusFile.parse(this.path, List<String> lines) {
-    _parse(lines);
+    _parse(lines.map((line) => line.trim()).toList());
   }
 
   void _parse(List<String> lines) {
@@ -141,23 +141,56 @@ class StatusFile {
           commentBelongsToNextSectionHeader(currentLine + 1);
     }
 
+    // List of comments added before the next section's header.
+    List<Entry> sectionHeaderComments = [];
+
+    // Parse file comments
+    var lastEmptyLine = 0;
+    for (; _lineCount <= lines.length; _lineCount++) {
+      var line = lines[_lineCount - 1];
+      if (!line.startsWith("#") && line.isNotEmpty) {
+        break;
+      }
+      if (line.isEmpty) {
+        sectionHeaderComments.add(new EmptyEntry(_lineCount));
+        lastEmptyLine = _lineCount;
+      } else {
+        sectionHeaderComments
+            .add(new CommentEntry(_lineCount, new Comment(line)));
+      }
+    }
+
+    var implicitSectionHeaderComments = sectionHeaderComments;
+    var entries = [];
+    if (lastEmptyLine > 0 && sectionHeaderMatch(_lineCount) != null) {
+      // Comments after the last empty line belong to the next section's header.
+      // The empty line is not added to the section header, because it will be
+      // added to the section's entries.
+      implicitSectionHeaderComments =
+          implicitSectionHeaderComments.sublist(0, lastEmptyLine - 1);
+      entries.add(sectionHeaderComments[lastEmptyLine - 1]);
+      sectionHeaderComments = sectionHeaderComments.sublist(lastEmptyLine);
+    } else {
+      // Reset section header comments.
+      sectionHeaderComments = [];
+    }
+
     // The current section whose rules are being parsed. Initalized to an
     // implicit section that matches everything.
-    StatusSection section = new StatusSection(null, -1, []);
+    StatusSection section =
+        new StatusSection(null, -1, implicitSectionHeaderComments);
+    section.entries.addAll(entries);
     sections.add(section);
 
-    // Placeholder for comments that should be added to a section.
-    List<CommentEntry> sectionHeaderComments = [];
-
-    for (var line in lines) {
-      _lineCount++;
+    for (; _lineCount <= lines.length; _lineCount++) {
+      var line = lines[_lineCount - 1];
 
       fail(String message, [List<String> errors]) {
         throw new SyntaxError(_shortPath, _lineCount, line, message, errors);
       }
 
       // If it is an empty line
-      if (line.trim().isEmpty) {
+      if (line.isEmpty) {
         section.entries.add(new EmptyEntry(_lineCount));
         continue;
       }
@@ -275,7 +308,7 @@ class StatusSection {
 
   /// Collection of all comment and status line entries.
   final List<Entry> entries = [];
-  final List<CommentEntry> sectionHeaderComments;
+  final List<Entry> sectionHeaderComments;
 
   /// Returns true if this section should apply in the given [environment].
   bool isEnabled(Environment environment) =>

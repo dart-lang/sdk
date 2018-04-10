@@ -231,4 +231,3 @@ front_end/tool/_fasta/*: Skip
 
 [ $mode != release || $runtime != vm || $system == windows ]
 kernel/test/closures_test: Skip
-

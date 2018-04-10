@@ -2171,4 +2171,3 @@ unresolved_top_level_var_test: MissingCompileTimeError
 [ $compiler == dartk || $compiler == dartkp ]
 generic_function_bounds_test: RuntimeError # Issue 32076
 generic_test/01: MissingCompileTimeError
-

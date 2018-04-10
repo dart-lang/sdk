@@ -92,4 +92,3 @@ convert/utf85_test: Skip # Pass, Slow Issue 12644.
 
 [ $arch == simarmv5te || $arch == simarmv6 || $arch == simarm && $runtime == vm ]
 convert/chunked_conversion_utf88_test: Skip # Pass, Slow Issue 12644.
-

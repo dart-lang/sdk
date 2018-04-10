@@ -5,12 +5,11 @@
 # Don't run any test-like files that show up in packages directories. It
 # shouldn't be necessary to run "pub install" in these packages, but if you do
 # it shouldn't break the tests.
-*/packages/*/*: Skip
-*/*/packages/*/*: Skip
-*/*/*/packages/*/*: Skip
-*/*/*/*/packages/*/*: Skip
 */*/*/*/*/packages/*/*: Skip
-
+*/*/*/*/packages/*/*: Skip
+*/*/*/packages/*/*: Skip
+*/*/packages/*/*: Skip
+*/packages/*/*: Skip
 pub/test/dart2js/compiles_generated_file_from_dependency_test: Pass, Slow
 pub/test/serve/web_socket/url_to_asset_id_test: Pass, Slow
 pub/test/transformer/loads_a_diamond_transformer_dependency_graph_test: Pass, Slow
@@ -23,7 +22,7 @@ pub/*: SkipByDesign
 pub/test/run/app_can_read_from_stdin_test: Fail # Issue 19448
 pub/test/run/forwards_signal_posix_test: SkipByDesign
 
-[ $runtime == vm && ($mode == debug || $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simarm64 || $builder_tag == asan) ]
+[ $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simarmv5te || $arch == simarmv6 || $builder_tag == asan || $mode == debug) ]
 dart_style/test/command_line_test: Skip # The test controller does not take into account that tests take much longer in debug mode or on simulators.
 dart_style/test/formatter_test: Skip # The test controller does not take into account that tests take much longer in debug mode or on simulators.
 

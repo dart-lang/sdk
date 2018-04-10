@@ -324,4 +324,3 @@ regress_28278_test: Crash # Requires deferred libraries
 static_closure_identical_test: Pass, Fail # Closure identity
 vm/optimized_stacktrace_test: Pass, Slow
 vm/regress_27201_test: Pass, Crash # Requires deferred libraries
-

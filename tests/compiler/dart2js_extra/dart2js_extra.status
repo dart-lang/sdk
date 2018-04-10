@@ -232,4 +232,3 @@ dummy_compiler_test: SkipByDesign # Issue 30773. Test should be migrated as a un
 invalid_annotation_test/01: MissingCompileTimeError, OK # vm is lazy
 new_from_env_test: SkipByDesign # dart2js only test
 unconditional_dartio_import_test: SkipByDesign # dart2js only test
-

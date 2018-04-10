@@ -13,4 +13,3 @@ heap_snapshot/element_test: RuntimeError # Issue 27925
 # skipping.
 [ $runtime == ff || $runtime == ie10 || $runtime == ie11 || $runtime == safari ]
 *: SkipByDesign
-

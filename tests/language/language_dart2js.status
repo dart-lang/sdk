@@ -796,4 +796,3 @@ mixin_mixin_bound_test: RuntimeError, OK # Issue 31054: runtimeType.toString not
 mixin_mixin_type_arguments_test: RuntimeError, OK # Issue 31054: runtimeType.toString not preserved in minified code.
 regress_21795_test: RuntimeError, OK # Issue 31054: runtimeType.toString not preserved in minified code.
 stack_trace_test: RuntimeError, OK # Stack trace not preserved in minified code.
-

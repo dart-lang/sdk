@@ -7319,4 +7319,3 @@ LibTest/typed_data/Uint8List/runtimeType_A01_t01: Fail # co19-roll r559: Please 
 [ $compiler == dart2js && !$strong ]
 LibTest/typed_data/Float32x4List/first_A01_t02: Pass # co19 issue 130 + type error
 LibTest/typed_data/Float32x4List/last_A01_t02: Pass # co19 issue 130 + type error
-

@@ -329,4 +329,3 @@ dart/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
 [ $hot_reload || $hot_reload_rollback ]
 dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
-
