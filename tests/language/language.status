@@ -314,6 +314,13 @@ vm/regress_24517_test: Pass, Fail # Issue 24517.
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 
+# Detection of compile-time errors that are related to constants can't be fully
+# done at the front end, because constants are evaluated at back ends.  So, some
+# errors aren't detected by fasta, but reported by back ends as compile-time
+# errors.
+[ $compiler != dart2js && $runtime != vm && $fasta ]
+deferred_constraints_constants_test/default_argument2: MissingCompileTimeError
+
 [ $compiler != dartk && $compiler != dartkp && ($runtime == dart_precompiled || $runtime == flutter || $runtime == vm) ]
 abstract_beats_arguments2_test/01: Crash # Issue 29171
 

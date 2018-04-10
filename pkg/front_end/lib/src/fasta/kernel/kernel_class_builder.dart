@@ -419,10 +419,12 @@ abstract class KernelClassBuilder
               "${interfaceMember.name.name}"),
           declaredMember.fileOffset,
           noLength,
-          context: templateOverriddenMethodCause
-              .withArguments(interfaceMember.name.name)
-              .withLocation(_getMemberUri(interfaceMember),
-                  interfaceMember.fileOffset, noLength));
+          context: [
+            templateOverriddenMethodCause
+                .withArguments(interfaceMember.name.name)
+                .withLocation(_getMemberUri(interfaceMember),
+                    interfaceMember.fileOffset, noLength)
+          ]);
     } else if (library.loader.target.backendTarget.strongMode &&
         declaredFunction?.typeParameters != null) {
       var substitution = <TypeParameter, DartType>{};
@@ -482,10 +484,12 @@ abstract class KernelClassBuilder
         fileOffset = declaredParameter.fileOffset;
       }
       library.addCompileTimeError(message, fileOffset, noLength, fileUri,
-          context: templateOverriddenMethodCause
-              .withArguments(interfaceMember.name.name)
-              .withLocation(_getMemberUri(interfaceMember),
-                  interfaceMember.fileOffset, noLength));
+          context: [
+            templateOverriddenMethodCause
+                .withArguments(interfaceMember.name.name)
+                .withLocation(_getMemberUri(interfaceMember),
+                    interfaceMember.fileOffset, noLength)
+          ]);
       return true;
     }
     return false;
@@ -533,10 +537,12 @@ abstract class KernelClassBuilder
               "${interfaceMember.name.name}"),
           declaredMember.fileOffset,
           noLength,
-          context: templateOverriddenMethodCause
-              .withArguments(interfaceMember.name.name)
-              .withLocation(interfaceMember.fileUri, interfaceMember.fileOffset,
-                  noLength));
+          context: [
+            templateOverriddenMethodCause
+                .withArguments(interfaceMember.name.name)
+                .withLocation(interfaceMember.fileUri,
+                    interfaceMember.fileOffset, noLength)
+          ]);
     }
     if (interfaceFunction.requiredParameterCount <
         declaredFunction.requiredParameterCount) {
@@ -547,10 +553,12 @@ abstract class KernelClassBuilder
               "${interfaceMember.name.name}"),
           declaredMember.fileOffset,
           noLength,
-          context: templateOverriddenMethodCause
-              .withArguments(interfaceMember.name.name)
-              .withLocation(interfaceMember.fileUri, interfaceMember.fileOffset,
-                  noLength));
+          context: [
+            templateOverriddenMethodCause
+                .withArguments(interfaceMember.name.name)
+                .withLocation(interfaceMember.fileUri,
+                    interfaceMember.fileOffset, noLength)
+          ]);
     }
     for (int i = 0;
         i < declaredFunction.positionalParameters.length &&
@@ -580,10 +588,12 @@ abstract class KernelClassBuilder
               "${interfaceMember.name.name}"),
           declaredMember.fileOffset,
           noLength,
-          context: templateOverriddenMethodCause
-              .withArguments(interfaceMember.name.name)
-              .withLocation(interfaceMember.fileUri, interfaceMember.fileOffset,
-                  noLength));
+          context: [
+            templateOverriddenMethodCause
+                .withArguments(interfaceMember.name.name)
+                .withLocation(interfaceMember.fileUri,
+                    interfaceMember.fileOffset, noLength)
+          ]);
     }
     int compareNamedParameters(VariableDeclaration p0, VariableDeclaration p1) {
       return p0.name.compareTo(p1.name);
@@ -613,10 +623,12 @@ abstract class KernelClassBuilder
                   "${interfaceMember.name.name}"),
               declaredMember.fileOffset,
               noLength,
-              context: templateOverriddenMethodCause
-                  .withArguments(interfaceMember.name.name)
-                  .withLocation(interfaceMember.fileUri,
-                      interfaceMember.fileOffset, noLength));
+              context: [
+                templateOverriddenMethodCause
+                    .withArguments(interfaceMember.name.name)
+                    .withLocation(interfaceMember.fileUri,
+                        interfaceMember.fileOffset, noLength)
+              ]);
           break outer;
         }
       }
@@ -711,10 +723,10 @@ abstract class KernelClassBuilder
       int originLength = typeVariables?.length ?? 0;
       int patchLength = patch.typeVariables?.length ?? 0;
       if (originLength != patchLength) {
-        patch.addCompileTimeError(
-            messagePatchClassTypeVariablesMismatch, patch.charOffset, noLength,
-            context: messagePatchClassOrigin.withLocation(
-                fileUri, charOffset, noLength));
+        patch.addCompileTimeError(messagePatchClassTypeVariablesMismatch,
+            patch.charOffset, noLength, context: [
+          messagePatchClassOrigin.withLocation(fileUri, charOffset, noLength)
+        ]);
       } else if (typeVariables != null) {
         int count = 0;
         for (KernelTypeVariableBuilder t in patch.typeVariables) {
@@ -723,9 +735,10 @@ abstract class KernelClassBuilder
       }
     } else {
       library.addCompileTimeError(messagePatchDeclarationMismatch,
-          patch.charOffset, noLength, patch.fileUri,
-          context: messagePatchDeclarationOrigin.withLocation(
-              fileUri, charOffset, noLength));
+          patch.charOffset, noLength, patch.fileUri, context: [
+        messagePatchDeclarationOrigin.withLocation(
+            fileUri, charOffset, noLength)
+      ]);
     }
   }
 

@@ -486,9 +486,11 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
             deferred.charOffset,
             noLength,
             fileUri,
-            context: templateDeferredPrefixDuplicatedCause
-                .withArguments(name)
-                .withLocation(fileUri, other.charOffset, noLength));
+            context: [
+              templateDeferredPrefixDuplicatedCause
+                  .withArguments(name)
+                  .withLocation(fileUri, other.charOffset, noLength)
+            ]);
       }
       return existing
         ..exportScope.merge(builder.exportScope,

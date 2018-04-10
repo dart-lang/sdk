@@ -39,6 +39,7 @@ import '../compiler/js_metalet.dart' as JS;
 import '../compiler/js_names.dart' as JS;
 import '../compiler/js_utils.dart' as JS;
 import '../compiler/module_builder.dart' show pathToJSIdentifier;
+import '../compiler/shared_compiler.dart';
 import '../compiler/type_utilities.dart';
 import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
@@ -71,7 +72,11 @@ import 'side_effect_analysis.dart'
 // expressions (which result in JS.Expression) and statements
 // (which result in (JS.Statement).
 class CodeGenerator extends Object
-    with ClosureAnnotator, JSTypeRefCodegen, NullableTypeInference
+    with
+        ClosureAnnotator,
+        JSTypeRefCodegen,
+        NullableTypeInference,
+        SharedCompiler
     implements AstVisitor<JS.Node> {
   final AnalysisContext context;
   final SummaryDataStore summaryData;
@@ -253,6 +258,8 @@ class CodeGenerator extends Object
   }
 
   LibraryElement get currentLibrary => _currentElement.library;
+
+  Uri get currentLibraryUri => _currentElement.librarySource.uri;
 
   CompilationUnitElement get _currentCompilationUnit {
     for (var e = _currentElement;; e = e.enclosingElement) {
@@ -2803,32 +2810,17 @@ class CodeGenerator extends Object
     var typeFormals = _emitTypeFormals(type.typeFormals);
     if (_reifyGeneric(element)) formals.insertAll(0, typeFormals);
 
+    super.enterFunction(element.name, formals,
+        () => isPotentiallyMutated(body, parameters.parameters.last.element));
+
     JS.Block code = isSync
         ? _emitFunctionBody(element, parameters, body)
         : new JS.Block([
             _emitGeneratorFunction(element, parameters, body).toReturn()
               ..sourceInformation = _nodeStart(body)
           ]);
-    if (element.isOperator && formals.isNotEmpty) {
-      if (element.name == '[]=') {
-        // []= methods need to return the value. We could also address this at
-        // call sites, but it's cleaner to instead transform the operator method.
-        code = JS.alwaysReturnLastParameter(code, formals.last);
-      } else if (element.name == '==' && !element.source.isInSystemLibrary) {
-        // In Dart `operator ==` methods are not called with a null argument.
-        // This is handled before calling them. For performance reasons, we push
-        // this check inside the method, to simplify our `equals` helper.
-        //
-        // TODO(jmesserly): in most cases this check is not necessary, because
-        // the Dart code already handles it (typically by an `is` check).
-        // Eliminate it when possible.
-        code = new JS.Block([
-          js.statement('if (# == null) return false;', [formals.first]),
-          code
-        ]);
-      }
-    }
 
+    code = super.exitFunction(element.name, formals, code);
     return new JS.Fun(formals, code,
         typeParams: typeFormals, returnType: emitTypeRef(type.returnType));
   }
@@ -4163,9 +4155,7 @@ class CodeGenerator extends Object
 
   @override
   JS.Statement visitReturnStatement(ReturnStatement node) {
-    var e = node.expression;
-    if (e == null) return new JS.Return();
-    return _visitExpression(e).toReturn();
+    return super.emitReturnStatement(_visitExpression(node.expression));
   }
 
   @override

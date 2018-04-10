@@ -65,7 +65,7 @@ import 'package:flutter/widgets.dart';
 class MyWidget extends StatelessWidget {
   MyWidget(String text);
 
-  MyWidget.forDesignTime() {
+  factory MyWidget.forDesignTime() {
     // TODO: add arguments
     return new MyWidget();
   }
@@ -97,7 +97,7 @@ import 'package:flutter/widgets.dart';
 class MyWidget extends StatelessWidget {
   MyWidget();
 
-  MyWidget.forDesignTime() {
+  factory MyWidget.forDesignTime() {
     // TODO: add arguments
     return new MyWidget();
   }

@@ -1819,7 +1819,6 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   // Handle interrupts:
   //  - store buffer overflow
   //  - OOB message (vm-service or dart:isolate)
-  //  - Dart_InterruptIsolate
   const Error& error = Error::Handle(thread->HandleInterrupts());
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);

@@ -61,6 +61,8 @@ class _SummaryNormalizer extends StatementVisitor {
     for (Statement st in statements) {
       if (st is Call) {
         _normalizeExpr(st, false);
+      } else if (st is Use) {
+        _normalizeExpr(st.arg, true);
       }
     }
 
@@ -69,6 +71,7 @@ class _SummaryNormalizer extends StatementVisitor {
 
   TypeExpr _normalizeExpr(TypeExpr st, bool isResultUsed) {
     assertx(!_inLoop);
+    assertx(st is! Use);
     if (st is Statement) {
       if (isResultUsed && (st is Call)) {
         st.setResultUsed();
@@ -134,6 +137,11 @@ class _SummaryNormalizer extends StatementVisitor {
         return;
       }
     }
+  }
+
+  @override
+  void visitUse(Use expr) {
+    throw '\'Use\' statement should not be referenced: $expr';
   }
 
   @override
@@ -485,6 +493,18 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     return narrow;
   }
 
+  // Add an artificial use of given expression in order to make it possible to
+  // infer its type even if it is not used in a summary.
+  void _addUse(TypeExpr arg) {
+    if (arg is Narrow) {
+      _addUse(arg.arg);
+    } else if (arg is Join || arg is Call) {
+      _summary.add(new Use(arg));
+    } else {
+      assertx(arg is Type || arg is Parameter);
+    }
+  }
+
   Type _staticType(Expression node) =>
       new Type.fromStatic(node.getStaticType(_environment));
 
@@ -553,7 +573,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitConditionalExpression(ConditionalExpression node) {
-    _visit(node.condition);
+    _addUse(_visit(node.condition));
 
     Join v = new Join(null, node.getStaticType(_environment));
     _summary.add(v);
@@ -652,8 +672,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitLogicalExpression(LogicalExpression node) {
-    _visit(node.left);
-    _visit(node.right);
+    _addUse(_visit(node.left));
+    _addUse(_visit(node.right));
     return _boolType;
   }
 
@@ -812,7 +832,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitNot(Not node) {
-    _visit(node.operand);
+    _addUse(_visit(node.operand));
     return _boolType;
   }
 
@@ -960,7 +980,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   @override
   TypeExpr visitAssertStatement(AssertStatement node) {
     if (!kRemoveAsserts) {
-      _visit(node.condition);
+      _addUse(_visit(node.condition));
       if (node.message != null) {
         _visit(node.message);
       }
@@ -1017,7 +1037,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   TypeExpr visitForStatement(ForStatement node) {
     node.variables.forEach(visitVariableDeclaration);
     if (node.condition != null) {
-      _visit(node.condition);
+      _addUse(_visit(node.condition));
     }
     node.updates.forEach(_visit);
     _visit(node.body);
@@ -1036,7 +1056,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitIfStatement(IfStatement node) {
-    _visit(node.condition);
+    _addUse(_visit(node.condition));
     _visit(node.then);
     if (node.otherwise != null) {
       _visit(node.otherwise);
@@ -1099,7 +1119,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   visitWhileStatement(WhileStatement node) {
-    _visit(node.condition);
+    _addUse(_visit(node.condition));
     _visit(node.body);
   }
 

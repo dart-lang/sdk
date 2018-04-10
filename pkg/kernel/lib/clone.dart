@@ -392,7 +392,7 @@ class CloneVisitor implements TreeVisitor {
   }
 
   visitYieldStatement(YieldStatement node) {
-    return new YieldStatement(clone(node.expression));
+    return new YieldStatement(clone(node.expression))..flags = node.flags;
   }
 
   visitVariableDeclaration(VariableDeclaration node) {

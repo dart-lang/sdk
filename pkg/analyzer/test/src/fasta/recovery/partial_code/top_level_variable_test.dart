@@ -76,13 +76,7 @@ class TopLevelVariableTest extends PartialCodeTest {
               CompileTimeErrorCode.CONST_NOT_INITIALIZED
             ],
             "const a, _s_;",
-            failing: [
-              'typedef',
-              'functionVoid',
-              'functionNonVoid',
-              'getter',
-              'setter'
-            ],
+            failing: ['typedef', 'functionNonVoid', 'getter', 'setter'],
             expectedErrorsInValidCode: [
               CompileTimeErrorCode.CONST_NOT_INITIALIZED,
               CompileTimeErrorCode.CONST_NOT_INITIALIZED
@@ -98,13 +92,7 @@ class TopLevelVariableTest extends PartialCodeTest {
               CompileTimeErrorCode.CONST_NOT_INITIALIZED
             ],
             "const int a, _s_;",
-            failing: [
-              'typedef',
-              'functionVoid',
-              'functionNonVoid',
-              'getter',
-              'setter'
-            ],
+            failing: ['typedef', 'functionNonVoid', 'getter', 'setter'],
             expectedErrorsInValidCode: [
               CompileTimeErrorCode.CONST_NOT_INITIALIZED,
               CompileTimeErrorCode.CONST_NOT_INITIALIZED

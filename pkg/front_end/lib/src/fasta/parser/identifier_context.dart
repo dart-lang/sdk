@@ -126,10 +126,7 @@ class IdentifierContext {
       recoveryTemplate: templateExpectedType);
 
   /// Identifier is the start of a reference to a type declared elsewhere.
-  static const typeReference = const IdentifierContext('typeReference',
-      isScopeReference: true,
-      isBuiltInIdentifierAllowed: false,
-      recoveryTemplate: templateExpectedType);
+  static const typeReference = const TypeReferenceIdentifierContext();
 
   /// Identifier is part of a reference to a type declared elsewhere, but it's
   /// not the first identifier of the reference.

@@ -41,11 +41,6 @@ class ContextLocatorImpl implements ContextLocator {
   static const String OLD_ANALYSIS_OPTIONS_NAME = '.analysis_options';
 
   /**
-   * The name of the packages folder.
-   */
-  static const String PACKAGES_DIR_NAME = 'packages';
-
-  /**
    * The name of the packages file.
    */
   static const String PACKAGES_FILE_NAME = '.packages';
@@ -277,8 +272,7 @@ class ContextLocatorImpl implements ContextLocator {
       for (Resource child in folder.getChildren()) {
         if (child is Folder) {
           if (excludedFolders.contains(folder) ||
-              folder.shortName.startsWith('.') ||
-              folder.shortName == PACKAGES_DIR_NAME) {
+              folder.shortName.startsWith('.')) {
             containingRoot.excluded.add(folder);
           } else {
             _createContextRoots(roots, child, excludedFolders, containingRoot,

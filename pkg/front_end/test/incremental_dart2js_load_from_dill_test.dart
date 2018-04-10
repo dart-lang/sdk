@@ -66,5 +66,18 @@ void testDart2jsCompile() async {
     List<int> initializedDillData =
         new File.fromUri(fullDillFromInitialized).readAsBytesSync();
     checkIsEqual(normalDillData, initializedDillData);
+
+    // Also try without invalidating anything.
+    stopwatch.reset();
+    initializeResult = await initializedCompile(
+        dart2jsUrl, fullDillFromInitialized, initializeWith, []);
+    Expect.equals(initializeExpect, initializeResult);
+    print("Initialized compile(s) from ${initializeWith.pathSegments.last} "
+        "took ${stopwatch.elapsedMilliseconds} ms");
+
+    // Compare the two files.
+    initializedDillData =
+        new File.fromUri(fullDillFromInitialized).readAsBytesSync();
+    checkIsEqual(normalDillData, initializedDillData);
   }
 }

@@ -16,6 +16,7 @@ import 'constants/expressions.dart';
 import 'constants/values.dart';
 import 'common_elements.dart' show CommonElements;
 import 'elements/elements.dart';
+import 'elements/types.dart' show DartTypes;
 import 'elements/modelx.dart' show ConstantVariableMixin;
 import 'elements/operators.dart';
 import 'elements/resolution_types.dart';
@@ -1460,13 +1461,16 @@ class AstEvaluationEnvironment extends EvaluationEnvironmentBase {
   CommonElements get commonElements => _compiler.resolution.commonElements;
 
   @override
+  DartTypes get types => _compiler.resolution.types;
+
+  @override
   String readFromEnvironment(String name) {
     return _compiler.fromEnvironment(name);
   }
 
   @override
   ResolutionInterfaceType substByContext(
-      ResolutionInterfaceType base, ResolutionInterfaceType target) {
+      ResolutionDartType base, ResolutionInterfaceType target) {
     return base.substByContext(target);
   }
 

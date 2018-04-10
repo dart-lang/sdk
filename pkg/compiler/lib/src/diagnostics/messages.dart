@@ -207,6 +207,7 @@ enum MessageKind {
   INVALID_BOOL_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE,
   INVALID_BREAK,
   INVALID_CASE_DEFAULT,
+  INVALID_CONSTANT_CAST,
   INVALID_CONSTANT_ADD_TYPES,
   INVALID_CONSTANT_BINARY_INT_TYPE,
   INVALID_CONSTANT_BINARY_NUM_TYPE,
@@ -3505,6 +3506,10 @@ part of test.main;
           "`#{constant}` of type '#{type}' is not a valid operand of a "
           "constant binary + expression on 'num'. Must be a value of type "
           "'int' or 'double'."),
+
+      MessageKind.INVALID_CONSTANT_CAST: const MessageTemplate(
+          MessageKind.INVALID_CONSTANT_CAST,
+          "`#{constant}` of type '#{type}' is not a subtype of #{castType}."),
 
       MessageKind.INVALID_CONSTANT_ADD_TYPES: const MessageTemplate(
           MessageKind.INVALID_CONSTANT_ADD_TYPES,

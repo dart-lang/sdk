@@ -2526,7 +2526,7 @@ class C {
   }
 
   test_const_invalid_field_const() async {
-    variablesWithNotConstInitializers.add('f');
+    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 class C {
   static const f = 1 + foo();
@@ -2545,14 +2545,16 @@ int foo() {}
     } else if (isStrongMode) {
       checkElementText(library, r'''
 class C {
-  static const int f;
+  static const int f = 1 +
+        foo/*location: test.dart;foo*/();
 }
 int foo() {}
 ''');
     } else {
       checkElementText(library, r'''
 class C {
-  static const dynamic f;
+  static const dynamic f = 1 +
+        foo/*location: test.dart;foo*/();
 }
 int foo() {}
 ''');
@@ -2594,7 +2596,7 @@ const int x = 0;
   }
 
   test_const_invalid_topLevel() async {
-    variablesWithNotConstInitializers.add('v');
+    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 const v = 1 + foo();
 int foo() => 42;
@@ -2608,12 +2610,14 @@ int foo() {}
 ''');
     } else if (isStrongMode) {
       checkElementText(library, r'''
-const int v;
+const int v = 1 +
+        foo/*location: test.dart;foo*/();
 int foo() {}
 ''');
     } else {
       checkElementText(library, r'''
-const dynamic v;
+const dynamic v = 1 +
+        foo/*location: test.dart;foo*/();
 int foo() {}
 ''');
     }
@@ -4566,7 +4570,7 @@ class C {
   }
 
   test_constructor_initializers_field_notConst() async {
-    variablesWithNotConstInitializers.add('x');
+    shouldCompareLibraryElements = false;
     var library = await checkLibrary('''
 class C {
   final x;
@@ -4574,9 +4578,8 @@ class C {
 }
 int foo() => 42;
 ''', allowErrors: true);
-    if (isSharedFrontEnd) {
-      // It is OK to keep non-constant initializers.
-      checkElementText(library, r'''
+    // It is OK to keep non-constant initializers.
+    checkElementText(library, r'''
 class C {
   final dynamic x;
   const C() :
@@ -4585,16 +4588,6 @@ class C {
 }
 int foo() {}
 ''');
-    } else {
-      checkElementText(library, r'''
-class C {
-  final dynamic x;
-  const C() :
-        x/*location: test.dart;C;x*/ = <null>;
-}
-int foo() {}
-''');
-    }
   }
 
   test_constructor_initializers_field_withParameter() async {

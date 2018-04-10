@@ -53,17 +53,17 @@ var tests = <IsolateTest>[
     await vm.reloadIsolates();
     expect(vm.isolates.length, 2);
 
-    // Find the slave isolate.
-    Isolate slaveIsolate =
+    // Find the spawned isolate.
+    Isolate spawnedIsolate =
         vm.isolates.firstWhere((Isolate i) => i != mainIsolate);
-    expect(slaveIsolate, isNotNull);
+    expect(spawnedIsolate, isNotNull);
 
     // Invoke test in v1.
-    String v1 = await invokeTest(slaveIsolate);
+    String v1 = await invokeTest(spawnedIsolate);
     expect(v1, 'apple');
 
     // Reload to v2.
-    var response = await slaveIsolate.reloadSources(
+    var response = await spawnedIsolate.reloadSources(
       rootLibUri: v2Uri.toString(),
       packagesUri: v2PackagesUri.toString(),
     );
@@ -71,17 +71,17 @@ var tests = <IsolateTest>[
     expect(response['success'], isTrue);
 
     // Invoke test in v2.
-    String v2 = await invokeTest(slaveIsolate);
+    String v2 = await invokeTest(spawnedIsolate);
     expect(v2, 'fooLib');
 
     // Reload to v3.
-    response = await slaveIsolate.reloadSources(
+    response = await spawnedIsolate.reloadSources(
       rootLibUri: v3Uri.toString(),
     );
     expect(response['success'], isTrue);
 
     // Invoke test in v3.
-    String v3 = await invokeTest(slaveIsolate);
+    String v3 = await invokeTest(spawnedIsolate);
     expect(v3, 'cabbage');
   }
 ];

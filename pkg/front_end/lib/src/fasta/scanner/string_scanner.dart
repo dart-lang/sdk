@@ -81,20 +81,3 @@ class StringScanner extends ArrayBasedScanner {
 
   bool atEndOfFile() => scanOffset >= string.length - 1;
 }
-
-/**
- * Scanner that creates tokens for a part of a larger [String], where the part
- * starts at the [baseOffset].
- */
-class SubStringScanner extends StringScanner {
-  final int baseOffset;
-
-  SubStringScanner(this.baseOffset, String string,
-      {bool includeComments: false})
-      : super(string, includeComments: includeComments);
-
-  @override
-  void beginToken() {
-    tokenStart = baseOffset + stringOffset;
-  }
-}

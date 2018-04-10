@@ -657,12 +657,12 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
                                         &runtime_call);
 
   __ Bind(&runtime_call);
-  __ PushObject(Object::null_object());       // Make room for the result.
-  __ pushq(RAX);                              // Push the source object.
-  __ PushObject(dst_type);  // Push the type of the destination.
-  __ pushq(RDX);            // Instantiator type arguments.
-  __ pushq(RCX);            // Function type arguments.
-  __ PushObject(dst_name);  // Push the name of the destination.
+  __ PushObject(Object::null_object());  // Make room for the result.
+  __ pushq(RAX);                         // Push the source object.
+  __ PushObject(dst_type);               // Push the type of the destination.
+  __ pushq(RDX);                         // Instantiator type arguments.
+  __ pushq(RCX);                         // Function type arguments.
+  __ PushObject(dst_name);               // Push the name of the destination.
   __ LoadUniqueObject(RAX, test_cache);
   __ pushq(RAX);
   GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 6, locs);

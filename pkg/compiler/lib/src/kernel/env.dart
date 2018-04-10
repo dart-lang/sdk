@@ -317,6 +317,21 @@ class ClassEnvImpl implements ClassEnv {
 
     void addProcedures(ir.Class c, {bool includeStatic}) {
       for (ir.Procedure member in c.procedures) {
+        if (member.isForwardingStub && member.isAbstract) {
+          // Skip abstract forwarding stubs. These are never emitted but they
+          // might shadow the inclusion of a mixed in method in code like:
+          //
+          //     class Super {}
+          //     class Mixin<T> {
+          //       void method(T t) {}
+          //     }
+          //     class Class extends Super with Mixin<int> {}
+          //     main() => new Class().method();
+          //
+          // Here a stub is created for `Super&Mixin.method` hiding that
+          // `Mixin.method` is inherited by `Class`.
+          continue;
+        }
         if (!includeStatic && member.isStatic) continue;
         var name = member.name.name;
         assert(!name.contains('#'));

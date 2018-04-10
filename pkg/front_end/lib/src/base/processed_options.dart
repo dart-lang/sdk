@@ -38,6 +38,7 @@ import '../fasta/deprecated_problems.dart' show deprecated_InputError;
 
 import '../fasta/fasta_codes.dart'
     show
+        FormattedMessage,
         LocatedMessage,
         Message,
         messageCantInferPackagesFromManyInputs,
@@ -204,32 +205,46 @@ class ProcessedOptions {
         (_raw.reportMessages ?? (_raw.onError == null));
   }
 
-  void report(LocatedMessage message, Severity severity) {
+  FormattedMessage format(LocatedMessage message, Severity severity) {
+    int offset = message.charOffset;
+    Uri uri = message.uri;
+    Location location = offset == -1 ? null : getLocation(uri, offset);
+    String formatted =
+        command_line_reporting.format(message, severity, location: location);
+    return message.withFormatting(
+        formatted, location?.line ?? -1, location?.column ?? -1);
+  }
+
+  void report(LocatedMessage message, Severity severity,
+      {List<LocatedMessage> context}) {
+    context ??= [];
     if (_raw.onProblem != null) {
-      int offset = message.charOffset;
-      Uri uri = message.uri;
-      Location location = offset == -1 ? null : getLocation(uri, offset);
-      _raw.onProblem(
-          message,
-          severity,
-          command_line_reporting.format(message, severity, location: location),
-          location?.line ?? -1,
-          location?.column ?? -1);
+      _raw.onProblem(format(message, severity), severity,
+          context.map((message) => format(message, Severity.context)).toList());
       if (command_line_reporting.shouldThrowOn(severity)) {
         if (verbose) print(StackTrace.current);
         throw new deprecated_InputError(
-            uri,
-            offset,
+            message.uri,
+            message.charOffset,
             "Compilation aborted due to fatal "
             "${command_line_reporting.severityName(severity)}.");
       }
       return;
     }
+
+    // Deprecated reporting mechanisms
     if (_raw.onError != null) {
       _raw.onError(new _CompilationMessage(message, severity));
+      for (LocatedMessage message in context) {
+        _raw.onError(new _CompilationMessage(message, Severity.context));
+      }
     }
-
-    if (_reportMessages) command_line_reporting.report(message, severity);
+    if (_reportMessages) {
+      command_line_reporting.report(message, severity);
+      for (LocatedMessage message in context) {
+        command_line_reporting.report(message, Severity.context);
+      }
+    }
   }
 
   // TODO(askesc): Remove this and direct callers directly to report.
@@ -377,7 +392,11 @@ class ProcessedOptions {
   ///
   /// This is an asynchronous method since file system operations may be
   /// required to locate/read the packages file as well as SDK metadata.
-  Future<UriTranslatorImpl> getUriTranslator() async {
+  Future<UriTranslatorImpl> getUriTranslator({bool bypassCache: false}) async {
+    if (bypassCache) {
+      _uriTranslator = null;
+      _packages = null;
+    }
     if (_uriTranslator == null) {
       ticker.logMs("Started building UriTranslator");
       var libraries = await _computeLibrarySpecification();

@@ -690,6 +690,21 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   }
 
   @override
+  ConstantExpression visitAsExpression(ir.AsExpression node) {
+    ConstantExpression expression = visit(node.operand);
+    if (expression == null) return null;
+    DartType type = elementMap.getDartType(node.type);
+    return new AsConstantExpression(expression, type);
+  }
+
+  @override
+  ConstantExpression visitInstantiation(ir.Instantiation node) {
+    // TODO(sigmund, sra): add a constant representation for instantiations.
+    // See issue 32774.
+    return visit(node.expression);
+  }
+
+  @override
   ConstantExpression visitNot(ir.Not node) {
     ConstantExpression expression = visit(node.operand);
     if (expression == null) return null;

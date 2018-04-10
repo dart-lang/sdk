@@ -182,17 +182,20 @@ class PubspecValidator {
       } else if (assetsField != null) {
         _reportErrorForNode(
             reporter, assetsField, PubspecWarningCode.ASSET_FIELD_NOT_LIST);
-      } else {
-        // TODO(brianwilkerson) Should we report an error if `assets` is
-        // missing?
       }
+
       if (flutterField.length > 1) {
         // TODO(brianwilkerson) Should we report an error if `flutter` contains
         // keys other than `assets`?
       }
     } else if (flutterField != null) {
-      _reportErrorForNode(
-          reporter, flutterField, PubspecWarningCode.FLUTTER_FIELD_NOT_MAP);
+      if (flutterField.value == null) {
+        // allow an empty `flutter:` section; explicitly fail on a non-empty,
+        // non-map one
+      } else {
+        _reportErrorForNode(
+            reporter, flutterField, PubspecWarningCode.FLUTTER_FIELD_NOT_MAP);
+      }
     }
   }
 

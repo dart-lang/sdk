@@ -147,7 +147,8 @@ Function _registerCustomElement(context, document, String tag, [Map options]) {
     JS('=Object', '#.extends = #', opts, extendsTagName);
   }
 
-  return JS('=Object', '#.registerElement(#, #)', document, tag, opts);
+  return JS(
+      'JavaScriptFunction', '#.registerElement(#, #)', document, tag, opts);
 }
 
 //// Called by Element.created to do validation & initialization.

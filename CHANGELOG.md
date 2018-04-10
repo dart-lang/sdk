@@ -1,4 +1,34 @@
+## 2.0.0-dev.47.0
+
+### Tool Changes
+
+#### Analyzer
+
+* The command line analyzer (dartanalyzer) and the analysis server no longer
+  treat directories named `packages` specially. Previously they had ignored
+  these directories - and their contents - from the point of view of analysis. Now
+  they'll be treated just as regular directories. This special-casing of
+  `packages` directories was to support using symlinks for package: resolution;
+  that functionality is now handled by `.packages` files.
+
 ## 2.0.0-dev.46.0
+
+## 2.0.0-dev.45.0
+
+### Core library changes
+
+* `dart:async`
+  * Removed the deprecated `defaultValue` parameter on `Stream.firstWhere` and
+    `Stream.lastWhere`.
+
+### Tool Changes
+
+#### Pub
+
+* Fix a bug where the version solver could loop infinitely when resolving a
+  conflict involving pre-release constraints ([issue 1863][pub#1863]).
+
+[pub#1863]: https://github.com/dart-lang/pub/issues/1863
 
 ## 2.0.0-dev.45.0
 
@@ -10,6 +40,7 @@
   involving pre-release constraints ([issue 1856][pub#1856]).
 
 [pub#1856]: https://github.com/dart-lang/pub/issues/1856
+
 
 ## 2.0.0-dev.44.0
 

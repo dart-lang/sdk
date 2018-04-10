@@ -24,7 +24,10 @@ main(List<String> args) {
         new Directory.fromUri(Platform.script.resolve('side_effects'));
     await checkTests(
         dataDir, computeMemberAstSideEffects, computeMemberIrSideEffects,
-        args: args, options: [stopAfterTypeInference]);
+        args: args,
+        options: [stopAfterTypeInference],
+        // TODO(johnniwinther): Run tests with strong mode.
+        testStrongMode: false);
   });
 }
 

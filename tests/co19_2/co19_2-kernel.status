@@ -199,7 +199,6 @@ Language/Expressions/Shift/syntax_t01: CompileTimeError
 Language/Expressions/Strings/String_Interpolation/double_quote_t02: CompileTimeError
 Language/Expressions/Strings/String_Interpolation/single_quote_t02: CompileTimeError
 Language/Expressions/This/placement_t04: MissingCompileTimeError
-Language/Expressions/Throw/syntax_t02: MissingCompileTimeError
 Language/Expressions/Type_Cast/evaluation_t10: MissingCompileTimeError
 Language/Expressions/Type_Test/evaluation_t10: MissingCompileTimeError
 Language/Expressions/Unary_Expressions/syntax_t10: CompileTimeError

@@ -20,5 +20,7 @@ class Class1 {
       {/*[exact=JSUInt31]*/ a, /*Value([exact=JSString], value: "")*/ b});
 }
 
-/*element: anonymousClass:[null|subclass=Object]*/
+/*ast.element: anonymousClass:[null|subclass=Object]*/
+/*kernel.element: anonymousClass:[null|subclass=Object]*/
+/*strong.element: anonymousClass:[null|subclass=JavaScriptObject]*/
 anonymousClass() => new Class1(a: 1, b: '');

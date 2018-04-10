@@ -53,6 +53,7 @@ class StatementVisitor {
   void visitParameter(Parameter expr) => visitDefault(expr);
   void visitNarrow(Narrow expr) => visitDefault(expr);
   void visitJoin(Join expr) => visitDefault(expr);
+  void visitUse(Use expr) => visitDefault(expr);
   void visitCall(Call expr) => visitDefault(expr);
 }
 
@@ -133,6 +134,24 @@ class Join extends Statement {
     }
     return type;
   }
+}
+
+/// Artificial use of [arg]. Removed during summary normalization.
+class Use extends Statement {
+  TypeExpr arg;
+
+  Use(this.arg);
+
+  @override
+  void accept(StatementVisitor visitor) => visitor.visitUse(this);
+
+  @override
+  String dump() => "$label = _Use ($arg)";
+
+  @override
+  Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
+          CallHandler callHandler) =>
+      throw 'Use statements should be removed during summary normalization';
 }
 
 /// Call site.

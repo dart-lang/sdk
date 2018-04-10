@@ -10,8 +10,8 @@ class A extends core::Object {
 }
 static method main() → dynamic {
   core::int foo = 42;
-  const self::A::•(5);
-  const self::A::•(5.{core::num::+}(5));
+  new self::A::•(5);
+  new self::A::•(5.{core::num::+}(5));
   new self::A::•(foo);
   new self::A::•(5.{core::num::+}(foo));
 }

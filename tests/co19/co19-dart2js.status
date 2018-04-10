@@ -931,7 +931,7 @@ LayoutTests/fast/text/sub-pixel/text-scaling-vertical_t01: Pass, RuntimeError # 
 LayoutTests/fast/text/sub-pixel/text-scaling-webfont_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/text/text-combine-shrink-to-fit_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/window-find_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/text/zero-width-characters_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/text/zero-width-characters_t01: RuntimeError, Pass # Please triage this failure
 LayoutTests/fast/transforms/bounding-rect-zoom_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/transforms/hit-test-large-scale_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/url/anchor_t01: RuntimeError # Please triage this failure
@@ -1254,6 +1254,7 @@ LayoutTests/fast/canvas/webgl/WebGLContextEvent_t01: Pass, RuntimeError # 30174
 LayoutTests/fast/canvas/webgl/index-validation-verifies-too-many-indices_t01: RuntimeError, Pass # Please triage this flake
 LayoutTests/fast/canvas/webgl/premultiplyalpha-test_t01: RuntimeError, Pass # Please triage this flake
 LayoutTests/fast/canvas/webgl/triangle_t01: RuntimeError, Pass # Please triage this flake
+LayoutTests/fast/css/font-face-unicode-range-load_t01: Pass, Slow
 LayoutTests/fast/multicol/newmulticol/balance_t04: RuntimeError # Please triage this failure
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-inset-rounded-different-writing-modes-left_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-rounded-boxes_t02: RuntimeError # Please triage this failure
@@ -7035,7 +7036,6 @@ Language/Classes/Getters/same_name_method_t05: MissingCompileTimeError
 Language/Classes/Getters/same_name_method_t07: MissingCompileTimeError
 Language/Classes/Superinterfaces/more_than_once_t01: MissingCompileTimeError
 Language/Classes/Superinterfaces/superclass_as_superinterface_t01: MissingCompileTimeError
-Language/Classes/definition_t16: Crash
 Language/Classes/definition_t24: MissingCompileTimeError
 Language/Classes/same_name_instance_and_static_members_t01: MissingCompileTimeError
 Language/Classes/same_name_instance_and_static_members_t02: MissingCompileTimeError
@@ -7058,34 +7058,15 @@ Language/Expressions/Constants/exception_t02: MissingCompileTimeError
 Language/Expressions/Constants/logical_expression_t04: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: Crash
 Language/Expressions/Instance_Creation/Const/exception_t01: MissingCompileTimeError
-Language/Expressions/Maps/syntax_t08: Crash
 Language/Expressions/Method_Invocation/Ordinary_Invocation/evaluation_t08: RuntimeError
 Language/Expressions/Method_Invocation/Super_Invocation/accessible_instance_member_t02: Crash
 Language/Expressions/Method_Invocation/Super_Invocation/evaluation_t05: RuntimeError
 Language/Expressions/Method_Invocation/Super_Invocation/invocation_t02: Crash
 Language/Expressions/Null/instance_of_class_null_t01: RuntimeError
-Language/Expressions/Strings/String_Interpolation/syntax_t08: Crash
-Language/Expressions/Strings/multi_line_t11: Crash # Investiage: source-data from FE causes us to crash
-Language/Expressions/Strings/multi_line_t12: Crash
-Language/Expressions/Strings/multi_line_t13: Crash
-Language/Expressions/Strings/multi_line_t15: Crash
-Language/Expressions/Strings/multi_line_t16: Crash
-Language/Expressions/Strings/multi_line_t17: Crash
-Language/Expressions/Strings/multi_line_t18: Crash
-Language/Expressions/Strings/multi_line_t19: Crash
-Language/Expressions/Strings/multi_line_t20: Crash
-Language/Expressions/Strings/multi_line_t21: Crash
-Language/Expressions/Strings/multi_line_t22: Crash
-Language/Expressions/Strings/multi_line_t23: Crash
-Language/Expressions/Strings/multi_line_t24: Crash
-Language/Expressions/Strings/multi_line_t25: Crash
-Language/Expressions/Strings/multi_line_t28: Crash
-Language/Expressions/Strings/multi_line_t29: Crash
-Language/Expressions/Strings/multi_line_t32: Crash
-Language/Expressions/Strings/multi_line_t33: Crash
 Language/Expressions/This/placement_t04: Crash
 Language/Functions/External_Functions/not_connected_to_a_body_t01: RuntimeError
-Language/Functions/syntax_t09: Crash
+Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: MissingCompileTimeError
+Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/same_name_t10: RuntimeError
 Language/Libraries_and_Scripts/Scripts/top_level_main_t01: CompileTimeError
 Language/Metadata/before_class_t01: RuntimeError
@@ -7178,7 +7159,6 @@ Language/Classes/Instance_Methods/Operators/allowed_names_t19: Crash
 Language/Classes/Instance_Methods/Operators/allowed_names_t20: Crash
 Language/Classes/Instance_Methods/Operators/allowed_names_t21: Crash
 Language/Classes/Instance_Methods/Operators/allowed_names_t22: Crash
-Language/Classes/definition_t16: Crash
 Language/Classes/member_definition_t04: Crash
 Language/Classes/member_definition_t06: Crash
 Language/Classes/member_definition_t07: Crash
@@ -7189,31 +7169,11 @@ Language/Classes/member_definition_t11: Crash
 Language/Classes/member_definition_t12: Crash
 Language/Expressions/Constants/depending_on_itself_t03: Crash
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: Crash
-Language/Expressions/Maps/syntax_t08: Crash
 Language/Expressions/Method_Invocation/Super_Invocation/accessible_instance_member_t02: Crash
 Language/Expressions/Method_Invocation/Super_Invocation/evaluation_t05: Crash
 Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t03: Crash
 Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t04: Crash
 Language/Expressions/Method_Invocation/Super_Invocation/invocation_t02: Crash
-Language/Expressions/Strings/String_Interpolation/syntax_t08: Crash
-Language/Expressions/Strings/multi_line_t11: Crash
-Language/Expressions/Strings/multi_line_t12: Crash
-Language/Expressions/Strings/multi_line_t13: Crash
-Language/Expressions/Strings/multi_line_t15: Crash
-Language/Expressions/Strings/multi_line_t16: Crash
-Language/Expressions/Strings/multi_line_t17: Crash
-Language/Expressions/Strings/multi_line_t18: Crash
-Language/Expressions/Strings/multi_line_t19: Crash
-Language/Expressions/Strings/multi_line_t20: Crash
-Language/Expressions/Strings/multi_line_t21: Crash
-Language/Expressions/Strings/multi_line_t22: Crash
-Language/Expressions/Strings/multi_line_t23: Crash
-Language/Expressions/Strings/multi_line_t24: Crash
-Language/Expressions/Strings/multi_line_t25: Crash
-Language/Expressions/Strings/multi_line_t28: Crash
-Language/Expressions/Strings/multi_line_t29: Crash
-Language/Expressions/Strings/multi_line_t32: Crash
-Language/Expressions/Strings/multi_line_t33: Crash
 Language/Expressions/This/placement_t04: Crash
 Language/Functions/setter_modifier_t01: Crash
 Language/Functions/setter_modifier_t02: Crash
@@ -7221,7 +7181,6 @@ Language/Functions/setter_modifier_t03: Crash
 Language/Functions/setter_modifier_t04: Crash
 Language/Functions/setter_modifier_t05: Crash
 Language/Functions/setter_modifier_t06: Crash
-Language/Functions/syntax_t09: Crash
 Language/Statements/For/syntax_t13: Crash
 Language/Statements/For/syntax_t20: Crash
 LibTest/core/Invocation/namedArguments_A01_t01: Crash

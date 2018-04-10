@@ -67,7 +67,7 @@ vars = {
   "convert_tag": "@2.0.1",
   "crypto_tag" : "@2.0.2+1",
   "csslib_tag" : "@0.14.1",
-  "dart2js_info_tag" : "@0.5.5+1",
+  "dart2js_info_tag" : "@0.5.6",
 
   # Note: updates to dart_style have to be coordinated carefully with
   # the infrastructure-team so that the internal formatter in
@@ -99,7 +99,7 @@ vars = {
   "isolate_tag": "@1.1.0",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@2.0.6",
-  "linter_tag": "@0.1.46",
+  "linter_tag": "@0.1.47",
   "logging_tag": "@0.11.3+1",
   "markdown_tag": "@1.1.1",
   "matcher_tag": "@0.12.1+4",
@@ -116,7 +116,7 @@ vars = {
   "pool_tag": "@1.3.4",
   "protobuf_tag": "@0.7.1",
   "pub_rev": "@4947e0b3cb3ec77e4e8fe0d3141ce4dc60f43256",
-  "pub_semver_tag": "@1.3.4",
+  "pub_semver_tag": "@1.3.6",
   "quiver_tag": "@5aaa3f58c48608af5b027444d561270b53f15dbf",
   "resource_rev":"@af5a5bf65511943398146cf146e466e5f0b95cb9",
   "root_certificates_rev": "@16ef64be64c7dfdff2b9f4b910726e635ccc519e",

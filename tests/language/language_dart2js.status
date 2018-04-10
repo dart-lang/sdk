@@ -63,6 +63,12 @@ named_parameters2_test: RuntimeError
 named_parameters3_test: RuntimeError
 named_parameters4_test: RuntimeError
 
+[ $compiler == dart2js && $system == windows && $fasta ]
+deep_nesting2_negative_test: Pass, Crash
+illegal_declaration_test/01: Pass, Crash
+issue1578_negative_test: Pass, Crash
+regress_23051_test/01: Pass, Crash
+
 [ $compiler == dart2js && $system == windows && !$fasta && ($runtime == chrome || $runtime == ff) ]
 string_literals_test: RuntimeError # Issue 27533
 

@@ -408,11 +408,6 @@ class ContextManagerImpl implements ContextManager {
   static const String LIB_DIR_NAME = 'lib';
 
   /**
-   * The name of `packages` folders.
-   */
-  static const String PACKAGES_NAME = 'packages';
-
-  /**
    * File name of pubspec files.
    */
   static const String PUBSPEC_NAME = 'pubspec.yaml';
@@ -836,9 +831,6 @@ class ContextManagerImpl implements ContextManager {
         changeSet.addedSource(source);
         info.sources[path] = source;
       } else if (child is Folder) {
-        if (child.shortName == PACKAGES_NAME) {
-          continue;
-        }
         _addPreviouslyExcludedSources(info, changeSet, child, oldExcludedPaths);
       }
     }
@@ -875,10 +867,6 @@ class ContextManagerImpl implements ContextManager {
           info.sources[path] = source;
         }
       } else if (child is Folder) {
-        String shortName = child.shortName;
-        if (shortName == PACKAGES_NAME) {
-          continue;
-        }
         _addSourceFiles(changeSet, child, info);
       }
     }
@@ -1181,9 +1169,7 @@ class ContextManagerImpl implements ContextManager {
    */
   void _createContexts(ContextInfo parent, Folder folder,
       List<String> excludedPaths, bool withPackageSpecOnly) {
-    if (_isExcluded(folder.path) ||
-        folder.shortName.startsWith('.') ||
-        folder.shortName == 'packages') {
+    if (_isExcluded(folder.path) || folder.shortName.startsWith('.')) {
       return;
     }
     // Decide whether a context needs to be created for [folder] here, and if
@@ -1383,7 +1369,6 @@ class ContextManagerImpl implements ContextManager {
     // maybe excluded globally
     if (_isExcluded(path) ||
         _isContainedInDotFolder(info.folder.path, path) ||
-        _isInPackagesDir(info.folder.path, path) ||
         _isInTopLevelDocDir(info.folder.path, path)) {
       return;
     }
@@ -1524,19 +1509,6 @@ class ContextManagerImpl implements ContextManager {
       }
       return path == excludedPath;
     });
-  }
-
-  /**
-   * Determine whether the given [path], when interpreted relative to the
-   * context root [root], contains a 'packages' folder.
-   */
-  bool _isInPackagesDir(String root, String path) {
-    String suffixPath = absolutePathContext.suffix(root, path);
-    if (suffixPath == null) {
-      return false;
-    }
-    List<String> pathParts = absolutePathContext.split(suffixPath);
-    return pathParts.contains(PACKAGES_NAME);
   }
 
   /**

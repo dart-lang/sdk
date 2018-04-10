@@ -619,6 +619,17 @@ public interface AnalysisServer {
   public void execution_setSubscriptions(List<String> subscriptions);
 
   /**
+   * {@code flutter.getChangeAddForDesignTimeConstructor}
+   *
+   * Return the change that adds the forDesignTime() constructor for the widget class at the given
+   * offset.
+   *
+   * @param file The file containing the code of the class.
+   * @param offset The offset of the class in the code.
+   */
+  public void flutter_getChangeAddForDesignTimeConstructor(String file, int offset, GetChangeAddForDesignTimeConstructorConsumer consumer);
+
+  /**
    * {@code flutter.setSubscriptions}
    *
    * Subscribe for services that are specific to individual files. All previous subscriptions are

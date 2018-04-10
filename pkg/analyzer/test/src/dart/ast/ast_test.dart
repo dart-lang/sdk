@@ -49,6 +49,32 @@ class C {
     assertInContext("C(0", true);
   }
 
+  test_inConstantContext_instanceCreation_fieldWithConstConstructor() {
+    parse('''
+class C {
+  final d = D();
+  const C();
+}
+class D {
+  const D();
+}
+''');
+    assertInContext("D()", false);
+  }
+
+  test_inConstantContext_instanceCreation_fieldWithoutConstConstructor() {
+    parse('''
+class C {
+  final d = D();
+  C();
+}
+class D {
+  const D();
+}
+''');
+    assertInContext("D()", false);
+  }
+
   test_inConstantContext_instanceCreation_functionLiteral() {
     parse('''
 const V = () => C();
@@ -57,26 +83,6 @@ class C {
 }
 ''');
     assertInContext("C()", false);
-  }
-
-  test_inConstantContext_instanceCreation_initializer_false() {
-    parse('''
-var c = C();
-class C {
-  const C();
-}
-''');
-    assertInContext("C()", false);
-  }
-
-  test_inConstantContext_instanceCreation_initializer_true() {
-    parse('''
-const c = C();
-class C {
-  const C();
-}
-''');
-    assertInContext("C()", true);
   }
 
   test_inConstantContext_instanceCreation_instanceCreation_false() {
@@ -209,6 +215,26 @@ f(v) {
     break;
   }
 }
+class C {
+  const C();
+}
+''');
+    assertInContext("C()", true);
+  }
+
+  test_inConstantContext_instanceCreation_topLevelVariable_false() {
+    parse('''
+var c = C();
+class C {
+  const C();
+}
+''');
+    assertInContext("C()", false);
+  }
+
+  test_inConstantContext_instanceCreation_topLevelVariable_true() {
+    parse('''
+const c = C();
 class C {
   const C();
 }
@@ -442,6 +468,8 @@ class InstanceCreationExpressionImplTest extends ResolverTestCase {
   String testSource;
   CompilationUnitImpl testUnit;
 
+  bool get enableNewAnalysisDriver => true;
+
   void assertIsConst(String snippet, bool isConst) {
     int index = testSource.indexOf(snippet);
     expect(index >= 0, isTrue);
@@ -462,6 +490,20 @@ class InstanceCreationExpressionImplTest extends ResolverTestCase {
     testUnit = await resolveSource2('/test.dart', source);
   }
 
+  void
+      test_isConst_notInContext_constructor_const_constParam_identifier() async {
+    enablePreviewDart2();
+    await resolve('''
+var v = C(C.a);
+class C {
+  static const C a = C.c();
+  const C(c);
+  const C.c();
+}
+''');
+    assertIsConst("C(C", false);
+  }
+
   void test_isConst_notInContext_constructor_const_constParam_named() async {
     enablePreviewDart2();
     await resolve('''
@@ -470,7 +512,7 @@ class C {
   const C({c});
 }
 ''');
-    assertIsConst("C(c", true);
+    assertIsConst("C(c", false);
   }
 
   void
@@ -482,7 +524,7 @@ class C {
   const C({c});
 }
 ''');
-    assertIsConst("C(c", true);
+    assertIsConst("C(c", false);
   }
 
   void test_isConst_notInContext_constructor_const_constParam_parens() async {
@@ -494,7 +536,7 @@ class C {
   const C.c();
 }
 ''');
-    assertIsConst("C( (", true);
+    assertIsConst("C( (", false);
   }
 
   void test_isConst_notInContext_constructor_const_generic_named() async {
@@ -505,7 +547,7 @@ class C<E> {
   const C.n();
 }
 ''');
-    assertIsConst("C<int>.n", true);
+    assertIsConst("C<int>.n", false);
   }
 
   void
@@ -520,7 +562,7 @@ class C<E> {
 import 'c.dart' as p;
 f() => <Object>[p.C<int>.n()];
 ''');
-    assertIsConst("C<int>", true);
+    assertIsConst("C<int>", false);
   }
 
   void test_isConst_notInContext_constructor_const_generic_unnamed() async {
@@ -531,7 +573,7 @@ class C<E> {
   const C();
 }
 ''');
-    assertIsConst("C<int>", true);
+    assertIsConst("C<int>", false);
   }
 
   void
@@ -546,7 +588,7 @@ class C<E> {
 import 'c.dart' as p;
 f() => <Object>[p.C<int>()];
 ''');
-    assertIsConst("C<int>", true);
+    assertIsConst("C<int>", false);
   }
 
   void
@@ -589,7 +631,7 @@ class C<E> {
   const C.n();
 }
 ''');
-    assertIsConst("C.n()", true);
+    assertIsConst("C.n()", false);
   }
 
   void
@@ -604,7 +646,7 @@ class C {
 import 'c.dart' as p;
 f() => <Object>[p.C.n()];
 ''');
-    assertIsConst("C.n()", true);
+    assertIsConst("C.n()", false);
   }
 
   void test_isConst_notInContext_constructor_const_nonGeneric_unnamed() async {
@@ -615,7 +657,7 @@ class C {
   const C();
 }
 ''');
-    assertIsConst("C()", true);
+    assertIsConst("C()", false);
   }
 
   void
@@ -630,7 +672,7 @@ class C {
 import 'c.dart' as p;
 f() => <Object>[p.C()];
 ''');
-    assertIsConst("C()", true);
+    assertIsConst("C()", false);
   }
 
   void test_isConst_notInContext_constructor_nonConst() async {

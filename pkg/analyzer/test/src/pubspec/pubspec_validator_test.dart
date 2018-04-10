@@ -210,11 +210,17 @@ flutter: true
 ''', [PubspecWarningCode.FLUTTER_FIELD_NOT_MAP]);
   }
 
-  test_flutterFieldNotMap_error_empty() {
-    assertErrors('''
+  test_flutterField_empty_noError() {
+    assertNoErrors('''
 name: sample
 flutter:
-''', [PubspecWarningCode.FLUTTER_FIELD_NOT_MAP]);
+''');
+
+    assertNoErrors('''
+name: sample
+flutter:
+
+''');
   }
 
   test_flutterFieldNotMap_noError() {

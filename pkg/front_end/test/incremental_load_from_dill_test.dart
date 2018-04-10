@@ -22,7 +22,7 @@ import "package:front_end/src/api_prototype/memory_file_system.dart"
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
-import 'package:front_end/src/fasta/fasta_codes.dart' show LocatedMessage;
+import 'package:front_end/src/fasta/fasta_codes.dart' show FormattedMessage;
 
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
@@ -174,15 +174,33 @@ void newWorldTest(bool strong, List worlds) async {
       await new File.fromUri(platformUri).readAsBytes();
 
   List<int> newestWholeComponent;
+  MemoryFileSystem fs;
+  Map<String, String> sourceFiles;
+  CompilerOptions options;
+  TestIncrementalCompiler compiler;
   for (var world in worlds) {
-    MemoryFileSystem fs = new MemoryFileSystem(base);
+    bool brandNewWorld = true;
+    if (world["worldType"] == "updated") {
+      brandNewWorld = false;
+    }
+
+    if (brandNewWorld) {
+      fs = new MemoryFileSystem(base);
+    }
     fs.entityForUri(sdkSummary).writeAsBytesSync(sdkSummaryData);
     bool expectInitializeFromDill = false;
     if (newestWholeComponent != null && newestWholeComponent.isNotEmpty) {
       fs.entityForUri(initializeFrom).writeAsBytesSync(newestWholeComponent);
       expectInitializeFromDill = true;
     }
-    Map<String, String> sourceFiles = world["sources"];
+    if (world["expectInitializeFromDill"] != null) {
+      expectInitializeFromDill = world["expectInitializeFromDill"];
+    }
+    if (brandNewWorld) {
+      sourceFiles = new Map<String, String>.from(world["sources"]);
+    } else {
+      sourceFiles.addAll(world["sources"]);
+    }
     Uri packagesUri;
     for (String filename in sourceFiles.keys) {
       String data = sourceFiles[filename] ?? "";
@@ -194,32 +212,35 @@ void newWorldTest(bool strong, List worlds) async {
       fs.entityForUri(uri).writeAsStringSync(data);
     }
 
-    CompilerOptions options = getOptions(strong);
-    options.fileSystem = fs;
-    options.sdkRoot = null;
-    options.sdkSummary = sdkSummary;
-    if (packagesUri != null) {
-      options.packagesFileUri = packagesUri;
+    if (brandNewWorld) {
+      options = getOptions(strong);
+      options.fileSystem = fs;
+      options.sdkRoot = null;
+      options.sdkSummary = sdkSummary;
+      if (packagesUri != null) {
+        options.packagesFileUri = packagesUri;
+      }
     }
     bool gotError = false;
     List<String> formattedErrors = <String>[];
     bool gotWarning = false;
     List<String> formattedWarnings = <String>[];
 
-    options.onProblem = (LocatedMessage message, Severity severity,
-        String formatted, int line, int column) {
+    options.onProblem = (FormattedMessage problem, Severity severity,
+        List<FormattedMessage> context) {
       if (severity == Severity.error) {
         gotError = true;
-        formattedErrors.add(formatted);
+        formattedErrors.add(problem.formatted);
       } else if (severity == Severity.warning) {
         gotWarning = true;
-        formattedWarnings.add(formatted);
+        formattedWarnings.add(problem.formatted);
       }
     };
 
     Uri entry = base.resolve(world["entry"]);
-    TestIncrementalCompiler compiler =
-        new TestIncrementalCompiler(options, entry, initializeFrom);
+    if (brandNewWorld) {
+      compiler = new TestIncrementalCompiler(options, entry, initializeFrom);
+    }
 
     if (world["invalidate"] != null) {
       for (var filename in world["invalidate"]) {
@@ -228,7 +249,7 @@ void newWorldTest(bool strong, List worlds) async {
     }
 
     Stopwatch stopwatch = new Stopwatch()..start();
-    Component component = await compiler.computeDelta();
+    Component component = await compiler.computeDelta(fullComponent: true);
     if (world["errors"] == true && !gotError) {
       throw "Expected error, but didn't get any.";
     } else if (world["errors"] != true && gotError) {
@@ -254,19 +275,27 @@ void newWorldTest(bool strong, List worlds) async {
       throw "Expected that initializedFromDill would be "
           "$expectInitializeFromDill but was ${compiler.initializedFromDill}";
     }
-    if (world["invalidate"] != null) {
-      Expect.equals(world["invalidate"].length,
-          compiler.invalidatedImportUrisForTesting.length);
-      List expectedInvalidatedUri = world["expectedInvalidatedUri"];
-      if (expectedInvalidatedUri != null) {
-        Expect.setEquals(
-            expectedInvalidatedUri
-                .map((s) => Uri.parse(substituteVariables(s, base))),
-            compiler.invalidatedImportUrisForTesting);
+    if (world["checkInvalidatedFiles"] != false) {
+      if (world["invalidate"] != null) {
+        Expect.equals(world["invalidate"].length,
+            compiler.invalidatedImportUrisForTesting.length);
+        List expectedInvalidatedUri = world["expectedInvalidatedUri"];
+        if (expectedInvalidatedUri != null) {
+          Expect.setEquals(
+              expectedInvalidatedUri
+                  .map((s) => Uri.parse(substituteVariables(s, base))),
+              compiler.invalidatedImportUrisForTesting);
+        }
+      } else {
+        Expect.isNull(compiler.invalidatedImportUrisForTesting);
+        Expect.isNull(world["expectedInvalidatedUri"]);
       }
-    } else {
-      Expect.isNull(compiler.invalidatedImportUrisForTesting);
-      Expect.isNull(world["expectedInvalidatedUri"]);
+    }
+
+    {
+      Component component2 = await compiler.computeDelta(fullComponent: true);
+      List<int> thisWholeComponent = serializeComponent(component2);
+      checkIsEqual(newestWholeComponent, thisWholeComponent);
     }
   }
 }
@@ -289,10 +318,10 @@ CompilerOptions getOptions(bool strong) {
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
-    ..onProblem = (LocatedMessage message, Severity severity, String formatted,
-        int line, int column) {
+    ..onProblem = (FormattedMessage problem, Severity severity,
+        List<FormattedMessage> context) {
       if (severity == Severity.error || severity == Severity.warning) {
-        Expect.fail("Unexpected error: $formatted");
+        Expect.fail("Unexpected error: ${problem.formatted}");
       }
     }
     ..strongMode = strong;
@@ -328,6 +357,14 @@ Future<bool> initializedCompile(
   throwOnEmptyMixinBodies(initializedComponent);
   bool result = compiler.initializedFromDill;
   await writeComponentToFile(initializedComponent, output);
+
+  var initializedComponent2 = await compiler.computeDelta(fullComponent: true);
+  throwOnEmptyMixinBodies(initializedComponent2);
+  Expect.equals(initializedComponent.libraries.length,
+      initializedComponent2.libraries.length);
+  Expect.equals(initializedComponent.uriToSource.length,
+      initializedComponent2.uriToSource.length);
+
   for (Uri invalidateUri in invalidateUris) {
     compiler.invalidate(invalidateUri);
   }

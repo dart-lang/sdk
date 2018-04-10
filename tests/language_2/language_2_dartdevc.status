@@ -28,6 +28,8 @@ cascaded_forwarding_stubs_test: CompileTimeError
 conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Crashes or times out
 conflicting_generic_interfaces_simple_test: MissingCompileTimeError
 conflicting_type_variable_and_setter_test: CompileTimeError
+const_cast2_test/01: CompileTimeError
+const_cast2_test/none: CompileTimeError
 const_evaluation_test/01: RuntimeError # Issue 29920
 const_for_in_variable_test/01: MissingCompileTimeError
 const_types_test/07: MissingCompileTimeError
@@ -68,8 +70,6 @@ implicit_creation/implicit_const_context_constructor_generic_named_test: Compile
 implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError
 implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: CompileTimeError
 implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError
-implicit_creation/implicit_new_or_const_composite_test: RuntimeError
-implicit_creation/implicit_new_or_const_generic_test: RuntimeError
 implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_indexed_compound_assignment_test: RuntimeError
 implicit_downcast_during_indexed_if_null_assignment_test: RuntimeError
@@ -181,10 +181,10 @@ syntax_test/none: CompileTimeError
 truncdiv_test: RuntimeError # Issue 29920
 try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
-type_alias_equality_test/01: RuntimeError # Issue 31359
-type_alias_equality_test/02: RuntimeError # Issue 31359
-type_alias_equality_test/03: RuntimeError # Issue 31359
-type_alias_equality_test/04: RuntimeError # Issue 31359
+type_alias_equality_test/01: RuntimeError # Issue 32785
+type_alias_equality_test/02: RuntimeError # Issue 32785
+type_alias_equality_test/03: RuntimeError # Issue 32785
+type_alias_equality_test/04: RuntimeError # Issue 32785
 type_inference_circularity_test: MissingCompileTimeError
 type_inference_inconsistent_inheritance_test: MissingCompileTimeError
 type_promotion_functions_test/02: CompileTimeError # Issue 30895
@@ -343,6 +343,7 @@ compile_time_constant_static5_test/23: CompileTimeError # Issue 31537
 conditional_import_string_test: CompileTimeError # Test is broken
 conditional_import_test: CompileTimeError # Test is broken
 config_import_test: CompileTimeError
+const_cast1_test/02: MissingCompileTimeError
 const_constructor3_test/04: MissingCompileTimeError
 const_constructor_nonconst_field_test/01: MissingCompileTimeError
 const_dynamic_type_literal_test/02: MissingCompileTimeError
@@ -401,6 +402,8 @@ field_override_test/01: MissingCompileTimeError
 function_call_generic_test: RuntimeError # Issue 32756. Crashes on dsend
 function_propagation_test: RuntimeError
 function_subtype_closure0_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
+function_type_parameter2_negative_test: Fail
+function_type_parameter_negative_test: Fail
 generic_function_bounds_test: RuntimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
@@ -655,7 +658,7 @@ syntax_test/32: MissingCompileTimeError
 syntax_test/33: MissingCompileTimeError
 tearoff_dynamic_test: RuntimeError # Issue 32194
 try_catch_test/01: MissingCompileTimeError
-type_alias_equality_test/02: RuntimeError # Issue 31359
+type_alias_equality_test/02: RuntimeError # Issue 32785
 type_literal_test: RuntimeError # Expect.equals(expected: <Func>, actual: <(bool) => int>) fails.
 type_promotion_functions_test/02: CompileTimeError # Issue 31537
 type_promotion_functions_test/03: CompileTimeError # Issue 31537

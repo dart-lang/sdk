@@ -24,7 +24,7 @@ import 'package:front_end/src/api_prototype/memory_file_system.dart'
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
-import 'package:front_end/src/fasta/fasta_codes.dart' show LocatedMessage;
+import 'package:front_end/src/fasta/fasta_codes.dart' show FormattedMessage;
 
 import 'package:front_end/src/fasta/severity.dart'
     show Severity, severityEnumValues;
@@ -255,9 +255,9 @@ class MessageTestSuite extends ChainContext {
       ..write(message);
     buffer.write("\n${span.text}");
     for (List problem in problems) {
-      LocatedMessage messsage = problem[0];
-      String formatted = problem[2];
-      buffer.write("\nCode: ${messsage.code.name}");
+      FormattedMessage message = problem[0];
+      String formatted = message.formatted;
+      buffer.write("\nCode: ${message.code.name}");
       buffer.write("\n  > ");
       buffer.write(formatted.replaceAll("\n", "\n  > "));
     }
@@ -402,9 +402,9 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
           ..sdkSummary = computePlatformBinariesLocation()
               .resolve("vm_platform_strong.dill")
           ..fileSystem = new HybridFileSystem(suite.fileSystem)
-          ..onProblem = (LocatedMessage problem, Severity severity,
-              String formatted, int line, int column) {
-            problems.add([problem, severity, formatted, line, column]);
+          ..onProblem = (FormattedMessage problem, Severity severity,
+              List<FormattedMessage> context) {
+            problems.add([problem, severity]);
           }
           ..strongMode = true,
         uri,
@@ -412,7 +412,7 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
 
     List<List> unexpectedProblems = <List>[];
     for (List problem in problems) {
-      LocatedMessage message = problem[0];
+      FormattedMessage message = problem[0];
       if (message.code.name != example.expectedCode) {
         unexpectedProblems.add(problem);
       }

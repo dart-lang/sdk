@@ -306,6 +306,13 @@ static Dart_CObject BuildFilesPairs(int source_files_count,
   return files;
 }
 
+static void ReleaseFilesPairs(const Dart_CObject& files) {
+  for (intptr_t i = 0; i < files.value.as_array.length; i++) {
+    delete files.value.as_array.values[i];
+  }
+  delete[] files.value.as_array.values;
+}
+
 static void PassThroughFinalizer(void* isolate_callback_data,
                                  Dart_WeakPersistentHandle handle,
                                  void* peer) {}
@@ -405,13 +412,7 @@ class KernelCompilationRequest : public ValueObject {
     Dart_CObject message;
     message.type = Dart_CObject_kArray;
 
-    Dart_CObject files;
-    if (source_files_count != 0) {
-      files = BuildFilesPairs(source_files_count, source_files);
-    } else {
-      files.type = Dart_CObject_kArray;
-      files.value.as_array.length = 0;
-    }
+    Dart_CObject files = BuildFilesPairs(source_files_count, source_files);
 
     Dart_CObject suppress_warnings;
     suppress_warnings.type = Dart_CObject_kBool;
@@ -435,6 +436,8 @@ class KernelCompilationRequest : public ValueObject {
     message.value.as_array.length = ARRAY_SIZE(message_arr);
     // Send the message.
     Dart_PostCObject(kernel_port, &message);
+
+    ReleaseFilesPairs(files);
 
     // Wait for reply to arrive.
     MonitorLocker ml(monitor_);

@@ -235,8 +235,10 @@ abstract class KernelFunctionBuilder
     if (!isExternal) {
       patch.library.addCompileTimeError(
           messagePatchNonExternal, patch.charOffset, noLength, patch.fileUri,
-          context: messagePatchDeclarationOrigin.withLocation(
-              fileUri, charOffset, noLength));
+          context: [
+            messagePatchDeclarationOrigin.withLocation(
+                fileUri, charOffset, noLength)
+          ]);
       return false;
     }
     return true;
@@ -244,9 +246,9 @@ abstract class KernelFunctionBuilder
 
   void reportPatchMismatch(Builder patch) {
     library.addCompileTimeError(messagePatchDeclarationMismatch,
-        patch.charOffset, noLength, patch.fileUri,
-        context: messagePatchDeclarationOrigin.withLocation(
-            fileUri, charOffset, noLength));
+        patch.charOffset, noLength, patch.fileUri, context: [
+      messagePatchDeclarationOrigin.withLocation(fileUri, charOffset, noLength)
+    ]);
   }
 }
 

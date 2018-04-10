@@ -16,6 +16,7 @@ import 'package:source_span/source_span.dart' show SourceLocation;
 import '../compiler/js_names.dart' as JS;
 import '../compiler/js_utils.dart' as JS;
 import '../compiler/module_builder.dart' show pathToJSIdentifier;
+import '../compiler/shared_compiler.dart';
 import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show NodeEnd, NodeSpan, HoverComment;
@@ -27,7 +28,8 @@ import 'nullable_inference.dart';
 import 'property_model.dart';
 import 'type_table.dart';
 
-class ProgramCompiler
+class ProgramCompiler extends Object
+    with SharedCompiler
     implements
         StatementVisitor<JS.Statement>,
         ExpressionVisitor<JS.Expression>,
@@ -247,6 +249,8 @@ class ProgramCompiler
         _nullableInference = new NullableInference(_typeRep);
 
   ClassHierarchy get hierarchy => types.hierarchy;
+
+  Uri get currentLibraryUri => _currentLibrary.importUri;
 
   JS.Program emitProgram(
       Component p, List<Component> summaries, List<Uri> summaryUris) {
@@ -2752,6 +2756,10 @@ class ProgramCompiler
     var typeFormals = _emitTypeFormals(f.typeParameters);
     formals.insertAll(0, typeFormals);
 
+    // TODO(jmesserly): need a way of determining if parameters are
+    // potentially mutated in Kernel. For now we assume all parameters are.
+    super.enterFunction(name, formals, () => true);
+
     JS.Block code = isSync
         ? _emitFunctionBody(f)
         : new JS.Block([
@@ -2759,25 +2767,7 @@ class ProgramCompiler
               ..sourceInformation = _nodeStart(f)
           ]);
 
-    if (name != null && formals.isNotEmpty) {
-      if (name == '[]=') {
-        // []= methods need to return the value. We could also address this at
-        // call sites, but it's cleaner to instead transform the operator method.
-        code = JS.alwaysReturnLastParameter(code, formals.last);
-      } else if (name == '==' && _currentLibrary.importUri.scheme != 'dart') {
-        // In Dart `operator ==` methods are not called with a null argument.
-        // This is handled before calling them. For performance reasons, we push
-        // this check inside the method, to simplify our `equals` helper.
-        //
-        // TODO(jmesserly): in most cases this check is not necessary, because
-        // the Dart code already handles it (typically by an `is` check).
-        // Eliminate it when possible.
-        code = new JS.Block([
-          js.statement('if (# == null) return false;', [formals.first]),
-          code
-        ]);
-      }
-    }
+    code = super.exitFunction(name, formals, code);
 
     return new JS.Fun(formals, code);
   }
@@ -3543,9 +3533,7 @@ class ProgramCompiler
 
   @override
   JS.Statement visitReturnStatement(ReturnStatement node) {
-    var e = node.expression;
-    if (e == null) return new JS.Return();
-    return _visitExpression(e).toReturn();
+    return super.emitReturnStatement(_visitExpression(node.expression));
   }
 
   @override

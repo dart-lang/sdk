@@ -98,8 +98,7 @@ class ContextRootImpl implements ContextRoot {
   bool _isExcluded(String path) {
     Context context = resourceProvider.pathContext;
     String name = context.basename(path);
-    if (name.startsWith('.') ||
-        (name == 'packages' && resourceProvider.getResource(path) is Folder)) {
+    if (name.startsWith('.')) {
       return true;
     }
     for (String excludedPath in excludedPaths) {

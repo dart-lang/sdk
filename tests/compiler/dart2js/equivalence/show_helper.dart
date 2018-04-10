@@ -20,6 +20,10 @@ ArgParser createArgParser() {
   argParser.addFlag('all', negatable: false, defaultsTo: false);
   argParser.addFlag('use-kernel', negatable: false, defaultsTo: false);
   argParser.addFlag('strong', negatable: false, defaultsTo: false);
+  argParser.addFlag('omit-implicit-checks',
+      negatable: false, defaultsTo: false);
+  argParser.addFlag('trust-type-annotations',
+      negatable: false, defaultsTo: false);
   return argParser;
 }
 
@@ -34,6 +38,8 @@ show(ArgResults argResults, ComputeMemberDataFunction computeAstData,
   bool verbose = argResults['verbose'];
   bool strongMode = argResults['strong'];
   bool useKernel = argResults['use-kernel'] || strongMode;
+  bool omitImplicitChecks = argResults['omit-implicit-checks'];
+  bool trustTypeAnnotations = argResults['trust-type-annotations'];
 
   String file = argResults.rest.first;
   Uri entryPoint = Uri.base.resolve(nativeToUriPath(file));
@@ -52,6 +58,12 @@ show(ArgResults argResults, ComputeMemberDataFunction computeAstData,
   }
   if (strongMode) {
     options.add(Flags.strongMode);
+  }
+  if (trustTypeAnnotations) {
+    options.add(Flags.trustTypeAnnotations);
+  }
+  if (omitImplicitChecks) {
+    options.add(Flags.omitImplicitChecks);
   }
   CompiledData data = await computeData(
       entryPoint, const {}, useKernel ? computeKernelData : computeAstData,

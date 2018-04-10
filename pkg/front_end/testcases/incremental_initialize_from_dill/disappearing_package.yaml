@@ -25,8 +25,11 @@ worlds:
       .packages: dummy:${outDirUri}
     expectedLibraryCount: 2
   - entry: main.dart
-    invalidate:
-      - main.dart
+    # TODO(jensj): For now we don't initialize from dill when a package was
+    # changed.
+    #invalidate:
+    #  - main.dart
+    expectInitializeFromDill: false
     sources:
       main.dart: |
         main() {

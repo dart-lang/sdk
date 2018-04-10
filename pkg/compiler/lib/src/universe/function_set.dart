@@ -242,6 +242,19 @@ class FunctionSetNode {
         : const EmptyFunctionSetQuery();
     return result;
   }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('FunctionSetNode(');
+    String comma = '';
+    cache.forEach((mask, query) {
+      sb.write(comma);
+      sb.write('$mask=$query');
+      comma = ',';
+    });
+    sb.write(')');
+    return sb.toString();
+  }
 }
 
 /// A set of functions that are the potential targets of all call sites sharing
@@ -265,6 +278,8 @@ class EmptyFunctionSetQuery implements FunctionSetQuery {
 
   @override
   Iterable<MemberEntity> get functions => const <MemberEntity>[];
+
+  String toString() => '<empty>';
 }
 
 class FullFunctionSetQuery implements FunctionSetQuery {
@@ -296,4 +311,6 @@ class FullFunctionSetQuery implements FunctionSetQuery {
         }),
         closedWorld);
   }
+
+  String toString() => '$_mask:$functions';
 }

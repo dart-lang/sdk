@@ -12,7 +12,8 @@ import 'identifier_context.dart';
 
 import 'parser.dart' show Parser;
 
-import 'type_info.dart' show insertSyntheticIdentifierAfter;
+import 'type_info.dart'
+    show insertSyntheticIdentifierAfter, isValidTypeReference;
 
 import 'util.dart' show optional;
 
@@ -65,4 +66,73 @@ class LibraryIdentifierContext extends IdentifierContext {
       optional('set', token) ||
       optional('var', token) ||
       optional('void', token);
+}
+
+class TypeReferenceIdentifierContext extends IdentifierContext {
+  const TypeReferenceIdentifierContext()
+      : super('typeReference',
+            isScopeReference: true,
+            isBuiltInIdentifierAllowed: false,
+            recoveryTemplate: fasta.templateExpectedType);
+
+  @override
+  Token ensureIdentifier(Token token, Parser parser) {
+    Token next = token.next;
+    assert(next.kind != IDENTIFIER_TOKEN);
+    if (isValidTypeReference(next)) {
+      return next;
+    }
+
+    // Recovery: skip over any annotations
+    while (optional('@', next)) {
+      // TODO(danrubel): Improve this error message to indicate that an
+      // annotation is not allowed before type arguments.
+      parser.reportRecoverableErrorWithToken(
+          next, fasta.templateUnexpectedToken);
+
+      Token annotation = next.next;
+      if (annotation.isIdentifier) {
+        if (optional('(', annotation.next)) {
+          if (annotation.next.endGroup.next.isIdentifier) {
+            token = annotation.next.endGroup;
+            next = token.next;
+          }
+        } else if (annotation.next.isIdentifier) {
+          token = annotation;
+          next = token.next;
+        }
+      }
+    }
+    if (isValidTypeReference(next)) {
+      return next;
+    } else if (next.isKeywordOrIdentifier) {
+      if (optional("void", next)) {
+        parser.reportRecoverableError(next, fasta.messageInvalidVoid);
+      } else if (next.type.isBuiltIn) {
+        parser.reportRecoverableErrorWithToken(
+            next, fasta.templateBuiltInIdentifierAsType);
+      } else {
+        parser.reportRecoverableErrorWithToken(
+            next, fasta.templateExpectedType);
+      }
+      return next;
+    }
+    parser.reportRecoverableErrorWithToken(next, fasta.templateExpectedType);
+    if (!isOneOfOrEof(next, ['>', ')', ']', '{', '}', ',', ';'])) {
+      // When in doubt, consume the token to ensure we make progress
+      token = next;
+      next = token.next;
+    }
+    // Insert a synthetic identifier to satisfy listeners.
+    return insertSyntheticIdentifierAfter(token, parser);
+  }
+}
+
+bool isOneOfOrEof(Token token, Iterable<String> followingValues) {
+  for (String tokenValue in followingValues) {
+    if (optional(tokenValue, token)) {
+      return true;
+    }
+  }
+  return token.isEof;
 }

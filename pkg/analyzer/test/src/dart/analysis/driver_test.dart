@@ -344,6 +344,12 @@ class AnalysisDriverSchedulerTest {
 
 @reflectiveTest
 class AnalysisDriverTest extends BaseAnalysisDriverTest {
+  void configurePreviewDart2() {
+    driver.configure(
+        analysisOptions: new AnalysisOptionsImpl.from(driver.analysisOptions)
+          ..previewDart2 = true);
+  }
+
   test_addedFiles() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
@@ -1000,6 +1006,63 @@ class B {}
     var result = await driver.getResult(testFile);
     var x = AstFinder.getTopLevelVariableElement(result.unit, 'x');
     expect(x.constantValue, isNotNull);
+  }
+
+  test_const_implicitCreation() async {
+    configurePreviewDart2();
+
+    var a = _p('/test/bin/a.dart');
+    var b = _p('/test/bin/b.dart');
+    provider.newFile(a, r'''
+class C {
+  const C();
+  static const C WARNING = C();
+}
+''');
+    provider.newFile(b, r'''
+import 'a.dart';
+
+class D {
+  const D();
+  static const D WARNING = D();
+}
+
+const c = C.WARNING;
+const d = D.WARNING;
+''');
+    AnalysisResult result = await driver.getResult(b);
+    expect(result.errors, isEmpty);
+  }
+
+  test_const_implicitCreation_rewrite() async {
+    configurePreviewDart2();
+
+    var a = _p('/test/bin/a.dart');
+    var b = _p('/test/bin/b.dart');
+    provider.newFile(a, r'''
+class A {
+  const A();
+}
+
+class B {
+  final A a;
+  const B(this.a);
+}
+
+class C {
+  const b = B(A());
+  const C();
+}
+''');
+    provider.newFile(b, r'''
+import 'a.dart';
+
+main() {
+  const C();
+}
+''');
+    AnalysisResult result = await driver.getResult(b);
+    expect(result.errors, isEmpty);
   }
 
   test_const_implicitSuperConstructorInvocation() async {

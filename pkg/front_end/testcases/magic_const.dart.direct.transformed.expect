@@ -12,20 +12,14 @@ class NotConstant extends core::Object {
     : super core::Object::•()
     ;
 }
-static method foo({dynamic a = invalid-expression "pkg/front_end/testcases/magic_const.dart:15:9: Error: The keyword 'const' or 'new' is required here. Due to an implementation limit, the compiler isn't able to infer 'const' or 'new' here.
-foo({a: Constant(), b: Constant(), c: []}) {}
-        ^", dynamic b = invalid-expression "pkg/front_end/testcases/magic_const.dart:15:24: Error: The keyword 'const' or 'new' is required here. Due to an implementation limit, the compiler isn't able to infer 'const' or 'new' here.
-foo({a: Constant(), b: Constant(), c: []}) {}
-                       ^", dynamic c = <dynamic>[]}) → dynamic {}
+static method foo({dynamic a = new self::Constant::•(), dynamic b = new self::Constant::•(), dynamic c = <dynamic>[]}) → dynamic {}
 static method test() → dynamic {
   invalid-expression "pkg/front_end/testcases/magic_const.dart:18:9: Error: Not a const constructor.
   const NotConstant();
         ^";
-  const self::Constant::•();
+  new self::Constant::•();
   const dynamic x = const self::Constant::•();
-  invalid-expression "pkg/front_end/testcases/magic_const.dart:21:8: Error: The keyword 'const' or 'new' is required here. Due to an implementation limit, the compiler isn't able to infer 'const' or 'new' here.
-  bool.fromEnvironment(\"fisk\");
-       ^";
+  core::bool::fromEnvironment("fisk");
   const dynamic b = const core::bool::fromEnvironment("fisk");
 }
 static method main() → dynamic {}

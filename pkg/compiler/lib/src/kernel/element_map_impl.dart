@@ -1814,7 +1814,10 @@ class KernelEvaluationEnvironment extends EvaluationEnvironmentBase {
   CommonElements get commonElements => _elementMap.commonElements;
 
   @override
-  InterfaceType substByContext(InterfaceType base, InterfaceType target) {
+  DartTypes get types => _elementMap.types;
+
+  @override
+  InterfaceType substByContext(DartType base, InterfaceType target) {
     return _elementMap._substByContext(base, target);
   }
 

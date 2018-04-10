@@ -1273,9 +1273,6 @@ abstract class Stream<T> {
    * If an error occurs, or if this stream ends without finding a match and
    * with no [orElse] function provided,
    * the returned future is completed with an error.
-   *
-   * The [defaultValue] parameter is deprecated, and [orElse] should be used
-   * instead.
    */
   Future<T> firstWhere(bool test(T element), {T orElse()}) {
     _Future<T> future = new _Future();
@@ -1314,9 +1311,6 @@ abstract class Stream<T> {
    * instead of the first.
    * That means that a non-error result cannot be provided before this stream
    * is done.
-   *
-   * The [defaultValue] parameter is deprecated, and [orElse] should be used
-   * instead.
    */
   Future<T> lastWhere(bool test(T element), {T orElse()}) {
     _Future<T> future = new _Future();

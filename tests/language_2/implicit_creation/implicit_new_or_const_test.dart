@@ -43,11 +43,9 @@ main() {
   for (var i = 0; i < instances.length; i++) {
     var c = instances[i];
     Expect.equals(c42, c);
-    if (i % 5 == 2 || i % 5 == 4) {
-      // The cases of C(42) without "new" are all constant.
+    if (i % 5 == 2) {
       Expect.identical(c42, c, "$i");
     } else {
-      // The rest are not.
       Expect.notIdentical(c42, c, "$i");
     }
   }

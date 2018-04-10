@@ -1586,16 +1586,6 @@ DART_EXPORT bool Dart_IsDart2Snapshot(const uint8_t* snapshot_buffer) {
   return false;
 }
 
-DART_EXPORT void Dart_InterruptIsolate(Dart_Isolate isolate) {
-  if (isolate == NULL) {
-    FATAL1("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);
-  }
-  // TODO(16615): Validate isolate parameter.
-  TransitionNativeToVM transition(Thread::Current());
-  Isolate* iso = reinterpret_cast<Isolate*>(isolate);
-  iso->SendInternalLibMessage(Isolate::kInterruptMsg, iso->pause_capability());
-}
-
 DART_EXPORT bool Dart_IsolateMakeRunnable(Dart_Isolate isolate) {
   CHECK_NO_ISOLATE(Isolate::Current());
   API_TIMELINE_DURATION(Thread::Current());
@@ -1686,21 +1676,6 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
   API_TIMELINE_BEGIN_END_BASIC(T);
   TransitionNativeToVM transition(T);
   if (I->message_handler()->HandleNextMessage() != MessageHandler::kOK) {
-    Dart_Handle error = Api::NewHandle(T, T->sticky_error());
-    T->clear_sticky_error();
-    return error;
-  }
-  return Api::Success();
-}
-
-DART_EXPORT Dart_Handle Dart_HandleMessages() {
-  Thread* T = Thread::Current();
-  Isolate* I = T->isolate();
-  CHECK_API_SCOPE(T);
-  CHECK_CALLBACK_STATE(T);
-  API_TIMELINE_BEGIN_END_BASIC(T);
-  TransitionNativeToVM transition(T);
-  if (I->message_handler()->HandleAllMessages() != MessageHandler::kOK) {
     Dart_Handle error = Api::NewHandle(T, T->sticky_error());
     T->clear_sticky_error();
     return error;

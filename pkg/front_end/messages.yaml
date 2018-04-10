@@ -277,6 +277,14 @@ ExpectedType:
   analyzerCode: EXPECTED_TYPE_NAME
   dart2jsCode: "*fatal*"
 
+MissingExpressionInThrow:
+  template: "Missing expression after 'throw'."
+  tip: "Add an expression after 'throw' or use 'rethrow' to throw a caught exception"
+  analyzerCode: MISSING_EXPRESSION_IN_THROW
+  dart2jsCode: "*fatal*"
+  statement:
+    - "throw;"
+
 MissingConstFinalVarOrType:
   template: "Variables must be declared using the keywords 'const', 'final', 'var' or a type name."
   tip: "Try adding the name of the type of the variable or the keyword 'var'."
@@ -1249,6 +1257,10 @@ InternalProblemMissingSeverity:
   template: "Message code missing severity: #string"
   severity: INTERNAL_PROBLEM
 
+InternalProblemContextSeverity:
+  template: "Non-context message has context severity: #string"
+  severity: INTERNAL_PROBLEM
+
 InternalVerificationError:
   template: |
     Verification of the generated program failed:
@@ -2049,10 +2061,3 @@ ImplicitCallOfNonMethod:
   template: "Can't invoke the type '#type' because its declaration of `.call` is not a method."
   tip: "Change .call to a method or explicitly invoke .call."
   severity: ERROR
-
-# TODO(ahe): Remove this message when the underlying issue is fixed.
-CantDetermineConstness:
-  template: "The keyword 'const' or 'new' is required here. Due to an implementation limit, the compiler isn't able to infer 'const' or 'new' here."
-  severity: ERROR
-  expression:
-    - "bool.fromEnvironment('fisk')"

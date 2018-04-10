@@ -1633,6 +1633,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         element is PropertyAccessorElement ? element.variable : element;
     if (variableElement is VariableElementImpl) {
       evaluationEngine.validator.beforeGetEvaluationResult(variableElement);
+      variableElement.computeConstantValue();
       EvaluationResultImpl value = variableElement.evaluationResult;
       if (variableElement.isConst && value != null) {
         return value.value;

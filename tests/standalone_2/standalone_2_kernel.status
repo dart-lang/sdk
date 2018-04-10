@@ -22,7 +22,7 @@ package/scenarios/invalid/invalid_utf8_test: CompileTimeError # Issue 32085
 package/scenarios/invalid/non_existent_packages_file_test: CompileTimeError # Issue 32085
 
 [ $builder_tag == optimization_counter_threshold && $compiler == dartk ]
-map_insert_remove_oom_test: Pass, Crash # Flaky on vm-kernel-optcounter-threshold-linux-release-x64, bug #31838
+map_insert_remove_oom_test: Pass, Crash, Timeout # Flaky on vm-kernel-optcounter-threshold-linux-release-x64, bug #31838. Sometimes times out, see issue 32786.
 
 [ $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
 io/file_lock_test: Slow, Pass

@@ -10,6 +10,7 @@ typedef dynamic FF({M b});
 const table =
 /*ast.null*/
 /*kernel.OutputUnit(1, {lib})*/
+/*strong.OutputUnit(1, {lib})*/
     const <int, FF>{1: f1, 2: f2};
 
 /*element: f1:OutputUnit(1, {lib})*/

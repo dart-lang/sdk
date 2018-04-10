@@ -855,10 +855,12 @@ class OutlineBuilder extends UnhandledListener {
               templateDuplicatedParameterName.withArguments(formals[1].name),
               formals[1].charOffset,
               formals[1].name.length,
-              context: templateDuplicatedParameterNameCause
-                  .withArguments(formals[1].name)
-                  .withLocation(
-                      uri, formals[0].charOffset, formals[0].name.length));
+              context: [
+                templateDuplicatedParameterNameCause
+                    .withArguments(formals[1].name)
+                    .withLocation(
+                        uri, formals[0].charOffset, formals[0].name.length)
+              ]);
         }
       } else if (formals.length > 2) {
         Map<String, FormalParameterBuilder> seenNames =
@@ -869,11 +871,13 @@ class OutlineBuilder extends UnhandledListener {
             addCompileTimeError(
                 templateDuplicatedParameterName.withArguments(formal.name),
                 formal.charOffset,
-                formal.name.length);
-            addCompileTimeError(
-                templateDuplicatedParameterNameCause.withArguments(formal.name),
-                seenNames[formal.name].charOffset,
-                seenNames[formal.name].name.length);
+                formal.name.length,
+                context: [
+                  templateDuplicatedParameterNameCause
+                      .withArguments(formal.name)
+                      .withLocation(uri, seenNames[formal.name].charOffset,
+                          seenNames[formal.name].name.length)
+                ]);
           } else {
             seenNames[formal.name] = formal;
           }
@@ -1179,13 +1183,13 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void addCompileTimeError(Message message, int charOffset, int length,
-      {LocatedMessage context}) {
+      {List<LocatedMessage> context}) {
     library.addCompileTimeError(message, charOffset, length, uri,
         context: context);
   }
 
   void addProblem(Message message, int charOffset, int length,
-      {LocatedMessage context}) {
+      {List<LocatedMessage> context}) {
     library.addProblem(message, charOffset, length, uri, context: context);
   }
 

@@ -209,20 +209,29 @@ class FrontendCompiler implements CompilerInterface {
       ..strongMode = options['strong']
       ..sdkSummary = sdkRoot.resolve(platformKernelDill)
       ..onProblem =
-          (message, Severity severity, String formatted, int line, int column) {
+          (message, Severity severity, List<FormattedMessage> context) {
+        bool printMessage;
         switch (severity) {
           case Severity.error:
-          case Severity.errorLegacyWarning:
           case Severity.internalProblem:
-            _outputStream.writeln(formatted);
-            errors.add(formatted);
+            printMessage = true;
+            errors.add(message.formatted);
             break;
           case Severity.nit:
+            printMessage = false;
             break;
           case Severity.warning:
-          case Severity.context:
-            _outputStream.writeln(formatted);
+            printMessage = true;
             break;
+          case Severity.errorLegacyWarning:
+          case Severity.context:
+            throw "Unexpected severity: $severity";
+        }
+        if (printMessage) {
+          _outputStream.writeln(message.formatted);
+          for (FormattedMessage message in context) {
+            _outputStream.writeln(message.formatted);
+          }
         }
       };
     if (options.wasParsed('filesystem-root')) {

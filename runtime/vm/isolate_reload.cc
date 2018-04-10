@@ -463,6 +463,7 @@ IsolateReloadContext::IsolateReloadContext(Isolate* isolate, JSONStream* js)
 }
 
 IsolateReloadContext::~IsolateReloadContext() {
+  ASSERT(zone_ == Thread::Current()->zone());
   ASSERT(saved_class_table_ == NULL);
 }
 
@@ -605,6 +606,7 @@ void IsolateReloadContext::Reload(bool force_reload,
       if (retval.status != Dart_KernelCompilationStatus_Ok) {
         TIR_Print("---- LOAD FAILED, ABORTING RELOAD\n");
         const String& error_str = String::Handle(String::New(retval.error));
+        free(retval.error);
         const ApiError& error = ApiError::Handle(ApiError::New(error_str));
         AddReasonForCancelling(new Aborted(zone_, error));
         ReportReasonsForCancelling();
@@ -1356,10 +1358,7 @@ void IsolateReloadContext::Commit() {
   // used for morphing. It is therefore important that morphing takes
   // place prior to any heap walking.
   // So please keep this code at the top of Commit().
-  if (HasInstanceMorphers()) {
-    // Perform shape shifting of instances if necessary.
-    MorphInstances();
-  } else {
+  if (!MorphInstances()) {
     free(saved_class_table_);
     saved_class_table_ = NULL;
   }
@@ -1586,9 +1585,12 @@ class ObjectLocator : public ObjectVisitor {
   intptr_t count_;
 };
 
-void IsolateReloadContext::MorphInstances() {
+bool IsolateReloadContext::MorphInstances() {
   TIMELINE_SCOPE(MorphInstances);
-  ASSERT(HasInstanceMorphers());
+  if (!HasInstanceMorphers()) {
+    return false;
+  }
+
   if (FLAG_trace_reload) {
     LogBlock blocker;
     TIR_Print("MorphInstance: \n");
@@ -1606,7 +1608,9 @@ void IsolateReloadContext::MorphInstances() {
 
   // Return if no objects are located.
   intptr_t count = locator.count();
-  if (count == 0) return;
+  if (count == 0) {
+    return false;
+  }
 
   TIR_Print("Found %" Pd " object%s subject to morphing.\n", count,
             (count > 1) ? "s" : "");
@@ -1640,6 +1644,7 @@ void IsolateReloadContext::MorphInstances() {
   free(saved_class_table_);
   saved_class_table_ = NULL;
   Become::ElementsForwardIdentity(before, after);
+  return true;
 }
 
 void IsolateReloadContext::RunNewFieldInitializers() {

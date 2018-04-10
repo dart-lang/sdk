@@ -40,7 +40,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
    * Creates an empty [Set].
    *
    * The created [Set] is a plain [LinkedHashSet].
-   * As such, it considers elements that are equal (using [==]) to be
+   * As such, it considers elements that are equal (using [operator ==]) to be
    * indistinguishable, and requires them to have a compatible
    * [Object.hashCode] implementation.
    *
@@ -70,7 +70,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
    *         new Set<SubType>.from(superSet.where((e) => e is SubType));
    *
    * The created [Set] is a [LinkedHashSet]. As such, it considers elements that
-   * are equal (using [==]) to be indistinguishable, and requires them to
+   * are equal (using [operator ==]) to be indistinguishable, and requires them to
    * have a compatible [Object.hashCode] implementation.
    *
    * The set is equivalent to one created by
@@ -82,7 +82,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
    * Creates a [Set] from [elements].
    *
    * The created [Set] is a [LinkedHashSet]. As such, it considers elements that
-   * are equal (using [==]) to be indistinguishable, and requires them to
+   * are equal (using [operator ==]) to be indistinguishable, and requires them to
    * have a compatible [Object.hashCode] implementation.
    *
    * The set is equivalent to one created by

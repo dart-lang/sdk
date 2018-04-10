@@ -1843,10 +1843,7 @@ class Parser {
     // ensureIdentifier methods in the various IdentifierContext subclasses.
 
     if (!next.isIdentifier) {
-      if (optional("void", next)) {
-        reportRecoverableError(next, fasta.messageInvalidVoid);
-        token = next;
-      } else if (next is ErrorToken) {
+      if (next is ErrorToken) {
         // TODO(brianwilkerson): This preserves the current semantics, but the
         // listener should not be recovering from this case, so this needs to be
         // reworked to recover in this method (probably inside the outermost
@@ -1898,13 +1895,8 @@ class Parser {
         reportRecoverableErrorWithToken(
             next, fasta.templateBuiltInIdentifierInDeclaration);
       } else if (!optional("dynamic", next)) {
-        if (context == IdentifierContext.typeReference &&
-            optional('.', next.next)) {
-          // Built in identifiers may be used as a prefix
-        } else {
-          reportRecoverableErrorWithToken(
-              next, fasta.templateBuiltInIdentifierAsType);
-        }
+        reportRecoverableErrorWithToken(
+            next, fasta.templateBuiltInIdentifierAsType);
       }
       token = next;
     } else if (!inPlainSync && next.type.isPseudo) {
@@ -2016,8 +2008,7 @@ class Parser {
       followingValues = [';', '=', ','];
     } else if (context == IdentifierContext.typedefDeclaration) {
       followingValues = ['(', '<', ';'];
-    } else if (context == IdentifierContext.typeReference ||
-        context == IdentifierContext.typeReferenceContinuation) {
+    } else if (context == IdentifierContext.typeReferenceContinuation) {
       followingValues = ['>', ')', ']', '}', ',', ';'];
     } else if (context == IdentifierContext.typeVariableDeclaration) {
       followingValues = ['<', '>', ';', '}'];
@@ -2748,7 +2739,6 @@ class Parser {
 
     Token externalToken;
     Token varFinalOrConst;
-    TypeContinuation typeContinuation;
 
     if (isModifier(next)) {
       if (optional('external', next)) {
@@ -2757,32 +2747,27 @@ class Parser {
       }
       if (isModifier(next)) {
         if (optional('final', next)) {
-          typeContinuation = TypeContinuation.Optional;
           varFinalOrConst = token = next;
           next = token.next;
         } else if (optional('var', next)) {
-          typeContinuation = TypeContinuation.OptionalAfterVar;
           varFinalOrConst = token = next;
           next = token.next;
         } else if (optional('const', next)) {
-          typeContinuation = TypeContinuation.Optional;
           varFinalOrConst = token = next;
           next = token.next;
         }
         if (isModifier(next)) {
           ModifierRecoveryContext2 context = new ModifierRecoveryContext2(this);
-          token = context.parseTopLevelModifiers(token, typeContinuation,
+          token = context.parseTopLevelModifiers(token,
               externalToken: externalToken, varFinalOrConst: varFinalOrConst);
           next = token.next;
 
-          typeContinuation = context.typeContinuation;
           externalToken = context.externalToken;
           varFinalOrConst = context.varFinalOrConst;
           context = null;
         }
       }
     }
-    typeContinuation ??= TypeContinuation.Required;
 
     Token beforeType = token;
     TypeInfo typeInfo = computeType(token, false);
@@ -2878,12 +2863,8 @@ class Parser {
       reportRecoverableErrorWithToken(
           getOrSet, fasta.templateExtraneousModifier);
     }
-    // TODO(danrubel): Use typeInfo when parsing fields.
-    if (typeInfo == noTypeInfo) {
-      beforeType = null;
-    }
     return parseFields(beforeStart, externalToken, null, null, varFinalOrConst,
-        beforeType, token, MemberKind.TopLevelField, typeContinuation);
+        beforeType, typeInfo, token, true);
   }
 
   Token parseFields(
@@ -2893,9 +2874,9 @@ class Parser {
       Token covariantToken,
       Token varFinalOrConst,
       Token beforeType,
+      TypeInfo typeInfo,
       Token beforeName,
-      MemberKind memberKind,
-      TypeContinuation typeContinuation) {
+      bool isTopLevel) {
     if (externalToken != null) {
       reportRecoverableError(externalToken, fasta.messageExternalField);
     }
@@ -2905,19 +2886,18 @@ class Parser {
         covariantToken = null;
       }
     }
-
-    bool isTopLevel = memberKind == MemberKind.TopLevelField;
-
-    if (beforeType != null) {
-      parseType(beforeType, typeContinuation, null, memberKind);
-    } else if (varFinalOrConst != null) {
-      listener.handleNoType(beforeName);
+    if (typeInfo == noTypeInfo) {
+      if (varFinalOrConst == null) {
+        reportRecoverableError(
+            beforeName.next, fasta.messageMissingConstFinalVarOrType);
+      }
     } else {
-      // Recovery
-      reportRecoverableError(
-          beforeName.next, fasta.messageMissingConstFinalVarOrType);
-      listener.handleNoType(beforeName);
+      if (varFinalOrConst != null && optional('var', varFinalOrConst)) {
+        reportRecoverableError(varFinalOrConst, fasta.messageTypeAfterVar);
+      }
     }
+
+    typeInfo.parseType(beforeType, this);
 
     IdentifierContext context = isTopLevel
         ? IdentifierContext.topLevelVariableDeclaration
@@ -3432,7 +3412,6 @@ class Parser {
   Token parseClassMemberImpl(Token token) {
     Token beforeStart = token = parseMetadataStar(token);
 
-    TypeContinuation typeContinuation;
     Token covariantToken;
     Token externalToken;
     Token staticToken;
@@ -3454,22 +3433,19 @@ class Parser {
         }
         if (isModifier(next)) {
           if (optional('final', next)) {
-            typeContinuation = TypeContinuation.Optional;
             varFinalOrConst = token = next;
             next = token.next;
           } else if (optional('var', next)) {
-            typeContinuation = TypeContinuation.OptionalAfterVar;
             varFinalOrConst = token = next;
             next = token.next;
           } else if (optional('const', next) && covariantToken == null) {
-            typeContinuation = TypeContinuation.Optional;
             varFinalOrConst = token = next;
             next = token.next;
           }
           if (isModifier(next)) {
             ModifierRecoveryContext2 context =
                 new ModifierRecoveryContext2(this);
-            token = context.parseClassMemberModifiers(token, typeContinuation,
+            token = context.parseClassMemberModifiers(token,
                 externalToken: externalToken,
                 staticToken: staticToken,
                 covariantToken: covariantToken,
@@ -3481,13 +3457,11 @@ class Parser {
             staticToken = context.staticToken;
             varFinalOrConst = context.varFinalOrConst;
 
-            typeContinuation = context.typeContinuation;
             context = null;
           }
         }
       }
     }
-    typeContinuation ??= TypeContinuation.Required;
 
     listener.beginMember();
 
@@ -3567,8 +3541,7 @@ class Parser {
             varFinalOrConst,
             beforeType,
             typeInfo,
-            getOrSet,
-            typeContinuation);
+            getOrSet);
       }
     } else if (typeInfo == noTypeInfo && varFinalOrConst == null) {
       Token next2 = next.next;
@@ -3608,22 +3581,8 @@ class Parser {
         reportRecoverableErrorWithToken(
             getOrSet, fasta.templateExtraneousModifier);
       }
-      // TODO(danrubel): Use typeInfo when parsing fields.
-      if (typeInfo == noTypeInfo) {
-        beforeType = null;
-      }
-      token = parseFields(
-          beforeStart,
-          externalToken,
-          staticToken,
-          covariantToken,
-          varFinalOrConst,
-          beforeType,
-          token,
-          staticToken != null
-              ? MemberKind.StaticField
-              : MemberKind.NonStaticField,
-          typeContinuation);
+      token = parseFields(beforeStart, externalToken, staticToken,
+          covariantToken, varFinalOrConst, beforeType, typeInfo, token, false);
     }
     listener.endMember();
     return token;
@@ -4173,9 +4132,6 @@ class Parser {
       return parseForStatement(token, null);
     } else if (identical(value, 'rethrow')) {
       return parseRethrowStatement(token);
-    } else if (identical(value, 'throw') && optional(';', token.next.next)) {
-      // TODO(kasperl): Stop dealing with throw here.
-      return parseRethrowStatement(token);
     } else if (identical(value, 'while')) {
       return parseWhileStatement(token);
     } else if (identical(value, 'do')) {
@@ -4598,9 +4554,24 @@ class Parser {
           token.next, POSTFIX_PRECEDENCE, allowCascades);
       listener.handleUnaryPrefixAssignmentExpression(operator);
       return token;
-    } else {
-      return parsePrimary(token, IdentifierContext.expression);
+    } else if (token.next.isIdentifier) {
+      Token identifier = token.next;
+      if (optional(".", identifier.next)) {
+        identifier = identifier.next.next;
+      }
+      if (identifier.isIdentifier) {
+        // Looking at `identifier ('.' identifier)?`.
+        if (optional("<", identifier.next)) {
+          BeginToken typeArguments = identifier.next;
+          Token endTypeArguments = typeArguments.endGroup;
+          if (endTypeArguments != null &&
+              optional(".", endTypeArguments.next)) {
+            return parseImplicitCreationExpression(token);
+          }
+        }
+      }
     }
+    return parsePrimary(token, IdentifierContext.expression);
   }
 
   Token parseArgumentOrIndexStar(Token token, Token typeArguments) {
@@ -5010,6 +4981,15 @@ class Parser {
     token = parseConstructorReference(newKeyword);
     token = parseRequiredArguments(token);
     listener.endNewExpression(newKeyword);
+    return token;
+  }
+
+  Token parseImplicitCreationExpression(Token token) {
+    Token begin = token;
+    listener.beginImplicitCreationExpression(token);
+    token = parseConstructorReference(token);
+    token = parseRequiredArguments(token);
+    listener.endImplicitCreationExpression(begin);
     return token;
   }
 
@@ -5883,6 +5863,17 @@ class Parser {
   Token parseThrowExpression(Token token, bool allowCascades) {
     Token throwToken = token.next;
     assert(optional('throw', throwToken));
+    if (optional(';', throwToken.next)) {
+      // TODO(danrubel): Find a better way to intercept the parseExpression
+      // recovery to generate this error message rather than explicitly
+      // checking the next token as we are doing here.
+      reportRecoverableError(
+          throwToken.next, fasta.messageMissingExpressionInThrow);
+      rewriter.insertTokenAfter(
+          throwToken,
+          new SyntheticStringToken(
+              TokenType.STRING, '""', throwToken.next.charOffset, 0));
+    }
     token = allowCascades
         ? parseExpression(throwToken)
         : parseExpressionWithoutCascade(throwToken);
@@ -5897,14 +5888,8 @@ class Parser {
   /// ```
   Token parseRethrowStatement(Token token) {
     Token throwToken = token.next;
-    assert(optional('rethrow', throwToken) || optional('throw', throwToken));
+    assert(optional('rethrow', throwToken));
     listener.beginRethrowStatement(throwToken);
-    // TODO(kasperl): Disallow throw here.
-    if (optional('throw', throwToken)) {
-      expect('throw', throwToken);
-    } else {
-      expect('rethrow', throwToken);
-    }
     token = ensureSemicolon(throwToken);
     listener.endRethrowStatement(throwToken, token);
     return token;
@@ -6351,8 +6336,7 @@ class Parser {
       Token varFinalOrConst,
       Token beforeType,
       TypeInfo typeInfo,
-      Token getOrSet,
-      TypeContinuation typeContinuation) {
+      Token getOrSet) {
     Token next = token.next;
     String value = next.stringValue;
 
@@ -6404,10 +6388,6 @@ class Parser {
             getOrSet,
             token);
       } else {
-        // TODO(danrubel): Use typeInfo when parsing fields.
-        if (typeInfo == noTypeInfo) {
-          beforeType = null;
-        }
         token = parseFields(
             beforeStart,
             externalToken,
@@ -6415,9 +6395,9 @@ class Parser {
             covariantToken,
             varFinalOrConst,
             beforeType,
+            typeInfo,
             token,
-            MemberKind.NonStaticField,
-            typeContinuation);
+            false);
       }
     }
 

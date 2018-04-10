@@ -66,7 +66,6 @@ class LocalVariableTest extends PartialCodeTest {
                 'for',
                 'labeled',
                 'localFunctionNonVoid',
-                'localFunctionVoid',
                 'return',
               ]),
           new TestDescriptor(
@@ -85,7 +84,6 @@ class LocalVariableTest extends PartialCodeTest {
                 'for',
                 'labeled',
                 'localFunctionNonVoid',
-                'localFunctionVoid',
                 'return',
               ]),
           new TestDescriptor('constNameCommaName', 'const a, b',

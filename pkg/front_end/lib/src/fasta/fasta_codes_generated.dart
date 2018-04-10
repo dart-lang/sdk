@@ -359,16 +359,6 @@ Message _withArgumentsCannotReadSdkSpecification(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeCantDetermineConstness = messageCantDetermineConstness;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCantDetermineConstness = const MessageCode(
-    "CantDetermineConstness",
-    severity: Severity.error,
-    message:
-        r"""The keyword 'const' or 'new' is required here. Due to an implementation limit, the compiler isn't able to infer 'const' or 'new' here.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeCantInferPackagesFromManyInputs =
     messageCantInferPackagesFromManyInputs;
 
@@ -2581,6 +2571,28 @@ Message _withArgumentsInternalProblemConstructorNotFound(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)>
+    templateInternalProblemContextSeverity =
+    const Template<Message Function(String string)>(
+        messageTemplate:
+            r"""Non-context message has context severity: #string""",
+        withArguments: _withArgumentsInternalProblemContextSeverity);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeInternalProblemContextSeverity =
+    const Code<Message Function(String string)>(
+        "InternalProblemContextSeverity",
+        templateInternalProblemContextSeverity,
+        severity: Severity.internalProblem);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInternalProblemContextSeverity(String string) {
+  return new Message(codeInternalProblemContextSeverity,
+      message: """Non-context message has context severity: $string""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInternalProblemExtendingUnmodifiableScope =
     messageInternalProblemExtendingUnmodifiableScope;
 
@@ -3533,6 +3545,18 @@ const MessageCode messageMissingExponent = const MessageCode("MissingExponent",
         r"""Numbers in exponential notation should always contain an exponent (an integer number with an optional sign).""",
     tip:
         r"""Make sure there is an exponent, and remove any whitespace before it.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingExpressionInThrow = messageMissingExpressionInThrow;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingExpressionInThrow = const MessageCode(
+    "MissingExpressionInThrow",
+    analyzerCode: "MISSING_EXPRESSION_IN_THROW",
+    dart2jsCode: "*fatal*",
+    message: r"""Missing expression after 'throw'.""",
+    tip:
+        r"""Add an expression after 'throw' or use 'rethrow' to throw a caught exception""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMissingFunctionParameters =

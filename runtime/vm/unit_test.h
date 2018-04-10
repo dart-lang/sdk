@@ -355,14 +355,10 @@ class TestCase : TestCaseBase {
   virtual void Run();
 
   // Sets |script| to be the source used at next reload.
-  static void SetReloadTestScript(const char* script);
+  static Dart_Handle SetReloadTestScript(const char* script);
 
   // Initiates the reload.
   static Dart_Handle TriggerReload();
-
-  // Returns the root library if the last reload was successful, otherwise
-  // returns Dart_Null().
-  static Dart_Handle GetReloadLibrary();
 
   // Helper function which reloads the current isolate using |script|.
   static Dart_Handle ReloadTestScript(const char* script);
@@ -382,11 +378,6 @@ class TestCase : TestCaseBase {
                                     const uint8_t* instr_buffer,
                                     const char* name,
                                     void* data = NULL);
-
-  // Gets the result of a reload. This touches state in IsolateReloadContext
-  // that is zone allocated and should not be used if a reload is triggered
-  // using reloadTest() from package:isolate_reload_helper.
-  static Dart_Handle GetReloadErrorOrRootLibrary();
 
   RunEntry* const run_;
 };

@@ -392,9 +392,9 @@ class CompilerOptions implements DiagnosticOptions {
     librariesSpecificationUri = _resolveLibrariesSpecification(libraryRoot);
 
     if (strongMode) {
-      // Strong mode represents implicit downcasts explicitly, so assignments
-      // checks provide no additional value.
-      assignmentCheckPolicy = CheckPolicy.ignored;
+      // Strong mode always trusts type annotations (inferred or explicit), so
+      // assignments checks should be trusted.
+      assignmentCheckPolicy = CheckPolicy.trusted;
       if (omitImplicitChecks) {
         parameterCheckPolicy = CheckPolicy.trusted;
         implicitDowncastCheckPolicy = CheckPolicy.trusted;

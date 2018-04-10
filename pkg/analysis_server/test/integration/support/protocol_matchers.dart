@@ -2486,6 +2486,31 @@ final Matcher isExtractWidgetOptions = new LazyMatcher(
     () => new MatchesJsonObject("extractWidget options", {"name": isString}));
 
 /**
+ * flutter.getChangeAddForDesignTimeConstructor params
+ *
+ * {
+ *   "file": FilePath
+ *   "offset": int
+ * }
+ */
+final Matcher isFlutterGetChangeAddForDesignTimeConstructorParams =
+    new LazyMatcher(() => new MatchesJsonObject(
+        "flutter.getChangeAddForDesignTimeConstructor params",
+        {"file": isFilePath, "offset": isInt}));
+
+/**
+ * flutter.getChangeAddForDesignTimeConstructor result
+ *
+ * {
+ *   "change": SourceChange
+ * }
+ */
+final Matcher isFlutterGetChangeAddForDesignTimeConstructorResult =
+    new LazyMatcher(() => new MatchesJsonObject(
+        "flutter.getChangeAddForDesignTimeConstructor result",
+        {"change": isSourceChange}));
+
+/**
  * flutter.outline params
  *
  * {

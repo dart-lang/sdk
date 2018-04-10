@@ -11072,6 +11072,210 @@ class FileKind implements Enum {
 }
 
 /**
+ * flutter.getChangeAddForDesignTimeConstructor params
+ *
+ * {
+ *   "file": FilePath
+ *   "offset": int
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class FlutterGetChangeAddForDesignTimeConstructorParams
+    implements RequestParams {
+  String _file;
+
+  int _offset;
+
+  /**
+   * The file containing the code of the class.
+   */
+  String get file => _file;
+
+  /**
+   * The file containing the code of the class.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  /**
+   * The offset of the class in the code.
+   */
+  int get offset => _offset;
+
+  /**
+   * The offset of the class in the code.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
+
+  FlutterGetChangeAddForDesignTimeConstructorParams(String file, int offset) {
+    this.file = file;
+    this.offset = offset;
+  }
+
+  factory FlutterGetChangeAddForDesignTimeConstructorParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "file");
+      }
+      int offset;
+      if (json.containsKey("offset")) {
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "offset");
+      }
+      return new FlutterGetChangeAddForDesignTimeConstructorParams(
+          file, offset);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath,
+          "flutter.getChangeAddForDesignTimeConstructor params", json);
+    }
+  }
+
+  factory FlutterGetChangeAddForDesignTimeConstructorParams.fromRequest(
+      Request request) {
+    return new FlutterGetChangeAddForDesignTimeConstructorParams.fromJson(
+        new RequestDecoder(request), "params", request.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    result["offset"] = offset;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return new Request(
+        id, "flutter.getChangeAddForDesignTimeConstructor", toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is FlutterGetChangeAddForDesignTimeConstructorParams) {
+      return file == other.file && offset == other.offset;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * flutter.getChangeAddForDesignTimeConstructor result
+ *
+ * {
+ *   "change": SourceChange
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class FlutterGetChangeAddForDesignTimeConstructorResult
+    implements ResponseResult {
+  SourceChange _change;
+
+  /**
+   * The change that adds the forDesignTime() constructor. If the change cannot
+   * be produced, an error is returned.
+   */
+  SourceChange get change => _change;
+
+  /**
+   * The change that adds the forDesignTime() constructor. If the change cannot
+   * be produced, an error is returned.
+   */
+  void set change(SourceChange value) {
+    assert(value != null);
+    this._change = value;
+  }
+
+  FlutterGetChangeAddForDesignTimeConstructorResult(SourceChange change) {
+    this.change = change;
+  }
+
+  factory FlutterGetChangeAddForDesignTimeConstructorResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      SourceChange change;
+      if (json.containsKey("change")) {
+        change = new SourceChange.fromJson(
+            jsonDecoder, jsonPath + ".change", json["change"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "change");
+      }
+      return new FlutterGetChangeAddForDesignTimeConstructorResult(change);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath,
+          "flutter.getChangeAddForDesignTimeConstructor result", json);
+    }
+  }
+
+  factory FlutterGetChangeAddForDesignTimeConstructorResult.fromResponse(
+      Response response) {
+    return new FlutterGetChangeAddForDesignTimeConstructorResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["change"] = change.toJson();
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is FlutterGetChangeAddForDesignTimeConstructorResult) {
+      return change == other.change;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, change.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * FlutterOutline
  *
  * {

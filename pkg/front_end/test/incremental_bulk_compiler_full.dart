@@ -15,7 +15,7 @@ import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
-import 'package:front_end/src/fasta/fasta_codes.dart' show LocatedMessage;
+import 'package:front_end/src/fasta/fasta_codes.dart' show FormattedMessage;
 
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
@@ -60,8 +60,8 @@ CompilerOptions getOptions(bool strong) {
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
-    ..onProblem = (LocatedMessage message, Severity severity, String formatted,
-        int line, int column) {
+    ..onProblem = (FormattedMessage problem, Severity severity,
+        List<FormattedMessage> context) {
       // ignore
     }
     ..strongMode = strong;

@@ -27,15 +27,24 @@ main(List<String> args) {
     Directory dataDir =
         new Directory.fromUri(Platform.script.resolve('emission'));
     await checkTests(
-        dataDir, computeAstRtiMemberEmission, computeKernelRtiMemberEmission,
-        computeClassDataFromAst: computeAstRtiClassEmission,
-        computeClassDataFromKernel: computeKernelRtiClassEmission,
-        args: args,
-        skipForKernel: [
-          // TODO(johnniwinther): Fix this. It triggers a crash in the ssa
-          // builder.
-          'runtime_type.dart',
-        ]);
+      dataDir,
+      computeAstRtiMemberEmission,
+      computeKernelRtiMemberEmission,
+      computeClassDataFromAst: computeAstRtiClassEmission,
+      computeClassDataFromKernel: computeKernelRtiClassEmission,
+      args: args,
+      skipForStrong: [
+        // Dart 1 semantics:
+        'call.dart',
+        'call_typed.dart',
+        'call_typed_generic.dart',
+        'function_subtype_call2.dart',
+        'function_type_argument.dart',
+        'map_literal_checked.dart',
+        // TODO(johnniwinther): Optimize local function type signature need.
+        'subtype_named_args.dart',
+      ],
+    );
   });
 }
 

@@ -595,10 +595,6 @@ abstract class AbstractConstExprSerializer {
   }
 
   void _serializeMethodInvocation(MethodInvocation invocation) {
-    if (invocation.target != null ||
-        invocation.methodName.name != 'identical') {
-      isValidConst = false;
-    }
     Expression target = invocation.target;
     SimpleIdentifier methodName = invocation.methodName;
     ArgumentList argumentList = invocation.argumentList;

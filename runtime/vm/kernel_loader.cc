@@ -40,7 +40,7 @@ class SimpleExpressionConverter {
         builder_(builder) {}
 
   bool IsSimple(intptr_t kernel_offset) {
-    AlternativeReadingScope alt(builder_->reader_, kernel_offset);
+    AlternativeReadingScope alt(&builder_->reader_, kernel_offset);
     uint8_t payload = 0;
     Tag tag = builder_->ReadTag(&payload);  // read tag.
     switch (tag) {
@@ -726,8 +726,8 @@ void KernelLoader::LoadLibrary(intptr_t index) {
 
   library_kernel_data_ =
       TypedData::New(kTypedDataUint8ArrayCid, library_size, Heap::kOld);
-  builder_.reader_->CopyDataToVMHeap(library_kernel_data_,
-                                     library_kernel_offset_, library_size);
+  builder_.reader_.CopyDataToVMHeap(library_kernel_data_,
+                                    library_kernel_offset_, library_size);
   library.set_kernel_data(library_kernel_data_);
   library.set_kernel_offset(library_kernel_offset_);
 
@@ -825,7 +825,7 @@ void KernelLoader::LoadLibrary(intptr_t index) {
     field_helper.ReadUntilExcluding(FieldHelper::kEnd);
     {
       // GenerateFieldAccessors reads (some of) the initializer.
-      AlternativeReadingScope alt(builder_.reader_, field_initializer_offset);
+      AlternativeReadingScope alt(&builder_.reader_, field_initializer_offset);
       GenerateFieldAccessors(toplevel_class, field, &field_helper);
     }
     if (FLAG_enable_mirrors && field_helper.annotation_count_ > 0) {
@@ -1159,7 +1159,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       field_helper.ReadUntilExcluding(FieldHelper::kEnd);
       {
         // GenerateFieldAccessors reads (some of) the initializer.
-        AlternativeReadingScope alt(builder_.reader_, field_initializer_offset);
+        AlternativeReadingScope alt(&builder_.reader_,
+                                    field_initializer_offset);
         GenerateFieldAccessors(klass, field, &field_helper);
       }
       if (FLAG_enable_mirrors && field_helper.annotation_count_ > 0) {

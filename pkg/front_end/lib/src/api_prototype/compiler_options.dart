@@ -8,18 +8,20 @@ import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 import 'package:kernel/target/targets.dart' show Target;
 
-import '../fasta/fasta_codes.dart' show LocatedMessage;
+import '../fasta/fasta_codes.dart' show FormattedMessage;
 import '../fasta/severity.dart' show Severity;
 
 import 'compilation_message.dart';
 import 'file_system.dart';
 import 'standard_file_system.dart';
 
+export '../fasta/fasta_codes.dart' show FormattedMessage;
+
 /// Callback used to report errors encountered during compilation.
 typedef void ErrorHandler(CompilationMessage error);
 
-typedef void ProblemHandler(LocatedMessage problem, Severity severity,
-    String formatted, int line, int column);
+typedef void ProblemHandler(FormattedMessage problem, Severity severity,
+    List<FormattedMessage> context);
 
 /// Front-end options relevant to compiler back ends.
 ///

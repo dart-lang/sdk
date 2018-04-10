@@ -180,24 +180,6 @@ test_pack:lib/''');
     expect(sourceFactory.forUri('dart:typed_data'), isNotNull);
   }
 
-  test_ignoreFilesInPackagesFolder() {
-    // create a context with a pubspec.yaml file
-    String pubspecPath = path.posix.join(projPath, 'pubspec.yaml');
-    resourceProvider.newFile(pubspecPath, 'pubspec');
-    // create a file in the "packages" folder
-    String filePath1 = path.posix.join(projPath, 'packages', 'file1.dart');
-    resourceProvider.newFile(filePath1, 'contents');
-    // "packages" files are ignored initially
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    expect(callbacks.currentFilePaths, isEmpty);
-    // "packages" files are ignored during watch
-    String filePath2 = path.posix.join(projPath, 'packages', 'file2.dart');
-    resourceProvider.newFile(filePath2, 'contents');
-    return pumpEventQueue().then((_) {
-      expect(callbacks.currentFilePaths, isEmpty);
-    });
-  }
-
   void test_isInAnalysisRoot_excluded() {
     // prepare paths
     String project = convertPath('/project');
@@ -236,6 +218,23 @@ test_pack:lib/''');
   void test_isInAnalysisRoot_notInRoot() {
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     expect(manager.isInAnalysisRoot('/test.dart'), isFalse);
+  }
+
+  test_packagesFolder_areAnalyzed() {
+    // create a context with a pubspec.yaml file
+    String pubspecPath = path.posix.join(projPath, 'pubspec.yaml');
+    resourceProvider.newFile(pubspecPath, 'pubspec');
+    // create a file in the "packages" folder
+    String filePath1 = path.posix.join(projPath, 'packages', 'file1.dart');
+    File file1 = resourceProvider.newFile(filePath1, 'contents');
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    expect(callbacks.currentFilePaths, unorderedEquals([file1.path]));
+    String filePath2 = path.posix.join(projPath, 'packages', 'file2.dart');
+    File file2 = resourceProvider.newFile(filePath2, 'contents');
+    return pumpEventQueue().then((_) {
+      expect(callbacks.currentFilePaths,
+          unorderedEquals([file1.path, file2.path]));
+    });
   }
 
   test_path_filter() async {
@@ -943,16 +942,6 @@ test_pack:lib/''');
     expect(callbacks.currentFilePaths, hasLength(0));
   }
 
-  void test_setRoots_noContext_inPackagesFolder() {
-    String pubspecPath = path.posix.join(projPath, 'packages', 'pubspec.yaml');
-    resourceProvider.newFile(pubspecPath, 'name: test');
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    // verify
-    expect(callbacks.currentContextRoots, hasLength(1));
-    expect(callbacks.currentContextRoots, contains(projPath));
-    expect(callbacks.currentFilePaths, hasLength(0));
-  }
-
   void test_setRoots_packageResolver() {
     String filePath = join(projPath, 'lib', 'foo.dart');
     newFile('$projPath/${ContextManagerImpl.PACKAGE_SPEC_NAME}',
@@ -966,6 +955,16 @@ test_pack:lib/''');
     expect(drivers[0], isNotNull);
     Source result = sourceFactory.forUri('package:foo/foo.dart');
     expect(result.fullName, filePath);
+  }
+
+  void test_setRoots_packagesFolder_hasContext() {
+    String pubspecPath = path.posix.join(projPath, 'packages', 'pubspec.yaml');
+    resourceProvider.newFile(pubspecPath, 'name: test');
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    // verify
+    expect(callbacks.currentContextRoots, hasLength(2));
+    expect(callbacks.currentContextRoots, contains(projPath));
+    expect(callbacks.currentFilePaths, hasLength(0));
   }
 
   void test_setRoots_pathContainsDotFile() {

@@ -532,11 +532,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     }
   }
 
-  int sizeOfNode(jsAst.Node node) {
-    // TODO(sigmund): switch back to null aware operators (issue #24136)
-    var size = _nodeToSize[node];
-    return size == null ? 0 : size;
-  }
+  int sizeOfNode(jsAst.Node node) => _nodeToSize[node] ?? 0;
 
   String codeOf(Entity entity) {
     List<jsAst.Node> code = _entityToNodes[entity];
@@ -629,6 +625,10 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
             new Duration(milliseconds: stopwatch.elapsedMilliseconds),
         dumpInfoDuration: new Duration(milliseconds: this.timing),
         noSuchMethodEnabled: closedWorld.backendUsage.isNoSuchMethodUsed,
+        isRuntimeTypeUsed: closedWorld.backendUsage.isRuntimeTypeUsed,
+        isIsolateInUse: closedWorld.backendUsage.isIsolateInUse,
+        isFunctionApplyUsed: closedWorld.backendUsage.isFunctionApplyUsed,
+        isMirrorsUsed: closedWorld.backendUsage.isMirrorsUsed,
         minified: compiler.options.enableMinification);
 
     ChunkedConversionSink<Object> sink = encoder.startChunkedConversion(

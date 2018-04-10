@@ -58,7 +58,11 @@ exposeThis2() => new Class2();
 
 abstract class SuperClass1 {
   /*element: SuperClass1.:[exact=Class3]*/
-  SuperClass1(/*[null|subclass=Object]*/ o);
+  SuperClass1(
+      /*ast.[null|subclass=Object]*/
+      /*kernel.[null|subclass=Object]*/
+      /*strong.[null|subclass=JSInt]*/
+      o);
 }
 
 class Class3 extends SuperClass1 {

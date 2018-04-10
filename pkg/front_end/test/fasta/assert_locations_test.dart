@@ -16,7 +16,7 @@ import "package:front_end/src/api_prototype/compiler_options.dart"
 
 import 'package:front_end/src/testing/compiler_common.dart' show compileScript;
 
-import 'package:front_end/src/fasta/fasta_codes.dart' show LocatedMessage;
+import 'package:front_end/src/fasta/fasta_codes.dart' show FormattedMessage;
 
 import 'package:front_end/src/fasta/severity.dart' show Severity;
 
@@ -137,9 +137,9 @@ void main() {
   asyncTest(() async {
     Test test = generateTest();
     CompilerOptions options = new CompilerOptions()
-      ..onProblem = (LocatedMessage message, Severity severity,
-          String formatted, int line, int column) {
-        Expect.fail("Unexpected error: $formatted");
+      ..onProblem = (FormattedMessage message, Severity severity,
+          List<FormattedMessage> context) {
+        Expect.fail("Unexpected error: ${message.formatted}");
       }
       ..strongMode = true;
     Component p = await compileScript(test.source,

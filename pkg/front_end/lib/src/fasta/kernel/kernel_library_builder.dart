@@ -201,8 +201,10 @@ class KernelLibraryBuilder
               templateConflictsWithTypeVariable.withArguments(name),
               member.charOffset,
               name.length,
-              context: messageConflictsWithTypeVariableCause.withLocation(
-                  tv.fileUri, tv.charOffset, name.length));
+              context: [
+                messageConflictsWithTypeVariableCause.withLocation(
+                    tv.fileUri, tv.charOffset, name.length)
+              ]);
         }
       }
       setParent(name, member);
@@ -226,10 +228,12 @@ class KernelLibraryBuilder
       if (existing != null) {
         addCompileTimeError(messageTypeVariableDuplicatedName, tv.charOffset,
             tv.name.length, fileUri,
-            context: templateTypeVariableDuplicatedNameCause
-                .withArguments(tv.name)
-                .withLocation(
-                    fileUri, existing.charOffset, existing.name.length));
+            context: [
+              templateTypeVariableDuplicatedNameCause
+                  .withArguments(tv.name)
+                  .withLocation(
+                      fileUri, existing.charOffset, existing.name.length)
+            ]);
       } else {
         typeVariablesByName[tv.name] = tv;
         if (owner is ClassBuilder) {

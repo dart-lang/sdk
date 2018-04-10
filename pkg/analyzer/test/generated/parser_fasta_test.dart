@@ -472,18 +472,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_missingExpressionInThrow() {
-    // TODO(brianwilkerson) Does not recover.
-    //   type 'RethrowExpressionImpl' is not a subtype of type 'ThrowExpression' of 'expression' where
-    //   RethrowExpressionImpl is from package:analyzer/src/dart/ast/ast.dart
-    //   ThrowExpression is from package:analyzer/dart/ast/ast.dart
-    //
-    //   test/generated/parser_test.dart 3492:59                            FastaParserTestCase&ErrorParserTestMixin.test_missingExpressionInThrow_withCascade
-    super.test_missingExpressionInThrow();
-  }
-
-  @override
-  @failingTest
   void test_missingFunctionParameters_topLevel_void_block() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.MISSING_FUNCTION_PARAMETERS, found 0
@@ -1202,7 +1190,9 @@ class KernelLibraryBuilderProxy implements KernelLibraryBuilder {
 
   @override
   void addCompileTimeError(Message message, int charOffset, int length, Uri uri,
-      {bool silent: false, bool wasHandled: false, LocatedMessage context}) {
+      {bool silent: false,
+      bool wasHandled: false,
+      List<LocatedMessage> context}) {
     fail('${message.message}');
   }
 

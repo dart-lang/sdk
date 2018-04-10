@@ -72,7 +72,7 @@ main() {
   for (var i = 0; i < instances.length; i++) {
     var d = instances[i];
     Expect.equals(d42, d);
-    if (i % 5 == 2 || i % 5 == 4) {
+    if (i % 5 == 2) {
       // The cases of D(42) without "new" are all constant.
       Expect.identical(d42, d, "$i");
     } else {

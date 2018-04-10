@@ -76,8 +76,6 @@ import 'redirecting_factory_body.dart'
 
 import '../names.dart';
 
-import 'constness_evaluator.dart' show evaluateConstness, ConstnessEffect;
-
 import 'fasta_accessors.dart';
 
 import 'kernel_api.dart';
@@ -184,12 +182,6 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   /// If non-null, records instance fields which have already been initialized
   /// and where that was.
   Map<String, int> initializedFields;
-
-  /// Constructor invocations (either generative or factory) with not specified
-  /// `new` or `const` keywords.  The constness for these should be inferred
-  /// based on the subexpressions.
-  List<Expression> constructorInvocationsWithImplicitConstness =
-      new List<Expression>();
 
   BodyBuilder(
       KernelLibraryBuilder library,
@@ -398,7 +390,8 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     pushQualifiedReference(beginToken.next, periodBeforeName);
     if (arguments != null) {
       push(arguments);
-      endNewExpression(beginToken);
+      buildConstructorReferenceInvocation(
+          beginToken, beginToken.offset, Constness.explicitConst);
       push(popForValue());
     } else {
       String name = pop();
@@ -693,50 +686,6 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       unhandled("${builder.runtimeType}", "finishFunction", builder.charOffset,
           builder.fileUri);
     }
-
-    inferConstness();
-  }
-
-  // Infers constness of the constructor invocations collected so far in
-  // [constructorInvocationsWithImplicitConstness], then clears out the list.
-  void inferConstness() {
-    // The algorithm below takes advantage of the fact that for each expression
-    // that needs constness inference comes after all its subexpressions that
-    // also need constness inference in
-    // [constructorInvocationsWithImplicitConstness].
-    for (Expression invocation in constructorInvocationsWithImplicitConstness) {
-      if (invocation is ConstructorInvocation) {
-        ConstnessEffect constness =
-            evaluateConstness(invocation, coreTypes, uri).effect;
-        if (constness == ConstnessEffect.taintedConst) {
-          // TODO(dmitryas): Find a better way to unwrap the error node.
-          ShadowSyntheticExpression errorMessage = buildCompileTimeError(
-              fasta.messageCantDetermineConstness,
-              invocation.fileOffset,
-              noLength);
-          invocation.replaceWith(errorMessage.desugared);
-        } else {
-          invocation.isConst = constness == ConstnessEffect.allowedConst;
-        }
-      } else if (invocation is StaticInvocation) {
-        ConstnessEffect constness =
-            evaluateConstness(invocation, coreTypes, uri).effect;
-        if (constness == ConstnessEffect.taintedConst) {
-          // TODO(dmitryas): Find a better way to unwrap the error node.
-          ShadowSyntheticExpression errorMessage = buildCompileTimeError(
-              fasta.messageCantDetermineConstness,
-              invocation.fileOffset,
-              noLength);
-          invocation.replaceWith(errorMessage.desugared);
-        } else {
-          invocation.isConst = constness == ConstnessEffect.allowedConst;
-        }
-      } else {
-        unhandled("${invocation.runtimeType}", "inferConstness",
-            invocation.fileOffset, invocation.location.file);
-      }
-    }
-    constructorInvocationsWithImplicitConstness.clear();
   }
 
   @override
@@ -1071,7 +1020,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       LocatedMessage argMessage}) {
     Message message;
     Name kernelName = new Name(name, library.library);
-    LocatedMessage context;
+    List<LocatedMessage> context;
     if (candidate != null) {
       Uri uri = candidate.location.file;
       int offset = candidate.fileOffset;
@@ -1085,7 +1034,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         length = name.length;
         message = fasta.messageCandidateFound;
       }
-      context = message.withLocation(uri, offset, length);
+      context = [message.withLocation(uri, offset, length)];
     }
 
     if (isGetter) {
@@ -1131,7 +1080,9 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
 
   @override
   Message warnUnresolvedGet(Name name, int charOffset,
-      {bool isSuper: false, bool reportWarning: true, LocatedMessage context}) {
+      {bool isSuper: false,
+      bool reportWarning: true,
+      List<LocatedMessage> context}) {
     Message message = isSuper
         ? fasta.templateSuperclassHasNoGetter.withArguments(name.name)
         : fasta.templateGetterNotFound.withArguments(name.name);
@@ -1144,7 +1095,9 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
 
   @override
   Message warnUnresolvedSet(Name name, int charOffset,
-      {bool isSuper: false, bool reportWarning: true, LocatedMessage context}) {
+      {bool isSuper: false,
+      bool reportWarning: true,
+      List<LocatedMessage> context}) {
     Message message = isSuper
         ? fasta.templateSuperclassHasNoSetter.withArguments(name.name)
         : fasta.templateSetterNotFound.withArguments(name.name);
@@ -1157,7 +1110,9 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
 
   @override
   Message warnUnresolvedMethod(Name name, int charOffset,
-      {bool isSuper: false, bool reportWarning: true, LocatedMessage context}) {
+      {bool isSuper: false,
+      bool reportWarning: true,
+      List<LocatedMessage> context}) {
     String plainName = name.name;
     int dotIndex = plainName.lastIndexOf(".");
     if (dotIndex != -1) {
@@ -2187,7 +2142,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   @override
   void beginFormalParameterDefaultValueExpression() {
     super.push(constantContext);
-    constantContext = ConstantContext.needsExplicitConst;
+    constantContext = ConstantContext.none;
   }
 
   @override
@@ -2514,11 +2469,6 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
           argMessage: argMessage);
     }
     if (target is Constructor) {
-      if (constantContext == ConstantContext.needsExplicitConst &&
-          constness == Constness.implicit) {
-        return buildCompileTimeError(
-            fasta.messageCantDetermineConstness, charOffset, noLength);
-      }
       isConst =
           isConst || constantContext != ConstantContext.none && target.isConst;
       if ((isConst || constantContext == ConstantContext.inferred) &&
@@ -2526,19 +2476,10 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         return deprecated_buildCompileTimeError(
             "Not a const constructor.", charOffset);
       }
-      ShadowConstructorInvocation invocation = new ShadowConstructorInvocation(
-          target,
-          targetTypeArguments,
-          initialTarget,
-          forest.castArguments(arguments),
+      return new ShadowConstructorInvocation(target, targetTypeArguments,
+          initialTarget, forest.castArguments(arguments),
           isConst: isConst)
         ..fileOffset = charOffset;
-      if (constness == Constness.implicit &&
-          target.isConst &&
-          constantContext != ConstantContext.inferred) {
-        constructorInvocationsWithImplicitConstness.add(invocation);
-      }
-      return invocation;
     } else {
       Procedure procedure = target;
       if (procedure.isFactory) {
@@ -2549,22 +2490,10 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
           return deprecated_buildCompileTimeError(
               "Not a const factory.", charOffset);
         }
-        if (constantContext == ConstantContext.needsExplicitConst &&
-            constness == Constness.implicit) {
-          return buildCompileTimeError(
-              fasta.messageCantDetermineConstness, charOffset, noLength);
-        }
-        ShadowFactoryConstructorInvocation invocation =
-            new ShadowFactoryConstructorInvocation(target, targetTypeArguments,
-                initialTarget, forest.castArguments(arguments),
-                isConst: isConst)
-              ..fileOffset = charOffset;
-        if (constness == Constness.implicit &&
-            procedure.isConst &&
-            constantContext != ConstantContext.inferred) {
-          constructorInvocationsWithImplicitConstness.add(invocation);
-        }
-        return invocation;
+        return new ShadowFactoryConstructorInvocation(target,
+            targetTypeArguments, initialTarget, forest.castArguments(arguments),
+            isConst: isConst)
+          ..fileOffset = charOffset;
       } else {
         return new ShadowStaticInvocation(
             target, forest.castArguments(arguments),
@@ -2679,6 +2608,12 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   }
 
   @override
+  void beginImplicitCreationExpression(Token token) {
+    debugEvent("beginImplicitCreationExpression");
+    super.push(constantContext);
+  }
+
+  @override
   void endConstLiteral(Token token) {
     debugEvent("endConstLiteral");
     var literal = pop();
@@ -2689,7 +2624,12 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   @override
   void endNewExpression(Token token) {
     debugEvent("NewExpression");
-    Token nameToken = token.next;
+    buildConstructorReferenceInvocation(
+        token.next, token.offset, Constness.explicitNew);
+  }
+
+  void buildConstructorReferenceInvocation(
+      Token nameToken, int offset, Constness constness) {
     Arguments arguments = pop();
     String name = pop();
     List<DartType> typeArguments = pop();
@@ -2715,25 +2655,24 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     ConstantContext savedConstantContext = pop();
     if (type is TypeDeclarationBuilder) {
       Expression expression = buildConstructorInvocation(
-          type,
-          nameToken,
-          arguments,
-          name,
-          typeArguments,
-          token.charOffset,
-          optional("const", token) || optional("@", token)
-              ? Constness.explicitConst
-              : Constness.explicitNew);
+          type, nameToken, arguments, name, typeArguments, offset, constness);
       push(deferredPrefix != null
           ? wrapInDeferredCheck(expression, deferredPrefix, checkOffset)
           : expression);
     } else if (type is ErrorAccessor) {
       push(type.buildError(arguments));
     } else {
-      push(throwNoSuchMethodError(forest.literalNull(token),
+      push(throwNoSuchMethodError(storeOffset(forest.literalNull(null), offset),
           debugName(getNodeName(type), name), arguments, nameToken.charOffset));
     }
     constantContext = savedConstantContext;
+  }
+
+  @override
+  void endImplicitCreationExpression(Token token) {
+    debugEvent("ImplicitCreationExpression");
+    buildConstructorReferenceInvocation(
+        token, token.offset, Constness.implicit);
   }
 
   @override
@@ -2834,7 +2773,8 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   @override
   void endConstExpression(Token token) {
     debugEvent("endConstExpression");
-    endNewExpression(token);
+    buildConstructorReferenceInvocation(
+        token.next, token.offset, Constness.explicitConst);
   }
 
   @override
@@ -3624,7 +3564,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
 
   @override
   Expression buildCompileTimeError(Message message, int charOffset, int length,
-      {LocatedMessage context}) {
+      {List<LocatedMessage> context}) {
     library.addCompileTimeError(message, charOffset, length, uri,
         wasHandled: true, context: context);
     return new ShadowSyntheticExpression(library.loader
@@ -3681,7 +3621,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   }
 
   Statement buildCompileTimeErrorStatement(Message message, int charOffset,
-      {LocatedMessage context}) {
+      {List<LocatedMessage> context}) {
     return new ShadowExpressionStatement(
         buildCompileTimeError(message, charOffset, noLength, context: context));
   }
@@ -3733,9 +3673,11 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
                 .withArguments(name),
             offset,
             noLength,
-            context: fasta.templateFinalInstanceVariableAlreadyInitializedCause
-                .withArguments(name)
-                .withLocation(uri, builder.charOffset, noLength));
+            context: [
+              fasta.templateFinalInstanceVariableAlreadyInitializedCause
+                  .withArguments(name)
+                  .withLocation(uri, builder.charOffset, noLength)
+            ]);
         Builder constructor =
             library.loader.getDuplicatedFieldInitializerError();
         return buildInvalidInitializer(
@@ -3932,20 +3874,20 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
 
   @override
   void addCompileTimeError(Message message, int charOffset, int length,
-      {LocatedMessage context}) {
+      {List<LocatedMessage> context}) {
     library.addCompileTimeError(message, charOffset, length, uri,
         context: context);
   }
 
   @override
   void addProblem(Message message, int charOffset, int length,
-      {LocatedMessage context}) {
+      {List<LocatedMessage> context}) {
     library.addProblem(message, charOffset, length, uri, context: context);
   }
 
   @override
   void addProblemErrorIfConst(Message message, int charOffset, int length,
-      {LocatedMessage context}) {
+      {List<LocatedMessage> context}) {
     // TODO(askesc): Instead of deciding on the severity, this method should
     // take two messages: one to use when a constant expression is
     // required and one to use otherwise.

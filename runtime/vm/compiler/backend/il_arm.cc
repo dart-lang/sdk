@@ -439,13 +439,13 @@ static void EmitAssertBoolean(Register reg,
   Label done;
   Isolate* isolate = Isolate::Current();
 
-  if (isolate->type_checks() || isolate->strong()) {
+  if (isolate->type_checks()) {
     __ CompareObject(reg, Bool::True());
     __ b(&done, EQ);
     __ CompareObject(reg, Bool::False());
     __ b(&done, EQ);
   } else {
-    ASSERT(isolate->asserts());
+    ASSERT(isolate->asserts() || isolate->strong());
     __ CompareObject(reg, Object::null_instance());
     __ b(&done, NE);
   }

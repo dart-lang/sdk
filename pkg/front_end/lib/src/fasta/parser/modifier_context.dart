@@ -46,12 +46,6 @@ TypeContinuation typeContinuationAfterVar(TypeContinuation typeContinuation) {
   }
 }
 
-TypeContinuation typeContinuationFromMemberKind(
-        bool isVarAllowed, MemberKind memberKind) =>
-    (isVarAllowed || memberKind == MemberKind.GeneralizedFunctionType)
-        ? TypeContinuation.Required
-        : TypeContinuation.Optional;
-
 /// This class is used to parse modifiers in most locations where modifiers
 /// can occur. However, it isn't used when parsing a class or when parsing
 /// the modifiers of a member function (non-local),
@@ -211,7 +205,6 @@ class ModifierContext {
 /// but does not call handleModifier or handleModifiers.
 class ModifierRecoveryContext2 {
   final Parser parser;
-  TypeContinuation typeContinuation;
   Token abstractToken;
   Token constToken;
   Token covariantToken;
@@ -230,13 +223,12 @@ class ModifierRecoveryContext2 {
   ModifierRecoveryContext2(this.parser);
 
   /// Parse modifiers for class methods and fields.
-  Token parseClassMemberModifiers(
-      Token token, TypeContinuation typeContinuation,
+  Token parseClassMemberModifiers(Token token,
       {Token externalToken,
       Token staticToken,
       Token covariantToken,
       Token varFinalOrConst}) {
-    token = parseModifiers(token, typeContinuation,
+    token = parseModifiers(token,
         externalToken: externalToken,
         staticToken: staticToken,
         covariantToken: covariantToken,
@@ -253,7 +245,7 @@ class ModifierRecoveryContext2 {
   Token parseModifiersAfterFactory(Token token,
       {Token externalToken, Token staticOrCovariant, Token varFinalOrConst}) {
     afterFactory = true;
-    token = parseModifiers(token, null,
+    token = parseModifiers(token,
         externalToken: externalToken,
         staticOrCovariant: staticOrCovariant,
         varFinalOrConst: varFinalOrConst);
@@ -266,9 +258,9 @@ class ModifierRecoveryContext2 {
   }
 
   /// Parse modifiers for top level functions and fields.
-  Token parseTopLevelModifiers(Token token, TypeContinuation typeContinuation,
+  Token parseTopLevelModifiers(Token token,
       {Token externalToken, Token varFinalOrConst}) {
-    token = parseModifiers(token, typeContinuation,
+    token = parseModifiers(token,
         externalToken: externalToken, varFinalOrConst: varFinalOrConst);
 
     reportExtraneousModifier(abstractToken);
@@ -280,7 +272,7 @@ class ModifierRecoveryContext2 {
   /// Parse modifiers for variable declarations.
   Token parseVariableDeclarationModifiers(Token token,
       {Token varFinalOrConst}) {
-    token = parseModifiers(token, null, varFinalOrConst: varFinalOrConst);
+    token = parseModifiers(token, varFinalOrConst: varFinalOrConst);
 
     reportExtraneousModifier(abstractToken);
     reportExtraneousModifier(covariantToken);
@@ -300,13 +292,12 @@ class ModifierRecoveryContext2 {
   /// `static` or `covariant`. The first non-null parameter of
   /// [staticOrCovariant], [staticToken], or [covariantToken] will be used,
   /// in that order, and the others ignored.
-  Token parseModifiers(Token token, TypeContinuation typeContinuation,
+  Token parseModifiers(Token token,
       {Token externalToken,
       Token staticToken,
       Token staticOrCovariant,
       Token covariantToken,
       Token varFinalOrConst}) {
-    this.typeContinuation = typeContinuation;
     if (externalToken != null) {
       this.externalToken = externalToken;
     }
@@ -390,7 +381,6 @@ class ModifierRecoveryContext2 {
     Token next = token.next;
     assert(optional('const', next));
     if (varFinalOrConst == null && covariantToken == null) {
-      typeContinuation ??= TypeContinuation.Optional;
       varFinalOrConst = constToken = next;
 
       if (afterFactory) {
@@ -474,7 +464,6 @@ class ModifierRecoveryContext2 {
     Token next = token.next;
     assert(optional('final', next));
     if (varFinalOrConst == null && !afterFactory) {
-      typeContinuation ??= TypeContinuation.Optional;
       varFinalOrConst = finalToken = next;
       return next;
     }
@@ -529,7 +518,6 @@ class ModifierRecoveryContext2 {
     Token next = token.next;
     assert(optional('var', next));
     if (varFinalOrConst == null && !afterFactory) {
-      typeContinuation = typeContinuationAfterVar(typeContinuation);
       varFinalOrConst = varToken = next;
       return next;
     }

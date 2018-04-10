@@ -527,10 +527,12 @@ class SourceLoader<L> extends Loader<L> {
                         .withArguments(builder.fullNameForErrors),
                     cls.charOffset,
                     noLength,
-                    context: templateIllegalMixinDueToConstructorsCause
-                        .withArguments(builder.fullNameForErrors)
-                        .withLocation(constructory.fileUri,
-                            constructory.charOffset, noLength));
+                    context: [
+                      templateIllegalMixinDueToConstructorsCause
+                          .withArguments(builder.fullNameForErrors)
+                          .withLocation(constructory.fileUri,
+                              constructory.charOffset, noLength)
+                    ]);
               }
             }
           }
@@ -761,7 +763,7 @@ class SourceLoader<L> extends Loader<L> {
 
   void recordMessage(Severity severity, Message message, int charOffset,
       int length, Uri fileUri,
-      {LocatedMessage context}) {
+      {List<LocatedMessage> context}) {
     if (instrumentation == null) return;
 
     if (charOffset == -1 &&
@@ -811,8 +813,13 @@ class SourceLoader<L> extends Loader<L> {
         // TODO(ahe): Should I add an InstrumentationValue for Message?
         new InstrumentationValueLiteral(message.code.name));
     if (context != null) {
-      instrumentation.record(context.uri, context.charOffset, "context",
-          new InstrumentationValueLiteral(context.code.name));
+      for (LocatedMessage contextMessage in context) {
+        instrumentation.record(
+            contextMessage.uri,
+            contextMessage.charOffset,
+            "context",
+            new InstrumentationValueLiteral(contextMessage.code.name));
+      }
     }
   }
 

@@ -122,6 +122,31 @@ class LocatedMessage implements Comparable<LocatedMessage> {
     if (result != 0) return result;
     return message.compareTo(message);
   }
+
+  FormattedMessage withFormatting(String formatted, int line, int column) {
+    return new FormattedMessage(this, formatted, line, column);
+  }
+}
+
+class FormattedMessage {
+  final LocatedMessage locatedMessage;
+
+  final String formatted;
+
+  final int line;
+
+  final int column;
+
+  const FormattedMessage(
+      this.locatedMessage, this.formatted, this.line, this.column);
+
+  Code get code => locatedMessage.code;
+
+  String get message => locatedMessage.message;
+
+  String get tip => locatedMessage.tip;
+
+  Map<String, dynamic> get arguments => locatedMessage.arguments;
 }
 
 String relativizeUri(Uri uri) {

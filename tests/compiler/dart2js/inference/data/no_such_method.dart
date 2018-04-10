@@ -52,7 +52,13 @@ missingMethod() => new Class2(). /*invoke: [exact=Class2]*/ method();
 class Class3 {
   /*element: Class3.noSuchMethod:[null|subclass=Object]*/
   noSuchMethod(Invocation /*[null|subclass=Object]*/ invocation) {
-    return invocation.positionalArguments.first;
+    return invocation
+        .
+        /*strong.[null|exact=JSInvocationMirror]*/
+        positionalArguments
+        .
+        /*strong.[exact=JSUnmodifiableArray]*/
+        first;
   }
 
   /*element: Class3.method:[null|subclass=Object]*/
@@ -78,8 +84,13 @@ class Class4 {
 
   /*element: Class4.noSuchMethod:[null]*/
   noSuchMethod(Invocation /*[null|subclass=Object]*/ invocation) {
-    this. /*update: [exact=Class4]*/ field =
-        invocation.positionalArguments.first;
+    this. /*update: [exact=Class4]*/ field = invocation
+        .
+        /*strong.[null|exact=JSInvocationMirror]*/
+        positionalArguments
+        .
+        /*strong.[exact=JSUnmodifiableArray]*/
+        first;
     return null;
   }
 

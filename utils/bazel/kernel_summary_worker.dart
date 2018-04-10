@@ -131,11 +131,12 @@ Future<bool> computeSummary(List<String> args,
           new TargetFlags(strongMode: true)),
       fileSystem);
 
-  void onProblem(problem, severity, String formatted, line, column) {
-    if (outputBuffer != null) {
-      outputBuffer.writeln(formatted);
-    } else {
-      stderr.writeln(formatted);
+  void onProblem(fe.FormattedMessage message, severity,
+      List<fe.FormattedMessage> context) {
+    dynamic out = outputBuffer ?? stderr;
+    out.println(message.formatted);
+    for (fe.FormattedMessage message in context) {
+      out.println(message.formatted);
     }
     if (severity != fe.Severity.nit) {
       succeeded = false;

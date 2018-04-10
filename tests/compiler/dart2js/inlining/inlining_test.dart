@@ -28,7 +28,10 @@ main(List<String> args) {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(
         dataDir, computeMemberAstInlinings, computeMemberIrInlinings,
-        args: args, skipForAst: ['external.dart'], skipForKernel: []);
+        args: args,
+        skipForAst: ['external.dart'],
+        // TODO(johnniwinther): Run tests with strong mode.
+        testStrongMode: false);
   });
 }
 

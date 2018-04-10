@@ -70,6 +70,7 @@ import 'dart:_js_helper'
 import 'dart:_interceptors'
     show
         Interceptor,
+        JavaScriptFunction,
         JSExtendableArray,
         JSUInt31,
         findInterceptorConstructorForType,
@@ -26938,7 +26939,7 @@ class MessagePort extends EventTarget {
     // Messages posted to ports are initially paused, allowing listeners to be
     // setup, start() needs to be explicitly invoked to begin handling messages.
     if (type == 'message') {
-      start();
+      _start();
     }
 
     super.addEventListener(type, listener, useCapture);
@@ -26986,9 +26987,10 @@ class MessagePort extends EventTarget {
   @DocsEditable()
   void _postMessage_2(message) native;
 
+  @JSName('start')
   @DomName('MessagePort.start')
   @DocsEditable()
-  void start() native;
+  void _start() native;
 
   /// Stream of `message` events handled by this [MessagePort].
   @DomName('MessagePort.onmessage')
@@ -28080,6 +28082,20 @@ class Navigator extends NavigatorConcurrentHardware
         NavigatorOnLine,
         NavigatorAutomationInformation,
         NavigatorID {
+  @DomName('Navigator.getGamepads')
+  List<Gamepad> getGamepads() {
+    var gamepadList = _getGamepads();
+
+    // If no prototype we need one for the world to hookup to the proper Dart class.
+    var jsProto = JS('', '#.prototype', gamepadList);
+    if (jsProto == null) {
+      JS('', '#.prototype = Object.create(null)', gamepadList);
+    }
+
+    applyExtension('GamepadList', gamepadList);
+    return gamepadList;
+  }
+
   @DomName('Navigator.language')
   String get language =>
       JS('String', '#.language || #.userLanguage', this, this);
@@ -28293,12 +28309,13 @@ class Navigator extends NavigatorConcurrentHardware
   @Experimental() // untriaged
   Future getBattery() native;
 
+  @JSName('getGamepads')
   @DomName('Navigator.getGamepads')
   @DocsEditable()
   @Experimental() // untriaged
   @Returns('_GamepadList|Null')
   @Creates('_GamepadList')
-  List<Gamepad> getGamepads() native;
+  List<Gamepad> _getGamepads() native;
 
   @DomName('Navigator.getInstalledRelatedApps')
   @DocsEditable()
@@ -50876,7 +50893,8 @@ Function _registerCustomElement(context, document, String tag, [Map options]) {
     JS('=Object', '#.extends = #', opts, extendsTagName);
   }
 
-  return JS('=Object', '#.registerElement(#, #)', document, tag, opts);
+  return JS(
+      'JavaScriptFunction', '#.registerElement(#, #)', document, tag, opts);
 }
 
 //// Called by Element.created to do validation & initialization.

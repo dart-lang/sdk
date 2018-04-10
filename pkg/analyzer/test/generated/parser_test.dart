@@ -5589,7 +5589,7 @@ void main() {
 
   void test_varAndType_field() {
     parseCompilationUnit("class C { var int x; }",
-        errors: [expectedError(ParserErrorCode.VAR_AND_TYPE, 14, 3)]);
+        errors: [expectedError(ParserErrorCode.VAR_AND_TYPE, 10, 3)]);
   }
 
   void test_varAndType_local() {
@@ -5614,7 +5614,7 @@ void main() {
 
   void test_varAndType_topLevelVariable() {
     parseCompilationUnit("var int x;",
-        errors: [expectedError(ParserErrorCode.VAR_AND_TYPE, 4, 3)]);
+        errors: [expectedError(ParserErrorCode.VAR_AND_TYPE, 0, 3)]);
   }
 
   void test_varAsTypeName_as() {
@@ -9685,7 +9685,6 @@ class ParserTestCase extends EngineTestCase
     parser.parseFunctionBodies = parseFunctionBodies;
     parser.enableNnbd = enableNnbd;
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
-    parser.enableUriInPartOf = enableUriInPartOf;
     parser.currentToken = tokenStream;
   }
 
@@ -15042,6 +15041,18 @@ abstract class StatementParserTestMixin implements AbstractParserTestCase {
     expect(variables, hasLength(1));
     expect(variables[0].name.name, 'v');
     expect(variableList.type, new isInstanceOf<GenericFunctionType>());
+  }
+
+  void test_invalid_typeParamAnnotation() {
+    parseCompilationUnit('main() { C<@Foo T> v; }',
+        errors: usingFastaParser
+            // TODO(danrubel): Improve this error to indicate that annotations
+            // are not valid in this context.
+            ? [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 11, 1)]
+            : [
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 11, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 1)
+              ]);
   }
 
   void test_parseStatement_emptyTypeArgumentList() {
