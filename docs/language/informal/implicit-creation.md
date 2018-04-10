@@ -2,13 +2,13 @@
 
 Author: eernst@.
 
-Version: 0.5 (2018-01-04)
+Version: 0.7 (2018-04-10)
 
 Status: Under implementation.
 
-**This document** is an informal specification of the *implicit creation* feature.
-**The feature** adds support for omitting some occurrences of the reserved words
-`new` and `const` in instance creation expressions.
+**This document** is an informal specification of the *implicit creation*
+feature. **The feature** adds support for omitting some occurrences of the
+reserved words `new` and `const` in instance creation expressions.
 
 This feature specification was written with a
 [combined proposal](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/optional-new-const.md)
@@ -68,49 +68,19 @@ reasoning, we've decided to make them optional. It will then be possible for
 developers to make many expressions considerably more concise, and they can
 still enforce the desired semantics as needed.
 
-Obviously, this underscores the importance of the default: When a given instance
-creation expression omits the keyword, should it be `const` or `new`?
+Obviously, this underscores the importance of the default: When a given
+instance creation expression omits the keyword, should it be `const` or
+`new`?
 
-**For instance creation expressions we have chosen** to use `const` whenever
-possible, and otherwise `new`.
+**As a general rule** `const` is used whenever it is required, and
+otherwise `new` is used. This requirement arises from the syntactic
+context, based on the fact that a non-constant expression would be a
+compile-time error.
 
-This implies that `const` is the preferred choice for instance creation. There
-is a danger that `const` is chosen by default in some cases where this is not
-intended by the developer, and the affected software will have bugs which are
-hard to spot. In particular, `e1 == e2` may evaluate to true in cases where it
-would have yielded false with `new` objects.
-
-We consider that danger to be rather small, because `const` can only be chosen
-in cases where the denoted constructor is constant, and with a class with a
-constant constructor it is necessary for developers to treat all accesses to its
-instances in such a way that the software will still work correctly even when
-any given instance was obtained by evaluation of a constant expression. The
-point is that, for such a class, we can never know for sure that any given
-instance is _not_ a constant object.
-
-With composite literals such as lists and maps, a `const` modifier may be
-included in order to make it a constant expression (which will of course fail if
-it contains something which is not a constant expression). In this case the
-presence of `const` may again be crucial, for the same reasons as with an
-instance creation expression, but it may also be crucial that `const` is _not_
-present, because the list or map will be mutated.
-
-**For composite literals we have chosen** to implicitly introduce `const`
-whenever it is required by the context.
-
-The choice to include `const` only when required by context (rather than
-whenever possible) is strictly less aggressive than the approach with instance
-creations. This choice is necessary because there is no way for developers to
-ensure that a literal like `[1, 2]` is mutable, if permitted by the context,
-other than omitting `const`.  Furthermore, we expect this choice to be
-convenient in practice, because mutable data structures are used frequently. So
-developers must expect to write an explicit `const` on composite literals now
-and then.
-
-In summary, the implicit creation feature allows for concise construction of
-objects, with a slight preference for constant expressions, and it still allows
-developers to explicitly specify `new` or `const`, whenever needed and whenever
-it is considered to be good documentation.
+In summary, the implicit creation feature allows for concise construction
+of objects, and it still allows developers to explicitly specify `new` or
+`const`, whenever needed and whenever it is considered to be good
+documentation.
 
 
 ## Syntax
@@ -159,43 +129,57 @@ context*,
   literal.
 
 *This roughly means that everything which is inside a syntactically
-constant expression is in a constant context. Note that a `const` modifier
-which is introduced by the source code transformation does not create a
-constant context, it is only the explicit occurrences of `const` in the
-program that create a constant context. Also note that a `throw` expression
-is currently not allowed in a constant expression, but extensions affecting
-that status may be considered. A similar situation arises for function
-literals.*
+constant expression or declaration is in a constant context. Note that a
+`const` modifier which is introduced by the source code transformation does
+not create a constant context, it is only the explicit occurrences of
+`const` in the program that create a constant context. Also note that a
+`throw` expression is currently not allowed in a constant expression, but
+extensions affecting that status may be considered. A similar situation
+arises for function literals.*
 
-The transformation consists of two steps. In the first step, every literal
-list and literal map _e_ which occurs in a constant context and does not
-have the modifier `const` is replaced by `const` _e_.
+*A formal parameter may have a default value, which must be a constant
+expression. We have chosen to not put such default values into a constant
+context. They must be constant, and it may be necessary to add the keyword
+`const` in order to make them so. This may seem inconvenient at times, but
+the rationale is that it allows for future generalizations of default value
+expressions allowing them to be non-constant. Still, there is no guarantee
+that such features will be added to Dart.*
+
+*For a class which contains a constant constructor and an instance variable
+which is initialized by an expression _e_, it is a compile-time error if
+_e_ is not constant. We have chosen to not put such initializers into a
+constant context, and hence an explicit `const` may be required. This may
+again seem inconvenient at times, but the rationale is that the reason for
+the constancy requirement is non-local (the constant constructor
+declaration may be many lines away from the instance variable declaration);
+it may break programs in surprising and confusing ways if a constructor is
+changed to be constant; and it may cause subtle bugs at run time due to the
+change in identity, if such a change is made and it does not cause any
+compile-time errors.*
 
 We define *new/const insertion* as the following transformation, which will
 be applied to specific parts of the program as specified below:
 
 - if the expression _e_ occurs in a constant context, replace _e_ by
   `const` _e_,
-- if the expression _e_ does not occur in a constant context, but `const`
-  _e_ is a correct constant expression, replace _e_ by `const` _e_,
 - otherwise replace _e_ by `new` _e_.
 
-*Note that this transformation is applied in a bottom-up order which implies
-that all relevant transformations have already been applied on subexpressions
-of _e_. Also note that this transformation is only applied to syntactic
-constructs where the outcome is a syntactically correct instance creation
-expression. On the other hand, the outcome may have static semantic errors,
-e.g., actual arguments to a constructor invocation may have wrong types
-because that's how the program was written.*
+*Note that new/const insertion is just a syntactic transformation, it is
+specified below where to apply it, including which syntactic constructs may
+play the role of _e_.*
 
-We define *new insertion* as the following transformation, which will be
-applied as specified below:
+*Also note that the outcome of new/const insertion may have static semantic
+errors, e.g., actual arguments to a constructor invocation may have wrong
+types because that's how the program was written, or a `const` list may
+have elements which are not constant expressions. In such cases, tools like
+analyzers and compilers should emit diagnostic messages that are meaningful
+in relation to the original source of the program, which might mean that
+the blame is assigned to a larger syntactic construct than the one that
+directly has a compile-time error after the transformation.*
 
-- replace _e_ by `new` _e_.
-
-*We specify the second step of the transformation as based on a depth-first
-traversal of an abstract syntax tree (AST). This means that the program is
-assumed to be free of syntax errors, and when the current AST is, e.g., a
+*We specify the transformation as based on a depth-first traversal of an
+abstract syntax tree (AST). This means that the program is assumed to be
+free of syntax errors, and when the current AST is, e.g., a
 `postfixExpression`, the program as a whole has such a structure that the
 current location was parsed as a `postfixExpression`. This is different
 from the situation where we just require that a given subsequence of the
@@ -214,29 +198,6 @@ when the language supports a construct of the form `e1 e2`, etc. The reader
 may prefer to view the transformation in that light, and we would then say
 that we have omitted all the congruence rules.*
 
-An expression of one of the following forms must be modified in bottom-up
-order to be or contain a `constantObjectExpression` or `newExpression`
-as described:
-
-With a `postfixExpression` _e_,
-
-- if _e_ is of the form `constructorInvocation selector*`, i.e.,
-  `typeName typeArguments '.' identifier arguments selector*` then perform
-  new/const insertion on the initial `constructorInvocation`.
-- if _e_ is of the form
-  `typeIdentifier arguments` where `typeIdentifier` denotes a class then
-  perform new/const insertion on _e_.
-- if _e_ is of the form
-  `identifier1 '.' identifier2 arguments` where `identifier1` denotes
-  a class and `identifier2` is the name of a named constructor in that class,
-  or `identifier1` denotes a prefix for a library _L_ and `identifier2` denotes
-  a class exported by _L_, perform new/const insertion on _e_.
-- if _e_ is of the form
-  `identifier1 '.' typeIdentifier '.' identifier2 arguments` where
-  `identifier1` denotes a library prefix for a library _L_, `typeIdentifier`
-  denotes a class _C_ exported by _L_, and `identifier2` is the name of a named
-  constructor in _C_, perform new/const insertion on _e_.
-
 For the purposes of describing the transformation on assignable expressions
 we need the following syntactic entity:
 
@@ -245,45 +206,81 @@ assignableExpressionTail ::=
     arguments assignableSelector assignableSelectorPart*
 ```
 
-With an `assignableExpression` _e_,
+The transformation proceeds as follows, with three groups of situations
+where a transformation is applied:
 
-- if _e_ is of the form
-  `constructorInvocation assignableSelectorPart+`
-  then perform new/const insertion on the initial
-  `constructorInvocation`.
-- if _e_ is of the form
-  `typeIdentifier assignableExpressionTail`
-  where `typeIdentifier` denotes a class then perform new/const insertion on
-  the initial `typeIdentifier arguments`.
-- if _e_ is of the form
-  `typeIdentifier '.' identifier assignableExpressionTail`
-  where `typeIdentifier` denotes a class and `identifier` is the name of
-  a named constructor in that class, or `typeIdentifier` denotes a prefix
-  for a library _L_ and `identifier` denotes a class exported by _L_
-  then perform new/const insertion on the initial
-  `typeIdentifier '.' identifier arguments`.
-- if _e_ is of the form
-  `typeIdentifier1 '.' typeIdentifier2 '.' identifier assignableExpressionTail`
-  Where `typeIdentifier1` denotes a library prefix for a library _L_,
-  `typeIdentifier2` denotes a class _C_ exported by _L_, and `identifier`
-  is the name of a named constructor in _C_ then perform new/const insertion
-  on the initial
-  `typeIdentifier1 '.' typeIdentifier2 '.' identifier arguments`.
+1.  With a `postfixExpression` _e_,
 
-*In short, add `const` wherever possible on terms that invoke a
-constructor, and otherwise add `new`. It is easy to verify that each of the
-replacements can be derived from `postfixExpression` via `primary
-selector*` and similarly for `assignableExpression`. Hence, the
-transformation preserves syntactic correctness.*
+    - if _e_ is of the form `constructorInvocation selector*`, i.e.,
+      `typeName typeArguments '.' identifier arguments selector*` then
+      perform new/const insertion on the initial `constructorInvocation`.
+    - if _e_ is of the form `typeIdentifier arguments` where
+      `typeIdentifier` denotes a class then perform new/const insertion on
+      _e_.
+    - if _e_ is of the form `identifier1 '.' identifier2 arguments` where
+      `identifier1` denotes a class and `identifier2` is the name of a
+      named constructor in that class, or `identifier1` denotes a prefix
+      for a library _L_ and `identifier2` denotes a class exported by _L_,
+      perform new/const insertion on _e_.
+    - if _e_ is of the form 
+      `identifier1 '.' typeIdentifier '.' identifier2 arguments`
+      where `identifier1` denotes a library prefix for a library _L_,
+      `typeIdentifier` denotes a class _C_ exported by _L_, and
+      `identifier2` is the name of a named constructor in _C_, perform
+      new/const insertion on _e_.
+
+2.  With an `assignableExpression` _e_,
+
+    - if _e_ is of the form
+      `constructorInvocation assignableSelectorPart+`
+      then perform new/const insertion on the initial
+      `constructorInvocation`.
+    - if _e_ is of the form `typeIdentifier assignableExpressionTail` where
+      `typeIdentifier` denotes a class then perform new/const insertion on
+      the initial `typeIdentifier arguments`.
+    - if _e_ is of the form
+      `typeIdentifier '.' identifier assignableExpressionTail`
+      where `typeIdentifier` denotes a class and `identifier` is the name
+      of a named constructor in that class, or `typeIdentifier` denotes a
+      prefix for a library _L_ and `identifier` denotes a class exported by
+      _L_ then perform new/const insertion on the initial
+      `typeIdentifier '.' identifier arguments`.
+    - if _e_ is of the form
+      `typeIdentifier1 '.' typeIdentifier2 '.' identifier
+      assignableExpressionTail`
+      where `typeIdentifier1` denotes a library prefix for a library _L_,
+      `typeIdentifier2` denotes a class _C_ exported by _L_, and
+      `identifier` is the name of a named constructor in _C_ then perform
+      new/const insertion on the initial 
+      `typeIdentifier1 '.' typeIdentifier2 '.' identifier arguments`.
+
+3.  If _e_ is a literal list or a literal map which occurs in a constant
+    context and does not have the modifier `const`, it is replaced by
+    `const` _e_.
+
+*In short, `const` is added implicitly in almost all situations where it is
+required by the context, and in other situations `new` is added on instance
+creations. It is easy to verify that each of the replacements can be
+derived from `postfixExpression` via `primary selector*` and similarly for
+`assignableExpression`. Hence, the transformation preserves syntactic
+correctness.*
 
 
 ## Dynamic Semantics
 
-There is no dynamic semantics to specify for this feature because it is
-eliminated by code transformation.
+There is no dynamic semantics to specify for this feature, because it is
+eliminated by the code transformation.
 
 
 ## Revisions
+
+- 0.7 (2018-04-10) Clarified the structure of the algorithm. Added
+  commentary about cases where there is no constant context even though a
+  constant expression is required, with a motivation for why it is so.
+
+- 0.6 (2018-04-06) Removed "magic const" again, due to the risks
+  associated with this feature (getting it specified and implemented
+  robustly, in time).
 
 - 0.5 (2018-01-04) Rewritten to use `const` whenever possible (aka "magic
   const") and adjusted to specify optional const as well as optional new
