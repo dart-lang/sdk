@@ -546,7 +546,6 @@ covariance_field_test/02: RuntimeError
 covariance_field_test/03: RuntimeError
 covariance_field_test/04: RuntimeError
 covariance_field_test/05: RuntimeError
-recursive_mixin_test: RuntimeError # no check without --checked
 
 [ $compiler == dart2js && !$checked && !$enable_asserts ]
 assertion_test: RuntimeError, OK
@@ -2324,8 +2323,6 @@ wrong_number_type_arguments_test/none: Pass
 [ $compiler == dart2js && $fasta && $strong ]
 const_constructor3_test/04: MissingCompileTimeError # OK - Subtype check uses JS number semantics.
 ct_const_test: RuntimeError
-mixin_type_parameter5_test: RuntimeError
-mixin_type_parameter6_test: RuntimeError
 
 [ $compiler == dart2js && $fasta && !$strong ]
 *: SkipByDesign

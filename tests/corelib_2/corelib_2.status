@@ -234,7 +234,6 @@ list_unmodifiable_test: RuntimeError
 main_test: RuntimeError
 nan_infinity_test/01: RuntimeError
 regexp/pcre_test: RuntimeError
-string_fromcharcodes_test: RuntimeError
 string_split_test/checkedstore: RuntimeError # Issue 30548: does not check stores into List<String>
 symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
 uri_base_test: RuntimeError
@@ -266,7 +265,6 @@ main_test: RuntimeError
 nan_infinity_test/01: RuntimeError
 nsm_invocation_test: RuntimeError # Symbols don't match due to minifiaction.
 regexp/pcre_test: RuntimeError
-string_fromcharcodes_test: RuntimeError
 string_split_test/checkedstore: RuntimeError # Issue 30548: does not check stores into List<String>
 symbol_operator_test/03: RuntimeError
 symbol_operator_test/none: RuntimeError
@@ -274,9 +272,6 @@ symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') sho
 uri_base_test: RuntimeError
 uri_parameters_all_test: RuntimeError
 uri_test: RuntimeError
-
-[ $compiler == dart2js && $fasta && $strong ]
-shuffle_test: RuntimeError
 
 [ $compiler == dart2js && $fasta && !$strong ]
 *: SkipByDesign
