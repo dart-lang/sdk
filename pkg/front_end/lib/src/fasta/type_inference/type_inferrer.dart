@@ -1389,7 +1389,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           receiverType, propertyName, fileOffset,
           errorTemplate: templateUndefinedGetter,
           expression: expression,
-          receiver: desugaredGet.receiver);
+          receiver: receiver);
       if (interfaceMember is Member) {
         desugaredGet.interfaceTarget = interfaceMember;
       }

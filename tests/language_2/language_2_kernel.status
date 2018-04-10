@@ -1202,8 +1202,6 @@ compile_time_constant_static5_test/21: CompileTimeError
 compile_time_constant_static5_test/23: CompileTimeError
 conditional_import_string_test: CompileTimeError
 conditional_import_test: CompileTimeError
-conditional_property_access_test/05: Crash
-conditional_property_access_test/06: Crash
 config_import_corelib_test: CompileTimeError
 config_import_test: Crash
 const_constructor3_test/04: MissingCompileTimeError
