@@ -2008,8 +2008,6 @@ class Parser {
       followingValues = [';', '=', ','];
     } else if (context == IdentifierContext.typedefDeclaration) {
       followingValues = ['(', '<', ';'];
-    } else if (context == IdentifierContext.typeReferenceContinuation) {
-      followingValues = ['>', ')', ']', '}', ',', ';'];
     } else if (context == IdentifierContext.typeVariableDeclaration) {
       followingValues = ['<', '>', ';', '}'];
     } else {

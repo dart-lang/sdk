@@ -4,8 +4,7 @@
 
 import '../../scanner/token.dart' show Token;
 
-import '../fasta_codes.dart'
-    show Message, Template, templateExpectedIdentifier, templateExpectedType;
+import '../fasta_codes.dart' show Message, Template, templateExpectedIdentifier;
 
 import '../scanner/token_constants.dart' show IDENTIFIER_TOKEN;
 
@@ -119,21 +118,16 @@ class IdentifierContext {
       isBuiltInIdentifierAllowed: false);
 
   /// Identifier is the start of a reference to a type that starts with prefix.
-  static const prefixedTypeReference = const IdentifierContext(
-      'prefixedTypeReference',
-      isScopeReference: true,
-      isBuiltInIdentifierAllowed: true,
-      recoveryTemplate: templateExpectedType);
+  static const prefixedTypeReference =
+      const TypeReferenceIdentifierContext.prefixed();
 
   /// Identifier is the start of a reference to a type declared elsewhere.
   static const typeReference = const TypeReferenceIdentifierContext();
 
   /// Identifier is part of a reference to a type declared elsewhere, but it's
   /// not the first identifier of the reference.
-  static const typeReferenceContinuation = const IdentifierContext(
-      'typeReferenceContinuation',
-      isContinuation: true,
-      isBuiltInIdentifierAllowed: false);
+  static const typeReferenceContinuation =
+      const TypeReferenceIdentifierContext.continuation();
 
   /// Identifier is a name being declared by a top level variable declaration.
   static const topLevelVariableDeclaration = const IdentifierContext(

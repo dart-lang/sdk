@@ -75,6 +75,16 @@ class TypeReferenceIdentifierContext extends IdentifierContext {
             isBuiltInIdentifierAllowed: false,
             recoveryTemplate: fasta.templateExpectedType);
 
+  const TypeReferenceIdentifierContext.continuation()
+      : super('typeReferenceContinuation',
+            isContinuation: true, isBuiltInIdentifierAllowed: false);
+
+  const TypeReferenceIdentifierContext.prefixed()
+      : super('prefixedTypeReference',
+            isScopeReference: true,
+            isBuiltInIdentifierAllowed: true,
+            recoveryTemplate: fasta.templateExpectedType);
+
   @override
   Token ensureIdentifier(Token token, Parser parser) {
     Token next = token.next;
@@ -109,8 +119,10 @@ class TypeReferenceIdentifierContext extends IdentifierContext {
       if (optional("void", next)) {
         parser.reportRecoverableError(next, fasta.messageInvalidVoid);
       } else if (next.type.isBuiltIn) {
-        parser.reportRecoverableErrorWithToken(
-            next, fasta.templateBuiltInIdentifierAsType);
+        if (!isBuiltInIdentifierAllowed) {
+          parser.reportRecoverableErrorWithToken(
+              next, fasta.templateBuiltInIdentifierAsType);
+        }
       } else {
         parser.reportRecoverableErrorWithToken(
             next, fasta.templateExpectedType);

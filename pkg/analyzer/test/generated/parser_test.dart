@@ -9147,7 +9147,12 @@ abstract class FormalParameterParserTestMixin
 
   void test_parseFormalParameterList_prefixedType_partial() {
     FormalParameterList list = parseFormalParameterList('(io.)', errors: [
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 1),
+      expectedError(
+          usingFastaParser
+              ? ParserErrorCode.EXPECTED_TYPE_NAME
+              : ParserErrorCode.MISSING_IDENTIFIER,
+          4,
+          1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 1)
     ]);
     expect(list, isNotNull);
@@ -9169,7 +9174,12 @@ abstract class FormalParameterParserTestMixin
   void test_parseFormalParameterList_prefixedType_partial2() {
     int errorOffset = usingFastaParser ? 4 : 3;
     FormalParameterList list = parseFormalParameterList('(io.,a)', errors: [
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, errorOffset, 1),
+      expectedError(
+          usingFastaParser
+              ? ParserErrorCode.EXPECTED_TYPE_NAME
+              : ParserErrorCode.MISSING_IDENTIFIER,
+          errorOffset,
+          1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, errorOffset, 1)
     ]);
     expect(list, isNotNull);
