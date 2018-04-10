@@ -1115,7 +1115,6 @@ compile_time_constant_static5_test/23: CompileTimeError
 conditional_rewrite_test: RuntimeError
 config_import_corelib_test: CompileTimeError
 config_import_test: RuntimeError
-const_cast3_test: Crash # type 'TypeVariableType' is not a subtype of type 'InterfaceType' of 'base' where
 const_dynamic_type_literal_test/02: MissingCompileTimeError
 const_evaluation_test/01: RuntimeError
 const_instance_field_test/01: MissingCompileTimeError

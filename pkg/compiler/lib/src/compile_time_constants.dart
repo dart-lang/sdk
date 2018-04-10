@@ -1470,7 +1470,7 @@ class AstEvaluationEnvironment extends EvaluationEnvironmentBase {
 
   @override
   ResolutionInterfaceType substByContext(
-      ResolutionInterfaceType base, ResolutionInterfaceType target) {
+      ResolutionDartType base, ResolutionInterfaceType target) {
     return base.substByContext(target);
   }
 

@@ -40,7 +40,7 @@ abstract class EvaluationEnvironment {
   /// Performs the substitution of the type arguments of [target] for their
   /// corresponding type variables in [type].
   InterfaceType substByContext(
-      covariant InterfaceType base, covariant InterfaceType target);
+      covariant DartType base, covariant InterfaceType target);
 
   void reportWarning(
       ConstantExpression expression, MessageKind kind, Map arguments);
