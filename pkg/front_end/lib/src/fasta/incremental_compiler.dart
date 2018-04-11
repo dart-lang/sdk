@@ -229,7 +229,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       }
     }
+
     for (Uri uri in potentiallyReferencedLibraries.keys) {
+      if (uri.scheme == "package") continue;
       userCode.loader.builders.remove(uri);
     }
 
