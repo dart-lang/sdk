@@ -65,7 +65,6 @@ custom/document_register_type_extensions_test/single-parameter: Fail # Issue 131
 deferred_multi_app_htmltest: Skip # Times out on IE.  Issue 21537
 element_animate_test: Fail # Element.animate not supported on these browsers.
 element_test/click: Fail # IE does not support firing this event.
-element_test/position: RuntimeError # Issue 32578
 element_types_test/supported_content: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
 element_types_test/supported_details: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
 element_types_test/supported_keygen: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
@@ -101,7 +100,6 @@ serialized_script_value_test: Fail
 shadow_dom_test/supported: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
 speechrecognition_test/supported: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
 storage_test: Pass, RuntimeError # Issue 22166
-svgelement_test/getBoundingClientRect: RuntimeError # Isue 32580
 svgelement_test/supported_altGlyph: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
 svgelement_test/supported_animate: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
 svgelement_test/supported_animateMotion: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
@@ -150,7 +148,6 @@ notification_test/constructors: Fail # Safari doesn't let us access the fields o
 rtc_test/supported: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
 shadow_dom_test/supported: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
 speechrecognition_test/supported: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
-svgelement_test/getBoundingClientRect: RuntimeError # Issue 32572
 touchevent_test/supported: Fail # Safari does not support TouchEvents
 webgl_1_test: Pass, Fail # Issue 8219
 worker_api_test: Skip # Issue 13221

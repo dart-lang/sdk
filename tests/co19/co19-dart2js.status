@@ -4956,11 +4956,7 @@ LayoutTests/fast/text/international/iso-8859-8_t01: RuntimeError # Please triage
 LayoutTests/fast/text/international/listbox-width-rtl_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/international/rtl-text-wrapping_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/international/thai-offsetForPosition-inside-character_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/text/justification-padding-mid-word_t01: RuntimeError # Issue 32578
-LayoutTests/fast/text/line-break-after-inline-latin1_t01: RuntimeError # Issue 32578
 LayoutTests/fast/text/line-break-after-question-mark_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/text/line-breaks-after-ideographic-comma-or-full-stop_t02: RuntimeError # Issue 32578
-LayoutTests/fast/text/multiglyph-characters_t01: RuntimeError # Issue 32578
 LayoutTests/fast/text/offsetForPosition-cluster-at-zero_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/pre-wrap-trailing-tab_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/remove-zero-length-run_t01: RuntimeError # Please triage this failure
@@ -5127,7 +5123,6 @@ LibTest/html/Element/focusEvent_A01_t01: Pass, RuntimeError # Please triage this
 LibTest/html/Element/getAttributeNS_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/getAttributeNS_A02_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/getAttribute_A01_t01: Skip # Times out. Please triage this failure
-LibTest/html/Element/getBoundingClientRect_A01_t02: RuntimeError # Issue 32578
 LibTest/html/Element/getNamespacedAttributes_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/isTagSupported_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/isTagSupported_A01_t02: RuntimeError # Please triage this failure
@@ -5176,7 +5171,6 @@ LibTest/html/IFrameElement/createFragment_A01_t02: RuntimeError # Please triage 
 LibTest/html/IFrameElement/createFragment_A01_t03: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/createShadowRoot_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/focus_A01_t01: Pass, RuntimeError # Please triage this failure
-LibTest/html/IFrameElement/getClientRects_A01_t02: RuntimeError # Issue 32578
 LibTest/html/IFrameElement/getNamespacedAttributes_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/innerHtml_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/leftView_A01_t01: RuntimeError # Please triage this failure
@@ -6361,9 +6355,7 @@ LayoutTests/fast/text/international/iso-8859-8_t01: RuntimeError # Please triage
 LayoutTests/fast/text/international/listbox-width-rtl_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/international/rtl-text-wrapping_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/international/thai-offsetForPosition-inside-character_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/text/justification-padding-mid-word_t01: RuntimeError # Issue 32577
 LayoutTests/fast/text/line-break-after-question-mark_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/text/multiglyph-characters_t01: RuntimeError # Issue 32577
 LayoutTests/fast/text/offsetForPosition-cluster-at-zero_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/remove-zero-length-run_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/sub-pixel/text-scaling-ltr_t01: RuntimeError # Please triage this failure
