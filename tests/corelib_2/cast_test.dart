@@ -87,6 +87,12 @@ void testList() {
   Expect.listEquals(elements, dList2);
   Expect.throws(() => dList2[2] = new Object()); // Cannot set non-C.
   Expect.listEquals(elements, dList2);
+
+  // Regression test.
+  var list3 = <num>[4, 3, 2, 1];
+  var dList3 = list3.retype<int>();
+  dList3.sort(null);
+  Expect.listEquals([1, 2, 3, 4], list3);
 }
 
 void testSet() {
