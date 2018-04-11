@@ -396,6 +396,10 @@ testBigintModulo() {
   b = BigInt.parse("10000000000000000000");
   Expect.equals(BigInt.one, a % b);
   Expect.equals(BigInt.parse("10000000000000000000"), b % a);
+  a = BigInt.parse("2432363650");
+  b = BigInt.parse("2201792050");
+  Expect.equals(BigInt.parse("230571600"), a % b);
+  Expect.equals(BigInt.parse("2201792050"), b % a);
 }
 
 testBigintModPow() {

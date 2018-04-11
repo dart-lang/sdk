@@ -1352,11 +1352,11 @@ class _BigIntImpl implements BigInt {
     Uint32List yDigits;
     int yUsed;
     if (nsh > 0) {
-      // Extra digits for normalization.
-      yDigits = _newDigits(other._used + (nsh % _digitBits) + 1);
-      yUsed = _lShiftDigits(other._digits, other._used, nsh, yDigits);
       // Extra digits for normalization, also used for possible _mulAdd carry.
-      resultDigits = _newDigits(_used + (nsh % _digitBits) + 1);
+      var numExtraDigits = (nsh + _digitBits - 1) ~/ _digitBits + 1;
+      yDigits = _newDigits(other._used + numExtraDigits);
+      yUsed = _lShiftDigits(other._digits, other._used, nsh, yDigits);
+      resultDigits = _newDigits(_used + numExtraDigits);
       resultUsed = _lShiftDigits(_digits, _used, nsh, resultDigits);
     } else {
       yDigits = other._digits;
