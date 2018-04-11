@@ -11,10 +11,7 @@ import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
-import 'package:front_end/src/fasta/fasta_codes.dart'
-    show LocatedMessage, Message;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
-import 'package:front_end/src/fasta/kernel/kernel_library_builder.dart';
 import 'package:front_end/src/fasta/scanner/error_token.dart' show ErrorToken;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:test/test.dart';
@@ -1178,28 +1175,6 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
 }
 
 /**
- * Proxy implementation of [KernelLibraryBuilderProxy] used by Fasta parser
- * tests.
- */
-class KernelLibraryBuilderProxy implements KernelLibraryBuilder {
-  @override
-  final uri = Uri.parse('file:///test.dart');
-
-  @override
-  Uri get fileUri => uri;
-
-  @override
-  void addCompileTimeError(Message message, int charOffset, int length, Uri uri,
-      {bool silent: false,
-      bool wasHandled: false,
-      List<LocatedMessage> context}) {
-    fail('${message.message}');
-  }
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-/**
  * Proxy implementation of the analyzer parser, implemented in terms of the
  * Fasta parser.
  *
@@ -1224,30 +1199,24 @@ class ParserProxy extends analyzer.ParserAdapter {
       {bool allowNativeClause: false,
       bool enableGenericMethodComments: false,
       int expectedEndOffset}) {
-    var library = new KernelLibraryBuilderProxy();
     var member = new BuilderProxy();
     var scope = new ScopeProxy();
     TestSource source = new TestSource();
     var errorListener = new GatheringErrorListener(checkRanges: true);
     var errorReporter = new ErrorReporter(errorListener, source);
     return new ParserProxy._(
-        firstToken, errorReporter, library, member, scope, errorListener,
+        firstToken, errorReporter, null, member, scope, errorListener,
         allowNativeClause: allowNativeClause,
         enableGenericMethodComments: enableGenericMethodComments,
         expectedEndOffset: expectedEndOffset);
   }
 
-  ParserProxy._(
-      analyzer.Token firstToken,
-      ErrorReporter errorReporter,
-      KernelLibraryBuilder library,
-      Builder member,
-      Scope scope,
-      this._errorListener,
+  ParserProxy._(analyzer.Token firstToken, ErrorReporter errorReporter,
+      Uri fileUri, Builder member, Scope scope, this._errorListener,
       {bool allowNativeClause: false,
       bool enableGenericMethodComments: false,
       this.expectedEndOffset})
-      : super(firstToken, errorReporter, library, member, scope,
+      : super(firstToken, errorReporter, fileUri, member, scope,
             allowNativeClause: allowNativeClause,
             enableGenericMethodComments: enableGenericMethodComments) {
     _eventListener = new ForwardingTestListener(astBuilder);

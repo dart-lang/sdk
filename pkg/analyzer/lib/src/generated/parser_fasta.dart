@@ -23,12 +23,12 @@ abstract class ParserAdapter implements Parser {
    */
   final AstBuilder astBuilder;
 
-  ParserAdapter(this.currentToken, ErrorReporter errorReporter,
-      KernelLibraryBuilder library, Builder member, Scope scope,
+  ParserAdapter(this.currentToken, ErrorReporter errorReporter, Uri fileUri,
+      Builder member, Scope scope,
       {bool allowNativeClause: false, bool enableGenericMethodComments: false})
       : fastaParser = new fasta.Parser(null),
         astBuilder =
-            new AstBuilder(errorReporter, library, member, scope, true) {
+            new AstBuilder(errorReporter, fileUri, member, scope, true) {
     fastaParser.listener = astBuilder;
     astBuilder.parser = fastaParser;
     astBuilder.allowNativeClause = allowNativeClause;
@@ -329,18 +329,6 @@ class _Builder implements Builder {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _KernelLibraryBuilder implements KernelLibraryBuilder {
-  @override
-  final uri;
-
-  _KernelLibraryBuilder(this.uri);
-
-  @override
-  Uri get fileUri => uri;
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
 /**
  * Replacement parser based on Fasta.
  */
@@ -359,17 +347,15 @@ class _Parser2 extends ParserAdapter {
   factory _Parser2(Source source, AnalysisErrorListener errorListener,
       {bool allowNativeClause: false}) {
     var errorReporter = new ErrorReporter(errorListener, source);
-    var library = new _KernelLibraryBuilder(source.uri);
     var member = new _Builder();
     var scope = new Scope.top(isModifiable: true);
-    return new _Parser2._(source, errorReporter, library, member, scope,
+    return new _Parser2._(source, errorReporter, source.uri, member, scope,
         allowNativeClause: allowNativeClause);
   }
 
-  _Parser2._(this._source, ErrorReporter errorReporter,
-      KernelLibraryBuilder library, Builder member, Scope scope,
-      {bool allowNativeClause: false})
-      : super(null, errorReporter, library, member, scope,
+  _Parser2._(this._source, ErrorReporter errorReporter, Uri fileUri,
+      Builder member, Scope scope, {bool allowNativeClause: false})
+      : super(null, errorReporter, fileUri, member, scope,
             allowNativeClause: allowNativeClause);
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
