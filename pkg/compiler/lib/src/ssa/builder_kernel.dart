@@ -36,6 +36,7 @@ import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart';
 import '../types/masks.dart';
 import '../types/types.dart';
+import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import '../universe/use.dart'
@@ -4831,6 +4832,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   List<HInstruction> _completeDynamicCallArgumentsList(Selector selector,
       FunctionEntity function, List<HInstruction> providedArguments) {
     assert(selector.applies(function));
+    CallStructure callStructure = selector.callStructure;
     ParameterStructure parameterStructure = function.parameterStructure;
     List<String> selectorArgumentNames =
         selector.callStructure.getOrderedNamedArguments();
@@ -4839,19 +4841,30 @@ class KernelSsaGraphBuilder extends ir.Visitor
             parameterStructure.typeParameters +
             1); // Plus one for receiver.
 
-    compiledArguments[0] = providedArguments[0]; // Receiver.
-    int index = 1;
+    int compiledArgumentIndex = 0;
+
+    // Copy receiver.
+    compiledArguments[compiledArgumentIndex++] = providedArguments[0];
+
+    /// Offset of positional arguments in [providedArguments].
+    int positionalArgumentOffset = 1;
+
+    /// Offset of named arguments in [providedArguments].
+    int namedArgumentOffset = callStructure.positionalArgumentCount + 1;
+
+    int positionalArgumentIndex = 0;
     int namedArgumentIndex = 0;
-    int firstProvidedNamedArgument;
+
     _worldBuilder.forEachParameter(function,
         (DartType type, String name, ConstantValue defaultValue) {
-      if (index <= parameterStructure.positionalParameters) {
-        if (index < providedArguments.length) {
-          compiledArguments[index] = providedArguments[index];
+      if (positionalArgumentIndex < parameterStructure.positionalParameters) {
+        if (positionalArgumentIndex < callStructure.positionalArgumentCount) {
+          compiledArguments[compiledArgumentIndex++] = providedArguments[
+              positionalArgumentOffset + positionalArgumentIndex++];
         } else {
           assert(defaultValue != null,
               failedAt(function, 'No constant computed for parameter $name'));
-          compiledArguments[index] =
+          compiledArguments[compiledArgumentIndex++] =
               graph.addConstant(defaultValue, closedWorld);
         }
       } else {
@@ -4866,36 +4879,38 @@ class KernelSsaGraphBuilder extends ir.Visitor
         // For each parameter name in the signature, if the argument name
         // matches we use the next provided argument, otherwise we get the
         // default.
-        firstProvidedNamedArgument ??= index;
         if (namedArgumentIndex < selectorArgumentNames.length &&
             name == selectorArgumentNames[namedArgumentIndex]) {
           // The named argument was provided in the function invocation.
-          compiledArguments[index] = providedArguments[
-              firstProvidedNamedArgument + namedArgumentIndex++];
+          compiledArguments[compiledArgumentIndex++] =
+              providedArguments[namedArgumentOffset + namedArgumentIndex++];
         } else {
           assert(defaultValue != null,
               failedAt(function, 'No constant computed for parameter $name'));
-          compiledArguments[index] =
+          compiledArguments[compiledArgumentIndex++] =
               graph.addConstant(defaultValue, closedWorld);
         }
       }
-      index++;
     });
     if (rtiNeed.methodNeedsTypeArguments(function)) {
-      if (selector.callStructure.typeArgumentCount ==
+      if (callStructure.typeArgumentCount ==
           parameterStructure.typeParameters) {
+        /// Offset of type arguments in [providedArguments].
+        int typeArgumentOffset = callStructure.argumentCount + 1;
         // Pass explicit type arguments.
-        for (int i = 0; i < parameterStructure.typeParameters; i++) {
-          compiledArguments[index] = providedArguments[index];
-          index++;
+        for (int typeArgumentIndex = 0;
+            typeArgumentIndex < callStructure.typeArgumentCount;
+            typeArgumentIndex++) {
+          compiledArguments[compiledArgumentIndex++] =
+              providedArguments[typeArgumentOffset + typeArgumentIndex];
         }
       } else {
-        assert(selector.callStructure.typeArgumentCount == 0);
+        assert(callStructure.typeArgumentCount == 0);
         // Pass type variable bounds as type arguments.
         for (int i = 0; i < parameterStructure.typeParameters; i++) {
           // TODO(johnniwinther): Pass type variable bounds.
-          compiledArguments[index] = graph.addConstantNull(closedWorld);
-          index++;
+          compiledArguments[compiledArgumentIndex++] =
+              graph.addConstantNull(closedWorld);
         }
       }
     }
