@@ -44,6 +44,15 @@ extern const uint8_t kDartCoreIsolateSnapshotData[];
 extern const uint8_t kDartCoreIsolateSnapshotInstructions[];
 }
 
+#if defined(DART_LINK_APP_SNAPSHOT)
+extern "C" {
+extern const uint8_t _kDartVmSnapshotData[];
+extern const uint8_t _kDartVmSnapshotInstructions[];
+extern const uint8_t _kDartIsolateSnapshotData[];
+extern const uint8_t _kDartIsolateSnapshotInstructions[];
+}
+#endif
+
 namespace dart {
 namespace bin {
 
@@ -1059,6 +1068,13 @@ void main(int argc, char** argv) {
     Platform::Exit(kErrorExitCode);
   }
 
+#if defined(DART_LINK_APP_SNAPSHOT)
+  vm_run_app_snapshot = true;
+  vm_snapshot_data = _kDartVmSnapshotData;
+  vm_snapshot_instructions = _kDartVmSnapshotInstructions;
+  app_isolate_snapshot_data = _kDartIsolateSnapshotData;
+  app_isolate_snapshot_instructions = _kDartIsolateSnapshotInstructions;
+#else
   AppSnapshot* app_snapshot = Snapshot::TryReadAppSnapshot(script_name);
   if (app_snapshot != NULL) {
     vm_run_app_snapshot = true;
@@ -1066,6 +1082,7 @@ void main(int argc, char** argv) {
                              &app_isolate_snapshot_data,
                              &app_isolate_snapshot_instructions);
   }
+#endif
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   // Constant true if PRODUCT or DART_PRECOMPILED_RUNTIME.
@@ -1161,7 +1178,9 @@ void main(int argc, char** argv) {
   Process::ClearAllSignalHandlers();
   EventHandler::Stop();
 
+#if !defined(DART_LINK_APP_SNAPSHOT)
   delete app_snapshot;
+#endif
   free(app_script_uri);
 
   // Free copied argument strings if converted.

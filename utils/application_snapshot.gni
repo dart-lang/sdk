@@ -84,3 +84,57 @@ template("application_snapshot") {
     }
   }
 }
+
+template("aot_assembly") {
+  assert(defined(invoker.main_dart), "Must specify 'main_dart'")
+  vm_args = []
+  if (defined(invoker.vm_args)) {
+    vm_args = invoker.vm_args
+  }
+  main_dart = invoker.main_dart
+  name = target_name
+  if (defined(invoker.name)) {
+    name = invoker.name
+  }
+  extra_deps = []
+  if (defined(invoker.deps)) {
+    extra_deps += invoker.deps
+  }
+  extra_inputs = [ main_dart ]
+  if (defined(invoker.inputs)) {
+    extra_inputs += invoker.inputs
+  }
+  if (defined(invoker.dot_packages)) {
+    dot_packages = invoker.dot_packages
+  } else {
+    dot_packages = rebase_path("$_dart_root/.packages")
+  }
+  output = "$root_gen_dir/$name.dart.S"
+  if (defined(invoker.output)) {
+    output = invoker.output
+  }
+  compiled_action(target_name) {
+    tool = "$_dart_root/runtime/bin:dart_bootstrap"
+    deps = extra_deps
+    depfile = "$output.d"
+
+    main_file = rebase_path(main_dart)
+
+    inputs = extra_inputs + [ main_file ]
+
+    outputs = [
+      output,
+    ]
+
+    abs_depfile = rebase_path(depfile)
+    abs_output = rebase_path(output, root_build_dir)
+
+    args = [
+      "--deterministic",
+      "--packages=$dot_packages",
+      "--snapshot-kind=app-aot",
+      "--snapshot=$abs_output",
+      "--snapshot-depfile=$abs_depfile",
+    ] + vm_args + [ main_file ]
+  }
+}
