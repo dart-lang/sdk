@@ -63,8 +63,6 @@ bool _isTop(DartType t) {
       identical(t, UnknownInferredType.instance);
 }
 
-typedef bool _GuardedSubtypeChecker<T>(T t1, T t2, Set<DartType> visitedTypes);
-
 /**
  * Implementation of [TypeSystem] using the strong mode rules.
  * https://github.com/dart-lang/dev_compiler/blob/master/STRONG_MODE.md
@@ -434,16 +432,17 @@ class StrongTypeSystemImpl extends TypeSystem {
   @override
   bool isAssignableTo(DartType fromType, DartType toType,
       {bool isDeclarationCast = false}) {
-    if (fromType is InterfaceType) {
+    // An actual subtype
+    if (isSubtypeOf(fromType, toType)) {
+      return true;
+    }
+
+    // A call method tearoff
+    if (fromType is InterfaceType && acceptsFunctionType(toType)) {
       var callMethodType = getCallMethodType(fromType);
       if (callMethodType != null && isAssignableTo(callMethodType, toType)) {
         return true;
       }
-    }
-
-    // An actual subtype
-    if (isSubtypeOf(fromType, toType)) {
-      return true;
     }
 
     // A fuzzy arrow subtype
@@ -563,11 +562,6 @@ class StrongTypeSystemImpl extends TypeSystem {
   bool isOverrideSubtypeOfParameter(ParameterElement p1, ParameterElement p2) {
     return isSubtypeOf(p2.type, p1.type) ||
         p1.isCovariant && isSubtypeOf(p1.type, p2.type);
-  }
-
-  @override
-  bool isSubtypeOf(DartType leftType, DartType rightType) {
-    return _isSubtypeOf(leftType, rightType, null);
   }
 
   /// Given a [type] T that may have an unknown type `?`, returns a type
@@ -761,22 +755,6 @@ class StrongTypeSystemImpl extends TypeSystem {
     return "${type?.element?.library?.identifier},$type";
   }
 
-  /// Guard against loops in the class hierarchy.
-  _GuardedSubtypeChecker<T> _guard<T extends DartType>(
-      _GuardedSubtypeChecker<T> check) {
-    return (T t1, T t2, Set<DartType> visitedTypes) {
-      visitedTypes ??= new HashSet<DartType>();
-      if (t1 == null || !visitedTypes.add(t1)) {
-        return false;
-      }
-      try {
-        return check(t1, t2, visitedTypes);
-      } finally {
-        visitedTypes.remove(t1);
-      }
-    };
-  }
-
   /**
    * This currently does not implement a very complete least upper bound
    * algorithm, but handles a couple of the very common cases that are
@@ -829,15 +807,13 @@ class StrongTypeSystemImpl extends TypeSystem {
   ///
   /// This will always assume function types use fuzzy arrows, in other words
   /// that dynamic parameters of f1 and f2 are treated as bottom.
-  bool _isFunctionSubtypeOf(
-      FunctionType f1, FunctionType f2, Set<DartType> visitedTypes) {
+  bool _isFunctionSubtypeOf(FunctionType f1, FunctionType f2) {
     return FunctionTypeImpl.relate(f1, f2, isSubtypeOf, instantiateToBounds,
-        parameterRelation: (p1, p2) =>
-            _isSubtypeOf(p2.type, p1.type, visitedTypes));
+        parameterRelation: (p1, p2) => isSubtypeOf(p2.type, p1.type));
   }
 
   bool _isInterfaceSubtypeOf(
-      InterfaceType i1, InterfaceType i2, Set<DartType> visitedTypes) {
+      InterfaceType i1, InterfaceType i2, Set<ClassElement> visitedTypes) {
     // Note: we should never reach `_isInterfaceSubtypeOf` with `i2 == Object`,
     // because top types are eliminated before `isSubtypeOf` calls this.
     if (identical(i1, i2) || i2.isObject) {
@@ -849,7 +825,8 @@ class StrongTypeSystemImpl extends TypeSystem {
       return false;
     }
 
-    if (i1.element == i2.element) {
+    ClassElement i1Element = i1.element;
+    if (i1Element == i2.element) {
       List<DartType> tArgs1 = i1.typeArguments;
       List<DartType> tArgs2 = i2.typeArguments;
 
@@ -870,22 +847,26 @@ class StrongTypeSystemImpl extends TypeSystem {
       return false;
     }
 
-    // Guard recursive calls
-    _GuardedSubtypeChecker<InterfaceType> guardedInterfaceSubtype =
-        _guard(_isInterfaceSubtypeOf);
+    // Guard against loops in the class hierarchy.
+    //
+    // Dart 2 does not allow multiple implementations of the same generic type
+    // with different type arguments. So we can track just the class element
+    // to find cycles, rather than tracking the full interface type.
+    visitedTypes ??= new HashSet<ClassElement>();
+    if (!visitedTypes.add(i1Element)) return false;
 
-    if (guardedInterfaceSubtype(i1.superclass, i2, visitedTypes)) {
+    if (_isInterfaceSubtypeOf(i1.superclass, i2, visitedTypes)) {
       return true;
     }
 
     for (final parent in i1.interfaces) {
-      if (guardedInterfaceSubtype(parent, i2, visitedTypes)) {
+      if (_isInterfaceSubtypeOf(parent, i2, visitedTypes)) {
         return true;
       }
     }
 
     for (final parent in i1.mixins) {
-      if (guardedInterfaceSubtype(parent, i2, visitedTypes)) {
+      if (_isInterfaceSubtypeOf(parent, i2, visitedTypes)) {
         return true;
       }
     }
@@ -893,7 +874,8 @@ class StrongTypeSystemImpl extends TypeSystem {
     return false;
   }
 
-  bool _isSubtypeOf(DartType t1, DartType t2, Set<DartType> visitedTypes) {
+  @override
+  bool isSubtypeOf(DartType t1, DartType t2) {
     if (identical(t1, t2)) {
       return true;
     }
@@ -967,18 +949,14 @@ class StrongTypeSystemImpl extends TypeSystem {
       return t2.isDartCoreFunction;
     }
 
-    // Guard recursive calls
-    _GuardedSubtypeChecker<FunctionType> guardedIsFunctionSubtype =
-        _guard(_isFunctionSubtypeOf);
-
     if (t1 is InterfaceType && t2 is FunctionType) return false;
 
     // Two interface types
     if (t1 is InterfaceType && t2 is InterfaceType) {
-      return _isInterfaceSubtypeOf(t1, t2, visitedTypes);
+      return _isInterfaceSubtypeOf(t1, t2, null);
     }
 
-    return guardedIsFunctionSubtype(t1, t2, visitedTypes);
+    return _isFunctionSubtypeOf(t1, t2);
   }
 
   FunctionType _replaceDynamicParameters(FunctionType t, DartType replaceWith) {
@@ -2106,6 +2084,16 @@ class _GenericInferrer {
     }
 
     // Guard against loops in the class hierarchy
+    //
+    // TODO(jmesserly): this function isn't guarding against anything (it's not
+    // passsing down `visitedSet`, so adding the element has no effect).
+    //
+    // If that's fixed, it breaks inference tests for types like
+    // `Iterable<Iterable<?>>` matched aganinst `List<List<int>>`.
+    //
+    // The fix is for type arguments (above) to not pass down `visited`, similar
+    // to how _isInterfaceSubtypeOf does not pass down `visited` for type
+    // arguments.
     void guardedInterfaceSubtype(InterfaceType t1) {
       var visitedSet = visited ?? new HashSet<Element>();
       if (visitedSet.add(t1.element)) {
@@ -2211,6 +2199,9 @@ class _GenericInferrer {
 
     if (t1 is TypeParameterType) {
       // Guard against recursive type parameters
+      //
+      // TODO(jmesserly): this function isn't guarding against anything (it's
+      // not passsing down `visitedSet`, so adding the element has no effect).
       void guardedSubtype(DartType t1, DartType t2) {
         var visitedSet = visited ?? new HashSet<Element>();
         if (visitedSet.add(t1.element)) {
