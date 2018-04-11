@@ -1797,13 +1797,11 @@ class RawAbstractType : public RawInstance {
     kFinalizedInstantiated,    // Instantiated type ready for use.
     kFinalizedUninstantiated,  // Uninstantiated type ready for use.
   };
-  uword type_test_stub_entry_point_;  // Accessed from generated code.
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(AbstractType);
 
   friend class ObjectStore;
-  friend class StubCode;
 };
 
 class RawType : public RawAbstractType {

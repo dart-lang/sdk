@@ -125,7 +125,6 @@ class ObjectPointerVisitor;
   R_(Code, megamorphic_miss_code)                                              \
   R_(Function, megamorphic_miss_function)                                      \
   RW(Array, obfuscation_map)                                                   \
-  RW(GrowableObjectArray, type_testing_stubs)                                  \
   RW(GrowableObjectArray, changed_in_last_reload)                              \
 // Please remember the last entry must be referred in the 'to' function below.
 

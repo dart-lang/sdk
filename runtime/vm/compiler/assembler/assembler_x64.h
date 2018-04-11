@@ -651,7 +651,6 @@ class Assembler : public ValueObject {
   }
 
   // Methods for High-level operations and implemented on all architectures.
-  void Ret() { ret(); }
   void CompareRegisters(Register a, Register b);
   void BranchIf(Condition condition, Label* label) { j(condition, label); }
 
@@ -799,12 +798,6 @@ class Assembler : public ValueObject {
   void Align(int alignment, intptr_t offset);
   void Bind(Label* label);
   void Jump(Label* label) { jmp(label); }
-
-  void LoadField(Register dst, FieldAddress address) { movq(dst, address); }
-
-  void CompareWithFieldValue(Register value, FieldAddress address) {
-    cmpq(value, address);
-  }
 
   void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   static bool EmittingComments();

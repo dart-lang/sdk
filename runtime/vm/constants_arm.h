@@ -347,9 +347,7 @@ enum Condition {
 
   // Platform-independent variants declared for all platforms
   EQUAL = EQ,
-  ZERO = EQUAL,
   NOT_EQUAL = NE,
-  NOT_ZERO = NOT_EQUAL,
   LESS = LT,
   LESS_EQUAL = LE,
   GREATER_EQUAL = GE,

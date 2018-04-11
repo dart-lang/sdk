@@ -5,7 +5,6 @@
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_X64.
 #if defined(TARGET_ARCH_X64)
 
-#include "vm/code_patcher.h"
 #include "vm/instructions.h"
 #include "vm/instructions_x64.h"
 
@@ -63,22 +62,6 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
 
   return false;
 }
-
-#if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
-
-intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
-  const intptr_t kCallPatternSize = 10;
-  static int16_t pattern[kCallPatternSize] = {
-      0x4d, 0x8b, 0x8f, -1, -1, -1, -1,  // movq R9, [PP + offs]
-      0xff, 0x53, 0x07                   // callq [RBX+ 0x7]
-  };
-  const uword start = pc_ - kCallPatternSize;
-  ASSERT(MatchesPattern(start, pattern, kCallPatternSize));
-
-  return IndexFromPPLoad(start + 3);
-}
-
-#endif  // defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart
 

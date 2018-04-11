@@ -1373,7 +1373,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
 // Note that on DBC registers are always essentially spilled so
 // we don't need to block anything.
 #if !defined(TARGET_ARCH_DBC)
-  if (locs->always_calls() && !locs->callee_safe_call()) {
+  if (locs->always_calls()) {
     // Expected shape of live range:
     //
     //              i  i'

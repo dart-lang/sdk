@@ -28,15 +28,4 @@ WritableInstructionsScope::~WritableInstructionsScope() {
   }
 }
 
-bool MatchesPattern(uword addr, int16_t* pattern, intptr_t size) {
-  uint8_t* bytes = reinterpret_cast<uint8_t*>(addr);
-  for (intptr_t i = 0; i < size; i++) {
-    int16_t val = pattern[i];
-    if ((val >= 0) && (val != bytes[i])) {
-      return false;
-    }
-  }
-  return true;
-}
-
 }  // namespace dart

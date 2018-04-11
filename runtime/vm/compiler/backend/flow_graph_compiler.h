@@ -302,7 +302,6 @@ class FlowGraphCompiler : public ValueObject {
   // Accessors.
   Assembler* assembler() const { return assembler_; }
   const ParsedFunction& parsed_function() const { return parsed_function_; }
-  const Function& function() const { return parsed_function_.function(); }
   const GrowableArray<BlockEntryInstr*>& block_order() const {
     return block_order_;
   }
@@ -364,21 +363,6 @@ class FlowGraphCompiler : public ValueObject {
                                 const AbstractType& dst_type,
                                 const String& dst_name,
                                 LocationSummary* locs);
-  void GenerateAssertAssignableAOT(TokenPosition token_pos,
-                                   intptr_t deopt_id,
-                                   const AbstractType& dst_type,
-                                   const String& dst_name,
-                                   LocationSummary* locs);
-
-  void GenerateAssertAssignableAOT(const AbstractType& dst_type,
-                                   const String& dst_name,
-                                   const Register instance_reg,
-                                   const Register instantiator_type_args_reg,
-                                   const Register function_type_args_reg,
-                                   const Register subtype_cache_reg,
-                                   const Register dst_type_reg,
-                                   const Register scratch_reg,
-                                   Label* done);
 
 // DBC emits calls very differently from all other architectures due to its
 // interpreted nature.
@@ -447,24 +431,9 @@ class FlowGraphCompiler : public ValueObject {
   // Returns true if no further checks are necessary but the code coming after
   // the emitted code here is still required do a runtime call (for the negative
   // case of throwing an exception).
-  bool GenerateSubtypeRangeCheck(Register class_id_reg,
+  bool GenerateSubclassTypeCheck(Register class_id_reg,
                                  const Class& type_class,
                                  Label* is_subtype_lbl);
-
-  // We test up to 4 different cid ranges, if we would need to test more in
-  // order to get a definite answer we fall back to the old mechanism (namely
-  // of going into the subtyping cache)
-  static const intptr_t kMaxNumberOfCidRangesToTest = 4;
-
-  // If [fall_through_if_inside] is `true`, then [outside_range_lbl] must be
-  // supplied, since it will be jumped to in the last case if the cid is outside
-  // the range.
-  static void GenerateCidRangesCheck(Assembler* assembler,
-                                     Register class_id_reg,
-                                     const CidRangeVector& cid_ranges,
-                                     Label* inside_range_lbl,
-                                     Label* outside_range_lbl = NULL,
-                                     bool fall_through_if_inside = false);
 
   void EmitOptimizedInstanceCall(const StubEntry& stub_entry,
                                  const ICData& ic_data,

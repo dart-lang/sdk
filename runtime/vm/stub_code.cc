@@ -82,8 +82,14 @@ RawCode* StubCode::Generate(const char* name,
 void StubCode::VisitObjectPointers(ObjectPointerVisitor* visitor) {}
 
 bool StubCode::HasBeenInitialized() {
-  // Use AsynchronousGapMarker as canary.
-  return StubCode::AsynchronousGapMarker_entry() != NULL;
+#if !defined(TARGET_ARCH_DBC)
+  // Use JumpToHandler and InvokeDart as canaries.
+  const StubEntry* entry_1 = StubCode::JumpToFrame_entry();
+  const StubEntry* entry_2 = StubCode::InvokeDartCode_entry();
+  return (entry_1 != NULL) && (entry_2 != NULL);
+#else
+  return true;
+#endif
 }
 
 bool StubCode::InInvocationStub(uword pc) {

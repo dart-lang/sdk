@@ -218,9 +218,6 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   type.set_token_pos(TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
   type.set_type_state(reader->Read<int8_t>());
 
-  // Read the code object for the type testing stub and set its entrypoint.
-  reader->EnqueueTypePostprocessing(type);
-
   // Set all the object fields.
   READ_OBJECT_FIELDS(type, type.raw()->from(), type.raw()->to(), kAsReference);
 
@@ -297,9 +294,6 @@ RawTypeRef* TypeRef::ReadFrom(SnapshotReader* reader,
   TypeRef& type_ref = TypeRef::ZoneHandle(reader->zone(), TypeRef::New());
   reader->AddBackRef(object_id, &type_ref, kIsDeserialized);
 
-  // Read the code object for the type testing stub and set its entrypoint.
-  reader->EnqueueTypePostprocessing(type_ref);
-
   // Set all the object fields.
   READ_OBJECT_FIELDS(type_ref, type_ref.raw()->from(), type_ref.raw()->to(),
                      kAsReference);
@@ -342,9 +336,6 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
       TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
   type_parameter.set_index(reader->Read<int16_t>());
   type_parameter.set_type_state(reader->Read<int8_t>());
-
-  // Read the code object for the type testing stub and set its entrypoint.
-  reader->EnqueueTypePostprocessing(type_parameter);
 
   // Set all the object fields.
   READ_OBJECT_FIELDS(type_parameter, type_parameter.raw()->from(),
@@ -400,9 +391,6 @@ RawBoundedType* BoundedType::ReadFrom(SnapshotReader* reader,
   BoundedType& bounded_type =
       BoundedType::ZoneHandle(reader->zone(), BoundedType::New());
   reader->AddBackRef(object_id, &bounded_type, kIsDeserialized);
-
-  // Read the code object for the type testing stub and set its entrypoint.
-  reader->EnqueueTypePostprocessing(bounded_type);
 
   // Set all the object fields.
   READ_OBJECT_FIELDS(bounded_type, bounded_type.raw()->from(),

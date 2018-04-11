@@ -46,7 +46,6 @@
 #include "vm/timeline.h"
 #include "vm/timer.h"
 #include "vm/type_table.h"
-#include "vm/type_testing_stubs.h"
 #include "vm/unicode.h"
 #include "vm/version.h"
 
@@ -274,10 +273,6 @@ void Precompiler::DoCompileAll(
 
       ClassFinalizer::SortClasses();
 
-      // Collects type usage information which allows us to decide when/how to
-      // optimize runtime type tests.
-      TypeUsageInfo type_usage_info(T);
-
       // The cid-ranges of subclasses of a class are e.g. used for is/as checks
       // as well as other type checks.
       HierarchyInfo hierarchy_info(T);
@@ -317,10 +312,6 @@ void Precompiler::DoCompileAll(
         // Compile newly found targets and add their callees until we reach a
         // fixed point.
         Iterate();
-
-        // Replace the default type testing stubs installed on [Type]s with new
-        // [Type]-specialized stubs.
-        AttachOptimizedTypeTestingStub();
       }
 
       I->set_compilation_allowed(false);
@@ -1865,80 +1856,6 @@ void Precompiler::DropFields() {
       }
     }
   }
-}
-
-void Precompiler::AttachOptimizedTypeTestingStub() {
-  Isolate::Current()->heap()->CollectAllGarbage();
-  GrowableHandlePtrArray<const AbstractType> types(Z, 200);
-  {
-    class TypesCollector : public ObjectVisitor {
-     public:
-      explicit TypesCollector(Zone* zone,
-                              GrowableHandlePtrArray<const AbstractType>* types)
-          : type_(AbstractType::Handle(zone)), types_(types) {}
-
-      void VisitObject(RawObject* obj) {
-        if (obj->GetClassId() == kTypeCid || obj->GetClassId() == kTypeRefCid) {
-          type_ ^= obj;
-          types_->Add(type_);
-        }
-      }
-
-     private:
-      AbstractType& type_;
-      GrowableHandlePtrArray<const AbstractType>* types_;
-    };
-
-    HeapIterationScope his(T);
-    TypesCollector visitor(Z, &types);
-
-    // Find all type objects in this isolate.
-    I->heap()->VisitObjects(&visitor);
-
-    // Find all type objects in the vm-isolate.
-    Dart::vm_isolate()->heap()->VisitObjects(&visitor);
-  }
-
-  TypeUsageInfo* type_usage_info = Thread::Current()->type_usage_info();
-
-  // At this point we're not generating any new code, so we build a picture of
-  // which types we might type-test against.
-  type_usage_info->BuildTypeUsageInformation();
-
-  TypeTestingStubGenerator type_testing_stubs;
-  Instructions& instr = Instructions::Handle();
-  for (intptr_t i = 0; i < types.length(); i++) {
-    const AbstractType& type = types.At(i);
-
-    if (!type.IsResolved()) {
-      continue;
-    }
-
-    // [kVectorCid] is excluded because it doesn't have a real class,
-    // corresponding to the class id, in Dart source code.
-    if (type.IsType() && type.type_class_id() == kVectorCid) {
-      continue;
-    }
-
-    if (type.InVMHeap()) {
-      // The only important types in the vm isolate are "dynamic"/"void", which
-      // will get their optimized top-type testing stub installed at creation.
-      continue;
-    }
-
-    if (type.IsResolved() && !type.IsMalformedOrMalbounded()) {
-      if (type_usage_info->IsUsedInTypeTest(type)) {
-        instr = type_testing_stubs.OptimizedCodeForType(type);
-        type.SetTypeTestingStub(instr);
-
-        // Ensure we retain the type.
-        AddType(type);
-      }
-    }
-  }
-
-  ASSERT(Object::dynamic_type().type_test_stub_entry_point() !=
-         StubCode::DefaultTypeTest_entry()->EntryPoint());
 }
 
 void Precompiler::DropTypes() {
