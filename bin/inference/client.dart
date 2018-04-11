@@ -15,7 +15,7 @@ import 'package:dart2js_info/src/string_edit_buffer.dart';
 AllInfo data;
 main() async {
   data = new AllInfoJsonCodec()
-      .decode(JSON.decode(await HttpRequest.getString('/data')));
+      .decode(jsonDecode(await HttpRequest.getString('/data')));
 
   routeByHash();
   window.onHashChange.listen((_) => routeByHash());

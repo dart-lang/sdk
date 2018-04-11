@@ -134,5 +134,5 @@ String recursiveDiagnosticString(Measurements measurements, Metric metric) {
 
 Future<AllInfo> infoFromFile(String fileName) async {
   var file = await new File(fileName).readAsString();
-  return new AllInfoJsonCodec().decode(JSON.decode(file));
+  return new AllInfoJsonCodec().decode(jsonDecode(file));
 }

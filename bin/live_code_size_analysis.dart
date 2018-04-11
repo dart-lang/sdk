@@ -50,7 +50,7 @@ main(args) async {
   }
 
   var info = await infoFromFile(args.first);
-  var coverage = JSON.decode(new File(args[1]).readAsStringSync());
+  var coverage = jsonDecode(new File(args[1]).readAsStringSync());
   var verbose = args.length > 2 && args[2] == '-v';
 
   int realTotal = info.program.size;

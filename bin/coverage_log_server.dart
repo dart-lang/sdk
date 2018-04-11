@@ -144,7 +144,7 @@ class _Server {
       }
 
       if (request.method == 'POST') {
-        _record(JSON.decode(await request.readAsString()));
+        _record(jsonDecode(await request.readAsString()));
         return new shelf.Response.ok("Thanks!");
       }
     }

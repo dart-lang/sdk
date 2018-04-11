@@ -21,7 +21,7 @@ main(args) {
 
   var showLongName = args.length > 2 && args[2] == '-l';
 
-  var json = JSON.decode(new File(args[0]).readAsStringSync());
+  var json = jsonDecode(new File(args[0]).readAsStringSync());
   var info = new AllInfoJsonCodec().decode(json);
   var nameRegExp = new RegExp(args[1]);
   matches(e) => nameRegExp.hasMatch(longName(e));

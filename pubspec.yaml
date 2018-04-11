@@ -1,5 +1,5 @@
 name: dart2js_info
-version: 0.5.6
+version: 0.5.6+1
 description: >
   Libraries and tools to process data produced when running dart2js with
   --dump-info.
@@ -7,7 +7,7 @@ author: Dart Team <misc@dartlang.org>
 homepage: https://github.com/dart-lang/dart2js_info/
 
 environment:
-  sdk: '>=1.21.1 <2.0.0'
+  sdk: '>=2.0.0-dev.17.0 <2.0.0'
 dependencies:
   args: '>=0.13.0 <2.0.0'
   charcode: ^1.1.0

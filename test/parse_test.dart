@@ -12,7 +12,7 @@ main() {
   group('parse', () {
     test('hello_world', () {
       var helloWorld = new File('test/hello_world/hello_world.js.info.json');
-      var json = JSON.decode(helloWorld.readAsStringSync());
+      var json = jsonDecode(helloWorld.readAsStringSync());
       var decoded = new AllInfoJsonCodec().decode(json);
 
       var program = decoded.program;
