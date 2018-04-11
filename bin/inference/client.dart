@@ -49,14 +49,12 @@ handleFileView(String path) async {
   var visitor = new SendHighlighter(path, contents);
   data.accept(visitor);
   var code = '${visitor.code}';
-  document.body.setInnerHtml(
-      '''
+  document.body.setInnerHtml('''
       <div class="grid">
         <div class="main code">$code</div>
         <div id="selections" class="right code"></div>
       </div>
-      ''',
-      treeSanitizer: NodeTreeSanitizer.trusted);
+      ''', treeSanitizer: NodeTreeSanitizer.trusted);
 
   var div = document.querySelector('#selections');
   visitAllMetrics((metric, _) {

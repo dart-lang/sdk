@@ -1,19 +1,12 @@
 language: dart
-sudo: false
+
 dart:
   - dev
-  - stable
-  - 1.22.1
-  - 1.21.1
 
 dart_task:
   - test: --platform vm
   - dartanalyzer
-
-matrix:
-  include:
-  - dart: stable
-    dart_task: dartfmt
+  - dartfmt
 
 # Only building master means that we don't run two builds for each pull request.
 branches:
