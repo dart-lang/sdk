@@ -1361,7 +1361,6 @@ void StreamingScopeBuilder::VisitExpression() {
     }
     case kPropertyGet:
       builder_->ReadPosition();  // read position.
-      builder_->ReadFlags();     // read flags.
       VisitExpression();         // read receiver.
       builder_->SkipName();      // read name.
       // read interface_target_reference.
@@ -1369,7 +1368,6 @@ void StreamingScopeBuilder::VisitExpression() {
       return;
     case kPropertySet:
       builder_->ReadPosition();  // read position.
-      builder_->ReadFlags();     // read flags
       VisitExpression();         // read receiver.
       builder_->SkipName();      // read name.
       VisitExpression();         // read value.
@@ -1378,13 +1376,11 @@ void StreamingScopeBuilder::VisitExpression() {
       return;
     case kDirectPropertyGet:
       builder_->ReadPosition();                // read position.
-      builder_->ReadFlags();                   // read flags.
       VisitExpression();                       // read receiver.
       builder_->SkipCanonicalNameReference();  // read target_reference.
       return;
     case kDirectPropertySet:
       builder_->ReadPosition();                // read position.
-      builder_->ReadFlags();                   // read flags.
       VisitExpression();                       // read receiver.
       builder_->SkipCanonicalNameReference();  // read target_reference.
       VisitExpression();                       // read value·
@@ -1413,7 +1409,6 @@ void StreamingScopeBuilder::VisitExpression() {
       return;
     case kMethodInvocation:
       builder_->ReadPosition();  // read position.
-      builder_->ReadFlags();     // read flags.
       VisitExpression();         // read receiver.
       builder_->SkipName();      // read name.
       VisitArguments();          // read arguments.
@@ -1422,7 +1417,6 @@ void StreamingScopeBuilder::VisitExpression() {
       return;
     case kDirectMethodInvocation:
       builder_->ReadPosition();                // read position.
-      builder_->ReadFlags();                   // read flags.
       VisitExpression();                       // read receiver.
       builder_->SkipCanonicalNameReference();  // read target_reference.
       VisitArguments();                        // read arguments.
@@ -3027,7 +3021,6 @@ void StreamingConstantEvaluator::EvaluateGetStringLength(
 
 void StreamingConstantEvaluator::EvaluatePropertyGet() {
   const TokenPosition position = builder_->ReadPosition();  // read position.
-  builder_->ReadFlags();                                    // read flags.
   intptr_t expression_offset = builder_->ReaderOffset();
   builder_->SkipExpression();                            // read receiver.
   StringIndex name = builder_->ReadNameAsStringIndex();  // read name.
@@ -3044,7 +3037,6 @@ void StreamingConstantEvaluator::EvaluatePropertyGet() {
 
 void StreamingConstantEvaluator::EvaluateDirectPropertyGet() {
   TokenPosition position = builder_->ReadPosition();  // read position.
-  builder_->ReadFlags();                              // read flags.
   intptr_t expression_offset = builder_->ReaderOffset();
   builder_->SkipExpression();  // read receiver.
   NameIndex kernel_name =
@@ -3125,7 +3117,6 @@ void StreamingConstantEvaluator::EvaluateStaticGet() {
 
 void StreamingConstantEvaluator::EvaluateMethodInvocation() {
   builder_->ReadPosition();  // read position.
-  builder_->ReadFlags();     // read flags.
   // This method call wasn't cached, so receiver et al. isn't cached either.
   const Instance& receiver =
       EvaluateExpression(builder_->ReaderOffset(), false);  // read receiver.
@@ -3152,7 +3143,6 @@ void StreamingConstantEvaluator::EvaluateMethodInvocation() {
 
 void StreamingConstantEvaluator::EvaluateDirectMethodInvocation() {
   builder_->ReadPosition();  // read position.
-  builder_->ReadFlags();     // read flags.
 
   const Instance& receiver =
       EvaluateExpression(builder_->ReaderOffset(), false);  // read receiver.
@@ -5665,14 +5655,12 @@ void StreamingFlowGraphBuilder::SkipExpression() {
       return;
     case kPropertyGet:
       ReadPosition();                // read position.
-      SkipFlags();                   // read flags.
       SkipExpression();              // read receiver.
       SkipName();                    // read name.
       SkipCanonicalNameReference();  // read interface_target_reference.
       return;
     case kPropertySet:
       ReadPosition();                // read position.
-      SkipFlags();                   // read flags
       SkipExpression();              // read receiver.
       SkipName();                    // read name.
       SkipExpression();              // read value.
@@ -5691,13 +5679,11 @@ void StreamingFlowGraphBuilder::SkipExpression() {
       return;
     case kDirectPropertyGet:
       ReadPosition();                // read position.
-      SkipFlags();                   // read flags.
       SkipExpression();              // read receiver.
       SkipCanonicalNameReference();  // read target_reference.
       return;
     case kDirectPropertySet:
       ReadPosition();                // read position.
-      SkipFlags();                   // read flags.
       SkipExpression();              // read receiver.
       SkipCanonicalNameReference();  // read target_reference.
       SkipExpression();              // read value·
@@ -5713,7 +5699,6 @@ void StreamingFlowGraphBuilder::SkipExpression() {
       return;
     case kMethodInvocation:
       ReadPosition();                // read position.
-      SkipFlags();                   // read flags.
       SkipExpression();              // read receiver.
       SkipName();                    // read name.
       SkipArguments();               // read arguments.
@@ -5727,7 +5712,6 @@ void StreamingFlowGraphBuilder::SkipExpression() {
       return;
     case kDirectMethodInvocation:
       ReadPosition();                // read position.
-      SkipFlags();                   // read flags.
       SkipExpression();              // read receiver.
       SkipCanonicalNameReference();  // read target_reference.
       SkipArguments();               // read arguments.
@@ -6762,8 +6746,6 @@ Fragment StreamingFlowGraphBuilder::BuildPropertyGet(TokenPosition* p) {
   const InferredTypeMetadata result_type =
       inferred_type_metadata_helper_.GetInferredType(offset);
 
-  ReadFlags();  // read flags
-
   Fragment instructions = BuildExpression();  // read receiver.
 
   LocalVariable* receiver = NULL;
@@ -6822,8 +6804,6 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
 
   const TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
-
-  ReadFlags();  // skip flags
 
   instructions += BuildExpression();  // read receiver.
 
@@ -7098,8 +7078,6 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertyGet(TokenPosition* p) {
   const InferredTypeMetadata result_type =
       inferred_type_metadata_helper_.GetInferredType(offset);
 
-  ReadFlags();  // read flags.
-
   const Tag receiver_tag = PeekTag();         // peek tag for receiver.
   Fragment instructions = BuildExpression();  // read receiver.
   const NameIndex kernel_name =
@@ -7148,8 +7126,6 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertyGet(TokenPosition* p) {
 Fragment StreamingFlowGraphBuilder::BuildDirectPropertySet(TokenPosition* p) {
   const TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
-
-  ReadFlags();  // skip flags.
 
   Fragment instructions(NullConstant());
   LocalVariable* value = MakeTemporary();
@@ -7281,8 +7257,6 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
       direct_call_metadata_helper_.GetDirectTargetForMethodInvocation(offset);
   const InferredTypeMetadata result_type =
       inferred_type_metadata_helper_.GetInferredType(offset);
-
-  ReadFlags();  // skip flags.
 
   const Tag receiver_tag = PeekTag();  // peek tag for receiver.
   if (IsNumberLiteral(receiver_tag) &&
@@ -7457,8 +7431,6 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
 
   const InferredTypeMetadata result_type =
       inferred_type_metadata_helper_.GetInferredType(offset);
-
-  ReadFlags();  // skip flags.
 
   Tag receiver_tag = PeekTag();  // peek tag for receiver.
 

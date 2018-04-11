@@ -1002,7 +1002,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitPropertyGet(PropertyGet node) {
     writeByte(Tag.PropertyGet);
     writeOffset(node.fileOffset);
-    writeByte(node.flags);
     writeNode(node.receiver);
     writeName(node.name);
     writeReference(node.interfaceTargetReference);
@@ -1012,7 +1011,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitPropertySet(PropertySet node) {
     writeByte(Tag.PropertySet);
     writeOffset(node.fileOffset);
-    writeByte(node.flags);
     writeNode(node.receiver);
     writeName(node.name);
     writeNode(node.value);
@@ -1040,7 +1038,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitDirectPropertyGet(DirectPropertyGet node) {
     writeByte(Tag.DirectPropertyGet);
     writeOffset(node.fileOffset);
-    writeByte(node.flags);
     writeNode(node.receiver);
     writeReference(node.targetReference);
   }
@@ -1049,7 +1046,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitDirectPropertySet(DirectPropertySet node) {
     writeByte(Tag.DirectPropertySet);
     writeOffset(node.fileOffset);
-    writeByte(node.flags);
     writeNode(node.receiver);
     writeReference(node.targetReference);
     writeNode(node.value);
@@ -1074,7 +1070,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitMethodInvocation(MethodInvocation node) {
     writeByte(Tag.MethodInvocation);
     writeOffset(node.fileOffset);
-    writeByte(node.flags);
     writeNode(node.receiver);
     writeName(node.name);
     writeNode(node.arguments);
@@ -1094,7 +1089,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitDirectMethodInvocation(DirectMethodInvocation node) {
     writeByte(Tag.DirectMethodInvocation);
     writeOffset(node.fileOffset);
-    writeByte(node.flags);
     writeNode(node.receiver);
     writeReference(node.targetReference);
     writeNode(node.arguments);

@@ -7,7 +7,7 @@ library test;
 
 void expectTypeError(void callback()) {
   try {
-    callback /*@callKind=closure*/ ();
+    callback();
     throw 'Expected TypeError, did not occur';
   } on TypeError {}
 }
@@ -21,17 +21,17 @@ void expect(Object value, Object expected) {
 class C<T> {
   C(this.plusResult);
   final num Function(T) /*@genericContravariant=true*/ plusResult;
-  num Function(T) operator /*@genericContravariant=true*/ +(
-      int i) => /*@callKind=this*/ plusResult;
+  num Function(T) operator /*@genericContravariant=true*/ +(int i) =>
+      plusResult;
 }
 
 class D {
   D(this.getValue);
   final C<num> getValue;
-  C<num> get value => /*@callKind=this*/ getValue;
+  C<num> get value => getValue;
   int Function(int) setValue;
   void set value(int Function(int) value) {
-    /*@callKind=this*/ setValue = value;
+    setValue = value;
   }
 }
 
@@ -48,7 +48,7 @@ void main() {
   //   (num)->num
   D d = new D(new C(numToInt));
   d.value /*@checkReturn=(num) -> num*/ += 1;
-  expect(d.setValue /*@callKind=closure*/ (0), 1);
+  expect(d.setValue(0), 1);
   d = new D(new C(numToNum));
   expectTypeError(() {
     d.value /*@checkReturn=(num) -> num*/ += 1;

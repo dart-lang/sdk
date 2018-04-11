@@ -8,16 +8,16 @@ library test;
 class B {
   Object _x;
   void f([num x = 10]) {
-    /*@callKind=this*/ _x = x;
+    _x = x;
   }
 
   void g({num x = 20}) {
-    /*@callKind=this*/ _x = x;
+    _x = x;
   }
 
   void check(Object expectedValue) {
-    if (/*@callKind=this*/ _x != expectedValue) {
-      throw 'Expected _x == $expectedValue; got ${/*@callKind=this*/_x}';
+    if (_x != expectedValue) {
+      throw 'Expected _x == $expectedValue; got ${_x}';
     }
   }
 }

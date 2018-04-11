@@ -11,7 +11,7 @@ typedef F<T> G<T>();
 class C<T> {
   F<T> /*@genericContravariant=true*/ _x;
   C(this._x);
-  F<T> /*@genericContravariant=true*/ f() => /*@callKind=this*/ _x;
+  F<T> /*@genericContravariant=true*/ f() => _x;
 }
 
 G<num> g(C<num> c) {

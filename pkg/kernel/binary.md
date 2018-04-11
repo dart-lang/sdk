@@ -515,7 +515,6 @@ type SpecializedVariableSet extends Expression {
 type PropertyGet extends Expression {
   Byte tag = 22;
   FileOffset fileOffset;
-  Byte flags (dispatchCategoryLowBit, dispatchCategoryHighBit);
   Expression receiver;
   Name name;
   MemberReference interfaceTarget; // May be NullReference.
@@ -524,7 +523,6 @@ type PropertyGet extends Expression {
 type PropertySet extends Expression {
   Byte tag = 23;
   FileOffset fileOffset;
-  Byte flags (dispatchCategoryLowBit, dispatchCategoryHighBit);
   Expression receiver;
   Name name;
   Expression value;
@@ -549,7 +547,6 @@ type SuperPropertySet extends Expression {
 type DirectPropertyGet extends Expression {
   Byte tag = 15; // Note: tag is out of order
   FileOffset fileOffset;
-  Byte flags (dispatchCategoryLowBit, dispatchCategoryHighBit);
   Expression receiver;
   MemberReference target;
 }
@@ -557,7 +554,6 @@ type DirectPropertyGet extends Expression {
 type DirectPropertySet extends Expression {
   Byte tag = 16; // Note: tag is out of order
   FileOffset fileOffset;
-  Byte flags (dispatchCategoryLowBit, dispatchCategoryHighBit);
   Expression receiver;
   MemberReference target;
   Expression value;
@@ -593,7 +589,6 @@ type NamedExpression {
 type MethodInvocation extends Expression {
   Byte tag = 28;
   FileOffset fileOffset;
-  Byte flags (dispatchCategoryLowBit, dispatchCategoryHighBit);
   Expression receiver;
   Name name;
   Arguments arguments;
@@ -611,7 +606,6 @@ type SuperMethodInvocation extends Expression {
 type DirectMethodInvocation extends Expression {
   Byte tag = 17; // Note: tag is out of order
   FileOffset fileOffset;
-  Byte flags (dispatchCategoryLowBit, dispatchCategoryHighBit);
   Expression receiver;
   MemberReference target;
   Arguments arguments;
