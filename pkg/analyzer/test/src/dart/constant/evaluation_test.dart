@@ -13,6 +13,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
@@ -1330,10 +1331,11 @@ const A a = const A();
     String varName = "foo";
     if (valueInEnvironment != null) {
       if (enableNewAnalysisDriver) {
-        driver.declaredVariables.define(envVarName, valueInEnvironment);
+        driver.declaredVariables =
+            new DeclaredVariables.fromMap({envVarName: valueInEnvironment});
       } else {
-        analysisContext2.declaredVariables
-            .define(envVarName, valueInEnvironment);
+        (analysisContext2 as AnalysisContextImpl).declaredVariables =
+            new DeclaredVariables.fromMap({envVarName: valueInEnvironment});
       }
     }
     String defaultArg =
@@ -1349,10 +1351,11 @@ const A a = const A();
     String varName = "foo";
     if (valueInEnvironment != null) {
       if (enableNewAnalysisDriver) {
-        driver.declaredVariables.define(envVarName, valueInEnvironment);
+        driver.declaredVariables =
+            new DeclaredVariables.fromMap({envVarName: valueInEnvironment});
       } else {
-        analysisContext2.declaredVariables
-            .define(envVarName, valueInEnvironment);
+        (analysisContext2 as AnalysisContextImpl).declaredVariables =
+            new DeclaredVariables.fromMap({envVarName: valueInEnvironment});
       }
     }
     String defaultArg =
@@ -1368,10 +1371,11 @@ const A a = const A();
     String varName = "foo";
     if (valueInEnvironment != null) {
       if (enableNewAnalysisDriver) {
-        driver.declaredVariables.define(envVarName, valueInEnvironment);
+        driver.declaredVariables =
+            new DeclaredVariables.fromMap({envVarName: valueInEnvironment});
       } else {
-        analysisContext2.declaredVariables
-            .define(envVarName, valueInEnvironment);
+        (analysisContext2 as AnalysisContextImpl).declaredVariables =
+            new DeclaredVariables.fromMap({envVarName: valueInEnvironment});
       }
     }
     String defaultArg =

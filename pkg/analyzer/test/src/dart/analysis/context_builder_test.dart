@@ -47,8 +47,8 @@ class ContextBuilderImplTest extends Object with ResourceProviderMixin {
   }
 
   test_createContext_declaredVariables() {
-    DeclaredVariables declaredVariables = new DeclaredVariables();
-    declaredVariables.define('foo', 'true');
+    DeclaredVariables declaredVariables =
+        new DeclaredVariables.fromMap({'foo': 'true'});
     DriverBasedAnalysisContext context = contextBuilder.createContext(
         contextRoot: contextRoot, declaredVariables: declaredVariables);
     expect(context.analysisOptions, isNotNull);
@@ -57,8 +57,8 @@ class ContextBuilderImplTest extends Object with ResourceProviderMixin {
   }
 
   test_createContext_declaredVariables_sdkPath() {
-    DeclaredVariables declaredVariables = new DeclaredVariables();
-    declaredVariables.define('bar', 'true');
+    DeclaredVariables declaredVariables =
+        new DeclaredVariables.fromMap({'bar': 'true'});
     MockSdk sdk = new MockSdk(resourceProvider: resourceProvider);
     DriverBasedAnalysisContext context = contextBuilder.createContext(
         contextRoot: contextRoot,

@@ -203,7 +203,7 @@ class LibraryContext {
         AnalysisEngine.instance.createAnalysisContext();
     analysisContext.useSdkCachePartition = false;
     analysisContext.analysisOptions = analysisOptions;
-    analysisContext.declaredVariables.addAll(declaredVariables);
+    analysisContext.declaredVariables = declaredVariables;
     analysisContext.sourceFactory = sourceFactory.clone();
     var provider = new InputPackagesResultProvider(analysisContext, store);
     analysisContext.resultProvider = provider;

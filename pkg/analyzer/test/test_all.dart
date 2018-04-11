@@ -5,7 +5,6 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'cancelable_future_test.dart' as cancelable_future_test;
-import 'context/test_all.dart' as context;
 import 'dart/test_all.dart' as dart;
 import 'error/test_all.dart' as error;
 import 'file_system/test_all.dart' as file_system;
@@ -19,7 +18,6 @@ import 'src/test_all.dart' as src;
 main() {
   defineReflectiveSuite(() {
     cancelable_future_test.main();
-    context.main();
     dart.main();
     error.main();
     file_system.main();

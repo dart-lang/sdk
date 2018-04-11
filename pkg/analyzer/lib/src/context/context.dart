@@ -369,6 +369,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   DeclaredVariables get declaredVariables => _declaredVariables;
 
+  /**
+   * Set the declared variables to the give collection of declared [variables].
+   */
+  void set declaredVariables(DeclaredVariables variables) {
+    _declaredVariables = variables;
+  }
+
   @deprecated
   @override
   EmbedderYamlLocator get embedderYamlLocator => _embedderYamlLocator;

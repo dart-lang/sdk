@@ -6,7 +6,9 @@ library analyzer.test.generated.compile_time_error_code_test;
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
@@ -2597,9 +2599,10 @@ var b2 = const bool.fromEnvironment('x', defaultValue: 1);''');
     // The type of the defaultValue needs to be correct even when the default
     // value isn't used (because the variable is defined in the environment).
     if (enableNewAnalysisDriver) {
-      driver.declaredVariables.define("x", "true");
+      driver.declaredVariables = new DeclaredVariables.fromMap({'x': 'true'});
     } else {
-      analysisContext2.declaredVariables.define("x", "true");
+      (analysisContext2 as AnalysisContextImpl).declaredVariables =
+          new DeclaredVariables.fromMap({'x': 'true'});
     }
     Source source =
         addSource("var b = const bool.fromEnvironment('x', defaultValue: 1);");

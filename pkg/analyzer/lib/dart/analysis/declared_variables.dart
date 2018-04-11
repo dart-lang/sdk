@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
@@ -18,7 +16,22 @@ class DeclaredVariables {
   /**
    * A table mapping the names of declared variables to their values.
    */
-  Map<String, String> _declaredVariables = new HashMap<String, String>();
+  Map<String, String> _declaredVariables = <String, String>{};
+
+  /**
+   * Initialize a newly created set of declared variables in which there are no
+   * variables.
+   */
+  DeclaredVariables();
+
+  /**
+   * Initialize a newly created set of declared variables to define variables
+   * whose names are the keys in the give [variableMap] and whose values are the
+   * corresponding values from the map.
+   */
+  DeclaredVariables.fromMap(Map<String, String> variableMap) {
+    _declaredVariables.addAll(variableMap);
+  }
 
   /**
    * Return the names of the variables for which a value has been defined.
@@ -28,6 +41,7 @@ class DeclaredVariables {
   /**
    * Add all variables of [other] to this object.
    */
+  @deprecated
   void addAll(DeclaredVariables other) {
     _declaredVariables.addAll(other._declaredVariables);
   }
@@ -35,6 +49,7 @@ class DeclaredVariables {
   /**
    * Define a variable with the given [name] to have the given [value].
    */
+  @deprecated
   void define(String name, String value) {
     _declaredVariables[name] = value;
   }

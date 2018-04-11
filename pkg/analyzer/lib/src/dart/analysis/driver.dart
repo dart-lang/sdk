@@ -171,7 +171,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The declared environment variables.
    */
-  final DeclaredVariables declaredVariables = new DeclaredVariables();
+  DeclaredVariables declaredVariables = new DeclaredVariables();
 
   /**
    * Information about the context root being analyzed by this driver.
