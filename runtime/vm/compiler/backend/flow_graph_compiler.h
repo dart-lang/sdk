@@ -8,6 +8,7 @@
 #include "vm/allocation.h"
 #include "vm/code_descriptors.h"
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/code_statistics.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/runtime_entry.h"
 
@@ -206,9 +207,11 @@ class CompilerDeoptInfoWithStub : public CompilerDeoptInfo {
 
 class SlowPathCode : public ZoneAllocated {
  public:
-  SlowPathCode() : entry_label_(), exit_label_() {}
+  explicit SlowPathCode(Instruction* instruction)
+      : instruction_(instruction), entry_label_(), exit_label_() {}
   virtual ~SlowPathCode() {}
 
+  Instruction* instruction() const { return instruction_; }
   Label* entry_label() { return &entry_label_; }
   Label* exit_label() { return &exit_label_; }
 
@@ -220,10 +223,21 @@ class SlowPathCode : public ZoneAllocated {
  private:
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) = 0;
 
+  Instruction* instruction_;
   Label entry_label_;
   Label exit_label_;
 
   DISALLOW_COPY_AND_ASSIGN(SlowPathCode);
+};
+
+template <typename T>
+class TemplateSlowPathCode : public SlowPathCode {
+ public:
+  explicit TemplateSlowPathCode(T* instruction) : SlowPathCode(instruction) {}
+
+  T* instruction() const {
+    return static_cast<T*>(SlowPathCode::instruction());
+  }
 };
 
 class FlowGraphCompiler : public ValueObject {
@@ -271,7 +285,8 @@ class FlowGraphCompiler : public ValueObject {
                     SpeculativeInliningPolicy* speculative_policy,
                     const GrowableArray<const Function*>& inline_id_to_function,
                     const GrowableArray<TokenPosition>& inline_id_to_token_pos,
-                    const GrowableArray<intptr_t>& caller_inline_id);
+                    const GrowableArray<intptr_t>& caller_inline_id,
+                    CodeStatistics* stats = NULL);
 
   ~FlowGraphCompiler();
 
@@ -312,6 +327,22 @@ class FlowGraphCompiler : public ValueObject {
   const GrowableArray<BlockInfo*>& block_info() const { return block_info_; }
   ParallelMoveResolver* parallel_move_resolver() {
     return &parallel_move_resolver_;
+  }
+
+  void StatsBegin(Instruction* instr) {
+    if (stats_ != NULL) stats_->Begin(instr);
+  }
+
+  void StatsEnd(Instruction* instr) {
+    if (stats_ != NULL) stats_->End(instr);
+  }
+
+  void SpecialStatsBegin(intptr_t tag) {
+    if (stats_ != NULL) stats_->SpecialBegin(tag);
+  }
+
+  void SpecialStatsEnd(intptr_t tag) {
+    if (stats_ != NULL) stats_->SpecialEnd(tag);
   }
 
   // Constructor is lighweight, major initialization work should occur here.
@@ -858,6 +889,7 @@ class FlowGraphCompiler : public ValueObject {
   // True while emitting intrinsic code.
   bool intrinsic_mode_;
   Label intrinsic_slow_path_label_;
+  CodeStatistics* stats_;
 
   const Class& double_class_;
   const Class& mint_class_;

@@ -784,13 +784,17 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment CheckVariableTypeInCheckedMode(const AbstractType& dst_type,
                                           const String& name_symbol);
   Fragment CheckBoolean();
-  Fragment CheckAssignable(const AbstractType& dst_type,
-                           const String& dst_name);
+  Fragment CheckAssignable(
+      const AbstractType& dst_type,
+      const String& dst_name,
+      AssertAssignableInstr::Kind kind = AssertAssignableInstr::kUnknown);
 
   Fragment AssertBool();
-  Fragment AssertAssignable(TokenPosition position,
-                            const AbstractType& dst_type,
-                            const String& dst_name);
+  Fragment AssertAssignable(
+      TokenPosition position,
+      const AbstractType& dst_type,
+      const String& dst_name,
+      AssertAssignableInstr::Kind kind = AssertAssignableInstr::kUnknown);
   Fragment AssertSubtype(TokenPosition position,
                          const AbstractType& sub_type,
                          const AbstractType& super_type,

@@ -828,7 +828,9 @@ void FlowGraphCompiler::CompileGraph() {
 #ifdef DART_PRECOMPILER
   const Function& function = parsed_function().function();
   if (function.IsDynamicFunction()) {
+    SpecialStatsBegin(CombinedCodeStatistics::kTagCheckedEntry);
     __ MonomorphicCheckedEntry();
+    SpecialStatsEnd(CombinedCodeStatistics::kTagCheckedEntry);
   }
 #endif  // DART_PRECOMPILER
 

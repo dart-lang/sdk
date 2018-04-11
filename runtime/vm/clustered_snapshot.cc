@@ -6,6 +6,7 @@
 
 #include "platform/assert.h"
 #include "vm/bootstrap.h"
+#include "vm/compiler/backend/code_statistics.h"
 #include "vm/dart.h"
 #include "vm/heap.h"
 #include "vm/image_snapshot.h"
@@ -5884,6 +5885,10 @@ void FullSnapshotWriter::WriteIsolateSnapshot(intptr_t num_base_objects) {
 
   if (Snapshot::IncludesCode(kind_)) {
     isolate_image_writer_->Write(serializer.stream(), false);
+#if defined(DART_PRECOMPILER)
+    isolate_image_writer_->DumpStatistics();
+#endif
+
     mapped_data_size_ += isolate_image_writer_->data_size();
     mapped_text_size_ += isolate_image_writer_->text_size();
     isolate_image_writer_->ResetOffsets();

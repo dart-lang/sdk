@@ -47,6 +47,7 @@ class DisassemblyFormatter;
 class FinalizablePersistentHandle;
 class HierarchyInfo;
 class LocalScope;
+class CodeStatistics;
 
 #define REUSABLE_FORWARD_DECLARATION(name) class Reusable##name##HandleScope;
 REUSABLE_HANDLE_LIST(REUSABLE_FORWARD_DECLARATION)
@@ -4254,7 +4255,9 @@ class Instructions : public Object {
 
   static intptr_t HeaderSize() {
     intptr_t alignment = OS::PreferredCodeAlignment();
-    return Utils::RoundUp(sizeof(RawInstructions), alignment);
+    intptr_t aligned_size = Utils::RoundUp(sizeof(RawInstructions), alignment);
+    ASSERT(aligned_size == alignment);
+    return aligned_size;
   }
 
   static RawInstructions* FromPayloadStart(uword payload_start) {
@@ -4268,6 +4271,20 @@ class Instructions : public Object {
     }
     NoSafepointScope no_safepoint;
     return memcmp(raw_ptr(), other.raw_ptr(), InstanceSize(Size())) == 0;
+  }
+
+  CodeStatistics* stats() const {
+#if defined(DART_PRECOMPILER)
+    return raw_ptr()->stats_;
+#else
+    return nullptr;
+#endif
+  }
+
+  void set_stats(CodeStatistics* stats) const {
+#if defined(DART_PRECOMPILER)
+    StoreNonPointer(&raw_ptr()->stats_, stats);
+#endif
   }
 
  private:
@@ -4901,10 +4918,12 @@ class Code : public Object {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   static RawCode* FinalizeCode(const Function& function,
                                Assembler* assembler,
-                               bool optimized = false);
+                               bool optimized = false,
+                               CodeStatistics* stats = nullptr);
   static RawCode* FinalizeCode(const char* name,
                                Assembler* assembler,
-                               bool optimized);
+                               bool optimized,
+                               CodeStatistics* stats = nullptr);
 #endif
   static RawCode* LookupCode(uword pc);
   static RawCode* LookupCodeInVmIsolate(uword pc);

@@ -12504,6 +12504,7 @@ RawInstructions* Instructions::New(intptr_t size, bool has_single_entry_point) {
     result ^= raw;
     result.SetSize(size);
     result.SetHasSingleEntryPoint(has_single_entry_point);
+    result.set_stats(nullptr);
   }
   return result.raw();
 }
@@ -14614,7 +14615,8 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 RawCode* Code::FinalizeCode(const char* name,
                             Assembler* assembler,
-                            bool optimized) {
+                            bool optimized,
+                            CodeStatistics* stats /* = nullptr */) {
   Isolate* isolate = Isolate::Current();
   if (!isolate->compilation_allowed()) {
     FATAL1("Precompilation missed code %s\n", name);
@@ -14643,6 +14645,13 @@ RawCode* Code::FinalizeCode(const char* name,
                       instrs.Size());
   assembler->FinalizeInstructions(region);
   CPU::FlushICache(instrs.PayloadStart(), instrs.Size());
+
+#if defined(DART_PRECOMPILER)
+  if (stats != nullptr) {
+    stats->Finalize();
+    instrs.set_stats(stats);
+  }
+#endif
 
   code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
 #ifndef PRODUCT
@@ -14699,16 +14708,17 @@ RawCode* Code::FinalizeCode(const char* name,
 
 RawCode* Code::FinalizeCode(const Function& function,
                             Assembler* assembler,
-                            bool optimized) {
+                            bool optimized /* = false */,
+                            CodeStatistics* stats /* = nullptr */) {
 // Calling ToLibNamePrefixedQualifiedCString is very expensive,
 // try to avoid it.
 #ifndef PRODUCT
   if (CodeObservers::AreActive()) {
     return FinalizeCode(function.ToLibNamePrefixedQualifiedCString(), assembler,
-                        optimized);
+                        optimized, stats);
   }
 #endif  // !PRODUCT
-  return FinalizeCode("", assembler, optimized);
+  return FinalizeCode("", assembler, optimized, stats);
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 

@@ -5,14 +5,28 @@
 #include "vm/image_snapshot.h"
 
 #include "platform/assert.h"
+#include "vm/compiler/backend/code_statistics.h"
 #include "vm/dwarf.h"
 #include "vm/heap.h"
+#include "vm/json_writer.h"
 #include "vm/object.h"
 #include "vm/stub_code.h"
 #include "vm/timeline.h"
 #include "vm/type_testing_stubs.h"
 
 namespace dart {
+
+#if defined(DART_PRECOMPILER)
+DEFINE_FLAG(bool,
+            print_instruction_stats,
+            false,
+            "Print instruction statistics");
+
+DEFINE_FLAG(charp,
+            print_instructions_sizes_to,
+            NULL,
+            "Print sizes of all instruction objects to the given file");
+#endif
 
 int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
                                       RawCode* code) {
@@ -30,6 +44,82 @@ int32_t ImageWriter::GetDataOffsetFor(RawObject* raw_object) {
   objects_.Add(ObjectData(raw_object));
   return offset;
 }
+
+#if defined(DART_PRECOMPILER)
+void ImageWriter::DumpInstructionStats() {
+  CombinedCodeStatistics instruction_stats;
+  for (intptr_t i = 0; i < instructions_.length(); i++) {
+    auto& data = instructions_[i];
+    CodeStatistics* stats = data.insns_->stats();
+    if (stats != nullptr) {
+      stats->AppendTo(&instruction_stats);
+    }
+  }
+  instruction_stats.DumpStatistics();
+}
+
+void ImageWriter::DumpInstructionsSizes() {
+  auto thread = Thread::Current();
+  auto zone = thread->zone();
+
+  auto& cls = Class::Handle(zone);
+  auto& lib = Library::Handle(zone);
+  auto& owner = Object::Handle(zone);
+  auto& url = String::Handle(zone);
+  auto& name = String::Handle(zone);
+
+  JSONWriter js;
+  js.OpenArray();
+  for (intptr_t i = 0; i < instructions_.length(); i++) {
+    auto& data = instructions_[i];
+    owner = data.code_->owner();
+    js.OpenObject();
+    if (owner.IsFunction()) {
+      cls = Function::Cast(owner).Owner();
+      name = cls.ScrubbedName();
+      lib = cls.library();
+      url = lib.url();
+      js.PrintPropertyStr("l", url);
+      js.PrintPropertyStr("c", name);
+    }
+    js.PrintProperty("n", data.code_->QualifiedName());
+    js.PrintProperty("s", data.insns_->Size());
+    js.CloseObject();
+  }
+  js.CloseArray();
+
+  auto file_open = Dart::file_open_callback();
+  auto file_write = Dart::file_write_callback();
+  auto file_close = Dart::file_close_callback();
+  if ((file_open == nullptr) || (file_write == nullptr) ||
+      (file_close == nullptr)) {
+    return;
+  }
+
+  auto file = file_open(FLAG_print_instructions_sizes_to, /*write=*/true);
+  if (file == nullptr) {
+    OS::PrintErr("Failed to open file %s\n", FLAG_print_instructions_sizes_to);
+    return;
+  }
+
+  char* output = nullptr;
+  intptr_t output_length = 0;
+  js.Steal(&output, &output_length);
+  file_write(output, output_length, file);
+  free(output);
+  file_close(file);
+}
+
+void ImageWriter::DumpStatistics() {
+  if (FLAG_print_instruction_stats) {
+    DumpInstructionStats();
+  }
+
+  if (FLAG_print_instructions_sizes_to != nullptr) {
+    DumpInstructionsSizes();
+  }
+}
+#endif
 
 void ImageWriter::Write(WriteStream* clustered_stream, bool vm) {
   Thread* thread = Thread::Current();

@@ -82,6 +82,7 @@ DECLARE_FLAG(int, inlining_depth_threshold);
 DECLARE_FLAG(int, inlining_caller_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_max_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_min_size_threshold);
+DECLARE_FLAG(bool, print_instruction_stats);
 
 #ifdef DART_PRECOMPILER
 
@@ -182,7 +183,8 @@ class PrecompileParsedFunctionHelper : public ValueObject {
 
   void FinalizeCompilation(Assembler* assembler,
                            FlowGraphCompiler* graph_compiler,
-                           FlowGraph* flow_graph);
+                           FlowGraph* flow_graph,
+                           CodeStatistics* stats);
 
   Precompiler* precompiler_;
   ParsedFunction* parsed_function_;
@@ -2683,7 +2685,8 @@ void Precompiler::ResetPrecompilerState() {
 void PrecompileParsedFunctionHelper::FinalizeCompilation(
     Assembler* assembler,
     FlowGraphCompiler* graph_compiler,
-    FlowGraph* flow_graph) {
+    FlowGraph* flow_graph,
+    CodeStatistics* stats) {
   const Function& function = parsed_function()->function();
   Zone* const zone = thread()->zone();
 
@@ -2697,7 +2700,7 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
   // Allocates instruction object. Since this occurs only at safepoint,
   // there can be no concurrent access to the instruction page.
   const Code& code =
-      Code::Handle(Code::FinalizeCode(function, assembler, optimized()));
+      Code::Handle(Code::FinalizeCode(function, assembler, optimized(), stats));
   code.set_is_optimized(optimized());
   code.set_owner(function);
   if (!function.IsOptimizable()) {
@@ -2830,10 +2833,19 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       ASSERT(pass_state.inline_id_to_function.length() ==
              pass_state.caller_inline_id.length());
       Assembler assembler(use_far_branches);
+
+      CodeStatistics* function_stats = NULL;
+      if (FLAG_print_instruction_stats) {
+        // At the moment we are leaking CodeStatistics objects for
+        // simplicity because this is just a development mode flag.
+        function_stats = new CodeStatistics(&assembler);
+      }
+
       FlowGraphCompiler graph_compiler(
           &assembler, flow_graph, *parsed_function(), optimized(),
           &speculative_policy, pass_state.inline_id_to_function,
-          pass_state.inline_id_to_token_pos, pass_state.caller_inline_id);
+          pass_state.inline_id_to_token_pos, pass_state.caller_inline_id,
+          function_stats);
       {
         CSTAT_TIMER_SCOPE(thread(), graphcompiler_timer);
 #ifndef PRODUCT
@@ -2848,7 +2860,8 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
                                   "FinalizeCompilation");
 #endif  // !PRODUCT
         ASSERT(thread()->IsMutatorThread());
-        FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
+        FinalizeCompilation(&assembler, &graph_compiler, flow_graph,
+                            function_stats);
       }
       // Exit the loop and the function with the correct result value.
       is_compiled = true;

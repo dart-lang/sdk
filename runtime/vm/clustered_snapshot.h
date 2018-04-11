@@ -265,6 +265,8 @@ class Serializer : public StackResource {
 
   bool for_vm_isolate() const { return vm_isolate_; }
 
+  void DumpCombinedCodeStatistics();
+
  private:
   TypeTestingStubFinder type_testing_stubs_;
   Heap* heap_;

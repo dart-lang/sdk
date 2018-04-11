@@ -2235,7 +2235,8 @@ Fragment FlowGraphBuilder::CheckBoolean() {
 }
 
 Fragment FlowGraphBuilder::CheckAssignable(const AbstractType& dst_type,
-                                           const String& dst_name) {
+                                           const String& dst_name,
+                                           AssertAssignableInstr::Kind kind) {
   Fragment instructions;
   if (dst_type.IsMalformed()) {
     return ThrowTypeError();
@@ -2245,7 +2246,7 @@ Fragment FlowGraphBuilder::CheckAssignable(const AbstractType& dst_type,
     LocalVariable* top_of_stack = MakeTemporary();
     instructions += LoadLocal(top_of_stack);
     instructions +=
-        AssertAssignable(TokenPosition::kNoSource, dst_type, dst_name);
+        AssertAssignable(TokenPosition::kNoSource, dst_type, dst_name, kind);
     instructions += Drop();
   }
   return instructions;
@@ -2261,7 +2262,8 @@ Fragment FlowGraphBuilder::AssertBool() {
 
 Fragment FlowGraphBuilder::AssertAssignable(TokenPosition position,
                                             const AbstractType& dst_type,
-                                            const String& dst_name) {
+                                            const String& dst_name,
+                                            AssertAssignableInstr::Kind kind) {
   Fragment instructions;
   Value* value = Pop();
 
@@ -2281,7 +2283,7 @@ Fragment FlowGraphBuilder::AssertAssignable(TokenPosition position,
 
   AssertAssignableInstr* instr = new (Z) AssertAssignableInstr(
       position, value, instantiator_type_args, function_type_args, dst_type,
-      dst_name, GetNextDeoptId());
+      dst_name, GetNextDeoptId(), kind);
   Push(instr);
 
   instructions += Fragment(instr);

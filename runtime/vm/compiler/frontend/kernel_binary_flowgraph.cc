@@ -6566,7 +6566,8 @@ Fragment StreamingFlowGraphBuilder::CheckAssignableInCheckedMode(
 Fragment StreamingFlowGraphBuilder::CheckArgumentType(
     LocalVariable* variable,
     const AbstractType& type) {
-  return flow_graph_builder_->CheckAssignable(type, variable->name());
+  return flow_graph_builder_->CheckAssignable(
+      type, variable->name(), AssertAssignableInstr::kParameterCheck);
 }
 
 Fragment StreamingFlowGraphBuilder::CheckTypeArgumentBound(
@@ -8039,8 +8040,9 @@ Fragment StreamingFlowGraphBuilder::BuildAsExpression(TokenPosition* p) {
     // the result of the `obj as dynamic` expression.
   } else if (is_type_error) {
     instructions += LoadLocal(MakeTemporary());
-    instructions += flow_graph_builder_->AssertAssignable(value_position, type,
-                                                          Symbols::Empty());
+    instructions += flow_graph_builder_->AssertAssignable(
+        value_position, type, Symbols::Empty(),
+        AssertAssignableInstr::kInsertedByFrontend);
     instructions += Drop();
   } else {
     instructions += PushArgument();
