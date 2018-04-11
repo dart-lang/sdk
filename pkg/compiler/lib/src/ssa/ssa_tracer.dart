@@ -531,8 +531,8 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String visitTypeInfoReadVariable(HTypeInfoReadVariable node) {
-    return "TypeInfoReadVariable: "
-        "${temporaryId(node.inputs.single)}.${node.variable}";
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    return "TypeInfoReadVariable: ${node.variable}  $inputs";
   }
 
   String visitTypeInfoExpression(HTypeInfoExpression node) {

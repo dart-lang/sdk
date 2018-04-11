@@ -114,13 +114,25 @@ getRuntimeTypeInfo(Object target) {
   return JS('var', r'#[#]', target, rtiName);
 }
 
-/**
- * Returns the type arguments of [target] as an instance of [substitutionName].
- */
-getRuntimeTypeArguments(target, substitutionName) {
-  var substitution = getField(
-      target, '${JS_GET_NAME(JsGetName.OPERATOR_AS_PREFIX)}$substitutionName');
-  return substitute(substitution, getRuntimeTypeInfo(target));
+/// Returns the type arguments of [object] as an instance of [substitutionName].
+getRuntimeTypeArguments(interceptor, object, substitutionName) {
+  var substitution = getField(interceptor,
+      '${JS_GET_NAME(JsGetName.OPERATOR_AS_PREFIX)}$substitutionName');
+  return substitute(substitution, getRuntimeTypeInfo(object));
+}
+
+/// Returns the [index]th type argument of [target] as an instance of
+/// [substitutionName].
+///
+/// Called from generated code.
+@NoThrows()
+@NoSideEffects()
+@NoInline()
+getRuntimeTypeArgumentIntercepted(
+    interceptor, Object target, String substitutionName, int index) {
+  var arguments =
+      getRuntimeTypeArguments(interceptor, target, substitutionName);
+  return arguments == null ? null : getIndex(arguments, index);
 }
 
 /// Returns the [index]th type argument of [target] as an instance of
@@ -131,7 +143,7 @@ getRuntimeTypeArguments(target, substitutionName) {
 @NoSideEffects()
 @NoInline()
 getRuntimeTypeArgument(Object target, String substitutionName, int index) {
-  var arguments = getRuntimeTypeArguments(target, substitutionName);
+  var arguments = getRuntimeTypeArguments(target, target, substitutionName);
   return arguments == null ? null : getIndex(arguments, index);
 }
 
@@ -705,7 +717,9 @@ bool areSubtypesV2(var s, var sEnv, var t, var tEnv) {
  * instance of [contextName] to the signature function [signature].
  */
 computeSignature(var signature, var context, var contextName) {
-  var typeArguments = getRuntimeTypeArguments(context, contextName);
+  var interceptor = getInterceptor(context);
+  var typeArguments =
+      getRuntimeTypeArguments(interceptor, context, contextName);
   return invokeOn(signature, context, typeArguments);
 }
 

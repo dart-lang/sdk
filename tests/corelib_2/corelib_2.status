@@ -223,13 +223,8 @@ integer_to_radix_string_test/01: RuntimeError
 integer_to_radix_string_test/02: RuntimeError
 integer_to_radix_string_test/none: RuntimeError
 integer_to_string_test/01: RuntimeError
-iterable_followed_by_test: RuntimeError
-iterable_return_type_test/01: RuntimeError # Issue 20085
 iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
-iterable_to_list_test/01: RuntimeError # Issue 26501
 list_concurrent_modify_test: RuntimeError # dart2js does not fully implement these
-list_test/01: RuntimeError
-list_test/none: RuntimeError
 list_unmodifiable_test: RuntimeError
 main_test: RuntimeError
 nan_infinity_test/01: RuntimeError
@@ -253,13 +248,8 @@ integer_to_radix_string_test/01: RuntimeError
 integer_to_radix_string_test/02: RuntimeError
 integer_to_radix_string_test/none: RuntimeError
 integer_to_string_test/01: RuntimeError
-iterable_followed_by_test: RuntimeError
-iterable_return_type_test/01: RuntimeError # Issue 20085
 iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
-iterable_to_list_test/01: RuntimeError # Issue 26501
 list_concurrent_modify_test: RuntimeError # dart2js does not fully implement these
-list_test/01: RuntimeError
-list_test/none: RuntimeError
 list_unmodifiable_test: RuntimeError
 main_test: RuntimeError
 nan_infinity_test/01: RuntimeError

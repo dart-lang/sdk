@@ -98,6 +98,7 @@ class BackendImpacts {
 
   BackendImpact get getRuntimeTypeArgument {
     return _getRuntimeTypeArgument ??= new BackendImpact(globalUses: [
+      _commonElements.getRuntimeTypeArgumentIntercepted,
       _commonElements.getRuntimeTypeArgument,
       _commonElements.getTypeArgumentByIndex,
     ]);

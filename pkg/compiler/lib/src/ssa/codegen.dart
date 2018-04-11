@@ -3016,8 +3016,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitTypeInfoReadVariable(HTypeInfoReadVariable node) {
     TypeVariableEntity element = node.variable.element;
-
     int index = element.index;
+
+    js.Expression interceptor;
+    if (node.isIntercepted) {
+      use(node.interceptor);
+      interceptor = pop();
+    }
     HInstruction object = node.object;
     use(object);
     js.Expression receiver = pop();
@@ -3025,16 +3030,31 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (typeVariableAccessNeedsSubstitution(element, object.instructionType)) {
       js.Expression typeName =
           js.quoteName(_namer.runtimeTypeName(element.typeDeclaration));
-      FunctionEntity helperElement = _commonElements.getRuntimeTypeArgument;
-      _registry.registerStaticUse(
-          new StaticUse.staticInvoke(helperElement, CallStructure.THREE_ARGS));
-      js.Expression helper = _emitter.staticFunctionAccess(helperElement);
-      push(js.js(r'#(#, #, #)', [
-        helper,
-        receiver,
-        typeName,
-        js.js.number(index)
-      ]).withSourceInformation(node.sourceInformation));
+      if (node.isIntercepted) {
+        FunctionEntity helperElement =
+            _commonElements.getRuntimeTypeArgumentIntercepted;
+        _registry.registerStaticUse(
+            new StaticUse.staticInvoke(helperElement, CallStructure.FOUR_ARGS));
+        js.Expression helper = _emitter.staticFunctionAccess(helperElement);
+        push(js.js(r'#(#, #, #, #)', [
+          helper,
+          interceptor,
+          receiver,
+          typeName,
+          js.js.number(index)
+        ]).withSourceInformation(node.sourceInformation));
+      } else {
+        FunctionEntity helperElement = _commonElements.getRuntimeTypeArgument;
+        _registry.registerStaticUse(new StaticUse.staticInvoke(
+            helperElement, CallStructure.THREE_ARGS));
+        js.Expression helper = _emitter.staticFunctionAccess(helperElement);
+        push(js.js(r'#(#, #, #)', [
+          helper,
+          receiver,
+          typeName,
+          js.js.number(index)
+        ]).withSourceInformation(node.sourceInformation));
+      }
     } else {
       FunctionEntity helperElement = _commonElements.getTypeArgumentByIndex;
       _registry.registerStaticUse(

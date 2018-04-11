@@ -3577,18 +3577,33 @@ class HTypeInfoReadRaw extends HInstruction {
 }
 
 /// Reads a type variable from an object. The read may be a simple indexing of
-/// the type parameters or it may require 'substitution'.
+/// the type parameters or it may require 'substitution'. There may be an
+/// interceptor argument to access the substitution of native classes.
 class HTypeInfoReadVariable extends HInstruction {
   /// The type variable being read.
   final TypeVariableType variable;
+  final bool isIntercepted;
 
-  HTypeInfoReadVariable(
-      this.variable, HInstruction receiver, TypeMask instructionType)
-      : super(<HInstruction>[receiver], instructionType) {
+  HTypeInfoReadVariable.intercepted(this.variable, HInstruction interceptor,
+      HInstruction receiver, TypeMask instructionType)
+      : isIntercepted = true,
+        super(<HInstruction>[interceptor, receiver], instructionType) {
     setUseGvn();
   }
 
-  HInstruction get object => inputs.single;
+  HTypeInfoReadVariable.noInterceptor(
+      this.variable, HInstruction receiver, TypeMask instructionType)
+      : isIntercepted = false,
+        super(<HInstruction>[receiver], instructionType) {
+    setUseGvn();
+  }
+
+  HInstruction get interceptor {
+    assert(isIntercepted);
+    return inputs.first;
+  }
+
+  HInstruction get object => inputs.last;
 
   accept(HVisitor visitor) => visitor.visitTypeInfoReadVariable(this);
 

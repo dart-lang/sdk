@@ -172,8 +172,12 @@ abstract class TypeBuilder {
     assert(variable.element.typeDeclaration is ClassEntity);
     HInstruction target =
         builder.localsHandler.readThis(sourceInformation: sourceInformation);
-    builder.push(new HTypeInfoReadVariable(
-        variable, target, builder.commonMasks.dynamicType)
+    HInstruction interceptor =
+        new HInterceptor(target, builder.commonMasks.nonNullType)
+          ..sourceInformation = sourceInformation;
+    builder.add(interceptor);
+    builder.push(new HTypeInfoReadVariable.intercepted(
+        variable, interceptor, target, builder.commonMasks.dynamicType)
       ..sourceInformation = sourceInformation);
     return builder.pop();
   }
