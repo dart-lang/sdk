@@ -63,7 +63,7 @@ class ContextBuilderImplTest extends Object with ResourceProviderMixin {
     DriverBasedAnalysisContext context = contextBuilder.createContext(
         contextRoot: contextRoot,
         declaredVariables: declaredVariables,
-        sdkPath: sdkRoot);
+        sdkPath: resourceProvider.convertPath(sdkRoot));
     expect(context.analysisOptions, isNotNull);
     expect(context.contextRoot, contextRoot);
     assertEquals(context.driver.declaredVariables, declaredVariables);
@@ -79,13 +79,13 @@ class ContextBuilderImplTest extends Object with ResourceProviderMixin {
   }
 
   test_createContext_sdkPath() {
-    String sdkPath = resourceProvider.convertPath('/path/to/sdk');
-    resourceProvider.newFolder(sdkPath);
-    AnalysisContext context = contextBuilder.createContext(
-        contextRoot: contextRoot, sdkPath: sdkPath);
+    MockSdk sdk = new MockSdk(resourceProvider: resourceProvider);
+    DriverBasedAnalysisContext context = contextBuilder.createContext(
+        contextRoot: contextRoot,
+        sdkPath: resourceProvider.convertPath(sdkRoot));
     expect(context.analysisOptions, isNotNull);
     expect(context.contextRoot, contextRoot);
-    // TODO(brianwilkerson) We don't currently have a way to test whether the
-    // sdkPath is being handled correctly.
+    expect(context.driver.sourceFactory.dartSdk.mapDartUri('dart:core'),
+        sdk.mapDartUri('dart:core'));
   }
 }
