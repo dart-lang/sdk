@@ -27,11 +27,12 @@ void addStandardArguments(ArgParser argParser) {
   argParser.addFlag("hot-reload-rollback", negatable: false);
   argParser.addFlag("minified", negatable: false);
   argParser.addOption("mode", allowed: Mode.names);
+  argParser.addFlag("no-preview-dart-2", negatable: false);
+  argParser.addFlag("preview-dart-2", negatable: false);
   argParser.addOption("runtime", allowed: Runtime.names);
   argParser.addFlag("strong", negatable: false);
   argParser.addOption("system", allowed: System.names);
   argParser.addFlag("use-sdk", negatable: false);
-  argParser.addFlag("preview-dart-2", negatable: false);
 }
 
 /// Helper function to get a configuration from [argResults].
@@ -58,6 +59,7 @@ models.Configuration getConfigurationFromArguments(ArgResults argResults) {
       argResults["enable-asserts"],
       argResults["hot-reload"],
       argResults["hot-reload-rollback"],
+      argResults["no-preview-dart-2"],
       argResults["preview-dart-2"],
       argResults.rest);
 }

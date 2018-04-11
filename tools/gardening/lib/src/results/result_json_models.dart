@@ -28,6 +28,7 @@ class Configuration {
   final bool enableAsserts;
   final bool hotReload;
   final bool hotReloadRollback;
+  final bool noPreviewDart2;
   final bool previewDart2;
   final List<String> selectors;
 
@@ -53,6 +54,7 @@ class Configuration {
       this.enableAsserts,
       this.hotReload,
       this.hotReloadRollback,
+      this.noPreviewDart2,
       this.previewDart2,
       this.selectors);
 
@@ -79,6 +81,7 @@ class Configuration {
         json["enable_asserts"] ?? false,
         json["hot_reload"] ?? false,
         json["hot_reload_rollback"] ?? false,
+        json["no_preview_dart_2"] ?? false,
         json["preview_dart_2"] ?? false,
         json["selectors"] ?? []);
   }
@@ -107,6 +110,7 @@ class Configuration {
       _boolToArg("enable-asserts", enableAsserts),
       _boolToArg("hot-reload", hotReload),
       _boolToArg("hot-reload-rollback", hotReloadRollback),
+      _boolToArg("no-preview-dart-2", noPreviewDart2),
       _boolToArg("preview-dart-2", previewDart2)
     ].where((x) => x != null).toList();
     if (includeSelectors && selectors != null && selectors.length > 0) {
@@ -119,7 +123,7 @@ class Configuration {
     return "$mode;$arch;$compiler;$runtime;$checked;$strong;$hostChecked;"
         "$minified;$csp;$fasta;$system;$vmOptions;$useSdk;$builderTag;$fastStartup;"
         "$dart2JsWithKernel;$dart2JsOldFrontend;$enableAsserts;$hotReload;"
-        "$hotReloadRollback;$previewDart2;$selectors";
+        "$hotReloadRollback;$noPreviewDart2;$previewDart2;$selectors";
   }
 
   String _stringToArg(String name, String value) {
