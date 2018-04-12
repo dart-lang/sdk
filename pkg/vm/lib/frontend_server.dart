@@ -48,6 +48,8 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addFlag('strong',
       help: 'Run compiler in strong mode (uses strong mode semantics)',
       defaultsTo: false)
+  ..addFlag('sync-async',
+      help: 'Start `async` functions synchronously.', defaultsTo: false)
   ..addFlag('tfa',
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
@@ -250,8 +252,8 @@ class FrontendCompiler implements CompilerInterface {
       }
     }
 
-    final TargetFlags targetFlags =
-        new TargetFlags(strongMode: options['strong']);
+    final TargetFlags targetFlags = new TargetFlags(
+        strongMode: options['strong'], syncAsync: options['sync-async']);
     compilerOptions.target = getTarget(options['target'], targetFlags);
 
     Component component;
