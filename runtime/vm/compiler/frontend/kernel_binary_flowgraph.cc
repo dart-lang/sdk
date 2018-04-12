@@ -4201,10 +4201,9 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   const Class& owner = Class::ZoneHandle(Z, parent.Owner());
   Function& target = Function::ZoneHandle(Z, owner.LookupFunction(func_name));
 
-  if (target.raw() != parent.raw()) {
+  if (!target.IsNull() && (target.raw() != parent.raw())) {
     DEBUG_ASSERT(Isolate::Current()->HasAttemptedReload());
-    if (target.IsNull() || (target.is_static() != parent.is_static()) ||
-        (target.kind() != parent.kind())) {
+    if ((target.is_static() != parent.is_static()) || (target.kind() != parent.kind())) {
       target = Function::null();
     }
   }
