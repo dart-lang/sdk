@@ -166,19 +166,20 @@ class Expando<T> {
   }
 }
 
-Null _kNull(_) => null;
-
 @patch
 class int {
   @patch
   static int parse(String source,
       {int radix, @deprecated int onError(String source)}) {
-    return Primitives.parseInt(source, radix, onError);
+    int value = tryParse(source, radix: radix);
+    if (value != null) return value;
+    if (onError != null) return onError(source);
+    throw new FormatException(source);
   }
 
   @patch
   static int tryParse(String source, {int radix}) {
-    return Primitives.parseInt(source, radix, _kNull);
+    return Primitives.parseInt(source, radix);
   }
 }
 
@@ -187,12 +188,15 @@ class double {
   @patch
   static double parse(String source,
       [@deprecated double onError(String source)]) {
-    return Primitives.parseDouble(source, onError);
+    double value = tryParse(source);
+    if (value != null) return value;
+    if (onError != null) return onError(source);
+    throw new FormatException('Invalid double', source);
   }
 
   @patch
   static double tryParse(String source) {
-    return Primitives.parseDouble(source, _kNull);
+    return Primitives.parseDouble(source);
   }
 }
 
