@@ -1406,7 +1406,7 @@ void ConstantPropagator::Transform() {
             !value.IsCanonical()) {
           const char* error_str = nullptr;
           value = Instance::Cast(value).CheckAndCanonicalize(T, &error_str);
-          ASSERT(value.IsNull() && (error_str == nullptr));
+          ASSERT(!value.IsNull() && (error_str == nullptr));
         }
         ConstantInstr* constant = graph_->GetConstant(value);
         defn->ReplaceUsesWith(constant);
