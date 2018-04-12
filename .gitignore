@@ -9,3 +9,4 @@ packages
 .packages
 pubspec.lock
 bin/inference/client.dart.js*
+.dart_tool/
