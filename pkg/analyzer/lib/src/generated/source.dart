@@ -218,26 +218,20 @@ class LineInfo {
    * Initialize a newly created set of line information to represent the data
    * encoded in the given list of [lineStarts].
    */
-  factory LineInfo(List<int> lineStarts) => new LineInfoWithCount(lineStarts);
-
-  /**
-   * Initialize a newly created set of line information corresponding to the
-   * given file [content].
-   */
-  factory LineInfo.fromContent(String content) =>
-      new LineInfoWithCount(StringUtilities.computeLineStarts(content));
-
-  /**
-   * Initialize a newly created set of line information to represent the data
-   * encoded in the given list of [lineStarts].
-   */
-  LineInfo._(this.lineStarts) {
+  LineInfo(this.lineStarts) {
     if (lineStarts == null) {
       throw new ArgumentError("lineStarts must be non-null");
     } else if (lineStarts.length < 1) {
       throw new ArgumentError("lineStarts must be non-empty");
     }
   }
+
+  /**
+   * Initialize a newly created set of line information corresponding to the
+   * given file [content].
+   */
+  factory LineInfo.fromContent(String content) =>
+      new LineInfo(StringUtilities.computeLineStarts(content));
 
   /**
    * The number of lines.
@@ -328,21 +322,6 @@ class LineInfo_Location {
 
   @override
   String toString() => '$lineNumber:$columnNumber';
-}
-
-/**
- * Information about line and column information within a source file,
- * including a count of the total number of lines.
- *
- * TODO(paulberry): in the next major version roll of analyzer, merge this
- * class into [LineInfo].
- */
-class LineInfoWithCount extends LineInfo {
-  /**
-   * Initialize a newly created set of line information to represent the data
-   * encoded in the given list of [lineStarts].
-   */
-  LineInfoWithCount(List<int> lineStarts) : super._(lineStarts);
 }
 
 /**
