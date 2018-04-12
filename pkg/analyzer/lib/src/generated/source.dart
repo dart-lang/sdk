@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.generated.source;
-
 import 'dart:collection';
-import "dart:math" as math;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/source.dart';
@@ -19,6 +16,7 @@ import 'package:front_end/src/base/uri_kind.dart';
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as pathos;
 
+export 'package:analyzer/source/source_range.dart';
 export 'package:front_end/src/base/source.dart' show Source;
 export 'package:front_end/src/base/uri_kind.dart' show UriKind;
 
@@ -604,131 +602,6 @@ class SourceKind implements Comparable<SourceKind> {
 
   @override
   String toString() => name;
-}
-
-/**
- * A source range defines an [Element]'s source coordinates relative to its [Source].
- */
-class SourceRange {
-  /**
-   * An empty [SourceRange] with offset `0` and length `0`.
-   */
-  static SourceRange EMPTY = new SourceRange(0, 0);
-
-  /**
-   * The 0-based index of the first character of the source code for this element, relative to the
-   * source buffer in which this element is contained.
-   */
-  final int offset;
-
-  /**
-   * The number of characters of the source code for this element, relative to the source buffer in
-   * which this element is contained.
-   */
-  final int length;
-
-  /**
-   * Initialize a newly created source range using the given offset and the given length.
-   *
-   * @param offset the given offset
-   * @param length the given length
-   */
-  SourceRange(this.offset, this.length);
-
-  /**
-   * @return the 0-based index of the after-last character of the source code for this element,
-   *         relative to the source buffer in which this element is contained.
-   */
-  int get end => offset + length;
-
-  @override
-  int get hashCode => 31 * offset + length;
-
-  @override
-  bool operator ==(Object other) {
-    return other is SourceRange &&
-        other.offset == offset &&
-        other.length == length;
-  }
-
-  /**
-   * @return `true` if <code>x</code> is in [offset, offset + length) interval.
-   */
-  bool contains(int x) => offset <= x && x < offset + length;
-
-  /**
-   * @return `true` if <code>x</code> is in (offset, offset + length) interval.
-   */
-  bool containsExclusive(int x) => offset < x && x < offset + length;
-
-  /**
-   * @return `true` if <code>otherRange</code> covers this [SourceRange].
-   */
-  bool coveredBy(SourceRange otherRange) => otherRange.covers(this);
-
-  /**
-   * @return `true` if this [SourceRange] covers <code>otherRange</code>.
-   */
-  bool covers(SourceRange otherRange) =>
-      offset <= otherRange.offset && otherRange.end <= end;
-
-  /**
-   * @return `true` if this [SourceRange] ends in <code>otherRange</code>.
-   */
-  bool endsIn(SourceRange otherRange) {
-    int thisEnd = end;
-    return otherRange.contains(thisEnd);
-  }
-
-  /**
-   * @return the expanded instance of [SourceRange], which has the same center.
-   */
-  SourceRange getExpanded(int delta) =>
-      new SourceRange(offset - delta, delta + length + delta);
-
-  /**
-   * @return the instance of [SourceRange] with end moved on "delta".
-   */
-  SourceRange getMoveEnd(int delta) => new SourceRange(offset, length + delta);
-
-  /**
-   * @return the expanded translated of [SourceRange], with moved start and the same length.
-   */
-  SourceRange getTranslated(int delta) =>
-      new SourceRange(offset + delta, length);
-
-  /**
-   * @return the minimal [SourceRange] that cover this and the given [SourceRange]s.
-   */
-  SourceRange getUnion(SourceRange other) {
-    int newOffset = math.min(offset, other.offset);
-    int newEnd = math.max(offset + length, other.offset + other.length);
-    return new SourceRange(newOffset, newEnd - newOffset);
-  }
-
-  /**
-   * @return `true` if this [SourceRange] intersects with given.
-   */
-  bool intersects(SourceRange other) {
-    if (other == null) {
-      return false;
-    }
-    if (end <= other.offset) {
-      return false;
-    }
-    if (offset >= other.end) {
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Return `true` if this [SourceRange] starts in the [otherRange].
-   */
-  bool startsIn(SourceRange otherRange) => otherRange.contains(offset);
-
-  @override
-  String toString() => '[offset=$offset, length=$length]';
 }
 
 /**
