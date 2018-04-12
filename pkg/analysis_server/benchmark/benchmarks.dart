@@ -14,11 +14,13 @@ import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 
 import 'perf/benchmarks_impl.dart';
+import 'perf/flutter_analyze_benchmark.dart';
 
 Future main(List<String> args) async {
   final List<Benchmark> benchmarks = [
     new ColdAnalysisBenchmark(),
-    new AnalysisBenchmark()
+    new AnalysisBenchmark(),
+    new FlutterAnalyzeBenchmark(),
   ];
 
   CommandRunner runner = new CommandRunner(
@@ -110,6 +112,11 @@ class RunCommand extends Command {
       actualIterations = math.min(benchmark.maxIterations, repeatCount);
     }
 
+    if (benchmark.needsSetup) {
+      print('Setting up $benchmarkId...');
+      await benchmark.oneTimeSetup();
+    }
+
     try {
       BenchMarkResult result;
       Stopwatch time = new Stopwatch()..start();
@@ -129,6 +136,8 @@ class RunCommand extends Command {
       print('Finished in ${time.elapsed.inSeconds} seconds.\n');
       Map m = {'benchmark': benchmarkId, 'result': result.toJson()};
       print(json.encode(m));
+
+      await benchmark.oneTimeCleanup();
     } catch (error, st) {
       print('$benchmarkId threw exception: $error');
       print(st);
@@ -146,6 +155,12 @@ abstract class Benchmark {
   final String kind;
 
   Benchmark(this.id, this.description, {this.enabled: true, this.kind: 'cpu'});
+
+  bool get needsSetup => false;
+
+  Future oneTimeSetup() => new Future.value();
+
+  Future oneTimeCleanup() => new Future.value();
 
   Future<BenchMarkResult> run({
     bool quick: false,
