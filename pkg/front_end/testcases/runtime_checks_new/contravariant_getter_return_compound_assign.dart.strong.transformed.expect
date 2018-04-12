@@ -19,21 +19,21 @@ class C<T extends core::Object> extends core::Object {
   set x(self::B<(self::C::T) → void> value) → void {}
 }
 static method test(self::C<core::num> c) → void {
-  let final self::C<core::num> #t1 = c in #t1.{self::C::x} = (#t1.{self::C::x} as{TypeError} self::B<(core::num) → void>).{self::B::+}(let final self::B<core::num> #t2 = new self::B::•<core::num>() in let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:21:49: Error: A value of type 'test::B<dart.core::num>' can't be assigned to a variable of type 'test::B<(dart.core::num) \u8594 void>'.
+  let final self::C<core::num> #t1 = c in #t1.{self::C::x} = (#t1.{self::C::x} as{TypeError} self::B<(core::num) → void>).{self::B::+}(let final dynamic #t2 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:21:49: Error: A value of type 'test::B<dart.core::num>' can't be assigned to a variable of type 'test::B<(dart.core::num) \u8594 void>'.
 Try changing the type of the left hand side, or casting the right hand side to 'test::B<(dart.core::num) \u8594 void>'.
   c. /*@checkReturn=B<(num) -> void>*/ x += new B<num>();
-                                                ^");
-  self::B<(core::num) → void> y = let final self::C<core::num> #t3 = c in #t3.{self::C::x} = (#t3.{self::C::x} as{TypeError} self::B<(core::num) → void>).{self::B::+}(let final self::B<core::num> #t4 = new self::B::•<core::num>() in let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:22:57: Error: A value of type 'test::B<dart.core::num>' can't be assigned to a variable of type 'test::B<(dart.core::num) \u8594 void>'.
+                                                ^" in let final self::B<core::num> #t3 = new self::B::•<core::num>() in null);
+  self::B<(core::num) → void> y = let final self::C<core::num> #t4 = c in #t4.{self::C::x} = (#t4.{self::C::x} as{TypeError} self::B<(core::num) → void>).{self::B::+}(let final dynamic #t5 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:22:57: Error: A value of type 'test::B<dart.core::num>' can't be assigned to a variable of type 'test::B<(dart.core::num) \u8594 void>'.
 Try changing the type of the left hand side, or casting the right hand side to 'test::B<(dart.core::num) \u8594 void>'.
   var y = c. /*@checkReturn=B<(num) -> void>*/ x += new B<num>();
-                                                        ^");
-  let final self::C<core::num> #t5 = c in (#t5.{self::C::x} as{TypeError} self::B<(core::num) → void>).{core::Object::==}(null) ?{self::B<core::Object>} #t5.{self::C::x} = let final self::B<core::num> #t6 = new self::B::•<core::num>() in let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:23:50: Error: A value of type 'test::B<dart.core::num>' can't be assigned to a variable of type 'test::B<(dart.core::num) \u8594 void>'.
+                                                        ^" in let final self::B<core::num> #t6 = new self::B::•<core::num>() in null);
+  let final self::C<core::num> #t7 = c in (#t7.{self::C::x} as{TypeError} self::B<(core::num) → void>).{core::Object::==}(null) ?{self::B<core::Object>} #t7.{self::C::x} = let final dynamic #t8 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:23:50: Error: A value of type 'test::B<dart.core::num>' can't be assigned to a variable of type 'test::B<(dart.core::num) \u8594 void>'.
 Try changing the type of the left hand side, or casting the right hand side to 'test::B<(dart.core::num) \u8594 void>'.
   c. /*@checkReturn=B<(num) -> void>*/ x ??= new B<num>();
-                                                 ^" : null;
-  self::B<core::Object> z = let final self::C<core::num> #t7 = c in let final self::B<(core::num) → void> #t8 = #t7.{self::C::x} as{TypeError} self::B<(core::num) → void> in #t8.{core::Object::==}(null) ?{self::B<core::Object>} #t7.{self::C::x} = let final self::B<core::num> #t9 = new self::B::•<core::num>() in let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:24:58: Error: A value of type 'test::B<dart.core::num>' can't be assigned to a variable of type 'test::B<(dart.core::num) \u8594 void>'.
+                                                 ^" in let final self::B<core::num> #t9 = new self::B::•<core::num>() in null : null;
+  self::B<core::Object> z = let final self::C<core::num> #t10 = c in let final self::B<(core::num) → void> #t11 = #t10.{self::C::x} as{TypeError} self::B<(core::num) → void> in #t11.{core::Object::==}(null) ?{self::B<core::Object>} #t10.{self::C::x} = let final dynamic #t12 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:24:58: Error: A value of type 'test::B<dart.core::num>' can't be assigned to a variable of type 'test::B<(dart.core::num) \u8594 void>'.
 Try changing the type of the left hand side, or casting the right hand side to 'test::B<(dart.core::num) \u8594 void>'.
   var z = c. /*@checkReturn=B<(num) -> void>*/ x ??= new B<num>();
-                                                         ^" : #t8;
+                                                         ^" in let final self::B<core::num> #t13 = new self::B::•<core::num>() in null : #t11;
 }
 static method main() → dynamic {}

@@ -16,10 +16,10 @@ class B extends self::A {
     return 3;
 }
 static method foo() → dynamic {
-  core::String y = let final core::int #t1 = new self::B::•().{self::B::x} in let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_type_on_overridden_fields2.dart:17:69: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+  core::String y = let final dynamic #t1 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_type_on_overridden_fields2.dart:17:69: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
 Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
   String y = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::x*/ x;
-                                                                    ^";
+                                                                    ^" in let final core::int #t2 = new self::B::•().{self::B::x} in null;
   core::int z = new self::B::•().{self::B::x};
 }
 static method main() → dynamic {}

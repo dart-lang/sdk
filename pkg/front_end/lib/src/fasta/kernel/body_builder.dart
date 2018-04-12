@@ -3578,13 +3578,28 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
             .buildCompileTimeError(message, charOffset, length, uri)));
   }
 
-  Expression wrapInCompileTimeError(Expression expression, Message message) {
+  Expression wrapInCompileTimeError(Expression expression, Message message,
+      {List<LocatedMessage> context}) {
+    return wrapInLocatedCompileTimeError(
+        expression, message.withLocation(uri, expression.fileOffset, noLength),
+        context: context);
+  }
+
+  Expression wrapInLocatedCompileTimeError(
+      Expression expression, LocatedMessage message,
+      {List<LocatedMessage> context}) {
     // TODO(askesc): Produce explicit error expression wrapping the original.
     // See [issue 29717](https://github.com/dart-lang/sdk/issues/29717)
     return new Let(
-        new VariableDeclaration.forValue(expression)
+        new VariableDeclaration.forValue(buildCompileTimeError(
+            message.messageObject, message.charOffset, message.length,
+            context: context))
           ..fileOffset = expression.fileOffset,
-        buildCompileTimeError(message, expression.fileOffset, noLength))
+        new Let(
+            new VariableDeclaration.forValue(expression)
+              ..fileOffset = expression.fileOffset,
+            storeOffset(forest.literalNull(null), expression.fileOffset))
+          ..fileOffset = expression.fileOffset)
       ..fileOffset = expression.fileOffset;
   }
 
