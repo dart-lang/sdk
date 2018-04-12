@@ -116,11 +116,12 @@ class FileState {
   String _content;
   String _contentHash;
   LineInfo _lineInfo;
-  Set<String> _definedTopLevelNames;
   Set<String> _definedClassMemberNames;
+  Set<String> _definedTopLevelNames;
   Set<String> _referencedNames;
   Set<String> _subtypedNames;
   String _unlinkedKey;
+  AnalysisDriverUnlinkedUnit _driverUnlinkedUnit;
   UnlinkedUnit _unlinked;
   List<int> _apiSignature;
 
@@ -172,12 +173,18 @@ class FileState {
   /**
    * The class member names defined by the file.
    */
-  Set<String> get definedClassMemberNames => _definedClassMemberNames;
+  Set<String> get definedClassMemberNames {
+    return _definedClassMemberNames ??=
+        _driverUnlinkedUnit.definedClassMemberNames.toSet();
+  }
 
   /**
    * The top-level names defined by the file.
    */
-  Set<String> get definedTopLevelNames => _definedTopLevelNames;
+  Set<String> get definedTopLevelNames {
+    return _definedTopLevelNames ??=
+        _driverUnlinkedUnit.definedTopLevelNames.toSet();
+  }
 
   /**
    * Return the set of all directly referenced files - imported, exported or
@@ -281,13 +288,17 @@ class FileState {
   /**
    * The external names referenced by the file.
    */
-  Set<String> get referencedNames => _referencedNames;
+  Set<String> get referencedNames {
+    return _referencedNames ??= _driverUnlinkedUnit.referencedNames.toSet();
+  }
 
   /**
    * The names which are used in `extends`, `with` or `implements` clauses in
    * the file. Import prefixes and type arguments are not included.
    */
-  Set<String> get subtypedNames => _subtypedNames;
+  Set<String> get subtypedNames {
+    return _subtypedNames ??= _driverUnlinkedUnit.subtypedNames.toSet();
+  }
 
   @visibleForTesting
   FileStateTestView get test => new FileStateTestView(this);
@@ -469,14 +480,15 @@ class FileState {
     }
 
     // Read the unlinked bundle.
-    var driverUnlinkedUnit = new AnalysisDriverUnlinkedUnit.fromBuffer(bytes);
-    _definedTopLevelNames = driverUnlinkedUnit.definedTopLevelNames.toSet();
-    _definedClassMemberNames =
-        driverUnlinkedUnit.definedClassMemberNames.toSet();
-    _referencedNames = driverUnlinkedUnit.referencedNames.toSet();
-    _subtypedNames = driverUnlinkedUnit.subtypedNames.toSet();
-    _unlinked = driverUnlinkedUnit.unit;
+    _driverUnlinkedUnit = new AnalysisDriverUnlinkedUnit.fromBuffer(bytes);
+    _unlinked = _driverUnlinkedUnit.unit;
     _lineInfo = new LineInfo(_unlinked.lineStarts);
+
+    // Invalidate unlinked information.
+    _definedTopLevelNames = null;
+    _definedClassMemberNames = null;
+    _referencedNames = null;
+    _subtypedNames = null;
     _topLevelDeclarations = null;
 
     // Prepare API signature.
