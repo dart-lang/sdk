@@ -401,7 +401,6 @@ field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
 function_call_generic_test: RuntimeError # Issue 32756. Crashes on dsend
 function_propagation_test: RuntimeError
-function_subtype_closure0_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
 function_type_parameter2_negative_test: Fail
 function_type_parameter_negative_test: Fail
 generic_function_bounds_test: RuntimeError
@@ -621,7 +620,6 @@ regress_29784_test/02: MissingCompileTimeError
 regress_29949_test: RuntimeError # Issue 32429
 regress_30339_test: CompileTimeError
 regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
-runtime_type_function_test: RuntimeError # Expect.fail('Type print string does not match expectation
 setter4_test: MissingCompileTimeError
 setter_no_getter_test/01: CompileTimeError
 setter_override_test/00: MissingCompileTimeError

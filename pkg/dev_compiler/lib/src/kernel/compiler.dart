@@ -206,6 +206,7 @@ class ProgramCompiler extends Object
   final NullableInference _nullableInference;
 
   factory ProgramCompiler(Component component,
+      // TODO(jmesserly): emitMetadata should default to false
       {bool emitMetadata: true,
       bool replCompile: false,
       Map<String, String> declaredVariables: const {}}) {
@@ -1213,14 +1214,9 @@ class ProgramCompiler extends Object
       if (m is Procedure) classProcedures.add(m);
     }
     for (var member in classProcedures) {
-      // Static getters/setters cannot be called with dynamic dispatch, nor
-      // can they be torn off.
-      // TODO(jmesserly): can we attach static method type info at the tearoff
-      // point, and avoid saving the information otherwise? Same trick would
-      // work for top-level functions.
-      if (!emitMetadata && member.isAccessor && member.isStatic) {
-        continue;
-      }
+      // Static getters/setters/methods cannot be called with dynamic dispatch,
+      // nor can they be torn off.
+      if (!emitMetadata && member.isStatic) continue;
 
       var name = member.name.name;
       var reifiedType = _getMemberRuntimeType(member, c);
@@ -1239,7 +1235,17 @@ class ProgramCompiler extends Object
           reifiedType != _getMemberRuntimeType(memberOverride, c);
 
       if (needsSignature) {
-        var type = _emitAnnotatedFunctionType(reifiedType, member);
+        JS.Expression type;
+        if (member.isAccessor) {
+          type = _emitAnnotatedResult(
+              _emitType(member.isGetter
+                  ? reifiedType.returnType
+                  : reifiedType.positionalParameters[0]),
+              member.annotations,
+              member);
+        } else {
+          type = _emitAnnotatedFunctionType(reifiedType, member);
+        }
         var property = new JS.Property(_declareMemberName(member), type);
         var signatures = getSignatureList(member);
         signatures.add(property);
@@ -1277,16 +1283,16 @@ class ProgramCompiler extends Object
     emitSignature('Field', instanceFields);
     emitSignature('StaticField', staticFields);
 
-    var constructors = <JS.Property>[];
     if (emitMetadata) {
+      var constructors = <JS.Property>[];
       for (var ctor in c.constructors) {
         var memberName = _constructorName(ctor.name.name);
         var type = _emitAnnotatedFunctionType(
             ctor.function.functionType.withoutTypeParameters, ctor);
         constructors.add(new JS.Property(memberName, type));
       }
+      emitSignature('Constructor', constructors);
     }
-    emitSignature('Constructor', constructors);
 
     // Add static property dart._runtimeType to Object.
     // All other Dart classes will (statically) inherit this property.
@@ -2614,9 +2620,10 @@ class ProgramCompiler extends Object
   visitVectorType(type) => defaultDartType(type);
 
   @override
-  visitFunctionType(type, {FunctionNode function, bool lazy: false}) {
+  visitFunctionType(type, {Member member, bool lazy: false}) {
     var requiredTypes =
         type.positionalParameters.take(type.requiredParameterCount).toList();
+    var function = member?.function;
     var requiredParams = function?.positionalParameters
         ?.take(type.requiredParameterCount)
         ?.toList();
@@ -2628,7 +2635,7 @@ class ProgramCompiler extends Object
 
     var namedTypes = type.namedParameters;
     var rt = _emitType(type.returnType);
-    var ra = _emitTypeNames(requiredTypes, requiredParams);
+    var ra = _emitTypeNames(requiredTypes, requiredParams, member);
 
     List<JS.Expression> typeParts;
     if (namedTypes.isNotEmpty) {
@@ -2638,7 +2645,7 @@ class ProgramCompiler extends Object
       typeParts = [rt, ra, na];
     } else if (optionalTypes.isNotEmpty) {
       assert(namedTypes.isEmpty);
-      var oa = _emitTypeNames(optionalTypes, optionalParams);
+      var oa = _emitTypeNames(optionalTypes, optionalParams, member);
       typeParts = [rt, ra, oa];
     } else {
       typeParts = [rt, ra];
@@ -2674,10 +2681,10 @@ class ProgramCompiler extends Object
   }
 
   JS.Expression _emitAnnotatedFunctionType(FunctionType type, Member member) {
-    var result = visitFunctionType(type, function: member.function);
+    var result = visitFunctionType(type, member: member);
 
     var annotations = member.annotations;
-    if (emitMetadata && annotations != null && annotations.isNotEmpty) {
+    if (emitMetadata && annotations.isNotEmpty) {
       // TODO(jmesserly): should we disable source info for annotations?
       var savedUri = _currentUri;
       _currentUri = member.enclosingClass.fileUri;
@@ -2708,10 +2715,14 @@ class ProgramCompiler extends Object
   // Wrap a result - usually a type - with its metadata.  The runtime is
   // responsible for unpacking this.
   JS.Expression _emitAnnotatedResult(
-      JS.Expression result, List<Expression> metadata) {
-    if (emitMetadata && metadata != null && metadata.isNotEmpty) {
+      JS.Expression result, List<Expression> metadata, Member member) {
+    if (emitMetadata && metadata.isNotEmpty) {
+      // TODO(jmesserly): should we disable source info for annotations?
+      var savedUri = _currentUri;
+      _currentUri = member.enclosingClass.fileUri;
       result = new JS.ArrayInitializer(
           [result]..addAll(metadata.map(_instantiateAnnotation)));
+      _currentUri = savedUri;
     }
     return result;
   }
@@ -2722,12 +2733,15 @@ class ProgramCompiler extends Object
         .toList());
   }
 
-  JS.ArrayInitializer _emitTypeNames(
-      List<DartType> types, List<VariableDeclaration> parameters) {
+  JS.ArrayInitializer _emitTypeNames(List<DartType> types,
+      List<VariableDeclaration> parameters, Member member) {
     var result = <JS.Expression>[];
     for (int i = 0; i < types.length; ++i) {
-      var metadata = parameters != null ? parameters[i].annotations : null;
-      result.add(_emitAnnotatedResult(_emitType(types[i]), metadata));
+      var type = _emitType(types[i]);
+      if (parameters != null) {
+        type = _emitAnnotatedResult(type, parameters[i].annotations, member);
+      }
+      result.add(type);
     }
     return new JS.ArrayInitializer(result);
   }
@@ -3677,7 +3691,11 @@ class ProgramCompiler extends Object
     } else {
       declareFn = new JS.FunctionDeclaration(name, fn);
     }
-    if (_reifyFunctionType(func)) {
+    // Function types of top-level/static functions are only needed when
+    // dart:mirrors is enabled.
+    // TODO(jmesserly): do we even need this for mirrors, since statics are not
+    // commonly reflected on?
+    if (emitMetadata && _reifyFunctionType(func)) {
       declareFn = new JS.Block([
         declareFn,
         _emitFunctionTagged(_emitVariableRef(node.variable), func.functionType)
@@ -3795,9 +3813,7 @@ class ProgramCompiler extends Object
       } else {
         return _callHelper('#(#)', [memberName, jsReceiver]);
       }
-    } else if (member is Procedure &&
-        !member.isAccessor &&
-        !hasJSInteropAnnotation(member.enclosingClass)) {
+    } else if (_reifyTearoff(member)) {
       return _callHelper('bind(#, #)', [jsReceiver, jsName]);
     } else {
       return new JS.PropertyAccess(jsReceiver, jsName);
@@ -3829,9 +3845,7 @@ class ProgramCompiler extends Object
   visitSuperPropertyGet(SuperPropertyGet node) {
     var target = node.interfaceTarget;
     var jsTarget = _emitSuperTarget(target);
-    if (target is Procedure &&
-        !target.isAccessor &&
-        !hasJSInteropAnnotation(target.enclosingClass)) {
+    if (_reifyTearoff(target)) {
       return _callHelper('bind(this, #, #)', [jsTarget.selector, jsTarget]);
     }
     return jsTarget;
@@ -3846,7 +3860,15 @@ class ProgramCompiler extends Object
 
   @override
   visitStaticGet(StaticGet node) {
-    return _emitStaticTarget(node.target);
+    var target = node.target;
+    var result = _emitStaticTarget(target);
+    if (_reifyTearoff(target)) {
+      // TODO(jmesserly): we could tag static/top-level function types once
+      // in the module initialization, rather than at the point where they
+      // escape.
+      return _emitFunctionTagged(result, target.function.functionType);
+    }
+    return result;
   }
 
   @override
@@ -5096,6 +5118,14 @@ class ProgramCompiler extends Object
       parent = parent.parent;
     }
     return true;
+  }
+
+  bool _reifyTearoff(Member member) {
+    return member is Procedure &&
+        !member.isAccessor &&
+        !_isInForeignJS &&
+        !usesJSInterop(member) &&
+        _reifyFunctionType(member.function);
   }
 
   /// Everything in Dart is an Object and supports the 4 members on Object,

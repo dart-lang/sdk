@@ -79,14 +79,6 @@ bindCall(obj, name) {
   return f;
 }
 
-tagStatic(type, name) {
-  var f = JS('', '#.#', type, name);
-  if (JS('', '#[#]', f, _runtimeType) == null) {
-    JS('', '#[#] = #[#][#]', f, _runtimeType, type, _staticMethodSig, name);
-  }
-  return f;
-}
-
 /// Instantiate a generic method.
 ///
 /// We need to apply the type arguments both to the function, as well as its
@@ -95,7 +87,7 @@ gbind(f, @rest typeArgs) {
   var result =
       JS('', '(...args) => #.apply(null, #.concat(args))', f, typeArgs);
   var sig = JS('', '#[#].instantiate(#)', f, _runtimeType, typeArgs);
-  tag(result, sig);
+  fn(result, sig);
   return result;
 }
 

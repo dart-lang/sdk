@@ -175,7 +175,7 @@ class Void extends TypeRep {
 }
 
 @JSExportName('void')
-final _void = new Void();
+final void_ = new Void();
 
 class Bottom extends TypeRep {
   toString() => 'bottom';
@@ -812,7 +812,7 @@ isFunctionSubtype(ft1, ft2, isCovariant) => JS('', '''(() => {
   // definitively rejected.
 
   // For `void` we will give the same answer as the VM, so don't return null.
-  if (ret1 === $_void) return $_isTop(ret2);
+  if (ret1 === $void_) return $_isTop(ret2);
 
   if (!$_isSubtype(ret1, ret2, $isCovariant)) return null;
   return true;
@@ -850,7 +850,7 @@ _isTop(type) {
     return _isTop(JS('', '#[0]', getGenericArgs(type)));
   }
   return JS('bool', '# == # || # == # || # == #', type, Object, type, dynamic,
-      type, _void);
+      type, void_);
 }
 
 bool _isFutureOr(type) =>

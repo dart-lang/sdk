@@ -289,16 +289,22 @@ class JsClassMirror extends JsMirror implements ClassMirror {
             new JsMethodMirror._instanceMethod(this, symbol, ft);
       });
       var getters = _toDartMap(dart.getGetters(unwrapped));
-      getters.forEach((symbol, ft) {
+      getters.forEach((symbol, type) {
         var name = getName(symbol);
+        if (JS('bool', '# instanceof Array', type)) {
+          JS('', '#[0] = #(#[0], [])', type, dart.fnType, type);
+        } else {
+          type = dart.fnType(type, []);
+        }
         _declarations[symbol] =
-            new JsMethodMirror._instanceMethod(this, symbol, ft);
+            new JsMethodMirror._instanceMethod(this, symbol, type);
       });
       var setters = _toDartMap(dart.getSetters(unwrapped));
-      setters.forEach((symbol, ft) {
+      setters.forEach((symbol, type) {
         var name = getName(symbol) + '=';
         // Create a separate symbol for the setter.
         symbol = new PrivateSymbol(name, _getESSymbol(symbol));
+        var ft = dart.fnType(dart.void_, [type]);
         _declarations[symbol] =
             new JsMethodMirror._instanceMethod(this, symbol, ft);
       });
@@ -313,14 +319,20 @@ class JsClassMirror extends JsMirror implements ClassMirror {
             new JsMethodMirror._staticMethod(this, symbol, ft);
       });
       var staticGetters = _toDartMap(dart.getStaticGetters(unwrapped));
-      staticGetters.forEach((symbol, ft) {
+      staticGetters.forEach((symbol, type) {
         var name = getName(symbol);
+        if (JS('bool', '# instanceof Array', type)) {
+          JS('', '#[0] = #(#[0], [])', type, dart.fnType, type);
+        } else {
+          type = dart.fnType(type, []);
+        }
         _declarations[symbol] =
-            new JsMethodMirror._staticMethod(this, symbol, ft);
+            new JsMethodMirror._staticMethod(this, symbol, type);
       });
       var staticSetters = _toDartMap(dart.getStaticSetters(unwrapped));
-      staticSetters.forEach((symbol, ft) {
+      staticSetters.forEach((symbol, type) {
         var name = getName(symbol);
+        var ft = dart.fnType(dart.void_, [type]);
         _declarations[symbol] =
             new JsMethodMirror._staticMethod(this, symbol, ft);
       });

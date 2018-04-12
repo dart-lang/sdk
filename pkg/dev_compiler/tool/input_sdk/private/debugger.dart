@@ -89,7 +89,7 @@ void addPropertiesFromSignature(
       var value = safeGetProperty(object, symbol);
       // Tag the function with its runtime type.
       if (tagTypes && _typeof(value) == 'function') {
-        dart.tag(value, JS('', '#[#]', sig, symbol));
+        dart.fn(value, JS('', '#[#]', sig, symbol));
       }
       properties.add(new NameValuePair(name: dartName, value: value));
     }
@@ -99,7 +99,7 @@ void addPropertiesFromSignature(
       if (skippedNames.contains(name)) continue;
       // Tag the function with its runtime type.
       if (tagTypes && _typeof(value) == 'function') {
-        dart.tag(value, JS('', '#[#]', sig, name));
+        dart.fn(value, JS('', '#[#]', sig, name));
       }
       properties.add(new NameValuePair(name: name, value: value));
     }
