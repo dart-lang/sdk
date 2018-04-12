@@ -39,7 +39,8 @@ t6 = _Call [#lib::A::foo1] (%aa, _T (#lib::B))
 t7* = _Call get [#lib::A::foo2] (%aa)
 t8 = _Narrow (t7 to _T (dart.core::int)+?)
 t9 = _Call set [#lib::A::foo3] (%aa, t8)
-t10 = _Call get [#lib::A::foo2] (%aa)
+t10* = _Call get [#lib::A::foo2] (%aa)
+t11 = _Call dynamic [call] (t10, %a2, %a3, _T ANY?)
 a4 = _Join [dart.core::Object] (%a4, _T ANY?)
 RESULT: a4
 ------------ #lib::C::dynamicCalls ------------

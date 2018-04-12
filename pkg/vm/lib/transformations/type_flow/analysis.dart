@@ -161,6 +161,12 @@ class _DirectInvocation extends _Invocation {
         // Call via field.
         // TODO(alexmarkov): support function types and use inferred type
         // to get more precise return type.
+        final receiver = fieldValue.getValue(typeFlowAnalysis);
+        if (receiver != const EmptyType()) {
+          typeFlowAnalysis.applyCall(/* callSite = */ null,
+              DynamicSelector.kCall, new Args.withReceiver(args, receiver),
+              isResultUsed: false, processImmediately: false);
+        }
         return new Type.nullableAny();
 
       case CallKind.FieldInitializer:
@@ -212,6 +218,9 @@ class _DirectInvocation extends _Invocation {
             member.isGetter);
         typeFlowAnalysis.addRawCall(
             new DirectSelector(member, callKind: CallKind.PropertyGet));
+        typeFlowAnalysis.applyCall(/* callSite = */ null, DynamicSelector.kCall,
+            new Args.withReceiver(args, new Type.nullableAny()),
+            isResultUsed: false, processImmediately: false);
         return new Type.nullableAny();
       }
     }
@@ -1098,9 +1107,8 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   /// ---- Implementation of [CallHandler] interface. ----
 
   @override
-  Type applyCall(
-      Call callSite, Selector selector, Args<Type> args, bool isResultUsed,
-      {bool processImmediately: true}) {
+  Type applyCall(Call callSite, Selector selector, Args<Type> args,
+      {bool isResultUsed: true, bool processImmediately: true}) {
     _Invocation invocation = _invocationsCache.getInvocation(selector, args);
 
     // Test if tracing is enabled to avoid expensive message formatting.
@@ -1140,8 +1148,8 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
     debugPrint("ADD RAW CALL: $selector");
     assertx(selector is! DynamicSelector); // TODO(alexmarkov)
 
-    applyCall(null, selector, summaryCollector.rawArguments(selector), false,
-        processImmediately: false);
+    applyCall(null, selector, summaryCollector.rawArguments(selector),
+        isResultUsed: false, processImmediately: false);
   }
 
   @override

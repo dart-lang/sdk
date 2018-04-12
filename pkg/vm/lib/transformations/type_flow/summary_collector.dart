@@ -476,7 +476,9 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   Call _makeCall(TreeNode node, Selector selector, Args<TypeExpr> args) {
     Call call = new Call(selector, args);
     _summary.add(call);
-    callSites[node] = call;
+    if (node != null) {
+      callSites[node] = call;
+    }
     return call;
   }
 
@@ -714,10 +716,12 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     }
     if ((target is Field) || ((target is Procedure) && target.isGetter)) {
       // Call via field.
-      _makeCall(
+      final fieldValue = _makeCall(
           node,
           new InterfaceSelector(target, callKind: CallKind.PropertyGet),
           new Args<TypeExpr>([receiver]));
+      _makeCall(
+          null, DynamicSelector.kCall, new Args.withReceiver(args, fieldValue));
       return _staticType(node);
     } else {
       // TODO(alexmarkov): overloaded arithmetic operators
@@ -777,10 +781,12 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         // Call via field.
         // TODO(alexmarkov): Consider cleaning up this code as it duplicates
         // processing in DirectInvocation.
-        _makeCall(
+        final fieldValue = _makeCall(
             node,
             new DirectSelector(target, callKind: CallKind.PropertyGet),
             new Args<TypeExpr>([_receiver]));
+        _makeCall(null, DynamicSelector.kCall,
+            new Args.withReceiver(args, fieldValue));
         return _staticType(node);
       } else {
         return _makeCall(node, new DirectSelector(target), args);
