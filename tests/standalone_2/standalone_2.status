@@ -141,7 +141,7 @@ io/secure_server_socket_test: Skip # Flaky.
 io/web_socket_error_test: Skip # Flaky
 io/web_socket_ping_test: Skip # Flaky.
 io/web_socket_test: Skip # Flaky.
-map_insert_remove_oom_test: Skip # Crashes
+map_insert_remove_oom_test: Skip # Heap limit too low.
 no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
 package/package1_test: CompileTimeError
 package/package_test: CompileTimeError

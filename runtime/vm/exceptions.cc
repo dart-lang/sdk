@@ -619,9 +619,10 @@ static void ThrowExceptionHelper(Thread* thread,
     // object. The C++ code which invoked this dart sequence can check
     // and do the appropriate thing (rethrow the exception to the
     // dart invocation sequence above it, print diagnostics and terminate
-    // the isolate etc.).
+    // the isolate etc.). This can happen in the compiler, which is not
+    // allowed to allocate in new space, so we pass the kOld argument.
     const UnhandledException& unhandled_exception = UnhandledException::Handle(
-        zone, UnhandledException::New(exception, stacktrace));
+        zone, UnhandledException::New(exception, stacktrace, Heap::kOld));
     stacktrace = StackTrace::null();
     JumpToExceptionHandler(thread, handler_pc, handler_sp, handler_fp,
                            unhandled_exception, stacktrace);
