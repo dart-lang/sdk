@@ -128,6 +128,7 @@ _unimplemented(Type t, Invocation i) {
 }
 
 dynamic _toJsMap(Map<Symbol, dynamic> map) {
+  if (map == null) return null;
   var obj = JS('', '{}');
   map.forEach((Symbol key, value) {
     JS('', '#[#] = #', obj, getName(key), value);
@@ -199,11 +200,8 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
   InstanceMirror invoke(Symbol symbol, List<dynamic> args,
       [Map<Symbol, dynamic> namedArgs]) {
     var name = _getMember(symbol);
-    if (namedArgs != null) {
-      args = new List.from(args);
-      args.add(_toJsMap(namedArgs));
-    }
-    var result = dart.callMethod(reflectee, name, null, args, name);
+    var result =
+        dart.callMethod(reflectee, name, null, args, _toJsMap(namedArgs), name);
     return reflect(result);
   }
 
@@ -214,11 +212,7 @@ class JsClosureMirror extends JsInstanceMirror implements ClosureMirror {
   JsClosureMirror._(reflectee) : super._(reflectee);
 
   InstanceMirror apply(List<dynamic> args, [Map<Symbol, dynamic> namedArgs]) {
-    if (namedArgs != null) {
-      args = new List.from(args);
-      args.add(_toJsMap(namedArgs));
-    }
-    var result = dart.dcall(reflectee, args);
+    var result = dart.dcall(reflectee, args, _toJsMap(namedArgs));
     return reflect(result);
   }
 }

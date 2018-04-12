@@ -708,8 +708,6 @@ bit_operations_test/01: MissingCompileTimeError
 bit_operations_test/02: MissingCompileTimeError
 branch_canonicalization_test: RuntimeError # Issue 29920; Expect.equals(expected: <0>, actual: <1>) fails.
 built_in_identifier_prefix_test: CompileTimeError
-call_closurization_test: RuntimeError # Issue 29920; TypeError: Cannot read property '0' of undefined
-call_test: RuntimeError # Expect.throws(NoSuchMethodError) fails: Did not throw
 canonical_const2_test: RuntimeError # Ints and doubles are unified.; Expect.isFalse(true) fails.
 closure_call_wrong_argument_count_negative_test: Fail
 compile_time_constant_d_test: RuntimeError # Issue 30876; Expect.isTrue(false) fails.
@@ -791,7 +789,6 @@ multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/04r: MissingCompileTimeError
 multiline_newline_test/05: MissingCompileTimeError
 multiline_newline_test/05r: MissingCompileTimeError
-named_parameter_clash_test: RuntimeError # Issue 29920; Expect.throws(NoSuchMethodError) fails: Did not throw
 named_parameters_default_eq_test/none: RuntimeError # Expect.isTrue(false) fails.
 nan_identical_test: RuntimeError # Issue 29920; Unsupported operation: Uint64 accessor not supported by dart2js.
 nested_switch_label_test: RuntimeError # Issue 29920; UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;

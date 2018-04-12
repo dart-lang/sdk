@@ -76,4 +76,10 @@ main() {
   Expect.throwsNoSuchMethodError(() => f.toLocaleString);
 
   Expect.throwsNoSuchMethodError(() => f.hasOwnProperty);
+
+  f = (int x) {};
+  // Calls with the wrong number of arguments should be NoSuchMethodErrors.
+  Expect.throwsNoSuchMethodError(() => f());
+  Expect.throwsNoSuchMethodError(() => f('hi', '!'));
+  Expect.throwsNoSuchMethodError(() => f(x: 42));
 }

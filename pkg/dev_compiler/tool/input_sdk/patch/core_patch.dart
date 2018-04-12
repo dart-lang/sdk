@@ -83,10 +83,9 @@ class Function {
       namedArguments.forEach((symbol, arg) {
         JS('', '#[#] = #', map, _symbolToString(symbol), arg);
       });
-      positionalArguments = new List.from(positionalArguments)..add(map);
+      return dart.dcall(f, positionalArguments, map);
     }
-    return JS(
-        '', '#.apply(null, [#].concat(#))', dart.dcall, f, positionalArguments);
+    return dart.dcall(f, positionalArguments);
   }
 
   static Map<String, dynamic> _toMangledNames(

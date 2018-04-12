@@ -26,7 +26,6 @@ bigint_from_test: RuntimeError # Issue 32589
 bool_from_environment2_test/03: Crash
 int_modulo_arith_test/modPow: RuntimeError
 int_modulo_arith_test/none: RuntimeError
-null_nosuchmethod_test/01: RuntimeError # Issue 32088
 null_test: RuntimeError # Issue 32194
 string_from_environment3_test/03: Crash
 
@@ -288,7 +287,6 @@ string_from_environment3_test/03: MissingCompileTimeError
 [ $compiler == dartdevc && $runtime != none ]
 bigint_from_test: CompileTimeError # Issue 32585
 compare_to2_test: CompileTimeError # invalid test
-null_nosuchmethod_test/01: RuntimeError # Issue 32088
 symbol_operator_test: RuntimeError # Issue 29921
 
 [ $compiler != dartdevc && $compiler != dartdevk && $checked && !$strong ]
@@ -407,7 +405,6 @@ regress_r21715_test: RuntimeError # Requires fixed-size int64 support.
 typed_data_with_limited_ints_test: Skip # dart2js and dartdevc don't know about --limit-ints-to-64-bits
 
 [ $runtime != none && ($compiler == dartdevc || $compiler == dartdevk) ]
-apply2_test: RuntimeError # Issue 29921
 apply3_test: RuntimeError # Issue 29921
 bigint_test: Pass, Slow
 compare_to2_test: RuntimeError # Issue 30170

@@ -1070,7 +1070,7 @@ Object extractTypeArguments<T>(T instance, Function f) {
   // The signature of this method guarantees that instance is a T, so we
   // should have a valid non-empty list at this point.
   assert(typeArgs != null && typeArgs.isNotEmpty);
-  return callFunction(f, typeArgs, []);
+  return dgcall(f, typeArgs, []);
 }
 
 // Let t2 = T<T1, ..., Tn>

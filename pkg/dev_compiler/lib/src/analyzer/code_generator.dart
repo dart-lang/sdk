@@ -1733,31 +1733,34 @@ class CodeGenerator extends Object
       invocationProps.add(new JS.Property(js.string(name), value));
     }
 
-    var args = new JS.TemporaryId('args');
+    var args = _emitParametersForElement(method);
     var typeParams = _emitTypeFormals(method.type.typeFormals);
-    var fnArgs = new List<JS.Parameter>.from(typeParams);
-    JS.Expression positionalArgs;
+    var fnArgs = new List<JS.Parameter>.from(typeParams)..addAll(args);
 
-    if (method.type.namedParameterTypes.isNotEmpty) {
-      addProperty('namedArguments', _callHelper('extractNamedArgs(#)', [args]));
+    JS.Expression positionalArgs;
+    List<JS.Statement> optionalArgInit = [];
+    if (method.type.optionalParameterTypes.isNotEmpty) {
+      positionalArgs = new JS.TemporaryId('args');
+      var requiredParameterCount = method.type.normalParameterTypes.length;
+      optionalArgInit.add(js.statement(
+          'let # = [#]', [positionalArgs, args.take(requiredParameterCount)]));
+      optionalArgInit.addAll(args.skip(requiredParameterCount).map((p) =>
+          js.statement('if (# !== void 0) #.push(#)', [p, positionalArgs, p])));
+    } else {
+      if (method.type.namedParameterTypes.isNotEmpty) {
+        addProperty('namedArguments', args.removeLast());
+      }
+      positionalArgs = new JS.ArrayInitializer(args);
     }
 
     if (method is MethodElement) {
       addProperty('isMethod', js.boolean(true));
-
-      fnArgs.add(new JS.RestParameter(args));
-      positionalArgs = args;
     } else {
       var property = method as PropertyAccessorElement;
       if (property.isGetter) {
         addProperty('isGetter', js.boolean(true));
-
-        positionalArgs = new JS.ArrayInitializer([]);
       } else if (property.isSetter) {
         addProperty('isSetter', js.boolean(true));
-
-        fnArgs.add(args);
-        positionalArgs = new JS.ArrayInitializer([args]);
       }
     }
 
@@ -1777,7 +1780,8 @@ class CodeGenerator extends Object
       fnBody = js.call('#._check(#)', [_emitType(method.returnType), fnBody]);
     }
 
-    var fn = new JS.Fun(fnArgs, js.block('{ return #; }', [fnBody]),
+    var fn = new JS.Fun(
+        fnArgs, js.block('{ #; return #; }', [optionalArgInit, fnBody]),
         typeParams: typeParams);
 
     return new JS.Method(
@@ -3445,7 +3449,8 @@ class CodeGenerator extends Object
           _visitExpression(right)
         ]);
       }
-      return _emitSend(target, '[]=', [left.index, right], left.staticElement);
+      return _emitOperatorCall(
+          target, '[]=', [left.index, right], left.staticElement);
     }
 
     if (left is SimpleIdentifier) {
@@ -3471,8 +3476,7 @@ class CodeGenerator extends Object
     }
 
     if (isDynamicInvoke(target)) {
-      return _callHelper('#(#, #, #)', [
-        _emitDynamicOperationName('dput'),
+      return _callHelper('dput$_replSuffix(#, #, #)', [
         _visitExpression(target),
         _emitMemberName(id.name),
         _visitExpression(right)
@@ -3489,6 +3493,11 @@ class CodeGenerator extends Object
 
     return _badAssignment('Unhandled assignment', left, right);
   }
+
+  // TODO(jmesserly): remove this. Instead handle REPL private name lookups in
+  // _emitMemberName (by using `dart.privateName` if we're in REPL mode,
+  // refactored from the current `dart._dhelperRepl`).
+  String get _replSuffix => options.replCompile ? 'Repl' : '';
 
   JS.Expression _badAssignment(String problem, Expression lhs, Expression rhs) {
     // TODO(sra): We should get here only for compiler bugs or weirdness due to
@@ -3745,20 +3754,10 @@ class CodeGenerator extends Object
       if (jsTarget is JS.Super) {
         jsTarget =
             _emitTargetAccess(jsTarget, jsName, element, node.methodName);
-        return _emitDynamicInvoke(jsTarget, typeArgs, args);
+        jsName = null;
       }
-      if (typeArgs != null) {
-        return _callHelper('#(#, [#], #, #)', [
-          _emitDynamicOperationName('dgsend'),
-          jsTarget,
-          typeArgs,
-          jsName,
-          args
-        ]);
-      } else {
-        return _callHelper('#(#, #, #)',
-            [_emitDynamicOperationName('dsend'), jsTarget, jsName, args]);
-      }
+      return _emitDynamicInvoke(
+          jsTarget, typeArgs, jsName, args, node.argumentList);
     }
     if (_isObjectMemberCall(target, name)) {
       assert(typeArgs == null); // Object methods don't take type args.
@@ -3783,13 +3782,40 @@ class CodeGenerator extends Object
     return new JS.Call(jsTarget, args);
   }
 
-  JS.Expression _emitDynamicInvoke(JS.Expression fn,
-      List<JS.Expression> typeArgs, List<JS.Expression> args) {
+  JS.Expression _emitDynamicInvoke(
+      JS.Expression fn,
+      List<JS.Expression> typeArgs,
+      JS.Expression methodName,
+      List<JS.Expression> args,
+      ArgumentList argumentList) {
+    var jsArgs = <Object>[fn];
+    String jsCode;
     if (typeArgs != null) {
-      return _callHelper('dgcall(#, [#], #)', [fn, typeArgs, args]);
+      jsArgs.add(typeArgs);
+      if (methodName != null) {
+        jsCode = 'dgsend$_replSuffix(#, [#], #';
+        jsArgs.add(methodName);
+      } else {
+        jsCode = 'dgcall(#, [#]';
+      }
+    } else if (methodName != null) {
+      jsCode = 'dsend$_replSuffix(#, #';
+      jsArgs.add(methodName);
     } else {
-      return _callHelper('dcall(#, #)', [fn, args]);
+      jsCode = 'dcall(#';
     }
+
+    var hasNamed = argumentList.arguments.any((a) => a is NamedExpression);
+    if (hasNamed) {
+      jsCode += ', [#], #)';
+      jsArgs.add(args.take(args.length - 1));
+      jsArgs.add(args.last);
+    } else {
+      jsArgs.add(args);
+      jsCode += ', [#])';
+    }
+
+    return _callHelper(jsCode, jsArgs);
   }
 
   bool _doubleEqIsIdentity(Expression left, Expression right) {
@@ -3862,7 +3888,7 @@ class CodeGenerator extends Object
     var args = _emitArgumentList(node.argumentList);
     var typeArgs = _emitInvokeTypeArguments(node);
     if (isDynamicInvoke(function)) {
-      return _emitDynamicInvoke(fn, typeArgs, args);
+      return _emitDynamicInvoke(fn, typeArgs, null, args, node.argumentList);
     }
     if (typeArgs != null) args.insertAll(0, typeArgs);
 
@@ -4567,7 +4593,7 @@ class CodeGenerator extends Object
     var negated = op.type == TokenType.BANG_EQ;
 
     if (left is SuperExpression) {
-      return _emitSend(left, op.lexeme, [right], node.staticElement);
+      return _emitOperatorCall(left, op.lexeme, [right], node.staticElement);
     }
 
     // Conceptually `x == y` in Dart is defined as:
@@ -4649,7 +4675,7 @@ class CodeGenerator extends Object
     var rightType = getStaticType(right);
 
     JS.Expression operatorCall() {
-      return _emitSend(left, op.lexeme, [right])
+      return _emitOperatorCall(left, op.lexeme, [right])
         ..sourceInformation = _getLocation(node.operator.offset);
     }
 
@@ -4673,7 +4699,7 @@ class CodeGenerator extends Object
           // `a ~/ b` is equivalent to `(a / b).truncate()`
           var div = ast.binaryExpression(left, '/', right)
             ..staticType = node.staticType;
-          return _emitSend(div, 'truncate', [])
+          return _emitOperatorCall(div, 'truncate', [])
             ..sourceInformation = _getLocation(node.operator.offset);
 
         case TokenType.PERCENT:
@@ -5084,7 +5110,7 @@ class CodeGenerator extends Object
           JS.Expression jsExpr = js.call('~#', notNull(expr));
           return _coerceBitOperationResultToUnsigned(node, jsExpr);
         }
-        return _emitSend(expr, op.lexeme[0], []);
+        return _emitOperatorCall(expr, op.lexeme[0], []);
       }
       if (!isNullable(expr)) {
         return js.call('$op#', _visitExpression(expr));
@@ -5116,7 +5142,7 @@ class CodeGenerator extends Object
     var operatorName = op.lexeme;
     // Use the name from the Dart spec.
     if (operatorName == '-') operatorName = 'unary-';
-    return _emitSend(expr, operatorName, []);
+    return _emitOperatorCall(expr, operatorName, []);
   }
 
   // Cascades can contain [IndexExpression], [MethodInvocation] and
@@ -5240,11 +5266,8 @@ class CodeGenerator extends Object
     var jsName = _emitMemberName(memberName,
         type: receiverType, isStatic: isStatic, element: accessor);
     if (isDynamicInvoke(receiver)) {
-      return _callHelper('#(#, #)', [
-        _emitDynamicOperationName('dload'),
-        _visitExpression(receiver),
-        jsName
-      ]);
+      return _callHelper(
+          'dload$_replSuffix(#, #)', [_visitExpression(receiver), jsName]);
     }
 
     var jsTarget = _emitTarget(receiver, accessor, isStatic);
@@ -5294,15 +5317,13 @@ class CodeGenerator extends Object
     return _emitMemberName('call', type: fromType, element: callMethod);
   }
 
-  JS.LiteralString _emitDynamicOperationName(String name) =>
-      js.string(options.replCompile ? '${name}Repl' : name);
-
   /// Emits a generic send, like an operator method.
   ///
   /// **Please note** this function does not support method invocation syntax
   /// `obj.name(args)` because that could be a getter followed by a call.
   /// See [visitMethodInvocation].
-  JS.Expression _emitSend(Expression target, String name, List<Expression> args,
+  JS.Expression _emitOperatorCall(
+      Expression target, String name, List<Expression> args,
       [Element element]) {
     // TODO(jmesserly): calls that don't pass `element` are probably broken for
     // `super` calls from disallowed super locations.
@@ -5315,7 +5336,7 @@ class CodeGenerator extends Object
         return _callHelper('$dynamicHelper(#, #)',
             [_visitExpression(target), _visitExpressionList(args)]);
       } else {
-        return _callHelper('dsend(#, #, #)',
+        return _callHelper('dsend(#, #, [#])',
             [_visitExpression(target), memberName, _visitExpressionList(args)]);
       }
     }
@@ -5334,7 +5355,7 @@ class CodeGenerator extends Object
       return new JS.PropertyAccess(
           _visitExpression(target), _visitExpression(node.index));
     }
-    return _emitSend(target, '[]', [node.index], node.staticElement);
+    return _emitOperatorCall(target, '[]', [node.index], node.staticElement);
   }
 
   // TODO(jmesserly): ideally we'd check the method and see if it is marked

@@ -1815,7 +1815,9 @@ class ProgramCompiler extends Object
   void _addMockMembers(Member member, Class c, List<JS.Method> jsMethods) {
     JS.Method implementMockMember(
         List<TypeParameter> typeParameters,
+        List<JS.Parameter> positionalParameters,
         List<VariableDeclaration> namedParameters,
+        int requiredParameterCount,
         ProcedureKind mockMemberKind,
         DartType returnType) {
       assert(mockMemberKind != ProcedureKind.Factory);
@@ -1825,32 +1827,34 @@ class ProgramCompiler extends Object
         invocationProps.add(new JS.Property(js.string(name), value));
       }
 
-      var args = new JS.TemporaryId('args');
+      var args = positionalParameters;
       var typeParams = _emitTypeFormals(typeParameters);
-      var fnArgs = new List<JS.Parameter>.from(typeParams);
-      JS.Expression positionalArgs;
+      var fnArgs = new List<JS.Parameter>.from(typeParams)..addAll(args);
 
-      if (namedParameters.isNotEmpty) {
-        addProperty(
-            'namedArguments', _callHelper('extractNamedArgs(#)', [args]));
+      JS.Expression positionalArgs;
+      List<JS.Statement> optionalArgInit = [];
+      if (positionalParameters.length != requiredParameterCount) {
+        positionalArgs = new JS.TemporaryId('args');
+        optionalArgInit.add(js.statement('let # = [#]',
+            [positionalArgs, args.take(requiredParameterCount)]));
+        optionalArgInit.addAll(args.skip(requiredParameterCount).map((p) => js
+            .statement('if (# !== void 0) #.push(#)', [p, positionalArgs, p])));
+      } else {
+        positionalArgs = new JS.ArrayInitializer(args);
+        if (namedParameters.isNotEmpty) {
+          fnArgs.add(namedArgumentTemp);
+          addProperty('namedArguments', namedArgumentTemp);
+        }
       }
 
       if (mockMemberKind != ProcedureKind.Getter &&
           mockMemberKind != ProcedureKind.Setter) {
         addProperty('isMethod', js.boolean(true));
-
-        fnArgs.add(new JS.RestParameter(args));
-        positionalArgs = args;
       } else {
         if (mockMemberKind == ProcedureKind.Getter) {
           addProperty('isGetter', js.boolean(true));
-
-          positionalArgs = new JS.ArrayInitializer([]);
         } else if (mockMemberKind == ProcedureKind.Setter) {
           addProperty('isSetter', js.boolean(true));
-
-          fnArgs.add(args);
-          positionalArgs = new JS.ArrayInitializer([args]);
         }
       }
 
@@ -1871,7 +1875,8 @@ class ProgramCompiler extends Object
         fnBody = js.call('#._check(#)', [_emitType(returnType), fnBody]);
       }
 
-      var fn = new JS.Fun(fnArgs, js.block('{ return #; }', [fnBody]),
+      var fn = new JS.Fun(
+          fnArgs, js.block('{ #; return #; }', [optionalArgInit, fnBody]),
           typeParams: typeParams);
 
       return new JS.Method(
@@ -1884,17 +1889,22 @@ class ProgramCompiler extends Object
     }
 
     if (member is Field) {
-      jsMethods
-          .add(implementMockMember([], [], ProcedureKind.Getter, member.type));
+      jsMethods.add(implementMockMember(
+          [], [], [], 0, ProcedureKind.Getter, member.type));
       if (!member.isFinal) {
-        jsMethods.add(implementMockMember(
-            [], [], ProcedureKind.Setter, new DynamicType()));
+        jsMethods.add(implementMockMember([], [new JS.TemporaryId('value')], [],
+            1, ProcedureKind.Setter, new VoidType()));
       }
     } else {
       var procedure = member as Procedure;
       var f = procedure.function;
       jsMethods.add(implementMockMember(
-          f.typeParameters, f.namedParameters, procedure.kind, f.returnType));
+          f.typeParameters,
+          f.positionalParameters.map(_emitVariableRef).toList(),
+          f.namedParameters,
+          f.requiredParameterCount,
+          procedure.kind,
+          f.returnType));
     }
   }
 
@@ -3034,9 +3044,6 @@ class ProgramCompiler extends Object
     }
   }
 
-  JS.LiteralString _emitDynamicOperationName(String name) =>
-      js.string(replCompile ? '${name}Repl' : name);
-
   JS.Expression _callHelper(String code, [args]) {
     if (args is List) {
       args.insert(0, _runtimeModule);
@@ -3779,8 +3786,7 @@ class ProgramCompiler extends Object
     // they can be hovered. Unfortunately this is not possible as Kernel does
     // not store this data.
     if (member == null) {
-      return _callHelper(
-          '#(#, #)', [_emitDynamicOperationName('dload'), jsReceiver, jsName]);
+      return _callHelper('dload$_replSuffix(#, #)', [jsReceiver, jsName]);
     }
 
     if (_isObjectMemberCall(receiver, memberName)) {
@@ -3798,6 +3804,11 @@ class ProgramCompiler extends Object
     }
   }
 
+  // TODO(jmesserly): remove this. Instead handle REPL private name lookups in
+  // _emitMemberName (by using `dart.privateName` if we're in REPL mode,
+  // refactored from the current `dart._dhelperRepl`).
+  String get _replSuffix => replCompile ? 'Repl' : '';
+
   JS.Expression _emitPropertySet(
       Expression receiver, Member member, Expression value,
       [String memberName]) {
@@ -3808,8 +3819,8 @@ class ProgramCompiler extends Object
     var jsValue = _visitExpression(value);
 
     if (member == null) {
-      return _callHelper('#(#, #, #)',
-          [_emitDynamicOperationName('dput'), jsReceiver, jsName, jsValue]);
+      return _callHelper(
+          'dput$_replSuffix(#, #, #)', [jsReceiver, jsName, jsValue]);
     }
     return js.call('#.# = #', [jsReceiver, jsName, jsValue]);
   }
@@ -3872,21 +3883,13 @@ class ProgramCompiler extends Object
     var jsReceiver = _visitExpression(receiver);
     var args = _emitArgumentList(arguments);
     var receiverType = receiver.getStaticType(types);
-    var typeArgs = arguments.types;
 
     bool isCallingDynamicField = target is Member &&
         target.hasGetter &&
         _isDynamicOrFunction(target.getterType);
     if (name == 'call') {
       if (isCallingDynamicField || _isDynamicOrFunction(receiverType)) {
-        if (typeArgs.isNotEmpty) {
-          return _callHelper('dgcall(#, [#], #)', [
-            jsReceiver,
-            args.take(typeArgs.length),
-            args.skip(typeArgs.length)
-          ]);
-        }
-        return _callHelper('dcall(#, #)', [jsReceiver, args]);
+        return _emitDynamicInvoke(jsReceiver, null, args, arguments);
       } else if (_isDirectCallable(receiverType)) {
         // Call methods on function types should be handled as function calls.
         return new JS.Call(jsReceiver, args);
@@ -3895,21 +3898,10 @@ class ProgramCompiler extends Object
 
     var jsName = _emitMemberName(name, type: receiverType, member: target);
     if (target == null || isCallingDynamicField) {
-      if (typeArgs.isNotEmpty) {
-        return _callHelper('#(#, [#], #, #)', [
-          _emitDynamicOperationName('dgsend'),
-          jsReceiver,
-          args.take(typeArgs.length),
-          jsName,
-          args.skip(typeArgs.length)
-        ]);
-      } else {
-        return _callHelper('#(#, #, #)',
-            [_emitDynamicOperationName('dsend'), jsReceiver, jsName, args]);
-      }
+      return _emitDynamicInvoke(jsReceiver, jsName, args, arguments);
     }
     if (_isObjectMemberCall(receiver, name)) {
-      assert(typeArgs.isEmpty); // Object methods don't take type args.
+      assert(arguments.types.isEmpty); // Object methods don't take type args.
       return _callHelper('#(#, #)', [name, jsReceiver, args]);
     }
     // TODO(jmesserly): remove when Kernel desugars this for us.
@@ -3924,6 +3916,41 @@ class ProgramCompiler extends Object
       }
     }
     return js.call('#.#(#)', [jsReceiver, jsName, args]);
+  }
+
+  JS.Expression _emitDynamicInvoke(JS.Expression fn, JS.Expression methodName,
+      Iterable<JS.Expression> args, Arguments arguments) {
+    var jsArgs = <Object>[fn];
+    String jsCode;
+
+    var typeArgs = arguments.types;
+    if (typeArgs.isNotEmpty) {
+      jsArgs.add(args.take(typeArgs.length));
+      args = args.skip(typeArgs.length);
+      if (methodName != null) {
+        jsCode = 'dgsend$_replSuffix(#, [#], #';
+        jsArgs.add(methodName);
+      } else {
+        jsCode = 'dgcall(#, [#]';
+      }
+    } else if (methodName != null) {
+      jsCode = 'dsend$_replSuffix(#, #';
+      jsArgs.add(methodName);
+    } else {
+      jsCode = 'dcall(#';
+    }
+
+    var hasNamed = arguments.named.isNotEmpty;
+    if (hasNamed) {
+      jsCode += ', [#], #)';
+      jsArgs.add(args.take(args.length - 1));
+      jsArgs.add(args.last);
+    } else {
+      jsArgs.add(args);
+      jsCode += ', [#])';
+    }
+
+    return _callHelper(jsCode, jsArgs);
   }
 
   bool _isDirectCallable(DartType t) =>
@@ -3951,13 +3978,13 @@ class ProgramCompiler extends Object
           return _coerceBitOperationResultToUnsigned(
               node, js.call('~#', notNull(expr)));
         }
-        return _emitSend(expr, target, op, []);
+        return _emitOperatorCall(expr, target, op, []);
       }
       if (op == 'unary-') op = '-';
       return js.call('$op#', notNull(expr));
     }
 
-    return _emitSend(expr, target, op, []);
+    return _emitOperatorCall(expr, target, op, []);
   }
 
   /// Bit operations are coerced to values on [0, 2^32). The coercion changes
@@ -4136,7 +4163,7 @@ class ProgramCompiler extends Object
         case '%':
           // TODO(sra): We can generate `a % b + 0` if both are non-negative
           // (the `+ 0` is to coerce -0.0 to 0).
-          return _emitSend(left, target, op, [right]);
+          return _emitOperatorCall(left, target, op, [right]);
 
         case '&':
           return bitwise('# & #');
@@ -4161,7 +4188,7 @@ class ProgramCompiler extends Object
               _parentMasksToWidth(node, 31 - shiftCount)) {
             return binary('# >> #');
           }
-          return _emitSend(left, target, op, [right]);
+          return _emitOperatorCall(left, target, op, [right]);
 
         case '<<':
           if (_is31BitUnsigned(node)) {
@@ -4172,7 +4199,7 @@ class ProgramCompiler extends Object
           if (_asIntInRange(right, 0, 31) != null) {
             return _coerceBitOperationResultToUnsigned(node, binary('# << #'));
           }
-          return _emitSend(left, target, op, [right]);
+          return _emitOperatorCall(left, target, op, [right]);
 
         default:
           // TODO(vsm): When do Dart ops not map to JS?
@@ -4180,7 +4207,7 @@ class ProgramCompiler extends Object
       }
     }
 
-    return _emitSend(left, target, op, [right]);
+    return _emitOperatorCall(left, target, op, [right]);
   }
 
   JS.Expression _emitEqualityOperator(
@@ -4237,7 +4264,7 @@ class ProgramCompiler extends Object
   /// **Please note** this function does not support method invocation syntax
   /// `obj.name(args)` because that could be a getter followed by a call.
   /// See [visitMethodInvocation].
-  JS.Expression _emitSend(
+  JS.Expression _emitOperatorCall(
       Expression receiver, Member target, String name, List<Expression> args) {
     // TODO(jmesserly): calls that don't pass `element` are probably broken for
     // `super` calls from disallowed super locations.
@@ -4250,7 +4277,7 @@ class ProgramCompiler extends Object
         return _callHelper('$dynamicHelper(#, #)',
             [_visitExpression(receiver), _visitExpressionList(args)]);
       } else {
-        return _callHelper('dsend(#, #, #)', [
+        return _callHelper('dsend(#, #, [#])', [
           _visitExpression(receiver),
           memberName,
           _visitExpressionList(args)
