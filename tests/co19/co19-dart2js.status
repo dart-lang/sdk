@@ -6416,6 +6416,7 @@ LayoutTests/fast/xpath/py-dom-xpath/expressions_t01: RuntimeError # Please triag
 LayoutTests/fast/xpath/py-dom-xpath/paths_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/reverse-axes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xsl/default-html_t01: RuntimeError # Please triage this failure
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Slow # Issue 32862.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: RuntimeError # Safari is not on Unicode 6.3 yet.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: RuntimeError # Issue 22200
