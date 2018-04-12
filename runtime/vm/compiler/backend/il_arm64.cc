@@ -325,6 +325,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
                                        Register tmp) {
   if (destination.IsRegister()) {
     if (representation() == kUnboxedInt32 ||
+        representation() == kUnboxedUint32 ||
         representation() == kUnboxedInt64) {
       const int64_t value = value_.IsSmi() ? Smi::Cast(value_).Value()
                                            : Mint::Cast(value_).value();
@@ -364,7 +365,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
 LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps = IsUnboxedSignedIntegerConstant() ? 0 : 1;
+  const intptr_t kNumTemps = IsUnboxedIntegerConstant() ? 0 : 1;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   switch (representation()) {
@@ -373,6 +374,7 @@ LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
       locs->set_temp(0, Location::RequiresRegister());
       break;
     case kUnboxedInt32:
+    case kUnboxedUint32:
     case kUnboxedInt64:
       locs->set_out(0, Location::RequiresRegister());
       break;
@@ -386,7 +388,7 @@ LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
 void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!locs()->out(0).IsInvalid()) {
     const Register scratch =
-        IsUnboxedSignedIntegerConstant() ? kNoRegister : locs()->temp(0).reg();
+        IsUnboxedIntegerConstant() ? kNoRegister : locs()->temp(0).reg();
     EmitMoveToLocation(compiler, locs()->out(0), scratch);
   }
 }
@@ -551,9 +553,9 @@ static Condition EmitInt64ComparisonOp(FlowGraphCompiler* compiler,
       right_constant = right.constant_instruction();
     }
 
-    if (right_constant->IsUnboxedSignedIntegerConstant()) {
-      __ CompareImmediate(
-          left.reg(), right_constant->GetUnboxedSignedIntegerConstantValue());
+    if (right_constant->IsUnboxedIntegerConstant()) {
+      __ CompareImmediate(left.reg(),
+                          right_constant->GetUnboxedIntegerConstantValue());
     } else {
       ASSERT(right_constant->representation() == kTagged);
       __ CompareObject(left.reg(), right.constant());
@@ -4957,8 +4959,7 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Register r = TMP;
     if (right.IsConstant()) {
       ConstantInstr* constant_instr = right.constant_instruction();
-      const int64_t value =
-          constant_instr->GetUnboxedSignedIntegerConstantValue();
+      const int64_t value = constant_instr->GetUnboxedIntegerConstantValue();
       __ LoadImmediate(r, value);
     } else {
       r = right.reg();
@@ -4975,8 +4976,7 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (right.IsConstant()) {
     ConstantInstr* constant_instr = right.constant_instruction();
-    const int64_t value =
-        constant_instr->GetUnboxedSignedIntegerConstantValue();
+    const int64_t value = constant_instr->GetUnboxedIntegerConstantValue();
     switch (op_kind()) {
       case Token::kADD:
         if (CanDeoptimize()) {
@@ -5156,37 +5156,82 @@ LocationSummary* BinaryUint32OpInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RequiresRegister());
   summary->set_out(0, Location::RequiresRegister());
+  ConstantInstr* right_constant = right()->definition()->AsConstant();
+  if (right_constant != NULL &&
+      (right_constant->value().IsSmi() || right_constant->value().IsMint())) {
+    int64_t imm = right_constant->GetUnboxedIntegerConstantValue();
+    bool is_arithmetic = op_kind() == Token::kADD || op_kind() == Token::kSUB;
+    bool is_logical = op_kind() == Token::kBIT_AND ||
+                      op_kind() == Token::kBIT_OR ||
+                      op_kind() == Token::kBIT_XOR;
+    if ((is_logical && Operand::IsImmLogical(imm)) ||
+        (is_arithmetic && Operand::IsImmArithmethic(imm))) {
+      summary->set_in(1, Location::Constant(right_constant));
+      return summary;
+    }
+  }
+  summary->set_in(1, Location::RequiresRegister());
   return summary;
 }
 
 void BinaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ConstantInstr* right_constant = right()->definition()->AsConstant();
   Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
-  Operand r = Operand(right);
+  Location right = locs()->in(1);
   Register out = locs()->out(0).reg();
-  switch (op_kind()) {
-    case Token::kBIT_AND:
-      __ and_(out, left, r);
-      break;
-    case Token::kBIT_OR:
-      __ orr(out, left, r);
-      break;
-    case Token::kBIT_XOR:
-      __ eor(out, left, r);
-      break;
-    case Token::kADD:
-      __ addw(out, left, r);
-      break;
-    case Token::kSUB:
-      __ subw(out, left, r);
-      break;
-    case Token::kMUL:
-      __ mulw(out, left, right);
-      break;
-    default:
-      UNREACHABLE();
+  int64_t imm = 0;
+  if (right_constant != NULL) {
+    const Object& constant = right_constant->value();
+    if (constant.IsSmi()) {
+      imm = Smi::Cast(constant).AsInt64Value();
+    } else {
+      imm = Mint::Cast(constant).value();
+    }
+  }
+  if (right.IsRegister()) {
+    switch (op_kind()) {
+      case Token::kBIT_AND:
+        __ and_(out, left, Operand(right.reg()));
+        break;
+      case Token::kBIT_OR:
+        __ orr(out, left, Operand(right.reg()));
+        break;
+      case Token::kBIT_XOR:
+        __ eor(out, left, Operand(right.reg()));
+        break;
+      case Token::kADD:
+        __ addw(out, left, Operand(right.reg()));
+        break;
+      case Token::kSUB:
+        __ subw(out, left, Operand(right.reg()));
+        break;
+      case Token::kMUL:
+        __ mulw(out, left, right.reg());
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else {
+    switch (op_kind()) {
+      case Token::kBIT_AND:
+        __ andi(out, left, Immediate(imm));
+        break;
+      case Token::kBIT_OR:
+        __ orri(out, left, Immediate(imm));
+        break;
+      case Token::kBIT_XOR:
+        __ eori(out, left, Immediate(imm));
+        break;
+      case Token::kADD:
+        __ AddImmediate(out, left, imm, kWord);
+        break;
+      case Token::kSUB:
+        __ AddImmediate(out, left, -imm, kWord);
+        break;
+      default:
+        UNREACHABLE();
+    }
   }
 }
 

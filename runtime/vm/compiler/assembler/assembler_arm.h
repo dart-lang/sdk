@@ -141,6 +141,11 @@ class Operand : public ValueObject {
                 static_cast<uint32_t>(rm);
   }
 
+  static bool CanHold(uint32_t immediate) {
+    Operand dummy;
+    return CanHold(immediate, &dummy);
+  }
+
   static bool CanHold(uint32_t immediate, Operand* o) {
     // Avoid the more expensive test for frequent small immediate values.
     if (immediate < (1 << kImmed8Bits)) {
