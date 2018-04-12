@@ -51,7 +51,7 @@ class ImageReader : public ZoneAllocated {
   ImageReader(const uint8_t* instructions_buffer, const uint8_t* data_buffer);
 
   RawInstructions* GetInstructionsAt(int32_t offset) const;
-  RawObject* GetObjectAt(int32_t offset) const;
+  RawObject* GetObjectAt(uint32_t offset) const;
 
  private:
   const uint8_t* instructions_buffer_;
@@ -79,7 +79,7 @@ class ImageWriter : public ZoneAllocated {
     objects_.Clear();
   }
   int32_t GetTextOffsetFor(RawInstructions* instructions, RawCode* code);
-  int32_t GetDataOffsetFor(RawObject* raw_object);
+  uint32_t GetDataOffsetFor(RawObject* raw_object);
 
   void Write(WriteStream* clustered_stream, bool vm);
   intptr_t text_size() const { return next_text_offset_; }

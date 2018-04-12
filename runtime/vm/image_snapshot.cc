@@ -36,7 +36,7 @@ int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
   return offset;
 }
 
-int32_t ImageWriter::GetDataOffsetFor(RawObject* raw_object) {
+uint32_t ImageWriter::GetDataOffsetFor(RawObject* raw_object) {
   intptr_t heap_size = raw_object->Size();
   intptr_t offset = next_data_offset_;
   next_data_offset_ += heap_size;
@@ -489,7 +489,7 @@ RawInstructions* ImageReader::GetInstructionsAt(int32_t offset) const {
   return result;
 }
 
-RawObject* ImageReader::GetObjectAt(int32_t offset) const {
+RawObject* ImageReader::GetObjectAt(uint32_t offset) const {
   ASSERT(Utils::IsAligned(offset, kWordSize));
 
   RawObject* result = reinterpret_cast<RawObject*>(

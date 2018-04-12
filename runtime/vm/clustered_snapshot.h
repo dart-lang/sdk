@@ -208,7 +208,7 @@ class Serializer : public StackResource {
   void Write(T value) {
     WriteStream::Raw<sizeof(T), T>::Write(&stream_, value);
   }
-
+  void WriteUnsigned(intptr_t value) { stream_.WriteUnsigned(value); }
   void WriteBytes(const uint8_t* addr, intptr_t len) {
     stream_.WriteBytes(addr, len);
   }
@@ -220,7 +220,7 @@ class Serializer : public StackResource {
       if (id == 0) {
         FATAL("Missing ref");
       }
-      Write<int32_t>(id);
+      WriteUnsigned(id);
       return;
     }
 
@@ -241,7 +241,7 @@ class Serializer : public StackResource {
       }
       FATAL("Missing ref");
     }
-    Write<int32_t>(id);
+    WriteUnsigned(id);
   }
 
   void WriteTokenPosition(TokenPosition pos) {
@@ -254,7 +254,7 @@ class Serializer : public StackResource {
   }
 
   int32_t GetTextOffset(RawInstructions* instr, RawCode* code) const;
-  int32_t GetDataOffset(RawObject* object) const;
+  uint32_t GetDataOffset(RawObject* object) const;
   intptr_t GetDataSize() const;
   intptr_t GetTextSize() const;
 
@@ -312,7 +312,7 @@ class Deserializer : public StackResource {
   T Read() {
     return ReadStream::Raw<sizeof(T), T>::Read(&stream_);
   }
-
+  intptr_t ReadUnsigned() { return stream_.ReadUnsigned(); }
   void ReadBytes(uint8_t* addr, intptr_t len) { stream_.ReadBytes(addr, len); }
 
   const uint8_t* CurrentBufferAddress() const {
@@ -337,10 +337,7 @@ class Deserializer : public StackResource {
     return refs_->ptr()->data()[index];
   }
 
-  RawObject* ReadRef() {
-    int32_t index = Read<int32_t>();
-    return Ref(index);
-  }
+  RawObject* ReadRef() { return Ref(ReadUnsigned()); }
 
   TokenPosition ReadTokenPosition() {
     return TokenPosition::SnapshotDecode(Read<int32_t>());
@@ -352,7 +349,7 @@ class Deserializer : public StackResource {
   }
 
   RawInstructions* GetInstructionsAt(int32_t offset) const;
-  RawObject* GetObjectAt(int32_t offset) const;
+  RawObject* GetObjectAt(uint32_t offset) const;
 
   RawApiError* VerifyVersionAndFeatures(Isolate* isolate);
 
