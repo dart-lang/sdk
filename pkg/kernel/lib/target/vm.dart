@@ -58,6 +58,16 @@ class VmTarget extends Target {
       ];
 
   @override
+  bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) {
+    if (flags.allowDartInternalImport &&
+        (imported.scheme == 'dart') &&
+        (imported.path == '_internal')) {
+      return true;
+    }
+    return super.allowPlatformPrivateLibraryAccess(importer, imported);
+  }
+
+  @override
   void performModularTransformationsOnLibraries(
       CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
       {void logger(String msg)}) {
