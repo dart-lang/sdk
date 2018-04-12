@@ -20,6 +20,13 @@ import '../builder/builder.dart' show Builder;
 
 import 'kernel_library_builder.dart' show KernelLibraryBuilder;
 
+import 'forest.dart' show Forest;
+
+import 'fangorn.dart' show Fangorn;
+
+// TODO(ahe): create a single forest and plumb it here instead.
+final Forest _forest = new Fangorn();
+
 /// Builder to represent the `deferLibrary.loadLibrary` calls and tear-offs.
 class LoadLibraryBuilder extends Builder {
   final KernelLibraryBuilder parent;
@@ -33,11 +40,13 @@ class LoadLibraryBuilder extends Builder {
   /// null, no tear-offs were seen in the code and no method is generated.
   Member tearoff;
 
+  Forest get forest => _forest;
+
   LoadLibraryBuilder(this.parent, this.importDependency, this.charOffset)
       : super(parent, charOffset, parent.fileUri);
 
   LoadLibrary createLoadLibrary(int charOffset) {
-    return new LoadLibrary(importDependency)..fileOffset = charOffset;
+    return forest.loadLibrary(importDependency)..fileOffset = charOffset;
   }
 
   Procedure createTearoffMethod() {

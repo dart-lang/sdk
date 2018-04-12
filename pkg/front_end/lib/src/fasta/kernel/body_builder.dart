@@ -3933,7 +3933,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   Expression wrapInDeferredCheck(
       Expression expression, KernelPrefixBuilder prefix, int charOffset) {
     var check = new VariableDeclaration.forValue(
-        new CheckLibraryIsLoaded(prefix.dependency))
+        forest.checkLibraryIsLoaded(prefix.dependency))
       ..fileOffset = charOffset;
     return new ShadowDeferredCheck(check, expression);
   }

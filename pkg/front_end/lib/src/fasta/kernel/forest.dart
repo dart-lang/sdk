@@ -50,6 +50,10 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
 
   int readOffset(covariant node);
 
+  Expression loadLibrary(covariant dependency);
+
+  Expression checkLibraryIsLoaded(covariant dependency);
+
   // TODO(ahe): Remove this method when all users are moved here.
   kernel.Arguments castArguments(Arguments arguments) {
     dynamic a = arguments;

@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart'
         Arguments,
         DartType,
         Expression,
+        LibraryDependency,
         MapEntry,
         NamedExpression,
         Statement,
@@ -24,9 +25,11 @@ import 'kernel_shadow_ast.dart'
     show
         ShadowArguments,
         ShadowBoolLiteral,
+        ShadowCheckLibraryIsLoaded,
         ShadowDoubleLiteral,
         ShadowIntLiteral,
         ShadowListLiteral,
+        ShadowLoadLibrary,
         ShadowMapLiteral,
         ShadowNullLiteral,
         ShadowStringLiteral,
@@ -135,4 +138,14 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   int readOffset(TreeNode node) => node.fileOffset;
+
+  @override
+  Expression loadLibrary(LibraryDependency dependency) {
+    return new ShadowLoadLibrary(dependency);
+  }
+
+  @override
+  Expression checkLibraryIsLoaded(LibraryDependency dependency) {
+    return new ShadowCheckLibraryIsLoaded(dependency);
+  }
 }
