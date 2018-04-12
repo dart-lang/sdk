@@ -42,7 +42,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   final Ticker ticker;
 
-  List<Uri> invalidatedUris = <Uri>[];
+  Set<Uri> invalidatedUris = new Set<Uri>();
 
   DillTarget dillLoadedData;
   Map<Uri, Source> dillLoadedDataUriToSource = <Uri, Source>{};
@@ -64,10 +64,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     return context.runInContext<Future<Component>>((CompilerContext c) async {
       IncrementalCompilerData data = new IncrementalCompilerData();
 
-      // TODO(jensj): We should only bypass the cache if .packages has been
-      // invalidated, but Flutter does not currently invalidate .packages.
+      bool bypassCache = false;
+      if (this.invalidatedUris.contains(c.options.packagesUri)) {
+        bypassCache = true;
+      }
       UriTranslator uriTranslator =
-          await c.options.getUriTranslator(bypassCache: true);
+          await c.options.getUriTranslator(bypassCache: bypassCache);
       ticker.logMs("Read packages file");
 
       if (dillLoadedData == null) {
