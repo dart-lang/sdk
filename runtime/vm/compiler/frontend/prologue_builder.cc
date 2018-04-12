@@ -89,11 +89,6 @@ Fragment PrologueBuilder::BuildTypeArgumentsLengthCheck(bool strong,
   TargetEntryInstr *then, *fail;
   check_type_args += LoadArgDescriptor();
   check_type_args += LoadField(ArgumentsDescriptor::type_args_len_offset());
-  if (strong) {
-    check_type_args +=
-        IntConstant(ArgumentsDescriptor::TypeArgsLenField::mask());
-    check_type_args += SmiBinaryOp(Token::kBIT_AND, /* truncate= */ true);
-  }
   if (expect_type_args) {
     JoinEntryInstr* join2 = BuildJoinEntry();
 
@@ -143,12 +138,6 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(bool strong,
   copy_args_prologue += LoadArgDescriptor();
   copy_args_prologue +=
       LoadField(ArgumentsDescriptor::positional_count_offset());
-  if (strong) {
-    copy_args_prologue +=
-        IntConstant(ArgumentsDescriptor::PositionalCountField::mask());
-    copy_args_prologue += SmiBinaryOp(Token::kBIT_AND, /* truncate= */ true);
-  }
-
   LocalVariable* positional_count_var = MakeTemporary();
 
   copy_args_prologue += LoadArgDescriptor();
@@ -298,12 +287,6 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(bool strong,
           good += LoadLocal(tuple_diff);
           good += SmiBinaryOp(Token::kADD, /* truncate= */ true);
           good += LoadIndexed(/* index_scale = */ kWordSize);
-          if (strong) {
-            ASSERT(ArgumentsDescriptor::NamedPositionField::shift() == 0);
-            good +=
-                IntConstant(ArgumentsDescriptor::NamedPositionField::mask());
-            good += SmiBinaryOp(Token::kBIT_AND, /* truncate= */ true);
-          }
         }
         good += SmiBinaryOp(Token::kSUB, /* truncate= */ true);
         good += LoadFpRelativeSlot(kWordSize * kParamEndSlotFromFp);
@@ -383,10 +366,6 @@ Fragment PrologueBuilder::BuildFixedParameterLengthChecks(bool strong,
   Fragment check_len(then);
   check_len += LoadArgDescriptor();
   check_len += LoadField(ArgumentsDescriptor::positional_count_offset());
-  if (strong) {
-    check_len += IntConstant(ArgumentsDescriptor::PositionalCountField::mask());
-    check_len += SmiBinaryOp(Token::kBIT_AND, /* truncate= */ true);
-  }
   check_len += BranchIfEqual(&then2, &fail2);
 
   Fragment(fail) + Goto(nsm);
@@ -420,11 +399,6 @@ Fragment PrologueBuilder::BuildTypeArgumentsHandling(bool strong) {
   TargetEntryInstr *passed, *not_passed;
   populate_args_desc += LoadArgDescriptor();
   populate_args_desc += LoadField(ArgumentsDescriptor::type_args_len_offset());
-  if (strong) {
-    populate_args_desc +=
-        IntConstant(ArgumentsDescriptor::TypeArgsLenField::mask());
-    populate_args_desc += SmiBinaryOp(Token::kBIT_AND, /* truncate= */ true);
-  }
   populate_args_desc += IntConstant(0);
   populate_args_desc += BranchIfEqual(&not_passed, &passed);
 

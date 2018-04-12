@@ -3614,8 +3614,7 @@ const Object& StreamingConstantEvaluator::RunFunction(const Function& function,
   // We do not support generic methods yet.
   const int kTypeArgsLen = 0;
   const Array& args_descriptor = Array::Handle(
-      Z, ArgumentsDescriptor::New(kTypeArgsLen, arguments.Length(), names,
-                                  H.allocation_space()));
+      Z, ArgumentsDescriptor::New(kTypeArgsLen, arguments.Length(), names));
   const Object& result = Object::Handle(
       Z, DartEntry::InvokeFunction(function, arguments, args_descriptor));
   if (result.IsError()) {
