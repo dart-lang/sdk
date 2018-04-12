@@ -586,13 +586,6 @@ from_environment_const_type_undefined_test/14: MissingCompileTimeError
 from_environment_const_type_undefined_test/16: MissingCompileTimeError
 iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
 
-[ $compiler == dartdevc || $compiler == dart2analyzer && $strong ]
-double_parse_test/01: Skip # Temporarily disable the following tests until we figure out why they started failing.
-double_parse_test/02: Skip # Temporarily disable the following tests until we figure out why they started failing.
-double_parse_test/03: Skip # Temporarily disable the following tests until we figure out why they started failing.
-double_parse_test/04: Skip # Temporarily disable the following tests until we figure out why they started failing.
-double_parse_test/none: Skip # Temporarily disable the following tests until we figure out why they started failing.
-
 [ $compiler == dartkp || $compiler == precompiler ]
 apply3_test: SkipByDesign
 dynamic_nosuchmethod_test: SkipByDesign

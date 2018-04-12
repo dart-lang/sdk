@@ -107,6 +107,22 @@ class int {
     return result;
   }
 
+  @patch
+  static int tryParse(String source, {int radix}) {
+    if (source == null) throw new ArgumentError("The source must not be null");
+    if (source.isEmpty) return null;
+    if (radix == null || radix == 10) {
+      // Try parsing immediately, without trimming whitespace.
+      int result = _tryParseSmi(source, 0, source.length - 1);
+      if (result != null) return result;
+    } else if (radix < 2 || radix > 36) {
+      throw new RangeError("Radix $radix not in range 2..36");
+    }
+    return _parse(source, radix, _kNull);
+  }
+
+  static Null _kNull(_) => null;
+
   static int _throwFormatException(onError, source, index, radix) {
     if (onError != null) return onError(source);
     if (radix == null) {

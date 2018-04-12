@@ -166,19 +166,33 @@ class Expando<T> {
   }
 }
 
+Null _kNull(_) => null;
+
 @patch
 class int {
   @patch
-  static int parse(String source, {int radix, int onError(String source)}) {
+  static int parse(String source,
+      {int radix, @deprecated int onError(String source)}) {
     return Primitives.parseInt(source, radix, onError);
+  }
+
+  @patch
+  static int tryParse(String source, {int radix}) {
+    return Primitives.parseInt(source, radix, _kNull);
   }
 }
 
 @patch
 class double {
   @patch
-  static double parse(String source, [double onError(String source)]) {
+  static double parse(String source,
+      [@deprecated double onError(String source)]) {
     return Primitives.parseDouble(source, onError);
+  }
+
+  @patch
+  static double tryParse(String source) {
+    return Primitives.parseDouble(source, _kNull);
   }
 }
 
@@ -194,6 +208,10 @@ class BigInt implements Comparable<BigInt> {
   @patch
   static BigInt parse(String source, {int radix}) =>
       _BigIntImpl.parse(source, radix: radix);
+
+  @patch
+  static BigInt tryParse(String source, {int radix}) =>
+      _BigIntImpl._tryParse(source, radix: radix);
 
   @patch
   factory BigInt.from(num value) = _BigIntImpl.from;

@@ -54,6 +54,10 @@ class BigInt implements Comparable<BigInt> {
       _BigIntImpl.parse(source, radix: radix);
 
   @patch
+  static BigInt tryParse(String source, {int radix}) =>
+      _BigIntImpl._tryParse(source, radix: radix);
+
+  @patch
   factory BigInt.from(num value) => new _BigIntImpl.from(value);
 }
 

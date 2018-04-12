@@ -462,16 +462,28 @@ abstract class num implements Comparable<num> {
    * For any number `n`, this function satisfies
    * `identical(n, num.parse(n.toString()))` (except when `n` is a NaN `double`
    * with a payload).
+   *
+   * The [onError] parameter is deprecated and will be removed.
+   * Instead of `num.parse(string, (string) { ... })`,
+   * you should use `num.tryParse(string) ?? (...)`.
    */
-  static num parse(String input, [num onError(String input)]) {
-    String source = input.trim();
-    // TODO(lrn): Optimize to detect format and result type in one check.
-    num result = int.parse(source, onError: _returnIntNull);
-    if (result != null) return result;
-    result = double.parse(source, _returnDoubleNull);
+  static num parse(String input, [@deprecated num onError(String input)]) {
+    num result = tryParse(input);
     if (result != null) return result;
     if (onError == null) throw new FormatException(input);
     return onError(input);
+  }
+
+  /**
+   * Parses a string containing a number literal into a number.
+   *
+   * Like [parse] except that this function returns `null` for invalid inputs
+   * instead of throwing.
+   */
+  static num tryParse(String input) {
+    String source = input.trim();
+    // TODO(lrn): Optimize to detect format and result type in one check.
+    return int.tryParse(source) ?? double.tryParse(source);
   }
 
   /** Helper functions for [parse]. */

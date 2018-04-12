@@ -317,28 +317,7 @@ class DateTime implements Comparable<DateTime> {
   // TODO(lrn): restrict incorrect values like  2003-02-29T50:70:80.
   // Or not, that may be a breaking change.
   static DateTime parse(String formattedString) {
-    /*
-     * date ::= yeardate time_opt timezone_opt
-     * yeardate ::= year colon_opt month colon_opt day
-     * year ::= sign_opt digit{4,6}
-     * colon_opt :: <empty> | ':'
-     * sign ::= '+' | '-'
-     * sign_opt ::=  <empty> | sign
-     * month ::= digit{2}
-     * day ::= digit{2}
-     * time_opt ::= <empty> | (' ' | 'T') hour minutes_opt
-     * minutes_opt ::= <empty> | colon_opt digit{2} seconds_opt
-     * seconds_opt ::= <empty> | colon_opt digit{2} millis_opt
-     * micros_opt ::= <empty> | '.' digit{1,6}
-     * timezone_opt ::= <empty> | space_opt timezone
-     * space_opt :: ' ' | <empty>
-     * timezone ::= 'z' | 'Z' | sign digit{2} timezonemins_opt
-     * timezonemins_opt ::= <empty> | colon_opt digit{2}
-     */
-    final RegExp re = new RegExp(r'^([+-]?\d{4,6})-?(\d\d)-?(\d\d)' // Day part.
-        r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(?:\.(\d{1,6}))?)?)?' // Time part.
-        r'( ?[zZ]| ?([-+])(\d\d)(?::?(\d\d))?)?)?$'); // Timezone part.
-
+    var re = _parseFormat;
     Match match = re.firstMatch(formattedString);
     if (match != null) {
       int parseIntOrZero(String matched) {
@@ -397,6 +376,15 @@ class DateTime implements Comparable<DateTime> {
       return new DateTime._withValue(value, isUtc: isUtc);
     } else {
       throw new FormatException("Invalid date format", formattedString);
+    }
+  }
+
+  static DateTime tryParse(String formattedString) {
+    // TODO: Optimize to avoid throwing.
+    try {
+      return parse(formattedString);
+    } on FormatException {
+      return null;
     }
   }
 
@@ -904,4 +892,27 @@ class DateTime implements Comparable<DateTime> {
    * ```
    */
   external int get weekday;
+
+  /*
+   * date ::= yeardate time_opt timezone_opt
+   * yeardate ::= year colon_opt month colon_opt day
+   * year ::= sign_opt digit{4,6}
+   * colon_opt :: <empty> | ':'
+   * sign ::= '+' | '-'
+   * sign_opt ::=  <empty> | sign
+   * month ::= digit{2}
+   * day ::= digit{2}
+   * time_opt ::= <empty> | (' ' | 'T') hour minutes_opt
+   * minutes_opt ::= <empty> | colon_opt digit{2} seconds_opt
+   * seconds_opt ::= <empty> | colon_opt digit{2} millis_opt
+   * micros_opt ::= <empty> | '.' digit{1,6}
+   * timezone_opt ::= <empty> | space_opt timezone
+   * space_opt :: ' ' | <empty>
+   * timezone ::= 'z' | 'Z' | sign digit{2} timezonemins_opt
+   * timezonemins_opt ::= <empty> | colon_opt digit{2}
+   */
+  static final RegExp _parseFormat = new RegExp(
+      r'^([+-]?\d{4,6})-?(\d\d)-?(\d\d)' // Day part.
+      r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(?:\.(\d{1,6}))?)?)?' // Time part.
+      r'( ?[zZ]| ?([-+])(\d\d)(?::?(\d\d))?)?)?$'); // Timezone part.
 }
