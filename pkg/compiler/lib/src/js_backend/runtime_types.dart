@@ -1667,20 +1667,16 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
       }
     });
 
-    codegenWorldBuilder.instantiatedTypes.forEach((t) {
-      liveTypeVisitor.visitType(t, false);
+    codegenWorldBuilder.instantiatedTypes.forEach((InterfaceType type) {
+      liveTypeVisitor.visitType(type, false);
       ClassUse classUse =
-          classUseMap.putIfAbsent(t.element, () => new ClassUse());
+          classUseMap.putIfAbsent(type.element, () => new ClassUse());
       classUse.instance = true;
-    });
-
-    for (InterfaceType instantiatedType
-        in codegenWorldBuilder.instantiatedTypes) {
-      FunctionType callType = _types.getCallType(instantiatedType);
+      FunctionType callType = _types.getCallType(type);
       if (callType != null) {
         testedTypeVisitor.visitType(callType, false);
       }
-    }
+    });
 
     for (FunctionEntity element
         in codegenWorldBuilder.staticFunctionsNeedingGetter) {
@@ -2409,6 +2405,9 @@ class TypeCheck {
 }
 
 class TypeVisitor extends ResolutionDartTypeVisitor<void, bool> {
+  Set<FunctionTypeVariable> _visitedFunctionTypeVariables =
+      new Set<FunctionTypeVariable>();
+
   final void Function(ClassEntity entity, {bool inTypeArgument}) onClass;
   final void Function(TypeVariableEntity entity, {bool inTypeArgument})
       onTypeVariable;
@@ -2451,6 +2450,7 @@ class TypeVisitor extends ResolutionDartTypeVisitor<void, bool> {
     visitTypes(type.parameterTypes, true);
     visitTypes(type.optionalParameterTypes, true);
     visitTypes(type.namedParameterTypes, true);
+    _visitedFunctionTypeVariables.removeAll(type.typeVariables);
   }
 
   @override
@@ -2460,7 +2460,9 @@ class TypeVisitor extends ResolutionDartTypeVisitor<void, bool> {
 
   @override
   visitFunctionTypeVariable(FunctionTypeVariable type, bool inTypeArgument) {
-    visitType(type.bound, inTypeArgument);
+    if (_visitedFunctionTypeVariables.add(type)) {
+      visitType(type.bound, inTypeArgument);
+    }
   }
 }
 

@@ -1254,7 +1254,6 @@ generic_methods_generic_class_tearoff_test: RuntimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
-generic_methods_recursive_bound_test/03: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/metadata_collector.dart': Failed assertion: line 100 pos 12: 'isBound': is not true.
 generic_methods_simple_as_expression_test/02: MissingRuntimeError
 generic_methods_type_expression_test: RuntimeError
 generic_methods_unused_parameter_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
@@ -1922,7 +1921,6 @@ generic_methods_generic_class_tearoff_test: RuntimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
-generic_methods_recursive_bound_test/03: Crash # NoSuchMethodError: The method 'markSeen' was called on null.
 generic_methods_simple_as_expression_test/02: MissingRuntimeError
 generic_methods_type_expression_test: RuntimeError
 generic_methods_unused_parameter_test: RuntimeError
