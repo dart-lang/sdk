@@ -286,7 +286,8 @@ class FrontendCompiler implements CompilerInterface {
       final BinaryPrinter printer = printerFactory.newBinaryPrinter(sink);
       printer.writeComponentFile(component);
       await sink.close();
-      _outputStream.writeln('$boundaryKey $_kernelBinaryFilename');
+      _outputStream
+          .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
       final String depfile = options['depfile'];
       if (depfile != null) {
         await _writeDepfile(component, _kernelBinaryFilename, depfile);
@@ -348,6 +349,7 @@ class FrontendCompiler implements CompilerInterface {
     if (filename != null) {
       setMainSourceFilename(filename);
     }
+    errors.clear();
     final Component deltaProgram =
         await _generator.compile(entryPoint: _mainSource);
 
@@ -359,7 +361,8 @@ class FrontendCompiler implements CompilerInterface {
     final BinaryPrinter printer = printerFactory.newBinaryPrinter(sink);
     printer.writeComponentFile(deltaProgram);
     await sink.close();
-    _outputStream.writeln('$boundaryKey $_kernelBinaryFilename');
+    _outputStream
+        .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
     _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
     return null;
   }

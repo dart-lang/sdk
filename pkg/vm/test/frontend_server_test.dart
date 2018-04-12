@@ -512,11 +512,17 @@ Future<int> main() async {
       streamController.add('compile ${file.path}\n'.codeUnits);
       int count = 0;
       Completer<bool> allDone = new Completer<bool>();
-      receivedResults.stream.listen((String outputFilename) {
+      receivedResults.stream.listen((String outputFilenameAndErrorCount) {
+        int delim = outputFilenameAndErrorCount.lastIndexOf(' ');
+        expect(delim > 0, equals(true));
+        String outputFilename = outputFilenameAndErrorCount.substring(0, delim);
+        int errorsCount =
+            int.parse(outputFilenameAndErrorCount.substring(delim + 1).trim());
         if (count == 0) {
           // First request is to 'compile', which results in full kernel file.
           expect(dillFile.existsSync(), equals(true));
           expect(outputFilename, dillFile.path);
+          expect(errorsCount, 0);
           count += 1;
           streamController.add('accept\n'.codeUnits);
           var file2 = new File('${tempDir.path}/bar.dart')..createSync();
@@ -531,8 +537,96 @@ Future<int> main() async {
           // kernel file.
           var dillIncFile = new File('${dillFile.path}.incremental.dill');
           expect(outputFilename, dillIncFile.path);
+          expect(errorsCount, 0);
           expect(dillIncFile.existsSync(), equals(true));
           allDone.complete(true);
+        }
+      });
+      expect(await allDone.future, true);
+    });
+
+    test('compile and recompile report non-zero error count', () async {
+      var file = new File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("main() { foo(); bar(); }\n");
+      var dillFile = new File('${tempDir.path}/app.dill');
+      expect(dillFile.existsSync(), equals(false));
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--strong',
+        '--incremental',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}'
+      ];
+
+      final StreamController<List<int>> streamController =
+          new StreamController<List<int>>();
+      final StreamController<List<int>> stdoutStreamController =
+          new StreamController<List<int>>();
+      final IOSink ioSink = new IOSink(stdoutStreamController.sink);
+      StreamController<String> receivedResults = new StreamController<String>();
+
+      String boundaryKey;
+      stdoutStreamController.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen((String s) {
+        const String RESULT_OUTPUT_SPACE = 'result ';
+        if (boundaryKey == null) {
+          if (s.startsWith(RESULT_OUTPUT_SPACE)) {
+            boundaryKey = s.substring(RESULT_OUTPUT_SPACE.length);
+          }
+        } else {
+          if (s.startsWith(boundaryKey)) {
+            receivedResults.add(s.substring(boundaryKey.length + 1));
+            boundaryKey = null;
+          }
+        }
+      });
+      int exitcode =
+          await starter(args, input: streamController.stream, output: ioSink);
+      expect(exitcode, equals(0));
+      streamController.add('compile ${file.path}\n'.codeUnits);
+      int count = 0;
+      Completer<bool> allDone = new Completer<bool>();
+      receivedResults.stream.listen((String outputFilenameAndErrorCount) {
+        int delim = outputFilenameAndErrorCount.lastIndexOf(' ');
+        expect(delim > 0, equals(true));
+        String outputFilename = outputFilenameAndErrorCount.substring(0, delim);
+        int errorsCount =
+            int.parse(outputFilenameAndErrorCount.substring(delim + 1).trim());
+        switch (count) {
+          case 0:
+            expect(dillFile.existsSync(), equals(true));
+            expect(outputFilename, dillFile.path);
+            expect(errorsCount, 2);
+            count += 1;
+            streamController.add('accept\n'.codeUnits);
+            var file2 = new File('${tempDir.path}/bar.dart')..createSync();
+            file2.writeAsStringSync("main() { baz(); }\n");
+            streamController.add('recompile ${file2.path} abc\n'
+                '${file2.path}\n'
+                'abc\n'
+                .codeUnits);
+            break;
+          case 1:
+            var dillIncFile = new File('${dillFile.path}.incremental.dill');
+            expect(outputFilename, dillIncFile.path);
+            expect(errorsCount, 1);
+            count += 1;
+            streamController.add('accept\n'.codeUnits);
+            var file2 = new File('${tempDir.path}/bar.dart')..createSync();
+            file2.writeAsStringSync("main() { }\n");
+            streamController.add('recompile ${file2.path} abc\n'
+                '${file2.path}\n'
+                'abc\n'
+                .codeUnits);
+            break;
+          case 2:
+            var dillIncFile = new File('${dillFile.path}.incremental.dill');
+            expect(outputFilename, dillIncFile.path);
+            expect(errorsCount, 0);
+            expect(dillIncFile.existsSync(), equals(true));
+            allDone.complete(true);
         }
       });
       expect(await allDone.future, true);
