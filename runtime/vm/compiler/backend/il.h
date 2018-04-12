@@ -2793,14 +2793,13 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
 
   virtual TokenPosition token_pos() const { return token_pos_; }
 
-  bool IsUnboxedIntegerConstant() const {
-    return representation() == kUnboxedUint32 ||
-           representation() == kUnboxedInt32 ||
+  bool IsUnboxedSignedIntegerConstant() const {
+    return representation() == kUnboxedInt32 ||
            representation() == kUnboxedInt64;
   }
 
-  int64_t GetUnboxedIntegerConstantValue() const {
-    ASSERT(IsUnboxedIntegerConstant());
+  int64_t GetUnboxedSignedIntegerConstantValue() const {
+    ASSERT(IsUnboxedSignedIntegerConstant());
     return value_.IsSmi() ? Smi::Cast(value_).Value()
                           : Mint::Cast(value_).value();
   }

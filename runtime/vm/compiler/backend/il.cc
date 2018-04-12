@@ -744,7 +744,9 @@ bool Value::BindsToConstantNull() const {
 
 const Object& Value::BoundConstant() const {
   ASSERT(BindsToConstant());
-  return definition()->AsConstant()->value();
+  ConstantInstr* constant = definition()->AsConstant();
+  ASSERT(constant != NULL);
+  return constant->value();
 }
 
 GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
@@ -1835,9 +1837,9 @@ RawInteger* UnaryIntegerOpInstr::Evaluate(const Integer& value) const {
 
     case Token::kBIT_NOT:
       if (value.IsSmi()) {
-        result = Integer::New(~Smi::Cast(value).Value(), Heap::kOld);
+        result = Integer::New(~Smi::Cast(value).Value());
       } else if (value.IsMint()) {
-        result = Integer::New(~Mint::Cast(value).value(), Heap::kOld);
+        result = Integer::New(~Mint::Cast(value).value());
       }
       break;
 
@@ -2072,7 +2074,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
     case Token::kBIT_AND:
       if (rhs == 0) {
         return right()->definition();
-      } else if ((rhs & range_mask) == range_mask) {
+      } else if (rhs == range_mask) {
         return left()->definition();
       }
       break;
@@ -2640,35 +2642,6 @@ Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
     return replacement;
   }
 
-  if (value()->BindsToConstant()) {
-    const Object& input = value()->BoundConstant();
-    int64_t constant;
-    if (input.IsSmi()) {
-      constant = Smi::Cast(input).Value();
-    } else if (input.IsMint()) {
-      constant = Mint::Cast(input).value();
-    } else {
-      return this;
-    }
-    Definition* replacement = NULL;
-    if (to() == kUnboxedUint32) {
-      const Object& cast = Integer::Handle(
-          flow_graph->zone(),
-          Integer::New(static_cast<uint32_t>(constant), Heap::kOld));
-      replacement = new UnboxedConstantInstr(cast, kUnboxedUint32);
-    } else if (to() == kUnboxedInt32) {
-      const Object& cast = Integer::Handle(
-          flow_graph->zone(),
-          Integer::New(static_cast<int32_t>(constant), Heap::kOld));
-      replacement = new UnboxedConstantInstr(cast, kUnboxedUint32);
-    } else if (to() == kUnboxedInt64) {
-      replacement = new UnboxedConstantInstr(input, kUnboxedInt64);
-    }
-    if (replacement != NULL) {
-      flow_graph->InsertBefore(this, replacement, env(), FlowGraph::kValue);
-      return replacement;
-    }
-  }
   return this;
 }
 

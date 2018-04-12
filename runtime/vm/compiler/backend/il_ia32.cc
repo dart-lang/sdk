@@ -187,8 +187,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
   if (destination.IsRegister()) {
     if (value_.IsSmi() && Smi::Cast(value_).Value() == 0) {
       __ xorl(destination.reg(), destination.reg());
-    } else if (value_.IsSmi() && (representation() == kUnboxedInt32 ||
-                                  representation() == kUnboxedUint32)) {
+    } else if (value_.IsSmi() && (representation() == kUnboxedInt32)) {
       __ movl(destination.reg(), Immediate(Smi::Cast(value_).Value()));
     } else {
       ASSERT(representation() == kTagged);
@@ -3237,16 +3236,6 @@ LocationSummary* BinaryUint32OpInstr::MakeLocationSummary(Zone* zone,
                                                           bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = (op_kind() == Token::kMUL) ? 1 : 0;
-  ConstantInstr* right_constant = right()->definition()->AsConstant();
-  if (right_constant != NULL && right_constant->value().IsSmi() &&
-      op_kind() != Token::kMUL) {
-    LocationSummary* summary = new (zone)
-        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    summary->set_in(0, Location::RequiresRegister());
-    summary->set_in(1, Location::Constant(right_constant));
-    summary->set_out(0, Location::SameAsFirstInput());
-    return summary;
-  }
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   if (op_kind() == Token::kMUL) {
@@ -3262,33 +3251,25 @@ LocationSummary* BinaryUint32OpInstr::MakeLocationSummary(Zone* zone,
 
 void BinaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
   Register out = locs()->out(0).reg();
   ASSERT(out == left);
-  if (locs()->in(1).IsRegister()) {
-    Register right = locs()->in(1).reg();
-    switch (op_kind()) {
-      case Token::kBIT_AND:
-      case Token::kBIT_OR:
-      case Token::kBIT_XOR:
-      case Token::kADD:
-      case Token::kSUB:
-        EmitIntegerArithmetic(compiler, op_kind(), left, right, NULL);
-        return;
+  switch (op_kind()) {
+    case Token::kBIT_AND:
+    case Token::kBIT_OR:
+    case Token::kBIT_XOR:
+    case Token::kADD:
+    case Token::kSUB:
+      EmitIntegerArithmetic(compiler, op_kind(), left, right, NULL);
+      return;
 
-      case Token::kMUL:
-        __ mull(right);  // Result in EDX:EAX.
-        ASSERT(out == EAX);
-        ASSERT(locs()->temp(0).reg() == EDX);
-        break;
-      default:
-        UNREACHABLE();
-    }
-  } else {
-    ASSERT(locs()->in(1).IsConstant());
-    ConstantInstr* right_constant = right()->definition()->AsConstant();
-    const Object& constant = right_constant->value();
-    int64_t imm = Smi::Cast(constant).AsInt64Value();
-    EmitIntegerArithmetic(compiler, op_kind(), left, Immediate(imm), NULL);
+    case Token::kMUL:
+      __ mull(right);  // Result in EDX:EAX.
+      ASSERT(out == EAX);
+      ASSERT(locs()->temp(0).reg() == EDX);
+      break;
+    default:
+      UNREACHABLE();
   }
 }
 

@@ -660,43 +660,24 @@ void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
   blr(TMP);
 }
 
-void Assembler::AddImmediate(Register dest,
-                             Register rn,
-                             int64_t imm,
-                             OperandSize sz) {
+void Assembler::AddImmediate(Register dest, Register rn, int64_t imm) {
   Operand op;
   if (imm == 0) {
     if (dest != rn) {
-      if (sz == kWord) {
-        uxtw(dest, rn);
-      } else {
-        mov(dest, rn);
-      }
+      mov(dest, rn);
     }
     return;
   }
   if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
-    if (sz == kDoubleWord) {
-      add(dest, rn, op);
-    } else {
-      addw(dest, rn, op);
-    }
+    add(dest, rn, op);
   } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
              Operand::Immediate) {
-    if (sz == kDoubleWord) {
-      sub(dest, rn, op);
-    } else {
-      subw(dest, rn, op);
-    }
+    sub(dest, rn, op);
   } else {
     // TODO(zra): Try adding top 12 bits, then bottom 12 bits.
     ASSERT(rn != TMP2);
     LoadImmediate(TMP2, imm);
-    if (sz == kDoubleWord) {
-      add(dest, rn, Operand(TMP2));
-    } else {
-      addw(dest, rn, Operand(TMP2));
-    }
+    add(dest, rn, Operand(TMP2));
   }
 }
 
