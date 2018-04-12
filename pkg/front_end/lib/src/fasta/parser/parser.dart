@@ -1964,25 +1964,6 @@ class Parser {
       followingValues = ['{'];
     } else if (context == IdentifierContext.enumValueDeclaration) {
       followingValues = [',', '}'];
-    } else if (context == IdentifierContext.expression ||
-        context == IdentifierContext.expressionContinuation) {
-      if (token.isOperator) {
-        return true;
-      }
-      followingValues = [
-        '.',
-        ',',
-        '(',
-        ')',
-        '[',
-        ']',
-        '}',
-        '?',
-        ':',
-        'as',
-        'is',
-        ';'
-      ];
     } else if (context == IdentifierContext.formalParameterDeclaration) {
       followingValues = [':', '=', ',', '(', ')', '[', ']', '{', '}'];
     } else if (context == IdentifierContext.importPrefixDeclaration) {

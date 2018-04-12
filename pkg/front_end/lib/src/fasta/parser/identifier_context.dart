@@ -234,12 +234,11 @@ class IdentifierContext {
 
   /// Identifier appears in an expression, and it does not immediately follow a
   /// `.`.
-  static const expression =
-      const IdentifierContext('expression', isScopeReference: true);
+  static const expression = const ExpressionIdentifierContext();
 
   /// Identifier appears in an expression, and it immediately follows a `.`.
   static const expressionContinuation =
-      const IdentifierContext('expressionContinuation', isContinuation: true);
+      const ExpressionIdentifierContext.continuation();
 
   /// Identifier is a reference to a named argument of a function or method
   /// invocation (e.g. `foo` in `f(foo: 0);`.

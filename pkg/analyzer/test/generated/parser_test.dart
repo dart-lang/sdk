@@ -4699,7 +4699,7 @@ class Wrong<T> {
     listener.assertErrors(usingFastaParser
         ? [
             expectedError(ParserErrorCode.MISSING_IDENTIFIER, 0, 2),
-            expectedError(ParserErrorCode.MISSING_STATEMENT, 0, 2),
+            expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 2, 0),
             expectedError(ParserErrorCode.EXPECTED_TOKEN, 2, 0)
           ]
         : [expectedError(ParserErrorCode.MISSING_STATEMENT, 2, 0)]);
@@ -10685,20 +10685,11 @@ class B = Object with A {}''',
   }
 
   void test_equalityExpression_precedence_relational_left() {
-    // Fasta recovers differently. It takes the `is` to be an identifier and
-    // assumes that the right operand of `==` is the only missing identifier.
-    BinaryExpression expression = parseExpression("is ==",
-        codes: usingFastaParser
-            ? [
-                //ParserErrorCode.EXPECTED_TYPE_NAME,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER
-              ]
-            : [
-                ParserErrorCode.EXPECTED_TYPE_NAME,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER
-              ]);
+    BinaryExpression expression = parseExpression("is ==", codes: [
+      ParserErrorCode.EXPECTED_TYPE_NAME,
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.MISSING_IDENTIFIER
+    ]);
     if (!usingFastaParser) {
       EngineTestCase.assertInstanceOf(
           (obj) => obj is IsExpression, IsExpression, expression.leftOperand);

@@ -1369,10 +1369,8 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
     with RecoveryParserTestMixin {
   @override
   void test_equalityExpression_precedence_relational_right() {
-    // Fasta recovers differently. It takes the `is` to be an identifier and
-    // assumes that it is the right operand of the `==`.
     parseExpression("== is", codes: [
-//      ParserErrorCode.EXPECTED_TYPE_NAME,
+      ParserErrorCode.EXPECTED_TYPE_NAME,
       ParserErrorCode.MISSING_IDENTIFIER,
       ParserErrorCode.MISSING_IDENTIFIER
     ]);
@@ -1424,19 +1422,16 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   void test_relationalExpression_missing_LHS_RHS() {
-    // Fasta recovers differently. It takes the `is` to be an identifier.
     parseExpression("is", codes: [
-//      ParserErrorCode.EXPECTED_TYPE_NAME,
+      ParserErrorCode.EXPECTED_TYPE_NAME,
       ParserErrorCode.MISSING_IDENTIFIER
     ]);
   }
 
   @override
   void test_relationalExpression_precedence_shift_right() {
-    // Fasta recovers differently. It takes the `is` to be an identifier and
-    // assumes that it is the right operand of the `<<`.
     parseExpression("<< is", codes: [
-//      ParserErrorCode.EXPECTED_TYPE_NAME,
+      ParserErrorCode.EXPECTED_TYPE_NAME,
       ParserErrorCode.MISSING_IDENTIFIER,
       ParserErrorCode.MISSING_IDENTIFIER
     ]);

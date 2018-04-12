@@ -17,6 +17,60 @@ import 'type_info.dart'
 
 import 'util.dart' show optional;
 
+/// See [IdentifierContext].expression
+class ExpressionIdentifierContext extends IdentifierContext {
+  const ExpressionIdentifierContext()
+      : super('expression', isScopeReference: true);
+
+  const ExpressionIdentifierContext.continuation()
+      : super('expressionContinuation', isContinuation: true);
+
+  @override
+  Token ensureIdentifier(Token token, Parser parser) {
+    Token next = token.next;
+    assert(next.kind != IDENTIFIER_TOKEN);
+    if (next.isIdentifier) {
+      if (optional('await', next) && next.next.isIdentifier) {
+        // Although the `await` can be used in an expression,
+        // it is followed by another identifier which does not form
+        // a valid expression. Report an error on the `await` token
+        // rather than the token following it.
+        parser.reportRecoverableErrorWithToken(
+            next, fasta.templateUnexpectedToken);
+
+        // TODO(danrubel) Consider a new listener event so that analyzer
+        // can represent this as an await expression in a context that does
+        // not allow await.
+        return next.next;
+      } else if (!parser.inPlainSync && next.type.isPseudo) {
+        if (optional('await', next)) {
+          parser.reportRecoverableError(next, fasta.messageAwaitAsIdentifier);
+        } else if (optional('yield', next)) {
+          parser.reportRecoverableError(next, fasta.messageYieldAsIdentifier);
+        } else if (optional('async', next)) {
+          parser.reportRecoverableError(next, fasta.messageAsyncAsIdentifier);
+        }
+      }
+      return next;
+    }
+    parser.reportRecoverableErrorWithToken(
+        next, fasta.templateExpectedIdentifier);
+    if (next.isKeywordOrIdentifier) {
+      if (!isOneOfOrEof(next, ['as', 'is'])) {
+        return next;
+      }
+    } else if (!next.isOperator &&
+        !isOneOfOrEof(
+            next, const ['.', ',', '(', ')', '[', ']', '}', '?', ':', ';'])) {
+      // When in doubt, consume the token to ensure we make progress
+      token = next;
+      next = token.next;
+    }
+    // Insert a synthetic identifier to satisfy listeners.
+    return insertSyntheticIdentifierAfter(token, parser);
+  }
+}
+
 /// See [IdentifierContext].libraryName
 class LibraryIdentifierContext extends IdentifierContext {
   const LibraryIdentifierContext()
@@ -32,8 +86,7 @@ class LibraryIdentifierContext extends IdentifierContext {
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
       Token next = identifier.next;
-      if (optional('.', next) ||
-          optional(';', next) ||
+      if (isOneOfOrEof(next, const ['.', ';']) ||
           !looksLikeStartOfNextDeclaration(identifier)) {
         return identifier;
       }
@@ -41,8 +94,7 @@ class LibraryIdentifierContext extends IdentifierContext {
       // is invalid and this looks like the start of the next declaration.
       // In this situation, fall through to insert a synthetic library name.
     }
-    if (optional('.', identifier) ||
-        optional(';', identifier) ||
+    if (isOneOfOrEof(identifier, const ['.', ';']) ||
         looksLikeStartOfNextDeclaration(identifier)) {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: fasta.templateExpectedIdentifier.withArguments(identifier));
@@ -68,6 +120,7 @@ class LibraryIdentifierContext extends IdentifierContext {
       optional('void', token);
 }
 
+/// See [IdentifierContext].typeReference
 class TypeReferenceIdentifierContext extends IdentifierContext {
   const TypeReferenceIdentifierContext()
       : super('typeReference',
@@ -130,7 +183,7 @@ class TypeReferenceIdentifierContext extends IdentifierContext {
       return next;
     }
     parser.reportRecoverableErrorWithToken(next, fasta.templateExpectedType);
-    if (!isOneOfOrEof(next, ['>', ')', ']', '{', '}', ',', ';'])) {
+    if (!isOneOfOrEof(next, const ['>', ')', ']', '{', '}', ',', ';'])) {
       // When in doubt, consume the token to ensure we make progress
       token = next;
       next = token.next;
