@@ -234,8 +234,9 @@ class GnWorkspace extends Workspace {
     File config = provider.getFile(pathContext.join(root, '.config'));
     if (config.exists) {
       String content = config.readAsStringSync();
-      Match match = new RegExp(r'^FUCHSIA_BUILD_DIR="(.+)"$', multiLine: true)
-          .firstMatch(content);
+      Match match =
+          new RegExp(r'^FUCHSIA_BUILD_DIR=["\x27](.+)["\x27]$', multiLine: true)
+              .firstMatch(content);
       if (match != null) {
         String path = match.group(1);
         if (pathContext.isRelative(path)) {
