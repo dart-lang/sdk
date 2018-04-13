@@ -206,8 +206,7 @@ class ProgramCompiler extends Object
   final NullableInference _nullableInference;
 
   factory ProgramCompiler(Component component,
-      // TODO(jmesserly): emitMetadata should default to false
-      {bool emitMetadata: true,
+      {bool emitMetadata: false,
       bool replCompile: false,
       Map<String, String> declaredVariables: const {}}) {
     var nativeTypes = new NativeTypeSet(component);
@@ -2502,7 +2501,11 @@ class ProgramCompiler extends Object
 
     var nameExpr = _emitTopLevelName(p);
     body.add(js.statement('# = #', [nameExpr, fn]));
-    if (!isSdkInternalRuntime(_currentLibrary)) {
+    // Function types of top-level/static functions are only needed when
+    // dart:mirrors is enabled.
+    // TODO(jmesserly): do we even need this for mirrors, since statics are not
+    // commonly reflected on?
+    if (emitMetadata && _reifyFunctionType(p.function)) {
       body.add(
           _emitFunctionTagged(nameExpr, p.function.functionType, topLevel: true)
               .toStatement());
@@ -3694,11 +3697,7 @@ class ProgramCompiler extends Object
     } else {
       declareFn = new JS.FunctionDeclaration(name, fn);
     }
-    // Function types of top-level/static functions are only needed when
-    // dart:mirrors is enabled.
-    // TODO(jmesserly): do we even need this for mirrors, since statics are not
-    // commonly reflected on?
-    if (emitMetadata && _reifyFunctionType(func)) {
+    if (_reifyFunctionType(func)) {
       declareFn = new JS.Block([
         declareFn,
         _emitFunctionTagged(_emitVariableRef(node.variable), func.functionType)

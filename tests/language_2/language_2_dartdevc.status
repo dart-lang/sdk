@@ -30,7 +30,6 @@ conflicting_generic_interfaces_simple_test: MissingCompileTimeError
 conflicting_type_variable_and_setter_test: CompileTimeError
 const_cast2_test/01: CompileTimeError
 const_cast2_test/none: CompileTimeError
-const_evaluation_test/01: RuntimeError # Issue 29920
 const_for_in_variable_test/01: MissingCompileTimeError
 const_types_test/07: MissingCompileTimeError
 const_types_test/08: MissingCompileTimeError
@@ -397,7 +396,6 @@ field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
-function_call_generic_test: RuntimeError # Issue 32756. Crashes on dsend
 function_propagation_test: RuntimeError
 function_type_parameter2_negative_test: Fail
 function_type_parameter_negative_test: Fail
@@ -708,6 +706,7 @@ compile_time_constant_d_test: RuntimeError # Issue 30876; Expect.isTrue(false) f
 compile_time_constant_e_test: RuntimeError # Issue 30876; Expect.identical(expected: <A 3 499 99 100>, actual: <A 3 499 99 100>) fails.
 config_import_corelib_test: CompileTimeError
 config_import_test: RuntimeError # Expect.equals(expected: <b>, actual: <a>) fails.
+const_evaluation_test/01: RuntimeError # dart:mirrors not supported in DDC
 const_list_test: RuntimeError # Expect.equals(expected: <false>, actual: <true>) fails.
 const_map4_test: RuntimeError # Expect.equals(expected: <true>, actual: <false>) fails.
 const_switch_test/02: RuntimeError # Issue 29920; Expect.equals(expected: <0>, actual: <0.0>) fails.

@@ -120,6 +120,10 @@ Future<CompilerResult> _compile(List<String> args,
     ..addFlag('source-map', help: 'emit source mapping', defaultsTo: true)
     ..addMultiOption('summary-input-dir')
     ..addOption('custom-app-scheme', defaultsTo: 'org-dartlang-app')
+    ..addFlag('emit-metadata',
+        help: '(deprecated) enables dart:mirrors for this module',
+        defaultsTo: false,
+        hide: true)
     // Ignore dart2js options that we don't support in DDC.
     ..addFlag('enable-enum', hide: true)
     ..addFlag('experimental-trust-js-interop-type-annotations', hide: true)
@@ -201,7 +205,8 @@ Future<CompilerResult> _compile(List<String> args,
   // TODO(jmesserly): Save .dill file so other modules can link in this one.
   //await writeComponentToBinary(component, output);
   var jsModule = compileToJSModule(
-      result.component, result.inputSummaries, summaryUris, declaredVariables);
+      result.component, result.inputSummaries, summaryUris, declaredVariables,
+      emitMetadata: argResults['emit-metadata'] as bool);
   var jsCode = jsProgramToCode(jsModule, moduleFormat,
       buildSourceMap: argResults['source-map'] as bool,
       jsUrl: path.toUri(output).toString(),
@@ -219,8 +224,10 @@ Future<CompilerResult> _compile(List<String> args,
 }
 
 JS.Program compileToJSModule(Component p, List<Component> summaries,
-    List<Uri> summaryUris, Map<String, String> declaredVariables) {
-  var compiler = new ProgramCompiler(p, declaredVariables: declaredVariables);
+    List<Uri> summaryUris, Map<String, String> declaredVariables,
+    {bool emitMetadata: false}) {
+  var compiler = new ProgramCompiler(p,
+      declaredVariables: declaredVariables, emitMetadata: emitMetadata);
   return compiler.emitProgram(p, summaries, summaryUris);
 }
 

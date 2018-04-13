@@ -153,12 +153,7 @@ dput(obj, field, value, [mirrors = undefined]) {
 
 /// Check that a function of a given type can be applied to
 /// actuals.
-bool _checkApply(ftype, List actuals, namedActuals) {
-  // TODO(vsm): Remove when we no longer need mirrors metadata.
-  // An array is used to encode annotations attached to the type.
-  FunctionType type =
-      JS('!', '# instanceof Array ? #[0] : #', ftype, ftype, ftype);
-
+bool _checkApply(FunctionType type, List actuals, namedActuals) {
   // Check for too few required arguments.
   var actualsCount = JS('int', '#.length', actuals);
   var required = type.args;
@@ -274,6 +269,10 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) =>
     return $f.apply($obj, $args);
   }
 
+  // TODO(vsm): Remove when we no longer need mirrors metadata.
+  // An array is used to encode annotations attached to the type.
+  if ($ftype instanceof Array) $ftype = $ftype[0];
+
   // Apply type arguments
   if ($ftype instanceof $GenericFunctionType) {
     let formalCount = $ftype.formalCount;
@@ -290,7 +289,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) =>
     return callNSM();
   }
 
-  if (${_checkApply(ftype, args, named)}) {
+  if ($_checkApply($ftype, $args, $named)) {
     if ($typeArgs != null) $args = $typeArgs.concat($args);
     if ($named != null) $args.push($named);
     return $f.apply($obj, $args);
