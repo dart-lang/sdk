@@ -20,7 +20,7 @@ class _Closure implements Function {
 
   int _computeHash() native "Closure_computeHash";
 
-  // No instance fields should be declared before the following fields whose
+  // No instance fields should be declared before the following 4 fields whose
   // offsets must be identical in Dart and C++.
 
   // The following fields are declared both in raw_object.h (for direct access
@@ -30,7 +30,6 @@ class _Closure implements Function {
   // names do not need to match the C++ names, but they must be private.
   var _instantiator_type_arguments;
   var _function_type_arguments;
-  var _delayed_type_arguments;
   var _function;
   var _context;
 

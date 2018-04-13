@@ -2156,11 +2156,6 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
   fragment +=
       StoreInstanceField(TokenPosition::kNoSource, Closure::context_offset());
 
-  fragment += LoadLocal(closure);
-  fragment += Constant(Object::empty_type_arguments());
-  fragment += StoreInstanceField(TokenPosition::kNoSource,
-                                 Closure::delayed_type_arguments_offset());
-
   // The context is on top of the operand stack.  Store `this`.  The context
   // doesn't need a parent pointer because it doesn't close over anything
   // else.

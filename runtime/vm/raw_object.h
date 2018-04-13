@@ -1894,21 +1894,17 @@ class RawClosure : public RawInstance {
   VISIT_FROM(RawCompressed, instantiator_type_arguments_)
   RawTypeArguments* instantiator_type_arguments_;
   RawTypeArguments* function_type_arguments_;
-  RawTypeArguments* delayed_type_arguments_;
   RawFunction* function_;
   RawContext* context_;
   RawSmi* hash_;
-
   VISIT_TO(RawCompressed, hash_)
 
-  // Note that instantiator_type_arguments_, function_type_arguments_ and
-  // delayed_type_arguments_ are used to instantiate the signature of function_
-  // when this closure is involved in a type test. In other words, these fields
-  // define the function type of this closure instance.
-  //
-  // function_type_arguments_ and delayed_type_arguments_ may also be used when
-  // invoking the closure. Whereas the source frontend will save a copy of the
-  // function's type arguments in the closure's context and only use the
+  // Note that instantiator_type_arguments_ and function_type_arguments_ are
+  // used to instantiate the signature of function_ when this closure is
+  // involved in a type test. In other words, these fields define the function
+  // type of this closure instance, but they are not used when invoking it.
+  // Whereas the source frontend will save a copy of the function's type
+  // arguments in the closure's context and only use the
   // function_type_arguments_ field for type tests, the kernel frontend will use
   // the function_type_arguments_ vector here directly.
   //
@@ -1917,12 +1913,6 @@ class RawClosure : public RawInstance {
   // if the generic closure function_ has a generic parent function, the
   // passed-in function type arguments get concatenated to the function type
   // arguments of the parent that are found in the context_.
-  //
-  // delayed_type_arguments_ is used to support the parital instantiation
-  // feature. When this field is set to any value other than
-  // Object::empty_type_arguments(), the types in this vector will be passed as
-  // type arguments to the closure when invoked. In this case there may not be
-  // any type arguments passed directly (or NSM will be invoked instead).
 };
 
 class RawNumber : public RawInstance {
