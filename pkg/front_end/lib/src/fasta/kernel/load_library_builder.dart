@@ -16,16 +16,9 @@ import 'package:kernel/ast.dart'
         ProcedureKind,
         ReturnStatement;
 
-import '../builder/builder.dart' show Builder;
-
-import 'kernel_library_builder.dart' show KernelLibraryBuilder;
+import 'kernel_builder.dart' show Builder, KernelLibraryBuilder;
 
 import 'forest.dart' show Forest;
-
-import 'fangorn.dart' show Fangorn;
-
-// TODO(ahe): create a single forest and plumb it here instead.
-final Forest _forest = new Fangorn();
 
 /// Builder to represent the `deferLibrary.loadLibrary` calls and tear-offs.
 class LoadLibraryBuilder extends Builder {
@@ -40,18 +33,16 @@ class LoadLibraryBuilder extends Builder {
   /// null, no tear-offs were seen in the code and no method is generated.
   Member tearoff;
 
-  Forest get forest => _forest;
-
   LoadLibraryBuilder(this.parent, this.importDependency, this.charOffset)
       : super(parent, charOffset, parent.fileUri);
 
-  LoadLibrary createLoadLibrary(int charOffset) {
+  LoadLibrary createLoadLibrary(int charOffset, Forest forest) {
     return forest.loadLibrary(importDependency)..fileOffset = charOffset;
   }
 
-  Procedure createTearoffMethod() {
+  Procedure createTearoffMethod(Forest forest) {
     if (tearoff != null) return tearoff;
-    LoadLibrary expression = createLoadLibrary(charOffset);
+    LoadLibrary expression = createLoadLibrary(charOffset, forest);
     String prefix = expression.import.name;
     tearoff = new Procedure(
         new Name('__loadLibrary_$prefix', parent.target),
