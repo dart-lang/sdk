@@ -72,45 +72,6 @@ DartType getReadType(Expression expression) {
   return expression.staticType;
 }
 
-bool hasStrictArrow(Expression expression) {
-  var element = _getKnownElement(expression);
-  return element is FunctionElement || element is MethodElement;
-}
-
-/// Given a generic class [element] find its covariant upper bound, using
-/// the type system [rules].
-///
-/// Unlike [TypeSystem.instantiateToBounds], this will change `dynamic` into
-/// `Object` to work around an issue with fuzzy arrows.
-InterfaceType _getCovariantUpperBound(TypeSystem rules, ClassElement element) {
-  var upperBound = rules.instantiateToBounds(element.type) as InterfaceType;
-  var typeArgs = upperBound.typeArguments;
-  // TODO(jmesserly): remove this. It is a workaround for fuzzy arrows.
-  // To prevent extra checks due to fuzzy arrows, we need to instantiate with
-  // `Object` rather than `dynamic`. Consider a case like:
-  //
-  //     class C<T> {
-  //       void forEach(f(T t)) {}
-  //     }
-  //
-  // If we try `(dynamic) ~> void <: (T) ~> void` with fuzzy arrows, we will
-  // treat `dynamic` as `bottom` and get `(bottom) -> void <: (T) -> void`
-  // which indicates that a check is required on the parameter `f`. This check
-  // is not sufficient when `T` is `dynamic`, however, because calling a
-  // function with a fuzzy arrow type is not safe and requires a dynamic call.
-  // See: https://github.com/dart-lang/sdk/issues/29295
-  //
-  // For all other values of T, the check is unnecessary: it is sound to pass
-  // a function that accepts any Object.
-  if (typeArgs.any((t) => t.isDynamic)) {
-    var newTypeArgs = typeArgs
-        .map((t) => t.isDynamic ? rules.typeProvider.objectType : t)
-        .toList();
-    upperBound = element.type.instantiate(newTypeArgs);
-  }
-  return upperBound;
-}
-
 DartType _elementType(Element e) {
   if (e == null) {
     // Malformed code - just return dynamic.
@@ -1084,77 +1045,34 @@ class CodeChecker extends RecursiveAstVisitor {
   /// Returns `true` if the expression is a dynamic function call or method
   /// invocation.
   bool _isDynamicCall(InvocationExpression call, FunctionType ft) {
-    if (ft == null) return true;
-    // Dynamic as the parameter type is treated as bottom.  A function with
-    // a dynamic parameter type requires a dynamic call in general.
-    // However, as an optimization, if we have an original definition, we know
-    // dynamic is reified as Object - in this case a regular call is fine.
-    if (hasStrictArrow(call.function)) {
-      return false;
-    }
-    // TODO(leafp): Get rid of this case when we stop ignoring fuzzy arrows.
-    // We're already not doing this everywhere we would need to for soundness
-    // (because of generics), but for now we catch most cases here.
-    return rules.anyParameterType(ft, (pt) => pt.isDynamic);
+    return ft == null;
   }
 
   /// Given an expression [expr] of type [fromType], returns true if an implicit
   /// downcast is required, false if it is not, or null if the types are
   /// unrelated.
-  ///
-  /// This also issues fuzzy arrow hints (if any).
   bool _checkFunctionTypeCasts(
       Expression expr, FunctionType to, DartType fromType) {
-    var strict = hasStrictArrow(expr);
-    var toFuzzy = rules.functionTypeToFuzzyType(to);
     bool callTearoff = false;
     FunctionType from;
     if (fromType is FunctionType) {
       from = fromType;
     } else if (fromType is InterfaceType) {
       from = rules.getCallMethodType(fromType);
-      // Methods are always strict
-      strict = true;
       callTearoff = true;
     }
     if (from == null) {
       return null; // unrelated
     }
 
-    var fromFuzzy = strict ? from : rules.functionTypeToFuzzyType(from);
-
     if (rules.isSubtypeOf(from, to)) {
-      // Sound subtype, so no fuzzy arrow warning.
-      //
-      // However we may still need cast, because the from type is fuzzy and the
-      // to type isn't. Or if we have an call tearoff.
-      return callTearoff || !rules.isSubtypeOf(fromFuzzy, toFuzzy);
-    }
-
-    // If it's a subtype in the fuzzy system, don't cast, since we do
-    // dynamic calls for the check.
-    if (rules.isSubtypeOf(fromFuzzy, toFuzzy)) {
-      // A subtype in the fuzzy system, but reverse subtype in sound system.
-      // This will eventually become a downcast (which will probably fail).
-      // But for the transition, it is better to issue a fuzzy arrow hint
-      // since we still do the dynamic calls anyway.
-      _recordMessage(
-          expr, StrongModeCode.USES_DYNAMIC_AS_BOTTOM, [fromType, to]);
+      // Sound subtype.
+      // However we may still need cast if we have a call tearoff.
       return callTearoff;
     }
 
     if (rules.isSubtypeOf(to, from)) {
-      // Assignable in the sound system, but needs cast.
-      //
-      // Either unrelated in fuzzy system, or already a cast, so just cast
-      // and don't warn.
-      return true;
-    }
-
-    // Only assignable with fuzzy arrows, and it needs a cast
-    if (rules.isSubtypeOf(toFuzzy, fromFuzzy)) {
-      _recordMessage(
-          expr, StrongModeCode.USES_DYNAMIC_AS_BOTTOM, [fromType, to]);
+      // Assignable, but needs cast.
       return true;
     }
 
@@ -1230,14 +1148,6 @@ class CodeChecker extends RecursiveAstVisitor {
   /// the AST node.
   void _recordImplicitCast(Expression expr, DartType to,
       {DartType from, bool opAssign: false}) {
-    // We place record some legacy casts on places that had them for fuzzy
-    // arrows, but where they aren't required using sound subtyping.  We
-    // don't want to issue any of the warnings below for these.
-    if (rules.isSubtypeOf(from, to)) {
-      _markImplicitCast(expr, to, opAssign: opAssign);
-      return;
-    }
-
     // If this is an implicit tearoff, we need to mark the cast, but we don't
     // want to warn if it's a legal subtype.
     if (from is InterfaceType && rules.acceptsFunctionType(to)) {
@@ -1523,7 +1433,8 @@ class _OverrideChecker {
     if (members.isEmpty) return covariantChecks;
 
     for (var iface in covariantInterfaces) {
-      var unsafeSupertype = _getCovariantUpperBound(rules, iface);
+      var unsafeSupertype =
+          rules.instantiateToBounds(iface.type) as InterfaceType;
       for (var m in members) {
         _findCovariantChecksForMember(m, unsafeSupertype, covariantChecks);
       }

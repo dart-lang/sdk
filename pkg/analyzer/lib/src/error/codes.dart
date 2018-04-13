@@ -5027,19 +5027,6 @@ class StrongModeCode extends ErrorCode {
       "The type of '{0}' can't be inferred because {1} expressions aren't supported.",
       correction: "Try adding an explicit type for '{0}'.");
 
-  /**
-   * This warning is generated when a function type is assigned to a function
-   * typed location, and the assignment will be invalid after fuzzy arrows
-   * (the treatment of dynamic as bottom in certain locations) is removed.
-   *
-   */
-  static const StrongModeCode USES_DYNAMIC_AS_BOTTOM = const StrongModeCode(
-      ErrorType.STATIC_TYPE_WARNING,
-      'USES_DYNAMIC_AS_BOTTOM',
-      "A function of type '{0}' can't be assigned to a location of type '{1}'.",
-      correction: "Try changing the parameter types of the function or of the "
-          " receiving location.");
-
   @override
   final ErrorType type;
 

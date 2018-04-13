@@ -192,7 +192,7 @@ class A {
 foo(x) => 1;
 var v = const A(foo);''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StrongModeCode.INVALID_CAST_FUNCTION]);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 

@@ -255,7 +255,6 @@ class ErrorCodeValuesTest {
         removeCode(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER);
         removeCode(StrongModeCode.TOP_LEVEL_INSTANCE_METHOD);
         removeCode(StrongModeCode.TOP_LEVEL_UNSUPPORTED);
-        removeCode(StrongModeCode.USES_DYNAMIC_AS_BOTTOM);
       } else if (errorType == TodoCode) {
         declaredNames.remove('TODO_REGEX');
       }
