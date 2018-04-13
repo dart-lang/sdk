@@ -789,11 +789,34 @@ class ParameterTypeInformation extends ElementTypeInformation {
   TypeMask potentiallyNarrowType(TypeMask mask, InferrerEngine inferrer) {
     if (inferrer.options.parameterCheckPolicy.isTrusted ||
         inferrer.trustTypeAnnotations(_method)) {
-      // When type assertions are enabled (aka checked mode), we have to always
-      // ignore type annotations to ensure that the checks are actually inserted
-      // into the function body and retained until runtime.
-      // TODO(sigmund): is this still applicable? investigate if we can use also
-      // narrow when isChecked is true.
+      // In checked or strong mode we don't trust the types of the arguments
+      // passed to a parameter. The means that the checking of a parameter is
+      // based on the actual arguments.
+      //
+      // With --trust-type-annotations or --omit-implicit-checks we _do_ trust
+      // the arguments passed to a parameter - and we never check them.
+      //
+      // In all these cases we _do_ trust the static type of a parameter within
+      // the method itself. For instance:
+      //
+      //     method(int i) => i;
+      //     main() {
+      //       dynamic f = method;
+      //       f(0); // valid call
+      //       f(''); // invalid call
+      //     }
+      //
+      // Here, in all cases, we infer the returned value of `method` to be an
+      // `int`. In checked and strong mode we infer the parameter of `method` to
+      // be either `int` or `String` and therefore insert a check at the entry
+      // of 'method'. With --trust-type-annotations or --omit-implicit-checks we
+      // (unsoundly) infer the parameter to be `int` and leave the parameter
+      // unchecked, and `method` will at runtime actually return a `String` from
+      // the second invocation.
+      //
+      // The trusting of the parameter types within the body of the method is
+      // is done through `LocalsHandler.update` called in
+      // `KernelTypeGraphBuilder.handleParameter`.
       assert(!inferrer.options.enableTypeAssertions);
       return _narrowType(inferrer.closedWorld, mask, _type);
     }

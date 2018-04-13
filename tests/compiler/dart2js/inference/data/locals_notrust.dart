@@ -31,6 +31,7 @@ dontTrustLocals() {
 // function.
 ////////////////////////////////////////////////////////////////////////////////
 
+// TODO(johnniwinther): Trust the function type in strong mode.
 /*element: _dontTrustFunctions:[exact=JSBool]*/
 _dontTrustFunctions(int Function(int) /*[null|subclass=Closure]*/ f) {
   dynamic c = f(0);

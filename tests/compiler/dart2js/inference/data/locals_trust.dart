@@ -10,7 +10,7 @@ main() {
 
 ////////////////////////////////////////////////////////////////////////////////
 // Test that we trust the explicit type of a local with
-// --trust-type-annotations.
+// --trust-type-annotations or --omit-implicit-checks.
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: _trustLocals:[exact=JSBool]*/ _trustLocals(
@@ -27,9 +27,10 @@ trustLocals() {
 
 ////////////////////////////////////////////////////////////////////////////////
 // Test that we don't trust the type of a function even with
-// --trust-type-annotations.
+// --trust-type-annotations or --omit-implicit-checks.
 ////////////////////////////////////////////////////////////////////////////////
 
+// TODO(johnniwinther): Trust the function type in strong mode.
 /*element: _dontTrustFunctions:[exact=JSBool]*/
 _dontTrustFunctions(int Function(int) /*[null|subclass=Closure]*/ f) {
   dynamic c = f(0);

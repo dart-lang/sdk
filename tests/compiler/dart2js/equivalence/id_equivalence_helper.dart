@@ -587,6 +587,9 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
       } else {
         print('--from kernel (strong mode)-----------------------------------');
         List<String> options = [Flags.strongMode]..addAll(testOptions);
+        if (trustTypeAnnotations) {
+          options.add(Flags.omitImplicitChecks);
+        }
         MemberAnnotations<IdValue> annotations = expectedMaps[strongMarker];
         CompiledData compiledData2 = await computeData(
             entryPoint, memorySourceFiles, computeFromKernel,
