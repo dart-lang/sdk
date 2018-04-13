@@ -7,8 +7,9 @@ library dart2js.world;
 import 'dart:collection' show Queue;
 import 'closure.dart';
 import 'common.dart';
-import 'constants/constant_system.dart';
+import 'common/names.dart';
 import 'common_elements.dart' show CommonElements, ElementEnvironment;
+import 'constants/constant_system.dart';
 import 'elements/entities.dart';
 import 'elements/elements.dart'
     show
@@ -300,6 +301,14 @@ abstract class ClosedWorld implements World {
   /// Returns all resolved typedefs.
   Iterable<TypedefEntity> get allTypedefs;
 
+  /// Returns `true` if [selector] on [mask] can hit a `call` method on a
+  /// subclass of `Closure`.
+  ///
+  /// Every implementation of `Closure` has a 'call' method with its own
+  /// signature so it cannot be modelled by a [FunctionEntity]. Also,
+  /// call-methods for tear-off are not part of the element model.
+  bool includesClosureCall(Selector selector, TypeMask mask);
+
   /// Returns the mask for the potential receivers of a dynamic call to
   /// [selector] on [mask].
   ///
@@ -316,7 +325,7 @@ abstract class ClosedWorld implements World {
 
   /// Returns the single [MemberEntity] that matches a call to [selector] on a
   /// receiver of type [mask]. If multiple targets exist, `null` is returned.
-  MemberEntity locateSingleElement(Selector selector, TypeMask mask);
+  MemberEntity locateSingleMember(Selector selector, TypeMask mask);
 
   /// Returns the single field that matches a call to [selector] on a
   /// receiver of type [mask]. If multiple targets exist or the single target
@@ -1036,8 +1045,23 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
     }
   }
 
+  /// Returns `true` if [selector] on [mask] can hit a `call` method on a
+  /// subclass of `Closure`.
+  ///
+  /// Every implementation of `Closure` has a 'call' method with its own
+  /// signature so it cannot be modelled by a [FunctionEntity]. Also,
+  /// call-methods for tear-off are not part of the element model.
+  bool includesClosureCall(Selector selector, TypeMask mask) {
+    return selector.name == Identifiers.call &&
+        (mask == null ||
+            mask.containsMask(commonMasks.functionType, closedWorld));
+  }
+
   TypeMask computeReceiverType(Selector selector, TypeMask mask) {
     _ensureFunctionSet();
+    if (includesClosureCall(selector, mask)) {
+      return commonMasks.dynamicType;
+    }
     return _allFunctions.receiverType(selector, mask, this);
   }
 
@@ -1054,13 +1078,16 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   }
 
   FieldEntity locateSingleField(Selector selector, TypeMask mask) {
-    MemberEntity result = locateSingleElement(selector, mask);
+    MemberEntity result = locateSingleMember(selector, mask);
     return (result != null && result.isField) ? result : null;
   }
 
-  MemberEntity locateSingleElement(Selector selector, TypeMask mask) {
+  MemberEntity locateSingleMember(Selector selector, TypeMask mask) {
+    if (includesClosureCall(selector, mask)) {
+      return null;
+    }
     mask ??= commonMasks.dynamicType;
-    return mask.locateSingleElement(selector, this);
+    return mask.locateSingleMember(selector, this);
   }
 
   TypeMask extendMaskIfReachesAll(Selector selector, TypeMask mask) {
@@ -1093,7 +1120,9 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 
   SideEffects getSideEffectsOfSelector(Selector selector, TypeMask mask) {
     // We're not tracking side effects of closures.
-    if (selector.isClosureCall) return new SideEffects();
+    if (selector.isClosureCall || includesClosureCall(selector, mask)) {
+      return new SideEffects();
+    }
     SideEffects sideEffects = new SideEffects.empty();
     _ensureFunctionSet();
     for (MemberEntity e in _allFunctions.filter(selector, mask, this)) {

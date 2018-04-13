@@ -540,8 +540,9 @@ class FlatTypeMask implements TypeMask {
     return closedWorld.needsNoSuchMethod(base, selector, _classQuery);
   }
 
-  MemberEntity locateSingleElement(Selector selector, ClosedWorld closedWorld) {
+  MemberEntity locateSingleMember(Selector selector, ClosedWorld closedWorld) {
     if (isEmptyOrNull) return null;
+    if (closedWorld.includesClosureCall(selector, this)) return null;
     Iterable<MemberEntity> targets = closedWorld.locateMembers(selector, this);
     if (targets.length != 1) return null;
     MemberEntity result = targets.first;

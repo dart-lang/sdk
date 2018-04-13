@@ -635,13 +635,16 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
           print('${info.getInferredSignature(types)} for '
               '${info.debugName}');
         } else if (info is DynamicCallSiteTypeInformation) {
-          for (MemberEntity target in info.targets) {
+          if (info.hasClosureCallTargets) {
+            print('<Closure.call>');
+          }
+          for (MemberEntity target in info.concreteTargets) {
             if (target is FunctionEntity) {
-              print(
-                  '${types.getInferredSignatureOfMethod(target)} for ${target}');
+              print('${types.getInferredSignatureOfMethod(target)} '
+                  'for ${target}');
             } else {
-              print(
-                  '${types.getInferredTypeOfMember(target).type} for ${target}');
+              print('${types.getInferredTypeOfMember(target).type} '
+                  'for ${target}');
             }
           }
         } else if (info is StaticCallSiteTypeInformation) {
@@ -1034,6 +1037,9 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
           inLoop: inLoop);
     }
 
+    if (closedWorld.includesClosureCall(selector, mask)) {
+      sideEffectsBuilder.setAllSideEffectsAndDependsOnSomething();
+    }
     closedWorld.locateMembers(selector, mask).forEach((callee) {
       updateSideEffects(sideEffectsBuilder, selector, callee);
     });

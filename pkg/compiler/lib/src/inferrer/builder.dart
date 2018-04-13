@@ -1206,28 +1206,34 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
 
   void checkIfExposesThis(Selector selector, TypeMask mask) {
     if (isThisExposed) return;
-    inferrer.forEachElementMatching(selector, mask, (MemberEntity element) {
-      if (element.isField) {
-        FieldElement field = element;
-        ResolvedAst elementResolvedAst = field.resolvedAst;
-        if (!selector.isSetter &&
-            isInClassOrSubclass(field) &&
-            !field.isFinal &&
-            locals.fieldScope.readField(field) == null &&
-            elementResolvedAst.body == null) {
-          // If the field is being used before this constructor
-          // actually had a chance to initialize it, say it can be
-          // null.
-          inferrer.recordTypeOfField(field, types.nullType);
-        }
-        // Accessing a field does not expose [:this:].
-        return true;
-      }
+    if (inferrer.closedWorld.includesClosureCall(selector, mask)) {
       // TODO(ngeoffray): We could do better here if we knew what we
       // are calling does not expose this.
       isThisExposed = true;
-      return false;
-    });
+    } else {
+      inferrer.forEachElementMatching(selector, mask, (MemberEntity element) {
+        if (element.isField) {
+          FieldElement field = element;
+          ResolvedAst elementResolvedAst = field.resolvedAst;
+          if (!selector.isSetter &&
+              isInClassOrSubclass(field) &&
+              !field.isFinal &&
+              locals.fieldScope.readField(field) == null &&
+              elementResolvedAst.body == null) {
+            // If the field is being used before this constructor
+            // actually had a chance to initialize it, say it can be
+            // null.
+            inferrer.recordTypeOfField(field, types.nullType);
+          }
+          // Accessing a field does not expose [:this:].
+          return true;
+        }
+        // TODO(ngeoffray): We could do better here if we knew what we
+        // are calling does not expose this.
+        isThisExposed = true;
+        return false;
+      });
+    }
   }
 
   bool get inInstanceContext {
@@ -2004,16 +2010,19 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
           (node.asSendSet() != null) &&
           (node.asSendSet().receiver != null) &&
           node.asSendSet().receiver.isThis()) {
-        Iterable<MemberEntity> targets = closedWorld.locateMembers(
-            setterSelector, types.newTypedSelector(thisType, setterMask));
-        // We just recognized a field initialization of the form:
-        // `this.foo = 42`. If there is only one target, we can update
-        // its type.
-        if (targets.length == 1) {
-          MemberElement single = targets.first;
-          if (single.isField) {
-            FieldElement field = single;
-            locals.updateField(field, rhsType);
+        TypeMask typedMask = types.newTypedSelector(thisType, setterMask);
+        if (!closedWorld.includesClosureCall(setterSelector, typedMask)) {
+          Iterable<MemberEntity> targets =
+              closedWorld.locateMembers(setterSelector, typedMask);
+          // We just recognized a field initialization of the form:
+          // `this.foo = 42`. If there is only one target, we can update
+          // its type.
+          if (targets.length == 1) {
+            MemberElement single = targets.first;
+            if (single.isField) {
+              FieldElement field = single;
+              locals.updateField(field, rhsType);
+            }
           }
         }
       }

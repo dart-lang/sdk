@@ -19,7 +19,8 @@ main() {
     await compile(TEST_ONE, entry: 'sum', useKernel: useKernel,
         check: (String generated) {
       RegExp regexp = new RegExp(getNumberTypeCheck('(param1|b)'));
-      Expect.isTrue(regexp.hasMatch(generated));
+      Expect.isTrue(
+          regexp.hasMatch(generated), '$regexp not found in:\n$generated');
     });
   }
 

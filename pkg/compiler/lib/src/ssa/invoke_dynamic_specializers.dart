@@ -970,6 +970,10 @@ class EqualsSpecializer extends RelationalSpecializer {
     if (right.isConstantNull() || left.isPrimitiveOrNull(closedWorld)) {
       return newBuiltinVariant(instruction, closedWorld);
     }
+    if (closedWorld.includesClosureCall(
+        instruction.selector, instructionType)) {
+      return null;
+    }
     Iterable<MemberEntity> matches =
         closedWorld.locateMembers(instruction.selector, instructionType);
     // This test relies on `Object.==` and `Interceptor.==` always being

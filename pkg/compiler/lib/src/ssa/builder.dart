@@ -4142,7 +4142,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       return false;
     }
 
-    MemberElement element = closedWorld.locateSingleElement(selector, mask);
+    MemberElement element = closedWorld.locateSingleMember(selector, mask);
     if (element != null &&
         !element.isField &&
         !(element.isGetter && selector.isCall) &&

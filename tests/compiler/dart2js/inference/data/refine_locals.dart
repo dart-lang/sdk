@@ -178,16 +178,14 @@ refineToClass() {
 // Refine the type of a local variable through a sequence of invocations.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _refineToClosureLocal:[empty]*/
+/*element: _refineToClosureLocal:[subclass=Closure]*/
 _refineToClosureLocal() {
   var f = /*[null]*/ ({/*[exact=JSUInt31]*/ a}) {};
   f(a: 0);
   return f;
 }
 
-// TODO(johnniwinther): Fix the refined type. Missing call methods in the closed
-// world leads to concluding [empty].
-/*element: _refineToClosureLocalCall:[empty]*/
+/*element: _refineToClosureLocalCall:[subclass=Closure]*/
 _refineToClosureLocalCall() {
   var f = /*[null]*/ ({/*[exact=JSUInt31]*/ b}) {};
   f.call(b: 0);

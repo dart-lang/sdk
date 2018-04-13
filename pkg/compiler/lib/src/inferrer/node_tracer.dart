@@ -388,7 +388,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     }
 
     Iterable<TypeInformation> inferredTargetTypes =
-        info.targets.map((MemberEntity entity) {
+        info.concreteTargets.map((MemberEntity entity) {
       return inferrer.types.getInferredTypeOfMember(entity);
     });
     if (inferredTargetTypes.any((user) => user == currentUser)) {

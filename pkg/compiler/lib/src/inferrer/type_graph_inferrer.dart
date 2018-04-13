@@ -131,11 +131,16 @@ abstract class TypeGraphInferrer<T> implements TypesInferrer<T> {
     }
 
     TypeMask result = const TypeMask.nonNullEmpty();
-    Iterable<MemberEntity> elements =
-        inferrer.closedWorld.locateMembers(selector, mask);
-    for (MemberEntity element in elements) {
-      TypeMask type = inferrer.typeOfMemberWithSelector(element, selector).type;
-      result = result.union(type, inferrer.closedWorld);
+    if (inferrer.closedWorld.includesClosureCall(selector, mask)) {
+      result = inferrer.commonMasks.dynamicType;
+    } else {
+      Iterable<MemberEntity> elements =
+          inferrer.closedWorld.locateMembers(selector, mask);
+      for (MemberEntity element in elements) {
+        TypeMask type =
+            inferrer.typeOfMemberWithSelector(element, selector).type;
+        result = result.union(type, inferrer.closedWorld);
+      }
     }
     return result;
   }

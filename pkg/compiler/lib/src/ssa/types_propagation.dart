@@ -283,6 +283,10 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
           HTypeConversion.RECEIVER_TYPE_CHECK);
       return true;
     } else if (instruction.element == null) {
+      if (closedWorld.includesClosureCall(
+          instruction.selector, instruction.mask)) {
+        return false;
+      }
       Iterable<MemberEntity> targets =
           closedWorld.locateMembers(instruction.selector, instruction.mask);
       if (targets.length == 1) {
