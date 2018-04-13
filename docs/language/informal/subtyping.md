@@ -1,4 +1,4 @@
-# Dart 2.0 static and runtime subtyping
+# Dart 2.0 Static and Runtime Subtyping
 
 leafp@google.com
 
@@ -7,6 +7,7 @@ Status: Draft
 This is intended to define the core of the Dart 2.0 static and runtime subtyping
 relation.
 
+
 ## Types
 
 The syntactic set of types used in this draft are a slight simplification of
@@ -14,11 +15,14 @@ full Dart types.
 
 The meta-variables `X`, `Y`, and `Z` range over type variables.
 
-The meta-variables `T`, `S`, and `U` range over types.
+The meta-variables `T`, `S`, `U`, and `V` range over types.
 
 The meta-variable `C` ranges over classes.
 
 The meta-variable `B` ranges over types used as bounds for type variables.
+
+As a general rule, indices up to `k` are used for type parameters and type
+arguments, `n` for required value parameters, and `m` for all value parameters.
 
 The set of types under consideration are as follows:
 
@@ -31,10 +35,10 @@ The set of types under consideration are as follows:
 - `Function`
 - `Future<T>`
 - `FutureOr<T>`
-- Interface types `C`, `C<T0, ..., Tn>`
+- Interface types `C`, `C<T0, ..., Tk>`
 - Function types
-  - `U Function<X0 extends B0, ...., Xl extends Bl>(T0 x0, ...., Tn xn, [Tn+1 xn+1, ..., Tm xm])`
-  - `U Function<X0 extends B0, ...., Xl extends Bl>(T0 x0, ...., Tn xn, {Tn+1 xn+1, ..., Tm xm})`
+  - `U Function<X0 extends B0, ...., Xk extends Bk>(T0 x0, ...., Tn xn, [Tn+1 xn+1, ..., Tm xm])`
+  - `U Function<X0 extends B0, ...., Xk extends Bk>(T0 x0, ...., Tn xn, {Tn+1 xn+1, ..., Tm xm})`
 
 We leave the set of interface types unspecified, but assume a class hierarchy
 which provides a mapping from interfaces types `T` to the set of direct
@@ -46,7 +50,7 @@ graph rooted at `Object`.
 The types `Object`, `dynamic` and `void` are all referred to as *top* types, and
 are considered equivalent as types (including when they appear as sub-components
 of other types).  They exist as distinct names only to support distinct errors
-and warnings (or absense thereof).
+and warnings (or absence thereof).
 
 The type `X & T` represents the result of a type promotion operation on a
 variable.  In certain circumstances (defined elsewhere) a variable `x` of type
@@ -56,16 +60,18 @@ to have type `X`, it is also known to have the more specific type `T`.  Promoted
 type variables only occur statically (never at runtime).
 
 Given the current promotion semantics the following properties are also true:
-   - If `X` has bound `B` then for any type `X & T`, `T <: B` will be true
+   - If `X` has bound `B` then for any type `X & T`, `T <: B` will be true.
    - Promoted type variable types will only appear as top level types: that is,
      they can never appear as sub-components of other types, in bounds, or as
      part of other promoted type variables.
 
+
 ## Notation
 
-We use `S[T0/Y0, ..., Tl/Yl]` for the result of performing a simultaneous
-capture-avoiding substitution of types `T0, ..., Tl` for the type variables `Y0,
-..., Yl` in the type `S`.
+We use `S[T0/Y0, ..., Tk/Yk]` for the result of performing a simultaneous
+capture-avoiding substitution of types `T0, ..., Tk` for the type variables
+`Y0, ..., Yk` in the type `S`.
+
 
 ## Type equality
 
@@ -75,7 +81,8 @@ and equating all top types.
 
 TODO: make these rules explicit.
 
-## Algorithmic (Syntax Directed) Subtyping
+
+## Algorithmic subtyping
 
 By convention the following rules are intended to be applied in top down order,
 with exactly one rule syntactically applying.  That is, rules are written in the
@@ -91,8 +98,14 @@ and it is the case that if a subtyping query matches the syntactic criteria for
 a rule (but not the syntactic criteria for any rule preceeding it), then the
 subtyping query holds iff the listed additional conditions hold.
 
+This makes the rules algorithmic, because they correspond in an obvious manner
+to an algorithm with an acceptable time complexity, and it makes them syntax
+directed because the overall structure of the algorithm corresponds to specific
+syntactic shapes. We will use the word _algorithmic_ to refer to this property.
+
 The runtime subtyping rules can be derived by eliminating all clauses dealing
 with promoted type variables.
+
 
 ### Rules
 
@@ -140,26 +153,30 @@ promoted type variables `X0 & S0` and `T1` is `X0 & S1`
 
 - **Function Type/Function**: `T0` is a function type and `T1` is `Function`
 
-- **Interface Compositionality**: `T0` is an interface type `C0<S0, ..., Sn>`
-  and `T1` is `C0<U0, ..., Un>`
+- **Interface Compositionality**: `T0` is an interface type `C0<S0, ..., Sk>`
+  and `T1` is `C0<U0, ..., Uk>`
   - and each `Si <: Ui`
 
 - **Super-Interface**: `T0` is an interface type with super-interfaces `S0,...Sn`
   - and `Si <: T1` for some `i`
 
-- **Positional Function Types**: `T0` is `U0 Function<X0 extends B00, ..., Xk extends B0k>(T0 x0, ..., Tn xn, [Tn+1 xn+1, ..., Tm xm])`
-  - and `T1` is `U1 Function<Y0 extends B10, ..., Yk extends B1k>(S0 y0, ..., Sp yp, [Sp+1 yp+1, ..., Sq yq])`
+- **Positional Function Types**: `T0` is
+  `U0 Function<X0 extends B00, ..., Xk extends B0k>(V0 x0, ..., Vn xn, [Vn+1 xn+1, ..., Vm xm])`
+  - and `T1` is
+    `U1 Function<Y0 extends B10, ..., Yk extends B1k>(S0 y0, ..., Sp yp, [Sp+1 yp+1, ..., Sq yq])`
   - and `p >= n`
   - and `m >= q`
-  - and `Si[Z0/Y0, ..., Zk/Yk] <: Ti[Z0/X0, ..., Zk/Xk]` for `i` in `0...q`
+  - and `Si[Z0/Y0, ..., Zk/Yk] <: Vi[Z0/X0, ..., Zk/Xk]` for `i` in `0...q`
   - and `U0[Z0/X0, ..., Zk/Xk] <: U1[Z0/Y0, ..., Zk/Yk]`
   - and `B0i[Z0/X0, ..., Zk/Xk] === B1i[Z0/Y0, ..., Zk/Yk]` for `i` in `0...k`
   - where the `Zi` are fresh type variables with bounds `B0i[Z0/X0, ..., Zk/Xk]`
 
-- **Named Function Types**: `T0` is `U0 Function<X0 extends B00, ..., Xk extends B0k>(T0 x0, ..., Tn xn, {Tn+1 xn+1, ..., Tm xm})`
-  - and `T1` is `U1 Function<Y0 extends B10, ..., Yk extends B1k>(S0 y0, ..., Sn yn, {Sn+1 yn+1, ..., Sq yq})`
+- **Named Function Types**: `T0` is
+  `U0 Function<X0 extends B00, ..., Xk extends B0k>(V0 x0, ..., Vn xn, {Vn+1 xn+1, ..., Vm xm})`
+  - and `T1` is
+    `U1 Function<Y0 extends B10, ..., Yk extends B1k>(S0 y0, ..., Sn yn, {Sn+1 yn+1, ..., Sq yq})`
   - and `{yn+1, ... , yq}` subsetof `{xn+1, ... , xm}`
-  - and `Si[Z0/Y0, ..., Zk/Yk] <: Ti[Z0/X0, ..., Zk/Xk]` for `i` in `0...n`
+  - and `Si[Z0/Y0, ..., Zk/Yk] <: Vi[Z0/X0, ..., Zk/Xk]` for `i` in `0...n`
   - and `Si[Z0/Y0, ..., Zk/Yk] <: Tj[Z0/X0, ..., Zk/Xk]` for `i` in `n+1...q`, `yj = xi`
   - and `U0[Z0/X0, ..., Zk/Xk] <: U1[Z0/Y0, ..., Zk/Yk]`
   - and `B0i[Z0/X0, ..., Zk/Xk] === B1i[Z0/Y0, ..., Zk/Yk]` for `i` in `0...k`
@@ -169,14 +186,18 @@ promoted type variables `X0 & S0` and `T1` is `X0 & S1`
 that the choice of common variable names avoid capture.  It is valid to choose
 the `Xi` or the `Yi` for `Zi` so long as capture is avoided*
 
-## Derivation of syntax directed rules
 
-This section sketches out the derivation of the syntax directed rules from the
-interpretation of `FutureOr` and promoted type bounds as intersection types.
+## Derivation of algorithmic rules
 
-### Non syntax directed rules
+This section sketches out the derivation of the algorithmic rules from the
+interpretation of `FutureOr` as a union type, and promoted type bounds as
+intersection types, based on standard rules for such types that do not satisfy
+the requirements for being algorithmic.
 
-The non syntax directed rules that we derive from first principles of union and
+
+### Non-algorithmic rules
+
+The non-algorithmic rules that we derive from first principles of union and
 intersection types are as follows:
 
 Left union introduction:
@@ -191,15 +212,16 @@ Left intersection introduction:
 Right intersection introduction:
  - `S <: X & T` if `S <: X` and `S <: T`
 
-The only remaining non-syntax directed rule is the variable bounds rule:
+The only remaining non-algorithmic rule is the variable bounds rule:
 
 Variable bounds:
   - `X <: T` if `X extends B` and `B <: T`
 
-All other rules are syntax directed.
+All other rules are algorithmic.
 
-Note: I believe that bounds can be treated simply as uses of intersections,
+Note: We believe that bounds can be treated simply as uses of intersections,
 which could simplify this presentation.
+
 
 ### Preliminaries
 
@@ -250,7 +272,6 @@ If the last rule applied is:
      - so by left union introduction, we have a derivation of `FutureOr<S> <: X & T0`
      - QED
 
-
 Note: The reverse is not true.  Counter-example:
 
 Given arbitrary `B <: A`, suppose we wish to show that `(X extends FutureOr<B>)
@@ -278,7 +299,6 @@ first.  Counter-example:
 Given `X extends Object`, it is trivial to derive `X <: FutureOr<X>` via the
 right union introduction rule.  But applying the variable bounds rule doesn't
 work.
-
 
 **Lemma 2**: If there is any derivation of `S <: X & T`, then there is
 derivation ending in a use of right intersection introduction.
@@ -326,29 +346,30 @@ If last rule applied in D is:
      - so by right intersection introduction, we have a derivation of `FutureOr<S0> <: X & T`
      - QED
 
-
 **Conjecture 1**: `FutureOr<A> <: FutureOr<B>` is derivable iff `A <: B` is
 derivable.
 
-pf: Showing that `A <: B => FutureOr<A> <: FutureOr<B>` is easy, it's not
-immediately clear to me how to tackle the opposite direction.
-
+Showing that `A <: B => FutureOr<A> <: FutureOr<B>` is easy, but it is not
+immediately clear how to tackle the opposite direction.
 
 **Lemma 3**: Transitivity of subtyping is admissible.  Given derivations of `A <: B`
 and `B <: C`, there is a derivation of `A <: C`.
 
-proof sketch: The proof should go through by induction on sizes of derivations,
+Proof sketch: The proof should go through by induction on sizes of derivations,
 cases on pairs of rules used.  For any pair of rules used, we can construct a
 new derivation of the desired result using only smaller derivations.
 
 **Observation 1**: Given `X` with bound `S`, we have the property that for all
 instances of `X & T`, `T <: S` will be true, and hence `S <: M => T <: M`.
 
-### Syntax directed rules
+
+### Algorithmic rules
 
 Consider `T0 <: T1`.
 
+
 #### Union on the left
+
 By lemma 1, if `T0` is of the form `FutureOr<S0>` and there is any derivation of
 `T0 <: T1`, then there is a derivation ending with a use of left union
 introduction so we have the rule:
@@ -356,6 +377,7 @@ introduction so we have the rule:
 - `T0` is `FutureOr<S0>`
   - and `Future<S0> <: T1`
   - and `S0 <: T1`
+
 
 #### Identical type variables
 
@@ -375,10 +397,12 @@ by reflexivity on the type variable, so it is sufficient to check `T0 <: S1`.
 is `X0 & S1`
   - and `T0 <: S1`.
 
-*Note that neither of the previous rules are required to make the rules syntax
-directed: they are merely useful special cases of the next rule.*
+*Note that neither of the previous rules are required to make the rules
+algorithmic: they are merely useful special cases of the next rule.*
+
 
 #### Intersection on the right
+
 By lemma 2, if `T1` is of the `X1 & S1` and there is any derivation of `T0 <:
 T1`, then there is a derivation ending with a use of right intersection
 introduction, hence the rule:
@@ -387,7 +411,9 @@ introduction, hence the rule:
   - and `T0 <: X1`
   - and `T0 <: S1`
 
+
 #### Union on the right
+
 Suppose `T1` is `FutureOr<S1>`. The rules above have eliminated the possibility
 that `T0` is of the form `FutureOr<S0`.  The only rules that could possibly
 apply then are right union introduction, left intersection introduction, or the
@@ -418,7 +444,9 @@ So we have the final rule:
   - or `T0` is `X0` and `X0` has bound `S0` and `S0 <: T1`
   - or `T0` is `X0 & S0` and `S0 <: T1`
 
+
 #### Intersection on the left
+
 Suppose `T0` is `X0 & S0`. We've eliminated the possibility that `T1` is
 `FutureOr<S1>`, the possibility that `T1` is `X1 & S1`, and the possibility that
 `T1` is any variant of `X0`.  The only remaining rule that applies is left
@@ -430,7 +458,9 @@ redundant with the second premise, and so we have the rule:
 `T0` is a promoted type variable `X0 & S0`
   - and `S0 <: T1`
 
+
 #### Type variable on the left
+
 Suppose `T0` is `X0`.  We've eliminated the possibility that `T1` is
 `FutureOr<S1>`, the possibility that `T1` is `X1 & S1`, and the possibility that
 `T1` is any variant of `X0`.  The only rule that applies is the variable bounds
@@ -439,8 +469,5 @@ rule:
 `T0` is a type variable `X0` with bound `B0`
   - and `B0 <: T1`
 
-This eliminates all of the non-syntax directed rules: the remainder are strictly
-syntax directed.
-
-
-## Testing
+This eliminates all of the non-algorithmic rules: the remainder are strictly
+algorithmic.
