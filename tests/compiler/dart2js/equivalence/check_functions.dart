@@ -23,11 +23,11 @@ import 'package:compiler/src/js_backend/native_data.dart';
 import 'package:compiler/src/js_backend/interceptor_data.dart';
 import 'package:compiler/src/js_emitter/code_emitter_task.dart';
 import 'package:compiler/src/js_emitter/model.dart';
-import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/world.dart';
 import 'package:js_ast/js_ast.dart' as js;
+import 'equivalence_helper.dart';
 import 'check_helpers.dart';
 
 void checkClosedWorlds(ClosedWorld closedWorld1, ClosedWorld closedWorld2,
@@ -363,33 +363,6 @@ void checkImpacts(
 
   testResolutionImpactEquivalence(impact1, impact2,
       strategy: const CheckStrategy());
-}
-
-void checkAllResolvedAsts(Compiler compiler1, Compiler compiler2,
-    {bool verbose: false}) {
-  checkLoadedLibraryMembers(compiler1, compiler2, (Element member1) {
-    return member1 is ExecutableElement &&
-        compiler1.resolution.hasResolvedAst(member1);
-  }, checkResolvedAsts, verbose: verbose);
-}
-
-/// Check equivalence of [impact1] and [impact2].
-void checkResolvedAsts(
-    Compiler compiler1, Element member1, Compiler compiler2, Element member2,
-    {bool verbose: false}) {
-  if (!compiler2.serialization.isDeserialized(member2)) {
-    return;
-  }
-  ResolvedAst resolvedAst1 = compiler1.resolution.getResolvedAst(member1);
-  ResolvedAst resolvedAst2 = compiler2.serialization.getResolvedAst(member2);
-
-  if (resolvedAst1 == null || resolvedAst2 == null) return;
-
-  if (verbose) {
-    print('Checking resolved asts for $member1 vs $member2');
-  }
-
-  testResolvedAstEquivalence(resolvedAst1, resolvedAst2, const CheckStrategy());
 }
 
 void checkNativeClasses(

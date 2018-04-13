@@ -164,12 +164,9 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
 
   final DiagnosticReporter reporter;
   final ClassEntity cls;
-  InterfaceType _objectType;
+  final InterfaceType _objectType;
 
-  // TODO(johnniwinther): Provide access to `Object` in deserialization and
-  // make [objectType] mandatory.
-  OrderedTypeSetBuilderBase(this.cls, {this.reporter, InterfaceType objectType})
-      : this._objectType = objectType;
+  OrderedTypeSetBuilderBase(this.cls, this._objectType, {this.reporter});
 
   InterfaceType getThisType(covariant ClassEntity cls);
   InterfaceType substByContext(
@@ -311,9 +308,9 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
 }
 
 class ResolutionOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
-  ResolutionOrderedTypeSetBuilder(ClassElement cls,
-      {DiagnosticReporter reporter, InterfaceType objectType})
-      : super(cls, reporter: reporter, objectType: objectType);
+  ResolutionOrderedTypeSetBuilder(ClassElement cls, InterfaceType objectType,
+      {DiagnosticReporter reporter})
+      : super(cls, objectType, reporter: reporter);
 
   InterfaceType getThisType(ClassElement cls) => cls.thisType;
 
@@ -326,18 +323,4 @@ class ResolutionOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
 
   OrderedTypeSet getOrderedTypeSet(ClassElement cls) =>
       cls.allSupertypesAndSelf;
-
-  OrderedTypeSet createOrderedTypeSet(
-      InterfaceType supertype, Link<DartType> interfaces) {
-    if (_objectType == null) {
-      // Find `Object` through in hierarchy. This is used for serialization
-      // where it is assumed that the hierarchy is valid.
-      ResolutionInterfaceType objectType = supertype;
-      while (!objectType.isObject) {
-        objectType = objectType.element.supertype;
-      }
-      _objectType = objectType;
-    }
-    return super.createOrderedTypeSet(supertype, interfaces);
-  }
 }

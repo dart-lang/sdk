@@ -151,9 +151,6 @@ abstract class Resolution {
       Element element, TypeAnnotation node);
 
   /// Returns `true` if [element] has been resolved.
-  // TODO(johnniwinther): Normalize semantics between normal and deserialized
-  // elements; deserialized elements are always resolved but the method will
-  // return `false`.
   bool hasBeenResolved(Element element);
 
   /// Resolve [element] if it has not already been resolved.

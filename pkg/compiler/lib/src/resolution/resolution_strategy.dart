@@ -39,7 +39,6 @@ import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../native/resolver.dart';
 import '../patch_parser.dart';
 import '../resolved_uri_translator.dart';
-import '../serialization/task.dart';
 import '../tree/tree.dart' show Node;
 import '../universe/call_structure.dart';
 import '../universe/class_hierarchy_builder.dart';
@@ -81,7 +80,6 @@ class ResolutionFrontEndStrategy extends FrontendStrategyBase
       ScriptLoader scriptLoader,
       api.CompilerInput compilerInput,
       ElementScanner scriptScanner,
-      LibraryDeserializer deserializer,
       PatchResolverFunction patchResolverFunc,
       PatchParserTask patchParser,
       Environment environment,
@@ -91,7 +89,6 @@ class ResolutionFrontEndStrategy extends FrontendStrategyBase
         uriTranslator,
         scriptLoader,
         scriptScanner,
-        deserializer,
         patchResolverFunc,
         patchParser,
         environment,

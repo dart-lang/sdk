@@ -95,9 +95,8 @@ class _KernelOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
   final KernelToElementMapBase elementMap;
 
   _KernelOrderedTypeSetBuilder(this.elementMap, ClassEntity cls)
-      : super(cls,
-            reporter: elementMap.reporter,
-            objectType: elementMap.commonElements.objectType);
+      : super(cls, elementMap.commonElements.objectType,
+            reporter: elementMap.reporter);
 
   // TODO(sigmund): delete once Issue #31118 is fixed.
   @override

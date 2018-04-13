@@ -311,7 +311,6 @@ typedef void MessageCallback(String message);
 class RandomAccessFileOutputProvider implements CompilerOutput {
   final Uri out;
   final Uri sourceMapOut;
-  final Uri resolutionOutput;
   final MessageCallback onInfo;
   final MessageCallback onFailure;
 
@@ -322,7 +321,7 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
   List<String> allOutputFiles = <String>[];
 
   RandomAccessFileOutputProvider(this.out, this.sourceMapOut,
-      {this.onInfo, this.onFailure, this.resolutionOutput});
+      {this.onInfo, this.onFailure});
 
   Uri createUri(String name, String extension, OutputType type) {
     Uri uri;
@@ -345,12 +344,6 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
         break;
       case OutputType.jsPart:
         uri = out.resolve('$name.$extension');
-        break;
-      case OutputType.serializationData:
-        if (resolutionOutput == null) {
-          onFailure('Serialization target unspecified.');
-        }
-        uri = resolutionOutput;
         break;
       case OutputType.info:
         if (name == '') {

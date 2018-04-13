@@ -2,35 +2,35 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Functions for asserting equivalence across serialization.
+/// Functions for asserting equivalence across different compiler
+/// implementations.
 
-library dart2js.serialization.equivalence;
+library dart2js.test.equivalence;
 
-import '../closure.dart';
-import '../common/resolution.dart';
-import '../constants/expressions.dart';
-import '../constants/values.dart';
-import '../elements/resolution_types.dart';
-import '../elements/elements.dart';
-import '../elements/entities.dart';
-import '../elements/modelx.dart';
-import '../elements/jumps.dart';
-import '../elements/names.dart';
-import '../elements/types.dart';
-import '../elements/visitor.dart';
-import '../js_backend/backend_serialization.dart'
-    show NativeBehaviorSerialization;
-import '../native/native.dart' show NativeBehavior;
-import '../resolution/access_semantics.dart';
-import '../resolution/send_structure.dart';
-import '../resolution/tree_elements.dart';
+import 'package:compiler/src/closure.dart';
+import 'package:compiler/src/common/resolution.dart';
+import 'package:compiler/src/constants/expressions.dart';
+import 'package:compiler/src/constants/values.dart';
+import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/elements/jumps.dart';
+import 'package:compiler/src/elements/modelx.dart';
+import 'package:compiler/src/elements/names.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
+import 'package:compiler/src/elements/types.dart';
+import 'package:compiler/src/elements/visitor.dart';
+import 'package:compiler/src/native/native.dart'
+    show NativeBehavior, SpecialType;
+import 'package:compiler/src/resolution/access_semantics.dart';
+import 'package:compiler/src/resolution/send_structure.dart';
+import 'package:compiler/src/resolution/tree_elements.dart';
+import 'package:compiler/src/tree/nodes.dart';
+import 'package:compiler/src/universe/feature.dart';
+import 'package:compiler/src/universe/selector.dart';
+import 'package:compiler/src/universe/use.dart';
+import 'package:compiler/src/util/util.dart';
+
 import 'package:front_end/src/fasta/scanner.dart';
-import '../tree/nodes.dart';
-import '../universe/selector.dart';
-import '../universe/feature.dart';
-import '../universe/use.dart';
-import '../util/util.dart';
-import 'resolved_ast_serialization.dart';
 
 typedef bool Equivalence<E>(E a, E b, {TestStrategy strategy});
 
@@ -1237,27 +1237,26 @@ bool testNativeBehavior(NativeBehavior a, NativeBehavior b,
           a,
           b,
           'dartTypesReturned',
-          NativeBehaviorSerialization.filterDartTypes(a.typesReturned),
-          NativeBehaviorSerialization.filterDartTypes(b.typesReturned)) &&
+          NativeBehaviorFilters.filterDartTypes(a.typesReturned),
+          NativeBehaviorFilters.filterDartTypes(b.typesReturned)) &&
       strategy.testLists(
           a,
           b,
           'specialTypesReturned',
-          NativeBehaviorSerialization.filterSpecialTypes(a.typesReturned),
-          NativeBehaviorSerialization.filterSpecialTypes(b.typesReturned)) &&
+          NativeBehaviorFilters.filterSpecialTypes(a.typesReturned),
+          NativeBehaviorFilters.filterSpecialTypes(b.typesReturned)) &&
       strategy.testTypeLists(
           a,
           b,
           'dartTypesInstantiated',
-          NativeBehaviorSerialization.filterDartTypes(a.typesInstantiated),
-          NativeBehaviorSerialization.filterDartTypes(b.typesInstantiated)) &&
+          NativeBehaviorFilters.filterDartTypes(a.typesInstantiated),
+          NativeBehaviorFilters.filterDartTypes(b.typesInstantiated)) &&
       strategy.testLists(
           a,
           b,
           'specialTypesInstantiated',
-          NativeBehaviorSerialization.filterSpecialTypes(a.typesInstantiated),
-          NativeBehaviorSerialization
-              .filterSpecialTypes(b.typesInstantiated)) &&
+          NativeBehaviorFilters.filterSpecialTypes(a.typesInstantiated),
+          NativeBehaviorFilters.filterSpecialTypes(b.typesInstantiated)) &&
       strategy.test(a, b, 'useGvn', a.useGvn, b.useGvn);
 }
 
@@ -2231,4 +2230,63 @@ bool areMetadataAnnotationsEquivalent(
   return areElementsEquivalent(
           metadata1.annotatedElement, metadata2.annotatedElement) &&
       areConstantsEquivalent(metadata1.constant, metadata2.constant);
+}
+
+class NativeBehaviorFilters {
+  static const int NORMAL_TYPE = 0;
+  static const int THIS_TYPE = 1;
+  static const int SPECIAL_TYPE = 2;
+
+  static int getTypeKind(var type) {
+    if (type is DartType) {
+      // TODO(johnniwinther): Remove this when annotation are no longer resolved
+      // to this-types.
+      if (type is InterfaceType &&
+          type.typeArguments.isNotEmpty &&
+          type.typeArguments.first is TypeVariableType) {
+        return THIS_TYPE;
+      }
+      return NORMAL_TYPE;
+    }
+    return SPECIAL_TYPE;
+  }
+
+  /// Returns a list of the non-this-type [ResolutionDartType]s in [types].
+  static List<ResolutionDartType> filterDartTypes(List types) {
+    return types.where((type) => getTypeKind(type) == NORMAL_TYPE).toList();
+  }
+
+  // TODO(johnniwinther): Remove this when annotation are no longer resolved
+  // to this-types.
+  /// Returns a list of the classes of this-types in [types].
+  static List<Element> filterThisTypes(List types) {
+    return types
+        .where((type) => getTypeKind(type) == THIS_TYPE)
+        .map((type) => type.element)
+        .toList();
+  }
+
+  /// Returns a list of the names of the [SpecialType]s in [types].
+  static List<String> filterSpecialTypes(List types) {
+    return types.where((type) => getTypeKind(type) == SPECIAL_TYPE).map((t) {
+      SpecialType type = t;
+      return type.name;
+    }).toList();
+  }
+}
+
+/// Visitor that computes a node-index mapping.
+class AstIndexComputer extends Visitor {
+  final Map<Node, int> nodeIndices = <Node, int>{};
+  final List<Node> nodeList = <Node>[];
+
+  @override
+  visitNode(Node node) {
+    nodeIndices.putIfAbsent(node, () {
+      // Some nodes (like Modifier and empty NodeList) can be reused.
+      nodeList.add(node);
+      return nodeIndices.length;
+    });
+    node.visitChildren(this);
+  }
 }

@@ -45,7 +45,6 @@ import 'kernel/element_map_impl.dart' show KernelToElementMapForImpactImpl;
 import 'patch_parser.dart' show PatchParserTask;
 import 'resolved_uri_translator.dart';
 import 'script.dart';
-import 'serialization/serialization.dart' show LibraryDeserializer;
 import 'tree/tree.dart';
 import 'util/util.dart' show Link, LinkBuilder;
 
@@ -217,9 +216,7 @@ abstract class LibraryLoaderTask implements LibraryProvider, CompilerTask {
   }
 }
 
-/// Interface for an entity that provide libraries. For instance from normal
-/// library loading or from deserialization.
-// TODO(johnniwinther): Use this to integrate deserialized libraries better.
+/// Interface for an entity that provide libraries.
 abstract class LibraryProvider {
   /// Looks up the library with the [canonicalUri].
   LibraryEntity lookupLibrary(Uri canonicalUri);
@@ -335,10 +332,6 @@ class ResolutionLibraryLoaderTask extends CompilerTask
   /// about imports and exports. Used when loading libraries from source.
   final ElementScanner scanner;
 
-  /// Provides a diet element model for a library. Used when loading libraries
-  /// from a serialized form.
-  final LibraryDeserializer deserializer;
-
   /// Definitions provided via the `-D` command line flags. Used to resolve
   /// conditional imports.
   final Environment environment;
@@ -360,7 +353,6 @@ class ResolutionLibraryLoaderTask extends CompilerTask
       this.uriTranslator,
       this.scriptLoader,
       this.scanner,
-      this.deserializer,
       this._patchResolverFunc,
       this._patchParserTask,
       this.environment,
@@ -671,29 +663,6 @@ class ResolutionLibraryLoaderTask extends CompilerTask
     });
   }
 
-  /// Loads the deserialized [library] with the [handler].
-  ///
-  /// All libraries imported or exported transitively from [library] will be
-  /// loaded as well.
-  Future<LibraryElement> loadDeserializedLibrary(
-      LibraryDependencyHandler handler, LibraryElement library) {
-    libraryCanonicalUriMap[library.canonicalUri] = library;
-    handler.registerNewLibrary(library);
-    return Future.forEach(library.imports, (ImportElement import) {
-      Uri resolvedUri = library.canonicalUri.resolveUri(import.uri);
-      return createLibrary(handler, library, resolvedUri, library);
-    }).then((_) {
-      return Future.forEach(library.exports, (ExportElement export) {
-        Uri resolvedUri = library.canonicalUri.resolveUri(export.uri);
-        return createLibrary(handler, library, resolvedUri, library);
-      }).then((_) {
-        // TODO(johnniwinther): Shouldn't there be an [ImportElement] for the
-        // implicit import of dart:core?
-        return createLibrary(handler, library, Uris.dart_core, library);
-      }).then((_) => library);
-    });
-  }
-
   Future<Script> _readScript(
       Spannable spannable, Uri readableUri, Uri resolvedUri) {
     if (readableUri == null) {
@@ -717,10 +686,6 @@ class ResolutionLibraryLoaderTask extends CompilerTask
     LibraryElement library = libraryCanonicalUriMap[resolvedUri];
     if (library != null) {
       return new Future.value(library);
-    }
-    library = await deserializer.readLibrary(resolvedUri);
-    if (library != null) {
-      return loadDeserializedLibrary(handler, library);
     }
     return reporter.withCurrentElement(importingLibrary, () {
       return _readScript(spannable, readableUri, resolvedUri)
@@ -770,9 +735,7 @@ class ResolutionLibraryLoaderTask extends CompilerTask
     if (element.isPlatformLibrary &&
         // Don't patch library currently disallowed.
         !element.isSynthesized &&
-        !element.isPatched &&
-        // Don't patch deserialized libraries.
-        !deserializer.isDeserialized(element)) {
+        !element.isPatched) {
       // Apply patch, if any.
       Uri patchUri = _patchResolverFunc(element.canonicalUri.path);
       if (patchUri != null) {
@@ -1689,44 +1652,6 @@ class _LoadedLibrariesAdapter implements LoadedLibraries {
 
   String toString() => 'root=$rootLibrary,libraries=${_newLibraries}';
 }
-
-// TODO(sigmund): remove ScriptLoader & ElementScanner. Such abstraction seems
-// rather low-level. It might be more practical to split the library-loading
-// task itself.  The task would continue to do the work of recursively loading
-// dependencies, but it can delegate to a set of subloaders how to do the actual
-// loading. We would then have a list of subloaders that use different
-// implementations: in-memory cache, deserialization, scanning from files.
-//
-// For example, the API might look like this:
-//
-// /// APIs to create [LibraryElement] and [CompilationUnitElements] given it's
-// /// URI.
-// abstract class SubLoader {
-//   /// Return the library corresponding to the script at [uri].
-//   ///
-//   /// Use [spannable] for error reporting.
-//   Future<LibraryElement> createLibrary(Uri uri, [Spannable spannable]);
-//
-//   /// Return the compilation unit at [uri] that is a part of [library].
-//   Future<CompilationUnitElement> createUnit(Uri uri, LibraryElement library,
-//       [Spannable spannable]);
-// }
-//
-// /// A [SubLoader] that parses a serialized form of the element model to
-// /// produce the results.
-// class DeserializingUnitElementCreator implements SubLoader {
-// ...
-// }
-//
-// /// A [SubLoader] that finds the script sources and does a diet parse
-// /// on them to produces the results.
-// class ScanningUnitElementCreator implements SubLoader {
-// ...
-// }
-//
-// Each subloader would internally create what they need (a scanner, a
-// deserializer), and we wouldn't need to create abstractions to pass in
-// something that is only used by the loader.
 
 /// API used by the library loader to request scripts from the compiler system.
 abstract class ScriptLoader {

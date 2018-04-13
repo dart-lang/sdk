@@ -73,9 +73,6 @@ enum OutputType {
   /// A source map for a JavaScript output.
   sourceMap,
 
-  /// Serialization data output.
-  serializationData,
-
   /// Additional information requested by the user, such dump info or a deferred
   /// map.
   info,

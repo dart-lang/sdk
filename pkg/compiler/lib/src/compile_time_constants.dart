@@ -199,9 +199,6 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
     }
     if (element.hasConstant) {
       if (element.constant != null) {
-        if (compiler.serialization.supportsDeserialization) {
-          evaluate(element.constant);
-        }
         assert(
             hasConstantValue(element.constant),
             failedAt(
@@ -331,11 +328,6 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
         expression != null,
         failedAt(CURRENT_ELEMENT_SPANNABLE,
             "ConstantExpression is null in getConstantValue."));
-    // TODO(johnniwinther): ensure expressions have been evaluated at this
-    // point. This can't be enabled today due to dartbug.com/26406.
-    if (compiler.serialization.supportsDeserialization) {
-      evaluate(expression);
-    }
     ConstantValue value = constantValueMap[expression];
     if (value == null &&
         expression != null &&
@@ -971,16 +963,6 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     if (constructor.isFromEnvironmentConstructor) {
       return createFromEnvironmentConstant(node, constructedType, constructor,
           callStructure, normalizedArguments, concreteArguments);
-    } else if (compiler.serialization.isDeserialized(constructor)) {
-      ConstructedConstantExpression expression =
-          new ConstructedConstantExpression(type, constructor, callStructure,
-              concreteArguments.map((c) => c.expression).toList());
-      return new AstConstant(
-          context,
-          node,
-          expression,
-          expression.evaluate(
-              new AstEvaluationEnvironment(compiler), constantSystem));
     } else {
       return makeConstructedConstant(
           compiler,
@@ -1262,30 +1244,13 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       CallStructure callStructure, ConstructorElement targetConstructor) {
     ResolutionInterfaceType type =
         constructedType.asInstanceOf(targetConstructor.enclosingClass);
-    if (compiler.serialization.isDeserialized(targetConstructor)) {
-      List<ConstantExpression> arguments =
-          compiledArguments.map((c) => c.expression).toList();
-      ConstructedConstantExpression expression =
-          new ConstructedConstantExpression(
-              type, targetConstructor, callStructure, arguments);
-
-      InstanceData instanceData = expression
-          .computeInstanceData(new AstEvaluationEnvironment(compiler));
-      instanceData.fieldMap.forEach((_field, ConstantExpression expression) {
-        FieldElement field = _field;
-        ConstantValue value = expression.evaluate(
-            new AstEvaluationEnvironment(compiler), constantSystem);
-        fieldValues[field] = new AstConstant(context, null, expression, value);
-      });
-    } else {
-      ConstructorEvaluator evaluator =
-          new ConstructorEvaluator(type, targetConstructor, handler, compiler);
-      evaluator.evaluateConstructorFieldValues(compiledArguments);
-      // Copy over the fieldValues from the super/redirect-constructor.
-      // No need to go through [updateFieldValue] because the
-      // assignments have already been checked in checked mode.
-      evaluator.fieldValues.forEach((key, value) => fieldValues[key] = value);
-    }
+    ConstructorEvaluator evaluator =
+        new ConstructorEvaluator(type, targetConstructor, handler, compiler);
+    evaluator.evaluateConstructorFieldValues(compiledArguments);
+    // Copy over the fieldValues from the super/redirect-constructor.
+    // No need to go through [updateFieldValue] because the
+    // assignments have already been checked in checked mode.
+    evaluator.fieldValues.forEach((key, value) => fieldValues[key] = value);
   }
 
   /**

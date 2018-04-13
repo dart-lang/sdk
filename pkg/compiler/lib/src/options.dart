@@ -187,18 +187,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// Location of the kernel platform `.dill` files.
   Uri platformBinaries;
 
-  /// The locations of serialized data used for resolution.
-  List<Uri> resolutionInputs;
-
-  /// The location of the serialized data from resolution.
-  Uri resolutionOutput;
-
-  /// If `true`, sources are resolved and serialized.
-  bool resolveOnly = false;
-
-  /// If `true`, sources are only available from serialized data.
-  bool compileOnly = false;
-
   /// URI where the compiler should generate the output source map file.
   Uri sourceMapUri;
 
@@ -339,7 +327,6 @@ class CompilerOptions implements DiagnosticOptions {
       ..librariesSpecificationUri = _resolveLibrariesSpecification(libraryRoot)
       ..platformBinaries =
           platformBinaries ?? _extractUriOption(options, '--platform-binaries=')
-      ..resolveOnly = _hasOption(options, Flags.resolveOnly)
       ..sourceMapUri = _extractUriOption(options, '--source-map=')
       ..strongMode = _hasOption(options, Flags.strongMode)
       ..omitImplicitChecks = _hasOption(options, Flags.omitImplicitChecks)
@@ -383,8 +370,7 @@ class CompilerOptions implements DiagnosticOptions {
   }
 
   void deriveOptions() {
-    if (resolveOnly) analyzeAll = true;
-    if (analyzeSignaturesOnly || analyzeAll || resolveOnly) analyzeOnly = true;
+    if (analyzeSignaturesOnly || analyzeAll) analyzeOnly = true;
     if (useKernel) generateCodeWithCompileTimeErrors = false;
     if (platformConfigUri == null) {
       platformConfigUri = _resolvePlatformConfig(libraryRoot, null, const []);

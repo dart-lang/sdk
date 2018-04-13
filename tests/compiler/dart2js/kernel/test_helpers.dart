@@ -15,8 +15,9 @@ import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:compiler/src/kernel/indexed.dart';
 import 'package:compiler/src/kernel/kelements.dart' show KLocalFunction;
-import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/util/util.dart';
+
+import '../equivalence/equivalence_helper.dart';
 
 class KernelEquivalence {
   final WorldDeconstructionForTesting testing;
