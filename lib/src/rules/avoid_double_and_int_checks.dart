@@ -29,6 +29,17 @@ f(num x) {
 }
 ```
 
+**GOOD:**
+```
+f(dynamic x) {
+  if (x is num) {
+    ...
+  } else {
+    ...
+  }
+}
+```
+
 ''';
 
 class AvoidDoubleAndIntChecks extends LintRule {
