@@ -347,6 +347,7 @@ testRule(String ruleName, File file, {bool debug: false}) {
         }
       });
     });
+    actual.sort();
     try {
       expect(actual, unorderedMatches(expected));
       // ignore: avoid_catches_without_on_clauses
@@ -418,7 +419,7 @@ class TestResourceProvider implements file_system.ResourceProvider {
   p.Context get pathContext => physicalResourceProvider.pathContext;
 }
 
-class Annotation {
+class Annotation implements Comparable<Annotation> {
   final int column;
   final int length;
   final String message;
@@ -436,6 +437,16 @@ class Annotation {
 
   Annotation.forLint([String message, int column, int length])
       : this(message, ErrorType.LINT, null, column: column, length: length);
+
+  @override
+  int compareTo(Annotation other) {
+    if (lineNumber != other.lineNumber) {
+      return lineNumber - other.lineNumber;
+    } else if (column != other.column) {
+      return column - other.column;
+    }
+    return message.compareTo(other.message);
+  }
 
   @override
   String toString() =>
