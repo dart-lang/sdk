@@ -340,40 +340,55 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     switchScope = outerSwitchScope;
   }
 
-  void declareVariable(VariableDeclaration variable, Scope scope) {
-    // ignore: UNUSED_LOCAL_VARIABLE
-    Statement discardedStatement;
+  void wrapVariableInitializerInError(
+      VariableDeclaration variable,
+      Template<Message Function(String name)> template,
+      List<LocatedMessage> context) {
     String name = variable.name;
     int offset = variable.fileOffset;
-    if (scope.local[name] != null) {
+    Message message = template.withArguments(name);
+    if (variable.initializer == null) {
+      variable.initializer =
+          buildCompileTimeError(message, offset, name.length, context: context)
+            ..parent = variable;
+    } else {
+      variable.initializer = wrapInLocatedCompileTimeError(
+          variable.initializer, message.withLocation(uri, offset, name.length),
+          context: context)
+        ..parent = variable;
+    }
+  }
+
+  void declareVariable(VariableDeclaration variable, Scope scope) {
+    String name = variable.name;
+    int offset = variable.fileOffset;
+    Builder existing = scope.local[name];
+    if (existing != null) {
       // This reports an error for duplicated declarations in the same scope:
       // `{ var x; var x; }`
-      discardedStatement = pop(); // TODO(ahe): Issue 29717.
-      push(deprecated_buildCompileTimeErrorStatement(
-          "'$name' already declared in this scope.", offset));
+      wrapVariableInitializerInError(
+          variable, fasta.templateDuplicatedName, <LocatedMessage>[
+        fasta.templateDuplicatedNameCause
+            .withArguments(name)
+            .withLocation(uri, existing.charOffset, name.length)
+      ]);
       return;
     }
-    LocatedMessage error = scope.declare(
+    LocatedMessage context = scope.declare(
         variable.name,
         new KernelVariableBuilder(
             variable, member ?? classBuilder ?? library, uri),
-        variable.fileOffset,
+        offset,
         uri);
-    if (error != null) {
+    if (context != null) {
       // This case is different from the above error. In this case, the problem
       // is using `x` before it's declared: `{ var x; { print(x); var x;
       // }}`. In this case, we want two errors, the `x` in `print(x)` and the
       // second (or innermost declaration) of `x`.
-      discardedStatement = pop(); // TODO(ahe): Issue 29717.
-
-      // Reports the error on the last declaration of `x`.
-      push(deprecated_buildCompileTimeErrorStatement(
-          "Can't declare '$name' because it was already used in this scope.",
-          offset));
-
-      // Reports the error on `print(x)`.
-      library.addCompileTimeError(
-          error.messageObject, error.charOffset, error.length, error.uri);
+      wrapVariableInitializerInError(
+          variable,
+          fasta.templateDuplicatedNamePreviouslyUsed,
+          <LocatedMessage>[context]);
     }
   }
 
@@ -2910,29 +2925,40 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
 
       variable.type = function.functionType;
       if (isFunctionExpression) {
+        Expression oldInitializer = variable.initializer;
         variable.initializer = new ShadowFunctionExpression(function)
           ..parent = variable
           ..fileOffset = formals.charOffset;
         exitLocalScope();
-        push(new ShadowNamedFunctionExpression(variable));
+        Expression expression = new ShadowNamedFunctionExpression(variable);
+        if (oldInitializer != null) {
+          // This must have been a compile-time error.
+          assert(library.loader.handledErrors.isNotEmpty);
+
+          push(new Let(
+              new VariableDeclaration.forValue(oldInitializer)
+                ..fileOffset = expression.fileOffset,
+              expression)
+            ..fileOffset = expression.fileOffset);
+        } else {
+          push(expression);
+        }
       } else {
         declaration.function = function;
         function.parent = declaration;
-        push(declaration);
-      }
-    } else if (declaration is ExpressionStatement) {
-      // If [declaration] isn't a [FunctionDeclaration], it must be because
-      // there was a compile-time error.
-      // TODO(askesc): Be more specific about the error code when we have
-      // errors represented as explicit invalid nodes.
-      assert(library.loader.handledErrors.isNotEmpty);
+        if (variable.initializer != null) {
+          // This must have been a compile-time error.
+          assert(library.loader.handledErrors.isNotEmpty);
 
-      // TODO(paulberry,ahe): ensure that when integrating with analyzer, type
-      // inference is still performed for the dropped declaration.
-      if (isFunctionExpression) {
-        push(declaration.expression);
-      } else {
-        push(declaration);
+          push(new Block(<Statement>[
+            new ExpressionStatement(variable.initializer),
+            declaration
+          ])
+            ..fileOffset = declaration.fileOffset);
+          variable.initializer = null;
+        } else {
+          push(declaration);
+        }
       }
     } else {
       return unhandled("${declaration.runtimeType}", "pushNamedFunction",

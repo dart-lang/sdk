@@ -1647,7 +1647,24 @@ DuplicatedDefinition:
   template: "Duplicated definition of '#name'."
 
 DuplicatedName:
-  template: "Duplicated name: '#name'."
+  template: "'#name' is already declared in this scope."
+  severity: ERROR
+
+DuplicatedNameCause:
+  template: "Previous declaration of '#name'."
+  severity: CONTEXT
+
+DuplicatedNamePreviouslyUsed:
+  template: "Can't declare '#name' because it was already used in this scope."
+  severity: ERROR
+  analyzerCode: REFERENCED_BEFORE_DECLARATION
+  dart2jsCode: "*ignored*"
+  script:
+    - "main(arguments) { arguments; var arguments; }"
+
+DuplicatedNamePreviouslyUsedCause:
+  template: "Previous use of '#name'."
+  severity: CONTEXT
 
 DuplicatedParameterName:
   template: "Duplicated parameter name '#name'."
@@ -1809,9 +1826,6 @@ ConstConstructorNonFinalFieldCause:
 
 AccessError:
   template: "Access error: '#name'."
-
-PreviousUseOfName:
-  template: "Previous use of '#name'."
 
 ExpressionNotMetadata:
   template: "This can't be used as metadata; metadata should be a reference to a compile-time constant variable, or a call to a constant constructor."

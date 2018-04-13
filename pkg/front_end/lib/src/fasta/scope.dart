@@ -13,7 +13,7 @@ import 'fasta_codes.dart'
         messageInternalProblemExtendingUnmodifiableScope,
         templateAccessError,
         templateDuplicatedName,
-        templatePreviousUseOfName;
+        templateDuplicatedNamePreviouslyUsedCause;
 
 import 'problems.dart' show internalProblem, unsupported;
 
@@ -208,7 +208,7 @@ class Scope extends MutableScope {
       String name, Builder builder, int charOffset, Uri fileUri) {
     if (isModifiable) {
       if (usedNames?.containsKey(name) ?? false) {
-        return templatePreviousUseOfName
+        return templateDuplicatedNamePreviouslyUsedCause
             .withArguments(name)
             .withLocation(fileUri, usedNames[name], name.length);
       }
