@@ -20,12 +20,10 @@ either `int` or `double`.
 
 **BAD:**
 ```
-f(dynamic x) {
+f(num x) {
   if (x is double) {
     ...
   } else if (x is int) {
-    ...
-  } else {
     ...
   }
 }
