@@ -1367,6 +1367,7 @@ LayoutTests/fast/table/min-width-html-block-table_t01: Pass, RuntimeError # Plea
 LayoutTests/fast/table/min-width-html-inline-table_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/table/nested-tables-with-div-offset_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/padding-height-and-override-height_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/table/resize-table-cell_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/table/table-all-rowspans-height-distribution-in-rows-except-overlapped_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/table-all-rowspans-height-distribution-in-rows_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/table-cell-offset-width_t01: RuntimeError # Please triage this failure

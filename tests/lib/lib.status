@@ -116,7 +116,6 @@ typed_data/int64_list_load_store_test: RuntimeError # Issue 10275
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 10275
 
 [ $compiler == fasta ]
-mirrors/library_imports_bad_metadata_test/01: Crash
 mirrors/metadata_allowed_values_test/02: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/27: MissingCompileTimeError
 mirrors/metadata_constructor_arguments_test/04: MissingCompileTimeError
