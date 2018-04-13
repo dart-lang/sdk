@@ -2907,18 +2907,18 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     HInstruction input = node.checkedInput;
     TypeMask inputType = node.inputType ?? input.instructionType;
     TypeMask checkedType = node.checkedType;
-    // Figure out if it is beneficial to turn this into a null check.
-    // V8 generally prefers 'typeof' checks, but for integers and
-    // indexable primitives we cannot compile this test into a single
-    // typeof check so the null check is cheaper.
+    // This path is no longer used for indexable primitive types.
+    assert(
+        !checkedType.satisfies(_commonElements.jsIndexableClass, _closedWorld));
+    // Figure out if it is beneficial to use a null check.  V8 generally prefers
+    // 'typeof' checks, but for integers we cannot compile this test into a
+    // single typeof check so the null check is cheaper.
     bool isIntCheck = checkedType.containsOnlyInt(_closedWorld);
     bool turnIntoNumCheck =
         isIntCheck && inputType.containsOnlyInt(_closedWorld);
     bool turnIntoNullCheck = !turnIntoNumCheck &&
         (checkedType.nullable() == inputType) &&
-        (isIntCheck ||
-            checkedType.satisfies(
-                _commonElements.jsIndexableClass, _closedWorld));
+        isIntCheck;
 
     if (turnIntoNullCheck) {
       use(input);

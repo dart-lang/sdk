@@ -3151,7 +3151,9 @@ class HTypeConversion extends HCheck {
   }
 
   bool get hasTypeRepresentation {
-    return typeExpression.isInterfaceType && inputs.length > 1;
+    return typeExpression != null &&
+        typeExpression.isInterfaceType &&
+        inputs.length > 1;
   }
 
   HInstruction get typeRepresentation => inputs[1];
@@ -3194,8 +3196,8 @@ class HTypeConversion extends HCheck {
         receiverTypeCheckSelector == other.receiverTypeCheckSelector;
   }
 
-  String toString() => 'HTypeConversion(type=$typeExpression,kind=$kind,'
-      '${hasTypeRepresentation ? 'representation=$typeRepresentation,' : ''}'
+  String toString() => 'HTypeConversion(type=$typeExpression, kind=$kind, '
+      '${hasTypeRepresentation ? 'representation=$typeRepresentation, ' : ''}'
       'checkedInput=$checkedInput)';
 }
 

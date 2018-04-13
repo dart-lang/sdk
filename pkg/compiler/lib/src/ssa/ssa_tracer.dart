@@ -508,7 +508,24 @@ class HInstructionStringifier implements HVisitor<String> {
       assert(node.inputs.length == 1);
       rest = "";
     }
-    return "TypeConversion: $checkedInput to ${node.instructionType}$rest";
+    String kind = _typeConversionKind(node);
+    return "TypeConversion: $kind $checkedInput to ${node.instructionType}$rest";
+  }
+
+  String _typeConversionKind(HTypeConversion node) {
+    switch (node.kind) {
+      case HTypeConversion.CHECKED_MODE_CHECK:
+        return 'CHECKED_MODE';
+      case HTypeConversion.ARGUMENT_TYPE_CHECK:
+        return 'ARGUMENT';
+      case HTypeConversion.CAST_TYPE_CHECK:
+        return 'CAST';
+      case HTypeConversion.BOOLEAN_CONVERSION_CHECK:
+        return 'BOOLEAN_CONVERSION';
+      case HTypeConversion.RECEIVER_TYPE_CHECK:
+        return 'RECEIVER';
+    }
+    return '?';
   }
 
   String visitTypeKnown(HTypeKnown node) {
