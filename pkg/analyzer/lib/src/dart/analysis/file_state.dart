@@ -426,24 +426,20 @@ class FileState {
    * Read the file content and ensure that all of the file properties are
    * consistent with the read content, including API signature.
    *
+   * If [allowCached] is `true`, don't read the content of the file if it
+   * is already cached (in another [FileSystemState], because otherwise we
+   * would not create this new instance of [FileState] and refresh it).
+   *
    * Return `true` if the API signature changed since the last refresh.
    */
-  bool refresh() {
-    // Read the content.
-    try {
-      _content = _fsState._contentOverlay[path];
-      _content ??= _fsState._resourceProvider.getFile(path).readAsStringSync();
-      _exists = true;
-    } catch (_) {
-      _content = '';
-      _exists = false;
-    }
-
-    // Compute the content hash.
-    List<int> contentBytes = utf8.encode(_content);
+  bool refresh({bool allowCached: false}) {
+    List<int> contentBytes;
     {
-      List<int> hashBytes = md5.convert(contentBytes).bytes;
-      _contentHash = hex.encode(hashBytes);
+      var rawFileState = _fsState._fileContentCache.get(path, allowCached);
+      _content = rawFileState.content;
+      _exists = rawFileState.exists;
+      contentBytes = rawFileState.contentBytes;
+      _contentHash = rawFileState.contentHash;
     }
 
     // Prepare the unlinked bundle key.
@@ -720,6 +716,12 @@ class FileSystemState {
    */
   FileState _unresolvedFile;
 
+  /**
+   * The cache of content of files, possibly shared with other file system
+   * states with the same resource provider and the content overlay.
+   */
+  _FileContentCache _fileContentCache;
+
   FileSystemStateTestView _testView;
 
   FileSystemState(
@@ -732,6 +734,8 @@ class FileSystemState {
       this._salt,
       {this.externalSummaries,
       this.parseExceptionHandler}) {
+    _fileContentCache =
+        _FileContentCache.getInstance(_resourceProvider, _contentOverlay);
     _testView = new FileSystemStateTestView(this);
   }
 
@@ -782,7 +786,7 @@ class FileSystemState {
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
       _pathToCanonicalFile[path] = file;
-      file.refresh();
+      file.refresh(allowCached: true);
     }
     return file;
   }
@@ -822,7 +826,7 @@ class FileSystemState {
       file = new FileState._(this, path, uri, fileUri, source);
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
-      file.refresh();
+      file.refresh(allowCached: true);
     }
     return file;
   }
@@ -863,9 +867,18 @@ class FileSystemState {
   }
 
   /**
+   * The file with the given [path] might have changed, so ensure that it is
+   * read the next time it is refreshed.
+   */
+  void markFileForReading(String path) {
+    _fileContentCache.remove(path);
+  }
+
+  /**
    * Remove the file with the given [path].
    */
   void removeFile(String path) {
+    markFileForReading(path);
     _uriToFile.clear();
     knownFilePaths.clear();
     _pathToFiles.clear();
@@ -900,5 +913,91 @@ class FileSystemStateTestView {
     return state._uriToFile.values
         .where((f) => f._transitiveSignature == null)
         .toSet();
+  }
+}
+
+/**
+ * Information about the content of a file.
+ */
+class _FileContent {
+  final String path;
+  final bool exists;
+  final String content;
+  final List<int> contentBytes;
+  final String contentHash;
+
+  _FileContent(this.path, this.exists, this.content, this.contentBytes,
+      this.contentHash);
+}
+
+/**
+ * The cache of information about content of files.
+ */
+class _FileContentCache {
+  /**
+   * Weak map of cache instances.
+   *
+   * Outer key is a [FileContentOverlay].
+   * Inner key is a [ResourceProvider].
+   */
+  static final _instances = new Expando<Expando<_FileContentCache>>();
+
+  final ResourceProvider _resourceProvider;
+  final FileContentOverlay _contentOverlay;
+  final Map<String, _FileContent> _pathToFile = {};
+
+  _FileContentCache(this._resourceProvider, this._contentOverlay);
+
+  /**
+   * Return the content of the file with the given [path].
+   *
+   * If [allowCached] is `true`, and the file is in the cache, return the
+   * cached data. Otherwise read the file, compute and cache the data.
+   */
+  _FileContent get(String path, bool allowCached) {
+    var file = allowCached ? _pathToFile[path] : null;
+    if (file == null) {
+      String content;
+      bool exists;
+      try {
+        content = _contentOverlay[path];
+        content ??= _resourceProvider.getFile(path).readAsStringSync();
+        exists = true;
+      } catch (_) {
+        content = '';
+        exists = false;
+      }
+
+      List<int> contentBytes = utf8.encode(content);
+
+      List<int> contentHashBytes = md5.convert(contentBytes).bytes;
+      String contentHash = hex.encode(contentHashBytes);
+
+      file = new _FileContent(path, exists, content, contentBytes, contentHash);
+      _pathToFile[path] = file;
+    }
+    return file;
+  }
+
+  /**
+   * Remove the file with the given [path] from the cache.
+   */
+  void remove(String path) {
+    _pathToFile.remove(path);
+  }
+
+  static _FileContentCache getInstance(
+      ResourceProvider resourceProvider, FileContentOverlay contentOverlay) {
+    var providerToInstance = _instances[contentOverlay];
+    if (providerToInstance == null) {
+      providerToInstance = new Expando<_FileContentCache>();
+      _instances[contentOverlay] = providerToInstance;
+    }
+    var instance = providerToInstance[resourceProvider];
+    if (instance == null) {
+      instance = new _FileContentCache(resourceProvider, contentOverlay);
+      providerToInstance[resourceProvider] = instance;
+    }
+    return instance;
   }
 }

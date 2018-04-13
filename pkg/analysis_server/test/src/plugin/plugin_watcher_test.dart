@@ -135,7 +135,7 @@ class TestDriver implements AnalysisDriver {
     fsState = new FileSystemState(
         new PerformanceLog(null),
         new MemoryByteStore(),
-        null,
+        new FileContentOverlay(),
         resourceProvider,
         sourceFactory,
         new AnalysisOptionsImpl(),
