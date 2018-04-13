@@ -15,6 +15,7 @@
 #include "vm/heap.h"
 #include "vm/object.h"
 #include "vm/snapshot.h"
+#include "vm/type_testing_stubs.h"
 #include "vm/version.h"
 
 #if defined(DEBUG)
@@ -264,6 +265,7 @@ class Serializer : public StackResource {
   void DumpCombinedCodeStatistics();
 
  private:
+  TypeTestingStubFinder type_testing_stubs_;
   Heap* heap_;
   Zone* zone_;
   Snapshot::Kind kind_;

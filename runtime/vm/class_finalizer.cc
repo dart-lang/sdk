@@ -18,6 +18,7 @@
 #include "vm/symbols.h"
 #include "vm/timeline.h"
 #include "vm/type_table.h"
+#include "vm/type_testing_stubs.h"
 
 namespace dart {
 
@@ -589,6 +590,10 @@ void ClassFinalizer::ResolveType(const Class& cls, const AbstractType& type) {
       }
     }
   }
+
+  // After resolving, we re-initialize the type testing stub.
+  type.SetTypeTestingStub(
+      Instructions::Handle(TypeTestingStubGenerator::DefaultCodeForType(type)));
 }
 
 void ClassFinalizer::FinalizeTypeParameters(const Class& cls,
