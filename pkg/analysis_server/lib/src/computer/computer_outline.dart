@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/dart/element/type.dart' as engine;
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
@@ -106,7 +107,7 @@ class DartUnitOutlineComputer {
   }
 
   Location _getLocationOffsetLength(int offset, int length) {
-    LineInfo_Location lineLocation = lineInfo.getLocation(offset);
+    CharacterLocation lineLocation = lineInfo.getLocation(offset);
     int startLine = lineLocation.lineNumber;
     int startColumn = lineLocation.columnNumber;
     return new Location(file, offset, length, startLine, startColumn);

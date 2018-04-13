@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
     show NamespaceDirectiveImpl, UriBasedDirectiveImpl, UriValidationCode;
@@ -3075,7 +3076,7 @@ class IgnoreInfo {
           .group(1)
           .split(',')
           .map((String code) => code.trim().toLowerCase());
-      LineInfo_Location location = info.getLocation(match.start);
+      CharacterLocation location = info.getLocation(match.start);
       int lineNumber = location.lineNumber;
       String beforeMatch = content.substring(
           info.getOffsetOfLine(lineNumber - 1),

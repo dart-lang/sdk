@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/error_formatter.dart';
@@ -71,7 +72,7 @@ main() {
 
 MockAnalysisErrorInfo mockError(ErrorType type, ErrorSeverity severity) {
   // ErrorInfo
-  var location = new MockLineInfo_Location(3, 3);
+  var location = new CharacterLocation(3, 3);
   var lineInfo = new MockLineInfo(defaultLocation: location);
 
   // Details

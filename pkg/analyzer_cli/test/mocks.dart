@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_cli/src/options.dart';
@@ -84,7 +85,7 @@ class MockErrorCode implements ErrorCode {
 }
 
 class MockLineInfo implements LineInfo {
-  MockLineInfo_Location defaultLocation;
+  CharacterLocation defaultLocation;
 
   MockLineInfo({this.defaultLocation});
 
@@ -99,7 +100,7 @@ class MockLineInfo implements LineInfo {
   }
 
   @override
-  LineInfo_Location getLocation(int offset) {
+  CharacterLocation getLocation(int offset) {
     if (defaultLocation != null) {
       return defaultLocation;
     }
@@ -115,16 +116,6 @@ class MockLineInfo implements LineInfo {
   int getOffsetOfLineAfter(int offset) {
     throw new StateError('Unexpected invocation of getOffsetOfLineAfter');
   }
-}
-
-class MockLineInfo_Location implements LineInfo_Location {
-  @override
-  int lineNumber;
-
-  @override
-  int columnNumber;
-
-  MockLineInfo_Location(this.lineNumber, this.columnNumber);
 }
 
 class MockSource implements Source {
