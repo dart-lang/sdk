@@ -19,6 +19,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/expr_builder.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -82,8 +83,10 @@ abstract class LibraryResynthesizerMixin implements LibraryResynthesizer {
     });
     // Add all the names from [exportNames].
     for (LinkedExportName exportName in exportNames) {
-      definedNames.putIfAbsent(
-          exportName.name, () => buildExportName(exportName));
+      String name = exportName.name;
+      if (!definedNames.containsKey(name)) {
+        definedNames[name] = buildExportName(exportName);
+      }
     }
     return new Namespace(definedNames);
   }
@@ -584,7 +587,12 @@ class _LibraryResynthesizer extends LibraryResynthesizerMixin {
   /**
    * The URI of [librarySource].
    */
-  String libraryUri;
+  Uri libraryUri;
+
+  /**
+   * The URI of [librarySource].
+   */
+  String libraryUriStr;
 
   /**
    * Indicates whether [librarySource] is the `dart:core` library.
@@ -605,8 +613,9 @@ class _LibraryResynthesizer extends LibraryResynthesizerMixin {
 
   _LibraryResynthesizer(this.summaryResynthesizer, this.linkedLibrary,
       this.unlinkedUnits, this.librarySource) {
-    libraryUri = librarySource.uri.toString();
-    isCoreLibrary = libraryUri == 'dart:core';
+    libraryUri = librarySource.uri;
+    libraryUriStr = libraryUri.toString();
+    isCoreLibrary = libraryUriStr == 'dart:core';
   }
 
   @override
@@ -752,28 +761,23 @@ class _LibraryResynthesizer extends LibraryResynthesizerMixin {
   List<String> getReferencedLocationComponents(
       int dependencyIndex, int unit, String name) {
     if (dependencyIndex == 0) {
-      String referencedLibraryUri = libraryUri;
       String partUri;
       if (unit != 0) {
         String uri = unlinkedUnits[0].publicNamespace.parts[unit - 1];
-        Source partSource =
-            summaryResynthesizer.sourceFactory.resolveUri(librarySource, uri);
-        partUri = partSource.uri.toString();
+        partUri = _resolveRelativeUri(uri);
       } else {
-        partUri = referencedLibraryUri;
+        partUri = libraryUriStr;
       }
-      return <String>[referencedLibraryUri, partUri, name];
+      return <String>[libraryUriStr, partUri, name];
     }
+
     LinkedDependency dependency = linkedLibrary.dependencies[dependencyIndex];
-    Source referencedLibrarySource = summaryResynthesizer.sourceFactory
-        .resolveUri(librarySource, dependency.uri);
-    String referencedLibraryUri = referencedLibrarySource.uri.toString();
+    String referencedLibraryUri = _resolveRelativeUri(dependency.uri);
+
     String partUri;
     if (unit != 0) {
       String uri = dependency.parts[unit - 1];
-      Source partSource =
-          summaryResynthesizer.sourceFactory.resolveUri(librarySource, uri);
-      partUri = partSource.uri.toString();
+      partUri = _resolveRelativeUri(uri);
     } else {
       partUri = referencedLibraryUri;
     }
@@ -790,6 +794,15 @@ class _LibraryResynthesizer extends LibraryResynthesizerMixin {
       String absoluteUri = source.uri.toString();
       resynthesizedUnits[absoluteUri] = unit;
     }
+  }
+
+  /**
+   * Resolve the [relativeUriStr] against [libraryUri] using Dart rules.
+   */
+  String _resolveRelativeUri(String relativeUriStr) {
+    Uri relativeUri = Uri.parse(relativeUriStr);
+    Uri resolvedUri = resolveRelativeUri(libraryUri, relativeUri);
+    return resolvedUri.toString();
   }
 }
 
