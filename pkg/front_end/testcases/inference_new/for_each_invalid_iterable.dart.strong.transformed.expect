@@ -20,25 +20,25 @@ static method test() → dynamic /* originally async */ {
       #L1:
       {
         core::String s;
-        for (final dynamic #t1 in let final core::String #t2 = s in let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:10:46: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::Iterable<dynamic>'.
+        for (final dynamic #t1 in let final dynamic #t2 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:10:46: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::Iterable<dynamic>'.
 Try changing the type of the left hand side, or casting the right hand side to 'dart.core::Iterable<dynamic>'.
   for (int x in /*@error=InvalidAssignment*/ s) {}
-                                             ^") {
+                                             ^" in let final core::String #t3 = s in null) {
           core::int x = #t1 as{TypeError} core::int;
         }
         {
-          asy::_StreamIterator<dynamic> :for-iterator = new asy::_StreamIterator::•<dynamic>(let final core::String #t3 = s in let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:11:52: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.async::Stream<dynamic>'.
+          asy::_StreamIterator<dynamic> :for-iterator = new asy::_StreamIterator::•<dynamic>(let final dynamic #t4 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:11:52: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.async::Stream<dynamic>'.
 Try changing the type of the left hand side, or casting the right hand side to 'dart.async::Stream<dynamic>'.
   await for (int x in /*@error=InvalidAssignment*/ s) {}
-                                                   ^");
+                                                   ^" in let final core::String #t5 = s in null);
           try
             #L2:
             while (true) {
-              [yield] let dynamic #t4 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
+              [yield] let dynamic #t6 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
               if(:result) {
-                final dynamic #t5 = :for-iterator.{asy::_StreamIterator::current};
+                final dynamic #t7 = :for-iterator.{asy::_StreamIterator::current};
                 {
-                  core::int x = #t5 as{TypeError} core::int;
+                  core::int x = #t7 as{TypeError} core::int;
                 }
               }
               else
@@ -46,30 +46,30 @@ Try changing the type of the left hand side, or casting the right hand side to '
             }
           finally
             if(!:for-iterator.{asy::_StreamIterator::_subscription}.{core::Object::==}(null)) {
-              [yield] let dynamic #t6 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(), :async_op_then, :async_op_error, :async_op) in null;
+              [yield] let dynamic #t8 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(), :async_op_then, :async_op_error, :async_op) in null;
               :result;
             }
         }
         core::int y;
-        for (final dynamic #t7 in let final core::String #t8 = s in let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:13:42: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::Iterable<dynamic>'.
+        for (final dynamic #t9 in let final dynamic #t10 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:13:42: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::Iterable<dynamic>'.
 Try changing the type of the left hand side, or casting the right hand side to 'dart.core::Iterable<dynamic>'.
   for (y in /*@error=InvalidAssignment*/ s) {}
-                                         ^") {
-          y = #t7 as{TypeError} core::int;
+                                         ^" in let final core::String #t11 = s in null) {
+          y = #t9 as{TypeError} core::int;
         }
         {
-          asy::_StreamIterator<dynamic> :for-iterator = new asy::_StreamIterator::•<dynamic>(let final core::String #t9 = s in let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:14:48: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.async::Stream<dynamic>'.
+          asy::_StreamIterator<dynamic> :for-iterator = new asy::_StreamIterator::•<dynamic>(let final dynamic #t12 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:14:48: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.async::Stream<dynamic>'.
 Try changing the type of the left hand side, or casting the right hand side to 'dart.async::Stream<dynamic>'.
   await for (y in /*@error=InvalidAssignment*/ s) {}
-                                               ^");
+                                               ^" in let final core::String #t13 = s in null);
           try
             #L3:
             while (true) {
-              [yield] let dynamic #t10 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
+              [yield] let dynamic #t14 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
               if(:result) {
-                final dynamic #t11 = :for-iterator.{asy::_StreamIterator::current};
+                final dynamic #t15 = :for-iterator.{asy::_StreamIterator::current};
                 {
-                  y = #t11 as{TypeError} core::int;
+                  y = #t15 as{TypeError} core::int;
                 }
               }
               else
@@ -77,7 +77,7 @@ Try changing the type of the left hand side, or casting the right hand side to '
             }
           finally
             if(!:for-iterator.{asy::_StreamIterator::_subscription}.{core::Object::==}(null)) {
-              [yield] let dynamic #t12 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(), :async_op_then, :async_op_error, :async_op) in null;
+              [yield] let dynamic #t16 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(), :async_op_then, :async_op_error, :async_op) in null;
               :result;
             }
         }

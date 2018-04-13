@@ -15,11 +15,11 @@ class D extends C<num> {
 }
 
 void g1(dynamic d) {
-  d.f1 /*@callKind=dynamic*/ (1.5);
+  d.f1(1.5);
 }
 
 void g2(dynamic d) {
-  d.f2 /*@callKind=dynamic*/ (1.5);
+  d.f2(1.5);
 }
 
 void test() {

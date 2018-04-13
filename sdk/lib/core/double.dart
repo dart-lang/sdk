@@ -210,6 +210,19 @@ abstract class double extends num {
    *     "1234E+7"
    *     "+.12e-9"
    *     "-NaN"
+   *
+   * The [onError] parameter is deprecated and will be removed.
+   * Instead of `double.parse(string, (string) { ... })`,
+   * you should use `double.tryParse(string) ?? (...)`.
    */
-  external static double parse(String source, [double onError(String source)]);
+  external static double parse(String source,
+      [@deprecated double onError(String source)]);
+
+  /**
+   * Parse [source] as an double literal and return its value.
+   *
+   * Like [parse] except that this function returns `null` for invalid inputs
+   * instead of throwing.
+   */
+  external static double tryParse(String source);
 }

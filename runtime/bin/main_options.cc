@@ -406,6 +406,9 @@ int Options::ParseArguments(int argc,
   // The arguments to the VM are at positions 1 through i-1 in argv.
   Platform::SetExecutableArguments(i, argv);
 
+#if defined(DART_LINK_APP_SNAPSHOT)
+  *script_name = argv[0];
+#else
   // Get the script name.
   if (i < argc) {
     *script_name = argv[i];
@@ -413,6 +416,7 @@ int Options::ParseArguments(int argc,
   } else {
     return -1;
   }
+#endif
 
   // Parse out options to be passed to dart main.
   while (i < argc) {

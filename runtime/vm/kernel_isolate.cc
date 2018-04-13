@@ -48,10 +48,12 @@ const char* KernelIsolate::kName = DART_KERNEL_ISOLATE_NAME;
 //   1 - Update in-memory file system with in-memory sources (used by tests).
 //   2 - Accept last compilation result.
 //   3 - APP JIT snapshot training run for kernel_service.
+//   4 - Allows for `dart:_internal` to be imported (used by tests).
 const int KernelIsolate::kCompileTag = 0;
 const int KernelIsolate::kUpdateSourcesTag = 1;
 const int KernelIsolate::kAcceptTag = 2;
 const int KernelIsolate::kTrainTag = 3;
+const int KernelIsolate::kAllowDartInternalImportTag = 4;
 
 Dart_IsolateCreateCallback KernelIsolate::create_callback_ = NULL;
 Monitor* KernelIsolate::monitor_ = new Monitor();
@@ -609,6 +611,23 @@ Dart_KernelCompilationResult KernelIsolate::UpdateInMemorySources(
                                         NULL, 0, source_files_count,
                                         source_files, true);
 }
+
+Dart_KernelCompilationResult KernelIsolate::AllowDartInternalImport() {
+  // This must be the main script to be loaded. Wait for Kernel isolate
+  // to finish initialization.
+  Dart_Port kernel_port = WaitForKernelPort();
+  if (kernel_port == ILLEGAL_PORT) {
+    Dart_KernelCompilationResult result;
+    result.status = Dart_KernelCompilationStatus_Unknown;
+    result.error = strdup("Error while initializing Kernel isolate");
+    return result;
+  }
+
+  KernelCompilationRequest request;
+  return request.SendAndWaitForResponse(
+      kAllowDartInternalImportTag, kernel_port, NULL, NULL, 0, 0, NULL, true);
+}
+
 #endif  // DART_PRECOMPILED_RUNTIME
 
 }  // namespace dart

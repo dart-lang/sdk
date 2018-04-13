@@ -10,11 +10,11 @@ class C<T> {
 }
 
 void g1(dynamic d) {
-  d.f<num> /*@callKind=dynamic*/ (1.5);
+  d.f<num>(1.5);
 }
 
 void g2(dynamic d) {
-  d.f /*@callKind=dynamic*/ (1.5);
+  d.f(1.5);
 }
 
 void test() {

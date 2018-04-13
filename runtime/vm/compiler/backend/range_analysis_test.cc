@@ -66,10 +66,17 @@ TEST_CASE(RangeTests) {
                 RangeBoundary::PositiveInfinity());
   TEST_RANGE_OP(Range::Shl, -1, 1, 63, 63, RangeBoundary(kMinInt64),
                 RangeBoundary::PositiveInfinity());
-  TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 30, 30, RangeBoundary(kSmiMin),
-                    RangeBoundary(kSmiMax));
-  TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 62, 62, RangeBoundary(kSmiMin),
-                    RangeBoundary(kSmiMax));
+  if (kBitsPerWord == 64) {
+    TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 62, 62, RangeBoundary(kSmiMin),
+                      RangeBoundary(kSmiMax));
+    TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 30, 30, RangeBoundary(-(1 << 30)),
+                      RangeBoundary(1 << 30));
+  } else {
+    TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 30, 30, RangeBoundary(kSmiMin),
+                      RangeBoundary(kSmiMax));
+    TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 62, 62, RangeBoundary(kSmiMin),
+                      RangeBoundary(kSmiMax));
+  }
   TEST_RANGE_OP(Range::Shl, 0, 100, 0, 64, RangeBoundary(0),
                 RangeBoundary::PositiveInfinity());
   TEST_RANGE_OP(Range::Shl, -100, 0, 0, 64, RangeBoundary::NegativeInfinity(),

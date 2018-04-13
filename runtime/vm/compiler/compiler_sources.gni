@@ -31,6 +31,8 @@ compiler_sources = [
   "backend/block_scheduler.h",
   "backend/branch_optimizer.cc",
   "backend/branch_optimizer.h",
+  "backend/code_statistics.cc",
+  "backend/code_statistics.h",
   "backend/constant_propagator.cc",
   "backend/constant_propagator.h",
   "backend/flow_graph.cc",

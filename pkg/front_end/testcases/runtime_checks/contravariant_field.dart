@@ -10,7 +10,7 @@ typedef void F<T>(T x);
 class C<T> {
   F<T> /*@genericContravariant=true*/ y;
   void f() {
-    var x = this. /*@callKind=this*/ y;
+    var x = this.y;
   }
 }
 

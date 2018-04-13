@@ -19,8 +19,8 @@ class C {
     for (topLevelSetter in []) {}
     for (staticField in []) {}
     for (staticSetter in []) {}
-    for (/*@callKind=this*/ instanceField in []) {}
-    for (/*@callKind=this*/ instanceSetter in []) {}
+    for (instanceField in []) {}
+    for (instanceSetter in []) {}
     for (localVar in []) {}
   }
 }

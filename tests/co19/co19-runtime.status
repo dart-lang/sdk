@@ -188,6 +188,9 @@ LibTest/collection/ListBase/ListBase_class_A01_t02: Skip # co19 issue 673, These
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip # co19 issue 673, These tests take too much memory (300 MB) for our 1 GB test machine co19 issue 673. http://code.google.com/p/co19/issues/detail?id=673
 LibTest/core/List/List_class_A01_t02: Skip # co19 issue 673, These tests take too much memory (300 MB) for our 1 GB test machine co19 issue 673. http://code.google.com/p/co19/issues/detail?id=673
 
+[ $arch != arm64 && $arch != simarm64 && $arch != simdbc && $arch != simdbc64 && $arch != x64 && ($runtime == dart_precompiled || $runtime == vm) ]
+LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
+
 [ $arch == ia32 && $mode == release && $runtime == vm && $system == linux ]
 service/dev_fs_spawn_test: Pass, Fail # Issue 28411
 
@@ -379,9 +382,6 @@ LibTest/typed_data/Uint64List/Uint64List.view_A01_t01: CompileTimeError # Large 
 LibTest/typed_data/Uint64List/Uint64List.view_A01_t02: CompileTimeError # Large integer literal
 WebPlatformTest/*: SkipByDesign # dart:html not supported on VM.
 
-[ $runtime == dart_precompiled || $runtime == vm ]
-LibTest/core/int/operator_left_shift_A01_t02: Fail # Can't represent 1 << 2147483647 without running out of memory.
-
 [ $runtime == flutter || $hot_reload || $hot_reload_rollback ]
 Language/Expressions/Assignment/prefix_object_t02: Skip # Requires deferred libraries
 Language/Expressions/Constants/constant_constructor_t03: Skip # Requires deferred libraries
@@ -420,4 +420,3 @@ LibTest/core/Uri/Uri_A06_t03: Pass, Timeout
 LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout
 LibTest/isolate/Isolate/spawn_A01_t04: Pass, Timeout
 LibTest/isolate/ReceivePort/take_A01_t02: Skip # Issue 27773
-

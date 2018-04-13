@@ -19,10 +19,10 @@ class A extends core::Object {
 }
 static method foo() → dynamic {
   core::int y = new self::C::•().{self::C::x};
-  core::String z = let final dynamic #t1 = new self::C::•().{self::C::x} in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_type_regardless_of_declaration_order_or_cycles.dart:20:69: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+  core::String z = let final dynamic #t1 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_type_regardless_of_declaration_order_or_cycles.dart:20:69: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
 Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
   String z = /*error:INVALID_ASSIGNMENT*/ new C(). /*@target=C::x*/ x;
-                                                                    ^";
+                                                                    ^" in let final dynamic #t2 = new self::C::•().{self::C::x} in null;
 }
 static method main() → dynamic {
   self::foo();

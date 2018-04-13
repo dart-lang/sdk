@@ -29,6 +29,7 @@ void normalizeCheck() {
     var statusFileOther = normalizeStatusFile(new StatusFile.read(file.path));
     checkSemanticallyEqual(statusFile, statusFileOther,
         warnOnDuplicateHeader: true);
+    checkFileHeaderIntact(statusFile, statusFileOther);
     print("------- " + file.path + " -------");
   }
 }
@@ -41,6 +42,7 @@ void sanityCheck() {
     var statusFileOther = new StatusFile.read(file.path);
     checkSemanticallyEqual(statusFile, statusFileOther,
         warnOnDuplicateHeader: true);
+    checkFileHeaderIntact(statusFile, statusFileOther);
     print("------- " + file.path + " -------");
   }
 }
@@ -123,6 +125,16 @@ void findInStatusFile(
   if (foundEntryPosition < 0) {
     throw new Exception("Could not find entry '$entryToFind' under the "
         "condition $condition in the status file.");
+  }
+}
+
+void checkFileHeaderIntact(StatusFile original, StatusFile normalized) {
+  var originalHeader = original.sections.first.sectionHeaderComments.toString();
+  var normalizedHeader =
+      normalized.sections.first.sectionHeaderComments.toString();
+  if (originalHeader != normalizedHeader) {
+    throw new Exception(
+        "File headers changed.\nExpected:\n$originalHeader\n\nActual:\n$normalizedHeader");
   }
 }
 

@@ -93,4 +93,3 @@ unary_plus_negative_test: Fail # Negative, uses non-existing unary plus.
 vm/debug_break_enabled_vm_test/01: Fail # Uses debug break.
 vm/debug_break_enabled_vm_test/none: Fail # Uses debug break.
 void_type_function_types_test: Skip # Not yet supported.
-

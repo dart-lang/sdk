@@ -36,6 +36,8 @@ worlds:
     worldType: updated
     expectInitializeFromDill: false
     checkInvalidatedFiles: false
+    invalidate:
+      - .packages
     sources:
       package_0.1.1/b.dart: |
         b() {

@@ -2576,71 +2576,15 @@ ASSEMBLER_TEST_RUN(FldrqFstrqPrePostIndex, test) {
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
 
-ASSEMBLER_TEST_GENERATE(Fcvtzdsx, assembler) {
+ASSEMBLER_TEST_GENERATE(Fcvtzds, assembler) {
   __ LoadDImmediate(V0, 42.0);
-  __ fcvtzdsx(R0, V0);
+  __ fcvtzds(R0, V0);
   __ ret();
 }
 
-ASSEMBLER_TEST_RUN(Fcvtzdsx, test) {
+ASSEMBLER_TEST_RUN(Fcvtzds, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
-}
-
-ASSEMBLER_TEST_GENERATE(Fcvtzdsw, assembler) {
-  __ LoadDImmediate(V0, 42.0);
-  __ fcvtzdsw(R0, V0);
-  __ ret();
-}
-
-ASSEMBLER_TEST_RUN(Fcvtzdsw, test) {
-  typedef int64_t (*Int64Return)() DART_UNUSED;
-  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
-}
-
-ASSEMBLER_TEST_GENERATE(Fcvtzdsx_overflow, assembler) {
-  __ LoadDImmediate(V0, 1e20);
-  __ fcvtzdsx(R0, V0);
-  __ ret();
-}
-
-ASSEMBLER_TEST_RUN(Fcvtzdsx_overflow, test) {
-  typedef int64_t (*Int64Return)() DART_UNUSED;
-  EXPECT_EQ(kMaxInt64, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
-}
-
-ASSEMBLER_TEST_GENERATE(Fcvtzdsx_overflow_negative, assembler) {
-  __ LoadDImmediate(V0, -1e20);
-  __ fcvtzdsx(R0, V0);
-  __ ret();
-}
-
-ASSEMBLER_TEST_RUN(Fcvtzdsx_overflow_negative, test) {
-  typedef int64_t (*Int64Return)() DART_UNUSED;
-  EXPECT_EQ(kMinInt64, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
-}
-
-ASSEMBLER_TEST_GENERATE(Fcvtzdsw_overflow, assembler) {
-  __ LoadDImmediate(V0, 1e10);
-  __ fcvtzdsw(R0, V0);
-  __ ret();
-}
-
-ASSEMBLER_TEST_RUN(Fcvtzdsw_overflow, test) {
-  typedef int64_t (*Int64Return)() DART_UNUSED;
-  EXPECT_EQ(kMaxInt32, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
-}
-
-ASSEMBLER_TEST_GENERATE(Fcvtzdsw_overflow_negative, assembler) {
-  __ LoadDImmediate(V0, -1e10);
-  __ fcvtzdsw(R0, V0);
-  __ sxtw(R0, R0);
-  __ ret();
-}
-
-ASSEMBLER_TEST_RUN(Fcvtzdsw_overflow_negative, test) {
-  typedef int64_t (*Int64Return)() DART_UNUSED;
-  EXPECT_EQ(kMinInt32, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
 ASSEMBLER_TEST_GENERATE(Scvtfdx, assembler) {

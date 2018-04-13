@@ -860,7 +860,11 @@ template("dart_executable") {
   if (defined(invoker.extra_sources)) {
     extra_sources += invoker.extra_sources
   }
-  executable(target_name) {
+  target_type = "executable"
+  if (defined(invoker.target_type)) {
+    target_type = invoker.target_type
+  }
+  target(target_type, target_name) {
     configs += [
                  "..:dart_arch_config",
                  "..:dart_config",
@@ -982,6 +986,27 @@ dart_executable("dart_precompiled_runtime") {
   if (dart_runtime_mode == "release") {
     extra_sources += [ "observatory_assets_empty.cc" ]
   }
+}
+
+dart_executable("dart_precompiled_runtime_for_linking") {
+  extra_configs = [ "..:dart_precompiled_runtime_config" ]
+  extra_deps = [ "..:libdart_precompiled_runtime" ]
+  if (dart_runtime_mode != "release") {
+    extra_deps += [ "../observatory:standalone_observatory_archive" ]
+  }
+  extra_sources = [
+    "builtin_nolib.cc",
+    "snapshot_empty.cc",
+    "loader.cc",
+    "loader.h",
+    "gzip.cc",
+    "gzip.h",
+  ]
+  if (dart_runtime_mode == "release") {
+    extra_sources += [ "observatory_assets_empty.cc" ]
+  }
+  extra_defines = [ "DART_LINK_APP_SNAPSHOT" ]
+  target_type = "static_library"
 }
 
 dart_executable("dart_bootstrap") {

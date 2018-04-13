@@ -6,6 +6,7 @@ library test.src.serialization.elements_test;
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -5514,7 +5515,8 @@ export 'a.dart';
   }
 
   test_export_configurations_useDefault() async {
-    context.declaredVariables.define('dart.library.io', 'false');
+    context.declaredVariables =
+        new DeclaredVariables.fromMap({'dart.library.io': 'false'});
     addLibrarySource('/foo.dart', 'class A {}');
     addLibrarySource('/foo_io.dart', 'class A {}');
     addLibrarySource('/foo_html.dart', 'class A {}');
@@ -5530,8 +5532,8 @@ export 'foo.dart';
   }
 
   test_export_configurations_useFirst() async {
-    context.declaredVariables.define('dart.library.io', 'true');
-    context.declaredVariables.define('dart.library.html', 'true');
+    context.declaredVariables = new DeclaredVariables.fromMap(
+        {'dart.library.io': 'true', 'dart.library.html': 'true'});
     addLibrarySource('/foo.dart', 'class A {}');
     addLibrarySource('/foo_io.dart', 'class A {}');
     addLibrarySource('/foo_html.dart', 'class A {}');
@@ -5547,8 +5549,8 @@ export 'foo_io.dart';
   }
 
   test_export_configurations_useSecond() async {
-    context.declaredVariables.define('dart.library.io', 'false');
-    context.declaredVariables.define('dart.library.html', 'true');
+    context.declaredVariables = new DeclaredVariables.fromMap(
+        {'dart.library.io': 'false', 'dart.library.html': 'true'});
     addLibrarySource('/foo.dart', 'class A {}');
     addLibrarySource('/foo_io.dart', 'class A {}');
     addLibrarySource('/foo_html.dart', 'class A {}');
@@ -5648,7 +5650,8 @@ export 'a.dart';
   }
 
   test_exportImport_configurations_useDefault() async {
-    context.declaredVariables.define('dart.library.io', 'false');
+    context.declaredVariables =
+        new DeclaredVariables.fromMap({'dart.library.io': 'false'});
     addLibrarySource('/foo.dart', 'class A {}');
     addLibrarySource('/foo_io.dart', 'class A {}');
     addLibrarySource('/foo_html.dart', 'class A {}');
@@ -5671,8 +5674,8 @@ class B extends A {
   }
 
   test_exportImport_configurations_useFirst() async {
-    context.declaredVariables.define('dart.library.io', 'true');
-    context.declaredVariables.define('dart.library.html', 'true');
+    context.declaredVariables = new DeclaredVariables.fromMap(
+        {'dart.library.io': 'true', 'dart.library.html': 'true'});
     addLibrarySource('/foo.dart', 'class A {}');
     addLibrarySource('/foo_io.dart', 'class A {}');
     addLibrarySource('/foo_html.dart', 'class A {}');
@@ -6440,7 +6443,8 @@ int get x {}
   }
 
   test_import_configurations_useDefault() async {
-    context.declaredVariables.define('dart.library.io', 'false');
+    context.declaredVariables =
+        new DeclaredVariables.fromMap({'dart.library.io': 'false'});
     addLibrarySource('/foo.dart', 'class A {}');
     addLibrarySource('/foo_io.dart', 'class A {}');
     addLibrarySource('/foo_html.dart', 'class A {}');
@@ -6461,8 +6465,8 @@ class B extends A {
   }
 
   test_import_configurations_useFirst() async {
-    context.declaredVariables.define('dart.library.io', 'true');
-    context.declaredVariables.define('dart.library.html', 'true');
+    context.declaredVariables = new DeclaredVariables.fromMap(
+        {'dart.library.io': 'true', 'dart.library.html': 'true'});
     addLibrarySource('/foo.dart', 'class A {}');
     addLibrarySource('/foo_io.dart', 'class A {}');
     addLibrarySource('/foo_html.dart', 'class A {}');

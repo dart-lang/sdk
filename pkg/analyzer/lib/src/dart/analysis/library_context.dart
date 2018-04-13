@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/context/declared_variables.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
 import 'package:analyzer/src/context/context.dart';
@@ -203,7 +203,7 @@ class LibraryContext {
         AnalysisEngine.instance.createAnalysisContext();
     analysisContext.useSdkCachePartition = false;
     analysisContext.analysisOptions = analysisOptions;
-    analysisContext.declaredVariables.addAll(declaredVariables);
+    analysisContext.declaredVariables = declaredVariables;
     analysisContext.sourceFactory = sourceFactory.clone();
     var provider = new InputPackagesResultProvider(analysisContext, store);
     analysisContext.resultProvider = provider;

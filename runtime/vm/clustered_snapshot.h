@@ -261,6 +261,8 @@ class Serializer : public StackResource {
   Snapshot::Kind kind() const { return kind_; }
   intptr_t next_ref_index() const { return next_ref_index_; }
 
+  void DumpCombinedCodeStatistics();
+
  private:
   Heap* heap_;
   Zone* zone_;

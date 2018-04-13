@@ -29,4 +29,3 @@ compute_this_script_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/types.dart': 
 
 [ $compiler == dart2js && $minified ]
 optimization_hints_test: RuntimeError, OK # Test relies on unminified names.
-

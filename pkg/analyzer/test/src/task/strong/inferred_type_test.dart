@@ -1097,6 +1097,9 @@ class F3<T> {
 class F4<T> {
   F4({Iterable<Iterable<T>> a}) {}
 }
+class F5<T> {
+  F5(Iterable<Iterable<Iterable<T>>> a) {}
+}
 void main() {
   new F0<int>(/*info:INFERRED_TYPE_LITERAL*/[]);
   new F0<int>(/*info:INFERRED_TYPE_LITERAL*/[3]);
@@ -1137,6 +1140,9 @@ void main() {
   /*info:INFERRED_TYPE_ALLOCATION*/new F4(a: /*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/["hello"]]);
   /*info:INFERRED_TYPE_ALLOCATION*/new F4(a: /*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/["hello"],
                                            /*info:INFERRED_TYPE_LITERAL*/[3]]);
+  
+  /*info:INFERRED_TYPE_ALLOCATION*/new F5(/*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/[
+                                           /*info:INFERRED_TYPE_LITERAL*/[3]]]);
 }
 ''');
   }

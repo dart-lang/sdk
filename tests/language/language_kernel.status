@@ -188,7 +188,6 @@ private_member1_negative_test: Fail
 private_member2_negative_test: Fail
 private_member3_negative_test: Fail
 static_call_wrong_argument_count_negative_test: Fail
-switch4_negative_test: Crash
 type_variable_static_context_negative_test: Fail
 unresolved_in_factory_negative_test: Fail
 unresolved_top_level_method_negative_test: Fail
@@ -198,4 +197,3 @@ unresolved_top_level_var_negative_test: Fail
 # modes are intended only for Dart 2.0 with strong mode enabled.
 [ $compiler == dartk || $compiler == dartkp ]
 *: Skip
-

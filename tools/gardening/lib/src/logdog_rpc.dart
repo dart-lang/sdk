@@ -27,7 +27,7 @@ class LogdogRpc {
       StringBuffer buffer = new StringBuffer();
       json["logs"].forEach((log) {
         log["text"]["lines"].forEach((line) {
-          buffer.write(line["value"]);
+          buffer.writeln(line["value"]);
         });
       });
       return buffer.toString();

@@ -32,7 +32,7 @@ class int {
         return null; // Empty.
       }
     }
-    var smiLimit = 9;
+    var smiLimit = is64Bit ? 18 : 9;
     if ((last - ix) >= smiLimit) {
       return null; // May not fit into a Smi.
     }
@@ -107,6 +107,22 @@ class int {
     return result;
   }
 
+  @patch
+  static int tryParse(String source, {int radix}) {
+    if (source == null) throw new ArgumentError("The source must not be null");
+    if (source.isEmpty) return null;
+    if (radix == null || radix == 10) {
+      // Try parsing immediately, without trimming whitespace.
+      int result = _tryParseSmi(source, 0, source.length - 1);
+      if (result != null) return result;
+    } else if (radix < 2 || radix > 36) {
+      throw new RangeError("Radix $radix not in range 2..36");
+    }
+    return _parse(source, radix, _kNull);
+  }
+
+  static Null _kNull(_) => null;
+
   static int _throwFormatException(onError, source, index, radix) {
     if (onError != null) return onError(source);
     if (radix == null) {
@@ -117,7 +133,7 @@ class int {
 
   static int _parseRadix(
       String source, int radix, int start, int end, int sign) {
-    int tableIndex = (radix - 2) * 2;
+    int tableIndex = (radix - 2) * 4 + (is64Bit ? 2 : 0);
     int blockSize = _PARSE_LIMITS[tableIndex];
     int length = end - start;
     if (length <= blockSize) {
@@ -143,7 +159,7 @@ class int {
     int positiveOverflowLimit = 0;
     int negativeOverflowLimit = 0;
     if (_limitIntsTo64Bits) {
-      tableIndex = tableIndex << 1; // Pre-multiply by 2 for simpler indexing.
+      tableIndex = tableIndex << 1; // pre-multiply by 2 for simpler indexing
       positiveOverflowLimit = _int64OverflowLimits[tableIndex];
       if (positiveOverflowLimit == 0) {
         positiveOverflowLimit =
@@ -159,10 +175,14 @@ class int {
         if (result >= positiveOverflowLimit) {
           if ((result > positiveOverflowLimit) ||
               (smi > _int64OverflowLimits[tableIndex + 2])) {
+            // Although the unsigned overflow limits do not depend on the
+            // platform, the multiplier and block size, which are used to
+            // compute it, do.
+            int X = is64Bit ? 1 : 0;
             if (radix == 16 &&
-                !(result >= _int64UnsignedOverflowLimit &&
-                    (result > _int64UnsignedOverflowLimit ||
-                        smi > _int64UnsignedSmiOverflowLimit)) &&
+                !(result >= _int64UnsignedOverflowLimits[X] &&
+                    (result > _int64UnsignedOverflowLimits[X] ||
+                        smi > _int64UnsignedSmiOverflowLimits[X])) &&
                 blockEnd + blockSize > end) {
               return (result * multiplier) + smi;
             }
@@ -207,42 +227,43 @@ class int {
 
   // For each radix, 2-36, how many digits are guaranteed to fit in a smi,
   // and magnitude of such a block (radix ** digit-count).
+  // 32-bit limit/multiplier at (radix - 2)*4, 64-bit limit at (radix-2)*4+2
   static const _PARSE_LIMITS = const [
-    30, 1073741824, // radix: 2
-    18, 387420489,
-    15, 1073741824,
-    12, 244140625, //  radix: 5
-    11, 362797056,
-    10, 282475249,
-    10, 1073741824,
-    9, 387420489,
-    9, 1000000000, //  radix: 10
-    8, 214358881,
-    8, 429981696,
-    8, 815730721,
-    7, 105413504,
-    7, 170859375, //    radix: 15
-    7, 268435456,
-    7, 410338673,
-    7, 612220032,
-    7, 893871739,
-    6, 64000000, //    radix: 20
-    6, 85766121,
-    6, 113379904,
-    6, 148035889,
-    6, 191102976,
-    6, 244140625, //   radix: 25
-    6, 308915776,
-    6, 387420489,
-    6, 481890304,
-    6, 594823321,
-    6, 729000000, //    radix: 30
-    6, 887503681,
-    6, 1073741824,
-    5, 39135393,
-    5, 45435424,
-    5, 52521875, //    radix: 35
-    5, 60466176,
+    30, 1073741824, 62, 4611686018427387904, // radix: 2
+    18, 387420489, 39, 4052555153018976267,
+    15, 1073741824, 30, 1152921504606846976,
+    12, 244140625, 26, 1490116119384765625, //  radix: 5
+    11, 362797056, 23, 789730223053602816,
+    10, 282475249, 22, 3909821048582988049,
+    10, 1073741824, 20, 1152921504606846976,
+    9, 387420489, 19, 1350851717672992089,
+    9, 1000000000, 18, 1000000000000000000, //  radix: 10
+    8, 214358881, 17, 505447028499293771,
+    8, 429981696, 17, 2218611106740436992,
+    8, 815730721, 16, 665416609183179841,
+    7, 105413504, 16, 2177953337809371136,
+    7, 170859375, 15, 437893890380859375, //    radix: 15
+    7, 268435456, 15, 1152921504606846976,
+    7, 410338673, 15, 2862423051509815793,
+    7, 612220032, 14, 374813367582081024,
+    7, 893871739, 14, 799006685782884121,
+    6, 64000000, 14, 1638400000000000000, //    radix: 20
+    6, 85766121, 14, 3243919932521508681,
+    6, 113379904, 13, 282810057883082752,
+    6, 148035889, 13, 504036361936467383,
+    6, 191102976, 13, 876488338465357824,
+    6, 244140625, 13, 1490116119384765625, //   radix: 25
+    6, 308915776, 13, 2481152873203736576,
+    6, 387420489, 13, 4052555153018976267,
+    6, 481890304, 12, 232218265089212416,
+    6, 594823321, 12, 353814783205469041,
+    6, 729000000, 12, 531441000000000000, //    radix: 30
+    6, 887503681, 12, 787662783788549761,
+    6, 1073741824, 12, 1152921504606846976,
+    5, 39135393, 12, 1667889514952984961,
+    5, 45435424, 12, 2386420683693101056,
+    5, 52521875, 12, 3379220508056640625, //    radix: 35
+    5, 60466176, 11, 131621703842267136,
   ];
 
   /// Flag indicating if integers are limited by 64 bits
@@ -252,8 +273,11 @@ class int {
   static const _maxInt64 = 0x7fffffffffffffff;
   static const _minInt64 = -_maxInt64 - 1;
 
-  static const _int64UnsignedOverflowLimit = 0xfffffffff;
-  static const _int64UnsignedSmiOverflowLimit = 0xfffffff;
+  static const _int64UnsignedOverflowLimits = const [0xfffffffff, 0xf];
+  static const _int64UnsignedSmiOverflowLimits = const [
+    0xfffffff,
+    0xfffffffffffffff
+  ];
 
   /// In the `--limit-ints-to-64-bits` mode calculation of the expression
   ///

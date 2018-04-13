@@ -1884,16 +1884,16 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-class BoxAllocationSlowPath : public SlowPathCode {
+class BoxAllocationSlowPath : public TemplateSlowPathCode<Instruction> {
  public:
   BoxAllocationSlowPath(Instruction* instruction,
                         const Class& cls,
                         Register result)
-      : instruction_(instruction), cls_(cls), result_(result) {}
+      : TemplateSlowPathCode(instruction), cls_(cls), result_(result) {}
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     if (Assembler::EmittingComments()) {
-      __ Comment("%s slow path allocation of %s", instruction_->DebugName(),
+      __ Comment("%s slow path allocation of %s", instruction()->DebugName(),
                  String::Handle(cls_.ScrubbedName()).ToCString());
     }
     __ Bind(entry_label());
@@ -1901,7 +1901,7 @@ class BoxAllocationSlowPath : public SlowPathCode {
         compiler->zone(), StubCode::GetAllocationStubForClass(cls_));
     const StubEntry stub_entry(stub);
 
-    LocationSummary* locs = instruction_->locs();
+    LocationSummary* locs = instruction()->locs();
 
     locs->live_registers()->Remove(Location::RegisterLocation(result_));
 
@@ -1932,7 +1932,6 @@ class BoxAllocationSlowPath : public SlowPathCode {
   }
 
  private:
-  Instruction* instruction_;
   const Class& cls_;
   const Register result_;
 };
@@ -2681,35 +2680,33 @@ LocationSummary* AllocateUninitializedContextInstr::MakeLocationSummary(
   return locs;
 }
 
-class AllocateContextSlowPath : public SlowPathCode {
+class AllocateContextSlowPath
+    : public TemplateSlowPathCode<AllocateUninitializedContextInstr> {
  public:
   explicit AllocateContextSlowPath(
       AllocateUninitializedContextInstr* instruction)
-      : instruction_(instruction) {}
+      : TemplateSlowPathCode(instruction) {}
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     __ Comment("AllocateContextSlowPath");
     __ Bind(entry_label());
 
-    LocationSummary* locs = instruction_->locs();
+    LocationSummary* locs = instruction()->locs();
     locs->live_registers()->Remove(locs->out(0));
 
     compiler->SaveLiveRegisters(locs);
 
-    __ LoadImmediate(R1, instruction_->num_context_variables());
+    __ LoadImmediate(R1, instruction()->num_context_variables());
     const Code& stub = Code::ZoneHandle(
         compiler->zone(), StubCode::AllocateContext_entry()->code());
     compiler->AddStubCallTarget(stub);
-    compiler->GenerateCall(instruction_->token_pos(),
+    compiler->GenerateCall(instruction()->token_pos(),
                            *StubCode::AllocateContext_entry(),
                            RawPcDescriptors::kOther, locs);
-    ASSERT(instruction_->locs()->out(0).reg() == R0);
-    compiler->RestoreLiveRegisters(instruction_->locs());
+    ASSERT(instruction()->locs()->out(0).reg() == R0);
+    compiler->RestoreLiveRegisters(instruction()->locs());
     __ b(exit_label());
   }
-
- private:
-  AllocateUninitializedContextInstr* instruction_;
 };
 
 void AllocateUninitializedContextInstr::EmitNativeCode(
@@ -2886,14 +2883,15 @@ LocationSummary* CheckStackOverflowInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-class CheckStackOverflowSlowPath : public SlowPathCode {
+class CheckStackOverflowSlowPath
+    : public TemplateSlowPathCode<CheckStackOverflowInstr> {
  public:
   explicit CheckStackOverflowSlowPath(CheckStackOverflowInstr* instruction)
-      : instruction_(instruction) {}
+      : TemplateSlowPathCode(instruction) {}
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     if (compiler->isolate()->use_osr() && osr_entry_label()->IsLinked()) {
-      const Register value = instruction_->locs()->temp(0).reg();
+      const Register value = instruction()->locs()->temp(0).reg();
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
       __ LoadImmediate(value, Thread::kOsrRequest);
@@ -2901,25 +2899,25 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
     }
     __ Comment("CheckStackOverflowSlowPath");
     __ Bind(entry_label());
-    compiler->SaveLiveRegisters(instruction_->locs());
+    compiler->SaveLiveRegisters(instruction()->locs());
     // pending_deoptimization_env_ is needed to generate a runtime call that
     // may throw an exception.
     ASSERT(compiler->pending_deoptimization_env_ == NULL);
-    Environment* env = compiler->SlowPathEnvironmentFor(instruction_);
+    Environment* env = compiler->SlowPathEnvironmentFor(instruction());
     compiler->pending_deoptimization_env_ = env;
     compiler->GenerateRuntimeCall(
-        instruction_->token_pos(), instruction_->deopt_id(),
-        kStackOverflowRuntimeEntry, 0, instruction_->locs());
+        instruction()->token_pos(), instruction()->deopt_id(),
+        kStackOverflowRuntimeEntry, 0, instruction()->locs());
 
     if (compiler->isolate()->use_osr() && !compiler->is_optimizing() &&
-        instruction_->in_loop()) {
+        instruction()->in_loop()) {
       // In unoptimized code, record loop stack checks as possible OSR entries.
       compiler->AddCurrentDescriptor(RawPcDescriptors::kOsrEntry,
-                                     instruction_->deopt_id(),
+                                     instruction()->deopt_id(),
                                      TokenPosition::kNoSource);
     }
     compiler->pending_deoptimization_env_ = NULL;
-    compiler->RestoreLiveRegisters(instruction_->locs());
+    compiler->RestoreLiveRegisters(instruction()->locs());
     __ b(exit_label());
   }
 
@@ -2929,7 +2927,6 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
   }
 
  private:
-  CheckStackOverflowInstr* instruction_;
   Label osr_entry_label_;
 };
 
@@ -3050,34 +3047,34 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
   }
 }
 
-class CheckedSmiSlowPath : public SlowPathCode {
+class CheckedSmiSlowPath : public TemplateSlowPathCode<CheckedSmiOpInstr> {
  public:
   CheckedSmiSlowPath(CheckedSmiOpInstr* instruction, intptr_t try_index)
-      : instruction_(instruction), try_index_(try_index) {}
+      : TemplateSlowPathCode(instruction), try_index_(try_index) {}
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     if (Assembler::EmittingComments()) {
       __ Comment("slow path smi operation");
     }
     __ Bind(entry_label());
-    LocationSummary* locs = instruction_->locs();
+    LocationSummary* locs = instruction()->locs();
     Register result = locs->out(0).reg();
     locs->live_registers()->Remove(Location::RegisterLocation(result));
 
     compiler->SaveLiveRegisters(locs);
-    if (instruction_->env() != NULL) {
-      Environment* env = compiler->SlowPathEnvironmentFor(instruction_);
+    if (instruction()->env() != NULL) {
+      Environment* env = compiler->SlowPathEnvironmentFor(instruction());
       compiler->pending_deoptimization_env_ = env;
     }
     __ Push(locs->in(0).reg());
     __ Push(locs->in(1).reg());
     const String& selector =
-        String::Handle(instruction_->call()->ic_data()->target_name());
+        String::Handle(instruction()->call()->ic_data()->target_name());
     const Array& arguments_descriptor =
-        Array::Handle(instruction_->call()->ic_data()->arguments_descriptor());
+        Array::Handle(instruction()->call()->ic_data()->arguments_descriptor());
     compiler->EmitMegamorphicInstanceCall(
-        selector, arguments_descriptor, instruction_->call()->deopt_id(),
-        instruction_->call()->token_pos(), locs, try_index_,
+        selector, arguments_descriptor, instruction()->call()->deopt_id(),
+        instruction()->call()->token_pos(), locs, try_index_,
         /* slow_path_argument_count = */ 2);
     __ mov(result, Operand(R0));
     compiler->RestoreLiveRegisters(locs);
@@ -3086,7 +3083,6 @@ class CheckedSmiSlowPath : public SlowPathCode {
   }
 
  private:
-  CheckedSmiOpInstr* instruction_;
   intptr_t try_index_;
 };
 
@@ -3183,13 +3179,14 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(slow_path->exit_label());
 }
 
-class CheckedSmiComparisonSlowPath : public SlowPathCode {
+class CheckedSmiComparisonSlowPath
+    : public TemplateSlowPathCode<CheckedSmiComparisonInstr> {
  public:
   CheckedSmiComparisonSlowPath(CheckedSmiComparisonInstr* instruction,
                                intptr_t try_index,
                                BranchLabels labels,
                                bool merged)
-      : instruction_(instruction),
+      : TemplateSlowPathCode(instruction),
         try_index_(try_index),
         labels_(labels),
         merged_(merged) {}
@@ -3199,42 +3196,41 @@ class CheckedSmiComparisonSlowPath : public SlowPathCode {
       __ Comment("slow path smi operation");
     }
     __ Bind(entry_label());
-    LocationSummary* locs = instruction_->locs();
+    LocationSummary* locs = instruction()->locs();
     Register result = merged_ ? locs->temp(0).reg() : locs->out(0).reg();
     locs->live_registers()->Remove(Location::RegisterLocation(result));
 
     compiler->SaveLiveRegisters(locs);
-    if (instruction_->env() != NULL) {
-      Environment* env = compiler->SlowPathEnvironmentFor(instruction_);
+    if (instruction()->env() != NULL) {
+      Environment* env = compiler->SlowPathEnvironmentFor(instruction());
       compiler->pending_deoptimization_env_ = env;
     }
     __ Push(locs->in(0).reg());
     __ Push(locs->in(1).reg());
     String& selector =
-        String::Handle(instruction_->call()->ic_data()->target_name());
+        String::Handle(instruction()->call()->ic_data()->target_name());
     const Array& arguments_descriptor =
-        Array::Handle(instruction_->call()->ic_data()->arguments_descriptor());
+        Array::Handle(instruction()->call()->ic_data()->arguments_descriptor());
     compiler->EmitMegamorphicInstanceCall(
-        selector, arguments_descriptor, instruction_->call()->deopt_id(),
-        instruction_->call()->token_pos(), locs, try_index_,
+        selector, arguments_descriptor, instruction()->call()->deopt_id(),
+        instruction()->call()->token_pos(), locs, try_index_,
         /* slow_path_argument_count = */ 2);
     __ mov(result, Operand(R0));
     compiler->RestoreLiveRegisters(locs);
     compiler->pending_deoptimization_env_ = NULL;
     if (merged_) {
       __ CompareObject(result, Bool::True());
-      __ b(
-          instruction_->is_negated() ? labels_.false_label : labels_.true_label,
-          EQ);
-      __ b(instruction_->is_negated() ? labels_.true_label
-                                      : labels_.false_label);
+      __ b(instruction()->is_negated() ? labels_.false_label
+                                       : labels_.true_label,
+           EQ);
+      __ b(instruction()->is_negated() ? labels_.true_label
+                                       : labels_.false_label);
     } else {
       __ b(exit_label());
     }
   }
 
  private:
-  CheckedSmiComparisonInstr* instruction_;
   intptr_t try_index_;
   BranchLabels labels_;
   bool merged_;

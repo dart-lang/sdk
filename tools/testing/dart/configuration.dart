@@ -40,6 +40,7 @@ class Configuration {
       this.isVerbose,
       this.listTests,
       this.listStatusFiles,
+      this.noPreviewDart2,
       this.previewDart2,
       this.printTiming,
       this.printReport,
@@ -114,6 +115,7 @@ class Configuration {
   final bool isVerbose;
   final bool listTests;
   final bool listStatusFiles;
+  final bool noPreviewDart2;
   final bool previewDart2;
   final bool printTiming;
   final bool printReport;
@@ -474,6 +476,7 @@ class Configuration {
         'builder_tag': builderTag,
         'fast_startup': useFastStartup,
         'timeout': timeout,
+        'no_preview_dart_2': noPreviewDart2,
         'preview_dart_2': previewDart2,
         'dart2js_with_kernel': useDart2JSWithKernel,
         'dart2js_old_frontend': useDart2JSOldFrontend,

@@ -262,16 +262,19 @@ String S(value) {
   return res;
 }
 
+// Called from generated code.
 createInvocationMirror(
-    String name, internalName, kind, arguments, argumentNames) {
+    String name, internalName, kind, arguments, argumentNames, types) {
+  // TODO(sra): [types] (the number of type arguments) could be omitted in the
+  // generated stub code to save an argument. Then we would use `types ?? 0`.
   return new JSInvocationMirror(
-      name, internalName, kind, arguments, argumentNames);
+      name, internalName, kind, arguments, argumentNames, types);
 }
 
 createUnmangledInvocationMirror(
     Symbol symbol, internalName, kind, arguments, argumentNames) {
   return new JSInvocationMirror(
-      symbol, internalName, kind, arguments, argumentNames);
+      symbol, internalName, kind, arguments, argumentNames, 0);
 }
 
 void throwInvalidReflectionError(String memberName) {
@@ -333,11 +336,12 @@ class JSInvocationMirror implements Invocation {
   final List<Type> _typeArguments;
   final List _arguments;
   final List _namedArgumentNames;
+  final int _typeArgumentCount;
   /** Map from argument name to index in _arguments. */
   Map<String, dynamic> _namedIndices = null;
 
   JSInvocationMirror(this._memberName, this._internalName, this._kind,
-      this._arguments, this._namedArgumentNames);
+      this._arguments, this._namedArgumentNames, this._typeArgumentCount);
 
   Symbol get memberName {
     if (_memberName is Symbol) return _memberName;
@@ -361,13 +365,20 @@ class JSInvocationMirror implements Invocation {
   bool get isAccessor => _kind != METHOD;
 
   List<Type> get typeArguments {
-    // UNIMPLEMENTED
-    return const <Type>[];
+    if (_typeArgumentCount == 0) return const <Type>[];
+    int start = _arguments.length - _typeArgumentCount;
+    var list = <Type>[];
+    for (int index = 0; index < _typeArgumentCount; index++) {
+      list.add(
+          createRuntimeType(runtimeTypeToString(_arguments[start + index])));
+    }
+    return list;
   }
 
   List get positionalArguments {
     if (isGetter) return const [];
-    var argumentCount = _arguments.length - _namedArgumentNames.length;
+    var argumentCount =
+        _arguments.length - _namedArgumentNames.length - _typeArgumentCount;
     if (argumentCount == 0) return const [];
     var list = [];
     for (var index = 0; index < argumentCount; index++) {
@@ -379,7 +390,8 @@ class JSInvocationMirror implements Invocation {
   Map<Symbol, dynamic> get namedArguments {
     if (isAccessor) return const <Symbol, dynamic>{};
     int namedArgumentCount = _namedArgumentNames.length;
-    int namedArgumentsStartIndex = _arguments.length - namedArgumentCount;
+    int namedArgumentsStartIndex =
+        _arguments.length - namedArgumentCount - _typeArgumentCount;
     if (namedArgumentCount == 0) return const <Symbol, dynamic>{};
     var map = new Map<Symbol, dynamic>();
     for (int i = 0; i < namedArgumentCount; i++) {

@@ -115,7 +115,8 @@ abstract class _CastListBase<S, T> extends _CastIterableBase<S, T>
   }
 
   void sort([int compare(T v1, T v2)]) {
-    _source.sort((S v1, S v2) => compare(v1 as T, v2 as T));
+    _source.sort(
+        compare == null ? null : (S v1, S v2) => compare(v1 as T, v2 as T));
   }
 
   void shuffle([Random random]) {

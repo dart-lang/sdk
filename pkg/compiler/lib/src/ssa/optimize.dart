@@ -1507,6 +1507,27 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // arguments. The [selectTypeArgumentFromObjectCreation] argument of
     // [finishSubstituted] indexes into these type arguments.
 
+    // Try to remove the interceptor. The interceptor is used for accessing the
+    // substitution methods.
+    if (node.isIntercepted) {
+      // If we don't need the substitution methods then we don't need the
+      // interceptor to access them.
+      if (!needsSubstitutionForTypeVariableAccess(contextClass)) {
+        return new HTypeInfoReadVariable.noInterceptor(
+            variable, object, node.instructionType);
+      }
+      // All intercepted classes extend `Interceptor`, so if the receiver can't
+      // be a class extending `Interceptor` then the substitution methods can be
+      // called directly. (We don't care about Null since contexts reading class
+      // type variables originate from instance methods.)
+      if (new TypeMask.nonNullSubclass(
+              commonElements.jsInterceptorClass, _closedWorld)
+          .isDisjoint(object.instructionType, _closedWorld)) {
+        return new HTypeInfoReadVariable.noInterceptor(
+            variable, object, node.instructionType);
+      }
+    }
+
     return node;
   }
 }

@@ -52,6 +52,8 @@ DEFINE_OPTION_HANDLER(CompilerPass::ParseFilters,
                       "List of comma separated compilation passes flags. "
                       "Use -Name to disable a pass, Name to print IL after it. "
                       "Do --compiler-passes=help for more information.");
+DECLARE_FLAG(bool, print_flow_graph);
+DECLARE_FLAG(bool, print_flow_graph_optimized);
 
 static const char* kCompilerPassesUsage =
     "=== How to use --compiler-passes flag\n"
@@ -85,6 +87,13 @@ void CompilerPass::ParseFilters(const char* filter) {
       }
     }
     return;
+  }
+
+  // Clear all flags.
+  for (intptr_t i = 0; i < kNumPasses; i++) {
+    if (passes_[i] != NULL) {
+      passes_[i]->flags_ = 0;
+    }
   }
 
   for (const char *start = filter, *end = filter; *end != 0;
@@ -180,7 +189,8 @@ void CompilerPass::PrintGraph(CompilerPassState* state,
   const intptr_t current_flags = flags() | state->sticky_flags;
   FlowGraph* flow_graph = state->flow_graph;
 
-  if (flow_graph->should_print() && ((current_flags & mask) != 0)) {
+  if ((FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) &&
+      flow_graph->should_print() && ((current_flags & mask) != 0)) {
     Zone* zone = state->thread->zone();
     const char* when = mask == kTraceBefore ? "Before" : "After";
     const char* phase =

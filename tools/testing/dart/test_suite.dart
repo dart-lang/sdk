@@ -1325,6 +1325,7 @@ class StandardTestSuite extends TestSuite {
       args.add('--format=machine');
       args.add('--no-hints');
       if (configuration.previewDart2) args.add("--preview-dart-2");
+      if (configuration.noPreviewDart2) args.add("--no-preview-dart-2");
 
       if (filePath.filename.contains("dart2js") ||
           filePath.directoryPath.segments().last.contains('html_common')) {

@@ -43,7 +43,7 @@ import 'package:front_end/src/fasta/messages.dart'
         templateDuplicateLabelInSwitchStatement,
         templateExpectedType;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
-    show Builder, KernelLibraryBuilder, Scope;
+    show Builder, Scope;
 import 'package:front_end/src/fasta/quote.dart';
 import 'package:front_end/src/fasta/scanner/token_constants.dart';
 import 'package:front_end/src/fasta/source/scope_listener.dart'
@@ -55,7 +55,7 @@ class AstBuilder extends ScopeListener {
   final AstFactory ast = standard.astFactory;
 
   final FastaErrorReporter errorReporter;
-  final KernelLibraryBuilder library;
+  final Uri fileUri;
   final Builder member;
 
   ScriptTag scriptTag;
@@ -91,11 +91,11 @@ class AstBuilder extends ScopeListener {
 
   StringLiteral nativeName;
 
-  AstBuilder(ErrorReporter errorReporter, this.library, this.member,
+  AstBuilder(ErrorReporter errorReporter, this.fileUri, this.member,
       Scope scope, this.isFullAst,
       [Uri uri])
       : this.errorReporter = new FastaErrorReporter(errorReporter),
-        uri = uri ?? library.fileUri,
+        uri = uri ?? fileUri,
         super(scope);
 
   createJumpTarget(JumpTargetKind kind, int charOffset) {

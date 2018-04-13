@@ -156,9 +156,7 @@ int_parse_radix_test/01: RuntimeError
 int_parse_radix_test/02: RuntimeError
 integer_to_radix_string_test: RuntimeError
 integer_to_string_test/01: RuntimeError
-iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
-iterable_to_list_test/01: RuntimeError
 nan_infinity_test/01: RuntimeError
 regress_r21715_test: RuntimeError
 string_base_vm_test: RuntimeError
@@ -184,9 +182,7 @@ int_parse_radix_test/01: Pass, Fail # JS implementations disagree on U+0085 bein
 int_parse_radix_test/02: Fail # No bigints.
 integer_to_radix_string_test: RuntimeError # issue 22045
 integer_to_string_test/01: RuntimeError # Issue 1533
-iterable_return_type_test/01: RuntimeError # Issue 20085
 iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
-iterable_to_list_test/01: RuntimeError # Issue 26501
 list_unmodifiable_test: Pass, RuntimeError # Issue 28712
 nan_infinity_test/01: Fail # Issue 11551
 regress_r21715_test: RuntimeError # Requires bigint support.
@@ -336,4 +332,3 @@ double_parse_test/02: Fail, OK
 [ $hot_reload || $hot_reload_rollback ]
 big_integer_huge_mul_vm_test: Pass, Slow # Slow
 big_integer_parsed_mul_div_vm_test: Pass, Slow # Slow.
-

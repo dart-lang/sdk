@@ -36,6 +36,29 @@ application_snapshot("generate_dartanalyzer_snapshot") {
   inputs = cli_files + analyzer_files
 }
 
+aot_assembly("dartanalyzer_aot_assembly") {
+  main_dart = "../../pkg/analyzer_cli/bin/analyzer.dart"
+  name = "dartanalyzer"
+  cli_files = exec_script("../../tools/list_dart_files.py",
+                          [
+                            "absolute",
+                            rebase_path("../../pkg/analyzer_cli"),
+                          ],
+                          "list lines")
+  inputs = cli_files + analyzer_files
+}
+
+# This target is for Goma. It should not be used in the SDK.
+executable("dartanalyzer_aot") {
+  deps = [
+    "../../runtime/bin:dart_precompiled_runtime_for_linking",
+    ":dartanalyzer_aot_assembly",
+  ]
+  sources = [
+    "$root_gen_dir/dartanalyzer.dart.S"
+  ]
+}
+
 sdk_lib_files = exec_script("../../tools/list_dart_files.py",
                             [
                               "absolute",

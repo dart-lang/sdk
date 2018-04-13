@@ -20,10 +20,10 @@ static method main() → dynamic {
       try {
         #L1:
         {
-          :return_value = let final (dynamic) → dynamic #t1 = (dynamic x) → dynamic => x in let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/local_return_and_yield.dart:19:36: Error: A value of type '(dynamic) \u8594 dynamic' can't be assigned to a variable of type 'dart.async::FutureOr<(dart.core::int) \u8594 dart.core::int>'.
+          :return_value = let final dynamic #t1 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/local_return_and_yield.dart:19:36: Error: A value of type '(dynamic) \u8594 dynamic' can't be assigned to a variable of type 'dart.async::FutureOr<(dart.core::int) \u8594 dart.core::int>'.
 Try changing the type of the left hand side, or casting the right hand side to 'dart.async::FutureOr<(dart.core::int) \u8594 dart.core::int>'.
     return /*@returnType=dynamic*/ (/*@type=dynamic*/ x) => x;
-                                   ^";
+                                   ^" in let final (dynamic) → dynamic #t2 = (dynamic x) → dynamic => x in null;
           break #L1;
         }
         :completer.{asy::Completer::complete}(:return_value);

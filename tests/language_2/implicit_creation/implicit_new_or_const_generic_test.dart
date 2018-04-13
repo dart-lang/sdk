@@ -6,15 +6,15 @@ import "package:expect/expect.dart";
 
 import "implicit_new_or_const_generic_test.dart" as prefix;
 
-// Test that const constructors with const arguments become const,
-// and non-const constructors or const-constructors with non-const arguments
-// do not (except in a const context, which is tested elsewhere).
+// Test that const constructors with const arguments do not become const
+// if not in a const context.
 
-// This test uses a generic class, which requires new syntax.
+// This test uses a generic class cosntructor with no prefix,
+// which requires new Dart 2 syntax.
 
 main() {
   // Various valid object creation expressions.
-  var x = 42;  // non constant variable.
+  var x = 42; // non constant variable.
 
   // Various valid object creation expressions of a generic constructor.
   // (Requires inference to infer `<int>` for the invocations of `D`.)
@@ -24,43 +24,36 @@ main() {
     const D(42),
     D(x),
     D(42),
-
     new D.named(x),
     new D.named(42),
     const D.named(42),
     D.named(x),
     D.named(42),
-
     new prefix.D(x),
     new prefix.D(42),
     const prefix.D(42),
     prefix.D(x),
     prefix.D(42),
-
     new prefix.D.named(x),
     new prefix.D.named(42),
     const prefix.D.named(42),
     prefix.D.named(x),
     prefix.D.named(42),
-
     new D<int>(x),
     new D<int>(42),
     const D<int>(42),
     D<int>(x),
     D<int>(42),
-
     new D<int>.named(x),
     new D<int>.named(42),
     const D<int>.named(42),
     D<int>.named(x),
     D<int>.named(42),
-
     new prefix.D<int>(x),
     new prefix.D<int>(42),
     const prefix.D<int>(42),
     prefix.D<int>(x),
     prefix.D<int>(42),
-
     new prefix.D<int>.named(x),
     new prefix.D<int>.named(42),
     const prefix.D<int>.named(42),
@@ -92,7 +85,7 @@ class D<T> {
   const D.named(this.x);
 
   int get hashCode => x.hashCode;
-  bool operator==(Object other) => other is D<Object> && x == other.x;
+  bool operator ==(Object other) => other is D<Object> && x == other.x;
 }
 
 class G<T> {
@@ -102,13 +95,10 @@ class G<T> {
     var instances = [
       new D<T>(null),
       D<T>(null),
-
       new D<T>.named(null),
       D<T>.named(null),
-
       new prefix.D<T>(null),
       prefix.D<T>(null),
-
       new prefix.D<T>.named(null),
       prefix.D<T>.named(null),
     ];

@@ -1,3 +1,13 @@
+## 2.0.0-dev.48.0
+
+### Core library changes
+
+* `dart:core`
+  * Added `tryParse` static method to `int`, `double`, `num`, `BigInt`,
+    `Uri` and `DateTime`.
+  * Deprecated `onError` parameter on `int.parse`, `double.parse`
+    and `num.parse`.
+
 ## 2.0.0-dev.47.0
 
 ### Tool Changes

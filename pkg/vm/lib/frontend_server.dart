@@ -48,6 +48,8 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addFlag('strong',
       help: 'Run compiler in strong mode (uses strong mode semantics)',
       defaultsTo: false)
+  ..addFlag('sync-async',
+      help: 'Start `async` functions synchronously.', defaultsTo: false)
   ..addFlag('tfa',
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
@@ -250,8 +252,8 @@ class FrontendCompiler implements CompilerInterface {
       }
     }
 
-    final TargetFlags targetFlags =
-        new TargetFlags(strongMode: options['strong']);
+    final TargetFlags targetFlags = new TargetFlags(
+        strongMode: options['strong'], syncAsync: options['sync-async']);
     compilerOptions.target = getTarget(options['target'], targetFlags);
 
     Component component;
@@ -284,7 +286,8 @@ class FrontendCompiler implements CompilerInterface {
       final BinaryPrinter printer = printerFactory.newBinaryPrinter(sink);
       printer.writeComponentFile(component);
       await sink.close();
-      _outputStream.writeln('$boundaryKey $_kernelBinaryFilename');
+      _outputStream
+          .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
       final String depfile = options['depfile'];
       if (depfile != null) {
         await _writeDepfile(component, _kernelBinaryFilename, depfile);
@@ -346,6 +349,7 @@ class FrontendCompiler implements CompilerInterface {
     if (filename != null) {
       setMainSourceFilename(filename);
     }
+    errors.clear();
     final Component deltaProgram =
         await _generator.compile(entryPoint: _mainSource);
 
@@ -357,7 +361,8 @@ class FrontendCompiler implements CompilerInterface {
     final BinaryPrinter printer = printerFactory.newBinaryPrinter(sink);
     printer.writeComponentFile(deltaProgram);
     await sink.close();
-    _outputStream.writeln('$boundaryKey $_kernelBinaryFilename');
+    _outputStream
+        .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
     _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
     return null;
   }

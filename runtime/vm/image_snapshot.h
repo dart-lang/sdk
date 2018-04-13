@@ -85,9 +85,14 @@ class ImageWriter : public ZoneAllocated {
   intptr_t text_size() const { return next_text_offset_; }
   intptr_t data_size() const { return next_data_offset_; }
 
+  void DumpStatistics();
+
  protected:
   void WriteROData(WriteStream* stream);
   virtual void WriteText(WriteStream* clustered_stream, bool vm) = 0;
+
+  void DumpInstructionStats();
+  void DumpInstructionsSizes();
 
   struct InstructionsData {
     explicit InstructionsData(RawInstructions* insns,

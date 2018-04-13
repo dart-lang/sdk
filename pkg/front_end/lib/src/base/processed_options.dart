@@ -93,6 +93,11 @@ class ProcessedOptions {
   /// not been computed yet.
   Packages _packages;
 
+  /// The uri for .packages derived from the options, or `null` if the package
+  /// map has not been computed yet or there is no .packages in effect.
+  Uri _packagesUri;
+  Uri get packagesUri => _packagesUri;
+
   /// The object that knows how to resolve "package:" and "dart:" URIs,
   /// or `null` if it has not been computed yet.
   UriTranslatorImpl _uriTranslator;
@@ -445,6 +450,7 @@ class ProcessedOptions {
   /// required to locate/read the packages file.
   Future<Packages> _getPackages() async {
     if (_packages != null) return _packages;
+    _packagesUri = null;
     if (_raw.packagesFileUri != null) {
       return _packages = await createPackagesFromFile(_raw.packagesFileUri);
     }
@@ -478,8 +484,10 @@ class ProcessedOptions {
     try {
       List<int> contents = await fileSystem.entityForUri(file).readAsBytes();
       Map<String, Uri> map = package_config.parse(contents, file);
+      _packagesUri = file;
       return new MapPackages(map);
     } catch (e) {
+      _packagesUri = null;
       report(
           templateCannotReadPackagesFile
               .withArguments("$e")

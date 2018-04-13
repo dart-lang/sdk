@@ -2185,7 +2185,6 @@ class PropertyGet extends Expression {
   Expression receiver;
   @coq
   Name name;
-  int flags = 0;
 
   @nocoq
   Reference interfaceTargetReference;
@@ -2196,19 +2195,6 @@ class PropertyGet extends Expression {
   PropertyGet.byReference(
       this.receiver, this.name, this.interfaceTargetReference) {
     receiver?.parent = this;
-    this.dispatchCategory = DispatchCategory.dynamicDispatch;
-  }
-
-  // Must match serialized bit positions
-  static const int ShiftDispatchCategory = 0;
-  static const int FlagDispatchCategory = 3 << ShiftDispatchCategory;
-
-  DispatchCategory get dispatchCategory => DispatchCategory
-      .values[(flags & FlagDispatchCategory) >> ShiftDispatchCategory];
-
-  void set dispatchCategory(DispatchCategory value) {
-    flags = (flags & ~FlagDispatchCategory) |
-        (value.index << ShiftDispatchCategory);
   }
 
   Member get interfaceTarget => interfaceTargetReference?.asMember;
@@ -2261,7 +2247,6 @@ class PropertySet extends Expression {
   Expression receiver;
   Name name;
   Expression value;
-  int flags = 0;
 
   Reference interfaceTargetReference;
 
@@ -2274,19 +2259,6 @@ class PropertySet extends Expression {
       this.receiver, this.name, this.value, this.interfaceTargetReference) {
     receiver?.parent = this;
     value?.parent = this;
-    this.dispatchCategory = DispatchCategory.dynamicDispatch;
-  }
-
-  // Must match serialized bit positions.
-  static const int ShiftDispatchCategory = 0;
-  static const int FlagDispatchCategory = 3 << ShiftDispatchCategory;
-
-  DispatchCategory get dispatchCategory => DispatchCategory
-      .values[(flags & FlagDispatchCategory) >> ShiftDispatchCategory];
-
-  void set dispatchCategory(DispatchCategory value) {
-    flags = (flags & ~FlagDispatchCategory) |
-        (value.index << ShiftDispatchCategory);
   }
 
   Member get interfaceTarget => interfaceTargetReference?.asMember;
@@ -2322,26 +2294,12 @@ class PropertySet extends Expression {
 class DirectPropertyGet extends Expression {
   Expression receiver;
   Reference targetReference;
-  int flags = 0;
 
   DirectPropertyGet(Expression receiver, Member target)
       : this.byReference(receiver, getMemberReference(target));
 
   DirectPropertyGet.byReference(this.receiver, this.targetReference) {
     receiver?.parent = this;
-    this.dispatchCategory = DispatchCategory.dynamicDispatch;
-  }
-
-  // Must match serialized bit positions
-  static const int ShiftDispatchCategory = 0;
-  static const int FlagDispatchCategory = 3 << ShiftDispatchCategory;
-
-  DispatchCategory get dispatchCategory => DispatchCategory
-      .values[(flags & FlagDispatchCategory) >> ShiftDispatchCategory];
-
-  void set dispatchCategory(DispatchCategory value) {
-    flags = (flags & ~FlagDispatchCategory) |
-        (value.index << ShiftDispatchCategory);
   }
 
   Member get target => targetReference?.asMember;
@@ -2381,7 +2339,6 @@ class DirectPropertySet extends Expression {
   Expression receiver;
   Reference targetReference;
   Expression value;
-  int flags = 0;
 
   DirectPropertySet(Expression receiver, Member target, Expression value)
       : this.byReference(receiver, getMemberReference(target), value);
@@ -2390,18 +2347,6 @@ class DirectPropertySet extends Expression {
       this.receiver, this.targetReference, this.value) {
     receiver?.parent = this;
     value?.parent = this;
-  }
-
-  // Must match serialized bit positions
-  static const int ShiftDispatchCategory = 0;
-  static const int FlagDispatchCategory = 3 << ShiftDispatchCategory;
-
-  DispatchCategory get dispatchCategory => DispatchCategory
-      .values[(flags & FlagDispatchCategory) >> ShiftDispatchCategory];
-
-  void set dispatchCategory(DispatchCategory value) {
-    flags = (flags & ~FlagDispatchCategory) |
-        (value.index << ShiftDispatchCategory);
   }
 
   Member get target => targetReference?.asMember;
@@ -2438,7 +2383,6 @@ class DirectMethodInvocation extends InvocationExpression {
   Expression receiver;
   Reference targetReference;
   Arguments arguments;
-  int flags = 0;
 
   DirectMethodInvocation(
       Expression receiver, Procedure target, Arguments arguments)
@@ -2448,19 +2392,6 @@ class DirectMethodInvocation extends InvocationExpression {
       this.receiver, this.targetReference, this.arguments) {
     receiver?.parent = this;
     arguments?.parent = this;
-    this.dispatchCategory = DispatchCategory.dynamicDispatch;
-  }
-
-  // Must match serialized bit positions
-  static const int ShiftDispatchCategory = 0;
-  static const int FlagDispatchCategory = 3 << ShiftDispatchCategory;
-
-  DispatchCategory get dispatchCategory => DispatchCategory
-      .values[(flags & FlagDispatchCategory) >> ShiftDispatchCategory];
-
-  void set dispatchCategory(DispatchCategory value) {
-    flags = (flags & ~FlagDispatchCategory) |
-        (value.index << ShiftDispatchCategory);
   }
 
   Procedure get target => targetReference?.asProcedure;
@@ -2515,8 +2446,6 @@ class SuperPropertyGet extends Expression {
   Name name;
 
   Reference interfaceTargetReference;
-
-  DispatchCategory get dispatchCategory => DispatchCategory.viaThis;
 
   SuperPropertyGet(Name name, [Member interfaceTarget])
       : this.byReference(name, getMemberReference(interfaceTarget));
@@ -2740,7 +2669,6 @@ class MethodInvocation extends InvocationExpression {
   Expression receiver;
   Name name;
   Arguments arguments;
-  int flags = 0;
 
   Reference interfaceTargetReference;
 
@@ -2753,19 +2681,6 @@ class MethodInvocation extends InvocationExpression {
       this.receiver, this.name, this.arguments, this.interfaceTargetReference) {
     receiver?.parent = this;
     arguments?.parent = this;
-    this.dispatchCategory = DispatchCategory.dynamicDispatch;
-  }
-
-  // Must match serialized bit positions
-  static const int ShiftDispatchCategory = 0;
-  static const int FlagDispatchCategory = 3 << ShiftDispatchCategory;
-
-  DispatchCategory get dispatchCategory => DispatchCategory
-      .values[(flags & FlagDispatchCategory) >> ShiftDispatchCategory];
-
-  void set dispatchCategory(DispatchCategory value) {
-    flags = (flags & ~FlagDispatchCategory) |
-        (value.index << ShiftDispatchCategory);
   }
 
   Member get interfaceTarget => interfaceTargetReference?.asMember;
@@ -2841,7 +2756,6 @@ class MethodInvocation extends InvocationExpression {
 class SuperMethodInvocation extends InvocationExpression {
   Name name;
   Arguments arguments;
-  DispatchCategory get dispatchCategory => DispatchCategory.viaThis;
 
   Reference interfaceTargetReference;
 
@@ -4402,96 +4316,6 @@ class YieldStatement extends Statement {
       expression?.parent = this;
     }
   }
-}
-
-/// Categorization of a call site indicating its effect on type guarantees.
-enum DispatchCategory {
-  /// This call site binds to its callee through a specific interface.
-  ///
-  /// The front end guarantees that the target of the call exists, has the
-  /// correct arity, and accepts all of the supplied named parameters.  Further,
-  /// it guarantees that the number of type parameters supplied matches the
-  /// number of type parameters expected by the target of the call.
-  ///
-  /// Due to parameter covariance, it is not necessarily guaranteed that the
-  /// actual values of parameters will match the declared types of those
-  /// parameters in the method actually being called.  A runtime type check is
-  /// required for any parameter meeting one of the following conditions:
-  ///
-  /// - The parameter in the interface target is tagged with
-  ///   `isGenericCovariantInterface`, and the corresponding parameter in the
-  ///   method actually being called is tagged with `isGenericCovariantImpl`.
-  ///
-  /// - The parameter in the method actually being called is tagged with
-  ///   `isCovariant`.
-  ///
-  /// Note: type parameters of generic methods require similar checks; the
-  /// flags `isGenericCovariantInterface` and `isGenericCovariantImpl` are found
-  /// in [TypeParameter], and the implementation must check that the actual
-  /// type is a subtype of the type parameter bound declared in the actual
-  /// method being called.  For type parameter checks, there is no `isCovariant`
-  /// tag.
-  ///
-  /// Note: if the interface target or the method actually being called is a
-  /// field, then the tags `isGenericCovariantInterface`,
-  /// `isGenericCovariantImpl`, and `isCovariant` are found in [Field].
-  interface,
-
-  /// This call site binds to its callee via a call on `this`.
-  ///
-  /// Similar to [interface], however the target of the call is a method on
-  /// `this` or `super`, therefore all of the class's type parameters are known
-  /// to match exactly.
-  ///
-  /// Due to parameter covariance, it is not necessarily guaranteed that the
-  /// actual values of parameters will match the declared types of those
-  /// parameters in the method actually being called.  A runtime type check is
-  /// required for any parameter meeting one of the following condition:
-  ///
-  /// - The parameter in the method actually being called is tagged with
-  ///   `isCovariant`.
-  ///
-  /// Note: type parameters of generic methods do not require a check when the
-  /// call is via `this`.
-  ///
-  /// Note: if the interface target or the method actually being called is a
-  /// field, then the tag `isCovariant` is found in [Field].
-  viaThis,
-
-  /// This call site is an invocation of a function object (formed either by a
-  /// tear off or a function literal).
-  ///
-  /// Similar to [interface], however the interface target of the call is not
-  /// known.
-  ///
-  /// Due to parameter covariance, it is not necessarily guaranteed that the
-  /// actual values of parameters will match the declared types of those
-  /// parameters in the method actually being called.  A runtime type check is
-  /// required for any parameter meeting one of the following conditions:
-  ///
-  /// - The parameter in the method actually being called is tagged with
-  ///   `isGenericCovariantImpl`.
-  ///
-  /// - The parameter in the method actually being called is tagged with
-  ///   `isCovariant`.
-  ///
-  /// Note: type parameters of generic methods require similar checks; the
-  /// flag `isGenericCovariantImpl` is found in [TypeParameter], and the
-  /// implementation must check that the actual type is a subtype of the type
-  /// parameter bound declared in the actual method being called.  For type
-  /// parameter checks, there is no `isCovariant` tag.
-  ///
-  /// Note: if the interface target or the method actually being called is a
-  /// field, then the tags `isGenericCovariantImpl` and `isCovariant` are found
-  /// in [Field].
-  closure,
-
-  /// The call site is dynamic.
-  ///
-  /// The front end makes no guarantees that the target of the call will accept
-  /// the actual runtime types of the parameters, nor that the target of the
-  /// call even exists.  Everything must be checked at runtime.
-  dynamicDispatch,
 }
 
 /// Declaration of a local variable.

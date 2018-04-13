@@ -44,29 +44,16 @@ part of dart._runtime;
 /// different from the above objects, and are created by calling `wrapType()`
 /// on a runtime type.
 
-/// Tag a closure with a type, using one of two forms:
+/// Tag a closure with a type:
 ///
-/// `dart.fn(cls)` marks cls has having no optional or named
-/// parameters, with all argument and return types as dynamic.
-///
-/// `dart.fn(cls, rType, argsT, extras)` marks cls as having the
-/// runtime type dart.functionType(rType, argsT, extras).
-///
-/// Note that since we are producing a type for a concrete function,
-/// it is sound to use the definite arrow type.
-///
+/// `dart.fn(closure, t)` marks [closure] has having the runtime type [t].
 fn(closure, t) {
-  if (t == null) {
-    // No type arguments, it's all dynamic
-    t = fnType(JS('', '#', dynamic),
-        JS('', 'Array(#.length).fill(#)', closure, dynamic), JS('', 'void 0'));
-  }
-  tag(closure, t);
+  JS('', '#[#] = #', closure, _runtimeType, t);
   return closure;
 }
 
 lazyFn(closure, computeType) {
-  tagLazy(closure, computeType);
+  defineLazyGetter(closure, _runtimeType, computeType);
   return closure;
 }
 
@@ -132,17 +119,8 @@ unwrapType(WrappedType obj) => obj._wrappedType;
 /// Return the module name for a raw library object.
 getModuleName(value) => JS('', '#[#]', value, _moduleName);
 
-/// Tag the runtime type of [value] to be type [t].
-void tag(value, t) {
-  JS('', '#[#] = #', value, _runtimeType, t);
-}
-
 void tagComputed(value, compute) {
   defineGetter(value, _runtimeType, compute);
-}
-
-void tagLazy(value, compute) {
-  defineLazyGetter(value, _runtimeType, compute);
 }
 
 var _loadedModules = JS('', 'new Map()');

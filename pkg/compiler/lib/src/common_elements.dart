@@ -1010,6 +1010,9 @@ class CommonElements {
   FunctionEntity get getRuntimeTypeArgument =>
       _findHelperFunction('getRuntimeTypeArgument');
 
+  FunctionEntity get getRuntimeTypeArgumentIntercepted =>
+      _findHelperFunction('getRuntimeTypeArgumentIntercepted');
+
   FunctionEntity get runtimeTypeToString =>
       _findHelperFunction('runtimeTypeToString');
 

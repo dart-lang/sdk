@@ -179,22 +179,16 @@ class Expect {
   }
 
   /**
-   * Checks whether the expected and actual values are *not* identical
-   * (using `identical`).
+   * Finds equivalence classes of objects (by index) wrt. identity.
+   *
+   * Returns a list of lists of identical object indices per object.
+   * That is, `objects[i]` is identical to objects with indices in
+   * `_findEquivalences(objects)[i]`.
+   *
+   * Uses `null` for objects that are only identical to themselves.
    */
-  static void notIdentical(var unexpected, var actual, [String reason = null]) {
-    if (!_identical(unexpected, actual)) return;
-    String msg = _getMessage(reason);
-    _fail("Expect.notIdentical(expected and actual: <$actual>$msg) fails.");
-  }
-
-  /**
-   * Checks that no two [objects] are `identical`.
-   */
-  static void allDistinct(List<Object> objects, [String reason = null]) {
-    String msg = _getMessage(reason);
+  static List<List<int>> _findEquivalences(List<Object> objects) {
     var equivalences = new List<List<int>>(objects.length);
-    bool hasEquivalence = false;
     for (int i = 0; i < objects.length; i++) {
       if (equivalences[i] != null) continue;
       var o = objects[i];
@@ -202,12 +196,14 @@ class Expect {
         if (equivalences[j] != null) continue;
         if (_identical(o, objects[j])) {
           equivalences[j] = (equivalences[i] ??= <int>[i])..add(j);
-          hasEquivalence = true;
         }
       }
     }
-    if (!hasEquivalence) return;
-    var buffer = new StringBuffer("Expect.allDistinct([");
+    return equivalences;
+  }
+
+  static void _writeEquivalences(
+      List<Object> objects, List<List<int>> equivalences, StringBuffer buffer) {
     var separator = "";
     for (int i = 0; i < objects.length; i++) {
       buffer.write(separator);
@@ -223,6 +219,47 @@ class Expect {
         }
       }
     }
+  }
+
+  static void allIdentical(Iterable<Object> objects, [String reason]) {
+    if (objects.length <= 1) return;
+    String msg = _getMessage(reason);
+    var equivalences = _findEquivalences(objects);
+    var first = equivalences[0];
+    if (first != null && first.length == objects.length) return;
+    var buffer = new StringBuffer("Expect.allIdentical([");
+    _writeEquivalences(objects, equivalences, buffer);
+    buffer..write("]")..write(msg)..write(")");
+    _fail(buffer.toString());
+  }
+
+  /**
+   * Checks whether the expected and actual values are *not* identical
+   * (using `identical`).
+   */
+  static void notIdentical(var unexpected, var actual, [String reason = null]) {
+    if (!_identical(unexpected, actual)) return;
+    String msg = _getMessage(reason);
+    _fail("Expect.notIdentical(expected and actual: <$actual>$msg) fails.");
+  }
+
+  /**
+   * Checks that no two [objects] are `identical`.
+   */
+  static void allDistinct(List<Object> objects, [String reason = null]) {
+    String msg = _getMessage(reason);
+    var equivalences = _findEquivalences(objects);
+
+    bool hasEquivalence = false;
+    for (int i = 0; i < equivalences.length; i++) {
+      if (equivalences[i] != null) {
+        hasEquivalence = true;
+        break;
+      }
+    }
+    if (!hasEquivalence) return;
+    var buffer = new StringBuffer("Expect.allDistinct([");
+    _writeEquivalences(objects, equivalences, buffer);
     buffer..write("]")..write(msg)..write(")");
     _fail(buffer.toString());
   }

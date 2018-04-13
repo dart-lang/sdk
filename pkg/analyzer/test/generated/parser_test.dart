@@ -4699,7 +4699,7 @@ class Wrong<T> {
     listener.assertErrors(usingFastaParser
         ? [
             expectedError(ParserErrorCode.MISSING_IDENTIFIER, 0, 2),
-            expectedError(ParserErrorCode.MISSING_STATEMENT, 0, 2),
+            expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 2, 0),
             expectedError(ParserErrorCode.EXPECTED_TOKEN, 2, 0)
           ]
         : [expectedError(ParserErrorCode.MISSING_STATEMENT, 2, 0)]);
@@ -9147,7 +9147,12 @@ abstract class FormalParameterParserTestMixin
 
   void test_parseFormalParameterList_prefixedType_partial() {
     FormalParameterList list = parseFormalParameterList('(io.)', errors: [
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 1),
+      expectedError(
+          usingFastaParser
+              ? ParserErrorCode.EXPECTED_TYPE_NAME
+              : ParserErrorCode.MISSING_IDENTIFIER,
+          4,
+          1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 1)
     ]);
     expect(list, isNotNull);
@@ -9169,7 +9174,12 @@ abstract class FormalParameterParserTestMixin
   void test_parseFormalParameterList_prefixedType_partial2() {
     int errorOffset = usingFastaParser ? 4 : 3;
     FormalParameterList list = parseFormalParameterList('(io.,a)', errors: [
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, errorOffset, 1),
+      expectedError(
+          usingFastaParser
+              ? ParserErrorCode.EXPECTED_TYPE_NAME
+              : ParserErrorCode.MISSING_IDENTIFIER,
+          errorOffset,
+          1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, errorOffset, 1)
     ]);
     expect(list, isNotNull);
@@ -10675,20 +10685,11 @@ class B = Object with A {}''',
   }
 
   void test_equalityExpression_precedence_relational_left() {
-    // Fasta recovers differently. It takes the `is` to be an identifier and
-    // assumes that the right operand of `==` is the only missing identifier.
-    BinaryExpression expression = parseExpression("is ==",
-        codes: usingFastaParser
-            ? [
-                //ParserErrorCode.EXPECTED_TYPE_NAME,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER
-              ]
-            : [
-                ParserErrorCode.EXPECTED_TYPE_NAME,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER
-              ]);
+    BinaryExpression expression = parseExpression("is ==", codes: [
+      ParserErrorCode.EXPECTED_TYPE_NAME,
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.MISSING_IDENTIFIER
+    ]);
     if (!usingFastaParser) {
       EngineTestCase.assertInstanceOf(
           (obj) => obj is IsExpression, IsExpression, expression.leftOperand);

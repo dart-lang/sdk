@@ -10,11 +10,11 @@ typedef F<T>(T x);
 class C<T> {
   void f(T /*@covariance=genericInterface, genericImpl*/ x) {}
   void g1(T /*@covariance=genericInterface, genericImpl*/ x) {
-    this.f /*@callKind=this*/ (x);
+    this.f(x);
   }
 
   void g2(T /*@covariance=genericInterface, genericImpl*/ x) {
-    f /*@callKind=this*/ (x);
+    f(x);
   }
 
   void g3(C<T> /*@covariance=genericInterface, genericImpl*/ c,
@@ -22,7 +22,7 @@ class C<T> {
     c.f(x);
   }
 
-  F<T> /*@genericContravariant=true*/ g4() => this. /*@callKind=this*/ f;
+  F<T> /*@genericContravariant=true*/ g4() => this.f;
 }
 
 class
@@ -43,7 +43,7 @@ class /*@forwardingStub=abstract void g1(covariance=(genericImpl) num x)*/
 
 test() {
   var x = new D().g4() as F<Object>;
-  x /*@callKind=closure*/ ('hi');
+  x('hi');
   new E().g1(1.5);
 }
 

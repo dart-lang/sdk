@@ -149,6 +149,7 @@ class Isolate;
 #define DEFINE_FORWARD_DECLARATION(clazz) class Raw##clazz;
 CLASS_LIST(DEFINE_FORWARD_DECLARATION)
 #undef DEFINE_FORWARD_DECLARATION
+class CodeStatistics;
 
 enum ClassId {
   // Illegal class id.
@@ -1324,6 +1325,16 @@ class RawInstructions : public RawObject {
   // Instructions size in bytes and flags.
   // Currently, only flag indicates 1 or 2 entry points.
   uint32_t size_and_flags_;
+
+#if defined(DART_PRECOMPILER)
+  // There is a gap between size_and_flags_ and the entry point
+  // because we align entry point by 4 words on all platforms.
+  // This allows us to have a free field here without affecting
+  // the aligned size of the Instructions object header.
+  // This also means that entry point offset is the same
+  // whether this field is included or excluded.
+  CodeStatistics* stats_;
+#endif
 
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }

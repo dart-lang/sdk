@@ -75,9 +75,16 @@ DartType getStaticType(Expression e) =>
 /// Similar to [SimpleIdentifier] inGetterContext, inSetterContext, and
 /// inDeclarationContext, this method returns true if [node] is used in an
 /// invocation context such as a MethodInvocation.
-bool inInvocationContext(SimpleIdentifier node) {
+bool inInvocationContext(Expression node) {
   var parent = node.parent;
-  return parent is MethodInvocation && parent.methodName == node;
+  while (parent is ParenthesizedExpression) {
+    node = parent;
+    parent = node.parent;
+  }
+  return parent is InvocationExpression && identical(node, parent.function) ||
+      parent is MethodInvocation &&
+          parent.methodName.name == 'call' &&
+          identical(node, parent.target);
 }
 
 bool isInlineJS(Element e) {
@@ -87,6 +94,9 @@ bool isInlineJS(Element e) {
   }
   return false;
 }
+
+bool isLibraryPrefix(Expression node) =>
+    node is SimpleIdentifier && node.staticElement is PrefixElement;
 
 ExecutableElement getFunctionBodyElement(FunctionBody body) {
   var f = body.parent;

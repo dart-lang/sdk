@@ -679,34 +679,36 @@ class PluginManager {
     }
     String reason;
     File packagesFile = pluginFolder.getChildAssumingFile('.packages');
-    if (!packagesFile.exists) {
-      if (runPub) {
-        String vmPath = Platform.executable;
-        String pubPath = path.join(path.dirname(vmPath), 'pub');
-        if (Platform.isWindows) {
-          // Process.run requires the `.bat` suffix on Windows
-          pubPath = '$pubPath.bat';
-        }
-        ProcessResult result = Process.runSync(pubPath, <String>['get'],
-            stderrEncoding: utf8,
-            stdoutEncoding: utf8,
-            workingDirectory: pluginFolder.path,
-            environment: {_pubEnvironmentKey: _getPubEnvironmentValue()});
-        if (result.exitCode != 0) {
-          StringBuffer buffer = new StringBuffer();
-          buffer.writeln('Failed to run pub get');
-          buffer.writeln('  pluginFolder = ${pluginFolder.path}');
-          buffer.writeln('  exitCode = ${result.exitCode}');
-          buffer.writeln('  stdout = ${result.stdout}');
-          buffer.writeln('  stderr = ${result.stderr}');
-          reason = buffer.toString();
-          instrumentationService.logError(reason);
-        }
-        if (!packagesFile.exists) {
-          reason ??= 'File "${packagesFile.path}" does not exist.';
-          packagesFile = null;
-        }
-      } else if (workspace != null) {
+    bool packagesFilePreExists = packagesFile.exists;
+    if (runPub) {
+      String vmPath = Platform.executable;
+      String pubPath = path.join(path.dirname(vmPath), 'pub');
+      if (Platform.isWindows) {
+        // Process.run requires the `.bat` suffix on Windows
+        pubPath = '$pubPath.bat';
+      }
+      String pubSubcommand = packagesFilePreExists ? 'upgrade' : 'get';
+      ProcessResult result = Process.runSync(pubPath, <String>[pubSubcommand],
+          stderrEncoding: utf8,
+          stdoutEncoding: utf8,
+          workingDirectory: pluginFolder.path,
+          environment: {_pubEnvironmentKey: _getPubEnvironmentValue()});
+      if (result.exitCode != 0) {
+        StringBuffer buffer = new StringBuffer();
+        buffer.writeln('Failed to run pub get');
+        buffer.writeln('  pluginFolder = ${pluginFolder.path}');
+        buffer.writeln('  exitCode = ${result.exitCode}');
+        buffer.writeln('  stdout = ${result.stdout}');
+        buffer.writeln('  stderr = ${result.stderr}');
+        reason = buffer.toString();
+        instrumentationService.logError(reason);
+      }
+      if (!packagesFile.exists) {
+        reason ??= 'File "${packagesFile.path}" does not exist.';
+        packagesFile = null;
+      }
+    } else if (!packagesFilePreExists) {
+      if (workspace != null) {
         packagesFile =
             _createPackagesFile(pluginFolder, workspace.packageUriResolver);
         if (packagesFile == null) {

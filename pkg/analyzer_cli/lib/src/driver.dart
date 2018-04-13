@@ -16,6 +16,7 @@ import 'package:analyzer/source/path_filter.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
@@ -701,7 +702,8 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
     _context = AnalysisEngine.instance.createAnalysisContext();
     _context.analysisOptions = analysisOptions;
     _context.sourceFactory = sourceFactory;
-    declareVariables(context.declaredVariables, options);
+    (context as AnalysisContextImpl).declaredVariables =
+        new DeclaredVariables.fromMap(options.definedVariables);
 
     if (options.enableNewAnalysisDriver) {
       PerformanceLog log = new PerformanceLog(null);
@@ -883,17 +885,6 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
       return true;
     } else {
       return false;
-    }
-  }
-
-  /// Copy variables defined in the [options] into [declaredVariables].
-  static void declareVariables(
-      DeclaredVariables declaredVariables, CommandLineOptions options) {
-    Map<String, String> definedVariables = options.definedVariables;
-    if (definedVariables.isNotEmpty) {
-      definedVariables.forEach((String variableName, String value) {
-        declaredVariables.define(variableName, value);
-      });
     }
   }
 

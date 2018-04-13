@@ -1212,18 +1212,14 @@ class BinaryBuilder {
           ..fileOffset = offset;
       case Tag.PropertyGet:
         int offset = readOffset();
-        int flags = readByte();
         return new PropertyGet.byReference(
             readExpression(), readName(), readMemberReference(allowNull: true))
-          ..fileOffset = offset
-          ..flags = flags;
+          ..fileOffset = offset;
       case Tag.PropertySet:
         int offset = readOffset();
-        int flags = readByte();
         return new PropertySet.byReference(readExpression(), readName(),
             readExpression(), readMemberReference(allowNull: true))
-          ..fileOffset = offset
-          ..flags = flags;
+          ..fileOffset = offset;
       case Tag.SuperPropertyGet:
         int offset = readOffset();
         addTransformerFlag(TransformerFlag.superCalls);
@@ -1238,18 +1234,14 @@ class BinaryBuilder {
           ..fileOffset = offset;
       case Tag.DirectPropertyGet:
         int offset = readOffset();
-        int flags = readByte();
         return new DirectPropertyGet.byReference(
             readExpression(), readMemberReference())
-          ..fileOffset = offset
-          ..flags = flags;
+          ..fileOffset = offset;
       case Tag.DirectPropertySet:
         int offset = readOffset();
-        int flags = readByte();
         return new DirectPropertySet.byReference(
             readExpression(), readMemberReference(), readExpression())
-          ..fileOffset = offset
-          ..flags = flags;
+          ..fileOffset = offset;
       case Tag.StaticGet:
         int offset = readOffset();
         return new StaticGet.byReference(readMemberReference())
@@ -1261,11 +1253,9 @@ class BinaryBuilder {
           ..fileOffset = offset;
       case Tag.MethodInvocation:
         int offset = readOffset();
-        int flags = readByte();
         return new MethodInvocation.byReference(readExpression(), readName(),
             readArguments(), readMemberReference(allowNull: true))
-          ..fileOffset = offset
-          ..flags = flags;
+          ..fileOffset = offset;
       case Tag.SuperMethodInvocation:
         int offset = readOffset();
         addTransformerFlag(TransformerFlag.superCalls);
@@ -1274,11 +1264,9 @@ class BinaryBuilder {
           ..fileOffset = offset;
       case Tag.DirectMethodInvocation:
         int offset = readOffset();
-        int flags = readByte();
         return new DirectMethodInvocation.byReference(
             readExpression(), readMemberReference(), readArguments())
-          ..fileOffset = offset
-          ..flags = flags;
+          ..fileOffset = offset;
       case Tag.StaticInvocation:
         int offset = readOffset();
         return new StaticInvocation.byReference(

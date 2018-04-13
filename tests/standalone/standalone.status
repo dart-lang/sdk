@@ -93,4 +93,3 @@ io/secure_socket_bad_data_test: RuntimeError # An error in a secure connection j
 [ $hot_reload || $hot_reload_rollback ]
 script_snapshot_depfile_test: RuntimeError, OK # Child VM doesn't execute Dart.
 script_snapshot_not_executed_test: RuntimeError, OK # Child VM doesn't execute Dart.
-

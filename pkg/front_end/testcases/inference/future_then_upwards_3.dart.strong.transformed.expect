@@ -14,10 +14,10 @@ class MyFuture<T extends core::Object> extends core::Object implements asy::Futu
 }
 static method test() → void {
   asy::Future<core::double> f = self::foo().{asy::Future::then}<core::double>((dynamic _) → core::double => 2.3);
-  asy::Future<core::int> f2 = let final asy::Future<core::double> #t1 = f in let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/future_then_upwards_3.dart:21:49: Error: A value of type 'dart.async::Future<dart.core::double>' can't be assigned to a variable of type 'dart.async::Future<dart.core::int>'.
+  asy::Future<core::int> f2 = let final dynamic #t1 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/future_then_upwards_3.dart:21:49: Error: A value of type 'dart.async::Future<dart.core::double>' can't be assigned to a variable of type 'dart.async::Future<dart.core::int>'.
 Try changing the type of the left hand side, or casting the right hand side to 'dart.async::Future<dart.core::int>'.
   Future<int> f2 = /*error:INVALID_ASSIGNMENT*/ f;
-                                                ^";
+                                                ^" in let final asy::Future<core::double> #t2 = f in null;
   asy::Future<core::num> f3 = self::foo().{asy::Future::then}<core::double>((dynamic _) → core::double => 2.3) as asy::Future<core::double>;
 }
 static method foo() → asy::Future<dynamic>

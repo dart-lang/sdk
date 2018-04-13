@@ -138,6 +138,8 @@ class DynamicSelector extends Selector {
   @override
   final Name name;
 
+  static final kCall = new DynamicSelector(CallKind.Method, new Name('call'));
+
   DynamicSelector(CallKind callKind, this.name) : super(callKind);
 
   @override

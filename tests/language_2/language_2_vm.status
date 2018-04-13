@@ -1300,8 +1300,8 @@ duplicate_export_negative_test: Fail # Issue 6134
 dynamic_prefix_core_test/01: RuntimeError # Issue 12478
 example_constructor_test: Fail, OK
 export_ambiguous_main_negative_test: Fail # Issue 14763
-field_initialization_order_test: Fail, OK
 f_bounded_quantification4_test: RuntimeError, OK # Not running in strong mode.
+field_initialization_order_test: Fail, OK
 generic_methods_bounds_test/02: MissingRuntimeError
 library_env_test/has_html_support: RuntimeError, OK
 library_env_test/has_no_io_support: RuntimeError, OK
@@ -1336,9 +1336,9 @@ generic_methods_function_type_test: Pass # Issue 25869
 generic_methods_generic_function_parameter_test: Pass # Issue 25869
 generic_methods_new_test: Pass # Issue 25869
 generic_methods_test: Pass # Issue 25869
+nosuchmethod_forwarding/nosuchmethod_forwarding_arguments_test: RuntimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError
-nosuchmethod_forwarding/nosuchmethod_forwarding_arguments_test: RuntimeError
 nsm5_test: MissingCompileTimeError
 override_inheritance_no_such_method_test/05: MissingCompileTimeError
 type_alias_equality_test/01: RuntimeError # Issue 32783

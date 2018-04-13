@@ -18,7 +18,7 @@ namespace dart {
 // ClassifyingTokenPositions N -> -1 - N
 //
 // Synthetically created AstNodes are given real source positions but encoded
-// as negative numbers from [kSmiMin, -1 - N]. For example:
+// as negative numbers from [kSmiMin32, -1 - N]. For example:
 //
 // A source position of 0 in a synthetic AstNode would be encoded as -2 - N.
 // A source position of 1 in a synthetic AstNode would be encoded as -3 - N.
@@ -86,7 +86,7 @@ class TokenPosition {
 #undef DECLARE_VALUES
   static const intptr_t kMinSourcePos = 0;
   static const TokenPosition kMinSource;
-  static const intptr_t kMaxSourcePos = kSmiMax - kMaxSentinelDescriptors - 2;
+  static const intptr_t kMaxSourcePos = kSmiMax32 - kMaxSentinelDescriptors - 2;
   static const TokenPosition kMaxSource;
 
   // Decode from a snapshot.

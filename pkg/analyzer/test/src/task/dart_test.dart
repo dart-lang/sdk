@@ -351,8 +351,8 @@ library libB;
   }
 
   test_perform_configurations_export() {
-    context.declaredVariables.define('dart.library.io', 'true');
-    context.declaredVariables.define('dart.library.html', 'true');
+    context.declaredVariables = new DeclaredVariables.fromMap(
+        {'dart.library.io': 'true', 'dart.library.html': 'true'});
     newSource('/foo.dart', '');
     var foo_io = newSource('/foo_io.dart', '');
     newSource('/foo_html.dart', '');
@@ -371,8 +371,8 @@ export 'foo.dart'
   }
 
   test_perform_configurations_import() {
-    context.declaredVariables.define('dart.library.io', 'true');
-    context.declaredVariables.define('dart.library.html', 'true');
+    context.declaredVariables = new DeclaredVariables.fromMap(
+        {'dart.library.io': 'true', 'dart.library.html': 'true'});
     newSource('/foo.dart', '');
     var foo_io = newSource('/foo_io.dart', '');
     newSource('/foo_html.dart', '');
@@ -3041,7 +3041,8 @@ class A {''');
   }
 
   test_perform_library_configurations_bool1() {
-    context.declaredVariables.define('dart.library.io', 'true');
+    context.declaredVariables =
+        new DeclaredVariables.fromMap({'dart.library.io': 'true'});
     newSource('/foo.dart', '');
     newSource('/foo_io.dart', '');
     newSource('/foo_html.dart', '');
@@ -3088,7 +3089,8 @@ export 'bar.dart'
   }
 
   test_perform_library_configurations_bool2() {
-    context.declaredVariables.define('dart.library.html', 'true');
+    context.declaredVariables =
+        new DeclaredVariables.fromMap({'dart.library.html': 'true'});
     newSource('/foo.dart', '');
     newSource('/foo_io.dart', '');
     newSource('/foo_html.dart', '');
@@ -3102,7 +3104,8 @@ import 'foo.dart'
   }
 
   test_perform_library_configurations_default() {
-    context.declaredVariables.define('dart.library.io', 'false');
+    context.declaredVariables =
+        new DeclaredVariables.fromMap({'dart.library.io': 'false'});
     newSource('/foo.dart', '');
     newSource('/foo_io.dart', '');
     newSource('/foo_html.dart', '');
@@ -3116,8 +3119,8 @@ import 'foo.dart'
   }
 
   test_perform_library_configurations_preferFirst() {
-    context.declaredVariables.define('dart.library.io', 'true');
-    context.declaredVariables.define('dart.library.html', 'true');
+    context.declaredVariables = new DeclaredVariables.fromMap(
+        {'dart.library.io': 'true', 'dart.library.html': 'true'});
     newSource('/foo.dart', '');
     newSource('/foo_io.dart', '');
     newSource('/foo_html.dart', '');
@@ -3139,7 +3142,8 @@ import 'foo.dart'
   }
 
   test_perform_library_configurations_value() {
-    context.declaredVariables.define('dart.platform', 'Windows');
+    context.declaredVariables =
+        new DeclaredVariables.fromMap({'dart.platform': 'Windows'});
     newSource('/foo.dart', '');
     newSource('/foo_posix.dart', '');
     newSource('/foo_windows.dart', '');

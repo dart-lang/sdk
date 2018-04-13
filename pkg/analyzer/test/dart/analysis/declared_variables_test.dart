@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.context.declared_variables_test;
-
-import 'package:analyzer/context/declared_variables.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../generated/test_support.dart';
+import '../../generated/test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -24,8 +22,8 @@ class DeclaredVariablesTest extends EngineTestCase {
   void test_getBool_false() {
     TestTypeProvider typeProvider = new TestTypeProvider();
     String variableName = "var";
-    DeclaredVariables variables = new DeclaredVariables();
-    variables.define(variableName, "false");
+    DeclaredVariables variables =
+        new DeclaredVariables.fromMap({variableName: 'false'});
     DartObject object = variables.getBool(typeProvider, variableName);
     expect(object, isNotNull);
     expect(object.toBoolValue(), false);
@@ -34,8 +32,8 @@ class DeclaredVariablesTest extends EngineTestCase {
   void test_getBool_invalid() {
     TestTypeProvider typeProvider = new TestTypeProvider();
     String variableName = "var";
-    DeclaredVariables variables = new DeclaredVariables();
-    variables.define(variableName, "not true");
+    DeclaredVariables variables =
+        new DeclaredVariables.fromMap({variableName: 'not true'});
     _assertNullDartObject(
         typeProvider, variables.getBool(typeProvider, variableName));
   }
@@ -43,8 +41,8 @@ class DeclaredVariablesTest extends EngineTestCase {
   void test_getBool_true() {
     TestTypeProvider typeProvider = new TestTypeProvider();
     String variableName = "var";
-    DeclaredVariables variables = new DeclaredVariables();
-    variables.define(variableName, "true");
+    DeclaredVariables variables =
+        new DeclaredVariables.fromMap({variableName: 'true'});
     DartObject object = variables.getBool(typeProvider, variableName);
     expect(object, isNotNull);
     expect(object.toBoolValue(), true);
@@ -61,8 +59,8 @@ class DeclaredVariablesTest extends EngineTestCase {
   void test_getInt_invalid() {
     TestTypeProvider typeProvider = new TestTypeProvider();
     String variableName = "var";
-    DeclaredVariables variables = new DeclaredVariables();
-    variables.define(variableName, "four score and seven years");
+    DeclaredVariables variables = new DeclaredVariables.fromMap(
+        {variableName: 'four score and seven years'});
     _assertNullDartObject(
         typeProvider, variables.getInt(typeProvider, variableName));
   }
@@ -78,8 +76,8 @@ class DeclaredVariablesTest extends EngineTestCase {
   void test_getInt_valid() {
     TestTypeProvider typeProvider = new TestTypeProvider();
     String variableName = "var";
-    DeclaredVariables variables = new DeclaredVariables();
-    variables.define(variableName, "23");
+    DeclaredVariables variables =
+        new DeclaredVariables.fromMap({variableName: '23'});
     DartObject object = variables.getInt(typeProvider, variableName);
     expect(object, isNotNull);
     expect(object.toIntValue(), 23);
@@ -89,8 +87,8 @@ class DeclaredVariablesTest extends EngineTestCase {
     TestTypeProvider typeProvider = new TestTypeProvider();
     String variableName = "var";
     String value = "value";
-    DeclaredVariables variables = new DeclaredVariables();
-    variables.define(variableName, value);
+    DeclaredVariables variables =
+        new DeclaredVariables.fromMap({variableName: value});
     DartObject object = variables.getString(typeProvider, variableName);
     expect(object, isNotNull);
     expect(object.toStringValue(), value);

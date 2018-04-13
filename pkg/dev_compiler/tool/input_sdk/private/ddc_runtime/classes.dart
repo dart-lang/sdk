@@ -20,10 +20,10 @@ void mixinMembers(to, from) {
   var toProto = JS('', '#.prototype', to);
   var fromProto = JS('', '#.prototype', from);
   _copyMembers(toProto, fromProto);
-  copySignature(to, from, _methodSig);
-  copySignature(to, from, _fieldSig);
-  copySignature(to, from, _getterSig);
-  copySignature(to, from, _setterSig);
+  _mixinSignature(to, from, _methodSig);
+  _mixinSignature(to, from, _fieldSig);
+  _mixinSignature(to, from, _getterSig);
+  _mixinSignature(to, from, _setterSig);
 }
 
 void _copyMembers(to, from) {
@@ -81,18 +81,15 @@ void _copyMember(to, from, name) {
   defineProperty(to, name, desc);
 }
 
-void copySignature(to, from, signatureField) {
-  defineLazyField(
-      to,
-      signatureField,
-      JS('', '{ get: # }', () {
-        var baseSignature = JS('', '#.__proto__[#]', to, signatureField);
-        var fromSignature = JS('', '#[#]', from, signatureField);
-        if (fromSignature == null) return baseSignature;
-        var toSignature = JS('', '{ __proto__: # }', baseSignature);
-        copyProperties(toSignature, fromSignature);
-        return toSignature;
-      }));
+void _mixinSignature(to, from, kind) {
+  JS('', '#[#] = #', to, kind, () {
+    var baseMembers = _getMembers(JS('', '#.__proto__', to), kind);
+    var fromMembers = _getMembers(from, kind);
+    if (fromMembers == null) return baseMembers;
+    var toSignature = JS('', '{ __proto__: # }', baseMembers);
+    copyProperties(toSignature, fromMembers);
+    return toSignature;
+  });
 }
 
 final _mixin = JS('', 'Symbol("mixin")');
@@ -162,7 +159,6 @@ getGenericClass(type) => safeGetOwnProperty(type, _originalDeclaration);
 List getGenericArgs(type) =>
     JS('List', '#', safeGetOwnProperty(type, _typeArguments));
 
-// TODO(vsm): Collapse into one expando.
 final _constructorSig = JS('', 'Symbol("sigCtor")');
 final _methodSig = JS('', 'Symbol("sigMethod")');
 final _fieldSig = JS('', 'Symbol("sigField")');
@@ -174,17 +170,15 @@ final _staticGetterSig = JS('', 'Symbol("sigStaticGetter")');
 final _staticSetterSig = JS('', 'Symbol("sigStaticSetter")');
 final _genericTypeCtor = JS('', 'Symbol("genericType")');
 
-// TODO(vsm): Collapse this as well - just provide a dart map to mirrors code.
-// These are queried by mirrors code.
-getConstructors(value) => JS('', '#[#]', value, _constructorSig);
-getMethods(value) => JS('', '#[#]', value, _methodSig);
-getFields(value) => JS('', '#[#]', value, _fieldSig);
-getGetters(value) => JS('', '#[#]', value, _getterSig);
-getSetters(value) => JS('', '#[#]', value, _setterSig);
-getStaticMethods(value) => JS('', '#[#]', value, _staticMethodSig);
-getStaticFields(value) => JS('', '#[#]', value, _staticFieldSig);
-getStaticGetters(value) => JS('', '#[#]', value, _staticGetterSig);
-getStaticSetters(value) => JS('', '#[#]', value, _staticSetterSig);
+getConstructors(value) => _getMembers(value, _constructorSig);
+getMethods(value) => _getMembers(value, _methodSig);
+getFields(value) => _getMembers(value, _fieldSig);
+getGetters(value) => _getMembers(value, _getterSig);
+getSetters(value) => _getMembers(value, _setterSig);
+getStaticMethods(value) => _getMembers(value, _staticMethodSig);
+getStaticFields(value) => _getMembers(value, _staticFieldSig);
+getStaticGetters(value) => _getMembers(value, _staticGetterSig);
+getStaticSetters(value) => _getMembers(value, _staticSetterSig);
 
 getGenericTypeCtor(value) => JS('', '#[#]', value, _genericTypeCtor);
 
@@ -210,32 +204,27 @@ bool isJsInterop(obj) {
 
 /// Get the type of a method from a type using the stored signature
 getMethodType(type, name) {
-  var m = JS('', '#[#]', type, _methodSig);
+  var m = getMethods(type);
   return m != null ? JS('', '#[#]', m, name) : null;
 }
 
 /// Gets the type of the corresponding setter (this includes writable fields).
 getSetterType(type, name) {
-  var signature = JS('', '#[#]', type, _setterSig);
-  if (signature != null) {
-    var type = JS('', '#[#]', signature, name);
+  var setters = getSetters(type);
+  if (setters != null) {
+    var type = JS('', '#[#]', setters, name);
     if (type != null) {
-      // TODO(jmesserly): it would be nice not to encode setters with a full
-      // function type.
       if (JS('bool', '# instanceof Array', type)) {
         // The type has metadata attached.  Pull out just the type.
-        // TODO(vsm): Come up with a more robust encoding for this or remove
-        // if we can deprecate mirrors.
-        // Essentially, we've got a FunctionType or a
-        // [FunctionType, metadata1, ..., metadataN].
-        type = JS('', '#[0]', type);
+        // TODO(jmesserly): remove when we remove mirrors
+        return JS('', '#[0]', type);
       }
-      return JS('', '#.args[0]', type);
+      return type;
     }
   }
-  signature = JS('', '#[#]', type, _fieldSig);
-  if (signature != null) {
-    var fieldInfo = JS('', '#[#]', signature, name);
+  var fields = getFields(type);
+  if (fields != null) {
+    var fieldInfo = JS('', '#[#]', fields, name);
     if (fieldInfo != null && JS('bool', '!#.isFinal', fieldInfo)) {
       return JS('', '#.type', fieldInfo);
     }
@@ -252,46 +241,51 @@ fieldType(type, metadata) =>
 /// Get the type of a constructor from a class using the stored signature
 /// If name is undefined, returns the type of the default constructor
 /// Returns undefined if the constructor is not found.
-classGetConstructorType(cls, name) => JS('', '''(() => {
-  if(!$name) $name = 'new';
-  if ($cls === void 0) return void 0;
-  if ($cls == null) return void 0;
-  let sigCtor = $cls[$_constructorSig];
-  if (sigCtor === void 0) return void 0;
-  return sigCtor[$name];
-})()''');
+classGetConstructorType(cls, name) {
+  if (cls == null) return null;
+  if (name == null) name = 'new';
+  var ctors = getConstructors(cls);
+  return ctors != null ? JS('', '#[#]', ctors, name) : null;
+}
 
-void setMethodSignature(f, sigF) => defineLazyGetter(f, _methodSig, sigF);
-void setFieldSignature(f, sigF) => defineLazyGetter(f, _fieldSig, sigF);
-void setGetterSignature(f, sigF) => defineLazyGetter(f, _getterSig, sigF);
-void setSetterSignature(f, sigF) => defineLazyGetter(f, _setterSig, sigF);
+void setMethodSignature(f, sigF) => JS('', '#[#] = #', f, _methodSig, sigF);
+void setFieldSignature(f, sigF) => JS('', '#[#] = #', f, _fieldSig, sigF);
+void setGetterSignature(f, sigF) => JS('', '#[#] = #', f, _getterSig, sigF);
+void setSetterSignature(f, sigF) => JS('', '#[#] = #', f, _setterSig, sigF);
 
 // Set up the constructor signature field on the constructor
 void setConstructorSignature(f, sigF) =>
-    defineLazyGetter(f, _constructorSig, sigF);
+    JS('', '#[#] = #', f, _constructorSig, sigF);
 
 // Set up the static signature field on the constructor
 void setStaticMethodSignature(f, sigF) =>
-    defineLazyGetter(f, _staticMethodSig, sigF);
+    JS('', '#[#] = #', f, _staticMethodSig, sigF);
 
 void setStaticFieldSignature(f, sigF) =>
-    defineLazyGetter(f, _staticFieldSig, sigF);
+    JS('', '#[#] = #', f, _staticFieldSig, sigF);
 
 void setStaticGetterSignature(f, sigF) =>
-    defineLazyGetter(f, _staticGetterSig, sigF);
+    JS('', '#[#] = #', f, _staticGetterSig, sigF);
 
 void setStaticSetterSignature(f, sigF) =>
-    defineLazyGetter(f, _staticSetterSig, sigF);
+    JS('', '#[#] = #', f, _staticSetterSig, sigF);
 
-bool _hasSigEntry(type, kind, name) {
+_getMembers(type, kind) {
   var sig = JS('', '#[#]', type, kind);
+  return JS('bool', 'typeof # == "function"', sig)
+      ? JS('', '#[#] = #', type, kind, sig())
+      : sig;
+}
+
+bool _hasMember(type, kind, name) {
+  var sig = _getMembers(type, kind);
   return sig != null && JS('bool', '# in #', name, sig);
 }
 
-bool hasMethod(type, name) => _hasSigEntry(type, _methodSig, name);
-bool hasGetter(type, name) => _hasSigEntry(type, _getterSig, name);
-bool hasSetter(type, name) => _hasSigEntry(type, _setterSig, name);
-bool hasField(type, name) => _hasSigEntry(type, _fieldSig, name);
+bool hasMethod(type, name) => _hasMember(type, _methodSig, name);
+bool hasGetter(type, name) => _hasMember(type, _getterSig, name);
+bool hasSetter(type, name) => _hasMember(type, _setterSig, name);
+bool hasField(type, name) => _hasMember(type, _fieldSig, name);
 
 final _extensionType = JS('', 'Symbol("extensionType")');
 
@@ -355,15 +349,10 @@ _applyExtension(jsType, dartExtType) {
   if (JS('bool', '# !== #', dartExtType, JSFunction)) {
     JS('', '#[#] = #', jsProto, _extensionType, dartExtType);
   }
-
-  defineLazyGetter(
-      jsType, _methodSig, JS('', '() => #[#]', dartExtType, _methodSig));
-  defineLazyGetter(
-      jsType, _fieldSig, JS('', '() => #[#]', dartExtType, _fieldSig));
-  defineLazyGetter(
-      jsType, _getterSig, JS('', '() => #[#]', dartExtType, _getterSig));
-  defineLazyGetter(
-      jsType, _setterSig, JS('', '() => #[#]', dartExtType, _setterSig));
+  JS('', '#[#] = #[#]', jsType, _methodSig, dartExtType, _methodSig);
+  JS('', '#[#] = #[#]', jsType, _fieldSig, dartExtType, _fieldSig);
+  JS('', '#[#] = #[#]', jsType, _getterSig, dartExtType, _getterSig);
+  JS('', '#[#] = #[#]', jsType, _setterSig, dartExtType, _setterSig);
 }
 
 /// Apply the previously registered extension to the type of [nativeObject].

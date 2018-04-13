@@ -7,6 +7,7 @@ library analyzer_cli.src.build_mode;
 import 'dart:async';
 import 'dart:io' as io;
 
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -414,7 +415,8 @@ class BuildMode extends Object with HasContextMixin {
         sourceFactory,
         analysisOptions,
         externalSummaries: summaryDataStore);
-    Driver.declareVariables(analysisDriver.declaredVariables, options);
+    analysisDriver.declaredVariables =
+        new DeclaredVariables.fromMap(options.definedVariables);
 
     scheduler.start();
   }

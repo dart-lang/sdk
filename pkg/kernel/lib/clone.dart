@@ -98,26 +98,22 @@ class CloneVisitor implements TreeVisitor {
 
   visitPropertyGet(PropertyGet node) {
     return new PropertyGet.byReference(
-        clone(node.receiver), node.name, node.interfaceTargetReference)
-      ..flags = node.flags;
+        clone(node.receiver), node.name, node.interfaceTargetReference);
   }
 
   visitPropertySet(PropertySet node) {
     return new PropertySet.byReference(clone(node.receiver), node.name,
-        clone(node.value), node.interfaceTargetReference)
-      ..flags = node.flags;
+        clone(node.value), node.interfaceTargetReference);
   }
 
   visitDirectPropertyGet(DirectPropertyGet node) {
     return new DirectPropertyGet.byReference(
-        clone(node.receiver), node.targetReference)
-      ..flags = node.flags;
+        clone(node.receiver), node.targetReference);
   }
 
   visitDirectPropertySet(DirectPropertySet node) {
     return new DirectPropertySet.byReference(
-        clone(node.receiver), node.targetReference, clone(node.value))
-      ..flags = node.flags;
+        clone(node.receiver), node.targetReference, clone(node.value));
   }
 
   visitSuperPropertyGet(SuperPropertyGet node) {
@@ -140,14 +136,12 @@ class CloneVisitor implements TreeVisitor {
 
   visitMethodInvocation(MethodInvocation node) {
     return new MethodInvocation.byReference(clone(node.receiver), node.name,
-        clone(node.arguments), node.interfaceTargetReference)
-      ..flags = node.flags;
+        clone(node.arguments), node.interfaceTargetReference);
   }
 
   visitDirectMethodInvocation(DirectMethodInvocation node) {
     return new DirectMethodInvocation.byReference(
-        clone(node.receiver), node.targetReference, clone(node.arguments))
-      ..flags = node.flags;
+        clone(node.receiver), node.targetReference, clone(node.arguments));
   }
 
   visitSuperMethodInvocation(SuperMethodInvocation node) {

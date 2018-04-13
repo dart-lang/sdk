@@ -126,4 +126,3 @@ unused_changes_in_last_reload_test: Skip # Times out on sim architectures.
 
 [ $compiler == fasta && $strong ]
 add_breakpoint_rpc_test: CompileTimeError
-

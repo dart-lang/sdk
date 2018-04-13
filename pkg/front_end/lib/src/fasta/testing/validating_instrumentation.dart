@@ -39,7 +39,6 @@ class ValidatingInstrumentation implements Instrumentation {
       'target',
     ],
     'checks': const [
-      'callKind',
       'covariance',
       'checkGetterReturn',
       'checkReturn',

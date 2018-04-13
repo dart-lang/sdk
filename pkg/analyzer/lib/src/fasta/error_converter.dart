@@ -134,7 +134,14 @@ class FastaErrorReporter {
             ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT,
             offset,
             length,
-            [arguments['string']]);
+            [arguments['name']]);
+        return;
+      case "LABEL_UNDEFINED":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.LABEL_UNDEFINED,
+            offset,
+            length,
+            [arguments['name']]);
         return;
       case "COVARIANT_MEMBER":
         errorReporter?.reportErrorForOffset(

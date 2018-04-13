@@ -319,7 +319,19 @@ abstract class int extends num {
    *
    * The [onError] function is only invoked if [source] is a [String]. It is
    * not invoked if the [source] is, for example, `null`.
+   *
+   * The [onError] parameter is deprecated and will be removed.
+   * Instead of `int.parse(string, onError: (string) { ... })`,
+   * you should use `int.tryParse(string) ?? (...)`.
    */
   external static int parse(String source,
-      {int radix, int onError(String source)});
+      {int radix, @deprecated int onError(String source)});
+
+  /**
+   * Parse [source] as a, possibly signed, integer literal and return its value.
+   *
+   * Like [parse] except that this function returns `null` for invalid inputs
+   * instead of throwing.
+   */
+  external static int tryParse(String source, {int radix});
 }

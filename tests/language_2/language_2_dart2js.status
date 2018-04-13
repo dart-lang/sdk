@@ -1003,7 +1003,6 @@ call_method_implicit_tear_off_implements_function_test/06: RuntimeError
 call_method_is_check_test/06: RuntimeError
 call_method_must_not_be_field_test/03: RuntimeError # Issue 32155
 call_method_must_not_be_getter_test/03: RuntimeError # Issue 32155
-call_with_no_such_method_test: RuntimeError
 checked_setter2_test: RuntimeError # Issue 31128
 checked_setter_test: RuntimeError # Issue 31128
 const_dynamic_type_literal_test/03: Pass # but it shouldn't until we fix issue 17207
@@ -1760,6 +1759,7 @@ call_method_implicit_tear_off_test/02: RuntimeError
 call_method_implicit_tear_off_test/04: RuntimeError
 call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
+call_with_no_such_method_test: RuntimeError
 canonical_const2_test: RuntimeError, OK # non JS number semantics
 cha_deopt1_test: RuntimeError
 cha_deopt2_test: RuntimeError
@@ -2343,4 +2343,3 @@ mixin_mixin6_test: RuntimeError # Issue 31054
 mixin_mixin_bound2_test: RuntimeError # Issue 31054
 mixin_mixin_bound_test: RuntimeError # Issue 31054
 mixin_mixin_type_arguments_test: RuntimeError # Issue 31054
-

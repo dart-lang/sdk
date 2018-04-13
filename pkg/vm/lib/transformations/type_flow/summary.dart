@@ -14,8 +14,8 @@ import 'types.dart';
 import 'utils.dart';
 
 abstract class CallHandler {
-  Type applyCall(
-      Call callSite, Selector selector, Args<Type> args, bool isResultUsed);
+  Type applyCall(Call callSite, Selector selector, Args<Type> args,
+      {bool isResultUsed});
 }
 
 /// Base class for all statements in a summary.
@@ -183,8 +183,9 @@ class Call extends Statement {
     if (selector is! DirectSelector) {
       _observeReceiverType(argTypes[0]);
     }
-    final Type result = callHandler.applyCall(this, selector,
-        new Args<Type>(argTypes, names: args.names), isResultUsed);
+    final Type result = callHandler.applyCall(
+        this, selector, new Args<Type>(argTypes, names: args.names),
+        isResultUsed: isResultUsed);
     if (isResultUsed) {
       _observeResultType(result, typeHierarchy);
     }

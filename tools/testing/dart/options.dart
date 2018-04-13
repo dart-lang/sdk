@@ -167,6 +167,9 @@ simdbc, simdbc64''',
     new _Option.bool('enable_asserts',
         'Pass the --enable-asserts flag to dart2js or to the vm.'),
     new _Option.bool(
+        'no-preview_dart_2', 'Pass the --no-preview-dart-2 flag to analyzer.',
+        hide: true),
+    new _Option.bool(
         'preview_dart_2', 'Pass the --preview-dart-2 flag to analyzer.',
         hide: true),
     // TODO(sigmund): replace dart2js_with_kernel with preview-dart-2.
@@ -641,6 +644,7 @@ compiler.''',
                 isVerbose: data["verbose"] as bool,
                 listTests: data["list"] as bool,
                 listStatusFiles: data["list_status_files"] as bool,
+                noPreviewDart2: data["no-preview_dart_2"] as bool,
                 previewDart2: data["preview_dart_2"] as bool,
                 printTiming: data["time"] as bool,
                 printReport: data["report"] as bool,

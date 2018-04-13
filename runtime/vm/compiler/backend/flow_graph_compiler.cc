@@ -7,6 +7,7 @@
 #include "vm/compiler/backend/flow_graph_compiler.h"
 
 #include "vm/bit_vector.h"
+#include "vm/compiler/backend/code_statistics.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/inliner.h"
 #include "vm/compiler/backend/linearscan.h"
@@ -100,7 +101,8 @@ FlowGraphCompiler::FlowGraphCompiler(
     SpeculativeInliningPolicy* speculative_policy,
     const GrowableArray<const Function*>& inline_id_to_function,
     const GrowableArray<TokenPosition>& inline_id_to_token_pos,
-    const GrowableArray<intptr_t>& caller_inline_id)
+    const GrowableArray<intptr_t>& caller_inline_id,
+    CodeStatistics* stats /* = NULL */)
     : thread_(Thread::Current()),
       zone_(Thread::Current()->zone()),
       assembler_(assembler),
@@ -120,6 +122,7 @@ FlowGraphCompiler::FlowGraphCompiler(
       speculative_policy_(speculative_policy),
       may_reoptimize_(false),
       intrinsic_mode_(false),
+      stats_(stats),
       double_class_(
           Class::ZoneHandle(isolate()->object_store()->double_class())),
       mint_class_(Class::ZoneHandle(isolate()->object_store()->mint_class())),
@@ -492,12 +495,15 @@ void FlowGraphCompiler::VisitBlocks() {
     BeginCodeSourceRange();
     ASSERT(pending_deoptimization_env_ == NULL);
     pending_deoptimization_env_ = entry->env();
+    StatsBegin(entry);
     entry->EmitNativeCode(this);
+    StatsEnd(entry);
     pending_deoptimization_env_ = NULL;
     EndCodeSourceRange(entry->token_pos());
     // Compile all successors until an exit, branch, or a block entry.
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* instr = it.Current();
+      StatsBegin(instr);
       // Compose intervals.
       code_source_map_builder_->StartInliningInterval(assembler()->CodeSize(),
                                                       instr->inlining_id());
@@ -526,6 +532,7 @@ void FlowGraphCompiler::VisitBlocks() {
         FrameStateUpdateWith(instr);
       }
 #endif
+      StatsEnd(instr);
     }
 
 #if defined(DEBUG) && !defined(TARGET_ARCH_DBC)
@@ -581,9 +588,14 @@ void FlowGraphCompiler::AddSlowPathCode(SlowPathCode* code) {
 
 void FlowGraphCompiler::GenerateDeferredCode() {
   for (intptr_t i = 0; i < slow_path_code_.length(); i++) {
+    const CombinedCodeStatistics::EntryCounter stats_tag =
+        CombinedCodeStatistics::SlowPathCounterFor(
+            slow_path_code_[i]->instruction()->tag());
+    SpecialStatsBegin(stats_tag);
     BeginCodeSourceRange();
     slow_path_code_[i]->GenerateCode(this);
     EndCodeSourceRange(TokenPosition::kDeferredSlowPath);
+    SpecialStatsEnd(stats_tag);
   }
   for (intptr_t i = 0; i < deopt_infos_.length(); i++) {
     BeginCodeSourceRange();
@@ -1004,7 +1016,9 @@ bool FlowGraphCompiler::TryIntrinsify() {
       // Reading from a mutable double box requires allocating a fresh double.
       if (field.is_instance() &&
           (FLAG_precompiled_mode || !IsPotentialUnboxedField(field))) {
+        SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
         GenerateInlinedGetter(field.Offset());
+        SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
         return !isolate()->use_field_guards();
       }
       return false;
@@ -1018,7 +1032,9 @@ bool FlowGraphCompiler::TryIntrinsify() {
 
         if (field.is_instance() &&
             (FLAG_precompiled_mode || field.guarded_cid() == kDynamicCid)) {
+          SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
           GenerateInlinedSetter(field.Offset());
+          SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
           return !isolate()->use_field_guards();
         }
         return false;
@@ -1028,7 +1044,9 @@ bool FlowGraphCompiler::TryIntrinsify() {
 
   EnterIntrinsicMode();
 
+  SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
   bool complete = Intrinsifier::Intrinsify(parsed_function(), this);
+  SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
 
   ExitIntrinsicMode();
 

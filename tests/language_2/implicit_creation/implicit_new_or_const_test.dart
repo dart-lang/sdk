@@ -6,9 +6,8 @@ import "package:expect/expect.dart";
 
 import "implicit_new_or_const_test.dart" as prefix;
 
-// Test that const constructors with const arguments become const,
-// and non-const constructors or const-constructors with non-const arguments
-// do not (except in a const context, which is tested elsewhere).
+// Test that const constructors with const arguments do not become const
+// if not in a const context.
 
 main() {
   // Various valid object creation expressions.

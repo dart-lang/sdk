@@ -1588,10 +1588,7 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
 
   Object _handleWriteContravariance(
       ShadowTypeInferrer inferrer, DartType receiverType) {
-    var writeMember = inferrer.findPropertySetMember(receiverType, write);
-    inferrer.handlePropertySetContravariance(
-        receiver, writeMember, write is PropertySet ? write : null, write);
-    return writeMember;
+    return inferrer.findPropertySetMember(receiverType, write);
   }
 
   @override

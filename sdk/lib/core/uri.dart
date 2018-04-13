@@ -1014,6 +1014,23 @@ abstract class Uri {
   }
 
   /**
+   * Creates a new `Uri` object by parsing a URI string.
+   *
+   * If [start] and [end] are provided, only the substring from `start`
+   * to `end` is parsed as a URI.
+   *
+   * Returns `null` if the string is not valid as a URI or URI reference.
+   */
+  static Uri tryParse(String uri, [int start = 0, int end]) {
+    // TODO: Optimize to avoid throwing-and-recatching.
+    try {
+      return parse(uri, start, end);
+    } on FormatException {
+      return null;
+    }
+  }
+
+  /**
    * Encode the string [component] using percent-encoding to make it
    * safe for literal use as a URI component.
    *

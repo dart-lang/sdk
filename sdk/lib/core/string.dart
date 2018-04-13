@@ -309,20 +309,20 @@ abstract class String implements Comparable<String>, Pattern {
    *
    * If the string contains leading or trailing whitespace, a new string with no
    * leading and no trailing whitespace is returned:
-   *
-   *     '\tDart is fun\n'.trim(); // 'Dart is fun'
-   *
+   * ```dart
+   * '\tDart is fun\n'.trim(); // 'Dart is fun'
+   * ```
    * Otherwise, the original string itself is returned:
-   *
-   *     var str1 = 'Dart';
-   *     var str2 = str1.trim();
-   *     identical(str1, str2);    // true
-   *
+   * ```dart
+   * var str1 = 'Dart';
+   * var str2 = str1.trim();
+   * identical(str1, str2);    // true
+   * ```
    * Whitespace is defined by the Unicode White_Space property (as defined in
    * version 6.2 or later) and the BOM character, 0xFEFF.
    *
-   * Here is the list of trimmed characters (following version 6.3):
-   *
+   * Here is the list of trimmed characters according to Unicode version 6.3:
+   * ```
    *     0009..000D    ; White_Space # Cc   <control-0009>..<control-000D>
    *     0020          ; White_Space # Zs   SPACE
    *     0085          ; White_Space # Cc   <control-0085>
@@ -336,6 +336,10 @@ abstract class String implements Comparable<String>, Pattern {
    *     3000          ; White_Space # Zs   IDEOGRAPHIC SPACE
    *
    *     FEFF          ; BOM                ZERO WIDTH NO_BREAK SPACE
+   * ```
+   * Some later versions of Unicode do not include U+0085 as a whitespace
+   * character. Whether it is trimmed depends on the Unicode version
+   * used by the system.
    */
   String trim();
 

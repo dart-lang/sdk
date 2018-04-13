@@ -4,12 +4,9 @@
 
 import "package:expect/expect.dart";
 
-// Tests that const/new-insertion does the right thing for
-// composite object creations.
-//
-// The right thing is that map and list literals are only constant
-// if in a constant context.
-// Object creation is const if constructor is const and all arguments are const.
+// Tests that new-insertion always inserts `new` when not in const context,
+// no matter what the arguments are.
+// There is (currently) no automatic const insertion in non-const context.
 //
 // Not testing inference, so all type arguments are explicit.
 
@@ -34,8 +31,7 @@ main() {
     var cd5 = C(d42); // Non-constant context, so `new`.
 
     Expect.identical(cd1, cd2);
-    Expect.allDistinct([cd1, cd3]);
-    Expect.allDistinct([cd1, cd4, cd5]);
+    Expect.allDistinct([cd1, cd3, cd4, cd5]);
   }
 
   {
@@ -43,18 +39,14 @@ main() {
     const cl1 = const C(const <int>[37]);
     const cl2 = C(clist); // Constant context.
     const cl3 = C(const <int>[37]); // Constant context.
-    const cl4 = C(<int>[37]);
+    const cl4 = C(<int>[37]); // Constant context.
     var cl5 = C(clist); // Non-constant context, so `new`.
     var cl6 = C(const <int>[37]); // Non-constant context, so `new`.
     var cl7 = C(list); // Non-constant context, so `new`.
     var cl8 = C(<int>[37]); // Non-constant context, so `new`.
 
-    Expect.identical(cl1, cl2);
-    Expect.identical(cl1, cl3);
-    Expect.identical(cl1, cl4);
-    Expect.allDistinct([cl1, cl5]);
-    Expect.allDistinct([cl1, cl6]);
-    Expect.allDistinct([cl1, cl7, cl8]);
+    Expect.allIdentical([cl1, cl2, cl3, cl4]);
+    Expect.allDistinct([cl1, cl5, cl6, cl7, cl8]);
   }
 
   {
@@ -69,9 +61,7 @@ main() {
 
     Expect.identical(cm1, cm2);
     Expect.identical(cm1, cm3);
-    Expect.allDistinct([cm1, cm4]);
-    Expect.allDistinct([cm1, cm5]);
-    Expect.allDistinct([cm1, cm6, cm7]);
+    Expect.allDistinct([cm1, cm4, cm5, cm6, cm7]);
   }
 
   {
@@ -93,22 +83,14 @@ main() {
 
     Expect.identical(n1, n2);
     Expect.identical(n1, n3);
-    Expect.allDistinct([n1, n4]);
-    Expect.allDistinct([n1, n8]);
-    Expect.allDistinct([n1, n5, n6, n7, n9, n10, n11, n12, n13, n14]);
+    Expect.allDistinct([n1, n4, n5, n6, n7, n8, n9, n10, n11, n12, n13, n14]);
 
-    Expect.identical(clist, n6.left);
-    Expect.identical(clist, n10.left);
-    Expect.identical(clist, n12.left);
-    Expect.identical(clist, n13.left);
-    Expect.identical(clist, n14.left);
+    Expect
+        .allIdentical([clist, n6.left, n10.left, n12.left, n13.left, n14.left]);
     Expect.allDistinct([n5.left, n7.left, n9.left, n11.left]);
 
-    Expect.identical(cmap, n5.right);
-    Expect.identical(cmap, n9.right);
-    Expect.identical(cmap, n12.right);
-    Expect.identical(cmap, n13.right);
-    Expect.identical(cmap, n14.right);
+    Expect.allIdentical(
+        [cmap, n5.right, n9.right, n12.right, n13.right, n14.right]);
     Expect.allDistinct([n6.right, n7.right, n10.right, n11.right]);
 
     const n20 = const N(const C(42), const <int>[37]);
@@ -124,21 +106,13 @@ main() {
     var n30 = N(c42, clist);
     var n31 = N(cc42, list);
 
-    Expect.identical(n20, n21);
-    Expect.identical(n20, n22);
-    Expect.identical(n20, n23);
-    Expect.identical(n20, n24);
-    Expect.allDistinct([n20, n25]);
-    Expect.allDistinct([n20, n26]);
-    Expect.allDistinct([n20, n27]);
-    Expect.allDistinct([n28, n29, n30, n31]);
-    Expect.allDistinct([cc42, n28.left]);
-    Expect.allDistinct([cc42, n29.left]);
+    Expect.allIdentical([n20, n21, n22, n23, n24]);
+    Expect.allDistinct([n20, n25, n26, n27, n28, n29, n30, n31]);
+
+    Expect.allDistinct([cc42, n28.left, n29.left]);
     Expect.identical(cc42, n30.left);
     Expect.identical(cc42, n31.left);
-    Expect.identical(clist, n29.right);
-    Expect.identical(clist, n30.right);
-    Expect.identical(clist, n31.right);
+    Expect.allIdentical([clist, n29.right, n30.right, n31.right]);
     Expect.notIdentical(clist, n28.right);
   }
 
@@ -178,25 +152,13 @@ main() {
     var l30 = [c42, clist];
     var l31 = [cc42, list];
 
-    Expect.identical(l20, l21);
-    Expect.identical(l20, l22);
-    Expect.identical(l20, l23);
-    Expect.identical(l20, l24);
+    Expect.allIdentical([l20, l21, l22, l23, l24]);
     // List literals are never const unless in const context.
     Expect.allDistinct([l20, l25, l26, l27, l28, l29, l30, l31]);
-    Expect.identical(cc42, l25[0]);
-    Expect.allDistinct([cc42, l26[0]]);
-    Expect.allDistinct([cc42, l27[0]]);
-    Expect.allDistinct([cc42, l28[0]]);
-    Expect.allDistinct([cc42, l29[0]]);
-    Expect.identical(cc42, l30[0]);
-    Expect.identical(cc42, l31[0]);
-    Expect.identical(clist, l25[1]);
-    Expect.identical(clist, l26[1]);
-    Expect.identical(clist, l27[1]);
-    Expect.identical(clist, l29[1]);
-    Expect.identical(clist, l30[1]);
-    Expect.identical(clist, l31[1]);
+    Expect.allIdentical([cc42, l25[0], l30[0], l31[0]]);
+    Expect.allDistinct([cc42, l26[0], l27[0], l28[0], l29[0]]);
+    Expect
+        .allIdentical([clist, l25[1], l26[1], l27[1], l29[1], l30[1], l31[1]]);
     Expect.notIdentical(clist, l28[1]);
   }
 
@@ -229,25 +191,23 @@ main() {
     var m30 = {c42: clist};
     var m31 = {cc42: list};
 
-    Expect.identical(m20, m21);
-    Expect.identical(m20, m22);
-    Expect.identical(m20, m23);
-    Expect.identical(m20, m24);
+    Expect.allIdentical([m20, m21, m22, m23, m24]);
     // Map literals are never const unless in const context.
     Expect.allDistinct([m20, m25, m26, m27, m28, m29, m30, m31]);
     Expect.identical(cc42, m25.keys.first);
-    Expect.allDistinct([cc42, m26.keys.first]);
-    Expect.allDistinct([cc42, m27.keys.first]);
-    Expect.allDistinct([cc42, m28.keys.first]);
-    Expect.allDistinct([cc42, m29.keys.first]);
+    Expect.allDistinct(
+        [cc42, m26.keys.first, m27.keys.first, m28.keys.first, m29.keys.first]);
     Expect.identical(cc42, m30.keys.first);
     Expect.identical(cc42, m31.keys.first);
-    Expect.identical(clist, m25.values.first);
-    Expect.identical(clist, m26.values.first);
-    Expect.identical(clist, m27.values.first);
-    Expect.identical(clist, m29.values.first);
-    Expect.identical(clist, m30.values.first);
-    Expect.identical(clist, m31.values.first);
+    Expect.allIdentical([
+      clist,
+      m25.values.first,
+      m26.values.first,
+      m27.values.first,
+      m29.values.first,
+      m30.values.first,
+      m31.values.first
+    ]);
     Expect.notIdentical(clist, m28.values.first);
   }
 }

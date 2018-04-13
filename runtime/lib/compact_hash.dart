@@ -78,14 +78,19 @@ abstract class _HashBase implements _HashVMBase {
   static const int _UNUSED_PAIR = 0;
   static const int _DELETED_PAIR = 1;
 
-  // The top bits are wasted to avoid Mint allocation.
+  // On 32-bit, the top bits are wasted to avoid Mint allocation.
+  // TODO(koda): Reclaim the bits by making the compiler treat hash patterns
+  // as unsigned words.
   static int _indexSizeToHashMask(int indexSize) {
     int indexBits = indexSize.bitLength - 2;
-    return (1 << (30 - indexBits)) - 1;
+    return internal.is64Bit
+        ? (1 << (32 - indexBits)) - 1
+        : (1 << (30 - indexBits)) - 1;
   }
 
   static int _hashPattern(int fullHash, int hashMask, int size) {
     final int maskedHash = fullHash & hashMask;
+    // TODO(koda): Consider keeping bit length and use left shift.
     return (maskedHash == 0) ? (size >> 1) : maskedHash * (size >> 1);
   }
 

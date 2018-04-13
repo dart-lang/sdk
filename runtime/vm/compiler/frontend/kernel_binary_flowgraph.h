@@ -1093,8 +1093,6 @@ class StreamingFlowGraphBuilder {
   void ReadUntilFunctionNode(ParsedFunction* set_forwarding_stub = NULL);
   intptr_t ReadListLength();
 
-  enum DispatchCategory { Interface, ViaThis, Closure, DynamicDispatch };
-
   void ReportUnexpectedTag(const char* variant, Tag tag);
 
  private:

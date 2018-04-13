@@ -168,7 +168,7 @@ class DynamicSelectorsCollector extends RecursiveVisitor<Null> {
     super.visitMethodInvocation(node);
 
     Selector selector;
-    if (node.dispatchCategory == DispatchCategory.dynamicDispatch) {
+    if (node.interfaceTarget == null) {
       dynamicSelectors.add(new Selector.doInvoke(node.name));
     } else {
       if (node.receiver is! ThisExpression) {
@@ -182,13 +182,9 @@ class DynamicSelectorsCollector extends RecursiveVisitor<Null> {
     super.visitDirectMethodInvocation(node);
 
     Selector selector;
-    if (node.dispatchCategory == DispatchCategory.dynamicDispatch) {
-      dynamicSelectors.add(selector = new Selector.doInvoke(node.target.name));
-    } else {
-      if (node.receiver is! ThisExpression) {
-        nonThisSelectors
-            .add(selector ??= new Selector.doInvoke(node.target.name));
-      }
+    if (node.receiver is! ThisExpression) {
+      nonThisSelectors
+          .add(selector ??= new Selector.doInvoke(node.target.name));
     }
   }
 
@@ -197,7 +193,7 @@ class DynamicSelectorsCollector extends RecursiveVisitor<Null> {
     super.visitPropertyGet(node);
 
     Selector selector;
-    if (node.dispatchCategory == DispatchCategory.dynamicDispatch) {
+    if (node.interfaceTarget == null) {
       dynamicSelectors.add(selector = new Selector.doGet(node.name));
     } else {
       if (node.receiver is! ThisExpression) {
@@ -215,17 +211,13 @@ class DynamicSelectorsCollector extends RecursiveVisitor<Null> {
   visitDirectPropertyGet(DirectPropertyGet node) {
     super.visitDirectPropertyGet(node);
 
-    if (node.dispatchCategory == DispatchCategory.dynamicDispatch) {
-      dynamicSelectors.add(new Selector.doGet(node.target.name));
-    } else {
-      if (node.receiver is! ThisExpression) {
-        nonThisSelectors.add(new Selector.doGet(node.target.name));
-      }
+    if (node.receiver is! ThisExpression) {
+      nonThisSelectors.add(new Selector.doGet(node.target.name));
+    }
 
-      final target = node.target;
-      if (target is Procedure && target.kind == ProcedureKind.Method) {
-        tearOffSelectors.add(new Selector.doInvoke(target.name));
-      }
+    final target = node.target;
+    if (target is Procedure && target.kind == ProcedureKind.Method) {
+      tearOffSelectors.add(new Selector.doInvoke(target.name));
     }
   }
 
@@ -234,7 +226,7 @@ class DynamicSelectorsCollector extends RecursiveVisitor<Null> {
     super.visitPropertySet(node);
 
     Selector selector;
-    if (node.dispatchCategory == DispatchCategory.dynamicDispatch) {
+    if (node.interfaceTarget == null) {
       dynamicSelectors.add(selector = new Selector.doSet(node.name));
     } else {
       if (node.receiver is! ThisExpression) {
@@ -248,12 +240,8 @@ class DynamicSelectorsCollector extends RecursiveVisitor<Null> {
     super.visitDirectPropertySet(node);
 
     Selector selector;
-    if (node.dispatchCategory == DispatchCategory.dynamicDispatch) {
-      dynamicSelectors.add(selector = new Selector.doSet(node.target.name));
-    } else {
-      if (node.receiver is! ThisExpression) {
-        nonThisSelectors.add(selector ??= new Selector.doSet(node.target.name));
-      }
+    if (node.receiver is! ThisExpression) {
+      nonThisSelectors.add(selector ??= new Selector.doSet(node.target.name));
     }
   }
 }

@@ -1121,32 +1121,28 @@ const MessageCode messageDuplicateDeferred = const MessageCode(
     tip: r"""Try removing all but one 'deferred' keyword.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String
-            string)> templateDuplicateLabelInSwitchStatement = const Template<
-        Message Function(String string)>(
-    messageTemplate:
-        r"""The label '#string' was already used in this switch statement.""",
-    tipTemplate: r"""Try choosing a different name for this label.""",
-    withArguments: _withArgumentsDuplicateLabelInSwitchStatement);
+const Template<Message Function(String name)>
+    templateDuplicateLabelInSwitchStatement =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""The label '#name' was already used in this switch statement.""",
+        tipTemplate: r"""Try choosing a different name for this label.""",
+        withArguments: _withArgumentsDuplicateLabelInSwitchStatement);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)>
-    codeDuplicateLabelInSwitchStatement =
-    const Code<Message Function(String string)>(
-        "DuplicateLabelInSwitchStatement",
+const Code<Message Function(String name)> codeDuplicateLabelInSwitchStatement =
+    const Code<Message Function(String name)>("DuplicateLabelInSwitchStatement",
         templateDuplicateLabelInSwitchStatement,
         analyzerCode: "DUPLICATE_LABEL_IN_SWITCH_STATEMENT",
         dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicateLabelInSwitchStatement(String string) {
+Message _withArgumentsDuplicateLabelInSwitchStatement(String name) {
   return new Message(codeDuplicateLabelInSwitchStatement,
       message:
-          """The label '$string' was already used in this switch statement.""",
+          """The label '$name' was already used in this switch statement.""",
       tip: """Try choosing a different name for this label.""",
-      arguments: {'string': string});
+      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3324,6 +3320,30 @@ const MessageCode messageInvalidVoid = const MessageCode("InvalidVoid",
         r"""Type 'void' can't be used here because it isn't a return type.""",
     tip:
         r"""Try removing 'void' keyword or replace it with 'var', 'final', or a type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(String name)> templateLabelNotFound = const Template<
+        Message Function(String name)>(
+    messageTemplate: r"""Can't find label '#name'.""",
+    tipTemplate:
+        r"""Try defining the label, or correcting the name to match an existing label.""",
+    withArguments: _withArgumentsLabelNotFound);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeLabelNotFound =
+    const Code<Message Function(String name)>(
+        "LabelNotFound", templateLabelNotFound,
+        analyzerCode: "LABEL_UNDEFINED", dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsLabelNotFound(String name) {
+  return new Message(codeLabelNotFound,
+      message: """Can't find label '$name'.""",
+      tip:
+          """Try defining the label, or correcting the name to match an existing label.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeLibraryDirectiveNotFirst = messageLibraryDirectiveNotFirst;

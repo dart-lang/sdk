@@ -708,7 +708,7 @@ Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closuriz
 Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/no_such_method_t02: CompileTimeError
 Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/static_type_t03: CompileTimeError
 Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/static_type_warning_t01: CompileTimeError
-Language/Expressions/Property_Extraction/conditional_t06: Crash
+Language/Expressions/Property_Extraction/conditional_t06: CompileTimeError
 Language/Expressions/Property_Extraction/static_type_warning_t01/01: CompileTimeError
 Language/Expressions/Relational_Expressions/syntax_t01/01: CompileTimeError
 Language/Expressions/Relational_Expressions/syntax_t01/02: CompileTimeError
@@ -1744,4 +1744,3 @@ LibTest/typed_data/Uint64List/Uint64List.view_A01_t02: CompileTimeError
 
 [ $compiler == dartk || $compiler == dartkp ]
 *: SkipByDesign
-

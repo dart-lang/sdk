@@ -193,7 +193,7 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
           .contains(currentSection.section)) {
         currentSection.statusFile.sections.add(currentSection.section);
       }
-      currentSection.section.entries.add(statusEntry);
+      currentSection.section.entries.insert(0, statusEntry);
       changedFiles.add(currentSection.statusFile);
     }
     // Save the modified status files.
@@ -218,7 +218,8 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
             section.condition != null &&
             section.condition.normalize().compareTo(expression) == 0,
         orElse: () => null);
-    sectionToAdd ??= new StatusSection(expression, 0, []);
+    sectionToAdd ??= new StatusSection(expression, 0, [])
+      ..entries.add(new EmptyEntry(0));
     var section = new StatusSectionWithFile(statusFile, sectionToAdd);
     _customSections.add(new _CustomSection(section));
     _currentWorkingItem.currentSections.add(section);
@@ -321,7 +322,8 @@ class FixWorkingItem {
       var file = customSection._findStatusFile(files);
       if (file != null) {
         var section = customSection._findSectionInFile(file);
-        section ??= new StatusSection(customSection.condition, 0, []);
+        section ??= new StatusSection(customSection.condition, 0, [])
+          ..entries.add(new EmptyEntry(0));
         return [new StatusSectionWithFile(file, section)];
       }
       return [];

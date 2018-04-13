@@ -84,4 +84,3 @@ io/file_typed_data_test: Skip # Issue 26109
 full_coverage_test: Skip # TODO(vegorov) SIMDBC interpreter doesn't support coverage yet.
 link_natives_lazily_test: SkipByDesign # SIMDBC interpreter doesn't support lazy linking of natives.
 no_lazy_dispatchers_test: SkipByDesign # SIMDBC interpreter doesn't support --no_lazy_dispatchers
-

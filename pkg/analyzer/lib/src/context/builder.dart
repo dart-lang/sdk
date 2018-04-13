@@ -6,7 +6,7 @@ import 'dart:collection';
 import 'dart:core';
 
 import 'package:analyzer/context/context_root.dart';
-import 'package:analyzer/context/declared_variables.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
@@ -16,6 +16,7 @@ import 'package:analyzer/src/command_line/arguments.dart'
         applyAnalysisOptionFlags,
         bazelAnalysisOptionsPath,
         flutterAnalysisOptionsPath;
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -292,13 +293,10 @@ class ContextBuilder {
    * Add any [declaredVariables] to the list of declared variables used by the
    * given [context].
    */
-  void declareVariables(InternalAnalysisContext context) {
+  void declareVariables(AnalysisContextImpl context) {
     Map<String, String> variables = builderOptions.declaredVariables;
     if (variables != null && variables.isNotEmpty) {
-      DeclaredVariables contextVariables = context.declaredVariables;
-      variables.forEach((String variableName, String value) {
-        contextVariables.define(variableName, value);
-      });
+      context.declaredVariables = new DeclaredVariables.fromMap(variables);
     }
   }
 
@@ -309,10 +307,7 @@ class ContextBuilder {
   void declareVariablesInDriver(AnalysisDriver driver) {
     Map<String, String> variables = builderOptions.declaredVariables;
     if (variables != null && variables.isNotEmpty) {
-      DeclaredVariables contextVariables = driver.declaredVariables;
-      variables.forEach((String variableName, String value) {
-        contextVariables.define(variableName, value);
-      });
+      driver.declaredVariables = new DeclaredVariables.fromMap(variables);
     }
   }
 

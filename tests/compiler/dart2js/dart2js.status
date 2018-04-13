@@ -115,4 +115,3 @@ serialization*: Slow, Pass
 
 [ $runtime == chrome || $runtime == ff || $runtime == firefox || $runtime == safari || $jscl ]
 *: Skip # dart2js uses #import('dart:io'); and it is not self-hosted (yet).
-

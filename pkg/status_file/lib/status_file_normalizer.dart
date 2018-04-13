@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'canonical_status_file.dart';
+import 'dart:convert';
 
 StatusFile normalizeStatusFile(StatusFile statusFile) {
   StatusFile newStatusFile = _sortSectionsAndCombine(statusFile);
@@ -10,6 +11,8 @@ StatusFile normalizeStatusFile(StatusFile statusFile) {
     _sortEntriesInSection(section);
     _oneLineBetweenSections(section);
   });
+  // Remove empty line at the end of the file
+  newStatusFile.sections.last.entries.removeLast();
   return newStatusFile;
 }
 
@@ -44,8 +47,8 @@ void _oneLineBetweenSections(StatusSection section) {
 
 StatusFile _sortSectionsAndCombine(StatusFile statusFile) {
   // Create the new status file to be returned.
-  StatusFile oldStatusFile =
-      new StatusFile.parse(statusFile.path, statusFile.toString().split('\n'));
+  StatusFile oldStatusFile = new StatusFile.parse(
+      statusFile.path, LineSplitter.split(statusFile.toString()).toList());
   List<StatusSection> newSections = [];
   // Copy over all sections and normalize all the expressions.
   oldStatusFile.sections.forEach((section) {

@@ -117,20 +117,29 @@ class RunCompilations extends Step<TestData, TestData, Context> {
 
 void basicTest(Map<String, String> sourceFiles, String entryPoint, bool strong,
     List<String> invalidate, Directory outDir) async {
-  Uri entryPointUri;
+  Uri entryPointUri = outDir.uri.resolve(entryPoint);
   Set<String> invalidateFilenames = invalidate?.toSet() ?? new Set<String>();
   List<Uri> invalidateUris = <Uri>[];
   Uri packagesUri;
   for (String filename in sourceFiles.keys) {
     Uri uri = outDir.uri.resolve(filename);
-    if (filename == entryPoint) entryPointUri = uri;
-    if (invalidateFilenames.contains(filename)) invalidateUris.add(uri);
+    if (invalidateFilenames.contains(filename)) {
+      invalidateUris.add(uri);
+      invalidateFilenames.remove(filename);
+    }
     String source = sourceFiles[filename];
     if (filename == ".packages") {
       source = substituteVariables(source, outDir.uri);
       packagesUri = uri;
     }
     new File.fromUri(uri).writeAsStringSync(source);
+  }
+  for (String invalidateFilename in invalidateFilenames) {
+    if (invalidateFilename.startsWith('package:')) {
+      invalidateUris.add(Uri.parse(invalidateFilename));
+    } else {
+      throw "Error in test yaml: $invalidateFilename was not recognized.";
+    }
   }
 
   Uri output = outDir.uri.resolve("full.dill");
@@ -145,9 +154,13 @@ void basicTest(Map<String, String> sourceFiles, String entryPoint, bool strong,
   print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
 
   stopwatch.reset();
+  options = getOptions(strong);
+  if (packagesUri != null) {
+    options.packagesFileUri = packagesUri;
+  }
   bool initializedResult = await initializedCompile(
       entryPointUri, initializedOutput, output, invalidateUris,
-      options: getOptions(strong));
+      options: options);
   print("Initialized compile(s) from ${output.pathSegments.last} "
       "took ${stopwatch.elapsedMilliseconds} ms");
   Expect.isTrue(initializedResult);
@@ -249,7 +262,8 @@ void newWorldTest(bool strong, List worlds) async {
     }
 
     Stopwatch stopwatch = new Stopwatch()..start();
-    Component component = await compiler.computeDelta(fullComponent: true);
+    Component component = await compiler.computeDelta(
+        fullComponent: brandNewWorld ? false : true);
     if (world["errors"] == true && !gotError) {
       throw "Expected error, but didn't get any.";
     } else if (world["errors"] != true && gotError) {
@@ -278,7 +292,7 @@ void newWorldTest(bool strong, List worlds) async {
     if (world["checkInvalidatedFiles"] != false) {
       if (world["invalidate"] != null) {
         Expect.equals(world["invalidate"].length,
-            compiler.invalidatedImportUrisForTesting.length);
+            compiler.invalidatedImportUrisForTesting?.length ?? 0);
         List expectedInvalidatedUri = world["expectedInvalidatedUri"];
         if (expectedInvalidatedUri != null) {
           Expect.setEquals(
@@ -357,6 +371,12 @@ Future<bool> initializedCompile(
   throwOnEmptyMixinBodies(initializedComponent);
   bool result = compiler.initializedFromDill;
   await writeComponentToFile(initializedComponent, output);
+  int actuallyInvalidatedCount =
+      compiler.invalidatedImportUrisForTesting?.length ?? 0;
+  if (result && actuallyInvalidatedCount < invalidateUris.length) {
+    Expect.fail("Expected at least ${invalidateUris.length} invalidated uris, "
+        "got $actuallyInvalidatedCount");
+  }
 
   var initializedComponent2 = await compiler.computeDelta(fullComponent: true);
   throwOnEmptyMixinBodies(initializedComponent2);
@@ -371,6 +391,13 @@ Future<bool> initializedCompile(
 
   var partialComponent = await compiler.computeDelta();
   throwOnEmptyMixinBodies(partialComponent);
+  actuallyInvalidatedCount =
+      (compiler.invalidatedImportUrisForTesting?.length ?? 0);
+  if (actuallyInvalidatedCount < invalidateUris.length) {
+    Expect.fail("Expected at least ${invalidateUris.length} invalidated uris, "
+        "got $actuallyInvalidatedCount");
+  }
+
   var emptyComponent = await compiler.computeDelta();
   throwOnEmptyMixinBodies(emptyComponent);
 
@@ -384,6 +411,7 @@ Future<bool> initializedCompile(
   Expect.isTrue(fullLibUris.length > partialLibUris.length ||
       partialLibUris.length == invalidateUris.length);
   Expect.isTrue(partialLibUris.isNotEmpty || invalidateUris.isEmpty);
+
   Expect.isTrue(emptyLibUris.isEmpty);
 
   return result;
@@ -417,7 +445,7 @@ String substituteVariables(String source, Uri base) {
 }
 
 class TestIncrementalCompiler extends IncrementalCompiler {
-  List<Uri> invalidatedImportUrisForTesting;
+  Set<Uri> invalidatedImportUrisForTesting;
 
   TestIncrementalCompiler(CompilerOptions options, Uri entryPoint,
       [Uri initializeFrom])
@@ -428,6 +456,6 @@ class TestIncrementalCompiler extends IncrementalCompiler {
 
   @override
   void recordInvalidatedImportUrisForTesting(List<Uri> uris) {
-    invalidatedImportUrisForTesting = uris.isEmpty ? null : uris.toList();
+    invalidatedImportUrisForTesting = uris.isEmpty ? null : uris.toSet();
   }
 }

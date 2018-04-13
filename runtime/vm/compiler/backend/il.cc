@@ -8,6 +8,7 @@
 
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
+#include "vm/compiler/backend/code_statistics.h"
 #include "vm/compiler/backend/constant_propagator.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/linearscan.h"
@@ -1552,10 +1553,10 @@ bool BinaryIntegerOpInstr::RightIsPowerOfTwoConstant() const {
   return Utils::IsPowerOfTwo(Utils::Abs(int_value));
 }
 
-static intptr_t SignificantRepresentationBits(Representation r) {
+static intptr_t RepresentationBits(Representation r) {
   switch (r) {
     case kTagged:
-      return 31;
+      return kBitsPerWord - 1;
     case kUnboxedInt32:
     case kUnboxedUint32:
       return 32;
@@ -1569,7 +1570,7 @@ static intptr_t SignificantRepresentationBits(Representation r) {
 
 static int64_t RepresentationMask(Representation r) {
   return static_cast<int64_t>(static_cast<uint64_t>(-1) >>
-                              (64 - SignificantRepresentationBits(r)));
+                              (64 - RepresentationBits(r)));
 }
 
 static bool ToIntegerConstant(Value* value, int64_t* result) {
@@ -2130,8 +2131,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
       break;
 
     case Token::kSHL: {
-      const intptr_t kMaxShift =
-          SignificantRepresentationBits(representation()) - 1;
+      const intptr_t kMaxShift = RepresentationBits(representation()) - 1;
       if (rhs == 0) {
         return left()->definition();
       } else if ((rhs < 0) || (rhs >= kMaxShift)) {
@@ -3792,6 +3792,21 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif  // !defined(TARGET_ARCH_DBC)
 }
 
+intptr_t AssertAssignableInstr::statistics_tag() const {
+  switch (kind_) {
+    case kParameterCheck:
+      return CombinedCodeStatistics::kTagAssertAssignableParameterCheck;
+    case kInsertedByFrontend:
+      return CombinedCodeStatistics::kTagAssertAssignableInsertedByFrontend;
+    case kFromSource:
+      return CombinedCodeStatistics::kTagAssertAssignableFromSource;
+    case kUnknown:
+      break;
+  }
+
+  return tag();
+}
+
 void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateAssertAssignable(token_pos(), deopt_id(), dst_type(),
                                      dst_name(), locs());
@@ -3902,13 +3917,13 @@ LocationSummary* GenericCheckBoundInstr::MakeLocationSummary(Zone* zone,
   return locs;
 }
 
-class ThrowErrorSlowPathCode : public SlowPathCode {
+class ThrowErrorSlowPathCode : public TemplateSlowPathCode<Instruction> {
  public:
   ThrowErrorSlowPathCode(Instruction* instruction,
                          const RuntimeEntry& runtime_entry,
                          intptr_t num_args,
                          intptr_t try_index)
-      : instruction_(instruction),
+      : TemplateSlowPathCode(instruction),
         runtime_entry_(runtime_entry),
         num_args_(num_args),
         try_index_(try_index) {}
@@ -3920,7 +3935,7 @@ class ThrowErrorSlowPathCode : public SlowPathCode {
       __ Comment("slow path %s operation", name());
     }
     __ Bind(entry_label());
-    LocationSummary* locs = instruction_->locs();
+    LocationSummary* locs = instruction()->locs();
     // Save registers as they are needed for lazy deopt / exception handling.
     compiler->SaveLiveRegisters(locs);
     for (intptr_t i = 0; i < num_args_; ++i) {
@@ -3929,15 +3944,14 @@ class ThrowErrorSlowPathCode : public SlowPathCode {
     __ CallRuntime(runtime_entry_, num_args_);
     compiler->AddDescriptor(
         RawPcDescriptors::kOther, compiler->assembler()->CodeSize(),
-        instruction_->deopt_id(), instruction_->token_pos(), try_index_);
+        instruction()->deopt_id(), instruction()->token_pos(), try_index_);
     compiler->RecordSafepoint(locs, num_args_);
-    Environment* env = compiler->SlowPathEnvironmentFor(instruction_);
+    Environment* env = compiler->SlowPathEnvironmentFor(instruction());
     compiler->EmitCatchEntryState(env, try_index_);
     __ Breakpoint();
   }
 
  private:
-  Instruction* instruction_;
   const RuntimeEntry& runtime_entry_;
   const intptr_t num_args_;
   const intptr_t try_index_;

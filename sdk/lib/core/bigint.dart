@@ -37,6 +37,15 @@ abstract class BigInt implements Comparable<BigInt> {
    */
   external static BigInt parse(String source, {int radix});
 
+  /**
+   * Parses [source] as a, possibly signed, integer literal and returns its
+   * value.
+   *
+   * As [parse] except that this method returns `null` if the input is not
+   * valid
+   */
+  external static BigInt tryParse(String source, {int radix});
+
   /// Allocates a big integer from the provided [value] number.
   external factory BigInt.from(num value);
 
