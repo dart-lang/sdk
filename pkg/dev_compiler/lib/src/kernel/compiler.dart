@@ -1624,9 +1624,10 @@ class ProgramCompiler extends Object
       }
     }
 
-    for (Member m in _classProperties.mockMembers.values) {
-      _addMockMembers(m, c, jsMethods);
-    }
+    _classProperties.mockMembers.forEach((String name, Member member) {
+      jsMethods
+          .add(_implementMockMember(member, c, isSetter: name.endsWith('=')));
+    });
 
     // If the type doesn't have an `iterator`, but claims to implement Iterable,
     // we inject the adaptor method here, as it's less code size to put the
@@ -1818,15 +1819,15 @@ class ProgramCompiler extends Object
   ///
   /// Same technique is applied if interface I has fields, and C doesn't declare
   /// neither the fields nor the corresponding getters and setters.
-  void _addMockMembers(Member member, Class c, List<JS.Method> jsMethods) {
+  JS.Method _implementMockMember(Member member, Class c, {bool isSetter}) {
     JS.Method implementMockMember(
         List<TypeParameter> typeParameters,
         List<JS.Parameter> positionalParameters,
         List<VariableDeclaration> namedParameters,
         int requiredParameterCount,
-        ProcedureKind mockMemberKind,
+        ProcedureKind procedureKind,
         DartType returnType) {
-      assert(mockMemberKind != ProcedureKind.Factory);
+      assert(procedureKind != ProcedureKind.Factory);
 
       var invocationProps = <JS.Property>[];
       addProperty(String name, JS.Expression value) {
@@ -1853,13 +1854,13 @@ class ProgramCompiler extends Object
         }
       }
 
-      if (mockMemberKind != ProcedureKind.Getter &&
-          mockMemberKind != ProcedureKind.Setter) {
+      if (procedureKind != ProcedureKind.Getter &&
+          procedureKind != ProcedureKind.Setter) {
         addProperty('isMethod', js.boolean(true));
       } else {
-        if (mockMemberKind == ProcedureKind.Getter) {
+        if (procedureKind == ProcedureKind.Getter) {
           addProperty('isGetter', js.boolean(true));
-        } else if (mockMemberKind == ProcedureKind.Setter) {
+        } else if (procedureKind == ProcedureKind.Setter) {
           addProperty('isSetter', js.boolean(true));
         }
       }
@@ -1889,28 +1890,30 @@ class ProgramCompiler extends Object
           _declareMemberName(member,
               useExtension: _extensionTypes.isNativeClass(c)),
           fn,
-          isGetter: mockMemberKind == ProcedureKind.Getter,
-          isSetter: mockMemberKind == ProcedureKind.Setter,
+          isGetter: procedureKind == ProcedureKind.Getter,
+          isSetter: procedureKind == ProcedureKind.Setter,
           isStatic: false);
     }
 
     if (member is Field) {
-      jsMethods.add(implementMockMember(
-          [], [], [], 0, ProcedureKind.Getter, member.type));
-      if (!member.isFinal) {
-        jsMethods.add(implementMockMember([], [new JS.TemporaryId('value')], [],
-            1, ProcedureKind.Setter, new VoidType()));
+      if (isSetter) {
+        return implementMockMember([], [new JS.TemporaryId('value')], [], 1,
+            ProcedureKind.Setter, new VoidType());
+      } else {
+        return implementMockMember(
+            [], [], [], 0, ProcedureKind.Getter, member.type);
       }
     } else {
       var procedure = member as Procedure;
       var f = procedure.function;
-      jsMethods.add(implementMockMember(
+      assert(procedure.isSetter == isSetter);
+      return implementMockMember(
           f.typeParameters,
           f.positionalParameters.map(_emitVariableRef).toList(),
           f.namedParameters,
           f.requiredParameterCount,
           procedure.kind,
-          f.returnType));
+          f.returnType);
     }
   }
 

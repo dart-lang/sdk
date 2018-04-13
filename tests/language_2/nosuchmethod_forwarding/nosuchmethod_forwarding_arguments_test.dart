@@ -80,7 +80,7 @@ main() {
   a.test5<int>(1);
   (a.test5 as dynamic)<int>(1);
   Expect.throwsTypeError(() => (a.test5 as dynamic)<String>("foo"));
-  Expect.throwsTypeError(() => (a.test5 as dynamic)<int>(3.0));
+  Expect.throwsTypeError(() => (a.test5 as dynamic)<int>(3.1));
 
   Expect.throwsTypeError(() => a.test6());
   Expect.throwsTypeError(() => (a.test6 as dynamic)());

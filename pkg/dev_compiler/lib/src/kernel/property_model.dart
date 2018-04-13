@@ -281,6 +281,16 @@ class ClassPropertyModel {
     // called at runtime.)
     var concreteMembers = new HashSet<String>();
 
+    void addMember(Member m, bool classIsAbstract, {bool isSetter: false}) {
+      var name = m.name.name;
+      if (isSetter) name += '=';
+      if (classIsAbstract || m.isAbstract) {
+        mockMembers[name] = m;
+      } else {
+        concreteMembers.add(name);
+      }
+    }
+
     void visit(Class c, bool classIsAbstract) {
       if (c == null) return;
       visit(c.superclass, classIsAbstract);
@@ -288,13 +298,13 @@ class ClassPropertyModel {
       for (var i in c.implementedTypes) visit(i.classNode, true);
 
       for (var m in c.members) {
-        if (m is Constructor) continue;
-        if (m is Procedure && m.isStatic) continue;
-
-        if (classIsAbstract || m.isAbstract) {
-          mockMembers[m.name.name] = m;
-        } else {
-          concreteMembers.add(m.name.name);
+        if (m is Field) {
+          if (m.isStatic) continue;
+          addMember(m, classIsAbstract);
+          if (m.hasSetter) addMember(m, classIsAbstract, isSetter: true);
+        } else if (m is Procedure) {
+          if (m.isStatic) continue;
+          addMember(m, classIsAbstract, isSetter: m.isSetter);
         }
       }
     }
