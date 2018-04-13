@@ -2020,10 +2020,14 @@ class RODataSerializationCluster : public SerializationCluster {
     s->WriteCid(cid_);
     intptr_t count = objects_.length();
     s->WriteUnsigned(count);
+    uint32_t running_offset = 0;
     for (intptr_t i = 0; i < count; i++) {
       RawObject* object = objects_[i];
-      uint32_t rodata_offset = s->GetDataOffset(object);
-      s->WriteUnsigned(rodata_offset);
+      uint32_t offset = s->GetDataOffset(object);
+      ASSERT(Utils::IsAligned(offset, kObjectAlignment));
+      ASSERT(offset > running_offset);
+      s->WriteUnsigned((offset - running_offset) >> kObjectAlignmentLog2);
+      running_offset = offset;
       s->AssignRef(object);
     }
   }
@@ -2045,9 +2049,10 @@ class RODataDeserializationCluster : public DeserializationCluster {
 
   void ReadAlloc(Deserializer* d) {
     intptr_t count = d->ReadUnsigned();
+    uint32_t running_offset = 0;
     for (intptr_t i = 0; i < count; i++) {
-      uint32_t rodata_offset = d->ReadUnsigned();
-      d->AssignRef(d->GetObjectAt(rodata_offset));
+      running_offset += d->ReadUnsigned() << kObjectAlignmentLog2;
+      d->AssignRef(d->GetObjectAt(running_offset));
     }
   }
 
