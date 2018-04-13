@@ -847,16 +847,55 @@ class AsConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    // Running example for comments:
+    //
+    //     class A<T> {
+    //       final T t;
+    //       const A(dynamic t) : this.t = t; // implicitly `t as A.T`
+    //     }
+    //     class B<S> extends A<S> {
+    //       const B(dynamic s) : super(s);
+    //     }
+    //     main() => const B<num>(0);
+    //
+    // We visit `t as A.T` while evaluating `const B<num>(0)`.
+
+    // The expression value is `0`.
     ConstantValue expressionValue =
         expression.evaluate(environment, constantSystem);
+
+    // The expression type is `int`.
     DartType expressionType =
         expressionValue.getType(environment.commonElements);
+
+    // The `as` type is `A.T`.
+    DartType typeInContext = type;
+
+    // The enclosing type is `B<num>`.
     DartType enclosingType = environment.enclosingConstructedType;
-    DartType superType = enclosingType != null
-        ? environment.substByContext(type, enclosingType)
-        : type;
+    if (enclosingType != null) {
+      ClassEntity contextClass;
+      type.forEachTypeVariable((TypeVariableType type) {
+        if (type.element.typeDeclaration is ClassEntity) {
+          // We find `A` from `A.T`. Since we don't have nested classes, class
+          // based type variables can only come from the same class.
+          contextClass = type.element.typeDeclaration;
+        }
+      });
+      if (contextClass != null) {
+        // The enclosing type `B<num>` as an instance of `A` is `A<num>`.
+        enclosingType =
+            environment.types.asInstanceOf(enclosingType, contextClass);
+      }
+      // `A.T` in the context of the enclosing type `A<num>` is `num`.
+      typeInContext = enclosingType != null
+          ? environment.substByContext(typeInContext, enclosingType)
+          : typeInContext;
+    }
+    // Check that the expression type, `int`, is a subtype of the type in
+    // context, `num`.
     if (!constantSystem.isSubtype(
-        environment.types, expressionType, superType)) {
+        environment.types, expressionType, typeInContext)) {
       // TODO(sigmund): consider reporting different messages and error
       // locations for implicit vs explicit casts.
       environment.reportError(expression, MessageKind.INVALID_CONSTANT_CAST,
