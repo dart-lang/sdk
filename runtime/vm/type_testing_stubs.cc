@@ -706,6 +706,7 @@ RawAbstractType* TypeArgumentInstantiator::InstantiateType(
 
     *to_type_arguments = from.arguments();
     to->set_arguments(InstantiateTypeArguments(klass_, *to_type_arguments));
+    to->SetIsFinalized();
     *to ^= to->Canonicalize(NULL);
 
     type_arguments_handles_.Release(to_type_arguments);
