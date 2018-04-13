@@ -110,6 +110,7 @@ String* Object::null_string_ = NULL;
 Instance* Object::null_instance_ = NULL;
 Function* Object::null_function_ = NULL;
 TypeArguments* Object::null_type_arguments_ = NULL;
+TypeArguments* Object::empty_type_arguments_ = NULL;
 Array* Object::empty_array_ = NULL;
 Array* Object::zero_array_ = NULL;
 Context* Object::empty_context_ = NULL;
@@ -506,6 +507,7 @@ void Object::InitOnce(Isolate* isolate) {
   null_instance_ = Instance::ReadOnlyHandle();
   null_function_ = Function::ReadOnlyHandle();
   null_type_arguments_ = TypeArguments::ReadOnlyHandle();
+  empty_type_arguments_ = TypeArguments::ReadOnlyHandle();
   empty_array_ = Array::ReadOnlyHandle();
   zero_array_ = Array::ReadOnlyHandle();
   empty_context_ = Context::ReadOnlyHandle();
@@ -538,6 +540,7 @@ void Object::InitOnce(Isolate* isolate) {
   *null_instance_ = Instance::null();
   *null_function_ = Function::null();
   *null_type_arguments_ = TypeArguments::null();
+  *empty_type_arguments_ = TypeArguments::null();
 
   // Initialize the empty and zero array handles to null_ in order to be able to
   // check if the empty and zero arrays were allocated (RAW_NULL is not
@@ -855,6 +858,21 @@ void Object::InitOnce(Isolate* isolate) {
     empty_exception_handlers_->StoreNonPointer(
         &empty_exception_handlers_->raw_ptr()->num_entries_, 0);
     empty_exception_handlers_->SetCanonical();
+  }
+
+  // Allocate and initialize the canonical empty type arguments object.
+  {
+    uword address = heap->Allocate(TypeArguments::InstanceSize(0), Heap::kOld);
+    InitializeObject(address, kTypeArgumentsCid, TypeArguments::InstanceSize(0),
+                     true);
+    TypeArguments::initializeHandle(
+        empty_type_arguments_,
+        reinterpret_cast<RawTypeArguments*>(address + kHeapObjectTag));
+    empty_type_arguments_->StoreSmi(&empty_type_arguments_->raw_ptr()->length_,
+                                    Smi::New(0));
+    empty_type_arguments_->StoreSmi(&empty_type_arguments_->raw_ptr()->hash_,
+                                    Smi::New(0));
+    empty_type_arguments_->SetCanonical();
   }
 
   // The VM isolate snapshot object table is initialized to an empty array
@@ -22659,6 +22677,8 @@ RawClosure* Closure::New(const TypeArguments& instantiator_type_arguments,
                         instantiator_type_arguments.raw());
     result.StorePointer(&result.raw_ptr()->function_type_arguments_,
                         function_type_arguments.raw());
+    result.StorePointer(&result.raw_ptr()->delayed_type_arguments_,
+                        Object::empty_type_arguments().raw());
     result.StorePointer(&result.raw_ptr()->function_, function.raw());
     result.StorePointer(&result.raw_ptr()->context_, context.raw());
   }
@@ -22673,16 +22693,24 @@ RawClosure* Closure::New() {
 
 RawFunction* Closure::GetInstantiatedSignature(Zone* zone) const {
   Function& sig_fun = Function::Handle(zone, function());
-  const TypeArguments& fn_type_args =
+  TypeArguments& fn_type_args =
       TypeArguments::Handle(zone, function_type_arguments());
+  const TypeArguments& delayed_type_args =
+      TypeArguments::Handle(zone, delayed_type_arguments());
   const TypeArguments& inst_type_args =
       TypeArguments::Handle(zone, instantiator_type_arguments());
+
   // We detect the case of a partial tearoff type application and substitute the
   // type arguments for the type parameters of the function.
-  intptr_t num_free_params =
-      sig_fun.IsImplicitClosureFunction() && !fn_type_args.IsNull()
-          ? kCurrentAndEnclosingFree
-          : kAllFree;
+  intptr_t num_free_params;
+  if (sig_fun.IsImplicitClosureFunction() &&
+      delayed_type_args.raw() != Object::empty_type_arguments().raw()) {
+    num_free_params = kCurrentAndEnclosingFree;
+    ASSERT(fn_type_args.IsNull());  // Implicit closure cannot have a parent.
+    fn_type_args = delayed_type_args.raw();
+  } else {
+    num_free_params = kAllFree;
+  }
   if (num_free_params == kCurrentAndEnclosingFree ||
       !sig_fun.HasInstantiatedSignature(kAny)) {
     return sig_fun.InstantiateSignatureFrom(inst_type_args, fn_type_args,

@@ -4202,7 +4202,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
 
   if (!target.IsNull() && (target.raw() != parent.raw())) {
     DEBUG_ASSERT(Isolate::Current()->HasAttemptedReload());
-    if ((target.is_static() != parent.is_static()) || (target.kind() != parent.kind())) {
+    if ((target.is_static() != parent.is_static()) ||
+        (target.kind() != parent.kind())) {
       target = Function::null();
     }
   }
@@ -4232,12 +4233,12 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   // implementing the partial tearoff instantiation.
   //
   // When a tearoff is partially applied to a set of type arguments, the type
-  // arguments are saved in the closure's "function_type_arguments" field. The
+  // arguments are saved in the closure's "delayed_type_arguments" field. The
   // partial type application operator is guaranteed to provide arguments for
   // all of a generic tearoff's type parameters, so we will only have to forward
-  // type arguments from the caller or from the closure object. In other words,
-  // if there are type arguments saved on the tearoff, we must throw
-  // NoSuchMethod.
+  // type arguments from the caller or from the closure object. Therefore, if
+  // there are type arguments saved on the tearoff and type arguments are
+  // passed, we must throw NoSuchMethod.
   intptr_t type_args_len = 0;
   if (I->reify_generic_functions() && function.IsGeneric()) {
     ASSERT(parsed_function()->function_type_arguments() != NULL);
@@ -4248,29 +4249,32 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
     LocalVariable* closure =
         parsed_function()->node_sequence()->scope()->VariableAt(0);
     copy_type_args += LoadLocal(closure);
-    copy_type_args += LoadField(Closure::function_type_arguments_offset());
+    copy_type_args += LoadField(Closure::delayed_type_arguments_offset());
 
-    TargetEntryInstr *is_instantiated, *is_not_instantiated;
-    copy_type_args +=
-        BranchIfNull(&is_not_instantiated, &is_instantiated, /*negate=*/false);
+    TargetEntryInstr *has_delayed_type_args, *no_delayed_type_args;
+    copy_type_args += Constant(Object::empty_type_arguments());
+    copy_type_args += BranchIfEqual(&no_delayed_type_args,
+                                    &has_delayed_type_args, /*negate=*/false);
     JoinEntryInstr* join = BuildJoinEntry();
 
     // We found type arguments saved on the tearoff to be provided to the
     // function.
 
-    Fragment copy_instantiated_args(is_instantiated);
+    Fragment copy_delayed_type_args(has_delayed_type_args);
 
-    copy_instantiated_args +=
+    copy_delayed_type_args +=
         LoadLocal(parsed_function()->function_type_arguments());
 
     TargetEntryInstr *no_type_args, *passed_type_args;
-    copy_instantiated_args +=
+    copy_delayed_type_args +=
         BranchIfNull(&no_type_args, &passed_type_args, /*negate=*/false);
 
     Fragment use_instantiated_args(no_type_args);
     use_instantiated_args += LoadLocal(closure);
     use_instantiated_args +=
-        LoadField(Closure::function_type_arguments_offset());
+        LoadField(Closure::delayed_type_arguments_offset());
+
+    // Prepending of captured type arguments will happen in the target.
     use_instantiated_args += StoreLocal(
         TokenPosition::kNoSource, parsed_function()->function_type_arguments());
     use_instantiated_args += Drop();
@@ -4281,8 +4285,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
 
     // The tearoff was not partially applied, so we forward type arguments from
     // the caller.
-    Fragment forward_caller_args(is_not_instantiated);
-    forward_caller_args += Goto(join);
+    Fragment forward_caller_type_args(no_delayed_type_args);
+    forward_caller_type_args += Goto(join);
 
     body += Fragment(copy_type_args.entry, join);
     body += LoadLocal(parsed_function()->function_type_arguments());
@@ -8499,23 +8503,10 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
   instructions += LoadLocal(new_closure);
 
   intptr_t num_type_args = ReadListLength();
-  const TypeArguments* type_args = &T.BuildTypeArguments(num_type_args);
-
-  // Even if all dynamic types are passed in, we need to put a vector in here to
-  // distinguish this partially applied tearoff from a normal tearoff. This is
-  // necessary because the tearoff wrapper (BuildGraphOfImplicitClosureFunction)
-  // needs to throw NSM if type arguments are passed to a partially applied
-  // tearoff.
-  if (type_args->IsNull()) {
-    type_args =
-        &TypeArguments::ZoneHandle(Z, TypeArguments::New(num_type_args));
-    for (intptr_t i = 0; i < num_type_args; ++i) {
-      type_args->SetTypeAt(i, Type::ZoneHandle(Z, Type::DynamicType()));
-    }
-  }
-  instructions += TranslateInstantiatedTypeArguments(*type_args);
+  const TypeArguments& type_args = T.BuildTypeArguments(num_type_args);
+  instructions += TranslateInstantiatedTypeArguments(type_args);
   instructions += StoreInstanceField(TokenPosition::kNoSource,
-                                     Closure::function_type_arguments_offset());
+                                     Closure::delayed_type_arguments_offset());
 
   // Copy over the target function.
   instructions += LoadLocal(new_closure);
@@ -8530,6 +8521,13 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
   instructions += LoadField(Closure::instantiator_type_arguments_offset());
   instructions += StoreInstanceField(
       TokenPosition::kNoSource, Closure::instantiator_type_arguments_offset());
+
+  // Copy over the function type arguments.
+  instructions += LoadLocal(new_closure);
+  instructions += LoadLocal(original_closure);
+  instructions += LoadField(Closure::function_type_arguments_offset());
+  instructions += StoreInstanceField(TokenPosition::kNoSource,
+                                     Closure::function_type_arguments_offset());
 
   // Copy over the context.
   instructions += LoadLocal(new_closure);
@@ -9645,6 +9643,11 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
   instructions += LoadFunctionTypeArguments();
   instructions += flow_graph_builder_->StoreInstanceField(
       TokenPosition::kNoSource, Closure::function_type_arguments_offset());
+
+  instructions += LoadLocal(closure);
+  instructions += Constant(Object::empty_type_arguments());
+  instructions += flow_graph_builder_->StoreInstanceField(
+      TokenPosition::kNoSource, Closure::delayed_type_arguments_offset());
 
   // Store the function and the context in the closure.
   instructions += LoadLocal(closure);
