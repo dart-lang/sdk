@@ -37,7 +37,7 @@ class CoreTypes {
     ]
   };
 
-  final LibraryIndex _index;
+  final LibraryIndex index;
 
   Library _coreLibrary;
   Class _objectClass;
@@ -98,309 +98,308 @@ class CoreTypes {
   Library _mirrorsLibrary;
 
   CoreTypes(Component component)
-      : _index = new LibraryIndex.coreLibraries(component);
+      : index = new LibraryIndex.coreLibraries(component);
 
   Procedure get asyncErrorWrapperHelperProcedure {
     return _asyncErrorWrapperHelperProcedure ??=
-        _index.getTopLevelMember('dart:async', '_asyncErrorWrapperHelper');
+        index.getTopLevelMember('dart:async', '_asyncErrorWrapperHelper');
   }
 
   Library get asyncLibrary {
-    return _asyncLibrary ??= _index.getLibrary('dart:async');
+    return _asyncLibrary ??= index.getLibrary('dart:async');
   }
 
   Member get asyncStarStreamControllerAdd {
-    return _index.getMember('dart:async', '_AsyncStarStreamController', 'add');
+    return index.getMember('dart:async', '_AsyncStarStreamController', 'add');
   }
 
   Member get asyncStarStreamControllerAddError {
-    return _index.getMember(
+    return index.getMember(
         'dart:async', '_AsyncStarStreamController', 'addError');
   }
 
   Member get asyncStarStreamControllerAddStream {
-    return _index.getMember(
+    return index.getMember(
         'dart:async', '_AsyncStarStreamController', 'addStream');
   }
 
   Class get asyncStarStreamControllerClass {
-    return _index.getClass('dart:async', '_AsyncStarStreamController');
+    return index.getClass('dart:async', '_AsyncStarStreamController');
   }
 
   Member get asyncStarStreamControllerClose {
-    return _index.getMember(
-        'dart:async', '_AsyncStarStreamController', 'close');
+    return index.getMember('dart:async', '_AsyncStarStreamController', 'close');
   }
 
   Constructor get asyncStarStreamControllerDefaultConstructor {
     return _asyncStarStreamControllerDefaultConstructor ??=
-        _index.getMember('dart:async', '_AsyncStarStreamController', '');
+        index.getMember('dart:async', '_AsyncStarStreamController', '');
   }
 
   Member get asyncStarStreamControllerStream {
-    return _index.getMember(
+    return index.getMember(
         'dart:async', '_AsyncStarStreamController', 'get:stream');
   }
 
   Procedure get asyncStackTraceHelperProcedure {
     return _asyncStackTraceHelperProcedure ??=
-        _index.getTopLevelMember('dart:async', '_asyncStackTraceHelper');
+        index.getTopLevelMember('dart:async', '_asyncStackTraceHelper');
   }
 
   Procedure get asyncThenWrapperHelperProcedure {
     return _asyncThenWrapperHelperProcedure ??=
-        _index.getTopLevelMember('dart:async', '_asyncThenWrapperHelper');
+        index.getTopLevelMember('dart:async', '_asyncThenWrapperHelper');
   }
 
   Procedure get awaitHelperProcedure {
     return _awaitHelperProcedure ??=
-        _index.getTopLevelMember('dart:async', '_awaitHelper');
+        index.getTopLevelMember('dart:async', '_awaitHelper');
   }
 
   Class get boolClass {
-    return _boolClass ??= _index.getClass('dart:core', 'bool');
+    return _boolClass ??= index.getClass('dart:core', 'bool');
   }
 
   Class get completerClass {
-    return _completerClass ??= _index.getClass('dart:async', 'Completer');
+    return _completerClass ??= index.getClass('dart:async', 'Completer');
   }
 
   Class get asyncAwaitCompleterClass {
     return _asyncAwaitCompleterClass ??=
-        _index.getClass('dart:async', '_AsyncAwaitCompleter');
+        index.getClass('dart:async', '_AsyncAwaitCompleter');
   }
 
   Procedure get completerSyncConstructor {
     return _completerSyncConstructor ??=
-        _index.getMember('dart:async', 'Completer', 'sync');
+        index.getMember('dart:async', 'Completer', 'sync');
   }
 
   Constructor get asyncAwaitCompleterConstructor {
     return _asyncAwaitCompleterConstructor ??=
-        _index.getMember('dart:async', '_AsyncAwaitCompleter', '');
+        index.getMember('dart:async', '_AsyncAwaitCompleter', '');
   }
 
   Procedure get completerComplete {
     return _completerComplete ??=
-        _index.getMember('dart:async', 'Completer', 'complete');
+        index.getMember('dart:async', 'Completer', 'complete');
   }
 
   Procedure get completerCompleteError {
     return _completerCompleteError ??=
-        _index.getMember('dart:async', 'Completer', 'completeError');
+        index.getMember('dart:async', 'Completer', 'completeError');
   }
 
   Member get completerFuture {
-    return _index.getMember('dart:async', 'Completer', 'get:future');
+    return index.getMember('dart:async', 'Completer', 'get:future');
   }
 
   Library get coreLibrary {
-    return _coreLibrary ??= _index.getLibrary('dart:core');
+    return _coreLibrary ??= index.getLibrary('dart:core');
   }
 
   Class get doubleClass {
-    return _doubleClass ??= _index.getClass('dart:core', 'double');
+    return _doubleClass ??= index.getClass('dart:core', 'double');
   }
 
   Constructor get externalNameDefaultConstructor {
     return _externalNameDefaultConstructor ??=
-        _index.getMember('dart:_internal', 'ExternalName', '');
+        index.getMember('dart:_internal', 'ExternalName', '');
   }
 
   Class get functionClass {
-    return _functionClass ??= _index.getClass('dart:core', 'Function');
+    return _functionClass ??= index.getClass('dart:core', 'Function');
   }
 
   Class get futureClass {
-    return _futureClass ??= _index.getClass('dart:async', 'Future');
+    return _futureClass ??= index.getClass('dart:async', 'Future');
   }
 
   Procedure get futureMicrotaskConstructor {
     return _futureMicrotaskConstructor ??=
-        _index.getMember('dart:async', 'Future', 'microtask');
+        index.getMember('dart:async', 'Future', 'microtask');
   }
 
   Class get futureOrClass {
-    return _futureOrClass ??= _index.getClass('dart:async', 'FutureOr');
+    return _futureOrClass ??= index.getClass('dart:async', 'FutureOr');
   }
 
   Procedure get identicalProcedure {
     return _identicalProcedure ??=
-        _index.getTopLevelMember('dart:core', 'identical');
+        index.getTopLevelMember('dart:core', 'identical');
   }
 
   Class get intClass {
-    return _intClass ??= _index.getClass('dart:core', 'int');
+    return _intClass ??= index.getClass('dart:core', 'int');
   }
 
   Class get internalSymbolClass {
-    return _internalSymbolClass ??= _index.getClass('dart:_internal', 'Symbol');
+    return _internalSymbolClass ??= index.getClass('dart:_internal', 'Symbol');
   }
 
   Class get invocationClass {
-    return _invocationClass ??= _index.getClass('dart:core', 'Invocation');
+    return _invocationClass ??= index.getClass('dart:core', 'Invocation');
   }
 
   Class get invocationMirrorClass {
     return _invocationMirrorClass ??=
-        _index.getClass('dart:core', '_InvocationMirror');
+        index.getClass('dart:core', '_InvocationMirror');
   }
 
   Constructor get invocationMirrorWithTypeConstructor {
     return _invocationMirrorWithTypeConstructor ??=
-        _index.getMember('dart:core', '_InvocationMirror', '_withType');
+        index.getMember('dart:core', '_InvocationMirror', '_withType');
   }
 
   Constructor get invocationMirrorWithoutTypeConstructor {
     return _invocationMirrorWithoutTypeConstructor ??=
-        _index.getMember('dart:core', '_InvocationMirror', '_withoutType');
+        index.getMember('dart:core', '_InvocationMirror', '_withoutType');
   }
 
   Class get iterableClass {
-    return _iterableClass ??= _index.getClass('dart:core', 'Iterable');
+    return _iterableClass ??= index.getClass('dart:core', 'Iterable');
   }
 
   Class get iteratorClass {
-    return _iteratorClass ??= _index.getClass('dart:core', 'Iterator');
+    return _iteratorClass ??= index.getClass('dart:core', 'Iterator');
   }
 
   Class get listClass {
-    return _listClass ??= _index.getClass('dart:core', 'List');
+    return _listClass ??= index.getClass('dart:core', 'List');
   }
 
   Procedure get listFromConstructor {
     return _listFromConstructor ??=
-        _index.getMember('dart:core', 'List', 'from');
+        index.getMember('dart:core', 'List', 'from');
   }
 
   Class get mapClass {
-    return _mapClass ??= _index.getClass('dart:core', 'Map');
+    return _mapClass ??= index.getClass('dart:core', 'Map');
   }
 
   Procedure get mapUnmodifiable {
     return _mapUnmodifiable ??=
-        _index.getMember('dart:core', 'Map', 'unmodifiable');
+        index.getMember('dart:core', 'Map', 'unmodifiable');
   }
 
   Library get mirrorsLibrary {
-    return _mirrorsLibrary ??= _index.tryGetLibrary('dart:mirrors');
+    return _mirrorsLibrary ??= index.tryGetLibrary('dart:mirrors');
   }
 
   Class get noSuchMethodErrorClass {
     return _noSuchMethodErrorClass ??=
-        _index.getClass('dart:core', 'NoSuchMethodError');
+        index.getClass('dart:core', 'NoSuchMethodError');
   }
 
   Constructor get noSuchMethodErrorDefaultConstructor {
     return _noSuchMethodErrorDefaultConstructor ??=
         // TODO(regis): Replace 'withInvocation' with '' after dart2js is fixed.
-        _index.getMember('dart:core', 'NoSuchMethodError', 'withInvocation');
+        index.getMember('dart:core', 'NoSuchMethodError', 'withInvocation');
   }
 
   Class get nullClass {
-    return _nullClass ??= _index.getClass('dart:core', 'Null');
+    return _nullClass ??= index.getClass('dart:core', 'Null');
   }
 
   Class get numClass {
-    return _numClass ??= _index.getClass('dart:core', 'num');
+    return _numClass ??= index.getClass('dart:core', 'num');
   }
 
   Class get objectClass {
-    return _objectClass ??= _index.getClass('dart:core', 'Object');
+    return _objectClass ??= index.getClass('dart:core', 'Object');
   }
 
   Procedure get objectEquals {
-    return _objectEquals ??= _index.getMember('dart:core', 'Object', '==');
+    return _objectEquals ??= index.getMember('dart:core', 'Object', '==');
   }
 
   Procedure get printProcedure {
-    return _printProcedure ??= _index.getTopLevelMember('dart:core', 'print');
+    return _printProcedure ??= index.getTopLevelMember('dart:core', 'print');
   }
 
   Class get stackTraceClass {
-    return _stackTraceClass ??= _index.getClass('dart:core', 'StackTrace');
+    return _stackTraceClass ??= index.getClass('dart:core', 'StackTrace');
   }
 
   Class get streamClass {
-    return _streamClass ??= _index.getClass('dart:async', 'Stream');
+    return _streamClass ??= index.getClass('dart:async', 'Stream');
   }
 
   Member get streamIteratorSubscription {
-    return _index.getMember('dart:async', '_StreamIterator', '_subscription');
+    return index.getMember('dart:async', '_StreamIterator', '_subscription');
   }
 
   Member get streamIteratorCancel {
-    return _index.getMember('dart:async', '_StreamIterator', 'cancel');
+    return index.getMember('dart:async', '_StreamIterator', 'cancel');
   }
 
   Class get streamIteratorClass {
-    return _index.getClass('dart:async', '_StreamIterator');
+    return index.getClass('dart:async', '_StreamIterator');
   }
 
   Constructor get streamIteratorDefaultConstructor {
     return _streamIteratorDefaultConstructor ??=
-        _index.getMember('dart:async', '_StreamIterator', '');
+        index.getMember('dart:async', '_StreamIterator', '');
   }
 
   Member get streamIteratorMoveNext {
-    return _index.getMember('dart:async', '_StreamIterator', 'moveNext');
+    return index.getMember('dart:async', '_StreamIterator', 'moveNext');
   }
 
   Member get streamIteratorCurrent {
-    return _index.getMember('dart:async', '_StreamIterator', 'get:current');
+    return index.getMember('dart:async', '_StreamIterator', 'get:current');
   }
 
   Class get stringClass {
-    return _stringClass ??= _index.getClass('dart:core', 'String');
+    return _stringClass ??= index.getClass('dart:core', 'String');
   }
 
   Class get symbolClass {
-    return _symbolClass ??= _index.getClass('dart:core', 'Symbol');
+    return _symbolClass ??= index.getClass('dart:core', 'Symbol');
   }
 
   Constructor get syncIterableDefaultConstructor {
     return _syncIterableDefaultConstructor ??=
-        _index.getMember('dart:core', '_SyncIterable', '');
+        index.getMember('dart:core', '_SyncIterable', '');
   }
 
   Class get syncIteratorClass {
-    return _index.getClass('dart:core', '_SyncIterator');
+    return index.getClass('dart:core', '_SyncIterator');
   }
 
   Member get syncIteratorCurrent {
-    return _index.getMember('dart:core', '_SyncIterator', '_current');
+    return index.getMember('dart:core', '_SyncIterator', '_current');
   }
 
   Member get syncIteratorYieldEachIterable {
-    return _index.getMember('dart:core', '_SyncIterator', '_yieldEachIterable');
+    return index.getMember('dart:core', '_SyncIterator', '_yieldEachIterable');
   }
 
   Class get typeClass {
-    return _typeClass ??= _index.getClass('dart:core', 'Type');
+    return _typeClass ??= index.getClass('dart:core', 'Type');
   }
 
   Constructor get constantExpressionErrorDefaultConstructor {
     return _constantExpressionErrorDefaultConstructor ??=
-        _index.getMember('dart:core', '_ConstantExpressionError', '');
+        index.getMember('dart:core', '_ConstantExpressionError', '');
   }
 
   Member get constantExpressionErrorThrow {
     return _constantExpressionErrorThrow ??=
-        _index.getMember('dart:core', '_ConstantExpressionError', '_throw');
+        index.getMember('dart:core', '_ConstantExpressionError', '_throw');
   }
 
   Constructor get duplicatedFieldInitializerErrorDefaultConstructor {
     return _duplicatedFieldInitializerErrorDefaultConstructor ??=
-        _index.getMember('dart:core', '_DuplicatedFieldInitializerError', '');
+        index.getMember('dart:core', '_DuplicatedFieldInitializerError', '');
   }
 
   Constructor get fallThroughErrorUrlAndLineConstructor {
     return _fallThroughErrorUrlAndLineConstructor ??=
-        _index.getMember('dart:core', 'FallThroughError', '_create');
+        index.getMember('dart:core', 'FallThroughError', '_create');
   }
 
   Constructor get compileTimeErrorDefaultConstructor {
     return _compileTimeErrorDefaultConstructor ??=
-        _index.getMember('dart:core', '_CompileTimeError', '');
+        index.getMember('dart:core', '_CompileTimeError', '');
   }
 }
