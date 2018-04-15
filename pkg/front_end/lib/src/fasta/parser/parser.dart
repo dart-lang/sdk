@@ -6153,13 +6153,30 @@ class Parser {
   /// ;
   /// ```
   Token parseAssert(Token token, Assert kind) {
-    Token assertKeyword = token.next;
-    assert(optional('assert', assertKeyword));
-    listener.beginAssert(assertKeyword, kind);
+    token = token.next;
+    assert(optional('assert', token));
+    listener.beginAssert(token, kind);
+    Token assertKeyword = token;
+    Token leftParenthesis = token.next;
+    if (!optional('(', leftParenthesis)) {
+      // Recovery
+      reportRecoverableError(
+          leftParenthesis, fasta.templateExpectedButGot.withArguments('('));
+      int offset = leftParenthesis.offset;
+
+      BeginToken openParen =
+          token.setNext(new SyntheticBeginToken(TokenType.OPEN_PAREN, offset));
+      Token identifier = openParen
+          .setNext(new SyntheticStringToken(TokenType.IDENTIFIER, '', offset));
+      Token closeParen =
+          identifier.setNext(new SyntheticToken(TokenType.CLOSE_PAREN, offset));
+      openParen.endGroup = closeParen;
+      closeParen.setNext(leftParenthesis);
+
+      leftParenthesis = openParen;
+    }
+    token = leftParenthesis;
     Token commaToken = null;
-    token = assertKeyword.next;
-    Token leftParenthesis = token;
-    expect('(', token);
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
     token = parseExpression(token).next;
@@ -6179,6 +6196,7 @@ class Parser {
         while (optional(',', token)) {
           Token begin = token.next;
           token = parseExpression(token).next;
+          // TODO(danrubel): Consider removing the message argument.
           listener.handleExtraneousExpression(
               begin, fasta.messageAssertExtraneousArgument);
         }
@@ -6186,13 +6204,15 @@ class Parser {
             firstExtra, fasta.messageAssertExtraneousArgument);
       }
     }
-    expect(')', token);
+    assert(optional(')', token));
     mayParseFunctionExpressions = old;
-    listener.endAssert(
-        assertKeyword, kind, leftParenthesis, commaToken, token.next);
     if (kind == Assert.Expression) {
       reportRecoverableError(assertKeyword, fasta.messageAssertAsExpression);
+    } else if (kind == Assert.Statement) {
+      ensureSemicolon(token);
     }
+    listener.endAssert(
+        assertKeyword, kind, leftParenthesis, commaToken, token.next);
     return token;
   }
 
@@ -6203,8 +6223,8 @@ class Parser {
   /// ```
   Token parseAssertStatement(Token token) {
     assert(optional('assert', token.next));
-    token = parseAssert(token, Assert.Statement);
-    return ensureSemicolon(token);
+    // parseAssert ensures that there is a trailing semicolon.
+    return parseAssert(token, Assert.Statement).next;
   }
 
   /// ```
