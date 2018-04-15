@@ -108,8 +108,8 @@ void CombinedCodeStatistics::DumpStatistics() {
 }
 
 int CombinedCodeStatistics::CompareEntries(const void* a, const void* b) {
-  const intptr_t a_size = static_cast<const Entry*>(a)->bytes;
-  const intptr_t b_size = static_cast<const Entry*>(b)->bytes;
+  const intptr_t a_size = (*static_cast<const Entry* const*>(a))->bytes;
+  const intptr_t b_size = (*static_cast<const Entry* const*>(b))->bytes;
   if (a_size < b_size) {
     return -1;
   } else if (a_size > b_size) {
