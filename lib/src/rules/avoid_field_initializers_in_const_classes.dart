@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 
 const _desc = r'Avoid field initializers in const classes.';
@@ -13,7 +14,8 @@ const _details = r'''
 **AVOID** field initializers in const classes.
 
 Instead of `final x = const expr;`, you should write `get x => const expr;` and
-not allocate a useless field.
+not allocate a useless field. As of April 2018 this is true for the VM, but not
+for code that will be compiled to JS.
 
 **BAD:**
 ```
@@ -82,11 +84,9 @@ class Visitor extends SimpleAstVisitor {
         .length;
     if (constructorCount > 1) return;
 
-    final visitor = new HasParameterReferenceVisitor(constructor
-        .parameters.parameters
-        .map((e) => e.identifier.name)
-        .toList());
-    visitor.visitConstructorFieldInitializer(node);
+    final visitor = new HasParameterReferenceVisitor(
+        constructor.parameters.parameterElements);
+    node.expression.accept(visitor);
     if (!visitor.useParameter) {
       rule.reportLint(node);
     }
@@ -96,13 +96,13 @@ class Visitor extends SimpleAstVisitor {
 class HasParameterReferenceVisitor extends RecursiveAstVisitor {
   HasParameterReferenceVisitor(this.parameters);
 
-  List<String> parameters;
+  Iterable<ParameterElement> parameters;
 
   bool useParameter = false;
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
-    if (parameters.contains(node.name)) {
+    if (parameters.contains(node.bestElement)) {
       useParameter = true;
     } else {
       super.visitSimpleIdentifier(node);

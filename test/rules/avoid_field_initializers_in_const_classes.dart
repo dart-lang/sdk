@@ -34,3 +34,13 @@ class E {
   const E.c2() //
       : a = const {}; // OK
 }
+
+class F {
+  final a;
+  const F(int a) : this.a = 0; // LINT
+}
+
+class G {
+  final g;
+  const G(int length) : g = 'xyzzy'.length; // LINT
+}
