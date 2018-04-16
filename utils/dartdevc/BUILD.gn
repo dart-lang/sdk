@@ -30,13 +30,7 @@ application_snapshot("dartdevc") {
     ":dartdevc_sdk",
   ]
 
-  inputs = exec_script("../../tools/list_dart_files.py",
-                       [
-                         "absolute",
-                         rebase_path("../../pkg/dev_compiler/bin"),
-                       ],
-                       "list lines")
-  inputs += [ sdk_summary ]
+  inputs = [ sdk_summary ]
 }
 
 application_snapshot("dartdevk") {
@@ -55,13 +49,7 @@ application_snapshot("dartdevk") {
     ":dartdevc_sdk_kernel_summary",
   ]
 
-  inputs = exec_script("../../tools/list_dart_files.py",
-                       [
-                         "absolute",
-                         rebase_path("../../pkg/dev_compiler/bin"),
-                       ],
-                       "list lines")
-  inputs += [ sdk_dill ]
+  inputs = [ sdk_dill ]
 }
 
 sdk_lib_files = exec_script("../../tools/list_dart_files.py",
