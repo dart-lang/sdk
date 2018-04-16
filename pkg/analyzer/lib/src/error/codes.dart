@@ -3735,7 +3735,8 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode IMPORT_DUPLICATED_LIBRARY_NAMED =
       const StaticWarningCode('IMPORT_DUPLICATED_LIBRARY_NAMED',
           "The imported libraries '{0}' and '{1}' can't have the same name '{2}'.",
-          correction: "Try adding a hide clause to one of the imports.");
+          correction: "Try adding a hide clause to one of the imports.",
+          isStrongModeError: false);
 
   /**
    * 14.1 Imports: It is a static warning if the specified URI of a deferred
