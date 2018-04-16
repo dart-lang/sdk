@@ -1996,23 +1996,13 @@ class RODataSerializationCluster : public SerializationCluster {
     objects_.Add(object);
 
     // A string's hash must already be computed when we write it because it
-    // will be loaded into read-only memory.
-    if (cid_ == kOneByteStringCid) {
-      RawOneByteString* str = static_cast<RawOneByteString*>(object);
-      if (String::GetCachedHash(str) == 0) {
-        intptr_t hash =
-            String::Hash(str->ptr()->data(), Smi::Value(str->ptr()->length_));
-        String::SetCachedHash(str, hash);
-      }
-      ASSERT(String::GetCachedHash(str) != 0);
-    } else if (cid_ == kTwoByteStringCid) {
-      RawTwoByteString* str = static_cast<RawTwoByteString*>(object);
-      if (String::GetCachedHash(str) == 0) {
-        intptr_t hash = String::Hash(str->ptr()->data(),
-                                     Smi::Value(str->ptr()->length_) * 2);
-        String::SetCachedHash(str, hash);
-      }
-      ASSERT(String::GetCachedHash(str) != 0);
+    // will be loaded into read-only memory. Extra bytes due to allocation
+    // rounding need to be deterministically set for reliable deduplication in
+    // shared images.
+    if (object->IsVMHeapObject()) {
+      // This object is already read-only.
+    } else {
+      Object::FinalizeReadOnlyObject(object);
     }
   }
 

@@ -1038,11 +1038,7 @@ class FinalizeVMIsolateVisitor : public ObjectVisitor {
     if (!obj->IsFreeListElement()) {
       ASSERT(obj->IsVMHeapObject());
       obj->SetMarkBitUnsynchronized();
-      if (obj->IsStringInstance()) {
-        RawString* str = reinterpret_cast<RawString*>(obj);
-        intptr_t hash = String::Hash(str);
-        String::SetCachedHash(str, hash);
-      }
+      Object::FinalizeReadOnlyObject(obj);
 #if defined(HASH_IN_OBJECT_HEADER)
       // These objects end up in the read-only VM isolate which is shared
       // between isolates, so we have to prepopulate them with identity hash
@@ -1145,6 +1141,65 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
     iteration.IterateOldObjectsNoImagePages(&premarker);
     // Make the VM isolate read-only again after setting all objects as marked.
     // Note objects in image pages are already pre-marked.
+  }
+}
+
+void Object::FinalizeReadOnlyObject(RawObject* object) {
+  NoSafepointScope no_safepoint;
+  intptr_t cid = object->GetClassId();
+  if (cid == kOneByteStringCid) {
+    RawOneByteString* str = static_cast<RawOneByteString*>(object);
+    if (String::GetCachedHash(str) == 0) {
+      intptr_t hash = String::Hash(str);
+      String::SetCachedHash(str, hash);
+    }
+    intptr_t size = OneByteString::UnroundedSize(str);
+    ASSERT(size <= str->Size());
+    memset(reinterpret_cast<void*>(RawObject::ToAddr(str) + size), 0,
+           str->Size() - size);
+  } else if (cid == kTwoByteStringCid) {
+    RawTwoByteString* str = static_cast<RawTwoByteString*>(object);
+    if (String::GetCachedHash(str) == 0) {
+      intptr_t hash = String::Hash(str);
+      String::SetCachedHash(str, hash);
+    }
+    ASSERT(String::GetCachedHash(str) != 0);
+    intptr_t size = TwoByteString::UnroundedSize(str);
+    ASSERT(size <= str->Size());
+    memset(reinterpret_cast<void*>(RawObject::ToAddr(str) + size), 0,
+           str->Size() - size);
+  } else if (cid == kExternalOneByteStringCid) {
+    RawExternalOneByteString* str =
+        static_cast<RawExternalOneByteString*>(object);
+    if (String::GetCachedHash(str) == 0) {
+      intptr_t hash = String::Hash(str);
+      String::SetCachedHash(str, hash);
+    }
+  } else if (cid == kExternalTwoByteStringCid) {
+    RawExternalTwoByteString* str =
+        static_cast<RawExternalTwoByteString*>(object);
+    if (String::GetCachedHash(str) == 0) {
+      intptr_t hash = String::Hash(str);
+      String::SetCachedHash(str, hash);
+    }
+  } else if (cid == kCodeSourceMapCid) {
+    RawCodeSourceMap* map = CodeSourceMap::RawCast(object);
+    intptr_t size = CodeSourceMap::UnroundedSize(map);
+    ASSERT(size <= map->Size());
+    memset(reinterpret_cast<void*>(RawObject::ToAddr(map) + size), 0,
+           map->Size() - size);
+  } else if (cid == kStackMapCid) {
+    RawStackMap* map = StackMap::RawCast(object);
+    intptr_t size = StackMap::UnroundedSize(map);
+    ASSERT(size <= map->Size());
+    memset(reinterpret_cast<void*>(RawObject::ToAddr(map) + size), 0,
+           map->Size() - size);
+  } else if (cid == kPcDescriptorsCid) {
+    RawPcDescriptors* desc = PcDescriptors::RawCast(object);
+    intptr_t size = PcDescriptors::UnroundedSize(desc);
+    ASSERT(size <= desc->Size());
+    memset(reinterpret_cast<void*>(RawObject::ToAddr(desc) + size), 0,
+           desc->Size() - size);
   }
 }
 

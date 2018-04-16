@@ -559,6 +559,7 @@ class Object {
   static void InitOnce(Isolate* isolate);
   static void FinishInitOnce(Isolate* isolate);
   static void FinalizeVMIsolate(Isolate* isolate);
+  static void FinalizeReadOnlyObject(RawObject* object);
 
   // Initialize a new isolate either from a Kernel IR, from source, or from a
   // snapshot.
@@ -4356,6 +4357,12 @@ class PcDescriptors : public Object {
   static const intptr_t kBytesPerElement = 1;
   static const intptr_t kMaxElements = kMaxInt32 / kBytesPerElement;
 
+  static intptr_t UnroundedSize(RawPcDescriptors* desc) {
+    return UnroundedSize(desc->ptr()->length_);
+  }
+  static intptr_t UnroundedSize(intptr_t len) {
+    return sizeof(RawPcDescriptors) + len;
+  }
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawPcDescriptors) ==
            OFFSET_OF_RETURNED_VALUE(RawPcDescriptors, data));
@@ -4363,7 +4370,7 @@ class PcDescriptors : public Object {
   }
   static intptr_t InstanceSize(intptr_t len) {
     ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(sizeof(RawPcDescriptors) + len);
+    return RoundedAllocationSize(UnroundedSize(len));
   }
 
   static RawPcDescriptors* New(GrowableArray<uint8_t>* delta_encoded_data);
@@ -4478,6 +4485,12 @@ class CodeSourceMap : public Object {
   static const intptr_t kBytesPerElement = 1;
   static const intptr_t kMaxElements = kMaxInt32 / kBytesPerElement;
 
+  static intptr_t UnroundedSize(RawCodeSourceMap* map) {
+    return UnroundedSize(map->ptr()->length_);
+  }
+  static intptr_t UnroundedSize(intptr_t len) {
+    return sizeof(RawCodeSourceMap) + len;
+  }
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawCodeSourceMap) ==
            OFFSET_OF_RETURNED_VALUE(RawCodeSourceMap, data));
@@ -4485,7 +4498,7 @@ class CodeSourceMap : public Object {
   }
   static intptr_t InstanceSize(intptr_t len) {
     ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(sizeof(RawCodeSourceMap) + len);
+    return RoundedAllocationSize(UnroundedSize(len));
   }
 
   static RawCodeSourceMap* New(intptr_t length);
@@ -4544,15 +4557,20 @@ class StackMap : public Object {
 
   static const intptr_t kMaxLengthInBytes = kSmiMax;
 
+  static intptr_t UnroundedSize(RawStackMap* map) {
+    return UnroundedSize(map->ptr()->length_);
+  }
+  static intptr_t UnroundedSize(intptr_t len) {
+    // The stackmap payload is in an array of bytes.
+    intptr_t payload_size = Utils::RoundUp(len, kBitsPerByte) / kBitsPerByte;
+    return sizeof(RawStackMap) + payload_size;
+  }
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawStackMap) == OFFSET_OF_RETURNED_VALUE(RawStackMap, data));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t length) {
-    ASSERT(length >= 0);
-    // The stackmap payload is in an array of bytes.
-    intptr_t payload_size = Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
-    return RoundedAllocationSize(sizeof(RawStackMap) + payload_size);
+    return RoundedAllocationSize(UnroundedSize(length));
   }
   static RawStackMap* New(intptr_t pc_offset,
                           BitmapBuilder* bmap,
@@ -7377,12 +7395,17 @@ class OneByteString : public AllStatic {
     return OFFSET_OF_RETURNED_VALUE(RawOneByteString, data);
   }
 
+  static intptr_t UnroundedSize(RawOneByteString* str) {
+    return UnroundedSize(Smi::Value(str->ptr()->length_));
+  }
+  static intptr_t UnroundedSize(intptr_t len) {
+    return sizeof(RawOneByteString) + (len * kBytesPerElement);
+  }
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawOneByteString) ==
            OFFSET_OF_RETURNED_VALUE(RawOneByteString, data));
     return 0;
   }
-
   static intptr_t InstanceSize(intptr_t len) {
     ASSERT(sizeof(RawOneByteString) == String::kSizeofRawString);
     ASSERT(0 <= len && len <= kMaxElements);
@@ -7392,8 +7415,7 @@ class OneByteString : public AllStatic {
     // memory allocated for the raw string.
     if (len == 0) return InstanceSize(1);
 #endif
-    return String::RoundedAllocationSize(sizeof(RawOneByteString) +
-                                         (len * kBytesPerElement));
+    return String::RoundedAllocationSize(UnroundedSize(len));
   }
 
   static RawOneByteString* New(intptr_t len, Heap::Space space);
@@ -7521,12 +7543,17 @@ class TwoByteString : public AllStatic {
     return OFFSET_OF_RETURNED_VALUE(RawTwoByteString, data);
   }
 
+  static intptr_t UnroundedSize(RawTwoByteString* str) {
+    return UnroundedSize(Smi::Value(str->ptr()->length_));
+  }
+  static intptr_t UnroundedSize(intptr_t len) {
+    return sizeof(RawTwoByteString) + (len * kBytesPerElement);
+  }
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawTwoByteString) ==
            OFFSET_OF_RETURNED_VALUE(RawTwoByteString, data));
     return 0;
   }
-
   static intptr_t InstanceSize(intptr_t len) {
     ASSERT(sizeof(RawTwoByteString) == String::kSizeofRawString);
     ASSERT(0 <= len && len <= kMaxElements);
@@ -7534,8 +7561,7 @@ class TwoByteString : public AllStatic {
     // If we don't pad, then the external string object does not fit in the
     // memory allocated for the raw string.
     if (len == 0) return InstanceSize(1);
-    return String::RoundedAllocationSize(sizeof(RawTwoByteString) +
-                                         (len * kBytesPerElement));
+    return String::RoundedAllocationSize(UnroundedSize(len));
   }
 
   static RawTwoByteString* New(intptr_t len, Heap::Space space);
