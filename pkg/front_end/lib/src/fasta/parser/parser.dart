@@ -5582,15 +5582,30 @@ class Parser {
 
       BeginToken openParen =
           token.setNext(new SyntheticBeginToken(TokenType.OPEN_PAREN, offset));
-      Token semicolon =
-          openParen.setNext(new SyntheticToken(TokenType.SEMICOLON, offset));
-      semicolon =
-          semicolon.setNext(new SyntheticToken(TokenType.SEMICOLON, offset));
+
+      Token loopPart;
+      if (awaitToken != null) {
+        loopPart = openParen.setNext(
+            new SyntheticStringToken(TokenType.IDENTIFIER, '', offset));
+        loopPart =
+            loopPart.setNext(new SyntheticKeywordToken(Keyword.IN, offset));
+        loopPart = loopPart.setNext(
+            new SyntheticStringToken(TokenType.IDENTIFIER, '', offset));
+      } else {
+        loopPart =
+            openParen.setNext(new SyntheticToken(TokenType.SEMICOLON, offset));
+        loopPart =
+            loopPart.setNext(new SyntheticToken(TokenType.SEMICOLON, offset));
+      }
+
       Token closeParen =
-          semicolon.setNext(new SyntheticToken(TokenType.CLOSE_PAREN, offset));
+          loopPart.setNext(new SyntheticToken(TokenType.CLOSE_PAREN, offset));
       openParen.endGroup = closeParen;
-      closeParen.setNext(leftParenthesis);
-      insertBlock(closeParen);
+      Token identifier = closeParen
+          .setNext(new SyntheticStringToken(TokenType.IDENTIFIER, '', offset));
+      Token semicolon =
+          identifier.setNext(new SyntheticToken(TokenType.SEMICOLON, offset));
+      semicolon.setNext(leftParenthesis);
 
       leftParenthesis = openParen;
     }
@@ -5619,12 +5634,18 @@ class Parser {
         // Recovery
         reportRecoverableError(next, fasta.messageColonInPlaceOfIn);
         // Fall through to process `for ( ... in ... )`
-      } else {
+      } else if (awaitToken == null || optional(';', next)) {
         // Process `for ( ... ; ... ; ... )`
         if (awaitToken != null) {
           reportRecoverableError(awaitToken, fasta.messageInvalidAwaitFor);
         }
         return parseForRest(token, forKeyword, leftParenthesis);
+      } else {
+        // Recovery
+        reportRecoverableError(
+            next, fasta.templateExpectedButGot.withArguments('in'));
+        next = token.setNext(
+            new SyntheticKeywordToken(Keyword.IN, next.offset)..setNext(next));
       }
     }
 
@@ -5709,8 +5730,12 @@ class Parser {
     assert(optional('in', inKeyword) || optional(':', inKeyword));
     listener.beginForInExpression(inKeyword.next);
     token = parseExpression(inKeyword).next;
+    if (!optional(')', token)) {
+      reportRecoverableError(
+          token, fasta.templateExpectedButGot.withArguments(')'));
+      token = leftParenthesis.endGroup;
+    }
     listener.endForInExpression(token);
-    expect(')', token);
     listener.beginForInBody(token.next);
     LoopState savedLoopState = loopState;
     loopState = LoopState.InsideLoop;

@@ -18,7 +18,7 @@ class ForStatementTest extends PartialCodeTest {
         'for_statement',
         [
           new TestDescriptor('keyword', 'for', [ParserErrorCode.EXPECTED_TOKEN],
-              'for (;;) {}'),
+              'for (;;) _s_;'),
           new TestDescriptor(
               'emptyParen',
               'for ()',
