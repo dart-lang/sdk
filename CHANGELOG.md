@@ -12,6 +12,13 @@
 
 ### Tool Changes
 
+#### Pub
+
+* Fix another bug where the version solver could crash when resolving a conflict
+  involving pre-release constraints ([`pub_semver` issue 20][]).
+
+[`pub_semver` issue 20]: https://github.com/dart-lang/pub_semver/issues/20
+
 #### Analyzer
 
 * The command line analyzer (dartanalyzer) and the analysis server no longer
