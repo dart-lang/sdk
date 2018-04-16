@@ -12,7 +12,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
-import 'package:isolate/isolate_runner.dart';
 import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
 
@@ -40,9 +39,9 @@ List<int> _pathsToTimes(List<String> paths) {
 }
 
 /**
-* The name of the directory containing plugin specific subfolders used to
-* store data across sessions.
-*/
+ * The name of the directory containing plugin specific subfolders used to
+ * store data across sessions.
+ */
 const String _SERVER_DIR = ".dartServer";
 
 /**
@@ -71,8 +70,6 @@ class PhysicalResourceProvider implements ResourceProvider {
    * The path to the base folder where state is stored.
    */
   final String _stateLocation;
-
-  static Future<IsolateRunner> pathsToTimesIsolate = IsolateRunner.spawn();
 
   @override
   final AbsolutePathContext absolutePathContext =
@@ -103,8 +100,7 @@ class PhysicalResourceProvider implements ResourceProvider {
   @override
   Future<List<int>> getModificationTimes(List<Source> sources) async {
     List<String> paths = sources.map((source) => source.fullName).toList();
-    IsolateRunner runner = await pathsToTimesIsolate;
-    return runner.run(_pathsToTimes, paths);
+    return _pathsToTimes(paths);
   }
 
   @override
