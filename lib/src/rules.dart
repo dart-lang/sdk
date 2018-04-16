@@ -117,6 +117,7 @@ import 'package:linter/src/rules/use_setters_to_change_properties.dart';
 import 'package:linter/src/rules/use_string_buffers.dart';
 import 'package:linter/src/rules/use_to_and_as_if_applicable.dart';
 import 'package:linter/src/rules/valid_regexps.dart';
+import 'package:linter/src/rules/void_checks.dart';
 
 void registerLintRules() {
   Analyzer.facade
@@ -235,5 +236,6 @@ void registerLintRules() {
     ..register(new UseSettersToChangeAProperty())
     ..register(new UseStringBuffers())
     ..register(new UseToAndAsIfApplicable())
-    ..register(new ValidRegExps());
+    ..register(new ValidRegExps())
+    ..register(new VoidChecks());
 }
