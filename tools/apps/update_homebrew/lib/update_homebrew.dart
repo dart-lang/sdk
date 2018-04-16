@@ -33,7 +33,7 @@ Future<String> getHash256(
         'channels/$channel/release/$revision/$download.sha256sum',
         downloadOptions: DownloadOptions.FullMedia);
 
-    var hashLine = await ASCII.decodeStream(media.stream);
+    var hashLine = await ascii.decodeStream(media.stream);
     return new RegExp('[0-9a-fA-F]*').stringMatch(hashLine);
   } finally {
     client.close();
@@ -49,7 +49,7 @@ Future<String> getVersion(String channel, String revision) async {
         'dart-archive', 'channels/$channel/release/$revision/VERSION',
         downloadOptions: DownloadOptions.FullMedia);
 
-    var versionObject = await JSON.fuse(ASCII).decoder.bind(media.stream).first;
+    var versionObject = await json.fuse(ascii).decoder.bind(media.stream).first;
     return versionObject['version'];
   } finally {
     client.close();

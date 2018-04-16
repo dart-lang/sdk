@@ -4,7 +4,7 @@
 
 library fasta.kernel_library_builder;
 
-import 'dart:convert' show JSON;
+import 'dart:convert' show jsonEncode;
 
 import 'package:kernel/ast.dart';
 
@@ -840,7 +840,7 @@ class KernelLibraryBuilder
 
     if (unserializableExports != null) {
       library.addMember(new Field(new Name("_exports#", library),
-          initializer: new StringLiteral(JSON.encode(unserializableExports)),
+          initializer: new StringLiteral(jsonEncode(unserializableExports)),
           isStatic: true,
           isConst: true));
     }

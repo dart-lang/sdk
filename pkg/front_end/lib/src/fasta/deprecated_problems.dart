@@ -6,7 +6,7 @@ library fasta.errors;
 
 import 'dart:async' show Future;
 
-import 'dart:convert' show JSON;
+import 'dart:convert' show jsonEncode;
 
 import 'dart:io'
     show ContentType, HttpClient, HttpClientRequest, SocketException, stderr;
@@ -116,7 +116,7 @@ Future reportCrash(error, StackTrace trace, [Uri uri, int charOffset]) async {
   if (charOffset != null) data["offset"] = charOffset;
   data["error"] = safeToString(error);
   data["trace"] = "$trace";
-  String json = JSON.encode(data);
+  String json = jsonEncode(data);
   HttpClient client = new HttpClient();
   try {
     Uri serverUri = Uri.parse(defaultServerAddress);

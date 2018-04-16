@@ -186,7 +186,7 @@ class TestOutcomeLogWriter extends EventListener {
       _sink = new File(TestUtils.testOutcomeFileName)
           .openWrite(mode: FileMode.APPEND);
     }
-    _sink.write("${JSON.encode(record)}\n");
+    _sink.write("${jsonEncode(record)}\n");
   }
 }
 
@@ -252,7 +252,7 @@ class SummaryPrinter extends EventListener {
   void allTestsKnown() {
     if (jsonOnly) {
       print("JSON:");
-      print(JSON.encode(summaryReport.values));
+      print(jsonEncode(summaryReport.values));
     } else {
       summaryReport.printReport();
     }
@@ -793,7 +793,7 @@ class ResultLogWriter extends EventListener {
           new File(path.append(TestUtils.resultLogFileName).toNativePath());
       file.createSync(recursive: true);
       file.writeAsStringSync(
-          JSON.encode({'configurations': configurations, 'results': results}));
+          jsonEncode({'configurations': configurations, 'results': results}));
     }
   }
 }

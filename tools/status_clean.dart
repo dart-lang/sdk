@@ -5,7 +5,7 @@
 library status_clean;
 
 import "dart:async";
-import "dart:convert" show JSON, UTF8;
+import "dart:convert" show json, utf8;
 import "dart:io";
 import "testing/dart/multitest.dart";
 import "testing/dart/status_file_parser.dart";
@@ -388,8 +388,8 @@ class TestOutcomeFetcher {
         .then((HttpClientRequest request) => request.close())
         .then((HttpClientResponse response) {
       return response
-          .transform(UTF8.decoder)
-          .transform(JSON.decoder)
+          .transform(utf8.decoder)
+          .transform(json.decoder)
           .first
           .then((List testResults) {
         var setOfActualOutcomes = new Set<Expectation>();

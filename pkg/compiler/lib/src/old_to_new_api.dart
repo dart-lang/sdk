@@ -22,10 +22,10 @@ class LegacyCompilerInput implements CompilerInput {
   LegacyCompilerInput(this._inputProvider);
 
   @override
-  Future<Input> readFromUri(Uri uri, {InputKind inputKind: InputKind.utf8}) {
+  Future<Input> readFromUri(Uri uri, {InputKind inputKind: InputKind.UTF8}) {
     return _inputProvider(uri).then((/*String|List<int>*/ data) {
       switch (inputKind) {
-        case InputKind.utf8:
+        case InputKind.UTF8:
           SourceFile sourceFile;
           if (data is List<int>) {
             sourceFile = new Utf8BytesSourceFile(uri, data);

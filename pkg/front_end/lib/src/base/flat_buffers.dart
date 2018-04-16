@@ -57,19 +57,15 @@ class BufferContext {
   Uint8List _asUint8LIst(int offset, int length) =>
       _buffer.buffer.asUint8List(_buffer.offsetInBytes + offset, length);
 
-  double _getFloat64(int offset) =>
-      _buffer.getFloat64(offset, Endianness.LITTLE_ENDIAN);
+  double _getFloat64(int offset) => _buffer.getFloat64(offset, Endian.little);
 
-  int _getInt32(int offset) =>
-      _buffer.getInt32(offset, Endianness.LITTLE_ENDIAN);
+  int _getInt32(int offset) => _buffer.getInt32(offset, Endian.little);
 
   int _getInt8(int offset) => _buffer.getInt8(offset);
 
-  int _getUint16(int offset) =>
-      _buffer.getUint16(offset, Endianness.LITTLE_ENDIAN);
+  int _getUint16(int offset) => _buffer.getUint16(offset, Endian.little);
 
-  int _getUint32(int offset) =>
-      _buffer.getUint32(offset, Endianness.LITTLE_ENDIAN);
+  int _getUint32(int offset) => _buffer.getUint32(offset, Endian.little);
 
   int _getUint8(int offset) => _buffer.getUint8(offset);
 
@@ -453,7 +449,7 @@ class Builder {
     if (value != def) {
       return _strings.putIfAbsent(value, () {
         // TODO(scheglov) optimize for ASCII strings
-        List<int> bytes = UTF8.encode(value);
+        List<int> bytes = utf8.encode(value);
         int length = bytes.length;
         _prepare(4, 1, additionalBytes: length);
         Offset<String> result = new Offset(_tail);
@@ -528,15 +524,15 @@ class Builder {
   }
 
   static void _setFloat64AtTail(ByteData _buf, int tail, double x) {
-    _buf.setFloat64(_buf.lengthInBytes - tail, x, Endianness.LITTLE_ENDIAN);
+    _buf.setFloat64(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
   static void _setInt32AtTail(ByteData _buf, int tail, int x) {
-    _buf.setInt32(_buf.lengthInBytes - tail, x, Endianness.LITTLE_ENDIAN);
+    _buf.setInt32(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
   static void _setUint32AtTail(ByteData _buf, int tail, int x) {
-    _buf.setUint32(_buf.lengthInBytes - tail, x, Endianness.LITTLE_ENDIAN);
+    _buf.setUint32(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
   static void _setUint8AtTail(ByteData _buf, int tail, int x) {
@@ -665,7 +661,7 @@ class StringReader extends Reader<String> {
     if (_isLatin(bytes)) {
       return new String.fromCharCodes(bytes);
     }
-    return UTF8.decode(bytes);
+    return utf8.decode(bytes);
   }
 
   static bool _isLatin(Uint8List bytes) {
@@ -941,14 +937,14 @@ class _VTable {
    */
   void output(ByteData buf, int bufOffset) {
     // VTable size.
-    buf.setUint16(bufOffset, numOfUint16 * 2, Endianness.LITTLE_ENDIAN);
+    buf.setUint16(bufOffset, numOfUint16 * 2, Endian.little);
     bufOffset += 2;
     // Table size.
-    buf.setUint16(bufOffset, tableSize, Endianness.LITTLE_ENDIAN);
+    buf.setUint16(bufOffset, tableSize, Endian.little);
     bufOffset += 2;
     // Field offsets.
     for (int fieldOffset in fieldOffsets) {
-      buf.setUint16(bufOffset, fieldOffset, Endianness.LITTLE_ENDIAN);
+      buf.setUint16(bufOffset, fieldOffset, Endian.little);
       bufOffset += 2;
     }
   }

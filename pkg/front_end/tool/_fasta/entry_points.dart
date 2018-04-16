@@ -6,7 +6,7 @@ library fasta.tool.entry_points;
 
 import 'dart:async' show Future, Stream;
 
-import 'dart:convert' show JSON, LineSplitter, UTF8;
+import 'dart:convert' show jsonDecode, jsonEncode, LineSplitter, utf8;
 
 import 'dart:io' show File, exitCode, stderr, stdin, stdout;
 
@@ -69,7 +69,7 @@ compileEntryPoint(List<String> arguments) async {
   }
 
   if (summary) {
-    var json = JSON.encode(<String, dynamic>{'elapsedTimes': elapsedTimes});
+    var json = jsonEncode(<String, dynamic>{'elapsedTimes': elapsedTimes});
     print('\nSummary: $json');
   }
 }
@@ -85,7 +85,7 @@ outlineEntryPoint(List<String> arguments) async {
 
 batchEntryPoint(List<String> arguments) {
   return new BatchCompiler(
-          stdin.transform(UTF8.decoder).transform(new LineSplitter()))
+          stdin.transform(utf8.decoder).transform(new LineSplitter()))
       .run();
 }
 
@@ -101,7 +101,7 @@ class BatchCompiler {
   run() async {
     await for (String line in lines) {
       try {
-        if (await batchCompileArguments(JSON.decode(line))) {
+        if (await batchCompileArguments(jsonDecode(line))) {
           stdout.writeln(">>> TEST OK");
         } else {
           stdout.writeln(">>> TEST FAIL");

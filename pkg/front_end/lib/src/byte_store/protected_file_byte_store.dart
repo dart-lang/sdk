@@ -133,7 +133,7 @@ class ProtectedFileByteStore implements ByteStore {
   static String _keysReadText(RandomAccessFile file) {
     file.setPositionSync(0);
     List<int> bytes = file.readSync(file.lengthSync());
-    return UTF8.decode(bytes);
+    return utf8.decode(bytes);
   }
 
   static void _keysWrite(RandomAccessFile file, ProtectedKeys keys) {

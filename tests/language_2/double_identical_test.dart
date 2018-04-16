@@ -10,5 +10,5 @@ main() {
   Expect.isTrue(identical(0.0, 0.0));
   Expect.isTrue(identical(1.234E9, 1.234E9));
   Expect.isFalse(identical(0.0, -0.0));
-  Expect.isTrue(identical(double.NAN, double.NAN));
+  Expect.isTrue(identical(double.nan, double.nan));
 }

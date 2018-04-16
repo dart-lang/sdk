@@ -49,7 +49,7 @@ abstract class CompilerTask {
   }
 
   Duration get duration {
-    if (_isDisabled) return Duration.ZERO;
+    if (_isDisabled) return Duration.zero;
     Duration total = _watch.elapsed;
     for (GenericTask subtask in _subtasks.values) {
       total += subtask.duration;

@@ -162,7 +162,7 @@ main() {
           // Remove `filename:line:column:` and message.
           String strippedLocationMessage = locationMessage
               .substring(locationMessage.indexOf(MARKER) + MARKER.length + 1);
-          // Using JSON.encode to add string quotes and backslashes.
+          // Using jsonEncode to add string quotes and backslashes.
           String expected = json.encode(
               utf8.decode(expectedSpanText.codeUnits, allowMalformed: true));
           String actual = json.encode(utf8

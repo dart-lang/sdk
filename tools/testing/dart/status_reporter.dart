@@ -164,7 +164,7 @@ void main(List<String> args) {
           var totalIndex = (result.stdout as String).indexOf('JSON:');
           var report = (result.stdout as String).substring(totalIndex + 5);
 
-          var map = JSON.decode(report) as Map<String, int>;
+          var map = jsonDecode(report) as Map<String, int>;
 
           if (keys == null) {
             keys = map.keys.toList();

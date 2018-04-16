@@ -156,7 +156,7 @@ Future<Null> run(Uri workingDir, Uri dartApp, List<String> args,
     }
     if (line.startsWith(_summaryTag)) {
       String json = line.substring(_summaryTag.length - 2);
-      Map<String, dynamic> results = JSON.decode(json);
+      Map<String, dynamic> results = jsonDecode(json);
       List<double> elapsedTimes = results['elapsedTimes'];
       print('\nElapse times: $elapsedTimes');
       if (elapsedTimes.length > 0) {
@@ -183,7 +183,7 @@ Future<Null> run(Uri workingDir, Uri dartApp, List<String> args,
   stderr.addStream(process.stderr);
   StreamSubscription<String> stdOutSubscription;
   stdOutSubscription = process.stdout
-      .transform(UTF8.decoder)
+      .transform(utf8.decoder)
       .transform(new LineSplitter())
       .listen(processLine, onDone: () {
     stdOutSubscription.cancel();

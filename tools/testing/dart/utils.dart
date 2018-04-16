@@ -181,14 +181,14 @@ int findBytes(List<int> data, List<int> pattern, [int startPos = 0]) {
 }
 
 List<int> encodeUtf8(String string) {
-  return UTF8.encode(string);
+  return utf8.encode(string);
 }
 
 // TODO(kustermann,ricow): As soon we have a debug log we should log
 // invalid utf8-encoded input to the log.
 // Currently invalid bytes will be replaced by a replacement character.
 String decodeUtf8(List<int> bytes) {
-  return UTF8.decode(bytes, allowMalformed: true);
+  return utf8.decode(bytes, allowMalformed: true);
 }
 
 /// Given a chunk of UTF-8 output, splits it into lines, normalizes carriage
@@ -217,10 +217,10 @@ String niceTime(Duration duration) {
     return n.toString().padLeft(count, "0");
   }
 
-  var minutes = digits(2, duration.inMinutes, Duration.MINUTES_PER_HOUR);
-  var seconds = digits(2, duration.inSeconds, Duration.SECONDS_PER_MINUTE);
+  var minutes = digits(2, duration.inMinutes, Duration.minutesPerHour);
+  var seconds = digits(2, duration.inSeconds, Duration.secondsPerMinute);
   var millis =
-      digits(6, duration.inMilliseconds, Duration.MILLISECONDS_PER_SECOND);
+      digits(6, duration.inMilliseconds, Duration.millisecondsPerSecond);
 
   if (duration.inHours >= 1) {
     return "${duration.inHours}:${minutes}:${seconds}s";

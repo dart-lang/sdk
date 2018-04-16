@@ -170,7 +170,7 @@ testNumbers() {
   testError(integers: "");
 
   // Test for "Initial zero only allowed for zero integer part" moved to
-  // json_strict_test.dart because IE's JSON.decode accepts additional initial
+  // json_strict_test.dart because IE's jsonDecode accepts additional initial
   // zeros.
 
   // Only minus allowed as sign.

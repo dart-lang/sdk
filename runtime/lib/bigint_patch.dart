@@ -2307,7 +2307,7 @@ class _BigIntImpl implements BigInt {
     var resultBits = new Uint8List(8);
 
     var length = _digitBits * (_used - 1) + _digits[_used - 1].bitLength;
-    if (length - 53 > maxDoubleExponent) return double.INFINITY;
+    if (length - 53 > maxDoubleExponent) return double.infinity;
 
     // The most significant bit is for the sign.
     if (_isNegative) resultBits[7] = 0x80;

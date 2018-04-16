@@ -275,7 +275,7 @@ class Configuration {
       try {
         var path = new Path("build/win_toolchain.json").toNativePath();
         var text = new File(path).readAsStringSync();
-        _windowsSdkPath = JSON.decode(text)['win_sdk'] as String;
+        _windowsSdkPath = jsonDecode(text)['win_sdk'] as String;
       } on dynamic {
         // Ignore errors here. If win_sdk is not found, stack trace dumping
         // for timeouts won't work.

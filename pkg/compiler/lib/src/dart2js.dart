@@ -5,7 +5,7 @@
 library dart2js.cmdline;
 
 import 'dart:async' show Future;
-import 'dart:convert' show UTF8, LineSplitter;
+import 'dart:convert' show utf8, LineSplitter;
 import 'dart:io' show exit, File, FileMode, Platform, stdin, stderr;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
@@ -829,7 +829,7 @@ void batchMain(List<String> batchArguments) {
     throw _EXIT_SIGNAL;
   };
 
-  var stream = stdin.transform(UTF8.decoder).transform(new LineSplitter());
+  var stream = stdin.transform(utf8.decoder).transform(new LineSplitter());
   var subscription;
   fe.InitializedCompilerState kernelInitializedCompilerState;
   subscription = stream.listen((line) {

@@ -278,11 +278,11 @@ class DoubleConstantValue extends NumConstantValue {
 
   factory DoubleConstantValue(double value) {
     if (value.isNaN) {
-      return const DoubleConstantValue._internal(double.NAN);
-    } else if (value == double.INFINITY) {
-      return const DoubleConstantValue._internal(double.INFINITY);
-    } else if (value == -double.INFINITY) {
-      return const DoubleConstantValue._internal(-double.INFINITY);
+      return const DoubleConstantValue._internal(double.nan);
+    } else if (value == double.infinity) {
+      return const DoubleConstantValue._internal(double.infinity);
+    } else if (value == -double.infinity) {
+      return const DoubleConstantValue._internal(-double.infinity);
     } else if (value == 0.0 && !value.isNegative) {
       return const DoubleConstantValue._internal(0.0);
     } else if (value == 1.0) {
@@ -305,9 +305,9 @@ class DoubleConstantValue extends NumConstantValue {
 
   bool get isOne => doubleValue == 1.0;
 
-  bool get isPositiveInfinity => doubleValue == double.INFINITY;
+  bool get isPositiveInfinity => doubleValue == double.infinity;
 
-  bool get isNegativeInfinity => doubleValue == -double.INFINITY;
+  bool get isNegativeInfinity => doubleValue == -double.infinity;
 
   DartType getType(CommonElements types) => types.doubleType;
 

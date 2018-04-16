@@ -4,7 +4,7 @@
 
 library fasta.scanner;
 
-import 'dart:convert' show UNICODE_REPLACEMENT_CHARACTER_RUNE, UTF8;
+import 'dart:convert' show unicodeReplacementCharacterRune, utf8;
 
 import '../scanner/token.dart' show Token;
 
@@ -34,7 +34,7 @@ export 'scanner/string_scanner.dart' show StringScanner;
 
 export '../scanner/token.dart' show Keyword, Token;
 
-const int unicodeReplacementCharacter = UNICODE_REPLACEMENT_CHARACTER_RUNE;
+const int unicodeReplacementCharacter = unicodeReplacementCharacterRune;
 
 typedef Token Recover(List<int> bytes, Token tokens, List<int> lineStarts);
 
@@ -88,7 +88,7 @@ ScannerResult _tokenizeAndRecover(Scanner scanner, Recover recover,
     {List<int> bytes, String source}) {
   Token tokens = scanner.tokenize();
   if (scanner.hasErrors) {
-    if (bytes == null) bytes = UTF8.encode(source);
+    if (bytes == null) bytes = utf8.encode(source);
     recover ??= defaultRecoveryStrategy;
     tokens = recover(bytes, tokens, scanner.lineStarts);
   }

@@ -32,7 +32,7 @@ HtmlTestInformation getInformation(String filename) {
   var match = htmlAnnotation.firstMatch(contents);
   if (match == null) return null;
 
-  var annotation = JSON.decode(match[1]);
+  var annotation = jsonDecode(match[1]);
   if (annotation is! Map ||
       annotation['expectedMessages'] is! List ||
       annotation['scripts'] is! List) {

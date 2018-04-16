@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show JSON, UTF8;
+import 'dart:convert' show jsonDecode, utf8;
 
 import 'dart:isolate' show RawReceivePort;
 
@@ -32,10 +32,10 @@ badRequest(HttpRequest request, int status, String message) {
 }
 
 collectLog(DateTime time, HttpRequest request) async {
-  String json = await request.transform(UTF8.decoder).join();
+  String json = await request.transform(utf8.decoder).join();
   var data;
   try {
-    data = JSON.decode(json);
+    data = jsonDecode(json);
   } on FormatException catch (e) {
     print(e);
     return badRequest(

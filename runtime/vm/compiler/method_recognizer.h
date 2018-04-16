@@ -409,24 +409,24 @@ namespace dart {
   V(_Int8ArrayView, []=, Int8ArrayViewSetIndexed, 0x62f615e4)                  \
   V(_ByteDataView, setInt8, ByteDataViewSetInt8, 0x6395293e)                   \
   V(_ByteDataView, setUint8, ByteDataViewSetUint8, 0x79979d1f)                 \
-  V(_ByteDataView, setInt16, ByteDataViewSetInt16, 0x57499d9c)                 \
-  V(_ByteDataView, setUint16, ByteDataViewSetUint16, 0x4dd87acb)               \
-  V(_ByteDataView, setInt32, ByteDataViewSetInt32, 0x57213f62)                 \
-  V(_ByteDataView, setUint32, ByteDataViewSetUint32, 0x5f315c42)               \
-  V(_ByteDataView, setInt64, ByteDataViewSetInt64, 0x476e7eb8)                 \
-  V(_ByteDataView, setUint64, ByteDataViewSetUint64, 0x6d64f0fa)               \
-  V(_ByteDataView, setFloat32, ByteDataViewSetFloat32, 0x12197195)             \
-  V(_ByteDataView, setFloat64, ByteDataViewSetFloat64, 0x14d20ad7)             \
+  V(_ByteDataView, setInt16, ByteDataViewSetInt16, 0x525ec534)                 \
+  V(_ByteDataView, setUint16, ByteDataViewSetUint16, 0x48eda263)               \
+  V(_ByteDataView, setInt32, ByteDataViewSetInt32, 0x523666fa)                 \
+  V(_ByteDataView, setUint32, ByteDataViewSetUint32, 0x5a4683da)               \
+  V(_ByteDataView, setInt64, ByteDataViewSetInt64, 0x4283a650)                 \
+  V(_ByteDataView, setUint64, ByteDataViewSetUint64, 0x687a1892)               \
+  V(_ByteDataView, setFloat32, ByteDataViewSetFloat32, 0x7d5784fd)             \
+  V(_ByteDataView, setFloat64, ByteDataViewSetFloat64, 0x00101e3f)             \
   V(_ByteDataView, getInt8, ByteDataViewGetInt8, 0x68448b4d)                   \
   V(_ByteDataView, getUint8, ByteDataViewGetUint8, 0x5d68cbf2)                 \
-  V(_ByteDataView, getInt16, ByteDataViewGetInt16, 0x2f4f6115)                 \
-  V(_ByteDataView, getUint16, ByteDataViewGetUint16, 0x10556170)               \
-  V(_ByteDataView, getInt32, ByteDataViewGetInt32, 0x00435162)                 \
-  V(_ByteDataView, getUint32, ByteDataViewGetUint32, 0x6fd07e56)               \
-  V(_ByteDataView, getInt64, ByteDataViewGetInt64, 0x3e124984)                 \
-  V(_ByteDataView, getUint64, ByteDataViewGetUint64, 0x2798f8e3)               \
-  V(_ByteDataView, getFloat32, ByteDataViewGetFloat32, 0x77404fe1)             \
-  V(_ByteDataView, getFloat64, ByteDataViewGetFloat64, 0x771585bf)             \
+  V(_ByteDataView, getInt16, ByteDataViewGetInt16, 0x691b5ead)                 \
+  V(_ByteDataView, getUint16, ByteDataViewGetUint16, 0x78b744d8)               \
+  V(_ByteDataView, getInt32, ByteDataViewGetInt32, 0x3a0f4efa)                 \
+  V(_ByteDataView, getUint32, ByteDataViewGetUint32, 0x583261be)               \
+  V(_ByteDataView, getInt64, ByteDataViewGetInt64, 0x77de471c)                 \
+  V(_ByteDataView, getUint64, ByteDataViewGetUint64, 0x0ffadc4b)               \
+  V(_ByteDataView, getFloat32, ByteDataViewGetFloat32, 0x6a205749)             \
+  V(_ByteDataView, getFloat64, ByteDataViewGetFloat64, 0x69f58d27)             \
   V(::, exp, MathExp, 0x32ab9efa)                                              \
   V(::, log, MathLog, 0x1ee8f9fc)                                              \
   V(::, max, MathMax, 0x377e8889)                                              \

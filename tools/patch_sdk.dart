@@ -10,7 +10,7 @@ import 'dart:io';
 import 'dart:isolate' show RawReceivePort;
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:convert' show JSON;
+import 'dart:convert' show jsonEncode;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -148,7 +148,7 @@ Future _main(List<String> argv) async {
 
   await _writeSync(
       librariesJson.toFilePath(),
-      JSON.encode({
+      jsonEncode({
         mode: {"libraries": locations}
       }));
 

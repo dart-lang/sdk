@@ -4,7 +4,7 @@
 
 library fasta.dill_library_builder;
 
-import 'dart:convert' show JSON;
+import 'dart:convert' show jsonDecode;
 
 import 'package:kernel/ast.dart'
     show
@@ -87,7 +87,7 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
     if (name == "_exports#") {
       Field field = member;
       StringLiteral string = field.initializer;
-      unserializableExports = JSON.decode(string.value);
+      unserializableExports = jsonDecode(string.value);
     } else {
       addBuilder(name, new DillMemberBuilder(member, this), member.fileOffset);
     }

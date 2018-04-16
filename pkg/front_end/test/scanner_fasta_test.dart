@@ -40,7 +40,7 @@ class ScannerTest_Fasta_FuzzTestAPI {
     expect(result.tokens?.type, same(Keyword.CLASS));
 
     // UTF8 encode source with trailing zero
-    List<int> bytes = UTF8.encode(source).toList();
+    List<int> bytes = utf8.encode(source).toList();
     bytes.add(0);
 
     result = usedForFuzzTesting.scan(bytes);
@@ -53,7 +53,7 @@ class ScannerTest_Fasta_FuzzTestAPI {
 class ScannerTest_Fasta_UTF8 extends ScannerTest_Fasta {
   @override
   createScanner(String source, {bool genericMethodComments: false}) {
-    List<int> encoded = UTF8.encode(source).toList(growable: true);
+    List<int> encoded = utf8.encode(source).toList(growable: true);
     encoded.add(0); // Ensure 0 terminted bytes for UTF8 scanner
     return new fasta.Utf8BytesScanner(encoded,
         includeComments: true,
@@ -65,7 +65,7 @@ class ScannerTest_Fasta_UTF8 extends ScannerTest_Fasta {
       var hex = bytes.map((b) => '0x${b.toRadixString(16).toUpperCase()}');
       print('$bytes\n[${hex.join(', ')}]');
       try {
-        UTF8.decode(bytes);
+        utf8.decode(bytes);
       } catch (e) {
         // Bad UTF-8 encoding
         print('  This is invalid UTF-8, but scanner should not crash.');
@@ -712,7 +712,7 @@ abstract class ScannerTest_Fasta_Base {
 @reflectiveTest
 class ScannerTest_Fasta_Direct_UTF8 extends ScannerTest_Fasta_Direct {
   createScanner(String source, {bool includeComments}) {
-    List<int> encoded = UTF8.encode(source).toList(growable: true);
+    List<int> encoded = utf8.encode(source).toList(growable: true);
     encoded.add(0); // Ensure 0 terminted bytes for UTF8 scanner
     return new fasta.Utf8BytesScanner(encoded,
         includeComments: includeComments);

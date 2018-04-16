@@ -88,7 +88,7 @@
 /// close attention to change them consistently.
 
 // TODO(sigmund): move this file to a shared package.
-import 'dart:convert' show JSON;
+import 'dart:convert' show jsonDecode, jsonEncode;
 
 import '../fasta/util/relativize.dart';
 
@@ -122,7 +122,7 @@ class LibrariesSpecification {
     if (json == null) return const LibrariesSpecification();
     var jsonData;
     try {
-      var data = JSON.decode(json);
+      var data = jsonDecode(json);
       if (data is! Map) {
         return _reportError('top-level specification is not a map');
       }
@@ -196,7 +196,7 @@ class LibrariesSpecification {
   /// Serialize this specification to json.
   ///
   /// If possible serializes paths relative to [outputUri].
-  String toJsonString(Uri outputUri) => JSON.encode(toJsonMap(outputUri));
+  String toJsonString(Uri outputUri) => jsonEncode(toJsonMap(outputUri));
 
   Map toJsonMap(Uri outputUri) {
     var result = {};

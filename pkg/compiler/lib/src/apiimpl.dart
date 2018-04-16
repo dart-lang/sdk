@@ -116,7 +116,7 @@ class CompilerImpl extends Compiler {
     // [Future] to ensure that we never execute an asynchronous action without
     // setting up the current element of the compiler.
     return new Future.sync(
-            () => callUserProvider(resourceUri, api.InputKind.utf8))
+            () => callUserProvider(resourceUri, api.InputKind.UTF8))
         .then((api.Input sourceFile) {
       // We use [readableUri] as the URI for the script since need to preserve
       // the scheme in the script because [Script.uri] is used for resolving
@@ -265,11 +265,11 @@ class CompilerImpl extends Compiler {
     timings.writeln("Timings:");
     Duration totalDuration = measurer.wallClock.elapsed;
     Duration asyncDuration = measurer.asyncWallClock.elapsed;
-    Duration cumulatedDuration = Duration.ZERO;
+    Duration cumulatedDuration = Duration.zero;
     for (final task in tasks) {
       String running = task.isRunning ? "*" : "";
       Duration duration = task.duration;
-      if (duration != Duration.ZERO) {
+      if (duration != Duration.zero) {
         cumulatedDuration += duration;
         timings.writeln('    $running${task.name} took'
             ' ${duration.inMilliseconds}msec');

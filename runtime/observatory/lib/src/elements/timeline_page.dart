@@ -204,7 +204,7 @@ class TimelinePageElement extends HtmlElement implements Renderable {
       [Map<String, dynamic> params = const <String, dynamic>{}]) async {
     var message = {'method': method, 'params': params};
     _frame.contentWindow
-        .postMessage(JSON.encode(message), window.location.href);
+        .postMessage(json.encode(message), window.location.href);
     return null;
   }
 

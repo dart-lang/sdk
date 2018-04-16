@@ -83,7 +83,7 @@ class ApiSignature {
    */
   void addDouble(double d) {
     _makeRoom(8);
-    _data.setFloat64(_offset, d, Endianness.LITTLE_ENDIAN);
+    _data.setFloat64(_offset, d, Endian.little);
     _offset += 8;
   }
 
@@ -92,7 +92,7 @@ class ApiSignature {
    */
   void addInt(int i) {
     _makeRoom(4);
-    _data.setUint32(_offset, i, Endianness.LITTLE_ENDIAN);
+    _data.setUint32(_offset, i, Endian.little);
     _offset += 4;
   }
 
@@ -100,7 +100,7 @@ class ApiSignature {
    * Collect a string.
    */
   void addString(String s) {
-    List<int> bytes = UTF8.encode(s);
+    List<int> bytes = utf8.encode(s);
     addInt(bytes.length);
     addBytes(bytes);
   }

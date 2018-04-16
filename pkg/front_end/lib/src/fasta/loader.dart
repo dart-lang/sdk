@@ -179,8 +179,7 @@ abstract class Loader<L> {
       builders.forEach((Uri uri, LibraryBuilder library) {
         if (library.loader == this) libraryCount++;
       });
-      double ms =
-          elapsed.inMicroseconds / Duration.MICROSECONDS_PER_MILLISECOND;
+      double ms = elapsed.inMicroseconds / Duration.microsecondsPerMillisecond;
       Message message = template.withArguments(
           libraryCount,
           byteCount,
