@@ -10,6 +10,7 @@ import 'package:args/args.dart' show ArgParser;
 import 'package:dev_compiler/src/compiler/module_builder.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:dev_compiler/src/kernel/command.dart';
+import 'package:dev_compiler/src/kernel/compiler.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/kernel_generator.dart';
 import 'package:kernel/kernel.dart';
@@ -45,7 +46,8 @@ Future main(List<String> args) async {
   await new Directory(outputDir).create(recursive: true);
   await writeComponentToBinary(component, outputPath);
 
-  var jsModule = compileToJSModule(component, [], [], {});
+  var jsModule = new ProgramCompiler(component, declaredVariables: {})
+      .emitProgram(component, [], []);
   var moduleFormats = {
     'amd': ModuleFormat.amd,
     'common': ModuleFormat.common,

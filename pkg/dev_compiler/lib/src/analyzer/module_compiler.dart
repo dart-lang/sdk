@@ -264,6 +264,9 @@ class CompilerOptions {
   /// Whether to preserve metdata only accessible via mirrors.
   final bool emitMetadata;
 
+  // Whether to enable assertions.
+  final bool enableAsserts;
+
   /// Whether to force compilation of code with static errors.
   final bool unsafeForceCompile;
 
@@ -291,6 +294,7 @@ class CompilerOptions {
       this.unsafeForceCompile: false,
       this.replCompile: false,
       this.emitMetadata: false,
+      this.enableAsserts: true,
       this.closure: false,
       this.bazelMapping: const {},
       this.summaryOutPath});
@@ -304,6 +308,7 @@ class CompilerOptions {
         unsafeForceCompile = args['unsafe-force-compile'] as bool,
         replCompile = args['repl-compile'] as bool,
         emitMetadata = args['emit-metadata'] as bool,
+        enableAsserts = args['enable-asserts'] as bool,
         closure = args['closure-experimental'] as bool,
         bazelMapping =
             _parseBazelMappings(args['bazel-mapping'] as List<String>),
@@ -327,22 +332,19 @@ class CompilerOptions {
       ..addFlag('inline-source-map',
           help: 'emit source mapping inline', defaultsTo: false, hide: hide)
       ..addFlag('emit-metadata',
-          help: 'emit metadata annotations queriable via mirrors',
-          defaultsTo: false,
-          hide: hide)
+          help: 'emit metadata annotations queriable via mirrors', hide: hide)
+      ..addFlag('enable-asserts',
+          help: 'enable assertions', defaultsTo: true, hide: hide)
       ..addFlag('closure-experimental',
           help: 'emit Closure Compiler-friendly code (experimental)',
-          defaultsTo: false,
           hide: hide)
       ..addFlag('unsafe-force-compile',
           help: 'Compile code even if it has errors. ಠ_ಠ\n'
               'This has undefined behavior!',
-          defaultsTo: false,
           hide: hide)
       ..addFlag('repl-compile',
           help: 'Compile code more permissively when in REPL mode\n'
               'allowing access to private members across library boundaries.',
-          defaultsTo: false,
           hide: hide)
       ..addMultiOption('bazel-mapping',
           help:

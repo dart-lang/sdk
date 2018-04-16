@@ -131,6 +131,7 @@ class ProgramCompiler extends Object
   final _superHelpers = new Map<String, JS.Method>();
 
   final bool emitMetadata;
+  final bool enableAsserts;
   final bool replCompile;
 
   final Map<String, String> declaredVariables;
@@ -205,6 +206,7 @@ class ProgramCompiler extends Object
   factory ProgramCompiler(Component component,
       {bool emitMetadata: false,
       bool replCompile: false,
+      bool enableAsserts: true,
       Map<String, String> declaredVariables: const {}}) {
     var nativeTypes = new NativeTypeSet(component);
     var types = new TypeSchemaEnvironment(
@@ -212,12 +214,16 @@ class ProgramCompiler extends Object
     return new ProgramCompiler._(
         nativeTypes, new JSTypeRep(types, nativeTypes.sdk),
         emitMetadata: emitMetadata,
+        enableAsserts: enableAsserts,
         replCompile: replCompile,
         declaredVariables: declaredVariables);
   }
 
   ProgramCompiler._(NativeTypeSet nativeTypes, this._typeRep,
-      {this.emitMetadata, this.replCompile, this.declaredVariables})
+      {this.emitMetadata,
+      this.enableAsserts,
+      this.replCompile,
+      this.declaredVariables})
       : _extensionTypes = nativeTypes,
         types = _typeRep.types,
         coreTypes = nativeTypes.coreTypes,
@@ -3226,7 +3232,7 @@ class ProgramCompiler extends Object
 
   @override
   visitAssertStatement(AssertStatement node) {
-    // TODO(jmesserly): only emit in checked mode.
+    if (!enableAsserts) return new JS.EmptyStatement();
     var condition = node.condition;
     var conditionType = condition.getStaticType(types);
     var jsCondition = _visitExpression(condition);

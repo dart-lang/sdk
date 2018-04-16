@@ -106,11 +106,13 @@ class CompilerResult {
 
 Future<CompilerResult> _compile(List<String> args,
     {fe.InitializedCompilerState compilerState}) async {
+  // TODO(jmesserly): refactor options to share code with dartdevc CLI.
   var argParser = new ArgParser(allowTrailingOptions: true)
     ..addFlag('help',
         abbr: 'h', help: 'Display this message.', negatable: false)
     ..addOption('out', abbr: 'o', help: 'Output file (required).')
     ..addOption('packages', help: 'The package spec file to use.')
+    // TODO(jmesserly): add verbose help to show hidden options
     ..addOption('dart-sdk-summary',
         help: 'The path to the Dart SDK summary file.', hide: true)
     ..addMultiOption('summary',
@@ -121,10 +123,10 @@ Future<CompilerResult> _compile(List<String> args,
     ..addMultiOption('summary-input-dir')
     ..addOption('custom-app-scheme', defaultsTo: 'org-dartlang-app')
     ..addFlag('emit-metadata',
-        help: '(deprecated) enables dart:mirrors for this module',
-        defaultsTo: false,
-        hide: true)
+        help: '(deprecated) enables dart:mirrors for this module', hide: true)
+    ..addFlag('enable-asserts', help: 'enable assertions', defaultsTo: true)
     // Ignore dart2js options that we don't support in DDC.
+    // TODO(jmesserly): add ignore-unrecognized-flag support.
     ..addFlag('enable-enum', hide: true)
     ..addFlag('experimental-trust-js-interop-type-annotations', hide: true)
     ..addFlag('trust-type-annotations', hide: true)
@@ -204,9 +206,15 @@ Future<CompilerResult> _compile(List<String> args,
 
   // TODO(jmesserly): Save .dill file so other modules can link in this one.
   //await writeComponentToBinary(component, output);
-  var jsModule = compileToJSModule(
-      result.component, result.inputSummaries, summaryUris, declaredVariables,
-      emitMetadata: argResults['emit-metadata'] as bool);
+  var component = result.component;
+
+  var compiler = new ProgramCompiler(component,
+      declaredVariables: declaredVariables,
+      emitMetadata: argResults['emit-metadata'] as bool,
+      enableAsserts: argResults['enable-asserts'] as bool);
+  var jsModule =
+      compiler.emitProgram(component, result.inputSummaries, summaryUris);
+
   var jsCode = jsProgramToCode(jsModule, moduleFormat,
       buildSourceMap: argResults['source-map'] as bool,
       jsUrl: path.toUri(output).toString(),
@@ -221,14 +229,6 @@ Future<CompilerResult> _compile(List<String> args,
   }
 
   return new CompilerResult(compilerState, true);
-}
-
-JS.Program compileToJSModule(Component p, List<Component> summaries,
-    List<Uri> summaryUris, Map<String, String> declaredVariables,
-    {bool emitMetadata: false}) {
-  var compiler = new ProgramCompiler(p,
-      declaredVariables: declaredVariables, emitMetadata: emitMetadata);
-  return compiler.emitProgram(p, summaries, summaryUris);
 }
 
 /// The output of compiling a JavaScript module in a particular format.

@@ -4164,6 +4164,7 @@ class CodeGenerator extends Object
       _emitAssert(node.condition, node.message);
 
   JS.Statement _emitAssert(Expression condition, Expression message) {
+    if (!options.enableAsserts) return new JS.EmptyStatement();
     // TODO(jmesserly): only emit in checked mode.
     var conditionType = condition.staticType;
     var jsCondition = _visitExpression(condition);
