@@ -13,6 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
 import '../mocks.dart';
+import '../src/utilities/flutter_util.dart' as flutter;
 
 main() {
   defineReflectiveSuite(() {
@@ -789,6 +790,15 @@ void res(int a, int b) {
 class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
   List<RefactoringKind> kinds;
 
+  void addFlutterPackage() {
+    var libFolder = flutter.configureFlutterPackage(resourceProvider);
+    packageMapProvider.packageMap['flutter'] = [libFolder];
+    // Create .packages in the project.
+    newFile(join(projectPath, '.packages'), content: '''
+flutter:${convertPath(flutter.flutterPkgLibPath)}/
+''');
+  }
+
   /**
    * Tests that there is refactoring of the given [kind] is available at the
    * [search] offset.
@@ -864,6 +874,23 @@ main() {
     await getRefactoringsForString('1 + 2');
     expect(kinds, contains(RefactoringKind.EXTRACT_LOCAL_VARIABLE));
     expect(kinds, contains(RefactoringKind.EXTRACT_METHOD));
+  }
+
+  Future test_extractWidget() async {
+    addFlutterPackage();
+    addTestFile('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Text('AAA');
+  }
+}
+''');
+    await waitForTasksFinished();
+    await getRefactoringsForString('new Text');
+    expect(kinds, contains(RefactoringKind.EXTRACT_WIDGET));
   }
 
   Future test_rename_hasElement_class() {
