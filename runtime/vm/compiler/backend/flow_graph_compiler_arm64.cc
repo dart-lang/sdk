@@ -1202,7 +1202,7 @@ int FlowGraphCompiler::EmitTestAndCallCheckCid(Assembler* assembler,
                                                const CidRange& range,
                                                int bias,
                                                bool jump_on_miss) {
-  intptr_t cid_start = range.cid_start;
+  const intptr_t cid_start = range.cid_start;
   if (range.IsSingleCid()) {
     __ AddImmediateSetFlags(class_id_reg, class_id_reg, bias - cid_start);
     __ BranchIf(jump_on_miss ? NOT_EQUAL : EQUAL, label);

@@ -1163,9 +1163,12 @@ int FlowGraphCompiler::EmitTestAndCallCheckCid(Assembler* assembler,
                                                const CidRange& range,
                                                int bias,
                                                bool jump_on_miss) {
+  // Note of WARNING: Due to smaller instruction encoding we use the 32-bit
+  // instructions on x64, which means the compare instruction has to be
+  // 32-bit (since the subtraction instruction is as well).
   intptr_t cid_start = range.cid_start;
   if (range.IsSingleCid()) {
-    __ CompareImmediate(class_id_reg, cid_start - bias);
+    __ cmpl(class_id_reg, Immediate(cid_start - bias));
     __ BranchIf(jump_on_miss ? NOT_EQUAL : EQUAL, label);
   } else {
     __ addl(class_id_reg, Immediate(bias - cid_start));
