@@ -7,9 +7,6 @@ part of dart._runtime;
 
 final metadata = JS('', 'Symbol("metadata")');
 
-/// The symbol used to store the cached `Type` object associated with a class.
-final _typeObject = JS('', 'Symbol("typeObject")');
-
 /// Types in dart are represented internally at runtime as follows.
 ///
 ///   - Normal nominal types, produced from classes, are represented

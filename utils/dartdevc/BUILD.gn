@@ -23,7 +23,6 @@ application_snapshot("dartdevc") {
     rebase_path("../../pkg/dev_compiler"),
     "-o",
     "dartdevc.js",
-    "--unsafe-force-compile",
     rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart"),
   ]
 
@@ -43,13 +42,12 @@ application_snapshot("dartdevc") {
 application_snapshot("dartdevk") {
   main_dart = "../../pkg/dev_compiler/bin/dartdevk.dart"
 
-  # TODO(vsm): Train this on real input.
   training_args = [
     "--dart-sdk-summary",
     rebase_path(sdk_dill),
     "-o",
     "dartdevk.js",
-    rebase_path("../../pkg/dev_compiler/test/codegen/sunflower/sunflower.dart"),
+    rebase_path("../../pkg/dev_compiler/bin/dartdevk.dart"),
   ]
 
   deps = [

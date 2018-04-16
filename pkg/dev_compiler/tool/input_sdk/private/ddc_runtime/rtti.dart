@@ -113,6 +113,9 @@ Type wrapType(type) {
   return JS('Type', '#[#] = #', type, _typeObject, new WrappedType(type));
 }
 
+/// The symbol used to store the cached `Type` object associated with a class.
+final _typeObject = JS('', 'Symbol("typeObject")');
+
 /// Given a WrappedType, return the internal runtime type object.
 unwrapType(WrappedType obj) => obj._wrappedType;
 

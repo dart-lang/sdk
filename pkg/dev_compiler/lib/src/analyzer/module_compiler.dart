@@ -8,6 +8,7 @@ import 'dart:io' show File;
 
 import 'package:analyzer/analyzer.dart'
     show AnalysisError, CompilationUnit, ErrorSeverity;
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 import 'package:analyzer/file_system/physical_file_system.dart'
@@ -112,16 +113,19 @@ class ModuleCompiler {
       context.resultProvider =
           new InputPackagesResultProvider(context, summaryData);
     }
-    options.declaredVariables.forEach(context.declaredVariables.define);
-    context.declaredVariables
-      ..define('dart.isVM', 'false')
+    var variables = <String, String>{};
+    variables.addAll(options.declaredVariables);
+    variables.addAll({
+      'dart.isVM': 'false',
       // TODO(vsm): Should this be hardcoded?
-      ..define('dart.library.html', 'true')
-      ..define('dart.library.io', 'false')
-      ..define('dart.library.ui', 'false')
-      ..define('dart.library.mirrors', 'false')
-      ..define('dart.library.isolate', 'false');
+      'dart.library.html': 'true',
+      'dart.library.io': 'false',
+      'dart.library.ui': 'false',
+      'dart.library.mirrors': 'false',
+      'dart.library.isolate': 'false'
+    });
 
+    context.declaredVariables = new DeclaredVariables.fromMap(variables);
     if (!context.analysisOptions.strongMode) {
       throw new ArgumentError('AnalysisContext must be strong mode');
     }

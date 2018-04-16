@@ -193,7 +193,7 @@ class TypeTable {
   /// Given a type [type], and a JS expression [typeRep] which implements it,
   /// add the type and its representation to the table, returning an
   /// expression which implements the type (but which caches the value).
-  JS.Expression nameType(InterfaceType type, JS.Expression typeRep) {
+  JS.Expression nameType(ParameterizedType type, JS.Expression typeRep) {
     if (!_generators.isNamed(type) && recordScopeDependencies(type)) {
       return typeRep;
     }
