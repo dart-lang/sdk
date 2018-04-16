@@ -35,6 +35,7 @@ namespace bin {
   V(compile_all, compile_all)                                                  \
   V(parse_all, parse_all)                                                      \
   V(disable_service_origin_check, vm_service_dev_mode)                         \
+  V(deterministic, deterministic)                                              \
   V(use_blobs, use_blobs)                                                      \
   V(obfuscate, obfuscate)                                                      \
   V(trace_loading, trace_loading)                                              \
