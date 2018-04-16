@@ -3240,6 +3240,8 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         break;
 
       case Assert.Expression:
+        // The parser has already reported an error indicating that assert
+        // cannot be used in an expression.
         push(deprecated_buildCompileTimeError(
             "`assert` can't be used as an expression."));
         break;

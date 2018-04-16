@@ -874,8 +874,17 @@ class AstBuilder extends ScopeListener {
     Expression condition = pop();
     switch (kind) {
       case Assert.Expression:
-        throw new UnimplementedError(
-            'assert expressions are not yet supported');
+        // The parser has already reported an error indicating that assert
+        // cannot be used in an expression. Insert a placeholder.
+        List<Expression> arguments = <Expression>[condition];
+        if (message != null) {
+          arguments.add(message);
+        }
+        push(ast.functionExpressionInvocation(
+            ast.simpleIdentifier(assertKeyword),
+            null,
+            ast.argumentList(
+                leftParenthesis, arguments, leftParenthesis?.endGroup)));
         break;
       case Assert.Initializer:
         push(ast.assertInitializer(assertKeyword, leftParenthesis, condition,
