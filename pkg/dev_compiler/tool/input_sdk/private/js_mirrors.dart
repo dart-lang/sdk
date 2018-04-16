@@ -288,53 +288,64 @@ class JsClassMirror extends JsMirror implements ClassMirror {
         _declarations[symbol] =
             new JsMethodMirror._instanceMethod(this, symbol, ft);
       });
+
+      getterType(type) {
+        if (JS('bool', '# instanceof Array', type)) {
+          var array = JS('', '#.slice()', type);
+          type = JS('', '#[0]', array);
+          JS('', '#[0] = #', array, dart.fnType(type, []));
+          return array;
+        } else {
+          return dart.fnType(type, []);
+        }
+      }
+
       var getters = _toDartMap(dart.getGetters(unwrapped));
       getters.forEach((symbol, type) {
-        var name = getName(symbol);
-        if (JS('bool', '# instanceof Array', type)) {
-          JS('', '#[0] = #(#[0], [])', type, dart.fnType, type);
-        } else {
-          type = dart.fnType(type, []);
-        }
         _declarations[symbol] =
-            new JsMethodMirror._instanceMethod(this, symbol, type);
+            new JsMethodMirror._instanceMethod(this, symbol, getterType(type));
       });
+
+      setterType(type) {
+        if (JS('bool', '# instanceof Array', type)) {
+          var array = JS('', '#.slice()', type);
+          type = JS('', '#[0]', array);
+          JS('', '#[0] = #', array, dart.fnType(dart.void_, [type]));
+          return array;
+        } else {
+          return dart.fnType(dart.void_, [type]);
+        }
+      }
+
       var setters = _toDartMap(dart.getSetters(unwrapped));
       setters.forEach((symbol, type) {
         var name = getName(symbol) + '=';
         // Create a separate symbol for the setter.
         symbol = new PrivateSymbol(name, _getESSymbol(symbol));
-        var ft = dart.fnType(dart.void_, [type]);
         _declarations[symbol] =
-            new JsMethodMirror._instanceMethod(this, symbol, ft);
+            new JsMethodMirror._instanceMethod(this, symbol, setterType(type));
       });
+
       var staticFields = _toDartMap(dart.getStaticFields(unwrapped));
       staticFields.forEach((symbol, t) {
         _declarations[symbol] = new JsVariableMirror._fromField(symbol, t);
       });
       var statics = _toDartMap(dart.getStaticMethods(unwrapped));
       statics.forEach((symbol, ft) {
-        var name = getName(symbol);
         _declarations[symbol] =
             new JsMethodMirror._staticMethod(this, symbol, ft);
       });
+
       var staticGetters = _toDartMap(dart.getStaticGetters(unwrapped));
       staticGetters.forEach((symbol, type) {
-        var name = getName(symbol);
-        if (JS('bool', '# instanceof Array', type)) {
-          JS('', '#[0] = #(#[0], [])', type, dart.fnType, type);
-        } else {
-          type = dart.fnType(type, []);
-        }
         _declarations[symbol] =
-            new JsMethodMirror._staticMethod(this, symbol, type);
+            new JsMethodMirror._staticMethod(this, symbol, getterType(type));
       });
+
       var staticSetters = _toDartMap(dart.getStaticSetters(unwrapped));
       staticSetters.forEach((symbol, type) {
-        var name = getName(symbol);
-        var ft = dart.fnType(dart.void_, [type]);
         _declarations[symbol] =
-            new JsMethodMirror._staticMethod(this, symbol, ft);
+            new JsMethodMirror._staticMethod(this, symbol, setterType(type));
       });
       _declarations =
           new Map<Symbol, DeclarationMirror>.unmodifiable(_declarations);
