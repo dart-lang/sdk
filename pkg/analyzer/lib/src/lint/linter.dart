@@ -208,7 +208,7 @@ class LinterOptions extends DriverOptions {
   }
 }
 
-/// Filtered lints are ommitted from linter output.
+/// Filtered lints are omitted from linter output.
 abstract class LintFilter {
   bool filter(AnalysisError lint);
 }
