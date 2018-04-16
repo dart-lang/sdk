@@ -1453,7 +1453,7 @@ class ScopeProxy implements Scope {
   }
 
   @override
-  declare(String name, Builder builder, int charOffset, Uri fileUri) {
+  declare(String name, Builder builder, Uri fileUri) {
     _locals[name] = builder;
     return null;
   }

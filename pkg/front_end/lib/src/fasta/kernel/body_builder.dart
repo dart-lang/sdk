@@ -361,7 +361,6 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
 
   void declareVariable(VariableDeclaration variable, Scope scope) {
     String name = variable.name;
-    int offset = variable.fileOffset;
     Builder existing = scope.local[name];
     if (existing != null) {
       // This reports an error for duplicated declarations in the same scope:
@@ -378,7 +377,6 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         variable.name,
         new KernelVariableBuilder(
             variable, member ?? classBuilder ?? library, uri),
-        offset,
         uri);
     if (context != null) {
       // This case is different from the above error. In this case, the problem
@@ -2933,7 +2931,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         Expression expression = new ShadowNamedFunctionExpression(variable);
         if (oldInitializer != null) {
           // This must have been a compile-time error.
-          assert(library.loader.handledErrors.isNotEmpty);
+          assert(isErroneousNode(oldInitializer));
 
           push(new Let(
               new VariableDeclaration.forValue(oldInitializer)
@@ -2948,7 +2946,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         function.parent = declaration;
         if (variable.initializer != null) {
           // This must have been a compile-time error.
-          assert(library.loader.handledErrors.isNotEmpty);
+          assert(isErroneousNode(variable.initializer));
 
           push(new Block(<Statement>[
             new ExpressionStatement(variable.initializer),
@@ -3969,6 +3967,11 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     TreeNode node = object as TreeNode;
     node.fileOffset = offset;
     return object;
+  }
+
+  bool isErroneousNode(TreeNode node) {
+    return library.loader.handledErrors.isNotEmpty &&
+        forest.isErroneousNode(node);
   }
 }
 
