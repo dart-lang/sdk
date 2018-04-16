@@ -199,7 +199,7 @@ $data
     TypeProvider typeProvider = await driver.currentSession.typeProvider;
 
     String dartDartPath = path.join(rootDir, 'lib', 'src', 'task', 'dart.dart');
-    String taskPath = path.join(rootDir, 'lib', 'plugin', 'task.dart');
+    String taskPath = path.join(rootDir, 'lib', 'src', 'plugin', 'task.dart');
     String modelPath =
         path.join(rootDir, 'lib', 'src', 'task', 'api', 'model.dart');
     String enginePluginPath =

@@ -5,7 +5,6 @@
 import 'dart:collection';
 
 import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -16,6 +15,7 @@ import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/plugin/options.dart';
 import 'package:analyzer/src/task/api/general.dart';
 import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/general.dart';

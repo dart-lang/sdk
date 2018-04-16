@@ -4,8 +4,8 @@
 
 import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
-import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:front_end/src/base/source.dart';

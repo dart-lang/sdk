@@ -4,7 +4,6 @@
 
 import 'dart:collection';
 
-import 'package:analyzer/context/context_root.dart' as old;
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
@@ -13,6 +12,7 @@ import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
 import 'package:analyzer/src/context/builder.dart'
     show ContextBuilder, ContextBuilderOptions;
+import 'package:analyzer/src/context/context_root.dart' as old;
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverScheduler;

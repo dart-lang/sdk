@@ -8,7 +8,6 @@ import 'dart:convert';
 import 'dart:core';
 
 import 'package:analysis_server/src/plugin/notification_manager.dart';
-import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -20,6 +19,7 @@ import 'package:analyzer/source/path_filter.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
