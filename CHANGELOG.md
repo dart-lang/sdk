@@ -1,3 +1,10 @@
+# 0.1.48
+
+* new `avoid_field_initializers_in_const_classes` lint
+* miscellaneous documentation fixes
+* improved handling of cascades in `unnecessary_statements`
+* new `avoid_js_rounded_ints` lint
+
 # 0.1.47
 
 * new `avoid_double_and_int_checks` lint
