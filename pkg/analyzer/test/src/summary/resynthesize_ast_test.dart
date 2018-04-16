@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.summary.resynthesize_ast_test;
-
 import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -22,8 +20,8 @@ import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart'
     show PackageBundleAssembler;
-import 'package:analyzer/task/dart.dart' show PARSED_UNIT;
-import 'package:analyzer/task/general.dart';
+import 'package:analyzer/src/task/api/dart.dart' show PARSED_UNIT;
+import 'package:analyzer/src/task/api/general.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

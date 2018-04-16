@@ -34,8 +34,6 @@
  * statements declares a local variable then the local variable will be
  * represented by an element.
  */
-library analyzer.dart.element.element;
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/resolution_base_classes.dart';
 import 'package:analyzer/dart/constant/value.dart';
@@ -45,8 +43,8 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:analyzer/src/task/dart.dart';
-import 'package:analyzer/task/model.dart' show AnalysisTarget;
 
 /**
  * An element that represents a class.

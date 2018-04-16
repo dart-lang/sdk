@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.task.yaml_test;
-
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/api/general.dart';
+import 'package:analyzer/src/task/api/yaml.dart';
 import 'package:analyzer/src/task/yaml.dart';
-import 'package:analyzer/task/general.dart';
-import 'package:analyzer/task/yaml.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';

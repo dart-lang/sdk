@@ -13,9 +13,9 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/task/api/general.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/options.dart';
-import 'package:analyzer/task/general.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
@@ -543,15 +543,6 @@ analyzer:
     ''', [AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE]);
   }
 
-  test_analyzer_lint_codes_recognized() {
-    Registry.ruleRegistry.register(new TestRule());
-    validate('''
-analyzer:
-  errors:
-    fantastic_test_rule: ignore
-    ''', []);
-  }
-
   test_analyzer_language_supported() {
     validate('''
 analyzer:
@@ -574,6 +565,15 @@ analyzer:
   language:
     enableSuperMixins: foo
 ''', [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
+  }
+
+  test_analyzer_lint_codes_recognized() {
+    Registry.ruleRegistry.register(new TestRule());
+    validate('''
+analyzer:
+  errors:
+    fantastic_test_rule: ignore
+    ''', []);
   }
 
   test_analyzer_strong_mode_error_code_supported() {

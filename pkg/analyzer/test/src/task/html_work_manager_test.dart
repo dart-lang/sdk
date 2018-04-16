@@ -17,12 +17,12 @@ import 'package:analyzer/src/generated/engine.dart'
         ChangeNoticeImpl,
         InternalAnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/api/dart.dart';
+import 'package:analyzer/src/task/api/general.dart';
+import 'package:analyzer/src/task/api/html.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/html_work_manager.dart';
-import 'package:analyzer/task/dart.dart';
-import 'package:analyzer/task/general.dart';
-import 'package:analyzer/task/html.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

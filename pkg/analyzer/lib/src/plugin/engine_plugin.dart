@@ -6,12 +6,12 @@ import 'package:analyzer/error/error.dart' show AnalysisError;
 import 'package:analyzer/plugin/task.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show InternalAnalysisContext;
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/html_work_manager.dart';
 import 'package:analyzer/src/task/options_work_manager.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:plugin/plugin.dart';
 
 /**

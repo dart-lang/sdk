@@ -6,11 +6,9 @@
  * Support for client code that extends the analysis engine by adding new
  * analysis tasks.
  */
-library analyzer.plugin.task;
-
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
-import 'package:analyzer/task/model.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:plugin/plugin.dart';
 
 /**

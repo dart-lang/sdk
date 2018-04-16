@@ -16,10 +16,10 @@ import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/task/api/general.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/util/yaml.dart';
-import 'package:analyzer/task/general.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
@@ -156,9 +156,6 @@ class ErrorFilterOptionValidator extends OptionsValidator {
   /// Lazily populated set of error codes (hashed for speedy lookup).
   static HashSet<String> _errorCodes;
 
-  /// Lazily populated set of lint codes.
-  Set<String> _lintCodes;
-
   /// Legal error code names.
   static Set<String> get errorCodes {
     if (_errorCodes == null) {
@@ -168,6 +165,9 @@ class ErrorFilterOptionValidator extends OptionsValidator {
     }
     return _errorCodes;
   }
+
+  /// Lazily populated set of lint codes.
+  Set<String> _lintCodes;
 
   Set<String> get lintCodes {
     if (_lintCodes == null) {
