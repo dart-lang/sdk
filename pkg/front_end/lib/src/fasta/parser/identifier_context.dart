@@ -105,10 +105,8 @@ class IdentifierContext {
 
   /// Identifier is the name being declared by a class declaration or a named
   /// mixin application, for example, `Foo` in `class Foo = X with Y;`.
-  static const classOrNamedMixinDeclaration = const IdentifierContext(
-      'classOrNamedMixinDeclaration',
-      inDeclaration: true,
-      isBuiltInIdentifierAllowed: false);
+  static const classOrNamedMixinDeclaration =
+      const ClassOrNamedMixinIdentifierContext();
 
   /// Identifier is the name of a type variable being declared (e.g. `Foo` in
   /// `class C<Foo extends num> {}`).

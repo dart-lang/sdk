@@ -1952,9 +1952,7 @@ class Parser {
       return true;
     }
     List<String> followingValues;
-    if (context == IdentifierContext.classOrNamedMixinDeclaration) {
-      followingValues = ['<', 'extends', 'with', 'implements', '{'];
-    } else if (context == IdentifierContext.combinator) {
+    if (context == IdentifierContext.combinator) {
       followingValues = [';'];
     } else if (context == IdentifierContext.constructorReferenceContinuation) {
       followingValues = ['.', ',', '(', ')', '[', ']', '}', ';'];
@@ -2043,9 +2041,7 @@ class Parser {
     // could create a method to test whether a given token matches one of the
     // patterns.
     List<String> initialKeywords;
-    if (context == IdentifierContext.classOrNamedMixinDeclaration) {
-      initialKeywords = topLevelKeywords();
-    } else if (context == IdentifierContext.fieldDeclaration) {
+    if (context == IdentifierContext.fieldDeclaration) {
       initialKeywords = classMemberKeywords();
     } else if (context == IdentifierContext.enumDeclaration) {
       initialKeywords = topLevelKeywords();

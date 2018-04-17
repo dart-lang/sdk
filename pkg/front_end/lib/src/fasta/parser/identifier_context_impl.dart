@@ -17,6 +17,41 @@ import 'type_info.dart'
 
 import 'util.dart' show optional;
 
+/// See [IdentifierContext].classOrNamedMixin
+class ClassOrNamedMixinIdentifierContext extends IdentifierContext {
+  const ClassOrNamedMixinIdentifierContext()
+      : super('classOrNamedMixinDeclaration',
+            inDeclaration: true, isBuiltInIdentifierAllowed: false);
+
+  @override
+  Token ensureIdentifier(Token token, Parser parser) {
+    Token identifier = token.next;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    if (identifier.type.isPseudo) {
+      return identifier;
+    }
+
+    if (looksLikeStartOfNextDeclaration(identifier) ||
+        isOneOfOrEof(
+            identifier, const ['<', '{', 'extends', 'with', 'implements'])) {
+      identifier = parser.insertSyntheticIdentifier(token, this,
+          message: fasta.templateExpectedIdentifier.withArguments(identifier));
+    } else if (identifier.type.isBuiltIn) {
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateBuiltInIdentifierAsType);
+    } else {
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateExpectedIdentifier);
+      if (!identifier.isKeywordOrIdentifier) {
+        // When in doubt, consume the token to ensure we make progress
+        // but insert a synthetic identifier to satisfy listeners.
+        identifier = insertSyntheticIdentifierAfter(identifier, parser);
+      }
+    }
+    return identifier;
+  }
+}
+
 /// See [IdentifierContext].expression
 class ExpressionIdentifierContext extends IdentifierContext {
   const ExpressionIdentifierContext()
@@ -56,7 +91,7 @@ class ExpressionIdentifierContext extends IdentifierContext {
     parser.reportRecoverableErrorWithToken(
         next, fasta.templateExpectedIdentifier);
     if (next.isKeywordOrIdentifier) {
-      if (!isOneOfOrEof(next, ['as', 'is'])) {
+      if (!isOneOfOrEof(next, const ['as', 'is'])) {
         return next;
       }
     } else if (!next.isOperator &&
@@ -109,15 +144,6 @@ class LibraryIdentifierContext extends IdentifierContext {
     }
     return identifier;
   }
-
-  bool looksLikeStartOfNextDeclaration(Token token) =>
-      token.isTopLevelKeyword ||
-      optional('const', token) ||
-      optional('get', token) ||
-      optional('final', token) ||
-      optional('set', token) ||
-      optional('var', token) ||
-      optional('void', token);
 }
 
 /// See [IdentifierContext].typeReference
@@ -201,3 +227,7 @@ bool isOneOfOrEof(Token token, Iterable<String> followingValues) {
   }
   return token.isEof;
 }
+
+bool looksLikeStartOfNextDeclaration(Token token) =>
+    token.isTopLevelKeyword ||
+    isOneOfOrEof(token, const ['const', 'get', 'final', 'set', 'var', 'void']);
