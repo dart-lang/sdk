@@ -3496,9 +3496,9 @@ class CodeGenerator extends Object
     return _badAssignment('Unhandled assignment', left, right);
   }
 
-  // TODO(jmesserly): remove this. Instead handle REPL private name lookups in
-  // _emitMemberName (by using `dart.privateName` if we're in REPL mode,
-  // refactored from the current `dart._dhelperRepl`).
+  // TODO(jmesserly): can we encapsulate REPL name lookups and remove this?
+  // _emitMemberName would be a nice place to handle it, but we don't have
+  // access to the target expression there (needed for `dart.replNameLookup`).
   String get _replSuffix => options.replCompile ? 'Repl' : '';
 
   JS.Expression _badAssignment(String problem, Expression lhs, Expression rhs) {

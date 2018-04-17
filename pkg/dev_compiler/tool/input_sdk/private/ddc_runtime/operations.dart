@@ -91,6 +91,8 @@ gbind(f, @rest typeArgs) {
   return result;
 }
 
+dloadRepl(obj, field) => dload(obj, replNameLookup(obj, field), false);
+
 // Warning: dload, dput, and dsend assume they are never called on methods
 // implemented by the Object base class as those methods can always be
 // statically resolved.
@@ -130,6 +132,9 @@ _stripGenericArguments(type) {
 // TODO(jacobr): remove the type checking rules workaround when mirrors based
 // PageLoader code can generate the correct reified generic types.
 dputMirror(obj, field, value) => dput(obj, field, value, true);
+
+dputRepl(obj, field, value) =>
+    dput(obj, replNameLookup(obj, field), value, false);
 
 dput(obj, field, value, [mirrors = undefined]) {
   var f = _canonicalMember(obj, field);
@@ -305,11 +310,11 @@ dgcall(f, typeArgs, args, [named = undefined]) =>
 
 /// Helper for REPL dynamic invocation variants that make a best effort to
 /// enable accessing private members across library boundaries.
-_dhelperRepl(object, field, callback) => JS('', '''(() => {
+replNameLookup(object, field) => JS('', '''(() => {
   let rawField = $field;
   if (typeof(field) == 'symbol') {
     // test if the specified field exists in which case it is safe to use it.
-    if ($field in $object) return $callback($field);
+    if ($field in $object) return $field;
 
     // Symbol is from a different library. Make a best effort to
     $field = $field.toString();
@@ -317,11 +322,11 @@ _dhelperRepl(object, field, callback) => JS('', '''(() => {
 
   } else if ($field.charAt(0) != '_') {
     // Not a private member so default call path is safe.
-    return $callback($field);
+    return $field;
   }
 
   // If the exact field name is present, invoke callback with it.
-  if ($field in $object) return $callback($field);
+  if ($field in $object) return $field;
 
   // TODO(jacobr): warn if there are multiple private members with the same
   // name which could happen if super classes in different libraries have
@@ -334,28 +339,21 @@ _dhelperRepl(object, field, callback) => JS('', '''(() => {
 
     for (let s = 0; s < symbols.length; s++) {
       let sym = symbols[s];
-      if (target == sym.toString()) return $callback(sym);
+      if (target == sym.toString()) return sym;
     }
     proto = proto.__proto__;
   }
   // We didn't find a plausible alternate private symbol so just fall back
   // to the regular field.
-  return $callback(rawField);
+  return rawField;
 })()''');
 
-dloadRepl(obj, field) => _dhelperRepl(obj, field, (f) => dload(obj, f, false));
-
-dputRepl(obj, field, value) =>
-    _dhelperRepl(obj, field, (f) => dput(obj, f, value, false));
-
-callMethodRepl(obj, method, typeArgs, args, named) => _dhelperRepl(
-    obj, method, (f) => callMethod(obj, f, typeArgs, args, method, named));
-
-dsendRepl(obj, method, args, [named = undefined]) =>
-    callMethodRepl(obj, method, null, args, named);
-
-dgsendRepl(obj, typeArgs, method, args, [named = undefined]) =>
-    callMethodRepl(obj, method, typeArgs, args, named);
+// TODO(jmesserly): the debugger extension hardcodes a call to this private
+// function. Fix that.
+@Deprecated('use replNameLookup')
+_dhelperRepl(obj, field, Function(Object) callback) {
+  return callback(replNameLookup(obj, field));
+}
 
 /// Shared code for dsend, dindex, and dsetindex.
 callMethod(obj, name, typeArgs, args, named, displayName) {
@@ -379,6 +377,12 @@ dsend(obj, method, args, [named = undefined]) =>
 
 dgsend(obj, typeArgs, method, args, [named = undefined]) =>
     callMethod(obj, method, typeArgs, args, named, method);
+
+dsendRepl(obj, method, args, [named = undefined]) =>
+    callMethod(obj, replNameLookup(obj, method), null, args, named, method);
+
+dgsendRepl(obj, typeArgs, method, args, [named = undefined]) =>
+    callMethod(obj, replNameLookup(obj, method), typeArgs, args, named, method);
 
 dindex(obj, index) => callMethod(obj, '_get', null, [index], null, '[]');
 
