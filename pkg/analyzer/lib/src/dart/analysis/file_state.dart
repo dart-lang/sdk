@@ -82,6 +82,11 @@ class FileContentOverlay {
  * should be called.
  */
 class FileState {
+  /**
+   * The next value for [_exportDeclarationsId].
+   */
+  static int _exportDeclarationsNextId = 0;
+
   final FileSystemState _fsState;
 
   /**
@@ -136,6 +141,7 @@ class FileState {
 
   Map<String, TopLevelDeclaration> _topLevelDeclarations;
   Map<String, TopLevelDeclaration> _exportedTopLevelDeclarations;
+  int _exportDeclarationsId = 0;
 
   /**
    * The flag that shows whether the file has an error or warning that
@@ -207,44 +213,8 @@ class FileState {
    * keys to the map are names of declarations.
    */
   Map<String, TopLevelDeclaration> get exportedTopLevelDeclarations {
-    if (_exportedTopLevelDeclarations == null) {
-      _exportedTopLevelDeclarations = <String, TopLevelDeclaration>{};
-
-      Set<FileState> seenLibraries = new Set<FileState>();
-
-      /**
-       * Compute [TopLevelDeclaration]s exported from the [library].
-       */
-      Map<String, TopLevelDeclaration> computeExported(FileState library) {
-        var declarations = <String, TopLevelDeclaration>{};
-        if (seenLibraries.add(library)) {
-          // Append the exported declarations.
-          for (int i = 0; i < library._exportedFiles.length; i++) {
-            Map<String, TopLevelDeclaration> exported =
-                computeExported(library._exportedFiles[i]);
-            for (TopLevelDeclaration t in exported.values) {
-              if (library._exportFilters[i].accepts(t.name)) {
-                declarations[t.name] = t;
-              }
-            }
-          }
-
-          // Append the library declarations.
-          declarations.addAll(library.topLevelDeclarations);
-          for (FileState part in library.partedFiles) {
-            declarations.addAll(part.topLevelDeclarations);
-          }
-
-          // We're done with this library.
-          seenLibraries.remove(library);
-        }
-
-        return declarations;
-      }
-
-      _exportedTopLevelDeclarations = computeExported(this);
-    }
-    return _exportedTopLevelDeclarations;
+    _exportDeclarationsNextId = 1;
+    return _computeExportedDeclarations().declarations;
   }
 
   @override
@@ -565,6 +535,70 @@ class FileState {
 
   @override
   String toString() => path;
+
+  /**
+   * Compute the full or partial map of exported declarations for this library.
+   */
+  _ExportedDeclarations _computeExportedDeclarations() {
+    // If we know exported declarations, return them.
+    if (_exportedTopLevelDeclarations != null) {
+      return new _ExportedDeclarations(0, _exportedTopLevelDeclarations);
+    }
+
+    // If we are already computing exported declarations for this library,
+    // report that we found a cycle.
+    if (_exportDeclarationsId != 0) {
+      return new _ExportedDeclarations(_exportDeclarationsId, null);
+    }
+
+    var declarations = <String, TopLevelDeclaration>{};
+
+    // Give each library a unique identifier.
+    _exportDeclarationsId = _exportDeclarationsNextId++;
+
+    // Append the exported declarations.
+    int firstCycleId = 0;
+    for (int i = 0; i < _exportedFiles.length; i++) {
+      var exported = _exportedFiles[i]._computeExportedDeclarations();
+      if (exported.declarations != null) {
+        for (TopLevelDeclaration t in exported.declarations.values) {
+          if (_exportFilters[i].accepts(t.name)) {
+            declarations[t.name] = t;
+          }
+        }
+      }
+      if (exported.firstCycleId > 0) {
+        if (firstCycleId == 0 || firstCycleId > exported.firstCycleId) {
+          firstCycleId = exported.firstCycleId;
+        }
+      }
+    }
+
+    // If this library is the first component of the cycle, then we are at
+    // the beginning of this cycle, and combination of partial export
+    // namespaces of other exported libraries and declarations of this library
+    // is the full export namespace of this library.
+    if (firstCycleId != 0 && firstCycleId == _exportDeclarationsId) {
+      firstCycleId = 0;
+    }
+
+    // We're done with this library, successfully or not.
+    _exportDeclarationsId = 0;
+
+    // Append the library declarations.
+    declarations.addAll(topLevelDeclarations);
+    for (FileState part in partedFiles) {
+      declarations.addAll(part.topLevelDeclarations);
+    }
+
+    // Record the declarations only if it is the full result.
+    if (firstCycleId == 0) {
+      _exportedTopLevelDeclarations = declarations;
+    }
+
+    // Return the full or partial result.
+    return new _ExportedDeclarations(firstCycleId, declarations);
+  }
 
   CompilationUnit _createEmptyCompilationUnit() {
     var token = new Token.eof(0);
@@ -914,6 +948,23 @@ class FileSystemStateTestView {
         .where((f) => f._transitiveSignature == null)
         .toSet();
   }
+
+  Set<FileState> get librariesWithComputedExportedDeclarations {
+    return state._uriToFile.values
+        .where((f) => !f.isPart && f._exportedTopLevelDeclarations != null)
+        .toSet();
+  }
+}
+
+/**
+ * The result of computing exported top-level declarations.
+ * It can be full (when [firstCycleId] is zero), or partial (when a cycle)
+ */
+class _ExportedDeclarations {
+  final int firstCycleId;
+  final Map<String, TopLevelDeclaration> declarations;
+
+  _ExportedDeclarations(this.firstCycleId, this.declarations);
 }
 
 /**
