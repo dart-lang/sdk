@@ -795,7 +795,7 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
     packageMapProvider.packageMap['flutter'] = [libFolder];
     // Create .packages in the project.
     newFile(join(projectPath, '.packages'), content: '''
-flutter:${convertPath(flutter.flutterPkgLibPath)}/
+flutter:${libFolder.toUri()}
 ''');
   }
 
