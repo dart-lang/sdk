@@ -20,17 +20,17 @@ import 'package:front_end/src/fasta/fasta_codes.dart' show FormattedMessage;
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
 
-import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
-
 import 'package:front_end/src/fasta/severity.dart' show Severity;
 
-import 'package:kernel/kernel.dart' show Component, Library, Reference;
+import 'package:kernel/kernel.dart' show Component;
 
 import 'package:kernel/text/ast_to_text.dart'
     show globalDebuggingNames, NameSystem;
 
 import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
+
+import 'incremental_utils.dart' as util;
 
 main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, "../testing.json");
@@ -90,7 +90,7 @@ class RunTest extends Step<TestDescription, TestDescription, Context> {
     try {
       IncrementalCompiler compiler =
           new IncrementalKernelGenerator(getOptions(true), uri);
-      oneShotSerialized = postProcess(await compiler.computeDelta());
+      oneShotSerialized = util.postProcess(await compiler.computeDelta());
     } catch (e) {
       oneShotFailed = true;
     }
@@ -106,7 +106,7 @@ class RunTest extends Step<TestDescription, TestDescription, Context> {
       }
       Component bulkCompiledComponent = await context.compiler
           .computeDelta(entryPoint: uri, fullComponent: true);
-      bulkSerialized = postProcess(bulkCompiledComponent);
+      bulkSerialized = util.postProcess(bulkCompiledComponent);
     } catch (e) {
       bulkFailed = true;
     }
@@ -122,7 +122,7 @@ class RunTest extends Step<TestDescription, TestDescription, Context> {
       }
       Component bulkCompiledComponent = await context.compiler
           .computeDelta(entryPoint: uri, fullComponent: true);
-      bulkSerialized2 = postProcess(bulkCompiledComponent);
+      bulkSerialized2 = util.postProcess(bulkCompiledComponent);
     } catch (e) {
       bulk2Failed = true;
     }
@@ -146,23 +146,6 @@ class RunTest extends Step<TestDescription, TestDescription, Context> {
     }
 
     return pass(description);
-  }
-
-  List<int> postProcess(Component c) {
-    c.libraries.sort((l1, l2) {
-      return l1.fileUri.toString().compareTo(l2.fileUri.toString());
-    });
-
-    c.computeCanonicalNames();
-    for (Library library in c.libraries) {
-      library.additionalExports.sort((Reference r1, Reference r2) {
-        return r1.canonicalName
-            .toString()
-            .compareTo(r2.canonicalName.toString());
-      });
-    }
-
-    return serializeComponent(c);
   }
 
   void checkIsEqual(List<int> a, List<int> b) {

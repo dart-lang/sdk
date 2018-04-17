@@ -242,17 +242,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       userCode.loader.builders.remove(uri);
     }
 
-    // For now ensure original order of libraries to produce bit-perfect
-    // output.
-    result.sort((a, b) {
-      int aOrder = data.importUriToOrder[a.importUri];
-      int bOrder = data.importUriToOrder[b.importUri];
-      if (aOrder != null && bOrder != null) return aOrder - bOrder;
-      if (aOrder != null) return -1;
-      if (bOrder != null) return 1;
-      return 0;
-    });
-
     return result;
   }
 
@@ -285,8 +274,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     if (await entity.exists()) {
       List<int> initializationBytes = await entity.readAsBytes();
       if (initializationBytes != null) {
-        Set<Uri> prevLibraryUris = new Set<Uri>.from(
-            data.component.libraries.map((Library lib) => lib.importUri));
         ticker.logMs("Read $initializeFromDillUri");
 
         Set<Uri> sdkUris = data.component.uriToSource.keys.toSet();
@@ -312,10 +299,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
         initializedFromDill = true;
         bytesLength += initializationBytes.length;
-        for (Library lib in data.component.libraries) {
-          if (prevLibraryUris.contains(lib.importUri)) continue;
-          data.importUriToOrder[lib.importUri] = data.importUriToOrder.length;
-        }
         data.userLoadedUriMain = data.component.mainMethod;
         data.includeUserLoadedLibraries = true;
         for (Uri uri in data.component.uriToSource.keys) {
@@ -454,7 +437,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
 class IncrementalCompilerData {
   bool includeUserLoadedLibraries;
-  Map<Uri, int> importUriToOrder;
   Procedure userLoadedUriMain;
   Component component;
 
@@ -464,7 +446,6 @@ class IncrementalCompilerData {
 
   reset() {
     includeUserLoadedLibraries = false;
-    importUriToOrder = <Uri, int>{};
     userLoadedUriMain = null;
     component = null;
   }
