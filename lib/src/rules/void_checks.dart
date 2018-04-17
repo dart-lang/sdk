@@ -61,7 +61,7 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitMethodInvocation(MethodInvocation node) {
-    final type = node.function.bestType;
+    final type = node.staticInvokeType;
     if (type is FunctionType) {
       final args = node.argumentList.arguments;
       final parameters = type.parameters;
@@ -84,9 +84,9 @@ class Visitor extends SimpleAstVisitor {
       if (arg is NamedExpression) {
         final type =
             parameters.singleWhere((e) => e.name == arg.name.label.name).type;
-        _check(type, arg, arg);
+        _check(type, arg?.bestType, arg);
       } else {
-        _check(positionalParameters[positionalCount].type, arg, arg);
+        _check(positionalParameters[positionalCount].type, arg?.bestType, arg);
         positionalCount += 1;
       }
     }
@@ -94,38 +94,60 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitAssignmentExpression(AssignmentExpression node) {
-    _check(node.leftHandSide.bestType, node.rightHandSide, node);
+    _check(node.leftHandSide?.bestType, node.rightHandSide?.bestType, node);
   }
 
   @override
   visitReturnStatement(ReturnStatement node) {
     final parent = node.getAncestor((e) =>
-        e is MethodInvocation ||
+        e is FunctionExpression ||
         e is MethodDeclaration ||
-        e is FunctionDeclaration ||
-        e is FunctionExpressionInvocation);
-    if (parent is MethodInvocation) {
-      final type = parent.function.bestType;
+        e is FunctionDeclaration);
+    if (parent is FunctionExpression) {
+      final type = parent.bestType;
       if (type is FunctionType) {
-        _check(type.returnType, node.expression, node);
+        _check(type.returnType, node.expression?.bestType, node);
       }
     } else if (parent is MethodDeclaration) {
-      _check(parent.element.returnType, node.expression, node);
+      _check(parent.element.returnType, node.expression?.bestType, node);
     } else if (parent is FunctionDeclaration) {
-      _check(parent.element.returnType, node.expression, node);
-    } else if (parent is FunctionExpressionInvocation) {
-      _check(parent.bestElement?.returnType, node.expression, node);
+      _check(parent.element.returnType, node.expression?.bestType, node);
     }
   }
 
-  void _check(DartType expectedType, Expression expression, AstNode node) {
-    if (expectedType == null) return;
-    if (expectedType.isVoid && expression != null ||
+  void _check(DartType expectedType, DartType type, AstNode node) {
+    if (expectedType == null || type == null)
+      return;
+    else if (expectedType.isVoid ||
         expectedType.isDartAsyncFutureOr &&
             (expectedType as InterfaceType).typeArguments.first.isVoid &&
-            !expression.bestType.isAssignableTo(_futureDynamicType) &&
-            !expression.bestType.isAssignableTo(_futureOrDynamicType)) {
+            !type.isAssignableTo(_futureDynamicType) &&
+            !type.isAssignableTo(_futureOrDynamicType)) {
       rule.reportLint(node);
+    } else if (expectedType is FunctionType && type is FunctionType) {
+      _check(expectedType.returnType, type.returnType, node);
     }
+  }
+
+  DartType _findParamType(
+    FunctionType type,
+    AstNode node,
+    InvocationExpression invocation,
+  ) {
+    int index = 0;
+    for (final arg in invocation.argumentList.arguments) {
+      if (node.getAncestor((e) => e == arg || e == invocation) == arg) {
+        if (arg is NamedExpression) {
+          return type.namedParameterTypes[arg.name.label.name];
+        } else if (index < type.normalParameterTypes.length) {
+          return type.normalParameterTypes[index];
+        } else {
+          return type
+              .optionalParameterTypes[index - type.normalParameterTypes.length];
+        }
+      }
+      if (arg is! NamedExpression) index++;
+    }
+    return null;
   }
 }

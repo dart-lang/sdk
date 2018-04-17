@@ -97,14 +97,30 @@ void assert_is_void_function_is_ok() {
   }());
 }
 
-// generics_with_function() {
-//   f<T>(T Function() f) => f();
-//   f(() // OK
-//       {
-//     return 1;
-//   });
-//   f<void>(() // LINT
-//       {
-//     return 1;
-//   });
-// }
+async_function() {
+  void f(Function f) {}
+  f(() //OK
+      async {
+    return 1; // OK
+  });
+}
+
+inference() {
+  f(void Function() f) {}
+  f(() //LINT
+      {
+    return 1; // OK
+  });
+}
+
+generics_with_function() {
+  f<T>(T Function() f) => f();
+  f(() // OK
+      {
+    return 1;
+  });
+  f<void>(() // LINT
+      {
+    return 1;
+  });
+}
