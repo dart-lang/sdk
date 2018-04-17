@@ -413,10 +413,10 @@ defineExtensionAccessors(type, Iterable memberNames) {
     var member;
     var p = proto;
     for (;; p = JS('', '#.__proto__', p)) {
-      member = JS('', 'Object.getOwnPropertyDescriptor(#, #)', p, name);
+      member = getOwnPropertyDescriptor(p, name);
       if (member != null) break;
     }
-    JS('', 'Object.defineProperty(#, dartx[#], #)', proto, name, member);
+    defineProperty(proto, JS('', 'dartx[#]', name), member);
   }
 }
 

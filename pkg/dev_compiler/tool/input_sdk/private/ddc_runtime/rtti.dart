@@ -44,16 +44,27 @@ part of dart._runtime;
 /// different from the above objects, and are created by calling `wrapType()`
 /// on a runtime type.
 
-/// Tag a closure with a type:
+/// Tag a closure with a type.
 ///
-/// `dart.fn(closure, t)` marks [closure] has having the runtime type [t].
-fn(closure, t) {
-  JS('', '#[#] = #', closure, _runtimeType, t);
+/// `dart.fn(closure, type)` marks [closure] with the provided runtime [type].
+fn(closure, type) {
+  JS('', '#[#] = #', closure, _runtimeType, type);
   return closure;
 }
 
-lazyFn(closure, computeType) {
-  defineLazyGetter(closure, _runtimeType, computeType);
+/// Tag a closure with a type that's computed lazily.
+///
+/// `dart.fn(closure, type)` marks [closure] with a getter that uses
+/// [computeType] to return the runtime type.
+///
+/// The getter/setter replaces the property with a value property, so the
+/// resulting function is compatible with [fn] and the type can be set again
+/// safely.
+lazyFn(closure, Object Function() computeType) {
+  defineAccessor(closure, _runtimeType,
+      get: () => defineValue(closure, _runtimeType, computeType()),
+      set: (value) => defineValue(closure, _runtimeType, value),
+      configurable: true);
   return closure;
 }
 
@@ -121,10 +132,6 @@ unwrapType(WrappedType obj) => obj._wrappedType;
 
 /// Return the module name for a raw library object.
 getModuleName(value) => JS('', '#[#]', value, _moduleName);
-
-void tagComputed(value, compute) {
-  defineGetter(value, _runtimeType, compute);
-}
 
 var _loadedModules = JS('', 'new Map()');
 var _loadedSourceMaps = JS('', 'new Map()');

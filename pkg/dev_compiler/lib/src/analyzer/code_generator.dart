@@ -2287,9 +2287,10 @@ class CodeGenerator extends Object
     }
 
     // Add static property dart._runtimeType to Object.
+    //
     // All other Dart classes will (statically) inherit this property.
     if (classElem == objectClass) {
-      body.add(runtimeStatement('tagComputed(#, () => #.#)',
+      body.add(runtimeStatement('lazyFn(#, () => #.#)',
           [className, emitLibraryName(coreLibrary), 'Type']));
     }
   }
