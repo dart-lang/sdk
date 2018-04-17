@@ -91,6 +91,12 @@ FutureOr<void> return_futureOr_for_futureOr() {
   return x; // OK
 }
 
+void assert_is_void_function_is_ok() {
+  assert(() {
+    return true; // OK
+  }());
+}
+
 // generics_with_function() {
 //   f<T>(T Function() f) => f();
 //   f(() // OK

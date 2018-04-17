@@ -102,7 +102,8 @@ class Visitor extends SimpleAstVisitor {
     final parent = node.getAncestor((e) =>
         e is MethodInvocation ||
         e is MethodDeclaration ||
-        e is FunctionDeclaration);
+        e is FunctionDeclaration ||
+        e is FunctionExpressionInvocation);
     if (parent is MethodInvocation) {
       final type = parent.function.bestType;
       if (type is FunctionType) {
@@ -112,10 +113,13 @@ class Visitor extends SimpleAstVisitor {
       _check(parent.element.returnType, node.expression, node);
     } else if (parent is FunctionDeclaration) {
       _check(parent.element.returnType, node.expression, node);
+    } else if (parent is FunctionExpressionInvocation) {
+      _check(parent.bestElement?.returnType, node.expression, node);
     }
   }
 
   void _check(DartType expectedType, Expression expression, AstNode node) {
+    if (expectedType == null) return;
     if (expectedType.isVoid && expression != null ||
         expectedType.isDartAsyncFutureOr &&
             (expectedType as InterfaceType).typeArguments.first.isVoid &&
