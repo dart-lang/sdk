@@ -1729,34 +1729,42 @@ class CodeGenerator extends Object
       invocationProps.add(new JS.Property(js.string(name), value));
     }
 
-    var args = _emitParametersForElement(method);
     var typeParams = _emitTypeFormals(method.type.typeFormals);
-    var fnArgs = new List<JS.Parameter>.from(typeParams)..addAll(args);
-
+    var fnArgs = new List<JS.Parameter>.from(typeParams);
     JS.Expression positionalArgs;
-    List<JS.Statement> optionalArgInit = [];
-    if (method.type.optionalParameterTypes.isNotEmpty) {
-      positionalArgs = new JS.TemporaryId('args');
-      var requiredParameterCount = method.type.normalParameterTypes.length;
-      optionalArgInit.add(js.statement(
-          'let # = [#]', [positionalArgs, args.take(requiredParameterCount)]));
-      optionalArgInit.addAll(args.skip(requiredParameterCount).map((p) =>
-          js.statement('if (# !== void 0) #.push(#)', [p, positionalArgs, p])));
-    } else {
-      if (method.type.namedParameterTypes.isNotEmpty) {
-        addProperty('namedArguments', args.removeLast());
-      }
-      positionalArgs = new JS.ArrayInitializer(args);
-    }
 
-    if (method is MethodElement) {
-      addProperty('isMethod', js.boolean(true));
-    } else {
-      var property = method as PropertyAccessorElement;
-      if (property.isGetter) {
+    if (method is PropertyAccessorElement) {
+      if (method.isGetter) {
         addProperty('isGetter', js.boolean(true));
-      } else if (property.isSetter) {
+        positionalArgs = new JS.ArrayInitializer([]);
+      } else {
+        assert(method.isSetter);
         addProperty('isSetter', js.boolean(true));
+        var valueArg = new JS.TemporaryId('value');
+        positionalArgs = new JS.ArrayInitializer([valueArg]);
+        fnArgs.add(valueArg);
+      }
+    } else {
+      addProperty('isMethod', js.boolean(true));
+      if (method.type.namedParameterTypes.isNotEmpty) {
+        // Named parameters need to be emitted in the correct position (after
+        // positional arguments) so we can detect them reliably.
+        var args = _emitParametersForElement(method);
+        fnArgs.addAll(args);
+        addProperty('namedArguments', args.removeLast());
+        positionalArgs = new JS.ArrayInitializer(args);
+      } else {
+        // In case we have optional parameters, we need to use rest args,
+        // because sometimes mocks want to detect whether optional arguments
+        // were passed, and this does not work reliably with undefined (should
+        // not normally appear in DDC, but it can result from JS interop).
+        //
+        // TODO(jmesserly): perhaps we need to use rest args or destructuring
+        // to get reliable optional argument passing in other scenarios? It
+        // doesn't seem to occur outside of tests, perhaps due to the
+        // combination of mockito and protobufs.
+        positionalArgs = new JS.TemporaryId('args');
+        fnArgs.add(new JS.RestParameter(positionalArgs));
       }
     }
 
@@ -1776,9 +1784,8 @@ class CodeGenerator extends Object
       fnBody = js.call('#._check(#)', [_emitType(method.returnType), fnBody]);
     }
 
-    var fn = new JS.Fun(
-        fnArgs, js.block('{ #; return #; }', [optionalArgInit, fnBody]),
-        typeParams: typeParams);
+    var fn =
+        new JS.Fun(fnArgs, fnBody.toReturn().toBlock(), typeParams: typeParams);
 
     return new JS.Method(
         _declareMemberName(method,

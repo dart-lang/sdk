@@ -1825,12 +1825,10 @@ class ProgramCompiler extends Object
   /// neither the fields nor the corresponding getters and setters.
   JS.Method _implementMockMember(Member member, Class c, {bool isSetter}) {
     JS.Method implementMockMember(
-        List<TypeParameter> typeParameters,
+        ProcedureKind procedureKind, DartType returnType,
+        [List<TypeParameter> typeParameters,
         List<JS.Parameter> positionalParameters,
-        List<VariableDeclaration> namedParameters,
-        int requiredParameterCount,
-        ProcedureKind procedureKind,
-        DartType returnType) {
+        List<VariableDeclaration> namedParameters]) {
       assert(procedureKind != ProcedureKind.Factory);
 
       var invocationProps = <JS.Property>[];
@@ -1838,34 +1836,38 @@ class ProgramCompiler extends Object
         invocationProps.add(new JS.Property(js.string(name), value));
       }
 
-      var args = positionalParameters;
-      var typeParams = _emitTypeFormals(typeParameters);
-      var fnArgs = new List<JS.Parameter>.from(typeParams)..addAll(args);
-
+      var typeParams = _emitTypeFormals(typeParameters ?? []);
+      var fnArgs = new List<JS.Parameter>.from(typeParams);
       JS.Expression positionalArgs;
-      List<JS.Statement> optionalArgInit = [];
-      if (positionalParameters.length != requiredParameterCount) {
-        positionalArgs = new JS.TemporaryId('args');
-        optionalArgInit.add(js.statement('let # = [#]',
-            [positionalArgs, args.take(requiredParameterCount)]));
-        optionalArgInit.addAll(args.skip(requiredParameterCount).map((p) => js
-            .statement('if (# !== void 0) #.push(#)', [p, positionalArgs, p])));
+      if (procedureKind == ProcedureKind.Getter) {
+        addProperty('isGetter', js.boolean(true));
+        positionalArgs = new JS.ArrayInitializer([]);
+      } else if (procedureKind == ProcedureKind.Setter) {
+        addProperty('isSetter', js.boolean(true));
+        var valueArg = new JS.TemporaryId('value');
+        positionalArgs = new JS.ArrayInitializer([valueArg]);
+        fnArgs.add(valueArg);
       } else {
-        positionalArgs = new JS.ArrayInitializer(args);
-        if (namedParameters.isNotEmpty) {
-          fnArgs.add(namedArgumentTemp);
-          addProperty('namedArguments', namedArgumentTemp);
-        }
-      }
-
-      if (procedureKind != ProcedureKind.Getter &&
-          procedureKind != ProcedureKind.Setter) {
         addProperty('isMethod', js.boolean(true));
-      } else {
-        if (procedureKind == ProcedureKind.Getter) {
-          addProperty('isGetter', js.boolean(true));
-        } else if (procedureKind == ProcedureKind.Setter) {
-          addProperty('isSetter', js.boolean(true));
+        if (namedParameters.isNotEmpty) {
+          // Named parameters need to be emitted in the correct position (after
+          // positional arguments) so we can detect them reliably.
+          addProperty('namedArguments', namedArgumentTemp);
+          positionalArgs = new JS.ArrayInitializer(positionalParameters);
+          fnArgs.addAll(positionalParameters);
+          fnArgs.add(namedArgumentTemp);
+        } else {
+          // In case we have optional parameters, we need to use rest args,
+          // because sometimes mocks want to detect whether optional arguments
+          // were passed, and this does not work reliably with undefined (should
+          // not normally appear in DDC, but it can result from JS interop).
+          //
+          // TODO(jmesserly): perhaps we need to use rest args or destructuring
+          // to get reliable optional argument passing in other scenarios? It
+          // doesn't seem to occur outside of tests, perhaps due to the
+          // combination of mockito and protobufs.
+          positionalArgs = new JS.TemporaryId('args');
+          fnArgs.add(new JS.RestParameter(positionalArgs));
         }
       }
 
@@ -1886,8 +1888,7 @@ class ProgramCompiler extends Object
         fnBody = js.call('#._check(#)', [_emitType(returnType), fnBody]);
       }
 
-      var fn = new JS.Fun(
-          fnArgs, js.block('{ #; return #; }', [optionalArgInit, fnBody]),
+      var fn = new JS.Fun(fnArgs, fnBody.toReturn().toBlock(),
           typeParams: typeParams);
 
       return new JS.Method(
@@ -1901,23 +1902,20 @@ class ProgramCompiler extends Object
 
     if (member is Field) {
       if (isSetter) {
-        return implementMockMember([], [new JS.TemporaryId('value')], [], 1,
-            ProcedureKind.Setter, new VoidType());
+        return implementMockMember(ProcedureKind.Setter, new VoidType());
       } else {
-        return implementMockMember(
-            [], [], [], 0, ProcedureKind.Getter, member.type);
+        return implementMockMember(ProcedureKind.Getter, member.type);
       }
     } else {
       var procedure = member as Procedure;
       var f = procedure.function;
       assert(procedure.isSetter == isSetter);
       return implementMockMember(
+          procedure.kind,
+          f.returnType,
           f.typeParameters,
           f.positionalParameters.map(_emitVariableRef).toList(),
-          f.namedParameters,
-          f.requiredParameterCount,
-          procedure.kind,
-          f.returnType);
+          f.namedParameters);
     }
   }
 
