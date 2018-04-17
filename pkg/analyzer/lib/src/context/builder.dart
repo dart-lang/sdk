@@ -8,8 +8,8 @@ import 'dart:core';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
-import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/command_line/arguments.dart'
     show
         applyAnalysisOptionFlags,

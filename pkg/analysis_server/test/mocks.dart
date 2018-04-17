@@ -11,9 +11,9 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analyzer/file_system/file_system.dart' as resource;
 import 'package:analyzer/file_system/memory_file_system.dart' as resource;
-import 'package:analyzer/source/package_map_provider.dart';
-import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/source/package_map_provider.dart';
+import 'package:analyzer/src/source/pub_package_map_provider.dart';
 import 'package:front_end/src/base/timestamped_data.dart';
 import 'package:test/test.dart';
 
