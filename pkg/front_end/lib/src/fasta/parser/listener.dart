@@ -232,7 +232,8 @@ class Listener {
     logEvent("FactoryMethod");
   }
 
-  void beginFormalParameter(Token token, MemberKind kind) {}
+  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
+      Token varFinalOrConst) {}
 
   void endFormalParameter(Token thisKeyword, Token periodAfterThis,
       Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
@@ -1057,14 +1058,6 @@ class Listener {
 
   void handleLiteralNull(Token token) {
     logEvent("LiteralNull");
-  }
-
-  void handleModifier(Token token) {
-    logEvent("Modifier");
-  }
-
-  void handleModifiers(int count) {
-    logEvent("Modifiers");
   }
 
   void handleNativeClause(Token nativeToken, bool hasName) {

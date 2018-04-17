@@ -767,13 +767,20 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
+  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
+      Token varFinalOrConst) {
+    push((covariantToken != null ? covariantMask : 0) |
+        Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme));
+  }
+
+  @override
   void endFormalParameter(Token thisKeyword, Token periodAfterThis,
       Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
     debugEvent("FormalParameter");
     int charOffset = pop();
     String name = pop();
     TypeBuilder type = pop();
-    int modifiers = Modifier.validate(pop());
+    int modifiers = pop();
     List<MetadataBuilder> metadata = pop();
     push(library.addFormalParameter(
         metadata, modifiers, type, name, thisKeyword != null, charOffset));
@@ -1167,18 +1174,6 @@ class OutlineBuilder extends UnhandledListener {
   @override
   void handleAsyncModifier(Token asyncToken, Token starToken) {
     debugEvent("AsyncModifier");
-  }
-
-  @override
-  void handleModifier(Token token) {
-    debugEvent("Modifier");
-    push(new Modifier.fromString(token.stringValue));
-  }
-
-  @override
-  void handleModifiers(int count) {
-    debugEvent("Modifiers");
-    push(popList(count) ?? NullValue.Modifiers);
   }
 
   @override

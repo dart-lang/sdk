@@ -295,7 +295,6 @@ class TokenInfoTest {
       'beginMetadataStar int',
       'endMetadataStar 0',
       'beginFormalParameter int MemberKind.GeneralizedFunctionType',
-      'handleModifiers 0',
       'handleIdentifier int typeReference',
       'handleNoTypeArguments )',
       'handleType int )',
@@ -321,7 +320,6 @@ class TokenInfoTest {
       'beginMetadataStar int',
       'endMetadataStar 0',
       'beginFormalParameter int MemberKind.GeneralizedFunctionType',
-      'handleModifiers 0',
       'handleIdentifier int typeReference',
       'handleNoTypeArguments )',
       'handleType int )',
@@ -667,7 +665,6 @@ class TokenInfoTest {
           'beginMetadataStar int',
           'endMetadataStar 0',
           'beginFormalParameter int MemberKind.GeneralizedFunctionType',
-          'handleModifiers 0',
           'handleIdentifier int typeReference',
           'handleNoTypeArguments x',
           'handleType int x',
@@ -681,7 +678,6 @@ class TokenInfoTest {
           'beginMetadataStar int',
           'endMetadataStar 0',
           'beginFormalParameter int MemberKind.GeneralizedFunctionType',
-          'handleModifiers 0',
           'handleIdentifier int typeReference',
           'handleNoTypeArguments x',
           'handleType int x',
@@ -841,7 +837,8 @@ class TypeInfoListener implements Listener {
   List<ExpectedError> errors;
 
   @override
-  void beginFormalParameter(Token token, MemberKind kind) {
+  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
+      Token varFinalOrConst) {
     calls.add('beginFormalParameter $token $kind');
   }
 
@@ -921,11 +918,6 @@ class TypeInfoListener implements Listener {
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
     calls.add('handleIdentifier $token $context');
-  }
-
-  @override
-  void handleModifiers(int count) {
-    calls.add('handleModifiers $count');
   }
 
   @override

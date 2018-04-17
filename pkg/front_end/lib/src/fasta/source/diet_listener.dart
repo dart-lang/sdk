@@ -112,11 +112,6 @@ class DietListener extends StackListener {
   }
 
   @override
-  void handleModifiers(int count) {
-    debugEvent("Modifiers");
-  }
-
-  @override
   void handleNoTypeArguments(Token token) {
     debugEvent("NoTypeArguments");
   }
@@ -454,11 +449,6 @@ class DietListener extends StackListener {
   @override
   void endTypeVariables(int count, Token beginToken, Token endToken) {
     debugEvent("TypeVariables");
-  }
-
-  @override
-  void handleModifier(Token token) {
-    debugEvent("Modifier");
   }
 
   @override

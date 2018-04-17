@@ -458,16 +458,6 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void handleModifier(Token token) {
-    debugEvent("Modifier");
-  }
-
-  @override
-  void handleModifiers(int count) {
-    debugEvent("Modifiers");
-  }
-
-  @override
   void handleQualified(Token period) {
     debugEvent("Qualified");
     String suffix = pop();

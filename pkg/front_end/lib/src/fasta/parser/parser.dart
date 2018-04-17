@@ -78,11 +78,7 @@ import 'loop_state.dart' show LoopState;
 import 'member_kind.dart' show MemberKind;
 
 import 'modifier_context.dart'
-    show
-        ModifierRecoveryContext,
-        ModifierRecoveryContext2,
-        isModifier,
-        typeContinuationAfterVar;
+    show ModifierRecoveryContext, isModifier, typeContinuationAfterVar;
 
 import 'recovery_listeners.dart'
     show ClassHeaderRecoveryListener, ImportRecoveryListener;
@@ -1192,19 +1188,16 @@ class Parser {
     assert(parameterKind != null);
     token = parseMetadataStar(token);
     Token next = token.next;
-    listener.beginFormalParameter(next, memberKind);
 
     TypeContinuation typeContinuation =
         typeContinuationFromFormalParameterKind(parameterKind);
+    Token covariantToken;
     Token varFinalOrConst;
     if (isModifier(next)) {
-      int modifierCount = 0;
-      Token covariantToken;
       if (optional('covariant', next)) {
         if (memberKind != MemberKind.StaticMethod &&
             memberKind != MemberKind.TopLevelMethod) {
-          covariantToken = token = parseModifier(token);
-          ++modifierCount;
+          covariantToken = token = next;
           next = token.next;
         }
       }
@@ -1212,36 +1205,33 @@ class Parser {
       if (isModifier(next)) {
         if (optional('var', next)) {
           typeContinuation = typeContinuationAfterVar(typeContinuation);
-          varFinalOrConst = token = parseModifier(token);
-          ++modifierCount;
+          varFinalOrConst = token = next;
           next = token.next;
         } else if (optional('final', next)) {
-          varFinalOrConst = token = parseModifier(token);
-          ++modifierCount;
+          varFinalOrConst = token = next;
           next = token.next;
         }
 
         if (isModifier(next)) {
           // Recovery
-          ModifierRecoveryContext modifierContext = new ModifierRecoveryContext(
-              this, memberKind, parameterKind, false, typeContinuation);
-          token = modifierContext.parseRecovery(token,
-              covariantToken: covariantToken, varFinalOrConst: varFinalOrConst);
-
-          modifierCount = modifierContext.modifierCount;
-          covariantToken = modifierContext.covariantToken;
-          varFinalOrConst = modifierContext.varFinalOrConst;
-
-          memberKind = modifierContext.memberKind;
-          typeContinuation = modifierContext.typeContinuation;
-          varFinalOrConst = modifierContext.varFinalOrConst;
-          modifierContext = null;
+          ModifierRecoveryContext context = new ModifierRecoveryContext(this);
+          token = context.parseFormalParameterModifiers(
+              token,
+              memberKind == MemberKind.StaticMethod ||
+                  memberKind == MemberKind.TopLevelMethod,
+              covariantToken: covariantToken,
+              varFinalOrConst: varFinalOrConst);
+          covariantToken = context.covariantToken;
+          varFinalOrConst = context.varFinalOrConst;
+          if (varFinalOrConst != null && optional('var', varFinalOrConst)) {
+            typeContinuation = typeContinuationAfterVar(typeContinuation);
+          }
+          context = null;
         }
       }
-      listener.handleModifiers(modifierCount);
-    } else {
-      listener.handleModifiers(0);
     }
+    listener.beginFormalParameter(
+        next, memberKind, covariantToken, varFinalOrConst);
 
     return parseType(
         token, typeContinuation, null, memberKind, varFinalOrConst);
@@ -2732,7 +2722,7 @@ class Parser {
           next = token.next;
         }
         if (isModifier(next)) {
-          ModifierRecoveryContext2 context = new ModifierRecoveryContext2(this);
+          ModifierRecoveryContext context = new ModifierRecoveryContext(this);
           token = context.parseTopLevelModifiers(token,
               externalToken: externalToken, varFinalOrConst: varFinalOrConst);
           next = token.next;
@@ -3299,13 +3289,6 @@ class Parser {
     return 127;
   }
 
-  Token parseModifier(Token token) {
-    token = token.next;
-    assert(token.isModifier);
-    listener.handleModifier(token);
-    return token;
-  }
-
   Token parseNativeClause(Token token) {
     Token nativeToken = token = token.next;
     assert(optional('native', nativeToken));
@@ -3418,8 +3401,7 @@ class Parser {
             next = token.next;
           }
           if (isModifier(next)) {
-            ModifierRecoveryContext2 context =
-                new ModifierRecoveryContext2(this);
+            ModifierRecoveryContext context = new ModifierRecoveryContext(this);
             token = context.parseClassMemberModifiers(token,
                 externalToken: externalToken,
                 staticToken: staticToken,
@@ -3667,7 +3649,7 @@ class Parser {
 
     if (!isValidTypeReference(token.next)) {
       // Recovery
-      ModifierRecoveryContext2 context = new ModifierRecoveryContext2(this);
+      ModifierRecoveryContext context = new ModifierRecoveryContext(this);
       token = context.parseModifiersAfterFactory(token,
           externalToken: externalToken,
           staticOrCovariant: staticOrCovariant,
@@ -5397,8 +5379,8 @@ class Parser {
 
       if (isModifier(next)) {
         // Recovery
-        ModifierRecoveryContext2 modifierContext =
-            new ModifierRecoveryContext2(this);
+        ModifierRecoveryContext modifierContext =
+            new ModifierRecoveryContext(this);
         token = modifierContext.parseVariableDeclarationModifiers(token,
             varFinalOrConst: varFinalOrConst);
         next = token.next;

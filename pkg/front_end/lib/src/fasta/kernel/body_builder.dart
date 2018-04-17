@@ -14,7 +14,7 @@ import '../fasta_codes.dart' show LocatedMessage, Message, noLength, Template;
 
 import '../messages.dart' as messages show getLocationFromUri;
 
-import '../modifier.dart' show Modifier, constMask, finalMask;
+import '../modifier.dart' show Modifier, constMask, covariantMask, finalMask;
 
 import '../parser.dart'
     show
@@ -2078,6 +2078,13 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   }
 
   @override
+  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
+      Token varFinalOrConst) {
+    push((covariantToken != null ? covariantMask : 0) |
+        Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme));
+  }
+
+  @override
   void endFormalParameter(Token thisKeyword, Token periodAfterThis,
       Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
     debugEvent("FormalParameter");
@@ -2090,7 +2097,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     }
     Identifier name = pop();
     DartType type = pop();
-    int modifiers = Modifier.validate(pop());
+    int modifiers = pop();
     if (inCatchClause) {
       modifiers |= finalMask;
     }
@@ -3541,20 +3548,6 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       typeParameters[i++] = builder.target;
     }
     return typeParameters;
-  }
-
-  @override
-  void handleModifier(Token token) {
-    debugEvent("Modifier");
-    // TODO(ahe): Copied from outline_builder.dart.
-    push(new Modifier.fromString(token.stringValue));
-  }
-
-  @override
-  void handleModifiers(int count) {
-    debugEvent("Modifiers");
-    // TODO(ahe): Copied from outline_builder.dart.
-    push(popList(count) ?? NullValue.Modifiers);
   }
 
   @override

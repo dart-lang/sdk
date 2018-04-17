@@ -273,6 +273,24 @@ class NodeListener extends ElementListener {
   }
 
   @override
+  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
+      Token varFinalOrConst) {
+    if (covariantToken == null && varFinalOrConst == null) {
+      pushNode(Modifiers.EMPTY);
+    } else {
+      Link<Node> poppedNodes = const Link<Node>();
+      if (covariantToken != null) {
+        poppedNodes = poppedNodes.prepend(new Identifier(covariantToken));
+      }
+      if (varFinalOrConst != null) {
+        poppedNodes = poppedNodes.prepend(new Identifier(varFinalOrConst));
+      }
+      NodeList modifierNodes = new NodeList(null, poppedNodes, null, ' ');
+      pushNode(new Modifiers(modifierNodes));
+    }
+  }
+
+  @override
   void endFormalParameter(Token thisKeyword, Token periodAfterThis,
       Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
     Expression name = popNode();
@@ -1080,7 +1098,12 @@ class NodeListener extends ElementListener {
       pushNode(factoryNode);
       ++modifierCount;
     }
-    handleModifiers(modifierCount);
+    if (modifierCount == 0) {
+      pushNode(Modifiers.EMPTY);
+    } else {
+      NodeList modifierNodes = makeNodeList(modifierCount, null, null, ' ');
+      pushNode(new Modifiers(modifierNodes));
+    }
     modifiers = popNode();
 
     pushNode(new FunctionExpression(

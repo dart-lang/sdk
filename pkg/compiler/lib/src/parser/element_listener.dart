@@ -569,21 +569,6 @@ class ElementListener extends Listener {
   }
 
   @override
-  void handleModifier(Token token) {
-    pushNode(new Identifier(token));
-  }
-
-  @override
-  void handleModifiers(int count) {
-    if (count == 0) {
-      pushNode(Modifiers.EMPTY);
-    } else {
-      NodeList modifierNodes = makeNodeList(count, null, null, ' ');
-      pushNode(new Modifiers(modifierNodes));
-    }
-  }
-
-  @override
   Token handleUnrecoverableError(Token token, Message message) {
     Token next = handleError(token, message);
     if (next == null &&

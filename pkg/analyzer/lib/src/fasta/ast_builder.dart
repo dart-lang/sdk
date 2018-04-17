@@ -1106,6 +1106,15 @@ class AstBuilder extends ScopeListener {
     }
   }
 
+  @override
+  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
+      Token varFinalOrConst) {
+    push(new _Modifiers()
+      ..covariantKeyword = covariantToken
+      ..finalConstOrVarKeyword = varFinalOrConst);
+  }
+
+  @override
   void endFormalParameter(Token thisKeyword, Token periodAfterThis,
       Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
     assert(optionalOrNull('this', thisKeyword));
@@ -1467,23 +1476,6 @@ class AstBuilder extends ScopeListener {
           messageIllegalAssignmentToNonAssignable, operator, operator);
     }
     push(ast.postfixExpression(expression, operator));
-  }
-
-  void handleModifier(Token token) {
-    assert(token.isModifier);
-    debugEvent("Modifier");
-
-    push(token);
-  }
-
-  void handleModifiers(int count) {
-    debugEvent("Modifiers");
-
-    if (count == 0) {
-      push(NullValue.Modifiers);
-    } else {
-      push(new _Modifiers(popTypedList(count)));
-    }
   }
 
   void beginTopLevelMethod(Token lastConsumed, Token externalToken) {
