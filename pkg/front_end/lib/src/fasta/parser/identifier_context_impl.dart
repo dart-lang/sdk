@@ -52,6 +52,38 @@ class ClassOrNamedMixinIdentifierContext extends IdentifierContext {
   }
 }
 
+/// See [IdentifierContext].dottedName
+class DottedNameIdentifierContext extends IdentifierContext {
+  const DottedNameIdentifierContext() : super('dottedName');
+
+  const DottedNameIdentifierContext.continuation()
+      : super('dottedNameContinuation', isContinuation: true);
+
+  @override
+  Token ensureIdentifier(Token token, Parser parser) {
+    Token identifier = token.next;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    if (identifier.isIdentifier) {
+      return identifier;
+    }
+
+    if (looksLikeStartOfNextDeclaration(identifier) ||
+        isOneOfOrEof(identifier, const ['.', '=='])) {
+      identifier = parser.insertSyntheticIdentifier(token, this,
+          message: fasta.templateExpectedIdentifier.withArguments(identifier));
+    } else {
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateExpectedIdentifier);
+      if (!identifier.isKeywordOrIdentifier) {
+        // When in doubt, consume the token to ensure we make progress
+        // but insert a synthetic identifier to satisfy listeners.
+        identifier = insertSyntheticIdentifierAfter(identifier, parser);
+      }
+    }
+    return identifier;
+  }
+}
+
 /// See [IdentifierContext].expression
 class ExpressionIdentifierContext extends IdentifierContext {
   const ExpressionIdentifierContext()
