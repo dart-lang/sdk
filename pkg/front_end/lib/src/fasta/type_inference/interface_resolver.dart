@@ -482,39 +482,31 @@ class ForwardingNode extends Procedure {
       ..isGenericContravariant = target.isGenericContravariant;
   }
 
-  /// Creates a forwarding stubs for this node if necessary, and propagates
+  /// Creates a forwarding stub for this node if necessary, and propagates
   /// covariance information.
   Procedure _finalize() {
-    var inheritedMember = resolve();
-    var inheritedMemberSubstitution =
-        _interfaceResolver._substitutionFor(inheritedMember, enclosingClass);
+    var member = resolve();
+    var substitution =
+        _interfaceResolver._substitutionFor(member, enclosingClass);
     bool isDeclaredInThisClass =
-        identical(inheritedMember.enclosingClass, enclosingClass);
+        identical(member.enclosingClass, enclosingClass);
 
     // Now decide whether we need a forwarding stub or not, and propagate
     // covariance.
     var covarianceFixes = <_CovarianceFix>[];
     if (_interfaceResolver.strongMode) {
-      _computeCovarianceFixes(
-          inheritedMemberSubstitution, inheritedMember, covarianceFixes);
+      _computeCovarianceFixes(substitution, member, covarianceFixes);
     }
     if (!isDeclaredInThisClass &&
-        (!identical(inheritedMember, _resolvedCandidate(_start)) ||
+        (!identical(member, _resolvedCandidate(_start)) ||
             covarianceFixes.isNotEmpty)) {
-      var stub =
-          _createForwardingStub(inheritedMemberSubstitution, inheritedMember);
-      var function = stub.function;
-      for (var fix in covarianceFixes) {
-        fix(function);
-      }
-      return stub;
-    } else {
-      var function = inheritedMember.function;
-      for (var fix in covarianceFixes) {
-        fix(function);
-      }
-      return inheritedMember;
+      member = _createForwardingStub(substitution, member);
     }
+    var function = member.function;
+    for (var fix in covarianceFixes) {
+      fix(function);
+    }
+    return member;
   }
 
   /// Returns the [i]th element of [_candidates], finalizing it if necessary.
@@ -1121,15 +1113,16 @@ abstract class MemberInferenceNode extends InferenceNode {
   MemberInferenceNode(this._interfaceResolver, this._declaredMethod,
       this._candidates, this._start, this._end, this._library, this._fileUri);
 
+  /// Report an error if all types in [types] are not equal using `==`.
+  ///
+  /// Returns the type if there is at least one and they are all equal,
+  /// otherwise the type `dynamic`.
   DartType _matchTypes(Iterable<DartType> types, String name, int charOffset) {
-    var iterator = types.iterator;
-    if (!iterator.moveNext()) {
-      // No overridden types.  Infer `dynamic`.
-      return const DynamicType();
-    }
-    var inferredType = iterator.current;
-    while (iterator.moveNext()) {
-      if (inferredType != iterator.current) {
+    DartType first;
+    for (var type in types) {
+      if (first == null) {
+        first = type;
+      } else if (first != type) {
         // Types don't match.  Report an error.
         _library.addCompileTimeError(
             templateCantInferTypeDueToInconsistentOverrides.withArguments(name),
@@ -1139,7 +1132,8 @@ abstract class MemberInferenceNode extends InferenceNode {
         return const DynamicType();
       }
     }
-    return inferredType;
+    // If there are no overridden types, infer `dynamic`.
+    return first ?? const DynamicType();
   }
 }
 
