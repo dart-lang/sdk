@@ -510,7 +510,7 @@ Object _convertToDart(o) {
       _isBrowserType(o)) {
     return o;
   } else if (JS('bool', '# instanceof Date', o)) {
-    var ms = JS('num', '#.getTime()', o);
+    num ms = JS('!', '#.getTime()', o);
     return new DateTime.fromMillisecondsSinceEpoch(ms);
   } else if (o is _DartObject &&
       JS('bool', 'dart.jsobject != dart.getReifiedType(#)', o)) {

@@ -126,7 +126,7 @@ class JSFunction extends Interceptor {
   // TODO(jmesserly): remove these once we canonicalize tearoffs.
   operator ==(other) {
     if (other == null) return false;
-    var boundObj = JS('Object|Null', '#._boundObject', this);
+    var boundObj = JS<Object>('', '#._boundObject', this);
     if (boundObj == null) return JS('bool', '# === #', this, other);
     return JS(
         'bool',
@@ -138,10 +138,10 @@ class JSFunction extends Interceptor {
   }
 
   get hashCode {
-    var boundObj = JS('Object|Null', '#._boundObject', this);
+    var boundObj = JS<Object>('', '#._boundObject', this);
     if (boundObj == null) return identityHashCode(this);
 
-    var boundMethod = JS('Object', '#._boundMethod', this);
+    var boundMethod = JS<Object>('!', '#._boundMethod', this);
     int hash = (17 * 31 + boundObj.hashCode) & 0x1fffffff;
     return (hash * 31 + identityHashCode(boundMethod)) & 0x1fffffff;
   }

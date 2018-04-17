@@ -60,7 +60,7 @@ class IdentityMap<K, V> extends InternalMap<K, V> {
 
   void operator []=(K key, V value) {
     var map = _map;
-    var length = JS('int', '#.size', map);
+    int length = JS('!', '#.size', map);
     JS('', '#.set(#, #)', map, key, value);
     if (length != JS('int', '#.size', map)) {
       _modifications = (_modifications + 1) & 0x3ffffff;

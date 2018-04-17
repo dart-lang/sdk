@@ -90,7 +90,7 @@ defineLazyField(to, name, desc) => JS('', '''(() => {
 })()''');
 
 copyTheseProperties(to, from, names) {
-  for (var i = 0, n = JS('int', '#.length', names); i < n; ++i) {
+  for (int i = 0, n = JS('!', '#.length', names); i < n; ++i) {
     var name = JS('', '#[#]', names, i);
     if (name == 'constructor') continue;
     copyProperty(to, from, name);

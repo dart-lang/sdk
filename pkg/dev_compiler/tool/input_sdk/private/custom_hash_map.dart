@@ -110,7 +110,7 @@ class CustomHashMap<K, V> extends InternalMap<K, V> {
 
   void operator []=(K key, V value) {
     var keyMap = _keyMap;
-    var hash = JS('int', '# & 0x3ffffff', _hashCode(key));
+    int hash = JS('!', '# & 0x3ffffff', _hashCode(key));
     var buckets = JS('', '#.get(#)', keyMap, hash);
     if (buckets == null) {
       JS('', '#.set(#, [#])', keyMap, hash, key);
@@ -134,7 +134,7 @@ class CustomHashMap<K, V> extends InternalMap<K, V> {
 
   V putIfAbsent(K key, V ifAbsent()) {
     var keyMap = _keyMap;
-    var hash = JS('int', '# & 0x3ffffff', _hashCode(key));
+    int hash = JS('!', '# & 0x3ffffff', _hashCode(key));
     var buckets = JS('', '#.get(#)', keyMap, hash);
     if (buckets == null) {
       JS('', '#.set(#, [#])', keyMap, hash, key);
@@ -154,7 +154,7 @@ class CustomHashMap<K, V> extends InternalMap<K, V> {
 
   V remove(Object key) {
     if (key is K) {
-      var hash = JS('int', '# & 0x3ffffff', _hashCode(key));
+      int hash = JS('!', '# & 0x3ffffff', _hashCode(key));
       var keyMap = _keyMap;
       var buckets = JS('', '#.get(#)', keyMap, hash);
       if (buckets == null) return null; // not found
@@ -180,7 +180,7 @@ class CustomHashMap<K, V> extends InternalMap<K, V> {
 
   void clear() {
     var map = _map;
-    if (JS('int', '#.size', map) > 0) {
+    if (JS<int>('!', '#.size', map) > 0) {
       JS('', '#.clear()', map);
       JS('', '#.clear()', _keyMap);
       _modifications = (_modifications + 1) & 0x3ffffff;

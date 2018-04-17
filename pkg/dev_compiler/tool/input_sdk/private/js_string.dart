@@ -36,11 +36,11 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
   }
 
   Match matchAsPrefix(@nullCheck String string, [@nullCheck int start = 0]) {
-    final stringLength = JS('int', '#.length', string);
+    int stringLength = JS('!', '#.length', string);
     if (start < 0 || start > stringLength) {
       throw new RangeError.range(start, 0, stringLength);
     }
-    final thisLength = JS('int', '#.length', this);
+    int thisLength = JS('!', '#.length', this);
     if (start + thisLength > stringLength) return null;
     for (int i = 0; i < thisLength; i++) {
       if (string.codeUnitAt(start + i) != this.codeUnitAt(i)) {
@@ -286,7 +286,7 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
 
     // Start by doing JS trim. Then check if it leaves a NEL at
     // either end of the string.
-    final result = JS('String', '#.trim()', this);
+    String result = JS('!', '#.trim()', this);
     final length = result.length;
     if (length == 0) return result;
     int firstCode = result.codeUnitAt(0);
@@ -454,7 +454,7 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
   }
 
   @notNull
-  bool get isEmpty => JS('int', '#.length', this) == 0;
+  bool get isEmpty => JS<int>('!', '#.length', this) == 0;
 
   @notNull
   bool get isNotEmpty => !isEmpty;
@@ -479,9 +479,9 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
     // TODO(ahe): This method shouldn't have to use JS. Update when our
     // optimizations are smarter.
     int hash = 0;
-    int length = JS('int', '#.length', this);
+    int length = JS('!', '#.length', this);
     for (int i = 0; i < length; i++) {
-      hash = 0x1fffffff & (hash + JS('int', r'#.charCodeAt(#)', this, i));
+      hash = 0x1fffffff & (hash + JS<int>('!', r'#.charCodeAt(#)', this, i));
       hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
       hash = JS('int', '# ^ (# >> 6)', hash, hash);
     }

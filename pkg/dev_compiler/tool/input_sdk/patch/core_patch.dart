@@ -368,7 +368,7 @@ class List<E> {
     if (JS('bool', '# === void 0', _length)) {
       list = JS('', '[]');
     } else {
-      var length = JS('int', '#', _length);
+      int length = JS('!', '#', _length);
       if (_length == null || length < 0) {
         throw new ArgumentError(
             "Length must be a non-negative integer: $_length");

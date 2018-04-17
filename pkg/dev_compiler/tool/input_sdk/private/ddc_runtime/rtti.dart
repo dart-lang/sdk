@@ -75,7 +75,7 @@ final _moduleName = JS('', 'Symbol("_moduleName")');
 
 getFunctionType(obj) {
   // TODO(vsm): Encode this properly on the function for Dart-generated code.
-  var args = JS('List', 'Array(#.length).fill(#)', obj, dynamic);
+  var args = JS<List>('!', 'Array(#.length).fill(#)', obj, dynamic);
   return fnType(bottom, args, JS('', 'void 0'));
 }
 

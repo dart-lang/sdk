@@ -11,12 +11,12 @@ int stringIndexOfStringUnchecked(receiver, other, startIndex) {
 
 @notNull
 String substring1Unchecked(receiver, startIndex) {
-  return JS('String', '#.substring(#)', receiver, startIndex);
+  return JS('!', '#.substring(#)', receiver, startIndex);
 }
 
 @notNull
 String substring2Unchecked(receiver, startIndex, endIndex) {
-  return JS('String', '#.substring(#, #)', receiver, startIndex, endIndex);
+  return JS('!', '#.substring(#, #)', receiver, startIndex, endIndex);
 }
 
 @notNull
@@ -119,7 +119,7 @@ bool stringContainsUnchecked(
 }
 
 @notNull
-String stringReplaceJS(receiver, replacer, replacement) {
+String stringReplaceJS(String receiver, replacer, String replacement) {
   // The JavaScript String.replace method recognizes replacement
   // patterns in the replacement string. Dart does not have that
   // behavior.
@@ -292,7 +292,7 @@ String stringJoinUnchecked(array, separator) {
 @notNull
 String stringReplaceRangeUnchecked(
     String receiver, int start, int end, String replacement) {
-  var prefix = JS('String', '#.substring(0, #)', receiver, start);
-  var suffix = JS('String', '#.substring(#)', receiver, end);
+  String prefix = JS('!', '#.substring(0, #)', receiver, start);
+  String suffix = JS('!', '#.substring(#)', receiver, end);
   return "$prefix$replacement$suffix";
 }
