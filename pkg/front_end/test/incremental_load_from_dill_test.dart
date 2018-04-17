@@ -191,7 +191,7 @@ void newWorldTest(bool strong, List worlds) async {
   Map<String, String> sourceFiles;
   CompilerOptions options;
   TestIncrementalCompiler compiler;
-  for (var world in worlds) {
+  for (Map<String, dynamic> world in worlds) {
     bool brandNewWorld = true;
     if (world["worldType"] == "updated") {
       brandNewWorld = false;
@@ -256,7 +256,7 @@ void newWorldTest(bool strong, List worlds) async {
     }
 
     if (world["invalidate"] != null) {
-      for (var filename in world["invalidate"]) {
+      for (String filename in world["invalidate"]) {
         compiler.invalidate(base.resolve(filename));
       }
     }
@@ -329,7 +329,7 @@ void checkIsEqual(List<int> a, List<int> b) {
 
 CompilerOptions getOptions(bool strong) {
   final Uri sdkRoot = computePlatformBinariesLocation();
-  var options = new CompilerOptions()
+  CompilerOptions options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
     ..onProblem = (FormattedMessage problem, Severity severity,
@@ -367,7 +367,7 @@ Future<bool> initializedCompile(
   for (Uri invalidateUri in invalidateUris) {
     compiler.invalidate(invalidateUri);
   }
-  var initializedComponent = await compiler.computeDelta();
+  Component initializedComponent = await compiler.computeDelta();
   util.throwOnEmptyMixinBodies(initializedComponent);
   bool result = compiler.initializedFromDill;
   new File.fromUri(output)
@@ -379,18 +379,19 @@ Future<bool> initializedCompile(
         "got $actuallyInvalidatedCount");
   }
 
-  var initializedComponent2 = await compiler.computeDelta(fullComponent: true);
-  util.throwOnEmptyMixinBodies(initializedComponent2);
+  Component initializedFullComponent =
+      await compiler.computeDelta(fullComponent: true);
+  util.throwOnEmptyMixinBodies(initializedFullComponent);
   Expect.equals(initializedComponent.libraries.length,
-      initializedComponent2.libraries.length);
+      initializedFullComponent.libraries.length);
   Expect.equals(initializedComponent.uriToSource.length,
-      initializedComponent2.uriToSource.length);
+      initializedFullComponent.uriToSource.length);
 
   for (Uri invalidateUri in invalidateUris) {
     compiler.invalidate(invalidateUri);
   }
 
-  var partialComponent = await compiler.computeDelta();
+  Component partialComponent = await compiler.computeDelta();
   util.throwOnEmptyMixinBodies(partialComponent);
   actuallyInvalidatedCount =
       (compiler.invalidatedImportUrisForTesting?.length ?? 0);
@@ -399,14 +400,14 @@ Future<bool> initializedCompile(
         "got $actuallyInvalidatedCount");
   }
 
-  var emptyComponent = await compiler.computeDelta();
+  Component emptyComponent = await compiler.computeDelta();
   util.throwOnEmptyMixinBodies(emptyComponent);
 
-  var fullLibUris =
+  List<Uri> fullLibUris =
       initializedComponent.libraries.map((lib) => lib.importUri).toList();
-  var partialLibUris =
+  List<Uri> partialLibUris =
       partialComponent.libraries.map((lib) => lib.importUri).toList();
-  var emptyLibUris =
+  List<Uri> emptyLibUris =
       emptyComponent.libraries.map((lib) => lib.importUri).toList();
 
   Expect.isTrue(fullLibUris.length > partialLibUris.length ||
