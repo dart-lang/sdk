@@ -82,9 +82,23 @@ void return_from_expression_function_body() => x; // OK
 FutureOr<void> return_value_for_futureOr() {
   return 1; // LINT
 }
+
 FutureOr<void> return_future_for_futureOr() {
   return new Future.value(); // OK
 }
+
 FutureOr<void> return_futureOr_for_futureOr() {
   return x; // OK
 }
+
+// generics_with_function() {
+//   f<T>(T Function() f) => f();
+//   f(() // OK
+//       {
+//     return 1;
+//   });
+//   f<void>(() // LINT
+//       {
+//     return 1;
+//   });
+// }
