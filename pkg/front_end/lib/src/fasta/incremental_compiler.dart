@@ -343,9 +343,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       return false;
     }
 
-    // Compute [builders] and [invalidatedImportUris].
-    addBuilderAndInvalidateUris(Uri uri, LibraryBuilder library,
-        [bool recursive = true]) {
+    addBuilderAndInvalidateUris(Uri uri, LibraryBuilder library) {
       builders[uri] = library;
       if (isInvalidated(uri, library.target.fileUri)) {
         invalidatedImportUris.add(uri);
