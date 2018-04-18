@@ -2,13 +2,21 @@
 (Add new changes here, and they will be copied to the
  change section for the next dev version)
 
+### Language
+
+#### Strong Mode
+
 ### Core library changes
 
-* `dart:core`
-  * Added `tryParse` static method to `int`, `double`, `num`, `BigInt`,
-    `Uri` and `DateTime`.
-  * Deprecated `onError` parameter on `int.parse`, `double.parse`
-    and `num.parse`.
+### Dart VM
+
+### Tool Changes
+
+#### Pub
+
+#### Other Tools
+
+## 2.0.0-dev.49.0
 
 ### Tool Changes
 
@@ -19,6 +27,20 @@
 
 [`pub_semver` issue 20]: https://github.com/dart-lang/pub_semver/issues/20
 
+## 2.0.0-dev.48.0
+
+### Core library changes
+
+* `dart:core`
+  * Added `tryParse` static method to `int`, `double`, `num`, `BigInt`,
+    `Uri` and `DateTime`.
+  * Deprecated `onError` parameter on `int.parse`, `double.parse`
+    and `num.parse`.
+
+## 2.0.0-dev.47.0
+
+### Tool Changes
+
 #### Analyzer
 
 * The command line analyzer (dartanalyzer) and the analysis server no longer
@@ -27,6 +49,8 @@
   they'll be treated just as regular directories. This special-casing of
   `packages` directories was to support using symlinks for package: resolution;
   that functionality is now handled by `.packages` files.
+
+## 2.0.0-dev.46.0
 
 ## 2.0.0-dev.45.0
 
@@ -59,6 +83,19 @@
 
 ## 2.0.0-dev.44.0
 
+### Tool Changes
+
+#### Pub
+
+* Pub has a brand new version solver! It supports all the same features as the
+  old version solver, but it's much less likely to stall out on difficult
+  package graphs, and it's much clearer about why a solution can't be found when
+  version solving fails.
+
+## 2.0.0-dev.43.0
+
+## 2.0.0-dev.42.0
+
 ### Core library changes
 
 * `dart:collection`
@@ -74,17 +111,6 @@
     `start` method to receive queued messages.
 * `dart:io`
   * Added `IOOverrides.socketConnect`.
-
-### Tool Changes
-
-#### Pub
-
-* Pub has a brand new version solver! It supports all the same features as the
-  old version solver, but it's much less likely to stall out on difficult
-  package graphs, and it's much clearer about why a solution can't be found when
-  version solving fails.
-
-## 2.0.0-dev.42.0
 
 ### Tool Changes
 
@@ -132,19 +158,14 @@ Not released, due to a failure in the pub tool.
   details.
 
 ## 2.0.0-dev.39.0
-
 ### Tool Changes
-
 #### Pub
 
 * Fixed bug in dart2js transformer when using the common front-end.
 
 ## 2.0.0-dev.37.0
-
 ### Tool Changes
-
 #### dart2js
-
   * The dart2js compiler now uses the common front-end by default. This is a
     step towards supporting Dart 2.0. At this time dart2js has no semantic
     changes: the Dart 2.0 strong-mode semantics are not enabled, so dart2js
@@ -179,7 +200,6 @@ Not released, due to a failure in the pub tool.
 ## 2.0.0-dev.36.0
 
 ### Core library changes
-
 * `dart:core`
   * Temporarily disabled the `whereType` method until generic methods are
     enabled on all platforms
