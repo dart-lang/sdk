@@ -17,13 +17,8 @@ abstract class I {
   method11(); //# 11: ok
 }
 
-@proxy //# 02: compile-time error
-@proxy //# 07: continued
-@proxy //# 10: continued
 class Class1 extends A implements I {
   method1(); //# 01: compile-time error
-
-  method2(); //# 02: continued
 
   noSuchMethod(_) => null; //# 03: ok
   method3(); //# 03: continued
@@ -39,11 +34,10 @@ class Class1 extends A implements I {
   noSuchMethod(_) => null; //# 11: continued
 }
 
-@proxy //# 12: compile-time error
 class B {
-  method12(); //# 12: continued
+  method12(); //# 12: compile-time error
 
-  noSuchMethod(_) => null; //# 13: compile-time error
+  noSuchMethod(_) => null; //# 13: ok
   method13(); //# 13: continued
 }
 

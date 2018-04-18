@@ -29,6 +29,8 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/clone.dart' show CloneWithoutBody;
 
+import 'package:kernel/core_types.dart' show CoreTypes;
+
 import 'package:kernel/type_algebra.dart' show Substitution, getSubstitutionMap;
 
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
@@ -37,12 +39,15 @@ import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
 import '../fasta_codes.dart'
     show
+        LocatedMessage,
         Message,
         messagePatchClassOrigin,
         messagePatchClassTypeVariablesMismatch,
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
         noLength,
+        templateMissingImplementationCause,
+        templateMissingImplementationNotAbstract,
         templateOverriddenMethodCause,
         templateOverrideFewerNamedArguments,
         templateOverrideFewerPositionalArguments,
@@ -286,6 +291,64 @@ abstract class KernelClassBuilder
       }
       // TODO(ahe): Handle other cases: accessors, operators, and fields.
     });
+  }
+
+  void checkAbstractMembers(CoreTypes coreTypes, ClassHierarchy hierarchy) {
+    if (isAbstract ||
+        hierarchy.getDispatchTarget(cls, noSuchMethodName).enclosingClass !=
+            coreTypes.objectClass) {
+      // Unimplemented members allowed
+      return;
+    }
+
+    List<LocatedMessage> context = null;
+
+    void findMissingImplementations(bool setters) {
+      List<Member> dispatchTargets =
+          hierarchy.getDispatchTargets(cls, setters: setters);
+      int targetIndex = 0;
+      for (Member interfaceMember
+          in hierarchy.getInterfaceMembers(cls, setters: setters)) {
+        if (!interfaceMember.name.isPrivate ||
+            (interfaceMember.enclosingLibrary == cls.enclosingLibrary &&
+                interfaceMember.fileUri ==
+                    interfaceMember.enclosingClass.fileUri)) {
+          while (targetIndex < dispatchTargets.length &&
+              ClassHierarchy.compareMembers(
+                      dispatchTargets[targetIndex], interfaceMember) <
+                  0) {
+            targetIndex++;
+          }
+          if (targetIndex >= dispatchTargets.length ||
+              ClassHierarchy.compareMembers(
+                      dispatchTargets[targetIndex], interfaceMember) >
+                  0) {
+            Name name = interfaceMember.name;
+            String displayName = name.name + (setters ? "=" : "");
+            context ??= <LocatedMessage>[];
+            context.add(templateMissingImplementationCause
+                .withArguments(displayName)
+                .withLocation(interfaceMember.fileUri,
+                    interfaceMember.fileOffset, name.name.length));
+          }
+        }
+      }
+    }
+
+    findMissingImplementations(false);
+    findMissingImplementations(true);
+
+    if (context?.isNotEmpty ?? false) {
+      String memberString =
+          context.map((message) => "'${message.arguments["name"]}'").join(", ");
+      library.addProblem(
+          templateMissingImplementationNotAbstract.withArguments(
+              cls.name, memberString),
+          cls.fileOffset,
+          cls.name.length,
+          cls.fileUri,
+          context: context);
+    }
   }
 
   // TODO(dmitryas): Find a better place for this routine.

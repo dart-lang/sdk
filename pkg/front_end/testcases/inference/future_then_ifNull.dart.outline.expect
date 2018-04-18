@@ -8,9 +8,14 @@ class MyFuture<T extends core::Object> extends core::Object implements asy::Futu
     ;
   constructor value(self::MyFuture::T x) → void
     ;
-  abstract method noSuchMethod(dynamic invocation) → dynamic;
+  method noSuchMethod(dynamic invocation) → dynamic
+    ;
   method then<S extends core::Object>((self::MyFuture::T) → asy::FutureOr<self::MyFuture::then::S> f, {core::Function onError}) → self::MyFuture<self::MyFuture::then::S>
     ;
+  abstract no-such-method-forwarder method /* from org-dartlang-testcase-sdk:///sdk/lib/async/future.dart */ catchError(core::Function onError, {(core::Object) → core::bool test = null}) → asy::Future<self::MyFuture::T>;
+  abstract no-such-method-forwarder method /* from org-dartlang-testcase-sdk:///sdk/lib/async/future.dart */ whenComplete(() → asy::FutureOr<dynamic> action) → asy::Future<self::MyFuture::T>;
+  abstract no-such-method-forwarder method /* from org-dartlang-testcase-sdk:///sdk/lib/async/future.dart */ timeout(core::Duration timeLimit, {() → asy::FutureOr<self::MyFuture::T> onTimeout = null}) → asy::Future<self::MyFuture::T>;
+  abstract no-such-method-forwarder method /* from org-dartlang-testcase-sdk:///sdk/lib/async/future.dart */ asStream() → asy::Stream<self::MyFuture::T>;
 }
 static method test() → void
   ;
