@@ -68,7 +68,7 @@ class DottedNameIdentifierContext extends IdentifierContext {
     }
 
     if (looksLikeStartOfNextDeclaration(identifier) ||
-        isOneOfOrEof(identifier, const ['.', '=='])) {
+        isOneOfOrEof(identifier, const ['.', '==', ')'])) {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: fasta.templateExpectedIdentifier.withArguments(identifier));
     } else {

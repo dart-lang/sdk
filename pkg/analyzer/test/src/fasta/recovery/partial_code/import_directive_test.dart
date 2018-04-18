@@ -12,6 +12,8 @@ main() {
 
 class ImportDirectivesTest extends PartialCodeTest {
   buildAll() {
+    List<String> allExceptEof =
+        PartialCodeTest.prePartSuffixes.map((t) => t.name).toList();
     buildTests(
         'import_directive',
         [
@@ -25,6 +27,55 @@ class ImportDirectivesTest extends PartialCodeTest {
               [ParserErrorCode.EXPECTED_TOKEN], "import '';"),
           new TestDescriptor('fullUri', "import 'a.dart'",
               [ParserErrorCode.EXPECTED_TOKEN], "import 'a.dart';"),
+          new TestDescriptor(
+              'if',
+              "import 'a.dart' if",
+              [
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_STRING_LITERAL
+              ],
+              "import 'a.dart' if (_s_) '';"),
+          new TestDescriptor(
+              'ifParen',
+              "import 'a.dart' if (",
+              [
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ScannerErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_STRING_LITERAL,
+                ParserErrorCode.EXPECTED_TOKEN
+              ],
+              "import 'a.dart' if (_s_) '';",
+              failing: allExceptEof),
+          new TestDescriptor(
+              'ifId',
+              "import 'a.dart' if (b",
+              [
+                ScannerErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_STRING_LITERAL
+              ],
+              "import 'a.dart' if (b) '';",
+              failing: allExceptEof),
+          new TestDescriptor(
+              'ifEquals',
+              "import 'a.dart' if (b ==",
+              [
+                ParserErrorCode.EXPECTED_STRING_LITERAL,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ScannerErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_STRING_LITERAL
+              ],
+              "import 'a.dart' if (b == '') '';",
+              failing: allExceptEof),
+          new TestDescriptor(
+              'ifCondition',
+              "import 'a.dart' if (b)",
+              [
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_STRING_LITERAL
+              ],
+              "import 'a.dart' if (b) '';"),
         ],
         PartialCodeTest.prePartSuffixes);
   }

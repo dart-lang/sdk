@@ -753,17 +753,50 @@ class Parser {
   /// ```
   Token parseConditionalUri(Token token) {
     Token ifKeyword = token = token.next;
-    listener.beginConditionalUri(ifKeyword);
-    token = expect('if', token);
-    Token leftParen = token;
-    expect('(', token);
-    token = parseDottedName(token).next;
-    Token equalitySign;
-    if (optional('==', token)) {
-      equalitySign = token;
-      token = ensureLiteralString(token).next;
+    assert(optional('if', token));
+    listener.beginConditionalUri(token);
+    Token leftParen = token.next;
+    if (!optional('(', leftParen)) {
+      reportRecoverableError(
+          leftParen, fasta.templateExpectedButGot.withArguments('('));
+
+      int offset = leftParen.charOffset;
+      BeginToken openParen =
+          new SyntheticBeginToken(TokenType.OPEN_PAREN, offset);
+      Token next = openParen
+          .setNext(new SyntheticStringToken(TokenType.IDENTIFIER, '', offset));
+      next = next.setNext(new SyntheticToken(TokenType.CLOSE_PAREN, offset));
+      openParen.endGroup = next;
+
+      token.setNext(openParen);
+      next.setNext(leftParen);
+      leftParen = openParen;
     }
-    expect(')', token);
+    token = leftParen;
+    token = parseDottedName(token);
+    Token next = token.next;
+    Token equalitySign;
+    if (optional('==', next)) {
+      equalitySign = next;
+      token = ensureLiteralString(next);
+      next = token.next;
+    }
+    if (next != leftParen.endGroup) {
+      reportRecoverableErrorWithToken(next, fasta.templateUnexpectedToken);
+      Token endGroup = leftParen.endGroup;
+      if (endGroup.isSynthetic) {
+        // The scanner did not place the synthetic ')' correctly, so move it.
+
+        // TODO(danrubel): Its costly to find the token before the endGroup.
+        // Consider beforeSynthetic field that points to the previous token
+        // only for synthetic tokens such as ')', '}', ']' so that the parser
+        // can easily move these to the correct location.
+      }
+      next = endGroup;
+    }
+    token = next;
+    assert(optional(')', token));
+
     token = ensureLiteralString(token);
     listener.endConditionalUri(ifKeyword, leftParen, equalitySign);
     return token;
@@ -3175,7 +3208,7 @@ class Parser {
     if (!identical(next.kind, STRING_TOKEN)) {
       Message message = fasta.templateExpectedString.withArguments(next);
       Token newToken =
-          new SyntheticStringToken(TokenType.STRING, '""', token.charOffset, 0);
+          new SyntheticStringToken(TokenType.STRING, '""', next.charOffset, 0);
       rewriteAndRecover(token, message, newToken);
     }
     return parseLiteralString(token);
