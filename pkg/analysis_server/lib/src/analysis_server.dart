@@ -294,7 +294,7 @@ class AnalysisServer {
    * The controller for [onAnalysisSetChanged].
    */
   StreamController _onAnalysisSetChangedController =
-      new StreamController.broadcast();
+      new StreamController.broadcast(sync: true);
 
   /**
    * This exists as a temporary stopgap for plugins, until the official plugin
