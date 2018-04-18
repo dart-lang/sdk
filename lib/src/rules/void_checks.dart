@@ -76,25 +76,12 @@ class Visitor extends SimpleAstVisitor {
     _checkArgs(args, parameters);
   }
 
-  void _checkArgs(
-      NodeList<Expression> args, List<ParameterElement> parameters) {
-    final positionalParameters = parameters.where((e) => !e.isNamed).toList();
-    int positionalCount = 0;
-    for (final arg in args) {
-      if (arg is NamedExpression) {
-        final type =
-            parameters.singleWhere((e) => e.name == arg.name.label.name).type;
-        _check(type, arg?.bestType, arg);
-      } else {
-        _check(positionalParameters[positionalCount].type, arg?.bestType, arg);
-        positionalCount += 1;
-      }
-    }
-  }
-
   @override
   visitAssignmentExpression(AssignmentExpression node) {
-    _check(node.leftHandSide?.bestType, node.rightHandSide?.bestType, node);
+    final type = node.leftHandSide?.bestType;
+    if (!_isFunctionRef(type, node.rightHandSide)) {
+      _check(node.leftHandSide?.bestType, node.rightHandSide?.bestType, node);
+    }
   }
 
   @override
@@ -115,10 +102,38 @@ class Visitor extends SimpleAstVisitor {
     }
   }
 
+  void _checkArgs(
+      NodeList<Expression> args, List<ParameterElement> parameters) {
+    final positionalParameters = parameters.where((e) => !e.isNamed).toList();
+    int positionalCount = 0;
+    for (final arg in args) {
+      if (arg is NamedExpression) {
+        final type =
+            parameters.singleWhere((e) => e.name == arg.name.label.name).type;
+        final argExpression = arg.expression;
+        if (!_isFunctionRef(type, argExpression)) {
+          _check(type, argExpression?.bestType, argExpression);
+        }
+      } else {
+        final type = positionalParameters[positionalCount].type;
+        if (!_isFunctionRef(type, arg)) {
+          _check(type, arg?.bestType, arg);
+        }
+        positionalCount += 1;
+      }
+    }
+  }
+
+  bool _isFunctionRef(DartType type, Expression arg) =>
+      type is FunctionType &&
+      (arg is SimpleIdentifier ||
+          arg is PrefixedIdentifier ||
+          arg is FunctionExpression && arg.body is ExpressionFunctionBody);
+
   void _check(DartType expectedType, DartType type, AstNode node) {
     if (expectedType == null || type == null)
       return;
-    else if (expectedType.isVoid ||
+    else if (expectedType.isVoid && !isTypeAcceptableWhenExpectingVoid(type) ||
         expectedType.isDartAsyncFutureOr &&
             (expectedType as InterfaceType).typeArguments.first.isVoid &&
             !type.isAssignableTo(_futureDynamicType) &&
@@ -129,25 +144,15 @@ class Visitor extends SimpleAstVisitor {
     }
   }
 
-  DartType _findParamType(
-    FunctionType type,
-    AstNode node,
-    InvocationExpression invocation,
-  ) {
-    int index = 0;
-    for (final arg in invocation.argumentList.arguments) {
-      if (node.getAncestor((e) => e == arg || e == invocation) == arg) {
-        if (arg is NamedExpression) {
-          return type.namedParameterTypes[arg.name.label.name];
-        } else if (index < type.normalParameterTypes.length) {
-          return type.normalParameterTypes[index];
-        } else {
-          return type
-              .optionalParameterTypes[index - type.normalParameterTypes.length];
-        }
-      }
-      if (arg is! NamedExpression) index++;
+  bool isTypeAcceptableWhenExpectingVoid(DartType type) {
+    if (type.isVoid) return true;
+    if (type.isDartCoreNull) return true;
+    if (type.isDartAsyncFuture &&
+        type is ParameterizedType &&
+        (type.typeArguments.first.isVoid ||
+            type.typeArguments.first.isDartCoreNull)) {
+      return true;
     }
-    return null;
+    return false;
   }
 }
