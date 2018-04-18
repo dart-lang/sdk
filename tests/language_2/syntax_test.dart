@@ -112,9 +112,7 @@ native 'JSON' //# 32: syntax error
 
 class ListFactory<E> implements List<E>
 native "Array" //# 33: syntax error
-{
-  noSuchMethod(_) => null; // Allow unimplemented methods
-}
+{}
 
 abstract class I implements UNKNOWN; //# 34: syntax error
 
@@ -140,9 +138,7 @@ hest 'JSON' //# 39: syntax error
 
 class XListFactory<E> implements List<E>
 hest "Array" //# 40: syntax error
-{
-  noSuchMethod(_) => null; // Allow unimplemented methods
-}
+{}
 
 class YWindow extends DOMWindow
 for "*Window" //# 41: syntax error
@@ -166,9 +162,7 @@ for 'JSON' //# 45: syntax error
 
 class YListFactory<E> implements List<E>
 for "Array" //# 46: syntax error
-{
-  noSuchMethod(_) => null; // Allow unimplemented methods
-}
+{}
 
 class A {
   const A()

@@ -13,12 +13,12 @@ class X extends core::Object {
   method native() → core::String
     ;
 }
-abstract class Y1 extends core::Object {
+class Y1 extends core::Object {
   synthetic constructor •() → void
     ;
   abstract get native() → core::String;
 }
-class Y2 extends self::Y1 {
+class Y2 extends core::Object {
   synthetic constructor •() → void
     ;
   get native() → core::String

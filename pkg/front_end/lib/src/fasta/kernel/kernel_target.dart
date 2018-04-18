@@ -262,7 +262,6 @@ class KernelTarget extends TargetImplementation {
         loader.performTopLevelInference(myClasses);
       }
       loader.checkOverrides(myClasses);
-      loader.checkAbstractMembers(myClasses);
       loader.addNoSuchMethodForwarders(myClasses);
     } on deprecated_InputError catch (e) {
       ticker.logMs("Got deprecated_InputError");

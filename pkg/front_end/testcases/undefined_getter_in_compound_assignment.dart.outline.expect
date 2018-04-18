@@ -5,8 +5,7 @@ import "dart:core" as core;
 class C extends core::Object {
   synthetic constructor •() → void
     ;
-  set x(dynamic value) → void
-    ;
+  abstract set x(dynamic value) → void;
 }
 static method test(self::C c) → void
   ;

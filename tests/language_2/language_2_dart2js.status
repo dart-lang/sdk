@@ -193,6 +193,8 @@ check_member_static_test/02: MissingCompileTimeError
 checked_method_error_order_test: RuntimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
+closure_invoked_through_interface_target_field_test: MissingCompileTimeError
+closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 compile_time_constant_o_test/01: MissingCompileTimeError
 compile_time_constant_o_test/02: MissingCompileTimeError
 conditional_method_invocation_test/05: MissingCompileTimeError
@@ -523,12 +525,12 @@ switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
 symbol_literal_test/01: MissingCompileTimeError
-syntax_test/28: MissingCompileTimeError # Issue 29763
-syntax_test/29: MissingCompileTimeError # Issue 29763
-syntax_test/30: MissingCompileTimeError # Issue 29763
-syntax_test/31: MissingCompileTimeError # Issue 29763
-syntax_test/32: MissingCompileTimeError # Issue 29763
-syntax_test/33: MissingCompileTimeError # Issue 29763
+syntax_test/28: MissingCompileTimeError
+syntax_test/29: MissingCompileTimeError
+syntax_test/30: MissingCompileTimeError
+syntax_test/31: MissingCompileTimeError
+syntax_test/32: MissingCompileTimeError
+syntax_test/33: MissingCompileTimeError
 tearoff_dynamic_test: RuntimeError
 truncdiv_test: RuntimeError # non JS number semantics - Issue 15246
 try_catch_test/01: MissingCompileTimeError
@@ -558,6 +560,8 @@ issue31596_super_test/02: MissingCompileTimeError
 issue31596_super_test/04: MissingCompileTimeError
 issue31596_super_test/05: RuntimeError
 issue31596_test: RuntimeError
+nsm5_test: MissingCompileTimeError
+override_inheritance_no_such_method_test/05: MissingCompileTimeError
 
 [ $compiler == dart2js && $fast_startup ]
 const_evaluation_test/*: Fail # mirrors not supported
@@ -602,6 +606,8 @@ canonical_const2_test: RuntimeError, OK # non JS number semantics
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
+closure_invoked_through_interface_target_field_test: MissingCompileTimeError
+closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 compile_time_constant_o_test/01: MissingCompileTimeError
 compile_time_constant_o_test/02: MissingCompileTimeError
 conditional_method_invocation_test/05: MissingCompileTimeError
@@ -973,12 +979,12 @@ switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
 symbol_literal_test/01: MissingCompileTimeError
-syntax_test/28: MissingCompileTimeError # Issue 29763
-syntax_test/29: MissingCompileTimeError # Issue 29763
-syntax_test/30: MissingCompileTimeError # Issue 29763
-syntax_test/31: MissingCompileTimeError # Issue 29763
-syntax_test/32: MissingCompileTimeError # Issue 29763
-syntax_test/33: MissingCompileTimeError # Issue 29763
+syntax_test/28: MissingCompileTimeError
+syntax_test/29: MissingCompileTimeError
+syntax_test/30: MissingCompileTimeError
+syntax_test/31: MissingCompileTimeError
+syntax_test/32: MissingCompileTimeError
+syntax_test/33: MissingCompileTimeError
 tearoff_dynamic_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 truncdiv_test: RuntimeError # non JS number semantics - Issue 15246
 try_catch_test/01: MissingCompileTimeError
@@ -1027,8 +1033,11 @@ type_alias_equality_test/03: RuntimeError # Issue 32784
 type_alias_equality_test/04: RuntimeError # Issue 32784
 
 [ $compiler == dart2js && $fasta && $host_checked && $strong ]
+abstract_factory_constructor_test/00: MissingCompileTimeError
+abstract_getter_test/01: MissingCompileTimeError
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError
+abstract_syntax_test/00: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
 assertion_test: RuntimeError
@@ -1083,6 +1092,8 @@ class_cycle_test/03: MissingCompileTimeError
 class_literal_static_test/01: MissingCompileTimeError
 class_literal_static_test/03: MissingCompileTimeError
 class_literal_static_test/07: MissingCompileTimeError
+closure_invoked_through_interface_target_field_test: MissingCompileTimeError
+closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart': Failed assertion: line 641 pos 12: 'isClosed()': is not true.
 compile_time_constant_k_test/01: MissingCompileTimeError
 compile_time_constant_k_test/02: MissingCompileTimeError
@@ -1186,6 +1197,7 @@ extract_type_arguments_test: RuntimeError # Issue 31371
 f_bounded_quantification4_test: RuntimeError
 f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
+factory2_test/03: MissingCompileTimeError
 factory4_test/00: MissingCompileTimeError
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
@@ -1255,6 +1267,8 @@ identical_const_test/02: MissingCompileTimeError
 identical_const_test/03: MissingCompileTimeError
 identical_const_test/04: MissingCompileTimeError
 if_null_precedence_test/none: RuntimeError
+implicit_this_test/01: MissingCompileTimeError
+implicit_this_test/04: MissingCompileTimeError
 infinity_test: RuntimeError # non JS number semantics - Issue 4984
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
@@ -1453,6 +1467,25 @@ override_field_method5_negative_test: Fail
 override_field_test/01: MissingCompileTimeError
 override_field_test/02: MissingCompileTimeError
 override_field_test/03: MissingCompileTimeError
+override_inheritance_abstract_test/02: MissingCompileTimeError
+override_inheritance_abstract_test/03: MissingCompileTimeError
+override_inheritance_abstract_test/04: MissingCompileTimeError
+override_inheritance_abstract_test/08: MissingCompileTimeError
+override_inheritance_abstract_test/09: MissingCompileTimeError
+override_inheritance_abstract_test/10: MissingCompileTimeError
+override_inheritance_abstract_test/11: MissingCompileTimeError
+override_inheritance_abstract_test/12: MissingCompileTimeError
+override_inheritance_abstract_test/13: MissingCompileTimeError
+override_inheritance_abstract_test/14: MissingCompileTimeError
+override_inheritance_abstract_test/17: MissingCompileTimeError
+override_inheritance_abstract_test/19: MissingCompileTimeError
+override_inheritance_abstract_test/20: MissingCompileTimeError
+override_inheritance_abstract_test/21: MissingCompileTimeError
+override_inheritance_abstract_test/22: MissingCompileTimeError
+override_inheritance_abstract_test/23: MissingCompileTimeError
+override_inheritance_abstract_test/24: MissingCompileTimeError
+override_inheritance_abstract_test/25: MissingCompileTimeError
+override_inheritance_abstract_test/26: MissingCompileTimeError
 override_inheritance_field_test/04: CompileTimeError
 override_inheritance_field_test/06: CompileTimeError
 override_inheritance_field_test/26: CompileTimeError
@@ -1469,8 +1502,18 @@ override_inheritance_mixed_test/01: MissingCompileTimeError
 override_inheritance_mixed_test/02: MissingCompileTimeError
 override_inheritance_mixed_test/03: MissingCompileTimeError
 override_inheritance_mixed_test/04: MissingCompileTimeError
+override_inheritance_mixed_test/06: MissingCompileTimeError
+override_inheritance_mixed_test/07: MissingCompileTimeError
 override_inheritance_mixed_test/08: MissingCompileTimeError
 override_inheritance_mixed_test/09: MissingCompileTimeError
+override_inheritance_no_such_method_test/01: MissingCompileTimeError
+override_inheritance_no_such_method_test/02: MissingCompileTimeError
+override_inheritance_no_such_method_test/06: MissingCompileTimeError
+override_inheritance_no_such_method_test/07: MissingCompileTimeError
+override_inheritance_no_such_method_test/09: MissingCompileTimeError
+override_inheritance_no_such_method_test/10: MissingCompileTimeError
+override_inheritance_no_such_method_test/12: MissingCompileTimeError
+override_inheritance_no_such_method_test/13: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
 parser_quirks_test: CompileTimeError
 partial_tearoff_instantiation_test/05: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
@@ -1555,12 +1598,12 @@ syntax_test/23: Crash # 'file:*/pkg/compiler/lib/src/kernel/env.dart': Failed as
 syntax_test/24: Crash # 'file:*/pkg/compiler/lib/src/kernel/env.dart': Failed assertion: line 322 pos 16: '!name.contains('#')': is not true.
 syntax_test/25: Crash # 'file:*/pkg/compiler/lib/src/kernel/env.dart': Failed assertion: line 322 pos 16: '!name.contains('#')': is not true.
 syntax_test/26: Crash # 'file:*/pkg/compiler/lib/src/kernel/env.dart': Failed assertion: line 322 pos 16: '!name.contains('#')': is not true.
-syntax_test/28: MissingCompileTimeError # Issue 29763
-syntax_test/29: MissingCompileTimeError # Issue 29763
-syntax_test/30: MissingCompileTimeError # Issue 29763
-syntax_test/31: MissingCompileTimeError # Issue 29763
-syntax_test/32: MissingCompileTimeError # Issue 29763
-syntax_test/33: MissingCompileTimeError # Issue 29763
+syntax_test/28: MissingCompileTimeError
+syntax_test/29: MissingCompileTimeError
+syntax_test/30: MissingCompileTimeError
+syntax_test/31: MissingCompileTimeError
+syntax_test/32: MissingCompileTimeError
+syntax_test/33: MissingCompileTimeError
 tearoff_dynamic_test: RuntimeError
 truncdiv_test: RuntimeError # non JS number semantics - Issue 15246
 try_catch_test/01: MissingCompileTimeError
@@ -1664,8 +1707,11 @@ wrong_number_type_arguments_test/01: MissingCompileTimeError
 wrong_number_type_arguments_test/none: Pass
 
 [ $compiler == dart2js && $fasta && $minified && $strong ]
+abstract_factory_constructor_test/00: MissingCompileTimeError
+abstract_getter_test/01: MissingCompileTimeError
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError
+abstract_syntax_test/00: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
 assertion_test: RuntimeError
@@ -1720,6 +1766,8 @@ class_cycle_test/03: MissingCompileTimeError
 class_literal_static_test/01: MissingCompileTimeError
 class_literal_static_test/03: MissingCompileTimeError
 class_literal_static_test/07: MissingCompileTimeError
+closure_invoked_through_interface_target_field_test: MissingCompileTimeError
+closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 compile_time_constant_k_test/01: MissingCompileTimeError
 compile_time_constant_k_test/02: MissingCompileTimeError
 compile_time_constant_k_test/03: MissingCompileTimeError
@@ -1818,6 +1866,7 @@ extract_type_arguments_test: RuntimeError # Issue 31371
 f_bounded_quantification4_test: RuntimeError # Issue 12605
 f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
+factory2_test/03: MissingCompileTimeError
 factory4_test/00: MissingCompileTimeError
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
@@ -1885,6 +1934,8 @@ identical_const_test/02: MissingCompileTimeError
 identical_const_test/03: MissingCompileTimeError
 identical_const_test/04: MissingCompileTimeError
 if_null_precedence_test/none: RuntimeError
+implicit_this_test/01: MissingCompileTimeError
+implicit_this_test/04: MissingCompileTimeError
 infinity_test: RuntimeError # non JS number semantics - Issue 4984
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
@@ -2085,6 +2136,25 @@ override_field_method5_negative_test: Fail
 override_field_test/01: MissingCompileTimeError
 override_field_test/02: MissingCompileTimeError
 override_field_test/03: MissingCompileTimeError
+override_inheritance_abstract_test/02: MissingCompileTimeError
+override_inheritance_abstract_test/03: MissingCompileTimeError
+override_inheritance_abstract_test/04: MissingCompileTimeError
+override_inheritance_abstract_test/08: MissingCompileTimeError
+override_inheritance_abstract_test/09: MissingCompileTimeError
+override_inheritance_abstract_test/10: MissingCompileTimeError
+override_inheritance_abstract_test/11: MissingCompileTimeError
+override_inheritance_abstract_test/12: MissingCompileTimeError
+override_inheritance_abstract_test/13: MissingCompileTimeError
+override_inheritance_abstract_test/14: MissingCompileTimeError
+override_inheritance_abstract_test/17: MissingCompileTimeError
+override_inheritance_abstract_test/19: MissingCompileTimeError
+override_inheritance_abstract_test/20: MissingCompileTimeError
+override_inheritance_abstract_test/21: MissingCompileTimeError
+override_inheritance_abstract_test/22: MissingCompileTimeError
+override_inheritance_abstract_test/23: MissingCompileTimeError
+override_inheritance_abstract_test/24: MissingCompileTimeError
+override_inheritance_abstract_test/25: MissingCompileTimeError
+override_inheritance_abstract_test/26: MissingCompileTimeError
 override_inheritance_field_test/04: CompileTimeError
 override_inheritance_field_test/06: CompileTimeError
 override_inheritance_field_test/26: CompileTimeError
@@ -2101,8 +2171,18 @@ override_inheritance_mixed_test/01: MissingCompileTimeError
 override_inheritance_mixed_test/02: MissingCompileTimeError
 override_inheritance_mixed_test/03: MissingCompileTimeError
 override_inheritance_mixed_test/04: MissingCompileTimeError
+override_inheritance_mixed_test/06: MissingCompileTimeError
+override_inheritance_mixed_test/07: MissingCompileTimeError
 override_inheritance_mixed_test/08: MissingCompileTimeError
 override_inheritance_mixed_test/09: MissingCompileTimeError
+override_inheritance_no_such_method_test/01: MissingCompileTimeError
+override_inheritance_no_such_method_test/02: MissingCompileTimeError
+override_inheritance_no_such_method_test/06: MissingCompileTimeError
+override_inheritance_no_such_method_test/07: MissingCompileTimeError
+override_inheritance_no_such_method_test/09: MissingCompileTimeError
+override_inheritance_no_such_method_test/10: MissingCompileTimeError
+override_inheritance_no_such_method_test/12: MissingCompileTimeError
+override_inheritance_no_such_method_test/13: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
 parser_quirks_test: CompileTimeError
 recursive_generic_test: RuntimeError
@@ -2162,12 +2242,12 @@ switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
 symbol_conflict_test: RuntimeError # Issue 23857
-syntax_test/28: MissingCompileTimeError # Issue 29763
-syntax_test/29: MissingCompileTimeError # Issue 29763
-syntax_test/30: MissingCompileTimeError # Issue 29763
-syntax_test/31: MissingCompileTimeError # Issue 29763
-syntax_test/32: MissingCompileTimeError # Issue 29763
-syntax_test/33: MissingCompileTimeError # Issue 29763
+syntax_test/28: MissingCompileTimeError
+syntax_test/29: MissingCompileTimeError
+syntax_test/30: MissingCompileTimeError
+syntax_test/31: MissingCompileTimeError
+syntax_test/32: MissingCompileTimeError
+syntax_test/33: MissingCompileTimeError
 tearoff_dynamic_test: RuntimeError
 truncdiv_test: RuntimeError # non JS number semantics - Issue 15246
 try_catch_test/01: MissingCompileTimeError

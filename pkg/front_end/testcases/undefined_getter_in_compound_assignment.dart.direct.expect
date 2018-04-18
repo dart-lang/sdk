@@ -6,7 +6,7 @@ class C extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
-  set x(dynamic value) → void {}
+  abstract set x(dynamic value) → void;
 }
 static method test(self::C c) → void {
   c.x = 1;

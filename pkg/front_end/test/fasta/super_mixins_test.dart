@@ -60,8 +60,6 @@ class NotMixin extends A with B {
     super.foo(value);
     super.quux();
   }
-
-  void foo(String value) {}
 }
 
 void main() {

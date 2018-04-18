@@ -6,7 +6,7 @@
 // non-implemented abstract method has all the references to the type variables
 // in its signature replaced with the appropriate types.
 
-abstract class I<T> {
+class I<T> {
   T foo();
 }
 

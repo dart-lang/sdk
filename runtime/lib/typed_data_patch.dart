@@ -3487,7 +3487,7 @@ class _TypedListIterator<E> implements Iterator<E> {
   E get current => _current;
 }
 
-abstract class _TypedListView extends _TypedListBase implements TypedData {
+class _TypedListView extends _TypedListBase implements TypedData {
   _TypedListView(_ByteBuffer _buffer, int _offset, int _length)
       : _typedData = _buffer._data,
         offsetInBytes = _offset,

@@ -42,8 +42,8 @@ runTests(CompileMode compileMode, {bool strongMode: false}) async {
       class E extends C implements B {}
       class F extends C {}
       class G extends C {}
-      abstract class H implements C {}
-      abstract class I implements H {}
+      class H implements C {}
+      class I implements H {}
       """,
       mainSource: r"""
       main() {

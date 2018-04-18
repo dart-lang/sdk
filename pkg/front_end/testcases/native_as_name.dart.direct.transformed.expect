@@ -15,15 +15,15 @@ class X extends core::Object {
   method native() → core::String
     return "method";
 }
-abstract class Y1 extends core::Object {
+class Y1 extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
   abstract get native() → core::String;
 }
-class Y2 extends self::Y1 {
+class Y2 extends core::Object {
   synthetic constructor •() → void
-    : super self::Y1::•()
+    : super core::Object::•()
     ;
   @core::override
   get native() → core::String

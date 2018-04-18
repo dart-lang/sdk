@@ -18,11 +18,11 @@ class X {
   String native() => "method";
 }
 
-abstract class Y1 {
+class Y1 {
   String get native;
 }
 
-class Y2 extends Y1 {
+class Y2 {
   @override
   String get native => "getter";
 }

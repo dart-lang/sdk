@@ -2073,9 +2073,6 @@ class ServiceMap extends ServiceObject implements Map, M.UnknownObjectRef {
   Iterable get values => _map.values;
   int get length => _map.length;
 
-  // Suppress compile-time error about missing Map methods.
-  noSuchMethod(_) => throw "Unimplemented ServiceMap method";
-
   String toString() => "ServiceMap($_map)";
 }
 

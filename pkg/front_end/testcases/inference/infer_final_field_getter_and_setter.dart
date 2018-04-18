@@ -7,7 +7,7 @@ library test;
 
 abstract class A {
   int get x;
-  void set x(double value) {}
+  void set x(double value);
 }
 
 class B extends A {

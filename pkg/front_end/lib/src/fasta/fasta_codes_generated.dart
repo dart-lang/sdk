@@ -3656,69 +3656,6 @@ const MessageCode messageMissingFunctionParameters = const MessageCode(
     tip: r"""Try adding a parameter list to the function declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-    templateMissingImplementationCause =
-    const Template<Message Function(String name)>(
-        messageTemplate: r"""'#name' is defined here.""",
-        withArguments: _withArgumentsMissingImplementationCause);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeMissingImplementationCause =
-    const Code<Message Function(String name)>(
-        "MissingImplementationCause", templateMissingImplementationCause,
-        severity: Severity.context);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMissingImplementationCause(String name) {
-  return new Message(codeMissingImplementationCause,
-      message: """'$name' is defined here.""", arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String name,
-        String
-            string)> templateMissingImplementationNotAbstract = const Template<
-        Message Function(String name, String string)>(
-    messageTemplate:
-        r"""The non-abstract class '#name' is missing implementations for these members:
-  #string.""",
-    tipTemplate: r"""Try to either
- - provide an implementation,
- - inherit an implementation from a superclass or mixin,
- - mark the class as abstract, or
- - provide a 'noSuchMethod' implementation.
-""",
-    withArguments: _withArgumentsMissingImplementationNotAbstract);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String string)>
-    codeMissingImplementationNotAbstract =
-    const Code<Message Function(String name, String string)>(
-        "MissingImplementationNotAbstract",
-        templateMissingImplementationNotAbstract,
-        analyzerCode: "CONCRETE_CLASS_WITH_ABSTRACT_MEMBER",
-        dart2jsCode: "*fatal*",
-        severity: Severity.errorLegacyWarning);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMissingImplementationNotAbstract(
-    String name, String string) {
-  return new Message(codeMissingImplementationNotAbstract,
-      message:
-          """The non-abstract class '$name' is missing implementations for these members:
-  $string.""",
-      tip: """Try to either
- - provide an implementation,
- - inherit an implementation from a superclass or mixin,
- - mark the class as abstract, or
- - provide a 'noSuchMethod' implementation.
-""",
-      arguments: {'name': name, 'string': string});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMissingInput = messageMissingInput;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
