@@ -370,6 +370,10 @@ class Object {
     ASSERT(null_type_arguments_ != NULL);
     return *null_type_arguments_;
   }
+  static const TypeArguments& empty_type_arguments() {
+    ASSERT(empty_type_arguments_ != NULL);
+    return *empty_type_arguments_;
+  }
 
   static const Array& empty_array() {
     ASSERT(empty_array_ != NULL);
@@ -817,6 +821,7 @@ class Object {
   static Instance* null_instance_;
   static Function* null_function_;
   static TypeArguments* null_type_arguments_;
+  static TypeArguments* empty_type_arguments_;
   static Array* empty_array_;
   static Array* zero_array_;
   static Context* empty_context_;
@@ -8742,6 +8747,13 @@ class Closure : public Instance {
   }
   static intptr_t function_type_arguments_offset() {
     return OFFSET_OF(RawClosure, function_type_arguments_);
+  }
+
+  RawTypeArguments* delayed_type_arguments() const {
+    return raw_ptr()->delayed_type_arguments_;
+  }
+  static intptr_t delayed_type_arguments_offset() {
+    return OFFSET_OF(RawClosure, delayed_type_arguments_);
   }
 
   RawFunction* function() const { return raw_ptr()->function_; }

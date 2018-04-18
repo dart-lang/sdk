@@ -5062,6 +5062,7 @@ void Serializer::AddVMIsolateBaseObjects() {
   AddBaseObject(Object::zero_array().raw());
   AddBaseObject(Object::dynamic_type().raw());
   AddBaseObject(Object::void_type().raw());
+  AddBaseObject(Object::empty_type_arguments().raw());
   AddBaseObject(Bool::True().raw());
   AddBaseObject(Bool::False().raw());
   ASSERT(Object::extractor_parameter_types().raw() != Object::null());
@@ -5507,6 +5508,7 @@ void Deserializer::AddVMIsolateBaseObjects() {
   AddBaseObject(Object::zero_array().raw());
   AddBaseObject(Object::dynamic_type().raw());
   AddBaseObject(Object::void_type().raw());
+  AddBaseObject(Object::empty_type_arguments().raw());
   AddBaseObject(Bool::True().raw());
   AddBaseObject(Bool::False().raw());
   ASSERT(Object::extractor_parameter_types().raw() != Object::null());

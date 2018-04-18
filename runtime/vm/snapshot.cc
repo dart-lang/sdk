@@ -751,6 +751,8 @@ RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
   READ_VM_SINGLETON_OBJ(kZeroArrayObject, Object::zero_array().raw());
   READ_VM_SINGLETON_OBJ(kDynamicType, Object::dynamic_type().raw());
   READ_VM_SINGLETON_OBJ(kVoidType, Object::void_type().raw());
+  READ_VM_SINGLETON_OBJ(kEmptyTypeArguments,
+                        Object::empty_type_arguments().raw());
   READ_VM_SINGLETON_OBJ(kTrueValue, Bool::True().raw());
   READ_VM_SINGLETON_OBJ(kFalseValue, Bool::False().raw());
   READ_VM_SINGLETON_OBJ(kExtractorParameterTypes,
@@ -1018,6 +1020,8 @@ bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
   WRITE_VM_SINGLETON_OBJ(Object::zero_array().raw(), kZeroArrayObject);
   WRITE_VM_SINGLETON_OBJ(Object::dynamic_type().raw(), kDynamicType);
   WRITE_VM_SINGLETON_OBJ(Object::void_type().raw(), kVoidType);
+  WRITE_VM_SINGLETON_OBJ(Object::empty_type_arguments().raw(),
+                         kEmptyTypeArguments);
   WRITE_VM_SINGLETON_OBJ(Bool::True().raw(), kTrueValue);
   WRITE_VM_SINGLETON_OBJ(Bool::False().raw(), kFalseValue);
   WRITE_VM_SINGLETON_OBJ(Object::extractor_parameter_types().raw(),

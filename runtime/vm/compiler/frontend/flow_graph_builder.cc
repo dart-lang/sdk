@@ -2318,6 +2318,17 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
           type_arguments, kEmitStoreBarrier, node->token_pos()));
     }
 
+    // Mark that there are no delayed type arguments.
+    {
+      Value* closure_tmp_val =
+          Bind(new (Z) LoadLocalInstr(*closure_tmp_var, node->token_pos()));
+      Value* type_arguments =
+          Bind(new (Z) ConstantInstr(Object::empty_type_arguments()));
+      Do(new (Z) StoreInstanceFieldInstr(
+          Closure::delayed_type_arguments_offset(), closure_tmp_val,
+          type_arguments, kEmitStoreBarrier, node->token_pos()));
+    }
+
     // Store function.
     Value* closure_tmp_val =
         Bind(new (Z) LoadLocalInstr(*closure_tmp_var, node->token_pos()));
