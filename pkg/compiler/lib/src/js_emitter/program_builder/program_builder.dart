@@ -635,6 +635,7 @@ class ProgramBuilder {
 
     List<StaticMethod> statics = memberElements
         .where((e) => !e.isField)
+        .cast<FunctionEntity>()
         .map(_buildStaticMethod)
         .toList();
 

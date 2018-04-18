@@ -238,7 +238,7 @@ class KernelSorter implements Sorter {
   }
 
   @override
-  Iterable<MemberEntity> sortMembers(Iterable<MemberEntity> members) {
+  Iterable<T> sortMembers<T extends MemberEntity>(Iterable<T> members) {
     return members.toList()..sort(compareMembersByLocation);
   }
 
