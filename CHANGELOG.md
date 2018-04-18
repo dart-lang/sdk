@@ -1,5 +1,27 @@
 ## 2.0.0-dev.48.0
 
+### Language
+
+#### Strong Mode
+
+### Core library changes
+
+### Dart VM
+
+### Tool Changes
+
+#### Pub
+
+#### Other Tools
+
+## 2.0.0-dev.49.0
+
+## 2.0.0-dev.47.0
+
+### Tool Changes
+
+## 2.0.0-dev.48.0
+
 ### Core library changes
 
 * `dart:core`
