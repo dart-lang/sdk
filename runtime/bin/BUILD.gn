@@ -1132,7 +1132,7 @@ if (is_fuchsia) {
   import("//build/package.gni")
 
   package("package") {
-    system_image = true
+    deprecated_system_image = true
 
     package_name = "dart"
 
@@ -1152,7 +1152,7 @@ if (is_fuchsia) {
   }
 
   package("dart_tests") {
-    system_image = true
+    deprecated_system_image = true
 
     deps = [
       ":hello_fuchsia",
