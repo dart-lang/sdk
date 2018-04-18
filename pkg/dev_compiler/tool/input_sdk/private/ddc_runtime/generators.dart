@@ -13,8 +13,8 @@ part of dart._runtime;
 
 // TODO(vsm): Remove once this flag is the default.
 bool startAsyncSynchronously = false;
-void setStartAsyncSynchronously() {
-  startAsyncSynchronously = true;
+void setStartAsyncSynchronously([bool value = true]) {
+  startAsyncSynchronously = value;
 }
 
 final _jsIterator = JS('', 'Symbol("_jsIterator")');
