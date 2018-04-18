@@ -4229,66 +4229,10 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   body +=
       flow_graph_builder_->CheckStackOverflowInPrologue(function.token_pos());
 
-  // Forwarding the type parameters is complicated by our approach to
-  // implementing the partial tearoff instantiation.
-  //
-  // When a tearoff is partially applied to a set of type arguments, the type
-  // arguments are saved in the closure's "delayed_type_arguments" field. The
-  // partial type application operator is guaranteed to provide arguments for
-  // all of a generic tearoff's type parameters, so we will only have to forward
-  // type arguments from the caller or from the closure object. Therefore, if
-  // there are type arguments saved on the tearoff and type arguments are
-  // passed, we must throw NoSuchMethod.
   intptr_t type_args_len = 0;
   if (I->reify_generic_functions() && function.IsGeneric()) {
+    type_args_len = function.NumTypeParameters();
     ASSERT(parsed_function()->function_type_arguments() != NULL);
-    type_args_len = target.NumTypeParameters();
-
-    Fragment copy_type_args;
-
-    LocalVariable* closure =
-        parsed_function()->node_sequence()->scope()->VariableAt(0);
-    copy_type_args += LoadLocal(closure);
-    copy_type_args += LoadField(Closure::delayed_type_arguments_offset());
-
-    TargetEntryInstr *has_delayed_type_args, *no_delayed_type_args;
-    copy_type_args += Constant(Object::empty_type_arguments());
-    copy_type_args += BranchIfEqual(&no_delayed_type_args,
-                                    &has_delayed_type_args, /*negate=*/false);
-    JoinEntryInstr* join = BuildJoinEntry();
-
-    // We found type arguments saved on the tearoff to be provided to the
-    // function.
-
-    Fragment copy_delayed_type_args(has_delayed_type_args);
-
-    copy_delayed_type_args +=
-        LoadLocal(parsed_function()->function_type_arguments());
-
-    TargetEntryInstr *no_type_args, *passed_type_args;
-    copy_delayed_type_args +=
-        BranchIfNull(&no_type_args, &passed_type_args, /*negate=*/false);
-
-    Fragment use_instantiated_args(no_type_args);
-    use_instantiated_args += LoadLocal(closure);
-    use_instantiated_args +=
-        LoadField(Closure::delayed_type_arguments_offset());
-
-    // Prepending of captured type arguments will happen in the target.
-    use_instantiated_args += StoreLocal(
-        TokenPosition::kNoSource, parsed_function()->function_type_arguments());
-    use_instantiated_args += Drop();
-    use_instantiated_args += Goto(join);
-
-    Fragment goto_nsm(passed_type_args);
-    goto_nsm += Goto(flow_graph_builder_->BuildThrowNoSuchMethod());
-
-    // The tearoff was not partially applied, so we forward type arguments from
-    // the caller.
-    Fragment forward_caller_type_args(no_delayed_type_args);
-    forward_caller_type_args += Goto(join);
-
-    body += Fragment(copy_type_args.entry, join);
     body += LoadLocal(parsed_function()->function_type_arguments());
     body += PushArgument();
   }

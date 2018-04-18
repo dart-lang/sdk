@@ -111,6 +111,15 @@ Fragment& Fragment::operator<<=(Instruction* next) {
   return *this;
 }
 
+void Fragment::Prepend(Instruction* start) {
+  if (entry == NULL) {
+    entry = current = start;
+  } else {
+    start->LinkTo(entry);
+    entry = start;
+  }
+}
+
 Fragment Fragment::closed() {
   ASSERT(entry != NULL);
   return Fragment(entry, NULL);
@@ -1331,6 +1340,52 @@ Fragment BaseFlowGraphBuilder::TailCall(const Code& code) {
   Fragment instructions;
   Value* arg_desc = Pop();
   return Fragment(new (Z) TailCallInstr(code, arg_desc));
+}
+
+Fragment BaseFlowGraphBuilder::TestTypeArgsLen(Fragment eq_branch,
+                                               Fragment neq_branch,
+                                               intptr_t num_type_args) {
+  Fragment test;
+
+  TargetEntryInstr* eq_entry;
+  TargetEntryInstr* neq_entry;
+
+  test += LoadArgDescriptor();
+  test += LoadField(ArgumentsDescriptor::type_args_len_offset());
+  test += IntConstant(num_type_args);
+  test += BranchIfEqual(&eq_entry, &neq_entry);
+
+  eq_branch.Prepend(eq_entry);
+  neq_branch.Prepend(neq_entry);
+
+  JoinEntryInstr* join = BuildJoinEntry();
+  eq_branch += Goto(join);
+  neq_branch += Goto(join);
+
+  return Fragment(test.entry, join);
+}
+
+Fragment BaseFlowGraphBuilder::TestDelayedTypeArgs(LocalVariable* closure,
+                                                   Fragment present,
+                                                   Fragment absent) {
+  Fragment test;
+
+  TargetEntryInstr* absent_entry;
+  TargetEntryInstr* present_entry;
+
+  test += LoadLocal(closure);
+  test += LoadField(Closure::delayed_type_arguments_offset());
+  test += Constant(Object::empty_type_arguments());
+  test += BranchIfEqual(&absent_entry, &present_entry);
+
+  present.Prepend(present_entry);
+  absent.Prepend(absent_entry);
+
+  JoinEntryInstr* join = BuildJoinEntry();
+  absent += Goto(join);
+  present += Goto(join);
+
+  return Fragment(test.entry, join);
 }
 
 Fragment FlowGraphBuilder::RethrowException(TokenPosition position,
