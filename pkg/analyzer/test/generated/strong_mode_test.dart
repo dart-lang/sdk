@@ -1533,10 +1533,10 @@ test(Iterable values) {
 }
  ''');
     await computeAnalysisResult(source);
-    _expectInferenceError(
-        source,
-        [StrongModeCode.COULD_NOT_INFER, StrongModeCode.INVALID_CAST_FUNCTION],
-        r'''
+    _expectInferenceError(source, [
+      StrongModeCode.COULD_NOT_INFER,
+      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    ], r'''
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'dynamic' for 'T' which doesn't work:
@@ -1704,8 +1704,10 @@ abstract class Iterable<T> {
 num test(Iterable values) => values.fold(values.first as num, max);
     ''');
     var analysisResult = await computeAnalysisResult(source);
-    assertErrors(source,
-        [StrongModeCode.COULD_NOT_INFER, StrongModeCode.INVALID_CAST_FUNCTION]);
+    assertErrors(source, [
+      StrongModeCode.COULD_NOT_INFER,
+      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    ]);
     verify([source]);
     var unit = analysisResult.unit;
     var fold = (AstFinder

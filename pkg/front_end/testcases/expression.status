@@ -1,0 +1,52 @@
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class_capture.expression: Crash
+class_getter.expression: Crash
+class_invalid_static.expression: Crash
+class_invalid_static_capture.expression: Crash
+class_invalid_static_getter.expression: Crash
+class_invalid_static_setter.expression: Crash
+class_method.expression: Crash
+class_setter.expression: Crash
+class_static.expression: Crash
+class_static2.expression: Crash
+class_static3.expression: Crash
+class_type_param_bound.expression: Crash
+class_type_param_bound_illegal.expression: Crash
+class_type_param_reference.expression: Crash
+class_type_param_reference_arg.expression: Crash
+class_type_param_reference_arg_inferred.expression: Crash
+class_type_param_reference_ctor.expression: Crash
+class_type_param_reference_ctor_inferred.expression: Crash
+class_type_param_reference_var.expression: Crash
+core_lib_imported.expression: Crash
+core_lib_internal.expression: Crash
+eval.dart: Crash
+invalid.expression: Crash
+invalid_type_variable.expression: Crash
+invalid_variable.expression: Crash
+lib_ctor.expression: Crash
+lib_external_ctor.expression: Crash
+lib_nonctor.expression: Crash
+lib_nonreference.expression: Crash
+lib_nonshown_ctor.expression: Crash
+lib_reference.expression: Crash
+lib_simple.expression: Crash
+missing_variable_types.expression: Crash
+noclass.expression: Crash
+nolib.expression: Crash
+param_assign.expression: Crash
+param_capture.expression: Crash
+param_conflict.expression: Crash
+param_conflict_class.expression: Crash
+param_method.expression: Crash
+type_param_bound.expression: Crash
+type_param_shadow.expression: Crash
+type_param_shadow_arg.expression: Crash
+type_param_shadow_arg_ctor_inferred.expression: Crash
+type_param_shadow_arg_inferred.expression: Crash
+type_param_shadow_ctor.expression: Crash
+type_param_shadow_var.expression: Crash
+

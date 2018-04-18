@@ -4,9 +4,9 @@
 
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/api/general.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/general.dart';
-import 'package:analyzer/task/general.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

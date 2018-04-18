@@ -16,7 +16,7 @@
 library fasta.test.shaker_test;
 
 import 'dart:async' show Future;
-import 'dart:convert' show JSON;
+import 'dart:convert' show jsonDecode;
 import 'dart:io' show File;
 
 export 'package:testing/testing.dart' show Chain, runMe;
@@ -60,7 +60,7 @@ class TreeShakerContext extends ChainContext {
   final List<int> outlineBytes;
 
   final ExpectationSet expectationSet =
-      new ExpectationSet.fromJsonList(JSON.decode(EXPECTATIONS));
+      new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
 
   TreeShakerContext(
       this.outlineUri, this.options, this.outlineBytes, bool updateExpectations)

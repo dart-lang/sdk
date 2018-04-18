@@ -5,7 +5,7 @@
 library dart2js.js_emitter.program_builder;
 
 import 'dart:io';
-import 'dart:convert' show JSON;
+import 'dart:convert' show jsonDecode;
 
 import '../../closure.dart' show ClosureConversionTask, ClosureFieldElement;
 import '../../common.dart';
@@ -315,7 +315,7 @@ class ProgramBuilder {
       }
 
       String data = new File(allocatedClassesPath).readAsStringSync();
-      Set<String> allocatedClassesKeys = JSON.decode(data).keys.toSet();
+      Set<String> allocatedClassesKeys = jsonDecode(data).keys.toSet();
       Set<ClassEntity> allocatedClasses = new Set<ClassEntity>();
 
       // Collects all super and mixin classes of a class.

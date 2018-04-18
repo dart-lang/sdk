@@ -9154,6 +9154,35 @@ external void set x(int value);
 ''');
   }
 
+  test_setter_inferred_type_conflictingInheritance() async {
+    var library = await checkLibrary('''
+class A {
+  int t;
+}
+class B extends A {
+  double t;
+}
+class C extends A implements B {
+}
+class D extends C {
+  void set t(p) {}
+}
+''');
+    checkElementText(library, r'''
+class A {
+  int t;
+}
+class B extends A {
+  double t;
+}
+class C extends A implements B {
+}
+class D extends C {
+  void set t(dynamic p) {}
+}
+''');
+  }
+
   test_setter_inferred_type_nonStatic_implicit_param() async {
     var library =
         await checkLibrary('class C extends D { void set f(value) {} }'

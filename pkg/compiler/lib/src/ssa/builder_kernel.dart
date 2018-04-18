@@ -3817,7 +3817,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return false;
     }
 
-    MemberEntity element = closedWorld.locateSingleElement(selector, mask);
+    MemberEntity element = closedWorld.locateSingleMember(selector, mask);
     if (element != null &&
         !element.isField &&
         !(element.isGetter && selector.isCall) &&

@@ -55,7 +55,7 @@ class DummyCompilerInput implements CompilerInput {
   const DummyCompilerInput();
 
   Future<Input> readFromUri(Uri uri,
-      {InputKind inputKind: InputKind.utf8}) async {
+      {InputKind inputKind: InputKind.UTF8}) async {
     if (uri.toString().endsWith("dart_client.platform")) {
       return new Binary(uri, clientPlatform.codeUnits);
     } else if (uri.toString().endsWith("dart_server.platform")) {

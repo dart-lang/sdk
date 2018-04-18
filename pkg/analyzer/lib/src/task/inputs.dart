@@ -4,7 +4,7 @@
 
 import 'dart:collection';
 
-import 'package:analyzer/task/model.dart';
+import 'package:analyzer/src/task/api/model.dart';
 
 /**
  * A function that converts an object of the type [B] into a [TaskInput].

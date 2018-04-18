@@ -20,9 +20,6 @@
  * parameters. But if we declare a variable as `Pair<String, int> pair;` the
  * references to `String` and `int` are type arguments.
  */
-library analyzer.dart.element.type;
-
-import 'package:analyzer/dart/ast/resolution_base_classes.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart' show InterfaceTypeImpl;
 import 'package:analyzer/src/generated/type_system.dart' show TypeSystem;
@@ -32,7 +29,7 @@ import 'package:analyzer/src/generated/type_system.dart' show TypeSystem;
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class DartType implements ResolutionType {
+abstract class DartType {
   /**
    * An empty list of types.
    */
@@ -127,6 +124,16 @@ abstract class DartType implements ResolutionType {
    */
   bool isAssignableTo(DartType type);
 
+  /// Indicates whether `this` represents a type that is equivalent to `dest`.
+  ///
+  /// This is different from `operator==`.  Consider for example:
+  ///
+  ///     typedef void F<T>(); // T not used!
+  ///
+  /// `operator==` would consider F<int> and F<bool> to be different types;
+  /// `isEquivalentTo` considers them to be equivalent.
+  bool isEquivalentTo(DartType dest);
+
   /**
    * Return `true` if this type is more specific than the given [type].
    */
@@ -172,16 +179,6 @@ abstract class DartType implements ResolutionType {
    */
   DartType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes);
-
-  /// Indicates whether `this` represents a type that is equivalent to `dest`.
-  ///
-  /// This is different from `operator==`.  Consider for example:
-  ///
-  ///     typedef void F<T>(); // T not used!
-  ///
-  /// `operator==` would consider F<int> and F<bool> to be different types;
-  /// `isEquivalentTo` considers them to be equivalent.
-  bool isEquivalentTo(DartType dest);
 }
 
 /**

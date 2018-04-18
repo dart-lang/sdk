@@ -1299,20 +1299,84 @@ Message _withArgumentsDuplicatedModifier(Token token) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateDuplicatedName =
     const Template<Message Function(String name)>(
-        messageTemplate: r"""Duplicated name: '#name'.""",
+        messageTemplate: r"""'#name' is already declared in this scope.""",
         withArguments: _withArgumentsDuplicatedName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeDuplicatedName =
     const Code<Message Function(String name)>(
-  "DuplicatedName",
-  templateDuplicatedName,
-);
+        "DuplicatedName", templateDuplicatedName,
+        severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedName(String name) {
   return new Message(codeDuplicatedName,
-      message: """Duplicated name: '$name'.""", arguments: {'name': name});
+      message: """'$name' is already declared in this scope.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateDuplicatedNameCause =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Previous declaration of '#name'.""",
+        withArguments: _withArgumentsDuplicatedNameCause);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeDuplicatedNameCause =
+    const Code<Message Function(String name)>(
+        "DuplicatedNameCause", templateDuplicatedNameCause,
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedNameCause(String name) {
+  return new Message(codeDuplicatedNameCause,
+      message: """Previous declaration of '$name'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateDuplicatedNamePreviouslyUsed = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Can't declare '#name' because it was already used in this scope.""",
+    withArguments: _withArgumentsDuplicatedNamePreviouslyUsed);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeDuplicatedNamePreviouslyUsed =
+    const Code<Message Function(String name)>(
+        "DuplicatedNamePreviouslyUsed", templateDuplicatedNamePreviouslyUsed,
+        severity: Severity.error);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedNamePreviouslyUsed(String name) {
+  return new Message(codeDuplicatedNamePreviouslyUsed,
+      message:
+          """Can't declare '$name' because it was already used in this scope.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateDuplicatedNamePreviouslyUsedCause =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Previous use of '#name'.""",
+        withArguments: _withArgumentsDuplicatedNamePreviouslyUsedCause);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeDuplicatedNamePreviouslyUsedCause =
+    const Code<Message Function(String name)>(
+        "DuplicatedNamePreviouslyUsedCause",
+        templateDuplicatedNamePreviouslyUsedCause,
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedNamePreviouslyUsedCause(String name) {
+  return new Message(codeDuplicatedNamePreviouslyUsedCause,
+      message: """Previous use of '$name'.""", arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4572,25 +4636,6 @@ const MessageCode messagePrefixAfterCombinator = const MessageCode(
     message:
         r"""The prefix ('as' clause) should come before any show/hide combinators.""",
     tip: r"""Try moving the prefix before the combinators.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> templatePreviousUseOfName =
-    const Template<Message Function(String name)>(
-        messageTemplate: r"""Previous use of '#name'.""",
-        withArguments: _withArgumentsPreviousUseOfName);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codePreviousUseOfName =
-    const Code<Message Function(String name)>(
-  "PreviousUseOfName",
-  templatePreviousUseOfName,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsPreviousUseOfName(String name) {
-  return new Message(codePreviousUseOfName,
-      message: """Previous use of '$name'.""", arguments: {'name': name});
-}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codePrivateNamedParameter = messagePrivateNamedParameter;

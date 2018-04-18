@@ -1,24 +1,13 @@
-## 2.0.0-dev.48.0
-
-### Language
-
-#### Strong Mode
-
-### Core library changes
-
-### Dart VM
+## 2.0.0-dev.49.0
 
 ### Tool Changes
 
 #### Pub
 
-#### Other Tools
+* Fix another bug where the version solver could crash when resolving a conflict
+  involving pre-release constraints ([`pub_semver` issue 20][]).
 
-## 2.0.0-dev.49.0
-
-## 2.0.0-dev.47.0
-
-### Tool Changes
+[`pub_semver` issue 20]: https://github.com/dart-lang/pub_semver/issues/20
 
 ## 2.0.0-dev.48.0
 

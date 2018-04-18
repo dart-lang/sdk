@@ -789,11 +789,34 @@ class ParameterTypeInformation extends ElementTypeInformation {
   TypeMask potentiallyNarrowType(TypeMask mask, InferrerEngine inferrer) {
     if (inferrer.options.parameterCheckPolicy.isTrusted ||
         inferrer.trustTypeAnnotations(_method)) {
-      // When type assertions are enabled (aka checked mode), we have to always
-      // ignore type annotations to ensure that the checks are actually inserted
-      // into the function body and retained until runtime.
-      // TODO(sigmund): is this still applicable? investigate if we can use also
-      // narrow when isChecked is true.
+      // In checked or strong mode we don't trust the types of the arguments
+      // passed to a parameter. The means that the checking of a parameter is
+      // based on the actual arguments.
+      //
+      // With --trust-type-annotations or --omit-implicit-checks we _do_ trust
+      // the arguments passed to a parameter - and we never check them.
+      //
+      // In all these cases we _do_ trust the static type of a parameter within
+      // the method itself. For instance:
+      //
+      //     method(int i) => i;
+      //     main() {
+      //       dynamic f = method;
+      //       f(0); // valid call
+      //       f(''); // invalid call
+      //     }
+      //
+      // Here, in all cases, we infer the returned value of `method` to be an
+      // `int`. In checked and strong mode we infer the parameter of `method` to
+      // be either `int` or `String` and therefore insert a check at the entry
+      // of 'method'. With --trust-type-annotations or --omit-implicit-checks we
+      // (unsoundly) infer the parameter to be `int` and leave the parameter
+      // unchecked, and `method` will at runtime actually return a `String` from
+      // the second invocation.
+      //
+      // The trusting of the parameter types within the body of the method is
+      // is done through `LocalsHandler.update` called in
+      // `KernelTypeGraphBuilder.handleParameter`.
       assert(!inferrer.options.enableTypeAssertions);
       return _narrowType(inferrer.closedWorld, mask, _type);
     }
@@ -978,9 +1001,10 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
   final CallType _callType;
   final TypeInformation receiver;
   final bool isConditional;
+  bool _hasClosureCallTargets;
 
-  /// Cached targets of this call.
-  Iterable<MemberEntity> targets;
+  /// Cached concrete targets of this call.
+  Iterable<MemberEntity> _concreteTargets;
 
   DynamicCallSiteTypeInformation(
       MemberTypeInformation context,
@@ -1000,12 +1024,14 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
   void addToGraph(InferrerEngine inferrer) {
     assert(receiver != null);
     TypeMask typeMask = computeTypedSelector(inferrer);
-    targets = inferrer.closedWorld.locateMembers(selector, typeMask);
+    _hasClosureCallTargets =
+        inferrer.closedWorld.includesClosureCall(selector, typeMask);
+    _concreteTargets = inferrer.closedWorld.locateMembers(selector, typeMask);
     receiver.addUser(this);
     if (arguments != null) {
       arguments.forEach((info) => info.addUser(this));
     }
-    for (MemberEntity element in targets) {
+    for (MemberEntity element in _concreteTargets) {
       MemberTypeInformation callee =
           inferrer.types.getInferredTypeOfMember(element);
       callee.addCall(caller, _call);
@@ -1016,7 +1042,15 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
     }
   }
 
-  Iterable<MemberEntity> get callees => targets;
+  /// `true` if this invocation can hit a 'call' method on a closure.
+  bool get hasClosureCallTargets => _hasClosureCallTargets;
+
+  /// All concrete targets of this invocation. If [hasClosureCallTargets] is
+  /// `true` the invocation can additional target an unknown set of 'call'
+  /// methods on closures.
+  Iterable<MemberEntity> get concreteTargets => _concreteTargets;
+
+  Iterable<MemberEntity> get callees => _concreteTargets;
 
   TypeMask computeTypedSelector(InferrerEngine inferrer) {
     TypeMask receiverType = receiver.type;
@@ -1031,7 +1065,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
   }
 
   bool targetsIncludeComplexNoSuchMethod(InferrerEngine inferrer) {
-    return targets.any((MemberEntity e) {
+    return _concreteTargets.any((MemberEntity e) {
       return e.isFunction &&
           e.isInstanceMember &&
           e.name == Identifiers.noSuchMethod_ &&
@@ -1146,7 +1180,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
   }
 
   TypeMask computeType(InferrerEngine inferrer) {
-    Iterable<MemberEntity> oldTargets = targets;
+    Iterable<MemberEntity> oldTargets = _concreteTargets;
     TypeMask typeMask = computeTypedSelector(inferrer);
     inferrer.updateSelectorInMember(
         caller, _callType, _call, selector, typeMask);
@@ -1160,15 +1194,17 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
     // the untyped selector (through noSuchMethod's `Invocation`
     // and a call to `delegate`), we iterate over all these methods to
     // update their parameter types.
-    targets = inferrer.closedWorld.locateMembers(selector, maskToUse);
+    _hasClosureCallTargets =
+        inferrer.closedWorld.includesClosureCall(selector, maskToUse);
+    _concreteTargets = inferrer.closedWorld.locateMembers(selector, maskToUse);
     Iterable<MemberEntity> typedTargets = canReachAll
         ? inferrer.closedWorld.locateMembers(selector, typeMask)
-        : targets;
+        : _concreteTargets;
 
     // Update the call graph if the targets could have changed.
-    if (!identical(targets, oldTargets)) {
+    if (!identical(_concreteTargets, oldTargets)) {
       // Add calls to new targets to the graph.
-      targets
+      _concreteTargets
           .where((target) => !oldTargets.contains(target))
           .forEach((MemberEntity element) {
         MemberTypeInformation callee =
@@ -1182,7 +1218,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
 
       // Walk over the old targets, and remove calls that cannot happen anymore.
       oldTargets
-          .where((target) => !targets.contains(target))
+          .where((target) => !_concreteTargets.contains(target))
           .forEach((MemberEntity element) {
         MemberTypeInformation callee =
             inferrer.types.getInferredTypeOfMember(element);
@@ -1196,55 +1232,59 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
 
     // Walk over the found targets, and compute the joined union type mask
     // for all these targets.
-    TypeMask result =
-        inferrer.types.joinTypeMasks(targets.map((MemberEntity element) {
-      // If [canReachAll] is true, then we are iterating over all
-      // targets that satisfy the untyped selector. We skip the return
-      // type of the targets that can only be reached through
-      // `Invocation.delegate`. Note that the `noSuchMethod` targets
-      // are included in [typedTargets].
-      if (canReachAll && !typedTargets.contains(element)) {
-        return const TypeMask.nonNullEmpty();
-      }
-      if (inferrer.returnsListElementType(selector, typeMask)) {
-        ContainerTypeMask containerTypeMask = receiver.type;
-        return containerTypeMask.elementType;
-      } else if (inferrer.returnsMapValueType(selector, typeMask)) {
-        if (typeMask.isDictionary) {
-          TypeMask arg = arguments.positional[0].type;
-          if (arg is ValueTypeMask && arg.value.isString) {
-            DictionaryTypeMask dictionaryTypeMask = typeMask;
-            StringConstantValue value = arg.value;
-            String key = value.stringValue;
-            if (dictionaryTypeMask.typeMap.containsKey(key)) {
-              if (debug.VERBOSE) {
-                print("Dictionary lookup for $key yields "
-                    "${dictionaryTypeMask.typeMap[key]}.");
+    TypeMask result;
+    if (_hasClosureCallTargets) {
+      result = inferrer.commonMasks.dynamicType;
+    } else {
+      result = inferrer.types
+          .joinTypeMasks(_concreteTargets.map((MemberEntity element) {
+        // If [canReachAll] is true, then we are iterating over all
+        // targets that satisfy the untyped selector. We skip the return
+        // type of the targets that can only be reached through
+        // `Invocation.delegate`. Note that the `noSuchMethod` targets
+        // are included in [typedTargets].
+        if (canReachAll && !typedTargets.contains(element)) {
+          return const TypeMask.nonNullEmpty();
+        }
+        if (inferrer.returnsListElementType(selector, typeMask)) {
+          ContainerTypeMask containerTypeMask = receiver.type;
+          return containerTypeMask.elementType;
+        } else if (inferrer.returnsMapValueType(selector, typeMask)) {
+          if (typeMask.isDictionary) {
+            TypeMask arg = arguments.positional[0].type;
+            if (arg is ValueTypeMask && arg.value.isString) {
+              DictionaryTypeMask dictionaryTypeMask = typeMask;
+              StringConstantValue value = arg.value;
+              String key = value.stringValue;
+              if (dictionaryTypeMask.typeMap.containsKey(key)) {
+                if (debug.VERBOSE) {
+                  print("Dictionary lookup for $key yields "
+                      "${dictionaryTypeMask.typeMap[key]}.");
+                }
+                return dictionaryTypeMask.typeMap[key];
+              } else {
+                // The typeMap is precise, so if we do not find the key, the lookup
+                // will be [null] at runtime.
+                if (debug.VERBOSE) {
+                  print("Dictionary lookup for $key yields [null].");
+                }
+                return inferrer.types.nullType.type;
               }
-              return dictionaryTypeMask.typeMap[key];
-            } else {
-              // The typeMap is precise, so if we do not find the key, the lookup
-              // will be [null] at runtime.
-              if (debug.VERBOSE) {
-                print("Dictionary lookup for $key yields [null].");
-              }
-              return inferrer.types.nullType.type;
             }
           }
+          MapTypeMask mapTypeMask = typeMask;
+          if (debug.VERBOSE) {
+            print("Map lookup for $selector yields ${mapTypeMask.valueType}.");
+          }
+          return mapTypeMask.valueType;
+        } else {
+          TypeInformation info =
+              handleIntrisifiedSelector(selector, typeMask, inferrer);
+          if (info != null) return info.type;
+          return inferrer.typeOfMemberWithSelector(element, selector).type;
         }
-        MapTypeMask mapTypeMask = typeMask;
-        if (debug.VERBOSE) {
-          print("Map lookup for $selector yields ${mapTypeMask.valueType}.");
-        }
-        return mapTypeMask.valueType;
-      } else {
-        TypeInformation info =
-            handleIntrisifiedSelector(selector, typeMask, inferrer);
-        if (info != null) return info.type;
-        return inferrer.typeOfMemberWithSelector(element, selector).type;
-      }
-    }));
-
+      }));
+    }
     if (isConditional && receiver.type.isNullable) {
       // Conditional call sites (e.g. `a?.b`) may be null if the receiver is
       // null.
@@ -1256,9 +1296,11 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
   void giveUp(InferrerEngine inferrer, {bool clearAssignments: true}) {
     if (!abandonInferencing) {
       inferrer.updateSelectorInMember(caller, _callType, _call, selector, mask);
-      Iterable<MemberEntity> oldTargets = targets;
-      targets = inferrer.closedWorld.locateMembers(selector, mask);
-      for (MemberEntity element in targets) {
+      Iterable<MemberEntity> oldTargets = _concreteTargets;
+      _hasClosureCallTargets =
+          inferrer.closedWorld.includesClosureCall(selector, mask);
+      _concreteTargets = inferrer.closedWorld.locateMembers(selector, mask);
+      for (MemberEntity element in _concreteTargets) {
         if (!oldTargets.contains(element)) {
           MemberTypeInformation callee =
               inferrer.types.getInferredTypeOfMember(element);
@@ -1273,7 +1315,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
   }
 
   void removeAndClearReferences(InferrerEngine inferrer) {
-    for (MemberEntity element in targets) {
+    for (MemberEntity element in _concreteTargets) {
       MemberTypeInformation callee =
           inferrer.types.getInferredTypeOfMember(element);
       callee.removeUser(this);
@@ -1292,9 +1334,8 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
 
   bool hasStableType(InferrerEngine inferrer) {
     return receiver.isStable &&
-        targets.every((MemberEntity element) {
-          return inferrer.types.getInferredTypeOfMember(element).isStable;
-        }) &&
+        _concreteTargets.every((MemberEntity element) =>
+            inferrer.types.getInferredTypeOfMember(element).isStable) &&
         (arguments == null || arguments.every((info) => info.isStable)) &&
         super.hasStableType(inferrer);
   }

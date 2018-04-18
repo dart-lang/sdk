@@ -22,10 +22,9 @@ import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 import '../memory_compiler.dart';
 import '../equivalence/check_functions.dart';
-import '../serialization/helper.dart';
-import 'test_helpers.dart';
-
+import 'arguments.dart';
 import 'compiler_helper.dart';
+import 'test_helpers.dart';
 
 const SOURCE = const {
   'main.dart': '''

@@ -27,18 +27,18 @@ import 'package:front_end/src/fasta/fasta_codes.dart' show FormattedMessage;
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
 
-import 'package:front_end/src/fasta/kernel/utils.dart'
-    show writeComponentToFile, serializeComponent;
+import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
 
 import 'package:front_end/src/fasta/severity.dart' show Severity;
 
-import 'package:kernel/kernel.dart'
-    show Class, EmptyStatement, Library, Procedure, Component;
+import 'package:kernel/kernel.dart' show Component;
 
 import "package:testing/testing.dart"
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
 
 import "package:yaml/yaml.dart" show YamlMap, loadYamlNode;
+
+import "incremental_utils.dart" as util;
 
 main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, "../testing.json");
@@ -191,7 +191,7 @@ void newWorldTest(bool strong, List worlds) async {
   Map<String, String> sourceFiles;
   CompilerOptions options;
   TestIncrementalCompiler compiler;
-  for (var world in worlds) {
+  for (Map<String, dynamic> world in worlds) {
     bool brandNewWorld = true;
     if (world["worldType"] == "updated") {
       brandNewWorld = false;
@@ -256,7 +256,7 @@ void newWorldTest(bool strong, List worlds) async {
     }
 
     if (world["invalidate"] != null) {
-      for (var filename in world["invalidate"]) {
+      for (String filename in world["invalidate"]) {
         compiler.invalidate(base.resolve(filename));
       }
     }
@@ -274,7 +274,7 @@ void newWorldTest(bool strong, List worlds) async {
     } else if (world["warnings"] != true && gotWarning) {
       throw "Got unexpected warnings(s): $formattedWarnings.";
     }
-    throwOnEmptyMixinBodies(component);
+    util.throwOnEmptyMixinBodies(component);
     print("Compile took ${stopwatch.elapsedMilliseconds} ms");
     newestWholeComponent = serializeComponent(component);
     if (component.libraries.length != world["expectedLibraryCount"]) {
@@ -329,7 +329,7 @@ void checkIsEqual(List<int> a, List<int> b) {
 
 CompilerOptions getOptions(bool strong) {
   final Uri sdkRoot = computePlatformBinariesLocation();
-  var options = new CompilerOptions()
+  CompilerOptions options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
     ..onProblem = (FormattedMessage problem, Severity severity,
@@ -353,8 +353,8 @@ Future<bool> normalCompile(Uri input, Uri output,
   TestIncrementalCompiler compiler =
       new TestIncrementalCompiler(options, input);
   Component component = await compiler.computeDelta();
-  throwOnEmptyMixinBodies(component);
-  await writeComponentToFile(component, output);
+  util.throwOnEmptyMixinBodies(component);
+  new File.fromUri(output).writeAsBytesSync(util.postProcess(component));
   return compiler.initializedFromDill;
 }
 
@@ -367,10 +367,11 @@ Future<bool> initializedCompile(
   for (Uri invalidateUri in invalidateUris) {
     compiler.invalidate(invalidateUri);
   }
-  var initializedComponent = await compiler.computeDelta();
-  throwOnEmptyMixinBodies(initializedComponent);
+  Component initializedComponent = await compiler.computeDelta();
+  util.throwOnEmptyMixinBodies(initializedComponent);
   bool result = compiler.initializedFromDill;
-  await writeComponentToFile(initializedComponent, output);
+  new File.fromUri(output)
+      .writeAsBytesSync(util.postProcess(initializedComponent));
   int actuallyInvalidatedCount =
       compiler.invalidatedImportUrisForTesting?.length ?? 0;
   if (result && actuallyInvalidatedCount < invalidateUris.length) {
@@ -378,19 +379,20 @@ Future<bool> initializedCompile(
         "got $actuallyInvalidatedCount");
   }
 
-  var initializedComponent2 = await compiler.computeDelta(fullComponent: true);
-  throwOnEmptyMixinBodies(initializedComponent2);
+  Component initializedFullComponent =
+      await compiler.computeDelta(fullComponent: true);
+  util.throwOnEmptyMixinBodies(initializedFullComponent);
   Expect.equals(initializedComponent.libraries.length,
-      initializedComponent2.libraries.length);
+      initializedFullComponent.libraries.length);
   Expect.equals(initializedComponent.uriToSource.length,
-      initializedComponent2.uriToSource.length);
+      initializedFullComponent.uriToSource.length);
 
   for (Uri invalidateUri in invalidateUris) {
     compiler.invalidate(invalidateUri);
   }
 
-  var partialComponent = await compiler.computeDelta();
-  throwOnEmptyMixinBodies(partialComponent);
+  Component partialComponent = await compiler.computeDelta();
+  util.throwOnEmptyMixinBodies(partialComponent);
   actuallyInvalidatedCount =
       (compiler.invalidatedImportUrisForTesting?.length ?? 0);
   if (actuallyInvalidatedCount < invalidateUris.length) {
@@ -398,14 +400,14 @@ Future<bool> initializedCompile(
         "got $actuallyInvalidatedCount");
   }
 
-  var emptyComponent = await compiler.computeDelta();
-  throwOnEmptyMixinBodies(emptyComponent);
+  Component emptyComponent = await compiler.computeDelta();
+  util.throwOnEmptyMixinBodies(emptyComponent);
 
-  var fullLibUris =
+  List<Uri> fullLibUris =
       initializedComponent.libraries.map((lib) => lib.importUri).toList();
-  var partialLibUris =
+  List<Uri> partialLibUris =
       partialComponent.libraries.map((lib) => lib.importUri).toList();
-  var emptyLibUris =
+  List<Uri> emptyLibUris =
       emptyComponent.libraries.map((lib) => lib.importUri).toList();
 
   Expect.isTrue(fullLibUris.length > partialLibUris.length ||
@@ -415,29 +417,6 @@ Future<bool> initializedCompile(
   Expect.isTrue(emptyLibUris.isEmpty);
 
   return result;
-}
-
-void throwOnEmptyMixinBodies(Component component) {
-  int empty = countEmptyMixinBodies(component);
-  if (empty != 0) {
-    throw "Expected 0 empty bodies in mixins, but found $empty";
-  }
-}
-
-int countEmptyMixinBodies(Component component) {
-  int empty = 0;
-  for (Library lib in component.libraries) {
-    for (Class c in lib.classes) {
-      if (c.isSyntheticMixinImplementation) {
-        for (Procedure p in c.procedures) {
-          if (p.function.body is EmptyStatement) {
-            empty++;
-          }
-        }
-      }
-    }
-  }
-  return empty;
 }
 
 String substituteVariables(String source, Uri base) {

@@ -482,24 +482,24 @@ var bar1 = bar;
 void main() {
   var a = new A();
   bar(a);
-  (/*info:DYNAMIC_INVOKE*/bar1(a));
+  (bar1(a));
   var b = bar;
-  (/*info:DYNAMIC_INVOKE*/b(a));
+  (b(a));
   var f1 = foo;
   f1("hello");
   dynamic f2 = foo;
   (/*info:DYNAMIC_INVOKE*/f2("hello"));
-  DynFun f3 = /*warning:USES_DYNAMIC_AS_BOTTOM*/foo;
-  (/*info:DYNAMIC_INVOKE*/f3("hello"));
-  (/*info:DYNAMIC_INVOKE*/f3(42));
+  DynFun f3 = /*error:INVALID_CAST_FUNCTION*/foo;
+  (f3("hello"));
+  (f3(42));
   StrFun f4 = foo;
   f4("hello");
   a.baz1("hello");
   var b1 = a.baz1;
-  (/*info:DYNAMIC_INVOKE*/b1("hello"));
+  (b1("hello"));
   A.baz2("hello");
   var b2 = A.baz2;
-  (/*info:DYNAMIC_INVOKE*/b2("hello"));
+  (b2("hello"));
 
   dynamic a1 = new B();
   (/*info:DYNAMIC_INVOKE*/a1.x);
@@ -673,14 +673,14 @@ void main() {
     /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(3);
   }
   {
-    A f = /*warning:USES_DYNAMIC_AS_BOTTOM,error:INVALID_CAST_NEW_EXPR*/new B();
+    A f = /*error:INVALID_ASSIGNMENT*/new B();
     B b = new B();
-    f = /*warning:USES_DYNAMIC_AS_BOTTOM, info:DOWN_CAST_COMPOSITE*/b;
+    f = /* error:INVALID_ASSIGNMENT*/b;
     int x;
     double y;
-    x = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f(3);
-    y = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f(3);
-    /*info:DYNAMIC_INVOKE*/f(3.0);
+    x = /*info:DYNAMIC_CAST*/f(3);
+    y = /*info:DYNAMIC_CAST*/f(3);
+    f(3.0);
   }
   {
     dynamic g = new B();
@@ -688,9 +688,9 @@ void main() {
     /*info:DYNAMIC_INVOKE*/g.col(42.0);
     /*info:DYNAMIC_INVOKE*/g.foo(42.0);
     /*info:DYNAMIC_INVOKE*/g.x;
-    A f = /*warning:USES_DYNAMIC_AS_BOTTOM, error:INVALID_CAST_NEW_EXPR*/new B();
+    A f = /* error:INVALID_ASSIGNMENT*/new B();
     B b = new B();
-    f = /*warning:USES_DYNAMIC_AS_BOTTOM, info:DOWN_CAST_COMPOSITE*/b;
+    f = /*error:INVALID_ASSIGNMENT*/b;
     /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(42.0);
     /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/foo(42.0);
     /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_GETTER*/x;
@@ -1196,14 +1196,14 @@ void main() {
   {
     BotA f;
     f = topA;
-    f = /*error:INVALID_CAST_FUNCTION*/topTop;
+    f = /*error:INVALID_ASSIGNMENT*/topTop;
     f = aa;
     f = /*error:INVALID_ASSIGNMENT*/aTop;
     f = botA;
     f = /*info:DOWN_CAST_COMPOSITE*/botTop;
     apply<BotA>(
         topA,
-        /*error:INVALID_CAST_FUNCTION*/topTop,
+        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/topTop,
         aa,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/aTop,
         botA,
@@ -1221,14 +1221,14 @@ void main() {
   {
     AA f;
     f = topA;
-    f = /*error:INVALID_CAST_FUNCTION*/topTop;
+    f = /*error:INVALID_ASSIGNMENT*/topTop;
     f = aa;
     f = /*error:INVALID_CAST_FUNCTION*/aTop; // known function
     f = /*info:DOWN_CAST_COMPOSITE*/botA;
     f = /*info:DOWN_CAST_COMPOSITE*/botTop;
     apply<AA>(
         topA,
-        /*error:INVALID_CAST_FUNCTION*/topTop,
+        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/topTop,
         aa,
         /*error:INVALID_CAST_FUNCTION*/aTop, // known function
         /*info:DOWN_CAST_COMPOSITE*/botA,
@@ -1293,212 +1293,6 @@ void main() {
         /*info:DOWN_CAST_COMPOSITE*/botTop
                     );
   }
-}
-''');
-  }
-
-  test_fuzzyArrowLegacyAssignability_GlobalInference() async {
-    // Test for legacy fuzzy arrow support on assignability, pending
-    // cleanup.  https://github.com/dart-lang/sdk/issues/29630
-    // Tests impact of https://github.com/dart-lang/sdk/issues/32114
-    // on fuzzy arrow warnings
-    await checkFile('''
-    typedef T Fn<T>(T x);
-    typedef T FnB<T extends int>(T x);
-
-    class I2i {
-      int call(int x) => x;
-    }
-    class D2i {
-      int call(dynamic x) => x as int;
-    }
-    class I2d {
-      dynamic call(int x) => x;
-    }
-    class D2d {
-      dynamic call(dynamic x) => x;
-    }
-    Fn global0;
-    var inferred0 = global0;
-    FnB global1;
-    var inferred1 = global1;
-
-    void test0() {
-      int Function(int) i2i;
-      int Function(dynamic) d2i;
-      dynamic Function(int) i2d;
-      dynamic Function(dynamic) d2d;
-      I2i ci2i;
-      D2i cd2i;
-      I2d ci2d;
-      D2d cd2d;
-
-      { 
-        var f = inferred0;
-        f = /*warning:USES_DYNAMIC_AS_BOTTOM*/i2i;
-        f = d2i;
-        f = /*warning:USES_DYNAMIC_AS_BOTTOM*/i2d;
-        f = d2d;
-        f = /*warning:USES_DYNAMIC_AS_BOTTOM, info:DOWN_CAST_COMPOSITE*/ci2i;
-        f = cd2i;
-        f = /*warning:USES_DYNAMIC_AS_BOTTOM, info:DOWN_CAST_COMPOSITE*/ci2d;
-        f = cd2d;
-      }
-      {
-        var f = inferred1; 
-        f = i2i;
-        f = d2i;
-        f = /*info:DOWN_CAST_COMPOSITE*/i2d; // Real downcast
-        f = /*warning:USES_DYNAMIC_AS_BOTTOM, info:DOWN_CAST_COMPOSITE*/d2d; // Fuzzy downcast
-        f = ci2i;
-        f = cd2i;
-        f = /*info:DOWN_CAST_COMPOSITE*/ci2d;
-        f = /*info:DOWN_CAST_COMPOSITE*/cd2d;
-      }
-    }
-  ''');
-  }
-
-  test_fuzzyArrowLegacyAssignability() async {
-    // Test for legacy fuzzy arrow support on assignability, pending
-    // cleanup.  https://github.com/dart-lang/sdk/issues/29630
-    await checkFile('''
-
-    class I2i {
-      int call(int x) => x;
-    }
-    class D2i {
-      int call(dynamic x) => x as int;
-    }
-    class I2d {
-      dynamic call(int x) => x;
-    }
-    class D2d {
-      dynamic call(dynamic x) => x;
-    }
-
-    void test0() {
-      int Function(int) i2i;
-      int Function(dynamic) d2i;
-      dynamic Function(int) i2d;
-      dynamic Function(dynamic) d2d;
-      I2i ci2i;
-      D2i cd2i;
-      I2d ci2d;
-      D2d cd2d;
-
-      { 
-        int Function(int) f;
-        f = i2i;
-        f = d2i;
-        f = /*info:DOWN_CAST_COMPOSITE*/i2d;
-        f = /*warning:USES_DYNAMIC_AS_BOTTOM, info:DOWN_CAST_COMPOSITE*/d2d;
-        f = ci2i;
-        f = cd2i;
-        f = /*info:DOWN_CAST_COMPOSITE*/ci2d;
-        f = /*info:DOWN_CAST_COMPOSITE*/cd2d;
-      }
-      { 
-        int Function(dynamic) f;
-        f = /*warning:USES_DYNAMIC_AS_BOTTOM*/i2i;
-        f = d2i;
-        f = /*info:DOWN_CAST_COMPOSITE*/i2d;
-        f = /*info:DOWN_CAST_COMPOSITE*/d2d;
-        f = /*warning:USES_DYNAMIC_AS_BOTTOM,info:DOWN_CAST_COMPOSITE*/ci2i;
-        f = cd2i;
-        f = /*info:DOWN_CAST_COMPOSITE*/ci2d;
-        f = /*info:DOWN_CAST_COMPOSITE*/cd2d;
-      }
-      { 
-        dynamic Function(int) f;
-        f = i2i;
-        f = d2i;
-        f = i2d;
-        f = d2d;
-        f = ci2i;
-        f = cd2i;
-        f = ci2d;
-        f = cd2d;
-      }
-      { 
-        dynamic Function(dynamic) f;
-        f = /*warning:USES_DYNAMIC_AS_BOTTOM*/i2i;
-        f = d2i;
-        f = /*warning:USES_DYNAMIC_AS_BOTTOM*/i2d;
-        f = d2d;
-        f = /*warning:USES_DYNAMIC_AS_BOTTOM,info:DOWN_CAST_COMPOSITE*/ci2i;
-        f = cd2i;
-        f = /*warning:USES_DYNAMIC_AS_BOTTOM,info:DOWN_CAST_COMPOSITE*/ci2d;
-        f = cd2d;
-      }
-    }
-  ''');
-  }
-
-  test_functionTypingAndSubtyping_dynamicFunctions_closuresAreNotFuzzy() async {
-    // Regression test for definite function cases
-    // https://github.com/dart-lang/sdk/issues/26118
-    // https://github.com/dart-lang/sdk/issues/26156
-    // https://github.com/dart-lang/sdk/issues/28087
-    await checkFile('''
-void takesF(void f(int x)) {}
-
-typedef void TakesInt(int x);
-
-void update(_) {}
-void updateOpt([_]) {}
-void updateOptNum([num x]) {}
-
-class Callable {
-  void call(_) {}
-}
-
-class A {
-  TakesInt f;
-  A(TakesInt g) {
-    f = update;
-    f = updateOpt;
-    f = updateOptNum;
-    f = new Callable();
-  }
-  TakesInt g(bool a, bool b) {
-    if (a) {
-      return update;
-    } else if (b) {
-      return updateOpt;
-    } else if (a) {
-      return updateOptNum;
-    } else {
-      return new Callable();
-    }
-  }
-}
-
-void test0() {
-  takesF(update);
-  takesF(updateOpt);
-  takesF(updateOptNum);
-  takesF(new Callable());
-  TakesInt f;
-  f = update;
-  f = updateOpt;
-  f = updateOptNum;
-  f = new Callable();
-  new A(update);
-  new A(updateOpt);
-  new A(updateOptNum);
-  new A(new Callable());
-}
-
-void test1() {
-  void takesF(f(int x)) => null;
-  takesF(/*info:INFERRED_TYPE_CLOSURE*/(dynamic y) => 3);
-}
-
-void test2() {
-  int x;
-  int f<T>(T t, callback(T x)) { return 3; }
-  f(x, /*info:INFERRED_TYPE_CLOSURE*/(y) => 3);
 }
 ''');
   }
@@ -3228,20 +3022,6 @@ class C {
 ''');
   }
 
-  test_leastUpperBounds_fuzzyArrows() async {
-    await checkFile(r'''
-typedef String TakesA<T>(T item);
-
-void main() {
-  TakesA<int> f;
-  TakesA<dynamic> g;
-  TakesA<String> h;
-  g = /*warning:USES_DYNAMIC_AS_BOTTOM*/h;
-  f = f ?? g;
-}
-''');
-  }
-
   test_loadLibrary() async {
     addFile('''library lib1;''', name: '/lib1.dart');
     await checkFile(r'''
@@ -4607,11 +4387,6 @@ class CheckerTest_Driver extends CheckerTest {
   @override
   test_covariantOverride_fields() async {
     await super.test_covariantOverride_fields();
-  }
-
-  @override
-  test_fuzzyArrowLegacyAssignability_GlobalInference() async {
-    await super.test_fuzzyArrowLegacyAssignability_GlobalInference();
   }
 
   @override // Passes with driver

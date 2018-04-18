@@ -36,7 +36,6 @@ import '../native/resolver.dart';
 import '../options.dart';
 import '../patch_parser.dart';
 import '../resolved_uri_translator.dart';
-import '../serialization/task.dart';
 import '../universe/class_hierarchy_builder.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
@@ -77,7 +76,6 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
       ScriptLoader scriptLoader,
       api.CompilerInput compilerInput,
       ElementScanner scriptScanner,
-      LibraryDeserializer deserializer,
       PatchResolverFunction patchResolverFunc,
       PatchParserTask patchParser,
       env.Environment environment,

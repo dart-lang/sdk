@@ -19,6 +19,9 @@ abstract class SharedCompiler {
   /// This lets DDC use the setter method's return value directly.
   final List<JS.Identifier> _operatorSetResultStack = [];
 
+  JS.Identifier runtimeModule;
+  final namedArgumentTemp = new JS.TemporaryId('opts');
+
   /// When compiling the body of a `operator []=` method, this will be non-null
   /// and will indicate the the value that should be returned from any `return;`
   /// statements.
@@ -86,5 +89,37 @@ abstract class SharedCompiler {
           : result;
     }
     return value != null ? value.toReturn() : new JS.Return();
+  }
+
+  /// Prepends the `dart.` and then uses [js.call] to parse the specified JS
+  /// [code] template, passing [args].
+  ///
+  /// For example:
+  ///
+  ///     runtimeCall('asInt(#)', expr)
+  ///
+  /// Generates a JS AST representing:
+  ///
+  ///     dart.asInt(<expr>)
+  ///
+  JS.Expression runtimeCall(String code, [args]) {
+    if (args != null) {
+      var newArgs = <Object>[runtimeModule];
+      if (args is Iterable) {
+        newArgs.addAll(args);
+      } else {
+        newArgs.add(args);
+      }
+      args = newArgs;
+    } else {
+      args = runtimeModule;
+    }
+    return js.call('#.$code', args);
+  }
+
+  /// Calls [runtimeCall] and uses `toStatement()` to convert the resulting
+  /// expression into a statement.
+  JS.Statement runtimeStatement(String code, [args]) {
+    return runtimeCall(code, args).toStatement();
   }
 }

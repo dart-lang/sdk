@@ -280,22 +280,6 @@ class NativeDataResolverImpl extends NativeMemberResolverBase
   }
 
   @override
-  bool _processMethodAnnotations(MethodElement method) {
-    if (_compiler.serialization.isDeserialized(method)) {
-      return false;
-    }
-    return super._processMethodAnnotations(method);
-  }
-
-  @override
-  bool _processFieldAnnotations(FieldElement element) {
-    if (_compiler.serialization.isDeserialized(element)) {
-      return false;
-    }
-    return super._processFieldAnnotations(element);
-  }
-
-  @override
   NativeBehavior resolveJsCall(Send node, ForeignResolver resolver) {
     return NativeBehavior.ofJsCallSend(
         node, _reporter, _compiler.parsingContext, commonElements, resolver);

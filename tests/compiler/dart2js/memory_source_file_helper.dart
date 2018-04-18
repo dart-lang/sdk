@@ -43,7 +43,7 @@ class MemorySourceFileProvider extends SourceFileProvider {
     }
     Input input;
     switch (inputKind) {
-      case InputKind.utf8:
+      case InputKind.UTF8:
         if (source is String) {
           input = new StringSourceFile.fromUri(resourceUri, source);
         } else {
@@ -66,6 +66,6 @@ class MemorySourceFileProvider extends SourceFileProvider {
 
   @override
   Future<Input> readFromUri(Uri resourceUri,
-          {InputKind inputKind: InputKind.utf8}) =>
+          {InputKind inputKind: InputKind.UTF8}) =>
       readBytesFromUri(resourceUri, inputKind);
 }

@@ -71,7 +71,7 @@ ${argParser.usage}""";
   var entryUri = _resolveOverlayUri(options.rest[0]);
   var editsUri = Uri.base.resolve(options.rest[1]);
   var changeSets =
-      parse(JSON.decode(new File.fromUri(editsUri).readAsStringSync()));
+      parse(jsonDecode(new File.fromUri(editsUri).readAsStringSync()));
   bool verbose = options["verbose"];
   bool verboseCompilation = options["verbose-compilation"];
   bool strongMode = options["mode"] == "strong";

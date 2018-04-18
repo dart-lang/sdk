@@ -28,7 +28,6 @@ import 'native/enqueue.dart' show NativeResolutionEnqueuer;
 import 'native/resolver.dart';
 import 'patch_parser.dart';
 import 'resolved_uri_translator.dart';
-import 'serialization/task.dart';
 import 'universe/class_hierarchy_builder.dart';
 import 'universe/world_builder.dart';
 import 'universe/world_impact.dart';
@@ -42,7 +41,6 @@ abstract class FrontendStrategy {
       ScriptLoader scriptLoader,
       api.CompilerInput compilerInput,
       ElementScanner scriptScanner,
-      LibraryDeserializer deserializer,
       PatchResolverFunction patchResolverFunc,
       PatchParserTask patchParser,
       Environment environment,
@@ -153,8 +151,7 @@ abstract class FrontendStrategyBase implements FrontendStrategy {
 }
 
 /// Class that deletes the contents of an [WorldImpact] cache.
-// TODO(redemption): this can be deleted when we sunset the old front end and
-// delete serialization.
+// TODO(redemption): this can be deleted when we sunset the old front end.
 abstract class ImpactCacheDeleter {
   bool retainCachesForTesting;
 

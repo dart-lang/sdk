@@ -174,10 +174,12 @@ PerfArgs parseArgs(List<String> rawArgs) {
 
   String portText = args[DIAGNOSTIC_PORT_OPTION];
   if (portText != null) {
-    perfArgs.diagnosticPort = int.parse(portText, onError: (s) {
-      print('invalid $DIAGNOSTIC_PORT_OPTION: $s');
+    if (int.tryParse(portText) == null) {
+      print('invalid $DIAGNOSTIC_PORT_OPTION: $portText');
       showHelp = true;
-    });
+    } else {
+      perfArgs.diagnosticPort = int.tryParse(portText);
+    }
   }
 
   if (args[VERY_VERBOSE_CMDLINE_OPTION] || rawArgs.contains('-vv')) {

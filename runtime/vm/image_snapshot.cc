@@ -12,6 +12,7 @@
 #include "vm/object.h"
 #include "vm/stub_code.h"
 #include "vm/timeline.h"
+#include "vm/type_testing_stubs.h"
 
 namespace dart {
 
@@ -36,7 +37,7 @@ int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
   return offset;
 }
 
-int32_t ImageWriter::GetDataOffsetFor(RawObject* raw_object) {
+uint32_t ImageWriter::GetDataOffsetFor(RawObject* raw_object) {
   intptr_t heap_size = raw_object->Size();
   intptr_t offset = next_data_offset_;
   next_data_offset_ += heap_size;
@@ -239,6 +240,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   Object& owner = Object::Handle(zone);
   String& str = String::Handle(zone);
 
+  TypeTestingStubFinder tts;
   for (intptr_t i = 0; i < instructions_.length(); i++) {
     const Instructions& insns = *instructions_[i].insns_;
     const Code& code = *instructions_[i].code_;
@@ -270,28 +272,41 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
     // 2. Write a label at the entry point.
     // Linux's perf uses these labels.
-    owner = code.owner();
-    if (owner.IsNull()) {
-      const char* name = StubCode::NameOfStub(insns.UncheckedEntryPoint());
-      assembly_stream_.Print("Precompiled_Stub_%s:\n", name);
-    } else if (owner.IsClass()) {
-      str = Class::Cast(owner).Name();
-      const char* name = str.ToCString();
-      EnsureIdentifier(const_cast<char*>(name));
-      assembly_stream_.Print("Precompiled_AllocationStub_%s_%" Pd ":\n", name,
-                             i);
-    } else if (owner.IsFunction()) {
-      const char* name = Function::Cast(owner).ToQualifiedCString();
-      EnsureIdentifier(const_cast<char*>(name));
-      assembly_stream_.Print("Precompiled_%s_%" Pd ":\n", name, i);
+    if (code.IsNull()) {
+      const char* name = tts.StubNameFromAddresss(insns.UncheckedEntryPoint());
+      assembly_stream_.Print("Precompiled_%s:\n", name);
     } else {
-      UNREACHABLE();
+      owner = code.owner();
+      if (owner.IsNull()) {
+        const char* name = StubCode::NameOfStub(insns.UncheckedEntryPoint());
+        if (name != NULL) {
+          assembly_stream_.Print("Precompiled_Stub_%s:\n", name);
+        } else {
+          const char* name =
+              tts.StubNameFromAddresss(insns.UncheckedEntryPoint());
+          assembly_stream_.Print("Precompiled__%s:\n", name);
+        }
+      } else if (owner.IsClass()) {
+        str = Class::Cast(owner).Name();
+        const char* name = str.ToCString();
+        EnsureIdentifier(const_cast<char*>(name));
+        assembly_stream_.Print("Precompiled_AllocationStub_%s_%" Pd ":\n", name,
+                               i);
+      } else if (owner.IsFunction()) {
+        const char* name = Function::Cast(owner).ToQualifiedCString();
+        EnsureIdentifier(const_cast<char*>(name));
+        assembly_stream_.Print("Precompiled_%s_%" Pd ":\n", name, i);
+      } else {
+        UNREACHABLE();
+      }
     }
 
 #ifdef DART_PRECOMPILER
     // Create a label for use by DWARF.
-    intptr_t dwarf_index = dwarf_->AddCode(code);
-    assembly_stream_.Print(".Lcode%" Pd ":\n", dwarf_index);
+    if (!code.IsNull()) {
+      const intptr_t dwarf_index = dwarf_->AddCode(code);
+      assembly_stream_.Print(".Lcode%" Pd ":\n", dwarf_index);
+    }
 #endif
 
     {
@@ -489,7 +504,7 @@ RawInstructions* ImageReader::GetInstructionsAt(int32_t offset) const {
   return result;
 }
 
-RawObject* ImageReader::GetObjectAt(int32_t offset) const {
+RawObject* ImageReader::GetObjectAt(uint32_t offset) const {
   ASSERT(Utils::IsAligned(offset, kWordSize));
 
   RawObject* result = reinterpret_cast<RawObject*>(

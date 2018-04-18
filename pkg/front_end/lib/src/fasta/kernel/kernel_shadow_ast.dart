@@ -2382,6 +2382,27 @@ class ShadowYieldStatement extends YieldStatement implements ShadowStatement {
   }
 }
 
+/// Concrete shadow object representing a deferred load library call.
+class ShadowLoadLibrary extends LoadLibrary implements ShadowExpression {
+  ShadowLoadLibrary(LibraryDependency import) : super(import);
+
+  @override
+  DartType _inferExpression(ShadowTypeInferrer inferrer, DartType typeContext) {
+    return super.getStaticType(inferrer.typeSchemaEnvironment);
+  }
+}
+
+/// Concrete shadow object representing a deferred library-is-loaded check.
+class ShadowCheckLibraryIsLoaded extends CheckLibraryIsLoaded
+    implements ShadowExpression {
+  ShadowCheckLibraryIsLoaded(LibraryDependency import) : super(import);
+
+  @override
+  DartType _inferExpression(ShadowTypeInferrer inferrer, DartType typeContext) {
+    return super.getStaticType(inferrer.typeSchemaEnvironment);
+  }
+}
+
 /// The result of inference for a RHS of an assignment.
 class _ComplexAssignmentInferenceResult {
   /// The resolved combiner [Procedure], e.g. `operator+` for `a += 2`, or

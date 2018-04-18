@@ -103,12 +103,6 @@ class StrongTypeSystemImpl extends TypeSystem {
     return ft.parameters.any((p) => predicate(p.type));
   }
 
-  FunctionType functionTypeToConcreteType(FunctionType t) =>
-      _replaceDynamicParameters(t, typeProvider.objectType);
-
-  FunctionType functionTypeToFuzzyType(FunctionType t) =>
-      _replaceDynamicParameters(t, typeProvider.nullType);
-
   /// Given a type t, if t is an interface type with a call method
   /// defined, return the function type for the call method, otherwise
   /// return null.
@@ -445,12 +439,6 @@ class StrongTypeSystemImpl extends TypeSystem {
       }
     }
 
-    // A fuzzy arrow subtype
-    if (toType is FunctionType &&
-        isSubtypeOf(fromType, functionTypeToFuzzyType(toType))) {
-      return true;
-    }
-
     if (isDeclarationCast) {
       if (!declarationCasts) {
         return false;
@@ -484,14 +472,6 @@ class StrongTypeSystemImpl extends TypeSystem {
       // src/task/strong/checker.dart, which is a bit inconsistent. That
       // code should be handled into places that use isAssignableTo, such as
       // ErrorVerifier.
-      return true;
-    }
-
-    // A reverse fuzzy arrow subtype.  We want to disallow this soon, but
-    // we have to let this pass for now because of
-    // https://github.com/dart-lang/sdk/issues/32114
-    if (fromType is FunctionType &&
-        isSubtypeOf(toType, functionTypeToFuzzyType(fromType))) {
       return true;
     }
 
@@ -804,9 +784,6 @@ class StrongTypeSystemImpl extends TypeSystem {
   }
 
   /// Check that [f1] is a subtype of [f2].
-  ///
-  /// This will always assume function types use fuzzy arrows, in other words
-  /// that dynamic parameters of f1 and f2 are treated as bottom.
   bool _isFunctionSubtypeOf(FunctionType f1, FunctionType f2) {
     return FunctionTypeImpl.relate(f1, f2, isSubtypeOf, instantiateToBounds,
         parameterRelation: (p1, p2) => isSubtypeOf(p2.type, p1.type));
@@ -957,31 +934,6 @@ class StrongTypeSystemImpl extends TypeSystem {
     }
 
     return _isFunctionSubtypeOf(t1, t2);
-  }
-
-  FunctionType _replaceDynamicParameters(FunctionType t, DartType replaceWith) {
-    if (!t.parameters.any((p) => p.type.isDynamic)) {
-      return t;
-    }
-    ParameterElement shave(ParameterElement p) {
-      if (p.type.isDynamic) {
-        return new ParameterElementImpl.synthetic(
-            // ignore: deprecated_member_use
-            p.name,
-            replaceWith,
-            // ignore: deprecated_member_use
-            p.parameterKind);
-      }
-      return p;
-    }
-
-    List<ParameterElement> parameters = t.parameters.map(shave).toList();
-    FunctionElementImpl function = new FunctionElementImpl("", -1);
-    function.isSynthetic = true;
-    function.returnType = t.returnType;
-    function.shareTypeParameters(t.typeFormals);
-    function.shareParameters(parameters);
-    return function.type = new FunctionTypeImpl(function);
   }
 
   DartType _substituteForUnknownType(DartType type, {bool lowerBound: false}) {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.engine_test;
-
 import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -20,7 +18,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/string_source.dart';
-import 'package:analyzer/task/model.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:html/dom.dart' show Document;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

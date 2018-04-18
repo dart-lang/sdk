@@ -31,7 +31,6 @@ final_syntax_test/03: Fail # Issue 11124
 final_syntax_test/04: Fail # Issue 11124
 function_type_parameter2_negative_test: CompileTimeError
 function_type_parameter_negative_test: CompileTimeError
-fuzzy_arrows_test/01: MissingCompileTimeError
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 30929
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 30929
 generic_local_functions_test: CompileTimeError # Issue 28515
@@ -1184,7 +1183,6 @@ mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
-mixin_type_parameter_inference_test/11: MissingCompileTimeError # Fuzzy arrow, 32114
 multiline_newline_test/01: CompileTimeError
 multiline_newline_test/01r: CompileTimeError
 multiline_newline_test/02: CompileTimeError
@@ -1411,6 +1409,7 @@ constructor13_test/02: MissingCompileTimeError
 constructor_call_as_function_test: StaticWarning
 constructor_duplicate_final_test/03: MissingCompileTimeError
 create_unresolved_type_test/01: MissingCompileTimeError
+fuzzy_arrows_test/01: MissingCompileTimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
 generic_constructor_mixin_test/01: MissingCompileTimeError

@@ -561,6 +561,18 @@ class EditDomainHandler extends AbstractRequestHandler {
     int length = params.length;
     // add refactoring kinds
     List<RefactoringKind> kinds = <RefactoringKind>[];
+    // Try EXTRACT_WIDGETS.
+    {
+      var unit = await server.getResolvedCompilationUnit(file);
+      var analysisSession = server.getAnalysisDriver(file)?.currentSession;
+      if (unit != null && analysisSession != null) {
+        var refactoring = new ExtractWidgetRefactoring(
+            searchEngine, analysisSession, unit, offset);
+        if (refactoring.isAvailable()) {
+          kinds.add(RefactoringKind.EXTRACT_WIDGET);
+        }
+      }
+    }
     // try EXTRACT_*
     if (length != 0) {
       kinds.add(RefactoringKind.EXTRACT_LOCAL_VARIABLE);

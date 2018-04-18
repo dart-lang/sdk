@@ -94,35 +94,29 @@ namedLocalFunctionInvokeExtraNamedArgument() {
 // Implicit .call on a local variable.
 ////////////////////////////////////////////////////////////////////////////////
 
-// TODO(johnniwinther): Fix the refined type. Missing call methods in the closed
-// world leads to concluding [empty].
-/*element: closureToString:[empty]*/
+/*element: closureToString:[exact=JSString]*/
 closureToString() {
   var local = /*[null]*/ () {};
   local();
-  return local. /*invoke: [empty]*/ toString();
+  return local. /*invoke: [subclass=Closure]*/ toString();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Explicit .call on a local variable.
 ////////////////////////////////////////////////////////////////////////////////
 
-// TODO(johnniwinther): Fix the refined type. Missing call methods in the closed
-// world leads to concluding [empty].
-/*element: closureCallToString:[empty]*/
+/*element: closureCallToString:[exact=JSString]*/
 closureCallToString() {
   var local = /*[null]*/ () {};
   local.call();
-  return local. /*invoke: [empty]*/ toString();
+  return local. /*invoke: [subclass=Closure]*/ toString();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Operator == on the result of a parameter invocation.
 ////////////////////////////////////////////////////////////////////////////////
 
-// TODO(johnniwinther): Fix the refined type. Missing call methods in the closed
-// world leads to concluding [empty].
-/*element: _callCompare:[empty]*/
+/*element: _callCompare:[subclass=Closure]*/
 _callCompare(int /*[subclass=Closure]*/ compare({a, b})) {
   compare(a: 0, b: 1) == 0;
   return compare;
@@ -145,7 +139,7 @@ class Class1 {
   method1() {}
 }
 
-/*element: _callClosure:[empty]*/
+/*element: _callClosure:[subclass=Closure]*/
 _callClosure(/*[subclass=Closure]*/ f({c})) {
   f(c: new Class1()).method1();
   return f;

@@ -203,7 +203,7 @@ class JavaScriptRoundOperation implements UnaryOperation {
     if (constant.isInt) {
       IntConstantValue intConstant = constant;
       int value = intConstant.intValue;
-      if (value >= -double.MAX_FINITE && value <= double.MAX_FINITE) {
+      if (value >= -double.maxFinite && value <= double.maxFinite) {
         return tryToRound(value);
       }
     }

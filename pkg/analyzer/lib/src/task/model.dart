@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.task.model;
-
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/inputs.dart';
-import 'package:analyzer/task/model.dart';
 
 /**
  * The default [ResultCachingPolicy], results are never flushed.

@@ -15,8 +15,10 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/snapshot_ids.h"
+#include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/timeline.h"
+#include "vm/type_testing_stubs.h"
 #include "vm/version.h"
 
 // We currently only expect the Dart mutator to read snapshots.
@@ -189,6 +191,7 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
       heap_(isolate()->heap()),
       old_space_(thread_->isolate()->heap()->old_space()),
       cls_(Class::Handle(zone_)),
+      code_(Code::Handle(zone_)),
       obj_(Object::Handle(zone_)),
       pobj_(PassiveObject::Handle(zone_)),
       array_(Array::Handle(zone_)),
@@ -208,6 +211,7 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
               ? Object::vm_isolate_snapshot_object_table().Length()
               : 0),
       backward_references_(backward_refs),
+      types_to_postprocess_(GrowableObjectArray::Handle(zone_)),
       objects_to_rehash_(GrowableObjectArray::Handle(zone_)) {}
 
 RawObject* SnapshotReader::ReadObject() {
@@ -215,6 +219,7 @@ RawObject* SnapshotReader::ReadObject() {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     objects_to_rehash_ = GrowableObjectArray::New(HEAP_SPACE(kind_));
+    types_to_postprocess_ = GrowableObjectArray::New(HEAP_SPACE(kind_));
 
     PassiveObject& obj =
         PassiveObject::Handle(zone(), ReadObjectImpl(kAsInlinedObject));
@@ -234,6 +239,7 @@ RawObject* SnapshotReader::ReadObject() {
     } else {
       result = obj.raw();
     }
+    RunDelayedTypePostprocessing();
     const Object& ok = Object::Handle(zone_, RunDelayedRehashingOfMaps());
     objects_to_rehash_ = GrowableObjectArray::null();
     if (!ok.IsNull()) {
@@ -245,6 +251,22 @@ RawObject* SnapshotReader::ReadObject() {
     const Error& err = Error::Handle(thread()->sticky_error());
     thread()->clear_sticky_error();
     return err.raw();
+  }
+}
+
+void SnapshotReader::EnqueueTypePostprocessing(const AbstractType& type) {
+  types_to_postprocess_.Add(type, HEAP_SPACE(kind_));
+}
+
+void SnapshotReader::RunDelayedTypePostprocessing() {
+  if (types_to_postprocess_.Length() > 0) {
+    AbstractType& type = AbstractType::Handle();
+    Instructions& instr = Instructions::Handle();
+    for (intptr_t i = 0; i < types_to_postprocess_.Length(); ++i) {
+      type ^= types_to_postprocess_.At(i);
+      instr = TypeTestingStubGenerator::DefaultCodeForType(type);
+      type.SetTypeTestingStub(instr);
+    }
   }
 }
 

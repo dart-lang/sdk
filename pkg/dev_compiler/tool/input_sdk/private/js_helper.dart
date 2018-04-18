@@ -166,7 +166,7 @@ class Primitives {
         source)) {
       return _parseDoubleError(source, handleError);
     }
-    var result = JS('num', r'parseFloat(#)', source);
+    num result = JS('!', r'parseFloat(#)', source);
     if (result.isNaN) {
       var trimmed = source.trim();
       if (trimmed == 'NaN' || trimmed == '+NaN' || trimmed == '-NaN') {
@@ -194,7 +194,7 @@ class Primitives {
     if (performance == null) return;
     if (JS('bool', 'typeof #.now != "function"', performance)) return;
     timerFrequency = 1000000;
-    timerTicks = () => (1000 * JS('num', '#.now()', performance)).floor();
+    timerTicks = () => (1000 * JS<num>('!', '#.now()', performance)).floor();
   }
 
   static int timerFrequency;
@@ -359,10 +359,10 @@ class Primitives {
     var jsMonth = month - 1;
     num value;
     if (isUtc) {
-      value = JS('num', r'Date.UTC(#, #, #, #, #, #, #)', years, jsMonth, day,
+      value = JS('!', r'Date.UTC(#, #, #, #, #, #, #)', years, jsMonth, day,
           hours, minutes, seconds, milliseconds);
     } else {
-      value = JS('num', r'new Date(#, #, #, #, #, #, #).valueOf()', years,
+      value = JS('!', r'new Date(#, #, #, #, #, #, #).valueOf()', years,
           jsMonth, day, hours, minutes, seconds, milliseconds);
     }
     if (value.isNaN ||
@@ -374,14 +374,14 @@ class Primitives {
     return value;
   }
 
-  static patchUpY2K(value, years, isUtc) {
+  static num patchUpY2K(value, years, isUtc) {
     var date = JS('', r'new Date(#)', value);
     if (isUtc) {
-      JS('num', r'#.setUTCFullYear(#)', date, years);
+      JS('', r'#.setUTCFullYear(#)', date, years);
     } else {
-      JS('num', r'#.setFullYear(#)', date, years);
+      JS('', r'#.setFullYear(#)', date, years);
     }
-    return JS('num', r'#.valueOf()', date);
+    return JS('!', r'#.valueOf()', date);
   }
 
   // Lazily keep a JS Date stored in the JS object.
@@ -397,49 +397,49 @@ class Primitives {
   // that the result is really an integer, because the JavaScript implementation
   // may return -0.0 instead of 0.
 
-  static getYear(DateTime receiver) {
+  static int getYear(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('int', r'(#.getUTCFullYear() + 0)', lazyAsJsDate(receiver))
         : JS('int', r'(#.getFullYear() + 0)', lazyAsJsDate(receiver));
   }
 
-  static getMonth(DateTime receiver) {
+  static int getMonth(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('int', r'#.getUTCMonth() + 1', lazyAsJsDate(receiver))
         : JS('int', r'#.getMonth() + 1', lazyAsJsDate(receiver));
   }
 
-  static getDay(DateTime receiver) {
+  static int getDay(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('int', r'(#.getUTCDate() + 0)', lazyAsJsDate(receiver))
         : JS('int', r'(#.getDate() + 0)', lazyAsJsDate(receiver));
   }
 
-  static getHours(DateTime receiver) {
+  static int getHours(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('int', r'(#.getUTCHours() + 0)', lazyAsJsDate(receiver))
         : JS('int', r'(#.getHours() + 0)', lazyAsJsDate(receiver));
   }
 
-  static getMinutes(DateTime receiver) {
+  static int getMinutes(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('int', r'(#.getUTCMinutes() + 0)', lazyAsJsDate(receiver))
         : JS('int', r'(#.getMinutes() + 0)', lazyAsJsDate(receiver));
   }
 
-  static getSeconds(DateTime receiver) {
+  static int getSeconds(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('int', r'(#.getUTCSeconds() + 0)', lazyAsJsDate(receiver))
         : JS('int', r'(#.getSeconds() + 0)', lazyAsJsDate(receiver));
   }
 
-  static getMilliseconds(DateTime receiver) {
+  static int getMilliseconds(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('int', r'(#.getUTCMilliseconds() + 0)', lazyAsJsDate(receiver))
         : JS('int', r'(#.getMilliseconds() + 0)', lazyAsJsDate(receiver));
   }
 
-  static getWeekday(DateTime receiver) {
+  static int getWeekday(DateTime receiver) {
     int weekday = (receiver.isUtc)
         ? JS('int', r'#.getUTCDay() + 0', lazyAsJsDate(receiver))
         : JS('int', r'#.getDay() + 0', lazyAsJsDate(receiver));
@@ -447,9 +447,9 @@ class Primitives {
     return (weekday + 6) % 7 + 1;
   }
 
-  static valueFromDateString(str) {
+  static num valueFromDateString(str) {
     if (str is! String) throw argumentErrorValue(str);
-    var value = JS('num', r'Date.parse(#)', str);
+    num value = JS('!', r'Date.parse(#)', str);
     if (value.isNaN) throw argumentErrorValue(str);
     return value;
   }
@@ -572,7 +572,7 @@ class UnknownJsTypeError extends Error {
 final _stackTrace = JS('', 'Symbol("_stackTrace")');
 StackTrace getTraceFromException(exception) {
   var error = dart.recordJsError(exception);
-  var trace = JS('StackTrace|Null', '#[#]', error, _stackTrace);
+  StackTrace trace = JS('', '#[#]', error, _stackTrace);
   if (trace != null) return trace;
   trace = new _StackTrace(error);
   JS('', '#[#] = #', error, _stackTrace, trace);
@@ -599,7 +599,7 @@ class _StackTrace implements StackTrace {
     String trace;
     if (JS('bool', '# !== null', _exception) &&
         JS('bool', 'typeof # === "object"', _exception)) {
-      trace = JS("String|Null", r"#.stack", _exception);
+      trace = JS("", r"#.stack", _exception);
       if (trace != null && stackTraceMapper != null) {
         trace = stackTraceMapper(trace);
       }

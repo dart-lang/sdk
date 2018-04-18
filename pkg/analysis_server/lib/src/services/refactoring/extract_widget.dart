@@ -145,6 +145,11 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   }
 
   @override
+  bool isAvailable() {
+    return !_checkSelection().hasFatalError;
+  }
+
+  @override
   bool requiresPreview() => false;
 
   /// Checks if [offset] is a widget creation expression that can be extracted.

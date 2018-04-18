@@ -5,9 +5,8 @@
 import 'dart:collection';
 
 import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/plugin/options.dart';
-import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -16,10 +15,11 @@ import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/plugin/options.dart';
+import 'package:analyzer/src/task/api/general.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/util/yaml.dart';
-import 'package:analyzer/task/general.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
@@ -156,9 +156,6 @@ class ErrorFilterOptionValidator extends OptionsValidator {
   /// Lazily populated set of error codes (hashed for speedy lookup).
   static HashSet<String> _errorCodes;
 
-  /// Lazily populated set of lint codes.
-  Set<String> _lintCodes;
-
   /// Legal error code names.
   static Set<String> get errorCodes {
     if (_errorCodes == null) {
@@ -168,6 +165,9 @@ class ErrorFilterOptionValidator extends OptionsValidator {
     }
     return _errorCodes;
   }
+
+  /// Lazily populated set of lint codes.
+  Set<String> _lintCodes;
 
   Set<String> get lintCodes {
     if (_lintCodes == null) {

@@ -161,12 +161,6 @@ class AstDeferredLoadTask extends DeferredLoadTask {
     treeElements
         .forEachConstantNode((ast.Node node, ConstantExpression expression) {
       if (metadataNodes.contains(node)) return;
-      if (compiler.serialization.isDeserialized(element)) {
-        if (!expression.isPotential) {
-          // Enforce evaluation of [expression].
-          backend.constants.getConstantValue(expression);
-        }
-      }
 
       // Explicitly depend on the backend constants.
       if (backend.constants.hasConstantValue(expression)) {

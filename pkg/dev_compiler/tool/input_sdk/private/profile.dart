@@ -59,7 +59,7 @@ List<List<Object>> getDynamicStats() {
     // Ratio between total record count and sampled records count.
     var recordRatio = _totalCallRecords / _callMethodRecords.length;
     for (var record in _callMethodRecords) {
-      var stackStr = JS('String', '#.stack', record.jsError);
+      String stackStr = JS<String>('!', '#.stack', record.jsError);
       var frames = stackStr.split('\n');
       // Skip first two lines as the first couple frames are from the dart
       // runtime.

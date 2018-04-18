@@ -96,10 +96,9 @@ vars = {
   "http_throttle_tag" : "@1.0.1",
   "idl_parser_rev": "@5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
   "intl_tag": "@0.15.2",
-  "isolate_tag": "@1.1.0",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@2.0.6",
-  "linter_tag": "@0.1.47",
+  "linter_tag": "@0.1.48",
   "logging_tag": "@0.11.3+1",
   "markdown_tag": "@1.1.1",
   "matcher_tag": "@0.12.1+4",
@@ -116,7 +115,7 @@ vars = {
   "pool_tag": "@1.3.4",
   "protobuf_tag": "@0.7.1",
   "pub_rev": "@4947e0b3cb3ec77e4e8fe0d3141ce4dc60f43256",
-  "pub_semver_tag": "@1.3.6",
+  "pub_semver_tag": "@1.3.7",
   "quiver_tag": "@5aaa3f58c48608af5b027444d561270b53f15dbf",
   "resource_rev":"@af5a5bf65511943398146cf146e466e5f0b95cb9",
   "root_certificates_rev": "@16ef64be64c7dfdff2b9f4b910726e635ccc519e",
@@ -251,8 +250,6 @@ Var("dart_root") + "/tests/co19_2/src":
       Var("http_throttle_tag"),
   Var("dart_root") + "/third_party/pkg/intl":
       Var("dart_git") + "intl.git" + Var("intl_tag"),
-  Var("dart_root") + "/third_party/pkg/isolate":
-      Var("dart_git") + "isolate.git" + Var("isolate_tag"),
   Var("dart_root") + "/third_party/pkg/json_rpc_2":
       Var("dart_git") + "json_rpc_2.git" + Var("json_rpc_2_tag"),
   Var("dart_root") + "/third_party/pkg/linter":

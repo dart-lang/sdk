@@ -29,12 +29,12 @@ class IdentifierContext {
 
   /// Identifier is the start of a dotted name in a conditional import or
   /// export.
-  static const dottedName = const IdentifierContext('dottedName');
+  static const dottedName = const DottedNameIdentifierContext();
 
   /// Identifier is part of a dotted name in a conditional import or export, but
   /// it's not the first identifier of the dotted name.
   static const dottedNameContinuation =
-      const IdentifierContext('dottedNameContinuation', isContinuation: true);
+      const DottedNameIdentifierContext.continuation();
 
   /// Identifier is one of the shown/hidden names in an import/export
   /// combinator.
@@ -105,10 +105,8 @@ class IdentifierContext {
 
   /// Identifier is the name being declared by a class declaration or a named
   /// mixin application, for example, `Foo` in `class Foo = X with Y;`.
-  static const classOrNamedMixinDeclaration = const IdentifierContext(
-      'classOrNamedMixinDeclaration',
-      inDeclaration: true,
-      isBuiltInIdentifierAllowed: false);
+  static const classOrNamedMixinDeclaration =
+      const ClassOrNamedMixinIdentifierContext();
 
   /// Identifier is the name of a type variable being declared (e.g. `Foo` in
   /// `class C<Foo extends num> {}`).

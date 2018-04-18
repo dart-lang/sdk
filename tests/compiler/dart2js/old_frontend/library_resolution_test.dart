@@ -56,7 +56,7 @@ main() async {
     if (uri == mock2LibraryUri) {
       uri = Uri.parse('memory:mock2.dart');
     }
-    Input input = await provider.readBytesFromUri(uri, InputKind.utf8);
+    Input input = await provider.readBytesFromUri(uri, InputKind.UTF8);
     return input.data;
   }
 

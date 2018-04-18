@@ -8,8 +8,6 @@ import '../common/resolution.dart' show ResolutionImpact;
 import '../constants/expressions.dart' show ConstantExpression;
 import '../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionInterfaceType;
-import '../serialization/serialization.dart'
-    show DeserializerPlugin, SerializerPlugin;
 import '../tree/tree.dart' show Node;
 import '../universe/world_impact.dart' show WorldImpact;
 
@@ -44,12 +42,4 @@ class ImpactTransformer {
   WorldImpact transformResolutionImpact(ResolutionImpact worldImpact) {
     return worldImpact;
   }
-}
-
-/// Interface for serialization of backend specific data.
-class BackendSerialization {
-  const BackendSerialization();
-
-  SerializerPlugin get serializer => const SerializerPlugin();
-  DeserializerPlugin get deserializer => const DeserializerPlugin();
 }

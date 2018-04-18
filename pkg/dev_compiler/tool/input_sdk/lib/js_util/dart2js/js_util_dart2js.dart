@@ -72,7 +72,7 @@ callConstructor(Function constr, List arguments) {
   }
 
   if (JS('bool', '# instanceof Array', arguments)) {
-    int argumentCount = JS('int', '#.length', arguments);
+    int argumentCount = JS('!', '#.length', arguments);
     switch (argumentCount) {
       case 0:
         return JS('Object', 'new #()', constr);

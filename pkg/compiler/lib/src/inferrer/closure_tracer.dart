@@ -115,13 +115,14 @@ class ClosureTracerVisitor extends TracerVisitor {
     super.visitDynamicCallSiteTypeInformation(info);
     if (info.selector.isCall) {
       if (info.arguments.contains(currentUser)) {
-        if (!info.targets.every((element) => element.isFunction)) {
+        if (info.hasClosureCallTargets ||
+            info.concreteTargets.any((element) => !element.isFunction)) {
           bailout('Passed to a closure');
         }
-        if (info.targets.any(_checkIfFunctionApply)) {
+        if (info.concreteTargets.any(_checkIfFunctionApply)) {
           _tagAsFunctionApplyTarget("dynamic call");
         }
-      } else if (info.targets.any((element) => _checkIfCurrentUser(element))) {
+      } else if (info.concreteTargets.any(_checkIfCurrentUser)) {
         _registerCallForLaterAnalysis(info);
       }
     } else if (info.selector.isGetter &&

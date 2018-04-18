@@ -8,7 +8,7 @@ import 'dart:async' show Future;
 
 import 'dart:io' show File, Platform;
 
-import 'dart:convert' show JSON;
+import 'dart:convert' show jsonDecode;
 
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
@@ -115,7 +115,7 @@ class FastaContext extends ChainContext {
   Component platform;
 
   final ExpectationSet expectationSet =
-      new ExpectationSet.fromJsonList(JSON.decode(EXPECTATIONS));
+      new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
   Expectation verificationError;
 
   FastaContext(

@@ -4130,6 +4130,27 @@ class ParameterElementForLink_VariableSetter implements ParameterElementImpl {
   @override
   bool get isExplicitlyCovariant => enclosingElement.variable.isCovariant;
 
+  bool get isInitializingFormal => unlinkedParam.isInitializingFormal;
+
+  @override
+  bool get isNamed => parameterKind == ParameterKind.NAMED;
+
+  @override
+  bool get isNotOptional => parameterKind == ParameterKind.REQUIRED;
+
+  @override
+  bool get isOptional =>
+      parameterKind == ParameterKind.NAMED ||
+      parameterKind == ParameterKind.POSITIONAL;
+
+  @override
+  bool get isOptionalPositional => parameterKind == ParameterKind.POSITIONAL;
+
+  @override
+  bool get isPositional =>
+      parameterKind == ParameterKind.POSITIONAL ||
+      parameterKind == ParameterKind.REQUIRED;
+
   @override
   bool get isSynthetic => true;
 

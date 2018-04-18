@@ -636,7 +636,6 @@ deferred_load_constants_test/none: RuntimeError # KernelVM bug: Deferred loading
 deferred_load_library_wrong_args_test/01: Pass # Passes by mistake. KernelVM bug: Deferred loading kernel issue 30273.
 deferred_not_loaded_check_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_redirecting_factory_test: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
-deferred_shared_and_unshared_classes_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 deferred_static_seperate_test: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
 disassemble_test: Pass, Slow
 dynamic_prefix_core_test/none: CompileTimeError
@@ -958,7 +957,6 @@ deferred_load_constants_test/none: RuntimeError # KernelVM bug: Deferred loading
 deferred_load_library_wrong_args_test/01: Pass # Passes by mistake. KernelVM bug: Deferred loading kernel issue 30273.
 deferred_not_loaded_check_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_redirecting_factory_test: CompileTimeError, Fail, Crash # Issue 23408, KernelVM bug: Deferred loading kernel issue 30273.
-deferred_shared_and_unshared_classes_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 deferred_static_seperate_test: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
 deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
 dynamic_prefix_core_test/none: CompileTimeError
@@ -1209,7 +1207,6 @@ constants_test/05: MissingCompileTimeError
 cyclic_typedef_test/10: Crash
 cyclic_typedef_test/11: Crash
 deferred_load_library_wrong_args_test/01: CompileTimeError
-deferred_shared_and_unshared_classes_test: CompileTimeError
 duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
 dynamic_prefix_core_test/none: CompileTimeError

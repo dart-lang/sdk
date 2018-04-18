@@ -42,9 +42,10 @@ class ArgumentsDescriptor;
 class Assembler;
 class Closure;
 class Code;
-class DisassemblyFormatter;
 class DeoptInstr;
+class DisassemblyFormatter;
 class FinalizablePersistentHandle;
+class HierarchyInfo;
 class LocalScope;
 class CodeStatistics;
 
@@ -556,7 +557,9 @@ class Object {
   // Initialize the VM isolate.
   static void InitNull(Isolate* isolate);
   static void InitOnce(Isolate* isolate);
+  static void FinishInitOnce(Isolate* isolate);
   static void FinalizeVMIsolate(Isolate* isolate);
+  static void FinalizeReadOnlyObject(RawObject* object);
 
   // Initialize a new isolate either from a Kernel IR, from source, or from a
   // snapshot.
@@ -4354,6 +4357,12 @@ class PcDescriptors : public Object {
   static const intptr_t kBytesPerElement = 1;
   static const intptr_t kMaxElements = kMaxInt32 / kBytesPerElement;
 
+  static intptr_t UnroundedSize(RawPcDescriptors* desc) {
+    return UnroundedSize(desc->ptr()->length_);
+  }
+  static intptr_t UnroundedSize(intptr_t len) {
+    return sizeof(RawPcDescriptors) + len;
+  }
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawPcDescriptors) ==
            OFFSET_OF_RETURNED_VALUE(RawPcDescriptors, data));
@@ -4361,7 +4370,7 @@ class PcDescriptors : public Object {
   }
   static intptr_t InstanceSize(intptr_t len) {
     ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(sizeof(RawPcDescriptors) + len);
+    return RoundedAllocationSize(UnroundedSize(len));
   }
 
   static RawPcDescriptors* New(GrowableArray<uint8_t>* delta_encoded_data);
@@ -4476,6 +4485,12 @@ class CodeSourceMap : public Object {
   static const intptr_t kBytesPerElement = 1;
   static const intptr_t kMaxElements = kMaxInt32 / kBytesPerElement;
 
+  static intptr_t UnroundedSize(RawCodeSourceMap* map) {
+    return UnroundedSize(map->ptr()->length_);
+  }
+  static intptr_t UnroundedSize(intptr_t len) {
+    return sizeof(RawCodeSourceMap) + len;
+  }
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawCodeSourceMap) ==
            OFFSET_OF_RETURNED_VALUE(RawCodeSourceMap, data));
@@ -4483,7 +4498,7 @@ class CodeSourceMap : public Object {
   }
   static intptr_t InstanceSize(intptr_t len) {
     ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(sizeof(RawCodeSourceMap) + len);
+    return RoundedAllocationSize(UnroundedSize(len));
   }
 
   static RawCodeSourceMap* New(intptr_t length);
@@ -4542,15 +4557,20 @@ class StackMap : public Object {
 
   static const intptr_t kMaxLengthInBytes = kSmiMax;
 
+  static intptr_t UnroundedSize(RawStackMap* map) {
+    return UnroundedSize(map->ptr()->length_);
+  }
+  static intptr_t UnroundedSize(intptr_t len) {
+    // The stackmap payload is in an array of bytes.
+    intptr_t payload_size = Utils::RoundUp(len, kBitsPerByte) / kBitsPerByte;
+    return sizeof(RawStackMap) + payload_size;
+  }
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawStackMap) == OFFSET_OF_RETURNED_VALUE(RawStackMap, data));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t length) {
-    ASSERT(length >= 0);
-    // The stackmap payload is in an array of bytes.
-    intptr_t payload_size = Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
-    return RoundedAllocationSize(sizeof(RawStackMap) + payload_size);
+    return RoundedAllocationSize(UnroundedSize(length));
   }
   static RawStackMap* New(intptr_t pc_offset,
                           BitmapBuilder* bmap,
@@ -4642,6 +4662,9 @@ class Code : public Object {
   }
 
   RawInstructions* instructions() const { return raw_ptr()->instructions_; }
+  static RawInstructions* InstructionsOf(const RawCode* code) {
+    return code->ptr()->instructions_;
+  }
 
   static intptr_t saved_instructions_offset() {
     return OFFSET_OF(RawCode, instructions_);
@@ -6115,6 +6138,16 @@ class AbstractType : public Instance {
       const TypeArguments& instantiator_type_args,
       const TypeArguments& function_type_args);
 
+  static intptr_t type_test_stub_entry_point_offset() {
+    return OFFSET_OF(RawAbstractType, type_test_stub_entry_point_);
+  }
+
+  uword type_test_stub_entry_point() const {
+    return raw_ptr()->type_test_stub_entry_point_;
+  }
+
+  void SetTypeTestingStub(const Instructions& instr) const;
+
  private:
   // Check the 'is subtype of' or 'is more specific than' relationship.
   bool TypeTest(TypeTestKind test_kind,
@@ -6153,6 +6186,12 @@ class Type : public AbstractType {
  public:
   static intptr_t type_class_id_offset() {
     return OFFSET_OF(RawType, type_class_id_);
+  }
+  static intptr_t arguments_offset() {
+    return OFFSET_OF(RawType, type_class_id_);
+  }
+  static intptr_t type_state_offset() {
+    return OFFSET_OF(RawType, type_state_);
   }
   static intptr_t hash_offset() { return OFFSET_OF(RawType, hash_); }
   virtual bool IsFinalized() const {
@@ -6305,6 +6344,8 @@ class Type : public AbstractType {
 // Note that the cycle always involves type arguments.
 class TypeRef : public AbstractType {
  public:
+  static intptr_t type_offset() { return OFFSET_OF(RawTypeRef, type_); }
+
   virtual bool IsFinalized() const {
     const AbstractType& ref_type = AbstractType::Handle(type());
     return !ref_type.IsNull() && ref_type.IsFinalized();
@@ -7354,12 +7395,17 @@ class OneByteString : public AllStatic {
     return OFFSET_OF_RETURNED_VALUE(RawOneByteString, data);
   }
 
+  static intptr_t UnroundedSize(RawOneByteString* str) {
+    return UnroundedSize(Smi::Value(str->ptr()->length_));
+  }
+  static intptr_t UnroundedSize(intptr_t len) {
+    return sizeof(RawOneByteString) + (len * kBytesPerElement);
+  }
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawOneByteString) ==
            OFFSET_OF_RETURNED_VALUE(RawOneByteString, data));
     return 0;
   }
-
   static intptr_t InstanceSize(intptr_t len) {
     ASSERT(sizeof(RawOneByteString) == String::kSizeofRawString);
     ASSERT(0 <= len && len <= kMaxElements);
@@ -7369,8 +7415,7 @@ class OneByteString : public AllStatic {
     // memory allocated for the raw string.
     if (len == 0) return InstanceSize(1);
 #endif
-    return String::RoundedAllocationSize(sizeof(RawOneByteString) +
-                                         (len * kBytesPerElement));
+    return String::RoundedAllocationSize(UnroundedSize(len));
   }
 
   static RawOneByteString* New(intptr_t len, Heap::Space space);
@@ -7498,12 +7543,17 @@ class TwoByteString : public AllStatic {
     return OFFSET_OF_RETURNED_VALUE(RawTwoByteString, data);
   }
 
+  static intptr_t UnroundedSize(RawTwoByteString* str) {
+    return UnroundedSize(Smi::Value(str->ptr()->length_));
+  }
+  static intptr_t UnroundedSize(intptr_t len) {
+    return sizeof(RawTwoByteString) + (len * kBytesPerElement);
+  }
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawTwoByteString) ==
            OFFSET_OF_RETURNED_VALUE(RawTwoByteString, data));
     return 0;
   }
-
   static intptr_t InstanceSize(intptr_t len) {
     ASSERT(sizeof(RawTwoByteString) == String::kSizeofRawString);
     ASSERT(0 <= len && len <= kMaxElements);
@@ -7511,8 +7561,7 @@ class TwoByteString : public AllStatic {
     // If we don't pad, then the external string object does not fit in the
     // memory allocated for the raw string.
     if (len == 0) return InstanceSize(1);
-    return String::RoundedAllocationSize(sizeof(RawTwoByteString) +
-                                         (len * kBytesPerElement));
+    return String::RoundedAllocationSize(UnroundedSize(len));
   }
 
   static RawTwoByteString* New(intptr_t len, Heap::Space space);

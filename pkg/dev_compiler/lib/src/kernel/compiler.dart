@@ -66,9 +66,6 @@ class ProgramCompiler extends Object
   JS.Identifier _extensionSymbolsModule;
   final _extensionSymbols = new Map<String, JS.TemporaryId>();
 
-  JS.Identifier _runtimeModule;
-  final namedArgumentTemp = new JS.TemporaryId('opts');
-
   Set<Class> _pendingClasses;
 
   /// Temporary variables mapped to their corresponding JavaScript variable.
@@ -134,6 +131,7 @@ class ProgramCompiler extends Object
   final _superHelpers = new Map<String, JS.Method>();
 
   final bool emitMetadata;
+  final bool enableAsserts;
   final bool replCompile;
 
   final Map<String, String> declaredVariables;
@@ -206,9 +204,9 @@ class ProgramCompiler extends Object
   final NullableInference _nullableInference;
 
   factory ProgramCompiler(Component component,
-      // TODO(jmesserly): emitMetadata should default to false
-      {bool emitMetadata: true,
+      {bool emitMetadata: false,
       bool replCompile: false,
+      bool enableAsserts: true,
       Map<String, String> declaredVariables: const {}}) {
     var nativeTypes = new NativeTypeSet(component);
     var types = new TypeSchemaEnvironment(
@@ -216,12 +214,16 @@ class ProgramCompiler extends Object
     return new ProgramCompiler._(
         nativeTypes, new JSTypeRep(types, nativeTypes.sdk),
         emitMetadata: emitMetadata,
+        enableAsserts: enableAsserts,
         replCompile: replCompile,
         declaredVariables: declaredVariables);
   }
 
   ProgramCompiler._(NativeTypeSet nativeTypes, this._typeRep,
-      {this.emitMetadata, this.replCompile, this.declaredVariables})
+      {this.emitMetadata,
+      this.enableAsserts,
+      this.replCompile,
+      this.declaredVariables})
       : _extensionTypes = nativeTypes,
         types = _typeRep.types,
         coreTypes = nativeTypes.coreTypes,
@@ -276,15 +278,15 @@ class ProgramCompiler extends Object
     if (ddcRuntime != null) {
       // Don't allow these to be renamed when we're building the SDK.
       // There is JS code in dart:* that depends on their names.
-      _runtimeModule = new JS.Identifier('dart');
+      runtimeModule = new JS.Identifier('dart');
       _extensionSymbolsModule = new JS.Identifier('dartx');
       _nullableInference.allowNotNullDeclarations = true;
     } else {
       // Otherwise allow these to be renamed so users can write them.
-      _runtimeModule = new JS.TemporaryId('dart');
+      runtimeModule = new JS.TemporaryId('dart');
       _extensionSymbolsModule = new JS.TemporaryId('dartx');
     }
-    _typeTable = new TypeTable(_runtimeModule);
+    _typeTable = new TypeTable(runtimeModule);
 
     // Initialize our library variables.
     var items = <JS.ModuleItem>[];
@@ -299,7 +301,7 @@ class ProgramCompiler extends Object
 
     for (var library in libraries) {
       var libraryTemp = library == ddcRuntime
-          ? _runtimeModule
+          ? runtimeModule
           : new JS.TemporaryId(jsLibraryName(library));
       _libraries[library] = libraryTemp;
       emitLibrary(libraryTemp);
@@ -421,7 +423,7 @@ class ProgramCompiler extends Object
       var imports =
           libraries.map((l) => new JS.NameSpecifier(_imports[l])).toList();
       if (module == coreModuleName) {
-        imports.add(new JS.NameSpecifier(_runtimeModule));
+        imports.add(new JS.NameSpecifier(runtimeModule));
         imports.add(new JS.NameSpecifier(_extensionSymbolsModule));
       }
 
@@ -569,8 +571,8 @@ class ProgramCompiler extends Object
     var jsPeerNames = _extensionTypes.getNativePeers(c);
     if (jsPeerNames.length == 1 && c.typeParameters.isNotEmpty) {
       // Special handling for JSArray<E>
-      body.add(_callHelperStatement('setExtensionBaseClass(#, #.global.#);',
-          [className, _runtimeModule, jsPeerNames[0]]));
+      body.add(runtimeStatement('setExtensionBaseClass(#, #.global.#)',
+          [className, runtimeModule, jsPeerNames[0]]));
     }
 
     var finishGenericTypeTest = _emitClassTypeTests(c, className, body);
@@ -620,7 +622,7 @@ class ProgramCompiler extends Object
       genericArgs.add(js.call('(#) => { #; }', [jsFormals, deferredBaseClass]));
     }
 
-    var genericCall = _callHelper('generic(#)', [genericArgs]);
+    var genericCall = runtimeCall('generic(#)', [genericArgs]);
 
     var genericName = _emitTopLevelNameNoInterop(c, suffix: '\$');
     return js.statement('{ # = #; # = #(); }',
@@ -719,13 +721,16 @@ class ProgramCompiler extends Object
         mixinCtor = js.statement('#.#.call(this);', [
           emitClassRef(mixin),
           _usesMixinNew(mixin.classNode)
-              ? _callHelper('mixinNew')
+              ? runtimeCall('mixinNew')
               : _constructorName('')
         ]);
       }
 
       for (var ctor in superclass.constructors) {
+        var savedUri = _currentUri;
+        _currentUri = ctor.enclosingClass.fileUri;
         var jsParams = _emitFormalParameters(ctor.function);
+        _currentUri = savedUri;
         var ctorBody = <JS.Statement>[];
         if (mixinCtor != null) ctorBody.add(mixinCtor);
         var name = ctor.name.name;
@@ -742,7 +747,7 @@ class ProgramCompiler extends Object
 
     // Unroll mixins.
     if (shouldDefer(supertype)) {
-      deferredSupertypes.add(_callHelperStatement('setBaseClass(#, #)', [
+      deferredSupertypes.add(runtimeStatement('setBaseClass(#, #)', [
         getBaseClass(isMixinAliasClass(c) ? 0 : mixins.length),
         emitDeferredType(supertype),
       ]));
@@ -764,8 +769,8 @@ class ProgramCompiler extends Object
       var mixinClass = deferMixin ? emitDeferredType(m) : emitClassRef(m);
       var classExpr = deferMixin ? getBaseClass(0) : className;
 
-      mixinBody.add(
-          _callHelperStatement('mixinMembers(#, #)', [classExpr, mixinClass]));
+      mixinBody
+          .add(runtimeStatement('mixinMembers(#, #)', [classExpr, mixinClass]));
 
       if (methods.isNotEmpty) {
         // However we may need to add some methods to this class that call
@@ -774,7 +779,7 @@ class ProgramCompiler extends Object
         // We do this with the following pattern:
         //
         //     mixinMembers(C, class C$ extends M { <methods>  });
-        mixinBody.add(_callHelperStatement('mixinMembers(#, #)', [
+        mixinBody.add(runtimeStatement('mixinMembers(#, #)', [
           classExpr,
           new JS.ClassExpression(
               new JS.TemporaryId(getLocalClassName(c)), mixinClass, methods)
@@ -809,11 +814,11 @@ class ProgramCompiler extends Object
       hasUnnamedSuper = hasUnnamedSuper || _hasUnnamedConstructor(m.classNode);
 
       if (shouldDefer(m)) {
-        deferredSupertypes.add(_callHelperStatement('mixinMembers(#, #)',
+        deferredSupertypes.add(runtimeStatement('mixinMembers(#, #)',
             [getBaseClass(mixins.length - i), emitDeferredType(m)]));
       } else {
-        body.add(_callHelperStatement(
-            'mixinMembers(#, #)', [mixinId, emitClassRef(m)]));
+        body.add(
+            runtimeStatement('mixinMembers(#, #)', [mixinId, emitClassRef(m)]));
       }
 
       baseClass = mixinId;
@@ -848,7 +853,7 @@ class ProgramCompiler extends Object
       body.add(
           js.statement('(#[#] = function() { # }).prototype = #.prototype;', [
         className,
-        _callHelper('mixinNew'),
+        runtimeCall('mixinNew'),
         [_initializeFields(fields)],
         className
       ]));
@@ -870,7 +875,7 @@ class ProgramCompiler extends Object
           case 'Future':
           case 'Stream':
           case 'StreamSubscription':
-            return _callHelper('is' + interface.name);
+            return runtimeCall('is' + interface.name);
         }
       }
       return null;
@@ -908,13 +913,13 @@ class ProgramCompiler extends Object
             '  if (typeof o == "string" || o == null) return o;'
             '  return #.as(o, #, false);'
             '}',
-            [className, _runtimeModule, className]));
+            [className, runtimeModule, className]));
         body.add(js.statement(
             '#._check = function check_String(o) {'
             '  if (typeof o == "string" || o == null) return o;'
             '  return #.as(o, #, true);'
             '}',
-            [className, _runtimeModule, className]));
+            [className, runtimeModule, className]));
         return null;
       }
       if (c == coreTypes.functionClass) {
@@ -926,13 +931,13 @@ class ProgramCompiler extends Object
             '  if (typeof o == "function" || o == null) return o;'
             '  return #.as(o, #, false);'
             '}',
-            [className, _runtimeModule, className]));
+            [className, runtimeModule, className]));
         body.add(js.statement(
             '#._check = function check_String(o) {'
             '  if (typeof o == "function" || o == null) return o;'
             '  return #.as(o, #, true);'
             '}',
-            [className, _runtimeModule, className]));
+            [className, runtimeModule, className]));
         return null;
       }
       if (c == coreTypes.intClass) {
@@ -947,14 +952,14 @@ class ProgramCompiler extends Object
             '    return o;'
             '  return #.as(o, #, false);'
             '}',
-            [className, _runtimeModule, className]));
+            [className, runtimeModule, className]));
         body.add(js.statement(
             '#._check = function check_int(o) {'
             '  if ((typeof o == "number" && Math.floor(o) == o) || o == null)'
             '    return o;'
             '  return #.as(o, #, true);'
             '}',
-            [className, _runtimeModule, className]));
+            [className, runtimeModule, className]));
         return null;
       }
       if (c == coreTypes.nullClass) {
@@ -965,13 +970,13 @@ class ProgramCompiler extends Object
             '  if (o == null) return o;'
             '  return #.as(o, #, false);'
             '}',
-            [className, _runtimeModule, className]));
+            [className, runtimeModule, className]));
         body.add(js.statement(
             '#._check = function check_Null(o) {'
             '  if (o == null) return o;'
             '  return #.as(o, #, true);'
             '}',
-            [className, _runtimeModule, className]));
+            [className, runtimeModule, className]));
         return null;
       }
       if (c == coreTypes.numClass || c == coreTypes.doubleClass) {
@@ -983,13 +988,13 @@ class ProgramCompiler extends Object
             '  if (typeof o == "number" || o == null) return o;'
             '  return #.as(o, #, false);'
             '}',
-            [className, _runtimeModule, className]));
+            [className, runtimeModule, className]));
         body.add(js.statement(
             '#._check = function check_num(o) {'
             '  if (typeof o == "number" || o == null) return o;'
             '  return #.as(o, #, true);'
             '}',
-            [className, _runtimeModule, className]));
+            [className, runtimeModule, className]));
         return null;
       }
       if (c == coreTypes.boolClass) {
@@ -1001,13 +1006,13 @@ class ProgramCompiler extends Object
             '  if (o === true || o === false || o == null) return o;'
             '  return #.as(o, #, false);'
             '}',
-            [className, _runtimeModule, className]));
+            [className, runtimeModule, className]));
         body.add(js.statement(
             '#._check = function check_bool(o) {'
             '  if (o === true || o === false || o == null) return o;'
             '  return #.as(o, #, true);'
             '}',
-            [className, _runtimeModule, className]));
+            [className, runtimeModule, className]));
         return null;
       }
     }
@@ -1029,18 +1034,18 @@ class ProgramCompiler extends Object
               if (o == null || #.is(o) || #.is(o)) return o;
               return #.as(o, this, false);
             }
-            ''', [className, typeT, futureOfT, _runtimeModule]));
+            ''', [className, typeT, futureOfT, runtimeModule]));
         body.add(js.statement('''
             #._check = function check_FutureOr(o) {
               if (o == null || #.is(o) || #.is(o)) return o;
               return #.as(o, this, true);
             }
-            ''', [className, typeT, futureOfT, _runtimeModule]));
+            ''', [className, typeT, futureOfT, runtimeModule]));
         return null;
       }
     }
 
-    body.add(_callHelperStatement('addTypeTests(#);', [className]));
+    body.add(runtimeStatement('addTypeTests(#)', [className]));
 
     if (c.typeParameters.isEmpty) return null;
 
@@ -1065,8 +1070,7 @@ class ProgramCompiler extends Object
 
     // Return this `addTypeTests` call so we can emit it outside of the generic
     // type parameter scope.
-    return _callHelperStatement(
-        'addTypeTests(#, #);', [defaultInst, isClassSymbol]);
+    return runtimeStatement('addTypeTests(#, #)', [defaultInst, isClassSymbol]);
   }
 
   void _emitSymbols(Iterable<JS.TemporaryId> vars, List<JS.ModuleItem> body) {
@@ -1112,7 +1116,7 @@ class ProgramCompiler extends Object
     if (emitMetadata && metadata.isNotEmpty) {
       body.add(js.statement('#[#.metadata] = #;', [
         className,
-        _runtimeModule,
+        runtimeModule,
         _arrowFunctionWithLetScope(() => new JS.ArrayInitializer(
             metadata.map(_instantiateAnnotation).toList()))
       ]));
@@ -1141,7 +1145,7 @@ class ProgramCompiler extends Object
           .map((e) => _propertyName(JS.memberNameForDartMember(e)))
           .toList();
       body.add(js.statement('#.#(#, #);', [
-        _runtimeModule,
+        runtimeModule,
         helperName,
         className,
         new JS.ArrayInitializer(names, multiline: names.length > 4)
@@ -1162,7 +1166,7 @@ class ProgramCompiler extends Object
     if (c.implementedTypes.isNotEmpty) {
       body.add(js.statement('#[#.implements] = () => [#];', [
         className,
-        _runtimeModule,
+        runtimeModule,
         c.implementedTypes.map((i) => _emitType(i.asInterfaceType))
       ]));
     }
@@ -1173,10 +1177,10 @@ class ProgramCompiler extends Object
       if (!name.startsWith('Static')) {
         var proto = c == coreTypes.objectClass
             ? js.call('Object.create(null)')
-            : _callHelper('get${name}s(#.__proto__)', [className]);
+            : runtimeCall('get${name}s(#.__proto__)', [className]);
         elements.insert(0, new JS.Property(_propertyName('__proto__'), proto));
       }
-      body.add(_callHelperStatement('set${name}Signature(#, () => #)', [
+      body.add(runtimeStatement('set${name}Signature(#, () => #)', [
         className,
         new JS.ObjectInitializer(elements, multiline: elements.length > 1)
       ]));
@@ -1297,7 +1301,7 @@ class ProgramCompiler extends Object
     // Add static property dart._runtimeType to Object.
     // All other Dart classes will (statically) inherit this property.
     if (c == coreTypes.objectClass) {
-      body.add(_callHelperStatement('tagComputed(#, () => #.#);',
+      body.add(runtimeStatement('lazyFn(#, () => #.#)',
           [className, emitLibraryName(coreTypes.coreLibrary), 'Type']));
     }
 
@@ -1315,7 +1319,7 @@ class ProgramCompiler extends Object
           annotations.map(_instantiateAnnotation).toList()));
       _currentUri = savedUri;
     }
-    return _callHelper(
+    return runtimeCall(
         field.isFinal ? 'finalFieldType(#)' : 'fieldType(#)', [args]);
   }
 
@@ -1540,7 +1544,7 @@ class ProgramCompiler extends Object
     if (expr == null) return null;
     var jsExpr = _visitExpression(expr);
     if (!isNullable(expr)) return jsExpr;
-    return _callHelper('notNull(#)', jsExpr);
+    return runtimeCall('notNull(#)', jsExpr);
   }
 
   /// If the class has only factory constructors, and it can be mixed in,
@@ -1562,7 +1566,7 @@ class ProgramCompiler extends Object
     var args = [className, name, value];
     if (name is JS.LiteralString &&
         JS.invalidStaticFieldName(name.valueWithoutQuotes)) {
-      return _callHelper('defineValue(#, #, #)', args);
+      return runtimeCall('defineValue(#, #, #)', args);
     }
     return js.call('#.# = #', args);
   }
@@ -1581,7 +1585,7 @@ class ProgramCompiler extends Object
           new JS.Method(_propertyName('constructor'), js.fun(r'''function() {
                   throw Error("use `new " + #.typeName(#.getReifiedType(this)) +
                       ".new(...)` to create a Dart object");
-              }''', [_runtimeModule, _runtimeModule])));
+              }''', [runtimeModule, runtimeModule])));
     }
 
     for (var m in c.fields) {
@@ -1624,9 +1628,10 @@ class ProgramCompiler extends Object
       }
     }
 
-    for (Member m in _classProperties.mockMembers.values) {
-      _addMockMembers(m, c, jsMethods);
-    }
+    _classProperties.mockMembers.forEach((String name, Member member) {
+      jsMethods
+          .add(_implementMockMember(member, c, isSetter: name.endsWith('=')));
+    });
 
     // If the type doesn't have an `iterator`, but claims to implement Iterable,
     // we inject the adaptor method here, as it's less code size to put the
@@ -1818,49 +1823,51 @@ class ProgramCompiler extends Object
   ///
   /// Same technique is applied if interface I has fields, and C doesn't declare
   /// neither the fields nor the corresponding getters and setters.
-  void _addMockMembers(Member member, Class c, List<JS.Method> jsMethods) {
+  JS.Method _implementMockMember(Member member, Class c, {bool isSetter}) {
     JS.Method implementMockMember(
-        List<TypeParameter> typeParameters,
+        ProcedureKind procedureKind, DartType returnType,
+        [List<TypeParameter> typeParameters,
         List<JS.Parameter> positionalParameters,
-        List<VariableDeclaration> namedParameters,
-        int requiredParameterCount,
-        ProcedureKind mockMemberKind,
-        DartType returnType) {
-      assert(mockMemberKind != ProcedureKind.Factory);
+        List<VariableDeclaration> namedParameters]) {
+      assert(procedureKind != ProcedureKind.Factory);
 
       var invocationProps = <JS.Property>[];
       addProperty(String name, JS.Expression value) {
         invocationProps.add(new JS.Property(js.string(name), value));
       }
 
-      var args = positionalParameters;
-      var typeParams = _emitTypeFormals(typeParameters);
-      var fnArgs = new List<JS.Parameter>.from(typeParams)..addAll(args);
-
+      var typeParams = _emitTypeFormals(typeParameters ?? []);
+      var fnArgs = new List<JS.Parameter>.from(typeParams);
       JS.Expression positionalArgs;
-      List<JS.Statement> optionalArgInit = [];
-      if (positionalParameters.length != requiredParameterCount) {
-        positionalArgs = new JS.TemporaryId('args');
-        optionalArgInit.add(js.statement('let # = [#]',
-            [positionalArgs, args.take(requiredParameterCount)]));
-        optionalArgInit.addAll(args.skip(requiredParameterCount).map((p) => js
-            .statement('if (# !== void 0) #.push(#)', [p, positionalArgs, p])));
+      if (procedureKind == ProcedureKind.Getter) {
+        addProperty('isGetter', js.boolean(true));
+        positionalArgs = new JS.ArrayInitializer([]);
+      } else if (procedureKind == ProcedureKind.Setter) {
+        addProperty('isSetter', js.boolean(true));
+        var valueArg = new JS.TemporaryId('value');
+        positionalArgs = new JS.ArrayInitializer([valueArg]);
+        fnArgs.add(valueArg);
       } else {
-        positionalArgs = new JS.ArrayInitializer(args);
-        if (namedParameters.isNotEmpty) {
-          fnArgs.add(namedArgumentTemp);
-          addProperty('namedArguments', namedArgumentTemp);
-        }
-      }
-
-      if (mockMemberKind != ProcedureKind.Getter &&
-          mockMemberKind != ProcedureKind.Setter) {
         addProperty('isMethod', js.boolean(true));
-      } else {
-        if (mockMemberKind == ProcedureKind.Getter) {
-          addProperty('isGetter', js.boolean(true));
-        } else if (mockMemberKind == ProcedureKind.Setter) {
-          addProperty('isSetter', js.boolean(true));
+        if (namedParameters.isNotEmpty) {
+          // Named parameters need to be emitted in the correct position (after
+          // positional arguments) so we can detect them reliably.
+          addProperty('namedArguments', namedArgumentTemp);
+          positionalArgs = new JS.ArrayInitializer(positionalParameters);
+          fnArgs.addAll(positionalParameters);
+          fnArgs.add(namedArgumentTemp);
+        } else {
+          // In case we have optional parameters, we need to use rest args,
+          // because sometimes mocks want to detect whether optional arguments
+          // were passed, and this does not work reliably with undefined (should
+          // not normally appear in DDC, but it can result from JS interop).
+          //
+          // TODO(jmesserly): perhaps we need to use rest args or destructuring
+          // to get reliable optional argument passing in other scenarios? It
+          // doesn't seem to occur outside of tests, perhaps due to the
+          // combination of mockito and protobufs.
+          positionalArgs = new JS.TemporaryId('args');
+          fnArgs.add(new JS.RestParameter(positionalArgs));
         }
       }
 
@@ -1870,7 +1877,7 @@ class ProgramCompiler extends Object
 
       var fnBody =
           js.call('this.noSuchMethod(new #.InvocationImpl.new(#, #, #))', [
-        _runtimeModule,
+        runtimeModule,
         _declareMemberName(member),
         positionalArgs,
         new JS.ObjectInitializer(invocationProps)
@@ -1881,36 +1888,34 @@ class ProgramCompiler extends Object
         fnBody = js.call('#._check(#)', [_emitType(returnType), fnBody]);
       }
 
-      var fn = new JS.Fun(
-          fnArgs, js.block('{ #; return #; }', [optionalArgInit, fnBody]),
+      var fn = new JS.Fun(fnArgs, fnBody.toReturn().toBlock(),
           typeParams: typeParams);
 
       return new JS.Method(
           _declareMemberName(member,
               useExtension: _extensionTypes.isNativeClass(c)),
           fn,
-          isGetter: mockMemberKind == ProcedureKind.Getter,
-          isSetter: mockMemberKind == ProcedureKind.Setter,
+          isGetter: procedureKind == ProcedureKind.Getter,
+          isSetter: procedureKind == ProcedureKind.Setter,
           isStatic: false);
     }
 
     if (member is Field) {
-      jsMethods.add(implementMockMember(
-          [], [], [], 0, ProcedureKind.Getter, member.type));
-      if (!member.isFinal) {
-        jsMethods.add(implementMockMember([], [new JS.TemporaryId('value')], [],
-            1, ProcedureKind.Setter, new VoidType()));
+      if (isSetter) {
+        return implementMockMember(ProcedureKind.Setter, new VoidType());
+      } else {
+        return implementMockMember(ProcedureKind.Getter, member.type);
       }
     } else {
       var procedure = member as Procedure;
       var f = procedure.function;
-      jsMethods.add(implementMockMember(
+      assert(procedure.isSetter == isSetter);
+      return implementMockMember(
+          procedure.kind,
+          f.returnType,
           f.typeParameters,
           f.positionalParameters.map(_emitVariableRef).toList(),
-          f.namedParameters,
-          f.requiredParameterCount,
-          procedure.kind,
-          f.returnType));
+          f.namedParameters);
     }
   }
 
@@ -2044,7 +2049,7 @@ class ProgramCompiler extends Object
     return new JS.Method(
         js.call('Symbol.iterator'),
         js.call('function() { return new #.JsIterator(this.#); }', [
-          _runtimeModule,
+          runtimeModule,
           _emitMemberName('iterator', type: iterable.asInterfaceType)
         ]) as JS.Fun);
   }
@@ -2056,11 +2061,11 @@ class ProgramCompiler extends Object
       Class c, String jsPeerName, List<JS.Statement> body) {
     var className = _emitTopLevelName(c);
     if (isPrimitiveType(c.rawType)) {
-      body.add(_callHelperStatement(
-          'definePrimitiveHashCode(#.prototype)', className));
+      body.add(
+          runtimeStatement('definePrimitiveHashCode(#.prototype)', className));
     }
-    body.add(_callHelperStatement(
-        'registerExtension(#, #);', [js.string(jsPeerName), className]));
+    body.add(runtimeStatement(
+        'registerExtension(#, #)', [js.string(jsPeerName), className]));
   }
 
   JS.Statement _emitJSType(Class c) {
@@ -2077,7 +2082,7 @@ class ProgramCompiler extends Object
   void _emitTypedef(Typedef t) {
     var savedUri = _currentUri;
     _currentUri = t.fileUri;
-    var body = _callHelper('typedef(#, () => #)',
+    var body = runtimeCall('typedef(#, () => #)',
         [js.string(t.name, "'"), visitFunctionType(t.type)]);
 
     JS.Statement result;
@@ -2151,7 +2156,7 @@ class ProgramCompiler extends Object
     _currentUri = _currentLibrary.fileUri;
 
     _currentUri = savedUri;
-    return _callHelperStatement('defineLazy(#, { # });', [objExpr, accessors]);
+    return runtimeStatement('defineLazy(#, { # })', [objExpr, accessors]);
   }
 
   JS.Fun _emitStaticFieldInitializer(Field field) {
@@ -2446,7 +2451,7 @@ class ProgramCompiler extends Object
     JS.PropertyAccess access;
     for (var part in parts) {
       access = new JS.PropertyAccess(
-          access ?? _callHelper('global'), js.escapedString(part, "'"));
+          access ?? runtimeCall('global'), js.escapedString(part, "'"));
     }
     return access;
   }
@@ -2464,7 +2469,7 @@ class ProgramCompiler extends Object
 
   void _emitLibraryAccessors(Iterable<Procedure> accessors) {
     if (accessors.isEmpty) return;
-    _moduleItems.add(_callHelperStatement('copyProperties(#, { # });', [
+    _moduleItems.add(runtimeStatement('copyProperties(#, { # })', [
       emitLibraryName(_currentLibrary),
       accessors.map(_emitLibraryAccessor).toList()
     ]));
@@ -2499,7 +2504,11 @@ class ProgramCompiler extends Object
 
     var nameExpr = _emitTopLevelName(p);
     body.add(js.statement('# = #', [nameExpr, fn]));
-    if (!isSdkInternalRuntime(_currentLibrary)) {
+    // Function types of top-level/static functions are only needed when
+    // dart:mirrors is enabled.
+    // TODO(jmesserly): do we even need this for mirrors, since statics are not
+    // commonly reflected on?
+    if (emitMetadata && _reifyFunctionType(p.function)) {
       body.add(
           _emitFunctionTagged(nameExpr, p.function.functionType, topLevel: true)
               .toStatement());
@@ -2513,7 +2522,7 @@ class ProgramCompiler extends Object
       {bool topLevel: false}) {
     var lazy = topLevel && !_typeIsLoaded(type);
     var typeRep = visitFunctionType(type, lazy: lazy);
-    return _callHelper(lazy ? 'lazyFn(#, #)' : 'fn(#, #)', [fn, typeRep]);
+    return runtimeCall(lazy ? 'lazyFn(#, #)' : 'fn(#, #)', [fn, typeRep]);
   }
 
   bool _typeIsLoaded(DartType type) {
@@ -2537,7 +2546,7 @@ class ProgramCompiler extends Object
 
   JS.Expression _emitInvalidNode(Node node, [String message = '']) {
     if (message.isNotEmpty) message += ' ';
-    return _callHelper('throwUnimplementedError(#)',
+    return runtimeCall('throwUnimplementedError(#)',
         [js.escapedString('node <${node.runtimeType}> $message`$node`')]);
   }
 
@@ -2548,13 +2557,13 @@ class ProgramCompiler extends Object
   visitInvalidType(type) => defaultDartType(type);
 
   @override
-  visitDynamicType(type) => _callHelper('dynamic');
+  visitDynamicType(type) => runtimeCall('dynamic');
 
   @override
-  visitVoidType(type) => _callHelper('void');
+  visitVoidType(type) => runtimeCall('void');
 
   @override
-  visitBottomType(type) => _callHelper('bottom');
+  visitBottomType(type) => runtimeCall('bottom');
 
   @override
   visitInterfaceType(type, {bool lowerGeneric: false}) {
@@ -2575,12 +2584,12 @@ class ProgramCompiler extends Object
     // Anonymous JS types do not have a corresponding concrete JS type so we
     // have to use a helper to define them.
     if (isJSAnonymousType(c)) {
-      return _callHelper(
+      return runtimeCall(
           'anonymousJSType(#)', js.escapedString(getLocalClassName(c)));
     }
     var jsName = _getJSNameWithoutGlobal(c);
     if (jsName != null) {
-      return _callHelper('lazyJSType(() => #, #)',
+      return runtimeCall('lazyJSType(() => #, #)',
           [_emitJSInteropForGlobal(jsName), js.escapedString(jsName)]);
     }
 
@@ -2674,7 +2683,7 @@ class ProgramCompiler extends Object
     } else {
       helperCall = 'fnType(#)';
     }
-    var typeRep = _callHelper(helperCall, [typeParts]);
+    var typeRep = runtimeCall(helperCall, [typeParts]);
     return _cacheTypes
         ? _typeTable.nameFunctionType(type, typeRep, lazy: lazy)
         : typeRep;
@@ -2896,7 +2905,7 @@ class ProgramCompiler extends Object
       var gen = emitGeneratorFn((_) => [_asyncStarController]);
 
       var returnType = _getExpectedReturnType(function, coreTypes.streamClass);
-      return _callHelper('asyncStar(#, #)', [_emitType(returnType), gen]);
+      return runtimeCall('asyncStar(#, #)', [_emitType(returnType), gen]);
     }
 
     assert(function.asyncMarker == AsyncMarker.Async);
@@ -3023,7 +3032,7 @@ class ProgramCompiler extends Object
       annotations.any(_nullableInference.isNullCheckAnnotation);
 
   JS.Statement _nullParameterCheck(JS.Expression param) {
-    var call = _callHelper('argumentError((#))', [param]);
+    var call = runtimeCall('argumentError((#))', [param]);
     return js.statement('if (# == null) #;', [param, call]);
   }
 
@@ -3049,33 +3058,13 @@ class ProgramCompiler extends Object
       List<TypeParameter> typeFormals, List<JS.Statement> body) {
     for (var t in typeFormals) {
       if (t.isGenericCovariantImpl) {
-        body.add(_callHelperStatement('checkTypeBound(#, #, #)', [
+        body.add(runtimeStatement('checkTypeBound(#, #, #)', [
           _emitType(new TypeParameterType(t)),
           _emitType(t.bound),
           _propertyName(t.name)
         ]));
       }
     }
-  }
-
-  JS.Expression _callHelper(String code, [args]) {
-    if (args is List) {
-      args.insert(0, _runtimeModule);
-    } else if (args != null) {
-      args = [_runtimeModule, args];
-    } else {
-      args = _runtimeModule;
-    }
-    return js.call('#.$code', args);
-  }
-
-  JS.Statement _callHelperStatement(String code, args) {
-    if (args is List) {
-      args.insert(0, _runtimeModule);
-    } else {
-      args = [_runtimeModule, args];
-    }
-    return js.statement('#.$code', args);
   }
 
   JS.Statement _visitStatement(Statement s) {
@@ -3139,11 +3128,11 @@ class ProgramCompiler extends Object
 
     if (node is AsExpression && node.isTypeError) {
       assert(node.getStaticType(types) == types.boolType);
-      return _callHelper('dtest(#)', _visitExpression(node.operand));
+      return runtimeCall('dtest(#)', _visitExpression(node.operand));
     }
 
     var result = _visitExpression(node);
-    if (isNullable(node)) result = _callHelper('test(#)', result);
+    if (isNullable(node)) result = runtimeCall('test(#)', result);
     return result;
   }
 
@@ -3241,7 +3230,7 @@ class ProgramCompiler extends Object
 
   @override
   visitAssertStatement(AssertStatement node) {
-    // TODO(jmesserly): only emit in checked mode.
+    if (!enableAsserts) return new JS.EmptyStatement();
     var condition = node.condition;
     var conditionType = condition.getStaticType(types);
     var jsCondition = _visitExpression(condition);
@@ -3250,15 +3239,15 @@ class ProgramCompiler extends Object
     if (conditionType is FunctionType &&
         conditionType.requiredParameterCount == 0 &&
         conditionType.returnType == boolType) {
-      jsCondition = _callHelper('test(#())', jsCondition);
+      jsCondition = runtimeCall('test(#())', jsCondition);
     } else if (conditionType != boolType) {
-      jsCondition = _callHelper('dassert(#)', jsCondition);
+      jsCondition = runtimeCall('dassert(#)', jsCondition);
     } else if (isNullable(condition)) {
-      jsCondition = _callHelper('test(#)', jsCondition);
+      jsCondition = runtimeCall('test(#)', jsCondition);
     }
     return js.statement(' if (!#) #.assertFailed(#);', [
       jsCondition,
-      _runtimeModule,
+      runtimeModule,
       node.message != null ? [_visitExpression(node.message)] : []
     ]);
   }
@@ -3606,7 +3595,7 @@ class ProgramCompiler extends Object
         vars.add(stackTrace.name);
         body.add(js.statement('let # = #.stackTrace(#);', [
           _emitVariableDef(stackTrace),
-          _runtimeModule,
+          runtimeModule,
           _emitVariableRef(name)
         ]));
       }
@@ -3691,11 +3680,7 @@ class ProgramCompiler extends Object
     } else {
       declareFn = new JS.FunctionDeclaration(name, fn);
     }
-    // Function types of top-level/static functions are only needed when
-    // dart:mirrors is enabled.
-    // TODO(jmesserly): do we even need this for mirrors, since statics are not
-    // commonly reflected on?
-    if (emitMetadata && _reifyFunctionType(func)) {
+    if (_reifyFunctionType(func)) {
       declareFn = new JS.Block([
         declareFn,
         _emitFunctionTagged(_emitVariableRef(node.variable), func.functionType)
@@ -3804,25 +3789,25 @@ class ProgramCompiler extends Object
     // they can be hovered. Unfortunately this is not possible as Kernel does
     // not store this data.
     if (member == null) {
-      return _callHelper('dload$_replSuffix(#, #)', [jsReceiver, jsName]);
+      return runtimeCall('dload$_replSuffix(#, #)', [jsReceiver, jsName]);
     }
 
     if (_isObjectMemberCall(receiver, memberName)) {
       if (_isObjectMethod(memberName)) {
-        return _callHelper('bind(#, #)', [jsReceiver, jsName]);
+        return runtimeCall('bind(#, #)', [jsReceiver, jsName]);
       } else {
-        return _callHelper('#(#)', [memberName, jsReceiver]);
+        return runtimeCall('#(#)', [memberName, jsReceiver]);
       }
     } else if (_reifyTearoff(member)) {
-      return _callHelper('bind(#, #)', [jsReceiver, jsName]);
+      return runtimeCall('bind(#, #)', [jsReceiver, jsName]);
     } else {
       return new JS.PropertyAccess(jsReceiver, jsName);
     }
   }
 
-  // TODO(jmesserly): remove this. Instead handle REPL private name lookups in
-  // _emitMemberName (by using `dart.privateName` if we're in REPL mode,
-  // refactored from the current `dart._dhelperRepl`).
+  // TODO(jmesserly): can we encapsulate REPL name lookups and remove this?
+  // _emitMemberName would be a nice place to handle it, but we don't have
+  // access to the target expression there (needed for `dart.replNameLookup`).
   String get _replSuffix => replCompile ? 'Repl' : '';
 
   JS.Expression _emitPropertySet(
@@ -3835,7 +3820,7 @@ class ProgramCompiler extends Object
     var jsValue = _visitExpression(value);
 
     if (member == null) {
-      return _callHelper(
+      return runtimeCall(
           'dput$_replSuffix(#, #, #)', [jsReceiver, jsName, jsValue]);
     }
     return js.call('#.# = #', [jsReceiver, jsName, jsValue]);
@@ -3846,7 +3831,7 @@ class ProgramCompiler extends Object
     var target = node.interfaceTarget;
     var jsTarget = _emitSuperTarget(target);
     if (_reifyTearoff(target)) {
-      return _callHelper('bind(this, #, #)', [jsTarget.selector, jsTarget]);
+      return runtimeCall('bind(this, #, #)', [jsTarget.selector, jsTarget]);
     }
     return jsTarget;
   }
@@ -3924,7 +3909,7 @@ class ProgramCompiler extends Object
     }
     if (_isObjectMemberCall(receiver, name)) {
       assert(arguments.types.isEmpty); // Object methods don't take type args.
-      return _callHelper('#(#, #)', [name, jsReceiver, args]);
+      return runtimeCall('#(#, #)', [name, jsReceiver, args]);
     }
     // TODO(jmesserly): remove when Kernel desugars this for us.
     // Handle `o.m(a)` where `o.m` is a getter returning a class with `call`.
@@ -3972,7 +3957,7 @@ class ProgramCompiler extends Object
       jsCode += ', [#])';
     }
 
-    return _callHelper(jsCode, jsArgs);
+    return runtimeCall(jsCode, jsArgs);
   }
 
   bool _isDirectCallable(DartType t) =>
@@ -4269,7 +4254,7 @@ class ProgramCompiler extends Object
     // a measurable performance effect (possibly the helper is simple enough to
     // be inlined).
     if (isNullable(left)) {
-      return _callHelper(
+      return runtimeCall(
           'equals(#, #)', [_visitExpression(left), _visitExpression(right)]);
     }
 
@@ -4296,10 +4281,10 @@ class ProgramCompiler extends Object
       // dynamic dispatch
       var dynamicHelper = const {'[]': 'dindex', '[]=': 'dsetindex'}[name];
       if (dynamicHelper != null) {
-        return _callHelper('$dynamicHelper(#, #)',
+        return runtimeCall('$dynamicHelper(#, #)',
             [_visitExpression(receiver), _visitExpressionList(args)]);
       } else {
-        return _callHelper('dsend(#, #, [#])', [
+        return runtimeCall('dsend(#, #, [#])', [
           _visitExpression(receiver),
           memberName,
           _visitExpressionList(args)
@@ -4605,7 +4590,7 @@ class ProgramCompiler extends Object
       {bool negated = false}) {
     if (args.length != 2) {
       // Shouldn't happen in typechecked code
-      return _callHelper(
+      return runtimeCall(
           'throw(Error("compile error: calls to `identical` require 2 args")');
     }
     var left = args[0];
@@ -4799,7 +4784,7 @@ class ProgramCompiler extends Object
     }
     if (expectString) strings.add('');
     return new JS.TaggedTemplate(
-        _callHelper('str'), new JS.TemplateString(strings, interpolations));
+        runtimeCall('str'), new JS.TemplateString(strings, interpolations));
   }
 
   @override
@@ -4871,7 +4856,7 @@ class ProgramCompiler extends Object
         // TODO(jmesserly): fuse this with notNull check.
         // TODO(jmesserly): this does not correctly distinguish user casts from
         // required-for-soundness casts.
-        return _callHelper('asInt(#)', jsFrom);
+        return runtimeCall('asInt(#)', jsFrom);
       }
 
       // A no-op in JavaScript.
@@ -4924,14 +4909,14 @@ class ProgramCompiler extends Object
   }
 
   JS.Expression _emitConst(JS.Expression expr()) =>
-      _cacheConst(() => _callHelper('const(#)', expr()));
+      _cacheConst(() => runtimeCall('const(#)', expr()));
 
   @override
   visitTypeLiteral(TypeLiteral node) {
     var typeRep = _emitType(node.type);
     // If the type is a type literal expression in Dart code, wrap the raw
     // runtime type in a "Type" instance.
-    return _isInForeignJS ? typeRep : _callHelper('wrapType(#)', typeRep);
+    return _isInForeignJS ? typeRep : runtimeCall('wrapType(#)', typeRep);
   }
 
   @override
@@ -4939,12 +4924,12 @@ class ProgramCompiler extends Object
 
   @override
   visitRethrow(Rethrow node) {
-    return _callHelper('rethrow(#)', _emitVariableRef(_catchParameter));
+    return runtimeCall('rethrow(#)', _emitVariableRef(_catchParameter));
   }
 
   @override
   visitThrow(Throw node) =>
-      _callHelper('throw(#)', _visitExpression(node.expression));
+      runtimeCall('throw(#)', _visitExpression(node.expression));
 
   @override
   visitListLiteral(ListLiteral node) {
@@ -4960,7 +4945,7 @@ class ProgramCompiler extends Object
       DartType elementType, List<JS.Expression> elements) {
     // dart.constList helper internally depends on _interceptors.JSArray.
     _declareBeforeUse(_jsArrayClass);
-    return _callHelper('constList([#], #)', [elements, _emitType(elementType)]);
+    return runtimeCall('constList([#], #)', [elements, _emitType(elementType)]);
   }
 
   JS.Expression _emitList(DartType itemType, List<JS.Expression> items) {
@@ -4995,7 +4980,7 @@ class ProgramCompiler extends Object
       }
       return js.call('new #.from(#)', [mapType, emitEntries()]);
     }
-    return _cacheConst(() => _callHelper('constMap(#, #, #)',
+    return _cacheConst(() => runtimeCall('constMap(#, #, #)',
         [_emitType(node.keyType), _emitType(node.valueType), emitEntries()]));
   }
 
@@ -5068,14 +5053,14 @@ class ProgramCompiler extends Object
 
   @override
   visitInstantiation(Instantiation node) {
-    return _callHelper('gbind(#, #)', [
+    return runtimeCall('gbind(#, #)', [
       _visitExpression(node.expression),
       node.typeArguments.map(_emitType).toList()
     ]);
   }
 
   @override
-  visitLoadLibrary(LoadLibrary node) => _callHelper('loadLibrary()');
+  visitLoadLibrary(LoadLibrary node) => runtimeCall('loadLibrary()');
 
   // TODO(jmesserly): DDC loads all libraries eagerly.
   // See

@@ -26,7 +26,7 @@ main() {
   Completer<String> s = new Completer();
   future.then((process) {
     StringBuffer buf = new StringBuffer();
-    process.stdout.transform(UTF8.decoder).listen((data) {
+    process.stdout.transform(utf8.decoder).listen((data) {
       buf.write(data);
     }, onDone: () {
       s.complete(buf.toString());

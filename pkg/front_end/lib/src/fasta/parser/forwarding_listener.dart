@@ -172,8 +172,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginFormalParameter(Token token, MemberKind kind) {
-    listener?.beginFormalParameter(token, kind);
+  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
+      Token varFinalOrConst) {
+    listener?.beginFormalParameter(
+        token, kind, covariantToken, varFinalOrConst);
   }
 
   @override
@@ -1096,16 +1098,6 @@ class ForwardingListener implements Listener {
   @override
   void handleLiteralNull(Token token) {
     listener?.handleLiteralNull(token);
-  }
-
-  @override
-  void handleModifier(Token token) {
-    listener?.handleModifier(token);
-  }
-
-  @override
-  void handleModifiers(int count) {
-    listener?.handleModifiers(count);
   }
 
   @override

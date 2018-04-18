@@ -17,19 +17,17 @@ class Class {
   method() => 42;
 }
 
-// TODO(johnniwinther): Fix the refined type. Missing call methods in the closed
-// world leads to concluding [empty].
-/*element: closurizedCallToString:[empty]*/
+/*element: closurizedCallToString:[exact=JSString]*/
 closurizedCallToString() {
   var c = new Class();
   var local = c. /*[exact=Class]*/ method;
   local. /*invoke: [subclass=Closure]*/ toString();
   local();
   local
-      . /*invoke: [empty]*/
+      . /*invoke: [subclass=Closure]*/
       toString();
   local.call();
   return local
-      . /*invoke: [empty]*/
+      . /*invoke: [subclass=Closure]*/
       toString();
 }

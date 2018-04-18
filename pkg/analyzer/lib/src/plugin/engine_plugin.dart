@@ -3,15 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/error.dart' show AnalysisError;
-import 'package:analyzer/plugin/task.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show InternalAnalysisContext;
+import 'package:analyzer/src/plugin/task.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/html_work_manager.dart';
 import 'package:analyzer/src/task/options_work_manager.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:plugin/plugin.dart';
 
 /**
@@ -172,8 +172,8 @@ class EnginePlugin implements Plugin {
 
 /**
  * Annotation describing the relationship between a getter in [EnginePlugin]
- * and the associated identifier (in '../../plugin/task.dart') which can be
- * passed to the extension manager to populate it.
+ * and the associated identifier (in 'task.dart') which can be passed to the
+ * extension manager to populate it.
  *
  * This annotation is not used at runtime; it is used to aid in static analysis
  * of the task model during development.

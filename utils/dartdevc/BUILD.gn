@@ -23,7 +23,6 @@ application_snapshot("dartdevc") {
     rebase_path("../../pkg/dev_compiler"),
     "-o",
     "dartdevc.js",
-    "--unsafe-force-compile",
     rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart"),
   ]
 
@@ -31,25 +30,18 @@ application_snapshot("dartdevc") {
     ":dartdevc_sdk",
   ]
 
-  inputs = exec_script("../../tools/list_dart_files.py",
-                       [
-                         "absolute",
-                         rebase_path("../../pkg/dev_compiler/bin"),
-                       ],
-                       "list lines")
-  inputs += [ sdk_summary ]
+  inputs = [ sdk_summary ]
 }
 
 application_snapshot("dartdevk") {
   main_dart = "../../pkg/dev_compiler/bin/dartdevk.dart"
 
-  # TODO(vsm): Train this on real input.
   training_args = [
     "--dart-sdk-summary",
     rebase_path(sdk_dill),
     "-o",
     "dartdevk.js",
-    rebase_path("../../pkg/dev_compiler/test/codegen/sunflower/sunflower.dart"),
+    rebase_path("../../pkg/dev_compiler/bin/dartdevk.dart"),
   ]
 
   deps = [
@@ -57,13 +49,7 @@ application_snapshot("dartdevk") {
     ":dartdevc_sdk_kernel_summary",
   ]
 
-  inputs = exec_script("../../tools/list_dart_files.py",
-                       [
-                         "absolute",
-                         rebase_path("../../pkg/dev_compiler/bin"),
-                       ],
-                       "list lines")
-  inputs += [ sdk_dill ]
+  inputs = [ sdk_dill ]
 }
 
 sdk_lib_files = exec_script("../../tools/list_dart_files.py",

@@ -101,12 +101,14 @@ class MemoryEnvironment implements EvaluationEnvironment {
   InterfaceType get enclosingConstructedType =>
       _environment.enclosingConstructedType;
 
+  @override
   void reportWarning(
       ConstantExpression expression, MessageKind kind, Map arguments) {
     errors.add(new EvaluationError(kind, arguments));
     _environment.reportWarning(expression, kind, arguments);
   }
 
+  @override
   void reportError(
       ConstantExpression expression, MessageKind kind, Map arguments) {
     errors.add(new EvaluationError(kind, arguments));
@@ -119,6 +121,7 @@ class MemoryEnvironment implements EvaluationEnvironment {
     return _environment.evaluateConstructor(constructor, type, evaluate);
   }
 
+  @override
   ConstantValue evaluateField(FieldEntity field, ConstantValue evaluate()) {
     return _environment.evaluateField(field, evaluate);
   }

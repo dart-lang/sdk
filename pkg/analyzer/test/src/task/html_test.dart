@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.task.html_test;
-
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/api/general.dart';
+import 'package:analyzer/src/task/api/html.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/html.dart';
-import 'package:analyzer/task/general.dart';
-import 'package:analyzer/task/html.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -312,19 +311,19 @@ class ParseHtmlTaskTest extends AbstractContextTest {
       expect(lineInfo, isNotNull);
       {
         int offset = code.indexOf('<!DOCTYPE');
-        LineInfo_Location location = lineInfo.getLocation(offset);
+        CharacterLocation location = lineInfo.getLocation(offset);
         expect(location.lineNumber, 1);
         expect(location.columnNumber, 1);
       }
       {
         int offset = code.indexOf('<html>');
-        LineInfo_Location location = lineInfo.getLocation(offset);
+        CharacterLocation location = lineInfo.getLocation(offset);
         expect(location.lineNumber, 2);
         expect(location.columnNumber, 1);
       }
       {
         int offset = code.indexOf('<title>');
-        LineInfo_Location location = lineInfo.getLocation(offset);
+        CharacterLocation location = lineInfo.getLocation(offset);
         expect(location.lineNumber, 4);
         expect(location.columnNumber, 5);
       }

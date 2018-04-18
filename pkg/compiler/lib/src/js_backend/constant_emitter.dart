@@ -146,9 +146,9 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     double value = constant.doubleValue;
     if (value.isNaN) {
       return js("0/0");
-    } else if (value == double.INFINITY) {
+    } else if (value == double.infinity) {
       return js("1/0");
-    } else if (value == -double.INFINITY) {
+    } else if (value == -double.infinity) {
       return js("-1/0");
     } else {
       String shortened = _shortenExponentialRepresentation("$value");

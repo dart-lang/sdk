@@ -7,9 +7,6 @@ part of dart._runtime;
 
 final metadata = JS('', 'Symbol("metadata")');
 
-/// The symbol used to store the cached `Type` object associated with a class.
-final _typeObject = JS('', 'Symbol("typeObject")');
-
 /// Types in dart are represented internally at runtime as follows.
 ///
 ///   - Normal nominal types, produced from classes, are represented
@@ -445,7 +442,7 @@ class Typedef extends AbstractFunctionType {
 
     var result = name + '<';
     var allDynamic = true;
-    for (var i = 0, n = JS('int', '#.length', typeArgs); i < n; ++i) {
+    for (int i = 0, n = JS('!', '#.length', typeArgs); i < n; ++i) {
       if (i > 0) result += ', ';
       var typeArg = JS('', '#[#]', typeArgs, i);
       if (JS('bool', '# !== #', typeArg, _dynamic)) allDynamic = false;
@@ -503,7 +500,7 @@ class GenericFunctionType extends AbstractFunctionType {
     // purposes, such as when an error happens or if someone calls
     // `Type.toString()`. So we could recover them lazily rather than eagerly.
     // Alternatively we could synthesize new names.
-    var str = JS('String', '#.toString()', _instantiateTypeParts);
+    String str = JS('!', '#.toString()', _instantiateTypeParts);
     var hasParens = str[0] == '(';
     var end = str.indexOf(hasParens ? ')' : '=>');
     if (hasParens) {

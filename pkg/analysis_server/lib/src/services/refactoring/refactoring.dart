@@ -250,6 +250,12 @@ abstract class ExtractWidgetRefactoring implements Refactoring {
    * level of checking.
    */
   RefactoringStatus checkName();
+
+  /**
+   * Return `true` if refactoring is available, possibly without checking all
+   * initial conditions.
+   */
+  bool isAvailable();
 }
 
 /**

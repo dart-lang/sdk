@@ -57,7 +57,6 @@ import '../util/util.dart';
 import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
 import 'annotations.dart' as optimizerHints;
 import 'backend_impact.dart';
-import 'backend_serialization.dart' show JavaScriptBackendSerialization;
 import 'backend_usage.dart';
 import 'checked_mode_helpers.dart';
 import 'codegen_listener.dart';
@@ -414,9 +413,6 @@ class JavaScriptBackend {
   /// The strategy used for collecting and emitting source information.
   SourceInformationStrategy sourceInformationStrategy;
 
-  /// Interface for serialization of backend specific data.
-  JavaScriptBackendSerialization serialization;
-
   NativeDataBuilderImpl _nativeDataBuilder;
   NativeDataBuilder get nativeDataBuilder => _nativeDataBuilder;
   final NativeDataResolver _nativeDataResolver;
@@ -461,7 +457,6 @@ class JavaScriptBackend {
     patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler = new SsaFunctionCompiler(
         this, compiler.measurer, sourceInformationStrategy);
-    serialization = new JavaScriptBackendSerialization(this);
   }
 
   /// The [ConstantSystem] used to interpret compile-time constants for this
@@ -943,14 +938,12 @@ class JavaScriptBackend {
   /// This method is called immediately after the [library] and its parts have
   /// been loaded.
   void setAnnotations(LibraryEntity library) {
-    if (!compiler.serialization.isDeserialized(library)) {
-      AnnotationProcessor processor =
-          compiler.frontendStrategy.annotationProcesser;
-      if (canLibraryUseNative(library)) {
-        processor.extractNativeAnnotations(library);
-      }
-      processor.extractJsInteropAnnotations(library);
+    AnnotationProcessor processor =
+        compiler.frontendStrategy.annotationProcesser;
+    if (canLibraryUseNative(library)) {
+      processor.extractNativeAnnotations(library);
     }
+    processor.extractJsInteropAnnotations(library);
     Uri uri = library.canonicalUri;
     if (uri == Uris.dart_html) {
       htmlLibraryIsLoaded = true;
@@ -1229,14 +1222,11 @@ class JavaScriptBackend {
 
   /// Creates an impact strategy to use for compilation.
   ImpactStrategy createImpactStrategy(
-      {bool supportDeferredLoad: true,
-      bool supportDumpInfo: true,
-      bool supportSerialization: true}) {
+      {bool supportDeferredLoad: true, bool supportDumpInfo: true}) {
     return new JavaScriptImpactStrategy(
         impactCacheDeleter, compiler.dumpInfoTask,
         supportDeferredLoad: supportDeferredLoad,
-        supportDumpInfo: supportDumpInfo,
-        supportSerialization: supportSerialization);
+        supportDumpInfo: supportDumpInfo);
   }
 
   EnqueueTask makeEnqueuer() => new EnqueueTask(compiler);
@@ -1247,19 +1237,16 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
   final DumpInfoTask dumpInfoTask;
   final bool supportDeferredLoad;
   final bool supportDumpInfo;
-  final bool supportSerialization;
 
   JavaScriptImpactStrategy(this.impactCacheDeleter, this.dumpInfoTask,
-      {this.supportDeferredLoad,
-      this.supportDumpInfo,
-      this.supportSerialization});
+      {this.supportDeferredLoad, this.supportDumpInfo});
 
   @override
   void visitImpact(var impactSource, WorldImpact impact,
       WorldImpactVisitor visitor, ImpactUseCase impactUse) {
     // TODO(johnniwinther): Compute the application strategy once for each use.
     if (impactUse == ResolutionEnqueuer.IMPACT_USE) {
-      if (supportDeferredLoad || supportSerialization) {
+      if (supportDeferredLoad) {
         impact.apply(visitor);
       } else {
         impact.apply(visitor);
@@ -1280,9 +1267,7 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
 
   @override
   void onImpactUsed(ImpactUseCase impactUse) {
-    if (impactUse == DeferredLoadTask.IMPACT_USE && !supportSerialization) {
-      // TODO(johnniwinther): Allow emptying when serialization has been
-      // performed.
+    if (impactUse == DeferredLoadTask.IMPACT_USE) {
       impactCacheDeleter.emptyCache();
     }
   }

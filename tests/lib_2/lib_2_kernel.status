@@ -136,7 +136,6 @@ mirrors/library_enumeration_deferred_loading_test: RuntimeError
 mirrors/library_exports_hidden_test: RuntimeError, Crash, CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/library_exports_shown_test: RuntimeError, CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/library_import_deferred_loading_test: RuntimeError # Deferred loading kernel issue 28335.
-mirrors/library_imports_bad_metadata_test/none: Crash
 mirrors/library_imports_deferred_test: RuntimeError, CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/library_imports_hidden_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/library_imports_metadata_test: RuntimeError # Issue 31402 (Invocation arguments)
@@ -253,7 +252,7 @@ mirrors/instance_members_with_override_test: RuntimeError
 mirrors/instantiate_abstract_class_test: RuntimeError
 mirrors/invoke_closurization2_test: RuntimeError
 mirrors/invoke_throws_test: RuntimeError
-mirrors/library_imports_bad_metadata_test/none: RuntimeError
+mirrors/library_imports_bad_metadata_test/none: RuntimeError, Crash # Issue 32879
 mirrors/metadata_const_map_test: Crash
 mirrors/mixin_members_test: RuntimeError
 mirrors/null_test: RuntimeError
@@ -332,7 +331,6 @@ mirrors/*: SkipByDesign # Mirrors are not supported in AOT mode.
 [ $compiler == fasta && $strong ]
 isolate/isolate_stress_test: CompileTimeError
 mirrors/deferred_type_test: CompileTimeError
-mirrors/library_imports_bad_metadata_test/01: Crash
 mirrors/metadata_allowed_values_test/02: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/27: MissingCompileTimeError
 mirrors/metadata_constructor_arguments_test/04: MissingCompileTimeError
@@ -350,7 +348,6 @@ mirrors/top_level_accessors_test/01: MissingCompileTimeError
 [ $fasta && !$strong ]
 isolate/isolate_import_test/01: MissingCompileTimeError
 isolate/isolate_stress_test: CompileTimeError
-mirrors/library_imports_bad_metadata_test/01: Crash
 mirrors/metadata_allowed_values_test/02: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/27: MissingCompileTimeError
 mirrors/metadata_constructor_arguments_test/04: MissingCompileTimeError

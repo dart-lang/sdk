@@ -8,14 +8,17 @@ import '../../scanner/token.dart' show Token;
 
 import '../fasta_codes.dart' as fasta;
 
+import '../util/link.dart' show Link;
+
 import 'identifier_context.dart' show IdentifierContext;
+
+import 'member_kind.dart' show MemberKind;
 
 import 'listener.dart' show Listener;
 
 import 'parser.dart' show Parser;
 
-import 'type_info.dart'
-    show insertSyntheticIdentifierAfter, simpleTypeInfo, TypeInfo;
+import 'type_info.dart';
 
 import 'util.dart' show optional;
 
@@ -31,8 +34,12 @@ class NoTypeInfo implements TypeInfo {
     parser.reportRecoverableErrorWithToken(
         token.next, fasta.templateExpectedType);
     insertSyntheticIdentifierAfter(token, parser);
-    return simpleTypeInfo.parseTypeNotVoid(token, parser);
+    return simpleTypeInfo.parseType(token, parser);
   }
+
+  @override
+  Token ensureTypeOrVoid(Token token, Parser parser) =>
+      ensureTypeNotVoid(token, parser);
 
   @override
   Token parseTypeNotVoid(Token token, Parser parser) =>
@@ -59,6 +66,10 @@ class PrefixedTypeInfo implements TypeInfo {
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) =>
+      parseType(token, parser);
+
+  @override
+  Token ensureTypeOrVoid(Token token, Parser parser) =>
       parseType(token, parser);
 
   @override
@@ -101,6 +112,10 @@ class SimpleTypeArgumentsInfo implements TypeInfo {
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) =>
+      parseType(token, parser);
+
+  @override
+  Token ensureTypeOrVoid(Token token, Parser parser) =>
       parseType(token, parser);
 
   @override
@@ -147,6 +162,10 @@ class SimpleTypeInfo implements TypeInfo {
       parseType(token, parser);
 
   @override
+  Token ensureTypeOrVoid(Token token, Parser parser) =>
+      parseType(token, parser);
+
+  @override
   Token parseTypeNotVoid(Token token, Parser parser) =>
       parseType(token, parser);
 
@@ -182,6 +201,10 @@ class VoidTypeInfo implements TypeInfo {
   }
 
   @override
+  Token ensureTypeOrVoid(Token token, Parser parser) =>
+      parseType(token, parser);
+
+  @override
   Token parseTypeNotVoid(Token token, Parser parser) =>
       ensureTypeNotVoid(token, parser);
 
@@ -198,7 +221,8 @@ class VoidTypeInfo implements TypeInfo {
   }
 }
 
-bool looksLikeName(Token next) => next.isIdentifier || optional('this', next);
+bool looksLikeName(Token token) =>
+    token.isIdentifier || optional('this', token);
 
 Token skipTypeArguments(Token token) {
   assert(optional('<', token));
@@ -223,4 +247,250 @@ Token skipTypeArguments(Token token) {
   }
 
   return endGroup;
+}
+
+/// Instances of [ComplexTypeInfo] are returned by [computeType] to represent
+/// type references that cannot be represented by the constants above.
+class ComplexTypeInfo implements TypeInfo {
+  /// The first token in the type reference.
+  final Token start;
+
+  /// The last token in the type reference.
+  Token end;
+
+  /// Non-null if type arguments were seen during analysis.
+  Token typeArguments;
+
+  /// The tokens before the start of type variables of function types seen
+  /// during analysis. Notice that the tokens in this list might precede
+  /// either `'<'` or `'('` as not all function types have type parameters.
+  Link<Token> typeVariableStarters = const Link<Token>();
+
+  /// If the receiver represents a generalized function type then this indicates
+  /// whether it has a return type, otherwise this is `null`.
+  bool gftHasReturnType;
+
+  ComplexTypeInfo(Token beforeStart) : this.start = beforeStart.next;
+
+  @override
+  bool get couldBeExpression => false;
+
+  @override
+  Token ensureTypeNotVoid(Token token, Parser parser) =>
+      parseType(token, parser);
+
+  @override
+  Token ensureTypeOrVoid(Token token, Parser parser) =>
+      parseType(token, parser);
+
+  @override
+  Token parseTypeNotVoid(Token token, Parser parser) =>
+      parseType(token, parser);
+
+  @override
+  Token parseType(Token token, Parser parser) {
+    assert(identical(token.next, start));
+
+    for (Link<Token> t = typeVariableStarters; t.isNotEmpty; t = t.tail) {
+      parser.parseTypeVariablesOpt(t.head);
+      parser.listener.beginFunctionType(start);
+    }
+
+    if (gftHasReturnType == false) {
+      // A function type without return type.
+      // Push the non-existing return type first. The loop below will
+      // generate the full type.
+      noTypeInfo.parseTypeNotVoid(token, parser);
+    } else {
+      Token start = token.next;
+      if (optional('void', start)) {
+        token = voidTypeInfo.parseType(token, parser);
+      } else {
+        if (!optional('.', start.next)) {
+          token =
+              parser.ensureIdentifier(token, IdentifierContext.typeReference);
+        } else {
+          token = parser.ensureIdentifier(
+              token, IdentifierContext.prefixedTypeReference);
+          token = parser.parseQualifiedRest(
+              token, IdentifierContext.typeReferenceContinuation);
+        }
+        token = parser.parseTypeArgumentsOpt(token);
+        parser.listener.handleType(start, token.next);
+      }
+    }
+
+    for (Link<Token> t = typeVariableStarters; t.isNotEmpty; t = t.tail) {
+      token = token.next;
+      assert(optional('Function', token));
+      Token functionToken = token;
+      if (optional("<", token.next)) {
+        // Skip type parameters, they were parsed above.
+        token = token.next.endGroup;
+      }
+      token = parser.parseFormalParametersRequiredOpt(
+          token, MemberKind.GeneralizedFunctionType);
+      parser.listener.endFunctionType(functionToken, token.next);
+    }
+
+    // There are two situations in which the [token] != [end]:
+    // Valid code:    identifier `<` identifier `<` identifier `>>`
+    //    where `>>` is replaced by two tokens.
+    // Invalid code:  identifier `<` identifier identifier `>`
+    //    where a synthetic `>` is inserted between the identifiers.
+    assert(identical(token, end) || optional('>', token));
+
+    // During recovery, [token] may be a synthetic that was inserted in the
+    // middle of the type reference. In this situation, return [end] so that it
+    // matches [skipType], and so that the next token to be parsed is correct.
+    return token.isSynthetic ? end : token;
+  }
+
+  @override
+  Token skipType(Token token) {
+    return end;
+  }
+
+  /// Given `Function` non-identifier, compute the type
+  /// and return the receiver or one of the [TypeInfo] constants.
+  TypeInfo computeNoTypeGFT(bool required) {
+    assert(optional('Function', start));
+    computeRest(start, required);
+
+    if (gftHasReturnType == null) {
+      return required ? simpleTypeInfo : noTypeInfo;
+    }
+    assert(end != null);
+    return this;
+  }
+
+  /// Given void `Function` non-identifier, compute the type
+  /// and return the receiver or one of the [TypeInfo] constants.
+  TypeInfo computeVoidGFT(bool required) {
+    assert(optional('void', start));
+    assert(optional('Function', start.next));
+    computeRest(start.next, required);
+
+    if (gftHasReturnType == null) {
+      return voidTypeInfo;
+    }
+    assert(end != null);
+    return this;
+  }
+
+  /// Given a builtin, return the receiver so that parseType will report
+  /// an error for the builtin used as a type.
+  TypeInfo computeBuiltinAsType(bool required) {
+    assert(start.type.isBuiltIn);
+    end = start;
+    Token token = start.next;
+    if (optional('<', token)) {
+      typeArguments = token;
+      token = skipTypeArguments(typeArguments);
+      if (token == null) {
+        token = typeArguments;
+        typeArguments = null;
+      } else {
+        end = token;
+      }
+    }
+    computeRest(token, required);
+
+    assert(end != null);
+    return this;
+  }
+
+  /// Given identifier `Function` non-identifier, compute the type
+  /// and return the receiver or one of the [TypeInfo] constants.
+  TypeInfo computeIdentifierGFT(bool required) {
+    assert(isValidTypeReference(start));
+    assert(optional('Function', start.next));
+    computeRest(start.next, required);
+
+    if (gftHasReturnType == null) {
+      return simpleTypeInfo;
+    }
+    assert(end != null);
+    return this;
+  }
+
+  /// Given identifier `<` ... `>`, compute the type
+  /// and return the receiver or one of the [TypeInfo] constants.
+  TypeInfo computeSimpleWithTypeArguments(bool required) {
+    assert(isValidTypeReference(start));
+    typeArguments = start.next;
+    assert(optional('<', typeArguments));
+
+    Token token = skipTypeArguments(typeArguments);
+    if (token == null) {
+      return required ? simpleTypeInfo : noTypeInfo;
+    }
+    end = token;
+    computeRest(token.next, required);
+
+    if (!required && !looksLikeName(end.next) && gftHasReturnType == null) {
+      return noTypeInfo;
+    }
+    assert(end != null);
+    return this;
+  }
+
+  /// Given identifier `.` identifier, compute the type
+  /// and return the receiver or one of the [TypeInfo] constants.
+  TypeInfo computePrefixedType(bool required) {
+    assert(isValidTypeReference(start));
+    Token token = start.next;
+    assert(optional('.', token));
+    token = token.next;
+    assert(isValidTypeReference(token));
+
+    end = token;
+    token = token.next;
+    if (optional('<', token)) {
+      typeArguments = token;
+      token = skipTypeArguments(token);
+      if (token == null) {
+        return required ? prefixedTypeInfo : noTypeInfo;
+      }
+      end = token;
+      token = token.next;
+    }
+    computeRest(token, required);
+
+    if (!required && !looksLikeName(end.next) && gftHasReturnType == null) {
+      return noTypeInfo;
+    }
+    assert(end != null);
+    return this;
+  }
+
+  void computeRest(Token token, bool required) {
+    while (optional('Function', token)) {
+      Token typeVariableStart = token;
+      token = token.next;
+      if (optional('<', token)) {
+        token = token.endGroup;
+        if (token == null) {
+          break; // Not a function type.
+        }
+        assert(optional('>', token) || optional('>>', token));
+        token = token.next;
+      }
+      if (!optional('(', token)) {
+        break; // Not a function type.
+      }
+      token = token.endGroup;
+      if (token == null) {
+        break; // Not a function type.
+      }
+      if (!required && !token.next.isIdentifier) {
+        break; // `Function` used as the name in a function declaration.
+      }
+      assert(optional(')', token));
+      gftHasReturnType ??= typeVariableStart != start;
+      typeVariableStarters = typeVariableStarters.prepend(typeVariableStart);
+      end = token;
+      token = token.next;
+    }
+  }
 }

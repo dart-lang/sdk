@@ -9,7 +9,7 @@ library front_end.incremental.hot_reload_e2e_test;
 
 import 'dart:async' show Completer, Future;
 
-import 'dart:convert' show LineSplitter, UTF8;
+import 'dart:convert' show LineSplitter, utf8;
 
 import 'dart:io' show Directory, File, Platform, Process;
 
@@ -118,14 +118,14 @@ abstract class TestCase {
     var completers =
         new List.generate(expectedLines, (_) => new Completer<String>());
     lines = completers.map((c) => c.future).toList();
-    vm.stdout.transform(UTF8.decoder).transform(splitter).listen((line) {
+    vm.stdout.transform(utf8.decoder).transform(splitter).listen((line) {
       Expect.isTrue(i < expectedLines);
       completers[i++].complete(line);
     }, onDone: () {
       Expect.equals(expectedLines, i);
     });
 
-    vm.stderr.transform(UTF8.decoder).transform(splitter).toList().then((err) {
+    vm.stderr.transform(utf8.decoder).transform(splitter).toList().then((err) {
       Expect.isTrue(err.isEmpty, err.join('\n'));
     });
 

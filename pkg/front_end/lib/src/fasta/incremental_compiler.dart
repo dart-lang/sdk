@@ -157,21 +157,21 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             await userCode.buildComponent(verify: c.options.verify);
       } on KernelIncrementalTargetErroneousComponent {
         List<Library> librariesWithSdk = userCode.component.libraries;
-        List<Library> libraries = <Library>[];
+        List<Library> compiledLibraries = <Library>[];
         for (Library lib in librariesWithSdk) {
           if (lib.importUri.scheme == "dart") continue;
-          libraries.add(lib);
+          compiledLibraries.add(lib);
           break;
         }
         userCode.loader.builders.clear();
         userCode = userCodeOld;
         return new Component(
-            libraries: libraries, uriToSource: <Uri, Source>{});
+            libraries: compiledLibraries, uriToSource: <Uri, Source>{});
       }
       userCodeOld?.loader?.builders?.clear();
       userCodeOld = null;
 
-      List<Library> libraries =
+      List<Library> compiledLibraries =
           new List<Library>.from(userCode.loader.libraries);
       Map<Uri, Source> uriToSource =
           new Map<Uri, Source>.from(dillLoadedDataUriToSource);
@@ -180,28 +180,32 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           ? data.userLoadedUriMain
           : componentWithDill.mainMethod;
 
+      List<Library> outputLibraries;
       if (data.includeUserLoadedLibraries || fullComponent) {
-        addReusedLibraries(
-            libraries, mainMethod, entryPoint, reusedLibraries, data);
+        outputLibraries = computeTransitiveClosure(
+            compiledLibraries, mainMethod, entryPoint, reusedLibraries, data);
+      } else {
+        outputLibraries = compiledLibraries;
       }
 
       // Clean up.
       userCode.loader.releaseAncillaryResources();
 
       // This is the incremental component.
-      return new Component(libraries: libraries, uriToSource: uriToSource)
+      return new Component(libraries: outputLibraries, uriToSource: uriToSource)
         ..mainMethod = mainMethod;
     });
   }
 
-  void addReusedLibraries(
-      List<Library> libraries,
+  List<Library> computeTransitiveClosure(
+      List<Library> inputLibraries,
       Procedure mainMethod,
       Uri entry,
       List<LibraryBuilder> reusedLibraries,
       IncrementalCompilerData data) {
+    List<Library> result = new List<Library>.from(inputLibraries);
     Map<Uri, Library> libraryMap = <Uri, Library>{};
-    for (Library library in libraries) {
+    for (Library library in inputLibraries) {
       libraryMap[library.importUri] = library;
     }
     List<Uri> worklist = new List<Uri>.from(libraryMap.keys);
@@ -228,7 +232,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         libraryMap.remove(uri);
         Library library = potentiallyReferencedLibraries.remove(uri);
         if (library != null) {
-          libraries.add(library);
+          result.add(library);
         }
       }
     }
@@ -238,16 +242,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       userCode.loader.builders.remove(uri);
     }
 
-    // For now ensure original order of libraries to produce bit-perfect
-    // output.
-    libraries.sort((a, b) {
-      int aOrder = data.importUriToOrder[a.importUri];
-      int bOrder = data.importUriToOrder[b.importUri];
-      if (aOrder != null && bOrder != null) return aOrder - bOrder;
-      if (aOrder != null) return -1;
-      if (bOrder != null) return 1;
-      return 0;
-    });
+    return result;
   }
 
   int prepareSummary(List<int> summaryBytes, UriTranslator uriTranslator,
@@ -279,8 +274,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     if (await entity.exists()) {
       List<int> initializationBytes = await entity.readAsBytes();
       if (initializationBytes != null) {
-        Set<Uri> prevLibraryUris = new Set<Uri>.from(
-            data.component.libraries.map((Library lib) => lib.importUri));
         ticker.logMs("Read $initializeFromDillUri");
 
         Set<Uri> sdkUris = data.component.uriToSource.keys.toSet();
@@ -306,10 +299,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
         initializedFromDill = true;
         bytesLength += initializationBytes.length;
-        for (Library lib in data.component.libraries) {
-          if (prevLibraryUris.contains(lib.importUri)) continue;
-          data.importUriToOrder[lib.importUri] = data.importUriToOrder.length;
-        }
         data.userLoadedUriMain = data.component.mainMethod;
         data.includeUserLoadedLibraries = true;
         for (Uri uri in data.component.uriToSource.keys) {
@@ -354,9 +343,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       return false;
     }
 
-    // Compute [builders] and [invalidatedImportUris].
-    addBuilderAndInvalidateUris(Uri uri, LibraryBuilder library,
-        [bool recursive = true]) {
+    addBuilderAndInvalidateUris(Uri uri, LibraryBuilder library) {
       builders[uri] = library;
       if (isInvalidated(uri, library.target.fileUri)) {
         invalidatedImportUris.add(uri);
@@ -448,7 +435,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
 class IncrementalCompilerData {
   bool includeUserLoadedLibraries;
-  Map<Uri, int> importUriToOrder;
   Procedure userLoadedUriMain;
   Component component;
 
@@ -458,7 +444,6 @@ class IncrementalCompilerData {
 
   reset() {
     includeUserLoadedLibraries = false;
-    importUriToOrder = <Uri, int>{};
     userLoadedUriMain = null;
     component = null;
   }

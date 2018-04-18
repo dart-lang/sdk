@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/type.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart' as analyzer;
 import 'package:analyzer/source/error_processor.dart' as analyzer;
+import 'package:analyzer/source/line_info.dart' as analyzer;
 import 'package:analyzer/src/generated/engine.dart' as analyzer;
 import 'package:analyzer/src/generated/source.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart' as analyzer;
@@ -35,7 +36,7 @@ class AnalyzerConverter {
     int startLine = -1;
     int startColumn = -1;
     if (lineInfo != null) {
-      analyzer.LineInfo_Location lineLocation = lineInfo.getLocation(offset);
+      analyzer.CharacterLocation lineLocation = lineInfo.getLocation(offset);
       if (lineLocation != null) {
         startLine = lineLocation.lineNumber;
         startColumn = lineLocation.columnNumber;
@@ -338,7 +339,7 @@ class AnalyzerConverter {
     try {
       analyzer.LineInfo lineInfo = unitElement.lineInfo;
       if (lineInfo != null) {
-        analyzer.LineInfo_Location offsetLocation =
+        analyzer.CharacterLocation offsetLocation =
             lineInfo.getLocation(range.offset);
         startLine = offsetLocation.lineNumber;
         startColumn = offsetLocation.columnNumber;

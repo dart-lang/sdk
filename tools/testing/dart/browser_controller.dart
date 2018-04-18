@@ -206,7 +206,7 @@ abstract class Browser {
       }
 
       stdoutSubscription =
-          process.stdout.transform(UTF8.decoder).listen((data) {
+          process.stdout.transform(utf8.decoder).listen((data) {
         _addStdout(data);
       }, onError: (error) {
         // This should _never_ happen, but we really want this in the log
@@ -215,7 +215,7 @@ abstract class Browser {
       }, onDone: closeStdout);
 
       stderrSubscription =
-          process.stderr.transform(UTF8.decoder).listen((data) {
+          process.stderr.transform(utf8.decoder).listen((data) {
         _addStderr(data);
       }, onError: (error) {
         // This should _never_ happen, but we really want this in the log
@@ -802,7 +802,7 @@ class BrowserTest {
     id = _idCounter++;
   }
 
-  String toJSON() => JSON.encode({'url': url, 'id': id, 'isHtmlTest': false});
+  String toJSON() => jsonEncode({'url': url, 'id': id, 'isHtmlTest': false});
 }
 
 /**
@@ -815,7 +815,7 @@ class HtmlTest extends BrowserTest {
       this.expectedMessages)
       : super(url, doneCallback, timeout) {}
 
-  String toJSON() => JSON.encode({
+  String toJSON() => jsonEncode({
         'url': url,
         'id': id,
         'isHtmlTest': true,
@@ -1297,7 +1297,7 @@ class BrowserTestingServer {
     errorReportingServer = server;
     void errorReportingHandler(HttpRequest request) {
       StringBuffer buffer = new StringBuffer();
-      request.transform(UTF8.decoder).listen((data) {
+      request.transform(utf8.decoder).listen((data) {
         buffer.write(data);
       }, onDone: () {
         String back = buffer.toString();
@@ -1389,7 +1389,7 @@ class BrowserTestingServer {
   void handleReport(HttpRequest request, String browserId, int testId,
       {bool isStatusUpdate}) {
     StringBuffer buffer = new StringBuffer();
-    request.transform(UTF8.decoder).listen((data) {
+    request.transform(utf8.decoder).listen((data) {
       buffer.write(data);
     }, onDone: () {
       String back = buffer.toString();
@@ -1410,7 +1410,7 @@ class BrowserTestingServer {
     // If an error occurs while receiving the data from the request stream,
     // we don't handle it specially. We can safely ignore it, since the started
     // events are not crucial.
-    request.transform(UTF8.decoder).listen((data) {
+    request.transform(utf8.decoder).listen((data) {
       buffer.write(data);
     }, onDone: () {
       String back = buffer.toString();

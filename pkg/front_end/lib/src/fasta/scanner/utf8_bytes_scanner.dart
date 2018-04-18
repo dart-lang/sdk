@@ -4,7 +4,7 @@
 
 library fasta.scanner.utf8_bytes_scanner;
 
-import 'dart:convert' show UNICODE_BOM_CHARACTER_RUNE, UTF8;
+import 'dart:convert' show unicodeBomCharacterRune, utf8;
 
 import '../../scanner/token.dart' show SyntheticStringToken, TokenType;
 
@@ -133,13 +133,13 @@ class Utf8BytesScanner extends ArrayBasedScanner {
     // TODO(lry): measurably slow, decode creates first a Utf8Decoder and a
     // _Utf8Decoder instance. Also the sublist is eagerly allocated.
     String codePoint =
-        UTF8.decode(bytes.sublist(startOffset, end), allowMalformed: true);
+        utf8.decode(bytes.sublist(startOffset, end), allowMalformed: true);
     if (codePoint.length == 0) {
       // The UTF-8 decoder discards leading BOM characters.
       // TODO(floitsch): don't just assume that removed characters were the
       // BOM.
       assert(containsBomAt(startOffset));
-      codePoint = new String.fromCharCode(UNICODE_BOM_CHARACTER_RUNE);
+      codePoint = new String.fromCharCode(unicodeBomCharacterRune);
     }
     if (codePoint.length == 1) {
       utf8Slack += (numBytes - 1);
@@ -176,7 +176,7 @@ class Utf8BytesScanner extends ArrayBasedScanner {
     int end = byteOffset;
     // TODO(lry): this measurably slows down the scanner for files with unicode.
     String s =
-        UTF8.decode(bytes.sublist(startScanOffset, end), allowMalformed: true);
+        utf8.decode(bytes.sublist(startScanOffset, end), allowMalformed: true);
     utf8Slack += (end - startScanOffset) - s.length;
   }
 

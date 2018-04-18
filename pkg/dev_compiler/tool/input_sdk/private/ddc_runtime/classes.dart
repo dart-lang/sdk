@@ -314,8 +314,8 @@ void _installPropertiesForObject(jsProto) {
   // symbol name.
   var coreObjProto = JS('', '#.prototype', Object);
   var names = getOwnPropertyNames(coreObjProto);
-  for (int i = 0; i < JS('int', '#.length', names); ++i) {
-    var name = JS('String', '#[#]', names, i);
+  for (int i = 0, n = JS('!', '#.length', names); i < n; ++i) {
+    var name = JS<String>('!', '#[#]', names, i);
     if (name == 'constructor') continue;
     var desc = getOwnPropertyDescriptor(coreObjProto, name);
     defineProperty(jsProto, JS('', '#.#', dartx, name), desc);
@@ -413,10 +413,10 @@ defineExtensionAccessors(type, Iterable memberNames) {
     var member;
     var p = proto;
     for (;; p = JS('', '#.__proto__', p)) {
-      member = JS('', 'Object.getOwnPropertyDescriptor(#, #)', p, name);
+      member = getOwnPropertyDescriptor(p, name);
       if (member != null) break;
     }
-    JS('', 'Object.defineProperty(#, dartx[#], #)', proto, name, member);
+    defineProperty(proto, JS('', 'dartx[#]', name), member);
   }
 }
 

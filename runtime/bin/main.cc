@@ -473,7 +473,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   if (!VmService::Setup(Options::vm_service_server_ip(),
                         Options::vm_service_server_port(), skip_library_load,
                         Options::vm_service_dev_mode(),
-                        Options::trace_loading())) {
+                        Options::trace_loading(), Options::deterministic())) {
     *error = strdup(VmService::GetErrorMessage());
     return NULL;
   }
@@ -801,6 +801,7 @@ static Dart_QualifiedFunctionName standalone_entry_points[] = {
     {"dart:_builtin", "::", "_loadPort"},
     {"dart:_internal", "::", "_printClosure"},
     {"dart:vmservice_io", "::", "_autoStart"},
+    {"dart:vmservice_io", "::", "_deterministic"},
     {"dart:vmservice_io", "::", "_ip"},
     {"dart:vmservice_io", "::", "_isFuchsia"},
     {"dart:vmservice_io", "::", "_isWindows"},

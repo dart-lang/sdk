@@ -14,7 +14,7 @@ import "package:expect/expect.dart";
 void testWriteInt8ListAndView() {
   asyncStart();
   const int LIST_LENGTH = 8;
-  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Int8List.BYTES_PER_ELEMENT;
+  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Int8List.bytesPerElement;
   const int VIEW_LENGTH = 4;
   Int8List list = new Int8List(LIST_LENGTH);
   for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;
@@ -44,7 +44,7 @@ void testWriteInt8ListAndView() {
 void testWriteUint8ListAndView() {
   asyncStart();
   const int LIST_LENGTH = 8;
-  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Uint8List.BYTES_PER_ELEMENT;
+  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Uint8List.bytesPerElement;
   const int VIEW_LENGTH = 4;
   Uint8List list = new Uint8List(LIST_LENGTH);
   for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;
@@ -104,10 +104,10 @@ void testWriteUint8ClampedListAndView() {
 void testWriteInt16ListAndView() {
   asyncStart();
   const int LIST_LENGTH = 8;
-  const int LIST_LENGTH_IN_BYTES = LIST_LENGTH * Int16List.BYTES_PER_ELEMENT;
-  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Int16List.BYTES_PER_ELEMENT;
+  const int LIST_LENGTH_IN_BYTES = LIST_LENGTH * Int16List.bytesPerElement;
+  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Int16List.bytesPerElement;
   const int VIEW_LENGTH = 4;
-  const int VIEW_LENGTH_IN_BYTES = VIEW_LENGTH * Int16List.BYTES_PER_ELEMENT;
+  const int VIEW_LENGTH_IN_BYTES = VIEW_LENGTH * Int16List.bytesPerElement;
   var list = new Int16List(LIST_LENGTH);
   for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;
   var view =
@@ -146,10 +146,10 @@ void testWriteInt16ListAndView() {
 void testWriteUint16ListAndView() {
   asyncStart();
   const int LIST_LENGTH = 8;
-  const int LIST_LENGTH_IN_BYTES = LIST_LENGTH * Uint16List.BYTES_PER_ELEMENT;
-  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Uint16List.BYTES_PER_ELEMENT;
+  const int LIST_LENGTH_IN_BYTES = LIST_LENGTH * Uint16List.bytesPerElement;
+  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Uint16List.bytesPerElement;
   const int VIEW_LENGTH = 4;
-  const int VIEW_LENGTH_IN_BYTES = VIEW_LENGTH * Uint16List.BYTES_PER_ELEMENT;
+  const int VIEW_LENGTH_IN_BYTES = VIEW_LENGTH * Uint16List.bytesPerElement;
   var list = new Uint16List(LIST_LENGTH);
   for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;
   var view =
@@ -188,10 +188,10 @@ void testWriteUint16ListAndView() {
 void testWriteInt32ListAndView() {
   asyncStart();
   const int LIST_LENGTH = 8;
-  const int LIST_LENGTH_IN_BYTES = LIST_LENGTH * Int32List.BYTES_PER_ELEMENT;
-  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Int32List.BYTES_PER_ELEMENT;
+  const int LIST_LENGTH_IN_BYTES = LIST_LENGTH * Int32List.bytesPerElement;
+  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Int32List.bytesPerElement;
   const int VIEW_LENGTH = 4;
-  const int VIEW_LENGTH_IN_BYTES = VIEW_LENGTH * Int32List.BYTES_PER_ELEMENT;
+  const int VIEW_LENGTH_IN_BYTES = VIEW_LENGTH * Int32List.bytesPerElement;
   var list = new Int32List(LIST_LENGTH);
   for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;
   var view =
@@ -230,10 +230,10 @@ void testWriteInt32ListAndView() {
 void testWriteUint32ListAndView() {
   asyncStart();
   const int LIST_LENGTH = 8;
-  const int LIST_LENGTH_IN_BYTES = LIST_LENGTH * Int32List.BYTES_PER_ELEMENT;
-  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Int32List.BYTES_PER_ELEMENT;
+  const int LIST_LENGTH_IN_BYTES = LIST_LENGTH * Int32List.bytesPerElement;
+  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Int32List.bytesPerElement;
   const int VIEW_LENGTH = 4;
-  const int VIEW_LENGTH_IN_BYTES = VIEW_LENGTH * Int32List.BYTES_PER_ELEMENT;
+  const int VIEW_LENGTH_IN_BYTES = VIEW_LENGTH * Int32List.bytesPerElement;
   var list = new Uint32List(LIST_LENGTH);
   for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;
   var view =
@@ -272,10 +272,10 @@ void testWriteUint32ListAndView() {
 void testWriteInt64ListAndView() {
   asyncStart();
   const int LIST_LENGTH = 8;
-  const int LIST_LENGTH_IN_BYTES = LIST_LENGTH * Int64List.BYTES_PER_ELEMENT;
-  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Int64List.BYTES_PER_ELEMENT;
+  const int LIST_LENGTH_IN_BYTES = LIST_LENGTH * Int64List.bytesPerElement;
+  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Int64List.bytesPerElement;
   const int VIEW_LENGTH = 4;
-  const int VIEW_LENGTH_IN_BYTES = VIEW_LENGTH * Int64List.BYTES_PER_ELEMENT;
+  const int VIEW_LENGTH_IN_BYTES = VIEW_LENGTH * Int64List.bytesPerElement;
   var list = new Int64List(LIST_LENGTH);
   for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;
   var view =
@@ -314,10 +314,10 @@ void testWriteInt64ListAndView() {
 void testWriteUint64ListAndView() {
   asyncStart();
   const int LIST_LENGTH = 8;
-  const int LIST_LENGTH_IN_BYTES = LIST_LENGTH * Uint64List.BYTES_PER_ELEMENT;
-  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Uint64List.BYTES_PER_ELEMENT;
+  const int LIST_LENGTH_IN_BYTES = LIST_LENGTH * Uint64List.bytesPerElement;
+  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Uint64List.bytesPerElement;
   const int VIEW_LENGTH = 4;
-  const int VIEW_LENGTH_IN_BYTES = VIEW_LENGTH * Uint64List.BYTES_PER_ELEMENT;
+  const int VIEW_LENGTH_IN_BYTES = VIEW_LENGTH * Uint64List.bytesPerElement;
   var list = new Uint64List(LIST_LENGTH);
   for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;
   var view =

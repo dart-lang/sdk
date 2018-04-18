@@ -8,10 +8,10 @@ import 'dart:convert';
 import 'dart:io' show Platform, Process, ProcessResult;
 
 import 'package:analysis_server/src/plugin/notification_manager.dart';
-import 'package:analyzer/context/context_root.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/context/context_root.dart' as analyzer;
 import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/gn.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -301,6 +301,11 @@ class PluginManager {
    */
   static Map<PluginInfo, Map<String, List<int>>> pluginResponseTimes =
       <PluginInfo, Map<String, List<int>>>{};
+
+  /**
+   * The console environment key used by the pub tool.
+   */
+  static const String _pubEnvironmentKey = 'PUB_ENVIRONMENT';
 
   /**
    * The resource provider used to access the file system.
@@ -832,11 +837,6 @@ class PluginManager {
         .putIfAbsent(method, () => <int>[])
         .add(time);
   }
-
-  /**
-   * The console environment key used by the pub tool.
-   */
-  static const String _pubEnvironmentKey = 'PUB_ENVIRONMENT';
 
   /**
    * Returns the environment value that should be used when running pub.

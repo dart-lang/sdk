@@ -1201,8 +1201,8 @@ class FileTest {
     text = new File(name).readAsStringSync(encoding: lenientAscii);
     // Default replacement character is the Unicode replacement character.
     expected = [
-      UNICODE_REPLACEMENT_CHARACTER_RUNE,
-      UNICODE_REPLACEMENT_CHARACTER_RUNE,
+      unicodeReplacementCharacterRune,
+      unicodeReplacementCharacterRune,
       120,
       46,
       32,

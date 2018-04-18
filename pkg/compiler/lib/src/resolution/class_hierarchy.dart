@@ -546,8 +546,9 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     if (cls.allSupertypesAndSelf != null) return;
     final ResolutionInterfaceType supertype = cls.supertype;
     if (supertype != null) {
-      cls.allSupertypesAndSelf = new ResolutionOrderedTypeSetBuilder(cls,
-              reporter: reporter, objectType: commonElements.objectType)
+      cls.allSupertypesAndSelf = new ResolutionOrderedTypeSetBuilder(
+              cls, commonElements.objectType,
+              reporter: reporter)
           .createOrderedTypeSet(supertype, cls.interfaces);
     } else {
       assert(cls == resolution.commonElements.objectClass);

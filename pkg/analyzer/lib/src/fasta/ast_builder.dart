@@ -874,8 +874,17 @@ class AstBuilder extends ScopeListener {
     Expression condition = pop();
     switch (kind) {
       case Assert.Expression:
-        throw new UnimplementedError(
-            'assert expressions are not yet supported');
+        // The parser has already reported an error indicating that assert
+        // cannot be used in an expression. Insert a placeholder.
+        List<Expression> arguments = <Expression>[condition];
+        if (message != null) {
+          arguments.add(message);
+        }
+        push(ast.functionExpressionInvocation(
+            ast.simpleIdentifier(assertKeyword),
+            null,
+            ast.argumentList(
+                leftParenthesis, arguments, leftParenthesis?.endGroup)));
         break;
       case Assert.Initializer:
         push(ast.assertInitializer(assertKeyword, leftParenthesis, condition,
@@ -1097,6 +1106,15 @@ class AstBuilder extends ScopeListener {
     }
   }
 
+  @override
+  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
+      Token varFinalOrConst) {
+    push(new _Modifiers()
+      ..covariantKeyword = covariantToken
+      ..finalConstOrVarKeyword = varFinalOrConst);
+  }
+
+  @override
   void endFormalParameter(Token thisKeyword, Token periodAfterThis,
       Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
     assert(optionalOrNull('this', thisKeyword));
@@ -1458,23 +1476,6 @@ class AstBuilder extends ScopeListener {
           messageIllegalAssignmentToNonAssignable, operator, operator);
     }
     push(ast.postfixExpression(expression, operator));
-  }
-
-  void handleModifier(Token token) {
-    assert(token.isModifier);
-    debugEvent("Modifier");
-
-    push(token);
-  }
-
-  void handleModifiers(int count) {
-    debugEvent("Modifiers");
-
-    if (count == 0) {
-      push(NullValue.Modifiers);
-    } else {
-      push(new _Modifiers(popTypedList(count)));
-    }
   }
 
   void beginTopLevelMethod(Token lastConsumed, Token externalToken) {

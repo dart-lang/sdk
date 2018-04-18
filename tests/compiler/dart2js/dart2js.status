@@ -41,26 +41,6 @@ packages/*: Skip # Skip packages folder
 quarantined/http_test: RuntimeError # not supported with CFE, consider deleting.
 rti/rti_emission_test: Pass, Slow
 rti/rti_need_test: Pass, Slow
-serialization/analysis1_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
-serialization/analysis3_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
-serialization/analysis4_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
-serialization/analysis5_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
-serialization/compilation0_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
-serialization/compilation1_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
-serialization/compilation3_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
-serialization/compilation4_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
-serialization/compilation5_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
-serialization/compilation_1_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
-serialization/impact_test: Slow, RuntimeError # Issue 32149
-serialization/library_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
-serialization/model0_test: Slow, RuntimeError # Issue 32149
-serialization/model1_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
-serialization/model3_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
-serialization/model4_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
-serialization/model5_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
-serialization/model_1_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
-serialization/native_data_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
-serialization/reserialization_test: Slow, RuntimeError # Issue 32149
 show_package_warnings_test: RuntimeError # missing errors from the FE
 sourcemaps/pub_build_validity_test: Pass, RuntimeError # Investigate: passes locally, but only fails in bots.
 sourcemaps/source_mapping_invokes_test: Pass, Slow
@@ -103,7 +83,6 @@ mirrors/preserve_uris_test: Pass, Slow
 old_frontend/analyze_dart2js_helpers_test: Pass, Slow
 old_frontend/duplicate_library_test: Pass, Slow
 output_type_test: Pass, Slow
-serialization*: Slow, Pass
 sourcemaps/source_map_pub_build_validity_test: Pass, Slow
 sourcemaps/stacktrace_test: Pass, Slow
 uri_retention_test: Pass, Slow
@@ -111,7 +90,6 @@ uri_retention_test: Pass, Slow
 [ !$checked ]
 end_to_end/exit_code_test: Skip # This tests requires checked mode.
 jsinterop/declaration_test: Slow, Pass
-serialization*: Slow, Pass
 
 [ $runtime == chrome || $runtime == ff || $runtime == firefox || $runtime == safari || $jscl ]
 *: Skip # dart2js uses #import('dart:io'); and it is not self-hosted (yet).

@@ -758,14 +758,7 @@ class Primitives {
     return JS('int', '#', hash);
   }
 
-  @NoInline()
-  static int _parseIntError(String source, int handleError(String source)) {
-    if (handleError == null) throw new FormatException(source);
-    return handleError(source);
-  }
-
-  static int parseInt(
-      String source, int radix, int handleError(String source)) {
+  static int parseInt(String source, int radix) {
     checkString(source);
     var re = JS('', r'/^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i');
     var match = JS('JSExtendableArray|Null', '#.exec(#)', re, source);
@@ -777,7 +770,7 @@ class Primitives {
       // TODO(sra): It might be that the match failed due to unrecognized U+0085
       // spaces.  We could replace them with U+0020 spaces and try matching
       // again.
-      return _parseIntError(source, handleError);
+      return null;
     }
     String decimalMatch = match[decimalIndex];
     if (radix == null) {
@@ -789,7 +782,7 @@ class Primitives {
         // Cannot fail because we know that the digits are all hex.
         return JS('int', r'parseInt(#, 16)', source);
       }
-      return _parseIntError(source, handleError);
+      return null;
     }
 
     if (radix is! int) {
@@ -828,7 +821,7 @@ class Primitives {
       for (int i = 0; i < digitsPart.length; i++) {
         int characterCode = digitsPart.codeUnitAt(i) | 0x20;
         if (characterCode > maxCharCode) {
-          return _parseIntError(source, handleError);
+          return null;
         }
       }
     }
@@ -837,16 +830,7 @@ class Primitives {
     return JS('int', r'parseInt(#, #)', source, radix);
   }
 
-  @NoInline()
-  static double _parseDoubleError(
-      String source, double handleError(String source)) {
-    if (handleError == null) {
-      throw new FormatException('Invalid double', source);
-    }
-    return handleError(source);
-  }
-
-  static double parseDouble(String source, double handleError(String source)) {
+  static double parseDouble(String source) {
     checkString(source);
     // Notice that JS parseFloat accepts garbage at the end of the string.
     // Accept only:
@@ -859,7 +843,7 @@ class Primitives {
         r'/^\s*[+-]?(?:Infinity|NaN|'
         r'(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(#)',
         source)) {
-      return _parseDoubleError(source, handleError);
+      return null;
     }
     var result = JS('num', r'parseFloat(#)', source);
     if (result.isNaN) {
@@ -867,7 +851,7 @@ class Primitives {
       if (trimmed == 'NaN' || trimmed == '+NaN' || trimmed == '-NaN') {
         return result;
       }
-      return _parseDoubleError(source, handleError);
+      return null;
     }
     return result;
   }

@@ -10,7 +10,6 @@ dependencies:
   args: '>=0.13.0 <2.0.0'
   dart_style: '^1.0.6'
   intl: ^0.15.0
-  isolate: '>=0.2.2 <2.0.0'
   linter: ^0.1.16
   logging: any
   package_config: '>=0.1.5 <2.0.0'

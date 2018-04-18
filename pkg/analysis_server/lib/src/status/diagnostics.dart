@@ -20,11 +20,10 @@ import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analysis_server/src/utilities/profiling.dart';
-import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:analyzer/source/sdk_ext.dart';
+import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -36,6 +35,7 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/source/sdk_ext.dart';
 import 'package:path/path.dart' as pathPackage;
 
 final String kCustomCss = '''
@@ -1200,6 +1200,52 @@ class ProfilePage extends DiagnosticPageWithNav {
   }
 }
 
+class ServiceProtocol {
+  final WebSocket socket;
+
+  int _id = 0;
+  Map<String, Completer> _completers = {};
+
+  ServiceProtocol._(this.socket) {
+    socket.listen(_handleMessage);
+  }
+
+  Future<Map> call(String method, [Map args]) {
+    String id = '${++_id}';
+    Completer completer = new Completer();
+    _completers[id] = completer;
+    Map m = {'id': id, 'method': method};
+    if (args != null) m['params'] = args;
+    String message = jsonEncode(m);
+    socket.add(message);
+    return completer.future;
+  }
+
+  Future dispose() => socket.close();
+
+  void _handleMessage(dynamic message) {
+    if (message is! String) {
+      return;
+    }
+
+    try {
+      dynamic json = jsonDecode(message);
+      if (json.containsKey('id')) {
+        dynamic id = json['id'];
+        _completers[id]?.complete(json['result']);
+        _completers.remove(id);
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  static Future<ServiceProtocol> connect(Uri uri) async {
+    WebSocket socket = await WebSocket.connect(uri.toString());
+    return new ServiceProtocol._(socket);
+  }
+}
+
 class StatusPage extends DiagnosticPageWithNav {
   StatusPage(DiagnosticsSite site)
       : super(site, 'status', 'Status',
@@ -1279,50 +1325,4 @@ class SubscriptionsPage extends DiagnosticPageWithNav {
       }
     });
   }
-}
-
-class ServiceProtocol {
-  final WebSocket socket;
-
-  int _id = 0;
-  Map<String, Completer> _completers = {};
-
-  static Future<ServiceProtocol> connect(Uri uri) async {
-    WebSocket socket = await WebSocket.connect(uri.toString());
-    return new ServiceProtocol._(socket);
-  }
-
-  ServiceProtocol._(this.socket) {
-    socket.listen(_handleMessage);
-  }
-
-  Future<Map> call(String method, [Map args]) {
-    String id = '${++_id}';
-    Completer completer = new Completer();
-    _completers[id] = completer;
-    Map m = {'id': id, 'method': method};
-    if (args != null) m['params'] = args;
-    String message = jsonEncode(m);
-    socket.add(message);
-    return completer.future;
-  }
-
-  void _handleMessage(dynamic message) {
-    if (message is! String) {
-      return;
-    }
-
-    try {
-      dynamic json = jsonDecode(message);
-      if (json.containsKey('id')) {
-        dynamic id = json['id'];
-        _completers[id]?.complete(json['result']);
-        _completers.remove(id);
-      }
-    } catch (e) {
-      // ignore
-    }
-  }
-
-  Future dispose() => socket.close();
 }

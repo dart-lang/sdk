@@ -4,7 +4,7 @@
 
 library dart2js.io.source_file;
 
-import 'dart:convert' show UTF8;
+import 'dart:convert' show utf8;
 import 'dart:math';
 import 'dart:typed_data' show Uint8List;
 
@@ -19,7 +19,7 @@ abstract class SourceFile<T> implements Input<T>, LocationProvider {
   /// The absolute URI of the source file.
   Uri get uri;
 
-  InputKind get inputKind => InputKind.utf8;
+  InputKind get inputKind => InputKind.UTF8;
 
   kernel.Source cachedKernelSource;
 
@@ -188,7 +188,7 @@ class Utf8BytesSourceFile extends SourceFile<List<int>> {
 
   String slowText() {
     // Don't convert the trailing zero byte.
-    return UTF8.decoder
+    return utf8.decoder
         .convert(zeroTerminatedContent, 0, zeroTerminatedContent.length - 1);
   }
 
@@ -248,7 +248,7 @@ class StringSourceFile extends SourceFile<String> {
   String slowText() => text;
 
   List<int> slowUtf8ZeroTerminatedBytes() {
-    return _zeroTerminateIfNecessary(UTF8.encode(text));
+    return _zeroTerminateIfNecessary(utf8.encode(text));
   }
 
   String slowSubstring(int start, int end) => text.substring(start, end);

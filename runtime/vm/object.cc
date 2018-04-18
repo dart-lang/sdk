@@ -42,12 +42,14 @@
 #include "vm/runtime_entry.h"
 #include "vm/scopes.h"
 #include "vm/stack_frame.h"
+#include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
 #include "vm/timer.h"
 #include "vm/type_table.h"
+#include "vm/type_testing_stubs.h"
 #include "vm/unicode.h"
 #include "vm/weak_code.h"
 #include "vm/zone_text_buffer.h"
@@ -999,6 +1001,22 @@ void Object::InitOnce(Isolate* isolate) {
   ASSERT(extractor_parameter_names_->IsArray());
 }
 
+void Object::FinishInitOnce(Isolate* isolate) {
+  // The type testing stubs we initialize in AbstractType objects for the
+  // canonical type of kDynamicCid/kVoidCid/kVectorCid need to be set in this
+  // method, which is called after StubCode::InitOnce().
+  Instructions& instr = Instructions::Handle();
+
+  instr = TypeTestingStubGenerator::DefaultCodeForType(*dynamic_type_);
+  dynamic_type_->SetTypeTestingStub(instr);
+
+  instr = TypeTestingStubGenerator::DefaultCodeForType(*void_type_);
+  void_type_->SetTypeTestingStub(instr);
+
+  instr = TypeTestingStubGenerator::DefaultCodeForType(*vector_type_);
+  vector_type_->SetTypeTestingStub(instr);
+}
+
 // An object visitor which will mark all visited objects. This is used to
 // premark all objects in the vm_isolate_ heap.  Also precalculates hash
 // codes so that we can get the identity hash code of objects in the read-
@@ -1020,11 +1038,7 @@ class FinalizeVMIsolateVisitor : public ObjectVisitor {
     if (!obj->IsFreeListElement()) {
       ASSERT(obj->IsVMHeapObject());
       obj->SetMarkBitUnsynchronized();
-      if (obj->IsStringInstance()) {
-        RawString* str = reinterpret_cast<RawString*>(obj);
-        intptr_t hash = String::Hash(str);
-        String::SetCachedHash(str, hash);
-      }
+      Object::FinalizeReadOnlyObject(obj);
 #if defined(HASH_IN_OBJECT_HEADER)
       // These objects end up in the read-only VM isolate which is shared
       // between isolates, so we have to prepopulate them with identity hash
@@ -1127,6 +1141,65 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
     iteration.IterateOldObjectsNoImagePages(&premarker);
     // Make the VM isolate read-only again after setting all objects as marked.
     // Note objects in image pages are already pre-marked.
+  }
+}
+
+void Object::FinalizeReadOnlyObject(RawObject* object) {
+  NoSafepointScope no_safepoint;
+  intptr_t cid = object->GetClassId();
+  if (cid == kOneByteStringCid) {
+    RawOneByteString* str = static_cast<RawOneByteString*>(object);
+    if (String::GetCachedHash(str) == 0) {
+      intptr_t hash = String::Hash(str);
+      String::SetCachedHash(str, hash);
+    }
+    intptr_t size = OneByteString::UnroundedSize(str);
+    ASSERT(size <= str->Size());
+    memset(reinterpret_cast<void*>(RawObject::ToAddr(str) + size), 0,
+           str->Size() - size);
+  } else if (cid == kTwoByteStringCid) {
+    RawTwoByteString* str = static_cast<RawTwoByteString*>(object);
+    if (String::GetCachedHash(str) == 0) {
+      intptr_t hash = String::Hash(str);
+      String::SetCachedHash(str, hash);
+    }
+    ASSERT(String::GetCachedHash(str) != 0);
+    intptr_t size = TwoByteString::UnroundedSize(str);
+    ASSERT(size <= str->Size());
+    memset(reinterpret_cast<void*>(RawObject::ToAddr(str) + size), 0,
+           str->Size() - size);
+  } else if (cid == kExternalOneByteStringCid) {
+    RawExternalOneByteString* str =
+        static_cast<RawExternalOneByteString*>(object);
+    if (String::GetCachedHash(str) == 0) {
+      intptr_t hash = String::Hash(str);
+      String::SetCachedHash(str, hash);
+    }
+  } else if (cid == kExternalTwoByteStringCid) {
+    RawExternalTwoByteString* str =
+        static_cast<RawExternalTwoByteString*>(object);
+    if (String::GetCachedHash(str) == 0) {
+      intptr_t hash = String::Hash(str);
+      String::SetCachedHash(str, hash);
+    }
+  } else if (cid == kCodeSourceMapCid) {
+    RawCodeSourceMap* map = CodeSourceMap::RawCast(object);
+    intptr_t size = CodeSourceMap::UnroundedSize(map);
+    ASSERT(size <= map->Size());
+    memset(reinterpret_cast<void*>(RawObject::ToAddr(map) + size), 0,
+           map->Size() - size);
+  } else if (cid == kStackMapCid) {
+    RawStackMap* map = StackMap::RawCast(object);
+    intptr_t size = StackMap::UnroundedSize(map);
+    ASSERT(size <= map->Size());
+    memset(reinterpret_cast<void*>(RawObject::ToAddr(map) + size), 0,
+           map->Size() - size);
+  } else if (cid == kPcDescriptorsCid) {
+    RawPcDescriptors* desc = PcDescriptors::RawCast(object);
+    intptr_t size = PcDescriptors::UnroundedSize(desc);
+    ASSERT(size <= desc->Size());
+    memset(reinterpret_cast<void*>(RawObject::ToAddr(desc) + size), 0,
+           desc->Size() - size);
   }
 }
 
@@ -16944,6 +17017,19 @@ const char* AbstractType::ToCString() const {
   return "AbstractType";
 }
 
+void AbstractType::SetTypeTestingStub(const Instructions& instr) const {
+  if (instr.IsNull()) {
+    // This only happens during bootstrapping when creating Type objects before
+    // we have the instructions.
+    ASSERT(type_class_id() == kDynamicCid || type_class_id() == kVoidCid ||
+           type_class_id() == kVectorCid);
+    StoreNonPointer(&raw_ptr()->type_test_stub_entry_point_, 0);
+  } else {
+    StoreNonPointer(&raw_ptr()->type_test_stub_entry_point_,
+                    instr.UncheckedEntryPoint());
+  }
+}
+
 RawType* Type::NullType() {
   return Isolate::Current()->object_store()->null_type();
 }
@@ -17852,7 +17938,8 @@ RawType* Type::New(const Object& clazz,
                    const TypeArguments& arguments,
                    TokenPosition token_pos,
                    Heap::Space space) {
-  const Type& result = Type::Handle(Type::New(space));
+  Zone* Z = Thread::Current()->zone();
+  const Type& result = Type::Handle(Z, Type::New(space));
   if (clazz.IsClass()) {
     result.set_type_class(Class::Cast(clazz));
   } else {
@@ -17862,6 +17949,9 @@ RawType* Type::New(const Object& clazz,
   result.SetHash(0);
   result.set_token_pos(token_pos);
   result.StoreNonPointer(&result.raw_ptr()->type_state_, RawType::kAllocated);
+
+  result.SetTypeTestingStub(Instructions::Handle(
+      Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
   return result.raw();
 }
 
@@ -17888,7 +17978,8 @@ const char* Type::ToCString() const {
   const char* class_name;
   if (HasResolvedTypeClass()) {
     cls = type_class();
-    class_name = String::Handle(zone, cls.Name()).ToCString();
+    const String& name = String::Handle(zone, cls.Name());
+    class_name = name.IsNull() ? "<null>" : name.ToCString();
   } else {
     class_name = UnresolvedClass::Handle(zone, unresolved_class()).ToCString();
   }
@@ -17971,6 +18062,9 @@ RawTypeRef* TypeRef::InstantiateFrom(
       space);
   ASSERT(!instantiated_ref_type.IsTypeRef());
   instantiated_type_ref.set_type(instantiated_ref_type);
+
+  instantiated_type_ref.SetTypeTestingStub(Instructions::Handle(
+      TypeTestingStubGenerator::DefaultCodeForType(instantiated_type_ref)));
   return instantiated_type_ref.raw();
 }
 
@@ -18056,8 +18150,12 @@ RawTypeRef* TypeRef::New() {
 }
 
 RawTypeRef* TypeRef::New(const AbstractType& type) {
-  const TypeRef& result = TypeRef::Handle(TypeRef::New());
+  Zone* Z = Thread::Current()->zone();
+  const TypeRef& result = TypeRef::Handle(Z, TypeRef::New());
   result.set_type(type);
+
+  result.SetTypeTestingStub(Instructions::Handle(
+      Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
   return result.raw();
 }
 
@@ -18359,7 +18457,8 @@ RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
                                      const AbstractType& bound,
                                      TokenPosition token_pos) {
   ASSERT(parameterized_class.IsNull() != parameterized_function.IsNull());
-  const TypeParameter& result = TypeParameter::Handle(TypeParameter::New());
+  Zone* Z = Thread::Current()->zone();
+  const TypeParameter& result = TypeParameter::Handle(Z, TypeParameter::New());
   result.set_parameterized_class(parameterized_class);
   result.set_parameterized_function(parameterized_function);
   result.set_index(index);
@@ -18369,6 +18468,9 @@ RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
   result.set_token_pos(token_pos);
   result.StoreNonPointer(&result.raw_ptr()->type_state_,
                          RawTypeParameter::kAllocated);
+
+  result.SetTypeTestingStub(Instructions::Handle(
+      Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
   return result.raw();
 }
 
@@ -18626,11 +18728,15 @@ RawBoundedType* BoundedType::New() {
 RawBoundedType* BoundedType::New(const AbstractType& type,
                                  const AbstractType& bound,
                                  const TypeParameter& type_parameter) {
-  const BoundedType& result = BoundedType::Handle(BoundedType::New());
+  Zone* Z = Thread::Current()->zone();
+  const BoundedType& result = BoundedType::Handle(Z, BoundedType::New());
   result.set_type(type);
   result.set_bound(bound);
   result.SetHash(0);
   result.set_type_parameter(type_parameter);
+
+  result.SetTypeTestingStub(Instructions::Handle(
+      Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
   return result.raw();
 }
 
@@ -18701,9 +18807,13 @@ RawMixinAppType* MixinAppType::New() {
 
 RawMixinAppType* MixinAppType::New(const AbstractType& super_type,
                                    const Array& mixin_types) {
-  const MixinAppType& result = MixinAppType::Handle(MixinAppType::New());
+  Zone* Z = Thread::Current()->zone();
+  const MixinAppType& result = MixinAppType::Handle(Z, MixinAppType::New());
   result.set_super_type(super_type);
   result.set_mixin_types(mixin_types);
+
+  result.SetTypeTestingStub(Instructions::Handle(
+      Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
   return result.raw();
 }
 

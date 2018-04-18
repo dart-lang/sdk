@@ -98,7 +98,7 @@ class FileTest extends _BaseTestNative {
   test_readAsBytes_exists() async {
     var s = 'contents';
     file.writeAsStringSync(s);
-    expect(await file.readAsBytes(), UTF8.encode(s));
+    expect(await file.readAsBytes(), utf8.encode(s));
   }
 
   test_readAsString_badUtf8() {

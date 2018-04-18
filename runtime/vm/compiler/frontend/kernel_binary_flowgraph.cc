@@ -4202,7 +4202,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
 
   if (!target.IsNull() && (target.raw() != parent.raw())) {
     DEBUG_ASSERT(Isolate::Current()->HasAttemptedReload());
-    if ((target.is_static() != parent.is_static()) || (target.kind() != parent.kind())) {
+    if ((target.is_static() != parent.is_static()) ||
+        (target.kind() != parent.kind())) {
       target = Function::null();
     }
   }
@@ -8327,9 +8328,9 @@ Fragment StreamingFlowGraphBuilder::BuildDoubleLiteral(
     TokenPosition* position) {
   if (position != NULL) *position = TokenPosition::kNoSource;
 
-  Double& constant = Double::ZoneHandle(
-      Z, Double::NewCanonical(
-             H.DartString(ReadStringReference())));  // read string reference.
+  Double& constant =
+      Double::ZoneHandle(Z, Double::New(H.DartString(ReadStringReference()),
+                                        Heap::kOld));  // read string reference.
   return Constant(constant);
 }
 

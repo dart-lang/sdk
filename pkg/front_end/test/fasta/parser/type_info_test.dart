@@ -5,6 +5,7 @@
 import 'package:front_end/src/fasta/messages.dart';
 import 'package:front_end/src/fasta/parser.dart';
 import 'package:front_end/src/fasta/parser/type_info.dart';
+import 'package:front_end/src/fasta/parser/type_info_impl.dart';
 import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:test/test.dart';
@@ -19,14 +20,17 @@ main() {
 @reflectiveTest
 class TokenInfoTest {
   void test_noType() {
-    TypeInfo typeInfo = noTypeInfo;
-    Token start = scanString('before ;').tokens;
-    Token expectedEnd = start;
-    expect(typeInfo.couldBeExpression, isFalse);
-    expect(typeInfo.skipType(start), expectedEnd);
+    final Token start = scanString('before ;').tokens;
 
-    TypeInfoListener listener = new TypeInfoListener();
-    expect(typeInfo.ensureTypeNotVoid(start, new Parser(listener)),
+    expect(noTypeInfo.couldBeExpression, isFalse);
+    expect(noTypeInfo.skipType(start), start);
+  }
+
+  void test_noType_ensureTypeNotVoid() {
+    final Token start = scanString('before ;').tokens;
+    final TypeInfoListener listener = new TypeInfoListener();
+
+    expect(noTypeInfo.ensureTypeNotVoid(start, new Parser(listener)),
         new isInstanceOf<SyntheticStringToken>());
     expect(listener.calls, [
       'handleIdentifier  typeReference',
@@ -34,56 +38,99 @@ class TokenInfoTest {
       'handleType  ;',
     ]);
     expect(listener.errors, [new ExpectedError(codeExpectedType, 7, 1)]);
+  }
 
-    listener = new TypeInfoListener();
-    expect(typeInfo.parseTypeNotVoid(start, new Parser(listener)), expectedEnd);
+  void test_noType_ensureTypeOrVoid() {
+    final Token start = scanString('before ;').tokens;
+    final TypeInfoListener listener = new TypeInfoListener();
+
+    expect(noTypeInfo.ensureTypeOrVoid(start, new Parser(listener)),
+        new isInstanceOf<SyntheticStringToken>());
+    expect(listener.calls, [
+      'handleIdentifier  typeReference',
+      'handleNoTypeArguments ;',
+      'handleType  ;',
+    ]);
+    expect(listener.errors, [new ExpectedError(codeExpectedType, 7, 1)]);
+  }
+
+  void test_noType_parseType() {
+    final Token start = scanString('before ;').tokens;
+    final TypeInfoListener listener = new TypeInfoListener();
+
+    expect(noTypeInfo.parseType(start, new Parser(listener)), start);
     expect(listener.calls, ['handleNoType before']);
     expect(listener.errors, isNull);
+  }
 
-    listener = new TypeInfoListener();
-    expect(typeInfo.parseType(start, new Parser(listener)), expectedEnd);
+  void test_noType_parseTypeNotVoid() {
+    final Token start = scanString('before ;').tokens;
+    final TypeInfoListener listener = new TypeInfoListener();
+
+    expect(noTypeInfo.parseTypeNotVoid(start, new Parser(listener)), start);
     expect(listener.calls, ['handleNoType before']);
     expect(listener.errors, isNull);
   }
 
   void test_voidType() {
-    TypeInfo typeInfo = voidTypeInfo;
-    Token start = scanString('before void ;').tokens;
-    Token expectedEnd = start.next;
-    expect(typeInfo.skipType(start), expectedEnd);
-    expect(typeInfo.couldBeExpression, isFalse);
+    final Token start = scanString('before void ;').tokens;
 
-    TypeInfoListener listener = new TypeInfoListener();
-    expect(
-        typeInfo.ensureTypeNotVoid(start, new Parser(listener)), expectedEnd);
+    expect(voidTypeInfo.skipType(start), start.next);
+    expect(voidTypeInfo.couldBeExpression, isFalse);
+  }
+
+  void test_voidType_ensureTypeNotVoid() {
+    final Token start = scanString('before void ;').tokens;
+    final TypeInfoListener listener = new TypeInfoListener();
+
+    expect(voidTypeInfo.ensureTypeNotVoid(start, new Parser(listener)),
+        start.next);
     expect(listener.calls, [
       'handleIdentifier void typeReference',
       'handleNoTypeArguments ;',
       'handleType void ;',
     ]);
     expect(listener.errors, [new ExpectedError(codeInvalidVoid, 7, 4)]);
+  }
 
-    listener = new TypeInfoListener();
-    expect(typeInfo.parseTypeNotVoid(start, new Parser(listener)), expectedEnd);
-    expect(listener.calls, [
-      'handleIdentifier void typeReference',
-      'handleNoTypeArguments ;',
-      'handleType void ;',
-    ]);
-    expect(listener.errors, [new ExpectedError(codeInvalidVoid, 7, 4)]);
+  void test_voidType_ensureTypeOrVoid() {
+    final Token start = scanString('before void ;').tokens;
+    final TypeInfoListener listener = new TypeInfoListener();
 
-    listener = new TypeInfoListener();
-    expect(typeInfo.parseType(start, new Parser(listener)), expectedEnd);
+    expect(voidTypeInfo.parseType(start, new Parser(listener)), start.next);
     expect(listener.calls, ['handleVoidKeyword void']);
     expect(listener.errors, isNull);
   }
 
+  void test_voidType_parseType() {
+    final Token start = scanString('before void ;').tokens;
+    final TypeInfoListener listener = new TypeInfoListener();
+
+    expect(voidTypeInfo.parseType(start, new Parser(listener)), start.next);
+    expect(listener.calls, ['handleVoidKeyword void']);
+    expect(listener.errors, isNull);
+  }
+
+  void test_voidType_parseTypeNotVoid() {
+    final Token start = scanString('before void ;').tokens;
+    final TypeInfoListener listener = new TypeInfoListener();
+
+    expect(
+        voidTypeInfo.parseTypeNotVoid(start, new Parser(listener)), start.next);
+    expect(listener.calls, [
+      'handleIdentifier void typeReference',
+      'handleNoTypeArguments ;',
+      'handleType void ;',
+    ]);
+    expect(listener.errors, [new ExpectedError(codeInvalidVoid, 7, 4)]);
+  }
+
   void test_prefixedTypeInfo() {
-    TypeInfo typeInfo = prefixedTypeInfo;
-    Token start = scanString('before C.a ;').tokens;
-    Token expectedEnd = start.next.next.next;
-    expect(typeInfo.skipType(start), expectedEnd);
-    expect(typeInfo.couldBeExpression, isTrue);
+    final Token start = scanString('before C.a ;').tokens;
+    final Token expectedEnd = start.next.next.next;
+
+    expect(prefixedTypeInfo.skipType(start), expectedEnd);
+    expect(prefixedTypeInfo.couldBeExpression, isTrue);
 
     TypeInfoListener listener;
     assertResult(Token actualEnd) {
@@ -99,21 +146,27 @@ class TokenInfoTest {
     }
 
     listener = new TypeInfoListener();
-    assertResult(typeInfo.ensureTypeNotVoid(start, new Parser(listener)));
+    assertResult(
+        prefixedTypeInfo.ensureTypeNotVoid(start, new Parser(listener)));
 
     listener = new TypeInfoListener();
-    assertResult(typeInfo.parseTypeNotVoid(start, new Parser(listener)));
+    assertResult(
+        prefixedTypeInfo.ensureTypeOrVoid(start, new Parser(listener)));
 
     listener = new TypeInfoListener();
-    assertResult(typeInfo.parseType(start, new Parser(listener)));
+    assertResult(
+        prefixedTypeInfo.parseTypeNotVoid(start, new Parser(listener)));
+
+    listener = new TypeInfoListener();
+    assertResult(prefixedTypeInfo.parseType(start, new Parser(listener)));
   }
 
   void test_simpleTypeInfo() {
-    TypeInfo typeInfo = simpleTypeInfo;
-    Token start = scanString('before C ;').tokens;
-    Token expectedEnd = start.next;
-    expect(typeInfo.skipType(start), expectedEnd);
-    expect(typeInfo.couldBeExpression, isTrue);
+    final Token start = scanString('before C ;').tokens;
+    final Token expectedEnd = start.next;
+
+    expect(simpleTypeInfo.skipType(start), expectedEnd);
+    expect(simpleTypeInfo.couldBeExpression, isTrue);
 
     TypeInfoListener listener;
     assertResult(Token actualEnd) {
@@ -127,21 +180,24 @@ class TokenInfoTest {
     }
 
     listener = new TypeInfoListener();
-    assertResult(typeInfo.ensureTypeNotVoid(start, new Parser(listener)));
+    assertResult(simpleTypeInfo.ensureTypeNotVoid(start, new Parser(listener)));
 
     listener = new TypeInfoListener();
-    assertResult(typeInfo.parseTypeNotVoid(start, new Parser(listener)));
+    assertResult(simpleTypeInfo.ensureTypeOrVoid(start, new Parser(listener)));
 
     listener = new TypeInfoListener();
-    assertResult(typeInfo.parseType(start, new Parser(listener)));
+    assertResult(simpleTypeInfo.parseTypeNotVoid(start, new Parser(listener)));
+
+    listener = new TypeInfoListener();
+    assertResult(simpleTypeInfo.parseType(start, new Parser(listener)));
   }
 
   void test_simpleTypeArgumentsInfo() {
-    TypeInfo typeInfo = simpleTypeArgumentsInfo;
-    Token start = scanString('before C<T> ;').tokens;
-    Token expectedEnd = start.next.next.next.next;
-    expect(typeInfo.skipType(start), expectedEnd);
-    expect(typeInfo.couldBeExpression, isFalse);
+    final Token start = scanString('before C<T> ;').tokens;
+    final Token expectedEnd = start.next.next.next.next;
+
+    expect(simpleTypeArgumentsInfo.skipType(start), expectedEnd);
+    expect(simpleTypeArgumentsInfo.couldBeExpression, isFalse);
 
     TypeInfoListener listener;
     assertResult(Token actualEnd) {
@@ -159,13 +215,20 @@ class TokenInfoTest {
     }
 
     listener = new TypeInfoListener();
-    assertResult(typeInfo.ensureTypeNotVoid(start, new Parser(listener)));
+    assertResult(
+        simpleTypeArgumentsInfo.ensureTypeNotVoid(start, new Parser(listener)));
 
     listener = new TypeInfoListener();
-    assertResult(typeInfo.parseTypeNotVoid(start, new Parser(listener)));
+    assertResult(
+        simpleTypeArgumentsInfo.ensureTypeOrVoid(start, new Parser(listener)));
 
     listener = new TypeInfoListener();
-    assertResult(typeInfo.parseType(start, new Parser(listener)));
+    assertResult(
+        simpleTypeArgumentsInfo.parseTypeNotVoid(start, new Parser(listener)));
+
+    listener = new TypeInfoListener();
+    assertResult(
+        simpleTypeArgumentsInfo.parseType(start, new Parser(listener)));
   }
 
   void test_computeType_basic() {
@@ -232,7 +295,6 @@ class TokenInfoTest {
       'beginMetadataStar int',
       'endMetadataStar 0',
       'beginFormalParameter int MemberKind.GeneralizedFunctionType',
-      'handleModifiers 0',
       'handleIdentifier int typeReference',
       'handleNoTypeArguments )',
       'handleType int )',
@@ -258,7 +320,6 @@ class TokenInfoTest {
       'beginMetadataStar int',
       'endMetadataStar 0',
       'beginFormalParameter int MemberKind.GeneralizedFunctionType',
-      'handleModifiers 0',
       'handleIdentifier int typeReference',
       'handleNoTypeArguments )',
       'handleType int )',
@@ -604,7 +665,6 @@ class TokenInfoTest {
           'beginMetadataStar int',
           'endMetadataStar 0',
           'beginFormalParameter int MemberKind.GeneralizedFunctionType',
-          'handleModifiers 0',
           'handleIdentifier int typeReference',
           'handleNoTypeArguments x',
           'handleType int x',
@@ -618,7 +678,6 @@ class TokenInfoTest {
           'beginMetadataStar int',
           'endMetadataStar 0',
           'beginFormalParameter int MemberKind.GeneralizedFunctionType',
-          'handleModifiers 0',
           'handleIdentifier int typeReference',
           'handleNoTypeArguments x',
           'handleType int x',
@@ -696,6 +755,7 @@ void expectInfo(expectedInfo, String source,
   if (required == null) {
     compute(expectedInfo, source, start, true, expectedAfter, expectedCalls,
         expectedErrors);
+    start = scan(source);
     compute(expectedInfo, source, start, false, expectedAfter, expectedCalls,
         expectedErrors);
   } else {
@@ -777,7 +837,8 @@ class TypeInfoListener implements Listener {
   List<ExpectedError> errors;
 
   @override
-  void beginFormalParameter(Token token, MemberKind kind) {
+  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
+      Token varFinalOrConst) {
     calls.add('beginFormalParameter $token $kind');
   }
 
@@ -857,11 +918,6 @@ class TypeInfoListener implements Listener {
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
     calls.add('handleIdentifier $token $context');
-  }
-
-  @override
-  void handleModifiers(int count) {
-    calls.add('handleModifiers $count');
   }
 
   @override

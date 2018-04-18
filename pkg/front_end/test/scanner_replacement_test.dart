@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show UTF8;
+import 'dart:convert' show utf8;
 
 import 'package:front_end/src/fasta/scanner/recover.dart'
     show defaultRecoveryStrategy;
@@ -57,7 +57,7 @@ class ScannerTest_Replacement extends ScannerTestBase {
     assertValidTokenStream(tokens);
     assertValidBeginTokens(tokens);
     if (result.hasErrors) {
-      List<int> bytes = UTF8.encode(source);
+      List<int> bytes = utf8.encode(source);
       tokens = defaultRecoveryStrategy(bytes, tokens, result.lineStarts);
       assertValidTokenStream(tokens, errorsFirst: true);
     }

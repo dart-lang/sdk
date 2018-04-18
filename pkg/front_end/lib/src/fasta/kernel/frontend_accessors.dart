@@ -707,7 +707,8 @@ abstract class LoadLibraryAccessor<Arguments> extends Accessor<Arguments> {
       : super(helper, token);
 
   Expression _makeRead(ShadowComplexAssignment complexAssignment) {
-    var read = helper.makeStaticGet(builder.createTearoffMethod(), token);
+    var read =
+        helper.makeStaticGet(builder.createTearoffMethod(helper.forest), token);
     complexAssignment?.read = read;
     return read;
   }

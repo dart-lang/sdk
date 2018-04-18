@@ -426,12 +426,12 @@ class ExprBuilder {
   PropertyAccessorElement _getStringLengthElement() =>
       resynthesizer.typeProvider.stringType.getGetter('length');
 
-  FormalParameter _makeParameter(ParameterElementImpl param) {
+  FormalParameter _makeParameter(ParameterElement param) {
     SimpleFormalParameterImpl simpleParam =
         AstTestFactory.simpleFormalParameter(null, param.name);
     simpleParam.identifier.staticElement = param;
     simpleParam.element = param;
-    var unlinkedParam = param.unlinkedParam;
+    var unlinkedParam = (param as ParameterElementImpl).unlinkedParam;
     if (unlinkedParam.kind == UnlinkedParamKind.positional) {
       return AstTestFactory.positionalFormalParameter(simpleParam, null);
     } else if (unlinkedParam.kind == UnlinkedParamKind.named) {

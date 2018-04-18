@@ -570,7 +570,8 @@ class LocationSummary : public ZoneAllocated {
   enum ContainsCall {
     kNoCall,  // Used registers must be reserved as tmp.
     kCall,    // Registers have been saved and can be used without reservation.
-    kCallOnSlowPath  // Used registers must be reserved as tmp.
+    kCallCalleeSafe,  // Registers will be saved by the callee.
+    kCallOnSlowPath   // Used registers must be reserved as tmp.
   };
 
   LocationSummary(Zone* zone,
@@ -651,7 +652,11 @@ class LocationSummary : public ZoneAllocated {
   }
   void SetStackBit(intptr_t index) { stack_bitmap()->Set(index, true); }
 
-  bool always_calls() const { return contains_call_ == kCall; }
+  bool always_calls() const {
+    return contains_call_ == kCall || contains_call_ == kCallCalleeSafe;
+  }
+
+  bool callee_safe_call() const { return contains_call_ == kCallCalleeSafe; }
 
   bool can_call() { return contains_call_ != kNoCall; }
 

@@ -642,7 +642,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
     writeOffset(node.fileOffset);
     writeByte(node.flags);
-    writeNodeList(node.annotations);
+    writeAnnotationList(node.annotations);
     writeLibraryReference(node.targetLibrary);
     writeStringReference(node.name ?? '');
     writeNodeList(node.combinators);
@@ -665,7 +665,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     if (_metadataSubsections != null) {
       _recordNodeOffsetForMetadataMapping(node);
     }
-    writeNodeList(node.annotations);
+    writeAnnotationList(node.annotations);
     writeStringReference(node.partUri);
   }
 

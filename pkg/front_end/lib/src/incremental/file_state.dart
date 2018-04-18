@@ -65,7 +65,7 @@ class FileState {
   bool _gcMarked = false;
 
   FileState._(this._fsState, this.uri, this.fileUri)
-      : uriBytes = UTF8.encode(uri.toString());
+      : uriBytes = utf8.encode(uri.toString());
 
   /// The MD5 signature of the file API as a byte array.
   /// It depends on all non-comment tokens outside the block bodies.

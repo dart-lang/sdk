@@ -1,0 +1,6 @@
+Errors: {
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr<T extends dynamic>(dynamic x) → dynamic
+  return () → dart.core::Null {
+    main::A::debugExpr::T x = null;
+  };

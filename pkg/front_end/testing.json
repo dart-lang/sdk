@@ -63,7 +63,8 @@
         "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
-        "/testcases/shaker/"
+        "/testcases/shaker/",
+        "/testcases/expression/"
       ]
     },
 
@@ -80,7 +81,8 @@
         "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
-        "/testcases/shaker/"
+        "/testcases/shaker/",
+        "/testcases/expression/"
       ]
     },
 
@@ -97,7 +99,8 @@
         "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
-        "/testcases/shaker/"
+        "/testcases/shaker/",
+        "/testcases/expression/"
       ]
     },
 

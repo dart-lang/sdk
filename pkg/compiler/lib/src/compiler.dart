@@ -60,7 +60,6 @@ import 'resolution/resolution_strategy.dart';
 import 'resolved_uri_translator.dart';
 import 'scanner/scanner_task.dart' show ScannerTask;
 import 'script.dart' show Script;
-import 'serialization/task.dart' show SerializationTask;
 import 'ssa/nodes.dart' show HInstruction;
 import 'package:front_end/src/fasta/scanner.dart' show StringToken, Token;
 import 'tree/tree.dart' show Node, TypeAnnotation;
@@ -142,7 +141,6 @@ abstract class Compiler {
   ParserTask parser;
   PatchParserTask patchParser;
   LibraryLoaderTask libraryLoader;
-  SerializationTask serialization;
   ResolverTask resolver;
   TypeCheckerTask checker;
   GlobalTypeInferenceTask globalInference;
@@ -213,16 +211,12 @@ abstract class Compiler {
     tasks = [
       dietParser = new DietParserTask(idGenerator, backend, reporter, measurer),
       scanner = createScannerTask(),
-      serialization = new SerializationTask(this),
       patchParser = new PatchParserTask(this),
       libraryLoader = frontendStrategy.createLibraryLoader(
           resolvedUriTranslator,
-          options.compileOnly
-              ? new _NoScriptLoader(this)
-              : new _ScriptLoader(this),
+          new _ScriptLoader(this),
           provider,
           new _ElementScanner(scanner),
-          serialization,
           resolvePatchUri,
           patchParser,
           environment,
@@ -242,9 +236,6 @@ abstract class Compiler {
       selfTask,
     ];
     if (options.useKernel) tasks.add(kernelFrontEndTask);
-    if (options.resolveOnly) {
-      serialization.supportSerialization = true;
-    }
 
     _parsingContext =
         new ParsingContext(reporter, parser, scanner, patchParser, backend);
@@ -544,19 +535,11 @@ abstract class Compiler {
         deferredLoadTask.beforeResolution(rootLibrary);
         impactStrategy = backend.createImpactStrategy(
             supportDeferredLoad: deferredLoadTask.isProgramSplit,
-            supportDumpInfo: options.dumpInfo,
-            supportSerialization: serialization.supportSerialization);
+            supportDumpInfo: options.dumpInfo);
 
         phase = PHASE_RESOLVING;
         resolutionEnqueuer.applyImpact(mainImpact);
-        if (options.resolveOnly) {
-          libraryLoader.libraries.where((LibraryEntity library) {
-            return !serialization.isDeserialized(library);
-          }).forEach((LibraryEntity library) {
-            reporter.log('Enqueuing ${library.canonicalUri}');
-            resolutionEnqueuer.applyImpact(computeImpactForLibrary(library));
-          });
-        } else if (analyzeAll) {
+        if (analyzeAll) {
           libraryLoader.libraries.forEach((LibraryEntity library) {
             reporter.log('Enqueuing ${library.canonicalUri}');
             resolutionEnqueuer.applyImpact(computeImpactForLibrary(library));
@@ -599,15 +582,6 @@ abstract class Compiler {
           }
         }
 
-        if (options.resolveOnly && !compilationFailed) {
-          reporter.log('Serializing to ${options.resolutionOutput}');
-          serialization.serializeToSink(
-              outputProvider.createOutputSink(
-                  '', 'data', api.OutputType.serializationData),
-              libraryLoader.libraries.where((LibraryEntity library) {
-            return !serialization.isDeserialized(library);
-          }));
-        }
         if (options.analyzeOnly) return;
         assert(mainFunction != null);
 
@@ -717,24 +691,7 @@ abstract class Compiler {
             registerStaticUse(loadLibrary);
           }
         }
-        if (serialization.supportSerialization) {
-          for (MetadataAnnotation metadata in import.metadata) {
-            metadata.ensureResolved(resolution);
-          }
-        }
       });
-      if (serialization.supportSerialization) {
-        library.exports.forEach((ExportElement export) {
-          for (MetadataAnnotation metadata in export.metadata) {
-            metadata.ensureResolved(resolution);
-          }
-        });
-        library.compilationUnits.forEach((CompilationUnitElement unit) {
-          for (MetadataAnnotation metadata in unit.metadata) {
-            metadata.ensureResolved(resolution);
-          }
-        });
-      }
     } else {
       ElementEnvironment elementEnvironment =
           frontendStrategy.elementEnvironment;
@@ -1418,17 +1375,12 @@ class CompilerResolution implements Resolution, ImpactCacheDeleter {
 
   @override
   void ensureResolved(Element element) {
-    if (_compiler.serialization.isDeserialized(element)) {
-      return;
-    }
     computeWorldImpact(element);
   }
 
   @override
   void ensureClassMembers(ClassElement element) {
-    if (!_compiler.serialization.isDeserialized(element)) {
-      _compiler.resolver.checkClass(element);
-    }
+    _compiler.resolver.checkClass(element);
   }
 
   @override
@@ -1439,9 +1391,6 @@ class CompilerResolution implements Resolution, ImpactCacheDeleter {
   bool hasResolvedAst(ExecutableElement element) {
     assert(element.isDeclaration,
         failedAt(element, "Element $element must be the declaration."));
-    if (_compiler.serialization.isDeserialized(element)) {
-      return _compiler.serialization.hasResolvedAst(element);
-    }
     return hasBeenResolved(element.memberContext.declaration) &&
         element.hasResolvedAst;
   }
@@ -1452,9 +1401,6 @@ class CompilerResolution implements Resolution, ImpactCacheDeleter {
         failedAt(element, "Element $element must be the declaration."));
     assert(hasResolvedAst(element),
         failedAt(element, "ResolvedAst not available for $element."));
-    if (_compiler.serialization.isDeserialized(element)) {
-      return _compiler.serialization.getResolvedAst(element);
-    }
     return element.resolvedAst;
   }
 
@@ -1468,9 +1414,6 @@ class CompilerResolution implements Resolution, ImpactCacheDeleter {
   bool hasResolutionImpact(Element element) {
     assert(element.isDeclaration,
         failedAt(element, "Element $element must be the declaration."));
-    if (_compiler.serialization.isDeserialized(element)) {
-      return _compiler.serialization.hasResolutionImpact(element);
-    }
     return _resolutionImpactCache.containsKey(element);
   }
 
@@ -1478,12 +1421,7 @@ class CompilerResolution implements Resolution, ImpactCacheDeleter {
   ResolutionImpact getResolutionImpact(Element element) {
     assert(element.isDeclaration,
         failedAt(element, "Element $element must be the declaration."));
-    ResolutionImpact resolutionImpact;
-    if (_compiler.serialization.isDeserialized(element)) {
-      resolutionImpact = _compiler.serialization.getResolutionImpact(element);
-    } else {
-      resolutionImpact = _resolutionImpactCache[element];
-    }
+    ResolutionImpact resolutionImpact = _resolutionImpactCache[element];
     assert(resolutionImpact != null,
         failedAt(element, "ResolutionImpact not available for $element."));
     return resolutionImpact;
@@ -1525,8 +1463,7 @@ class CompilerResolution implements Resolution, ImpactCacheDeleter {
         assert(!element.isSynthesized || tree == null, failedAt(element));
         ResolutionImpact resolutionImpact = _compiler.resolver.resolve(element);
 
-        if (_compiler.serialization.supportSerialization ||
-            retainCachesForTesting) {
+        if (retainCachesForTesting) {
           // [ResolutionImpact] is currently only used by serialization. The
           // enqueuer uses the [WorldImpact] which is always cached.
           // TODO(johnniwinther): Align these use cases better; maybe only
@@ -1559,7 +1496,6 @@ class CompilerResolution implements Resolution, ImpactCacheDeleter {
     assert(element.isDeclaration,
         failedAt(element, "Element $element must be the declaration."));
     if (retainCachesForTesting) return;
-    if (_compiler.serialization.isDeserialized(element)) return;
     assert(_worldImpactCache[element] != null,
         failedAt(element, "WorldImpact not computed for $element."));
     _worldImpactCache[element] = const WorldImpact();
@@ -1582,11 +1518,7 @@ class CompilerResolution implements Resolution, ImpactCacheDeleter {
 
   @override
   ResolutionWorkItem createWorkItem(MemberElement element) {
-    if (_compiler.serialization.isDeserialized(element)) {
-      return _compiler.serialization.createResolutionWorkItem(element);
-    } else {
-      return new ResolutionWorkItem(this, element);
-    }
+    return new ResolutionWorkItem(this, element);
   }
 
   ConstantValue _proxyConstant;
@@ -1635,23 +1567,6 @@ class _ScriptLoader implements ScriptLoader {
 
   Future<Binary> readBinary(Uri uri, [Spannable spannable]) =>
       compiler.readBinary(uri, spannable);
-}
-
-/// [ScriptLoader] used to ensure that scripts are not loaded accidentally
-/// through the [LibraryLoader] when `CompilerOptions.compileOnly` is `true`.
-class _NoScriptLoader implements ScriptLoader {
-  Compiler compiler;
-  _NoScriptLoader(this.compiler);
-
-  Future<Script> readScript(Uri uri, [Spannable spannable]) {
-    throw compiler.reporter
-        .internalError(spannable, "Script loading of '$uri' is not enabled.");
-  }
-
-  Future<Binary> readBinary(Uri uri, [Spannable spannable]) {
-    throw compiler.reporter
-        .internalError(spannable, "Script loading of '$uri' is not enabled.");
-  }
 }
 
 class _ElementScanner implements ElementScanner {

@@ -5,10 +5,10 @@
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/manager.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

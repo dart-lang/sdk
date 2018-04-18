@@ -13,7 +13,7 @@ import 'fasta_codes.dart'
         messageInternalProblemExtendingUnmodifiableScope,
         templateAccessError,
         templateDuplicatedName,
-        templatePreviousUseOfName;
+        templateDuplicatedNamePreviouslyUsedCause;
 
 import 'problems.dart' show internalProblem, unsupported;
 
@@ -201,18 +201,17 @@ class Scope extends MutableScope {
 
   /// Declares that the meaning of [name] in this scope is [builder].
   ///
-  /// If name was used previously in this scope, this method returns an error
-  /// that should be reported as a compile-time error. The position of this
-  /// error is given by [charOffset] and [fileUri].
-  LocatedMessage declare(
-      String name, Builder builder, int charOffset, Uri fileUri) {
+  /// If name was used previously in this scope, this method returns a message
+  /// that can be used as context for reporting a compile-time error about
+  /// [name] being used before its declared. [fileUri] is used to bind the
+  /// location of this message.
+  LocatedMessage declare(String name, Builder builder, Uri fileUri) {
     if (isModifiable) {
       if (usedNames?.containsKey(name) ?? false) {
-        return templatePreviousUseOfName
+        return templateDuplicatedNamePreviouslyUsedCause
             .withArguments(name)
             .withLocation(fileUri, usedNames[name], name.length);
       }
-      recordUse(name, charOffset, fileUri);
       local[name] = builder;
     } else {
       internalProblem(

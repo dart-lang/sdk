@@ -534,7 +534,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     TypeMask receiverType = node.getDartReceiver(_closedWorld).instructionType;
     MemberEntity element =
-        _closedWorld.locateSingleElement(node.selector, receiverType);
+        _closedWorld.locateSingleMember(node.selector, receiverType);
     // TODO(ngeoffray): Also fold if it's a getter or variable.
     if (element != null &&
         element.isFunction
@@ -1056,7 +1056,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (field != null) return directFieldGet(receiver, field);
 
     if (node.element == null) {
-      MemberEntity element = _closedWorld.locateSingleElement(
+      MemberEntity element = _closedWorld.locateSingleMember(
           node.selector, receiver.instructionType);
       if (element != null && element.name == node.selector.name) {
         node.element = element;

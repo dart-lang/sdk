@@ -10,8 +10,8 @@ import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 
+import 'arguments.dart';
 import 'compiler_helper.dart';
-import '../serialization/helper.dart';
 
 const SOURCE = const {
   'main.dart': r'''

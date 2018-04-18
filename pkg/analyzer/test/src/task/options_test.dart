@@ -7,15 +7,15 @@ import 'dart:mirrors';
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/task/api/general.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/options.dart';
-import 'package:analyzer/task/general.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
@@ -255,7 +255,6 @@ class ErrorCodeValuesTest {
         removeCode(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER);
         removeCode(StrongModeCode.TOP_LEVEL_INSTANCE_METHOD);
         removeCode(StrongModeCode.TOP_LEVEL_UNSUPPORTED);
-        removeCode(StrongModeCode.USES_DYNAMIC_AS_BOTTOM);
       } else if (errorType == TodoCode) {
         declaredNames.remove('TODO_REGEX');
       }
@@ -544,15 +543,6 @@ analyzer:
     ''', [AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE]);
   }
 
-  test_analyzer_lint_codes_recognized() {
-    Registry.ruleRegistry.register(new TestRule());
-    validate('''
-analyzer:
-  errors:
-    fantastic_test_rule: ignore
-    ''', []);
-  }
-
   test_analyzer_language_supported() {
     validate('''
 analyzer:
@@ -575,6 +565,15 @@ analyzer:
   language:
     enableSuperMixins: foo
 ''', [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
+  }
+
+  test_analyzer_lint_codes_recognized() {
+    Registry.ruleRegistry.register(new TestRule());
+    validate('''
+analyzer:
+  errors:
+    fantastic_test_rule: ignore
+    ''', []);
   }
 
   test_analyzer_strong_mode_error_code_supported() {

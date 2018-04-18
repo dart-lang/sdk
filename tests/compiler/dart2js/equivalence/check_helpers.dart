@@ -11,8 +11,9 @@ import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/types.dart';
-import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:expect/expect.dart';
+
+import 'equivalence_helper.dart';
 
 Check currentCheck;
 

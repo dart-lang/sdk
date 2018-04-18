@@ -98,6 +98,97 @@ var G, H;
         unorderedEquals(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']));
   }
 
+  test_exportedTopLevelDeclarations_cycle() {
+    String a = _p('/aaa/lib/a.dart');
+    String b = _p('/aaa/lib/b.dart');
+    String c = _p('/aaa/lib/c.dart');
+    provider.newFile(a, r'''
+export 'b.dart';
+class A {}
+''');
+    provider.newFile(b, r'''
+export 'c.dart';
+class B {}
+''');
+    provider.newFile(c, r'''
+export 'a.dart';
+class C {}
+''');
+    _assertExportedTopLevelDeclarations(a, ['A', 'B', 'C']);
+
+    // We asked for 'a', and it was computed.
+    // But 'b' and 'c' are not computed, because we detect that there is
+    // cycle with 'a', so we cannot get all exported declarations of 'a'.
+    _assertHasComputedExportedDeclarations([a]);
+  }
+
+  test_exportedTopLevelDeclarations_cycle_anotherOutsideCycle() {
+    String a = _p('/aaa/lib/a.dart');
+    String b = _p('/aaa/lib/b.dart');
+    String c = _p('/aaa/lib/c.dart');
+    String d = _p('/aaa/lib/d.dart');
+    provider.newFile(a, r'''
+export 'b.dart';
+class A {}
+''');
+    provider.newFile(b, r'''
+export 'c.dart';
+class B {}
+''');
+    provider.newFile(c, r'''
+export 'b.dart';
+export 'd.dart';
+class C {}
+''');
+    provider.newFile(d, r'''
+class D {}
+''');
+    _assertExportedTopLevelDeclarations(a, ['A', 'B', 'C', 'D']);
+
+    // To compute 'a' we compute 'b'.
+    // But 'c' is not computed, because of the cycle [b, c].
+    // However 'd' is not a part of a cycle, so it is computed too.
+    _assertHasComputedExportedDeclarations([a, b, d]);
+  }
+
+  test_exportedTopLevelDeclarations_cycle_onSequence() {
+    String a = _p('/aaa/lib/a.dart');
+    String b = _p('/aaa/lib/b.dart');
+    String c = _p('/aaa/lib/c.dart');
+    String d = _p('/aaa/lib/d.dart');
+    String e = _p('/aaa/lib/e.dart');
+    provider.newFile(a, r'''
+export 'b.dart';
+class A {}
+''');
+    provider.newFile(b, r'''
+export 'c.dart';
+class B {}
+''');
+    provider.newFile(c, r'''
+export 'd.dart';
+class C {}
+''');
+    provider.newFile(d, r'''
+export 'e.dart';
+class D {}
+''');
+    provider.newFile(e, r'''
+export 'c.dart';
+class E {}
+''');
+    // We compute 'a'.
+    // To compute it we also compute 'b' and 'c'.
+    // But 'd' and 'e' are not computed, because of the cycle [c, d, e].
+    _assertExportedTopLevelDeclarations(a, ['A', 'B', 'C', 'D', 'E']);
+    _assertHasComputedExportedDeclarations([a, b, c]);
+
+    // We compute 'd', and try to compute 'e', because 'd' needs 'e'; 'e' can
+    // be computed because 'c' is ready, so the cycle [c, d, e] is broken.
+    _assertExportedTopLevelDeclarations(d, ['C', 'D', 'E']);
+    _assertHasComputedExportedDeclarations([a, b, c, d, e]);
+  }
+
   test_exportedTopLevelDeclarations_export() {
     String a = _p('/aaa/lib/a.dart');
     String b = _p('/aaa/lib/b.dart');
@@ -108,10 +199,8 @@ class A {}
 export 'a.dart';
 class B {}
 ''');
-    FileState file = fileSystemState.getFileForPath(b);
-    Map<String, TopLevelDeclaration> declarations =
-        file.exportedTopLevelDeclarations;
-    expect(declarations.keys, unorderedEquals(['A', 'B']));
+    _assertExportedTopLevelDeclarations(b, ['A', 'B']);
+    _assertHasComputedExportedDeclarations([a, b]);
   }
 
   test_exportedTopLevelDeclarations_export2_show() {
@@ -133,6 +222,7 @@ export 'b.dart' show A2, A3, B1;
 class C {}
 ''');
     _assertExportedTopLevelDeclarations(c, ['A2', 'B1', 'C']);
+    _assertHasComputedExportedDeclarations([a, b, c]);
   }
 
   test_exportedTopLevelDeclarations_export_flushOnChange() {
@@ -761,6 +851,12 @@ set _V3(_) {}
   void _assertFilesWithoutTransitiveSignatures(List<FileState> expected) {
     var actual = fileSystemState.test.filesWithoutTransitiveSignature;
     expect(_excludeSdk(actual), unorderedEquals(expected));
+  }
+
+  void _assertHasComputedExportedDeclarations(List<String> expectedPathList) {
+    FileSystemStateTestView test = fileSystemState.test;
+    expect(test.librariesWithComputedExportedDeclarations.map((f) => f.path),
+        unorderedEquals(expectedPathList));
   }
 
   void _assertIsUnresolvedFile(FileState file) {

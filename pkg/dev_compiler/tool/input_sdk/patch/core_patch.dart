@@ -368,7 +368,7 @@ class List<E> {
     if (JS('bool', '# === void 0', _length)) {
       list = JS('', '[]');
     } else {
-      var length = JS('int', '#', _length);
+      int length = JS('!', '#', _length);
       if (_length == null || length < 0) {
         throw new ArgumentError(
             "Length must be a non-negative integer: $_length");
@@ -2603,7 +2603,7 @@ class _BigIntImpl implements BigInt {
     var resultBits = new Uint8List(8);
 
     var length = _digitBits * (_used - 1) + _digits[_used - 1].bitLength;
-    if (length - 53 > maxDoubleExponent) return double.INFINITY;
+    if (length - 53 > maxDoubleExponent) return double.infinity;
 
     // The most significant bit is for the sign.
     if (_isNegative) resultBits[7] = 0x80;

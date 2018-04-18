@@ -922,7 +922,7 @@ class LoadLibraryAccessor<Arguments> extends kernel
       helper.addProblemErrorIfConst(
           messageLoadLibraryTakesNoArguments, offset, 'loadLibrary'.length);
     }
-    return builder.createLoadLibrary(offset);
+    return builder.createLoadLibrary(offset, forest);
   }
 }
 

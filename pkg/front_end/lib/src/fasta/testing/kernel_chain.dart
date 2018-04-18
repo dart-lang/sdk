@@ -127,9 +127,11 @@ class MatchExpectation extends Step<Component, Component, ChainContext> {
         .firstWhere((Library library) => library.importUri.scheme != "dart");
     Uri uri = library.importUri;
     Uri base = uri.resolve(".");
+    Uri dartBase = Uri.base;
     StringBuffer buffer = new StringBuffer();
     new Printer(buffer).writeLibraryFile(library);
     String actual = "$buffer".replaceAll("$base", "org-dartlang-testcase:///");
+    actual = actual.replaceAll("$dartBase", "org-dartlang-testcase-sdk:///");
     actual = actual.replaceAll("\\n", "\n");
     File expectedFile = new File("${uri.toFilePath()}$suffix");
     if (await expectedFile.exists()) {

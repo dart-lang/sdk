@@ -14,7 +14,6 @@ dependencies:
   front_end: 0.1.0-alpha.11
   glob: ^1.0.3
   html: '>=0.12.0 <1.14.0'
-  isolate: '>=0.2.2 <2.0.0'
   kernel: 0.3.0-alpha.11
   meta: ^1.0.2
   package_config: '>=0.1.5 <2.0.0'
@@ -23,7 +22,6 @@ dependencies:
   source_span: ^1.2.0
   watcher: '>=0.9.6 <0.10.0'
   yaml: ^2.1.2
-  cli_util: ^0.1.0
 dev_dependencies:
-  test_reflective_loader: ^0.1.0
   test: ^0.12.0
+  test_reflective_loader: ^0.1.0

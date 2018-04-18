@@ -11,10 +11,15 @@ import 'package:kernel/ast.dart'
         Arguments,
         DartType,
         Expression,
+        ExpressionStatement,
+        InvalidExpression,
+        Let,
+        LibraryDependency,
         MapEntry,
         NamedExpression,
         Statement,
-        TreeNode;
+        TreeNode,
+        VariableDeclaration;
 
 import '../parser.dart' show offsetForToken;
 
@@ -24,13 +29,16 @@ import 'kernel_shadow_ast.dart'
     show
         ShadowArguments,
         ShadowBoolLiteral,
+        ShadowCheckLibraryIsLoaded,
         ShadowDoubleLiteral,
         ShadowIntLiteral,
         ShadowListLiteral,
+        ShadowLoadLibrary,
         ShadowMapLiteral,
         ShadowNullLiteral,
         ShadowStringLiteral,
         ShadowSymbolLiteral,
+        ShadowSyntheticExpression,
         ShadowTypeLiteral;
 
 import 'forest.dart' show Forest;
@@ -135,4 +143,35 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   int readOffset(TreeNode node) => node.fileOffset;
+
+  @override
+  Expression loadLibrary(LibraryDependency dependency) {
+    return new ShadowLoadLibrary(dependency);
+  }
+
+  @override
+  Expression checkLibraryIsLoaded(LibraryDependency dependency) {
+    return new ShadowCheckLibraryIsLoaded(dependency);
+  }
+
+  @override
+  bool isErroneousNode(TreeNode node) {
+    if (node is ExpressionStatement) {
+      ExpressionStatement statement = node;
+      node = statement.expression;
+    }
+    if (node is VariableDeclaration) {
+      VariableDeclaration variable = node;
+      node = variable.initializer;
+    }
+    if (node is ShadowSyntheticExpression) {
+      ShadowSyntheticExpression synth = node;
+      node = synth.desugared;
+    }
+    if (node is Let) {
+      Let let = node;
+      node = let.variable.initializer;
+    }
+    return node is InvalidExpression;
+  }
 }

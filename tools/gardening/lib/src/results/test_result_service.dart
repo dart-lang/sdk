@@ -89,7 +89,7 @@ class TestResultService {
     var cache = createCache ?? standardCache;
     return logdog
         .get(BUILDER_PROJECT, logName, cache(duration: new Duration(days: 365)))
-        .then((json) => new TestResult.fromJson(JSON.decode(json)));
+        .then((json) => new TestResult.fromJson(jsonDecode(json)));
   }
 
   /// Gets result logs from logdog streams.
@@ -99,7 +99,7 @@ class TestResultService {
     return Future.wait(streams.map((stream) {
       logger.debug('Getting the log ${stream.path}...');
       return logdog.get(project, stream.path, cache).then((log) {
-        return new TestResult.fromJson(JSON.decode(log));
+        return new TestResult.fromJson(jsonDecode(log));
       }).catchError(
           errorLogger(logger, "Could not get a log.", new TestResult()));
     }));
@@ -221,7 +221,7 @@ class TestResultService {
   Future<TestResult> getFromFile(File file) {
     return file
         .readAsString()
-        .then(JSON.decode)
+        .then(jsonDecode)
         .then((json) => new TestResult.fromJson(json));
   }
 }

@@ -30,7 +30,6 @@ conflicting_generic_interfaces_simple_test: MissingCompileTimeError
 conflicting_type_variable_and_setter_test: CompileTimeError
 const_cast2_test/01: CompileTimeError
 const_cast2_test/none: CompileTimeError
-const_evaluation_test/01: RuntimeError # Issue 29920
 const_for_in_variable_test/01: MissingCompileTimeError
 const_types_test/07: MissingCompileTimeError
 const_types_test/08: MissingCompileTimeError
@@ -57,7 +56,6 @@ final_syntax_test/04: MissingCompileTimeError
 forwarding_stub_tearoff_generic_test: RuntimeError
 forwarding_stub_tearoff_test: CompileTimeError
 function_propagation_test: RuntimeError
-fuzzy_arrows_test/01: MissingCompileTimeError
 generic_local_functions_test: CompileTimeError
 generic_methods_generic_function_parameter_test: CompileTimeError
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30208
@@ -113,20 +111,16 @@ mixin_super_use_test: RuntimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
 mixin_type_parameter_inference_previous_mixin_test/01: CompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/02: RuntimeError
-mixin_type_parameter_inference_previous_mixin_test/03: MissingCompileTimeError
+mixin_type_parameter_inference_previous_mixin_test/02: CompileTimeError
 mixin_type_parameter_inference_previous_mixin_test/04: MissingCompileTimeError
 mixin_type_parameter_inference_previous_mixin_test/05: RuntimeError
 mixin_type_parameter_inference_test/01: CompileTimeError
-mixin_type_parameter_inference_test/02: RuntimeError
-mixin_type_parameter_inference_test/03: RuntimeError
-mixin_type_parameter_inference_test/04: MissingCompileTimeError
-mixin_type_parameter_inference_test/05: MissingCompileTimeError
+mixin_type_parameter_inference_test/02: CompileTimeError
+mixin_type_parameter_inference_test/03: CompileTimeError
 mixin_type_parameter_inference_test/06: MissingCompileTimeError
 mixin_type_parameter_inference_test/07: MissingCompileTimeError
 mixin_type_parameter_inference_test/08: RuntimeError
 mixin_type_parameter_inference_test/09: RuntimeError
-mixin_type_parameter_inference_test/11: MissingCompileTimeError
 mock_writable_final_private_field_test: CompileTimeError # Issue 30848
 multiline_newline_test/01: CompileTimeError
 multiline_newline_test/01r: CompileTimeError
@@ -137,7 +131,6 @@ multiline_newline_test/03r: RuntimeError
 multiline_newline_test/none: RuntimeError
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 nested_generic_closure_test: CompileTimeError
-nosuchmethod_forwarding/nosuchmethod_forwarding_arguments_test: RuntimeError # Issue 31425
 override_inheritance_field_test/04: CompileTimeError
 override_inheritance_field_test/06: CompileTimeError
 override_inheritance_field_test/26: CompileTimeError
@@ -375,7 +368,6 @@ deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
-deferred_shared_and_unshared_classes_test: CompileTimeError # Issue 31402 Error: A value of type 'dart.core::List<dynamic>' can't be assigned to a variable of type 'dart.core::Iterable<dart.async::Future<dynamic>>'.
 double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in ddk
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
@@ -399,7 +391,6 @@ field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
-function_call_generic_test: RuntimeError # Issue 32756. Crashes on dsend
 function_propagation_test: RuntimeError
 function_type_parameter2_negative_test: Fail
 function_type_parameter_negative_test: Fail
@@ -555,13 +546,11 @@ mixin_type_parameters_errors_test/02: MissingCompileTimeError
 mixin_type_parameters_errors_test/03: MissingCompileTimeError
 mixin_type_parameters_errors_test/04: MissingCompileTimeError
 mixin_type_parameters_errors_test/05: MissingCompileTimeError
-mock_writable_final_field_test: RuntimeError # Expect.listEquals(list length, expected: <1>, actual: <0>) fails: Next element <123>
 mock_writable_final_private_field_test: RuntimeError
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
-nosuchmethod_forwarding/nosuchmethod_forwarding_arguments_test: RuntimeError # Issue 31425
 nsm5_test: MissingCompileTimeError
 null2_test: RuntimeError # Issue 32194
 null_method_test: RuntimeError # Issue 32194
@@ -712,6 +701,7 @@ compile_time_constant_d_test: RuntimeError # Issue 30876; Expect.isTrue(false) f
 compile_time_constant_e_test: RuntimeError # Issue 30876; Expect.identical(expected: <A 3 499 99 100>, actual: <A 3 499 99 100>) fails.
 config_import_corelib_test: CompileTimeError
 config_import_test: RuntimeError # Expect.equals(expected: <b>, actual: <a>) fails.
+const_evaluation_test/01: RuntimeError # dart:mirrors not supported in DDC
 const_list_test: RuntimeError # Expect.equals(expected: <false>, actual: <true>) fails.
 const_map4_test: RuntimeError # Expect.equals(expected: <true>, actual: <false>) fails.
 const_switch_test/02: RuntimeError # Issue 29920; Expect.equals(expected: <0>, actual: <0.0>) fails.

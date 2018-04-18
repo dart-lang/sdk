@@ -18,14 +18,14 @@ import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/js_backend/backend_usage.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
-import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/util/util.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 import '../memory_compiler.dart';
-import '../serialization/helper.dart';
 import '../equivalence/check_functions.dart';
+import '../equivalence/equivalence_helper.dart';
+import 'arguments.dart';
 import 'compiler_helper.dart';
 import 'test_helpers.dart';
 

@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class T extends core::Object {
+  synthetic constructor •() → void
+    ;
+}
+class V extends core::Object {
+  synthetic constructor •() → void
+    ;
+}
+static method test() → dynamic
+  ;
+static method main() → void
+  ;

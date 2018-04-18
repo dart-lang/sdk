@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.dart.sdk.patch;
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
@@ -95,7 +94,7 @@ class SdkPatcher {
   }
 
   String _getLocationDesc3(CompilationUnit unit, int offset) {
-    LineInfo_Location location = unit.lineInfo.getLocation(offset);
+    CharacterLocation location = unit.lineInfo.getLocation(offset);
     return 'the line ${location.lineNumber}';
   }
 

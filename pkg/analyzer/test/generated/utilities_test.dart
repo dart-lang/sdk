@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.utilities_test;
-
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
@@ -2549,21 +2548,21 @@ class LineInfoTest {
 
   void test_firstLine() {
     LineInfo info = new LineInfo(<int>[0, 12, 34]);
-    LineInfo_Location location = info.getLocation(4);
+    CharacterLocation location = info.getLocation(4);
     expect(location.lineNumber, 1);
     expect(location.columnNumber, 5);
   }
 
   void test_lastLine() {
     LineInfo info = new LineInfo(<int>[0, 12, 34]);
-    LineInfo_Location location = info.getLocation(36);
+    CharacterLocation location = info.getLocation(36);
     expect(location.lineNumber, 3);
     expect(location.columnNumber, 3);
   }
 
   void test_middleLine() {
     LineInfo info = new LineInfo(<int>[0, 12, 34]);
-    LineInfo_Location location = info.getLocation(12);
+    CharacterLocation location = info.getLocation(12);
     expect(location.lineNumber, 2);
     expect(location.columnNumber, 1);
   }

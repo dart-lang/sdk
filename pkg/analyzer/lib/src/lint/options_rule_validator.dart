@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/plugin/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:yaml/yaml.dart';
 

@@ -17,13 +17,13 @@ import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/resolution/registry.dart';
-import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/universe/call_structure.dart';
 import 'package:compiler/src/universe/feature.dart';
 import 'package:compiler/src/universe/use.dart';
 import 'package:compiler/src/util/util.dart';
 import 'package:expect/expect.dart';
 import '../equivalence/check_helpers.dart';
+import '../equivalence/equivalence_helper.dart';
 import 'compiler_helper.dart';
 import 'test_helpers.dart';
 

@@ -11,6 +11,22 @@ import '../world.dart' show ClosedWorld;
 import 'nodes.dart';
 import 'optimize.dart';
 
+/// Type propagation and conditioning check insertion.
+///
+/// 1. Type propagation (dataflow) to determine the types of all nodes.
+///
+/// 2. HTypeKnown node insertion captures type strengthening.
+///
+/// 3. Conditioning check insertion inserts receiver and argument checks on
+///    calls where that call is expected to be replaced with an instruction with
+///    a narrower domain. For example `{Null,int} + {int}` would insert an
+///    receiver check to strengthen the types to `{int} + {int}` to allow the
+///    call of `operator+` to be replaced with a HAdd instruction.
+///
+/// Analysis and node insertion are done together, since insertion improves the
+/// type propagation results.
+// TODO(sra): The InvokeDynamicSpecializer should be consulted for better
+// targeted conditioning checks.
 class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   final Map<int, HInstruction> workmap = new Map<int, HInstruction>();
   final List<int> worklist = new List<int>();
@@ -21,7 +37,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   final CompilerOptions options;
   final CommonElements commonElements;
   final ClosedWorld closedWorld;
-  String get name => 'type propagator';
+  String get name => 'SsaTypePropagator';
 
   SsaTypePropagator(
       this.results, this.options, this.commonElements, this.closedWorld);
@@ -283,16 +299,18 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
           HTypeConversion.RECEIVER_TYPE_CHECK);
       return true;
     } else if (instruction.element == null) {
+      if (closedWorld.includesClosureCall(
+          instruction.selector, instruction.mask)) {
+        return false;
+      }
       Iterable<MemberEntity> targets =
           closedWorld.locateMembers(instruction.selector, instruction.mask);
       if (targets.length == 1) {
         MemberEntity target = targets.first;
         ClassEntity cls = target.enclosingClass;
         TypeMask type = new TypeMask.nonNullSubclass(cls, closedWorld);
-        // TODO(ngeoffray): We currently only optimize on primitive
-        // types.
-        if (!type.satisfies(commonElements.jsIndexableClass, closedWorld) &&
-            !type.containsOnlyNum(closedWorld) &&
+        // We currently only optimize on some primitive types.
+        if (!type.containsOnlyNum(closedWorld) &&
             !type.containsOnlyBool(closedWorld)) {
           return false;
         }

@@ -396,6 +396,11 @@ int Options::ParseArguments(int argc,
     }
   }
 
+  if (Options::deterministic()) {
+    // Both an embedder and VM flag.
+    vm_options->AddArgument("--deterministic");
+  }
+
   Socket::set_short_socket_read(Options::short_socket_read());
   Socket::set_short_socket_write(Options::short_socket_write());
 #if !defined(DART_IO_SECURE_SOCKET_DISABLED)

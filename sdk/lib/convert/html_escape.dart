@@ -168,8 +168,8 @@ class HtmlEscape extends Converter<String, String> {
   /**
    * Create converter that escapes HTML characters.
    *
-   * If [mode] is provided as either [HtmlEscapeMode.ATTRIBUTE] or
-   * [HtmlEscapeMode.ELEMENT], only the corresponding subset of HTML
+   * If [mode] is provided as either [HtmlEscapeMode.attribute] or
+   * [HtmlEscapeMode.element], only the corresponding subset of HTML
    * characters are escaped.
    * The default is to escape all HTML characters.
    */

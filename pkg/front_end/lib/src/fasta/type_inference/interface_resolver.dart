@@ -31,17 +31,29 @@ typedef void _CovarianceFix(FunctionNode function);
 
 /// Concrete class derived from [InferenceNode] to represent type inference of
 /// getters, setters, and fields based on inheritance.
-class AccessorInferenceNode extends MemberInferenceNode {
-  AccessorInferenceNode(
-      InterfaceResolver interfaceResolver,
-      Procedure declaredMethod,
-      List<Member> candidates,
-      int start,
-      int end,
-      LibraryBuilder library,
-      Uri fileUri)
-      : super(interfaceResolver, declaredMethod, candidates, start, end,
-            library, fileUri);
+class AccessorInferenceNode extends InferenceNode {
+  final InterfaceResolver _interfaceResolver;
+
+  /// The method whose return type and/or parameter types should be inferred.
+  final Procedure _declaredMethod;
+
+  /// A list containing the methods overridden by [_declaredMethod], if any.
+  final List<Member> _candidates;
+
+  /// The index of the first method in [_candidates] overridden by
+  /// [_declaredMethod].
+  final int _start;
+
+  /// The past-the-end index of the last method in [_candidates] overridden by
+  /// [_declaredMethod].
+  final int _end;
+
+  final LibraryBuilder _library;
+
+  final Uri _fileUri;
+
+  AccessorInferenceNode(this._interfaceResolver, this._declaredMethod,
+      this._candidates, this._start, this._end, this._library, this._fileUri);
 
   String get _name {
     if (_declaredMethod is! SyntheticAccessor && _declaredMethod.isSetter) {
@@ -69,7 +81,8 @@ class AccessorInferenceNode extends MemberInferenceNode {
           noLength,
           _fileUri);
     } else {
-      var inferredType = _matchTypes(overriddenTypes, _name, _offset);
+      var inferredType = _interfaceResolver.matchTypes(
+          overriddenTypes, _library, _name, _fileUri, _offset);
       if (declaredMethod is SyntheticAccessor) {
         declaredMethod._field.type = inferredType;
       } else {
@@ -482,39 +495,31 @@ class ForwardingNode extends Procedure {
       ..isGenericContravariant = target.isGenericContravariant;
   }
 
-  /// Creates a forwarding stubs for this node if necessary, and propagates
+  /// Creates a forwarding stub for this node if necessary, and propagates
   /// covariance information.
   Procedure _finalize() {
-    var inheritedMember = resolve();
-    var inheritedMemberSubstitution =
-        _interfaceResolver._substitutionFor(inheritedMember, enclosingClass);
+    var member = resolve();
+    var substitution =
+        _interfaceResolver._substitutionFor(member, enclosingClass);
     bool isDeclaredInThisClass =
-        identical(inheritedMember.enclosingClass, enclosingClass);
+        identical(member.enclosingClass, enclosingClass);
 
     // Now decide whether we need a forwarding stub or not, and propagate
     // covariance.
     var covarianceFixes = <_CovarianceFix>[];
     if (_interfaceResolver.strongMode) {
-      _computeCovarianceFixes(
-          inheritedMemberSubstitution, inheritedMember, covarianceFixes);
+      _computeCovarianceFixes(substitution, member, covarianceFixes);
     }
     if (!isDeclaredInThisClass &&
-        (!identical(inheritedMember, _resolvedCandidate(_start)) ||
+        (!identical(member, _resolvedCandidate(_start)) ||
             covarianceFixes.isNotEmpty)) {
-      var stub =
-          _createForwardingStub(inheritedMemberSubstitution, inheritedMember);
-      var function = stub.function;
-      for (var fix in covarianceFixes) {
-        fix(function);
-      }
-      return stub;
-    } else {
-      var function = inheritedMember.function;
-      for (var fix in covarianceFixes) {
-        fix(function);
-      }
-      return inheritedMember;
+      member = _createForwardingStub(substitution, member);
     }
+    var function = member.function;
+    for (var fix in covarianceFixes) {
+      fix(function);
+    }
+    return member;
   }
 
   /// Returns the [i]th element of [_candidates], finalizing it if necessary.
@@ -680,6 +685,129 @@ class InterfaceResolver {
   bool get isTypeInferencePrepared =>
       _typeInferenceEngine.isTypeInferencePrepared;
 
+  /// Report an error if all types in [types] are not equal using `==`.
+  ///
+  /// Returns the type if there is at least one and they are all equal,
+  /// otherwise the type `dynamic`.  [library], [name], [fileUri], and
+  /// [charOffset] are used to report the error.
+  DartType matchTypes(Iterable<DartType> types, LibraryBuilder library,
+      String name, Uri fileUri, int charOffset) {
+    DartType first;
+    for (var type in types) {
+      if (first == null) {
+        first = type;
+      } else if (first != type) {
+        // Types don't match.  Report an error.
+        library.addCompileTimeError(
+            templateCantInferTypeDueToInconsistentOverrides.withArguments(name),
+            charOffset,
+            noLength,
+            fileUri);
+        return const DynamicType();
+      }
+    }
+    // If there are no overridden types, infer `dynamic`.
+    return first ?? const DynamicType();
+  }
+
+  /// Computes the types of the methods overridden by [method] in [class_].
+  ///
+  /// The types have the type parameters of [class_] substituted appropriately.
+  ///
+  /// [candidates] has the list of inherited interface methods with the same
+  /// name as [method] as a sublist from [start] inclusive to [end] exclusive.
+  List<FunctionType> _computeMethodOverriddenTypes(Class class_,
+      Procedure method, List<Member> candidates, int start, int end) {
+    var overriddenTypes = <FunctionType>[];
+    var declaredTypeParameters = method.function.typeParameters;
+    for (int i = start; i < end; ++i) {
+      var candidate = candidates[i];
+      if (candidate is SyntheticAccessor) {
+        // This can happen if there are errors.  Just skip this override.
+        continue;
+      }
+      var candidateFunction = candidate.function;
+      if (candidateFunction == null) {
+        // This can happen if there are errors.  Just skip this override.
+        continue;
+      }
+      var substitution = _substitutionFor(candidate, class_);
+      FunctionType overriddenType =
+          substitution.substituteType(candidateFunction.functionType);
+      var overriddenTypeParameters = overriddenType.typeParameters;
+      if (overriddenTypeParameters.length != declaredTypeParameters.length) {
+        // Generic arity mismatch.  Don't do any inference for this method.
+        // TODO(paulberry): report an error.
+        overriddenTypes.clear();
+        break;
+      } else if (overriddenTypeParameters.isNotEmpty) {
+        var substitutionMap = <TypeParameter, DartType>{};
+        for (int i = 0; i < declaredTypeParameters.length; ++i) {
+          substitutionMap[overriddenTypeParameters[i]] =
+              new TypeParameterType(declaredTypeParameters[i]);
+        }
+        overriddenType = substituteTypeParams(
+            overriddenType, substitutionMap, declaredTypeParameters);
+      }
+      overriddenTypes.add(overriddenType);
+    }
+    return overriddenTypes;
+  }
+
+  void inferMethodType(LibraryBuilder library, Class class_, Procedure method,
+      List<Member> candidates, int start, int end) {
+    var overriddenTypes =
+        _computeMethodOverriddenTypes(class_, method, candidates, start, end);
+    if (ShadowProcedure.hasImplicitReturnType(method) &&
+        method.name != indexSetName) {
+      method.function.returnType = matchTypes(
+          overriddenTypes.map((type) => type.returnType),
+          library,
+          method.name.name,
+          class_.fileUri,
+          method.fileOffset);
+    }
+    var positionalParameters = method.function.positionalParameters;
+    for (int i = 0; i < positionalParameters.length; ++i) {
+      if (ShadowVariableDeclaration
+          .isImplicitlyTyped(positionalParameters[i])) {
+        // Note that if the parameter is not present in the overridden method,
+        // getPositionalParameterType treats it as dynamic.  This is consistent
+        // with the behavior called for in the informal top level type inference
+        // spec, which says:
+        //
+        //     If there is no corresponding parameter position in the overridden
+        //     method to infer from and the signatures are compatible, it is
+        //     treated as dynamic (e.g. overriding a one parameter method with a
+        //     method that takes a second optional parameter).  Note: if there
+        //     is no corresponding parameter position in the overriden method to
+        //     infer from and the signatures are incompatible (e.g. overriding a
+        //     one parameter method with a method that takes a second
+        //     non-optional parameter), the inference result is not defined and
+        //     tools are free to either emit an error, or to defer the error to
+        //     override checking.
+        positionalParameters[i].type = matchTypes(
+            overriddenTypes.map((type) => getPositionalParameterType(type, i)),
+            library,
+            positionalParameters[i].name,
+            class_.fileUri,
+            positionalParameters[i].fileOffset);
+      }
+    }
+    var namedParameters = method.function.namedParameters;
+    for (int i = 0; i < namedParameters.length; i++) {
+      if (ShadowVariableDeclaration.isImplicitlyTyped(namedParameters[i])) {
+        var name = namedParameters[i].name;
+        namedParameters[i].type = matchTypes(
+            overriddenTypes.map((type) => getNamedParameterType(type, name)),
+            library,
+            namedParameters[i].name,
+            class_.fileUri,
+            namedParameters[i].fileOffset);
+      }
+    }
+  }
+
   /// Populates [apiMembers] with a list of the implemented and inherited
   /// members of the given [class_]'s interface.
   ///
@@ -729,34 +857,50 @@ class InterfaceResolver {
 
       InferenceNode getterInferenceNode;
       if (getterStart < getterEnd) {
-        if (declaredGetter != null) {
-          getterInferenceNode = _createInferenceNode(
-              class_,
-              declaredGetter,
-              candidates,
-              inheritedGetterStart,
-              getterEnd,
-              inheritedSetterStart,
-              setterEnd,
-              library,
-              class_.fileUri);
-        }
-        var forwardingNode = new ForwardingNode(
-            this,
-            getterInferenceNode,
-            class_,
-            name,
-            _kindOf(candidates[getterStart]),
-            candidates,
-            getterStart,
-            getterEnd);
-        if (!forwardingNode.isGetter) {
-          // Methods and operators can be finalized immediately.
-          getters[getterIndex++] = forwardingNode.finalize();
-        } else {
+        if (_kindOf(candidates[getterStart]) == ProcedureKind.Getter) {
+          // Member is a getter.
+          if (declaredGetter != null) {
+            getterInferenceNode = _createInferenceNode(
+                class_,
+                declaredGetter,
+                candidates,
+                inheritedGetterStart,
+                getterEnd,
+                inheritedSetterStart,
+                setterEnd,
+                library,
+                class_.fileUri);
+          }
           // Getters need to be resolved later, as part of type
           // inference, so just save the forwarding node for now.
-          getters[getterIndex++] = forwardingNode;
+          getters[getterIndex++] = new ForwardingNode(
+              this,
+              getterInferenceNode,
+              class_,
+              name,
+              _kindOf(candidates[getterStart]),
+              candidates,
+              getterStart,
+              getterEnd);
+        } else {
+          // Member is a method.
+          if (strongMode &&
+              declaredGetter != null &&
+              _requiresTypeInference(declaredGetter)) {
+            inferMethodType(library, class_, declaredGetter, candidates,
+                inheritedGetterStart, getterEnd);
+          }
+          var forwardingNode = new ForwardingNode(
+              this,
+              null,
+              class_,
+              name,
+              _kindOf(candidates[getterStart]),
+              candidates,
+              getterStart,
+              getterEnd);
+          // Methods and operators can be finalized immediately.
+          getters[getterIndex++] = forwardingNode.finalize();
         }
       }
       if (getterEnd < setterEnd) {
@@ -866,31 +1010,22 @@ class InterfaceResolver {
       int crossEnd,
       LibraryBuilder library,
       Uri fileUri) {
-    if (!_requiresTypeInference(procedure)) return null;
-    switch (procedure.kind) {
-      case ProcedureKind.Getter:
-      case ProcedureKind.Setter:
-        if (strongMode && start < end) {
-          return new AccessorInferenceNode(
-              this, procedure, candidates, start, end, library, fileUri);
-        } else if (strongMode && crossStart < crossEnd) {
-          return new AccessorInferenceNode(this, procedure, candidates,
-              crossStart, crossEnd, library, fileUri);
-        } else if (procedure is SyntheticAccessor &&
-            procedure._field.initializer != null) {
-          var node = new FieldInitializerInferenceNode(
-              _typeInferenceEngine, procedure._field, library);
-          ShadowField.setInferenceNode(procedure._field, node);
-          return node;
-        }
-        return null;
-      default: // Method || Operator
-        if (strongMode) {
-          return new MethodInferenceNode(
-              this, procedure, candidates, start, end, library, fileUri);
-        }
-        return null;
+    InferenceNode node;
+    if (procedure.isAccessor && _requiresTypeInference(procedure)) {
+      if (strongMode && start < end) {
+        node = new AccessorInferenceNode(
+            this, procedure, candidates, start, end, library, fileUri);
+      } else if (strongMode && crossStart < crossEnd) {
+        node = new AccessorInferenceNode(this, procedure, candidates,
+            crossStart, crossEnd, library, fileUri);
+      } else if (procedure is SyntheticAccessor &&
+          procedure._field.initializer != null) {
+        node = new FieldInitializerInferenceNode(
+            _typeInferenceEngine, procedure._field, library);
+        ShadowField.setInferenceNode(procedure._field, node);
+      }
     }
+    return node;
   }
 
   /// Retrieves a list of the interface members of the given [class_].
@@ -1092,160 +1227,6 @@ class InterfaceResolver {
       if (ShadowVariableDeclaration.isImplicitlyTyped(parameter)) return true;
     }
     return false;
-  }
-}
-
-/// Abstract class derived from [InferenceNode] to represent type inference of
-/// methods, getters, and setters based on inheritance.
-abstract class MemberInferenceNode extends InferenceNode {
-  final InterfaceResolver _interfaceResolver;
-
-  /// The method whose return type and/or parameter types should be inferred.
-  final Procedure _declaredMethod;
-
-  /// A list containing the methods overridden by [_declaredMethod], if any.
-  final List<Member> _candidates;
-
-  /// The index of the first method in [_candidates] overridden by
-  /// [_declaredMethod].
-  final int _start;
-
-  /// The past-the-end index of the last method in [_candidates] overridden by
-  /// [_declaredMethod].
-  final int _end;
-
-  final LibraryBuilder _library;
-
-  final Uri _fileUri;
-
-  MemberInferenceNode(this._interfaceResolver, this._declaredMethod,
-      this._candidates, this._start, this._end, this._library, this._fileUri);
-
-  DartType _matchTypes(Iterable<DartType> types, String name, int charOffset) {
-    var iterator = types.iterator;
-    if (!iterator.moveNext()) {
-      // No overridden types.  Infer `dynamic`.
-      return const DynamicType();
-    }
-    var inferredType = iterator.current;
-    while (iterator.moveNext()) {
-      if (inferredType != iterator.current) {
-        // Types don't match.  Report an error.
-        _library.addCompileTimeError(
-            templateCantInferTypeDueToInconsistentOverrides.withArguments(name),
-            charOffset,
-            noLength,
-            _fileUri);
-        return const DynamicType();
-      }
-    }
-    return inferredType;
-  }
-}
-
-/// Concrete class derived from [InferenceNode] to represent type inference of
-/// methods.
-class MethodInferenceNode extends MemberInferenceNode {
-  MethodInferenceNode(
-      InterfaceResolver interfaceResolver,
-      Procedure declaredMethod,
-      List<Member> candidates,
-      int start,
-      int end,
-      LibraryBuilder library,
-      Uri fileUri)
-      : super(interfaceResolver, declaredMethod, candidates, start, end,
-            library, fileUri);
-
-  @override
-  void resolveInternal() {
-    var declaredMethod = _declaredMethod;
-    var overriddenTypes = _computeMethodOverriddenTypes();
-    if (ShadowProcedure.hasImplicitReturnType(declaredMethod) &&
-        _declaredMethod.name != indexSetName) {
-      declaredMethod.function.returnType = _matchTypes(
-          overriddenTypes.map((type) => type.returnType),
-          declaredMethod.name.name,
-          declaredMethod.fileOffset);
-    }
-    var positionalParameters = declaredMethod.function.positionalParameters;
-    for (int i = 0; i < positionalParameters.length; i++) {
-      if (ShadowVariableDeclaration
-          .isImplicitlyTyped(positionalParameters[i])) {
-        // Note that if the parameter is not present in the overridden method,
-        // getPositionalParameterType treats it as dynamic.  This is consistent
-        // with the behavior called for in the informal top level type inference
-        // spec, which says:
-        //
-        //     If there is no corresponding parameter position in the overridden
-        //     method to infer from and the signatures are compatible, it is
-        //     treated as dynamic (e.g. overriding a one parameter method with a
-        //     method that takes a second optional parameter).  Note: if there
-        //     is no corresponding parameter position in the overriden method to
-        //     infer from and the signatures are incompatible (e.g. overriding a
-        //     one parameter method with a method that takes a second
-        //     non-optional parameter), the inference result is not defined and
-        //     tools are free to either emit an error, or to defer the error to
-        //     override checking.
-        positionalParameters[i].type = _matchTypes(
-            overriddenTypes.map((type) => getPositionalParameterType(type, i)),
-            positionalParameters[i].name,
-            positionalParameters[i].fileOffset);
-      }
-    }
-    var namedParameters = declaredMethod.function.namedParameters;
-    for (int i = 0; i < namedParameters.length; i++) {
-      if (ShadowVariableDeclaration.isImplicitlyTyped(namedParameters[i])) {
-        var name = namedParameters[i].name;
-        namedParameters[i].type = _matchTypes(
-            overriddenTypes.map((type) => getNamedParameterType(type, name)),
-            namedParameters[i].name,
-            namedParameters[i].fileOffset);
-      }
-    }
-    // Circularities should never occur with method inference, since the
-    // inference of a method can only depend on the methods above it in the
-    // class hierarchy.
-    assert(!isCircular);
-  }
-
-  /// Computes the types of the methods overridden by [_declaredMethod], with
-  /// appropriate type parameter substitutions.
-  List<FunctionType> _computeMethodOverriddenTypes() {
-    var overriddenTypes = <FunctionType>[];
-    var declaredTypeParameters = _declaredMethod.function.typeParameters;
-    for (int i = _start; i < _end; i++) {
-      var candidate = _candidates[i];
-      if (candidate is SyntheticAccessor) {
-        // This can happen if there are errors.  Just skip this override.
-        continue;
-      }
-      var candidateFunction = candidate.function;
-      if (candidateFunction == null) {
-        // This can happen if there are errors.  Just skip this override.
-        continue;
-      }
-      var substitution = _interfaceResolver._substitutionFor(
-          candidate, _declaredMethod.enclosingClass);
-      FunctionType overriddenType =
-          substitution.substituteType(candidateFunction.functionType);
-      var overriddenTypeParameters = overriddenType.typeParameters;
-      if (overriddenTypeParameters.length != declaredTypeParameters.length) {
-        // Generic arity mismatch.  Don't do any inference for this method.
-        // TODO(paulberry): report an error.
-        return <FunctionType>[];
-      } else if (overriddenTypeParameters.isNotEmpty) {
-        var substitutionMap = <TypeParameter, DartType>{};
-        for (int i = 0; i < declaredTypeParameters.length; i++) {
-          substitutionMap[overriddenTypeParameters[i]] =
-              new TypeParameterType(declaredTypeParameters[i]);
-        }
-        overriddenType = substituteTypeParams(
-            overriddenType, substitutionMap, declaredTypeParameters);
-      }
-      overriddenTypes.add(overriddenType);
-    }
-    return overriddenTypes;
   }
 }
 
