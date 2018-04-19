@@ -2393,7 +2393,7 @@ class FixProcessor {
     final thisExpression = node is ThisExpression
         ? node
         : node.getAncestor((node) => node is ThisExpression);
-    final parent = thisExpression.parent;
+    final parent = thisExpression?.parent;
     if (parent is PropertyAccess) {
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {

@@ -6901,6 +6901,17 @@ class A {
 ''');
   }
 
+  test_removeThisExpression_notAThisExpression() async {
+    String src = '''
+void foo() {
+  final /*LINT*/this.id;
+}
+''';
+    await findLint(src, LintNames.unnecessary_this);
+
+    await assertNoFix(DartFixKind.REMOVE_THIS_EXPRESSION);
+  }
+
   test_removeThisExpression_propertyAccess_oneCharacterOperator() async {
     String src = '''
 class A {
