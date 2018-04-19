@@ -138,6 +138,26 @@ class ExpressionIdentifierContext extends IdentifierContext {
   }
 }
 
+/// See [IdentifierContext].fieldInitializer
+class FieldInitializerIdentifierContext extends IdentifierContext {
+  const FieldInitializerIdentifierContext()
+      : super('fieldInitializer', isContinuation: true);
+
+  @override
+  Token ensureIdentifier(Token token, Parser parser) {
+    assert(optional('.', token));
+    Token identifier = token.next;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    if (identifier.isIdentifier) {
+      return identifier;
+    }
+    parser.reportRecoverableErrorWithToken(
+        identifier, fasta.templateExpectedIdentifier);
+    // Insert a synthetic identifier to satisfy listeners.
+    return insertSyntheticIdentifierAfter(token, parser);
+  }
+}
+
 /// See [IdentifierContext].libraryName
 class LibraryIdentifierContext extends IdentifierContext {
   const LibraryIdentifierContext()

@@ -4,8 +4,8 @@
 
 import '../../scanner/token.dart' show Token;
 import '../messages.dart' as fasta;
+import 'member_kind.dart' show MemberKind;
 import 'parser.dart' show Parser;
-import 'type_continuation.dart' show TypeContinuation;
 import 'util.dart' show optional;
 
 bool isModifier(Token token) {
@@ -26,25 +26,6 @@ bool isModifier(Token token) {
     }
   }
   return true;
-}
-
-TypeContinuation typeContinuationAfterVar(TypeContinuation typeContinuation) {
-  switch (typeContinuation) {
-    case TypeContinuation.NormalFormalParameter:
-    case TypeContinuation.NormalFormalParameterAfterVar:
-      return TypeContinuation.NormalFormalParameterAfterVar;
-
-    case TypeContinuation.OptionalPositionalFormalParameter:
-    case TypeContinuation.OptionalPositionalFormalParameterAfterVar:
-      return TypeContinuation.OptionalPositionalFormalParameterAfterVar;
-
-    case TypeContinuation.NamedFormalParameter:
-    case TypeContinuation.NamedFormalParameterAfterVar:
-      return TypeContinuation.NamedFormalParameterAfterVar;
-
-    default:
-      return TypeContinuation.OptionalAfterVar;
-  }
 }
 
 /// This class is used to parse modifiers in most locations where modifiers
@@ -88,18 +69,27 @@ class ModifierRecoveryContext {
   }
 
   /// Parse modifiers for formal parameters.
-  Token parseFormalParameterModifiers(Token token, bool isStaticOrTopLevel,
+  Token parseFormalParameterModifiers(Token token, MemberKind memberKind,
       {Token covariantToken, Token varFinalOrConst}) {
     token = parseModifiers(token,
         covariantToken: covariantToken, varFinalOrConst: varFinalOrConst);
 
-    if (isStaticOrTopLevel) {
+    if (memberKind == MemberKind.StaticMethod ||
+        memberKind == MemberKind.TopLevelMethod) {
       reportExtraneousModifier(this.covariantToken);
       this.covariantToken = null;
     }
     if (constToken != null) {
       reportExtraneousModifier(constToken);
       varFinalOrConst = null;
+    } else if (memberKind == MemberKind.GeneralizedFunctionType) {
+      if (varFinalOrConst != null) {
+        parser.reportRecoverableError(
+            varFinalOrConst, fasta.messageFunctionTypedParameterVar);
+        varFinalOrConst = null;
+        finalToken = null;
+        varToken = null;
+      }
     }
     reportExtraneousModifier(abstractToken);
     reportExtraneousModifier(externalToken);

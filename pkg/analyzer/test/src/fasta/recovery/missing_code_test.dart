@@ -438,7 +438,6 @@ f({a, _s_}) {}
 ''');
   }
 
-  @failingTest
   void test_extraComma_named_noLast() {
     testRecovery('''
 f({a, , b}) {}
@@ -456,7 +455,6 @@ f([a, _s_]) {}
 ''');
   }
 
-  @failingTest
   void test_extraComma_positional_noLast() {
     testRecovery('''
 f([a, , b]) {}
@@ -474,7 +472,6 @@ f(a, _s_) {}
 ''');
   }
 
-  @failingTest
   void test_extraComma_required_noLast() {
     testRecovery('''
 f(a, , b) {}

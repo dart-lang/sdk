@@ -3416,10 +3416,7 @@ class Foo {
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
     listener.assertErrors(usingFastaParser
-        ? [
-            expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 1),
-            expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 3)
-          ]
+        ? [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 1)]
         : [
             expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 1),
             expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1)
@@ -3587,7 +3584,12 @@ class Foo {
   void test_functionTypedField_invalidType_class() {
     if (usingFastaParser) {
       parseCompilationUnit("Function(class) x = null;",
-          errors: [expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 9, 5)]);
+          errors: usingFastaParser
+              ? [
+                  expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 9, 5),
+                  expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 5)
+                ]
+              : [expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 9, 5)]);
     }
   }
 
@@ -3617,7 +3619,6 @@ class Foo {
             ? [
                 expectedError(ScannerErrorCode.EXPECTED_TOKEN, 20, 1),
                 expectedError(ScannerErrorCode.EXPECTED_TOKEN, 20, 1),
-                expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 8),
                 expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 20, 0),
               ]
             : [
@@ -3666,14 +3667,12 @@ class Wrong<T> {
 }''');
     CompilationUnit unit = parser.parseCompilationUnit2();
     expectNotNullIfNoErrors(unit);
-    listener.assertErrors([
-      expectedError(
-          usingFastaParser
-              ? ParserErrorCode.EXPECTED_TOKEN
-              : ParserErrorCode.UNEXPECTED_TOKEN,
-          30,
-          1)
-    ]);
+    listener.assertErrors(usingFastaParser
+        ? [
+            expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 30, 1),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 30, 1)
+          ]
+        : [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 30, 1)]);
   }
 
   void test_getterInFunction_block_noReturnType() {
@@ -5608,7 +5607,7 @@ void main() {
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
     listener.assertErrors(usingFastaParser
-        ? [expectedError(ParserErrorCode.VAR_AND_TYPE, 5, 3)]
+        ? [expectedError(ParserErrorCode.VAR_AND_TYPE, 1, 3)]
         : [expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1)]);
   }
 
@@ -9172,15 +9171,14 @@ abstract class FormalParameterParserTestMixin
   }
 
   void test_parseFormalParameterList_prefixedType_partial2() {
-    int errorOffset = usingFastaParser ? 4 : 3;
     FormalParameterList list = parseFormalParameterList('(io.,a)', errors: [
       expectedError(
           usingFastaParser
               ? ParserErrorCode.EXPECTED_TYPE_NAME
               : ParserErrorCode.MISSING_IDENTIFIER,
-          errorOffset,
+          4,
           1),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, errorOffset, 1)
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 1)
     ]);
     expect(list, isNotNull);
     expect(list.leftParenthesis, isNotNull);

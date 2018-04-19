@@ -64,8 +64,7 @@ class IdentifierContext {
 
   /// Identifier is a field initializer in a formal parameter list (i.e. it
   /// appears directly after `this.`).
-  static const fieldInitializer =
-      const IdentifierContext('fieldInitializer', isContinuation: true);
+  static const fieldInitializer = const FieldInitializerIdentifierContext();
 
   /// Identifier is a formal parameter being declared as part of a function,
   /// method, or typedef declaration.

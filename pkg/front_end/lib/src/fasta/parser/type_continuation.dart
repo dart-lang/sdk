@@ -4,8 +4,6 @@
 
 library fasta.parser.type_continuation;
 
-import 'formal_parameter_kind.dart' show FormalParameterKind;
-
 /// Indication of how the parser should continue after (attempting) to parse a
 /// type.
 ///
@@ -34,42 +32,4 @@ enum TypeContinuation {
   /// Indicates that the parser is parsing an expression and has just seen an
   /// identifier.
   SendOrFunctionLiteral,
-
-  /// Indicates that an optional type followed by a normal formal parameter is
-  /// expected.
-  NormalFormalParameter,
-
-  /// Indicates that an optional type followed by an optional positional formal
-  /// parameter is expected.
-  OptionalPositionalFormalParameter,
-
-  /// Indicates that an optional type followed by a named formal parameter is
-  /// expected.
-  NamedFormalParameter,
-
-  /// Same as [NormalFormalParameter], but we have seen `var`.
-  NormalFormalParameterAfterVar,
-
-  /// Same as [OptionalPositionalFormalParameter], but we have seen `var`.
-  OptionalPositionalFormalParameterAfterVar,
-
-  /// Same as [NamedFormalParameter], but we have seen `var`.
-  NamedFormalParameterAfterVar,
-}
-
-TypeContinuation typeContinuationFromFormalParameterKind(
-    FormalParameterKind type) {
-  if (type != null) {
-    switch (type) {
-      case FormalParameterKind.mandatory:
-        return TypeContinuation.NormalFormalParameter;
-
-      case FormalParameterKind.optionalNamed:
-        return TypeContinuation.NamedFormalParameter;
-
-      case FormalParameterKind.optionalPositional:
-        return TypeContinuation.OptionalPositionalFormalParameter;
-    }
-  }
-  return null;
 }
