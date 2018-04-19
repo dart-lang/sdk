@@ -26,7 +26,7 @@ char** Platform::argv_ = NULL;
 
 static void segv_handler(int signal, siginfo_t* siginfo, void* context) {
   Log::PrintErr(
-      "\n===== DART STANDALONE VM CRASH =====\n"
+      "\n===== CRASH =====\n"
       "version=%s\n"
       "si_signo=%s(%d), si_code=%d, si_addr=%p\n",
       Dart_VersionString(), strsignal(siginfo->si_signo), siginfo->si_signo,

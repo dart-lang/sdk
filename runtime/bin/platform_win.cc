@@ -64,7 +64,7 @@ class PlatformWin {
         (ExceptionInfo->ExceptionRecord->ExceptionCode ==
          EXCEPTION_ILLEGAL_INSTRUCTION)) {
       Log::PrintErr(
-          "\n===== DART STANDALONE VM CRASH =====\n"
+          "\n===== CRASH =====\n"
           "version=%s\n"
           "ExceptionCode=%d, ExceptionFlags=%d, ExceptionAddress=%p\n",
           Dart_VersionString(), ExceptionInfo->ExceptionRecord->ExceptionCode,
