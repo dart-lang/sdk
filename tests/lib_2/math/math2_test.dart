@@ -127,32 +127,32 @@ class MathLibraryTest {
 
   static void testSqrt() {
     checkVeryClose(2.0, math.sqrt(4.0));
-    checkVeryClose(math.SQRT2, math.sqrt(2.0));
-    checkVeryClose(math.SQRT1_2, math.sqrt(0.5));
+    checkVeryClose(math.sqrt2, math.sqrt(2.0));
+    checkVeryClose(math.sqrt1_2, math.sqrt(0.5));
     checkVeryClose(1e50, math.sqrt(1e100));
     checkVeryClose(1.1111111061110855443054405046358901279277111935183977e56,
         math.sqrt(12345678901234e99));
   }
 
   static void testExp() {
-    checkVeryClose(math.E, math.exp(1.0));
+    checkVeryClose(math.e, math.exp(1.0));
     final EPSILON = 1e-15;
-    checkClose(10.0, math.exp(math.LN10), EPSILON);
-    checkClose(2.0, math.exp(math.LN2), EPSILON);
+    checkClose(10.0, math.exp(math.ln10), EPSILON);
+    checkClose(2.0, math.exp(math.ln2), EPSILON);
   }
 
   static void testLog() {
     // Even though E is imprecise, it is good enough to get really close to 1.
     // We still provide an epsilon.
-    checkClose(1.0, math.log(math.E), 1e-16);
-    checkVeryClose(math.LN10, math.log(10.0));
-    checkVeryClose(math.LN2, math.log(2.0));
+    checkClose(1.0, math.log(math.e), 1e-16);
+    checkVeryClose(math.ln10, math.log(10.0));
+    checkVeryClose(math.ln2, math.log(2.0));
   }
 
   static void testPow() {
     checkVeryClose(16.0, math.pow(4.0, 2.0));
-    checkVeryClose(math.SQRT2, math.pow(2.0, 0.5));
-    checkVeryClose(math.SQRT1_2, math.pow(0.5, 0.5));
+    checkVeryClose(math.sqrt2, math.pow(2.0, 0.5));
+    checkVeryClose(math.sqrt1_2, math.pow(0.5, 0.5));
   }
 
   static bool parseIntThrowsFormatException(str) {

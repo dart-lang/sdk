@@ -132,7 +132,7 @@ class MathTest {
   }
 
   static void testExp() {
-    checkVeryClose(E, exp(1.0));
+    checkVeryClose(e, exp(1.0));
     final EPSILON = 1e-15;
     checkClose(10.0, exp(ln10), EPSILON);
     checkClose(2.0, exp(ln2), EPSILON);
@@ -141,7 +141,7 @@ class MathTest {
   static void testLog() {
     // Even though E is imprecise, it is good enough to get really close to 1.
     // We still provide an epsilon.
-    checkClose(1.0, log(E), 1e-16);
+    checkClose(1.0, log(e), 1e-16);
     checkVeryClose(ln10, log(10.0));
     checkVeryClose(ln2, log(2.0));
   }
