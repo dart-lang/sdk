@@ -253,7 +253,7 @@ Token skipTypeArguments(Token token) {
 /// type references that cannot be represented by the constants above.
 class ComplexTypeInfo implements TypeInfo {
   /// The first token in the type reference.
-  final Token start;
+  Token start;
 
   /// The last token in the type reference.
   Token end;
@@ -291,6 +291,12 @@ class ComplexTypeInfo implements TypeInfo {
   Token parseType(Token token, Parser parser) {
     assert(identical(token.next, start));
 
+    if (optional('.', start)) {
+      // Recovery: Insert missing identifier without sending events
+      start = parser.insertSyntheticIdentifier(
+          token, IdentifierContext.prefixedTypeReference);
+    }
+
     for (Link<Token> t = typeVariableStarters; t.isNotEmpty; t = t.tail) {
       parser.parseTypeVariablesOpt(t.head);
       parser.listener.beginFunctionType(start);
@@ -302,11 +308,12 @@ class ComplexTypeInfo implements TypeInfo {
       // generate the full type.
       noTypeInfo.parseTypeNotVoid(token, parser);
     } else {
-      Token start = token.next;
-      if (optional('void', start)) {
+      Token typeRefOrPrefix = token.next;
+      if (optional('void', typeRefOrPrefix)) {
         token = voidTypeInfo.parseType(token, parser);
       } else {
-        if (!optional('.', start.next)) {
+        if (!optional('.', typeRefOrPrefix) &&
+            !optional('.', typeRefOrPrefix.next)) {
           token =
               parser.ensureIdentifier(token, IdentifierContext.typeReference);
         } else {
@@ -314,9 +321,12 @@ class ComplexTypeInfo implements TypeInfo {
               token, IdentifierContext.prefixedTypeReference);
           token = parser.parseQualifiedRest(
               token, IdentifierContext.typeReferenceContinuation);
+          if (token.isSynthetic && end == typeRefOrPrefix.next) {
+            end = token;
+          }
         }
         token = parser.parseTypeArgumentsOpt(token);
-        parser.listener.handleType(start, token.next);
+        parser.listener.handleType(typeRefOrPrefix, token.next);
       }
     }
 
@@ -438,11 +448,15 @@ class ComplexTypeInfo implements TypeInfo {
   /// Given identifier `.` identifier, compute the type
   /// and return the receiver or one of the [TypeInfo] constants.
   TypeInfo computePrefixedType(bool required) {
-    assert(isValidTypeReference(start));
-    Token token = start.next;
+    Token token = start;
+    if (!optional('.', token)) {
+      assert(isValidTypeReference(token));
+      token = token.next;
+    }
     assert(optional('.', token));
-    token = token.next;
-    assert(isValidTypeReference(token));
+    if (isValidTypeReference(token.next)) {
+      token = token.next;
+    }
 
     end = token;
     token = token.next;

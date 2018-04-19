@@ -242,6 +242,16 @@ class TokenInfoTest {
     expectInfo(noTypeInfo, 'get foo');
     expectInfo(noTypeInfo, 'set foo');
     expectInfo(noTypeInfo, 'operator *');
+
+    expectInfo(noTypeInfo, '.', required: false);
+    expectComplexInfo('.', required: true, expectedErrors: [
+      error(codeExpectedType, 0, 1),
+      error(codeExpectedType, 1, 0)
+    ]);
+
+    expectInfo(noTypeInfo, '.Foo', required: false);
+    expectComplexInfo('.Foo',
+        required: true, expectedErrors: [error(codeExpectedType, 0, 1)]);
   }
 
   void test_computeType_builtin() {
@@ -359,7 +369,8 @@ class TokenInfoTest {
     expectInfo(simpleTypeInfo, 'C;', required: true);
     expectInfo(simpleTypeInfo, 'C(', required: true);
     expectInfo(simpleTypeInfo, 'C<', required: true);
-    expectInfo(simpleTypeInfo, 'C.', required: true);
+    expectComplexInfo('C.',
+        required: true, expectedErrors: [error(codeExpectedType, 2, 0)]);
     expectInfo(simpleTypeInfo, 'C=', required: true);
     expectInfo(simpleTypeInfo, 'C*', required: true);
     expectInfo(simpleTypeInfo, 'C do', required: true);

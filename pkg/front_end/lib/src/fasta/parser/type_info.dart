@@ -138,6 +138,9 @@ TypeInfo computeType(final Token token, bool required) {
           }
         }
       }
+    } else if (required && optional('.', next)) {
+      // Recovery: looks like prefixed type missing the prefix
+      return new ComplexTypeInfo(token).computePrefixedType(required);
     }
     return noTypeInfo;
   }
@@ -211,7 +214,9 @@ TypeInfo computeType(final Token token, bool required) {
       return new ComplexTypeInfo(token).computePrefixedType(required);
     }
     // identifier `.` non-identifier
-    return required ? simpleTypeInfo : noTypeInfo;
+    return required
+        ? new ComplexTypeInfo(token).computePrefixedType(required)
+        : noTypeInfo;
   }
 
   if (isGeneralizedFunctionType(next)) {
