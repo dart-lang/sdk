@@ -20,9 +20,13 @@ class ImportDirectivesTest extends PartialCodeTest {
           new TestDescriptor(
               'keyword',
               'import',
-              [/*ParserErrorCode.MISSING_URI,*/ ParserErrorCode.EXPECTED_TOKEN],
-              "import '';",
-              allFailing: true),
+              [
+                // TODO(danrubel): Consider an improved error message
+                // ParserErrorCode.MISSING_URI,
+                ParserErrorCode.EXPECTED_STRING_LITERAL,
+                ParserErrorCode.EXPECTED_TOKEN
+              ],
+              "import '';"),
           new TestDescriptor('emptyUri', "import ''",
               [ParserErrorCode.EXPECTED_TOKEN], "import '';"),
           new TestDescriptor('fullUri', "import 'a.dart'",
