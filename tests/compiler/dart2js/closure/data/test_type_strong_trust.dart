@@ -30,8 +30,7 @@ method2<T>(dynamic o) {
 
 /*element: method3:*/
 method3<T>(dynamic o) {
-  // TODO(johnniwinther): Improve rti tracking to avoid capture of `T`.
-  /*fields=[T,o],free=[T,o]*/
+  /*fields=[o],free=[o]*/
   T local() => o;
   return local;
 }

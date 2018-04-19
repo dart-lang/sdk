@@ -32,8 +32,7 @@ class Class2a<T> {}
 class Class2b<T> {
   /*element: Class2b.method2:hasThis*/
   method2() {
-    // TODO(johnniwinther): Improve rti tracking to avoid capture of `this`.
-    /*fields=[this],free=[this],hasThis*/
+    /*hasThis*/
     dynamic local() => new Class2a<T>();
     return local;
   }
@@ -60,8 +59,7 @@ method3b<T>(o) {
 method4a<T>(o) => o;
 
 method4b<T>(o) {
-  // TODO(johnniwinther): Improve rti tracking to avoid capture of `T`.
-  /*fields=[T,o],free=[T,o]*/
+  /*fields=[o],free=[o]*/
   dynamic local() => method4a<T>(o);
   return local;
 }
@@ -95,8 +93,7 @@ class Class6a {
 }
 
 method6b<T>(o) {
-  // TODO(johnniwinther): Improve rti tracking to avoid capture of `T`.
-  /*fields=[T,o],free=[T,o]*/
+  /*fields=[o],free=[o]*/
   dynamic local() => new Class6a().method6a<T>(o);
   return local;
 }

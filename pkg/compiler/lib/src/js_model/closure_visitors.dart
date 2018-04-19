@@ -68,17 +68,15 @@ class CapturedScopeBuilder extends ir.Visitor {
   /// have unique names.
   int _boxCounter = 0;
 
-  /// Set to `true` in the visitor if a type annotation is always needed.
+  /// The current usage of a type annotation.
   ///
-  /// This is for instance the case for expressions like `o is T` and `o as T`.
-  bool _contextNeedsType = false;
+  /// This is updated in the visitor to distinguish between unconditional
+  /// type variable usage, such as type literals and is tests, and conditional
+  /// type variable usage, such as type argument in method invocations.
+  VariableUse _currentTypeUsage;
 
   CapturedScopeBuilder(this._model, this._options, {bool hasThisLocal})
       : this._hasThisLocal = hasThisLocal;
-
-  /// If true add type assetions to assert that at runtime the type is in line
-  /// with the stated type.
-  bool get _addTypeChecks => _options.enableTypeAssertions;
 
   /// Update the [CapturedScope] object corresponding to
   /// this node if any variables are captured.
@@ -179,25 +177,31 @@ class CapturedScopeBuilder extends ir.Visitor {
 
   @override
   visitVariableGet(ir.VariableGet node) {
-    _markVariableAsUsed(node.variable);
-    node.visitChildren(this);
+    _markVariableAsUsed(node.variable, VariableUse.explicit);
+    // Don't visit `node.promotedType`.
   }
 
   @override
   visitVariableSet(ir.VariableSet node) {
     _mutatedVariables.add(node.variable);
-    _markVariableAsUsed(node.variable);
-    if (_addTypeChecks) node.variable.type.accept(this);
+    _markVariableAsUsed(node.variable, VariableUse.explicit);
+    visitInContext(node.variable.type, VariableUse.localType);
     node.visitChildren(this);
   }
 
-  @override
-  visitVariableDeclaration(ir.VariableDeclaration declaration) {
-    if (!declaration.isFieldFormal) {
-      _scopeVariables.add(declaration);
+  void handleVariableDeclaration(
+      ir.VariableDeclaration node, VariableUse usage) {
+    if (!node.isFieldFormal) {
+      _scopeVariables.add(node);
     }
 
-    declaration.visitChildren(this);
+    visitInContext(node.type, usage);
+    node.initializer?.accept(this);
+  }
+
+  @override
+  visitVariableDeclaration(ir.VariableDeclaration node) {
+    handleVariableDeclaration(node, VariableUse.localType);
   }
 
   /// Add this variable to the set of free variables if appropriate and add to
@@ -207,9 +211,10 @@ class CapturedScopeBuilder extends ir.Visitor {
   /// checked.
   void _markVariableAsUsed(
       ir.Node /* VariableDeclaration | TypeParameterTypeWithContext */ variable,
-      {bool onlyForRtiChecks = false}) {
+      VariableUse usage) {
     assert(variable is ir.VariableDeclaration ||
         variable is TypeVariableTypeWithContext);
+    assert(usage != null);
     if (_isInsideClosure && !_inCurrentContext(variable)) {
       // If the element is not declared in the current function and the element
       // is not the closure itself we need to mark the element as free variable.
@@ -217,10 +222,12 @@ class CapturedScopeBuilder extends ir.Visitor {
       // optimization: factories have type parameters as function
       // parameters, and type parameters are declared in the class, not
       // the factory.
-      if (!onlyForRtiChecks) {
+      if (usage == VariableUse.explicit) {
         _currentScopeInfo.freeVariables.add(variable);
       } else {
-        _currentScopeInfo.freeVariablesForRti.add(variable);
+        _currentScopeInfo.freeVariablesForRti
+            .putIfAbsent(variable, () => new Set<VariableUse>())
+            .add(usage);
       }
     }
     if (_inTry && variable is ir.VariableDeclaration) {
@@ -230,41 +237,36 @@ class CapturedScopeBuilder extends ir.Visitor {
 
   @override
   void visitThisExpression(ir.ThisExpression thisExpression) {
-    if (_hasThisLocal) _registerNeedsThis();
+    if (_hasThisLocal) _registerNeedsThis(VariableUse.explicit);
   }
 
   @override
   void visitTypeParameter(ir.TypeParameter typeParameter) {
-    if (_addTypeChecks) {
-      ir.TreeNode context = _executableContext;
-      TypeVariableTypeWithContext typeVariable =
-          new TypeVariableTypeWithContext(
-              new ir.TypeParameterType(typeParameter),
-              // If this typeParameter is part of a typedef then its parent is
-              // null because it has no context. Just pass in null for the
-              // context in that case.
-              typeParameter.parent != null
-                  ? typeParameter.parent.parent
-                  : null);
-      if (_isInsideClosure && context is ir.Procedure && context.isFactory) {
-        // This is a closure in a factory constructor.  Since there is no
-        // [:this:], we have to mark the type arguments as free variables to
-        // capture them in the closure.
-        _useTypeVariableAsLocal(typeVariable);
-      }
+    ir.TreeNode context = _executableContext;
+    TypeVariableTypeWithContext typeVariable = new TypeVariableTypeWithContext(
+        new ir.TypeParameterType(typeParameter),
+        // If this typeParameter is part of a typedef then its parent is
+        // null because it has no context. Just pass in null for the
+        // context in that case.
+        typeParameter.parent != null ? typeParameter.parent.parent : null);
+    if (_isInsideClosure && context is ir.Procedure && context.isFactory) {
+      // This is a closure in a factory constructor.  Since there is no
+      // [:this:], we have to mark the type arguments as free variables to
+      // capture them in the closure.
+      _useTypeVariableAsLocal(typeVariable, _currentTypeUsage);
+    }
 
-      if (_executableContext is ir.Member && _executableContext is! ir.Field) {
-        // In checked mode, using a type variable in a type annotation may lead
-        // to a runtime type check that needs to access the type argument and
-        // therefore the closure needs a this-element, if it is not in a field
-        // initializer; field initializers are evaluated in a context where
-        // the type arguments are available in locals.
+    if (_executableContext is ir.Member && _executableContext is! ir.Field) {
+      // In checked mode, using a type variable in a type annotation may lead
+      // to a runtime type check that needs to access the type argument and
+      // therefore the closure needs a this-element, if it is not in a field
+      // initializer; field initializers are evaluated in a context where
+      // the type arguments are available in locals.
 
-        if (_hasThisLocal) {
-          _registerNeedsThis();
-        } else {
-          _useTypeVariableAsLocal(typeVariable);
-        }
+      if (_hasThisLocal) {
+        _registerNeedsThis(_currentTypeUsage);
+      } else {
+        _useTypeVariableAsLocal(typeVariable, _currentTypeUsage);
       }
     }
   }
@@ -274,12 +276,12 @@ class CapturedScopeBuilder extends ir.Visitor {
   /// If [onlyIfNeedsRti] is true, set thisUsedAsFreeVariableIfNeedsRti to true
   /// instead of thisUsedAsFreeVariable as we will only use `this` if runtime
   /// type information is checked.
-  void _registerNeedsThis({bool onlyIfNeedsRti = false}) {
+  void _registerNeedsThis(VariableUse usage) {
     if (_isInsideClosure) {
-      if (!onlyIfNeedsRti) {
+      if (usage == VariableUse.explicit) {
         _currentScopeInfo.thisUsedAsFreeVariable = true;
       } else {
-        _currentScopeInfo.thisUsedAsFreeVariableIfNeedsRti = true;
+        _currentScopeInfo.thisUsedAsFreeVariableIfNeedsRti.add(usage);
       }
     }
   }
@@ -362,19 +364,30 @@ class CapturedScopeBuilder extends ir.Visitor {
         scope.hasThisLocal);
   }
 
-  void visitSuperMethodInvocation(ir.SuperMethodInvocation invocation) {
-    if (_hasThisLocal) _registerNeedsThis();
-    invocation.visitChildren(this);
+  void visitSuperMethodInvocation(ir.SuperMethodInvocation node) {
+    if (_hasThisLocal) {
+      _registerNeedsThis(VariableUse.explicit);
+    }
+    if (node.arguments.types.isNotEmpty) {
+      visitListInContext(node.arguments.types,
+          new VariableUse.staticTypeArgument(node.interfaceTarget));
+    }
+    ir.visitList(node.arguments.positional, this);
+    ir.visitList(node.arguments.named, this);
   }
 
-  void visitSuperPropertySet(ir.SuperPropertySet propertySet) {
-    if (_hasThisLocal) _registerNeedsThis();
-    propertySet.visitChildren(this);
+  void visitSuperPropertySet(ir.SuperPropertySet node) {
+    if (_hasThisLocal) {
+      _registerNeedsThis(VariableUse.explicit);
+    }
+    node.visitChildren(this);
   }
 
-  void visitSuperPropertyGet(ir.SuperPropertyGet propertyGet) {
-    if (_hasThisLocal) _registerNeedsThis();
-    propertyGet.visitChildren(this);
+  void visitSuperPropertyGet(ir.SuperPropertyGet node) {
+    if (_hasThisLocal) {
+      _registerNeedsThis(VariableUse.explicit);
+    }
+    node.visitChildren(this);
   }
 
   void visitInvokable(ir.TreeNode node) {
@@ -417,16 +430,21 @@ class CapturedScopeBuilder extends ir.Visitor {
     assert(freeVariables.isEmpty || savedIsInsideClosure);
     for (ir.Node freeVariable in freeVariables) {
       _capturedVariables.add(freeVariable);
-      _markVariableAsUsed(freeVariable);
+      _markVariableAsUsed(freeVariable, VariableUse.explicit);
     }
-    for (ir.Node freeVariableForRti in savedScopeInfo.freeVariablesForRti) {
-      _markVariableAsUsed(freeVariableForRti, onlyForRtiChecks: true);
-    }
+    savedScopeInfo.freeVariablesForRti.forEach(
+        (TypeVariableTypeWithContext freeVariableForRti,
+            Set<VariableUse> useSet) {
+      for (VariableUse usage in useSet) {
+        _markVariableAsUsed(freeVariableForRti, usage);
+      }
+    });
     if (_isInsideClosure && savedScopeInfo.thisUsedAsFreeVariable) {
       _currentScopeInfo.thisUsedAsFreeVariable = true;
     }
-    if (_isInsideClosure && savedScopeInfo.thisUsedAsFreeVariableIfNeedsRti) {
-      _currentScopeInfo.thisUsedAsFreeVariableIfNeedsRti = true;
+    if (_isInsideClosure) {
+      _currentScopeInfo.thisUsedAsFreeVariableIfNeedsRti
+          .addAll(savedScopeInfo.thisUsedAsFreeVariableIfNeedsRti);
     }
   }
 
@@ -447,7 +465,9 @@ class CapturedScopeBuilder extends ir.Visitor {
 
   @override
   void visitField(ir.Field field) {
+    _currentTypeUsage = VariableUse.fieldType;
     visitInvokable(field);
+    _currentTypeUsage = null;
   }
 
   @override
@@ -472,32 +492,141 @@ class CapturedScopeBuilder extends ir.Visitor {
 
   @override
   visitTypeParameterType(ir.TypeParameterType type) {
-    _analyzeTypeVariable(type, onlyIfNeedsRti: !_contextNeedsType);
+    _analyzeTypeVariable(type, _currentTypeUsage);
+  }
+
+  visitInContext(ir.Node node, VariableUse use) {
+    VariableUse oldCurrentTypeUsage = _currentTypeUsage;
+    _currentTypeUsage = use;
+    node?.accept(this);
+    _currentTypeUsage = oldCurrentTypeUsage;
+  }
+
+  visitListInContext(List<ir.Node> nodes, VariableUse use) {
+    VariableUse oldCurrentTypeUsage = _currentTypeUsage;
+    _currentTypeUsage = use;
+    ir.visitList(nodes, this);
+    _currentTypeUsage = oldCurrentTypeUsage;
+  }
+
+  visitChildrenInContext(ir.Node node, VariableUse use) {
+    VariableUse oldCurrentTypeUsage = _currentTypeUsage;
+    _currentTypeUsage = use;
+    node.visitChildren(this);
+    _currentTypeUsage = oldCurrentTypeUsage;
   }
 
   @override
   visitTypeLiteral(ir.TypeLiteral node) {
-    bool oldContextNeedsType = _contextNeedsType;
-    _contextNeedsType = true;
-    node.visitChildren(this);
-    _contextNeedsType = oldContextNeedsType;
+    visitChildrenInContext(node, VariableUse.explicit);
   }
 
   @override
   visitIsExpression(ir.IsExpression node) {
-    bool oldContextNeedsType = _contextNeedsType;
-    _contextNeedsType = true;
-    node.visitChildren(this);
-    _contextNeedsType = oldContextNeedsType;
+    node.operand.accept(this);
+    visitInContext(node.type, VariableUse.explicit);
   }
 
   @override
   visitAsExpression(ir.AsExpression node) {
-    bool oldContextNeedsType = _contextNeedsType;
-    _contextNeedsType =
-        !node.isTypeError || _options.implicitDowncastCheckPolicy.isEmitted;
-    node.visitChildren(this);
-    _contextNeedsType = oldContextNeedsType;
+    node.operand.accept(this);
+    visitInContext(node.type,
+        node.isTypeError ? VariableUse.implicitCast : VariableUse.explicit);
+  }
+
+  @override
+  visitFunctionNode(ir.FunctionNode node) {
+    VariableUse parameterUsage = node.parent is ir.Member
+        ? new VariableUse.memberParameter(node.parent)
+        : new VariableUse.localParameter(node.parent);
+    visitListInContext(node.typeParameters, parameterUsage);
+    for (ir.VariableDeclaration declaration in node.positionalParameters) {
+      handleVariableDeclaration(declaration, parameterUsage);
+    }
+    for (ir.VariableDeclaration declaration in node.namedParameters) {
+      handleVariableDeclaration(declaration, parameterUsage);
+    }
+    visitInContext(
+        node.returnType,
+        node.parent is ir.Member
+            ? new VariableUse.memberReturnType(node.parent)
+            : new VariableUse.localReturnType(node.parent));
+    node.body?.accept(this);
+  }
+
+  @override
+  visitListLiteral(ir.ListLiteral node) {
+    visitInContext(node.typeArgument, VariableUse.listLiteral);
+    ir.visitList(node.expressions, this);
+  }
+
+  @override
+  visitMapLiteral(ir.MapLiteral node) {
+    visitInContext(node.keyType, VariableUse.mapLiteral);
+    visitInContext(node.valueType, VariableUse.mapLiteral);
+    ir.visitList(node.entries, this);
+  }
+
+  @override
+  visitStaticInvocation(ir.StaticInvocation node) {
+    if (node.arguments.types.isNotEmpty) {
+      VariableUse usage;
+      if (node.target.kind == ir.ProcedureKind.Factory) {
+        usage = new VariableUse.constructorTypeArgument(node.target);
+      } else {
+        usage = new VariableUse.staticTypeArgument(node.target);
+      }
+
+      visitListInContext(node.arguments.types, usage);
+    }
+    ir.visitList(node.arguments.positional, this);
+    ir.visitList(node.arguments.named, this);
+  }
+
+  @override
+  visitConstructorInvocation(ir.ConstructorInvocation node) {
+    if (node.arguments.types.isNotEmpty) {
+      visitListInContext(node.arguments.types,
+          new VariableUse.constructorTypeArgument(node.target));
+    }
+    ir.visitList(node.arguments.positional, this);
+    ir.visitList(node.arguments.named, this);
+  }
+
+  @override
+  visitConditionalExpression(ir.ConditionalExpression node) {
+    node.condition.accept(this);
+    node.then.accept(this);
+    node.otherwise.accept(this);
+    // Don't visit `node.staticType`.
+  }
+
+  @override
+  visitMethodInvocation(ir.MethodInvocation node) {
+    ir.TreeNode receiver = node.receiver;
+    receiver.accept(this);
+    if (node.arguments.types.isNotEmpty) {
+      VariableUse usage;
+      if (receiver is ir.VariableGet &&
+          (receiver.variable.parent is ir.FunctionDeclaration ||
+              receiver.variable.parent is ir.FunctionExpression)) {
+        usage =
+            new VariableUse.localTypeArgument(receiver.variable.parent, node);
+      } else {
+        usage = new VariableUse.instanceTypeArgument(node);
+      }
+      visitListInContext(node.arguments.types, usage);
+    }
+    ir.visitList(node.arguments.positional, this);
+    ir.visitList(node.arguments.named, this);
+  }
+
+  @override
+  visitCatch(ir.Catch node) {
+    visitInContext(node.guard, VariableUse.explicit);
+    node.exception?.accept(this);
+    node.stackTrace?.accept(this);
+    node.body.accept(this);
   }
 
   /// Returns true if the node is a field, or a constructor (factory or
@@ -507,8 +636,8 @@ class CapturedScopeBuilder extends ir.Visitor {
       node is ir.Field ||
       (node is ir.Procedure && node.isFactory);
 
-  void _analyzeTypeVariable(ir.TypeParameterType type,
-      {bool onlyIfNeedsRti: true}) {
+  void _analyzeTypeVariable(ir.TypeParameterType type, VariableUse usage) {
+    assert(usage != null);
     if (_outermostNode is ir.Member) {
       TypeVariableTypeWithContext typeVariable =
           new TypeVariableTypeWithContext(type, _outermostNode);
@@ -516,17 +645,15 @@ class CapturedScopeBuilder extends ir.Visitor {
         case TypeVariableKind.cls:
           if (_isFieldOrConstructor(_outermostNode)) {
             // Class type variable used in a field or constructor.
-            _useTypeVariableAsLocal(typeVariable,
-                onlyForRtiChecks: onlyIfNeedsRti);
+            _useTypeVariableAsLocal(typeVariable, usage);
           } else {
             // Class type variable used in a method.
-            _registerNeedsThis(onlyIfNeedsRti: onlyIfNeedsRti);
+            _registerNeedsThis(usage);
           }
           break;
         case TypeVariableKind.method:
         case TypeVariableKind.local:
-          _useTypeVariableAsLocal(typeVariable,
-              onlyForRtiChecks: onlyIfNeedsRti);
+          _useTypeVariableAsLocal(typeVariable, usage);
           break;
         case TypeVariableKind.function:
         // The type variable is a function type variable, like `T` in
@@ -540,11 +667,11 @@ class CapturedScopeBuilder extends ir.Visitor {
 
   /// If [onlyForRtiChecks] is true, the variable will be added to a list
   /// indicating it *may* be used only if runtime type information is checked.
-  void _useTypeVariableAsLocal(TypeVariableTypeWithContext typeVariable,
-      {bool onlyForRtiChecks: false}) {
+  void _useTypeVariableAsLocal(
+      TypeVariableTypeWithContext typeVariable, VariableUse usage) {
     if (typeVariable.kind != TypeVariableKind.cls && !_options.strongMode) {
       return;
     }
-    _markVariableAsUsed(typeVariable, onlyForRtiChecks: onlyForRtiChecks);
+    _markVariableAsUsed(typeVariable, usage);
   }
 }

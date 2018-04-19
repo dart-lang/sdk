@@ -6,8 +6,7 @@ import 'package:expect/expect.dart';
 
 @NoInline()
 method<T>() {
-  // TODO(johnniwinther): Improve rti tracking to avoid capture of `T`.
-  /*fields=[T],free=[T]*/ dynamic local() => <T>[];
+  /**/ dynamic local() => <T>[];
   return local;
 }
 

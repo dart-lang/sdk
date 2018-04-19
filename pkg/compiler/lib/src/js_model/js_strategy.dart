@@ -76,11 +76,7 @@ class JsBackendStrategy implements KernelBackendStrategy {
     _elementEnvironment = _elementMap.elementEnvironment;
     _commonElements = _elementMap.commonElements;
     _closureDataLookup = new KernelClosureConversionTask(
-        _compiler.measurer,
-        _elementMap,
-        _globalLocalsMap,
-        _compiler.options.enableTypeAssertions,
-        _compiler.options.strongMode);
+        _compiler.measurer, _elementMap, _globalLocalsMap, _compiler.options);
     JsClosedWorldBuilder closedWorldBuilder = new JsClosedWorldBuilder(
         _elementMap, _closureDataLookup, _compiler.options);
     return closedWorldBuilder._convertClosedWorld(
@@ -281,11 +277,9 @@ class JsClosedWorldBuilder {
     if (_options.disableRtiOptimization) {
       rtiNeed = new TrivialRuntimeTypesNeed();
       callMethods = _closureConversionTask.createClosureEntities(
-          this, map.toBackendMemberMap(closureModels, identity),
-          localFunctionNeedsSignature: (_) => true,
-          classNeedsTypeArguments: (_) => true,
-          methodNeedsTypeArguments: (_) => true,
-          localFunctionNeedsTypeArguments: (_) => true);
+          this,
+          map.toBackendMemberMap(closureModels, identity),
+          const TrivialClosureRtiNeed());
     } else {
       RuntimeTypesNeedImpl kernelRtiNeed = closedWorld.rtiNeed;
       Set<ir.Node> localFunctionsNodesNeedingSignature = new Set<ir.Node>();
@@ -308,23 +302,14 @@ class JsClosedWorldBuilder {
       RuntimeTypesNeedImpl jRtiNeed =
           _convertRuntimeTypesNeed(map, backendUsage, kernelRtiNeed);
       callMethods = _closureConversionTask.createClosureEntities(
-          this, map.toBackendMemberMap(closureModels, identity),
-          localFunctionNeedsSignature: (ir.Node node) {
-            assert(node is ir.FunctionDeclaration ||
-                node is ir.FunctionExpression);
-            return backendUsage.isRuntimeTypeUsed
-                ? true
-                : localFunctionsNodesNeedingSignature.contains(node);
-          },
-          classNeedsTypeArguments: jRtiNeed.classNeedsTypeArguments,
-          methodNeedsTypeArguments: jRtiNeed.methodNeedsTypeArguments,
-          localFunctionNeedsTypeArguments: (ir.Node node) {
-            assert(node is ir.FunctionDeclaration ||
-                node is ir.FunctionExpression);
-            return backendUsage.isRuntimeTypeUsed
-                ? true
-                : localFunctionsNodesNeedingTypeArguments.contains(node);
-          });
+          this,
+          map.toBackendMemberMap(closureModels, identity),
+          new JsClosureRtiNeed(
+            backendUsage,
+            jRtiNeed,
+            localFunctionsNodesNeedingTypeArguments,
+            localFunctionsNodesNeedingSignature,
+          ));
 
       List<FunctionEntity> callMethodsNeedingSignature = <FunctionEntity>[];
       for (ir.Node node in localFunctionsNodesNeedingSignature) {
@@ -772,4 +757,54 @@ class TypeConverter extends DartTypeVisitor<DartType, Null> {
 
   List<DartType> _visitList(List<DartType> list) =>
       list.map<DartType>((t) => t.accept(this, null)).toList();
+}
+
+class TrivialClosureRtiNeed implements ClosureRtiNeed {
+  const TrivialClosureRtiNeed();
+
+  bool localFunctionNeedsSignature(ir.Node node) => true;
+  bool classNeedsTypeArguments(ClassEntity cls) => true;
+  bool methodNeedsTypeArguments(FunctionEntity method) => true;
+  bool localFunctionNeedsTypeArguments(ir.Node node) => true;
+  bool selectorNeedsTypeArguments(Selector selector) => true;
+  bool methodNeedsSignature(MemberEntity method) => true;
+}
+
+class JsClosureRtiNeed implements ClosureRtiNeed {
+  final BackendUsage backendUsage;
+  final RuntimeTypesNeed rtiNeed;
+  final Set<ir.Node> localFunctionsNodesNeedingTypeArguments;
+  final Set<ir.Node> localFunctionsNodesNeedingSignature;
+
+  JsClosureRtiNeed(
+      this.backendUsage,
+      this.rtiNeed,
+      this.localFunctionsNodesNeedingTypeArguments,
+      this.localFunctionsNodesNeedingSignature);
+
+  bool localFunctionNeedsSignature(ir.Node node) {
+    assert(node is ir.FunctionDeclaration || node is ir.FunctionExpression);
+    return backendUsage.isRuntimeTypeUsed
+        ? true
+        : localFunctionsNodesNeedingSignature.contains(node);
+  }
+
+  bool classNeedsTypeArguments(ClassEntity cls) =>
+      rtiNeed.classNeedsTypeArguments(cls);
+
+  bool methodNeedsTypeArguments(FunctionEntity method) =>
+      rtiNeed.methodNeedsTypeArguments(method);
+
+  bool localFunctionNeedsTypeArguments(ir.Node node) {
+    assert(node is ir.FunctionDeclaration || node is ir.FunctionExpression);
+    return backendUsage.isRuntimeTypeUsed
+        ? true
+        : localFunctionsNodesNeedingTypeArguments.contains(node);
+  }
+
+  bool selectorNeedsTypeArguments(Selector selector) =>
+      rtiNeed.selectorNeedsTypeArguments(selector);
+
+  bool methodNeedsSignature(MemberEntity method) =>
+      rtiNeed.methodNeedsSignature(method);
 }

@@ -9,11 +9,7 @@ class A<T> {
   /*element: A.method:hasThis*/
   @NoInline()
   method() {
-    // TODO(johnniwinther): Improve rti tracking to avoid capture of `T`.
-    /*ast.hasThis*/
-    /*kernel.hasThis*/
-    /*strong.fields=[this],free=[this],hasThis*/
-    dynamic local() => <T, int>{};
+    /*hasThis*/ dynamic local() => <T, int>{};
     return local;
   }
 }

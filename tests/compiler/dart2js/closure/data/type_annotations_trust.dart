@@ -10,10 +10,7 @@
 class Class1<T> {
   /*element: Class1.method1:hasThis*/
   method1(T o) {
-    // TODO(johnniwinther): Improve rti tracking to avoid capture of `this`.
-    /*ast.fields=[o],free=[o],hasThis*/
-    /*kernel.fields=[o],free=[o],hasThis*/
-    /*strong.fields=[o,this],free=[o,this],hasThis*/
+    /*fields=[o],free=[o],hasThis*/
     dynamic local() {
       T t = o;
       return t;
@@ -31,10 +28,7 @@ class Class1<T> {
 class Class2<T> {
   /*element: Class2.method2:hasThis*/
   method2() {
-    // TODO(johnniwinther): Improve rti tracking to avoid capture of `this`.
-    /*ast.hasThis*/
-    /*kernel.hasThis*/
-    /*strong.fields=[this],free=[this],hasThis*/
+    /*hasThis*/
     dynamic local(T t) => t;
     return local;
   }
@@ -48,10 +42,7 @@ class Class2<T> {
 class Class3<T> {
   /*element: Class3.method3:hasThis*/
   method3(dynamic o) {
-    // TODO(johnniwinther): Improve rti tracking to avoid capture of `this`.
-    /*ast.fields=[o],free=[o],hasThis*/
-    /*kernel.fields=[o],free=[o],hasThis*/
-    /*strong.fields=[o,this],free=[o,this],hasThis*/
+    /*fields=[o],free=[o],hasThis*/
     T local() => o;
     return local;
   }
@@ -93,10 +84,7 @@ class Class5<T> {
 class Class6<T> {
   /*element: Class6.method6:hasThis*/
   method6() {
-    // TODO(johnniwinther): Improve rti tracking to avoid capture of `this`.
-    /*ast.hasThis*/
-    /*kernel.hasThis*/
-    /*strong.fields=[this],free=[this],hasThis*/
+    /*hasThis*/
     dynamic local(T t) {
       /*fields=[t],free=[t],hasThis*/
       dynamic inner() => t;
@@ -115,10 +103,7 @@ class Class6<T> {
 class Class7<T> {
   /*element: Class7.method7:hasThis*/
   method7(dynamic o) {
-    // TODO(johnniwinther): Improve rti tracking to avoid capture of `this`.
-    /*ast.fields=[o],free=[o],hasThis*/
-    /*kernel.fields=[o],free=[o],hasThis*/
-    /*strong.fields=[o,this],free=[o,this],hasThis*/
+    /*fields=[o],free=[o],hasThis*/
     T local() {
       /*fields=[o],free=[o],hasThis*/
       dynamic inner() => o;

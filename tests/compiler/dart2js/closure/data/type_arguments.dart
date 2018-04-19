@@ -32,10 +32,7 @@ class Class2a<T> {}
 class Class2b<T> {
   /*element: Class2b.method2:hasThis*/
   method2() {
-    // TODO(johnniwinther): Improve rti tracking to avoid capture of `this`.
-    /*ast.hasThis*/
-    /*kernel.hasThis*/
-    /*strong.fields=[this],free=[this],hasThis*/
+    /*hasThis*/
     dynamic local() => new Class2a<T>();
     return local;
   }

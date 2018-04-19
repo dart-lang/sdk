@@ -38,10 +38,7 @@ class Class2<T> {
 class Class3<T> {
   /*element: Class3.method3:hasThis*/
   method3(dynamic o) {
-    // TODO(johnniwinther): Improve rti tracking to avoid capture of `this`.
-    /*ast.fields=[o],free=[o],hasThis*/
-    /*kernel.fields=[o],free=[o],hasThis*/
-    /*strong.fields=[o,this],free=[o,this],hasThis*/
+    /*fields=[o],free=[o],hasThis*/
     T local() => o;
     return local;
   }

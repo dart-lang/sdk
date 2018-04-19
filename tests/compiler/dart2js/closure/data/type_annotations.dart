@@ -3,19 +3,36 @@
 // BSD-style license that can be found in the LICENSE file.
 
 ////////////////////////////////////////////////////////////////////////////////
-/// A sound assignment to a local variable doesn't capture the type variable.
+/// A sound initialization of a local variable doesn't capture the type
+/// variable.
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: Class1.:hasThis*/
 class Class1<T> {
   /*element: Class1.method1:hasThis*/
   method1(T o) {
-    // TODO(johnniwinther): Improve rti tracking to avoid capture of `this`.
-    /*ast.fields=[o],free=[o],hasThis*/
-    /*kernel.fields=[o],free=[o],hasThis*/
-    /*strong.fields=[o,this],free=[o,this],hasThis*/
+    /*fields=[o],free=[o],hasThis*/
     dynamic local() {
       T t = o;
+      return t;
+    }
+
+    return local;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// A sound assignment to a local variable doesn't capture the type variable.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: Class1b.:hasThis*/
+class Class1b<T> {
+  /*element: Class1b.method1b:hasThis*/
+  method1b(T o) {
+    /*fields=[o],free=[o],hasThis*/
+    dynamic local() {
+      T t = null;
+      t = o;
       return t;
     }
 
@@ -139,6 +156,7 @@ class Class8<T> {
 
 main() {
   new Class1<int>().method1(0).call();
+  new Class1b<int>().method1b(0).call();
   new Class2<int>().method2().call(0);
   new Class3<int>().method3(0).call();
   new Class4<int>().method4(0).call();

@@ -7,8 +7,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 method1<T>(T o) {
-  // TODO(johnniwinther): Improve rti tracking to avoid capture of `T`.
-  /*fields=[T,o],free=[T,o]*/
+  /*fields=[o],free=[o]*/
   dynamic local() {
     T t = o;
     return t;
