@@ -1080,7 +1080,6 @@ const intptr_t ARGS_DESC_REG = 0;
 const intptr_t CODE_REG = 0;
 const intptr_t kExceptionObjectReg = 0;
 const intptr_t kStackTraceObjectReg = 0;
-const intptr_t CTX = 0;
 
 enum FpuRegister {
   kNoFpuRegister = -1,

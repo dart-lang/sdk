@@ -46,7 +46,6 @@ enum {
 
   kExtractorParameterTypes,
   kExtractorParameterNames,
-  kEmptyContextObject,
   kEmptyContextScopeObject,
   kImplicitClosureScopeObject,
   kEmptyObjectPool,

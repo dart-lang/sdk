@@ -199,7 +199,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 10) {
 #if defined(DEBUG)
       Context& ctx = Context::Handle();
       ctx = Closure::Cast(closure).context();
-      ASSERT(ctx.num_variables() == 0);
+      ASSERT(ctx.IsNull());
 #endif
       // Get the parent function so that we get the right function name.
       func = func.parent_function();

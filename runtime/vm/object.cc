@@ -113,7 +113,6 @@ TypeArguments* Object::null_type_arguments_ = NULL;
 TypeArguments* Object::empty_type_arguments_ = NULL;
 Array* Object::empty_array_ = NULL;
 Array* Object::zero_array_ = NULL;
-Context* Object::empty_context_ = NULL;
 ContextScope* Object::empty_context_scope_ = NULL;
 ObjectPool* Object::empty_object_pool_ = NULL;
 PcDescriptors* Object::empty_descriptors_ = NULL;
@@ -510,7 +509,6 @@ void Object::InitOnce(Isolate* isolate) {
   empty_type_arguments_ = TypeArguments::ReadOnlyHandle();
   empty_array_ = Array::ReadOnlyHandle();
   zero_array_ = Array::ReadOnlyHandle();
-  empty_context_ = Context::ReadOnlyHandle();
   empty_context_scope_ = ContextScope::ReadOnlyHandle();
   empty_object_pool_ = ObjectPool::ReadOnlyHandle();
   empty_descriptors_ = PcDescriptors::ReadOnlyHandle();
@@ -778,17 +776,6 @@ void Object::InitOnce(Isolate* isolate) {
     zero_array_->SetCanonical();
   }
 
-  // Allocate and initialize the empty context object.
-  {
-    uword address = heap->Allocate(Context::InstanceSize(0), Heap::kOld);
-    InitializeObject(address, kContextCid, Context::InstanceSize(0), true);
-    Context::initializeHandle(empty_context_, reinterpret_cast<RawContext*>(
-                                                  address + kHeapObjectTag));
-    empty_context_->StoreNonPointer(&empty_context_->raw_ptr()->num_variables_,
-                                    0);
-    empty_context_->SetCanonical();
-  }
-
   // Allocate and initialize the canonical empty context scope object.
   {
     uword address = heap->Allocate(ContextScope::InstanceSize(0), Heap::kOld);
@@ -980,8 +967,6 @@ void Object::InitOnce(Isolate* isolate) {
   ASSERT(empty_array_->IsArray());
   ASSERT(!zero_array_->IsSmi());
   ASSERT(zero_array_->IsArray());
-  ASSERT(!empty_context_->IsSmi());
-  ASSERT(empty_context_->IsContext());
   ASSERT(!empty_context_scope_->IsSmi());
   ASSERT(empty_context_scope_->IsContextScope());
   ASSERT(!empty_descriptors_->IsSmi());
@@ -7643,7 +7628,7 @@ RawInstance* Function::ImplicitStaticClosure() const {
   ASSERT(IsImplicitStaticClosureFunction());
   if (implicit_static_closure() == Instance::null()) {
     Zone* zone = Thread::Current()->zone();
-    const Context& context = Object::empty_context();
+    const Context& context = Context::Handle(zone);
     Instance& closure =
         Instance::Handle(zone, Closure::New(Object::null_type_arguments(),
                                             Object::null_type_arguments(),

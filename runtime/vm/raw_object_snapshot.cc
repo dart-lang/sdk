@@ -1478,9 +1478,7 @@ RawContext* Context::ReadFrom(SnapshotReader* reader,
   int32_t num_vars = reader->Read<int32_t>();
   Context& context = Context::ZoneHandle(reader->zone());
   reader->AddBackRef(object_id, &context, kIsDeserialized);
-  if (num_vars == 0) {
-    context ^= Object::empty_context().raw();
-  } else {
+  if (num_vars != 0) {
     context ^= Context::New(num_vars);
 
     // Set all the object fields.
