@@ -294,6 +294,19 @@ f(x) {
   }
 
   @failingTest
+  void test_missingGet() {
+    testRecovery('''
+class Bar {
+  int foo => 0;
+}
+''', [ParserErrorCode.MISSING_GET], '''
+class Bar {
+  int get foo => 0;
+}
+''');
+  }
+
+  @failingTest
   void test_parameterList_leftParen() {
     // https://github.com/dart-lang/sdk/issues/22938
     testRecovery('''
