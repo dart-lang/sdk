@@ -894,7 +894,8 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
   scope_->set_end_token_pos(function.end_token_pos());
 
   // Add function type arguments variable before current context variable.
-  if (I->reify_generic_functions() && function.IsGeneric()) {
+  if (I->reify_generic_functions() &&
+      (function.IsGeneric() || function.HasGenericParent())) {
     LocalVariable* type_args_var = MakeVariable(
         TokenPosition::kNoSource, TokenPosition::kNoSource,
         Symbols::FunctionTypeArgumentsVar(), AbstractType::dynamic_type());
@@ -4713,55 +4714,58 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
 
   Fragment body;
 
-  if (dart_function.IsConvertedClosureFunction()) {
-    LocalVariable* closure = new (Z) LocalVariable(
+  LocalVariable* closure = NULL;
+  if (dart_function.IsClosureFunction()) {
+    closure = parsed_function()->node_sequence()->scope()->VariableAt(0);
+  } else if (dart_function.IsConvertedClosureFunction()) {
+    closure = new (Z) LocalVariable(
         TokenPosition::kNoSource, TokenPosition::kNoSource,
         Symbols::TempParam(), AbstractType::ZoneHandle(Z, Type::DynamicType()));
     closure->set_index(parsed_function()->first_parameter_index());
     closure->set_is_captured_parameter(true);
+  }
+
+  if ((dart_function.IsClosureFunction() ||
+       dart_function.IsConvertedClosureFunction()) &&
+      dart_function.NumParentTypeParameters() > 0 &&
+      I->reify_generic_functions()) {
+    LocalVariable* fn_type_args = parsed_function()->function_type_arguments();
+    ASSERT(fn_type_args != NULL && closure != NULL);
+
+    if (dart_function.IsGeneric()) {
+      body += LoadLocal(fn_type_args);
+      body += PushArgument();
+      body += LoadLocal(closure);
+      body += LoadField(Closure::function_type_arguments_offset());
+      body += PushArgument();
+      body += IntConstant(dart_function.NumTypeParameters() +
+                          dart_function.NumParentTypeParameters());
+      body += PushArgument();
+
+      const Library& dart_internal =
+          Library::Handle(Z, Library::InternalLibrary());
+      const Function& prepend_function =
+          Function::ZoneHandle(Z, dart_internal.LookupFunctionAllowPrivate(
+                                      Symbols::PrependTypeArguments()));
+      ASSERT(!prepend_function.IsNull());
+
+      body += StaticCall(TokenPosition::kNoSource, prepend_function, 3,
+                         ICData::kStatic);
+      body += StoreLocal(TokenPosition::kNoSource, fn_type_args);
+      body += Drop();
+    } else {
+      body += LoadLocal(closure);
+      body += LoadField(Closure::function_type_arguments_offset());
+      body += StoreLocal(TokenPosition::kNoSource, fn_type_args);
+      body += Drop();
+    }
+  }
+
+  if (dart_function.IsConvertedClosureFunction()) {
     body += LoadLocal(closure);
     body += LoadField(Closure::context_offset());
     LocalVariable* context = closure;
     body += StoreLocal(TokenPosition::kNoSource, context);
-
-    // TODO(30455): Kernel generic methods undone. When generic closures are
-    // supported, the type arguments passed by the caller will actually need to
-    // be used here.
-    if (dart_function.IsGeneric() && I->reify_generic_functions()) {
-      LocalVariable* type_args_slot =
-          parsed_function()->function_type_arguments();
-      ASSERT(type_args_slot != NULL);
-      body += LoadField(Context::variable_offset(0));
-      body += StoreLocal(TokenPosition::kNoSource, type_args_slot);
-    }
-    body += Drop();
-  } else if (dart_function.IsClosureFunction() && dart_function.IsGeneric() &&
-             dart_function.NumParentTypeParameters() > 0 &&
-             I->reify_generic_functions()) {
-    LocalVariable* closure =
-        parsed_function()->node_sequence()->scope()->VariableAt(0);
-    LocalVariable* fn_type_args = parsed_function()->function_type_arguments();
-    ASSERT(fn_type_args != NULL && closure != NULL);
-
-    body += LoadLocal(fn_type_args);
-    body += PushArgument();
-    body += LoadLocal(closure);
-    body += LoadField(Closure::function_type_arguments_offset());
-    body += PushArgument();
-    body += IntConstant(dart_function.NumTypeParameters() +
-                        dart_function.NumParentTypeParameters());
-    body += PushArgument();
-
-    const Library& dart_internal =
-        Library::Handle(Z, Library::InternalLibrary());
-    const Function& prepend_function =
-        Function::ZoneHandle(Z, dart_internal.LookupFunctionAllowPrivate(
-                                    Symbols::PrependTypeArguments()));
-    ASSERT(!prepend_function.IsNull());
-
-    body += StaticCall(TokenPosition::kNoSource, prepend_function, 3,
-                       ICData::kStatic);
-    body += StoreLocal(TokenPosition::kNoSource, fn_type_args);
     body += Drop();
   }
 
@@ -8370,7 +8374,15 @@ Fragment StreamingFlowGraphBuilder::BuildClosureCreation(
       ReadCanonicalNameReference();  // read function reference.
   Function& function = Function::ZoneHandle(
       Z, H.LookupStaticMethodByKernelProcedure(function_reference));
-  function = function.ConvertedClosureFunction();
+
+  intptr_t num_type_parameters;
+  {
+    AlternativeReadingScope _(&reader_);
+    SkipExpression();  // context vector
+    SkipDartType();    // skip function type
+    num_type_parameters = ReadListLength();
+  }
+  function = function.ConvertedClosureFunction(num_type_parameters);
   ASSERT(!function.IsNull());
 
   const Class& closure_class =
@@ -8391,33 +8403,24 @@ Fragment StreamingFlowGraphBuilder::BuildClosureCreation(
   instructions +=
       StoreInstanceField(TokenPosition::kNoSource, Closure::context_offset());
 
-  SkipDartType();  // skip function type of the closure.
+  // Skip the function type of the closure (it's predicable from the
+  // target and the supplied type arguments).
+  SkipDartType();
 
-  // TODO(30455): Kernel generic methods undone. When generic methods are
-  // fully supported in kernel, we'll need to store a NULL in the type arguments
-  // slot when type arguments are absent, so the wrapper for the target function
-  // can tell how many type args are captured vs. provided by the caller of the
-  // closure.
-
-  intptr_t types_count = ReadListLength();  // read type count.
-  if (types_count > 0) {
-    const TypeArguments& type_args =
-        T.BuildTypeArguments(types_count);  // read list of type arguments.
-    instructions += TranslateInstantiatedTypeArguments(type_args);
-    LocalVariable* type_args_slot = MakeTemporary();
-
-    instructions += LoadLocal(context);
-    instructions += LoadLocal(type_args_slot);
-    instructions += StoreInstanceField(TokenPosition::kNoSource,
-                                       Context::variable_offset(0));
-
+  ReadListLength();  // type parameter count
+  if (num_type_parameters > 0) {
     instructions += LoadLocal(closure);
-    instructions += LoadLocal(type_args_slot);
+    const TypeArguments& type_args = T.BuildTypeArguments(
+        num_type_parameters);  // read list of type arguments.
+    instructions += TranslateInstantiatedTypeArguments(type_args);
     instructions += StoreInstanceField(
         TokenPosition::kNoSource, Closure::function_type_arguments_offset());
-
-    instructions += Drop();  // type args
   }
+
+  instructions += LoadLocal(closure);
+  instructions += Constant(Object::empty_type_arguments());
+  instructions += StoreInstanceField(TokenPosition::kNoSource,
+                                     Closure::delayed_type_arguments_offset());
 
   instructions += Drop();  // context
   return instructions;

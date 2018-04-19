@@ -5845,6 +5845,8 @@ bool Function::HasGenericParent() const {
     // The parent function of an implicit closure function is not the enclosing
     // function we are asking about here.
     return false;
+  } else if (IsConvertedClosureFunction()) {
+    return NumParentTypeParameters() > 0;
   }
   Function& parent = Function::Handle(parent_function());
   while (!parent.IsNull()) {
@@ -6252,6 +6254,8 @@ intptr_t Function::NumTypeParameters(Thread* thread) const {
 intptr_t Function::NumParentTypeParameters() const {
   if (IsImplicitClosureFunction()) {
     return 0;
+  } else if (IsConvertedClosureFunction()) {
+    return num_parent_type_parameters();
   }
   Thread* thread = Thread::Current();
   Function& parent = Function::Handle(parent_function());
@@ -6778,21 +6782,10 @@ RawFunction* Function::InstantiateSignatureFrom(
     }
   }
 
-  Function& sig = Function::Handle(zone, Function::null());
-  if (IsConvertedClosureFunction() && !delete_type_parameters) {
-    sig = Function::NewConvertedClosureFunction(
-        String::Handle(zone, name()), parent, TokenPosition::kNoSource);
-    // TODO(30455): Kernel generic methods undone. Handle type parameters
-    // correctly when generic closures are supported. Until then, all type
-    // parameters to this target are used for captured type variables, so they
-    // aren't relevant to the type of the function.
-    sig.set_type_parameters(TypeArguments::Handle(zone, TypeArguments::null()));
-  } else {
-    sig = Function::NewSignatureFunction(owner, parent,
-                                         TokenPosition::kNoSource, space);
-    if (!delete_type_parameters) {
-      sig.set_type_parameters(TypeArguments::Handle(zone, type_parameters()));
-    }
+  Function& sig = Function::Handle(Function::NewSignatureFunction(
+      owner, parent, TokenPosition::kNoSource, space));
+  if (!delete_type_parameters) {
+    sig.set_type_parameters(TypeArguments::Handle(zone, type_parameters()));
   }
 
   AbstractType& type = AbstractType::Handle(zone, result_type());
@@ -7465,7 +7458,8 @@ void Function::DropUncompiledImplicitClosureFunction() const {
 //
 // Function::ConvertedClosureFunction method follows the logic of
 // Function::ImplicitClosureFunction method.
-RawFunction* Function::ConvertedClosureFunction() const {
+RawFunction* Function::ConvertedClosureFunction(
+    intptr_t num_parent_type_parameters) const {
   // Return the existing converted closure function if any.
   if (converted_closure_function() != Function::null()) {
     return converted_closure_function();
@@ -7483,8 +7477,28 @@ RawFunction* Function::ConvertedClosureFunction() const {
   closure_function.set_context_scope(Object::empty_context_scope());
 
   // Set closure function's type parameters.
-  closure_function.set_type_parameters(
-      TypeArguments::Handle(zone, type_parameters()));
+  {
+    TypeArguments& total_type_parameters =
+        TypeArguments::Handle(type_parameters());
+
+    intptr_t num_type_parameters =
+        total_type_parameters.Length() - num_parent_type_parameters;
+    if (num_type_parameters == 0) {
+      closure_function.set_type_parameters(Object::null_type_arguments());
+    } else {
+      ASSERT(num_type_parameters > 0);
+      TypeArguments& new_type_parameters =
+          TypeArguments::Handle(TypeArguments::New(num_type_parameters));
+
+      for (intptr_t i = 0; i < num_type_parameters; ++i) {
+        new_type_parameters.SetTypeAt(
+            i, AbstractType::Handle(total_type_parameters.TypeAt(
+                   i + num_parent_type_parameters)));
+      }
+      closure_function.set_type_parameters(new_type_parameters);
+    }
+    closure_function.set_num_parent_type_parameters(num_parent_type_parameters);
+  }
 
   // Set closure function's result type to this result type.
   closure_function.set_result_type(AbstractType::Handle(zone, result_type()));
@@ -7545,6 +7559,26 @@ void Function::DropUncompiledConvertedClosureFunction() const {
       set_converted_closure_function(Function::Handle());
     }
   }
+}
+
+void Function::set_num_parent_type_parameters(intptr_t num) const {
+  if (IsConvertedClosureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(!obj.IsNull());
+    ClosureData::Cast(obj).set_num_parent_type_parameters(num);
+    return;
+  }
+  UNREACHABLE();
+}
+
+intptr_t Function::num_parent_type_parameters() const {
+  if (IsConvertedClosureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(!obj.IsNull());
+    return ClosureData::Cast(obj).num_parent_type_parameters();
+  }
+  UNREACHABLE();
+  return 0;
 }
 
 void Function::BuildSignatureParameters(
@@ -7685,35 +7719,6 @@ RawString* Function::BuildSignature(NameVisibility name_visibility) const {
 bool Function::HasInstantiatedSignature(Genericity genericity,
                                         intptr_t num_free_fun_type_params,
                                         TrailPtr trail) const {
-  // This function works differently for converted closures.
-  //
-  // Unlike regular closures, it's not possible to know which type parameters
-  // are supposed to come from parent functions or classes and which are
-  // actually parameters to the closure it represents. For example, consider:
-  //
-  //     class C<T> {
-  //       getf() => (T x) { return x; }
-  //     }
-  //
-  //     class D {
-  //       getf() {
-  //         dynamic fn<T>(T x) { return x; }
-  //         return fn;
-  //       }
-  //     }
-  //
-  // The signature of `fn` as a converted closure will in both cases look like
-  // `<T>(T) => dynamic`, because the signature of the converted closure
-  // function is the same as its top-level target function. However, in the
-  // first case the closure's type is instantiated, and in the second case
-  // it's not.
-  //
-  // Since we can never assume a converted closure is instantiated if it has any
-  // type parameters, we always return true in these cases.
-  if (IsConvertedClosureFunction()) {
-    return genericity == kCurrentClass || NumTypeParameters() == 0;
-  }
-
   if (num_free_fun_type_params == kCurrentAndEnclosingFree) {
     num_free_fun_type_params = kAllFree;
   } else if (genericity != kCurrentClass) {
@@ -8111,6 +8116,14 @@ const char* Function::ToCString() const {
   return OS::SCreate(Thread::Current()->zone(), "Function '%s':%s%s%s%s.",
                      function_name, static_str, abstract_str, kind_str,
                      const_str);
+}
+
+intptr_t ClosureData::num_parent_type_parameters() const {
+  return Smi::Value(raw_ptr()->num_parent_type_parameters_);
+}
+
+void ClosureData::set_num_parent_type_parameters(intptr_t value) const {
+  StorePointer(&raw_ptr()->num_parent_type_parameters_, Smi::New(value));
 }
 
 void ClosureData::set_context_scope(const ContextScope& value) const {

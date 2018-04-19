@@ -2168,6 +2168,11 @@ class Function : public Object {
   RawArray* parameter_names() const { return raw_ptr()->parameter_names_; }
   void set_parameter_names(const Array& value) const;
 
+  // For converted closure functions: indicate how many type parameters on the
+  // target are actually captured.
+  void set_num_parent_type_parameters(intptr_t num) const;
+  intptr_t num_parent_type_parameters() const;
+
   // The type parameters (and their bounds) are specified as an array of
   // TypeParameter.
   RawTypeArguments* type_parameters() const {
@@ -2305,7 +2310,8 @@ class Function : public Object {
   // If none exists yet, create one and remember it.  See the comment on
   // ConvertedClosureFunction definition in runtime/vm/object.cc for elaborate
   // explanation.
-  RawFunction* ConvertedClosureFunction() const;
+  RawFunction* ConvertedClosureFunction(
+      intptr_t num_parent_type_parameters) const;
   void DropUncompiledConvertedClosureFunction() const;
 
   // Return the closure implicitly created for this function.
@@ -2987,6 +2993,9 @@ class ClosureData : public Object {
 
   RawInstance* implicit_static_closure() const { return raw_ptr()->closure_; }
   void set_implicit_static_closure(const Instance& closure) const;
+
+  intptr_t num_parent_type_parameters() const;
+  void set_num_parent_type_parameters(intptr_t value) const;
 
   static RawClosureData* New();
 

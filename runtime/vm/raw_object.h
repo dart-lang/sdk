@@ -983,7 +983,8 @@ class RawClosureData : public RawObject {
   RawFunction* parent_function_;  // Enclosing function of this local function.
   RawType* signature_type_;
   RawInstance* closure_;  // Closure object for static implicit closures.
-  VISIT_TO(RawObject*, closure_);
+  RawSmi* num_parent_type_parameters_;  // For converted closures only
+  VISIT_TO(RawObject*, num_parent_type_parameters_);
 
   friend class Function;
 };

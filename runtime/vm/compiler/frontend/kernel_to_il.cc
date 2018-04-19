@@ -1010,17 +1010,9 @@ Fragment FlowGraphBuilder::LoadFunctionTypeArguments() {
 
   const Function& function = parsed_function_->function();
 
-  if (function.IsClosureFunction() && !function.IsGeneric()) {
-    LocalScope* scope = parsed_function_->node_sequence()->scope();
-    LocalVariable* closure = scope->VariableAt(0);
-    ASSERT(closure != NULL);
-    instructions += LoadLocal(closure);
-    instructions += LoadField(Closure::function_type_arguments_offset());
-
-  } else if (function.IsGeneric()) {
+  if (function.IsGeneric() || function.HasGenericParent()) {
     ASSERT(parsed_function_->function_type_arguments() != NULL);
     instructions += LoadLocal(parsed_function_->function_type_arguments());
-
   } else {
     instructions += NullConstant();
   }
