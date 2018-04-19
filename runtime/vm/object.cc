@@ -3718,8 +3718,16 @@ TokenPosition Class::ComputeEndTokenPos() const {
 }
 
 int32_t Class::SourceFingerprint() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (kernel_offset() > 0) {
+    return kernel::KernelSourceFingerprintHelper::CalculateClassFingerprint(
+        *this);
+  }
   return Script::Handle(script()).SourceFingerprint(token_pos(),
                                                     ComputeEndTokenPos());
+#else
+  return 0;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void Class::set_is_implemented() const {
@@ -7926,8 +7934,16 @@ RawString* Function::GetSource() const {
 // Construct fingerprint from token stream. The token stream contains also
 // arguments.
 int32_t Function::SourceFingerprint() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (kernel_offset() > 0) {
+    return kernel::KernelSourceFingerprintHelper::CalculateFunctionFingerprint(
+        *this);
+  }
   return Script::Handle(script()).SourceFingerprint(token_pos(),
                                                     end_token_pos());
+#else
+  return 0;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void Function::SaveICDataMap(
@@ -8478,8 +8494,16 @@ RawField* Field::Clone(const Field& original) const {
 }
 
 int32_t Field::SourceFingerprint() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (kernel_offset() > 0) {
+    return kernel::KernelSourceFingerprintHelper::CalculateFieldFingerprint(
+        *this);
+  }
   return Script::Handle(Script()).SourceFingerprint(token_pos(),
                                                     end_token_pos());
+#else
+  return 0;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 RawString* Field::InitializingExpression() const {

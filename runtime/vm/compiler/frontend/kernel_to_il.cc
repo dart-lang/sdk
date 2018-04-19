@@ -556,6 +556,10 @@ const String& TranslationHelper::DartGetterName(NameIndex parent,
   return name;
 }
 
+const String& TranslationHelper::DartFieldName(NameIndex field) {
+  return DartFieldName(CanonicalNameParent(field), CanonicalNameString(field));
+}
+
 const String& TranslationHelper::DartFieldName(NameIndex parent,
                                                StringIndex field) {
   String& name = DartString(field);

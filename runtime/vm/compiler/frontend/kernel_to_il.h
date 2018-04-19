@@ -406,6 +406,7 @@ class TranslationHelper {
   const String& DartGetterName(NameIndex getter);
   const String& DartGetterName(NameIndex parent, StringIndex getter);
 
+  const String& DartFieldName(NameIndex field);
   const String& DartFieldName(NameIndex parent, StringIndex field);
 
   const String& DartMethodName(NameIndex method);
@@ -672,6 +673,7 @@ class BaseFlowGraphBuilder {
   intptr_t pending_argument_count_;
 
   friend class TryCatchBlock;
+  friend class KernelReaderHelper;
   friend class StreamingFlowGraphBuilder;
   friend class FlowGraphBuilder;
   friend class PrologueBuilder;
@@ -891,6 +893,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   friend class BreakableBlock;
   friend class CatchBlock;
   friend class ConstantEvaluator;
+  friend class KernelReaderHelper;
   friend class StreamingFlowGraphBuilder;
   friend class ScopeBuilder;
   friend class SwitchBlock;

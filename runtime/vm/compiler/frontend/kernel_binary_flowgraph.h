@@ -17,6 +17,8 @@
 namespace dart {
 namespace kernel {
 
+class KernelReaderHelper;
+
 // Helper class that reads a kernel FunctionNode from binary.
 //
 // Use ReadUntilExcluding to read up to but not including a field.
@@ -50,8 +52,8 @@ class FunctionNodeHelper {
     kSyncYielding = 4,
   };
 
-  explicit FunctionNodeHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
+  explicit FunctionNodeHelper(KernelReaderHelper* helper) {
+    helper_ = helper;
     next_read_ = kStart;
   }
 
@@ -72,7 +74,7 @@ class FunctionNodeHelper {
   intptr_t required_parameter_count_;
 
  private:
-  StreamingFlowGraphBuilder* builder_;
+  KernelReaderHelper* helper_;
   intptr_t next_read_;
 };
 
@@ -93,8 +95,8 @@ class TypeParameterHelper {
     kIsGenericCovariantInterface = 1 << 1
   };
 
-  explicit TypeParameterHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
+  explicit TypeParameterHelper(KernelReaderHelper* helper) {
+    helper_ = helper;
     next_read_ = kStart;
   }
 
@@ -119,7 +121,7 @@ class TypeParameterHelper {
   StringIndex name_index_;
 
  private:
-  StreamingFlowGraphBuilder* builder_;
+  KernelReaderHelper* helper_;
   intptr_t next_read_;
 };
 
@@ -151,10 +153,8 @@ class VariableDeclarationHelper {
     kIsGenericCovariantInterface = 1 << 6
   };
 
-  explicit VariableDeclarationHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
-    next_read_ = kPosition;
-  }
+  explicit VariableDeclarationHelper(KernelReaderHelper* helper)
+      : helper_(helper), next_read_(kPosition) {}
 
   void ReadUntilIncluding(Field field) {
     ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
@@ -182,7 +182,7 @@ class VariableDeclarationHelper {
   StringIndex name_index_;
 
  private:
-  StreamingFlowGraphBuilder* builder_;
+  KernelReaderHelper* helper_;
   intptr_t next_read_;
 };
 
@@ -219,12 +219,12 @@ class FieldHelper {
     kIsGenericCovariantInterface = 1 << 7
   };
 
-  explicit FieldHelper(StreamingFlowGraphBuilder* builder)
-      : builder_(builder),
+  explicit FieldHelper(KernelReaderHelper* helper)
+      : helper_(helper),
         next_read_(kStart),
         has_function_literal_initializer_(false) {}
 
-  FieldHelper(StreamingFlowGraphBuilder* builder, intptr_t offset);
+  FieldHelper(KernelReaderHelper* helper, intptr_t offset);
 
   void ReadUntilIncluding(Field field) {
     ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
@@ -260,11 +260,12 @@ class FieldHelper {
   TokenPosition position_;
   TokenPosition end_position_;
   uint8_t flags_;
+  uint8_t secondary_flags_;
   intptr_t source_uri_index_;
   intptr_t annotation_count_;
 
  private:
-  StreamingFlowGraphBuilder* builder_;
+  KernelReaderHelper* helper_;
   intptr_t next_read_;
 
   bool has_function_literal_initializer_;
@@ -320,10 +321,8 @@ class ProcedureHelper {
     kNoSuchMethodForwarder = 1 << 0,
   };
 
-  explicit ProcedureHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
-    next_read_ = kStart;
-  }
+  explicit ProcedureHelper(KernelReaderHelper* helper)
+      : helper_(helper), next_read_(kStart) {}
 
   void ReadUntilIncluding(Field field) {
     ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
@@ -359,7 +358,7 @@ class ProcedureHelper {
   NameIndex forwarding_stub_super_target_;
 
  private:
-  StreamingFlowGraphBuilder* builder_;
+  KernelReaderHelper* helper_;
   intptr_t next_read_;
 };
 
@@ -392,10 +391,8 @@ class ConstructorHelper {
     kSynthetic = 1 << 2,
   };
 
-  explicit ConstructorHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
-    next_read_ = kStart;
-  }
+  explicit ConstructorHelper(KernelReaderHelper* helper)
+      : helper_(helper), next_read_(kStart) {}
 
   void ReadUntilIncluding(Field field) {
     ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
@@ -418,7 +415,7 @@ class ConstructorHelper {
   intptr_t annotation_count_;
 
  private:
-  StreamingFlowGraphBuilder* builder_;
+  KernelReaderHelper* helper_;
   intptr_t next_read_;
 };
 
@@ -456,10 +453,8 @@ class ClassHelper {
     kIsEnumClass = 2,
   };
 
-  explicit ClassHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
-    next_read_ = kStart;
-  }
+  explicit ClassHelper(KernelReaderHelper* helper)
+      : helper_(helper), next_read_(kStart) {}
 
   void ReadUntilIncluding(Field field) {
     ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
@@ -484,7 +479,7 @@ class ClassHelper {
   uint8_t flags_;
 
  private:
-  StreamingFlowGraphBuilder* builder_;
+  KernelReaderHelper* helper_;
   intptr_t next_read_;
 };
 
@@ -518,10 +513,8 @@ class LibraryHelper {
     kExternal = 1,
   };
 
-  explicit LibraryHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
-    next_read_ = kFlags;
-  }
+  explicit LibraryHelper(KernelReaderHelper* helper)
+      : helper_(helper), next_read_(kFlags) {}
 
   void ReadUntilIncluding(Field field) {
     ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
@@ -542,7 +535,7 @@ class LibraryHelper {
   intptr_t procedure_count_;
 
  private:
-  StreamingFlowGraphBuilder* builder_;
+  KernelReaderHelper* helper_;
   intptr_t next_read_;
 };
 
@@ -567,10 +560,8 @@ class LibraryDependencyHelper {
     Show = 1 << 0,
   };
 
-  explicit LibraryDependencyHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
-    next_read_ = kFileOffset;
-  }
+  explicit LibraryDependencyHelper(KernelReaderHelper* helper)
+      : helper_(helper), next_read_(kFileOffset) {}
 
   void ReadUntilIncluding(Field field) {
     ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
@@ -583,7 +574,7 @@ class LibraryDependencyHelper {
   NameIndex target_library_canonical_name_;
 
  private:
-  StreamingFlowGraphBuilder* builder_;
+  KernelReaderHelper* helper_;
   intptr_t next_read_;
 };
 
@@ -792,7 +783,7 @@ class StreamingScopeBuilder {
   void EnterScope(intptr_t kernel_offset);
   void ExitScope(TokenPosition start_position, TokenPosition end_position);
 
-  void ReportUnexpectedTag(const char* variant, Tag tag);
+  virtual void ReportUnexpectedTag(const char* variant, Tag tag);
 
   // This enum controls which parameters would be marked as requring type
   // check on the callee side.
@@ -1002,132 +993,56 @@ class StreamingConstantEvaluator {
   Instance& result_;
 };
 
-class StreamingFlowGraphBuilder {
+class KernelReaderHelper {
  public:
-  StreamingFlowGraphBuilder(FlowGraphBuilder* flow_graph_builder,
-                            const TypedData& data,
-                            intptr_t data_program_offset)
-      : flow_graph_builder_(flow_graph_builder),
-        translation_helper_(flow_graph_builder->translation_helper_),
-        zone_(flow_graph_builder->zone_),
-        reader_(data),
-        script_(Script::Handle(zone_, parsed_function()->function().script())),
-        constant_evaluator_(this),
-        type_translator_(this, /* finalize= */ true),
-        data_program_offset_(data_program_offset),
-        current_script_id_(-1),
-        record_for_script_id_(-1),
-        record_token_positions_into_(NULL),
-        record_yield_positions_into_(NULL),
-        direct_call_metadata_helper_(this),
-        inferred_type_metadata_helper_(this),
-        procedure_attributes_metadata_helper_(this),
-        metadata_scanned_(false) {}
-
-  StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
-                            Zone* zone,
-                            const uint8_t* data_buffer,
-                            intptr_t buffer_length,
-                            intptr_t data_program_offset)
-      : flow_graph_builder_(NULL),
+  KernelReaderHelper(Zone* zone,
+                     TranslationHelper* translation_helper,
+                     const Script& script,
+                     const TypedData& data,
+                     intptr_t data_program_offset)
+      : zone_(zone),
         translation_helper_(*translation_helper),
-        zone_(zone),
-        reader_(data_buffer, buffer_length),
-        script_(Script::Handle(zone_)),
-        constant_evaluator_(this),
-        type_translator_(this, /* finalize= */ true),
-        data_program_offset_(data_program_offset),
-        current_script_id_(-1),
-        record_for_script_id_(-1),
-        record_token_positions_into_(NULL),
-        record_yield_positions_into_(NULL),
-        direct_call_metadata_helper_(this),
-        inferred_type_metadata_helper_(this),
-        procedure_attributes_metadata_helper_(this),
-        metadata_scanned_(false) {}
-
-  StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
-                            const Script& script,
-                            Zone* zone,
-                            const TypedData& data,
-                            intptr_t data_program_offset)
-      : flow_graph_builder_(NULL),
-        translation_helper_(*translation_helper),
-        zone_(zone),
         reader_(data),
         script_(script),
-        constant_evaluator_(this),
-        type_translator_(this, /* finalize= */ true),
-        data_program_offset_(data_program_offset),
-        current_script_id_(-1),
-        record_for_script_id_(-1),
-        record_token_positions_into_(NULL),
-        record_yield_positions_into_(NULL),
-        direct_call_metadata_helper_(this),
-        inferred_type_metadata_helper_(this),
-        procedure_attributes_metadata_helper_(this),
-        metadata_scanned_(false) {}
+        data_program_offset_(data_program_offset) {}
 
-  ~StreamingFlowGraphBuilder() {}
+  KernelReaderHelper(Zone* zone,
+                     TranslationHelper* translation_helper,
+                     const uint8_t* data_buffer,
+                     intptr_t buffer_length,
+                     intptr_t data_program_offset)
+      : zone_(zone),
+        translation_helper_(*translation_helper),
+        reader_(data_buffer, buffer_length),
+        script_(Script::Handle(zone_)),
+        data_program_offset_(data_program_offset) {}
 
-  FlowGraph* BuildGraph(intptr_t kernel_offset);
+  virtual ~KernelReaderHelper() {}
 
-  Fragment BuildStatementAt(intptr_t kernel_offset);
-  RawObject* BuildParameterDescriptor(intptr_t kernel_offset);
-  RawObject* EvaluateMetadata(intptr_t kernel_offset);
-  void CollectTokenPositionsFor(
-      intptr_t script_index,
-      intptr_t initial_script_index,
-      intptr_t kernel_offset,
-      GrowableArray<intptr_t>* record_token_positions_in,
-      GrowableArray<intptr_t>* record_yield_positions_in);
-  intptr_t SourceTableSize();
-  String& SourceTableUriFor(intptr_t index);
-  String& GetSourceFor(intptr_t index);
-  RawTypedData* GetLineStartsFor(intptr_t index);
   void SetOffset(intptr_t offset);
 
-  // If a 'ParsedFunction' is provided for 'set_forwarding_stub', this method
-  // will attach the forwarding stub target reference to the parsed function if
-  // it crosses a procedure node for a concrete forwarding stub.
-  void ReadUntilFunctionNode(ParsedFunction* set_forwarding_stub = NULL);
   intptr_t ReadListLength();
+  virtual void ReportUnexpectedTag(const char* variant, Tag tag);
 
-  void ReportUnexpectedTag(const char* variant, Tag tag);
+ protected:
+  const Script& script() const { return script_; }
 
- private:
-  void LoadAndSetupTypeParameters(ActiveClass* active_class,
-                                  const Object& set_on,
-                                  intptr_t type_parameter_count,
-                                  const Function& parameterized_function);
+  virtual void set_current_script_id(intptr_t id) {
+    // Do nothing by default. This is overridden in StreamingFlowGraphBuilder.
+    USE(id);
+  }
 
-  void DiscoverEnclosingElements(Zone* zone,
-                                 const Function& function,
-                                 Function* outermost_function);
+  virtual void RecordYieldPosition(TokenPosition position) {
+    // Do nothing by default. This is overridden in StreamingFlowGraphBuilder.
+    USE(position);
+  }
 
-  StringIndex GetNameFromVariableDeclaration(intptr_t kernel_offset,
-                                             const Function& function);
+  virtual void RecordTokenPosition(TokenPosition position) {
+    // Do nothing by default. This is overridden in StreamingFlowGraphBuilder.
+    USE(position);
+  }
 
-  bool optimizing();
-
-  FlowGraph* BuildGraphOfFieldInitializer();
-  FlowGraph* BuildGraphOfFieldAccessor(LocalVariable* setter_value);
-  void SetupDefaultParameterValues();
-  Fragment BuildFieldInitializer(NameIndex canonical_name);
-  Fragment BuildInitializers(const Class& parent_class);
-  FlowGraph* BuildGraphOfImplicitClosureFunction(const Function& function);
-  FlowGraph* BuildGraphOfFunction(bool constructor);
-  FlowGraph* BuildGraphOfNoSuchMethodForwarder(
-      const Function& function,
-      bool is_implicit_closure_function,
-      bool throw_no_such_method_error = false);
-
-  intptr_t GetOffsetForSourceInfo(intptr_t index);
-
-  Fragment BuildExpression(TokenPosition* position = NULL);
-  Fragment BuildStatement();
-
-  intptr_t ReaderOffset();
+  intptr_t ReaderOffset() const;
   void SkipBytes(intptr_t skip);
   bool ReadBool();
   uint8_t ReadByte();
@@ -1168,11 +1083,221 @@ class StreamingFlowGraphBuilder {
   void SkipLibraryPart();
   void SkipLibraryTypedef();
   TokenPosition ReadPosition(bool record = true);
-  void record_token_position(TokenPosition position);
-  void record_yield_position(TokenPosition position);
   Tag ReadTag(uint8_t* payload = NULL);
   Tag PeekTag(uint8_t* payload = NULL);
   uint8_t ReadFlags() { return reader_.ReadFlags(); }
+
+  Zone* zone_;
+  TranslationHelper& translation_helper_;
+  Reader reader_;
+  const Script& script_;
+  // Some items like variables are specified in the kernel binary as
+  // absolute offsets (as in, offsets within the whole kernel program)
+  // of their declaration nodes. Hence, to cache and/or access them
+  // uniquely from within a function's kernel data, we need to
+  // add/subtract the offset of the kernel data in the over all
+  // kernel program.
+  intptr_t data_program_offset_;
+
+  friend class ClassHelper;
+  friend class ConstantHelper;
+  friend class ConstructorHelper;
+  friend class DirectCallMetadataHelper;
+  friend class ProcedureAttributesMetadataHelper;
+  friend class FieldHelper;
+  friend class FunctionNodeHelper;
+  friend class InferredTypeMetadataHelper;
+  friend class KernelLoader;
+  friend class LibraryDependencyHelper;
+  friend class LibraryHelper;
+  friend class MetadataHelper;
+  friend class ProcedureHelper;
+  friend class SimpleExpressionConverter;
+  friend class StreamingConstantEvaluator;
+  friend class StreamingDartTypeTranslator;
+  friend class StreamingScopeBuilder;
+  friend class VariableDeclarationHelper;
+  friend class TypeParameterHelper;
+};
+
+class KernelFingerprintHelper : public KernelReaderHelper {
+ public:
+  KernelFingerprintHelper(Zone* zone,
+                          TranslationHelper* translation_helper,
+                          const Script& script,
+                          const TypedData& data,
+                          intptr_t data_program_offset)
+      : KernelReaderHelper(zone,
+                           translation_helper,
+                           script,
+                           data,
+                           data_program_offset),
+        hash_(0) {}
+
+  virtual ~KernelFingerprintHelper() {}
+  uint32_t CalculateFieldFingerprint();
+  uint32_t CalculateFunctionFingerprint();
+
+  static uint32_t CalculateHash(uint32_t current, uint32_t val) {
+    return current * 31 + val;
+  }
+
+ private:
+  void BuildHash(uint32_t val);
+  void CalculateConstructorFingerprint();
+  void CalculateArgumentsFingerprint();
+  void CalculateVariableDeclarationFingerprint();
+  void CalculateStatementListFingerprint();
+  void CalculateListOfExpressionsFingerprint();
+  void CalculateListOfDartTypesFingerprint();
+  void CalculateListOfVariableDeclarationsFingerprint();
+  void CalculateStringReferenceFingerprint();
+  void CalculateListOfStringsFingerprint();
+  void CalculateTypeParameterFingerprint();
+  void CalculateTypeParametersListFingerprint();
+  void CalculateCanonicalNameFingerprint();
+  void CalculateInitializerFingerprint();
+  void CalculateDartTypeFingerprint();
+  void CalculateOptionalDartTypeFingerprint();
+  void CalculateInterfaceTypeFingerprint(bool simple);
+  void CalculateFunctionTypeFingerprint(bool simple);
+  void CalculateGetterNameFingerprint();
+  void CalculateSetterNameFingerprint();
+  void CalculateMethodNameFingerprint();
+  void CalculateExpressionFingerprint();
+  void CalculateStatementFingerprint();
+  void CalculateFunctionNodeFingerprint();
+
+  uint32_t hash_;
+};
+
+class StreamingFlowGraphBuilder : public KernelReaderHelper {
+ public:
+  StreamingFlowGraphBuilder(FlowGraphBuilder* flow_graph_builder,
+                            const TypedData& data,
+                            intptr_t data_program_offset)
+      : KernelReaderHelper(
+            flow_graph_builder->zone_,
+            &flow_graph_builder->translation_helper_,
+            Script::Handle(
+                flow_graph_builder->zone_,
+                flow_graph_builder->parsed_function_->function().script()),
+            data,
+            data_program_offset),
+        flow_graph_builder_(flow_graph_builder),
+        constant_evaluator_(this),
+        type_translator_(this, /* finalize= */ true),
+        current_script_id_(-1),
+        record_for_script_id_(-1),
+        record_token_positions_into_(NULL),
+        record_yield_positions_into_(NULL),
+        direct_call_metadata_helper_(this),
+        inferred_type_metadata_helper_(this),
+        procedure_attributes_metadata_helper_(this),
+        metadata_scanned_(false) {}
+
+  StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
+                            Zone* zone,
+                            const uint8_t* data_buffer,
+                            intptr_t buffer_length,
+                            intptr_t data_program_offset)
+      : KernelReaderHelper(zone,
+                           translation_helper,
+                           data_buffer,
+                           buffer_length,
+                           data_program_offset),
+        flow_graph_builder_(NULL),
+        constant_evaluator_(this),
+        type_translator_(this, /* finalize= */ true),
+        current_script_id_(-1),
+        record_for_script_id_(-1),
+        record_token_positions_into_(NULL),
+        record_yield_positions_into_(NULL),
+        direct_call_metadata_helper_(this),
+        inferred_type_metadata_helper_(this),
+        procedure_attributes_metadata_helper_(this),
+        metadata_scanned_(false) {}
+
+  StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
+                            const Script& script,
+                            Zone* zone,
+                            const TypedData& data,
+                            intptr_t data_program_offset)
+      : KernelReaderHelper(zone,
+                           translation_helper,
+                           script,
+                           data,
+                           data_program_offset),
+        flow_graph_builder_(NULL),
+        constant_evaluator_(this),
+        type_translator_(this, /* finalize= */ true),
+        current_script_id_(-1),
+        record_for_script_id_(-1),
+        record_token_positions_into_(NULL),
+        record_yield_positions_into_(NULL),
+        direct_call_metadata_helper_(this),
+        inferred_type_metadata_helper_(this),
+        procedure_attributes_metadata_helper_(this),
+        metadata_scanned_(false) {}
+
+  virtual ~StreamingFlowGraphBuilder() {}
+
+  FlowGraph* BuildGraph(intptr_t kernel_offset);
+
+  void ReportUnexpectedTag(const char* variant, Tag tag) override;
+
+  Fragment BuildStatementAt(intptr_t kernel_offset);
+  RawObject* BuildParameterDescriptor(intptr_t kernel_offset);
+  RawObject* EvaluateMetadata(intptr_t kernel_offset);
+  void CollectTokenPositionsFor(
+      intptr_t script_index,
+      intptr_t initial_script_index,
+      intptr_t kernel_offset,
+      GrowableArray<intptr_t>* record_token_positions_in,
+      GrowableArray<intptr_t>* record_yield_positions_in);
+  intptr_t SourceTableSize();
+  String& SourceTableUriFor(intptr_t index);
+  String& GetSourceFor(intptr_t index);
+  RawTypedData* GetLineStartsFor(intptr_t index);
+
+  // If a 'ParsedFunction' is provided for 'set_forwarding_stub', this method
+  // will attach the forwarding stub target reference to the parsed function if
+  // it crosses a procedure node for a concrete forwarding stub.
+  void ReadUntilFunctionNode(ParsedFunction* set_forwarding_stub = NULL);
+
+  enum DispatchCategory { Interface, ViaThis, Closure, DynamicDispatch };
+
+ private:
+  void LoadAndSetupTypeParameters(ActiveClass* active_class,
+                                  const Object& set_on,
+                                  intptr_t type_parameter_count,
+                                  const Function& parameterized_function);
+
+  void DiscoverEnclosingElements(Zone* zone,
+                                 const Function& function,
+                                 Function* outermost_function);
+
+  StringIndex GetNameFromVariableDeclaration(intptr_t kernel_offset,
+                                             const Function& function);
+
+  bool optimizing();
+
+  FlowGraph* BuildGraphOfFieldInitializer();
+  FlowGraph* BuildGraphOfFieldAccessor(LocalVariable* setter_value);
+  void SetupDefaultParameterValues();
+  Fragment BuildFieldInitializer(NameIndex canonical_name);
+  Fragment BuildInitializers(const Class& parent_class);
+  FlowGraph* BuildGraphOfImplicitClosureFunction(const Function& function);
+  FlowGraph* BuildGraphOfFunction(bool constructor);
+  FlowGraph* BuildGraphOfNoSuchMethodForwarder(
+      const Function& function,
+      bool is_implicit_closure_function,
+      bool throw_no_such_method_error = false);
+
+  intptr_t GetOffsetForSourceInfo(intptr_t index);
+
+  Fragment BuildExpression(TokenPosition* position = NULL);
+  Fragment BuildStatement();
 
   void loop_depth_inc();
   void loop_depth_dec();
@@ -1425,26 +1550,18 @@ class StreamingFlowGraphBuilder {
                                bool is_closure,
                                FunctionNodeHelper* function_node_helper);
 
-  const Script& script() { return script_; }
+  void set_current_script_id(intptr_t id) override { current_script_id_ = id; }
+
+  void RecordTokenPosition(TokenPosition position) override;
+  void RecordYieldPosition(TokenPosition position) override;
 
   // Scan through metadata mappings section and cache offsets for recognized
   // metadata kinds.
   void EnsureMetadataIsScanned();
 
   FlowGraphBuilder* flow_graph_builder_;
-  TranslationHelper& translation_helper_;
-  Zone* zone_;
-  Reader reader_;
-  const Script& script_;
   StreamingConstantEvaluator constant_evaluator_;
   StreamingDartTypeTranslator type_translator_;
-  // Some items like variables are specified in the kernel binary as
-  // absolute offsets (as in, offsets within the whole kernel program)
-  // of their declaration nodes. Hence, to cache and/or access them
-  // uniquely from within a function's kernel data, we need to
-  // add/subtract the offset of the kernel data in the over all
-  // kernel program.
-  intptr_t data_program_offset_;
   intptr_t current_script_id_;
   intptr_t record_for_script_id_;
   GrowableArray<intptr_t>* record_token_positions_into_;
@@ -1463,7 +1580,7 @@ class StreamingFlowGraphBuilder {
   friend class FunctionNodeHelper;
   friend class InferredTypeMetadataHelper;
   friend class KernelLoader;
-  friend class KernelReader;
+  friend class KernelReaderHelper;
   friend class LibraryDependencyHelper;
   friend class LibraryHelper;
   friend class MetadataHelper;

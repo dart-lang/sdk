@@ -1280,6 +1280,11 @@ void IsolateReloadContext::VerifyMaps() {
 static void RecordChanges(const GrowableObjectArray& changed_in_last_reload,
                           const Class& old_cls,
                           const Class& new_cls) {
+  // All members of enum classes are synthetic, so nothing to report here.
+  if (new_cls.is_enum_class()) {
+    return;
+  }
+
   // Don't report synthetic classes like the superclass of
   // `class MA extends S with M {}` or `class MA = S with M'. The relevant
   // changes with be reported as changes in M.
