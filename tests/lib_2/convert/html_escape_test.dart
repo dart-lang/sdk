@@ -75,7 +75,7 @@ void _testTransform(HtmlEscape escape, String input, String expected) {
 const _COUNT = 3;
 
 void main() {
-  _testMode(HTML_ESCAPE, _TEST_INPUT, _OUTPUT_UNKNOWN);
+  _testMode(htmlEscape, _TEST_INPUT, _OUTPUT_UNKNOWN);
   _testMode(const HtmlEscape(), _TEST_INPUT, _OUTPUT_UNKNOWN);
   _testMode(
       const HtmlEscape(HtmlEscapeMode.unknown), _TEST_INPUT, _OUTPUT_UNKNOWN);
@@ -85,5 +85,5 @@ void main() {
       _OUTPUT_SQ_ATTRIBUTE);
   _testMode(
       const HtmlEscape(HtmlEscapeMode.element), _TEST_INPUT, _OUTPUT_ELEMENT);
-  _testMode(HTML_ESCAPE, _NOOP, _NOOP);
+  _testMode(htmlEscape, _NOOP, _NOOP);
 }

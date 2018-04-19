@@ -14,21 +14,21 @@ class MathLibraryTest {
   static void testConstants() {
     // Source for mathematical constants is Wolfram Alpha.
     Expect.equals(
-        2.7182818284590452353602874713526624977572470936999595749669, math.E);
+        2.7182818284590452353602874713526624977572470936999595749669, math.e);
     Expect.equals(2.3025850929940456840179914546843642076011014886287729760333,
-        math.LN10);
+        math.ln10);
     Expect.equals(
-        0.6931471805599453094172321214581765680755001343602552541206, math.LN2);
+        0.6931471805599453094172321214581765680755001343602552541206, math.ln2);
     Expect.equals(1.4426950408889634073599246810018921374266459541529859341354,
-        math.LOG2E);
+        math.log2e);
     Expect.equals(0.4342944819032518276511289189166050822943970058036665661144,
-        math.LOG10E);
+        math.log10e);
     Expect.equals(
-        3.1415926535897932384626433832795028841971693993751058209749, math.PI);
+        3.1415926535897932384626433832795028841971693993751058209749, math.pi);
     Expect.equals(0.7071067811865475244008443621048490392848359376884740365883,
-        math.SQRT1_2);
+        math.sqrt1_2);
     Expect.equals(1.4142135623730950488016887242096980785696718753769480731766,
-        math.SQRT2);
+        math.sqrt2);
   }
 
   static checkClose(double a, double b, EPSILON) {
@@ -37,65 +37,65 @@ class MathLibraryTest {
   }
 
   static void testSin() {
-    // Given the imprecision of PI we can't expect better results than this.
+    // Given the imprecision of pi we can't expect better results than this.
     final double EPSILON = 1e-15;
     checkClose(0.0, math.sin(0.0), EPSILON);
-    checkClose(0.0, math.sin(math.PI), EPSILON);
-    checkClose(0.0, math.sin(2.0 * math.PI), EPSILON);
-    checkClose(1.0, math.sin(math.PI / 2.0), EPSILON);
-    checkClose(-1.0, math.sin(math.PI * (3.0 / 2.0)), EPSILON);
+    checkClose(0.0, math.sin(math.pi), EPSILON);
+    checkClose(0.0, math.sin(2.0 * math.pi), EPSILON);
+    checkClose(1.0, math.sin(math.pi / 2.0), EPSILON);
+    checkClose(-1.0, math.sin(math.pi * (3.0 / 2.0)), EPSILON);
   }
 
   static void testCos() {
-    // Given the imprecision of PI we can't expect better results than this.
+    // Given the imprecision of pi we can't expect better results than this.
     final double EPSILON = 1e-15;
     checkClose(1.0, math.cos(0.0), EPSILON);
-    checkClose(-1.0, math.cos(math.PI), EPSILON);
-    checkClose(1.0, math.cos(2.0 * math.PI), EPSILON);
-    checkClose(0.0, math.cos(math.PI / 2.0), EPSILON);
-    checkClose(0.0, math.cos(math.PI * (3.0 / 2.0)), EPSILON);
+    checkClose(-1.0, math.cos(math.pi), EPSILON);
+    checkClose(1.0, math.cos(2.0 * math.pi), EPSILON);
+    checkClose(0.0, math.cos(math.pi / 2.0), EPSILON);
+    checkClose(0.0, math.cos(math.pi * (3.0 / 2.0)), EPSILON);
   }
 
   static void testTan() {
-    // Given the imprecision of PI we can't expect better results than this.
+    // Given the imprecision of pi we can't expect better results than this.
     final double EPSILON = 1e-15;
     checkClose(0.0, math.tan(0.0), EPSILON);
-    checkClose(0.0, math.tan(math.PI), EPSILON);
-    checkClose(0.0, math.tan(2.0 * math.PI), EPSILON);
-    checkClose(1.0, math.tan(math.PI / 4.0), EPSILON);
+    checkClose(0.0, math.tan(math.pi), EPSILON);
+    checkClose(0.0, math.tan(2.0 * math.pi), EPSILON);
+    checkClose(1.0, math.tan(math.pi / 4.0), EPSILON);
   }
 
   static void testAsin() {
-    // Given the imprecision of PI we can't expect better results than this.
+    // Given the imprecision of pi we can't expect better results than this.
     final double EPSILON = 1e-15;
     checkClose(0.0, math.asin(0.0), EPSILON);
-    checkClose(math.PI / 2.0, math.asin(1.0), EPSILON);
-    checkClose(-math.PI / 2.0, math.asin(-1.0), EPSILON);
+    checkClose(math.pi / 2.0, math.asin(1.0), EPSILON);
+    checkClose(-math.pi / 2.0, math.asin(-1.0), EPSILON);
   }
 
   static void testAcos() {
-    // Given the imprecision of PI we can't expect better results than this.
+    // Given the imprecision of pi we can't expect better results than this.
     final double EPSILON = 1e-15;
     checkClose(0.0, math.acos(1.0), EPSILON);
-    checkClose(math.PI, math.acos(-1.0), EPSILON);
-    checkClose(math.PI / 2.0, math.acos(0.0), EPSILON);
+    checkClose(math.pi, math.acos(-1.0), EPSILON);
+    checkClose(math.pi / 2.0, math.acos(0.0), EPSILON);
   }
 
   static void testAtan() {
-    // Given the imprecision of PI we can't expect better results than this.
+    // Given the imprecision of pi we can't expect better results than this.
     final double EPSILON = 1e-15;
     checkClose(0.0, math.atan(0.0), EPSILON);
-    checkClose(math.PI / 4.0, math.atan(1.0), EPSILON);
-    checkClose(-math.PI / 4.0, math.atan(-1.0), EPSILON);
+    checkClose(math.pi / 4.0, math.atan(1.0), EPSILON);
+    checkClose(-math.pi / 4.0, math.atan(-1.0), EPSILON);
   }
 
   static void testAtan2() {
-    // Given the imprecision of PI we can't expect better results than this.
+    // Given the imprecision of pi we can't expect better results than this.
     final double EPSILON = 1e-15;
     checkClose(0.0, math.atan2(0.0, 5.0), EPSILON);
-    checkClose(math.PI / 4.0, math.atan2(2.0, 2.0), EPSILON);
-    checkClose(3 * math.PI / 4.0, math.atan2(0.5, -0.5), EPSILON);
-    checkClose(-3 * math.PI / 4.0, math.atan2(-2.5, -2.5), EPSILON);
+    checkClose(math.pi / 4.0, math.atan2(2.0, 2.0), EPSILON);
+    checkClose(3 * math.pi / 4.0, math.atan2(0.5, -0.5), EPSILON);
+    checkClose(-3 * math.pi / 4.0, math.atan2(-2.5, -2.5), EPSILON);
   }
 
   static checkVeryClose(double a, double b) {

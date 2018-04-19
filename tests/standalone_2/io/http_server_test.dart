@@ -137,13 +137,13 @@ void testListenOn() {
 
 void testHttpServerZone() {
   asyncStart();
-  Expect.equals(Zone.ROOT, Zone.current);
+  Expect.equals(Zone.root, Zone.current);
   runZoned(() {
-    Expect.notEquals(Zone.ROOT, Zone.current);
+    Expect.notEquals(Zone.root, Zone.current);
     HttpServer.bind("127.0.0.1", 0).then((server) {
-      Expect.notEquals(Zone.ROOT, Zone.current);
+      Expect.notEquals(Zone.root, Zone.current);
       server.listen((request) {
-        Expect.notEquals(Zone.ROOT, Zone.current);
+        Expect.notEquals(Zone.root, Zone.current);
         request.response.close();
         server.close();
       });
@@ -158,15 +158,15 @@ void testHttpServerZone() {
 
 void testHttpServerZoneError() {
   asyncStart();
-  Expect.equals(Zone.ROOT, Zone.current);
+  Expect.equals(Zone.root, Zone.current);
   runZoned(() {
-    Expect.notEquals(Zone.ROOT, Zone.current);
+    Expect.notEquals(Zone.root, Zone.current);
     HttpServer.bind("127.0.0.1", 0).then((server) {
-      Expect.notEquals(Zone.ROOT, Zone.current);
+      Expect.notEquals(Zone.root, Zone.current);
       server.listen((request) {
-        Expect.notEquals(Zone.ROOT, Zone.current);
+        Expect.notEquals(Zone.root, Zone.current);
         request.listen((_) {}, onError: (error) {
-          Expect.notEquals(Zone.ROOT, Zone.current);
+          Expect.notEquals(Zone.root, Zone.current);
           server.close();
           throw error;
         });
