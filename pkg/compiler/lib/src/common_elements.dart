@@ -1122,6 +1122,12 @@ class CommonElements {
       _env.lookupLibrary(Uris.dart__native_typed_data, required: true),
       'NativeTypedArrayOfInt');
 
+  ClassEntity _typedArrayOfDoubleClass;
+  ClassEntity get typedArrayOfDoubleClass =>
+      _typedArrayOfDoubleClass ??= _findClass(
+          _env.lookupLibrary(Uris.dart__native_typed_data, required: true),
+          'NativeTypedArrayOfDouble');
+
   // From dart:_js_embedded_names
 
   /// Holds the class for the [JsGetName] enum.
