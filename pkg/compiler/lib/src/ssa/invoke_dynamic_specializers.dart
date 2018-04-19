@@ -248,8 +248,18 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       ClosedWorld closedWorld) {
-    TypeMask operandType = instruction.inputs[1].instructionType;
-    if (instruction.inputs[1].isNumberOrNull(closedWorld)) return operandType;
+    HInstruction operand = instruction.inputs[1];
+    if (operand.isNumberOrNull(closedWorld)) {
+      // We have integer subclasses that represent ranges, so widen any int
+      // subclass to full integer.
+      if (operand.isIntegerOrNull(closedWorld)) {
+        return closedWorld.commonMasks.intType;
+      }
+      if (operand.isDoubleOrNull(closedWorld)) {
+        return closedWorld.commonMasks.doubleType;
+      }
+      return closedWorld.commonMasks.numType;
+    }
     return super
         .computeTypeFromInputTypes(instruction, results, options, closedWorld);
   }
@@ -263,7 +273,11 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
       ClosedWorld closedWorld) {
     HInstruction input = instruction.inputs[1];
     if (input.isNumber(closedWorld)) {
-      return new HNegate(input, instruction.selector, input.instructionType);
+      return new HNegate(
+          input,
+          instruction.selector,
+          computeTypeFromInputTypes(
+              instruction, results, options, closedWorld));
     }
     return null;
   }
