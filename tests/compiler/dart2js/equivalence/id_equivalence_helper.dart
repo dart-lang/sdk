@@ -480,14 +480,17 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     bool trustTypeAnnotations = false;
     if (name.endsWith('_ea.dart')) {
       testOptions.add(Flags.enableAsserts);
-    } else if (name.endsWith('_strong.dart')) {
+    }
+    if (name.contains('_strong')) {
       strongModeOnlyTest = true;
       if (!testStrongMode) {
         testOptions.add(Flags.strongMode);
       }
-    } else if (name.endsWith('_checked.dart')) {
+    }
+    if (name.endsWith('_checked.dart')) {
       testOptions.add(Flags.enableCheckedMode);
-    } else if (name.endsWith('_trust.dart')) {
+    }
+    if (name.contains('_trust')) {
       trustTypeAnnotations = true;
     }
 

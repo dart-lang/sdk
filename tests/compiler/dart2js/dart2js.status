@@ -5,6 +5,7 @@ analyze_dart_test: Slow, Pass
 analyze_test: Slow, Pass
 async_await_syntax_test: Pass # DON'T CHANGE THIS LINE -- Don't mark these tests as failing. Instead, fix the errors/warnings that they report or update the whitelist in the test-files to temporarily allow digression.
 boolified_operator_test: Fail # Issue 8001
+closure/closure_test: Pass, Slow
 codegen/gvn_dynamic_field_get_test: Fail # Issue 18519
 codegen/load_elimination_test: Pass, Slow
 codegen/logical_expression_test: Fail # Issue 17027
