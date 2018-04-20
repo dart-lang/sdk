@@ -11,7 +11,7 @@ class Foo {
 
 void test() {
   void f<@Foo(/*@typeArgs=String*/ const []) T>() {}
-  var /*@type=<@Foo::•(const <String>[]) T extends Object>() -> Null*/ x =
+  var /*@type=<T extends Object>() -> Null*/ x =
       <@Foo(/*@typeArgs=String*/ const []) T> /*@returnType=Null*/ () {};
 }
 

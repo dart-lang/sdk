@@ -869,17 +869,11 @@ class Printer extends Visitor<Null> {
     }
   }
 
-  void writeAnnotationList(List<Expression> nodes, {bool separateLines: true}) {
+  void writeAnnotationList(List<Expression> nodes) {
     for (Expression node in nodes) {
-      if (separateLines) {
-        writeIndentation();
-      }
+      writeIndentation();
       writeAnnotation(node);
-      if (separateLines) {
-        endLine();
-      } else {
-        writeSpace();
-      }
+      endLine();
     }
   }
 
@@ -1679,7 +1673,6 @@ class Printer extends Visitor<Null> {
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
-    writeAnnotationList(node.variable.annotations);
     writeIndentation();
     writeWord('function');
     if (node.function != null) {
@@ -1694,7 +1687,7 @@ class Printer extends Visitor<Null> {
       {bool useVarKeyword: false}) {
     if (showOffsets) writeWord("[${node.fileOffset}]");
     if (showMetadata) writeMetadata(node);
-    writeAnnotationList(node.annotations, separateLines: false);
+    writeAnnotationList(node.annotations);
     writeModifier(node.isCovariant, 'covariant');
     writeModifier(node.isGenericCovariantImpl, 'generic-covariant-impl');
     writeModifier(
@@ -1845,7 +1838,7 @@ class Printer extends Visitor<Null> {
     writeModifier(node.isGenericCovariantImpl, 'generic-covariant-impl');
     writeModifier(
         node.isGenericCovariantInterface, 'generic-covariant-interface');
-    writeAnnotationList(node.annotations, separateLines: false);
+    writeAnnotationList(node.annotations);
     writeWord(getTypeParameterName(node));
     writeSpaced('extends');
     writeType(node.bound);

@@ -336,10 +336,6 @@ abstract class TypeInferrer {
   /// Performs type inference on the given metadata annotations.
   void inferMetadata(BuilderHelper helper, List<Expression> annotations);
 
-  /// Performs type inference on the given metadata annotations keeping the
-  /// existing helper if possible.
-  void inferMetadataKeepingHelper(List<Expression> annotations);
-
   /// Performs type inference on the given function parameter initializer
   /// expression.
   void inferParameterInitializer(
@@ -375,9 +371,6 @@ class TypeInferrerDisabled extends TypeInferrer {
 
   @override
   void inferMetadata(BuilderHelper helper, List<Expression> annotations) {}
-
-  @override
-  void inferMetadataKeepingHelper(List<Expression> annotations) {}
 
   @override
   void inferParameterInitializer(
@@ -1103,7 +1096,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       var positionalParameters = function.positionalParameters;
       for (var i = 0; i < positionalParameters.length; i++) {
         var parameter = positionalParameters[i];
-        inferMetadataKeepingHelper(parameter.annotations);
         if (i >= function.requiredParameterCount &&
             parameter.initializer == null) {
           parameter.initializer = new ShadowNullLiteral()..parent = parameter;
@@ -1113,7 +1105,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         }
       }
       for (var parameter in function.namedParameters) {
-        inferMetadataKeepingHelper(parameter.annotations);
         if (parameter.initializer == null) {
           parameter.initializer = new ShadowNullLiteral()..parent = parameter;
         }
@@ -1244,14 +1235,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   void inferMetadata(BuilderHelper helper, List<Expression> annotations) {
     if (annotations != null) {
       this.helper = helper;
-      inferMetadataKeepingHelper(annotations);
-      this.helper = null;
-    }
-  }
-
-  @override
-  void inferMetadataKeepingHelper(List<Expression> annotations) {
-    if (annotations != null) {
       // Place annotations in a temporary list literal so that they will have a
       // parent.  This is necessary in case any of the annotations need to get
       // replaced during type inference.
@@ -1259,6 +1242,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       for (var annotation in annotations) {
         inferExpression(annotation, const UnknownType(), false);
       }
+      this.helper = null;
     }
   }
 

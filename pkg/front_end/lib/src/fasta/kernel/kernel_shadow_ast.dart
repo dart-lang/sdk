@@ -877,7 +877,6 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
     }
     inferrer.inferStatement(body);
     if (_declaresVariable) {
-      inferrer.inferMetadataKeepingHelper(variable.annotations);
       var tempVar =
           new VariableDeclaration(null, type: inferredType, isFinal: true);
       var variableGet = new VariableGet(tempVar)
@@ -940,7 +939,6 @@ class ShadowFunctionDeclaration extends FunctionDeclaration
 
   @override
   void _inferStatement(ShadowTypeInferrer inferrer) {
-    inferrer.inferMetadataKeepingHelper(variable.annotations);
     inferrer.inferLocalFunction(
         function,
         null,
@@ -2269,7 +2267,6 @@ class ShadowVariableDeclaration extends VariableDeclaration
 
   @override
   void _inferStatement(ShadowTypeInferrer inferrer) {
-    inferrer.inferMetadataKeepingHelper(annotations);
     var declaredType = _implicitlyTyped ? const UnknownType() : type;
     DartType inferredType;
     DartType initializerType;

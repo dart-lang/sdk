@@ -9,9 +9,6 @@ class Foo extends core::Object {
 }
 static method test() → void {
   const dynamic x = 0;
-  @self::Foo::•(const <dynamic>[x]) dynamic y;
-  @self::Foo::•(const <dynamic>[x])
-  function bar() → void {}
-  function baz(@self::Foo::•(const <dynamic>[x]) dynamic formal) → void {}
+  dynamic y;
 }
 static method main() → dynamic {}

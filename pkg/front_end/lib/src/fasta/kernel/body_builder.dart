@@ -1664,14 +1664,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     constantContext = pop();
     currentLocalVariableType = pop();
     currentLocalVariableModifiers = pop();
-    List<Expression> annotations = pop();
-    if (annotations != null) {
-      for (VariableDeclaration variable in variables) {
-        for (Expression annotation in annotations) {
-          variable.addAnnotation(annotation);
-        }
-      }
-    }
+    pop(); // Metadata.
     if (variables.length != 1) {
       push(variables);
     } else {
@@ -2110,7 +2103,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     }
     bool isConst = (modifiers & constMask) != 0;
     bool isFinal = (modifiers & finalMask) != 0;
-    List annotations = pop();
+    ignore(Unhandled.Metadata);
     VariableDeclaration variable;
     if (!inCatchClause &&
         functionNestingLevel == 0 &&
@@ -2136,14 +2129,6 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       if (name != null) {
         // TODO(ahe): Need an offset when name is null.
         variable.fileOffset = offsetForToken(name.token);
-      }
-    }
-    if (annotations != null) {
-      if (functionNestingLevel == 0) {
-        _typeInferrer.inferMetadata(this, annotations);
-      }
-      for (Expression annotation in annotations) {
-        variable.addAnnotation(annotation);
       }
     }
     push(variable);
@@ -2928,9 +2913,8 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     returnType ??= const DynamicType();
     exitFunction();
     List<TypeParameter> typeParameters = typeVariableBuildersToKernel(pop());
-    List<Expression> annotations;
     if (!isFunctionExpression) {
-      annotations = pop(); // Metadata.
+      pop(); // Metadata.
     }
     FunctionNode function = formals.addToFunction(new FunctionNode(body,
         typeParameters: typeParameters,
@@ -2941,11 +2925,6 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
 
     if (declaration is FunctionDeclaration) {
       VariableDeclaration variable = declaration.variable;
-      if (annotations != null) {
-        for (Expression annotation in annotations) {
-          variable.addAnnotation(annotation);
-        }
-      }
       ShadowFunctionDeclaration.setHasImplicitReturnType(
           declaration, hasImplicitReturnType);
 
@@ -3537,7 +3516,8 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     debugEvent("TypeVariable");
     DartType bound = pop();
     Identifier name = pop();
-    List<Expression> annotations = pop();
+    // TODO(ahe): Do not discard metadata.
+    pop(); // Metadata.
     KernelTypeVariableBuilder variable;
     Object inScope = scopeLookup(scope, name.name, token);
     if (inScope is TypeDeclarationAccessor) {
@@ -3549,12 +3529,6 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
           name.name, library, offsetForToken(name.token), null);
     }
     variable.parameter.bound = bound;
-    if (annotations != null) {
-      _typeInferrer.inferMetadata(this, annotations);
-      for (Expression annotation in annotations) {
-        variable.parameter.addAnnotation(annotation);
-      }
-    }
     push(variable..finish(library, library.loader.coreLibrary["Object"]));
   }
 
