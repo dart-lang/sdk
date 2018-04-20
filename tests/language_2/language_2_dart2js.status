@@ -1471,6 +1471,7 @@ override_field_test/03: MissingCompileTimeError
 override_inheritance_abstract_test/02: MissingCompileTimeError
 override_inheritance_abstract_test/03: MissingCompileTimeError
 override_inheritance_abstract_test/04: MissingCompileTimeError
+override_inheritance_abstract_test/07: MissingCompileTimeError
 override_inheritance_abstract_test/08: MissingCompileTimeError
 override_inheritance_abstract_test/09: MissingCompileTimeError
 override_inheritance_abstract_test/10: MissingCompileTimeError
@@ -1514,7 +1515,6 @@ override_inheritance_no_such_method_test/07: MissingCompileTimeError
 override_inheritance_no_such_method_test/09: MissingCompileTimeError
 override_inheritance_no_such_method_test/10: MissingCompileTimeError
 override_inheritance_no_such_method_test/12: MissingCompileTimeError
-override_inheritance_no_such_method_test/13: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
 parser_quirks_test: CompileTimeError
 partial_tearoff_instantiation_test/05: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
@@ -2141,6 +2141,7 @@ override_field_test/03: MissingCompileTimeError
 override_inheritance_abstract_test/02: MissingCompileTimeError
 override_inheritance_abstract_test/03: MissingCompileTimeError
 override_inheritance_abstract_test/04: MissingCompileTimeError
+override_inheritance_abstract_test/07: MissingCompileTimeError
 override_inheritance_abstract_test/08: MissingCompileTimeError
 override_inheritance_abstract_test/09: MissingCompileTimeError
 override_inheritance_abstract_test/10: MissingCompileTimeError
@@ -2184,7 +2185,6 @@ override_inheritance_no_such_method_test/07: MissingCompileTimeError
 override_inheritance_no_such_method_test/09: MissingCompileTimeError
 override_inheritance_no_such_method_test/10: MissingCompileTimeError
 override_inheritance_no_such_method_test/12: MissingCompileTimeError
-override_inheritance_no_such_method_test/13: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
 parser_quirks_test: CompileTimeError
 recursive_generic_test: RuntimeError

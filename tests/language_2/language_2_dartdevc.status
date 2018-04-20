@@ -170,7 +170,6 @@ super_operator_index5_test: RuntimeError
 super_operator_index7_test: RuntimeError
 super_operator_index8_test: RuntimeError
 switch_case_test/none: CompileTimeError
-syntax_test/none: CompileTimeError
 truncdiv_test: RuntimeError # Issue 29920
 try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
@@ -563,6 +562,26 @@ override_field_method4_negative_test: Fail
 override_field_method5_negative_test: Fail
 override_field_test/01: MissingCompileTimeError
 override_field_test/02: MissingCompileTimeError
+override_inheritance_abstract_test/02: MissingCompileTimeError
+override_inheritance_abstract_test/03: MissingCompileTimeError
+override_inheritance_abstract_test/04: MissingCompileTimeError
+override_inheritance_abstract_test/07: MissingCompileTimeError
+override_inheritance_abstract_test/08: MissingCompileTimeError
+override_inheritance_abstract_test/09: MissingCompileTimeError
+override_inheritance_abstract_test/10: MissingCompileTimeError
+override_inheritance_abstract_test/11: MissingCompileTimeError
+override_inheritance_abstract_test/12: MissingCompileTimeError
+override_inheritance_abstract_test/13: MissingCompileTimeError
+override_inheritance_abstract_test/14: MissingCompileTimeError
+override_inheritance_abstract_test/17: MissingCompileTimeError
+override_inheritance_abstract_test/19: MissingCompileTimeError
+override_inheritance_abstract_test/20: MissingCompileTimeError
+override_inheritance_abstract_test/21: MissingCompileTimeError
+override_inheritance_abstract_test/22: MissingCompileTimeError
+override_inheritance_abstract_test/23: MissingCompileTimeError
+override_inheritance_abstract_test/24: MissingCompileTimeError
+override_inheritance_abstract_test/25: MissingCompileTimeError
+override_inheritance_abstract_test/26: MissingCompileTimeError
 override_inheritance_field_test/04: CompileTimeError # Issue 31616
 override_inheritance_field_test/06: CompileTimeError # Issue 31616
 override_inheritance_field_test/26: CompileTimeError # Issue 31616
@@ -786,26 +805,6 @@ number_identity2_test: RuntimeError # Issue 29920; Expect.isTrue(false) fails.
 numbers_test: RuntimeError # Issue 29920; Expect.equals(expected: <false>, actual: <true>) fails.
 overridden_no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented; UnimplementedError: JsInstanceMirror.delegate unimplemented
 override_field_test/03: MissingCompileTimeError
-override_inheritance_abstract_test/02: MissingCompileTimeError
-override_inheritance_abstract_test/03: MissingCompileTimeError
-override_inheritance_abstract_test/04: MissingCompileTimeError
-override_inheritance_abstract_test/08: MissingCompileTimeError
-override_inheritance_abstract_test/09: MissingCompileTimeError
-override_inheritance_abstract_test/10: MissingCompileTimeError
-override_inheritance_abstract_test/11: MissingCompileTimeError
-override_inheritance_abstract_test/12: MissingCompileTimeError
-override_inheritance_abstract_test/13: MissingCompileTimeError
-override_inheritance_abstract_test/14: MissingCompileTimeError
-override_inheritance_abstract_test/17: MissingCompileTimeError
-override_inheritance_abstract_test/19: MissingCompileTimeError
-override_inheritance_abstract_test/20: MissingCompileTimeError
-override_inheritance_abstract_test/21: MissingCompileTimeError
-override_inheritance_abstract_test/22: MissingCompileTimeError
-override_inheritance_abstract_test/23: MissingCompileTimeError
-override_inheritance_abstract_test/24: MissingCompileTimeError
-override_inheritance_abstract_test/25: MissingCompileTimeError
-override_inheritance_abstract_test/26: MissingCompileTimeError
-override_inheritance_no_such_method_test/13: MissingCompileTimeError
 parser_quirks_test: CompileTimeError
 private3_test: RuntimeError # Type 'PrivateSymbol' is not a subtype of type 'Symbol' in strong mode
 regress_16640_test: RuntimeError # Issue 29920; Uncaught Error: type arguments should not be null: E => {
@@ -821,5 +820,7 @@ super_test: RuntimeError # Expect.equals(expected: <0>, actual: <2>) fails.
 switch_label2_test: RuntimeError # Issue 29920; UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
 switch_label_test: RuntimeError # Issue 29920; UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
 switch_try_catch_test: RuntimeError # Issue 29920; Expect.throws: Unexpected 'UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
+syntax_test/60: MissingCompileTimeError
+syntax_test/61: MissingCompileTimeError
 truncdiv_test: RuntimeError # Issue 29920; Expect.throws fails: Did not throw
 vm/*: SkipByDesign # VM only tests.; VM only tests.

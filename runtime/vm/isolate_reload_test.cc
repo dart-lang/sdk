@@ -2254,7 +2254,7 @@ TEST_CASE(IsolateReload_DirectSubclasses_Success) {
   intptr_t saved_subclass_count = subclasses.Length();
 
   const char* kScript =
-      "class AIterator extends Iterator {\n"
+      "abstract class AIterator extends Iterator {\n"
       "}\n"
       "main() {\n"
       "  return 1;\n"
@@ -2275,7 +2275,7 @@ TEST_CASE(IsolateReload_DirectSubclasses_Success) {
   const char* kReloadScript =
       "class AIterator {\n"
       "}\n"
-      "class BIterator extends Iterator {\n"
+      "abstract class BIterator extends Iterator {\n"
       "}\n"
       "main() {\n"
       "  return 2;\n"
@@ -2310,7 +2310,7 @@ TEST_CASE(IsolateReload_DirectSubclasses_GhostSubclass) {
   intptr_t saved_subclass_count = subclasses.Length();
 
   const char* kScript =
-      "class AIterator extends Iterator {\n"
+      "abstract class AIterator extends Iterator {\n"
       "}\n"
       "main() {\n"
       "  return 1;\n"
@@ -2329,7 +2329,7 @@ TEST_CASE(IsolateReload_DirectSubclasses_GhostSubclass) {
   EXPECT_STREQ("AIterator", name.ToCString());
 
   const char* kReloadScript =
-      "class BIterator extends Iterator {\n"
+      "abstract class BIterator extends Iterator {\n"
       "}\n"
       "main() {\n"
       "  return 2;\n"
@@ -2369,7 +2369,7 @@ TEST_CASE(IsolateReload_DirectSubclasses_Failure) {
   intptr_t saved_subclass_count = subclasses.Length();
 
   const char* kScript =
-      "class AIterator extends Iterator {\n"
+      "abstract class AIterator extends Iterator {\n"
       "}\n"
       "class Foo {\n"
       "  final a;\n"
@@ -2394,7 +2394,7 @@ TEST_CASE(IsolateReload_DirectSubclasses_Failure) {
 
   // Attempt to reload with a bogus script.
   const char* kReloadScript =
-      "class BIterator extends Iterator {\n"
+      "abstract class BIterator extends Iterator {\n"
       "}\n"
       "class Foo {\n"
       "  final a kjsdf ksjdf ;\n"  // When we refinalize, we get an error.
