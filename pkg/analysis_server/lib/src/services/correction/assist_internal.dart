@@ -1240,7 +1240,7 @@ class AssistProcessor {
           : '';
       String getterCode = '$eol2  ${typeNameCode}get $name => _$name;';
       String setterCode = '$eol2'
-          '  void set $name($typeNameCode$name) {$eol'
+          '  set $name($typeNameCode$name) {$eol'
           '    _$name = $name;$eol'
           '  }';
       builder.addSimpleInsertion(fieldDeclaration.end, getterCode + setterCode);

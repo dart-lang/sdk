@@ -2578,7 +2578,7 @@ class A {
 
   int get test => _test;
 
-  void set test(int test) {
+  set test(int test) {
     _test = test;
   }
   A(this._test);
@@ -2604,7 +2604,7 @@ class A {
 
   get test => _test;
 
-  void set test(test) {
+  set test(test) {
     _test = test;
   }
 }
