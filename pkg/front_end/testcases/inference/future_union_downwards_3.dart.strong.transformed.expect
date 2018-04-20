@@ -8,9 +8,14 @@ class MyFuture<T extends core::Object> extends core::Object implements asy::Futu
     : super core::Object::•() {}
   constructor value([dynamic x = null]) → void
     : super core::Object::•() {}
-  abstract method noSuchMethod(core::Invocation invocation) → dynamic;
+  method noSuchMethod(core::Invocation invocation) → dynamic
+    return null;
   method then<S extends core::Object>((self::MyFuture::T) → asy::FutureOr<self::MyFuture::then::S> f, {core::Function onError = null}) → self::MyFuture<self::MyFuture::then::S>
     return null;
+  abstract no-such-method-forwarder method /* from org-dartlang-testcase-sdk:///sdk/lib/async/future.dart */ catchError(core::Function onError, {(core::Object) → core::bool test = null}) → asy::Future<self::MyFuture::T>;
+  abstract no-such-method-forwarder method /* from org-dartlang-testcase-sdk:///sdk/lib/async/future.dart */ whenComplete(() → asy::FutureOr<dynamic> action) → asy::Future<self::MyFuture::T>;
+  abstract no-such-method-forwarder method /* from org-dartlang-testcase-sdk:///sdk/lib/async/future.dart */ timeout(core::Duration timeLimit, {generic-covariant-impl generic-covariant-interface () → asy::FutureOr<self::MyFuture::T> onTimeout = null}) → asy::Future<self::MyFuture::T>;
+  abstract no-such-method-forwarder method /* from org-dartlang-testcase-sdk:///sdk/lib/async/future.dart */ asStream() → asy::Stream<self::MyFuture::T>;
 }
 static field asy::Future<dynamic> f;
 static field asy::Future<core::int> t1 = self::f.{asy::Future::then}<core::int>((dynamic _) → asy::Future<core::int> => asy::Future::value<core::int>(let final dynamic #t1 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/future_union_downwards_3.dart:21:44: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.async::FutureOr<dart.core::int>'.
