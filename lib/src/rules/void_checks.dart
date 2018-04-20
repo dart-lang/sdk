@@ -80,7 +80,7 @@ class Visitor extends SimpleAstVisitor {
   visitAssignmentExpression(AssignmentExpression node) {
     final type = node.leftHandSide?.bestType;
     if (!_isFunctionRef(type, node.rightHandSide)) {
-      _check(node.leftHandSide?.bestType, node.rightHandSide?.bestType, node);
+      _check(type, node.rightHandSide?.bestType, node);
     }
   }
 
@@ -104,22 +104,11 @@ class Visitor extends SimpleAstVisitor {
 
   void _checkArgs(
       NodeList<Expression> args, List<ParameterElement> parameters) {
-    final positionalParameters = parameters.where((e) => !e.isNamed).toList();
-    int positionalCount = 0;
     for (final arg in args) {
-      if (arg is NamedExpression) {
-        final type =
-            parameters.singleWhere((e) => e.name == arg.name.label.name).type;
-        final argExpression = arg.expression;
-        if (!_isFunctionRef(type, argExpression)) {
-          _check(type, argExpression?.bestType, argExpression);
-        }
-      } else {
-        final type = positionalParameters[positionalCount].type;
-        if (!_isFunctionRef(type, arg)) {
-          _check(type, arg?.bestType, arg);
-        }
-        positionalCount += 1;
+      final type = arg.bestParameterElement.type;
+      final expression = arg is NamedExpression ? arg.expression : arg;
+      if (!_isFunctionRef(type, expression)) {
+        _check(type, expression?.bestType, expression);
       }
     }
   }
@@ -131,9 +120,10 @@ class Visitor extends SimpleAstVisitor {
           arg is FunctionExpression && arg.body is ExpressionFunctionBody);
 
   void _check(DartType expectedType, DartType type, AstNode node) {
-    if (expectedType == null || type == null)
+    if (expectedType == null || type == null) {
       return;
-    else if (expectedType.isVoid && !isTypeAcceptableWhenExpectingVoid(type) ||
+    } else if (expectedType.isVoid &&
+            !isTypeAcceptableWhenExpectingVoid(type) ||
         expectedType.isDartAsyncFutureOr &&
             (expectedType as InterfaceType).typeArguments.first.isVoid &&
             !type.isAssignableTo(_futureDynamicType) &&
