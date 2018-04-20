@@ -4,7 +4,6 @@
 
 import 'dart:mirrors';
 
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart' as engine;
@@ -17,6 +16,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'constants.dart';
 import 'mocks.dart';
 
 main() {
