@@ -88,51 +88,6 @@ class MockIOSink implements IOSink {
   void writeln([Object obj = '']) {}
 }
 
-class MockLineInfo implements LineInfo {
-  MockLineInfo_Location defaultLocation;
-
-  MockLineInfo({this.defaultLocation});
-
-  @override
-  int get lineCount {
-    throw new StateError('Unexpected invocation of lineCount');
-  }
-
-  @override
-  List<int> get lineStarts {
-    throw new StateError('Unexpected invocation of lineStarts');
-  }
-
-  @override
-  LineInfo_Location getLocation(int offset) {
-    if (defaultLocation != null) {
-      return defaultLocation;
-    }
-    throw new StateError('Unexpected invocation of getLocation');
-  }
-
-  @override
-  int getOffsetOfLine(int lineNumber) {
-    throw new StateError('Unexpected invocation of getOffsetOfLine');
-  }
-
-  @override
-  int getOffsetOfLineAfter(int offset) {
-    throw new StateError('Unexpected invocation of getOffsetOfLineAfter');
-  }
-}
-
-// ignore: camel_case_types
-class MockLineInfo_Location implements LineInfo_Location {
-  @override
-  int lineNumber;
-
-  @override
-  int columnNumber;
-
-  MockLineInfo_Location(this.lineNumber, this.columnNumber);
-}
-
 class MockPubVisitor implements PubspecVisitor {
   @override
   visitPackageAuthor(PSEntry author) {
