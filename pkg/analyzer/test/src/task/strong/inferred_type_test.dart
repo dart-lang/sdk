@@ -4429,11 +4429,6 @@ class InferredTypeTest_Driver extends InferredTypeTest {
   @override
   bool get hasExtraTaskModelPass => false;
 
-  @failingTest
-  @override
-  test_blockBodiedLambdas_noReturn_topLevel() =>
-      super.test_blockBodiedLambdas_noReturn_topLevel();
-
   @override
   test_instantiateToBounds_typeName_OK_hasBound_definedAfter() async {
     await super.test_instantiateToBounds_typeName_OK_hasBound_definedAfter();
