@@ -1,3 +1,7 @@
+# 0.1.49
+
+* new `void_checks` lint
+
 # 0.1.48
 
 * new `avoid_field_initializers_in_const_classes` lint
