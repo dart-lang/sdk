@@ -8985,9 +8985,9 @@ Fragment StreamingFlowGraphBuilder::BuildDoubleLiteral(
     TokenPosition* position) {
   if (position != NULL) *position = TokenPosition::kNoSource;
 
-  Double& constant =
-      Double::ZoneHandle(Z, Double::New(H.DartString(ReadStringReference()),
-                                        Heap::kOld));  // read string reference.
+  Double& constant = Double::ZoneHandle(
+      Z, Double::NewCanonical(
+             H.DartString(ReadStringReference())));  // read string reference.
   return Constant(constant);
 }
 

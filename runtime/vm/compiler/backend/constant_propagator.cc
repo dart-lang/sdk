@@ -26,6 +26,7 @@ DEFINE_FLAG(bool,
 // Quick access to the current zone and isolate.
 #define I (isolate())
 #define Z (graph_->zone())
+#define T (graph_->thread())
 
 ConstantPropagator::ConstantPropagator(
     FlowGraph* graph,
@@ -1321,6 +1322,7 @@ void ConstantPropagator::Transform() {
   // instructions, previous pointers, predecessors, etc. after eliminating
   // unreachable code.  We do not maintain those properties during the
   // transformation.
+  auto& value = Object::Handle(Z);
   for (BlockIterator b = graph_->reverse_postorder_iterator(); !b.Done();
        b.Advance()) {
     BlockEntryInstr* block = b.Current();
@@ -1398,7 +1400,14 @@ void ConstantPropagator::Transform() {
           THR_Print("Constant v%" Pd " = %s\n", defn->ssa_temp_index(),
                     defn->constant_value().ToCString());
         }
-        ConstantInstr* constant = graph_->GetConstant(defn->constant_value());
+        value = defn->constant_value().raw();
+        if ((value.IsString() || value.IsMint() || value.IsDouble()) &&
+            !value.IsCanonical()) {
+          const char* error_str = nullptr;
+          value = Instance::Cast(value).CheckAndCanonicalize(T, &error_str);
+          ASSERT(!value.IsNull() && (error_str == nullptr));
+        }
+        ConstantInstr* constant = graph_->GetConstant(value);
         defn->ReplaceUsesWith(constant);
         i.RemoveCurrentFromGraph();
       }
