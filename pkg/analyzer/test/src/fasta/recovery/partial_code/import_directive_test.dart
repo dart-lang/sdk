@@ -12,8 +12,6 @@ main() {
 
 class ImportDirectivesTest extends PartialCodeTest {
   buildAll() {
-    List<String> allExceptEof =
-        PartialCodeTest.prePartSuffixes.map((t) => t.name).toList();
     buildTests(
         'import_directive',
         [
