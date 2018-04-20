@@ -5,6 +5,7 @@
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/lint/linter.dart';
+import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/formatter.dart';
 import 'package:test/test.dart';
 
@@ -27,8 +28,7 @@ defineTests() {
     });
 
     group('reporter', () {
-      var lineInfo =
-          new MockLineInfo(defaultLocation: new MockLineInfo_Location(3, 3));
+      var lineInfo = new LineInfo([3, 6, 9]);
 
       var type = new MockErrorType()..displayName = 'test';
 
@@ -36,7 +36,7 @@ defineTests() {
 
       var source = new MockSource()..fullName = '/foo/bar/baz.dart';
 
-      var error = new AnalysisError(source, -1, -1, code);
+      var error = new AnalysisError(source, 10, 3, code);
 
       var info = new AnalysisErrorInfoImpl([error], lineInfo);
 
@@ -51,7 +51,7 @@ defineTests() {
       });
 
       test('write', () {
-        expect(out.buffer.toString().trim(), '''/foo/bar/baz.dart 3:3 [test] MSG
+        expect(out.buffer.toString().trim(), '''/foo/bar/baz.dart 3:2 [test] MSG
 
 1 file analyzed, 1 issue found, in 13 ms.''');
       });
@@ -62,7 +62,7 @@ defineTests() {
             fileCount: 1, showStatistics: true, elapsedMs: 13)
           ..write();
         expect(out.buffer.toString(),
-            startsWith('''/foo/bar/baz.dart 3:3 [test] MSG
+            startsWith('''/foo/bar/baz.dart 3:2 [test] MSG
 
 1 file analyzed, 1 issue found, in 13 ms.
 
@@ -76,8 +76,7 @@ mock_code                               1
     });
 
     group('reporter', () {
-      var lineInfo =
-          new MockLineInfo(defaultLocation: new MockLineInfo_Location(3, 3));
+      var lineInfo = new LineInfo([3, 6, 9]);
 
       var type = new MockErrorType()..displayName = 'test';
 
@@ -87,7 +86,7 @@ mock_code                               1
 
       var source = new MockSource()..fullName = '/foo/bar/baz.dart';
 
-      var error = new AnalysisError(source, 0, 13, code);
+      var error = new AnalysisError(source, 12, 13, code);
 
       var info = new AnalysisErrorInfoImpl([error], lineInfo);
 
@@ -120,7 +119,7 @@ mock_code                               1
             ..write();
 
           expect(out.buffer.toString().trim(),
-              '''MockErrorSeverity|MockErrorType|MockError|/foo/bar/baz.dart|3|3|13|MSG
+              '''MockErrorSeverity|MockErrorType|MockError|/foo/bar/baz.dart|3|4|13|MSG
 
 1 file analyzed, 1 issue found, in 13 ms.''');
         });
