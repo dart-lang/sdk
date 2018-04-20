@@ -62,8 +62,13 @@ class LineInfo {
 
   /**
    * Return the location information for the character at the given [offset].
+   *
+   * A future version of this API will return a [CharacterLocation] rather than
+        // ignore: deprecated_member_use
+   * a [LineInfo_Location].
    */
-  CharacterLocation getLocation(int offset) {
+  // ignore: deprecated_member_use
+  LineInfo_Location getLocation(int offset) {
     var min = 0;
     var max = lineStarts.length - 1;
 
