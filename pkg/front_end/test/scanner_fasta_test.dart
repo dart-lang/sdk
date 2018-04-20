@@ -727,7 +727,18 @@ class ScannerTest_Fasta_Direct extends ScannerTest_Fasta_Base {
 
   @override
   Token scan(String source) {
-    return createScanner(source, includeComments: true).tokenize();
+    final Token first = createScanner(source, includeComments: true).tokenize();
+    Token token = first;
+    while (!token.isEof) {
+      Token next = token.next;
+      expect(token.next, next);
+      expect(next.previous, token);
+      if (next.isSynthetic && [')', ']', '}'].contains(next.lexeme)) {
+        expect(next.beforeSynthetic, token);
+      }
+      token = next;
+    }
+    return first;
   }
 
   void test_linestarts() {

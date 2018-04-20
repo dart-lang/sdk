@@ -770,8 +770,7 @@ class Parser {
       next.setNext(leftParen);
       leftParen = openParen;
     }
-    token = leftParen;
-    token = parseDottedName(token);
+    token = parseDottedName(leftParen);
     Token next = token.next;
     Token equalitySign;
     if (optional('==', next)) {

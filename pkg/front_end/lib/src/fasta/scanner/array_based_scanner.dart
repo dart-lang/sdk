@@ -361,7 +361,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
     //      v
     //     EOF
     TokenType type = closeBraceInfoFor(begin);
-    appendToken(new SyntheticToken(type, tokenStart));
+    appendToken(new SyntheticToken(type, tokenStart)..beforeSynthetic = tail);
     begin.endGroup = tail;
     appendErrorToken(new UnmatchedToken(begin));
   }
