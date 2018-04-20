@@ -74,12 +74,6 @@ abstract class DartType {
   /// Whether this type contains a type variable.
   bool get containsTypeVariables => false;
 
-  /// Whether this type contains a free class type variable or function type
-  /// variable.
-  // TODO(sra): Review uses of [containsTypeVariables] for update with
-  // [containsFreeTypeVariables].
-  bool get containsFreeTypeVariables => _containsFreeTypeVariables(null);
-
   /// Is `true` if this type is the 'Object' type defined in 'dart:core'.
   bool get isObject => false;
 
@@ -102,8 +96,6 @@ abstract class DartType {
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument);
 
   bool _equals(DartType other, _Assumptions assumptions);
-
-  bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) => false;
 }
 
 /// Pairs of [FunctionTypeVariable]s that are currently assumed to be equivalent.
@@ -179,11 +171,6 @@ class InterfaceType extends DartType {
 
   void forEachTypeVariable(f(TypeVariableType variable)) {
     typeArguments.forEach((type) => type.forEachTypeVariable(f));
-  }
-
-  bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) {
-    return typeArguments
-        .any((type) => type._containsFreeTypeVariables(bindings));
   }
 
   InterfaceType subst(List<DartType> arguments, List<DartType> parameters) {
@@ -276,9 +263,6 @@ class TypedefType extends DartType {
     typeArguments.forEach((type) => type.forEachTypeVariable(f));
   }
 
-  bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) =>
-      typeArguments.any((type) => type._containsFreeTypeVariables(bindings));
-
   TypedefType subst(List<DartType> arguments, List<DartType> parameters) {
     if (typeArguments.isEmpty) {
       // Return fast on non-generic types.
@@ -366,8 +350,6 @@ class Dart1MethodTypeVariableType extends TypeVariableType {
 
   @override
   bool get isMalformed => true;
-
-  bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) => false;
 }
 
 class TypeVariableType extends DartType {
@@ -382,8 +364,6 @@ class TypeVariableType extends DartType {
   void forEachTypeVariable(f(TypeVariableType variable)) {
     f(this);
   }
-
-  bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) => true;
 
   DartType subst(List<DartType> arguments, List<DartType> parameters) {
     assert(arguments.length == parameters.length);
@@ -452,12 +432,6 @@ class FunctionTypeVariable extends DartType {
 
   @override
   bool get isFunctionTypeVariable => true;
-
-  bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) {
-    if (bindings == null) return true;
-    if (bindings.indexOf(this) >= 0) return false;
-    return true;
-  }
 
   DartType subst(List<DartType> arguments, List<DartType> parameters) {
     assert(arguments.length == parameters.length);
@@ -588,29 +562,6 @@ class FunctionType extends DartType {
     parameterTypes.forEach((type) => type.forEachTypeVariable(f));
     optionalParameterTypes.forEach((type) => type.forEachTypeVariable(f));
     namedParameterTypes.forEach((type) => type.forEachTypeVariable(f));
-  }
-
-  bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) {
-    int restore;
-    if (typeVariables.isNotEmpty) {
-      if (bindings == null) {
-        bindings = <FunctionTypeVariable>[];
-      } else {
-        restore = bindings.length;
-      }
-      bindings.addAll(typeVariables);
-    }
-
-    bool hasFree(DartType type) => type._containsFreeTypeVariables(bindings);
-
-    bool result = hasFree(returnType) ||
-        typeVariables.any((type) => hasFree(type.bound)) ||
-        parameterTypes.any(hasFree) ||
-        optionalParameterTypes.any(hasFree) ||
-        namedParameterTypes.any(hasFree);
-
-    if (restore != null) bindings.length = restore;
-    return result;
   }
 
   bool get isFunctionType => true;
@@ -826,9 +777,6 @@ class FutureOrType extends DartType {
   void forEachTypeVariable(f(TypeVariableType variable)) {
     typeArgument.forEachTypeVariable(f);
   }
-
-  bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) =>
-      typeArgument._containsFreeTypeVariables(bindings);
 
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
       visitor.visitFutureOrType(this, argument);

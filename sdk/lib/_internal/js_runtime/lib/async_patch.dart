@@ -403,8 +403,8 @@ Stream _streamOfController(_AsyncStarStreamController controller) {
 ///
 /// If yielding while the subscription is paused it will become suspended. And
 /// only resume after the subscription is resumed or canceled.
-class _AsyncStarStreamController<T> {
-  StreamController<T> controller;
+class _AsyncStarStreamController {
+  StreamController controller;
   Stream get stream => controller.stream;
 
   /// True when the async* function has yielded while being paused.
@@ -424,7 +424,7 @@ class _AsyncStarStreamController<T> {
 
   add(event) => controller.add(event);
 
-  addStream(Stream<T> stream) {
+  addStream(Stream stream) {
     return controller.addStream(stream, cancelOnError: false);
   }
 
@@ -439,7 +439,7 @@ class _AsyncStarStreamController<T> {
       });
     }
 
-    controller = new StreamController<T>(onListen: () {
+    controller = new StreamController(onListen: () {
       _resumeBody();
     }, onResume: () {
       // Only schedule again if the async* function actually is suspended.
@@ -466,9 +466,9 @@ class _AsyncStarStreamController<T> {
   }
 }
 
-//_makeAsyncStarController(body) {
-//  return new _AsyncStarStreamController(body);
-//}
+_makeAsyncStarController(body) {
+  return new _AsyncStarStreamController(body);
+}
 
 class _IterationMarker {
   static const YIELD_SINGLE = 0;
@@ -500,7 +500,7 @@ class _IterationMarker {
   toString() => "IterationMarker($state, $value)";
 }
 
-class _SyncStarIterator<T> implements Iterator<T> {
+class _SyncStarIterator implements Iterator {
   // _SyncStarIterator handles stepping a sync* generator body state machine.
   //
   // It also handles the stepping over 'nested' iterators to flatten yield*
@@ -526,7 +526,7 @@ class _SyncStarIterator<T> implements Iterator<T> {
 
   _SyncStarIterator(this._body);
 
-  T get current => _nestedIterator == null ? _current : _nestedIterator.current;
+  get current => _nestedIterator == null ? _current : _nestedIterator.current;
 
   _runBody() {
     // TODO(sra): Find a way to hard-wire SUCCESS and ERROR codes.
@@ -609,7 +609,7 @@ class _SyncStarIterator<T> implements Iterator<T> {
 /// An Iterable corresponding to a sync* method.
 ///
 /// Each invocation of a sync* method will return a new instance of this class.
-class _SyncStarIterable<T> extends IterableBase<T> {
+class _SyncStarIterable extends IterableBase {
   // This is a function that will return a helper function that does the
   // iteration of the sync*.
   //
@@ -618,8 +618,7 @@ class _SyncStarIterable<T> extends IterableBase<T> {
 
   _SyncStarIterable(this._outerHelper);
 
-  Iterator<T> get iterator =>
-      new _SyncStarIterator<T>(JS('', '#()', _outerHelper));
+  Iterator get iterator => new _SyncStarIterator(JS('', '#()', _outerHelper));
 }
 
 @patch

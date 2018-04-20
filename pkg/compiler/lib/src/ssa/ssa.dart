@@ -48,9 +48,9 @@ class SsaFunctionCompiler implements FunctionCompiler {
     if (element is FunctionEntity) {
       SourceInformationBuilder sourceInformationBuilder =
           backend.sourceInformationStrategy.createBuilderForContext(element);
+
       result = backend.rewriteAsync(
           closedWorld.commonElements,
-          closedWorld.elementEnvironment,
           element,
           result,
           sourceInformationBuilder.buildAsyncBody(),

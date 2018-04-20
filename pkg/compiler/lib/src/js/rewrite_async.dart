@@ -1739,7 +1739,6 @@ class AsyncRewriter extends AsyncRewriterBase {
   ///
   /// Specific to async methods.
   final js.Expression completerFactory;
-  final js.Expression completerFactoryTypeArgument;
 
   final js.Expression wrapBody;
 
@@ -1749,7 +1748,6 @@ class AsyncRewriter extends AsyncRewriterBase {
       this.asyncReturn,
       this.asyncRethrow,
       this.completerFactory,
-      this.completerFactoryTypeArgument,
       this.wrapBody,
       String safeVariableName(String proposedName),
       js.Name bodyName})
@@ -1801,10 +1799,8 @@ class AsyncRewriter extends AsyncRewriterBase {
     List<js.VariableInitialization> variables = <js.VariableInitialization>[];
     variables.add(_makeVariableInitializer(
         completer,
-        js.js('#(#)', [
-          completerFactory,
-          completerFactoryTypeArgument
-        ]).withSourceInformation(sourceInformation),
+        new js.Call(completerFactory, [])
+            .withSourceInformation(sourceInformation),
         sourceInformation));
     if (analysis.hasExplicitReturns) {
       variables
@@ -1904,7 +1900,6 @@ class SyncStarRewriter extends AsyncRewriterBase {
   /// Constructor creating the Iterable for a sync* method. Called with
   /// [bodyName].
   final js.Expression iterableFactory;
-  final js.Expression iterableFactoryTypeArgument;
 
   /// A JS Expression that creates a marker showing that iteration is over.
   ///
@@ -1922,7 +1917,6 @@ class SyncStarRewriter extends AsyncRewriterBase {
   SyncStarRewriter(DiagnosticReporter diagnosticListener, spannable,
       {this.endOfIteration,
       this.iterableFactory,
-      this.iterableFactoryTypeArgument,
       this.yieldStarExpression,
       this.uncaughtErrorExpression,
       String safeVariableName(String proposedName),
@@ -2015,9 +2009,8 @@ class SyncStarRewriter extends AsyncRewriterBase {
       "returnInnerInnerFunction": returnInnerInnerFunction,
     }).withSourceInformation(functionSourceInformation);
     js.Expression callIterableFactory =
-        js.js("#iterableFactory(#innerFunction, #type)", {
+        js.js("#iterableFactory(#innerFunction)", {
       "iterableFactory": iterableFactory,
-      "type": iterableFactoryTypeArgument,
       "innerFunction": innerFunction,
     }).withSourceInformation(bodySourceInformation);
     js.Statement returnCallIterableFactory = new js.Return(callIterableFactory)
@@ -2115,7 +2108,6 @@ class AsyncStarRewriter extends AsyncRewriterBase {
   ///
   /// Specific to async* methods.
   final js.Expression newController;
-  final js.Expression newControllerTypeArgument;
 
   /// Used to get the `Stream` out of the [controllerName] variable.
   final js.Expression streamOfController;
@@ -2136,7 +2128,6 @@ class AsyncStarRewriter extends AsyncRewriterBase {
       {this.asyncStarHelper,
       this.streamOfController,
       this.newController,
-      this.newControllerTypeArgument,
       this.yieldExpression,
       this.yieldStarExpression,
       this.wrapBody,
@@ -2326,11 +2317,8 @@ class AsyncStarRewriter extends AsyncRewriterBase {
     List<js.VariableInitialization> variables = <js.VariableInitialization>[];
     variables.add(_makeVariableInitializer(
         controller,
-        js.js('#(#, #)', [
-          newController,
-          bodyName,
-          newControllerTypeArgument
-        ]).withSourceInformation(sourceInformation),
+        js.js('#(#)', [newController, bodyName]).withSourceInformation(
+            sourceInformation),
         sourceInformation));
     if (analysis.hasYield) {
       variables.add(
