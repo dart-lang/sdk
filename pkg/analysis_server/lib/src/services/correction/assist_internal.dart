@@ -64,8 +64,6 @@ class AssistProcessor {
   CompilationUnitElement unitElement;
 
   LibraryElement unitLibraryElement;
-  String unitLibraryFile;
-  String unitLibraryFolder;
 
   int selectionOffset;
   int selectionLength;
@@ -93,8 +91,6 @@ class AssistProcessor {
     unitLibraryElement = resolutionMap
         .elementDeclaredByCompilationUnit(dartContext.unit)
         .library;
-    unitLibraryFile = unitLibraryElement.source.fullName;
-    unitLibraryFolder = dirname(unitLibraryFile);
     // selection
     selectionOffset = dartContext.selectionOffset;
     selectionLength = dartContext.selectionLength;
@@ -3129,21 +3125,6 @@ class AssistProcessor {
       return precedence < TokenClass.LOGICAL_AND_OPERATOR.precedence;
     }
     return false;
-  }
-}
-
-/**
- * An [AssistContributor] that provides the default set of assists.
- */
-class DefaultAssistContributor extends DartAssistContributor {
-  @override
-  Future<List<Assist>> internalComputeAssists(DartAssistContext context) async {
-    try {
-      AssistProcessor processor = new AssistProcessor(context);
-      return processor.compute();
-    } on CancelCorrectionException {
-      return Assist.EMPTY_LIST;
-    }
   }
 }
 

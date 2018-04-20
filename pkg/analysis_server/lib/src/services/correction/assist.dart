@@ -2,37 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-
-/**
- * The implementation of [AssistContext].
- */
-class AssistContextImpl implements AssistContext {
-  @override
-  final AnalysisDriver analysisDriver;
-
-  @override
-  final Source source;
-
-  @override
-  final int selectionOffset;
-
-  @override
-  final int selectionLength;
-
-  AssistContextImpl(this.analysisDriver, this.source, this.selectionOffset,
-      this.selectionLength);
-}
 
 /**
  * An enumeration of possible assist kinds.
  */
 class DartAssistKind {
-  static const ADD_PART_DIRECTIVE = const AssistKind(
-      'dart.assist.addPartDirective', 30, "Add 'part' directive");
   static const ADD_TYPE_ANNOTATION = const AssistKind(
       'dart.assist.addTypeAnnotation', 30, "Add type annotation");
   static const ASSIGN_TO_LOCAL_VARIABLE = const AssistKind(
@@ -87,8 +62,6 @@ class DartAssistKind {
       const AssistKind('dart.assist.encapsulateField', 30, "Encapsulate field");
   static const EXCHANGE_OPERANDS =
       const AssistKind('dart.assist.exchangeOperands', 30, "Exchange operands");
-  static const EXTRACT_CLASS = const AssistKind(
-      'dart.assist.extractClass', 30, "Extract class into file '{0}'");
   static const FLUTTER_CONVERT_TO_CHILDREN = const AssistKind(
       'dart.assist.flutter.convert.childToChildren',
       30,
