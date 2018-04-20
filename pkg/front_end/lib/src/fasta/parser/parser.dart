@@ -92,7 +92,7 @@ import 'type_info.dart'
         computeType,
         isGeneralizedFunctionType,
         isValidTypeReference,
-        noTypeInfo;
+        noType;
 
 import 'util.dart' show optional;
 
@@ -1262,7 +1262,7 @@ class Parser {
     TypeInfo typeInfo = computeType(token, inFunctionType);
     token = typeInfo.skipType(token);
     next = token.next;
-    if (typeInfo == noTypeInfo &&
+    if (typeInfo == noType &&
         (optional('.', next) ||
             (next.isIdentifier && optional('.', next.next)))) {
       // Recovery: Malformed type reference.
@@ -1322,7 +1322,7 @@ class Parser {
       token = next.endGroup;
       next = token.next;
     }
-    if (typeInfo != noTypeInfo &&
+    if (typeInfo != noType &&
         varFinalOrConst != null &&
         optional('var', varFinalOrConst)) {
       reportRecoverableError(varFinalOrConst, fasta.messageTypeAfterVar);
@@ -2794,7 +2794,7 @@ class Parser {
         covariantToken = null;
       }
     }
-    if (typeInfo == noTypeInfo) {
+    if (typeInfo == noType) {
       if (varFinalOrConst == null) {
         reportRecoverableError(
             beforeName.next, fasta.messageMissingConstFinalVarOrType);
@@ -3443,7 +3443,7 @@ class Parser {
             typeInfo,
             getOrSet);
       }
-    } else if (typeInfo == noTypeInfo && varFinalOrConst == null) {
+    } else if (typeInfo == noType && varFinalOrConst == null) {
       Token next2 = next.next;
       if (next2.isUserDefinableOperator && next2.endGroup == null) {
         String value = next2.next.stringValue;
@@ -5268,7 +5268,7 @@ class Parser {
     assert(optional('const', constToken));
     if (!isModifier(constToken.next)) {
       TypeInfo typeInfo = computeType(constToken, false);
-      if (typeInfo == noTypeInfo) {
+      if (typeInfo == noType) {
         Token next = constToken.next;
         if (!next.isIdentifier) {
           return parseExpressionStatement(start);
@@ -5399,11 +5399,11 @@ class Parser {
       // identifier, then allow ensureIdentifier to report an error
       // and don't report errors here.
       if (varFinalOrConst == null) {
-        if (typeInfo == noTypeInfo) {
+        if (typeInfo == noType) {
           reportRecoverableError(next, fasta.messageMissingConstFinalVarOrType);
         }
       } else if (optional('var', varFinalOrConst)) {
-        if (typeInfo != noTypeInfo) {
+        if (typeInfo != noType) {
           reportRecoverableError(varFinalOrConst, fasta.messageTypeAfterVar);
         }
       }
