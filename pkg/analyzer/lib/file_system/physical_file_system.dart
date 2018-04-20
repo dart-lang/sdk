@@ -11,7 +11,6 @@ import 'dart:io' as io;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/source/source_resource.dart';
-import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
 
@@ -70,10 +69,6 @@ class PhysicalResourceProvider implements ResourceProvider {
    * The path to the base folder where state is stored.
    */
   final String _stateLocation;
-
-  @override
-  final AbsolutePathContext absolutePathContext =
-      new AbsolutePathContext(io.Platform.isWindows);
 
   PhysicalResourceProvider(FileReadMode fileReadMode, {String stateLocation})
       : _stateLocation = stateLocation ?? _getStandardStateLocation() {
@@ -256,7 +251,7 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
 
   @override
   bool contains(String path) {
-    return absolutePathContext.isWithin(this.path, path);
+    return pathContext.isWithin(this.path, path);
   }
 
   @override
@@ -345,9 +340,6 @@ abstract class _PhysicalResource implements Resource {
 
   _PhysicalResource(this._entry);
 
-  AbsolutePathContext get absolutePathContext =>
-      PhysicalResourceProvider.INSTANCE.absolutePathContext;
-
   @override
   bool get exists => _entry.existsSync();
 
@@ -356,7 +348,7 @@ abstract class _PhysicalResource implements Resource {
 
   @override
   Folder get parent {
-    String parentPath = absolutePathContext.dirname(path);
+    String parentPath = pathContext.dirname(path);
     if (parentPath == path) {
       return null;
     }
@@ -372,7 +364,7 @@ abstract class _PhysicalResource implements Resource {
   Context get pathContext => io.Platform.isWindows ? windows : posix;
 
   @override
-  String get shortName => absolutePathContext.basename(path);
+  String get shortName => pathContext.basename(path);
 
   @override
   bool operator ==(other) {

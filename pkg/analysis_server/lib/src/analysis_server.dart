@@ -774,7 +774,8 @@ class AnalysisServer {
    * This means that it is absolute and normalized.
    */
   bool isValidFilePath(String path) {
-    return resourceProvider.absolutePathContext.isValid(path);
+    return resourceProvider.pathContext.isAbsolute(path) &&
+        resourceProvider.pathContext.normalize(path) == path;
   }
 
   /**

@@ -31,7 +31,6 @@ import 'package:analyzer/src/source/path_filter.dart';
 import 'package:analyzer/src/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/source/sdk_ext.dart';
 import 'package:analyzer/src/task/options.dart';
-import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
@@ -441,13 +440,6 @@ class ContextManagerImpl implements ContextManager {
   final DartSdkManager sdkManager;
 
   /**
-   * The context used to work with absolute file system paths.
-   *
-   * TODO(scheglov) remove [pathContext].
-   */
-  AbsolutePathContext absolutePathContext;
-
-  /**
    * The context used to work with file system paths.
    */
   pathos.Context pathContext;
@@ -532,7 +524,6 @@ class ContextManagerImpl implements ContextManager {
       this.analyzedFilesGlobs,
       this._instrumentationService,
       this.defaultContextOptions) {
-    absolutePathContext = resourceProvider.absolutePathContext;
     pathContext = resourceProvider.pathContext;
   }
 
@@ -953,7 +944,7 @@ class ContextManagerImpl implements ContextManager {
       String path, ContextInfo info, Folder folder) {
     // Check to see if this is the .packages file for this context and if so,
     // update the context's source factory.
-    if (absolutePathContext.basename(path) == PACKAGE_SPEC_NAME) {
+    if (pathContext.basename(path) == PACKAGE_SPEC_NAME) {
       String contextRoot = info.folder.path;
       ContextBuilder builder =
           callbacks.createContextBuilder(info.folder, defaultContextOptions);
@@ -1052,8 +1043,7 @@ class ContextManagerImpl implements ContextManager {
       callbacks.computingPackageMap(true);
       try {
         // Try .packages first.
-        if (absolutePathContext.basename(packagespecFile.path) ==
-            PACKAGE_SPEC_NAME) {
+        if (pathContext.basename(packagespecFile.path) == PACKAGE_SPEC_NAME) {
           Packages packages = _readPackagespec(packagespecFile);
           return new PackagesFileDisposition(packages);
         }
@@ -1384,7 +1374,7 @@ class ContextManagerImpl implements ContextManager {
       case ChangeType.ADD:
         Resource resource = resourceProvider.getResource(path);
 
-        String directoryPath = absolutePathContext.dirname(path);
+        String directoryPath = pathContext.dirname(path);
 
         // Check to see if we need to create a new context.
         if (info.isTopLevel) {
@@ -1394,8 +1384,7 @@ class ContextManagerImpl implements ContextManager {
             if (_isPubspec(path)) {
               // Check for a sibling .packages file.
               if (!resourceProvider
-                  .getFile(absolutePathContext.append(
-                      directoryPath, PACKAGE_SPEC_NAME))
+                  .getFile(pathContext.join(directoryPath, PACKAGE_SPEC_NAME))
                   .exists) {
                 _extractContext(info, resource);
                 return;
@@ -1404,8 +1393,7 @@ class ContextManagerImpl implements ContextManager {
             if (_isPackagespec(path)) {
               // Check for a sibling pubspec.yaml file.
               if (!resourceProvider
-                  .getFile(
-                      absolutePathContext.append(directoryPath, PUBSPEC_NAME))
+                  .getFile(pathContext.join(directoryPath, PUBSPEC_NAME))
                   .exists) {
                 _extractContext(info, resource);
                 return;
@@ -1429,15 +1417,14 @@ class ContextManagerImpl implements ContextManager {
         // Note that it's important to verify that there is NEITHER a .packages nor a
         // lingering pubspec.yaml before merging.
         if (!info.isTopLevel) {
-          String directoryPath = absolutePathContext.dirname(path);
+          String directoryPath = pathContext.dirname(path);
 
           // Only merge if this is the same directory described by our info object.
           if (info.folder.path == directoryPath) {
             if (_isPubspec(path)) {
               // Check for a sibling .packages file.
               if (!resourceProvider
-                  .getFile(absolutePathContext.append(
-                      directoryPath, PACKAGE_SPEC_NAME))
+                  .getFile(pathContext.join(directoryPath, PACKAGE_SPEC_NAME))
                   .exists) {
                 _mergeContext(info);
                 return;
@@ -1446,8 +1433,7 @@ class ContextManagerImpl implements ContextManager {
             if (_isPackagespec(path)) {
               // Check for a sibling pubspec.yaml file.
               if (!resourceProvider
-                  .getFile(
-                      absolutePathContext.append(directoryPath, PUBSPEC_NAME))
+                  .getFile(pathContext.join(directoryPath, PUBSPEC_NAME))
                   .exists) {
                 _mergeContext(info);
                 return;
@@ -1479,16 +1465,14 @@ class ContextManagerImpl implements ContextManager {
    * context root [root], contains a folder whose name starts with '.'.
    */
   bool _isContainedInDotFolder(String root, String path) {
-    String pathDir = absolutePathContext.dirname(path);
-    String suffixPath = absolutePathContext.suffix(root, pathDir);
-    if (suffixPath == null) {
-      return false;
-    }
-    for (String pathComponent in absolutePathContext.split(suffixPath)) {
-      if (pathComponent.startsWith('.') &&
-          pathComponent != '.' &&
-          pathComponent != '..') {
-        return true;
+    String pathDir = pathContext.dirname(path);
+    String rootPrefix = root + pathContext.separator;
+    if (pathDir.startsWith(rootPrefix)) {
+      String suffixPath = pathDir.substring(rootPrefix.length);
+      for (String pathComponent in pathContext.split(suffixPath)) {
+        if (pathComponent.startsWith('.')) {
+          return true;
+        }
       }
     }
     return false;
@@ -1504,7 +1488,7 @@ class ContextManagerImpl implements ContextManager {
    */
   bool _isExcludedBy(List<String> excludedPaths, String path) {
     return excludedPaths.any((excludedPath) {
-      if (absolutePathContext.isWithin(excludedPath, path)) {
+      if (pathContext.isWithin(excludedPath, path)) {
         return true;
       }
       return path == excludedPath;
@@ -1516,19 +1500,19 @@ class ContextManagerImpl implements ContextManager {
    * context root [root].
    */
   bool _isInTopLevelDocDir(String root, String path) {
-    String suffixPath = absolutePathContext.suffix(root, path);
-    if (suffixPath == null) {
-      return false;
+    String rootPrefix = root + pathContext.separator;
+    if (path.startsWith(rootPrefix)) {
+      String suffix = path.substring(rootPrefix.length);
+      return suffix == DOC_DIR_NAME ||
+          suffix.startsWith(DOC_DIR_NAME + pathContext.separator);
     }
-    return suffixPath == DOC_DIR_NAME ||
-        suffixPath.startsWith(DOC_DIR_NAME + absolutePathContext.separator);
+    return false;
   }
 
   bool _isPackagespec(String path) =>
-      absolutePathContext.basename(path) == PACKAGE_SPEC_NAME;
+      pathContext.basename(path) == PACKAGE_SPEC_NAME;
 
-  bool _isPubspec(String path) =>
-      absolutePathContext.basename(path) == PUBSPEC_NAME;
+  bool _isPubspec(String path) => pathContext.basename(path) == PUBSPEC_NAME;
 
   /**
    * Merges [info] context into its parent.

@@ -12,7 +12,6 @@ import 'dart:core';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/source/source_resource.dart';
-import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:watcher/watcher.dart';
 
@@ -31,9 +30,6 @@ class MemoryResourceProvider implements ResourceProvider {
 
   final pathos.Context _pathContext;
 
-  @override
-  final AbsolutePathContext absolutePathContext;
-
   MemoryResourceProvider(
       {pathos.Context context, @deprecated bool isWindows: false})
       : _pathContext = (context ??= pathos.style == pathos.Style.windows
@@ -41,9 +37,7 @@ class MemoryResourceProvider implements ResourceProvider {
             // the drive inserted by MemoryResourceProvider.convertPath
             // so that packages are mapped to the correct drive
             ? new pathos.Context(current: 'C:\\')
-            : pathos.context),
-        absolutePathContext =
-            new AbsolutePathContext(context.style == pathos.Style.windows);
+            : pathos.context);
 
   @override
   pathos.Context get pathContext => _pathContext;
