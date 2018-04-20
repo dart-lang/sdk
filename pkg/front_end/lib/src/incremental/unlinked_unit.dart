@@ -61,12 +61,15 @@ UnlinkedUnitBuilder computeUnlinkedUnit(List<int> salt, List<int> content) {
 
 /// Exclude all `native 'xyz';` token sequences.
 void _excludeNativeClauses(Token token) {
-  for (; token.kind != EOF_TOKEN; token = token.next) {
-    if (optional('native', token) &&
-        token.next.kind == STRING_TOKEN &&
-        optional(';', token.next.next)) {
-      token.previous.next = token.next.next;
+  while (token.kind != EOF_TOKEN) {
+    Token next = token.next;
+    if (optional('native', next) &&
+        next.next.kind == STRING_TOKEN &&
+        optional(';', next.next.next)) {
+      next = next.next.next;
+      token.setNext(next);
     }
+    token = next;
   }
 }
 

@@ -22,7 +22,12 @@ import 'package:front_end/src/fasta/parser.dart'
 import 'package:front_end/src/fasta/scanner.dart' hide StringToken;
 import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
 import 'package:front_end/src/scanner/token.dart'
-    show StringToken, SyntheticBeginToken, SyntheticStringToken, SyntheticToken;
+    show
+        BeginToken,
+        StringToken,
+        SyntheticBeginToken,
+        SyntheticStringToken,
+        SyntheticToken;
 
 import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/messages.dart'
@@ -2250,26 +2255,25 @@ class AstBuilder extends ScopeListener {
     }
 
     if (parameters == null && (getOrSet == null || optional('set', getOrSet))) {
-      Token previous = typeParameters?.endToken;
-      if (previous == null) {
+      Token token = typeParameters?.endToken;
+      if (token == null) {
         if (name is AstNode) {
-          previous = name.endToken;
+          token = name.endToken;
         } else if (name is _OperatorName) {
-          previous = name.name.endToken;
+          token = name.name.endToken;
         } else {
           throw new UnimplementedError();
         }
       }
-      Token leftParen =
-          new SyntheticBeginToken(TokenType.OPEN_PAREN, previous.end);
+      Token next = token.next;
+      int offset = next.charOffset;
+      BeginToken leftParen =
+          new SyntheticBeginToken(TokenType.OPEN_PAREN, offset);
+      token.setNext(leftParen);
       Token rightParen =
-          new SyntheticToken(TokenType.CLOSE_PAREN, leftParen.offset);
-      rightParen.next = previous.next;
-      leftParen.next = rightParen;
-      previous.next = leftParen;
-      leftParen.previous = previous;
-      rightParen.previous = leftParen;
-      rightParen.next.previous = rightParen;
+          leftParen.setNext(new SyntheticToken(TokenType.CLOSE_PAREN, offset));
+      leftParen.endGroup = rightParen;
+      rightParen.setNext(next);
       parameters = ast.formalParameterList(
           leftParen, <FormalParameter>[], null, null, rightParen);
     }

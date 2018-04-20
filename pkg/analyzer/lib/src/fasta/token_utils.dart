@@ -24,19 +24,16 @@ class ToAnalyzerTokenStreamConverter {
   /// to be an analyzer token stream by removing error tokens and reporting
   /// those errors to the associated error listener.
   Token convertTokens(Token firstToken) {
-    Token previous = new Token.eof(-1);
-    Token token = firstToken;
-    token.previous = previous;
-    previous.next = token;
-    while (!token.isEof) {
-      if (token.type.kind == BAD_INPUT_TOKEN) {
-        translateErrorToken(token, reportError);
-        previous.next = token.next;
-        token.next.previous = previous;
+    Token token = new Token.eof(-1)..setNext(firstToken);
+    Token next = firstToken;
+    while (!next.isEof) {
+      if (next.type.kind == BAD_INPUT_TOKEN) {
+        translateErrorToken(next, reportError);
+        token.setNext(next.next);
       } else {
-        previous = token;
+        token = next;
       }
-      token = token.next;
+      next = token.next;
     }
     return firstToken;
   }

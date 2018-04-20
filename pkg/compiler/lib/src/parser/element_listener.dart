@@ -852,7 +852,7 @@ class ElementListener extends Listener {
   Token synthesizeIdentifier(Token token) {
     Token synthesizedToken =
         new StringToken.fromString(TokenType.IDENTIFIER, '?', token.charOffset);
-    synthesizedToken.next = token.next;
+    synthesizedToken.setNext(token.next);
     return synthesizedToken;
   }
 

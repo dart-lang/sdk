@@ -63,12 +63,21 @@ class DottedNameIdentifierContext extends IdentifierContext {
   Token ensureIdentifier(Token token, Parser parser) {
     Token identifier = token.next;
     assert(identifier.kind != IDENTIFIER_TOKEN);
+    const followingValues = const ['.', '==', ')'];
+
     if (identifier.isIdentifier) {
-      return identifier;
+      // DottedNameIdentifierContext are only used in conditional import
+      // expressions. Although some top level keywords such as `import` can be
+      // used as identifiers, they are more likely the start of the next
+      // directive or declaration.
+      if (!identifier.isTopLevelKeyword ||
+          isOneOfOrEof(identifier.next, followingValues)) {
+        return identifier;
+      }
     }
 
     if (looksLikeStartOfNextDeclaration(identifier) ||
-        isOneOfOrEof(identifier, const ['.', '==', ')'])) {
+        isOneOfOrEof(identifier, followingValues)) {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: fasta.templateExpectedIdentifier.withArguments(identifier));
     } else {

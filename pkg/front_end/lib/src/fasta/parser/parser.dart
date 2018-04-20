@@ -779,17 +779,14 @@ class Parser {
       next = token.next;
     }
     if (next != leftParen.endGroup) {
-      reportRecoverableErrorWithToken(next, fasta.templateUnexpectedToken);
       Token endGroup = leftParen.endGroup;
       if (endGroup.isSynthetic) {
         // The scanner did not place the synthetic ')' correctly, so move it.
-
-        // TODO(danrubel): Its costly to find the token before the endGroup.
-        // Consider beforeSynthetic field that points to the previous token
-        // only for synthetic tokens such as ')', '}', ']' so that the parser
-        // can easily move these to the correct location.
+        next = rewriter.moveSynthetic(token, endGroup);
+      } else {
+        reportRecoverableErrorWithToken(next, fasta.templateUnexpectedToken);
+        next = endGroup;
       }
-      next = endGroup;
     }
     token = next;
     assert(optional(')', token));
@@ -3165,12 +3162,12 @@ class Parser {
     assert(value != '>');
     Token replacement = new Token(TokenType.GT, next.charOffset);
     if (identical(value, '>>')) {
-      replacement.next = new Token(TokenType.GT, next.charOffset + 1);
+      replacement.setNext(new Token(TokenType.GT, next.charOffset + 1));
     } else if (identical(value, '>=')) {
-      replacement.next = new Token(TokenType.EQ, next.charOffset + 1);
+      replacement.setNext(new Token(TokenType.EQ, next.charOffset + 1));
     } else if (identical(value, '>>=')) {
-      replacement.next = new Token(TokenType.GT, next.charOffset + 1);
-      replacement.next.next = new Token(TokenType.EQ, next.charOffset + 2);
+      replacement.setNext(new Token(TokenType.GT, next.charOffset + 1));
+      replacement.next.setNext(new Token(TokenType.EQ, next.charOffset + 2));
     } else {
       // Recovery
       rewriteAndRecover(token, fasta.templateExpectedToken.withArguments('>'),
@@ -6513,7 +6510,7 @@ class Parser {
   /// Create a short token chain from the [beginToken] and [endToken] and return
   /// the [beginToken].
   Token link(BeginToken beginToken, Token endToken) {
-    beginToken.next = endToken;
+    beginToken.setNext(endToken);
     beginToken.endGroup = endToken;
     return beginToken;
   }
