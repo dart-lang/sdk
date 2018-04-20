@@ -5,7 +5,7 @@
 /*@testedFeatures=error*/
 
 class C {
-  void set x(value);
+  void set x(value) {}
 }
 
 void test(C c) {

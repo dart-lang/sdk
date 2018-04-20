@@ -13,7 +13,7 @@ class B<T> {
 // This class inherits genericImpl annotations from its superclass, but doesn't
 // have any members marked genericInterface because the inferred types of x and
 // y do not depend on the type parameter T.
-class C<T> implements B<num> {
+abstract class C<T> implements B<num> {
   var /*@covariance=genericImpl*/ x;
   get y;
   set y(/*@covariance=genericImpl*/ value);
@@ -21,7 +21,7 @@ class C<T> implements B<num> {
 
 // This class also has members marked genericInterface, since the inferred types
 // of x and y *do* depend on the type parameter T.
-class D<T> implements B<T> {
+abstract class D<T> implements B<T> {
   var /*@covariance=genericInterface, genericImpl*/ x;
   get y;
   set y(/*@covariance=genericInterface, genericImpl*/ value);
