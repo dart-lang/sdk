@@ -757,7 +757,6 @@ flatten_test/09: MissingRuntimeError # Issue 29920
 flatten_test/12: MissingRuntimeError # Issue 29920
 for_variable_capture_test: RuntimeError # Issue 29920; Expect.equals(expected: <1>, actual: <0>) fails.
 function_subtype_inline2_test: RuntimeError # Expect.fail('Missing type error: 'new C.c1(m2)'.')
-function_type_alias6_test/none: RuntimeError # Expect.isTrue(false) fails.
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 29920
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 29920
 generic_instanceof2_test: RuntimeError # Issue 29920; ReferenceError: FooOfK$String is not defined

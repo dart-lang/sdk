@@ -73,7 +73,6 @@ function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_cast1_test: RuntimeError
 function_subtype_not1_test: RuntimeError
-function_subtype_typearg5_test: RuntimeError
 function_type/function_type0_test: RuntimeError # Issue 30476
 function_type/function_type10_test: RuntimeError # Issue 30476
 function_type/function_type12_test: RuntimeError # Issue 30476
@@ -339,8 +338,6 @@ generalized_void_syntax_test: CompileTimeError # Issue #30176.
 generic_closure_test/01: RuntimeError
 generic_closure_test/none: RuntimeError
 generic_function_dcall_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_function_typedef_test/01: RuntimeError
-generic_instanceof_test: RuntimeError
 generic_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_typedef_test: RuntimeError
 getter_override2_test/02: MissingCompileTimeError
@@ -371,7 +368,6 @@ list_literal_syntax_test/01: MissingCompileTimeError
 list_literal_syntax_test/02: MissingCompileTimeError
 list_literal_syntax_test/03: MissingCompileTimeError
 malformed2_test/00: MissingCompileTimeError
-many_generic_instanceof_test: RuntimeError
 map_literal1_test/01: MissingCompileTimeError
 map_literal8_test: RuntimeError
 method_override7_test/00: MissingCompileTimeError
@@ -744,7 +740,6 @@ function_subtype_cast1_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 function_subtype_not1_test: RuntimeError
 function_subtype_setter0_test: RuntimeError
-function_subtype_typearg5_test: RuntimeError
 function_type_alias2_test: RuntimeError
 function_type_alias4_test: RuntimeError
 generic_closure_test/01: RuntimeError
@@ -753,9 +748,7 @@ generic_function_bounds_test: RuntimeError
 generic_function_dcall_test: RuntimeError
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError
-generic_function_typedef_test/01: RuntimeError
 generic_instanceof2_test: RuntimeError
-generic_instanceof_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_method_types_test/02: RuntimeError
 generic_methods_bounds_test/02: MissingRuntimeError
@@ -803,7 +796,6 @@ local_function2_test/none: RuntimeError
 local_function3_test/none: RuntimeError
 local_function_test/none: RuntimeError
 main_test/03: RuntimeError
-many_generic_instanceof_test: RuntimeError
 many_overridden_no_such_method_test: RuntimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
@@ -1229,7 +1221,6 @@ function_subtype_cast1_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 function_subtype_not1_test: RuntimeError
 function_subtype_setter0_test: RuntimeError
-function_subtype_typearg5_test: RuntimeError
 function_type_alias2_test: RuntimeError
 function_type_alias4_test: RuntimeError
 generic_closure_test/01: RuntimeError
@@ -1238,9 +1229,7 @@ generic_function_bounds_test: RuntimeError
 generic_function_dcall_test: RuntimeError
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError
-generic_function_typedef_test/01: RuntimeError
 generic_instanceof2_test: RuntimeError
-generic_instanceof_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_method_types_test/02: RuntimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
@@ -1322,7 +1311,6 @@ malbounded_type_test2_test/00: MissingCompileTimeError
 malbounded_type_test_test/00: MissingCompileTimeError
 malbounded_type_test_test/01: MissingCompileTimeError
 malbounded_type_test_test/02: MissingCompileTimeError
-many_generic_instanceof_test: RuntimeError
 many_overridden_no_such_method_test: RuntimeError
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
@@ -1899,16 +1887,13 @@ function_subtype_cast1_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 function_subtype_not1_test: RuntimeError
 function_subtype_setter0_test: RuntimeError
-function_subtype_typearg5_test: RuntimeError
 function_type_alias2_test: RuntimeError
 function_type_alias4_test: RuntimeError
 generic_function_bounds_test: RuntimeError
 generic_function_dcall_test: RuntimeError
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError
-generic_function_typedef_test/01: RuntimeError
 generic_instanceof2_test: RuntimeError
-generic_instanceof_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_method_types_test/02: RuntimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
@@ -1990,7 +1975,6 @@ malbounded_type_test2_test/00: MissingCompileTimeError
 malbounded_type_test_test/00: MissingCompileTimeError
 malbounded_type_test_test/01: MissingCompileTimeError
 malbounded_type_test_test/02: MissingCompileTimeError
-many_generic_instanceof_test: RuntimeError
 many_overridden_no_such_method_test: RuntimeError
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
