@@ -18,6 +18,8 @@ const List<FunctionTypeData> existentialTypeData = const <FunctionTypeData>[
   const FunctionTypeData('void', 'F6', '<X extends int>(X x)'),
   const FunctionTypeData('void', 'F7', '<Y extends num>(Y y, [int i])'),
   const FunctionTypeData('Z', 'F8', '<Z extends num>(Z z)'),
+  const FunctionTypeData('T', 'F13', '<T>(T t1, T t2)'),
+  const FunctionTypeData('S', 'F14', '<S>(S s1, S s2)'),
 ];
 
 main() {
@@ -74,6 +76,10 @@ main() {
           env.isSubtype(a, b),
           "Expected `$a` ${isSubtype ? '' : 'not '}to be a subtype of `$b`, "
           "but it is${isSubtype ? ' not' : ''}.");
+      if (isSubtype) {
+        Expect.isTrue(env.isPotentialSubtype(a, b),
+            '$a <: $b but not a potential subtype.');
+      }
     }
 
     InterfaceType Object_ = env['Object'];
@@ -95,6 +101,8 @@ main() {
     FunctionType F10 = env.getClosureType('F10');
     FunctionType F11 = env.getMemberType('F11');
     FunctionType F12 = env.getMemberType('F12');
+    FunctionType F13 = env.getFieldType('F13');
+    FunctionType F14 = env.getFieldType('F14');
 
     List<FunctionType> all = <FunctionType>[
       F1,
@@ -109,6 +117,8 @@ main() {
       F10,
       F11,
       F12,
+      F13,
+      F14,
     ];
 
     testToString(F1, 'void Function<#A>(#A)');
@@ -123,6 +133,8 @@ main() {
     testToString(F10, 'void Function<#A extends #B,#B>(#A,#B)');
     testToString(F11, 'void Function<#A extends C3<#A>>(#A)');
     testToString(F12, 'void Function<#A extends C3<#A>>(#A)');
+    testToString(F13, '#A Function<#A>(#A,#A)');
+    testToString(F14, '#A Function<#A>(#A,#A)');
 
     testBounds(F1, [Object_]);
     testBounds(F2, [Object_]);
@@ -140,6 +152,8 @@ main() {
     testBounds(F12, [
       instantiate(C3, [F12.typeVariables.last])
     ]);
+    testBounds(F13, [Object_]);
+    testBounds(F14, [Object_]);
 
     testInstantiate(F1, [C1], 'void Function(C1)');
     testInstantiate(F2, [C2], 'void Function(C2)');
@@ -153,6 +167,8 @@ main() {
     testInstantiate(F10, [int_, num_], 'void Function(int,num)');
     testInstantiate(F11, [C4], 'void Function(C4)');
     testInstantiate(F12, [C4], 'void Function(C4)');
+    testInstantiate(F13, [C1], 'C1 Function(C1,C1)');
+    testInstantiate(F14, [C2], 'C2 Function(C2,C2)');
 
     Map<FunctionType, List<FunctionType>> expectedEquals =
         <FunctionType, List<FunctionType>>{
@@ -162,6 +178,8 @@ main() {
       F10: [F9],
       F11: [F12],
       F12: [F11],
+      F13: [F14],
+      F14: [F13],
     };
 
     Map<FunctionType, List<FunctionType>> expectedSubtype =

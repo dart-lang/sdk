@@ -723,7 +723,7 @@ class FunctionType extends DartType {
         }
       }
     }
-    bool result = returnType == other.returnType &&
+    bool result = returnType._equals(other.returnType, assumptions) &&
         _equalTypes(parameterTypes, other.parameterTypes, assumptions) &&
         _equalTypes(optionalParameterTypes, other.optionalParameterTypes,
             assumptions) &&
@@ -1033,10 +1033,6 @@ abstract class AbstractTypeRelation<T extends DartType>
     if (s is! FunctionType) return false;
     FunctionType tf = t;
     FunctionType sf = s;
-    if (invalidFunctionReturnTypes(tf.returnType, sf.returnType)) {
-      return false;
-    }
-
     if (tf.typeVariables.length != sf.typeVariables.length) {
       return false;
     }
@@ -1049,6 +1045,10 @@ abstract class AbstractTypeRelation<T extends DartType>
         return false;
       }
     }
+    if (invalidFunctionReturnTypes(tf.returnType, sf.returnType)) {
+      return false;
+    }
+
     bool result = visitFunctionTypeInternal(tf, sf);
     for (int i = 0; i < tf.typeVariables.length; i++) {
       assumptions.forget(tf.typeVariables[i], sf.typeVariables[i]);
