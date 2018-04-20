@@ -4927,7 +4927,7 @@ class ResolveTopLevelUnitTypeBoundsTask extends SourceBasedAnalysisTask {
     //
     RecordingErrorListener errorListener = new RecordingErrorListener();
     new TypeParameterBoundsResolver(
-            typeProvider, library, unitElement.source, errorListener)
+            context.typeSystem, library, unitElement.source, errorListener)
         .resolveTypeBounds(unit);
     //
     // Record outputs.

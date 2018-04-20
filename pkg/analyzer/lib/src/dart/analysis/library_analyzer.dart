@@ -675,7 +675,7 @@ class LibraryAnalyzer {
     // TODO(scheglov) remove EnumMemberBuilder class
 
     new TypeParameterBoundsResolver(
-            _typeProvider, _libraryElement, source, errorListener)
+            _context.typeSystem, _libraryElement, source, errorListener)
         .resolveTypeBounds(unit);
 
     unit.accept(new TypeResolverVisitor(

@@ -146,6 +146,7 @@ override_inheritance_method_test/29: CompileTimeError
 parameter_initializer_test: CompileTimeError
 part_refers_to_core_library_test/01: Crash
 prefix10_negative_test: Fail # Issue 29920
+regress_23089_test: MissingCompileTimeError
 regress_23408_test: CompileTimeError
 regress_24283_test: RuntimeError # Intended to fail, requires 64-bit numbers.
 regress_29025_test: CompileTimeError # Issue 29081

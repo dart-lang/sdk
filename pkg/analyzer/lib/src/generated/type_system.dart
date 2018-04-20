@@ -358,10 +358,15 @@ class StrongTypeSystemImpl extends TypeSystem {
       }
     }
 
-    List<TypeParameterType> getFreeParameters(DartType type) {
+    List<TypeParameterType> getFreeParameters(DartType rootType) {
       List<TypeParameterType> parameters = null;
+      Set<DartType> visitedTypes = new HashSet<DartType>();
 
       void appendParameters(DartType type) {
+        if (visitedTypes.contains(type)) {
+          return;
+        }
+        visitedTypes.add(type);
         if (type is TypeParameterType && all.contains(type)) {
           parameters ??= <TypeParameterType>[];
           parameters.add(type);
@@ -370,7 +375,7 @@ class StrongTypeSystemImpl extends TypeSystem {
         }
       }
 
-      appendParameters(type);
+      appendParameters(rootType);
       return parameters;
     }
 
