@@ -592,22 +592,13 @@ assertion_test: RuntimeError
 async_await_test/02: RuntimeError
 async_await_test/03: RuntimeError
 async_await_test/none: RuntimeError
-async_congruence_local_test/none: RuntimeError
-async_congruence_method_test/none: RuntimeError
-async_congruence_top_level_test: RuntimeError
-async_congruence_unnamed_test/none: RuntimeError
-async_star_await_pauses_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
-async_star_regression_2238_test: RuntimeError
-async_star_regression_23116_test: RuntimeError
-async_star_stream_take_test: RuntimeError
 async_star_test/01: RuntimeError
 async_star_test/02: RuntimeError
 async_star_test/03: RuntimeError
 async_star_test/04: RuntimeError
 async_star_test/05: RuntimeError
 async_star_test/none: RuntimeError
-async_test: RuntimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
@@ -961,7 +952,6 @@ switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
-syncstar_type_test: RuntimeError
 syntax_test/28: MissingCompileTimeError
 syntax_test/29: MissingCompileTimeError
 syntax_test/30: MissingCompileTimeError
@@ -1037,28 +1027,19 @@ assertion_test: RuntimeError
 async_await_test/02: RuntimeError
 async_await_test/03: RuntimeError
 async_await_test/none: RuntimeError
-async_congruence_local_test/none: RuntimeError
-async_congruence_method_test/none: RuntimeError
-async_congruence_top_level_test: RuntimeError
-async_congruence_unnamed_test/none: RuntimeError
 async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
 async_return_types_test/nestedFuture: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
 async_return_types_test/tooManyTypeParameters: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
 async_return_types_test/wrongReturnType: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_star_await_pauses_test: RuntimeError
 async_star_cancel_while_paused_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_star_regression_2238_test: RuntimeError
-async_star_regression_23116_test: RuntimeError
-async_star_stream_take_test: RuntimeError
 async_star_test/01: RuntimeError
 async_star_test/02: RuntimeError
 async_star_test/03: RuntimeError
 async_star_test/04: RuntimeError
 async_star_test/05: RuntimeError
 async_star_test/none: RuntimeError
-async_test: RuntimeError
 await_not_started_immediately_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
@@ -1565,7 +1546,6 @@ switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
 sync_generator2_test/41: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_impl.dart': Failed assertion: line 939 pos 18: 'asyncMarker == AsyncMarker.SYNC': is not true.
 sync_generator2_test/52: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_impl.dart': Failed assertion: line 939 pos 18: 'asyncMarker == AsyncMarker.SYNC': is not true.
-syncstar_type_test: RuntimeError
 syntax_test/04: Crash # 'file:*/pkg/compiler/lib/src/kernel/env.dart': Failed assertion: line 322 pos 16: '!name.contains('#')': is not true.
 syntax_test/05: Crash # 'file:*/pkg/compiler/lib/src/kernel/env.dart': Failed assertion: line 322 pos 16: '!name.contains('#')': is not true.
 syntax_test/06: Crash # 'file:*/pkg/compiler/lib/src/kernel/env.dart': Failed assertion: line 322 pos 16: '!name.contains('#')': is not true.
@@ -1708,28 +1688,19 @@ assertion_test: RuntimeError
 async_await_test/02: RuntimeError
 async_await_test/03: RuntimeError
 async_await_test/none: RuntimeError
-async_congruence_local_test/none: RuntimeError
-async_congruence_method_test/none: RuntimeError
-async_congruence_top_level_test: RuntimeError
-async_congruence_unnamed_test/none: RuntimeError
 async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
 async_return_types_test/nestedFuture: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
 async_return_types_test/tooManyTypeParameters: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
 async_return_types_test/wrongReturnType: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_star_await_pauses_test: RuntimeError
 async_star_cancel_while_paused_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_star_regression_2238_test: RuntimeError
-async_star_regression_23116_test: RuntimeError
-async_star_stream_take_test: RuntimeError
 async_star_test/01: RuntimeError
 async_star_test/02: RuntimeError
 async_star_test/03: RuntimeError
 async_star_test/04: RuntimeError
 async_star_test/05: RuntimeError
 async_star_test/none: RuntimeError
-async_test: RuntimeError
 await_not_started_immediately_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
@@ -2228,7 +2199,6 @@ switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
 symbol_conflict_test: RuntimeError # Issue 23857
-syncstar_type_test: RuntimeError
 syntax_test/28: MissingCompileTimeError
 syntax_test/29: MissingCompileTimeError
 syntax_test/30: MissingCompileTimeError

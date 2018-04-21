@@ -1409,6 +1409,39 @@ class KernelElementEnvironment extends ElementEnvironment {
   }
 
   @override
+  DartType getFunctionAsyncOrSyncStarElementType(FunctionEntity function) {
+    DartType returnType = getFunctionType(function).returnType;
+    switch (function.asyncMarker) {
+      case AsyncMarker.SYNC:
+        return returnType;
+      case AsyncMarker.SYNC_STAR:
+        if (returnType is InterfaceType) {
+          if (returnType.element == elementMap.commonElements.iterableClass) {
+            return returnType.typeArguments.first;
+          }
+        }
+        return dynamicType;
+      case AsyncMarker.ASYNC:
+        if (returnType is FutureOrType) return returnType.typeArgument;
+        if (returnType is InterfaceType) {
+          if (returnType.element == elementMap.commonElements.futureClass) {
+            return returnType.typeArguments.first;
+          }
+        }
+        return dynamicType;
+      case AsyncMarker.ASYNC_STAR:
+        if (returnType is InterfaceType) {
+          if (returnType.element == elementMap.commonElements.streamClass) {
+            return returnType.typeArguments.first;
+          }
+        }
+        return dynamicType;
+    }
+    assert(false, 'Unexpected marker ${function.asyncMarker}');
+    return null;
+  }
+
+  @override
   DartType getFieldType(FieldEntity field) {
     return elementMap._getFieldType(field);
   }

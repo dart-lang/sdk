@@ -1154,35 +1154,20 @@ class JavaScriptBackend {
 
   jsAst.Expression rewriteAsync(
       CommonElements commonElements,
+      ElementEnvironment elementEnvironment,
       FunctionEntity element,
       jsAst.Expression code,
       SourceInformation bodySourceInformation,
       SourceInformation exitSourceInformation) {
-    bool startAsyncSynchronously = compiler.options.startAsyncSynchronously;
+    if (element.asyncMarker == AsyncMarker.SYNC) return code;
 
     AsyncRewriterBase rewriter = null;
     jsAst.Name name = namer.methodPropertyName(element);
+
     switch (element.asyncMarker) {
       case AsyncMarker.ASYNC:
-        var startFunction = startAsyncSynchronously
-            ? commonElements.asyncHelperStartSync
-            : commonElements.asyncHelperStart;
-        var completerConstructor = startAsyncSynchronously
-            ? commonElements.asyncAwaitCompleterConstructor
-            : commonElements.syncCompleterConstructor;
-        rewriter = new AsyncRewriter(reporter, element,
-            asyncStart: emitter.staticFunctionAccess(startFunction),
-            asyncAwait:
-                emitter.staticFunctionAccess(commonElements.asyncHelperAwait),
-            asyncReturn:
-                emitter.staticFunctionAccess(commonElements.asyncHelperReturn),
-            asyncRethrow:
-                emitter.staticFunctionAccess(commonElements.asyncHelperRethrow),
-            wrapBody: emitter.staticFunctionAccess(commonElements.wrapBody),
-            completerFactory:
-                emitter.staticFunctionAccess(completerConstructor),
-            safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
-            bodyName: namer.deriveAsyncBodyName(name));
+        rewriter = _makeAsyncRewriter(
+            commonElements, elementEnvironment, element, code, name);
         break;
       case AsyncMarker.SYNC_STAR:
         rewriter = new SyncStarRewriter(reporter, element,
@@ -1190,6 +1175,8 @@ class JavaScriptBackend {
                 emitter.staticFunctionAccess(commonElements.endOfIteration),
             iterableFactory: emitter.staticFunctionAccess(
                 commonElements.syncStarIterableConstructor),
+            iterableFactoryTypeArgument:
+                _fetchItemType(element, elementEnvironment),
             yieldStarExpression:
                 emitter.staticFunctionAccess(commonElements.yieldStar),
             uncaughtErrorExpression: emitter
@@ -1206,6 +1193,8 @@ class JavaScriptBackend {
             wrapBody: emitter.staticFunctionAccess(commonElements.wrapBody),
             newController: emitter.staticFunctionAccess(
                 commonElements.asyncStarControllerConstructor),
+            newControllerTypeArgument:
+                _fetchItemType(element, elementEnvironment),
             safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
             yieldExpression:
                 emitter.staticFunctionAccess(commonElements.yieldSingle),
@@ -1213,11 +1202,58 @@ class JavaScriptBackend {
                 emitter.staticFunctionAccess(commonElements.yieldStar),
             bodyName: namer.deriveAsyncBodyName(name));
         break;
-      default:
-        assert(element.asyncMarker == AsyncMarker.SYNC);
-        return code;
     }
     return rewriter.rewrite(code, bodySourceInformation, exitSourceInformation);
+  }
+
+  /// Returns an expression that evaluates the type argument to the
+  /// Future/Stream/Iterable.
+  jsAst.Expression _fetchItemType(
+      FunctionEntity element, ElementEnvironment elementEnvironment) {
+    DartType type =
+        elementEnvironment.getFunctionAsyncOrSyncStarElementType(element);
+
+    if (!type.containsFreeTypeVariables) {
+      return rtiEncoder.getTypeRepresentation(emitter.emitter, type, null);
+    }
+
+    // TODO(sra): Handle types that have type variables.
+    return js('null');
+  }
+
+  AsyncRewriter _makeAsyncRewriter(
+      CommonElements commonElements,
+      ElementEnvironment elementEnvironment,
+      FunctionEntity element,
+      jsAst.Expression code,
+      jsAst.Name name) {
+    bool startAsyncSynchronously = compiler.options.startAsyncSynchronously;
+
+    var startFunction = startAsyncSynchronously
+        ? commonElements.asyncHelperStartSync
+        : commonElements.asyncHelperStart;
+    var completerConstructor = startAsyncSynchronously
+        ? commonElements.asyncAwaitCompleterConstructor
+        : commonElements.syncCompleterConstructor;
+
+    jsAst.Expression itemTypeExpression =
+        _fetchItemType(element, elementEnvironment);
+
+    var rewriter = new AsyncRewriter(reporter, element,
+        asyncStart: emitter.staticFunctionAccess(startFunction),
+        asyncAwait:
+            emitter.staticFunctionAccess(commonElements.asyncHelperAwait),
+        asyncReturn:
+            emitter.staticFunctionAccess(commonElements.asyncHelperReturn),
+        asyncRethrow:
+            emitter.staticFunctionAccess(commonElements.asyncHelperRethrow),
+        wrapBody: emitter.staticFunctionAccess(commonElements.wrapBody),
+        completerFactory: emitter.staticFunctionAccess(completerConstructor),
+        completerFactoryTypeArgument: itemTypeExpression,
+        safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
+        bodyName: namer.deriveAsyncBodyName(name));
+
+    return rewriter;
   }
 
   /// Creates an impact strategy to use for compilation.
