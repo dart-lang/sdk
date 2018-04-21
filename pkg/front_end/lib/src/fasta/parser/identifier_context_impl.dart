@@ -239,20 +239,10 @@ class TypeReferenceIdentifierContext extends IdentifierContext {
       // annotation is not allowed before type arguments.
       parser.reportRecoverableErrorWithToken(
           next, fasta.templateUnexpectedToken);
-
-      Token annotation = next.next;
-      if (annotation.isIdentifier) {
-        if (optional('(', annotation.next)) {
-          if (annotation.next.endGroup.next.isIdentifier) {
-            token = annotation.next.endGroup;
-            next = token.next;
-          }
-        } else if (annotation.next.isIdentifier) {
-          token = annotation;
-          next = token.next;
-        }
-      }
+      token = skipMetadata(next);
+      next = token.next;
     }
+
     if (isValidTypeReference(next)) {
       return next;
     } else if (next.isKeywordOrIdentifier) {
@@ -292,3 +282,25 @@ bool isOneOfOrEof(Token token, Iterable<String> followingValues) {
 bool looksLikeStartOfNextDeclaration(Token token) =>
     token.isTopLevelKeyword ||
     isOneOfOrEof(token, const ['const', 'get', 'final', 'set', 'var', 'void']);
+
+Token skipMetadata(Token token) {
+  assert(optional('@', token));
+  Token next = token.next;
+  if (next.isIdentifier) {
+    token = next;
+    next = token.next;
+    while (optional('.', next)) {
+      token = next;
+      next = token.next;
+      if (next.isIdentifier) {
+        token = next;
+        next = token.next;
+      }
+    }
+    if (optional('(', next)) {
+      token = next.endGroup;
+      next = token.next;
+    }
+  }
+  return token;
+}
