@@ -5117,6 +5117,8 @@ class TypeParameter extends TreeNode {
   /// Returns a possibly synthesized name for this type parameter, consistent
   /// with the names used across all [toString] calls.
   String toString() => debugQualifiedTypeParameterName(this);
+
+  bool get isFunctionTypeTypeParameter => parent == null;
 }
 
 class Supertype extends Node {

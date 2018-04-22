@@ -233,7 +233,9 @@ class ClosureInfo extends RecursiveVisitor {
   }
 
   visitTypeParameterType(TypeParameterType node) {
-    if (!isOuterMostContext && node.parameter.parent != currentFunction) {
+    if (!isOuterMostContext &&
+        node.parameter.parent != currentFunction &&
+        !node.parameter.isFunctionTypeTypeParameter) {
       typeVariables
           .putIfAbsent(currentFunction, () => new Set<TypeParameter>())
           .add(node.parameter);
