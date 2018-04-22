@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore: INVALID_ANNOTATION
+// ignore: UNDEFINED_ANNOTATION
 @notExisting
 var x;
 

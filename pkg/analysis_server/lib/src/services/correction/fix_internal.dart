@@ -214,7 +214,8 @@ class FixProcessor {
         errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT) {
       await _addFix_addAsync();
     }
-    if (errorCode == CompileTimeErrorCode.INVALID_ANNOTATION) {
+    if (errorCode == CompileTimeErrorCode.INVALID_ANNOTATION ||
+        errorCode == CompileTimeErrorCode.UNDEFINED_ANNOTATION) {
       if (node is Annotation) {
         Annotation annotation = node;
         Identifier name = annotation.name;
