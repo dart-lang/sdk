@@ -349,17 +349,24 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   MemberEntity getSuperMember(
       MemberEntity context, ir.Name name, ir.Member target,
       {bool setter: false}) {
-    if (target != null) {
+    if (target != null && !target.isAbstract && target.isInstanceMember) {
       return getMember(target);
     }
     ClassEntity cls = context.enclosingClass;
+    assert(
+        cls != null,
+        failedAt(context,
+            "No enclosing class for super member access in $context."));
     IndexedClass superclass = _getSuperType(cls)?.element;
     while (superclass != null) {
       ClassEnv env = _classes.getEnv(superclass);
       MemberEntity superMember =
           env.lookupMember(this, name.name, setter: setter);
-      if (superMember != null && !superMember.isAbstract) {
-        return superMember;
+      if (superMember != null) {
+        if (!superMember.isInstanceMember) return null;
+        if (!superMember.isAbstract) {
+          return superMember;
+        }
       }
       superclass = _getSuperType(superclass)?.element;
     }

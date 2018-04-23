@@ -7159,8 +7159,6 @@ Language/Expressions/Constants/depending_on_itself_t03: Crash
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: Crash
 Language/Expressions/Method_Invocation/Super_Invocation/accessible_instance_member_t02: Crash
 Language/Expressions/Method_Invocation/Super_Invocation/evaluation_t05: Crash
-Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t03: Crash
-Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t04: Crash
 Language/Expressions/Method_Invocation/Super_Invocation/invocation_t02: Crash
 Language/Expressions/This/placement_t04: Crash
 Language/Functions/setter_modifier_t01: Crash
