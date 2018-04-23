@@ -7,12 +7,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/project.dart';
 import 'package:analyzer/src/lint/pub.dart';
-import 'package:front_end/src/scanner/token.dart';
 
 class CollectingSink extends MockIOSink {
   final StringBuffer buffer = new StringBuffer();
