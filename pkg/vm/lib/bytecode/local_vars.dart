@@ -15,6 +15,8 @@ class LocalVariables extends RecursiveVisitor<Null> {
   final List<int> _scopes = <int>[];
   int _localVars = 0;
   int _frameSize = 0;
+  int _numParameters = 0;
+  bool _hasOptionalParameters = false;
   int _thisVarIndex;
   int _functionTypeArgsVarIndex;
 
@@ -27,6 +29,10 @@ class LocalVariables extends RecursiveVisitor<Null> {
 
   int get frameSize => _frameSize;
 
+  int get numParameters => _numParameters;
+
+  bool get hasOptionalParameters => _hasOptionalParameters;
+
   int varIndex(VariableDeclaration variable) =>
       _vars[variable] ?? (throw '\'$variable\' variable is not allocated');
 
@@ -38,7 +44,8 @@ class LocalVariables extends RecursiveVisitor<Null> {
     if (index == null) {
       index = _localVars++;
     } else {
-      assert(index < 0); // Should be a parameter.
+      // Should be a parameter.
+      assert(index < 0 || (_hasOptionalParameters && index < _numParameters));
     }
     _frameSize = max(_frameSize, _localVars);
     if (node != null) {
@@ -53,9 +60,10 @@ class LocalVariables extends RecursiveVisitor<Null> {
     _temps[node] = _allocateVar(null);
   }
 
-  int _allocateParameter(VariableDeclaration node, int i, int paramNum) {
-    assert(0 <= i && i < paramNum);
-    int paramSlotIndex = -kParamEndSlotFromFp - paramNum + i;
+  int _allocateParameter(VariableDeclaration node, int i) {
+    assert(0 <= i && i < _numParameters);
+    int paramSlotIndex =
+        _hasOptionalParameters ? i : -kParamEndSlotFromFp - _numParameters + i;
     return _allocateVar(node, index: paramSlotIndex);
   }
 
@@ -92,34 +100,47 @@ class LocalVariables extends RecursiveVisitor<Null> {
     final bool hasTypeArgs = function.typeParameters.isNotEmpty;
     final bool hasReceiver =
         node is Constructor || ((node is Procedure) && !node.isStatic);
-    final int numParams = function.positionalParameters.length +
+    _numParameters = function.positionalParameters.length +
         function.namedParameters.length +
         (hasTypeArgs ? 1 : 0) +
         (hasReceiver ? 1 : 0);
+    _hasOptionalParameters = function.requiredParameterCount <
+            function.positionalParameters.length ||
+        function.namedParameters.isNotEmpty;
     int count = 0;
 
     if (hasTypeArgs) {
-      _functionTypeArgsVarIndex = _allocateParameter(null, count++, numParams);
+      _functionTypeArgsVarIndex = _allocateParameter(null, count++);
     }
 
     if (hasReceiver) {
-      _thisVarIndex = _allocateParameter(null, count++, numParams);
+      _thisVarIndex = _allocateParameter(null, count++);
     }
 
     for (var param in function.positionalParameters) {
-      _allocateParameter(param, count++, numParams);
+      _allocateParameter(param, count++);
     }
 
     List<VariableDeclaration> namedParams = function.namedParameters;
     namedParams.sort((VariableDeclaration a, VariableDeclaration b) =>
         a.name.compareTo(b.name));
     for (var param in namedParams) {
-      _allocateParameter(param, count++, numParams);
+      _allocateParameter(param, count++);
+    }
+
+    if (_hasOptionalParameters) {
+      _localVars = _numParameters;
+      _frameSize = _numParameters;
     }
 
     _enterScope();
     if (node is Constructor) {
       _enterScope();
+      for (var field in node.enclosingClass.fields) {
+        if (!field.isStatic && field.initializer != null) {
+          field.initializer.accept(this);
+        }
+      }
       visitList(node.initializers, this);
       _leaveScope();
     }
@@ -175,6 +196,7 @@ class LocalVariables extends RecursiveVisitor<Null> {
     if (node.isConst) {
       return;
     }
+    _allocateTemp(node);
     super.visitMapLiteral(node);
   }
 
@@ -200,5 +222,17 @@ class LocalVariables extends RecursiveVisitor<Null> {
   visitPropertySet(PropertySet node) {
     _allocateTemp(node);
     super.visitPropertySet(node);
+  }
+
+  @override
+  visitForInStatement(ForInStatement node) {
+    _allocateTemp(node);
+    super.visitForInStatement(node);
+  }
+
+  @override
+  visitSwitchStatement(SwitchStatement node) {
+    _allocateTemp(node);
+    super.visitSwitchStatement(node);
   }
 }

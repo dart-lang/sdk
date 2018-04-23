@@ -114,6 +114,11 @@ type ConstantInstance extends ConstantPoolEntry {
   List<Pair<CanonicalNameReference, UInt>> fieldValues;
 }
 
+type ConstantSymbol extends ConstantPoolEntry {
+  Byte tag = 18;
+  StringReference value;
+}
+
 */
 
 enum ConstantTag {
@@ -135,6 +140,7 @@ enum ConstantTag {
   kTypeArguments,
   kList,
   kInstance,
+  kSymbol,
 }
 
 abstract class ConstantPoolEntry {
@@ -188,6 +194,8 @@ abstract class ConstantPoolEntry {
         return new ConstantList.readFromBinary(source);
       case ConstantTag.kInstance:
         return new ConstantInstance.readFromBinary(source);
+      case ConstantTag.kSymbol:
+        return new ConstantSymbol.readFromBinary(source);
     }
     throw 'Unexpected constant tag $tag';
   }
@@ -411,14 +419,14 @@ class ConstantICData extends ConstantPoolEntry {
   String toString() =>
       'ICData target-name \'$targetName\', arg-desc CP#$argDescConstantIndex';
 
-  @override
-  int get hashCode => targetName.hashCode * 31 + argDescConstantIndex;
+  // ConstantICData entries are created per call site and should not be merged,
+  // so ConstantICData class uses identity [hashCode] and [operator ==].
 
   @override
-  bool operator ==(other) =>
-      other is ConstantICData &&
-      this.targetName == other.targetName &&
-      this.argDescConstantIndex == other.argDescConstantIndex;
+  int get hashCode => identityHashCode(this);
+
+  @override
+  bool operator ==(other) => identical(this, other);
 }
 
 class ConstantStaticICData extends ConstantPoolEntry {
@@ -448,14 +456,15 @@ class ConstantStaticICData extends ConstantPoolEntry {
   String toString() =>
       'StaticICData target \'$target\', arg-desc CP#$argDescConstantIndex';
 
-  @override
-  int get hashCode => target.hashCode * 31 + argDescConstantIndex;
+  // ConstantStaticICData entries are created per call site and should not be
+  // merged, so ConstantStaticICData class uses identity [hashCode] and
+  // [operator ==].
 
   @override
-  bool operator ==(other) =>
-      other is ConstantStaticICData &&
-      this.target == other.target &&
-      this.argDescConstantIndex == other.argDescConstantIndex;
+  int get hashCode => identityHashCode(this);
+
+  @override
+  bool operator ==(other) => identical(this, other);
 }
 
 class ConstantField extends ConstantPoolEntry {
@@ -759,6 +768,34 @@ class ConstantInstance extends ConstantPoolEntry {
       this.classNode == other.classNode &&
       this._typeArgumentsConstantIndex == other._typeArgumentsConstantIndex &&
       mapEquals(this._fieldValues, other._fieldValues);
+}
+
+class ConstantSymbol extends ConstantPoolEntry {
+  final String value;
+
+  ConstantSymbol(this.value);
+  ConstantSymbol.fromLiteral(SymbolLiteral literal) : this(literal.value);
+
+  @override
+  ConstantTag get tag => ConstantTag.kSymbol;
+
+  @override
+  void writeValueToBinary(BinarySink sink) {
+    sink.writeStringReference(value);
+  }
+
+  ConstantSymbol.readFromBinary(BinarySource source)
+      : value = source.readStringReference();
+
+  @override
+  String toString() => 'Symbol \'$value\'';
+
+  @override
+  int get hashCode => value.hashCode;
+
+  @override
+  bool operator ==(other) =>
+      other is ConstantSymbol && this.value == other.value;
 }
 
 class ConstantPool {

@@ -914,4 +914,8 @@ class BytecodeAssembler {
   void emitDeoptRewind() {
     emitWord(_encode0(Opcode.kDeoptRewind));
   }
+
+  void emitEntryOptional(int ra, int rb, int rc) {
+    emitWord(_encodeABC(Opcode.kEntryOptional, ra, rb, rc));
+  }
 }

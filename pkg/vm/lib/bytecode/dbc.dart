@@ -4,11 +4,15 @@
 
 library vm.bytecode.dbc;
 
-// List of changes from original DBC:
+// List of changes from original DBC (described in runtime/vm/constants_dbc.h):
 //
 // 1. StoreFieldTOS, LoadFieldTOS instructions:
 //    D = index of constant pool entry with FieldOffset or
 //    TypeArgumentsFieldOffset tags (instead of field offset in words).
+//
+// 2. EntryOptional instruction is revived in order to re-shuffle optional
+//    parameters. This DBC instruction was removed at
+//    https://github.com/dart-lang/sdk/commit/cf1de7d46cd88e204380e8f96a993439be56b24c
 //
 
 enum Opcode {
@@ -208,6 +212,7 @@ enum Opcode {
   kDebugBreak,
   kDeopt,
   kDeoptRewind,
+  kEntryOptional,
 }
 
 enum Encoding {
@@ -553,7 +558,7 @@ const Map<Opcode, Format> BytecodeFormats = const {
   Opcode.kStoreFieldExt: const Format(
       Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
   Opcode.kStoreFieldTOS: const Format(
-      Encoding.kD, const [Operand.imm, Operand.none, Operand.none]),
+      Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kLoadField: const Format(
       Encoding.kABC, const [Operand.reg, Operand.reg, Operand.imm]),
   Opcode.kLoadFieldExt: const Format(
@@ -561,7 +566,7 @@ const Map<Opcode, Format> BytecodeFormats = const {
   Opcode.kLoadUntagged: const Format(
       Encoding.kABC, const [Operand.reg, Operand.reg, Operand.imm]),
   Opcode.kLoadFieldTOS: const Format(
-      Encoding.kD, const [Operand.imm, Operand.none, Operand.none]),
+      Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kBooleanNegateTOS: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kBooleanNegate: const Format(
@@ -630,6 +635,8 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
   Opcode.kDeoptRewind: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kEntryOptional: const Format(
+      Encoding.kABC, const [Operand.imm, Operand.imm, Operand.imm]),
 };
 
 // Should match constant in runtime/vm/stack_frame_dbc.h.

@@ -455,12 +455,12 @@ Bytecode {
   PushConstant         CP#5
   PushStatic           CP#5
   PushConstant         CP#1
-  InstanceCall1        2, CP#3
+  InstanceCall1        2, CP#6
   BooleanNegateTOS
   PopLocal             r0
   Jump                 L2
 L1:
-  PushConstant         CP#6
+  PushConstant         CP#7
   PopLocal             r0
 L2:
   Push                 r0
@@ -469,7 +469,7 @@ L2:
   Jump                 L3
   PushConstant         CP#5
   PushStatic           CP#5
-  InstanceCall1        1, CP#8
+  InstanceCall1        1, CP#9
   StoreStaticTOS       CP#0
   Drop1
 L3:
@@ -486,9 +486,10 @@ ConstantPool {
   [3] = ICData target-name '==', arg-desc CP#2
   [4] = Bool true
   [5] = Field #lib::VMLibraryHooks::_computeScriptUri
-  [6] = Bool false
-  [7] = ArgDesc num-args 1, num-type-args 0, names []
-  [8] = ICData target-name 'call', arg-desc CP#7
+  [6] = ICData target-name '==', arg-desc CP#2
+  [7] = Bool false
+  [8] = ArgDesc num-args 1, num-type-args 0, names []
+  [9] = ICData target-name 'call', arg-desc CP#8
 }
 ]  static get platformScript() → dynamic {
     if(self::VMLibraryHooks::_cachedScript.==(null) && !self::VMLibraryHooks::_computeScriptUri.==(null)) {
@@ -637,7 +638,7 @@ Bytecode {
   PushConstant         CP#0
   PushStatic           CP#0
   PushConstant         CP#5
-  InstanceCall1        2, CP#3
+  InstanceCall1        2, CP#6
   PopLocal             r1
   Jump                 L2
 L1:
@@ -650,8 +651,8 @@ L2:
   Jump                 L3
   PushConstant         CP#0
   PushStatic           CP#0
-  PushConstant         CP#6
-  InstanceCall1        2, CP#3
+  PushConstant         CP#7
+  InstanceCall1        2, CP#8
   PopLocal             r0
   Jump                 L4
 L3:
@@ -664,22 +665,22 @@ L4:
   Jump                 L5
   PushConstant         CP#0
   PushStatic           CP#0
-  PushConstant         CP#8
-  IndirectStaticCall   1, CP#7
+  PushConstant         CP#10
+  IndirectStaticCall   1, CP#9
   ReturnTOS
   Jump                 L6
 L5:
-  PushConstant         CP#10
-  IndirectStaticCall   0, CP#9
-  PushConstant         CP#11
+  PushConstant         CP#12
+  IndirectStaticCall   0, CP#11
+  PushConstant         CP#13
   PushConstant         CP#0
   PushStatic           CP#0
-  PushConstant         CP#12
-  IndirectStaticCall   2, CP#7
-  InstanceCall1        2, CP#13
+  PushConstant         CP#14
+  IndirectStaticCall   2, CP#9
+  InstanceCall1        2, CP#15
   ReturnTOS
 L6:
-  PushConstant         CP#11
+  PushConstant         CP#13
   ReturnTOS
 }
 ConstantPool {
@@ -689,14 +690,16 @@ ConstantPool {
   [3] = ICData target-name 'startsWith', arg-desc CP#2
   [4] = Bool true
   [5] = String 'https:'
-  [6] = String 'file:'
-  [7] = ArgDesc num-args 1, num-type-args 0, names []
-  [8] = StaticICData target 'dart.core::Uri::parse', arg-desc CP#7
-  [9] = ArgDesc num-args 0, num-type-args 0, names []
-  [10] = StaticICData target 'dart.core::Uri::base', arg-desc CP#9
-  [11] = Null
-  [12] = StaticICData target 'dart.core::_Uri::file', arg-desc CP#7
-  [13] = ICData target-name 'resolveUri', arg-desc CP#2
+  [6] = ICData target-name 'startsWith', arg-desc CP#2
+  [7] = String 'file:'
+  [8] = ICData target-name 'startsWith', arg-desc CP#2
+  [9] = ArgDesc num-args 1, num-type-args 0, names []
+  [10] = StaticICData target 'dart.core::Uri::parse', arg-desc CP#9
+  [11] = ArgDesc num-args 0, num-type-args 0, names []
+  [12] = StaticICData target 'dart.core::Uri::base', arg-desc CP#11
+  [13] = Null
+  [14] = StaticICData target 'dart.core::_Uri::file', arg-desc CP#9
+  [15] = ICData target-name 'resolveUri', arg-desc CP#2
 }
 ]static method _scriptUri() → core::Uri {
   if(self::_rawScript.{core::String::startsWith}("http:") || self::_rawScript.{core::String::startsWith}("https:") || self::_rawScript.{core::String::startsWith}("file:")) {
