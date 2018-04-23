@@ -310,7 +310,7 @@ namespace dart {
 //    this instruction does so, and skips the following instruction. Otherwise,
 //    the following instruction is not skipped.
 //
-//  - StoreStaticT`OS D
+//  - StoreStaticTOS D
 //
 //    Stores TOS into the static field PP[D].
 //
@@ -908,7 +908,7 @@ namespace dart {
   V(Entry,                                 D, num, ___, ___) \
   V(EntryOptimized,                      A_D, num, num, ___) \
   V(Frame,                                 D, num, ___, ___) \
-  V(SetFrame,                              A, num, ___, num) \
+  V(SetFrame,                              A, num, ___, ___) \
   V(AllocateContext,                       D, num, ___, ___) \
   V(AllocateUninitializedContext,        A_D, reg, num, ___) \
   V(CloneContext,                          0, ___, ___, ___) \

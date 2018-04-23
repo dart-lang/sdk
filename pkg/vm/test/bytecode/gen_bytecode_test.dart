@@ -5,37 +5,26 @@
 import 'dart:io';
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:test/test.dart';
-import 'package:vm/transformations/type_flow/transformer.dart'
-    show transformComponent;
+import 'package:vm/bytecode/gen_bytecode.dart' show generateBytecode;
 
-import '../../common_test_utils.dart';
+import '../common_test_utils.dart';
 
-final String pkgVmDir = Platform.script.resolve('../../..').toFilePath();
+final String pkgVmDir = Platform.script.resolve('../..').toFilePath();
 
 runTestCase(Uri source) async {
   Component component = await compileTestCaseToKernelProgram(source);
 
-  final coreTypes = new CoreTypes(component);
-
-  final entryPoints = [
-    pkgVmDir + '/lib/transformations/type_flow/entry_points.json',
-    pkgVmDir + '/lib/transformations/type_flow/entry_points_extra.json',
-  ];
-
-  component = transformComponent(coreTypes, component, entryPoints);
+  generateBytecode(component, strongMode: true);
 
   final actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);
-
   compareResultWithExpectationsFile(source, actual);
 }
 
 main() {
-  group('transform-component', () {
-    final testCasesDir = new Directory(
-        pkgVmDir + '/testcases/transformations/type_flow/transformer');
+  group('gen-bytecode', () {
+    final testCasesDir = new Directory(pkgVmDir + '/testcases/bytecode');
 
     for (var entry
         in testCasesDir.listSync(recursive: true, followLinks: false)) {

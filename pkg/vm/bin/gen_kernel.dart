@@ -14,6 +14,7 @@ import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/target/vm.dart' show VmTarget;
 import 'package:kernel/text/ast_to_text.dart'
     show globalDebuggingNames, NameSystem;
+import 'package:vm/bytecode/gen_bytecode.dart' show kEnableKernelBytecode;
 import 'package:vm/kernel_front_end.dart' show compileToKernel, ErrorDetector;
 
 final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
@@ -36,7 +37,9 @@ final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
           'Enable global type flow analysis and related transformations in AOT mode.',
       defaultsTo: true)
   ..addMultiOption('entry-points',
-      help: 'Path to JSON file with the list of entry points');
+      help: 'Path to JSON file with the list of entry points')
+  ..addFlag('gen-bytecode',
+      help: 'Generate bytecode', defaultsTo: kEnableKernelBytecode);
 
 final String _usage = '''
 Usage: dart pkg/vm/bin/gen_kernel.dart --platform vm_platform_strong.dill [options] input.dart
@@ -73,6 +76,7 @@ Future<int> compile(List<String> arguments) async {
   final bool aot = options['aot'];
   final bool syncAsync = options['sync-async'];
   final bool tfa = options['tfa'];
+  final bool genBytecode = options['gen-bytecode'];
 
   final List<String> entryPoints = options['entry-points'] ?? <String>[];
   if (entryPoints.isEmpty) {
@@ -100,7 +104,10 @@ Future<int> compile(List<String> arguments) async {
 
   Component component = await compileToKernel(
       Uri.base.resolveUri(new Uri.file(filename)), compilerOptions,
-      aot: aot, useGlobalTypeFlowAnalysis: tfa, entryPoints: entryPoints);
+      aot: aot,
+      useGlobalTypeFlowAnalysis: tfa,
+      entryPoints: entryPoints,
+      genBytecode: genBytecode);
 
   if (errorDetector.hasCompilationErrors || (component == null)) {
     return _compileTimeErrorExitCode;

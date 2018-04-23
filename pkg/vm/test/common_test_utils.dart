@@ -9,6 +9,7 @@ import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:kernel/ast.dart';
+import 'package:kernel/text/ast_to_text.dart' show Printer;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/target/vm.dart';
 import 'package:test/test.dart';
@@ -26,7 +27,21 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri) async {
     ..onError = (CompilationMessage error) {
       fail("Compilation error: ${error}");
     };
-  return kernelForProgram(sourceUri, options);
+
+  final Component component = await kernelForProgram(sourceUri, options);
+
+  // Make sure the library name is the same and does not depend on the order
+  // of test cases.
+  component.mainMethod.enclosingLibrary.name = '#lib';
+
+  return component;
+}
+
+String kernelLibraryToString(Library library) {
+  final StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, showExternal: false, showMetadata: true)
+      .writeLibraryFile(library);
+  return buffer.toString();
 }
 
 void compareResultWithExpectationsFile(Uri source, String actual) {
