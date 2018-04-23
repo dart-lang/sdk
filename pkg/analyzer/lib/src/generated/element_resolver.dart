@@ -953,9 +953,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         AstNode parent = node.parent;
         if (parent is Annotation) {
           _resolver.errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.UNDEFINED_ANNOTATION,
-              parent,
-              [identifier.name]);
+              CompileTimeErrorCode.INVALID_ANNOTATION, parent);
         } else {
           _resolver.errorReporter.reportErrorForNode(
               StaticWarningCode.UNDEFINED_GETTER,
@@ -1150,7 +1148,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
       } else if (parent is Annotation) {
         _resolver.errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.UNDEFINED_ANNOTATION, parent, [node.name]);
+            CompileTimeErrorCode.INVALID_ANNOTATION, parent);
       } else if (element != null) {
         _resolver.errorReporter.reportErrorForNode(
             CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
@@ -1991,8 +1989,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       }
     }
     SimpleIdentifier nameNode3 = annotation.constructorName;
-    ConstructorElement constructor;
-    bool undefined = false;
+    ConstructorElement constructor = null;
     //
     // CONST or Class(args)
     //
@@ -2007,8 +2004,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       if (element1 is ClassElement) {
         constructor = new InterfaceTypeImpl(element1)
             .lookUpConstructor(null, _definingLibrary);
-      } else if (element1 == null) {
-        undefined = true;
       }
     }
     //
@@ -2038,9 +2033,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             .lookUpConstructor(nameNode2.name, _definingLibrary);
         nameNode2.staticElement = constructor;
       }
-      if (element1 == null && element2 == null) {
-        undefined = true;
-      }
     }
     //
     // prefix.Class.CONST or prefix.Class.constructor(args)
@@ -2063,17 +2055,12 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         constructor = new InterfaceTypeImpl(element2)
             .lookUpConstructor(name3, _definingLibrary);
         nameNode3.staticElement = constructor;
-      } else if (element2 == null) {
-        undefined = true;
       }
     }
     // we need constructor
     if (constructor == null) {
-      if (!undefined) {
-        // If the class was not found then we've already reported the error.
-        _resolver.errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
-      }
+      _resolver.errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
       return;
     }
     // record element
@@ -2087,7 +2074,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     // accessor should be synthetic
     if (!accessorElement.isSynthetic) {
       _resolver.errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INVALID_ANNOTATION_GETTER, annotation);
+          CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
       return;
     }
     // variable should be constant
@@ -2095,7 +2082,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (!variableElement.isConst) {
       _resolver.errorReporter.reportErrorForNode(
           CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
-      return;
     }
     // no arguments
     if (annotation.arguments != null) {

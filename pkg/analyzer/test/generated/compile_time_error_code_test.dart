@@ -3330,6 +3330,31 @@ E e(String name) {
     assertErrors(source, [CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE]);
   }
 
+  test_invalidAnnotation_getter() async {
+    Source source = addSource(r'''
+get V => 0;
+@V
+main() {
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
+    verify([source]);
+  }
+
+  test_invalidAnnotation_importWithPrefix_getter() async {
+    addNamedSource("/lib.dart", r'''
+library lib;
+get V => 0;''');
+    Source source = addSource(r'''
+import 'lib.dart' as p;
+@p.V
+main() {
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
+    verify([source]);
+  }
+
   test_invalidAnnotation_importWithPrefix_notConstantVariable() async {
     addNamedSource("/lib.dart", r'''
 library lib;
@@ -3393,6 +3418,44 @@ main() {
     verify([source]);
   }
 
+  test_invalidAnnotation_unresolved_identifier() async {
+    Source source = addSource(r'''
+@unresolved
+main() {
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
+  }
+
+  test_invalidAnnotation_unresolved_invocation() async {
+    Source source = addSource(r'''
+@Unresolved()
+main() {
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
+  }
+
+  test_invalidAnnotation_unresolved_prefixedIdentifier() async {
+    Source source = addSource(r'''
+import 'dart:math' as p;
+@p.unresolved
+main() {
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
+  }
+
+  test_invalidAnnotation_useLibraryScope() async {
+    Source source = addSource(r'''
+@foo
+class A {
+  static const foo = null;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
+  }
+
   test_invalidAnnotationFromDeferredLibrary() async {
     // See test_invalidAnnotation_notConstantVariable
     await resolveWithErrors(<String>[
@@ -3437,31 +3500,6 @@ import 'lib1.dart' deferred as a;
     ], <ErrorCode>[
       CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY
     ]);
-  }
-
-  test_invalidAnnotationGetter_getter() async {
-    Source source = addSource(r'''
-get V => 0;
-@V
-main() {
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION_GETTER]);
-    verify([source]);
-  }
-
-  test_invalidAnnotationGetter_importWithPrefix_getter() async {
-    addNamedSource("/lib.dart", r'''
-library lib;
-get V => 0;''');
-    Source source = addSource(r'''
-import 'lib.dart' as p;
-@p.V
-main() {
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION_GETTER]);
-    verify([source]);
   }
 
   test_invalidConstructorName_notEnclosingClassName_defined() async {
@@ -6737,44 +6775,6 @@ f() { return const G<B>(); }''');
     assertErrors(
         source, [CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
     verify([source]);
-  }
-
-  test_undefinedAnnotation_unresolved_identifier() async {
-    Source source = addSource(r'''
-@unresolved
-main() {
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.UNDEFINED_ANNOTATION]);
-  }
-
-  test_undefinedAnnotation_unresolved_invocation() async {
-    Source source = addSource(r'''
-@Unresolved()
-main() {
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.UNDEFINED_ANNOTATION]);
-  }
-
-  test_undefinedAnnotation_unresolved_prefixedIdentifier() async {
-    Source source = addSource(r'''
-import 'dart:math' as p;
-@p.unresolved
-main() {
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.UNDEFINED_ANNOTATION]);
-  }
-
-  test_undefinedAnnotation_useLibraryScope() async {
-    Source source = addSource(r'''
-@foo
-class A {
-  static const foo = null;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.UNDEFINED_ANNOTATION]);
   }
 
   test_undefinedClass_const() async {
