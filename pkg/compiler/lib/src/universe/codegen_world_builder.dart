@@ -463,6 +463,9 @@ abstract class CodegenWorldBuilderImpl extends WorldBuilderBase
 
   _MemberUsage _getMemberUsage(
       covariant MemberEntity member, MemberUsedCallback memberUsed) {
+    // TODO(johnniwinther): Change [TypeMask] to not apply to a superclass
+    // member unless the class has been instantiated. Similar to
+    // [StrongModeConstraint].
     return _instanceMemberUsage.putIfAbsent(member, () {
       String memberName = member.name;
       ClassEntity cls = member.enclosingClass;
@@ -470,13 +473,13 @@ abstract class CodegenWorldBuilderImpl extends WorldBuilderBase
       _MemberUsage usage = new _MemberUsage(member, isNative: isNative);
       EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
       useSet.addAll(usage.appliedUse);
-      if (hasInvokedGetter(member, _world)) {
+      if (!usage.hasRead && hasInvokedGetter(member, _world)) {
         useSet.addAll(usage.read());
       }
-      if (hasInvokedSetter(member, _world)) {
+      if (!usage.hasWrite && hasInvokedSetter(member, _world)) {
         useSet.addAll(usage.write());
       }
-      if (hasInvocation(member, _world)) {
+      if (!usage.hasInvoke && hasInvocation(member, _world)) {
         useSet.addAll(usage.invoke());
       }
 

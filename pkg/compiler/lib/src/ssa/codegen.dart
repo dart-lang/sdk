@@ -1738,7 +1738,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         methodName = 'push';
       } else if (target == _commonElements.jsArrayRemoveLast) {
         methodName = 'pop';
-      } else if (target == _commonElements.jsStringSplit) {
+      } else if (_commonElements.isJsStringSplit(target)) {
         methodName = 'split';
         // Split returns a List, so we make sure the backend knows the
         // list class is instantiated.

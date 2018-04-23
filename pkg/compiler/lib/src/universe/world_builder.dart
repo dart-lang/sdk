@@ -169,6 +169,98 @@ class OpenWorldConstraints extends UniverseSelectorConstraints {
   }
 }
 
+bool useStrongModeWorldStrategy = false;
+
+/// Open world strategy that constrains instance member access to subtypes of
+/// the static type of the receiver.
+///
+/// This strategy is used for Dart 2.
+class StrongModeWorldStrategy implements SelectorConstraintsStrategy {
+  const StrongModeWorldStrategy();
+
+  StrongModeWorldConstraints createSelectorConstraints(Selector selector) {
+    return new StrongModeWorldConstraints();
+  }
+}
+
+class StrongModeWorldConstraints extends UniverseSelectorConstraints {
+  bool isAll = false;
+  Set<StrongModeConstraint> _constraints;
+
+  @override
+  bool applies(MemberEntity element, Selector selector, World world) {
+    if (isAll) return true;
+    if (_constraints == null) return false;
+    for (StrongModeConstraint constraint in _constraints) {
+      if (constraint.canHit(element, selector, world)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool needsNoSuchMethodHandling(Selector selector, World world) {
+    if (isAll) {
+      return true;
+    }
+    if (_constraints != null) {
+      for (StrongModeConstraint constraint in _constraints) {
+        if (constraint.needsNoSuchMethodHandling(selector, world)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool addReceiverConstraint(StrongModeConstraint constraint) {
+    if (isAll) return false;
+    if (constraint?.cls == null) {
+      isAll = true;
+      _constraints = null;
+      return true;
+    }
+    _constraints ??= new Set<StrongModeConstraint>();
+    return _constraints.add(constraint);
+  }
+
+  String toString() {
+    if (isAll) {
+      return '<all>';
+    } else if (_constraints != null) {
+      return '<${_constraints.map((c) => c.cls).join(',')}>';
+    } else {
+      return '<none>';
+    }
+  }
+}
+
+class StrongModeConstraint implements ReceiverConstraint {
+  final ClassEntity cls;
+
+  const StrongModeConstraint(this.cls);
+
+  @override
+  bool needsNoSuchMethodHandling(Selector selector, World world) => true;
+
+  @override
+  bool canHit(MemberEntity element, Selector selector, OpenWorld world) {
+    return world.isInheritedInSubtypeOf(element, cls);
+  }
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! StrongModeConstraint) return false;
+    return cls == other.cls;
+  }
+
+  int get hashCode => cls.hashCode * 13;
+
+  String toString() => 'StrongModeConstraint($cls)';
+}
+
 /// The [WorldBuilder] is an auxiliary class used in the process of computing
 /// the [ClosedWorld].
 // TODO(johnniwinther): Move common implementation to a [WorldBuilderBase] when

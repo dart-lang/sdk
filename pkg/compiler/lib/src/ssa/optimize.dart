@@ -420,7 +420,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
           }
         }
       } else if (input.isStringOrNull(_closedWorld)) {
-        if (applies(commonElements.jsStringSplit)) {
+        if (commonElements.appliesToJsStringSplit(
+            selector, mask, _closedWorld)) {
           return handleStringSplit(node);
         } else if (applies(commonElements.jsStringOperatorAdd)) {
           // `operator+` is turned into a JavaScript '+' so we need to
@@ -456,7 +457,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return result;
       }
     } else if (selector.isGetter) {
-      if (selector.applies(commonElements.jsIndexableLength)) {
+      if (commonElements.appliesToJsIndexableLength(selector)) {
         HInstruction optimized = tryOptimizeLengthInterceptedGetter(node);
         if (optimized != null) return optimized;
       }
@@ -2672,12 +2673,20 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   }
 
   void visitGetLength(HGetLength instruction) {
-    _visitFieldGet(closedWorld.commonElements.jsIndexableLength,
-        instruction.receiver.nonCheck(), instruction);
+    HInstruction receiver = instruction.receiver.nonCheck();
+    HInstruction existing =
+        memorySet.lookupFieldValue(MemoryFeature.length, receiver);
+    if (existing != null) {
+      checkNewGvnCandidates(instruction, existing);
+      instruction.block.rewriteWithBetterUser(instruction, existing);
+      instruction.block.remove(instruction);
+    } else {
+      memorySet.registerFieldValue(MemoryFeature.length, receiver, instruction);
+    }
   }
 
   void _visitFieldGet(
-      MemberEntity element, HInstruction receiver, HInstruction instruction) {
+      FieldEntity element, HInstruction receiver, HInstruction instruction) {
     HInstruction existing = memorySet.lookupFieldValue(element, receiver);
     if (existing != null) {
       checkNewGvnCandidates(instruction, existing);
@@ -2831,50 +2840,48 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   void visitTypeInfoExpression(HTypeInfoExpression instruction) {}
 }
 
-/**
- * Holds values of memory places.
- *
- * Generally, values that name a place (a receiver) have type refinements and
- * other checks removed to ensure that checks and type refinements do not
- * confuse aliasing.  Values stored into a memory place keep the type
- * refinements to help further optimizations.
- */
+/// A non-field based feature of an object.
+enum MemoryFeature {
+  // Access to the `length` property of a `JSIndexable`.
+  length,
+}
+
+/// Holds values of memory places.
+///
+/// Generally, values that name a place (a receiver) have type refinements and
+/// other checks removed to ensure that checks and type refinements do not
+/// confuse aliasing.  Values stored into a memory place keep the type
+/// refinements to help further optimizations.
 class MemorySet {
   final ClosedWorld closedWorld;
 
-  /**
-   * Maps a field to a map of receiver to value.
-   */
-  // The key is [MemberEntity] rather than [FieldEntity] so that HGetLength can
-  // be modeled as the JSIndexable.length abstract getter.
+  /// Maps a field to a map of receivers to their current field values.
+  ///
+  /// The field is either a [FieldEntity], a [FunctionEntity] in case of
+  /// instance methods, or a [MemoryFeature] for `length` access on
+  /// `JSIndexable`.
+  ///
   // TODO(25544): Split length effects from other effects and model lengths
   // separately.
-  final Map<MemberEntity, Map<HInstruction, HInstruction>> fieldValues =
-      <MemberEntity, Map<HInstruction, HInstruction>>{};
+  final Map<Object /*MemberEntity|MemoryFeature*/,
+          Map<HInstruction, HInstruction>>
+      fieldValues = <Object, Map<HInstruction, HInstruction>>{};
 
-  /**
-   * Maps a receiver to a map of keys to value.
-   */
+  /// Maps a receiver to a map of keys to value.
   final Map<HInstruction, Map<HInstruction, HInstruction>> keyedValues =
       <HInstruction, Map<HInstruction, HInstruction>>{};
 
-  /**
-   * Set of objects that we know don't escape the current function.
-   */
+  /// Set of objects that we know don't escape the current function.
   final Setlet<HInstruction> nonEscapingReceivers = new Setlet<HInstruction>();
 
   MemorySet(this.closedWorld);
 
-  /**
-   * Returns whether [first] and [second] always alias to the same object.
-   */
+  /// Returns whether [first] and [second] always alias to the same object.
   bool mustAlias(HInstruction first, HInstruction second) {
     return first == second;
   }
 
-  /**
-   * Returns whether [first] and [second] may alias to the same object.
-   */
+  /// Returns whether [first] and [second] may alias to the same object.
   bool mayAlias(HInstruction first, HInstruction second) {
     if (mustAlias(first, second)) return true;
     if (isConcrete(first) && isConcrete(second)) return false;
@@ -2886,8 +2893,8 @@ class MemorySet {
         .isDisjoint(second.instructionType, closedWorld);
   }
 
-  bool isFinal(MemberEntity element) {
-    return closedWorld.fieldNeverChanges(element);
+  bool isFinal(Object element) {
+    return element is MemberEntity && closedWorld.fieldNeverChanges(element);
   }
 
   bool isConcrete(HInstruction instruction) {
@@ -2900,9 +2907,7 @@ class MemorySet {
     return closedWorld.commonMasks.couldBeTypedArray(receiver.instructionType);
   }
 
-  /**
-   * Returns whether [receiver] escapes the current function.
-   */
+  /// Returns whether [receiver] escapes the current function.
   bool escapes(HInstruction receiver) {
     assert(receiver == null || receiver == receiver.nonCheck());
     return !nonEscapingReceivers.contains(receiver);
@@ -2913,21 +2918,22 @@ class MemorySet {
     nonEscapingReceivers.add(instruction);
   }
 
-  /**
-   * Sets `receiver.element` to contain [value]. Kills all potential places that
-   * may be affected by this update. Returns `true` if the update is redundant.
-   */
+  /// Sets the [field] on [receiver] to contain [value]. Kills all potential
+  /// places that may be affected by this update. Returns `true` if the update
+  /// is redundant.
   bool registerFieldValueUpdate(
-      MemberEntity element, HInstruction receiver, HInstruction value) {
+      Object field, HInstruction receiver, HInstruction value) {
+    assert(field is MemberEntity || field is MemoryFeature,
+        "Unexpected member/feature: $field");
     assert(receiver == null || receiver == receiver.nonCheck());
-    if (closedWorld.nativeData.isNativeMember(element)) {
+    if (closedWorld.nativeData.isNativeMember(field)) {
       return false; // TODO(14955): Remove this restriction?
     }
     // [value] is being set in some place in memory, we remove it from the
     // non-escaping set.
     nonEscapingReceivers.remove(value.nonCheck());
     Map<HInstruction, HInstruction> map =
-        fieldValues.putIfAbsent(element, () => <HInstruction, HInstruction>{});
+        fieldValues.putIfAbsent(field, () => <HInstruction, HInstruction>{});
     bool isRedundant = map[receiver] == value;
     map.forEach((key, value) {
       if (mayAlias(receiver, key)) map[key] = null;
@@ -2936,35 +2942,33 @@ class MemorySet {
     return isRedundant;
   }
 
-  /**
-   * Registers that `receiver.element` is now [value].
-   */
+  /// Registers that the [field] on [receiver] is now [value].
   void registerFieldValue(
-      MemberEntity element, HInstruction receiver, HInstruction value) {
+      Object field, HInstruction receiver, HInstruction value) {
+    assert(field is MemberEntity || field is MemoryFeature,
+        "Unexpected member/feature: $field");
     assert(receiver == null || receiver == receiver.nonCheck());
-    if (closedWorld.nativeData.isNativeMember(element)) {
+    if (field is MemberEntity && closedWorld.nativeData.isNativeMember(field)) {
       return; // TODO(14955): Remove this restriction?
     }
     Map<HInstruction, HInstruction> map =
-        fieldValues.putIfAbsent(element, () => <HInstruction, HInstruction>{});
+        fieldValues.putIfAbsent(field, () => <HInstruction, HInstruction>{});
     map[receiver] = value;
   }
 
-  /**
-   * Returns the value stored in `receiver.element`. Returns `null` if we don't
-   * know.
-   */
-  HInstruction lookupFieldValue(MemberEntity element, HInstruction receiver) {
+  /// Returns the value stored for [field] on [receiver]. Returns `null` if we
+  /// don't know.
+  HInstruction lookupFieldValue(Object field, HInstruction receiver) {
+    assert(field is MemberEntity || field is MemoryFeature,
+        "Unexpected member/feature: $field");
     assert(receiver == null || receiver == receiver.nonCheck());
-    Map<HInstruction, HInstruction> map = fieldValues[element];
+    Map<HInstruction, HInstruction> map = fieldValues[field];
     return (map == null) ? null : map[receiver];
   }
 
-  /**
-   * Kill all places that may be affected by this [instruction]. Also update the
-   * set of non-escaping objects in case [instruction] has non-escaping objects
-   * in its inputs.
-   */
+  /// Kill all places that may be affected by this [instruction]. Also update
+  /// the set of non-escaping objects in case [instruction] has non-escaping
+  /// objects in its inputs.
   void killAffectedBy(HInstruction instruction) {
     // Even if [instruction] does not have side effects, it may use non-escaping
     // objects and store them in a new object, which make these objects
@@ -2975,9 +2979,10 @@ class MemorySet {
 
     if (instruction.sideEffects.changesInstanceProperty() ||
         instruction.sideEffects.changesStaticProperty()) {
-      List<MemberEntity> fieldsToRemove;
       List<HInstruction> receiversToRemove = <HInstruction>[];
-      fieldValues.forEach((MemberEntity element, map) {
+
+      List<Object> fieldsToRemove;
+      fieldValues.forEach((Object element, map) {
         if (isFinal(element)) return;
         map.forEach((receiver, value) {
           if (escapes(receiver)) {
@@ -2986,7 +2991,7 @@ class MemorySet {
         });
         if (receiversToRemove.length == map.length) {
           // Remove them all by removing the entire map.
-          (fieldsToRemove ??= <MemberEntity>[]).add(element);
+          (fieldsToRemove ??= <Object>[]).add(element);
         } else {
           receiversToRemove.forEach(map.remove);
         }
@@ -3006,18 +3011,14 @@ class MemorySet {
     }
   }
 
-  /**
-   * Returns the value stored in `receiver[index]`. Returns null if
-   * we don't know.
-   */
+  /// Returns the value stored in `receiver[index]`. Returns null if we don't
+  /// know.
   HInstruction lookupKeyedValue(HInstruction receiver, HInstruction index) {
     Map<HInstruction, HInstruction> map = keyedValues[receiver];
     return (map == null) ? null : map[index];
   }
 
-  /**
-   * Registers that `receiver[index]` is now [value].
-   */
+  /// Registers that `receiver[index]` is now [value].
   void registerKeyedValue(
       HInstruction receiver, HInstruction index, HInstruction value) {
     Map<HInstruction, HInstruction> map =
@@ -3025,10 +3026,8 @@ class MemorySet {
     map[index] = value;
   }
 
-  /**
-   * Sets `receiver[index]` to contain [value]. Kills all potential
-   * places that may be affected by this update.
-   */
+  /// Sets `receiver[index]` to contain [value]. Kills all potential places that
+  /// may be affected by this update.
   void registerKeyedValueUpdate(
       HInstruction receiver, HInstruction index, HInstruction value) {
     nonEscapingReceivers.remove(value.nonCheck());
@@ -3053,11 +3052,11 @@ class MemorySet {
     map[index] = value;
   }
 
-  /**
-   * Returns null if either [first] or [second] is null. Otherwise
-   * returns [first] if [first] and [second] are equal. Otherwise
-   * creates or re-uses a phi in [block] that holds [first] and [second].
-   */
+  /// Returns a common instruction for [first] and [second].
+  ///
+  /// Returns `null` if either [first] or [second] is null. Returns [first] if
+  /// [first] and [second] are equal. Otherwise creates or re-uses a phi in
+  /// [block] that holds [first] and [second].
   HInstruction findCommonInstruction(HInstruction first, HInstruction second,
       HBasicBlock block, int predecessorIndex) {
     if (first == null || second == null) return null;
@@ -3110,9 +3109,7 @@ class MemorySet {
     }
   }
 
-  /**
-   * Returns the intersection between [this] and [other].
-   */
+  /// Returns the intersection between [this] and the [other] memory set.
   MemorySet intersectionFor(
       MemorySet other, HBasicBlock block, int predecessorIndex) {
     MemorySet result = new MemorySet(closedWorld);
@@ -3195,9 +3192,7 @@ class MemorySet {
     return result;
   }
 
-  /**
-   * Returns a copy of [this].
-   */
+  /// Returns a copy of [this] memory set.
   MemorySet clone() {
     MemorySet result = new MemorySet(closedWorld);
 

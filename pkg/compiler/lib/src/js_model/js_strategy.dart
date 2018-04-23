@@ -72,7 +72,10 @@ class JsBackendStrategy implements KernelBackendStrategy {
   ClosedWorldRefiner createClosedWorldRefiner(ClosedWorld closedWorld) {
     KernelFrontEndStrategy strategy = _compiler.frontendStrategy;
     _elementMap = new JsKernelToElementMap(
-        _compiler.reporter, _compiler.environment, strategy.elementMap);
+        _compiler.reporter,
+        _compiler.environment,
+        strategy.elementMap,
+        closedWorld.processedMembers);
     _elementEnvironment = _elementMap.elementEnvironment;
     _commonElements = _elementMap.commonElements;
     _closureDataLookup = new KernelClosureConversionTask(
@@ -111,7 +114,12 @@ class JsBackendStrategy implements KernelBackendStrategy {
           result[closureInfo.closureClassEntity] = unit;
           result[closureInfo.callMethod] = unit;
         } else {
-          result[toBackendEntity(entity)] = unit;
+          Entity backendEntity = toBackendEntity(entity);
+          if (backendEntity != null) {
+            // If [entity] isn't used it doesn't have a corresponding backend
+            // entity.
+            result[backendEntity] = unit;
+          }
         }
       });
       return result;
@@ -448,8 +456,12 @@ class JsClosedWorldBuilder {
         <FunctionEntity, NativeBehavior>{};
     nativeData.nativeMethodBehavior
         .forEach((FunctionEntity method, NativeBehavior behavior) {
-      nativeMethodBehavior[map.toBackendMember(method)] =
-          convertNativeBehavior(behavior);
+      FunctionEntity backendMethod = map.toBackendMember(method);
+      if (backendMethod != null) {
+        // If [method] isn't used it doesn't have a corresponding backend
+        // method.
+        nativeMethodBehavior[backendMethod] = convertNativeBehavior(behavior);
+      }
     });
     Map<MemberEntity, NativeBehavior> nativeFieldLoadBehavior =
         map.toBackendMemberMap(

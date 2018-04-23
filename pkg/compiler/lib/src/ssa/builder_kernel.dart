@@ -3811,7 +3811,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       if (selector.isIndexSet) return true;
       if (element == commonElements.jsArrayAdd ||
           element == commonElements.jsArrayRemoveLast ||
-          element == commonElements.jsStringSplit) {
+          commonElements.isJsStringSplit(element)) {
         return true;
       }
       return false;

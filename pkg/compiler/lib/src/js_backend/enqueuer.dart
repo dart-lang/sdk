@@ -50,6 +50,10 @@ class CodegenEnqueuer extends EnqueuerImpl {
   /// All declaration elements that have been processed by codegen.
   final Set<MemberEntity> _processedEntities = new Set<MemberEntity>();
 
+  // If not `null` this is called when the queue has been emptied. It allows for
+  // applying additional impacts before re-emptying the queue.
+  void Function() onEmptyForTesting;
+
   static const ImpactUseCase IMPACT_USE =
       const ImpactUseCase('CodegenEnqueuer');
 
@@ -228,7 +232,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
     _worldBuilder.registerClosurizedMember(element);
   }
 
-  void forEach(void f(WorkItem work)) {
+  void _forEach(void f(WorkItem work)) {
     do {
       while (_queue.isNotEmpty) {
         // TODO(johnniwinther): Find an optimal process order.
@@ -246,6 +250,14 @@ class CodegenEnqueuer extends EnqueuerImpl {
       if (!_onQueueEmpty(recents)) _recentClasses.addAll(recents);
     } while (
         _queue.isNotEmpty || _recentClasses.isNotEmpty || _recentConstants);
+  }
+
+  void forEach(void f(WorkItem work)) {
+    _forEach(f);
+    if (onEmptyForTesting != null) {
+      onEmptyForTesting();
+      _forEach(f);
+    }
   }
 
   /// [_onQueueEmpty] is called whenever the queue is drained. [recentClasses]

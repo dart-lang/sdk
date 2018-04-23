@@ -44,9 +44,7 @@ class IncreasingTypeMaskSet extends UniverseSelectorConstraints {
       _masks = null;
       return true;
     }
-    if (_masks == null) {
-      _masks = new Setlet<TypeMask>();
-    }
+    _masks ??= new Set<TypeMask>();
     return _masks.add(mask);
   }
 

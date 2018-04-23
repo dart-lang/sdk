@@ -18,6 +18,8 @@ import 'constants/expressions.dart' show ConstantExpression;
 import 'universe/call_structure.dart' show CallStructure;
 import 'universe/selector.dart' show Selector;
 import 'universe/call_structure.dart';
+import 'universe/world_builder.dart';
+import 'world.dart';
 
 /// The common elements and types in Dart.
 class CommonElements {
@@ -160,11 +162,39 @@ class CommonElements {
         _findConstructor(symbolImplementationClass, '');
   }
 
+  bool _computedSymbolConstructorDependencies = false;
+  ConstructorEntity _symbolConstructorImplementationTarget;
+
+  void _ensureSymbolConstructorDependencies() {
+    if (_computedSymbolConstructorDependencies) return;
+    _computedSymbolConstructorDependencies = true;
+    if (_symbolConstructorTarget == null) {
+      if (_symbolImplementationClass == null) {
+        _symbolImplementationClass =
+            _findClass(internalLibrary, 'Symbol', required: false);
+      }
+      if (_symbolImplementationClass != null) {
+        _symbolConstructorTarget =
+            _findConstructor(_symbolImplementationClass, '', required: false);
+      }
+    }
+    if (_symbolClass == null) {
+      _symbolClass = _findClass(coreLibrary, 'Symbol', required: false);
+    }
+    if (_symbolClass == null) {
+      return;
+    }
+    _symbolConstructorImplementationTarget =
+        _findConstructor(symbolClass, '', required: false);
+  }
+
   /// Whether [element] is the same as [symbolConstructor]. Used to check
   /// for the constructor without computing it until it is likely to be seen.
   bool isSymbolConstructor(ConstructorEntity element) {
-    return element == symbolConstructorTarget ||
-        element == _findConstructor(symbolClass, '', required: false);
+    assert(element != null);
+    _ensureSymbolConstructorDependencies();
+    return element == _symbolConstructorImplementationTarget ||
+        element == _symbolConstructorTarget;
   }
 
   /// The `MirrorSystem` class in dart:mirrors.
@@ -698,10 +728,13 @@ class CommonElements {
   ClassEntity get jsUInt31Class =>
       _jsUInt31Class ??= _findInterceptorsClass('JSUInt31');
 
-  FunctionEntity _findIndexForNativeSubclassType;
-  FunctionEntity get findIndexForNativeSubclassType =>
-      _findIndexForNativeSubclassType ??= _findLibraryMember(
-          interceptorsLibrary, 'findIndexForNativeSubclassType');
+  /// Returns `true` member is the 'findIndexForNativeSubclassType' method
+  /// declared in `dart:_interceptors`.
+  bool isFindIndexForNativeSubclassType(MemberEntity member) {
+    return member.name == 'findIndexForNativeSubclassType' &&
+        member.isTopLevel &&
+        member.library == interceptorsLibrary;
+  }
 
   FunctionEntity _getInterceptorMethod;
   FunctionEntity get getInterceptorMethod =>
@@ -712,9 +745,10 @@ class CommonElements {
       _getNativeInterceptorMethod ??=
           _findInterceptorsFunction('getNativeInterceptor');
 
-  MemberEntity _jsIndexableLength;
-  MemberEntity get jsIndexableLength =>
-      _jsIndexableLength ??= _findClassMember(jsIndexableClass, 'length');
+  /// Returns `true` if [selector] applies to `JSIndexable.length`.
+  bool appliesToJsIndexableLength(Selector selector) {
+    return selector.name == 'length' && (selector.isGetter || selector.isCall);
+  }
 
   ConstructorEntity _jsArrayTypedConstructor;
   ConstructorEntity get jsArrayTypedConstructor =>
@@ -727,6 +761,33 @@ class CommonElements {
   FunctionEntity _jsArrayAdd;
   FunctionEntity get jsArrayAdd =>
       _jsArrayAdd ??= _findClassMember(jsArrayClass, 'add');
+
+  bool isJsStringClass(ClassEntity cls) {
+    return cls.name == 'JSString' && cls.library == interceptorsLibrary;
+  }
+
+  bool isJsStringSplit(MemberEntity member) {
+    return member.name == 'split' &&
+        member.isInstanceMember &&
+        isJsStringClass(member.enclosingClass);
+  }
+
+  /// Returns `true` if [selector] applies to `JSString.split` on [receiver]
+  /// in the given [world].
+  ///
+  /// Returns `false` if `JSString.split` is not available.
+  bool appliesToJsStringSplit(
+      Selector selector, ReceiverConstraint receiver, World world) {
+    if (_jsStringSplit == null) {
+      ClassEntity cls =
+          _findClass(interceptorsLibrary, 'JSString', required: false);
+      if (cls == null) return false;
+      _jsStringSplit = _findClassMember(cls, 'split', required: false);
+      if (_jsStringSplit == null) return false;
+    }
+    return selector.applies(_jsStringSplit) &&
+        (receiver == null || receiver.canHit(jsStringSplit, selector, world));
+  }
 
   FunctionEntity _jsStringSplit;
   FunctionEntity get jsStringSplit =>

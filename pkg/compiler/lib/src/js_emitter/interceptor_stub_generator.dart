@@ -315,7 +315,10 @@ class InterceptorStubGenerator {
         return null;
       }
       jsAst.Expression arrayCheck = js('receiver.constructor == Array');
-      jsAst.Expression indexableCheck =
+
+      // Lazy generation of the indexable check. If indexable behavior isn't
+      // used, the isJsIndexable function isn't part of the closed world.
+      jsAst.Expression genericIndexableCheck() =>
           _generateIsJsIndexableCall(js('receiver'), js('receiver'));
 
       jsAst.Expression orExp(left, right) {
@@ -333,7 +336,7 @@ class InterceptorStubGenerator {
         }
 
         if (containsJsIndexable) {
-          typeCheck = orExp(typeCheck, indexableCheck);
+          typeCheck = orExp(typeCheck, genericIndexableCheck());
         }
 
         return js.statement('''
@@ -349,7 +352,7 @@ class InterceptorStubGenerator {
         }
 
         if (containsJsIndexable) {
-          typeCheck = orExp(typeCheck, indexableCheck);
+          typeCheck = orExp(typeCheck, genericIndexableCheck());
         }
 
         return js.statement(r'''

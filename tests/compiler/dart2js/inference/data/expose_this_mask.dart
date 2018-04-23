@@ -42,7 +42,7 @@ class OtherClass1 {
 
 /*element: otherGetter:[null]*/
 otherGetter() {
-  new OtherClass1();
+  new OtherClass1(). /*[exact=OtherClass1]*/ field1a;
   new Class1();
 }
 
@@ -70,7 +70,7 @@ class OtherClass2 {
 
 /*element: otherMethod:[null]*/
 otherMethod() {
-  new OtherClass2();
+  new OtherClass2(). /*[exact=OtherClass2]*/ field2a;
   new Class2();
 }
 

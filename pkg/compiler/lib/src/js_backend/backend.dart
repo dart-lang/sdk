@@ -764,7 +764,9 @@ class JavaScriptBackend {
             rtiNeedBuilder,
             _nativeResolutionEnqueuer,
             noSuchMethodRegistry,
-            const OpenWorldStrategy(),
+            compiler.options.strongMode && useStrongModeWorldStrategy
+                ? const StrongModeWorldStrategy()
+                : const OpenWorldStrategy(),
             classHierarchyBuilder,
             classQueries),
         compiler.frontendStrategy.createResolutionWorkItemBuilder(

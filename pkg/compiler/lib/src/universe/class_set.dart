@@ -482,6 +482,22 @@ class ClassSet {
   ///
   List<ClassHierarchyNode> _subtypes;
 
+  /// A list of the class hierarchy nodes for the class that directly mix in
+  /// [cls].
+  ///
+  /// For instance
+  ///
+  ///     class A {}
+  ///     class B extends Object with A {}
+  ///     class C = Object with A;
+  ///     class D extends B {}
+  ///     class E extends C {}
+  ///
+  /// The class hierarchy nodes for the unnamed mixin application `Object+A` and
+  /// the named mixin application `C` are in [_mixinApplications].
+  ///
+  List<ClassHierarchyNode> _mixinApplications;
+
   ClassSet(this.node);
 
   ClassEntity get cls => node.cls;
@@ -529,6 +545,10 @@ class ClassSet {
 
   Iterable<ClassHierarchyNode> get subtypeNodes {
     return _subtypes ?? const <ClassHierarchyNode>[];
+  }
+
+  Iterable<ClassHierarchyNode> get mixinApplicationNodes {
+    return _mixinApplications ?? const <ClassHierarchyNode>[];
   }
 
   /// Returns an [Iterable] of the subclasses of [cls] possibly including [cls].
@@ -701,6 +721,15 @@ class ClassSet {
     }
   }
 
+  /// Adds [mixinApplication] as a class that mixes in [cls].
+  void addMixinApplication(ClassHierarchyNode mixinApplication) {
+    if (_mixinApplications == null) {
+      _mixinApplications = <ClassHierarchyNode>[mixinApplication];
+    } else {
+      _mixinApplications.add(mixinApplication);
+    }
+  }
+
   /// Returns the most specific subtype of [cls] (including [cls]) that is
   /// directly instantiated or a superclass of all directly instantiated
   /// subtypes. If no subtypes of [cls] are instantiated, `null` is returned.
@@ -743,7 +772,15 @@ class ClassSet {
     node.printOn(sb, '  ');
     sb.write('\n');
     if (_subtypes != null) {
+      sb.write('  subtypes:\n');
       for (ClassHierarchyNode node in _subtypes) {
+        node.printOn(sb, '  ');
+        sb.write('\n');
+      }
+    }
+    if (_mixinApplications != null) {
+      sb.write('  mixin-applications:\n');
+      for (ClassHierarchyNode node in _mixinApplications) {
         node.printOn(sb, '  ');
         sb.write('\n');
       }

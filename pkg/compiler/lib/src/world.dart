@@ -404,6 +404,21 @@ abstract class OpenWorld implements World {
 
   /// Returns an iterable over all mixin applications that mixin [cls].
   Iterable<ClassEntity> allMixinUsesOf(ClassEntity cls);
+
+  /// Returns `true` if [member] is inherited into a subtype of [type].
+  ///
+  /// For instance:
+  ///
+  ///     class A { m() {} }
+  ///     class B extends A implements I {}
+  ///     class C extends Object with A implements I {}
+  ///     abstract class I { m(); }
+  ///     abstract class J implements A { }
+  ///
+  /// Here `A.m` is inherited into `A`, `B`, and `C`. Becausec `B` and
+  /// `C` implement `I`, `isInheritedInSubtypeOf(A.M, I)` is true, but
+  /// `isInheritedInSubtypeOf(A.M, J)` is false.
+  bool isInheritedInSubtypeOf(MemberEntity member, ClassEntity type);
 }
 
 /// Enum values defining subset of classes included in queries.

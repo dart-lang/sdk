@@ -12,10 +12,10 @@ import '../io/code_output.dart' show BufferedCodeOutput;
 import '../util/util.dart' show Indentation, Tagging;
 
 /// Unparse the JavaScript [node].
-String nodeToString(Node node) {
+String nodeToString(Node node, {bool pretty: false}) {
   JavaScriptPrintingOptions options = new JavaScriptPrintingOptions(
-      shouldCompressOutput: true,
-      preferSemicolonToNewlineInMinifiedOutput: true);
+      shouldCompressOutput: !pretty,
+      preferSemicolonToNewlineInMinifiedOutput: !pretty);
   LenientPrintingContext printingContext = new LenientPrintingContext();
   new Printer(options, printingContext).visit(node);
   return printingContext.getText();

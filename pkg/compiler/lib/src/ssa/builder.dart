@@ -4126,7 +4126,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       }
     }
 
-    bool isOptimizableOperation(Selector selector, Element element) {
+    bool isOptimizableOperation(Selector selector, MemberElement element) {
       ClassElement cls = element.enclosingClass;
       if (isOptimizableOperationOnIndexable(selector, element)) return true;
       if (!interceptorData.interceptedClasses.contains(cls)) return false;
@@ -4136,7 +4136,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       if (selector.isIndexSet) return true;
       if (element == commonElements.jsArrayAdd ||
           element == commonElements.jsArrayRemoveLast ||
-          element == commonElements.jsStringSplit) {
+          commonElements.isJsStringSplit(element)) {
         return true;
       }
       return false;
