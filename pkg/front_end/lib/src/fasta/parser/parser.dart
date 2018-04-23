@@ -2128,8 +2128,6 @@ class Parser {
     } else if (context == IdentifierContext.localFunctionDeclaration ||
         context == IdentifierContext.localFunctionDeclarationContinuation) {
       followingValues = ['.', '(', '{', '=>'];
-    } else if (context == IdentifierContext.localVariableDeclaration) {
-      followingValues = [';', '=', ',', '}'];
     } else if (context == IdentifierContext.methodDeclaration ||
         context == IdentifierContext.methodDeclarationContinuation) {
       followingValues = ['.', '(', '{', '=>'];
@@ -2212,8 +2210,6 @@ class Parser {
       initialKeywords = statementKeywords();
     } else if (context ==
         IdentifierContext.localFunctionDeclarationContinuation) {
-      initialKeywords = statementKeywords();
-    } else if (context == IdentifierContext.localVariableDeclaration) {
       initialKeywords = statementKeywords();
     } else if (context == IdentifierContext.methodDeclaration) {
       initialKeywords = classMemberKeywords();

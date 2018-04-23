@@ -245,7 +245,7 @@ class IdentifierContext {
 
   /// Identifier is a name being declared by a local variable declaration.
   static const localVariableDeclaration =
-      const IdentifierContext('localVariableDeclaration', inDeclaration: true);
+      const LocalVariableDeclarationIdentifierContext();
 
   /// Identifier is a reference to a label (e.g. `foo` in `break foo;`).
   /// Labels have their own scope.

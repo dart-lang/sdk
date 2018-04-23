@@ -103,44 +103,38 @@ class ExpressionIdentifierContext extends IdentifierContext {
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
-    Token next = token.next;
-    assert(next.kind != IDENTIFIER_TOKEN);
-    if (next.isIdentifier) {
-      if (optional('await', next) && next.next.isIdentifier) {
+    Token identifier = token.next;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    if (identifier.isIdentifier) {
+      if (optional('await', identifier) && identifier.next.isIdentifier) {
         // Although the `await` can be used in an expression,
         // it is followed by another identifier which does not form
         // a valid expression. Report an error on the `await` token
         // rather than the token following it.
         parser.reportRecoverableErrorWithToken(
-            next, fasta.templateUnexpectedToken);
+            identifier, fasta.templateUnexpectedToken);
 
         // TODO(danrubel) Consider a new listener event so that analyzer
         // can represent this as an await expression in a context that does
         // not allow await.
-        return next.next;
-      } else if (!parser.inPlainSync && next.type.isPseudo) {
-        if (optional('await', next)) {
-          parser.reportRecoverableError(next, fasta.messageAwaitAsIdentifier);
-        } else if (optional('yield', next)) {
-          parser.reportRecoverableError(next, fasta.messageYieldAsIdentifier);
-        } else if (optional('async', next)) {
-          parser.reportRecoverableError(next, fasta.messageAsyncAsIdentifier);
-        }
+        return identifier.next;
+      } else {
+        checkAsyncAwaitYieldAsIdentifier(identifier, parser);
       }
-      return next;
+      return identifier;
     }
     parser.reportRecoverableErrorWithToken(
-        next, fasta.templateExpectedIdentifier);
-    if (next.isKeywordOrIdentifier) {
-      if (!isOneOfOrEof(next, const ['as', 'is'])) {
-        return next;
+        identifier, fasta.templateExpectedIdentifier);
+    if (identifier.isKeywordOrIdentifier) {
+      if (!isOneOfOrEof(identifier, const ['as', 'is'])) {
+        return identifier;
       }
-    } else if (!next.isOperator &&
-        !isOneOfOrEof(
-            next, const ['.', ',', '(', ')', '[', ']', '}', '?', ':', ';'])) {
+    } else if (!identifier.isOperator &&
+        !isOneOfOrEof(identifier,
+            const ['.', ',', '(', ')', '[', ']', '}', '?', ':', ';'])) {
       // When in doubt, consume the token to ensure we make progress
-      token = next;
-      next = token.next;
+      token = identifier;
+      identifier = token.next;
     }
     // Insert a synthetic identifier to satisfy listeners.
     return insertSyntheticIdentifierAfter(token, parser);
@@ -192,6 +186,36 @@ class LibraryIdentifierContext extends IdentifierContext {
     }
     if (isOneOfOrEof(identifier, const ['.', ';']) ||
         looksLikeStartOfNextDeclaration(identifier)) {
+      identifier = parser.insertSyntheticIdentifier(token, this,
+          message: fasta.templateExpectedIdentifier.withArguments(identifier));
+    } else {
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateExpectedIdentifier);
+      if (!identifier.isKeywordOrIdentifier) {
+        // When in doubt, consume the token to ensure we make progress
+        // but insert a synthetic identifier to satisfy listeners.
+        identifier = insertSyntheticIdentifierAfter(identifier, parser);
+      }
+    }
+    return identifier;
+  }
+}
+
+/// See [IdentifierContext].localVariableDeclaration
+class LocalVariableDeclarationIdentifierContext extends IdentifierContext {
+  const LocalVariableDeclarationIdentifierContext()
+      : super('localVariableDeclaration', inDeclaration: true);
+
+  @override
+  Token ensureIdentifier(Token token, Parser parser) {
+    Token identifier = token.next;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    if (identifier.isIdentifier) {
+      checkAsyncAwaitYieldAsIdentifier(identifier, parser);
+      return identifier;
+    }
+    if (isOneOfOrEof(identifier, const [';', '=', ',', '{', '}']) ||
+        looksLikeStartOfNextStatement(identifier)) {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: fasta.templateExpectedIdentifier.withArguments(identifier));
     } else {
@@ -270,6 +294,18 @@ class TypeReferenceIdentifierContext extends IdentifierContext {
   }
 }
 
+void checkAsyncAwaitYieldAsIdentifier(Token identifier, Parser parser) {
+  if (!parser.inPlainSync && identifier.type.isPseudo) {
+    if (optional('await', identifier)) {
+      parser.reportRecoverableError(identifier, fasta.messageAwaitAsIdentifier);
+    } else if (optional('yield', identifier)) {
+      parser.reportRecoverableError(identifier, fasta.messageYieldAsIdentifier);
+    } else if (optional('async', identifier)) {
+      parser.reportRecoverableError(identifier, fasta.messageAsyncAsIdentifier);
+    }
+  }
+}
+
 bool isOneOfOrEof(Token token, Iterable<String> followingValues) {
   for (String tokenValue in followingValues) {
     if (optional(tokenValue, token)) {
@@ -282,6 +318,23 @@ bool isOneOfOrEof(Token token, Iterable<String> followingValues) {
 bool looksLikeStartOfNextDeclaration(Token token) =>
     token.isTopLevelKeyword ||
     isOneOfOrEof(token, const ['const', 'get', 'final', 'set', 'var', 'void']);
+
+bool looksLikeStartOfNextStatement(Token token) => isOneOfOrEof(token, const [
+      'assert',
+      'break',
+      'const',
+      'continue',
+      'do',
+      'final',
+      'for',
+      'if',
+      'return',
+      'switch',
+      'try',
+      'var',
+      'void',
+      'while'
+    ]);
 
 Token skipMetadata(Token token) {
   assert(optional('@', token));
