@@ -8,7 +8,7 @@ import 'package:expect/expect.dart';
 
 @NoInline()
 method<T>() {
-  return /*checks=[$signature],instance*/ () => <T>[];
+  return /*checks=[],instance*/ () => <T>[];
 }
 
 @NoInline()

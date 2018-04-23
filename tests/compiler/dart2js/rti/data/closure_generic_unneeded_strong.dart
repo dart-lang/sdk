@@ -4,11 +4,11 @@
 
 import 'package:expect/expect.dart';
 
-/*class: A:needsArgs*/
+/*class: A:*/
 class A<T> {
   @NoInline()
   m() {
-    return /*needsSignature*/ (T t, String s) {};
+    return /**/ (T t, String s) {};
   }
 }
 

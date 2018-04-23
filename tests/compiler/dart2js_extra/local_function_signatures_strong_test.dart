@@ -74,17 +74,20 @@ method12() {
   return local;
 }
 
-num Function(num) method13() {
+num Function(num) //# 01: ok
+    method13() {
   num local<T>(num n) => null;
   return local;
 }
 
-num Function(num) method14() {
+num Function(num) //# 01: continued
+    method14() {
   num local<T>(T n) => null;
   return local;
 }
 
-num Function(num) method15() {
+num Function(num) //# 01: continued
+    method15() {
   T local<T>(num n) => null;
   return local;
 }
@@ -105,7 +108,7 @@ main() {
   Expect.isFalse(test(method10()));
   Expect.isFalse(test(method11()));
   Expect.isFalse(test(method12()));
-  Expect.isTrue(test(method13()));
-  Expect.isTrue(test(method14()));
-  Expect.isTrue(test(method15()));
+  Expect.isTrue(test(method13())); //# 01: continued
+  Expect.isTrue(test(method14())); //# 01: continued
+  Expect.isTrue(test(method15())); //# 01: continued
 }

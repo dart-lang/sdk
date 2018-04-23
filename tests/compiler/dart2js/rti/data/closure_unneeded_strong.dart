@@ -8,7 +8,7 @@ import 'package:expect/expect.dart';
 class A<T> {
   @NoInline()
   m() {
-    return /*needsSignature*/ (int i, String s) {};
+    return /**/ (int i, String s) {};
   }
 }
 

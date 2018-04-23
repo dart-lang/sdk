@@ -1239,10 +1239,12 @@ class Types extends DartTypes {
   }
 
   bool isPotentialSubtype(
-      covariant ResolutionDartType t, covariant ResolutionDartType s) {
+      covariant ResolutionDartType t, covariant ResolutionDartType s,
+      {bool assumeInstantiations: true}) {
     // TODO(johnniwinther): Return a set of variable points in the positive
     // cases.
-    return potentialSubtypeVisitor.isSubtype(t, s);
+    return potentialSubtypeVisitor.isPotentialSubtype(t, s,
+        assumeInstantiations: assumeInstantiations);
   }
 
   @override

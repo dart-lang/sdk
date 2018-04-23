@@ -4,14 +4,11 @@
 
 import 'package:expect/expect.dart';
 
-/*ast.class: A:*/
-/*kernel.class: A:*/
-/*strong.class: A:needsArgs*/
+/*class: A:*/
 class A<T> {
   @NoInline()
   m() {
-    // TODO(johnniwinther): Optimize local function type signature need.
-    return /*ast.*/ /*kernel.*/ /*strong.needsSignature*/ (T t, String s) {};
+    return /**/ (T t, String s) {};
   }
 }
 

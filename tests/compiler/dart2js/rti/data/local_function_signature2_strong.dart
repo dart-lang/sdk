@@ -6,7 +6,7 @@ import 'package:expect/expect.dart';
 
 class Class1 {
   method1() {
-    /*needsSignature*/
+    /**/
     num local<T>(num n) => null;
     return local;
   }
@@ -18,7 +18,7 @@ class Class1 {
   }
 
   method3() {
-    /*needsSignature*/
+    /**/
     int local<T>(num n) => null;
     return local;
   }
@@ -73,13 +73,13 @@ method9<T>() {
 }
 
 method10() {
-  /*needsSignature*/
+  /**/
   num local<T>(T n) => null;
   return local;
 }
 
 method11() {
-  /*needsSignature*/
+  /**/
   T local<T>(num n) => null;
   return local;
 }
@@ -87,24 +87,6 @@ method11() {
 method12() {
   /**/
   num local<T>(num n, T t) => null;
-  return local;
-}
-
-num Function(num) method13() {
-  /*needsSignature*/
-  num local<T>(num n) => null;
-  return local;
-}
-
-num Function(num) method14() {
-  /*needsSignature*/
-  num local<T>(T n) => null;
-  return local;
-}
-
-num Function(num) method15() {
-  /*needsSignature*/
-  T local<T>(num n) => null;
   return local;
 }
 
@@ -124,7 +106,4 @@ main() {
   Expect.isFalse(test(method10()));
   Expect.isFalse(test(method11()));
   Expect.isFalse(test(method12()));
-  Expect.isTrue(test(method13()));
-  Expect.isTrue(test(method14()));
-  Expect.isTrue(test(method15()));
 }

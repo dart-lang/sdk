@@ -1033,13 +1033,14 @@ abstract class AbstractTypeRelation<T extends DartType>
     if (s is! FunctionType) return false;
     FunctionType tf = t;
     FunctionType sf = s;
-    if (tf.typeVariables.length != sf.typeVariables.length) {
+    int typeVariablesCount = getCommonTypeVariablesCount(tf, sf);
+    if (typeVariablesCount == null) {
       return false;
     }
-    for (int i = 0; i < tf.typeVariables.length; i++) {
+    for (int i = 0; i < typeVariablesCount; i++) {
       assumptions.assume(tf.typeVariables[i], sf.typeVariables[i]);
     }
-    for (int i = 0; i < tf.typeVariables.length; i++) {
+    for (int i = 0; i < typeVariablesCount; i++) {
       if (!tf.typeVariables[i].bound
           ._equals(sf.typeVariables[i].bound, assumptions)) {
         return false;
@@ -1050,10 +1051,17 @@ abstract class AbstractTypeRelation<T extends DartType>
     }
 
     bool result = visitFunctionTypeInternal(tf, sf);
-    for (int i = 0; i < tf.typeVariables.length; i++) {
+    for (int i = 0; i < typeVariablesCount; i++) {
       assumptions.forget(tf.typeVariables[i], sf.typeVariables[i]);
     }
     return result;
+  }
+
+  int getCommonTypeVariablesCount(FunctionType t, FunctionType s) {
+    if (t.typeVariables.length == s.typeVariables.length) {
+      return t.typeVariables.length;
+    }
+    return null;
   }
 
   bool visitFunctionTypeInternal(FunctionType tf, FunctionType sf) {
@@ -1301,11 +1309,33 @@ abstract class SubtypeVisitor<T extends DartType>
 /// `false` only if we are sure no such substitution exists.
 abstract class PotentialSubtypeVisitor<T extends DartType>
     extends SubtypeVisitor<T> {
+  bool _assumeInstantiations = true;
+
   bool isSubtype(DartType t, DartType s) {
     if (t is TypeVariableType || s is TypeVariableType) {
       return true;
     }
+    if ((t is FunctionTypeVariable || s is FunctionTypeVariable) &&
+        _assumeInstantiations) {
+      return true;
+    }
     return super.isSubtype(t, s);
+  }
+
+  int getCommonTypeVariablesCount(FunctionType t, FunctionType s) {
+    if (t.typeVariables.length == s.typeVariables.length) {
+      return t.typeVariables.length;
+    }
+    if (_assumeInstantiations && s.typeVariables.length == 0) {
+      return 0;
+    }
+    return null;
+  }
+
+  bool isPotentialSubtype(DartType t, DartType s,
+      {bool assumeInstantiations: true}) {
+    _assumeInstantiations = assumeInstantiations;
+    return isSubtype(t, s);
   }
 }
 
@@ -1322,7 +1352,11 @@ abstract class DartTypes {
 
   /// Returns `true` if [t] might be a subtype of [s] for some values of
   /// type variables in [s] and [t].
-  bool isPotentialSubtype(DartType t, DartType s);
+  ///
+  /// If [assumeInstantiations], generic function types are assumed to be
+  /// potentially instantiated.
+  bool isPotentialSubtype(DartType t, DartType s,
+      {bool assumeInstantiations: true});
 
   static const int IS_SUBTYPE = 1;
   static const int MAYBE_SUBTYPE = 0;

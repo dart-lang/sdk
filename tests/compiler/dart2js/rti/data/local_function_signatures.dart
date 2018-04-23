@@ -14,17 +14,11 @@ class Class1 {
   }
 
   method2() {
-    /*ast.*/
-    /*kernel.*/
-    /*strong.needsSignature*/
     num local(int n) => null;
     return local;
   }
 
   method3() {
-    /*ast.*/
-    /*kernel.*/
-    /*strong.needsSignature*/
     Object local(num n) => null;
     return local;
   }
@@ -48,14 +42,10 @@ class Class3<T> {
   }
 }
 
-/*ast.class: Class4:*/
-/*kernel.class: Class4:*/
-/*strong.class: Class4:needsArgs*/
+/*class: Class4:*/
 class Class4<T> {
   method6() {
-    /*ast.*/
-    /*kernel.*/
-    /*strong.needsSignature*/
+    /**/
     num local(num n, T t) => null;
     return local;
   }

@@ -16,8 +16,10 @@ class _KernelDartTypes extends DartTypes {
             new _KernelPotentialSubtypeVisitor(elementMap);
 
   @override
-  bool isPotentialSubtype(DartType t, DartType s) {
-    return potentialSubtypeVisitor.isSubtype(t, s);
+  bool isPotentialSubtype(DartType t, DartType s,
+      {bool assumeInstantiations: true}) {
+    return potentialSubtypeVisitor.isPotentialSubtype(t, s,
+        assumeInstantiations: assumeInstantiations);
   }
 
   @override
