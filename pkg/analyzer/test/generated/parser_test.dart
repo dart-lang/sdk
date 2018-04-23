@@ -2176,6 +2176,37 @@ class C {
     expect(expression.leftOperand, new isInstanceOf<BinaryExpression>());
   }
 
+  void test_logicalAndExpressionStatement() {
+    // Assert that `<` and `>` are not interpreted as type arguments.
+    ExpressionStatement statement = parseStatement("C<T && T>U;");
+    BinaryExpression expression = statement.expression;
+    expect(expression.leftOperand, new isInstanceOf<BinaryExpression>());
+  }
+
+  void test_methodInvocation1() {
+    // Assert that `<` and `>` are not interpreted as type arguments.
+    ExpressionStatement statement = parseStatement("f(a < b, c > 3);");
+    assertNoErrors();
+    MethodInvocation method = statement.expression;
+    expect(method.argumentList.arguments, hasLength(2));
+  }
+
+  void test_methodInvocation2() {
+    // Assert that `<` and `>` are not interpreted as type arguments.
+    ExpressionStatement statement = parseStatement("f(a < b, c >> 3);");
+    assertNoErrors();
+    MethodInvocation method = statement.expression;
+    expect(method.argumentList.arguments, hasLength(2));
+  }
+
+  void test_methodInvocation3() {
+    // Assert that `<` and `>` are not interpreted as type arguments.
+    ExpressionStatement statement = parseStatement("f(a < b, c < d >> 3);");
+    assertNoErrors();
+    MethodInvocation method = statement.expression;
+    expect(method.argumentList.arguments, hasLength(2));
+  }
+
   void test_logicalAndExpression_precedence_bitwiseOr_left() {
     BinaryExpression expression = parseExpression("x | y < z");
     expect(expression.leftOperand, new isInstanceOf<BinaryExpression>());
@@ -13144,6 +13175,20 @@ class SimpleParserTest extends ParserTestCase with SimpleParserTestMixin {
  * More complex tests should be defined in the class [ComplexParserTest].
  */
 abstract class SimpleParserTestMixin implements AbstractParserTestCase {
+  void test_classDeclaration_complexTypeParam() {
+    CompilationUnit unit = parseCompilationUnit('''
+class C<@Foo.bar(const [], const [1], const{"":r""}, 0xFF + 2, .3, 4.5) T> {}
+''');
+    ClassDeclaration clazz = unit.declarations[0];
+    expect(clazz.name.name, 'C');
+    expect(clazz.typeParameters.typeParameters, hasLength(1));
+    TypeParameter typeParameter = clazz.typeParameters.typeParameters[0];
+    expect(typeParameter.name.name, 'T');
+    expect(typeParameter.metadata, hasLength(1));
+    Annotation metadata = typeParameter.metadata[0];
+    expect(metadata.name.name, 'Foo.bar');
+  }
+
   ConstructorName parseConstructorName(String name) {
     createParser('new $name();');
     Statement statement = parser.parseStatement2();
@@ -15042,6 +15087,50 @@ abstract class StatementParserTestMixin implements AbstractParserTestCase {
     expect(variableList.type, new isInstanceOf<GenericFunctionType>());
   }
 
+  void test_parseNonLabeledStatement_variableDeclaration_typeParam() {
+    VariableDeclarationStatement statement = parseStatement('C<T> v;');
+    assertNoErrors();
+    VariableDeclarationList variableList = statement.variables;
+    List<VariableDeclaration> variables = variableList.variables;
+    expect(variables, hasLength(1));
+    expect(variables[0].name.name, 'v');
+    TypeName typeName = variableList.type;
+    expect(typeName.name.name, 'C');
+    expect(typeName.typeArguments.arguments, hasLength(1));
+    TypeName typeArgument = typeName.typeArguments.arguments[0];
+    expect(typeArgument.name.name, 'T');
+  }
+
+  void test_parseNonLabeledStatement_variableDeclaration_typeParam2() {
+    VariableDeclarationStatement statement =
+        parseStatement('C<T /* ignored comment */ > v;');
+    assertNoErrors();
+    VariableDeclarationList variableList = statement.variables;
+    List<VariableDeclaration> variables = variableList.variables;
+    expect(variables, hasLength(1));
+    expect(variables[0].name.name, 'v');
+    TypeName typeName = variableList.type;
+    expect(typeName.name.name, 'C');
+    expect(typeName.typeArguments.arguments, hasLength(1));
+    TypeName typeArgument = typeName.typeArguments.arguments[0];
+    expect(typeArgument.name.name, 'T');
+  }
+
+  void test_parseNonLabeledStatement_variableDeclaration_typeParam3() {
+    VariableDeclarationStatement statement =
+        parseStatement('C<T Function(String s)> v;');
+    assertNoErrors();
+    VariableDeclarationList variableList = statement.variables;
+    List<VariableDeclaration> variables = variableList.variables;
+    expect(variables, hasLength(1));
+    expect(variables[0].name.name, 'v');
+    TypeName typeName = variableList.type;
+    expect(typeName.name.name, 'C');
+    expect(typeName.typeArguments.arguments, hasLength(1));
+    expect(typeName.typeArguments.arguments[0],
+        new isInstanceOf<GenericFunctionType>());
+  }
+
   void test_invalid_typeParamAnnotation() {
     parseCompilationUnit('main() { C<@Foo T> v; }',
         errors: usingFastaParser
@@ -15064,6 +15153,24 @@ abstract class StatementParserTestMixin implements AbstractParserTestCase {
                 expectedError(ParserErrorCode.MISSING_IDENTIFIER, 11, 1),
                 expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 1)
               ]);
+  }
+
+  void test_invalid_typeParamAnnotation3() {
+    if (usingFastaParser) {
+      parseCompilationUnit('''
+main() {
+  C<@Foo.bar(const [], const [1], const{"":r""}, 0xFF + 2, .3, 4.5) T,
+    F Function<G>(int, String, {Bar b}),
+    void Function<H>(int i, [String j, K]),
+    A<B<C>>,
+    W<X<Y<Z>>>
+  > v;
+}''', errors: [
+        // TODO(danrubel): Improve this error to indicate that annotations
+        // are not valid in this context.
+        expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 13, 1)
+      ]);
+    }
   }
 
   void test_parseStatement_emptyTypeArgumentList() {

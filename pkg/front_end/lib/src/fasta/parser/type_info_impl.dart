@@ -224,28 +224,33 @@ class VoidType implements TypeInfo {
 bool looksLikeName(Token token) =>
     token.isIdentifier || optional('this', token);
 
-Token skipTypeArguments(Token token) {
+Token skipTypeVariables(Token token) {
   assert(optional('<', token));
   Token endGroup = token.endGroup;
+  if (endGroup == null) {
+    return null;
+  }
 
   // The scanner sets the endGroup in situations like this: C<T && T>U;
   // Scan the type arguments to assert there are no operators.
-  // TODO(danrubel) Fix the scanner and remove this code.
-  if (endGroup != null) {
-    token = token.next;
-    while (token != endGroup) {
-      if (token.isOperator) {
-        String value = token.stringValue;
-        if (!identical(value, '<') &&
-            !identical(value, '>') &&
-            !identical(value, '>>')) {
-          return null;
-        }
-      }
-      token = token.next;
+  // TODO(danrubel): Fix the scanner to do this scanning.
+  token = token.next;
+  while (token != endGroup) {
+    if (token.isKeywordOrIdentifier ||
+        optional(',', token) ||
+        optional('.', token) ||
+        optional('<', token) ||
+        optional('>', token) ||
+        optional('>>', token) ||
+        optional('@', token)) {
+      // ok
+    } else if (optional('(', token)) {
+      token = token.endGroup;
+    } else {
+      return null;
     }
+    token = token.next;
   }
-
   return endGroup;
 }
 
@@ -396,7 +401,7 @@ class ComplexTypeInfo implements TypeInfo {
     Token token = start.next;
     if (optional('<', token)) {
       typeArguments = token;
-      token = skipTypeArguments(typeArguments);
+      token = skipTypeVariables(typeArguments);
       if (token == null) {
         token = typeArguments;
         typeArguments = null;
@@ -431,7 +436,7 @@ class ComplexTypeInfo implements TypeInfo {
     typeArguments = start.next;
     assert(optional('<', typeArguments));
 
-    Token token = skipTypeArguments(typeArguments);
+    Token token = skipTypeVariables(typeArguments);
     if (token == null) {
       return required ? simpleType : noType;
     }
@@ -462,7 +467,7 @@ class ComplexTypeInfo implements TypeInfo {
     token = token.next;
     if (optional('<', token)) {
       typeArguments = token;
-      token = skipTypeArguments(token);
+      token = skipTypeVariables(token);
       if (token == null) {
         return required ? prefixedType : noType;
       }
@@ -483,7 +488,7 @@ class ComplexTypeInfo implements TypeInfo {
       Token typeVariableStart = token;
       token = token.next;
       if (optional('<', token)) {
-        token = token.endGroup;
+        token = skipTypeVariables(token);
         if (token == null) {
           break; // Not a function type.
         }
