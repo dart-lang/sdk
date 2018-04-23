@@ -4,6 +4,8 @@
 
 // OtherResources=certificates/server_chain.pem
 // OtherResources=certificates/server_key.pem
+// OtherResources=certificates/bad_server_chain.pem
+// OtherResources=certificates/bad_server_key.pem
 // OtherResources=certificates/trusted_certs.pem
 
 // This test verifies that the bad certificate callback works.
