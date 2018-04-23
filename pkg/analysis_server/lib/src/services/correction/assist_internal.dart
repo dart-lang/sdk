@@ -1233,17 +1233,39 @@ class AssistProcessor {
           }
         }
       }
-      // add accessors
-      String eol2 = eol + eol;
-      String typeNameCode = variableList.type != null
-          ? _getNodeText(variableList.type) + ' '
-          : '';
-      String getterCode = '$eol2  ${typeNameCode}get $name => _$name;';
-      String setterCode = '$eol2'
-          '  set $name($typeNameCode$name) {$eol'
-          '    _$name = $name;$eol'
-          '  }';
-      builder.addSimpleInsertion(fieldDeclaration.end, getterCode + setterCode);
+
+      // Write getter and setter.
+      builder.addInsertion(fieldDeclaration.end, (builder) {
+        String docCode;
+        if (fieldDeclaration.documentationComment != null) {
+          docCode = utils.getNodeText(fieldDeclaration.documentationComment);
+        }
+
+        String typeCode = '';
+        if (variableList.type != null) {
+          typeCode = _getNodeText(variableList.type) + ' ';
+        }
+
+        // Write getter.
+        builder.writeln();
+        builder.writeln();
+        if (docCode != null) {
+          builder.write('  ');
+          builder.writeln(docCode);
+        }
+        builder.write('  ${typeCode}get $name => _$name;');
+
+        // Write setter.
+        builder.writeln();
+        builder.writeln();
+        if (docCode != null) {
+          builder.write('  ');
+          builder.writeln(docCode);
+        }
+        builder.writeln('  set $name($typeCode$name) {');
+        builder.writeln('    _$name = $name;');
+        builder.write('  }');
+      });
     });
     _addAssistFromBuilder(changeBuilder, DartAssistKind.ENCAPSULATE_FIELD);
   }

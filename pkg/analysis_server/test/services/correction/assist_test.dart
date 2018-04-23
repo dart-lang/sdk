@@ -2562,6 +2562,33 @@ class A {
     await assertNoAssistAt('test =', DartAssistKind.ENCAPSULATE_FIELD);
   }
 
+  test_encapsulateField_OK_documentation() async {
+    await resolveTestUnit('''
+class A {
+  /// AAA
+  /// BBB
+  int test;
+}
+''');
+    await assertHasAssistAt('test;', DartAssistKind.ENCAPSULATE_FIELD, '''
+class A {
+  /// AAA
+  /// BBB
+  int _test;
+
+  /// AAA
+  /// BBB
+  int get test => _test;
+
+  /// AAA
+  /// BBB
+  set test(int test) {
+    _test = test;
+  }
+}
+''');
+  }
+
   test_encapsulateField_OK_hasType() async {
     await resolveTestUnit('''
 class A {
