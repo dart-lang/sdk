@@ -338,7 +338,7 @@ TypedefInClass:
   analyzerCode: TYPEDEF_IN_CLASS
   dart2jsCode: "*fatal*"
   script:
-    - "class C { typedef int F(int x); }"
+    - "abstract class C { typedef int F(int x); }"
 
 CovariantMember:
   template: "Getters, setters and methods can't be declared to be 'covariant'."
@@ -1070,6 +1070,26 @@ AbstractClassInstantiation:
 AbstractRedirectedClassInstantiation:
   template: "Factory redirects to class '#name', which is abstract and can't be instantiated."
   severity: ERROR_LEGACY_WARNING
+
+MissingImplementationNotAbstract:
+  template: |
+    The non-abstract class '#name' is missing implementations for these members:
+      #string.
+  tip: |
+    Try to either
+     - provide an implementation,
+     - inherit an implementation from a superclass or mixin,
+     - mark the class as abstract, or
+     - provide a 'noSuchMethod' implementation.
+  severity: ERROR_LEGACY_WARNING
+  analyzerCode: CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C {foo();}"
+
+MissingImplementationCause:
+  template: "'#name' is defined here."
+  severity: CONTEXT
 
 ListLiteralTooManyTypeArguments:
   template: "Too many type arguments on List literal."

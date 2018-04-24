@@ -110,6 +110,16 @@ Language/Mixins/Mixin_Application/error_t01: MissingCompileTimeError
 Language/Mixins/Mixin_Application/error_t02: MissingCompileTimeError
 
 [ $fasta && $strong ]
+Language/Classes/Abstract_Instance_Members/inherited_t01: CompileTimeError
+Language/Classes/Abstract_Instance_Members/inherited_t02: CompileTimeError
+Language/Classes/Abstract_Instance_Members/inherited_t03: CompileTimeError
+Language/Classes/Abstract_Instance_Members/inherited_t04: CompileTimeError
+Language/Classes/Abstract_Instance_Members/inherited_t05: CompileTimeError
+Language/Classes/Abstract_Instance_Members/inherited_t06: CompileTimeError
+Language/Classes/Abstract_Instance_Members/invocation_t01: CompileTimeError
+Language/Classes/Abstract_Instance_Members/invocation_t02: CompileTimeError
+Language/Classes/Abstract_Instance_Members/no_implementation_t01: CompileTimeError
+Language/Classes/Abstract_Instance_Members/override_default_value_t06: CompileTimeError
 Language/Classes/Abstract_Instance_Members/override_less_positional_parameters_t01: CompileTimeError
 Language/Classes/Abstract_Instance_Members/override_less_positional_parameters_t02: CompileTimeError
 Language/Classes/Abstract_Instance_Members/override_more_required_parameters_t01: CompileTimeError
@@ -185,6 +195,8 @@ Language/Classes/Instance_Methods/override_subtype_t05: CompileTimeError
 Language/Classes/Instance_Methods/override_subtype_t06: CompileTimeError
 Language/Classes/Instance_Variables/constant_t01: MissingCompileTimeError
 Language/Classes/Instance_Variables/definition_t03: CompileTimeError
+Language/Classes/Setters/name_t01: CompileTimeError
+Language/Classes/Setters/name_t05: CompileTimeError
 Language/Classes/Setters/override_t01: CompileTimeError
 Language/Classes/Setters/override_t03: CompileTimeError
 Language/Classes/Setters/same_name_getter_different_type_t02: CompileTimeError
@@ -194,15 +206,23 @@ Language/Classes/Static_Methods/declaration_t03: CompileTimeError
 Language/Classes/Static_Methods/type_object_t01: CompileTimeError
 Language/Classes/Static_Methods/type_object_t02: CompileTimeError
 Language/Classes/Static_Variables/inheritance_t01: CompileTimeError
+Language/Classes/Superclasses/Inheritance_and_Overriding/abstract_method_t01/01: CompileTimeError
 Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t03: CompileTimeError
 Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t05: CompileTimeError
 Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t06: CompileTimeError
 Language/Classes/Superclasses/wrong_superclass_t08: MissingCompileTimeError
 Language/Classes/Superinterfaces/implicit_interface_t01: CompileTimeError
 Language/Classes/Superinterfaces/implicit_interface_t02: CompileTimeError
+Language/Classes/Superinterfaces/no_member_t01: CompileTimeError
 Language/Classes/Superinterfaces/no_member_t02: CompileTimeError
+Language/Classes/Superinterfaces/no_member_t05: CompileTimeError
 Language/Classes/Superinterfaces/wrong_type_t05: MissingCompileTimeError
 Language/Classes/definition_t24: MissingCompileTimeError
+Language/Classes/method_definition_t03: CompileTimeError
+Language/Classes/method_definition_t04: CompileTimeError
+Language/Classes/method_definition_t05: CompileTimeError
+Language/Classes/same_name_instance_and_static_members_t02: Pass
+Language/Classes/same_name_instance_and_static_members_t04: Pass
 Language/Classes/same_name_type_variable_t04: MissingCompileTimeError
 Language/Classes/same_name_type_variable_t07: MissingCompileTimeError
 Language/Enums/declaration_equivalent_t03: CompileTimeError
@@ -498,6 +518,8 @@ Language/Expressions/Identifier_Reference/undeclared_identifier_t07: CompileTime
 Language/Expressions/Identifier_Reference/undeclared_identifier_t08: CompileTimeError
 Language/Expressions/If_null_Expressions/static_type_t01: CompileTimeError
 Language/Expressions/If_null_Expressions/static_type_t02: CompileTimeError
+Language/Expressions/Instance_Creation/Const/abstract_class_t02: CompileTimeError
+Language/Expressions/Instance_Creation/Const/abstract_class_t04: CompileTimeError
 Language/Expressions/Instance_Creation/New/abstract_class_t01/01: CompileTimeError
 Language/Expressions/Instance_Creation/New/abstract_class_t02/01: CompileTimeError
 Language/Expressions/Instance_Creation/New/argument_static_type_t01: CompileTimeError
@@ -573,6 +595,7 @@ Language/Expressions/Logical_Boolean_Expressions/type_t32: CompileTimeError
 Language/Expressions/Lookup/Getter_and_Setter_Lookup/definition_t03: CompileTimeError
 Language/Expressions/Lookup/Getter_and_Setter_Lookup/definition_t09: CompileTimeError
 Language/Expressions/Lookup/Getter_and_Setter_Lookup/definition_t10: CompileTimeError
+Language/Expressions/Lookup/Method_Lookup/method_lookup_t03: CompileTimeError
 Language/Expressions/Lookup/Method_Lookup/superclass_t07: CompileTimeError
 Language/Expressions/Lookup/Method_Lookup/superclass_t08: CompileTimeError
 Language/Expressions/Maps/key_value_equals_operator_t01: MissingCompileTimeError
@@ -929,9 +952,16 @@ Language/Libraries_and_Scripts/Scripts/syntax_t11: CompileTimeError
 Language/Libraries_and_Scripts/private_access_t01: CompileTimeError
 Language/Libraries_and_Scripts/private_access_t03: CompileTimeError
 Language/Libraries_and_Scripts/private_access_t04: CompileTimeError
+Language/Mixins/Mixin_Application/abstract_t05: CompileTimeError
+Language/Mixins/Mixin_Application/abstract_t06: CompileTimeError
 Language/Mixins/Mixin_Application/abstract_t07: CompileTimeError
 Language/Mixins/Mixin_Application/abstract_t08: CompileTimeError
 Language/Mixins/Mixin_Application/deferred_t01: MissingCompileTimeError
+Language/Mixins/Mixin_Application/interfaces_t05: CompileTimeError
+Language/Mixins/Mixin_Application/superinterfaces_t01: CompileTimeError
+Language/Mixins/Mixin_Application/superinterfaces_t02: CompileTimeError
+Language/Mixins/Mixin_Application/superinterfaces_t06: CompileTimeError
+Language/Mixins/Mixin_Application/superinterfaces_t08: CompileTimeError
 Language/Mixins/Mixin_Application/syntax_t20: CompileTimeError
 Language/Mixins/declaring_constructor_t05: MissingCompileTimeError
 Language/Mixins/declaring_constructor_t06: MissingCompileTimeError
@@ -943,6 +973,7 @@ Language/Overview/Privacy/private_and_public_t08: CompileTimeError
 Language/Overview/Privacy/private_and_public_t09: CompileTimeError
 Language/Overview/Privacy/private_and_public_t10: CompileTimeError
 Language/Overview/Privacy/private_and_public_t11: CompileTimeError
+Language/Overview/Privacy/private_and_public_t18: CompileTimeError
 Language/Overview/Privacy/private_and_public_t19: CompileTimeError
 Language/Overview/Privacy/private_and_public_t20: CompileTimeError
 Language/Overview/Scoping/hiding_declaration_t05: CompileTimeError
@@ -989,6 +1020,7 @@ Language/Statements/For/Asynchronous_For_in/execution_t02: CompileTimeError
 Language/Statements/For/Asynchronous_For_in/execution_t03: CompileTimeError
 Language/Statements/For/For_Loop/execution_t07: CompileTimeError
 Language/Statements/For/For_Loop/execution_t08: CompileTimeError
+Language/Statements/For/For_in/execution_t05: CompileTimeError
 Language/Statements/For/syntax_t07: CompileTimeError
 Language/Statements/If/condition_evaluation_t01: CompileTimeError
 Language/Statements/If/condition_evaluation_t02: CompileTimeError
@@ -1169,7 +1201,9 @@ LibTest/collection/DoubleLinkedQueue/skipWhile_A02_t01: CompileTimeError
 LibTest/collection/DoubleLinkedQueue/takeWhile_A02_t01: CompileTimeError
 LibTest/collection/HashMap/HashMap_class_A01_t01: CompileTimeError
 LibTest/collection/HashSet/HashSet_class_A01_t01: CompileTimeError
+LibTest/collection/IterableBase/IterableBase_class_A01_t01: CompileTimeError
 LibTest/collection/IterableBase/IterableBase_class_A01_t02: CompileTimeError
+LibTest/collection/IterableMixin/IterableMixin_class_A01_t01: CompileTimeError
 LibTest/collection/IterableMixin/IterableMixin_class_A02_t01: CompileTimeError
 LibTest/collection/LinkedHashMap/LinkedHashMap_A03_t01: CompileTimeError
 LibTest/collection/LinkedHashMap/LinkedHashMap_A04_t01: CompileTimeError
