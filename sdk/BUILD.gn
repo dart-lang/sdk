@@ -429,24 +429,24 @@ foreach(script, _scripts) {
 # This is the main target for copying scripts in _platform_sdk_scripts to bin/
 group("copy_platform_sdk_scripts") {
   visibility = [ ":create_platform_sdk" ]
-  deps = []
+  public_deps = []
   foreach(sdk_script, _platform_sdk_scripts) {
-    deps += [ ":copy_${sdk_script}_script" ]
+    public_deps += [ ":copy_${sdk_script}_script" ]
   }
   foreach(script, _scripts) {
-    deps += [ ":copy_${script}_script" ]
+    public_deps += [ ":copy_${script}_script" ]
   }
 }
 
 # This is the main target for copying scripts in _full_sdk_scripts to bin/
 group("copy_full_sdk_scripts") {
   visibility = [ ":create_full_sdk" ]
-  deps = []
+  public_deps = []
   foreach(sdk_script, _full_sdk_scripts) {
-    deps += [ ":copy_${sdk_script}_script" ]
+    public_deps += [ ":copy_${sdk_script}_script" ]
   }
   foreach(script, _scripts) {
-    deps += [ ":copy_${script}_script" ]
+    public_deps += [ ":copy_${script}_script" ]
   }
 }
 
@@ -473,9 +473,9 @@ foreach(snapshot, _full_sdk_snapshots) {
 # bin/snapshots
 group("copy_platform_sdk_snapshots") {
   visibility = [ ":create_platform_sdk" ]
-  deps = []
+  public_deps = []
   foreach(snapshot, _platform_sdk_snapshots) {
-    deps += [ ":copy_${snapshot[0]}_snapshot" ]
+    public_deps += [ ":copy_${snapshot[0]}_snapshot" ]
   }
 }
 
@@ -483,18 +483,18 @@ group("copy_platform_sdk_snapshots") {
 # bin/snapshots
 group("copy_full_sdk_snapshots") {
   visibility = [ ":create_full_sdk" ]
-  deps = []
+  public_deps = []
   foreach(snapshot, _full_sdk_snapshots) {
-    deps += [ ":copy_${snapshot[0]}_snapshot" ]
+    public_deps += [ ":copy_${snapshot[0]}_snapshot" ]
   }
 }
 
 # This is the main rule for copying analyzer sources to lib/
 group("copy_analyzer_sources") {
   visibility = [ ":create_common_sdk" ]
-  deps = []
+  public_deps = []
   foreach(analyzer_source_dir, _analyzer_source_dirs) {
-    deps += [ ":copy_${analyzer_source_dir}_source_dir" ]
+    public_deps += [ ":copy_${analyzer_source_dir}_source_dir" ]
   }
 }
 
@@ -505,7 +505,7 @@ write_file("$root_out_dir/dart-sdk/bin/snapshots/resources/dartdoc/.packages",
 # This is the main rule for copying the files that dartdoc needs.
 group("copy_dartdoc_files") {
   visibility = [ ":create_common_sdk" ]
-  deps = [
+  public_deps = [
     ":copy_dartdoc_resources",
     ":copy_dartdoc_templates",
   ]
@@ -732,7 +732,7 @@ group("copy_dev_compiler_js") {
     ":copy_dev_compiler_sdk",
     ":copy_dev_compiler_tools",
   ]
-  deps = [
+  public_deps = [
     ":copy_dev_compiler_js_amd",
     ":copy_dev_compiler_js_amd_kernel",
     ":copy_dev_compiler_js_common",
@@ -765,7 +765,7 @@ copy("copy_dev_compiler_tools") {
 # This is the main rule for copying ddc's dependencies to lib/
 group("copy_dev_compiler_sdk") {
   visibility = [ ":create_full_sdk" ]
-  deps = [
+  public_deps = [
     ":copy_dev_compiler_js",
     ":copy_dev_compiler_summary",
     ":copy_dev_compiler_tools",
@@ -819,9 +819,9 @@ group("copy_platform_sdk_libraries") {
     ":create_platform_sdk",
     ":copy_libraries",
   ]
-  deps = []
+  public_deps = []
   foreach(library, _platform_sdk_libraries) {
-    deps += [ ":copy_${library}_library" ]
+    public_deps += [ ":copy_${library}_library" ]
   }
 }
 
@@ -831,19 +831,19 @@ group("copy_full_sdk_libraries") {
     ":create_full_sdk",
     ":copy_libraries",
   ]
-  deps = []
+  public_deps = []
   foreach(library, _full_sdk_libraries) {
-    deps += [ ":copy_${library}_library" ]
+    public_deps += [ ":copy_${library}_library" ]
   }
 }
 
 group("copy_libraries") {
   if (dart_platform_sdk) {
-    deps = [
+    public_deps = [
       ":copy_platform_sdk_libraries",
     ]
   } else {
-    deps = [
+    public_deps = [
       ":copy_full_sdk_libraries",
     ]
   }
@@ -947,7 +947,7 @@ copy("copy_api_readme") {
 # Parts common to both platform and full SDKs.
 group("create_common_sdk") {
   visibility = [ ":create_sdk" ]
-  deps = [
+  public_deps = [
     ":copy_analysis_summaries",
     ":copy_analyzer_sources",
     ":copy_api_readme",
@@ -966,14 +966,14 @@ group("create_common_sdk") {
     ":write_version_file",
   ]
   if (is_win) {
-    deps += [ ":copy_7zip" ]
+    public_deps += [ ":copy_7zip" ]
   }
 }
 
 # Parts specific to the platform SDK.
 group("create_platform_sdk") {
   visibility = [ ":create_sdk" ]
-  deps = [
+  public_deps = [
     ":copy_platform_sdk_libraries",
     ":copy_platform_sdk_scripts",
     ":copy_platform_sdk_snapshots",
@@ -984,7 +984,7 @@ group("create_platform_sdk") {
 group("create_full_sdk") {
   visibility = [ ":create_sdk" ]
 
-  deps = [
+  public_deps = [
     ":copy_dart2js_dill_files",
     ":copy_dev_compiler_sdk",
     ":copy_full_sdk_libraries",
@@ -995,12 +995,12 @@ group("create_full_sdk") {
 
 # The main target to depend on from ../BUILD.gn
 group("create_sdk") {
-  deps = [
+  public_deps = [
     ":create_common_sdk",
   ]
   if (dart_platform_sdk) {
-    deps += [ ":create_platform_sdk" ]
+    public_deps += [ ":create_platform_sdk" ]
   } else {
-    deps += [ ":create_full_sdk" ]
+    public_deps += [ ":create_full_sdk" ]
   }
 }
