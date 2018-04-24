@@ -17,7 +17,7 @@ import 'dart:_js_helper'
 import 'dart:_isolate_helper'
     show IsolateNatives, TimerImpl, leaveJsAsync, enterJsAsync, isWorker;
 
-import 'dart:_foreign_helper' show JS;
+import 'dart:_foreign_helper' show JS, JS_GET_FLAG;
 
 import 'dart:_async_await_error_codes' as async_error_codes;
 
@@ -52,8 +52,6 @@ class _AsyncRun {
         storedCallback = null;
         f();
       }
-
-      ;
 
       var observer = JS('', 'new self.MutationObserver(#)',
           convertDartClosureToJS(internalCallback, 1));
@@ -515,9 +513,11 @@ class _SyncStarIterator<T> implements Iterator<T> {
   dynamic _body;
 
   // The current value, unless iterating a non-sync* nested iterator.
-  dynamic _current = null;
+  T _current = null;
 
   // This is the nested iterator when iterating a yield* of a non-sync iterator.
+  // TODO(32956): In strong-mode, yield* takes an Iterable<T> (possibly checked
+  // with an implicit downcast), so change type to Iterator<T>.
   Iterator _nestedIterator = null;
 
   // Stack of suspended state machines when iterating a yield* of a sync*
@@ -526,7 +526,10 @@ class _SyncStarIterator<T> implements Iterator<T> {
 
   _SyncStarIterator(this._body);
 
-  T get current => _nestedIterator == null ? _current : _nestedIterator.current;
+  T get current {
+    if (_nestedIterator == null) return _current;
+    return _nestedIterator.current;
+  }
 
   _runBody() {
     // TODO(sra): Find a way to hard-wire SUCCESS and ERROR codes.
@@ -594,11 +597,20 @@ class _SyncStarIterator<T> implements Iterator<T> {
             continue;
           } else {
             _nestedIterator = inner;
+            // TODO(32956): Change to the following when strong-mode is the only
+            // option:
+            //
+            //     _nestedIterator = JS<Iterator<T>>('','#', inner);
             continue;
           }
         }
       } else {
-        _current = value;
+        // TODO(32956): Remove this test.
+        if (JS_GET_FLAG('STRONG_MODE')) {
+          _current = JS<T>('', '#', value);
+        } else {
+          _current = value;
+        }
         return true;
       }
     }
