@@ -9,13 +9,12 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/plugin/resolver_provider.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/interner.dart';
@@ -25,8 +24,10 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart'
     show PerformanceTag;
+import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/source/package_map_provider.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/source/path_filter.dart';
 import 'package:analyzer/src/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/source/sdk_ext.dart';
@@ -509,7 +510,7 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
         resolvers
             .add(new InSummaryUriResolver(resourceProvider, summaryDataStore));
         resolvers.add(resolver);
-        resolvers.add(new file_system.ResourceUriResolver(resourceProvider));
+        resolvers.add(new ResourceUriResolver(resourceProvider));
         return new SourceFactory(resolvers);
       }
     }
@@ -579,7 +580,7 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
     }
 
     // Finally files.
-    resolvers.add(new file_system.ResourceUriResolver(resourceProvider));
+    resolvers.add(new ResourceUriResolver(resourceProvider));
 
     return new SourceFactory(resolvers, packageInfo.packages);
   }

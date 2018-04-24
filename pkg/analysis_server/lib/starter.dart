@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/server/driver.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/plugin/resolver_provider.dart';
+import 'package:analyzer/src/plugin/resolver_provider.dart';
 
 /**
  * An object that can be used to start an analysis server. This class exists so

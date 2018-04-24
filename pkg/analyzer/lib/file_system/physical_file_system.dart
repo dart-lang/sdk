@@ -15,6 +15,24 @@ import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
 
 /**
+ * The name of the directory containing plugin specific subfolders used to
+ * store data across sessions.
+ */
+const String _SERVER_DIR = ".dartServer";
+
+/**
+ * Returns the path to the user's home directory.
+ */
+String _getStandardStateLocation() {
+  final home = io.Platform.isWindows
+      ? io.Platform.environment['LOCALAPPDATA']
+      : io.Platform.environment['HOME'];
+  return home != null && io.FileSystemEntity.isDirectorySync(home)
+      ? join(home, _SERVER_DIR)
+      : null;
+}
+
+/**
  * Return modification times for every file path in [paths].
  *
  * If a path is `null`, the modification time is also `null`.
@@ -38,28 +56,10 @@ List<int> _pathsToTimes(List<String> paths) {
 }
 
 /**
- * The name of the directory containing plugin specific subfolders used to
- * store data across sessions.
- */
-const String _SERVER_DIR = ".dartServer";
-
-/**
- * Returns the path to the user's home directory.
- */
-String _getStandardStateLocation() {
-  final home = io.Platform.isWindows
-      ? io.Platform.environment['LOCALAPPDATA']
-      : io.Platform.environment['HOME'];
-  return home != null && io.FileSystemEntity.isDirectorySync(home)
-      ? join(home, _SERVER_DIR)
-      : null;
-}
-
-/**
  * A `dart:io` based implementation of [ResourceProvider].
  */
 class PhysicalResourceProvider implements ResourceProvider {
-  static final FileReadMode NORMALIZE_EOL_ALWAYS =
+  static final String Function(String) NORMALIZE_EOL_ALWAYS =
       (String string) => string.replaceAll(new RegExp('\r\n?'), '\n');
 
   static final PhysicalResourceProvider INSTANCE =
@@ -70,7 +70,8 @@ class PhysicalResourceProvider implements ResourceProvider {
    */
   final String _stateLocation;
 
-  PhysicalResourceProvider(FileReadMode fileReadMode, {String stateLocation})
+  PhysicalResourceProvider(String Function(String) fileReadMode,
+      {String stateLocation})
       : _stateLocation = stateLocation ?? _getStandardStateLocation() {
     if (fileReadMode != null) {
       FileBasedSource.fileReadMode = fileReadMode;
