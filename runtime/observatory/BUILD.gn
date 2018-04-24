@@ -8,128 +8,71 @@ import("../../build/prebuilt_dart_sdk.gni")
 import("observatory_sources.gni")
 
 # Construct arguments to the observatory tool for finding pub.
-pub_build_deps = []
-pub_build_args = []
+build_deps = []
+build_args = []
 if (!prebuilt_dart_exe_works) {
-  pub_build_deps += [ "../bin:dart_bootstrap($dart_host_toolchain)" ]
+  build_deps += [ "../bin:dart_bootstrap($dart_host_toolchain)" ]
 
   dart_out_dir = get_label_info("../bin:dart_bootstrap($dart_host_toolchain)",
                                 "root_out_dir")
   dart_bootstrap = rebase_path("$dart_out_dir/dart_bootstrap$executable_suffix")
 
-  pub_build_args = [
+  build_args = [
     "--sdk=True",
     "--dart-executable",
     dart_bootstrap,
   ]
 } else {
-  pub_build_args = [ "--sdk=True" ]
+  build_args = [ "--sdk=True" ]
 }
 
 current_dir = rebase_path(".", "//")
 
-# Helper build rules for packaging the Dart observatory resources.
-copy("copy_observatory") {
+action("build_observatory") {
+  deps = build_deps
+
   sources = rebase_path(observatory_sources, "", ".")
-  outputs = [
-    "$root_gen_dir/observatory_copy/{{source_root_relative_dir}}/{{source_file_part}}",
-  ]
-}
 
-action("write_observatory_pubspec_yaml") {
-  deps = [ ":copy_observatory" ] + pub_build_deps
-
-  inputs = [
-    rebase_path("pubspec.yaml"),
-  ]
+  inputs = sources + [ rebase_path("dart2js.packages") ]
 
   script = "../../tools/observatory_tool.py"
-  args =
-      pub_build_args + [
-        "--silent=True",
-        "--directory",
-        rebase_path("$root_gen_dir/observatory_copy/$current_dir/"),
-        "--command",
-        "rewrite",
-        rebase_path("../observatory/pubspec.yaml"),
-        rebase_path("$root_gen_dir/observatory_copy/$current_dir/pubspec.yaml"),
-        "../../third_party/",
-        rebase_path("../../third_party/"),
-      ]
-
-  outputs = [
-    "$root_gen_dir/observatory_copy/$current_dir/pubspec.yaml",
-  ]
-}
-
-action("copy_observatory_deps") {
-  deps = [ ":write_observatory_pubspec_yaml" ] + pub_build_deps
-
-  inputs = [
-    "$root_gen_dir/observatory_copy/$current_dir/pubspec.yaml",
-  ]
-
-  script = "../../tools/observatory_tool.py"
-  args = pub_build_args + [
-           "--silent=True",
-           "--stamp",
-           rebase_path(
-               "$root_gen_dir/observatory_copy/$current_dir/packages.stamp"),
-           "--directory",
-           rebase_path("$root_gen_dir/observatory_copy/$current_dir/"),
-           "--command",
-           "get",
-         ]
-
-  outputs = [
-    "$root_gen_dir/observatory_copy/$current_dir/packages.stamp",
-  ]
-}
-
-action("pub_build_observatory") {
-  deps = [
-           ":copy_observatory",
-           ":copy_observatory_deps",
-         ] + pub_build_deps
-
-  sources = rebase_path(observatory_sources,
-                        "",
-                        "$root_gen_dir/observatory_copy/$current_dir")
-
-  inputs =
-      sources + [ "$root_gen_dir/observatory_copy/$current_dir/packages.stamp" ]
-
-  script = "../../tools/observatory_tool.py"
-  args = pub_build_args + [
+  args = build_args + [
            "--silent=True",
            "--directory",
-           rebase_path("$root_gen_dir/observatory_copy/$current_dir/"),
+           rebase_path("."),
            "--command",
            "build",
-           rebase_path("$root_out_dir/observatory/build"),
+           rebase_path("web/main.dart"),
+           rebase_path("$root_gen_dir/observatory/web/main.dart.js"),
+           rebase_path("dart2js.packages"),
          ]
 
   outputs = [
-    "$root_out_dir/observatory/build/web/main.dart.js",
+    "$root_gen_dir/observatory/web/main.dart.js",
   ]
 }
 
 action("deploy_observatory") {
-  deps = [ ":pub_build_observatory" ] + pub_build_deps
+  deps = [ ":build_observatory" ] + build_deps
 
   script = "../../tools/observatory_tool.py"
 
   inputs = [
     script,
-    "$root_out_dir/observatory/build/web/main.dart.js",
+    "$root_gen_dir/observatory/web/main.dart.js",
   ]
 
-  args = pub_build_args + [
+  args = build_args + [
            "--silent=True",
            "--directory",
            rebase_path("$root_out_dir/observatory"),
            "--command",
            "deploy",
+           rebase_path("$root_out_dir/observatory/deployed"),
+           rebase_path("web"),
+           rebase_path("lib"),
+           rebase_path("$root_gen_dir/observatory/web/main.dart.js"),
+           rebase_path("../../third_party/observatory_pub_packages/packages"),
          ]
 
   outputs = [
