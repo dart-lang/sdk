@@ -5003,7 +5003,6 @@ TEST_CASE(DartAPI_Invoke_Null) {
 
 TEST_CASE(DartAPI_InvokeNoSuchMethod) {
   const char* kScriptChars =
-      "import 'dart:_internal' as _internal;\n"
       "class Expect {\n"
       "  static equals(a, b) {\n"
       "    if (a != b) {\n"
@@ -5014,7 +5013,11 @@ TEST_CASE(DartAPI_InvokeNoSuchMethod) {
       "class TestClass {\n"
       "  static int fld1 = 0;\n"
       "  void noSuchMethod(Invocation invocation) {\n"
-      "    var name = _internal.Symbol.getName(invocation.memberName);\n"
+      // This relies on the Symbol.toString() method returning a String of the
+      // form 'Symbol("name")'. This is to avoid having to import
+      // dart:_internal just to get access to the name of the symbol.
+      "    var name = invocation.memberName.toString();\n"
+      "    name = name.split('\"')[1];\n"
       "    if (name == 'fld') {\n"
       "      Expect.equals(true, invocation.isGetter);\n"
       "      Expect.equals(false, invocation.isMethod);\n"

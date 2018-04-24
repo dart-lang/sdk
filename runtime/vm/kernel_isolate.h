@@ -22,7 +22,6 @@ class KernelIsolate : public AllStatic {
   static const int kUpdateSourcesTag;
   static const int kAcceptTag;
   static const int kTrainTag;
-  static const int kAllowDartInternalImportTag;
 
   static void Run();
 
@@ -45,7 +44,6 @@ class KernelIsolate : public AllStatic {
   static Dart_KernelCompilationResult UpdateInMemorySources(
       int source_files_count,
       Dart_SourceFile source_files[]);
-  static Dart_KernelCompilationResult AllowDartInternalImport();
 
  protected:
   static Monitor* monitor_;

@@ -594,11 +594,6 @@ Dart_Handle TestCase::ReloadTestKernel(const void* kernel) {
 
 Dart_Handle TestCase::LoadCoreTestScript(const char* script,
                                          Dart_NativeEntryResolver resolver) {
-  if (FLAG_use_dart_frontend) {
-    // Sets a flag in the CFE to not throw an error if `dart:_internal` is
-    // imported from a non-internal library.
-    KernelIsolate::AllowDartInternalImport();
-  }
   return LoadTestScript(script, resolver, CORELIB_TEST_URI);
 }
 
