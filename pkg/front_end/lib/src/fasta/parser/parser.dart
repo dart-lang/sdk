@@ -1500,37 +1500,6 @@ class Parser {
     return token;
   }
 
-  /// Skip over the `Function` type parameter.
-  /// For example, `Function<E>(int foo)` or `Function(foo)` or just `Function`.
-  Token skipGenericFunctionType(Token token) {
-    Token last = token;
-    Token next = token.next;
-    while (optional('Function', next)) {
-      last = token;
-      token = next;
-      next = token.next;
-      if (optional('<', next)) {
-        next = next.endGroup;
-        if (next == null) {
-          // TODO(danrubel): Consider better recovery
-          // because this is probably a type reference.
-          return token;
-        }
-        token = next;
-        next = token.next;
-      }
-      if (optional('(', next)) {
-        token = next.endGroup;
-        next = token.next;
-      }
-    }
-    if (next.isKeywordOrIdentifier) {
-      return token;
-    } else {
-      return last;
-    }
-  }
-
   /// Returns `true` if [token] matches '<' type (',' type)* '>' '(', and
   /// otherwise returns `false`. The final '(' is not part of the grammar
   /// construct `typeArguments`, but it is required here such that type
@@ -2266,26 +2235,6 @@ class Parser {
     }
     listener.endTypeVariable(token.next, extendsOrSuper);
     return token;
-  }
-
-  /// Returns `true` if the stringValue of the [token] is either [value1],
-  /// [value2], or [value3].
-  bool isOneOf3(Token token, String value1, String value2, String value3) {
-    String stringValue = token.stringValue;
-    return identical(value1, stringValue) ||
-        identical(value2, stringValue) ||
-        identical(value3, stringValue);
-  }
-
-  /// Returns `true` if the stringValue of the [token] is either [value1],
-  /// [value2], [value3], or [value4].
-  bool isOneOf4(
-      Token token, String value1, String value2, String value3, String value4) {
-    String stringValue = token.stringValue;
-    return identical(value1, stringValue) ||
-        identical(value2, stringValue) ||
-        identical(value3, stringValue) ||
-        identical(value4, stringValue);
   }
 
   bool notEofOrValue(String value, Token token) {
@@ -3204,30 +3153,6 @@ class Parser {
     return expect(';', token);
   }
 
-  /// Provides a partial order on modifiers.
-  ///
-  /// The order is based on the order modifiers must appear in according to the
-  /// grammar. For example, `external` must come before `static`.
-  ///
-  /// In addition, if two modifiers have the same order, they can't both be
-  /// used together, for example, `final` and `var` can't be used together.
-  ///
-  /// If [token] isn't a modifier, 127 is returned.
-  int modifierOrder(Token token) {
-    final String value = token.stringValue;
-    if (identical('external', value)) return 0;
-    if (identical('static', value) || identical('covariant', value)) {
-      return 1;
-    }
-    if (identical('final', value) ||
-        identical('var', value) ||
-        identical('const', value)) {
-      return 2;
-    }
-    if (identical('abstract', value)) return 3;
-    return 127;
-  }
-
   Token parseNativeClause(Token token) {
     Token nativeToken = token = token.next;
     assert(optional('native', nativeToken));
@@ -3275,14 +3200,6 @@ class Parser {
     listener.endClassBody(count, begin, token);
     return token;
   }
-
-  bool isGetOrSet(Token token) {
-    final String value = token.stringValue;
-    return (identical(value, 'get')) || (identical(value, 'set'));
-  }
-
-  bool isModifierOrFactory(Token next) =>
-      optional('factory', next) || isModifier(next);
 
   bool isUnaryMinus(Token token) =>
       token.kind == IDENTIFIER_TOKEN &&
