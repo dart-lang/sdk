@@ -148,12 +148,10 @@ abstract class FutureOr<T> {
  */
 abstract class Future<T> {
   /// A `Future<Null>` completed with `null`.
-  static final _Future<Null> _nullFuture =
-      new _Future<Null>.zoneValue(null, Zone.root);
+  static final _Future<Null> _nullFuture = new _Future<Null>.value(null);
 
   /// A `Future<bool>` completed with `false`.
-  static final _Future<bool> _falseFuture =
-      new _Future<bool>.zoneValue(false, Zone.root);
+  static final _Future<bool> _falseFuture = new _Future<bool>.value(false);
 
   /**
    * Creates a future containing the result of calling [computation]
