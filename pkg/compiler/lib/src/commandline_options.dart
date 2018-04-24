@@ -67,6 +67,9 @@ class Flags {
   static const String verbose = '--verbose';
   static const String version = '--version';
 
+  /// Flag for a combination of flags for 'production' mode.
+  static const String benchmarkingProduction = '--benchmarking-production';
+
   static const String conditionalDirectives = '--conditional-directives';
 
   // The syntax-only level of support for generic methods is included in the

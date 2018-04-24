@@ -361,6 +361,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.strongMode, setStrongMode),
     new OptionHandler(Flags.previewDart2, setStrongMode),
     new OptionHandler(Flags.omitImplicitChecks, passThrough),
+    new OptionHandler(Flags.benchmarkingProduction, passThrough),
 
     // TODO(floitsch): remove conditional directives flag.
     // We don't provide the info-message yet, since we haven't publicly
