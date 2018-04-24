@@ -988,7 +988,6 @@ const_dynamic_type_literal_test/03: Pass # but it shouldn't until we fix issue 1
 extract_type_arguments_test: Crash # Issue 31371
 function_propagation_test: RuntimeError
 generic_test/01: MissingCompileTimeError # front end does not validate `extends`
-implicit_downcast_during_yield_star_test: RuntimeError
 instantiate_tearoff_of_call_test: RuntimeError
 instantiate_tearoff_test: RuntimeError
 mixin_type_parameter_inference_error_test/none: CompileTimeError

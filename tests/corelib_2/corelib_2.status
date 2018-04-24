@@ -161,6 +161,7 @@ package_resource_test: RuntimeError # Issue 26842
 
 [ $compiler == dart2js && $checked && $fasta && $strong ]
 apply3_test: RuntimeError
+collection_of_test: RuntimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
 from_environment_const_type_test/02: MissingCompileTimeError
 from_environment_const_type_test/03: MissingCompileTimeError
@@ -276,9 +277,6 @@ uri_test: RuntimeError
 
 [ $compiler == dart2js && !$fasta ]
 *: SkipByDesign
-
-[ $compiler == dart2js && $strong ]
-collection_of_test: RuntimeError
 
 [ $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $compiler != fasta ]
 iterable_element_at_test/static: MissingCompileTimeError
