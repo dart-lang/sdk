@@ -40,8 +40,8 @@ namespace dart {
 // Stack alignment: 4 bytes always, 8 bytes at public interfaces
 
 // Linux (Debian armhf) and Android also differ in whether floating point
-// arguments are passed in registers. Linux uses hardfp and Android uses
-// softfp. See TargetCPUFeatures::hardfp_supported().
+// arguments are passed in floating point registers. Linux uses hardfp and
+// Android uses softfp. See TargetCPUFeatures::hardfp_supported().
 
 // iOS ABI
 // See "iOS ABI Function Call Guide"
@@ -56,7 +56,7 @@ namespace dart {
 // R15:   Program counter
 // Stack alignment: 4 bytes always, 4 bytes at public interfaces
 
-// iOS passes floating point arguments in registers (hardfp)
+// iOS passes floating point arguments in integer registers (softfp)
 
 enum Register {
   R0 = 0,

@@ -82,7 +82,8 @@ DEFINE_FLAG(bool,
 #endif
 
 #if defined(USING_SIMULATOR)
-#if defined(TARGET_ARCH_ARM_5TE) || defined(TARGET_OS_ANDROID)
+#if defined(TARGET_ARCH_ARM_5TE) || defined(TARGET_OS_ANDROID) \
+    || defined(TARGET_OS_IOS)
 DEFINE_FLAG(bool, sim_use_hardfp, false, "Use the hardfp ABI.");
 #else
 DEFINE_FLAG(bool, sim_use_hardfp, true, "Use the hardfp ABI.");
@@ -150,7 +151,7 @@ void HostCPUFeatures::InitOnce() {
   vfp_supported_ = FLAG_use_vfp;
   integer_division_supported_ = FLAG_use_integer_division;
   neon_supported_ = FLAG_use_neon;
-  hardfp_supported_ = true;
+  hardfp_supported_ = false;
 #if defined(DEBUG)
   initialized_ = true;
 #endif
