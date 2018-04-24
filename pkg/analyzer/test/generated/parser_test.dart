@@ -218,7 +218,8 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
 
   Identifier parsePrefixedIdentifier(String code);
 
-  Expression parsePrimaryExpression(String code);
+  Expression parsePrimaryExpression(String code,
+      {int expectedEndOffset, List<ExpectedError> errors});
 
   Expression parseRelationalExpression(String code);
 
@@ -10139,9 +10140,14 @@ class ParserTestCase extends EngineTestCase
   }
 
   @override
-  Expression parsePrimaryExpression(String code) {
+  Expression parsePrimaryExpression(String code,
+      {int expectedEndOffset, List<ExpectedError> errors}) {
     createParser(code);
-    return parser.parsePrimaryExpression();
+    var expression = parser.parsePrimaryExpression();
+    if (errors != null) {
+      listener.assertErrors(errors);
+    }
+    return expression;
   }
 
   @override
@@ -10776,13 +10782,21 @@ class B = Object with A {}''',
   void test_expressionList_multiple_start() {
     List<Expression> result = parseExpressionList('1, 2, 3,');
     expectNotNullIfNoErrors(result);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 0)]);
-    expect(result, hasLength(4));
-    Expression syntheticExpression = result[3];
-    EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier,
-        SimpleIdentifier, syntheticExpression);
-    expect(syntheticExpression.isSynthetic, isTrue);
+    // The fasta parser does not use parseExpressionList when parsing for loops
+    // and instead parseExpressionList is mapped to parseExpression('[$code]')
+    // which allows and ignores an optional trailing comma.
+    if (usingFastaParser) {
+      listener.assertNoErrors();
+      expect(result, hasLength(3));
+    } else {
+      listener.assertErrors(
+          [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 0)]);
+      expect(result, hasLength(4));
+      Expression syntheticExpression = result[3];
+      EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier,
+          SimpleIdentifier, syntheticExpression);
+      expect(syntheticExpression.isSynthetic, isTrue);
+    }
   }
 
   void test_functionExpression_in_ConstructorFieldInitializer() {
@@ -10806,7 +10820,11 @@ class B = Object with A {}''',
   }
 
   void test_functionExpression_named() {
-    parseExpression("m(f() => 0);", codes: [ParserErrorCode.EXPECTED_TOKEN]);
+    parseExpression("m(f() => 0);", expectedEndOffset: 11, codes: [
+      usingFastaParser
+          ? ParserErrorCode.NAMED_FUNCTION_EXPRESSION
+          : ParserErrorCode.EXPECTED_TOKEN
+    ]);
   }
 
   void test_ifStatement_noElse_statement() {
@@ -11408,11 +11426,18 @@ class C {
   void test_isExpression_noType() {
     CompilationUnit unit = parseCompilationUnit(
         "class Bar<T extends Foo> {m(x){if (x is ) return;if (x is !)}}",
-        codes: [
-          ParserErrorCode.EXPECTED_TYPE_NAME,
-          ParserErrorCode.EXPECTED_TYPE_NAME,
-          ParserErrorCode.MISSING_STATEMENT
-        ]);
+        codes: usingFastaParser
+            ? [
+                ParserErrorCode.EXPECTED_TYPE_NAME,
+                ParserErrorCode.EXPECTED_TYPE_NAME,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN,
+              ]
+            : [
+                ParserErrorCode.EXPECTED_TYPE_NAME,
+                ParserErrorCode.EXPECTED_TYPE_NAME,
+                ParserErrorCode.MISSING_STATEMENT
+              ]);
     ClassDeclaration declaration = unit.declarations[0] as ClassDeclaration;
     MethodDeclaration method = declaration.members[0] as MethodDeclaration;
     BlockFunctionBody body = method.body as BlockFunctionBody;
@@ -11424,8 +11449,15 @@ class C {
     TypeAnnotation type = expression.type;
     expect(type, isNotNull);
     expect(type is TypeName && type.name.isSynthetic, isTrue);
-    EngineTestCase.assertInstanceOf((obj) => obj is EmptyStatement,
-        EmptyStatement, ifStatement.thenStatement);
+    if (usingFastaParser) {
+      ExpressionStatement thenStatement = ifStatement.thenStatement;
+      expect(thenStatement.semicolon.isSynthetic, isTrue);
+      SimpleIdentifier simpleId = thenStatement.expression;
+      expect(simpleId.isSynthetic, isTrue);
+    } else {
+      EngineTestCase.assertInstanceOf((obj) => obj is EmptyStatement,
+          EmptyStatement, ifStatement.thenStatement);
+    }
   }
 
   void test_keywordInPlaceOfIdentifier() {
@@ -11738,11 +11770,13 @@ class C {
   }
 
   void test_primaryExpression_argumentDefinitionTest() {
-    Expression expression = parsePrimaryExpression('?a');
+    SimpleIdentifier expression = parsePrimaryExpression('?a',
+        expectedEndOffset: 0,
+        errors: usingFastaParser
+            ? [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 0, 1)]
+            : [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 0, 1)]);
     expectNotNullIfNoErrors(expression);
-    listener
-        .assertErrors([expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 0, 1)]);
-    expect(expression, new isInstanceOf<SimpleIdentifier>());
+    expect(expression.isSynthetic, usingFastaParser);
   }
 
   void test_propertyAccess_missing_LHS_RHS() {

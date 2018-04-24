@@ -526,8 +526,14 @@ class AstBuilder extends ScopeListener {
     Statement elsePart = popIfNotNull(elseToken);
     Statement thenPart = pop();
     ParenthesizedExpression condition = pop();
-    push(ast.ifStatement(ifToken, condition.leftParenthesis, condition,
-        condition.rightParenthesis, thenPart, elseToken, elsePart));
+    push(ast.ifStatement(
+        ifToken,
+        condition.leftParenthesis,
+        condition.expression,
+        condition.rightParenthesis,
+        thenPart,
+        elseToken,
+        elsePart));
   }
 
   void handleNoInitializers() {
