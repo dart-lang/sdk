@@ -185,10 +185,6 @@ class Dart < Formula
   def caveats; <<~EOS
     Please note the path to the Dart SDK:
       #{opt_libexec}
-
-    --with-dartium:
-      To use with IntelliJ, set the Dartium execute home to:
-        #{opt_prefix}/Chromium.app
     EOS
   end
 
