@@ -26,8 +26,7 @@ main(List<String> args) {
         dataDir, computeMemberAstSideEffects, computeMemberIrSideEffects,
         args: args,
         options: [stopAfterTypeInference],
-        // TODO(johnniwinther): Run tests with strong mode.
-        testStrongMode: false);
+        skipForStrong: ['closure_call.dart']);
   });
 }
 
