@@ -37,6 +37,7 @@ mirrors/generic_bounded_test/01: MissingCompileTimeError
 mirrors/generic_bounded_test/02: MissingCompileTimeError
 mirrors/generic_interface_test/01: MissingCompileTimeError
 mirrors/generics_test/01: MissingCompileTimeError
+mirrors/metadata_allowed_values_test/16: MissingCompileTimeError
 mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
 mirrors/reflect_class_test/01: MissingCompileTimeError
 mirrors/reflect_class_test/02: MissingCompileTimeError
