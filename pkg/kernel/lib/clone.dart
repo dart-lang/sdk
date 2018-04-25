@@ -345,7 +345,8 @@ class CloneVisitor implements TreeVisitor {
       switchCases[switchCase] = new SwitchCase(
           switchCase.expressions.map(clone).toList(),
           new List<int>.from(switchCase.expressionOffsets),
-          null);
+          null,
+          isDefault: switchCase.isDefault);
     }
     return new SwitchStatement(
         clone(node.expression), node.cases.map(clone).toList());
