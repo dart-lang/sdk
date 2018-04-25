@@ -17,6 +17,8 @@ type ConstantPool {
   List<ConstantPoolEntry>
 }
 
+type ConstantIndex = UInt;
+
 abstract type ConstantPoolEntry {
   Byte tag;
 }
@@ -57,13 +59,13 @@ type ConstantArgDesc extends ConstantPoolEntry {
 type ConstantICData extends ConstantPoolEntry {
   Byte tag = 7;
   StringReference targetName;
-  UInt argDescConstantIndex;
+  ConstantIndex argDesc;
 }
 
 type ConstantStaticICData extends ConstantPoolEntry {
   Byte tag = 8;
   CanonicalNameReference target;
-  UInt argDescConstantIndex;
+  ConstantIndex argDesc;
 }
 
 type ConstantField extends ConstantPoolEntry {
@@ -104,19 +106,25 @@ type ConstantTypeArguments extends ConstantPoolEntry {
 type ConstantList extends ConstantPoolEntry {
   Byte tag = 16;
   NodeReference typeArg;
-  List<UInt> entries;
+  List<ConstantIndex> entries;
 }
 
 type ConstantInstance extends ConstantPoolEntry {
   Byte tag = 17;
   CanonicalNameReference class;
   UInt typeArgumentsConstantIndex;
-  List<Pair<CanonicalNameReference, UInt>> fieldValues;
+  List<Pair<CanonicalNameReference, ConstantIndex>> fieldValues;
 }
 
 type ConstantSymbol extends ConstantPoolEntry {
   Byte tag = 18;
   StringReference value;
+}
+
+type ConstantTypeArgumentsForInstanceAllocation extends ConstantPoolEntry {
+  Byte tag = 19;
+  CanonicalNameReference instantiatingClass;
+  ConstantIndex typeArguments;
 }
 
 */
@@ -141,6 +149,7 @@ enum ConstantTag {
   kList,
   kInstance,
   kSymbol,
+  kTypeArgumentsForInstanceAllocation,
 }
 
 abstract class ConstantPoolEntry {
@@ -196,6 +205,9 @@ abstract class ConstantPoolEntry {
         return new ConstantInstance.readFromBinary(source);
       case ConstantTag.kSymbol:
         return new ConstantSymbol.readFromBinary(source);
+      case ConstantTag.kTypeArgumentsForInstanceAllocation:
+        return new ConstantTypeArgumentsForInstanceAllocation.readFromBinary(
+            source);
     }
     throw 'Unexpected constant tag $tag';
   }
@@ -796,6 +808,49 @@ class ConstantSymbol extends ConstantPoolEntry {
   @override
   bool operator ==(other) =>
       other is ConstantSymbol && this.value == other.value;
+}
+
+class ConstantTypeArgumentsForInstanceAllocation extends ConstantPoolEntry {
+  final Reference _instantiatingClassRef;
+  final int _typeArgumentsConstantIndex;
+
+  Class get instantiatingClass => _instantiatingClassRef.asClass;
+
+  ConstantTypeArgumentsForInstanceAllocation(
+      Class instantiatingClass, int typeArgumentsConstantIndex)
+      : this.byReference(
+            instantiatingClass.reference, typeArgumentsConstantIndex);
+  ConstantTypeArgumentsForInstanceAllocation.byReference(
+      this._instantiatingClassRef, this._typeArgumentsConstantIndex);
+
+  @override
+  ConstantTag get tag => ConstantTag.kTypeArgumentsForInstanceAllocation;
+
+  @override
+  void writeValueToBinary(BinarySink sink) {
+    sink.writeCanonicalNameReference(
+        getCanonicalNameOfClass(instantiatingClass));
+    sink.writeUInt30(_typeArgumentsConstantIndex);
+  }
+
+  ConstantTypeArgumentsForInstanceAllocation.readFromBinary(BinarySource source)
+      : _instantiatingClassRef =
+            source.readCanonicalNameReference().getReference(),
+        _typeArgumentsConstantIndex = source.readUInt();
+
+  @override
+  String toString() =>
+      'TypeArgumentsForInstanceAllocation $instantiatingClass type-args CP#$_typeArgumentsConstantIndex';
+
+  @override
+  int get hashCode =>
+      instantiatingClass.hashCode * 31 + _typeArgumentsConstantIndex;
+
+  @override
+  bool operator ==(other) =>
+      other is ConstantTypeArgumentsForInstanceAllocation &&
+      this.instantiatingClass == other.instantiatingClass &&
+      this._typeArgumentsConstantIndex == other._typeArgumentsConstantIndex;
 }
 
 class ConstantPool {

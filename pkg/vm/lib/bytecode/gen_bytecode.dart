@@ -10,7 +10,6 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/transformations/constants.dart'
     show ConstantEvaluator, ConstantsBackend, EvaluationEnvironment;
-import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/vm/constants_native_effects.dart'
     show VmConstantsBackend;
@@ -165,7 +164,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     asm.emitPush(locals.thisVarIndex);
     initializer.accept(this);
 
-    // TODO(alexmarkov): field guards?
     // TODO(alexmarkov): assignability check
 
     final int cpIndex = cp.add(new ConstantFieldOffset(field));
@@ -240,18 +238,26 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     return function != null && function.typeParameters.isNotEmpty;
   }
 
-  void _genTypeArguments(List<DartType> typeArgs) {
-    final int typeArgsCPIndex = cp.add(new ConstantTypeArguments(typeArgs));
+  void _genTypeArguments(List<DartType> typeArgs, {Class instantiatingClass}) {
+    int typeArgsCPIndex = cp.add(new ConstantTypeArguments(typeArgs));
+    if (instantiatingClass != null) {
+      typeArgsCPIndex = cp.add(new ConstantTypeArgumentsForInstanceAllocation(
+          instantiatingClass, typeArgsCPIndex));
+    }
     if (typeArgs.isEmpty || !hasTypeParameters(typeArgs)) {
       asm.emitPushConstant(typeArgsCPIndex);
     } else {
       // TODO(alexmarkov): try to reuse instantiator type arguments
-      // TODO(alexmarkov): do not load instantiator type arguments / function type
-      // arguments if they are not needed for these particular [typeArgs].
-      _genPushInstantiatorTypeArguments();
-      _genPushFunctionTypeArguments();
+      _genPushInstantiatorAndFunctionTypeArguments(typeArgs);
       asm.emitInstantiateTypeArgumentsTOS(1, typeArgsCPIndex);
     }
+  }
+
+  void _genPushInstantiatorAndFunctionTypeArguments(List<DartType> types) {
+    // TODO(alexmarkov): do not load instantiator type arguments / function type
+    // arguments if they are not needed for these particular [types].
+    _genPushInstantiatorTypeArguments();
+    _genPushFunctionTypeArguments();
   }
 
   void _genPushInstantiatorTypeArguments() {
@@ -274,24 +280,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     } else {
       _genPushNull();
     }
-  }
-
-  List<DartType> _flattenTypeArgumentsForInstantiation(
-      Class instantiatedClass, List<DartType> typeArgs) {
-    assert(typeArgs.length == instantiatedClass.typeParameters.length);
-
-    List<DartType> flatTypeArgs;
-    final supertype = instantiatedClass.supertype;
-    if (supertype == null) {
-      flatTypeArgs = <DartType>[];
-    } else {
-      final substitution =
-          Substitution.fromPairs(instantiatedClass.typeParameters, typeArgs);
-      flatTypeArgs = _flattenTypeArgumentsForInstantiation(supertype.classNode,
-          substitution.substituteSupertype(supertype).typeArguments);
-    }
-    flatTypeArgs.addAll(typeArgs);
-    return flatTypeArgs;
   }
 
   /// Generates bool condition. Returns `true` if condition is negated.
@@ -415,10 +403,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return;
     }
     if (hasTypeParameters([node.type])) {
-      // TODO(alexmarkov): do not load instantiator type arguments / function
-      // type arguments if they are not needed for this particular type.
-      _genPushInstantiatorTypeArguments();
-      _genPushFunctionTypeArguments();
+      _genPushInstantiatorAndFunctionTypeArguments([node.type]);
     } else {
       _genPushNull(); // Instantiator type arguments.
       _genPushNull(); // Function type arguments.
@@ -480,9 +465,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final classIndex = cp.add(new ConstantClass(constructedClass));
 
     if (hasInstantiatorTypeArguments(constructedClass)) {
-      List<DartType> flatTypeArgs = _flattenTypeArgumentsForInstantiation(
-          constructedClass, node.arguments.types);
-      _genTypeArguments(flatTypeArgs);
+      _genTypeArguments(node.arguments.types,
+          instantiatingClass: constructedClass);
       asm.emitPushConstant(cp.add(new ConstantClass(constructedClass)));
       asm.emitAllocateT();
     } else {
@@ -540,10 +524,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     // TODO(alexmarkov): generate _simpleInstanceOf if possible
 
     if (hasTypeParameters([node.type])) {
-      // TODO(alexmarkov): do not load instantiator type arguments / function type
-      // arguments if they are not needed for this particular type.
-      _genPushInstantiatorTypeArguments();
-      _genPushFunctionTypeArguments();
+      _genPushInstantiatorAndFunctionTypeArguments([node.type]);
     } else {
       _genPushNull(); // Instantiator type arguments.
       _genPushNull(); // Function type arguments.
@@ -873,10 +854,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (!hasTypeParameters([type])) {
       asm.emitPushConstant(typeCPIndex);
     } else {
-      // TODO(alexmarkov): do not load instantiator type arguments / function type
-      // arguments if they are not needed for this particular [type].
-      _genPushInstantiatorTypeArguments();
-      _genPushFunctionTypeArguments();
+      _genPushInstantiatorAndFunctionTypeArguments([type]);
       asm.emitInstantiateType(typeCPIndex);
     }
   }
