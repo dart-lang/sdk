@@ -42,6 +42,9 @@ abstract class EvaluationEnvironment {
   DartType substByContext(
       covariant DartType base, covariant InterfaceType target);
 
+  /// Returns [type] in the context of the [enclosingConstructedType].
+  DartType getTypeInContext(DartType type);
+
   void reportWarning(
       ConstantExpression expression, MessageKind kind, Map arguments);
 
@@ -126,6 +129,47 @@ abstract class EvaluationEnvironmentBase implements EvaluationEnvironment {
     if (constantRequired) {
       reporter.reportWarningMessage(_spannable, kind, arguments);
     }
+  }
+
+  @override
+  DartType getTypeInContext(DartType type) {
+    // Running example for comments:
+    //
+    //     class A<T> {
+    //       final T t;
+    //       const A(dynamic t) : this.t = t; // implicitly `t as A.T`
+    //     }
+    //     class B<S> extends A<S> {
+    //       const B(dynamic s) : super(s);
+    //     }
+    //     main() => const B<num>(0);
+    //
+    // We visit `t as A.T` while evaluating `const B<num>(0)`.
+
+    // The `as` type is `A.T`.
+    DartType typeInContext = type;
+
+    // The enclosing type is `B<num>`.
+    DartType enclosingType = enclosingConstructedType;
+    if (enclosingType != null) {
+      ClassEntity contextClass;
+      type.forEachTypeVariable((TypeVariableType type) {
+        if (type.element.typeDeclaration is ClassEntity) {
+          // We find `A` from `A.T`. Since we don't have nested classes, class
+          // based type variables can only come from the same class.
+          contextClass = type.element.typeDeclaration;
+        }
+      });
+      if (contextClass != null) {
+        // The enclosing type `B<num>` as an instance of `A` is `A<num>`.
+        enclosingType = types.asInstanceOf(enclosingType, contextClass);
+      }
+      // `A.T` in the context of the enclosing type `A<num>` is `num`.
+      typeInContext = enclosingType != null
+          ? substByContext(typeInContext, enclosingType)
+          : typeInContext;
+    }
+    return typeInContext;
   }
 }
 

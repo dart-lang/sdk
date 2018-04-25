@@ -9,7 +9,7 @@ import '../common_elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../deferred_load.dart' show OutputUnit;
-import '../util/util.dart' show Hashing;
+import '../util/util.dart';
 
 enum ConstantValueKind {
   FUNCTION,
@@ -50,6 +50,8 @@ abstract class ConstantValueVisitor<R, A> {
   R visitDeferredGlobal(
       covariant DeferredGlobalConstantValue constant, covariant A arg);
   R visitNonConstant(covariant NonConstantValue constant, covariant A arg);
+  R visitInstantiation(
+      covariant InstantiationConstantValue constant, covariant A arg);
 }
 
 abstract class ConstantValue {
@@ -131,7 +133,7 @@ class FunctionConstantValue extends ConstantValue {
 
   List<ConstantValue> getDependencies() => const <ConstantValue>[];
 
-  DartType getType(CommonElements types) => type;
+  FunctionType getType(CommonElements types) => type;
 
   int get hashCode => (17 * element.hashCode) & 0x7fffffff;
 
@@ -775,7 +777,7 @@ class DeferredConstantValue extends ConstantValue {
         import == other.import;
   }
 
-  get hashCode => (referenced.hashCode * 17 + import.hashCode) & 0x3fffffff;
+  int get hashCode => (referenced.hashCode * 17 + import.hashCode) & 0x3fffffff;
 
   List<ConstantValue> getDependencies() => <ConstantValue>[referenced];
 
@@ -789,6 +791,45 @@ class DeferredConstantValue extends ConstantValue {
 
   String toStructuredText() {
     return 'DeferredConstant(${referenced.toStructuredText()})';
+  }
+}
+
+class InstantiationConstantValue extends ConstantValue {
+  final List<DartType> typeArguments;
+  final FunctionConstantValue function;
+
+  InstantiationConstantValue(this.typeArguments, this.function);
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    return other is InstantiationConstantValue &&
+        function == other.function &&
+        equalElements(typeArguments, other.typeArguments);
+  }
+
+  @override
+  int get hashCode {
+    return Hashing.objectHash(function, Hashing.listHash(typeArguments));
+  }
+
+  List<ConstantValue> getDependencies() => <ConstantValue>[function];
+
+  accept(ConstantValueVisitor visitor, arg) =>
+      visitor.visitInstantiation(this, arg);
+
+  DartType getType(CommonElements types) {
+    FunctionType type = function.getType(types);
+    return type.instantiate(typeArguments);
+  }
+
+  ConstantValueKind get kind => ConstantValueKind.DEFERRED;
+
+  String toDartText() =>
+      '<${typeArguments.join(', ')}>(${function.toDartText()})';
+
+  String toStructuredText() {
+    return 'InstantiationConstant($typeArguments,'
+        '${function.toStructuredText()})';
   }
 }
 

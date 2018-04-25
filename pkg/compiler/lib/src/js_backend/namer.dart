@@ -1880,6 +1880,11 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   }
 
   @override
+  void visitInstantiation(InstantiationConstantValue constant, [_]) {
+    _visit(constant.function);
+  }
+
+  @override
   void visitNull(NullConstantValue constant, [_]) {
     add('null');
   }
@@ -2078,6 +2083,11 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   @override
   int visitFunction(FunctionConstantValue constant, [_]) {
     return _hashString(1, constant.element.name);
+  }
+
+  @override
+  int visitInstantiation(InstantiationConstantValue constant, [_]) {
+    return _visit(constant.function);
   }
 
   @override

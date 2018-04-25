@@ -84,6 +84,12 @@ class ConstantValueTypeMasks
   }
 
   @override
+  TypeMask visitInstantiation(
+      InstantiationConstantValue constant, ClosedWorld closedWorld) {
+    return closedWorld.commonMasks.functionType;
+  }
+
+  @override
   TypeMask visitInt(IntConstantValue constant, ClosedWorld closedWorld) {
     if (constant.isUInt31()) return closedWorld.commonMasks.uint31Type;
     if (constant.isUInt32()) return closedWorld.commonMasks.uint32Type;

@@ -333,6 +333,14 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     return instantiation;
   }
 
+  @override
+  jsAst.Expression visitInstantiation(InstantiationConstantValue constant,
+      [_]) {
+    // TODO(sigmund, sra): add a runtime representation for constant
+    // instantiations. See issue 32774.
+    return constantReferenceGenerator(constant.function);
+  }
+
   String stripComments(String rawJavaScript) {
     return rawJavaScript.replaceAll(COMMENT_RE, '');
   }

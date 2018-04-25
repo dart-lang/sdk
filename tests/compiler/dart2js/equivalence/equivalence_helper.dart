@@ -951,6 +951,15 @@ class ConstantEquivalence
         strategy.testConstants(
             exp1, exp2, 'message', exp1.message, exp2.message);
   }
+
+  @override
+  bool visitInstantiation(InstantiationConstantExpression exp1,
+      covariant InstantiationConstantExpression exp2) {
+    return strategy.testTypeLists(exp1, exp2, 'typeArguments',
+            exp1.typeArguments, exp2.typeArguments) &&
+        strategy.testConstants(
+            exp1, exp2, 'expression', exp1.expression, exp2.expression);
+  }
 }
 
 /// Visitor that checks for structural equivalence of [ConstantValue]s.
@@ -1085,6 +1094,15 @@ class ConstantValueEquivalence
   bool visitInterceptor(InterceptorConstantValue value1,
       covariant InterceptorConstantValue value2) {
     return strategy.testElements(value1, value2, 'cls', value1.cls, value2.cls);
+  }
+
+  @override
+  bool visitInstantiation(InstantiationConstantValue value1,
+      covariant InstantiationConstantValue value2) {
+    return strategy.testTypeLists(value1, value2, 'typeArguments',
+            value1.typeArguments, value2.typeArguments) &&
+        strategy.testConstantValues(
+            value1, value2, 'function', value1.function, value2.function);
   }
 }
 

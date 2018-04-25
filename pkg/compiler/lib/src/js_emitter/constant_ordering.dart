@@ -240,6 +240,13 @@ class _ConstantOrdering
     if (r != 0) return r;
     return a.unit.compareTo(b.unit);
   }
+
+  int visitInstantiation(
+      InstantiationConstantValue a, InstantiationConstantValue b) {
+    int r = compareValues(a.function, b.function);
+    if (r != 0) return r;
+    return compareLists(compareDartTypes, a.typeArguments, b.typeArguments);
+  }
 }
 
 class _KindVisitor implements ConstantValueVisitor<int, Null> {
@@ -259,7 +266,8 @@ class _KindVisitor implements ConstantValueVisitor<int, Null> {
   static const int SYNTHETIC = 12;
   static const int DEFERRED = 13;
   static const int DEFERRED_GLOBAL = 14;
-  static const int NONCONSTANT = 13;
+  static const int NONCONSTANT = 15;
+  static const int INSTANTIATION = 16;
 
   static int kind(ConstantValue constant) =>
       constant.accept(const _KindVisitor(), null);
@@ -279,6 +287,7 @@ class _KindVisitor implements ConstantValueVisitor<int, Null> {
   int visitSynthetic(SyntheticConstantValue a, _) => SYNTHETIC;
   int visitDeferred(DeferredConstantValue a, _) => DEFERRED;
   int visitDeferredGlobal(DeferredGlobalConstantValue a, _) => DEFERRED_GLOBAL;
+  int visitInstantiation(InstantiationConstantValue a, _) => INSTANTIATION;
 }
 
 /// Visitor for distinguishing types by kind.
