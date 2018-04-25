@@ -683,7 +683,6 @@ covariance_field_test/05: RuntimeError
 ct_const_test: RuntimeError # Issue 2992; RangeError: Maximum call stack size exceeded
 custom_await_stack_trace_test: RuntimeError # Issue 29920; Uncaught Expect.equals(at index 0: Expected <Blah \x0ABloop\x0ABleep\x0A...>
 cyclic_type2_test: RuntimeError # Issue 29920; Uncaught ReferenceError: V is not defined
-cyclic_type_test/00: RuntimeError # Issue 32564: <dynamic> not printed.
 cyclic_type_test/02: RuntimeError # Issue 29920; Uncaught RangeError: Maximum call stack size exceeded
 cyclic_type_test/03: RuntimeError # Issue 29920; Uncaught ReferenceError: U is not defined
 cyclic_type_test/04: RuntimeError # Issue 29920; Uncaught ReferenceError: U is not defined
@@ -698,7 +697,6 @@ example_constructor_test: RuntimeError # Expect.equals(expected: <0 1 2 3 4 5 6 
 exception_test: RuntimeError # DDC doesn't implement NullThrownError?; Expect.isTrue(false) fails.
 expect_test: RuntimeError # Issue 29920; Expect.identical did not fail
 f_bounded_quantification3_test: RuntimeError # Issue 29920; Uncaught Error: type arguments should not be null: (F1, F2) => {
-f_bounded_quantification4_test: RuntimeError # Issue 32564: <dynamic> not printed.
 field3_test/01: MissingCompileTimeError
 field_increment_bailout_test: RuntimeError # Issue 29920; UnimplementedError: JsInstanceMirror.delegate unimplemented
 field_initialization_order_test/none: RuntimeError # Expect.equals(expected: <b.a.ai.bi.>, actual: <b.bi.a.ai.>) fails.
@@ -741,7 +739,6 @@ local_function_test/none: RuntimeError # Expect.equals(expected: <true>, actual:
 many_overridden_no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented; UnimplementedError: JsInstanceMirror.delegate unimplemented
 method_override7_test/03: MissingCompileTimeError # Issue 30514
 mint_arithmetic_test: RuntimeError # Issue 29920; Expect.equals(expected: <4294967297>, actual: <1>) fails.
-mixin_mixin6_test: RuntimeError # Issue 32564: <dynamic> not printed.
 modulo_test: RuntimeError # Ints and doubles are unified.; Expect.throws fails: Did not throw
 multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/04r: MissingCompileTimeError

@@ -114,8 +114,9 @@ class NullError extends Interceptor implements NoSuchMethodError {
 class JSFunction extends Interceptor {
   toString() {
     // If the function is a Type object, we should just display the type name.
+    //
     // Regular Dart code should typically get wrapped type objects instead of
-    // raw type (aka JS constructor) objects however raw type objects can be
+    // raw type (aka JS constructor) objects, however raw type objects can be
     // exposed to Dart code via JS interop or debugging tools.
     if (dart.isType(this)) return dart.typeName(this);
 
