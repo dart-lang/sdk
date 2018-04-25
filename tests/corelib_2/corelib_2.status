@@ -613,5 +613,4 @@ regexp/UC16_test: RuntimeError
 
 [ $hot_reload || $hot_reload_rollback ]
 bigint_parse_radix_test: Pass, Timeout # Issue 31659
-bigint_test: Pass, Crash # Issue 31660
 integer_parsed_mul_div_vm_test: Pass, Slow # Slow
