@@ -1981,23 +1981,9 @@ class Parser {
       } else if (next.isKeywordOrIdentifier) {
         reportRecoverableErrorWithToken(next, context.recoveryTemplate);
         token = next;
-      } else if (next.isUserDefinableOperator &&
-          context == IdentifierContext.methodDeclaration) {
-        // If this is a user definable operator, then assume that the user has
-        // forgotten the `operator` keyword.
-        token = rewriteAndRecover(token, fasta.messageMissingOperatorKeyword,
-            new SyntheticKeywordToken(Keyword.OPERATOR, next.offset));
-        return parseOperatorName(token);
       } else {
         reportRecoverableErrorWithToken(next, context.recoveryTemplate);
-        if (context == IdentifierContext.methodDeclaration) {
-          // Since the token is not a keyword or identifier, consume it to
-          // ensure forward progress in parseMethod.
-          token = next.next;
-          // Supply a non-empty method name so that it does not accidentally
-          // match the default constructor.
-          token = insertSyntheticIdentifier(next, context);
-        } else if (context == IdentifierContext.topLevelVariableDeclaration ||
+        if (context == IdentifierContext.topLevelVariableDeclaration ||
             context == IdentifierContext.fieldDeclaration) {
           // Since the token is not a keyword or identifier, consume it to
           // ensure forward progress in parseField.
@@ -2097,9 +2083,6 @@ class Parser {
     } else if (context == IdentifierContext.localFunctionDeclaration ||
         context == IdentifierContext.localFunctionDeclarationContinuation) {
       followingValues = ['.', '(', '{', '=>'];
-    } else if (context == IdentifierContext.methodDeclaration ||
-        context == IdentifierContext.methodDeclarationContinuation) {
-      followingValues = ['.', '(', '{', '=>'];
     } else if (context == IdentifierContext.topLevelFunctionDeclaration) {
       followingValues = ['(', '{', '=>'];
     } else if (context == IdentifierContext.topLevelVariableDeclaration) {
@@ -2180,10 +2163,6 @@ class Parser {
     } else if (context ==
         IdentifierContext.localFunctionDeclarationContinuation) {
       initialKeywords = statementKeywords();
-    } else if (context == IdentifierContext.methodDeclaration) {
-      initialKeywords = classMemberKeywords();
-    } else if (context == IdentifierContext.methodDeclarationContinuation) {
-      initialKeywords = classMemberKeywords();
     } else if (context == IdentifierContext.topLevelFunctionDeclaration) {
       initialKeywords = topLevelKeywords();
     } else if (context == IdentifierContext.topLevelVariableDeclaration) {

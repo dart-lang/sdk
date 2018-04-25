@@ -142,8 +142,7 @@ class IdentifierContext {
 
   /// Identifier is the start of the name being declared by a method
   /// declaration.
-  static const methodDeclaration =
-      const IdentifierContext('methodDeclaration', inDeclaration: true);
+  static const methodDeclaration = const MethodDeclarationIdentifierContext();
 
   /// Identifier is part of the name being declared by a method declaration,
   /// but it's not the first identifier of the name.
@@ -151,10 +150,8 @@ class IdentifierContext {
   /// In valid Dart, this can only happen if the identifier is the name of a
   /// named constructor which is being declared, e.g. `foo` in
   /// `class C { C.foo(); }`.
-  static const methodDeclarationContinuation = const IdentifierContext(
-      'methodDeclarationContinuation',
-      inDeclaration: true,
-      isContinuation: true);
+  static const methodDeclarationContinuation =
+      const MethodDeclarationIdentifierContext.continuation();
 
   /// Identifier appears after the word `operator` in a method declaration.
   ///

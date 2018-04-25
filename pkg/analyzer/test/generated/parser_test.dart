@@ -3947,6 +3947,18 @@ class Wrong<T> {
     ]);
   }
 
+  void test_invalidConstructorName_star() {
+    createParser("C.*();");
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 2, 1)]
+        : [
+            expectedError(ParserErrorCode.MISSING_IDENTIFIER, 2, 1),
+            expectedError(ParserErrorCode.MISSING_KEYWORD_OPERATOR, 2, 1)
+          ]);
+  }
+
   void test_invalidHexEscape_invalidDigit() {
     StringLiteral literal = parseExpression("'\\x0 a'",
         errors: [expectedError(ParserErrorCode.INVALID_HEX_ESCAPE, 1, 3)]);
