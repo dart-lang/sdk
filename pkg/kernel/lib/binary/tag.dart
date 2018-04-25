@@ -147,6 +147,7 @@ abstract class ConstantTag {
   static const int MapConstant = 5;
   static const int ListConstant = 6;
   static const int InstanceConstant = 7;
-  static const int TearOffConstant = 8;
-  static const int TypeLiteralConstant = 9;
+  static const int PartialInstantiationConstant = 8;
+  static const int TearOffConstant = 9;
+  static const int TypeLiteralConstant = 10;
 }

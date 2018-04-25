@@ -5386,6 +5386,34 @@ class InstanceConstant extends Constant {
   }
 }
 
+class PartialInstantiationConstant extends Constant {
+  final TearOffConstant tearOffConstant;
+  final List<DartType> types;
+
+  PartialInstantiationConstant(this.tearOffConstant, this.types);
+
+  visitChildren(Visitor v) {
+    tearOffConstant.acceptReference(v);
+    visitList(types, v);
+  }
+
+  accept(ConstantVisitor v) => v.visitPartialInstantiationConstant(this);
+  acceptReference(Visitor v) =>
+      v.visitPartialInstantiationConstantReference(this);
+
+  String toString() {
+    return '${runtimeType}(${tearOffConstant.procedure}<${types.join(', ')}>)';
+  }
+
+  int get hashCode => tearOffConstant.hashCode ^ listHashCode(types);
+
+  bool operator ==(Object other) {
+    return other is PartialInstantiationConstant &&
+        other.tearOffConstant == tearOffConstant &&
+        listEquals(other.types, types);
+  }
+}
+
 class TearOffConstant extends Constant {
   final Reference procedureReference;
 

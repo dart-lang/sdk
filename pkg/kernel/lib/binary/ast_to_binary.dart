@@ -175,6 +175,14 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
         writeCanonicalNameReference(fieldRef.canonicalName);
         writeConstantReference(value);
       });
+    } else if (constant is PartialInstantiationConstant) {
+      writeByte(ConstantTag.PartialInstantiationConstant);
+      writeConstantReference(constant.tearOffConstant);
+      final int length = constant.types.length;
+      writeUInt30(length);
+      for (int i = 0; i < length; ++i) {
+        writeDartType(constant.types[i]);
+      }
     } else if (constant is TearOffConstant) {
       writeByte(ConstantTag.TearOffConstant);
       writeCanonicalNameReference(constant.procedure.canonicalName);
@@ -1894,6 +1902,19 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitStringConstantReference(StringConstant node) {
     throw new UnsupportedError('serialization of StringConstant references');
+  }
+
+  @override
+  void visitPartialInstantiationConstant(PartialInstantiationConstant node) {
+    throw new UnsupportedError(
+        'serialization of PartialInstantiationConstants ');
+  }
+
+  @override
+  void visitPartialInstantiationConstantReference(
+      PartialInstantiationConstant node) {
+    throw new UnsupportedError(
+        'serialization of PartialInstantiationConstant references');
   }
 
   @override

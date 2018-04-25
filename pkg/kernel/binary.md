@@ -902,9 +902,20 @@ type InstanceConstant extends Constant {
   List<[FieldReference, ConstantReference]> values;
 }
 
-type TearOffConstant extends Constant {
+type PartialInstantiationConstant extends Constant {
   Byte tag = 8;
+  ConstantReference tearOffConstant;
+  List<DartType> typeArguments;
+}
+
+type TearOffConstant extends Constant {
+  Byte tag = 9;
   CanonicalNameReference staticProcedureReference;
+}
+
+type TypeLiteralConstant extends Constant {
+  Byte tag = 10;
+  DartType type;
 }
 
 abstract type Statement extends Node {}

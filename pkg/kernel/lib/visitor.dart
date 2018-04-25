@@ -283,6 +283,8 @@ class ConstantVisitor<R> {
   R visitMapConstant(MapConstant node) => defaultConstant(node);
   R visitListConstant(ListConstant node) => defaultConstant(node);
   R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
+  R visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
+      defaultConstant(node);
   R visitTearOffConstant(TearOffConstant node) => defaultConstant(node);
   R visitTypeLiteralConstant(TypeLiteralConstant node) => defaultConstant(node);
 }
@@ -334,6 +336,8 @@ class Visitor<R> extends TreeVisitor<R>
   R visitMapConstant(MapConstant node) => defaultConstant(node);
   R visitListConstant(ListConstant node) => defaultConstant(node);
   R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
+  R visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
+      defaultConstant(node);
   R visitTearOffConstant(TearOffConstant node) => defaultConstant(node);
   R visitTypeLiteralConstant(TypeLiteralConstant node) => defaultConstant(node);
 
@@ -358,6 +362,9 @@ class Visitor<R> extends TreeVisitor<R>
   R visitListConstantReference(ListConstant node) =>
       defaultConstantReference(node);
   R visitInstanceConstantReference(InstanceConstant node) =>
+      defaultConstantReference(node);
+  R visitPartialInstantiationConstantReference(
+          PartialInstantiationConstant node) =>
       defaultConstantReference(node);
   R visitTearOffConstantReference(TearOffConstant node) =>
       defaultConstantReference(node);

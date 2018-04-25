@@ -8791,6 +8791,13 @@ class Closure : public Instance {
                          const Context& context,
                          Heap::Space space = Heap::kNew);
 
+  static RawClosure* New(const TypeArguments& instantiator_type_arguments,
+                         const TypeArguments& function_type_arguments,
+                         const TypeArguments& delayed_type_arguments,
+                         const Function& function,
+                         const Context& context,
+                         Heap::Space space = Heap::kNew);
+
   RawFunction* GetInstantiatedSignature(Zone* zone) const;
 
  private:

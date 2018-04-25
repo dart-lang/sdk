@@ -22765,6 +22765,16 @@ RawClosure* Closure::New(const TypeArguments& instantiator_type_arguments,
                          const Function& function,
                          const Context& context,
                          Heap::Space space) {
+  return Closure::New(instantiator_type_arguments, function_type_arguments,
+                      Object::empty_type_arguments(), function, context, space);
+}
+
+RawClosure* Closure::New(const TypeArguments& instantiator_type_arguments,
+                         const TypeArguments& function_type_arguments,
+                         const TypeArguments& delayed_type_arguments,
+                         const Function& function,
+                         const Context& context,
+                         Heap::Space space) {
   Closure& result = Closure::Handle();
   {
     RawObject* raw =
@@ -22776,7 +22786,7 @@ RawClosure* Closure::New(const TypeArguments& instantiator_type_arguments,
     result.StorePointer(&result.raw_ptr()->function_type_arguments_,
                         function_type_arguments.raw());
     result.StorePointer(&result.raw_ptr()->delayed_type_arguments_,
-                        Object::empty_type_arguments().raw());
+                        delayed_type_arguments.raw());
     result.StorePointer(&result.raw_ptr()->function_, function.raw());
     result.StorePointer(&result.raw_ptr()->context_, context.raw());
   }
