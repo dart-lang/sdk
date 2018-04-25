@@ -176,6 +176,53 @@ method() {
         selectionLength: 22);
   }
 
+  @failingTest
+  test_withOverrideAnnotation() async {
+    addTestSource('''
+class A {
+  method() {}
+  int age;
+}
+
+class B extends A {
+  @override
+  ^
+}
+''');
+    await computeSuggestions();
+    _assertOverride('''
+method() {
+    // TODO: implement method
+    return super.method();
+  }''',
+        displayText: 'method() { … }',
+        selectionOffset: 45,
+        selectionLength: 22);
+  }
+
+  @failingTest
+  test_insideBareClass() async {
+    addTestSource('''
+class A {
+  method() {}
+  int age;
+}
+
+class B extends A {
+  ^
+}
+''');
+    await computeSuggestions();
+    _assertOverride('''
+method() {
+    // TODO: implement method
+    return super.method();
+  }''',
+        displayText: 'method() { … }',
+        selectionOffset: 45,
+        selectionLength: 22);
+  }
+
   CompletionSuggestion _assertOverride(String completion,
       {String displayText, int selectionOffset, int selectionLength}) {
     CompletionSuggestion cs = getSuggest(
