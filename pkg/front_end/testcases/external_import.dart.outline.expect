@@ -3,6 +3,7 @@
 @dart._internal::ExternalName::•("file:///usr/local/somewhere")
 library;
 import self as self;
+import "dart:_internal" as _in;
 
 static method main() → dynamic
   ;

@@ -409,6 +409,7 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   accept(TreeVisitor v) => v.visitLibrary(this);
 
   visitChildren(Visitor v) {
+    visitList(annotations, v);
     visitList(dependencies, v);
     visitList(parts, v);
     visitList(typedefs, v);
@@ -418,6 +419,7 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   }
 
   transformChildren(Transformer v) {
+    transformList(annotations, v, this);
     transformList(dependencies, v, this);
     transformList(parts, v, this);
     transformList(typedefs, v, this);
