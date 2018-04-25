@@ -16,12 +16,15 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/lint/analysis.dart';
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/io.dart';
+import 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 import 'package:analyzer/src/lint/project.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart' show Linter;
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
+
+export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 
 typedef Printer(String msg);
 
@@ -319,6 +322,14 @@ class Maturity implements Comparable<Maturity> {
   int compareTo(Maturity other) => this.ordinal - other.ordinal;
 }
 
+/// [LintRule]s that implement this interface want to process only some types
+/// of AST nodes, and will register their processors in the registry.
+abstract class NodeLintRule {
+  /// This method is invoked to let the [LintRule] register node processors
+  /// in the given [registry].
+  void registerNodeProcessors(NodeLintRegistry registry);
+}
+
 class PrintingReporter implements Reporter, Logger {
   final Printer _print;
 
@@ -421,6 +432,15 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   Iterable<AnalysisErrorInfo> _lintPubspecFile(File sourceFile) =>
       lintPubspecSource(
           contents: sourceFile.readAsStringSync(), sourcePath: sourceFile.path);
+}
+
+/// [LintRule]s that implement this interface want to handle the whole
+/// unit themselves. Use this mostly for lints that look at some top-level
+/// declarations, or directives. Do not use it to perform full unit visit when
+/// looking only for some types of nodes; for this implement [NodeLintRule]
+/// instead.
+abstract class UnitLintRule {
+  void processUnit(CompilationUnit unit);
 }
 
 class _LintCode extends LintCode {
