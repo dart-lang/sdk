@@ -11,6 +11,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../utils.dart';
+import '../../summary/element_text.dart';
 import 'strong_test_helper.dart';
 
 void main() {
@@ -3527,58 +3528,12 @@ var x = f();
     expect(x.type.toString(), 'void');
   }
 
-  test_instantiateToBounds_generic2_hasBound_definedAfter() async {
-    var unit = await checkFileElement(r'''
-class B<T extends /*error:NOT_INSTANTIATED_BOUND*/A> {}
-class A<T extends int> {}
-B v = null;
-''');
-    expect(unit.topLevelVariables[0].type.toString(), 'B<A<dynamic>>');
-  }
-
-  test_instantiateToBounds_generic2_hasBound_definedBefore() async {
-    var unit = await checkFileElement(r'''
-class A<T extends int> {}
-class B<T extends /*error:NOT_INSTANTIATED_BOUND*/A> {}
-B v = null;
-''');
-    expect(unit.topLevelVariables[0].type.toString(), 'B<A<dynamic>>');
-  }
-
-  test_instantiateToBounds_generic2_noBound() async {
-    var unit = await checkFileElement(r'''
-class A<T> {}
-class B<T extends A> {}
-B v = null;
-''');
-    expect(unit.topLevelVariables[0].type.toString(), 'B<A<dynamic>>');
-  }
-
-  test_instantiateToBounds_generic_hasBound_definedAfter() async {
-    var unit = await checkFileElement(r'''
-A v = null;
-class A<T extends int> {}
-''');
-    expect(unit.topLevelVariables[0].type.toString(), 'A<int>');
-  }
-
-  test_instantiateToBounds_generic_hasBound_definedBefore() async {
-    var unit = await checkFileElement(r'''
-class A<T extends int> {}
-A v = null;
-''');
-    expect(unit.topLevelVariables[0].type.toString(), 'A<int>');
-  }
-
   test_instantiateToBounds_invokeConstructor_noBound() async {
-    var unit = await checkFile('''
+    var unit = await checkFileElement('''
 class C<T> {}
-main() {
-  var v = new C();
-}
+var x = /*info:INFERRED_TYPE_ALLOCATION*/new C();
 ''');
-    var v = findLocalVariable(unit, 'v');
-    expect(v.type.toString(), 'C<dynamic>');
+    expect(unit.topLevelVariables[0].type.toString(), 'C<dynamic>');
   }
 
   test_instantiateToBounds_invokeConstructor_typeArgsExact() async {
@@ -3595,7 +3550,128 @@ class A {}
 class B<T extends A> {}
 B v = null;
 ''');
-    expect(unit.topLevelVariables[0].type.toString(), 'B<A>');
+    checkElementText(unit.library, r'''
+class A {
+}
+class B<T extends A> {
+}
+B<A> v;
+''');
+  }
+
+  test_instantiateToBounds_typeName_error1() async {
+    var unit = await checkFileElement(r'''
+class A<T1 extends int, T2 extends T1> {}
+class B<T extends /*error:NOT_INSTANTIATED_BOUND*/A> {}
+B v = null;
+''');
+    checkElementText(unit.library, r'''
+class A<T1 extends int, T2 extends T1> {
+}
+class B<T extends A<int, int>> {
+}
+B<A<int, int>> v;
+''');
+  }
+
+  test_instantiateToBounds_typeName_error2() async {
+    var unit = await checkFileElement(r'''
+class A<T1 extends T2, T2 extends int> {}
+class B<T extends /*error:NOT_INSTANTIATED_BOUND*/A> {}
+B v = null;
+''');
+    checkElementText(unit.library, r'''
+class A<T1 extends T2, T2 extends int> {
+}
+class B<T extends A<int, int>> {
+}
+B<A<int, int>> v;
+''');
+  }
+
+  test_instantiateToBounds_typeName_error3() async {
+    var unit = await checkFileElement(r'''
+class A<T1 extends int, T2 extends List<T1>> {}
+class B<T extends /*error:NOT_INSTANTIATED_BOUND*/A> {}
+B v = null;
+''');
+    checkElementText(unit.library, r'''
+class A<T1 extends int, T2 extends List<T1>> {
+}
+class B<T extends A<int, List<int>>> {
+}
+B<A<int, List<int>>> v;
+''');
+  }
+
+  @failingTest
+  test_instantiateToBounds_typeName_OK_hasBound_definedAfter() async {
+    var unit = await checkFileElement(r'''
+class B<T extends A> {}
+class A<T extends int> {}
+B v = null;
+''');
+    checkElementText(unit.library, r'''
+class B<T extends A<int>> {
+}
+class A<T extends int> {
+}
+B<A<int>> v;
+''');
+  }
+
+  test_instantiateToBounds_typeName_OK_hasBound_definedBefore() async {
+    var unit = await checkFileElement(r'''
+class A<T extends int> {}
+class B<T extends A> {}
+B v = null;
+''');
+    checkElementText(unit.library, r'''
+class A<T extends int> {
+}
+class B<T extends A<int>> {
+}
+B<A<int>> v;
+''');
+  }
+
+  test_instantiateToBounds_typeName_OK_inBound_hasBound_definedAfter() async {
+    var unit = await checkFileElement(r'''
+A v = null;
+class A<T extends int> {}
+''');
+    checkElementText(unit.library, r'''
+class A<T extends int> {
+}
+A<int> v;
+''');
+  }
+
+  test_instantiateToBounds_typeName_OK_inBound_hasBound_definedBefore() async {
+    var unit = await checkFileElement(r'''
+class A<T extends int> {}
+A v = null;
+''');
+    checkElementText(unit.library, r'''
+class A<T extends int> {
+}
+A<int> v;
+''');
+  }
+
+  test_instantiateToBounds_typeName_OK_noBound() async {
+    var unit = await checkFileElement(r'''
+class A<T> {}
+class B<T extends A> {}
+B v = null;
+''');
+    checkElementText(unit.library, r'''
+class A<T> {
+}
+class B<T extends A<dynamic>> {
+}
+B<A<dynamic>> v;
+''');
   }
 
   test_lambdaDoesNotHavePropagatedTypeHint() async {
@@ -4354,8 +4430,31 @@ class InferredTypeTest_Driver extends InferredTypeTest {
   bool get hasExtraTaskModelPass => false;
 
   @override
+  test_instantiateToBounds_typeName_OK_hasBound_definedAfter() async {
+    await super.test_instantiateToBounds_typeName_OK_hasBound_definedAfter();
+  }
+
+  @override
+  test_listLiteralsCanInferNull_topLevel() =>
+      super.test_listLiteralsCanInferNull_topLevel();
+
+  @override
+  test_mapLiteralsCanInferNull_topLevel() =>
+      super.test_mapLiteralsCanInferNull_topLevel();
+
+  @override
+  test_nullCoalescingOperator() async {
+    await super.test_nullCoalescingOperator();
+  }
+
+  @override
   test_circularReference_viaClosures() async {
     await super.test_circularReference_viaClosures();
+  }
+
+  @override
+  test_unsafeBlockClosureInference_closureCall() async {
+    await super.test_unsafeBlockClosureInference_closureCall();
   }
 
   @override

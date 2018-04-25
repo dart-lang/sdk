@@ -1792,7 +1792,7 @@ class AstComparator implements AstVisitor<bool> {
         isEqualTokens(node.modifierKeyword, other.modifierKeyword) &&
         isEqualNodes(node.returnType, other.returnType) &&
         isEqualTokens(node.propertyKeyword, other.propertyKeyword) &&
-        isEqualTokens(node.propertyKeyword, other.propertyKeyword) &&
+        isEqualTokens(node.operatorKeyword, other.operatorKeyword) &&
         isEqualNodes(node.name, other.name) &&
         isEqualNodes(node.parameters, other.parameters) &&
         isEqualNodes(node.body, other.body);

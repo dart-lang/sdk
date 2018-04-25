@@ -70,6 +70,9 @@ class FlutterAnalyzeBenchmark extends Benchmark {
       deleteServerCache();
     }
 
+    final String dartSdkPath =
+        path.dirname(path.dirname(Platform.resolvedExecutable));
+
     final Stopwatch stopwatch = new Stopwatch()..start();
 
     await _runProcess(
@@ -78,6 +81,8 @@ class FlutterAnalyzeBenchmark extends Benchmark {
         'packages/flutter_tools/bin/flutter_tools.dart',
         'analyze',
         '--flutter-repo',
+        '--dart-sdk',
+        dartSdkPath,
       ],
       cwd: flutterDir.path,
       failOnError: false,

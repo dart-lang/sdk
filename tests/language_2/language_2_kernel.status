@@ -53,11 +53,8 @@ implicit_creation/implicit_const_not_default_values_test/e7: MissingCompileTimeE
 implicit_creation/implicit_const_not_default_values_test/e8: MissingCompileTimeError
 
 [ $fasta ]
-abstract_factory_constructor_test/00: MissingCompileTimeError # Issue 32013.
-abstract_getter_test/01: MissingCompileTimeError # Issue 32013.
-abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue 32013.
+abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue 32014.
 abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue 32014.
-abstract_syntax_test/00: MissingCompileTimeError # Issue 32013.
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue 32014.
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError # Issue 32014.
 async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
@@ -71,8 +68,6 @@ bad_override_test/02: MissingCompileTimeError
 call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
 check_member_static_test/01: MissingCompileTimeError
-closure_invoked_through_interface_target_field_test: MissingCompileTimeError
-closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 compile_time_constant_o_test/01: MissingCompileTimeError
 compile_time_constant_o_test/02: MissingCompileTimeError
 const_cast2_test/01: CompileTimeError
@@ -102,7 +97,6 @@ deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTim
 duplicate_export_negative_test: Fail # Issue 6134
 f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
-factory2_test/03: MissingCompileTimeError
 factory4_test/00: MissingCompileTimeError
 field3_test/01: MissingCompileTimeError
 field_override_test/00: MissingCompileTimeError
@@ -115,8 +109,6 @@ identical_const_test/01: MissingCompileTimeError
 identical_const_test/02: MissingCompileTimeError
 identical_const_test/03: MissingCompileTimeError
 identical_const_test/04: MissingCompileTimeError
-implicit_this_test/01: MissingCompileTimeError
-implicit_this_test/04: MissingCompileTimeError
 issue31596_override_test/07: MissingCompileTimeError
 issue31596_override_test/08: MissingCompileTimeError
 issue31596_super_test/02: MissingCompileTimeError
@@ -176,45 +168,14 @@ mixin_type_parameters_errors_test/04: MissingCompileTimeError
 mixin_type_parameters_errors_test/05: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError # Fasta bug: Default values are not allowed on redirecting factory constructors.
-nsm5_test: MissingCompileTimeError
 override_field_test/02: MissingCompileTimeError
 override_field_test/03: MissingCompileTimeError
-override_inheritance_abstract_test/02: MissingCompileTimeError
-override_inheritance_abstract_test/03: MissingCompileTimeError
-override_inheritance_abstract_test/04: MissingCompileTimeError
-override_inheritance_abstract_test/08: MissingCompileTimeError
-override_inheritance_abstract_test/09: MissingCompileTimeError
-override_inheritance_abstract_test/10: MissingCompileTimeError
-override_inheritance_abstract_test/11: MissingCompileTimeError
-override_inheritance_abstract_test/12: MissingCompileTimeError
-override_inheritance_abstract_test/13: MissingCompileTimeError
-override_inheritance_abstract_test/14: MissingCompileTimeError
-override_inheritance_abstract_test/17: MissingCompileTimeError
-override_inheritance_abstract_test/19: MissingCompileTimeError
-override_inheritance_abstract_test/20: MissingCompileTimeError
-override_inheritance_abstract_test/21: MissingCompileTimeError
-override_inheritance_abstract_test/22: MissingCompileTimeError
-override_inheritance_abstract_test/23: MissingCompileTimeError
-override_inheritance_abstract_test/24: MissingCompileTimeError
-override_inheritance_abstract_test/25: MissingCompileTimeError
-override_inheritance_abstract_test/26: MissingCompileTimeError
 override_inheritance_field_test/44: MissingCompileTimeError
 override_inheritance_field_test/47: MissingCompileTimeError
 override_inheritance_field_test/48: MissingCompileTimeError
 override_inheritance_field_test/53: MissingCompileTimeError
 override_inheritance_field_test/54: MissingCompileTimeError
-override_inheritance_mixed_test/06: MissingCompileTimeError
-override_inheritance_mixed_test/07: MissingCompileTimeError
 override_inheritance_mixed_test/09: MissingCompileTimeError
-override_inheritance_no_such_method_test/01: MissingCompileTimeError
-override_inheritance_no_such_method_test/02: MissingCompileTimeError
-override_inheritance_no_such_method_test/05: MissingCompileTimeError
-override_inheritance_no_such_method_test/06: MissingCompileTimeError
-override_inheritance_no_such_method_test/07: MissingCompileTimeError
-override_inheritance_no_such_method_test/09: MissingCompileTimeError
-override_inheritance_no_such_method_test/10: MissingCompileTimeError
-override_inheritance_no_such_method_test/12: MissingCompileTimeError
-override_inheritance_no_such_method_test/13: MissingCompileTimeError
 partial_tearoff_instantiation_test/05: MissingCompileTimeError
 partial_tearoff_instantiation_test/06: MissingCompileTimeError
 partial_tearoff_instantiation_test/07: MissingCompileTimeError
@@ -233,14 +194,14 @@ switch_bad_case_test/02: MissingCompileTimeError # KernelVM bug: Constant evalua
 switch_case_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 switch_case_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 switch_case_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-syntax_test/28: MissingCompileTimeError
-syntax_test/29: MissingCompileTimeError
-syntax_test/30: MissingCompileTimeError
-syntax_test/31: MissingCompileTimeError
-syntax_test/32: MissingCompileTimeError
-syntax_test/33: MissingCompileTimeError
-syntax_test/60: MissingCompileTimeError
-syntax_test/61: MissingCompileTimeError
+syntax_test/28: MissingCompileTimeError # Issue 29763
+syntax_test/29: MissingCompileTimeError # Issue 29763
+syntax_test/30: MissingCompileTimeError # Issue 29763
+syntax_test/31: MissingCompileTimeError # Issue 29763
+syntax_test/32: MissingCompileTimeError # Issue 29763
+syntax_test/33: MissingCompileTimeError # Issue 29763
+syntax_test/60: MissingCompileTimeError # Issue 30176
+syntax_test/61: MissingCompileTimeError # Issue 30176
 type_variable_bounds2_test: MissingCompileTimeError
 type_variable_bounds3_test/00: MissingCompileTimeError
 type_variable_bounds4_test/01: MissingCompileTimeError
@@ -490,13 +451,6 @@ await_test: RuntimeError
 [ $arch != simarm && $arch != simarm64 && $arch != simdbc64 && $compiler == dartk ]
 export_ambiguous_main_test: MissingCompileTimeError
 
-[ $arch == simdbc64 && $compiler == dartk && $mode == debug && $strong ]
-partial_tearoff_instantiation_test/05: Crash # Issue http://dartbug.com/32340
-partial_tearoff_instantiation_test/06: Crash # Issue http://dartbug.com/32340
-partial_tearoff_instantiation_test/07: Crash # Issue http://dartbug.com/32340
-partial_tearoff_instantiation_test/08: Crash # Issue http://dartbug.com/32340
-partial_tearoff_instantiation_test/none: Crash # Issue http://dartbug.com/32340
-
 [ $compiler != dart2js && $compiler != dartk && $compiler != dartkp && $fasta ]
 const_optional_args_test/01: MissingCompileTimeError
 
@@ -504,12 +458,6 @@ const_optional_args_test/01: MissingCompileTimeError
 compile_time_constant_c_test/02: MissingCompileTimeError
 const_constructor_nonconst_field_test/01: MissingCompileTimeError
 const_syntax_test/05: MissingCompileTimeError
-mixin_of_mixin_test/01: MissingCompileTimeError
-mixin_of_mixin_test/02: MissingCompileTimeError
-mixin_of_mixin_test/03: MissingCompileTimeError
-mixin_of_mixin_test/04: MissingCompileTimeError
-mixin_of_mixin_test/05: MissingCompileTimeError
-mixin_of_mixin_test/06: MissingCompileTimeError
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
@@ -652,8 +600,6 @@ flatten_test/12: MissingRuntimeError
 for_in_side_effects_test/01: MissingCompileTimeError
 function_propagation_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
-function_type_alias6_test/none: RuntimeError
-generic_function_dcall_test: RuntimeError
 generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Issue 31533
@@ -986,7 +932,6 @@ for_in_side_effects_test/01: MissingCompileTimeError
 function_propagation_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 function_type_alias6_test/none: RuntimeError
-generic_function_dcall_test: RuntimeError
 generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_methods_recursive_bound_test/03: Crash, Pass
@@ -1338,9 +1283,33 @@ type_promotion_functions_test/none: CompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError
 
 [ $compiler == fasta && !$strong ]
+abstract_factory_constructor_test/00: MissingCompileTimeError
+abstract_getter_test/01: MissingCompileTimeError
+abstract_syntax_test/00: MissingCompileTimeError
 call_method_implicit_invoke_local_test/05: MissingCompileTimeError
+closure_invoked_through_interface_target_field_test: MissingCompileTimeError
+closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
+factory2_test/03: MissingCompileTimeError
+implicit_this_test/01: MissingCompileTimeError
+implicit_this_test/04: MissingCompileTimeError
 invalid_override_in_mixin_test/01: MissingCompileTimeError
 map_literal1_test/01: MissingCompileTimeError
+mixin_of_mixin_test/01: MissingCompileTimeError
+mixin_of_mixin_test/02: MissingCompileTimeError
+mixin_of_mixin_test/03: MissingCompileTimeError
+mixin_of_mixin_test/04: MissingCompileTimeError
+mixin_of_mixin_test/05: MissingCompileTimeError
+mixin_of_mixin_test/06: MissingCompileTimeError
+nsm5_test: MissingCompileTimeError
+override_inheritance_mixed_test/06: MissingCompileTimeError
+override_inheritance_mixed_test/07: MissingCompileTimeError
+override_inheritance_no_such_method_test/01: MissingCompileTimeError
+override_inheritance_no_such_method_test/05: MissingCompileTimeError
+override_inheritance_no_such_method_test/06: MissingCompileTimeError
+override_inheritance_no_such_method_test/07: MissingCompileTimeError
+override_inheritance_no_such_method_test/09: MissingCompileTimeError
+override_inheritance_no_such_method_test/10: MissingCompileTimeError
+override_inheritance_no_such_method_test/12: MissingCompileTimeError
 
 [ $fasta && $strong ]
 compile_time_constant_k_test/01: MissingCompileTimeError
@@ -1920,7 +1889,7 @@ override_field_method2_negative_test: Fail
 override_field_method4_negative_test: Fail
 override_field_method5_negative_test: Fail
 override_field_test/01: MissingCompileTimeError
-override_inheritance_abstract_test/28: MissingCompileTimeError
+override_inheritance_abstract_test/*: Skip # Tests Dart 2 semantics
 override_inheritance_field_test/05: MissingCompileTimeError
 override_inheritance_field_test/07: MissingCompileTimeError
 override_inheritance_field_test/08: MissingCompileTimeError

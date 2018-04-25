@@ -184,7 +184,7 @@ class _Future<T> implements Future<T> {
    * Until the future is completed, the field may hold the zone that
    * listener callbacks used to create this future should be run in.
    */
-  final Zone _zone;
+  final Zone _zone = Zone.current;
 
   /**
    * Either the result, a list of listeners or another future.
@@ -204,24 +204,20 @@ class _Future<T> implements Future<T> {
   var _resultOrListeners;
 
   // This constructor is used by async/await.
-  _Future() : _zone = Zone.current;
+  _Future();
 
-  _Future.immediate(FutureOr<T> result) : _zone = Zone.current {
+  _Future.immediate(FutureOr<T> result) {
     _asyncComplete(result);
   }
 
-  /** Creates a future with the value and the specified zone. */
-  _Future.zoneValue(T value, this._zone) {
-    _setValue(value);
-  }
-
-  _Future.immediateError(var error, [StackTrace stackTrace])
-      : _zone = Zone.current {
+  _Future.immediateError(var error, [StackTrace stackTrace]) {
     _asyncCompleteError(error, stackTrace);
   }
 
   /** Creates a future that is already completed with the value. */
-  _Future.value(T value) : this.zoneValue(value, Zone.current);
+  _Future.value(T value) {
+    _setValue(value);
+  }
 
   bool get _mayComplete => _state == _stateIncomplete;
   bool get _isPendingComplete => _state == _statePendingComplete;

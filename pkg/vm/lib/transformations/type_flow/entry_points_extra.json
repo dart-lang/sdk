@@ -95,6 +95,12 @@
     {
       "library": "dart:core",
       "class": "_Closure",
+      "name": "_delayed_type_arguments",
+      "action": "get"
+    },
+    {
+      "library": "dart:core",
+      "class": "_Closure",
       "name": "_function",
       "action": "get"
     },

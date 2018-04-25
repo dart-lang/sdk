@@ -161,6 +161,7 @@ package_resource_test: RuntimeError # Issue 26842
 
 [ $compiler == dart2js && $checked && $fasta && $strong ]
 apply3_test: RuntimeError
+collection_of_test: RuntimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
 from_environment_const_type_test/02: MissingCompileTimeError
 from_environment_const_type_test/03: MissingCompileTimeError
@@ -195,15 +196,24 @@ apply3_test: Fail # mirrors not supported
 dynamic_nosuchmethod_test: Fail # mirrors not supported
 
 [ $compiler == dart2js && $fast_startup && $fasta && $strong ]
-iterable_return_type_test/01: RuntimeError # Issue 20085
+cast_test: RuntimeError
+error_stack_trace1_test: RuntimeError
+growable_list_test: RuntimeError
+int_parse_radix_test/01: RuntimeError
+int_parse_radix_test/02: RuntimeError
+integer_to_radix_string_test/01: RuntimeError
+integer_to_radix_string_test/02: RuntimeError
+integer_to_radix_string_test/none: RuntimeError
+integer_to_string_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
-iterable_to_list_test/01: Crash # Wrong number of template arguments, given 2, expected 1
-iterable_to_list_test/none: Crash # Wrong number of template arguments, given 2, expected 1
-list_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
-list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
-map_test: Crash # tests/corelib_2/map_test.dart:903:7: Internal problem: Unhandled Null in installDefaultConstructor.
+list_concurrent_modify_test: RuntimeError
+main_test: RuntimeError
+nan_infinity_test/01: RuntimeError
+string_split_test/checkedstore: RuntimeError
 symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
 uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+uri_parameters_all_test: RuntimeError
+uri_test: RuntimeError
 
 [ $compiler == dart2js && $fasta ]
 int_from_environment_test: Pass # Issue 31762
@@ -267,9 +277,6 @@ uri_test: RuntimeError
 
 [ $compiler == dart2js && !$fasta ]
 *: SkipByDesign
-
-[ $compiler == dart2js && $strong ]
-collection_of_test: RuntimeError
 
 [ $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $compiler != fasta ]
 iterable_element_at_test/static: MissingCompileTimeError

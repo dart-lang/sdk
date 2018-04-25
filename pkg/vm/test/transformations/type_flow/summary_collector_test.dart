@@ -12,7 +12,7 @@ import 'package:test/test.dart';
 import 'package:vm/transformations/type_flow/native_code.dart';
 import 'package:vm/transformations/type_flow/summary_collector.dart';
 
-import 'common_test_utils.dart';
+import '../../common_test_utils.dart';
 
 final String pkgVmDir = Platform.script.resolve('../../..').toFilePath();
 
@@ -42,10 +42,6 @@ class PrintSummaries extends RecursiveVisitor<Null> {
 runTestCase(Uri source) async {
   final Component component = await compileTestCaseToKernelProgram(source);
   final Library library = component.mainMethod.enclosingLibrary;
-
-  // Make sure the library name is the same and does not depend on the order
-  // of test cases.
-  library.name = '#lib';
 
   final typeEnvironment = new TypeEnvironment(
       new CoreTypes(component), new ClassHierarchy(component));

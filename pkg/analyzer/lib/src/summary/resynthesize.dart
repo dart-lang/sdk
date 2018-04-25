@@ -858,6 +858,8 @@ class _LibraryResynthesizerContext extends LibraryResynthesizerContextMixin
   }
 }
 
+class RecursiveInstantiateToBounds {}
+
 /// Specialization of [ReferenceInfo] for resynthesis from linked summaries.
 class _ReferenceInfo extends ReferenceInfo {
   /**
@@ -983,14 +985,27 @@ class _ReferenceInfo extends ReferenceInfo {
       InterfaceTypeImpl type =
           new InterfaceTypeImpl.elementWithNameAndArgs(element, name, () {
         if (typeArguments == null) {
-          if (libraryResynthesizer.summaryResynthesizer.strongMode &&
-              instantiateToBoundsAllowed) {
-            InterfaceType instantiatedToBounds = libraryResynthesizer
-                .summaryResynthesizer.context.typeSystem
-                .instantiateToBounds(element.type) as InterfaceType;
-            return instantiatedToBounds.typeArguments;
+          if (!_isBeingInstantiatedToBounds) {
+            _isBeingInstantiatedToBounds = true;
+            _isRecursiveWhileInstantiateToBounds = false;
+            try {
+              if (libraryResynthesizer.summaryResynthesizer.strongMode) {
+                InterfaceType instantiatedToBounds = libraryResynthesizer
+                    .summaryResynthesizer.context.typeSystem
+                    .instantiateToBounds(element.type) as InterfaceType;
+                if (_isRecursiveWhileInstantiateToBounds) {
+                  throw new RecursiveInstantiateToBounds();
+                }
+                return instantiatedToBounds.typeArguments;
+              } else {
+                return _dynamicTypeArguments;
+              }
+            } finally {
+              _isBeingInstantiatedToBounds = false;
+            }
           } else {
-            return _dynamicTypeArguments;
+            _isRecursiveWhileInstantiateToBounds = true;
+            typeArguments = _dynamicTypeArguments;
           }
         }
         return typeArguments;
@@ -1352,6 +1367,7 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
       if (declaredType && !referenceInfo.isDeclarableType) {
         return DynamicTypeImpl.instance;
       }
+
       return referenceInfo.buildType(
           instantiateToBoundsAllowed,
           type.typeArguments.length,

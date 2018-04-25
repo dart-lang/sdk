@@ -658,6 +658,21 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         DartType staticType = _resolver.strongMode
             ? _getStaticTypeOrFunctionType(target)
             : _getStaticType(target);
+
+        if (_resolver.strongMode &&
+            staticType is FunctionType &&
+            methodName.name == FunctionElement.CALL_METHOD_NAME) {
+          if (target is SimpleIdentifier) {
+            methodName.staticElement = target.staticElement;
+          }
+          methodName.staticType = target.staticType;
+          node.staticType = staticType;
+          node.staticInvokeType = staticType;
+          node.argumentList.correspondingStaticParameters =
+              _computeCorrespondingParameters(node.argumentList, staticType);
+          return null;
+        }
+
         DartType propagatedType = _getPropagatedType(target);
         staticElement = _resolveInvokedElementWithTarget(
             target, staticType, methodName, isConditional);

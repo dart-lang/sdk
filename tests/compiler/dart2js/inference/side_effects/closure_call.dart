@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/*element: method:SideEffects(reads nothing; writes nothing)*/
+method() {}
+
 /*element: callExpression:SideEffects(reads anything; writes anything)*/
-callExpression() => (null)();
+callExpression() => (method)();
 
 /*element: Super.:SideEffects(reads nothing; writes nothing)*/
 class Super {

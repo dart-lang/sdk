@@ -64,6 +64,12 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.COLON_IN_PLACE_OF_IN, offset, length);
         return;
+      case "CONCRETE_CLASS_WITH_ABSTRACT_MEMBER":
+        errorReporter?.reportErrorForOffset(
+            StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+            offset,
+            length);
+        return;
       case "CONST_AFTER_FACTORY":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.CONST_AFTER_FACTORY, offset, length);

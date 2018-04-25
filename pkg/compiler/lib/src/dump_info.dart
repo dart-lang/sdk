@@ -128,7 +128,9 @@ class ElementInfoCollector {
       compiler.globalInference.results.resultOfParameter(e);
 
   FieldInfo visitField(FieldEntity field) {
-    if (!_hasBeenResolved(field)) return null;
+    if (!_hasBeenResolved(field)) {
+      return null;
+    }
     TypeMask inferredType = _resultOfMember(field).type;
     // If a field has an empty inferred type it is never used.
     if (inferredType == null || inferredType.isEmpty) return null;
@@ -161,6 +163,12 @@ class ElementInfoCollector {
 
     result.fields.add(info);
     return info;
+  }
+
+  bool _hasBeenResolved(MemberEntity entity) {
+    return compiler.globalInference.typesInferrerInternal.inferrer.types
+        .memberTypeInformations
+        .containsKey(entity);
   }
 
   ClassInfo visitClass(ClassEntity clazz) {
@@ -370,11 +378,6 @@ class ElementInfoCollector {
       return null;
     }
     return _infoFromOutputUnit(outputUnit);
-  }
-
-  bool _hasBeenResolved(Entity entity) {
-    return compiler.enqueuer.codegenEnqueuerForTesting.processedEntities
-        .contains(entity);
   }
 
   bool _hasClassBeenResolved(ClassEntity cls) {

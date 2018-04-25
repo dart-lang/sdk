@@ -27,10 +27,6 @@ import 'namer.dart';
 
 bool cacheRtiDataForTesting = false;
 
-// TODO(johnniwinther): Remove this when local signatures are optimized for
-// Dart 2.
-const bool optimizeLocalSignaturesForStrongMode = false;
-
 /// For each class, stores the possible class subtype tests that could succeed.
 abstract class TypeChecks {
   /// Get the set of checks required for class [element].
@@ -1412,6 +1408,12 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
       });
     }
 
+    Set<Local> localFunctions = strongMode
+        ? resolutionWorldBuilder.localFunctions.toSet()
+        : resolutionWorldBuilder.localFunctionsWithFreeTypeVariables.toSet();
+    Set<FunctionEntity> closurizedMembers =
+        resolutionWorldBuilder.closurizedMembersWithFreeTypeVariables.toSet();
+
     // Check local functions and closurized members.
     void checkClosures({DartType potentialSubtypeOf}) {
       bool checkFunctionType(FunctionType functionType) {
@@ -1426,31 +1428,50 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
         return false;
       }
 
+      Set<Local> localFunctionsToRemove;
+      Set<FunctionEntity> closurizedMembersToRemove;
       if (strongMode) {
-        assert(!optimizeLocalSignaturesForStrongMode);
-        // TODO(johnniwinther): Optimize generation of signatures for Dart 2.
-        for (Local function in resolutionWorldBuilder.localFunctions) {
+        for (Local function in localFunctions) {
           FunctionType functionType =
               _elementEnvironment.getLocalFunctionType(function);
-          functionType.forEachTypeVariable((TypeVariableType typeVariable) {
-            potentiallyNeedTypeArguments(typeVariable.element.typeDeclaration);
-          });
-          localFunctionsNeedingSignature.add(function);
+          if (potentialSubtypeOf == null ||
+              closedWorld.dartTypes.isPotentialSubtype(
+                  functionType, potentialSubtypeOf,
+                  assumeInstantiations:
+                      closedWorld.backendUsage.isGenericInstantiationUsed)) {
+            functionType.forEachTypeVariable((TypeVariableType typeVariable) {
+              Entity typeDeclaration = typeVariable.element.typeDeclaration;
+              if (!processedEntities.contains(typeDeclaration)) {
+                potentiallyNeedTypeArguments(typeDeclaration);
+              }
+            });
+            localFunctionsNeedingSignature.add(function);
+            localFunctionsToRemove ??= new Set<Local>();
+            localFunctionsToRemove.add(function);
+          }
         }
       } else {
-        for (Local function
-            in resolutionWorldBuilder.localFunctionsWithFreeTypeVariables) {
+        for (Local function in localFunctions) {
           if (checkFunctionType(
               _elementEnvironment.getLocalFunctionType(function))) {
             localFunctionsNeedingSignature.add(function);
+            localFunctionsToRemove ??= new Set<Local>();
+            localFunctionsToRemove.add(function);
           }
         }
       }
-      for (FunctionEntity function
-          in resolutionWorldBuilder.closurizedMembersWithFreeTypeVariables) {
+      for (FunctionEntity function in closurizedMembers) {
         if (checkFunctionType(_elementEnvironment.getFunctionType(function))) {
           methodsNeedingSignature.add(function);
+          closurizedMembersToRemove ??= new Set<FunctionEntity>();
+          closurizedMembersToRemove.add(function);
         }
+      }
+      if (localFunctionsToRemove != null) {
+        localFunctions.removeAll(localFunctionsToRemove);
+      }
+      if (closurizedMembersToRemove != null) {
+        closurizedMembers.removeAll(closurizedMembersToRemove);
       }
     }
 

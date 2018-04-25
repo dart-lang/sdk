@@ -751,13 +751,14 @@ RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
   READ_VM_SINGLETON_OBJ(kZeroArrayObject, Object::zero_array().raw());
   READ_VM_SINGLETON_OBJ(kDynamicType, Object::dynamic_type().raw());
   READ_VM_SINGLETON_OBJ(kVoidType, Object::void_type().raw());
+  READ_VM_SINGLETON_OBJ(kEmptyTypeArguments,
+                        Object::empty_type_arguments().raw());
   READ_VM_SINGLETON_OBJ(kTrueValue, Bool::True().raw());
   READ_VM_SINGLETON_OBJ(kFalseValue, Bool::False().raw());
   READ_VM_SINGLETON_OBJ(kExtractorParameterTypes,
                         Object::extractor_parameter_types().raw());
   READ_VM_SINGLETON_OBJ(kExtractorParameterNames,
                         Object::extractor_parameter_names().raw());
-  READ_VM_SINGLETON_OBJ(kEmptyContextObject, Object::empty_context().raw());
   READ_VM_SINGLETON_OBJ(kEmptyContextScopeObject,
                         Object::empty_context_scope().raw());
   READ_VM_SINGLETON_OBJ(kEmptyObjectPool, Object::empty_object_pool().raw());
@@ -1018,13 +1019,14 @@ bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
   WRITE_VM_SINGLETON_OBJ(Object::zero_array().raw(), kZeroArrayObject);
   WRITE_VM_SINGLETON_OBJ(Object::dynamic_type().raw(), kDynamicType);
   WRITE_VM_SINGLETON_OBJ(Object::void_type().raw(), kVoidType);
+  WRITE_VM_SINGLETON_OBJ(Object::empty_type_arguments().raw(),
+                         kEmptyTypeArguments);
   WRITE_VM_SINGLETON_OBJ(Bool::True().raw(), kTrueValue);
   WRITE_VM_SINGLETON_OBJ(Bool::False().raw(), kFalseValue);
   WRITE_VM_SINGLETON_OBJ(Object::extractor_parameter_types().raw(),
                          kExtractorParameterTypes);
   WRITE_VM_SINGLETON_OBJ(Object::extractor_parameter_names().raw(),
                          kExtractorParameterNames);
-  WRITE_VM_SINGLETON_OBJ(Object::empty_context().raw(), kEmptyContextObject);
   WRITE_VM_SINGLETON_OBJ(Object::empty_context_scope().raw(),
                          kEmptyContextScopeObject);
   WRITE_VM_SINGLETON_OBJ(Object::empty_object_pool().raw(), kEmptyObjectPool);

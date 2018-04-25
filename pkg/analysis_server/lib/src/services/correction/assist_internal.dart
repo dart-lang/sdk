@@ -64,8 +64,6 @@ class AssistProcessor {
   CompilationUnitElement unitElement;
 
   LibraryElement unitLibraryElement;
-  String unitLibraryFile;
-  String unitLibraryFolder;
 
   int selectionOffset;
   int selectionLength;
@@ -93,8 +91,6 @@ class AssistProcessor {
     unitLibraryElement = resolutionMap
         .elementDeclaredByCompilationUnit(dartContext.unit)
         .library;
-    unitLibraryFile = unitLibraryElement.source.fullName;
-    unitLibraryFolder = dirname(unitLibraryFile);
     // selection
     selectionOffset = dartContext.selectionOffset;
     selectionLength = dartContext.selectionLength;
@@ -1237,17 +1233,39 @@ class AssistProcessor {
           }
         }
       }
-      // add accessors
-      String eol2 = eol + eol;
-      String typeNameCode = variableList.type != null
-          ? _getNodeText(variableList.type) + ' '
-          : '';
-      String getterCode = '$eol2  ${typeNameCode}get $name => _$name;';
-      String setterCode = '$eol2'
-          '  void set $name($typeNameCode$name) {$eol'
-          '    _$name = $name;$eol'
-          '  }';
-      builder.addSimpleInsertion(fieldDeclaration.end, getterCode + setterCode);
+
+      // Write getter and setter.
+      builder.addInsertion(fieldDeclaration.end, (builder) {
+        String docCode;
+        if (fieldDeclaration.documentationComment != null) {
+          docCode = utils.getNodeText(fieldDeclaration.documentationComment);
+        }
+
+        String typeCode = '';
+        if (variableList.type != null) {
+          typeCode = _getNodeText(variableList.type) + ' ';
+        }
+
+        // Write getter.
+        builder.writeln();
+        builder.writeln();
+        if (docCode != null) {
+          builder.write('  ');
+          builder.writeln(docCode);
+        }
+        builder.write('  ${typeCode}get $name => _$name;');
+
+        // Write setter.
+        builder.writeln();
+        builder.writeln();
+        if (docCode != null) {
+          builder.write('  ');
+          builder.writeln(docCode);
+        }
+        builder.writeln('  set $name($typeCode$name) {');
+        builder.writeln('    _$name = $name;');
+        builder.write('  }');
+      });
     });
     _addAssistFromBuilder(changeBuilder, DartAssistKind.ENCAPSULATE_FIELD);
   }
@@ -3129,21 +3147,6 @@ class AssistProcessor {
       return precedence < TokenClass.LOGICAL_AND_OPERATOR.precedence;
     }
     return false;
-  }
-}
-
-/**
- * An [AssistContributor] that provides the default set of assists.
- */
-class DefaultAssistContributor extends DartAssistContributor {
-  @override
-  Future<List<Assist>> internalComputeAssists(DartAssistContext context) async {
-    try {
-      AssistProcessor processor = new AssistProcessor(context);
-      return processor.compute();
-    } on CancelCorrectionException {
-      return Assist.EMPTY_LIST;
-    }
   }
 }
 

@@ -124,7 +124,7 @@ Token defaultRecoveryStrategy(
     }
     String value = new String.fromCharCodes(codeUnits);
     return synthesizeToken(charOffset, value, TokenType.IDENTIFIER)
-      ..next = next;
+      ..setNext(next);
   }
 
   recoverExponent() {
@@ -137,7 +137,7 @@ Token defaultRecoveryStrategy(
 
   recoverHexDigit() {
     return synthesizeToken(errorTail.charOffset, "0", TokenType.INT)
-      ..next = errorTail.next;
+      ..setNext(errorTail.next);
   }
 
   recoverStringInterpolation() {
@@ -164,8 +164,7 @@ Token defaultRecoveryStrategy(
         if (errorTail == null) {
           error = next;
         } else {
-          errorTail.next = next;
-          next.previous = errorTail;
+          errorTail.setNext(next);
         }
         errorTail = next;
         next = next.next;
@@ -204,23 +203,21 @@ Token defaultRecoveryStrategy(
     if (goodTail == null) {
       good = current;
     } else {
-      goodTail.next = current;
-      current.previous = goodTail;
+      goodTail.setNext(current);
     }
     beforeGoodTail = goodTail;
     goodTail = current;
   }
 
-  error.previous = new Token.eof(-1)..next = error;
+  new Token.eof(-1).setNext(error);
   Token tail;
   if (good != null) {
-    errorTail.next = good;
-    good.previous = errorTail;
+    errorTail.setNext(good);
     tail = goodTail;
   } else {
     tail = errorTail;
   }
-  if (!tail.isEof) tail.next = new Token.eof(tail.end)..previous = tail;
+  if (!tail.isEof) tail.setNext(new Token.eof(tail.end));
   return error;
 }
 

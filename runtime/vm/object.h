@@ -370,6 +370,10 @@ class Object {
     ASSERT(null_type_arguments_ != NULL);
     return *null_type_arguments_;
   }
+  static const TypeArguments& empty_type_arguments() {
+    ASSERT(empty_type_arguments_ != NULL);
+    return *empty_type_arguments_;
+  }
 
   static const Array& empty_array() {
     ASSERT(empty_array_ != NULL);
@@ -378,11 +382,6 @@ class Object {
   static const Array& zero_array() {
     ASSERT(zero_array_ != NULL);
     return *zero_array_;
-  }
-
-  static const Context& empty_context() {
-    ASSERT(empty_context_ != NULL);
-    return *empty_context_;
   }
 
   static const ContextScope& empty_context_scope() {
@@ -817,9 +816,9 @@ class Object {
   static Instance* null_instance_;
   static Function* null_function_;
   static TypeArguments* null_type_arguments_;
+  static TypeArguments* empty_type_arguments_;
   static Array* empty_array_;
   static Array* zero_array_;
-  static Context* empty_context_;
   static ContextScope* empty_context_scope_;
   static ObjectPool* empty_object_pool_;
   static PcDescriptors* empty_descriptors_;
@@ -2163,6 +2162,11 @@ class Function : public Object {
   RawArray* parameter_names() const { return raw_ptr()->parameter_names_; }
   void set_parameter_names(const Array& value) const;
 
+  // For converted closure functions: indicate how many type parameters on the
+  // target are actually captured.
+  void set_num_parent_type_parameters(intptr_t num) const;
+  intptr_t num_parent_type_parameters() const;
+
   // The type parameters (and their bounds) are specified as an array of
   // TypeParameter.
   RawTypeArguments* type_parameters() const {
@@ -2300,7 +2304,8 @@ class Function : public Object {
   // If none exists yet, create one and remember it.  See the comment on
   // ConvertedClosureFunction definition in runtime/vm/object.cc for elaborate
   // explanation.
-  RawFunction* ConvertedClosureFunction() const;
+  RawFunction* ConvertedClosureFunction(
+      intptr_t num_parent_type_parameters) const;
   void DropUncompiledConvertedClosureFunction() const;
 
   // Return the closure implicitly created for this function.
@@ -2982,6 +2987,9 @@ class ClosureData : public Object {
 
   RawInstance* implicit_static_closure() const { return raw_ptr()->closure_; }
   void set_implicit_static_closure(const Instance& closure) const;
+
+  intptr_t num_parent_type_parameters() const;
+  void set_num_parent_type_parameters(intptr_t value) const;
 
   static RawClosureData* New();
 
@@ -5740,6 +5748,10 @@ class TypeArguments : public Instance {
   bool IsRawWhenInstantiatedFromRaw(intptr_t len) const {
     return IsDynamicTypes(true, 0, len);
   }
+
+  RawTypeArguments* Prepend(Zone* zone,
+                            const TypeArguments& other,
+                            intptr_t total_length) const;
 
   // Check if the subvector of length 'len' starting at 'from_index' of this
   // type argument vector consists solely of DynamicType, ObjectType, or
@@ -8742,6 +8754,13 @@ class Closure : public Instance {
   }
   static intptr_t function_type_arguments_offset() {
     return OFFSET_OF(RawClosure, function_type_arguments_);
+  }
+
+  RawTypeArguments* delayed_type_arguments() const {
+    return raw_ptr()->delayed_type_arguments_;
+  }
+  static intptr_t delayed_type_arguments_offset() {
+    return OFFSET_OF(RawClosure, delayed_type_arguments_);
   }
 
   RawFunction* function() const { return raw_ptr()->function_; }

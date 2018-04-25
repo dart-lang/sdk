@@ -263,6 +263,10 @@ class TypeEnvironment {
     return types.isSubtype(T, S);
   }
 
+  bool isPotentialSubtype(DartType T, DartType S) {
+    return types.isPotentialSubtype(T, S);
+  }
+
   bool isMoreSpecific(ResolutionDartType T, ResolutionDartType S) {
     return (types as Types).isMoreSpecific(T, S);
   }

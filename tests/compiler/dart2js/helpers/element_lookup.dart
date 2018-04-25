@@ -13,6 +13,10 @@ ClassEntity findClass(ClosedWorld closedWorld, String name) {
       elementEnvironment.lookupClass(elementEnvironment.mainLibrary, name);
   cls ??= elementEnvironment.lookupClass(
       closedWorld.commonElements.coreLibrary, name);
+  cls ??= elementEnvironment.lookupClass(
+      closedWorld.commonElements.interceptorsLibrary, name);
+  cls ??= elementEnvironment.lookupClass(
+      closedWorld.commonElements.jsHelperLibrary, name);
   assert(cls != null, "Class '$name' not found.");
   return cls;
 }

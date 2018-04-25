@@ -296,7 +296,7 @@ class CheckedModeHelpers {
       return 'list$suffix';
     }
 
-    if (commonElements.isListSupertype(element)) {
+    if (commonElements.isListSupertype(element) && type.treatAsRaw) {
       return nativeCheck ? 'listSuperNative$suffix' : 'listSuper$suffix';
     }
 

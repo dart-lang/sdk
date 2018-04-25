@@ -19,7 +19,7 @@ abstract class Sorter {
   Iterable<TypedefEntity> sortTypedefs(Iterable<TypedefEntity> typedefs);
 
   /// Returns a sorted list of [members].
-  Iterable<MemberEntity> sortMembers(Iterable<MemberEntity> members);
+  Iterable<T> sortMembers<T extends MemberEntity>(Iterable<T> members);
 
   int compareLibrariesByLocation(LibraryEntity a, LibraryEntity b);
   int compareClassesByLocation(ClassEntity a, ClassEntity b);
@@ -63,7 +63,7 @@ class ElementSorter implements Sorter {
   }
 
   @override
-  List<MemberEntity> sortMembers(Iterable<MemberEntity> members) {
+  Iterable<T> sortMembers<T extends MemberEntity>(Iterable<T> members) {
     return Elements.sortedByPosition(new List.from(members, growable: false));
   }
 

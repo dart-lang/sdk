@@ -64,8 +64,7 @@ class IdentifierContext {
 
   /// Identifier is a field initializer in a formal parameter list (i.e. it
   /// appears directly after `this.`).
-  static const fieldInitializer =
-      const IdentifierContext('fieldInitializer', isContinuation: true);
+  static const fieldInitializer = const FieldInitializerIdentifierContext();
 
   /// Identifier is a formal parameter being declared as part of a function,
   /// method, or typedef declaration.
@@ -246,7 +245,7 @@ class IdentifierContext {
 
   /// Identifier is a name being declared by a local variable declaration.
   static const localVariableDeclaration =
-      const IdentifierContext('localVariableDeclaration', inDeclaration: true);
+      const LocalVariableDeclarationIdentifierContext();
 
   /// Identifier is a reference to a label (e.g. `foo` in `break foo;`).
   /// Labels have their own scope.

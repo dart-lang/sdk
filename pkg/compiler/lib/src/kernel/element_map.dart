@@ -185,6 +185,10 @@ abstract class KernelToElementMapForImpact extends KernelToElementMap {
 
   /// Returns the definition information for [cls].
   ClassDefinition getClassDefinition(covariant ClassEntity cls);
+
+  /// Returns the static type of [node].
+  // TODO(johnniwinther): This should be provided directly from kernel.
+  DartType getStaticType(ir.Expression node);
 }
 
 /// Interface that translates between Kernel IR nodes and entities used for

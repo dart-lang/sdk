@@ -22,9 +22,9 @@ import 'type_info.dart';
 
 import 'util.dart' show optional;
 
-/// See documentation on the [noTypeInfo] const.
-class NoTypeInfo implements TypeInfo {
-  const NoTypeInfo();
+/// See documentation on the [noType] const.
+class NoType implements TypeInfo {
+  const NoType();
 
   @override
   bool get couldBeExpression => false;
@@ -34,7 +34,7 @@ class NoTypeInfo implements TypeInfo {
     parser.reportRecoverableErrorWithToken(
         token.next, fasta.templateExpectedType);
     insertSyntheticIdentifierAfter(token, parser);
-    return simpleTypeInfo.parseType(token, parser);
+    return simpleType.parseType(token, parser);
   }
 
   @override
@@ -57,9 +57,9 @@ class NoTypeInfo implements TypeInfo {
   }
 }
 
-/// See documentation on the [prefixedTypeInfo] const.
-class PrefixedTypeInfo implements TypeInfo {
-  const PrefixedTypeInfo();
+/// See documentation on the [prefixedType] const.
+class PrefixedType implements TypeInfo {
+  const PrefixedType();
 
   @override
   bool get couldBeExpression => true;
@@ -103,9 +103,9 @@ class PrefixedTypeInfo implements TypeInfo {
   }
 }
 
-/// See documentation on the [simpleTypeArgumentsInfo] const.
-class SimpleTypeArgumentsInfo implements TypeInfo {
-  const SimpleTypeArgumentsInfo();
+/// See documentation on the [simpleTypeWith1Argument] const.
+class SimpleTypeWith1Argument implements TypeInfo {
+  const SimpleTypeWith1Argument();
 
   @override
   bool get couldBeExpression => false;
@@ -133,7 +133,7 @@ class SimpleTypeArgumentsInfo implements TypeInfo {
     assert(optional('<', token));
     listener.beginTypeArguments(token);
 
-    token = simpleTypeInfo.parseTypeNotVoid(token, parser);
+    token = simpleType.parseTypeNotVoid(token, parser);
 
     token = token.next;
     assert(optional('>', token));
@@ -150,9 +150,9 @@ class SimpleTypeArgumentsInfo implements TypeInfo {
   }
 }
 
-/// See documentation on the [simpleTypeInfo] const.
-class SimpleTypeInfo implements TypeInfo {
-  const SimpleTypeInfo();
+/// See documentation on the [simpleType] const.
+class SimpleType implements TypeInfo {
+  const SimpleType();
 
   @override
   bool get couldBeExpression => true;
@@ -186,9 +186,9 @@ class SimpleTypeInfo implements TypeInfo {
   }
 }
 
-/// See documentation on the [voidTypeInfo] const.
-class VoidTypeInfo implements TypeInfo {
-  const VoidTypeInfo();
+/// See documentation on the [voidType] const.
+class VoidType implements TypeInfo {
+  const VoidType();
 
   @override
   bool get couldBeExpression => false;
@@ -197,7 +197,7 @@ class VoidTypeInfo implements TypeInfo {
   Token ensureTypeNotVoid(Token token, Parser parser) {
     // Report an error, then parse `void` as if it were a type name.
     parser.reportRecoverableError(token.next, fasta.messageInvalidVoid);
-    return simpleTypeInfo.parseTypeNotVoid(token, parser);
+    return simpleType.parseTypeNotVoid(token, parser);
   }
 
   @override
@@ -224,28 +224,33 @@ class VoidTypeInfo implements TypeInfo {
 bool looksLikeName(Token token) =>
     token.isIdentifier || optional('this', token);
 
-Token skipTypeArguments(Token token) {
+Token skipTypeVariables(Token token) {
   assert(optional('<', token));
   Token endGroup = token.endGroup;
+  if (endGroup == null) {
+    return null;
+  }
 
   // The scanner sets the endGroup in situations like this: C<T && T>U;
   // Scan the type arguments to assert there are no operators.
-  // TODO(danrubel) Fix the scanner and remove this code.
-  if (endGroup != null) {
-    token = token.next;
-    while (token != endGroup) {
-      if (token.isOperator) {
-        String value = token.stringValue;
-        if (!identical(value, '<') &&
-            !identical(value, '>') &&
-            !identical(value, '>>')) {
-          return null;
-        }
-      }
-      token = token.next;
+  // TODO(danrubel): Fix the scanner to do this scanning.
+  token = token.next;
+  while (token != endGroup) {
+    if (token.isKeywordOrIdentifier ||
+        optional(',', token) ||
+        optional('.', token) ||
+        optional('<', token) ||
+        optional('>', token) ||
+        optional('>>', token) ||
+        optional('@', token)) {
+      // ok
+    } else if (optional('(', token)) {
+      token = token.endGroup;
+    } else {
+      return null;
     }
+    token = token.next;
   }
-
   return endGroup;
 }
 
@@ -253,7 +258,7 @@ Token skipTypeArguments(Token token) {
 /// type references that cannot be represented by the constants above.
 class ComplexTypeInfo implements TypeInfo {
   /// The first token in the type reference.
-  final Token start;
+  Token start;
 
   /// The last token in the type reference.
   Token end;
@@ -291,6 +296,12 @@ class ComplexTypeInfo implements TypeInfo {
   Token parseType(Token token, Parser parser) {
     assert(identical(token.next, start));
 
+    if (optional('.', start)) {
+      // Recovery: Insert missing identifier without sending events
+      start = parser.insertSyntheticIdentifier(
+          token, IdentifierContext.prefixedTypeReference);
+    }
+
     for (Link<Token> t = typeVariableStarters; t.isNotEmpty; t = t.tail) {
       parser.parseTypeVariablesOpt(t.head);
       parser.listener.beginFunctionType(start);
@@ -300,13 +311,14 @@ class ComplexTypeInfo implements TypeInfo {
       // A function type without return type.
       // Push the non-existing return type first. The loop below will
       // generate the full type.
-      noTypeInfo.parseTypeNotVoid(token, parser);
+      noType.parseTypeNotVoid(token, parser);
     } else {
-      Token start = token.next;
-      if (optional('void', start)) {
-        token = voidTypeInfo.parseType(token, parser);
+      Token typeRefOrPrefix = token.next;
+      if (optional('void', typeRefOrPrefix)) {
+        token = voidType.parseType(token, parser);
       } else {
-        if (!optional('.', start.next)) {
+        if (!optional('.', typeRefOrPrefix) &&
+            !optional('.', typeRefOrPrefix.next)) {
           token =
               parser.ensureIdentifier(token, IdentifierContext.typeReference);
         } else {
@@ -314,9 +326,12 @@ class ComplexTypeInfo implements TypeInfo {
               token, IdentifierContext.prefixedTypeReference);
           token = parser.parseQualifiedRest(
               token, IdentifierContext.typeReferenceContinuation);
+          if (token.isSynthetic && end == typeRefOrPrefix.next) {
+            end = token;
+          }
         }
         token = parser.parseTypeArgumentsOpt(token);
-        parser.listener.handleType(start, token.next);
+        parser.listener.handleType(typeRefOrPrefix, token.next);
       }
     }
 
@@ -358,7 +373,7 @@ class ComplexTypeInfo implements TypeInfo {
     computeRest(start, required);
 
     if (gftHasReturnType == null) {
-      return required ? simpleTypeInfo : noTypeInfo;
+      return required ? simpleType : noType;
     }
     assert(end != null);
     return this;
@@ -372,7 +387,7 @@ class ComplexTypeInfo implements TypeInfo {
     computeRest(start.next, required);
 
     if (gftHasReturnType == null) {
-      return voidTypeInfo;
+      return voidType;
     }
     assert(end != null);
     return this;
@@ -386,7 +401,7 @@ class ComplexTypeInfo implements TypeInfo {
     Token token = start.next;
     if (optional('<', token)) {
       typeArguments = token;
-      token = skipTypeArguments(typeArguments);
+      token = skipTypeVariables(typeArguments);
       if (token == null) {
         token = typeArguments;
         typeArguments = null;
@@ -408,7 +423,7 @@ class ComplexTypeInfo implements TypeInfo {
     computeRest(start.next, required);
 
     if (gftHasReturnType == null) {
-      return simpleTypeInfo;
+      return simpleType;
     }
     assert(end != null);
     return this;
@@ -421,15 +436,15 @@ class ComplexTypeInfo implements TypeInfo {
     typeArguments = start.next;
     assert(optional('<', typeArguments));
 
-    Token token = skipTypeArguments(typeArguments);
+    Token token = skipTypeVariables(typeArguments);
     if (token == null) {
-      return required ? simpleTypeInfo : noTypeInfo;
+      return required ? simpleType : noType;
     }
     end = token;
     computeRest(token.next, required);
 
     if (!required && !looksLikeName(end.next) && gftHasReturnType == null) {
-      return noTypeInfo;
+      return noType;
     }
     assert(end != null);
     return this;
@@ -438,19 +453,23 @@ class ComplexTypeInfo implements TypeInfo {
   /// Given identifier `.` identifier, compute the type
   /// and return the receiver or one of the [TypeInfo] constants.
   TypeInfo computePrefixedType(bool required) {
-    assert(isValidTypeReference(start));
-    Token token = start.next;
+    Token token = start;
+    if (!optional('.', token)) {
+      assert(isValidTypeReference(token));
+      token = token.next;
+    }
     assert(optional('.', token));
-    token = token.next;
-    assert(isValidTypeReference(token));
+    if (isValidTypeReference(token.next)) {
+      token = token.next;
+    }
 
     end = token;
     token = token.next;
     if (optional('<', token)) {
       typeArguments = token;
-      token = skipTypeArguments(token);
+      token = skipTypeVariables(token);
       if (token == null) {
-        return required ? prefixedTypeInfo : noTypeInfo;
+        return required ? prefixedType : noType;
       }
       end = token;
       token = token.next;
@@ -458,7 +477,7 @@ class ComplexTypeInfo implements TypeInfo {
     computeRest(token, required);
 
     if (!required && !looksLikeName(end.next) && gftHasReturnType == null) {
-      return noTypeInfo;
+      return noType;
     }
     assert(end != null);
     return this;
@@ -469,7 +488,7 @@ class ComplexTypeInfo implements TypeInfo {
       Token typeVariableStart = token;
       token = token.next;
       if (optional('<', token)) {
-        token = token.endGroup;
+        token = skipTypeVariables(token);
         if (token == null) {
           break; // Not a function type.
         }

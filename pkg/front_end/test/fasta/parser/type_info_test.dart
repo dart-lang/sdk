@@ -22,15 +22,15 @@ class TokenInfoTest {
   void test_noType() {
     final Token start = scanString('before ;').tokens;
 
-    expect(noTypeInfo.couldBeExpression, isFalse);
-    expect(noTypeInfo.skipType(start), start);
+    expect(noType.couldBeExpression, isFalse);
+    expect(noType.skipType(start), start);
   }
 
   void test_noType_ensureTypeNotVoid() {
     final Token start = scanString('before ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
-    expect(noTypeInfo.ensureTypeNotVoid(start, new Parser(listener)),
+    expect(noType.ensureTypeNotVoid(start, new Parser(listener)),
         new isInstanceOf<SyntheticStringToken>());
     expect(listener.calls, [
       'handleIdentifier  typeReference',
@@ -44,7 +44,7 @@ class TokenInfoTest {
     final Token start = scanString('before ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
-    expect(noTypeInfo.ensureTypeOrVoid(start, new Parser(listener)),
+    expect(noType.ensureTypeOrVoid(start, new Parser(listener)),
         new isInstanceOf<SyntheticStringToken>());
     expect(listener.calls, [
       'handleIdentifier  typeReference',
@@ -58,7 +58,7 @@ class TokenInfoTest {
     final Token start = scanString('before ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
-    expect(noTypeInfo.parseType(start, new Parser(listener)), start);
+    expect(noType.parseType(start, new Parser(listener)), start);
     expect(listener.calls, ['handleNoType before']);
     expect(listener.errors, isNull);
   }
@@ -67,7 +67,7 @@ class TokenInfoTest {
     final Token start = scanString('before ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
-    expect(noTypeInfo.parseTypeNotVoid(start, new Parser(listener)), start);
+    expect(noType.parseTypeNotVoid(start, new Parser(listener)), start);
     expect(listener.calls, ['handleNoType before']);
     expect(listener.errors, isNull);
   }
@@ -75,16 +75,15 @@ class TokenInfoTest {
   void test_voidType() {
     final Token start = scanString('before void ;').tokens;
 
-    expect(voidTypeInfo.skipType(start), start.next);
-    expect(voidTypeInfo.couldBeExpression, isFalse);
+    expect(voidType.skipType(start), start.next);
+    expect(voidType.couldBeExpression, isFalse);
   }
 
   void test_voidType_ensureTypeNotVoid() {
     final Token start = scanString('before void ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
-    expect(voidTypeInfo.ensureTypeNotVoid(start, new Parser(listener)),
-        start.next);
+    expect(voidType.ensureTypeNotVoid(start, new Parser(listener)), start.next);
     expect(listener.calls, [
       'handleIdentifier void typeReference',
       'handleNoTypeArguments ;',
@@ -97,7 +96,7 @@ class TokenInfoTest {
     final Token start = scanString('before void ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
-    expect(voidTypeInfo.parseType(start, new Parser(listener)), start.next);
+    expect(voidType.parseType(start, new Parser(listener)), start.next);
     expect(listener.calls, ['handleVoidKeyword void']);
     expect(listener.errors, isNull);
   }
@@ -106,7 +105,7 @@ class TokenInfoTest {
     final Token start = scanString('before void ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
-    expect(voidTypeInfo.parseType(start, new Parser(listener)), start.next);
+    expect(voidType.parseType(start, new Parser(listener)), start.next);
     expect(listener.calls, ['handleVoidKeyword void']);
     expect(listener.errors, isNull);
   }
@@ -115,8 +114,7 @@ class TokenInfoTest {
     final Token start = scanString('before void ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
-    expect(
-        voidTypeInfo.parseTypeNotVoid(start, new Parser(listener)), start.next);
+    expect(voidType.parseTypeNotVoid(start, new Parser(listener)), start.next);
     expect(listener.calls, [
       'handleIdentifier void typeReference',
       'handleNoTypeArguments ;',
@@ -129,8 +127,8 @@ class TokenInfoTest {
     final Token start = scanString('before C.a ;').tokens;
     final Token expectedEnd = start.next.next.next;
 
-    expect(prefixedTypeInfo.skipType(start), expectedEnd);
-    expect(prefixedTypeInfo.couldBeExpression, isTrue);
+    expect(prefixedType.skipType(start), expectedEnd);
+    expect(prefixedType.couldBeExpression, isTrue);
 
     TypeInfoListener listener;
     assertResult(Token actualEnd) {
@@ -146,27 +144,24 @@ class TokenInfoTest {
     }
 
     listener = new TypeInfoListener();
-    assertResult(
-        prefixedTypeInfo.ensureTypeNotVoid(start, new Parser(listener)));
+    assertResult(prefixedType.ensureTypeNotVoid(start, new Parser(listener)));
 
     listener = new TypeInfoListener();
-    assertResult(
-        prefixedTypeInfo.ensureTypeOrVoid(start, new Parser(listener)));
+    assertResult(prefixedType.ensureTypeOrVoid(start, new Parser(listener)));
 
     listener = new TypeInfoListener();
-    assertResult(
-        prefixedTypeInfo.parseTypeNotVoid(start, new Parser(listener)));
+    assertResult(prefixedType.parseTypeNotVoid(start, new Parser(listener)));
 
     listener = new TypeInfoListener();
-    assertResult(prefixedTypeInfo.parseType(start, new Parser(listener)));
+    assertResult(prefixedType.parseType(start, new Parser(listener)));
   }
 
   void test_simpleTypeInfo() {
     final Token start = scanString('before C ;').tokens;
     final Token expectedEnd = start.next;
 
-    expect(simpleTypeInfo.skipType(start), expectedEnd);
-    expect(simpleTypeInfo.couldBeExpression, isTrue);
+    expect(simpleType.skipType(start), expectedEnd);
+    expect(simpleType.couldBeExpression, isTrue);
 
     TypeInfoListener listener;
     assertResult(Token actualEnd) {
@@ -180,24 +175,24 @@ class TokenInfoTest {
     }
 
     listener = new TypeInfoListener();
-    assertResult(simpleTypeInfo.ensureTypeNotVoid(start, new Parser(listener)));
+    assertResult(simpleType.ensureTypeNotVoid(start, new Parser(listener)));
 
     listener = new TypeInfoListener();
-    assertResult(simpleTypeInfo.ensureTypeOrVoid(start, new Parser(listener)));
+    assertResult(simpleType.ensureTypeOrVoid(start, new Parser(listener)));
 
     listener = new TypeInfoListener();
-    assertResult(simpleTypeInfo.parseTypeNotVoid(start, new Parser(listener)));
+    assertResult(simpleType.parseTypeNotVoid(start, new Parser(listener)));
 
     listener = new TypeInfoListener();
-    assertResult(simpleTypeInfo.parseType(start, new Parser(listener)));
+    assertResult(simpleType.parseType(start, new Parser(listener)));
   }
 
   void test_simpleTypeArgumentsInfo() {
     final Token start = scanString('before C<T> ;').tokens;
     final Token expectedEnd = start.next.next.next.next;
 
-    expect(simpleTypeArgumentsInfo.skipType(start), expectedEnd);
-    expect(simpleTypeArgumentsInfo.couldBeExpression, isFalse);
+    expect(simpleTypeWith1Argument.skipType(start), expectedEnd);
+    expect(simpleTypeWith1Argument.couldBeExpression, isFalse);
 
     TypeInfoListener listener;
     assertResult(Token actualEnd) {
@@ -216,32 +211,42 @@ class TokenInfoTest {
 
     listener = new TypeInfoListener();
     assertResult(
-        simpleTypeArgumentsInfo.ensureTypeNotVoid(start, new Parser(listener)));
+        simpleTypeWith1Argument.ensureTypeNotVoid(start, new Parser(listener)));
 
     listener = new TypeInfoListener();
     assertResult(
-        simpleTypeArgumentsInfo.ensureTypeOrVoid(start, new Parser(listener)));
+        simpleTypeWith1Argument.ensureTypeOrVoid(start, new Parser(listener)));
 
     listener = new TypeInfoListener();
     assertResult(
-        simpleTypeArgumentsInfo.parseTypeNotVoid(start, new Parser(listener)));
+        simpleTypeWith1Argument.parseTypeNotVoid(start, new Parser(listener)));
 
     listener = new TypeInfoListener();
     assertResult(
-        simpleTypeArgumentsInfo.parseType(start, new Parser(listener)));
+        simpleTypeWith1Argument.parseType(start, new Parser(listener)));
   }
 
   void test_computeType_basic() {
-    expectInfo(noTypeInfo, '');
-    expectInfo(noTypeInfo, ';');
-    expectInfo(noTypeInfo, '( foo');
-    expectInfo(noTypeInfo, '< foo');
-    expectInfo(noTypeInfo, '= foo');
-    expectInfo(noTypeInfo, '* foo');
-    expectInfo(noTypeInfo, 'do foo');
-    expectInfo(noTypeInfo, 'get foo');
-    expectInfo(noTypeInfo, 'set foo');
-    expectInfo(noTypeInfo, 'operator *');
+    expectInfo(noType, '');
+    expectInfo(noType, ';');
+    expectInfo(noType, '( foo');
+    expectInfo(noType, '< foo');
+    expectInfo(noType, '= foo');
+    expectInfo(noType, '* foo');
+    expectInfo(noType, 'do foo');
+    expectInfo(noType, 'get foo');
+    expectInfo(noType, 'set foo');
+    expectInfo(noType, 'operator *');
+
+    expectInfo(noType, '.', required: false);
+    expectComplexInfo('.', required: true, expectedErrors: [
+      error(codeExpectedType, 0, 1),
+      error(codeExpectedType, 1, 0)
+    ]);
+
+    expectInfo(noType, '.Foo', required: false);
+    expectComplexInfo('.Foo',
+        required: true, expectedErrors: [error(codeExpectedType, 0, 1)]);
   }
 
   void test_computeType_builtin() {
@@ -330,8 +335,8 @@ class TokenInfoTest {
       'endFunctionType Function m',
     ]);
 
-    expectInfo(noTypeInfo, 'Function(int x)', required: false);
-    expectInfo(noTypeInfo, 'Function<T>(int x)', required: false);
+    expectInfo(noType, 'Function(int x)', required: false);
+    expectInfo(noType, 'Function<T>(int x)', required: false);
 
     expectComplexInfo('Function(int x)', required: true);
     expectComplexInfo('Function<T>(int x)', required: true);
@@ -346,39 +351,40 @@ class TokenInfoTest {
   }
 
   void test_computeType_identifier() {
-    expectInfo(noTypeInfo, 'C', required: false);
-    expectInfo(noTypeInfo, 'C;', required: false);
-    expectInfo(noTypeInfo, 'C(', required: false);
-    expectInfo(noTypeInfo, 'C<', required: false);
-    expectInfo(noTypeInfo, 'C.', required: false);
-    expectInfo(noTypeInfo, 'C=', required: false);
-    expectInfo(noTypeInfo, 'C*', required: false);
-    expectInfo(noTypeInfo, 'C do', required: false);
+    expectInfo(noType, 'C', required: false);
+    expectInfo(noType, 'C;', required: false);
+    expectInfo(noType, 'C(', required: false);
+    expectInfo(noType, 'C<', required: false);
+    expectInfo(noType, 'C.', required: false);
+    expectInfo(noType, 'C=', required: false);
+    expectInfo(noType, 'C*', required: false);
+    expectInfo(noType, 'C do', required: false);
 
-    expectInfo(simpleTypeInfo, 'C', required: true);
-    expectInfo(simpleTypeInfo, 'C;', required: true);
-    expectInfo(simpleTypeInfo, 'C(', required: true);
-    expectInfo(simpleTypeInfo, 'C<', required: true);
-    expectInfo(simpleTypeInfo, 'C.', required: true);
-    expectInfo(simpleTypeInfo, 'C=', required: true);
-    expectInfo(simpleTypeInfo, 'C*', required: true);
-    expectInfo(simpleTypeInfo, 'C do', required: true);
+    expectInfo(simpleType, 'C', required: true);
+    expectInfo(simpleType, 'C;', required: true);
+    expectInfo(simpleType, 'C(', required: true);
+    expectInfo(simpleType, 'C<', required: true);
+    expectComplexInfo('C.',
+        required: true, expectedErrors: [error(codeExpectedType, 2, 0)]);
+    expectInfo(simpleType, 'C=', required: true);
+    expectInfo(simpleType, 'C*', required: true);
+    expectInfo(simpleType, 'C do', required: true);
 
-    expectInfo(simpleTypeInfo, 'C foo');
-    expectInfo(simpleTypeInfo, 'C get');
-    expectInfo(simpleTypeInfo, 'C set');
-    expectInfo(simpleTypeInfo, 'C operator');
-    expectInfo(simpleTypeInfo, 'C this');
-    expectInfo(simpleTypeInfo, 'C Function');
+    expectInfo(simpleType, 'C foo');
+    expectInfo(simpleType, 'C get');
+    expectInfo(simpleType, 'C set');
+    expectInfo(simpleType, 'C operator');
+    expectInfo(simpleType, 'C this');
+    expectInfo(simpleType, 'C Function');
   }
 
   void test_computeType_identifierComplex() {
-    expectInfo(simpleTypeInfo, 'C Function()', required: false);
-    expectInfo(simpleTypeInfo, 'C Function<T>()', required: false);
-    expectInfo(simpleTypeInfo, 'C Function(int)', required: false);
-    expectInfo(simpleTypeInfo, 'C Function<T>(int)', required: false);
-    expectInfo(simpleTypeInfo, 'C Function(int x)', required: false);
-    expectInfo(simpleTypeInfo, 'C Function<T>(int x)', required: false);
+    expectInfo(simpleType, 'C Function()', required: false);
+    expectInfo(simpleType, 'C Function<T>()', required: false);
+    expectInfo(simpleType, 'C Function(int)', required: false);
+    expectInfo(simpleType, 'C Function<T>(int)', required: false);
+    expectInfo(simpleType, 'C Function(int x)', required: false);
+    expectInfo(simpleType, 'C Function<T>(int x)', required: false);
 
     expectComplexInfo('C Function()', required: true);
     expectComplexInfo('C Function<T>()', required: true);
@@ -405,16 +411,16 @@ class TokenInfoTest {
   }
 
   void test_computeType_identifierTypeArg() {
-    expectInfo(noTypeInfo, 'C<T>', required: false);
-    expectInfo(noTypeInfo, 'C<T>;', required: false);
-    expectInfo(noTypeInfo, 'C<T>(', required: false);
-    expectInfo(noTypeInfo, 'C<T> do', required: false);
-    expectInfo(noTypeInfo, 'C<void>', required: false);
+    expectInfo(noType, 'C<T>', required: false);
+    expectInfo(noType, 'C<T>;', required: false);
+    expectInfo(noType, 'C<T>(', required: false);
+    expectInfo(noType, 'C<T> do', required: false);
+    expectInfo(noType, 'C<void>', required: false);
 
-    expectInfo(simpleTypeArgumentsInfo, 'C<T>', required: true);
-    expectInfo(simpleTypeArgumentsInfo, 'C<T>;', required: true);
-    expectInfo(simpleTypeArgumentsInfo, 'C<T>(', required: true);
-    expectInfo(simpleTypeArgumentsInfo, 'C<T> do', required: true);
+    expectInfo(simpleTypeWith1Argument, 'C<T>', required: true);
+    expectInfo(simpleTypeWith1Argument, 'C<T>;', required: true);
+    expectInfo(simpleTypeWith1Argument, 'C<T>(', required: true);
+    expectInfo(simpleTypeWith1Argument, 'C<T> do', required: true);
     expectComplexInfo('C<void>', required: true, expectedCalls: [
       'handleIdentifier C typeReference',
       'beginTypeArguments <',
@@ -423,17 +429,17 @@ class TokenInfoTest {
       'handleType C ',
     ]);
 
-    expectInfo(simpleTypeArgumentsInfo, 'C<T> foo');
-    expectInfo(simpleTypeArgumentsInfo, 'C<T> get');
-    expectInfo(simpleTypeArgumentsInfo, 'C<T> set');
-    expectInfo(simpleTypeArgumentsInfo, 'C<T> operator');
-    expectInfo(simpleTypeArgumentsInfo, 'C<T> Function');
+    expectInfo(simpleTypeWith1Argument, 'C<T> foo');
+    expectInfo(simpleTypeWith1Argument, 'C<T> get');
+    expectInfo(simpleTypeWith1Argument, 'C<T> set');
+    expectInfo(simpleTypeWith1Argument, 'C<T> operator');
+    expectInfo(simpleTypeWith1Argument, 'C<T> Function');
   }
 
   void test_computeType_identifierTypeArgComplex() {
-    expectInfo(noTypeInfo, 'C<S,T>', required: false);
-    expectInfo(noTypeInfo, 'C<S<T>>', required: false);
-    expectInfo(noTypeInfo, 'C.a<T>', required: false);
+    expectInfo(noType, 'C<S,T>', required: false);
+    expectInfo(noType, 'C<S<T>>', required: false);
+    expectInfo(noType, 'C.a<T>', required: false);
 
     expectComplexInfo('C<S,T>', required: true, expectedCalls: [
       'handleIdentifier C typeReference',
@@ -530,7 +536,7 @@ class TokenInfoTest {
           error(codeExpectedToken, 6, 6)
         ]);
 
-    expectInfo(noTypeInfo, 'C<>', required: false);
+    expectInfo(noType, 'C<>', required: false);
     expectComplexInfo('C<>', required: true, expectedCalls: [
       'handleIdentifier C typeReference',
       'beginTypeArguments <',
@@ -555,32 +561,32 @@ class TokenInfoTest {
     ]);
 
     // Statements that should not have a type
-    expectInfo(noTypeInfo, 'C<T ; T>U;', required: false);
-    expectInfo(noTypeInfo, 'C<T && T>U;', required: false);
+    expectInfo(noType, 'C<T ; T>U;', required: false);
+    expectInfo(noType, 'C<T && T>U;', required: false);
   }
 
   void test_computeType_prefixed() {
-    expectInfo(noTypeInfo, 'C.a', required: false);
-    expectInfo(noTypeInfo, 'C.a;', required: false);
-    expectInfo(noTypeInfo, 'C.a(', required: false);
-    expectInfo(noTypeInfo, 'C.a<', required: false);
-    expectInfo(noTypeInfo, 'C.a=', required: false);
-    expectInfo(noTypeInfo, 'C.a*', required: false);
-    expectInfo(noTypeInfo, 'C.a do', required: false);
+    expectInfo(noType, 'C.a', required: false);
+    expectInfo(noType, 'C.a;', required: false);
+    expectInfo(noType, 'C.a(', required: false);
+    expectInfo(noType, 'C.a<', required: false);
+    expectInfo(noType, 'C.a=', required: false);
+    expectInfo(noType, 'C.a*', required: false);
+    expectInfo(noType, 'C.a do', required: false);
 
-    expectInfo(prefixedTypeInfo, 'C.a', required: true);
-    expectInfo(prefixedTypeInfo, 'C.a;', required: true);
-    expectInfo(prefixedTypeInfo, 'C.a(', required: true);
-    expectInfo(prefixedTypeInfo, 'C.a<', required: true);
-    expectInfo(prefixedTypeInfo, 'C.a=', required: true);
-    expectInfo(prefixedTypeInfo, 'C.a*', required: true);
-    expectInfo(prefixedTypeInfo, 'C.a do', required: true);
+    expectInfo(prefixedType, 'C.a', required: true);
+    expectInfo(prefixedType, 'C.a;', required: true);
+    expectInfo(prefixedType, 'C.a(', required: true);
+    expectInfo(prefixedType, 'C.a<', required: true);
+    expectInfo(prefixedType, 'C.a=', required: true);
+    expectInfo(prefixedType, 'C.a*', required: true);
+    expectInfo(prefixedType, 'C.a do', required: true);
 
-    expectInfo(prefixedTypeInfo, 'C.a foo');
-    expectInfo(prefixedTypeInfo, 'C.a get');
-    expectInfo(prefixedTypeInfo, 'C.a set');
-    expectInfo(prefixedTypeInfo, 'C.a operator');
-    expectInfo(prefixedTypeInfo, 'C.a Function');
+    expectInfo(prefixedType, 'C.a foo');
+    expectInfo(prefixedType, 'C.a get');
+    expectInfo(prefixedType, 'C.a set');
+    expectInfo(prefixedType, 'C.a operator');
+    expectInfo(prefixedType, 'C.a Function');
   }
 
   void test_computeType_prefixedGFT() {
@@ -691,19 +697,19 @@ class TokenInfoTest {
   }
 
   void test_computeType_void() {
-    expectInfo(voidTypeInfo, 'void');
-    expectInfo(voidTypeInfo, 'void;');
-    expectInfo(voidTypeInfo, 'void(');
-    expectInfo(voidTypeInfo, 'void<');
-    expectInfo(voidTypeInfo, 'void=');
-    expectInfo(voidTypeInfo, 'void*');
-    expectInfo(voidTypeInfo, 'void<T>');
-    expectInfo(voidTypeInfo, 'void do');
-    expectInfo(voidTypeInfo, 'void foo');
-    expectInfo(voidTypeInfo, 'void get');
-    expectInfo(voidTypeInfo, 'void set');
-    expectInfo(voidTypeInfo, 'void operator');
-    expectInfo(voidTypeInfo, 'void Function');
+    expectInfo(voidType, 'void');
+    expectInfo(voidType, 'void;');
+    expectInfo(voidType, 'void(');
+    expectInfo(voidType, 'void<');
+    expectInfo(voidType, 'void=');
+    expectInfo(voidType, 'void*');
+    expectInfo(voidType, 'void<T>');
+    expectInfo(voidType, 'void do');
+    expectInfo(voidType, 'void foo');
+    expectInfo(voidType, 'void get');
+    expectInfo(voidType, 'void set');
+    expectInfo(voidType, 'void operator');
+    expectInfo(voidType, 'void Function');
     expectComplexInfo('void Function(', // Scanner inserts synthetic ')'.
         required: true,
         expectedCalls: [
@@ -717,7 +723,7 @@ class TokenInfoTest {
   }
 
   void test_computeType_voidComplex() {
-    expectInfo(voidTypeInfo, 'void Function()', required: false);
+    expectInfo(voidType, 'void Function()', required: false);
     expectComplexInfo('void Function()', required: true, expectedCalls: [
       'handleNoTypeVariables (',
       'beginFunctionType void',
@@ -727,11 +733,11 @@ class TokenInfoTest {
       'endFunctionType Function ',
     ]);
 
-    expectInfo(voidTypeInfo, 'void Function<T>()', required: false);
-    expectInfo(voidTypeInfo, 'void Function(int)', required: false);
-    expectInfo(voidTypeInfo, 'void Function<T>(int)', required: false);
-    expectInfo(voidTypeInfo, 'void Function(int x)', required: false);
-    expectInfo(voidTypeInfo, 'void Function<T>(int x)', required: false);
+    expectInfo(voidType, 'void Function<T>()', required: false);
+    expectInfo(voidType, 'void Function(int)', required: false);
+    expectInfo(voidType, 'void Function<T>(int)', required: false);
+    expectInfo(voidType, 'void Function(int x)', required: false);
+    expectInfo(voidType, 'void Function<T>(int x)', required: false);
 
     expectComplexInfo('void Function<T>()', required: true);
     expectComplexInfo('void Function(int)', required: true);

@@ -80,7 +80,7 @@ group("runtime_precompiled") {
 }
 
 group("create_sdk") {
-  deps = [
+  public_deps = [
     "sdk:create_sdk",
   ]
 }

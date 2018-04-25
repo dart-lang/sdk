@@ -32,6 +32,8 @@ class ProgramEnv {
   /// TODO(johnniwinther): Handle arbitrary load order if needed.
   ir.Member get mainMethod => _components.first?.mainMethod;
 
+  ir.Component get mainComponent => _components.first;
+
   void addComponent(ir.Component component) {
     if (_components.add(component)) {
       if (_libraryMap != null) {
@@ -83,6 +85,9 @@ class LibraryEnv {
   Map<String, ir.Member> _setterMap;
 
   LibraryEnv(this.library);
+
+  LibraryEnv.internal(
+      this.library, this._classMap, this._memberMap, this._setterMap);
 
   void _ensureClassMap() {
     if (_classMap == null) {
@@ -150,6 +155,45 @@ class LibraryEnv {
       }
     }
   }
+
+  /// Creates a new [LibraryEnv] containing only the members in [liveMembers].
+  ///
+  /// Currently all classes are copied.
+  // TODO(johnniwinther): Filter unused classes.
+  LibraryEnv copyLive(
+      KernelToElementMap elementMap, Iterable<MemberEntity> liveMembers) {
+    Map<String, ClassEnv> classMap;
+    Map<String, ir.Member> memberMap;
+    Map<String, ir.Member> setterMap;
+    if (_classMap == null) {
+      classMap = const <String, ClassEnv>{};
+    } else {
+      classMap = _classMap;
+    }
+    if (_memberMap == null) {
+      memberMap = const <String, ir.Member>{};
+    } else {
+      memberMap = <String, ir.Member>{};
+      _memberMap.forEach((String name, ir.Member node) {
+        MemberEntity member = elementMap.getMember(node);
+        if (liveMembers.contains(member)) {
+          memberMap[name] = node;
+        }
+      });
+    }
+    if (_setterMap == null) {
+      setterMap = const <String, ir.Member>{};
+    } else {
+      setterMap = <String, ir.Member>{};
+      _setterMap.forEach((String name, ir.Member node) {
+        MemberEntity member = elementMap.getMember(node);
+        if (liveMembers.contains(member)) {
+          setterMap[name] = node;
+        }
+      });
+    }
+    return new LibraryEnv.internal(library, classMap, memberMap, setterMap);
+  }
 }
 
 class LibraryData {
@@ -196,6 +240,9 @@ abstract class ClassEnv {
   /// Whether the class is an unnamed mixin application.
   bool get isUnnamedMixinApplication;
 
+  /// Ensures that all members have been computed for [cls].
+  void ensureMembers(KernelToElementMapBase elementMap);
+
   /// Return the [MemberEntity] for the member [name] in the class. If [setter]
   /// is `true`, the setter or assignable field corresponding to [name] is
   /// returned.
@@ -217,6 +264,10 @@ abstract class ClassEnv {
   /// Calls [f] for each constructor body for the live constructors in the
   /// class.
   void forEachConstructorBody(void f(ConstructorBodyEntity constructor));
+
+  /// Creates a new [ClassEnv] containing only the members in [liveMembers].
+  ClassEnv copyLive(
+      KernelToElementMap elementMap, Iterable<MemberEntity> liveMembers);
 }
 
 int orderByFileOffset(ir.TreeNode a, ir.TreeNode b) {
@@ -242,6 +293,9 @@ class ClassEnvImpl implements ClassEnv {
   List<ConstructorBodyEntity> _constructorBodyList;
 
   ClassEnvImpl(this.cls);
+
+  ClassEnvImpl.internal(this.cls, this._constructorMap, this._memberMap,
+      this._setterMap, this._members);
 
   bool get isUnnamedMixinApplication => cls.isSyntheticMixinImplementation;
 
@@ -289,6 +343,10 @@ class ClassEnvImpl implements ClassEnv {
     return new ir.Constructor(function,
         name: superclassConstructor.name,
         initializers: <ir.Initializer>[superInitializer]);
+  }
+
+  void ensureMembers(KernelToElementMapBase elementMap) {
+    _ensureMaps(elementMap);
   }
 
   void _ensureMaps(KernelToElementMapBase elementMap) {
@@ -364,6 +422,7 @@ class ClassEnvImpl implements ClassEnv {
 
     int mixinMemberCount = 0;
     if (cls.mixedInClass != null) {
+      elementMap.ensureClassMembers(cls.mixedInClass);
       addFields(cls.mixedInClass.mixin, includeStatic: false);
       addProcedures(cls.mixedInClass.mixin, includeStatic: false);
       mergeSort(members, compare: orderByFileOffset);
@@ -446,6 +505,60 @@ class ClassEnvImpl implements ClassEnv {
   void forEachConstructorBody(void f(ConstructorBodyEntity constructor)) {
     _constructorBodyList?.forEach(f);
   }
+
+  ClassEnv copyLive(
+      KernelToElementMap elementMap, Iterable<MemberEntity> liveMembers) {
+    Map<String, ir.Member> constructorMap;
+    Map<String, ir.Member> memberMap;
+    Map<String, ir.Member> setterMap;
+    List<ir.Member> members;
+    if (_constructorMap == null) {
+      constructorMap = const <String, ir.Member>{};
+    } else {
+      constructorMap = <String, ir.Member>{};
+      _constructorMap.forEach((String name, ir.Member node) {
+        MemberEntity member = elementMap.getMember(node);
+        if (liveMembers.contains(member)) {
+          constructorMap[name] = node;
+        }
+      });
+    }
+    if (_memberMap == null) {
+      memberMap = const <String, ir.Member>{};
+    } else {
+      memberMap = <String, ir.Member>{};
+      _memberMap.forEach((String name, ir.Member node) {
+        MemberEntity member = elementMap.getMember(node);
+        if (liveMembers.contains(member)) {
+          memberMap[name] = node;
+        }
+      });
+    }
+    if (_setterMap == null) {
+      setterMap = const <String, ir.Member>{};
+    } else {
+      setterMap = <String, ir.Member>{};
+      _setterMap.forEach((String name, ir.Member node) {
+        MemberEntity member = elementMap.getMember(node);
+        if (liveMembers.contains(member)) {
+          setterMap[name] = node;
+        }
+      });
+    }
+    if (_members == null) {
+      members = const <ir.Member>[];
+    } else {
+      members = <ir.Member>[];
+      _members.forEach((ir.Member node) {
+        MemberEntity member = elementMap.getMember(node);
+        if (liveMembers.contains(member)) {
+          members.add(node);
+        }
+      });
+    }
+    return new ClassEnvImpl.internal(
+        cls, constructorMap, memberMap, setterMap, members);
+  }
 }
 
 class ClosureClassEnv extends RecordEnv {
@@ -460,12 +573,22 @@ class ClosureClassEnv extends RecordEnv {
     }
     return super.lookupMember(elementMap, name, setter: setter);
   }
+
+  @override
+  ClassEnv copyLive(
+          KernelToElementMap elementMap, Iterable<MemberEntity> liveMembers) =>
+      this;
 }
 
 class RecordEnv implements ClassEnv {
   final Map<String, MemberEntity> _memberMap;
 
   RecordEnv(this._memberMap);
+
+  @override
+  void ensureMembers(KernelToElementMapBase elementMap) {
+    // All members have been computed at creation.
+  }
 
   @override
   void forEachConstructorBody(void f(ConstructorBodyEntity constructor)) {
@@ -502,6 +625,12 @@ class RecordEnv implements ClassEnv {
 
   @override
   ir.Class get cls => null;
+
+  @override
+  ClassEnv copyLive(
+      KernelToElementMap elementMap, Iterable<MemberEntity> liveMembers) {
+    return this;
+  }
 }
 
 class ClassData {

@@ -16,6 +16,7 @@ import 'package:front_end/src/api_prototype/compilation_message.dart'
 import 'package:front_end/src/fasta/severity.dart' show Severity;
 import 'package:kernel/ast.dart' show Component, StaticGet, Field;
 import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:vm/bytecode/gen_bytecode.dart' show generateBytecode;
 
 import 'transformations/devirtualization.dart' as devirtualization
     show transformComponent;
@@ -34,7 +35,8 @@ import 'transformations/type_flow/transformer.dart' as globalTypeFlow
 Future<Component> compileToKernel(Uri source, CompilerOptions options,
     {bool aot: false,
     bool useGlobalTypeFlowAnalysis: false,
-    List<String> entryPoints}) async {
+    List<String> entryPoints,
+    bool genBytecode: false}) async {
   // Replace error handler to detect if there are compilation errors.
   final errorDetector =
       new ErrorDetector(previousErrorHandler: options.onError);
@@ -49,6 +51,10 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
   if (aot && (component != null) && !errorDetector.hasCompilationErrors) {
     _runGlobalTransformations(
         component, options.strongMode, useGlobalTypeFlowAnalysis, entryPoints);
+  }
+
+  if (genBytecode && component != null) {
+    generateBytecode(component, strongMode: options.strongMode);
   }
 
   return component;

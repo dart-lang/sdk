@@ -229,9 +229,7 @@ class ScannerTest_Replacement extends ScannerTestBase {
       token = token.next;
     }
     if (!token.previous.isEof) {
-      var head = new analyzer.Token.eof(-1);
-      token.previous = head;
-      head.next = token;
+      new analyzer.Token.eof(-1).setNext(token);
     }
     return token;
   }

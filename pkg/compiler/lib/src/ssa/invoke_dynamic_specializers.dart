@@ -122,16 +122,52 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
       CompilerOptions options,
       CommonElements commonElements,
       ClosedWorld closedWorld) {
-    if (instruction.inputs[1].isMutableIndexable(closedWorld)) {
-      if (!instruction.inputs[2].isInteger(closedWorld) &&
-          options.enableTypeAssertions) {
-        // We want the right checked mode error.
+    HInstruction receiver = instruction.inputs[1];
+    HInstruction index = instruction.inputs[2];
+    if (!receiver.isMutableIndexable(closedWorld)) return null;
+    if (!index.isInteger(closedWorld) && options.enableTypeAssertions) {
+      // We want the right checked mode error.
+      return null;
+    }
+
+    HInstruction value = instruction.inputs[3];
+    if (options.parameterCheckPolicy.isEmitted) {
+      if (!_valueParameterCheckAlwaysSucceeds(
+          instruction, receiver, value, commonElements, closedWorld)) {
         return null;
       }
-      return new HIndexAssign(instruction.inputs[1], instruction.inputs[2],
-          instruction.inputs[3], instruction.selector);
     }
-    return null;
+    return new HIndexAssign(receiver, index, value, instruction.selector);
+  }
+
+  /// Returns [true] if [value] meets the requirements for being stored into
+  /// indexable [receiver].
+  bool _valueParameterCheckAlwaysSucceeds(
+      HInvokeDynamic instruction,
+      HInstruction receiver,
+      HInstruction value,
+      CommonElements commonElements,
+      ClosedWorld closedWorld) {
+    // Handle typed arrays by recognizing the exact implementation of `[]=` and
+    // checking if [value] has the appropriate type.
+    if (instruction.element != null) {
+      ClassEntity cls = instruction.element.enclosingClass;
+      if (cls == commonElements.typedArrayOfIntClass) {
+        return value.isInteger(closedWorld);
+      } else if (cls == commonElements.typedArrayOfDoubleClass) {
+        return value.isNumber(closedWorld);
+      }
+    }
+
+    // The type check will pass if it passed before. We know it passed before if
+    // the value was loaded from the same indexable.
+    if (value is HIndex) {
+      if (value.receiver.nonCheck() == receiver.nonCheck()) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }
 
@@ -212,8 +248,18 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       ClosedWorld closedWorld) {
-    TypeMask operandType = instruction.inputs[1].instructionType;
-    if (instruction.inputs[1].isNumberOrNull(closedWorld)) return operandType;
+    HInstruction operand = instruction.inputs[1];
+    if (operand.isNumberOrNull(closedWorld)) {
+      // We have integer subclasses that represent ranges, so widen any int
+      // subclass to full integer.
+      if (operand.isIntegerOrNull(closedWorld)) {
+        return closedWorld.commonMasks.intType;
+      }
+      if (operand.isDoubleOrNull(closedWorld)) {
+        return closedWorld.commonMasks.doubleType;
+      }
+      return closedWorld.commonMasks.numType;
+    }
     return super
         .computeTypeFromInputTypes(instruction, results, options, closedWorld);
   }
@@ -227,7 +273,11 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
       ClosedWorld closedWorld) {
     HInstruction input = instruction.inputs[1];
     if (input.isNumber(closedWorld)) {
-      return new HNegate(input, instruction.selector, input.instructionType);
+      return new HNegate(
+          input,
+          instruction.selector,
+          computeTypeFromInputTypes(
+              instruction, results, options, closedWorld));
     }
     return null;
   }

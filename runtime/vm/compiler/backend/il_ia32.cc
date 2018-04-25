@@ -2506,12 +2506,12 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     LocalVariable* closure_parameter = scope->VariableAt(0);
     ASSERT(!closure_parameter->is_captured());
-    __ movl(CTX, Address(EBP, closure_parameter->index() * kWordSize));
-    __ movl(CTX, FieldAddress(CTX, Closure::context_offset()));
+    __ movl(EDI, Address(EBP, closure_parameter->index() * kWordSize));
+    __ movl(EDI, FieldAddress(EDI, Closure::context_offset()));
 
 #ifdef DEBUG
     Label ok;
-    __ LoadClassId(EBX, CTX);
+    __ LoadClassId(EBX, EDI);
     __ cmpl(EBX, Immediate(kContextCid));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Incorrect context at entry");
@@ -2520,19 +2520,19 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     const intptr_t context_index =
         parsed_function.current_context_var()->index();
-    __ movl(Address(EBP, context_index * kWordSize), CTX);
+    __ movl(Address(EBP, context_index * kWordSize), EDI);
   }
 
   // Initialize exception and stack trace variables.
   if (exception_var().is_captured()) {
     ASSERT(stacktrace_var().is_captured());
     __ StoreIntoObject(
-        CTX,
-        FieldAddress(CTX, Context::variable_offset(exception_var().index())),
+        EDI,
+        FieldAddress(EDI, Context::variable_offset(exception_var().index())),
         kExceptionObjectReg);
     __ StoreIntoObject(
-        CTX,
-        FieldAddress(CTX, Context::variable_offset(stacktrace_var().index())),
+        EDI,
+        FieldAddress(EDI, Context::variable_offset(stacktrace_var().index())),
         kStackTraceObjectReg);
   } else {
     // Restore stack and initialize the two exception variables:

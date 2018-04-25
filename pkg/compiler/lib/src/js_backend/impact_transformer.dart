@@ -41,7 +41,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
   final BackendImpacts _impacts;
   final NativeBasicData _nativeBasicData;
   final NativeResolutionEnqueuer _nativeResolutionEnqueuer;
-  final BackendUsageBuilder _backendUsageBuider;
+  final BackendUsageBuilder _backendUsageBuilder;
   final MirrorsDataBuilder _mirrorsDataBuilder;
   final CustomElementsResolutionAnalysis _customElementsResolutionAnalysis;
   final RuntimeTypesNeedBuilder _rtiNeedBuilder;
@@ -54,7 +54,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       this._impacts,
       this._nativeBasicData,
       this._nativeResolutionEnqueuer,
-      this._backendUsageBuider,
+      this._backendUsageBuilder,
       this._mirrorsDataBuilder,
       this._customElementsResolutionAnalysis,
       this._rtiNeedBuilder,
@@ -67,7 +67,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 
     void registerImpact(BackendImpact impact) {
       impact.registerImpact(transformed, _elementEnvironment);
-      _backendUsageBuider.processBackendImpact(impact);
+      _backendUsageBuilder.processBackendImpact(impact);
     }
 
     for (Feature feature in worldImpact.features) {
@@ -110,6 +110,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           break;
         case Feature.GENERIC_INSTANTIATION:
           registerImpact(_impacts.genericInstantiation);
+          _backendUsageBuilder.isGenericInstantiationUsed = true;
           break;
         case Feature.LAZY_FIELD:
           registerImpact(_impacts.lazyField);
@@ -251,7 +252,9 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           Local closure = staticUse.element;
           FunctionType type = _elementEnvironment.getLocalFunctionType(closure);
           if (type.containsTypeVariables ||
-              (_options.strongMode && !optimizeLocalSignaturesForStrongMode)) {
+              // TODO(johnniwinther): Can we avoid the need for signatures in
+              // Dart 2?
+              _options.strongMode) {
             registerImpact(_impacts.computeSignature);
           }
           break;
@@ -300,7 +303,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
   void onIsCheck(DartType type, TransformedWorldImpact transformed) {
     void registerImpact(BackendImpact impact) {
       impact.registerImpact(transformed, _elementEnvironment);
-      _backendUsageBuider.processBackendImpact(impact);
+      _backendUsageBuilder.processBackendImpact(impact);
     }
 
     type = _elementEnvironment.getUnaliasedType(type);

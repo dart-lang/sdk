@@ -10,6 +10,9 @@ import 'dart:io' show File, Platform, exitCode;
 
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 
+import 'package:vm/bytecode/gen_bytecode.dart'
+    show generateBytecode, kEnableKernelBytecodeForPlatform;
+
 import 'package:vm/target/dart_runner.dart' show DartRunnerTarget;
 
 import 'package:vm/target/flutter_runner.dart' show FlutterRunnerTarget;
@@ -85,6 +88,11 @@ Future compilePlatformInternal(
   }
   new File.fromUri(outlineOutput).writeAsBytesSync(result.summary);
   c.options.ticker.logMs("Wrote outline to ${outlineOutput.toFilePath()}");
+
+  if (kEnableKernelBytecodeForPlatform) {
+    generateBytecode(result.component, strongMode: c.options.strongMode);
+  }
+
   await writeComponentToFile(result.component, fullOutput,
       filter: (lib) => !lib.isExternal);
 

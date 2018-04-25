@@ -55,13 +55,15 @@ class EnqueueTask extends CompilerTask {
   }
 
   ResolutionEnqueuer createResolutionEnqueuer() {
-    return _resolution ??=
-        compiler.backend.createResolutionEnqueuer(this, compiler);
+    return _resolution ??= compiler.backend
+        .createResolutionEnqueuer(this, compiler)
+          ..onEmptyForTesting = compiler.onResolutionQueueEmptyForTesting;
   }
 
   Enqueuer createCodegenEnqueuer(ClosedWorld closedWorld) {
-    return codegenEnqueuerForTesting =
-        compiler.backend.createCodegenEnqueuer(this, compiler, closedWorld);
+    return codegenEnqueuerForTesting = compiler.backend
+        .createCodegenEnqueuer(this, compiler, closedWorld)
+          ..onEmptyForTesting = compiler.onCodegenQueueEmptyForTesting;
   }
 }
 
@@ -212,6 +214,10 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   /// Queue of deferred resolution actions to execute when the resolution queue
   /// has been emptied.
   final Queue<DeferredAction> _deferredQueue = new Queue<DeferredAction>();
+
+  // If not `null` this is called when the queue has been emptied. It allows for
+  // applying additional impacts before re-emptying the queue.
+  void Function() onEmptyForTesting;
 
   ResolutionEnqueuer(this.task, this._options, this._reporter, this.strategy,
       this.listener, this._worldBuilder, this._workItemBuilder,
@@ -396,7 +402,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     _worldBuilder.registerClosurizedMember(element);
   }
 
-  void forEach(void f(WorkItem work)) {
+  void _forEach(void f(WorkItem work)) {
     do {
       while (_queue.isNotEmpty) {
         // TODO(johnniwinther): Find an optimal process order.
@@ -416,6 +422,14 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         _recentClasses.isNotEmpty ||
         _deferredQueue.isNotEmpty ||
         _recentConstants);
+  }
+
+  void forEach(void f(WorkItem work)) {
+    _forEach(f);
+    if (onEmptyForTesting != null) {
+      onEmptyForTesting();
+      _forEach(f);
+    }
   }
 
   void logSummary(void log(String message)) {

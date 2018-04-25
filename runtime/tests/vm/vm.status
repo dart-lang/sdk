@@ -155,7 +155,6 @@ cc/DebuggerAPI_ScriptGetTokenInfo_MultiLineInterpolation: Fail
 cc/Debugger_PrintBreakpointsToJSONArray: Fail
 cc/Debugger_Rewind_Optimized: SkipSlow
 cc/Debugger_SetBreakpointInPartOfLibrary: Crash
-cc/FunctionSourceFingerprint: Fail # Issue 30756
 cc/IsolateReload_NotTypedefToTypedef: Fail
 cc/IsolateReload_TypedefToNotTypedef: Fail
 cc/Profiler_BasicSourcePositionOptimized: Skip
@@ -208,6 +207,9 @@ cc/FullSnapshot1: Crash # Issue 32190
 cc/IsolateReload_LibraryImportAdded: Crash # Issue 32190
 cc/IsolateReload_LibraryImportRemoved: Fail # Issue 32190
 cc/IsolateReload_LibraryLookup: Fail, Crash # Issue 32190
+cc/MismatchedSnapshotKinds: Fail, Crash, OK # Script snapshots not supported in Dart 2
+cc/ScriptSnapshot1: Fail, Crash, OK # Script snapshots not supported in Dart 2
+cc/ScriptSnapshotsUpdateSubclasses: Fail, Crash, OK # Script snapshots not supported in Dart 2
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of

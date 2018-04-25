@@ -169,12 +169,7 @@ class EditDomainHandler extends AbstractRequestHandler {
       CompilationUnitElement compilationUnitElement =
           resolutionMap.elementDeclaredByCompilationUnit(unit);
       DartAssistContext dartAssistContext = new _DartAssistContextForValues(
-          compilationUnitElement.source,
-          offset,
-          length,
-          driver,
-          new AstProviderForDriver(driver),
-          unit);
+          compilationUnitElement.source, offset, length, driver, unit);
       try {
         AssistProcessor processor = new AssistProcessor(dartAssistContext);
         List<Assist> assists = await processor.compute();
@@ -652,13 +647,10 @@ class _DartAssistContextForValues implements DartAssistContext {
   final AnalysisDriver analysisDriver;
 
   @override
-  final AstProvider astProvider;
-
-  @override
   final CompilationUnit unit;
 
   _DartAssistContextForValues(this.source, this.selectionOffset,
-      this.selectionLength, this.analysisDriver, this.astProvider, this.unit);
+      this.selectionLength, this.analysisDriver, this.unit);
 }
 
 /**

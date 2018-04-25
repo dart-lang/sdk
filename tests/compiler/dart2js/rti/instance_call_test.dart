@@ -152,7 +152,7 @@ main() {
 
       js.Name selector = getName(targetName, expectedTypeArguments);
       bool callFound = false;
-      forEachCall(fun, (js.Call node) {
+      forEachNode(fun, onCall: (js.Call node) {
         js.Expression target = node.target;
         if (target is js.PropertyAccess && target.selector == selector) {
           callFound = true;

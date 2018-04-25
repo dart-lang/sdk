@@ -153,8 +153,8 @@ test() {
 
   // Some non-exceptional values.
   checkVeryClose(16.0, pow(4.0, 2.0));
-  checkVeryClose(SQRT2, pow(2.0, 0.5));
-  checkVeryClose(SQRT1_2, pow(0.5, 0.5));
+  checkVeryClose(sqrt2, pow(2.0, 0.5));
+  checkVeryClose(sqrt1_2, pow(0.5, 0.5));
   // Denormal result.
   Expect.identical(5e-324, pow(2.0, -1074.0));
   // Overflow.

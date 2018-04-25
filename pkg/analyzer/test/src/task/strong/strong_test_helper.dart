@@ -26,6 +26,7 @@ import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 
 import '../../context/mock_sdk.dart';
 

@@ -26,6 +26,7 @@ abstract class AbstractRecoveryTest extends FastaParserTestCase {
     try {
       validUnit =
           parseCompilationUnit(validCode, codes: expectedErrorsInValidCode);
+      validateTokenStream(validUnit.beginToken);
     } catch (e) {
 //      print('');
 //      print('  Errors in valid code.');
@@ -55,8 +56,14 @@ abstract class AbstractRecoveryTest extends FastaParserTestCase {
 
   void validateTokenStream(Token token) {
     while (!token.isEof) {
-      expect(token.end, lessThanOrEqualTo(token.next.offset));
-      token = token.next;
+      Token next = token.next;
+      expect(token.end, lessThanOrEqualTo(next.offset));
+      if (next.isSynthetic) {
+        if (const [')', ']', '}'].contains(next.lexeme)) {
+          expect(next.beforeSynthetic, token);
+        }
+      }
+      token = next;
     }
   }
 }

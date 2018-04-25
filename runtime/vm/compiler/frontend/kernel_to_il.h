@@ -7,6 +7,8 @@
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
+#include <initializer_list>
+
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
 
@@ -169,6 +171,12 @@ class Fragment {
 
   Fragment() : entry(NULL), current(NULL) {}
 
+  Fragment(std::initializer_list<Fragment> list) : entry(NULL), current(NULL) {
+    for (Fragment i : list) {
+      *this += i;
+    }
+  }
+
   explicit Fragment(Instruction* instruction)
       : entry(instruction), current(instruction) {}
 
@@ -177,6 +185,8 @@ class Fragment {
 
   bool is_open() { return entry == NULL || current != NULL; }
   bool is_closed() { return !is_open(); }
+
+  void Prepend(Instruction* start);
 
   Fragment& operator+=(const Fragment& other);
   Fragment& operator<<=(Instruction* next);
@@ -396,6 +406,7 @@ class TranslationHelper {
   const String& DartGetterName(NameIndex getter);
   const String& DartGetterName(NameIndex parent, StringIndex getter);
 
+  const String& DartFieldName(NameIndex field);
   const String& DartFieldName(NameIndex parent, StringIndex field);
 
   const String& DartMethodName(NameIndex method);
@@ -630,6 +641,13 @@ class BaseFlowGraphBuilder {
     return LoadLocal(parsed_function_->arg_desc_var());
   }
 
+  Fragment TestTypeArgsLen(Fragment eq_branch,
+                           Fragment neq_branch,
+                           intptr_t num_type_args);
+  Fragment TestDelayedTypeArgs(LocalVariable* closure,
+                               Fragment present,
+                               Fragment absent);
+
   JoinEntryInstr* BuildThrowNoSuchMethod();
 
  protected:
@@ -655,6 +673,7 @@ class BaseFlowGraphBuilder {
   intptr_t pending_argument_count_;
 
   friend class TryCatchBlock;
+  friend class KernelReaderHelper;
   friend class StreamingFlowGraphBuilder;
   friend class FlowGraphBuilder;
   friend class PrologueBuilder;
@@ -874,6 +893,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   friend class BreakableBlock;
   friend class CatchBlock;
   friend class ConstantEvaluator;
+  friend class KernelReaderHelper;
   friend class StreamingFlowGraphBuilder;
   friend class ScopeBuilder;
   friend class SwitchBlock;

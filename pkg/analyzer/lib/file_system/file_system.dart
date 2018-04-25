@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.file_system.file_system;
-
 import 'dart:async';
 
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
+
+export 'package:analyzer/src/file_system/file_system.dart';
 
 /**
  * [File]s are leaf [Resource]s which contain data.
@@ -226,11 +225,6 @@ abstract class Resource {
  */
 abstract class ResourceProvider {
   /**
-   * Get the absolute path context used by this resource provider.
-   */
-  AbsolutePathContext get absolutePathContext;
-
-  /**
    * Get the path context used by this resource provider.
    */
   Context get pathContext;
@@ -270,42 +264,4 @@ abstract class ResourceProvider {
    * the plugin ids are unique. The plugin ids must be valid folder names.
    */
   Folder getStateLocation(String pluginId);
-}
-
-/**
- * A [UriResolver] for [Resource]s.
- */
-class ResourceUriResolver extends UriResolver {
-  /**
-   * The name of the `file` scheme.
-   */
-  static final String FILE_SCHEME = "file";
-
-  final ResourceProvider _provider;
-
-  ResourceUriResolver(this._provider);
-
-  ResourceProvider get provider => _provider;
-
-  @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
-    if (!isFileUri(uri)) {
-      return null;
-    }
-    String path = _provider.pathContext.fromUri(uri);
-    Resource resource = _provider.getResource(path);
-    if (resource is File) {
-      return resource.createSource(actualUri ?? uri);
-    }
-    return null;
-  }
-
-  @override
-  Uri restoreAbsolute(Source source) =>
-      _provider.pathContext.toUri(source.fullName);
-
-  /**
-   * Return `true` if the given [uri] is a `file` URI.
-   */
-  static bool isFileUri(Uri uri) => uri.scheme == FILE_SCHEME;
 }

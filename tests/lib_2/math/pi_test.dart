@@ -48,5 +48,5 @@ void main([args]) {
   // Mmmmh, Pie!
   var pie = 4.0 * (inside / (inside + outside));
   print("$pie");
-  Expect.isTrue(((PI - 0.009) < pie) && (pie < (PI + 0.009)));
+  Expect.isTrue(((pi - 0.009) < pie) && (pie < (pi + 0.009)));
 }

@@ -5,6 +5,9 @@
 library dart2js.kernel.element_map;
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/class_hierarchy.dart' as ir;
+import 'package:kernel/core_types.dart' as ir;
+import 'package:kernel/type_environment.dart' as ir;
 
 import '../closure.dart' show BoxLocal, ThisLocal;
 import '../common.dart';
@@ -202,6 +205,10 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     });
   }
 
+  void ensureClassMembers(ir.Class node) {
+    _classes.getEnv(_getClass(node)).ensureMembers(this);
+  }
+
   MemberEntity lookupClassMember(IndexedClass cls, String name,
       {bool setter: false}) {
     assert(checkFamily(cls));
@@ -342,17 +349,24 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   MemberEntity getSuperMember(
       MemberEntity context, ir.Name name, ir.Member target,
       {bool setter: false}) {
-    if (target != null) {
+    if (target != null && !target.isAbstract && target.isInstanceMember) {
       return getMember(target);
     }
     ClassEntity cls = context.enclosingClass;
+    assert(
+        cls != null,
+        failedAt(context,
+            "No enclosing class for super member access in $context."));
     IndexedClass superclass = _getSuperType(cls)?.element;
     while (superclass != null) {
       ClassEnv env = _classes.getEnv(superclass);
       MemberEntity superMember =
           env.lookupMember(this, name.name, setter: setter);
-      if (superMember != null && !superMember.isAbstract) {
-        return superMember;
+      if (superMember != null) {
+        if (!superMember.isInstanceMember) return null;
+        if (!superMember.isAbstract) {
+          return superMember;
+        }
       }
       superclass = _getSuperType(superclass)?.element;
     }
@@ -1187,10 +1201,36 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
         KElementCreatorMixin {
   native.BehaviorBuilder _nativeBehaviorBuilder;
   FrontendStrategy _frontendStrategy;
+  ir.TypeEnvironment _typeEnvironment;
+  bool _isStaticTypePrepared = false;
 
   KernelToElementMapForImpactImpl(DiagnosticReporter reporter,
       Environment environment, this._frontendStrategy, CompilerOptions options)
       : super(options, reporter, environment);
+
+  DartType getStaticType(ir.Expression node) {
+    if (!_isStaticTypePrepared) {
+      _isStaticTypePrepared = true;
+      try {
+        _typeEnvironment ??= new ir.TypeEnvironment(
+            new ir.CoreTypes(_env.mainComponent),
+            new ir.ClassHierarchy(_env.mainComponent),
+            strongMode: options.strongMode);
+      } catch (e) {}
+    }
+    if (_typeEnvironment == null) {
+      // The class hierarchy crashes on multiple inheritance. Use `dynamic`
+      // as static type.
+      return commonElements.dynamicType;
+    }
+    ir.TreeNode enclosingClass = node;
+    while (enclosingClass != null && enclosingClass is! ir.Class) {
+      enclosingClass = enclosingClass.parent;
+    }
+    _typeEnvironment.thisType =
+        enclosingClass is ir.Class ? enclosingClass.thisType : null;
+    return getDartType(node.getStaticType(_typeEnvironment));
+  }
 
   @override
   bool checkFamily(Entity entity) {
@@ -1406,6 +1446,39 @@ class KernelElementEnvironment extends ElementEnvironment {
   @override
   List<TypeVariableType> getFunctionTypeVariables(FunctionEntity function) {
     return elementMap._getFunctionTypeVariables(function);
+  }
+
+  @override
+  DartType getFunctionAsyncOrSyncStarElementType(FunctionEntity function) {
+    DartType returnType = getFunctionType(function).returnType;
+    switch (function.asyncMarker) {
+      case AsyncMarker.SYNC:
+        return returnType;
+      case AsyncMarker.SYNC_STAR:
+        if (returnType is InterfaceType) {
+          if (returnType.element == elementMap.commonElements.iterableClass) {
+            return returnType.typeArguments.first;
+          }
+        }
+        return dynamicType;
+      case AsyncMarker.ASYNC:
+        if (returnType is FutureOrType) return returnType.typeArgument;
+        if (returnType is InterfaceType) {
+          if (returnType.element == elementMap.commonElements.futureClass) {
+            return returnType.typeArguments.first;
+          }
+        }
+        return dynamicType;
+      case AsyncMarker.ASYNC_STAR:
+        if (returnType is InterfaceType) {
+          if (returnType.element == elementMap.commonElements.streamClass) {
+            return returnType.typeArguments.first;
+          }
+        }
+        return dynamicType;
+    }
+    assert(false, 'Unexpected marker ${function.asyncMarker}');
+    return null;
   }
 
   @override
@@ -2159,8 +2232,11 @@ class JsKernelToElementMap extends KernelToElementMapBase
 
   NativeBasicData nativeBasicData;
 
-  JsKernelToElementMap(DiagnosticReporter reporter, Environment environment,
-      KernelToElementMapForImpactImpl _elementMap)
+  JsKernelToElementMap(
+      DiagnosticReporter reporter,
+      Environment environment,
+      KernelToElementMapForImpactImpl _elementMap,
+      Iterable<MemberEntity> liveMembers)
       : super(_elementMap.options, reporter, environment) {
     _env = _elementMap._env;
     for (int libraryIndex = 0;
@@ -2173,7 +2249,11 @@ class JsKernelToElementMap extends KernelToElementMapBase
       IndexedLibrary newLibrary = convertLibrary(oldLibrary);
       _libraryMap[env.library] =
           _libraries.register<IndexedLibrary, LibraryData, LibraryEnv>(
-              newLibrary, data.copy(), env);
+              newLibrary,
+              data.copy(),
+              options.strongMode && useStrongModeWorldStrategy
+                  ? env.copyLive(_elementMap, liveMembers)
+                  : env);
       assert(newLibrary.libraryIndex == oldLibrary.libraryIndex);
     }
     for (int classIndex = 0;
@@ -2185,7 +2265,12 @@ class JsKernelToElementMap extends KernelToElementMapBase
       IndexedLibrary oldLibrary = oldClass.library;
       LibraryEntity newLibrary = _libraries.getEntity(oldLibrary.libraryIndex);
       IndexedClass newClass = convertClass(newLibrary, oldClass);
-      _classMap[env.cls] = _classes.register(newClass, data.copy(), env);
+      _classMap[env.cls] = _classes.register(
+          newClass,
+          data.copy(),
+          options.strongMode && useStrongModeWorldStrategy
+              ? env.copyLive(_elementMap, liveMembers)
+              : env);
       assert(newClass.classIndex == oldClass.classIndex);
     }
     for (int typedefIndex = 0;
@@ -2211,6 +2296,12 @@ class JsKernelToElementMap extends KernelToElementMapBase
         memberIndex < _elementMap._members.length;
         memberIndex++) {
       IndexedMember oldMember = _elementMap._members.getEntity(memberIndex);
+      if (options.strongMode &&
+          useStrongModeWorldStrategy &&
+          !liveMembers.contains(oldMember)) {
+        _members.skipIndex(oldMember.memberIndex);
+        continue;
+      }
       MemberDataImpl data = _elementMap._members.getData(oldMember);
       IndexedLibrary oldLibrary = oldMember.library;
       IndexedClass oldClass = oldMember.enclosingClass;

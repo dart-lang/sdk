@@ -1634,7 +1634,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
     TypeInformation rhsType = visit(node.value);
     MemberEntity member = _elementMap.getSuperMember(
-        _analyzedMember, node.name, node.interfaceTarget);
+        _analyzedMember, node.name, node.interfaceTarget,
+        setter: true);
     TypeMask mask = _memberData.typeOfSend(node);
     Selector selector = new Selector.setter(_elementMap.getName(node.name));
     ArgumentsTypes arguments = new ArgumentsTypes([rhsType], null);

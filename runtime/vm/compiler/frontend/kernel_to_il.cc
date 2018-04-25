@@ -111,6 +111,15 @@ Fragment& Fragment::operator<<=(Instruction* next) {
   return *this;
 }
 
+void Fragment::Prepend(Instruction* start) {
+  if (entry == NULL) {
+    entry = current = start;
+  } else {
+    start->LinkTo(entry);
+    entry = start;
+  }
+}
+
 Fragment Fragment::closed() {
   ASSERT(entry != NULL);
   return Fragment(entry, NULL);
@@ -545,6 +554,10 @@ const String& TranslationHelper::DartGetterName(NameIndex parent,
   ManglePrivateName(parent, &name);
   name = Field::GetterSymbol(name);
   return name;
+}
+
+const String& TranslationHelper::DartFieldName(NameIndex field) {
+  return DartFieldName(CanonicalNameParent(field), CanonicalNameString(field));
 }
 
 const String& TranslationHelper::DartFieldName(NameIndex parent,
@@ -1001,17 +1014,9 @@ Fragment FlowGraphBuilder::LoadFunctionTypeArguments() {
 
   const Function& function = parsed_function_->function();
 
-  if (function.IsClosureFunction() && !function.IsGeneric()) {
-    LocalScope* scope = parsed_function_->node_sequence()->scope();
-    LocalVariable* closure = scope->VariableAt(0);
-    ASSERT(closure != NULL);
-    instructions += LoadLocal(closure);
-    instructions += LoadField(Closure::function_type_arguments_offset());
-
-  } else if (function.IsGeneric()) {
+  if (function.IsGeneric() || function.HasGenericParent()) {
     ASSERT(parsed_function_->function_type_arguments() != NULL);
     instructions += LoadLocal(parsed_function_->function_type_arguments());
-
   } else {
     instructions += NullConstant();
   }
@@ -1331,6 +1336,52 @@ Fragment BaseFlowGraphBuilder::TailCall(const Code& code) {
   Fragment instructions;
   Value* arg_desc = Pop();
   return Fragment(new (Z) TailCallInstr(code, arg_desc));
+}
+
+Fragment BaseFlowGraphBuilder::TestTypeArgsLen(Fragment eq_branch,
+                                               Fragment neq_branch,
+                                               intptr_t num_type_args) {
+  Fragment test;
+
+  TargetEntryInstr* eq_entry;
+  TargetEntryInstr* neq_entry;
+
+  test += LoadArgDescriptor();
+  test += LoadField(ArgumentsDescriptor::type_args_len_offset());
+  test += IntConstant(num_type_args);
+  test += BranchIfEqual(&eq_entry, &neq_entry);
+
+  eq_branch.Prepend(eq_entry);
+  neq_branch.Prepend(neq_entry);
+
+  JoinEntryInstr* join = BuildJoinEntry();
+  eq_branch += Goto(join);
+  neq_branch += Goto(join);
+
+  return Fragment(test.entry, join);
+}
+
+Fragment BaseFlowGraphBuilder::TestDelayedTypeArgs(LocalVariable* closure,
+                                                   Fragment present,
+                                                   Fragment absent) {
+  Fragment test;
+
+  TargetEntryInstr* absent_entry;
+  TargetEntryInstr* present_entry;
+
+  test += LoadLocal(closure);
+  test += LoadField(Closure::delayed_type_arguments_offset());
+  test += Constant(Object::empty_type_arguments());
+  test += BranchIfEqual(&absent_entry, &present_entry);
+
+  present.Prepend(present_entry);
+  absent.Prepend(absent_entry);
+
+  JoinEntryInstr* join = BuildJoinEntry();
+  absent += Goto(join);
+  present += Goto(join);
+
+  return Fragment(test.entry, join);
 }
 
 Fragment FlowGraphBuilder::RethrowException(TokenPosition position,
@@ -2155,6 +2206,11 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
   fragment += LoadLocal(context);
   fragment +=
       StoreInstanceField(TokenPosition::kNoSource, Closure::context_offset());
+
+  fragment += LoadLocal(closure);
+  fragment += Constant(Object::empty_type_arguments());
+  fragment += StoreInstanceField(TokenPosition::kNoSource,
+                                 Closure::delayed_type_arguments_offset());
 
   // The context is on top of the operand stack.  Store `this`.  The context
   // doesn't need a parent pointer because it doesn't close over anything

@@ -42,6 +42,10 @@ void testTypes(TypeEnvironment env, DartType subtype, DartType supertype,
   if (expectMoreSpecific == null) expectMoreSpecific = expectSubtype;
   Expect.equals(expectSubtype, env.isSubtype(subtype, supertype),
       '$subtype <: $supertype');
+  if (expectSubtype) {
+    Expect.isTrue(env.isPotentialSubtype(subtype, supertype),
+        '$subtype <: $supertype (potential)');
+  }
   if (env.types is Types) {
     Expect.equals(expectMoreSpecific, env.isMoreSpecific(subtype, supertype),
         '$subtype << $supertype');
@@ -828,6 +832,9 @@ Future testStrongModeSubtyping(CompileMode compileMode, bool strongMode) async {
       options: strongMode ? [Flags.strongMode] : []).then((env) {
     void expect(bool expectSubtype, DartType T, DartType S) {
       Expect.equals(expectSubtype, env.isSubtype(T, S), '$T <: $S');
+      if (expectSubtype) {
+        Expect.isTrue(env.isPotentialSubtype(T, S), '$T <: $S (potential)');
+      }
     }
 
     InterfaceType ClassWithCall = env['ClassWithCall'];

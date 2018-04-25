@@ -162,6 +162,12 @@ abstract class ResolutionDartType implements DartType {
   /// Is [: true :] if this type contains any type variables.
   bool get containsTypeVariables => typeVariableOccurrence != null;
 
+  bool get containsFreeTypeVariables {
+    assert(!containsMethodTypeVariableType,
+        'Used only after removing method type variables');
+    return containsTypeVariables;
+  }
+
   /// Returns a textual representation of this type as if it was the type
   /// of a member named [name].
   String getStringAsDeclared(String name) {
@@ -1233,10 +1239,12 @@ class Types extends DartTypes {
   }
 
   bool isPotentialSubtype(
-      covariant ResolutionDartType t, covariant ResolutionDartType s) {
+      covariant ResolutionDartType t, covariant ResolutionDartType s,
+      {bool assumeInstantiations: true}) {
     // TODO(johnniwinther): Return a set of variable points in the positive
     // cases.
-    return potentialSubtypeVisitor.isSubtype(t, s);
+    return potentialSubtypeVisitor.isPotentialSubtype(t, s,
+        assumeInstantiations: assumeInstantiations);
   }
 
   @override

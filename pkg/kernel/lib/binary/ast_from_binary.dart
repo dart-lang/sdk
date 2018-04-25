@@ -182,7 +182,7 @@ class BinaryBuilder {
         final DartType valueType = readDartType();
         final int length = readUInt();
         final List<ConstantMapEntry> entries =
-            new List<ConstantMapEntry>(length);
+            new List<ConstantMapEntry>.filled(length, null, growable: true);
         for (int i = 0; i < length; i++) {
           final Constant key = readConstantReference();
           final Constant value = readConstantReference();
@@ -192,7 +192,8 @@ class BinaryBuilder {
       case ConstantTag.ListConstant:
         final DartType typeArgument = readDartType();
         final int length = readUInt();
-        final List<Constant> entries = new List<Constant>(length);
+        final List<Constant> entries =
+            new List<Constant>.filled(length, null, growable: true);
         for (int i = 0; i < length; i++) {
           entries[i] = readConstantReference();
         }
@@ -201,7 +202,7 @@ class BinaryBuilder {
         final Reference classReference = readClassReference();
         final int typeArgumentCount = readUInt();
         final List<DartType> typeArguments =
-            new List<DartType>(typeArgumentCount);
+            new List<DartType>.filled(typeArgumentCount, null, growable: true);
         for (int i = 0; i < typeArgumentCount; i++) {
           typeArguments[i] = readDartType();
         }
@@ -242,7 +243,7 @@ class BinaryBuilder {
 
   List<String> readStringReferenceList() {
     int length = readUInt();
-    List<String> result = new List<String>(length);
+    List<String> result = new List<String>.filled(length, null, growable: true);
     for (int i = 0; i < length; ++i) {
       result[i] = readStringReference();
     }
@@ -268,7 +269,8 @@ class BinaryBuilder {
   List<Expression> readAnnotationList(TreeNode parent) {
     int length = readUInt();
     if (length == 0) return const <Expression>[];
-    List<Expression> list = new List<Expression>(length);
+    List<Expression> list =
+        new List<Expression>.filled(length, null, growable: true);
     for (int i = 0; i < length; ++i) {
       list[i] = readExpression()..parent = parent;
     }
@@ -699,7 +701,8 @@ class BinaryBuilder {
 
   List<Combinator> readCombinatorList() {
     int length = readUInt();
-    List<Combinator> result = new List<Combinator>(length);
+    List<Combinator> result =
+        new List<Combinator>.filled(length, null, growable: true);
     for (int i = 0; i < length; ++i) {
       result[i] = readCombinator();
     }
@@ -1164,7 +1167,8 @@ class BinaryBuilder {
 
   List<Expression> readExpressionList() {
     int length = readUInt();
-    List<Expression> result = new List<Expression>(length);
+    List<Expression> result =
+        new List<Expression>.filled(length, null, growable: true);
     for (int i = 0; i < length; ++i) {
       result[i] = readExpression();
     }
@@ -1418,7 +1422,8 @@ class BinaryBuilder {
 
   List<MapEntry> readMapEntryList() {
     int length = readUInt();
-    List<MapEntry> result = new List<MapEntry>(length);
+    List<MapEntry> result =
+        new List<MapEntry>.filled(length, null, growable: true);
     for (int i = 0; i < length; ++i) {
       result[i] = readMapEntry();
     }
@@ -1431,8 +1436,8 @@ class BinaryBuilder {
 
   List<Statement> readStatementList() {
     int length = readUInt();
-    List<Statement> result = <Statement>[];
-    result.length = length;
+    List<Statement> result =
+        new List<Statement>.filled(length, null, growable: true);
     for (int i = 0; i < length; ++i) {
       result[i] = readStatement();
     }
@@ -1514,7 +1519,8 @@ class BinaryBuilder {
         var offset = readOffset();
         var expression = readExpression();
         int count = readUInt();
-        List<SwitchCase> cases = new List<SwitchCase>(count);
+        List<SwitchCase> cases =
+            new List<SwitchCase>.filled(count, null, growable: true);
         for (int i = 0; i < count; ++i) {
           cases[i] = new SwitchCase.empty();
         }
@@ -1579,7 +1585,7 @@ class BinaryBuilder {
 
   List<Catch> readCatchList() {
     int length = readUInt();
-    List<Catch> result = new List<Catch>(length);
+    List<Catch> result = new List<Catch>.filled(length, null, growable: true);
     for (int i = 0; i < length; ++i) {
       result[i] = readCatch();
     }
@@ -1623,7 +1629,8 @@ class BinaryBuilder {
 
   List<Supertype> readSupertypeList() {
     int length = readUInt();
-    List<Supertype> result = new List<Supertype>(length);
+    List<Supertype> result =
+        new List<Supertype>.filled(length, null, growable: true);
     for (int i = 0; i < length; ++i) {
       result[i] = readSupertype();
     }
@@ -1632,7 +1639,8 @@ class BinaryBuilder {
 
   List<DartType> readDartTypeList() {
     int length = readUInt();
-    List<DartType> result = new List<DartType>(length);
+    List<DartType> result =
+        new List<DartType>.filled(length, null, growable: true);
     for (int i = 0; i < length; ++i) {
       result[i] = readDartType();
     }
@@ -1641,7 +1649,8 @@ class BinaryBuilder {
 
   List<NamedType> readNamedTypeList() {
     int length = readUInt();
-    List<NamedType> result = new List<NamedType>(length);
+    List<NamedType> result =
+        new List<NamedType>.filled(length, null, growable: true);
     for (int i = 0; i < length; ++i) {
       result[i] = readNamedType();
     }
@@ -1716,7 +1725,7 @@ class BinaryBuilder {
     int length = readUInt();
     if (length == 0) return list ?? <TypeParameter>[];
     if (list == null) {
-      list = new List<TypeParameter>(length);
+      list = new List<TypeParameter>.filled(length, null, growable: true);
       for (int i = 0; i < length; ++i) {
         list[i] = new TypeParameter(null, null)..parent = parent;
       }
@@ -1752,7 +1761,8 @@ class BinaryBuilder {
 
   List<NamedExpression> readNamedExpressionList() {
     int length = readUInt();
-    List<NamedExpression> result = new List<NamedExpression>(length);
+    List<NamedExpression> result =
+        new List<NamedExpression>.filled(length, null, growable: true);
     for (int i = 0; i < length; ++i) {
       result[i] = readNamedExpression();
     }
@@ -1765,7 +1775,8 @@ class BinaryBuilder {
 
   List<VariableDeclaration> readAndPushVariableDeclarationList() {
     int length = readUInt();
-    List<VariableDeclaration> result = new List<VariableDeclaration>(length);
+    List<VariableDeclaration> result =
+        new List<VariableDeclaration>.filled(length, null, growable: true);
     for (int i = 0; i < length; ++i) {
       result[i] = readAndPushVariableDeclaration();
     }
@@ -1860,7 +1871,8 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
             final nodeOffset = readUint32();
             offsetToReferenceId[nodeOffset] = j;
           }
-          referencedNodes = new List<Node>(referencesLength);
+          referencedNodes =
+              new List<Node>.filled(referencesLength, null, growable: true);
           containsNodeReferences = true;
         }
 

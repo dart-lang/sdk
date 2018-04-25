@@ -2898,21 +2898,21 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     LocalVariable* closure_parameter = scope->VariableAt(0);
     ASSERT(!closure_parameter->is_captured());
-    __ LoadFromOffset(kWord, CTX, FP, closure_parameter->index() * kWordSize);
-    __ LoadFieldFromOffset(kWord, CTX, CTX, Closure::context_offset());
+    __ LoadFromOffset(kWord, R6, FP, closure_parameter->index() * kWordSize);
+    __ LoadFieldFromOffset(kWord, R6, R6, Closure::context_offset());
 
     const intptr_t context_index =
         parsed_function.current_context_var()->index();
-    __ StoreToOffset(kWord, CTX, FP, context_index * kWordSize);
+    __ StoreToOffset(kWord, R6, FP, context_index * kWordSize);
   }
 
   // Initialize exception and stack trace variables.
   if (exception_var().is_captured()) {
     ASSERT(stacktrace_var().is_captured());
-    __ StoreIntoObjectOffset(CTX,
+    __ StoreIntoObjectOffset(R6,
                              Context::variable_offset(exception_var().index()),
                              kExceptionObjectReg);
-    __ StoreIntoObjectOffset(CTX,
+    __ StoreIntoObjectOffset(R6,
                              Context::variable_offset(stacktrace_var().index()),
                              kStackTraceObjectReg);
   } else {

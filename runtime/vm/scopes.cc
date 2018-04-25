@@ -643,7 +643,8 @@ void LocalScope::CaptureLocalVariables(LocalScope* top_scope) {
           (variable->name().raw() == Symbols::StackTraceVar().raw()) ||
           (variable->name().raw() == Symbols::ExceptionVar().raw()) ||
           (variable->name().raw() == Symbols::SavedTryContextVar().raw()) ||
-          (variable->name().raw() == Symbols::ArgDescVar().raw())) {
+          (variable->name().raw() == Symbols::ArgDescVar().raw()) ||
+          (variable->name().raw() == Symbols::FunctionTypeArgumentsVar().raw())) {
         // Don't capture those variables because the VM expects them to be on
         // the stack.
         continue;

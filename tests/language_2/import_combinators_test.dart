@@ -9,7 +9,7 @@ library importCombinatorsTest;
 import "package:expect/expect.dart";
 import "import1_lib.dart" show hide, show hide ugly;
 import "export1_lib.dart";
-import "dart:math" as M show E;
+import "dart:math" as M show e;
 
 part "import_combinators_part.dart";
 
@@ -19,9 +19,9 @@ main() {
   // Top-level function from part, refers to imported variable show.
   Expect.equals("show", lookBehindCurtain());
   // Top-level variable E from export1_lib.dart.
-  Expect.equals("E", E);
+  Expect.equals("E", e);
   // Top-level variable E imported from dart:math.
-  Expect.equals(2.718281828459045, M.E);
+  Expect.equals(2.718281828459045, M.e);
   // Constant LN2 from math library, re-exported by export1_lib.dart.
-  Expect.equals(0.6931471805599453, LN2);
+  Expect.equals(0.6931471805599453, ln2);
 }

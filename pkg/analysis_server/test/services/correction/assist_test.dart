@@ -11,9 +11,7 @@ import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/ast_provider_driver.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -2564,6 +2562,33 @@ class A {
     await assertNoAssistAt('test =', DartAssistKind.ENCAPSULATE_FIELD);
   }
 
+  test_encapsulateField_OK_documentation() async {
+    await resolveTestUnit('''
+class A {
+  /// AAA
+  /// BBB
+  int test;
+}
+''');
+    await assertHasAssistAt('test;', DartAssistKind.ENCAPSULATE_FIELD, '''
+class A {
+  /// AAA
+  /// BBB
+  int _test;
+
+  /// AAA
+  /// BBB
+  int get test => _test;
+
+  /// AAA
+  /// BBB
+  set test(int test) {
+    _test = test;
+  }
+}
+''');
+  }
+
   test_encapsulateField_OK_hasType() async {
     await resolveTestUnit('''
 class A {
@@ -2580,7 +2605,7 @@ class A {
 
   int get test => _test;
 
-  void set test(int test) {
+  set test(int test) {
     _test = test;
   }
   A(this._test);
@@ -2606,7 +2631,7 @@ class A {
 
   get test => _test;
 
-  void set test(test) {
+  set test(test) {
     _test = test;
   }
 }
@@ -5769,8 +5794,8 @@ main() {
     CompilationUnitElement testUnitElement =
         resolutionMap.elementDeclaredByCompilationUnit(testUnit);
     DartAssistContext assistContext;
-    assistContext = new _DartAssistContextForValues(testUnitElement.source,
-        offset, length, driver, new AstProviderForDriver(driver), testUnit);
+    assistContext = new _DartAssistContextForValues(
+        testUnitElement.source, offset, length, driver, testUnit);
     AssistProcessor processor = new AssistProcessor(assistContext);
     return await processor.compute();
   }
@@ -5809,11 +5834,8 @@ class _DartAssistContextForValues implements DartAssistContext {
   final AnalysisDriver analysisDriver;
 
   @override
-  final AstProvider astProvider;
-
-  @override
   final CompilationUnit unit;
 
   _DartAssistContextForValues(this.source, this.selectionOffset,
-      this.selectionLength, this.analysisDriver, this.astProvider, this.unit);
+      this.selectionLength, this.analysisDriver, this.unit);
 }

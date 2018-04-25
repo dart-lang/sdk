@@ -7,21 +7,16 @@ import 'dart:io';
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
-import 'package:kernel/text/ast_to_text.dart';
 import 'package:test/test.dart';
 import 'package:vm/transformations/type_flow/transformer.dart'
     show transformComponent;
 
-import 'common_test_utils.dart';
+import '../../common_test_utils.dart';
 
 final String pkgVmDir = Platform.script.resolve('../../..').toFilePath();
 
 runTestCase(Uri source) async {
   Component component = await compileTestCaseToKernelProgram(source);
-
-  // Make sure the library name is the same and does not depend on the order
-  // of test cases.
-  component.mainMethod.enclosingLibrary.name = '#lib';
 
   final coreTypes = new CoreTypes(component);
 
@@ -32,10 +27,7 @@ runTestCase(Uri source) async {
 
   component = transformComponent(coreTypes, component, entryPoints);
 
-  final StringBuffer buffer = new StringBuffer();
-  new Printer(buffer, showExternal: false, showMetadata: true)
-      .writeLibraryFile(component.mainMethod.enclosingLibrary);
-  final actual = buffer.toString();
+  final actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);
 
   compareResultWithExpectationsFile(source, actual);
 }

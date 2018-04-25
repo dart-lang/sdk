@@ -57,7 +57,9 @@ const List<TestData> DATA = const [
     const ConstantData('1 + 2', ConstantExpressionKind.BINARY),
     const ConstantData('1 == 2', ConstantExpressionKind.BINARY),
     // TODO(sigmund): reenable (Issue 32511)
-    // const ConstantData('1 != 2', ConstantExpressionKind.BINARY),
+    const ConstantData('1 != 2', ConstantExpressionKind.UNARY,
+        // a != b is encoded as !(a == b) by CFE.
+        text: '!(1 == 2)'),
     const ConstantData('1 ?? 2', ConstantExpressionKind.BINARY),
     const ConstantData('-(1)', ConstantExpressionKind.UNARY, text: '-1'),
     const ConstantData('"foo".length', ConstantExpressionKind.STRING_LENGTH),
@@ -156,34 +158,44 @@ class C<U> {
         'const A<int>(field1: 87)', ConstantExpressionKind.CONSTRUCTED,
         type: 'A<int>', fields: const {'field(A#field1)': '87'}),
     // TODO(sigmund): reenable (Issue 32511)
-    //const ConstantData('const B()', ConstantExpressionKind.CONSTRUCTED,
-    //    type: 'A<B<dynamic>>',
-    //    fields: const {
-    //      'field(A#field1)': '42',
-    //    }),
-    //const ConstantData('const B<int>()', ConstantExpressionKind.CONSTRUCTED,
-    //    type: 'A<B<int>>',
-    //    fields: const {
-    //      'field(A#field1)': '42',
-    //    }),
-    //const ConstantData(
-    //    'const B<int>(field1: 87)', ConstantExpressionKind.CONSTRUCTED,
-    //    type: 'A<B<int>>',
-    //    fields: const {
-    //      'field(A#field1)': '87',
-    //    }),
-    //const ConstantData(
-    //    'const C<int>(field1: 87)', ConstantExpressionKind.CONSTRUCTED,
-    //    type: 'A<B<double>>',
-    //    fields: const {
-    //      'field(A#field1)': '87',
-    //    }),
-    //const ConstantData(
-    //    'const B<int>.named()', ConstantExpressionKind.CONSTRUCTED,
-    //    type: 'A<int>',
-    //    fields: const {
-    //      'field(A#field1)': '42',
-    //    }),
+    const ConstantData('const B()', ConstantExpressionKind.CONSTRUCTED,
+        type: 'A<B<dynamic>>',
+        fields: const {
+          'field(A#field1)': '42',
+        },
+        // Redirecting factories are replaced by their effective targets by CFE.
+        text: 'const A<B<dynamic>>()'),
+    const ConstantData('const B<int>()', ConstantExpressionKind.CONSTRUCTED,
+        type: 'A<B<int>>',
+        fields: const {
+          'field(A#field1)': '42',
+        },
+        // Redirecting factories are replaced by their effective targets by CFE.
+        text: 'const A<B<int>>()'),
+    const ConstantData(
+        'const B<int>(field1: 87)', ConstantExpressionKind.CONSTRUCTED,
+        type: 'A<B<int>>',
+        fields: const {
+          'field(A#field1)': '87',
+        },
+        // Redirecting factories are replaced by their effective targets by CFE.
+        text: 'const A<B<int>>(field1: 87)'),
+    const ConstantData(
+        'const C<int>(field1: 87)', ConstantExpressionKind.CONSTRUCTED,
+        type: 'A<B<double>>',
+        fields: const {
+          'field(A#field1)': '87',
+        },
+        // Redirecting factories are replaced by their effective targets by CFE.
+        text: 'const A<B<double>>(field1: 87)'),
+    const ConstantData(
+        'const B<int>.named()', ConstantExpressionKind.CONSTRUCTED,
+        type: 'A<int>',
+        fields: const {
+          'field(A#field1)': '42',
+        },
+        // Redirecting factories are replaced by their effective targets by CFE.
+        text: 'const A<int>()'),
   ]),
 ];
 

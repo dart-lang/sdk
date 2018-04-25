@@ -636,6 +636,17 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Checked overrides");
   }
 
+  void checkAbstractMembers(List<SourceClassBuilder> sourceClasses) {
+    if (!target.strongMode) return;
+    assert(hierarchy != null);
+    for (SourceClassBuilder builder in sourceClasses) {
+      if (builder.library.loader == this) {
+        builder.checkAbstractMembers(coreTypes, hierarchy);
+      }
+    }
+    ticker.logMs("Checked abstract members");
+  }
+
   void addNoSuchMethodForwarders(List<SourceClassBuilder> sourceClasses) {
     if (!target.backendTarget.enableNoSuchMethodForwarders) return;
 

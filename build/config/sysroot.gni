@@ -16,17 +16,17 @@ declare_args() {
 
 if (is_linux && dart_use_wheezy_sysroot) {
   if (current_cpu == "x86") {
-    target_sysroot = rebase_path("//build/linux/debian_wheezy_i386-sysroot")
+    target_sysroot = rebase_path("//build/linux/debian_wheezy_i386-sysroot", root_build_dir)
   } else if (current_cpu == "x64") {
     if (is_asan || is_lsan || is_msan || is_tsan) {
-      target_sysroot = rebase_path("//build/linux/debian_jessie_amd64-sysroot")
+      target_sysroot = rebase_path("//build/linux/debian_jessie_amd64-sysroot", root_build_dir)
     } else {
-      target_sysroot = rebase_path("//build/linux/debian_wheezy_amd64-sysroot")
+      target_sysroot = rebase_path("//build/linux/debian_wheezy_amd64-sysroot", root_build_dir)
     }
   } else if (current_cpu == "arm") {
-    target_sysroot = rebase_path("//build/linux/debian_wheezy_arm-sysroot")
+    target_sysroot = rebase_path("//build/linux/debian_wheezy_arm-sysroot", root_build_dir)
   } else if (current_cpu == "arm64") {
-    target_sysroot = rebase_path("//build/linux/debian_jessie_arm64-sysroot")
+    target_sysroot = rebase_path("//build/linux/debian_jessie_arm64-sysroot", root_build_dir)
   } else {
     print("There is no Debian wheezy sysroot present for $current_cpu")
     assert(false)
@@ -38,13 +38,13 @@ if (current_toolchain == default_toolchain && target_sysroot != "") {
 } else if (is_android) {
   import("//build/config/android/config.gni")
   if (current_cpu == "x86") {
-    sysroot = rebase_path("$android_ndk_root/$x86_android_sysroot_subdir")
+    sysroot = rebase_path("$android_ndk_root/$x86_android_sysroot_subdir", root_build_dir)
   } else if (current_cpu == "arm") {
-    sysroot = rebase_path("$android_ndk_root/$arm_android_sysroot_subdir")
+    sysroot = rebase_path("$android_ndk_root/$arm_android_sysroot_subdir", root_build_dir)
   } else if (current_cpu == "x64") {
-    sysroot = rebase_path("$android_ndk_root/$x86_64_android_sysroot_subdir")
+    sysroot = rebase_path("$android_ndk_root/$x86_64_android_sysroot_subdir", root_build_dir)
   } else if (current_cpu == "arm64") {
-    sysroot = rebase_path("$android_ndk_root/$arm64_android_sysroot_subdir")
+    sysroot = rebase_path("$android_ndk_root/$arm64_android_sysroot_subdir", root_build_dir)
   } else {
     sysroot = ""
   }

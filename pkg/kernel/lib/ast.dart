@@ -3650,9 +3650,23 @@ class VectorCopy extends Expression {
   }
 }
 
-/// Expression of the form `MakeClosure(f, c, t)` where `f` is a name of a
-/// closed top-level function, `c` is a Vector representing closure context, and
-/// `t` is the type of the resulting closure.
+/// Expression of the form `MakeClosure<T>(f, c, t)` where `f` is a name of a
+/// closed top-level function, `c` is a Vector representing closure context, `t`
+/// is the type of the resulting closure and `T` is a vector of type arguments
+/// to be passed to `f`.
+///
+/// Note these restrictions on its usage:
+///
+///   1. `f` must reference a statically-resolved top-level function.
+///
+///   2. The length of `T` must be less than or equal to the number of type
+///      parameters on `f`.
+///
+///   3. It is disallowed to use `MakeClosure` on the same function twice with
+///      different numbers of type arguments.
+///
+///   4. The type arguments `T` must be guaranteed to satisfy the bounds of the
+///      corresponding type parameters on `f`.
 class ClosureCreation extends Expression {
   Reference topLevelFunctionReference;
   Expression contextVector;
@@ -5103,6 +5117,8 @@ class TypeParameter extends TreeNode {
   /// Returns a possibly synthesized name for this type parameter, consistent
   /// with the names used across all [toString] calls.
   String toString() => debugQualifiedTypeParameterName(this);
+
+  bool get isFunctionTypeTypeParameter => parent == null;
 }
 
 class Supertype extends Node {

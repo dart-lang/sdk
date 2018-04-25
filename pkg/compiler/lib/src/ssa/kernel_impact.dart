@@ -19,6 +19,7 @@ import '../universe/call_structure.dart';
 import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart';
+import '../universe/world_builder.dart';
 
 ResolutionImpact buildKernelImpact(
     ir.Member member,
@@ -438,9 +439,16 @@ class KernelImpactBuilder extends ir.Visitor {
     List<DartType> typeArguments = _visitArguments(node.arguments);
     // TODO(johnniwinther): Restrict the dynamic use to only match the known
     // target.
-    impactBuilder.registerDynamicUse(new GenericDynamicUse(
-        new Selector.call(elementMap.getMember(node.target).memberName,
-            elementMap.getCallStructure(node.arguments)),
+    ReceiverConstraint constraint;
+    MemberEntity member = elementMap.getMember(node.target);
+    if (_options.strongMode && useStrongModeWorldStrategy) {
+      // TODO(johnniwinther): Restrict this to subclasses?
+      constraint = new StrongModeConstraint(member.enclosingClass);
+    }
+    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
+        new Selector.call(
+            member.memberName, elementMap.getCallStructure(node.arguments)),
+        constraint,
         typeArguments));
   }
 
@@ -514,10 +522,10 @@ class KernelImpactBuilder extends ir.Visitor {
   }
 
   @override
-  void visitMethodInvocation(ir.MethodInvocation invocation) {
-    Selector selector = elementMap.getSelector(invocation);
-    List<DartType> typeArguments = _visitArguments(invocation.arguments);
-    var receiver = invocation.receiver;
+  void visitMethodInvocation(ir.MethodInvocation node) {
+    Selector selector = elementMap.getSelector(node);
+    List<DartType> typeArguments = _visitArguments(node.arguments);
+    var receiver = node.receiver;
     if (receiver is ir.VariableGet &&
         receiver.variable.isFinal &&
         receiver.variable.parent is ir.FunctionDeclaration) {
@@ -530,25 +538,49 @@ class KernelImpactBuilder extends ir.Visitor {
             localFunction, selector.callStructure, typeArguments));
       }
     } else {
-      visitNode(invocation.receiver);
-      impactBuilder
-          .registerDynamicUse(new GenericDynamicUse(selector, typeArguments));
+      visitNode(node.receiver);
+      ReceiverConstraint constraint;
+      if (_options.strongMode && useStrongModeWorldStrategy) {
+        DartType receiverType = elementMap.getStaticType(node.receiver);
+        if (receiverType is InterfaceType) {
+          constraint = new StrongModeConstraint(receiverType.element);
+        }
+      }
+
+      impactBuilder.registerDynamicUse(
+          new ConstrainedDynamicUse(selector, constraint, typeArguments));
     }
   }
 
   @override
   void visitPropertyGet(ir.PropertyGet node) {
     visitNode(node.receiver);
-    impactBuilder.registerDynamicUse(
-        new DynamicUse(new Selector.getter(elementMap.getName(node.name))));
+    ReceiverConstraint constraint;
+    if (_options.strongMode && useStrongModeWorldStrategy) {
+      DartType receiverType = elementMap.getStaticType(node.receiver);
+      if (receiverType is InterfaceType) {
+        constraint = new StrongModeConstraint(receiverType.element);
+      }
+    }
+    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
+        new Selector.getter(elementMap.getName(node.name)),
+        constraint, const <DartType>[]));
   }
 
   @override
   void visitPropertySet(ir.PropertySet node) {
     visitNode(node.receiver);
     visitNode(node.value);
-    impactBuilder.registerDynamicUse(
-        new DynamicUse(new Selector.setter(elementMap.getName(node.name))));
+    ReceiverConstraint constraint;
+    if (_options.strongMode && useStrongModeWorldStrategy) {
+      DartType receiverType = elementMap.getStaticType(node.receiver);
+      if (receiverType is InterfaceType) {
+        constraint = new StrongModeConstraint(receiverType.element);
+      }
+    }
+    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
+        new Selector.setter(elementMap.getName(node.name)),
+        constraint, const <DartType>[]));
   }
 
   @override
@@ -561,6 +593,7 @@ class KernelImpactBuilder extends ir.Visitor {
 
   @override
   void visitInstantiation(ir.Instantiation node) {
+    // TODO(johnniwinther): Track which arities are used in instantiation.
     impactBuilder.registerFeature(Feature.GENERIC_INSTANTIATION);
     node.visitChildren(this);
   }
@@ -632,8 +665,11 @@ class KernelImpactBuilder extends ir.Visitor {
     visitNode(node.variable);
     visitNode(node.iterable);
     visitNode(node.body);
+    // TODO(johnniwinther): Use receiver constraints for the dynamic uses in
+    // strong mode.
     if (node.isAsync) {
       impactBuilder.registerFeature(Feature.ASYNC_FOR_IN);
+      impactBuilder.registerDynamicUse(new DynamicUse(Selectors.cancel));
     } else {
       impactBuilder.registerFeature(Feature.SYNC_FOR_IN);
       impactBuilder.registerDynamicUse(new DynamicUse(Selectors.iterator));

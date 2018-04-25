@@ -35,13 +35,13 @@ void startRootIsolate(main, args) {
   if (args == null) args = <String>[];
   if (args is List) {
     if (args is! List<String>) args = new List<String>.from(args);
-    if (main is _MainFunction) {
-      main();
-    } else if (main is _MainFunctionArgs) {
-      main(args);
-    } else if (main is _MainFunctionArgsMessage) {
-      main(args, null);
+    // DDC attaches signatures only when torn off, and the typical way of
+    // getting `main` via the JS ABI won't do this. So use JS to invoke main.
+    if (JS<bool>('!', 'typeof # == "function"', main)) {
+      // JS will ignore extra arguments.
+      JS('', '#(#, #)', main, args, null);
     } else {
+      // Not a function. Use a dynamic call to throw an error.
       (main as dynamic)(args);
     }
   } else {
@@ -52,10 +52,6 @@ void startRootIsolate(main, args) {
 // TODO(vsm): Other libraries import global from here.  Consider replacing
 // those uses to just refer to the one in dart:runtime.
 final global = dart.global_;
-
-typedef _MainFunction();
-typedef _MainFunctionArgs(List<String> args);
-typedef _MainFunctionArgsMessage(List<String> args, Null message);
 
 class TimerImpl implements Timer {
   final bool _once;

@@ -315,16 +315,16 @@ class Reader : public ValueObject {
   // the root name as in the canonical name table.
   NameIndex ReadCanonicalNameReference() { return NameIndex(ReadUInt() - 1); }
 
-  intptr_t offset() { return offset_; }
+  intptr_t offset() const { return offset_; }
   void set_offset(intptr_t offset) { offset_ = offset; }
 
-  intptr_t size() { return size_; }
+  intptr_t size() const { return size_; }
   void set_size(intptr_t size) { size_ = size; }
 
-  const TypedData* typed_data() { return typed_data_; }
+  const TypedData* typed_data() const { return typed_data_; }
   void set_typed_data(const TypedData* typed_data) { typed_data_ = typed_data; }
 
-  const uint8_t* raw_buffer() { return raw_buffer_; }
+  const uint8_t* raw_buffer() const { return raw_buffer_; }
   void set_raw_buffer(const uint8_t* raw_buffer) { raw_buffer_ = raw_buffer; }
 
   void CopyDataToVMHeap(const TypedData& typed_data,

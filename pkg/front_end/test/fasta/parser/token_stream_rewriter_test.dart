@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/fasta/parser/token_stream_rewriter.dart';
+import 'package:front_end/src/fasta/scanner.dart'
+    show ScannerResult, scanString;
 import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:front_end/src/scanner/token.dart' show Token;
 import 'package:test/test.dart';
@@ -75,6 +77,23 @@ abstract class TokenStreamRewriterTest {
     rewriter.insertTokenAfter(a, b);
     expect(a.next, same(b));
     expect(b.next, same(c));
+  }
+
+  void test_moveSynthetic() {
+    ScannerResult scanResult = scanString('Foo(bar; baz=0;');
+    expect(scanResult.hasErrors, isTrue);
+    Token open = scanResult.tokens.next.next;
+    expect(open.lexeme, '(');
+    Token close = open.endGroup;
+    expect(close.isSynthetic, isTrue);
+    expect(close.next.isEof, isTrue);
+    var rewriter = new TokenStreamRewriter();
+
+    Token result = rewriter.moveSynthetic(open.next, close);
+    expect(result, close);
+    expect(open.endGroup, close);
+    expect(open.next.next, close);
+    expect(close.next.isEof, isFalse);
   }
 
   void test_replaceTokenFollowing_multiple() {

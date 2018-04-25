@@ -61,9 +61,10 @@ abstract class EntityMapBase<E extends _Indexed> {
 
 /// Index based map of entities of type [E].
 class EntityMap<E extends _Indexed> extends EntityMapBase<E> {
-  /// Registers a new entity.
+  /// Registers a new [entity].
   ///
-  /// [createEntity] is called to create the entity with the given index.
+  /// The index of [entity] is set to match its index in the entity list in this
+  /// map.
   E0 register<E0 extends E>(E0 entity) {
     assert(entity != null);
     assert(entity._index == null);
@@ -93,11 +94,17 @@ abstract class EntityDataMapBase<E extends _Indexed, D>
 /// Index based map of entities of type [E] with a corresponding data object
 /// of type [D].
 class EntityDataMap<E extends _Indexed, D> extends EntityDataMapBase<E, D> {
-  /// Registers a new entity with an associated data object.
+  /// Mark entity [index] as missing
+  void skipIndex(int index) {
+    assert(index == _list.length);
+    _list.add(null);
+    _data.add(null);
+  }
+
+  /// Registers a new [entity] with an associated [data] object.
   ///
-  /// Firstly, [createEntity] is called to create the entity with the given
-  /// index. Secondly, [createData] is called with the newly created entity to
-  /// create the associated data object.
+  /// The index of [entity] is set to match its index in the entity and data
+  /// lists in this map.
   E0 register<E0 extends E, D0 extends D>(E0 entity, D0 data) {
     assert(entity != null);
     assert(entity._index == null);
@@ -130,12 +137,11 @@ abstract class EntityDataEnvMapBase<E extends _Indexed, D, V>
 /// type [D] and an environment of type [V].
 class EntityDataEnvMap<E extends _Indexed, D, V>
     extends EntityDataEnvMapBase<E, D, V> {
-  /// Registers a new entity with an associated data object and environment.
+  /// Registers a new [entity] with an associated [data] object and environment
+  /// [env].
   ///
-  /// Firstly, [createEntity] is called to create the entity with the given
-  /// index. Secondly, [createData] is called with the newly created entity to
-  /// create the associated data object. Thirdly, [createEnv] is called with
-  /// the newly created entity to create the associated environment object.
+  /// The index of [entity] is set to match its index in the entity, data and
+  /// environment lists in this map.
   E0 register<E0 extends E, D0 extends D, V0 extends V>(
       E0 entity, D0 data, V0 env) {
     assert(entity != null);

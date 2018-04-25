@@ -368,6 +368,20 @@ f(A a) {
     verify([source]);
   }
 
+  test_argumentTypeNotAssignable_call() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource(r'''
+typedef bool Predicate<T>(T object);
+
+Predicate<String> f() => null;
+
+void main() {
+  f().call(3);
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+  }
+
   test_argumentTypeNotAssignable_cascadeSecond() async {
     Source source = addSource(r'''
 // filler filler filler filler filler filler filler filler filler filler

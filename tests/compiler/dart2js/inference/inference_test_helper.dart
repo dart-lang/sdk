@@ -48,7 +48,6 @@ runTests(List<String> args, [int shardIndex]) {
     await checkTests(
         dataDir, computeMemberAstTypeMasks, computeMemberIrTypeMasks,
         libDirectory: new Directory.fromUri(Platform.script.resolve('libs')),
-        testStrongMode: true,
         forUserLibrariesOnly: true,
         args: args,
         options: [stopAfterTypeInference],

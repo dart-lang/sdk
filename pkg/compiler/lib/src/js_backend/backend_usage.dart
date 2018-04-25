@@ -47,6 +47,9 @@ abstract class BackendUsage {
 
   /// `true` if `noSuchMethod` is used.
   bool get isNoSuchMethodUsed;
+
+  /// `true` if generic instantiation is used.
+  bool get isGenericInstantiationUsed;
 }
 
 abstract class BackendUsageBuilder {
@@ -87,6 +90,9 @@ abstract class BackendUsageBuilder {
   /// `true` if `noSuchMethod` is used.
   bool isNoSuchMethodUsed;
 
+  /// `true` if generic instantiation is used.
+  bool isGenericInstantiationUsed;
+
   BackendUsage close();
 }
 
@@ -125,6 +131,9 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
 
   /// `true` if `noSuchMethod` is used.
   bool isNoSuchMethodUsed = false;
+
+  /// `true` if generic instantiation is used.
+  bool isGenericInstantiationUsed = false;
 
   BackendUsageBuilderImpl(this._commonElements);
 
@@ -284,7 +293,8 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
         isIsolateInUse: isIsolateInUse,
         isFunctionApplyUsed: isFunctionApplyUsed,
         isMirrorsUsed: isMirrorsUsed,
-        isNoSuchMethodUsed: isNoSuchMethodUsed);
+        isNoSuchMethodUsed: isNoSuchMethodUsed,
+        isGenericInstantiationUsed: isGenericInstantiationUsed);
   }
 }
 
@@ -323,6 +333,9 @@ class BackendUsageImpl implements BackendUsage {
   /// `true` if `noSuchMethod` is used.
   final bool isNoSuchMethodUsed;
 
+  /// `true` if generic instantiation is used.
+  final bool isGenericInstantiationUsed;
+
   BackendUsageImpl(
       {Set<FunctionEntity> globalFunctionDependencies,
       Set<ClassEntity> globalClassDependencies,
@@ -336,7 +349,8 @@ class BackendUsageImpl implements BackendUsage {
       this.isIsolateInUse,
       this.isFunctionApplyUsed,
       this.isMirrorsUsed,
-      this.isNoSuchMethodUsed})
+      this.isNoSuchMethodUsed,
+      this.isGenericInstantiationUsed})
       : this._globalFunctionDependencies = globalFunctionDependencies,
         this._globalClassDependencies = globalClassDependencies,
         this._helperFunctionsUsed = helperFunctionsUsed,

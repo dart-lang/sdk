@@ -1030,11 +1030,9 @@ bool isSubtypeV2(var s, var sEnv, var t, var tEnv) {
     var field = '${JS_GET_NAME(JsGetName.OPERATOR_AS_PREFIX)}${typeOfTString}';
     substitution = getField(typeOfSPrototype, field);
   }
-  // The class of [s] is a subclass of the class of [t].  If [s] has no type
-  // arguments and no substitution, it is used as raw type.  If [t] has no
-  // type arguments, it used as a raw type.  In both cases, [s] is a subtype
-  // of [t].
-  if ((!isJsArray(s) && substitution == null) || !isJsArray(t)) {
+  // The class of [s] is a subclass of the class of [t]. If [t] has no
+  // type arguments, it used as a raw type and [s] is a subtype of [t].
+  if (!isJsArray(t)) {
     return true;
   }
   // Recursively check the type arguments.

@@ -170,6 +170,12 @@ abstract class Compiler {
 
   bool compilationFailed = false;
 
+  // Callback function used for testing resolution enqueuing.
+  void Function() onResolutionQueueEmptyForTesting;
+
+  // Callback function used for testing codegen enqueuing.
+  void Function() onCodegenQueueEmptyForTesting;
+
   Compiler(
       {CompilerOptions options,
       api.CompilerOutput outputProvider,

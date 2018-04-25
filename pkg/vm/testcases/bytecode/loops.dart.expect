@@ -1,0 +1,379 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+[@vm.bytecode=
+Bytecode {
+  Entry                2
+  CheckStack
+  PushConstant         CP#0
+  PopLocal             r0
+  PushConstant         CP#0
+  PopLocal             r1
+L2:
+  CheckStack
+  Push                 r1
+  Push                 FP[-5]
+  InstanceCall1        1, CP#2
+  InstanceCall1        2, CP#4
+  PushConstant         CP#5
+  IfNeStrictTOS
+  Jump                 L1
+  Push                 r0
+  Push                 FP[-5]
+  Push                 r1
+  InstanceCall1        2, CP#6
+  InstanceCall1        2, CP#7
+  StoreLocal           r0
+  Drop1
+  Push                 r1
+  PushConstant         CP#8
+  InstanceCall1        2, CP#9
+  StoreLocal           r1
+  Drop1
+  Jump                 L2
+L1:
+  Push                 r0
+  ReturnTOS
+  PushConstant         CP#10
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Int 0
+  [1] = ArgDesc num-args 1, num-type-args 0, names []
+  [2] = ICData target-name 'get:length', arg-desc CP#1
+  [3] = ArgDesc num-args 2, num-type-args 0, names []
+  [4] = ICData target-name '<', arg-desc CP#3
+  [5] = Bool true
+  [6] = ICData target-name '[]', arg-desc CP#3
+  [7] = ICData target-name '+', arg-desc CP#3
+  [8] = Int 1
+  [9] = ICData target-name '+', arg-desc CP#3
+  [10] = Null
+}
+]static method test_for(core::List<core::int> list) → core::int {
+  core::int sum = 0;
+  for (core::int i = 0; i.{core::num::<}(list.{core::List::length}); i = i.{core::num::+}(1)) {
+    sum = sum.{core::num::+}(list.{core::List::[]}(i));
+  }
+  return sum;
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                2
+  CheckStack
+  PushConstant         CP#0
+  PopLocal             r0
+  PushConstant         CP#0
+  PopLocal             r1
+L3:
+  CheckStack
+  Push                 r1
+  PushConstant         CP#0
+  InstanceCall1        2, CP#2
+  PushConstant         CP#3
+  IfNeStrictTOS
+  Jump                 L1
+  Push                 r1
+  Push                 FP[-5]
+  InstanceCall1        1, CP#5
+  InstanceCall1        2, CP#6
+  PushConstant         CP#3
+  IfNeStrictTOS
+  Jump                 L2
+  Jump                 L1
+L2:
+  Push                 r0
+  Push                 FP[-5]
+  Push                 r1
+  InstanceCall1        2, CP#7
+  InstanceCall1        2, CP#8
+  StoreLocal           r0
+  Drop1
+  Push                 r1
+  PushConstant         CP#9
+  InstanceCall1        2, CP#10
+  StoreLocal           r1
+  Drop1
+  Jump                 L3
+L1:
+  Push                 r0
+  ReturnTOS
+  PushConstant         CP#11
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Int 0
+  [1] = ArgDesc num-args 2, num-type-args 0, names []
+  [2] = ICData target-name '>=', arg-desc CP#1
+  [3] = Bool true
+  [4] = ArgDesc num-args 1, num-type-args 0, names []
+  [5] = ICData target-name 'get:length', arg-desc CP#4
+  [6] = ICData target-name '>=', arg-desc CP#1
+  [7] = ICData target-name '[]', arg-desc CP#1
+  [8] = ICData target-name '+', arg-desc CP#1
+  [9] = Int 1
+  [10] = ICData target-name '+', arg-desc CP#1
+  [11] = Null
+}
+]static method test_for_break(core::List<core::int> list) → core::int {
+  core::int sum = 0;
+  #L1:
+  for (core::int i = 0; i.{core::num::>=}(0); i = i.{core::num::+}(1)) {
+    if(i.{core::num::>=}(list.{core::List::length})) {
+      break #L1;
+    }
+    sum = sum.{core::num::+}(list.{core::List::[]}(i));
+  }
+  return sum;
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                2
+  CheckStack
+  PushConstant         CP#0
+  PopLocal             r0
+  PushConstant         CP#1
+  InstanceCall1        1, CP#3
+  PopLocal             r1
+L4:
+  CheckStack
+  Push                 r1
+  Push                 FP[-5]
+  InstanceCall1        1, CP#4
+  InstanceCall1        2, CP#6
+  PushConstant         CP#7
+  IfNeStrictTOS
+  Jump                 L1
+  Push                 r1
+  PushConstant         CP#0
+  InstanceCall1        2, CP#8
+  PushConstant         CP#7
+  IfNeStrictTOS
+  Jump                 L2
+  Jump                 L3
+L2:
+  Push                 r0
+  Push                 FP[-5]
+  Push                 r1
+  InstanceCall1        2, CP#9
+  InstanceCall1        2, CP#10
+  StoreLocal           r0
+  Drop1
+L3:
+  Push                 r1
+  PushConstant         CP#11
+  InstanceCall1        2, CP#12
+  StoreLocal           r1
+  Drop1
+  Jump                 L4
+L1:
+  Push                 r0
+  ReturnTOS
+  PushConstant         CP#13
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Int 0
+  [1] = Int 100
+  [2] = ArgDesc num-args 1, num-type-args 0, names []
+  [3] = ICData target-name 'unary-', arg-desc CP#2
+  [4] = ICData target-name 'get:length', arg-desc CP#2
+  [5] = ArgDesc num-args 2, num-type-args 0, names []
+  [6] = ICData target-name '<', arg-desc CP#5
+  [7] = Bool true
+  [8] = ICData target-name '<', arg-desc CP#5
+  [9] = ICData target-name '[]', arg-desc CP#5
+  [10] = ICData target-name '+', arg-desc CP#5
+  [11] = Int 1
+  [12] = ICData target-name '+', arg-desc CP#5
+  [13] = Null
+}
+]static method test_for_continue(core::List<core::int> list) → core::int {
+  core::int sum = 0;
+  for (core::int i = 100.{core::int::unary-}(); i.{core::num::<}(list.{core::List::length}); i = i.{core::num::+}(1))
+    #L2:
+    {
+      if(i.{core::num::<}(0)) {
+        break #L2;
+      }
+      sum = sum.{core::num::+}(list.{core::List::[]}(i));
+    }
+  return sum;
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                4
+  CheckStack
+  PushConstant         CP#0
+  PopLocal             r0
+  PushConstant         CP#0
+  PopLocal             r1
+L2:
+  CheckStack
+  Push                 r1
+  Push                 FP[-5]
+  InstanceCall1        1, CP#2
+  InstanceCall1        2, CP#4
+  PushConstant         CP#5
+  IfNeStrictTOS
+  Jump                 L1
+  Push                 r0
+  Push                 FP[-5]
+  Push                 r1
+  PopLocal             r2
+  Push                 r2
+  PushConstant         CP#6
+  InstanceCall1        2, CP#7
+  StoreLocal           r1
+  PopLocal             r3
+  Push                 r2
+  InstanceCall1        2, CP#8
+  InstanceCall1        2, CP#9
+  StoreLocal           r0
+  Drop1
+  Jump                 L2
+L1:
+  Push                 r0
+  ReturnTOS
+  PushConstant         CP#10
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Int 0
+  [1] = ArgDesc num-args 1, num-type-args 0, names []
+  [2] = ICData target-name 'get:length', arg-desc CP#1
+  [3] = ArgDesc num-args 2, num-type-args 0, names []
+  [4] = ICData target-name '<', arg-desc CP#3
+  [5] = Bool true
+  [6] = Int 1
+  [7] = ICData target-name '+', arg-desc CP#3
+  [8] = ICData target-name '[]', arg-desc CP#3
+  [9] = ICData target-name '+', arg-desc CP#3
+  [10] = Null
+}
+]static method test_while(core::List<core::int> list) → core::int {
+  core::int sum = 0;
+  core::int i = 0;
+  while (i.{core::num::<}(list.{core::List::length})) {
+    sum = sum.{core::num::+}(list.{core::List::[]}(let final core::int #t1 = i in let final core::int #t2 = i = #t1.{core::num::+}(1) in #t1));
+  }
+  return sum;
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                2
+  CheckStack
+  PushConstant         CP#0
+  PopLocal             r0
+  PushConstant         CP#0
+  PopLocal             r1
+L1:
+  CheckStack
+  Push                 r0
+  Push                 FP[-5]
+  Push                 r1
+  InstanceCall1        2, CP#2
+  InstanceCall1        2, CP#3
+  StoreLocal           r0
+  Drop1
+  Push                 r1
+  PushConstant         CP#4
+  InstanceCall1        2, CP#5
+  StoreLocal           r1
+  Drop1
+  Push                 r1
+  Push                 FP[-5]
+  InstanceCall1        1, CP#7
+  InstanceCall1        2, CP#8
+  PushConstant         CP#9
+  IfEqStrictTOS
+  Jump                 L1
+  Push                 r0
+  ReturnTOS
+  PushConstant         CP#10
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Int 0
+  [1] = ArgDesc num-args 2, num-type-args 0, names []
+  [2] = ICData target-name '[]', arg-desc CP#1
+  [3] = ICData target-name '+', arg-desc CP#1
+  [4] = Int 1
+  [5] = ICData target-name '+', arg-desc CP#1
+  [6] = ArgDesc num-args 1, num-type-args 0, names []
+  [7] = ICData target-name 'get:length', arg-desc CP#6
+  [8] = ICData target-name '<', arg-desc CP#1
+  [9] = Bool true
+  [10] = Null
+}
+]static method test_do_while(core::List<core::int> list) → core::int {
+  core::int sum = 0;
+  core::int i = 0;
+  do {
+    sum = sum.{core::num::+}(list.{core::List::[]}(i));
+    i = i.{core::num::+}(1);
+  }
+  while (i.{core::num::<}(list.{core::List::length}))
+  return sum;
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                3
+  CheckStack
+  PushConstant         CP#0
+  PopLocal             r0
+  Push                 FP[-5]
+  InstanceCall1        1, CP#2
+  PopLocal             r1
+L2:
+  CheckStack
+  Push                 r1
+  InstanceCall1        1, CP#3
+  PushConstant         CP#4
+  IfNeStrictTOS
+  Jump                 L1
+  Push                 r1
+  InstanceCall1        1, CP#5
+  PopLocal             r2
+  Push                 r0
+  Push                 r2
+  InstanceCall1        2, CP#7
+  StoreLocal           r0
+  Drop1
+  Jump                 L2
+L1:
+  Push                 r0
+  ReturnTOS
+  PushConstant         CP#8
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Int 0
+  [1] = ArgDesc num-args 1, num-type-args 0, names []
+  [2] = ICData target-name 'get:iterator', arg-desc CP#1
+  [3] = ICData target-name 'moveNext', arg-desc CP#1
+  [4] = Bool true
+  [5] = ICData target-name 'current', arg-desc CP#1
+  [6] = ArgDesc num-args 2, num-type-args 0, names []
+  [7] = ICData target-name '+', arg-desc CP#6
+  [8] = Null
+}
+]static method test_for_in(core::List<core::int> list) → core::int {
+  core::int sum = 0;
+  for (core::int e in list) {
+    sum = sum.{core::num::+}(e);
+  }
+  return sum;
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Null
+}
+]static method main() → dynamic {}

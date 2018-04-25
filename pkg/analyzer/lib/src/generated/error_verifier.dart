@@ -7277,19 +7277,10 @@ class _UninstantiatedBoundChecker extends RecursiveAstVisitor {
       return;
     }
 
-    var element = node.type.element;
-    if (element is TypeParameterizedElement &&
-        element.typeParameters.any((p) => p.bound != null)) {
+    final type = node.type;
+    if (type is TypeImpl && type.hasTypeParameterReferenceInBound) {
       _errorReporter.reportErrorForNode(
-          StrongModeCode.NOT_INSTANTIATED_BOUND, node, [node.type]);
-    }
-
-    var enclosingElement = element?.enclosingElement;
-    if (element is GenericFunctionTypeElement &&
-        enclosingElement is GenericTypeAliasElement &&
-        enclosingElement.typeParameters.any((p) => p.bound != null)) {
-      _errorReporter.reportErrorForNode(
-          StrongModeCode.NOT_INSTANTIATED_BOUND, node, [node.type]);
+          StrongModeCode.NOT_INSTANTIATED_BOUND, node, [type]);
     }
   }
 }

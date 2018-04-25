@@ -17,7 +17,7 @@ import 'dart:_js_helper'
 import 'dart:_isolate_helper'
     show IsolateNatives, TimerImpl, leaveJsAsync, enterJsAsync, isWorker;
 
-import 'dart:_foreign_helper' show JS;
+import 'dart:_foreign_helper' show JS, JS_GET_FLAG;
 
 import 'dart:_async_await_error_codes' as async_error_codes;
 
@@ -52,8 +52,6 @@ class _AsyncRun {
         storedCallback = null;
         f();
       }
-
-      ;
 
       var observer = JS('', 'new self.MutationObserver(#)',
           convertDartClosureToJS(internalCallback, 1));
@@ -403,8 +401,8 @@ Stream _streamOfController(_AsyncStarStreamController controller) {
 ///
 /// If yielding while the subscription is paused it will become suspended. And
 /// only resume after the subscription is resumed or canceled.
-class _AsyncStarStreamController {
-  StreamController controller;
+class _AsyncStarStreamController<T> {
+  StreamController<T> controller;
   Stream get stream => controller.stream;
 
   /// True when the async* function has yielded while being paused.
@@ -424,7 +422,7 @@ class _AsyncStarStreamController {
 
   add(event) => controller.add(event);
 
-  addStream(Stream stream) {
+  addStream(Stream<T> stream) {
     return controller.addStream(stream, cancelOnError: false);
   }
 
@@ -439,7 +437,7 @@ class _AsyncStarStreamController {
       });
     }
 
-    controller = new StreamController(onListen: () {
+    controller = new StreamController<T>(onListen: () {
       _resumeBody();
     }, onResume: () {
       // Only schedule again if the async* function actually is suspended.
@@ -466,9 +464,9 @@ class _AsyncStarStreamController {
   }
 }
 
-_makeAsyncStarController(body) {
-  return new _AsyncStarStreamController(body);
-}
+//_makeAsyncStarController(body) {
+//  return new _AsyncStarStreamController(body);
+//}
 
 class _IterationMarker {
   static const YIELD_SINGLE = 0;
@@ -500,7 +498,7 @@ class _IterationMarker {
   toString() => "IterationMarker($state, $value)";
 }
 
-class _SyncStarIterator implements Iterator {
+class _SyncStarIterator<T> implements Iterator<T> {
   // _SyncStarIterator handles stepping a sync* generator body state machine.
   //
   // It also handles the stepping over 'nested' iterators to flatten yield*
@@ -515,9 +513,11 @@ class _SyncStarIterator implements Iterator {
   dynamic _body;
 
   // The current value, unless iterating a non-sync* nested iterator.
-  dynamic _current = null;
+  T _current = null;
 
   // This is the nested iterator when iterating a yield* of a non-sync iterator.
+  // TODO(32956): In strong-mode, yield* takes an Iterable<T> (possibly checked
+  // with an implicit downcast), so change type to Iterator<T>.
   Iterator _nestedIterator = null;
 
   // Stack of suspended state machines when iterating a yield* of a sync*
@@ -526,7 +526,10 @@ class _SyncStarIterator implements Iterator {
 
   _SyncStarIterator(this._body);
 
-  get current => _nestedIterator == null ? _current : _nestedIterator.current;
+  T get current {
+    if (_nestedIterator == null) return _current;
+    return _nestedIterator.current;
+  }
 
   _runBody() {
     // TODO(sra): Find a way to hard-wire SUCCESS and ERROR codes.
@@ -594,11 +597,20 @@ class _SyncStarIterator implements Iterator {
             continue;
           } else {
             _nestedIterator = inner;
+            // TODO(32956): Change to the following when strong-mode is the only
+            // option:
+            //
+            //     _nestedIterator = JS<Iterator<T>>('','#', inner);
             continue;
           }
         }
       } else {
-        _current = value;
+        // TODO(32956): Remove this test.
+        if (JS_GET_FLAG('STRONG_MODE')) {
+          _current = JS<T>('', '#', value);
+        } else {
+          _current = value;
+        }
         return true;
       }
     }
@@ -609,7 +621,7 @@ class _SyncStarIterator implements Iterator {
 /// An Iterable corresponding to a sync* method.
 ///
 /// Each invocation of a sync* method will return a new instance of this class.
-class _SyncStarIterable extends IterableBase {
+class _SyncStarIterable<T> extends IterableBase<T> {
   // This is a function that will return a helper function that does the
   // iteration of the sync*.
   //
@@ -618,7 +630,8 @@ class _SyncStarIterable extends IterableBase {
 
   _SyncStarIterable(this._outerHelper);
 
-  Iterator get iterator => new _SyncStarIterator(JS('', '#()', _outerHelper));
+  Iterator<T> get iterator =>
+      new _SyncStarIterator<T>(JS('', '#()', _outerHelper));
 }
 
 @patch

@@ -10,15 +10,7 @@ import '../scanner/token_constants.dart' show IDENTIFIER_TOKEN, KEYWORD_TOKEN;
 
 import 'parser.dart' show Parser;
 
-import 'type_info_impl.dart'
-    show
-        ComplexTypeInfo,
-        NoTypeInfo,
-        PrefixedTypeInfo,
-        SimpleTypeArgumentsInfo,
-        SimpleTypeInfo,
-        VoidTypeInfo,
-        looksLikeName;
+import 'type_info_impl.dart';
 
 import 'util.dart' show optional;
 
@@ -63,26 +55,26 @@ abstract class TypeInfo {
   Token skipType(Token token);
 }
 
-/// [NoTypeInfo] is a specialized [TypeInfo] returned by [computeType] when
+/// [NoType] is a specialized [TypeInfo] returned by [computeType] when
 /// there is no type information in the source.
-const TypeInfo noTypeInfo = const NoTypeInfo();
+const TypeInfo noType = const NoType();
 
-/// [VoidTypeInfo] is a specialized [TypeInfo] returned by [computeType] when
+/// [VoidType] is a specialized [TypeInfo] returned by [computeType] when
 /// there is a single identifier as the type reference.
-const TypeInfo voidTypeInfo = const VoidTypeInfo();
+const TypeInfo voidType = const VoidType();
 
-/// [SimpleTypeInfo] is a specialized [TypeInfo] returned by [computeType]
+/// [SimpleType] is a specialized [TypeInfo] returned by [computeType]
 /// when there is a single identifier as the type reference.
-const TypeInfo simpleTypeInfo = const SimpleTypeInfo();
+const TypeInfo simpleType = const SimpleType();
 
-/// [PrefixedTypeInfo] is a specialized [TypeInfo] returned by [computeType]
+/// [PrefixedType] is a specialized [TypeInfo] returned by [computeType]
 /// when the type reference is of the form: identifier `.` identifier.
-const TypeInfo prefixedTypeInfo = const PrefixedTypeInfo();
+const TypeInfo prefixedType = const PrefixedType();
 
-/// [SimpleTypeArgumentsInfo] is a specialized [TypeInfo] returned by
+/// [SimpleTypeWith1Argument] is a specialized [TypeInfo] returned by
 /// [computeType] when the type reference is of the form:
 /// identifier `<` identifier `>`.
-const TypeInfo simpleTypeArgumentsInfo = const SimpleTypeArgumentsInfo();
+const TypeInfo simpleTypeWith1Argument = const SimpleTypeWith1Argument();
 
 Token insertSyntheticIdentifierAfter(Token token, Parser parser) {
   Token identifier = new SyntheticStringToken(
@@ -138,8 +130,11 @@ TypeInfo computeType(final Token token, bool required) {
           }
         }
       }
+    } else if (required && optional('.', next)) {
+      // Recovery: looks like prefixed type missing the prefix
+      return new ComplexTypeInfo(token).computePrefixedType(required);
     }
-    return noTypeInfo;
+    return noType;
   }
 
   if (optional('void', next)) {
@@ -149,7 +144,7 @@ TypeInfo computeType(final Token token, bool required) {
       return new ComplexTypeInfo(token).computeVoidGFT(required);
     }
     // `void`
-    return voidTypeInfo;
+    return voidType;
   }
 
   if (isGeneralizedFunctionType(next)) {
@@ -173,10 +168,10 @@ TypeInfo computeType(final Token token, bool required) {
           if (!isGeneralizedFunctionType(next)) {
             if (required || looksLikeName(next)) {
               // identifier `<` identifier `>` identifier
-              return simpleTypeArgumentsInfo;
+              return simpleTypeWith1Argument;
             } else {
               // identifier `<` identifier `>` non-identifier
-              return noTypeInfo;
+              return noType;
             }
           }
         }
@@ -190,7 +185,7 @@ TypeInfo computeType(final Token token, bool required) {
           .computeSimpleWithTypeArguments(required);
     }
     // identifier `<`
-    return required ? simpleTypeInfo : noTypeInfo;
+    return required ? simpleType : noType;
   }
 
   if (optional('.', next)) {
@@ -201,17 +196,19 @@ TypeInfo computeType(final Token token, bool required) {
       if (!optional('<', next) && !isGeneralizedFunctionType(next)) {
         if (required || looksLikeName(next)) {
           // identifier `.` identifier identifier
-          return prefixedTypeInfo;
+          return prefixedType;
         } else {
           // identifier `.` identifier non-identifier
-          return noTypeInfo;
+          return noType;
         }
       }
       // identifier `.` identifier
       return new ComplexTypeInfo(token).computePrefixedType(required);
     }
     // identifier `.` non-identifier
-    return required ? simpleTypeInfo : noTypeInfo;
+    return required
+        ? new ComplexTypeInfo(token).computePrefixedType(required)
+        : noType;
   }
 
   if (isGeneralizedFunctionType(next)) {
@@ -221,7 +218,7 @@ TypeInfo computeType(final Token token, bool required) {
 
   if (required || looksLikeName(next)) {
     // identifier identifier
-    return simpleTypeInfo;
+    return simpleType;
   }
-  return noTypeInfo;
+  return noType;
 }

@@ -110,9 +110,9 @@ String* Object::null_string_ = NULL;
 Instance* Object::null_instance_ = NULL;
 Function* Object::null_function_ = NULL;
 TypeArguments* Object::null_type_arguments_ = NULL;
+TypeArguments* Object::empty_type_arguments_ = NULL;
 Array* Object::empty_array_ = NULL;
 Array* Object::zero_array_ = NULL;
-Context* Object::empty_context_ = NULL;
 ContextScope* Object::empty_context_scope_ = NULL;
 ObjectPool* Object::empty_object_pool_ = NULL;
 PcDescriptors* Object::empty_descriptors_ = NULL;
@@ -506,9 +506,9 @@ void Object::InitOnce(Isolate* isolate) {
   null_instance_ = Instance::ReadOnlyHandle();
   null_function_ = Function::ReadOnlyHandle();
   null_type_arguments_ = TypeArguments::ReadOnlyHandle();
+  empty_type_arguments_ = TypeArguments::ReadOnlyHandle();
   empty_array_ = Array::ReadOnlyHandle();
   zero_array_ = Array::ReadOnlyHandle();
-  empty_context_ = Context::ReadOnlyHandle();
   empty_context_scope_ = ContextScope::ReadOnlyHandle();
   empty_object_pool_ = ObjectPool::ReadOnlyHandle();
   empty_descriptors_ = PcDescriptors::ReadOnlyHandle();
@@ -538,6 +538,7 @@ void Object::InitOnce(Isolate* isolate) {
   *null_instance_ = Instance::null();
   *null_function_ = Function::null();
   *null_type_arguments_ = TypeArguments::null();
+  *empty_type_arguments_ = TypeArguments::null();
 
   // Initialize the empty and zero array handles to null_ in order to be able to
   // check if the empty and zero arrays were allocated (RAW_NULL is not
@@ -775,17 +776,6 @@ void Object::InitOnce(Isolate* isolate) {
     zero_array_->SetCanonical();
   }
 
-  // Allocate and initialize the empty context object.
-  {
-    uword address = heap->Allocate(Context::InstanceSize(0), Heap::kOld);
-    InitializeObject(address, kContextCid, Context::InstanceSize(0), true);
-    Context::initializeHandle(empty_context_, reinterpret_cast<RawContext*>(
-                                                  address + kHeapObjectTag));
-    empty_context_->StoreNonPointer(&empty_context_->raw_ptr()->num_variables_,
-                                    0);
-    empty_context_->SetCanonical();
-  }
-
   // Allocate and initialize the canonical empty context scope object.
   {
     uword address = heap->Allocate(ContextScope::InstanceSize(0), Heap::kOld);
@@ -855,6 +845,21 @@ void Object::InitOnce(Isolate* isolate) {
     empty_exception_handlers_->StoreNonPointer(
         &empty_exception_handlers_->raw_ptr()->num_entries_, 0);
     empty_exception_handlers_->SetCanonical();
+  }
+
+  // Allocate and initialize the canonical empty type arguments object.
+  {
+    uword address = heap->Allocate(TypeArguments::InstanceSize(0), Heap::kOld);
+    InitializeObject(address, kTypeArgumentsCid, TypeArguments::InstanceSize(0),
+                     true);
+    TypeArguments::initializeHandle(
+        empty_type_arguments_,
+        reinterpret_cast<RawTypeArguments*>(address + kHeapObjectTag));
+    empty_type_arguments_->StoreSmi(&empty_type_arguments_->raw_ptr()->length_,
+                                    Smi::New(0));
+    empty_type_arguments_->StoreSmi(&empty_type_arguments_->raw_ptr()->hash_,
+                                    Smi::New(0));
+    empty_type_arguments_->SetCanonical();
   }
 
   // The VM isolate snapshot object table is initialized to an empty array
@@ -962,8 +967,6 @@ void Object::InitOnce(Isolate* isolate) {
   ASSERT(empty_array_->IsArray());
   ASSERT(!zero_array_->IsSmi());
   ASSERT(zero_array_->IsArray());
-  ASSERT(!empty_context_->IsSmi());
-  ASSERT(empty_context_->IsContext());
   ASSERT(!empty_context_scope_->IsSmi());
   ASSERT(empty_context_scope_->IsContextScope());
   ASSERT(!empty_descriptors_->IsSmi());
@@ -3715,8 +3718,16 @@ TokenPosition Class::ComputeEndTokenPos() const {
 }
 
 int32_t Class::SourceFingerprint() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (kernel_offset() > 0) {
+    return kernel::KernelSourceFingerprintHelper::CalculateClassFingerprint(
+        *this);
+  }
   return Script::Handle(script()).SourceFingerprint(token_pos(),
                                                     ComputeEndTokenPos());
+#else
+  return 0;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void Class::set_is_implemented() const {
@@ -4855,6 +4866,28 @@ intptr_t TypeArguments::ComputeHash() const {
   return result;
 }
 
+RawTypeArguments* TypeArguments::Prepend(Zone* zone,
+                                         const TypeArguments& other,
+                                         intptr_t total_length) const {
+  if (IsNull() && other.IsNull()) {
+    return Object::null_type_arguments().raw();
+  }
+  const TypeArguments& result =
+      TypeArguments::Handle(zone, TypeArguments::New(total_length, Heap::kNew));
+  AbstractType& type = AbstractType::Handle(zone);
+  const intptr_t split =
+      other.IsNull() ? total_length - Length() : other.Length();
+  for (intptr_t i = 0; i < split; i++) {
+    type = other.IsNull() ? Type::DynamicType() : other.TypeAt(i);
+    result.SetTypeAt(i, type);
+  }
+  for (intptr_t i = split; i < total_length; i++) {
+    type = IsNull() ? Type::DynamicType() : TypeAt(i - split);
+    result.SetTypeAt(i, type);
+  }
+  return result.Canonicalize();
+}
+
 RawString* TypeArguments::SubvectorName(intptr_t from_index,
                                         intptr_t len,
                                         NameVisibility name_visibility) const {
@@ -5805,6 +5838,8 @@ bool Function::HasGenericParent() const {
     // The parent function of an implicit closure function is not the enclosing
     // function we are asking about here.
     return false;
+  } else if (IsConvertedClosureFunction()) {
+    return NumParentTypeParameters() > 0;
   }
   Function& parent = Function::Handle(parent_function());
   while (!parent.IsNull()) {
@@ -6212,6 +6247,8 @@ intptr_t Function::NumTypeParameters(Thread* thread) const {
 intptr_t Function::NumParentTypeParameters() const {
   if (IsImplicitClosureFunction()) {
     return 0;
+  } else if (IsConvertedClosureFunction()) {
+    return num_parent_type_parameters();
   }
   Thread* thread = Thread::Current();
   Function& parent = Function::Handle(parent_function());
@@ -6738,21 +6775,10 @@ RawFunction* Function::InstantiateSignatureFrom(
     }
   }
 
-  Function& sig = Function::Handle(zone, Function::null());
-  if (IsConvertedClosureFunction() && !delete_type_parameters) {
-    sig = Function::NewConvertedClosureFunction(
-        String::Handle(zone, name()), parent, TokenPosition::kNoSource);
-    // TODO(30455): Kernel generic methods undone. Handle type parameters
-    // correctly when generic closures are supported. Until then, all type
-    // parameters to this target are used for captured type variables, so they
-    // aren't relevant to the type of the function.
-    sig.set_type_parameters(TypeArguments::Handle(zone, TypeArguments::null()));
-  } else {
-    sig = Function::NewSignatureFunction(owner, parent,
-                                         TokenPosition::kNoSource, space);
-    if (!delete_type_parameters) {
-      sig.set_type_parameters(TypeArguments::Handle(zone, type_parameters()));
-    }
+  Function& sig = Function::Handle(Function::NewSignatureFunction(
+      owner, parent, TokenPosition::kNoSource, space));
+  if (!delete_type_parameters) {
+    sig.set_type_parameters(TypeArguments::Handle(zone, type_parameters()));
   }
 
   AbstractType& type = AbstractType::Handle(zone, result_type());
@@ -7425,7 +7451,8 @@ void Function::DropUncompiledImplicitClosureFunction() const {
 //
 // Function::ConvertedClosureFunction method follows the logic of
 // Function::ImplicitClosureFunction method.
-RawFunction* Function::ConvertedClosureFunction() const {
+RawFunction* Function::ConvertedClosureFunction(
+    intptr_t num_parent_type_parameters) const {
   // Return the existing converted closure function if any.
   if (converted_closure_function() != Function::null()) {
     return converted_closure_function();
@@ -7443,8 +7470,28 @@ RawFunction* Function::ConvertedClosureFunction() const {
   closure_function.set_context_scope(Object::empty_context_scope());
 
   // Set closure function's type parameters.
-  closure_function.set_type_parameters(
-      TypeArguments::Handle(zone, type_parameters()));
+  {
+    TypeArguments& total_type_parameters =
+        TypeArguments::Handle(type_parameters());
+
+    intptr_t num_type_parameters =
+        total_type_parameters.Length() - num_parent_type_parameters;
+    if (num_type_parameters == 0) {
+      closure_function.set_type_parameters(Object::null_type_arguments());
+    } else {
+      ASSERT(num_type_parameters > 0);
+      TypeArguments& new_type_parameters =
+          TypeArguments::Handle(TypeArguments::New(num_type_parameters));
+
+      for (intptr_t i = 0; i < num_type_parameters; ++i) {
+        new_type_parameters.SetTypeAt(
+            i, AbstractType::Handle(total_type_parameters.TypeAt(
+                   i + num_parent_type_parameters)));
+      }
+      closure_function.set_type_parameters(new_type_parameters);
+    }
+    closure_function.set_num_parent_type_parameters(num_parent_type_parameters);
+  }
 
   // Set closure function's result type to this result type.
   closure_function.set_result_type(AbstractType::Handle(zone, result_type()));
@@ -7505,6 +7552,26 @@ void Function::DropUncompiledConvertedClosureFunction() const {
       set_converted_closure_function(Function::Handle());
     }
   }
+}
+
+void Function::set_num_parent_type_parameters(intptr_t num) const {
+  if (IsConvertedClosureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(!obj.IsNull());
+    ClosureData::Cast(obj).set_num_parent_type_parameters(num);
+    return;
+  }
+  UNREACHABLE();
+}
+
+intptr_t Function::num_parent_type_parameters() const {
+  if (IsConvertedClosureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(!obj.IsNull());
+    return ClosureData::Cast(obj).num_parent_type_parameters();
+  }
+  UNREACHABLE();
+  return 0;
 }
 
 void Function::BuildSignatureParameters(
@@ -7569,7 +7636,7 @@ RawInstance* Function::ImplicitStaticClosure() const {
   ASSERT(IsImplicitStaticClosureFunction());
   if (implicit_static_closure() == Instance::null()) {
     Zone* zone = Thread::Current()->zone();
-    const Context& context = Object::empty_context();
+    const Context& context = Context::Handle(zone);
     Instance& closure =
         Instance::Handle(zone, Closure::New(Object::null_type_arguments(),
                                             Object::null_type_arguments(),
@@ -7645,35 +7712,6 @@ RawString* Function::BuildSignature(NameVisibility name_visibility) const {
 bool Function::HasInstantiatedSignature(Genericity genericity,
                                         intptr_t num_free_fun_type_params,
                                         TrailPtr trail) const {
-  // This function works differently for converted closures.
-  //
-  // Unlike regular closures, it's not possible to know which type parameters
-  // are supposed to come from parent functions or classes and which are
-  // actually parameters to the closure it represents. For example, consider:
-  //
-  //     class C<T> {
-  //       getf() => (T x) { return x; }
-  //     }
-  //
-  //     class D {
-  //       getf() {
-  //         dynamic fn<T>(T x) { return x; }
-  //         return fn;
-  //       }
-  //     }
-  //
-  // The signature of `fn` as a converted closure will in both cases look like
-  // `<T>(T) => dynamic`, because the signature of the converted closure
-  // function is the same as its top-level target function. However, in the
-  // first case the closure's type is instantiated, and in the second case
-  // it's not.
-  //
-  // Since we can never assume a converted closure is instantiated if it has any
-  // type parameters, we always return true in these cases.
-  if (IsConvertedClosureFunction()) {
-    return genericity == kCurrentClass || NumTypeParameters() == 0;
-  }
-
   if (num_free_fun_type_params == kCurrentAndEnclosingFree) {
     num_free_fun_type_params = kAllFree;
   } else if (genericity != kCurrentClass) {
@@ -7896,8 +7934,16 @@ RawString* Function::GetSource() const {
 // Construct fingerprint from token stream. The token stream contains also
 // arguments.
 int32_t Function::SourceFingerprint() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (kernel_offset() > 0) {
+    return kernel::KernelSourceFingerprintHelper::CalculateFunctionFingerprint(
+        *this);
+  }
   return Script::Handle(script()).SourceFingerprint(token_pos(),
                                                     end_token_pos());
+#else
+  return 0;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void Function::SaveICDataMap(
@@ -8071,6 +8117,14 @@ const char* Function::ToCString() const {
   return OS::SCreate(Thread::Current()->zone(), "Function '%s':%s%s%s%s.",
                      function_name, static_str, abstract_str, kind_str,
                      const_str);
+}
+
+intptr_t ClosureData::num_parent_type_parameters() const {
+  return Smi::Value(raw_ptr()->num_parent_type_parameters_);
+}
+
+void ClosureData::set_num_parent_type_parameters(intptr_t value) const {
+  StorePointer(&raw_ptr()->num_parent_type_parameters_, Smi::New(value));
 }
 
 void ClosureData::set_context_scope(const ContextScope& value) const {
@@ -8440,8 +8494,16 @@ RawField* Field::Clone(const Field& original) const {
 }
 
 int32_t Field::SourceFingerprint() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (kernel_offset() > 0) {
+    return kernel::KernelSourceFingerprintHelper::CalculateFieldFingerprint(
+        *this);
+  }
   return Script::Handle(Script()).SourceFingerprint(token_pos(),
                                                     end_token_pos());
+#else
+  return 0;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 RawString* Field::InitializingExpression() const {
@@ -17603,7 +17665,6 @@ RawAbstractType* Type::CloneUnfinalized() const {
 RawAbstractType* Type::CloneUninstantiated(const Class& new_owner,
                                            TrailPtr trail) const {
   ASSERT(IsFinalized());
-  ASSERT(IsCanonical());
   ASSERT(!IsMalformed());
   if (IsInstantiated()) {
     return raw();
@@ -22714,6 +22775,8 @@ RawClosure* Closure::New(const TypeArguments& instantiator_type_arguments,
                         instantiator_type_arguments.raw());
     result.StorePointer(&result.raw_ptr()->function_type_arguments_,
                         function_type_arguments.raw());
+    result.StorePointer(&result.raw_ptr()->delayed_type_arguments_,
+                        Object::empty_type_arguments().raw());
     result.StorePointer(&result.raw_ptr()->function_, function.raw());
     result.StorePointer(&result.raw_ptr()->context_, context.raw());
   }
@@ -22728,16 +22791,24 @@ RawClosure* Closure::New() {
 
 RawFunction* Closure::GetInstantiatedSignature(Zone* zone) const {
   Function& sig_fun = Function::Handle(zone, function());
-  const TypeArguments& fn_type_args =
+  TypeArguments& fn_type_args =
       TypeArguments::Handle(zone, function_type_arguments());
+  const TypeArguments& delayed_type_args =
+      TypeArguments::Handle(zone, delayed_type_arguments());
   const TypeArguments& inst_type_args =
       TypeArguments::Handle(zone, instantiator_type_arguments());
+
   // We detect the case of a partial tearoff type application and substitute the
   // type arguments for the type parameters of the function.
-  intptr_t num_free_params =
-      sig_fun.IsImplicitClosureFunction() && !fn_type_args.IsNull()
-          ? kCurrentAndEnclosingFree
-          : kAllFree;
+  intptr_t num_free_params;
+  if (delayed_type_args.raw() != Object::empty_type_arguments().raw()) {
+    num_free_params = kCurrentAndEnclosingFree;
+    fn_type_args = delayed_type_args.Prepend(
+        zone, fn_type_args,
+        sig_fun.NumTypeParameters() + sig_fun.NumParentTypeParameters());
+  } else {
+    num_free_params = kAllFree;
+  }
   if (num_free_params == kCurrentAndEnclosingFree ||
       !sig_fun.HasInstantiatedSignature(kAny)) {
     return sig_fun.InstantiateSignatureFrom(inst_type_args, fn_type_args,

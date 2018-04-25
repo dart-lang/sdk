@@ -87,7 +87,6 @@ assertion_initializer_test: RuntimeError
 assign_static_type_test/01: Fail
 assign_static_type_test/02: MissingCompileTimeError
 async_return_types_test/nestedFuture: Fail # Issue 26429
-async_return_types_test/wrongTypeParameter: Fail # Issue 26429
 cha_deopt1_test: RuntimeError
 cha_deopt2_test: RuntimeError
 cha_deopt3_test: RuntimeError

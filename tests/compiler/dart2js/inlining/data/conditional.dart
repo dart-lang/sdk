@@ -22,7 +22,7 @@ main() {
 /*element: _method1:[_conditionalField]*/
 _method1() => 42;
 
-var _field1;
+bool _field1;
 
 /*element: _conditionalField:[]*/
 _conditionalField() {
@@ -49,7 +49,7 @@ conditionalField() {
 _method2() => 42;
 
 /*element: _conditionalParameter:[conditionalParameter]*/
-_conditionalParameter(o) {
+_conditionalParameter(bool o) {
   return o
       ? _method2() + _method2() + _method2()
       : _method2() + _method2() + _method2();

@@ -32,9 +32,13 @@ class ExportDirectivesTest extends PartialCodeTest {
           new TestDescriptor(
               'keyword',
               'export',
-              [/*ParserErrorCode.MISSING_URI,*/ ParserErrorCode.EXPECTED_TOKEN],
-              "export '';",
-              allFailing: true),
+              [
+                // TODO(danrubel): Consider an improved error message
+                // ParserErrorCode.MISSING_URI,
+                ParserErrorCode.EXPECTED_STRING_LITERAL,
+                ParserErrorCode.EXPECTED_TOKEN
+              ],
+              "export '';"),
           new TestDescriptor('emptyUri', "export ''",
               [ParserErrorCode.EXPECTED_TOKEN], "export '';"),
           new TestDescriptor('uri', "export 'a.dart'",

@@ -28,7 +28,11 @@ class ScopedCFType {
  public:
   explicit ScopedCFType(T obj) : obj_(obj) {}
 
-  ~ScopedCFType() { CFRelease(obj_); }
+  ~ScopedCFType() {
+    if (obj_ != NULL) {
+      CFRelease(obj_);
+    }
+  }
 
   T get() { return obj_; }
   T* ptr() { return &obj_; }
@@ -45,6 +49,7 @@ class ScopedCFType {
 
 typedef ScopedCFType<CFMutableArrayRef> ScopedCFMutableArrayRef;
 typedef ScopedCFType<CFDataRef> ScopedCFDataRef;
+typedef ScopedCFType<CFStringRef> ScopedCFStringRef;
 typedef ScopedCFType<SecPolicyRef> ScopedSecPolicyRef;
 typedef ScopedCFType<SecCertificateRef> ScopedSecCertificateRef;
 typedef ScopedCFType<SecTrustRef> ScopedSecTrustRef;
@@ -112,8 +117,19 @@ static int CertificateVerificationCallback(X509_STORE_CTX* ctx, void* arg) {
     }
   }
 
-  // Generate a generic X509 verification policy.
-  ScopedSecPolicyRef policy(SecPolicyCreateBasicX509());
+  // Generate a policy for validating chains for SSL.
+  const int ssl_index = SSL_get_ex_data_X509_STORE_CTX_idx();
+  SSL* ssl = static_cast<SSL*>(X509_STORE_CTX_get_ex_data(ctx, ssl_index));
+  SSLFilter* filter = static_cast<SSLFilter*>(
+      SSL_get_ex_data(ssl, SSLFilter::filter_ssl_index));
+  CFStringRef cfhostname = NULL;
+  if (filter->hostname() != NULL) {
+    cfhostname = CFStringCreateWithCString(NULL, filter->hostname(),
+                                           kCFStringEncodingUTF8);
+  }
+  ScopedCFStringRef hostname(cfhostname);
+  ScopedSecPolicyRef policy(
+      SecPolicyCreateSSL(filter->is_client(), hostname.get()));
 
   // Create the trust object with the certificates provided by the user.
   ScopedSecTrustRef trust(NULL);

@@ -4328,6 +4328,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
             MessageKind.INVALID_AWAIT_FOR_IN);
       }
       registry.registerFeature(Feature.ASYNC_FOR_IN);
+      registry.registerDynamicUse(new DynamicUse(Selectors.cancel));
       registry.registerDynamicUse(new DynamicUse(Selectors.current));
       registry.registerDynamicUse(new DynamicUse(Selectors.moveNext));
     }

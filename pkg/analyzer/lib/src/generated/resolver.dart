@@ -8885,7 +8885,7 @@ class TypeOverrideManager_TypeOverrideScope {
  * type aliases.
  */
 class TypeParameterBoundsResolver {
-  final TypeProvider typeProvider;
+  final TypeSystem typeSystem;
   final LibraryElement library;
   final Source source;
   final AnalysisErrorListener errorListener;
@@ -8894,7 +8894,7 @@ class TypeParameterBoundsResolver {
   TypeNameResolver typeNameResolver = null;
 
   TypeParameterBoundsResolver(
-      this.typeProvider, this.library, this.source, this.errorListener);
+      this.typeSystem, this.library, this.source, this.errorListener);
 
   /**
    * Resolve bounds of type parameters of classes, class and function type
@@ -8964,12 +8964,8 @@ class TypeParameterBoundsResolver {
             } else {
               libraryScope ??= new LibraryScope(library);
               typeParametersScope ??= createTypeParametersScope();
-              typeNameResolver ??= new TypeNameResolver(
-                  new TypeSystemImpl(typeProvider),
-                  typeProvider,
-                  library,
-                  source,
-                  errorListener);
+              typeNameResolver ??= new TypeNameResolver(typeSystem,
+                  typeSystem.typeProvider, library, source, errorListener);
               typeNameResolver.nameScope = typeParametersScope;
               _resolveTypeName(bound);
               typeParameterElement.bound = bound.type;
