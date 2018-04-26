@@ -1357,7 +1357,9 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment Constant(const Object& value);
   Fragment IntConstant(int64_t value);
   Fragment LoadStaticField();
-  Fragment CheckNull(TokenPosition position, LocalVariable* receiver);
+  Fragment CheckNull(TokenPosition position,
+                     LocalVariable* receiver,
+                     const String& function_name);
   Fragment StaticCall(TokenPosition position,
                       const Function& target,
                       intptr_t argument_count,

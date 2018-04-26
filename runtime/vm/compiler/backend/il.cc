@@ -3971,6 +3971,8 @@ class ThrowErrorSlowPathCode : public TemplateSlowPathCode<Instruction> {
 
   virtual const char* name() = 0;
 
+  virtual void AddMetadataForRuntimeCall(FlowGraphCompiler* compiler) {}
+
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     if (Assembler::EmittingComments()) {
       __ Comment("slow path %s operation", name());
@@ -3986,6 +3988,7 @@ class ThrowErrorSlowPathCode : public TemplateSlowPathCode<Instruction> {
     compiler->AddDescriptor(
         RawPcDescriptors::kOther, compiler->assembler()->CodeSize(),
         instruction()->deopt_id(), instruction()->token_pos(), try_index_);
+    AddMetadataForRuntimeCall(compiler);
     compiler->RecordSafepoint(locs, num_args_);
     Environment* env = compiler->SlowPathEnvironmentFor(instruction());
     compiler->EmitCatchEntryState(env, try_index_);
@@ -4039,7 +4042,6 @@ LocationSummary* CheckNullInstr::MakeLocationSummary(Zone* zone,
 
 class NullErrorSlowPath : public ThrowErrorSlowPathCode {
  public:
-  // TODO(dartbug.com/30480): Pass arguments for NoSuchMethodError.
   static const intptr_t kNumberOfArguments = 0;
 
   NullErrorSlowPath(CheckNullInstr* instruction, intptr_t try_index)
@@ -4048,7 +4050,15 @@ class NullErrorSlowPath : public ThrowErrorSlowPathCode {
                                kNumberOfArguments,
                                try_index) {}
 
-  virtual const char* name() { return "check null"; }
+  const char* name() override { return "check null"; }
+
+  void AddMetadataForRuntimeCall(FlowGraphCompiler* compiler) override {
+    const String& function_name = instruction()->AsCheckNull()->function_name();
+    const intptr_t name_index =
+        compiler->assembler()->object_pool_wrapper().FindObject(function_name);
+    compiler->AddNullCheck(compiler->assembler()->CodeSize(),
+                           instruction()->token_pos(), name_index);
+  }
 };
 
 void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {

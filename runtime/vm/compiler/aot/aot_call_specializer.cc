@@ -289,7 +289,12 @@ Value* AotCallSpecializer::PrepareStaticOpInput(Value* input,
   ASSERT((cid == kDoubleCid) ||
          (FLAG_limit_ints_to_64_bits && (cid == kMintCid)));
 
-  AddCheckNull(input, call->deopt_id(), call->env(), call);
+  const String& function_name =
+      (call->IsInstanceCall()
+           ? call->AsInstanceCall()->function_name()
+           : String::ZoneHandle(Z, call->AsStaticCall()->function().name()));
+
+  AddCheckNull(input, function_name, call->deopt_id(), call->env(), call);
 
   input = input->CopyWithType(Z);
 

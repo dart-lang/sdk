@@ -34,6 +34,7 @@ dart/truncating_ints_test: CompileTimeError # int64
 [ $compiler == dart2js ]
 dart/byte_array_optimized_test: Skip # compilers not aware of byte arrays
 dart/byte_array_test: Skip # compilers not aware of byte arrays
+dart/error_messages_in_null_checks_test: SkipByDesign # Dart2js throws NullError exceptions with different messages.
 dart/inline_stack_frame_test: Skip # Issue 7953, Methods can be missing in dart2js stack traces due to inlining. Also when minifying they can be renamed, which is issue 7953.
 dart/optimized_stacktrace_line_and_column_test: RuntimeError # The source positions do not match with dart2js.
 dart/optimized_stacktrace_line_test: RuntimeError # The source positions do not match with dart2js.

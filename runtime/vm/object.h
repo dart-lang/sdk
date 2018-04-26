@@ -4425,8 +4425,11 @@ class PcDescriptors : public Object {
             RawPcDescriptors::MergedKindTry::DecodeTryIndex(merged_kind_try);
 
         cur_pc_offset_ += descriptors_.DecodeInteger(&byte_index_);
-        cur_deopt_id_ += descriptors_.DecodeInteger(&byte_index_);
-        cur_token_pos_ += descriptors_.DecodeInteger(&byte_index_);
+
+        if (!FLAG_precompiled_mode) {
+          cur_deopt_id_ += descriptors_.DecodeInteger(&byte_index_);
+          cur_token_pos_ += descriptors_.DecodeInteger(&byte_index_);
+        }
 
         if ((cur_kind_ & kind_mask_) != 0) {
           return true;  // Current is valid.

@@ -6985,8 +6985,9 @@ Fragment StreamingFlowGraphBuilder::LoadStaticField() {
 }
 
 Fragment StreamingFlowGraphBuilder::CheckNull(TokenPosition position,
-                                              LocalVariable* receiver) {
-  return flow_graph_builder_->CheckNull(position, receiver);
+                                              LocalVariable* receiver,
+                                              const String& function_name) {
+  return flow_graph_builder_->CheckNull(position, receiver, function_name);
 }
 
 Fragment StreamingFlowGraphBuilder::StaticCall(TokenPosition position,
@@ -7427,7 +7428,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertyGet(TokenPosition* p) {
   }
 
   if (direct_call.check_receiver_for_null_) {
-    instructions += CheckNull(TokenPosition::kNoSource, receiver);
+    instructions += CheckNull(position, receiver, getter_name);
   }
 
   if (!direct_call.target_.IsNull()) {
@@ -7489,7 +7490,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
   }
 
   if (direct_call.check_receiver_for_null_) {
-    instructions += CheckNull(position, receiver);
+    instructions += CheckNull(position, receiver, setter_name);
   }
 
   if (!direct_call.target_.IsNull()) {
@@ -8045,7 +8046,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   }
 
   if (direct_call.check_receiver_for_null_) {
-    instructions += CheckNull(position, receiver_temp);
+    instructions += CheckNull(position, receiver_temp, name);
   }
 
   if (!direct_call.target_.IsNull()) {

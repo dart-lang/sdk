@@ -349,13 +349,15 @@ void CallSpecializer::AddChecksForArgNr(InstanceCallInstr* call,
 }
 
 void CallSpecializer::AddCheckNull(Value* to_check,
+                                   const String& function_name,
                                    intptr_t deopt_id,
                                    Environment* deopt_environment,
                                    Instruction* insert_before) {
   ASSERT(I->strong() && FLAG_use_strong_mode_types);
   if (to_check->Type()->is_nullable()) {
-    CheckNullInstr* check_null = new (Z) CheckNullInstr(
-        to_check->CopyWithType(Z), deopt_id, insert_before->token_pos());
+    CheckNullInstr* check_null =
+        new (Z) CheckNullInstr(to_check->CopyWithType(Z), function_name,
+                               deopt_id, insert_before->token_pos());
     if (FLAG_trace_strong_mode_types) {
       THR_Print("[Strong mode] Inserted %s\n", check_null->ToCString());
     }

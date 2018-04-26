@@ -6820,13 +6820,20 @@ class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
 // execution proceeds to the next instruction.
 class CheckNullInstr : public TemplateInstruction<1, Throws, NoCSE> {
  public:
-  CheckNullInstr(Value* value, intptr_t deopt_id, TokenPosition token_pos)
-      : TemplateInstruction(deopt_id), token_pos_(token_pos) {
+  CheckNullInstr(Value* value,
+                 const String& function_name,
+                 intptr_t deopt_id,
+                 TokenPosition token_pos)
+      : TemplateInstruction(deopt_id),
+        token_pos_(token_pos),
+        function_name_(function_name) {
+    ASSERT(function_name.IsNotTemporaryScopedHandle());
     SetInputAt(0, value);
   }
 
   Value* value() const { return inputs_[0]; }
   virtual TokenPosition token_pos() const { return token_pos_; }
+  const String& function_name() const { return function_name_; }
 
   DECLARE_INSTRUCTION(CheckNull)
 
@@ -6842,6 +6849,7 @@ class CheckNullInstr : public TemplateInstruction<1, Throws, NoCSE> {
 
  private:
   const TokenPosition token_pos_;
+  const String& function_name_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckNullInstr);
 };

@@ -1565,11 +1565,12 @@ Fragment FlowGraphBuilder::Return(TokenPosition position) {
 }
 
 Fragment FlowGraphBuilder::CheckNull(TokenPosition position,
-                                     LocalVariable* receiver) {
+                                     LocalVariable* receiver,
+                                     const String& function_name) {
   Fragment instructions = LoadLocal(receiver);
 
   CheckNullInstr* check_null =
-      new (Z) CheckNullInstr(Pop(), GetNextDeoptId(), position);
+      new (Z) CheckNullInstr(Pop(), function_name, GetNextDeoptId(), position);
 
   instructions <<= check_null;
 

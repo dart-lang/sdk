@@ -572,6 +572,10 @@ class FlowGraphCompiler : public ValueObject {
                      TokenPosition token_pos,
                      intptr_t try_index);
 
+  void AddNullCheck(intptr_t pc_offset,
+                    TokenPosition token_pos,
+                    intptr_t null_check_name_idx);
+
   void RecordSafepoint(LocationSummary* locs,
                        intptr_t slow_path_argument_count = 0);
 
