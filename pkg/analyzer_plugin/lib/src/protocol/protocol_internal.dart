@@ -277,11 +277,9 @@ abstract class JsonDecoder {
     if (json is int) {
       return json;
     } else if (json is String) {
-      int value = int.tryParse(json);
-      if (value == null) {
+      return int.parse(json, onError: (String value) {
         throw mismatch(jsonPath, 'int', json);
-      }
-      return value;
+      });
     }
     throw mismatch(jsonPath, 'int', json);
   }
