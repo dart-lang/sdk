@@ -100,19 +100,24 @@ class NullableInference extends ExpressionVisitor<bool> {
   visitStaticSet(StaticSet node) => isNullable(node.value);
 
   @override
-  visitMethodInvocation(MethodInvocation node) =>
-      _invocationIsNullable(node.interfaceTarget, node.receiver);
+  visitMethodInvocation(MethodInvocation node) => _invocationIsNullable(
+      node.interfaceTarget, node.name.name, node.receiver);
 
   @override
   visitDirectMethodInvocation(DirectMethodInvocation node) =>
-      _invocationIsNullable(node.target, node.receiver);
+      _invocationIsNullable(node.target, node.name.name, node.receiver);
 
   @override
   visitSuperMethodInvocation(SuperMethodInvocation node) =>
-      _invocationIsNullable(node.interfaceTarget);
+      _invocationIsNullable(node.interfaceTarget, node.name.name);
 
-  bool _invocationIsNullable(Member target, [Expression receiver]) {
-    if (target == null) return true;
+  bool _invocationIsNullable(Member target, String name,
+      [Expression receiver]) {
+    // TODO(jmesserly): this is not a valid assumption for user-defined equality
+    // but it is added to match the behavior of the Analyzer backend.
+    // https://github.com/dart-lang/sdk/issues/31854
+    if (name == '==') return false;
+    if (target == null) return true; // dynamic call
     if (target.name.name == 'toString' &&
         receiver != null &&
         receiver.getStaticType(types) == coreTypes.stringClass.rawType) {
@@ -133,11 +138,6 @@ class NullableInference extends ExpressionVisitor<bool> {
   }
 
   bool _returnValueIsNullable(Member target) {
-    // TODO(jmesserly): this is not a valid assumption for user-defined equality
-    // but it is added to match the behavior of the Analyzer backend.
-    // https://github.com/dart-lang/sdk/issues/31854
-    if (target.name.name == '==') return false;
-
     var targetClass = target.enclosingClass;
     if (targetClass != null) {
       // Convert `int` `double` `num` `String` and `bool` to their corresponding
@@ -168,13 +168,13 @@ class NullableInference extends ExpressionVisitor<bool> {
       var args = node.arguments.positional;
       var first = args.isNotEmpty ? args.first : null;
       if (first is StringLiteral) {
-        var types = first.value;
-        return types == '' ||
-            types == 'var' ||
-            types.split('|').contains('Null');
+        var typeString = first.value;
+        return typeString == '' ||
+            typeString == 'var' ||
+            typeString.split('|').contains('Null');
       }
     }
-    return _invocationIsNullable(target);
+    return _invocationIsNullable(target, node.name.name);
   }
 
   @override

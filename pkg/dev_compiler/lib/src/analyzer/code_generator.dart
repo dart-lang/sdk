@@ -40,7 +40,6 @@ import '../compiler/js_names.dart' as JS;
 import '../compiler/js_utils.dart' as JS;
 import '../compiler/module_builder.dart' show pathToJSIdentifier;
 import '../compiler/shared_compiler.dart';
-import '../compiler/type_utilities.dart';
 import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show NodeEnd, NodeSpan, HoverComment;
@@ -56,6 +55,7 @@ import 'property_model.dart';
 import 'reify_coercions.dart' show CoercionReifier;
 import 'side_effect_analysis.dart'
     show ConstFieldVisitor, isStateless, isPotentiallyMutated;
+import 'type_utilities.dart';
 
 /// The code generator for Dart Dev Compiler.
 ///
@@ -5800,7 +5800,7 @@ class CodeGenerator extends Object
 
   @override
   JS.LiteralString visitSimpleStringLiteral(SimpleStringLiteral node) =>
-      js.escapedString(node.value, node.isSingleQuoted ? "'" : '"');
+      js.escapedString(node.value, '"');
 
   @override
   JS.Expression visitAdjacentStrings(AdjacentStrings node) {

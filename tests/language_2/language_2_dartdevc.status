@@ -425,7 +425,6 @@ issue31596_super_test/02: MissingCompileTimeError
 issue31596_super_test/03: CompileTimeError
 issue31596_super_test/04: MissingCompileTimeError
 issue31596_super_test/05: RuntimeError
-issue32353_test: RuntimeError # Issue 32428
 library_env_test/has_io_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_mirror_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_no_html_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
@@ -516,7 +515,6 @@ mixin_invalid_bound_test/07: MissingCompileTimeError
 mixin_invalid_bound_test/08: MissingCompileTimeError
 mixin_invalid_bound_test/09: MissingCompileTimeError
 mixin_invalid_bound_test/10: MissingCompileTimeError
-mixin_regress_13688_test: RuntimeError # Issue 32427
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
 mixin_super_bound_test/01: MissingCompileTimeError
@@ -567,13 +565,11 @@ override_inheritance_mixed_test/04: MissingCompileTimeError
 override_inheritance_mixed_test/08: MissingCompileTimeError
 override_inheritance_mixed_test/09: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
-recursive_mixin_test: RuntimeError # Issue 32428
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 redirecting_factory_reflection_test: RuntimeError # UnimplementedError: node <InvalidExpression> `invalid-expression`
-regress_22666_test: RuntimeError # Issue 32427
 regress_23089_test: Crash # Crashes in KernelClassBuilder.buildTypeArguments
 regress_23408_test: CompileTimeError # Issue 31533
 regress_24283_test: RuntimeError # Expect.equals(expected: <-1>, actual: <4294967295>) fails.
@@ -581,7 +577,6 @@ regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError # Issue 31402 Error: A value of type '#lib2::Foo' can't be assigned to a variable of type '(#lib2::Foo) → void'.
 regress_29784_test/01: MissingCompileTimeError
 regress_29784_test/02: MissingCompileTimeError
-regress_29949_test: RuntimeError # Issue 32429
 regress_30339_test: CompileTimeError
 regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
 setter4_test: MissingCompileTimeError

@@ -47,7 +47,7 @@ Future main(List<String> args) async {
   await writeComponentToBinary(component, outputPath);
 
   var jsModule = new ProgramCompiler(component, declaredVariables: {})
-      .emitProgram(component, [], []);
+      .emitModule(component, [], []);
   var moduleFormats = {
     'amd': ModuleFormat.amd,
     'common': ModuleFormat.common,

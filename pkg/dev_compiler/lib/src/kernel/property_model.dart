@@ -367,10 +367,12 @@ class ClassPropertyModel {
       visitSuper(c);
     }
 
-    var m = class_.mixedInClass;
-    if (m != null) visitImmediateSuper(m);
-    var s = class_.superclass;
-    if (s != null) visitImmediateSuper(s);
+    if (class_.superclass != null) {
+      var mixins = <Class>[];
+      var superclass = getSuperclassAndMixins(class_, mixins);
+      mixins.forEach(visitImmediateSuper);
+      visitImmediateSuper(superclass);
+    }
   }
 
   /// Searches all concrete instance members declared on this type, skipping

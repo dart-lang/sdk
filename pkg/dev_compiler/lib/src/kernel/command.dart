@@ -213,7 +213,7 @@ Future<CompilerResult> _compile(List<String> args,
       emitMetadata: argResults['emit-metadata'] as bool,
       enableAsserts: argResults['enable-asserts'] as bool);
   var jsModule =
-      compiler.emitProgram(component, result.inputSummaries, summaryUris);
+      compiler.emitModule(component, result.inputSummaries, summaryUris);
 
   var jsCode = jsProgramToCode(jsModule, moduleFormat,
       buildSourceMap: argResults['source-map'] as bool,
