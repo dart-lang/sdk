@@ -128,8 +128,8 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     assertSuggestConstructor('C',
         elemOffset: -1,
         relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
-    // D is sorted out
-    assertNotSuggested('D');
+    // D has the default relevance
+    assertSuggestConstructor('D', elemOffset: -1);
 
     // Suggested by ConstructorContributor
     assertNotSuggested('Local');
@@ -179,8 +179,8 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     assertSuggestConstructor('C',
         elemOffset: -1,
         relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
-    // D is sorted out
-    assertNotSuggested('D');
+    // D has the default relevance
+    assertSuggestConstructor('D', elemOffset: -1);
 
     // Suggested by ConstructorContributor
     assertNotSuggested('Local');

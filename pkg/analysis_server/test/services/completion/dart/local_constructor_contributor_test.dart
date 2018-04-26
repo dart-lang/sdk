@@ -2439,7 +2439,7 @@ main() {
     assertSuggestConstructor('C',
         elemOffset: -1,
         relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
-    assertNotSuggested('D');
+    assertSuggestConstructor('D', elemOffset: -1);
   }
 
   test_InstanceCreationExpression_assignment_expression_filter2() async {
@@ -2460,7 +2460,7 @@ main() {
     assertSuggestConstructor('C',
         elemOffset: -1,
         relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
-    assertNotSuggested('D');
+    assertSuggestConstructor('D', elemOffset: -1);
   }
 
   test_InstanceCreationExpression_imported() async {
@@ -2509,7 +2509,7 @@ main() {
     assertSuggestConstructor('B',
         elemOffset: -1,
         relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
-    assertNotSuggested('C');
+    assertSuggestConstructor('C', elemOffset: -1);
   }
 
   test_InstanceCreationExpression_invocationArgument_named() async {
@@ -2527,7 +2527,7 @@ main() {
     assertSuggestConstructor('B',
         elemOffset: -1,
         relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
-    assertNotSuggested('C');
+    assertSuggestConstructor('C', elemOffset: -1);
   }
 
   test_InstanceCreationExpression_unimported() async {
@@ -2559,7 +2559,7 @@ main() {
     assertSuggestConstructor('C',
         elemOffset: -1,
         relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
-    assertNotSuggested('D');
+    assertSuggestConstructor('D', elemOffset: -1);
   }
 
   test_InstanceCreationExpression_variable_declaration_filter2() async {
@@ -2579,7 +2579,7 @@ main() {
     assertSuggestConstructor('C',
         elemOffset: -1,
         relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
-    assertNotSuggested('D');
+    assertSuggestConstructor('D', elemOffset: -1);
   }
 
   test_InterpolationExpression() async {

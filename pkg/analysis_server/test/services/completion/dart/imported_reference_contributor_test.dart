@@ -2629,7 +2629,7 @@ main() {
     assertSuggestConstructor('C',
         elemOffset: -1,
         relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
-    assertNotSuggested('D');
+    assertSuggestConstructor('D', elemOffset: -1);
   }
 
   test_InstanceCreationExpression_imported() async {
