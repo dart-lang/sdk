@@ -1835,6 +1835,8 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
       return error.raw();
     }
 
+    isolate->class_table()->CopySizesFromClassObjects();
+
     ClassFinalizer::VerifyBootstrapClasses();
 
     // Set up the intrinsic state of all functions (core, math and typed data).
