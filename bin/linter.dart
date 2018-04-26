@@ -4,9 +4,7 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:math' as math;
 
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/lint/config.dart';
@@ -23,7 +21,6 @@ Future main(List<String> args) async {
 }
 
 const processFileFailedExitCode = 65;
-
 const unableToProcessExitCode = 64;
 
 String getRoot(List<String> paths) =>
@@ -167,15 +164,10 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
 
   try {
     final timer = new Stopwatch()..start();
-    List<AnalysisErrorInfo> errors = await linter.lintFiles(filesToLint);
+    List<AnalysisErrorInfo> errors = await lintFiles(linter, filesToLint);
     timer.stop();
 
-    if (errors.isNotEmpty) {
-      exitCode = _maxSeverity(errors, lintOptions.filter);
-    }
-
     var commonRoot = getRoot(options.rest);
-
     new ReportFormatter(errors, lintOptions.filter, outSink,
         elapsedMs: timer.elapsedMilliseconds,
         fileCount: linter.numSourcesAnalyzed,
@@ -191,20 +183,4 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
 $err
 $stack''');
   }
-}
-
-Iterable<AnalysisError> _filtered(
-        List<AnalysisError> errors, LintFilter filter) =>
-    (filter == null)
-        ? errors
-        : errors.where((AnalysisError e) => !filter.filter(e));
-
-int _maxSeverity(List<AnalysisErrorInfo> errors, LintFilter filter) {
-  int max = 0;
-  for (AnalysisErrorInfo info in errors) {
-    _filtered(info.errors, filter).forEach((AnalysisError e) {
-      max = math.max(max, e.errorCode.errorSeverity.ordinal);
-    });
-  }
-  return max;
 }

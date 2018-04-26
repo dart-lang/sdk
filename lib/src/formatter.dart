@@ -269,7 +269,7 @@ Future writeBenchmarks(
     IOSink out, List<File> filesToLint, LinterOptions lintOptions) async {
   Map<String, int> timings = <String, int>{};
   for (int i = 0; i < benchmarkRuns; ++i) {
-    await new DartLinter(lintOptions).lintFiles(filesToLint);
+    await lintFiles(new DartLinter(lintOptions), filesToLint);
     lintRegistry.timers.forEach((n, t) {
       int timing = t.elapsedMilliseconds;
       int previous = timings[n];
