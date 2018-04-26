@@ -124,22 +124,22 @@ class CompletionTarget {
 
   /**
    * Compute the appropriate [CompletionTarget] for the given [offset] within
-   * the [compilationUnit].
+   * the [root].
    *
-   * Optionally, start the search from within [entryPoint] instead of using
-   * the [compilationUnit], which is useful for analyzing ASTs that have no
-   * [compilationUnit] such as dart expressions within angular templates.
+   * [root] should usually be a [CompilationUnit], where it is tracked
+   * carefully. However, if the [root] is a dangling node such as a dart
+   * expression embedded in an angular template, then [root] may be any node but
+   * must be the outermost node of that parse result.
    */
-  factory CompletionTarget.forOffset(
-      CompilationUnit compilationUnit, int offset,
-      {AstNode entryPoint}) {
+  factory CompletionTarget.forOffset(AstNode root, int offset,
+      {@deprecated AstNode entryPoint}) {
     // The precise algorithm is as follows.  We perform a depth-first search of
     // all edges in the parse tree (both those that point to AST nodes and
     // those that point to tokens), visiting parents before children.  The
     // first edge which points to an entity satisfying either _isCandidateToken
     // or _isCandidateNode is the completion target.  If no edge is found that
     // satisfies these two predicates, then we set the completion target entity
-    // to null and the containingNode to the entryPoint.
+    // to null and the containingNode to the root.
     //
     // Note that if a token is not a candidate target, then none of the tokens
     // that precede it are candidate targets either.  Therefore any entity
@@ -147,8 +147,34 @@ class CompletionTarget {
     // prune the search to the point where no recursion is necessary; at each
     // step in the process we know exactly which child node we need to proceed
     // to.
-    entryPoint ??= compilationUnit;
-    AstNode containingNode = entryPoint;
+    CompilationUnit compilationUnit;
+    AstNode containingNode;
+
+    // TODO(mfairhurst) remove this on next breaking change, along with param.
+    root ??= entryPoint;
+
+    if (root is CompilationUnit) {
+      // This should be the case for all standard dart completion targets.
+      compilationUnit = root;
+      containingNode = root;
+    } else {
+      // The root should be the outermost node of the tree. Note that, for
+      // angular, this is true for dangling expressions, so we cannot rely on
+      // root being a compilationUnit but must perform this check.
+      assert(root.parent == null);
+      // Most contributors have a basic invariant that all completion targets
+      // have a parent. Therefore, add a synthetic parent to [root] so
+      // that contributors work for all cases.
+      root = astFactory.parenthesizedExpression(
+          new SyntheticBeginToken(TokenType.OPEN_PAREN, root.offset)
+            ..next = root.beginToken,
+          root,
+          new SyntheticToken(TokenType.CLOSE_PAREN, root.end));
+      // invariant: identical(containingNode, root) at beginning of algorithm.
+      containingNode = root;
+      // and compilationUnit will be null.
+    }
+
     outerLoop:
     while (true) {
       if (containingNode is Comment) {
@@ -227,13 +253,12 @@ class CompletionTarget {
       // the first time through the outer loop (since we only jump to the start
       // of the outer loop after determining that the completion target is
       // inside an entity).  We can check that assumption by verifying that
-      // containingNode is still the entryPoint.
-      assert(identical(containingNode, entryPoint));
+      // containingNode is still the root.
+      assert(identical(containingNode, root));
 
       // Since no completion target was found, we set the completion target
-      // entity to null and use the entryPoint as the parent.
-      return new CompletionTarget._(
-          compilationUnit, offset, entryPoint, null, false);
+      // entity to null and use the root as the parent.
+      return new CompletionTarget._(compilationUnit, offset, root, null, false);
     }
   }
 

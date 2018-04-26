@@ -21,13 +21,37 @@ class CompletionTargetTest {
   test_danglingExpressionCompletionIsValid() {
     // Test that users can parse dangling expressions of dart and autocomplete
     // them without crash/with the correct offset information.
-    final snippet = wrapForCompliance(parseDanglingDart('identifier'));
+    final snippet = parseDanglingDart('identifier');
+    final completionTarget = new CompletionTarget.forOffset(snippet, 1);
+    expect(completionTarget.offset, 1);
+    final replacementRange = completionTarget.computeReplacementRange(1);
+    expect(replacementRange.offset, 0);
+    expect(replacementRange.length, 'identifier'.length);
+  }
+
+  test_danglingExpressionCompletionIsValid_deprecatedApi() {
+    // Test that we support an older form of API, where the first argument was
+    // a [CompilationUnit] and there was an optional [AstNode] [entryPoint] arg,
+    // and clienst wrapped the entry point.
+    final snippet = wrapAsIfOlderClient(parseDanglingDart('identifier'));
     final completionTarget =
         new CompletionTarget.forOffset(null, 1, entryPoint: snippet);
     expect(completionTarget.offset, 1);
     final replacementRange = completionTarget.computeReplacementRange(1);
     expect(replacementRange.offset, 0);
     expect(replacementRange.length, 'identifier'.length);
+  }
+
+  test_danglingExpressionCompletion_invalidOffset_gracefulFailure() {
+    // Test an edge case where an invariant can be broken in the algorithm when
+    // we modify the root. Here, the root is selected, and must be consistent
+    // with the snippet. Very much a white-box as opposed to black-box test.
+    final snippet = parseDanglingDart('a');
+    final completionTarget = new CompletionTarget.forOffset(snippet, 9999);
+    expect(completionTarget.offset, 9999);
+    final replacementRange = completionTarget.computeReplacementRange(1);
+    expect(replacementRange.offset, 1);
+    expect(replacementRange.length, 0);
   }
 
   /// Parse a dangling expression (no parent node). The angular plugin, for
@@ -38,11 +62,9 @@ class CompletionTargetTest {
     return new Parser(null, null).parseExpression(scanner.tokenize());
   }
 
-  Expression wrapForCompliance(Expression expression) {
-    // TODO(mfairhurst) This should be performed for clients or the need should
-    // be dropped. It's a fairly valid invariant that all autocompletion target
-    // expressions should have parents, and one we can enforce via synthetics.
-    // But clients should not be doing this ideally.
+  Expression wrapAsIfOlderClient(Expression expression) {
+    // TODO(mfairhurst) remove this, this is only for testing backwards
+    // compatibility.
     return astFactory.parenthesizedExpression(
         new SyntheticBeginToken(TokenType.OPEN_PAREN, expression.offset)
           ..next = expression.beginToken,
