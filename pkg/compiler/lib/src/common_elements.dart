@@ -879,6 +879,11 @@ class CommonElements {
   ClassEntity get jsInvocationMirrorClass =>
       _jsInvocationMirrorClass ??= _findHelperClass('JSInvocationMirror');
 
+  MemberEntity _invocationTypeArgumentGetter;
+  MemberEntity get invocationTypeArgumentGetter =>
+      _invocationTypeArgumentGetter ??=
+          _findClassMember(jsInvocationMirrorClass, 'typeArguments');
+
   /// Interface used to determine if an object has the JavaScript
   /// indexing behavior. The interface is only visible to specific libraries.
   ClassEntity _jsIndexingBehaviorInterface;

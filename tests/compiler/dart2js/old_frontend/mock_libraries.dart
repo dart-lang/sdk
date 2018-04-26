@@ -233,7 +233,10 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'IrRepresentation': 'class IrRepresentation {}',
   'isJsIndexable': 'isJsIndexable(a, b) {}',
   'JavaScriptIndexingBehavior': 'abstract class JavaScriptIndexingBehavior {}',
-  'JSInvocationMirror': 'class JSInvocationMirror {}',
+  'JSInvocationMirror': r'''
+  class JSInvocationMirror {
+    get typeArguments => null;
+  }''',
   'listSuperNativeTypeCast': 'listSuperNativeTypeCast(value) {}',
   'listSuperNativeTypeCheck': 'listSuperNativeTypeCheck(value) {}',
   'listSuperTypeCast': 'listSuperTypeCast(value) {}',

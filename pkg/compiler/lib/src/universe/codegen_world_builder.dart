@@ -600,6 +600,24 @@ abstract class CodegenWorldBuilderImpl extends WorldBuilderBase
     _instanceMemberUsage.forEach(processMemberUse);
     return functions;
   }
+
+  @override
+  Iterable<FunctionEntity> get userNoSuchMethods {
+    List<FunctionEntity> functions = <FunctionEntity>[];
+
+    void processMemberUse(MemberEntity member, _MemberUsage memberUsage) {
+      if (member.isInstanceMember &&
+          member is FunctionEntity &&
+          memberUsage.hasUse &&
+          member.name == Identifiers.noSuchMethod_ &&
+          !_world.commonElements.isDefaultNoSuchMethodImplementation(member)) {
+        functions.add(member);
+      }
+    }
+
+    _instanceMemberUsage.forEach(processMemberUse);
+    return functions;
+  }
 }
 
 class ElementCodegenWorldBuilderImpl extends CodegenWorldBuilderImpl {
