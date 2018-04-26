@@ -289,12 +289,12 @@ List<String> filterUnknownArguments(List<String> args, ArgParser parser) {
   Set<String> knownAbbreviations = new HashSet<String>();
   parser.options.forEach((String name, Option option) {
     knownOptions.add(name);
-    String abbreviation = option.abbreviation;
+    String abbreviation = option.abbr;
     if (abbreviation != null) {
       knownAbbreviations.add(abbreviation);
     }
     if (option.negatable) {
-      knownOptions.add('no-${name}');
+      knownOptions.add('no-$name');
     }
   });
   String optionName(int prefixLength, String argument) {

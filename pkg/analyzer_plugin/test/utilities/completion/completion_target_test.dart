@@ -32,9 +32,10 @@ class CompletionTargetTest {
   test_danglingExpressionCompletionIsValid_deprecatedApi() {
     // Test that we support an older form of API, where the first argument was
     // a [CompilationUnit] and there was an optional [AstNode] [entryPoint] arg,
-    // and clienst wrapped the entry point.
+    // and clients wrapped the entry point.
     final snippet = wrapAsIfOlderClient(parseDanglingDart('identifier'));
     final completionTarget =
+        // ignore: deprecated_member_use
         new CompletionTarget.forOffset(null, 1, entryPoint: snippet);
     expect(completionTarget.offset, 1);
     final replacementRange = completionTarget.computeReplacementRange(1);
