@@ -420,7 +420,23 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
       // RList<UInt32> nodeReferences
       if (subsection.nodeToReferenceId != null) {
-        for (var nodeOffset in subsection.offsetsOfReferencedNodes) {
+        final offsets = subsection.offsetsOfReferencedNodes;
+        for (int i = 0; i < offsets.length; ++i) {
+          final nodeOffset = offsets[i];
+          if (nodeOffset < 0) {
+            // Dangling reference.
+            // Find a node which was referenced to report meaningful error.
+            Node referencedNode;
+            subsection.nodeToReferenceId.forEach((node, id) {
+              if (id == i) {
+                referencedNode = node;
+              }
+            });
+            throw 'Unable to write reference to node'
+                ' ${referencedNode.runtimeType} $referencedNode'
+                ' from metadata ${subsection.repository.tag}'
+                ' (node is not written into kernel binary)';
+          }
           writeUInt32(nodeOffset);
         }
         writeUInt32(subsection.offsetsOfReferencedNodes.length);
@@ -2278,6 +2294,6 @@ class _MetadataSubsection {
       : nodeToReferenceId =
             nodeToReferenceId.isNotEmpty ? nodeToReferenceId : null,
         offsetsOfReferencedNodes = nodeToReferenceId.isNotEmpty
-            ? new List<int>.filled(nodeToReferenceId.length, 0)
+            ? new List<int>.filled(nodeToReferenceId.length, -1)
             : null;
 }
