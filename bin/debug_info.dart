@@ -27,6 +27,7 @@ main(args) async {
   }
 
   validateSize(info, debugLibName);
+  validateParents(info);
   compareGraphs(info);
   verifyDeps(info);
 }
@@ -71,6 +72,30 @@ validateSize(AllInfo info, String debugLibName) {
   if (missingTotal > 0) {
     var percent = (missingTotal * 100 / realTotal).toStringAsFixed(2);
     _fail('$percent% size missing in libraries (sum of elements > lib.size)');
+  }
+}
+
+/// Validates that every element in the model has a parent (except libraries).
+validateParents(AllInfo info) {
+  final parentlessInfos = new Set<Info>();
+
+  failIfNoParents(List<Info> infos) {
+    for (var info in infos) {
+      if (info.parent == null) {
+        parentlessInfos.add(info);
+      }
+    }
+  }
+
+  failIfNoParents(info.functions);
+  failIfNoParents(info.typedefs);
+  failIfNoParents(info.classes);
+  failIfNoParents(info.fields);
+  failIfNoParents(info.closures);
+  if (parentlessInfos.isEmpty) {
+    _pass('all elements have a parent');
+  } else {
+    _fail('${parentlessInfos.length} elements have no parent');
   }
 }
 
