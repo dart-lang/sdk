@@ -97,8 +97,6 @@ issue31596_tearoff_test: CompileTimeError
 issue31596_test: CompileTimeError
 issue32353_test: RuntimeError
 label_test: RuntimeError
-lazy_static3_test: RuntimeError # Issue 30852
-lazy_static8_test: RuntimeError # Issue 30852
 left_shift_test: RuntimeError # Ints and doubles are unified.
 library_env_test/has_io_support: RuntimeError # Intended to fail, bool.fromEnvironment("dart.library.async") is false
 library_env_test/has_mirror_support: RuntimeError # Intended to fail, bool.fromEnvironment("dart.library.async") is false
@@ -725,8 +723,6 @@ invocation_mirror_invoke_on_test: RuntimeError # UnimplementedError: JsInstanceM
 invocation_mirror_test: RuntimeError # Type 'NativeJavaScriptObject' is not a subtype of type 'int' in strong mode
 issue21159_test: RuntimeError # Issue 30701; TypeError: method.bind is not a function
 issue23244_test: RuntimeError # Issue 29920; Uncaught Unsupported operation: only top-level functions can be spawned.
-lazy_static3_test: RuntimeError # Issue 30852; Expect.equals(expected: <null>, actual: <499>) fails.
-lazy_static8_test: RuntimeError # Issue 30852; Expect.equals(expected: <42>, actual: <2>) fails.
 least_upper_bound_expansive_test/none: RuntimeError # 30908; Uncaught RangeError: Maximum call stack size exceeded
 left_shift_test: RuntimeError # Ints and doubles are unified.; Expect.equals(expected: <1>, actual: <-4294967295>) fails.
 library_env_test/has_html_support: RuntimeError # Issue 30907; Unsupported operation: bool.fromEnvironment can only be used as a const constructor
