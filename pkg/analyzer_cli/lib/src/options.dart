@@ -189,8 +189,7 @@ class CommandLineOptions {
         machineFormat = args['format'] == 'machine',
         perfReport = args['x-perf-report'],
         useCFE = args['use-cfe'],
-        previewDart2 =
-            args.wasParsed('preview-dart-2') ? args['preview-dart-2'] : null,
+        previewDart2 = args['preview-dart-2'],
         batchMode = args['batch'],
         showPackageWarnings = args['show-package-warnings'] ||
             args['package-warnings'] ||
@@ -515,7 +514,10 @@ class CommandLineOptions {
           negatable: false,
           hide: hide)
       ..addFlag('preview-dart-2',
-          help: 'Enable the Dart 2.0 preview.', hide: hide);
+          help: 'Enable the Dart 2.0 preview.',
+          defaultsTo: true,
+          hide: hide,
+          negatable: true);
 
     try {
       if (args.contains('--$ignoreUnrecognizedFlagsFlag')) {

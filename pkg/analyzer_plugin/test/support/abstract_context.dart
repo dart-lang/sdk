@@ -62,7 +62,12 @@ class AbstractContextTest {
   /**
    * Return `true` if strong mode should be enabled for this test.
    */
-  bool get enableStrongMode => false;
+  bool get enableStrongMode => true;
+
+  /**
+   * Return `true` if previewDart2 should be enabled for this test.
+   */
+  bool get enablePreviewDart2 => true;
 
   bool get previewDart2 => driver.analysisOptions.previewDart2;
 
@@ -132,7 +137,8 @@ class Required {
     PerformanceLog log = new PerformanceLog(_logBuffer);
     AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
     AnalysisOptionsImpl options = new AnalysisOptionsImpl()
-      ..strongMode = enableStrongMode;
+      ..strongMode = enableStrongMode
+      ..previewDart2 = enablePreviewDart2;
     _driver = new AnalysisDriver(
         scheduler,
         log,

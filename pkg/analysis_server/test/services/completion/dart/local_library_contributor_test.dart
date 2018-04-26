@@ -219,7 +219,7 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertSuggestClass('A');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('A');
     }
     assertSuggestFunction('af', 'int',
@@ -266,7 +266,7 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertSuggestClass('B');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('B');
     }
     assertSuggestFunction('bf', 'int',

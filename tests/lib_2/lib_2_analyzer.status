@@ -20,6 +20,9 @@ mirrors/repeated_private_anon_mixin_app_test: StaticWarning, OK # Intentional li
 [ $compiler == dart2analyzer && !$preview_dart_2 ]
 mirrors/metadata_nested_constructor_call_test/none: CompileTimeError
 
+[ $compiler == dart2analyzer && !$preview_dart_2 && !$strong ]
+mirrors/metadata_allowed_values_test/16: MissingCompileTimeError
+
 [ $compiler == dart2analyzer && $strong ]
 mirrors/deferred_mirrors_metadata_test: StaticWarning # Issue 28969
 mirrors/deferred_type_test: CompileTimeError, OK # Deliberately refers to a deferred type in a declaration.

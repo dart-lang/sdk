@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/summary/expr_builder.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
@@ -446,6 +447,9 @@ class C {
   }
 
   void test_pushLocalFunctionReference_nested() {
+    prepareAnalysisContext(new AnalysisOptionsImpl()
+      ..previewDart2 = false
+      ..strongMode = false);
     var expr =
         checkSimpleExpression('(x) => (y) => x + y') as FunctionExpression;
     var outerFunctionElement = expr.element;
@@ -467,6 +471,9 @@ class C {
   }
 
   void test_pushLocalFunctionReference_paramReference() {
+    prepareAnalysisContext(new AnalysisOptionsImpl()
+      ..previewDart2 = false
+      ..strongMode = false);
     var expr = checkSimpleExpression('(x, y) => x + y') as FunctionExpression;
     var localFunctionElement = expr.element;
     var xElement = localFunctionElement.parameters[0];

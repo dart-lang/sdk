@@ -38,6 +38,8 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
   String resultCode;
   LinkedEditGroup linkedPositionGroup;
 
+  bool get omitNew => false;
+
   /**
    * Asserts that there is an [Assist] of the given [kind] at [offset] which
    * produces the [expected] code when applied to [testCode].
@@ -3538,7 +3540,7 @@ class FakeFlutter {
 }
 ''');
     _setCaretLocation();
-    if (previewDart2) {
+    if (omitNew) {
       await assertHasAssist(DartAssistKind.FLUTTER_WRAP_CENTER, '''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
@@ -3595,7 +3597,7 @@ class FakeFlutter {
 }
 ''');
     _setCaretLocation();
-    if (previewDart2) {
+    if (omitNew) {
       await assertHasAssist(DartAssistKind.FLUTTER_WRAP_COLUMN, '''
 import 'package:flutter/widgets.dart';
 
@@ -3649,7 +3651,7 @@ class FakeFlutter {
 }
 ''');
     _setStartEndSelection();
-    if (previewDart2) {
+    if (omitNew) {
       await assertHasAssist(DartAssistKind.FLUTTER_WRAP_COLUMN, '''
 import 'package:flutter/widgets.dart';
 
@@ -3747,7 +3749,7 @@ class FakeFlutter {
 }
 ''');
     _setCaretLocation();
-    if (previewDart2) {
+    if (omitNew) {
       await assertHasAssist(DartAssistKind.FLUTTER_WRAP_PADDING, '''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
@@ -3793,7 +3795,7 @@ class FakeFlutter {
 }
 ''');
     _setStartEndSelection();
-    if (previewDart2) {
+    if (omitNew) {
       await assertHasAssist(DartAssistKind.FLUTTER_WRAP_ROW, '''
 import 'package:flutter/widgets.dart';
 
@@ -3950,7 +3952,7 @@ class FakeFlutter {
 }
 ''');
     _setCaretLocation();
-    if (previewDart2) {
+    if (omitNew) {
       await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
@@ -4019,7 +4021,7 @@ class FakeFlutter {\r
 }\r
 ''');
     _setCaretLocation();
-    if (previewDart2) {
+    if (omitNew) {
       await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {\r
@@ -4079,7 +4081,7 @@ class FakeFlutter {
 }
 ''');
     _setCaretLocation();
-    if (previewDart2) {
+    if (omitNew) {
       await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
@@ -4115,7 +4117,7 @@ class FakeFlutter {
 }
 ''');
     _setCaretLocation();
-    if (previewDart2) {
+    if (omitNew) {
       await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
@@ -4148,7 +4150,7 @@ class FakeFlutter {
 }
 ''');
     _setCaretLocation();
-    if (previewDart2) {
+    if (omitNew) {
       await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
