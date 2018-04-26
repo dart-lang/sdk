@@ -77,6 +77,10 @@ class HeapPage {
                                        kPageMask);
   }
 
+  static HeapPage* Of(uintptr_t addr) {
+    return reinterpret_cast<HeapPage*>(addr & kPageMask);
+  }
+
  private:
   void set_object_end(uword value) {
     ASSERT((value & kObjectAlignmentMask) == kOldObjectAlignmentOffset);

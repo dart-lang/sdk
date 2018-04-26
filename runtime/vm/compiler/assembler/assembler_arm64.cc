@@ -1030,6 +1030,8 @@ void Assembler::LoadClassById(Register result, Register class_id) {
   const intptr_t offset =
       Isolate::class_table_offset() + ClassTable::table_offset();
   LoadFromOffset(result, result, offset);
+  ASSERT(kSizeOfClassPairLog2 == 4);
+  add(class_id, class_id, Operand(class_id));
   ldr(result, Address(result, class_id, UXTX, Address::Scaled));
 }
 

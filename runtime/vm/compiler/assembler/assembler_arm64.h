@@ -1519,6 +1519,7 @@ class Assembler : public ValueObject {
   void CompareObject(Register reg, const Object& object);
 
   void LoadClassId(Register result, Register object);
+  // Overwrites class_id register.
   void LoadClassById(Register result, Register class_id);
   void LoadClass(Register result, Register object);
   void CompareClassId(Register object,

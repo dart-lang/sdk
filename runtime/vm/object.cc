@@ -2908,14 +2908,19 @@ void Class::set_invocation_dispatcher_cache(const Array& cache) const {
 }
 
 void Class::Finalize() const {
+  Isolate* isolate = Isolate::Current();
   ASSERT(Thread::Current()->IsMutatorThread());
-  ASSERT(!Isolate::Current()->all_classes_finalized());
+  ASSERT(!isolate->all_classes_finalized());
   ASSERT(!is_finalized());
   // Prefinalized classes have a VM internal representation and no Dart fields.
   // Their instance size  is precomputed and field offsets are known.
   if (!is_prefinalized()) {
     // Compute offsets of instance fields and instance size.
     CalculateFieldOffsets();
+    if (raw() == isolate->class_table()->At(id())) {
+      // Sets the new size in the class table.
+      isolate->class_table()->SetAt(id(), raw());
+    }
   }
   set_is_finalized();
 }

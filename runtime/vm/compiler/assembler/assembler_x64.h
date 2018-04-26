@@ -774,6 +774,7 @@ class Assembler : public ValueObject {
   // Loading and comparing classes of objects.
   void LoadClassId(Register result, Register object);
 
+  // Overwrites class_id register.
   void LoadClassById(Register result, Register class_id);
 
   void LoadClass(Register result, Register object);

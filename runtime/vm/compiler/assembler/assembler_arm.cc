@@ -1745,7 +1745,7 @@ void Assembler::LoadClassById(Register result, Register class_id) {
   const intptr_t offset =
       Isolate::class_table_offset() + ClassTable::table_offset();
   LoadFromOffset(kWord, result, result, offset);
-  ldr(result, Address(result, class_id, LSL, 2));
+  ldr(result, Address(result, class_id, LSL, kSizeOfClassPairLog2));
 }
 
 void Assembler::LoadClass(Register result, Register object, Register scratch) {

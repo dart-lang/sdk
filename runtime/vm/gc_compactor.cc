@@ -69,15 +69,6 @@ class ForwardingBlock {
            0;
   }
 
-  // Marks all bits after a given address. This is used to ensure that some
-  // objects do not move (classes).
-  void MarkAllFrom(uword start_addr) {
-    uword block_offset = start_addr & ~kBlockMask;
-    intptr_t first_unit_position = block_offset >> kObjectAlignmentLog2;
-    ASSERT(first_unit_position < kBitsPerWord);
-    live_bitvector_ = static_cast<uword>(-1) << first_unit_position;
-  }
-
   uword new_address() const { return new_address_; }
   void set_new_address(uword value) { new_address_ = value; }
 
@@ -147,9 +138,7 @@ class CompactorTask : public ThreadPool::Task {
   void SlidePage(HeapPage* page);
   uword PlanBlock(uword first_object, ForwardingPage* forwarding_page);
   uword SlideBlock(uword first_object, ForwardingPage* forwarding_page);
-  void PlanMoveToExactAddress(uword addr);
   void PlanMoveToContiguousSize(intptr_t size);
-  void SlideFreeUpTo(uword addr);
 
   Isolate* isolate_;
   GCCompactor* compactor_;
@@ -393,6 +382,9 @@ void CompactorTask::SlidePage(HeapPage* page) {
   }
 }
 
+// Plans the destination for a set of live objects starting with the first
+// live object that starts in a block, up to and including the last live
+// object that starts in that block.
 uword CompactorTask::PlanBlock(uword first_object,
                                ForwardingPage* forwarding_page) {
   uword block_start = first_object & kBlockMask;
@@ -400,7 +392,6 @@ uword CompactorTask::PlanBlock(uword first_object,
   ForwardingBlock* forwarding_block = forwarding_page->BlockFor(first_object);
 
   // 1. Compute bitvector of surviving allocation units in the block.
-  bool has_class = false;
   intptr_t block_live_size = 0;
   intptr_t block_dead_size = 0;
   uword current = first_object;
@@ -408,9 +399,6 @@ uword CompactorTask::PlanBlock(uword first_object,
     RawObject* obj = RawObject::FromAddr(current);
     intptr_t size = obj->Size();
     if (obj->IsMarked()) {
-      if (obj->GetClassId() == kClassCid) {
-        has_class = true;
-      }
       forwarding_block->RecordLive(current, size);
       ASSERT(static_cast<intptr_t>(forwarding_block->Lookup(current)) ==
              block_live_size);
@@ -421,26 +409,11 @@ uword CompactorTask::PlanBlock(uword first_object,
     current += size;
   }
 
-  // 2. Find the next contiguous space that can fit the block.
-  if (has_class) {
-    // This will waste the space used by dead objects that are before the class
-    // object.
-    PlanMoveToExactAddress(first_object);
-    ASSERT(free_current_ == first_object);
-
-    // This is not MarkAll because the first part of a block might
-    // be the tail end of an object belonging to the previous block
-    // or the page header.
-    forwarding_block->MarkAllFrom(first_object);
-    ASSERT(forwarding_block->Lookup(first_object) == 0);
-
-    forwarding_block->set_new_address(free_current_);
-    free_current_ += block_live_size + block_dead_size;
-  } else {
-    PlanMoveToContiguousSize(block_live_size);
-    forwarding_block->set_new_address(free_current_);
-    free_current_ += block_live_size;
-  }
+  // 2. Find the next contiguous space that can fit the live objects that
+  // start in the block.
+  PlanMoveToContiguousSize(block_live_size);
+  forwarding_block->set_new_address(free_current_);
+  free_current_ += block_live_size;
 
   return current;  // First object in the next block
 }
@@ -451,23 +424,30 @@ uword CompactorTask::SlideBlock(uword first_object,
   uword block_end = block_start + kBlockSize;
   ForwardingBlock* forwarding_block = forwarding_page->BlockFor(first_object);
 
-  // Add any space wasted at the end of a page or due to class pinning to the
-  // free list.
-  SlideFreeUpTo(forwarding_block->new_address());
-
   uword old_addr = first_object;
   while (old_addr < block_end) {
     RawObject* old_obj = RawObject::FromAddr(old_addr);
     intptr_t size = old_obj->Size();
     if (old_obj->IsMarked()) {
       uword new_addr = forwarding_block->Lookup(old_addr);
+      if (new_addr != free_current_) {
+        ASSERT(HeapPage::Of(free_current_) != HeapPage::Of(new_addr));
+        intptr_t free_remaining = free_end_ - free_current_;
+        // Add any leftover at the end of a page to the free list.
+        if (free_remaining > 0) {
+          freelist_->Free(free_current_, free_remaining);
+        }
+        free_page_ = free_page_->next();
+        ASSERT(free_page_ != NULL);
+        free_current_ = free_page_->object_start();
+        free_end_ = free_page_->object_end();
+        ASSERT(free_current_ == new_addr);
+      }
       RawObject* new_obj = RawObject::FromAddr(new_addr);
 
       // Fast path for no movement. There's often a large block of objects at
       // the beginning that don't move.
       if (new_addr != old_addr) {
-        ASSERT(old_obj->GetClassId() != kClassCid);
-
         // Slide the object down.
         memmove(reinterpret_cast<void*>(new_addr),
                 reinterpret_cast<void*>(old_addr), size);
@@ -477,66 +457,13 @@ uword CompactorTask::SlideBlock(uword first_object,
 
       ASSERT(free_current_ == new_addr);
       free_current_ += size;
-    } else if (forwarding_block->IsLive(old_addr)) {
-      // Gap we're keeping to prevent class movement.
-      ASSERT(free_current_ == old_addr);
-      freelist_->Free(old_addr, size);
-      free_current_ += size;
+    } else {
+      ASSERT(!forwarding_block->IsLive(old_addr));
     }
     old_addr += size;
   }
 
   return old_addr;  // First object in the next block.
-}
-
-void CompactorTask::SlideFreeUpTo(uword addr) {
-  if (free_current_ == addr) return;
-
-  // Skip pages until class's page.
-  ASSERT(free_page_ != NULL);
-  while (!free_page_->Contains(addr)) {
-    intptr_t free_remaining = free_end_ - free_current_;
-    if (free_remaining != 0) {
-      // Note we aren't bothering to check for a whole page to release.
-      freelist_->Free(free_current_, free_remaining);
-    }
-    // And advance to the next free page.
-    free_page_ = free_page_->next();
-    ASSERT(free_page_ != NULL);
-    free_current_ = free_page_->object_start();
-    free_end_ = free_page_->object_end();
-  }
-
-  // Skip within page until class's address.
-  intptr_t free_skip = addr - free_current_;
-  if (free_skip != 0) {
-    freelist_->Free(free_current_, free_skip);
-    free_current_ += free_skip;
-  }
-
-  // Class object won't move.
-  ASSERT(free_current_ == addr);
-}
-
-void CompactorTask::PlanMoveToExactAddress(uword addr) {
-  // Skip space to ensure class objects do not move. Computing the size
-  // of larger objects requires consulting their class, whose old body
-  // might be overwritten during the sliding.
-  // TODO(rmacnak): Keep class sizes off heap or class objects in
-  // non-moving pages.
-
-  // Skip pages until class's page.
-  ASSERT(free_page_ != NULL);
-  while (!free_page_->Contains(addr)) {
-    // And advance to the next free page.
-    free_page_ = free_page_->next();
-    ASSERT(free_page_ != NULL);
-    free_current_ = free_page_->object_start();
-    free_end_ = free_page_->object_end();
-  }
-
-  // Skip within page until class's address.
-  free_current_ = addr;
 }
 
 void CompactorTask::PlanMoveToContiguousSize(intptr_t size) {

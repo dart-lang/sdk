@@ -2425,7 +2425,8 @@ void Assembler::LoadClassById(Register result, Register class_id) {
   const intptr_t offset =
       Isolate::class_table_offset() + ClassTable::table_offset();
   movl(result, Address(result, offset));
-  movl(result, Address(result, class_id, TIMES_4, 0));
+  ASSERT(kSizeOfClassPairLog2 == 3);
+  movl(result, Address(result, class_id, TIMES_8, 0));
 }
 
 void Assembler::LoadClass(Register result, Register object, Register scratch) {

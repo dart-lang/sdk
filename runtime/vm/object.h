@@ -915,6 +915,9 @@ class Class : public Object {
     ASSERT(is_finalized() || is_prefinalized());
     return (raw_ptr()->instance_size_in_words_ * kWordSize);
   }
+  static intptr_t instance_size(RawClass* clazz) {
+    return (clazz->ptr()->instance_size_in_words_ * kWordSize);
+  }
   void set_instance_size(intptr_t value_in_bytes) const {
     ASSERT(kWordSize != 0);
     set_instance_size_in_words(value_in_bytes / kWordSize);
@@ -9162,6 +9165,7 @@ RawClass* Object::clazz() const {
   if ((raw_value & kSmiTagMask) == kSmiTag) {
     return Smi::Class();
   }
+  ASSERT(!Isolate::Current()->compaction_in_progress());
   return Isolate::Current()->class_table()->At(raw()->GetClassId());
 }
 
