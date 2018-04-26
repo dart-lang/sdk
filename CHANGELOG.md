@@ -12,6 +12,11 @@
 
 ### Tool Changes
 
+* `dartfmt`
+  * Fixes a runtime error when dart_style is itself run in Dart 2.
+  * Force splitting an empty block as the then body of an if with an else.
+  * Uses the new lowercase Dart 2 constant names.
+
 #### Pub
 
 * The `build` and `serve` commands will now fail and point users to
