@@ -86,9 +86,14 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
-  Future<ParseResult> getParsedAst(String path) {
+  Future<ParseResult> getParsedAst(String path) async {
+    return getParsedAstSync(path);
+  }
+
+  @override
+  ParseResult getParsedAstSync(String path) {
     _checkConsistency();
-    return _driver.parseFile(path);
+    return _driver.parseFileSync(path);
   }
 
   @override

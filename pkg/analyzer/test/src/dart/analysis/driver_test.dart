@@ -2261,6 +2261,39 @@ import 'b.dart';
     expect(clazz.name.name, 'A2');
   }
 
+  test_parseFileSync_notAbsolutePath() async {
+    try {
+      driver.parseFileSync('not_absolute.dart');
+      fail('ArgumentError expected.');
+    } on ArgumentError {}
+  }
+
+  test_parseFileSync_notDart() {
+    var p = _p('/test/bin/a.txt');
+    provider.newFile(p, 'class A {}');
+
+    ParseResult parseResult = driver.parseFileSync(p);
+    expect(parseResult, isNotNull);
+    expect(driver.knownFiles, contains(p));
+  }
+
+  test_parseFileSync_shouldRefresh() async {
+    var p = _p('/test/bin/a.dart');
+
+    provider.newFile(p, 'class A {}');
+    driver.addFile(p);
+
+    // Get the result, so force the file reading.
+    await driver.getResult(p);
+
+    // Update the file.
+    provider.newFile(p, 'class A2 {}');
+
+    ParseResult parseResult = driver.parseFileSync(p);
+    var clazz = parseResult.unit.declarations[0] as ClassDeclaration;
+    expect(clazz.name.name, 'A2');
+  }
+
   test_part_getErrors_afterLibrary() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');

@@ -855,6 +855,21 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * resolved unit).
    */
   Future<ParseResult> parseFile(String path) async {
+    return parseFileSync(path);
+  }
+
+  /**
+   * Return a [ParseResult] for the file with the given [path].
+   *
+   * The [path] must be absolute and normalized.
+   *
+   * The [path] can be any file - explicitly or implicitly analyzed, or neither.
+   *
+   * The parsing is performed in the method itself, and the result is not
+   * produced through the [results] stream (just because it is not a fully
+   * resolved unit).
+   */
+  ParseResult parseFileSync(String path) {
     _throwIfNotAbsolutePath(path);
     FileState file = _fileTracker.verifyApiSignature(path);
     RecordingErrorListener listener = new RecordingErrorListener();
