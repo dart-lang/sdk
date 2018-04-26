@@ -8882,7 +8882,7 @@ class SendPort : public Instance {
 // Internal stacktrace object used in exceptions for printing stack traces.
 class StackTrace : public Instance {
  public:
-  static const int kPreallocatedStackdepth = 30;
+  static const int kPreallocatedStackdepth = 90;
 
   intptr_t Length() const;
 

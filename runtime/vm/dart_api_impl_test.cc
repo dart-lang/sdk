@@ -137,7 +137,7 @@ TEST_CASE(DartAPI_StackTraceInfo) {
 TEST_CASE(DartAPI_DeepStackTraceInfo) {
   const char* kScriptChars =
       "foo(n) => n == 1 ? throw new Error() : foo(n-1);\n"
-      "testMain() => foo(50);\n";
+      "testMain() => foo(100);\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_Handle error = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
@@ -151,10 +151,10 @@ TEST_CASE(DartAPI_DeepStackTraceInfo) {
   intptr_t frame_count = 0;
   result = Dart_StackTraceLength(stacktrace, &frame_count);
   EXPECT_VALID(result);
-  EXPECT_EQ(51, frame_count);
+  EXPECT_EQ(101, frame_count);
   // Test something bigger than the preallocated size to verify nothing was
   // truncated.
-  EXPECT(51 > StackTrace::kPreallocatedStackdepth);
+  EXPECT(101 > StackTrace::kPreallocatedStackdepth);
 
   Dart_Handle function_name;
   Dart_Handle script_url;
@@ -320,10 +320,10 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
   intptr_t frame_count = 0;
   result = Dart_StackTraceLength(stacktrace, &frame_count);
   EXPECT_VALID(result);
-  EXPECT_EQ(52, frame_count);
+  EXPECT_EQ(102, frame_count);
   // Test something bigger than the preallocated size to verify nothing was
   // truncated.
-  EXPECT(52 > StackTrace::kPreallocatedStackdepth);
+  EXPECT(102 > StackTrace::kPreallocatedStackdepth);
 
   Dart_Handle function_name;
   Dart_Handle script_url;
@@ -412,7 +412,7 @@ TEST_CASE(DartAPI_CurrentStackTraceInfo) {
   const char* kScriptChars =
       "inspectStack() native 'CurrentStackTraceNatve';\n"
       "foo(n) => n == 1 ? inspectStack() : foo(n-1);\n"
-      "testMain() => foo(50);\n";
+      "testMain() => foo(100);\n";
 
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, &CurrentStackTraceNativeLookup);
