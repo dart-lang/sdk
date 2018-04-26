@@ -14,6 +14,9 @@
 
 #### Pub
 
+* The `build` and `serve` commands will now fail and point users to
+  https://webdev.dartlang.org/dart-2
+
 #### Other Tools
 
 ## 2.0.0-dev.49.0

@@ -270,21 +270,6 @@ copy_tree_specs += [ {
       ignore_patterns = "{}"
     } ]
 
-# This rule copies pub assets to lib/_internal/pub/asset
-copy_tree_specs += [ {
-      target = "copy_pub_assets"
-      visibility = [
-        ":create_common_sdk",
-        ":copy_7zip",
-      ]
-      deps = [
-        ":copy_libraries",
-      ]
-      source = "../third_party/pkg/pub/lib/src/asset"
-      dest = "$root_out_dir/dart-sdk/lib/_internal/pub/asset"
-      ignore_patterns = "{}"
-    } ]
-
 # This loop generates rules to copy libraries to lib/
 foreach(library, _full_sdk_libraries) {
   copy_tree_specs += [ {
@@ -305,7 +290,6 @@ if (is_win) {
         visibility = [ ":create_common_sdk" ]
         deps = [
           ":copy_libraries",
-          ":copy_pub_assets",
         ]
         source = "../third_party/7zip"
         dest = "$root_out_dir/dart-sdk/lib/_internal/pub/asset/7zip"
@@ -959,7 +943,6 @@ group("create_common_sdk") {
     ":copy_license",
     ":copy_libraries_specification",
     ":copy_platform_files",
-    ":copy_pub_assets",
     ":copy_readme",
     ":copy_vm_dill_files",
     ":write_revision_file",
