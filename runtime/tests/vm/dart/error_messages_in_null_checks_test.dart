@@ -13,7 +13,7 @@ class A {
     Expect.fail('A.foo should not be reachable');
   }
 
-  int get bar {
+  dynamic get bar {
     Expect.fail('A.bar should not be reachable');
   }
 
