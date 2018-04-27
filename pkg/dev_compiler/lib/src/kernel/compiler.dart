@@ -2288,9 +2288,8 @@ class ProgramCompiler extends Object
     }
 
     useExtension ??= _isSymbolizedMember(type, name);
-    // TODO(vsm): Do not rename members that conflict with standard JS members
-    // if we are actually try to access those JS members via interop.
-    name = JS.memberNameForDartMember(name);
+    name = JS.memberNameForDartMember(
+        name, member is Procedure && member.isExternal);
     if (useExtension) {
       return _getExtensionSymbolInternal(name);
     }

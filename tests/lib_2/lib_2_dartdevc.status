@@ -15,7 +15,6 @@ convert/chunked_conversion_utf87_test: RuntimeError
 convert/codec1_test: RuntimeError
 convert/utf82_test: RuntimeError
 html/debugger_test: CompileTimeError
-js/prototype_access_test: RuntimeError
 
 [ $runtime == chrome && ($compiler == dartdevc || $compiler == dartdevk) ]
 html/element_animate_test/timing_dict: RuntimeError # Issue 29922

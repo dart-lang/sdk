@@ -6075,9 +6075,7 @@ class CodeGenerator extends Object
     useExtension ??= _isSymbolizedMember(type, name);
     // Rename members that conflict with standard JS members unless we are
     // actually try to access those JS members via interop.
-    var isExternal = element != null &&
-        !(element is ExecutableElement && !element.isExternal);
-    name = JS.memberNameForDartMember(name, isExternal);
+    name = JS.memberNameForDartMember(name, _isExternal(element));
     if (useExtension) {
       return _getExtensionSymbolInternal(name);
     }
