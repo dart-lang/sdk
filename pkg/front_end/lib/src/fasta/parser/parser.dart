@@ -1983,8 +1983,7 @@ class Parser {
         token = next;
       } else {
         reportRecoverableErrorWithToken(next, context.recoveryTemplate);
-        if (context == IdentifierContext.topLevelVariableDeclaration ||
-            context == IdentifierContext.fieldDeclaration) {
+        if (context == IdentifierContext.topLevelVariableDeclaration) {
           // Since the token is not a keyword or identifier, consume it to
           // ensure forward progress in parseField.
           token = next.next;
@@ -2063,8 +2062,6 @@ class Parser {
       followingValues = [';'];
     } else if (context == IdentifierContext.constructorReferenceContinuation) {
       followingValues = ['.', ',', '(', ')', '[', ']', '}', ';'];
-    } else if (context == IdentifierContext.fieldDeclaration) {
-      followingValues = [';', '=', ',', '}'];
     } else if (context == IdentifierContext.enumDeclaration) {
       followingValues = ['{'];
     } else if (context == IdentifierContext.enumValueDeclaration) {
@@ -2143,9 +2140,7 @@ class Parser {
     // could create a method to test whether a given token matches one of the
     // patterns.
     List<String> initialKeywords;
-    if (context == IdentifierContext.fieldDeclaration) {
-      initialKeywords = classMemberKeywords();
-    } else if (context == IdentifierContext.enumDeclaration) {
+    if (context == IdentifierContext.enumDeclaration) {
       initialKeywords = topLevelKeywords();
     } else if (context == IdentifierContext.formalParameterDeclaration) {
       initialKeywords = topLevelKeywords()
@@ -6188,54 +6183,29 @@ class Parser {
           staticToken, covariantToken, varFinalOrConst, beforeType);
     }
 
-    bool looksLikeMethod = getOrSet != null ||
+    if (getOrSet != null ||
         identical(value, '(') ||
         identical(value, '=>') ||
-        identical(value, '{');
-    if (token == beforeStart && !looksLikeMethod) {
-      // Ensure we make progress.
+        identical(value, '{')) {
+      token = parseMethod(
+          beforeStart,
+          externalToken,
+          staticToken,
+          covariantToken,
+          varFinalOrConst,
+          beforeType,
+          typeInfo,
+          getOrSet,
+          token);
+    } else if (token == beforeStart) {
       // TODO(danrubel): Provide a more specific error message for extra ';'.
       reportRecoverableErrorWithToken(next, fasta.templateExpectedClassMember);
       listener.handleInvalidMember(next);
+      // Ensure we make progress.
       token = next;
     } else {
-      // Looks like a partial declaration.
-      reportRecoverableError(
-          next, fasta.templateExpectedIdentifier.withArguments(next));
-      // Insert a synthetic identifier and continue parsing.
-      if (!next.isIdentifier) {
-        rewriter.insertTokenAfter(
-            token,
-            new SyntheticStringToken(
-                TokenType.IDENTIFIER,
-                '#synthetic_identifier_${next.charOffset}',
-                next.charOffset,
-                0));
-      }
-
-      if (looksLikeMethod) {
-        token = parseMethod(
-            beforeStart,
-            externalToken,
-            staticToken,
-            covariantToken,
-            varFinalOrConst,
-            beforeType,
-            typeInfo,
-            getOrSet,
-            token);
-      } else {
-        token = parseFields(
-            beforeStart,
-            externalToken,
-            staticToken,
-            covariantToken,
-            varFinalOrConst,
-            beforeType,
-            typeInfo,
-            token,
-            false);
-      }
+      token = parseFields(beforeStart, externalToken, staticToken,
+          covariantToken, varFinalOrConst, beforeType, typeInfo, token, false);
     }
 
     listener.endMember();

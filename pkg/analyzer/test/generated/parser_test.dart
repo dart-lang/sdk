@@ -525,6 +525,38 @@ Function(int, String) v;
     expect(variable.name, isNotNull);
   }
 
+  void test_parseClassMember_field_nameKeyword() {
+    createParser('var for;');
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 3)]
+        : [
+            expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 3),
+            expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 4, 3)
+          ]);
+  }
+
+  void test_parseClassMember_field_nameMissing() {
+    createParser('var ;');
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 1)]);
+  }
+
+  void test_parseClassMember_field_nameMissing2() {
+    createParser('var "";');
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 2)]
+        : [
+            expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 2),
+            expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 4, 2)
+          ]);
+  }
+
   void test_parseClassMember_field_namedOperator() {
     createParser('var operator;');
     ClassMember member = parser.parseClassMember('C');
@@ -3025,8 +3057,7 @@ class Foo {
         errors: usingFastaParser
             ? [
                 expectedError(ParserErrorCode.MISSING_IDENTIFIER, 15, 1),
-                expectedError(ParserErrorCode.EXPECTED_TOKEN, 15, 1),
-                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 15, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 17, 4),
                 expectedError(ParserErrorCode.MISSING_IDENTIFIER, 22, 1),
                 expectedError(ParserErrorCode.EXPECTED_TOKEN, 22, 1)
               ]

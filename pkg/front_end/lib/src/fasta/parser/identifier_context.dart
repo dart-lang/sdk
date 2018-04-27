@@ -132,8 +132,7 @@ class IdentifierContext {
       inDeclaration: true);
 
   /// Identifier is a name being declared by a field declaration.
-  static const fieldDeclaration =
-      const IdentifierContext('fieldDeclaration', inDeclaration: true);
+  static const fieldDeclaration = const FieldDeclarationIdentifierContext();
 
   /// Identifier is the name being declared by a top level function declaration.
   static const topLevelFunctionDeclaration = const IdentifierContext(

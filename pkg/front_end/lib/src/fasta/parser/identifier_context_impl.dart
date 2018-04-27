@@ -141,6 +141,35 @@ class ExpressionIdentifierContext extends IdentifierContext {
   }
 }
 
+class FieldDeclarationIdentifierContext extends IdentifierContext {
+  const FieldDeclarationIdentifierContext()
+      : super('fieldDeclaration', inDeclaration: true);
+
+  @override
+  Token ensureIdentifier(Token token, Parser parser) {
+    Token identifier = token.next;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    if (identifier.isIdentifier) {
+      return identifier;
+    }
+    // Recovery
+    if (isOneOfOrEof(identifier, const [';', '=', ',', '}']) ||
+        looksLikeStartOfNextClassMember(identifier)) {
+      return parser.insertSyntheticIdentifier(token, this);
+    } else if (!identifier.isKeywordOrIdentifier) {
+      // When in doubt, consume the token to ensure we make progress
+      // but insert a synthetic identifier to satisfy listeners.
+      return parser.insertSyntheticIdentifier(identifier, this,
+          message: fasta.templateExpectedIdentifier.withArguments(identifier),
+          messageOnToken: identifier);
+    } else {
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateExpectedIdentifier);
+      return identifier;
+    }
+  }
+}
+
 /// See [IdentifierContext].fieldInitializer
 class FieldInitializerIdentifierContext extends IdentifierContext {
   const FieldInitializerIdentifierContext()
