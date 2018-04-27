@@ -67,7 +67,6 @@ label3_negative_test: CompileTimeError
 label5_negative_test: CompileTimeError
 label6_negative_test: CompileTimeError
 label8_negative_test: CompileTimeError
-library_negative_test: CompileTimeError
 list_literal2_negative_test: CompileTimeError
 list_literal_negative_test: CompileTimeError
 map_literal_negative_test: CompileTimeError
