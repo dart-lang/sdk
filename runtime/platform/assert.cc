@@ -4,9 +4,9 @@
 
 #include "platform/assert.h"
 
+#include "include/dart_api.h"
 #include "platform/globals.h"
 #include "vm/os.h"
-#include "vm/profiler.h"
 
 namespace dart {
 
@@ -38,7 +38,7 @@ void DynamicAssertionHelper::Fail(const char* format, ...) {
   // until the program is exiting before producing a non-zero exit
   // code through abort.
   if (kind_ == ASSERT) {
-    NOT_IN_PRODUCT(Profiler::DumpStackTrace());
+    NOT_IN_PRODUCT(Dart_DumpNativeStackTrace(NULL));
     OS::Abort();
   }
   failed_ = true;

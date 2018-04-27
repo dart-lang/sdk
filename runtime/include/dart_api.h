@@ -3384,6 +3384,10 @@ DART_EXPORT bool Dart_IsPrecompiledRuntime();
 
 /**
  *  Print a native stack trace. Used for crash handling.
+ *
+ *  If context is NULL, prints the current stack trace. Otherwise, context
+ *  should be a CONTEXT* (Windows) or ucontext_t* (POSIX) from a signal handler
+ *  running on the current thread.
  */
 DART_EXPORT void Dart_DumpNativeStackTrace(void* context);
 
