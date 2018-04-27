@@ -2321,7 +2321,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (_inGenerator) {
         return;
       } else if (_inAsync) {
-        if (expectedReturnType.isDynamic) {
+        if (expectedReturnType.isDynamic || expectedReturnType.isVoid) {
           return;
         }
         if (expectedReturnType is InterfaceType &&
@@ -2329,6 +2329,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           DartType futureArgument = expectedReturnType.typeArguments[0];
           if (futureArgument.isDynamic ||
               futureArgument.isDartCoreNull ||
+              futureArgument.isVoid ||
               futureArgument.isObject) {
             return;
           }
