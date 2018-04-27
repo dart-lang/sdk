@@ -94,7 +94,7 @@ abstract class Compiler {
           case Severity.internalProblem:
             // TODO(sigmund): support emitting code with errors as long as they
             // are handled in the generated code (issue #30194).
-            printMessage = true;
+            printMessage = false; // errors are printed by VM
             errors.add(message.formatted);
             break;
           case Severity.nit:
@@ -316,8 +316,6 @@ Future _processLoadRequest(request) async {
     Component component = await compiler.compile(script);
 
     if (compiler.errors.isNotEmpty) {
-      // TODO(sigmund): the compiler prints errors to the console, so we
-      // shouldn't print those messages again here.
       result = new CompilationResult.errors(compiler.errors);
     } else {
       // We serialize the component excluding vm_platform.dill because the VM has
