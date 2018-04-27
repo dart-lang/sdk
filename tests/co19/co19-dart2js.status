@@ -1497,7 +1497,7 @@ Language/Generics/malformed_t02: Crash
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: RuntimeError
 
 [ $compiler == dart2js && $runtime == d8 && $fast_startup ]
-LibTest/isolate/Isolate/spawn_A04_t04: Fail # Issue 27558
+LibTest/isolate/Isolate/spawn_A04_t04: Pass # Technically fails, but since sync-async was turned on, this test completes before it fails. Underlying issue: #27558
 
 [ $compiler == dart2js && $runtime == d8 && $fasta ]
 LayoutTests/*: SkipByDesign
