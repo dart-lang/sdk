@@ -734,6 +734,7 @@ class RawObject {
   friend class VerifyCanonicalVisitor;
   friend class ObjectGraph::Stack;  // GetClassId
   friend class Precompiler;         // GetClassId
+  friend class ObjectOffsetTrait;   // GetClassId
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);

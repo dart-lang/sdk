@@ -1770,8 +1770,9 @@ VM_UNIT_TEST_CASE(MismatchedSnapshotKinds) {
   {
     // Use a script snapshot where a full snapshot is expected.
     char* error = NULL;
-    Dart_Isolate isolate = Dart_CreateIsolate(
-        "script-uri", "main", script_snapshot, NULL, NULL, NULL, &error);
+    Dart_Isolate isolate =
+        Dart_CreateIsolate("script-uri", "main", script_snapshot, NULL, NULL,
+                           NULL, NULL, NULL, &error);
     EXPECT(isolate == NULL);
     EXPECT(error != NULL);
     EXPECT_SUBSTRING(

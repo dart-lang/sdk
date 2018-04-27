@@ -30,7 +30,9 @@ class Snapshot {
  public:
   static void GenerateScript(const char* snapshot_filename);
   static void GenerateAppJIT(const char* snapshot_filename);
-  static void GenerateAppAOTAsBlobs(const char* snapshot_filename);
+  static void GenerateAppAOTAsBlobs(const char* snapshot_filename,
+                                    const uint8_t* shared_data,
+                                    const uint8_t* shared_instructions);
   static void GenerateAppAOTAsAssembly(const char* snapshot_filename);
 
   static AppSnapshot* TryReadAppSnapshot(const char* script_name);

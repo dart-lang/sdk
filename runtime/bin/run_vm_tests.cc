@@ -163,7 +163,7 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
       script_uri, package_root, packages_config, app_snapshot);
   Dart_Isolate isolate = Dart_CreateIsolate(
       DART_KERNEL_ISOLATE_NAME, main, isolate_snapshot_data,
-      isolate_snapshot_instructions, flags, isolate_data, error);
+      isolate_snapshot_instructions, NULL, NULL, flags, isolate_data, error);
   if (isolate == NULL) {
     delete isolate_data;
     return NULL;

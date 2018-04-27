@@ -3385,9 +3385,10 @@ VM_UNIT_TEST_CASE(DartAPI_IsolateSetCheckedMode) {
   api_flags.enable_error_on_bad_override = true;
   api_flags.use_dart_frontend = FLAG_use_dart_frontend;
   char* err;
-  Dart_Isolate isolate = Dart_CreateIsolate(
-      NULL, NULL, bin::core_isolate_snapshot_data,
-      bin::core_isolate_snapshot_instructions, &api_flags, NULL, &err);
+  Dart_Isolate isolate =
+      Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
+                         bin::core_isolate_snapshot_instructions, NULL, NULL,
+                         &api_flags, NULL, &err);
   if (isolate == NULL) {
     OS::PrintErr("Creation of isolate failed '%s'\n", err);
     free(err);

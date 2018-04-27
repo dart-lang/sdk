@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include <cstdarg>
+#include <memory>
 
 #include "bin/builtin.h"
 #include "bin/console.h"
@@ -144,6 +145,8 @@ static const char* kSnapshotKindNames[] = {
   V(vm_snapshot_instructions, vm_snapshot_instructions_filename)               \
   V(isolate_snapshot_data, isolate_snapshot_data_filename)                     \
   V(isolate_snapshot_instructions, isolate_snapshot_instructions_filename)     \
+  V(shared_data, shared_data_filename)                                         \
+  V(shared_instructions, shared_instructions_filename)                         \
   V(assembly, assembly_filename)                                               \
   V(script_snapshot, script_snapshot_filename)                                 \
   V(dependencies, dependencies_filename)                                       \
@@ -1217,6 +1220,30 @@ static void StreamingWriteCallback(void* callback_data,
   }
 }
 
+static std::unique_ptr<MappedMemory> MapFile(const char* filename,
+                                             File::MapType type,
+                                             const uint8_t** buffer) {
+  File* file = File::Open(NULL, filename, File::kRead);
+  if (file == NULL) {
+    Log::PrintErr("Failed to open: %s\n", filename);
+    exit(kErrorExitCode);
+  }
+  RefCntReleaseScope<File> rs(file);
+  intptr_t length = file->Length();
+  if (length == 0) {
+    // Can't map an empty file.
+    *buffer = NULL;
+    return NULL;
+  }
+  MappedMemory* mapping = file->Map(type, 0, length);
+  if (mapping == NULL) {
+    Log::PrintErr("Failed to read: %s\n", filename);
+    exit(kErrorExitCode);
+  }
+  *buffer = reinterpret_cast<const uint8_t*>(mapping->address());
+  return std::unique_ptr<MappedMemory>(mapping);
+}
+
 static void CreateAndWritePrecompiledSnapshot(
     Dart_QualifiedFunctionName* standalone_entry_points) {
   ASSERT(IsSnapshottingForPrecompilation());
@@ -1237,6 +1264,19 @@ static void CreateAndWritePrecompiledSnapshot(
   } else {
     ASSERT(snapshot_kind == kAppAOTBlobs);
 
+    const uint8_t* shared_data = NULL;
+    const uint8_t* shared_instructions = NULL;
+    std::unique_ptr<MappedMemory> mapped_shared_data;
+    std::unique_ptr<MappedMemory> mapped_shared_instructions;
+    if (shared_data_filename != NULL) {
+      mapped_shared_data =
+          MapFile(shared_data_filename, File::kReadOnly, &shared_data);
+    }
+    if (shared_instructions_filename != NULL) {
+      mapped_shared_instructions = MapFile(
+          shared_instructions_filename, File::kReadOnly, &shared_instructions);
+    }
+
     uint8_t* vm_snapshot_data_buffer = NULL;
     intptr_t vm_snapshot_data_size = 0;
     uint8_t* vm_snapshot_instructions_buffer = NULL;
@@ -1250,7 +1290,7 @@ static void CreateAndWritePrecompiledSnapshot(
         &vm_snapshot_instructions_buffer, &vm_snapshot_instructions_size,
         &isolate_snapshot_data_buffer, &isolate_snapshot_data_size,
         &isolate_snapshot_instructions_buffer,
-        &isolate_snapshot_instructions_size);
+        &isolate_snapshot_instructions_size, shared_data, shared_instructions);
     CHECK_RESULT(result);
 
     WriteFile(vm_snapshot_data_filename, vm_snapshot_data_buffer,
@@ -1319,7 +1359,7 @@ static Dart_Isolate CreateServiceIsolate(const char* script_uri,
       new IsolateData(script_uri, package_root, package_config, NULL);
   Dart_Isolate isolate = NULL;
   isolate = Dart_CreateIsolate(script_uri, main, isolate_snapshot_data,
-                               isolate_snapshot_instructions, flags,
+                               isolate_snapshot_instructions, NULL, NULL, flags,
                                isolate_data, error);
 
   if (isolate == NULL) {
@@ -1353,30 +1393,6 @@ static Dart_Isolate CreateServiceIsolate(const char* script_uri,
   Dart_ExitScope();
   Dart_ExitIsolate();
   return isolate;
-}
-
-static MappedMemory* MapFile(const char* filename,
-                             File::MapType type,
-                             const uint8_t** buffer) {
-  File* file = File::Open(NULL, filename, File::kRead);
-  if (file == NULL) {
-    Log::PrintErr("Failed to open: %s\n", filename);
-    exit(kErrorExitCode);
-  }
-  RefCntReleaseScope<File> rs(file);
-  intptr_t length = file->Length();
-  if (length == 0) {
-    // Can't map an empty file.
-    *buffer = NULL;
-    return NULL;
-  }
-  MappedMemory* mapping = file->Map(type, 0, length);
-  if (mapping == NULL) {
-    Log::PrintErr("Failed to read: %s\n", filename);
-    exit(kErrorExitCode);
-  }
-  *buffer = reinterpret_cast<const uint8_t*>(mapping->address());
-  return mapping;
 }
 
 static int GenerateSnapshotFromKernelProgram(void* kernel_program) {
@@ -1538,10 +1554,10 @@ int main(int argc, char** argv) {
   init_params.entropy_source = DartUtils::EntropySource;
   init_params.start_kernel_isolate = false;
 
-  MappedMemory* mapped_vm_snapshot_data = NULL;
-  MappedMemory* mapped_vm_snapshot_instructions = NULL;
-  MappedMemory* mapped_isolate_snapshot_data = NULL;
-  MappedMemory* mapped_isolate_snapshot_instructions = NULL;
+  std::unique_ptr<MappedMemory> mapped_vm_snapshot_data;
+  std::unique_ptr<MappedMemory> mapped_vm_snapshot_instructions;
+  std::unique_ptr<MappedMemory> mapped_isolate_snapshot_data;
+  std::unique_ptr<MappedMemory> mapped_isolate_snapshot_instructions;
   if (snapshot_kind == kScript) {
     mapped_vm_snapshot_data =
         MapFile(vm_snapshot_data_filename, File::kReadOnly,
@@ -1585,7 +1601,7 @@ int main(int argc, char** argv) {
                                               commandline_packages_file, NULL);
   Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL, isolate_snapshot_data,
                                             isolate_snapshot_instructions, NULL,
-                                            isolate_data, &error);
+                                            NULL, NULL, isolate_data, &error);
   if (isolate == NULL) {
     Log::PrintErr("Error: %s\n", error);
     free(error);
@@ -1652,8 +1668,8 @@ int main(int argc, char** argv) {
 
     Dart_Isolate isolate = NULL;
     isolate = Dart_CreateIsolate(NULL, NULL, isolate_snapshot_data,
-                                 isolate_snapshot_instructions, &flags,
-                                 isolate_data, &error);
+                                 isolate_snapshot_instructions, NULL, NULL,
+                                 &flags, isolate_data, &error);
     if (isolate == NULL) {
       Log::PrintErr("%s\n", error);
       free(error);
@@ -1744,10 +1760,6 @@ int main(int argc, char** argv) {
     free(error);
   }
   EventHandler::Stop();
-  delete mapped_vm_snapshot_data;
-  delete mapped_vm_snapshot_instructions;
-  delete mapped_isolate_snapshot_data;
-  delete mapped_isolate_snapshot_instructions;
   return 0;
 }
 

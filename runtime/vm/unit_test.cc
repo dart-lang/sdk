@@ -94,8 +94,8 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
   api_flags.use_dart_frontend = FLAG_use_dart_frontend;
   Dart_Isolate isolate = NULL;
   if (len == 0) {
-    isolate = Dart_CreateIsolate(name, NULL, data_buffer, instr_buffer,
-                                 &api_flags, data, &err);
+    isolate = Dart_CreateIsolate(name, NULL, data_buffer, instr_buffer, NULL,
+                                 NULL, &api_flags, data, &err);
   } else {
     kernel::Program* program = reinterpret_cast<kernel::Program*>(
         Dart_ReadKernelBinary(data_buffer, len, NoopRelease));

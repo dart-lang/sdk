@@ -29,6 +29,7 @@
 #include "vm/double_conversion.h"
 #include "vm/exceptions.h"
 #include "vm/growable_array.h"
+#include "vm/hash.h"
 #include "vm/hash_table.h"
 #include "vm/heap.h"
 #include "vm/isolate_reload.h"
@@ -4833,24 +4834,6 @@ RawString* UnresolvedClass::Name() const {
 const char* UnresolvedClass::ToCString() const {
   const char* cname = String::Handle(Name()).ToCString();
   return OS::SCreate(Thread::Current()->zone(), "unresolved class '%s'", cname);
-}
-
-static uint32_t CombineHashes(uint32_t hash, uint32_t other_hash) {
-  hash += other_hash;
-  hash += hash << 10;
-  hash ^= hash >> 6;  // Logical shift, unsigned hash.
-  return hash;
-}
-
-static uint32_t FinalizeHash(uint32_t hash, intptr_t hashbits) {
-  hash += hash << 3;
-  hash ^= hash >> 11;  // Logical shift, unsigned hash.
-  hash += hash << 15;
-  // FinalizeHash gets called with values for hashbits that are bigger than 31
-  // (like kBitsPerWord - 1).  Therefore we are careful to use a type
-  // (uintptr_t) big enough to avoid undefined behavior with the left shift.
-  hash &= (static_cast<uintptr_t>(1) << hashbits) - 1;
-  return (hash == 0) ? 1 : hash;
 }
 
 intptr_t TypeArguments::ComputeHash() const {
