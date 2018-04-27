@@ -22,16 +22,16 @@
 * The `build` and `serve` commands will now fail and point users to
   https://webdev.dartlang.org/dart-2
 
+#### dart2js
+
+* `async` functions now start synchronously. This will be the default behavior
+  across all tools. To temporarily opt-out, use the `--no-sync-async` flag.
+
 #### Other Tools
 
 ## 2.0.0-dev.49.0
 
 ### Tool Changes
-
-#### dart2js
-
-* `async` functions now start synchronously. This will be the default behavior
-  across all tools. To temporarily opt-out, use the `--no-sync-async` flag.
 
 #### Pub
 
