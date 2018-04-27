@@ -5,8 +5,11 @@
 [ $compiler != dart2analyzer ]
 switch_case_warn_test: Skip # Analyzer only, see language_analyzer2.status
 
-# VM specific tests that should not be run by dart2js.
 [ $compiler == dart2js ]
+async_await_test: RuntimeError # sync-async is on by default
+asyncstar_throw_in_catch_test: RuntimeError # sync-async is on by default
+await_nonfuture_test: RuntimeError # sync-async is on by default
+await_not_started_immediately_test: RuntimeError # sync-async is on by default
 full_stacktrace1_test: Pass, RuntimeError # Issue 12698
 full_stacktrace2_test: Pass, RuntimeError # Issue 12698
 full_stacktrace3_test: Pass, RuntimeError # Issue 12698

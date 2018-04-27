@@ -17,6 +17,7 @@ Language/Expressions/Function_Invocation/async_cleanup_t06: Skip # https://githu
 Language/Expressions/Function_Invocation/async_cleanup_t08: Skip # https://github.com/dart-lang/sdk/issues/28873
 Language/Expressions/Function_Invocation/async_generator_invokation_t08: Skip # Issue 25967
 Language/Expressions/Function_Invocation/async_generator_invokation_t10: Skip # Issue 25967
+Language/Expressions/Function_Invocation/async_invokation_t02: RuntimeError # sync-async is on by default.
 Language/Expressions/Function_Invocation/async_invokation_t04: RuntimeError, Pass # co19 issue 57
 Language/Expressions/Instance_Creation/New/evaluation_t19: RuntimeError # Please triage this failure
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError # Please triage this failure

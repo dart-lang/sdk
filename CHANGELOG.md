@@ -28,6 +28,11 @@
 
 ### Tool Changes
 
+#### dart2js
+
+* `async` functions now start synchronously. This will be the default behavior
+  across all tools. To temporarily opt-out, use the `--no-sync-async` flag.
+
 #### Pub
 
 * Fix another bug where the version solver could crash when resolving a conflict
