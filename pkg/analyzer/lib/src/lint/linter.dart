@@ -434,15 +434,6 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
           contents: sourceFile.readAsStringSync(), sourcePath: sourceFile.path);
 }
 
-/// [LintRule]s that implement this interface want to handle the whole
-/// unit themselves. Use this mostly for lints that look at some top-level
-/// declarations, or directives. Do not use it to perform full unit visit when
-/// looking only for some types of nodes; for this implement [NodeLintRule]
-/// instead.
-abstract class UnitLintRule {
-  void processUnit(CompilationUnit unit);
-}
-
 class _LintCode extends LintCode {
   static final registry = <String, LintCode>{};
 

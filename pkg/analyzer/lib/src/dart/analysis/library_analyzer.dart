@@ -356,14 +356,11 @@ class LibraryAnalyzer {
     ErrorReporter errorReporter = _getErrorReporter(file);
 
     var nodeRegistry = new NodeLintRegistry(_analysisOptions.enableTiming);
-    var unitLinters = <UnitLintRule>[];
     var visitors = <AstVisitor>[];
     for (Linter linter in _analysisOptions.lintRules) {
       linter.reporter = errorReporter;
       if (linter is NodeLintRule) {
         (linter as NodeLintRule).registerNodeProcessors(nodeRegistry);
-      } else if (linter is UnitLintRule) {
-        unitLinters.add(linter as UnitLintRule);
       } else {
         AstVisitor visitor = linter.getVisitor();
         if (visitor != null) {
@@ -379,21 +376,6 @@ class LibraryAnalyzer {
     // Run lints that handle specific node types.
     unit.accept(new LinterVisitor(
         nodeRegistry, ExceptionHandlingDelegatingAstVisitor.logException));
-
-    // Run lints that process the full unit.
-    for (var linter in unitLinters) {
-      var timer = _analysisOptions.enableTiming
-          ? lintRegistry.getTimer(linter as Linter)
-          : null;
-      timer?.start();
-      try {
-        linter.processUnit(unit);
-      } catch (exception, stackTrace) {
-        ExceptionHandlingDelegatingAstVisitor.logException(
-            unit, linter, exception, stackTrace);
-      }
-      timer?.stop();
-    }
 
     // Run visitor based lints.
     if (visitors.isNotEmpty) {
