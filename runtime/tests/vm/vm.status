@@ -9,12 +9,12 @@ cc/Dart2JSCompilerStats: Fail, Crash # Issue 27369
 cc/Fail0: Fail # These tests are expected to crash on all platforms.
 cc/Fail1: Fail # These tests are expected to crash on all platforms.
 cc/Fail2: Fail # These tests are expected to crash on all platforms.
-cc/IsolateReload_PendingConstructorCall_AbstractToConcrete: SkipSlow # Issue 28198
-cc/IsolateReload_PendingConstructorCall_ConcreteToAbstract: SkipSlow # Issue 28198
-cc/IsolateReload_PendingStaticCall_DefinedToNSM: SkipSlow # Issue 28198
-cc/IsolateReload_PendingStaticCall_NSMToDefined: SkipSlow # Issue 28198
-cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: SkipSlow # Issue 28198
-cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: SkipSlow # Issue 28198
+cc/IsolateReload_PendingConstructorCall_AbstractToConcrete: Fail # Issue 32981
+cc/IsolateReload_PendingConstructorCall_ConcreteToAbstract: Fail # Issue 32981
+cc/IsolateReload_PendingStaticCall_DefinedToNSM: Fail # Issue 32981
+cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail # Issue 32981
+cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: Fail # Issue 32981
+cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail # Issue 32981
 cc/IsolateReload_RunNewFieldInitializersWithGenerics: Fail # Issue 32299
 cc/Profiler_InliningIntervalBoundry: Skip # Differences in ia32, debug, release
 cc/SNPrint_BadArgs: Crash, Fail # These tests are expected to crash on all platforms.
