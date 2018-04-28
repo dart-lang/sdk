@@ -717,6 +717,7 @@ assertion_initializer_const_error2_test/cc08: MissingCompileTimeError # Not repo
 assertion_initializer_const_error2_test/cc09: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc10: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc11: MissingCompileTimeError # Not reporting failed assert() at compile time.
+covariant_subtyping_test: RuntimeError
 redirecting_factory_reflection_test: RuntimeError
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
