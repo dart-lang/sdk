@@ -11,7 +11,11 @@ void main(List<String> args) {
   }
 
   if (!Platform.executable.endsWith("dart_precompiled_runtime")) {
-    return; // Running in JIT or Windows.
+    return; // Running in JIT or Windows: AOT binaries not available.
+  }
+
+  if (Platform.isAndroid) {
+    return; // SDK tree and dart_bootstrap not available on the test device.
   }
 
   var buildDir =
