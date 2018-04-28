@@ -282,7 +282,7 @@ covariance_type_parameter_test/01: Crash # NoSuchMethodError: The method 'hasSub
 covariance_type_parameter_test/02: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 covariance_type_parameter_test/03: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 covariant_override/runtime_check_test: RuntimeError
-covariant_subtyping_test: CompileTimeError
+covariant_subtyping_test: RuntimeError
 cyclic_constructor_test/01: Crash # Stack Overflow
 deferred_constraints_constants_test/default_argument2: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_constants_test/none: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
@@ -1092,7 +1092,7 @@ covariance_type_parameter_test/01: RuntimeError
 covariance_type_parameter_test/02: RuntimeError
 covariance_type_parameter_test/03: RuntimeError
 covariant_override/tear_off_type_test: RuntimeError
-covariant_subtyping_test: CompileTimeError
+covariant_subtyping_test: RuntimeError
 cyclic_constructor_test/01: Crash # Issue 30856
 cyclic_type_test/00: RuntimeError
 cyclic_type_test/02: RuntimeError
@@ -1713,7 +1713,7 @@ covariance_type_parameter_test/01: RuntimeError
 covariance_type_parameter_test/02: RuntimeError
 covariance_type_parameter_test/03: RuntimeError
 covariant_override/tear_off_type_test: RuntimeError
-covariant_subtyping_test: CompileTimeError
+covariant_subtyping_test: RuntimeError
 cyclic_constructor_test/01: Crash # Issue 30856
 cyclic_type_variable_test/01: MissingCompileTimeError
 cyclic_type_variable_test/02: MissingCompileTimeError
@@ -2189,6 +2189,7 @@ wrong_number_type_arguments_test/none: Pass
 
 [ $compiler == dart2js && $fasta && $strong ]
 const_constructor3_test/04: MissingCompileTimeError # OK - Subtype check uses JS number semantics.
+covariant_subtyping_test: Crash
 ct_const_test: RuntimeError
 
 [ $compiler == dart2js && $fasta && !$strong ]

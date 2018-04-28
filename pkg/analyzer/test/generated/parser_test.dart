@@ -13923,6 +13923,23 @@ class C {}
     expect(creation.argumentList, isNotNull);
   }
 
+  void test_parseInstanceCreation_noKeyword_varInit() {
+    enableOptionalNewAndConst = true;
+    createParser('''
+class C<T, S> {}
+void main() {final c = C<int, int Function(String)>();}
+''');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expect(unit, isNotNull);
+    FunctionDeclaration f = unit.declarations[1];
+    BlockFunctionBody body = f.functionExpression.body;
+    VariableDeclarationStatement statement = body.block.statements[0];
+    VariableDeclaration variable = statement.variables.variables[0];
+    MethodInvocation creation = variable.initializer;
+    expect(creation.methodName.name, 'C');
+    expect(creation.typeArguments.toSource(), '<int, int Function(String)>');
+  }
+
   void test_parseLibraryIdentifier_invalid() {
     parseCompilationUnit('library <myLibId>;',
         errors: usingFastaParser
