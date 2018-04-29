@@ -431,7 +431,11 @@ uword CompactorTask::SlideBlock(uword first_object,
     if (old_obj->IsMarked()) {
       uword new_addr = forwarding_block->Lookup(old_addr);
       if (new_addr != free_current_) {
-        ASSERT(HeapPage::Of(free_current_) != HeapPage::Of(new_addr));
+        // The only situation where these two don't match is if we are moving
+        // to a new page.  But if we exactly hit the end of the previous page
+        // then free_current could be at the start of the next page, so we
+        // subtract 1.
+        ASSERT(HeapPage::Of(free_current_ - 1) != HeapPage::Of(new_addr));
         intptr_t free_remaining = free_end_ - free_current_;
         // Add any leftover at the end of a page to the free list.
         if (free_remaining > 0) {
