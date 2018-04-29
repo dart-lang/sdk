@@ -13,6 +13,7 @@
 [ $compiler == dartkp ]
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
+covariant_subtyping_test: RuntimeError
 duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
