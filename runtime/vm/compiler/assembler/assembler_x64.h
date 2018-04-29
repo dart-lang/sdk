@@ -977,6 +977,24 @@ class Assembler : public ValueObject {
   static bool IsSafe(const Object& object) { return true; }
   static bool IsSafeSmi(const Object& object) { return object.IsSmi(); }
 
+  void AssertValidUint32(Register r) {
+    Label ok;
+    movl(TMP, r);
+    cmpq(TMP, r);
+    j(EQUAL, &ok);
+    Stop("uint32 should be zero extended");
+    Bind(&ok);
+  }
+
+  void AssertValidSignExtendedInt32(Register r) {
+    Label ok;
+    movsxd(TMP, r);
+    cmpq(TMP, r);
+    j(EQUAL, &ok);
+    Stop("int32 should be sign extended");
+    Bind(&ok);
+  }
+
  private:
   AssemblerBuffer buffer_;
 

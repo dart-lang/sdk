@@ -1643,10 +1643,14 @@ static void UnboxPhi(PhiInstr* phi) {
     }
 
     if (should_unbox) {
+#if defined(AVOID_UNBOXED_INT32)
+      unboxed = kUnboxedInt64;
+#else
       unboxed =
           RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt32)
               ? kUnboxedInt32
               : kUnboxedInt64;
+#endif
     }
   }
 

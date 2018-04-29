@@ -245,6 +245,13 @@ typedef simd128_value_t fpu_register_t;
 #error Architecture was not detected as supported by Dart.
 #endif
 
+#ifdef ARCH_IS_64_BIT
+// On 64 bit architectures the optimizing compilare should prefer unboxed int64
+// and unboxed uint32 values, which have direct support in the instruction set.
+// We avoid the unboxed signed int32 type.
+#define AVOID_UNBOXED_INT32 1
+#endif
+
 // DART_FORCE_INLINE strongly hints to the compiler that a function should
 // be inlined. Your function is not guaranteed to be inlined but this is
 // stronger than just using "inline".
