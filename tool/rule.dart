@@ -93,6 +93,7 @@ void updateRuleRegistry(String ruleName) {
   print('  pub run test -N $ruleName');
 }
 
+/// TODO(scheglov) Update to implement NodeLintRule, _Visitor, etc.
 String _generateClass(String ruleName, String className) => """
 // Copyright (c) $_thisYear, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
