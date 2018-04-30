@@ -4,17 +4,17 @@
 
 main() {
   // This call is no longer on the stack when the error is thrown.
-  /*:main*/ test();
+  /*1:main*/ test();
 }
 
-test() async {
+test /*ddk.2:test*/ () /*ddc.2:test*/ async {
   // ignore: UNUSED_LOCAL_VARIABLE
-  var c = new /*1:test*/ Class();
+  var c = new /*3:test*/ Class();
 }
 
 class Class {
   Class() {
     // Some comment
-    /*2:Class.new*/ throw '>ExceptionMarker<';
+    /*4:Class.new*/ throw '>ExceptionMarker<';
   }
 }

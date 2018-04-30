@@ -23,6 +23,12 @@
   * Force splitting an empty block as the then body of an if with an else.
   * Uses the new lowercase Dart 2 constant names.
 
+#### Dart Dev Compiler
+
+* `async` functions now start synchronously by default.  Build tools
+  (e.g., build_runner) may override the default and/or allow
+  developers to configure.
+
 #### Pub
 
 * The `build` and `serve` commands will now fail and point users to

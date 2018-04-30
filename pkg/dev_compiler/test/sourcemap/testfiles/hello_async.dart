@@ -5,10 +5,10 @@
 main() {
   /*bl*/
   /*s:1*/ foo();
-/*nbb:0:3*/ /*s:3*/
+  /*s:4*/
 }
 
-foo() async {
-  /*nbb:0:4*/ /*bc:4*/ print("hello from foo");
-/*s:2*/
+foo() /*sl:2*/ async {
+  print("hello from foo");
+/*s:3*/
 }
