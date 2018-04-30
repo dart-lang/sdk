@@ -5,7 +5,6 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
@@ -84,32 +83,48 @@ class PreferFinalFields extends LintRule implements NodeLintRule {
   }
 }
 
+class _MutatedFieldsCollector extends RecursiveAstVisitor<void> {
+  final Set<FieldElement> _mutatedFields;
+
+  _MutatedFieldsCollector(this._mutatedFields);
+
+  @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    _addMutatedFieldElement(node.leftHandSide);
+    super.visitAssignmentExpression(node);
+  }
+
+  @override
+  void visitPostfixExpression(PostfixExpression node) {
+    _addMutatedFieldElement(node.operand);
+    super.visitPostfixExpression(node);
+  }
+
+  @override
+  void visitPrefixExpression(PrefixExpression node) {
+    _addMutatedFieldElement(node.operand);
+    super.visitPrefixExpression(node);
+  }
+
+  void _addMutatedFieldElement(Expression expression) {
+    final element =
+        DartTypeUtilities.getCanonicalElementFromIdentifier(expression);
+    if (element is FieldElement) {
+      _mutatedFields.add(element);
+    }
+  }
+}
+
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final Set<Element> _mutatedElements = new HashSet<Element>();
+  final Set<FieldElement> _mutatedFields = new HashSet<FieldElement>();
 
   _Visitor(this.rule);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    void recurse(node) {
-      if (node is AstNode) {
-        if (node is AssignmentExpression) {
-          _mutatedElements.add(DartTypeUtilities
-              .getCanonicalElementFromIdentifier(node.leftHandSide));
-        } else if (node is PrefixExpression) {
-          _mutatedElements.add(DartTypeUtilities
-              .getCanonicalElementFromIdentifier(node.operand));
-        } else if (node is PostfixExpression) {
-          _mutatedElements.add(DartTypeUtilities
-              .getCanonicalElementFromIdentifier(node.operand));
-        }
-        node.childEntities.forEach(recurse);
-      }
-    }
-
-    recurse(node);
+    node.accept(new _MutatedFieldsCollector(_mutatedFields));
   }
 
   @override
@@ -119,26 +134,24 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    fields.variables.forEach((VariableDeclaration variable) {
-      if (variable == null ||
-          !resolutionMap
-              .elementDeclaredByVariableDeclaration(variable)
-              .isPrivate) {
-        return;
+    var variables = fields.variables;
+    for (int i = 0; i < variables.length; i++) {
+      final variable = variables[i];
+      final element = variable.element;
+
+      if (!element.isPrivate) {
+        continue;
       }
 
       if (variable.initializer == null) {
-        return;
+        continue;
       }
 
-      if (_isMutated(variable)) {
-        return;
+      if (_mutatedFields.contains(element)) {
+        continue;
       }
 
       rule.reportLint(variable);
-    });
+    }
   }
-
-  bool _isMutated(VariableDeclaration variable) =>
-      _mutatedElements.contains(variable.element);
 }
