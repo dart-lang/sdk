@@ -62,7 +62,6 @@ async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
 async_return_types_test/nestedFuture: MissingCompileTimeError
-async_return_types_test/tooManyTypeParameters: MissingCompileTimeError
 async_return_types_test/wrongReturnType: MissingCompileTimeError
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
@@ -161,11 +160,8 @@ mixin_super_bound_test/01: MissingCompileTimeError
 mixin_super_bound_test/02: MissingCompileTimeError
 mixin_super_constructor_named_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
 mixin_super_constructor_positionals_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
-mixin_type_parameters_errors_test/01: MissingCompileTimeError
-mixin_type_parameters_errors_test/02: MissingCompileTimeError
 mixin_type_parameters_errors_test/03: MissingCompileTimeError
 mixin_type_parameters_errors_test/04: MissingCompileTimeError
-mixin_type_parameters_errors_test/05: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError # Fasta bug: Default values are not allowed on redirecting factory constructors.
 override_field_test/02: MissingCompileTimeError
@@ -1362,6 +1358,7 @@ async_congruence_local_test/02: MissingCompileTimeError
 async_congruence_method_test/01: MissingCompileTimeError
 async_congruence_unnamed_test/01: MissingCompileTimeError
 async_congruence_unnamed_test/02: MissingCompileTimeError
+async_return_types_test/tooManyTypeParameters: MissingCompileTimeError
 async_return_types_test/wrongTypeParameter: MissingCompileTimeError
 bad_named_parameters2_test/01: MissingCompileTimeError
 bad_named_parameters_test/01: MissingCompileTimeError
@@ -1835,6 +1832,9 @@ mixin_type_parameter_inference_test/07: MissingCompileTimeError
 mixin_type_parameter_inference_test/11: MissingCompileTimeError
 mixin_type_parameter_inference_test/14: MissingCompileTimeError
 mixin_type_parameter_inference_test/15: MissingCompileTimeError
+mixin_type_parameters_errors_test/01: MissingCompileTimeError
+mixin_type_parameters_errors_test/02: MissingCompileTimeError
+mixin_type_parameters_errors_test/05: MissingCompileTimeError
 mixin_with_two_implicit_constructors_test: MissingCompileTimeError
 multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/04r: MissingCompileTimeError

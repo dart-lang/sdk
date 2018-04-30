@@ -4,6 +4,8 @@
 
 library fasta.named_type_builder;
 
+import '../fasta_codes.dart' show Message;
+
 import 'builder.dart'
     show
         Builder,
@@ -23,7 +25,8 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
 
   NamedTypeBuilder(this.name, this.arguments);
 
-  InvalidTypeBuilder<T, R> buildInvalidType(int charOffset, Uri fileUri);
+  InvalidTypeBuilder<T, R> buildInvalidType(int charOffset, Uri fileUri,
+      [Message message]);
 
   @override
   void bind(TypeDeclarationBuilder builder) {

@@ -98,6 +98,9 @@ class KernelFunctionTypeAliasBuilder
   }
 
   @override
+  int get typeVariablesCount => typeVariables?.length ?? 0;
+
+  @override
   DartType buildType(
       LibraryBuilder library, List<KernelTypeBuilder> arguments) {
     arguments ??= calculatedBounds;

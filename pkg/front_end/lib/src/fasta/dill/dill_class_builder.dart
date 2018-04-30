@@ -60,6 +60,9 @@ class DillClassBuilder extends KernelClassBuilder {
     }
   }
 
+  @override
+  int get typeVariablesCount => cls.typeParameters.length;
+
   List<TypeBuilder> get calculatedBounds {
     if (super.calculatedBounds != null) {
       return super.calculatedBounds;

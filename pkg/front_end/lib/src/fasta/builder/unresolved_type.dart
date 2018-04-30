@@ -4,7 +4,16 @@
 
 library fasta.unresolved_type;
 
-import 'builder.dart' show Scope, TypeBuilder;
+import '../fasta_codes.dart' show templateTypeArgumentMismatch;
+
+import 'builder.dart'
+    show
+        ClassBuilder,
+        FunctionTypeAliasBuilder,
+        NamedTypeBuilder,
+        Scope,
+        TypeBuilder,
+        TypeDeclarationBuilder;
 
 /// A wrapper around a type that is yet to be resolved.
 class UnresolvedType<T extends TypeBuilder> {
@@ -15,4 +24,31 @@ class UnresolvedType<T extends TypeBuilder> {
   UnresolvedType(this.builder, this.charOffset, this.fileUri);
 
   void resolveIn(Scope scope) => builder.resolveIn(scope, charOffset, fileUri);
+
+  /// Performs checks on the type after it's resolved.
+  void checkType() {
+    if (builder is NamedTypeBuilder) {
+      NamedTypeBuilder resolvedType = builder as NamedTypeBuilder;
+      TypeDeclarationBuilder declaration = resolvedType.builder;
+      if (declaration is ClassBuilder) {
+        if (resolvedType.arguments != null &&
+            resolvedType.arguments.length != declaration.typeVariablesCount) {
+          resolvedType.builder = resolvedType.buildInvalidType(
+              charOffset,
+              fileUri,
+              templateTypeArgumentMismatch.withArguments(
+                  resolvedType.name, "${declaration.typeVariablesCount}"));
+        }
+      } else if (declaration is FunctionTypeAliasBuilder) {
+        if (resolvedType.arguments != null &&
+            resolvedType.arguments.length != declaration.typeVariablesCount) {
+          resolvedType.builder = resolvedType.buildInvalidType(
+              charOffset,
+              fileUri,
+              templateTypeArgumentMismatch.withArguments(
+                  resolvedType.name, "${declaration.typeVariablesCount}"));
+        }
+      }
+    }
+  }
 }

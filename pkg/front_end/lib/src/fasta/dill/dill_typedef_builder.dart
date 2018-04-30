@@ -33,6 +33,9 @@ class DillFunctionTypeAliasBuilder extends KernelFunctionTypeAliasBuilder {
     return unimplemented("metadata", -1, null);
   }
 
+  @override
+  int get typeVariablesCount => target.typeParameters.length;
+
   List<TypeBuilder> get calculatedBounds {
     if (super.calculatedBounds != null) {
       return super.calculatedBounds;

@@ -28,4 +28,6 @@ abstract class FunctionTypeAliasBuilder<T extends TypeBuilder, R>
   String get debugName => "FunctionTypeAliasBuilder";
 
   LibraryBuilder get parent => super.parent;
+
+  int get typeVariablesCount;
 }

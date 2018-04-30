@@ -687,6 +687,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     int typeCount = types.length;
     for (UnresolvedType<T> t in types) {
       t.resolveIn(scope);
+      if (loader.target.strongMode) {
+        t.checkType();
+      }
     }
     types.clear();
     return typeCount;

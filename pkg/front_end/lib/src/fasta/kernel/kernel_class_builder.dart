@@ -122,6 +122,9 @@ abstract class KernelClassBuilder
     return arguments == null ? cls.rawType : new InterfaceType(cls, arguments);
   }
 
+  @override
+  int get typeVariablesCount => typeVariables?.length ?? 0;
+
   List<DartType> buildTypeArguments(
       LibraryBuilder library, List<KernelTypeBuilder> arguments) {
     List<DartType> typeArguments = <DartType>[];
