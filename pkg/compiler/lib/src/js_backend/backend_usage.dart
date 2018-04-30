@@ -179,8 +179,7 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
     if (element is ConstructorEntity &&
         (element == _commonElements.streamIteratorConstructor ||
             _commonElements.isSymbolConstructor(element) ||
-            _commonElements.isSymbolValidatedConstructor(element) ||
-            element == _commonElements.syncCompleterConstructor)) {
+            _commonElements.isSymbolValidatedConstructor(element))) {
       // TODO(johnniwinther): These are valid but we could be more precise.
       return true;
     } else if (element == _commonElements.symbolImplementationClass ||

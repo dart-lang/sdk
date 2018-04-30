@@ -1369,6 +1369,27 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
   ClassDefinition getClassDefinition(ClassEntity cls) {
     return _getClassDefinition(cls);
   }
+
+  /// Returns the element type of a async/sync*/async* function.
+  @override
+  DartType getFunctionAsyncOrSyncStarElementType(ir.FunctionNode functionNode) {
+    DartType returnType = getFunctionType(functionNode).returnType;
+    switch (functionNode.asyncMarker) {
+      case ir.AsyncMarker.SyncStar:
+        return elementEnvironment.getAsyncOrSyncStarElementType(
+            AsyncMarker.SYNC_STAR, returnType);
+      case ir.AsyncMarker.Async:
+        return elementEnvironment.getAsyncOrSyncStarElementType(
+            AsyncMarker.ASYNC, returnType);
+      case ir.AsyncMarker.AsyncStar:
+        return elementEnvironment.getAsyncOrSyncStarElementType(
+            AsyncMarker.ASYNC_STAR, returnType);
+      default:
+        failedAt(CURRENT_ELEMENT_SPANNABLE,
+            "Unexpected ir.AsyncMarker: ${functionNode.asyncMarker}");
+    }
+    return null;
+  }
 }
 
 class KernelElementEnvironment extends ElementEnvironment {
@@ -1451,7 +1472,13 @@ class KernelElementEnvironment extends ElementEnvironment {
   @override
   DartType getFunctionAsyncOrSyncStarElementType(FunctionEntity function) {
     DartType returnType = getFunctionType(function).returnType;
-    switch (function.asyncMarker) {
+    return getAsyncOrSyncStarElementType(function.asyncMarker, returnType);
+  }
+
+  @override
+  DartType getAsyncOrSyncStarElementType(
+      AsyncMarker asyncMarker, DartType returnType) {
+    switch (asyncMarker) {
       case AsyncMarker.SYNC:
         return returnType;
       case AsyncMarker.SYNC_STAR:
@@ -1477,7 +1504,7 @@ class KernelElementEnvironment extends ElementEnvironment {
         }
         return dynamicType;
     }
-    assert(false, 'Unexpected marker ${function.asyncMarker}');
+    assert(false, 'Unexpected marker ${asyncMarker}');
     return null;
   }
 

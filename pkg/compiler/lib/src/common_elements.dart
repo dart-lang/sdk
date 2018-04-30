@@ -576,26 +576,26 @@ class CommonElements {
   ClassEntity get controllerStream =>
       _findAsyncHelperClass("_ControllerStream");
 
-  ConstructorEntity get syncStarIterableConstructor =>
-      _env.lookupConstructor(syncStarIterable, "");
-
-  ConstructorEntity get syncCompleterConstructor =>
-      _env.lookupConstructor(_findAsyncHelperClass("Completer"), "sync");
-
-  ConstructorEntity get asyncAwaitCompleterConstructor =>
-      _env.lookupConstructor(asyncAwaitCompleter, "");
-
-  ClassEntity get asyncAwaitCompleter =>
-      _findAsyncHelperClass("_AsyncAwaitCompleter");
-
-  ClassEntity get asyncStarController =>
-      _findAsyncHelperClass("_AsyncStarStreamController");
-
-  ConstructorEntity get asyncStarControllerConstructor =>
-      _env.lookupConstructor(asyncStarController, "", required: true);
-
   ConstructorEntity get streamIteratorConstructor =>
       _env.lookupConstructor(_findAsyncHelperClass("StreamIterator"), "");
+
+  FunctionEntity _syncStarIterableFactory;
+  FunctionEntity get syncStarIterableFactory => _syncStarIterableFactory ??=
+      _findAsyncHelperFunction('_makeSyncStarIterable');
+
+  FunctionEntity _asyncAwaitCompleterFactory;
+  FunctionEntity get asyncAwaitCompleterFactory =>
+      _asyncAwaitCompleterFactory ??=
+          _findAsyncHelperFunction('_makeAsyncAwaitCompleter');
+
+  FunctionEntity _syncCompleterFactory;
+  FunctionEntity get syncCompleterFactory =>
+      _syncCompleterFactory ??= _findAsyncHelperFunction('_makeSyncCompleter');
+
+  FunctionEntity _asyncStarStreamControllerFactory;
+  FunctionEntity get asyncStarStreamControllerFactory =>
+      _asyncStarStreamControllerFactory ??=
+          _findAsyncHelperFunction('_makeAsyncStarStreamController');
 
   // From dart:mirrors
   FunctionEntity _findMirrorsFunction(String name) {
@@ -1492,10 +1492,15 @@ abstract class ElementEnvironment {
   /// Returns the function type variables defined on [function].
   List<TypeVariableType> getFunctionTypeVariables(FunctionEntity function);
 
-  /// Returns the 'element' type of a function with an async, async* ot sync*
+  /// Returns the 'element' type of a function with an async, async* or sync*
   /// marker. The return type of the method is inspected to determine the type
   /// parameter of the Future, Stream or Iterable.
   DartType getFunctionAsyncOrSyncStarElementType(FunctionEntity function);
+
+  /// Returns the 'element' type of a function with the async, async* or sync*
+  /// marker [marker]. [returnType] is the return type marked function.
+  DartType getAsyncOrSyncStarElementType(
+      AsyncMarker marker, DartType returnType);
 
   /// Returns the type of [field].
   DartType getFieldType(FieldEntity field);

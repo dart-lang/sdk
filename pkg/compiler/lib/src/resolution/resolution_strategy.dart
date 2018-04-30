@@ -742,6 +742,11 @@ class _CompilerElementEnvironment extends ElementEnvironment {
   }
 
   @override
+  DartType getAsyncOrSyncStarElementType(AsyncMarker marker, DartType type) {
+    return dynamicType;
+  }
+
+  @override
   DartType getFieldType(covariant FieldElement field) {
     field.computeType(_resolution);
     return field.type;

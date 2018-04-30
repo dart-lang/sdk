@@ -189,6 +189,9 @@ abstract class KernelToElementMapForImpact extends KernelToElementMap {
   /// Returns the static type of [node].
   // TODO(johnniwinther): This should be provided directly from kernel.
   DartType getStaticType(ir.Expression node);
+
+  /// Returns the element type of a async/sync*/async* function.
+  DartType getFunctionAsyncOrSyncStarElementType(ir.FunctionNode functionNode);
 }
 
 /// Interface that translates between Kernel IR nodes and entities used for
