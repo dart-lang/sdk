@@ -10,6 +10,15 @@
 
 ### Dart VM
 
+#### Dart Dev Compiler
+
+* Failed `as` casts on `Iterable<T>`, `Map<T>`, `Future<T>`, and `Stream<T>`
+  are no longer ignored. These failures were ignored to make it easier to
+  migrate Dart 1 code to strong mode, but ignoring them is a hole in the type
+  system. This closes part of that hole. (We still need to stop ignoring
+  "as" cast failures on function types, and implicit cast failures on the above
+  types and function types.)
+
 ### Tool Changes
 
 #### Pub
