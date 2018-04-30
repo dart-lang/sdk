@@ -12,6 +12,12 @@
 
 ### Tool Changes
 
+#### Pub
+
+#### Other Tools
+
+## 2.0.0-dev.51.0
+
 * `dartfmt`
   * Fixes a runtime error when dart_style is itself run in Dart 2.
   * Force splitting an empty block as the then body of an if with an else.
@@ -27,7 +33,7 @@
 * `async` functions now start synchronously. This will be the default behavior
   across all tools. To temporarily opt-out, use the `--no-sync-async` flag.
 
-#### Other Tools
+## 2.0.0-dev.50.0
 
 ## 2.0.0-dev.49.0
 
