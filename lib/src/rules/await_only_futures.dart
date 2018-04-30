@@ -4,7 +4,6 @@
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
@@ -31,29 +30,28 @@ main() async {
 
 ''';
 
-class AwaitOnlyFutures extends LintRule {
-  _Visitor _visitor;
-
+class AwaitOnlyFutures extends LintRule implements NodeLintRule {
   AwaitOnlyFutures()
       : super(
             name: 'await_only_futures',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addAwaitExpression(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);
 
   @override
-  visitAwaitExpression(AwaitExpression node) {
+  void visitAwaitExpression(AwaitExpression node) {
     final DartType type = node.expression.bestType;
     if (!(type.isDartAsyncFuture ||
         type.isDynamic ||

@@ -70,27 +70,29 @@ bool _isParameterWithQuestionQuestion(
     node.operator.type == TokenType.QUESTION_QUESTION &&
     _isParameter(node.leftOperand, parameter);
 
-class AvoidNullChecksInEqualityOperators extends LintRule {
-  _Visitor _visitor;
+class AvoidNullChecksInEqualityOperators extends LintRule
+    implements NodeLintRule {
   AvoidNullChecksInEqualityOperators()
       : super(
             name: 'avoid_null_checks_in_equality_operators',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addMethodDeclaration(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
   _Visitor(this.rule);
 
   @override
-  visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     final parameters = node.parameters?.parameters;
     if (node.name.token?.type == TokenType.EQ_EQ && parameters?.length == 1) {
       final parameter = DartTypeUtilities

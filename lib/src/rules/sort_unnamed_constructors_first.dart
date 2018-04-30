@@ -32,7 +32,7 @@ class _PriorityItem {
 
 ''';
 
-class SortUnnamedConstructorsFirst extends LintRule {
+class SortUnnamedConstructorsFirst extends LintRule implements NodeLintRule {
   SortUnnamedConstructorsFirst()
       : super(
             name: 'sort_unnamed_constructors_first',
@@ -41,17 +41,21 @@ class SortUnnamedConstructorsFirst extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addClassDeclaration(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  Visitor(this.rule);
+
+  _Visitor(this.rule);
 
   @override
-  visitClassDeclaration(ClassDeclaration decl) {
+  void visitClassDeclaration(ClassDeclaration node) {
     // Sort members by offset.
-    List<ClassMember> members = decl.members.toList()
+    List<ClassMember> members = node.members.toList()
       ..sort((ClassMember m1, ClassMember m2) => m1.offset - m2.offset);
 
     bool seenConstructor = false;

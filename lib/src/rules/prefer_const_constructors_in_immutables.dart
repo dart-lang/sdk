@@ -4,7 +4,6 @@
 
 library linter.src.rules.prefer_const_constructors_in_immutables;
 
-import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -42,18 +41,19 @@ class A {
 
 ''';
 
-/// The name of `meta` library, used to define analysis annotations.
-String _META_LIB_NAME = 'meta';
-
 /// The name of the top-level variable used to mark a immutable class.
 String _IMMUTABLE_VAR_NAME = 'immutable';
+
+/// The name of `meta` library, used to define analysis annotations.
+String _META_LIB_NAME = 'meta';
 
 bool _isImmutable(Element element) =>
     element is PropertyAccessorElement &&
     element.name == _IMMUTABLE_VAR_NAME &&
     element.library?.name == _META_LIB_NAME;
 
-class PreferConstConstructorsInImmutables extends LintRule {
+class PreferConstConstructorsInImmutables extends LintRule
+    implements NodeLintRule {
   PreferConstConstructorsInImmutables()
       : super(
             name: 'prefer_const_constructors_in_immutables',
@@ -62,16 +62,19 @@ class PreferConstConstructorsInImmutables extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addConstructorDeclaration(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  Visitor(this.rule);
+  _Visitor(this.rule);
 
   @override
-  visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
     final isRedirected =
         node.element.isFactory && node.element.redirectedConstructor != null;
     if (node.body is EmptyFunctionBody &&
@@ -86,15 +89,12 @@ class Visitor extends SimpleAstVisitor {
     }
   }
 
-  bool _hasMixin(ClassElement clazz) => clazz.mixins.isNotEmpty;
-
-  bool _hasImmutableAnnotation(ClassElement clazz) {
-    final inheritedAndSelfTypes = _getSelfAndInheritedTypes(clazz.type);
-    final inheritedAndSelfAnnotations = inheritedAndSelfTypes
-        .map((type) => type.element)
-        .expand((c) => c.metadata)
-        .map((m) => m.element);
-    return inheritedAndSelfAnnotations.any(_isImmutable);
+  Iterable<InterfaceType> _getSelfAndInheritedTypes(InterfaceType type) sync* {
+    InterfaceType current = type;
+    while (current != null) {
+      yield current;
+      current = current.superclass;
+    }
   }
 
   bool _hasConstConstructorInvocation(ConstructorDeclaration node) {
@@ -116,6 +116,17 @@ class Visitor extends SimpleAstVisitor {
         .isConst;
   }
 
+  bool _hasImmutableAnnotation(ClassElement clazz) {
+    final inheritedAndSelfTypes = _getSelfAndInheritedTypes(clazz.type);
+    final inheritedAndSelfAnnotations = inheritedAndSelfTypes
+        .map((type) => type.element)
+        .expand((c) => c.metadata)
+        .map((m) => m.element);
+    return inheritedAndSelfAnnotations.any(_isImmutable);
+  }
+
+  bool _hasMixin(ClassElement clazz) => clazz.mixins.isNotEmpty;
+
   bool _hasOnlyConstExpressionsInIntializerList(ConstructorDeclaration node) {
     bool hasConstError;
 
@@ -129,13 +140,5 @@ class Visitor extends SimpleAstVisitor {
     }
 
     return !hasConstError;
-  }
-
-  Iterable<InterfaceType> _getSelfAndInheritedTypes(InterfaceType type) sync* {
-    InterfaceType current = type;
-    while (current != null) {
-      yield current;
-      current = current.superclass;
-    }
   }
 }

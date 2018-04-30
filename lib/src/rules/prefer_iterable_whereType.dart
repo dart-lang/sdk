@@ -25,7 +25,7 @@ iterable.whereType<MyClass>()
 
 ''';
 
-class PreferIterableWhereType extends LintRule {
+class PreferIterableWhereType extends LintRule implements NodeLintRule {
   PreferIterableWhereType()
       : super(
             name: 'prefer_iterable_whereType',
@@ -34,16 +34,19 @@ class PreferIterableWhereType extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addMethodInvocation(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
-  Visitor(this.rule);
-
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
+  _Visitor(this.rule);
+
   @override
-  visitMethodInvocation(MethodInvocation node) {
+  void visitMethodInvocation(MethodInvocation node) {
     if (node.methodName.name != 'where') return;
     if (!DartTypeUtilities.implementsInterface(
         node.target.bestType, 'Iterable', 'dart.core')) {

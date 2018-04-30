@@ -30,7 +30,7 @@ abstract class Visitor {
 
 ''';
 
-class SortConstructorsFirst extends LintRule {
+class SortConstructorsFirst extends LintRule implements NodeLintRule {
   SortConstructorsFirst()
       : super(
             name: 'sort_constructors_first',
@@ -39,17 +39,21 @@ class SortConstructorsFirst extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addClassDeclaration(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  Visitor(this.rule);
+
+  _Visitor(this.rule);
 
   @override
-  visitClassDeclaration(ClassDeclaration decl) {
+  void visitClassDeclaration(ClassDeclaration node) {
     // Sort members by offset.
-    List<ClassMember> members = decl.members.toList()
+    List<ClassMember> members = node.members.toList()
       ..sort((ClassMember m1, ClassMember m2) => m1.offset - m2.offset);
 
     bool seenMethod = false;

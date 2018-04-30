@@ -35,7 +35,8 @@ class A {
 
 ''';
 
-class AvoidFieldInitializersInConstClasses extends LintRule {
+class AvoidFieldInitializersInConstClasses extends LintRule
+    implements NodeLintRule {
   AvoidFieldInitializersInConstClasses()
       : super(
             name: 'avoid_field_initializers_in_const_classes',
@@ -44,36 +45,37 @@ class AvoidFieldInitializersInConstClasses extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addFieldDeclaration(this, visitor);
+    registry.addConstructorFieldInitializer(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
-  Visitor(this.rule);
+class HasParameterReferenceVisitor extends RecursiveAstVisitor {
+  Iterable<ParameterElement> parameters;
 
-  final LintRule rule;
+  bool useParameter = false;
+
+  HasParameterReferenceVisitor(this.parameters);
 
   @override
-  visitFieldDeclaration(FieldDeclaration node) {
-    if (node.isStatic) return;
-    if (!node.fields.isFinal) return;
-    // only const class
-    if (node
-        .getAncestor<ClassDeclaration>((e) => e is ClassDeclaration)
-        .element
-        .constructors
-        .every((e) => !e.isConst)) {
-      return;
-    }
-
-    for (final variable in node.fields.variables) {
-      if (variable.initializer != null) {
-        rule.reportLint(variable);
-      }
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    if (parameters.contains(node.bestElement)) {
+      useParameter = true;
+    } else {
+      super.visitSimpleIdentifier(node);
     }
   }
+}
+
+class _Visitor extends SimpleAstVisitor<void> {
+  final LintRule rule;
+
+  _Visitor(this.rule);
 
   @override
-  visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+  void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     final ConstructorDeclaration constructor = node.parent;
     if (constructor.constKeyword == null) return;
     // no lint if several constructors
@@ -91,21 +93,24 @@ class Visitor extends SimpleAstVisitor {
       rule.reportLint(node);
     }
   }
-}
-
-class HasParameterReferenceVisitor extends RecursiveAstVisitor {
-  HasParameterReferenceVisitor(this.parameters);
-
-  Iterable<ParameterElement> parameters;
-
-  bool useParameter = false;
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
-    if (parameters.contains(node.bestElement)) {
-      useParameter = true;
-    } else {
-      super.visitSimpleIdentifier(node);
+  void visitFieldDeclaration(FieldDeclaration node) {
+    if (node.isStatic) return;
+    if (!node.fields.isFinal) return;
+    // only const class
+    if (node
+        .getAncestor<ClassDeclaration>((e) => e is ClassDeclaration)
+        .element
+        .constructors
+        .every((e) => !e.isConst)) {
+      return;
+    }
+
+    for (final variable in node.fields.variables) {
+      if (variable.initializer != null) {
+        rule.reportLint(variable);
+      }
     }
   }
 }

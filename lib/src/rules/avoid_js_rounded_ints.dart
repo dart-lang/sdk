@@ -32,7 +32,7 @@ BigInt value = BigInt.parse('9007199254740995');
 
 ''';
 
-class AvoidJsRoundedInts extends LintRule {
+class AvoidJsRoundedInts extends LintRule implements NodeLintRule {
   AvoidJsRoundedInts()
       : super(
             name: 'avoid_js_rounded_ints',
@@ -41,20 +41,22 @@ class AvoidJsRoundedInts extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addIntegerLiteral(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
-  Visitor(this.rule);
-
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
+  _Visitor(this.rule);
+
+  bool isRounded(int value) => value?.toDouble()?.toInt() != value;
   @override
-  visitIntegerLiteral(IntegerLiteral node) {
+  void visitIntegerLiteral(IntegerLiteral node) {
     if (isRounded(node.value)) {
       rule.reportLint(node);
     }
   }
-
-  bool isRounded(int value) => value?.toDouble()?.toInt() != value;
 }

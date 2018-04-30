@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart'
-    show AstVisitor, FunctionDeclaration, FunctionTypeAlias, MethodDeclaration;
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
@@ -45,7 +44,7 @@ typedef bool predicate(Object o);
 
 ''';
 
-class AlwaysDeclareReturnTypes extends LintRule {
+class AlwaysDeclareReturnTypes extends LintRule implements NodeLintRule {
   AlwaysDeclareReturnTypes()
       : super(
             name: 'always_declare_return_types',
@@ -54,29 +53,35 @@ class AlwaysDeclareReturnTypes extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addFunctionDeclaration(this, visitor);
+    registry.addFunctionTypeAlias(this, visitor);
+    registry.addMethodDeclaration(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  Visitor(this.rule);
+
+  _Visitor(this.rule);
 
   @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     if (!node.isSetter && node.returnType == null) {
       rule.reportLint(node.name);
     }
   }
 
   @override
-  visitFunctionTypeAlias(FunctionTypeAlias node) {
+  void visitFunctionTypeAlias(FunctionTypeAlias node) {
     if (node.returnType == null) {
       rule.reportLint(node.name);
     }
   }
 
   @override
-  visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     if (!node.isSetter &&
         node.returnType == null &&
         node.name.token.type != TokenType.INDEX_EQ) {

@@ -4,7 +4,6 @@
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
@@ -39,28 +38,32 @@ new Button(ButtonState.enabled);
 bool _hasInheritedMethod(MethodDeclaration node) =>
     DartTypeUtilities.lookUpInheritedMethod(node) != null;
 
-class AvoidPositionalBooleanParameters extends LintRule {
-  _Visitor _visitor;
+class AvoidPositionalBooleanParameters extends LintRule
+    implements NodeLintRule {
   AvoidPositionalBooleanParameters()
       : super(
             name: 'avoid_positional_boolean_parameters',
             description: _desc,
             details: _details,
             group: Group.style,
-            maturity: Maturity.experimental) {
-    _visitor = new _Visitor(this);
-  }
+            maturity: Maturity.experimental);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addConstructorDeclaration(this, visitor);
+    registry.addFunctionDeclaration(this, visitor);
+    registry.addMethodDeclaration(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
   _Visitor(this.rule);
 
   @override
-  visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (!node.element.isPrivate) {
       final parametersToLint =
           node.parameters?.parameters?.where(_isFormalParameterToLint);
@@ -71,7 +74,7 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     if (!node.element.isPrivate) {
       final parametersToLint = node.functionExpression.parameters?.parameters
           ?.where(_isFormalParameterToLint);
@@ -82,7 +85,7 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     if (!node.isSetter &&
         !node.element.isPrivate &&
         !node.isOperator &&

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
@@ -61,23 +60,23 @@ void someFunctionOK() {
 bool _isSubscription(DartType type) => DartTypeUtilities.implementsInterface(
     type, 'StreamSubscription', 'dart.async');
 
-class CancelSubscriptions extends LintRule {
-  _Visitor _visitor;
-
+class CancelSubscriptions extends LintRule implements NodeLintRule {
   CancelSubscriptions()
       : super(
             name: 'cancel_subscriptions',
             description: _desc,
             details: _details,
-            group: Group.errors) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.errors);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addFieldDeclaration(this, visitor);
+    registry.addVariableDeclarationStatement(this, visitor);
+  }
 }
 
-class _Visitor extends LeakDetectorVisitor {
+class _Visitor extends LeakDetectorProcessors {
   static const _cancelMethodName = 'cancel';
 
   @override

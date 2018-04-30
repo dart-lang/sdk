@@ -45,7 +45,7 @@ class Better {
 
 ''';
 
-class HashAndEquals extends LintRule {
+class HashAndEquals extends LintRule implements NodeLintRule {
   HashAndEquals()
       : super(
             name: 'hash_and_equals',
@@ -54,15 +54,19 @@ class HashAndEquals extends LintRule {
             group: Group.errors);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addClassDeclaration(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  Visitor(this.rule);
+
+  _Visitor(this.rule);
 
   @override
-  visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     MethodDeclaration eq, hash;
     for (ClassMember member in node.members) {
       if (isEquals(member)) {

@@ -132,23 +132,22 @@ bool _hasNonComparableOperands(BinaryExpression node) =>
     DartTypeUtilities.unrelatedTypes(
         node.leftOperand.bestType, node.rightOperand.bestType);
 
-class UnrelatedTypeEqualityChecks extends LintRule {
-  _Visitor _visitor;
-
+class UnrelatedTypeEqualityChecks extends LintRule implements NodeLintRule {
   UnrelatedTypeEqualityChecks()
       : super(
             name: 'unrelated_type_equality_checks',
             description: _desc,
             details: _details,
-            group: Group.errors) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.errors);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addBinaryExpression(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   static const String _dartCoreLibraryName = 'dart.core';
   static const String _boolClassName = 'bool';
 

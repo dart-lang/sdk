@@ -2,17 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart'
-    show
-        AstVisitor,
-        DeclaredIdentifier,
-        IsExpression,
-        ListLiteral,
-        MapLiteral,
-        NamedType,
-        SimpleFormalParameter,
-        TypedLiteral,
-        VariableDeclarationList;
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -89,7 +79,7 @@ bool _isOptionalTypeArgs(Element element) =>
     element.name == _OPTIONAL_TYPE_ARGS_VAR_NAME &&
     element.library?.name == _META_LIB_NAME;
 
-class AlwaysSpecifyTypes extends LintRule {
+class AlwaysSpecifyTypes extends LintRule implements NodeLintRule {
   AlwaysSpecifyTypes()
       : super(
             name: 'always_specify_types',
@@ -98,13 +88,21 @@ class AlwaysSpecifyTypes extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addDeclaredIdentifier(this, visitor);
+    registry.addListLiteral(this, visitor);
+    registry.addMapLiteral(this, visitor);
+    registry.addSimpleFormalParameter(this, visitor);
+    registry.addTypeName(this, visitor);
+    registry.addVariableDeclarationList(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  Visitor(this.rule);
+  _Visitor(this.rule);
 
   void checkLiteral(TypedLiteral literal) {
     if (literal.typeArguments == null) {
@@ -113,19 +111,19 @@ class Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitDeclaredIdentifier(DeclaredIdentifier node) {
+  void visitDeclaredIdentifier(DeclaredIdentifier node) {
     if (node.type == null) {
       rule.reportLintForToken(node.keyword);
     }
   }
 
   @override
-  visitListLiteral(ListLiteral literal) {
+  void visitListLiteral(ListLiteral literal) {
     checkLiteral(literal);
   }
 
   @override
-  visitMapLiteral(MapLiteral literal) {
+  void visitMapLiteral(MapLiteral literal) {
     checkLiteral(literal);
   }
 
@@ -143,7 +141,7 @@ class Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitSimpleFormalParameter(SimpleFormalParameter param) {
+  void visitSimpleFormalParameter(SimpleFormalParameter param) {
     if (param.type == null && !isJustUnderscores(param.identifier.name)) {
       if (param.keyword != null) {
         rule.reportLintForToken(param.keyword);
@@ -154,12 +152,12 @@ class Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitTypeName(NamedType typeName) {
+  void visitTypeName(NamedType typeName) {
     visitNamedType(typeName);
   }
 
   @override
-  visitVariableDeclarationList(VariableDeclarationList list) {
+  void visitVariableDeclarationList(VariableDeclarationList list) {
     if (list.type == null) {
       rule.reportLintForToken(list.keyword);
     }

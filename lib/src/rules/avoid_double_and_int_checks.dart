@@ -42,7 +42,7 @@ f(dynamic x) {
 
 ''';
 
-class AvoidDoubleAndIntChecks extends LintRule {
+class AvoidDoubleAndIntChecks extends LintRule implements NodeLintRule {
   AvoidDoubleAndIntChecks()
       : super(
             name: 'avoid_double_and_int_checks',
@@ -51,16 +51,19 @@ class AvoidDoubleAndIntChecks extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addIfStatement(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
-  Visitor(this.rule);
-
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
+  _Visitor(this.rule);
+
   @override
-  visitIfStatement(IfStatement node) {
+  void visitIfStatement(IfStatement node) {
     final elseStatement = node.elseStatement;
     if (elseStatement is IfStatement) {
       final ifCondition = node.condition;

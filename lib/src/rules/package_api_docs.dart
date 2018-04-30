@@ -58,7 +58,7 @@ Advice for writing good doc comments can be found in the
 
 ''';
 
-class PackageApiDocs extends LintRule implements ProjectVisitor {
+class PackageApiDocs extends LintRule implements ProjectVisitor, NodeLintRule {
   DartProject project;
 
   PackageApiDocs()
@@ -72,17 +72,29 @@ class PackageApiDocs extends LintRule implements ProjectVisitor {
   ProjectVisitor getProjectVisitor() => this;
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
-
-  @override
   visit(DartProject project) {
     this.project = project;
   }
+
+  @override
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    var visitor = new _Visitor(this);
+    registry.addConstructorDeclaration(this, visitor);
+    registry.addFieldDeclaration(this, visitor);
+    registry.addMethodDeclaration(this, visitor);
+    registry.addClassDeclaration(this, visitor);
+    registry.addEnumDeclaration(this, visitor);
+    registry.addFunctionDeclaration(this, visitor);
+    registry.addTopLevelVariableDeclaration(this, visitor);
+    registry.addClassTypeAlias(this, visitor);
+    registry.addFunctionTypeAlias(this, visitor);
+  }
 }
 
-class Visitor extends GeneralizingAstVisitor {
+class _Visitor extends GeneralizingAstVisitor {
   PackageApiDocs rule;
-  Visitor(this.rule);
+
+  _Visitor(this.rule);
 
   DartProject get project => rule.project;
 

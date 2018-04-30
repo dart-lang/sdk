@@ -26,7 +26,7 @@ void set speed(int ms);
 
 ''';
 
-class AvoidReturnTypesOnSetters extends LintRule {
+class AvoidReturnTypesOnSetters extends LintRule implements NodeLintRule {
   AvoidReturnTypesOnSetters()
       : super(
             name: 'avoid_return_types_on_setters',
@@ -35,15 +35,20 @@ class AvoidReturnTypesOnSetters extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addFunctionDeclaration(this, visitor);
+    registry.addMethodDeclaration(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  Visitor(this.rule);
+
+  _Visitor(this.rule);
 
   @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     if (node.isSetter) {
       if (node.returnType != null) {
         rule.reportLint(node.returnType);
@@ -52,7 +57,7 @@ class Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     if (node.isSetter) {
       if (node.returnType != null) {
         rule.reportLint(node.returnType);

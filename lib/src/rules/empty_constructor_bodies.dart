@@ -36,7 +36,7 @@ class Point {
 
 ''';
 
-class EmptyConstructorBodies extends LintRule {
+class EmptyConstructorBodies extends LintRule implements NodeLintRule {
   EmptyConstructorBodies()
       : super(
             name: 'empty_constructor_bodies',
@@ -45,15 +45,19 @@ class EmptyConstructorBodies extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addConstructorDeclaration(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
-  LintRule rule;
-  Visitor(this.rule);
+class _Visitor extends SimpleAstVisitor<void> {
+  final LintRule rule;
+
+  _Visitor(this.rule);
 
   @override
-  visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (node.body is BlockFunctionBody) {
       Block block = (node.body as BlockFunctionBody).block;
       if (block.statements.isEmpty) {

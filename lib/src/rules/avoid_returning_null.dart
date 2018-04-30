@@ -50,34 +50,36 @@ bool _isPrimitiveType(DartType type) =>
 bool _isReturnNull(AstNode node) =>
     node is ReturnStatement && DartTypeUtilities.isNullLiteral(node.expression);
 
-class AvoidReturningNull extends LintRule {
-  _Visitor _visitor;
+class AvoidReturningNull extends LintRule implements NodeLintRule {
   AvoidReturningNull()
       : super(
             name: 'avoid_returning_null',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addFunctionExpression(this, visitor);
+    registry.addMethodDeclaration(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
   _Visitor(this.rule);
 
   @override
-  visitFunctionExpression(FunctionExpression node) {
+  void visitFunctionExpression(FunctionExpression node) {
     if (_isPrimitiveType(node.element.returnType)) {
       _visitFunctionBody(node.body);
     }
   }
 
   @override
-  visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     if (_isPrimitiveType(node.element.returnType)) {
       _visitFunctionBody(node.body);
     }

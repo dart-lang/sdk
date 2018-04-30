@@ -55,24 +55,25 @@ class GoodClass {
 
 ''';
 
-class PreferTypingUninitializedVariables extends LintRule {
-  _Visitor _visitor;
-
+class PreferTypingUninitializedVariables extends LintRule
+    implements NodeLintRule {
   PreferTypingUninitializedVariables()
       : super(
             name: 'prefer_typing_uninitialized_variables',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addVariableDeclarationList(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
   _Visitor(this.rule);
 
   @override

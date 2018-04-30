@@ -43,7 +43,7 @@ class Dice {
 
 ''';
 
-class ConstantIdentifierNames extends LintRule {
+class ConstantIdentifierNames extends LintRule implements NodeLintRule {
   ConstantIdentifierNames()
       : super(
             name: 'constant_identifier_names',
@@ -52,12 +52,18 @@ class ConstantIdentifierNames extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addEnumConstantDeclaration(this, visitor);
+    registry.addTopLevelVariableDeclaration(this, visitor);
+    registry.addVariableDeclarationList(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
-  LintRule rule;
-  Visitor(this.rule);
+class _Visitor extends SimpleAstVisitor<void> {
+  final LintRule rule;
+
+  _Visitor(this.rule);
 
   checkIdentifier(SimpleIdentifier id) {
     if (!isLowerCamelCase(id.name)) {
@@ -66,17 +72,17 @@ class Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     checkIdentifier(node.name);
   }
 
   @override
-  visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     visitVariableDeclarationList(node.variables);
   }
 
   @override
-  visitVariableDeclarationList(VariableDeclarationList node) {
+  void visitVariableDeclarationList(VariableDeclarationList node) {
     node.variables.forEach((VariableDeclaration v) {
       if (v.isConst) {
         checkIdentifier(v.name);

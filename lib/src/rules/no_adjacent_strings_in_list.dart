@@ -34,7 +34,7 @@ List<String> list = <String>[
 
 ''';
 
-class NoAdjacentStringsInList extends LintRule {
+class NoAdjacentStringsInList extends LintRule implements NodeLintRule {
   NoAdjacentStringsInList()
       : super(
             name: 'no_adjacent_strings_in_list',
@@ -43,13 +43,16 @@ class NoAdjacentStringsInList extends LintRule {
             group: Group.errors);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addListLiteral(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
-  LintRule rule;
+class _Visitor extends SimpleAstVisitor<void> {
+  final LintRule rule;
 
-  Visitor(this.rule);
+  _Visitor(this.rule);
 
   @override
   void visitListLiteral(ListLiteral node) {

@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/dart/ast/ast.dart' show AstVisitor;
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
@@ -37,7 +36,8 @@ bool _isRequired(Element element) =>
     element.name == _REQUIRED_VAR_NAME &&
     element.library?.name == _META_LIB_NAME;
 
-class AlwaysPutRequiredNamedParametersFirst extends LintRule {
+class AlwaysPutRequiredNamedParametersFirst extends LintRule
+    implements NodeLintRule {
   AlwaysPutRequiredNamedParametersFirst()
       : super(
             name: 'always_put_required_named_parameters_first',
@@ -46,16 +46,19 @@ class AlwaysPutRequiredNamedParametersFirst extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addFormalParameterList(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  Visitor(this.rule);
+  _Visitor(this.rule);
 
   @override
-  visitFormalParameterList(FormalParameterList node) {
+  void visitFormalParameterList(FormalParameterList node) {
     bool nonRequiredSeen = false;
     for (DefaultFormalParameter param
         in node.parameters.where((p) => p.isNamed)) {

@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart'
     show
         AstNode,
-        AstVisitor,
         PrefixExpression,
         PrefixedIdentifier,
         PropertyAccess,
@@ -41,7 +40,7 @@ if (!sources.isEmpty) {
 
 ''';
 
-class PreferIsNotEmpty extends LintRule {
+class PreferIsNotEmpty extends LintRule implements NodeLintRule {
   PreferIsNotEmpty()
       : super(
             name: 'prefer_is_not_empty',
@@ -50,19 +49,23 @@ class PreferIsNotEmpty extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addSimpleIdentifier(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  Visitor(this.rule);
+
+  _Visitor(this.rule);
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier identifier) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     AstNode isEmptyAccess;
     SimpleIdentifier isEmptyIdentifier;
 
-    AstNode parent = identifier.parent;
+    AstNode parent = node.parent;
     if (parent is PropertyAccess) {
       isEmptyIdentifier = parent.propertyName;
       isEmptyAccess = parent;

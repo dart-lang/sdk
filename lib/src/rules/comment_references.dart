@@ -45,7 +45,7 @@ references within square brackets can consist of either
 
 ''';
 
-class CommentReferences extends LintRule {
+class CommentReferences extends LintRule implements NodeLintRule {
   CommentReferences()
       : super(
             name: 'comment_references',
@@ -54,15 +54,20 @@ class CommentReferences extends LintRule {
             group: Group.errors);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addComment(this, visitor);
+    registry.addCommentReference(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  Visitor(this.rule);
+
+  _Visitor(this.rule);
 
   @override
-  visitComment(Comment node) {
+  void visitComment(Comment node) {
     // Check for keywords that are not treated as references by the parser
     // but should be flagged by the linter.
     // Note that no special care is taken to handle embedded code blocks.
@@ -87,7 +92,7 @@ class Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitCommentReference(CommentReference node) {
+  void visitCommentReference(CommentReference node) {
     Identifier identifier = node.identifier;
     if (!identifier.isSynthetic && identifier.bestElement == null) {
       rule.reportLint(identifier);

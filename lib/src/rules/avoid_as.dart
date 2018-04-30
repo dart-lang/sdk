@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart'
-    show AsExpression, AstNode, AstVisitor, NamedType;
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
@@ -59,7 +58,7 @@ HasScrollDirection scrollable = renderObject as dynamic;
 
 ''';
 
-class AvoidAs extends LintRule {
+class AvoidAs extends LintRule implements NodeLintRule {
   AvoidAs()
       : super(
             name: 'avoid_as',
@@ -68,15 +67,19 @@ class AvoidAs extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addAsExpression(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  Visitor(this.rule);
+
+  _Visitor(this.rule);
 
   @override
-  visitAsExpression(AsExpression node) {
+  void visitAsExpression(AsExpression node) {
     // TODO(brianwilkerson) Use TypeAnnotation rather than AstNode below.
     AstNode typeAnnotation = node.type;
     if (typeAnnotation is NamedType && typeAnnotation.name.name != 'dynamic') {

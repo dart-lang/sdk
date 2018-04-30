@@ -35,27 +35,29 @@ void main() {
 
 ''';
 
-class PreferFunctionDeclarationsOverVariables extends LintRule {
-  _Visitor _visitor;
+class PreferFunctionDeclarationsOverVariables extends LintRule
+    implements NodeLintRule {
   PreferFunctionDeclarationsOverVariables()
       : super(
             name: 'prefer_function_declarations_over_variables',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addVariableDeclaration(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
   _Visitor(this.rule);
 
   @override
-  visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariableDeclaration(VariableDeclaration node) {
     if (node.initializer is FunctionExpression) {
       FunctionBody function = node.getAncestor((a) => a is FunctionBody);
       if (function == null ||

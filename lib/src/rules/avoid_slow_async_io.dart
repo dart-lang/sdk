@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
@@ -50,21 +50,11 @@ Future<Null> someFunction() async {
 
 ''';
 
-class AvoidSlowAsyncIo extends LintRule {
-  _Visitor _visitor;
-
-  AvoidSlowAsyncIo()
-      : super(
-            name: 'avoid_slow_async_io',
-            description: _desc,
-            details: _details,
-            group: Group.errors) {
-    _visitor = new _Visitor(this);
-  }
-
-  @override
-  AstVisitor getVisitor() => _visitor;
-}
+const List<String> _fileMethodNames = const <String>[
+  'lastModified',
+  'exists',
+  'stat'
+];
 
 const List<String> _fileSystemEntityMethodNames = const <String>[
   'isDirectory',
@@ -73,14 +63,24 @@ const List<String> _fileSystemEntityMethodNames = const <String>[
   'type',
 ];
 
-const List<String> _fileMethodNames = const <String>[
-  'lastModified',
-  'exists',
-  'stat'
-];
+class AvoidSlowAsyncIo extends LintRule implements NodeLintRule {
+  AvoidSlowAsyncIo()
+      : super(
+            name: 'avoid_slow_async_io',
+            description: _desc,
+            details: _details,
+            group: Group.errors);
 
-class _Visitor extends SimpleAstVisitor {
+  @override
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addMethodInvocation(this, visitor);
+  }
+}
+
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
   _Visitor(this.rule);
 
   @override
@@ -94,6 +94,15 @@ class _Visitor extends SimpleAstVisitor {
     }
   }
 
+  void _checkFileMethods(MethodInvocation node) {
+    DartType type = node.target?.bestType;
+    if (DartTypeUtilities.extendsClass(type, 'File', 'dart.io')) {
+      if (_fileMethodNames.contains(node.methodName?.name)) {
+        rule.reportLint(node);
+      }
+    }
+  }
+
   void _checkFileSystemEntityMethods(MethodInvocation node) {
     Expression target = node.target;
     if (target is Identifier) {
@@ -102,15 +111,6 @@ class _Visitor extends SimpleAstVisitor {
         if (_fileSystemEntityMethodNames.contains(node.methodName?.name)) {
           rule.reportLint(node);
         }
-      }
-    }
-  }
-
-  void _checkFileMethods(MethodInvocation node) {
-    DartType type = node.target?.bestType;
-    if (DartTypeUtilities.extendsClass(type, 'File', 'dart.io')) {
-      if (_fileMethodNames.contains(node.methodName?.name)) {
-        rule.reportLint(node);
       }
     }
   }

@@ -98,51 +98,53 @@ bool _onlyLiterals(Expression rawExpression) {
   return false;
 }
 
-class LiteralOnlyBooleanExpressions extends LintRule {
-  _Visitor _visitor;
-
+class LiteralOnlyBooleanExpressions extends LintRule implements NodeLintRule {
   LiteralOnlyBooleanExpressions()
       : super(
             name: 'literal_only_boolean_expressions',
             description: _desc,
             details: _details,
             group: Group.errors,
-            maturity: Maturity.experimental) {
-    _visitor = new _Visitor(this);
-  }
+            maturity: Maturity.experimental);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addDoStatement(this, visitor);
+    registry.addForStatement(this, visitor);
+    registry.addIfStatement(this, visitor);
+    registry.addWhileStatement(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);
 
   @override
-  visitDoStatement(DoStatement node) {
+  void visitDoStatement(DoStatement node) {
     if (_onlyLiterals(node.condition)) {
       rule.reportLint(node);
     }
   }
 
   @override
-  visitForStatement(ForStatement node) {
+  void visitForStatement(ForStatement node) {
     if (_onlyLiterals(node.condition)) {
       rule.reportLint(node);
     }
   }
 
   @override
-  visitIfStatement(IfStatement node) {
+  void visitIfStatement(IfStatement node) {
     if (_onlyLiterals(node.condition)) {
       rule.reportLint(node);
     }
   }
 
   @override
-  visitWhileStatement(WhileStatement node) {
+  void visitWhileStatement(WhileStatement node) {
     if (_onlyLiterals(node.condition)) {
       rule.reportLint(node);
     }

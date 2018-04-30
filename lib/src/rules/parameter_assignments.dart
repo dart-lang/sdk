@@ -104,23 +104,23 @@ bool _preOrPostFixExpressionMutation(FormalParameter parameter, AstNode n) =>
         n.operand is SimpleIdentifier &&
         (n.operand as SimpleIdentifier).staticElement == parameter.element;
 
-class ParameterAssignments extends LintRule {
-  _Visitor _visitor;
-
+class ParameterAssignments extends LintRule implements NodeLintRule {
   ParameterAssignments()
       : super(
             name: 'parameter_assignments',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addFunctionDeclaration(this, visitor);
+    registry.addMethodDeclaration(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);

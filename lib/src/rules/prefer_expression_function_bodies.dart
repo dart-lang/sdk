@@ -51,27 +51,28 @@ containsValue(String value) => getValues().contains(value);
 
 ''';
 
-class PreferExpressionFunctionBodies extends LintRule {
-  _Visitor _visitor;
+class PreferExpressionFunctionBodies extends LintRule implements NodeLintRule {
   PreferExpressionFunctionBodies()
       : super(
             name: 'prefer_expression_function_bodies',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addBlockFunctionBody(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
   _Visitor(this.rule);
 
   @override
-  visitBlockFunctionBody(BlockFunctionBody node) {
+  void visitBlockFunctionBody(BlockFunctionBody node) {
     final statements = node.block.statements;
     if (statements.length != 1) {
       return;

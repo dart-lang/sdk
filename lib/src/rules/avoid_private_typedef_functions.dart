@@ -27,7 +27,7 @@ m(void Function() f);
 
 ''';
 
-class AvoidPrivateTypedefFunctions extends LintRule {
+class AvoidPrivateTypedefFunctions extends LintRule implements NodeLintRule {
   AvoidPrivateTypedefFunctions()
       : super(
             name: 'avoid_private_typedef_functions',
@@ -36,23 +36,38 @@ class AvoidPrivateTypedefFunctions extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addFunctionTypeAlias(this, visitor);
+    registry.addGenericTypeAlias(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
-  Visitor(this.rule);
-
-  final LintRule rule;
+class _CountVisitor extends RecursiveAstVisitor {
+  final String type;
+  int count = 0;
+  _CountVisitor(this.type);
 
   @override
-  visitFunctionTypeAlias(FunctionTypeAlias node) {
+  visitTypeName(TypeName node) {
+    if (node.name.name == type) count++;
+  }
+}
+
+class _Visitor extends SimpleAstVisitor<void> {
+  final LintRule rule;
+
+  _Visitor(this.rule);
+
+  @override
+  void visitFunctionTypeAlias(FunctionTypeAlias node) {
     if (node.element.isPrivate) {
       _countAndReport(node.name.name, node);
     }
   }
 
   @override
-  visitGenericTypeAlias(GenericTypeAlias node) {
+  void visitGenericTypeAlias(GenericTypeAlias node) {
     if (node.element.isPrivate) {
       _countAndReport(node.name.name, node);
     }
@@ -71,16 +86,5 @@ class Visitor extends SimpleAstVisitor {
     if (visitor.count <= 1) {
       rule.reportLint(node);
     }
-  }
-}
-
-class _CountVisitor extends RecursiveAstVisitor {
-  _CountVisitor(this.type);
-  final String type;
-  int count = 0;
-
-  @override
-  visitTypeName(TypeName node) {
-    if (node.name.name == type) count++;
   }
 }

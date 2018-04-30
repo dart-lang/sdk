@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
@@ -37,39 +36,40 @@ class A {
 
 ''';
 
-class PreferConstDeclarations extends LintRule {
-  _Visitor _visitor;
-
+class PreferConstDeclarations extends LintRule implements NodeLintRule {
   PreferConstDeclarations()
       : super(
             name: 'prefer_const_declarations',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addFieldDeclaration(this, visitor);
+    registry.addTopLevelVariableDeclaration(this, visitor);
+    registry.addVariableDeclarationStatement(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);
 
   @override
-  visitFieldDeclaration(FieldDeclaration node) {
+  void visitFieldDeclaration(FieldDeclaration node) {
     if (!node.isStatic) return;
     _visitVariableDeclarationList(node.fields);
   }
 
   @override
-  visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) =>
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) =>
       _visitVariableDeclarationList(node.variables);
 
   @override
-  visitVariableDeclarationStatement(VariableDeclarationStatement node) =>
+  void visitVariableDeclarationStatement(VariableDeclarationStatement node) =>
       _visitVariableDeclarationList(node.variables);
 
   _visitVariableDeclarationList(VariableDeclarationList node) {

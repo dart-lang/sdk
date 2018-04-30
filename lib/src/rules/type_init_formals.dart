@@ -35,7 +35,7 @@ class Point {
 
 ''';
 
-class TypeInitFormals extends LintRule {
+class TypeInitFormals extends LintRule implements NodeLintRule {
   TypeInitFormals()
       : super(
             name: 'type_init_formals',
@@ -44,15 +44,19 @@ class TypeInitFormals extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addFieldFormalParameter(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
-  LintRule rule;
-  Visitor(this.rule);
+class _Visitor extends SimpleAstVisitor<void> {
+  final LintRule rule;
+
+  _Visitor(this.rule);
 
   @override
-  visitFieldFormalParameter(FieldFormalParameter node) {
+  void visitFieldFormalParameter(FieldFormalParameter node) {
     if (node.type != null) {
       rule.reportLint(node.type);
     }

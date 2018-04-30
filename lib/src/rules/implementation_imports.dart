@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart' show AstVisitor, ImportDirective;
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
@@ -56,7 +56,7 @@ bool samePackage(Uri uri1, Uri uri2) {
   return segments1[0] == segments2[0];
 }
 
-class ImplementationImports extends LintRule {
+class ImplementationImports extends LintRule implements NodeLintRule {
   ImplementationImports()
       : super(
             name: 'implementation_imports',
@@ -65,15 +65,19 @@ class ImplementationImports extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addImportDirective(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  Visitor(this.rule);
+
+  _Visitor(this.rule);
 
   @override
-  visitImportDirective(ImportDirective node) {
+  void visitImportDirective(ImportDirective node) {
     Uri importUri = node?.uriSource?.uri;
     Uri sourceUri = node == null
         ? null

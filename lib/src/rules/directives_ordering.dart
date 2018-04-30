@@ -4,7 +4,6 @@
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
 const _desc = r'Adhere to Effective Dart Guide directives sorting conventions.';
@@ -127,15 +126,15 @@ import 'a.dart'; // OK
 import 'a/b.dart'; // OK
 
 ''';
-const _importKeyword = 'import';
-
-const _exportKeyword = 'export';
-
 const _directiveSectionOrderedAlphabetically =
     'Sort directive sections alphabetically.';
 
 const _exportDirectiveAfterImportDirectives =
     'Specify exports in a separate section after all imports.';
+
+const _exportKeyword = 'export';
+
+const _importKeyword = 'import';
 
 String _dartDirectiveGoFirst(String type) =>
     "Place 'dart:' ${type}s before other ${type}s.";
@@ -150,12 +149,12 @@ bool _isExportDirective(Directive node) => node is ExportDirective;
 
 bool _isImportDirective(Directive node) => node is ImportDirective;
 
-bool _isPartDirective(Directive node) => node is PartDirective;
-
 bool _isNotDartDirective(NamespaceDirective node) => !_isDartDirective(node);
 
 bool _isPackageDirective(NamespaceDirective node) =>
     node.uriContent.startsWith('package:');
+
+bool _isPartDirective(Directive node) => node is PartDirective;
 
 bool _isRelativeDirective(NamespaceDirective node) =>
     !_isAbsoluteDirective(node);
@@ -166,8 +165,8 @@ String _packageDirectiveBeforeRelative(String type) =>
 String _thirdPartyPackageDirectiveBeforeOwn(String type) =>
     "Place 'third-party' 'package:' ${type}s before other ${type}s.";
 
-class DirectivesOrdering extends LintRule implements ProjectVisitor {
-  _Visitor _visitor;
+class DirectivesOrdering extends LintRule
+    implements ProjectVisitor, NodeLintRule {
   DartProject project;
 
   DirectivesOrdering()
@@ -175,15 +174,16 @@ class DirectivesOrdering extends LintRule implements ProjectVisitor {
             name: 'directives_ordering',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
   ProjectVisitor getProjectVisitor() => this;
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addCompilationUnit(this, visitor);
+  }
 
   @override
   visit(DartProject project) {
@@ -221,6 +221,7 @@ class DirectivesOrdering extends LintRule implements ProjectVisitor {
 
 class _PackageBox {
   final String _packageName;
+
   _PackageBox(this._packageName);
 
   bool _isNotOwnPackageDirective(NamespaceDirective node) =>
@@ -230,7 +231,7 @@ class _PackageBox {
       node.uriContent.startsWith('package:$_packageName/');
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final DirectivesOrdering rule;
 
   _Visitor(this.rule);

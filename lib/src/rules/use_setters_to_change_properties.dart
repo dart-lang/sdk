@@ -32,27 +32,28 @@ button.visible = false;
 bool _hasInheritedMethod(MethodDeclaration node) =>
     DartTypeUtilities.lookUpInheritedMethod(node) != null;
 
-class UseSettersToChangeAProperty extends LintRule {
-  _Visitor _visitor;
+class UseSettersToChangeAProperty extends LintRule implements NodeLintRule {
   UseSettersToChangeAProperty()
       : super(
             name: 'use_setters_to_change_properties',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addMethodDeclaration(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
   _Visitor(this.rule);
 
   @override
-  visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     if (node.isSetter ||
         node.isGetter ||
         _hasInheritedMethod(node) ||

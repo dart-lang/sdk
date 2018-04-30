@@ -83,20 +83,21 @@ class BadBreak {
 
 ''';
 
-class ControlFlowInFinally extends LintRule {
-  _Visitor _visitor;
-
+class ControlFlowInFinally extends LintRule implements NodeLintRule {
   ControlFlowInFinally()
       : super(
             name: 'control_flow_in_finally',
             description: _desc,
             details: _details,
-            group: Group.errors) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.errors);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addBreakStatement(this, visitor);
+    registry.addContinueStatement(this, visitor);
+    registry.addReturnStatement(this, visitor);
+  }
 }
 
 /// Do not extend this class, it is meant to be used from
@@ -143,7 +144,7 @@ abstract class ControlFlowInFinallyBlockReporterMixin {
   }
 }
 
-class _Visitor extends SimpleAstVisitor
+class _Visitor extends SimpleAstVisitor<void>
     with ControlFlowInFinallyBlockReporterMixin {
   @override
   final LintRule rule;
@@ -151,17 +152,17 @@ class _Visitor extends SimpleAstVisitor
   _Visitor(this.rule);
 
   @override
-  visitBreakStatement(BreakStatement node) {
+  void visitBreakStatement(BreakStatement node) {
     reportIfFinallyAncestorExists(node, ancestor: node.target);
   }
 
   @override
-  visitContinueStatement(ContinueStatement node) {
+  void visitContinueStatement(ContinueStatement node) {
     reportIfFinallyAncestorExists(node, ancestor: node.target);
   }
 
   @override
-  visitReturnStatement(ReturnStatement node) {
+  void visitReturnStatement(ReturnStatement node) {
     reportIfFinallyAncestorExists(node);
   }
 }

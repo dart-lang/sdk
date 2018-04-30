@@ -38,27 +38,28 @@ try {
 
 ''';
 
-class UseRethrowWhenPossible extends LintRule {
-  _Visitor _visitor;
+class UseRethrowWhenPossible extends LintRule implements NodeLintRule {
   UseRethrowWhenPossible()
       : super(
             name: 'use_rethrow_when_possible',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addThrowExpression(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
   _Visitor(this.rule);
 
   @override
-  visitThrowExpression(ThrowExpression node) {
+  void visitThrowExpression(ThrowExpression node) {
     final element =
         DartTypeUtilities.getCanonicalElementFromIdentifier(node.expression);
     if (element != null) {

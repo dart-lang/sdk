@@ -68,7 +68,7 @@ class GoodMutable {
 
 ''';
 
-class PreferFinalFields extends LintRule {
+class PreferFinalFields extends LintRule implements NodeLintRule {
   PreferFinalFields()
       : super(
             name: 'prefer_final_fields',
@@ -77,11 +77,16 @@ class PreferFinalFields extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new _Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addCompilationUnit(this, visitor);
+    registry.addFieldDeclaration(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
   final Set<Element> _mutatedElements = new HashSet<Element>();
 
   _Visitor(this.rule);

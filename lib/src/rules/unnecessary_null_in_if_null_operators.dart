@@ -30,7 +30,8 @@ var y = null ?? 1;
 
 ''';
 
-class UnnecessaryNullInIfNullOperators extends LintRule {
+class UnnecessaryNullInIfNullOperators extends LintRule
+    implements NodeLintRule {
   UnnecessaryNullInIfNullOperators()
       : super(
             name: 'unnecessary_null_in_if_null_operators',
@@ -39,16 +40,19 @@ class UnnecessaryNullInIfNullOperators extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new _Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addBinaryExpression(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);
 
   @override
-  visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryExpression(BinaryExpression node) {
     if (node.operator.type == TokenType.QUESTION_QUESTION &&
         (DartTypeUtilities.isNullLiteral(node.rightOperand) ||
             DartTypeUtilities.isNullLiteral(node.leftOperand))) {

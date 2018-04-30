@@ -49,7 +49,7 @@ class Box {
 
 ''';
 
-class UnnecessaryGettersSetters extends LintRule {
+class UnnecessaryGettersSetters extends LintRule implements NodeLintRule {
   UnnecessaryGettersSetters()
       : super(
             name: 'unnecessary_getters_setters',
@@ -58,15 +58,19 @@ class UnnecessaryGettersSetters extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addClassDeclaration(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
-  LintRule rule;
-  Visitor(this.rule);
+class _Visitor extends SimpleAstVisitor<void> {
+  final LintRule rule;
+
+  _Visitor(this.rule);
 
   @override
-  visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     Map<String, MethodDeclaration> getters = {};
     Map<String, MethodDeclaration> setters = {};
 

@@ -35,27 +35,28 @@ lookUpOrDefault(String name, Map map, defaultValue) {
 
 ''';
 
-class AvoidAnnotatingWithDynamic extends LintRule {
-  _Visitor _visitor;
+class AvoidAnnotatingWithDynamic extends LintRule implements NodeLintRule {
   AvoidAnnotatingWithDynamic()
       : super(
             name: 'avoid_annotating_with_dynamic',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addSimpleFormalParameter(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
   _Visitor(this.rule);
 
   @override
-  visitSimpleFormalParameter(SimpleFormalParameter node) {
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
     final type = node.type;
     if (type is TypeName && type.name.name == 'dynamic') {
       rule.reportLint(node);

@@ -55,27 +55,28 @@ bool _beginsWithAsOrTo(String name) {
 bool _isVoid(TypeName returnType) =>
     returnType != null && returnType.name.name == 'void';
 
-class UseToAndAsIfApplicable extends LintRule {
-  _Visitor _visitor;
+class UseToAndAsIfApplicable extends LintRule implements NodeLintRule {
   UseToAndAsIfApplicable()
       : super(
             name: 'use_to_and_as_if_applicable',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addMethodDeclaration(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
   _Visitor(this.rule);
 
   @override
-  visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     if (!node.isGetter &&
         node.parameters.parameters.isEmpty &&
         !_isVoid(node.returnType) &&

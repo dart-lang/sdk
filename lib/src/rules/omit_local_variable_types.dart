@@ -43,27 +43,30 @@ Map<int, List<Person>> groupByZip(Iterable<Person> people) {
 
 ''';
 
-class OmitLocalVariableTypes extends LintRule {
-  _Visitor _visitor;
+class OmitLocalVariableTypes extends LintRule implements NodeLintRule {
   OmitLocalVariableTypes()
       : super(
             name: 'omit_local_variable_types',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addForEachStatement(this, visitor);
+    registry.addForStatement(this, visitor);
+    registry.addVariableDeclarationStatement(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
   _Visitor(this.rule);
 
   @override
-  visitForEachStatement(ForEachStatement node) {
+  void visitForEachStatement(ForEachStatement node) {
     final staticType = node.loopVariable?.type;
     if (staticType == null) {
       return;
@@ -82,12 +85,12 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitForStatement(ForStatement node) {
+  void visitForStatement(ForStatement node) {
     _visitVariableDeclarationList(node.variables);
   }
 
   @override
-  visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     _visitVariableDeclarationList(node.variables);
   }
 

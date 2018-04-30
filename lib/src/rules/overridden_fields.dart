@@ -81,29 +81,28 @@ Iterable<InterfaceType> _findAllSupertypesAndMixins(
   return interfaces.where((i) => i != interface);
 }
 
-class OverriddenFields extends LintRule {
-  _Visitor _visitor;
-
+class OverriddenFields extends LintRule implements NodeLintRule {
   OverriddenFields()
       : super(
             name: 'overridden_fields',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addFieldDeclaration(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);
 
   @override
-  visitFieldDeclaration(FieldDeclaration node) {
+  void visitFieldDeclaration(FieldDeclaration node) {
     if (node.isStatic) {
       return;
     }

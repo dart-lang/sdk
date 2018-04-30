@@ -27,27 +27,28 @@ var addresses = {};
 
 ''';
 
-class PreferCollectionLiterals extends LintRule {
-  _Visitor _visitor;
+class PreferCollectionLiterals extends LintRule implements NodeLintRule {
   PreferCollectionLiterals()
       : super(
             name: 'prefer_collection_literals',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addInstanceCreationExpression(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
   _Visitor(this.rule);
 
   @override
-  visitInstanceCreationExpression(InstanceCreationExpression node) {
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.constructorName.name == null &&
         node.argumentList.arguments.isEmpty &&
         (DartTypeUtilities.isClass(node.staticType, 'List', 'dart.core') ||

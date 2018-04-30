@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:linter/src/analyzer.dart';
 
@@ -44,7 +44,7 @@ switch (v) {
 String message(String value1, String value2) =>
     'Do not use more than one case with same value ($value1 and $value2)';
 
-class NoDuplicateCaseValues extends LintRule {
+class NoDuplicateCaseValues extends LintRule implements NodeLintRule {
   NoDuplicateCaseValues()
       : super(
             name: 'no_duplicate_case_values',
@@ -53,7 +53,10 @@ class NoDuplicateCaseValues extends LintRule {
             group: Group.errors);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addSwitchStatement(this, visitor);
+  }
 
   void reportLintWithDescription(AstNode node, String description) {
     if (node != null) {
@@ -71,10 +74,10 @@ class _LintCode extends LintCode {
   _LintCode._(String name, String message) : super(name, message);
 }
 
-class Visitor extends SimpleAstVisitor {
-  NoDuplicateCaseValues rule;
+class _Visitor extends SimpleAstVisitor<void> {
+  final NoDuplicateCaseValues rule;
 
-  Visitor(this.rule);
+  _Visitor(this.rule);
 
   @override
   void visitSwitchStatement(SwitchStatement node) {

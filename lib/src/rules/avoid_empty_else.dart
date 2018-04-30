@@ -22,7 +22,7 @@ else ;
 
 ''';
 
-class AvoidEmptyElse extends LintRule {
+class AvoidEmptyElse extends LintRule implements NodeLintRule {
   AvoidEmptyElse()
       : super(
             name: 'avoid_empty_else',
@@ -31,15 +31,19 @@ class AvoidEmptyElse extends LintRule {
             group: Group.errors);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addIfStatement(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  Visitor(this.rule);
+
+  _Visitor(this.rule);
 
   @override
-  visitIfStatement(IfStatement node) {
+  void visitIfStatement(IfStatement node) {
     Statement elseStatement = node.elseStatement;
     if (elseStatement is EmptyStatement &&
         !elseStatement.semicolon.isSynthetic) {

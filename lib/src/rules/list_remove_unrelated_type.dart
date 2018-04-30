@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 import 'package:linter/src/util/unrelated_types_visitor.dart';
@@ -121,23 +119,22 @@ class DerivedClass3 extends ClassBase implements Mixin {}
 
 ''';
 
-class ListRemoveUnrelatedType extends LintRule {
-  _Visitor _visitor;
-
+class ListRemoveUnrelatedType extends LintRule implements NodeLintRule {
   ListRemoveUnrelatedType()
       : super(
             name: 'list_remove_unrelated_type',
             description: _desc,
             details: _details,
-            group: Group.errors) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.errors);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addMethodInvocation(this, visitor);
+  }
 }
 
-class _Visitor extends UnrelatedTypesVisitor {
+class _Visitor extends UnrelatedTypesProcessors {
   static final _DEFINITION = new InterfaceTypeDefinition('List', 'dart.core');
 
   _Visitor(LintRule rule) : super(rule);

@@ -36,27 +36,28 @@ try {
 
 ''';
 
-class AvoidCatchingErrors extends LintRule {
-  _Visitor _visitor;
+class AvoidCatchingErrors extends LintRule implements NodeLintRule {
   AvoidCatchingErrors()
       : super(
             name: 'avoid_catching_errors',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addCatchClause(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
   _Visitor(this.rule);
 
   @override
-  visitCatchClause(CatchClause node) {
+  void visitCatchClause(CatchClause node) {
     final exceptionType = node.exceptionType?.type;
     if (DartTypeUtilities.implementsInterface(
         exceptionType, 'Error', 'dart.core')) {

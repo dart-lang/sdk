@@ -36,48 +36,27 @@ int get field => _field;
 
 ''';
 
-class RecursiveGetters extends LintRule {
-  _Visitor _visitor;
-
+class RecursiveGetters extends LintRule implements NodeLintRule {
   RecursiveGetters()
       : super(
             name: 'recursive_getters',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
-}
-
-/// Tests if a simple identifier is a recursive getter by looking at its parent.
-class _RecursiveGetterParentVisitor extends SimpleAstVisitor<bool> {
-  @override
-  bool visitPropertyAccess(PropertyAccess node) =>
-      node.target is ThisExpression;
-
-  @override
-  bool visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.parent is ArgumentList ||
-        node.parent is ConditionalExpression ||
-        node.parent is ExpressionFunctionBody ||
-        node.parent is ReturnStatement) {
-      return true;
-    }
-
-    if (node.parent is PropertyAccess) {
-      return node.parent.accept(this);
-    }
-
-    return false;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addFunctionDeclaration(this, visitor);
+    registry.addMethodDeclaration(this, visitor);
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
-  final visitor = new _RecursiveGetterParentVisitor();
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
+  final visitor = new _RecursiveGetterParentVisitor();
+
   _Visitor(this.rule);
 
   @override
@@ -110,5 +89,28 @@ class _Visitor extends SimpleAstVisitor {
             element == n.staticElement &&
             n.accept(visitor))
         .forEach(rule.reportLint);
+  }
+}
+
+/// Tests if a simple identifier is a recursive getter by looking at its parent.
+class _RecursiveGetterParentVisitor extends SimpleAstVisitor<bool> {
+  @override
+  bool visitPropertyAccess(PropertyAccess node) =>
+      node.target is ThisExpression;
+
+  @override
+  bool visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.parent is ArgumentList ||
+        node.parent is ConditionalExpression ||
+        node.parent is ExpressionFunctionBody ||
+        node.parent is ReturnStatement) {
+      return true;
+    }
+
+    if (node.parent is PropertyAccess) {
+      return node.parent.accept(this);
+    }
+
+    return false;
   }
 }
