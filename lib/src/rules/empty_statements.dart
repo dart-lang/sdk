@@ -40,7 +40,7 @@ if (complicated.expression.foo())
 
 ''';
 
-class EmptyStatements extends LintRule {
+class EmptyStatements extends LintRule implements NodeLintRule {
   EmptyStatements()
       : super(
             name: 'empty_statements',
@@ -49,15 +49,19 @@ class EmptyStatements extends LintRule {
             group: Group.errors);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addEmptyStatement(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  Visitor(this.rule);
+
+  _Visitor(this.rule);
 
   @override
-  visitEmptyStatement(EmptyStatement node) {
+  void visitEmptyStatement(EmptyStatement node) {
     rule.reportLint(node);
   }
 }

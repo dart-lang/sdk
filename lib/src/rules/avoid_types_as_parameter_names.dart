@@ -24,7 +24,7 @@ m(f(int v));
 
 ''';
 
-class AvoidTypesAsParameterNames extends LintRule {
+class AvoidTypesAsParameterNames extends LintRule implements NodeLintRule {
   AvoidTypesAsParameterNames()
       : super(
             name: 'avoid_types_as_parameter_names',
@@ -33,16 +33,19 @@ class AvoidTypesAsParameterNames extends LintRule {
             group: Group.errors);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addFormalParameterList(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
-  Visitor(this.rule);
-
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
+  _Visitor(this.rule);
+
   @override
-  visitFormalParameterList(FormalParameterList node) {
+  void visitFormalParameterList(FormalParameterList node) {
     if (node.parent is GenericFunctionType) return;
 
     // TODO(a14n) test that parameter name matches a existing type. No api to do

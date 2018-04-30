@@ -48,23 +48,22 @@ class BadThrow {
 
 ''';
 
-class ThrowInFinally extends LintRule {
-  _Visitor _visitor;
-
+class ThrowInFinally extends LintRule implements NodeLintRule {
   ThrowInFinally()
       : super(
             name: 'throw_in_finally',
             description: _desc,
             details: _details,
-            group: Group.errors) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.errors);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addThrowExpression(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor
+class _Visitor extends SimpleAstVisitor<void>
     with ControlFlowInFinallyBlockReporterMixin {
   @override
   final LintRule rule;
@@ -72,7 +71,7 @@ class _Visitor extends SimpleAstVisitor
   _Visitor(this.rule);
 
   @override
-  visitThrowExpression(ThrowExpression node) {
+  void visitThrowExpression(ThrowExpression node) {
     reportIfFinallyAncestorExists(node);
   }
 }

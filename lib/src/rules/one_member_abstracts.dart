@@ -35,7 +35,7 @@ abstract class Predicate {
 
 ''';
 
-class OneMemberAbstracts extends LintRule {
+class OneMemberAbstracts extends LintRule implements NodeLintRule {
   OneMemberAbstracts()
       : super(
             name: 'one_member_abstracts',
@@ -44,15 +44,19 @@ class OneMemberAbstracts extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addClassDeclaration(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
-  LintRule rule;
-  Visitor(this.rule);
+class _Visitor extends SimpleAstVisitor<void> {
+  final LintRule rule;
+
+  _Visitor(this.rule);
 
   @override
-  visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     if (node.isAbstract &&
         node.extendsClause == null &&
         node.members.length == 1) {

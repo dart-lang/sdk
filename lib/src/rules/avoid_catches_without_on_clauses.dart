@@ -37,27 +37,28 @@ on Exception catch(e) {
 
 ''';
 
-class AvoidCatchesWithoutOnClauses extends LintRule {
-  _Visitor _visitor;
+class AvoidCatchesWithoutOnClauses extends LintRule implements NodeLintRule {
   AvoidCatchesWithoutOnClauses()
       : super(
             name: 'avoid_catches_without_on_clauses',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addCatchClause(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
   _Visitor(this.rule);
 
   @override
-  visitCatchClause(CatchClause node) {
+  void visitCatchClause(CatchClause node) {
     if (node.onKeyword == null) {
       rule.reportLint(node);
     }

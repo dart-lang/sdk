@@ -50,27 +50,28 @@ bool _hasGetter(MethodDeclaration node) =>
 bool _hasInheritedSetter(MethodDeclaration node) =>
     DartTypeUtilities.lookUpInheritedConcreteSetter(node) != null;
 
-class AvoidSettersWithoutGetters extends LintRule {
-  _Visitor _visitor;
+class AvoidSettersWithoutGetters extends LintRule implements NodeLintRule {
   AvoidSettersWithoutGetters()
       : super(
             name: 'avoid_setters_without_getters',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addClassDeclaration(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
-  LintRule rule;
+class _Visitor extends SimpleAstVisitor<void> {
+  final LintRule rule;
+
   _Visitor(this.rule);
 
   @override
-  visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     final methods = node.members.where(isMethod);
     for (MethodDeclaration method in methods) {
       if (method.isSetter &&

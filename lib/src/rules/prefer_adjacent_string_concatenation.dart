@@ -28,27 +28,29 @@ raiseAlarm(
 
 ''';
 
-class PreferAdjacentStringConcatenation extends LintRule {
-  _Visitor _visitor;
+class PreferAdjacentStringConcatenation extends LintRule
+    implements NodeLintRule {
   PreferAdjacentStringConcatenation()
       : super(
             name: 'prefer_adjacent_string_concatenation',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addBinaryExpression(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
   _Visitor(this.rule);
 
   @override
-  visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryExpression(BinaryExpression node) {
     if (node.operator.type.lexeme == '+' &&
         node.leftOperand is StringLiteral &&
         node.rightOperand is StringLiteral) {

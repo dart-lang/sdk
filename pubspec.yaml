@@ -6,7 +6,7 @@ homepage: https://github.com/dart-lang/linter
 environment:
   sdk: '>=2.0.0-dev <2.0.0'
 dependencies:
-  analyzer: ^0.31.2-alpha.0
+  analyzer: ^0.31.2-alpha.2
   args: '>=1.4.0 <2.0.0'
   glob: ^1.0.3
   meta: ^1.0.2

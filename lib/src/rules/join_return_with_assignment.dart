@@ -48,19 +48,19 @@ Element _getElementFromReturnStatement(Statement node) {
   return null;
 }
 
-class JoinReturnWithAssignment extends LintRule {
-  _Visitor _visitor;
+class JoinReturnWithAssignment extends LintRule implements NodeLintRule {
   JoinReturnWithAssignment()
       : super(
             name: 'join_return_with_assignment',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addBlock(this, visitor);
+  }
 }
 
 class _AssignmentStatementVisitor extends SimpleAstVisitor {
@@ -92,12 +92,13 @@ class _AssignmentStatementVisitor extends SimpleAstVisitor {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
   _Visitor(this.rule);
 
   @override
-  visitBlock(Block node) {
+  void visitBlock(Block node) {
     final statements = node.statements;
     final length = statements.length;
     if (length < 2) {

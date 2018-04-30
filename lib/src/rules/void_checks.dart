@@ -29,7 +29,7 @@ void main() {
 ```
 ''';
 
-class VoidChecks extends LintRule {
+class VoidChecks extends LintRule implements NodeLintRule {
   VoidChecks()
       : super(
             name: 'void_checks',
@@ -38,29 +38,62 @@ class VoidChecks extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addCompilationUnit(this, visitor);
+    registry.addMethodInvocation(this, visitor);
+    registry.addInstanceCreationExpression(this, visitor);
+    registry.addAssignmentExpression(this, visitor);
+    registry.addReturnStatement(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
-  Visitor(this.rule);
-
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   InterfaceType _futureDynamicType;
   InterfaceType _futureOrDynamicType;
 
+  _Visitor(this.rule);
+
+  bool isTypeAcceptableWhenExpectingVoid(DartType type) {
+    if (type.isVoid) return true;
+    if (type.isDartCoreNull) return true;
+    if (type.isDartAsyncFuture &&
+        type is ParameterizedType &&
+        (type.typeArguments.first.isVoid ||
+            type.typeArguments.first.isDartCoreNull)) {
+      return true;
+    }
+    return false;
+  }
+
   @override
-  visitCompilationUnit(CompilationUnit node) {
+  void visitAssignmentExpression(AssignmentExpression node) {
+    final type = node.leftHandSide?.bestType;
+    if (!_isFunctionRef(type, node.rightHandSide)) {
+      _check(type, node.rightHandSide?.bestType, node);
+    }
+  }
+
+  @override
+  void visitCompilationUnit(CompilationUnit node) {
     final typeProvider = node.element.context.typeProvider;
     _futureDynamicType =
         typeProvider.futureType.instantiate([typeProvider.dynamicType]);
     _futureOrDynamicType =
         typeProvider.futureOrType.instantiate([typeProvider.dynamicType]);
-    return super.visitCompilationUnit(node);
   }
 
   @override
-  visitMethodInvocation(MethodInvocation node) {
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    final args = node.argumentList.arguments;
+    final parameters = node.staticElement.parameters;
+    _checkArgs(args, parameters);
+  }
+
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
     final type = node.staticInvokeType;
     if (type is FunctionType) {
       final args = node.argumentList.arguments;
@@ -70,22 +103,7 @@ class Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitInstanceCreationExpression(InstanceCreationExpression node) {
-    final args = node.argumentList.arguments;
-    final parameters = node.staticElement.parameters;
-    _checkArgs(args, parameters);
-  }
-
-  @override
-  visitAssignmentExpression(AssignmentExpression node) {
-    final type = node.leftHandSide?.bestType;
-    if (!_isFunctionRef(type, node.rightHandSide)) {
-      _check(type, node.rightHandSide?.bestType, node);
-    }
-  }
-
-  @override
-  visitReturnStatement(ReturnStatement node) {
+  void visitReturnStatement(ReturnStatement node) {
     final parent = node.getAncestor((e) =>
         e is FunctionExpression ||
         e is MethodDeclaration ||
@@ -99,6 +117,21 @@ class Visitor extends SimpleAstVisitor {
       _check(parent.element.returnType, node.expression?.bestType, node);
     } else if (parent is FunctionDeclaration) {
       _check(parent.element.returnType, node.expression?.bestType, node);
+    }
+  }
+
+  void _check(DartType expectedType, DartType type, AstNode node) {
+    if (expectedType == null || type == null) {
+      return;
+    } else if (expectedType.isVoid &&
+            !isTypeAcceptableWhenExpectingVoid(type) ||
+        expectedType.isDartAsyncFutureOr &&
+            (expectedType as InterfaceType).typeArguments.first.isVoid &&
+            !type.isAssignableTo(_futureDynamicType) &&
+            !type.isAssignableTo(_futureOrDynamicType)) {
+      rule.reportLint(node);
+    } else if (expectedType is FunctionType && type is FunctionType) {
+      _check(expectedType.returnType, type.returnType, node);
     }
   }
 
@@ -118,31 +151,4 @@ class Visitor extends SimpleAstVisitor {
       (arg is SimpleIdentifier ||
           arg is PrefixedIdentifier ||
           arg is FunctionExpression && arg.body is ExpressionFunctionBody);
-
-  void _check(DartType expectedType, DartType type, AstNode node) {
-    if (expectedType == null || type == null) {
-      return;
-    } else if (expectedType.isVoid &&
-            !isTypeAcceptableWhenExpectingVoid(type) ||
-        expectedType.isDartAsyncFutureOr &&
-            (expectedType as InterfaceType).typeArguments.first.isVoid &&
-            !type.isAssignableTo(_futureDynamicType) &&
-            !type.isAssignableTo(_futureOrDynamicType)) {
-      rule.reportLint(node);
-    } else if (expectedType is FunctionType && type is FunctionType) {
-      _check(expectedType.returnType, type.returnType, node);
-    }
-  }
-
-  bool isTypeAcceptableWhenExpectingVoid(DartType type) {
-    if (type.isVoid) return true;
-    if (type.isDartCoreNull) return true;
-    if (type.isDartAsyncFuture &&
-        type is ParameterizedType &&
-        (type.typeArguments.first.isVoid ||
-            type.typeArguments.first.isDartCoreNull)) {
-      return true;
-    }
-    return false;
-  }
 }

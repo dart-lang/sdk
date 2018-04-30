@@ -97,21 +97,20 @@ bool _isInvokedWithoutNullAwareOperator(Token token) =>
 
 /// Rule to lint consecutive invocations of methods or getters on the same
 /// reference that could be done with the cascade operator.
-class CascadeInvocations extends LintRule {
-  _Visitor _visitor;
-
+class CascadeInvocations extends LintRule implements NodeLintRule {
   /// Default constructor.
   CascadeInvocations()
       : super(
             name: 'cascade_invocations',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addBlock(this, visitor);
+  }
 }
 
 /// A CascadableExpression is an object that is built from an expression and
@@ -242,13 +241,13 @@ class _CascadableExpression {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);
 
   @override
-  visitBlock(Block node) {
+  void visitBlock(Block node) {
     if (node.statements.length < 2) {
       return;
     }

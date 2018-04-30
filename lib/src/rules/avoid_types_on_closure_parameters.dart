@@ -28,19 +28,19 @@ var names = people.map((person) => person.name);
 
 ''';
 
-class AvoidTypesOnClosureParameters extends LintRule {
-  _Visitor _visitor;
+class AvoidTypesOnClosureParameters extends LintRule implements NodeLintRule {
   AvoidTypesOnClosureParameters()
       : super(
             name: 'avoid_types_on_closure_parameters',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addFunctionExpression(this, visitor);
+  }
 }
 
 class AvoidTypesOnClosureParametersVisitor extends SimpleAstVisitor {
@@ -77,12 +77,13 @@ class AvoidTypesOnClosureParametersVisitor extends SimpleAstVisitor {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
   _Visitor(this.rule);
 
   @override
-  visitFunctionExpression(FunctionExpression node) {
+  void visitFunctionExpression(FunctionExpression node) {
     final visitor = new AvoidTypesOnClosureParametersVisitor(rule);
     visitor.visitFunctionExpression(node);
   }

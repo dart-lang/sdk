@@ -53,27 +53,29 @@ bool _isStaticMember(ClassMember classMember) {
   return false;
 }
 
-class AvoidClassesWithOnlyStaticMembers extends LintRule {
-  _Visitor _visitor;
+class AvoidClassesWithOnlyStaticMembers extends LintRule
+    implements NodeLintRule {
   AvoidClassesWithOnlyStaticMembers()
       : super(
             name: 'avoid_classes_with_only_static_members',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addClassDeclaration(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
   _Visitor(this.rule);
 
   @override
-  visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     if (node.members.isNotEmpty &&
         node.members.every(_isStaticMember) &&
         node.element.fields.any(_isNonConst)) {

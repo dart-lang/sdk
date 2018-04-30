@@ -1,9 +1,9 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
 const _desc = r'Separate the control structure expression from its statement.';
@@ -45,7 +45,7 @@ while (condition) i += 1;
 
 ''';
 
-class AlwaysPutControlBodyOnNewLine extends LintRule {
+class AlwaysPutControlBodyOnNewLine extends LintRule implements NodeLintRule {
   AlwaysPutControlBodyOnNewLine()
       : super(
             name: 'always_put_control_body_on_new_line',
@@ -54,39 +54,46 @@ class AlwaysPutControlBodyOnNewLine extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addDoStatement(this, visitor);
+    registry.addForEachStatement(this, visitor);
+    registry.addForStatement(this, visitor);
+    registry.addIfStatement(this, visitor);
+    registry.addWhileStatement(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  Visitor(this.rule);
+  _Visitor(this.rule);
 
   @override
-  visitIfStatement(IfStatement node) {
+  void visitDoStatement(DoStatement node) {
+    _checkNodeOnNextLine(node.body, node.doKeyword.end);
+  }
+
+  @override
+  void visitForEachStatement(ForEachStatement node) {
+    _checkNodeOnNextLine(node.body, node.rightParenthesis.end);
+  }
+
+  @override
+  void visitForStatement(ForStatement node) {
+    _checkNodeOnNextLine(node.body, node.rightParenthesis.end);
+  }
+
+  @override
+  void visitIfStatement(IfStatement node) {
     _checkNodeOnNextLine(node.thenStatement, node.rightParenthesis.end);
     if (node.elseKeyword != null && node.elseStatement is! IfStatement)
       _checkNodeOnNextLine(node.elseStatement, node.elseKeyword.end);
   }
 
   @override
-  visitForEachStatement(ForEachStatement node) {
+  void visitWhileStatement(WhileStatement node) {
     _checkNodeOnNextLine(node.body, node.rightParenthesis.end);
-  }
-
-  @override
-  visitForStatement(ForStatement node) {
-    _checkNodeOnNextLine(node.body, node.rightParenthesis.end);
-  }
-
-  @override
-  visitWhileStatement(WhileStatement node) {
-    _checkNodeOnNextLine(node.body, node.rightParenthesis.end);
-  }
-
-  @override
-  visitDoStatement(DoStatement node) {
-    _checkNodeOnNextLine(node.body, node.doKeyword.end);
   }
 
   void _checkNodeOnNextLine(AstNode node, int controlEnd) {

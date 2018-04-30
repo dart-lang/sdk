@@ -34,7 +34,7 @@ supports symbolic imports.
 
 ''';
 
-class LibraryNames extends LintRule {
+class LibraryNames extends LintRule implements NodeLintRule {
   LibraryNames()
       : super(
             name: 'library_names',
@@ -43,15 +43,19 @@ class LibraryNames extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addLibraryDirective(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
-  LintRule rule;
-  Visitor(this.rule);
+class _Visitor extends SimpleAstVisitor<void> {
+  final LintRule rule;
+
+  _Visitor(this.rule);
 
   @override
-  visitLibraryDirective(LibraryDirective node) {
+  void visitLibraryDirective(LibraryDirective node) {
     if (!isLowerCaseUnderScoreWithDots(node.name.toString())) {
       rule.reportLint(node.name);
     }

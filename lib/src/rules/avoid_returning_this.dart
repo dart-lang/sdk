@@ -48,27 +48,28 @@ bool _isReturnStatement(AstNode node) => node is ReturnStatement;
 bool _returnsThis(AstNode node) =>
     (node as ReturnStatement).expression is ThisExpression;
 
-class AvoidReturningThis extends LintRule {
-  _Visitor _visitor;
+class AvoidReturningThis extends LintRule implements NodeLintRule {
   AvoidReturningThis()
       : super(
             name: 'avoid_returning_this',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addMethodDeclaration(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
   _Visitor(this.rule);
 
   @override
-  visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     if (node.isOperator) return;
     if (node.element.returnType !=
             (node.parent as ClassDeclaration).element?.type ||

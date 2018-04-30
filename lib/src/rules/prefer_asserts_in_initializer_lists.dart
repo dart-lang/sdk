@@ -4,8 +4,7 @@
 
 library linter.src.rules.prefer_asserts_in_initializer_lists;
 
-import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/dart/ast/ast.dart' show AstVisitor;
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
@@ -38,7 +37,7 @@ class A {
 
 ''';
 
-class PreferAssertsInInitializerLists extends LintRule {
+class PreferAssertsInInitializerLists extends LintRule implements NodeLintRule {
   PreferAssertsInInitializerLists()
       : super(
             name: 'prefer_asserts_in_initializer_lists',
@@ -47,38 +46,18 @@ class PreferAssertsInInitializerLists extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
-}
-
-class Visitor extends SimpleAstVisitor {
-  final LintRule rule;
-
-  Visitor(this.rule);
-
-  @override
-  visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (node.element.isFactory) return;
-
-    final body = node.body;
-    if (body is BlockFunctionBody) {
-      for (final statement in body.block.statements) {
-        if (statement is! AssertStatement) break;
-
-        final assertVisitor = new _AssertVisitor(node.element);
-        statement.visitChildren(assertVisitor);
-        if (!assertVisitor.needInstance) {
-          rule.reportLintForToken(statement.beginToken);
-        }
-      }
-    }
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addConstructorDeclaration(this, visitor);
   }
 }
 
 class _AssertVisitor extends RecursiveAstVisitor {
-  _AssertVisitor(this.constructorElement);
-
   final ConstructorElement constructorElement;
+
   bool needInstance = false;
+
+  _AssertVisitor(this.constructorElement);
 
   ClassElement get classElement => constructorElement.enclosingElement;
 
@@ -101,11 +80,9 @@ class _AssertVisitor extends RecursiveAstVisitor {
                     (p as FieldFormalParameterElement).field.getter == element);
   }
 
-  bool _hasMethod(MethodElement element) {
-    final type = classElement.type;
-    final name = element.name;
-    return type.lookUpMethod(name, element.library) == element ||
-        type.lookUpInheritedMethod(name) == element;
+  @override
+  visitThisExpression(ThisExpression node) {
+    needInstance = true;
   }
 
   bool _hasAccessor(PropertyAccessorElement element) {
@@ -120,8 +97,34 @@ class _AssertVisitor extends RecursiveAstVisitor {
     }
   }
 
+  bool _hasMethod(MethodElement element) {
+    final type = classElement.type;
+    final name = element.name;
+    return type.lookUpMethod(name, element.library) == element ||
+        type.lookUpInheritedMethod(name) == element;
+  }
+}
+
+class _Visitor extends SimpleAstVisitor<void> {
+  final LintRule rule;
+
+  _Visitor(this.rule);
+
   @override
-  visitThisExpression(ThisExpression node) {
-    needInstance = true;
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (node.element.isFactory) return;
+
+    final body = node.body;
+    if (body is BlockFunctionBody) {
+      for (final statement in body.block.statements) {
+        if (statement is! AssertStatement) break;
+
+        final assertVisitor = new _AssertVisitor(node.element);
+        statement.visitChildren(assertVisitor);
+        if (!assertVisitor.needInstance) {
+          rule.reportLintForToken(statement.beginToken);
+        }
+      }
+    }
   }
 }

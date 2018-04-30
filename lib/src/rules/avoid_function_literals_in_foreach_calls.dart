@@ -30,27 +30,29 @@ people.forEach(print);
 ```
 ''';
 
-class AvoidFunctionLiteralInForeachMethod extends LintRule {
-  _Visitor _visitor;
+class AvoidFunctionLiteralInForeachMethod extends LintRule
+    implements NodeLintRule {
   AvoidFunctionLiteralInForeachMethod()
       : super(
             name: 'avoid_function_literals_in_foreach_calls',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addMethodInvocation(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
   _Visitor(this.rule);
 
   @override
-  visitMethodInvocation(MethodInvocation node) {
+  void visitMethodInvocation(MethodInvocation node) {
     if (node.target != null &&
         node.methodName.token.value() == 'forEach' &&
         node.argumentList.arguments.isNotEmpty &&

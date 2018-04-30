@@ -24,7 +24,8 @@ o.m();
 
 ''';
 
-class AvoidSingleCascadeInExpressionStatements extends LintRule {
+class AvoidSingleCascadeInExpressionStatements extends LintRule
+    implements NodeLintRule {
   AvoidSingleCascadeInExpressionStatements()
       : super(
             name: 'avoid_single_cascade_in_expression_statements',
@@ -33,16 +34,19 @@ class AvoidSingleCascadeInExpressionStatements extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addCascadeExpression(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
-  Visitor(this.rule);
-
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
+  _Visitor(this.rule);
+
   @override
-  visitCascadeExpression(CascadeExpression node) {
+  void visitCascadeExpression(CascadeExpression node) {
     if (node.cascadeSections.length == 1 &&
         node.parent is ExpressionStatement) {
       rule.reportLint(node);

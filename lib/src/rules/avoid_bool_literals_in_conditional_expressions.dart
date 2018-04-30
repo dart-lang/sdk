@@ -31,7 +31,8 @@ condition && boolExpression
 
 ''';
 
-class AvoidBoolLiteralsInConditionalExpressions extends LintRule {
+class AvoidBoolLiteralsInConditionalExpressions extends LintRule
+    implements NodeLintRule {
   AvoidBoolLiteralsInConditionalExpressions()
       : super(
             name: 'avoid_bool_literals_in_conditional_expressions',
@@ -40,16 +41,19 @@ class AvoidBoolLiteralsInConditionalExpressions extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addConditionalExpression(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
-  Visitor(this.rule);
-
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
+  _Visitor(this.rule);
+
   @override
-  visitConditionalExpression(ConditionalExpression node) {
+  void visitConditionalExpression(ConditionalExpression node) {
     final typeProvider = getCompilationUnit(node).element.context.typeProvider;
     final thenExp = node.thenExpression;
     final elseExp = node.elseExpression;

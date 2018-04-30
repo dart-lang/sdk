@@ -17,7 +17,15 @@ export 'package:analyzer/src/generated/resolver.dart'
     show InheritanceManager, TypeProvider, TypeSystem;
 export 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 export 'package:analyzer/src/lint/linter.dart'
-    show DartLinter, LintRule, Group, Maturity, LinterOptions, LintFilter;
+    show
+        DartLinter,
+        LintRule,
+        Group,
+        Maturity,
+        LinterOptions,
+        LintFilter,
+        NodeLintRegistry,
+        NodeLintRule;
 export 'package:analyzer/src/lint/project.dart'
     show DartProject, ProjectVisitor;
 export 'package:analyzer/src/lint/pub.dart' show PubspecVisitor, PSEntry;

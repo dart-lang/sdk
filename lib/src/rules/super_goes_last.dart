@@ -45,7 +45,7 @@ View(Style style, List children)
 
 ''';
 
-class SuperGoesLast extends LintRule {
+class SuperGoesLast extends LintRule implements NodeLintRule {
   SuperGoesLast()
       : super(
             name: 'super_goes_last',
@@ -54,16 +54,19 @@ class SuperGoesLast extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addConstructorDeclaration(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
-  LintRule rule;
+class _Visitor extends SimpleAstVisitor<void> {
+  final LintRule rule;
 
-  Visitor(this.rule);
+  _Visitor(this.rule);
 
   @override
-  visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
     var last = node.initializers.length - 1;
 
     for (int i = 0; i <= last; ++i) {

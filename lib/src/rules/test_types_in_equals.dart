@@ -69,7 +69,7 @@ class Bad {
 
 ''';
 
-class TestTypesInEquals extends LintRule {
+class TestTypesInEquals extends LintRule implements NodeLintRule {
   TestTypesInEquals()
       : super(
             name: 'test_types_in_equals',
@@ -78,16 +78,19 @@ class TestTypesInEquals extends LintRule {
             group: Group.errors);
 
   @override
-  AstVisitor getVisitor() => new _Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addAsExpression(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);
 
   @override
-  visitAsExpression(AsExpression node) {
+  void visitAsExpression(AsExpression node) {
     MethodDeclaration declaration =
         node.getAncestor((n) => n is MethodDeclaration);
     if (!_isEqualsOverride(declaration) ||

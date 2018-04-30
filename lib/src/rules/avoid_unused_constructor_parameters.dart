@@ -30,35 +30,19 @@ class BadTwo {
 
 ''';
 
-class AvoidUnusedConstructorParameters extends LintRule {
-  _Visitor _visitor;
+class AvoidUnusedConstructorParameters extends LintRule
+    implements NodeLintRule {
   AvoidUnusedConstructorParameters()
       : super(
             name: 'avoid_unused_constructor_parameters',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
-}
-
-class _Visitor extends SimpleAstVisitor {
-  final LintRule rule;
-  _Visitor(this.rule);
-
-  @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (node.redirectedConstructor != null) return;
-    if (node.externalKeyword != null) return;
-
-    final _constructorVisitor = new _ConstructorVisitor(rule, node);
-    node?.body?.visitChildren(_constructorVisitor);
-    node?.initializers?.forEach((i) => i.visitChildren(_constructorVisitor));
-
-    _constructorVisitor.unusedParameters.forEach(rule.reportLint);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addConstructorDeclaration(this, visitor);
   }
 }
 
@@ -75,5 +59,23 @@ class _ConstructorVisitor extends RecursiveAstVisitor {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     unusedParameters.removeWhere((p) => node.bestElement == p.element);
+  }
+}
+
+class _Visitor extends SimpleAstVisitor<void> {
+  final LintRule rule;
+
+  _Visitor(this.rule);
+
+  @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (node.redirectedConstructor != null) return;
+    if (node.externalKeyword != null) return;
+
+    final _constructorVisitor = new _ConstructorVisitor(rule, node);
+    node?.body?.visitChildren(_constructorVisitor);
+    node?.initializers?.forEach((i) => i.visitChildren(_constructorVisitor));
+
+    _constructorVisitor.unusedParameters.forEach(rule.reportLint);
   }
 }

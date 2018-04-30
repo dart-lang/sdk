@@ -25,7 +25,7 @@ m({a = 1})
 
 ''';
 
-class PreferEqualForDefaultValues extends LintRule {
+class PreferEqualForDefaultValues extends LintRule implements NodeLintRule {
   PreferEqualForDefaultValues()
       : super(
             name: 'prefer_equal_for_default_values',
@@ -34,16 +34,19 @@ class PreferEqualForDefaultValues extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addDefaultFormalParameter(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
-  Visitor(this.rule);
-
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
+  _Visitor(this.rule);
+
   @override
-  visitDefaultFormalParameter(DefaultFormalParameter node) {
+  void visitDefaultFormalParameter(DefaultFormalParameter node) {
     if (node.isNamed && node.separator?.type == TokenType.COLON) {
       rule.reportLintForToken(node.separator);
     }

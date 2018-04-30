@@ -51,19 +51,19 @@ class Box {
 
 ''';
 
-class UnnecessaryThis extends LintRule {
-  _Visitor _visitor;
+class UnnecessaryThis extends LintRule implements NodeLintRule {
   UnnecessaryThis()
       : super(
             name: 'unnecessary_this',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    var visitor = new _Visitor(this);
+    registry.addCompilationUnit(this, visitor);
+  }
 }
 
 class _UnnecessaryThisVisitor extends ScopedVisitor {
@@ -103,12 +103,13 @@ class _UnnecessaryThisVisitor extends ScopedVisitor {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
-  LintRule rule;
+class _Visitor extends SimpleAstVisitor<void> {
+  final LintRule rule;
+
   _Visitor(this.rule);
 
   @override
-  visitCompilationUnit(CompilationUnit node) {
+  void visitCompilationUnit(CompilationUnit node) {
     new _UnnecessaryThisVisitor(rule, node).visitCompilationUnit(node);
   }
 }

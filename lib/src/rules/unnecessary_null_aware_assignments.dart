@@ -31,7 +31,7 @@ x ??= null;
 
 ''';
 
-class UnnecessaryNullAwareAssignments extends LintRule {
+class UnnecessaryNullAwareAssignments extends LintRule implements NodeLintRule {
   UnnecessaryNullAwareAssignments()
       : super(
             name: 'unnecessary_null_aware_assignments',
@@ -40,16 +40,19 @@ class UnnecessaryNullAwareAssignments extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new _Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addAssignmentExpression(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);
 
   @override
-  visitAssignmentExpression(AssignmentExpression node) {
+  void visitAssignmentExpression(AssignmentExpression node) {
     if (node.operator.type == TokenType.QUESTION_QUESTION_EQ &&
         DartTypeUtilities.isNullLiteral(node.rightHandSide)) {
       rule.reportLint(node);

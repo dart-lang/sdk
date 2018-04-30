@@ -56,24 +56,28 @@ bool _isEmptyInterpolationString(AstNode node) =>
 /// step it creates an auxiliary String that takes O(amount of chars) to be
 /// computed, in otherwise using a StringBuffer the order is reduced to O(~N)
 /// so the bad case is N times slower than the good case.
-class UseStringBuffers extends LintRule {
-  _Visitor _visitor;
+class UseStringBuffers extends LintRule implements NodeLintRule {
   UseStringBuffers()
       : super(
             name: 'use_string_buffers',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addDoStatement(this, visitor);
+    registry.addForEachStatement(this, visitor);
+    registry.addForStatement(this, visitor);
+    registry.addWhileStatement(this, visitor);
+  }
 }
 
 class _IdentifierIsPrefixVisitor extends SimpleAstVisitor {
-  LintRule rule;
+  final LintRule rule;
   SimpleIdentifier identifier;
+
   _IdentifierIsPrefixVisitor(this.rule, this.identifier);
 
   @override
@@ -109,9 +113,40 @@ class _IdentifierIsPrefixVisitor extends SimpleAstVisitor {
   }
 }
 
+class _Visitor extends SimpleAstVisitor<void> {
+  final LintRule rule;
+
+  _Visitor(this.rule);
+
+  @override
+  void visitDoStatement(DoStatement node) {
+    final visitor = new _UseStringBufferVisitor(rule);
+    node.body.accept(visitor);
+  }
+
+  @override
+  void visitForEachStatement(ForEachStatement node) {
+    final visitor = new _UseStringBufferVisitor(rule);
+    node.body.accept(visitor);
+  }
+
+  @override
+  void visitForStatement(ForStatement node) {
+    final visitor = new _UseStringBufferVisitor(rule);
+    node.body.accept(visitor);
+  }
+
+  @override
+  void visitWhileStatement(WhileStatement node) {
+    final visitor = new _UseStringBufferVisitor(rule);
+    node.body.accept(visitor);
+  }
+}
+
 class _UseStringBufferVisitor extends SimpleAstVisitor {
-  LintRule rule;
+  final LintRule rule;
   final localElements = new Set<Element>();
+
   _UseStringBufferVisitor(this.rule);
 
   @override
@@ -154,34 +189,5 @@ class _UseStringBufferVisitor extends SimpleAstVisitor {
     for (final variable in node.variables.variables) {
       localElements.add(variable.element);
     }
-  }
-}
-
-class _Visitor extends SimpleAstVisitor {
-  final LintRule rule;
-  _Visitor(this.rule);
-
-  @override
-  visitDoStatement(DoStatement node) {
-    final visitor = new _UseStringBufferVisitor(rule);
-    node.body.accept(visitor);
-  }
-
-  @override
-  visitForEachStatement(ForEachStatement node) {
-    final visitor = new _UseStringBufferVisitor(rule);
-    node.body.accept(visitor);
-  }
-
-  @override
-  visitForStatement(ForStatement node) {
-    final visitor = new _UseStringBufferVisitor(rule);
-    node.body.accept(visitor);
-  }
-
-  @override
-  visitWhileStatement(WhileStatement node) {
-    final visitor = new _UseStringBufferVisitor(rule);
-    node.body.accept(visitor);
   }
 }

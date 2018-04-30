@@ -30,7 +30,7 @@ align(clearItems) {
 
 ''';
 
-class NonConstantIdentifierNames extends LintRule {
+class NonConstantIdentifierNames extends LintRule implements NodeLintRule {
   NonConstantIdentifierNames()
       : super(
             name: 'non_constant_identifier_names',
@@ -39,12 +39,20 @@ class NonConstantIdentifierNames extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addConstructorDeclaration(this, visitor);
+    registry.addFormalParameterList(this, visitor);
+    registry.addFunctionDeclaration(this, visitor);
+    registry.addMethodDeclaration(this, visitor);
+    registry.addVariableDeclaration(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  Visitor(this.rule);
+
+  _Visitor(this.rule);
 
   checkIdentifier(SimpleIdentifier id, {bool underscoresOk: false}) {
     if (underscoresOk && isJustUnderscores(id.name)) {
@@ -57,14 +65,14 @@ class Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (node.name != null) {
       checkIdentifier(node.name);
     }
   }
 
   @override
-  visitFormalParameterList(FormalParameterList node) {
+  void visitFormalParameterList(FormalParameterList node) {
     node.parameters.forEach((FormalParameter p) {
       if (p is! FieldFormalParameter && p.identifier != null) {
         checkIdentifier(p.identifier, underscoresOk: true);
@@ -73,23 +81,21 @@ class Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     checkIdentifier(node.name);
   }
 
   @override
-  visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     if (!node.isOperator) {
       checkIdentifier(node.name);
     }
   }
 
   @override
-  visitVariableDeclarationList(VariableDeclarationList node) {
-    node.variables.forEach((VariableDeclaration v) {
-      if (!v.isConst) {
-        checkIdentifier(v.name);
-      }
-    });
+  void visitVariableDeclaration(VariableDeclaration node) {
+    if (!node.isConst) {
+      checkIdentifier(node.name);
+    }
   }
 }

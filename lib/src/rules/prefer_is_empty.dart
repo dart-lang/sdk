@@ -6,14 +6,18 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:linter/src/analyzer.dart';
 
-const _desc = r'Use `isEmpty` for Iterables and Maps.';
+const alwaysFalse = 'Always false because length is always greater or equal 0.';
 
+const alwaysTrue = 'Always true because length is always greater or equal 0.';
+
+const useIsEmpty = 'Use isEmpty instead of length';
+const useIsNotEmpty = 'Use isNotEmpty instead of length';
+const _desc = r'Use `isEmpty` for Iterables and Maps.';
 const _details = r'''
 
 **DON'T** use `length` to see if a collection is empty.
@@ -39,10 +43,26 @@ if (words.length != 0) return words.join(' ');
 
 ''';
 
-const useIsNotEmpty = 'Use isNotEmpty instead of length';
-const useIsEmpty = 'Use isEmpty instead of length';
-const alwaysFalse = 'Always false because length is always greater or equal 0.';
-const alwaysTrue = 'Always true because length is always greater or equal 0.';
+class PreferIsEmpty extends LintRule implements NodeLintRule {
+  PreferIsEmpty()
+      : super(
+            name: 'prefer_is_empty',
+            description: _desc,
+            details: _details,
+            group: Group.style);
+
+  @override
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addSimpleIdentifier(this, visitor);
+  }
+
+  void reportLintWithDescription(AstNode node, String description) {
+    if (node != null) {
+      reporter.reportErrorForNode(new _LintCode(name, description), node, []);
+    }
+  }
+}
 
 class _LintCode extends LintCode {
   static final registry = <String, LintCode>{};
@@ -53,30 +73,13 @@ class _LintCode extends LintCode {
   _LintCode._(String name, String message) : super(name, message);
 }
 
-class PreferIsEmpty extends LintRule {
-  PreferIsEmpty()
-      : super(
-            name: 'prefer_is_empty',
-            description: _desc,
-            details: _details,
-            group: Group.style);
-
-  @override
-  AstVisitor getVisitor() => new Visitor(this);
-
-  void reportLintWithDescription(AstNode node, String description) {
-    if (node != null) {
-      reporter.reportErrorForNode(new _LintCode(name, description), node, []);
-    }
-  }
-}
-
-class Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final PreferIsEmpty rule;
-  Visitor(this.rule);
+
+  _Visitor(this.rule);
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier identifier) {
+  void visitSimpleIdentifier(SimpleIdentifier identifier) {
     // Should be "length".
     Element propertyElement = identifier.bestElement;
     if (propertyElement?.name != 'length') {

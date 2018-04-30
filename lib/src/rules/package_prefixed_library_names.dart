@@ -49,7 +49,8 @@ library my_package.src.private;
 bool matchesOrIsPrefixedBy(String name, String prefix) =>
     name == prefix || name.startsWith('$prefix.');
 
-class PackagePrefixedLibraryNames extends LintRule implements ProjectVisitor {
+class PackagePrefixedLibraryNames extends LintRule
+    implements ProjectVisitor, NodeLintRule {
   DartProject project;
 
   PackagePrefixedLibraryNames()
@@ -63,7 +64,10 @@ class PackagePrefixedLibraryNames extends LintRule implements ProjectVisitor {
   ProjectVisitor getProjectVisitor() => this;
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addLibraryDirective(this, visitor);
+  }
 
   @override
   visit(DartProject project) {
@@ -71,14 +75,14 @@ class PackagePrefixedLibraryNames extends LintRule implements ProjectVisitor {
   }
 }
 
-class Visitor extends SimpleAstVisitor {
-  PackagePrefixedLibraryNames rule;
-  Visitor(this.rule);
+class _Visitor extends SimpleAstVisitor<void> {
+  final PackagePrefixedLibraryNames rule;
+
+  _Visitor(this.rule);
 
   DartProject get project => rule.project;
-
   @override
-  visitLibraryDirective(LibraryDirective node) {
+  void visitLibraryDirective(LibraryDirective node) {
     // If no project info is set, bail early.
     // https://github.com/dart-lang/linter/issues/154
     if (project == null) {

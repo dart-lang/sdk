@@ -47,23 +47,24 @@ super method,
 
 ''';
 
-class UnnecessaryOverrides extends LintRule {
-  _Visitor _visitor;
+class UnnecessaryOverrides extends LintRule implements NodeLintRule {
   UnnecessaryOverrides()
       : super(
             name: 'unnecessary_overrides',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addMethodDeclaration(this, visitor);
+  }
 }
 
 abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
-  LintRule rule;
+  final LintRule rule;
+
   ExecutableElement inheritedMethod;
   MethodDeclaration declaration;
 
@@ -149,6 +150,32 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
       return second.isNamed;
     }
     throw new ArgumentError('Unhandled kind of parameter.');
+  }
+}
+
+class _Visitor extends SimpleAstVisitor<void> {
+  final LintRule rule;
+
+  _Visitor(this.rule);
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    if (node.isStatic) {
+      return;
+    }
+    if (node.operatorKeyword != null) {
+      final visitor = new _UnnecessaryOperatorOverrideVisitor(rule);
+      visitor.visitMethodDeclaration(node);
+    } else if (node.isGetter) {
+      final visitor = new _UnnecessaryGetterOverrideVisitor(rule);
+      visitor.visitMethodDeclaration(node);
+    } else if (node.isSetter) {
+      final visitor = new _UnnecessarySetterOverrideVisitor(rule);
+      visitor.visitMethodDeclaration(node);
+    } else {
+      final visitor = new _UnnecessaryMethodOverrideVisitor(rule);
+      visitor.visitMethodDeclaration(node);
+    }
   }
 }
 
@@ -247,31 +274,6 @@ class _UnnecessarySetterOverrideVisitor
   _visitPropertyAccess(PropertyAccess node) {
     if (node.propertyName.bestElement == inheritedMethod) {
       node.target?.accept(this);
-    }
-  }
-}
-
-class _Visitor extends SimpleAstVisitor {
-  final LintRule rule;
-  _Visitor(this.rule);
-
-  @override
-  visitMethodDeclaration(MethodDeclaration node) {
-    if (node.isStatic) {
-      return;
-    }
-    if (node.operatorKeyword != null) {
-      final visitor = new _UnnecessaryOperatorOverrideVisitor(rule);
-      visitor.visitMethodDeclaration(node);
-    } else if (node.isGetter) {
-      final visitor = new _UnnecessaryGetterOverrideVisitor(rule);
-      visitor.visitMethodDeclaration(node);
-    } else if (node.isSetter) {
-      final visitor = new _UnnecessarySetterOverrideVisitor(rule);
-      visitor.visitMethodDeclaration(node);
-    } else {
-      final visitor = new _UnnecessaryMethodOverrideVisitor(rule);
-      visitor.visitMethodDeclaration(node);
     }
   }
 }

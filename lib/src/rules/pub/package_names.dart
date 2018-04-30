@@ -33,7 +33,8 @@ class PubPackageNames extends LintRule {
 }
 
 class Visitor extends PubspecVisitor {
-  LintRule rule;
+  final LintRule rule;
+
   Visitor(this.rule);
 
   @override

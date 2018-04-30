@@ -32,7 +32,8 @@ typedef F = void Function();
 
 ''';
 
-class PreferGenericFunctionTypeAliases extends LintRule {
+class PreferGenericFunctionTypeAliases extends LintRule
+    implements NodeLintRule {
   PreferGenericFunctionTypeAliases()
       : super(
             name: 'prefer_generic_function_type_aliases',
@@ -41,16 +42,19 @@ class PreferGenericFunctionTypeAliases extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addFunctionTypeAlias(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
-  Visitor(this.rule);
-
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
+  _Visitor(this.rule);
+
   @override
-  visitFunctionTypeAlias(FunctionTypeAlias node) {
+  void visitFunctionTypeAlias(FunctionTypeAlias node) {
     rule.reportLint(node);
   }
 }

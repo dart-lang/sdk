@@ -45,7 +45,7 @@ class Lucky extends Cat {
 
 ''';
 
-class AnnotateOverrides extends LintRule {
+class AnnotateOverrides extends LintRule implements NodeLintRule {
   AnnotateOverrides()
       : super(
             name: 'annotate_overrides',
@@ -54,14 +54,20 @@ class AnnotateOverrides extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addCompilationUnit(this, visitor);
+    registry.addFieldDeclaration(this, visitor);
+    registry.addMethodDeclaration(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
+  final LintRule rule;
+
   InheritanceManager manager;
 
-  final LintRule rule;
-  Visitor(this.rule);
+  _Visitor(this.rule);
 
   ExecutableElement getOverriddenMember(Element member) {
     if (member == null || manager == null) {
@@ -77,7 +83,7 @@ class Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitCompilationUnit(CompilationUnit node) {
+  void visitCompilationUnit(CompilationUnit node) {
     LibraryElement library = node == null
         ? null
         : resolutionMap.elementDeclaredByCompilationUnit(node)?.library;
@@ -85,7 +91,7 @@ class Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitFieldDeclaration(FieldDeclaration node) {
+  void visitFieldDeclaration(FieldDeclaration node) {
     for (VariableDeclaration field in node.fields.variables) {
       if (field?.element != null &&
           !resolutionMap
@@ -100,7 +106,7 @@ class Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     if (node?.element != null &&
         !resolutionMap.elementDeclaredByMethodDeclaration(node).hasOverride) {
       ExecutableElement member = getOverriddenMember(node.element);

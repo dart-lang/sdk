@@ -6,13 +6,18 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
+const alwaysFalse =
+    'Always false because indexOf is always greater or equal -1.';
+
+const alwaysTrue = 'Always true because indexOf is always greater or equal -1.';
+
+const useContains = 'Use contains instead of indexOf';
 const _desc = r'Use contains for `List` and `String` instances.';
 
 const _details = r'''
@@ -36,13 +41,7 @@ if (lunchBox.indexOf('sandwich') == -1 return 'so hungry...';
 
 ''';
 
-const alwaysFalse =
-    'Always false because indexOf is always greater or equal -1.';
-const alwaysTrue = 'Always true because indexOf is always greater or equal -1.';
-
-const useContains = 'Use contains instead of indexOf';
-
-class PreferContainsOverIndexOf extends LintRule {
+class PreferContainsOverIndexOf extends LintRule implements NodeLintRule {
   PreferContainsOverIndexOf()
       : super(
             name: 'prefer_contains',
@@ -51,7 +50,10 @@ class PreferContainsOverIndexOf extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new _Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addSimpleIdentifier(this, visitor);
+  }
 
   void reportLintWithDescription(AstNode node, String description) {
     if (node != null) {
@@ -60,15 +62,25 @@ class PreferContainsOverIndexOf extends LintRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+/// TODO create common MultiMessageLintCode class
+class _LintCode extends LintCode {
+  static final registry = <String, LintCode>{};
+
+  factory _LintCode(String name, String message) => registry.putIfAbsent(
+      name + message, () => new _LintCode._(name, message));
+
+  _LintCode._(String name, String message) : super(name, message);
+}
+
+class _Visitor extends SimpleAstVisitor<void> {
   final PreferContainsOverIndexOf rule;
 
   _Visitor(this.rule);
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier identifier) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     // Should be "indexOf".
-    final Element propertyElement = identifier.bestElement;
+    final Element propertyElement = node.bestElement;
     if (propertyElement?.name != 'indexOf') {
       return;
     }
@@ -76,8 +88,8 @@ class _Visitor extends SimpleAstVisitor {
     AstNode indexOfAccess;
     InterfaceType type;
 
-    final AstNode parent = identifier.parent;
-    if (parent is MethodInvocation && identifier == parent.methodName) {
+    final AstNode parent = node.parent;
+    if (parent is MethodInvocation && node == parent.methodName) {
       indexOfAccess = parent;
       if (parent.target?.bestType is! InterfaceType) {
         return;
@@ -195,14 +207,4 @@ class _Visitor extends SimpleAstVisitor {
         return type;
     }
   }
-}
-
-// TODO create common MultiMessageLintCode class
-class _LintCode extends LintCode {
-  static final registry = <String, LintCode>{};
-
-  factory _LintCode(String name, String message) => registry.putIfAbsent(
-      name + message, () => new _LintCode._(name, message));
-
-  _LintCode._(String name, String message) : super(name, message);
 }

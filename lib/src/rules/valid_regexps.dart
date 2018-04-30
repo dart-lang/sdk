@@ -30,7 +30,7 @@ print(new RegExp('[(]').hasMatch('foo()'));
 
 ''';
 
-class ValidRegExps extends LintRule {
+class ValidRegExps extends LintRule implements NodeLintRule {
   ValidRegExps()
       : super(
             name: 'valid_regexps',
@@ -39,15 +39,19 @@ class ValidRegExps extends LintRule {
             group: Group.errors);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addInstanceCreationExpression(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  Visitor(this.rule);
+
+  _Visitor(this.rule);
 
   @override
-  visitInstanceCreationExpression(InstanceCreationExpression node) {
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
     ClassElement element = resolutionMap
         .staticElementForConstructorReference(node)
         ?.enclosingElement;

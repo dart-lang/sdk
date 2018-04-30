@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -35,7 +34,7 @@ assert(() {
 
 ''';
 
-class PreferBoolInAsserts extends LintRule {
+class PreferBoolInAsserts extends LintRule implements NodeLintRule {
   PreferBoolInAsserts()
       : super(
             name: 'prefer_bool_in_asserts',
@@ -44,25 +43,28 @@ class PreferBoolInAsserts extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addCompilationUnit(this, visitor);
+    registry.addAssertStatement(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
+  _Visitor(this.rule);
+
   DartType boolType;
-
-  Visitor(this.rule);
-
   @override
-  visitAssertStatement(AssertStatement node) {
+  void visitAssertStatement(AssertStatement node) {
     if (!_unbound(node.condition.bestType).isAssignableTo(boolType)) {
       rule.reportLint(node.condition);
     }
   }
 
   @override
-  visitCompilationUnit(CompilationUnit node) {
+  void visitCompilationUnit(CompilationUnit node) {
     boolType = node.element.context.typeProvider.boolType;
   }
 

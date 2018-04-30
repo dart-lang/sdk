@@ -58,16 +58,18 @@ bool _isParameterizedMethodInvocation(
 
 typedef bool _InterfaceTypePredicate(InterfaceType type);
 
-/// Base class for visitors used in rules where we want to lint about invoking
+/// Base class for visitor used in rules where we want to lint about invoking
 /// methods on generic classes where the parameter is unrelated to the parameter
 /// type of the class. Extending this visitor is as simple as knowing the method,
 /// class and library that uniquely define the target, i.e. implement only
 /// [definition] and [methodName].
-abstract class UnrelatedTypesVisitor extends SimpleAstVisitor {
+abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
   final LintRule rule;
-  UnrelatedTypesVisitor(this.rule);
+
+  UnrelatedTypesProcessors(this.rule);
 
   InterfaceTypeDefinition get definition;
+
   String get methodName;
 
   @override

@@ -42,7 +42,7 @@ bool isJavaStyle(Comment comment) {
   return comment.tokens[0].lexeme.startsWith('/**');
 }
 
-class SlashForDocComments extends LintRule {
+class SlashForDocComments extends LintRule implements NodeLintRule {
   SlashForDocComments()
       : super(
             name: 'slash_for_doc_comments',
@@ -51,12 +51,26 @@ class SlashForDocComments extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addClassDeclaration(this, visitor);
+    registry.addClassTypeAlias(this, visitor);
+    registry.addConstructorDeclaration(this, visitor);
+    registry.addEnumConstantDeclaration(this, visitor);
+    registry.addEnumDeclaration(this, visitor);
+    registry.addFieldDeclaration(this, visitor);
+    registry.addFunctionDeclaration(this, visitor);
+    registry.addFunctionTypeAlias(this, visitor);
+    registry.addLibraryDirective(this, visitor);
+    registry.addMethodDeclaration(this, visitor);
+    registry.addTopLevelVariableDeclaration(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
-  LintRule rule;
-  Visitor(this.rule);
+class _Visitor extends SimpleAstVisitor<void> {
+  final LintRule rule;
+
+  _Visitor(this.rule);
 
   checkComment(Comment comment) {
     if (comment != null && isJavaStyle(comment)) {
@@ -65,57 +79,57 @@ class Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     checkComment(node.documentationComment);
   }
 
   @override
-  visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias(ClassTypeAlias node) {
     checkComment(node.documentationComment);
   }
 
   @override
-  visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
     checkComment(node.documentationComment);
   }
 
   @override
-  visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     checkComment(node.documentationComment);
   }
 
   @override
-  visitEnumDeclaration(EnumDeclaration node) {
+  void visitEnumDeclaration(EnumDeclaration node) {
     checkComment(node.documentationComment);
   }
 
   @override
-  visitFieldDeclaration(FieldDeclaration node) {
+  void visitFieldDeclaration(FieldDeclaration node) {
     checkComment(node.documentationComment);
   }
 
   @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     checkComment(node.documentationComment);
   }
 
   @override
-  visitFunctionTypeAlias(FunctionTypeAlias node) {
+  void visitFunctionTypeAlias(FunctionTypeAlias node) {
     checkComment(node.documentationComment);
   }
 
   @override
-  visitLibraryDirective(LibraryDirective node) {
+  void visitLibraryDirective(LibraryDirective node) {
     checkComment(node.documentationComment);
   }
 
   @override
-  visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     checkComment(node.documentationComment);
   }
 
   @override
-  visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     checkComment(node.documentationComment);
   }
 }

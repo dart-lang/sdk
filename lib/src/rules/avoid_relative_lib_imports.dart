@@ -37,7 +37,7 @@ import '../lib/baz.dart';
 
 ''';
 
-class AvoidRelativeLibImports extends LintRule {
+class AvoidRelativeLibImports extends LintRule implements NodeLintRule {
   AvoidRelativeLibImports()
       : super(
             name: 'avoid_relative_lib_imports',
@@ -46,19 +46,16 @@ class AvoidRelativeLibImports extends LintRule {
             group: Group.errors);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addImportDirective(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  Visitor(this.rule);
 
-  @override
-  visitImportDirective(ImportDirective node) {
-    if (isRelativeLibImport(node)) {
-      rule.reportLint(node.uri);
-    }
-  }
+  _Visitor(this.rule);
 
   bool isRelativeLibImport(ImportDirective node) {
     try {
@@ -71,5 +68,12 @@ class Visitor extends SimpleAstVisitor {
       // Ignore.
     }
     return false;
+  }
+
+  @override
+  void visitImportDirective(ImportDirective node) {
+    if (isRelativeLibImport(node)) {
+      rule.reportLint(node.uri);
+    }
   }
 }

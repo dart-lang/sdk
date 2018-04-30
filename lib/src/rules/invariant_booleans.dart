@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/boolean_expression_utilities.dart';
@@ -104,21 +103,20 @@ Iterable<Element> _getElementsInExpression(Expression node) => DartTypeUtilities
     .map(DartTypeUtilities.getCanonicalElementFromIdentifier)
     .where((e) => e != null);
 
-class InvariantBooleans extends LintRule {
-  _Visitor _visitor;
-
+class InvariantBooleans extends LintRule implements NodeLintRule {
   InvariantBooleans()
       : super(
             name: 'invariant_booleans',
             description: _desc,
             details: _details,
             group: Group.errors,
-            maturity: Maturity.stable) {
-    _visitor = new _Visitor(this);
-  }
+            maturity: Maturity.stable);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    var visitor = new _InvariantBooleansVisitor(this);
+    registry.addCompilationUnit(this, visitor);
+  }
 }
 
 /// The only purpose of this rule is to report the second node on a contradictory
@@ -173,16 +171,5 @@ class _InvariantBooleansVisitor extends ConditionScopeVisitor {
     Iterable<Expression> conjunctions = getTrueExpressions(elements).toSet();
     Iterable<Expression> negations = getFalseExpressions(elements).toSet();
     return new TestedExpressions(node, conjunctions, negations);
-  }
-}
-
-class _Visitor extends SimpleAstVisitor {
-  final LintRule rule;
-
-  _Visitor(this.rule);
-
-  @override
-  visitCompilationUnit(CompilationUnit node) {
-    new _InvariantBooleansVisitor(rule).visitCompilationUnit(node);
   }
 }

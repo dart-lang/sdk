@@ -69,27 +69,28 @@ Element _getElementInCondition(Expression rawExpression) {
   return null;
 }
 
-class PreferConditionalAssignment extends LintRule {
-  _Visitor _visitor;
+class PreferConditionalAssignment extends LintRule implements NodeLintRule {
   PreferConditionalAssignment()
       : super(
             name: 'prefer_conditional_assignment',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addIfStatement(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
   _Visitor(this.rule);
 
   @override
-  visitIfStatement(IfStatement node) {
+  void visitIfStatement(IfStatement node) {
     if (node.elseStatement != null) {
       return;
     }

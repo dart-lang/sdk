@@ -171,7 +171,7 @@ typedef _Predicate _PredicateBuilder(VariableDeclaration v);
 
 typedef void _VisitVariableDeclaration(VariableDeclaration node);
 
-abstract class LeakDetectorVisitor extends SimpleAstVisitor {
+abstract class LeakDetectorProcessors extends SimpleAstVisitor<void> {
   static final _variablePredicateBuilders = <_PredicateBuilder>[_hasReturn];
   static final _fieldPredicateBuilders = <_PredicateBuilder>[
     _hasConstructorFieldInitializers,
@@ -180,7 +180,7 @@ abstract class LeakDetectorVisitor extends SimpleAstVisitor {
 
   final LintRule rule;
 
-  LeakDetectorVisitor(this.rule);
+  LeakDetectorProcessors(this.rule);
 
   @protected
   Map<DartTypePredicate, String> get predicates;

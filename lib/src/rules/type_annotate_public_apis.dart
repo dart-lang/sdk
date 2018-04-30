@@ -48,7 +48,7 @@ With types, all of this is clarified.
 
 ''';
 
-class TypeAnnotatePublicApis extends LintRule {
+class TypeAnnotatePublicApis extends LintRule implements NodeLintRule {
   TypeAnnotatePublicApis()
       : super(
             name: 'type_annotate_public_apis',
@@ -57,25 +57,30 @@ class TypeAnnotatePublicApis extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addFieldDeclaration(this, visitor);
+    registry.addFunctionDeclaration(this, visitor);
+    registry.addFunctionTypeAlias(this, visitor);
+    registry.addMethodDeclaration(this, visitor);
+    registry.addTopLevelVariableDeclaration(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
-  _VisitorHelper v;
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  Visitor(this.rule) {
-    v = new _VisitorHelper(rule);
-  }
+  final _VisitorHelper v;
 
+  _Visitor(this.rule) : v = new _VisitorHelper(rule);
   @override
-  visitFieldDeclaration(FieldDeclaration node) {
+  void visitFieldDeclaration(FieldDeclaration node) {
     if (node.fields.type == null) {
       node.fields.accept(v);
     }
   }
 
   @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     if (!isPrivate(node.name)) {
       if (node.returnType == null && !node.isSetter) {
         rule.reportLint(node.name);
@@ -86,7 +91,7 @@ class Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitFunctionTypeAlias(FunctionTypeAlias node) {
+  void visitFunctionTypeAlias(FunctionTypeAlias node) {
     if (!isPrivate(node.name)) {
       if (node.returnType == null) {
         rule.reportLint(node.name);
@@ -97,7 +102,7 @@ class Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     if (!isPrivate(node.name)) {
       if (node.returnType == null && !node.isSetter) {
         rule.reportLint(node.name);
@@ -108,7 +113,7 @@ class Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     if (node.variables.type == null) {
       node.variables.accept(v);
     }
@@ -117,6 +122,7 @@ class Visitor extends SimpleAstVisitor {
 
 class _VisitorHelper extends RecursiveAstVisitor {
   final LintRule rule;
+
   _VisitorHelper(this.rule);
 
   @override

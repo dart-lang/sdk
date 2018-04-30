@@ -48,7 +48,7 @@ try {
 
 ''';
 
-class EmptyCatches extends LintRule {
+class EmptyCatches extends LintRule implements NodeLintRule {
   EmptyCatches()
       : super(
             name: 'empty_catches',
@@ -57,12 +57,16 @@ class EmptyCatches extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addCatchClause(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  Visitor(this.rule);
+
+  _Visitor(this.rule);
 
   @override
   void visitCatchClause(CatchClause node) {

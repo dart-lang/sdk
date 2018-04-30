@@ -65,27 +65,28 @@ Iterable<Element> _getParameters(ConstructorDeclaration node) =>
 Element _getRightElement(AssignmentExpression assignment) => DartTypeUtilities
     .getCanonicalElementFromIdentifier(assignment.rightHandSide);
 
-class PreferInitializingFormals extends LintRule {
-  _Visitor _visitor;
+class PreferInitializingFormals extends LintRule implements NodeLintRule {
   PreferInitializingFormals()
       : super(
             name: 'prefer_initializing_formals',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addConstructorDeclaration(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
   _Visitor(this.rule);
 
   @override
-  visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
     final parameters = _getParameters(node);
     final parametersUsedOnce = new Set<Element>();
     final parametersUsedMoreThanOnce = new Set<Element>();

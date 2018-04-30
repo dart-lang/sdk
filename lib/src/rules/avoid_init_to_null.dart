@@ -54,7 +54,7 @@ class LazyId {
 
 ''';
 
-class AvoidInitToNull extends LintRule {
+class AvoidInitToNull extends LintRule implements NodeLintRule {
   AvoidInitToNull()
       : super(
             name: 'avoid_init_to_null',
@@ -63,25 +63,30 @@ class AvoidInitToNull extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addVariableDeclaration(this, visitor);
+    registry.addDefaultFormalParameter(this, visitor);
+  }
 }
 
-class Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  Visitor(this.rule);
+
+  _Visitor(this.rule);
 
   @override
-  visitVariableDeclaration(VariableDeclaration node) {
-    if (!node.isConst &&
-        !node.isFinal &&
-        DartTypeUtilities.isNullLiteral(node.initializer)) {
+  void visitDefaultFormalParameter(DefaultFormalParameter node) {
+    if (DartTypeUtilities.isNullLiteral(node.defaultValue)) {
       rule.reportLint(node);
     }
   }
 
   @override
-  visitDefaultFormalParameter(DefaultFormalParameter node) {
-    if (DartTypeUtilities.isNullLiteral(node.defaultValue)) {
+  void visitVariableDeclaration(VariableDeclaration node) {
+    if (!node.isConst &&
+        !node.isFinal &&
+        DartTypeUtilities.isNullLiteral(node.initializer)) {
       rule.reportLint(node);
     }
   }

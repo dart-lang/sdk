@@ -60,24 +60,24 @@ bool _isNonFinalField(AstNode node) =>
         (_isNonFinalElement(node.methodName.bestElement))) ||
     (node is SimpleIdentifier && _isNonFinalElement(node.bestElement));
 
-class UnnecessaryLambdas extends LintRule {
-  _Visitor _visitor;
-
+class UnnecessaryLambdas extends LintRule implements NodeLintRule {
   UnnecessaryLambdas()
       : super(
             name: 'unnecessary_lambdas',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addFunctionExpression(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
   _Visitor(this.rule);
 
   @override

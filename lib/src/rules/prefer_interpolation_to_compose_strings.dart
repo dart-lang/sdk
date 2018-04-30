@@ -29,7 +29,8 @@ and read than concatenation.
 
 ''';
 
-class PreferInterpolationToComposeStrings extends LintRule {
+class PreferInterpolationToComposeStrings extends LintRule
+    implements NodeLintRule {
   PreferInterpolationToComposeStrings()
       : super(
             name: 'prefer_interpolation_to_compose_strings',
@@ -38,17 +39,21 @@ class PreferInterpolationToComposeStrings extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => new _Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry) {
+    final visitor = new _Visitor(this);
+    registry.addBinaryExpression(this, visitor);
+  }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
   final skippedNodes = new Set<AstNode>();
 
   _Visitor(this.rule);
 
   @override
-  visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryExpression(BinaryExpression node) {
     if (skippedNodes.contains(node)) {
       return;
     }
