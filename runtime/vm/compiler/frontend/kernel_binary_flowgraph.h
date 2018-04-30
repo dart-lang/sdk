@@ -1704,6 +1704,10 @@ class ConstantHelper {
   void InstantiateTypeArguments(const Class& receiver_class,
                                 TypeArguments* type_arguments);
 
+  // If [index] has `dart:vm_service` as a parent and we are skipping the VM
+  // service library, this method returns `true`, otherwise `false`.
+  bool ShouldSkipConstant(NameIndex index);
+
   NameIndex skip_vmservice_library_;
   ActiveClass* active_class_;
   StreamingFlowGraphBuilder& builder_;
