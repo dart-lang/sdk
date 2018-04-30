@@ -197,7 +197,7 @@ template("libdart_library") {
   if (defined(invoker.extra_deps)) {
     extra_deps += invoker.extra_deps
   }
-  static_library(target_name) {
+  target(dart_component_kind, target_name) {
     configs += [
                  ":dart_arch_config",
                  ":dart_config",

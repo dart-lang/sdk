@@ -171,15 +171,38 @@ DEFINE_RUNTIME_ENTRY(RangeError, 2) {
 }
 
 DEFINE_RUNTIME_ENTRY(NullError, 0) {
-  // TODO(dartbug.com/30480): Fill in arguments of NoSuchMethodError.
+  DartFrameIterator iterator(thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
+  const StackFrame* caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame->IsDartFrame());
+  const Code& code = Code::Handle(zone, caller_frame->LookupDartCode());
+  const uword pc_offset = caller_frame->pc() - code.PayloadStart();
 
-  const String& member_name = String::Handle(String::New("???"));
+  const CodeSourceMap& map =
+      CodeSourceMap::Handle(zone, code.code_source_map());
+  ASSERT(!map.IsNull());
 
-  const Smi& invocation_type =
-      Smi::Handle(Smi::New(InvocationMirror::EncodeType(
-          InvocationMirror::kDynamic, InvocationMirror::kMethod)));
+  CodeSourceMapReader reader(map, Array::null_array(),
+                             Function::null_function());
+  const intptr_t name_index = reader.GetNullCheckNameIndexAt(pc_offset);
+  RELEASE_ASSERT(name_index >= 0);
 
-  const Array& args = Array::Handle(Array::New(6));
+  const ObjectPool& pool = ObjectPool::Handle(zone, code.object_pool());
+  const String& member_name =
+      String::CheckedHandle(zone, pool.ObjectAt(name_index));
+
+  InvocationMirror::Kind kind = InvocationMirror::kMethod;
+  if (Field::IsGetterName(member_name)) {
+    kind = InvocationMirror::kGetter;
+  } else if (Field::IsSetterName(member_name)) {
+    kind = InvocationMirror::kSetter;
+  }
+
+  const Smi& invocation_type = Smi::Handle(
+      zone,
+      Smi::New(InvocationMirror::EncodeType(InvocationMirror::kDynamic, kind)));
+
+  const Array& args = Array::Handle(zone, Array::New(6));
   args.SetAt(0, /* instance */ Object::null_object());
   args.SetAt(1, member_name);
   args.SetAt(2, invocation_type);

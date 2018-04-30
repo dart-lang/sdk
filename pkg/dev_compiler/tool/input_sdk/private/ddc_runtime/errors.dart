@@ -36,9 +36,9 @@ assertFailed(message) {
   throw new AssertionErrorImpl(message);
 }
 
-throwCyclicInitializationError([String message]) {
+throwCyclicInitializationError([Object field]) {
   if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
-  throw new CyclicInitializationError(message);
+  throw new CyclicInitializationError(field);
 }
 
 throwNullValueError() {

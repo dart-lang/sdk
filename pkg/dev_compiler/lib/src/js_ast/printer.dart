@@ -1190,7 +1190,8 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
       spaceOut();
       out("{}");
     } else {
-      blockBody(fun.body, needsSeparation: false, needsNewline: false);
+      spaceOut();
+      blockOut(fun.body, false, false);
     }
     localNamer.leaveScope();
   }

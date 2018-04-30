@@ -1887,6 +1887,10 @@ void Assembler::LoadClassById(Register result, Register class_id) {
   const intptr_t offset =
       Isolate::class_table_offset() + ClassTable::table_offset();
   movq(result, Address(result, offset));
+  ASSERT(kSizeOfClassPairLog2 == 4);
+  // TIMES_16 is not a real scale factor on x64, so we double the class id
+  // and use TIMES_8.
+  addq(class_id, class_id);
   movq(result, Address(result, class_id, TIMES_8, 0));
 }
 

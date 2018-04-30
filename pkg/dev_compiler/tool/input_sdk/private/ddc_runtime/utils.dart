@@ -69,14 +69,17 @@ defineLazyField(to, name, desc) => JS('', '''(() => {
   let value = null;
   $desc.get = function() {
     if (init == null) return value;
-
-    // Compute and store the value, guarding against reentry.
     let f = init;
-    init = () => $throwCyclicInitializationError($name);
+    init = $throwCyclicInitializationError;
+    if (f === init) f($name); // throw cycle error
     try {
-      return value = f();
-    } finally {
+      value = f();
       init = null;
+      return value;
+    } catch (e) {
+      init = null;
+      value = null;
+      throw e;
     }
   };
   $desc.configurable = true;

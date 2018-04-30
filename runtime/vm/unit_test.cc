@@ -94,8 +94,8 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
   api_flags.use_dart_frontend = FLAG_use_dart_frontend;
   Dart_Isolate isolate = NULL;
   if (len == 0) {
-    isolate = Dart_CreateIsolate(name, NULL, data_buffer, instr_buffer,
-                                 &api_flags, data, &err);
+    isolate = Dart_CreateIsolate(name, NULL, data_buffer, instr_buffer, NULL,
+                                 NULL, &api_flags, data, &err);
   } else {
     kernel::Program* program = reinterpret_cast<kernel::Program*>(
         Dart_ReadKernelBinary(data_buffer, len, NoopRelease));
@@ -594,11 +594,6 @@ Dart_Handle TestCase::ReloadTestKernel(const void* kernel) {
 
 Dart_Handle TestCase::LoadCoreTestScript(const char* script,
                                          Dart_NativeEntryResolver resolver) {
-  if (FLAG_use_dart_frontend) {
-    // Sets a flag in the CFE to not throw an error if `dart:_internal` is
-    // imported from a non-internal library.
-    KernelIsolate::AllowDartInternalImport();
-  }
   return LoadTestScript(script, resolver, CORELIB_TEST_URI);
 }
 

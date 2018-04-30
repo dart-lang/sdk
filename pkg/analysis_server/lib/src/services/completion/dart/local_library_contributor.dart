@@ -55,11 +55,9 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
       }
     }
     if (optype.includeConstructorSuggestions) {
-      int relevance = optype.constructorSuggestionsFilter(
+      int relevance = optype.returnValueSuggestionsFilter(
           element.type, DART_RELEVANCE_DEFAULT);
-      if (relevance != null) {
-        _addConstructorSuggestions(element, relevance);
-      }
+      _addConstructorSuggestions(element, relevance);
     }
     if (optype.includeReturnValueSuggestions) {
       if (element.isEnum) {

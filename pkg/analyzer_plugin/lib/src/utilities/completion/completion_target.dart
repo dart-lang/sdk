@@ -543,7 +543,10 @@ class CompletionTarget {
     // If the current token is synthetic, then check the previous token
     // because it may have been dropped from the parse tree
     Token previous = node.findPrevious(token);
-    if (offset < previous.end) {
+    if (previous == null) {
+      // support dangling expression completion, where previous may be null.
+      return false;
+    } else if (offset < previous.end) {
       return true;
     } else if (offset == previous.end) {
       return token.type.isKeyword || previous.type == TokenType.IDENTIFIER;

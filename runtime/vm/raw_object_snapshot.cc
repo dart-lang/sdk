@@ -70,6 +70,8 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
                        kAsReference);
     cls.StorePointer(&cls.raw_ptr()->dependent_code_, Array::null());
     ASSERT(!cls.IsInFullSnapshot());
+    // Also sets instance size in class table.
+    reader->isolate()->class_table()->SetAt(cls.id(), cls.raw());
   } else {
     cls ^= reader->ReadClassId(object_id);
     ASSERT((kind == Snapshot::kMessage) || cls.IsInFullSnapshot());

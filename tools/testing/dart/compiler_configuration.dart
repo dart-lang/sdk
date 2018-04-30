@@ -1004,6 +1004,8 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
     }
     if (_isStrong) {
       arguments.add('--strong');
+    } else {
+      arguments.add('--no-strong');
     }
 
     // Since this is not a real compilation, no artifacts are produced.

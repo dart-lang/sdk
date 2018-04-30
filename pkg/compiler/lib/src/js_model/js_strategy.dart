@@ -699,6 +699,13 @@ class ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
     return new DeferredGlobalConstantValue(referenced, constant.unit);
   }
 
+  ConstantValue visitInstantiation(InstantiationConstantValue constant, _) {
+    ConstantValue function = constant.function.accept(this, null);
+    List<DartType> typeArguments =
+        typeConverter.convertTypes(constant.typeArguments);
+    return new InstantiationConstantValue(typeArguments, function);
+  }
+
   List<ConstantValue> _handleValues(List<ConstantValue> values) {
     List<ConstantValue> result;
     for (int i = 0; i < values.length; i++) {
@@ -721,6 +728,8 @@ class TypeConverter extends DartTypeVisitor<DartType, Null> {
       <FunctionTypeVariable, FunctionTypeVariable>{};
 
   DartType convert(DartType type) => type.accept(this, null);
+
+  List<DartType> convertTypes(List<DartType> types) => _visitList(types);
 
   DartType visitVoidType(VoidType type, _) => type;
   DartType visitDynamicType(DynamicType type, _) => type;

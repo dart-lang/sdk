@@ -19,7 +19,6 @@ is_not_class1_negative_test: Fail # Negative, uses `a is "A"`.
 is_not_class4_negative_test: Fail # Negative, uses `a is A is A`.
 issue1578_negative_test: Fail # Negative, is line noise.
 issue_1751477_test: Skip # Times out: 9 levels, exponential blowup => 430 secs.
-label8_negative_test: Fail # Negative, uses misplaced label.
 list_literal_negative_test: Fail # Negative, uses `new List<int>[1, 2]`.
 map_literal_negative_test: Fail # Negative, uses `new Map<int>{..}`.
 new_expression1_negative_test: Fail # Negative, uses `new id`.

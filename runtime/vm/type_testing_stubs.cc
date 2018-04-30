@@ -184,7 +184,7 @@ TypeTestingStubFinder::TypeTestingStubFinder()
 // TODO(kustermann): Use sorting/hashtables to speed this up.
 RawInstructions* TypeTestingStubFinder::LookupByAddresss(
     uword entry_point) const {
-  // First test the 2 common ones:
+  // First test the 4 common ones:
   code_ = StubCode::DefaultTypeTest_entry()->code();
   if (entry_point == code_.UncheckedEntryPoint()) {
     return code_.instructions();
@@ -208,10 +208,18 @@ RawInstructions* TypeTestingStubFinder::LookupByAddresss(
 
 const char* TypeTestingStubFinder::StubNameFromAddresss(
     uword entry_point) const {
-  // First test the 2 common ones:
+  // First test the 4 common ones:
   code_ = StubCode::DefaultTypeTest_entry()->code();
   if (entry_point == code_.UncheckedEntryPoint()) {
     return "TypeTestingStub_Default";
+  }
+  code_ = StubCode::TopTypeTypeTest_entry()->code();
+  if (entry_point == code_.UncheckedEntryPoint()) {
+    return "TypeTestingStub_Top";
+  }
+  code_ = StubCode::TypeRefTypeTest_entry()->code();
+  if (entry_point == code_.UncheckedEntryPoint()) {
+    return "TypeTestingStub_Ref";
   }
   code_ = StubCode::UnreachableTypeTest_entry()->code();
   if (entry_point == code_.UncheckedEntryPoint()) {

@@ -113,9 +113,20 @@ String getAnnotationName(NamedNode node, bool test(Expression value)) {
 ///
 /// Given teh node for `@MyAnnotation('FooBar')` this will return `'FooBar'`.
 String getNameFromAnnotation(ConstructorInvocation node) {
-  if (node != null && node.arguments.positional.isNotEmpty) {
-    var first = _followConstFields(node.arguments.positional[0]);
-    if (first is StringLiteral) return first.value;
+  if (node != null) {
+    Expression first;
+    if (node.arguments.named.isNotEmpty) {
+      first = node.arguments.named
+          .firstWhere((n) => n.name == 'name', orElse: () => null)
+          ?.value;
+    }
+    if (node.arguments.positional.isNotEmpty) {
+      first ??= node.arguments.positional[0];
+    }
+    if (first != null) {
+      first = _followConstFields(first);
+      if (first is StringLiteral) return first.value;
+    }
   }
   return null;
 }
@@ -295,4 +306,36 @@ bool isUnsupportedFactoryConstructor(Procedure node) {
     }
   }
   return false;
+}
+
+/// Returns the redirecting factory constructors for the enclosing class,
+/// if the field [f] is storing that information, otherwise returns `null`.
+Iterable<Member> getRedirectingFactories(Field f) {
+  // TODO(jmesserly): this relies on implementation details in Kernel
+  if (f.name.name == "_redirecting#") {
+    assert(f.isStatic);
+    var list = f.initializer as ListLiteral;
+    return list.expressions.map((e) => (e as StaticGet).target);
+  }
+  return null;
+}
+
+/// Gets the real supertype of [c] and the list of [mixins] in reverse
+/// application order (mixins will appear before ones they override).
+///
+/// This is used to ignore synthetic mixin application classes.
+///
+// TODO(jmesserly): consider replacing this with Kernel's mixin unrolling once
+// we don't have the Analyzer backend to maintain.
+Class getSuperclassAndMixins(Class c, List<Class> mixins) {
+  assert(mixins.isEmpty);
+
+  var mixedInClass = c.mixedInClass;
+  if (mixedInClass != null) mixins.add(mixedInClass);
+
+  var sc = c.superclass;
+  for (; sc.isSyntheticMixinImplementation; sc = sc.superclass) {
+    mixins.add(sc.mixedInClass);
+  }
+  return sc;
 }

@@ -499,6 +499,9 @@ class RawObject {
   void Validate(Isolate* isolate) const;
   bool FindObject(FindObjectVisitor* visitor);
 
+  // This function may access the class-ID in the header, but it cannot access
+  // the actual class object, because the sliding compactor uses this function
+  // while the class objects are being moved.
   intptr_t VisitPointers(ObjectPointerVisitor* visitor) {
     // Fall back to virtual variant for predefined classes
     intptr_t class_id = GetClassId();
@@ -731,6 +734,7 @@ class RawObject {
   friend class VerifyCanonicalVisitor;
   friend class ObjectGraph::Stack;  // GetClassId
   friend class Precompiler;         // GetClassId
+  friend class ObjectOffsetTrait;   // GetClassId
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);

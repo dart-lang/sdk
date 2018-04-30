@@ -589,13 +589,14 @@ void FlowGraphCompiler::AddSlowPathCode(SlowPathCode* code) {
 
 void FlowGraphCompiler::GenerateDeferredCode() {
   for (intptr_t i = 0; i < slow_path_code_.length(); i++) {
+    SlowPathCode* const slow_path = slow_path_code_[i];
     const CombinedCodeStatistics::EntryCounter stats_tag =
         CombinedCodeStatistics::SlowPathCounterFor(
-            slow_path_code_[i]->instruction()->tag());
+            slow_path->instruction()->tag());
     SpecialStatsBegin(stats_tag);
     BeginCodeSourceRange();
-    slow_path_code_[i]->GenerateCode(this);
-    EndCodeSourceRange(TokenPosition::kDeferredSlowPath);
+    slow_path->GenerateCode(this);
+    EndCodeSourceRange(slow_path->instruction()->token_pos());
     SpecialStatsEnd(stats_tag);
   }
   for (intptr_t i = 0; i < deopt_infos_.length(); i++) {
@@ -639,6 +640,13 @@ void FlowGraphCompiler::AddCurrentDescriptor(RawPcDescriptors::Kind kind,
                                              TokenPosition token_pos) {
   AddDescriptor(kind, assembler()->CodeSize(), deopt_id, token_pos,
                 CurrentTryIndex());
+}
+
+void FlowGraphCompiler::AddNullCheck(intptr_t pc_offset,
+                                     TokenPosition token_pos,
+                                     intptr_t null_check_name_idx) {
+  code_source_map_builder_->NoteNullCheck(pc_offset, token_pos,
+                                          null_check_name_idx);
 }
 
 void FlowGraphCompiler::AddStaticCallTarget(const Function& func) {

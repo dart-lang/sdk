@@ -8,9 +8,9 @@ import 'package:analyzer/src/dart/element/member.dart' show TypeParameterMember;
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer/element_helpers.dart';
+import '../compiler/js_names.dart' as JS;
 import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
-import 'js_names.dart' as JS;
 
 Set<TypeParameterElement> freeTypeParameters(DartType t) {
   var result = new Set<TypeParameterElement>();

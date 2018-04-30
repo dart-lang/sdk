@@ -1045,6 +1045,10 @@ static bool CheckIsolate(Isolate* isolate) {
 }
 
 void Profiler::DumpStackTrace(void* context) {
+  if (context == NULL) {
+    DumpStackTrace();
+    return;
+  }
 #if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) || defined(HOST_OS_ANDROID)
   ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(context);
   mcontext_t mcontext = ucontext->uc_mcontext;

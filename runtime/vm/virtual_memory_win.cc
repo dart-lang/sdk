@@ -62,20 +62,24 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
 }
 
 VirtualMemory::~VirtualMemory() {
-  if (!vm_owns_region() || (reserved_.size() == 0)) {
+  // Note that the size of the reserved region might be set to 0 by
+  // Truncate(0, true) but that does not actually release the mapping
+  // itself. The only way to release the mapping is to invoke VirtualFree
+  // with original base pointer and MEM_RELEASE.
+  if (!vm_owns_region()) {
     return;
   }
   if (VirtualFree(reserved_.pointer(), 0, MEM_RELEASE) == 0) {
-    FATAL("VirtualFree failed");
+    FATAL1("VirtualFree failed: Error code %d\n", GetLastError());
   }
 }
 
 bool VirtualMemory::FreeSubSegment(void* address,
                                    intptr_t size) {
-  // On Windows only the entire segment returned by VirtualAlloc
-  // can be freed. Therefore we will have to waste these unused
-  // virtual memory sub-segments.
-  return false;
+  if (VirtualFree(address, size, MEM_DECOMMIT) == 0) {
+    FATAL1("VirtualFree failed: Error code %d\n", GetLastError());
+  }
+  return true;
 }
 
 void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {

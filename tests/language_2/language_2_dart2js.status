@@ -282,7 +282,7 @@ covariance_type_parameter_test/01: Crash # NoSuchMethodError: The method 'hasSub
 covariance_type_parameter_test/02: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 covariance_type_parameter_test/03: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 covariant_override/runtime_check_test: RuntimeError
-covariant_subtyping_test: CompileTimeError
+covariant_subtyping_test: RuntimeError
 cyclic_constructor_test/01: Crash # Stack Overflow
 deferred_constraints_constants_test/default_argument2: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_constants_test/none: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
@@ -1038,7 +1038,6 @@ bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
 bit_operations_test: RuntimeError
 branch_canonicalization_test: RuntimeError
-branches_test: Crash # 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart': Failed assertion: line 441 pos 16: 'identical(combiner.arguments.positional[0], rhs)': is not true.
 call_method_implicit_tear_off_implements_function_test/02: RuntimeError
 call_method_implicit_tear_off_implements_function_test/04: RuntimeError
 call_method_implicit_tear_off_test/02: RuntimeError
@@ -1093,7 +1092,7 @@ covariance_type_parameter_test/01: RuntimeError
 covariance_type_parameter_test/02: RuntimeError
 covariance_type_parameter_test/03: RuntimeError
 covariant_override/tear_off_type_test: RuntimeError
-covariant_subtyping_test: CompileTimeError
+covariant_subtyping_test: RuntimeError
 cyclic_constructor_test/01: Crash # Issue 30856
 cyclic_type_test/00: RuntimeError
 cyclic_type_test/02: RuntimeError
@@ -1413,7 +1412,6 @@ null_test/none: RuntimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError, OK # non JS number semantics
 operator2_negative_test: Crash # 'file:*/pkg/compiler/lib/src/kernel/env.dart': Failed assertion: line 322 pos 16: '!name.contains('#')': is not true.
-operator_test: Crash # 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart': Failed assertion: line 441 pos 16: 'identical(combiner.arguments.positional[0], rhs)': is not true.
 overridden_no_such_method_test: RuntimeError
 override_field_method1_negative_test: Fail
 override_field_method2_negative_test: Fail
@@ -1446,7 +1444,6 @@ partial_tearoff_instantiation_test/05: Crash # Assertion failure: kind=special,m
 partial_tearoff_instantiation_test/06: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 partial_tearoff_instantiation_test/07: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 partial_tearoff_instantiation_test/08: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
-prefix5_negative_test: Crash # 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart': Failed assertion: line 441 pos 16: 'identical(combiner.arguments.positional[0], rhs)': is not true.
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
@@ -1716,7 +1713,7 @@ covariance_type_parameter_test/01: RuntimeError
 covariance_type_parameter_test/02: RuntimeError
 covariance_type_parameter_test/03: RuntimeError
 covariant_override/tear_off_type_test: RuntimeError
-covariant_subtyping_test: CompileTimeError
+covariant_subtyping_test: RuntimeError
 cyclic_constructor_test/01: Crash # Issue 30856
 cyclic_type_variable_test/01: MissingCompileTimeError
 cyclic_type_variable_test/02: MissingCompileTimeError
@@ -2192,6 +2189,7 @@ wrong_number_type_arguments_test/none: Pass
 
 [ $compiler == dart2js && $fasta && $strong ]
 const_constructor3_test/04: MissingCompileTimeError # OK - Subtype check uses JS number semantics.
+covariant_subtyping_test: Crash
 ct_const_test: RuntimeError
 
 [ $compiler == dart2js && $fasta && !$strong ]

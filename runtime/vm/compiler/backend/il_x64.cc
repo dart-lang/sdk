@@ -287,7 +287,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
                                        const Location& destination,
                                        Register tmp) {
   if (destination.IsRegister()) {
-    if (representation() == kUnboxedInt32 ||
+    if (representation() == kUnboxedUint32 ||
         representation() == kUnboxedInt64) {
       const int64_t value = value_.IsSmi() ? Smi::Cast(value_).Value()
                                            : Mint::Cast(value_).value();
@@ -320,19 +320,14 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
     __ movsd(destination.ToStackSlotAddress(), XMM0);
   } else {
     ASSERT(destination.IsStackSlot());
-    if (value_.IsSmi() && representation() == kUnboxedInt32) {
-      __ movl(destination.ToStackSlotAddress(),
-              Immediate(Smi::Cast(value_).Value()));
-    } else {
-      __ StoreObject(destination.ToStackSlotAddress(), value_);
-    }
+    __ StoreObject(destination.ToStackSlotAddress(), value_);
   }
 }
 
 LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps = IsUnboxedSignedIntegerConstant() ? 0 : 1;
+  const intptr_t kNumTemps = IsUnboxedIntegerConstant() ? 0 : 1;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   switch (representation()) {
@@ -340,7 +335,7 @@ LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
       locs->set_out(0, Location::RequiresFpuRegister());
       locs->set_temp(0, Location::RequiresRegister());
       break;
-    case kUnboxedInt32:
+    case kUnboxedUint32:
     case kUnboxedInt64:
       locs->set_out(0, Location::RequiresRegister());
       break;
@@ -355,7 +350,7 @@ void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The register allocator drops constant definitions that have no uses.
   if (!locs()->out(0).IsInvalid()) {
     const Register scratch =
-        IsUnboxedSignedIntegerConstant() ? kNoRegister : locs()->temp(0).reg();
+        IsUnboxedIntegerConstant() ? kNoRegister : locs()->temp(0).reg();
     EmitMoveToLocation(compiler, locs()->out(0), scratch);
   }
 }
@@ -609,9 +604,9 @@ static Condition EmitInt64ComparisonOp(FlowGraphCompiler* compiler,
       constant = right.constant_instruction();
     }
 
-    if (constant->IsUnboxedSignedIntegerConstant()) {
+    if (constant->IsUnboxedIntegerConstant()) {
       __ cmpq(left.reg(),
-              Immediate(constant->GetUnboxedSignedIntegerConstantValue()));
+              Immediate(constant->GetUnboxedIntegerConstantValue()));
     } else {
       ASSERT(constant->representation() == kTagged);
       __ CompareObject(left.reg(), right.constant());
@@ -1074,11 +1069,13 @@ CompileType LoadIndexedInstr::ComputeType() const {
     case kTwoByteStringCid:
     case kExternalOneByteStringCid:
     case kExternalTwoByteStringCid:
-    case kTypedDataInt32ArrayCid:
-    case kTypedDataUint32ArrayCid:
       return CompileType::FromCid(kSmiCid);
 
+    case kTypedDataInt32ArrayCid:
+    case kTypedDataUint32ArrayCid:
     case kTypedDataInt64ArrayCid:
+      // TODO(erikcorry): Perhaps this can return a faster type.  See
+      // https://github.com/dart-lang/sdk/issues/32582
       return CompileType::Int();
 
     default:
@@ -1103,10 +1100,9 @@ Representation LoadIndexedInstr::representation() const {
     case kExternalOneByteStringCid:
     case kExternalTwoByteStringCid:
       return kTagged;
-    case kTypedDataInt32ArrayCid:
-      return kUnboxedInt32;
     case kTypedDataUint32ArrayCid:
       return kUnboxedUint32;
+    case kTypedDataInt32ArrayCid:
     case kTypedDataInt64ArrayCid:
       return kUnboxedInt64;
     case kTypedDataFloat32ArrayCid:
@@ -1191,34 +1187,35 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  if ((representation() == kUnboxedUint32) ||
-      (representation() == kUnboxedInt32)) {
+  if ((representation() == kUnboxedUint32)) {
+    ASSERT(class_id() == kTypedDataUint32ArrayCid);
+    if ((index_scale() == 1) && index.IsRegister()) {
+      __ SmiUntag(index.reg());
+    }
+    Register result = locs()->out(0).reg();
+    __ movl(result, element_address);
+    return;
+  }
+
+  if (representation() == kUnboxedInt64) {
     if ((index_scale() == 1) && index.IsRegister()) {
       __ SmiUntag(index.reg());
     }
     Register result = locs()->out(0).reg();
     switch (class_id()) {
       case kTypedDataInt32ArrayCid:
-        ASSERT(representation() == kUnboxedInt32);
-        __ movsxd(result, element_address);
-        break;
-      case kTypedDataUint32ArrayCid:
-        ASSERT(representation() == kUnboxedUint32);
+        ASSERT(representation() == kUnboxedInt64);
         __ movl(result, element_address);
+        __ movsxd(result, result);
+        __ AssertValidSignExtendedInt32(result);
+        break;
+      case kTypedDataInt64ArrayCid:
+        ASSERT(representation() == kUnboxedInt64);
+        __ movq(result, element_address);
         break;
       default:
         UNREACHABLE();
     }
-    return;
-  }
-
-  if (representation() == kUnboxedInt64) {
-    ASSERT(class_id() == kTypedDataInt64ArrayCid);
-    if ((index_scale() == 1) && index.IsRegister()) {
-      __ SmiUntag(index.reg());
-    }
-    Register result = locs()->out(0).reg();
-    __ movq(result, element_address);
     return;
   }
 
@@ -1261,16 +1258,24 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* LoadCodeUnitsInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
+  const bool might_box = (representation() == kTagged) && !can_pack_into_smi();
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  const intptr_t kNumTemps = might_box ? 2 : 0;
+  LocationSummary* summary = new (zone) LocationSummary(
+      zone, kNumInputs, kNumTemps,
+      might_box ? LocationSummary::kCallOnSlowPath : LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
   // The smi index is either untagged (element size == 1), or it is left smi
   // tagged (for all element sizes > 1).
   summary->set_in(1, index_scale() == 1 ? Location::WritableRegister()
                                         : Location::RequiresRegister());
   summary->set_out(0, Location::RequiresRegister());
+
+  if (might_box) {
+    summary->set_temp(0, Location::RequiresRegister());
+    summary->set_temp(1, Location::RequiresRegister());
+  }
+
   return summary;
 }
 
@@ -1302,7 +1307,6 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         default:
           UNREACHABLE();
       }
-      __ SmiTag(result);
       break;
     case kTwoByteStringCid:
     case kExternalTwoByteStringCid:
@@ -1316,11 +1320,33 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         default:
           UNREACHABLE();
       }
-      __ SmiTag(result);
       break;
     default:
       UNREACHABLE();
       break;
+  }
+  if (representation_ == kTagged) {
+    if (can_pack_into_smi()) {
+      __ SmiTag(result);
+    } else {
+      // If the value cannot fit in a smi then allocate a mint box for it.
+      Register temp = locs()->temp(0).reg();
+      Register temp2 = locs()->temp(1).reg();
+      // Temp register needs to be manually preserved on allocation slow-path.
+      locs()->live_registers()->Add(locs()->temp(0), kUnboxedInt32);
+
+      ASSERT(temp != result);
+      __ MoveRegister(temp, result);
+      __ SmiTag(result);
+
+      Label done;
+      __ TestImmediate(temp, Immediate(0xc0000000ll));
+      __ j(ZERO, &done);
+      BoxAllocationSlowPath::Allocate(compiler, this, compiler->mint_class(),
+                                      result, temp2);
+      __ movq(FieldAddress(result, Mint::value_offset()), temp);
+      __ Bind(&done);
+    }
   }
 }
 
@@ -1340,10 +1366,9 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid:
       return kTagged;
-    case kTypedDataInt32ArrayCid:
-      return kUnboxedInt32;
     case kTypedDataUint32ArrayCid:
       return kUnboxedUint32;
+    case kTypedDataInt32ArrayCid:
     case kTypedDataInt64ArrayCid:
       return kUnboxedInt64;
     case kTypedDataFloat32ArrayCid:
@@ -2711,27 +2736,32 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
   if (locs.in(1).IsConstant()) {
     const Object& constant = locs.in(1).constant();
     ASSERT(constant.IsSmi());
-    // shlq operation masks the count to 6 bits.
-    const intptr_t kCountLimit = 0x3F;
+    // shll operation masks the count to 5 bits.
+    const intptr_t kCountLimit = 0x1F;
     const intptr_t value = Smi::Cast(constant).Value();
     ASSERT((0 < value) && (value < kCountLimit));
     if (shift_left->can_overflow()) {
       if (value == 1) {
         // Use overflow flag.
-        __ shlq(left, Immediate(1));
+        __ shll(left, Immediate(1));
         __ j(OVERFLOW, deopt);
+        __ movsxd(left, left);
         return;
       }
       // Check for overflow.
       Register temp = locs.temp(0).reg();
       __ movq(temp, left);
-      __ shlq(left, Immediate(value));
-      __ sarq(left, Immediate(value));
+      __ shll(left, Immediate(value));
+      __ sarl(left, Immediate(value));
+      __ movsxd(left, left);
       __ cmpq(left, temp);
       __ j(NOT_EQUAL, deopt);  // Overflow.
     }
     // Shift for result now we know there is no overflow.
     __ shlq(left, Immediate(value));
+    if (shift_left->is_truncating()) {
+      __ movsxd(left, left);
+    }
     return;
   }
 
@@ -2742,23 +2772,32 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     // TODO(srdjan): Implement code below for is_truncating().
     // If left is constant, we know the maximal allowed size for right.
     const Object& obj = shift_left->left()->BoundConstant();
-    if (obj.IsSmi()) {
-      const intptr_t left_int = Smi::Cast(obj).Value();
-      if (left_int == 0) {
-        __ CompareImmediate(right, Immediate(0));
-        __ j(NEGATIVE, deopt);
-        return;
-      }
-      const intptr_t max_right = kSmiBits - Utils::HighestBit(left_int);
-      const bool right_needs_check =
-          !RangeUtils::IsWithin(right_range, 0, max_right - 1);
-      if (right_needs_check) {
-        __ CompareImmediate(
-            right, Immediate(reinterpret_cast<int64_t>(Smi::New(max_right))));
-        __ j(ABOVE_EQUAL, deopt);
-      }
-      __ SmiUntag(right);
-      __ shlq(left, right);
+    // Even though we have a non-Smi constant on the left, we might still emit
+    // a Smi op here.  In that case the Smi check above will have deopted, so
+    // we can't reach this point. Emit a breakpoint to be sure.
+    if (!obj.IsSmi()) {
+      __ int3();
+      return;
+    }
+    const intptr_t left_int = Smi::Cast(obj).Value();
+    if (left_int == 0) {
+      __ CompareImmediate(right, Immediate(0));
+      __ j(NEGATIVE, deopt);
+      return;
+    }
+    const intptr_t max_right = kSmiBits - Utils::HighestBit(left_int);
+    const bool right_needs_check =
+        !RangeUtils::IsWithin(right_range, 0, max_right - 1);
+    if (right_needs_check) {
+      __ CompareImmediate(
+          right, Immediate(reinterpret_cast<int64_t>(Smi::New(max_right))));
+      __ j(ABOVE_EQUAL, deopt);
+    }
+    __ AssertSmiInRange(right);
+    __ SmiUntag(right);
+    __ shlq(left, right);
+    if (shift_left->is_truncating()) {
+      __ movsxd(left, left);
     }
     return;
   }
@@ -2782,12 +2821,17 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       __ xorq(left, left);
       __ jmp(&done, Assembler::kNearJump);
       __ Bind(&is_not_zero);
+      __ AssertSmiInRange(right);
       __ SmiUntag(right);
       __ shlq(left, right);
       __ Bind(&done);
     } else {
+      __ AssertSmiInRange(right);
       __ SmiUntag(right);
       __ shlq(left, right);
+    }
+    if (shift_left->is_truncating()) {
+      __ movsxd(left, left);
     }
   } else {
     if (right_needs_check) {
@@ -2798,16 +2842,18 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     }
     // Left is not a constant.
     Register temp = locs.temp(0).reg();
-    // Check if count too large for handling it inlined.
-    __ movq(temp, left);
+    // Check if count is too large for handling it inlined.
+    __ movl(temp, left);
+    __ AssertSmiInRange(right);
     __ SmiUntag(right);
     // Overflow test (preserve temp and right);
-    __ shlq(left, right);
-    __ sarq(left, right);
-    __ cmpq(left, temp);
+    __ shll(temp, right);
+    __ sarl(temp, right);
+    __ cmpl(temp, left);
     __ j(NOT_EQUAL, deopt);  // Overflow.
     // Shift for result now we know there is no overflow.
     __ shlq(left, right);
+    ASSERT(!shift_left->is_truncating());
   }
 }
 
@@ -2907,19 +2953,23 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   switch (op_kind()) {
     case Token::kADD:
       __ movq(result, left);
-      __ addq(result, right);
+      __ addl(result, right);
       __ j(OVERFLOW, slow_path->entry_label());
+      __ movsxd(result, result);
       break;
     case Token::kSUB:
       __ movq(result, left);
-      __ subq(result, right);
+      __ subl(result, right);
       __ j(OVERFLOW, slow_path->entry_label());
+      __ movsxd(result, result);
       break;
     case Token::kMUL:
       __ movq(result, left);
+      __ AssertSmiInRange(result);
       __ SmiUntag(result);
-      __ imulq(result, right);
+      __ imull(result, right);
       __ j(OVERFLOW, slow_path->entry_label());
+      __ movsxd(result, result);
       break;
     case Token::kBIT_OR:
       ASSERT(left == result);
@@ -2940,13 +2990,15 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ j(ABOVE_EQUAL, slow_path->entry_label());
 
       __ movq(RCX, right);
+      __ AssertSmiInRange(RCX);
       __ SmiUntag(RCX);
       __ movq(result, left);
-      __ shlq(result, RCX);
+      __ shll(result, RCX);
       __ movq(TMP, result);
-      __ sarq(TMP, RCX);
-      __ cmpq(TMP, left);
+      __ sarl(TMP, RCX);
+      __ cmpl(TMP, left);
       __ j(NOT_EQUAL, slow_path->entry_label());
+      __ movsxd(result, result);
       break;
     case Token::kSHR: {
       Label shift_count_ok;
@@ -2955,6 +3007,8 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ cmpq(right, Immediate(Smi::RawValue(Smi::kBits)));
       __ j(ABOVE_EQUAL, slow_path->entry_label());
 
+      __ AssertSmiInRange(left);
+      __ AssertSmiInRange(right);
       __ movq(RCX, right);
       __ SmiUntag(RCX);
       __ movq(result, left);
@@ -3103,6 +3157,16 @@ static bool CanBeImmediate(const Object& constant) {
          Immediate(reinterpret_cast<int64_t>(constant.raw())).is_int32();
 }
 
+static bool CanBeUint32Immediate(const Object& constant) {
+  if (constant.IsSmi()) {
+    return Immediate(Smi::Cast(constant).Value()).is_uint32();
+  }
+  if (constant.IsMint()) {
+    return Immediate(Mint::Cast(constant).value()).is_uint32();
+  }
+  return false;
+}
+
 static bool IsSmiValue(const Object& constant, intptr_t value) {
   return constant.IsSmi() && (Smi::Cast(constant).Value() == value);
 }
@@ -3212,20 +3276,41 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const int64_t imm = reinterpret_cast<int64_t>(constant.raw());
     switch (op_kind()) {
       case Token::kADD: {
-        __ AddImmediate(left, Immediate(imm));
-        if (deopt != NULL) __ j(OVERFLOW, deopt);
+        if (deopt != NULL) {
+          __ AddImmediate(left, Immediate(imm), Assembler::k32Bit);
+          __ j(OVERFLOW, deopt);
+        } else {
+          __ AddImmediate(left, Immediate(imm), Assembler::k64Bit);
+        }
+        if (deopt != NULL || is_truncating()) {
+          __ movsxd(left, left);
+        }
         break;
       }
       case Token::kSUB: {
-        __ SubImmediate(left, Immediate(imm));
-        if (deopt != NULL) __ j(OVERFLOW, deopt);
+        if (deopt != NULL) {
+          __ SubImmediate(left, Immediate(imm), Assembler::k32Bit);
+          __ j(OVERFLOW, deopt);
+        } else {
+          __ SubImmediate(left, Immediate(imm), Assembler::k64Bit);
+        }
+        if (deopt != NULL || is_truncating()) {
+          __ movsxd(left, left);
+        }
         break;
       }
       case Token::kMUL: {
         // Keep left value tagged and untag right value.
         const intptr_t value = Smi::Cast(constant).Value();
-        __ MulImmediate(left, Immediate(value));
-        if (deopt != NULL) __ j(OVERFLOW, deopt);
+        if (deopt != NULL) {
+          __ MulImmediate(left, Immediate(value), Assembler::k32Bit);
+          __ j(OVERFLOW, deopt);
+        } else {
+          __ MulImmediate(left, Immediate(value), Assembler::k64Bit);
+        }
+        if (deopt != NULL || is_truncating()) {
+          __ movsxd(left, left);
+        }
         break;
       }
       case Token::kTRUNCDIV: {
@@ -3237,7 +3322,9 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         ASSERT(kSmiTagSize == 1);
         Register temp = locs()->temp(0).reg();
         __ movq(temp, left);
-        __ sarq(temp, Immediate(63));
+        // Since Smis are sign extended this is enough shift to put all-1s or
+        // all-0s in the temp register.
+        __ sarq(temp, Immediate(31));
         ASSERT(shift_count > 1);  // 1, -1 case handled above.
         __ shrq(temp, Immediate(64 - shift_count));
         __ addq(left, temp);
@@ -3266,8 +3353,10 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
 
       case Token::kSHR: {
-        // sarq operation masks the count to 6 bits.
-        const intptr_t kCountLimit = 0x3F;
+        // The sarq operation masks the count to 6 bits, but any shift between
+        // 31 and 63 gives the same result because 32 bit Smis are stored sign
+        // extended in the registers.
+        const intptr_t kCountLimit = 0x1F;
         const intptr_t value = Smi::Cast(constant).Value();
         __ sarq(left,
                 Immediate(Utils::Minimum(value + kSmiTagSize, kCountLimit)));
@@ -3279,6 +3368,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         UNREACHABLE();
         break;
     }
+    __ AssertSmiInRange(left);
     return;
   }  // locs()->in(1).IsConstant().
 
@@ -3286,19 +3376,40 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const Address& right = locs()->in(1).ToStackSlotAddress();
     switch (op_kind()) {
       case Token::kADD: {
-        __ addq(left, right);
-        if (deopt != NULL) __ j(OVERFLOW, deopt);
+        if (deopt != NULL) {
+          __ addl(left, right);
+          __ j(OVERFLOW, deopt);
+        } else {
+          __ addq(left, right);
+        }
+        if (deopt != NULL || is_truncating()) {
+          __ movsxd(left, left);
+        }
         break;
       }
       case Token::kSUB: {
-        __ subq(left, right);
-        if (deopt != NULL) __ j(OVERFLOW, deopt);
+        if (deopt != NULL) {
+          __ subl(left, right);
+          __ j(OVERFLOW, deopt);
+        } else {
+          __ subq(left, right);
+        }
+        if (deopt != NULL || is_truncating()) {
+          __ movsxd(left, left);
+        }
         break;
       }
       case Token::kMUL: {
         __ SmiUntag(left);
-        __ imulq(left, right);
-        if (deopt != NULL) __ j(OVERFLOW, deopt);
+        if (deopt != NULL) {
+          __ imull(left, right);
+          __ j(OVERFLOW, deopt);
+        } else {
+          __ imulq(left, right);
+        }
+        if (deopt != NULL || is_truncating()) {
+          __ movsxd(left, left);
+        }
         break;
       }
       case Token::kBIT_AND: {
@@ -3327,19 +3438,40 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register right = locs()->in(1).reg();
   switch (op_kind()) {
     case Token::kADD: {
-      __ addq(left, right);
-      if (deopt != NULL) __ j(OVERFLOW, deopt);
+      if (deopt != NULL) {
+        __ addl(left, right);
+        __ j(OVERFLOW, deopt);
+      } else {
+        __ addq(left, right);
+      }
+      if (deopt != NULL || is_truncating()) {
+        __ movsxd(left, left);
+      }
       break;
     }
     case Token::kSUB: {
-      __ subq(left, right);
-      if (deopt != NULL) __ j(OVERFLOW, deopt);
+      if (deopt != NULL) {
+        __ subl(left, right);
+        __ j(OVERFLOW, deopt);
+      } else {
+        __ subq(left, right);
+      }
+      if (deopt != NULL || is_truncating()) {
+        __ movsxd(left, left);
+      }
       break;
     }
     case Token::kMUL: {
       __ SmiUntag(left);
-      __ imulq(left, right);
-      if (deopt != NULL) __ j(OVERFLOW, deopt);
+      if (deopt != NULL) {
+        __ imull(left, right);
+        __ j(OVERFLOW, deopt);
+      } else {
+        __ imulq(left, right);
+      }
+      if (deopt != NULL || is_truncating()) {
+        __ movsxd(left, left);
+      }
       break;
     }
     case Token::kBIT_AND: {
@@ -3358,8 +3490,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kTRUNCDIV: {
-      Label not_32bit, done;
-
       Register temp = locs()->temp(0).reg();
       ASSERT(left == RAX);
       ASSERT((right != RDX) && (right != RAX));
@@ -3370,43 +3500,20 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ testq(right, right);
         __ j(ZERO, deopt);
       }
-      // Check if both operands fit into 32bits as idiv with 64bit operands
-      // requires twice as many cycles and has much higher latency.
-      // We are checking this before untagging them to avoid corner case
-      // dividing INT_MAX by -1 that raises exception because quotient is
-      // too large for 32bit register.
-      __ movsxd(temp, left);
-      __ cmpq(temp, left);
-      __ j(NOT_EQUAL, &not_32bit);
-      __ movsxd(temp, right);
-      __ cmpq(temp, right);
-      __ j(NOT_EQUAL, &not_32bit);
-
       // Both operands are 31bit smis. Divide using 32bit idiv.
       __ SmiUntag(left);
       __ SmiUntag(right);
       __ cdq();
       __ idivl(right);
-      __ movsxd(result, result);
-      __ jmp(&done);
-
-      // Divide using 64bit idiv.
-      __ Bind(&not_32bit);
-      __ SmiUntag(left);
-      __ SmiUntag(right);
-      __ cqo();         // Sign extend RAX -> RDX:RAX.
-      __ idivq(right);  //  RAX: quotient, RDX: remainder.
       // Check the corner case of dividing the 'MIN_SMI' with -1, in which
       // case we cannot tag the result.
-      __ CompareImmediate(result, Immediate(0x4000000000000000));
+      __ cmpl(result, Immediate(0x40000000));
       __ j(EQUAL, deopt);
-      __ Bind(&done);
+      __ movsxd(result, result);
       __ SmiTag(result);
       break;
     }
     case Token::kMOD: {
-      Label not_32bit, div_done;
-
       Register temp = locs()->temp(0).reg();
       ASSERT(left == RDX);
       ASSERT((right != RDX) && (right != RAX));
@@ -3417,17 +3524,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ testq(right, right);
         __ j(ZERO, deopt);
       }
-      // Check if both operands fit into 32bits as idiv with 64bit operands
-      // requires twice as many cycles and has much higher latency.
-      // We are checking this before untagging them to avoid corner case
-      // dividing INT_MAX by -1 that raises exception because quotient is
-      // too large for 32bit register.
-      __ movsxd(temp, left);
-      __ cmpq(temp, left);
-      __ j(NOT_EQUAL, &not_32bit);
-      __ movsxd(temp, right);
-      __ cmpq(temp, right);
-      __ j(NOT_EQUAL, &not_32bit);
       // Both operands are 31bit smis. Divide using 32bit idiv.
       __ SmiUntag(left);
       __ SmiUntag(right);
@@ -3435,16 +3531,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ cdq();
       __ idivl(right);
       __ movsxd(result, result);
-      __ jmp(&div_done);
 
-      // Divide using 64bit idiv.
-      __ Bind(&not_32bit);
-      __ SmiUntag(left);
-      __ SmiUntag(right);
-      __ movq(RAX, RDX);
-      __ cqo();         // Sign extend RAX -> RDX:RAX.
-      __ idivq(right);  //  RAX: quotient, RDX: remainder.
-      __ Bind(&div_done);
       //  res = left % right;
       //  if (res < 0) {
       //    if (right < 0) {
@@ -3482,7 +3569,10 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ j(LESS, deopt);
       }
       __ SmiUntag(right);
-      // sarq operation masks the count to 6 bits.
+      // The sarq operation masks the count to 6 bits, but any shift between 31
+      // and 63 gives the same result because 32 bit Smis are stored sign
+      // extended in the registers.  We check for 63 in order to take the branch
+      // more predictably.
       const intptr_t kCountLimit = 0x3F;
       if (!RangeUtils::OnlyLessThanOrEqualTo(right_range(), kCountLimit)) {
         __ CompareImmediate(right, Immediate(kCountLimit));
@@ -3681,7 +3771,12 @@ LocationSummary* UnboxInteger32Instr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_out(0, Location::SameAsFirstInput());
+  const intptr_t value_cid = value()->Type()->ToCid();
+  if (value_cid == kSmiCid || value_cid == kMintCid) {
+    summary->set_out(0, Location::SameAsFirstInput());
+  } else {
+    summary->set_out(0, Location::RequiresRegister());
+  }
   if (kNumTemps > 0) {
     summary->set_temp(0, Location::RequiresRegister());
   }
@@ -3689,75 +3784,88 @@ LocationSummary* UnboxInteger32Instr::MakeLocationSummary(Zone* zone,
 }
 
 void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // We don't use unboxed signed int32 on 64 bit platforms, so this is an
+  // unboxing to 32 bit unsigned integer, zero extended.
+  ASSERT(representation() == kUnboxedUint32);
+  ASSERT(is_truncating());
   const intptr_t value_cid = value()->Type()->ToCid();
   const Register value = locs()->in(0).reg();
-  Label* deopt = CanDeoptimize() ? compiler->AddDeoptStub(
-                                       GetDeoptId(), ICData::kDeoptUnboxInteger)
-                                 : NULL;
-  ASSERT(value == locs()->out(0).reg());
+  const Register out = locs()->out(0).reg();
+  Label done_and_no_need_to_check_range;
 
   if (value_cid == kSmiCid) {
-    __ SmiUntag(value);
+    ASSERT(value == out);
+    __ AssertSmiInRange(value);
+    // A 32 bit Smi (31 bits plus tag) can just be made into a uint32 with a 32
+    // bit sar operation.
+    __ sarl(value, Immediate(kSmiTagShift));
   } else if (value_cid == kMintCid) {
-    __ movq(value, FieldAddress(value, Mint::value_offset()));
-  } else if (!CanDeoptimize()) {
-    // Type information is not conclusive, but range analysis found
-    // the value to be in int64 range. Therefore it must be a smi
-    // or mint value.
-    ASSERT(is_truncating());
-    Label done;
-    __ SmiUntag(value);
-    __ j(NOT_CARRY, &done, Assembler::kNearJump);
-    __ movq(value, Address(value, TIMES_2, Mint::value_offset()));
-    __ Bind(&done);
-    return;
+    ASSERT(value == out);
+    __ movl(value, FieldAddress(value, Mint::value_offset()));
   } else {
     Label done;
-    // Optimistically untag value.
-    __ SmiUntagOrCheckClass(value, kMintCid, &done);
-    __ j(NOT_EQUAL, deopt);
-    // Undo untagging by multiplying value with 2.
-    __ movq(value, Address(value, TIMES_2, Mint::value_offset()));
+    ASSERT(out != value);
+    __ movl(out, value);
+    __ sarl(out, Immediate(kSmiTagShift));  // See sarl comment above.
+    ASSERT(kSmiTag == 0);
+    __ j(NOT_CARRY, &done, Assembler::kNearJump);
+    if (CanDeoptimize()) {
+      Label* deopt =
+          compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptUnboxInteger);
+      __ LoadClassId(TMP, value);
+      __ cmpl(TMP, Immediate(kMintCid));
+      __ j(NOT_EQUAL, deopt);
+    }
+    __ movl(out, FieldAddress(value, Mint::value_offset()));
     __ Bind(&done);
   }
-
-  // TODO(vegorov): as it is implemented right now truncating unboxing would
-  // leave "garbage" in the higher word.
-  if (!is_truncating() && (deopt != NULL)) {
-    ASSERT(representation() == kUnboxedInt32);
-    Register temp = locs()->temp(0).reg();
-    __ movsxd(temp, value);
-    __ cmpq(temp, value);
-    __ j(NOT_EQUAL, deopt);
-  }
+  __ AssertValidUint32(locs()->out(0).reg());
 }
 
 LocationSummary* BoxInteger32Instr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
-  ASSERT((from_representation() == kUnboxedInt32) ||
-         (from_representation() == kUnboxedUint32));
+  ASSERT(from_representation() == kUnboxedUint32);
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = ValueFitsSmi() ? 0 : 1;
   LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_out(0, Location::RequiresRegister());
+      LocationSummary(zone, kNumInputs, kNumTemps,
+                      ValueFitsSmi() ? LocationSummary::kNoCall
+                                     : LocationSummary::kCallOnSlowPath);
+  const bool needs_writable_input =
+      ValueFitsSmi() || (from_representation() == kUnboxedUint32);
+  summary->set_in(0, needs_writable_input ? Location::RequiresRegister()
+                                          : Location::WritableRegister());
+  if (!ValueFitsSmi()) {
+    summary->set_temp(0, Location::RequiresRegister());
+  }
+  summary->set_out(0, ValueFitsSmi() ? Location::SameAsFirstInput()
+                                     : Location::RequiresRegister());
   return summary;
 }
 
 void BoxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const Register out = locs()->out(0).reg();
-  ASSERT(value != out);
 
-  ASSERT(kSmiTagSize == 1);
-  if (from_representation() == kUnboxedInt32) {
-    __ movsxd(out, value);
-  } else {
-    ASSERT(from_representation() == kUnboxedUint32);
-    __ movl(out, value);
+  // Unsigned unboxed 32 bit to sign extended 31 bit Smi.
+  __ leaq(out, Address(value, value, TIMES_1, 0));
+
+  if (!ValueFitsSmi()) {
+    Label done;
+    ASSERT(value != out);
+    __ TestImmediate(value, Immediate(0xc0000000ll));
+    __ j(ZERO, &done);
+
+    // Allocate a mint.
+    // Value input is a writable register and we have to inform the compiler of
+    // the type so it can be preserved untagged on the slow path
+    locs()->live_registers()->Add(locs()->in(0), kUnboxedInt32);
+    BoxAllocationSlowPath::Allocate(compiler, this, compiler->mint_class(), out,
+                                    locs()->temp(0).reg());
+    __ AssertValidUint32(value);
+    __ movq(FieldAddress(out, Mint::value_offset()), value);
+    __ Bind(&done);
   }
-  __ SmiTag(out);
 }
 
 LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
@@ -3779,15 +3887,20 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
 void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register out = locs()->out(0).reg();
   const Register value = locs()->in(0).reg();
-  __ MoveRegister(out, value);
-  __ SmiTag(out);
+  __ leaq(out, Address(value, value, TIMES_1, 0));
   if (!ValueFitsSmi()) {
     const Register temp = locs()->temp(0).reg();
     Label done;
-    __ j(NO_OVERFLOW, &done);
+    __ movq(temp, value);
+    __ sarq(temp, Immediate(30));
+    __ addq(temp, Immediate(1));
+    __ cmpq(temp, Immediate(2));
+    __ j(BELOW, &done);
+
     BoxAllocationSlowPath::Allocate(compiler, this, compiler->mint_class(), out,
                                     temp);
     __ movq(FieldAddress(out, Mint::value_offset()), value);
+
     __ Bind(&done);
   }
 }
@@ -4349,8 +4462,9 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   switch (op_kind()) {
     case Token::kNEGATE: {
       Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptUnaryOp);
+      __ cmpq(value, Immediate(-0x80000000ll));
+      __ j(EQUAL, deopt);
       __ negq(value);
-      __ j(OVERFLOW, deopt);
       break;
     }
     case Token::kBIT_NOT:
@@ -4499,6 +4613,7 @@ LocationSummary* SmiToDoubleInstr::MakeLocationSummary(Zone* zone,
 void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   FpuRegister result = locs()->out(0).fpu_reg();
+  __ AssertSmiInRange(value);
   __ SmiUntag(value);
   __ cvtsi2sdq(result, value);
 }
@@ -4528,14 +4643,15 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(result != value_obj);
   ASSERT(result != temp);
   __ movsd(value_double, FieldAddress(value_obj, Double::value_offset()));
-  __ cvttsd2siq(result, value_double);
+  __ cvttsd2sil(result, value_double);
   // Overflow is signalled with minint.
   Label do_call, done;
   // Check for overflow and that it fits into Smi.
-  __ movq(temp, result);
-  __ shlq(temp, Immediate(1));
+  __ movl(temp, result);
+  __ shll(temp, Immediate(1));
   __ j(OVERFLOW, &do_call, Assembler::kNearJump);
-  __ SmiTag(result);
+  ASSERT(kSmiTagShift == 1 && kSmiTag == 0);
+  __ movsxd(result, temp);
   __ jmp(&done);
   __ Bind(&do_call);
   __ pushq(value_obj);
@@ -4571,14 +4687,15 @@ void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister value = locs()->in(0).fpu_reg();
   Register temp = locs()->temp(0).reg();
 
-  __ cvttsd2siq(result, value);
+  __ cvttsd2sil(result, value);
   // Overflow is signalled with minint.
   Label do_call, done;
   // Check for overflow and that it fits into Smi.
-  __ movq(temp, result);
-  __ shlq(temp, Immediate(1));
+  __ movl(temp, result);
+  __ shll(temp, Immediate(1));
   __ j(OVERFLOW, deopt);
-  __ SmiTag(result);
+  ASSERT(kSmiTagShift == 1 && kSmiTag == 0);
+  __ movsxd(result, temp);
 }
 
 LocationSummary* DoubleToDoubleInstr::MakeLocationSummary(Zone* zone,
@@ -4877,6 +4994,7 @@ LocationSummary* TruncDivModInstr::MakeLocationSummary(Zone* zone,
   // Both inputs must be writable because they will be untagged.
   summary->set_in(0, Location::RegisterLocation(RAX));
   summary->set_in(1, Location::WritableRegister());
+  // Output is a pair of registers.
   summary->set_out(0, Location::Pair(Location::RegisterLocation(RAX),
                                      Location::RegisterLocation(RDX)));
   return summary;
@@ -4891,50 +5009,26 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   PairLocation* pair = locs()->out(0).AsPairLocation();
   Register result1 = pair->At(0).reg();
   Register result2 = pair->At(1).reg();
-  Label not_32bit, done;
-  Register temp = RDX;
-  ASSERT(left == RAX);
-  ASSERT((right != RDX) && (right != RAX));
-  ASSERT(result1 == RAX);
-  ASSERT(result2 == RDX);
   if (RangeUtils::CanBeZero(divisor_range())) {
     // Handle divide by zero in runtime.
     __ testq(right, right);
     __ j(ZERO, deopt);
   }
-  // Check if both operands fit into 32bits as idiv with 64bit operands
-  // requires twice as many cycles and has much higher latency.
-  // We are checking this before untagging them to avoid corner case
-  // dividing INT_MAX by -1 that raises exception because quotient is
-  // too large for 32bit register.
-  __ movsxd(temp, left);
-  __ cmpq(temp, left);
-  __ j(NOT_EQUAL, &not_32bit);
-  __ movsxd(temp, right);
-  __ cmpq(temp, right);
-  __ j(NOT_EQUAL, &not_32bit);
-
+  ASSERT(left == RAX);
+  ASSERT((right != RDX) && (right != RAX));
+  ASSERT(result1 == RAX);
+  ASSERT(result2 == RDX);
   // Both operands are 31bit smis. Divide using 32bit idiv.
   __ SmiUntag(left);
   __ SmiUntag(right);
   __ cdq();
   __ idivl(right);
-  __ movsxd(RAX, RAX);
-  __ movsxd(RDX, RDX);
-  __ jmp(&done);
-
-  // Divide using 64bit idiv.
-  __ Bind(&not_32bit);
-  __ SmiUntag(left);
-  __ SmiUntag(right);
-  __ cqo();         // Sign extend RAX -> RDX:RAX.
-  __ idivq(right);  //  RAX: quotient, RDX: remainder.
   // Check the corner case of dividing the 'MIN_SMI' with -1, in which
   // case we cannot tag the result.
-  __ CompareImmediate(RAX, Immediate(0x4000000000000000));
+  __ cmpl(RAX, Immediate(0x40000000));
   __ j(EQUAL, deopt);
-  __ Bind(&done);
-
+  __ movsxd(RAX, RAX);
+  __ movsxd(RDX, RDX);
   // Modulo correction (RDX).
   //  res = left % right;
   //  if (res < 0) {
@@ -4944,16 +5038,16 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   //      res = res + right;
   //    }
   //  }
-  Label all_done;
+  Label done;
   __ cmpq(RDX, Immediate(0));
-  __ j(GREATER_EQUAL, &all_done, Assembler::kNearJump);
+  __ j(GREATER_EQUAL, &done, Assembler::kNearJump);
   // Result is negative, adjust it.
   if ((divisor_range() == NULL) || divisor_range()->Overlaps(-1, 1)) {
     Label subtract;
     __ cmpq(right, Immediate(0));
     __ j(LESS, &subtract, Assembler::kNearJump);
     __ addq(RDX, right);
-    __ jmp(&all_done, Assembler::kNearJump);
+    __ jmp(&done, Assembler::kNearJump);
     __ Bind(&subtract);
     __ subq(RDX, right);
   } else if (divisor_range()->IsPositive()) {
@@ -4963,7 +5057,7 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Right is negative.
     __ subq(RDX, right);
   }
-  __ Bind(&all_done);
+  __ Bind(&done);
 
   __ SmiTag(RAX);
   __ SmiTag(RDX);
@@ -5221,8 +5315,7 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (right.IsConstant()) {
     ConstantInstr* constant_instr = right.constant_instruction();
-    const int64_t value =
-        constant_instr->GetUnboxedSignedIntegerConstantValue();
+    const int64_t value = constant_instr->GetUnboxedIntegerConstantValue();
     EmitInt64Arithmetic(compiler, op_kind(), left.reg(), Immediate(value),
                         deopt);
   } else {
@@ -5305,6 +5398,7 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Code for a variable shift amount.
     // Deoptimize if shift count is > 63 or negative.
     // Sarq and shlq instructions mask the count to 6 bits.
+    __ AssertSmiInRange(RCX);
     __ SmiUntag(RCX);
     if (!IsShiftCountInRange()) {
       __ cmpq(RCX, Immediate(kMintShiftCountLimit));
@@ -5337,21 +5431,31 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 CompileType BinaryUint32OpInstr::ComputeType() const {
-  return CompileType::FromCid(kSmiCid);
+  return CompileType::Int();
 }
 
 CompileType ShiftUint32OpInstr::ComputeType() const {
-  return CompileType::FromCid(kSmiCid);
+  return CompileType::Int();
 }
 
 CompileType UnaryUint32OpInstr::ComputeType() const {
-  return CompileType::FromCid(kSmiCid);
+  return CompileType::Int();
 }
 
 LocationSummary* BinaryUint32OpInstr::MakeLocationSummary(Zone* zone,
                                                           bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
+  ConstantInstr* right_constant = right()->definition()->AsConstant();
+  if (right_constant != NULL && op_kind() != Token::kMUL &&
+      CanBeUint32Immediate(right_constant->value())) {
+    LocationSummary* summary = new (zone)
+        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_in(1, Location::Constant(right_constant));
+    summary->set_out(0, Location::SameAsFirstInput());
+    return summary;
+  }
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
@@ -5365,6 +5469,7 @@ static void EmitIntegerArithmetic(FlowGraphCompiler* compiler,
                                   Token::Kind op_kind,
                                   Register left,
                                   const OperandType& right) {
+  __ AssertValidUint32(left);
   switch (op_kind) {
     case Token::kADD:
       __ addl(left, right);
@@ -5387,24 +5492,21 @@ static void EmitIntegerArithmetic(FlowGraphCompiler* compiler,
     default:
       UNREACHABLE();
   }
+  __ AssertValidUint32(left);
 }
 
 void BinaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
   Register out = locs()->out(0).reg();
   ASSERT(out == left);
-  switch (op_kind()) {
-    case Token::kBIT_AND:
-    case Token::kBIT_OR:
-    case Token::kBIT_XOR:
-    case Token::kADD:
-    case Token::kSUB:
-    case Token::kMUL:
-      EmitIntegerArithmetic(compiler, op_kind(), left, right);
-      return;
-    default:
-      UNREACHABLE();
+  if (locs()->in(1).IsRegister()) {
+    Register right = locs()->in(1).reg();
+    EmitIntegerArithmetic(compiler, op_kind(), left, right);
+  } else {
+    ASSERT(locs()->in(1).IsConstant());
+    ConstantInstr* right_constant = right()->definition()->AsConstant();
+    int32_t imm = right_constant->GetUnboxedIntegerConstantValue();
+    EmitIntegerArithmetic(compiler, op_kind(), left, Immediate(imm));
   }
 }
 
@@ -5460,6 +5562,7 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label zero;
 
   // TODO(johnmccutchan): Use range information to avoid these checks.
+  __ AssertSmiInRange(shifter);
   __ SmiUntag(shifter);
   __ cmpq(shifter, Immediate(0));
   // If shift value is < 0, deoptimize.
@@ -5484,13 +5587,14 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ Bind(&zero);
   // Shift was greater than 31 bits, just return zero.
-  __ xorq(left, left);
+  __ xorl(left, left);
 
   // Exit path.
   __ Bind(&done);
 }
 
 DEFINE_BACKEND(UnaryUint32Op, (SameAsFirstInput, Register value)) {
+  __ AssertValidUint32(value);
   __ notl(value);
 }
 
@@ -5525,8 +5629,8 @@ void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const Register out = locs()->out(0).reg();
     // Representations are bitwise equivalent but we want to normalize
     // upperbits for safety reasons.
-    // TODO(vegorov) if we ensure that we never use upperbits we could
-    // avoid this.
+    // TODO(vegorov) if we ensure that we never leave garbage in the upper bits
+    // we could avoid this.
     __ movl(out, value);
   } else if (from() == kUnboxedUint32 && to() == kUnboxedInt32) {
     // Representations are bitwise equivalent.

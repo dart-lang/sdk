@@ -11,6 +11,7 @@ import '../elements/entities.dart';
 import '../elements/operators.dart';
 import '../elements/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
+import '../util/util.dart';
 import 'constructors.dart';
 import 'evaluation.dart';
 import 'values.dart';
@@ -45,6 +46,7 @@ enum ConstantExpressionKind {
   POSITIONAL_REFERENCE,
   NAMED_REFERENCE,
   ASSERT,
+  INSTANTIATION,
 }
 
 /// An expression that is a compile-time constant.
@@ -868,30 +870,9 @@ class AsConstantExpression extends ConstantExpression {
     DartType expressionType =
         expressionValue.getType(environment.commonElements);
 
-    // The `as` type is `A.T`.
-    DartType typeInContext = type;
+    // The `as` type `A.T` in the context of `B<num>` is `num`.
+    DartType typeInContext = environment.getTypeInContext(type);
 
-    // The enclosing type is `B<num>`.
-    DartType enclosingType = environment.enclosingConstructedType;
-    if (enclosingType != null) {
-      ClassEntity contextClass;
-      type.forEachTypeVariable((TypeVariableType type) {
-        if (type.element.typeDeclaration is ClassEntity) {
-          // We find `A` from `A.T`. Since we don't have nested classes, class
-          // based type variables can only come from the same class.
-          contextClass = type.element.typeDeclaration;
-        }
-      });
-      if (contextClass != null) {
-        // The enclosing type `B<num>` as an instance of `A` is `A<num>`.
-        enclosingType =
-            environment.types.asInstanceOf(enclosingType, contextClass);
-      }
-      // `A.T` in the context of the enclosing type `A<num>` is `num`.
-      typeInContext = enclosingType != null
-          ? environment.substByContext(typeInContext, enclosingType)
-          : typeInContext;
-    }
     // Check that the expression type, `int`, is a subtype of the type in
     // context, `num`.
     if (!constantSystem.isSubtype(
@@ -2154,6 +2135,57 @@ class DeferredConstantExpression extends ConstantExpression {
   }
 }
 
+class InstantiationConstantExpression extends ConstantExpression {
+  final List<DartType> typeArguments;
+  final ConstantExpression expression;
+
+  InstantiationConstantExpression(this.typeArguments, this.expression);
+
+  ConstantExpressionKind get kind => ConstantExpressionKind.INSTANTIATION;
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Instantiation(typeArguments=$typeArguments,expression=');
+    expression._createStructuredText(sb);
+    sb.write(')');
+  }
+
+  @override
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    List<DartType> typeArgumentsInContext =
+        typeArguments.map(environment.getTypeInContext).toList();
+    return new InstantiationConstantValue(typeArgumentsInContext,
+        expression.evaluate(environment, constantSystem));
+  }
+
+  @override
+  int _computeHashCode() {
+    return Hashing.objectHash(expression, Hashing.listHash(typeArguments));
+  }
+
+  ConstantExpression apply(NormalizedArguments arguments) {
+    return new InstantiationConstantExpression(
+        typeArguments, expression.apply(arguments));
+  }
+
+  @override
+  bool _equals(InstantiationConstantExpression other) {
+    return equalElements(typeArguments, other.typeArguments) &&
+        expression == other.expression;
+  }
+
+  @override
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    return visitor.visitInstantiation(this, context);
+  }
+
+  @override
+  bool get isPotential {
+    return expression.isPotential;
+  }
+}
+
 abstract class ConstantExpressionVisitor<R, A> {
   const ConstantExpressionVisitor();
 
@@ -2189,6 +2221,7 @@ abstract class ConstantExpressionVisitor<R, A> {
       StringFromEnvironmentConstantExpression exp, A context);
   R visitDeferred(DeferredConstantExpression exp, A context);
   R visitAssert(AssertConstantExpression exp, A context);
+  R visitInstantiation(InstantiationConstantExpression exp, A context);
 
   R visitPositional(PositionalArgumentReference exp, A context);
   R visitNamed(NamedArgumentReference exp, A context);
@@ -2477,6 +2510,15 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
       sb.write(', ');
       visit(exp.message);
     }
+    sb.write(')');
+  }
+
+  @override
+  void visitInstantiation(InstantiationConstantExpression exp, [_]) {
+    sb.write('<');
+    sb.write(exp.typeArguments.join(', '));
+    sb.write('>(');
+    visit(exp.expression);
     sb.write(')');
   }
 

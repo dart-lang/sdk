@@ -91,7 +91,7 @@ void main() {expect(^)}''');
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('B');
     } else {
       assertNotSuggested('B');
@@ -122,7 +122,7 @@ void main() {expect(^)}''');
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('B');
     } else {
       assertNotSuggested('B');
@@ -154,7 +154,7 @@ void main() {new A(^)}''');
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('B');
     } else {
       assertNotSuggested('B');
@@ -188,7 +188,7 @@ void main() {new A(^)}''');
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('B');
     } else {
       assertNotSuggested('B');
@@ -220,7 +220,7 @@ void main() {expect(^)}''');
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('B');
     } else {
       assertNotSuggested('B');
@@ -251,7 +251,7 @@ String bar() => true;''');
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('B');
     } else {
       assertNotSuggested('B');
@@ -283,7 +283,7 @@ void main() {bar(^);}''');
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('B');
     } else {
       assertNotSuggested('B');
@@ -314,7 +314,7 @@ void main() {new B().bar(^);}''');
     assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('B');
     } else {
       assertNotSuggested('B');
@@ -379,7 +379,7 @@ void main() {expect(foo: ^)}''');
     expect(replacementLength, 0);
     assertNotSuggested('a');
     assertNotSuggested('main');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('A');
     } else {
       assertNotSuggested('A');
@@ -399,7 +399,7 @@ class A {} main() {
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('A');
     } else {
       assertNotSuggested('A');
@@ -428,7 +428,7 @@ class A {} main() {
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('A');
     } else {
       assertNotSuggested('A');
@@ -454,7 +454,7 @@ class A {} main() {
 
     expect(replacementOffset, completionOffset - 3);
     expect(replacementLength, 3);
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('A');
     } else {
       assertNotSuggested('A');
@@ -483,7 +483,7 @@ class A {} main() {
 
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('A');
     } else {
       assertNotSuggested('A');
@@ -508,7 +508,7 @@ main() async {A a; await ^}''');
     expect(replacementLength, 0);
     assertNotSuggested('a');
     assertNotSuggested('main');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('A');
     } else {
       assertNotSuggested('A');
@@ -589,7 +589,7 @@ class Z { }''');
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
 
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('X');
       assertSuggestConstructor('Z');
     } else {
@@ -987,7 +987,7 @@ class Z { }''');
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
 
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('X');
       assertSuggestConstructor('Z');
     } else {
@@ -1241,7 +1241,7 @@ main() {A a; a^..b}''');
     assertNotSuggested('b');
     assertNotSuggested('_c');
     assertNotSuggested('a');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('A');
       assertSuggestConstructor('X');
     } else {
@@ -1518,7 +1518,7 @@ class C {foo(){var f; {var x;} return a ? T1 : ^}}''');
     assertNotSuggested('x');
     assertNotSuggested('f');
     assertNotSuggested('foo');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('C');
     } else {
       assertNotSuggested('C');
@@ -1568,7 +1568,7 @@ class C {foo(){var f; {var x;} return a ? ^}}''');
     assertNotSuggested('x');
     assertNotSuggested('f');
     assertNotSuggested('foo');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('C');
     } else {
       assertNotSuggested('C');
@@ -1758,7 +1758,7 @@ class A {a(blat: ^) { }}''');
     expect(replacementLength, 0);
     assertNotSuggested('foo');
     assertNotSuggested('a');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('A');
     } else {
       assertNotSuggested('A');
@@ -1801,7 +1801,7 @@ class C {foo(){^} void bar() {}}''');
     expect(replacementLength, 0);
     assertNotSuggested('A');
     assertNotSuggested('F1');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('C');
     } else {
       assertNotSuggested('C');
@@ -2190,7 +2190,7 @@ class C2 { }
     assertNotSuggested('b');
     assertNotSuggested('_c');
     assertNotSuggested('Object');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('A');
     } else {
       assertNotSuggested('A');
@@ -2209,7 +2209,7 @@ main(){var a; if (^)}''');
     expect(replacementLength, 0);
     assertNotSuggested('a');
     assertNotSuggested('main');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('A');
     } else {
       assertNotSuggested('A');
@@ -2228,7 +2228,7 @@ main(){var a; if (^)}''');
     assertNotSuggested('b');
     assertNotSuggested('_c');
     assertNotSuggested('Object');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('A');
     } else {
       assertNotSuggested('A');
@@ -2316,7 +2316,7 @@ class C {foo(){var f; {var x;} f[^]}}''');
     assertNotSuggested('x');
     assertNotSuggested('f');
     assertNotSuggested('foo');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('C');
     } else {
       assertNotSuggested('C');
@@ -2439,7 +2439,7 @@ main() {
     assertSuggestConstructor('C',
         elemOffset: -1,
         relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
-    assertNotSuggested('D');
+    assertSuggestConstructor('D', elemOffset: -1);
   }
 
   test_InstanceCreationExpression_assignment_expression_filter2() async {
@@ -2460,7 +2460,7 @@ main() {
     assertSuggestConstructor('C',
         elemOffset: -1,
         relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
-    assertNotSuggested('D');
+    assertSuggestConstructor('D', elemOffset: -1);
   }
 
   test_InstanceCreationExpression_imported() async {
@@ -2509,7 +2509,7 @@ main() {
     assertSuggestConstructor('B',
         elemOffset: -1,
         relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
-    assertNotSuggested('C');
+    assertSuggestConstructor('C', elemOffset: -1);
   }
 
   test_InstanceCreationExpression_invocationArgument_named() async {
@@ -2527,7 +2527,7 @@ main() {
     assertSuggestConstructor('B',
         elemOffset: -1,
         relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
-    assertNotSuggested('C');
+    assertSuggestConstructor('C', elemOffset: -1);
   }
 
   test_InstanceCreationExpression_unimported() async {
@@ -2559,7 +2559,7 @@ main() {
     assertSuggestConstructor('C',
         elemOffset: -1,
         relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
-    assertNotSuggested('D');
+    assertSuggestConstructor('D', elemOffset: -1);
   }
 
   test_InstanceCreationExpression_variable_declaration_filter2() async {
@@ -2579,7 +2579,7 @@ main() {
     assertSuggestConstructor('C',
         elemOffset: -1,
         relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
-    assertNotSuggested('D');
+    assertSuggestConstructor('D', elemOffset: -1);
   }
 
   test_InterpolationExpression() async {
@@ -2608,7 +2608,7 @@ main() {String name; print("hello \$^");}''');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
     assertNotSuggested('D2');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('C2');
     } else {
       assertNotSuggested('C2');
@@ -2642,7 +2642,7 @@ main() {String name; print("hello \${^}");}''');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
     assertNotSuggested('D2');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('C2');
     } else {
       assertNotSuggested('C2');
@@ -2728,7 +2728,7 @@ main(){var a; if (^ is A)}''');
     assertNotSuggested('main');
     assertNotSuggested('foo');
     assertNotSuggested('bar');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('A');
     } else {
       assertNotSuggested('A');
@@ -2853,7 +2853,7 @@ foo = {^''');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
     assertNotSuggested('D2');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('C2');
     } else {
       assertNotSuggested('C2');
@@ -3579,7 +3579,7 @@ class X {foo(){A^.bar}}''');
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     assertNotSuggested('A');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('X');
     } else {
       assertNotSuggested('X');
@@ -3785,7 +3785,7 @@ class X {foo(){A^.bar}}''');
     addTestSource('class A {String g(int x) {var t; switch(x) {case 0: ^}}}');
     await computeSuggestions();
 
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('A');
     } else {
       assertNotSuggested('A');
@@ -4135,7 +4135,7 @@ class C {bar(){var f; {var x;} var e = ^}}''');
     assertNotSuggested('X');
     assertNotSuggested('_B');
     assertNotSuggested('Y');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('C');
     } else {
       assertNotSuggested('C');
@@ -4171,7 +4171,7 @@ class C {bar(){var f; {var x;} var e = ^ var g}}''');
     assertNotSuggested('bar2');
     assertNotSuggested('_B');
     assertNotSuggested('Y');
-    if (previewDart2) {
+    if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('C');
     } else {
       assertNotSuggested('C');

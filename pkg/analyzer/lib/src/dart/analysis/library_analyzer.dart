@@ -34,6 +34,8 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/kernel/resynthesize.dart';
+import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
@@ -353,22 +355,34 @@ class LibraryAnalyzer {
 
     ErrorReporter errorReporter = _getErrorReporter(file);
 
-    List<AstVisitor> visitors = <AstVisitor>[];
+    var nodeRegistry = new NodeLintRegistry(_analysisOptions.enableTiming);
+    var visitors = <AstVisitor>[];
     for (Linter linter in _analysisOptions.lintRules) {
-      AstVisitor visitor = linter.getVisitor();
-      if (visitor != null) {
-        linter.reporter = errorReporter;
-        if (_analysisOptions.enableTiming) {
-          visitor = new TimedAstVisitor(visitor, lintRegistry.getTimer(linter));
+      linter.reporter = errorReporter;
+      if (linter is NodeLintRule) {
+        (linter as NodeLintRule).registerNodeProcessors(nodeRegistry);
+      } else {
+        AstVisitor visitor = linter.getVisitor();
+        if (visitor != null) {
+          if (_analysisOptions.enableTiming) {
+            var timer = lintRegistry.getTimer(linter);
+            visitor = new TimedAstVisitor(visitor, timer);
+          }
+          visitors.add(visitor);
         }
-        visitors.add(visitor);
       }
     }
 
-    AstVisitor visitor = new ExceptionHandlingDelegatingAstVisitor(
-        visitors, ExceptionHandlingDelegatingAstVisitor.logException);
+    // Run lints that handle specific node types.
+    unit.accept(new LinterVisitor(
+        nodeRegistry, ExceptionHandlingDelegatingAstVisitor.logException));
 
-    unit.accept(visitor);
+    // Run visitor based lints.
+    if (visitors.isNotEmpty) {
+      AstVisitor visitor = new ExceptionHandlingDelegatingAstVisitor(
+          visitors, ExceptionHandlingDelegatingAstVisitor.logException);
+      unit.accept(visitor);
+    }
   }
 
   void _computePendingMissingRequiredParameters(

@@ -240,8 +240,8 @@ import 'package:aaa/a2.dart';
 
 import 'foo.dart';
 ''', ['package:aaa/a1.dart'], '''
-import 'package:aaa/a1.dart';
 // comment a2
+import 'package:aaa/a1.dart';
 import 'package:aaa/a2.dart';
 
 import 'foo.dart';

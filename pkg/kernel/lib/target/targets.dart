@@ -22,13 +22,11 @@ class TargetFlags {
   final bool syncAsync;
   final List<ProgramRoot> programRoots;
   final Uri kernelRuntime;
-  final bool allowDartInternalImport;
 
   TargetFlags(
       {this.strongMode: false,
       this.treeShake: false,
       this.syncAsync: false,
-      this.allowDartInternalImport: false,
       this.programRoots: const <ProgramRoot>[],
       this.kernelRuntime});
 }

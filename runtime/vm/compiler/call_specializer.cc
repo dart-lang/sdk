@@ -349,13 +349,15 @@ void CallSpecializer::AddChecksForArgNr(InstanceCallInstr* call,
 }
 
 void CallSpecializer::AddCheckNull(Value* to_check,
+                                   const String& function_name,
                                    intptr_t deopt_id,
                                    Environment* deopt_environment,
                                    Instruction* insert_before) {
   ASSERT(I->strong() && FLAG_use_strong_mode_types);
   if (to_check->Type()->is_nullable()) {
-    CheckNullInstr* check_null = new (Z) CheckNullInstr(
-        to_check->CopyWithType(Z), deopt_id, insert_before->token_pos());
+    CheckNullInstr* check_null =
+        new (Z) CheckNullInstr(to_check->CopyWithType(Z), function_name,
+                               deopt_id, insert_before->token_pos());
     if (FLAG_trace_strong_mode_types) {
       THR_Print("[Strong mode] Inserted %s\n", check_null->ToCString());
     }
@@ -1558,10 +1560,10 @@ void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
 }
 
 void CallSpecializer::VisitLoadCodeUnits(LoadCodeUnitsInstr* instr) {
-// TODO(zerny): Use kUnboxedUint32 once it is fully supported/optimized.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
+  // Note that on ARM64 the result can always be packed into a Smi, so this
+  // is never triggered.
+  // TODO(zerny): Use kUnboxedUint32 once it is fully supported/optimized.
   if (!instr->can_pack_into_smi()) instr->set_representation(kUnboxedInt64);
-#endif
 }
 
 static bool CidTestResultsContains(const ZoneGrowableArray<intptr_t>& results,

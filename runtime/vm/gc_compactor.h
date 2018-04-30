@@ -44,9 +44,9 @@ class GCCompactor : public ValueObject,
     uword base;
     uword size;
   };
-  // There are up to 4 images to consider:
-  // {instructions, data} x {vm isolate, current isolate}
-  static const intptr_t kMaxImagePages = 4;
+  // There are up to 6 images to consider:
+  // {instructions, data} x {vm isolate, current isolate, shared}
+  static const intptr_t kMaxImagePages = 6;
   ImagePageRange image_page_ranges_[kMaxImagePages];
 };
 

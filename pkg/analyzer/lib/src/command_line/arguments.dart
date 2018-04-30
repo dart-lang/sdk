@@ -65,10 +65,8 @@ void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args,
     options.implicitDynamic = !args[noImplicitDynamicFlag];
     verbose('$noImplicitDynamicFlag = ${options.implicitDynamic}');
   }
-  if (args.wasParsed(strongModeFlag)) {
-    options.strongMode = args[strongModeFlag];
-    verbose('$strongModeFlag = ${options.strongMode}');
-  }
+  options.strongMode = args[strongModeFlag];
+  verbose('$strongModeFlag = ${options.strongMode}');
   try {
     if (args.wasParsed(lintsFlag)) {
       options.lint = args[lintsFlag];
@@ -178,8 +176,9 @@ void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
       hide: ddc && hide);
   parser.addFlag(strongModeFlag,
       help: 'Enable strong static checks (https://goo.gl/DqcBsw).',
-      defaultsTo: ddc,
-      hide: ddc);
+      defaultsTo: true,
+      hide: ddc,
+      negatable: true);
   parser.addFlag(declarationCastsFlag,
       negatable: true,
       help: 'Disable declaration casts in strong mode (https://goo.gl/cTLz40).',
@@ -293,6 +292,9 @@ List<String> filterUnknownArguments(List<String> args, ArgParser parser) {
     String abbreviation = option.abbr;
     if (abbreviation != null) {
       knownAbbreviations.add(abbreviation);
+    }
+    if (option.negatable) {
+      knownOptions.add('no-$name');
     }
   });
   String optionName(int prefixLength, String argument) {

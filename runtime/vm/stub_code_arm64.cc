@@ -1334,14 +1334,18 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ ldr(R1, Address(SP, +1 * kWordSize));  // Left.
   __ orr(TMP, R0, Operand(R1));
   __ BranchIfNotSmi(TMP, not_smi_or_overflow);
+  __ AssertSmiInRange(R0);
+  __ AssertSmiInRange(R1);
   switch (kind) {
     case Token::kADD: {
-      __ adds(R0, R1, Operand(R0));   // Adds.
+      __ addsw(R0, R1, Operand(R0));  // Adds.
+      __ sxtw(R0, R0);
       __ b(not_smi_or_overflow, VS);  // Branch if overflow.
       break;
     }
     case Token::kSUB: {
-      __ subs(R0, R1, Operand(R0));   // Subtract.
+      __ subsw(R0, R1, Operand(R0));  // Subtract.
+      __ sxtw(R0, R0);
       __ b(not_smi_or_overflow, VS);  // Branch if overflow.
       break;
     }
@@ -1382,6 +1386,8 @@ static void EmitFastSmiOp(Assembler* assembler,
     __ adds(R1, R1, Operand(Smi::RawValue(1)));
     __ StoreToOffset(R1, R6, count_offset);
   }
+
+  __ AssertSmiInRange(R0, Assembler::kValueCanBeHeapPointer);
 
   __ ret();
 }

@@ -210,6 +210,11 @@ class MockAnalysisDriver implements AnalysisDriver {
   Future<ParseResult> parseFile(String path) async {
     return parseResult;
   }
+
+  @override
+  ParseResult parseFileSync(String path) {
+    return parseResult;
+  }
 }
 
 class _SourceMock implements Source {

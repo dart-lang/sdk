@@ -29,6 +29,7 @@
 #include "vm/double_conversion.h"
 #include "vm/exceptions.h"
 #include "vm/growable_array.h"
+#include "vm/hash.h"
 #include "vm/hash_table.h"
 #include "vm/heap.h"
 #include "vm/isolate_reload.h"
@@ -1835,6 +1836,8 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
       return error.raw();
     }
 
+    isolate->class_table()->CopySizesFromClassObjects();
+
     ClassFinalizer::VerifyBootstrapClasses();
 
     // Set up the intrinsic state of all functions (core, math and typed data).
@@ -2908,14 +2911,19 @@ void Class::set_invocation_dispatcher_cache(const Array& cache) const {
 }
 
 void Class::Finalize() const {
+  Isolate* isolate = Isolate::Current();
   ASSERT(Thread::Current()->IsMutatorThread());
-  ASSERT(!Isolate::Current()->all_classes_finalized());
+  ASSERT(!isolate->all_classes_finalized());
   ASSERT(!is_finalized());
   // Prefinalized classes have a VM internal representation and no Dart fields.
   // Their instance size  is precomputed and field offsets are known.
   if (!is_prefinalized()) {
     // Compute offsets of instance fields and instance size.
     CalculateFieldOffsets();
+    if (raw() == isolate->class_table()->At(id())) {
+      // Sets the new size in the class table.
+      isolate->class_table()->SetAt(id(), raw());
+    }
   }
   set_is_finalized();
 }
@@ -4826,24 +4834,6 @@ RawString* UnresolvedClass::Name() const {
 const char* UnresolvedClass::ToCString() const {
   const char* cname = String::Handle(Name()).ToCString();
   return OS::SCreate(Thread::Current()->zone(), "unresolved class '%s'", cname);
-}
-
-static uint32_t CombineHashes(uint32_t hash, uint32_t other_hash) {
-  hash += other_hash;
-  hash += hash << 10;
-  hash ^= hash >> 6;  // Logical shift, unsigned hash.
-  return hash;
-}
-
-static uint32_t FinalizeHash(uint32_t hash, intptr_t hashbits) {
-  hash += hash << 3;
-  hash ^= hash >> 11;  // Logical shift, unsigned hash.
-  hash += hash << 15;
-  // FinalizeHash gets called with values for hashbits that are bigger than 31
-  // (like kBitsPerWord - 1).  Therefore we are careful to use a type
-  // (uintptr_t) big enough to avoid undefined behavior with the left shift.
-  hash &= (static_cast<uintptr_t>(1) << hashbits) - 1;
-  return (hash == 0) ? 1 : hash;
 }
 
 intptr_t TypeArguments::ComputeHash() const {
@@ -22765,6 +22755,16 @@ RawClosure* Closure::New(const TypeArguments& instantiator_type_arguments,
                          const Function& function,
                          const Context& context,
                          Heap::Space space) {
+  return Closure::New(instantiator_type_arguments, function_type_arguments,
+                      Object::empty_type_arguments(), function, context, space);
+}
+
+RawClosure* Closure::New(const TypeArguments& instantiator_type_arguments,
+                         const TypeArguments& function_type_arguments,
+                         const TypeArguments& delayed_type_arguments,
+                         const Function& function,
+                         const Context& context,
+                         Heap::Space space) {
   Closure& result = Closure::Handle();
   {
     RawObject* raw =
@@ -22776,7 +22776,7 @@ RawClosure* Closure::New(const TypeArguments& instantiator_type_arguments,
     result.StorePointer(&result.raw_ptr()->function_type_arguments_,
                         function_type_arguments.raw());
     result.StorePointer(&result.raw_ptr()->delayed_type_arguments_,
-                        Object::empty_type_arguments().raw());
+                        delayed_type_arguments.raw());
     result.StorePointer(&result.raw_ptr()->function_, function.raw());
     result.StorePointer(&result.raw_ptr()->context_, context.raw());
   }

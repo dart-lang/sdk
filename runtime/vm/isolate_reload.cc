@@ -918,15 +918,15 @@ void IsolateReloadContext::CheckpointClasses() {
   saved_num_cids_ = I->class_table()->NumCids();
 
   // Copy of the class table.
-  RawClass** local_saved_class_table =
-      reinterpret_cast<RawClass**>(malloc(sizeof(RawClass*) * saved_num_cids_));
+  ClassAndSize* local_saved_class_table = reinterpret_cast<ClassAndSize*>(
+      malloc(sizeof(ClassAndSize) * saved_num_cids_));
 
   Class& cls = Class::Handle();
   UnorderedHashSet<ClassMapTraits> old_classes_set(old_classes_set_storage_);
   for (intptr_t i = 0; i < saved_num_cids_; i++) {
     if (class_table->IsValidIndex(i) && class_table->HasValidClassAt(i)) {
       // Copy the class into the saved class table and add it to the set.
-      local_saved_class_table[i] = class_table->At(i);
+      local_saved_class_table[i] = class_table->PairAt(i);
       if (i != kFreeListElement && i != kForwardingCorpse) {
         cls = class_table->At(i);
         bool already_present = old_classes_set.Insert(cls);
@@ -934,7 +934,7 @@ void IsolateReloadContext::CheckpointClasses() {
       }
     } else {
       // No class at this index, mark it as NULL.
-      local_saved_class_table[i] = NULL;
+      local_saved_class_table[i] = ClassAndSize(NULL);
     }
   }
   old_classes_set_storage_ = old_classes_set.Release().raw();
@@ -1197,11 +1197,11 @@ void IsolateReloadContext::RollbackClasses() {
   // Overwrite classes in class table with the saved classes.
   for (intptr_t i = 0; i < saved_num_cids_; i++) {
     if (class_table->IsValidIndex(i)) {
-      class_table->SetAt(i, saved_class_table_[i]);
+      class_table->SetAt(i, saved_class_table_[i].get_raw_class());
     }
   }
 
-  RawClass** local_saved_class_table = saved_class_table_;
+  ClassAndSize* local_saved_class_table = saved_class_table_;
   saved_class_table_ = NULL;
   // Can't free this table immediately as another thread (e.g., the sweeper) may
   // be suspended between loading the table pointer and loading the table
@@ -1644,7 +1644,7 @@ bool IsolateReloadContext::MorphInstances() {
   }
 
   // This is important: The saved class table (describing before objects)
-  // must be zapped to prevent the forwarding in GetClassForHeapWalkAt.
+  // must be zapped to prevent the forwarding in GetClassSizeForHeapWalkAt.
   // Instance will from now be described by the isolate's class table.
   free(saved_class_table_);
   saved_class_table_ = NULL;
@@ -1709,13 +1709,26 @@ RawClass* IsolateReloadContext::FindOriginalClass(const Class& cls) {
 }
 
 RawClass* IsolateReloadContext::GetClassForHeapWalkAt(intptr_t cid) {
-  RawClass** class_table = AtomicOperations::LoadRelaxed(&saved_class_table_);
+  ClassAndSize* class_table =
+      AtomicOperations::LoadRelaxed(&saved_class_table_);
   if (class_table != NULL) {
     ASSERT(cid > 0);
     ASSERT(cid < saved_num_cids_);
-    return class_table[cid];
+    return class_table[cid].get_raw_class();
   } else {
     return isolate_->class_table()->At(cid);
+  }
+}
+
+intptr_t IsolateReloadContext::GetClassSizeForHeapWalkAt(intptr_t cid) {
+  ClassAndSize* class_table =
+      AtomicOperations::LoadRelaxed(&saved_class_table_);
+  if (class_table != NULL) {
+    ASSERT(cid > 0);
+    ASSERT(cid < saved_num_cids_);
+    return class_table[cid].size();
+  } else {
+    return isolate_->class_table()->SizeAt(cid);
   }
 }
 

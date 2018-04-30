@@ -1408,6 +1408,17 @@ class CompileTimeErrorCode extends ErrorCode {
               "changing the import to not be deferred.");
 
   /**
+   * 15 Metadata: Metadata consists of a series of annotations, each of which
+   * begin with the character @, followed by a constant expression that must be
+   * either a reference to a compile-time constant variable, or a call to a
+   * constant constructor.
+   */
+  static const CompileTimeErrorCode INVALID_ANNOTATION_GETTER =
+      const CompileTimeErrorCode(
+          'INVALID_ANNOTATION_GETTER', "Getters cannot be used as annotations.",
+          correction: "Try using a top-level variable or a field.");
+
+  /**
    * 15.31 Identifier Reference: It is a compile-time error if any of the
    * identifiers async, await or yield is used as an identifier in a function
    * body marked with either async, async* or sync*.
@@ -2397,6 +2408,19 @@ class CompileTimeErrorCode extends ErrorCode {
           'TYPE_ALIAS_CANNOT_REFERENCE_ITSELF',
           "Typedefs can't reference themselves directly or recursively via "
           "another typedef.");
+
+  /**
+   * 15 Metadata: Metadata consists of a series of annotations, each of which
+   * begin with the character @, followed by a constant expression that must be
+   * either a reference to a compile-time constant variable, or a call to a
+   * constant constructor.
+   */
+  static const CompileTimeErrorCode UNDEFINED_ANNOTATION =
+      const CompileTimeErrorCode(
+          'UNDEFINED_ANNOTATION', "Undefined name '{0}' used as an annotation.",
+          correction:
+              "Try defining the name or importing it from another library.",
+          isUnresolvedIdentifier: true);
 
   /**
    * 16.12.2 Const: It is a compile-time error if <i>T</i> is not a class

@@ -1979,6 +1979,18 @@ RawClass* Isolate::GetClassForHeapWalkAt(intptr_t cid) {
   return raw_class;
 }
 
+intptr_t Isolate::GetClassSizeForHeapWalkAt(intptr_t cid) {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  if (IsReloading()) {
+    return reload_context()->GetClassSizeForHeapWalkAt(cid);
+  } else {
+    return class_table()->SizeAt(cid);
+  }
+#else
+  return class_table()->SizeAt(cid);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+}
+
 void Isolate::AddPendingDeopt(uword fp, uword pc) {
   // GrowableArray::Add is not atomic and may be interrupt by a profiler
   // stack walk.

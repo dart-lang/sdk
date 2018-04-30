@@ -59,6 +59,12 @@ abstract class AnalysisSession {
   Future<ParseResult> getParsedAst(String path);
 
   /**
+   * Return information about the results of parsing the file with the given
+   * absolute, normalized [path].
+   */
+  ParseResult getParsedAstSync(String path);
+
+  /**
    * Return a future that will complete with information about the results of
    * resolving the file with the given absolute, normalized [path].
    */

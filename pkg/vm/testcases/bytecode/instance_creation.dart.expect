@@ -216,39 +216,41 @@ ConstantPool {
 Bytecode {
   Entry                2
   CheckStack
-  PushConstant         CP#1
+  PushConstant         CP#2
   PushConstant         CP#0
   AllocateT
   StoreLocal           r0
   Push                 r0
-  PushConstant         CP#2
-  PushConstant         CP#4
-  IndirectStaticCall   2, CP#3
-  Drop1
-  Drop1
-  PushConstant         CP#6
+  PushConstant         CP#3
   PushConstant         CP#5
+  IndirectStaticCall   2, CP#4
+  Drop1
+  Drop1
+  PushConstant         CP#8
+  PushConstant         CP#6
   AllocateT
   StoreLocal           r1
   Push                 r1
-  PushConstant         CP#8
-  IndirectStaticCall   1, CP#7
+  PushConstant         CP#10
+  IndirectStaticCall   1, CP#9
   Drop1
   Drop1
-  PushConstant         CP#9
+  PushConstant         CP#11
   ReturnTOS
 }
 ConstantPool {
   [0] = Class #lib::A
-  [1] = TypeArgs [dart.core::int, dart.core::String]
-  [2] = String 'hi'
-  [3] = ArgDesc num-args 2, num-type-args 0, names []
-  [4] = StaticICData target '#lib::A::', arg-desc CP#3
-  [5] = Class #lib::B
-  [6] = TypeArgs [dart.core::List<dart.core::int>, dart.core::String, dart.core::int]
-  [7] = ArgDesc num-args 1, num-type-args 0, names []
-  [8] = StaticICData target '#lib::B::', arg-desc CP#7
-  [9] = Null
+  [1] = TypeArgs []
+  [2] = TypeArgumentsForInstanceAllocation #lib::A type-args CP#1
+  [3] = String 'hi'
+  [4] = ArgDesc num-args 2, num-type-args 0, names []
+  [5] = StaticICData target '#lib::A::', arg-desc CP#4
+  [6] = Class #lib::B
+  [7] = TypeArgs [dart.core::int]
+  [8] = TypeArgumentsForInstanceAllocation #lib::B type-args CP#7
+  [9] = ArgDesc num-args 1, num-type-args 0, names []
+  [10] = StaticICData target '#lib::B::', arg-desc CP#9
+  [11] = Null
 }
 ]static method foo2() → void {
   new self::A::•("hi");
@@ -258,26 +260,27 @@ ConstantPool {
 Bytecode {
   Entry                1
   CheckStack
-  PushConstant         CP#2
+  PushConstant         CP#3
   Push                 FP[-5]
-  InstantiateTypeArgumentsTOS 1, CP#1
+  InstantiateTypeArgumentsTOS 1, CP#2
   PushConstant         CP#0
   AllocateT
   StoreLocal           r0
   Push                 r0
-  PushConstant         CP#4
-  IndirectStaticCall   1, CP#3
+  PushConstant         CP#5
+  IndirectStaticCall   1, CP#4
   Drop1
   Drop1
-  PushConstant         CP#2
+  PushConstant         CP#3
   ReturnTOS
 }
 ConstantPool {
   [0] = Class #lib::B
-  [1] = TypeArgs [dart.core::List<dart.core::List<#lib::foo3::T>>, dart.core::String, dart.core::List<#lib::foo3::T>]
-  [2] = Null
-  [3] = ArgDesc num-args 1, num-type-args 0, names []
-  [4] = StaticICData target '#lib::B::', arg-desc CP#3
+  [1] = TypeArgs [dart.core::List<#lib::foo3::T>]
+  [2] = TypeArgumentsForInstanceAllocation #lib::B type-args CP#1
+  [3] = Null
+  [4] = ArgDesc num-args 1, num-type-args 0, names []
+  [5] = StaticICData target '#lib::B::', arg-desc CP#4
 }
 ]static method foo3<T extends core::Object>() → void {
   new self::B::•<core::List<self::foo3::T>>();

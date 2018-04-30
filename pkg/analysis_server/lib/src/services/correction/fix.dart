@@ -45,6 +45,7 @@ bool hasFix(ErrorCode errorCode) =>
     errorCode == CompileTimeErrorCode.INVALID_ANNOTATION ||
     errorCode == CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT ||
     errorCode == CompileTimeErrorCode.PART_OF_NON_PART ||
+    errorCode == CompileTimeErrorCode.UNDEFINED_ANNOTATION ||
     errorCode ==
         CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT ||
     errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST ||

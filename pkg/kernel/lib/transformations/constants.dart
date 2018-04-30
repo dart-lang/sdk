@@ -729,6 +729,22 @@ class ConstantEvaluator extends RecursiveVisitor {
     return canonicalize(backend.buildSymbolConstant(value));
   }
 
+  visitInstantiation(Instantiation node) {
+    final Constant constant = evaluate(node.expression);
+    if (constant is TearOffConstant) {
+      if (node.typeArguments.length ==
+          constant.procedure.function.typeParameters.length) {
+        return canonicalize(
+            new PartialInstantiationConstant(constant, node.typeArguments));
+      }
+      throw new ConstantEvaluationError(
+          'The number of type arguments supplied in the partial instantiation '
+          'does not match the number of type arguments of the $constant.');
+    }
+    throw new ConstantEvaluationError(
+        'Only tear-off constants can be partially instantiated.');
+  }
+
   // Helper methods:
 
   void ensureIsSubtype(Constant constant, DartType type) {

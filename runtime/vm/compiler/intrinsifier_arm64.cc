@@ -265,8 +265,9 @@ static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {
 void Intrinsifier::Integer_addFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);  // Checks two smis.
-  __ adds(R0, R0, Operand(R1));                     // Adds.
+  __ addsw(R0, R0, Operand(R1));                    // Adds.
   __ b(&fall_through, VS);                          // Fall-through on overflow.
+  __ sxtw(R0, R0);  // Sign extend - flags not affected.
   __ ret();
   __ Bind(&fall_through);
 }
@@ -278,8 +279,9 @@ void Intrinsifier::Integer_add(Assembler* assembler) {
 void Intrinsifier::Integer_subFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
-  __ subs(R0, R0, Operand(R1));  // Subtract.
-  __ b(&fall_through, VS);       // Fall-through on overflow.
+  __ subsw(R0, R0, Operand(R1));  // Subtract.
+  __ b(&fall_through, VS);        // Fall-through on overflow.
+  __ sxtw(R0, R0);                // Sign extend - flags not affected.
   __ ret();
   __ Bind(&fall_through);
 }
@@ -287,8 +289,9 @@ void Intrinsifier::Integer_subFromInteger(Assembler* assembler) {
 void Intrinsifier::Integer_sub(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
-  __ subs(R0, R1, Operand(R0));  // Subtract.
-  __ b(&fall_through, VS);       // Fall-through on overflow.
+  __ subsw(R0, R1, Operand(R0));  // Subtract.
+  __ b(&fall_through, VS);        // Fall-through on overflow.
+  __ sxtw(R0, R0);                // Sign extend - flags not affected.
   __ ret();
   __ Bind(&fall_through);
 }
@@ -299,9 +302,9 @@ void Intrinsifier::Integer_mulFromInteger(Assembler* assembler) {
   TestBothArgumentsSmis(assembler, &fall_through);  // checks two smis
   __ SmiUntag(R0);  // Untags R6. We only want result shifted by one.
 
-  __ mul(TMP, R0, R1);
-  __ smulh(TMP2, R0, R1);
-  // TMP: result bits 64..127.
+  __ smull(TMP, R0, R1);
+  __ AsrImmediate(TMP2, TMP, 31);
+  // TMP: result bits 31..63.
   __ cmp(TMP2, Operand(TMP, ASR, 63));
   __ b(&fall_through, NE);
   __ mov(R0, TMP);
@@ -417,7 +420,7 @@ void Intrinsifier::Integer_truncDivide(Assembler* assembler) {
 
   // Check the corner case of dividing the 'MIN_SMI' with -1, in which case we
   // cannot tag the result.
-  __ CompareImmediate(R0, 0x4000000000000000);
+  __ CompareImmediate(R0, 0x40000000);
   __ b(&fall_through, EQ);
   __ SmiTag(R0);  // Not equal. Okay to tag and return.
   __ ret();       // Return.
@@ -428,8 +431,9 @@ void Intrinsifier::Integer_negate(Assembler* assembler) {
   Label fall_through;
   __ ldr(R0, Address(SP, +0 * kWordSize));  // Grab first argument.
   __ BranchIfNotSmi(R0, &fall_through);
-  __ negs(R0, R0);
+  __ negsw(R0, R0);
   __ b(&fall_through, VS);
+  __ sxtw(R0, R0);  // Sign extend - flags not affected.
   __ ret();
   __ Bind(&fall_through);
 }
@@ -488,9 +492,9 @@ void Intrinsifier::Integer_shl(Assembler* assembler) {
   // Check if count too large for handling it inlined.
   __ SmiUntag(TMP, right);  // SmiUntag right into TMP.
   // Overflow test (preserve left, right, and TMP);
-  __ lslv(temp, left, TMP);
-  __ asrv(TMP2, temp, TMP);
-  __ CompareRegisters(left, TMP2);
+  __ lslvw(temp, left, TMP);
+  __ asrvw(TMP2, temp, TMP);
+  __ cmpw(left, Operand(TMP2));
   __ b(&fall_through, NE);  // Overflow.
   // Shift for result now we know there is no overflow.
   __ lslv(result, left, TMP);
@@ -563,6 +567,7 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
 
   __ CompareClassId(R0, kDoubleCid);
   __ b(&fall_through, EQ);
+  __ AssertSmiInRange(R1);
   __ LoadObject(R0, Bool::False());  // Smi == Mint -> false.
   __ ret();
 
@@ -573,6 +578,7 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   __ b(&fall_through, NE);
   // Receiver is Mint, return false if right is Smi.
   __ BranchIfNotSmi(R0, &fall_through);
+  __ AssertSmiInRange(R0);
   __ LoadObject(R0, Bool::False());
   __ ret();
   // TODO(srdjan): Implement Mint == Mint comparison.
@@ -1495,11 +1501,12 @@ void Intrinsifier::DoubleToInteger(Assembler* assembler) {
   __ fcmpd(V0, V0);
   __ b(&fall_through, VS);
 
-  __ fcvtzds(R0, V0);
+  __ fcvtzdsx(R0, V0);
   // Overflow is signaled with minint.
   // Check for overflow and that it fits into Smi.
-  __ CompareImmediate(R0, 0xC000000000000000);
-  __ b(&fall_through, MI);
+  __ AsrImmediate(TMP, R0, 30);
+  __ cmp(TMP, Operand(R0, ASR, 63));
+  __ b(&fall_through, NE);
   __ SmiTag(R0);
   __ ret();
   __ Bind(&fall_through);
@@ -1516,10 +1523,10 @@ void Intrinsifier::Double_hashCode(Assembler* assembler) {
   __ fcmpd(V0, V0);
   __ b(&double_hash, VS);
 
-  // Convert double value to signed 64-bit int in R0 and back to a
+  // Convert double value to signed 32-bit int in R0 and back to a
   // double value in V1.
-  __ fcvtzds(R0, V0);
-  __ scvtfdx(V1, R0);
+  __ fcvtzdsw(R0, V0);
+  __ scvtfdw(V1, R0);
 
   // Tag the int as a Smi, making sure that it fits; this checks for
   // overflow in the conversion from double to int. Conversion
@@ -1527,8 +1534,9 @@ void Intrinsifier::Double_hashCode(Assembler* assembler) {
   // INT64_MAX or INT64_MIN (saturation).
   Label fall_through;
   ASSERT(kSmiTag == 0 && kSmiTagShift == 1);
-  __ adds(R0, R0, Operand(R0));
+  __ addsw(R0, R0, Operand(R0));
   __ b(&fall_through, VS);
+  __ sxtw(R0, R0);  // Sign extend - flags not affected.
 
   // Compare the two double values. If they are equal, we return the
   // Smi tagged result immediately as the hash code.
@@ -1702,7 +1710,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   __ ret();
 
   __ Bind(&use_canonical_type);
-  __ LoadClassById(R2, R1);
+  __ LoadClassById(R2, R1);  // Overwrites R1.
   __ ldr(R3, FieldAddress(R2, Class::num_type_arguments_offset()), kHalfword);
   __ CompareImmediate(R3, 0);
   __ b(&fall_through, NE);
@@ -1736,7 +1744,7 @@ void Intrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler) {
   // Objects have the same class and neither is a closure.
   // Check if there are no type arguments. In this case we can return true.
   // Otherwise fall through into the runtime to handle comparison.
-  __ LoadClassById(R3, R1);
+  __ LoadClassById(R3, R1);  // Overwrites R1.
   __ ldr(R3, FieldAddress(R3, Class::num_type_arguments_offset()), kHalfword);
   __ CompareImmediate(R3, 0);
   __ b(&fall_through, NE);

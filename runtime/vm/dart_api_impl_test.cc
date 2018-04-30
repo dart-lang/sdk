@@ -137,7 +137,7 @@ TEST_CASE(DartAPI_StackTraceInfo) {
 TEST_CASE(DartAPI_DeepStackTraceInfo) {
   const char* kScriptChars =
       "foo(n) => n == 1 ? throw new Error() : foo(n-1);\n"
-      "testMain() => foo(50);\n";
+      "testMain() => foo(100);\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_Handle error = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
@@ -151,10 +151,10 @@ TEST_CASE(DartAPI_DeepStackTraceInfo) {
   intptr_t frame_count = 0;
   result = Dart_StackTraceLength(stacktrace, &frame_count);
   EXPECT_VALID(result);
-  EXPECT_EQ(51, frame_count);
+  EXPECT_EQ(101, frame_count);
   // Test something bigger than the preallocated size to verify nothing was
   // truncated.
-  EXPECT(51 > StackTrace::kPreallocatedStackdepth);
+  EXPECT(101 > StackTrace::kPreallocatedStackdepth);
 
   Dart_Handle function_name;
   Dart_Handle script_url;
@@ -320,10 +320,10 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
   intptr_t frame_count = 0;
   result = Dart_StackTraceLength(stacktrace, &frame_count);
   EXPECT_VALID(result);
-  EXPECT_EQ(52, frame_count);
+  EXPECT_EQ(102, frame_count);
   // Test something bigger than the preallocated size to verify nothing was
   // truncated.
-  EXPECT(52 > StackTrace::kPreallocatedStackdepth);
+  EXPECT(102 > StackTrace::kPreallocatedStackdepth);
 
   Dart_Handle function_name;
   Dart_Handle script_url;
@@ -412,7 +412,7 @@ TEST_CASE(DartAPI_CurrentStackTraceInfo) {
   const char* kScriptChars =
       "inspectStack() native 'CurrentStackTraceNatve';\n"
       "foo(n) => n == 1 ? inspectStack() : foo(n-1);\n"
-      "testMain() => foo(50);\n";
+      "testMain() => foo(100);\n";
 
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, &CurrentStackTraceNativeLookup);
@@ -3385,9 +3385,10 @@ VM_UNIT_TEST_CASE(DartAPI_IsolateSetCheckedMode) {
   api_flags.enable_error_on_bad_override = true;
   api_flags.use_dart_frontend = FLAG_use_dart_frontend;
   char* err;
-  Dart_Isolate isolate = Dart_CreateIsolate(
-      NULL, NULL, bin::core_isolate_snapshot_data,
-      bin::core_isolate_snapshot_instructions, &api_flags, NULL, &err);
+  Dart_Isolate isolate =
+      Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
+                         bin::core_isolate_snapshot_instructions, NULL, NULL,
+                         &api_flags, NULL, &err);
   if (isolate == NULL) {
     OS::PrintErr("Creation of isolate failed '%s'\n", err);
     free(err);
@@ -5003,7 +5004,6 @@ TEST_CASE(DartAPI_Invoke_Null) {
 
 TEST_CASE(DartAPI_InvokeNoSuchMethod) {
   const char* kScriptChars =
-      "import 'dart:_internal' as _internal;\n"
       "class Expect {\n"
       "  static equals(a, b) {\n"
       "    if (a != b) {\n"
@@ -5014,7 +5014,11 @@ TEST_CASE(DartAPI_InvokeNoSuchMethod) {
       "class TestClass {\n"
       "  static int fld1 = 0;\n"
       "  void noSuchMethod(Invocation invocation) {\n"
-      "    var name = _internal.Symbol.getName(invocation.memberName);\n"
+      // This relies on the Symbol.toString() method returning a String of the
+      // form 'Symbol("name")'. This is to avoid having to import
+      // dart:_internal just to get access to the name of the symbol.
+      "    var name = invocation.memberName.toString();\n"
+      "    name = name.split('\"')[1];\n"
       "    if (name == 'fld') {\n"
       "      Expect.equals(true, invocation.isGetter);\n"
       "      Expect.equals(false, invocation.isMethod);\n"

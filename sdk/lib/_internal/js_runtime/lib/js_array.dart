@@ -523,7 +523,13 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   void sort([int compare(E a, E b)]) {
     checkMutable('sort');
-    Sort.sort(this, compare == null ? Comparable.compare : compare);
+    Sort.sort(this, compare ?? _compareAny);
+  }
+
+  static int _compareAny(a, b) {
+    // In strong mode Comparable.compare requires an implicit cast to ensure
+    // `a` and `b` are Comparable.
+    return Comparable.compare(a, b);
   }
 
   void shuffle([Random random]) {

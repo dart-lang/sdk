@@ -27,15 +27,6 @@ class OpType {
   bool includeConstructorSuggestions = false;
 
   /**
-   * If [includeConstructorSuggestions] is set to true, then this function may
-   * be set to a non-default function to filter out potential suggestions (null)
-   * based on their static [DartType], or change the relative relevance by
-   * returning a higher or lower relevance.
-   */
-  SuggestionsFilter constructorSuggestionsFilter =
-      (DartType _, int relevance) => relevance;
-
-  /**
    * Indicates whether type names should be suggested.
    */
   bool includeTypeNameSuggestions = false;
@@ -209,20 +200,6 @@ class OpType {
       _requiredType = null;
       return;
     }
-
-    constructorSuggestionsFilter = (DartType dartType, int relevance) {
-      if (dartType != null) {
-        if (dartType == _requiredType) {
-          return relevance + DART_RELEVANCE_BOOST_TYPE;
-        } else if (dartType.isSubtypeOf(_requiredType)) {
-          return relevance + DART_RELEVANCE_BOOST_SUBTYPE;
-        }
-        if (target.containingNode is InstanceCreationExpression) {
-          return null;
-        }
-      }
-      return relevance;
-    };
 
     returnValueSuggestionsFilter = (DartType dartType, int relevance) {
       if (dartType != null) {

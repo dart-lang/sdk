@@ -43,6 +43,12 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
    */
   bool get isNullExpectedReturnTypeConsideredDynamic => true;
 
+  /**
+   * Return `true` if contributors should suggest constructors in contexts where
+   * there is no `new` or `const` keyword.
+   */
+  bool get suggestConstructorsWithoutNew => false;
+
   bool get usingFastaParser => analyzer.Parser.useFasta;
 
   void addTestSource(String content) {

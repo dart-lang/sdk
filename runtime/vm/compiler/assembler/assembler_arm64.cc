@@ -660,24 +660,43 @@ void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
   blr(TMP);
 }
 
-void Assembler::AddImmediate(Register dest, Register rn, int64_t imm) {
+void Assembler::AddImmediate(Register dest,
+                             Register rn,
+                             int64_t imm,
+                             OperandSize sz) {
   Operand op;
   if (imm == 0) {
     if (dest != rn) {
-      mov(dest, rn);
+      if (sz == kWord) {
+        uxtw(dest, rn);
+      } else {
+        mov(dest, rn);
+      }
     }
     return;
   }
   if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
-    add(dest, rn, op);
+    if (sz == kDoubleWord) {
+      add(dest, rn, op);
+    } else {
+      addw(dest, rn, op);
+    }
   } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
              Operand::Immediate) {
-    sub(dest, rn, op);
+    if (sz == kDoubleWord) {
+      sub(dest, rn, op);
+    } else {
+      subw(dest, rn, op);
+    }
   } else {
     // TODO(zra): Try adding top 12 bits, then bottom 12 bits.
     ASSERT(rn != TMP2);
     LoadImmediate(TMP2, imm);
-    add(dest, rn, Operand(TMP2));
+    if (sz == kDoubleWord) {
+      add(dest, rn, Operand(TMP2));
+    } else {
+      addw(dest, rn, Operand(TMP2));
+    }
   }
 }
 
@@ -1030,6 +1049,8 @@ void Assembler::LoadClassById(Register result, Register class_id) {
   const intptr_t offset =
       Isolate::class_table_offset() + ClassTable::table_offset();
   LoadFromOffset(result, result, offset);
+  ASSERT(kSizeOfClassPairLog2 == 4);
+  add(class_id, class_id, Operand(class_id));
   ldr(result, Address(result, class_id, UXTX, Address::Scaled));
 }
 

@@ -2768,8 +2768,8 @@ class ExceptionHandlingDelegatingAstVisitor<T> extends DelegatingAstVisitor<T> {
    * A function that can be used with instances of this class to log and then
    * ignore any exceptions that are thrown by any of the delegates.
    */
-  static void logException(AstNode node, AstVisitor visitor, dynamic exception,
-      StackTrace stackTrace) {
+  static void logException(
+      AstNode node, Object visitor, dynamic exception, StackTrace stackTrace) {
     StringBuffer buffer = new StringBuffer();
     buffer.write('Exception while using a ${visitor.runtimeType} to visit a ');
     AstNode currentNode = node;

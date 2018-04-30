@@ -34,7 +34,10 @@ class TestData {
   /// Tested constants.
   final List<ConstantData> constants;
 
-  const TestData(this.name, this.declarations, this.constants);
+  final bool strongModeOnly;
+
+  const TestData(this.name, this.declarations, this.constants,
+      {this.strongModeOnly: false});
 }
 
 class ConstantData {
@@ -46,12 +49,17 @@ class ConstantData {
   /// a [ConstantResult].
   final expectedResults;
 
+  /// Expected results for Dart 2 if different from [expectedResults].
+  final strongModeResults;
+
   /// A [MessageKind] or a list of [MessageKind]s containing the error messages
   /// expected as the result of evaluating the constant under the empty
   /// environment.
   final expectedErrors;
 
-  const ConstantData(this.code, this.expectedResults, [this.expectedErrors]);
+  const ConstantData(this.code, this.expectedResults,
+      {this.expectedErrors, strongModeResults})
+      : this.strongModeResults = strongModeResults ?? expectedResults;
 }
 
 class EvaluationError {
@@ -75,6 +83,10 @@ class MemoryEnvironment implements EvaluationEnvironment {
   InterfaceType substByContext(InterfaceType base, InterfaceType target) {
     return _environment.substByContext(base, target);
   }
+
+  @override
+  DartType getTypeInContext(DartType type) =>
+      _environment.getTypeInContext(type);
 
   @override
   ConstantConstructor getConstructorConstant(ConstructorEntity constructor) {
@@ -152,21 +164,25 @@ const List<TestData> DATA = const [
     const ConstantData('Object', 'TypeConstant(Object)'),
     const ConstantData('null ?? 0', 'IntConstant(0)'),
     const ConstantData(
-        'const [0, 1]', 'ListConstant([IntConstant(0), IntConstant(1)])'),
+        'const [0, 1]', 'ListConstant([IntConstant(0), IntConstant(1)])',
+        strongModeResults:
+            'ListConstant(<int>[IntConstant(0), IntConstant(1)])'),
     const ConstantData('const <int>[0, 1]',
         'ListConstant(<int>[IntConstant(0), IntConstant(1)])'),
     const ConstantData(
         'const {0: 1, 2: 3}',
         'MapConstant({IntConstant(0): IntConstant(1), '
-        'IntConstant(2): IntConstant(3)})'),
+        'IntConstant(2): IntConstant(3)})',
+        strongModeResults:
+            'MapConstant(<int, int>{IntConstant(0): IntConstant(1), '
+            'IntConstant(2): IntConstant(3)})'),
     const ConstantData(
         'const <int, int>{0: 1, 2: 3}',
         'MapConstant(<int, int>{IntConstant(0): IntConstant(1), '
         'IntConstant(2): IntConstant(3)})'),
-    const ConstantData(
-        'const <int, int>{0: 1, 0: 2}',
+    const ConstantData('const <int, int>{0: 1, 0: 2}',
         'MapConstant(<int, int>{IntConstant(0): IntConstant(2)})',
-        MessageKind.EQUAL_MAP_ENTRY_KEY),
+        expectedErrors: MessageKind.EQUAL_MAP_ENTRY_KEY),
     const ConstantData(
         'const bool.fromEnvironment("foo", defaultValue: false)', const {
       const {}: 'BoolConstant(false)',
@@ -355,133 +371,137 @@ class B extends A {
     const ConstantData(
         r'"$integer $string $boolean"', 'StringConstant("5 baz false")'),
     const ConstantData('0 ? true : false', 'NonConstant',
-        MessageKind.INVALID_CONSTANT_CONDITIONAL_TYPE),
+        expectedErrors: MessageKind.INVALID_CONSTANT_CONDITIONAL_TYPE),
     const ConstantData('integer ? true : false', 'NonConstant',
-        MessageKind.INVALID_CONSTANT_CONDITIONAL_TYPE),
+        expectedErrors: MessageKind.INVALID_CONSTANT_CONDITIONAL_TYPE),
     const ConstantData(r'"${const []}"', 'NonConstant',
-        MessageKind.INVALID_CONSTANT_INTERPOLATION_TYPE),
+        expectedErrors: MessageKind.INVALID_CONSTANT_INTERPOLATION_TYPE),
     const ConstantData(r'"${proxy}"', 'NonConstant',
-        MessageKind.INVALID_CONSTANT_INTERPOLATION_TYPE),
-    const ConstantData(r'"${proxy}${const []}"', 'NonConstant', const [
-      MessageKind.INVALID_CONSTANT_INTERPOLATION_TYPE,
-      MessageKind.INVALID_CONSTANT_INTERPOLATION_TYPE
-    ]),
-    const ConstantData(r'"${"${proxy}"}${const []}"', 'NonConstant', const [
-      MessageKind.INVALID_CONSTANT_INTERPOLATION_TYPE,
-      MessageKind.INVALID_CONSTANT_INTERPOLATION_TYPE
-    ]),
-    const ConstantData(
-        '0 + ""', 'NonConstant', MessageKind.INVALID_CONSTANT_NUM_ADD_TYPE),
-    const ConstantData(
-        '0 + string', 'NonConstant', MessageKind.INVALID_CONSTANT_NUM_ADD_TYPE),
-    const ConstantData(
-        '"" + 0', 'NonConstant', MessageKind.INVALID_CONSTANT_STRING_ADD_TYPE),
+        expectedErrors: MessageKind.INVALID_CONSTANT_INTERPOLATION_TYPE),
+    const ConstantData(r'"${proxy}${const []}"', 'NonConstant',
+        expectedErrors: const [
+          MessageKind.INVALID_CONSTANT_INTERPOLATION_TYPE,
+          MessageKind.INVALID_CONSTANT_INTERPOLATION_TYPE
+        ]),
+    const ConstantData(r'"${"${proxy}"}${const []}"', 'NonConstant',
+        expectedErrors: const [
+          MessageKind.INVALID_CONSTANT_INTERPOLATION_TYPE,
+          MessageKind.INVALID_CONSTANT_INTERPOLATION_TYPE
+        ]),
+    const ConstantData('0 + ""', 'NonConstant',
+        expectedErrors: MessageKind.INVALID_CONSTANT_NUM_ADD_TYPE),
+    const ConstantData('0 + string', 'NonConstant',
+        expectedErrors: MessageKind.INVALID_CONSTANT_NUM_ADD_TYPE),
+    const ConstantData('"" + 0', 'NonConstant',
+        expectedErrors: MessageKind.INVALID_CONSTANT_STRING_ADD_TYPE),
     const ConstantData('string + 0', 'NonConstant',
-        MessageKind.INVALID_CONSTANT_STRING_ADD_TYPE),
+        expectedErrors: MessageKind.INVALID_CONSTANT_STRING_ADD_TYPE),
     const ConstantData('true + ""', 'NonConstant',
-        MessageKind.INVALID_CONSTANT_STRING_ADD_TYPE),
+        expectedErrors: MessageKind.INVALID_CONSTANT_STRING_ADD_TYPE),
     const ConstantData('boolean + string', 'NonConstant',
-        MessageKind.INVALID_CONSTANT_STRING_ADD_TYPE),
-    const ConstantData(
-        'true + false', 'NonConstant', MessageKind.INVALID_CONSTANT_ADD_TYPES),
+        expectedErrors: MessageKind.INVALID_CONSTANT_STRING_ADD_TYPE),
+    const ConstantData('true + false', 'NonConstant',
+        expectedErrors: MessageKind.INVALID_CONSTANT_ADD_TYPES),
     const ConstantData('boolean + false', 'NonConstant',
-        MessageKind.INVALID_CONSTANT_ADD_TYPES),
+        expectedErrors: MessageKind.INVALID_CONSTANT_ADD_TYPES),
     const ConstantData('const [] == null', 'NonConstant',
-        MessageKind.INVALID_CONSTANT_BINARY_PRIMITIVE_TYPE),
+        expectedErrors: MessageKind.INVALID_CONSTANT_BINARY_PRIMITIVE_TYPE),
     const ConstantData('proxy == null', 'NonConstant',
-        MessageKind.INVALID_CONSTANT_BINARY_PRIMITIVE_TYPE),
-    const ConstantData(
-        '0 * ""', 'NonConstant', MessageKind.INVALID_CONSTANT_BINARY_NUM_TYPE),
+        expectedErrors: MessageKind.INVALID_CONSTANT_BINARY_PRIMITIVE_TYPE),
+    const ConstantData('0 * ""', 'NonConstant',
+        expectedErrors: MessageKind.INVALID_CONSTANT_BINARY_NUM_TYPE),
     const ConstantData('0 * string', 'NonConstant',
-        MessageKind.INVALID_CONSTANT_BINARY_NUM_TYPE),
-    const ConstantData(
-        '0 % ""', 'NonConstant', MessageKind.INVALID_CONSTANT_BINARY_NUM_TYPE),
+        expectedErrors: MessageKind.INVALID_CONSTANT_BINARY_NUM_TYPE),
+    const ConstantData('0 % ""', 'NonConstant',
+        expectedErrors: MessageKind.INVALID_CONSTANT_BINARY_NUM_TYPE),
     const ConstantData('0 % string', 'NonConstant',
-        MessageKind.INVALID_CONSTANT_BINARY_NUM_TYPE),
-    const ConstantData(
-        '0 << ""', 'NonConstant', MessageKind.INVALID_CONSTANT_BINARY_INT_TYPE),
+        expectedErrors: MessageKind.INVALID_CONSTANT_BINARY_NUM_TYPE),
+    const ConstantData('0 << ""', 'NonConstant',
+        expectedErrors: MessageKind.INVALID_CONSTANT_BINARY_INT_TYPE),
     const ConstantData('0 << string', 'NonConstant',
-        MessageKind.INVALID_CONSTANT_BINARY_INT_TYPE),
-    const ConstantData(
-        'null[0]', 'NonConstant', MessageKind.INVALID_CONSTANT_INDEX),
+        expectedErrors: MessageKind.INVALID_CONSTANT_BINARY_INT_TYPE),
+    const ConstantData('null[0]', 'NonConstant',
+        expectedErrors: MessageKind.INVALID_CONSTANT_INDEX),
     const ConstantData('const bool.fromEnvironment(0)', 'NonConstant',
-        MessageKind.INVALID_FROM_ENVIRONMENT_NAME_TYPE),
+        expectedErrors: MessageKind.INVALID_FROM_ENVIRONMENT_NAME_TYPE),
     const ConstantData('const bool.fromEnvironment(integer)', 'NonConstant',
-        MessageKind.INVALID_FROM_ENVIRONMENT_NAME_TYPE),
+        expectedErrors: MessageKind.INVALID_FROM_ENVIRONMENT_NAME_TYPE),
     const ConstantData(
-        'const bool.fromEnvironment("baz", defaultValue: 0)',
-        'NonConstant',
-        MessageKind.INVALID_BOOL_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE),
+        'const bool.fromEnvironment("baz", defaultValue: 0)', 'NonConstant',
+        expectedErrors:
+            MessageKind.INVALID_BOOL_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE),
     const ConstantData(
         'const bool.fromEnvironment("baz", defaultValue: integer)',
         'NonConstant',
-        MessageKind.INVALID_BOOL_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE),
+        expectedErrors:
+            MessageKind.INVALID_BOOL_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE),
     const ConstantData('const int.fromEnvironment(0)', 'NonConstant',
-        MessageKind.INVALID_FROM_ENVIRONMENT_NAME_TYPE),
+        expectedErrors: MessageKind.INVALID_FROM_ENVIRONMENT_NAME_TYPE),
     const ConstantData('const int.fromEnvironment(integer)', 'NonConstant',
-        MessageKind.INVALID_FROM_ENVIRONMENT_NAME_TYPE),
+        expectedErrors: MessageKind.INVALID_FROM_ENVIRONMENT_NAME_TYPE),
     const ConstantData(
-        'const int.fromEnvironment("baz", defaultValue: "")',
-        'NonConstant',
-        MessageKind.INVALID_INT_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE),
+        'const int.fromEnvironment("baz", defaultValue: "")', 'NonConstant',
+        expectedErrors:
+            MessageKind.INVALID_INT_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE),
     const ConstantData(
-        'const int.fromEnvironment("baz", defaultValue: string)',
-        'NonConstant',
-        MessageKind.INVALID_INT_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE),
+        'const int.fromEnvironment("baz", defaultValue: string)', 'NonConstant',
+        expectedErrors:
+            MessageKind.INVALID_INT_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE),
     const ConstantData('const String.fromEnvironment(0)', 'NonConstant',
-        MessageKind.INVALID_FROM_ENVIRONMENT_NAME_TYPE),
+        expectedErrors: MessageKind.INVALID_FROM_ENVIRONMENT_NAME_TYPE),
     const ConstantData('const String.fromEnvironment(integer)', 'NonConstant',
-        MessageKind.INVALID_FROM_ENVIRONMENT_NAME_TYPE),
+        expectedErrors: MessageKind.INVALID_FROM_ENVIRONMENT_NAME_TYPE),
     const ConstantData(
-        'const String.fromEnvironment("baz", defaultValue: 0)',
-        'NonConstant',
-        MessageKind.INVALID_STRING_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE),
+        'const String.fromEnvironment("baz", defaultValue: 0)', 'NonConstant',
+        expectedErrors:
+            MessageKind.INVALID_STRING_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE),
     const ConstantData(
         'const String.fromEnvironment("baz", defaultValue: integer)',
         'NonConstant',
-        MessageKind.INVALID_STRING_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE),
+        expectedErrors:
+            MessageKind.INVALID_STRING_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE),
     const ConstantData('true || 0', 'NonConstant',
-        MessageKind.INVALID_LOGICAL_OR_OPERAND_TYPE),
+        expectedErrors: MessageKind.INVALID_LOGICAL_OR_OPERAND_TYPE),
     const ConstantData('0 || true', 'NonConstant',
-        MessageKind.INVALID_LOGICAL_OR_OPERAND_TYPE),
+        expectedErrors: MessageKind.INVALID_LOGICAL_OR_OPERAND_TYPE),
     const ConstantData('true || integer', 'NonConstant',
-        MessageKind.INVALID_LOGICAL_OR_OPERAND_TYPE),
+        expectedErrors: MessageKind.INVALID_LOGICAL_OR_OPERAND_TYPE),
     const ConstantData('integer || true', 'NonConstant',
-        MessageKind.INVALID_LOGICAL_OR_OPERAND_TYPE),
+        expectedErrors: MessageKind.INVALID_LOGICAL_OR_OPERAND_TYPE),
     const ConstantData('true && 0', 'NonConstant',
-        MessageKind.INVALID_LOGICAL_AND_OPERAND_TYPE),
+        expectedErrors: MessageKind.INVALID_LOGICAL_AND_OPERAND_TYPE),
     const ConstantData('0 && true', 'NonConstant',
-        MessageKind.INVALID_LOGICAL_AND_OPERAND_TYPE),
+        expectedErrors: MessageKind.INVALID_LOGICAL_AND_OPERAND_TYPE),
     const ConstantData('integer && true', 'NonConstant',
-        MessageKind.INVALID_LOGICAL_AND_OPERAND_TYPE),
-    const ConstantData(
-        '!0', 'NonConstant', MessageKind.INVALID_CONSTANT_NOT_TYPE),
-    const ConstantData(
-        '!string', 'NonConstant', MessageKind.INVALID_CONSTANT_NOT_TYPE),
-    const ConstantData(
-        '-("")', 'NonConstant', MessageKind.INVALID_CONSTANT_NEGATE_TYPE),
-    const ConstantData(
-        '-(string)', 'NonConstant', MessageKind.INVALID_CONSTANT_NEGATE_TYPE),
+        expectedErrors: MessageKind.INVALID_LOGICAL_AND_OPERAND_TYPE),
+    const ConstantData('!0', 'NonConstant',
+        expectedErrors: MessageKind.INVALID_CONSTANT_NOT_TYPE),
+    const ConstantData('!string', 'NonConstant',
+        expectedErrors: MessageKind.INVALID_CONSTANT_NOT_TYPE),
+    const ConstantData('-("")', 'NonConstant',
+        expectedErrors: MessageKind.INVALID_CONSTANT_NEGATE_TYPE),
+    const ConstantData('-(string)', 'NonConstant',
+        expectedErrors: MessageKind.INVALID_CONSTANT_NEGATE_TYPE),
     const ConstantData('not_string.length', 'NonConstant',
-        MessageKind.INVALID_CONSTANT_STRING_LENGTH_TYPE),
+        expectedErrors: MessageKind.INVALID_CONSTANT_STRING_LENGTH_TYPE),
     const ConstantData('const Class1()', 'NonConstant',
-        MessageKind.INVALID_CONSTANT_STRING_LENGTH_TYPE),
+        expectedErrors: MessageKind.INVALID_CONSTANT_STRING_LENGTH_TYPE),
     const ConstantData('getter', 'NonConstant'),
-    const ConstantData(
-        'const Class2()', 'NonConstant', MessageKind.INVALID_ASSERT_VALUE),
+    const ConstantData('const Class2()', 'NonConstant',
+        expectedErrors: MessageKind.INVALID_ASSERT_VALUE),
     const ConstantData('const Class2.redirect()', 'NonConstant',
-        MessageKind.INVALID_ASSERT_VALUE),
+        expectedErrors: MessageKind.INVALID_ASSERT_VALUE),
     const ConstantData('const Class3()', 'NonConstant',
-        MessageKind.INVALID_ASSERT_VALUE_MESSAGE),
-    const ConstantData(
-        'const Class3.fact()', 'NonConstant', MessageKind.INVALID_ASSERT_VALUE),
-    const ConstantData(
-        'const Class4()', 'NonConstant', MessageKind.INVALID_ASSERT_VALUE),
+        expectedErrors: MessageKind.INVALID_ASSERT_VALUE_MESSAGE),
+    const ConstantData('const Class3.fact()', 'NonConstant',
+        expectedErrors: MessageKind.INVALID_ASSERT_VALUE),
+    const ConstantData('const Class4()', 'NonConstant',
+        expectedErrors: MessageKind.INVALID_ASSERT_VALUE),
     const ConstantData('const Class5(0)', 'NonConstant',
-        MessageKind.INVALID_ASSERT_VALUE_MESSAGE),
+        expectedErrors: MessageKind.INVALID_ASSERT_VALUE_MESSAGE),
     const ConstantData('const Class5(1)', 'ConstructedConstant(Class5())'),
     const ConstantData('const Class6(1)', 'NonConstant',
-        MessageKind.INVALID_ASSERT_VALUE_MESSAGE),
+        expectedErrors: MessageKind.INVALID_ASSERT_VALUE_MESSAGE),
     const ConstantData('const Class6(2)', 'ConstructedConstant(Class6())'),
   ]),
   const TestData('assert', '''
@@ -505,6 +525,31 @@ class B extends A {
     const ConstantData(r'const D(0)',
         'ConstructedConstant(D(a=IntConstant(1),b=IntConstant(2)))'),
   ]),
+  const TestData(
+      'instantiations',
+      '''
+T identity<T>(T t) => t;
+class C<T> {
+  final T defaultValue;
+  final T Function(T t) identityFunction;
+
+  const C(this.defaultValue, this.identityFunction);
+}
+  ''',
+      const <ConstantData>[
+        const ConstantData('identity', 'FunctionConstant(identity)'),
+        const ConstantData(
+            'const C<int>(0, identity)',
+            'ConstructedConstant(C<int>(defaultValue=IntConstant(0),'
+            'identityFunction=InstantiationConstant([int],'
+            'FunctionConstant(identity))))'),
+        const ConstantData(
+            'const C<double>(0.5, identity)',
+            'ConstructedConstant(C<double>(defaultValue=DoubleConstant(0.5),'
+            'identityFunction=InstantiationConstant([double],'
+            'FunctionConstant(identity))))'),
+      ],
+      strongModeOnly: true)
 ];
 
 main(List<String> args) {
@@ -518,14 +563,20 @@ main(List<String> args) {
 
 Future testData(TestData data) async {
   StringBuffer sb = new StringBuffer();
-  sb.write('${data.declarations}\n');
+  sb.writeln('${data.declarations}');
   Map<String, ConstantData> constants = {};
+  List<String> names = <String>[];
   data.constants.forEach((ConstantData constantData) {
     String name = 'c${constants.length}';
-    sb.write('const $name = ${constantData.code};\n');
+    names.add(name);
+    sb.writeln('const $name = ${constantData.code};');
     constants[name] = constantData;
   });
-  sb.write('main() {}\n');
+  sb.writeln('main() {');
+  for (String name in names) {
+    sb.writeln('  print($name);');
+  }
+  sb.writeln('}');
   String source = sb.toString();
   print("--source '${data.name}'---------------------------------------------");
   print(source);
@@ -533,7 +584,8 @@ Future testData(TestData data) async {
   Future runTest(
       List<String> options,
       EvaluationEnvironment getEnvironment(
-          Compiler compiler, FieldEntity field)) async {
+          Compiler compiler, FieldEntity field),
+      {bool strongMode: false}) async {
     CompilationResult result = await runCompiler(
         memorySourceFiles: {'main.dart': source}, options: options);
     Compiler compiler = result.compiler;
@@ -546,7 +598,8 @@ Future testData(TestData data) async {
         ConstantExpression constant =
             elementEnvironment.getFieldConstant(field);
 
-        var expectedResults = data.expectedResults;
+        var expectedResults =
+            strongMode ? data.strongModeResults : data.expectedResults;
         if (expectedResults is String) {
           expectedResults = {const <String, String>{}: expectedResults};
         }
@@ -606,23 +659,42 @@ Future testData(TestData data) async {
     'redirect',
   ];
 
-  if (!skipAstList.contains(data.name)) {
+  const skipStrongList = const [
+    // TODO(johnniwinther): Investigate why some types of the constructed
+    // objects don't match.
+    'redirect',
+    // TODO(johnniwinther): Investigate why different errors are reported in
+    // strong mode.
+    'errors',
+  ];
+
+  if (!skipAstList.contains(data.name) && !data.strongModeOnly) {
     print(
         '--test ast----------------------------------------------------------');
     await runTest(
-        [Flags.useOldFrontend, Flags.analyzeAll],
+        [Flags.useOldFrontend],
         (Compiler compiler, FieldEntity field) => new AstEvaluationEnvironment(
             compiler,
             constantRequired: field.isConst));
   }
-  if (!skipKernelList.contains(data.name)) {
+  if (!skipKernelList.contains(data.name) && !data.strongModeOnly) {
     print(
         '--test kernel-------------------------------------------------------');
-    await runTest([Flags.analyzeOnly], (Compiler compiler, FieldEntity field) {
+    await runTest([], (Compiler compiler, FieldEntity field) {
       KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
       KernelToElementMap elementMap = frontendStrategy.elementMap;
       return new KernelEvaluationEnvironment(elementMap, null, field,
           constantRequired: field.isConst);
     });
+  }
+  if (!skipStrongList.contains(data.name)) {
+    print(
+        '--test kernel (strong mode)-----------------------------------------');
+    await runTest([Flags.strongMode], (Compiler compiler, FieldEntity field) {
+      KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
+      KernelToElementMap elementMap = frontendStrategy.elementMap;
+      return new KernelEvaluationEnvironment(elementMap, null, field,
+          constantRequired: field.isConst);
+    }, strongMode: true);
   }
 }

@@ -93,6 +93,7 @@ class CallSpecializer : public FlowGraphVisitor {
 
   // Insert a null check if needed.
   void AddCheckNull(Value* to_check,
+                    const String& function_name,
                     intptr_t deopt_id,
                     Environment* deopt_environment,
                     Instruction* insert_before);

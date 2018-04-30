@@ -67,6 +67,9 @@ class Flags {
   static const String verbose = '--verbose';
   static const String version = '--version';
 
+  /// Flag for a combination of flags for 'production' mode.
+  static const String benchmarkingProduction = '--benchmarking-production';
+
   static const String conditionalDirectives = '--conditional-directives';
 
   // The syntax-only level of support for generic methods is included in the
@@ -92,10 +95,18 @@ class Flags {
   // https://gist.github.com/eernstg/4353d7b4f669745bed3a5423e04a453c.
   static const String genericMethodSyntax = '--generic-method-syntax';
 
-  // Starts `async` functions synchronously.
+  // Deprecated. This flag is no longer in use for dart2js, but we are keeping
+  // it around for a while longer until all other tools deprecate the same flag.
   //
-  // This is the Dart 2.0 behavior. This flag is only used during the migration.
+  // It was used to start `async` functions synchronously, but now dart2js
+  // switched on this behavior by default.
+  // TODO(sigmund): delete once this is on by default on all of our tools.
   static const String syncAsync = '--sync-async';
+
+  // Starts `async` functions asynchronously.
+  //
+  // This is the old Dart 1.0 behavior. Only used during the migration.
+  static const String noSyncAsync = '--no-sync-async';
 
   // Initializing-formal access is enabled by default and cannot be disabled.
   // For backward compatibility the option is still accepted, but it is ignored.

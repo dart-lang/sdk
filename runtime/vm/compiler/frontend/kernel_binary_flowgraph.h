@@ -1357,7 +1357,9 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment Constant(const Object& value);
   Fragment IntConstant(int64_t value);
   Fragment LoadStaticField();
-  Fragment CheckNull(TokenPosition position, LocalVariable* receiver);
+  Fragment CheckNull(TokenPosition position,
+                     LocalVariable* receiver,
+                     const String& function_name);
   Fragment StaticCall(TokenPosition position,
                       const Function& target,
                       intptr_t argument_count,
@@ -1680,12 +1682,16 @@ class ConstantHelper {
         zone_(zone),
         temp_type_(AbstractType::Handle(zone)),
         temp_type_arguments_(TypeArguments::Handle(zone)),
+        temp_type_arguments2_(TypeArguments::Handle(zone)),
+        temp_type_arguments3_(TypeArguments::Handle(zone)),
         temp_object_(Object::Handle(zone)),
         temp_array_(Array::Handle(zone)),
         temp_instance_(Instance::Handle(zone)),
         temp_field_(Field::Handle(zone)),
         temp_class_(Class::Handle(zone)),
         temp_function_(Function::Handle(zone)),
+        temp_closure_(Closure::Handle(zone)),
+        temp_context_(Context::Handle(zone)),
         temp_integer_(Integer::Handle(zone)) {}
 
   // Reads the constant table from the binary.
@@ -1707,12 +1713,16 @@ class ConstantHelper {
   Zone* zone_;
   AbstractType& temp_type_;
   TypeArguments& temp_type_arguments_;
+  TypeArguments& temp_type_arguments2_;
+  TypeArguments& temp_type_arguments3_;
   Object& temp_object_;
   Array& temp_array_;
   Instance& temp_instance_;
   Field& temp_field_;
   Class& temp_class_;
   Function& temp_function_;
+  Closure& temp_closure_;
+  Context& temp_context_;
   Integer& temp_integer_;
 };
 

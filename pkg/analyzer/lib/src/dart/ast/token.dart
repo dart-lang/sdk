@@ -12,6 +12,8 @@ export 'package:front_end/src/scanner/token.dart'
         KeywordToken,
         SimpleToken,
         StringToken,
+        SyntheticBeginToken,
         SyntheticKeywordToken,
         SyntheticStringToken,
+        SyntheticToken,
         TokenClass;

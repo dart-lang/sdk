@@ -19,6 +19,8 @@ class Box<T> {
   Type get typeArg => T;
 }
 
+class G<A, B> {}
+
 typedef int Func(bool b);
 typedef int GenericFunc<T>(T t);
 
@@ -36,14 +38,16 @@ main() {
   testType(Foo, "Foo");
 
   // Generic classes.
-  testType(Box, "Box");
+  testType(Box, "Box", "<dynamic>");
   testType(new Box<Foo>().typeArg, "Foo");
   testType(new Box<dynamic>().typeArg, "dynamic");
   testType(new Box<Box<Foo>>().typeArg, "Box<Foo>");
+  testType(G, "G", "<dynamic, dynamic>");
+  testType(new Box<G<int, String>>().typeArg, "G<int, String>");
 
   // Typedef.
   testType(Func, "Func");
-  testType(GenericFunc, "GenericFunc");
+  testType(GenericFunc, "GenericFunc", "<dynamic>");
   testType(new Box<GenericFunc<int>>().typeArg, "GenericFunc<int>");
 
   // Literals are canonicalized.
@@ -66,7 +70,15 @@ main() {
   Expect.equals("result", prefix.Foo.method());
 }
 
-void testType(Type type, String string) {
-  Expect.equals(string, type.toString());
+void testType(Type type, String string, [String genericArgs]) {
+  if (genericArgs != null) {
+    var s = type.toString();
+    Expect.isTrue(
+        s == string || s == '$string$genericArgs',
+        'type `$type`.toString() should be `$string`, '
+        'optionally with $genericArgs suffix.');
+  } else {
+    Expect.equals(string, type.toString());
+  }
   Expect.isTrue(type is Type);
 }

@@ -521,7 +521,10 @@ class Assembler : public ValueObject {
     return CompareImmediate(reg, Immediate(immediate));
   }
 
-  void testl(Register reg, const Immediate& imm) { testq(reg, imm); }
+  void testl(Register reg, const Immediate& imm) {
+    Immediate imm2(imm.value() & 0xffffffffll);
+    testq(reg, imm2);
+  }
   void testb(const Address& address, const Immediate& imm);
 
   void testq(Register reg, const Immediate& imm);
@@ -710,6 +713,11 @@ class Assembler : public ValueObject {
     kValueCanBeSmi,
   };
 
+  enum CanBeHeapPointer {
+    kValueIsNotHeapPointer,
+    kValueCanBeHeapPointer,
+  };
+
   // Destroys value.
   void StoreIntoObject(Register object,      // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
@@ -766,6 +774,7 @@ class Assembler : public ValueObject {
   // Loading and comparing classes of objects.
   void LoadClassId(Register result, Register object);
 
+  // Overwrites class_id register.
   void LoadClassById(Register result, Register class_id);
 
   void LoadClass(Register result, Register object);
@@ -939,6 +948,26 @@ class Assembler : public ValueObject {
                                            Register array,
                                            Register index);
 
+  void AssertSmiInRange(
+      Register object,
+      CanBeHeapPointer can_be_heap_pointer = kValueIsNotHeapPointer) {
+#if defined(DEBUG)
+    Register tmp = object == TMP ? TMP2 : TMP;
+    Label ok;
+    if (can_be_heap_pointer == kValueCanBeHeapPointer) {
+      testl(object, Immediate(kSmiTagMask));
+      ASSERT(kSmiTag == 0);
+      j(ZERO, &ok);
+    }
+    movsxd(tmp, object);
+    cmpq(tmp, object);
+    j(EQUAL, &ok);
+    Stop("Smi out of range");
+
+    Bind(&ok);
+#endif
+  }
+
   static Address VMTagAddress() {
     return Address(THR, Thread::vm_tag_offset());
   }
@@ -947,6 +976,24 @@ class Assembler : public ValueObject {
   // smis.
   static bool IsSafe(const Object& object) { return true; }
   static bool IsSafeSmi(const Object& object) { return object.IsSmi(); }
+
+  void AssertValidUint32(Register r) {
+    Label ok;
+    movl(TMP, r);
+    cmpq(TMP, r);
+    j(EQUAL, &ok);
+    Stop("uint32 should be zero extended");
+    Bind(&ok);
+  }
+
+  void AssertValidSignExtendedInt32(Register r) {
+    Label ok;
+    movsxd(TMP, r);
+    cmpq(TMP, r);
+    j(EQUAL, &ok);
+    Stop("int32 should be sign extended");
+    Bind(&ok);
+  }
 
  private:
   AssemblerBuffer buffer_;

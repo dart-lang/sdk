@@ -24,13 +24,15 @@ void DescriptorList::AddDescriptor(RawPcDescriptors::Kind kind,
 
     PcDescriptors::EncodeInteger(&encoded_data_, merged_kind_try);
     PcDescriptors::EncodeInteger(&encoded_data_, pc_offset - prev_pc_offset);
-    PcDescriptors::EncodeInteger(&encoded_data_, deopt_id - prev_deopt_id);
-    PcDescriptors::EncodeInteger(&encoded_data_,
-                                 token_pos.value() - prev_token_pos);
-
     prev_pc_offset = pc_offset;
-    prev_deopt_id = deopt_id;
-    prev_token_pos = token_pos.value();
+
+    if (!FLAG_precompiled_mode) {
+      PcDescriptors::EncodeInteger(&encoded_data_, deopt_id - prev_deopt_id);
+      PcDescriptors::EncodeInteger(&encoded_data_,
+                                   token_pos.value() - prev_token_pos);
+      prev_deopt_id = deopt_id;
+      prev_token_pos = token_pos.value();
+    }
   }
 }
 
@@ -366,6 +368,15 @@ void CodeSourceMapBuilder::NoteDescriptor(RawPcDescriptors::Kind kind,
   }
 }
 
+void CodeSourceMapBuilder::NoteNullCheck(int32_t pc_offset,
+                                         TokenPosition pos,
+                                         intptr_t name_index) {
+  BufferChangePosition(pos);
+  BufferAdvancePC(pc_offset - buffered_pc_offset_);
+  FlushBuffer();
+  WriteNullCheck(name_index);
+}
+
 intptr_t CodeSourceMapBuilder::GetFunctionId(intptr_t inline_id) {
   const Function& function = *inline_id_to_function_[inline_id];
   for (intptr_t i = 0; i < inlined_functions_.Length(); i++) {
@@ -459,6 +470,10 @@ void CodeSourceMapReader::GetInlinedFunctionsAt(
         token_positions->RemoveLast();
         break;
       }
+      case CodeSourceMapBuilder::kNullCheck: {
+        stream.Read<int32_t>();
+        break;
+      }
       default:
         UNREACHABLE();
     }
@@ -516,6 +531,10 @@ void CodeSourceMapReader::PrintJSONInlineIntervals(JSONObject* jsobj) {
         function_stack.RemoveLast();
         break;
       }
+      case CodeSourceMapBuilder::kNullCheck: {
+        stream.Read<int32_t>();
+        break;
+      }
       default:
         UNREACHABLE();
     }
@@ -561,6 +580,10 @@ void CodeSourceMapReader::DumpInlineIntervals(uword start) {
         // We never pop the root function.
         ASSERT(function_stack.length() > 1);
         function_stack.RemoveLast();
+        break;
+      }
+      case CodeSourceMapBuilder::kNullCheck: {
+        stream.Read<int32_t>();
         break;
       }
       default:
@@ -617,11 +640,60 @@ void CodeSourceMapReader::DumpSourcePositions(uword start) {
         token_positions.RemoveLast();
         break;
       }
+      case CodeSourceMapBuilder::kNullCheck: {
+        const intptr_t name_index = stream.Read<int32_t>();
+        THR_Print("%" Px "-%" Px ": null check PP#%" Pd "\n",
+                  start + current_pc_offset, start + current_pc_offset,
+                  name_index);
+        break;
+      }
       default:
         UNREACHABLE();
     }
   }
   THR_Print("}\n");
+}
+
+intptr_t CodeSourceMapReader::GetNullCheckNameIndexAt(int32_t pc_offset) {
+  NoSafepointScope no_safepoint;
+  ReadStream stream(map_.Data(), map_.Length());
+
+  int32_t current_pc_offset = 0;
+
+  while (stream.PendingBytes() > 0) {
+    uint8_t opcode = stream.Read<uint8_t>();
+    switch (opcode) {
+      case CodeSourceMapBuilder::kChangePosition: {
+        stream.Read<int32_t>();
+        break;
+      }
+      case CodeSourceMapBuilder::kAdvancePC: {
+        int32_t delta = stream.Read<int32_t>();
+        current_pc_offset += delta;
+        RELEASE_ASSERT(current_pc_offset <= pc_offset);
+        break;
+      }
+      case CodeSourceMapBuilder::kPushFunction: {
+        stream.Read<int32_t>();
+        break;
+      }
+      case CodeSourceMapBuilder::kPopFunction: {
+        break;
+      }
+      case CodeSourceMapBuilder::kNullCheck: {
+        const int32_t name_index = stream.Read<int32_t>();
+        if (current_pc_offset == pc_offset) {
+          return name_index;
+        }
+        break;
+      }
+      default:
+        UNREACHABLE();
+    }
+  }
+
+  UNREACHABLE();
+  return -1;
 }
 
 }  // namespace dart

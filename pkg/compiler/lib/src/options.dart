@@ -90,6 +90,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// [analyzeOnly].
   bool analyzeSignaturesOnly = false;
 
+  /// Sets a combination of flags for benchmarking 'production' mode.
+  bool benchmarkingProduction = false;
+
   /// ID associated with this sdk build.
   String buildId = _UNDETERMINED_BUILD_ID;
 
@@ -290,6 +293,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..analyzeMain = _hasOption(options, Flags.analyzeMain)
       ..analyzeOnly = _hasOption(options, Flags.analyzeOnly)
       ..analyzeSignaturesOnly = _hasOption(options, Flags.analyzeSignaturesOnly)
+      ..benchmarkingProduction =
+          _hasOption(options, Flags.benchmarkingProduction)
       ..buildId =
           _extractStringOption(options, '--build-id=', _UNDETERMINED_BUILD_ID)
       ..compileForServer = _resolveCompileForServerFromOptions(options)
@@ -343,7 +348,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..useMultiSourceInfo = _hasOption(options, Flags.useMultiSourceInfo)
       ..useNewSourceInfo = _hasOption(options, Flags.useNewSourceInfo)
       ..useStartupEmitter = _hasOption(options, Flags.fastStartup)
-      ..startAsyncSynchronously = _hasOption(options, Flags.syncAsync)
+      ..startAsyncSynchronously = !_hasOption(options, Flags.noSyncAsync)
       ..verbose = _hasOption(options, Flags.verbose);
   }
 
@@ -371,6 +376,15 @@ class CompilerOptions implements DiagnosticOptions {
 
   void deriveOptions() {
     if (analyzeSignaturesOnly || analyzeAll) analyzeOnly = true;
+    if (benchmarkingProduction) {
+      useStartupEmitter = true;
+      trustPrimitives = true;
+      if (strongMode) {
+        omitImplicitChecks = true;
+      } else {
+        trustTypeAnnotations = true;
+      }
+    }
     if (useKernel) generateCodeWithCompileTimeErrors = false;
     if (platformConfigUri == null) {
       platformConfigUri = _resolvePlatformConfig(libraryRoot, null, const []);

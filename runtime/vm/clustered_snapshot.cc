@@ -1699,18 +1699,12 @@ class CodeSerializationCluster : public SerializationCluster {
         }
       }
 
-      RawInstructions* instr = code->ptr()->instructions_;
-      int32_t text_offset = s->GetTextOffset(instr, code);
-      s->Write<int32_t>(text_offset);
+      s->WriteInstructions(code->ptr()->instructions_, code);
       if (s->kind() == Snapshot::kFullJIT) {
         // TODO(rmacnak): Fix references to disabled code before serializing.
-        if (code->ptr()->active_instructions_ != code->ptr()->instructions_) {
-          // For now, we write the FixCallersTarget or equivalent stub. This
-          // will cause a fixup if this code is called.
-          instr = code->ptr()->active_instructions_;
-          text_offset = s->GetTextOffset(instr, code);
-        }
-        s->Write<int32_t>(text_offset);
+        // For now, we may write the FixCallersTarget or equivalent stub. This
+        // will cause a fixup if this code is called.
+        s->WriteInstructions(code->ptr()->active_instructions_, code);
       }
 
       s->WriteRef(code->ptr()->object_pool_);
@@ -1771,8 +1765,7 @@ class CodeDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(code, kCodeCid, Code::InstanceSize(0),
                                      is_vm_object);
 
-      int32_t text_offset = d->Read<int32_t>();
-      RawInstructions* instr = d->GetInstructionsAt(text_offset);
+      RawInstructions* instr = d->ReadInstructions();
 
       code->ptr()->entry_point_ = Instructions::UncheckedEntryPoint(instr);
       code->ptr()->checked_entry_point_ =
@@ -1782,8 +1775,7 @@ class CodeDeserializationCluster : public DeserializationCluster {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
       if (d->kind() == Snapshot::kFullJIT) {
-        int32_t text_offset = d->Read<int32_t>();
-        RawInstructions* instr = d->GetInstructionsAt(text_offset);
+        RawInstructions* instr = d->ReadInstructions();
         code->ptr()->active_instructions_ = instr;
         code->ptr()->entry_point_ = Instructions::UncheckedEntryPoint(instr);
         code->ptr()->checked_entry_point_ =
@@ -1993,8 +1985,6 @@ class RODataSerializationCluster : public SerializationCluster {
   virtual ~RODataSerializationCluster() {}
 
   void Trace(Serializer* s, RawObject* object) {
-    objects_.Add(object);
-
     // A string's hash must already be computed when we write it because it
     // will be loaded into read-only memory. Extra bytes due to allocation
     // rounding need to be deterministically set for reliable deduplication in
@@ -2004,11 +1994,30 @@ class RODataSerializationCluster : public SerializationCluster {
     } else {
       Object::FinalizeReadOnlyObject(object);
     }
+
+    uint32_t ignored;
+    if (s->GetSharedDataOffset(object, &ignored)) {
+      shared_objects_.Add(object);
+    } else {
+      objects_.Add(object);
+    }
   }
 
   void WriteAlloc(Serializer* s) {
     s->WriteCid(cid_);
-    intptr_t count = objects_.length();
+    intptr_t count = shared_objects_.length();
+    s->WriteUnsigned(count);
+    for (intptr_t i = 0; i < count; i++) {
+      RawObject* object = shared_objects_[i];
+      uint32_t offset;
+      if (!s->GetSharedDataOffset(object, &offset)) {
+        UNREACHABLE();
+      }
+      s->WriteUnsigned(offset);
+      s->AssignRef(object);
+    }
+
+    count = objects_.length();
     s->WriteUnsigned(count);
     uint32_t running_offset = 0;
     for (intptr_t i = 0; i < count; i++) {
@@ -2029,6 +2038,7 @@ class RODataSerializationCluster : public SerializationCluster {
  private:
   const intptr_t cid_;
   GrowableArray<RawObject*> objects_;
+  GrowableArray<RawObject*> shared_objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -2039,6 +2049,12 @@ class RODataDeserializationCluster : public DeserializationCluster {
 
   void ReadAlloc(Deserializer* d) {
     intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      uint32_t offset = d->ReadUnsigned();
+      d->AssignRef(d->GetSharedObjectAt(offset));
+    }
+
+    count = d->ReadUnsigned();
     uint32_t running_offset = 0;
     for (intptr_t i = 0; i < count; i++) {
       running_offset += d->ReadUnsigned() << kObjectAlignmentLog2;
@@ -3054,8 +3070,7 @@ class TypeSerializationCluster : public SerializationCluster {
       if (s->kind() == Snapshot::kFullAOT) {
         RawInstructions* instr = type_testing_stubs_.LookupByAddresss(
             type->ptr()->type_test_stub_entry_point_);
-        const int32_t text_offset = s->GetTextOffset(instr, Code::null());
-        s->Write<int32_t>(text_offset);
+        s->WriteInstructions(instr, Code::null());
       }
     }
     count = objects_.length();
@@ -3071,8 +3086,7 @@ class TypeSerializationCluster : public SerializationCluster {
       if (s->kind() == Snapshot::kFullAOT) {
         RawInstructions* instr = type_testing_stubs_.LookupByAddresss(
             type->ptr()->type_test_stub_entry_point_);
-        const int32_t text_offset = s->GetTextOffset(instr, Code::null());
-        s->Write<int32_t>(text_offset);
+        s->WriteInstructions(instr, Code::null());
       }
     }
 
@@ -3081,11 +3095,11 @@ class TypeSerializationCluster : public SerializationCluster {
     if (s->kind() == Snapshot::kFullAOT && is_vm_isolate) {
       RawInstructions* dynamic_instr = type_testing_stubs_.LookupByAddresss(
           Type::dynamic_type().type_test_stub_entry_point());
-      s->Write<int32_t>(s->GetTextOffset(dynamic_instr, Code::null()));
+      s->WriteInstructions(dynamic_instr, Code::null());
 
       RawInstructions* void_instr = type_testing_stubs_.LookupByAddresss(
           Type::void_type().type_test_stub_entry_point());
-      s->Write<int32_t>(s->GetTextOffset(void_instr, Code::null()));
+      s->WriteInstructions(void_instr, Code::null());
     }
   }
 
@@ -3135,8 +3149,7 @@ class TypeDeserializationCluster : public DeserializationCluster {
       type->ptr()->token_pos_ = d->ReadTokenPosition();
       type->ptr()->type_state_ = d->Read<int8_t>();
       if (d->kind() == Snapshot::kFullAOT) {
-        const int32_t text_offset = d->Read<int32_t>();
-        instr_ = d->GetInstructionsAt(text_offset);
+        instr_ = d->ReadInstructions();
         type_ = type;
         type_.SetTypeTestingStub(instr_);
       }
@@ -3154,8 +3167,7 @@ class TypeDeserializationCluster : public DeserializationCluster {
       type->ptr()->token_pos_ = d->ReadTokenPosition();
       type->ptr()->type_state_ = d->Read<int8_t>();
       if (d->kind() == Snapshot::kFullAOT) {
-        const int32_t text_offset = d->Read<int32_t>();
-        instr_ = d->GetInstructionsAt(text_offset);
+        instr_ = d->ReadInstructions();
         type_ = type;
         type_.SetTypeTestingStub(instr_);
       }
@@ -3164,9 +3176,9 @@ class TypeDeserializationCluster : public DeserializationCluster {
     // The dynamic/void objects are not serialized, so we manually send
     // the type testing stub for it.
     if (d->kind() == Snapshot::kFullAOT && is_vm_isolate) {
-      instr_ = d->GetInstructionsAt(d->Read<int32_t>());
+      instr_ = d->ReadInstructions();
       Type::dynamic_type().SetTypeTestingStub(instr_);
-      instr_ = d->GetInstructionsAt(d->Read<int32_t>());
+      instr_ = d->ReadInstructions();
       Type::void_type().SetTypeTestingStub(instr_);
     }
   }
@@ -3234,8 +3246,7 @@ class TypeRefSerializationCluster : public SerializationCluster {
       if (s->kind() == Snapshot::kFullAOT) {
         RawInstructions* instr = type_testing_stubs_.LookupByAddresss(
             type->ptr()->type_test_stub_entry_point_);
-        const int32_t text_offset = s->GetTextOffset(instr, Code::null());
-        s->Write<int32_t>(text_offset);
+        s->WriteInstructions(instr, Code::null());
       }
     }
   }
@@ -3275,8 +3286,7 @@ class TypeRefDeserializationCluster : public DeserializationCluster {
         *p = d->ReadRef();
       }
       if (d->kind() == Snapshot::kFullAOT) {
-        const int32_t text_offset = d->Read<int32_t>();
-        instr_ = d->GetInstructionsAt(text_offset);
+        instr_ = d->ReadInstructions();
         type_ = type;
         type_.SetTypeTestingStub(instr_);
       }
@@ -3334,8 +3344,7 @@ class TypeParameterSerializationCluster : public SerializationCluster {
       if (s->kind() == Snapshot::kFullAOT) {
         RawInstructions* instr = type_testing_stubs_.LookupByAddresss(
             type->ptr()->type_test_stub_entry_point_);
-        const int32_t text_offset = s->GetTextOffset(instr, Code::null());
-        s->Write<int32_t>(text_offset);
+        s->WriteInstructions(instr, Code::null());
       }
     }
   }
@@ -3380,8 +3389,7 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
       type->ptr()->index_ = d->Read<int16_t>();
       type->ptr()->type_state_ = d->Read<int8_t>();
       if (d->kind() == Snapshot::kFullAOT) {
-        const int32_t text_offset = d->Read<int32_t>();
-        instr_ = d->GetInstructionsAt(text_offset);
+        instr_ = d->ReadInstructions();
         type_ = type;
         type_.SetTypeTestingStub(instr_);
       }
@@ -4819,14 +4827,19 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
 #endif  // !DART_PRECOMPILED_RUNTIME
 }
 
-int32_t Serializer::GetTextOffset(RawInstructions* instr, RawCode* code) const {
+void Serializer::WriteInstructions(RawInstructions* instr, RawCode* code) {
   intptr_t offset = heap_->GetObjectId(instr);
   if (offset == 0) {
     offset = image_writer_->GetTextOffsetFor(instr, code);
     ASSERT(offset != 0);
     heap_->SetObjectId(instr, offset);
   }
-  return offset;
+  Write<int32_t>(offset);
+}
+
+bool Serializer::GetSharedDataOffset(RawObject* object,
+                                     uint32_t* offset) const {
+  return image_writer_->GetSharedDataOffsetFor(object, offset);
 }
 
 uint32_t Serializer::GetDataOffset(RawObject* object) const {
@@ -5100,8 +5113,7 @@ void Serializer::AddVMIsolateBaseObjects() {
 }
 
 intptr_t Serializer::WriteVMSnapshot(const Array& symbols,
-                                     ZoneGrowableArray<Object*>* seed_objects,
-                                     ZoneGrowableArray<Code*>* seed_code) {
+                                     ZoneGrowableArray<Object*>* seeds) {
   NoSafepointScope no_safepoint;
 
   AddVMIsolateBaseObjects();
@@ -5113,15 +5125,9 @@ intptr_t Serializer::WriteVMSnapshot(const Array& symbols,
       Push(StubCode::EntryAt(i)->code());
     }
   }
-  if (seed_objects != NULL) {
-    for (intptr_t i = 0; i < seed_objects->length(); i++) {
-      Push((*seed_objects)[i]->raw());
-    }
-  }
-  if (seed_code != NULL) {
-    for (intptr_t i = 0; i < seed_code->length(); i++) {
-      Code* code = (*seed_code)[i];
-      GetTextOffset(code->instructions(), code->raw());
+  if (seeds != NULL) {
+    for (intptr_t i = 0; i < seeds->length(); i++) {
+      Push((*seeds)[i]->raw());
     }
   }
 
@@ -5147,27 +5153,6 @@ intptr_t Serializer::WriteVMSnapshot(const Array& symbols,
   return next_ref_index_ - 1;
 }
 
-// Collects Instructions from the VM isolate and adds them to object id table
-// with offsets that will refer to the VM snapshot, causing them to be shared
-// across isolates.
-class SeedInstructionsVisitor : public ObjectVisitor {
- public:
-  SeedInstructionsVisitor(uword text_base, Heap* heap)
-      : text_base_(text_base), heap_(heap) {}
-
-  void VisitObject(RawObject* obj) {
-    if (obj->IsInstructions()) {
-      uword addr = RawObject::ToAddr(obj);
-      uint32_t offset = addr - text_base_;
-      heap_->SetObjectId(obj, -offset);
-    }
-  }
-
- private:
-  uword text_base_;
-  Heap* heap_;
-};
-
 void Serializer::WriteIsolateSnapshot(intptr_t num_base_objects,
                                       ObjectStore* object_store) {
   NoSafepointScope no_safepoint;
@@ -5177,12 +5162,6 @@ void Serializer::WriteIsolateSnapshot(intptr_t num_base_objects,
     const Array& base_objects = Object::vm_isolate_snapshot_object_table();
     for (intptr_t i = 1; i < base_objects.Length(); i++) {
       AddBaseObject(base_objects.At(i));
-    }
-    const uint8_t* text_base = Dart::vm_snapshot_instructions();
-    if (text_base != NULL) {
-      SeedInstructionsVisitor visitor(reinterpret_cast<uword>(text_base),
-                                      heap_);
-      Dart::vm_isolate()->heap()->VisitObjectsImagePages(&visitor);
     }
   } else {
     // Base objects carried over from WriteVMIsolateSnapshot.
@@ -5215,8 +5194,10 @@ Deserializer::Deserializer(Thread* thread,
                            Snapshot::Kind kind,
                            const uint8_t* buffer,
                            intptr_t size,
+                           const uint8_t* data_buffer,
                            const uint8_t* instructions_buffer,
-                           const uint8_t* data_buffer)
+                           const uint8_t* shared_data_buffer,
+                           const uint8_t* shared_instructions_buffer)
     : StackResource(thread),
       heap_(thread->isolate()->heap()),
       zone_(thread->zone()),
@@ -5229,7 +5210,9 @@ Deserializer::Deserializer(Thread* thread,
   if (Snapshot::IncludesCode(kind)) {
     ASSERT(instructions_buffer != NULL);
     ASSERT(data_buffer != NULL);
-    image_reader_ = new (zone_) ImageReader(instructions_buffer, data_buffer);
+    image_reader_ =
+        new (zone_) ImageReader(data_buffer, instructions_buffer,
+                                shared_data_buffer, shared_instructions_buffer);
   }
 }
 
@@ -5431,12 +5414,17 @@ RawApiError* Deserializer::VerifyVersionAndFeatures(Isolate* isolate) {
   return ApiError::null();
 }
 
-RawInstructions* Deserializer::GetInstructionsAt(int32_t offset) const {
+RawInstructions* Deserializer::ReadInstructions() {
+  int32_t offset = Read<int32_t>();
   return image_reader_->GetInstructionsAt(offset);
 }
 
 RawObject* Deserializer::GetObjectAt(uint32_t offset) const {
   return image_reader_->GetObjectAt(offset);
+}
+
+RawObject* Deserializer::GetSharedObjectAt(uint32_t offset) const {
+  return image_reader_->GetSharedObjectAt(offset);
 }
 
 void Deserializer::Prepare() {
@@ -5622,6 +5610,8 @@ void Deserializer::ReadIsolateSnapshot(ObjectStore* object_store) {
     refs_ = NULL;
   }
 
+  thread()->isolate()->class_table()->CopySizesFromClassObjects();
+
 #if defined(DEBUG)
   Isolate* isolate = thread()->isolate();
   isolate->ValidateClassTable();
@@ -5644,8 +5634,7 @@ class SeedVMIsolateVisitor : public ClassVisitor, public FunctionVisitor {
   SeedVMIsolateVisitor(Zone* zone, bool include_code)
       : zone_(zone),
         include_code_(include_code),
-        objects_(new (zone) ZoneGrowableArray<Object*>(4 * KB)),
-        codes_(new (zone) ZoneGrowableArray<Code*>(4 * KB)),
+        seeds_(new (zone) ZoneGrowableArray<Object*>(4 * KB)),
         script_(Script::Handle(zone)),
         code_(Code::Handle(zone)),
         stack_maps_(Array::Handle(zone)),
@@ -5659,7 +5648,7 @@ class SeedVMIsolateVisitor : public ClassVisitor, public FunctionVisitor {
     }
 
     library_ = cls.library();
-    objects_->Add(&Object::Handle(zone_, library_.kernel_data()));
+    AddSeed(library_.kernel_data());
 
     if (!include_code_) return;
 
@@ -5684,45 +5673,40 @@ class SeedVMIsolateVisitor : public ClassVisitor, public FunctionVisitor {
   void Visit(const Script& script) {
     kernel_program_info_ = script_.kernel_program_info();
     if (!kernel_program_info_.IsNull()) {
-      objects_->Add(
-          &Object::Handle(zone_, kernel_program_info_.string_offsets()));
-      objects_->Add(&Object::Handle(zone_, kernel_program_info_.string_data()));
-      objects_->Add(
-          &Object::Handle(zone_, kernel_program_info_.canonical_names()));
-      objects_->Add(
-          &Object::Handle(zone_, kernel_program_info_.metadata_payloads()));
-      objects_->Add(
-          &Object::Handle(zone_, kernel_program_info_.metadata_mappings()));
-      objects_->Add(&Object::Handle(zone_, kernel_program_info_.constants()));
+      AddSeed(kernel_program_info_.string_offsets());
+      AddSeed(kernel_program_info_.string_data());
+      AddSeed(kernel_program_info_.canonical_names());
+      AddSeed(kernel_program_info_.metadata_payloads());
+      AddSeed(kernel_program_info_.metadata_mappings());
+      AddSeed(kernel_program_info_.constants());
     } else {
-      objects_->Add(&Object::Handle(zone_, script_.tokens()));
+      AddSeed(script_.tokens());
     }
   }
 
-  ZoneGrowableArray<Object*>* objects() { return objects_; }
-  ZoneGrowableArray<Code*>* codes() { return codes_; }
+  ZoneGrowableArray<Object*>* seeds() { return seeds_; }
 
  private:
   void Visit(const Code& code) {
     ASSERT(include_code_);
     if (code.IsNull()) return;
 
-    codes_->Add(&Code::Handle(zone_, code.raw()));
-    objects_->Add(&Object::Handle(zone_, code.pc_descriptors()));
-    objects_->Add(&Object::Handle(zone_, code.code_source_map()));
+    AddSeed(code.pc_descriptors());
+    AddSeed(code.code_source_map());
 
     stack_maps_ = code_.stackmaps();
     if (!stack_maps_.IsNull()) {
       for (intptr_t i = 0; i < stack_maps_.Length(); i++) {
-        objects_->Add(&Object::Handle(zone_, stack_maps_.At(i)));
+        AddSeed(stack_maps_.At(i));
       }
     }
   }
 
+  void AddSeed(RawObject* seed) { seeds_->Add(&Object::Handle(zone_, seed)); }
+
   Zone* zone_;
   bool include_code_;
-  ZoneGrowableArray<Object*>* objects_;
-  ZoneGrowableArray<Code*>* codes_;
+  ZoneGrowableArray<Object*>* seeds_;
   Script& script_;
   Code& code_;
   Array& stack_maps_;
@@ -5745,8 +5729,7 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
       isolate_snapshot_size_(0),
       vm_image_writer_(vm_image_writer),
       isolate_image_writer_(isolate_image_writer),
-      seed_objects_(NULL),
-      seed_code_(NULL),
+      seeds_(NULL),
       saved_symbol_table_(Array::Handle(zone())),
       new_vm_symbol_table_(Array::Handle(zone())),
       clustered_vm_size_(0),
@@ -5777,8 +5760,7 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
                                  Snapshot::IncludesCode(kind));
     ProgramVisitor::VisitClasses(&visitor);
     ProgramVisitor::VisitFunctions(&visitor);
-    seed_objects_ = visitor.objects();
-    seed_code_ = visitor.codes();
+    seeds_ = visitor.seeds();
 
     // Tuck away the current symbol table.
     saved_symbol_table_ = object_store->symbol_table();
@@ -5819,9 +5801,9 @@ intptr_t FullSnapshotWriter::WriteVMSnapshot() {
   // VM snapshot roots are:
   // - the symbol table
   // - all the token streams
-  // - the stub code (precompiled snapshots only)
-  intptr_t num_objects = serializer.WriteVMSnapshot(new_vm_symbol_table_,
-                                                    seed_objects_, seed_code_);
+  // - the stub code (App-AOT, App-JIT or Core-JIT)
+  intptr_t num_objects =
+      serializer.WriteVMSnapshot(new_vm_symbol_table_, seeds_);
   serializer.FillHeader(serializer.kind());
   clustered_vm_size_ = serializer.bytes_written();
 
@@ -5893,30 +5875,30 @@ void FullSnapshotWriter::WriteFullSnapshot() {
   }
 }
 
-static const uint8_t* DataBuffer(const Snapshot* snapshot) {
-  if (Snapshot::IncludesCode(snapshot->kind())) {
-    uword offset =
-        Utils::RoundUp(snapshot->length(), OS::kMaxPreferredCodeAlignment);
-    return snapshot->Addr() + offset;
-  }
-  return NULL;
-}
-
 FullSnapshotReader::FullSnapshotReader(const Snapshot* snapshot,
                                        const uint8_t* instructions_buffer,
+                                       const uint8_t* shared_data,
+                                       const uint8_t* shared_instructions,
                                        Thread* thread)
     : kind_(snapshot->kind()),
       thread_(thread),
       buffer_(snapshot->content()),
       size_(snapshot->length()),
-      instructions_buffer_(instructions_buffer),
-      data_buffer_(DataBuffer(snapshot)) {
+      data_image_(snapshot->DataImage()),
+      instructions_image_(instructions_buffer) {
   thread->isolate()->set_compilation_allowed(kind_ != Snapshot::kFullAOT);
+
+  if (shared_data == NULL) {
+    shared_data_image_ = NULL;
+  } else {
+    shared_data_image_ = Snapshot::SetupFromBuffer(shared_data)->DataImage();
+  }
+  shared_instructions_image_ = shared_instructions;
 }
 
 RawApiError* FullSnapshotReader::ReadVMSnapshot() {
-  Deserializer deserializer(thread_, kind_, buffer_, size_,
-                            instructions_buffer_, data_buffer_);
+  Deserializer deserializer(thread_, kind_, buffer_, size_, data_image_,
+                            instructions_image_, NULL, NULL);
 
   RawApiError* error = deserializer.VerifyVersionAndFeatures(/*isolate=*/NULL);
   if (error != ApiError::null()) {
@@ -5924,13 +5906,12 @@ RawApiError* FullSnapshotReader::ReadVMSnapshot() {
   }
 
   if (Snapshot::IncludesCode(kind_)) {
-    ASSERT(instructions_buffer_ != NULL);
-    thread_->isolate()->SetupImagePage(instructions_buffer_,
-                                       /* is_executable */ true);
-    ASSERT(data_buffer_ != NULL);
-    thread_->isolate()->SetupImagePage(data_buffer_,
+    ASSERT(data_image_ != NULL);
+    thread_->isolate()->SetupImagePage(data_image_,
                                        /* is_executable */ false);
-    Dart::set_vm_snapshot_instructions(instructions_buffer_);
+    ASSERT(instructions_image_ != NULL);
+    thread_->isolate()->SetupImagePage(instructions_image_,
+                                       /* is_executable */ true);
   }
 
   deserializer.ReadVMSnapshot();
@@ -5939,8 +5920,9 @@ RawApiError* FullSnapshotReader::ReadVMSnapshot() {
 }
 
 RawApiError* FullSnapshotReader::ReadIsolateSnapshot() {
-  Deserializer deserializer(thread_, kind_, buffer_, size_,
-                            instructions_buffer_, data_buffer_);
+  Deserializer deserializer(thread_, kind_, buffer_, size_, data_image_,
+                            instructions_image_, shared_data_image_,
+                            shared_instructions_image_);
 
   RawApiError* error =
       deserializer.VerifyVersionAndFeatures(thread_->isolate());
@@ -5949,12 +5931,20 @@ RawApiError* FullSnapshotReader::ReadIsolateSnapshot() {
   }
 
   if (Snapshot::IncludesCode(kind_)) {
-    ASSERT(instructions_buffer_ != NULL);
-    thread_->isolate()->SetupImagePage(instructions_buffer_,
-                                       /* is_executable */ true);
-    ASSERT(data_buffer_ != NULL);
-    thread_->isolate()->SetupImagePage(data_buffer_,
+    ASSERT(data_image_ != NULL);
+    thread_->isolate()->SetupImagePage(data_image_,
                                        /* is_executable */ false);
+    ASSERT(instructions_image_ != NULL);
+    thread_->isolate()->SetupImagePage(instructions_image_,
+                                       /* is_executable */ true);
+    if (shared_data_image_ != NULL) {
+      thread_->isolate()->SetupImagePage(shared_data_image_,
+                                         /* is_executable */ false);
+    }
+    if (shared_instructions_image_ != NULL) {
+      thread_->isolate()->SetupImagePage(shared_instructions_image_,
+                                         /* is_executable */ true);
+    }
   }
 
   deserializer.ReadIsolateSnapshot(thread_->isolate()->object_store());

@@ -18,5 +18,7 @@ class B<X, Y> implements A<X> {
 main() {
   ClassMirror m = reflectClass(A);
   var i = m.newInstance(Symbol.empty, []).reflectee;
-  Expect.equals(i.t.toString(), 'A');
+  var s = i.t.toString();
+  Expect.isTrue(s == 'A' || s == 'A<dynamic>',
+      'mirrors should create the correct reified generic type');
 }

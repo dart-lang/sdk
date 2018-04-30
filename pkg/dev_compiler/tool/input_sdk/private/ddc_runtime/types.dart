@@ -706,35 +706,22 @@ String typeName(type) => JS('', '''(() => {
     return $type.toString();
   }
 
-  // Wrapped types
-  if ($type instanceof $WrappedType) {
-    return "Wrapped(" + $unwrapType($type) + ")";
-  }
-
   // Instance types
   let tag = $type[$_runtimeType];
   if (tag === $Type) {
     let name = $type.name;
-    let args = $getGenericArgs($type);
-    if (!args) return name;
+    let args = ${getGenericArgs(type)};
+    if (args == null) return name;
+
+    if (${getGenericClass(type)} == ${getGenericClass(JSArray)}) name = 'List';
 
     let result = name;
-    let allDynamic = true;
-
     result += '<';
     for (let i = 0; i < args.length; ++i) {
       if (i > 0) result += ', ';
-
-      let argName = $typeName(args[i]);
-      if (argName != 'dynamic') allDynamic = false;
-
-      result += argName;
+      result += $typeName(args[i]);
     }
     result += '>';
-
-    // Don't print the type arguments if they are all dynamic. Show "raw"
-    // types as just the bare type name.
-    if (allDynamic) return name;
     return result;
   }
   if (tag) return "Not a type: " + tag.name;

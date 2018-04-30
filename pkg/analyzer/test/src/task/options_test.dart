@@ -52,7 +52,9 @@ class ContextConfigurationTest extends AbstractContextTest {
       optionsProvider.getOptionsFromString(source);
 
   test_configure_bad_options_contents() {
-    (analysisOptions as AnalysisOptionsImpl).previewDart2 = false;
+    (analysisOptions as AnalysisOptionsImpl)
+      ..previewDart2 = false
+      ..strongMode = false;
     configureContext('''
 analyzer:
   strong-mode:true # misformatted
@@ -156,7 +158,9 @@ analyzer:
   }
 
   test_configure_strong_mode_bad_value() {
-    (analysisOptions as AnalysisOptionsImpl).previewDart2 = false;
+    (analysisOptions as AnalysisOptionsImpl)
+      ..previewDart2 = false
+      ..strongMode = false;
     configureContext('''
 analyzer:
   strong-mode: foo

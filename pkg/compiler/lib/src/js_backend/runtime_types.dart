@@ -890,14 +890,19 @@ class TypeVariableTests {
       if (function is FunctionEntity) {
         Name instanceName;
         bool isCallTarget;
+        bool isNoSuchMethod;
         if (function.isInstanceMember) {
           isCallTarget = worldBuilder.closurizedMembers.contains(function);
           instanceName = function.memberName;
+          isNoSuchMethod = instanceName.text == Identifiers.noSuchMethod_;
         } else {
           isCallTarget = worldBuilder.closurizedStatics.contains(function);
+          isNoSuchMethod = false;
         }
         node = new MethodNode(function, function.parameterStructure,
-            isCallTarget: isCallTarget, instanceName: instanceName);
+            isCallTarget: isCallTarget,
+            instanceName: instanceName,
+            isNoSuchMethod: isNoSuchMethod);
       } else {
         ParameterStructure parameterStructure = new ParameterStructure.fromType(
             elementEnvironment.getLocalFunctionType(function));
@@ -1019,6 +1024,7 @@ class TypeVariableTests {
       genericInstanceMethods.forEach(processEntity);
       worldBuilder.genericLocalFunctions.forEach(processEntity);
       worldBuilder.closurizedStatics.forEach(processEntity);
+      worldBuilder.userNoSuchMethods.forEach(processEntity);
     });
   }
 
@@ -1294,13 +1300,15 @@ class MethodNode extends RtiNode {
   final ParameterStructure parameterStructure;
   final bool isCallTarget;
   final Name instanceName;
+  final bool isNoSuchMethod;
 
   MethodNode(this.function, this.parameterStructure,
-      {this.isCallTarget, this.instanceName});
+      {this.isCallTarget, this.instanceName, this.isNoSuchMethod: false});
 
   Entity get entity => function;
 
   bool selectorApplies(Selector selector) {
+    if (isNoSuchMethod) return true;
     return (isCallTarget && selector.isClosureCall ||
             instanceName == selector.memberName) &&
         selector.callStructure.signatureApplies(parameterStructure);
@@ -1516,6 +1524,15 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
     methodsUsingTypeVariableLiterals.forEach(potentiallyNeedTypeArguments);
     localFunctionsUsingTypeVariableLiterals
         .forEach(potentiallyNeedTypeArguments);
+
+    if (resolutionWorldBuilder.isMemberUsed(
+        closedWorld.commonElements.invocationTypeArgumentGetter)) {
+      // If `Invocation.typeArguments` is live, mark all user-defined
+      // implementations of `noSuchMethod` as needing type arguments.
+      for (MemberEntity member in resolutionWorldBuilder.userNoSuchMethods) {
+        potentiallyNeedTypeArguments(member);
+      }
+    }
 
     Set<Selector> selectorsNeedingTypeArguments = new Set<Selector>();
     typeVariableTests

@@ -3757,8 +3757,13 @@ class B<T2 extends A> {}
     // validate
     CompilationUnit unit = outputs[RESOLVED_UNIT4];
     ClassDeclaration nodeB = unit.declarations[1];
-    _assertTypeParameterBound(
-        nodeB.typeParameters.typeParameters[0], 'A<dynamic>', 'A');
+    if (context.analysisOptions.strongMode) {
+      _assertTypeParameterBound(
+          nodeB.typeParameters.typeParameters[0], 'A<num>', 'A');
+    } else {
+      _assertTypeParameterBound(
+          nodeB.typeParameters.typeParameters[0], 'A<dynamic>', 'A');
+    }
   }
 
   test_perform_outputs() {

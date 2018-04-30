@@ -219,7 +219,7 @@ class ClosureContext {
         !_analyzerSubtypeOf(inferrer, inferredType, returnOrYieldContext)) {
       // If the inferred return type isn't a subtype of the context, we use the
       // context.
-      inferredType = returnOrYieldContext;
+      inferredType = greatestClosure(inferrer.coreTypes, returnOrYieldContext);
     }
 
     return _wrapAsyncOrGenerator(inferrer, inferredType);

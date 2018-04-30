@@ -7,6 +7,8 @@
 #include "platform/assert.h"
 #include "vm/compiler/backend/code_statistics.h"
 #include "vm/dwarf.h"
+#include "vm/hash.h"
+#include "vm/hash_map.h"
 #include "vm/heap.h"
 #include "vm/json_writer.h"
 #include "vm/object.h"
@@ -28,13 +30,99 @@ DEFINE_FLAG(charp,
             "Print sizes of all instruction objects to the given file");
 #endif
 
+intptr_t ObjectOffsetTrait::Hashcode(Key key) {
+  RawObject* obj = key;
+  ASSERT(!obj->IsSmi());
+
+  uword body = RawObject::ToAddr(obj) + sizeof(RawObject);
+  uword end = RawObject::ToAddr(obj) + obj->Size();
+
+  uint32_t hash = obj->GetClassId();
+  // Don't include the header. Objects in the image are pre-marked, but objects
+  // in the current isolate are not.
+  for (uword cursor = body; cursor < end; cursor += sizeof(uint32_t)) {
+    hash = CombineHashes(hash, *reinterpret_cast<uint32_t*>(cursor));
+  }
+
+  return FinalizeHash(hash, 30);
+}
+
+bool ObjectOffsetTrait::IsKeyEqual(Pair pair, Key key) {
+  RawObject* a = pair.object;
+  RawObject* b = key;
+  ASSERT(!a->IsSmi());
+  ASSERT(!b->IsSmi());
+
+  if (a->GetClassId() != b->GetClassId()) {
+    return false;
+  }
+
+  intptr_t heap_size = a->Size();
+  if (b->Size() != heap_size) {
+    return false;
+  }
+
+  // Don't include the header. Objects in the image are pre-marked, but objects
+  // in the current isolate are not.
+  uword body_a = RawObject::ToAddr(a) + sizeof(RawObject);
+  uword body_b = RawObject::ToAddr(b) + sizeof(RawObject);
+  uword body_size = heap_size - sizeof(RawObject);
+  return 0 == memcmp(reinterpret_cast<const void*>(body_a),
+                     reinterpret_cast<const void*>(body_b), body_size);
+}
+
+ImageWriter::ImageWriter(const void* shared_objects,
+                         const void* shared_instructions)
+    : next_data_offset_(0), next_text_offset_(0), objects_(), instructions_() {
+  ResetOffsets();
+  SetupShared(&shared_objects_, shared_objects);
+  SetupShared(&shared_instructions_, shared_instructions);
+}
+
+void ImageWriter::SetupShared(ObjectOffsetMap* map, const void* shared_image) {
+  if (shared_image == NULL) {
+    return;
+  }
+  Image image(shared_image);
+  uword obj_addr = reinterpret_cast<uword>(image.object_start());
+  uword end_addr = obj_addr + image.object_size();
+  while (obj_addr < end_addr) {
+    int32_t offset = obj_addr - reinterpret_cast<uword>(shared_image);
+    RawObject* raw_obj = RawObject::FromAddr(obj_addr);
+    ObjectOffsetPair pair;
+    pair.object = raw_obj;
+    pair.offset = offset;
+    map->Insert(pair);
+    obj_addr += raw_obj->Size();
+  }
+  ASSERT(obj_addr == end_addr);
+}
+
 int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
                                       RawCode* code) {
+  ObjectOffsetPair* pair = shared_instructions_.Lookup(instructions);
+  if (pair != NULL) {
+    // Negative offsets tell the reader the offset is w/r/t the shared
+    // instructions image instead of the app-specific instructions image.
+    // Compare ImageReader::GetInstructionsAt.
+    return -pair->offset;
+  }
+
   intptr_t heap_size = instructions->Size();
   intptr_t offset = next_text_offset_;
   next_text_offset_ += heap_size;
   instructions_.Add(InstructionsData(instructions, code, offset));
   return offset;
+}
+
+bool ImageWriter::GetSharedDataOffsetFor(RawObject* raw_object,
+                                         uint32_t* offset) {
+  ObjectOffsetPair* pair = shared_objects_.Lookup(raw_object);
+  if (pair == NULL) {
+    return false;
+  }
+  *offset = pair->offset;
+  return true;
 }
 
 uint32_t ImageWriter::GetDataOffsetFor(RawObject* raw_object) {
@@ -136,10 +224,9 @@ void ImageWriter::Write(WriteStream* clustered_stream, bool vm) {
     ASSERT(data.raw_code_ != NULL);
     data.code_ = &Code::Handle(zone, data.raw_code_);
 
-    // Update object id table with offsets that will refer to the VM snapshot,
-    // causing a subsequently written isolate snapshot to share instructions
-    // with the VM snapshot.
-    heap->SetObjectId(data.insns_->raw(), -data.offset_);
+    // Reset object id as an isolate snapshot after a VM snapshot will not use
+    // the VM snapshot's text image.
+    heap->SetObjectId(data.insns_->raw(), 0);
   }
   for (intptr_t i = 0; i < objects_.length(); i++) {
     ObjectData& data = objects_[i];
@@ -187,8 +274,10 @@ void ImageWriter::WriteROData(WriteStream* stream) {
 }
 
 AssemblyImageWriter::AssemblyImageWriter(Dart_StreamingWriteCallback callback,
-                                         void* callback_data)
-    : ImageWriter(),
+                                         void* callback_data,
+                                         const void* shared_objects,
+                                         const void* shared_instructions)
+    : ImageWriter(shared_objects, shared_instructions),
       assembly_stream_(512 * KB, callback, callback_data),
       dwarf_(NULL) {
 #if defined(DART_PRECOMPILER)
@@ -432,6 +521,15 @@ void AssemblyImageWriter::WriteByteSequence(uword start, uword end) {
   }
 }
 
+BlobImageWriter::BlobImageWriter(uint8_t** instructions_blob_buffer,
+                                 ReAlloc alloc,
+                                 intptr_t initial_size,
+                                 const void* shared_objects,
+                                 const void* shared_instructions)
+    : ImageWriter(shared_objects, shared_instructions),
+      instructions_blob_stream_(instructions_blob_buffer, alloc, initial_size) {
+}
+
 void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   // This header provides the gap to make the instructions snapshot look like a
   // HeapPage.
@@ -475,40 +573,54 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   }
 }
 
-ImageReader::ImageReader(const uint8_t* instructions_buffer,
-                         const uint8_t* data_buffer)
-    : instructions_buffer_(instructions_buffer), data_buffer_(data_buffer) {
-  ASSERT(instructions_buffer != NULL);
-  ASSERT(data_buffer != NULL);
-  ASSERT(Utils::IsAligned(reinterpret_cast<uword>(instructions_buffer),
+ImageReader::ImageReader(const uint8_t* data_image,
+                         const uint8_t* instructions_image,
+                         const uint8_t* shared_data_image,
+                         const uint8_t* shared_instructions_image)
+    : data_image_(data_image),
+      instructions_image_(instructions_image),
+      shared_data_image_(shared_data_image),
+      shared_instructions_image_(shared_instructions_image) {
+  ASSERT(data_image != NULL);
+  ASSERT(instructions_image != NULL);
+  ASSERT(Utils::IsAligned(reinterpret_cast<uword>(instructions_image),
                           OS::PreferredCodeAlignment()));
-  vm_instructions_buffer_ = Dart::vm_snapshot_instructions();
+  ASSERT(Utils::IsAligned(reinterpret_cast<uword>(shared_instructions_image),
+                          OS::PreferredCodeAlignment()));
 }
 
 RawInstructions* ImageReader::GetInstructionsAt(int32_t offset) const {
   ASSERT(Utils::IsAligned(offset, OS::PreferredCodeAlignment()));
 
-  RawInstructions* result;
+  RawObject* result;
   if (offset < 0) {
-    result = reinterpret_cast<RawInstructions*>(
-        reinterpret_cast<uword>(vm_instructions_buffer_) - offset +
-        kHeapObjectTag);
+    result = RawObject::FromAddr(
+        reinterpret_cast<uword>(shared_instructions_image_) - offset);
   } else {
-    result = reinterpret_cast<RawInstructions*>(
-        reinterpret_cast<uword>(instructions_buffer_) + offset +
-        kHeapObjectTag);
+    result = RawObject::FromAddr(reinterpret_cast<uword>(instructions_image_) +
+                                 offset);
   }
   ASSERT(result->IsInstructions());
+  ASSERT(result->IsMarked());
+
+  return Instructions::RawCast(result);
+}
+
+RawObject* ImageReader::GetObjectAt(uint32_t offset) const {
+  ASSERT(Utils::IsAligned(offset, kObjectAlignment));
+
+  RawObject* result =
+      RawObject::FromAddr(reinterpret_cast<uword>(data_image_) + offset);
   ASSERT(result->IsMarked());
 
   return result;
 }
 
-RawObject* ImageReader::GetObjectAt(uint32_t offset) const {
-  ASSERT(Utils::IsAligned(offset, kWordSize));
+RawObject* ImageReader::GetSharedObjectAt(uint32_t offset) const {
+  ASSERT(Utils::IsAligned(offset, kObjectAlignment));
 
-  RawObject* result = reinterpret_cast<RawObject*>(
-      reinterpret_cast<uword>(data_buffer_) + offset + kHeapObjectTag);
+  RawObject* result =
+      RawObject::FromAddr(reinterpret_cast<uword>(shared_data_image_) + offset);
   ASSERT(result->IsMarked());
 
   return result;

@@ -49,14 +49,10 @@ const String platformKernelFile = 'virtual_platform_kernel.dill';
 //   1 - Update in-memory file system with in-memory sources (used by tests).
 //   2 - Accept last compilation result.
 //   3 - APP JIT snapshot training run for kernel_service.
-//   4 - Allows for `dart:_internal` to be imported (used by tests).
 const int kCompileTag = 0;
 const int kUpdateSourcesTag = 1;
 const int kAcceptTag = 2;
 const int kTrainTag = 3;
-const int kAllowDartInternalImportTag = 4;
-
-bool allowDartInternalImport = false;
 
 abstract class Compiler {
   final FileSystem fileSystem;
@@ -80,16 +76,13 @@ abstract class Compiler {
       print("DFE: platformKernelPath: ${platformKernelPath}");
       print("DFE: strongMode: ${strongMode}");
       print("DFE: syncAsync: ${syncAsync}");
-      print("DFE: allowDartInternalImport: ${allowDartInternalImport}");
     }
 
     options = new CompilerOptions()
       ..strongMode = strongMode
       ..fileSystem = fileSystem
-      ..target = new VmTarget(new TargetFlags(
-          strongMode: strongMode,
-          syncAsync: syncAsync,
-          allowDartInternalImport: allowDartInternalImport))
+      ..target = new VmTarget(
+          new TargetFlags(strongMode: strongMode, syncAsync: syncAsync))
       ..packagesFileUri = packagesUri
       ..sdkSummary = platformKernelPath
       ..verbose = verbose
@@ -101,7 +94,7 @@ abstract class Compiler {
           case Severity.internalProblem:
             // TODO(sigmund): support emitting code with errors as long as they
             // are handled in the generated code (issue #30194).
-            printMessage = true;
+            printMessage = false; // errors are printed by VM
             errors.add(message.formatted);
             break;
           case Severity.nit:
@@ -288,15 +281,6 @@ Future _processLoadRequest(request) async {
     }
     port.send(new CompilationResult.ok(null).toResponse());
     return;
-  } else if (tag == kAllowDartInternalImportTag) {
-    compiler = lookupIncrementalCompiler(isolateId);
-    assert(
-        lookupIncrementalCompiler(isolateId) == null,
-        "allowDartInternalImport must be set before creating a compiler"
-        " instance.");
-    allowDartInternalImport = true;
-    port.send(new CompilationResult.ok(null).toResponse());
-    return;
   }
 
   // script should only be null for kUpdateSourcesTag.
@@ -332,8 +316,6 @@ Future _processLoadRequest(request) async {
     Component component = await compiler.compile(script);
 
     if (compiler.errors.isNotEmpty) {
-      // TODO(sigmund): the compiler prints errors to the console, so we
-      // shouldn't print those messages again here.
       result = new CompilationResult.errors(compiler.errors);
     } else {
       // We serialize the component excluding vm_platform.dill because the VM has

@@ -434,7 +434,7 @@ class ThisAccessor<Arguments> extends FastaAccessor<Arguments> {
 
   Expression buildSimpleRead() {
     if (!isSuper) {
-      return new ShadowThisExpression();
+      return new ShadowThisExpression()..fileOffset = offsetForToken(token);
     } else {
       return helper.buildCompileTimeError(messageSuperAsExpression,
           offsetForToken(token), lengthForToken(token));

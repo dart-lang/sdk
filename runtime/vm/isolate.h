@@ -211,6 +211,7 @@ class Isolate : public BaseIsolate {
 
   // Prefers old classes when we are in the middle of a reload.
   RawClass* GetClassForHeapWalkAt(intptr_t cid);
+  intptr_t GetClassSizeForHeapWalkAt(intptr_t cid);
 
   static intptr_t ic_miss_code_offset() {
     return OFFSET_OF(Isolate, ic_miss_code_);
@@ -623,7 +624,6 @@ class Isolate : public BaseIsolate {
     ASSERT(value >= 0);
     return value > 0;
   }
-
   void IncrTopLevelParsingCount() {
     AtomicOperations::IncrementBy(&top_level_parsing_count_, 1);
   }

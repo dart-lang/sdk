@@ -915,6 +915,9 @@ class Class : public Object {
     ASSERT(is_finalized() || is_prefinalized());
     return (raw_ptr()->instance_size_in_words_ * kWordSize);
   }
+  static intptr_t instance_size(RawClass* clazz) {
+    return (clazz->ptr()->instance_size_in_words_ * kWordSize);
+  }
   void set_instance_size(intptr_t value_in_bytes) const {
     ASSERT(kWordSize != 0);
     set_instance_size_in_words(value_in_bytes / kWordSize);
@@ -4422,8 +4425,11 @@ class PcDescriptors : public Object {
             RawPcDescriptors::MergedKindTry::DecodeTryIndex(merged_kind_try);
 
         cur_pc_offset_ += descriptors_.DecodeInteger(&byte_index_);
-        cur_deopt_id_ += descriptors_.DecodeInteger(&byte_index_);
-        cur_token_pos_ += descriptors_.DecodeInteger(&byte_index_);
+
+        if (!FLAG_precompiled_mode) {
+          cur_deopt_id_ += descriptors_.DecodeInteger(&byte_index_);
+          cur_token_pos_ += descriptors_.DecodeInteger(&byte_index_);
+        }
 
         if ((cur_kind_ & kind_mask_) != 0) {
           return true;  // Current is valid.
@@ -7907,7 +7913,16 @@ class Array : public Instance {
   virtual uword ComputeCanonicalTableHash() const;
 
   static const intptr_t kBytesPerElement = kWordSize;
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+  // The length field is a Smi so that sets one limit on the max Array length.
+  // But we also need to be able to represent the length in bytes in an
+  // intptr_t, which is a different limit.  Either may be smaller.  We can't
+  // use Utils::Minimum here because it is not a const expression.
+  static const intptr_t kElementLimitDueToIntptrMax = static_cast<intptr_t>(
+      (kIntptrMax - sizeof(RawArray) - kObjectAlignment + kBytesPerElement) /
+      kBytesPerElement);
+  static const intptr_t kMaxElements = kSmiMax < kElementLimitDueToIntptrMax
+                                           ? kSmiMax
+                                           : kElementLimitDueToIntptrMax;
   static const intptr_t kMaxNewSpaceElements =
       (Heap::kNewAllocatableSize - sizeof(RawArray)) / kBytesPerElement;
 
@@ -8791,6 +8806,13 @@ class Closure : public Instance {
                          const Context& context,
                          Heap::Space space = Heap::kNew);
 
+  static RawClosure* New(const TypeArguments& instantiator_type_arguments,
+                         const TypeArguments& function_type_arguments,
+                         const TypeArguments& delayed_type_arguments,
+                         const Function& function,
+                         const Context& context,
+                         Heap::Space space = Heap::kNew);
+
   RawFunction* GetInstantiatedSignature(Zone* zone) const;
 
  private:
@@ -8860,7 +8882,7 @@ class SendPort : public Instance {
 // Internal stacktrace object used in exceptions for printing stack traces.
 class StackTrace : public Instance {
  public:
-  static const int kPreallocatedStackdepth = 30;
+  static const int kPreallocatedStackdepth = 90;
 
   intptr_t Length() const;
 
@@ -9146,6 +9168,7 @@ RawClass* Object::clazz() const {
   if ((raw_value & kSmiTagMask) == kSmiTag) {
     return Smi::Class();
   }
+  ASSERT(!Isolate::Current()->compaction_in_progress());
   return Isolate::Current()->class_table()->At(raw()->GetClassId());
 }
 

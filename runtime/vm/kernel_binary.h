@@ -149,8 +149,9 @@ enum ConstantTag {
   kMapConstant = 5,
   kListConstant = 6,
   kInstanceConstant = 7,
-  kTearOffConstant = 8,
-  kTypeLiteralConstant = 9,
+  kPartialInstantiationConstant = 8,
+  kTearOffConstant = 9,
+  kTypeLiteralConstant = 10,
 };
 
 static const int SpecializedIntLiteralBias = 3;

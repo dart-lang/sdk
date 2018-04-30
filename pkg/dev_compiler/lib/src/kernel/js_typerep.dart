@@ -114,11 +114,12 @@ class JSTypeRep {
       if (c == coreTypes.nullClass) return JSType.jsNull;
       if (c == coreTypes.numClass ||
           c == coreTypes.intClass ||
-          c == coreTypes.doubleClass) {
+          c == coreTypes.doubleClass ||
+          c == _jsNumber) {
         return JSType.jsNumber;
       }
-      if (c == coreTypes.boolClass) return JSType.jsBoolean;
-      if (c == coreTypes.stringClass) return JSType.jsString;
+      if (c == coreTypes.boolClass || c == _jsBool) return JSType.jsBoolean;
+      if (c == coreTypes.stringClass || c == _jsString) return JSType.jsString;
       if (c == coreTypes.objectClass) return JSType.jsUnknown;
       if (c == coreTypes.futureOrClass) {
         var argumentRep = typeFor(type.typeArguments[0]);

@@ -136,8 +136,7 @@ class Serializer : public StackResource {
   ~Serializer();
 
   intptr_t WriteVMSnapshot(const Array& symbols,
-                           ZoneGrowableArray<Object*>* seed_objects,
-                           ZoneGrowableArray<Code*>* seed_code);
+                           ZoneGrowableArray<Object*>* seeds);
   void WriteIsolateSnapshot(intptr_t num_base_objects,
                             ObjectStore* object_store);
 
@@ -254,7 +253,8 @@ class Serializer : public StackResource {
     Write<int32_t>(cid);
   }
 
-  int32_t GetTextOffset(RawInstructions* instr, RawCode* code) const;
+  void WriteInstructions(RawInstructions* instr, RawCode* code);
+  bool GetSharedDataOffset(RawObject* object, uint32_t* offset) const;
   uint32_t GetDataOffset(RawObject* object) const;
   intptr_t GetDataSize() const;
   intptr_t GetTextSize() const;
@@ -293,8 +293,10 @@ class Deserializer : public StackResource {
                Snapshot::Kind kind,
                const uint8_t* buffer,
                intptr_t size,
+               const uint8_t* data_buffer,
                const uint8_t* instructions_buffer,
-               const uint8_t* data_buffer);
+               const uint8_t* shared_data_buffer,
+               const uint8_t* shared_instructions_buffer);
   ~Deserializer();
 
   void ReadIsolateSnapshot(ObjectStore* object_store);
@@ -350,8 +352,9 @@ class Deserializer : public StackResource {
     return Read<int32_t>();
   }
 
-  RawInstructions* GetInstructionsAt(int32_t offset) const;
+  RawInstructions* ReadInstructions();
   RawObject* GetObjectAt(uint32_t offset) const;
+  RawObject* GetSharedObjectAt(uint32_t offset) const;
 
   RawApiError* VerifyVersionAndFeatures(Isolate* isolate);
 
@@ -423,8 +426,7 @@ class FullSnapshotWriter {
   ForwardList* forward_list_;
   ImageWriter* vm_image_writer_;
   ImageWriter* isolate_image_writer_;
-  ZoneGrowableArray<Object*>* seed_objects_;
-  ZoneGrowableArray<Code*>* seed_code_;
+  ZoneGrowableArray<Object*>* seeds_;
   Array& saved_symbol_table_;
   Array& new_vm_symbol_table_;
 
@@ -441,6 +443,8 @@ class FullSnapshotReader {
  public:
   FullSnapshotReader(const Snapshot* snapshot,
                      const uint8_t* instructions_buffer,
+                     const uint8_t* shared_data,
+                     const uint8_t* shared_instructions,
                      Thread* thread);
   ~FullSnapshotReader() {}
 
@@ -452,8 +456,10 @@ class FullSnapshotReader {
   Thread* thread_;
   const uint8_t* buffer_;
   intptr_t size_;
-  const uint8_t* instructions_buffer_;
-  const uint8_t* data_buffer_;
+  const uint8_t* data_image_;
+  const uint8_t* instructions_image_;
+  const uint8_t* shared_data_image_;
+  const uint8_t* shared_instructions_image_;
 
   DISALLOW_COPY_AND_ASSIGN(FullSnapshotReader);
 };

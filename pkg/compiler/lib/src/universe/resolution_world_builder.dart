@@ -434,6 +434,19 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
     return functions;
   }
 
+  Iterable<FunctionEntity> get userNoSuchMethods {
+    List<FunctionEntity> functions = <FunctionEntity>[];
+    for (MemberEntity member in processedMembers) {
+      if (member.isInstanceMember &&
+          member.isFunction &&
+          member.name == Identifiers.noSuchMethod_ &&
+          !_commonElements.isDefaultNoSuchMethodImplementation(member)) {
+        functions.add(member);
+      }
+    }
+    return functions;
+  }
+
   Iterable<MemberEntity> get processedMembers => _processedMembers;
 
   ClosedWorld get closedWorldForTesting {

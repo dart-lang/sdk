@@ -409,6 +409,7 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   accept(TreeVisitor v) => v.visitLibrary(this);
 
   visitChildren(Visitor v) {
+    visitList(annotations, v);
     visitList(dependencies, v);
     visitList(parts, v);
     visitList(typedefs, v);
@@ -418,6 +419,7 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   }
 
   transformChildren(Transformer v) {
+    transformList(annotations, v, this);
     transformList(dependencies, v, this);
     transformList(parts, v, this);
     transformList(typedefs, v, this);
@@ -5383,6 +5385,34 @@ class InstanceConstant extends Constant {
             other.classReference == classReference &&
             listEquals(other.typeArguments, typeArguments) &&
             mapEquals(other.fieldValues, fieldValues));
+  }
+}
+
+class PartialInstantiationConstant extends Constant {
+  final TearOffConstant tearOffConstant;
+  final List<DartType> types;
+
+  PartialInstantiationConstant(this.tearOffConstant, this.types);
+
+  visitChildren(Visitor v) {
+    tearOffConstant.acceptReference(v);
+    visitList(types, v);
+  }
+
+  accept(ConstantVisitor v) => v.visitPartialInstantiationConstant(this);
+  acceptReference(Visitor v) =>
+      v.visitPartialInstantiationConstantReference(this);
+
+  String toString() {
+    return '${runtimeType}(${tearOffConstant.procedure}<${types.join(', ')}>)';
+  }
+
+  int get hashCode => tearOffConstant.hashCode ^ listHashCode(types);
+
+  bool operator ==(Object other) {
+    return other is PartialInstantiationConstant &&
+        other.tearOffConstant == tearOffConstant &&
+        listEquals(other.types, types);
   }
 }
 

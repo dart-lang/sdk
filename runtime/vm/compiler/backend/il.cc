@@ -776,9 +776,7 @@ bool Value::BindsToConstantNull() const {
 
 const Object& Value::BoundConstant() const {
   ASSERT(BindsToConstant());
-  ConstantInstr* constant = definition()->AsConstant();
-  ASSERT(constant != NULL);
-  return constant->value();
+  return definition()->AsConstant()->value();
 }
 
 GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
@@ -1585,10 +1583,10 @@ bool BinaryIntegerOpInstr::RightIsPowerOfTwoConstant() const {
   return Utils::IsPowerOfTwo(Utils::Abs(int_value));
 }
 
-static intptr_t RepresentationBits(Representation r) {
+static intptr_t SignificantRepresentationBits(Representation r) {
   switch (r) {
     case kTagged:
-      return kBitsPerWord - 1;
+      return 31;
     case kUnboxedInt32:
     case kUnboxedUint32:
       return 32;
@@ -1602,7 +1600,7 @@ static intptr_t RepresentationBits(Representation r) {
 
 static int64_t RepresentationMask(Representation r) {
   return static_cast<int64_t>(static_cast<uint64_t>(-1) >>
-                              (64 - RepresentationBits(r)));
+                              (64 - SignificantRepresentationBits(r)));
 }
 
 static bool ToIntegerConstant(Value* value, int64_t* result) {
@@ -1869,9 +1867,9 @@ RawInteger* UnaryIntegerOpInstr::Evaluate(const Integer& value) const {
 
     case Token::kBIT_NOT:
       if (value.IsSmi()) {
-        result = Integer::New(~Smi::Cast(value).Value());
+        result = Integer::New(~Smi::Cast(value).Value(), Heap::kOld);
       } else if (value.IsMint()) {
-        result = Integer::New(~Mint::Cast(value).value());
+        result = Integer::New(~Mint::Cast(value).value(), Heap::kOld);
       }
       break;
 
@@ -2106,7 +2104,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
     case Token::kBIT_AND:
       if (rhs == 0) {
         return right()->definition();
-      } else if (rhs == range_mask) {
+      } else if ((rhs & range_mask) == range_mask) {
         return left()->definition();
       }
       break;
@@ -2163,7 +2161,8 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
       break;
 
     case Token::kSHL: {
-      const intptr_t kMaxShift = RepresentationBits(representation()) - 1;
+      const intptr_t kMaxShift =
+          SignificantRepresentationBits(representation()) - 1;
       if (rhs == 0) {
         return left()->definition();
       } else if ((rhs < 0) || (rhs >= kMaxShift)) {
@@ -2494,9 +2493,11 @@ Definition* BoxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
     Definition* replacement = this;
 
     switch (conv->from()) {
+#if !defined(AVOID_UNBOXED_INT32)
       case kUnboxedInt32:
         replacement = new BoxInt32Instr(conv->value()->CopyWithType());
         break;
+#endif
       case kUnboxedUint32:
         replacement = new BoxUint32Instr(conv->value()->CopyWithType());
         break;
@@ -2674,6 +2675,35 @@ Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
     return replacement;
   }
 
+  if (value()->BindsToConstant()) {
+    const Object& input = value()->BoundConstant();
+    int64_t constant;
+    if (input.IsSmi()) {
+      constant = Smi::Cast(input).Value();
+    } else if (input.IsMint()) {
+      constant = Mint::Cast(input).value();
+    } else {
+      return this;
+    }
+    Definition* replacement = NULL;
+    if (to() == kUnboxedUint32) {
+      const Object& cast = Integer::Handle(
+          flow_graph->zone(),
+          Integer::New(static_cast<uint32_t>(constant), Heap::kOld));
+      replacement = new UnboxedConstantInstr(cast, kUnboxedUint32);
+    } else if (to() == kUnboxedInt32) {
+      const Object& cast = Integer::Handle(
+          flow_graph->zone(),
+          Integer::New(static_cast<int32_t>(constant), Heap::kOld));
+      replacement = new UnboxedConstantInstr(cast, kUnboxedUint32);
+    } else if (to() == kUnboxedInt64) {
+      replacement = new UnboxedConstantInstr(input, kUnboxedInt64);
+    }
+    if (replacement != NULL) {
+      flow_graph->InsertBefore(this, replacement, env(), FlowGraph::kValue);
+      return replacement;
+    }
+  }
   return this;
 }
 
@@ -3019,8 +3049,10 @@ Instruction* CheckNullInstr::Canonicalize(FlowGraph* flow_graph) {
 
 BoxInstr* BoxInstr::Create(Representation from, Value* value) {
   switch (from) {
+#if !defined(AVOID_UNBOXED_INT32)
     case kUnboxedInt32:
       return new BoxInt32Instr(value);
+#endif
 
     case kUnboxedUint32:
       return new BoxUint32Instr(value);
@@ -3045,10 +3077,11 @@ UnboxInstr* UnboxInstr::Create(Representation to,
                                intptr_t deopt_id,
                                SpeculativeMode speculative_mode) {
   switch (to) {
+#if !defined(AVOID_UNBOXED_INT32)
     case kUnboxedInt32:
       return new UnboxInt32Instr(UnboxInt32Instr::kNoTruncation, value,
                                  deopt_id, speculative_mode);
-
+#endif
     case kUnboxedUint32:
       return new UnboxUint32Instr(value, deopt_id, speculative_mode);
 
@@ -3970,6 +4003,8 @@ class ThrowErrorSlowPathCode : public TemplateSlowPathCode<Instruction> {
 
   virtual const char* name() = 0;
 
+  virtual void AddMetadataForRuntimeCall(FlowGraphCompiler* compiler) {}
+
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     if (Assembler::EmittingComments()) {
       __ Comment("slow path %s operation", name());
@@ -3985,6 +4020,7 @@ class ThrowErrorSlowPathCode : public TemplateSlowPathCode<Instruction> {
     compiler->AddDescriptor(
         RawPcDescriptors::kOther, compiler->assembler()->CodeSize(),
         instruction()->deopt_id(), instruction()->token_pos(), try_index_);
+    AddMetadataForRuntimeCall(compiler);
     compiler->RecordSafepoint(locs, num_args_);
     Environment* env = compiler->SlowPathEnvironmentFor(instruction());
     compiler->EmitCatchEntryState(env, try_index_);
@@ -4038,7 +4074,6 @@ LocationSummary* CheckNullInstr::MakeLocationSummary(Zone* zone,
 
 class NullErrorSlowPath : public ThrowErrorSlowPathCode {
  public:
-  // TODO(dartbug.com/30480): Pass arguments for NoSuchMethodError.
   static const intptr_t kNumberOfArguments = 0;
 
   NullErrorSlowPath(CheckNullInstr* instruction, intptr_t try_index)
@@ -4047,7 +4082,15 @@ class NullErrorSlowPath : public ThrowErrorSlowPathCode {
                                kNumberOfArguments,
                                try_index) {}
 
-  virtual const char* name() { return "check null"; }
+  const char* name() override { return "check null"; }
+
+  void AddMetadataForRuntimeCall(FlowGraphCompiler* compiler) override {
+    const String& function_name = instruction()->AsCheckNull()->function_name();
+    const intptr_t name_index =
+        compiler->assembler()->object_pool_wrapper().FindObject(function_name);
+    compiler->AddNullCheck(compiler->assembler()->CodeSize(),
+                           instruction()->token_pos(), name_index);
+  }
 };
 
 void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -4750,7 +4793,7 @@ struct SimdOpInfo {
 // Make representaion from type name used by SIMD_OP_LIST.
 #define REP(T) (kUnboxed##T)
 static const Representation kUnboxedBool = kTagged;
-static const Representation kUnboxedInt8 = kUnboxedInt32;
+static const Representation kUnboxedInt8 = kUnboxedUint32;
 
 #define ENCODE_INPUTS_0()
 #define ENCODE_INPUTS_1(In0) REP(In0)

@@ -405,6 +405,10 @@ InliningNode* Dwarf::ExpandInliningTree(const Code& code) {
         token_positions.RemoveLast();
         break;
       }
+      case CodeSourceMapBuilder::kNullCheck: {
+        stream.Read<int32_t>();
+        break;
+      }
       default:
         UNREACHABLE();
     }
@@ -616,6 +620,10 @@ void Dwarf::WriteLines() {
           ASSERT(token_positions.length() > 1);
           function_stack.RemoveLast();
           token_positions.RemoveLast();
+          break;
+        }
+        case CodeSourceMapBuilder::kNullCheck: {
+          stream.Read<int32_t>();
           break;
         }
         default:

@@ -1059,10 +1059,11 @@ class FastaParserTestCase extends Object
   }
 
   @override
-  Expression parsePrimaryExpression(String code) {
-    createParser(code);
+  Expression parsePrimaryExpression(String code,
+      {int expectedEndOffset, List<ExpectedError> errors}) {
+    createParser(code, expectedEndOffset: expectedEndOffset);
     Expression result = _parserProxy.parsePrimaryExpression();
-    assertNoErrors();
+    assertErrors(codes: null, errors: errors);
     return result;
   }
 
@@ -1378,22 +1379,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_expressionList_multiple_start() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_IDENTIFIER, found 0
-    super.test_expressionList_multiple_start();
-  }
-
-  @override
-  @failingTest
-  void test_functionExpression_named() {
-    // TODO(brianwilkerson) Unhandled compile-time error:
-    // A function expression can't have a name.
-    super.test_functionExpression_named();
-  }
-
-  @override
-  @failingTest
   void test_incompleteTypeArguments_field() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incompleteTypeArguments_field();
@@ -1401,23 +1386,9 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_isExpression_noType() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_isExpression_noType();
-  }
-
-  @override
-  @failingTest
   void test_missingIdentifier_afterAnnotation() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_missingIdentifier_afterAnnotation();
-  }
-
-  @override
-  @failingTest
-  void test_primaryExpression_argumentDefinitionTest() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_primaryExpression_argumentDefinitionTest();
   }
 
   @override

@@ -31,7 +31,7 @@ class ClassOrNamedMixinIdentifierContext extends IdentifierContext {
       return identifier;
     }
 
-    if (looksLikeStartOfNextDeclaration(identifier) ||
+    if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
         isOneOfOrEof(
             identifier, const ['<', '{', 'extends', 'with', 'implements'])) {
       identifier = parser.insertSyntheticIdentifier(token, this,
@@ -76,7 +76,7 @@ class DottedNameIdentifierContext extends IdentifierContext {
       }
     }
 
-    if (looksLikeStartOfNextDeclaration(identifier) ||
+    if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
         isOneOfOrEof(identifier, followingValues)) {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: fasta.templateExpectedIdentifier.withArguments(identifier));
@@ -141,6 +141,35 @@ class ExpressionIdentifierContext extends IdentifierContext {
   }
 }
 
+class FieldDeclarationIdentifierContext extends IdentifierContext {
+  const FieldDeclarationIdentifierContext()
+      : super('fieldDeclaration', inDeclaration: true);
+
+  @override
+  Token ensureIdentifier(Token token, Parser parser) {
+    Token identifier = token.next;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    if (identifier.isIdentifier) {
+      return identifier;
+    }
+    // Recovery
+    if (isOneOfOrEof(identifier, const [';', '=', ',', '}']) ||
+        looksLikeStartOfNextClassMember(identifier)) {
+      return parser.insertSyntheticIdentifier(token, this);
+    } else if (!identifier.isKeywordOrIdentifier) {
+      // When in doubt, consume the token to ensure we make progress
+      // but insert a synthetic identifier to satisfy listeners.
+      return parser.insertSyntheticIdentifier(identifier, this,
+          message: fasta.templateExpectedIdentifier.withArguments(identifier),
+          messageOnToken: identifier);
+    } else {
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateExpectedIdentifier);
+      return identifier;
+    }
+  }
+}
+
 /// See [IdentifierContext].fieldInitializer
 class FieldInitializerIdentifierContext extends IdentifierContext {
   const FieldInitializerIdentifierContext()
@@ -177,7 +206,7 @@ class LibraryIdentifierContext extends IdentifierContext {
     if (identifier.isIdentifier) {
       Token next = identifier.next;
       if (isOneOfOrEof(next, const ['.', ';']) ||
-          !looksLikeStartOfNextDeclaration(identifier)) {
+          !looksLikeStartOfNextTopLevelDeclaration(identifier)) {
         return identifier;
       }
       // Although this is a valid library name, the library declaration
@@ -185,7 +214,7 @@ class LibraryIdentifierContext extends IdentifierContext {
       // In this situation, fall through to insert a synthetic library name.
     }
     if (isOneOfOrEof(identifier, const ['.', ';']) ||
-        looksLikeStartOfNextDeclaration(identifier)) {
+        looksLikeStartOfNextTopLevelDeclaration(identifier)) {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: fasta.templateExpectedIdentifier.withArguments(identifier));
     } else {
@@ -228,6 +257,43 @@ class LocalVariableDeclarationIdentifierContext extends IdentifierContext {
       }
     }
     return identifier;
+  }
+}
+
+class MethodDeclarationIdentifierContext extends IdentifierContext {
+  const MethodDeclarationIdentifierContext()
+      : super('methodDeclaration', inDeclaration: true);
+
+  const MethodDeclarationIdentifierContext.continuation()
+      : super('methodDeclarationContinuation',
+            inDeclaration: true, isContinuation: true);
+
+  @override
+  Token ensureIdentifier(Token token, Parser parser) {
+    Token identifier = token.next;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    if (identifier.isIdentifier) {
+      return identifier;
+    }
+    // Recovery
+    if (identifier.isUserDefinableOperator && !isContinuation) {
+      return parser.insertSyntheticIdentifier(identifier, this,
+          message: fasta.messageMissingOperatorKeyword,
+          messageOnToken: identifier);
+    } else if (isOneOfOrEof(identifier, const ['.', '(', '{', '=>']) ||
+        looksLikeStartOfNextClassMember(identifier)) {
+      return parser.insertSyntheticIdentifier(token, this);
+    } else if (!identifier.isKeywordOrIdentifier) {
+      // When in doubt, consume the token to ensure we make progress
+      // but insert a synthetic identifier to satisfy listeners.
+      return parser.insertSyntheticIdentifier(identifier, this,
+          message: fasta.templateExpectedIdentifier.withArguments(identifier),
+          messageOnToken: identifier);
+    } else {
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateExpectedIdentifier);
+      return identifier;
+    }
   }
 }
 
@@ -315,9 +381,8 @@ bool isOneOfOrEof(Token token, Iterable<String> followingValues) {
   return token.isEof;
 }
 
-bool looksLikeStartOfNextDeclaration(Token token) =>
-    token.isTopLevelKeyword ||
-    isOneOfOrEof(token, const ['const', 'get', 'final', 'set', 'var', 'void']);
+bool looksLikeStartOfNextClassMember(Token token) =>
+    token.isModifier || isOneOfOrEof(token, const ['get', 'set', 'void']);
 
 bool looksLikeStartOfNextStatement(Token token) => isOneOfOrEof(token, const [
       'assert',
@@ -335,6 +400,10 @@ bool looksLikeStartOfNextStatement(Token token) => isOneOfOrEof(token, const [
       'void',
       'while'
     ]);
+
+bool looksLikeStartOfNextTopLevelDeclaration(Token token) =>
+    token.isTopLevelKeyword ||
+    isOneOfOrEof(token, const ['const', 'get', 'final', 'set', 'var', 'void']);
 
 Token skipMetadata(Token token) {
   assert(optional('@', token));

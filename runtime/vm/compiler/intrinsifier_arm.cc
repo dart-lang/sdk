@@ -1647,7 +1647,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   __ Ret();
 
   __ Bind(&use_canonical_type);
-  __ LoadClassById(R2, R1);
+  __ LoadClassById(R2, R1);  // Overwrites R1.
   __ ldrh(R3, FieldAddress(R2, Class::num_type_arguments_offset()));
   __ CompareImmediate(R3, 0);
   __ b(&fall_through, NE);

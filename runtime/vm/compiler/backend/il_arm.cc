@@ -328,7 +328,8 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
                                        const Location& destination,
                                        Register tmp) {
   if (destination.IsRegister()) {
-    if (representation() == kUnboxedInt32) {
+    if (representation() == kUnboxedInt32 ||
+        representation() == kUnboxedUint32) {
       __ LoadImmediate(destination.reg(), Smi::Cast(value_).Value());
     } else {
       ASSERT(representation() == kTagged);
@@ -5985,34 +5986,45 @@ LocationSummary* BinaryUint32OpInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RequiresRegister());
   summary->set_out(0, Location::RequiresRegister());
+  ConstantInstr* right_constant = right()->definition()->AsConstant();
+  if (right_constant != NULL && op_kind() != Token::kMUL &&
+      right_constant->value().IsSmi() &&
+      Operand::CanHold(Smi::Cast(right_constant->value()).Value())) {
+    summary->set_in(1, Location::Constant(right_constant));
+  } else {
+    summary->set_in(1, Location::RequiresRegister());
+  }
   return summary;
 }
 
 void BinaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
   Register out = locs()->out(0).reg();
   ASSERT(out != left);
+  Location r = locs()->in(1);
+  if (op_kind() == Token::kMUL) {
+    __ mul(out, left, r.reg());
+    return;
+  }
+  const Operand right = r.IsRegister()
+                            ? Operand(r.reg())
+                            : Operand(Smi::Cast(r.constant()).Value());
   switch (op_kind()) {
     case Token::kBIT_AND:
-      __ and_(out, left, Operand(right));
+      __ and_(out, left, right);
       break;
     case Token::kBIT_OR:
-      __ orr(out, left, Operand(right));
+      __ orr(out, left, right);
       break;
     case Token::kBIT_XOR:
-      __ eor(out, left, Operand(right));
+      __ eor(out, left, right);
       break;
     case Token::kADD:
-      __ add(out, left, Operand(right));
+      __ add(out, left, right);
       break;
     case Token::kSUB:
-      __ sub(out, left, Operand(right));
-      break;
-    case Token::kMUL:
-      __ mul(out, left, right);
+      __ sub(out, left, right);
       break;
     default:
       UNREACHABLE();

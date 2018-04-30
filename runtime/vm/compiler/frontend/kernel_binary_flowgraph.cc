@@ -6985,8 +6985,9 @@ Fragment StreamingFlowGraphBuilder::LoadStaticField() {
 }
 
 Fragment StreamingFlowGraphBuilder::CheckNull(TokenPosition position,
-                                              LocalVariable* receiver) {
-  return flow_graph_builder_->CheckNull(position, receiver);
+                                              LocalVariable* receiver,
+                                              const String& function_name) {
+  return flow_graph_builder_->CheckNull(position, receiver, function_name);
 }
 
 Fragment StreamingFlowGraphBuilder::StaticCall(TokenPosition position,
@@ -7427,7 +7428,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertyGet(TokenPosition* p) {
   }
 
   if (direct_call.check_receiver_for_null_) {
-    instructions += CheckNull(TokenPosition::kNoSource, receiver);
+    instructions += CheckNull(position, receiver, getter_name);
   }
 
   if (!direct_call.target_.IsNull()) {
@@ -7489,7 +7490,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
   }
 
   if (direct_call.check_receiver_for_null_) {
-    instructions += CheckNull(position, receiver);
+    instructions += CheckNull(position, receiver, setter_name);
   }
 
   if (!direct_call.target_.IsNull()) {
@@ -8045,7 +8046,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   }
 
   if (direct_call.check_receiver_for_null_) {
-    instructions += CheckNull(position, receiver_temp);
+    instructions += CheckNull(position, receiver_temp, name);
   }
 
   if (!direct_call.target_.IsNull()) {
@@ -10882,6 +10883,35 @@ const Array& ConstantHelper::ReadConstantTable() {
         }
 
         temp_instance_ = H.Canonicalize(temp_instance_);
+        break;
+      }
+      case kPartialInstantiationConstant: {
+        const intptr_t entry_index = builder_.ReadUInt();
+        temp_object_ = constants.At(entry_index);
+
+        const intptr_t number_of_type_arguments = builder_.ReadUInt();
+        if (temp_class_.NumTypeArguments() > 0) {
+          temp_type_arguments_ =
+              TypeArguments::New(number_of_type_arguments, Heap::kOld);
+          for (intptr_t j = 0; j < number_of_type_arguments; ++j) {
+            temp_type_arguments_.SetTypeAt(j, type_translator_.BuildType());
+          }
+        } else {
+          ASSERT(number_of_type_arguments == 0);
+          temp_type_arguments_ = TypeArguments::null();
+        }
+
+        // Make a copy of the old closure, with the delayed type arguments
+        // set to [temp_type_arguments_].
+        temp_closure_ = Closure::RawCast(temp_object_.raw());
+        temp_function_ = temp_closure_.function();
+        temp_type_arguments2_ = temp_closure_.instantiator_type_arguments();
+        temp_type_arguments3_ = temp_closure_.function_type_arguments();
+        temp_context_ = temp_closure_.context();
+        temp_closure_ = Closure::New(
+            temp_type_arguments2_, Object::null_type_arguments(),
+            temp_type_arguments_, temp_function_, temp_context_, Heap::kOld);
+        temp_instance_ = H.Canonicalize(temp_closure_);
         break;
       }
       case kTearOffConstant: {

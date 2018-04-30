@@ -1,3 +1,22 @@
+## 2.0.0-dev.51.0
+
+### Tool Changes
+
+#### dartfmt
+  * Fixes a runtime error when dart_style is itself run in Dart 2.
+  * Force splitting an empty block as the then body of an if with an else.
+  * Uses the new lowercase Dart 2 constant names.
+
+#### Pub
+
+* The `build` and `serve` commands will now fail and point users to
+  https://webdev.dartlang.org/dart-2
+
+#### dart2js
+
+* `async` functions now start synchronously. This will be the default behavior
+  across all tools. To temporarily opt-out, use the `--no-sync-async` flag.
+
 ## 2.0.0-dev.50.0
 
 ## 2.0.0-dev.49.0
@@ -10,28 +29,6 @@
   involving pre-release constraints ([`pub_semver` issue 20][]).
 
 [`pub_semver` issue 20]: https://github.com/dart-lang/pub_semver/issues/20
-
-## 2.0.0-dev.48.0
-
-### Language
-
-#### Strong Mode
-
-### Core library changes
-
-### Dart VM
-
-### Tool Changes
-
-#### Pub
-
-#### Other Tools
-
-## 2.0.0-dev.49.0
-
-## 2.0.0-dev.47.0
-
-### Tool Changes
 
 ## 2.0.0-dev.48.0
 

@@ -215,6 +215,14 @@ class BinaryBuilder {
           fieldValues[fieldRef] = constant;
         }
         return new InstanceConstant(classReference, typeArguments, fieldValues);
+      case ConstantTag.PartialInstantiationConstant:
+        final tearOffConstant = readConstantReference() as TearOffConstant;
+        final int length = readUInt();
+        final List<DartType> types = new List<DartType>(length);
+        for (int i = 0; i < length; i++) {
+          types[i] = readDartType();
+        }
+        return new PartialInstantiationConstant(tearOffConstant, types);
       case ConstantTag.TearOffConstant:
         final Reference reference = readCanonicalNameReference().getReference();
         return new TearOffConstant.byReference(reference);

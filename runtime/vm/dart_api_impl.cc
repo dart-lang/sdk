@@ -1090,6 +1090,8 @@ static Dart_Isolate CreateIsolate(const char* script_uri,
                                   const char* main,
                                   const uint8_t* snapshot_data,
                                   const uint8_t* snapshot_instructions,
+                                  const uint8_t* shared_data,
+                                  const uint8_t* shared_instructions,
                                   intptr_t snapshot_length,
                                   kernel::Program* kernel_program,
                                   Dart_IsolateFlags* flags,
@@ -1122,8 +1124,9 @@ static Dart_Isolate CreateIsolate(const char* script_uri,
     Dart_EnterScope();
     const Error& error_obj =
         Error::Handle(Z, Dart::InitializeIsolate(
-                             snapshot_data, snapshot_instructions,
-                             snapshot_length, kernel_program, callback_data));
+                             snapshot_data, snapshot_instructions, shared_data,
+                             shared_instructions, snapshot_length,
+                             kernel_program, callback_data));
     if (error_obj.IsNull()) {
 #if defined(DART_NO_SNAPSHOT) && !defined(PRODUCT)
       if (FLAG_check_function_fingerprints && kernel_program == NULL) {
@@ -1162,12 +1165,15 @@ Dart_CreateIsolate(const char* script_uri,
                    const char* main,
                    const uint8_t* snapshot_data,
                    const uint8_t* snapshot_instructions,
+                   const uint8_t* shared_data,
+                   const uint8_t* shared_instructions,
                    Dart_IsolateFlags* flags,
                    void* callback_data,
                    char** error) {
   API_TIMELINE_DURATION(Thread::Current());
   return CreateIsolate(script_uri, main, snapshot_data, snapshot_instructions,
-                       -1, NULL, flags, callback_data, error);
+                       shared_data, shared_instructions, -1, NULL, flags,
+                       callback_data, error);
 }
 
 DART_EXPORT Dart_Isolate Dart_CreateIsolateFromKernel(const char* script_uri,
@@ -1184,7 +1190,7 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolateFromKernel(const char* script_uri,
     flags = &api_flags;
   }
   flags->use_dart_frontend = true;
-  return CreateIsolate(script_uri, main, NULL, NULL, -1,
+  return CreateIsolate(script_uri, main, NULL, NULL, NULL, NULL, -1,
                        reinterpret_cast<kernel::Program*>(kernel_program),
                        flags, callback_data, error);
 }
@@ -6526,7 +6532,7 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
 
   NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
                                             "WriteAppAOTSnapshot"));
-  AssemblyImageWriter image_writer(callback, callback_data);
+  AssemblyImageWriter image_writer(callback, callback_data, NULL, NULL);
   uint8_t* vm_snapshot_data_buffer = NULL;
   uint8_t* isolate_snapshot_data_buffer = NULL;
   FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer,
@@ -6557,7 +6563,7 @@ Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
 
   NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
                                             "WriteVMAOTSnapshot"));
-  AssemblyImageWriter image_writer(callback, callback_data);
+  AssemblyImageWriter image_writer(callback, callback_data, NULL, NULL);
   uint8_t* vm_snapshot_data_buffer = NULL;
   FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer, NULL,
                             ApiReallocate, &image_writer, NULL);
@@ -6576,7 +6582,9 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
                                  uint8_t** isolate_snapshot_data_buffer,
                                  intptr_t* isolate_snapshot_data_size,
                                  uint8_t** isolate_snapshot_instructions_buffer,
-                                 intptr_t* isolate_snapshot_instructions_size) {
+                                 intptr_t* isolate_snapshot_instructions_size,
+                                 const uint8_t* shared_data,
+                                 const uint8_t* shared_instructions) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
 #elif defined(TARGET_ARCH_DBC)
@@ -6584,9 +6592,6 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
 #elif !defined(DART_PRECOMPILER)
   return Api::NewError(
       "This VM was built without support for AOT compilation.");
-#elif defined(TARGET_OS_FUCHSIA)
-  return Api::NewError(
-      "AOT as blobs is not supported on Fuchsia; use dylibs instead.");
 #else
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
@@ -6606,13 +6611,20 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
   CHECK_NULL(isolate_snapshot_instructions_buffer);
   CHECK_NULL(isolate_snapshot_instructions_size);
 
+  const void* shared_data_image = NULL;
+  if (shared_data != NULL) {
+    shared_data_image = Snapshot::SetupFromBuffer(shared_data)->DataImage();
+  }
+  const void* shared_instructions_image = shared_instructions;
+
   NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
                                             "WriteAppAOTSnapshot"));
   BlobImageWriter vm_image_writer(vm_snapshot_instructions_buffer,
-                                  ApiReallocate, 2 * MB /* initial_size */);
-  BlobImageWriter isolate_image_writer(isolate_snapshot_instructions_buffer,
-                                       ApiReallocate,
-                                       2 * MB /* initial_size */);
+                                  ApiReallocate, 2 * MB /* initial_size */,
+                                  NULL, NULL);
+  BlobImageWriter isolate_image_writer(
+      isolate_snapshot_instructions_buffer, ApiReallocate,
+      2 * MB /* initial_size */, shared_data_image, shared_instructions_image);
   FullSnapshotWriter writer(Snapshot::kFullAOT, vm_snapshot_data_buffer,
                             isolate_snapshot_data_buffer, ApiReallocate,
                             &vm_image_writer, &isolate_image_writer);
@@ -6670,10 +6682,11 @@ DART_EXPORT Dart_Handle Dart_CreateCoreJITSnapshotAsBlobs(
   NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
                                             "WriteCoreJITSnapshot"));
   BlobImageWriter vm_image_writer(vm_snapshot_instructions_buffer,
-                                  ApiReallocate, 2 * MB /* initial_size */);
+                                  ApiReallocate, 2 * MB /* initial_size */,
+                                  NULL, NULL);
   BlobImageWriter isolate_image_writer(isolate_snapshot_instructions_buffer,
-                                       ApiReallocate,
-                                       2 * MB /* initial_size */);
+                                       ApiReallocate, 2 * MB /* initial_size */,
+                                       NULL, NULL);
   FullSnapshotWriter writer(Snapshot::kFullJIT, vm_snapshot_data_buffer,
                             isolate_snapshot_data_buffer, ApiReallocate,
                             &vm_image_writer, &isolate_image_writer);
@@ -6723,8 +6736,8 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
                                             "WriteAppJITSnapshot"));
   BlobImageWriter isolate_image_writer(isolate_snapshot_instructions_buffer,
-                                       ApiReallocate,
-                                       2 * MB /* initial_size */);
+                                       ApiReallocate, 2 * MB /* initial_size */,
+                                       NULL, NULL);
   FullSnapshotWriter writer(Snapshot::kFullJIT, NULL,
                             isolate_snapshot_data_buffer, ApiReallocate, NULL,
                             &isolate_image_writer);

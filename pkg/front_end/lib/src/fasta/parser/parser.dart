@@ -34,8 +34,6 @@ import '../scanner/token_constants.dart'
         EOF_TOKEN,
         EQ_TOKEN,
         FUNCTION_TOKEN,
-        GT_GT_TOKEN,
-        GT_TOKEN,
         HASH_TOKEN,
         HEXADECIMAL_TOKEN,
         IDENTIFIER_TOKEN,
@@ -45,7 +43,6 @@ import '../scanner/token_constants.dart'
         OPEN_CURLY_BRACKET_TOKEN,
         OPEN_PAREN_TOKEN,
         OPEN_SQUARE_BRACKET_TOKEN,
-        PERIOD_TOKEN,
         SEMICOLON_TOKEN,
         STRING_INTERPOLATION_IDENTIFIER_TOKEN,
         STRING_INTERPOLATION_TOKEN,
@@ -93,6 +90,8 @@ import 'type_info.dart'
         isGeneralizedFunctionType,
         isValidTypeReference,
         noType;
+
+import 'type_info_impl.dart' show skipTypeVariables;
 
 import 'util.dart' show optional;
 
@@ -1506,76 +1505,14 @@ class Parser {
   /// arguments in generic method invocations can be recognized, and as few as
   /// possible other constructs will pass (e.g., 'a < C, D > 3').
   bool isValidMethodTypeArguments(Token token) {
-    Token Function(Token token) tryParseType;
-
-    /// Returns token after match if [token] matches '<' type (',' type)* '>'
-    /// '(', and otherwise returns null. Does not produce listener events. With
-    /// respect to the final '(', please see the description of
-    /// [isValidMethodTypeArguments].
-    Token tryParseMethodTypeArguments(Token token) {
-      if (!identical(token.kind, LT_TOKEN)) return null;
-      Token endToken = token.endGroup;
-      if (endToken == null ||
-          !identical(endToken.next.kind, OPEN_PAREN_TOKEN)) {
-        return null;
+    // TODO(danrubel): Replace call with a call to computeTypeVar.
+    if (optional('<', token)) {
+      Token endGroup = skipTypeVariables(token);
+      if (endGroup != null && optional('(', endGroup.next)) {
+        return true;
       }
-      token = tryParseType(token.next);
-      while (token != null && identical(token.kind, COMMA_TOKEN)) {
-        token = tryParseType(token.next);
-      }
-      if (token == null || !identical(token.kind, GT_TOKEN)) return null;
-      return token.next;
     }
-
-    /// Returns token after match if [token] matches identifier ('.'
-    /// identifier)?, and otherwise returns null. Does not produce listener
-    /// events.
-    Token tryParseQualified(Token token) {
-      if (!isValidTypeReference(token)) return null;
-      token = token.next;
-      if (!identical(token.kind, PERIOD_TOKEN)) return token;
-      token = token.next;
-      if (!identical(token.kind, IDENTIFIER_TOKEN)) return null;
-      return token.next;
-    }
-
-    /// Returns token after match if [token] matches '<' type (',' type)* '>',
-    /// and otherwise returns null. Does not produce listener events. The final
-    /// '>' may be the first character in a '>>' token, in which case a
-    /// synthetic '>' token is created and returned, representing the second
-    /// '>' in the '>>' token.
-    Token tryParseNestedTypeArguments(Token token) {
-      if (!identical(token.kind, LT_TOKEN)) return null;
-      // If the initial '<' matches the first '>' in a '>>' token, we will have
-      // `token.endGroup == null`, so we cannot rely on `token.endGroup == null`
-      // to imply that the match must fail. Hence no `token.endGroup == null`
-      // test here.
-      token = tryParseType(token.next);
-      while (token != null && identical(token.kind, COMMA_TOKEN)) {
-        token = tryParseType(token.next);
-      }
-      if (token == null) return null;
-      if (identical(token.kind, GT_TOKEN)) return token.next;
-      if (!identical(token.kind, GT_GT_TOKEN)) return null;
-      // [token] is '>>' of which the final '>' that we are parsing is the first
-      // character. In order to keep the parsing process on track we must return
-      // a synthetic '>' corresponding to the second character of that '>>'.
-      Token syntheticToken = new Token(TokenType.GT, token.charOffset + 1);
-      syntheticToken.next = token.next;
-      return syntheticToken;
-    }
-
-    /// Returns token after match if [token] matches typeName typeArguments?,
-    /// and otherwise returns null. Does not produce listener events.
-    tryParseType = (Token token) {
-      token = tryParseQualified(token);
-      if (token == null) return null;
-      Token tokenAfterQualified = token;
-      token = tryParseNestedTypeArguments(token);
-      return token == null ? tokenAfterQualified : token;
-    };
-
-    return tryParseMethodTypeArguments(token) != null;
+    return false;
   }
 
   /// ```
@@ -1981,24 +1918,9 @@ class Parser {
       } else if (next.isKeywordOrIdentifier) {
         reportRecoverableErrorWithToken(next, context.recoveryTemplate);
         token = next;
-      } else if (next.isUserDefinableOperator &&
-          context == IdentifierContext.methodDeclaration) {
-        // If this is a user definable operator, then assume that the user has
-        // forgotten the `operator` keyword.
-        token = rewriteAndRecover(token, fasta.messageMissingOperatorKeyword,
-            new SyntheticKeywordToken(Keyword.OPERATOR, next.offset));
-        return parseOperatorName(token);
       } else {
         reportRecoverableErrorWithToken(next, context.recoveryTemplate);
-        if (context == IdentifierContext.methodDeclaration) {
-          // Since the token is not a keyword or identifier, consume it to
-          // ensure forward progress in parseMethod.
-          token = next.next;
-          // Supply a non-empty method name so that it does not accidentally
-          // match the default constructor.
-          token = insertSyntheticIdentifier(next, context);
-        } else if (context == IdentifierContext.topLevelVariableDeclaration ||
-            context == IdentifierContext.fieldDeclaration) {
+        if (context == IdentifierContext.topLevelVariableDeclaration) {
           // Since the token is not a keyword or identifier, consume it to
           // ensure forward progress in parseField.
           token = next.next;
@@ -2077,8 +1999,6 @@ class Parser {
       followingValues = [';'];
     } else if (context == IdentifierContext.constructorReferenceContinuation) {
       followingValues = ['.', ',', '(', ')', '[', ']', '}', ';'];
-    } else if (context == IdentifierContext.fieldDeclaration) {
-      followingValues = [';', '=', ',', '}'];
     } else if (context == IdentifierContext.enumDeclaration) {
       followingValues = ['{'];
     } else if (context == IdentifierContext.enumValueDeclaration) {
@@ -2096,9 +2016,6 @@ class Parser {
       followingValues = ['(', '{', '=>'];
     } else if (context == IdentifierContext.localFunctionDeclaration ||
         context == IdentifierContext.localFunctionDeclarationContinuation) {
-      followingValues = ['.', '(', '{', '=>'];
-    } else if (context == IdentifierContext.methodDeclaration ||
-        context == IdentifierContext.methodDeclarationContinuation) {
       followingValues = ['.', '(', '{', '=>'];
     } else if (context == IdentifierContext.topLevelFunctionDeclaration) {
       followingValues = ['(', '{', '=>'];
@@ -2160,9 +2077,7 @@ class Parser {
     // could create a method to test whether a given token matches one of the
     // patterns.
     List<String> initialKeywords;
-    if (context == IdentifierContext.fieldDeclaration) {
-      initialKeywords = classMemberKeywords();
-    } else if (context == IdentifierContext.enumDeclaration) {
+    if (context == IdentifierContext.enumDeclaration) {
       initialKeywords = topLevelKeywords();
     } else if (context == IdentifierContext.formalParameterDeclaration) {
       initialKeywords = topLevelKeywords()
@@ -2180,10 +2095,6 @@ class Parser {
     } else if (context ==
         IdentifierContext.localFunctionDeclarationContinuation) {
       initialKeywords = statementKeywords();
-    } else if (context == IdentifierContext.methodDeclaration) {
-      initialKeywords = classMemberKeywords();
-    } else if (context == IdentifierContext.methodDeclarationContinuation) {
-      initialKeywords = classMemberKeywords();
     } else if (context == IdentifierContext.topLevelFunctionDeclaration) {
       initialKeywords = topLevelKeywords();
     } else if (context == IdentifierContext.topLevelVariableDeclaration) {
@@ -6209,54 +6120,29 @@ class Parser {
           staticToken, covariantToken, varFinalOrConst, beforeType);
     }
 
-    bool looksLikeMethod = getOrSet != null ||
+    if (getOrSet != null ||
         identical(value, '(') ||
         identical(value, '=>') ||
-        identical(value, '{');
-    if (token == beforeStart && !looksLikeMethod) {
-      // Ensure we make progress.
+        identical(value, '{')) {
+      token = parseMethod(
+          beforeStart,
+          externalToken,
+          staticToken,
+          covariantToken,
+          varFinalOrConst,
+          beforeType,
+          typeInfo,
+          getOrSet,
+          token);
+    } else if (token == beforeStart) {
       // TODO(danrubel): Provide a more specific error message for extra ';'.
       reportRecoverableErrorWithToken(next, fasta.templateExpectedClassMember);
       listener.handleInvalidMember(next);
+      // Ensure we make progress.
       token = next;
     } else {
-      // Looks like a partial declaration.
-      reportRecoverableError(
-          next, fasta.templateExpectedIdentifier.withArguments(next));
-      // Insert a synthetic identifier and continue parsing.
-      if (!next.isIdentifier) {
-        rewriter.insertTokenAfter(
-            token,
-            new SyntheticStringToken(
-                TokenType.IDENTIFIER,
-                '#synthetic_identifier_${next.charOffset}',
-                next.charOffset,
-                0));
-      }
-
-      if (looksLikeMethod) {
-        token = parseMethod(
-            beforeStart,
-            externalToken,
-            staticToken,
-            covariantToken,
-            varFinalOrConst,
-            beforeType,
-            typeInfo,
-            getOrSet,
-            token);
-      } else {
-        token = parseFields(
-            beforeStart,
-            externalToken,
-            staticToken,
-            covariantToken,
-            varFinalOrConst,
-            beforeType,
-            typeInfo,
-            token,
-            false);
-      }
+      token = parseFields(beforeStart, externalToken, staticToken,
+          covariantToken, varFinalOrConst, beforeType, typeInfo, token, false);
     }
 
     listener.endMember();

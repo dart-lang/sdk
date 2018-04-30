@@ -1440,7 +1440,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   bool preserveComments = true;
 
-  bool _strongMode = false;
+  bool _strongMode = true;
 
   /**
    * A flag indicating whether strong-mode inference hints should be
@@ -1457,7 +1457,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool useFastaParser = false;
 
   @override
-  bool previewDart2 = false;
+  bool previewDart2 = true;
 
   @override
   bool disableCacheFlushing = false;

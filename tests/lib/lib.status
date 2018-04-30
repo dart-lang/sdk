@@ -15,6 +15,7 @@ mirrors/*: Skip # Issue 27929: Triage
 *: Skip
 
 [ $compiler == dart2js ]
+async/async_await_sync_completer_test: RuntimeError # sync-async is on by default.
 async/schedule_microtask6_test: RuntimeError # global error handling is not supported. Issue 5958
 convert/base64_test/01: Fail, OK # Uses bit-wise operations to detect invalid values. Some large invalid values accepted by dart2js.
 convert/chunked_conversion_utf88_test: Slow, Pass

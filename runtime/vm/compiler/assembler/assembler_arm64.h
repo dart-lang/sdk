@@ -390,6 +390,17 @@ class Operand : public ValueObject {
   // undefined.
   static bool IsImmLogical(uint64_t value, uint8_t width, Operand* imm_op);
 
+  static bool IsImmLogical(int64_t imm) {
+    Operand operand;
+    return IsImmLogical(imm, kXRegSizeInBits, &operand);
+  }
+
+  static bool IsImmArithmethic(int64_t imm) {
+    Operand operand;
+    CanHold(imm, kXRegSizeInBits, &operand);
+    return operand.type_ == Immediate;
+  }
+
   // An immediate imm can be an operand to add/sub when the return value is
   // Immediate, or a logical operation over sz bits when the return value is
   // BitfieldImm. If the return value is Unknown, then the immediate can't be
@@ -1069,11 +1080,17 @@ class Assembler : public ValueObject {
     const Register crn = ConcreteRegister(rn);
     EmitFPIntCvtOp(SCVTFD, static_cast<Register>(vd), crn, kWord);
   }
-  void fcvtzds(Register rd, VRegister vn) {
+  void fcvtzdsx(Register rd, VRegister vn) {
     ASSERT(rd != R31);
     ASSERT(rd != CSP);
     const Register crd = ConcreteRegister(rd);
     EmitFPIntCvtOp(FCVTZDS, crd, static_cast<Register>(vn));
+  }
+  void fcvtzdsw(Register rd, VRegister vn) {
+    ASSERT(rd != R31);
+    ASSERT(rd != CSP);
+    const Register crd = ConcreteRegister(rd);
+    EmitFPIntCvtOp(FCVTZDS, crd, static_cast<Register>(vn), kWord);
   }
   void fmovdd(VRegister vd, VRegister vn) { EmitFPOneSourceOp(FMOVDD, vd, vn); }
   void fabsd(VRegister vd, VRegister vn) { EmitFPOneSourceOp(FABSD, vd, vn); }
@@ -1365,9 +1382,17 @@ class Assembler : public ValueObject {
     LslImmediate(dst, src, kSmiTagSize);
   }
 
-  void BranchIfNotSmi(Register reg, Label* label) { tbnz(label, reg, kSmiTag); }
+  void BranchIfNotSmi(Register reg, Label* label) {
+    ASSERT(kSmiTagMask == 1);
+    ASSERT(kSmiTag == 0);
+    tbnz(label, reg, 0);
+  }
 
-  void BranchIfSmi(Register reg, Label* label) { tbz(label, reg, kSmiTag); }
+  void BranchIfSmi(Register reg, Label* label) {
+    ASSERT(kSmiTagMask == 1);
+    ASSERT(kSmiTag == 0);
+    tbz(label, reg, 0);
+  }
 
   void Branch(const StubEntry& stub_entry,
               Register pp,
@@ -1393,7 +1418,10 @@ class Assembler : public ValueObject {
   // the object pool when possible. Unless you are sure that the untagged object
   // pool pointer is in another register, or that it is not available at all,
   // PP should be passed for pp.
-  void AddImmediate(Register dest, Register rn, int64_t imm);
+  void AddImmediate(Register dest,
+                    Register rn,
+                    int64_t imm,
+                    OperandSize sz = kDoubleWord);
   void AddImmediateSetFlags(Register dest,
                             Register rn,
                             int64_t imm,
@@ -1451,6 +1479,11 @@ class Assembler : public ValueObject {
     kValueCanBeSmi,
   };
 
+  enum CanBeHeapPointer {
+    kValueIsNotHeapPointer,
+    kValueCanBeHeapPointer,
+  };
+
   // Storing into an object.
   void StoreIntoObject(Register object,
                        const Address& dest,
@@ -1500,6 +1533,7 @@ class Assembler : public ValueObject {
   void CompareObject(Register reg, const Object& object);
 
   void LoadClassId(Register result, Register object);
+  // Overwrites class_id register.
   void LoadClassById(Register result, Register class_id);
   void LoadClass(Register result, Register object);
   void CompareClassId(Register object,
@@ -1590,6 +1624,43 @@ class Assembler : public ValueObject {
                       Register addr,
                       Register tmp,
                       OperandSize sz);
+
+  void AssertSmiInRange(
+      Register object,
+      CanBeHeapPointer can_be_heap_pointer = kValueIsNotHeapPointer) {
+#if defined(DEBUG)
+    Label ok;
+    if (can_be_heap_pointer == kValueCanBeHeapPointer) {
+      BranchIfNotSmi(object, &ok);
+    }
+    cmp(object, Operand(object, SXTW, 0));
+    b(&ok, EQ);
+    Stop("Smi out of range");
+
+    Bind(&ok);
+#endif
+  }
+
+  void AssertValidUint32(Register r) {
+#if defined(DEBUG)
+    Label ok;
+    cmp(ZR, Operand(r, LSR, 32));
+    b(&ok, EQ);
+    Stop("uint32 should be zero extended");
+    Bind(&ok);
+#endif
+  }
+
+  void AssertValidSignExtendedInt32(Register r) {
+#if defined(DEBUGFOO)
+    Label ok;
+    AsrImmediate(TMP, r, 63);  // 0 or -1.
+    cmp(TMP, Operand(r, ASR, 31));
+    b(&ok, EQ);
+    Stop("int32 should be sign extended");
+    Bind(&ok);
+#endif
+  }
 
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
