@@ -1,3 +1,53 @@
+## 0.31.2-alpha.2
+
+* Refactoring to make element model logic sharable with
+  linker. (#32525, #32674)
+* Gracefully handle an invalid packages file. (#32560)
+* Fix silent inconsistency in top level inference. (#32394)
+* Fix test to determine whether a library is in the SDK. (#32707)
+* Fix for type inference from instance creation arguments.
+* Make GenericFunctionTypeElementForLink implement
+  GenericFunctionTypeElementImpl (#32708)
+* Check for missing required libraries dart:core and dart:async. (#32686)
+* Add callable object support. (#32156, #32157, #32426)
+* Avoid putting libraries of all analyzed units in the current
+  session. (too expensive)
+* Deprecate the option to enable using a URI in a part-of directive.
+* Support implicit call() invocation in top-level inference. (#32740)
+* Don't emit errors for lint rule names.
+* Allow empty flutter: sections in pubspec files.
+* Remove the special casing of 'packages' files from the analyzer and analysis
+  server.
+* Initial implementation of API to build analysis contexts (replacing
+  ContextLocator.locateContexts).
+* Fix regression in Analyzer callable function support. (#32769)
+* Several performance enhancements, including:
+  * Add a shared cache of FileState contents (making flutter repo analysis
+    ~12% faster).
+  * Replace SourceFactory.resolveUri() with resolveRelativeUri() in
+    resynthesizer.  (10% faster flutter repo analysis)
+  * Optimize computing exported namespaces in FileState.
+  * Optimize computing exported namespaces in prelinker. (8% faster
+    flutter repo analysis)
+  * Add NodeLintRule and UnitLintRule that replace AstVisitor in lints.
+    (6% faster flutter repo analysis)
+* Remove fuzzy arrow support from analyzer. (#31637)
+* More fixes for running the analyzer with Dart 2.
+* Add isXYZ accessors to ParameterElementForLink_VariableSetter. (#32896)
+* Demote IMPORT_DUPLICATED_LIBRARY_NAMED to a warning.
+* Deprecated/removed some unused classes and libraries from the public API.
+* Instantiate bounds to bounds.
+* Use package:path instead of AbsolutePathContext.
+* Check that argument is assignable to parameter in call() (#27098)
+* preview-dart-2 is now the default for the command line analyzer, also
+  implying strong.  Use --no-strong and --no-preview-dart-2 to handle
+  Dart 1 code.
+* Export SyntheticBeginToken and SyntheticToken from the analyzer for
+  angular_analyzer_plugin.
+* Improve error messages for annotations involving undefined names (#27788)
+* Add support for getting parse results synchronously.
+* Change linter subscriptions from functions to AstVisitor(s).
+
 ## 0.31.2-alpha.1
 
 * Don't expect type arguments for class type parameters of static methods.
