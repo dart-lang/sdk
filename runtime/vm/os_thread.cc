@@ -97,6 +97,7 @@ void OSThread::SetName(const char* name) {
 // stack (SafeStack).
 NO_SANITIZE_ADDRESS
 NO_SANITIZE_SAFE_STACK
+DART_NOINLINE
 uword OSThread::GetCurrentStackPointer() {
   uword stack_allocated_local = reinterpret_cast<uword>(&stack_allocated_local);
   return stack_allocated_local;
