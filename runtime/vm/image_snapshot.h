@@ -19,6 +19,7 @@ class Code;
 class Dwarf;
 class Instructions;
 class Object;
+class RawApiError;
 class RawCode;
 class RawInstructions;
 class RawObject;
@@ -53,6 +54,8 @@ class ImageReader : public ZoneAllocated {
               const uint8_t* instructions_image,
               const uint8_t* shared_data_image,
               const uint8_t* shared_instructions_image);
+
+  RawApiError* VerifyAlignment() const;
 
   RawInstructions* GetInstructionsAt(int32_t offset) const;
   RawObject* GetObjectAt(uint32_t offset) const;

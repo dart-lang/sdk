@@ -5348,6 +5348,13 @@ DeserializationCluster* Deserializer::ReadCluster() {
 }
 
 RawApiError* Deserializer::VerifyVersionAndFeatures(Isolate* isolate) {
+  if (image_reader_ != NULL) {
+    RawApiError* error = image_reader_->VerifyAlignment();
+    if (error != ApiError::null()) {
+      return error;
+    }
+  }
+
   // If the version string doesn't match, return an error.
   // Note: New things are allocated only if we're going to return an error.
 

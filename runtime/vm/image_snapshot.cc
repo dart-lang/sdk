@@ -583,10 +583,19 @@ ImageReader::ImageReader(const uint8_t* data_image,
       shared_instructions_image_(shared_instructions_image) {
   ASSERT(data_image != NULL);
   ASSERT(instructions_image != NULL);
-  ASSERT(Utils::IsAligned(reinterpret_cast<uword>(instructions_image),
-                          OS::PreferredCodeAlignment()));
-  ASSERT(Utils::IsAligned(reinterpret_cast<uword>(shared_instructions_image),
-                          OS::PreferredCodeAlignment()));
+}
+
+RawApiError* ImageReader::VerifyAlignment() const {
+  if (!Utils::IsAligned(data_image_, kObjectAlignment) ||
+      !Utils::IsAligned(shared_data_image_, kObjectAlignment) ||
+      !Utils::IsAligned(instructions_image_, OS::PreferredCodeAlignment()) ||
+      !Utils::IsAligned(shared_instructions_image_,
+                        OS::PreferredCodeAlignment())) {
+    return ApiError::New(
+        String::Handle(String::New("Snapshot is misaligned", Heap::kOld)),
+        Heap::kOld);
+  }
+  return ApiError::null();
 }
 
 RawInstructions* ImageReader::GetInstructionsAt(int32_t offset) const {
