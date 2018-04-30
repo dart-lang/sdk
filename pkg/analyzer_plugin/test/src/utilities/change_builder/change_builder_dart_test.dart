@@ -470,6 +470,73 @@ import 'aaa.dart';
     expect(group.positions, hasLength(1));
   }
 
+  test_writeConstructorDeclaration_bodyWriter() async {
+    String path = provider.convertPath('/test.dart');
+    addSource(path, 'class C {}');
+
+    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (DartFileEditBuilder builder) {
+      builder.addInsertion(9, (DartEditBuilder builder) {
+        builder.writeConstructorDeclaration('A', bodyWriter: () {
+          builder.write(' { print(42); }');
+        });
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('A() { print(42); }'));
+  }
+
+  test_writeConstructorDeclaration_fieldNames() async {
+    String path = provider.convertPath('/test.dart');
+    addSource(path, r'''
+class C {
+  final int a;
+  final bool bb;
+}
+''');
+
+    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (DartFileEditBuilder builder) {
+      builder.addInsertion(42, (DartEditBuilder builder) {
+        builder.writeConstructorDeclaration('A', fieldNames: ['a', 'bb']);
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('A(this.a, this.bb);'));
+  }
+
+  test_writeConstructorDeclaration_initializerWriter() async {
+    String path = provider.convertPath('/test.dart');
+    addSource(path, 'class C {}');
+
+    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (DartFileEditBuilder builder) {
+      builder.addInsertion(9, (DartEditBuilder builder) {
+        builder.writeConstructorDeclaration('A', initializerWriter: () {
+          builder.write('super()');
+        });
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('A() : super();'));
+  }
+
+  test_writeConstructorDeclaration_parameterWriter() async {
+    String path = provider.convertPath('/test.dart');
+    addSource(path, 'class C {}');
+
+    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (DartFileEditBuilder builder) {
+      builder.addInsertion(9, (DartEditBuilder builder) {
+        builder.writeConstructorDeclaration('A', parameterWriter: () {
+          builder.write('int a, {this.b}');
+        });
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('A(int a, {this.b});'));
+  }
+
   test_writeFieldDeclaration_initializerWriter() async {
     String path = provider.convertPath('/test.dart');
     String content = 'class A {}';

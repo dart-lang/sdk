@@ -134,10 +134,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeConstructorDeclaration(String className,
       {ArgumentList argumentList,
+      void bodyWriter(),
       SimpleIdentifier constructorName,
       String constructorNameGroupName,
       List<String> fieldNames,
-      bool isConst: false}) {
+      void initializerWriter(),
+      bool isConst: false,
+      void parameterWriter()}) {
     if (isConst) {
       write(Keyword.CONST.lexeme);
       write(' ');
@@ -152,7 +155,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
     }
     write('(');
-    if (argumentList != null) {
+    if (parameterWriter != null) {
+      parameterWriter();
+    } else if (argumentList != null) {
       writeParametersMatchingArguments(argumentList);
     } else if (fieldNames != null) {
       for (int i = 0; i < fieldNames.length; i++) {
@@ -163,7 +168,18 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         write(fieldNames[i]);
       }
     }
-    write(');');
+    write(')');
+
+    if (initializerWriter != null) {
+      write(' : ');
+      initializerWriter();
+    }
+
+    if (bodyWriter != null) {
+      bodyWriter();
+    } else {
+      write(';');
+    }
   }
 
   @override
