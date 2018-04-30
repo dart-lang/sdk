@@ -32,6 +32,7 @@ Component transformComponent(Component component, ConstantsBackend backend,
     {bool keepFields: false,
     bool strongMode: false,
     bool enableAsserts: false,
+    bool evaluateAnnotations: true,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy,
     ErrorReporter errorReporter: const _SimpleErrorReporter()}) {
@@ -45,6 +46,7 @@ Component transformComponent(Component component, ConstantsBackend backend,
       keepFields: keepFields,
       strongMode: strongMode,
       enableAsserts: enableAsserts,
+      evaluateAnnotations: evaluateAnnotations,
       errorReporter: errorReporter);
   return component;
 }
@@ -53,6 +55,7 @@ void transformLibraries(List<Library> libraries, ConstantsBackend backend,
     CoreTypes coreTypes, TypeEnvironment typeEnvironment,
     {bool keepFields: false,
     bool keepVariables: false,
+    bool evaluateAnnotations: true,
     bool strongMode: false,
     bool enableAsserts: false,
     ErrorReporter errorReporter: const _SimpleErrorReporter()}) {
@@ -60,44 +63,14 @@ void transformLibraries(List<Library> libraries, ConstantsBackend backend,
       backend,
       keepFields,
       keepVariables,
+      evaluateAnnotations,
       coreTypes,
       typeEnvironment,
       strongMode,
       enableAsserts,
       errorReporter);
   for (final Library library in libraries) {
-    constantsTransformer.convertLibraryAnnotations(library);
-
-    for (final Field field in library.fields.toList()) {
-      constantsTransformer.convertField(field);
-    }
-    for (final Procedure procedure in library.procedures) {
-      constantsTransformer.convertProcedure(procedure);
-    }
-    for (final Class klass in library.classes) {
-      constantsTransformer.convertClassAnnotations(klass);
-
-      for (final Field field in klass.fields.toList()) {
-        constantsTransformer.convertField(field);
-      }
-      for (final Procedure procedure in klass.procedures) {
-        constantsTransformer.convertProcedure(procedure);
-      }
-      for (final Constructor constructor in klass.constructors) {
-        constantsTransformer.convertConstructor(constructor);
-      }
-    }
-    for (final Typedef td in library.typedefs) {
-      constantsTransformer.convertTypedef(td);
-    }
-
-    if (!keepFields) {
-      // The transformer API does not iterate over `Library.additionalExports`,
-      // so we manually delete the references to shaken nodes.
-      library.additionalExports.removeWhere((Reference reference) {
-        return reference.canonicalName == null;
-      });
-    }
+    constantsTransformer.convertLibrary(library);
   }
 }
 
@@ -109,11 +82,13 @@ class ConstantsTransformer extends Transformer {
   /// Whether to preserve constant [Field]s.  All use-sites will be rewritten.
   final bool keepFields;
   final bool keepVariables;
+  final bool evaluateAnnotations;
 
   ConstantsTransformer(
       ConstantsBackend backend,
       this.keepFields,
       this.keepVariables,
+      this.evaluateAnnotations,
       this.coreTypes,
       this.typeEnvironment,
       bool strongMode,
@@ -124,41 +99,99 @@ class ConstantsTransformer extends Transformer {
 
   // Transform the library/class members:
 
-  void convertLibraryAnnotations(Library lib) {
-    constantEvaluator.withNewEnvironment(() {
-      transformList(lib.annotations, this, lib);
-    });
+  void convertLibrary(Library library) {
+    transformAnnotations(library.annotations, library);
+
+    transformList(library.dependencies, this, library);
+    transformList(library.parts, this, library);
+    transformList(library.typedefs, this, library);
+    transformList(library.classes, this, library);
+    transformList(library.procedures, this, library);
+    transformList(library.fields, this, library);
+
+    if (!keepFields) {
+      // The transformer API does not iterate over `Library.additionalExports`,
+      // so we manually delete the references to shaken nodes.
+      library.additionalExports.removeWhere((Reference reference) {
+        return reference.canonicalName == null;
+      });
+    }
   }
 
-  void convertClassAnnotations(Class klass) {
+  visitLibraryPart(LibraryPart node) {
     constantEvaluator.withNewEnvironment(() {
-      transformList(klass.annotations, this, klass);
+      transformAnnotations(node.annotations, node);
     });
+    return node;
   }
 
-  void convertProcedure(Procedure procedure) {
+  visitLibraryDependency(LibraryDependency node) {
     constantEvaluator.withNewEnvironment(() {
-      procedure.accept(this);
+      transformAnnotations(node.annotations, node);
     });
+    return node;
   }
 
-  void convertConstructor(Constructor constructor) {
+  visitClass(Class node) {
     constantEvaluator.withNewEnvironment(() {
-      constructor.accept(this);
+      transformAnnotations(node.annotations, node);
+      transformList(node.fields, this, node);
+      transformList(node.typeParameters, this, node);
+      transformList(node.constructors, this, node);
+      transformList(node.procedures, this, node);
+      transformList(node.redirectingFactoryConstructors, this, node);
     });
+    return node;
   }
 
-  void convertField(Field field) {
+  visitProcedure(Procedure node) {
     constantEvaluator.withNewEnvironment(() {
-      if (field.accept(this) == null) field.remove();
+      transformAnnotations(node.annotations, node);
+      node.function = node.function.accept(this)..parent = node;
     });
+    return node;
   }
 
-  void convertTypedef(Typedef td) {
-    // A typedef can have annotations on variables which are constants.
+  visitConstructor(Constructor node) {
     constantEvaluator.withNewEnvironment(() {
-      td.accept(this);
+      transformAnnotations(node.annotations, node);
+      transformList(node.initializers, this, node);
+      node.function = node.function.accept(this)..parent = node;
     });
+    return node;
+  }
+
+  visitTypedef(Typedef node) {
+    constantEvaluator.withNewEnvironment(() {
+      transformAnnotations(node.annotations, node);
+    });
+    return node;
+  }
+
+  visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
+    constantEvaluator.withNewEnvironment(() {
+      transformAnnotations(node.annotations, node);
+      transformList(node.typeParameters, this, node);
+      transformList(node.positionalParameters, this, node);
+      transformList(node.namedParameters, this, node);
+    });
+    return node;
+  }
+
+  visitTypeParameter(TypeParameter node) {
+    transformAnnotations(node.annotations, node);
+    return node;
+  }
+
+  void transformAnnotations(List<Expression> nodes, TreeNode parent) {
+    if (evaluateAnnotations && nodes.length > 0) {
+      constantEvaluator.withNewEnvironment(() {
+        for (int i = 0; i < nodes.length; ++i) {
+          nodes[i] = tryEvaluateAndTransformWithContext(parent, nodes[i])
+            ..parent = parent;
+        }
+      });
+    }
   }
 
   // Handle definition of constants:
@@ -189,6 +222,8 @@ class ConstantsTransformer extends Transformer {
   }
 
   visitVariableDeclaration(VariableDeclaration node) {
+    transformAnnotations(node.annotations, node);
+
     if (node.isConst) {
       final Constant constant = tryEvaluateWithContext(node, node.initializer);
 
@@ -217,21 +252,30 @@ class ConstantsTransformer extends Transformer {
   }
 
   visitField(Field node) {
-    if (node.isConst) {
-      // Since we convert all use-sites of constants, the constant [Field]
-      // cannot be referenced anymore.  We therefore get rid of it if
-      // [keepFields] was not specified.
-      if (!keepFields) return null;
+    return constantEvaluator.withNewEnvironment(() {
+      if (node.isConst) {
+        // Since we convert all use-sites of constants, the constant [Field]
+        // cannot be referenced anymore.  We therefore get rid of it if
+        // [keepFields] was not specified.
+        if (!keepFields) {
+          return null;
+        }
 
-      // Otherwise we keep the constant [Field] and convert it's initializer.
-      if (node.initializer != null) {
-        node.initializer =
-            tryEvaluateAndTransformWithContext(node, node.initializer)
-              ..parent = node;
+        // Otherwise we keep the constant [Field] and convert it's initializer.
+        transformAnnotations(node.annotations, node);
+        if (node.initializer != null) {
+          node.initializer =
+              tryEvaluateAndTransformWithContext(node, node.initializer)
+                ..parent = node;
+        }
+      } else {
+        transformAnnotations(node.annotations, node);
+        if (node.initializer != null) {
+          node.initializer = node.initializer.accept(this)..parent = node;
+        }
       }
       return node;
-    }
-    return super.visitField(node);
+    });
   }
 
   // Handle use-sites of constants (and "inline" constant expressions):
