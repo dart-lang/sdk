@@ -1652,7 +1652,7 @@ class Assembler : public ValueObject {
   }
 
   void AssertValidSignExtendedInt32(Register r) {
-#if defined(DEBUGFOO)
+#if defined(DEBUG)
     Label ok;
     AsrImmediate(TMP, r, 63);  // 0 or -1.
     cmp(TMP, Operand(r, ASR, 31));
