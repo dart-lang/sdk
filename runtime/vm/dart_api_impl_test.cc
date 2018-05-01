@@ -5672,11 +5672,12 @@ TEST_CASE(DartAPI_LoadScript) {
   }
 
   // Load a script successfully.
-  result = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle root_lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(root_lib);
+  result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
-  Dart_FinalizeLoading(false);
 
-  result = Dart_Invoke(result, NewString("main"), 0, NULL);
+  result = Dart_Invoke(root_lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
   EXPECT(Dart_IsInteger(result));
   int64_t value = 0;
@@ -7203,8 +7204,8 @@ static Dart_Isolate RunLoopTestCallback(const char* script_name,
   EXPECT_VALID(result);
   Dart_ExitScope();
   Dart_ExitIsolate();
-  bool retval = Dart_IsolateMakeRunnable(isolate);
-  EXPECT(retval);
+  char* err_msg = Dart_IsolateMakeRunnable(isolate);
+  EXPECT(err_msg == NULL);
   return isolate;
 }
 
@@ -8214,7 +8215,8 @@ TEST_CASE(DartAPI_LazyLoadDeoptimizes) {
 
   Dart_Handle source = NewString(kLoadSecond);
   Dart_Handle url = NewString(TestCase::url());
-  Dart_LoadSource(TestCase::lib(), url, Dart_Null(), source, 0, 0);
+  result = Dart_LoadSource(TestCase::lib(), url, Dart_Null(), source, 0, 0);
+  EXPECT_VALID(result);
   result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
 

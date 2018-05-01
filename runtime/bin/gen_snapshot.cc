@@ -1530,7 +1530,12 @@ int main(int argc, char** argv) {
 #endif
   }
 
-  Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
+  char* error = Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
+  if (error != NULL) {
+    Log::PrintErr("Setting VM flags failed: %s\n", error);
+    free(error);
+    return kErrorExitCode;
+  }
 
   // Initialize the Dart VM.
   // Note: We don't expect isolates to be created from dart code during
@@ -1580,7 +1585,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  char* error = Dart_Initialize(&init_params);
+  error = Dart_Initialize(&init_params);
   if (error != NULL) {
     Log::PrintErr("VM initialization failed: %s\n", error);
     free(error);

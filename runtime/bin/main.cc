@@ -324,9 +324,8 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   // Make the isolate runnable so that it is ready to handle messages.
   Dart_ExitScope();
   Dart_ExitIsolate();
-  bool retval = Dart_IsolateMakeRunnable(isolate);
-  if (!retval) {
-    *error = strdup("Invalid isolate state - Unable to make it runnable");
+  *error = Dart_IsolateMakeRunnable(isolate);
+  if (*error != NULL) {
     Dart_EnterIsolate(isolate);
     Dart_ShutdownIsolate();
     return NULL;
@@ -1059,7 +1058,12 @@ void main(int argc, char** argv) {
     } else if (print_flags_seen) {
       // Will set the VM flags, print them out and then we exit as no
       // script was specified on the command line.
-      Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
+      char* error = Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
+      if (error != NULL) {
+        Log::PrintErr("Setting VM flags failed: %s\n", error);
+        free(error);
+        Platform::Exit(kErrorExitCode);
+      }
       Platform::Exit(0);
     } else {
       Options::PrintUsage();
@@ -1129,7 +1133,12 @@ void main(int argc, char** argv) {
     Process::SetExitHook(SnapshotOnExitHook);
   }
 
-  Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
+  char* error = Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
+  if (error != NULL) {
+    Log::PrintErr("Setting VM flags failed: %s\n", error);
+    free(error);
+    Platform::Exit(kErrorExitCode);
+  }
 
 // Note: must read platform only *after* VM flags are parsed because
 // they might affect how the platform is loaded.
@@ -1171,7 +1180,7 @@ void main(int argc, char** argv) {
   init_params.start_kernel_isolate = false;
 #endif
 
-  char* error = Dart_Initialize(&init_params);
+  error = Dart_Initialize(&init_params);
   if (error != NULL) {
     EventHandler::Stop();
     Log::PrintErr("VM initialization failed: %s\n", error);

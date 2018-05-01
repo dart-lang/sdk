@@ -1244,13 +1244,13 @@ void Isolate::DoneFinalizing() {
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
-bool Isolate::MakeRunnable() {
+const char* Isolate::MakeRunnable() {
   ASSERT(Isolate::Current() == NULL);
 
   MutexLocker ml(mutex_);
   // Check if we are in a valid state to make the isolate runnable.
   if (is_runnable() == true) {
-    return false;  // Already runnable.
+    return "Isolate is already runnable";
   }
   // Set the isolate as runnable and if we are being spawned schedule
   // isolate on thread pool for execution.
@@ -1294,7 +1294,7 @@ bool Isolate::MakeRunnable() {
     GetRunnableHeapSizeMetric()->set_value(heap_size);
   }
 #endif  // !PRODUCT
-  return true;
+  return NULL;
 }
 
 bool Isolate::VerifyPauseCapability(const Object& capability) const {

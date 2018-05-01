@@ -1051,7 +1051,7 @@ DART_EXPORT char* Dart_Cleanup() {
   return NULL;
 }
 
-DART_EXPORT bool Dart_SetVMFlags(int argc, const char** argv) {
+DART_EXPORT char* Dart_SetVMFlags(int argc, const char** argv) {
   return Flags::ProcessCommandLineFlags(argc, argv);
 }
 
@@ -1605,7 +1605,7 @@ DART_EXPORT bool Dart_IsDart2Snapshot(const uint8_t* snapshot_buffer) {
   return false;
 }
 
-DART_EXPORT bool Dart_IsolateMakeRunnable(Dart_Isolate isolate) {
+DART_EXPORT char* Dart_IsolateMakeRunnable(Dart_Isolate isolate) {
   CHECK_NO_ISOLATE(Isolate::Current());
   API_TIMELINE_DURATION(Thread::Current());
   if (isolate == NULL) {
@@ -1613,11 +1613,17 @@ DART_EXPORT bool Dart_IsolateMakeRunnable(Dart_Isolate isolate) {
   }
   // TODO(16615): Validate isolate parameter.
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
+  const char* error;
   if (iso->object_store()->root_library() == Library::null()) {
     // The embedder should have called Dart_LoadScript by now.
-    return false;
+    error = "Missing root library";
+  } else {
+    error = iso->MakeRunnable();
   }
-  return iso->MakeRunnable();
+  if (error != NULL) {
+    return strdup(error);
+  }
+  return NULL;
 }
 
 // --- Messages and Ports ---

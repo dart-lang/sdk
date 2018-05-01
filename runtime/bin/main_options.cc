@@ -218,7 +218,8 @@ void Options::PrintUsage() {
 "The following options are only used for VM development and may\n"
 "be changed in any future version:\n");
     const char* print_flags = "--print_flags";
-    Dart_SetVMFlags(1, &print_flags);
+    char* error = Dart_SetVMFlags(1, &print_flags);
+    ASSERT(error == NULL);
   }
 }
 // clang-format on

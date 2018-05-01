@@ -414,10 +414,10 @@ int Flags::CompareFlagNames(const void* left, const void* right) {
   return strcmp(left_flag->name_, right_flag->name_);
 }
 
-bool Flags::ProcessCommandLineFlags(int number_of_vm_flags,
-                                    const char** vm_flags) {
+char* Flags::ProcessCommandLineFlags(int number_of_vm_flags,
+                                     const char** vm_flags) {
   if (initialized_) {
-    return false;
+    return strdup("Flags already set");
   }
 
   qsort(flags_, num_flags_, sizeof flags_[0], CompareFlagNames);
@@ -435,20 +435,20 @@ bool Flags::ProcessCommandLineFlags(int number_of_vm_flags,
 
   if (!FLAG_ignore_unrecognized_flags) {
     int unrecognized_count = 0;
+    TextBuffer error(64);
     for (intptr_t j = 0; j < num_flags_; j++) {
       Flag* flag = flags_[j];
       if (flag->IsUnrecognized()) {
         if (unrecognized_count == 0) {
-          OS::PrintErr("Unrecognized flags: %s", flag->name_);
+          error.Printf("Unrecognized flags: %s", flag->name_);
         } else {
-          OS::PrintErr(", %s", flag->name_);
+          error.Printf(", %s", flag->name_);
         }
         unrecognized_count++;
       }
     }
     if (unrecognized_count > 0) {
-      OS::PrintErr("\n");
-      exit(255);
+      return error.Steal();
     }
   }
   if (FLAG_print_flags) {
@@ -456,7 +456,7 @@ bool Flags::ProcessCommandLineFlags(int number_of_vm_flags,
   }
 
   initialized_ = true;
-  return true;
+  return NULL;
 }
 
 bool Flags::SetFlag(const char* name, const char* value, const char** error) {

@@ -211,11 +211,10 @@ bool VmService::Setup(const char* server_ip,
   // Make runnable.
   Dart_ExitScope();
   Dart_ExitIsolate();
-  bool retval = Dart_IsolateMakeRunnable(isolate);
-  if (!retval) {
+  error_msg_ = Dart_IsolateMakeRunnable(isolate);
+  if (error_msg_ != NULL) {
     Dart_EnterIsolate(isolate);
     Dart_ShutdownIsolate();
-    error_msg_ = "Invalid isolate state - Unable to make it runnable.";
     return false;
   }
   Dart_EnterIsolate(isolate);
