@@ -428,6 +428,12 @@ enum JsBuiltin {
   ///     JS_BUILTIN('bool', JsBuiltin.isDynamicType, o)
   isDynamicType,
 
+  /// Returns true if the given type is a type argument of a js-interop class
+  /// or a supertype of a js-interop class.
+  ///
+  ///     JS_BUILTIN('bool', JsBuiltin.isJsInteropTypeArgument, o)
+  isJsInteropTypeArgument,
+
   /// Returns the JavaScript-constructor name given an rti encoding.
   ///
   ///     JS_BUILTIN('String', JsBuiltin.rawRtiToJsConstructorName, rti)

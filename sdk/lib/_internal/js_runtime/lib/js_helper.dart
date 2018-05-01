@@ -182,6 +182,12 @@ bool isDartDynamicTypeRti(type) {
       'returns:bool;effects:none;depends:none', JsBuiltin.isDynamicType, type);
 }
 
+@ForceInline()
+bool isDartJsInteropTypeArgumentRti(type) {
+  return JS_BUILTIN('returns:bool;effects:none;depends:none',
+      JsBuiltin.isJsInteropTypeArgument, type);
+}
+
 /// Returns whether the given type is _the_ Dart Object type.
 // TODO(floitsch): move this to foreign_helper.dart or similar.
 @ForceInline()

@@ -4439,7 +4439,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       js.Name operator = namer.operatorIs(element);
       HInstruction isFieldName =
           graph.addConstantStringFromName(operator, closedWorld);
-      HInstruction asFieldName = closedWorld.hasAnyStrictSubtype(element)
+      HInstruction asFieldName = closedWorld.hasAnyStrictSubtype(element) ||
+              closedWorld.nativeData.isJsInteropClass(element)
           ? graph.addConstantStringFromName(
               namer.substitutionName(element), closedWorld)
           : graph.addConstantNull(closedWorld);

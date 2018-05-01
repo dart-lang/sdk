@@ -24,6 +24,7 @@ import '../universe/world_builder.dart';
 import '../world.dart' show ClosedWorld;
 import 'backend_usage.dart';
 import 'namer.dart';
+import 'native_data.dart';
 
 bool cacheRtiDataForTesting = false;
 
@@ -324,9 +325,10 @@ abstract class RuntimeTypesSubstitutionsMixin
       bool isNativeClass = _closedWorld.nativeData.isNativeClass(cls);
       if (classUse.typeArgument ||
           (isNativeClass && classUse.checkedInstance)) {
+        Substitution substitution = computeSubstitution(cls, cls);
         // We need [cls] at runtime - even if [cls] is not instantiated. Either
         // as a type argument or for an is-test if [cls] is native.
-        checks.add(new TypeCheck(cls, null, needsIs: isNativeClass));
+        checks.add(new TypeCheck(cls, substitution, needsIs: isNativeClass));
       }
 
       // Compute the set of classes that [cls] inherited properties from.
@@ -514,9 +516,19 @@ abstract class RuntimeTypesSubstitutionsMixin
       return true;
     }
 
-    // If there are no type variables or the type is the same, we do not need
-    // a substitution.
-    if (!_elementEnvironment.isGenericClass(check) || cls == check) {
+    // If there are no type variables, we do not need a substitution.
+    if (!_elementEnvironment.isGenericClass(check)) {
+      return true;
+    }
+
+    // JS-interop classes need an explicit substitution to mark the type
+    // arguments as `any` type.
+    if (_closedWorld.nativeData.isJsInteropClass(cls)) {
+      return false;
+    }
+
+    // If the type is the same, we do not need a substitution.
+    if (cls == check) {
       return true;
     }
 
@@ -565,7 +577,12 @@ abstract class RuntimeTypesSubstitutionsMixin
     InterfaceType type = _elementEnvironment.getThisType(cls);
     InterfaceType target = _types.asInstanceOf(type, check);
     List<DartType> typeVariables = type.typeArguments;
-    if (typeVariables.isEmpty && !alwaysGenerateFunction) {
+    if (_closedWorld.nativeData.isJsInteropClass(cls)) {
+      int typeArguments = target.typeArguments.length;
+      // Generic JS-interop class need an explicit substitution to mark
+      // the type arguments as `any` type.
+      return new Substitution.jsInterop(typeArguments);
+    } else if (typeVariables.isEmpty && !alwaysGenerateFunction) {
       return new Substitution.list(target.typeArguments);
     } else {
       return new Substitution.function(target.typeArguments, typeVariables);
@@ -623,6 +640,10 @@ abstract class RuntimeTypesEncoder {
   /// Returns the JavaScript template to determine at runtime if a type object
   /// is the dynamic type.
   jsAst.Template get templateForIsDynamicType;
+
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is a type argument of js-interop class.
+  jsAst.Template get templateForIsJsInteropTypeArgument;
 
   jsAst.Name get getFunctionThatReturnsNullName;
 
@@ -1834,11 +1855,11 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
   final CommonElements commonElements;
   final TypeRepresentationGenerator _representationGenerator;
 
-  RuntimeTypesEncoderImpl(
-      this.namer, this._elementEnvironment, this.commonElements,
-      {bool strongMode})
-      : _representationGenerator =
-            new TypeRepresentationGenerator(namer, strongMode: strongMode);
+  RuntimeTypesEncoderImpl(this.namer, NativeBasicData nativeData,
+      this._elementEnvironment, this.commonElements, {bool strongMode})
+      : _representationGenerator = new TypeRepresentationGenerator(
+            namer, nativeData,
+            strongMode: strongMode);
 
   @override
   bool isSimpleFunctionType(FunctionType type) {
@@ -1877,6 +1898,11 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
   @override
   jsAst.Template get templateForIsDynamicType {
     return _representationGenerator.templateForIsDynamicType;
+  }
+
+  @override
+  jsAst.Template get templateForIsJsInteropTypeArgument {
+    return _representationGenerator.templateForIsJsInteropTypeArgument;
   }
 
   @override
@@ -1968,6 +1994,13 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
       return new jsAst.LiteralNull();
     }
 
+    if (substitution.isJsInterop) {
+      return js(
+          'function() { return # }',
+          _representationGenerator
+              .getJsInteropTypeArguments(substitution.length));
+    }
+
     jsAst.Expression declaration(TypeVariableType variable) {
       return new jsAst.Parameter(getVariableName(variable.element.name));
     }
@@ -2036,6 +2069,7 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
 class TypeRepresentationGenerator
     implements ResolutionDartTypeVisitor<jsAst.Expression, Emitter> {
   final Namer namer;
+  final NativeBasicData _nativeData;
   // If true, compile using strong mode.
   final bool _strongMode;
   OnVariableCallback onVariable;
@@ -2043,7 +2077,7 @@ class TypeRepresentationGenerator
   Map<TypeVariableType, jsAst.Expression> typedefBindings;
   List<FunctionTypeVariable> functionTypeVariables = <FunctionTypeVariable>[];
 
-  TypeRepresentationGenerator(this.namer, {bool strongMode})
+  TypeRepresentationGenerator(this.namer, this._nativeData, {bool strongMode})
       : _strongMode = strongMode;
 
   /**
@@ -2075,6 +2109,7 @@ class TypeRepresentationGenerator
 
   jsAst.Expression getVoidValue() => js('-1');
 
+  jsAst.Expression getJsInteropTypeArgumentValue() => js('-2');
   @override
   jsAst.Expression visit(DartType type, Emitter emitter) =>
       type.accept(this, emitter);
@@ -2102,8 +2137,23 @@ class TypeRepresentationGenerator
     return getDynamicValue();
   }
 
+  jsAst.Expression getJsInteropTypeArguments(int count,
+      {jsAst.Expression name}) {
+    List<jsAst.Expression> elements = <jsAst.Expression>[];
+    if (name != null) {
+      elements.add(name);
+    }
+    for (int i = 0; i < count; i++) {
+      elements.add(getJsInteropTypeArgumentValue());
+    }
+    return new jsAst.ArrayInitializer(elements);
+  }
+
   jsAst.Expression visitInterfaceType(InterfaceType type, Emitter emitter) {
     jsAst.Expression name = getJavaScriptClassName(type.element, emitter);
+    if (_nativeData.isJsInteropClass(type.element)) {
+      return getJsInteropTypeArguments(type.typeArguments.length, name: name);
+    }
     return type.treatAsRaw
         ? name
         : visitList(type.typeArguments, emitter, head: name);
@@ -2148,6 +2198,10 @@ class TypeRepresentationGenerator
   /// is the dynamic type.
   jsAst.Template get templateForIsDynamicType {
     return jsAst.js.expressionTemplateFor("# == null");
+  }
+
+  jsAst.Template get templateForIsJsInteropTypeArgument {
+    return jsAst.js.expressionTemplateFor("# === -2");
   }
 
   jsAst.Expression visitFunctionType(FunctionType type, Emitter emitter) {
@@ -2405,24 +2459,37 @@ class Substitution {
   final bool isFunction;
   final List<DartType> arguments;
   final List<DartType> parameters;
+  final int length;
 
   const Substitution.trivial()
       : isTrivial = true,
         isFunction = false,
+        length = null,
         arguments = const <DartType>[],
         parameters = const <DartType>[];
 
   Substitution.list(this.arguments)
       : isTrivial = false,
         isFunction = false,
+        length = null,
         parameters = const <DartType>[];
 
   Substitution.function(this.arguments, this.parameters)
       : isTrivial = false,
-        isFunction = true;
+        isFunction = true,
+        length = null;
+
+  Substitution.jsInterop(this.length)
+      : isTrivial = false,
+        isFunction = false,
+        arguments = const <DartType>[],
+        parameters = const <DartType>[];
+
+  bool get isJsInterop => length != null;
 
   String toString() => 'Substitution(isTrivial=$isTrivial,'
-      'isFunction=$isFunction,arguments=$arguments,parameters=$parameters)';
+      'isFunction=$isFunction,isJsInterop=$isJsInterop,arguments=$arguments,'
+      'parameters=$parameters,length=$length)';
 }
 
 /**

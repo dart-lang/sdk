@@ -77,7 +77,9 @@ main() {
   JavaScriptBackend backend = compiler.backend;
 
   TypeRepresentationGenerator typeRepresentation =
-      new TypeRepresentationGenerator(backend.namer, strongMode: strongMode);
+      new TypeRepresentationGenerator(
+          backend.namer, compiler.backendClosedWorldForTesting.nativeData,
+          strongMode: strongMode);
 
   Expression onVariable(TypeVariableType _variable) {
     TypeVariableType variable = _variable;
