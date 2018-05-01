@@ -629,6 +629,11 @@ class CapturedScopeBuilder extends ir.Visitor {
     node.body.accept(this);
   }
 
+  @override
+  visitInstantiation(ir.Instantiation node) {
+    visitChildrenInContext(node, VariableUse.explicit);
+  }
+
   /// Returns true if the node is a field, or a constructor (factory or
   /// generative).
   bool _isFieldOrConstructor(ir.Node node) =>

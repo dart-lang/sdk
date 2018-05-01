@@ -500,6 +500,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   ConstantExpression visit(ir.Expression node) {
     ConstantExpression constant = node.accept(this);
     if (constant == null && requireConstant) {
+      // TODO(johnniwinther): Support contextual error messages.
       elementMap.reporter.reportErrorMessage(
           computeSourceSpanFromTreeNode(failNode ?? node),
           MessageKind.NOT_A_COMPILE_TIME_CONSTANT);
@@ -699,9 +700,16 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
 
   @override
   ConstantExpression visitInstantiation(ir.Instantiation node) {
-    return new InstantiationConstantExpression(
-        node.typeArguments.map(elementMap.getDartType).toList(),
-        visit(node.expression));
+    List<DartType> typeArguments =
+        node.typeArguments.map(elementMap.getDartType).toList();
+    for (DartType typeArgument in typeArguments) {
+      if (typeArgument.containsTypeVariables) {
+        return null;
+      }
+    }
+    ConstantExpression expression = visit(node.expression);
+    if (expression == null) return null;
+    return new InstantiationConstantExpression(typeArguments, expression);
   }
 
   @override
