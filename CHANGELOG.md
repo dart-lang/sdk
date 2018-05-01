@@ -27,7 +27,9 @@
 
 ## 2.0.0-dev.51.0
 
-* `dartfmt`
+### Tool Changes
+
+#### dartfmt
   * Fixes a runtime error when dart_style is itself run in Dart 2.
   * Force splitting an empty block as the then body of an if with an else.
   * Uses the new lowercase Dart 2 constant names.
