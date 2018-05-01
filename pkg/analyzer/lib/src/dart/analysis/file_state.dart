@@ -403,12 +403,10 @@ class FileState {
    * Return `true` if the API signature changed since the last refresh.
    */
   bool refresh({bool allowCached: false}) {
-    List<int> contentBytes;
     {
       var rawFileState = _fsState._fileContentCache.get(path, allowCached);
       _content = rawFileState.content;
       _exists = rawFileState.exists;
-      contentBytes = rawFileState.contentBytes;
       _contentHash = rawFileState.contentHash;
     }
 
@@ -416,7 +414,6 @@ class FileState {
     {
       ApiSignature signature = new ApiSignature();
       signature.addUint32List(_fsState._salt);
-      signature.addInt(contentBytes.length);
       signature.addString(_contentHash);
       _unlinkedKey = '${signature.toHex()}.unlinked';
     }
@@ -974,11 +971,9 @@ class _FileContent {
   final String path;
   final bool exists;
   final String content;
-  final List<int> contentBytes;
   final String contentHash;
 
-  _FileContent(this.path, this.exists, this.content, this.contentBytes,
-      this.contentHash);
+  _FileContent(this.path, this.exists, this.content, this.contentHash);
 }
 
 /**
@@ -1024,7 +1019,7 @@ class _FileContentCache {
       List<int> contentHashBytes = md5.convert(contentBytes).bytes;
       String contentHash = hex.encode(contentHashBytes);
 
-      file = new _FileContent(path, exists, content, contentBytes, contentHash);
+      file = new _FileContent(path, exists, content, contentHash);
       _pathToFile[path] = file;
     }
     return file;
