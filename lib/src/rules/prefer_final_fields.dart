@@ -134,24 +134,21 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    var variables = fields.variables;
-    for (int i = 0; i < variables.length; i++) {
-      final variable = variables[i];
+    fields.variables.forEach((VariableDeclaration variable) {
       final element = variable.element;
-
       if (!element.isPrivate) {
-        continue;
+        return;
       }
 
       if (variable.initializer == null) {
-        continue;
+        return;
       }
 
       if (_mutatedFields.contains(element)) {
-        continue;
+        return;
       }
 
       rule.reportLint(variable);
-    }
+    });
   }
 }
