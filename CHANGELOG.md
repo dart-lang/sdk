@@ -29,6 +29,10 @@
   "as" cast failures on function types, and implicit cast failures on the above
   types and function types.)
 
+* `async` functions now start synchronously by default.  Build tools
+  (e.g., build_runner) may override the default and/or allow
+  developers to configure.
+
 ## 2.0.0-dev.51.0
 
 ### Tool Changes
@@ -37,12 +41,6 @@
   * Fixes a runtime error when dart_style is itself run in Dart 2.
   * Force splitting an empty block as the then body of an if with an else.
   * Uses the new lowercase Dart 2 constant names.
-
-#### Dart Dev Compiler
-
-* `async` functions now start synchronously by default.  Build tools
-  (e.g., build_runner) may override the default and/or allow
-  developers to configure.
 
 #### Pub
 
