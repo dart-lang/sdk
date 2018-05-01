@@ -4028,6 +4028,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   FunctionEntity _instantiator(int count) {
+    // TODO(johnniwinther,sra): Support arbitrary type argument count.
     if (count == 1) return _commonElements.instantiate1;
     if (count == 2) return _commonElements.instantiate2;
     if (count == 3) return _commonElements.instantiate3;
