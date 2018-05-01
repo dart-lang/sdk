@@ -89,7 +89,8 @@ import 'interface_resolver.dart' show ForwardingNode, SyntheticAccessor;
 
 import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 
-import 'type_inference_engine.dart' show TypeInferenceEngineImpl;
+import 'type_inference_engine.dart'
+    show IncludesTypeParametersCovariantly, TypeInferenceEngineImpl;
 
 import 'type_promotion.dart' show TypePromoter, TypePromoterDisabled;
 
@@ -867,9 +868,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         interfaceMember != null &&
         receiver is! ThisExpression) {
       if (interfaceMember is Procedure) {
-        checkReturn = interfaceMember.isGenericContravariant;
+        checkReturn = typeParametersOccurNegatively(
+            interfaceMember.enclosingClass,
+            interfaceMember.function.returnType);
       } else if (interfaceMember is Field) {
-        checkReturn = interfaceMember.isGenericContravariant;
+        checkReturn = typeParametersOccurNegatively(
+            interfaceMember.enclosingClass, interfaceMember.type);
       }
     }
     var replacedExpression = desugaredGet ?? expression;
@@ -1397,6 +1401,19 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     return tearoffType;
   }
 
+  /// True if [type] has negative occurrences of any of [class_]'s type
+  /// parameters.
+  ///
+  /// A negative occurrence of a type parameter is one that is to the left of
+  /// an odd number of arrows.  For example, T occurs negatively in T -> T0,
+  /// T0 -> (T -> T1), (T0 -> T) -> T1 but not in (T -> T0) -> T1.
+  static bool typeParametersOccurNegatively(Class class_, DartType type) {
+    if (class_.typeParameters.isEmpty) return false;
+    var checker = new IncludesTypeParametersCovariantly(class_.typeParameters)
+      ..inCovariantContext = false;
+    return type.accept(checker);
+  }
+
   /// Determines the dispatch category of a [MethodInvocation] and returns a
   /// boolean indicating whether an "as" check will need to be added due to
   /// contravariance.
@@ -1416,16 +1433,19 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
       if (receiver != null && receiver is! ThisExpression) {
         if ((interfaceMember is Field &&
-                interfaceMember.isGenericContravariant) ||
+                typeParametersOccurNegatively(
+                    interfaceMember.enclosingClass, interfaceMember.type)) ||
             (interfaceMember is Procedure &&
-                interfaceMember.isGenericContravariant)) {
+                typeParametersOccurNegatively(interfaceMember.enclosingClass,
+                    interfaceMember.function.returnType))) {
           return MethodContravarianceCheckKind.checkGetterReturn;
         }
       }
     } else if (receiver != null &&
         receiver is! ThisExpression &&
         interfaceMember is Procedure &&
-        interfaceMember.isGenericContravariant) {
+        typeParametersOccurNegatively(interfaceMember.enclosingClass,
+            interfaceMember.function.returnType)) {
       return MethodContravarianceCheckKind.checkMethodReturn;
     }
     return MethodContravarianceCheckKind.none;

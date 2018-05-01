@@ -887,7 +887,6 @@ class Printer extends Visitor<Null> {
     writeModifier(node.isGenericCovariantImpl, 'generic-covariant-impl');
     writeModifier(
         node.isGenericCovariantInterface, 'generic-covariant-interface');
-    writeModifier(node.isGenericContravariant, 'generic-contravariant');
     writeModifier(node.isFinal, 'final');
     writeModifier(node.isConst, 'const');
     // Only show implicit getter/setter modifiers in cases where they are
@@ -928,7 +927,6 @@ class Printer extends Visitor<Null> {
     writeModifier(node.isAbstract, 'abstract');
     writeModifier(node.isForwardingStub, 'forwarding-stub');
     writeModifier(node.isForwardingSemiStub, 'forwarding-semi-stub');
-    writeModifier(node.isGenericContravariant, 'generic-contravariant');
     writeModifier(node.isNoSuchMethodForwarder, 'no-such-method-forwarder');
     writeWord(procedureKindToString(node.kind));
     if ((node.enclosingClass == null &&

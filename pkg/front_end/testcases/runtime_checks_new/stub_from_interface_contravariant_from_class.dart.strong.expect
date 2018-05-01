@@ -19,6 +19,6 @@ class C<T extends core::Object> extends self::B<(self::C::T) → void> implement
   synthetic constructor •() → void
     : super self::B::•()
     ;
-  abstract forwarding-stub generic-contravariant method f(core::Object x) → (self::C::T) → void;
+  abstract forwarding-stub method f(core::Object x) → (self::C::T) → void;
 }
 static method main() → void {}

@@ -20,9 +20,8 @@ void expect(Object value, Object expected) {
 
 class C<T> {
   C(this.plusResult);
-  final num Function(T) /*@genericContravariant=true*/ plusResult;
-  num Function(T) operator /*@genericContravariant=true*/ +(int i) =>
-      plusResult;
+  final num Function(T) plusResult;
+  num Function(T) operator +(int i) => plusResult;
 }
 
 class D {

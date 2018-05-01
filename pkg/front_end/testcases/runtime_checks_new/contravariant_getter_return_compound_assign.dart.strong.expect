@@ -14,7 +14,7 @@ class C<T extends core::Object> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
-  generic-contravariant get x() → self::B<(self::C::T) → void>
+  get x() → self::B<(self::C::T) → void>
     return null;
   set x(self::B<(self::C::T) → void> value) → void {}
 }

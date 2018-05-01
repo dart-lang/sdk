@@ -8,8 +8,8 @@ library test;
 typedef void F<T>(T x);
 
 class C<T> {
-  F<T> get /*@genericContravariant=true*/ f1 => null;
-  List<F<T>> get /*@genericContravariant=true*/ f2 {
+  F<T> get f1 => null;
+  List<F<T>> get f2 {
     return [this?.f1];
   }
 }

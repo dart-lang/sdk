@@ -5,11 +5,11 @@ import "dart:core" as core;
 typedef F<T extends core::Object> = (T) → void;
 typedef G<T extends core::Object> = () → (T) → void;
 class C<T extends core::Object> extends core::Object {
-  generic-contravariant field (self::C::T) → void _x;
+  field (self::C::T) → void _x;
   constructor •((self::C::T) → void _x) → void
     : self::C::_x = _x, super core::Object::•()
     ;
-  generic-contravariant method f() → (self::C::T) → void
+  method f() → (self::C::T) → void
     return this.{self::C::_x};
 }
 static method g(self::C<core::num> c) → () → (core::num) → void {

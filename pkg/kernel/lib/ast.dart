@@ -1039,7 +1039,6 @@ abstract class Member extends NamedNode implements FileUriNode {
 class Field extends Member {
   DartType type; // Not null. Defaults to DynamicType.
   int flags = 0;
-  int flags2 = 0;
   Expression initializer; // May be null.
 
   Field(Name name,
@@ -1074,9 +1073,6 @@ class Field extends Member {
   static const int FlagCovariant = 1 << 5;
   static const int FlagGenericCovariantImpl = 1 << 6;
   static const int FlagGenericCovariantInterface = 1 << 7;
-
-  // Must match serialized bit positions
-  static const int Flag2GenericContravariant = 1 << 0;
 
   /// Whether the field is declared with the `covariant` keyword.
   bool get isCovariant => flags & FlagCovariant != 0;
@@ -1120,14 +1116,6 @@ class Field extends Member {
   bool get isGenericCovariantInterface =>
       flags & FlagGenericCovariantInterface != 0;
 
-  /// Indicates whether getter invocations using this interface target may need
-  /// to perform a runtime type check to deal with generic covariance.
-  ///
-  /// Note that the appropriate runtime checks are inserted by the front end, so
-  /// back ends need not consult this flag; this flag exists merely to reduce
-  /// front end computational overhead.
-  bool get isGenericContravariant => flags2 & Flag2GenericContravariant != 0;
-
   void set isCovariant(bool value) {
     flags = value ? (flags | FlagCovariant) : (flags & ~FlagCovariant);
   }
@@ -1166,12 +1154,6 @@ class Field extends Member {
     flags = value
         ? (flags | FlagGenericCovariantInterface)
         : (flags & ~FlagGenericCovariantInterface);
-  }
-
-  void set isGenericContravariant(bool value) {
-    flags2 = value
-        ? (flags2 | Flag2GenericContravariant)
-        : (flags2 & ~Flag2GenericContravariant);
   }
 
   /// True if the field is neither final nor const.
@@ -1450,7 +1432,6 @@ class RedirectingFactoryConstructor extends Member {
 class Procedure extends Member {
   ProcedureKind kind;
   int flags = 0;
-  int flags2 = 0;
   // function is null if and only if abstract, external.
   FunctionNode function;
 
@@ -1535,11 +1516,10 @@ class Procedure extends Member {
   static const int FlagExternal = 1 << 2;
   static const int FlagConst = 1 << 3; // Only for external const factories.
   static const int FlagForwardingStub = 1 << 4;
-  static const int FlagGenericContravariant = 1 << 5;
-  static const int FlagForwardingSemiStub = 1 << 6;
+  static const int FlagForwardingSemiStub = 1 << 5;
   // TODO(29841): Remove this flag after the issue is resolved.
-  static const int FlagRedirectingFactoryConstructor = 1 << 7;
-  static const int Flag2NoSuchMethodForwarder = 1 << 0;
+  static const int FlagRedirectingFactoryConstructor = 1 << 6;
+  static const int FlagNoSuchMethodForwarder = 1 << 7;
 
   bool get isStatic => flags & FlagStatic != 0;
   bool get isAbstract => flags & FlagAbstract != 0;
@@ -1559,14 +1539,6 @@ class Procedure extends Member {
   /// was present in the source, consult [isSyntheticForwarder].
   bool get isForwardingStub => flags & FlagForwardingStub != 0;
 
-  /// Indicates whether invocations using this interface target may need to
-  /// perform a runtime type check to deal with generic covariance.
-  ///
-  /// Note that the appropriate runtime checks are inserted by the front end, so
-  /// back ends need not consult this flag; this flag exists merely to reduce
-  /// front end computational overhead.
-  bool get isGenericContravariant => flags & FlagGenericContravariant != 0;
-
   /// If set, this flag indicates that although this function is a forwarding
   /// stub, it was present in the original source as an abstract method.
   bool get isForwardingSemiStub => flags & FlagForwardingSemiStub != 0;
@@ -1582,7 +1554,7 @@ class Procedure extends Member {
   /// and forwarding to [forwardingStubSuperTarget].
   bool get isSyntheticForwarder => isForwardingStub && !isForwardingSemiStub;
 
-  bool get isNoSuchMethodForwarder => flags2 & Flag2NoSuchMethodForwarder != 0;
+  bool get isNoSuchMethodForwarder => flags & FlagNoSuchMethodForwarder != 0;
 
   void set isStatic(bool value) {
     flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
@@ -1605,12 +1577,6 @@ class Procedure extends Member {
         value ? (flags | FlagForwardingStub) : (flags & ~FlagForwardingStub);
   }
 
-  void set isGenericContravariant(bool value) {
-    flags = value
-        ? (flags | FlagGenericContravariant)
-        : (flags & ~FlagGenericContravariant);
-  }
-
   void set isForwardingSemiStub(bool value) {
     flags = value
         ? (flags | FlagForwardingSemiStub)
@@ -1625,9 +1591,9 @@ class Procedure extends Member {
 
   void set isNoSuchMethodForwarder(bool value) {
     assert(isAbstract);
-    flags2 = value
-        ? (flags2 | Flag2NoSuchMethodForwarder)
-        : (flags2 & ~Flag2NoSuchMethodForwarder);
+    flags = value
+        ? (flags | FlagNoSuchMethodForwarder)
+        : (flags & ~FlagNoSuchMethodForwarder);
   }
 
   bool get isInstanceMember => !isStatic;

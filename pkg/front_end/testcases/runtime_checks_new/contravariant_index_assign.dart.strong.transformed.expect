@@ -14,7 +14,7 @@ class C<T extends core::Object> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
-  generic-contravariant operator [](core::int i) → self::B<(self::C::T) → void>
+  operator [](core::int i) → self::B<(self::C::T) → void>
     return null;
   operator []=(core::int i, self::B<(self::C::T) → void> x) → void {}
 }

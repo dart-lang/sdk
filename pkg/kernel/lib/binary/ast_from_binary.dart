@@ -873,7 +873,6 @@ class BinaryBuilder {
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
     int flags = readByte();
-    int flags2 = readByte();
     var name = readName();
     var annotations = readAnnotationList(node);
     assert(() {
@@ -888,7 +887,6 @@ class BinaryBuilder {
       node.fileOffset = fileOffset;
       node.fileEndOffset = fileEndOffset;
       node.flags = flags;
-      node.flags2 = flags2;
       node.name = name;
       node.fileUri = fileUri;
       node.annotations = annotations;
@@ -960,7 +958,6 @@ class BinaryBuilder {
     int kindIndex = readByte();
     var kind = ProcedureKind.values[kindIndex];
     var flags = readByte();
-    var flags2 = readByte();
     var name = readName();
     var annotations = readAnnotationList(node);
     assert(() {
@@ -984,7 +981,6 @@ class BinaryBuilder {
       node.fileEndOffset = fileEndOffset;
       node.kind = kind;
       node.flags = flags;
-      node.flags2 = flags2;
       node.name = name;
       node.fileUri = fileUri;
       node.annotations = annotations;

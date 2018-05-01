@@ -7,7 +7,7 @@ class C<T extends core::Object> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
-  generic-contravariant operator [](core::int i) → (self::C::T) → void
+  operator [](core::int i) → (self::C::T) → void
     return null;
 }
 static method test(self::C<core::num> c) → (core::num) → void {

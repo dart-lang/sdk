@@ -175,9 +175,6 @@ void FieldHelper::ReadUntilExcluding(Field field,
     case kFlags:
       flags_ = helper_->ReadFlags();
       if (++next_read_ == field) return;
-    case kFlags2:
-      secondary_flags_ = helper_->ReadFlags();
-      if (++next_read_ == field) return;
     case kName:
       helper_->SkipName();  // read name.
       if (++next_read_ == field) return;
@@ -246,7 +243,6 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
     case kFlags:
       flags_ = helper_->ReadFlags();
-      flags2_ = helper_->ReadFlags();
       if (++next_read_ == field) return;
     case kName:
       helper_->SkipName();  // read name.
@@ -4422,7 +4418,7 @@ uint32_t KernelFingerprintHelper::CalculateFieldFingerprint() {
   }
 
   BuildHash(name.Hash());
-  BuildHash((field_helper.flags_ << 8) | field_helper.secondary_flags_);
+  BuildHash(field_helper.flags_);
   BuildHash(field_helper.annotation_count_);
   return hash_;
 }
@@ -4468,7 +4464,6 @@ uint32_t KernelFingerprintHelper::CalculateFunctionFingerprint() {
 
   BuildHash(procedure_helper.kind_);
   BuildHash(procedure_helper.flags_);
-  BuildHash(procedure_helper.flags2_);
   BuildHash(procedure_helper.annotation_count_);
   BuildHash(name.Hash());
   return hash_;

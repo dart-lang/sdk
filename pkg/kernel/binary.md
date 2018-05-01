@@ -314,7 +314,6 @@ type Field extends Member {
   FileOffset fileEndOffset;
   Byte flags (isFinal, isConst, isStatic, hasImplicitGetter, hasImplicitSetter,
               isCovariant, isGenericCovariantImpl, isGenericCovariantInterface);
-  Byte flags2 (isGenericContravariant);
   Name name;
   List<Expression> annotations;
   DartType type;
@@ -353,9 +352,9 @@ type Procedure extends Member {
   FileOffset fileEndOffset;
   Byte kind; // Index into the ProcedureKind enum above.
   Byte flags (isStatic, isAbstract, isExternal, isConst, isForwardingStub,
-              isGenericContravariant, isForwardingSemiStub,
-              isRedirectingFactoryConstructor);
-  Byte flags2 (isNoSuchMethodForwarder);
+              isForwardingSemiStub,
+              isRedirectingFactoryConstructor,
+              isNoSuchMethodForwarder);
   Name name;
   List<Expression> annotations;
   // Only present if the 'isForwardingStub' flag is set.

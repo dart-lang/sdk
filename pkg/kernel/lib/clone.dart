@@ -424,9 +424,7 @@ class CloneVisitor implements TreeVisitor {
         forwardingStubInterfaceTarget: node.forwardingStubInterfaceTarget)
       ..fileOffset = _cloneFileOffset(node.fileOffset)
       ..fileEndOffset = _cloneFileOffset(node.fileEndOffset)
-      ..isGenericContravariant = node.isGenericContravariant
-      ..flags = node.flags
-      ..flags2 = node.flags2;
+      ..flags = node.flags;
   }
 
   visitField(Field node) {
@@ -443,8 +441,7 @@ class CloneVisitor implements TreeVisitor {
         fileUri: _activeFileUri)
       ..fileOffset = _cloneFileOffset(node.fileOffset)
       ..fileEndOffset = _cloneFileOffset(node.fileEndOffset)
-      ..flags = node.flags
-      ..flags2 = node.flags2;
+      ..flags = node.flags;
   }
 
   visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {

@@ -202,7 +202,6 @@ class FieldHelper {
     kPosition,
     kEndPosition,
     kFlags,
-    kFlags2,
     kName,
     kAnnotations,
     kType,
@@ -260,7 +259,6 @@ class FieldHelper {
   TokenPosition position_;
   TokenPosition end_position_;
   uint8_t flags_;
-  uint8_t secondary_flags_;
   intptr_t source_uri_index_;
   intptr_t annotation_count_;
 
@@ -314,11 +312,8 @@ class ProcedureHelper {
     kForwardingStub = 1 << 4,
 
     // TODO(29841): Remove this line after the issue is resolved.
-    kRedirectingFactoryConstructor = 1 << 7,
-  };
-
-  enum Flag2 {
-    kNoSuchMethodForwarder = 1 << 0,
+    kRedirectingFactoryConstructor = 1 << 6,
+    kNoSuchMethodForwarder = 1 << 7,
   };
 
   explicit ProcedureHelper(KernelReaderHelper* helper)
@@ -342,7 +337,7 @@ class ProcedureHelper {
     return (flags_ & kRedirectingFactoryConstructor) != 0;
   }
   bool IsNoSuchMethodForwarder() {
-    return (flags2_ & kNoSuchMethodForwarder) != 0;
+    return (flags_ & kNoSuchMethodForwarder) != 0;
   }
 
   NameIndex canonical_name_;
@@ -350,7 +345,6 @@ class ProcedureHelper {
   TokenPosition end_position_;
   Kind kind_;
   uint8_t flags_;
-  uint8_t flags2_;
   intptr_t source_uri_index_;
   intptr_t annotation_count_;
 
