@@ -946,13 +946,10 @@ DART_EXPORT void Dart_SetPersistentHandle(Dart_PersistentHandle obj1,
 
 static Dart_WeakPersistentHandle AllocateFinalizableHandle(
     Thread* thread,
-    Dart_Handle object,
+    const Object& ref,
     void* peer,
     intptr_t external_allocation_size,
     Dart_WeakPersistentHandleFinalizer callback) {
-  REUSABLE_OBJECT_HANDLESCOPE(thread);
-  Object& ref = thread->ObjectHandle();
-  ref = Api::UnwrapHandle(object);
   if (!ref.raw()->IsHeapObject()) {
     return NULL;
   }
@@ -960,6 +957,19 @@ static Dart_WeakPersistentHandle AllocateFinalizableHandle(
       FinalizablePersistentHandle::New(thread->isolate(), ref, peer, callback,
                                        external_allocation_size);
   return finalizable_ref->apiHandle();
+}
+
+static Dart_WeakPersistentHandle AllocateFinalizableHandle(
+    Thread* thread,
+    Dart_Handle object,
+    void* peer,
+    intptr_t external_allocation_size,
+    Dart_WeakPersistentHandleFinalizer callback) {
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  Object& ref = thread->ObjectHandle();
+  ref = Api::UnwrapHandle(object);
+  return AllocateFinalizableHandle(thread, ref, peer, external_allocation_size,
+                                   callback);
 }
 
 DART_EXPORT Dart_WeakPersistentHandle
@@ -3285,25 +3295,38 @@ static Dart_Handle NewTypedData(Thread* thread, intptr_t cid, intptr_t length) {
   return Api::NewHandle(thread, TypedData::New(cid, length));
 }
 
-static Dart_Handle NewExternalTypedData(Thread* thread,
-                                        intptr_t cid,
-                                        void* data,
-                                        intptr_t length) {
+static Dart_Handle NewExternalTypedData(
+    Thread* thread,
+    intptr_t cid,
+    void* data,
+    intptr_t length,
+    void* peer,
+    intptr_t external_allocation_size,
+    Dart_WeakPersistentHandleFinalizer callback) {
   CHECK_LENGTH(length, ExternalTypedData::MaxElements(cid));
   Zone* zone = thread->zone();
   intptr_t bytes = length * ExternalTypedData::ElementSizeInBytes(cid);
   const ExternalTypedData& result = ExternalTypedData::Handle(
       zone, ExternalTypedData::New(cid, reinterpret_cast<uint8_t*>(data),
                                    length, SpaceForExternal(thread, bytes)));
+  if (callback != NULL) {
+    AllocateFinalizableHandle(thread, result, peer, external_allocation_size,
+                              callback);
+  }
   return Api::NewHandle(thread, result.raw());
 }
 
-static Dart_Handle NewExternalByteData(Thread* thread,
-                                       void* data,
-                                       intptr_t length) {
+static Dart_Handle NewExternalByteData(
+    Thread* thread,
+    void* data,
+    intptr_t length,
+    void* peer,
+    intptr_t external_allocation_size,
+    Dart_WeakPersistentHandleFinalizer callback) {
   Zone* zone = thread->zone();
-  Dart_Handle ext_data = NewExternalTypedData(
-      thread, kExternalTypedDataUint8ArrayCid, data, length);
+  Dart_Handle ext_data =
+      NewExternalTypedData(thread, kExternalTypedDataUint8ArrayCid, data,
+                           length, peer, external_allocation_size, callback);
   if (::Dart_IsError(ext_data)) {
     return ext_data;
   }
@@ -3376,6 +3399,17 @@ DART_EXPORT Dart_Handle Dart_NewTypedData(Dart_TypedData_Type type,
 DART_EXPORT Dart_Handle Dart_NewExternalTypedData(Dart_TypedData_Type type,
                                                   void* data,
                                                   intptr_t length) {
+  return Dart_NewExternalTypedDataWithFinalizer(type, data, length, NULL, 0,
+                                                NULL);
+}
+
+DART_EXPORT Dart_Handle Dart_NewExternalTypedDataWithFinalizer(
+    Dart_TypedData_Type type,
+    void* data,
+    intptr_t length,
+    void* peer,
+    intptr_t external_allocation_size,
+    Dart_WeakPersistentHandleFinalizer callback) {
   DARTSCOPE(Thread::Current());
   if (data == NULL && length != 0) {
     RETURN_NULL_ERROR(data);
@@ -3383,43 +3417,56 @@ DART_EXPORT Dart_Handle Dart_NewExternalTypedData(Dart_TypedData_Type type,
   CHECK_CALLBACK_STATE(T);
   switch (type) {
     case Dart_TypedData_kByteData:
-      return NewExternalByteData(T, data, length);
+      return NewExternalByteData(T, data, length, peer,
+                                 external_allocation_size, callback);
     case Dart_TypedData_kInt8:
       return NewExternalTypedData(T, kExternalTypedDataInt8ArrayCid, data,
-                                  length);
+                                  length, peer, external_allocation_size,
+                                  callback);
     case Dart_TypedData_kUint8:
       return NewExternalTypedData(T, kExternalTypedDataUint8ArrayCid, data,
-                                  length);
+                                  length, peer, external_allocation_size,
+                                  callback);
     case Dart_TypedData_kUint8Clamped:
       return NewExternalTypedData(T, kExternalTypedDataUint8ClampedArrayCid,
-                                  data, length);
+                                  data, length, peer, external_allocation_size,
+                                  callback);
     case Dart_TypedData_kInt16:
       return NewExternalTypedData(T, kExternalTypedDataInt16ArrayCid, data,
-                                  length);
+                                  length, peer, external_allocation_size,
+                                  callback);
     case Dart_TypedData_kUint16:
       return NewExternalTypedData(T, kExternalTypedDataUint16ArrayCid, data,
-                                  length);
+                                  length, peer, external_allocation_size,
+                                  callback);
     case Dart_TypedData_kInt32:
       return NewExternalTypedData(T, kExternalTypedDataInt32ArrayCid, data,
-                                  length);
+                                  length, peer, external_allocation_size,
+                                  callback);
     case Dart_TypedData_kUint32:
       return NewExternalTypedData(T, kExternalTypedDataUint32ArrayCid, data,
-                                  length);
+                                  length, peer, external_allocation_size,
+                                  callback);
     case Dart_TypedData_kInt64:
       return NewExternalTypedData(T, kExternalTypedDataInt64ArrayCid, data,
-                                  length);
+                                  length, peer, external_allocation_size,
+                                  callback);
     case Dart_TypedData_kUint64:
       return NewExternalTypedData(T, kExternalTypedDataUint64ArrayCid, data,
-                                  length);
+                                  length, peer, external_allocation_size,
+                                  callback);
     case Dart_TypedData_kFloat32:
       return NewExternalTypedData(T, kExternalTypedDataFloat32ArrayCid, data,
-                                  length);
+                                  length, peer, external_allocation_size,
+                                  callback);
     case Dart_TypedData_kFloat64:
       return NewExternalTypedData(T, kExternalTypedDataFloat64ArrayCid, data,
-                                  length);
+                                  length, peer, external_allocation_size,
+                                  callback);
     case Dart_TypedData_kFloat32x4:
       return NewExternalTypedData(T, kExternalTypedDataFloat32x4ArrayCid, data,
-                                  length);
+                                  length, peer, external_allocation_size,
+                                  callback);
     default:
       return Api::NewError(
           "%s expects argument 'type' to be of"
@@ -6089,7 +6136,7 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
                                     const char** argument_values) {
   return;
 }
-#else   // defined(PRODUCT)
+#else  // defined(PRODUCT)
 DART_EXPORT void Dart_RegisterIsolateServiceRequestCallback(
     const char* name,
     Dart_ServiceRequestCallback callback,
