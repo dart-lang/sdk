@@ -31,6 +31,7 @@ class ClassOrNamedMixinIdentifierContext extends IdentifierContext {
       return identifier;
     }
 
+    // Recovery
     if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
         isOneOfOrEof(
             identifier, const ['<', '{', 'extends', 'with', 'implements'])) {
@@ -76,6 +77,7 @@ class DottedNameIdentifierContext extends IdentifierContext {
       }
     }
 
+    // Recovery
     if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
         isOneOfOrEof(identifier, followingValues)) {
       identifier = parser.insertSyntheticIdentifier(token, this,
@@ -123,6 +125,8 @@ class ExpressionIdentifierContext extends IdentifierContext {
       }
       return identifier;
     }
+
+    // Recovery
     parser.reportRecoverableErrorWithToken(
         identifier, fasta.templateExpectedIdentifier);
     if (identifier.isKeywordOrIdentifier) {
@@ -152,6 +156,7 @@ class FieldDeclarationIdentifierContext extends IdentifierContext {
     if (identifier.isIdentifier) {
       return identifier;
     }
+
     // Recovery
     if (isOneOfOrEof(identifier, const [';', '=', ',', '}']) ||
         looksLikeStartOfNextClassMember(identifier)) {
@@ -183,10 +188,49 @@ class FieldInitializerIdentifierContext extends IdentifierContext {
     if (identifier.isIdentifier) {
       return identifier;
     }
+
+    // Recovery
     parser.reportRecoverableErrorWithToken(
         identifier, fasta.templateExpectedIdentifier);
     // Insert a synthetic identifier to satisfy listeners.
     return insertSyntheticIdentifierAfter(token, parser);
+  }
+}
+
+/// See [IdentifierContext].importPrefixDeclaration
+class ImportPrefixIdentifierContext extends IdentifierContext {
+  const ImportPrefixIdentifierContext()
+      : super('importPrefixDeclaration',
+            inDeclaration: true, isBuiltInIdentifierAllowed: false);
+
+  @override
+  Token ensureIdentifier(Token token, Parser parser) {
+    Token identifier = token.next;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    if (identifier.type.isPseudo) {
+      return identifier;
+    }
+
+    // Recovery
+    const followingValues = const [';', 'if', 'show', 'hide', 'deferred', 'as'];
+    if (identifier.type.isBuiltIn &&
+        isOneOfOrEof(identifier.next, followingValues)) {
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateBuiltInIdentifierInDeclaration);
+    } else if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
+        isOneOfOrEof(identifier, followingValues)) {
+      identifier = parser.insertSyntheticIdentifier(token, this,
+          message: fasta.templateExpectedIdentifier.withArguments(identifier));
+    } else {
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateExpectedIdentifier);
+      if (!identifier.isKeywordOrIdentifier) {
+        // When in doubt, consume the token to ensure we make progress
+        // but insert a synthetic identifier to satisfy listeners.
+        identifier = insertSyntheticIdentifierAfter(identifier, parser);
+      }
+    }
+    return identifier;
   }
 }
 
@@ -213,6 +257,8 @@ class LibraryIdentifierContext extends IdentifierContext {
       // is invalid and this looks like the start of the next declaration.
       // In this situation, fall through to insert a synthetic library name.
     }
+
+    // Recovery
     if (isOneOfOrEof(identifier, const ['.', ';']) ||
         looksLikeStartOfNextTopLevelDeclaration(identifier)) {
       identifier = parser.insertSyntheticIdentifier(token, this,
@@ -243,6 +289,8 @@ class LocalVariableDeclarationIdentifierContext extends IdentifierContext {
       checkAsyncAwaitYieldAsIdentifier(identifier, parser);
       return identifier;
     }
+
+    // Recovery
     if (isOneOfOrEof(identifier, const [';', '=', ',', '{', '}']) ||
         looksLikeStartOfNextStatement(identifier)) {
       identifier = parser.insertSyntheticIdentifier(token, this,
@@ -275,6 +323,7 @@ class MethodDeclarationIdentifierContext extends IdentifierContext {
     if (identifier.isIdentifier) {
       return identifier;
     }
+
     // Recovery
     if (identifier.isUserDefinableOperator && !isContinuation) {
       return parser.insertSyntheticIdentifier(identifier, this,

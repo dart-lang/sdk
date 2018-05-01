@@ -2005,8 +2005,6 @@ class Parser {
       followingValues = [',', '}'];
     } else if (context == IdentifierContext.formalParameterDeclaration) {
       followingValues = [':', '=', ',', '(', ')', '[', ']', '{', '}'];
-    } else if (context == IdentifierContext.importPrefixDeclaration) {
-      followingValues = [';', 'hide', 'show', 'deferred', 'as'];
     } else if (context == IdentifierContext.labelDeclaration) {
       followingValues = [':'];
     } else if (context == IdentifierContext.literalSymbol ||
@@ -2084,8 +2082,6 @@ class Parser {
         ..addAll(classMemberKeywords())
         ..addAll(statementKeywords())
         ..add('covariant');
-    } else if (context == IdentifierContext.importPrefixDeclaration) {
-      initialKeywords = topLevelKeywords();
     } else if (context == IdentifierContext.labelDeclaration) {
       initialKeywords = statementKeywords();
     } else if (context == IdentifierContext.localAccessorDeclaration) {
