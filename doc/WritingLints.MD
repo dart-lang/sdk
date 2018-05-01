@@ -105,6 +105,10 @@ You'll notice when authoring a new rule that failures cause the AST of the test 
     
 would dump the AST of `rules.dart`.
 
+### Performance
+
+For performance reasons rules should prefer implementing `NodeLintRule` and registering interest in specific AST node types using `registry.addXYZ(this, visitor)`. Avoid overriding `visitCompilationUnit()` and performing your own full `CompilationUnit` visits.
+
 # Feedback is Welcome!
 
 Details are under active development.  Feedback is most [welcome](https://github.com/dart-lang/linter/issues)!
