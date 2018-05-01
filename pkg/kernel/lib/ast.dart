@@ -3445,8 +3445,7 @@ class ConstantExpression extends Expression {
     assert(constant != null);
   }
 
-  DartType getStaticType(TypeEnvironment types) =>
-      throw 'ConstantExpression.staticType() is unimplemented';
+  DartType getStaticType(TypeEnvironment types) => constant.getType(types);
 
   accept(ExpressionVisitor v) => v.visitConstantExpression(this);
   accept1(ExpressionVisitor1 v, arg) => v.visitConstantExpression(this, arg);
@@ -5191,6 +5190,9 @@ abstract class Constant extends Node {
   /// comparable via hashCode/==!
   int get hashCode;
   bool operator ==(Object other);
+
+  /// Gets the type of this constant.
+  DartType getType(TypeEnvironment types);
 }
 
 abstract class PrimitiveConstant<T> extends Constant {
@@ -5212,6 +5214,8 @@ class NullConstant extends PrimitiveConstant<Null> {
   visitChildren(Visitor v) {}
   accept(ConstantVisitor v) => v.visitNullConstant(this);
   acceptReference(Visitor v) => v.visitNullConstantReference(this);
+
+  DartType getType(TypeEnvironment types) => types.nullType;
 }
 
 class BoolConstant extends PrimitiveConstant<bool> {
@@ -5220,6 +5224,8 @@ class BoolConstant extends PrimitiveConstant<bool> {
   visitChildren(Visitor v) {}
   accept(ConstantVisitor v) => v.visitBoolConstant(this);
   acceptReference(Visitor v) => v.visitBoolConstantReference(this);
+
+  DartType getType(TypeEnvironment types) => types.boolType;
 }
 
 class IntConstant extends PrimitiveConstant<int> {
@@ -5228,6 +5234,8 @@ class IntConstant extends PrimitiveConstant<int> {
   visitChildren(Visitor v) {}
   accept(ConstantVisitor v) => v.visitIntConstant(this);
   acceptReference(Visitor v) => v.visitIntConstantReference(this);
+
+  DartType getType(TypeEnvironment types) => types.intType;
 }
 
 class DoubleConstant extends PrimitiveConstant<double> {
@@ -5241,6 +5249,8 @@ class DoubleConstant extends PrimitiveConstant<double> {
   bool operator ==(Object other) =>
       other is DoubleConstant &&
       (other.value == value || identical(value, other.value) /* For NaN */);
+
+  DartType getType(TypeEnvironment types) => types.doubleType;
 }
 
 class StringConstant extends PrimitiveConstant<String> {
@@ -5251,6 +5261,8 @@ class StringConstant extends PrimitiveConstant<String> {
   visitChildren(Visitor v) {}
   accept(ConstantVisitor v) => v.visitStringConstant(this);
   acceptReference(Visitor v) => v.visitStringConstantReference(this);
+
+  DartType getType(TypeEnvironment types) => types.stringType;
 }
 
 class MapConstant extends Constant {
@@ -5288,6 +5300,9 @@ class MapConstant extends Constant {
           other.keyType == keyType &&
           other.valueType == valueType &&
           listEquals(other.entries, entries));
+
+  DartType getType(TypeEnvironment types) =>
+      types.literalMapType(keyType, valueType);
 }
 
 class ConstantMapEntry {
@@ -5331,6 +5346,9 @@ class ListConstant extends Constant {
       (other is ListConstant &&
           other.typeArgument == typeArgument &&
           listEquals(other.entries, entries));
+
+  DartType getType(TypeEnvironment types) =>
+      types.literalListType(typeArgument);
 }
 
 class InstanceConstant extends Constant {
@@ -5386,6 +5404,9 @@ class InstanceConstant extends Constant {
             listEquals(other.typeArguments, typeArguments) &&
             mapEquals(other.fieldValues, fieldValues));
   }
+
+  DartType getType(TypeEnvironment types) =>
+      new InterfaceType(klass, typeArguments);
 }
 
 class PartialInstantiationConstant extends Constant {
@@ -5413,6 +5434,15 @@ class PartialInstantiationConstant extends Constant {
     return other is PartialInstantiationConstant &&
         other.tearOffConstant == tearOffConstant &&
         listEquals(other.types, types);
+  }
+
+  DartType getType(TypeEnvironment typeEnvironment) {
+    final FunctionType type = tearOffConstant.getType(typeEnvironment);
+    final mapping = <TypeParameter, DartType>{};
+    for (final parameter in type.typeParameters) {
+      mapping[parameter] = types[mapping.length];
+    }
+    return substitute(type.withoutTypeParameters, mapping);
   }
 }
 
@@ -5444,6 +5474,9 @@ class TearOffConstant extends Constant {
   bool operator ==(Object other) {
     return other is TearOffConstant && other.procedure == procedure;
   }
+
+  FunctionType getType(TypeEnvironment types) =>
+      procedure.function.functionType;
 }
 
 class TypeLiteralConstant extends Constant {
@@ -5465,6 +5498,8 @@ class TypeLiteralConstant extends Constant {
   bool operator ==(Object other) {
     return other is TypeLiteralConstant && other.type == type;
   }
+
+  DartType getType(TypeEnvironment types) => types.typeType;
 }
 
 // ------------------------------------------------------------------------
