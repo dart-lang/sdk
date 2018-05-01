@@ -9,6 +9,7 @@ class Class1 {
     /*ast.*/
     /*kernel.*/
     /*strong.needsSignature*/
+    /*omit.needsSignature*/
     num local(num n) => null;
     return local;
   }
@@ -24,7 +25,8 @@ class Class1 {
   }
 }
 
-/*class: Class2:needsArgs*/
+/*!strong.class: Class2:needsArgs*/
+/*strong.class: Class2:direct,explicit=[Class2.T],needsArgs*/
 class Class2<T> {
   method4() {
     /*needsSignature*/
@@ -42,7 +44,8 @@ class Class3<T> {
   }
 }
 
-/*class: Class4:*/
+/*!strong.class: Class4:*/
+/*strong.class: Class4:direct,explicit=[Class4.T],needsArgs*/
 class Class4<T> {
   method6() {
     /**/

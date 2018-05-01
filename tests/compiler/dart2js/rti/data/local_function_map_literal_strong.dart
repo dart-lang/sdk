@@ -4,9 +4,11 @@
 
 import 'package:expect/expect.dart';
 
-/*class: global#LinkedHashMap:deps=[Map],needsArgs*/
+/*strong.class: global#LinkedHashMap:deps=[Map],explicit=[LinkedHashMap<LinkedHashMap.K,LinkedHashMap.V>],implicit=[LinkedHashMap.K,LinkedHashMap.V],indirect,needsArgs*/
+/*omit.class: global#LinkedHashMap:deps=[Map],needsArgs*/
 
-/*element: method:needsArgs*/
+/*strong.element: method:implicit=[method.T],indirect,needsArgs*/
+/*omit.element: method:needsArgs*/
 @NoInline()
 method<T>() {
   return () => <T, int>{};

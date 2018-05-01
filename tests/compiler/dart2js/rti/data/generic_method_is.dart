@@ -5,6 +5,7 @@
 /*ast.element: method:direct,explicit=[method.T]*/
 /*kernel.element: method:direct,explicit=[method.T]*/
 /*strong.element: method:direct,explicit=[method.T],needsArgs*/
+/*omit.element: method:direct,explicit=[method.T],needsArgs*/
 method<T>(T t) => t is T;
 
 main() {

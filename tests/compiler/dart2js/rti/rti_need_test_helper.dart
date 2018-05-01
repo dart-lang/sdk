@@ -7,7 +7,6 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common_elements.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/elements.dart';
@@ -28,6 +27,10 @@ import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 
 main(List<String> args) {
+  runTests(args);
+}
+
+runTests(List<String> args, [int shardIndex]) {
   cacheRtiDataForTesting = true;
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
@@ -35,14 +38,17 @@ main(List<String> args) {
         dataDir, computeAstRtiMemberNeed, computeKernelRtiMemberNeed,
         computeClassDataFromAst: computeAstRtiClassNeed,
         computeClassDataFromKernel: computeKernelRtiClassNeed,
-        options: [Flags.omitImplicitChecks], // only used in strong-mode
+        options: [],
         skipForStrong: [
           'map_literal_checked.dart',
           // TODO(johnniwinther): Optimize local function type signature need.
           'subtype_named_args.dart',
           'subtype_named_args1.dart',
         ],
-        args: args);
+        args: args,
+        testOmit: true,
+        shardIndex: shardIndex ?? 0,
+        shards: shardIndex != null ? 2 : 1);
   });
 }
 

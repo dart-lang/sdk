@@ -4,9 +4,11 @@
 
 import 'package:expect/expect.dart';
 
-/*class: global#JSArray:deps=[EmptyIterable,List,ListIterable,SubListIterable],explicit=[JSArray],needsArgs*/
+/*strong.class: global#JSArray:deps=[ArrayIterator,EmptyIterable,List,ListIterable,SubListIterable],direct,explicit=[Iterable<JSArray.E>,JSArray,JSArray.E,JSArray<ArrayIterator.E>,List<JSArray.E>],implicit=[JSArray.E],needsArgs*/
+/*omit.class: global#JSArray:deps=[EmptyIterable,List,ListIterable,SubListIterable],explicit=[JSArray],needsArgs*/
 
-/*element: method:needsArgs*/
+/*strong.element: method:implicit=[method.T],indirect,needsArgs*/
+/*omit.element: method:needsArgs*/
 @NoInline()
 method<T>() {
   return () => <T>[];
