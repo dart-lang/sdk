@@ -31,6 +31,8 @@ import 'builder.dart'
         ScopeBuilder,
         TypeBuilder;
 
+import '../import.dart' show Import;
+
 abstract class LibraryBuilder<T extends TypeBuilder, R>
     extends ModifierBuilder {
   final Scope scope;
@@ -214,5 +216,20 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
   void applyPatches() {
     if (!isPatch) return;
     unsupported("${runtimeType}.applyPatches", -1, fileUri);
+  }
+
+  void addSpecificImportsToScope(Iterable<Import> imports) {
+    bool explicitCoreImport = this == loader.coreLibrary;
+    for (Import import in imports) {
+      if (import.imported == loader.coreLibrary) {
+        explicitCoreImport = true;
+      }
+      import.finalizeImports(this);
+    }
+    if (!explicitCoreImport) {
+      loader.coreLibrary.exportScope.forEach((String name, Builder member) {
+        addToScope(name, member, -1, true);
+      });
+    }
   }
 }

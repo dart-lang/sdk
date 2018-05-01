@@ -8,6 +8,8 @@ import 'dart:async' show Future;
 
 import 'package:kernel/ast.dart' show Library, Component, Source;
 
+import 'package:kernel/core_types.dart' show CoreTypes;
+
 import '../fasta_codes.dart'
     show SummaryTemplate, Template, templateDillOutlineSummary;
 
@@ -27,6 +29,9 @@ class DillLoader extends Loader<Library> {
 
   /// Sources for all appended components.
   final Map<Uri, Source> uriToSource = <Uri, Source>{};
+
+  /// Should be set if code will be compiled in the context of this library.
+  CoreTypes coreTypes;
 
   DillLoader(TargetImplementation target) : super(target);
 
