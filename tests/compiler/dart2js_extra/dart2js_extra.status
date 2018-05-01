@@ -63,26 +63,10 @@ variable_type_test/03: Fail, OK
 32997b_test/01: SkipByDesign # --omit-implicit-checks shouldn't be used together
 
 [ $compiler == dart2js && $checked && $fasta ]
-deferred/default_arg_is_tearoff_test: RuntimeError
-deferred/deferred_class_test: RuntimeError
-deferred/deferred_constant2_test: RuntimeError
-deferred/deferred_constant3_test: RuntimeError
-deferred/deferred_constant4_test: RuntimeError
-deferred/deferred_function_test: RuntimeError
-deferred/deferred_metadata_test: RuntimeError
 deferred/deferred_mirrors1_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred/deferred_mirrors2_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
-deferred/deferred_overlapping_test: RuntimeError
-deferred/interface_type_variable_test: RuntimeError
-deferred/load_in_correct_order_test: RuntimeError
-deferred/multiple_default_arg_test: RuntimeError
 deferred/reflect_multiple_annotations_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred/reflect_multiple_default_arg_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
-deferred/shared_constant_test: RuntimeError
-deferred/uninstantiated_type_variable_test: RuntimeError
-deferred_custom_loader_test: RuntimeError
-deferred_inheritance_test: RuntimeError
-deferred_split_test: RuntimeError
 dummy_compiler_test: Crash
 local_signature_test: Crash
 minus_zero_test/01: MissingCompileTimeError

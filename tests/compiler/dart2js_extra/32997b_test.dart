@@ -9,8 +9,6 @@
 import '32997b_lib.dart' deferred as b; //# 01: compile-time error
 
 main() async {
-  // TODO(johnniwinther): Remove this when Issue #32998 has been fixed.
-  new Set<String>().add('foo');
   await b.loadLibrary(); //# 01: continued
   print(b.m<int>(3)); //# 01: continued
 }

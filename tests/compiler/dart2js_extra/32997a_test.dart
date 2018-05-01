@@ -9,8 +9,6 @@
 import '32997a_lib.dart' deferred as b;
 
 main() async {
-  // TODO(johnniwinther): Remove this when Issue #32998 has been fixed.
-  new Set<String>().add('foo');
   await b.loadLibrary();
   print(b.m(3));
 }

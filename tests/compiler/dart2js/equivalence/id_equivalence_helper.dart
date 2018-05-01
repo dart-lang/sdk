@@ -226,7 +226,7 @@ Future<CompiledData> computeData(
     }
     Expect.isNotNull(
         member,
-        "Global member '$member' not found in the global "
+        "Global member '$memberName' not found in the global "
         "libraries: ${globalLibraries.map((l) => l.canonicalUri).join(', ')}");
     return member;
   }

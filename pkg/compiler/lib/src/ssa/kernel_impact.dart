@@ -751,6 +751,7 @@ class KernelImpactBuilder extends ir.Visitor {
   void visitLoadLibrary(ir.LoadLibrary node) {
     impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
         commonElements.loadDeferredLibrary, CallStructure.ONE_ARG));
+    impactBuilder.registerFeature(Feature.LOAD_LIBRARY);
   }
 
   // TODO(johnniwinther): Make this throw and visit child nodes explicitly
