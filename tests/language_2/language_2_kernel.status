@@ -171,6 +171,7 @@ override_inheritance_field_test/47: MissingCompileTimeError
 override_inheritance_field_test/48: MissingCompileTimeError
 override_inheritance_field_test/53: MissingCompileTimeError
 override_inheritance_field_test/54: MissingCompileTimeError
+override_inheritance_mixed_test/07: MissingCompileTimeError # Issue 32613
 override_inheritance_mixed_test/09: MissingCompileTimeError
 partial_tearoff_instantiation_test/05: MissingCompileTimeError
 partial_tearoff_instantiation_test/06: MissingCompileTimeError

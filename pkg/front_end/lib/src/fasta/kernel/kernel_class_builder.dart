@@ -307,17 +307,26 @@ abstract class KernelClassBuilder
 
     List<LocatedMessage> context = null;
 
+    bool mustHaveImplementation(Member member) {
+      // Forwarding stub
+      if (member is Procedure && member.isSyntheticForwarder) return false;
+      // Public member
+      if (!member.name.isPrivate) return true;
+      // Private member in different library
+      if (member.enclosingLibrary != cls.enclosingLibrary) return false;
+      // Private member in patch
+      if (member.fileUri != member.enclosingClass.fileUri) return false;
+      // Private member in same library
+      return true;
+    }
+
     void findMissingImplementations({bool setters}) {
       List<Member> dispatchTargets =
           hierarchy.getDispatchTargets(cls, setters: setters);
       int targetIndex = 0;
       for (Member interfaceMember
           in hierarchy.getInterfaceMembers(cls, setters: setters)) {
-        // Is this either a public member or a visible private member?
-        if (!interfaceMember.name.isPrivate ||
-            (interfaceMember.enclosingLibrary == cls.enclosingLibrary &&
-                interfaceMember.fileUri ==
-                    interfaceMember.enclosingClass.fileUri)) {
+        if (mustHaveImplementation(interfaceMember)) {
           while (targetIndex < dispatchTargets.length &&
               ClassHierarchy.compareMembers(
                       dispatchTargets[targetIndex], interfaceMember) <
