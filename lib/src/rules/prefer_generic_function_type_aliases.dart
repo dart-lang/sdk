@@ -55,6 +55,6 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    rule.reportLint(node);
+    rule.reportLint(node.name);
   }
 }
