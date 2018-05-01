@@ -19,7 +19,7 @@ namespace kernel {
 // Keep in sync with package:kernel/lib/binary/tag.dart.
 
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
-static const uint32_t kBinaryFormatVersion = 4;
+static const uint32_t kBinaryFormatVersion = 5;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -210,6 +210,14 @@ class Reader : public ValueObject {
   uint32_t ReadUInt32() {
     uint32_t value = ReadUInt32At(offset_);
     offset_ += 4;
+    return value;
+  }
+
+  double ReadDouble() {
+    ASSERT((size_ >= 8) && (offset_ >= 0) && (offset_ <= size_ - 8));
+    double value = ReadUnaligned(
+        reinterpret_cast<const double*>(&this->buffer()[offset_]));
+    offset_ += 8;
     return value;
   }
 
