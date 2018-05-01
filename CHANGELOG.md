@@ -10,6 +10,16 @@
 
 ### Dart VM
 
+### Tool Changes
+
+#### Pub
+
+#### Other Tools
+
+## 2.0.0-dev.52.0
+
+### Tool Changes
+
 #### Dart Dev Compiler
 
 * Failed `as` casts on `Iterable<T>`, `Map<T>`, `Future<T>`, and `Stream<T>`
@@ -18,12 +28,6 @@
   system. This closes part of that hole. (We still need to stop ignoring
   "as" cast failures on function types, and implicit cast failures on the above
   types and function types.)
-
-### Tool Changes
-
-#### Pub
-
-#### Other Tools
 
 ## 2.0.0-dev.51.0
 
