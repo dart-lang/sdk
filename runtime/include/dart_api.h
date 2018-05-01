@@ -2086,9 +2086,8 @@ DART_EXPORT Dart_Handle Dart_NewTypedData(Dart_TypedData_Type type,
  * Returns a TypedData object which references an external data array.
  *
  * \param type The type of the data array.
- * \param value A data array. This array must not move.
+ * \param data A data array. This array must not move.
  * \param length The length of the data array (length in type units).
- * \param peer An external pointer to associate with this array.
  *
  * \return The TypedData object if no error occurs. Otherwise returns
  *   an error handle.
@@ -2096,6 +2095,31 @@ DART_EXPORT Dart_Handle Dart_NewTypedData(Dart_TypedData_Type type,
 DART_EXPORT Dart_Handle Dart_NewExternalTypedData(Dart_TypedData_Type type,
                                                   void* data,
                                                   intptr_t length);
+
+/**
+ * Returns a TypedData object which references an external data array.
+ *
+ * \param type The type of the data array.
+ * \param data A data array. This array must not move.
+ * \param length The length of the data array (length in type units).
+ * \param peer A pointer to a native object or NULL.  This value is
+ *   provided to callback when it is invoked.
+ * \param external_allocation_size The number of externally allocated
+ *   bytes for peer. Used to inform the garbage collector.
+ * \param callback A function pointer that will be invoked sometime
+ *   after the object is garbage collected, unless the handle has been deleted.
+ *   A valid callback needs to be specified it cannot be NULL.
+ *
+ * \return The TypedData object if no error occurs. Otherwise returns
+ *   an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_NewExternalTypedDataWithFinalizer(
+    Dart_TypedData_Type type,
+    void* data,
+    intptr_t length,
+    void* peer,
+    intptr_t external_allocation_size,
+    Dart_WeakPersistentHandleFinalizer callback);
 
 /**
  * Returns a ByteBuffer object for the typed data.

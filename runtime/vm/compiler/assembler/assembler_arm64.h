@@ -390,17 +390,6 @@ class Operand : public ValueObject {
   // undefined.
   static bool IsImmLogical(uint64_t value, uint8_t width, Operand* imm_op);
 
-  static bool IsImmLogical(int64_t imm) {
-    Operand operand;
-    return IsImmLogical(imm, kXRegSizeInBits, &operand);
-  }
-
-  static bool IsImmArithmethic(int64_t imm) {
-    Operand operand;
-    CanHold(imm, kXRegSizeInBits, &operand);
-    return operand.type_ == Immediate;
-  }
-
   // An immediate imm can be an operand to add/sub when the return value is
   // Immediate, or a logical operation over sz bits when the return value is
   // BitfieldImm. If the return value is Unknown, then the immediate can't be
@@ -1418,10 +1407,7 @@ class Assembler : public ValueObject {
   // the object pool when possible. Unless you are sure that the untagged object
   // pool pointer is in another register, or that it is not available at all,
   // PP should be passed for pp.
-  void AddImmediate(Register dest,
-                    Register rn,
-                    int64_t imm,
-                    OperandSize sz = kDoubleWord);
+  void AddImmediate(Register dest, Register rn, int64_t imm);
   void AddImmediateSetFlags(Register dest,
                             Register rn,
                             int64_t imm,
@@ -1637,27 +1623,6 @@ class Assembler : public ValueObject {
     b(&ok, EQ);
     Stop("Smi out of range");
 
-    Bind(&ok);
-#endif
-  }
-
-  void AssertValidUint32(Register r) {
-#if defined(DEBUG)
-    Label ok;
-    cmp(ZR, Operand(r, LSR, 32));
-    b(&ok, EQ);
-    Stop("uint32 should be zero extended");
-    Bind(&ok);
-#endif
-  }
-
-  void AssertValidSignExtendedInt32(Register r) {
-#if defined(DEBUGFOO)
-    Label ok;
-    AsrImmediate(TMP, r, 63);  // 0 or -1.
-    cmp(TMP, Operand(r, ASR, 31));
-    b(&ok, EQ);
-    Stop("int32 should be sign extended");
     Bind(&ok);
 #endif
   }

@@ -12,9 +12,9 @@ import '../modifier.dart' show finalMask;
 import 'kernel_builder.dart'
     show
         FormalParameterBuilder,
-        KernelLibraryBuilder,
         KernelTypeBuilder,
-        MetadataBuilder;
+        MetadataBuilder,
+        LibraryBuilder;
 
 import 'package:front_end/src/fasta/source/source_library_builder.dart'
     show SourceLibraryBuilder;
@@ -30,7 +30,7 @@ class KernelFormalParameterBuilder
       KernelTypeBuilder type,
       String name,
       bool hasThis,
-      KernelLibraryBuilder compilationUnit,
+      LibraryBuilder compilationUnit,
       this.charOffset)
       : super(metadata, modifiers, type, name, hasThis, compilationUnit,
             charOffset);

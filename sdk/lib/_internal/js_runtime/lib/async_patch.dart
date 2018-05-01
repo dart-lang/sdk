@@ -162,6 +162,20 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
   bool get isCompleted => _completer.isCompleted;
 }
 
+/// Creates a Completer for an `async` function.
+///
+/// Used as part of the runtime support for the async/await transformation.
+Completer<T> _makeAsyncAwaitCompleter<T>() {
+  return new _AsyncAwaitCompleter<T>();
+}
+
+/// Creates a Completer for an `async` function.
+///
+/// Used as part of the runtime support for the async/await transformation.
+Completer<T> _makeSyncCompleter<T>() {
+  return new Completer<T>.sync();
+}
+
 /// Initiates the computation of an `async` function and starts the body
 /// synchronously.
 ///
@@ -464,9 +478,12 @@ class _AsyncStarStreamController<T> {
   }
 }
 
-//_makeAsyncStarController(body) {
-//  return new _AsyncStarStreamController(body);
-//}
+/// Creates a stream controller for an `async*` function.
+///
+/// Used as part of the runtime support for the async/await transformation.
+_makeAsyncStarStreamController<T>(_WrappedAsyncBody body) {
+  return new _AsyncStarStreamController<T>(body);
+}
 
 class _IterationMarker {
   static const YIELD_SINGLE = 0;
@@ -616,6 +633,13 @@ class _SyncStarIterator<T> implements Iterator<T> {
     }
     return false; // TODO(sra): Fix type inference so that this is not needed.
   }
+}
+
+/// Creates an Iterable for a `sync*` function.
+///
+/// Used as part of the runtime support for the async/await transformation.
+_SyncStarIterable<T> _makeSyncStarIterable<T>(body) {
+  return new _SyncStarIterable<T>(body);
 }
 
 /// An Iterable corresponding to a sync* method.

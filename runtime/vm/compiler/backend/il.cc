@@ -776,7 +776,9 @@ bool Value::BindsToConstantNull() const {
 
 const Object& Value::BoundConstant() const {
   ASSERT(BindsToConstant());
-  return definition()->AsConstant()->value();
+  ConstantInstr* constant = definition()->AsConstant();
+  ASSERT(constant != NULL);
+  return constant->value();
 }
 
 GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
@@ -1867,9 +1869,9 @@ RawInteger* UnaryIntegerOpInstr::Evaluate(const Integer& value) const {
 
     case Token::kBIT_NOT:
       if (value.IsSmi()) {
-        result = Integer::New(~Smi::Cast(value).Value(), Heap::kOld);
+        result = Integer::New(~Smi::Cast(value).Value());
       } else if (value.IsMint()) {
-        result = Integer::New(~Mint::Cast(value).value(), Heap::kOld);
+        result = Integer::New(~Mint::Cast(value).value());
       }
       break;
 
@@ -2104,7 +2106,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
     case Token::kBIT_AND:
       if (rhs == 0) {
         return right()->definition();
-      } else if ((rhs & range_mask) == range_mask) {
+      } else if (rhs == range_mask) {
         return left()->definition();
       }
       break;
@@ -2493,11 +2495,9 @@ Definition* BoxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
     Definition* replacement = this;
 
     switch (conv->from()) {
-#if !defined(AVOID_UNBOXED_INT32)
       case kUnboxedInt32:
         replacement = new BoxInt32Instr(conv->value()->CopyWithType());
         break;
-#endif
       case kUnboxedUint32:
         replacement = new BoxUint32Instr(conv->value()->CopyWithType());
         break;
@@ -2675,35 +2675,6 @@ Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
     return replacement;
   }
 
-  if (value()->BindsToConstant()) {
-    const Object& input = value()->BoundConstant();
-    int64_t constant;
-    if (input.IsSmi()) {
-      constant = Smi::Cast(input).Value();
-    } else if (input.IsMint()) {
-      constant = Mint::Cast(input).value();
-    } else {
-      return this;
-    }
-    Definition* replacement = NULL;
-    if (to() == kUnboxedUint32) {
-      const Object& cast = Integer::Handle(
-          flow_graph->zone(),
-          Integer::New(static_cast<uint32_t>(constant), Heap::kOld));
-      replacement = new UnboxedConstantInstr(cast, kUnboxedUint32);
-    } else if (to() == kUnboxedInt32) {
-      const Object& cast = Integer::Handle(
-          flow_graph->zone(),
-          Integer::New(static_cast<int32_t>(constant), Heap::kOld));
-      replacement = new UnboxedConstantInstr(cast, kUnboxedUint32);
-    } else if (to() == kUnboxedInt64) {
-      replacement = new UnboxedConstantInstr(input, kUnboxedInt64);
-    }
-    if (replacement != NULL) {
-      flow_graph->InsertBefore(this, replacement, env(), FlowGraph::kValue);
-      return replacement;
-    }
-  }
   return this;
 }
 
@@ -3049,10 +3020,8 @@ Instruction* CheckNullInstr::Canonicalize(FlowGraph* flow_graph) {
 
 BoxInstr* BoxInstr::Create(Representation from, Value* value) {
   switch (from) {
-#if !defined(AVOID_UNBOXED_INT32)
     case kUnboxedInt32:
       return new BoxInt32Instr(value);
-#endif
 
     case kUnboxedUint32:
       return new BoxUint32Instr(value);
@@ -3077,11 +3046,10 @@ UnboxInstr* UnboxInstr::Create(Representation to,
                                intptr_t deopt_id,
                                SpeculativeMode speculative_mode) {
   switch (to) {
-#if !defined(AVOID_UNBOXED_INT32)
     case kUnboxedInt32:
       return new UnboxInt32Instr(UnboxInt32Instr::kNoTruncation, value,
                                  deopt_id, speculative_mode);
-#endif
+
     case kUnboxedUint32:
       return new UnboxUint32Instr(value, deopt_id, speculative_mode);
 
@@ -4793,7 +4761,7 @@ struct SimdOpInfo {
 // Make representaion from type name used by SIMD_OP_LIST.
 #define REP(T) (kUnboxed##T)
 static const Representation kUnboxedBool = kTagged;
-static const Representation kUnboxedInt8 = kUnboxedUint32;
+static const Representation kUnboxedInt8 = kUnboxedInt32;
 
 #define ENCODE_INPUTS_0()
 #define ENCODE_INPUTS_1(In0) REP(In0)

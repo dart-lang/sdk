@@ -324,9 +324,8 @@ void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
                                        const Location& destination,
                                        Register tmp) {
-  ASSERT(representation() != kUnboxedInt32);
   if (destination.IsRegister()) {
-    if (representation() == kUnboxedUint32 ||
+    if (representation() == kUnboxedInt32 ||
         representation() == kUnboxedInt64) {
       const int64_t value = value_.IsSmi() ? Smi::Cast(value_).Value()
                                            : Mint::Cast(value_).value();
@@ -354,7 +353,11 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
     ASSERT(destination.IsStackSlot());
     ASSERT(tmp != kNoRegister);
     const intptr_t dest_offset = destination.ToStackSlotOffset();
-    __ LoadObject(tmp, value_);
+    if (value_.IsSmi() && representation() == kUnboxedInt32) {
+      __ LoadImmediate(tmp, static_cast<int32_t>(Smi::Cast(value_).Value()));
+    } else {
+      __ LoadObject(tmp, value_);
+    }
     __ StoreToOffset(tmp, destination.base_reg(), dest_offset);
   }
 }
@@ -362,7 +365,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
 LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps = IsUnboxedIntegerConstant() ? 0 : 1;
+  const intptr_t kNumTemps = IsUnboxedSignedIntegerConstant() ? 0 : 1;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   switch (representation()) {
@@ -370,7 +373,7 @@ LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
       locs->set_out(0, Location::RequiresFpuRegister());
       locs->set_temp(0, Location::RequiresRegister());
       break;
-    case kUnboxedUint32:  // We don't used signed int32 on ARM64.
+    case kUnboxedInt32:
     case kUnboxedInt64:
       locs->set_out(0, Location::RequiresRegister());
       break;
@@ -384,7 +387,7 @@ LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
 void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!locs()->out(0).IsInvalid()) {
     const Register scratch =
-        IsUnboxedIntegerConstant() ? kNoRegister : locs()->temp(0).reg();
+        IsUnboxedSignedIntegerConstant() ? kNoRegister : locs()->temp(0).reg();
     EmitMoveToLocation(compiler, locs()->out(0), scratch);
   }
 }
@@ -590,9 +593,9 @@ static Condition EmitInt64ComparisonOp(FlowGraphCompiler* compiler,
       right_constant = right.constant_instruction();
     }
 
-    if (right_constant->IsUnboxedIntegerConstant()) {
-      __ CompareImmediate(left.reg(),
-                          right_constant->GetUnboxedIntegerConstantValue());
+    if (right_constant->IsUnboxedSignedIntegerConstant()) {
+      __ CompareImmediate(
+          left.reg(), right_constant->GetUnboxedSignedIntegerConstantValue());
     } else {
       ASSERT(right_constant->representation() == kTagged);
       __ CompareObject(left.reg(), right.constant());
@@ -1025,10 +1028,11 @@ Representation LoadIndexedInstr::representation() const {
     case kExternalTwoByteStringCid:
       return kTagged;
     case kTypedDataInt32ArrayCid:
-    case kTypedDataInt64ArrayCid:
-      return kUnboxedInt64;
+      return kUnboxedInt32;
     case kTypedDataUint32ArrayCid:
       return kUnboxedUint32;
+    case kTypedDataInt64ArrayCid:
+      return kUnboxedInt64;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
@@ -1154,39 +1158,39 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  if (representation() == kUnboxedUint32) {
-    ASSERT(class_id() == kTypedDataUint32ArrayCid);
+  if ((representation() == kUnboxedInt32) ||
+      (representation() == kUnboxedUint32)) {
     const Register result = locs()->out(0).reg();
-    if (aligned()) {
-      __ ldr(result, element_address, kUnsignedWord);
-    } else {
-      __ LoadUnaligned(result, address, TMP, kUnsignedWord);
-    }
-    __ AssertValidUint32(result);
-    return;
-  }
-
-  if (representation() == kUnboxedInt64) {
-    Register result = locs()->out(0).reg();
     switch (class_id()) {
       case kTypedDataInt32ArrayCid:
-        ASSERT(representation() == kUnboxedInt64);
+        ASSERT(representation() == kUnboxedInt32);
         if (aligned()) {
           __ ldr(result, element_address, kWord);
         } else {
           __ LoadUnaligned(result, address, TMP, kWord);
         }
-        __ AssertValidSignExtendedInt32(result);
         break;
-      case kTypedDataInt64ArrayCid:
+      case kTypedDataUint32ArrayCid:
+        ASSERT(representation() == kUnboxedUint32);
         if (aligned()) {
-          __ ldr(result, element_address, kDoubleWord);
+          __ ldr(result, element_address, kUnsignedWord);
         } else {
-          __ LoadUnaligned(result, address, TMP, kDoubleWord);
+          __ LoadUnaligned(result, address, TMP, kUnsignedWord);
         }
         break;
       default:
         UNREACHABLE();
+    }
+    return;
+  }
+
+  if (representation() == kUnboxedInt64) {
+    ASSERT(class_id() == kTypedDataInt64ArrayCid);
+    Register result = locs()->out(0).reg();
+    if (aligned()) {
+      __ ldr(result, element_address, kDoubleWord);
+    } else {
+      __ LoadUnaligned(result, address, TMP, kDoubleWord);
     }
     return;
   }
@@ -1315,6 +1319,7 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
     case kTypedDataUint16ArrayCid:
       return kTagged;
     case kTypedDataInt32ArrayCid:
+      return kUnboxedInt32;
     case kTypedDataUint32ArrayCid:
       return kUnboxedUint32;
     case kTypedDataInt64ArrayCid:
@@ -3591,7 +3596,8 @@ void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {
 
 LocationSummary* BoxInteger32Instr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
-  ASSERT(from_representation() == kUnboxedUint32);
+  ASSERT((from_representation() == kUnboxedInt32) ||
+         (from_representation() == kUnboxedUint32));
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = ValueFitsSmi() ? 0 : 1;
   LocationSummary* summary = new (zone)
@@ -3710,37 +3716,44 @@ LocationSummary* UnboxInteger32Instr::MakeLocationSummary(Zone* zone,
 }
 
 void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // We don't use unboxed signed int32 on 64 bit platforms, so this is an
-  // unboxing to 32 bit unsigned integer, zero extended.
-  ASSERT(representation() == kUnboxedUint32);
-  ASSERT(is_truncating());
   const intptr_t value_cid = value()->Type()->ToCid();
   const Register out = locs()->out(0).reg();
   const Register value = locs()->in(0).reg();
+  Label* deopt = CanDeoptimize() ? compiler->AddDeoptStub(
+                                       GetDeoptId(), ICData::kDeoptUnboxInteger)
+                                 : NULL;
 
   if (value_cid == kSmiCid) {
-    ASSERT(kSmiTagSize == 1);
-    // Unsigned bitfield extract, untags the Smi, truncating to 32 bit unsigned.
-    __ ubfx(out, value, 1, 32);
+    __ SmiUntag(out, value);
   } else if (value_cid == kMintCid) {
-    __ LoadFieldFromOffset(out, value, Mint::value_offset(), kUnsignedWord);
-  } else {
-    // Type information is not conclusive.
+    __ LoadFieldFromOffset(out, value, Mint::value_offset());
+  } else if (!CanDeoptimize()) {
+    // Type information is not conclusive, but range analysis found
+    // the value to be in int64 range. Therefore it must be a smi
+    // or mint value.
+    ASSERT(is_truncating());
     Label done;
-    ASSERT(kSmiTagSize == 1);
-    // Unsigned bitfield extract, untags the Smi, truncating to 32 bit unsigned.
-    __ ubfx(out, value, 1, 32);
+    __ SmiUntag(out, value);
     __ BranchIfSmi(value, &done);
-    if (CanDeoptimize()) {
-      Label* deopt =
-          compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptUnboxInteger);
-      __ CompareClassId(value, kMintCid);
-      __ b(deopt, NE);
-    }
-    __ LoadFieldFromOffset(out, value, Mint::value_offset(), kUnsignedWord);
+    __ LoadFieldFromOffset(out, value, Mint::value_offset());
+    __ Bind(&done);
+  } else {
+    Label done;
+    __ SmiUntag(out, value);
+    __ BranchIfSmi(value, &done);
+    __ CompareClassId(value, kMintCid);
+    __ b(deopt, NE);
+    __ LoadFieldFromOffset(out, value, Mint::value_offset());
     __ Bind(&done);
   }
-  __ AssertValidUint32(out);
+
+  // TODO(vegorov): as it is implemented right now truncating unboxing would
+  // leave "garbage" in the higher word.
+  if (!is_truncating() && (deopt != NULL)) {
+    ASSERT(representation() == kUnboxedInt32);
+    __ cmp(out, Operand(out, SXTW, 0));
+    __ b(deopt, NE);
+  }
 }
 
 LocationSummary* BinaryDoubleOpInstr::MakeLocationSummary(Zone* zone,
@@ -5099,7 +5112,8 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Register r = TMP;
     if (right.IsConstant()) {
       ConstantInstr* constant_instr = right.constant_instruction();
-      const int64_t value = constant_instr->GetUnboxedIntegerConstantValue();
+      const int64_t value =
+          constant_instr->GetUnboxedSignedIntegerConstantValue();
       __ LoadImmediate(r, value);
     } else {
       r = right.reg();
@@ -5116,7 +5130,8 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (right.IsConstant()) {
     ConstantInstr* constant_instr = right.constant_instruction();
-    const int64_t value = constant_instr->GetUnboxedIntegerConstantValue();
+    const int64_t value =
+        constant_instr->GetUnboxedSignedIntegerConstantValue();
     switch (op_kind()) {
       case Token::kADD:
         if (CanDeoptimize()) {
@@ -5296,82 +5311,37 @@ LocationSummary* BinaryUint32OpInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_out(0, Location::RequiresRegister());
-  ConstantInstr* right_constant = right()->definition()->AsConstant();
-  if (right_constant != NULL &&
-      (right_constant->value().IsSmi() || right_constant->value().IsMint())) {
-    int64_t imm = right_constant->GetUnboxedIntegerConstantValue();
-    bool is_arithmetic = op_kind() == Token::kADD || op_kind() == Token::kSUB;
-    bool is_logical = op_kind() == Token::kBIT_AND ||
-                      op_kind() == Token::kBIT_OR ||
-                      op_kind() == Token::kBIT_XOR;
-    if ((is_logical && Operand::IsImmLogical(imm)) ||
-        (is_arithmetic && Operand::IsImmArithmethic(imm))) {
-      summary->set_in(1, Location::Constant(right_constant));
-      return summary;
-    }
-  }
   summary->set_in(1, Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
 
 void BinaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ConstantInstr* right_constant = right()->definition()->AsConstant();
   Register left = locs()->in(0).reg();
-  Location right = locs()->in(1);
+  Register right = locs()->in(1).reg();
+  Operand r = Operand(right);
   Register out = locs()->out(0).reg();
-  int64_t imm = 0;
-  if (right_constant != NULL) {
-    const Object& constant = right_constant->value();
-    if (constant.IsSmi()) {
-      imm = Smi::Cast(constant).AsInt64Value();
-    } else {
-      imm = Mint::Cast(constant).value();
-    }
-  }
-  if (right.IsRegister()) {
-    switch (op_kind()) {
-      case Token::kBIT_AND:
-        __ and_(out, left, Operand(right.reg()));
-        break;
-      case Token::kBIT_OR:
-        __ orr(out, left, Operand(right.reg()));
-        break;
-      case Token::kBIT_XOR:
-        __ eor(out, left, Operand(right.reg()));
-        break;
-      case Token::kADD:
-        __ addw(out, left, Operand(right.reg()));
-        break;
-      case Token::kSUB:
-        __ subw(out, left, Operand(right.reg()));
-        break;
-      case Token::kMUL:
-        __ mulw(out, left, right.reg());
-        break;
-      default:
-        UNREACHABLE();
-    }
-  } else {
-    switch (op_kind()) {
-      case Token::kBIT_AND:
-        __ andi(out, left, Immediate(imm));
-        break;
-      case Token::kBIT_OR:
-        __ orri(out, left, Immediate(imm));
-        break;
-      case Token::kBIT_XOR:
-        __ eori(out, left, Immediate(imm));
-        break;
-      case Token::kADD:
-        __ AddImmediate(out, left, imm, kWord);
-        break;
-      case Token::kSUB:
-        __ AddImmediate(out, left, -imm, kWord);
-        break;
-      default:
-        UNREACHABLE();
-    }
+  switch (op_kind()) {
+    case Token::kBIT_AND:
+      __ and_(out, left, r);
+      break;
+    case Token::kBIT_OR:
+      __ orr(out, left, r);
+      break;
+    case Token::kBIT_XOR:
+      __ eor(out, left, r);
+      break;
+    case Token::kADD:
+      __ addw(out, left, r);
+      break;
+    case Token::kSUB:
+      __ subw(out, left, r);
+      break;
+    case Token::kMUL:
+      __ mulw(out, left, right);
+      break;
+    default:
+      UNREACHABLE();
   }
 }
 
@@ -5476,14 +5446,19 @@ LocationSummary* UnboxedIntConverterInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   if (from() == kUnboxedInt64) {
-    ASSERT(to() == kUnboxedUint32);  // No unboxed int32 on ARM64.
+    ASSERT((to() == kUnboxedUint32) || (to() == kUnboxedInt32));
+  } else if (to() == kUnboxedInt64) {
+    ASSERT((from() == kUnboxedUint32) || (from() == kUnboxedInt32));
   } else {
-    ASSERT(to() == kUnboxedInt64);
-    ASSERT(from() == kUnboxedUint32);  // No unboxed int32 on ARM64.
+    ASSERT((to() == kUnboxedUint32) || (to() == kUnboxedInt32));
+    ASSERT((from() == kUnboxedUint32) || (from() == kUnboxedInt32));
   }
-  ASSERT(!CanDeoptimize());
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_out(0, Location::SameAsFirstInput());
+  if (CanDeoptimize()) {
+    summary->set_out(0, Location::RequiresRegister());
+  } else {
+    summary->set_out(0, Location::SameAsFirstInput());
+  }
   return summary;
 }
 
@@ -5491,16 +5466,52 @@ void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(from() != to());  // We don't convert from a representation to itself.
   const Register value = locs()->in(0).reg();
   const Register out = locs()->out(0).reg();
-  ASSERT(!CanDeoptimize());
-  if (from() == kUnboxedInt64) {
-    ASSERT(to() == kUnboxedUint32);
-    __ uxtw(out, value);  // Zero the top bits.
-  } else {
-    ASSERT(from() == kUnboxedUint32);
-    ASSERT(to() == kUnboxedInt64);
-    if (out != value) {
-      __ mov(out, value);  // Bits are the same.
+  Label* deopt = !CanDeoptimize() ? NULL
+                                  : compiler->AddDeoptStub(
+                                        deopt_id(), ICData::kDeoptUnboxInteger);
+  if (from() == kUnboxedInt32 && to() == kUnboxedUint32) {
+    if (CanDeoptimize()) {
+      __ tbnz(deopt, value,
+              31);  // If sign bit is set it won't fit in a uint32.
     }
+    if (out != value) {
+      __ mov(out, value);  // For positive values the bits are the same.
+    }
+  } else if (from() == kUnboxedUint32 && to() == kUnboxedInt32) {
+    if (CanDeoptimize()) {
+      __ tbnz(deopt, value,
+              31);  // If high bit is set it won't fit in an int32.
+    }
+    if (out != value) {
+      __ mov(out, value);  // For 31 bit values the bits are the same.
+    }
+  } else if (from() == kUnboxedInt64) {
+    if (to() == kUnboxedInt32) {
+      if (is_truncating() || out != value) {
+        __ sxtw(out, value);  // Signed extension 64->32.
+      }
+    } else {
+      ASSERT(to() == kUnboxedUint32);
+      if (is_truncating() || out != value) {
+        __ uxtw(out, value);  // Unsigned extension 64->32.
+      }
+    }
+    if (CanDeoptimize()) {
+      ASSERT(to() == kUnboxedInt32);
+      __ cmp(out, Operand(value));
+      __ b(deopt, NE);  // Value cannot be held in Int32, deopt.
+    }
+  } else if (to() == kUnboxedInt64) {
+    if (from() == kUnboxedUint32) {
+      if (out != value) {
+        __ mov(out, value);
+      }
+    } else {
+      ASSERT(from() == kUnboxedInt32);
+      __ sxtw(out, value);  // Signed extension 32->64.
+    }
+  } else {
+    UNREACHABLE();
   }
 }
 

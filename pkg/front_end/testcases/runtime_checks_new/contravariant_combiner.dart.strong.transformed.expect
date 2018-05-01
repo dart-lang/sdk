@@ -7,7 +7,7 @@ class B<T extends core::Object, U extends (self::B::T) → void> extends core::O
   synthetic constructor •() → void
     : super core::Object::•()
     ;
-  generic-contravariant operator +(dynamic other) → self::B<self::B::T, (self::B::T) → void>
+  operator +(dynamic other) → self::B<self::B::T, (self::B::T) → void>
     return null;
 }
 class C extends core::Object {

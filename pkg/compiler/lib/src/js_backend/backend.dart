@@ -7,7 +7,7 @@ library js_backend.backend;
 import '../common.dart';
 import '../common/backend_api.dart'
     show ForeignResolver, NativeRegistry, ImpactTransformer;
-import '../common/codegen.dart' show CodegenWorkItem;
+import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/names.dart' show Uris;
 import '../common/resolution.dart' show Resolution, Target;
 import '../common/tasks.dart' show CompilerTask;
@@ -50,6 +50,7 @@ import '../universe/call_structure.dart' show CallStructure;
 import '../universe/class_hierarchy_builder.dart'
     show ClassHierarchyBuilder, ClassQueries;
 import '../universe/selector.dart' show Selector;
+import '../universe/use.dart' show StaticUse;
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart'
     show ImpactStrategy, ImpactUseCase, WorldImpact, WorldImpactVisitor;
@@ -974,7 +975,10 @@ class JavaScriptBackend {
     _namer = determineNamer(closedWorld, codegenWorldBuilder);
     tracer = new Tracer(closedWorld, namer, compiler.outputProvider);
     _rtiEncoder = _namer.rtiEncoder = new RuntimeTypesEncoderImpl(
-        namer, closedWorld.elementEnvironment, closedWorld.commonElements,
+        namer,
+        closedWorld.nativeData,
+        closedWorld.elementEnvironment,
+        closedWorld.commonElements,
         strongMode: compiler.options.strongMode);
     emitter.createEmitter(namer, closedWorld, codegenWorldBuilder, sorter);
     // TODO(johnniwinther): Share the impact object created in
@@ -1157,6 +1161,7 @@ class JavaScriptBackend {
   jsAst.Expression rewriteAsync(
       CommonElements commonElements,
       ElementEnvironment elementEnvironment,
+      CodegenRegistry registry,
       FunctionEntity element,
       jsAst.Expression code,
       SourceInformation bodySourceInformation,
@@ -1169,14 +1174,14 @@ class JavaScriptBackend {
     switch (element.asyncMarker) {
       case AsyncMarker.ASYNC:
         rewriter = _makeAsyncRewriter(
-            commonElements, elementEnvironment, element, code, name);
+            commonElements, elementEnvironment, registry, element, code, name);
         break;
       case AsyncMarker.SYNC_STAR:
         rewriter = new SyncStarRewriter(reporter, element,
             endOfIteration:
                 emitter.staticFunctionAccess(commonElements.endOfIteration),
-            iterableFactory: emitter.staticFunctionAccess(
-                commonElements.syncStarIterableConstructor),
+            iterableFactory: emitter
+                .staticFunctionAccess(commonElements.syncStarIterableFactory),
             iterableFactoryTypeArgument:
                 _fetchItemType(element, elementEnvironment),
             yieldStarExpression:
@@ -1185,6 +1190,11 @@ class JavaScriptBackend {
                 .staticFunctionAccess(commonElements.syncStarUncaughtError),
             safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
             bodyName: namer.deriveAsyncBodyName(name));
+        registry.registerStaticUse(new StaticUse.staticInvoke(
+            commonElements.syncStarIterableFactory,
+            const CallStructure.unnamed(1, 1), [
+          elementEnvironment.getFunctionAsyncOrSyncStarElementType(element)
+        ]));
         break;
       case AsyncMarker.ASYNC_STAR:
         rewriter = new AsyncStarRewriter(reporter, element,
@@ -1194,7 +1204,7 @@ class JavaScriptBackend {
                 emitter.staticFunctionAccess(commonElements.streamOfController),
             wrapBody: emitter.staticFunctionAccess(commonElements.wrapBody),
             newController: emitter.staticFunctionAccess(
-                commonElements.asyncStarControllerConstructor),
+                commonElements.asyncStarStreamControllerFactory),
             newControllerTypeArgument:
                 _fetchItemType(element, elementEnvironment),
             safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
@@ -1203,6 +1213,11 @@ class JavaScriptBackend {
             yieldStarExpression:
                 emitter.staticFunctionAccess(commonElements.yieldStar),
             bodyName: namer.deriveAsyncBodyName(name));
+        registry.registerStaticUse(new StaticUse.staticInvoke(
+            commonElements.asyncStarStreamControllerFactory,
+            const CallStructure.unnamed(1, 1), [
+          elementEnvironment.getFunctionAsyncOrSyncStarElementType(element)
+        ]));
         break;
     }
     return rewriter.rewrite(code, bodySourceInformation, exitSourceInformation);
@@ -1226,6 +1241,7 @@ class JavaScriptBackend {
   AsyncRewriter _makeAsyncRewriter(
       CommonElements commonElements,
       ElementEnvironment elementEnvironment,
+      CodegenRegistry registry,
       FunctionEntity element,
       jsAst.Expression code,
       jsAst.Name name) {
@@ -1234,9 +1250,9 @@ class JavaScriptBackend {
     var startFunction = startAsyncSynchronously
         ? commonElements.asyncHelperStartSync
         : commonElements.asyncHelperStart;
-    var completerConstructor = startAsyncSynchronously
-        ? commonElements.asyncAwaitCompleterConstructor
-        : commonElements.syncCompleterConstructor;
+    var completerFactory = startAsyncSynchronously
+        ? commonElements.asyncAwaitCompleterFactory
+        : commonElements.syncCompleterFactory;
 
     jsAst.Expression itemTypeExpression =
         _fetchItemType(element, elementEnvironment);
@@ -1250,10 +1266,15 @@ class JavaScriptBackend {
         asyncRethrow:
             emitter.staticFunctionAccess(commonElements.asyncHelperRethrow),
         wrapBody: emitter.staticFunctionAccess(commonElements.wrapBody),
-        completerFactory: emitter.staticFunctionAccess(completerConstructor),
+        completerFactory: emitter.staticFunctionAccess(completerFactory),
         completerFactoryTypeArgument: itemTypeExpression,
         safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
         bodyName: namer.deriveAsyncBodyName(name));
+
+    registry.registerStaticUse(new StaticUse.staticInvoke(
+        completerFactory,
+        const CallStructure.unnamed(0, 1),
+        [elementEnvironment.getFunctionAsyncOrSyncStarElementType(element)]));
 
     return rewriter;
   }

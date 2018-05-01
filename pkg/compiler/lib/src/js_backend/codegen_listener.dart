@@ -190,6 +190,19 @@ class CodegenEnqueuerListener extends EnqueuerListener {
         InterfaceType representedType = type.representedType;
         _customElementsAnalysis.registerTypeConstant(representedType.element);
       }
+    } else if (constant is InstantiationConstantValue) {
+      impactBuilder.registerTypeUse(new TypeUse.instantiation(
+          _elementEnvironment
+              .getThisType(_commonElements.instantiation1Class)));
+      impactBuilder.registerTypeUse(new TypeUse.instantiation(
+          _elementEnvironment
+              .getThisType(_commonElements.instantiation2Class)));
+      impactBuilder.registerTypeUse(new TypeUse.instantiation(
+          _elementEnvironment
+              .getThisType(_commonElements.instantiation2Class)));
+      impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+          _commonElements.instantiatedGenericFunctionType,
+          CallStructure.TWO_ARGS));
     }
   }
 

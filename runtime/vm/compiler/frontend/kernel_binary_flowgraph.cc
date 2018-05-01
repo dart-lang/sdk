@@ -175,9 +175,6 @@ void FieldHelper::ReadUntilExcluding(Field field,
     case kFlags:
       flags_ = helper_->ReadFlags();
       if (++next_read_ == field) return;
-    case kFlags2:
-      secondary_flags_ = helper_->ReadFlags();
-      if (++next_read_ == field) return;
     case kName:
       helper_->SkipName();  // read name.
       if (++next_read_ == field) return;
@@ -246,7 +243,6 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
     case kFlags:
       flags_ = helper_->ReadFlags();
-      flags2_ = helper_->ReadFlags();
       if (++next_read_ == field) return;
     case kName:
       helper_->SkipName();  // read name.
@@ -1552,7 +1548,7 @@ void StreamingScopeBuilder::VisitExpression() {
       builder_->ReadUInt();  // read value.
       return;
     case kDoubleLiteral:
-      builder_->SkipStringReference();  // read index into string table.
+      builder_->ReadDouble();  // read value.
       return;
     case kTrueLiteral:
       return;
@@ -3546,8 +3542,7 @@ void StreamingConstantEvaluator::EvaluateIntLiteral(bool is_negative) {
 }
 
 void StreamingConstantEvaluator::EvaluateDoubleLiteral() {
-  result_ = Double::New(H.DartString(builder_->ReadStringReference()),
-                        Heap::kOld);  // read string reference.
+  result_ = Double::New(builder_->ReadDouble(), Heap::kOld);  // read value.
   result_ = H.Canonicalize(result_);
 }
 
@@ -4423,7 +4418,7 @@ uint32_t KernelFingerprintHelper::CalculateFieldFingerprint() {
   }
 
   BuildHash(name.Hash());
-  BuildHash((field_helper.flags_ << 8) | field_helper.secondary_flags_);
+  BuildHash(field_helper.flags_);
   BuildHash(field_helper.annotation_count_);
   return hash_;
 }
@@ -4469,7 +4464,6 @@ uint32_t KernelFingerprintHelper::CalculateFunctionFingerprint() {
 
   BuildHash(procedure_helper.kind_);
   BuildHash(procedure_helper.flags_);
-  BuildHash(procedure_helper.flags2_);
   BuildHash(procedure_helper.annotation_count_);
   BuildHash(name.Hash());
   return hash_;
@@ -6027,6 +6021,10 @@ uint32_t KernelReaderHelper::PeekUInt() {
   return reader_.ReadUInt();
 }
 
+double KernelReaderHelper::ReadDouble() {
+  return reader_.ReadDouble();
+}
+
 uint32_t KernelReaderHelper::PeekListLength() {
   AlternativeReadingScope alt(&reader_);
   return reader_.ReadListLength();
@@ -6494,7 +6492,7 @@ void KernelReaderHelper::SkipExpression() {
       ReadUInt();  // read value.
       return;
     case kDoubleLiteral:
-      SkipStringReference();  // read index into string table.
+      ReadDouble();  // read value.
       return;
     case kTrueLiteral:
       return;
@@ -8987,8 +8985,7 @@ Fragment StreamingFlowGraphBuilder::BuildDoubleLiteral(
   if (position != NULL) *position = TokenPosition::kNoSource;
 
   Double& constant = Double::ZoneHandle(
-      Z, Double::NewCanonical(
-             H.DartString(ReadStringReference())));  // read string reference.
+      Z, Double::NewCanonical(ReadDouble()));  // read double.
   return Constant(constant);
 }
 
@@ -10822,8 +10819,7 @@ const Array& ConstantHelper::ReadConstantTable() {
         break;
       }
       case kDoubleConstant: {
-        temp_instance_ = Double::New(
-            H.DartString(builder_.ReadStringReference()), Heap::kOld);
+        temp_instance_ = Double::New(builder_.ReadDouble(), Heap::kOld);
         temp_instance_ = H.Canonicalize(temp_instance_);
         break;
       }
@@ -10852,8 +10848,13 @@ const Array& ConstantHelper::ReadConstantTable() {
         break;
       }
       case kInstanceConstant: {
-        temp_class_ =
-            H.LookupClassByKernelClass(builder_.ReadCanonicalNameReference());
+        const NameIndex index = builder_.ReadCanonicalNameReference();
+        if (ShouldSkipConstant(index)) {
+          temp_instance_ = Instance::null();
+          break;
+        }
+
+        temp_class_ = H.LookupClassByKernelClass(index);
         temp_object_ = temp_class_.EnsureIsFinalized(H.thread());
         ASSERT(temp_object_.IsNull());
 
@@ -10889,16 +10890,19 @@ const Array& ConstantHelper::ReadConstantTable() {
         const intptr_t entry_index = builder_.ReadUInt();
         temp_object_ = constants.At(entry_index);
 
+        // Happens if the tearoff was in the vmservice library and we have
+        // [skip_vm_service_library] enabled.
+        if (temp_object_.IsNull()) {
+          temp_instance_ = Instance::null();
+          break;
+        }
+
         const intptr_t number_of_type_arguments = builder_.ReadUInt();
-        if (temp_class_.NumTypeArguments() > 0) {
-          temp_type_arguments_ =
-              TypeArguments::New(number_of_type_arguments, Heap::kOld);
-          for (intptr_t j = 0; j < number_of_type_arguments; ++j) {
-            temp_type_arguments_.SetTypeAt(j, type_translator_.BuildType());
-          }
-        } else {
-          ASSERT(number_of_type_arguments == 0);
-          temp_type_arguments_ = TypeArguments::null();
+        ASSERT(number_of_type_arguments > 0);
+        temp_type_arguments_ =
+            TypeArguments::New(number_of_type_arguments, Heap::kOld);
+        for (intptr_t j = 0; j < number_of_type_arguments; ++j) {
+          temp_type_arguments_.SetTypeAt(j, type_translator_.BuildType());
         }
 
         // Make a copy of the old closure, with the delayed type arguments
@@ -10916,12 +10920,7 @@ const Array& ConstantHelper::ReadConstantTable() {
       }
       case kTearOffConstant: {
         const NameIndex index = builder_.ReadCanonicalNameReference();
-        NameIndex lib_index = index;
-        while (!H.IsLibrary(lib_index)) {
-          lib_index = H.CanonicalNameParent(lib_index);
-        }
-        ASSERT(H.IsLibrary(lib_index));
-        if (lib_index == skip_vmservice_library_) {
+        if (ShouldSkipConstant(index)) {
           temp_instance_ = Instance::null();
           break;
         }
@@ -10958,6 +10957,19 @@ void ConstantHelper::InstantiateTypeArguments(const Class& receiver_class,
   temp_type_ = ClassFinalizer::FinalizeType(*active_class_->klass, temp_type_,
                                             ClassFinalizer::kCanonicalize);
   *type_arguments = temp_type_.arguments();
+}
+
+// If [index] has `dart:vm_service` as a parent and we are skipping the VM
+// service library, this method returns `true`, otherwise `false`.
+bool ConstantHelper::ShouldSkipConstant(NameIndex index) {
+  if (index == NameIndex::kInvalidName) {
+    return false;
+  }
+  while (!H.IsLibrary(index)) {
+    index = H.CanonicalNameParent(index);
+  }
+  ASSERT(H.IsLibrary(index));
+  return index == skip_vmservice_library_;
 }
 
 }  // namespace kernel

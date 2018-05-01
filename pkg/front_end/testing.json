@@ -149,7 +149,18 @@
       "exclude": [
       ]
     },
-
+    {
+      "name": "expression",
+      "kind": "Chain",
+      "source": "test/fasta/expression_test.dart",
+      "path": "testcases/expression/",
+      "status": "testcases/expression.status",
+      "pattern": [
+        "\\.expression\\.yaml$"
+      ],
+      "exclude": [
+      ]
+    },
     {
       "name": "incremental_load_from_dill",
       "kind": "Chain",

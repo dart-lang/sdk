@@ -11,6 +11,7 @@ class B<T> {}
 /*ast.element: method:*/
 /*kernel.element: method:*/
 /*strong.element: method:needsArgs*/
+/*omit.element: method:needsArgs*/
 method<T>() => new B<T>();
 
 main() {

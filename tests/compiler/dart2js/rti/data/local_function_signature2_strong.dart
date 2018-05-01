@@ -25,7 +25,8 @@ class Class1 {
 }
 
 class Class2 {
-  /*element: Class2.method4:needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
+  /*strong.element: Class2.method4:direct,explicit=[method4.T],needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
+  /*omit.element: Class2.method4:needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
   method4<T>() {
     /*needsSignature*/
     num local(T n) => null;
@@ -43,7 +44,8 @@ class Class3 {
 }
 
 class Class4 {
-  /*element: Class4.method6:*/
+  /*strong.element: Class4.method6:direct,explicit=[method6.T],needsArgs,selectors=[Selector(call, method6, arity=0, types=1)]*/
+  /*omit.element: Class4.method6:*/
   method6<T>() {
     /**/
     num local(num n, T t) => null;
@@ -51,7 +53,8 @@ class Class4 {
   }
 }
 
-/*element: method7:needsArgs*/
+/*strong.element: method7:direct,explicit=[method7.T],needsArgs*/
+/*omit.element: method7:needsArgs*/
 method7<T>() {
   /*needsSignature*/
   num local(T n) => null;
@@ -65,7 +68,8 @@ method8<T>() {
   return local;
 }
 
-/*element: method9:*/
+/*strong.element: method9:direct,explicit=[method9.T],needsArgs*/
+/*omit.element: method9:*/
 method9<T>() {
   /**/
   num local(num n, T t) => null;
@@ -73,7 +77,8 @@ method9<T>() {
 }
 
 method10() {
-  /**/
+  /*strong.direct,explicit=[local.T],needsArgs*/
+  /*omit.*/
   num local<T>(T n) => null;
   return local;
 }
@@ -85,7 +90,8 @@ method11() {
 }
 
 method12() {
-  /**/
+  /*strong.direct,explicit=[local.T],needsArgs*/
+  /*omit.*/
   num local<T>(num n, T t) => null;
   return local;
 }

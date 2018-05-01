@@ -22,10 +22,7 @@ import 'parser.dart' show Parser;
 class IdentifierContext {
   /// Identifier is being declared as the name of an import prefix (i.e. `Foo`
   /// in `import "..." as Foo;`)
-  static const importPrefixDeclaration = const IdentifierContext(
-      'importPrefixDeclaration',
-      inDeclaration: true,
-      isBuiltInIdentifierAllowed: false);
+  static const importPrefixDeclaration = const ImportPrefixIdentifierContext();
 
   /// Identifier is the start of a dotted name in a conditional import or
   /// export.

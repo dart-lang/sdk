@@ -151,6 +151,9 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
         case Feature.TYPE_VARIABLE_BOUNDS_CHECK:
           registerImpact(_impacts.typeVariableBoundCheck);
           break;
+        case Feature.LOAD_LIBRARY:
+          registerImpact(_impacts.loadLibrary);
+          break;
       }
     }
 

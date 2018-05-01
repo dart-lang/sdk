@@ -227,4 +227,6 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
       {List<LocatedMessage> context}) {
     library.addProblem(message, charOffset, length, fileUri, context: context);
   }
+
+  int get typeVariablesCount;
 }

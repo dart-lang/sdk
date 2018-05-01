@@ -16,6 +16,7 @@ import 'constants/values.dart'
         ConstructedConstantValue,
         DeferredConstantValue,
         DeferredGlobalConstantValue,
+        InstantiationConstantValue,
         TypeConstantValue;
 import 'elements/types.dart';
 import 'elements/elements.dart'
@@ -387,6 +388,13 @@ abstract class DeferredLoadTask extends CompilerTask {
         var type = constant.representedType;
         if (type is TypedefType) {
           _updateElementRecursive(type.element, oldSet, newSet, queue);
+        }
+      }
+      if (constant is InstantiationConstantValue) {
+        for (DartType type in constant.typeArguments) {
+          if (type is InterfaceType) {
+            _updateElementRecursive(type.element, oldSet, newSet, queue);
+          }
         }
       }
       constant.getDependencies().forEach((ConstantValue dependency) {

@@ -303,7 +303,6 @@ deferred_constraints_type_annotation_test/type_annotation_top_level: MissingComp
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
-deferred_load_constants_test/none: RuntimeError
 deferred_load_library_wrong_args_test/01: MissingRuntimeError
 deferred_not_loaded_check_test: RuntimeError # Test out of date. Issue 31933
 deferred_redirecting_factory_test: RuntimeError
@@ -605,9 +604,6 @@ call_method_implicit_tear_off_implements_function_test/04: RuntimeError
 call_method_implicit_tear_off_test/02: RuntimeError
 call_method_implicit_tear_off_test/04: RuntimeError
 canonical_const2_test: RuntimeError, OK # non JS number semantics
-cha_deopt1_test: RuntimeError
-cha_deopt2_test: RuntimeError
-cha_deopt3_test: RuntimeError
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
@@ -649,40 +645,15 @@ cyclic_type_test/03: RuntimeError
 cyclic_type_test/04: RuntimeError
 cyclic_typedef_test/10: Crash # Crash when compiling file:///usr/local/google/home/sra/Dart/sdk/out/ReleaseX64/generated_tests/language_2/cyclic_typedef_test_10.dart,
 cyclic_typedef_test/11: Crash # Crash when compiling file:///usr/local/google/home/sra/Dart/sdk/out/ReleaseX64/generated_tests/language_2/cyclic_typedef_test_11.dart,
-deferred_closurize_load_library_test: RuntimeError
-deferred_constant_list_test: RuntimeError
 deferred_constraints_constants_test/default_argument2: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_constants_test/none: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_constants_test/reference_after_load: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
-deferred_constraints_type_annotation_test/new: RuntimeError
-deferred_constraints_type_annotation_test/new_generic1: RuntimeError
-deferred_constraints_type_annotation_test/none: RuntimeError
-deferred_constraints_type_annotation_test/static_method: RuntimeError
-deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError
-deferred_function_type_test: RuntimeError
-deferred_global_test: RuntimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
-deferred_inlined_test: RuntimeError
-deferred_load_constants_test/none: RuntimeError
-deferred_load_inval_code_test: RuntimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
-deferred_mixin_test: RuntimeError
-deferred_no_such_method_test: RuntimeError
 deferred_not_loaded_check_test: RuntimeError # Test out of date. Issue 31933
-deferred_only_constant_test: RuntimeError
-deferred_optimized_test: RuntimeError
 deferred_redirecting_factory_test: RuntimeError
-deferred_regression_22995_test: RuntimeError
-deferred_regression_28678_test: RuntimeError
-deferred_shadow_load_library_test: RuntimeError
-deferred_shared_and_unshared_classes_test: RuntimeError
-deferred_static_seperate_test: RuntimeError
-deferred_type_dependency_test/as: RuntimeError
-deferred_type_dependency_test/is: RuntimeError
-deferred_type_dependency_test/none: RuntimeError
-deferred_type_dependency_test/type_annotation: RuntimeError
 double_int_to_string_test: RuntimeError, OK # non JS number semantics
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
@@ -904,13 +875,11 @@ parser_quirks_test: CompileTimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_reflection_test: RuntimeError
-regress_22443_test: RuntimeError
 regress_23089_test: Crash # Crash when compiling file:///usr/local/google/home/sra/Dart/sdk/tests/language_2/regress_23089_test.dart,
 regress_23408_test: CompileTimeError
 regress_24283_test: RuntimeError # non JS number semantics
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
 regress_28255_test: RuntimeError
-regress_28278_test: RuntimeError
 regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError
 regress_29784_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ok).
@@ -1021,7 +990,6 @@ async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
 async_return_types_test/nestedFuture: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_return_types_test/tooManyTypeParameters: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
 async_return_types_test/wrongReturnType: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
 async_star_cancel_while_paused_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
 async_star_test/01: RuntimeError
@@ -1045,9 +1013,6 @@ call_method_implicit_tear_off_test/04: RuntimeError
 call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
 canonical_const2_test: RuntimeError, OK # non JS number semantics
-cha_deopt1_test: RuntimeError
-cha_deopt2_test: RuntimeError
-cha_deopt3_test: RuntimeError
 check_member_static_test/01: MissingCompileTimeError
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
@@ -1106,40 +1071,15 @@ cyclic_typedef_test/10: Crash # Stack Overflow
 cyclic_typedef_test/11: Crash # Stack Overflow
 default_factory2_test/01: MissingCompileTimeError
 default_factory_test/01: MissingCompileTimeError
-deferred_closurize_load_library_test: RuntimeError
-deferred_constant_list_test: RuntimeError
 deferred_constraints_constants_test/none: RuntimeError
 deferred_constraints_constants_test/reference_after_load: RuntimeError
-deferred_constraints_type_annotation_test/new: RuntimeError
-deferred_constraints_type_annotation_test/new_generic1: RuntimeError
-deferred_constraints_type_annotation_test/none: RuntimeError
-deferred_constraints_type_annotation_test/static_method: RuntimeError
-deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError
-deferred_function_type_test: RuntimeError
-deferred_global_test: RuntimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
-deferred_inlined_test: RuntimeError
-deferred_load_constants_test/none: RuntimeError
-deferred_load_inval_code_test: RuntimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
-deferred_mixin_test: RuntimeError
-deferred_no_such_method_test: RuntimeError
 deferred_not_loaded_check_test: RuntimeError # Test out of date. Issue 31933
-deferred_only_constant_test: RuntimeError
-deferred_optimized_test: RuntimeError
 deferred_redirecting_factory_test: RuntimeError
-deferred_regression_22995_test: RuntimeError
-deferred_regression_28678_test: RuntimeError
-deferred_shadow_load_library_test: RuntimeError
-deferred_shared_and_unshared_classes_test: RuntimeError
-deferred_static_seperate_test: RuntimeError
-deferred_type_dependency_test/as: RuntimeError
-deferred_type_dependency_test/is: RuntimeError
-deferred_type_dependency_test/none: RuntimeError
-deferred_type_dependency_test/type_annotation: RuntimeError
 double_int_to_string_test: RuntimeError, OK # non JS number semantics
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
@@ -1383,11 +1323,8 @@ mixin_supertype_subclass_test/01: CompileTimeError
 mixin_supertype_subclass_test/03: CompileTimeError
 mixin_supertype_subclass_test/04: CompileTimeError
 mixin_supertype_subclass_test/none: CompileTimeError
-mixin_type_parameters_errors_test/01: MissingCompileTimeError
-mixin_type_parameters_errors_test/02: MissingCompileTimeError
 mixin_type_parameters_errors_test/03: MissingCompileTimeError
 mixin_type_parameters_errors_test/04: MissingCompileTimeError
-mixin_type_parameters_errors_test/05: MissingCompileTimeError
 modulo_test: RuntimeError # non JS number semantics
 multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/04r: MissingCompileTimeError
@@ -1451,13 +1388,11 @@ redirecting_factory_malbounded_test/01: MissingCompileTimeError
 redirecting_factory_reflection_test: RuntimeError
 regress_13462_1_test: RuntimeError
 regress_18535_test: RuntimeError
-regress_22443_test: RuntimeError
 regress_23089_test: Crash # Stack Overflow
 regress_23408_test: CompileTimeError
 regress_24283_test: RuntimeError # non JS number semantics
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
 regress_28255_test: RuntimeError
-regress_28278_test: RuntimeError
 regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError
 regress_29784_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ok).
@@ -1642,7 +1577,6 @@ async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
 async_return_types_test/nestedFuture: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_return_types_test/tooManyTypeParameters: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
 async_return_types_test/wrongReturnType: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
 async_star_cancel_while_paused_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
 async_star_test/01: RuntimeError
@@ -1667,9 +1601,6 @@ call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
 call_with_no_such_method_test: RuntimeError
 canonical_const2_test: RuntimeError, OK # non JS number semantics
-cha_deopt1_test: RuntimeError
-cha_deopt2_test: RuntimeError
-cha_deopt3_test: RuntimeError
 check_member_static_test/01: MissingCompileTimeError
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
@@ -1723,40 +1654,15 @@ cyclic_typedef_test/10: Crash # Stack Overflow
 cyclic_typedef_test/11: Crash # Stack Overflow
 default_factory2_test/01: MissingCompileTimeError
 default_factory_test/01: MissingCompileTimeError
-deferred_closurize_load_library_test: RuntimeError
-deferred_constant_list_test: RuntimeError
 deferred_constraints_constants_test/none: RuntimeError
 deferred_constraints_constants_test/reference_after_load: RuntimeError
-deferred_constraints_type_annotation_test/new: RuntimeError
-deferred_constraints_type_annotation_test/new_generic1: RuntimeError
-deferred_constraints_type_annotation_test/none: RuntimeError
-deferred_constraints_type_annotation_test/static_method: RuntimeError
-deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError
-deferred_function_type_test: RuntimeError
-deferred_global_test: RuntimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
-deferred_inlined_test: RuntimeError
-deferred_load_constants_test/none: RuntimeError
-deferred_load_inval_code_test: RuntimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
-deferred_mixin_test: RuntimeError
-deferred_no_such_method_test: RuntimeError
 deferred_not_loaded_check_test: RuntimeError # Test out of date. Issue 31933
-deferred_only_constant_test: RuntimeError
-deferred_optimized_test: RuntimeError
 deferred_redirecting_factory_test: RuntimeError
-deferred_regression_22995_test: RuntimeError
-deferred_regression_28678_test: RuntimeError
-deferred_shadow_load_library_test: RuntimeError
-deferred_shared_and_unshared_classes_test: RuntimeError
-deferred_static_seperate_test: RuntimeError
-deferred_type_dependency_test/as: RuntimeError
-deferred_type_dependency_test/is: RuntimeError
-deferred_type_dependency_test/none: RuntimeError
-deferred_type_dependency_test/type_annotation: RuntimeError
 double_int_to_string_test: RuntimeError, OK # non JS number semantics
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
@@ -1999,11 +1905,8 @@ mixin_supertype_subclass_test/01: CompileTimeError
 mixin_supertype_subclass_test/03: CompileTimeError
 mixin_supertype_subclass_test/04: CompileTimeError
 mixin_supertype_subclass_test/none: CompileTimeError
-mixin_type_parameters_errors_test/01: MissingCompileTimeError
-mixin_type_parameters_errors_test/02: MissingCompileTimeError
 mixin_type_parameters_errors_test/03: MissingCompileTimeError
 mixin_type_parameters_errors_test/04: MissingCompileTimeError
-mixin_type_parameters_errors_test/05: MissingCompileTimeError
 mock_writable_final_field_test: RuntimeError # Issue 30847
 mock_writable_final_private_field_test: RuntimeError # Issue 17526, 30847
 modulo_test: RuntimeError # non JS number semantics
@@ -2067,13 +1970,11 @@ redirecting_factory_reflection_test: RuntimeError
 regress_13462_1_test: RuntimeError
 regress_18535_test: RuntimeError
 regress_21795_test: RuntimeError # Issue 12605
-regress_22443_test: RuntimeError
 regress_23089_test: Crash # Stack Overflow
 regress_23408_test: CompileTimeError
 regress_24283_test: RuntimeError, OK # Requires 64 bit numbers.
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
 regress_28255_test: RuntimeError
-regress_28278_test: RuntimeError
 regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError
 regress_29784_test/01: Crash # Issue 29784

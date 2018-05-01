@@ -135,6 +135,9 @@ class Emitter extends emitterTask.EmitterBase {
       case JsBuiltin.isDynamicType:
         return _backend.rtiEncoder.templateForIsDynamicType;
 
+      case JsBuiltin.isJsInteropTypeArgument:
+        return _backend.rtiEncoder.templateForIsJsInteropTypeArgument;
+
       case JsBuiltin.rawRtiToJsConstructorName:
         return js.js.expressionTemplateFor("#.name");
 

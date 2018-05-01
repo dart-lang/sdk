@@ -31,7 +31,7 @@ class B {
 }
 
 abstract class I<T> {
-  F<T> get /*@genericContravariant=true*/ x;
+  F<T> get x;
   void set x(Object value);
 }
 
@@ -44,10 +44,7 @@ abstract class M<T> {
   T f();
 }
 
-abstract class
-/*@forwardingStub=abstract genericContravariant (C::T) -> void f()*/
-/*@forwardingStub=abstract genericContravariant (C::T) -> void get x()*/
-    C<T> = B with M<F<T>> implements I<T>;
+abstract class C<T> = B with M<F<T>> implements I<T>;
 
 class D extends C<int> {
   F<int> f() => (int i) {

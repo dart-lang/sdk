@@ -41,7 +41,8 @@ old_frontend/resolver_test: RuntimeError # Test must be updated given new parser
 packages/*: Skip # Skip packages folder
 quarantined/http_test: RuntimeError # not supported with CFE, consider deleting.
 rti/rti_emission_test: Pass, Slow
-rti/rti_need_test: Pass, Slow
+rti/rti_need0_test: Pass, Slow
+rti/rti_need1_test: Pass, Slow
 show_package_warnings_test: RuntimeError # missing errors from the FE
 sourcemaps/pub_build_validity_test: Pass, RuntimeError # Investigate: passes locally, but only fails in bots.
 sourcemaps/source_mapping_invokes_test: Pass, Slow

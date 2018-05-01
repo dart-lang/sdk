@@ -4028,6 +4028,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   FunctionEntity _instantiator(int count) {
+    // TODO(johnniwinther,sra): Support arbitrary type argument count.
     if (count == 1) return _commonElements.instantiate1;
     if (count == 2) return _commonElements.instantiate2;
     if (count == 3) return _commonElements.instantiate3;
@@ -4439,7 +4440,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       js.Name operator = namer.operatorIs(element);
       HInstruction isFieldName =
           graph.addConstantStringFromName(operator, closedWorld);
-      HInstruction asFieldName = closedWorld.hasAnyStrictSubtype(element)
+      HInstruction asFieldName = closedWorld.hasAnyStrictSubtype(element) ||
+              closedWorld.nativeData.isJsInteropClass(element)
           ? graph.addConstantStringFromName(
               namer.substitutionName(element), closedWorld)
           : graph.addConstantNull(closedWorld);

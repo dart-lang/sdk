@@ -230,15 +230,6 @@ class ForwardingNode extends Procedure {
     bool needsCheck(DartType type) => needsCheckVisitor == null
         ? false
         : substitution.substituteType(type).accept(needsCheckVisitor);
-    needsCheckVisitor?.inCovariantContext = false;
-    var isGenericContravariant = needsCheck(interfaceFunction.returnType);
-    needsCheckVisitor?.inCovariantContext = true;
-    if (isGenericContravariant != interfaceMember.isGenericContravariant) {
-      fixes.add((FunctionNode function) {
-        Procedure procedure = function.parent;
-        procedure.isGenericContravariant = isGenericContravariant;
-      });
-    }
     for (int i = 0; i < interfacePositionalParameters.length; i++) {
       var parameter = interfacePositionalParameters[i];
       var isGenericCovariantInterface = needsCheck(parameter.type);
@@ -491,8 +482,7 @@ class ForwardingNode extends Procedure {
         fileUri: enclosingClass.fileUri,
         forwardingStubInterfaceTarget: finalTarget)
       ..fileOffset = enclosingClass.fileOffset
-      ..parent = enclosingClass
-      ..isGenericContravariant = target.isGenericContravariant;
+      ..parent = enclosingClass;
   }
 
   /// Creates a forwarding stub for this node if necessary, and propagates
@@ -1103,13 +1093,6 @@ class InterfaceResolver {
       }
     }
 
-    void recordContravariance(int fileOffset, bool isGenericContravariant) {
-      if (isGenericContravariant) {
-        _instrumentation.record(uri, fileOffset, 'genericContravariant',
-            new InstrumentationValueLiteral('true'));
-      }
-    }
-
     for (var procedure in class_.procedures) {
       if (procedure.isStatic) continue;
       // Forwarding stubs are annotated separately
@@ -1132,14 +1115,11 @@ class InterfaceResolver {
       procedure.function.positionalParameters.forEach(recordFormalAnnotations);
       procedure.function.namedParameters.forEach(recordFormalAnnotations);
       procedure.function.typeParameters.forEach(recordTypeParameterAnnotations);
-      recordContravariance(
-          procedure.fileOffset, procedure.isGenericContravariant);
     }
     for (var field in class_.fields) {
       if (field.isStatic) continue;
       recordCovariance(field.fileOffset, field.isCovariant,
           field.isGenericCovariantInterface, field.isGenericCovariantImpl);
-      recordContravariance(field.fileOffset, field.isGenericContravariant);
     }
   }
 
@@ -1249,16 +1229,6 @@ class SyntheticAccessor extends Procedure {
 
   @override
   DartType get getterType => _field.type;
-
-  @override
-  bool get isGenericContravariant =>
-      kind == ProcedureKind.Getter && _field.isGenericContravariant;
-
-  @override
-  void set isGenericContravariant(bool value) {
-    assert(kind == ProcedureKind.Getter);
-    _field.isGenericContravariant = value;
-  }
 
   static getField(SyntheticAccessor accessor) => accessor._field;
 }

@@ -443,21 +443,23 @@ bool instanceOf(obj, type) {
 }
 
 @JSExportName('as')
-cast(obj, type, bool typeError) {
+cast(obj, type, bool isExplicit) {
   if (obj == null) return obj;
   var actual = getReifiedType(obj);
   var result = isSubtype(actual, type);
   if (JS(
       'bool',
-      '# === true || # === null && dart.__ignoreWhitelistedErrors && #(#, #)',
+      '# === true || # === null && # && '
+      'dart.__ignoreWhitelistedErrors && #(#, #)',
       result,
       result,
+      isExplicit,
       _ignoreTypeFailure,
       actual,
       type)) {
     return obj;
   }
-  return castError(obj, type, typeError);
+  return castError(obj, type, isExplicit);
 }
 
 bool test(bool obj) {
@@ -484,7 +486,7 @@ void booleanConversionFailed(obj) {
       "type '${typeName(expected)}' in boolean expression");
 }
 
-castError(obj, type, bool typeError) {
+castError(obj, type, bool isExplicit) {
   var objType = getReifiedType(obj);
   if (JS('bool', '!dart.__ignoreAllErrors')) {
     var errorInStrongMode = isSubtype(objType, type) == null;
@@ -493,7 +495,7 @@ castError(obj, type, bool typeError) {
     var expected = typeName(type);
     if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
 
-    var error = JS('bool', '#', typeError)
+    var error = JS('bool', '#', isExplicit)
         ? new TypeErrorImplementation(obj, actual, expected, errorInStrongMode)
         : new CastErrorImplementation(obj, actual, expected, errorInStrongMode);
     throw error;

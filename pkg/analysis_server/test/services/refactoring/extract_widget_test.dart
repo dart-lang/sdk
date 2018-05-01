@@ -130,6 +130,8 @@ class MyWidget extends StatelessWidget {
 }
 
 class Test extends StatelessWidget {
+  Test({Key key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return new Column(
@@ -178,6 +180,8 @@ Widget main() {
 }
 
 class Test extends StatelessWidget {
+  Test({Key key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return new Text('AAA');
@@ -211,6 +215,8 @@ class MyWidget extends StatelessWidget {
 }
 
 class Test extends StatelessWidget {
+  Test({Key key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return new Container();
@@ -248,6 +254,8 @@ Widget main() {
 }
 
 class Test extends StatelessWidget {
+  Test({Key key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return new Text('AAA');
@@ -345,14 +353,14 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Test(c);
+    return new Test(c: c);
   }
 }
 
 class Test extends StatelessWidget {
   final C c;
 
-  Test(this.c);
+  Test({Key key, this.c}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -400,6 +408,8 @@ class MyWidget extends StatelessWidget {
 }
 
 class Test extends StatelessWidget {
+  Test({Key key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     var a = new Text('AAA');
@@ -453,8 +463,8 @@ class MyWidget extends StatelessWidget {
     int bar = 1;
     return new Row(
       children: <Widget>[
-        new Test(foo, 'aaa', bar),
-        new Test(foo, 'bbb', 2),
+        new Test(foo: foo, p1: 'aaa', p2: bar),
+        new Test(foo: foo, p1: 'bbb', p2: 2),
       ],
     );
   }
@@ -465,7 +475,74 @@ class Test extends StatelessWidget {
   final String p1;
   final int p2;
 
-  Test(this.foo, this.p1, this.p2);
+  Test({Key key, this.foo, this.p1, this.p2}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    var a = new Text('$foo $p1');
+    var b = new Text('$p2');
+    return new Column(
+      children: <Widget>[a, b],
+    );
+  }
+}
+''');
+  }
+
+  test_method_parameters_named() async {
+    addFlutterPackage();
+    await indexTestUnit(r'''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  String foo;
+
+  @override
+  Widget build(BuildContext context) {
+    int bar = 1;
+    return new Row(
+      children: <Widget>[
+        createColumn(p1: 'aaa', p2: bar),
+        createColumn(p1: 'bbb', p2: 2),
+      ],
+    );
+  }
+  
+  Widget createColumn({String p1, int p2}) {
+    var a = new Text('$foo $p1');
+    var b = new Text('$p2');
+    return new Column(
+      children: <Widget>[a, b],
+    );
+  }
+}
+''');
+    _createRefactoringForStringOffset('createColumn({String');
+
+    await _assertSuccessfulRefactoring(r'''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  String foo;
+
+  @override
+  Widget build(BuildContext context) {
+    int bar = 1;
+    return new Row(
+      children: <Widget>[
+        new Test(foo: foo, p1: 'aaa', p2: bar),
+        new Test(foo: foo, p1: 'bbb', p2: 2),
+      ],
+    );
+  }
+}
+
+class Test extends StatelessWidget {
+  final String foo;
+  final String p1;
+  final int p2;
+
+  Test({Key key, this.foo, this.p1, this.p2}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -503,14 +580,14 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Test(field);
+    return new Test(field: field);
   }
 }
 
 class Test extends StatelessWidget {
   final String field;
 
-  Test(this.field);
+  Test({Key key, this.field}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -552,14 +629,14 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Test(c);
+    return new Test(c: c);
   }
 }
 
 class Test extends StatelessWidget {
   final C c;
 
-  Test(this.c);
+  Test({Key key, this.c}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -598,6 +675,8 @@ class MyWidget extends StatelessWidget {
 }
 
 class Test extends StatelessWidget {
+  Test({Key key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return new Text(field);
@@ -695,14 +774,14 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Test(c);
+    return new Test(c: c);
   }
 }
 
 class Test extends StatelessWidget {
   final C c;
 
-  Test(this.c);
+  Test({Key key, this.c}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -715,6 +794,25 @@ class Test extends StatelessWidget {
   }
 }
 ''');
+  }
+
+  test_parameters_key() async {
+    addFlutterPackage();
+    await indexTestUnit(r'''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    String key;
+    return new Text('$key $key');
+  }
+}
+''');
+    _createRefactoringForStringOffset('new Text');
+
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
   }
 
   test_parameters_local_read_enclosingScope() async {
@@ -739,14 +837,14 @@ class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String local;
-    return new Test(local);
+    return new Test(local: local);
   }
 }
 
 class Test extends StatelessWidget {
   final String local;
 
-  Test(this.local);
+  Test({Key key, this.local}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -811,7 +909,7 @@ class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String local;
-    return new Test(field, local);
+    return new Test(field: field, local: local);
   }
 }
 
@@ -819,7 +917,7 @@ class Test extends StatelessWidget {
   final String field;
   final String local;
 
-  Test(this.field, this.local);
+  Test({Key key, this.field, this.local}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

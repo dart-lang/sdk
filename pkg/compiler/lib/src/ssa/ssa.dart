@@ -51,6 +51,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
       result = backend.rewriteAsync(
           closedWorld.commonElements,
           closedWorld.elementEnvironment,
+          work.registry,
           element,
           result,
           sourceInformationBuilder.buildAsyncBody(),

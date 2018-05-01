@@ -373,9 +373,6 @@ class BlockBuilder : public ValueObject {
   }
 
   Definition* AddUnboxInstr(Representation rep, Value* value, bool is_checked) {
-#if defined(AVOID_UNBOXED_INT32)
-    ASSERT(rep != kUnboxedInt32);
-#endif
     Definition* unboxed_value =
         AddDefinition(UnboxInstr::Create(rep, value, Thread::kNoDeoptId));
     if (is_checked) {
@@ -458,11 +455,7 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
     case kTypedDataInt32ArrayCid:
     case kExternalTypedDataInt32ArrayCid:
       result = builder.AddDefinition(
-#if defined(AVOID_UNBOXED_INT32)
-          BoxInstr::Create(kUnboxedInt64, new Value(result)));
-#else
           BoxInstr::Create(kUnboxedInt32, new Value(result)));
-#endif
       break;
     case kTypedDataUint32ArrayCid:
     case kExternalTypedDataUint32ArrayCid:

@@ -43,25 +43,44 @@ String colorizeSingle(String text) {
   }
 }
 
-/// Colorize diffs [left] and [right] and [delimiter], if ANSI colors are
-/// supported.
-String colorizeDiff(String left, String delimiter, String right) {
+/// Colorize the actual annotation [text], if ANSI colors are supported.
+String colorizeActual(String text) {
   if (useColors) {
-    return '${colors.green(left)}'
-        '${colors.yellow(delimiter)}${colors.red(right)}';
+    return '${colors.red(text)}';
   } else {
-    return '$left$delimiter$right';
+    return text;
   }
+}
+
+/// Colorize an expected annotation [text], if ANSI colors are supported.
+String colorizeExpected(String text) {
+  if (useColors) {
+    return '${colors.green(text)}';
+  } else {
+    return text;
+  }
+}
+
+/// Colorize delimiter [text], if ANSI colors are supported.
+String colorizeDelimiter(String text) {
+  if (useColors) {
+    return '${colors.yellow(text)}';
+  } else {
+    return text;
+  }
+}
+
+/// Colorize diffs [expected] and [actual] and [delimiter], if ANSI colors are
+/// supported.
+String colorizeDiff(String expected, String delimiter, String actual) {
+  return '${colorizeExpected(expected)}'
+      '${colorizeDelimiter(delimiter)}${colorizeActual(actual)}';
 }
 
 /// Colorize annotation delimiters [start] and [end] surrounding [text], if
 /// ANSI colors are supported.
 String colorizeAnnotation(String start, String text, String end) {
-  if (useColors) {
-    return '${colors.yellow(start)}$text${colors.yellow(end)}';
-  } else {
-    return '$start$text$end';
-  }
+  return '${colorizeDelimiter(start)}$text${colorizeDelimiter(end)}';
 }
 
 /// Function that computes a data mapping for [member].
@@ -97,6 +116,10 @@ const String kernelName = 'kernel';
 
 /// Display name used for strong mode compilation using the new common frontend.
 const String strongName = 'strong mode';
+
+/// Display name used for strong mode compilation without implicit checks using
+/// the new common frontend.
+const String trustName = 'strong mode without implicit checks';
 
 /// Compute actual data for all members defined in the program with the
 /// [entryPoint] and [memorySourceFiles].
@@ -226,7 +249,7 @@ Future<CompiledData> computeData(
     }
     Expect.isNotNull(
         member,
-        "Global member '$member' not found in the global "
+        "Global member '$memberName' not found in the global "
         "libraries: ${globalLibraries.map((l) => l.canonicalUri).join(', ')}");
     return member;
   }
@@ -275,7 +298,7 @@ class CompiledData {
       String value1 = '${data1.value}';
       annotations
           .putIfAbsent(data1.offset, () => [])
-          .add(colorizeSingle(value1));
+          .add(colorizeActual(value1));
     });
     return annotations;
   }
@@ -455,7 +478,8 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     ComputeClassDataFunction computeClassDataFromAst,
     ComputeClassDataFunction computeClassDataFromKernel,
     int shards: 1,
-    int shardIndex: 0}) async {
+    int shardIndex: 0,
+    bool testOmit: false}) async {
   args = args.toList();
   bool verbose = args.remove('-v');
   bool shouldContinue = args.remove('-c');
@@ -511,6 +535,7 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
       astMarker: new MemberAnnotations<IdValue>(),
       kernelMarker: new MemberAnnotations<IdValue>(),
       strongMarker: new MemberAnnotations<IdValue>(),
+      omitMarker: new MemberAnnotations<IdValue>(),
     };
     computeExpectedMap(entryPoint, code[entryPoint], expectedMaps);
     Map<String, String> memorySourceFiles = {
@@ -590,7 +615,7 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
       } else {
         print('--from kernel (strong mode)-----------------------------------');
         List<String> options = [Flags.strongMode]..addAll(testOptions);
-        if (trustTypeAnnotations) {
+        if (trustTypeAnnotations && !testOmit) {
           options.add(Flags.omitImplicitChecks);
         }
         MemberAnnotations<IdValue> annotations = expectedMaps[strongMarker];
@@ -603,6 +628,29 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
             globalIds: annotations.globalData.keys);
         if (await checkCode(
             strongName, entity.uri, code, annotations, compiledData2,
+            filterActualData: filterActualData,
+            fatalErrors: !testAfterFailures)) {
+          hasFailures = true;
+        }
+      }
+    }
+    if (testOmit) {
+      if (skipForStrong.contains(name)) {
+        print('--skipped for kernel (strong mode, omit-implicit-checks)------');
+      } else {
+        print('--from kernel (strong mode, omit-implicit-checks)-------------');
+        List<String> options = [Flags.strongMode, Flags.omitImplicitChecks]
+          ..addAll(testOptions);
+        MemberAnnotations<IdValue> annotations = expectedMaps[omitMarker];
+        CompiledData compiledData2 = await computeData(
+            entryPoint, memorySourceFiles, computeFromKernel,
+            computeClassData: computeClassDataFromKernel,
+            options: options,
+            verbose: verbose,
+            forUserLibrariesOnly: forUserLibrariesOnly,
+            globalIds: annotations.globalData.keys);
+        if (await checkCode(
+            trustName, entity.uri, code, annotations, compiledData2,
             filterActualData: filterActualData,
             fatalErrors: !testAfterFailures)) {
           hasFailures = true;
@@ -642,7 +690,7 @@ Future<bool> checkCode(
               data.compiler.reporter,
               actualData.sourceSpan,
               'EXTRA $mode DATA for ${id.descriptor} = '
-              '${colors.red('$actual')} for ${actualData.objectText}. '
+              '${colorizeActual('$actual')} for ${actualData.objectText}. '
               'Data was expected for these ids: ${expectedMap.keys}');
           if (filterActualData == null || filterActualData(null, actualData)) {
             hasLocalFailure = true;
@@ -656,8 +704,8 @@ Future<bool> checkCode(
               actualData.sourceSpan,
               'UNEXPECTED $mode DATA for ${id.descriptor}: '
               'Object: ${actualData.objectText}\n '
-              'expected: ${colors.green('$expected')}\n '
-              'actual: ${colors.red('$actual')}');
+              'expected: ${colorizeExpected('$expected')}\n '
+              'actual: ${colorizeActual('$actual')}');
           if (filterActualData == null ||
               filterActualData(expected, actualData)) {
             hasLocalFailure = true;
@@ -771,6 +819,7 @@ Spannable computeSpannable(
 const String astMarker = 'ast.';
 const String kernelMarker = 'kernel.';
 const String strongMarker = 'strong.';
+const String omitMarker = 'omit.';
 
 /// Compute three [MemberAnnotations] objects from [code] specifying the
 /// expected annotations we anticipate encountering; one corresponding to the
@@ -787,11 +836,12 @@ const String strongMarker = 'strong.';
 /// annotations without prefixes.
 void computeExpectedMap(Uri sourceUri, AnnotatedCode code,
     Map<String, MemberAnnotations<IdValue>> maps) {
-  List<String> mapKeys = [astMarker, kernelMarker, strongMarker];
+  List<String> mapKeys = [astMarker, kernelMarker, strongMarker, omitMarker];
   Map<String, AnnotatedCode> split = splitByPrefixes(code, mapKeys);
 
   split.forEach((String marker, AnnotatedCode code) {
     MemberAnnotations<IdValue> fileAnnotations = maps[marker];
+    assert(fileAnnotations != null, "No annotations for $marker in $maps");
     Map<Id, IdValue> expectedValues = fileAnnotations[sourceUri];
     for (Annotation annotation in code.annotations) {
       String text = annotation.text;
@@ -799,14 +849,14 @@ void computeExpectedMap(Uri sourceUri, AnnotatedCode code,
       if (idValue.id.isGlobal) {
         Expect.isFalse(
             fileAnnotations.globalData.containsKey(idValue.id),
-            "Duplicate annotations for ${idValue.id}: ${idValue} and "
-            "${fileAnnotations.globalData[idValue.id]}.");
+            "Duplicate annotations for ${idValue.id} in $marker: "
+            "${idValue} and ${fileAnnotations.globalData[idValue.id]}.");
         fileAnnotations.globalData[idValue.id] = idValue;
       } else {
         Expect.isFalse(
             expectedValues.containsKey(idValue.id),
-            "Duplicate annotations for ${idValue.id}: ${idValue} and "
-            "${expectedValues[idValue.id]}.");
+            "Duplicate annotations for ${idValue.id} in $marker: "
+            "${idValue} and ${expectedValues[idValue.id]}.");
         expectedValues[idValue.id] = idValue;
       }
     }

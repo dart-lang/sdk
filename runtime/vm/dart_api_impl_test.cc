@@ -1955,6 +1955,68 @@ TEST_CASE(DartAPI_ExternalByteDataAccess) {
   }
 }
 
+static bool byte_data_finalizer_run = false;
+void ByteDataFinalizer(void* isolate_data,
+                       Dart_WeakPersistentHandle handle,
+                       void* peer) {
+  ASSERT(!byte_data_finalizer_run);
+  free(peer);
+  byte_data_finalizer_run = true;
+}
+
+TEST_CASE(DartAPI_ExternalByteDataFinalizer) {
+  // Check finalizer associated with the underlying array instead of the
+  // wrapper.
+  const char* kScriptChars =
+      "var array;\n"
+      "extractAndSaveArray(byteData) {\n"
+      "  array = byteData.buffer.asUint8List();\n"
+      "}\n"
+      "releaseArray() {\n"
+      "  array = null;\n"
+      "}\n";
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  {
+    Dart_EnterScope();
+
+    const intptr_t kBufferSize = 100;
+    void* buffer = malloc(kBufferSize);
+    Dart_Handle byte_data = Dart_NewExternalTypedDataWithFinalizer(
+        Dart_TypedData_kByteData, buffer, kBufferSize, buffer, kBufferSize,
+        ByteDataFinalizer);
+
+    Dart_Handle result =
+        Dart_Invoke(lib, NewString("extractAndSaveArray"), 1, &byte_data);
+    EXPECT_VALID(result);
+
+    // ByteData wrapper is still reachable from the scoped handle.
+    EXPECT(!byte_data_finalizer_run);
+
+    // The ByteData wrapper is now unreachable, but the underlying
+    // ExternalUint8List is still alive.
+    Dart_ExitScope();
+  }
+
+  {
+    TransitionNativeToVM transition(Thread::Current());
+    Isolate::Current()->heap()->CollectAllGarbage();
+  }
+
+  EXPECT(!byte_data_finalizer_run);
+
+  Dart_Handle result = Dart_Invoke(lib, NewString("releaseArray"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    TransitionNativeToVM transition(Thread::Current());
+    Isolate::Current()->heap()->CollectAllGarbage();
+  }
+
+  EXPECT(byte_data_finalizer_run);
+}
+
 #ifndef PRODUCT
 
 static const intptr_t kOptExtLength = 16;
@@ -2405,10 +2467,9 @@ TEST_CASE(DartAPI_ExternalTypedDataCallback) {
   {
     Dart_EnterScope();
     uint8_t data[] = {1, 2, 3, 4};
-    Dart_Handle obj = Dart_NewExternalTypedData(Dart_TypedData_kUint8, data,
-                                                ARRAY_SIZE(data));
-    Dart_NewWeakPersistentHandle(obj, &peer, sizeof(data),
-                                 ExternalTypedDataFinalizer);
+    Dart_Handle obj = Dart_NewExternalTypedDataWithFinalizer(
+        Dart_TypedData_kUint8, data, ARRAY_SIZE(data), &peer, sizeof(data),
+        ExternalTypedDataFinalizer);
     EXPECT_VALID(obj);
     Dart_ExitScope();
   }
@@ -2496,10 +2557,9 @@ TEST_CASE(DartAPI_Float32x4List) {
   // Dart_NewExternalTypedData.
   Dart_EnterScope();
   {
-    Dart_Handle lcl =
-        Dart_NewExternalTypedData(Dart_TypedData_kFloat32x4, data, 10);
-    Dart_NewWeakPersistentHandle(lcl, &peer, sizeof(data),
-                                 ExternalTypedDataFinalizer);
+    Dart_Handle lcl = Dart_NewExternalTypedDataWithFinalizer(
+        Dart_TypedData_kFloat32x4, data, 10, &peer, sizeof(data),
+        ExternalTypedDataFinalizer);
     CheckFloat32x4Data(lcl);
   }
   Dart_ExitScope();

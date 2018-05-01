@@ -146,19 +146,42 @@ class KernelImpactBuilder extends ir.Visitor {
     return impactBuilder;
   }
 
-  void handleAsyncMarker(ir.AsyncMarker asyncMarker) {
+  void handleAsyncMarker(ir.FunctionNode function) {
+    ir.AsyncMarker asyncMarker = function.asyncMarker;
+    if (asyncMarker == ir.AsyncMarker.Sync) return;
+
+    DartType elementType =
+        elementMap.getFunctionAsyncOrSyncStarElementType(function);
+
     switch (asyncMarker) {
-      case ir.AsyncMarker.Sync:
-        break;
       case ir.AsyncMarker.SyncStar:
         impactBuilder.registerFeature(Feature.SYNC_STAR);
+        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+            commonElements.syncStarIterableFactory,
+            const CallStructure.unnamed(1, 1),
+            <DartType>[elementType]));
         break;
+
       case ir.AsyncMarker.Async:
         impactBuilder.registerFeature(Feature.ASYNC);
+        var completerFactory = _options.startAsyncSynchronously
+            ? commonElements.asyncAwaitCompleterFactory
+            : commonElements.syncCompleterFactory;
+        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+            completerFactory,
+            const CallStructure.unnamed(0, 1),
+            <DartType>[elementType]));
         break;
+
       case ir.AsyncMarker.AsyncStar:
         impactBuilder.registerFeature(Feature.ASYNC_STAR);
+        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+            commonElements.asyncStarStreamControllerFactory,
+            const CallStructure.unnamed(1, 1),
+            <DartType>[elementType]));
         break;
+
+      case ir.AsyncMarker.Sync:
       case ir.AsyncMarker.SyncYielding:
         failedAt(CURRENT_ELEMENT_SPANNABLE,
             "Unexpected async marker: ${asyncMarker}");
@@ -168,7 +191,7 @@ class KernelImpactBuilder extends ir.Visitor {
   ResolutionImpact buildProcedure(ir.Procedure procedure) {
     handleSignature(procedure.function);
     visitNode(procedure.function.body);
-    handleAsyncMarker(procedure.function.asyncMarker);
+    handleAsyncMarker(procedure.function);
     if (procedure.isExternal &&
         !elementMap.isForeignLibrary(procedure.enclosingLibrary)) {
       MemberEntity member = elementMap.getMember(procedure);
@@ -607,19 +630,19 @@ class KernelImpactBuilder extends ir.Visitor {
 
   @override
   void visitFunctionDeclaration(ir.FunctionDeclaration node) {
-    impactBuilder.registerStaticUse(
-        new StaticUse.closure(elementMap.getLocalFunction(node)));
+    Local function = elementMap.getLocalFunction(node);
+    impactBuilder.registerStaticUse(new StaticUse.closure(function));
     handleSignature(node.function);
-    handleAsyncMarker(node.function.asyncMarker);
+    handleAsyncMarker(node.function);
     visitNode(node.function.body);
   }
 
   @override
   void visitFunctionExpression(ir.FunctionExpression node) {
-    impactBuilder.registerStaticUse(
-        new StaticUse.closure(elementMap.getLocalFunction(node)));
+    Local function = elementMap.getLocalFunction(node);
+    impactBuilder.registerStaticUse(new StaticUse.closure(function));
     handleSignature(node.function);
-    handleAsyncMarker(node.function.asyncMarker);
+    handleAsyncMarker(node.function);
     visitNode(node.function.body);
   }
 
@@ -728,6 +751,7 @@ class KernelImpactBuilder extends ir.Visitor {
   void visitLoadLibrary(ir.LoadLibrary node) {
     impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
         commonElements.loadDeferredLibrary, CallStructure.ONE_ARG));
+    impactBuilder.registerFeature(Feature.LOAD_LIBRARY);
   }
 
   // TODO(johnniwinther): Make this throw and visit child nodes explicitly

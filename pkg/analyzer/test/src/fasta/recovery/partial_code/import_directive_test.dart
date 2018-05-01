@@ -76,6 +76,15 @@ class ImportDirectivesTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_STRING_LITERAL
               ],
               "import 'a.dart' if (b) '';"),
+          new TestDescriptor(
+              'ifCondition',
+              "import 'a.dart' as",
+              [
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN
+              ],
+              "import 'a.dart' as _s_;",
+              failing: ['functionNonVoid', 'getter']),
         ],
         PartialCodeTest.prePartSuffixes);
   }

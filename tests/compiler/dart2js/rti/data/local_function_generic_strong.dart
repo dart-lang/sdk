@@ -5,7 +5,8 @@
 import 'package:expect/expect.dart';
 
 method1() {
-  /*needsSignature*/
+  /*strong.direct,explicit=[local.T],needsArgs,needsSignature*/
+  /*omit.needsSignature*/
   T local<T>(T t) => t;
   return local;
 }

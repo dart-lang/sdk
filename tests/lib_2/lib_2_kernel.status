@@ -21,13 +21,10 @@ mirrors/generic_bounded_by_type_parameter_test/02: MissingCompileTimeError
 mirrors/generic_bounded_test/01: MissingCompileTimeError
 mirrors/generic_bounded_test/02: MissingCompileTimeError
 mirrors/generic_interface_test/01: MissingCompileTimeError
-mirrors/generics_test/01: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/13: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/14: MissingCompileTimeError
-mirrors/reflected_type_classes_test/01: MissingCompileTimeError
 mirrors/reflected_type_classes_test/02: MissingCompileTimeError
 mirrors/reflected_type_classes_test/03: MissingCompileTimeError
-mirrors/reflected_type_test/01: MissingCompileTimeError
 mirrors/reflected_type_test/02: MissingCompileTimeError
 mirrors/reflected_type_test/03: MissingCompileTimeError
 mirrors/variable_is_const_test/01: MissingCompileTimeError
@@ -181,11 +178,9 @@ mirrors/redirecting_factory_test/01: RuntimeError
 mirrors/redirecting_factory_test/02: RuntimeError
 mirrors/redirecting_factory_test/none: RuntimeError
 mirrors/reflect_class_test/none: RuntimeError
-mirrors/reflected_type_classes_test/01: RuntimeError
 mirrors/reflected_type_function_type_test: RuntimeError
 mirrors/reflected_type_generics_test/01: RuntimeError
 mirrors/reflected_type_generics_test/02: RuntimeError
-mirrors/reflected_type_test/01: RuntimeError
 mirrors/reflected_type_typedefs_test: RuntimeError
 mirrors/reflected_type_typevars_test: RuntimeError
 mirrors/regress_26187_test: RuntimeError
@@ -348,6 +343,7 @@ mirrors/top_level_accessors_test/01: MissingCompileTimeError
 [ $fasta && !$strong ]
 isolate/isolate_import_test/01: MissingCompileTimeError
 isolate/isolate_stress_test: CompileTimeError
+mirrors/generics_test/01: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/02: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/27: MissingCompileTimeError
 mirrors/metadata_constructor_arguments_test/04: MissingCompileTimeError
@@ -355,6 +351,8 @@ mirrors/native_class_test: CompileTimeError
 mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
 mirrors/reflect_class_test/01: MissingCompileTimeError
 mirrors/reflect_class_test/02: MissingCompileTimeError
+mirrors/reflected_type_classes_test/01: MissingCompileTimeError
+mirrors/reflected_type_test/01: MissingCompileTimeError
 mirrors/regress_16321_test/01: MissingCompileTimeError
 mirrors/top_level_accessors_test/01: MissingCompileTimeError
 typed_data/float32x4_static_test: MissingCompileTimeError

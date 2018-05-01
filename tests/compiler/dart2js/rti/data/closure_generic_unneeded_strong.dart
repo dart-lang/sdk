@@ -4,7 +4,8 @@
 
 import 'package:expect/expect.dart';
 
-/*class: A:*/
+/*!strong.class: A:*/
+/*strong.class: A:direct,explicit=[A.T],needsArgs*/
 class A<T> {
   @NoInline()
   m() {

@@ -652,18 +652,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   }
 
   void addImportsToScope() {
-    bool explicitCoreImport = this == loader.coreLibrary;
-    for (Import import in imports) {
-      if (import.imported == loader.coreLibrary) {
-        explicitCoreImport = true;
-      }
-      import.finalizeImports(this);
-    }
-    if (!explicitCoreImport) {
-      loader.coreLibrary.exportScope.forEach((String name, Builder member) {
-        addToScope(name, member, -1, true);
-      });
-    }
+    super.addSpecificImportsToScope(imports);
   }
 
   @override
@@ -687,6 +676,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     int typeCount = types.length;
     for (UnresolvedType<T> t in types) {
       t.resolveIn(scope);
+      if (loader.target.strongMode) {
+        t.checkType();
+      }
     }
     types.clear();
     return typeCount;

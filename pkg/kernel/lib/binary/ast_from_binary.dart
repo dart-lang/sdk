@@ -97,6 +97,22 @@ class BinaryBuilder {
         readByte();
   }
 
+  final Float64List _doubleBuffer = new Float64List(1);
+  Uint8List _doubleBufferUint8;
+
+  double readDouble() {
+    _doubleBufferUint8 ??= _doubleBuffer.buffer.asUint8List();
+    _doubleBufferUint8[0] = readByte();
+    _doubleBufferUint8[1] = readByte();
+    _doubleBufferUint8[2] = readByte();
+    _doubleBufferUint8[3] = readByte();
+    _doubleBufferUint8[4] = readByte();
+    _doubleBufferUint8[5] = readByte();
+    _doubleBufferUint8[6] = readByte();
+    _doubleBufferUint8[7] = readByte();
+    return _doubleBuffer[0];
+  }
+
   List<int> readByteList() {
     List<int> bytes = new Uint8List(readUInt());
     bytes.setRange(0, bytes.length, _bytes, _byteOffset);
@@ -174,7 +190,7 @@ class BinaryBuilder {
       case ConstantTag.IntConstant:
         return new IntConstant((readExpression() as IntLiteral).value);
       case ConstantTag.DoubleConstant:
-        return new DoubleConstant(double.parse(readStringReference()));
+        return new DoubleConstant(readDouble());
       case ConstantTag.StringConstant:
         return new StringConstant(readStringReference());
       case ConstantTag.MapConstant:
@@ -857,7 +873,6 @@ class BinaryBuilder {
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
     int flags = readByte();
-    int flags2 = readByte();
     var name = readName();
     var annotations = readAnnotationList(node);
     assert(() {
@@ -872,7 +887,6 @@ class BinaryBuilder {
       node.fileOffset = fileOffset;
       node.fileEndOffset = fileEndOffset;
       node.flags = flags;
-      node.flags2 = flags2;
       node.name = name;
       node.fileUri = fileUri;
       node.annotations = annotations;
@@ -944,7 +958,6 @@ class BinaryBuilder {
     int kindIndex = readByte();
     var kind = ProcedureKind.values[kindIndex];
     var flags = readByte();
-    var flags2 = readByte();
     var name = readName();
     var annotations = readAnnotationList(node);
     assert(() {
@@ -968,7 +981,6 @@ class BinaryBuilder {
       node.fileEndOffset = fileEndOffset;
       node.kind = kind;
       node.flags = flags;
-      node.flags2 = flags2;
       node.name = name;
       node.fileUri = fileUri;
       node.annotations = annotations;
@@ -1337,7 +1349,7 @@ class BinaryBuilder {
       case Tag.BigIntLiteral:
         return new IntLiteral(int.parse(readStringReference()));
       case Tag.DoubleLiteral:
-        return new DoubleLiteral(double.parse(readStringReference()));
+        return new DoubleLiteral(readDouble());
       case Tag.TrueLiteral:
         return new BoolLiteral(true);
       case Tag.FalseLiteral:

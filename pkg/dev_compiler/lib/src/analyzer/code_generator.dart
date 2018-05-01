@@ -239,7 +239,7 @@ class CodeGenerator extends Object
         stringClass = _getLibrary(c, 'dart:core').getType('String'),
         functionClass = _getLibrary(c, 'dart:core').getType('Function'),
         privateSymbolClass =
-            _getLibrary(c, 'dart:_internal').getType('PrivateSymbol'),
+            _getLibrary(c, 'dart:_js_helper').getType('PrivateSymbol'),
         linkedHashMapImplType =
             _getLibrary(c, 'dart:_js_helper').getType('LinkedMap').type,
         identityHashMapImplType =

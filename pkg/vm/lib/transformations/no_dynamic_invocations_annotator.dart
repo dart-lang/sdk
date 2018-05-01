@@ -164,6 +164,13 @@ class DynamicSelectorsCollector extends RecursiveVisitor<Null> {
   }
 
   @override
+  visitConstantExpression(ConstantExpression node) {
+    // We run the kernel2kernel "constants" transformation before running the
+    // this transformation, so we will encounter constant expressions.
+    // We don't need to do anything here, because there are no invocations.
+  }
+
+  @override
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
 

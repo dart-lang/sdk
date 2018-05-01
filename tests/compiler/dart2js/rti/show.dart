@@ -9,7 +9,7 @@ import 'package:compiler/src/js_backend/runtime_types.dart';
 import '../equivalence/id_equivalence_helper.dart';
 import '../equivalence/show_helper.dart';
 import 'rti_emission_test.dart';
-import 'rti_need_test.dart';
+import 'rti_need_test_helper.dart';
 
 main(List<String> args) async {
   cacheRtiDataForTesting = true;

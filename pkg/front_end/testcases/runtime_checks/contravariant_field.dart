@@ -8,7 +8,7 @@ library test;
 typedef void F<T>(T x);
 
 class C<T> {
-  F<T> /*@genericContravariant=true*/ y;
+  F<T> y;
   void f() {
     var x = this.y;
   }

@@ -256,6 +256,9 @@ String runtimeTypeToStringV2(var rti, List<String> genericContext) {
     var typeArgument = getFutureOrArgument(rti);
     return 'FutureOr<${runtimeTypeToStringV2(typeArgument, genericContext)}>';
   }
+  if (isDartJsInteropTypeArgumentRti(rti)) {
+    return 'dynamic';
+  }
   // We should not get here.
   return 'unknown-reified-type';
 }
@@ -745,7 +748,8 @@ bool isTopTypeV1(var type) {
 bool isTopTypeV2(var type) {
   return isDartDynamicTypeRti(type) ||
       isDartVoidTypeRti(type) ||
-      isDartObjectTypeRti(type);
+      isDartObjectTypeRti(type) ||
+      isDartJsInteropTypeArgumentRti(type);
 }
 
 /// Returns `true` if the runtime type representation [type] is a supertype of
@@ -776,7 +780,8 @@ bool isSupertypeOfNullBaseV2(var type) {
   return isDartDynamicTypeRti(type) ||
       isDartObjectTypeRti(type) ||
       isNullTypeRti(type) ||
-      isDartVoidTypeRti(type);
+      isDartVoidTypeRti(type) ||
+      isDartJsInteropTypeArgumentRti(type);
 }
 
 /// Returns `true` if the runtime type representation [type] is a `FutureOr`
@@ -945,6 +950,8 @@ bool isSubtypeV2(var s, var sEnv, var t, var tEnv) {
 
   // [t] is a top type?
   if (isTopTypeV2(t)) return true;
+
+  if (isDartJsInteropTypeArgumentRti(s)) return true;
 
   // [s] is a top type?
   if (isTopTypeV2(s)) {

@@ -6929,12 +6929,8 @@ Language/Functions/generator_return_type_t02: RuntimeError # Please triage this 
 Language/Statements/Assert/execution_t03: RuntimeError # Please triage this failure
 Language/Statements/Assert/execution_t11: RuntimeError # Please triage this failure
 Language/Statements/Return/runtime_type_t04: RuntimeError # Issue 26584
-Language/Statements/Return/type_t03: RuntimeError # Would pass if FutureOr checked
-Language/Statements/Return/type_t04: RuntimeError # Would pass if FutureOr checked
 Language/Statements/Switch/execution_t01: Fail # Missing type check in switch expression
 Language/Statements/Switch/type_t01: RuntimeError # Issue 16089
-Language/Statements/Yield_and_Yield_Each/Yield/static_type_t01: RuntimeError
-Language/Statements/Yield_and_Yield_Each/Yield/static_type_t02: RuntimeError
 Language/Types/Dynamic_Type_System/malbounded_type_error_t01: RuntimeError # Issue 21088
 Language/Types/Parameterized_Types/malbounded_t06: RuntimeError # Issue 21088
 Language/Types/Static_Types/malformed_type_t01: RuntimeError # Issue 21089

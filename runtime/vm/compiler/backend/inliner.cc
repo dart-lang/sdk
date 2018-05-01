@@ -2478,16 +2478,13 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
         DoubleToFloatInstr(new (Z) Value(stored_value), call->deopt_id());
     cursor =
         flow_graph->AppendTo(cursor, stored_value, NULL, FlowGraph::kValue);
-#if !defined(AVOID_UNBOXED_INT32)
   } else if (array_cid == kTypedDataInt32ArrayCid) {
     stored_value =
         new (Z) UnboxInt32Instr(UnboxInt32Instr::kTruncate,
                                 new (Z) Value(stored_value), call->deopt_id());
     cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
                                   FlowGraph::kValue);
-#endif
-  } else if (array_cid == kTypedDataUint32ArrayCid ||
-             array_cid == kTypedDataInt32ArrayCid) {
+  } else if (array_cid == kTypedDataUint32ArrayCid) {
     stored_value =
         new (Z) UnboxUint32Instr(new (Z) Value(stored_value), call->deopt_id());
     ASSERT(stored_value->AsUnboxInteger()->is_truncating());
@@ -2789,16 +2786,13 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
         DoubleToFloatInstr(new (Z) Value(stored_value), call->deopt_id());
     cursor =
         flow_graph->AppendTo(cursor, stored_value, NULL, FlowGraph::kValue);
-#if !defined(AVOID_UNBOXED_INT32)
   } else if (view_cid == kTypedDataInt32ArrayCid) {
     stored_value =
         new (Z) UnboxInt32Instr(UnboxInt32Instr::kTruncate,
                                 new (Z) Value(stored_value), call->deopt_id());
     cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
                                   FlowGraph::kValue);
-#endif
-  } else if (view_cid == kTypedDataInt32ArrayCid ||  // Again, outside ifdef.
-             view_cid == kTypedDataUint32ArrayCid) {
+  } else if (view_cid == kTypedDataUint32ArrayCid) {
     stored_value =
         new (Z) UnboxUint32Instr(new (Z) Value(stored_value), call->deopt_id());
     ASSERT(stored_value->AsUnboxInteger()->is_truncating());

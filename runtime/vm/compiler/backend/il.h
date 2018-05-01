@@ -2012,12 +2012,7 @@ class PhiInstr : public Definition {
 
   virtual Representation representation() const { return representation_; }
 
-  virtual void set_representation(Representation r) {
-#if defined(AVOID_UNBOXED_INT32)
-    ASSERT(r != kUnboxedInt32);
-#endif
-    representation_ = r;
-  }
+  virtual void set_representation(Representation r) { representation_ = r; }
 
   virtual intptr_t Hashcode() const {
     UNREACHABLE();
@@ -2804,14 +2799,13 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
 
   virtual TokenPosition token_pos() const { return token_pos_; }
 
-  bool IsUnboxedIntegerConstant() const {
-    return representation() == kUnboxedUint32 ||
-           representation() == kUnboxedInt32 ||
+  bool IsUnboxedSignedIntegerConstant() const {
+    return representation() == kUnboxedInt32 ||
            representation() == kUnboxedInt64;
   }
 
-  int64_t GetUnboxedIntegerConstantValue() const {
-    ASSERT(IsUnboxedIntegerConstant());
+  int64_t GetUnboxedSignedIntegerConstantValue() const {
+    ASSERT(IsUnboxedSignedIntegerConstant());
     return value_.IsSmi() ? Smi::Cast(value_).Value()
                           : Mint::Cast(value_).value();
   }
@@ -5434,11 +5428,7 @@ class UnboxInt32Instr : public UnboxInteger32Instr {
                             truncation_mode,
                             value,
                             deopt_id,
-                            speculative_mode) {
-#if defined(AVOID_UNBOXED_INT32)
-    UNREACHABLE();
-#endif
-  }
+                            speculative_mode) {}
 
   virtual bool ComputeCanDeoptimize() const;
 
@@ -6974,15 +6964,10 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {
         to_representation_(to),
         is_truncating_(to == kUnboxedUint32) {
     ASSERT(from != to);
-#if !defined(AVOID_UNBOXED_INT32)
     ASSERT((from == kUnboxedInt64) || (from == kUnboxedUint32) ||
            (from == kUnboxedInt32));
     ASSERT((to == kUnboxedInt64) || (to == kUnboxedUint32) ||
            (to == kUnboxedInt32));
-#else
-    ASSERT((from == kUnboxedInt64) || (from == kUnboxedUint32));
-    ASSERT((to == kUnboxedInt64) || (to == kUnboxedUint32));
-#endif
     SetInputAt(0, value);
   }
 
@@ -7090,12 +7075,6 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {
 #define SIMD_CONVERSION(M, FromType, ToType)                                   \
   M(1, _, FromType##To##ToType, (FromType), ToType)
 
-#if defined(AVOID_UNBOXED_INT32)
-#define Int32x4Arg Uint32
-#else
-#define Int32x4Arg Int32
-#endif
-
 // List of all recognized SIMD operations.
 // Note: except for operations that map to operators (Add, Mul, Sub, Div,
 // BitXor, BitOr) all other operations must match names used by
@@ -7121,8 +7100,7 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {
   M(2, _, Float32x4LessThan, (Float32x4, Float32x4), Int32x4)                  \
   M(2, _, Float32x4LessThanOrEqual, (Float32x4, Float32x4), Int32x4)           \
   M(2, _, Float32x4NotEqual, (Float32x4, Float32x4), Int32x4)                  \
-  M(4, _, Int32x4Constructor,                                                  \
-    (Int32x4Arg, Int32x4Arg, Int32x4Arg, Int32x4Arg), Int32x4)                 \
+  M(4, _, Int32x4Constructor, (Int32, Int32, Int32, Int32), Int32x4)           \
   M(4, _, Int32x4BoolConstructor, (Bool, Bool, Bool, Bool), Int32x4)           \
   M(4, _, Float32x4Constructor, (Double, Double, Double, Double), Float32x4)   \
   M(2, _, Float64x2Constructor, (Double, Double), Float64x2)                   \

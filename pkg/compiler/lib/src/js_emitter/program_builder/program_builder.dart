@@ -768,6 +768,10 @@ class ProgramBuilder {
     List<StubMethod> checkedSetters = <StubMethod>[];
     List<StubMethod> isChecks = <StubMethod>[];
     if (_nativeData.isJsInteropClass(cls)) {
+      // TODO(johnniwinther): Instead of generating all stubs for each
+      // js-interop class we should generate a stub for each implemented class.
+      // Currently we generate duplicates if a class is implemented by multiple
+      // js-interop classes.
       typeTests.forEachProperty(_sorter, (js.Name name, js.Node code) {
         _classes[_commonElements.jsJavaScriptObjectClass]
             .isChecks

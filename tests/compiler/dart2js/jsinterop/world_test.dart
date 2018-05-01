@@ -7,25 +7,36 @@ library jsinterop.world_test;
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common_elements.dart';
+import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart' show ClassEntity;
 import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/universe/selector.dart';
 import 'package:compiler/src/world.dart';
-import '../type_test_helper.dart';
+import '../helpers/element_lookup.dart';
+import '../memory_compiler.dart';
 
 void main() {
   asyncTest(() async {
-    await testClasses(CompileMode.memory);
-    await testClasses(CompileMode.kernel);
+    print('--test from ast---------------------------------------------------');
+    await testClasses([Flags.useOldFrontend]);
+    print('--test from kernel------------------------------------------------');
+    await testClasses([]);
+    print('--test from kernel (strong mode)----------------------------------');
+    // TODO(johnniwinther): Update the test to be strong mode compliant.
+    //await testClasses([Flags.strongMode]);
   });
 }
 
-testClasses(CompileMode compileMode) async {
+testClasses(List<String> options) async {
   test(String mainSource,
       {List<String> directlyInstantiated: const <String>[],
       List<String> abstractlyInstantiated: const <String>[],
       List<String> indirectlyInstantiated: const <String>[]}) async {
-    TypeEnvironment env = await TypeEnvironment.create(r"""
+    CompilationResult result = await runCompiler(memorySourceFiles: {
+      'main.dart': """
+import 'package:js/js.dart';
+
 @JS()
 class A {
   get foo;
@@ -74,11 +85,11 @@ newC() => new C(foo: 2);
 newD() => new D(foo: 3);
 newE() => new E(4);
 newF() => new F(5);
-""", mainSource: """
-import 'package:js/js.dart';
 
 $mainSource
-""", compileMode: compileMode);
+"""
+    }, options: options);
+    Compiler compiler = result.compiler;
     Map<String, ClassEntity> classEnvironment = <String, ClassEntity>{};
 
     ClassEntity registerClass(ClassEntity cls) {
@@ -86,19 +97,19 @@ $mainSource
       return cls;
     }
 
-    ClosedWorld world = env.closedWorld;
+    ClosedWorld world = compiler.backendClosedWorldForTesting;
     ElementEnvironment elementEnvironment = world.elementEnvironment;
     ClassEntity Object_ = registerClass(world.commonElements.objectClass);
     ClassEntity Interceptor =
         registerClass(world.commonElements.jsInterceptorClass);
     ClassEntity JavaScriptObject =
         registerClass(world.commonElements.jsJavaScriptObjectClass);
-    ClassEntity A = registerClass(env.getClass('A'));
-    ClassEntity B = registerClass(env.getClass('B'));
-    ClassEntity C = registerClass(env.getClass('C'));
-    ClassEntity D = registerClass(env.getClass('D'));
-    ClassEntity E = registerClass(env.getClass('E'));
-    ClassEntity F = registerClass(env.getClass('F'));
+    ClassEntity A = registerClass(findClass(world, 'A'));
+    ClassEntity B = registerClass(findClass(world, 'B'));
+    ClassEntity C = registerClass(findClass(world, 'C'));
+    ClassEntity D = registerClass(findClass(world, 'D'));
+    ClassEntity E = registerClass(findClass(world, 'E'));
+    ClassEntity F = registerClass(findClass(world, 'F'));
 
     Selector nonExisting = new Selector.getter(const PublicName('nonExisting'));
 

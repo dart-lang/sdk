@@ -16,7 +16,9 @@ namespace dart {
 namespace kernel {
 class NameIndex {
  public:
-  NameIndex() : value_(-1) {}
+  static const int kInvalidName = -1;
+
+  NameIndex() : value_(kInvalidName) {}
   explicit NameIndex(int value) : value_(value) {}
 
   operator int() const { return value_; }

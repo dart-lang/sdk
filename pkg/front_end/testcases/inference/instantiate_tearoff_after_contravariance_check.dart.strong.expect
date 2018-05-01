@@ -6,7 +6,7 @@ class C<T extends core::Object> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
-  generic-contravariant method f<U extends core::Object>(self::C::f::U x) → (self::C::T) → void
+  method f<U extends core::Object>(self::C::f::U x) → (self::C::T) → void
     return (self::C::T y) → core::Null {};
 }
 static method test(self::C<core::String> c) → void {

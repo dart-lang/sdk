@@ -15,7 +15,8 @@ class Class1 {
   Object method3(num n) => null;
 }
 
-/*class: Class2:needsArgs*/
+/*!strong.class: Class2:needsArgs*/
+/*strong.class: Class2:direct,explicit=[Class2.T],needsArgs*/
 class Class2<T> {
   /*element: Class2.method4:needsSignature*/
   num method4(T n) => null;
@@ -27,7 +28,8 @@ class Class3<T> {
   T method5(num n) => null;
 }
 
-/*class: Class4:*/
+/*!strong.class: Class4:*/
+/*strong.class: Class4:direct,explicit=[Class4.T],needsArgs*/
 class Class4<T> {
   /*element: Class4.method6:*/
   num method6(num n, T t) => null;

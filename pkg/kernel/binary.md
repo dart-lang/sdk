@@ -42,6 +42,8 @@ type UInt30 extends UInt {
 
 type UInt32 = big endian 32-bit unsigned integer
 
+type Double = Double-precision floating-point number.
+
 type List<T> {
   UInt length;
   T[length] items;
@@ -312,7 +314,6 @@ type Field extends Member {
   FileOffset fileEndOffset;
   Byte flags (isFinal, isConst, isStatic, hasImplicitGetter, hasImplicitSetter,
               isCovariant, isGenericCovariantImpl, isGenericCovariantInterface);
-  Byte flags2 (isGenericContravariant);
   Name name;
   List<Expression> annotations;
   DartType type;
@@ -351,9 +352,9 @@ type Procedure extends Member {
   FileOffset fileEndOffset;
   Byte kind; // Index into the ProcedureKind enum above.
   Byte flags (isStatic, isAbstract, isExternal, isConst, isForwardingStub,
-              isGenericContravariant, isForwardingSemiStub,
-              isRedirectingFactoryConstructor);
-  Byte flags2 (isNoSuchMethodForwarder);
+              isForwardingSemiStub,
+              isRedirectingFactoryConstructor,
+              isNoSuchMethodForwarder);
   Name name;
   List<Expression> annotations;
   // Only present if the 'isForwardingStub' flag is set.
@@ -712,7 +713,7 @@ type BigIntLiteral extends Expression {
 
 type DoubleLiteral extends Expression {
   Byte tag = 40;
-  StringReference valueString;
+  Double value;
 }
 
 type TrueLiteral extends Expression {
@@ -875,7 +876,7 @@ type IntConstant extends Constant {
 
 type DoubleConstant extends Constant {
   Byte tag = 3;
-  StringReference value;
+  Double value;
 }
 
 type StringConstant extends Constant {

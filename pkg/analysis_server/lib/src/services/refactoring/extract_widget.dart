@@ -37,6 +37,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   CorrectionUtils utils;
 
   ClassElement classBuildContext;
+  ClassElement classKey;
   ClassElement classStatefulWidget;
   ClassElement classStatelessWidget;
   ClassElement classWidget;
@@ -96,8 +97,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     _enclosingUnitMember = (_expression ?? _method).getAncestor(
         (n) => n is CompilationUnitMember && n.parent is CompilationUnit);
 
-    result.addStatus(await _initializeParameters());
     result.addStatus(await _initializeClasses());
+    result.addStatus(await _initializeParameters());
 
     return result;
   }
@@ -200,6 +201,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     }
 
     classBuildContext = await getClass('BuildContext');
+    classKey = await getClass('Key');
     classStatelessWidget = await getClass('StatelessWidget');
     classStatefulWidget = await getClass('StatefulWidget');
     classWidget = await getClass('Widget');
@@ -229,11 +231,27 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     // We added fields, now add the method parameters.
     if (_method != null) {
       for (var parameter in _method.parameters.parameters) {
+        if (parameter is DefaultFormalParameter) {
+          DefaultFormalParameter defaultFormalParameter = parameter;
+          parameter = defaultFormalParameter.parameter;
+        }
         if (parameter is NormalFormalParameter) {
           _parameters.add(new _Parameter(
               parameter.identifier.name, parameter.element.type,
               isMethodParameter: true));
         }
+      }
+    }
+
+    RefactoringStatus status = collector.status;
+
+    // If there is an existing parameter "key" warn the user.
+    // We could rename it, but that would require renaming references to it.
+    // It is probably pretty rare, and the user can always rename before.
+    for (var parameter in _parameters) {
+      if (parameter.name == 'key') {
+        status.addError(
+            "The parameter 'key' will conflict with the widget 'key'.");
       }
     }
 
@@ -254,29 +272,31 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     var collector = new _MethodInvocationsCollector(_method.element);
     _enclosingClassNode.accept(collector);
     for (var invocation in collector.invocations) {
-      builder.addReplacement(
-        range.startEnd(invocation, invocation.argumentList.leftParenthesis),
-        (builder) {
-          builder.write('new $name(');
+      List<Expression> arguments = invocation.argumentList.arguments;
+      builder.addReplacement(range.node(invocation), (builder) {
+        builder.write('new $name(');
 
-          // Insert field references.
-          for (var parameter in _parameters) {
-            if (parameter.isMethodParameter) {
-              break;
-            }
-            if (parameter != _parameters.first) {
-              builder.write(', ');
-            }
-            builder.write(parameter.name);
-          }
-
-          // Separate references to fields and method arguments.
-          if (_parameters.isNotEmpty &&
-              invocation.argumentList.arguments.isNotEmpty) {
+        // Insert field references (as named arguments).
+        // Ensure that invocation arguments are named.
+        int argumentIndex = 0;
+        for (var parameter in _parameters) {
+          if (parameter != _parameters.first) {
             builder.write(', ');
           }
-        },
-      );
+          builder.write(parameter.name);
+          builder.write(': ');
+          if (parameter.isMethodParameter) {
+            Expression argument = arguments[argumentIndex++];
+            if (argument is NamedExpression) {
+              argument = (argument as NamedExpression).expression;
+            }
+            builder.write(utils.getNodeText(argument));
+          } else {
+            builder.write(parameter.name);
+          }
+        }
+        builder.write(')');
+      });
     }
   }
 
@@ -289,8 +309,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
         name,
         superclass: classStatelessWidget.type,
         membersWriter: () {
+          // Add the fields for the parameters.
           if (_parameters.isNotEmpty) {
-            // Add the fields for the parameters.
             for (var parameter in _parameters) {
               builder.write('  ');
               builder.writeFieldDeclaration(parameter.name,
@@ -298,14 +318,33 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
               builder.writeln();
             }
             builder.writeln();
-
-            // Add the constructor.
-            builder.write('  ');
-            builder.writeConstructorDeclaration(name,
-                fieldNames: _parameters.map((e) => e.name).toList());
-            builder.writeln();
-            builder.writeln();
           }
+
+          // Add the constructor.
+          builder.write('  ');
+          builder.writeConstructorDeclaration(
+            name,
+            parameterWriter: () {
+              builder.write('{');
+
+              // Add the required `key` parameter.
+              builder.writeParameter('key', type: classKey.type);
+
+              // Add parameters for fields, local, and method parameters.
+              for (int i = 0; i < _parameters.length; i++) {
+                builder.write(', ');
+                builder.write('this.');
+                builder.write(_parameters[i].name);
+              }
+
+              builder.write('}');
+            },
+            initializerWriter: () {
+              builder.write('super(key: key)');
+            },
+          );
+          builder.writeln();
+          builder.writeln();
 
           // Widget build(BuildContext context) { ... }
           builder.writeln('  @override');
@@ -352,6 +391,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
         builder.write(', ');
       }
       builder.write(parameter.name);
+      builder.write(': ');
+      builder.write(parameter.name);
     }
 
     builder.write(')');
@@ -381,7 +422,7 @@ class _Parameter {
   /// Whether the parameter is a parameter of the method being extracted.
   final bool isMethodParameter;
 
-  _Parameter(this.name, this.type, {this.isMethodParameter = false});
+  _Parameter(this.name, this.type, {this.isMethodParameter: false});
 }
 
 class _ParametersCollector extends RecursiveAstVisitor<void> {
