@@ -91,9 +91,6 @@ assign_static_type_test/01: Fail
 assign_static_type_test/02: MissingCompileTimeError
 async_return_types_test/nestedFuture: Fail # Issue 26429
 async_return_types_test/wrongTypeParameter: Fail # Issue 26429
-cha_deopt1_test: RuntimeError
-cha_deopt2_test: RuntimeError
-cha_deopt3_test: RuntimeError
 closure_type_test/01: RuntimeError # Issue 12745
 closure_type_test/none: RuntimeError # Issue 12745
 compile_time_constant_checked2_test/01: MissingCompileTimeError
@@ -133,43 +130,11 @@ const_constructor2_test/24: MissingCompileTimeError
 const_constructor3_test/02: MissingCompileTimeError
 const_constructor3_test/04: MissingCompileTimeError
 const_init2_test/02: MissingCompileTimeError
-deferred_closurize_load_library_test: RuntimeError
-deferred_constant_list_test: RuntimeError
 deferred_constraints_constants_test/none: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_constants_test/reference_after_load: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
-deferred_constraints_type_annotation_test/as_operation: RuntimeError
-deferred_constraints_type_annotation_test/catch_check: RuntimeError
-deferred_constraints_type_annotation_test/is_check: RuntimeError
-deferred_constraints_type_annotation_test/new: RuntimeError
-deferred_constraints_type_annotation_test/new_before_load: RuntimeError
-deferred_constraints_type_annotation_test/new_generic1: RuntimeError
-deferred_constraints_type_annotation_test/new_generic2: RuntimeError
-deferred_constraints_type_annotation_test/new_generic3: RuntimeError
-deferred_constraints_type_annotation_test/none: RuntimeError
-deferred_constraints_type_annotation_test/static_method: RuntimeError
-deferred_constraints_type_annotation_test/type_annotation_generic2: RuntimeError
-deferred_constraints_type_annotation_test/type_annotation_generic3: RuntimeError
-deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError
-deferred_constraints_type_annotation_test/type_annotation_null: RuntimeError
-deferred_constraints_type_annotation_test/type_annotation_top_level: RuntimeError
-deferred_function_type_test: RuntimeError
-deferred_global_test: RuntimeError
-deferred_inlined_test: RuntimeError
-deferred_load_constants_test/none: RuntimeError
-deferred_load_inval_code_test: RuntimeError
-deferred_mixin_test: RuntimeError
-deferred_no_such_method_test: RuntimeError
-deferred_only_constant_test: RuntimeError
-deferred_optimized_test: RuntimeError
-deferred_regression_22995_test: RuntimeError
-deferred_regression_28678_test: RuntimeError
-deferred_shadow_load_library_test: RuntimeError
-deferred_shared_and_unshared_classes_test: RuntimeError
-deferred_static_seperate_test: RuntimeError
-deferred_type_dependency_test/as: RuntimeError
-deferred_type_dependency_test/is: RuntimeError
-deferred_type_dependency_test/none: RuntimeError
-deferred_type_dependency_test/type_annotation: RuntimeError
+deferred_constraints_type_annotation_test/type_annotation_generic1: Fail # Missing dynamic type error
+deferred_constraints_type_annotation_test/type_annotation_generic4: Fail # Missing dynamic type error
+deferred_constraints_type_annotation_test/type_annotation1: Fail # Missing dynamic type error
 factory_redirection_test/08: Fail
 factory_redirection_test/09: Fail
 factory_redirection_test/10: Fail
@@ -195,9 +160,7 @@ malformed2_test/01: MissingCompileTimeError
 map_literal1_test/01: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: Fail
 redirecting_factory_malbounded_test/01: Fail
-regress_22443_test: RuntimeError
 regress_26133_test: RuntimeError # Issue 26429
-regress_28278_test: RuntimeError
 regress_29405_test: RuntimeError # Issue 29422
 stacktrace_demangle_ctors_test: RuntimeError
 stacktrace_test: RuntimeError
