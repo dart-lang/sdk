@@ -317,7 +317,7 @@ class Utils {
   static uword NBitMask(uint32_t n) {
     ASSERT(n <= kBitsPerWord);
     if (n == kBitsPerWord) {
-#if defined(ARCH_IS_64_BIT)
+#if defined(TARGET_ARCH_X64)
       return 0xffffffffffffffffll;
 #else
       return 0xffffffff;
