@@ -3213,7 +3213,8 @@ DART_EXPORT Dart_Port Dart_KernelPort();
 DART_EXPORT Dart_KernelCompilationResult
 Dart_CompileToKernel(const char* script_uri,
                      const uint8_t* platform_kernel,
-                     const intptr_t platform_kernel_size);
+                     const intptr_t platform_kernel_size,
+                     const char* package_config);
 
 typedef struct {
   const char* uri;
@@ -3225,7 +3226,8 @@ Dart_CompileSourcesToKernel(const char* script_uri,
                             intptr_t platform_kernel_size,
                             int source_files_count,
                             Dart_SourceFile source_files[],
-                            bool incremental_compile);
+                            bool incremental_compile,
+                            const char* package_config);
 
 #define DART_KERNEL_ISOLATE_NAME "kernel-service"
 

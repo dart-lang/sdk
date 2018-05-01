@@ -216,7 +216,8 @@ class WindowsPathSanitizer {
 void* DFE::CompileAndReadScript(const char* script_uri,
                                 char** error,
                                 int* exit_code,
-                                bool strong) {
+                                bool strong,
+                                const char* package_config) {
   // TODO(aam): When Frontend is ready, VM should be passing vm_outline.dill
   // instead of vm_platform.dill to Frontend for compilation.
 #if defined(HOST_OS_WINDOWS)
@@ -231,7 +232,7 @@ void* DFE::CompileAndReadScript(const char* script_uri,
   intptr_t platform_binary_size =
       strong ? platform_strong_dill_size : platform_dill_size;
   Dart_KernelCompilationResult result = Dart_CompileToKernel(
-      sanitized_uri, platform_binary, platform_binary_size);
+      sanitized_uri, platform_binary, platform_binary_size, package_config);
   switch (result.status) {
     case Dart_KernelCompilationStatus_Ok:
       return Dart_ReadKernelBinary(result.kernel, result.kernel_size,

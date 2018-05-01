@@ -266,7 +266,7 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
   Dart_KernelCompilationResult compilation_result = Dart_CompileSourcesToKernel(
       url, FLAG_strong ? platform_strong_dill : platform_dill,
       FLAG_strong ? platform_strong_dill_size : platform_dill_size,
-      sourcefiles_count, sourcefiles, incrementally);
+      sourcefiles_count, sourcefiles, incrementally, NULL);
 
   if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
     char* result =

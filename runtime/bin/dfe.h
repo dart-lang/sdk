@@ -52,7 +52,8 @@ class DFE {
   void* CompileAndReadScript(const char* script_uri,
                              char** error,
                              int* exit_code,
-                             bool strong);
+                             bool strong,
+                             const char* package_config);
 
   // Reads the script kernel file if specified 'script_uri' is a kernel file.
   // Returns an in memory kernel representation of the specified script is a

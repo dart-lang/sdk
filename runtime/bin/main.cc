@@ -224,6 +224,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
                                        const char* packages_config,
                                        bool set_native_resolvers,
                                        bool isolate_run_app_snapshot,
+                                       Dart_IsolateFlags* flags,
                                        char** error,
                                        int* exit_code) {
   Dart_EnterScope();
@@ -241,7 +242,47 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   result = DartUtils::PrepareForScriptLoading(false, Options::trace_loading());
   CHECK_RESULT(result);
 
+  // Set up the load port provided by the service isolate so that we can
+  // load scripts.
+  result = DartUtils::SetupServiceLoadPort();
+  CHECK_RESULT(result);
+
+  // Setup package root if specified.
+  result = DartUtils::SetupPackageRoot(package_root, packages_config);
+  CHECK_RESULT(result);
+  const char* resolved_packages_config = NULL;
+  if (!Dart_IsNull(result)) {
+    result = Dart_StringToCString(result, &resolved_packages_config);
+    CHECK_RESULT(result);
+    ASSERT(resolved_packages_config != NULL);
+  }
+
+  result = Dart_SetEnvironmentCallback(EnvironmentCallback);
+  CHECK_RESULT(result);
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  if (dfe.UseDartFrontend() && !isolate_run_app_snapshot &&
+      kernel_program == NULL) {
+    if (!dfe.CanUseDartFrontend()) {
+      const char* format = "Dart frontend unavailable to compile script %s.";
+      intptr_t len = snprintf(NULL, 0, format, script_uri) + 1;
+      *error = reinterpret_cast<char*>(malloc(len));
+      ASSERT(error != NULL);
+      snprintf(*error, len, format, script_uri);
+      *exit_code = kErrorExitCode;
+      Dart_ExitScope();
+      Dart_ShutdownIsolate();
+      return NULL;
+    }
+    kernel_program = dfe.CompileAndReadScript(
+        script_uri, error, exit_code, flags->strong, resolved_packages_config);
+    if (kernel_program == NULL) {
+      Dart_ExitScope();
+      Dart_ShutdownIsolate();
+      return NULL;
+    }
+    isolate_data->kernel_program = kernel_program;
+  }
   if (kernel_program != NULL) {
     Dart_Handle uri = Dart_NewStringFromCString(script_uri);
     CHECK_RESULT(uri);
@@ -265,18 +306,6 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     Dart_Handle result = Loader::ReloadNativeExtensions();
     CHECK_RESULT(result);
   }
-
-  // Set up the load port provided by the service isolate so that we can
-  // load scripts.
-  result = DartUtils::SetupServiceLoadPort();
-  CHECK_RESULT(result);
-
-  // Setup package root if specified.
-  result = DartUtils::SetupPackageRoot(package_root, packages_config);
-  CHECK_RESULT(result);
-
-  result = Dart_SetEnvironmentCallback(EnvironmentCallback);
-  CHECK_RESULT(result);
 
   if (isolate_run_app_snapshot) {
     result = DartUtils::SetupIOLibrary(Options::namespc(), script_uri,
@@ -392,7 +421,8 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
   }
 
   return IsolateSetupHelper(isolate, false, uri, package_root, packages_config,
-                            true, isolate_run_app_snapshot, error, exit_code);
+                            true, isolate_run_app_snapshot, flags, error,
+                            exit_code);
 }
 #endif  // !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
 
@@ -563,36 +593,18 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
     // Isolate should be created only if it is a self contained kernel binary.
     isolate = Dart_CreateIsolateFromKernel(script_uri, main, platform_program,
                                            flags, isolate_data, error);
-
-    if (!isolate_run_app_snapshot && kernel_program == NULL) {
-      if (!dfe.CanUseDartFrontend()) {
-        const char* format = "Dart frontend unavailable to compile script %s.";
-        intptr_t len = snprintf(NULL, 0, format, script_uri) + 2;
-        *error = reinterpret_cast<char*>(malloc(len));
-        ASSERT(error != NULL);
-        snprintf(*error, len, format, script_uri);
-        return NULL;
-      }
-
-      kernel_program =
-          dfe.CompileAndReadScript(script_uri, error, exit_code, flags->strong);
-      if (kernel_program == NULL) {
-        if (Dart_CurrentIsolate() != NULL) {
-          Dart_ShutdownIsolate();
-        }
-        return NULL;
-      }
-    }
     isolate_data->kernel_program = kernel_program;
   } else {
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
     isolate = Dart_CreateIsolate(
         script_uri, main, isolate_snapshot_data, isolate_snapshot_instructions,
         app_isolate_shared_data, app_isolate_shared_instructions, flags,
         isolate_data, error);
-#if !defined(DART_PRECOMPILED_RUNTIME)
   }
+#else
+  isolate = Dart_CreateIsolate(
+      script_uri, main, isolate_snapshot_data, isolate_snapshot_instructions,
+      app_isolate_shared_data, app_isolate_shared_instructions, flags,
+      isolate_data, error);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   Dart_Isolate created_isolate = NULL;
@@ -600,9 +612,10 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
     delete isolate_data;
   } else {
     bool set_native_resolvers = (kernel_program || isolate_snapshot_data);
-    created_isolate = IsolateSetupHelper(
-        isolate, is_main_isolate, script_uri, package_root, packages_config,
-        set_native_resolvers, isolate_run_app_snapshot, error, exit_code);
+    created_isolate =
+        IsolateSetupHelper(isolate, is_main_isolate, script_uri, package_root,
+                           packages_config, set_native_resolvers,
+                           isolate_run_app_snapshot, flags, error, exit_code);
   }
   int64_t end = Dart_TimelineGetMicros();
   Dart_TimelineEvent("CreateIsolateAndSetupHelper", start, end,

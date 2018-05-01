@@ -6011,7 +6011,8 @@ DART_EXPORT Dart_Port Dart_KernelPort() {
 DART_EXPORT Dart_KernelCompilationResult
 Dart_CompileToKernel(const char* script_uri,
                      const uint8_t* platform_kernel,
-                     intptr_t platform_kernel_size) {
+                     intptr_t platform_kernel_size,
+                     const char* package_config) {
   Dart_KernelCompilationResult result;
 #if defined(DART_PRECOMPILED_RUNTIME)
   result.status = Dart_KernelCompilationStatus_Unknown;
@@ -6019,7 +6020,8 @@ Dart_CompileToKernel(const char* script_uri,
   return result;
 #else
   result = KernelIsolate::CompileToKernel(script_uri, platform_kernel,
-                                          platform_kernel_size, 0, NULL, true);
+                                          platform_kernel_size, 0, NULL, true,
+                                          package_config);
   if (result.status == Dart_KernelCompilationStatus_Ok) {
     if (KernelIsolate::AcceptCompilation().status !=
         Dart_KernelCompilationStatus_Ok) {
@@ -6038,7 +6040,8 @@ Dart_CompileSourcesToKernel(const char* script_uri,
                             intptr_t platform_kernel_size,
                             int source_files_count,
                             Dart_SourceFile sources[],
-                            bool incremental_compile) {
+                            bool incremental_compile,
+                            const char* package_config) {
   Dart_KernelCompilationResult result;
 #if defined(DART_PRECOMPILED_RUNTIME)
   result.status = Dart_KernelCompilationStatus_Unknown;
@@ -6047,7 +6050,7 @@ Dart_CompileSourcesToKernel(const char* script_uri,
 #else
   result = KernelIsolate::CompileToKernel(
       script_uri, platform_kernel, platform_kernel_size, source_files_count,
-      sources, incremental_compile);
+      sources, incremental_compile, package_config);
   if (result.status == Dart_KernelCompilationStatus_Ok) {
     if (KernelIsolate::AcceptCompilation().status !=
         Dart_KernelCompilationStatus_Ok) {
