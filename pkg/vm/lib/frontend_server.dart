@@ -85,7 +85,8 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
           'Scheme that is used in virtual filesystem set up via --filesystem-root'
           ' option',
       defaultsTo: 'org-dartlang-root',
-      hide: true);
+      hide: true)
+  ..addFlag('verbose', help: 'Enables verbose output from the compiler.');
 
 String usage = '''
 Usage: server [options] [input.dart]
@@ -210,6 +211,7 @@ class FrontendCompiler implements CompilerInterface {
       ..packagesFileUri = _getFileOrUri(_options['packages'])
       ..strongMode = options['strong']
       ..sdkSummary = sdkRoot.resolve(platformKernelDill)
+      ..verbose = options['verbose']
       ..onProblem =
           (message, Severity severity, List<FormattedMessage> context) {
         bool printMessage;
