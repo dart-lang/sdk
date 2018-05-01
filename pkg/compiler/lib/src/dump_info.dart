@@ -138,8 +138,12 @@ class ElementInfoCollector {
   GlobalTypeInferenceElementResult _resultOfParameter(Local e) =>
       compiler.globalInference.results.resultOfParameter(e);
 
-  FieldInfo visitField(FieldEntity field) {
-    if (!_hasBeenResolved(field)) {
+  FieldInfo visitField(FieldEntity field, {ClassEntity containingClass}) {
+    var isInInstantiatedClass = false;
+    if (containingClass != null) {
+      isInInstantiatedClass = closedWorld.isInstantiated(containingClass);
+    }
+    if (!isInInstantiatedClass && !_hasBeenResolved(field)) {
       return null;
     }
     TypeMask inferredType = _resultOfMember(field).type;
@@ -148,6 +152,8 @@ class ElementInfoCollector {
 
     int size = compiler.dumpInfoTask.sizeOf(field);
     String code = compiler.dumpInfoTask.codeOf(field);
+
+    // TODO(het): Why doesn't `size` account for the code size already?
     if (code != null) size += code.length;
 
     FieldInfo info = new FieldInfo(
@@ -204,7 +210,7 @@ class ElementInfoCollector {
           }
         }
       } else if (member.isField) {
-        FieldInfo fieldInfo = visitField(member);
+        FieldInfo fieldInfo = visitField(member, containingClass: clazz);
         if (fieldInfo != null) {
           classInfo.fields.add(fieldInfo);
           fieldInfo.parent = classInfo;
