@@ -1487,14 +1487,10 @@ LibTest/isolate/Isolate/spawn_A04_t02: RuntimeError # Please triage this failure
 LibTest/typed_data/Float32x4List/Float32x4List.view_A06_t01: Fail # co19-roll r587: Please triage this failure
 LibTest/typed_data/Int32x4/operator_OR_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 
-[ $compiler == dart2js && $runtime == d8 && $system == windows ]
-LibTest/async/DeferredLibrary/*: Skip # Issue 17458
-
 [ $compiler == dart2js && $runtime == d8 && $checked && $fast_startup && $minified ]
 Language/Classes/Constructors/Factories/function_type_t02: RuntimeError
 Language/Expressions/Instance_Creation/New/redirecting_factory_constructor_t02: RuntimeError
 Language/Generics/malformed_t02: Crash
-LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: RuntimeError
 
 [ $compiler == dart2js && $runtime == d8 && $fast_startup ]
 LibTest/isolate/Isolate/spawn_A04_t04: Pass # Technically fails, but since sync-async was turned on, this test completes before it fails. Underlying issue: #27558
@@ -6939,15 +6935,10 @@ LibTest/core/Map/Map_class_A01_t04: Slow, Pass # Please triage this failure
 LibTest/core/Uri/Uri_A06_t03: Slow, Pass # Please triage this failure
 LibTest/math/Point/operator_mult_A02_t01: RuntimeError # Issue 1533
 
-[ $compiler == dart2js && $checked && $fast_startup && $fasta && $minified ]
-Language/Libraries_and_Scripts/Imports/deferred_import_t02: RuntimeError
-
 [ $compiler == dart2js && $checked && $fasta && $host_checked ]
 Language/Classes/Constructors/Factories/function_type_t02: RuntimeError
 Language/Expressions/Instance_Creation/New/redirecting_factory_constructor_t02: RuntimeError
 Language/Generics/malformed_t02: Crash
-Language/Libraries_and_Scripts/Imports/deferred_import_t02: RuntimeError
-LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: RuntimeError
 
 [ $compiler == dart2js && !$checked && $enable_asserts ]
 Language/Statements/Assert/execution_t01: SkipByDesign # Unspec'd feature.
