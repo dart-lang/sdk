@@ -72,6 +72,7 @@ dart/spawn_shutdown_test: Pass, Slow # VM Shutdown test, It can take some time f
 
 [ $runtime == dart_precompiled ]
 dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
+dart/issue32950_test: SkipByDesign # uses spawnUri.
 
 [ $runtime != vm ]
 dart/hello_fuchsia_test: SkipByDesign # This is a test for fuchsia OS
@@ -225,6 +226,7 @@ dart/truncating_ints_test: Skip # This test cannot be run in dartkp/legacy mode 
 
 [ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
 dart/data_uri_import_test/utf16: MissingRuntimeError # UTF-16 data URIs work in dartk
+dart/issue32950_test: SkipByDesign # uses spawnUri.
 dart/redirection_type_shuffling_test: SkipByDesign # Includes dart:mirrors.
 dart/spawn_shutdown_test: SkipSlow
 
