@@ -111,8 +111,11 @@ class KernelLibraryBuilder
   /// the error message is the corresponding value in the map.
   Map<String, String> unserializableExports;
 
-  KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader, this.actualOrigin)
-      : library = actualOrigin?.library ?? new Library(uri, fileUri: fileUri),
+  KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader, this.actualOrigin,
+      [Library intendedTarget])
+      : library = intendedTarget ??
+            actualOrigin?.library ??
+            new Library(uri, fileUri: fileUri),
         super(loader, fileUri);
 
   @override
