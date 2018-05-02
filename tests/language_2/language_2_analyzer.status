@@ -100,15 +100,7 @@ parameter_initializer3_negative_test: CompileTimeError
 parameter_initializer4_negative_test: CompileTimeError
 parameter_initializer6_negative_test: CompileTimeError
 part_refers_to_core_library_test/01: MissingCompileTimeError # Issue 29709
-prefix11_negative_test: Fail # Issue 11964
-prefix12_negative_test: Fail # Issue 11962
-prefix1_negative_test: Fail # Issue 11962
-prefix2_negative_test: Fail # Issue 11962
-prefix3_negative_test: Fail # Issue 12191
-prefix4_negative_test: Fail # Issue 11962
-prefix5_negative_test: Fail # Issue 11962
-prefix7_negative_test: CompileTimeError
-prefix8_negative_test: Fail # Issue 11964
+prefix_shadow_test/01: MissingCompileTimeError # Issue 33005
 private_member1_negative_test: Fail # Issue 14021
 private_member2_negative_test: Fail # Issue 14021
 private_member3_negative_test: Fail # Issue 14021
@@ -1161,10 +1153,6 @@ override_inheritance_method_test/28: CompileTimeError
 override_inheritance_method_test/29: CompileTimeError
 parameter_initializer_test: CompileTimeError
 parser_quirks_test: CompileTimeError
-prefix13_negative_test: CompileTimeError, OK
-prefix15_negative_test: CompileTimeError, OK
-prefix18_negative_test: CompileTimeError, OK
-prefix6_negative_test: CompileTimeError, OK
 regress_22976_test/01: CompileTimeError
 regress_22976_test/02: CompileTimeError
 regress_22976_test/none: CompileTimeError
@@ -1566,13 +1554,11 @@ partial_tearoff_instantiation_test/07: MissingCompileTimeError
 partial_tearoff_instantiation_test/08: MissingCompileTimeError
 positional_parameters_type_test/01: MissingCompileTimeError
 positional_parameters_type_test/02: MissingCompileTimeError
-prefix13_negative_test: CompileTimeError, OK
-prefix15_negative_test: CompileTimeError, OK
 prefix16_test/00: MissingCompileTimeError
 prefix16_test/01: MissingCompileTimeError
-prefix18_negative_test: CompileTimeError, OK
 prefix22_test/00: MissingCompileTimeError
 prefix23_test/00: MissingCompileTimeError
+prefix_shadow_test/02: MissingCompileTimeError
 private_access_test/01: MissingCompileTimeError
 private_access_test/02: MissingCompileTimeError
 private_access_test/03: MissingCompileTimeError

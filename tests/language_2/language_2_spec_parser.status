@@ -55,20 +55,6 @@ parameter_initializer2_negative_test: Skip # Negative, not syntax.
 parameter_initializer3_negative_test: Skip # Negative, not syntax.
 parameter_initializer4_negative_test: Skip # Negative, not syntax.
 parameter_initializer6_negative_test: Skip # Negative, not syntax.
-prefix10_negative_test: Skip # Negative, not syntax.
-prefix11_negative_test: Skip # Negative, not syntax.
-prefix12_negative_test: Skip # Negative, not syntax.
-prefix13_negative_test: Skip # Negative, not syntax.
-prefix15_negative_test: Skip # Negative, not syntax.
-prefix18_negative_test: Fail # Negative, uses `lib1.invalid` as library prefix.
-prefix1_negative_test: Skip # Negative, not syntax.
-prefix2_negative_test: Skip # Negative, not syntax.
-prefix3_negative_test: Skip # Negative, not syntax.
-prefix4_negative_test: Skip # Negative, not syntax.
-prefix5_negative_test: Skip # Negative, not syntax.
-prefix6_negative_test: Skip # Negative, not syntax.
-prefix7_negative_test: Skip # Negative, not syntax.
-prefix8_negative_test: Skip # Negative, not syntax.
 private_member1_negative_test: Skip # Negative, not syntax.
 private_member2_negative_test: Skip # Negative, not syntax.
 private_member3_negative_test: Skip # Negative, not syntax.

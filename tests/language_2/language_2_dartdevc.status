@@ -143,7 +143,7 @@ override_inheritance_method_test/28: CompileTimeError
 override_inheritance_method_test/29: CompileTimeError
 parameter_initializer_test: CompileTimeError
 part_refers_to_core_library_test/01: Crash
-prefix10_negative_test: Fail # Issue 29920
+prefix_shadow_test/01: MissingCompileTimeError # Issue 33005
 regress_23089_test: MissingCompileTimeError
 regress_23408_test: CompileTimeError
 regress_24283_test: RuntimeError # Intended to fail, requires 64-bit numbers.

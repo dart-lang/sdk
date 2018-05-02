@@ -847,6 +847,14 @@ prefix16_test/00: MissingCompileTimeError
 prefix16_test/01: MissingCompileTimeError
 prefix22_test/00: MissingCompileTimeError
 prefix23_test/00: MissingCompileTimeError
+prefix_import_collision_test/01: MissingCompileTimeError
+prefix_shadow_test/01: MissingCompileTimeError
+prefix_shadow_test/02: MissingCompileTimeError
+prefix_transitive_import_prefix_test/01: MissingCompileTimeError
+prefix_transitive_import_prefix_test/02: MissingCompileTimeError
+prefix_transitive_import_prefix_test/03: MissingCompileTimeError
+prefix_transitive_import_test/01: MissingCompileTimeError
+prefix_transitive_import_test/02: MissingCompileTimeError
 private_access_test/01: MissingCompileTimeError
 private_access_test/02: MissingCompileTimeError
 private_access_test/03: MissingCompileTimeError
@@ -1031,6 +1039,7 @@ unresolved_default_constructor_test/01: MissingCompileTimeError
 unresolved_in_factory_test: MissingCompileTimeError
 unresolved_top_level_method_test: MissingCompileTimeError
 unresolved_top_level_var_test: MissingCompileTimeError
+variable_shadow_class_test/01: MissingCompileTimeError
 
 [ $compiler != dartk && $runtime == vm && $checked ]
 call_method_as_cast_test/06: RuntimeError

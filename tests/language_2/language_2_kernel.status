@@ -1308,6 +1308,15 @@ override_inheritance_no_such_method_test/07: MissingCompileTimeError
 override_inheritance_no_such_method_test/09: MissingCompileTimeError
 override_inheritance_no_such_method_test/10: MissingCompileTimeError
 override_inheritance_no_such_method_test/12: MissingCompileTimeError
+prefix_import_collision_test/01: MissingCompileTimeError
+prefix_shadow_test/01: MissingCompileTimeError
+prefix_shadow_test/02: MissingCompileTimeError
+prefix_transitive_import_prefix_test/01: MissingCompileTimeError
+prefix_transitive_import_prefix_test/02: MissingCompileTimeError
+prefix_transitive_import_prefix_test/03: MissingCompileTimeError
+prefix_transitive_import_test/01: MissingCompileTimeError
+prefix_transitive_import_test/02: MissingCompileTimeError
+variable_shadow_class_test/01: MissingCompileTimeError
 
 [ $fasta && $strong ]
 compile_time_constant_k_test/01: MissingCompileTimeError
@@ -1938,20 +1947,10 @@ partial_tearoff_instantiation_test/01: MissingCompileTimeError
 partial_tearoff_instantiation_test/03: MissingCompileTimeError
 positional_parameters_type_test/01: MissingCompileTimeError
 positional_parameters_type_test/02: MissingCompileTimeError
-prefix10_negative_test: Fail
-prefix11_negative_test: Fail
-prefix12_negative_test: Fail
 prefix16_test/00: MissingCompileTimeError
 prefix16_test/01: MissingCompileTimeError
-prefix1_negative_test: Fail
 prefix22_test/00: MissingCompileTimeError
 prefix23_test/00: MissingCompileTimeError
-prefix2_negative_test: Fail
-prefix3_negative_test: Fail
-prefix4_negative_test: Fail
-prefix5_negative_test: Fail
-prefix6_negative_test: Fail
-prefix8_negative_test: Fail
 private_access_test/01: MissingCompileTimeError
 private_access_test/02: MissingCompileTimeError
 private_access_test/03: MissingCompileTimeError
