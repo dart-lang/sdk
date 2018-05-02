@@ -791,7 +791,7 @@ typedef struct {
  * \return NULL if initialization is successful. Returns an error message
  *   otherwise. The caller is responsible for freeing the error message.
  */
-DART_WARN_UNUSED_RESULT DART_EXPORT char* Dart_Initialize(
+DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_Initialize(
     Dart_InitializeParams* params);
 
 /**
@@ -800,7 +800,7 @@ DART_WARN_UNUSED_RESULT DART_EXPORT char* Dart_Initialize(
  * \return NULL if cleanup is successful. Returns an error message otherwise.
  *   The caller is responsible for freeing the error message.
  */
-DART_WARN_UNUSED_RESULT DART_EXPORT char* Dart_Cleanup();
+DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_Cleanup();
 
 /**
  * Sets command line flags. Should be called before Dart_Initialize.
@@ -811,7 +811,7 @@ DART_WARN_UNUSED_RESULT DART_EXPORT char* Dart_Cleanup();
  * \return NULL if successful. Returns an error message otherwise.
  *  The caller is responsible for freeing the error message.
  */
-DART_WARN_UNUSED_RESULT DART_EXPORT char* Dart_SetVMFlags(int argc,
+DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_SetVMFlags(int argc,
                                                           const char** argv);
 
 /**
@@ -1084,7 +1084,7 @@ DART_EXPORT bool Dart_IsDart2Snapshot(const uint8_t* snapshot_buffer);
  * \return NULL if successful. Returns an error message otherwise. The caller
  * is responsible for freeing the error message.
  */
-DART_WARN_UNUSED_RESULT DART_EXPORT char* Dart_IsolateMakeRunnable(
+DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_IsolateMakeRunnable(
     Dart_Isolate isolate);
 
 /*
