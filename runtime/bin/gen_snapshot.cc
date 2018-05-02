@@ -36,8 +36,6 @@
 namespace dart {
 namespace bin {
 
-DFE dfe;
-
 // Exit code indicating an API error.
 static const int kApiErrorExitCode = 253;
 // Exit code indicating a compilation error.

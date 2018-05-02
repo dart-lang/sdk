@@ -80,10 +80,6 @@ const uint8_t* core_isolate_snapshot_instructions =
  *   dart <app_snapshot_filename> [<script_options>]
  */
 static bool vm_run_app_snapshot = false;
-#if !defined(DART_PRECOMPILED_RUNTIME)
-DFE dfe;
-#endif
-
 static char* app_script_uri = NULL;
 static const uint8_t* app_isolate_snapshot_data = NULL;
 static const uint8_t* app_isolate_snapshot_instructions = NULL;
@@ -261,7 +257,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   CHECK_RESULT(result);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (dfe.UseDartFrontend() && !isolate_run_app_snapshot &&
+  if (Options::preview_dart_2() && !isolate_run_app_snapshot &&
       kernel_program == NULL && !Dart_IsKernelIsolate(isolate)) {
     if (!dfe.CanUseDartFrontend()) {
       const char* format = "Dart frontend unavailable to compile script %s.";
@@ -467,7 +463,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   ASSERT(flags != NULL);
   flags->load_vmservice_library = true;
 
-  if (dfe.UseDartFrontend()) {
+  if (Options::preview_dart_2()) {
     // If there is intention to use DFE, then we create the isolate
     // from kernel only if we can.
     void* platform_program = dfe.platform_program(flags->strong) != NULL
@@ -580,7 +576,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   Dart_Isolate isolate = NULL;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (dfe.UseDartFrontend()) {
+  if (Options::preview_dart_2()) {
     void* platform_program = dfe.platform_program(flags->strong) != NULL
                                  ? dfe.platform_program(flags->strong)
                                  : kernel_program;
@@ -882,7 +878,12 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
       // the core snapshot.
       Platform::Exit(kErrorExitCode);
     }
-    Snapshot::GenerateScript(Options::snapshot_filename());
+    if (Options::preview_dart_2()) {
+      Snapshot::GenerateKernel(Options::snapshot_filename(), script_name,
+                               flags.strong, Options::packages_file());
+    } else {
+      Snapshot::GenerateScript(Options::snapshot_filename());
+    }
   } else {
     // Lookup the library of the root script.
     Dart_Handle root_lib = Dart_RootLibrary();
@@ -1161,9 +1162,9 @@ void main(int argc, char** argv) {
   if (application_kernel_binary != NULL) {
     // Since we loaded the script anyway, save it.
     dfe.set_application_kernel_binary(application_kernel_binary);
-    // Since we saw a dill file, it means we have to use DFE for
-    // any further source file parsing.
-    dfe.set_use_dfe();
+    // Since we saw a dill file, it means we have to turn on all the
+    // preview_dart_2 options.
+    Options::SetPreviewDart2Options(&vm_options);
   }
 #endif
 

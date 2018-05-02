@@ -3214,6 +3214,7 @@ DART_EXPORT Dart_KernelCompilationResult
 Dart_CompileToKernel(const char* script_uri,
                      const uint8_t* platform_kernel,
                      const intptr_t platform_kernel_size,
+                     bool incremental_compile,
                      const char* package_config);
 
 typedef struct {

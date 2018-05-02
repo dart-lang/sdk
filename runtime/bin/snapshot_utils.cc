@@ -5,6 +5,7 @@
 #include "bin/snapshot_utils.h"
 
 #include "bin/dartutils.h"
+#include "bin/dfe.h"
 #include "bin/error_exit.h"
 #include "bin/extensions.h"
 #include "bin/file.h"
@@ -241,7 +242,7 @@ AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_name) {
   if (snapshot != NULL) {
     return snapshot;
   }
-#endif  //  defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
   return NULL;
 }
 
@@ -315,6 +316,22 @@ static void WriteAppSnapshot(const char* filename,
 
   file->Flush();
   file->Release();
+}
+
+void Snapshot::GenerateKernel(const char* snapshot_filename,
+                              const char* script_name,
+                              bool strong,
+                              const char* package_config) {
+#if !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM) && !defined(TESTING)
+  Dart_KernelCompilationResult result =
+      dfe.CompileScript(script_name, strong, false, package_config);
+  if (result.status != Dart_KernelCompilationStatus_Ok) {
+    ErrorExit(kErrorExitCode, "%s\n", result.error);
+  }
+  WriteSnapshotFile(snapshot_filename, result.kernel, result.kernel_size);
+#else
+  UNREACHABLE();
+#endif  // !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM) && !defined(TESTING)
 }
 
 void Snapshot::GenerateScript(const char* snapshot_filename) {

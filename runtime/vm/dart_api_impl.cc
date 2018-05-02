@@ -6011,6 +6011,7 @@ DART_EXPORT Dart_KernelCompilationResult
 Dart_CompileToKernel(const char* script_uri,
                      const uint8_t* platform_kernel,
                      intptr_t platform_kernel_size,
+                     bool incremental_compile,
                      const char* package_config) {
   Dart_KernelCompilationResult result;
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -6019,8 +6020,8 @@ Dart_CompileToKernel(const char* script_uri,
   return result;
 #else
   result = KernelIsolate::CompileToKernel(script_uri, platform_kernel,
-                                          platform_kernel_size, 0, NULL, true,
-                                          package_config);
+                                          platform_kernel_size, 0, NULL,
+                                          incremental_compile, package_config);
   if (result.status == Dart_KernelCompilationStatus_Ok) {
     if (KernelIsolate::AcceptCompilation().status !=
         Dart_KernelCompilationStatus_Ok) {
