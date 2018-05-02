@@ -8,21 +8,27 @@ import 'package:kernel/ast.dart'
     show
         Class,
         Constructor,
+        ThisExpression,
         DartType,
         DynamicType,
         Expression,
         Field,
         FunctionNode,
         InterfaceType,
+        AsExpression,
         ListLiteral,
         Member,
         Name,
         Procedure,
+        ReturnStatement,
+        VoidType,
+        MethodInvocation,
         ProcedureKind,
         StaticGet,
         Supertype,
         TypeParameter,
         TypeParameterType,
+        Arguments,
         VariableDeclaration;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -84,6 +90,8 @@ import 'kernel_builder.dart'
         computeDefaultTypeArguments;
 
 import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
+
+import 'kernel_target.dart' show KernelTarget;
 
 abstract class KernelClassBuilder
     extends ClassBuilder<KernelTypeBuilder, InterfaceType> {
@@ -374,20 +382,46 @@ abstract class KernelClassBuilder
         noSuchMethod.enclosingClass.superclass != null;
   }
 
-  void addNoSuchMethodForwarderForProcedure(
-      Procedure procedure, ClassHierarchy hierarchy) {
+  void transformProcedureToNoSuchMethodForwarder(
+      Member noSuchMethodInterface, KernelTarget target, Procedure procedure) {
+    String prefix =
+        procedure.isGetter ? 'get:' : procedure.isSetter ? 'set:' : '';
+    Expression invocation = target.backendTarget.instantiateInvocation(
+        target.loader.coreTypes,
+        new ThisExpression(),
+        prefix + procedure.name.name,
+        new Arguments.forwarded(procedure.function),
+        procedure.fileOffset,
+        /*isSuper=*/ false);
+    Expression result = new MethodInvocation(new ThisExpression(),
+        noSuchMethodName, new Arguments([invocation]), noSuchMethodInterface)
+      ..fileOffset = procedure.fileOffset;
+    if (procedure.function.returnType is! VoidType) {
+      result = new AsExpression(result, procedure.function.returnType)
+        ..isTypeError = true
+        ..fileOffset = procedure.fileOffset;
+    }
+    procedure.function.body = new ReturnStatement(result)
+      ..fileOffset = procedure.fileOffset;
+    procedure.function.body.parent = procedure.function;
+
+    procedure.isAbstract = false;
+    procedure.isNoSuchMethodForwarder = true;
+  }
+
+  void addNoSuchMethodForwarderForProcedure(Member noSuchMethod,
+      KernelTarget target, Procedure procedure, ClassHierarchy hierarchy) {
     CloneWithoutBody cloner = new CloneWithoutBody(
         typeSubstitution: getSubstitutionMap(
             hierarchy.getClassAsInstanceOf(cls, procedure.enclosingClass)));
     Procedure cloned = cloner.clone(procedure);
-    cloned.isAbstract = true;
-    cloned.isNoSuchMethodForwarder = true;
-
+    transformProcedureToNoSuchMethodForwarder(noSuchMethod, target, cloned);
     cls.procedures.add(cloned);
     cloned.parent = cls;
   }
 
-  void addNoSuchMethodForwarders(ClassHierarchy hierarchy) {
+  void addNoSuchMethodForwarders(
+      KernelTarget target, ClassHierarchy hierarchy) {
     if (!hasUserDefinedNoSuchMethod(cls, hierarchy)) {
       return;
     }
@@ -435,14 +469,20 @@ abstract class KernelClassBuilder
 
     List<Member> concrete = hierarchy.getDispatchTargets(cls);
     List<Member> declared = hierarchy.getDeclaredMembers(cls);
+
+    Member noSuchMethod = ClassHierarchy.findMemberByName(
+        hierarchy.getInterfaceMembers(cls), noSuchMethodName);
+
     for (Member member in hierarchy.getInterfaceMembers(cls)) {
       if (member is Procedure &&
           ClassHierarchy.findMemberByName(concrete, member.name) == null &&
           !existingForwardersNames.contains(member.name)) {
         if (ClassHierarchy.findMemberByName(declared, member.name) != null) {
-          member.isNoSuchMethodForwarder = true;
+          transformProcedureToNoSuchMethodForwarder(
+              noSuchMethod, target, member);
         } else {
-          addNoSuchMethodForwarderForProcedure(member, hierarchy);
+          addNoSuchMethodForwarderForProcedure(
+              noSuchMethod, target, member, hierarchy);
         }
         existingForwardersNames.add(member.name);
       }
@@ -459,9 +499,11 @@ abstract class KernelClassBuilder
           !existingSetterForwardersNames.contains(member.name)) {
         if (ClassHierarchy.findMemberByName(declaredSetters, member.name) !=
             null) {
-          member.isNoSuchMethodForwarder = true;
+          transformProcedureToNoSuchMethodForwarder(
+              noSuchMethod, target, member);
         } else {
-          addNoSuchMethodForwarderForProcedure(member, hierarchy);
+          addNoSuchMethodForwarderForProcedure(
+              noSuchMethod, target, member, hierarchy);
         }
         existingSetterForwardersNames.add(member.name);
       }
