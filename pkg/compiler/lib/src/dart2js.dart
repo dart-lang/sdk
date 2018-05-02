@@ -440,13 +440,19 @@ Future<api.CompilationResult> compile(List<String> argv,
     helpAndFail('Extra arguments: ${extra.join(" ")}');
   }
 
+  if (checkedMode && strongMode) {
+    checkedMode = false;
+    hints.add("Option '${Flags.enableCheckedMode}' is not needed in strong "
+        "mode.");
+  }
+
   if (trustTypeAnnotations) {
     if (checkedMode) {
       helpAndFail("Option '${Flags.trustTypeAnnotations}' may not be used in "
           "checked mode.");
     } else if (strongMode) {
-      hints.add("Option '--trust-type-annotations' is not available "
-          "in strong mode. Try usign '--omit-implicit-checks' instead.");
+      hints.add("Option '${Flags.trustTypeAnnotations}' is not available "
+          "in strong mode. Try using '${Flags.omitImplicitChecks}' instead.");
     }
   }
 

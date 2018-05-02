@@ -316,7 +316,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..enableMinification = _hasOption(options, Flags.minify)
       ..enableNativeLiveTypeAnalysis =
           !_hasOption(options, Flags.disableNativeLiveTypeAnalysis)
-      ..enableTypeAssertions = _hasOption(options, Flags.enableCheckedMode)
+      ..enableTypeAssertions = _hasOption(options, Flags.enableCheckedMode) &&
+          !_hasOption(options, Flags.strongMode)
       ..enableUserAssertions = _hasOption(options, Flags.enableCheckedMode) ||
           _hasOption(options, Flags.enableAsserts)
       ..experimentalTrackAllocations =
