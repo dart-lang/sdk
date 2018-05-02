@@ -372,7 +372,8 @@ class CloneVisitor implements TreeVisitor {
   }
 
   visitTryCatch(TryCatch node) {
-    return new TryCatch(clone(node.body), node.catches.map(clone).toList());
+    return new TryCatch(clone(node.body), node.catches.map(clone).toList(),
+        isSynthetic: node.isSynthetic);
   }
 
   visitCatch(Catch node) {

@@ -1544,17 +1544,16 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOptionalNode(node.expression);
   }
 
+  int _encodeTryCatchFlags(bool needsStackTrace, bool isSynthetic) {
+    return (needsStackTrace ? 1 : 0) | (isSynthetic ? 2 : 0);
+  }
+
   @override
   void visitTryCatch(TryCatch node) {
     writeByte(Tag.TryCatch);
     writeNode(node.body);
-    if (node.catches.any((Catch c) => c.stackTrace != null)) {
-      // at least one catch needs the stack trace.
-      writeByte(1);
-    } else {
-      // no catch needs the stack trace.
-      writeByte(0);
-    }
+    bool needsStackTrace = node.catches.any((Catch c) => c.stackTrace != null);
+    writeByte(_encodeTryCatchFlags(needsStackTrace, node.isSynthetic));
     writeNodeList(node.catches);
   }
 

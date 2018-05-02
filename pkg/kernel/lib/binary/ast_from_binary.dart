@@ -1549,8 +1549,8 @@ class BinaryBuilder {
         return new ReturnStatement(readExpressionOption())..fileOffset = offset;
       case Tag.TryCatch:
         Statement body = readStatement();
-        readByte(); // whether any catch needs a stacktrace.
-        return new TryCatch(body, readCatchList());
+        int flags = readByte();
+        return new TryCatch(body, readCatchList(), isSynthetic: flags & 2 == 2);
       case Tag.TryFinally:
         return new TryFinally(readStatement(), readStatement());
       case Tag.YieldStatement:

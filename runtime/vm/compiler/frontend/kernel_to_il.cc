@@ -1176,14 +1176,15 @@ Fragment BaseFlowGraphBuilder::BranchIfStrictEqual(
 
 Fragment FlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
                                            intptr_t handler_index,
-                                           bool needs_stacktrace) {
+                                           bool needs_stacktrace,
+                                           bool is_synthesized) {
   ASSERT(CurrentException()->is_captured() ==
          CurrentStackTrace()->is_captured());
   const bool should_restore_closure_context =
       CurrentException()->is_captured() || CurrentCatchContext()->is_captured();
   CatchBlockEntryInstr* entry = new (Z) CatchBlockEntryInstr(
       TokenPosition::kNoSource,  // Token position of catch block.
-      false,                     // Not an artifact of compilation.
+      is_synthesized,  // whether catch block was synthesized by FE compiler
       AllocateBlockId(), CurrentTryIndex(), graph_entry_, handler_types,
       handler_index, *CurrentException(), *CurrentStackTrace(),
       needs_stacktrace, GetNextDeoptId(), should_restore_closure_context);

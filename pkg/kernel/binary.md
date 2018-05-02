@@ -1050,8 +1050,8 @@ type ReturnStatement extends Statement {
 type TryCatch extends Statement {
   Byte tag = 75;
   Statement body;
-  // 1 if any catch needs a stacktrace (have a stacktrace variable).
-  Byte anyCatchNeedsStackTrace;
+  // "any catch needs a stacktrace" means it has a stacktrace variable.
+  Byte flags (anyCatchNeedsStackTrace, isSynthesized);
   List<Catch> catches;
 }
 
