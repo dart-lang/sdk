@@ -262,7 +262,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (dfe.UseDartFrontend() && !isolate_run_app_snapshot &&
-      kernel_program == NULL) {
+      kernel_program == NULL && !Dart_IsKernelIsolate(isolate)) {
     if (!dfe.CanUseDartFrontend()) {
       const char* format = "Dart frontend unavailable to compile script %s.";
       intptr_t len = snprintf(NULL, 0, format, script_uri) + 1;
