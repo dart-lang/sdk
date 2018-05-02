@@ -1304,6 +1304,8 @@ void KernelLoader::LoadProcedure(const Library& library,
   const String& name = H.DartProcedureName(procedure_helper.canonical_name_);
   bool is_method = in_class && !procedure_helper.IsStatic();
   bool is_abstract = procedure_helper.IsAbstract();
+  bool is_no_such_method_forwarder = procedure_helper.IsNoSuchMethodForwarder();
+
   bool is_external = procedure_helper.IsExternal();
   String* native_name = NULL;
   intptr_t annotation_count;
@@ -1382,9 +1384,10 @@ void KernelLoader::LoadProcedure(const Library& library,
       Z, Function::New(name, kind,
                        !is_method,  // is_static
                        false,       // is_const
-                       is_abstract, is_external,
+                       is_abstract && !is_no_such_method_forwarder, is_external,
                        native_name != NULL,  // is_native
                        script_class, procedure_helper.position_));
+  function.set_is_no_such_method_forwarder(is_no_such_method_forwarder);
   function.set_end_token_pos(procedure_helper.end_position_);
   functions_.Add(&function);
   function.set_kernel_offset(procedure_offset);

@@ -14,12 +14,10 @@ class A {
       Expect.equals(invoke.positionalArguments[1], 2);
       return null;
     } else if (invoke.memberName == #test1) {
-      Expect.isTrue(invoke.namedArguments.length == 1);
-      Expect.equals(null, invoke.namedArguments[#x]);
+      Expect.isTrue(invoke.namedArguments.isEmpty);
       return null;
     } else if (invoke.memberName == #test2) {
-      Expect.isTrue(invoke.namedArguments.length == 1);
-      Expect.equals("w/e", invoke.namedArguments[#x]);
+      Expect.isTrue(invoke.namedArguments.isEmpty);
       return null;
     } else if (invoke.memberName == #test3) {
       Expect.equals(invoke.namedArguments[#x], "ok");
@@ -44,9 +42,6 @@ class A {
 
       Expect.equals(invoke.namedArguments.length, 1);
       Expect.equals(invoke.namedArguments[#foo], const <num>[3, 4]);
-    } else if (invoke.memberName == #test8) {
-      Expect.equals(1, invoke.positionalArguments.length);
-      Expect.equals(null, invoke.positionalArguments[0]);
     }
   }
 
@@ -60,8 +55,6 @@ class A {
 
   int get test7;
   void set test7(int x);
-
-  void test8([String x]);
 
   T allTogetherNow<T, S extends T>(S x1, {List<T> foo: const <Null>[]});
 }
@@ -96,6 +89,4 @@ main() {
   Expect.throwsTypeError(() => (a as dynamic).test7 = "hi");
 
   a.allTogetherNow<num, double>(2.0, foo: const <num>[3, 4]);
-
-  a.test8();
 }
