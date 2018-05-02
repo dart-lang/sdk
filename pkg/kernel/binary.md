@@ -42,8 +42,6 @@ type UInt30 extends UInt {
 
 type UInt32 = big endian 32-bit unsigned integer
 
-type Double = Double-precision floating-point number.
-
 type List<T> {
   UInt length;
   T[length] items;
@@ -713,7 +711,7 @@ type BigIntLiteral extends Expression {
 
 type DoubleLiteral extends Expression {
   Byte tag = 40;
-  Double value;
+  StringReference valueString;
 }
 
 type TrueLiteral extends Expression {
@@ -876,7 +874,7 @@ type IntConstant extends Constant {
 
 type DoubleConstant extends Constant {
   Byte tag = 3;
-  Double value;
+  StringReference value;
 }
 
 type StringConstant extends Constant {

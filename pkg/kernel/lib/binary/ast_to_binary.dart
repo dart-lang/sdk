@@ -154,7 +154,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeInteger(constant.value);
     } else if (constant is DoubleConstant) {
       writeByte(ConstantTag.DoubleConstant);
-      writeDouble(constant.value);
+      writeStringReference('${constant.value}');
     } else if (constant is StringConstant) {
       writeByte(ConstantTag.StringConstant);
       writeStringReference(constant.value);
@@ -1246,12 +1246,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitDoubleLiteral(DoubleLiteral node) {
-    writeByte(Tag.DoubleLiteral);
     writeDouble(node.value);
   }
 
   writeDouble(double value) {
-    _sink.addDouble(value);
+    // TODO: Pick a better format for double literals.
+    writeByte(Tag.DoubleLiteral);
+    writeStringReference('$value');
   }
 
   @override
@@ -2204,19 +2205,7 @@ class BufferedSink {
   int length = 0;
   int flushedLength = 0;
 
-  Float64List _doubleBuffer = new Float64List(1);
-  Uint8List _doubleBufferUint8;
-
   BufferedSink(this._sink);
-
-  void addDouble(double d) {
-    _doubleBufferUint8 ??= _doubleBuffer.buffer.asUint8List();
-    _doubleBuffer[0] = d;
-    addByte4(_doubleBufferUint8[0], _doubleBufferUint8[1],
-        _doubleBufferUint8[2], _doubleBufferUint8[3]);
-    addByte4(_doubleBufferUint8[4], _doubleBufferUint8[5],
-        _doubleBufferUint8[6], _doubleBufferUint8[7]);
-  }
 
   void addByte(int byte) {
     _buffer[length++] = byte;

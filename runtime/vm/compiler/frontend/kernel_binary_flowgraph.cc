@@ -1548,7 +1548,7 @@ void StreamingScopeBuilder::VisitExpression() {
       builder_->ReadUInt();  // read value.
       return;
     case kDoubleLiteral:
-      builder_->ReadDouble();  // read value.
+      builder_->SkipStringReference();  // read index into string table.
       return;
     case kTrueLiteral:
       return;
@@ -3542,7 +3542,8 @@ void StreamingConstantEvaluator::EvaluateIntLiteral(bool is_negative) {
 }
 
 void StreamingConstantEvaluator::EvaluateDoubleLiteral() {
-  result_ = Double::New(builder_->ReadDouble(), Heap::kOld);  // read value.
+  result_ = Double::New(H.DartString(builder_->ReadStringReference()),
+                        Heap::kOld);  // read string reference.
   result_ = H.Canonicalize(result_);
 }
 
@@ -6021,10 +6022,6 @@ uint32_t KernelReaderHelper::PeekUInt() {
   return reader_.ReadUInt();
 }
 
-double KernelReaderHelper::ReadDouble() {
-  return reader_.ReadDouble();
-}
-
 uint32_t KernelReaderHelper::PeekListLength() {
   AlternativeReadingScope alt(&reader_);
   return reader_.ReadListLength();
@@ -6492,7 +6489,7 @@ void KernelReaderHelper::SkipExpression() {
       ReadUInt();  // read value.
       return;
     case kDoubleLiteral:
-      ReadDouble();  // read value.
+      SkipStringReference();  // read index into string table.
       return;
     case kTrueLiteral:
       return;
@@ -8985,7 +8982,8 @@ Fragment StreamingFlowGraphBuilder::BuildDoubleLiteral(
   if (position != NULL) *position = TokenPosition::kNoSource;
 
   Double& constant = Double::ZoneHandle(
-      Z, Double::NewCanonical(ReadDouble()));  // read double.
+      Z, Double::NewCanonical(
+             H.DartString(ReadStringReference())));  // read string reference.
   return Constant(constant);
 }
 
@@ -10819,7 +10817,8 @@ const Array& ConstantHelper::ReadConstantTable() {
         break;
       }
       case kDoubleConstant: {
-        temp_instance_ = Double::New(builder_.ReadDouble(), Heap::kOld);
+        temp_instance_ = Double::New(
+            H.DartString(builder_.ReadStringReference()), Heap::kOld);
         temp_instance_ = H.Canonicalize(temp_instance_);
         break;
       }
