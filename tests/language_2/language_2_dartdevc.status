@@ -759,3 +759,4 @@ syntax_test/60: MissingCompileTimeError
 syntax_test/61: MissingCompileTimeError
 truncdiv_test: RuntimeError # Issue 29920; Expect.throws fails: Did not throw
 vm/*: SkipByDesign # VM only tests.; VM only tests.
+nosuchmethod_forwarding/nosuchmethod_forwarding_arguments_test: RuntimeError # Issue 33019

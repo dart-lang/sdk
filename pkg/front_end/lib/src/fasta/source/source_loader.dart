@@ -652,7 +652,7 @@ class SourceLoader<L> extends Loader<L> {
 
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this) {
-        builder.addNoSuchMethodForwarders(hierarchy);
+        builder.addNoSuchMethodForwarders(target, hierarchy);
       }
     }
     ticker.logMs("Added noSuchMethod forwarders");
