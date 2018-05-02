@@ -59,7 +59,6 @@ models.Configuration getConfigurationFromArguments(ArgResults argResults) {
       argResults["enable-asserts"],
       argResults["hot-reload"],
       argResults["hot-reload-rollback"],
-      argResults["no-preview-dart-2"],
       argResults["preview-dart-2"],
       argResults.rest);
 }
