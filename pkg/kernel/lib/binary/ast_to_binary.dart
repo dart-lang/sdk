@@ -22,7 +22,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   final TypeParameterIndexer _typeParameterIndexer = new TypeParameterIndexer();
   final StringIndexer stringIndexer;
   ConstantIndexer _constantIndexer;
-  final UriIndexer _sourceUriIndexer = new UriIndexer();
+  final StringIndexer _sourceUriIndexer = new StringIndexer();
   final Set<Uri> _knownSourceUri = new Set<Uri>();
   Map<LibraryDependency, int> _libraryDependencyIndex =
       <LibraryDependency, int>{};
@@ -103,22 +103,15 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     _binaryOffsetForStringTable = getBufferOffset();
 
     // Write the end offsets.
-    writeUInt30(indexer.index.length);
+    writeUInt30(indexer.numberOfStrings);
     int endOffset = 0;
-    List<List<int>> data = new List.filled(indexer.index.length, null);
-    int i = 0;
-    Utf8Encoder utf8Encoder = const Utf8Encoder();
-    for (String key in indexer.index.keys) {
-      List<int> utf8Bytes = utf8Encoder.convert(key);
-      data[i] = utf8Bytes;
-      endOffset += utf8Bytes.length;
+    for (var entry in indexer.entries) {
+      endOffset += entry.utf8Bytes.length;
       writeUInt30(endOffset);
-      i++;
     }
-
     // Write the UTF-8 encoded strings.
-    for (var entry in data) {
-      writeBytes(entry);
+    for (var entry in indexer.entries) {
+      writeBytes(entry.utf8Bytes);
     }
   }
 
@@ -213,11 +206,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   // Returns the new active file uri.
   Uri writeUriReference(Uri uri) {
     if (_knownSourceUri.contains(uri)) {
-      final int index = _sourceUriIndexer.put(uri);
+      final int index = _sourceUriIndexer.put(uri == null ? "" : "$uri");
       writeUInt30(index);
       return uri;
     } else {
-      final int index = 0; // equivalent to index = _sourceUriIndexer[null];
+      final int index = 0; // equivalent to index = _sourceUriIndexer[""];
       writeUInt30(index);
       return null;
     }
@@ -494,19 +487,19 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void writeUriToSource(Map<Uri, Source> uriToSource) {
     _binaryOffsetForSourceTable = getBufferOffset();
 
-    int length = _sourceUriIndexer.index.length;
+    int length = _sourceUriIndexer.numberOfStrings;
     writeUInt32(length);
-    List<int> index = new List<int>(length);
+    List<int> index = new List<int>(_sourceUriIndexer.entries.length);
 
     // Write data.
-    int i = 0;
-    Utf8Encoder utf8Encoder = const Utf8Encoder();
-    for (Uri uri in _sourceUriIndexer.index.keys) {
+    for (int i = 0; i < length; ++i) {
       index[i] = getBufferOffset();
 
-      Source source = uriToSource[uri] ?? new Source(<int>[], const <int>[]);
+      StringTableEntry uri = _sourceUriIndexer.entries[i];
+      Source source = uriToSource[Uri.parse(uri.value)] ??
+          new Source(<int>[], const <int>[]);
 
-      writeByteList(utf8Encoder.convert(uri == null ? "" : "$uri"));
+      writeByteList(uri.utf8Bytes);
       writeByteList(source.source);
       List<int> lineStarts = source.lineStarts;
       writeUInt30(lineStarts.length);
@@ -515,7 +508,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
         writeUInt30(lineStart - previousLineStart);
         previousLineStart = lineStart;
       });
-      i++;
     }
 
     // Write index for random access.
@@ -2110,17 +2102,29 @@ class TypeParameterIndexer {
   int operator [](TypeParameter parameter) => index[parameter];
 }
 
+class StringTableEntry {
+  final String value;
+  final List<int> utf8Bytes;
+
+  StringTableEntry(String value)
+      : value = value,
+        utf8Bytes = const Utf8Encoder().convert(value);
+}
+
 class StringIndexer {
-  // Note the LinkedHashMap: The iteration order is important.
-  final Map<String, int> index = new LinkedHashMap<String, int>();
+  final List<StringTableEntry> entries = <StringTableEntry>[];
+  final LinkedHashMap<String, int> index = new LinkedHashMap<String, int>();
 
   StringIndexer() {
     put('');
   }
 
+  int get numberOfStrings => index.length;
+
   int put(String string) {
     var result = index[string];
     if (result == null) {
+      entries.add(new StringTableEntry(string));
       result = index.length;
       index[string] = result;
     }
@@ -2128,24 +2132,6 @@ class StringIndexer {
   }
 
   int operator [](String string) => index[string];
-}
-
-class UriIndexer {
-  // Note the LinkedHashMap: The iteration order is important.
-  final Map<Uri, int> index = new LinkedHashMap<Uri, int>();
-
-  UriIndexer() {
-    put(null);
-  }
-
-  int put(Uri uri) {
-    var result = index[uri];
-    if (result == null) {
-      result = index.length;
-      index[uri] = result;
-    }
-    return result;
-  }
 }
 
 /// Computes and stores the index of a library, class, or member within its

@@ -507,9 +507,7 @@ class BinaryBuilder {
     Map<Uri, Source> uriToSource = <Uri, Source>{};
     for (int i = 0; i < length; ++i) {
       List<int> uriBytes = readByteList();
-      Uri uri = uriBytes.isEmpty
-          ? null
-          : Uri.parse(const Utf8Decoder().convert(uriBytes));
+      Uri uri = Uri.parse(const Utf8Decoder().convert(uriBytes));
       _sourceUriTable[i] = uri;
       List<int> sourceCode = readByteList();
       int lineCount = readUInt();
