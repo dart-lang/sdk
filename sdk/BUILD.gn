@@ -53,7 +53,6 @@ declare_args() {
 #.............templates/
 # ....include/
 # ......dart_api.h
-# ......dart_mirrors_api.h
 # ......dart_native_api.h
 # ......dart_tools_api.h
 # ....lib/
@@ -761,7 +760,6 @@ copy("copy_headers") {
   visibility = [ ":create_common_sdk" ]
   sources = [
     "../runtime/include/dart_api.h",
-    "../runtime/include/dart_mirrors_api.h",
     "../runtime/include/dart_native_api.h",
     "../runtime/include/dart_tools_api.h",
   ]
