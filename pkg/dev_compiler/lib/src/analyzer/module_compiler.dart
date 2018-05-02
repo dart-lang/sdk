@@ -34,6 +34,7 @@ import 'package:source_maps/source_maps.dart';
 import '../compiler/js_names.dart' as JS;
 import '../compiler/module_builder.dart'
     show transformModuleFormat, ModuleFormat;
+import '../compiler/shared_command.dart';
 import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
@@ -113,17 +114,8 @@ class ModuleCompiler {
       context.resultProvider =
           new InputPackagesResultProvider(context, summaryData);
     }
-    var variables = <String, String>{};
-    variables.addAll(options.declaredVariables);
-    variables.addAll({
-      'dart.isVM': 'false',
-      // TODO(vsm): Should this be hardcoded?
-      'dart.library.html': 'true',
-      'dart.library.io': 'false',
-      'dart.library.ui': 'false',
-      'dart.library.mirrors': 'false',
-      'dart.library.isolate': 'false'
-    });
+    var variables = new Map<String, String>.from(options.declaredVariables)
+      ..addAll(sdkLibraryVariables);
 
     context.declaredVariables = new DeclaredVariables.fromMap(variables);
     if (!context.analysisOptions.strongMode) {

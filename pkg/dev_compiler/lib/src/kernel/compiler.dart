@@ -4652,8 +4652,7 @@ class ProgramCompiler extends Object
         args.positional.length == 1 &&
         // TODO(jmesserly): this does not correctly handle when the arguments to
         // fromEnvironment are constant non-literal values.
-        args.positional[0] is BasicLiteral &&
-        (args.named.isEmpty || args.named[0].value is BasicLiteral)) {
+        args.positional[0] is BasicLiteral) {
       var varName = (args.positional[0] as StringLiteral).value;
       var value = declaredVariables[varName];
       var defaultArg = args.named.isNotEmpty ? args.named[0].value : null;
