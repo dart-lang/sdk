@@ -1203,6 +1203,7 @@ async_congruence_method_test/01: MissingCompileTimeError
 async_congruence_unnamed_test/01: MissingCompileTimeError
 async_congruence_unnamed_test/02: MissingCompileTimeError
 black_listed_test/none: Fail # Issue 14228
+bug32305_test: MissingCompileTimeError
 built_in_identifier_type_annotation_test/35: MissingCompileTimeError # Issue 28813
 built_in_identifier_type_annotation_test/36: MissingCompileTimeError # Issue 28813
 built_in_identifier_type_annotation_test/37: MissingCompileTimeError # Issue 28813

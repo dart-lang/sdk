@@ -20,6 +20,7 @@ import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/utilities_dart.dart' show ParameterKind;
+import 'package:meta/meta.dart';
 
 /**
  * `void`, `dynamic`, and `Object` are all equivalent. However, this makes
@@ -233,7 +234,7 @@ class StrongTypeSystemImpl extends TypeSystem {
     // inferred. It will optimistically assume these type parameters can be
     // subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
-    var inferrer = new _GenericInferrer(typeProvider, this, fnType.typeFormals);
+    var inferrer = new GenericInferrer(typeProvider, this, fnType.typeFormals);
     inferrer.constrainGenericFunctionInContext(fnType, contextType);
 
     // Infer and instantiate the resulting type.
@@ -280,7 +281,7 @@ class StrongTypeSystemImpl extends TypeSystem {
     // inferred. It will optimistically assume these type parameters can be
     // subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
-    var inferrer = new _GenericInferrer(typeProvider, this, typeFormals);
+    var inferrer = new GenericInferrer(typeProvider, this, typeFormals);
 
     DartType declaredReturnType =
         genericType is FunctionType ? genericType.returnType : genericType;
@@ -1231,7 +1232,7 @@ abstract class TypeSystem {
   InterfaceType matchSupertypeConstraints(
       ClassElement mixinElement, List<DartType> srcs, List<DartType> dests) {
     var typeParameters = mixinElement.typeParameters;
-    var inferrer = new _GenericInferrer(typeProvider, this, typeParameters);
+    var inferrer = new GenericInferrer(typeProvider, this, typeParameters);
     for (int i = 0; i < srcs.length; i++) {
       inferrer.constrainReturnType(srcs[i], dests[i]);
       inferrer.constrainReturnType(dests[i], srcs[i]);
@@ -1682,25 +1683,23 @@ class UnknownInferredTypeElement extends ElementImpl
 ///
 /// As currently designed, an instance of this class should only be used to
 /// infer a single call and discarded immediately afterwards.
-class _GenericInferrer {
+class GenericInferrer {
   final StrongTypeSystemImpl _typeSystem;
   final TypeProvider typeProvider;
-  final Map<TypeParameterElement, List<_TypeConstraint>> _constraints;
+  final Map<TypeParameterElement, List<_TypeConstraint>> constraints;
 
-  /// Counter internally by [_matchSubtypeOf] to see if a recursive call
-  /// added anything to [_constraints].
-  ///
-  /// Essentially just an optimization for:
-  /// `_constraints.values.expand((x) => x).length`
-  int _constraintCount = 0;
+  /// Buffer recording constraints recorded while performing a recursive call to
+  /// [_matchSubtypeOf] that might fail, so that any constraints recorded during
+  /// the failed match can be rewound.
+  final _undoBuffer = <_TypeConstraint>[];
 
-  _GenericInferrer(this.typeProvider, this._typeSystem,
+  GenericInferrer(this.typeProvider, this._typeSystem,
       Iterable<TypeParameterElement> typeFormals)
-      : _constraints = new HashMap(
+      : constraints = new HashMap(
             equals: (x, y) => x.location == y.location,
             hashCode: (x) => x.location.hashCode) {
     for (var formal in typeFormals) {
-      _constraints[formal] = [];
+      constraints[formal] = [];
     }
   }
 
@@ -1712,8 +1711,7 @@ class _GenericInferrer {
     var origin = new _TypeConstraintFromArgument(
         argumentType, parameterType, parameterName,
         genericType: genericType);
-    _matchSubtypeOf(argumentType, parameterType, null, origin,
-        covariant: false);
+    tryMatchSubtypeOf(argumentType, parameterType, origin, covariant: false);
   }
 
   /// Constrain a universal function type [fnType] used in a context
@@ -1726,14 +1724,14 @@ class _GenericInferrer {
     // formals as we check the parameters and return type.
     var inferFnType =
         fnType.instantiate(TypeParameterTypeImpl.getTypes(fnType.typeFormals));
-    _matchSubtypeOf(inferFnType, contextType, null, origin, covariant: true);
+    tryMatchSubtypeOf(inferFnType, contextType, origin, covariant: true);
   }
 
   /// Apply a return type constraint, which asserts that the [declaredType]
   /// is a subtype of the [contextType].
   void constrainReturnType(DartType declaredType, DartType contextType) {
     var origin = new _TypeConstraintFromReturnType(declaredType, contextType);
-    _matchSubtypeOf(declaredType, contextType, null, origin, covariant: true);
+    tryMatchSubtypeOf(declaredType, contextType, origin, covariant: true);
   }
 
   /// Given the constraints that were given by calling [isSubtypeOf], find the
@@ -1772,8 +1770,8 @@ class _GenericInferrer {
             typeParam.bound.substitute2(inferredTypes, fnTypeParams));
       }
 
-      var constraints = _constraints[typeParam.element];
-      inferredTypes[i] = _inferTypeParameter(constraints, extendsClause);
+      inferredTypes[i] =
+          _inferTypeParameter(constraints[typeParam.element], extendsClause);
     }
 
     // If the downwards infer phase has failed, we'll catch this in the upwards
@@ -1788,7 +1786,7 @@ class _GenericInferrer {
         hashCode: (x) => x.element.hashCode);
     for (int i = 0; i < fnTypeParams.length; i++) {
       TypeParameterType typeParam = fnTypeParams[i];
-      var constraints = _constraints[typeParam.element];
+      var constraints = this.constraints[typeParam.element];
       var typeParamBound =
           typeParam.bound.substitute2(inferredTypes, fnTypeParams);
 
@@ -2019,11 +2017,16 @@ class _GenericInferrer {
     return t;
   }
 
-  void _matchInterfaceSubtypeOf(InterfaceType i1, InterfaceType i2,
+  /// Tries to make [i1] a subtype of [i2] and accumulate constraints as needed.
+  ///
+  /// The return value indicates whether the match was successful.  If it was
+  /// unsuccessful, the caller is responsible for ignoring any constraints that
+  /// were accumulated (see [_rewindConstraints]).
+  bool _matchInterfaceSubtypeOf(InterfaceType i1, InterfaceType i2,
       Set<Element> visited, _TypeConstraintOrigin origin,
       {bool covariant}) {
     if (identical(i1, i2)) {
-      return;
+      return true;
     }
 
     if (i1.element == i2.element) {
@@ -2031,13 +2034,15 @@ class _GenericInferrer {
       List<DartType> tArgs2 = i2.typeArguments;
       assert(tArgs1.length == tArgs2.length);
       for (int i = 0; i < tArgs1.length; i++) {
-        _matchSubtypeOf(tArgs1[i], tArgs2[i], visited, origin,
-            covariant: covariant);
+        if (!_matchSubtypeOf(tArgs1[i], tArgs2[i], visited, origin,
+            covariant: covariant)) {
+          return false;
+        }
       }
-      return;
+      return true;
     }
     if (i1.isObject) {
-      return;
+      return false;
     }
 
     // Guard against loops in the class hierarchy
@@ -2051,21 +2056,49 @@ class _GenericInferrer {
     // The fix is for type arguments (above) to not pass down `visited`, similar
     // to how _isInterfaceSubtypeOf does not pass down `visited` for type
     // arguments.
-    void guardedInterfaceSubtype(InterfaceType t1) {
+    bool guardedInterfaceSubtype(InterfaceType t1) {
       var visitedSet = visited ?? new HashSet<Element>();
       if (visitedSet.add(t1.element)) {
-        _matchInterfaceSubtypeOf(t1, i2, visited, origin, covariant: covariant);
+        bool matched = _matchInterfaceSubtypeOf(t1, i2, visited, origin,
+            covariant: covariant);
         visitedSet.remove(t1.element);
+        return matched;
+      } else {
+        // In the case of a recursive type parameter, consider the subtype
+        // match to have failed.
+        return false;
       }
     }
 
-    guardedInterfaceSubtype(i1.superclass);
+    // We don't need to search the entire class hierarchy, since a given
+    // subclass can't appear multiple times with different generic parameters.
+    // So shortcut to the first match found.
+    //
+    // We don't need undo logic here because if the classes don't match, nothing
+    // is added to the constraint set.
+    if (guardedInterfaceSubtype(i1.superclass)) return true;
     for (final parent in i1.interfaces) {
-      guardedInterfaceSubtype(parent);
+      if (guardedInterfaceSubtype(parent)) return true;
     }
     for (final parent in i1.mixins) {
-      guardedInterfaceSubtype(parent);
+      if (guardedInterfaceSubtype(parent)) return true;
     }
+    return false;
+  }
+
+  /// Tries to make [i1] a subtype of [i2] and accumulate constraints as needed.
+  ///
+  /// The return value indicates whether the match was successful.  If it was
+  /// unsuccessful, any constraints that were accumulated during the match
+  /// attempt have been rewound (see [_rewindConstraints]).
+  bool tryMatchSubtypeOf(DartType t1, DartType t2, _TypeConstraintOrigin origin,
+      {bool covariant}) {
+    int previousRewindBufferLength = _undoBuffer.length;
+    bool success = _matchSubtypeOf(t1, t2, null, origin, covariant: covariant);
+    if (!success) {
+      _rewindConstraints(previousRewindBufferLength);
+    }
+    return success;
   }
 
   /// Assert that [t1] will be a subtype of [t2], and returns if the constraint
@@ -2080,37 +2113,39 @@ class _GenericInferrer {
   ///
   /// [origin] indicates where the constraint came from, for example an argument
   /// or return type.
-  void _matchSubtypeOf(DartType t1, DartType t2, Set<Element> visited,
+  bool _matchSubtypeOf(DartType t1, DartType t2, Set<Element> visited,
       _TypeConstraintOrigin origin,
       {bool covariant}) {
     if (covariant && t1 is TypeParameterType) {
-      var constraints = _constraints[t1.element];
+      var constraints = this.constraints[t1.element];
       if (constraints != null) {
         if (!identical(t2, UnknownInferredType.instance)) {
-          constraints.add(new _TypeConstraint(origin, t1, upper: t2));
-          _constraintCount++;
+          var constraint = new _TypeConstraint(origin, t1, upper: t2);
+          constraints.add(constraint);
+          _undoBuffer.add(constraint);
         }
-        return;
+        return true;
       }
     }
     if (!covariant && t2 is TypeParameterType) {
-      var constraints = _constraints[t2.element];
+      var constraints = this.constraints[t2.element];
       if (constraints != null) {
         if (!identical(t1, UnknownInferredType.instance)) {
-          constraints.add(new _TypeConstraint(origin, t2, lower: t1));
-          _constraintCount++;
+          var constraint = new _TypeConstraint(origin, t2, lower: t1);
+          constraints.add(constraint);
+          _undoBuffer.add(constraint);
         }
-        return;
+        return true;
       }
     }
 
     if (identical(t1, t2)) {
-      return;
+      return true;
     }
 
     // TODO(jmesserly): this logic is taken from subtype.
-    void matchSubtype(DartType t1, DartType t2) {
-      _matchSubtypeOf(t1, t2, null, origin, covariant: covariant);
+    bool matchSubtype(DartType t1, DartType t2) {
+      return _matchSubtypeOf(t1, t2, null, origin, covariant: covariant);
     }
 
     // Handle FutureOr<T> union type.
@@ -2119,16 +2154,13 @@ class _GenericInferrer {
       if (t2 is InterfaceType && t2.isDartAsyncFutureOr) {
         var t2TypeArg = t2.typeArguments[0];
         // FutureOr<A> <: FutureOr<B> iff A <: B
-        matchSubtype(t1TypeArg, t2TypeArg);
-        return;
+        return matchSubtype(t1TypeArg, t2TypeArg);
       }
 
       // given t1 is Future<A> | A, then:
       // (Future<A> | A) <: t2 iff Future<A> <: t2 and A <: t2.
       var t1Future = typeProvider.futureType.instantiate([t1TypeArg]);
-      matchSubtype(t1Future, t2);
-      matchSubtype(t1TypeArg, t2);
-      return;
+      return matchSubtype(t1Future, t2) && matchSubtype(t1TypeArg, t2);
     }
 
     if (t2 is InterfaceType && t2.isDartAsyncFutureOr) {
@@ -2137,16 +2169,36 @@ class _GenericInferrer {
       var t2TypeArg = t2.typeArguments[0];
       var t2Future = typeProvider.futureType.instantiate([t2TypeArg]);
 
-      int constraintCount = _constraintCount;
-      matchSubtype(t1, t2Future);
+      // First we try matching `t1 <: Future<A>`.  If that succeeds *and*
+      // records at least one constraint, then we proceed using that constraint.
+      var previousRewindBufferLength = _undoBuffer.length;
+      var success =
+          tryMatchSubtypeOf(t1, t2Future, origin, covariant: covariant);
 
-      // We only want to record these as "or" constraints, so if we matched
-      // the `t1 <: Future<A>` constraint, don't add `t1 <: A` constraint, as
-      // that would be interpreted incorrectly as `t1 <: Future<A> && t1 <: A`.
-      if (constraintCount == _constraintCount) {
-        matchSubtype(t1, t2TypeArg);
+      if (_undoBuffer.length != previousRewindBufferLength) {
+        // Trying to match `t1 <: Future<A>` succeeded and recorded constraints,
+        // so those are the constraints we want.
+        return true;
+      } else {
+        // Either `t1 <: Future<A>` failed to match, or it matched trivially
+        // without recording any constraints (e.g. because t1 is `Null`).  We
+        // want constraints, because they let us do more precise inference, so
+        // go ahead and try matching `t1 <: A` to see if it records any
+        // constraints.
+        if (tryMatchSubtypeOf(t1, t2TypeArg, origin, covariant: covariant)) {
+          // Trying to match `t1 <: A` succeeded.  If it recorded constraints,
+          // those are the constraints we want.  If it didn't, then there's no
+          // way we're going to get any constraints.  So either way, we want to
+          // return `true` since the match suceeded and the constraints we want
+          // (if any) have been recorded.
+          return true;
+        } else {
+          // Trying to match `t1 <: A` failed.  So there's no way we are going
+          // to get any constraints.  Just return `success` to indicate whether
+          // the match succeeded.
+          return success;
+        }
       }
-      return;
     }
 
     // S <: T where S is a type variable
@@ -2159,46 +2211,71 @@ class _GenericInferrer {
       //
       // TODO(jmesserly): this function isn't guarding against anything (it's
       // not passsing down `visitedSet`, so adding the element has no effect).
-      void guardedSubtype(DartType t1, DartType t2) {
+      bool guardedSubtype(DartType t1, DartType t2) {
         var visitedSet = visited ?? new HashSet<Element>();
         if (visitedSet.add(t1.element)) {
-          matchSubtype(t1, t2);
+          bool matched = matchSubtype(t1, t2);
           visitedSet.remove(t1.element);
+          return matched;
+        } else {
+          // In the case of a recursive type parameter, consider the subtype
+          // match to have failed.
+          return false;
         }
       }
 
       if (t2 is TypeParameterType && t1.definition == t2.definition) {
-        guardedSubtype(t1.bound, t2.bound);
-        return;
+        return guardedSubtype(t1.bound, t2.bound);
       }
-      guardedSubtype(t1.bound, t2);
-      return;
+      return guardedSubtype(t1.bound, t2);
     }
     if (t2 is TypeParameterType) {
-      return;
+      return false;
     }
 
+    if (_isBottom(t1) || _isTop(t2)) return true;
+
     if (t1 is InterfaceType && t2 is InterfaceType) {
-      _matchInterfaceSubtypeOf(t1, t2, visited, origin, covariant: covariant);
-      return;
+      return _matchInterfaceSubtypeOf(t1, t2, visited, origin,
+          covariant: covariant);
     }
 
     if (t1 is FunctionType && t2 is FunctionType) {
-      FunctionTypeImpl.relate(
+      return FunctionTypeImpl.relate(
           t1,
           t2,
           (t1, t2) {
             // TODO(jmesserly): should we flip covariance when we're relating
             // type formal bounds? They're more like parameters.
-            matchSubtype(t1, t2);
-            return true;
+            return matchSubtype(t1, t2);
           },
           _typeSystem.instantiateToBounds,
           parameterRelation: (p1, p2) {
-            _matchSubtypeOf(p2.type, p1.type, null, origin,
+            return _matchSubtypeOf(p2.type, p1.type, null, origin,
                 covariant: !covariant);
-            return true;
           });
+    }
+
+    if (t1 is FunctionType && t2 == typeProvider.functionType) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /// Un-does constraints that were gathered by a failed match attempt, until
+  /// [_undoBuffer] has length [previousRewindBufferLength].
+  ///
+  /// The intended usage is that the caller should record the length of
+  /// [_undoBuffer] before attempting to make a match.  Then, if the match
+  /// fails, pass the recorded length to this method to erase any constraints
+  /// that were recorded during the failed match.
+  void _rewindConstraints(int previousRewindBufferLength) {
+    while (_undoBuffer.length > previousRewindBufferLength) {
+      var constraint = _undoBuffer.removeLast();
+      var element = constraint.typeParameter.element;
+      assert(identical(constraints[element].last, constraint));
+      constraints[element].removeLast();
     }
   }
 
@@ -2393,4 +2470,22 @@ class _TypeRange {
   _TypeRange({DartType lower, DartType upper})
       : lowerBound = lower ?? UnknownInferredType.instance,
         upperBound = upper ?? UnknownInferredType.instance;
+
+  /// Formats the typeRange as a string suitable for unit testing.
+  ///
+  /// For example, if [typeName] is 'T' and the range has bounds int and Object
+  /// respectively, the returned string will be 'int <: T <: Object'.
+  @visibleForTesting
+  String format(String typeName) {
+    var lowerString = identical(lowerBound, UnknownInferredType.instance)
+        ? ''
+        : '$lowerBound <: ';
+    var upperString = identical(upperBound, UnknownInferredType.instance)
+        ? ''
+        : ' <: $upperBound';
+    return '$lowerString$typeName$upperString';
+  }
+
+  @override
+  String toString() => format('(type)');
 }
