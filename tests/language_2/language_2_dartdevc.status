@@ -706,7 +706,6 @@ invocation_mirror2_test: RuntimeError # UnimplementedError: JsInstanceMirror.del
 invocation_mirror_invoke_on2_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
 invocation_mirror_invoke_on_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
 invocation_mirror_test: RuntimeError # Type 'NativeJavaScriptObject' is not a subtype of type 'int' in strong mode
-issue21159_test: RuntimeError # Issue 30701; TypeError: method.bind is not a function
 issue23244_test: RuntimeError # Issue 29920; Uncaught Unsupported operation: only top-level functions can be spawned.
 least_upper_bound_expansive_test/none: RuntimeError # 30908; Uncaught RangeError: Maximum call stack size exceeded
 left_shift_test: RuntimeError # Ints and doubles are unified.; Expect.equals(expected: <1>, actual: <-4294967295>) fails.
