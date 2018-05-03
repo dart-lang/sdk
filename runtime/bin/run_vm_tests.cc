@@ -297,7 +297,7 @@ static int Main(int argc, const char** argv) {
     OS::PrintErr("No tests matched: %s\n", run_filter);
     return 1;
   }
-  if (DynamicAssertionHelper::failed()) {
+  if (Expect::failed()) {
     return 255;
   }
   return 0;

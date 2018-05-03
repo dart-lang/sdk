@@ -3263,7 +3263,10 @@ class InstanceCallInstr : public TemplateDartCall<0> {
   CompileType* result_type() const { return result_type_; }
 
   intptr_t result_cid() const {
-    return (result_type_ != NULL) ? result_type_->ToCid() : kDynamicCid;
+    if (result_type_ == NULL) {
+      return kDynamicCid;
+    }
+    return result_type_->ToCid();
   }
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -3759,7 +3762,10 @@ class StaticCallInstr : public TemplateDartCall<0> {
   CompileType* result_type() const { return result_type_; }
 
   intptr_t result_cid() const {
-    return (result_type_ != NULL) ? result_type_->ToCid() : kDynamicCid;
+    if (result_type_ == NULL) {
+      return kDynamicCid;
+    }
+    return result_type_->ToCid();
   }
 
   bool is_known_list_constructor() const { return is_known_list_constructor_; }

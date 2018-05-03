@@ -3268,9 +3268,9 @@ TEST_CASE(StackTraceFormat) {
 
   const char* lib_url =
       isolate->use_dart_frontend() ? "file:///test-lib" : "test-lib";
-  const size_t kExpectedLen = 512;
-  char expected[kExpectedLen];
-  snprintf(expected, kExpectedLen,
+  const size_t kBufferSize = 1024;
+  char expected[kBufferSize];
+  snprintf(expected, kBufferSize,
            "Unhandled exception:\n"
            "MyException\n"
            "#0      baz (%1$s:2:3)\n"
