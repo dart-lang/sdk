@@ -727,6 +727,7 @@ least_upper_bound_expansive_test/none: RuntimeError # Please triage.
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
 const_instance_field_test/01: Crash # Issue 32326.
 external_test/13: Crash
+extract_type_arguments_test: Crash # Issue 33029
 type_promotion_functions_test/05: Pass
 type_promotion_functions_test/06: Pass
 type_promotion_functions_test/07: Pass
