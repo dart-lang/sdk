@@ -1235,6 +1235,27 @@ main() {
         (s) => _after(s, '    '));
   }
 
+  test_withCondition_noRightParenthesis() async {
+    await _prepareCompletion(
+        'if (true',
+        '''
+main() {
+  if (true
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete if-statement',
+        '''
+main() {
+  if (true) {
+    ////
+  }
+}
+''',
+        (s) => _after(s, '    '));
+  }
+
   test_withElse() async {
     await _prepareCompletion(
         'else',
