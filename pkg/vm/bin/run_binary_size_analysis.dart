@@ -122,7 +122,7 @@ void addSymbol(Map<String, dynamic> root, String path, String name, int size) {
   node['t'] = symbolTypeGlobalText;
   node['value'] = size;
   depth += 2;
-  root['maxDepth'] = max(root['maxDepth'], depth);
+  root['maxDepth'] = max<int>(root['maxDepth'], depth);
 }
 
 /// Convert all children entries from maps to lists.
