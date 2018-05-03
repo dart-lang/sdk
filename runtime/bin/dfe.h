@@ -45,14 +45,22 @@ class DFE {
   }
   void* application_kernel_binary() const { return application_kernel_binary_; }
 
-  // Compiles a script and reads the resulting kernel file.
+  // Compiles specified script.
+  // Returns result from compiling the script.
+  Dart_KernelCompilationResult CompileScript(const char* script_uri,
+                                             bool strong,
+                                             bool incremental,
+                                             const char* package_config);
+
+  // Compiles specified script and reads the resulting kernel file.
   // If the compilation is successful, returns a valid in memory kernel
   // representation of the script, NULL otherwise
   // 'error' and 'exit_code' have the error values in case of errors.
   void* CompileAndReadScript(const char* script_uri,
                              char** error,
                              int* exit_code,
-                             bool strong);
+                             bool strong,
+                             const char* package_config);
 
   // Reads the script kernel file if specified 'script_uri' is a kernel file.
   // Returns an in memory kernel representation of the specified script is a
@@ -93,6 +101,10 @@ class DFE {
 
   DISALLOW_COPY_AND_ASSIGN(DFE);
 };
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+extern DFE dfe;
+#endif
 
 }  // namespace bin
 }  // namespace dart

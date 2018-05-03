@@ -5,7 +5,6 @@
 #include "vm/dart_api_impl.h"
 #include "bin/builtin.h"
 #include "include/dart_api.h"
-#include "include/dart_mirrors_api.h"
 #include "include/dart_native_api.h"
 #include "include/dart_tools_api.h"
 #include "platform/assert.h"
@@ -774,18 +773,6 @@ TEST_CASE(DartAPI_InstanceGetType) {
   EXPECT(Dart_IsType(type));
   const Type& bool_type_obj = Api::UnwrapTypeHandle(zone, type);
   EXPECT(bool_type_obj.raw() == Type::BoolType());
-
-  Dart_Handle cls_name = Dart_TypeName(type);
-  EXPECT_VALID(cls_name);
-  const char* cls_name_cstr = "";
-  EXPECT_VALID(Dart_StringToCString(cls_name, &cls_name_cstr));
-  EXPECT_STREQ("bool", cls_name_cstr);
-
-  Dart_Handle qual_cls_name = Dart_QualifiedTypeName(type);
-  EXPECT_VALID(qual_cls_name);
-  const char* qual_cls_name_cstr = "";
-  EXPECT_VALID(Dart_StringToCString(qual_cls_name, &qual_cls_name_cstr));
-  EXPECT_STREQ("Library:'dart:core' Class: bool", qual_cls_name_cstr);
 
   // Errors propagate.
   Dart_Handle error = Dart_NewApiError("MyError");
@@ -5672,11 +5659,12 @@ TEST_CASE(DartAPI_LoadScript) {
   }
 
   // Load a script successfully.
-  result = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle root_lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(root_lib);
+  result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
-  Dart_FinalizeLoading(false);
 
-  result = Dart_Invoke(result, NewString("main"), 0, NULL);
+  result = Dart_Invoke(root_lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
   EXPECT(Dart_IsInteger(result));
   int64_t value = 0;
@@ -5705,13 +5693,6 @@ TEST_CASE(DartAPI_RootLibrary) {
   EXPECT_VALID(LoadScript(TestCase::url(), kScriptChars));
 
   root_lib = Dart_RootLibrary();
-  Dart_Handle lib_name = Dart_LibraryName(root_lib);
-  EXPECT_VALID(lib_name);
-  EXPECT(!Dart_IsNull(root_lib));
-  const char* name_cstr = "";
-  EXPECT_VALID(Dart_StringToCString(lib_name, &name_cstr));
-  EXPECT_STREQ("testlib", name_cstr);
-
   Dart_Handle lib_uri = Dart_LibraryUrl(root_lib);
   EXPECT_VALID(lib_uri);
   EXPECT(!Dart_IsNull(lib_uri));
@@ -5851,72 +5832,6 @@ TEST_CASE(DartAPI_LookupLibrary) {
                Dart_GetError(result));
 }
 
-TEST_CASE(DartAPI_LibraryName) {
-  const char* kLibrary1Chars = "library library1_name;";
-  Dart_Handle lib = TestCase::LoadTestLibrary("library1_url", kLibrary1Chars);
-  Dart_Handle error = Dart_NewApiError("incoming error");
-  EXPECT_VALID(lib);
-
-  Dart_Handle result = Dart_LibraryName(Dart_Null());
-  EXPECT(Dart_IsError(result));
-  EXPECT_STREQ("Dart_LibraryName expects argument 'library' to be non-null.",
-               Dart_GetError(result));
-
-  result = Dart_LibraryName(Dart_True());
-  EXPECT(Dart_IsError(result));
-  EXPECT_STREQ(
-      "Dart_LibraryName expects argument 'library' to be of type Library.",
-      Dart_GetError(result));
-
-  result = Dart_LibraryName(error);
-  EXPECT(Dart_IsError(result));
-  EXPECT_STREQ("incoming error", Dart_GetError(result));
-
-  result = Dart_LibraryName(lib);
-  EXPECT_VALID(result);
-  EXPECT(Dart_IsString(result));
-  const char* cstr = NULL;
-  EXPECT_VALID(Dart_StringToCString(result, &cstr));
-  EXPECT_STREQ("library1_name", cstr);
-}
-
-#ifndef PRODUCT
-
-TEST_CASE(DartAPI_LibraryId) {
-  const char* kLibrary1Chars = "library library1_name;";
-  Dart_Handle lib = TestCase::LoadTestLibrary("library1_url", kLibrary1Chars);
-  Dart_Handle error = Dart_NewApiError("incoming error");
-  EXPECT_VALID(lib);
-  intptr_t libraryId = -1;
-
-  Dart_Handle result = Dart_LibraryId(Dart_Null(), &libraryId);
-  EXPECT(Dart_IsError(result));
-  EXPECT_STREQ("Dart_LibraryId expects argument 'library' to be non-null.",
-               Dart_GetError(result));
-
-  result = Dart_LibraryId(Dart_True(), &libraryId);
-  EXPECT(Dart_IsError(result));
-  EXPECT_STREQ(
-      "Dart_LibraryId expects argument 'library' to be of type Library.",
-      Dart_GetError(result));
-
-  result = Dart_LibraryId(error, &libraryId);
-  EXPECT(Dart_IsError(result));
-  EXPECT_STREQ("incoming error", Dart_GetError(result));
-
-  result = Dart_LibraryId(lib, &libraryId);
-  EXPECT_VALID(result);
-  Dart_Handle libFromId = Dart_GetLibraryFromId(libraryId);
-  EXPECT(Dart_IsLibrary(libFromId));
-  result = Dart_LibraryName(libFromId);
-  EXPECT(Dart_IsString(result));
-  const char* cstr = NULL;
-  EXPECT_VALID(Dart_StringToCString(result, &cstr));
-  EXPECT_STREQ("library1_name", cstr);
-}
-
-#endif  // !PRODUCT
-
 TEST_CASE(DartAPI_LibraryUrl) {
   const char* kLibrary1Chars = "library library1_name;";
   Dart_Handle lib = TestCase::LoadTestLibrary("library1_url", kLibrary1Chars);
@@ -5944,111 +5859,6 @@ TEST_CASE(DartAPI_LibraryUrl) {
   const char* cstr = NULL;
   EXPECT_VALID(Dart_StringToCString(result, &cstr));
   EXPECT_SUBSTRING("library1_url", cstr);
-}
-
-TEST_CASE(DartAPI_LibraryGetClassNames) {
-  const char* kLibraryChars =
-      "library library_name;\n"
-      "\n"
-      "class A {}\n"
-      "class B {}\n"
-      "abstract class C {}\n"
-      "class _A {}\n"
-      "class _B {}\n"
-      "abstract class _C {}\n"
-      "\n"
-      "int _compare(dynamic a, dynamic b) => a.compareTo(b);\n"
-      "sort(list) => list.sort(_compare);\n";
-
-  Dart_Handle lib = TestCase::LoadTestLibrary("library_url", kLibraryChars);
-  EXPECT_VALID(lib);
-  Dart_Handle result = Dart_FinalizeLoading(false);
-  EXPECT_VALID(result);
-
-  Dart_Handle list = Dart_LibraryGetClassNames(lib);
-  EXPECT_VALID(list);
-  EXPECT(Dart_IsList(list));
-
-  // Sort the list.
-  const int kNumArgs = 1;
-  Dart_Handle args[1];
-  args[0] = list;
-  EXPECT_VALID(Dart_Invoke(lib, NewString("sort"), kNumArgs, args));
-
-  Dart_Handle list_string = Dart_ToString(list);
-  EXPECT_VALID(list_string);
-  const char* list_cstr = "";
-  EXPECT_VALID(Dart_StringToCString(list_string, &list_cstr));
-  EXPECT_STREQ("[A, B, C, _A, _B, _C]", list_cstr);
-}
-
-TEST_CASE(DartAPI_GetFunctionNames) {
-  const char* kLibraryChars =
-      "library library_name;\n"
-      "\n"
-      "void A() {}\n"
-      "get B => 11;\n"
-      "set C(x) { }\n"
-      "var D;\n"
-      "void _A() {}\n"
-      "get _B => 11;\n"
-      "set _C(x) { }\n"
-      "var _D;\n"
-      "\n"
-      "class MyClass {\n"
-      "  void A2() {}\n"
-      "  get B2 => 11;\n"
-      "  set C2(x) { }\n"
-      "  var D2;\n"
-      "  void _A2() {}\n"
-      "  get _B2 => 11;\n"
-      "  set _C2(x) { }\n"
-      "  var _D2;\n"
-      "}\n"
-      "\n"
-      "int _compare(dynamic a, dynamic b) => a.compareTo(b);\n"
-      "sort(list) => list.sort(_compare);\n";
-
-  // Get the functions from a library.
-  Dart_Handle lib = TestCase::LoadTestScript(kLibraryChars, NULL);
-  EXPECT_VALID(lib);
-  Dart_Handle result = Dart_FinalizeLoading(false);
-  EXPECT_VALID(result);
-
-  Dart_Handle list = Dart_GetFunctionNames(lib);
-  EXPECT_VALID(list);
-  EXPECT(Dart_IsList(list));
-
-  // Sort the list.
-  const int kNumArgs = 1;
-  Dart_Handle args[1];
-  args[0] = list;
-  EXPECT_VALID(Dart_Invoke(lib, NewString("sort"), kNumArgs, args));
-
-  Dart_Handle list_string = Dart_ToString(list);
-  EXPECT_VALID(list_string);
-  const char* list_cstr = "";
-  EXPECT_VALID(Dart_StringToCString(list_string, &list_cstr));
-  EXPECT_STREQ("[A, B, C=, _A, _B, _C=, _compare, sort]", list_cstr);
-
-  // Get the functions from a class.
-  Dart_Handle cls = Dart_GetClass(lib, NewString("MyClass"));
-  EXPECT_VALID(cls);
-
-  list = Dart_GetFunctionNames(cls);
-  EXPECT_VALID(list);
-  EXPECT(Dart_IsList(list));
-
-  // Sort the list.
-  args[0] = list;
-  EXPECT_VALID(Dart_Invoke(lib, NewString("sort"), kNumArgs, args));
-
-  // Check list contents.
-  list_string = Dart_ToString(list);
-  EXPECT_VALID(list_string);
-  list_cstr = "";
-  EXPECT_VALID(Dart_StringToCString(list_string, &list_cstr));
-  EXPECT_STREQ("[A2, B2, C2=, MyClass, _A2, _B2, _C2=]", list_cstr);
 }
 
 TEST_CASE(DartAPI_LibraryImportLibrary) {
@@ -7203,8 +7013,8 @@ static Dart_Isolate RunLoopTestCallback(const char* script_name,
   EXPECT_VALID(result);
   Dart_ExitScope();
   Dart_ExitIsolate();
-  bool retval = Dart_IsolateMakeRunnable(isolate);
-  EXPECT(retval);
+  char* err_msg = Dart_IsolateMakeRunnable(isolate);
+  EXPECT(err_msg == NULL);
   return isolate;
 }
 
@@ -8214,7 +8024,8 @@ TEST_CASE(DartAPI_LazyLoadDeoptimizes) {
 
   Dart_Handle source = NewString(kLoadSecond);
   Dart_Handle url = NewString(TestCase::url());
-  Dart_LoadSource(TestCase::lib(), url, Dart_Null(), source, 0, 0);
+  result = Dart_LoadSource(TestCase::lib(), url, Dart_Null(), source, 0, 0);
+  EXPECT_VALID(result);
   result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
 

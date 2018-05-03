@@ -64,10 +64,14 @@ abstract class Compiler {
   Compiler(this.fileSystem, Uri platformKernelPath,
       {this.strongMode: false,
       bool suppressWarnings: false,
-      bool syncAsync: false}) {
-    Uri packagesUri = (Platform.packageConfig != null)
-        ? Uri.parse(Platform.packageConfig)
-        : null;
+      bool syncAsync: false,
+      String packageConfig: null}) {
+    Uri packagesUri = null;
+    if (packageConfig != null) {
+      packagesUri = Uri.parse(packageConfig);
+    } else if (Platform.packageConfig != null) {
+      packagesUri = Uri.parse(Platform.packageConfig);
+    }
 
     if (verbose) {
       print("DFE: Platform.packageConfig: ${Platform.packageConfig}");
@@ -127,11 +131,15 @@ class IncrementalCompilerWrapper extends Compiler {
   IncrementalCompiler generator;
 
   IncrementalCompilerWrapper(FileSystem fileSystem, Uri platformKernelPath,
-      {bool strongMode: false, bool suppressWarnings: false, syncAsync: false})
+      {bool strongMode: false,
+      bool suppressWarnings: false,
+      bool syncAsync: false,
+      String packageConfig: null})
       : super(fileSystem, platformKernelPath,
             strongMode: strongMode,
             suppressWarnings: suppressWarnings,
-            syncAsync: syncAsync);
+            syncAsync: syncAsync,
+            packageConfig: packageConfig);
 
   @override
   Future<Component> compileInternal(Uri script) async {
@@ -153,11 +161,13 @@ class SingleShotCompilerWrapper extends Compiler {
       {this.requireMain: false,
       bool strongMode: false,
       bool suppressWarnings: false,
-      bool syncAsync: false})
+      bool syncAsync: false,
+      String packageConfig: null})
       : super(fileSystem, platformKernelPath,
             strongMode: strongMode,
             suppressWarnings: suppressWarnings,
-            syncAsync: syncAsync);
+            syncAsync: syncAsync,
+            packageConfig: packageConfig);
 
   @override
   Future<Component> compileInternal(Uri script) async {
@@ -177,7 +187,8 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
     List sourceFiles, Uri platformKernelPath, List<int> platformKernel,
     {bool strongMode: false,
     bool suppressWarnings: false,
-    bool syncAsync: false}) async {
+    bool syncAsync: false,
+    String packageConfig: null}) async {
   IncrementalCompilerWrapper compiler = lookupIncrementalCompiler(isolateId);
   if (compiler != null) {
     updateSources(compiler, sourceFiles);
@@ -194,7 +205,8 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
     compiler = new IncrementalCompilerWrapper(fileSystem, platformKernelPath,
         strongMode: strongMode,
         suppressWarnings: suppressWarnings,
-        syncAsync: syncAsync);
+        syncAsync: syncAsync,
+        packageConfig: packageConfig);
     isolateCompilers[isolateId] = compiler;
   }
   return compiler;
@@ -244,6 +256,7 @@ Future _processLoadRequest(request) async {
   final List sourceFiles = request[7];
   final bool suppressWarnings = request[8];
   final bool syncAsync = request[9];
+  final String packageConfig = request[10];
 
   Uri platformKernelPath = null;
   List<int> platformKernel = null;
@@ -295,7 +308,8 @@ Future _processLoadRequest(request) async {
         isolateId, sourceFiles, platformKernelPath, platformKernel,
         strongMode: strong,
         suppressWarnings: suppressWarnings,
-        syncAsync: syncAsync);
+        syncAsync: syncAsync,
+        packageConfig: packageConfig);
   } else {
     final FileSystem fileSystem = sourceFiles.isEmpty && platformKernel == null
         ? StandardFileSystem.instance
@@ -304,7 +318,8 @@ Future _processLoadRequest(request) async {
         requireMain: sourceFiles.isEmpty,
         strongMode: strong,
         suppressWarnings: suppressWarnings,
-        syncAsync: syncAsync);
+        syncAsync: syncAsync,
+        packageConfig: packageConfig);
   }
 
   CompilationResult result;
@@ -401,6 +416,7 @@ train(String scriptUri, String platformKernelPath) {
     [] /* source files */,
     false /* suppress warnings */,
     false /* synchronous async */,
+    null /* package_config */,
   ];
   _processLoadRequest(request);
 }

@@ -1566,19 +1566,29 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
   }
 
-  void assertIsSubtype(ast.Node node, ResolutionDartType subtype,
-      ResolutionDartType supertype, String message) {
+  void assertIsSubtype(
+      ast.Node node,
+      ResolutionDartType subtype,
+      ResolutionDartType supertype,
+      String prefix,
+      String infix,
+      String suffix) {
     HInstruction subtypeInstruction = typeBuilder.analyzeTypeArgument(
         localsHandler.substInContext(subtype), sourceElement);
     HInstruction supertypeInstruction = typeBuilder.analyzeTypeArgument(
         localsHandler.substInContext(supertype), sourceElement);
-    HInstruction messageInstruction =
-        graph.addConstantString(message, closedWorld);
+    HInstruction prefixInstruction =
+        graph.addConstantString(prefix, closedWorld);
+    HInstruction infixInstruction = graph.addConstantString(infix, closedWorld);
+    HInstruction suffixInstruction =
+        graph.addConstantString(suffix, closedWorld);
     MethodElement element = commonElements.assertIsSubtype;
     var inputs = <HInstruction>[
       subtypeInstruction,
       supertypeInstruction,
-      messageInstruction
+      prefixInstruction,
+      infixInstruction,
+      suffixInstruction,
     ];
     HInstruction assertIsSubtype = new HInvokeStatic(element, inputs,
         subtypeInstruction.instructionType, const <DartType>[]);
@@ -3691,15 +3701,21 @@ class SsaAstGraphBuilder extends ast.Visitor
       int subtypeRelation = types.computeSubtypeRelation(typeArgument, bound);
       if (subtypeRelation == DartTypes.IS_SUBTYPE) return;
 
-      String message = "Can't create an instance of malbounded type '$type': "
-          "'${typeArgument}' is not a subtype of bound '${bound}' for "
-          "type variable '${typeVariable}' of type "
-          "${type == instance
-              ? "'${type.element.thisType}'"
-              : "'${instance.element.thisType}' on the supertype "
-                "'${instance}' of '${type}'"
-            }.";
+      String prefix = "Can't create an instance of malbounded type '$type': '";
+      String infix = "' is not a subtype of bound '";
+      String suffix;
+
+      if (type == instance) {
+        suffix = "' of type variable '${typeVariable}' of type "
+            "'${type.element.thisType}'.";
+      } else {
+        suffix = "' of type variable '${typeVariable}' of type "
+            "'${instance.element.thisType}' on the supertype "
+            "'${instance}' of '${type}'.";
+      }
+
       if (subtypeRelation == DartTypes.NOT_SUBTYPE) {
+        String message = "TypeError: $prefix$typeArgument$infix$bound$suffix";
         generateTypeError(node, message);
         definitelyFails = true;
         return;
@@ -3708,18 +3724,20 @@ class SsaAstGraphBuilder extends ast.Visitor
             typeArgument, () => new Set<ResolutionDartType>());
         if (!seenChecks.contains(bound)) {
           seenChecks.add(bound);
-          assertIsSubtype(node, typeArgument, bound, message);
+          assertIsSubtype(node, typeArgument, bound, prefix, infix, suffix);
         }
       }
     }
 
-    types.checkTypeVariableBounds(type, addTypeVariableBoundCheck);
+    types.checkTypeVariableBounds(type, type.typeArguments,
+        type.element.typeVariables, addTypeVariableBoundCheck);
     if (definitelyFails) {
       return true;
     }
     for (ResolutionInterfaceType supertype in type.element.allSupertypes) {
       ResolutionInterfaceType instance = type.asInstanceOf(supertype.element);
-      types.checkTypeVariableBounds(instance, addTypeVariableBoundCheck);
+      types.checkTypeVariableBounds(instance, instance.typeArguments,
+          instance.element.typeVariables, addTypeVariableBoundCheck);
       if (definitelyFails) {
         return true;
       }

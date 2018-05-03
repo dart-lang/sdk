@@ -4164,8 +4164,9 @@ class ReturnStatement extends Statement {
 class TryCatch extends Statement {
   Statement body;
   List<Catch> catches;
+  bool isSynthetic;
 
-  TryCatch(this.body, this.catches) {
+  TryCatch(this.body, this.catches, {this.isSynthetic: false}) {
     body?.parent = this;
     setParents(catches, this);
   }

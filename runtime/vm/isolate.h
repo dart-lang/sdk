@@ -302,7 +302,7 @@ class Isolate : public BaseIsolate {
                      bool dont_delete_reload_context = false);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
-  bool MakeRunnable();
+  const char* MakeRunnable();
   void Run();
 
   MessageHandler* message_handler() const { return message_handler_; }

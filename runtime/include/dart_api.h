@@ -64,6 +64,14 @@ typedef unsigned __int64 uint64_t;
 #endif
 #endif
 
+#if __GNUC__
+#define DART_WARN_UNUSED_RESULT __attribute__((warn_unused_result))
+#elif _MSC_VER
+#define DART_WARN_UNUSED_RESULT _Check_return_
+#else
+#define DART_WARN_UNUSED_RESULT
+#endif
+
 #include <assert.h>
 
 /*
@@ -783,7 +791,8 @@ typedef struct {
  * \return NULL if initialization is successful. Returns an error message
  *   otherwise. The caller is responsible for freeing the error message.
  */
-DART_EXPORT char* Dart_Initialize(Dart_InitializeParams* params);
+DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_Initialize(
+    Dart_InitializeParams* params);
 
 /**
  * Cleanup state in the VM before process termination.
@@ -791,7 +800,7 @@ DART_EXPORT char* Dart_Initialize(Dart_InitializeParams* params);
  * \return NULL if cleanup is successful. Returns an error message otherwise.
  *   The caller is responsible for freeing the error message.
  */
-DART_EXPORT char* Dart_Cleanup();
+DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_Cleanup();
 
 /**
  * Sets command line flags. Should be called before Dart_Initialize.
@@ -799,9 +808,11 @@ DART_EXPORT char* Dart_Cleanup();
  * \param argc The length of the arguments array.
  * \param argv An array of arguments.
  *
- * \return True if VM flags set successfully.
+ * \return NULL if successful. Returns an error message otherwise.
+ *  The caller is responsible for freeing the error message.
  */
-DART_EXPORT bool Dart_SetVMFlags(int argc, const char** argv);
+DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_SetVMFlags(int argc,
+                                                          const char** argv);
 
 /**
  * Returns true if the named VM flag is set.
@@ -1063,14 +1074,18 @@ DART_EXPORT bool Dart_IsDart2Snapshot(const uint8_t* snapshot_buffer);
 /**
  * Make isolate runnable.
  *
- * When isolates are spawned this function is used to indicate that
+ * When isolates are spawned, this function is used to indicate that
  * the creation and initialization (including script loading) of the
  * isolate is complete and the isolate can start.
- * This function does not expect there to be a current isolate.
+ * This function expects there to be no current isolate.
  *
  * \param isolate The isolate to be made runnable.
+ *
+ * \return NULL if successful. Returns an error message otherwise. The caller
+ * is responsible for freeing the error message.
  */
-DART_EXPORT bool Dart_IsolateMakeRunnable(Dart_Isolate isolate);
+DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_IsolateMakeRunnable(
+    Dart_Isolate isolate);
 
 /*
  * ==================
@@ -3198,7 +3213,9 @@ DART_EXPORT Dart_Port Dart_KernelPort();
 DART_EXPORT Dart_KernelCompilationResult
 Dart_CompileToKernel(const char* script_uri,
                      const uint8_t* platform_kernel,
-                     const intptr_t platform_kernel_size);
+                     const intptr_t platform_kernel_size,
+                     bool incremental_compile,
+                     const char* package_config);
 
 typedef struct {
   const char* uri;
@@ -3210,7 +3227,8 @@ Dart_CompileSourcesToKernel(const char* script_uri,
                             intptr_t platform_kernel_size,
                             int source_files_count,
                             Dart_SourceFile source_files[],
-                            bool incremental_compile);
+                            bool incremental_compile,
+                            const char* package_config);
 
 #define DART_KERNEL_ISOLATE_NAME "kernel-service"
 

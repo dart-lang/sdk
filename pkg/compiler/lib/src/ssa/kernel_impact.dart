@@ -104,6 +104,11 @@ class KernelImpactBuilder extends ir.Visitor {
     registerSeenClasses(node.returnType);
     node.positionalParameters.forEach(handleParameter);
     node.namedParameters.forEach(handleParameter);
+    if (_options.strongMode) {
+      for (ir.TypeParameter parameter in node.typeParameters) {
+        checkType(parameter.bound, TypeUseKind.PARAMETER_CHECK);
+      }
+    }
   }
 
   ResolutionImpact buildField(ir.Field field) {

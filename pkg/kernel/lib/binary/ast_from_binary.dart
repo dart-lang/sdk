@@ -97,22 +97,6 @@ class BinaryBuilder {
         readByte();
   }
 
-  final Float64List _doubleBuffer = new Float64List(1);
-  Uint8List _doubleBufferUint8;
-
-  double readDouble() {
-    _doubleBufferUint8 ??= _doubleBuffer.buffer.asUint8List();
-    _doubleBufferUint8[0] = readByte();
-    _doubleBufferUint8[1] = readByte();
-    _doubleBufferUint8[2] = readByte();
-    _doubleBufferUint8[3] = readByte();
-    _doubleBufferUint8[4] = readByte();
-    _doubleBufferUint8[5] = readByte();
-    _doubleBufferUint8[6] = readByte();
-    _doubleBufferUint8[7] = readByte();
-    return _doubleBuffer[0];
-  }
-
   List<int> readByteList() {
     List<int> bytes = new Uint8List(readUInt());
     bytes.setRange(0, bytes.length, _bytes, _byteOffset);
@@ -190,7 +174,7 @@ class BinaryBuilder {
       case ConstantTag.IntConstant:
         return new IntConstant((readExpression() as IntLiteral).value);
       case ConstantTag.DoubleConstant:
-        return new DoubleConstant(readDouble());
+        return new DoubleConstant(double.parse(readStringReference()));
       case ConstantTag.StringConstant:
         return new StringConstant(readStringReference());
       case ConstantTag.MapConstant:
@@ -1349,7 +1333,7 @@ class BinaryBuilder {
       case Tag.BigIntLiteral:
         return new IntLiteral(int.parse(readStringReference()));
       case Tag.DoubleLiteral:
-        return new DoubleLiteral(readDouble());
+        return new DoubleLiteral(double.parse(readStringReference()));
       case Tag.TrueLiteral:
         return new BoolLiteral(true);
       case Tag.FalseLiteral:
@@ -1565,8 +1549,8 @@ class BinaryBuilder {
         return new ReturnStatement(readExpressionOption())..fileOffset = offset;
       case Tag.TryCatch:
         Statement body = readStatement();
-        readByte(); // whether any catch needs a stacktrace.
-        return new TryCatch(body, readCatchList());
+        int flags = readByte();
+        return new TryCatch(body, readCatchList(), isSynthetic: flags & 2 == 2);
       case Tag.TryFinally:
         return new TryFinally(readStatement(), readStatement());
       case Tag.YieldStatement:

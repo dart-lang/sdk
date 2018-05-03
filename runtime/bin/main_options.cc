@@ -63,20 +63,19 @@ ENUM_OPTIONS_LIST(ENUM_OPTION_DEFINITION)
 CB_OPTIONS_LIST(CB_OPTION_DEFINITION)
 #undef CB_OPTION_DEFINITION
 
-static bool checked_set = false;
-static bool preview_dart_2_set = false;
-
-static void SetPreviewDart2Options(CommandLineOptions* vm_options) {
+void Options::SetPreviewDart2Options(CommandLineOptions* vm_options) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   Options::dfe()->set_use_dfe();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  preview_dart_2_set = true;
+  OPTION_FIELD(preview_dart_2) = true;
   vm_options->AddArgument("--strong");
   vm_options->AddArgument("--reify-generic-functions");
   vm_options->AddArgument("--limit-ints-to-64-bits");
 }
 
-DEFINE_BOOL_OPTION_CB(preview_dart_2, { SetPreviewDart2Options(vm_options); });
+bool OPTION_FIELD(preview_dart_2) = false;
+DEFINE_BOOL_OPTION_CB(preview_dart_2,
+                      { Options::SetPreviewDart2Options(vm_options); });
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 DFE* Options::dfe_ = NULL;
@@ -218,7 +217,8 @@ void Options::PrintUsage() {
 "The following options are only used for VM development and may\n"
 "be changed in any future version:\n");
     const char* print_flags = "--print_flags";
-    Dart_SetVMFlags(1, &print_flags);
+    char* error = Dart_SetVMFlags(1, &print_flags);
+    ASSERT(error == NULL);
   }
 }
 // clang-format on
@@ -324,6 +324,8 @@ bool Options::ProcessObserveOption(const char* arg,
   vm_options->AddArgument("--warn-on-pause-with-no-debugger");
   return true;
 }
+
+static bool checked_set = false;
 
 int Options::ParseArguments(int argc,
                             char** argv,
@@ -456,7 +458,7 @@ int Options::ParseArguments(int argc,
         " run using a snapshot is invalid.\n");
     return -1;
   }
-  if (checked_set && preview_dart_2_set) {
+  if (checked_set && Options::preview_dart_2()) {
     Log::PrintErr("Flags --checked and --preview-dart-2 are not compatible.\n");
     return -1;
   }

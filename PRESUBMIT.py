@@ -190,7 +190,7 @@ def _CheckStatusFiles(input_api, output_api):
 
   windows = utils.GuessOS() == 'win32'
   if windows:
-    dart += '.bat'
+    dart += '.exe'
 
   if not os.path.isfile(dart):
     print('WARNING: dart not found: %s' % dart)

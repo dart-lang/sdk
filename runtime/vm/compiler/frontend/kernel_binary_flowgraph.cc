@@ -1548,7 +1548,7 @@ void StreamingScopeBuilder::VisitExpression() {
       builder_->ReadUInt();  // read value.
       return;
     case kDoubleLiteral:
-      builder_->ReadDouble();  // read value.
+      builder_->SkipStringReference();  // read index into string table.
       return;
     case kTrueLiteral:
       return;
@@ -1807,7 +1807,7 @@ void StreamingScopeBuilder::VisitStatement() {
       ++depth_.catch_;
       AddCatchVariables();
 
-      builder_->ReadBool();  // read any_catch_needs_stack_trace.
+      builder_->ReadByte();  // read flags
       intptr_t catch_count =
           builder_->ReadListLength();  // read number of catches.
       for (intptr_t i = 0; i < catch_count; ++i) {
@@ -3542,7 +3542,8 @@ void StreamingConstantEvaluator::EvaluateIntLiteral(bool is_negative) {
 }
 
 void StreamingConstantEvaluator::EvaluateDoubleLiteral() {
-  result_ = Double::New(builder_->ReadDouble(), Heap::kOld);  // read value.
+  result_ = Double::New(H.DartString(builder_->ReadStringReference()),
+                        Heap::kOld);  // read string reference.
   result_ = H.Canonicalize(result_);
 }
 
@@ -4354,7 +4355,7 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
     }
     case kTryCatch: {
       CalculateStatementFingerprint();  // read body.
-      BuildHash(ReadBool());            // read any_catch_needs_stack_trace.
+      BuildHash(ReadByte());            // read flags
       intptr_t catch_count = ReadListLength();  // read number of catches.
       for (intptr_t i = 0; i < catch_count; ++i) {
         ReadPosition();                  // read position.
@@ -6021,10 +6022,6 @@ uint32_t KernelReaderHelper::PeekUInt() {
   return reader_.ReadUInt();
 }
 
-double KernelReaderHelper::ReadDouble() {
-  return reader_.ReadDouble();
-}
-
 uint32_t KernelReaderHelper::PeekListLength() {
   AlternativeReadingScope alt(&reader_);
   return reader_.ReadListLength();
@@ -6492,7 +6489,7 @@ void KernelReaderHelper::SkipExpression() {
       ReadUInt();  // read value.
       return;
     case kDoubleLiteral:
-      ReadDouble();  // read value.
+      SkipStringReference();  // read index into string table.
       return;
     case kTrueLiteral:
       return;
@@ -6606,7 +6603,7 @@ void KernelReaderHelper::SkipStatement() {
     }
     case kTryCatch: {
       SkipStatement();  // read body.
-      ReadBool();       // read any_catch_needs_stack_trace.
+      ReadByte();       // read flags
       intptr_t catch_count = ReadListLength();  // read number of catches.
       for (intptr_t i = 0; i < catch_count; ++i) {
         ReadPosition();   // read position.
@@ -7166,9 +7163,10 @@ Fragment StreamingFlowGraphBuilder::BranchIfNull(
 
 Fragment StreamingFlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
                                                     intptr_t handler_index,
-                                                    bool needs_stacktrace) {
+                                                    bool needs_stacktrace,
+                                                    bool is_synthesized) {
   return flow_graph_builder_->CatchBlockEntry(handler_types, handler_index,
-                                              needs_stacktrace);
+                                              needs_stacktrace, is_synthesized);
 }
 
 Fragment StreamingFlowGraphBuilder::TryCatch(int try_handler_index) {
@@ -8985,7 +8983,8 @@ Fragment StreamingFlowGraphBuilder::BuildDoubleLiteral(
   if (position != NULL) *position = TokenPosition::kNoSource;
 
   Double& constant = Double::ZoneHandle(
-      Z, Double::NewCanonical(ReadDouble()));  // read double.
+      Z, Double::NewCanonical(
+             H.DartString(ReadStringReference())));  // read string reference.
   return Constant(constant);
 }
 
@@ -9853,14 +9852,21 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch() {
   }
   try_depth_dec();
 
-  bool needs_stacktrace = ReadBool();  // read any_catch_needs_stack_trace
+  const int kNeedsStracktraceBit = 1 << 0;
+  const int kIsSyntheticBit = 1 << 1;
+
+  uint8_t flags = ReadByte();
+  bool needs_stacktrace =
+      (flags & kNeedsStracktraceBit) == kNeedsStracktraceBit;
+  bool is_synthetic = (flags & kIsSyntheticBit) == kIsSyntheticBit;
 
   catch_depth_inc();
   intptr_t catch_count = ReadListLength();  // read number of catches.
   const Array& handler_types =
       Array::ZoneHandle(Z, Array::New(catch_count, Heap::kOld));
-  Fragment catch_body =
-      CatchBlockEntry(handler_types, try_handler_index, needs_stacktrace);
+
+  Fragment catch_body = CatchBlockEntry(handler_types, try_handler_index,
+                                        needs_stacktrace, is_synthetic);
   // Fill in the body of the catch.
   for (intptr_t i = 0; i < catch_count; ++i) {
     intptr_t catch_offset = ReaderOffset();   // Catch has no tag.
@@ -10031,7 +10037,8 @@ Fragment StreamingFlowGraphBuilder::BuildTryFinally() {
   handler_types.SetAt(0, Object::dynamic_type());
   // Note: rethrow will actually force mark the handler as needing a stacktrace.
   Fragment finally_body = CatchBlockEntry(handler_types, try_handler_index,
-                                          /* needs_stacktrace = */ false);
+                                          /* needs_stacktrace = */ false,
+                                          /* is_synthesized = */ true);
   SetOffset(finalizer_offset);
   finally_body += BuildStatement();  // read finalizer
   if (finally_body.is_open()) {
@@ -10819,7 +10826,8 @@ const Array& ConstantHelper::ReadConstantTable() {
         break;
       }
       case kDoubleConstant: {
-        temp_instance_ = Double::New(builder_.ReadDouble(), Heap::kOld);
+        temp_instance_ = Double::New(
+            H.DartString(builder_.ReadStringReference()), Heap::kOld);
         temp_instance_ = H.Canonicalize(temp_instance_);
         break;
       }

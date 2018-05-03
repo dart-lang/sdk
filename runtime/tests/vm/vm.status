@@ -9,10 +9,10 @@ cc/Dart2JSCompilerStats: Fail, Crash # Issue 27369
 cc/Fail0: Fail # These tests are expected to crash on all platforms.
 cc/Fail1: Fail # These tests are expected to crash on all platforms.
 cc/Fail2: Fail # These tests are expected to crash on all platforms.
-cc/IsolateReload_PendingConstructorCall_AbstractToConcrete: Fail # Issue 32981
-cc/IsolateReload_PendingConstructorCall_ConcreteToAbstract: Fail # Issue 32981
+cc/IsolateReload_PendingConstructorCall_AbstractToConcrete: Fail, Crash # Issue 32981. Fails on non-Windows, crashes on Windows (because of test.py special handline)
+cc/IsolateReload_PendingConstructorCall_ConcreteToAbstract: Fail, Crash # Issue 32981. Fails on non-Windows, crashes on Windows (because of test.py special handline)
 cc/IsolateReload_PendingStaticCall_DefinedToNSM: Fail # Issue 32981
-cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail # Issue 32981
+cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash # Issue 32981. Fails on non-Windows, crashes on Windows (because of test.py special handline)
 cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: Fail # Issue 32981
 cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail # Issue 32981
 cc/IsolateReload_RunNewFieldInitializersWithGenerics: Fail # Issue 32299
@@ -36,6 +36,7 @@ dart/byte_array_optimized_test: Skip # compilers not aware of byte arrays
 dart/byte_array_test: Skip # compilers not aware of byte arrays
 dart/error_messages_in_null_checks_test: SkipByDesign # Dart2js throws NullError exceptions with different messages.
 dart/inline_stack_frame_test: Skip # Issue 7953, Methods can be missing in dart2js stack traces due to inlining. Also when minifying they can be renamed, which is issue 7953.
+dart/issue32950_test: SkipByDesign # uses isolates.
 dart/optimized_stacktrace_line_and_column_test: RuntimeError # The source positions do not match with dart2js.
 dart/optimized_stacktrace_line_test: RuntimeError # The source positions do not match with dart2js.
 dart/redirection_type_shuffling_test: Skip # Depends on lazy enforcement of type bounds
@@ -71,6 +72,7 @@ dart/spawn_shutdown_test: Pass, Slow # VM Shutdown test, It can take some time f
 
 [ $runtime == dart_precompiled ]
 dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
+dart/issue32950_test: SkipByDesign # uses spawnUri.
 
 [ $runtime != vm ]
 dart/hello_fuchsia_test: SkipByDesign # This is a test for fuchsia OS
@@ -224,6 +226,7 @@ dart/truncating_ints_test: Skip # This test cannot be run in dartkp/legacy mode 
 
 [ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
 dart/data_uri_import_test/utf16: MissingRuntimeError # UTF-16 data URIs work in dartk
+dart/issue32950_test: SkipByDesign # uses spawnUri.
 dart/redirection_type_shuffling_test: SkipByDesign # Includes dart:mirrors.
 dart/spawn_shutdown_test: SkipSlow
 

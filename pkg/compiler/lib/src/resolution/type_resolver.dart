@@ -415,7 +415,8 @@ class TypeResolver {
       }
     }
 
-    types.genericCheckTypeVariableBounds(type, checkTypeVariableBound);
+    types.genericCheckTypeVariableBounds(type, type.typeArguments,
+        type.element.typeVariables, checkTypeVariableBound);
   }
 
   /**

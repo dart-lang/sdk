@@ -316,7 +316,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..enableMinification = _hasOption(options, Flags.minify)
       ..enableNativeLiveTypeAnalysis =
           !_hasOption(options, Flags.disableNativeLiveTypeAnalysis)
-      ..enableTypeAssertions = _hasOption(options, Flags.enableCheckedMode)
+      ..enableTypeAssertions = _hasOption(options, Flags.enableCheckedMode) &&
+          !_hasOption(options, Flags.strongMode)
       ..enableUserAssertions = _hasOption(options, Flags.enableCheckedMode) ||
           _hasOption(options, Flags.enableAsserts)
       ..experimentalTrackAllocations =
@@ -460,6 +461,9 @@ class CheckPolicy {
   static const trusted = const CheckPolicy(isTrusted: true);
   static const checked = const CheckPolicy(isEmitted: true);
   static const ignored = const CheckPolicy(isIgnored: true);
+
+  String toString() => 'CheckPolicy(isTrusted=$isTrusted,'
+      'isEmitted=$isEmitted,isIgnored=$isIgnored)';
 }
 
 String _extractStringOption(

@@ -29,20 +29,22 @@ application_snapshot("generate_dartanalyzer_snapshot") {
   name = "dartanalyzer"
 }
 
-aot_assembly("dartanalyzer_aot_assembly") {
-  main_dart = "../../pkg/analyzer_cli/bin/analyzer.dart"
-  name = "dartanalyzer"
-}
+if (current_os == "linux") {
+  aot_assembly("dartanalyzer_aot_assembly") {
+    main_dart = "../../pkg/analyzer_cli/bin/analyzer.dart"
+    name = "dartanalyzer"
+  }
 
-# This target is for Goma. It should not be used in the SDK.
-executable("dartanalyzer_aot") {
-  deps = [
-    "../../runtime/bin:dart_precompiled_runtime_for_linking",
-    ":dartanalyzer_aot_assembly",
-  ]
-  sources = [
-    "$root_gen_dir/dartanalyzer.dart.S"
-  ]
+  # This target is for Goma. It should not be used in the SDK.
+  executable("dartanalyzer_aot") {
+    deps = [
+      "../../runtime/bin:dart_precompiled_runtime_for_linking",
+      ":dartanalyzer_aot_assembly",
+    ]
+    sources = [
+      "$root_gen_dir/dartanalyzer.dart.S"
+    ]
+  }
 }
 
 sdk_lib_files = exec_script("../../tools/list_dart_files.py",

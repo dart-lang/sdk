@@ -355,14 +355,18 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     var exceptionVariable = new VariableDeclaration(":exception");
     var stackTraceVariable = new VariableDeclaration(":stack_trace");
 
-    return new TryCatch(buildReturn(labeledBody), <Catch>[
-      new Catch(
-          exceptionVariable,
-          new Block(<Statement>[
-            buildCatchBody(exceptionVariable, stackTraceVariable)
-          ]),
-          stackTrace: stackTraceVariable)
-    ]);
+    return new TryCatch(
+      buildReturn(labeledBody),
+      <Catch>[
+        new Catch(
+            exceptionVariable,
+            new Block(<Statement>[
+              buildCatchBody(exceptionVariable, stackTraceVariable)
+            ]),
+            stackTrace: stackTraceVariable)
+      ],
+      isSynthetic: true,
+    );
   }
 
   Statement buildCatchBody(

@@ -991,6 +991,30 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     function.positionalParameters.forEach(_handleParameter);
     function.namedParameters.toList()..forEach(_handleParameter);
+
+    checkTypeVariableBounds(targetElement);
+  }
+
+  void checkTypeVariableBounds(FunctionEntity method) {
+    if (rtiNeed.methodNeedsTypeArguments(method)) {
+      ir.FunctionNode function = getFunctionNode(_elementMap, method);
+      for (ir.TypeParameter typeParameter in function.typeParameters) {
+        Local local = localsMap.getLocalTypeVariable(
+            new ir.TypeParameterType(typeParameter), _elementMap);
+        HInstruction newParameter = localsHandler.directLocals[local];
+        DartType bound = _getDartTypeIfValid(typeParameter.bound);
+        if (!bound.isDynamic &&
+            !bound.isVoid &&
+            bound != _commonElements.objectType) {
+          _assertIsType(
+              newParameter,
+              bound,
+              "The type argument '",
+              "' is not a subtype of the type variable bound '",
+              "' of type variable '${local.name}' in '${method.name}'.");
+        }
+      }
+    }
   }
 
   /// Builds a SSA graph for FunctionNodes of external methods.
@@ -4250,15 +4274,21 @@ class KernelSsaGraphBuilder extends ir.Visitor
       int subtypeRelation = types.computeSubtypeRelation(typeArgument, bound);
       if (subtypeRelation == DartTypes.IS_SUBTYPE) return;
 
-      String message = "Can't create an instance of malbounded type '$type': "
-          "'${typeArgument}' is not a subtype of bound '${bound}' for "
-          "type variable '${typeVariable}' of type "
-          "${type == instance
-              ? "'${types.getThisType(type.element)}'"
-              : "'${types.getThisType(instance.element)}' on the supertype "
-                "'${instance}' of '${type}'"
-            }.";
+      String prefix = "Can't create an instance of malbounded type '$type': '";
+      String infix = "' is not a subtype of bound '";
+      String suffix;
+
+      if (type == instance) {
+        suffix = "' type variable '${typeVariable}' of type "
+            "'${types.getThisType(type.element)}'.";
+      } else {
+        suffix = "' type variable '${typeVariable}' of type "
+            "'${types.getThisType(instance.element)}' on the supertype "
+            "'${instance}' of '${type}'.";
+      }
+
       if (subtypeRelation == DartTypes.NOT_SUBTYPE) {
+        String message = "TypeError: $prefix$typeArgument$infix$bound$suffix";
         generateTypeError(message, sourceInformation);
         knownInvalidBounds = true;
         return;
@@ -4267,19 +4297,29 @@ class KernelSsaGraphBuilder extends ir.Visitor
             seenChecksMap.putIfAbsent(typeArgument, () => new Set<DartType>());
         if (!seenChecks.contains(bound)) {
           seenChecks.add(bound);
-          _assertIsSubtype(typeArgument, bound, message);
+          _assertIsSubtype(typeArgument, bound, prefix, infix, suffix);
         }
       }
     }
 
-    types.checkTypeVariableBounds(type, _addTypeVariableBoundCheck);
+    types.checkTypeVariableBounds(
+        type,
+        type.typeArguments,
+        _elementMap.elementEnvironment.getThisType(type.element).typeArguments,
+        _addTypeVariableBoundCheck);
     if (knownInvalidBounds) {
       return true;
     }
     for (InterfaceType supertype
         in types.getSupertypes(constructor.enclosingClass)) {
       InterfaceType instance = types.asInstanceOf(type, supertype.element);
-      types.checkTypeVariableBounds(instance, _addTypeVariableBoundCheck);
+      types.checkTypeVariableBounds(
+          instance,
+          instance.typeArguments,
+          _elementMap.elementEnvironment
+              .getThisType(instance.element)
+              .typeArguments,
+          _addTypeVariableBoundCheck);
       if (knownInvalidBounds) {
         return true;
       }
@@ -4287,22 +4327,33 @@ class KernelSsaGraphBuilder extends ir.Visitor
     return false;
   }
 
-  void _assertIsSubtype(DartType subtype, DartType supertype, String message) {
+  void _assertIsSubtype(DartType subtype, DartType supertype, String prefix,
+      String infix, String suffix) {
     HInstruction subtypeInstruction = typeBuilder.analyzeTypeArgument(
         localsHandler.substInContext(subtype), sourceElement);
+    _assertIsType(subtypeInstruction, supertype, prefix, infix, suffix);
+    registry?.registerTypeVariableBoundsSubtypeCheck(subtype, supertype);
+  }
+
+  void _assertIsType(HInstruction subtypeInstruction, DartType supertype,
+      String prefix, String infix, String suffix) {
     HInstruction supertypeInstruction = typeBuilder.analyzeTypeArgument(
         localsHandler.substInContext(supertype), sourceElement);
-    HInstruction messageInstruction =
-        graph.addConstantString(message, closedWorld);
+    HInstruction prefixInstruction =
+        graph.addConstantString(prefix, closedWorld);
+    HInstruction infixInstruction = graph.addConstantString(infix, closedWorld);
+    HInstruction suffixInstruction =
+        graph.addConstantString(suffix, closedWorld);
     FunctionEntity element = commonElements.assertIsSubtype;
     var inputs = <HInstruction>[
       subtypeInstruction,
       supertypeInstruction,
-      messageInstruction
+      prefixInstruction,
+      infixInstruction,
+      suffixInstruction
     ];
     HInstruction assertIsSubtype = new HInvokeStatic(element, inputs,
         subtypeInstruction.instructionType, const <DartType>[]);
-    registry?.registerTypeVariableBoundsSubtypeCheck(subtype, supertype);
     add(assertIsSubtype);
   }
 
@@ -5606,8 +5657,10 @@ class KernelTypeBuilder extends TypeBuilder {
   GlobalLocalsMap _globalLocalsMap;
 
   KernelTypeBuilder(
-      GraphBuilder builder, this._elementMap, this._globalLocalsMap)
+      KernelSsaGraphBuilder builder, this._elementMap, this._globalLocalsMap)
       : super(builder);
+
+  KernelSsaGraphBuilder get builder => super.builder;
 
   ClassTypeVariableAccess computeTypeVariableAccess(MemberEntity member) {
     return _elementMap.getClassTypeVariableAccessForMember(member);
@@ -5625,6 +5678,7 @@ class KernelTypeBuilder extends TypeBuilder {
       potentiallyCheckOrTrustTypeOfParameter(
           argument, localsMap.getLocalType(_elementMap, parameter));
     });
+    builder.checkTypeVariableBounds(function);
   }
 }
 

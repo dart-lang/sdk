@@ -33,6 +33,10 @@ intptr_t kPlatformStrongDillSize = 0;
 namespace dart {
 namespace bin {
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+DFE dfe;
+#endif
+
 #if defined(DART_NO_SNAPSHOT) || defined(DART_PRECOMPILER)
 const uint8_t* kernel_service_dill = NULL;
 const intptr_t kernel_service_dill_size = 0;
@@ -213,10 +217,10 @@ class WindowsPathSanitizer {
   DISALLOW_COPY_AND_ASSIGN(WindowsPathSanitizer);
 };
 
-void* DFE::CompileAndReadScript(const char* script_uri,
-                                char** error,
-                                int* exit_code,
-                                bool strong) {
+Dart_KernelCompilationResult DFE::CompileScript(const char* script_uri,
+                                                bool strong,
+                                                bool incremental,
+                                                const char* package_config) {
   // TODO(aam): When Frontend is ready, VM should be passing vm_outline.dill
   // instead of vm_platform.dill to Frontend for compilation.
 #if defined(HOST_OS_WINDOWS)
@@ -230,8 +234,18 @@ void* DFE::CompileAndReadScript(const char* script_uri,
       strong ? platform_strong_dill : platform_dill;
   intptr_t platform_binary_size =
       strong ? platform_strong_dill_size : platform_dill_size;
-  Dart_KernelCompilationResult result = Dart_CompileToKernel(
-      sanitized_uri, platform_binary, platform_binary_size);
+  return Dart_CompileToKernel(sanitized_uri, platform_binary,
+                              platform_binary_size, incremental,
+                              package_config);
+}
+
+void* DFE::CompileAndReadScript(const char* script_uri,
+                                char** error,
+                                int* exit_code,
+                                bool strong,
+                                const char* package_config) {
+  Dart_KernelCompilationResult result =
+      CompileScript(script_uri, strong, true, package_config);
   switch (result.status) {
     case Dart_KernelCompilationStatus_Ok:
       return Dart_ReadKernelBinary(result.kernel, result.kernel_size,

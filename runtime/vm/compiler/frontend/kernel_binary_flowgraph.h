@@ -1043,7 +1043,6 @@ class KernelReaderHelper {
   uint32_t ReadUInt();
   uint32_t ReadUInt32();
   uint32_t PeekUInt();
-  double ReadDouble();
   uint32_t PeekListLength();
   StringIndex ReadStringReference();
   NameIndex ReadCanonicalNameReference();
@@ -1425,7 +1424,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                         bool negate = false);
   Fragment CatchBlockEntry(const Array& handler_types,
                            intptr_t handler_index,
-                           bool needs_stacktrace);
+                           bool needs_stacktrace,
+                           bool is_synthesized);
   Fragment TryCatch(int try_handler_index);
   Fragment Drop();
 

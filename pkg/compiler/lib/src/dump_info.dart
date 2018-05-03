@@ -8,6 +8,7 @@ import 'dart:convert'
     show ChunkedConversionSink, JsonEncoder, StringConversionSink;
 
 import 'package:dart2js_info/info.dart';
+import 'package:path/path.dart' as p;
 
 import '../compiler_new.dart';
 import 'common/names.dart';
@@ -77,7 +78,17 @@ class ElementInfoCollector {
       libname = '<unnamed>';
     }
     int size = compiler.dumpInfoTask.sizeOf(lib);
-    LibraryInfo info = new LibraryInfo(libname, lib.canonicalUri, null, size);
+
+    var uri = lib.canonicalUri;
+    if (Uri.base.isScheme('file') && lib.canonicalUri.isScheme('file')) {
+      var basePath = p.fromUri(Uri.base);
+      var libPath = p.fromUri(lib.canonicalUri);
+      if (p.isWithin(basePath, libPath)) {
+        uri = p.toUri(p.relative(libPath, from: basePath));
+      }
+    }
+
+    LibraryInfo info = new LibraryInfo(libname, uri, null, size);
     _entityToInfo[lib] = info;
 
     environment.forEachLibraryMember(lib, (MemberEntity member) {
@@ -127,8 +138,12 @@ class ElementInfoCollector {
   GlobalTypeInferenceElementResult _resultOfParameter(Local e) =>
       compiler.globalInference.results.resultOfParameter(e);
 
-  FieldInfo visitField(FieldEntity field) {
-    if (!_hasBeenResolved(field)) {
+  FieldInfo visitField(FieldEntity field, {ClassEntity containingClass}) {
+    var isInInstantiatedClass = false;
+    if (containingClass != null) {
+      isInInstantiatedClass = closedWorld.isInstantiated(containingClass);
+    }
+    if (!isInInstantiatedClass && !_hasBeenResolved(field)) {
       return null;
     }
     TypeMask inferredType = _resultOfMember(field).type;
@@ -137,6 +152,8 @@ class ElementInfoCollector {
 
     int size = compiler.dumpInfoTask.sizeOf(field);
     String code = compiler.dumpInfoTask.codeOf(field);
+
+    // TODO(het): Why doesn't `size` account for the code size already?
     if (code != null) size += code.length;
 
     FieldInfo info = new FieldInfo(
@@ -193,7 +210,7 @@ class ElementInfoCollector {
           }
         }
       } else if (member.isField) {
-        FieldInfo fieldInfo = visitField(member);
+        FieldInfo fieldInfo = visitField(member, containingClass: clazz);
         if (fieldInfo != null) {
           classInfo.fields.add(fieldInfo);
           fieldInfo.parent = classInfo;

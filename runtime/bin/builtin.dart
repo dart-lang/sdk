@@ -150,7 +150,7 @@ void _setWorkingDirectory(String cwd) {
 
 // Embedder Entrypoint:
 // The embedder calls this method with a custom package root.
-_setPackageRoot(String packageRoot) {
+String _setPackageRoot(String packageRoot) {
   if (!_setupCompleted) {
     _setupHooks();
   }
@@ -171,14 +171,16 @@ _setPackageRoot(String packageRoot) {
   // up for use in Platform.packageRoot. This is only set when the embedder
   // sets up the package root. Automatically discovered package root will
   // not update the VMLibraryHooks value.
-  VMLibraryHooks.packageRootString = _packageRoot.toString();
+  var packageRootStr = _packageRoot.toString();
+  VMLibraryHooks.packageRootString = packageRootStr;
   if (_traceLoading) {
     _log('Package root URI: $_packageRoot');
   }
+  return packageRootStr;
 }
 
 // Embedder Entrypoint:
-void _setPackagesMap(String packagesParam) {
+String _setPackagesMap(String packagesParam) {
   if (!_setupCompleted) {
     _setupHooks();
   }
@@ -204,6 +206,7 @@ void _setPackagesMap(String packagesParam) {
   if (_traceLoading) {
     _log('Resolved packages map to: $packagesUri');
   }
+  return packagesUriStr;
 }
 
 // Resolves the script uri in the current working directory iff the given uri

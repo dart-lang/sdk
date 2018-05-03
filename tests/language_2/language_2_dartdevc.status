@@ -98,9 +98,6 @@ issue31596_test: CompileTimeError
 issue32353_test: RuntimeError
 label_test: RuntimeError
 left_shift_test: RuntimeError # Ints and doubles are unified.
-library_env_test/has_io_support: RuntimeError # Intended to fail, bool.fromEnvironment("dart.library.async") is false
-library_env_test/has_mirror_support: RuntimeError # Intended to fail, bool.fromEnvironment("dart.library.async") is false
-library_env_test/has_no_html_support: RuntimeError # Intended to fail, bool.fromEnvironment("dart.library.async") is false
 method_override_test: CompileTimeError # Negative test
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
@@ -143,7 +140,7 @@ override_inheritance_method_test/28: CompileTimeError
 override_inheritance_method_test/29: CompileTimeError
 parameter_initializer_test: CompileTimeError
 part_refers_to_core_library_test/01: Crash
-prefix10_negative_test: Fail # Issue 29920
+prefix_shadow_test/01: MissingCompileTimeError # Issue 33005
 regress_23089_test: MissingCompileTimeError
 regress_23408_test: CompileTimeError
 regress_24283_test: RuntimeError # Intended to fail, requires 64-bit numbers.
@@ -424,9 +421,6 @@ issue31596_super_test/02: MissingCompileTimeError
 issue31596_super_test/03: CompileTimeError
 issue31596_super_test/04: MissingCompileTimeError
 issue31596_super_test/05: RuntimeError
-library_env_test/has_io_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
-library_env_test/has_mirror_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
-library_env_test/has_no_html_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 malbounded_instantiation_test/01: MissingCompileTimeError
 malbounded_instantiation_test/02: MissingCompileTimeError
 malbounded_instantiation_test/03: MissingCompileTimeError
@@ -716,10 +710,9 @@ issue21159_test: RuntimeError # Issue 30701; TypeError: method.bind is not a fun
 issue23244_test: RuntimeError # Issue 29920; Uncaught Unsupported operation: only top-level functions can be spawned.
 least_upper_bound_expansive_test/none: RuntimeError # 30908; Uncaught RangeError: Maximum call stack size exceeded
 left_shift_test: RuntimeError # Ints and doubles are unified.; Expect.equals(expected: <1>, actual: <-4294967295>) fails.
-library_env_test/has_html_support: RuntimeError # Issue 30907; Unsupported operation: bool.fromEnvironment can only be used as a const constructor
-library_env_test/has_no_io_support: RuntimeError # Issue 30907; Unsupported operation: bool.fromEnvironment can only be used as a const constructor
-library_env_test/has_no_mirror_support: RuntimeError # Issue 30907; Unsupported operation: bool.fromEnvironment can only be used as a const constructor
-library_env_test/none: RuntimeError # Issue 30907; Unsupported operation: bool.fromEnvironment can only be used as a const constructor
+library_env_test/has_io_support: RuntimeError, OK # Intended to fail, bool.fromEnvironment("dart.library.async") is false
+library_env_test/has_mirror_support: RuntimeError, OK  # Intended to fail, bool.fromEnvironment("dart.library.async") is false
+library_env_test/has_no_html_support: RuntimeError, OK  # Intended to fail, bool.fromEnvironment("dart.library.async") is false
 local_function2_test/none: RuntimeError # ReferenceError: TToNull is not defined
 local_function3_test/none: RuntimeError # Expect.equals(expected: <true>, actual: <false>) fails.
 local_function_test/none: RuntimeError # Expect.equals(expected: <true>, actual: <false>) fails.

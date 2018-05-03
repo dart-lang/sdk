@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "include/dart_api.h"
-#include "include/dart_mirrors_api.h"
 #include "include/dart_native_api.h"
 
 #include "lib/stacktrace.h"
@@ -1051,7 +1050,7 @@ DART_EXPORT char* Dart_Cleanup() {
   return NULL;
 }
 
-DART_EXPORT bool Dart_SetVMFlags(int argc, const char** argv) {
+DART_EXPORT char* Dart_SetVMFlags(int argc, const char** argv) {
   return Flags::ProcessCommandLineFlags(argc, argv);
 }
 
@@ -1605,7 +1604,7 @@ DART_EXPORT bool Dart_IsDart2Snapshot(const uint8_t* snapshot_buffer) {
   return false;
 }
 
-DART_EXPORT bool Dart_IsolateMakeRunnable(Dart_Isolate isolate) {
+DART_EXPORT char* Dart_IsolateMakeRunnable(Dart_Isolate isolate) {
   CHECK_NO_ISOLATE(Isolate::Current());
   API_TIMELINE_DURATION(Thread::Current());
   if (isolate == NULL) {
@@ -1613,11 +1612,17 @@ DART_EXPORT bool Dart_IsolateMakeRunnable(Dart_Isolate isolate) {
   }
   // TODO(16615): Validate isolate parameter.
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
+  const char* error;
   if (iso->object_store()->root_library() == Library::null()) {
     // The embedder should have called Dart_LoadScript by now.
-    return false;
+    error = "Missing root library";
+  } else {
+    error = iso->MakeRunnable();
   }
-  return iso->MakeRunnable();
+  if (error != NULL) {
+    return strdup(error);
+  }
+  return NULL;
 }
 
 // --- Messages and Ports ---
@@ -6005,7 +6010,9 @@ DART_EXPORT Dart_Port Dart_KernelPort() {
 DART_EXPORT Dart_KernelCompilationResult
 Dart_CompileToKernel(const char* script_uri,
                      const uint8_t* platform_kernel,
-                     intptr_t platform_kernel_size) {
+                     intptr_t platform_kernel_size,
+                     bool incremental_compile,
+                     const char* package_config) {
   Dart_KernelCompilationResult result;
 #if defined(DART_PRECOMPILED_RUNTIME)
   result.status = Dart_KernelCompilationStatus_Unknown;
@@ -6013,7 +6020,8 @@ Dart_CompileToKernel(const char* script_uri,
   return result;
 #else
   result = KernelIsolate::CompileToKernel(script_uri, platform_kernel,
-                                          platform_kernel_size, 0, NULL, true);
+                                          platform_kernel_size, 0, NULL,
+                                          incremental_compile, package_config);
   if (result.status == Dart_KernelCompilationStatus_Ok) {
     if (KernelIsolate::AcceptCompilation().status !=
         Dart_KernelCompilationStatus_Ok) {
@@ -6032,7 +6040,8 @@ Dart_CompileSourcesToKernel(const char* script_uri,
                             intptr_t platform_kernel_size,
                             int source_files_count,
                             Dart_SourceFile sources[],
-                            bool incremental_compile) {
+                            bool incremental_compile,
+                            const char* package_config) {
   Dart_KernelCompilationResult result;
 #if defined(DART_PRECOMPILED_RUNTIME)
   result.status = Dart_KernelCompilationStatus_Unknown;
@@ -6041,7 +6050,7 @@ Dart_CompileSourcesToKernel(const char* script_uri,
 #else
   result = KernelIsolate::CompileToKernel(
       script_uri, platform_kernel, platform_kernel_size, source_files_count,
-      sources, incremental_compile);
+      sources, incremental_compile, package_config);
   if (result.status == Dart_KernelCompilationStatus_Ok) {
     if (KernelIsolate::AcceptCompilation().status !=
         Dart_KernelCompilationStatus_Ok) {
@@ -6562,6 +6571,8 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
   return Api::NewError("AOT compilation is not supported on IA32.");
 #elif defined(TARGET_ARCH_DBC)
   return Api::NewError("AOT compilation is not supported on DBC.");
+#elif defined(TARGET_OS_WINDOWS)
+  return Api::NewError("Assembly generation is not implemented for Windows.");
 #elif !defined(DART_PRECOMPILER)
   return Api::NewError(
       "This VM was built without support for AOT compilation.");
@@ -6600,6 +6611,8 @@ Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
   return Api::NewError("AOT compilation is not supported on IA32.");
 #elif defined(TARGET_ARCH_DBC)
   return Api::NewError("AOT compilation is not supported on DBC.");
+#elif defined(TARGET_OS_WINDOWS)
+  return Api::NewError("Assembly generation is not implemented for Windows.");
 #elif !defined(DART_PRECOMPILER)
   return Api::NewError(
       "This VM was built without support for AOT compilation.");

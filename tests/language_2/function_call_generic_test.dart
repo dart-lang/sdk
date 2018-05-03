@@ -1,7 +1,6 @@
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// dart2jsOptions=-Ddart.isdart2js=true
 
 import "package:expect/expect.dart";
 
@@ -22,10 +21,11 @@ check(expected, actual) {
   print('a:  $expected');
   print('b:  $actual');
   if (((actual[0] == Object && expected[0] == dynamic) ||
-          (actual[0] == dynamic && expected[0] == Object)) &&
-      !const bool.fromEnvironment('dart.isdart2js')) {
+      (actual[0] == dynamic && expected[0] == Object))) {
     // TODO(32483): dartdevk sometimes defaults type to 'Object' when 'dynamic'
     // is required. Remove this hack when fixed.
+    // TODO(31581): dart2js needs instantiate-to-bound to generic 'dynamic'
+    // instead of 'Object'.
     actual = actual.toList()..[0] = expected[0];
     print('b*: $actual');
   }

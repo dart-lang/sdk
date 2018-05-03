@@ -20,6 +20,7 @@ import '../options.dart';
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
+import '../universe/use.dart' show StaticUse;
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld;
 import 'interceptor_simplifier.dart';
@@ -538,10 +539,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
         _closedWorld.locateSingleMember(node.selector, receiverType);
     // TODO(ngeoffray): Also fold if it's a getter or variable.
     if (element != null &&
-        element.isFunction
+        element.isFunction &&
         // If we found out that the only target is an implicitly called
         // [:noSuchMethod:] we just ignore it.
-        &&
         node.selector.applies(element)) {
       FunctionEntity method = element;
 
@@ -654,6 +654,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         node.typeArguments,
         node.sourceInformation);
     result.element = method;
+    _registry.registerStaticUse(new StaticUse.inlining(method, null));
     return result;
   }
 
@@ -799,7 +800,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     //
     //    if (x) { init(); x = false; } else { x = false; }
     //
-    // which is further simplifed to:
+    // which is further simplified to:
     //
     //    if (x) { init(); }
     //    ...

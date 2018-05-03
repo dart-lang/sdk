@@ -38,7 +38,8 @@ class KernelIsolate : public AllStatic {
       intptr_t platform_kernel_size,
       int source_files_count = 0,
       Dart_SourceFile source_files[] = NULL,
-      bool incremental_compile = true);
+      bool incremental_compile = true,
+      const char* package_config = NULL);
 
   static Dart_KernelCompilationResult AcceptCompilation();
   static Dart_KernelCompilationResult UpdateInMemorySources(

@@ -278,9 +278,7 @@ constructor_redirect1_negative_test/none: MissingCompileTimeError
 constructor_redirect2_negative_test: Crash # Stack Overflow
 constructor_redirect2_test/01: MissingCompileTimeError
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
-covariance_type_parameter_test/01: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 covariance_type_parameter_test/02: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-covariance_type_parameter_test/03: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 covariant_override/runtime_check_test: RuntimeError
 covariant_subtyping_test: RuntimeError
 cyclic_constructor_test/01: Crash # Stack Overflow
@@ -633,9 +631,7 @@ constructor_named_arguments_test/none: RuntimeError
 constructor_redirect1_negative_test/01: Crash # Stack Overflow
 constructor_redirect2_negative_test: Crash # Stack Overflow
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
-covariance_type_parameter_test/01: RuntimeError
 covariance_type_parameter_test/02: RuntimeError
-covariance_type_parameter_test/03: RuntimeError
 covariant_override/tear_off_type_test: RuntimeError
 covariant_subtyping_test: Crash # Unsupported operation: Unsupported type parameter type node E.
 cyclic_constructor_test/01: Crash # Stack Overflow
@@ -1053,9 +1049,7 @@ constructor_named_arguments_test/none: RuntimeError
 constructor_redirect1_negative_test/01: Crash # Stack Overflow
 constructor_redirect2_negative_test: Crash # Issue 30856
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
-covariance_type_parameter_test/01: RuntimeError
 covariance_type_parameter_test/02: RuntimeError
-covariance_type_parameter_test/03: RuntimeError
 covariant_override/tear_off_type_test: RuntimeError
 covariant_subtyping_test: RuntimeError
 cyclic_constructor_test/01: Crash # Issue 30856
@@ -1640,9 +1634,7 @@ constructor_named_arguments_test/none: RuntimeError
 constructor_redirect1_negative_test/01: Crash # Stack Overflow
 constructor_redirect2_negative_test: Crash # Issue 30856
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
-covariance_type_parameter_test/01: RuntimeError
 covariance_type_parameter_test/02: RuntimeError
-covariance_type_parameter_test/03: RuntimeError
 covariant_override/tear_off_type_test: RuntimeError
 covariant_subtyping_test: RuntimeError
 cyclic_constructor_test/01: Crash # Issue 30856

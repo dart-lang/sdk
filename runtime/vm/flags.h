@@ -63,7 +63,7 @@ class Flags {
                                     const char* name,
                                     const char* comment);
 
-  static bool ProcessCommandLineFlags(int argc, const char** argv);
+  static char* ProcessCommandLineFlags(int argc, const char** argv);
 
   static Flag* Lookup(const char* name);
 

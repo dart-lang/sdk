@@ -985,6 +985,7 @@ class ProgramBuilder {
     ParameterStubGenerator generator = new ParameterStubGenerator(
         _task,
         _namer,
+        _rtiEncoder,
         _nativeData,
         _interceptorData,
         _worldBuilder,

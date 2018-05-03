@@ -1117,7 +1117,7 @@ class ResolutionPotentialSubtypeVisitor
  * substitute for the bound of [typeVariable]. [bound] holds the bound against
  * which [typeArgument] should be checked.
  */
-typedef void CheckTypeVariableBound(GenericType type, DartType typeArgument,
+typedef void CheckTypeVariableBound<T>(T context, DartType typeArgument,
     TypeVariableType typeVariable, DartType bound);
 
 class Types extends DartTypes {
@@ -1248,14 +1248,16 @@ class Types extends DartTypes {
   }
 
   @override
-  void checkTypeVariableBounds(
-      covariant ResolutionInterfaceType type,
-      void checkTypeVariableBound(InterfaceType type, DartType typeArgument,
+  void checkTypeVariableBounds<T>(
+      T context,
+      List<DartType> typeArguments,
+      List<DartType> typeVariables,
+      void checkTypeVariableBound(T context, DartType typeArgument,
           TypeVariableType typeVariable, DartType bound)) {
-    void f(DartType type, DartType typeArgument, TypeVariableType typeVariable,
+    void f(T context, DartType typeArgument, TypeVariableType typeVariable,
             DartType bound) =>
-        checkTypeVariableBound(type, typeArgument, typeVariable, bound);
-    genericCheckTypeVariableBounds(type, f);
+        checkTypeVariableBound(context, typeArgument, typeVariable, bound);
+    genericCheckTypeVariableBounds(context, typeArguments, typeVariables, f);
   }
 
   /**
@@ -1263,18 +1265,18 @@ class Types extends DartTypes {
    * declared on [element]. Calls [checkTypeVariableBound] on each type
    * argument and bound.
    */
-  void genericCheckTypeVariableBounds(
-      GenericType type, CheckTypeVariableBound checkTypeVariableBound) {
-    TypeDeclarationElement element = type.element;
-    List<ResolutionDartType> typeArguments = type.typeArguments;
-    List<ResolutionDartType> typeVariables = element.typeVariables;
+  void genericCheckTypeVariableBounds<T>(
+      T context,
+      List<DartType> typeArguments,
+      List<DartType> typeVariables,
+      CheckTypeVariableBound<T> checkTypeVariableBound) {
     assert(typeVariables.length == typeArguments.length);
     for (int index = 0; index < typeArguments.length; index++) {
       ResolutionTypeVariableType typeVariable = typeVariables[index];
       ResolutionDartType bound =
-          typeVariable.element.bound.substByContext(type);
+          typeVariable.element.bound.subst(typeArguments, typeVariables);
       ResolutionDartType typeArgument = typeArguments[index];
-      checkTypeVariableBound(type, typeArgument, typeVariable, bound);
+      checkTypeVariableBound(context, typeArgument, typeVariable, bound);
     }
   }
 

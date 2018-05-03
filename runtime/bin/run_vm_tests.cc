@@ -189,9 +189,8 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
 
   Dart_ExitScope();
   Dart_ExitIsolate();
-  bool retval = Dart_IsolateMakeRunnable(isolate);
-  if (!retval) {
-    *error = strdup("Invalid isolate state - Unable to make it runnable");
+  *error = Dart_IsolateMakeRunnable(isolate);
+  if (*error != NULL) {
     Dart_EnterIsolate(isolate);
     Dart_ShutdownIsolate();
     return NULL;
@@ -269,10 +268,10 @@ static int Main(int argc, const char** argv) {
   bin::TimerUtils::InitOnce();
   bin::EventHandler::Start();
 
-  bool set_vm_flags_success =
-      Flags::ProcessCommandLineFlags(dart_argc, dart_argv);
-  ASSERT(set_vm_flags_success);
-  const char* err_msg = Dart::InitOnce(
+  const char* error = Flags::ProcessCommandLineFlags(dart_argc, dart_argv);
+  ASSERT(error == NULL);
+
+  error = Dart::InitOnce(
       dart::bin::vm_snapshot_data, dart::bin::vm_snapshot_instructions,
       CreateIsolateAndSetup /* create */, NULL /* shutdown */,
       CleanupIsolate /* cleanup */, NULL /* thread_exit */,
@@ -280,15 +279,15 @@ static int Main(int argc, const char** argv) {
       dart::bin::DartUtils::WriteFile, dart::bin::DartUtils::CloseFile,
       NULL /* entropy_source */, NULL /* get_service_assets */,
       start_kernel_isolate);
+  ASSERT(error == NULL);
 
-  ASSERT(err_msg == NULL);
   // Apply the filter to all registered tests.
   TestCaseBase::RunAll();
   // Apply the filter to all registered benchmarks.
   Benchmark::RunAll(argv[0]);
 
-  err_msg = Dart::Cleanup();
-  ASSERT(err_msg == NULL);
+  error = Dart::Cleanup();
+  ASSERT(error == NULL);
 
   bin::EventHandler::Stop();
 

@@ -7,7 +7,6 @@ import 'dart:convert' show json;
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:front_end/src/multi_root_file_system.dart';
@@ -17,9 +16,11 @@ import 'package:source_maps/source_maps.dart';
 
 import '../compiler/js_names.dart' as JS;
 import '../compiler/module_builder.dart';
+import '../compiler/shared_command.dart';
 import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
 import 'compiler.dart';
+import 'target.dart';
 
 const _binaryName = 'dartdevk';
 
@@ -373,15 +374,7 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
   }
 
   // Add platform defined variables
-  declaredVariables.addAll({
-    'dart.isVM': 'false',
-    // TODO(vsm): Should this be hardcoded?
-    'dart.library.html': 'true',
-    'dart.library.io': 'false',
-    'dart.library.ui': 'false',
-    'dart.library.mirrors': 'false',
-    'dart.library.isolate': 'false'
-  });
+  declaredVariables.addAll(sdkLibraryVariables);
 
   return declaredVariables;
 }

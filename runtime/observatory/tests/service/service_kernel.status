@@ -16,7 +16,6 @@ evaluate_activation_in_method_class_test: RuntimeError
 evaluate_activation_test/instance: RuntimeError
 evaluate_activation_test/scope: RuntimeError
 evaluate_in_sync_star_activation_test: RuntimeError
-pause_on_unhandled_async_exceptions2_test: RuntimeError # --pause-isolates-on-unhandled-exceptions doesn't currently work. Issue #29056
 pause_on_unhandled_async_exceptions_test: RuntimeError #  --pause-isolates-on-unhandled-exceptions doesn't currently work. Issue #29056
 step_through_arithmetic_test: RuntimeError # probably constant evaluator pre-evaluating e.g. 1+2
 unused_changes_in_last_reload_test: RuntimeError
@@ -34,7 +33,6 @@ complex_reload_test: RuntimeError
 [ $arch == simdbc64 && $compiler == dartk ]
 coverage_optimized_function_test: Crash # Please triage
 get_cpu_profile_timeline_rpc_test: Pass, RuntimeError # http://dartbug.com/31794
-pause_on_unhandled_async_exceptions2_test: RuntimeError, Timeout # Issue 31765
 pause_on_unhandled_async_exceptions_test: RuntimeError, Timeout # Issue 31765
 
 [ $arch == simdbc64 && $compiler == dartk && $mode == debug ]

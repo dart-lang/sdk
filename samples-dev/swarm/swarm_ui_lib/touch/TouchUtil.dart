@@ -359,4 +359,12 @@ class MockTouchEvent implements TouchEvent {
   /*InputDevice*/ get sourceDevice {
     throw new UnimplementedError();
   }
+
+  bool get composed {
+    throw new UnimplementedError();
+  }
+
+  List<EventTarget> composedPath() {
+    throw new UnimplementedError();
+  }
 }

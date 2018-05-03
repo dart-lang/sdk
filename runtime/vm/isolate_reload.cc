@@ -601,7 +601,7 @@ void IsolateReloadContext::Reload(bool force_reload,
 
       Dart_KernelCompilationResult retval = KernelIsolate::CompileToKernel(
           root_lib_url.ToCString(), NULL, 0, modified_scripts_count,
-          modified_scripts, true);
+          modified_scripts, true, NULL);
 
       if (retval.status != Dart_KernelCompilationStatus_Ok) {
         TIR_Print("---- LOAD FAILED, ABORTING RELOAD\n");

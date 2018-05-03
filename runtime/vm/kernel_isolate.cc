@@ -348,7 +348,8 @@ class KernelCompilationRequest : public ValueObject {
       intptr_t platform_kernel_size,
       int source_files_count,
       Dart_SourceFile source_files[],
-      bool incremental_compile) {
+      bool incremental_compile,
+      const char* package_config) {
     // Build the [null, send_port, script_uri, platform_kernel,
     // incremental_compile, isolate_id, [files]] message for the Kernel isolate.
     // tag is used to specify which operation the frontend should perform.
@@ -422,6 +423,14 @@ class KernelCompilationRequest : public ValueObject {
     dart_sync_async.type = Dart_CObject_kBool;
     dart_sync_async.value.as_bool = FLAG_sync_async;
 
+    Dart_CObject package_config_uri;
+    if (package_config != NULL) {
+      package_config_uri.type = Dart_CObject_kString;
+      package_config_uri.value.as_string = const_cast<char*>(package_config);
+    } else {
+      package_config_uri.type = Dart_CObject_kNull;
+    }
+
     Dart_CObject* message_arr[] = {&tag,
                                    &send_port,
                                    &uri,
@@ -431,7 +440,8 @@ class KernelCompilationRequest : public ValueObject {
                                    &isolate_id,
                                    &files,
                                    &suppress_warnings,
-                                   &dart_sync_async};
+                                   &dart_sync_async,
+                                   &package_config_uri};
     message.value.as_array.values = message_arr;
     message.value.as_array.length = ARRAY_SIZE(message_arr);
     // Send the message.
@@ -557,7 +567,8 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
     intptr_t platform_kernel_size,
     int source_file_count,
     Dart_SourceFile source_files[],
-    bool incremental_compile) {
+    bool incremental_compile,
+    const char* package_config) {
   // This must be the main script to be loaded. Wait for Kernel isolate
   // to finish initialization.
   Dart_Port kernel_port = WaitForKernelPort();
@@ -572,7 +583,7 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
   return request.SendAndWaitForResponse(kCompileTag, kernel_port, script_uri,
                                         platform_kernel, platform_kernel_size,
                                         source_file_count, source_files,
-                                        incremental_compile);
+                                        incremental_compile, package_config);
 }
 
 Dart_KernelCompilationResult KernelIsolate::AcceptCompilation() {
@@ -588,7 +599,7 @@ Dart_KernelCompilationResult KernelIsolate::AcceptCompilation() {
 
   KernelCompilationRequest request;
   return request.SendAndWaitForResponse(kAcceptTag, kernel_port, NULL, NULL, 0,
-                                        0, NULL, true);
+                                        0, NULL, true, NULL);
 }
 
 Dart_KernelCompilationResult KernelIsolate::UpdateInMemorySources(
@@ -607,7 +618,7 @@ Dart_KernelCompilationResult KernelIsolate::UpdateInMemorySources(
   KernelCompilationRequest request;
   return request.SendAndWaitForResponse(kUpdateSourcesTag, kernel_port, NULL,
                                         NULL, 0, source_files_count,
-                                        source_files, true);
+                                        source_files, true, NULL);
 }
 #endif  // DART_PRECOMPILED_RUNTIME
 

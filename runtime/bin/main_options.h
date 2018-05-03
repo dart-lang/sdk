@@ -107,6 +107,9 @@ class Options {
   CB_OPTIONS_LIST(CB_OPTIONS_DECL)
 #undef CB_OPTIONS_DECL
 
+  static bool preview_dart_2() { return preview_dart_2_; }
+  static void SetPreviewDart2Options(CommandLineOptions* vm_options);
+
   static dart::HashMap* environment() { return environment_; }
 
   static const char* vm_service_server_ip() { return vm_service_server_ip_; }
@@ -123,34 +126,24 @@ class Options {
   static void DestroyEnvironment();
 
  private:
-#define STRING_OPTION_DECL(flag, variable)                                     \
-  static const char* variable##_;                                              \
-  static bool Process_##variable(const char* arg,                              \
-                                 CommandLineOptions* vm_options);
+#define STRING_OPTION_DECL(flag, variable) static const char* variable##_;
   STRING_OPTIONS_LIST(STRING_OPTION_DECL)
 #undef STRING_OPTION_DECL
 
-#define BOOL_OPTION_DECL(flag, variable)                                       \
-  static bool variable##_;                                                     \
-  static bool Process_##variable(const char* arg,                              \
-                                 CommandLineOptions* vm_options);
+#define BOOL_OPTION_DECL(flag, variable) static bool variable##_;
   BOOL_OPTIONS_LIST(BOOL_OPTION_DECL)
 #undef BOOL_OPTION_DECL
 
 #define SHORT_BOOL_OPTION_DECL(short_name, long_name, variable)                \
-  static bool variable##_;                                                     \
-  static bool Process_##variable(const char* arg,                              \
-                                 CommandLineOptions* vm_options);
+  static bool variable##_;
   SHORT_BOOL_OPTIONS_LIST(SHORT_BOOL_OPTION_DECL)
 #undef SHORT_BOOL_OPTION_DECL
 
-#define ENUM_OPTION_DECL(flag, type, variable)                                 \
-  static type variable##_;                                                     \
-  static bool Process_##variable(const char* arg,                              \
-                                 CommandLineOptions* vm_options);
+#define ENUM_OPTION_DECL(flag, type, variable) static type variable##_;
   ENUM_OPTIONS_LIST(ENUM_OPTION_DECL)
 #undef ENUM_OPTION_DECL
 
+  static bool preview_dart_2_;
   static dart::HashMap* environment_;
 
 // Frontend argument processing.
@@ -170,7 +163,7 @@ class Options {
 #define OPTION_FRIEND(flag, variable) friend class OptionProcessor_##flag;
   STRING_OPTIONS_LIST(OPTION_FRIEND)
   BOOL_OPTIONS_LIST(OPTION_FRIEND)
-#undef STRING_OPTION_FRIEND
+#undef OPTION_FRIEND
 
 #define SHORT_BOOL_OPTION_FRIEND(short_name, long_name, variable)              \
   friend class OptionProcessor_##long_name;
@@ -181,6 +174,8 @@ class Options {
   friend class OptionProcessor_##flag;
   ENUM_OPTIONS_LIST(ENUM_OPTION_FRIEND)
 #undef ENUM_OPTION_FRIEND
+
+  friend class OptionProcessor_preview_dart_2;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Options);
