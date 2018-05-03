@@ -346,6 +346,43 @@ class MethodDeclarationIdentifierContext extends IdentifierContext {
   }
 }
 
+/// See [IdentifierContext].typedefDeclaration
+class TypedefDeclarationIdentifierContext extends IdentifierContext {
+  const TypedefDeclarationIdentifierContext()
+      : super('typedefDeclaration',
+            inDeclaration: true, isBuiltInIdentifierAllowed: false);
+
+  @override
+  Token ensureIdentifier(Token token, Parser parser) {
+    Token identifier = token.next;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    if (identifier.type.isPseudo) {
+      return identifier;
+    }
+
+    // Recovery
+    const followingValues = const ['(', '<', '=', ';', 'var'];
+    if (identifier.type.isBuiltIn &&
+        isOneOfOrEof(identifier.next, followingValues)) {
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateBuiltInIdentifierInDeclaration);
+    } else if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
+        isOneOfOrEof(identifier, followingValues)) {
+      identifier = parser.insertSyntheticIdentifier(token, this,
+          message: fasta.templateExpectedIdentifier.withArguments(identifier));
+    } else {
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateExpectedIdentifier);
+      if (!identifier.isKeywordOrIdentifier) {
+        // When in doubt, consume the token to ensure we make progress
+        // but insert a synthetic identifier to satisfy listeners.
+        identifier = insertSyntheticIdentifierAfter(identifier, parser);
+      }
+    }
+    return identifier;
+  }
+}
+
 /// See [IdentifierContext].typeReference
 class TypeReferenceIdentifierContext extends IdentifierContext {
   const TypeReferenceIdentifierContext()

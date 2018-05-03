@@ -534,6 +534,12 @@ class Parser {
       directiveState?.checkDeclaration();
       if (next.isIdentifier || optional("void", next)) {
         return parseTypedef(previous);
+      } else if (next.isTopLevelKeyword ||
+          optional('var', next) ||
+          optional('=', next) ||
+          next.isEof) {
+        // Recovery
+        return parseTypedef(previous);
       } else {
         return parseTopLevelMemberImpl(previous);
       }
@@ -2019,8 +2025,6 @@ class Parser {
       followingValues = ['(', '{', '=>'];
     } else if (context == IdentifierContext.topLevelVariableDeclaration) {
       followingValues = [';', '=', ','];
-    } else if (context == IdentifierContext.typedefDeclaration) {
-      followingValues = ['(', '<', ';'];
     } else if (context == IdentifierContext.typeVariableDeclaration) {
       followingValues = ['<', '>', ';', '}'];
     } else {
@@ -2094,8 +2098,6 @@ class Parser {
     } else if (context == IdentifierContext.topLevelFunctionDeclaration) {
       initialKeywords = topLevelKeywords();
     } else if (context == IdentifierContext.topLevelVariableDeclaration) {
-      initialKeywords = topLevelKeywords();
-    } else if (context == IdentifierContext.typedefDeclaration) {
       initialKeywords = topLevelKeywords();
     } else if (context == IdentifierContext.typeVariableDeclaration) {
       initialKeywords = topLevelKeywords()

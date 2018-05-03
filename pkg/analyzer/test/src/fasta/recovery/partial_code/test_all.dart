@@ -26,6 +26,7 @@ import 'return_statement_test.dart' as return_statement;
 import 'switch_statement_test.dart' as switch_statement;
 import 'top_level_variable_test.dart' as top_level_variable;
 import 'try_statement_test.dart' as try_statement;
+import 'typedef_test.dart' as typedef_declaration;
 import 'while_statement_test.dart' as while_statement;
 import 'yield_statement_test.dart' as yield_statement;
 
@@ -53,6 +54,7 @@ main() {
     switch_statement.main();
     top_level_variable.main();
     try_statement.main();
+    typedef_declaration.main();
     while_statement.main();
     yield_statement.main();
   });

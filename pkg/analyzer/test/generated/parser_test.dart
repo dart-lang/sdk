@@ -4117,11 +4117,11 @@ class Wrong<T> {
     parseCompilationUnit("typedef var Function(var arg);",
         errors: usingFastaParser
             ? [
+                expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 8, 3),
+                expectedError(ParserErrorCode.VAR_AND_TYPE, 21, 3),
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 29, 1),
                 expectedError(
-                    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 0, 7),
-                expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 3),
-                expectedError(ParserErrorCode.VAR_RETURN_TYPE, 8, 3),
-                expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 29, 1),
+                    ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, 29, 1),
               ]
             : [
                 expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 3),
