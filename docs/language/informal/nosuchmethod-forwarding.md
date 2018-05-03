@@ -4,7 +4,7 @@ Author: eernst@
 
 **Status**: Under implementation.
 
-**Version**: 0.5 (2017-11-27)
+**Version**: 0.6 (2018-03-22)
 
 **This document** is an informal specification of the support in Dart 2 for
 invoking `noSuchMethod` in situations where an attempt is made to invoke a
@@ -294,8 +294,33 @@ existing method, regular or generated).*
 statically checked and dynamic invocations: Whenever an instance method is
 invoked, and no such method exists, `noSuchMethod` will be invoked.*
 
+*One special case to be aware of is where a forwarder is torn off and then
+invoked with an actual argument list which does not match the formal
+parameter list. In that situation we will get an invocation of
+`Object.noSuchMethod` rather than the `noSuchMethod` in the original
+receiver, because this is an invocation of a function object (and they do
+not override `noSuchMethod`):*
+
+```dart
+class A {
+  dynamic noSuchMethod(Invocation i) => null;
+  void foo();
+}
+
+main() {
+  A a = new A();
+  dynamic f = a.foo;
+  // Invokes `Object.noSuchMethod`, not `A.noSuchMethod`, so it throws.
+  f(42);
+}
+```
+
 
 ## Updates
+
+*   Mar 22nd 2018, version 0.6: Added example to illustrate the case where a
+    torn-off method invokes `Object.noSuchMethod`, not the one in the
+    receiver, because of a non-matching actual argument list.
 
 *   Nov 27th 2017, version 0.5: Changed terminology to use 'implicitly
     induced method implementations'. Helped achieving a major simplifaction
