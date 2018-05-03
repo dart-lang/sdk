@@ -630,11 +630,16 @@ Object assertSubtype(
 }
 
 /// Checks that the type represented by [subtype] is a subtype of [supertype].
-/// If not a type error with [message] is thrown.
+/// If not a type error is thrown using [prefix], [infix], [suffix] and the
+/// runtime types [subtype] and [supertype] to generate the error message.
 ///
 /// Called from generated code.
-assertIsSubtype(var subtype, var supertype, String message) {
+assertIsSubtype(
+    var subtype, var supertype, String prefix, String infix, String suffix) {
   if (!isSubtype(subtype, supertype)) {
+    String message = "TypeError: "
+        "$prefix${runtimeTypeToString(subtype)}$infix"
+        "${runtimeTypeToString(supertype)}$suffix";
     throwTypeError(message);
   }
 }

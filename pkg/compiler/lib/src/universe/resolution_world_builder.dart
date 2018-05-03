@@ -975,6 +975,22 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
     return classHierarchyBuilder.isInheritedInSubtypeOf(
         member.enclosingClass, type);
   }
+
+  @override
+  Iterable<FunctionEntity> get genericMethods {
+    List<FunctionEntity> functions = <FunctionEntity>[];
+
+    void processMemberUse(Entity member, AbstractUsage memberUsage) {
+      if (member is FunctionEntity &&
+          memberUsage.hasUse &&
+          _elementEnvironment.getFunctionTypeVariables(member).isNotEmpty) {
+        functions.add(member);
+      }
+    }
+
+    _memberUsage.forEach(processMemberUse);
+    return functions;
+  }
 }
 
 abstract class KernelResolutionWorldBuilderBase

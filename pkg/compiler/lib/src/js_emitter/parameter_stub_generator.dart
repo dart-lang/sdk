@@ -13,6 +13,7 @@ import '../js/js.dart' show js;
 import '../js_backend/namer.dart' show Namer;
 import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
+import '../js_backend/runtime_types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart'
@@ -28,6 +29,7 @@ class ParameterStubGenerator {
 
   final CodeEmitterTask _emitterTask;
   final Namer _namer;
+  final RuntimeTypesEncoder _rtiEncoder;
   final NativeData _nativeData;
   final InterceptorData _interceptorData;
   final CodegenWorldBuilder _codegenWorldBuilder;
@@ -37,6 +39,7 @@ class ParameterStubGenerator {
   ParameterStubGenerator(
       this._emitterTask,
       this._namer,
+      this._rtiEncoder,
       this._nativeData,
       this._interceptorData,
       this._codegenWorldBuilder,
@@ -164,9 +167,11 @@ class ParameterStubGenerator {
       for (TypeVariableType typeVariable
           in _closedWorld.elementEnvironment.getFunctionTypeVariables(member)) {
         if (selector.typeArgumentCount == 0) {
-          // TODO(32741): Insert the type variable bound instead of `null`.
-          targetArguments[count++] =
-              _emitter.constantReference(new NullConstantValue());
+          targetArguments[count++] = _rtiEncoder.getTypeRepresentation(
+              _emitter,
+              _closedWorld.elementEnvironment
+                  .getTypeVariableBound(typeVariable.element),
+              (_) => _emitter.constantReference(new NullConstantValue()));
         } else {
           String jsName = '\$${typeVariable.element.name}';
           stubParameters[parameterIndex++] = new jsAst.Parameter(jsName);

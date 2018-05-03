@@ -293,6 +293,9 @@ abstract class WorldBuilder {
   /// Live generic local functions.
   Iterable<Local> get genericLocalFunctions;
 
+  /// Live generic methods.
+  Iterable<FunctionEntity> get genericMethods;
+
   /// Live user-defined 'noSuchMethod' implementations.
   Iterable<FunctionEntity> get userNoSuchMethods;
 

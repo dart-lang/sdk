@@ -123,8 +123,8 @@ Future<Compiler> runWithD8(
   print(out);
   if (expectedOutput != null) {
     Expect.equals(0, runResult.exitCode);
-    Expect.stringEquals(
-        expectedOutput, runResult.stdout.replaceAll('\r\n', '\n'));
+    Expect.stringEquals(expectedOutput.trim(),
+        runResult.stdout.replaceAll('\r\n', '\n').trim());
   }
   return result.compiler;
 }

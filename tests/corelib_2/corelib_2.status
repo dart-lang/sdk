@@ -16,6 +16,7 @@ bigint_from_test: RuntimeError # Issue 32589
 date_time11_test: RuntimeError, Pass # Fails when US is on winter time, issue 31285.
 iterable_where_type_test: RuntimeError # issue 31718
 list_unmodifiable_test: Pass, RuntimeError # Issue 28712
+apply_generic_function_test: RuntimeError # Issue 32691
 
 [ $compiler != dartdevc ]
 error_stack_trace_test/static: MissingCompileTimeError

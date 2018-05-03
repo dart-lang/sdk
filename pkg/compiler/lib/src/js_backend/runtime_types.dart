@@ -19,6 +19,7 @@ import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_emitter/js_emitter.dart' show Emitter;
+import '../options.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../world.dart' show ClosedWorld;
@@ -139,8 +140,9 @@ abstract class RuntimeTypesNeedBuilder {
 
   /// Computes the [RuntimeTypesNeed] for the data registered with this builder.
   RuntimeTypesNeed computeRuntimeTypesNeed(
-      ResolutionWorldBuilder resolutionWorldBuilder, ClosedWorld closedWorld,
-      {bool enableTypeAssertions, bool strongMode});
+      ResolutionWorldBuilder resolutionWorldBuilder,
+      ClosedWorld closedWorld,
+      CompilerOptions options);
 }
 
 class TrivialRuntimeTypesNeedBuilder implements RuntimeTypesNeedBuilder {
@@ -157,8 +159,9 @@ class TrivialRuntimeTypesNeedBuilder implements RuntimeTypesNeedBuilder {
 
   @override
   RuntimeTypesNeed computeRuntimeTypesNeed(
-      ResolutionWorldBuilder resolutionWorldBuilder, ClosedWorld closedWorld,
-      {bool enableTypeAssertions, bool strongMode}) {
+      ResolutionWorldBuilder resolutionWorldBuilder,
+      ClosedWorld closedWorld,
+      CompilerOptions options) {
     return const TrivialRuntimeTypesNeed();
   }
 }
@@ -200,8 +203,7 @@ abstract class RuntimeTypesChecksBuilder {
 
   /// Computes the [RuntimeTypesChecks] for the data in this builder.
   RuntimeTypesChecks computeRequiredChecks(
-      CodegenWorldBuilder codegenWorldBuilder,
-      {bool strongMode});
+      CodegenWorldBuilder codegenWorldBuilder, CompilerOptions options);
 
   bool get rtiChecksBuilderClosed;
 }
@@ -221,8 +223,7 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
 
   @override
   RuntimeTypesChecks computeRequiredChecks(
-      CodegenWorldBuilder codegenWorldBuilder,
-      {bool strongMode}) {
+      CodegenWorldBuilder codegenWorldBuilder, CompilerOptions options) {
     rtiChecksBuilderClosed = true;
 
     Map<ClassEntity, ClassUse> classUseMap = <ClassEntity, ClassUse>{};
@@ -235,7 +236,7 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
         ..typeArgument = true
         ..checkedTypeArgument = true
         ..functionType = _computeFunctionType(_elementEnvironment, cls,
-            strongMode: strongMode);
+            strongMode: options.strongMode);
       classUseMap[cls] = classUse;
     }
     TypeChecks typeChecks = _substitutions._requiredChecks =
@@ -1387,8 +1388,9 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
 
   @override
   RuntimeTypesNeed computeRuntimeTypesNeed(
-      ResolutionWorldBuilder resolutionWorldBuilder, ClosedWorld closedWorld,
-      {bool enableTypeAssertions, bool strongMode}) {
+      ResolutionWorldBuilder resolutionWorldBuilder,
+      ClosedWorld closedWorld,
+      CompilerOptions options) {
     TypeVariableTests typeVariableTests = new TypeVariableTests(
         closedWorld.elementEnvironment,
         closedWorld.commonElements,
@@ -1437,7 +1439,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
       });
     }
 
-    Set<Local> localFunctions = strongMode
+    Set<Local> localFunctions = options.strongMode
         ? resolutionWorldBuilder.localFunctions.toSet()
         : resolutionWorldBuilder.localFunctionsWithFreeTypeVariables.toSet();
     Set<FunctionEntity> closurizedMembers =
@@ -1459,7 +1461,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
 
       Set<Local> localFunctionsToRemove;
       Set<FunctionEntity> closurizedMembersToRemove;
-      if (strongMode) {
+      if (options.strongMode) {
         for (Local function in localFunctions) {
           FunctionType functionType =
               _elementEnvironment.getLocalFunctionType(function);
@@ -1535,7 +1537,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
     processChecks(typeVariableTests.explicitIsChecks);
     processChecks(typeVariableTests.implicitIsChecks);
 
-    if (enableTypeAssertions) {
+    if (options.enableTypeAssertions) {
       checkClosures();
     }
 
@@ -1552,6 +1554,29 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
       // implementations of `noSuchMethod` as needing type arguments.
       for (MemberEntity member in resolutionWorldBuilder.userNoSuchMethods) {
         potentiallyNeedTypeArguments(member);
+      }
+    }
+
+    if (options.parameterCheckPolicy.isEmitted) {
+      void checkFunction(Entity function, FunctionType type) {
+        for (FunctionTypeVariable typeVariable in type.typeVariables) {
+          DartType bound = typeVariable.bound;
+          if (!bound.isDynamic &&
+              !bound.isVoid &&
+              bound != closedWorld.commonElements.objectType) {
+            potentiallyNeedTypeArguments(function);
+            break;
+          }
+        }
+      }
+
+      for (FunctionEntity method in resolutionWorldBuilder.genericMethods) {
+        checkFunction(method, _elementEnvironment.getFunctionType(method));
+      }
+
+      for (Local function in resolutionWorldBuilder.genericLocalFunctions) {
+        checkFunction(
+            function, _elementEnvironment.getLocalFunctionType(function));
       }
     }
 
@@ -1692,8 +1717,7 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
   }
 
   RuntimeTypesChecks computeRequiredChecks(
-      CodegenWorldBuilder codegenWorldBuilder,
-      {bool strongMode}) {
+      CodegenWorldBuilder codegenWorldBuilder, CompilerOptions options) {
     TypeVariableTests typeVariableTests = new TypeVariableTests(
         _elementEnvironment, _commonElements, _types, codegenWorldBuilder,
         forRtiNeeds: false);
@@ -1786,7 +1810,7 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
       void processClass(ClassEntity cls) {
         ClassFunctionType functionType = _computeFunctionType(
             _elementEnvironment, cls,
-            strongMode: strongMode);
+            strongMode: options.strongMode);
         if (functionType != null) {
           ClassUse classUse =
               classUseMap.putIfAbsent(cls, () => new ClassUse());
@@ -1810,6 +1834,20 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
         }
       });
       liveClasses.forEach(processSuperClasses);
+    }
+
+    if (options.parameterCheckPolicy.isEmitted) {
+      for (FunctionEntity method in codegenWorldBuilder.genericMethods) {
+        if (_rtiNeed.methodNeedsTypeArguments(method)) {
+          for (TypeVariableType typeVariable
+              in _elementEnvironment.getFunctionTypeVariables(method)) {
+            DartType bound =
+                _elementEnvironment.getTypeVariableBound(typeVariable.element);
+            processCheckedType(bound);
+            liveTypeVisitor.visit(bound, true);
+          }
+        }
+      }
     }
 
     cachedRequiredChecks = _computeChecks(classUseMap);

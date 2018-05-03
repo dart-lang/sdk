@@ -1408,9 +1408,11 @@ abstract class DartTypes {
   /// Checks the type arguments of [type] against the type variable bounds
   /// declared on `type.element`. Calls [checkTypeVariableBound] on each type
   /// argument and bound.
-  void checkTypeVariableBounds(
-      InterfaceType type,
-      void checkTypeVariableBound(InterfaceType type, DartType typeArgument,
+  void checkTypeVariableBounds<T>(
+      T context,
+      List<DartType> typeArguments,
+      List<DartType> typeVariables,
+      void checkTypeVariableBound(T context, DartType typeArgument,
           TypeVariableType typeVariable, DartType bound));
 
   /// Returns the [ClassEntity] which declares the type variables occurring in

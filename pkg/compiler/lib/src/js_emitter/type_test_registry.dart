@@ -113,7 +113,7 @@ class TypeTestRegistry {
   }
 
   void computeRequiredTypeChecks(RuntimeTypesChecksBuilder rtiChecksBuilder) {
-    _rtiChecks = rtiChecksBuilder.computeRequiredChecks(_codegenWorldBuilder,
-        strongMode: _options.strongMode);
+    _rtiChecks =
+        rtiChecksBuilder.computeRequiredChecks(_codegenWorldBuilder, _options);
   }
 }

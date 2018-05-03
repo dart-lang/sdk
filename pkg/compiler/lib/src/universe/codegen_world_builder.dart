@@ -618,6 +618,23 @@ abstract class CodegenWorldBuilderImpl extends WorldBuilderBase
     _instanceMemberUsage.forEach(processMemberUse);
     return functions;
   }
+
+  @override
+  Iterable<FunctionEntity> get genericMethods {
+    List<FunctionEntity> functions = <FunctionEntity>[];
+
+    void processMemberUse(Entity member, AbstractUsage memberUsage) {
+      if (member is FunctionEntity &&
+          memberUsage.hasUse &&
+          _elementEnvironment.getFunctionTypeVariables(member).isNotEmpty) {
+        functions.add(member);
+      }
+    }
+
+    _instanceMemberUsage.forEach(processMemberUse);
+    _staticMemberUsage.forEach(processMemberUse);
+    return functions;
+  }
 }
 
 class ElementCodegenWorldBuilderImpl extends CodegenWorldBuilderImpl {

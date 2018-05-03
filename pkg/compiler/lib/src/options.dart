@@ -461,6 +461,9 @@ class CheckPolicy {
   static const trusted = const CheckPolicy(isTrusted: true);
   static const checked = const CheckPolicy(isEmitted: true);
   static const ignored = const CheckPolicy(isIgnored: true);
+
+  String toString() => 'CheckPolicy(isTrusted=$isTrusted,'
+      'isEmitted=$isEmitted,isIgnored=$isIgnored)';
 }
 
 String _extractStringOption(
