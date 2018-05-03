@@ -656,6 +656,10 @@ Future<int> main() async {
     });
 
     test('compile and produce deps file', () async {
+      if (Platform.isWindows) {
+        // TODO(dartbug.com/33032): Fix depfile generation on Windows.
+        return;
+      }
       var file = new File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {}\n");
       var dillFile = new File('${tempDir.path}/app.dill');
