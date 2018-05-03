@@ -289,11 +289,13 @@ BENCHMARK(UseDartApi) {
   args[0] = Dart_NewInteger(kNumIterations);
 
   // Warmup first to avoid compilation jitters.
-  Dart_Invoke(lib, NewString("benchmark"), 1, args);
+  result = Dart_Invoke(lib, NewString("benchmark"), 1, args);
+  EXPECT_VALID(result);
 
   Timer timer(true, "UseDartApi benchmark");
   timer.Start();
-  Dart_Invoke(lib, NewString("benchmark"), 1, args);
+  result = Dart_Invoke(lib, NewString("benchmark"), 1, args);
+  EXPECT_VALID(result);
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
   benchmark->set_score(elapsed_time);
@@ -554,7 +556,8 @@ BENCHMARK(CreateMirrorSystem) {
 
   Timer timer(true, "currentMirrorSystem() benchmark");
   timer.Start();
-  Dart_Invoke(lib, NewString("benchmark"), 0, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("benchmark"), 0, NULL);
+  EXPECT_VALID(result);
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
   benchmark->set_score(elapsed_time);
