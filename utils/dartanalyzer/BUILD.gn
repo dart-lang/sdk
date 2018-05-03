@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-import("../../build/dart_action.gni")
+import("../../build/dart/dart_action.gni")
 import("../application_snapshot.gni")
 
 group("dartanalyzer") {
@@ -59,7 +59,7 @@ template("generate_summary") {
   type = invoker.type
   assert(type == "spec" || type == "strong")
 
-  dart_action(target_name) {
+  prebuilt_dart_action(target_name) {
     script = "../../pkg/analyzer/tool/summary/build_sdk_summaries.dart"
     packages = "../../.packages"
     inputs = sdk_lib_files + analyzer_files

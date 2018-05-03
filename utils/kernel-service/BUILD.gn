@@ -2,8 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-import("../../build/dart_action.gni")
-import("../../build/dart_host_sdk_toolchain.gni")
+import("../../build/dart/dart_action.gni")
+import("../../build/dart/dart_host_sdk_toolchain.gni")
 import("../application_snapshot.gni")
 
 # TODO: Switch this to use kernel based app-jit snapshot
@@ -45,7 +45,7 @@ application_snapshot("frontend_server") {
   output = "$root_out_dir/frontend_server.dart.snapshot"
 }
 
-dart_action("kernel_service_dill") {
+prebuilt_dart_action("kernel_service_dill") {
   deps = [
     "../../runtime/vm:vm_legacy_platform",
   ]

@@ -13,7 +13,7 @@
 # or ":copy_libraries" may delete/overwrite your addition, and the build will
 # fail.
 
-import("../build/copy_tree.gni")
+import("copy_tree.gni")
 
 declare_args() {
   # Build a SDK with less stuff. It excludes dart2js, ddc, and web libraries.

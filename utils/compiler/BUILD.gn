@@ -2,9 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-import("../../build/compiled_action.gni")
-import("../../build/dart_host_sdk_toolchain.gni")
-import("../../build/prebuilt_dart_sdk.gni")
 import("../../utils/compile_platform.gni")
 import("../../utils/generate_patch_sdk.gni")
 import("../create_timestamp.gni")
@@ -25,21 +22,19 @@ create_timestamp_file("dartdoc_files_stamp") {
   output = "$target_gen_dir/dartdoc_files.stamp"
 }
 
-compiled_action("dart2js_create_snapshot_entry") {
-  tool = "../../runtime/bin:dart"
+dart_action("dart2js_create_snapshot_entry") {
   deps = [
     ":dart2js_files_stamp",
     ":dartdoc_files_stamp",
     ":runtime_lib_files_stamp",
   ]
 
-  dot_packages = rebase_path("../../.packages")
-  create_snapshot_entry = rebase_path("create_snapshot_entry.dart")
   output_dir = rebase_path(target_gen_dir)
+
+  script = "create_snapshot_entry.dart"
 
   inputs = [
     "../../sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart",
-    create_snapshot_entry,
     "$target_gen_dir/dart2js_files.stamp",
     "../../tools/VERSION",
   ]
@@ -48,9 +43,9 @@ compiled_action("dart2js_create_snapshot_entry") {
     "$target_gen_dir/dart2js.dart",
   ]
 
+  packages = "../../.packages"
+
   args = [
-    "--packages=$dot_packages",
-    create_snapshot_entry,
     "--output_dir=$output_dir",
     "--dart2js_main=pkg/compiler/lib/src/dart2js.dart",
   ]
