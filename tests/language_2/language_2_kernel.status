@@ -598,6 +598,7 @@ flatten_test/12: MissingRuntimeError
 for_in_side_effects_test/01: MissingCompileTimeError
 function_propagation_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
+generic_function_dcall_test: RuntimeError
 generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Issue 31533
@@ -931,6 +932,7 @@ flatten_test/12: MissingRuntimeError
 for_in_side_effects_test/01: MissingCompileTimeError
 function_propagation_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
+generic_function_dcall_test: RuntimeError
 generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_methods_recursive_bound_test/03: Crash, Pass

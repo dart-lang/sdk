@@ -7,8 +7,6 @@
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
-#include <initializer_list>
-
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
 
@@ -171,12 +169,6 @@ class Fragment {
 
   Fragment() : entry(NULL), current(NULL) {}
 
-  Fragment(std::initializer_list<Fragment> list) : entry(NULL), current(NULL) {
-    for (Fragment i : list) {
-      *this += i;
-    }
-  }
-
   explicit Fragment(Instruction* instruction)
       : entry(instruction), current(instruction) {}
 
@@ -185,8 +177,6 @@ class Fragment {
 
   bool is_open() { return entry == NULL || current != NULL; }
   bool is_closed() { return !is_open(); }
-
-  void Prepend(Instruction* start);
 
   Fragment& operator+=(const Fragment& other);
   Fragment& operator<<=(Instruction* next);
@@ -640,13 +630,6 @@ class BaseFlowGraphBuilder {
     ASSERT(parsed_function_->has_arg_desc_var());
     return LoadLocal(parsed_function_->arg_desc_var());
   }
-
-  Fragment TestTypeArgsLen(Fragment eq_branch,
-                           Fragment neq_branch,
-                           intptr_t num_type_args);
-  Fragment TestDelayedTypeArgs(LocalVariable* closure,
-                               Fragment present,
-                               Fragment absent);
 
   JoinEntryInstr* BuildThrowNoSuchMethod();
 

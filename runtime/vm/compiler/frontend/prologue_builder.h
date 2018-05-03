@@ -60,7 +60,7 @@ class PrologueBuilder : public BaseFlowGraphBuilder {
 
   Fragment BuildClosureContextHandling();
 
-  Fragment BuildTypeArgumentsHandling(JoinEntryInstr* nsm);
+  Fragment BuildTypeArgumentsHandling(bool strong);
 
   LocalVariable* ParameterVariable(intptr_t index) {
     return parsed_function_->RawParameterVariable(index);

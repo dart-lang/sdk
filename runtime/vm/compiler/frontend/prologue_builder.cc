@@ -58,7 +58,7 @@ BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
     if (!compiling_for_osr_) prologue += f;
   }
   if (expect_type_args) {
-    Fragment f = BuildTypeArgumentsHandling(nsm);
+    Fragment f = BuildTypeArgumentsHandling(strong);
     if (link) prologue += f;
   }
 
@@ -391,49 +391,36 @@ Fragment PrologueBuilder::BuildClosureContextHandling() {
   return populate_context;
 }
 
-Fragment PrologueBuilder::BuildTypeArgumentsHandling(JoinEntryInstr* nsm) {
+Fragment PrologueBuilder::BuildTypeArgumentsHandling(bool strong) {
+  Fragment populate_args_desc;
+
   LocalVariable* type_args_var = parsed_function_->RawTypeArgumentsVariable();
 
-  Fragment handling;
+  TargetEntryInstr *passed, *not_passed;
+  populate_args_desc += LoadArgDescriptor();
+  populate_args_desc += LoadField(ArgumentsDescriptor::type_args_len_offset());
+  populate_args_desc += IntConstant(0);
+  populate_args_desc += BranchIfEqual(&not_passed, &passed);
 
-  Fragment store_type_args;
+  JoinEntryInstr* join = BuildJoinEntry();
+
+  Fragment store_type_args(passed);
   store_type_args += LoadArgDescriptor();
   store_type_args += LoadField(ArgumentsDescriptor::count_offset());
   store_type_args += LoadFpRelativeSlot(kWordSize * (1 + kParamEndSlotFromFp));
   store_type_args += StoreLocal(TokenPosition::kNoSource, type_args_var);
   store_type_args += Drop();
+  store_type_args += Goto(join);
 
-  Fragment store_null;
+  Fragment store_null(not_passed);
   store_null += NullConstant();
   store_null += StoreLocal(TokenPosition::kNoSource, type_args_var);
   store_null += Drop();
+  store_null += Goto(join);
 
-  handling += TestTypeArgsLen(store_null, store_type_args, 0);
+  populate_args_desc = Fragment(populate_args_desc.entry, join);
 
-  if (parsed_function_->function().IsClosureFunction()) {
-    LocalVariable* closure =
-        parsed_function_->node_sequence()->scope()->VariableAt(0);
-
-    // Currently, delayed type arguments can only be introduced through type
-    // inference in the FE. So if they are present, we can assume they are
-    // correct in number and bound.
-    // clang-format off
-    Fragment use_delayed_type_args = {
-      LoadLocal(closure),
-      LoadField(Closure::delayed_type_arguments_offset()),
-      StoreLocal(TokenPosition::kNoSource, type_args_var),
-      Drop()
-    };
-
-    handling += TestDelayedTypeArgs(
-        closure,
-        /*present=*/TestTypeArgsLen(
-            use_delayed_type_args, Goto(nsm), 0),
-        /*absent=*/Fragment());
-    // clang-format on
-  }
-
-  return handling;
+  return populate_args_desc;
 }
 
 void PrologueBuilder::SortOptionalNamedParametersInto(LocalVariable** opt_param,
