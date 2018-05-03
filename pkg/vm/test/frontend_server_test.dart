@@ -654,6 +654,31 @@ Future<int> main() async {
       int exitcode = await starter(args);
       expect(exitcode, equals(0));
     });
+
+    test('compile and produce deps file', () async {
+      var file = new File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("main() {}\n");
+      var dillFile = new File('${tempDir.path}/app.dill');
+      expect(dillFile.existsSync(), equals(false));
+      var depFile = new File('${tempDir.path}/depfile');
+      expect(depFile.existsSync(), equals(false));
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--strong',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--depfile=${depFile.path}',
+        file.path
+      ];
+      int exitcode = await starter(args);
+      expect(exitcode, equals(0));
+
+      expect(depFile.existsSync(), true);
+      var depContents = depFile.readAsStringSync();
+      var depContentsParsed = depContents.split(':');
+      expect(depContentsParsed[0], dillFile.path);
+      expect(depContentsParsed[1], isNotEmpty);
+    });
   });
   return 0;
 }
