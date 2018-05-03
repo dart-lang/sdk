@@ -110,10 +110,11 @@ template("aot_assembly") {
   if (defined(invoker.output)) {
     output = invoker.output
   }
-  gen_snapshot_action(target_name) {
+  dart_bootstrap_action(target_name) {
     deps = extra_deps
     depfile = "$output.d"
 
+    script = main_dart
     inputs = extra_inputs
 
     outputs = [
@@ -129,7 +130,7 @@ template("aot_assembly") {
       "--snapshot-kind=app-aot",
       "--snapshot=$abs_output",
       "--snapshot-depfile=$abs_depfile",
-    ] + aot_vm_args + [ main_dart ]
+    ] + aot_vm_args
 
     args = []
   }
