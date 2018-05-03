@@ -1,3 +1,8 @@
+## 1.1.5
+
+* Introduce @isTest and @isTestGroup to declare a function that is a
+  test, or a test group.
+
 ## 1.1.4
 
 * Added dart2js.dart.
