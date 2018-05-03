@@ -1,3 +1,10 @@
+# 0.1.50
+
+* migration of rules to use analyzer package `NodeLintRule` and `UnitLintRule` yielding significant performance gains all around
+* specific performance improvements for `prefer_final_fields` (~6x)
+* addressed no such method calls in `void_checks`
+* improved lint reporting for various lints
+
 # 0.1.49
 
 * new `void_checks` lint
