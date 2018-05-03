@@ -22,6 +22,6 @@ static method test() → dynamic {
   new self::A::•().foo();
   new self::A::•().foo(1, 2);
   new self::A::foo();
-  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#foo, 32, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[1, 2]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#foo, 32, const <core::Type>[], <dynamic>[1, 2].toList(growable: false), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
 }
 static method main() → dynamic {}

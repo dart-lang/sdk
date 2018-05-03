@@ -684,11 +684,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
             body, fasta.messageSetterWithWrongNumberOfFormals);
       }
     }
-    // No-such-method forwarders get their bodies injected during outline
-    // buliding, so we should skip them here.
-    bool isNoSuchMethodForwarder = (builder.function.parent is Procedure &&
-        (builder.function.parent as Procedure).isNoSuchMethodForwarder);
-    if (!builder.isExternal && !isNoSuchMethodForwarder) {
+    if (!builder.isExternal) {
       builder.body = body;
     } else {
       if (body != null) {

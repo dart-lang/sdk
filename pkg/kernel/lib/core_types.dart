@@ -62,7 +62,6 @@ class CoreTypes {
   Class _noSuchMethodErrorClass;
   Constructor _noSuchMethodErrorDefaultConstructor;
   Procedure _listFromConstructor;
-  Procedure _listUnmodifiableConstructor;
   Procedure _printProcedure;
   Procedure _identicalProcedure;
   Constructor _constantExpressionErrorDefaultConstructor;
@@ -271,11 +270,6 @@ class CoreTypes {
   Procedure get listFromConstructor {
     return _listFromConstructor ??=
         index.getMember('dart:core', 'List', 'from');
-  }
-
-  Procedure get listUnmodifiableConstructor {
-    return _listUnmodifiableConstructor ??=
-        index.getMember('dart:core', 'List', 'unmodifiable');
   }
 
   Class get mapClass {

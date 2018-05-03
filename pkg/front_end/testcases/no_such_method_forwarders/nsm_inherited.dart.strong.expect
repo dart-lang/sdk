@@ -13,7 +13,6 @@ class A extends self::M {
   synthetic constructor •() → void
     : super self::M::•()
     ;
-  no-such-method-forwarder method call(core::String s) → void
-    return this.{self::M::noSuchMethod}(new core::_InvocationMirror::_withoutType("call", const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[s]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}), false));
+  abstract no-such-method-forwarder method call(core::String s) → void;
 }
 static method main() → dynamic {}
