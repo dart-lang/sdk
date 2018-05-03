@@ -108,6 +108,7 @@ const List<LineException> beforeExceptions = const [
 /// Lines allowed after the intended stack trace. Typically from the event
 /// queue.
 const List<LineException> afterExceptions = const [
+  const LineException('_asyncStartSync', 'async_patch.dart'),
   const LineException('_wrapJsFunctionForAsync', 'async_patch.dart'),
   const LineException(
       '_wrapJsFunctionForAsync.<anonymous function>', 'async_patch.dart'),
@@ -130,6 +131,7 @@ const List<LineException> afterExceptions = const [
   const LineException('invokeClosure.<anonymous function>', 'js_helper.dart'),
   const LineException('_IsolateContext.eval', 'isolate_helper.dart'),
   const LineException('_callInIsolate', 'isolate_helper.dart'),
+  const LineException('startRootIsolate', 'isolate_helper.dart'),
   const LineException('invokeClosure', 'js_helper.dart'),
   const LineException('convertDartClosureToJS', 'js_helper.dart'),
 ];
