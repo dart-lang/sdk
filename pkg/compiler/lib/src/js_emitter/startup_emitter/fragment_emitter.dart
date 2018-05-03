@@ -735,17 +735,10 @@ class FragmentEmitter {
 
     // If there are many references to `this`, cache it in a local.
     if (cls.fields.length + (cls.hasRtiField ? 1 : 0) >= 4) {
-      // TODO(29455): Fix js_ast printer and minifier to avoid conflicts between
-      // js.Name and string-named variables, then use '_' in the js template
-      // text.
-
-      // We pick '_' in minified mode because no field minifies to '_'. This
-      // avoids a conflict with one of the parameters which are named the same
-      // as the fields.  Unminified, a field might have the name '_', so we pick
-      // '$_', which is an impossible member name since we escape '$'s in names.
-      js.Name underscore = compiler.options.enableMinification
-          ? new StringBackedName('_')
-          : new StringBackedName(r'$_');
+      // Parameters are named t0, t1, etc, so '_' will not conflict. Forcing '_'
+      // in minified mode works because no parameter or local also minifies to
+      // '_' (the minifier doesn't know '_' is available).
+      js.Name underscore = new StringBackedName('_');
       statements.add(js.js.statement('var # = this;', underscore));
       thisRef = underscore;
     } else {
