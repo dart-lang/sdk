@@ -2008,8 +2008,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       push(deprecated_buildCompileTimeError(
           "Not a constant expression.", operator.charOffset));
     } else {
-      push(new ShadowAsExpression(expression, type)
-        ..fileOffset = offsetForToken(operator));
+      push(forest.asExpression(expression, type, operator));
     }
   }
 

@@ -28,6 +28,7 @@ import '../scanner.dart' show Token;
 import 'kernel_shadow_ast.dart'
     show
         ShadowArguments,
+        ShadowAsExpression,
         ShadowBoolLiteral,
         ShadowCheckLibraryIsLoaded,
         ShadowDoubleLiteral,
@@ -152,6 +153,12 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   @override
   Expression checkLibraryIsLoaded(LibraryDependency dependency) {
     return new ShadowCheckLibraryIsLoaded(dependency);
+  }
+
+  @override
+  Expression asExpression(Expression expression, covariant type, Token token) {
+    return new ShadowAsExpression(expression, type)
+      ..fileOffset = offsetForToken(token);
   }
 
   @override
