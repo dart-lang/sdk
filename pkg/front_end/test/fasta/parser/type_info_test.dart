@@ -13,12 +13,12 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(TokenInfoTest);
+    defineReflectiveTests(TypeInfoTest);
   });
 }
 
 @reflectiveTest
-class TokenInfoTest {
+class TypeInfoTest {
   void test_noType() {
     final Token start = scanString('before ;').tokens;
 
@@ -790,12 +790,18 @@ void compute(
     String expectedAfter,
     List<String> expectedCalls,
     List<ExpectedError> expectedErrors) {
+  int expectedGtGtAndNullEndCount = countGtGtAndNullEnd(start);
   TypeInfo typeInfo = computeType(start, required);
   expect(typeInfo, expectedInfo, reason: source);
+  expect(countGtGtAndNullEnd(start), expectedGtGtAndNullEndCount,
+      reason: 'computeType should not modify the token stream');
+
   if (typeInfo is ComplexTypeInfo) {
     expect(typeInfo.start, start.next, reason: source);
     expect(typeInfo.couldBeExpression, isFalse);
     expectEnd(expectedAfter, typeInfo.skipType(start));
+    expect(countGtGtAndNullEnd(start), expectedGtGtAndNullEndCount,
+        reason: 'TypeInfo.skipType should not modify the token stream');
 
     TypeInfoListener listener;
     assertResult(Token actualEnd) {
@@ -836,6 +842,18 @@ Token scan(String source) {
     start = start.next;
   }
   return new SyntheticToken(TokenType.EOF, 0)..setNext(start);
+}
+
+int countGtGtAndNullEnd(Token token) {
+  int count = 0;
+  while (!token.isEof) {
+    if ((optional('<', token) && token.endGroup == null) ||
+        optional('>>', token)) {
+      ++count;
+    }
+    token = token.next;
+  }
+  return count;
 }
 
 class TypeInfoListener implements Listener {

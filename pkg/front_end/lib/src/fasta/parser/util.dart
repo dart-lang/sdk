@@ -53,3 +53,26 @@ int lengthOfSpan(Token begin, Token end) {
   if (end == null) return lengthForToken(begin);
   return end.offset + end.length - begin.offset;
 }
+
+Token skipMetadata(Token token) {
+  token = token.next;
+  assert(optional('@', token));
+  Token next = token.next;
+  if (next.isIdentifier) {
+    token = next;
+    next = token.next;
+    while (optional('.', next)) {
+      token = next;
+      next = token.next;
+      if (next.isIdentifier) {
+        token = next;
+        next = token.next;
+      }
+    }
+    if (optional('(', next)) {
+      token = next.endGroup;
+      next = token.next;
+    }
+  }
+  return token;
+}
