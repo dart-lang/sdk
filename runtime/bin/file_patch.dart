@@ -201,7 +201,7 @@ class _FileSystemWatcher {
       var stops = [];
       var events = [];
       var pair = {};
-      if (event == RawSocketEvent.READ) {
+      if (event == RawSocketEvent.read) {
         String getPath(event) {
           var path = _pathFromPathId(event[4]).path;
           if (event[2] != null && event[2].isNotEmpty) {
@@ -216,7 +216,7 @@ class _FileSystemWatcher {
             // Windows does not get 'isDir' as part of the event.
             return FileSystemEntity.isDirectorySync(getPath(event));
           }
-          return (event[0] & FileSystemEvent._IS_DIR) != 0;
+          return (event[0] & FileSystemEvent._isDir) != 0;
         }
 
         void add(id, event) {
@@ -245,16 +245,16 @@ class _FileSystemWatcher {
             }
             bool isDir = getIsDir(event);
             var path = getPath(event);
-            if ((event[0] & FileSystemEvent.CREATE) != 0) {
+            if ((event[0] & FileSystemEvent.create) != 0) {
               add(event[4], new FileSystemCreateEvent._(path, isDir));
             }
-            if ((event[0] & FileSystemEvent.MODIFY) != 0) {
+            if ((event[0] & FileSystemEvent.modify) != 0) {
               add(event[4], new FileSystemModifyEvent._(path, isDir, true));
             }
-            if ((event[0] & FileSystemEvent._MODIFY_ATTRIBUTES) != 0) {
+            if ((event[0] & FileSystemEvent._modifyAttributes) != 0) {
               add(event[4], new FileSystemModifyEvent._(path, isDir, false));
             }
-            if ((event[0] & FileSystemEvent.MOVE) != 0) {
+            if ((event[0] & FileSystemEvent.move) != 0) {
               int link = event[1];
               if (link > 0) {
                 pair.putIfAbsent(pathId, () => {});
@@ -271,10 +271,10 @@ class _FileSystemWatcher {
                 rewriteMove(event, isDir);
               }
             }
-            if ((event[0] & FileSystemEvent.DELETE) != 0) {
+            if ((event[0] & FileSystemEvent.delete) != 0) {
               add(event[4], new FileSystemDeleteEvent._(path, isDir));
             }
-            if ((event[0] & FileSystemEvent._DELETE_SELF) != 0) {
+            if ((event[0] & FileSystemEvent._deleteSelf) != 0) {
               add(event[4], new FileSystemDeleteEvent._(path, isDir));
               // Signal done event.
               stops.add([event[4], null]);
@@ -289,8 +289,8 @@ class _FileSystemWatcher {
             rewriteMove(event, getIsDir(event));
           }
         }
-      } else if (event == RawSocketEvent.CLOSED) {} else if (event ==
-          RawSocketEvent.READ_CLOSED) {} else {
+      } else if (event == RawSocketEvent.closed) {} else if (event ==
+          RawSocketEvent.readClosed) {} else {
         assert(false);
       }
       events.addAll(stops);

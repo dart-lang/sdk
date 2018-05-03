@@ -7,7 +7,7 @@ import 'dart:io';
 
 Future<int> freeIPv4AndIPv6Port() async {
   var socket =
-      await ServerSocket.bind(InternetAddress.ANY_IP_V6, 0, v6Only: false);
+      await ServerSocket.bind(InternetAddress.anyIPv6, 0, v6Only: false);
   int port = socket.port;
   await socket.close();
   return port;

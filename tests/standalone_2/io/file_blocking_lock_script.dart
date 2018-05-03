@@ -8,10 +8,10 @@ import "dart:async";
 import "dart:io";
 
 Future<int> testLockWholeFile(File file, int len) async {
-  var raf = await file.open(mode: APPEND);
+  var raf = await file.open(mode: FileMode.append);
   await raf.setPosition(0);
   int nextToWrite = 1;
-  await raf.lock(FileLock.BLOCKING_EXCLUSIVE, 0, len);
+  await raf.lock(FileLock.blockingExclusive, 0, len);
 
   // Make sure the peer fails a non-blocking lock at some point.
   await new Future.delayed(const Duration(seconds: 1));

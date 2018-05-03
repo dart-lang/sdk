@@ -17,7 +17,7 @@ import "process_test_util.dart";
 
 main() {
   asyncStart();
-  // process_inherit_stdio_script.dart spawns a process in INHERIT_STDIO mode
+  // process_inherit_stdio_script.dart spawns a process in inheritStdio mode
   // that prints to its stdout. Since that child process inherits the stdout
   // of the process spawned here, we should see it.
   var script =

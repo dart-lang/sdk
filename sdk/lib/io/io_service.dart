@@ -4,51 +4,51 @@
 
 part of dart.io;
 
-// This list must be kept in sync with the list in runtime/bin/io_service.h
-const int _FILE_EXISTS = 0;
-const int _FILE_CREATE = 1;
-const int _FILE_DELETE = 2;
-const int _FILE_RENAME = 3;
-const int _FILE_COPY = 4;
-const int _FILE_OPEN = 5;
-const int _FILE_RESOLVE_SYMBOLIC_LINKS = 6;
-const int _FILE_CLOSE = 7;
-const int _FILE_POSITION = 8;
-const int _FILE_SET_POSITION = 9;
-const int _FILE_TRUNCATE = 10;
-const int _FILE_LENGTH = 11;
-const int _FILE_LENGTH_FROM_PATH = 12;
-const int _FILE_LAST_ACCESSED = 13;
-const int _FILE_SET_LAST_ACCESSED = 14;
-const int _FILE_LAST_MODIFIED = 15;
-const int _FILE_SET_LAST_MODIFIED = 16;
-const int _FILE_FLUSH = 17;
-const int _FILE_READ_BYTE = 18;
-const int _FILE_WRITE_BYTE = 19;
-const int _FILE_READ = 20;
-const int _FILE_READ_INTO = 21;
-const int _FILE_WRITE_FROM = 22;
-const int _FILE_CREATE_LINK = 23;
-const int _FILE_DELETE_LINK = 24;
-const int _FILE_RENAME_LINK = 25;
-const int _FILE_LINK_TARGET = 26;
-const int _FILE_TYPE = 27;
-const int _FILE_IDENTICAL = 28;
-const int _FILE_STAT = 29;
-const int _FILE_LOCK = 30;
-const int _SOCKET_LOOKUP = 31;
-const int _SOCKET_LIST_INTERFACES = 32;
-const int _SOCKET_REVERSE_LOOKUP = 33;
-const int _DIRECTORY_CREATE = 34;
-const int _DIRECTORY_DELETE = 35;
-const int _DIRECTORY_EXISTS = 36;
-const int _DIRECTORY_CREATE_TEMP = 37;
-const int _DIRECTORY_LIST_START = 38;
-const int _DIRECTORY_LIST_NEXT = 39;
-const int _DIRECTORY_LIST_STOP = 40;
-const int _DIRECTORY_RENAME = 41;
-const int _SSL_PROCESS_FILTER = 42;
-
 class _IOService {
+  // This list must be kept in sync with the list in runtime/bin/io_service.h
+  static const int fileExists = 0;
+  static const int fileCreate = 1;
+  static const int fileDelete = 2;
+  static const int fileRename = 3;
+  static const int fileCopy = 4;
+  static const int fileOpen = 5;
+  static const int fileResolveSymbolicLinks = 6;
+  static const int fileClose = 7;
+  static const int filePosition = 8;
+  static const int fileSetPosition = 9;
+  static const int fileTruncate = 10;
+  static const int fileLength = 11;
+  static const int fileLengthFromPath = 12;
+  static const int fileLastAccessed = 13;
+  static const int fileSetLastAccessed = 14;
+  static const int fileLastModified = 15;
+  static const int fileSetLastModified = 16;
+  static const int fileFlush = 17;
+  static const int fileReadByte = 18;
+  static const int fileWriteByte = 19;
+  static const int fileRead = 20;
+  static const int fileReadInto = 21;
+  static const int fileWriteFrom = 22;
+  static const int fileCreateLink = 23;
+  static const int fileDeleteLink = 24;
+  static const int fileRenameLink = 25;
+  static const int fileLinkTarget = 26;
+  static const int fileType = 27;
+  static const int fileIdentical = 28;
+  static const int fileStat = 29;
+  static const int fileLock = 30;
+  static const int socketLookup = 31;
+  static const int socketListInterfaces = 32;
+  static const int socketReverseLookup = 33;
+  static const int directoryCreate = 34;
+  static const int directoryDelete = 35;
+  static const int directoryExists = 36;
+  static const int directoryCreateTemp = 37;
+  static const int directoryListStart = 38;
+  static const int directoryListNext = 39;
+  static const int directoryListStop = 40;
+  static const int directoryRename = 41;
+  static const int sslProcessFilter = 42;
+
   external static Future _dispatch(int request, List data);
 }

@@ -15,7 +15,7 @@ import "package:expect/expect.dart";
 
 void main() {
   asyncStart();
-  ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((s) {
+  ServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((s) {
     Expect.isTrue(s.port > 0);
     s.close();
     asyncEnd();

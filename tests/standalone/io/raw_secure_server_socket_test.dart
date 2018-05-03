@@ -91,8 +91,8 @@ void testSimpleConnect() {
     server.listen((serverEnd) {
       clientEndFuture.then((clientEnd) {
         // TODO(whesse): Shutdown(SEND) not supported on secure sockets.
-        clientEnd.shutdown(SocketDirection.SEND);
-        serverEnd.shutdown(SocketDirection.SEND);
+        clientEnd.shutdown(SocketDirection.send);
+        serverEnd.shutdown(SocketDirection.send);
         server.close();
         print("asyncEnd testSimpleConnect");
         asyncEnd();
@@ -137,8 +137,8 @@ void testServerListenAfterConnect() {
     new Timer(const Duration(milliseconds: 500), () {
       server.listen((serverEnd) {
         clientEndFuture.then((clientEnd) {
-          clientEnd.shutdown(SocketDirection.SEND);
-          serverEnd.shutdown(SocketDirection.SEND);
+          clientEnd.shutdown(SocketDirection.send);
+          serverEnd.shutdown(SocketDirection.send);
           server.close();
           print("asyncEnd testServerListenAfterConnect");
           asyncEnd();
@@ -239,7 +239,7 @@ void testSimpleReadWrite(
     var subscription;
     subscription = client.listen((event) {
       switch (event) {
-        case RawSocketEvent.READ:
+        case RawSocketEvent.read:
           if (dropReads) {
             if (serverReads != 10) {
               ++serverReads;
@@ -264,7 +264,7 @@ void testSimpleReadWrite(
             client.writeEventsEnabled = true;
           }
           break;
-        case RawSocketEvent.WRITE:
+        case RawSocketEvent.write:
           Expect.isFalse(client.writeEventsEnabled);
           Expect.equals(bytesRead, data.length);
           for (int i = bytesWritten; i < data.length; ++i) {
@@ -280,7 +280,7 @@ void testSimpleReadWrite(
             client.shutdown(SocketDirection.SEND);
           }
           break;
-        case RawSocketEvent.READ_CLOSED:
+        case RawSocketEvent.readClosed:
           completer.complete(null);
           break;
         default:
@@ -298,7 +298,7 @@ void testSimpleReadWrite(
     List<int> dataReceived = new List<int>(dataSent.length);
     socket.listen((event) {
       switch (event) {
-        case RawSocketEvent.READ:
+        case RawSocketEvent.read:
           Expect.isTrue(socket.available() > 0);
           if (dropReads) {
             if (clientReads != 10) {
@@ -314,7 +314,7 @@ void testSimpleReadWrite(
             bytesRead += buffer.length;
           }
           break;
-        case RawSocketEvent.WRITE:
+        case RawSocketEvent.write:
           Expect.isTrue(bytesRead == 0);
           Expect.isFalse(socket.writeEventsEnabled);
           bytesWritten += socket.write(
@@ -323,7 +323,7 @@ void testSimpleReadWrite(
             socket.writeEventsEnabled = true;
           }
           break;
-        case RawSocketEvent.READ_CLOSED:
+        case RawSocketEvent.readClosed:
           verifyTestData(dataReceived);
           completer.complete(socket);
           break;
@@ -343,7 +343,7 @@ void testSimpleReadWrite(
     var subscription;
     subscription = client.listen((event) {
       switch (event) {
-        case RawSocketEvent.READ:
+        case RawSocketEvent.read:
           if (bytesRead < data.length) {
             Expect.isTrue(bytesWritten == 0);
           }
@@ -377,7 +377,7 @@ void testSimpleReadWrite(
             client.writeEventsEnabled = true;
           }
           break;
-        case RawSocketEvent.WRITE:
+        case RawSocketEvent.write:
           Expect.isFalse(client.writeEventsEnabled);
           Expect.equals(bytesRead, data.length);
           for (int i = bytesWritten; i < data.length; ++i) {
@@ -395,7 +395,7 @@ void testSimpleReadWrite(
             }
           }
           break;
-        case RawSocketEvent.READ_CLOSED:
+        case RawSocketEvent.readClosed:
           Expect.fail("Unexpected close");
           break;
         default:
@@ -414,7 +414,7 @@ void testSimpleReadWrite(
     var subscription;
     subscription = socket.listen((event) {
       switch (event) {
-        case RawSocketEvent.READ:
+        case RawSocketEvent.read:
           if (dropReads) {
             if (clientReads != 10) {
               ++clientReads;
@@ -434,7 +434,7 @@ void testSimpleReadWrite(
             }
           }
           break;
-        case RawSocketEvent.WRITE:
+        case RawSocketEvent.write:
           Expect.isTrue(bytesRead == 0);
           Expect.isFalse(socket.writeEventsEnabled);
           bytesWritten += socket.write(
@@ -443,7 +443,7 @@ void testSimpleReadWrite(
             socket.writeEventsEnabled = true;
           }
           break;
-        case RawSocketEvent.READ_CLOSED:
+        case RawSocketEvent.readClosed:
           Expect.fail("Unexpected close");
           break;
         default:

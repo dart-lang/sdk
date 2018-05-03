@@ -146,11 +146,11 @@ void testZLibDeflateInvalidLevel() {
 void testZLibInflate(List<int> data) {
   [true, false].forEach((gzip) {
     [
-      ZLibOption.STRATEGY_FILTERED,
-      ZLibOption.STRATEGY_HUFFMAN_ONLY,
-      ZLibOption.STRATEGY_RLE,
-      ZLibOption.STRATEGY_FIXED,
-      ZLibOption.STRATEGY_DEFAULT
+      ZLibOption.strategyFiltered,
+      ZLibOption.strategyHuffmanOnly,
+      ZLibOption.strategyRle,
+      ZLibOption.strategyFixed,
+      ZLibOption.strategyDefault,
     ].forEach((strategy) {
       [3, 6, 9].forEach((level) {
         asyncStart();

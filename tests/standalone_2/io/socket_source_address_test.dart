@@ -30,7 +30,7 @@ Future testArguments(connectFunction) async {
   var sourceAddress;
   asyncStart();
   var server =
-      await ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, freePort);
+      await ServerSocket.bind(InternetAddress.loopbackIPv4, freePort);
   server.listen((_) {
     throw 'Unexpected connection from address $sourceAddress';
   }, onDone: () => asyncEnd());
@@ -52,7 +52,7 @@ Future testArguments(connectFunction) async {
             e.address == new InternetAddress('8.8.8.8'));
   }
   // Address family mismatch.
-  for (sourceAddress in ['::1', InternetAddress.LOOPBACK_IP_V6]) {
+  for (sourceAddress in ['::1', InternetAddress.loopbackIPv6]) {
     await throws(
         () => connectFunction('127.0.0.1', server.port,
             sourceAddress: sourceAddress),
@@ -64,16 +64,16 @@ Future testArguments(connectFunction) async {
 
 // IPv4 addresses to use as source address when connecting locally.
 var ipV4SourceAddresses = [
-  InternetAddress.LOOPBACK_IP_V4,
-  InternetAddress.ANY_IP_V4,
+  InternetAddress.loopbackIPv4,
+  InternetAddress.anyIPv4,
   '127.0.0.1',
   '0.0.0.0'
 ];
 
 // IPv6 addresses to use as source address when connecting locally.
 var ipV6SourceAddresses = [
-  InternetAddress.LOOPBACK_IP_V6,
-  InternetAddress.ANY_IP_V6,
+  InternetAddress.loopbackIPv6,
+  InternetAddress.anyIPv6,
   '::1',
   '::'
 ];
@@ -84,7 +84,7 @@ Future testConnect(InternetAddress bindAddress, bool v6Only,
 
   var successCount = 0;
   if (!v6Only) successCount += ipV4SourceAddresses.length;
-  if (bindAddress.type == InternetAddressType.IP_V6) {
+  if (bindAddress.type == InternetAddressType.IPv6) {
     successCount += ipV6SourceAddresses.length;
   }
   var count = 0;
@@ -104,14 +104,14 @@ Future testConnect(InternetAddress bindAddress, bool v6Only,
   // Connect with IPv4 source addesses.
   for (var sourceAddress in ipV4SourceAddresses) {
     if (!v6Only) {
-      var s = await connectFunction(InternetAddress.LOOPBACK_IP_V4, server.port,
+      var s = await connectFunction(InternetAddress.loopbackIPv4, server.port,
           sourceAddress: sourceAddress);
       closeDestroyFunction(s);
     } else {
       // Cannot use an IPv4 source address to connect to IPv6 if
       // v6Only is specified.
       await throws(
-          () => connectFunction(InternetAddress.LOOPBACK_IP_V6, server.port,
+          () => connectFunction(InternetAddress.loopbackIPv6, server.port,
               sourceAddress: sourceAddress),
           (e) => e is SocketException);
     }
@@ -119,14 +119,14 @@ Future testConnect(InternetAddress bindAddress, bool v6Only,
 
   // Connect with IPv6 source addesses.
   for (var sourceAddress in ipV6SourceAddresses) {
-    if (bindAddress.type == InternetAddressType.IP_V6) {
-      var s = await connectFunction(InternetAddress.LOOPBACK_IP_V6, server.port,
+    if (bindAddress.type == InternetAddressType.IPv6) {
+      var s = await connectFunction(InternetAddress.loopbackIPv6, server.port,
           sourceAddress: sourceAddress);
       closeDestroyFunction(s);
     } else {
       // Cannot use an IPv6 source address to connect to IPv4.
       await throws(
-          () => connectFunction(InternetAddress.LOOPBACK_IP_V4, server.port,
+          () => connectFunction(InternetAddress.loopbackIPv4, server.port,
               sourceAddress: sourceAddress),
           (e) => e is SocketException);
     }
@@ -149,27 +149,27 @@ main() async {
 
   await retry(() async {
     await testConnect(
-        InternetAddress.ANY_IP_V4, false, RawSocket.connect, (s) => s.close());
+        InternetAddress.anyIPv4, false, RawSocket.connect, (s) => s.close());
   });
   await retry(() async {
     await testConnect(
-        InternetAddress.ANY_IP_V4, false, Socket.connect, (s) => s.destroy());
+        InternetAddress.anyIPv4, false, Socket.connect, (s) => s.destroy());
   });
   await retry(() async {
     await testConnect(
-        InternetAddress.ANY_IP_V6, false, RawSocket.connect, (s) => s.close());
+        InternetAddress.anyIPv6, false, RawSocket.connect, (s) => s.close());
   });
   await retry(() async {
     await testConnect(
-        InternetAddress.ANY_IP_V6, false, Socket.connect, (s) => s.destroy());
+        InternetAddress.anyIPv6, false, Socket.connect, (s) => s.destroy());
   });
   await retry(() async {
     await testConnect(
-        InternetAddress.ANY_IP_V6, true, RawSocket.connect, (s) => s.close());
+        InternetAddress.anyIPv6, true, RawSocket.connect, (s) => s.close());
   });
   await retry(() async {
     await testConnect(
-        InternetAddress.ANY_IP_V6, true, Socket.connect, (s) => s.destroy());
+        InternetAddress.anyIPv6, true, Socket.connect, (s) => s.destroy());
   });
 
   asyncEnd();

@@ -6,32 +6,32 @@ part of dart.io;
 
 // Constants used when working with native ports.
 // These must match the constants in runtime/bin/dartutils.h class CObject.
-const int _SUCCESS_RESPONSE = 0;
-const int _ILLEGAL_ARGUMENT_RESPONSE = 1;
-const int _OSERROR_RESPONSE = 2;
-const int _FILE_CLOSED_RESPONSE = 3;
+const int _successResponse = 0;
+const int _illegalArgumentResponse = 1;
+const int _osErrorResponse = 2;
+const int _fileClosedResponse = 3;
 
-const int _ERROR_RESPONSE_ERROR_TYPE = 0;
-const int _OSERROR_RESPONSE_ERROR_CODE = 1;
-const int _OSERROR_RESPONSE_MESSAGE = 2;
+const int _errorResponseErrorType = 0;
+const int _osErrorResponseErrorCode = 1;
+const int _osErrorResponseMessage = 2;
 
 // Functions used to receive exceptions from native ports.
 bool _isErrorResponse(response) =>
-    response is List && response[0] != _SUCCESS_RESPONSE;
+    response is List && response[0] != _successResponse;
 
 /**
  * Returns an Exception or an Error
  */
 _exceptionFromResponse(response, String message, String path) {
   assert(_isErrorResponse(response));
-  switch (response[_ERROR_RESPONSE_ERROR_TYPE]) {
-    case _ILLEGAL_ARGUMENT_RESPONSE:
+  switch (response[_errorResponseErrorType]) {
+    case _illegalArgumentResponse:
       return new ArgumentError("$message: $path");
-    case _OSERROR_RESPONSE:
-      var err = new OSError(response[_OSERROR_RESPONSE_MESSAGE],
-          response[_OSERROR_RESPONSE_ERROR_CODE]);
+    case _osErrorResponse:
+      var err = new OSError(response[_osErrorResponseMessage],
+          response[_osErrorResponseErrorCode]);
       return new FileSystemException(message, path, err);
-    case _FILE_CLOSED_RESPONSE:
+    case _fileClosedResponse:
       return new FileSystemException("File closed", path);
     default:
       return new Exception("Unknown error");

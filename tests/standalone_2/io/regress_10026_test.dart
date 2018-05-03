@@ -14,7 +14,7 @@ void testZLibInflate_regress10026() {
     asyncStart();
     var controller = new StreamController(sync: true);
     controller.stream
-        .transform(ZLIB.decoder)
+        .transform(zlib.decoder)
         .transform(utf8.decoder)
         .fold(new StringBuffer(), (buffer, s) {
       buffer.write(s);

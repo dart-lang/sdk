@@ -11,6 +11,8 @@ part of dart.io;
 ///
 /// On Windows this will use the currently active code page for the
 /// conversion. On all other systems it will always use UTF-8.
+const SystemEncoding systemEncoding = const SystemEncoding();
+@Deprecated("Use systemEncoding instead")
 const SystemEncoding SYSTEM_ENCODING = const SystemEncoding();
 
 /**

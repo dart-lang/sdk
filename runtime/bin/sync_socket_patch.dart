@@ -254,13 +254,13 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
       return;
     }
     switch (direction) {
-      case SocketDirection.RECEIVE:
+      case SocketDirection.receive:
         shutdownRead();
         break;
-      case SocketDirection.SEND:
+      case SocketDirection.send:
         shutdownWrite();
         break;
-      case SocketDirection.BOTH:
+      case SocketDirection.both:
         closeSync();
         break;
       default:
