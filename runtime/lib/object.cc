@@ -457,7 +457,7 @@ DEFINE_NATIVE_ENTRY(Internal_extractTypeArguments, 2) {
   return result.raw();
 }
 
-DEFINE_NATIVE_ENTRY(Internal_prependTypeArguments, 3) {
+DEFINE_NATIVE_ENTRY(Internal_prependTypeArguments, 4) {
   const TypeArguments& function_type_arguments =
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0));
   const TypeArguments& parent_type_arguments =
@@ -465,23 +465,22 @@ DEFINE_NATIVE_ENTRY(Internal_prependTypeArguments, 3) {
   if (function_type_arguments.IsNull() && parent_type_arguments.IsNull()) {
     return TypeArguments::null();
   }
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_len, arguments->NativeArgAt(2));
-  const intptr_t len = smi_len.Value();
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_parent_len, arguments->NativeArgAt(2));
+  const intptr_t parent_len = smi_parent_len.Value();
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_total_len, arguments->NativeArgAt(3));
+  const intptr_t total_len = smi_total_len.Value();
   const TypeArguments& result =
-      TypeArguments::Handle(zone, TypeArguments::New(len, Heap::kNew));
+      TypeArguments::Handle(zone, TypeArguments::New(total_len, Heap::kNew));
   AbstractType& type = AbstractType::Handle(zone);
-  const intptr_t split = parent_type_arguments.IsNull()
-                             ? len - function_type_arguments.Length()
-                             : parent_type_arguments.Length();
-  for (intptr_t i = 0; i < split; i++) {
+  for (intptr_t i = 0; i < parent_len; i++) {
     type = parent_type_arguments.IsNull() ? Type::DynamicType()
                                           : parent_type_arguments.TypeAt(i);
     result.SetTypeAt(i, type);
   }
-  for (intptr_t i = split; i < len; i++) {
+  for (intptr_t i = parent_len; i < total_len; i++) {
     type = function_type_arguments.IsNull()
                ? Type::DynamicType()
-               : function_type_arguments.TypeAt(i - split);
+               : function_type_arguments.TypeAt(i - parent_len);
     result.SetTypeAt(i, type);
   }
   return result.Canonicalize();

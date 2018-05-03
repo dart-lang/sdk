@@ -5574,6 +5574,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
       body += LoadLocal(closure);
       body += LoadField(Closure::function_type_arguments_offset());
       body += PushArgument();
+      body += IntConstant(dart_function.NumParentTypeParameters());
+      body += PushArgument();
       body += IntConstant(dart_function.NumTypeParameters() +
                           dart_function.NumParentTypeParameters());
       body += PushArgument();
