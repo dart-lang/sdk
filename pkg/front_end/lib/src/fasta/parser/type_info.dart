@@ -14,7 +14,7 @@ import 'type_info_impl.dart';
 
 import 'util.dart' show optional;
 
-/// [TypeInfo] provides information that has collected by [computeType]
+/// [TypeInfo] provides information collected by [computeType]
 /// about a particular type reference.
 abstract class TypeInfo {
   /// Return `true` if the tokens comprising the type represented by the
@@ -55,6 +55,22 @@ abstract class TypeInfo {
   Token skipType(Token token);
 }
 
+/// [TypeParamOrArgInfo] provides information collected by
+/// [computeTypeParamOrArg] about a particular group of type arguments
+/// or type parameters.
+abstract class TypeParamOrArgInfo {
+  /// Call this function to parse optional type arguments after [token].
+  /// This function will call the appropriate event methods on the [Parser]'s
+  /// listener to handle the arguments. This may modify the token stream
+  /// when parsing `>>` in valid code or during recovery.
+  Token parseArguments(Token token, Parser parser);
+
+  /// Call this function with the [token] before the type var to obtain
+  /// the last token in the type var. If there is no type var, then this method
+  /// will return [token]. This does not modify the token stream.
+  Token skip(Token token);
+}
+
 /// [NoType] is a specialized [TypeInfo] returned by [computeType] when
 /// there is no type information in the source.
 const TypeInfo noType = const NoType();
@@ -75,6 +91,15 @@ const TypeInfo prefixedType = const PrefixedType();
 /// [computeType] when the type reference is of the form:
 /// identifier `<` identifier `>`.
 const TypeInfo simpleTypeWith1Argument = const SimpleTypeWith1Argument();
+
+/// [NoTypeParamOrArg] is a specialized [TypeParamOrArgInfo] returned by
+/// [computeTypeParamOrArg] when no type parameters or arguments are found.
+const TypeParamOrArgInfo noTypeParamOrArg = const NoTypeParamOrArg();
+
+/// [SimpleTypeArgument1] is a specialized [TypeParamOrArgInfo] returned by
+/// [computeTypeParamOrArg] when the type reference is of the form:
+/// `<` identifier `>`.
+const TypeParamOrArgInfo simpleTypeArgument1 = const SimpleTypeArgument1();
 
 Token insertSyntheticIdentifierAfter(Token token, Parser parser) {
   Token identifier = new SyntheticStringToken(
@@ -104,35 +129,37 @@ bool isValidTypeReference(Token token) {
 
 /// Called by the parser to obtain information about a possible type reference
 /// that follows [token]. This does not modify the token stream.
-TypeInfo computeType(final Token token, bool required) {
+///
+/// If this method is called by [computeTypeParamOrArg] and the outer group ends
+/// with `>>`, then then [innerEndGroup] is set to either `>>` if the token
+/// has not been split or the first `>` if the `>>` token has been split.
+TypeInfo computeType(final Token token, bool required, [Token innerEndGroup]) {
   Token next = token.next;
   if (!isValidTypeReference(next)) {
     if (next.type.isBuiltIn) {
-      Token afterType = next.next;
-      if (optional('<', afterType)) {
-        Token endGroup = afterType.endGroup;
-        if (endGroup != null && looksLikeName(endGroup.next)) {
-          // Recovery: built-in used as a type
-          return new ComplexTypeInfo(token).computeBuiltinAsType(required);
+      TypeParamOrArgInfo typeParamOrArg =
+          computeTypeParamOrArg(next, innerEndGroup);
+      if (typeParamOrArg != noTypeParamOrArg) {
+        // Recovery: built-in `<` ... `>`
+        if (required || looksLikeName(typeParamOrArg.skip(next).next)) {
+          return new ComplexTypeInfo(token, typeParamOrArg)
+              .computeBuiltinAsType(required);
         }
-      } else {
+      } else if (required || isGeneralizedFunctionType(next.next)) {
         String value = next.stringValue;
-        if (!identical('get', value) &&
+        if ((!identical('get', value) &&
             !identical('set', value) &&
             !identical('factory', value) &&
-            !identical('operator', value)) {
-          if (isGeneralizedFunctionType(afterType)) {
-            // Recovery: built-in used as a type
-            return new ComplexTypeInfo(token).computeBuiltinAsType(required);
-          } else if (required) {
-            // Recovery: built-in used as a type
-            return new ComplexTypeInfo(token).computeBuiltinAsType(required);
-          }
+            !identical('operator', value))) {
+          return new ComplexTypeInfo(token, typeParamOrArg)
+              .computeBuiltinAsType(required);
         }
       }
     } else if (required && optional('.', next)) {
       // Recovery: looks like prefixed type missing the prefix
-      return new ComplexTypeInfo(token).computePrefixedType(required);
+      return new ComplexTypeInfo(
+              token, computeTypeParamOrArg(next, innerEndGroup))
+          .computePrefixedType(required);
     }
     return noType;
   }
@@ -141,7 +168,8 @@ TypeInfo computeType(final Token token, bool required) {
     next = next.next;
     if (isGeneralizedFunctionType(next)) {
       // `void` `Function` ...
-      return new ComplexTypeInfo(token).computeVoidGFT(required);
+      return new ComplexTypeInfo(token, noTypeParamOrArg)
+          .computeVoidGFT(required);
     }
     // `void`
     return voidType;
@@ -149,51 +177,47 @@ TypeInfo computeType(final Token token, bool required) {
 
   if (isGeneralizedFunctionType(next)) {
     // `Function` ...
-    return new ComplexTypeInfo(token).computeNoTypeGFT(required);
+    return new ComplexTypeInfo(token, noTypeParamOrArg)
+        .computeNoTypeGFT(required);
   }
 
   // We've seen an identifier.
-  next = next.next;
 
-  if (optional('<', next)) {
-    Token endGroup = next.endGroup;
-    if (endGroup != null) {
-      next = next.next;
-      // identifier `<` `void` `>` is handled by ComplexTypeInfo.
-      if (isValidTypeReference(next) && !identical('void', next.stringValue)) {
-        next = next.next;
-        if (next == endGroup) {
-          // We've seen identifier `<` identifier `>`
-          next = next.next;
-          if (!isGeneralizedFunctionType(next)) {
-            if (required || looksLikeName(next)) {
-              // identifier `<` identifier `>` identifier
-              return simpleTypeWith1Argument;
-            } else {
-              // identifier `<` identifier `>` non-identifier
-              return noType;
-            }
-          }
+  TypeParamOrArgInfo typeParamOrArg =
+      computeTypeParamOrArg(next, innerEndGroup);
+  if (typeParamOrArg != noTypeParamOrArg) {
+    if (typeParamOrArg == simpleTypeArgument1) {
+      // We've seen identifier `<` identifier `>`
+      next = typeParamOrArg.skip(next).next;
+      if (!isGeneralizedFunctionType(next)) {
+        if (required || looksLikeName(next)) {
+          // identifier `<` identifier `>` identifier
+          return simpleTypeWith1Argument;
+        } else {
+          // identifier `<` identifier `>` non-identifier
+          return noType;
         }
-        // TODO(danrubel): Consider adding a const for
-        // identifier `<` identifier `,` identifier `>`
-        // if that proves to be a common case.
       }
-
-      // identifier `<` ... `>`
-      return new ComplexTypeInfo(token)
-          .computeSimpleWithTypeArguments(required);
     }
-    // identifier `<`
-    return required ? simpleType : noType;
+    // TODO(danrubel): Consider adding a const for
+    // identifier `<` identifier `,` identifier `>`
+    // if that proves to be a common case.
+
+    // identifier `<` ... `>`
+    return new ComplexTypeInfo(token, typeParamOrArg)
+        .computeSimpleWithTypeArguments(required);
   }
 
+  assert(typeParamOrArg == noTypeParamOrArg);
+  next = next.next;
   if (optional('.', next)) {
     next = next.next;
     if (isValidTypeReference(next)) {
-      next = next.next;
       // We've seen identifier `.` identifier
-      if (!optional('<', next) && !isGeneralizedFunctionType(next)) {
+      typeParamOrArg = computeTypeParamOrArg(next, innerEndGroup);
+      next = next.next;
+      if (typeParamOrArg == noTypeParamOrArg &&
+          !isGeneralizedFunctionType(next)) {
         if (required || looksLikeName(next)) {
           // identifier `.` identifier identifier
           return prefixedType;
@@ -203,17 +227,23 @@ TypeInfo computeType(final Token token, bool required) {
         }
       }
       // identifier `.` identifier
-      return new ComplexTypeInfo(token).computePrefixedType(required);
+      return new ComplexTypeInfo(token, typeParamOrArg)
+          .computePrefixedType(required);
     }
     // identifier `.` non-identifier
-    return required
-        ? new ComplexTypeInfo(token).computePrefixedType(required)
-        : noType;
+    if (required) {
+      typeParamOrArg = computeTypeParamOrArg(token.next.next, innerEndGroup);
+      return new ComplexTypeInfo(token, typeParamOrArg)
+          .computePrefixedType(required);
+    }
+    return noType;
   }
 
+  assert(typeParamOrArg == noTypeParamOrArg);
   if (isGeneralizedFunctionType(next)) {
-    // `Function`
-    return new ComplexTypeInfo(token).computeIdentifierGFT(required);
+    // identifier `Function`
+    return new ComplexTypeInfo(token, noTypeParamOrArg)
+        .computeIdentifierGFT(required);
   }
 
   if (required || looksLikeName(next)) {
@@ -221,4 +251,31 @@ TypeInfo computeType(final Token token, bool required) {
     return simpleType;
   }
   return noType;
+}
+
+/// Called by the parser to obtain information about a possible group of type
+/// parameters or type arguments that follow [token].
+/// This does not modify the token stream.
+///
+/// If this method is called by [computeType] and the outer group ends
+/// with `>>`, then then [innerEndGroup] is set to either `>>` if the token
+/// has not been split or the first `>` if the `>>` token has been split.
+TypeParamOrArgInfo computeTypeParamOrArg(Token token, [Token innerEndGroup]) {
+  Token next = token.next;
+  if (!optional('<', next)) {
+    return noTypeParamOrArg;
+  }
+  Token endGroup = next.endGroup ?? innerEndGroup;
+  if (endGroup == null) {
+    return noTypeParamOrArg;
+  }
+  Token identifier = next.next;
+  // identifier `<` `void` `>` is handled by ComplexTypeInfo.
+  if (isValidTypeReference(identifier) &&
+      !optional('void', identifier) &&
+      identifier.next == endGroup) {
+    return simpleTypeArgument1;
+  }
+  // TODO(danrubel): Consider adding additional const for common situations.
+  return new ComplexTypeParamOrArgInfo(token).compute(innerEndGroup);
 }
