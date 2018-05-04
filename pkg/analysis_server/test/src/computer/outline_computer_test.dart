@@ -591,7 +591,7 @@ void main() {
     _expect(group1_outline,
         kind: ElementKind.UNIT_TEST_GROUP,
         length: 7,
-        name: 'group("group1")',
+        name: 'myGroup("group1")',
         offset: testCode.indexOf("myGroup('group1'"));
     List<Outline> group1_children = group1_outline.children;
     expect(group1_children, hasLength(2));
@@ -600,7 +600,7 @@ void main() {
     _expect(group1_1_outline,
         kind: ElementKind.UNIT_TEST_GROUP,
         length: 7,
-        name: 'group("group1_1")',
+        name: 'myGroup("group1_1")',
         offset: testCode.indexOf("myGroup('group1_1'"));
     List<Outline> group1_1_children = group1_1_outline.children;
     expect(group1_1_children, hasLength(2));
@@ -610,7 +610,7 @@ void main() {
         kind: ElementKind.UNIT_TEST_TEST,
         leaf: true,
         length: 6,
-        name: 'test("test1_1_1")',
+        name: 'myTest("test1_1_1")',
         offset: testCode.indexOf("myTest('test1_1_1'"));
     // test1_1_1
     Outline test1_1_2_outline = group1_1_children[1];
@@ -618,14 +618,14 @@ void main() {
         kind: ElementKind.UNIT_TEST_TEST,
         leaf: true,
         length: 6,
-        name: 'test("test1_1_2")',
+        name: 'myTest("test1_1_2")',
         offset: testCode.indexOf("myTest('test1_1_2'"));
     // group1_2
     Outline group1_2_outline = group1_children[1];
     _expect(group1_2_outline,
         kind: ElementKind.UNIT_TEST_GROUP,
         length: 7,
-        name: 'group("group1_2")',
+        name: 'myGroup("group1_2")',
         offset: testCode.indexOf("myGroup('group1_2'"));
     List<Outline> group1_2_children = group1_2_outline.children;
     expect(group1_2_children, hasLength(1));
@@ -635,14 +635,14 @@ void main() {
         kind: ElementKind.UNIT_TEST_TEST,
         leaf: true,
         length: 6,
-        name: 'test("test1_2_1")',
+        name: 'myTest("test1_2_1")',
         offset: testCode.indexOf("myTest('test1_2_1'"));
     // group2
     Outline group2_outline = main_children[1];
     _expect(group2_outline,
         kind: ElementKind.UNIT_TEST_GROUP,
         length: 7,
-        name: 'group("group2")',
+        name: 'myGroup("group2")',
         offset: testCode.indexOf("myGroup('group2'"));
     List<Outline> group2_children = group2_outline.children;
     expect(group2_children, hasLength(2));
@@ -652,7 +652,7 @@ void main() {
         kind: ElementKind.UNIT_TEST_TEST,
         leaf: true,
         length: 6,
-        name: 'test("test2_1")',
+        name: 'myTest("test2_1")',
         offset: testCode.indexOf("myTest('test2_1'"));
     // test2_2
     Outline test2_2_outline = group2_children[1];
@@ -660,7 +660,7 @@ void main() {
         kind: ElementKind.UNIT_TEST_TEST,
         leaf: true,
         length: 6,
-        name: 'test("test2_2")',
+        name: 'myTest("test2_2")',
         offset: testCode.indexOf("myTest('test2_2'"));
   }
 

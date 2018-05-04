@@ -430,9 +430,9 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor {
     }
 
     void addOutlineNode(ElementKind kind, [List<Outline> children]) {
-      String kindName = kind == ElementKind.UNIT_TEST_GROUP ? 'group' : 'test';
-      String name = '$kindName("${extractString(
-          node.argumentList?.arguments)}")';
+      String executableName = nameNode.name;
+      String description = extractString(node.argumentList?.arguments);
+      String name = '$executableName("$description")';
       Element element = new Element(kind, name, 0,
           location: outlineComputer._getLocationNode(nameNode));
       contents.add(new Outline(
