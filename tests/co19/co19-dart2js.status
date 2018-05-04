@@ -886,6 +886,7 @@ LayoutTests/fast/speechsynthesis/speech-synthesis-utterance-uses-voice_t01: Runt
 LayoutTests/fast/speechsynthesis/speech-synthesis-voices_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/storage/disallowed-storage_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/storage/storage-disallowed-in-data-url_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/sub-pixel/computedstylemargin_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/sub-pixel/cssom-subpixel-precision_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/sub-pixel/replaced-element-baseline_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/table/anonymous-table-section-removed_t01: RuntimeError # Please triage this failure
@@ -6492,7 +6493,6 @@ LibTest/html/IFrameElement/getClientRects_A01_t02: RuntimeError # Please triage 
 LibTest/html/IFrameElement/getNamespacedAttributes_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/innerHtml_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/isContentEditable_A01_t01: RuntimeError, Pass # Fails 19 out of 20.
-LibTest/html/IFrameElement/isContentEditable_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/leftView_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/marginEdge_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/offsetTo_A01_t01: RuntimeError # Please triage this failure
