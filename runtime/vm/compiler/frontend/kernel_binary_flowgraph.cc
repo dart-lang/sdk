@@ -5587,7 +5587,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
                                       Symbols::PrependTypeArguments()));
       ASSERT(!prepend_function.IsNull());
 
-      body += StaticCall(TokenPosition::kNoSource, prepend_function, 3,
+      body += StaticCall(TokenPosition::kNoSource, prepend_function, 4,
                          ICData::kStatic);
       body += StoreLocal(TokenPosition::kNoSource, fn_type_args);
       body += Drop();
