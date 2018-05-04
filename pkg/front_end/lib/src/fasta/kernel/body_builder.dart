@@ -942,8 +942,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     if (receiver is ThisAccessor && receiver.isSuper) {
       ThisAccessor thisAccessorReceiver = receiver;
       isSuper = true;
-      receiver = new ShadowThisExpression()
-        ..fileOffset = offsetForToken(thisAccessorReceiver.token);
+      receiver = forest.thisExpression(thisAccessorReceiver.token);
     }
     push(buildBinaryOperator(toValue(receiver), token, argument, isSuper));
   }
@@ -966,7 +965,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
           // evaluating [a] and [b].
           isConstantExpression: !isSuper,
           isSuper: isSuper);
-      return negate ? new ShadowNot(result) : result;
+      return negate ? forest.notExpression(result, null) : result;
     }
   }
 
@@ -1470,8 +1469,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
           expressions.add(forest.literalString(value, last));
         }
       }
-      push(new ShadowStringConcatenation(expressions)
-        ..fileOffset = offsetForToken(endToken));
+      push(forest.stringConcatenationExpression(expressions, endToken));
     }
   }
 
@@ -1507,7 +1505,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         }
       }
     }
-    push(new ShadowStringConcatenation(expressions ?? parts));
+    push(forest.stringConcatenationExpression(expressions ?? parts, null));
   }
 
   @override
@@ -1787,8 +1785,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   @override
   void endAwaitExpression(Token keyword, Token endToken) {
     debugEvent("AwaitExpression");
-    push(new ShadowAwaitExpression(popForValue())
-      ..fileOffset = offsetForToken(keyword));
+    push(forest.awaitExpression(popForValue(), keyword));
   }
 
   @override
@@ -2018,11 +2015,9 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     DartType type = pop();
     Expression operand = popForValue();
     bool isInverted = not != null;
-    var offset = offsetForToken(operator);
     Expression isExpression = isInverted
-        ? new ShadowIsNotExpression(operand, type, offset)
-        : new ShadowIsExpression(operand, type)
-      ..fileOffset = offset;
+        ? new ShadowIsNotExpression(operand, type, offsetForToken(operator))
+        : forest.isExpression(operand, type, operator);
     if (operand is VariableGet) {
       typePromoter.handleIsCheck(isExpression, isInverted, operand.variable,
           type, functionNestingLevel);
@@ -2058,9 +2053,8 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     Expression thenExpression = pop();
     Expression condition = pop();
     typePromoter.exitConditional();
-    push(new ShadowConditionalExpression(
-        condition, thenExpression, elseExpression)
-      ..fileOffset = question.offset);
+    push(forest.conditionalExpression(
+        condition, thenExpression, elseExpression, question));
   }
 
   @override
@@ -2317,8 +2311,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     debugEvent("UnaryPrefixExpression");
     var receiver = pop();
     if (optional("!", token)) {
-      push(
-          new ShadowNot(toValue(receiver))..fileOffset = offsetForToken(token));
+      push(forest.notExpression(toValue(receiver), token));
     } else {
       String operator = token.stringValue;
       if (optional("-", token)) {
@@ -2337,8 +2330,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       Expression receiverValue;
       if (receiver is ThisAccessor && receiver.isSuper) {
         isSuper = true;
-        receiverValue = new ShadowThisExpression()
-          ..fileOffset = offsetForToken(receiver.token);
+        receiverValue = forest.thisExpression(receiver.token);
       } else {
         receiverValue = toValue(receiver);
       }

@@ -57,6 +57,21 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   Expression asExpression(
       Expression expression, covariant type, Location location);
 
+  Expression awaitExpression(Expression operand, Location location);
+
+  Expression conditionalExpression(Expression condition, Expression then,
+      Expression otherwise, Location location);
+
+  Expression isExpression(
+      Expression operand, covariant type, Location location);
+
+  Expression notExpression(Expression operand, Location location);
+
+  Expression stringConcatenationExpression(
+      List<Expression> expressions, Location location);
+
+  Expression thisExpression(Location location);
+
   bool isErroneousNode(covariant node);
 
   // TODO(ahe): Remove this method when all users are moved here.

@@ -29,17 +29,23 @@ import 'kernel_shadow_ast.dart'
     show
         ShadowArguments,
         ShadowAsExpression,
+        ShadowAwaitExpression,
         ShadowBoolLiteral,
         ShadowCheckLibraryIsLoaded,
+        ShadowConditionalExpression,
         ShadowDoubleLiteral,
         ShadowIntLiteral,
+        ShadowIsExpression,
         ShadowListLiteral,
         ShadowLoadLibrary,
         ShadowMapLiteral,
+        ShadowNot,
         ShadowNullLiteral,
+        ShadowStringConcatenation,
         ShadowStringLiteral,
         ShadowSymbolLiteral,
         ShadowSyntheticExpression,
+        ShadowThisExpression,
         ShadowTypeLiteral;
 
 import 'forest.dart' show Forest;
@@ -159,6 +165,42 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   Expression asExpression(Expression expression, covariant type, Token token) {
     return new ShadowAsExpression(expression, type)
       ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  Expression awaitExpression(Expression operand, Token token) {
+    return new ShadowAwaitExpression(operand)
+      ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  Expression conditionalExpression(Expression condition, Expression then,
+      Expression otherwise, Token token) {
+    return new ShadowConditionalExpression(condition, then, otherwise)
+      ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  Expression isExpression(Expression operand, covariant type, Token token) {
+    return new ShadowIsExpression(operand, type)
+      ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  Expression notExpression(Expression operand, Token token) {
+    return new ShadowNot(operand)..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  Expression stringConcatenationExpression(
+      List<Expression> expressions, Token token) {
+    return new ShadowStringConcatenation(expressions)
+      ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  Expression thisExpression(Token token) {
+    return new ShadowThisExpression()..fileOffset = offsetForToken(token);
   }
 
   @override

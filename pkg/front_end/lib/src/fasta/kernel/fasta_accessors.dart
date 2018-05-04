@@ -434,7 +434,7 @@ class ThisAccessor<Arguments> extends FastaAccessor<Arguments> {
 
   Expression buildSimpleRead() {
     if (!isSuper) {
-      return new ShadowThisExpression()..fileOffset = offsetForToken(token);
+      return forest.thisExpression(token);
     } else {
       return helper.buildCompileTimeError(messageSuperAsExpression,
           offsetForToken(token), lengthForToken(token));
@@ -471,7 +471,7 @@ class ThisAccessor<Arguments> extends FastaAccessor<Arguments> {
         helper.warnUnresolvedMethod(name, offsetForToken(send.token),
             isSuper: isSuper);
       }
-      return helper.buildMethodInvocation(new ShadowThisExpression(), name,
+      return helper.buildMethodInvocation(forest.thisExpression(null), name,
           send.arguments, offsetForToken(send.token),
           isSuper: isSuper, interfaceTarget: getter);
     } else {
@@ -495,7 +495,7 @@ class ThisAccessor<Arguments> extends FastaAccessor<Arguments> {
           messageSuperAsExpression, offset, noLength);
     } else {
       return helper.buildMethodInvocation(
-          new ShadowThisExpression(), callName, arguments, offset,
+          forest.thisExpression(null), callName, arguments, offset,
           isImplicitCall: true);
     }
   }
@@ -1073,7 +1073,7 @@ class ThisPropertyAccessor<Arguments> extends kernel
       interfaceTarget = null;
     }
     return helper.buildMethodInvocation(
-        new ShadowThisExpression(), name, arguments, offset,
+        forest.thisExpression(null), name, arguments, offset,
         interfaceTarget: interfaceTarget);
   }
 
