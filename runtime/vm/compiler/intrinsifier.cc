@@ -61,6 +61,45 @@ bool Intrinsifier::CanIntrinsify(const Function& function) {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+struct IntrinsicDesc {
+  const char* class_name;
+  const char* function_name;
+};
+
+struct LibraryInstrinsicsDesc {
+  Library& library;
+  IntrinsicDesc* intrinsics;
+};
+
+#define DEFINE_INTRINSIC(class_name, function_name, destination, type, fp)     \
+  {#class_name, #function_name},
+
+// clang-format off
+static IntrinsicDesc core_intrinsics[] = {
+  CORE_LIB_INTRINSIC_LIST(DEFINE_INTRINSIC)
+  CORE_INTEGER_LIB_INTRINSIC_LIST(DEFINE_INTRINSIC)
+  GRAPH_CORE_INTRINSICS_LIST(DEFINE_INTRINSIC)
+  {nullptr, nullptr},
+};
+
+static IntrinsicDesc math_intrinsics[] = {
+  MATH_LIB_INTRINSIC_LIST(DEFINE_INTRINSIC)
+  GRAPH_MATH_LIB_INTRINSIC_LIST(DEFINE_INTRINSIC)
+  {nullptr, nullptr},
+};
+
+static IntrinsicDesc typed_data_intrinsics[] = {
+  TYPED_DATA_LIB_INTRINSIC_LIST(DEFINE_INTRINSIC)
+  GRAPH_TYPED_DATA_INTRINSICS_LIST(DEFINE_INTRINSIC)
+  {nullptr, nullptr},
+};
+
+static IntrinsicDesc developer_intrinsics[] = {
+  DEVELOPER_LIB_INTRINSIC_LIST(DEFINE_INTRINSIC)
+  {nullptr, nullptr},
+};
+// clang-format on
+
 void Intrinsifier::InitializeState() {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -68,62 +107,53 @@ void Intrinsifier::InitializeState() {
   Class& cls = Class::Handle(zone);
   Function& func = Function::Handle(zone);
   String& str = String::Handle(zone);
+  String& str2 = String::Handle(zone);
   Error& error = Error::Handle(zone);
 
-#define SETUP_FUNCTION(class_name, function_name, destination, type, fp)       \
-  func = Function::null();                                                     \
-  if (strcmp(#class_name, "::") == 0) {                                        \
-    str = String::New(#function_name);                                         \
-    func = lib.LookupFunctionAllowPrivate(str);                                \
-  } else {                                                                     \
-    str = String::New(#class_name);                                            \
-    cls = lib.LookupClassAllowPrivate(str);                                    \
-    ASSERT(FLAG_precompiled_mode || !cls.IsNull());                            \
-    if (!cls.IsNull()) {                                                       \
-      error = cls.EnsureIsFinalized(thread);                                   \
-      if (!error.IsNull()) {                                                   \
-        OS::PrintErr("%s\n", error.ToErrorCString());                          \
-      }                                                                        \
-      ASSERT(error.IsNull());                                                  \
-      if (#function_name[0] == '.') {                                          \
-        str = String::New(#class_name #function_name);                         \
-      } else {                                                                 \
-        str = String::New(#function_name);                                     \
-      }                                                                        \
-      func = cls.LookupFunctionAllowPrivate(str);                              \
-    }                                                                          \
-  }                                                                            \
-  if (!func.IsNull()) {                                                        \
-    func.set_is_intrinsic(true);                                               \
-  } else if (!FLAG_precompiled_mode) {                                         \
-    FATAL2("Intrinsifier failed to find method %s in class %s\n",              \
-           #function_name, #class_name);                                       \
+  static const intptr_t kNumLibs = 4;
+  LibraryInstrinsicsDesc intrinsics[kNumLibs] = {
+      {Library::Handle(zone, Library::CoreLibrary()), core_intrinsics},
+      {Library::Handle(zone, Library::MathLibrary()), math_intrinsics},
+      {Library::Handle(zone, Library::TypedDataLibrary()),
+       typed_data_intrinsics},
+      {Library::Handle(zone, Library::DeveloperLibrary()),
+       developer_intrinsics},
+  };
+
+  for (intptr_t i = 0; i < kNumLibs; i++) {
+    lib = intrinsics[i].library.raw();
+    for (IntrinsicDesc* intrinsic = intrinsics[i].intrinsics;
+         intrinsic->class_name != nullptr; intrinsic++) {
+      func = Function::null();
+      if (strcmp(intrinsic->class_name, "::") == 0) {
+        str = String::New(intrinsic->function_name);
+        func = lib.LookupFunctionAllowPrivate(str);
+      } else {
+        str = String::New(intrinsic->class_name);
+        cls = lib.LookupClassAllowPrivate(str);
+        ASSERT(FLAG_precompiled_mode || !cls.IsNull());
+        if (!cls.IsNull()) {
+          error = cls.EnsureIsFinalized(thread);
+          if (!error.IsNull()) {
+            OS::PrintErr("%s\n", error.ToErrorCString());
+          }
+          ASSERT(error.IsNull());
+          str = String::New(intrinsic->function_name);
+          if (intrinsic->function_name[0] == '.') {
+            str2 = String::New(intrinsic->class_name);
+            str = String::Concat(str2, str);
+          }
+          func = cls.LookupFunctionAllowPrivate(str);
+        }
+      }
+      if (!func.IsNull()) {
+        func.set_is_intrinsic(true);
+      } else if (!FLAG_precompiled_mode) {
+        FATAL2("Intrinsifier failed to find method %s in class %s\n",
+               intrinsic->function_name, intrinsic->class_name);
+      }
+    }
   }
-
-  // Set up all core lib functions that can be intrinsified.
-  lib = Library::CoreLibrary();
-  ASSERT(!lib.IsNull());
-  CORE_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
-  CORE_INTEGER_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
-  GRAPH_CORE_INTRINSICS_LIST(SETUP_FUNCTION);
-
-  // Set up all math lib functions that can be intrinsified.
-  lib = Library::MathLibrary();
-  ASSERT(!lib.IsNull());
-  MATH_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
-  GRAPH_MATH_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
-
-  // Set up all dart:typed_data lib functions that can be intrinsified.
-  lib = Library::TypedDataLibrary();
-  ASSERT(!lib.IsNull());
-  TYPED_DATA_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
-  GRAPH_TYPED_DATA_INTRINSICS_LIST(SETUP_FUNCTION);
-
-  // Setup all dart:developer lib functions that can be intrinsified.
-  lib = Library::DeveloperLibrary();
-  ASSERT(!lib.IsNull());
-  DEVELOPER_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
-
 #undef SETUP_FUNCTION
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
