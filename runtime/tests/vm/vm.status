@@ -46,8 +46,8 @@ dart/truncating_ints_test: Skip # dart2js doesn't know about --limit-ints-to-64-
 dart/wrap_around_in_range_analysis_test: SkipByDesign # The test requires int64.
 
 [ $compiler == dartk ]
-cc/DartAPI_New: Fail
-cc/DartAPI_TypeGetParameterizedTypes: Crash
+cc/DartAPI_New: Fail # Issue #33041
+cc/DartAPI_TypeGetParameterizedTypes: Crash # Issue 33042
 dart/redirection_type_shuffling_test/00: RuntimeError
 dart/redirection_type_shuffling_test/none: RuntimeError
 
@@ -147,8 +147,7 @@ cc/Service_TokenStream: Fail
 [ $compiler == dartk && $runtime == vm ]
 cc/Class_ComputeEndTokenPos: Crash
 cc/DartAPI_IsolateShutdownRunDartCode: Skip # Flaky
-cc/DartAPI_LazyLoadDeoptimizes: Fail
-cc/DartAPI_LoadLibrary: Crash
+cc/DartAPI_LoadLibrary: Crash # Issue 33048.
 cc/DebuggerAPI_BreakpointStubPatching: Fail
 cc/DebuggerAPI_GetClosureInfo: Fail
 cc/DebuggerAPI_InterruptIsolate: SkipSlow
@@ -203,8 +202,6 @@ cc/Service_Address: Fail
 cc/Service_Code: Fail
 
 [ $compiler == dartk && $strong ]
-cc/DartAPI_ImportLibrary3: Fail # Issue 32190
-cc/DartAPI_LazyLoadDeoptimizes: Crash # Issue 32190
 cc/DartGeneratedArrayLiteralMessages: Crash # Issue 32190
 cc/FullSnapshot1: Crash # Issue 32190
 cc/IsolateReload_LibraryImportAdded: Crash # Issue 32190
@@ -294,6 +291,7 @@ dart/data_uri*test: Skip # Data uri's not supported by dart2js or the analyzer.
 [ $compiler == dartk || $compiler == dartkp ]
 cc/CanonicalizationInScriptSnapshots: SkipByDesign # Script snapshots unsupported.
 cc/DartAPI_IsolateSetCheckedMode: SkipByDesign # Checked mode is not relevant for dart 2?
+cc/DartAPI_LazyLoadDeoptimizes: SkipByDesign # Issue 33043, Dart_LoadSource unsupported.
 cc/DartAPI_LoadLibraryPatch_Error1: SkipByDesign # Dart_LibraryLoadPatch unsupported.
 cc/DartAPI_LoadLibraryPatch_Error2: SkipByDesign
 cc/DartAPI_LoadLibraryPatch_Error3: SkipByDesign
