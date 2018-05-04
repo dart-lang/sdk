@@ -51,13 +51,13 @@ abstract class BoundTestBase {
   InterfaceType get doubleType => typeProvider.doubleType;
   DartType get dynamicType => typeProvider.dynamicType;
   InterfaceType get functionType => typeProvider.functionType;
+  InterfaceType get futureOrType => typeProvider.futureOrType;
   InterfaceType get intType => typeProvider.intType;
   InterfaceType get iterableType => typeProvider.iterableType;
   InterfaceType get listType => typeProvider.listType;
   InterfaceType get numType => typeProvider.numType;
   InterfaceType get objectType => typeProvider.objectType;
   InterfaceType get stringType => typeProvider.stringType;
-  InterfaceType get futureOrType => typeProvider.futureOrType;
   StrongTypeSystemImpl get strongTypeSystem =>
       typeSystem as StrongTypeSystemImpl;
 
@@ -1539,68 +1539,6 @@ class StrongGreatestLowerBoundTest extends BoundTestBase {
     _checkGreatestLowerBound(bottomType, typeParam, bottomType);
   }
 
-  void test_classAndSuperclass() {
-    // class A
-    // class B extends A
-    // class C extends B
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    ClassElementImpl classC = ElementFactory.classElement("C", classB.type);
-    _checkGreatestLowerBound(classA.type, classC.type, classC.type);
-  }
-
-  void test_classAndSuperinterface() {
-    // class A
-    // class B implements A
-    // class C implements B
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    ClassElementImpl classC = ElementFactory.classElement2("C");
-    classB.interfaces = <InterfaceType>[classA.type];
-    classC.interfaces = <InterfaceType>[classB.type];
-    _checkGreatestLowerBound(classA.type, classC.type, classC.type);
-  }
-
-  void test_dynamic_bottom() {
-    _checkGreatestLowerBound(dynamicType, bottomType, bottomType);
-  }
-
-  void test_dynamic_function() {
-    _checkGreatestLowerBound(
-        dynamicType, simpleFunctionType, simpleFunctionType);
-  }
-
-  void test_dynamic_interface() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
-    _checkGreatestLowerBound(dynamicType, interfaceType, interfaceType);
-  }
-
-  void test_dynamic_typeParam() {
-    DartType typeParam = ElementFactory.typeParameterElement('T').type;
-    _checkGreatestLowerBound(dynamicType, typeParam, typeParam);
-  }
-
-  void test_dynamic_void() {
-    // Note: _checkGreatestLowerBound tests `GLB(x, y)` as well as `GLB(y, x)`
-    _checkGreatestLowerBound(dynamicType, voidType, voidType);
-  }
-
-  void test_bounds_of_top_types_sanity() {
-    final futureOrDynamicType = futureOrType.instantiate([dynamicType]);
-    final futureOrFutureOrDynamicType =
-        futureOrType.instantiate([futureOrDynamicType]);
-
-    // Sanity check specific cases of top for GLB/LUB.
-    _checkLeastUpperBound(objectType, dynamicType, dynamicType);
-    _checkGreatestLowerBound(objectType, dynamicType, objectType);
-    _checkLeastUpperBound(objectType, voidType, objectType);
-    _checkLeastUpperBound(futureOrDynamicType, dynamicType, dynamicType);
-    _checkGreatestLowerBound(
-        futureOrDynamicType, objectType, futureOrDynamicType);
-    _checkGreatestLowerBound(futureOrDynamicType, futureOrFutureOrDynamicType,
-        futureOrFutureOrDynamicType);
-  }
-
   void test_bounds_of_top_types_complete() {
     // Test every combination of a subset of Tops programatically.
     final futureOrDynamicType = futureOrType.instantiate([dynamicType]);
@@ -1645,6 +1583,68 @@ class StrongGreatestLowerBoundTest extends BoundTestBase {
             orderedTops[i], orderedTops[greater], orderedTops[i]);
       }
     }
+  }
+
+  void test_bounds_of_top_types_sanity() {
+    final futureOrDynamicType = futureOrType.instantiate([dynamicType]);
+    final futureOrFutureOrDynamicType =
+        futureOrType.instantiate([futureOrDynamicType]);
+
+    // Sanity check specific cases of top for GLB/LUB.
+    _checkLeastUpperBound(objectType, dynamicType, dynamicType);
+    _checkGreatestLowerBound(objectType, dynamicType, objectType);
+    _checkLeastUpperBound(objectType, voidType, objectType);
+    _checkLeastUpperBound(futureOrDynamicType, dynamicType, dynamicType);
+    _checkGreatestLowerBound(
+        futureOrDynamicType, objectType, futureOrDynamicType);
+    _checkGreatestLowerBound(futureOrDynamicType, futureOrFutureOrDynamicType,
+        futureOrFutureOrDynamicType);
+  }
+
+  void test_classAndSuperclass() {
+    // class A
+    // class B extends A
+    // class C extends B
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
+    ClassElementImpl classC = ElementFactory.classElement("C", classB.type);
+    _checkGreatestLowerBound(classA.type, classC.type, classC.type);
+  }
+
+  void test_classAndSuperinterface() {
+    // class A
+    // class B implements A
+    // class C implements B
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    ClassElementImpl classB = ElementFactory.classElement2("B");
+    ClassElementImpl classC = ElementFactory.classElement2("C");
+    classB.interfaces = <InterfaceType>[classA.type];
+    classC.interfaces = <InterfaceType>[classB.type];
+    _checkGreatestLowerBound(classA.type, classC.type, classC.type);
+  }
+
+  void test_dynamic_bottom() {
+    _checkGreatestLowerBound(dynamicType, bottomType, bottomType);
+  }
+
+  void test_dynamic_function() {
+    _checkGreatestLowerBound(
+        dynamicType, simpleFunctionType, simpleFunctionType);
+  }
+
+  void test_dynamic_interface() {
+    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+    _checkGreatestLowerBound(dynamicType, interfaceType, interfaceType);
+  }
+
+  void test_dynamic_typeParam() {
+    DartType typeParam = ElementFactory.typeParameterElement('T').type;
+    _checkGreatestLowerBound(dynamicType, typeParam, typeParam);
+  }
+
+  void test_dynamic_void() {
+    // Note: _checkGreatestLowerBound tests `GLB(x, y)` as well as `GLB(y, x)`
+    _checkGreatestLowerBound(dynamicType, voidType, voidType);
   }
 
   void test_functionsDifferentNamedTakeUnion() {
@@ -1963,13 +1963,13 @@ class StrongSubtypingTest {
   InterfaceType get doubleType => typeProvider.doubleType;
   DartType get dynamicType => typeProvider.dynamicType;
   InterfaceType get functionType => typeProvider.functionType;
+  InterfaceType get futureOrType => typeProvider.futureOrType;
   InterfaceType get intType => typeProvider.intType;
   InterfaceType get listType => typeProvider.listType;
   InterfaceType get numType => typeProvider.numType;
   InterfaceType get objectType => typeProvider.objectType;
   InterfaceType get stringType => typeProvider.stringType;
   DartType get voidType => VoidTypeImpl.instance;
-  InterfaceType get futureOrType => typeProvider.futureOrType;
 
   void setUp() {
     typeProvider = AnalysisContextFactory.contextWithCore().typeProvider;
@@ -2040,21 +2040,6 @@ class StrongSubtypingTest {
       bottomType
     ];
     _checkGroups(dynamicType, equivalents: equivalents, subtypes: subtypes);
-  }
-
-  void test_void_isTop() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
-    List<DartType> equivalents = <DartType>[dynamicType, objectType, voidType];
-    List<DartType> subtypes = <DartType>[
-      intType,
-      doubleType,
-      numType,
-      stringType,
-      functionType,
-      interfaceType,
-      bottomType
-    ];
-    _checkGroups(voidType, equivalents: equivalents, subtypes: subtypes);
   }
 
   void test_function_subtypes_itself_top_types() {
@@ -2306,6 +2291,21 @@ class StrongSubtypingTest {
         TypeBuilder.function(required: <DartType>[objectType], result: intType);
 
     _checkIsStrictSubtypeOf(bottom, top);
+  }
+
+  void test_void_isTop() {
+    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+    List<DartType> equivalents = <DartType>[dynamicType, objectType, voidType];
+    List<DartType> subtypes = <DartType>[
+      intType,
+      doubleType,
+      numType,
+      stringType,
+      functionType,
+      interfaceType,
+      bottomType
+    ];
+    _checkGroups(voidType, equivalents: equivalents, subtypes: subtypes);
   }
 
   void _checkEquivalent(DartType type1, DartType type2) {
