@@ -356,7 +356,7 @@ class SocketDirection {
   static const SocketDirection send = const SocketDirection._(1);
   static const SocketDirection both = const SocketDirection._(2);
 
-  @Deprecated("Use reveive instead")
+  @Deprecated("Use receive instead")
   static const SocketDirection RECEIVE = receive;
   @Deprecated("Use send instead")
   static const SocketDirection SEND = send;
