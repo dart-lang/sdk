@@ -1577,6 +1577,78 @@ f(int i, String s) {
     expect(edit.replacement, equalsIgnoringWhitespace('String s, int i'));
   }
 
+  test_writeTopLevelElementReference_hasImport_noPrefix() async {
+    String aPath = provider.convertPath('/a.dart');
+    addSource(aPath, 'const a = 42;');
+
+    String path = provider.convertPath('/test.dart');
+    String content = r'''
+import 'a.dart';
+''';
+    addSource(path, content);
+
+    var aElement = await _getTopLevelAccessorElement(aPath, 'a');
+
+    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (DartFileEditBuilder builder) {
+      builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
+        builder.write('const v = ');
+        builder.writeTopLevelElementReference(aElement);
+        builder.write(';');
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('const v = a;'));
+  }
+
+  test_writeTopLevelElementReference_hasImport_prefix() async {
+    String aPath = provider.convertPath('/a.dart');
+    addSource(aPath, 'const a = 42;');
+
+    String path = provider.convertPath('/test.dart');
+    String content = r'''
+import 'a.dart' as p;
+''';
+    addSource(path, content);
+
+    var aElement = await _getTopLevelAccessorElement(aPath, 'a');
+
+    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (DartFileEditBuilder builder) {
+      builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
+        builder.write('const v = ');
+        builder.writeTopLevelElementReference(aElement);
+        builder.write(';');
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('const v = p.a;'));
+  }
+
+  test_writeTopLevelElementReference_noImport() async {
+    String aPath = provider.convertPath('/a.dart');
+    addSource(aPath, 'const a = 42;');
+
+    String path = provider.convertPath('/test.dart');
+    String content = '';
+    addSource(path, content);
+
+    var aElement = await _getTopLevelAccessorElement(aPath, 'a');
+
+    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (DartFileEditBuilder builder) {
+      builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
+        builder.write('const v = ');
+        builder.writeTopLevelElementReference(aElement);
+        builder.write(';');
+      });
+    });
+    List<SourceEdit> edits = getEdits(builder);
+    expect(edits, hasLength(2));
+    expect(edits[0].replacement, equalsIgnoringWhitespace("import 'a.dart';"));
+    expect(edits[1].replacement, equalsIgnoringWhitespace('const v = a;'));
+  }
+
   test_writeType_dynamic() async {
     String path = provider.convertPath('/test.dart');
     String content = 'class A {}';
@@ -1910,6 +1982,12 @@ f(int i, String s) {
   Future<ClassElement> _getClassElement(String path, String name) async {
     UnitElementResult result = await driver.getUnitElement(path);
     return result.element.getType(name);
+  }
+
+  Future<PropertyAccessorElement> _getTopLevelAccessorElement(
+      String path, String name) async {
+    UnitElementResult result = await driver.getUnitElement(path);
+    return result.element.accessors.firstWhere((v) => v.name == name);
   }
 
   Future<DartType> _getType(String path, String name) async {
