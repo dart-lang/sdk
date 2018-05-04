@@ -144,6 +144,12 @@ class NamingConventionsTest extends RefactoringTest {
         expectedMessage: "Field name must not be empty.");
   }
 
+  void test_validateFieldName_keyword() {
+    assertRefactoringStatus(
+        validateFieldName("for"), RefactoringProblemSeverity.FATAL,
+        expectedMessage: "Field name must not be a keyword.");
+  }
+
   void test_validateFieldName_leadingBlanks() {
     assertRefactoringStatus(
         validateFieldName(" newName"), RefactoringProblemSeverity.FATAL,
@@ -161,18 +167,6 @@ class NamingConventionsTest extends RefactoringTest {
         validateFieldName("2newName"), RefactoringProblemSeverity.FATAL,
         expectedMessage:
             "Field name must begin with a lowercase letter or underscore.");
-  }
-
-  void test_validateFieldName_notKeyword() {
-    assertRefactoringStatus(
-        validateFieldName("for"), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Field name must not be a keyword.");
-  }
-
-  void test_validateFieldName_notPseudoKeyword() {
-    assertRefactoringStatus(
-        validateFieldName("await"), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Field name must not be a keyword.");
   }
 
   void test_validateFieldName_null() {
@@ -193,6 +187,10 @@ class NamingConventionsTest extends RefactoringTest {
     assertRefactoringStatusOK(validateFieldName("new_name"));
   }
 
+  void test_validateFieldName_pseudoKeyword() {
+    assertRefactoringStatusOK(validateFieldName("await"));
+  }
+
   void test_validateFieldName_trailingBlanks() {
     assertRefactoringStatus(
         validateFieldName("newName "), RefactoringProblemSeverity.FATAL,
@@ -209,6 +207,12 @@ class NamingConventionsTest extends RefactoringTest {
     assertRefactoringStatus(
         validateFunctionName(""), RefactoringProblemSeverity.FATAL,
         expectedMessage: "Function name must not be empty.");
+  }
+
+  void test_validateFunctionName_keyword() {
+    assertRefactoringStatus(
+        validateFunctionName("new"), RefactoringProblemSeverity.FATAL,
+        expectedMessage: "Function name must not be a keyword.");
   }
 
   void test_validateFunctionName_leadingBlanks() {
@@ -230,18 +234,6 @@ class NamingConventionsTest extends RefactoringTest {
             "Function name must begin with a lowercase letter or underscore.");
   }
 
-  void test_validateFunctionName_notKeyword() {
-    assertRefactoringStatus(
-        validateFunctionName("new"), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Function name must not be a keyword.");
-  }
-
-  void test_validateFunctionName_notPseudoKeyword() {
-    assertRefactoringStatus(
-        validateFunctionName("yield"), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Function name must not be a keyword.");
-  }
-
   void test_validateFunctionName_null() {
     assertRefactoringStatus(
         validateFunctionName(null), RefactoringProblemSeverity.FATAL,
@@ -258,6 +250,10 @@ class NamingConventionsTest extends RefactoringTest {
 
   void test_validateFunctionName_OK_middleUnderscore() {
     assertRefactoringStatusOK(validateFunctionName("new_name"));
+  }
+
+  void test_validateFunctionName_pseudoKeyword() {
+    assertRefactoringStatusOK(validateFunctionName("yield"));
   }
 
   void test_validateFunctionName_trailingBlanks() {
@@ -339,6 +335,12 @@ class NamingConventionsTest extends RefactoringTest {
     assertRefactoringStatusOK(validateImportPrefixName(""));
   }
 
+  void test_validateImportPrefixName_keyword() {
+    assertRefactoringStatus(
+        validateImportPrefixName("while"), RefactoringProblemSeverity.FATAL,
+        expectedMessage: "Import prefix name must not be a keyword.");
+  }
+
   void test_validateImportPrefixName_leadingBlanks() {
     assertRefactoringStatus(
         validateImportPrefixName(" newName"), RefactoringProblemSeverity.FATAL,
@@ -359,18 +361,6 @@ class NamingConventionsTest extends RefactoringTest {
             "Import prefix name must begin with a lowercase letter or underscore.");
   }
 
-  void test_validateImportPrefixName_notKeyword() {
-    assertRefactoringStatus(
-        validateImportPrefixName("while"), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Import prefix name must not be a keyword.");
-  }
-
-  void test_validateImportPrefixName_notPseudoKeyword() {
-    assertRefactoringStatus(
-        validateImportPrefixName("await"), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Import prefix name must not be a keyword.");
-  }
-
   void test_validateImportPrefixName_null() {
     assertRefactoringStatus(
         validateImportPrefixName(null), RefactoringProblemSeverity.FATAL,
@@ -387,6 +377,10 @@ class NamingConventionsTest extends RefactoringTest {
 
   void test_validateImportPrefixName_OK_middleUnderscore() {
     assertRefactoringStatusOK(validateImportPrefixName("new_name"));
+  }
+
+  void test_validateImportPrefixName_pseudoKeyword() {
+    assertRefactoringStatusOK(validateImportPrefixName("await"));
   }
 
   void test_validateImportPrefixName_trailingBlanks() {
@@ -408,6 +402,12 @@ class NamingConventionsTest extends RefactoringTest {
         expectedMessage: "Label name must not be empty.");
   }
 
+  void test_validateLabelName_keyword() {
+    assertRefactoringStatus(
+        validateLabelName("for"), RefactoringProblemSeverity.FATAL,
+        expectedMessage: "Label name must not be a keyword.");
+  }
+
   void test_validateLabelName_leadingBlanks() {
     assertRefactoringStatus(
         validateLabelName(" newName"), RefactoringProblemSeverity.FATAL,
@@ -425,18 +425,6 @@ class NamingConventionsTest extends RefactoringTest {
         validateLabelName("2newName"), RefactoringProblemSeverity.FATAL,
         expectedMessage:
             "Label name must begin with a lowercase letter or underscore.");
-  }
-
-  void test_validateLabelName_notKeyword() {
-    assertRefactoringStatus(
-        validateLabelName("for"), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Label name must not be a keyword.");
-  }
-
-  void test_validateLabelName_notPseudoKeyword() {
-    assertRefactoringStatus(
-        validateLabelName("await"), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Label name must not be a keyword.");
   }
 
   void test_validateLabelName_null() {
@@ -459,6 +447,10 @@ class NamingConventionsTest extends RefactoringTest {
 
   void test_validateLabelName_OK_middleUnderscore() {
     assertRefactoringStatusOK(validateLabelName("new_name"));
+  }
+
+  void test_validateLabelName_pseudoKeyword() {
+    assertRefactoringStatusOK(validateLabelName("await"));
   }
 
   void test_validateLabelName_trailingBlanks() {
@@ -493,6 +485,12 @@ class NamingConventionsTest extends RefactoringTest {
             "Library name should consist of lowercase identifier separated by dots.");
   }
 
+  void test_validateLibraryName_keyword() {
+    assertRefactoringStatus(
+        validateLibraryName("my.for.name"), RefactoringProblemSeverity.FATAL,
+        expectedMessage: "Library name identifier must not be a keyword.");
+  }
+
   void test_validateLibraryName_leadingBlanks() {
     assertRefactoringStatus(
         validateLibraryName("my. name"), RefactoringProblemSeverity.FATAL,
@@ -511,12 +509,6 @@ class NamingConventionsTest extends RefactoringTest {
         validateLibraryName("my.2bad.name"), RefactoringProblemSeverity.FATAL,
         expectedMessage:
             "Library name identifier must begin with a lowercase letter or underscore.");
-  }
-
-  void test_validateLibraryName_notKeyword() {
-    assertRefactoringStatus(
-        validateLibraryName("my.yield.name"), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Library name identifier must not be a keyword.");
   }
 
   void test_validateLibraryName_null() {
@@ -577,18 +569,6 @@ class NamingConventionsTest extends RefactoringTest {
             "Method name must begin with a lowercase letter or underscore.");
   }
 
-  void test_validateMethodName_notKeyword() {
-    assertRefactoringStatus(
-        validateMethodName("do"), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Method name must not be a keyword.");
-  }
-
-  void test_validateMethodName_notPseudoKeyword() {
-    assertRefactoringStatus(
-        validateMethodName("yield"), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Method name must not be a keyword.");
-  }
-
   void test_validateMethodName_null() {
     assertRefactoringStatus(
         validateMethodName(null), RefactoringProblemSeverity.FATAL,
@@ -607,10 +587,18 @@ class NamingConventionsTest extends RefactoringTest {
     assertRefactoringStatusOK(validateMethodName("new_name"));
   }
 
+  void test_validateMethodName_pseudoKeyword() {
+    assertRefactoringStatusOK(validateMethodName("yield"));
+  }
+
   void test_validateMethodName_trailingBlanks() {
     assertRefactoringStatus(
         validateMethodName("newName "), RefactoringProblemSeverity.FATAL,
         expectedMessage: "Method name must not start or end with a blank.");
+  }
+
+  void test_validateParameterName_builtIn() {
+    assertRefactoringStatusOK(validateParameterName("await"));
   }
 
   void test_validateParameterName_doesNotStartWithLowerCase() {
@@ -624,6 +612,12 @@ class NamingConventionsTest extends RefactoringTest {
     assertRefactoringStatus(
         validateParameterName(""), RefactoringProblemSeverity.FATAL,
         expectedMessage: "Parameter name must not be empty.");
+  }
+
+  void test_validateParameterName_keyword() {
+    assertRefactoringStatus(
+        validateParameterName("while"), RefactoringProblemSeverity.FATAL,
+        expectedMessage: "Parameter name must not be a keyword.");
   }
 
   void test_validateParameterName_leadingBlanks() {
@@ -645,18 +639,6 @@ class NamingConventionsTest extends RefactoringTest {
             "Parameter name must begin with a lowercase letter or underscore.");
   }
 
-  void test_validateParameterName_notKeyword() {
-    assertRefactoringStatus(
-        validateParameterName("while"), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Parameter name must not be a keyword.");
-  }
-
-  void test_validateParameterName_notPseudoKeyword() {
-    assertRefactoringStatus(
-        validateParameterName("await"), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Parameter name must not be a keyword.");
-  }
-
   void test_validateParameterName_null() {
     assertRefactoringStatus(
         validateParameterName(null), RefactoringProblemSeverity.FATAL,
@@ -673,6 +655,10 @@ class NamingConventionsTest extends RefactoringTest {
 
   void test_validateParameterName_OK_middleUnderscore() {
     assertRefactoringStatusOK(validateParameterName("new_name"));
+  }
+
+  void test_validateParameterName_pseudoKeyword() {
+    assertRefactoringStatusOK(validateParameterName("await"));
   }
 
   void test_validateParameterName_trailingBlanks() {
@@ -693,6 +679,12 @@ class NamingConventionsTest extends RefactoringTest {
         expectedMessage: "Variable name must not be empty.");
   }
 
+  void test_validateVariableName_keyword() {
+    assertRefactoringStatus(
+        validateVariableName("for"), RefactoringProblemSeverity.FATAL,
+        expectedMessage: "Variable name must not be a keyword.");
+  }
+
   void test_validateVariableName_leadingBlanks() {
     assertRefactoringStatus(
         validateVariableName(" newName"), RefactoringProblemSeverity.FATAL,
@@ -710,18 +702,6 @@ class NamingConventionsTest extends RefactoringTest {
         validateVariableName("2newName"), RefactoringProblemSeverity.FATAL,
         expectedMessage:
             "Variable name must begin with a lowercase letter or underscore.");
-  }
-
-  void test_validateVariableName_notKeyword() {
-    assertRefactoringStatus(
-        validateVariableName("for"), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Variable name must not be a keyword.");
-  }
-
-  void test_validateVariableName_notPseudoKeyword() {
-    assertRefactoringStatus(
-        validateVariableName("await"), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Variable name must not be a keyword.");
   }
 
   void test_validateVariableName_null() {
@@ -744,6 +724,10 @@ class NamingConventionsTest extends RefactoringTest {
 
   void test_validateVariableName_OK_middleUnderscore() {
     assertRefactoringStatusOK(validateVariableName("new_name"));
+  }
+
+  void test_validateVariableName_pseudoKeyword() {
+    assertRefactoringStatusOK(validateVariableName("await"));
   }
 
   void test_validateVariableName_trailingBlanks() {

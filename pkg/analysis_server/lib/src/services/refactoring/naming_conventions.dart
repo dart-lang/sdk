@@ -167,7 +167,7 @@ RefactoringStatus _validateIdentifier(
   // keyword
   {
     Keyword keyword = Keyword.keywords[identifier];
-    if (keyword != null) {
+    if (keyword != null && !keyword.isPseudo) {
       String message = "$desc must not be a keyword.";
       return new RefactoringStatus.fatal(message);
     }
