@@ -2854,6 +2854,18 @@ class ElementAnnotationImpl implements ElementAnnotation {
   static String _IMMUTABLE_VARIABLE_NAME = "immutable";
 
   /**
+   * The name of the top-level variable used to mark a function as running
+   * a single test.
+   */
+  static String _IS_TEST_VARIABLE_NAME = "isTest";
+
+  /**
+   * The name of the top-level variable used to mark a function as running
+   * a test group.
+   */
+  static String _IS_TEST_GROUP_VARIABLE_NAME = "isTestGroup";
+
+  /**
    * The name of the class used to JS annotate an element.
    */
   static String _JS_CLASS_NAME = "JS";
@@ -2980,6 +2992,18 @@ class ElementAnnotationImpl implements ElementAnnotation {
   bool get isImmutable =>
       element is PropertyAccessorElement &&
       element.name == _IMMUTABLE_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
+
+  @override
+  bool get isIsTest =>
+      element is PropertyAccessorElement &&
+      element.name == _IS_TEST_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
+
+  @override
+  bool get isIsTestGroup =>
+      element is PropertyAccessorElement &&
+      element.name == _IS_TEST_GROUP_VARIABLE_NAME &&
       element.library?.name == _META_LIB_NAME;
 
   @override
@@ -3212,6 +3236,14 @@ abstract class ElementImpl implements Element {
     }
     return _cachedHashCode;
   }
+
+  @override
+  bool get hasIsTest =>
+      metadata.any((ElementAnnotation annotation) => annotation.isIsTest);
+
+  @override
+  bool get hasIsTestGroup =>
+      metadata.any((ElementAnnotation annotation) => annotation.isIsTestGroup);
 
   @override
   bool get hasJS =>
@@ -7554,6 +7586,12 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   bool get hasFactory => false;
+
+  @override
+  bool get hasIsTest => false;
+
+  @override
+  bool get hasIsTestGroup => false;
 
   @override
   bool get hasJS => false;

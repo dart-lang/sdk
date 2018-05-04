@@ -546,6 +546,124 @@ class A {
     expect(outline, isNotNull);
   }
 
+  test_isTest_isTestGroup() async {
+    addMetaPackageSource();
+    Outline outline = await _computeOutline('''
+import 'package:meta/meta.dart';
+
+@isTestGroup
+void myGroup(name, body()) {}
+
+@isTest
+void myTest(name) {}
+
+void main() {
+  myGroup('group1', () {
+    myGroup('group1_1', () {
+      myTest('test1_1_1');
+      myTest('test1_1_2');
+    });
+    myGroup('group1_2', () {
+      myTest('test1_2_1');
+    });
+  });
+  myGroup('group2', () {
+    myTest('test2_1');
+    myTest('test2_2');
+  });
+}
+''');
+    // unit
+    List<Outline> unit_children = outline.children;
+    expect(unit_children, hasLength(3));
+    // main
+    Outline main_outline = unit_children[2];
+    _expect(main_outline,
+        kind: ElementKind.FUNCTION,
+        name: 'main',
+        offset: testCode.indexOf("main() {"),
+        parameters: '()',
+        returnType: 'void');
+    List<Outline> main_children = main_outline.children;
+    expect(main_children, hasLength(2));
+    // group1
+    Outline group1_outline = main_children[0];
+    _expect(group1_outline,
+        kind: ElementKind.UNIT_TEST_GROUP,
+        length: 7,
+        name: 'group("group1")',
+        offset: testCode.indexOf("myGroup('group1'"));
+    List<Outline> group1_children = group1_outline.children;
+    expect(group1_children, hasLength(2));
+    // group1_1
+    Outline group1_1_outline = group1_children[0];
+    _expect(group1_1_outline,
+        kind: ElementKind.UNIT_TEST_GROUP,
+        length: 7,
+        name: 'group("group1_1")',
+        offset: testCode.indexOf("myGroup('group1_1'"));
+    List<Outline> group1_1_children = group1_1_outline.children;
+    expect(group1_1_children, hasLength(2));
+    // test1_1_1
+    Outline test1_1_1_outline = group1_1_children[0];
+    _expect(test1_1_1_outline,
+        kind: ElementKind.UNIT_TEST_TEST,
+        leaf: true,
+        length: 6,
+        name: 'test("test1_1_1")',
+        offset: testCode.indexOf("myTest('test1_1_1'"));
+    // test1_1_1
+    Outline test1_1_2_outline = group1_1_children[1];
+    _expect(test1_1_2_outline,
+        kind: ElementKind.UNIT_TEST_TEST,
+        leaf: true,
+        length: 6,
+        name: 'test("test1_1_2")',
+        offset: testCode.indexOf("myTest('test1_1_2'"));
+    // group1_2
+    Outline group1_2_outline = group1_children[1];
+    _expect(group1_2_outline,
+        kind: ElementKind.UNIT_TEST_GROUP,
+        length: 7,
+        name: 'group("group1_2")',
+        offset: testCode.indexOf("myGroup('group1_2'"));
+    List<Outline> group1_2_children = group1_2_outline.children;
+    expect(group1_2_children, hasLength(1));
+    // test2_1
+    Outline test1_2_1_outline = group1_2_children[0];
+    _expect(test1_2_1_outline,
+        kind: ElementKind.UNIT_TEST_TEST,
+        leaf: true,
+        length: 6,
+        name: 'test("test1_2_1")',
+        offset: testCode.indexOf("myTest('test1_2_1'"));
+    // group2
+    Outline group2_outline = main_children[1];
+    _expect(group2_outline,
+        kind: ElementKind.UNIT_TEST_GROUP,
+        length: 7,
+        name: 'group("group2")',
+        offset: testCode.indexOf("myGroup('group2'"));
+    List<Outline> group2_children = group2_outline.children;
+    expect(group2_children, hasLength(2));
+    // test2_1
+    Outline test2_1_outline = group2_children[0];
+    _expect(test2_1_outline,
+        kind: ElementKind.UNIT_TEST_TEST,
+        leaf: true,
+        length: 6,
+        name: 'test("test2_1")',
+        offset: testCode.indexOf("myTest('test2_1'"));
+    // test2_2
+    Outline test2_2_outline = group2_children[1];
+    _expect(test2_2_outline,
+        kind: ElementKind.UNIT_TEST_TEST,
+        leaf: true,
+        length: 6,
+        name: 'test("test2_2")',
+        offset: testCode.indexOf("myTest('test2_2'"));
+  }
+
   test_localFunctions() async {
     Outline unitOutline = await _computeOutline('''
 class A {

@@ -618,6 +618,16 @@ abstract class Element implements AnalysisTarget {
   bool get hasFactory;
 
   /**
+   * Return `true` if this element has an annotation of the form `@isTest`.
+   */
+  bool get hasIsTest;
+
+  /**
+   * Return `true` if this element has an annotation of the form `@isTestGroup`.
+   */
+  bool get hasIsTestGroup;
+
+  /**
    * Return `true` if this element has an annotation of the form `@JS(..)`.
    */
   bool get hasJS;
@@ -887,6 +897,18 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
    * subclasses as being immutable.
    */
   bool get isImmutable;
+
+  /**
+   * Return `true` if this annotation marks the associated member as running
+   * a single test.
+   */
+  bool get isIsTest;
+
+  /**
+   * Return `true` if this annotation marks the associated member as running
+   * a test group.
+   */
+  bool get isIsTestGroup;
 
   /**
    * Return `true` if this annotation marks the associated element with the `JS`
