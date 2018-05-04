@@ -5561,55 +5561,10 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     closure->set_is_captured_parameter(true);
   }
 
-  if ((dart_function.IsClosureFunction() ||
-       dart_function.IsConvertedClosureFunction()) &&
-      dart_function.NumParentTypeParameters() > 0 &&
-      I->reify_generic_functions()) {
-    LocalVariable* fn_type_args = parsed_function()->function_type_arguments();
-    ASSERT(fn_type_args != NULL && closure != NULL);
-
-    if (dart_function.IsGeneric()) {
-      body += LoadLocal(fn_type_args);
-      body += PushArgument();
-      body += LoadLocal(closure);
-      body += LoadField(Closure::function_type_arguments_offset());
-      body += PushArgument();
-      body += IntConstant(dart_function.NumParentTypeParameters());
-      body += PushArgument();
-      body += IntConstant(dart_function.NumTypeParameters() +
-                          dart_function.NumParentTypeParameters());
-      body += PushArgument();
-
-      const Library& dart_internal =
-          Library::Handle(Z, Library::InternalLibrary());
-      const Function& prepend_function =
-          Function::ZoneHandle(Z, dart_internal.LookupFunctionAllowPrivate(
-                                      Symbols::PrependTypeArguments()));
-      ASSERT(!prepend_function.IsNull());
-
-      body += StaticCall(TokenPosition::kNoSource, prepend_function, 4,
-                         ICData::kStatic);
-      body += StoreLocal(TokenPosition::kNoSource, fn_type_args);
-      body += Drop();
-    } else {
-      body += LoadLocal(closure);
-      body += LoadField(Closure::function_type_arguments_offset());
-      body += StoreLocal(TokenPosition::kNoSource, fn_type_args);
-      body += Drop();
-    }
-  }
-
-  if (dart_function.IsConvertedClosureFunction()) {
-    body += LoadLocal(closure);
-    body += LoadField(Closure::context_offset());
-    LocalVariable* context = closure;
-    body += StoreLocal(TokenPosition::kNoSource, context);
-    body += Drop();
-  }
-
-  if (!dart_function.is_native())
+  if (!dart_function.is_native()) {
     body += flow_graph_builder_->CheckStackOverflowInPrologue(
         dart_function.token_pos());
+  }
   intptr_t context_size =
       parsed_function()->node_sequence()->scope()->num_context_variables();
   if (context_size > 0) {
@@ -5797,6 +5752,61 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
 
     flow_graph_builder_->context_depth_ = current_context_depth;
   }
+
+  // :function_type_arguments_var handling is built here and prepended to the
+  // body because it needs to be executed everytime we enter the function -
+  // even if we are resuming from the yield.
+  Fragment prologue;
+  if ((dart_function.IsClosureFunction() ||
+       dart_function.IsConvertedClosureFunction()) &&
+      dart_function.NumParentTypeParameters() > 0 &&
+      I->reify_generic_functions()) {
+    // Function with yield points can not be generic itself but the outer
+    // function can be.
+    ASSERT(yield_continuations().is_empty() || !dart_function.IsGeneric());
+
+    LocalVariable* fn_type_args = parsed_function()->function_type_arguments();
+    ASSERT(fn_type_args != NULL && closure != NULL);
+
+    if (dart_function.IsGeneric()) {
+      prologue += LoadLocal(fn_type_args);
+      prologue += PushArgument();
+      prologue += LoadLocal(closure);
+      prologue += LoadField(Closure::function_type_arguments_offset());
+      prologue += PushArgument();
+      prologue += IntConstant(dart_function.NumParentTypeParameters());
+      prologue += PushArgument();
+      prologue += IntConstant(dart_function.NumTypeParameters() +
+                              dart_function.NumParentTypeParameters());
+      prologue += PushArgument();
+
+      const Library& dart_internal =
+          Library::Handle(Z, Library::InternalLibrary());
+      const Function& prepend_function =
+          Function::ZoneHandle(Z, dart_internal.LookupFunctionAllowPrivate(
+                                      Symbols::PrependTypeArguments()));
+      ASSERT(!prepend_function.IsNull());
+
+      prologue += StaticCall(TokenPosition::kNoSource, prepend_function, 4,
+                             ICData::kStatic);
+      prologue += StoreLocal(TokenPosition::kNoSource, fn_type_args);
+      prologue += Drop();
+    } else {
+      prologue += LoadLocal(closure);
+      prologue += LoadField(Closure::function_type_arguments_offset());
+      prologue += StoreLocal(TokenPosition::kNoSource, fn_type_args);
+      prologue += Drop();
+    }
+  }
+
+  if (dart_function.IsConvertedClosureFunction()) {
+    prologue += LoadLocal(closure);
+    prologue += LoadField(Closure::context_offset());
+    LocalVariable* context = closure;
+    prologue += StoreLocal(TokenPosition::kNoSource, context);
+    prologue += Drop();
+  }
+  body = prologue + body;
 
   if (FLAG_causal_async_stacks &&
       (dart_function.IsAsyncClosure() || dart_function.IsAsyncGenClosure())) {
