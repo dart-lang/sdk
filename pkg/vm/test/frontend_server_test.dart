@@ -7,6 +7,7 @@ import 'package:args/src/arg_results.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/ast.dart' show Component;
 import 'package:mockito/mockito.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:vm/incremental_compiler.dart';
 
@@ -462,7 +463,7 @@ Future<int> main() async {
     Directory tempDir;
     setUp(() {
       var systemTempDir = Directory.systemTemp;
-      tempDir = systemTempDir.createTempSync('foo');
+      tempDir = systemTempDir.createTempSync('foo bar');
     });
 
     tearDown(() {
@@ -656,15 +657,11 @@ Future<int> main() async {
     });
 
     test('compile and produce deps file', () async {
-      if (Platform.isWindows) {
-        // TODO(dartbug.com/33032): Fix depfile generation on Windows.
-        return;
-      }
       var file = new File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {}\n");
       var dillFile = new File('${tempDir.path}/app.dill');
       expect(dillFile.existsSync(), equals(false));
-      var depFile = new File('${tempDir.path}/depfile');
+      var depFile = new File('${tempDir.path}/the depfile');
       expect(depFile.existsSync(), equals(false));
       final List<String> args = <String>[
         '--sdk-root=${sdkRoot.toFilePath()}',
@@ -679,8 +676,8 @@ Future<int> main() async {
 
       expect(depFile.existsSync(), true);
       var depContents = depFile.readAsStringSync();
-      var depContentsParsed = depContents.split(':');
-      expect(depContentsParsed[0], dillFile.path);
+      var depContentsParsed = depContents.split(': ');
+      expect(path.basename(depContentsParsed[0]), path.basename(dillFile.path));
       expect(depContentsParsed[1], isNotEmpty);
     });
   });
