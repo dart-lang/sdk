@@ -118,14 +118,11 @@ mirrors/generic_interface_test/01: RuntimeError
 mirrors/generic_interface_test/none: RuntimeError
 mirrors/generic_mixin_applications_test: RuntimeError
 mirrors/generic_mixin_test: RuntimeError
-mirrors/generics_double_substitution_test/01: RuntimeError
-mirrors/generics_double_substitution_test/none: RuntimeError
 mirrors/generics_dynamic_test: RuntimeError
-mirrors/generics_substitution_test: RuntimeError
-mirrors/generics_test/none: RuntimeError
 mirrors/hot_get_field_test: RuntimeError
 mirrors/hot_set_field_test: RuntimeError
 mirrors/intercepted_object_test: RuntimeError # Issue 31402 (Invocation arguments)
+mirrors/invocation_fuzz_test: RuntimeError, Crash
 mirrors/invoke_private_test: RuntimeError
 mirrors/invoke_private_wrong_library_test: RuntimeError
 mirrors/library_declarations_test/none: RuntimeError # Issue 31402 (Invocation arguments)
@@ -165,10 +162,7 @@ mirrors/operator_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/other_declarations_location_test: RuntimeError
 mirrors/parameter_annotation_mirror_test: RuntimeError
 mirrors/parameter_metadata_test: RuntimeError
-mirrors/parameter_metadata_test: Crash
 mirrors/parameter_of_mixin_app_constructor_test: RuntimeError # Issue 31402 (Invocation arguments)
-mirrors/parameter_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
-mirrors/parameter_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/private_class_field_test: RuntimeError
 mirrors/private_field_test: RuntimeError
 mirrors/private_symbol_test: RuntimeError
@@ -194,7 +188,6 @@ mirrors/symbol_validation_test/01: RuntimeError # Issue 31537
 mirrors/symbol_validation_test/none: RuntimeError # Issue 31537
 mirrors/type_variable_is_static_test: RuntimeError
 mirrors/type_variable_owner_test/01: RuntimeError
-mirrors/typearguments_mirror_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/typedef_deferred_library_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/typedef_deferred_library_test: RuntimeError
 mirrors/typedef_in_signature_test: RuntimeError
@@ -223,44 +216,27 @@ isolate/mint_maker_test: RuntimeError
 isolate/ping_pause_test: RuntimeError
 isolate/request_reply_test: Pass, Timeout
 isolate/stacktrace_message_test: RuntimeError
-mirrors/class_mirror_type_variables_test: RuntimeError
 mirrors/constructor_optional_args_test: RuntimeError
 mirrors/constructors_test: RuntimeError
 mirrors/fake_function_with_call_test: RuntimeError
-mirrors/generic_bounded_by_type_parameter_test/none: RuntimeError
-mirrors/generic_bounded_test/none: RuntimeError
-mirrors/generic_f_bounded_test/01: RuntimeError
-mirrors/generic_f_bounded_test/none: RuntimeError
-mirrors/generic_local_function_test: RuntimeError
 mirrors/generic_superclass_test/01: RuntimeError
 mirrors/generic_superclass_test/none: RuntimeError
-mirrors/generic_type_mirror_test: RuntimeError
 mirrors/hierarchy_invariants_test: RuntimeError
 mirrors/immutable_collections_test: RuntimeError
-mirrors/initializing_formals_test/01: RuntimeError
-mirrors/initializing_formals_test/03: RuntimeError
-mirrors/initializing_formals_test/none: RuntimeError
 mirrors/instance_members_easier_test: RuntimeError
 mirrors/instance_members_test: RuntimeError
 mirrors/instance_members_unimplemented_interface_test: RuntimeError
 mirrors/instance_members_with_override_test: RuntimeError
-mirrors/instantiate_abstract_class_test: RuntimeError
 mirrors/invoke_closurization2_test: RuntimeError
 mirrors/invoke_throws_test: RuntimeError
-mirrors/library_imports_bad_metadata_test/none: RuntimeError, Crash # Issue 32879
 mirrors/metadata_const_map_test: Crash
 mirrors/mixin_members_test: RuntimeError
 mirrors/null_test: RuntimeError
 mirrors/operator_test: RuntimeError
-mirrors/parameter_is_const_test/none: RuntimeError
-mirrors/parameter_test/01: RuntimeError
-mirrors/parameter_test/none: RuntimeError
 mirrors/redirecting_factory_different_type_test/02: MissingCompileTimeError
 mirrors/redirecting_factory_different_type_test/none: RuntimeError
 mirrors/regress_16321_test/none: Crash
 mirrors/top_level_accessors_test/01: MissingCompileTimeError
-mirrors/type_argument_is_type_variable_test: RuntimeError
-mirrors/typearguments_mirror_test: RuntimeError
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revealed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
