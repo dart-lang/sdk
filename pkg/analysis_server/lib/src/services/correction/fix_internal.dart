@@ -2198,10 +2198,10 @@ class FixProcessor {
       if (list.variables.length == 1) {
         DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
         await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-          if (list.type == null && list.keyword.keyword == Keyword.VAR) {
+          if (list.keyword == null) {
+            builder.addSimpleInsertion(list.offset, 'final ');
+          } else if (list.keyword.keyword == Keyword.VAR) {
             builder.addSimpleReplacement(range.token(list.keyword), 'final');
-          } else if (list.type != null && list.keyword == null) {
-            builder.addSimpleInsertion(list.type.offset, 'final ');
           }
         });
         _addFixFromBuilder(changeBuilder, DartFixKind.MAKE_FINAL);

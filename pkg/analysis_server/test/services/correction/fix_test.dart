@@ -6493,6 +6493,23 @@ main() {
 ''');
   }
 
+  test_makeFieldFinal_noKeyword() async {
+    String src = '''
+class C {
+  /*LINT*/f = 2;
+}
+''';
+    await findLint(src, LintNames.prefer_final_fields);
+
+    await applyFix(DartFixKind.MAKE_FINAL);
+
+    verifyResult('''
+class C {
+  final f = 2;
+}
+''');
+  }
+
   test_makeFieldFinal_type() async {
     String src = '''
 class C {
