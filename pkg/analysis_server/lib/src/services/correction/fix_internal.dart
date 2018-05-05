@@ -465,7 +465,7 @@ class FixProcessor {
       if (name == LintNames.prefer_conditional_assignment) {
         await _addFix_replaceWithConditionalAssignment();
       }
-      if (errorCode.name == LintNames.prefer_const_declarations) {
+      if (name == LintNames.prefer_const_declarations) {
         await _addFix_replaceFinalWithConst();
       }
       if (name == LintNames.prefer_final_fields) {
@@ -476,6 +476,9 @@ class FixProcessor {
       }
       if (name == LintNames.prefer_is_not_empty) {
         await _addFix_isNotEmpty();
+      }
+      if (name == LintNames.prefer_single_quotes) {
+        await _addFix_changeToSingleQuotes();
       }
       if (name == LintNames.type_init_formals) {
         await _addFix_removeTypeAnnotation();
@@ -866,6 +869,22 @@ class FixProcessor {
           }
         }
       }
+    }
+  }
+
+  Future<Null> _addFix_changeToSingleQuotes() async {
+    AstNode node = this.node;
+    if (node is SimpleStringLiteral && !node.isSingleQuoted) {
+      String end = node.isMultiline ? "'''" : "'";
+      String begin = node.isRaw ? 'r' + end : end;
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addSimpleReplacement(
+            new SourceRange(node.offset, begin.length), begin);
+        builder.addSimpleReplacement(
+            new SourceRange(node.end - end.length, end.length), end);
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.CHANGE_TO_SINGLE_QUOTES);
     }
   }
 
@@ -3693,6 +3712,7 @@ class LintNames {
   static const String prefer_final_fields = 'prefer_final_fields';
   static const String prefer_final_locals = 'prefer_final_locals';
   static const String prefer_is_not_empty = 'prefer_is_not_empty';
+  static const String prefer_single_quotes = 'prefer_single_quotes';
   static const String type_init_formals = 'type_init_formals';
   static const String unnecessary_brace_in_string_interp =
       'unnecessary_brace_in_string_interp';

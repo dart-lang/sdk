@@ -6510,6 +6510,70 @@ class C {
 ''');
   }
 
+  test_changeToSingleQuotes() async {
+    String src = r'''
+main() {
+  print(/*LINT*/"Hello, world");
+}
+''';
+    await findLint(src, LintNames.prefer_single_quotes);
+    await applyFix(DartFixKind.CHANGE_TO_SINGLE_QUOTES);
+    verifyResult(r'''
+main() {
+  print('Hello, world');
+}
+''');
+  }
+
+  test_changeToSingleQuotes_multiline() async {
+    String src = r'''
+main() {
+  print(/*LINT*/"""Hello,
+  world""");
+}
+''';
+    await findLint(src, LintNames.prefer_single_quotes);
+    await applyFix(DartFixKind.CHANGE_TO_SINGLE_QUOTES);
+    verifyResult(r"""
+main() {
+  print('''Hello,
+  world''');
+}
+""");
+  }
+
+  test_changeToSingleQuotes_raw() async {
+    String src = r'''
+main() {
+  print(/*LINT*/r"Hello, world");
+}
+''';
+    await findLint(src, LintNames.prefer_single_quotes);
+    await applyFix(DartFixKind.CHANGE_TO_SINGLE_QUOTES);
+    verifyResult(r'''
+main() {
+  print(r'Hello, world');
+}
+''');
+  }
+
+  test_changeToSingleQuotes_multiline_raw() async {
+    String src = r'''
+main() {
+  print(/*LINT*/r"""Hello,
+  world""");
+}
+''';
+    await findLint(src, LintNames.prefer_single_quotes);
+    await applyFix(DartFixKind.CHANGE_TO_SINGLE_QUOTES);
+    verifyResult(r"""
+main() {
+  print(r'''Hello,
+  world''');
+}
+""");
+  }
+
   test_makeFieldFinal_type() async {
     String src = '''
 class C {
