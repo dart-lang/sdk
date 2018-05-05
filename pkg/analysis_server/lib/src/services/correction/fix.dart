@@ -80,7 +80,6 @@ bool hasFix(ErrorCode errorCode) =>
             errorCode.name == LintNames.prefer_collection_literals ||
             errorCode.name == LintNames.prefer_conditional_assignment ||
             errorCode.name == LintNames.prefer_const_declarations ||
-            errorCode.name == LintNames.prefer_single_quotes ||
             errorCode.name == LintNames.unnecessary_brace_in_string_interp ||
             errorCode.name == LintNames.unnecessary_lambdas ||
             errorCode.name == LintNames.unnecessary_this));
@@ -113,8 +112,6 @@ class DartFixKind {
       50,
       "Add super constructor {0} invocation");
   static const CHANGE_TO = const FixKind('CHANGE_TO', 49, "Change to '{0}'");
-  static const CHANGE_TO_SINGLE_QUOTES = const FixKind(
-      'CHANGE_TO_SINGLE_QUOTES', 50, "Change string to single quotes");
   static const CHANGE_TO_STATIC_ACCESS = const FixKind(
       'CHANGE_TO_STATIC_ACCESS', 50, "Change access to static using '{0}'");
   static const CHANGE_TYPE_ANNOTATION = const FixKind(
