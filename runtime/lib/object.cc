@@ -462,28 +462,10 @@ DEFINE_NATIVE_ENTRY(Internal_prependTypeArguments, 4) {
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0));
   const TypeArguments& parent_type_arguments =
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(1));
-  if (function_type_arguments.IsNull() && parent_type_arguments.IsNull()) {
-    return TypeArguments::null();
-  }
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_parent_len, arguments->NativeArgAt(2));
-  const intptr_t parent_len = smi_parent_len.Value();
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_total_len, arguments->NativeArgAt(3));
-  const intptr_t total_len = smi_total_len.Value();
-  const TypeArguments& result =
-      TypeArguments::Handle(zone, TypeArguments::New(total_len, Heap::kNew));
-  AbstractType& type = AbstractType::Handle(zone);
-  for (intptr_t i = 0; i < parent_len; i++) {
-    type = parent_type_arguments.IsNull() ? Type::DynamicType()
-                                          : parent_type_arguments.TypeAt(i);
-    result.SetTypeAt(i, type);
-  }
-  for (intptr_t i = parent_len; i < total_len; i++) {
-    type = function_type_arguments.IsNull()
-               ? Type::DynamicType()
-               : function_type_arguments.TypeAt(i - parent_len);
-    result.SetTypeAt(i, type);
-  }
-  return result.Canonicalize();
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_len, arguments->NativeArgAt(3));
+  return function_type_arguments.Prepend(
+      zone, parent_type_arguments, smi_parent_len.Value(), smi_len.Value());
 }
 
 DEFINE_NATIVE_ENTRY(InvocationMirror_unpackTypeArguments, 1) {

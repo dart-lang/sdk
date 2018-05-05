@@ -8,10 +8,9 @@ T f<T>(T x) => x;
 
 int intToInt(int x) => x;
 String stringToString(String x) => x;
+String stringAndIntToString(String x, int y) => x;
 
-main() {
-  int Function(int) intFunc = f;
-  dynamic intFuncDynamic = intFunc;
+test(intFuncDynamic, stringFuncDynamic, dynamicFuncDynamic) {
   Expect.isTrue(intFuncDynamic is int Function(int));
   Expect.isFalse(intFuncDynamic is String Function(String));
   Expect.equals(intFuncDynamic(1), 1);
@@ -22,8 +21,6 @@ main() {
   Expect.throwsNoSuchMethodError(() {
     intFuncDynamic<String>('oops');
   });
-  String Function(String) stringFunc = f;
-  dynamic stringFuncDynamic = stringFunc;
   Expect.isTrue(stringFuncDynamic is String Function(String));
   Expect.isFalse(stringFuncDynamic is int Function(int));
   Expect.equals(stringFuncDynamic('hello'), 'hello');
@@ -35,9 +32,34 @@ main() {
   Expect.throwsNoSuchMethodError(() {
     stringFuncDynamic<int>(1);
   });
-  dynamic Function(dynamic) dynamicFunc = f;
-  dynamic dynamicFuncDynamic = dynamicFunc;
   Expect.throwsNoSuchMethodError(() {
     dynamicFuncDynamic<int>(1);
   });
+}
+
+main() {
+  int Function(int) if1 = f;
+  String Function(String) sf1 = f;
+  dynamic Function(dynamic) df1 = f;
+  test(if1, sf1, df1);
+
+  T local<T>(T x) => x;
+
+  int Function(int) if2 = local;
+  String Function(String) sf2 = local;
+  dynamic Function(dynamic) df2 = local;
+  test(if2, sf2, df2);
+
+  dynamic bar<X>() {
+    String foo<T>(X x, T t) {
+      return "$X, $T";
+    }
+
+    String Function(X, int) x = foo;
+    return x;
+  }
+
+  dynamic fn = bar<String>();
+  Expect.equals("${fn.runtimeType}", "${stringAndIntToString.runtimeType}");
+  Expect.equals(fn("a", 1), "String, int");
 }

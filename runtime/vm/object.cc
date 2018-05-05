@@ -4856,6 +4856,27 @@ intptr_t TypeArguments::ComputeHash() const {
   return result;
 }
 
+RawTypeArguments* TypeArguments::Prepend(Zone* zone,
+                                         const TypeArguments& other,
+                                         intptr_t other_length,
+                                         intptr_t total_length) const {
+  if (IsNull() && other.IsNull()) {
+    return TypeArguments::null();
+  }
+  const TypeArguments& result =
+      TypeArguments::Handle(zone, TypeArguments::New(total_length, Heap::kNew));
+  AbstractType& type = AbstractType::Handle(zone);
+  for (intptr_t i = 0; i < other_length; i++) {
+    type = other.IsNull() ? Type::DynamicType() : other.TypeAt(i);
+    result.SetTypeAt(i, type);
+  }
+  for (intptr_t i = other_length; i < total_length; i++) {
+    type = IsNull() ? Type::DynamicType() : TypeAt(i - other_length);
+    result.SetTypeAt(i, type);
+  }
+  return result.Canonicalize();
+}
+
 RawString* TypeArguments::SubvectorName(intptr_t from_index,
                                         intptr_t len,
                                         NameVisibility name_visibility) const {
@@ -22779,11 +22800,11 @@ RawFunction* Closure::GetInstantiatedSignature(Zone* zone) const {
   // We detect the case of a partial tearoff type application and substitute the
   // type arguments for the type parameters of the function.
   intptr_t num_free_params;
-  if (sig_fun.IsImplicitClosureFunction() &&
-      delayed_type_args.raw() != Object::empty_type_arguments().raw()) {
+  if (delayed_type_args.raw() != Object::empty_type_arguments().raw()) {
     num_free_params = kCurrentAndEnclosingFree;
-    ASSERT(fn_type_args.IsNull());  // Implicit closure cannot have a parent.
-    fn_type_args = delayed_type_args.raw();
+    fn_type_args = delayed_type_args.Prepend(
+        zone, fn_type_args, sig_fun.NumParentTypeParameters(),
+        sig_fun.NumTypeParameters() + sig_fun.NumParentTypeParameters());
   } else {
     num_free_params = kAllFree;
   }

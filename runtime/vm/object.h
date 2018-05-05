@@ -5755,6 +5755,11 @@ class TypeArguments : public Instance {
     return IsDynamicTypes(true, 0, len);
   }
 
+  RawTypeArguments* Prepend(Zone* zone,
+                            const TypeArguments& other,
+                            intptr_t other_length,
+                            intptr_t total_length) const;
+
   // Check if the subvector of length 'len' starting at 'from_index' of this
   // type argument vector consists solely of DynamicType, ObjectType, or
   // VoidType.
