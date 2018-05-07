@@ -78,27 +78,27 @@ class CompilerStats {
   Timer graphcompiler_timer;   // Included in codegen_timer.
   Timer codefinalizer_timer;   // Included in codegen_timer.
 
-  int64_t num_tokens_total;  // Isolate + VM isolate
-  int64_t num_tokens_scanned;
-  int64_t num_tokens_consumed;
-  int64_t num_cached_consts;
-  int64_t num_const_cache_hits;
-  int64_t num_execute_const;
+  ALIGN8 int64_t num_tokens_total;  // Isolate + VM isolate
+  ALIGN8 int64_t num_tokens_scanned;
+  ALIGN8 int64_t num_tokens_consumed;
+  ALIGN8 int64_t num_cached_consts;
+  ALIGN8 int64_t num_const_cache_hits;
+  ALIGN8 int64_t num_execute_const;
 
-  int64_t num_classes_parsed;
-  int64_t num_class_tokens;
-  int64_t num_functions_parsed;     // Num parsed functions.
-  int64_t num_functions_compiled;   // Num unoptimized compilations.
-  int64_t num_functions_optimized;  // Num optimized compilations.
-  int64_t num_func_tokens_compiled;
-  int64_t num_implicit_final_getters;
-  int64_t num_method_extractors;
+  ALIGN8 int64_t num_classes_parsed;
+  ALIGN8 int64_t num_class_tokens;
+  ALIGN8 int64_t num_functions_parsed;     // Num parsed functions.
+  ALIGN8 int64_t num_functions_compiled;   // Num unoptimized compilations.
+  ALIGN8 int64_t num_functions_optimized;  // Num optimized compilations.
+  ALIGN8 int64_t num_func_tokens_compiled;
+  ALIGN8 int64_t num_implicit_final_getters;
+  ALIGN8 int64_t num_method_extractors;
 
-  int64_t src_length;        // Total number of characters in source.
-  int64_t total_code_size;   // Bytes allocated for code and meta info.
-  int64_t total_instr_size;  // Total size of generated code in bytes.
-  int64_t pc_desc_size;
-  int64_t vardesc_size;
+  ALIGN8 int64_t src_length;        // Total number of characters in source.
+  ALIGN8 int64_t total_code_size;   // Bytes allocated for code and meta info.
+  ALIGN8 int64_t total_instr_size;  // Total size of generated code in bytes.
+  ALIGN8 int64_t pc_desc_size;
+  ALIGN8 int64_t vardesc_size;
   char* text;
   bool use_benchmark_output;
 

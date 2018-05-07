@@ -28,6 +28,9 @@ inline void AtomicOperations::IncrementBy(intptr_t* p, intptr_t value) {
 }
 
 inline void AtomicOperations::IncrementInt64By(int64_t* p, int64_t value) {
+  // Some ARM implementations require 8-byte alignment for atomic access but
+  // not non-atomic access.
+  ASSERT((reinterpret_cast<uword>(p) % 8) == 0);
   __sync_fetch_and_add(p, value);
 }
 
