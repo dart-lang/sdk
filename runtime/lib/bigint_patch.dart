@@ -2628,7 +2628,8 @@ class _BigIntMontgomeryReduction implements _BigIntReduction {
   }
 
   _BigIntImpl _revert(Uint32List xDigits, int xUsed) {
-    var resultDigits = _newDigits(2 * _normModulusUsed);
+    // Reserve enough digits for modulus squaring and accumulator carry.
+    var resultDigits = _newDigits(2 * _normModulusUsed + 2);
     var i = xUsed + (xUsed & 1);
     while (--i >= 0) {
       resultDigits[i] = xDigits[i];
@@ -2640,8 +2641,8 @@ class _BigIntMontgomeryReduction implements _BigIntReduction {
   // x = x/R mod _modulus.
   // Returns xUsed.
   int _reduce(Uint32List xDigits, int xUsed) {
-    while (xUsed < 2 * _normModulusUsed) {
-      // Pad x so _mulAdd has enough room later.
+    while (xUsed < 2 * _normModulusUsed + 2) {
+      // Pad x so _mulAdd has enough room later for a possible carry.
       xDigits[xUsed++] = 0;
     }
     var i = 0;
