@@ -57,7 +57,6 @@ type_promotion_functions_test: CompileTimeError # Issue 30895: This test require
 # errors aren't detected by fasta, but reported by back ends as compile-time
 # errors.
 [ $compiler != dart2js && $runtime != dart_precompiled && $runtime != vm && $fasta ]
-deferred_constraints_constants_test/default_argument2: MissingCompileTimeError
 function_type_parameter2_negative_test: Fail
 function_type_parameter_negative_test: Fail
 implicit_creation/implicit_const_not_default_values_test/e12: MissingCompileTimeError

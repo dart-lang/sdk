@@ -17,6 +17,7 @@ js/*: Skip # TODO(ahe): Make dart:js available.
 
 [ $fasta ]
 isolate/compile_time_error_test/01: MissingCompileTimeError
+mirrors/deferred_constraints_constants_test/default_argument2: MissingCompileTimeError
 mirrors/generic_bounded_by_type_parameter_test/02: MissingCompileTimeError
 mirrors/generic_bounded_test/01: MissingCompileTimeError
 mirrors/generic_bounded_test/02: MissingCompileTimeError
@@ -95,6 +96,7 @@ isolate/spawn_function_custom_class_test: Pass, Crash, Timeout # Crashes with --
 isolate/spawn_uri_nested_vm_test: Pass, Timeout
 isolate/static_function_test: Skip # Times out. Issue 31855. CompileTimeError. Issue 31402
 mirrors/abstract_class_test: RuntimeError
+mirrors/apply3_test: RuntimeError
 mirrors/class_declarations_test/01: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/class_declarations_test/none: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/class_mirror_location_test: RuntimeError
@@ -218,6 +220,7 @@ isolate/request_reply_test: Pass, Timeout
 isolate/stacktrace_message_test: RuntimeError
 mirrors/constructor_optional_args_test: RuntimeError
 mirrors/constructors_test: RuntimeError
+mirrors/deferred_constraints_constants_test/default_argument2: Pass
 mirrors/fake_function_with_call_test: RuntimeError
 mirrors/generic_superclass_test/01: RuntimeError
 mirrors/generic_superclass_test/none: RuntimeError
@@ -235,6 +238,7 @@ mirrors/null_test: RuntimeError
 mirrors/operator_test: RuntimeError
 mirrors/redirecting_factory_different_type_test/02: MissingCompileTimeError
 mirrors/redirecting_factory_different_type_test/none: RuntimeError
+mirrors/redirecting_factory_reflection_test: RuntimeError
 mirrors/regress_16321_test/none: Crash
 mirrors/top_level_accessors_test/01: MissingCompileTimeError
 

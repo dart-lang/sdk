@@ -61,9 +61,9 @@ void main() {
     var h3 = new H3();
 
     // Need to access the metadata to trigger the expected compilation error.
-    reflectClass(H1).metadata; // metadata1: continued
-    reflectClass(H2).metadata; // metadata2: continued
-    reflectClass(H3).metadata; // metadata3: continued
+    reflectClass(H1).metadata; //# metadata1: continued
+    reflectClass(H2).metadata; //# metadata2: continued
+    reflectClass(H3).metadata; //# metadata3: continued
 
     asyncEnd();
   });

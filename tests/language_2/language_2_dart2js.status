@@ -12,7 +12,6 @@ double_identical_test: RuntimeError # Negative and positive zero are distinct, b
 issue23244_test: RuntimeError # Isolates - enum canonicalization - Issue 23244
 library_env_test/has_mirror_support: RuntimeError, OK
 library_env_test/has_no_html_support: RuntimeError, OK
-null_test/mirrors: SkipByDesign # Uses mirrors.
 vm/*: SkipByDesign # Tests for the VM.
 
 [ $compiler != dart2js ]
@@ -284,9 +283,6 @@ covariance_type_parameter_test/02: Crash # NoSuchMethodError: The method 'hasSub
 covariant_override/runtime_check_test: RuntimeError
 covariant_subtyping_test: RuntimeError
 cyclic_constructor_test/01: Crash # Stack Overflow
-deferred_constraints_constants_test/default_argument2: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
-deferred_constraints_constants_test/none: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
-deferred_constraints_constants_test/reference_after_load: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
 deferred_constraints_type_annotation_test/catch_check: MissingCompileTimeError
 deferred_constraints_type_annotation_test/is_check: MissingCompileTimeError
@@ -469,8 +465,6 @@ not_enough_positional_arguments_test/03: MissingCompileTimeError
 not_enough_positional_arguments_test/05: MissingCompileTimeError
 not_enough_positional_arguments_test/06: MissingCompileTimeError
 not_enough_positional_arguments_test/07: MissingCompileTimeError
-null_test/mirrors: RuntimeError
-null_test/none: RuntimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError, OK # non JS number semantics
 override_field_method1_negative_test: Fail
@@ -561,31 +555,8 @@ issue31596_super_test/05: RuntimeError
 issue31596_test: RuntimeError
 
 [ $compiler == dart2js && $fast_startup ]
-const_evaluation_test/*: Fail # mirrors not supported
-deferred_constraints_constants_test: Pass # mirrors not supported, passes for the wrong reason
-deferred_constraints_constants_test/none: Fail # mirrors not supported
-deferred_constraints_constants_test/reference_after_load: Fail # mirrors not supported
-enum_mirror_test: Fail # mirrors not supported
-field_increment_bailout_test: Fail # mirrors not supported
-instance_creation_in_function_annotation_test: Fail # mirrors not supported
-invocation_mirror2_test: Fail # mirrors not supported
-invocation_mirror_invoke_on2_test: Fail # mirrors not supported
-invocation_mirror_invoke_on_test: Fail # mirrors not supported
-issue21079_test: Fail # mirrors not supported
 library_env_test/has_mirror_support: Fail # mirrors not supported
 library_env_test/has_no_mirror_support: Pass # fails for the wrong reason.
-many_overridden_no_such_method_test: Fail # mirrors not supported
-no_such_method_test: Fail # mirrors not supported
-null_test/0*: Pass # mirrors not supported, fails for the wrong reason
-null_test/none: Fail # mirrors not supported
-overridden_no_such_method_test: Fail # mirrors not supported
-redirecting_factory_reflection_test: Fail # mirrors not supported
-regress_13462_0_test: Fail # mirrors not supported
-regress_13462_1_test: Fail # mirrors not supported
-regress_18535_test: Fail # mirrors not supported
-regress_28255_test: Fail # mirrors not supported
-super_call4_test: Fail # mirrors not supported
-super_getter_setter_test: CompileTimeError
 vm/reflect_core_vm_test: Fail # mirrors not supported
 
 [ $compiler == dart2js && $fast_startup && $fasta && $strong ]
@@ -649,9 +620,6 @@ cyclic_type_test/03: RuntimeError
 cyclic_type_test/04: RuntimeError
 cyclic_typedef_test/10: Crash # Crash when compiling file:///usr/local/google/home/sra/Dart/sdk/out/ReleaseX64/generated_tests/language_2/cyclic_typedef_test_10.dart,
 cyclic_typedef_test/11: Crash # Crash when compiling file:///usr/local/google/home/sra/Dart/sdk/out/ReleaseX64/generated_tests/language_2/cyclic_typedef_test_11.dart,
-deferred_constraints_constants_test/default_argument2: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
-deferred_constraints_constants_test/none: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
-deferred_constraints_constants_test/reference_after_load: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
@@ -676,7 +644,6 @@ extract_type_arguments_test: RuntimeError
 f_bounded_quantification4_test: RuntimeError
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
-field_increment_bailout_test: RuntimeError
 field_initialization_order_test/01: MissingCompileTimeError
 field_initialization_order_test/none: RuntimeError
 field_override3_test/00: MissingCompileTimeError
@@ -851,8 +818,6 @@ nosuchmethod_forwarding/nosuchmethod_forwarding_arguments_test: RuntimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError
 null_no_such_method_test: CompileTimeError
-null_test/mirrors: RuntimeError
-null_test/none: RuntimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError, OK # non JS number semantics
 overridden_no_such_method_test: RuntimeError
@@ -1073,8 +1038,6 @@ cyclic_typedef_test/10: Crash # Stack Overflow
 cyclic_typedef_test/11: Crash # Stack Overflow
 default_factory2_test/01: MissingCompileTimeError
 default_factory_test/01: MissingCompileTimeError
-deferred_constraints_constants_test/none: RuntimeError
-deferred_constraints_constants_test/reference_after_load: RuntimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
@@ -1104,7 +1067,6 @@ factory4_test/00: MissingCompileTimeError
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
 field3_test/01: MissingCompileTimeError
-field_increment_bailout_test: RuntimeError
 field_initialization_order_test/01: MissingCompileTimeError
 field_initialization_order_test/none: RuntimeError
 field_override3_test/00: MissingCompileTimeError
@@ -1346,8 +1308,6 @@ nosuchmethod_forwarding/nosuchmethod_forwarding_arguments_test: RuntimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError
 null_no_such_method_test: CompileTimeError
-null_test/mirrors: RuntimeError
-null_test/none: RuntimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError, OK # non JS number semantics
 operator2_negative_test: Crash # 'file:*/pkg/compiler/lib/src/kernel/env.dart': Failed assertion: line 322 pos 16: '!name.contains('#')': is not true.
@@ -1417,8 +1377,6 @@ string_interpolation_and_buffer_test: RuntimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
-super_call4_test: CompileTimeError
-super_getter_setter_test: CompileTimeError
 super_no_such_method1_test: CompileTimeError
 super_no_such_method2_test: CompileTimeError
 super_no_such_method3_test: CompileTimeError
@@ -1654,8 +1612,6 @@ cyclic_typedef_test/10: Crash # Stack Overflow
 cyclic_typedef_test/11: Crash # Stack Overflow
 default_factory2_test/01: MissingCompileTimeError
 default_factory_test/01: MissingCompileTimeError
-deferred_constraints_constants_test/none: RuntimeError
-deferred_constraints_constants_test/reference_after_load: RuntimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
@@ -1685,7 +1641,6 @@ factory4_test/00: MissingCompileTimeError
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
 field3_test/01: MissingCompileTimeError
-field_increment_bailout_test: RuntimeError
 field_initialization_order_test/01: MissingCompileTimeError
 field_initialization_order_test/none: RuntimeError
 field_override3_test/00: MissingCompileTimeError
@@ -1929,8 +1884,6 @@ nosuchmethod_forwarding/nosuchmethod_forwarding_arguments_test: RuntimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError
 null_no_such_method_test: CompileTimeError
-null_test/mirrors: RuntimeError
-null_test/none: RuntimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError, OK # non JS number semantics
 overridden_no_such_method_test: RuntimeError
@@ -1998,8 +1951,6 @@ string_interpolation_and_buffer_test: RuntimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
-super_call4_test: CompileTimeError
-super_getter_setter_test: CompileTimeError
 super_no_such_method1_test: CompileTimeError
 super_no_such_method2_test: CompileTimeError
 super_no_such_method3_test: CompileTimeError

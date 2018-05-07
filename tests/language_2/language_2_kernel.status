@@ -665,8 +665,6 @@ string_interpolation_and_buffer_test: RuntimeError # Issue 31402 (Return and yie
 string_split_test: CompileTimeError # Issue 31616
 string_supertype_checked_test: CompileTimeError # Issue 31616
 super_bound_closure_test/none: CompileTimeError # Issue 31533
-super_call4_test: CompileTimeError
-super_getter_setter_test: CompileTimeError
 super_no_such_method1_test: CompileTimeError
 super_no_such_method2_test: CompileTimeError
 super_no_such_method3_test: CompileTimeError
@@ -894,10 +892,6 @@ cyclic_typedef_test/11: Crash # Issue 32416.
 deep_nesting1_negative_test: Skip # Issue 31158
 deep_nesting2_negative_test: Skip # Issue 31158
 deferred_call_empty_before_load_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
-deferred_constraints_constants_test: SkipByDesign
-deferred_constraints_constants_test/default_argument2: Pass # Passes by mistake. KernelVM bug: Deferred loading kernel issue 30273.
-deferred_constraints_constants_test/none: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
-deferred_constraints_constants_test/reference_after_load: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 deferred_load_constants_test/none: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
 deferred_load_library_wrong_args_test/01: Pass # Passes by mistake. KernelVM bug: Deferred loading kernel issue 30273.
 deferred_not_loaded_check_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
@@ -1057,8 +1051,6 @@ string_interpolation_and_buffer_test: RuntimeError # Issue 31402 (Return and yie
 string_split_test: CompileTimeError # Issue 31616
 string_supertype_checked_test: CompileTimeError # Issue 31616
 super_bound_closure_test/none: CompileTimeError # Issue 31533
-super_call4_test: CompileTimeError
-super_getter_setter_test: CompileTimeError
 super_no_such_method1_test: CompileTimeError
 super_no_such_method2_test: CompileTimeError
 super_no_such_method3_test: CompileTimeError
@@ -1257,8 +1249,6 @@ string_interpolate_test: CompileTimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
-super_call4_test: CompileTimeError
-super_getter_setter_test: CompileTimeError
 super_no_such_method1_test: CompileTimeError
 super_no_such_method2_test: CompileTimeError
 super_no_such_method3_test: CompileTimeError
@@ -2020,6 +2010,7 @@ string_test/01: MissingCompileTimeError
 substring_test/01: MissingCompileTimeError
 super_assign_test/01: MissingCompileTimeError
 super_bound_closure_test/01: MissingCompileTimeError
+super_call4_test/01: MissingCompileTimeError
 super_operator_index_test/01: MissingCompileTimeError
 super_operator_index_test/02: MissingCompileTimeError
 super_operator_index_test/03: MissingCompileTimeError

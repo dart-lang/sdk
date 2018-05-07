@@ -5,7 +5,6 @@
 
 library OverriddenNoSuchMethodTest.dart;
 
-import "dart:mirrors" show reflect;
 import "package:expect/expect.dart";
 part "overridden_no_such_method.dart";
 
