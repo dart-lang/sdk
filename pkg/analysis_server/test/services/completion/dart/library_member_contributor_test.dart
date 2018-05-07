@@ -161,11 +161,7 @@ main() {
     assertNotSuggested('B');
   }
 
-  @failingTest
   test_PrefixedIdentifier_library_import_withShow() async {
-    // As it is designed now, I think we should not suggest B.
-    // However an alternative design could be suggesting it, but updating show.
-    // This could be a part of project-wide suggesting and auto-importing.
     addSource('/a.dart', r'''
 class A {}
 class B {}

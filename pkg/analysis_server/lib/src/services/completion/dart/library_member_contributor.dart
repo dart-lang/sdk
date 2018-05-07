@@ -57,7 +57,7 @@ class LibraryMemberContributor extends DartCompletionContributor {
           LibraryElementSuggestionBuilder builder =
               new LibraryElementSuggestionBuilder(containingLibrary,
                   CompletionSuggestionKind.INVOCATION, typesOnly, instCreation);
-          for (var element in library.exportNamespace.definedNames.values) {
+          for (var element in importElem.namespace.definedNames.values) {
             element.accept(builder);
           }
           suggestions.addAll(builder.suggestions);

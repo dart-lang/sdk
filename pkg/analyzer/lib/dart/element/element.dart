@@ -1458,6 +1458,11 @@ abstract class ImportElement implements Element, UriReferencedElement {
   bool get isDeferred;
 
   /**
+   * The [Namespace] that this directive contributes to the containing library.
+   */
+  Namespace get namespace;
+
+  /**
    * Return the prefix that was specified as part of the import directive, or
    * `null` if there was no prefix specified.
    */

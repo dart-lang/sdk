@@ -5791,6 +5791,11 @@ class ImportElementImpl extends UriReferencedElementImpl
   String _selectedUri;
 
   /**
+   * The cached value of [namespace].
+   */
+  Namespace _namespace;
+
+  /**
    * Initialize a newly created import element at the given [offset].
    * The offset may be `-1` if the import is synthetic.
    */
@@ -5937,6 +5942,12 @@ class ImportElementImpl extends UriReferencedElementImpl
       return _unlinkedImport.offset;
     }
     return offset;
+  }
+
+  @override
+  Namespace get namespace {
+    return _namespace ??=
+        new NamespaceBuilder().createImportNamespaceForDirective(this);
   }
 
   PrefixElement get prefix {

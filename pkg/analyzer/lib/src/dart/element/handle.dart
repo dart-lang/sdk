@@ -763,6 +763,9 @@ class ImportElementHandle extends ElementHandle implements ImportElement {
   ElementKind get kind => ElementKind.IMPORT;
 
   @override
+  Namespace get namespace => actualElement.namespace;
+
+  @override
   PrefixElement get prefix => actualElement.prefix;
 
   @override

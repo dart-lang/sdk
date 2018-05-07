@@ -4263,8 +4263,7 @@ class ImportsVerifier {
       // the map.
       ImportElement importElement = importDirective.element;
       if (importElement != null) {
-        NamespaceBuilder builder = new NamespaceBuilder();
-        namespace = builder.createImportNamespaceForDirective(importElement);
+        namespace = importElement.namespace;
         _namespaceMap[importDirective] = namespace;
       }
     }

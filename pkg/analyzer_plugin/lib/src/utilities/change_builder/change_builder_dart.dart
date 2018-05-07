@@ -865,9 +865,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
    * Return the namespace added by the given import [element].
    */
   Map<String, Element> _getImportNamespace(ImportElement element) {
-    NamespaceBuilder builder = new NamespaceBuilder();
-    Namespace namespace = builder.createImportNamespaceForDirective(element);
-    return namespace.definedNames;
+    return element.namespace.definedNames;
   }
 
   /**

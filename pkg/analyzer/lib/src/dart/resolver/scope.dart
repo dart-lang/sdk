@@ -488,13 +488,11 @@ class LibraryImportScope extends Scope {
    * later reference.
    */
   void _createImportedNamespaces() {
-    NamespaceBuilder builder = new NamespaceBuilder();
     List<ImportElement> imports = _definingLibrary.imports;
     int count = imports.length;
     _importedNamespaces = new List<Namespace>(count);
     for (int i = 0; i < count; i++) {
-      _importedNamespaces[i] =
-          builder.createImportNamespaceForDirective(imports[i]);
+      _importedNamespaces[i] = imports[i].namespace;
     }
   }
 
