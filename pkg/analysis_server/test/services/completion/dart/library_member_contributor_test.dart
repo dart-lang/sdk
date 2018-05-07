@@ -142,6 +142,45 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('==');
   }
 
+  test_PrefixedIdentifier_library_export_withShow() async {
+    addSource('/a.dart', r'''
+class A {}
+class B {}
+''');
+    addSource('/b.dart', r'''
+export 'a.dart' show A;
+''');
+    addTestSource(r'''
+import 'b.dart' as p;
+main() {
+  p.^
+}
+''');
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertNotSuggested('B');
+  }
+
+  @failingTest
+  test_PrefixedIdentifier_library_import_withShow() async {
+    // As it is designed now, I think we should not suggest B.
+    // However an alternative design could be suggesting it, but updating show.
+    // This could be a part of project-wide suggesting and auto-importing.
+    addSource('/a.dart', r'''
+class A {}
+class B {}
+''');
+    addTestSource(r'''
+import 'a.dart' as p show A;
+main() {
+  p.^
+}
+''');
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertNotSuggested('B');
+  }
+
   test_PrefixedIdentifier_library_inPart() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     var libFile = '${testFile.substring(0, testFile.length - 5)}A.dart';

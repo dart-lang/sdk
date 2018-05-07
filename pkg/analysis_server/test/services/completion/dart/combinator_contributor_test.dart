@@ -123,6 +123,24 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('Object');
   }
 
+  test_Combinator_show_export_withShow() async {
+    addSource('/a.dart', r'''
+class A {}
+class B {}
+''');
+    addSource('/b.dart', r'''
+export 'a.dart' show A;
+''');
+    addTestSource(r'''
+import 'b.dart' show ^;
+''');
+    await computeSuggestions();
+    assertSuggestClass('A',
+        relevance: DART_RELEVANCE_DEFAULT,
+        kind: CompletionSuggestionKind.IDENTIFIER);
+    assertNotSuggested('B');
+  }
+
   test_Combinator_show_PI() async {
     addTestSource('import "dart:math" show ^;');
     await computeSuggestions();

@@ -32,7 +32,9 @@ class CombinatorContributor extends DartCompletionContributor {
         LibraryElementSuggestionBuilder builder =
             new LibraryElementSuggestionBuilder(request.libraryElement,
                 CompletionSuggestionKind.IDENTIFIER, false, false);
-        library.visitChildren(builder);
+        for (var element in library.exportNamespace.definedNames.values) {
+          element.accept(builder);
+        }
         return builder.suggestions;
       }
     }

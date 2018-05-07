@@ -211,20 +211,14 @@ abstract class ElementSuggestionBuilder {
 }
 
 /**
- * This class visits elements in a library and provides suggestions based upon
- * the visible members in that library.
+ * This class creates suggestions based upon top-level elements.
  */
-class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
+class LibraryElementSuggestionBuilder extends SimpleElementVisitor
     with ElementSuggestionBuilder {
   final LibraryElement containingLibrary;
   final CompletionSuggestionKind kind;
   final bool typesOnly;
   final bool instCreation;
-
-  /**
-   * The set of libraries that have been, or are currently being, visited.
-   */
-  final Set<LibraryElement> visitedLibraries = new Set<LibraryElement>();
 
   LibraryElementSuggestionBuilder(
       this.containingLibrary, this.kind, this.typesOnly, this.instCreation);
@@ -239,17 +233,6 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   }
 
   @override
-  visitCompilationUnitElement(CompilationUnitElement element) {
-    element.visitChildren(this);
-    LibraryElement containingLibrary = element.library;
-    if (containingLibrary != null) {
-      for (var lib in containingLibrary.exportedLibraries) {
-        lib.accept(this);
-      }
-    }
-  }
-
-  @override
   visitConstructorElement(ConstructorElement element) {
     if (instCreation) {
       ClassElement classElem = element.enclosingElement;
@@ -260,11 +243,6 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
         }
       }
     }
-  }
-
-  @override
-  visitElement(Element element) {
-    // ignored
   }
 
   @override
@@ -285,19 +263,13 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   }
 
   @override
-  visitLibraryElement(LibraryElement element) {
-    if (visitedLibraries.add(element)) {
-      element.visitChildren(this);
-    }
-  }
-
-  @override
-  visitTopLevelVariableElement(TopLevelVariableElement element) {
+  visitPropertyAccessorElement(PropertyAccessorElement element) {
     if (!typesOnly) {
-      int relevance = element.library == containingLibrary
+      PropertyInducingElement variable = element.variable;
+      int relevance = variable.library == containingLibrary
           ? DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE
           : DART_RELEVANCE_DEFAULT;
-      addSuggestion(element, relevance: relevance);
+      addSuggestion(variable, relevance: relevance);
     }
   }
 }
