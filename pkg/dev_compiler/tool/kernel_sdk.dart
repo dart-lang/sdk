@@ -15,7 +15,6 @@ import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/kernel_generator.dart';
 import 'package:kernel/kernel.dart';
 import 'package:path/path.dart' as path;
-import 'patch_sdk.dart' as patch_sdk;
 
 Future main(List<String> args) async {
   // Parse flags.
@@ -28,9 +27,7 @@ Future main(List<String> args) async {
   var outputPath =
       path.absolute(rest.length > 0 ? rest[0] : 'gen/sdk/kernel/ddc_sdk.dill');
 
-  patch_sdk.main(['../..', 'tool/input_sdk', 'gen/patched_sdk']);
-
-  var inputPath = path.absolute('gen/patched_sdk');
+  var inputPath = path.absolute('tool/input_sdk');
   var target = new DevCompilerTarget();
   var options = new CompilerOptions()
     ..compileSdk = true

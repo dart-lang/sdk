@@ -6,6 +6,8 @@
 
 import 'dart:_js_helper' show patch, ForceInline;
 import 'dart:_foreign_helper' show JS;
+import 'dart:async';
+import 'dart:isolate';
 
 @patch
 @ForceInline()

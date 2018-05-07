@@ -5,6 +5,7 @@
 // Patch file for the dart:isolate library.
 
 import 'dart:_js_helper' show patch, NoReifyGeneric;
+import 'dart:async';
 
 @patch
 class Isolate {
