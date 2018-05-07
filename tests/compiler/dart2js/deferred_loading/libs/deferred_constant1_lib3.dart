@@ -4,6 +4,7 @@
 
 library deferred_constants1_lib3;
 
+/*class: C:OutputUnit(main, {})*/
 class C {
   /*element: C.value:OutputUnit(main, {})*/
   final value;

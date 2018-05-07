@@ -34,10 +34,13 @@ main(List<String> args) {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(
         dataDir, computeAstOutputUnitData, computeKernelOutputUnitData,
+        computeClassDataFromAst: computeAstClassOutputUnitData,
+        computeClassDataFromKernel: computeKernelClassOutputUnitData,
         libDirectory: new Directory.fromUri(Platform.script.resolve('libs')),
         skipForKernel: skipForKernel,
         options: compilerOptions,
-        args: args, setUpFunction: () {
+        args: args,
+        testOmit: true, setUpFunction: () {
       importPrefixes.clear();
     });
   });
@@ -107,6 +110,17 @@ void computeAstOutputUnitData(
   }
 }
 
+void computeAstClassOutputUnitData(
+    Compiler compiler, ClassEntity _cls, Map<Id, ActualData> actualMap,
+    {bool verbose: false}) {
+  ClassElement cls = _cls;
+  OutputUnitData data = compiler.backend.outputUnitData;
+  String value = outputUnitString(data.outputUnitForEntity(cls));
+
+  _registerValue(new ClassId(cls.name), value, cls, cls.sourcePosition,
+      actualMap, compiler.reporter);
+}
+
 /// OutputData for [member] as a kernel based element.
 ///
 /// At this point the compiler has already been run, so it is holding the
@@ -155,6 +169,25 @@ void computeKernelOutputUnitData(
         actualMap,
         compiler.reporter);
   }
+}
+
+void computeKernelClassOutputUnitData(
+    Compiler compiler, ClassEntity cls, Map<Id, ActualData> actualMap,
+    {bool verbose: false}) {
+  OutputUnitData data = compiler.backend.outputUnitData;
+  String value = outputUnitString(data.outputUnitForEntity(cls));
+
+  KernelBackendStrategy backendStrategy = compiler.backendStrategy;
+  KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+  ClassDefinition definition = elementMap.getClassDefinition(cls);
+
+  _registerValue(
+      new ClassId(cls.name),
+      value,
+      cls,
+      computeSourceSpanFromTreeNode(definition.node),
+      actualMap,
+      compiler.reporter);
 }
 
 /// Set [actualMap] to hold a key of [id] with the computed data [value]

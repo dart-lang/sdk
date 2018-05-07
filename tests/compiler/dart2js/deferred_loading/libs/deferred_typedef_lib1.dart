@@ -4,6 +4,7 @@
 
 library deferred_typedef_lib1;
 
+/*class: C:OutputUnit(1, {lib1})*/
 class C {
   /*element: C.a:OutputUnit(1, {lib1})*/
   final a;

@@ -2,11 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*class: C:OutputUnit(1, {s1, s2})*/
-class C {
-  /*element: C.:OutputUnit(1, {s1, s2})*/
-  const C();
+import 'type_argument_dependency_lib2.dart';
 
-  /*element: C.method:OutputUnit(1, {s1, s2})*/
-  method() => print("1");
-}
+/*element: doCast:OutputUnit(main, {})*/
+doCast(List<dynamic> l) => l.cast<B>().map((x) => 1);
