@@ -27,8 +27,8 @@ class UnresolvedType<T extends TypeBuilder> {
 
   /// Performs checks on the type after it's resolved.
   void checkType() {
-    if (builder is NamedTypeBuilder) {
-      NamedTypeBuilder resolvedType = builder as NamedTypeBuilder;
+    TypeBuilder resolvedType = builder;
+    if (resolvedType is NamedTypeBuilder) {
       TypeDeclarationBuilder declaration = resolvedType.builder;
       if (declaration is ClassBuilder) {
         if (resolvedType.arguments != null &&
@@ -47,6 +47,27 @@ class UnresolvedType<T extends TypeBuilder> {
               fileUri,
               templateTypeArgumentMismatch.withArguments(
                   resolvedType.name, "${declaration.typeVariablesCount}"));
+        }
+      }
+    }
+  }
+
+  /// Normalizes the type arguments in accordance with Dart 1 semantics.
+  void normalizeType() {
+    TypeBuilder resolvedType = builder;
+    if (resolvedType is NamedTypeBuilder) {
+      TypeDeclarationBuilder declaration = resolvedType.builder;
+      if (declaration is ClassBuilder) {
+        if (resolvedType.arguments != null &&
+            resolvedType.arguments.length != declaration.typeVariablesCount) {
+          // [resolveType.arguments] will be normalized later if they are null.
+          resolvedType.arguments = null;
+        }
+      } else if (declaration is FunctionTypeAliasBuilder) {
+        if (resolvedType.arguments != null &&
+            resolvedType.arguments.length != declaration.typeVariablesCount) {
+          // [resolveType.arguments] will be normalized later if they are null.
+          resolvedType.arguments = null;
         }
       }
     }

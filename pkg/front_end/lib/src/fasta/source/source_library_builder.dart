@@ -678,6 +678,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       t.resolveIn(scope);
       if (loader.target.strongMode) {
         t.checkType();
+      } else {
+        t.normalizeType();
       }
     }
     types.clear();
