@@ -29,7 +29,7 @@ abstract class OptionalSettableObservableModel<T>
 
 class FooObservableModel extends OptionalSettableObservableModel<int> {}
 
-void main() async {
+Future<void> main() async {
   var model = new FooObservableModel();
   await model.asyncValue;
 }
