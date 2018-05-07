@@ -19,7 +19,7 @@ abstract class ObservableModel<T> {}
 abstract class AsyncValueMixin<T> {
   Future<T> get asyncValue {
     ConvertFunction<T> f = blockingLatest;
-    (f as ConvertFunction<T>);
+    if (f is! ConvertFunction<T>) throw "error";
     return null;
   }
 }
@@ -31,5 +31,5 @@ class FooObservableModel extends OptionalSettableObservableModel<int> {}
 
 void main() async {
   var model = new FooObservableModel();
-  final value = await model.asyncValue;
+  await model.asyncValue;
 }
