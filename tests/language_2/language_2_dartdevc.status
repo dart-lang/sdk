@@ -733,7 +733,6 @@ numbers_test: RuntimeError # Issue 29920; Expect.equals(expected: <false>, actua
 overridden_no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented; UnimplementedError: JsInstanceMirror.delegate unimplemented
 override_field_test/03: MissingCompileTimeError
 parser_quirks_test: CompileTimeError
-private3_test: RuntimeError # Type 'PrivateSymbol' is not a subtype of type 'Symbol' in strong mode
 regress_16640_test: RuntimeError # Issue 29920; Uncaught Error: type arguments should not be null: E => {
 regress_22443_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
 regress_27617_test/1: MissingCompileTimeError
