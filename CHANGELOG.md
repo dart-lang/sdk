@@ -14,6 +14,8 @@
 
 #### Pub
 
+* Retry on 500 errors from the pub server.
+
 #### Other Tools
 
 ## 2.0.0-dev.53.0
