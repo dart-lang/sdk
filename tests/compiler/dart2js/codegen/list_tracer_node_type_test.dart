@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// TODO(johnniwinther): Move this to the codegen folder. Currently this only
-/// works with the mock compiler.
+/// TODO(johnniwinther): Currently this only works with the mock compiler.
 
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
@@ -70,47 +69,59 @@ main() {
 }
 
 main() {
-  asyncTest(() => compileAll(TEST1).then((generated) {
-        Expect.isTrue(generated.contains('if (typeof t1'));
-      }));
+  asyncTest(() async {
+    String generated1 =
+        await compileAll(TEST1, compileMode: CompileMode.memory);
+    Expect.isTrue(generated1.contains('if (typeof t1'));
 
-  asyncTest(() => compileAll(TEST2).then((generated) {
-        Expect.isTrue(generated.contains('if (typeof t1'));
-      }));
+    String generated2 =
+        await compileAll(TEST2, compileMode: CompileMode.memory);
+    Expect.isTrue(generated2.contains('if (typeof t1'));
 
-  asyncTest(() => compileAll(TEST3).then((generated) {
-        Expect.isTrue(generated.contains('if (typeof t1'));
-      }));
+    String generated3 =
+        await compileAll(TEST3, compileMode: CompileMode.memory);
+    Expect.isTrue(generated3.contains('if (typeof t1'));
 
-  asyncTest(() => compileAll(TEST4).then((generated) {
-        Expect.isTrue(generated.contains('if (typeof t1'));
-      }));
+    String generated4 =
+        await compileAll(TEST4, compileMode: CompileMode.memory);
+    Expect.isTrue(generated4.contains('if (typeof t1'));
 
-  asyncTest(() => compileAll(TEST5).then((generated) {
-        Expect.isFalse(generated.contains('iae'));
-      }));
+    String generated5 =
+        await compileAll(TEST5, compileMode: CompileMode.memory);
+    Expect.isFalse(generated5.contains('iae'));
 
-  asyncTest(() => compileAll(TEST6).then((generated) {
-        Expect.isFalse(generated.contains('iae'));
-      }));
+    String generated6 =
+        await compileAll(TEST6, compileMode: CompileMode.memory);
+    Expect.isFalse(generated6.contains('iae'));
 
-  var memberInvocations = const <String>[
-    'first',
-    'last',
-    'single',
-    'singleWhere((x) => true)',
-    'elementAt(0)',
-    'removeAt(0)',
-    'removeLast()',
-  ];
-  memberInvocations
-      .map((member) => generateTest('$member'))
-      .forEach((String test) {
-    asyncTest(() => compileAll(test, expectedErrors: 0, expectedWarnings: 0)
-            .then((generated) {
-          Expect.isTrue(generated.contains('+ 42'));
-          Expect.isFalse(generated.contains('if (typeof t1'));
-          Expect.isFalse(generated.contains('if (t1 == null)'));
-        }));
+    var memberInvocations = const <String>[
+      'first',
+      'last',
+      'single',
+      'singleWhere((x) => true)',
+      'elementAt(0)',
+      'removeAt(0)',
+      'removeLast()',
+    ];
+    for (String member in memberInvocations) {
+      String generated = await compileAll(generateTest('$member'),
+          expectedErrors: 0,
+          expectedWarnings: 0,
+          compileMode: CompileMode.memory);
+      Expect.isTrue(
+          generated.contains('+ 42'),
+          "Missing '+ 42' code for invocation '$member':\n"
+          "$generated");
+      // TODO(johnniwinther): Update this test to query the generated code for
+      // main only.
+      /*Expect.isFalse(
+          generated.contains('if (typeof t1'),
+          "Unexpected 'if (typeof t1' code for invocation '$member':\n"
+          "$generated");
+      Expect.isFalse(
+          generated.contains('if (t1 == null)'),
+          "Unexpected 'if (t1 == null)' code for invocation '$member':\n"
+          "$generated");*/
+    }
   });
 }

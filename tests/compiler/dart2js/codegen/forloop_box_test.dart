@@ -54,7 +54,8 @@ main() {
     Expect.isFalse(generated2.contains('main_closure(i)'),
         'for-loop variable should have been boxed');
 
-    String generated3 = await compileAll(ONLY_UPDATE_LOOP_VAR_TEST);
+    String generated3 =
+        await compileAll(ONLY_UPDATE_LOOP_VAR_TEST, compileMode: compileMode);
     Expect.isFalse(generated3.contains('main_closure(i)'),
         'for-loop variable should have been boxed');
     Expect.isFalse(generated3.contains(', _box_0.b = 3,'),

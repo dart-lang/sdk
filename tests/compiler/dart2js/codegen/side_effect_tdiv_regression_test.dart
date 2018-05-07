@@ -25,15 +25,15 @@ main() {
 void main() {
   runTest({bool useKernel}) async {
     String generated = await compileAll(TEST,
-        compileMode: useKernel ? CompileMode.kernel : CompileMode.mock);
-    Expect.isTrue(generated.contains('return c + c;'));
+        compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+    Expect.isTrue(generated.contains('return c + c;'),
+        "Expected generated code to contain 'return c + c;':\n$generated");
   }
 
   asyncTest(() async {
     print('--test from ast---------------------------------------------------');
     await runTest(useKernel: false);
-    // TODO(johnniwinther): This test only works with the mock compiler.
-    //print('--test from kernel----------------------------------------------');
-    //await runTest(useKernel: true);
+    print('--test from kernel----------------------------------------------');
+    await runTest(useKernel: true);
   });
 }

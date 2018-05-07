@@ -34,22 +34,18 @@ import 'package:compiler/src/compiler.dart' show Compiler;
 
 export 'package:compiler/src/tree/tree.dart';
 
-import 'old_frontend/mock_compiler.dart';
-export 'old_frontend/mock_compiler.dart';
-
 import 'memory_compiler.dart';
 
 import 'output_collector.dart';
 export 'output_collector.dart';
 
-enum CompileMode { mock, memory, kernel }
+enum CompileMode { memory, kernel }
 
-/// Compile [code] and returns either the code for [methodName] or, if [returnAll] is
-/// true, the code for the entire program.
+/// Compile [code] and returns either the code for [methodName] or, if
+/// [returnAll] is true, the code for the entire program.
 ///
 /// If [check] is provided, it is executed on the code for [entry] before
-/// returning. If [useMock] is `true` the [MockCompiler] is used for
-/// compilation, otherwise the memory compiler is used.
+/// returning.
 Future<String> compile(String code,
     {String entry: 'main',
     String methodName,
@@ -116,85 +112,35 @@ Future<String> compileAll(String code,
     bool minify: false,
     int expectedErrors,
     int expectedWarnings,
-    CompileMode compileMode: CompileMode.mock}) async {
+    CompileMode compileMode: CompileMode.memory}) async {
   OutputCollector outputCollector = new OutputCollector();
-  if (compileMode == CompileMode.mock) {
-    Uri uri = new Uri(scheme: 'source');
-    MockCompiler compiler = mockCompilerFor(code, uri,
-        coreSource: coreSource,
-        disableInlining: disableInlining,
-        minify: minify,
-        expectedErrors: expectedErrors,
-        trustTypeAnnotations: trustTypeAnnotations,
-        expectedWarnings: expectedWarnings,
-        outputProvider: outputCollector);
-    compiler.diagnosticHandler = createHandler(compiler, code);
-    bool compilationSucceeded = await compiler.run(uri);
-    Expect.isTrue(
-        compilationSucceeded,
-        'Unexpected compilation error(s): '
-        '${compiler.diagnosticCollector.errors}');
-  } else {
-    DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
-    if (coreSource != null) {
-      throw new UnsupportedError(
-          'coreSource is not supported for $compileMode');
-    }
-    List<String> options = <String>[];
-    if (disableInlining) {
-      options.add(Flags.disableInlining);
-    }
-    if (trustTypeAnnotations) {
-      options.add(Flags.trustTypeAnnotations);
-    }
-    if (minify) {
-      options.add(Flags.minify);
-    }
-    if (compileMode == CompileMode.kernel) {
-      options.add(Flags.useKernel);
-    }
-    CompilationResult result = await runCompiler(
-        memorySourceFiles: {'main.dart': code},
-        options: options,
-        outputProvider: outputCollector,
-        diagnosticHandler: diagnosticCollector);
-    Expect.isTrue(
-        result.isSuccess,
-        'Unexpected compilation error(s): '
-        '${diagnosticCollector.errors}');
+  DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
+  if (coreSource != null) {
+    throw new UnsupportedError('coreSource is not supported for $compileMode');
   }
+  List<String> options = <String>[];
+  if (disableInlining) {
+    options.add(Flags.disableInlining);
+  }
+  if (trustTypeAnnotations) {
+    options.add(Flags.trustTypeAnnotations);
+  }
+  if (minify) {
+    options.add(Flags.minify);
+  }
+  if (compileMode == CompileMode.kernel) {
+    options.add(Flags.useKernel);
+  }
+  CompilationResult result = await runCompiler(
+      memorySourceFiles: {'main.dart': code},
+      options: options,
+      outputProvider: outputCollector,
+      diagnosticHandler: diagnosticCollector);
+  Expect.isTrue(
+      result.isSuccess,
+      'Unexpected compilation error(s): '
+      '${diagnosticCollector.errors}');
   return outputCollector.getOutput('', OutputType.js);
-}
-
-Future analyzeAndCheck(
-    String code, String name, check(MockCompiler compiler, Element element),
-    {int expectedErrors, int expectedWarnings}) {
-  Uri uri = new Uri(scheme: 'source');
-  MockCompiler compiler = mockCompilerFor(code, uri,
-      expectedErrors: expectedErrors,
-      expectedWarnings: expectedWarnings,
-      analyzeOnly: true);
-  return compiler.run(uri).then((_) {
-    Element element = findElement(compiler, name);
-    return check(compiler, element);
-  });
-}
-
-Future compileSources(
-    Map<String, String> sources, check(MockCompiler compiler)) {
-  Uri base = new Uri(scheme: 'source', path: '/');
-  Uri mainUri = base.resolve('main.dart');
-  String mainCode = sources['main.dart'];
-  Expect.isNotNull(mainCode, 'No source code found for "main.dart"');
-  MockCompiler compiler = mockCompilerFor(mainCode, mainUri);
-  sources.forEach((String path, String code) {
-    if (path == 'main.dart') return;
-    compiler.registerSource(base.resolve(path), code);
-  });
-
-  return compiler.run(mainUri).then((_) {
-    return check(compiler);
-  });
 }
 
 Element findElement(compiler, String name, [Uri library]) {
