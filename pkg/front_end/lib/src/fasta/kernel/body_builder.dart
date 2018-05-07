@@ -1802,15 +1802,17 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     Object typeArguments = pop();
     DartType typeArgument;
     if (typeArguments != null) {
-      typeArgument = forest.getTypeAt(typeArguments, 0);
       if (forest.getTypeCount(typeArguments) > 1) {
-        typeArgument = null;
         addProblem(
             fasta.messageListLiteralTooManyTypeArguments,
             offsetForToken(beginToken),
             lengthOfSpan(beginToken, beginToken.endGroup));
-      } else if (library.loader.target.strongMode) {
-        typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass);
+      } else {
+        typeArgument = forest.getTypeAt(typeArguments, 0);
+        if (library.loader.target.strongMode) {
+          typeArgument =
+              instantiateToBounds(typeArgument, coreTypes.objectClass);
+        }
       }
     }
     push(forest.literalList(
@@ -1850,35 +1852,34 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     debugEvent("LiteralMap");
     List entries = forest.mapEntryList(count);
     popList(count, entries);
-    List<DartType> typeArguments = pop();
+    Object typeArguments = pop();
     DartType keyType;
     DartType valueType;
     if (typeArguments != null) {
-      if (typeArguments.length != 2) {
-        keyType = null;
-        valueType = null;
+      if (forest.getTypeCount(typeArguments) != 2) {
         addProblem(
             fasta.messageListLiteralTypeArgumentMismatch,
             offsetForToken(beginToken),
             lengthOfSpan(beginToken, beginToken.endGroup));
       } else {
+        keyType = forest.getTypeAt(typeArguments, 0);
+        valueType = forest.getTypeAt(typeArguments, 1);
         if (library.loader.target.strongMode) {
-          keyType =
-              instantiateToBounds(typeArguments[0], coreTypes.objectClass);
-          valueType =
-              instantiateToBounds(typeArguments[1], coreTypes.objectClass);
-        } else {
-          keyType = typeArguments[0];
-          valueType = typeArguments[1];
+          keyType = instantiateToBounds(keyType, coreTypes.objectClass);
+          valueType = instantiateToBounds(valueType, coreTypes.objectClass);
         }
       }
     }
 
     push(forest.literalMap(
+        constKeyword,
+        constKeyword != null || constantContext == ConstantContext.inferred,
         keyType,
         valueType,
+        typeArguments,
+        beginToken,
         entries,
-        constKeyword != null || constantContext == ConstantContext.inferred,
+        endToken,
         constKeyword ?? beginToken));
   }
 
@@ -2019,9 +2020,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     DartType type = pop();
     Expression operand = popForValue();
     bool isInverted = not != null;
-    Expression isExpression = isInverted
-        ? new ShadowIsNotExpression(operand, type, offsetForToken(operator))
-        : forest.isExpression(operand, type, operator);
+    Expression isExpression = forest.isExpression(operand, operator, not, type);
     if (operand is VariableGet) {
       typePromoter.handleIsCheck(isExpression, isInverted, operand.variable,
           type, functionNestingLevel);
@@ -2058,7 +2057,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     Expression condition = pop();
     typePromoter.exitConditional();
     push(forest.conditionalExpression(
-        condition, thenExpression, elseExpression, question));
+        condition, question, thenExpression, colon, elseExpression));
   }
 
   @override

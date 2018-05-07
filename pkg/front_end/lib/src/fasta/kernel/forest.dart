@@ -9,6 +9,8 @@ import 'package:kernel/ast.dart' as kernel show Arguments;
 import 'package:kernel/ast.dart';
 
 /// A tree factory.
+///
+/// For now, the [Location] is always a token.
 abstract class Forest<Expression, Statement, Location, Arguments> {
   Arguments arguments(List<Expression> positional, Location location,
       {covariant List types, covariant List named});
@@ -60,8 +62,31 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
       Location rightBracket,
       Location location);
 
-  Expression literalMap(covariant keyType, covariant valueType,
-      covariant List entries, bool isConst, Location location);
+  /// Return a representation of a map literal. The [constKeyword] is the
+  /// location of the `const` keyword, or `null` if there is no keyword. The
+  /// [isConst] is `true` if either the `const` keyword is not-`null` or if the
+  /// map literal is in a const context. The [keyType] is the representation of
+  /// the first type argument preceding the map literal, or `null` if there are
+  /// not exactly two type arguments or if the first type argument cannot be
+  /// resolved. The [valueType] is the representation of the second type
+  /// argument preceding the map literal, or `null` if there are not exactly two
+  /// type arguments or if the second type argument cannot be resolved. The
+  /// [typeArguments] is the representation of all of the type arguments
+  /// preceding the map literal, or `null` if there are no type arguments. The
+  /// [leftBracket] is the location of the `{`. The list of [entries] is a
+  /// list of the representations of the map entries. The [rightBracket] is
+  /// the location of the `}`. The [location] is the location of the first token
+  /// in the map literal.
+  Expression literalMap(
+      Location constKeyword,
+      bool isConst,
+      covariant keyType,
+      covariant valueType,
+      Object typeArguments,
+      Location leftBracket,
+      covariant List entries,
+      Location rightBracket,
+      Location location);
 
   /// Return a representation of a null literal at the given [location].
   Expression literalNull(Location location);
@@ -104,11 +129,19 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
 
   Expression awaitExpression(Expression operand, Location location);
 
-  Expression conditionalExpression(Expression condition, Expression then,
-      Expression otherwise, Location location);
+  /// Return a representation of a conditional expression. The [condition] is
+  /// the condition. The [question] is the `?`. The [thenExpression] is the
+  /// expression following the question mark. The [colon] is the `:`. The
+  /// [elseExpression] is the expression following the colon.
+  Expression conditionalExpression(Expression condition, Location question,
+      Expression thenExpression, Location colon, Expression elseExpression);
 
-  Expression isExpression(
-      Expression operand, covariant type, Location location);
+  /// Return a representation of an `is` expression. The [operand] is the
+  /// representation of the left operand. The [isOperator] is the `is` operator.
+  /// The [notOperator] is either the `!` or `null` if the test is not negated.
+  /// The [type] is a representation of the type that is the right operand.
+  Expression isExpression(Expression operand, Location isOperator,
+      Location notOperator, covariant type);
 
   Expression notExpression(Expression operand, Location location);
 

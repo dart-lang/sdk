@@ -73,12 +73,10 @@ class AstBuildingForest
   }
 
   @override
-  Expression conditionalExpression(Expression condition,
-      Expression thenExpression, Expression elseExpression, Token location) {
-    // TODO(brianwilkerson) Get the missing information.
-    return astFactory.conditionalExpression(condition, null /* question */,
-        thenExpression, null /* colon */, elseExpression);
-  }
+  Expression conditionalExpression(Expression condition, Token question,
+          Expression thenExpression, Token colon, Expression elseExpression) =>
+      astFactory.conditionalExpression(
+          condition, question, thenExpression, colon, elseExpression);
 
   @override
   kernel.DartType getTypeAt(Object typeArguments, int index) {
@@ -94,11 +92,9 @@ class AstBuildingForest
   bool isErroneousNode(covariant node) => false; // ???
 
   @override
-  Expression isExpression(Expression expression, type, Token location) {
-    // TODO(brianwilkerson) Get the missing information.
-    return astFactory.isExpression(
-        expression, null /* isOperator */, null /* notOperator */, type);
-  }
+  Expression isExpression(Expression expression, Token isOperator,
+          Token notOperator, Object type) =>
+      astFactory.isExpression(expression, isOperator, notOperator, type);
 
   @override
   Expression literalBool(bool value, Token location) =>
@@ -126,16 +122,18 @@ class AstBuildingForest
           constKeyword, typeArguments, leftBracket, expressions, rightBracket);
 
   @override
-  Expression literalMap(covariant keyType, covariant valueType,
-      covariant List entries, bool isConst, Token location) {
-    // TODO(brianwilkerson) Get the missing information.
-    return astFactory.mapLiteral(
-        null /* constKeyword */,
-        null /* typeArguments */,
-        null /* leftBracket */,
-        entries,
-        null /* rightBracket */);
-  }
+  Expression literalMap(
+          Token constKeyword,
+          bool isConst,
+          covariant keyType,
+          covariant valueType,
+          Object typeArguments,
+          Token leftBracket,
+          covariant List entries,
+          Token rightBracket,
+          Token location) =>
+      astFactory.mapLiteral(
+          constKeyword, typeArguments, leftBracket, entries, rightBracket);
 
   @override
   Expression literalNull(Token location) => astFactory.nullLiteral(location);

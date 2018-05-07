@@ -36,6 +36,7 @@ import 'kernel_shadow_ast.dart'
         ShadowDoubleLiteral,
         ShadowIntLiteral,
         ShadowIsExpression,
+        ShadowIsNotExpression,
         ShadowListLiteral,
         ShadowLoadLibrary,
         ShadowMapLiteral,
@@ -118,8 +119,16 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
-  ShadowMapLiteral literalMap(DartType keyType, DartType valueType,
-      List<MapEntry> entries, bool isConst, Token token) {
+  ShadowMapLiteral literalMap(
+      Token constKeyword,
+      bool isConst,
+      DartType keyType,
+      DartType valueType,
+      Object typeArguments,
+      Token leftBracket,
+      List<MapEntry> entries,
+      Token rightBracket,
+      Token token) {
     return new ShadowMapLiteral(entries,
         keyType: keyType, valueType: valueType, isConst: isConst)
       ..fileOffset = offsetForToken(token);
@@ -188,16 +197,21 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
-  Expression conditionalExpression(Expression condition, Expression then,
-      Expression otherwise, Token token) {
-    return new ShadowConditionalExpression(condition, then, otherwise)
-      ..fileOffset = offsetForToken(token);
+  Expression conditionalExpression(Expression condition, Token question,
+      Expression thenExpression, Token colon, Expression elseExpression) {
+    return new ShadowConditionalExpression(
+        condition, thenExpression, elseExpression)
+      ..fileOffset = offsetForToken(question);
   }
 
   @override
-  Expression isExpression(Expression operand, covariant type, Token token) {
-    return new ShadowIsExpression(operand, type)
-      ..fileOffset = offsetForToken(token);
+  Expression isExpression(
+      Expression operand, isOperator, Token notOperator, covariant type) {
+    int offset = offsetForToken(isOperator);
+    if (notOperator != null) {
+      return new ShadowIsNotExpression(operand, type, offset);
+    }
+    return new ShadowIsExpression(operand, type)..fileOffset = offset;
   }
 
   @override
