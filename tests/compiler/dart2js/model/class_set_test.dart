@@ -19,21 +19,21 @@ import '../type_test_helper.dart';
 void main() {
   asyncTest(() async {
     print('--test from ast---------------------------------------------------');
-    await testAll(CompileMode.memory);
+    await testAll(useOldFrontend: true);
     print('--test from kernel------------------------------------------------');
-    await testAll(CompileMode.kernel);
+    await testAll(useOldFrontend: false);
     print('--test from kernel (strong)---------------------------------------');
-    await testAll(CompileMode.kernel, strongMode: true);
+    await testAll(useOldFrontend: false, strongMode: true);
   });
 }
 
-testAll(CompileMode compileMode, {bool strongMode: false}) async {
-  await testIterators(compileMode);
-  await testForEach(compileMode);
-  await testClosures(compileMode, strongMode);
+testAll({bool useOldFrontend, bool strongMode: false}) async {
+  await testIterators(useOldFrontend: useOldFrontend);
+  await testForEach(useOldFrontend: useOldFrontend);
+  await testClosures(useOldFrontend: useOldFrontend, strongMode: strongMode);
 }
 
-testIterators(CompileMode compileMode) async {
+testIterators({bool useOldFrontend}) async {
   var env = await TypeEnvironment.create(r"""
       ///        A
       ///       / \
@@ -57,7 +57,7 @@ testIterators(CompileMode compileMode) async {
         new F();
         new G();
       }
-      """, compileMode: compileMode);
+      """, useOldFrontend: useOldFrontend);
   ClosedWorld world = env.closedWorld;
 
   ClassEntity A = env.getClass("A");
@@ -356,7 +356,7 @@ testIterators(CompileMode compileMode) async {
   Expect.isNull(iterator.current);
 }
 
-testForEach(CompileMode compileMode) async {
+testForEach({bool useOldFrontend}) async {
   var env = await TypeEnvironment.create(r"""
       ///        A
       ///       / \
@@ -387,7 +387,7 @@ testForEach(CompileMode compileMode) async {
         new H();
         new I();
       }
-      """, compileMode: compileMode);
+      """, useOldFrontend: useOldFrontend);
   ClosedWorld world = env.closedWorld;
 
   ClassEntity A = env.getClass("A");
@@ -590,7 +590,7 @@ testForEach(CompileMode compileMode) async {
       find: I, anySubtype: true, expectedResult: true);
 }
 
-testClosures(CompileMode compileMode, bool strongMode) async {
+testClosures({bool useOldFrontend, bool strongMode}) async {
   var env = await TypeEnvironment.create(r"""
       class A {
         call() => null;
@@ -603,7 +603,7 @@ testClosures(CompileMode compileMode, bool strongMode) async {
         local() {}
       }
       """,
-      compileMode: compileMode,
+      useOldFrontend: useOldFrontend,
       options: strongMode ? [Flags.strongMode] : [],
       testBackendWorld: true);
   ClosedWorld world = env.closedWorld;

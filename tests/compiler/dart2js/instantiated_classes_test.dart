@@ -22,8 +22,7 @@ void main() {
       }
       mainSource.write('}');
       dynamic env = await TypeEnvironment.create(source,
-          mainSource: mainSource.toString(),
-          compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+          mainSource: mainSource.toString(), useOldFrontend: !useKernel);
       LibraryEntity mainLibrary =
           env.compiler.frontendStrategy.elementEnvironment.mainLibrary;
       Iterable<ClassEntity> expectedClasses =

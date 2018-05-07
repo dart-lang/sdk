@@ -22,7 +22,7 @@ void main() {
 
       C(this.field1, this.field2);
     }
-    ''');
+    ''', useOldFrontend: true);
     ClassElement C = env.getElement('C');
     FieldElement field1 = C.lookupLocalMember('field1');
     FieldElement field2 = C.lookupLocalMember('field2');

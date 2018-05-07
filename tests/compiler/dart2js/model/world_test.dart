@@ -14,22 +14,22 @@ import 'package:compiler/src/world.dart' show ClassQuery, ClosedWorld;
 import '../type_test_helper.dart';
 
 void main() {
-  runTests(CompileMode compileMode) async {
-    await testClassSets(compileMode);
-    await testProperties(compileMode);
-    await testNativeClasses(compileMode);
-    await testCommonSubclasses(compileMode);
+  runTests({bool useOldFrontend}) async {
+    await testClassSets(useOldFrontend: useOldFrontend);
+    await testProperties(useOldFrontend: useOldFrontend);
+    await testNativeClasses(useOldFrontend: useOldFrontend);
+    await testCommonSubclasses(useOldFrontend: useOldFrontend);
   }
 
   asyncTest(() async {
     print('--test from ast---------------------------------------------------');
-    await runTests(CompileMode.memory);
+    await runTests(useOldFrontend: true);
     print('--test from kernel------------------------------------------------');
-    await runTests(CompileMode.kernel);
+    await runTests(useOldFrontend: false);
   });
 }
 
-testClassSets(CompileMode compileMode) async {
+testClassSets({bool useOldFrontend}) async {
   var env = await TypeEnvironment.create(r"""
       class A implements X {}
       class B {}
@@ -53,7 +53,7 @@ testClassSets(CompileMode compileMode) async {
         html.window;
         new html.Worker('');
       }
-      """, compileMode: compileMode);
+      """, useOldFrontend: useOldFrontend);
   ClosedWorld closedWorld = env.closedWorld;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 
@@ -189,7 +189,7 @@ testClassSets(CompileMode compileMode) async {
   testMixinUses(X, []);
 }
 
-testProperties(CompileMode compileMode) async {
+testProperties({bool useOldFrontend}) async {
   var env = await TypeEnvironment.create(r"""
       class A {}
       class A1 extends A {}
@@ -244,7 +244,7 @@ testProperties(CompileMode compileMode) async {
         new G3();
         new H4();
       }
-      """, compileMode: compileMode);
+      """, useOldFrontend: useOldFrontend);
   ClosedWorld closedWorld = env.closedWorld;
 
   check(String name, {bool hasStrictSubtype, bool hasOnlySubclasses}) {
@@ -310,7 +310,7 @@ testProperties(CompileMode compileMode) async {
   check("H4", hasStrictSubtype: false, hasOnlySubclasses: true);
 }
 
-testNativeClasses(CompileMode compileMode) async {
+testNativeClasses({bool useOldFrontend}) async {
   var env = await TypeEnvironment.create('',
       mainSource: r"""
       import 'dart:html' as html;
@@ -321,7 +321,7 @@ testNativeClasses(CompileMode compileMode) async {
             ..getContext(''); // Creates CanvasRenderingContext2D
       }
       """,
-      compileMode: compileMode);
+      useOldFrontend: useOldFrontend);
   ClosedWorld closedWorld = env.closedWorld;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   LibraryEntity dart_html = elementEnvironment.lookupLibrary(Uris.dart_html);
@@ -520,7 +520,7 @@ testNativeClasses(CompileMode compileMode) async {
       instantiatedSubtypeCount: 0);
 }
 
-testCommonSubclasses(CompileMode compileMode) async {
+testCommonSubclasses({bool useOldFrontend}) async {
   var env = await TypeEnvironment.create('',
       mainSource: r"""
       class A {}
@@ -546,7 +546,7 @@ testCommonSubclasses(CompileMode compileMode) async {
         new J();
       }
       """,
-      compileMode: compileMode);
+      useOldFrontend: useOldFrontend);
   ClosedWorld closedWorld = env.closedWorld;
 
   ClassEntity A = env.getElement("A");

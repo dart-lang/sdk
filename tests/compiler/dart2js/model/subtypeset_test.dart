@@ -17,15 +17,15 @@ import '../type_test_helper.dart';
 void main() {
   asyncTest(() async {
     print('--test from ast---------------------------------------------------');
-    await runTests(CompileMode.memory);
+    await runTests(useOldFrontend: true);
     print('--test from kernel------------------------------------------------');
-    await runTests(CompileMode.kernel);
+    await runTests(useOldFrontend: false);
     print('--test from kernel (strong)---------------------------------------');
-    await runTests(CompileMode.kernel, strongMode: true);
+    await runTests(useOldFrontend: false, strongMode: true);
   });
 }
 
-runTests(CompileMode compileMode, {bool strongMode: false}) async {
+runTests({bool useOldFrontend, bool strongMode: false}) async {
   var env = await TypeEnvironment.create(r"""
       ///        A
       ///       / \
@@ -55,7 +55,7 @@ runTests(CompileMode compileMode, {bool strongMode: false}) async {
         new G();
       }
       """,
-      compileMode: compileMode,
+      useOldFrontend: useOldFrontend,
       options: strongMode ? [Flags.strongMode] : []);
   ClosedWorld world = env.closedWorld;
 

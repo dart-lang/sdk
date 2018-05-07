@@ -55,7 +55,22 @@ class ConstantData {
 }
 
 const List<TestData> DATA = const [
-  const TestData('', const [
+  const TestData('''
+class Class<T, S> {
+  final a;
+  final b;
+  final c;
+  const Class(this.a, {this.b, this.c: true});
+  const Class.named([this.a, this.b = 0, this.c = 2]);
+
+  static const staticConstant = 0;
+  static staticFunction() {}
+}
+const t = true;
+const f = false;
+const toplevelConstant = 0;
+toplevelFunction() {}
+''', const [
     const ConstantData('null', ConstantExpressionKind.NULL),
     const ConstantData('false', ConstantExpressionKind.BOOL),
     const ConstantData('true', ConstantExpressionKind.BOOL),
@@ -78,13 +93,24 @@ const List<TestData> DATA = const [
     const ConstantData('proxy', ConstantExpressionKind.FIELD),
     const ConstantData('Object', ConstantExpressionKind.TYPE),
     const ConstantData('#name', ConstantExpressionKind.SYMBOL),
+    const ConstantData('const []', ConstantExpressionKind.LIST),
     const ConstantData('const [0, 1]', ConstantExpressionKind.LIST,
         strongText: 'const <int>[0, 1]'),
     const ConstantData('const <int>[0, 1]', ConstantExpressionKind.LIST),
+    const ConstantData('const <dynamic>[0, 1]', ConstantExpressionKind.LIST,
+        text: 'const [0, 1]'),
+    const ConstantData('const {}', ConstantExpressionKind.MAP),
     const ConstantData('const {0: 1, 2: 3}', ConstantExpressionKind.MAP,
         strongText: 'const <int, int>{0: 1, 2: 3}'),
     const ConstantData(
         'const <int, int>{0: 1, 2: 3}', ConstantExpressionKind.MAP),
+    const ConstantData(
+        'const <String, int>{"0": 1, "2": 3}', ConstantExpressionKind.MAP),
+    const ConstantData(
+        'const <String, dynamic>{"0": 1, "2": 3}', ConstantExpressionKind.MAP),
+    const ConstantData(
+        'const <dynamic, dynamic>{"0": 1, "2": 3}', ConstantExpressionKind.MAP,
+        text: 'const {"0": 1, "2": 3}'),
     const ConstantData('const bool.fromEnvironment("foo", defaultValue: false)',
         ConstantExpressionKind.BOOL_FROM_ENVIRONMENT),
     const ConstantData('const int.fromEnvironment("foo", defaultValue: 42)',
@@ -92,6 +118,74 @@ const List<TestData> DATA = const [
     const ConstantData(
         'const String.fromEnvironment("foo", defaultValue: "bar")',
         ConstantExpressionKind.STRING_FROM_ENVIRONMENT),
+    const ConstantData('const Class(0)', ConstantExpressionKind.CONSTRUCTED),
+    const ConstantData(
+        'const Class(0, b: 1)', ConstantExpressionKind.CONSTRUCTED),
+    const ConstantData(
+        'const Class(0, c: 2)', ConstantExpressionKind.CONSTRUCTED),
+    const ConstantData(
+        'const Class(0, b: 3, c: 4)', ConstantExpressionKind.CONSTRUCTED),
+    const ConstantData(
+        'const Class.named()', ConstantExpressionKind.CONSTRUCTED),
+    const ConstantData(
+        'const Class.named(0)', ConstantExpressionKind.CONSTRUCTED),
+    const ConstantData(
+        'const Class.named(0, 1)', ConstantExpressionKind.CONSTRUCTED),
+    const ConstantData(
+        'const Class.named(0, 1, 2)', ConstantExpressionKind.CONSTRUCTED),
+    const ConstantData(
+        'const Class<String, int>(0)', ConstantExpressionKind.CONSTRUCTED),
+    const ConstantData(
+        'const Class<String, dynamic>(0)', ConstantExpressionKind.CONSTRUCTED),
+    const ConstantData(
+        'const Class<dynamic, String>(0)', ConstantExpressionKind.CONSTRUCTED),
+    const ConstantData(
+        'const Class<dynamic, dynamic>(0)', ConstantExpressionKind.CONSTRUCTED,
+        text: 'const Class(0)'),
+    const ConstantData('toplevelConstant', ConstantExpressionKind.FIELD),
+    const ConstantData('toplevelFunction', ConstantExpressionKind.FUNCTION),
+    const ConstantData('Class.staticConstant', ConstantExpressionKind.FIELD),
+    const ConstantData('Class.staticFunction', ConstantExpressionKind.FUNCTION),
+    const ConstantData('1 + 2', ConstantExpressionKind.BINARY),
+    const ConstantData('1 + 2 + 3', ConstantExpressionKind.BINARY),
+    const ConstantData('1 + -2', ConstantExpressionKind.BINARY),
+    const ConstantData('-1 + 2', ConstantExpressionKind.BINARY),
+    const ConstantData('(1 + 2) + 3', ConstantExpressionKind.BINARY,
+        text: '1 + 2 + 3'),
+    const ConstantData('1 + (2 + 3)', ConstantExpressionKind.BINARY,
+        text: '1 + 2 + 3'),
+    const ConstantData('1 * 2', ConstantExpressionKind.BINARY),
+    const ConstantData('1 * 2 + 3', ConstantExpressionKind.BINARY),
+    const ConstantData('1 * (2 + 3)', ConstantExpressionKind.BINARY),
+    const ConstantData('1 + 2 * 3', ConstantExpressionKind.BINARY),
+    const ConstantData('(1 + 2) * 3', ConstantExpressionKind.BINARY),
+    const ConstantData(
+        'false || identical(0, 1)', ConstantExpressionKind.BINARY),
+    const ConstantData('!identical(0, 1)', ConstantExpressionKind.UNARY),
+    const ConstantData(
+        '!identical(0, 1) || false', ConstantExpressionKind.BINARY),
+    const ConstantData(
+        '!(identical(0, 1) || false)', ConstantExpressionKind.UNARY),
+    const ConstantData('identical(0, 1) ? 3 * 4 + 5 : 6 + 7 * 8',
+        ConstantExpressionKind.CONDITIONAL),
+    const ConstantData('t ? f ? 0 : 1 : 2', ConstantExpressionKind.CONDITIONAL),
+    const ConstantData(
+        '(t ? t : f) ? f ? 0 : 1 : 2', ConstantExpressionKind.CONDITIONAL),
+    const ConstantData(
+        't ? t : f ? f ? 0 : 1 : 2', ConstantExpressionKind.CONDITIONAL),
+    const ConstantData(
+        't ? t ? t : t : t ? t : t', ConstantExpressionKind.CONDITIONAL),
+    const ConstantData(
+        't ? (t ? t : t) : (t ? t : t)', ConstantExpressionKind.CONDITIONAL,
+        text: 't ? t ? t : t : t ? t : t'),
+    const ConstantData(
+        'const [const <dynamic, dynamic>{0: true, "1": "c" "d"}, '
+        'const Class(const Class<dynamic, dynamic>(toplevelConstant))]',
+        ConstantExpressionKind.LIST,
+        text: 'const [const {0: true, "1": "cd"}, '
+            'const Class(const Class(toplevelConstant))]',
+        strongText: 'const <Object>[const {0: true, "1": "cd"}, '
+            'const Class(const Class(toplevelConstant))]'),
   ]),
   const TestData('''
 class A {

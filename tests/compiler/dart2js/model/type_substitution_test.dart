@@ -49,7 +49,7 @@ void testAsInstanceOf() {
       class D<T> extends A<int> {}
       class E<T> extends A<A<T>> {}
       class F<T, U> extends B<F<T, String>> implements A<F<B<U>, int>> {}
-      ''').then((env) {
+      ''', useOldFrontend: true).then((env) {
         ClassElement A = env.getElement("A");
         ClassElement B = env.getElement("B");
         ClassElement C = env.getElement("C");
@@ -158,7 +158,7 @@ void testTypeSubstitution() {
         void Typedef1e(Typedef2<S> a) {}
         void Typedef2e(Typedef2<String> b) {}
       }
-      """).then((env) {
+      """, useOldFrontend: true).then((env) {
         var compiler = env.compiler;
 
         ResolutionInterfaceType Class_T_S = env["Class"];

@@ -11,8 +11,7 @@ import '../type_test_helper.dart';
 
 main() {
   asyncTest(() async {
-    var env = await TypeEnvironment.create(
-        '''
+    var env = await TypeEnvironment.create('''
 Future<num> futureNum() async => null;
 FutureOr<num> futureOrNum() async => null;
 
@@ -34,9 +33,7 @@ class C<T> {
   Future<T> futureT() async => null;
   FutureOr<T> futureOrT() async => null;
 }
-''',
-        compileMode: CompileMode.kernel,
-        options: [Flags.strongMode]);
+''', options: [Flags.strongMode]);
     FunctionType getFunctionType(String name, String expectedType,
         [ClassEntity cls]) {
       FunctionType type = env.getMemberType(name, cls);
