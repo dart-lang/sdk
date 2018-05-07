@@ -146,6 +146,8 @@ function_type/function_type96_test: RuntimeError # Issue 30476
 function_type/function_type9_test: RuntimeError # Issue 30476
 function_type_alias2_test: RuntimeError
 function_type_alias4_test: RuntimeError
+syncstar_covariant_type_test: RuntimeError # dart2js misplaces check in Iterator, not Iterable.
+syncstar_dcall_type_test: RuntimeError # dart2js misplaces check in Iterator, not Iterable.
 
 [ $compiler == dart2js && $runtime == safari ]
 field_override_optimization_test: RuntimeError
@@ -532,11 +534,17 @@ type_parameter_test/09: Crash # Internal Error: Unexpected type variable in stat
 type_variable_scope_test/03: Crash # Internal Error: Unexpected type variable in static context.
 
 [ $compiler == dart2js && !$checked ]
+async_covariant_type_test: RuntimeError # checked / strong mode test
+async_dcall_type_test: RuntimeError # checked / strong mode test
+asyncstar_covariant_type_test: RuntimeError # checked / strong mode test
+asyncstar_dcall_type_test: RuntimeError # checked / strong mode test
 covariance_field_test/01: RuntimeError
 covariance_field_test/02: RuntimeError
 covariance_field_test/03: RuntimeError
 covariance_field_test/04: RuntimeError
 covariance_field_test/05: RuntimeError
+syncstar_covariant_type_test: RuntimeError # checked / strong mode test
+syncstar_dcall_type_test: RuntimeError # checked / strong mode test
 
 [ $compiler == dart2js && !$checked && !$enable_asserts ]
 assertion_test: RuntimeError, OK

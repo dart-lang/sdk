@@ -640,9 +640,11 @@ assertion_initializer_const_error2_test/*: SkipByDesign # DDC does not support n
 [ $compiler == dartdevc || $compiler == dartdevk ]
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue #30568
 abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue #30568
+async_covariant_type_test: RuntimeError # Check too late
 async_star_cancel_while_paused_test: RuntimeError # Issue 29920; Uncaught Expect.listEquals(list length, expected: <4>, actual: <3>) fails: Next element <*3>
 async_star_pause_test: RuntimeError # Uncaught Expect.listEquals(at index 2, expected: <0+>, actual: <0!>) fails
 async_star_test/02: RuntimeError
+asyncstar_covariant_type_test: RuntimeError # Check too late
 asyncstar_throw_in_catch_test: Skip # Times out. Issue 29920
 bit_operations_test: RuntimeError # No bigints on web.; Expect.equals(expected: <-25>, actual: <4294967271>) fails.
 bit_operations_test/01: MissingCompileTimeError
@@ -710,8 +712,8 @@ issue23244_test: RuntimeError # Issue 29920; Uncaught Unsupported operation: onl
 least_upper_bound_expansive_test/none: RuntimeError # 30908; Uncaught RangeError: Maximum call stack size exceeded
 left_shift_test: RuntimeError # Ints and doubles are unified.; Expect.equals(expected: <1>, actual: <-4294967295>) fails.
 library_env_test/has_io_support: RuntimeError, OK # Intended to fail, bool.fromEnvironment("dart.library.async") is false
-library_env_test/has_mirror_support: RuntimeError, OK  # Intended to fail, bool.fromEnvironment("dart.library.async") is false
-library_env_test/has_no_html_support: RuntimeError, OK  # Intended to fail, bool.fromEnvironment("dart.library.async") is false
+library_env_test/has_mirror_support: RuntimeError, OK # Intended to fail, bool.fromEnvironment("dart.library.async") is false
+library_env_test/has_no_html_support: RuntimeError, OK # Intended to fail, bool.fromEnvironment("dart.library.async") is false
 local_function2_test/none: RuntimeError # ReferenceError: TToNull is not defined
 local_function3_test/none: RuntimeError # Expect.equals(expected: <true>, actual: <false>) fails.
 local_function_test/none: RuntimeError # Expect.equals(expected: <true>, actual: <false>) fails.
@@ -746,6 +748,7 @@ super_test: RuntimeError # Expect.equals(expected: <0>, actual: <2>) fails.
 switch_label2_test: RuntimeError # Issue 29920; UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
 switch_label_test: RuntimeError # Issue 29920; UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
 switch_try_catch_test: RuntimeError # Issue 29920; Expect.throws: Unexpected 'UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
+syncstar_covariant_type_test: RuntimeError # Check too late
 syntax_test/60: MissingCompileTimeError
 syntax_test/61: MissingCompileTimeError
 truncdiv_test: RuntimeError # Issue 29920; Expect.throws fails: Did not throw
