@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
@@ -188,7 +189,7 @@ class NamingConventionsTest extends RefactoringTest {
   }
 
   void test_validateFieldName_pseudoKeyword() {
-    assertRefactoringStatusOK(validateFieldName("await"));
+    _assertWarningBuiltIn(validateFieldName("await"));
   }
 
   void test_validateFieldName_trailingBlanks() {
@@ -253,7 +254,7 @@ class NamingConventionsTest extends RefactoringTest {
   }
 
   void test_validateFunctionName_pseudoKeyword() {
-    assertRefactoringStatusOK(validateFunctionName("yield"));
+    _assertWarningBuiltIn(validateFunctionName("yield"));
   }
 
   void test_validateFunctionName_trailingBlanks() {
@@ -380,7 +381,9 @@ class NamingConventionsTest extends RefactoringTest {
   }
 
   void test_validateImportPrefixName_pseudoKeyword() {
-    assertRefactoringStatusOK(validateImportPrefixName("await"));
+    assertRefactoringStatus(
+        validateImportPrefixName("await"), RefactoringProblemSeverity.FATAL,
+        expectedMessage: "Import prefix name must not be a keyword.");
   }
 
   void test_validateImportPrefixName_trailingBlanks() {
@@ -450,7 +453,7 @@ class NamingConventionsTest extends RefactoringTest {
   }
 
   void test_validateLabelName_pseudoKeyword() {
-    assertRefactoringStatusOK(validateLabelName("await"));
+    _assertWarningBuiltIn(validateLabelName("await"));
   }
 
   void test_validateLabelName_trailingBlanks() {
@@ -588,7 +591,7 @@ class NamingConventionsTest extends RefactoringTest {
   }
 
   void test_validateMethodName_pseudoKeyword() {
-    assertRefactoringStatusOK(validateMethodName("yield"));
+    _assertWarningBuiltIn(validateMethodName("yield"));
   }
 
   void test_validateMethodName_trailingBlanks() {
@@ -598,7 +601,7 @@ class NamingConventionsTest extends RefactoringTest {
   }
 
   void test_validateParameterName_builtIn() {
-    assertRefactoringStatusOK(validateParameterName("await"));
+    _assertWarningBuiltIn(validateParameterName("await"));
   }
 
   void test_validateParameterName_doesNotStartWithLowerCase() {
@@ -658,13 +661,17 @@ class NamingConventionsTest extends RefactoringTest {
   }
 
   void test_validateParameterName_pseudoKeyword() {
-    assertRefactoringStatusOK(validateParameterName("await"));
+    _assertWarningBuiltIn(validateParameterName("await"));
   }
 
   void test_validateParameterName_trailingBlanks() {
     assertRefactoringStatus(
         validateParameterName("newName "), RefactoringProblemSeverity.FATAL,
         expectedMessage: "Parameter name must not start or end with a blank.");
+  }
+
+  void test_validateVariableName_builtIn() {
+    _assertWarningBuiltIn(validateVariableName('abstract'));
   }
 
   void test_validateVariableName_doesNotStartWithLowerCase() {
@@ -727,12 +734,17 @@ class NamingConventionsTest extends RefactoringTest {
   }
 
   void test_validateVariableName_pseudoKeyword() {
-    assertRefactoringStatusOK(validateVariableName("await"));
+    _assertWarningBuiltIn(validateVariableName("await"));
   }
 
   void test_validateVariableName_trailingBlanks() {
     assertRefactoringStatus(
         validateVariableName("newName "), RefactoringProblemSeverity.FATAL,
         expectedMessage: "Variable name must not start or end with a blank.");
+  }
+
+  void _assertWarningBuiltIn(RefactoringStatus status) {
+    assertRefactoringStatus(status, RefactoringProblemSeverity.WARNING,
+        expectedMessage: 'Avoid using built-in identifiers as names.');
   }
 }
