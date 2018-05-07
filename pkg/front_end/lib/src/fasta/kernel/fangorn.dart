@@ -103,11 +103,18 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
-  ShadowListLiteral literalList(covariant typeArgument,
-      List<Expression> expressions, bool isConst, Token token) {
+  ShadowListLiteral literalList(
+      Token constKeyword,
+      bool isConst,
+      Object typeArgument,
+      Object typeArguments,
+      Token leftBracket,
+      List<Expression> expressions,
+      Token rightBracket,
+      Token location) {
     return new ShadowListLiteral(expressions,
         typeArgument: typeArgument, isConst: isConst)
-      ..fileOffset = offsetForToken(token);
+      ..fileOffset = offsetForToken(location);
   }
 
   @override
@@ -139,8 +146,8 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
-  MapEntry mapEntry(Expression key, Expression value, Token token) {
-    return new MapEntry(key, value)..fileOffset = offsetForToken(token);
+  MapEntry mapEntry(Expression key, Token colon, Expression value) {
+    return new MapEntry(key, value)..fileOffset = offsetForToken(colon);
   }
 
   @override
@@ -150,6 +157,13 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   int readOffset(TreeNode node) => node.fileOffset;
+
+  @override
+  int getTypeCount(Object typeArguments) => (typeArguments as List).length;
+
+  @override
+  DartType getTypeAt(Object typeArguments, int index) =>
+      (typeArguments as List)[index];
 
   @override
   Expression loadLibrary(LibraryDependency dependency) {

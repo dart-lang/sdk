@@ -1799,11 +1799,11 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       int count, Token beginToken, Token constKeyword, Token endToken) {
     debugEvent("LiteralList");
     List<Expression> expressions = popListForValue(count);
-    List<DartType> typeArguments = pop();
+    Object typeArguments = pop();
     DartType typeArgument;
     if (typeArguments != null) {
-      typeArgument = typeArguments.first;
-      if (typeArguments.length > 1) {
+      typeArgument = forest.getTypeAt(typeArguments, 0);
+      if (forest.getTypeCount(typeArguments) > 1) {
         typeArgument = null;
         addProblem(
             fasta.messageListLiteralTooManyTypeArguments,
@@ -1814,9 +1814,13 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       }
     }
     push(forest.literalList(
-        typeArgument,
-        expressions,
+        constKeyword,
         constKeyword != null || constantContext == ConstantContext.inferred,
+        typeArgument,
+        typeArguments,
+        null,
+        expressions,
+        endToken,
         constKeyword ?? beginToken));
   }
 
@@ -1883,7 +1887,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     debugEvent("LiteralMapEntry");
     Expression value = popForValue();
     Expression key = popForValue();
-    push(forest.mapEntry(key, value, colon));
+    push(forest.mapEntry(key, colon, value));
   }
 
   String symbolPartToString(name) {
