@@ -86,8 +86,9 @@ def SetEnvironmentAndGetRuntimeDllDirs():
     bitness = platform.architecture()[0]
     # When running 64-bit python the x64 DLLs will be in System32
     x64_path = 'System32' if bitness == '64bit' else 'Sysnative'
-    x64_path = os.path.join(r'C:\Windows', x64_path)
-    vs_runtime_dll_dirs = [x64_path, r'C:\Windows\SysWOW64']
+    system_root = os.environ['SystemRoot']
+    x64_path = os.path.join(system_root, x64_path)
+    vs_runtime_dll_dirs = [x64_path, os.path.join(system_root, r'SysWOW64')]
 
   return vs_runtime_dll_dirs
 
