@@ -3199,21 +3199,13 @@ void Simulator::DecodeFPIntCvt(Instr* instr) {
       set_vregisterd(vd, 1, 0);
     } else if (instr->Bits(16, 5) == 24) {
       // Format(instr, "fcvtzds'sf 'rd, 'vn");
-      const intptr_t max = instr->Bit(31) == 1 ? INT64_MAX : INT32_MAX;
-      const intptr_t min = instr->Bit(31) == 1 ? INT64_MIN : INT32_MIN;
       const double vn_val = bit_cast<double, int64_t>(get_vregisterd(vn, 0));
-      int64_t result;
-      if (vn_val >= static_cast<double>(max)) {
-        result = max;
-      } else if (vn_val <= static_cast<double>(min)) {
-        result = min;
+      if (vn_val >= static_cast<double>(INT64_MAX)) {
+        set_register(instr, rd, INT64_MAX, instr->RdMode());
+      } else if (vn_val <= static_cast<double>(INT64_MIN)) {
+        set_register(instr, rd, INT64_MIN, instr->RdMode());
       } else {
-        result = static_cast<int64_t>(vn_val);
-      }
-      if (instr->Bit(31) == 1) {
-        set_register(instr, rd, result, instr->RdMode());
-      } else {
-        set_register(instr, rd, result & 0xffffffffll, instr->RdMode());
+        set_register(instr, rd, static_cast<int64_t>(vn_val), instr->RdMode());
       }
     } else {
       UnimplementedInstruction(instr);

@@ -308,10 +308,16 @@ ISOLATE_UNIT_TEST_CASE(Smi) {
   EXPECT(Smi::IsValid(-15));
   EXPECT(Smi::IsValid(0xFFu));
 // Upper two bits must be either 00 or 11.
+#if defined(ARCH_IS_64_BIT)
+  EXPECT(!Smi::IsValid(kMaxInt64));
+  EXPECT(Smi::IsValid(0x3FFFFFFFFFFFFFFF));
+  EXPECT(Smi::IsValid(-1));
+#else
   EXPECT(!Smi::IsValid(kMaxInt32));
   EXPECT(Smi::IsValid(0x3FFFFFFF));
   EXPECT(Smi::IsValid(-1));
   EXPECT(!Smi::IsValid(0xFFFFFFFFu));
+#endif
 
   EXPECT_EQ(5, smi.AsInt64Value());
   EXPECT_EQ(5.0, smi.AsDoubleValue());
@@ -439,6 +445,9 @@ ISOLATE_UNIT_TEST_CASE(StringIRITwoByte) {
 }
 
 ISOLATE_UNIT_TEST_CASE(Mint) {
+// On 64-bit architectures a Smi is stored in a 64 bit word. A Midint cannot
+// be allocated if it does fit into a Smi.
+#if !defined(ARCH_IS_64_BIT)
   {
     Mint& med = Mint::Handle();
     EXPECT(med.IsNull());
@@ -508,6 +517,7 @@ ISOLATE_UNIT_TEST_CASE(Mint) {
   EXPECT_EQ(mint1.value(), mint_value);
   EXPECT_EQ(mint2.value(), mint_value);
   EXPECT_EQ(mint1.raw(), mint2.raw());
+#endif
 }
 
 ISOLATE_UNIT_TEST_CASE(Double) {
@@ -2737,6 +2747,22 @@ ISOLATE_UNIT_TEST_CASE(EmbedSmiInCode) {
   EXPECT(Smi::Cast(result).Value() == kSmiTestValue);
 }
 
+#if defined(ARCH_IS_64_BIT)
+// Test for Embedded Smi object in the instructions.
+ISOLATE_UNIT_TEST_CASE(EmbedSmiIn64BitCode) {
+  extern void GenerateEmbedSmiInCode(Assembler * assembler, intptr_t value);
+  const intptr_t kSmiTestValue = DART_INT64_C(5) << 32;
+  Assembler _assembler_;
+  GenerateEmbedSmiInCode(&_assembler_, kSmiTestValue);
+  const Function& function =
+      Function::Handle(CreateFunction("Test_EmbedSmiIn64BitCode"));
+  const Code& code = Code::Handle(Code::FinalizeCode(function, &_assembler_));
+  function.AttachCode(code);
+  const Object& result =
+      Object::Handle(DartEntry::InvokeFunction(function, Array::empty_array()));
+  EXPECT(Smi::Cast(result).Value() == kSmiTestValue);
+}
+#endif  // ARCH_IS_64_BIT
 
 ISOLATE_UNIT_TEST_CASE(ExceptionHandlers) {
   const int kNumEntries = 4;

@@ -3023,19 +3023,10 @@ void ChoiceNode::SetUpPreLoad(RegExpCompiler* compiler,
                               Trace* current_trace,
                               PreloadState* state) {
   if (state->eats_at_least_ == PreloadState::kEatsAtLeastNotYetInitialized) {
-    // On ARM64, only read 16 bits ahead for now.  This ensures that boxing is
-    // trivial even with the new smaller Smis.  See
-    // https://github.com/dart-lang/sdk/issues/29951 and
-    // LoadCodeUnitsInstr::EmitNativeCode.
-#if defined(TARGET_ARCH_ARM64)
-    const int kMaxBytesLoaded = 2;
-#else
-    const int kMaxBytesLoaded = 4;
-#endif
-    const int kMaxTwoByteCharactersLoaded = kMaxBytesLoaded / 2;
-    state->eats_at_least_ = EatsAtLeast(
-        compiler->one_byte() ? kMaxBytesLoaded : kMaxTwoByteCharactersLoaded,
-        kRecursionBudget, current_trace->at_start() == Trace::FALSE_VALUE);
+    // Save some time by looking at most one machine word ahead.
+    state->eats_at_least_ =
+        EatsAtLeast(compiler->one_byte() ? 4 : 2, kRecursionBudget,
+                    current_trace->at_start() == Trace::FALSE_VALUE);
   }
   state->preload_characters_ =
       CalculatePreloadCharacters(compiler, state->eats_at_least_);

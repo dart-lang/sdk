@@ -521,10 +521,7 @@ class Assembler : public ValueObject {
     return CompareImmediate(reg, Immediate(immediate));
   }
 
-  void testl(Register reg, const Immediate& imm) {
-    Immediate imm2(imm.value() & 0xffffffffll);
-    testq(reg, imm2);
-  }
+  void testl(Register reg, const Immediate& imm) { testq(reg, imm); }
   void testb(const Address& address, const Immediate& imm);
 
   void testq(Register reg, const Immediate& imm);
@@ -711,11 +708,6 @@ class Assembler : public ValueObject {
   enum CanBeSmi {
     kValueIsNotSmi,
     kValueCanBeSmi,
-  };
-
-  enum CanBeHeapPointer {
-    kValueIsNotHeapPointer,
-    kValueCanBeHeapPointer,
   };
 
   // Destroys value.
@@ -947,26 +939,6 @@ class Assembler : public ValueObject {
                                            intptr_t index_scale,
                                            Register array,
                                            Register index);
-
-  void AssertSmiInRange(
-      Register object,
-      CanBeHeapPointer can_be_heap_pointer = kValueIsNotHeapPointer) {
-#if defined(DEBUG)
-    Register tmp = object == TMP ? TMP2 : TMP;
-    Label ok;
-    if (can_be_heap_pointer == kValueCanBeHeapPointer) {
-      testl(object, Immediate(kSmiTagMask));
-      ASSERT(kSmiTag == 0);
-      j(ZERO, &ok);
-    }
-    movsxd(tmp, object);
-    cmpq(tmp, object);
-    j(EQUAL, &ok);
-    Stop("Smi out of range");
-
-    Bind(&ok);
-#endif
-  }
 
   static Address VMTagAddress() {
     return Address(THR, Thread::vm_tag_offset());
