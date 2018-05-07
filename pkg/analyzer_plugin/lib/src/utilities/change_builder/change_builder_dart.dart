@@ -580,6 +580,30 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
+  void writeReference(Element element) {
+    if (element.enclosingElement is CompilationUnitElement) {
+      LibraryElement definingLibrary = element.library;
+      LibraryElement importingLibrary =
+          dartFileEditBuilder.unit.element.library;
+
+      // TODO(scheglov) Extract this code (it is already used twice).
+      // TODO(scheglov) Consider updating `show` combinator to show the element.
+      ImportElement existingImport =
+          _getImportElement(element, importingLibrary);
+      if (existingImport != null) {
+        if (existingImport.prefix != null) {
+          write(existingImport.prefix.displayName);
+          write('.');
+        }
+      } else {
+        importLibrary(definingLibrary.source);
+      }
+    }
+
+    write(element.displayName);
+  }
+
+  @override
   bool writeType(DartType type,
       {bool addSupertypeProposals: false,
       String groupName,
