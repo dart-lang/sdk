@@ -14,9 +14,7 @@
     ],
 
     "exclude": [
-      "^tests/compiler/dart2js/inference/data/super_invoke\\.dart",
-      "^tests/compiler/dart2js/old_frontend/data/.*",
-      "^tests/compiler/dart2js/path with spaces/.*"
+      "^tests/compiler/dart2js/inference/data/super_invoke\\.dart"
     ]
   }
 }
