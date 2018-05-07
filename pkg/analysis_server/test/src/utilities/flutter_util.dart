@@ -35,6 +35,13 @@ export 'src/widgets/icon.dart';
 export 'src/widgets/text.dart';
 ''');
 
+  newFile('$flutterPkgLibPath/foundation.dart', r'''
+export 'package:meta/meta.dart' show
+  required;
+
+export 'src/foundation/key.dart';
+''');
+
   void createSrcMaterial() {
     newFile('$flutterPkgLibPath/src/material/app_bar.dart', r'''
 import 'package:flutter/widgets.dart';
@@ -129,6 +136,28 @@ class EdgeInsets extends EdgeInsetsGeometry {
 ''');
   }
 
+  void createSrcFoundation() {
+    newFile('$flutterPkgLibPath/src/foundation/key.dart', r'''
+
+abstract class Key {
+  const factory Key(String value) = ValueKey<String>;
+
+  const Key._();
+}
+
+abstract class LocalKey extends Key {
+  const LocalKey() : super._();
+}
+
+
+class ValueKey<T> extends LocalKey {
+  final T value;
+
+  const ValueKey(this.value);
+}
+''');
+  }
+
   void createSrcWidgets() {
     newFile('$flutterPkgLibPath/src/widgets/basic.dart', r'''
 import 'framework.dart';
@@ -186,7 +215,7 @@ class Transform extends SingleChildRenderObjectWidget {
 class AspectRatio extends SingleChildRenderObjectWidget {
   const AspectRatio({
     Key key,
-    @required aspectRatio,
+    @required double aspectRatio,
     Widget child,
   });
 }
@@ -221,20 +250,15 @@ class Container extends StatelessWidget {
 ''');
 
     newFile('$flutterPkgLibPath/src/widgets/framework.dart', r'''
+import 'package:flutter/foundation.dart';
+
+export 'package:flutter/foundation.dart' show required;
+export 'package:flutter/foundation.dart' show Key, LocalKey, ValueKey;
+
 typedef void VoidCallback();
 
 abstract class BuildContext {
   Widget get widget;
-}
-
-abstract class Key {
-  const factory Key(String value) = ValueKey<String>;
-
-  const Key._();
-}
-
-abstract class LocalKey extends Key {
-  const LocalKey() : super._();
 }
 
 abstract class State<T extends StatefulWidget> {
@@ -259,12 +283,6 @@ abstract class StatelessWidget extends Widget {
   const StatelessWidget({Key key}) : super(key: key);
 
   Widget build(BuildContext context) => null;
-}
-
-class ValueKey<T> extends LocalKey {
-  final T value;
-
-  const ValueKey(this.value);
 }
 
 class Widget {
@@ -324,6 +342,7 @@ class Text extends StatelessWidget {
 ''');
   }
 
+  createSrcFoundation();
   createPainting();
   createRendering();
   createSrcWidgets();

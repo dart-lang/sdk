@@ -3880,7 +3880,7 @@ class FakeFlutter {
   main() {
   var obj;
 // start
-    return new Row(children: [/*caret*/ new Transform()]);
+    return new Row(children: [/*caret*/ new Container()]);
 // end
   }
 }
@@ -3898,9 +3898,9 @@ build() {
     child: new Row(
 // start
       children: [/*caret*/
-        new Transform(),
-        new Transform(),
-        new AspectRatio(),
+        new Text('111'),
+        new Text('222'),
+        new Container(),
       ],
 // end
     ),
@@ -3917,9 +3917,9 @@ build() {
       children: [
         new widget(
           children: [/*caret*/
-            new Transform(),
-            new Transform(),
-            new AspectRatio(),
+            new Text('111'),
+            new Text('222'),
+            new Container(),
           ],
         ),
       ],

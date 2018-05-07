@@ -5893,9 +5893,8 @@ build() {
   return new Container(
     child: new Row(
       child: <Widget>[
-        new Transform(),
+        new Container(),
         null,
-        new AspectRatio(),
       ],
     ),
   );
@@ -5912,9 +5911,8 @@ build() {
   return new Container(
     child: new Row(
       child: [
-        new Transform(),
-        new ClipRect.rect(),
-        new AspectRatio(),
+        new Text('111'),
+        new Text('222'),
       ],
     ),
   );
@@ -5926,9 +5924,8 @@ build() {
   return new Container(
     child: new Row(
       children: <Widget>[
-        new Transform(),
-        new ClipRect.rect(),
-        new AspectRatio(),
+        new Text('111'),
+        new Text('222'),
       ],
     ),
   );
@@ -5944,9 +5941,8 @@ build() {
   return new Container(
     child: new Row(
       child: <Widget>[
-        new Transform(),
-        new ClipRect.rect(),
-        new AspectRatio(),
+        new Text('111'),
+        new Text('222'),
       ],
     ),
   );
@@ -5958,9 +5954,8 @@ build() {
   return new Container(
     child: new Row(
       children: <Widget>[
-        new Transform(),
-        new ClipRect.rect(),
-        new AspectRatio(),
+        new Text('111'),
+        new Text('222'),
       ],
     ),
   );

@@ -41,6 +41,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   ClassElement classStatefulWidget;
   ClassElement classStatelessWidget;
   ClassElement classWidget;
+  PropertyAccessorElement accessorRequired;
 
   @override
   String name;
@@ -200,11 +201,21 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       return element;
     }
 
+    Future<PropertyAccessorElement> getAccessor(String uri, String name) async {
+      var element = await sessionHelper.getTopLevelPropertyAccessor(uri, name);
+      if (element == null) {
+        result.addFatalError("Unable to find 'required' in $uri");
+      }
+      return element;
+    }
+
     classBuildContext = await getClass('BuildContext');
     classKey = await getClass('Key');
     classStatelessWidget = await getClass('StatelessWidget');
     classStatefulWidget = await getClass('StatefulWidget');
     classWidget = await getClass('Widget');
+
+    accessorRequired = await getAccessor('package:meta/meta.dart', 'required');
 
     return result;
   }
@@ -309,6 +320,38 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
         name,
         superclass: classStatelessWidget.type,
         membersWriter: () {
+          // Add the constructor.
+          builder.write('  ');
+          builder.writeConstructorDeclaration(
+            name,
+            isConst: true,
+            parameterWriter: () {
+              builder.writeln('{');
+
+              // Add the required `key` parameter.
+              builder.write('    ');
+              builder.writeParameter('key', type: classKey.type);
+              builder.writeln(',');
+
+              // Add parameters for fields, local, and method parameters.
+              for (int i = 0; i < _parameters.length; i++) {
+                builder.write('    ');
+                builder.write('@');
+                builder.writeReference(accessorRequired);
+                builder.write(' this.');
+                builder.write(_parameters[i].name);
+                builder.writeln(',');
+              }
+
+              builder.write('  }');
+            },
+            initializerWriter: () {
+              builder.write('super(key: key)');
+            },
+          );
+          builder.writeln();
+          builder.writeln();
+
           // Add the fields for the parameters.
           if (_parameters.isNotEmpty) {
             for (var parameter in _parameters) {
@@ -319,32 +362,6 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
             }
             builder.writeln();
           }
-
-          // Add the constructor.
-          builder.write('  ');
-          builder.writeConstructorDeclaration(
-            name,
-            parameterWriter: () {
-              builder.write('{');
-
-              // Add the required `key` parameter.
-              builder.writeParameter('key', type: classKey.type);
-
-              // Add parameters for fields, local, and method parameters.
-              for (int i = 0; i < _parameters.length; i++) {
-                builder.write(', ');
-                builder.write('this.');
-                builder.write(_parameters[i].name);
-              }
-
-              builder.write('}');
-            },
-            initializerWriter: () {
-              builder.write('super(key: key)');
-            },
-          );
-          builder.writeln();
-          builder.writeln();
 
           // Widget build(BuildContext context) { ... }
           builder.writeln('  @override');
