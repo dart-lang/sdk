@@ -223,13 +223,6 @@ abstract class DartEditBuilder implements EditBuilder {
   void writeParametersMatchingArguments(ArgumentList arguments);
 
   /**
-   * Write the code that references the given top-level [element] (a top-level
-   * function, or a property accessor). If the [element] is not a top-level
-   * element then [ArgumentError] is thrown.
-   */
-  void writeTopLevelElementReference(Element element);
-
-  /**
    * Write the code for a type annotation for the given [type]. If the [type] is
    * either `null` or represents the type 'dynamic', then the behavior depends
    * on whether a type is [required]. If [required] is `true`, then 'var' will
