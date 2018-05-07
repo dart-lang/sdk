@@ -769,7 +769,6 @@ class StreamingScopeBuilder {
   void VisitInterfaceType(bool simple);
   void VisitFunctionType(bool simple);
   void VisitTypeParameterType();
-  void VisitVectorType();
   void HandleLocalFunction(intptr_t parent_kernel_offset);
 
   AbstractType& BuildAndVisitVariableType();
@@ -1510,11 +1509,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildBoolLiteral(bool value, TokenPosition* position);
   Fragment BuildNullLiteral(TokenPosition* position);
   Fragment BuildFutureNullValue(TokenPosition* position);
-  Fragment BuildVectorCreation(TokenPosition* position);
-  Fragment BuildVectorGet(TokenPosition* position);
-  Fragment BuildVectorSet(TokenPosition* position);
-  Fragment BuildVectorCopy(TokenPosition* position);
-  Fragment BuildClosureCreation(TokenPosition* position);
   Fragment BuildConstantExpression(TokenPosition* position);
   Fragment BuildPartialTearoffInstantiation(TokenPosition* position);
 

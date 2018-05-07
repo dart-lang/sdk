@@ -3056,8 +3056,6 @@ M.FunctionKind stringToFunctionKind(String value) {
       return M.FunctionKind.closure;
     case 'ImplicitClosureFunction':
       return M.FunctionKind.implicitClosure;
-    case 'ConvertedClosureFunction':
-      return M.FunctionKind.convertedClosure;
     case 'GetterFunction':
       return M.FunctionKind.getter;
     case 'SetterFunction':

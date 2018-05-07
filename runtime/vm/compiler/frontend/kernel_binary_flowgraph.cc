@@ -1007,7 +1007,6 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
   switch (function.kind()) {
     case RawFunction::kClosureFunction:
     case RawFunction::kImplicitClosureFunction:
-    case RawFunction::kConvertedClosureFunction:
     case RawFunction::kRegularFunction:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
@@ -1642,27 +1641,6 @@ void StreamingScopeBuilder::VisitExpression() {
       return;
     case kNullLiteral:
       return;
-    case kVectorCreation:
-      builder_->ReadUInt();  // read size.
-      return;
-    case kVectorGet:
-      VisitExpression();     // read expression.
-      builder_->ReadUInt();  // read index.
-      return;
-    case kVectorSet:
-      VisitExpression();     // read vector expression.
-      builder_->ReadUInt();  // read index.
-      VisitExpression();     // read value.
-      return;
-    case kVectorCopy:
-      VisitExpression();  // read vector expression.
-      return;
-    case kClosureCreation:
-      builder_->SkipCanonicalNameReference();  // read function reference.
-      VisitExpression();                       // read context vector.
-      VisitDartType();                  // read function type of the closure.
-      builder_->SkipListOfDartTypes();  // read type arguments.
-      return;
     case kConstantExpression: {
       builder_->SkipConstantReference();
       return;
@@ -2045,7 +2023,6 @@ void StreamingScopeBuilder::VisitDartType() {
     case kDynamicType:
     case kVoidType:
     case kBottomType:
-    case kVectorType:
       // those contain nothing.
       return;
     case kInterfaceType:
@@ -2534,9 +2511,6 @@ void StreamingDartTypeTranslator::BuildTypeInternal(bool invalid_as_dynamic) {
       break;
     case kVoidType:
       result_ = Object::void_type().raw();
-      break;
-    case kVectorType:
-      result_ = Object::vector_type().raw();
       break;
     case kBottomType:
       result_ =
@@ -4015,9 +3989,9 @@ void KernelFingerprintHelper::CalculateDartTypeFingerprint() {
     case kDynamicType:
     case kVoidType:
     case kBottomType:
-    case kVectorType:
       // those contain nothing.
       break;
+      UNIMPLEMENTED();
     case kInterfaceType:
       CalculateInterfaceTypeFingerprint(false);
       break;
@@ -4286,28 +4260,6 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       return;
     case kInstantiation:
       CalculateExpressionFingerprint();       // read expression.
-      CalculateListOfDartTypesFingerprint();  // read type arguments.
-      return;
-    case kVectorCreation:
-      BuildHash(ReadUInt());  // read value.
-      return;
-    case kVectorGet:
-      CalculateExpressionFingerprint();  // read vector expression.
-      BuildHash(ReadUInt());             // read index.
-      return;
-    case kVectorSet:
-      CalculateExpressionFingerprint();  // read vector expression.
-      BuildHash(ReadUInt());             // read index.
-      CalculateExpressionFingerprint();  // read value.
-      return;
-    case kVectorCopy:
-      CalculateExpressionFingerprint();  // read vector expression.
-      return;
-    case kClosureCreation:
-      // read top-level function reference.
-      CalculateCanonicalNameFingerprint();
-      CalculateExpressionFingerprint();       // read context vector.
-      CalculateDartTypeFingerprint();         // read function type.
       CalculateListOfDartTypesFingerprint();  // read type arguments.
       return;
     case kBigIntLiteral:
@@ -5497,12 +5449,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
   LocalVariable* closure = NULL;
   if (dart_function.IsClosureFunction()) {
     closure = parsed_function()->node_sequence()->scope()->VariableAt(0);
-  } else if (dart_function.IsConvertedClosureFunction()) {
-    closure = new (Z) LocalVariable(
-        TokenPosition::kNoSource, TokenPosition::kNoSource,
-        Symbols::TempParam(), AbstractType::ZoneHandle(Z, Type::DynamicType()));
-    closure->set_index(parsed_function()->first_parameter_index());
-    closure->set_is_captured_parameter(true);
   }
 
   if (!dart_function.is_native()) {
@@ -5701,8 +5647,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
   // body because it needs to be executed everytime we enter the function -
   // even if we are resuming from the yield.
   Fragment prologue;
-  if ((dart_function.IsClosureFunction() ||
-       dart_function.IsConvertedClosureFunction()) &&
+  if (dart_function.IsClosureFunction() &&
       dart_function.NumParentTypeParameters() > 0 &&
       I->reify_generic_functions()) {
     // Function with yield points can not be generic itself but the outer
@@ -5743,13 +5688,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     }
   }
 
-  if (dart_function.IsConvertedClosureFunction()) {
-    prologue += LoadLocal(closure);
-    prologue += LoadField(Closure::context_offset());
-    LocalVariable* context = closure;
-    prologue += StoreLocal(TokenPosition::kNoSource, context);
-    prologue += Drop();
-  }
   body = prologue + body;
 
   if (FLAG_causal_async_stacks &&
@@ -5878,8 +5816,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
       }
     }
     /* Falls through */
-    case RawFunction::kClosureFunction:
-    case RawFunction::kConvertedClosureFunction: {
+    case RawFunction::kClosureFunction: {
       ReadUntilFunctionNode(parsed_function());  // read until function node.
       return BuildGraphOfFunction(false);
     }
@@ -6009,16 +5946,6 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
       return BuildBoolLiteral(false, position);
     case kNullLiteral:
       return BuildNullLiteral(position);
-    case kVectorCreation:
-      return BuildVectorCreation(position);
-    case kVectorGet:
-      return BuildVectorGet(position);
-    case kVectorSet:
-      return BuildVectorSet(position);
-    case kVectorCopy:
-      return BuildVectorCopy(position);
-    case kClosureCreation:
-      return BuildClosureCreation(position);
     case kConstantExpression:
       return BuildConstantExpression(position);
     case kInstantiation:
@@ -6230,7 +6157,6 @@ void KernelReaderHelper::SkipDartType() {
     case kDynamicType:
     case kVoidType:
     case kBottomType:
-    case kVectorType:
       // those contain nothing.
       return;
     case kInterfaceType:
@@ -6550,27 +6476,6 @@ void KernelReaderHelper::SkipExpression() {
     case kInstantiation:
       SkipExpression();       // read expression.
       SkipListOfDartTypes();  // read type arguments.
-      return;
-    case kVectorCreation:
-      ReadUInt();  // read value.
-      return;
-    case kVectorGet:
-      SkipExpression();  // read vector expression.
-      ReadUInt();        // read index.
-      return;
-    case kVectorSet:
-      SkipExpression();  // read vector expression.
-      ReadUInt();        // read index.
-      SkipExpression();  // read value.
-      return;
-    case kVectorCopy:
-      SkipExpression();  // read vector expression.
-      return;
-    case kClosureCreation:
-      SkipCanonicalNameReference();  // read top-level function reference.
-      SkipExpression();              // read context vector.
-      SkipDartType();                // read function type.
-      SkipListOfDartTypes();         // read type arguments.
       return;
     case kBigIntLiteral:
       SkipStringReference();  // read string reference.
@@ -9113,117 +9018,6 @@ Fragment StreamingFlowGraphBuilder::BuildFutureNullValue(
   instructions += PushArgument();
   instructions += StaticCall(TokenPosition::kNoSource, constructor,
                              /* argument_count = */ 1, ICData::kStatic);
-  return instructions;
-}
-
-Fragment StreamingFlowGraphBuilder::BuildVectorCreation(
-    TokenPosition* position) {
-  if (position != NULL) *position = TokenPosition::kNoSource;
-
-  intptr_t size = ReadUInt();  // read size.
-  return AllocateContext(size);
-}
-
-Fragment StreamingFlowGraphBuilder::BuildVectorGet(TokenPosition* position) {
-  if (position != NULL) *position = TokenPosition::kNoSource;
-
-  Fragment instructions = BuildExpression();  // read expression.
-  intptr_t index = ReadUInt();                // read index.
-  instructions += LoadField(Context::variable_offset(index));
-  return instructions;
-}
-
-Fragment StreamingFlowGraphBuilder::BuildVectorSet(TokenPosition* position) {
-  if (position != NULL) *position = TokenPosition::kNoSource;
-
-  Fragment instructions = NullConstant();
-  LocalVariable* result = MakeTemporary();
-
-  instructions += BuildExpression();  // read vector expression.
-  intptr_t index = ReadUInt();        // read index.
-  instructions += BuildExpression();  // read value expression.
-  instructions += StoreLocal(TokenPosition::kNoSource, result);
-
-  instructions += StoreInstanceField(TokenPosition::kNoSource,
-                                     Context::variable_offset(index));
-
-  return instructions;
-}
-
-Fragment StreamingFlowGraphBuilder::BuildVectorCopy(TokenPosition* position) {
-  if (position != NULL) *position = TokenPosition::kNoSource;
-
-  Fragment instructions = BuildExpression();  // read vector expression.
-  Value* context_to_copy = Pop();
-  // TODO(dartbug.com/31218) VectorCopy should contain size of the context
-  // as a constant.
-  CloneContextInstr* clone_instruction =
-      new (Z) CloneContextInstr(TokenPosition::kNoSource, context_to_copy,
-                                CloneContextInstr::kUnknownContextSize,
-                                Thread::Current()->GetNextDeoptId());
-  instructions <<= clone_instruction;
-  Push(clone_instruction);
-
-  return instructions;
-}
-
-Fragment StreamingFlowGraphBuilder::BuildClosureCreation(
-    TokenPosition* position) {
-  if (position != NULL) *position = TokenPosition::kNoSource;
-
-  NameIndex function_reference =
-      ReadCanonicalNameReference();  // read function reference.
-  Function& function = Function::ZoneHandle(
-      Z, H.LookupStaticMethodByKernelProcedure(function_reference));
-
-  intptr_t num_type_parameters;
-  {
-    AlternativeReadingScope _(&reader_);
-    SkipExpression();  // context vector
-    SkipDartType();    // skip function type
-    num_type_parameters = ReadListLength();
-  }
-  function = function.ConvertedClosureFunction(num_type_parameters);
-  ASSERT(!function.IsNull());
-
-  const Class& closure_class =
-      Class::ZoneHandle(Z, I->object_store()->closure_class());
-  Fragment instructions = AllocateObject(closure_class, function);
-  LocalVariable* closure = MakeTemporary();
-
-  instructions += BuildExpression();  // read context vector.
-  LocalVariable* context = MakeTemporary();
-
-  instructions += LoadLocal(closure);
-  instructions += Constant(function);
-  instructions +=
-      StoreInstanceField(TokenPosition::kNoSource, Closure::function_offset());
-
-  instructions += LoadLocal(closure);
-  instructions += LoadLocal(context);
-  instructions +=
-      StoreInstanceField(TokenPosition::kNoSource, Closure::context_offset());
-
-  // Skip the function type of the closure (it's predicable from the
-  // target and the supplied type arguments).
-  SkipDartType();
-
-  ReadListLength();  // type parameter count
-  if (num_type_parameters > 0) {
-    instructions += LoadLocal(closure);
-    const TypeArguments& type_args = T.BuildTypeArguments(
-        num_type_parameters);  // read list of type arguments.
-    instructions += TranslateInstantiatedTypeArguments(type_args);
-    instructions += StoreInstanceField(
-        TokenPosition::kNoSource, Closure::function_type_arguments_offset());
-  }
-
-  instructions += LoadLocal(closure);
-  instructions += Constant(Object::empty_type_arguments());
-  instructions += StoreInstanceField(TokenPosition::kNoSource,
-                                     Closure::delayed_type_arguments_offset());
-
-  instructions += Drop();  // context
   return instructions;
 }
 
