@@ -105,7 +105,6 @@ io/socket_many_connections_test: Skip # This test fails with "Too many open file
 io/dependency_graph_test: CompileTimeError
 io/directory_test: RuntimeError
 io/file_error_test: RuntimeError
-io/file_system_watcher_test: RuntimeError
 io/file_test: RuntimeError
 io/http_auth_digest_test: RuntimeError
 io/http_auth_test: RuntimeError

@@ -103,7 +103,7 @@ class _FileSystemWatcher {
 
   _WatcherPath _watcherPath;
 
-  StreamController _broadcastController;
+  StreamController<FileSystemEvent> _broadcastController;
 
   @patch
   static Stream<FileSystemEvent> _watch(
@@ -127,11 +127,11 @@ class _FileSystemWatcher {
       throw new FileSystemException(
           "File system watching is not supported on this platform", _path);
     }
-    _broadcastController =
-        new StreamController.broadcast(onListen: _listen, onCancel: _cancel);
+    _broadcastController = new StreamController<FileSystemEvent>.broadcast(
+        onListen: _listen, onCancel: _cancel);
   }
 
-  Stream get _stream => _broadcastController.stream;
+  Stream<FileSystemEvent> get _stream => _broadcastController.stream;
 
   void _listen() {
     if (_id == null) {
@@ -342,7 +342,7 @@ class _InotifyFileSystemWatcher extends _FileSystemWatcher {
   Stream _pathWatched() {
     var pathId = _watcherPath.pathId;
     if (!_idMap.containsKey(pathId)) {
-      _idMap[pathId] = new StreamController.broadcast();
+      _idMap[pathId] = new StreamController<FileSystemEvent>.broadcast();
     }
     return _idMap[pathId].stream;
   }
@@ -364,7 +364,7 @@ class _Win32FileSystemWatcher extends _FileSystemWatcher {
 
   Stream _pathWatched() {
     var pathId = _watcherPath.pathId;
-    _controller = new StreamController();
+    _controller = new StreamController<FileSystemEvent>();
     _subscription =
         _FileSystemWatcher._listenOnSocket(pathId, 0, pathId).listen((event) {
       assert(event[0] == pathId);
@@ -393,7 +393,7 @@ class _FSEventStreamFileSystemWatcher extends _FileSystemWatcher {
   Stream _pathWatched() {
     var pathId = _watcherPath.pathId;
     var socketId = _FileSystemWatcher._getSocketId(0, pathId);
-    _controller = new StreamController();
+    _controller = new StreamController<FileSystemEvent>();
     _subscription =
         _FileSystemWatcher._listenOnSocket(socketId, 0, pathId).listen((event) {
       if (event[1] != null) {
