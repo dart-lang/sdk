@@ -225,9 +225,7 @@ int_parse_radix_test/none: Pass # Issue 31762
 map_entry_test: RuntimeError
 
 [ $compiler == dart2js && $fasta && $host_checked && $strong ]
-apply3_test: RuntimeError
 cast_test: RuntimeError
-dynamic_nosuchmethod_test: RuntimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
 growable_list_test: RuntimeError # Concurrent modifications test always runs
 int_parse_radix_test/01: RuntimeError

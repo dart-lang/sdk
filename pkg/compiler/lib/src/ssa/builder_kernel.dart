@@ -1575,12 +1575,25 @@ class KernelSsaGraphBuilder extends ir.Visitor
     HInstruction streamIterator;
 
     node.iterable.accept(this);
-    _pushStaticInvocation(
-        _commonElements.streamIteratorConstructor,
-        [pop(), graph.addConstantNull(closedWorld)],
-        _typeInferenceMap
-            .getReturnTypeOf(_commonElements.streamIteratorConstructor),
-        const <DartType>[]);
+
+    List<HInstruction> arguments = [pop()];
+    ClassEntity cls = _commonElements.streamIterator;
+    DartType typeArg = _elementMap.getDartType(node.variable.type);
+    InterfaceType instanceType =
+        localsHandler.substInContext(new InterfaceType(cls, [typeArg]));
+    addImplicitInstantiation(instanceType);
+    SourceInformation sourceInformation =
+        _sourceInformationBuilder.buildForInIterator(node);
+    // TODO(johnniwinther): Pass type arguments to constructors like calling
+    // a generic method.
+    if (rtiNeed.classNeedsTypeArguments(cls)) {
+      _addTypeArguments(arguments, [typeArg], sourceInformation);
+    }
+    ConstructorEntity constructor = _commonElements.streamIteratorConstructor;
+    _pushStaticInvocation(constructor, arguments,
+        _typeInferenceMap.getReturnTypeOf(constructor), const <DartType>[],
+        instanceType: instanceType, sourceInformation: sourceInformation);
+
     streamIterator = pop();
 
     void buildInitializer() {}
