@@ -1275,6 +1275,15 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
                 analysisServer, path, result.lineInfo, unit);
           });
         }
+        // TODO:(dantup) Uncomment this and equivilent in
+        // test/analysis/notification_folding_test.dart once the
+        // implementation is complete.
+        // if (analysisServer._hasAnalysisServiceSubscription(
+        //     AnalysisService.FOLDING, path)) {
+        //   _runDelayed(() {
+        //     sendAnalysisNotificationFolding(analysisServer, path, unit);
+        //   });
+        // }
         if (analysisServer._hasAnalysisServiceSubscription(
             AnalysisService.OUTLINE, path)) {
           _runDelayed(() {
