@@ -29,10 +29,18 @@ class KernelTypeVariableBuilder
 
   KernelTypeVariableBuilder(
       String name, KernelLibraryBuilder compilationUnit, int charOffset,
-      [KernelTypeBuilder bound])
-      : actualParameter = new TypeParameter(name, null)
-          ..fileOffset = charOffset,
+      [KernelTypeBuilder bound, TypeParameter actual])
+      // TODO(32378): We would like to use '??' here instead, but in conjuction
+      // with '..', it crashes Dart2JS.
+      : actualParameter = actual != null
+            ? (actual..fileOffset = charOffset)
+            : (new TypeParameter(name, null)..fileOffset = charOffset),
         super(name, bound, compilationUnit, charOffset);
+
+  KernelTypeVariableBuilder.fromKernel(
+      TypeParameter parameter, KernelLibraryBuilder compilationUnit)
+      : actualParameter = parameter,
+        super(parameter.name, null, compilationUnit, parameter.fileOffset);
 
   @override
   KernelTypeVariableBuilder get origin => actualOrigin ?? this;

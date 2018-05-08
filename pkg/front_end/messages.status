@@ -118,6 +118,8 @@ ExpectedClassBody/example: Fail
 ExpectedClassMember/example: Fail
 ExpectedDeclaration/example: Fail
 ExpectedFunctionBody/example: Fail
+ExpectedOneExpression/analyzerCode: Fail
+ExpectedOneExpression/example: Fail
 ExpectedOpenParens/analyzerCode: Fail
 ExpectedOpenParens/example: Fail
 ExpectedStatement/statement: Fail
@@ -411,4 +413,3 @@ UnterminatedToken/analyzerCode: Fail
 UnterminatedToken/example: Fail
 YieldAsIdentifier/example: Fail
 YieldNotGenerator/example: Fail
-

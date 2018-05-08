@@ -111,9 +111,11 @@ class KernelLibraryBuilder
   /// the error message is the corresponding value in the map.
   Map<String, String> unserializableExports;
 
-  KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader, this.actualOrigin)
-      : library = actualOrigin?.library ?? new Library(uri, fileUri: fileUri),
-        super(loader, fileUri);
+  KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader, this.actualOrigin,
+      [Scope scope, Library target])
+      : library = target ??
+            (actualOrigin?.library ?? new Library(uri, fileUri: fileUri)),
+        super(loader, fileUri, scope);
 
   @override
   KernelLibraryBuilder get origin => actualOrigin ?? this;
@@ -828,13 +830,16 @@ class KernelLibraryBuilder
   }
 
   @override
-  Library build(LibraryBuilder coreLibrary) {
+  Library build(LibraryBuilder coreLibrary, {bool modifyTarget}) {
     super.build(coreLibrary);
+
+    if (modifyTarget == false) return library;
 
     addDependencies(library, new Set<KernelLibraryBuilder>());
 
     loader.target.metadataCollector
         ?.setDocumentationComment(library, documentationComment);
+
     library.name = name;
     library.procedures.sort(compareProcedures);
 

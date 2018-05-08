@@ -29,7 +29,7 @@ import 'package:front_end/src/fasta/fasta_codes.dart' show FormattedMessage;
 import 'package:front_end/src/fasta/severity.dart'
     show Severity, severityEnumValues;
 
-import 'package:front_end/src/testing/hybrid_file_system.dart'
+import 'package:front_end/src/fasta/hybrid_file_system.dart'
     show HybridFileSystem;
 
 import "../../tool/_fasta/entry_points.dart" show BatchCompiler;

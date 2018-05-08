@@ -8,17 +8,18 @@ library front_end.src.hybrid_file_system;
 
 import 'dart:async';
 
-import 'package:front_end/src/api_prototype/file_system.dart';
-import 'package:front_end/src/api_prototype/memory_file_system.dart';
-import 'package:front_end/src/api_prototype/standard_file_system.dart';
+import '../api_prototype/file_system.dart';
+import '../api_prototype/memory_file_system.dart';
+import '../api_prototype/standard_file_system.dart';
 
 /// A file system that mixes files from memory and a physical file system. All
 /// memory entities take priotity over file system entities.
 class HybridFileSystem implements FileSystem {
   final MemoryFileSystem memory;
-  final StandardFileSystem physical = StandardFileSystem.instance;
+  final FileSystem physical;
 
-  HybridFileSystem(this.memory);
+  HybridFileSystem(this.memory, [FileSystem _physical])
+      : physical = _physical ?? StandardFileSystem.instance;
 
   @override
   FileSystemEntity entityForUri(Uri uri) =>
@@ -37,7 +38,8 @@ class HybridFileSystemEntity implements FileSystemEntity {
   Future<FileSystemEntity> get delegate async {
     if (_delegate != null) return _delegate;
     FileSystemEntity entity = _fs.memory.entityForUri(uri);
-    if ((uri.scheme != 'file' && uri.scheme != 'data') ||
+    if (((uri.scheme != 'file' && uri.scheme != 'data') &&
+            _fs.physical is StandardFileSystem) ||
         await entity.exists()) {
       _delegate = entity;
       return _delegate;

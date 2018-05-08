@@ -4,7 +4,7 @@
 
 library fasta.stack_listener;
 
-import 'package:kernel/ast.dart' show AsyncMarker, Expression;
+import 'package:kernel/ast.dart' show AsyncMarker, Expression, FunctionNode;
 
 import '../deprecated_problems.dart' show deprecated_inputError;
 
@@ -14,7 +14,7 @@ import '../fasta_codes.dart'
         messageNativeClauseShouldBeAnnotation,
         templateInternalProblemStackNotEmpty;
 
-import '../parser.dart' show Listener, MemberKind;
+import '../parser.dart' show Listener, MemberKind, Parser;
 
 import '../parser/identifier_context.dart' show IdentifierContext;
 
@@ -95,6 +95,12 @@ abstract class StackListener extends Listener {
   // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
   // and ast_builder.dart.
   void exitLocalScope() => unsupported("exitLocalScope", -1, uri);
+
+  // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart.
+  dynamic parseSingleExpression(
+      Parser parser, Token token, FunctionNode parameters) {
+    return unsupported("finishSingleExpression", -1, uri);
+  }
 
   void push(Object node) {
     if (node == null) unhandled("null", "push", -1, uri);

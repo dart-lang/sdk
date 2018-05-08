@@ -8,13 +8,33 @@ import 'dart:async' show Future;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
-import 'package:kernel/kernel.dart'
-    show Component, Library, LibraryPart, Procedure, Source;
-
 import '../api_prototype/file_system.dart' show FileSystemEntity;
 
+import 'package:kernel/kernel.dart'
+    show
+        Library,
+        Name,
+        ReturnStatement,
+        FunctionNode,
+        Class,
+        Expression,
+        DartType,
+        LibraryPart,
+        Component,
+        LibraryDependency,
+        Source,
+        Procedure,
+        TypeParameter,
+        ProcedureKind;
+
+import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
+
+import 'hybrid_file_system.dart' show HybridFileSystem;
+
+import 'package:kernel/kernel.dart' as kernel show Combinator;
+
 import '../api_prototype/incremental_kernel_generator.dart'
-    show IncrementalKernelGenerator;
+    show IncrementalKernelGenerator, isLegalIdentifier;
 
 import 'builder/builder.dart' show LibraryBuilder;
 
@@ -31,11 +51,16 @@ import 'kernel/kernel_incremental_target.dart'
 
 import 'library_graph.dart' show LibraryGraph;
 
+import 'kernel/kernel_library_builder.dart' show KernelLibraryBuilder;
+import 'kernel/kernel_shadow_ast.dart' show ShadowVariableDeclaration;
+
 import 'source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'ticker.dart' show Ticker;
 
 import 'uri_translator.dart' show UriTranslator;
+
+import 'combinator.dart' show Combinator;
 
 class IncrementalCompiler implements IncrementalKernelGenerator {
   final CompilerContext context;
@@ -132,11 +157,18 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         ticker.logMs("Decided to reuse ${reusedLibraries.length}"
             " of ${userCode.loader.builders.length} libraries");
       }
+
       reusedLibraries.addAll(platformBuilders);
 
       KernelIncrementalTarget userCodeOld = userCode;
       userCode = new KernelIncrementalTarget(
-          c.fileSystem, false, dillLoadedData, uriTranslator,
+          new HybridFileSystem(
+              new MemoryFileSystem(
+                  new Uri(scheme: "org-dartlang-debug", path: "/")),
+              c.fileSystem),
+          false,
+          dillLoadedData,
+          uriTranslator,
           uriToSource: c.uriToSource);
 
       for (LibraryBuilder library in reusedLibraries) {
@@ -168,8 +200,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         return new Component(
             libraries: compiledLibraries, uriToSource: <Uri, Source>{});
       }
-      userCodeOld?.loader?.builders?.clear();
-      userCodeOld = null;
+      if (componentWithDill != null) {
+        userCodeOld?.loader?.releaseAncillaryResources();
+        userCodeOld?.loader?.builders?.clear();
+        userCodeOld = null;
+      }
 
       List<Library> compiledLibraries =
           new List<Library>.from(userCode.loader.libraries);
@@ -188,8 +223,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         outputLibraries = compiledLibraries;
       }
 
-      // Clean up.
-      userCode.loader.releaseAncillaryResources();
+      if (componentWithDill == null) {
+        userCode.loader.builders.clear();
+        userCode = userCodeOld;
+      }
 
       // This is the incremental component.
       return new Component(libraries: outputLibraries, uriToSource: uriToSource)
@@ -316,6 +353,107 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           .appendLibraries(data.component, byteCount: bytesLength);
     }
     ticker.logMs("Appended libraries");
+  }
+
+  @override
+  Future<Procedure> compileExpression(
+      String expression,
+      Map<String, DartType> definitions,
+      List<TypeParameter> typeDefinitions,
+      Uri libraryUri,
+      [String className,
+      bool isStatic = false]) async {
+    assert(dillLoadedData != null && userCode != null);
+
+    return await context.runInContext((_) async {
+      LibraryBuilder library = userCode.loader.read(libraryUri, -1);
+
+      Class kernelClass;
+      if (className != null) {
+        kernelClass = library.scopeBuilder[className]?.target;
+        if (kernelClass == null) return null;
+      }
+
+      userCode.loader.seenMessages.clear();
+
+      for (TypeParameter typeParam in typeDefinitions) {
+        if (!isLegalIdentifier(typeParam.name)) return null;
+      }
+      for (String name in definitions.keys) {
+        if (!isLegalIdentifier(name)) return null;
+      }
+
+      Uri debugExprUri = new Uri(
+          scheme: "org-dartlang-debug", path: "synthetic_debug_expression");
+
+      KernelLibraryBuilder debugLibrary = new KernelLibraryBuilder(
+          libraryUri,
+          debugExprUri,
+          userCode.loader,
+          null,
+          library.scope.createNestedScope("expression"),
+          library.target);
+
+      if (library is DillLibraryBuilder) {
+        for (LibraryDependency dependency in library.target.dependencies) {
+          if (!dependency.isImport) continue;
+
+          List<Combinator> combinators;
+
+          for (kernel.Combinator combinator in dependency.combinators) {
+            combinators ??= <Combinator>[];
+
+            combinators.add(combinator.isShow
+                ? new Combinator.show(
+                    combinator.names, combinator.fileOffset, library.fileUri)
+                : new Combinator.hide(
+                    combinator.names, combinator.fileOffset, library.fileUri));
+          }
+
+          debugLibrary.addImport(
+              null,
+              dependency.importedLibraryReference.canonicalName.name,
+              null,
+              dependency.name,
+              combinators,
+              dependency.isDeferred,
+              -1,
+              -1,
+              -1);
+        }
+
+        debugLibrary.addImportsToScope();
+      }
+
+      HybridFileSystem hfs = userCode.fileSystem;
+      MemoryFileSystem fs = hfs.memory;
+      fs.entityForUri(debugExprUri).writeAsStringSync(expression);
+
+      FunctionNode parameters = new FunctionNode(null,
+          typeParameters: typeDefinitions,
+          positionalParameters: definitions.keys
+              .map((name) => new ShadowVariableDeclaration(name, 0))
+              .toList());
+
+      debugLibrary.build(userCode.loader.coreLibrary, modifyTarget: false);
+      Expression compiledExpression = await userCode.loader.buildExpression(
+          debugLibrary, className, className != null && !isStatic, parameters);
+
+      Procedure procedure = new Procedure(
+          new Name("debugExpr"), ProcedureKind.Method, parameters,
+          isStatic: isStatic);
+
+      parameters.body = new ReturnStatement(compiledExpression)
+        ..parent = parameters;
+
+      procedure.fileUri = debugLibrary.fileUri;
+      procedure.parent = className != null ? kernelClass : library.target;
+
+      userCode.uriToSource.remove(debugExprUri);
+      userCode.loader.sourceBytes.remove(debugExprUri);
+
+      return procedure;
+    });
   }
 
   List<LibraryBuilder> computeReusedLibraries(

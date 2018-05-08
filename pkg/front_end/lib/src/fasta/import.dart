@@ -88,7 +88,7 @@ class Import {
   }
 }
 
-createPrefixBuilder(
+KernelPrefixBuilder createPrefixBuilder(
     String prefix,
     LibraryBuilder importer,
     LibraryBuilder imported,

@@ -1348,6 +1348,8 @@ const Template<
 const Code<Message Function(String name)> codeDuplicatedNamePreviouslyUsed =
     const Code<Message Function(String name)>(
         "DuplicatedNamePreviouslyUsed", templateDuplicatedNamePreviouslyUsed,
+        analyzerCode: "REFERENCED_BEFORE_DECLARATION",
+        dart2jsCode: "*ignored*",
         severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1723,6 +1725,15 @@ Message _withArgumentsExpectedIdentifier(Token token) {
       message: """Expected an identifier, but got '$lexeme'.""",
       arguments: {'token': token});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedOneExpression = messageExpectedOneExpression;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedOneExpression = const MessageCode(
+    "ExpectedOneExpression",
+    severity: Severity.error,
+    message: r"""Expected one expression, but found additional input.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExpectedOpenParens = messageExpectedOpenParens;

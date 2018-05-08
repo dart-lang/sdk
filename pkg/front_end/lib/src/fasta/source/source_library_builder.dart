@@ -109,9 +109,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   bool canAddImplementationBuilders = false;
 
-  SourceLibraryBuilder(SourceLoader loader, Uri fileUri)
+  SourceLibraryBuilder(SourceLoader loader, Uri fileUri, Scope scope)
       : this.fromScopes(loader, fileUri, new DeclarationBuilder<T>.library(),
-            new Scope.top());
+            scope ?? new Scope.top());
 
   SourceLibraryBuilder.fromScopes(
       this.loader, this.fileUri, this.libraryDeclaration, this.importScope)

@@ -11,13 +11,7 @@ import "dart:convert" show JsonEncoder;
 import "dart:io" show File, IOSink;
 
 import "package:kernel/ast.dart"
-    show
-        Procedure,
-        Component,
-        CanonicalName,
-        DynamicType,
-        DartType,
-        TypeParameter;
+    show Procedure, Component, DynamicType, DartType, TypeParameter;
 
 import "package:testing/testing.dart"
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
@@ -123,7 +117,9 @@ class TestCase {
 
   final bool isStaticMethod;
 
-  final CanonicalName enclosingNode;
+  final Uri library;
+
+  final String className;
 
   String expression;
 
@@ -135,7 +131,8 @@ class TestCase {
       this.definitions,
       this.typeDefinitions,
       this.isStaticMethod,
-      this.enclosingNode,
+      this.library,
+      this.className,
       this.expression);
 
   String toString() {
@@ -143,7 +140,8 @@ class TestCase {
         "$entryPoint, "
         "$definitions, "
         "$typeDefinitions,"
-        "$enclosingNode, "
+        "$library, "
+        "$className, "
         "static = $isStaticMethod)";
   }
 
@@ -155,7 +153,7 @@ class TestCase {
     if (!(new File.fromUri(entryPoint)).existsSync()) {
       return "Entry point $entryPoint doesn't exist.";
     }
-    if (enclosingNode == null || enclosingNode == "") {
+    if (library == null) {
       return "No enclosing node.";
     }
     if (expression == null) {
@@ -233,7 +231,8 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
     List<String> definitions = <String>[];
     List<String> typeDefinitions = <String>[];
     bool isStaticMethod = false;
-    CanonicalName enclosingNode;
+    Uri library;
+    String className;
     String expression;
 
     dynamic maps = loadYamlNode(contents, sourceUrl: uri);
@@ -248,13 +247,10 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
         if (key == "entry_point") {
           entryPoint = description.uri.resolveUri(Uri.parse(value as String));
         } else if (key == "position") {
-          Uri positionUri =
-              description.uri.resolveUri(Uri.parse(value as String));
-          enclosingNode = new CanonicalName.root();
-          enclosingNode =
-              enclosingNode.getChild("${positionUri.removeFragment()}");
-          if (positionUri.fragment != null && positionUri.fragment != '') {
-            enclosingNode = enclosingNode.getChild(positionUri.fragment);
+          Uri uri = description.uri.resolveUri(Uri.parse(value as String));
+          library = uri.removeFragment();
+          if (uri.fragment != null && uri.fragment != '') {
+            className = uri.fragment;
           }
         } else if (key == "definitions") {
           definitions = (value as YamlList).map((x) => x as String).toList();
@@ -268,7 +264,7 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
         }
       }
       var test = new TestCase(description, entryPoint, definitions,
-          typeDefinitions, isStaticMethod, enclosingNode, expression);
+          typeDefinitions, isStaticMethod, library, className, expression);
       var result = test.validate();
       if (result != null) {
         return new Result.fail(tests, result);
@@ -325,9 +321,15 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
       }
 
       for (var compiler in [sourceCompiler, dillCompiler]) {
-        // TODO: actually run the compiler
-        test.results
-            .add(new CompilationResult(compiler == null ? null : null, []));
+        Procedure compiledProcedure = await compiler.compileExpression(
+            test.expression,
+            definitions,
+            typeParams,
+            test.library,
+            test.className,
+            test.isStaticMethod);
+        var errors = context.takeErrors();
+        test.results.add(new CompilationResult(compiledProcedure, errors));
       }
     }
     return new Result.pass(tests);
@@ -357,7 +359,7 @@ Future<Context> createContext(
   final List<CompilationMessage> errors = <CompilationMessage>[];
 
   final CompilerOptions optionBuilder = new CompilerOptions()
-    ..strongMode = false
+    ..strongMode = true
     ..reportMessages = true
     ..verbose = true
     ..fileSystem = fs

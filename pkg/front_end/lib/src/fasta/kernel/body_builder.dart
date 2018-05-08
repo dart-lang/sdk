@@ -19,6 +19,7 @@ import '../modifier.dart' show Modifier, constMask, covariantMask, finalMask;
 import '../parser.dart'
     show
         Assert,
+        Parser,
         FormalParameterKind,
         IdentifierContext,
         MemberKind,
@@ -712,6 +713,42 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     List<Expression> expressions = pop();
     _typeInferrer.inferMetadata(this, expressions);
     return expressions;
+  }
+
+  @override
+  Expression parseSingleExpression(
+      Parser parser, Token token, FunctionNode parameters) {
+    List<KernelTypeVariableBuilder> typeParameterBuilders;
+    for (TypeParameter typeParameter in parameters.typeParameters) {
+      typeParameterBuilders ??= <KernelTypeVariableBuilder>[];
+      typeParameterBuilders.add(
+          new KernelTypeVariableBuilder.fromKernel(typeParameter, library));
+    }
+    enterFunctionTypeScope(typeParameterBuilders);
+
+    enterLocalScope(
+        null,
+        new FormalParameters(parameters.positionalParameters, null, -1)
+            .computeFormalParameterScope(scope, member, this));
+
+    token = parser.parseExpression(parser.syntheticPreviousToken(token));
+
+    Expression expression = popForValue();
+    Token eof = token.next;
+
+    if (!eof.isEof) {
+      expression = wrapInLocatedCompileTimeError(
+          expression,
+          fasta.messageExpectedOneExpression
+              .withLocation(uri, eof.charOffset, eof.length));
+    }
+
+    ShadowReturnStatement fakeReturn = new ShadowReturnStatement(expression);
+
+    _typeInferrer.inferFunctionBody(
+        this, const DynamicType(), AsyncMarker.Sync, fakeReturn);
+
+    return fakeReturn.expression;
   }
 
   void finishConstructor(

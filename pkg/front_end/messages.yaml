@@ -2103,3 +2103,7 @@ ImplicitCallOfNonMethod:
   template: "Can't invoke the type '#type' because its declaration of `.call` is not a method."
   tip: "Change .call to a method or explicitly invoke .call."
   severity: ERROR
+
+ExpectedOneExpression:
+  template: "Expected one expression, but found additional input."
+  severity: ERROR
