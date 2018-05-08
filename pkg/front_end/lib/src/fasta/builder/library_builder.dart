@@ -172,7 +172,7 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
         null);
   }
 
-  int finishTypeVariables(ClassBuilder object) => 0;
+  int finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType) => 0;
 
   /// This method instantiates type parameters to their bounds in some cases
   /// where they were omitted by the programmer and not provided by the type

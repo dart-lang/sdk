@@ -72,10 +72,13 @@ class KernelTypeVariableBuilder
     return new KernelNamedTypeBuilder(name, null)..bind(this);
   }
 
-  void finish(LibraryBuilder library, KernelClassBuilder object) {
+  void finish(LibraryBuilder library, KernelClassBuilder object,
+      TypeBuilder dynamicType) {
     if (isPatch) return;
     parameter.bound ??=
         bound?.build(library) ?? object.buildType(library, null);
+    parameter.defaultType ??=
+        defaultType?.build(library) ?? dynamicType.build(library);
   }
 
   void applyPatch(covariant KernelTypeVariableBuilder patch) {

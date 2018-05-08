@@ -3523,7 +3523,9 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
           name.name, library, offsetForToken(name.token), null);
     }
     variable.parameter.bound = bound;
-    push(variable..finish(library, library.loader.coreLibrary["Object"]));
+    push(variable
+      ..finish(library, library.loader.target.objectClassBuilder,
+          library.loader.target.dynamicType));
   }
 
   @override

@@ -11,12 +11,10 @@ import 'kernel_builder.dart'
         KernelNamedTypeBuilder,
         KernelTypeVariableBuilder,
         KernelClassBuilder,
-        KernelFunctionTypeAliasBuilder,
         KernelFunctionTypeBuilder,
         NamedTypeBuilder,
         FormalParameterBuilder,
-        FunctionTypeBuilder,
-        TypeDeclarationBuilder;
+        FunctionTypeBuilder;
 
 import 'package:kernel/util/graph.dart' show Graph, computeStrongComponents;
 
@@ -182,42 +180,6 @@ List<KernelTypeBuilder> calculateBounds(
   }
 
   return bounds;
-}
-
-List<KernelTypeBuilder> calculateBoundsForDeclaration(
-    TypeDeclarationBuilder typeDeclarationBuilder,
-    KernelTypeBuilder dynamicType,
-    KernelTypeBuilder nullType,
-    KernelClassBuilder objectClass) {
-  List<TypeVariableBuilder> typeParameters;
-
-  if (typeDeclarationBuilder is KernelClassBuilder) {
-    typeParameters = typeDeclarationBuilder.typeVariables;
-  } else if (typeDeclarationBuilder is KernelFunctionTypeAliasBuilder) {
-    typeParameters = typeDeclarationBuilder.typeVariables;
-  }
-
-  if (typeParameters == null || typeParameters.length == 0) {
-    return null;
-  }
-
-  return calculateBounds(typeParameters, dynamicType, nullType, objectClass);
-}
-
-int instantiateToBoundInPlace(
-    NamedTypeBuilder typeBuilder,
-    KernelTypeBuilder dynamicType,
-    KernelTypeBuilder nullType,
-    KernelClassBuilder objectClass) {
-  int count = 0;
-
-  if (typeBuilder.arguments == null) {
-    typeBuilder.arguments = calculateBoundsForDeclaration(
-        typeBuilder.builder, dynamicType, nullType, objectClass);
-    count = typeBuilder.arguments?.length ?? 0;
-  }
-
-  return count;
 }
 
 /// Graph of mutual dependencies of type variables from the same declaration.

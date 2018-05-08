@@ -32,9 +32,6 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
     extends TypeDeclarationBuilder<T, R> {
   final List<TypeVariableBuilder> typeVariables;
 
-  /// List of type arguments provided by instantiate to bound.
-  List<TypeBuilder> get calculatedBounds => null;
-
   T supertype;
 
   List<T> interfaces;

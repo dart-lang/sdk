@@ -49,27 +49,11 @@ import 'package:kernel/ast.dart'
     show
         Combinator,
         Constructor,
-        DartType,
-        DynamicType,
         Initializer,
         Procedure,
-        RedirectingInitializer,
-        TypeParameter;
-
-import '../builder/builder.dart' show LibraryBuilder;
+        RedirectingInitializer;
 
 import '../combinator.dart' as fasta;
-
-List<DartType> computeDefaultTypeArguments(LibraryBuilder library,
-    List<TypeParameter> typeParameters, List<DartType> arguments) {
-  // TODO(scheglov): Use TypeSchemaEnvironment.instantiateToBounds
-  if (arguments == null || arguments.length != typeParameters.length) {
-    // TODO(scheglov): Check that we report a warning.
-    return new List<DartType>.filled(
-        typeParameters.length, const DynamicType());
-  }
-  return arguments;
-}
 
 int compareProcedures(Procedure a, Procedure b) {
   int i = "${a.fileUri}".compareTo("${b.fileUri}");

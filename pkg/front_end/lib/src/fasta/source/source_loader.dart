@@ -348,11 +348,11 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Resolved $count constructors");
   }
 
-  void finishTypeVariables(ClassBuilder object) {
+  void finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType) {
     int count = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
-        count += library.finishTypeVariables(object);
+        count += library.finishTypeVariables(object, dynamicType);
       }
     });
     ticker.logMs("Resolved $count type-variable bounds");
@@ -360,8 +360,6 @@ class SourceLoader<L> extends Loader<L> {
 
   void instantiateToBound(TypeBuilder dynamicType, TypeBuilder bottomType,
       ClassBuilder objectClass) {
-    if (!target.strongMode) return;
-
     int count = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
