@@ -250,6 +250,7 @@ isolate/issue_21398_parent_isolate2_test: Crash # Requires deferred libraries
 isolate/message3_test/fun: Pass, Fail # Closure identity
 isolate/spawn_uri_nested_vm_test: Pass, Crash # Issue 28192
 mirrors/closurization_equivalence_test: SkipByDesign # Method equality
+mirrors/deferred_constraints_constants_test: Crash # Requires deferred libraries
 mirrors/deferred_mirrors_metadata_test: Crash # Deferred loading
 mirrors/deferred_mirrors_metatarget_test: Crash # Deferred loading
 mirrors/deferred_mirrors_update_test: Crash # Deferred loading
