@@ -116,8 +116,7 @@ class AstBuildingForest
           Object typeArguments,
           Token leftBracket,
           List<Expression> expressions,
-          Token rightBracket,
-          Token location) =>
+          Token rightBracket) =>
       astFactory.listLiteral(
           constKeyword, typeArguments, leftBracket, expressions, rightBracket);
 
@@ -130,8 +129,7 @@ class AstBuildingForest
           Object typeArguments,
           Token leftBracket,
           covariant List entries,
-          Token rightBracket,
-          Token location) =>
+          Token rightBracket) =>
       astFactory.mapLiteral(
           constKeyword, typeArguments, leftBracket, entries, rightBracket);
 

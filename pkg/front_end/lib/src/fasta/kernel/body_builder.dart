@@ -1857,10 +1857,9 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         constKeyword != null || constantContext == ConstantContext.inferred,
         typeArgument,
         typeArguments,
-        null,
+        beginToken,
         expressions,
-        endToken,
-        constKeyword ?? beginToken));
+        endToken));
   }
 
   @override
@@ -1916,8 +1915,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         typeArguments,
         beginToken,
         entries,
-        endToken,
-        constKeyword ?? beginToken));
+        endToken));
   }
 
   @override

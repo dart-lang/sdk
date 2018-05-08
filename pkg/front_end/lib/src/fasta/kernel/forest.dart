@@ -50,8 +50,7 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// preceding the list literal, or `null` if there are no type arguments. The
   /// [leftBracket] is the location of the `[`. The list of [expressions] is a
   /// list of the representations of the list elements. The [rightBracket] is
-  /// the location of the `]`. The [location] is the location of the first token
-  /// in the list literal.
+  /// the location of the `]`.
   Expression literalList(
       Location constKeyword,
       bool isConst,
@@ -59,8 +58,7 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
       Object typeArguments,
       Location leftBracket,
       List<Expression> expressions,
-      Location rightBracket,
-      Location location);
+      Location rightBracket);
 
   /// Return a representation of a map literal. The [constKeyword] is the
   /// location of the `const` keyword, or `null` if there is no keyword. The
@@ -75,8 +73,7 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// preceding the map literal, or `null` if there are no type arguments. The
   /// [leftBracket] is the location of the `{`. The list of [entries] is a
   /// list of the representations of the map entries. The [rightBracket] is
-  /// the location of the `}`. The [location] is the location of the first token
-  /// in the map literal.
+  /// the location of the `}`.
   Expression literalMap(
       Location constKeyword,
       bool isConst,
@@ -85,8 +82,7 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
       Object typeArguments,
       Location leftBracket,
       covariant List entries,
-      Location rightBracket,
-      Location location);
+      Location rightBracket);
 
   /// Return a representation of a null literal at the given [location].
   Expression literalNull(Location location);

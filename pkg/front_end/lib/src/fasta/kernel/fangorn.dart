@@ -111,11 +111,12 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
       Object typeArguments,
       Token leftBracket,
       List<Expression> expressions,
-      Token rightBracket,
-      Token location) {
+      Token rightBracket) {
+    // TODO(brianwilkerson): The file offset computed below will not be correct
+    // if there are type arguments but no `const` keyword.
     return new ShadowListLiteral(expressions,
         typeArgument: typeArgument, isConst: isConst)
-      ..fileOffset = offsetForToken(location);
+      ..fileOffset = offsetForToken(constKeyword ?? leftBracket);
   }
 
   @override
@@ -127,11 +128,12 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
       Object typeArguments,
       Token leftBracket,
       List<MapEntry> entries,
-      Token rightBracket,
-      Token token) {
+      Token rightBracket) {
+    // TODO(brianwilkerson): The file offset computed below will not be correct
+    // if there are type arguments but no `const` keyword.
     return new ShadowMapLiteral(entries,
         keyType: keyType, valueType: valueType, isConst: isConst)
-      ..fileOffset = offsetForToken(token);
+      ..fileOffset = offsetForToken(constKeyword ?? leftBracket);
   }
 
   @override
