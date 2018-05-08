@@ -202,7 +202,7 @@ abstract class GraphBuilder {
   }
 
   void goto(HBasicBlock from, HBasicBlock to) {
-    from.close(new HGoto());
+    from.close(new HGoto(abstractValueDomain));
     from.addSuccessor(to);
   }
 
@@ -275,7 +275,7 @@ abstract class GraphBuilder {
   /// specify special successors if we are already in a try/catch/finally block.
   void handleInTryStatement() {
     if (!inTryStatement) return;
-    HBasicBlock block = close(new HExitTry());
+    HBasicBlock block = close(new HExitTry(abstractValueDomain));
     HBasicBlock newBlock = graph.addNewBlock();
     block.addSuccessor(newBlock);
     open(newBlock);

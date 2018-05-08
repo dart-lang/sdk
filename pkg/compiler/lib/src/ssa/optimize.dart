@@ -1130,7 +1130,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         value = other;
       }
     }
-    return new HFieldSet(field, receiver, value);
+    return new HFieldSet(_abstractValueDomain, field, receiver, value);
   }
 
   HInstruction visitInvokeClosure(HInvokeClosure node) {

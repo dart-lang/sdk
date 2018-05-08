@@ -101,7 +101,7 @@ void handleSsaNative(SsaAstGraphBuilder builder, Expression nativeBody) {
         effects: new SideEffects()));
     // TODO(johnniwinther): Provide source information.
     builder
-        .close(new HReturn(builder.pop(), null))
+        .close(new HReturn(builder.abstractValueDomain, builder.pop(), null))
         .addSuccessor(builder.graph.exit);
   } else {
     if (parameters.parameterCount != 0) {

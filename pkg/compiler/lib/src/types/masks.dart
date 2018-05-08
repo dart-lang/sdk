@@ -6,7 +6,7 @@ library masks;
 
 import '../common.dart';
 import '../common_elements.dart' show CommonElements;
-import '../constants/values.dart' show PrimitiveConstantValue;
+import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../elements/entities.dart';
 import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
 import '../universe/selector.dart' show Selector;
@@ -18,6 +18,7 @@ import '../universe/world_builder.dart'
 import '../util/util.dart';
 import '../world.dart' show ClassQuery, ClosedWorld;
 import 'abstract_value_domain.dart';
+import 'constants.dart';
 
 part 'container_type_mask.dart';
 part 'dictionary_type_mask.dart';
@@ -195,6 +196,10 @@ class CommonMasks implements AbstractValueDomain {
     return new TypeMask.nonNullSubtype(cls, _closedWorld);
   }
 
+  TypeMask createNullableSubtype(ClassEntity cls) {
+    return new TypeMask.subtype(cls, _closedWorld);
+  }
+
   TypeMask excludeNull(TypeMask mask) => mask.nonNullable();
 
   @override
@@ -365,4 +370,9 @@ class CommonMasks implements AbstractValueDomain {
   bool areDisjoint(TypeMask a, TypeMask b) => a.isDisjoint(b, _closedWorld);
 
   bool containsAll(TypeMask a) => a.containsAll(_closedWorld);
+
+  @override
+  AbstractValue computeAbstractValueForConstant(ConstantValue value) {
+    return computeTypeMask(_closedWorld, value);
+  }
 }

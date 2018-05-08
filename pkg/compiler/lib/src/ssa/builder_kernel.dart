@@ -323,7 +323,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       graph.entry.addBefore(graph.entry.last, parameter);
       HInstruction value = typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
           parameter, _getDartTypeIfValid(node.type));
-      add(new HFieldSet(field, thisInstruction, value));
+      add(new HFieldSet(abstractValueDomain, field, thisInstruction, value));
     } else {
       if (node.initializer != null) {
         node.initializer.accept(this);
@@ -336,8 +336,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         stack.add(graph.addConstantNull(closedWorld));
       }
       HInstruction value = pop();
-      closeAndGotoExit(
-          new HReturn(value, _sourceInformationBuilder.buildReturn(node)));
+      closeAndGotoExit(new HReturn(abstractValueDomain, value,
+          _sourceInformationBuilder.buildReturn(node)));
     }
     closeFunction();
   }
@@ -496,7 +496,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       add(new HFieldGet(null, newObject, commonMasks.dynamicType,
           isAssignable: false));
       for (int i = 0; i < fields.length; i++) {
-        add(new HFieldSet(fields[i], newObject, constructorArguments[i]));
+        add(new HFieldSet(abstractValueDomain, fields[i], newObject,
+            constructorArguments[i]));
       }
     } else {
       // Create the runtime type information, if needed.
@@ -604,7 +605,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     if (_inliningStack.isEmpty) {
-      closeAndGotoExit(new HReturn(newObject, sourceInformation));
+      closeAndGotoExit(
+          new HReturn(abstractValueDomain, newObject, sourceInformation));
       closeFunction();
     } else {
       localsHandler.updateLocal(_returnLocal, newObject,
@@ -920,8 +922,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         typeArguments,
         commonMasks.functionType));
     HInstruction value = pop();
-    close(new HReturn(
-            value, _sourceInformationBuilder.buildReturn(originalClosureNode)))
+    close(new HReturn(abstractValueDomain, value,
+            _sourceInformationBuilder.buildReturn(originalClosureNode)))
         .addSuccessor(graph.exit);
 
     closeFunction();
@@ -954,6 +956,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
             },
             visitThen: () {
               closeAndGotoExit(new HReturn(
+                  abstractValueDomain,
                   graph.addConstantBool(false, closedWorld),
                   _sourceInformationBuilder.buildReturn(functionNode)));
             },
@@ -1083,8 +1086,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       if (targetElement.isSetter) {
         value = graph.addConstantNull(closedWorld);
       }
-      close(new HReturn(
-              value, _sourceInformationBuilder.buildReturn(functionNode)))
+      close(new HReturn(abstractValueDomain, value,
+              _sourceInformationBuilder.buildReturn(functionNode)))
           .addSuccessor(graph.exit);
     }
     // TODO(sra): Handle JS-interop methods.
@@ -1129,7 +1132,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         parameterMap,
         _sourceInformationBuilder.buildDeclaration(targetElement),
         isGenerativeConstructorBody: targetElement is ConstructorBodyEntity);
-    close(new HGoto()).addSuccessor(block);
+    close(new HGoto(abstractValueDomain)).addSuccessor(block);
 
     open(block);
 
@@ -1144,8 +1147,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   void closeFunction() {
-    if (!isAborted()) closeAndGotoExit(new HGoto());
-    graph.finalize();
+    if (!isAborted()) closeAndGotoExit(new HGoto(abstractValueDomain));
+    graph.finalize(abstractValueDomain);
   }
 
   @override
@@ -1246,7 +1249,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       handleInTryStatement();
       SourceInformation sourceInformation =
           _sourceInformationBuilder.buildThrow(node.expression);
-      closeAndGotoExit(new HThrow(pop(), sourceInformation));
+      closeAndGotoExit(
+          new HThrow(abstractValueDomain, pop(), sourceInformation));
     } else {
       expression.accept(this);
       pop();
@@ -1713,7 +1717,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     HBasicBlock bodyExitBlock;
     bool isAbortingBody = false;
     if (current != null) {
-      bodyExitBlock = close(new HGoto());
+      bodyExitBlock = close(new HGoto(abstractValueDomain));
     } else {
       isAbortingBody = true;
       bodyExitBlock = lastOpenedBlock;
@@ -1758,13 +1762,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
       node.condition.accept(this);
       assert(!isAborted());
       HInstruction conditionInstruction = popBoolified();
-      HBasicBlock conditionEndBlock = close(
-          new HLoopBranch(conditionInstruction, HLoopBranch.DO_WHILE_LOOP));
+      HBasicBlock conditionEndBlock = close(new HLoopBranch(abstractValueDomain,
+          conditionInstruction, HLoopBranch.DO_WHILE_LOOP));
 
       HBasicBlock avoidCriticalEdge = addNewBlock();
       conditionEndBlock.addSuccessor(avoidCriticalEdge);
       open(avoidCriticalEdge);
-      close(new HGoto());
+      close(new HGoto(abstractValueDomain));
       avoidCriticalEdge.addSuccessor(loopEntryBlock); // The back-edge.
 
       conditionExpression =
@@ -1773,7 +1777,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // Avoid a critical edge from the condition to the loop-exit body.
       HBasicBlock conditionExitBlock = addNewBlock();
       open(conditionExitBlock);
-      close(new HGoto());
+      close(new HGoto(abstractValueDomain));
       conditionEndBlock.addSuccessor(conditionExitBlock);
 
       loopHandler.endLoop(
@@ -1813,7 +1817,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         loopEntryBlock.setBlockFlow(info, current);
         jumpHandler.forEachBreak((HBreak breakInstruction, _) {
           HBasicBlock block = breakInstruction.block;
-          block.addAtExit(new HBreak.toLabel(label, sourceInformation));
+          block.addAtExit(new HBreak.toLabel(
+              abstractValueDomain, label, sourceInformation));
           block.remove(breakInstruction);
         });
       }
@@ -2312,7 +2317,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
 
-    HSwitch switchInstruction = new HSwitch(<HInstruction>[expression]);
+    HSwitch switchInstruction =
+        new HSwitch(abstractValueDomain, <HInstruction>[expression]);
     HBasicBlock expressionEnd = close(switchInstruction);
     LocalsHandler savedLocals = localsHandler;
 
@@ -2372,7 +2378,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
               'Continue cannot target a switch.'));
     });
     if (!isAborted()) {
-      current.close(new HGoto());
+      current.close(new HGoto(abstractValueDomain));
       lastOpenedBlock.addSuccessor(joinBlock);
       caseHandlers.add(localsHandler);
     }
@@ -2382,7 +2388,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       HBasicBlock defaultCase = addNewBlock();
       expressionEnd.addSuccessor(defaultCase);
       open(defaultCase);
-      close(new HGoto());
+      close(new HGoto(abstractValueDomain));
       defaultCase.addSuccessor(joinBlock);
       caseHandlers.add(savedLocals);
       statements.add(new HSubGraphBlockInformation(
@@ -2725,6 +2731,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       pop();
     } else {
       add(new HStaticStore(
+          abstractValueDomain,
           _elementMap.getMember(staticTarget),
           typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
               value, _getDartTypeIfValid(staticTarget.setterType))));
@@ -4534,7 +4541,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       SourceInformation sourceInformation =
           _sourceInformationBuilder.buildThrow(node);
       handleInTryStatement();
-      push(new HThrowExpression(pop(), sourceInformation));
+      push(new HThrowExpression(abstractValueDomain, pop(), sourceInformation));
       isReachable = false;
     }
   }
@@ -4551,8 +4558,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   void visitYieldStatement(ir.YieldStatement node) {
     node.expression.accept(this);
-    add(new HYield(
-        pop(), node.isYieldStar, _sourceInformationBuilder.buildYield(node)));
+    add(new HYield(abstractValueDomain, pop(), node.isYieldStar,
+        _sourceInformationBuilder.buildYield(node)));
   }
 
   @override
@@ -4575,7 +4582,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
     handleInTryStatement();
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildThrow(node);
-    closeAndGotoExit(new HThrow(exception, sourceInformation, isRethrow: true));
+    closeAndGotoExit(new HThrow(
+        abstractValueDomain, exception, sourceInformation,
+        isRethrow: true));
     // ir.Rethrow is an expression so we need to push a value - a constant with
     // no type.
     stack.add(graph.addConstantUnreachable(closedWorld));
@@ -5100,7 +5109,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   void _emitReturn(HInstruction value, SourceInformation sourceInformation) {
     if (_inliningStack.isEmpty) {
-      closeAndGotoExit(new HReturn(value, sourceInformation));
+      closeAndGotoExit(
+          new HReturn(abstractValueDomain, value, sourceInformation));
     } else {
       localsHandler.updateLocal(_returnLocal, value);
     }
@@ -5453,7 +5463,7 @@ class TryCatchFinallyBuilder {
   LocalsHandler originalSavedLocals;
 
   TryCatchFinallyBuilder(this.kernelBuilder, this.trySourceInformation) {
-    tryInstruction = new HTry();
+    tryInstruction = new HTry(kernelBuilder.abstractValueDomain);
     originalSavedLocals = new LocalsHandler.from(kernelBuilder.localsHandler);
     enterBlock = kernelBuilder.openNewBlock();
     kernelBuilder.close(tryInstruction);
@@ -5524,7 +5534,8 @@ class TryCatchFinallyBuilder {
     kernelBuilder.open(startFinallyBlock);
     buildFinalizer();
     if (!kernelBuilder.isAborted()) {
-      endFinallyBlock = kernelBuilder.close(new HGoto());
+      endFinallyBlock =
+          kernelBuilder.close(new HGoto(kernelBuilder.abstractValueDomain));
     }
     tryInstruction.finallyBlock = startFinallyBlock;
     finallyGraph =
@@ -5536,7 +5547,8 @@ class TryCatchFinallyBuilder {
     // because it will have multiple successors: the join block, and
     // the catch or finally block.
     if (!kernelBuilder.isAborted()) {
-      endTryBlock = kernelBuilder.close(new HExitTry());
+      endTryBlock =
+          kernelBuilder.close(new HExitTry(kernelBuilder.abstractValueDomain));
     }
     bodyGraph = new SubGraph(startTryBlock, kernelBuilder.lastOpenedBlock);
   }
@@ -5601,7 +5613,9 @@ class TryCatchFinallyBuilder {
     void visitElse() {
       if (catchesIndex >= tryCatch.catches.length) {
         kernelBuilder.closeAndGotoExit(new HThrow(
-            exception, exception.sourceInformation,
+            kernelBuilder.abstractValueDomain,
+            exception,
+            exception.sourceInformation,
             isRethrow: true));
       } else {
         ir.Catch nextCatch = tryCatch.catches[catchesIndex];
@@ -5626,7 +5640,8 @@ class TryCatchFinallyBuilder {
         sourceInformation:
             kernelBuilder._sourceInformationBuilder.buildCatch(firstBlock));
     if (!kernelBuilder.isAborted()) {
-      endCatchBlock = kernelBuilder.close(new HGoto());
+      endCatchBlock =
+          kernelBuilder.close(new HGoto(kernelBuilder.abstractValueDomain));
     }
 
     kernelBuilder.rethrowableException = oldRethrowableException;

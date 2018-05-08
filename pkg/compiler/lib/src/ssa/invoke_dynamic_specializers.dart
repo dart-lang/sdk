@@ -139,7 +139,8 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
         return null;
       }
     }
-    return new HIndexAssign(receiver, index, value, instruction.selector);
+    return new HIndexAssign(closedWorld.abstractValueDomain, receiver, index,
+        value, instruction.selector);
   }
 
   /// Returns [true] if [value] meets the requirements for being stored into

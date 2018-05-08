@@ -4,6 +4,7 @@
 
 library dart2js.abstract_value_domain;
 
+import '../constants/values.dart' show ConstantValue;
 import '../elements/entities.dart';
 
 /// A value in an abstraction of runtime values.
@@ -92,6 +93,8 @@ abstract class AbstractValueDomain {
 
   /// Creates an [AbstractValue] for non-null instance that implements [cls].
   AbstractValue createNonNullSubtype(ClassEntity cls);
+
+  AbstractValue createNullableSubtype(ClassEntity cls);
 
   /// Returns `true` if [value] is a native typed array or `null` at runtime.
   bool isTypedArray(covariant AbstractValue value);
@@ -237,4 +240,7 @@ abstract class AbstractValueDomain {
 
   /// Returns `true` if [a] contains all non-null runtime values.
   bool containsAll(covariant AbstractValue a);
+
+  /// Computes the [AbstractValue] corresponding to the constant [value].
+  AbstractValue computeAbstractValueForConstant(ConstantValue value);
 }

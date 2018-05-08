@@ -258,7 +258,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     HInstruction input = instruction.checkedInput;
     TypeMask inputType = input.instructionType;
     TypeMask outputType =
-        instruction.knownType.intersection(inputType, closedWorld);
+        abstractValueDomain.intersection(instruction.knownType, inputType);
     if (inputType != outputType) {
       input.replaceAllUsersDominatedBy(instruction.next, instruction);
     }
