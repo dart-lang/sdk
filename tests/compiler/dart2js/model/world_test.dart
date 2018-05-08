@@ -15,10 +15,10 @@ import '../type_test_helper.dart';
 
 void main() {
   runTests({bool useOldFrontend}) async {
-    await testClassSets(useOldFrontend: useOldFrontend);
-    await testProperties(useOldFrontend: useOldFrontend);
-    await testNativeClasses(useOldFrontend: useOldFrontend);
-    await testCommonSubclasses(useOldFrontend: useOldFrontend);
+    await testClassSets();
+    await testProperties();
+    await testNativeClasses();
+    await testCommonSubclasses();
   }
 
   asyncTest(() async {
@@ -29,7 +29,7 @@ void main() {
   });
 }
 
-testClassSets({bool useOldFrontend}) async {
+testClassSets() async {
   var env = await TypeEnvironment.create(r"""
       class A implements X {}
       class B {}
@@ -53,7 +53,7 @@ testClassSets({bool useOldFrontend}) async {
         html.window;
         new html.Worker('');
       }
-      """, useOldFrontend: useOldFrontend);
+      """);
   ClosedWorld closedWorld = env.closedWorld;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 
@@ -189,7 +189,7 @@ testClassSets({bool useOldFrontend}) async {
   testMixinUses(X, []);
 }
 
-testProperties({bool useOldFrontend}) async {
+testProperties() async {
   var env = await TypeEnvironment.create(r"""
       class A {}
       class A1 extends A {}
@@ -244,7 +244,7 @@ testProperties({bool useOldFrontend}) async {
         new G3();
         new H4();
       }
-      """, useOldFrontend: useOldFrontend);
+      """);
   ClosedWorld closedWorld = env.closedWorld;
 
   check(String name, {bool hasStrictSubtype, bool hasOnlySubclasses}) {
@@ -310,9 +310,8 @@ testProperties({bool useOldFrontend}) async {
   check("H4", hasStrictSubtype: false, hasOnlySubclasses: true);
 }
 
-testNativeClasses({bool useOldFrontend}) async {
-  var env = await TypeEnvironment.create('',
-      mainSource: r"""
+testNativeClasses() async {
+  var env = await TypeEnvironment.create('', mainSource: r"""
       import 'dart:html' as html;
       main() {
         html.window; // Creates 'Window'.
@@ -320,8 +319,7 @@ testNativeClasses({bool useOldFrontend}) async {
         new html.CanvasElement() // Creates CanvasElement
             ..getContext(''); // Creates CanvasRenderingContext2D
       }
-      """,
-      useOldFrontend: useOldFrontend);
+      """);
   ClosedWorld closedWorld = env.closedWorld;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   LibraryEntity dart_html = elementEnvironment.lookupLibrary(Uris.dart_html);
@@ -520,9 +518,8 @@ testNativeClasses({bool useOldFrontend}) async {
       instantiatedSubtypeCount: 0);
 }
 
-testCommonSubclasses({bool useOldFrontend}) async {
-  var env = await TypeEnvironment.create('',
-      mainSource: r"""
+testCommonSubclasses() async {
+  var env = await TypeEnvironment.create('', mainSource: r"""
       class A {}
       class B {}
       class C extends A {}
@@ -545,8 +542,7 @@ testCommonSubclasses({bool useOldFrontend}) async {
         new I();
         new J();
       }
-      """,
-      useOldFrontend: useOldFrontend);
+      """);
   ClosedWorld closedWorld = env.closedWorld;
 
   ClassEntity A = env.getElement("A");

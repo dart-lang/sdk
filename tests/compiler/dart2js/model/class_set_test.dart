@@ -18,22 +18,20 @@ import '../type_test_helper.dart';
 
 void main() {
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await testAll(useOldFrontend: true);
     print('--test from kernel------------------------------------------------');
-    await testAll(useOldFrontend: false);
+    await testAll();
     print('--test from kernel (strong)---------------------------------------');
-    await testAll(useOldFrontend: false, strongMode: true);
+    await testAll(strongMode: true);
   });
 }
 
-testAll({bool useOldFrontend, bool strongMode: false}) async {
-  await testIterators(useOldFrontend: useOldFrontend);
-  await testForEach(useOldFrontend: useOldFrontend);
-  await testClosures(useOldFrontend: useOldFrontend, strongMode: strongMode);
+testAll({bool strongMode: false}) async {
+  await testIterators();
+  await testForEach();
+  await testClosures(strongMode: strongMode);
 }
 
-testIterators({bool useOldFrontend}) async {
+testIterators() async {
   var env = await TypeEnvironment.create(r"""
       ///        A
       ///       / \
@@ -57,7 +55,7 @@ testIterators({bool useOldFrontend}) async {
         new F();
         new G();
       }
-      """, useOldFrontend: useOldFrontend);
+      """);
   ClosedWorld world = env.closedWorld;
 
   ClassEntity A = env.getClass("A");
@@ -356,7 +354,7 @@ testIterators({bool useOldFrontend}) async {
   Expect.isNull(iterator.current);
 }
 
-testForEach({bool useOldFrontend}) async {
+testForEach() async {
   var env = await TypeEnvironment.create(r"""
       ///        A
       ///       / \
@@ -387,7 +385,7 @@ testForEach({bool useOldFrontend}) async {
         new H();
         new I();
       }
-      """, useOldFrontend: useOldFrontend);
+      """);
   ClosedWorld world = env.closedWorld;
 
   ClassEntity A = env.getClass("A");
@@ -590,7 +588,7 @@ testForEach({bool useOldFrontend}) async {
       find: I, anySubtype: true, expectedResult: true);
 }
 
-testClosures({bool useOldFrontend, bool strongMode}) async {
+testClosures({bool strongMode}) async {
   var env = await TypeEnvironment.create(r"""
       class A {
         call() => null;
@@ -603,7 +601,6 @@ testClosures({bool useOldFrontend, bool strongMode}) async {
         local() {}
       }
       """,
-      useOldFrontend: useOldFrontend,
       options: strongMode ? [Flags.strongMode] : [],
       testBackendWorld: true);
   ClosedWorld world = env.closedWorld;

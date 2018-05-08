@@ -16,16 +16,14 @@ import '../type_test_helper.dart';
 
 void main() {
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useOldFrontend: true);
     print('--test from kernel------------------------------------------------');
-    await runTests(useOldFrontend: false);
+    await runTests();
     print('--test from kernel (strong)---------------------------------------');
-    await runTests(useOldFrontend: false, strongMode: true);
+    await runTests(strongMode: true);
   });
 }
 
-runTests({bool useOldFrontend, bool strongMode: false}) async {
+runTests({bool strongMode: false}) async {
   var env = await TypeEnvironment.create(r"""
       ///        A
       ///       / \
@@ -44,8 +42,7 @@ runTests({bool useOldFrontend, bool strongMode: false}) async {
       class G extends C {}
       abstract class H implements C {}
       abstract class I implements H {}
-      """,
-      mainSource: r"""
+      """, mainSource: r"""
       main() {
         new A().call;
         new C();
@@ -54,9 +51,7 @@ runTests({bool useOldFrontend, bool strongMode: false}) async {
         new F();
         new G();
       }
-      """,
-      useOldFrontend: useOldFrontend,
-      options: strongMode ? [Flags.strongMode] : []);
+      """, options: strongMode ? [Flags.strongMode] : []);
   ClosedWorld world = env.closedWorld;
 
   ClassEntity A = env.getElement("A");

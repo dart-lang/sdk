@@ -45,8 +45,7 @@ class TypeEnvironment {
       String mainSource,
       bool testBackendWorld: false,
       List<String> options: const <String>[],
-      Map<String, String> fieldTypeMap: const <String, String>{},
-      bool useOldFrontend: false}) async {
+      Map<String, String> fieldTypeMap: const <String, String>{}}) async {
     Uri uri;
     Compiler compiler;
     if (mainSource != null) {
@@ -64,39 +63,19 @@ class TypeEnvironment {
       source = '$mainSource\n$source';
     }
     memory.DiagnosticCollector collector;
-    if (!useOldFrontend) {
-      collector = new memory.DiagnosticCollector();
-      uri = Uri.parse('memory:main.dart');
-      compiler = await dill.compileWithDill(
-          entryPoint: uri,
-          memorySourceFiles: {'main.dart': source},
-          diagnosticHandler: collector,
-          options: stopAfterTypeInference
-              ? ([Flags.disableTypeInference]..addAll(options))
-              : ([
-                  Flags.disableTypeInference,
-                  Flags.analyzeAll,
-                  Flags.analyzeOnly
-                ]..addAll(options)),
-          beforeRun: (Compiler compiler) {
-            compiler.stopAfterTypeInference = stopAfterTypeInference;
-          });
-    } else {
-      collector = new memory.DiagnosticCollector();
-      uri = Uri.parse('memory:main.dart');
-      memory.CompilationResult result = await memory.runCompiler(
-          entryPoint: uri,
-          memorySourceFiles: {'main.dart': source},
-          diagnosticHandler: collector,
-          options: stopAfterTypeInference
-              ? ([Flags.useOldFrontend]..addAll(options))
-              : ([Flags.useOldFrontend, Flags.analyzeAll, Flags.analyzeOnly]
-                ..addAll(options)),
-          beforeRun: (compiler) {
-            compiler.stopAfterTypeInference = stopAfterTypeInference;
-          });
-      compiler = result.compiler;
-    }
+    collector = new memory.DiagnosticCollector();
+    uri = Uri.parse('memory:main.dart');
+    compiler = await dill.compileWithDill(
+        entryPoint: uri,
+        memorySourceFiles: {'main.dart': source},
+        diagnosticHandler: collector,
+        options: stopAfterTypeInference
+            ? ([Flags.disableTypeInference]..addAll(options))
+            : ([Flags.disableTypeInference, Flags.analyzeAll, Flags.analyzeOnly]
+              ..addAll(options)),
+        beforeRun: (Compiler compiler) {
+          compiler.stopAfterTypeInference = stopAfterTypeInference;
+        });
     if (expectNoErrors || expectNoWarningsOrErrors) {
       var errors = collector.errors;
       Expect.isTrue(errors.isEmpty, 'Unexpected errors: ${errors}');

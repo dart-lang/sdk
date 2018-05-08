@@ -15,36 +15,24 @@ import '../type_test_helper.dart';
 
 void main() {
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useOldFrontend: true);
     print('--test from kernel------------------------------------------------');
-    await runTests(useOldFrontend: false);
+    await runTests();
     print('--test from kernel (strong)---------------------------------------');
-    await runTests(useOldFrontend: false, strongMode: true);
+    await runTests(strongMode: true);
   });
 }
 
-Future runTests({bool useOldFrontend, bool strongMode: false}) async {
-  await testCallableSubtype(
-      useOldFrontend: useOldFrontend, strongMode: strongMode);
-  await testInterfaceSubtype(
-      useOldFrontend: useOldFrontend, strongMode: strongMode);
-  await testFunctionSubtyping(
-      useOldFrontend: useOldFrontend, strongMode: strongMode);
-  await testTypedefSubtyping(
-      useOldFrontend: useOldFrontend, strongMode: strongMode);
-  await testFunctionSubtypingOptional(
-      useOldFrontend: useOldFrontend, strongMode: strongMode);
-  await testTypedefSubtypingOptional(
-      useOldFrontend: useOldFrontend, strongMode: strongMode);
-  await testFunctionSubtypingNamed(
-      useOldFrontend: useOldFrontend, strongMode: strongMode);
-  await testTypedefSubtypingNamed(
-      useOldFrontend: useOldFrontend, strongMode: strongMode);
-  await testTypeVariableSubtype(
-      useOldFrontend: useOldFrontend, strongMode: strongMode);
-  await testStrongModeSubtyping(
-      useOldFrontend: useOldFrontend, strongMode: strongMode);
+Future runTests({bool strongMode: false}) async {
+  await testCallableSubtype(strongMode: strongMode);
+  await testInterfaceSubtype(strongMode: strongMode);
+  await testFunctionSubtyping(strongMode: strongMode);
+  await testTypedefSubtyping(strongMode: strongMode);
+  await testFunctionSubtypingOptional(strongMode: strongMode);
+  await testTypedefSubtypingOptional(strongMode: strongMode);
+  await testFunctionSubtypingNamed(strongMode: strongMode);
+  await testTypedefSubtypingNamed(strongMode: strongMode);
+  await testTypeVariableSubtype(strongMode: strongMode);
+  await testStrongModeSubtyping(strongMode: strongMode);
 }
 
 void testTypes(TypeEnvironment env, DartType subtype, DartType supertype,
@@ -69,16 +57,14 @@ void testElementTypes(TypeEnvironment env, String subname, String supername,
   testTypes(env, subtype, supertype, expectSubtype, expectMoreSpecific);
 }
 
-Future testInterfaceSubtype({bool useOldFrontend, bool strongMode}) async {
+Future testInterfaceSubtype({bool strongMode}) async {
   await TypeEnvironment.create(r"""
       class A<T> {}
       class B<T1, T2> extends A<T1> {}
       // TODO(johnniwinther): Inheritance with different type arguments is
       // currently not supported by the implementation.
       class C<T1, T2> extends B<T2, T1> /*implements A<A<T1>>*/ {}
-      """,
-      useOldFrontend: useOldFrontend,
-      options: strongMode ? [Flags.strongMode] : []).then((env) {
+      """, options: strongMode ? [Flags.strongMode] : []).then((env) {
     void expect(bool expectSubtype, DartType T, DartType S,
         {bool expectMoreSpecific}) {
       testTypes(env, T, S, expectSubtype, expectMoreSpecific);
@@ -316,7 +302,7 @@ Future testInterfaceSubtype({bool useOldFrontend, bool strongMode}) async {
   });
 }
 
-Future testCallableSubtype({bool useOldFrontend, bool strongMode}) async {
+Future testCallableSubtype({bool strongMode}) async {
   await TypeEnvironment.create(r"""
       class U {}
       class V extends U {}
@@ -330,9 +316,7 @@ Future testCallableSubtype({bool useOldFrontend, bool strongMode}) async {
         int m4(V v, U u) => null;
         void m5(V v, int i) => null;
       }
-      """,
-      useOldFrontend: useOldFrontend,
-      options: strongMode ? [Flags.strongMode] : []).then((env) {
+      """, options: strongMode ? [Flags.strongMode] : []).then((env) {
     void expect(bool expectSubtype, DartType T, DartType S,
         {bool expectMoreSpecific}) {
       testTypes(env, T, S, expectSubtype, expectMoreSpecific);
@@ -379,18 +363,16 @@ const List<FunctionTypeData> functionTypesData = const <FunctionTypeData>[
       'void', 'inline_void__int', '(void Function(int i) f)'),
 ];
 
-Future testFunctionSubtyping({bool useOldFrontend, bool strongMode}) async {
+Future testFunctionSubtyping({bool strongMode}) async {
   await TypeEnvironment
       .create(createMethods(functionTypesData),
-          useOldFrontend: useOldFrontend,
           options: strongMode ? [Flags.strongMode] : [])
       .then(functionSubtypingHelper);
 }
 
-Future testTypedefSubtyping({bool useOldFrontend, bool strongMode}) async {
+Future testTypedefSubtyping({bool strongMode}) async {
   await TypeEnvironment
       .create(createTypedefs(functionTypesData),
-          useOldFrontend: useOldFrontend,
           options: strongMode ? [Flags.strongMode] : [])
       .then(functionSubtypingHelper);
 }
@@ -467,20 +449,16 @@ const List<FunctionTypeData> optionalFunctionTypesData =
   const FunctionTypeData('void', 'void___Object_int', '([Object o, int i])'),
 ];
 
-Future testFunctionSubtypingOptional(
-    {bool useOldFrontend, bool strongMode}) async {
+Future testFunctionSubtypingOptional({bool strongMode}) async {
   await TypeEnvironment
       .create(createMethods(optionalFunctionTypesData),
-          useOldFrontend: useOldFrontend,
           options: strongMode ? [Flags.strongMode] : [])
       .then((env) => functionSubtypingOptionalHelper(env, strongMode));
 }
 
-Future testTypedefSubtypingOptional(
-    {bool useOldFrontend, bool strongMode}) async {
+Future testTypedefSubtypingOptional({bool strongMode}) async {
   await TypeEnvironment
       .create(createTypedefs(optionalFunctionTypesData),
-          useOldFrontend: useOldFrontend,
           options: strongMode ? [Flags.strongMode] : [])
       .then((env) => functionSubtypingOptionalHelper(env, strongMode));
 }
@@ -545,11 +523,9 @@ const List<FunctionTypeData> namedFunctionTypesData = const <FunctionTypeData>[
   const FunctionTypeData('void', 'void___c_int', '({int c})'),
 ];
 
-Future testFunctionSubtypingNamed(
-    {bool useOldFrontend, bool strongMode}) async {
+Future testFunctionSubtypingNamed({bool strongMode}) async {
   await TypeEnvironment
       .create(createMethods(namedFunctionTypesData),
-          useOldFrontend: useOldFrontend,
           options: strongMode ? [Flags.strongMode] : [])
       .then((env) => functionSubtypingNamedHelper(env, strongMode));
 }
@@ -557,7 +533,6 @@ Future testFunctionSubtypingNamed(
 Future testTypedefSubtypingNamed({bool useOldFrontend, bool strongMode}) async {
   await TypeEnvironment
       .create(createTypedefs(namedFunctionTypesData),
-          useOldFrontend: useOldFrontend,
           options: strongMode ? [Flags.strongMode] : [])
       .then((env) => functionSubtypingNamedHelper(env, strongMode));
 }
@@ -598,7 +573,7 @@ functionSubtypingNamedHelper(TypeEnvironment env, bool strongMode) {
   expect(true, 'void___a_int_b_int_c_int', 'void___c_int');
 }
 
-Future testTypeVariableSubtype({bool useOldFrontend, bool strongMode}) async {
+Future testTypeVariableSubtype({bool strongMode}) async {
   await TypeEnvironment.create(r"""
       class A<T> {}
       class B<T extends Object> {}
@@ -610,9 +585,7 @@ Future testTypeVariableSubtype({bool useOldFrontend, bool strongMode}) async {
       class H<T extends S, S extends T> {}
       class I<T extends S, S extends U, U extends T> {}
       class J<T extends S, S extends U, U extends S> {}
-      """,
-      useOldFrontend: useOldFrontend,
-      options: strongMode ? [Flags.strongMode] : []).then((env) {
+      """, options: strongMode ? [Flags.strongMode] : []).then((env) {
     void expect(bool expectSubtype, DartType T, DartType S,
         {bool expectMoreSpecific}) {
       testTypes(env, T, S, expectSubtype, expectMoreSpecific);
@@ -822,7 +795,7 @@ Future testTypeVariableSubtype({bool useOldFrontend, bool strongMode}) async {
   });
 }
 
-Future testStrongModeSubtyping({bool useOldFrontend, bool strongMode}) async {
+Future testStrongModeSubtyping({bool strongMode}) async {
   await TypeEnvironment.create(r"""
       class ClassWithCall {
         void call() {}
@@ -836,9 +809,7 @@ Future testStrongModeSubtyping({bool useOldFrontend, bool strongMode}) async {
       takeInt(int o) => null;
       takeVoid(void o) => null;
       takeObject(Object o) => null;
-      """,
-      useOldFrontend: useOldFrontend,
-      options: strongMode ? [Flags.strongMode] : []).then((env) {
+      """, options: strongMode ? [Flags.strongMode] : []).then((env) {
     void expect(bool expectSubtype, DartType T, DartType S) {
       Expect.equals(expectSubtype, env.isSubtype(T, S), '$T <: $S');
       if (expectSubtype) {

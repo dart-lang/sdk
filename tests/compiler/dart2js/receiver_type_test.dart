@@ -13,14 +13,12 @@ import 'type_test_helper.dart';
 
 main() {
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useOldFrontend: true);
     print('--test from kernel------------------------------------------------');
-    await runTest(useOldFrontend: false);
+    await runTest();
   });
 }
 
-Future runTest({bool useOldFrontend}) async {
+Future runTest() async {
   var env = await TypeEnvironment.create("""
     class A {
       call() {}
@@ -38,7 +36,7 @@ Future runTest({bool useOldFrontend}) async {
       localFunction() {}
       () {};
     }
-    """, useOldFrontend: useOldFrontend, testBackendWorld: true);
+    """, testBackendWorld: true);
 
   Map<String, String> expectedMap = const {
     'A': '[exact=A]',

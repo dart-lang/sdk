@@ -9,7 +9,7 @@ import "package:compiler/src/world.dart";
 import '../type_test_helper.dart';
 
 main() {
-  runTest({bool useOldFrontend}) async {
+  runTest() async {
     TypeEnvironment env = await TypeEnvironment.create(r"""
       class A {}
       class B {}
@@ -18,7 +18,7 @@ main() {
         new A();
         new B();
       }
-      """, useOldFrontend: useOldFrontend);
+      """);
     ClosedWorld world = env.closedWorld;
     FlatTypeMask mask1 = new FlatTypeMask.exact(env.getClass('A'));
     FlatTypeMask mask2 = new FlatTypeMask.exact(env.getClass('B'));
@@ -28,9 +28,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useOldFrontend: true);
     print('--test from kernel------------------------------------------------');
-    await runTest(useOldFrontend: false);
+    await runTest();
   });
 }

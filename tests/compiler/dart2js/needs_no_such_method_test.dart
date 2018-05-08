@@ -14,10 +14,8 @@ import 'type_test_helper.dart';
 
 void main() {
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await testClassSets(useOldFrontend: true);
     print('--test from kernel------------------------------------------------');
-    await testClassSets(useOldFrontend: false);
+    await testClassSets();
   });
 }
 
@@ -33,7 +31,7 @@ class Subtype implements Superclass {
 }
 """;
 
-testClassSets({bool useOldFrontend}) async {
+testClassSets() async {
   Selector foo, bar, baz;
   ClosedWorld closedWorld;
   ClassEntity superclass, subclass, subtype;
@@ -48,8 +46,8 @@ testClassSets({bool useOldFrontend}) async {
     main.write('}');
     testMode = '$instantiated';
 
-    var env = await TypeEnvironment.create(CLASSES,
-        mainSource: main.toString(), useOldFrontend: useOldFrontend);
+    var env =
+        await TypeEnvironment.create(CLASSES, mainSource: main.toString());
     foo = new Selector.call(const PublicName('foo'), CallStructure.NO_ARGS);
     bar = new Selector.call(const PublicName('bar'), CallStructure.NO_ARGS);
     baz = new Selector.call(const PublicName('baz'), CallStructure.NO_ARGS);

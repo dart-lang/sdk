@@ -24,16 +24,14 @@ isCheckedMode() {
 }
 
 void main() {
-  runTests({bool useOldFrontend}) async {
-    await testUnionTypeMaskFlatten(useOldFrontend: useOldFrontend);
-    await testStringSubtypes(useOldFrontend: useOldFrontend);
+  runTests() async {
+    await testUnionTypeMaskFlatten();
+    await testStringSubtypes();
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useOldFrontend: true);
     print('--test from kernel------------------------------------------------');
-    await runTests(useOldFrontend: false);
+    await runTests();
   });
 }
 
@@ -92,7 +90,7 @@ checkMasks(ClosedWorld closedWorld, List<ClassEntity> allClasses,
   return union;
 }
 
-Future testUnionTypeMaskFlatten({bool useOldFrontend}) async {
+Future testUnionTypeMaskFlatten() async {
   TypeEnvironment env = await TypeEnvironment.create(r"""
       class A {}
       class B {}
@@ -107,7 +105,7 @@ Future testUnionTypeMaskFlatten({bool useOldFrontend}) async {
         new D();
         new E();
       }
-      """, useOldFrontend: useOldFrontend);
+      """);
 
   ClosedWorld closedWorld = env.closedWorld;
 
@@ -211,13 +209,11 @@ Future testUnionTypeMaskFlatten({bool useOldFrontend}) async {
 }
 
 Future testStringSubtypes({bool useOldFrontend}) async {
-  TypeEnvironment env = await TypeEnvironment.create('',
-      mainSource: r"""
+  TypeEnvironment env = await TypeEnvironment.create('', mainSource: r"""
       main() {
         '' is String;
       }
-      """,
-      useOldFrontend: useOldFrontend);
+      """);
   ClosedWorld closedWorld = env.closedWorld;
 
   ClassEntity Object_ = env.getElement("Object");
