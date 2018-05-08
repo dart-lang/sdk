@@ -93,6 +93,10 @@ integer_parsed_mul_div_vm_test: Pass, Slow
 [ $arch == x64 && $system == windows ]
 stopwatch_test: Skip # Flaky test due to expected performance behaviour.
 
+[ $arch == simarm || $arch == simarm64 || $arch == simdbc64 ]
+bigint_parse_radix_test: Pass, Slow # Bigint computations are slow on simulated architectures.
+bigint_test: Pass, Slow # Bigint computations are slow on simulated architectures.
+
 [ $compiler == dart2analyzer && !$checked && !$strong ]
 from_environment_const_type_test/02: MissingCompileTimeError
 from_environment_const_type_test/03: MissingCompileTimeError
@@ -302,13 +306,6 @@ splay_tree_test/02: MissingCompileTimeError
 string_base_vm_static_test: MissingCompileTimeError
 string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
-
-# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
-# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
-# batch mode.
-[ $compiler == dartk && $mode == debug && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
-bigint_parse_radix_test: Pass, Timeout # Please triage.
-bigint_test: Pass, Timeout # Please triage.
 
 # ===== dartk + vm status lines =====
 [ $compiler == dartk && $runtime == vm && $strong ]
