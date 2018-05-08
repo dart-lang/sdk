@@ -3,5 +3,5 @@ Errors: {
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr<T extends dynamic>() → dynamic
   return () → dart.core::Null {
-    main::A::debugExpr::T k = let final dynamic #t1 = let dynamic _ = null in invalid-expression "Error: A value of type 'main::A<dynamic>' can't be assigned to a variable of type 'main::A::debugExpr::T'.\nTry changing the type of the left hand side, or casting the right hand side to 'main::A::debugExpr::T'." in let final dynamic #t2 = new main::A::•<dynamic>() in null;
+    main::A::debugExpr::T k = let final dynamic #t1 = new main::A::•<dynamic>() in let dynamic _ = null in invalid-expression "Error: A value of type 'main::A<dynamic>' can't be assigned to a variable of type 'main::A::debugExpr::T'.\nTry changing the type of the left hand side, or casting the right hand side to 'main::A::debugExpr::T'.";
   };

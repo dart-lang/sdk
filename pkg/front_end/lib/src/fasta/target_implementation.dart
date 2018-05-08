@@ -18,8 +18,6 @@ import 'ticker.dart' show Ticker;
 
 import 'uri_translator.dart' show UriTranslator;
 
-import 'kernel/metadata_collector.dart' show MetadataCollector;
-
 /// Provides the implementation details used by a loader for a target.
 abstract class TargetImplementation extends Target {
   final UriTranslator uriTranslator;
@@ -35,13 +33,7 @@ abstract class TargetImplementation extends Target {
   Builder cachedNativeAnnotation;
   Builder cachedNativeExtensionAnnotation;
 
-  /// The [MetadataCollector] to write metadata to.
-  ///
-  /// Maybe be [null] for targets where metadata cannot be written.
-  final MetadataCollector metadataCollector;
-
-  TargetImplementation(Ticker ticker, this.uriTranslator, this.backendTarget,
-      [this.metadataCollector = null])
+  TargetImplementation(Ticker ticker, this.uriTranslator, this.backendTarget)
       : super(ticker);
 
   /// Creates a [LibraryBuilder] corresponding to [uri], if one doesn't exist

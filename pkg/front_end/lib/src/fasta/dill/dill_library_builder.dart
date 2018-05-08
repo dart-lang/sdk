@@ -11,7 +11,6 @@ import 'package:kernel/ast.dart'
         Class,
         Field,
         Library,
-        LibraryDependency,
         ListLiteral,
         Member,
         Procedure,
@@ -19,15 +18,9 @@ import 'package:kernel/ast.dart'
         StringLiteral,
         Typedef;
 
-import 'package:kernel/ast.dart' as kernel show Combinator;
-
-import '../combinator.dart' show Combinator;
-
 import '../fasta_codes.dart' show templateUnspecified;
 
-import '../import.dart' show Import;
-
-import '../problems.dart' show internalProblem, unhandled;
+import '../problems.dart' show internalProblem, unhandled, unimplemented;
 
 import '../kernel/kernel_builder.dart'
     show
@@ -125,16 +118,7 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
 
   @override
   void addToScope(String name, Builder member, int charOffset, bool isImport) {
-    Map<String, Builder> map = member.isSetter ? scope.setters : scope.local;
-    Builder existing = map[name];
-    if (existing != null) {
-      if (existing != member) {
-        map[name] = buildAmbiguousBuilder(name, existing, member, charOffset,
-            isImport: isImport);
-      }
-    } else {
-      map[name] = member;
-    }
+    unimplemented("addToScope", charOffset, fileUri);
   }
 
   @override
@@ -224,24 +208,5 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
       }
       assert(node == builder.target);
     }
-  }
-
-  void addImportsToScope(Map<Uri, LibraryBuilder> libraries) {
-    List<Import> imports = <Import>[];
-    for (LibraryDependency dependency in library.dependencies) {
-      if (!dependency.isImport) continue;
-      LibraryBuilder imported = libraries[dependency.targetLibrary.importUri];
-      assert(imported != null);
-
-      List<Combinator> syntheticCombinators = <Combinator>[];
-      for (kernel.Combinator combinator in dependency.combinators) {
-        syntheticCombinators.add(new Combinator(combinator.isShow,
-            new Set<String>.from(combinator.names), -1, uri));
-      }
-
-      imports.add(new Import(this, imported, false, dependency.name,
-          syntheticCombinators, [], dependency.fileOffset, -1));
-    }
-    addSpecificImportsToScope(imports);
   }
 }

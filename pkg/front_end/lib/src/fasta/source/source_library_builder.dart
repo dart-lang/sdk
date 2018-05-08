@@ -652,7 +652,18 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   }
 
   void addImportsToScope() {
-    super.addSpecificImportsToScope(imports);
+    bool explicitCoreImport = this == loader.coreLibrary;
+    for (Import import in imports) {
+      if (import.imported == loader.coreLibrary) {
+        explicitCoreImport = true;
+      }
+      import.finalizeImports(this);
+    }
+    if (!explicitCoreImport) {
+      loader.coreLibrary.exportScope.forEach((String name, Builder member) {
+        addToScope(name, member, -1, true);
+      });
+    }
   }
 
   @override
