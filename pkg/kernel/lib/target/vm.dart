@@ -12,7 +12,7 @@ import '../core_types.dart';
 import '../transformations/mixin_full_resolution.dart' as transformMixins
     show transformLibraries;
 import '../transformations/continuation.dart' as transformAsync
-    show transformLibraries;
+    show transformLibraries, transformProcedure;
 
 import 'targets.dart';
 
@@ -73,6 +73,14 @@ class VmTarget extends Target {
   @override
   void performGlobalTransformations(CoreTypes coreTypes, Component component,
       {void logger(String msg)}) {}
+
+  @override
+  void performTransformationsOnProcedure(
+      CoreTypes coreTypes, ClassHierarchy hierarchy, Procedure procedure,
+      {void logger(String msg)}) {
+    transformAsync.transformProcedure(coreTypes, procedure, flags.syncAsync);
+    logger?.call("Transformed async functions");
+  }
 
   @override
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,

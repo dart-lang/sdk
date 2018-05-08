@@ -14,6 +14,7 @@ import 'package:kernel/ast.dart'
         Class,
         Constructor,
         DartType,
+        Procedure,
         DynamicType,
         EmptyStatement,
         Expression,
@@ -28,7 +29,6 @@ import 'package:kernel/ast.dart'
         Name,
         NamedExpression,
         NullLiteral,
-        Procedure,
         ProcedureKind,
         Component,
         Source,
@@ -710,6 +710,12 @@ class KernelTarget extends TargetImplementation {
   void runBuildTransformations() {
     backendTarget.performModularTransformationsOnLibraries(
         loader.coreTypes, loader.hierarchy, loader.libraries,
+        logger: (String msg) => ticker.logMs(msg));
+  }
+
+  void runProcedureTransformations(Procedure procedure) {
+    backendTarget.performTransformationsOnProcedure(
+        loader.coreTypes, loader.hierarchy, procedure,
         logger: (String msg) => ticker.logMs(msg));
   }
 

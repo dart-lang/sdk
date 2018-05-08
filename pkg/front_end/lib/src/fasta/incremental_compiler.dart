@@ -452,6 +452,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       userCode.uriToSource.remove(debugExprUri);
       userCode.loader.sourceBytes.remove(debugExprUri);
 
+      userCode.runProcedureTransformations(procedure);
+
       return procedure;
     });
   }

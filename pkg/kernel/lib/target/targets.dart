@@ -153,6 +153,15 @@ abstract class Target {
   void performGlobalTransformations(CoreTypes coreTypes, Component component,
       {void logger(String msg)});
 
+  /// Perform target-specific modular transformations on the given program.
+  ///
+  /// This is used when an individual expression is compiled, e.g. for debugging
+  /// purposes. It is illegal to modify any of the enclosing nodes of the
+  /// procedure.
+  void performTransformationsOnProcedure(
+      CoreTypes coreTypes, ClassHierarchy hierarchy, Procedure procedure,
+      {void logger(String msg)}) {}
+
   /// Whether a platform library may define a restricted type, such as `bool`,
   /// `int`, `double`, `num`, and `String`.
   ///
