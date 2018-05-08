@@ -1633,7 +1633,7 @@ void StreamingScopeBuilder::VisitExpression() {
       builder_->ReadUInt();  // read value.
       return;
     case kDoubleLiteral:
-      builder_->SkipStringReference();  // read index into string table.
+      builder_->ReadDouble();  // read value.
       return;
     case kTrueLiteral:
       return;
@@ -3602,8 +3602,7 @@ void StreamingConstantEvaluator::EvaluateIntLiteral(bool is_negative) {
 }
 
 void StreamingConstantEvaluator::EvaluateDoubleLiteral() {
-  result_ = Double::New(H.DartString(builder_->ReadStringReference()),
-                        Heap::kOld);  // read string reference.
+  result_ = Double::New(builder_->ReadDouble(), Heap::kOld);  // read value.
   result_ = H.Canonicalize(result_);
 }
 
@@ -4276,9 +4275,13 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
     case kPositiveIntLiteral:
       BuildHash(ReadUInt());  // read value.
       return;
-    case kDoubleLiteral:
-      CalculateStringReferenceFingerprint();  // read index into string table.
+    case kDoubleLiteral: {
+      double value = ReadDouble();  // read value.
+      uint64_t data = bit_cast<uint64_t>(value);
+      BuildHash(static_cast<uint32_t>(data >> 32));
+      BuildHash(static_cast<uint32_t>(data));
       return;
+    }
     case kTrueLiteral:
       return;
     case kFalseLiteral:
@@ -6047,6 +6050,10 @@ uint32_t KernelReaderHelper::PeekUInt() {
   return reader_.ReadUInt();
 }
 
+double KernelReaderHelper::ReadDouble() {
+  return reader_.ReadDouble();
+}
+
 uint32_t KernelReaderHelper::PeekListLength() {
   AlternativeReadingScope alt(&reader_);
   return reader_.ReadListLength();
@@ -6492,7 +6499,7 @@ void KernelReaderHelper::SkipExpression() {
       ReadUInt();  // read value.
       return;
     case kDoubleLiteral:
-      SkipStringReference();  // read index into string table.
+      ReadDouble();  // read value.
       return;
     case kTrueLiteral:
       return;
@@ -8986,8 +8993,7 @@ Fragment StreamingFlowGraphBuilder::BuildDoubleLiteral(
   if (position != NULL) *position = TokenPosition::kNoSource;
 
   Double& constant = Double::ZoneHandle(
-      Z, Double::NewCanonical(
-             H.DartString(ReadStringReference())));  // read string reference.
+      Z, Double::NewCanonical(ReadDouble()));  // read double.
   return Constant(constant);
 }
 
@@ -10718,8 +10724,7 @@ const Array& ConstantHelper::ReadConstantTable() {
         break;
       }
       case kDoubleConstant: {
-        temp_instance_ = Double::New(
-            H.DartString(builder_.ReadStringReference()), Heap::kOld);
+        temp_instance_ = Double::New(builder_.ReadDouble(), Heap::kOld);
         temp_instance_ = H.Canonicalize(temp_instance_);
         break;
       }

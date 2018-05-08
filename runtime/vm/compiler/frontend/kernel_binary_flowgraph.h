@@ -1042,6 +1042,7 @@ class KernelReaderHelper {
   uint32_t ReadUInt();
   uint32_t ReadUInt32();
   uint32_t PeekUInt();
+  double ReadDouble();
   uint32_t PeekListLength();
   StringIndex ReadStringReference();
   NameIndex ReadCanonicalNameReference();

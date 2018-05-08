@@ -82,8 +82,7 @@ class SimpleExpressionConverter {
         return true;
       case kDoubleLiteral:
         simple_value_ = &Double::ZoneHandle(
-            Z, Double::New(H.DartString(builder_->ReadStringReference()),
-                           Heap::kOld));  // read string reference.
+            Z, Double::New(builder_->ReadDouble(), Heap::kOld));  // read value.
         *simple_value_ = H.Canonicalize(*simple_value_);
         return true;
       case kTrueLiteral:
