@@ -4139,6 +4139,27 @@ main() {
 ''');
   }
 
+  test_importLibraryProject_withClass_instanceCreation_const_namedConstructor() async {
+    testFile = '/project/lib/test.dart';
+    addSource('/project/lib/lib.dart', '''
+class Test {
+  const Test.named();
+}
+''');
+    await resolveTestUnit('''
+main() {
+  const Test.named();
+}
+''');
+    await assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT1, '''
+import 'lib.dart';
+
+main() {
+  const Test.named();
+}
+''');
+  }
+
   test_importLibraryProject_withClass_instanceCreation_implicit() async {
     testFile = '/project/lib/test.dart';
     addSource('/project/lib/lib.dart', '''
@@ -4177,6 +4198,27 @@ import 'lib.dart';
 
 main() {
   return new Test();
+}
+''');
+  }
+
+  test_importLibraryProject_withClass_instanceCreation_new_namedConstructor() async {
+    testFile = '/project/lib/test.dart';
+    addSource('/project/lib/lib.dart', '''
+class Test {
+  Test.named();
+}
+''');
+    await resolveTestUnit('''
+main() {
+  new Test.named();
+}
+''');
+    await assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT1, '''
+import 'lib.dart';
+
+main() {
+  new Test.named();
 }
 ''');
   }

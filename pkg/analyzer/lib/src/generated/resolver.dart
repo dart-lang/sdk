@@ -8504,7 +8504,17 @@ class TypeNameResolver {
     if (typeName is SimpleIdentifier) {
       return typeName;
     } else {
-      return (typeName as PrefixedIdentifier).identifier;
+      PrefixedIdentifier prefixed = typeName;
+      SimpleIdentifier prefix = prefixed.prefix;
+      // The prefixed identifier can be:
+      // 1. new importPrefix.TypeName()
+      // 2. new TypeName.constructorName()
+      // 3. new unresolved.Unresolved()
+      if (prefix.staticElement is PrefixElement) {
+        return prefixed.identifier;
+      } else {
+        return prefix;
+      }
     }
   }
 
