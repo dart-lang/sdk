@@ -9,9 +9,8 @@ import "package:async_helper/async_helper.dart";
 import '../compiler_helper.dart';
 
 main() {
-  runTest({bool useKernel}) async {
-    String code =
-        await compileAll(r'''main() { print(main); }''', useKernel: useKernel);
+  runTest() async {
+    String code = await compileAll(r'''main() { print(main); }''');
     // At some point, we will have to closurize global functions
     // differently, at which point this test will break. Then it is time
     // to implement a way to call a Dart closure from JS foreign
@@ -26,9 +25,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel----------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

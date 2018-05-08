@@ -28,19 +28,17 @@ foo(a) {
 """;
 
 main() {
-  runTests({bool useKernel}) async {
+  runTests() async {
     await compile(TEST_ONE, entry: 'foo', check: (String generated) {
       Expect.isTrue(!generated.contains(r'break'));
-    }, useKernel: useKernel);
+    });
     await compile(TEST_TWO, entry: 'foo', check: (String generated) {
       Expect.isTrue(generated.contains(r'continue'));
-    }, useKernel: useKernel);
+    });
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

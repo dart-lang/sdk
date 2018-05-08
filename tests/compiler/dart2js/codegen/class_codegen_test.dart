@@ -63,45 +63,43 @@ main() {
 }
 """;
 
-twoClasses({bool useKernel}) async {
-  String generated = await compileAll(TEST_ONE, useKernel: useKernel);
+twoClasses() async {
+  String generated = await compileAll(TEST_ONE);
   Expect.isTrue(generated.contains(new RegExp('A: {[ \n]*"\\^": "Object;"')));
   Expect.isTrue(generated.contains(new RegExp('B: {[ \n]*"\\^": "Object;"')));
 }
 
-subClass({bool useKernel}) async {
+subClass() async {
   checkOutput(String generated) {
     Expect.isTrue(generated.contains(new RegExp('A: {[ \n]*"\\^": "Object;"')));
     Expect.isTrue(generated.contains(new RegExp('B: {[ \n]*"\\^": "A;"')));
   }
 
-  checkOutput(await compileAll(TEST_TWO, useKernel: useKernel));
-  checkOutput(await compileAll(TEST_THREE, useKernel: useKernel));
+  checkOutput(await compileAll(TEST_TWO));
+  checkOutput(await compileAll(TEST_THREE));
 }
 
-fieldTest({bool useKernel}) async {
-  String generated = await compileAll(TEST_FOUR, useKernel: useKernel);
+fieldTest() async {
+  String generated = await compileAll(TEST_FOUR);
   Expect.isTrue(generated
       .contains(new RegExp('B: {[ \n]*"\\^": "A;y,z,x",[ \n]*static:')));
 }
 
-constructor1({bool useKernel}) async {
-  String generated = await compileAll(TEST_FIVE, useKernel: useKernel);
+constructor1() async {
+  String generated = await compileAll(TEST_FIVE);
   Expect.isTrue(generated.contains(new RegExp(r"new [$A-Z]+\.A\(a\);")));
 }
 
 main() {
-  runTests({bool useKernel}) async {
-    await twoClasses(useKernel: useKernel);
-    await subClass(useKernel: useKernel);
-    await fieldTest(useKernel: useKernel);
-    await constructor1(useKernel: useKernel);
+  runTests() async {
+    await twoClasses();
+    await subClass();
+    await fieldTest();
+    await constructor1();
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

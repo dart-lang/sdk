@@ -20,18 +20,16 @@ main() { return x; }
 """;
 
 main() {
-  runTests({bool useKernel}) async {
-    String generated1 = await compileAll(TEST_NULL0, useKernel: useKernel);
+  runTests() async {
+    String generated1 = await compileAll(TEST_NULL0);
     Expect.isTrue(generated1.contains("null"));
 
-    String generated2 = await compileAll(TEST_NULL1, useKernel: useKernel);
+    String generated2 = await compileAll(TEST_NULL1);
     Expect.isTrue(generated2.contains("null"));
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

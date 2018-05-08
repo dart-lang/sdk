@@ -82,17 +82,14 @@ void main() {
 
 main() {
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }
 
-runTests({bool useKernel}) async {
+runTests() async {
   test(String code, Function f) async {
-    String generated =
-        await compileAll(code, disableInlining: true, useKernel: useKernel);
+    String generated = await compileAll(code, disableInlining: true);
     Expect.isTrue(f(generated));
   }
 

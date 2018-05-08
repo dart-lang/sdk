@@ -14,17 +14,14 @@ foo() {
 """;
 
 main() {
-  runTest({bool useKernel}) async {
-    await compile(TEST_ONE, entry: 'foo', useKernel: useKernel,
-        check: (String generated) {
+  runTest() async {
+    await compile(TEST_ONE, entry: 'foo', check: (String generated) {
       Expect.isFalse(generated.contains('typeof (void 0)'));
     });
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

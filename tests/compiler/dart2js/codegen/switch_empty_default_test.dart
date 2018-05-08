@@ -119,19 +119,17 @@ main() {
   var defOrCase3 = new RegExp(r"(default:|case 3):");
   var case3 = new RegExp(r"case 3:");
 
-  runTests({bool useKernel}) async {
-    await compileAndDoNotMatch(SIMPLY_EMPTY, 'main', def, useKernel: useKernel);
-    await compileAndDoNotMatch(TOTAL, 'main', defOrCase3, useKernel: useKernel);
-    await compileAndDoNotMatch(OPTIMIZED, 'main', def, useKernel: useKernel);
-    await compileAndMatch(LABEL, 'main', case3, useKernel: useKernel);
-    await compileAndMatch(DEFLABEL, 'main', def, useKernel: useKernel);
-    await compileAndMatch(EMPTYDEFLABEL, 'main', def, useKernel: useKernel);
+  runTests() async {
+    await compileAndDoNotMatch(SIMPLY_EMPTY, 'main', def);
+    await compileAndDoNotMatch(TOTAL, 'main', defOrCase3);
+    await compileAndDoNotMatch(OPTIMIZED, 'main', def);
+    await compileAndMatch(LABEL, 'main', case3);
+    await compileAndMatch(DEFLABEL, 'main', def);
+    await compileAndMatch(EMPTYDEFLABEL, 'main', def);
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

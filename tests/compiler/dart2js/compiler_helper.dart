@@ -52,7 +52,6 @@ Future<String> compile(String code,
     bool analyzeAll: false,
     bool disableInlining: true,
     bool trustJSInteropTypeAnnotations: false,
-    bool useKernel: false,
     void check(String generatedEntry),
     bool returnAll: false}) async {
   OutputCollector outputCollector = returnAll ? new OutputCollector() : null;
@@ -68,9 +67,6 @@ Future<String> compile(String code,
   }
   if (trustJSInteropTypeAnnotations) {
     options.add(Flags.trustJSInteropTypeAnnotations);
-  }
-  if (!useKernel) {
-    options.add(Flags.useOldFrontend);
   }
   if (disableInlining) {
     options.add(Flags.disableInlining);
@@ -104,19 +100,13 @@ Future<String> compile(String code,
 }
 
 Future<String> compileAll(String code,
-    {Map<String, String> coreSource,
-    bool disableInlining: true,
+    {bool disableInlining: true,
     bool trustTypeAnnotations: false,
     bool minify: false,
     int expectedErrors,
-    int expectedWarnings,
-    bool useKernel: false}) async {
+    int expectedWarnings}) async {
   OutputCollector outputCollector = new OutputCollector();
   DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
-  if (coreSource != null) {
-    throw new UnsupportedError(
-        'coreSource is not supported for useKernel=$useKernel');
-  }
   List<String> options = <String>[];
   if (disableInlining) {
     options.add(Flags.disableInlining);
@@ -126,9 +116,6 @@ Future<String> compileAll(String code,
   }
   if (minify) {
     options.add(Flags.minify);
-  }
-  if (!useKernel) {
-    options.add(Flags.useOldFrontend);
   }
   CompilationResult result = await runCompiler(
       memorySourceFiles: {'main.dart': code},
@@ -173,19 +160,15 @@ void checkNumberOfMatches(Iterator it, int nb) {
   Expect.isFalse(hasNext, "Found more than $nb matches");
 }
 
-Future compileAndMatch(String code, String entry, RegExp regexp,
-    {bool useKernel: false}) {
-  return compile(code, entry: entry, useKernel: useKernel,
-      check: (String generated) {
+Future compileAndMatch(String code, String entry, RegExp regexp) {
+  return compile(code, entry: entry, check: (String generated) {
     Expect.isTrue(
         regexp.hasMatch(generated), '"$generated" does not match /$regexp/');
   });
 }
 
-Future compileAndDoNotMatch(String code, String entry, RegExp regexp,
-    {bool useKernel: false}) {
-  return compile(code, entry: entry, useKernel: useKernel,
-      check: (String generated) {
+Future compileAndDoNotMatch(String code, String entry, RegExp regexp) {
+  return compile(code, entry: entry, check: (String generated) {
     Expect.isFalse(
         regexp.hasMatch(generated), '"$generated" has a match in /$regexp/');
   });
@@ -195,22 +178,17 @@ int length(Link link) => link.isEmpty ? 0 : length(link.tail) + 1;
 
 // Does a compile and then a match where every 'x' is replaced by something
 // that matches any variable, and every space is optional.
-Future compileAndMatchFuzzy(String code, String entry, String regexp,
-    {bool useKernel: false}) {
-  return compileAndMatchFuzzyHelper(code, entry, regexp,
-      shouldMatch: true, useKernel: useKernel);
+Future compileAndMatchFuzzy(String code, String entry, String regexp) {
+  return compileAndMatchFuzzyHelper(code, entry, regexp, shouldMatch: true);
 }
 
-Future compileAndDoNotMatchFuzzy(String code, String entry, String regexp,
-    {bool useKernel: false}) {
-  return compileAndMatchFuzzyHelper(code, entry, regexp,
-      shouldMatch: false, useKernel: useKernel);
+Future compileAndDoNotMatchFuzzy(String code, String entry, String regexp) {
+  return compileAndMatchFuzzyHelper(code, entry, regexp, shouldMatch: false);
 }
 
 Future compileAndMatchFuzzyHelper(String code, String entry, String regexp,
-    {bool shouldMatch, bool useKernel: false}) {
-  return compile(code, entry: entry, useKernel: useKernel,
-      check: (String generated) {
+    {bool shouldMatch}) {
+  return compile(code, entry: entry, check: (String generated) {
     final xRe = new RegExp('\\bx\\b');
     regexp = regexp.replaceAll(xRe, '(?:$anyIdentifier)');
     final spaceRe = new RegExp('\\s+');

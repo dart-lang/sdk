@@ -50,16 +50,13 @@ foo(a) {
 """;
 
 main() {
-  runTests({bool useKernel}) async {
+  runTests() async {
     // Make sure we don't introduce a new variable.
-    await compileAndDoNotMatch(FIB, 'fib', new RegExp("var $anyIdentifier ="),
-        useKernel: useKernel);
+    await compileAndDoNotMatch(FIB, 'fib', new RegExp("var $anyIdentifier ="));
 
-    await compileAndDoNotMatch(BAR, 'bar', new RegExp("isLeaf"),
-        useKernel: useKernel);
+    await compileAndDoNotMatch(BAR, 'bar', new RegExp("isLeaf"));
 
-    await compile(TEST, entry: 'foo', useKernel: useKernel,
-        check: (String generated) {
+    await compile(TEST, entry: 'foo', check: (String generated) {
       Expect.isFalse(generated.contains('else'));
       // Regression check to ensure that there is no floating variable
       // expression.
@@ -68,9 +65,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

@@ -18,18 +18,15 @@ void foo(bar) {
 """;
 
 main() {
-  runTest({bool useKernel}) async {
-    await compile(TEST_ONE, useKernel: useKernel, entry: 'foo',
-        check: (String generated) {
+  runTest() async {
+    await compile(TEST_ONE, entry: 'foo', check: (String generated) {
       RegExp regexp = new RegExp("toBeRemoved");
       Expect.isTrue(!regexp.hasMatch(generated));
     });
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

@@ -7,16 +7,13 @@ import "package:async_helper/async_helper.dart";
 import '../compiler_helper.dart';
 
 main() {
-  runTest({bool useKernel}) async {
-    String code = await compileAll(r'''main() { return "foo" + "bar"; }''',
-        useKernel: useKernel);
+  runTest() async {
+    String code = await compileAll(r'''main() { return "foo" + "bar"; }''');
     Expect.isTrue(!code.contains(r'$add'));
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

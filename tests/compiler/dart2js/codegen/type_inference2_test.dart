@@ -15,7 +15,7 @@ sum(param0, param1) {
 
 main() {
   runTest({bool useKernel}) async {
-    await compileAndMatchFuzzy(TEST_ONE, 'sum', r"\+\+x", useKernel: useKernel);
+    await compileAndMatchFuzzy(TEST_ONE, 'sum', r"\+\+x");
   }
 
   asyncTest(() async {

@@ -24,17 +24,15 @@ void main() {
 """;
 
 main() {
-  runTest({bool useKernel}) async {
+  runTest() async {
     // The `==` is strengthened to a HIdentity instruction.  The HIdentity follows
     // `x.link`, so x cannot be `null`.
     var compare = new RegExp(r'x === x\.get\$link\(\)');
-    await compileAndMatch(CODE, 'main', compare, useKernel: useKernel);
+    await compileAndMatch(CODE, 'main', compare);
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

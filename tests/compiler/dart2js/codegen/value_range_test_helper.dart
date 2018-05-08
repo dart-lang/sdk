@@ -241,8 +241,8 @@ main(value) {
   BELOW_ZERO_CHECK,
 ];
 
-Future expect(String code, int kind, {bool useKernel}) {
-  return compile(code, useKernel: useKernel, check: (String generated) {
+Future expect(String code, int kind) {
+  return compile(code, check: (String generated) {
     switch (kind) {
       case REMOVED:
         Expect.isTrue(!generated.contains('ioore'));
@@ -285,6 +285,6 @@ Future expect(String code, int kind, {bool useKernel}) {
 
 runTests({bool useKernel}) async {
   for (int i = 0; i < TESTS.length; i += 2) {
-    await expect(TESTS[i], TESTS[i + 1], useKernel: useKernel);
+    await expect(TESTS[i], TESTS[i + 1]);
   }
 }

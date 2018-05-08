@@ -50,8 +50,8 @@ main() {
 """;
 
 void main() {
-  runTest({bool useKernel}) async {
-    String generated = await compileAll(TEST, useKernel: useKernel);
+  runTest() async {
+    String generated = await compileAll(TEST);
     if (generated.contains(r'=== true')) {
       print(generated);
       Expect.fail("missing elision of '=== true'");
@@ -59,9 +59,7 @@ void main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

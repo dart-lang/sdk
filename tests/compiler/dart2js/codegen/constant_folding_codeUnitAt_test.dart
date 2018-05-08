@@ -33,21 +33,15 @@ foo() {
 """;
 
 main() {
-  runTests({bool useKernel}) async {
-    await compileAndMatch(TEST_1, 'foo', new RegExp(r'return 72'),
-        useKernel: useKernel);
-    await compileAndDoNotMatch(TEST_1, 'foo', new RegExp(r'Hello'),
-        useKernel: useKernel);
-    await compileAndMatch(TEST_2, 'foo', new RegExp(r'Hello'),
-        useKernel: useKernel);
-    await compileAndMatch(TEST_3, 'foo', new RegExp(r'Hello'),
-        useKernel: useKernel);
+  runTests() async {
+    await compileAndMatch(TEST_1, 'foo', new RegExp(r'return 72'));
+    await compileAndDoNotMatch(TEST_1, 'foo', new RegExp(r'Hello'));
+    await compileAndMatch(TEST_2, 'foo', new RegExp(r'Hello'));
+    await compileAndMatch(TEST_3, 'foo', new RegExp(r'Hello'));
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

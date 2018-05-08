@@ -27,9 +27,8 @@ main() {
     Expect.isTrue(generated.contains(text), text);
   }
 
-  runTests({bool useKernel}) async {
-    String generated =
-        await compile(TEST_ONE, useKernel: useKernel, entry: 'test');
+  runTests() async {
+    String generated = await compile(TEST_ONE, entry: 'test');
     check(generated, '.List_12_53.');
     check(generated, '.Token_start_null.');
     check(generated, '.Token_end_null.');
@@ -38,9 +37,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

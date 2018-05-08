@@ -17,15 +17,13 @@ foo(a) {
 ''';
 
 main() {
-  runTest({bool useKernel}) async {
-    String generated = await compileAll(TEST, useKernel: useKernel);
+  runTest() async {
+    String generated = await compileAll(TEST);
     Expect.isFalse(generated.contains('return 42'), 'dead code not eliminated');
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

@@ -13,6 +13,7 @@ codegen/load_elimination_test: Pass, Slow
 codegen/logical_expression_test: Fail # Issue 17027
 codegen/side_effect_tdiv_regression_test: Fail # Issue 33050
 codegen/simple_function_subtype_test: Fail # simple_function_subtype_test is temporarily(?) disabled due to new method for building function type tests.
+codegen/string_escapes_test: Fail # Issue 33060
 deferred_loading/deferred_loading_test: Slow, Pass
 equivalence/id_equivalence1_test: Pass, Slow
 equivalence/id_equivalence2_test: Pass, Slow

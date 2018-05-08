@@ -25,11 +25,10 @@ const String TEST_TWO = r"""
 """;
 
 main() {
-  runTests({bool useKernel}) async {
+  runTests() async {
     // Check that one-shot interceptors preserve variable names, see
     // https://code.google.com/p/dart/issues/detail?id=8106.
-    await compile(TEST_ONE, entry: 'foo', useKernel: useKernel,
-        check: (String generated) {
+    await compile(TEST_ONE, entry: 'foo', check: (String generated) {
       Expect.isTrue(
           generated.contains(new RegExp(r'[$A-Z]+\.toString\$0\$\(a\)')));
       Expect.isTrue(generated.contains('myVariableName'));
@@ -37,8 +36,7 @@ main() {
     // Check that an intercepted getter that does not need to be
     // intercepted, is turned into a regular getter call or field
     // access.
-    await compile(TEST_TWO, entry: 'foo', useKernel: useKernel,
-        check: (String generated) {
+    await compile(TEST_TWO, entry: 'foo', check: (String generated) {
       Expect.isFalse(generated.contains(r'a.get$length()'));
       Expect
           .isTrue(generated.contains(new RegExp(r'[$A-Z]+\.A\$\(\)\.length')));
@@ -48,9 +46,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

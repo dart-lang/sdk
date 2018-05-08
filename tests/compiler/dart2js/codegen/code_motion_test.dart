@@ -23,8 +23,7 @@ foo(int a, int b, bool param2) {
 
 main() {
   runTest({bool useKernel}) async {
-    await compile(TEST_ONE, useKernel: useKernel, entry: 'foo',
-        check: (String generated) {
+    await compile(TEST_ONE, entry: 'foo', check: (String generated) {
       RegExp regexp = new RegExp('a \\+ b');
       Iterator matches = regexp.allMatches(generated).iterator;
       Expect.isTrue(matches.moveNext());

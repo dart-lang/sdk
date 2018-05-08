@@ -38,10 +38,9 @@ const String TEST_4 = r"""
 """;
 
 main() {
-  runTests({bool useKernel}) async {
+  runTests() async {
     check(String test, String contained) async {
-      String generated =
-          await compile(test, entry: 'foo', useKernel: useKernel);
+      String generated = await compile(test, entry: 'foo');
       Expect.isTrue(generated.contains(contained), contained);
     }
 
@@ -61,9 +60,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

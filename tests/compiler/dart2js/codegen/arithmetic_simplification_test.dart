@@ -78,29 +78,19 @@ main() {
   var timesOne = new RegExp(r"\* 1");
   var oneTimes = new RegExp(r"1 \*");
 
-  test({bool useKernel}) async {
-    await compileAndDoNotMatch(INT_PLUS_ZERO, 'main', plusZero,
-        useKernel: useKernel);
-    await compileAndDoNotMatch(ZERO_PLUS_INT, 'main', zeroPlus,
-        useKernel: useKernel);
-    await compileAndMatch(NUM_PLUS_ZERO, 'main', plusZero,
-        useKernel: useKernel);
-    await compileAndMatch(ZERO_PLUS_NUM, 'main', zeroPlus,
-        useKernel: useKernel);
-    await compileAndDoNotMatch(INT_TIMES_ONE, 'main', timesOne,
-        useKernel: useKernel);
-    await compileAndDoNotMatch(ONE_TIMES_INT, 'main', oneTimes,
-        useKernel: useKernel);
-    await compileAndDoNotMatch(NUM_TIMES_ONE, 'main', timesOne,
-        useKernel: useKernel);
-    await compileAndDoNotMatch(ONE_TIMES_NUM, 'main', oneTimes,
-        useKernel: useKernel);
+  test() async {
+    await compileAndDoNotMatch(INT_PLUS_ZERO, 'main', plusZero);
+    await compileAndDoNotMatch(ZERO_PLUS_INT, 'main', zeroPlus);
+    await compileAndMatch(NUM_PLUS_ZERO, 'main', plusZero);
+    await compileAndMatch(ZERO_PLUS_NUM, 'main', zeroPlus);
+    await compileAndDoNotMatch(INT_TIMES_ONE, 'main', timesOne);
+    await compileAndDoNotMatch(ONE_TIMES_INT, 'main', oneTimes);
+    await compileAndDoNotMatch(NUM_TIMES_ONE, 'main', timesOne);
+    await compileAndDoNotMatch(ONE_TIMES_NUM, 'main', oneTimes);
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await test(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await test(useKernel: true);
+    await test();
   });
 }

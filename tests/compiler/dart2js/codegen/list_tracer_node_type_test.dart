@@ -69,24 +69,23 @@ main() {
 }
 
 main() {
-  runTests({bool useKernel}) async {
-    bool useKernel = false;
-    String generated1 = await compileAll(TEST1, useKernel: useKernel);
+  runTests() async {
+    String generated1 = await compileAll(TEST1);
     Expect.isTrue(generated1.contains('if (typeof t1'));
 
-    String generated2 = await compileAll(TEST2, useKernel: useKernel);
+    String generated2 = await compileAll(TEST2);
     Expect.isTrue(generated2.contains('if (typeof t1'));
 
-    String generated3 = await compileAll(TEST3, useKernel: useKernel);
+    String generated3 = await compileAll(TEST3);
     Expect.isTrue(generated3.contains('if (typeof t1'));
 
-    String generated4 = await compileAll(TEST4, useKernel: useKernel);
+    String generated4 = await compileAll(TEST4);
     Expect.isTrue(generated4.contains('if (typeof t1'));
 
-    String generated5 = await compileAll(TEST5, useKernel: useKernel);
+    String generated5 = await compileAll(TEST5);
     Expect.isFalse(generated5.contains('iae'));
 
-    String generated6 = await compileAll(TEST6, useKernel: useKernel);
+    String generated6 = await compileAll(TEST6);
     Expect.isFalse(generated6.contains('iae'));
 
     var memberInvocations = const <String>[
@@ -100,7 +99,7 @@ main() {
     ];
     for (String member in memberInvocations) {
       String generated = await compileAll(generateTest('$member'),
-          expectedErrors: 0, expectedWarnings: 0, useKernel: useKernel);
+          expectedErrors: 0, expectedWarnings: 0);
       Expect.isTrue(
           generated.contains('+ 42'),
           "Missing '+ 42' code for invocation '$member':\n"
@@ -119,9 +118,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

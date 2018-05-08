@@ -51,9 +51,8 @@ foo() {
 """;
 
 main() {
-  runTest({bool useKernel}) async {
-    await compile(TEST, entry: 'foo', useKernel: useKernel,
-        check: (String generated) {
+  runTest() async {
+    await compile(TEST, entry: 'foo', check: (String generated) {
       for (int i = 0; i <= 15; i++) {
         String predicateCheck = '.\$is_args$i';
         Expect.isTrue(generated.contains(predicateCheck),
@@ -65,9 +64,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

@@ -18,8 +18,7 @@ foo(j) {
 
 main() {
   runTest({bool useKernel}) async {
-    await compile(TEST_ONE, entry: 'foo', useKernel: useKernel,
-        check: (String generated) {
+    await compile(TEST_ONE, entry: 'foo', check: (String generated) {
       // Test for absence of an illegal argument exception. This means that the
       // arguments are known to be integers.
       Expect.isFalse(generated.contains('iae'));
