@@ -397,7 +397,7 @@ class RawObject {
     UpdateTagBit<MarkBit>(false);
   }
   // Returns false if the bit was already set.
-  // TODO(koda): Add "must use result" annotation here, after we add support.
+  DART_WARN_UNUSED_RESULT
   bool TryAcquireMarkBit() { return TryAcquireTagBit<MarkBit>(); }
 
   // Support for object tags.
@@ -424,7 +424,7 @@ class RawObject {
     ptr()->tags_ = RememberedBit::update(false, tags);
   }
   // Returns false if the bit was already set.
-  // TODO(koda): Add "must use result" annotation here, after we add support.
+  DART_WARN_UNUSED_RESULT
   bool TryAcquireRememberedBit() { return TryAcquireTagBit<RememberedBit>(); }
 
 #define DEFINE_IS_CID(clazz)                                                   \
