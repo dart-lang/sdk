@@ -86,10 +86,13 @@ import 'type_continuation.dart' show TypeContinuation;
 import 'type_info.dart'
     show
         TypeInfo,
+        TypeParamOrArgInfo,
         computeType,
+        computeTypeParamOrArg,
         isGeneralizedFunctionType,
         isValidTypeReference,
-        noType;
+        noType,
+        noTypeParamOrArg;
 
 import 'type_info_impl.dart' show skipTypeVariables;
 
@@ -4112,10 +4115,12 @@ class Parser {
     TokenType type = next.type;
     int tokenLevel = type.precedence;
     Token typeArguments;
-    if (isValidMethodTypeArguments(next)) {
-      // For example a(b)<T>(c), where token is '<'.
+    TypeParamOrArgInfo typeArg = computeTypeParamOrArg(token);
+    if (typeArg != noTypeParamOrArg &&
+        optional('(', typeArg.skip(token).next)) {
+      // For example a(b)<T>(c), where token is before '<'.
       typeArguments = next;
-      token = parseTypeArgumentsOpt(token);
+      token = typeArg.parseArguments(token, this);
       next = token.next;
       assert(optional('(', next));
       type = next.type;
