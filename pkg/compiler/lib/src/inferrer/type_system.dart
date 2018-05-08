@@ -99,7 +99,7 @@ class TypeSystem<T> {
     nonNullEmptyType = getConcreteTypeFor(commonMasks.emptyType);
   }
 
-  CommonMasks get commonMasks => closedWorld.commonMasks;
+  CommonMasks get commonMasks => closedWorld.abstractValueDomain;
 
   /// Used to group [TypeInformation] nodes by the element that triggered their
   /// creation.

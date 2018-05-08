@@ -2005,7 +2005,7 @@ TypeMask _narrowType(
   } else if (annotation.isVoid) {
     return type;
   } else if (annotation.isTypedef || annotation.isFunctionType) {
-    otherType = closedWorld.commonMasks.functionType;
+    otherType = closedWorld.abstractValueDomain.functionType;
   } else if (annotation.isFutureOr) {
     // TODO(johnniwinther): Narrow FutureOr types.
     return type;

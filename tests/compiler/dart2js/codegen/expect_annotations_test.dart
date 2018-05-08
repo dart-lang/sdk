@@ -113,12 +113,12 @@ runTest() async {
           method, expectedParameterType, expectedReturnType, inferrer);
     } else if (expectAssumeDynamic) {
       testTypeMatch(
-          method, closedWorld.commonMasks.dynamicType, null, inferrer);
+          method, closedWorld.abstractValueDomain.dynamicType, null, inferrer);
     }
   }
 
-  TypeMask jsStringType = closedWorld.commonMasks.stringType;
-  TypeMask jsIntType = closedWorld.commonMasks.intType;
+  TypeMask jsStringType = closedWorld.abstractValueDomain.stringType;
+  TypeMask jsIntType = closedWorld.abstractValueDomain.intType;
   TypeMask coreStringType =
       new TypeMask.subtype(closedWorld.commonElements.stringClass, closedWorld);
 

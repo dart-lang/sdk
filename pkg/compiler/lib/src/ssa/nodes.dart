@@ -4,7 +4,6 @@
 
 import '../closure.dart';
 import '../common.dart';
-import '../common_elements.dart' show CommonElements;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
@@ -17,6 +16,7 @@ import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
 import '../native/native.dart' as native;
 import '../types/constants.dart' show computeTypeMask;
+import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
@@ -975,225 +975,118 @@ abstract class HInstruction implements Spannable {
    * effect, nor any dependency. They can be moved anywhere in the
    * graph.
    */
-  bool isPure() {
+  bool isPure(AbstractValueDomain domain) {
     return !sideEffects.hasSideEffects() &&
         !sideEffects.dependsOnSomething() &&
-        !canThrow();
+        !canThrow(domain);
   }
 
   /// An instruction is an 'allocation' is it is the sole alias for an object.
   /// This applies to instructions that allocate new objects and can be extended
   /// to methods that return other allocations without escaping them.
-  bool get isAllocation => false;
+  bool isAllocation(AbstractValueDomain domain) => false;
 
   /// Overridden by [HCheck] to return the actual non-[HCheck]
   /// instruction it checks against.
   HInstruction nonCheck() => this;
 
   /// Can this node throw an exception?
-  bool canThrow() => false;
+  bool canThrow(AbstractValueDomain domain) => false;
 
   /// Does this node potentially affect control flow.
   bool isControlFlow() => false;
 
-  bool isExact() => instructionType.isExact || isNull();
+  bool isExact(AbstractValueDomain domain) => domain.isExact(instructionType);
 
-  bool isValue() => instructionType.isValue;
+  bool isValue(AbstractValueDomain domain) => domain.isValue(instructionType);
 
-  bool canBeNull() => instructionType.isNullable;
+  bool canBeNull(AbstractValueDomain domain) =>
+      domain.canBeNull(instructionType);
 
-  bool isNull() => instructionType.isNull;
+  bool isNull(AbstractValueDomain domain) => domain.isNull(instructionType);
 
-  bool isConflicting() => instructionType.isEmpty;
+  bool isConflicting(AbstractValueDomain domain) =>
+      domain.isEmpty(instructionType);
 
-  /// Returns `true` if [typeMask] contains [cls].
-  static bool containsType(
-      TypeMask typeMask, ClassEntity cls, ClosedWorld closedWorld) {
-    return closedWorld.isInstantiated(cls) &&
-        typeMask.contains(cls, closedWorld);
-  }
+  bool canBePrimitive(AbstractValueDomain domain) =>
+      domain.canBePrimitive(instructionType);
 
-  /// Returns `true` if [typeMask] contains only [cls].
-  static bool containsOnlyType(
-      TypeMask typeMask, ClassEntity cls, ClosedWorld closedWorld) {
-    return closedWorld.isInstantiated(cls) && typeMask.containsOnly(cls);
-  }
+  bool canBePrimitiveNumber(AbstractValueDomain domain) =>
+      domain.canBePrimitiveNumber(instructionType);
 
-  /// Returns `true` if [typeMask] is an instance of [cls].
-  static bool isInstanceOf(
-      TypeMask typeMask, ClassEntity cls, ClosedWorld closedWorld) {
-    return closedWorld.isImplemented(cls) &&
-        typeMask.satisfies(cls, closedWorld);
-  }
+  bool canBePrimitiveBoolean(AbstractValueDomain domain) =>
+      domain.canBePrimitiveBoolean(instructionType);
 
-  bool canBePrimitive(ClosedWorld closedWorld) {
-    return canBePrimitiveNumber(closedWorld) ||
-        canBePrimitiveArray(closedWorld) ||
-        canBePrimitiveBoolean(closedWorld) ||
-        canBePrimitiveString(closedWorld) ||
-        isNull();
-  }
+  bool canBePrimitiveArray(AbstractValueDomain domain) =>
+      domain.canBePrimitiveArray(instructionType);
 
-  bool canBePrimitiveNumber(ClosedWorld closedWorld) {
-    CommonElements commonElements = closedWorld.commonElements;
-    // TODO(sra): It should be possible to test only jsDoubleClass and
-    // jsUInt31Class, since all others are superclasses of these two.
-    return containsType(
-            instructionType, commonElements.jsNumberClass, closedWorld) ||
-        containsType(instructionType, commonElements.jsIntClass, closedWorld) ||
-        containsType(
-            instructionType, commonElements.jsPositiveIntClass, closedWorld) ||
-        containsType(
-            instructionType, commonElements.jsUInt32Class, closedWorld) ||
-        containsType(
-            instructionType, commonElements.jsUInt31Class, closedWorld) ||
-        containsType(
-            instructionType, commonElements.jsDoubleClass, closedWorld);
-  }
+  bool isIndexablePrimitive(AbstractValueDomain domain) =>
+      domain.isIndexablePrimitive(instructionType);
 
-  bool canBePrimitiveBoolean(ClosedWorld closedWorld) {
-    return containsType(
-        instructionType, closedWorld.commonElements.jsBoolClass, closedWorld);
-  }
+  bool isFixedArray(AbstractValueDomain domain) =>
+      domain.isFixedArray(instructionType);
 
-  bool canBePrimitiveArray(ClosedWorld closedWorld) {
-    CommonElements commonElements = closedWorld.commonElements;
-    return containsType(
-            instructionType, commonElements.jsArrayClass, closedWorld) ||
-        containsType(
-            instructionType, commonElements.jsFixedArrayClass, closedWorld) ||
-        containsType(instructionType, commonElements.jsExtendableArrayClass,
-            closedWorld) ||
-        containsType(instructionType, commonElements.jsUnmodifiableArrayClass,
-            closedWorld);
-  }
+  bool isExtendableArray(AbstractValueDomain domain) =>
+      domain.isExtendableArray(instructionType);
 
-  bool isIndexablePrimitive(ClosedWorld closedWorld) {
-    return instructionType.containsOnlyString(closedWorld) ||
-        isInstanceOf(instructionType,
-            closedWorld.commonElements.jsIndexableClass, closedWorld);
-  }
+  bool isMutableArray(AbstractValueDomain domain) =>
+      domain.isMutableArray(instructionType);
 
-  bool isFixedArray(ClosedWorld closedWorld) {
-    CommonElements commonElements = closedWorld.commonElements;
-    // TODO(sra): Recognize the union of these types as well.
-    return containsOnlyType(
-            instructionType, commonElements.jsFixedArrayClass, closedWorld) ||
-        containsOnlyType(instructionType,
-            commonElements.jsUnmodifiableArrayClass, closedWorld);
-  }
+  bool isMutableIndexable(AbstractValueDomain domain) =>
+      domain.isMutableIndexable(instructionType);
 
-  bool isExtendableArray(ClosedWorld closedWorld) {
-    return containsOnlyType(instructionType,
-        closedWorld.commonElements.jsExtendableArrayClass, closedWorld);
-  }
+  bool isArray(AbstractValueDomain domain) => domain.isArray(instructionType);
 
-  bool isMutableArray(ClosedWorld closedWorld) {
-    return isInstanceOf(instructionType,
-        closedWorld.commonElements.jsMutableArrayClass, closedWorld);
-  }
+  bool canBePrimitiveString(AbstractValueDomain domain) =>
+      domain.canBePrimitiveString(instructionType);
 
-  bool isReadableArray(ClosedWorld closedWorld) {
-    return isInstanceOf(
-        instructionType, closedWorld.commonElements.jsArrayClass, closedWorld);
-  }
+  bool isInteger(AbstractValueDomain domain) =>
+      domain.isInteger(instructionType);
 
-  bool isMutableIndexable(ClosedWorld closedWorld) {
-    return isInstanceOf(instructionType,
-        closedWorld.commonElements.jsMutableIndexableClass, closedWorld);
-  }
+  bool isUInt32(AbstractValueDomain domain) => domain.isUInt32(instructionType);
 
-  bool isArray(ClosedWorld closedWorld) => isReadableArray(closedWorld);
+  bool isUInt31(AbstractValueDomain domain) => domain.isUInt31(instructionType);
 
-  bool canBePrimitiveString(ClosedWorld closedWorld) {
-    return containsType(
-        instructionType, closedWorld.commonElements.jsStringClass, closedWorld);
-  }
+  bool isPositiveInteger(AbstractValueDomain domain) =>
+      domain.isPositiveInteger(instructionType);
 
-  bool isInteger(ClosedWorld closedWorld) {
-    return instructionType.containsOnlyInt(closedWorld) &&
-        !instructionType.isNullable;
-  }
+  bool isPositiveIntegerOrNull(AbstractValueDomain domain) =>
+      domain.isPositiveIntegerOrNull(instructionType);
 
-  bool isUInt32(ClosedWorld closedWorld) {
-    return !instructionType.isNullable &&
-        isInstanceOf(instructionType, closedWorld.commonElements.jsUInt32Class,
-            closedWorld);
-  }
+  bool isIntegerOrNull(AbstractValueDomain domain) =>
+      domain.isIntegerOrNull(instructionType);
 
-  bool isUInt31(ClosedWorld closedWorld) {
-    return !instructionType.isNullable &&
-        isInstanceOf(instructionType, closedWorld.commonElements.jsUInt31Class,
-            closedWorld);
-  }
+  bool isNumber(AbstractValueDomain domain) => domain.isNumber(instructionType);
 
-  bool isPositiveInteger(ClosedWorld closedWorld) {
-    return !instructionType.isNullable &&
-        isInstanceOf(instructionType,
-            closedWorld.commonElements.jsPositiveIntClass, closedWorld);
-  }
+  bool isNumberOrNull(AbstractValueDomain domain) =>
+      domain.isNumberOrNull(instructionType);
 
-  bool isPositiveIntegerOrNull(ClosedWorld closedWorld) {
-    return isInstanceOf(instructionType,
-        closedWorld.commonElements.jsPositiveIntClass, closedWorld);
-  }
+  bool isDouble(AbstractValueDomain domain) => domain.isDouble(instructionType);
 
-  bool isIntegerOrNull(ClosedWorld closedWorld) {
-    return instructionType.containsOnlyInt(closedWorld);
-  }
+  bool isDoubleOrNull(AbstractValueDomain domain) =>
+      domain.isDoubleOrNull(instructionType);
 
-  bool isNumber(ClosedWorld closedWorld) {
-    return instructionType.containsOnlyNum(closedWorld) &&
-        !instructionType.isNullable;
-  }
+  bool isBoolean(AbstractValueDomain domain) =>
+      domain.isBoolean(instructionType);
 
-  bool isNumberOrNull(ClosedWorld closedWorld) {
-    return instructionType.containsOnlyNum(closedWorld);
-  }
+  bool isBooleanOrNull(AbstractValueDomain domain) =>
+      domain.isBooleanOrNull(instructionType);
 
-  bool isDouble(ClosedWorld closedWorld) {
-    return instructionType.containsOnlyDouble(closedWorld) &&
-        !instructionType.isNullable;
-  }
+  bool isString(AbstractValueDomain domain) => domain.isString(instructionType);
 
-  bool isDoubleOrNull(ClosedWorld closedWorld) {
-    return instructionType.containsOnlyDouble(closedWorld);
-  }
+  bool isStringOrNull(AbstractValueDomain domain) =>
+      domain.isStringOrNull(instructionType);
 
-  bool isBoolean(ClosedWorld closedWorld) {
-    return instructionType.containsOnlyBool(closedWorld) &&
-        !instructionType.isNullable;
-  }
+  bool isPrimitive(AbstractValueDomain domain) =>
+      domain.isPrimitive(instructionType);
 
-  bool isBooleanOrNull(ClosedWorld closedWorld) {
-    return instructionType.containsOnlyBool(closedWorld);
-  }
-
-  bool isString(ClosedWorld closedWorld) {
-    return instructionType.containsOnlyString(closedWorld) &&
-        !instructionType.isNullable;
-  }
-
-  bool isStringOrNull(ClosedWorld closedWorld) {
-    return instructionType.containsOnlyString(closedWorld);
-  }
-
-  bool isPrimitive(ClosedWorld closedWorld) {
-    return (isPrimitiveOrNull(closedWorld) && !instructionType.isNullable) ||
-        isNull();
-  }
-
-  bool isPrimitiveOrNull(ClosedWorld closedWorld) {
-    return isIndexablePrimitive(closedWorld) ||
-        isNumberOrNull(closedWorld) ||
-        isBooleanOrNull(closedWorld) ||
-        isNull();
-  }
+  bool isPrimitiveOrNull(AbstractValueDomain domain) =>
+      domain.isPrimitiveOrNull(instructionType);
 
   /**
    * Type of the instruction.
    */
-  TypeMask instructionType;
+  AbstractValue instructionType;
 
   Selector get selector => null;
   HInstruction getDartReceiver(ClosedWorld closedWorld) => null;
@@ -1367,13 +1260,13 @@ abstract class HInstruction implements Spannable {
     if (type == closedWorld.commonElements.objectType) return this;
     if (type.isFunctionType || type.isMalformed || type.isFutureOr) {
       return new HTypeConversion(type, kind,
-          closedWorld.commonMasks.dynamicType, this, sourceInformation);
+          closedWorld.abstractValueDomain.dynamicType, this, sourceInformation);
     }
     assert(type.isInterfaceType);
     if (kind == HTypeConversion.BOOLEAN_CONVERSION_CHECK) {
       // Boolean conversion checks work on non-nullable booleans.
-      return new HTypeConversion(type, kind, closedWorld.commonMasks.boolType,
-          this, sourceInformation);
+      return new HTypeConversion(type, kind,
+          closedWorld.abstractValueDomain.boolType, this, sourceInformation);
     } else if (kind == HTypeConversion.CHECKED_MODE_CHECK && !type.treatAsRaw) {
       throw 'creating compound check to $type (this = ${this})';
     } else {
@@ -1586,7 +1479,7 @@ abstract class HCheck extends HInstruction {
   }
   HInstruction get checkedInput => inputs[0];
   bool isJsStatement() => true;
-  bool canThrow() => true;
+  bool canThrow(AbstractValueDomain domain) => true;
 
   HInstruction nonCheck() => checkedInput.nonCheck();
 }
@@ -1657,7 +1550,7 @@ class HCreate extends HInstruction {
     this.sourceInformation = sourceInformation;
   }
 
-  bool get isAllocation => true;
+  bool isAllocation(AbstractValueDomain domain) => true;
 
   HInstruction get rtiInput {
     assert(hasRtiInput);
@@ -1673,7 +1566,7 @@ class HCreate extends HInstruction {
 class HCreateBox extends HInstruction {
   HCreateBox(TypeMask type) : super(<HInstruction>[], type);
 
-  bool get isAllocation => true;
+  bool isAllocation(AbstractValueDomain domain) => true;
 
   accept(HVisitor visitor) => visitor.visitCreateBox(this);
 
@@ -1681,7 +1574,7 @@ class HCreateBox extends HInstruction {
 }
 
 abstract class HInvoke extends HInstruction {
-  bool isAllocation = false;
+  bool _isAllocation = false;
 
   /// [isInterceptedCall] is true if this invocation uses the interceptor
   /// calling convention where the first input is the methods and the second
@@ -1692,7 +1585,11 @@ abstract class HInvoke extends HInstruction {
     sideEffects.setDependsOnSomething();
   }
   static const int ARGUMENTS_OFFSET = 1;
-  bool canThrow() => true;
+  bool canThrow(AbstractValueDomain domain) => true;
+  bool isAllocation(AbstractValueDomain domain) => _isAllocation;
+  void setAllocation(bool value) {
+    _isAllocation = value;
+  }
 }
 
 abstract class HInvokeDynamic extends HInvoke {
@@ -1799,7 +1696,8 @@ class HInvokeDynamicGetter extends HInvokeDynamicField {
   List<DartType> get typeArguments => const <DartType>[];
 
   // There might be an interceptor input, so `inputs.last` is the dart receiver.
-  bool canThrow() => isTearOff ? inputs.last.canBeNull() : super.canThrow();
+  bool canThrow(AbstractValueDomain domain) =>
+      isTearOff ? inputs.last.canBeNull(domain) : super.canThrow(domain);
 
   String toString() => 'invoke dynamic getter: selector=$selector, mask=$mask';
 }
@@ -1832,7 +1730,7 @@ class HInvokeStatic extends HInvoke {
 
   final bool targetCanThrow;
 
-  bool canThrow() => targetCanThrow;
+  bool canThrow(AbstractValueDomain domain) => targetCanThrow;
 
   /// If this instruction is a call to a constructor, [instantiatedTypes]
   /// contains the type(s) used in the (Dart) `New` expression(s). The
@@ -1952,7 +1850,7 @@ class HFieldGet extends HFieldAccess {
     return false;
   }
 
-  bool canThrow() => receiver.canBeNull();
+  bool canThrow(AbstractValueDomain domain) => receiver.canBeNull(domain);
 
   HInstruction getDartReceiver(ClosedWorld closedWorld) => receiver;
   bool onlyThrowsNSM() => true;
@@ -1975,7 +1873,7 @@ class HFieldSet extends HFieldAccess {
     sideEffects.setChangesInstanceProperty();
   }
 
-  bool canThrow() => receiver.canBeNull();
+  bool canThrow(AbstractValueDomain domain) => receiver.canBeNull(domain);
 
   HInstruction getDartReceiver(ClosedWorld closedWorld) => receiver;
   bool onlyThrowsNSM() => true;
@@ -2002,7 +1900,7 @@ class HGetLength extends HInstruction {
 
   HInstruction get receiver => inputs.single;
 
-  bool canThrow() => receiver.canBeNull();
+  bool canThrow(AbstractValueDomain domain) => receiver.canBeNull(domain);
 
   HInstruction getDartReceiver(ClosedWorld closedWorld) => receiver;
   bool onlyThrowsNSM() => true;
@@ -2055,7 +1953,7 @@ class HReadModifyWrite extends HLateInstruction {
   bool get isPostOp => opKind == POST_OP;
   bool get isAssignOp => opKind == ASSIGN_OP;
 
-  bool canThrow() => receiver.canBeNull();
+  bool canThrow(AbstractValueDomain domain) => receiver.canBeNull(domain);
 
   HInstruction getDartReceiver(ClosedWorld closedWorld) => receiver;
   bool onlyThrowsNSM() => true;
@@ -2108,7 +2006,7 @@ abstract class HForeign extends HInstruction {
   bool get isStatement => false;
   native.NativeBehavior get nativeBehavior => null;
 
-  bool canThrow() {
+  bool canThrow(AbstractValueDomain domain) {
     return sideEffects.hasSideEffects() || sideEffects.dependsOnSomething();
   }
 }
@@ -2156,9 +2054,9 @@ class HForeignCode extends HForeign {
   accept(HVisitor visitor) => visitor.visitForeignCode(this);
 
   bool isJsStatement() => isStatement;
-  bool canThrow() {
+  bool canThrow(AbstractValueDomain domain) {
     if (inputs.length > 0) {
-      return inputs.first.canBeNull()
+      return inputs.first.canBeNull(domain)
           ? throwBehavior.canThrow
           : throwBehavior.onNonNull.canThrow;
     }
@@ -2167,8 +2065,10 @@ class HForeignCode extends HForeign {
 
   bool onlyThrowsNSM() => throwBehavior.isOnlyNullNSMGuard;
 
-  bool get isAllocation =>
-      nativeBehavior != null && nativeBehavior.isAllocation && !canBeNull();
+  bool isAllocation(AbstractValueDomain domain) =>
+      nativeBehavior != null &&
+      nativeBehavior.isAllocation &&
+      !canBeNull(domain);
 
   int typeCode() => HInstruction.FOREIGN_CODE_TYPECODE;
   bool typeEquals(other) => other is HForeignCode;
@@ -2742,7 +2642,7 @@ class HThrowExpression extends HInstruction {
   }
   toString() => 'throw expression';
   accept(HVisitor visitor) => visitor.visitThrowExpression(this);
-  bool canThrow() => true;
+  bool canThrow(AbstractValueDomain domain) => true;
 }
 
 class HAwait extends HInstruction {
@@ -2751,7 +2651,7 @@ class HAwait extends HInstruction {
   toString() => 'await';
   accept(HVisitor visitor) => visitor.visitAwait(this);
   // An await will throw if its argument is not a real future.
-  bool canThrow() => true;
+  bool canThrow(AbstractValueDomain domain) => true;
   SideEffects sideEffects = new SideEffects();
 }
 
@@ -2763,7 +2663,7 @@ class HYield extends HInstruction {
   bool hasStar;
   toString() => 'yield';
   accept(HVisitor visitor) => visitor.visitYield(this);
-  bool canThrow() => false;
+  bool canThrow(AbstractValueDomain domain) => false;
   SideEffects sideEffects = new SideEffects();
 }
 
@@ -2858,6 +2758,7 @@ class HOneShotInterceptor extends HInvokeDynamic {
   List<DartType> typeArguments;
   Set<ClassEntity> interceptedClasses;
   HOneShotInterceptor(
+      AbstractValueDomain domain,
       Selector selector,
       TypeMask mask,
       List<HInstruction> inputs,
@@ -2866,7 +2767,7 @@ class HOneShotInterceptor extends HInvokeDynamic {
       this.interceptedClasses)
       : super(selector, mask, null, inputs, true, type) {
     assert(inputs[0] is HConstant);
-    assert(inputs[0].isNull());
+    assert(inputs[0].isNull(domain));
     assert(selector.callStructure.typeArgumentCount == typeArguments.length);
   }
   bool isCallOnInterceptor(ClosedWorld closedWorld) => true;
@@ -2894,7 +2795,7 @@ class HLazyStatic extends HInstruction {
   int typeCode() => 30;
   // TODO(4931): can we do better here?
   bool isCodeMotionInvariant() => false;
-  bool canThrow() => true;
+  bool canThrow(AbstractValueDomain domain) => true;
 }
 
 class HStaticStore extends HInstruction {
@@ -2919,7 +2820,7 @@ class HLiteralList extends HInstruction {
   toString() => 'literal list';
   accept(HVisitor visitor) => visitor.visitLiteralList(this);
 
-  bool get isAllocation => true;
+  bool isAllocation(AbstractValueDomain domain) => true;
 }
 
 /**
@@ -2949,7 +2850,7 @@ class HIndex extends HInstruction {
 
   HInstruction getDartReceiver(ClosedWorld closedWorld) => receiver;
   bool onlyThrowsNSM() => true;
-  bool canThrow() => receiver.canBeNull();
+  bool canThrow(AbstractValueDomain domain) => receiver.canBeNull(domain);
 
   int typeCode() => HInstruction.INDEX_TYPECODE;
   bool typeEquals(HInstruction other) => other is HIndex;
@@ -2983,7 +2884,7 @@ class HIndexAssign extends HInstruction {
 
   HInstruction getDartReceiver(ClosedWorld closedWorld) => receiver;
   bool onlyThrowsNSM() => true;
-  bool canThrow() => receiver.canBeNull();
+  bool canThrow(AbstractValueDomain domain) => receiver.canBeNull(domain);
 }
 
 class HIs extends HInstruction {
@@ -3222,7 +3123,7 @@ class HTypeKnown extends HCheck {
 
   bool isJsStatement() => false;
   bool isControlFlow() => false;
-  bool canThrow() => false;
+  bool canThrow(AbstractValueDomain domain) => false;
 
   bool get isPinned => inputs.length == 1;
 
@@ -3568,7 +3469,7 @@ class HTypeInfoReadRaw extends HInstruction {
 
   accept(HVisitor visitor) => visitor.visitTypeInfoReadRaw(this);
 
-  bool canThrow() => false;
+  bool canThrow(AbstractValueDomain domain) => false;
 
   int typeCode() => HInstruction.TYPE_INFO_READ_RAW_TYPECODE;
   bool typeEquals(HInstruction other) => other is HTypeInfoReadRaw;
@@ -3609,7 +3510,7 @@ class HTypeInfoReadVariable extends HInstruction {
 
   accept(HVisitor visitor) => visitor.visitTypeInfoReadVariable(this);
 
-  bool canThrow() => false;
+  bool canThrow(AbstractValueDomain domain) => false;
 
   int typeCode() => HInstruction.TYPE_INFO_READ_VARIABLE_TYPECODE;
   bool typeEquals(HInstruction other) => other is HTypeInfoReadVariable;
@@ -3684,7 +3585,7 @@ class HTypeInfoExpression extends HInstruction {
 
   accept(HVisitor visitor) => visitor.visitTypeInfoExpression(this);
 
-  bool canThrow() => false;
+  bool canThrow(AbstractValueDomain domain) => false;
 
   int typeCode() => HInstruction.TYPE_INFO_EXPRESSION_TYPECODE;
   bool typeEquals(HInstruction other) => other is HTypeInfoExpression;

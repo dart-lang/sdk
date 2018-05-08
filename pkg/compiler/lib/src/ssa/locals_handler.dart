@@ -68,7 +68,7 @@ class LocalsHandler {
 
   ClosedWorld get closedWorld => builder.closedWorld;
 
-  CommonMasks get commonMasks => closedWorld.commonMasks;
+  CommonMasks get commonMasks => closedWorld.abstractValueDomain;
 
   GlobalTypeInferenceResults get _globalInferenceResults =>
       builder.globalInferenceResults;

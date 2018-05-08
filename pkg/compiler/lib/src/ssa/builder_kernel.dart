@@ -1591,7 +1591,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
           const <DartType>[],
           _sourceInformationBuilder.buildForInMoveNext(node));
       HInstruction future = pop();
-      push(new HAwait(future, closedWorld.commonMasks.dynamicType));
+      push(new HAwait(future, abstractValueDomain.dynamicType));
       return popBoolified();
     }
 
@@ -1628,7 +1628,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     void finalizerFunction() {
       _pushDynamicInvocation(node, null, Selectors.cancel, [streamIterator],
           const <DartType>[], _sourceInformationBuilder.buildGeneric(node));
-      add(new HAwait(pop(), closedWorld.commonMasks.dynamicType));
+      add(new HAwait(pop(), abstractValueDomain.dynamicType));
     }
 
     tryBuilder
@@ -2586,7 +2586,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
       // We lift this common call pattern into a helper function to save space
       // in the output.
-      if (typeInputs.every((HInstruction input) => input.isNull())) {
+      if (typeInputs
+          .every((HInstruction input) => input.isNull(abstractValueDomain))) {
         if (constructorArgs.isEmpty) {
           constructor = _commonElements.mapLiteralUntypedEmptyMaker;
         } else {
@@ -3176,7 +3177,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
               "Unexpected arguments. "
               "Expected 1-2 argument, actual: $arguments."));
       HInstruction lengthInput = arguments.first;
-      if (!lengthInput.isNumber(closedWorld)) {
+      if (!lengthInput.isNumber(abstractValueDomain)) {
         HTypeConversion conversion = new HTypeConversion(
             null,
             HTypeConversion.ARGUMENT_TYPE_CHECK,
@@ -3199,7 +3200,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // TODO(sra): Array allocation should be an instruction so that canThrow
       // can depend on a length type discovered in optimization.
       bool canThrow = true;
-      if (lengthInput.isUInt32(closedWorld)) {
+      if (lengthInput.isUInt32(abstractValueDomain)) {
         canThrow = false;
       }
 
@@ -3747,7 +3748,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     if (trustedMask != null) {
       // We only allow the type argument to narrow `dynamic`, which probably
       // comes from an unspecified return type in the NativeBehavior.
-      if (code.instructionType.containsAll(closedWorld)) {
+      if (abstractValueDomain.containsAll(code.instructionType)) {
         // Overwrite the type with the narrower type.
         code.instructionType = trustedMask;
       } else if (trustedMask.containsMask(code.instructionType, closedWorld)) {
@@ -4176,7 +4177,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     if (target is FunctionEntity) {
       typeMask = _typeInferenceMap.getReturnTypeOf(target);
     } else {
-      typeMask = closedWorld.commonMasks.dynamicType;
+      typeMask = abstractValueDomain.dynamicType;
     }
     HInstruction instruction = new HInvokeSuper(
         target,
@@ -4559,7 +4560,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     node.operand.accept(this);
     HInstruction awaited = pop();
     // TODO(herhut): Improve this type.
-    push(new HAwait(awaited, closedWorld.commonMasks.dynamicType)
+    push(new HAwait(awaited, abstractValueDomain.dynamicType)
       ..sourceInformation = _sourceInformationBuilder.buildAwait(node));
   }
 
@@ -4699,7 +4700,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // Don't inline operator== methods if the parameter can be null.
       if (function.name == '==') {
         if (function.enclosingClass != commonElements.objectClass &&
-            providedArguments[1].canBeNull()) {
+            providedArguments[1].canBeNull(abstractValueDomain)) {
           return false;
         }
       }

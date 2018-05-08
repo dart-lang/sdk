@@ -7,6 +7,7 @@ import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../js_backend/interceptor_data.dart';
+import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show ClosedWorld;
@@ -47,6 +48,9 @@ class SsaSimplifyInterceptors extends HBaseVisitor
   ConstantSystem get constantSystem => closedWorld.constantSystem;
 
   InterceptorData get interceptorData => closedWorld.interceptorData;
+
+  AbstractValueDomain get _abstractValueDomain =>
+      closedWorld.abstractValueDomain;
 
   void visitGraph(HGraph graph) {
     this.graph = graph;
@@ -94,11 +98,11 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
   bool canUseSelfForInterceptor(
       HInstruction receiver, Set<ClassEntity> interceptedClasses) {
-    if (receiver.canBePrimitive(closedWorld)) {
+    if (receiver.canBePrimitive(_abstractValueDomain)) {
       // Primitives always need interceptors.
       return false;
     }
-    if (receiver.canBeNull() &&
+    if (receiver.canBeNull(_abstractValueDomain) &&
         interceptedClasses.contains(_commonElements.jsNullClass)) {
       // Need the JSNull interceptor.
       return false;
@@ -312,14 +316,15 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     // `NoSuchMethodError`s, and if the receiver was not null we would have a
     // constant interceptor `C`.  Then we can use `(receiver && C)` for the
     // interceptor.
-    if (receiver.canBeNull()) {
+    if (receiver.canBeNull(_abstractValueDomain)) {
       if (!interceptedClasses.contains(_commonElements.jsNullClass)) {
         // Can use `(receiver && C)` only if receiver is either null or truthy.
-        if (!(receiver.canBePrimitiveNumber(closedWorld) ||
-            receiver.canBePrimitiveBoolean(closedWorld) ||
-            receiver.canBePrimitiveString(closedWorld))) {
+        if (!(receiver.canBePrimitiveNumber(_abstractValueDomain) ||
+            receiver.canBePrimitiveBoolean(_abstractValueDomain) ||
+            receiver.canBePrimitiveString(_abstractValueDomain))) {
           ClassEntity interceptorClass = tryComputeConstantInterceptorFromType(
-              receiver.instructionType.nonNullable(), interceptedClasses);
+              _abstractValueDomain.excludeNull(receiver.instructionType),
+              interceptedClasses);
           if (interceptorClass != null) {
             HInstruction constantInstruction = graph.addConstant(
                 new InterceptorConstantValue(interceptorClass), closedWorld);
@@ -365,6 +370,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
         List<HInstruction> inputs = new List<HInstruction>.from(user.inputs);
         inputs[0] = nullConstant;
         HOneShotInterceptor oneShotInterceptor = new HOneShotInterceptor(
+            closedWorld.abstractValueDomain,
             user.selector,
             user.mask,
             inputs,

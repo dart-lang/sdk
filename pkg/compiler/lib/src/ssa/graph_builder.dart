@@ -25,6 +25,7 @@ import '../js_backend/runtime_types.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../options.dart';
 import '../resolution/tree_elements.dart';
+import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../world.dart' show ClosedWorld;
 import 'jump_handler.dart';
@@ -59,7 +60,10 @@ abstract class GraphBuilder {
 
   ClosedWorld get closedWorld;
 
-  CommonMasks get commonMasks => closedWorld.commonMasks;
+  AbstractValueDomain get abstractValueDomain =>
+      closedWorld.abstractValueDomain;
+
+  CommonMasks get commonMasks => closedWorld.abstractValueDomain;
 
   DiagnosticReporter get reporter => backend.reporter;
 
@@ -135,7 +139,7 @@ abstract class GraphBuilder {
   /// Pushes a boolean checking [expression] against null.
   pushCheckNull(HInstruction expression) {
     push(new HIdentity(expression, graph.addConstantNull(closedWorld), null,
-        closedWorld.commonMasks.boolType));
+        closedWorld.abstractValueDomain.boolType));
   }
 
   void dup() {
@@ -246,7 +250,7 @@ abstract class GraphBuilder {
   MemberEntity get sourceElement;
 
   HLiteralList buildLiteralList(List<HInstruction> inputs) {
-    return new HLiteralList(inputs, commonMasks.extendableArrayType);
+    return new HLiteralList(inputs, commonMasks.growableListType);
   }
 
   HInstruction callSetRuntimeTypeInfoWithTypeArguments(
@@ -262,7 +266,7 @@ abstract class GraphBuilder {
         TypeInfoExpressionKind.INSTANCE,
         closedWorld.elementEnvironment.getThisType(type.element),
         rtiInputs,
-        closedWorld.commonMasks.dynamicType);
+        closedWorld.abstractValueDomain.dynamicType);
     add(typeInfo);
     return callSetRuntimeTypeInfo(typeInfo, newObject, sourceInformation);
   }

@@ -61,7 +61,7 @@ abstract class TypeGraphInferrer<T> implements TypesInferrer<T> {
 
   String get name => 'Graph inferrer';
 
-  CommonMasks get commonMasks => closedWorld.commonMasks;
+  CommonMasks get commonMasks => closedWorld.abstractValueDomain;
 
   TypeMask get _dynamicType => commonMasks.dynamicType;
 

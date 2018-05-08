@@ -60,7 +60,7 @@ abstract class InferrerEngine<T> {
   ClosedWorld get closedWorld;
   ClosedWorldRefiner get closedWorldRefiner;
   DiagnosticReporter get reporter;
-  CommonMasks get commonMasks => closedWorld.commonMasks;
+  CommonMasks get commonMasks => closedWorld.abstractValueDomain;
   CommonElements get commonElements => closedWorld.commonElements;
 
   // TODO(johnniwinther): This should be part of [ClosedWorld] or

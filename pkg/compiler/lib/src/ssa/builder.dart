@@ -480,7 +480,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       // Don't inline operator== methods if the parameter can be null.
       if (function.name == '==') {
         if (function.enclosingClass != commonElements.objectClass &&
-            providedArguments[1].canBeNull()) {
+            providedArguments[1].canBeNull(abstractValueDomain)) {
           return false;
         }
       }
@@ -756,8 +756,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       }
     }
     if (const bool.fromEnvironment('unreachable-throw')) {
-      var emptyParameters =
-          parameters.values.where((p) => p.instructionType.isEmpty);
+      var emptyParameters = parameters.values
+          .where((p) => abstractValueDomain.isEmpty(p.instructionType));
       if (emptyParameters.length > 0) {
         addComment('${emptyParameters} inferred as [empty]');
         pushInvokeStatic(
@@ -2802,7 +2802,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     if (trustedMask != null) {
       // We only allow the type argument to narrow `dynamic`, which probably
       // comes from an unspecified return type in the NativeBehavior.
-      if (code.instructionType.containsAll(closedWorld)) {
+      if (abstractValueDomain.containsAll(code.instructionType)) {
         // Overwrite the type with the narrower type.
         code.instructionType = trustedMask;
       } else if (trustedMask.containsMask(code.instructionType, closedWorld)) {
@@ -3471,7 +3471,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       } else if (isGrowableListConstructorCall) {
         TypeMask inferred = _inferredTypeOfNewList(send);
         return inferred.containsAll(closedWorld)
-            ? commonMasks.extendableArrayType
+            ? commonMasks.growableListType
             : inferred;
       } else if (Elements.isConstructorOfTypedArraySubclass(
           originalElement, closedWorld)) {
@@ -3579,7 +3579,7 @@ class SsaAstGraphBuilder extends ast.Visitor
 
     TypeMask elementType = computeType(constructor);
     if (isFixedListConstructorCall) {
-      if (!inputs[0].isNumber(closedWorld)) {
+      if (!inputs[0].isNumber(abstractValueDomain)) {
         HTypeConversion conversion = new HTypeConversion(
             null,
             HTypeConversion.ARGUMENT_TYPE_CHECK,
@@ -3598,7 +3598,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       // TODO(sra): Array allocation should be an instruction so that canThrow
       // can depend on a length type discovered in optimization.
       bool canThrow = true;
-      if (inputs[0].isInteger(closedWorld) && inputs[0] is HConstant) {
+      if (inputs[0].isInteger(abstractValueDomain) && inputs[0] is HConstant) {
         dynamic constant = inputs[0];
         IntConstantValue intConstant = constant.constant;
         int value = intConstant.intValue;
@@ -4359,7 +4359,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       type = TypeMaskFactory.inferredReturnTypeForElement(
           method, globalInferenceResults);
     } else {
-      type = closedWorld.commonMasks.dynamicType;
+      type = closedWorld.abstractValueDomain.dynamicType;
     }
     HInstruction instruction = new HInvokeSuper(
         element,
@@ -5894,7 +5894,8 @@ class SsaAstGraphBuilder extends ast.Visitor
 
       // We lift this common call pattern into a helper function to save space
       // in the output.
-      if (typeInputs.every((HInstruction input) => input.isNull())) {
+      if (typeInputs
+          .every((HInstruction input) => input.isNull(abstractValueDomain))) {
         if (listInputs.isEmpty) {
           createFunction = commonElements.mapLiteralUntypedEmptyMaker;
         } else {
@@ -6782,7 +6783,7 @@ class StringBuilderVisitor extends ast.Visitor {
     //      conversions.
     //   2. The value can be primitive, because the library stringifier has
     //      fast-path code for most primitives.
-    if (expression.canBePrimitive(builder.closedWorld)) {
+    if (expression.canBePrimitive(builder.abstractValueDomain)) {
       append(stringify(node, expression));
       return;
     }

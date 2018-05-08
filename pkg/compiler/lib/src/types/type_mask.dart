@@ -334,9 +334,7 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
    */
   bool contains(ClassEntity cls, ClosedWorld closedWorld);
 
-  /**
-   * Returns whether or not this type mask contains all types.
-   */
+  /// Returns whether or not this type mask contains all types.
   bool containsAll(ClosedWorld closedWorld);
 
   /// Returns the [ClassEntity] if this type represents a single class,

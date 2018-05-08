@@ -28,6 +28,7 @@ import 'js_backend/runtime_types.dart'
     show RuntimeTypesNeed, RuntimeTypesNeedBuilder;
 import 'ordered_typeset.dart';
 import 'options.dart';
+import 'types/abstract_value_domain.dart';
 import 'types/masks.dart' show CommonMasks, FlatTypeMask, TypeMask;
 import 'universe/class_set.dart';
 import 'universe/function_set.dart' show FunctionSet;
@@ -60,7 +61,8 @@ abstract class ClosedWorld implements World {
 
   CommonElements get commonElements;
 
-  CommonMasks get commonMasks;
+  /// Returns the [AbstractValueDomain] used in the global type inference.
+  AbstractValueDomain get abstractValueDomain;
 
   ConstantSystem get constantSystem;
 
@@ -526,7 +528,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   final List<Map<ClassEntity, TypeMask>> _canonicalizedTypeMasks =
       new List<Map<ClassEntity, TypeMask>>.filled(8, null);
 
-  CommonMasks get commonMasks {
+  CommonMasks get abstractValueDomain {
     return _commonMasks;
   }
 
@@ -1069,13 +1071,13 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   bool includesClosureCall(Selector selector, TypeMask mask) {
     return selector.name == Identifiers.call &&
         (mask == null ||
-            mask.containsMask(commonMasks.functionType, closedWorld));
+            mask.containsMask(abstractValueDomain.functionType, closedWorld));
   }
 
   TypeMask computeReceiverType(Selector selector, TypeMask mask) {
     _ensureFunctionSet();
     if (includesClosureCall(selector, mask)) {
-      return commonMasks.dynamicType;
+      return abstractValueDomain.dynamicType;
     }
     return _allFunctions.receiverType(selector, mask, this);
   }
@@ -1101,7 +1103,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
     if (includesClosureCall(selector, mask)) {
       return null;
     }
-    mask ??= commonMasks.dynamicType;
+    mask ??= abstractValueDomain.dynamicType;
     return mask.locateSingleMember(selector, this);
   }
 
@@ -1111,7 +1113,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
       canReachAll = backendUsage.isInvokeOnUsed &&
           mask.needsNoSuchMethodHandling(selector, this);
     }
-    return canReachAll ? commonMasks.dynamicType : mask;
+    return canReachAll ? abstractValueDomain.dynamicType : mask;
   }
 
   bool fieldNeverChanges(MemberEntity element) {

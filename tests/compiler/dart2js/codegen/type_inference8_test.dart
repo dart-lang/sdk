@@ -38,7 +38,7 @@ Future runTest1() async {
       options: ['--use-old-frontend', '--disable-inlining']);
   var compiler = result.compiler;
   var typesInferrer = compiler.globalInference.typesInferrerInternal;
-  var commonMasks = typesInferrer.closedWorld.commonMasks;
+  var commonMasks = typesInferrer.closedWorld.abstractValueDomain;
   MemberElement element = findElement(compiler, "foo");
   var mask = typesInferrer.getReturnTypeOfMember(element);
   var falseType =
@@ -81,7 +81,7 @@ Future runTest2() async {
       options: ['--use-old-frontend', '--disable-inlining']);
   var compiler = result.compiler;
   var typesInferrer = compiler.globalInference.typesInferrerInternal;
-  var commonMasks = typesInferrer.closedWorld.commonMasks;
+  var commonMasks = typesInferrer.closedWorld.abstractValueDomain;
   MemberElement element = findElement(compiler, "foo");
   var mask = typesInferrer.getReturnTypeOfMember(element);
   // Can't infer value for foo's return type, it could be either true or false

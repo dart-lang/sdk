@@ -213,7 +213,7 @@ doTest(String allocation, {bool nullify}) async {
   var compiler = result.compiler;
   var typesInferrer = compiler.globalInference.typesInferrerInternal;
   var closedWorld = typesInferrer.closedWorld;
-  var commonMasks = closedWorld.commonMasks;
+  var commonMasks = closedWorld.abstractValueDomain;
 
   checkType(String name, type) {
     var element = findMember(closedWorld, name);

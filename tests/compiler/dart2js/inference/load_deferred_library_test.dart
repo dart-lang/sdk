@@ -10,6 +10,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/kernel/element_map.dart';
+import 'package:compiler/src/types/abstract_value_domain.dart';
 import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
@@ -45,6 +46,7 @@ runTest(List<String> options, {bool trust: true}) async {
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
   ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+  AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   LibraryEntity helperLibrary =
       elementEnvironment.lookupLibrary(Uris.dart__js_helper);
@@ -64,8 +66,10 @@ runTest(List<String> options, {bool trust: true}) async {
       .type;
 
   if (trust) {
-    Expect.equals(closedWorld.commonMasks.stringType.nullable(), typeMask);
+    Expect.equals(
+        abstractValueDomain.includeNull(abstractValueDomain.stringType),
+        typeMask);
   } else {
-    Expect.equals(closedWorld.commonMasks.dynamicType, typeMask);
+    Expect.equals(abstractValueDomain.dynamicType, typeMask);
   }
 }
