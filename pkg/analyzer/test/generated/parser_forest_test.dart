@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io' show File;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/fasta/ast_building_factory.dart';
 import "package:front_end/src/api_prototype/front_end.dart";
 import "package:front_end/src/api_prototype/memory_file_system.dart";
 import "package:front_end/src/base/processed_options.dart";
@@ -27,7 +28,6 @@ import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:front_end/src/scanner/token.dart';
-import 'package:kernel/ast.dart' as kernel;
 import 'package:kernel/class_hierarchy.dart' as kernel;
 import 'package:kernel/core_types.dart' as kernel;
 import 'package:kernel/kernel.dart' as kernel;
@@ -1220,7 +1220,7 @@ class FastaParserTestCase extends Object
         false /* strong mode */,
       ));
 
-      AnalyzerBodyBuilder builder = new AnalyzerBodyBuilder(
+      BodyBuilder builder = new BodyBuilder(
         library,
         procedureBuilder,
         library.scope,
@@ -1231,6 +1231,7 @@ class FastaParserTestCase extends Object
         false /* isInstanceMember */,
         null /* uri */,
         typeInferrer,
+        new AstBuildingForest(),
       )..constantContext = ConstantContext.none; // .inferred ?
 
       Parser parser = new Parser(builder);
@@ -1284,49 +1285,6 @@ class FastaParserTestCase extends Object
       kernelTarget.computeCoreTypes();
       assert(kernelTarget.loader.coreTypes != null);
     });
-  }
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class AnalyzerBodyBuilder extends BodyBuilder {
-  // TODO(danrubel): Hopefully BodyBuilder can be modified in a way that makes
-  // this class unnecessary.
-  AnalyzerBodyBuilder(
-      KernelLibraryBuilder library,
-      ModifierBuilder member,
-      Scope scope,
-      Scope formalParameterScope,
-      kernel.ClassHierarchy hierarchy,
-      kernel.CoreTypes coreTypes,
-      KernelClassBuilder classBuilder,
-      bool isInstanceMember,
-      Uri uri,
-      TypeInferrer typeInferrer)
-      : super(library, member, scope, formalParameterScope, hierarchy,
-            coreTypes, classBuilder, isInstanceMember, uri, typeInferrer);
-
-  AnalyzerForest analyzerForest = new AnalyzerForest();
-
-  @override
-  Forest<kernel.Expression, kernel.Statement, Token, kernel.Arguments>
-      get forest => analyzerForest;
-}
-
-// TODO(danrubel): Replace this with AstBuildingForest.
-class AnalyzerForest extends Forest<kernel.Expression, kernel.Statement, Token,
-    kernel.Arguments> {
-  @override
-  kernel.Arguments arguments(List<kernel.Expression> positional, Token token,
-      {List<kernel.DartType> types, List<kernel.NamedExpression> named}) {
-    return new kernel.Arguments(positional, types: types, named: named)
-      ..fileOffset = token?.charOffset;
-  }
-
-  @override
-  kernel.Expression literalInt(int value, Token location) {
-    // TODO(danrubel): return an Analyzer AST node.
-    return new kernel.IntLiteral(value);
   }
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

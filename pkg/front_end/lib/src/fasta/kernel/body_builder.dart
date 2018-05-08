@@ -85,8 +85,6 @@ import 'kernel_ast_api.dart';
 
 import 'kernel_builder.dart';
 
-final Forest _forest = new Fangorn();
-
 // TODO(ahe): Remove this and ensure all nodes have a location.
 const noLocation = null;
 
@@ -184,6 +182,10 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   /// and where that was.
   Map<String, int> initializedFields;
 
+  // TODO(ahe): Update type parameters.
+  @override
+  Forest<dynamic, dynamic, Token, dynamic> forest;
+
   BodyBuilder(
       KernelLibraryBuilder library,
       this.member,
@@ -194,7 +196,8 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       this.classBuilder,
       this.isInstanceMember,
       this.uri,
-      this._typeInferrer)
+      this._typeInferrer,
+      [this.forest = const Fangorn()])
       : enclosingScope = scope,
         library = library,
         enableNative =
@@ -207,9 +210,6 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
             coreTypes.objectClass != classBuilder?.cls,
         typePromoter = _typeInferrer.typePromoter,
         super(scope);
-
-  @override
-  Forest<Expression, Statement, Token, Arguments> get forest => _forest;
 
   bool get hasParserError => recoverableErrors.isNotEmpty;
 

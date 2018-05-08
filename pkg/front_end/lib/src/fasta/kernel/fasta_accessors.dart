@@ -84,7 +84,8 @@ abstract class BuilderHelper<Arguments> {
 
   ConstantContext get constantContext;
 
-  Forest<Expression, Statement, Token, Arguments> get forest;
+  // TODO(ahe): Update type parameters.
+  Forest<dynamic, dynamic, Token, dynamic> get forest;
 
   Constructor lookupConstructor(Name name, {bool isSuper});
 

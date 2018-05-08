@@ -53,6 +53,8 @@ import 'forest.dart' show Forest;
 
 /// A shadow tree factory.
 class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
+  const Fangorn();
+
   @override
   ShadowArguments arguments(List<Expression> positional, Token token,
       {List<DartType> types, List<NamedExpression> named}) {

@@ -12,6 +12,8 @@ import 'package:kernel/ast.dart';
 ///
 /// For now, the [Location] is always a token.
 abstract class Forest<Expression, Statement, Location, Arguments> {
+  const Forest();
+
   Arguments arguments(List<Expression> positional, Location location,
       {covariant List types, covariant List named});
 
