@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io' show File;
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -1238,7 +1239,7 @@ class FastaParserTestCase extends Object
     });
   }
 
-  void setUp() async {
+  Future setUp() async {
     // TODO(danrubel): Tear down once all tests in group have been run.
     if (options != null) {
       return;
