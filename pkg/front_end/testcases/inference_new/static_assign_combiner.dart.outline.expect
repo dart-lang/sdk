@@ -34,7 +34,7 @@ class F extends core::Object {
   synthetic constructor •() → void
     ;
 }
-static method f<T extends core::Object>() → self::f::T
+static method f<T extends core::Object = dynamic>() → self::f::T
   ;
 static get target() → self::A
   ;

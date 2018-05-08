@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class A<T extends core::Object> extends core::Object {
+class A<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → void
     ;
 }

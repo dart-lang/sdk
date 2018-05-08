@@ -2,7 +2,7 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-class Pair<T extends core::Object, U extends core::Object> extends core::Object {
+class Pair<T extends core::Object = dynamic, U extends core::Object = dynamic> extends core::Object {
   generic-covariant-impl generic-covariant-interface field self::Pair::T t;
   generic-covariant-impl generic-covariant-interface field self::Pair::U u;
   constructor •(self::Pair::T t, self::Pair::U u) → void

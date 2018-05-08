@@ -14,7 +14,7 @@ class B extends core::Object implements self::A {
   method f(covariant core::Object x) → void
     ;
 }
-class C<T extends core::Object> extends core::Object implements self::B {
+class C<T extends core::Object = dynamic> extends core::Object implements self::B {
   field self::C::T x;
   synthetic constructor •() → void
     ;

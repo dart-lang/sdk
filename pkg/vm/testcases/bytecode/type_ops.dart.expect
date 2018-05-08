@@ -2,7 +2,7 @@ library #lib;
 import self as self;
 import "dart:core" as core;
 
-class A<T extends core::Object> extends core::Object {
+class A<T extends core::Object = dynamic> extends core::Object {
 [@vm.bytecode=
 Bytecode {
   Entry                0
@@ -44,7 +44,7 @@ ConstantPool {
     : super self::A::•()
     ;
 }
-class C<T1 extends core::Object, T2 extends core::Object, T3 extends core::Object> extends self::B {
+class C<T1 extends core::Object = dynamic, T2 extends core::Object = dynamic, T3 extends core::Object = dynamic> extends self::B {
 [@vm.bytecode=
 Bytecode {
   Entry                0
@@ -65,7 +65,7 @@ ConstantPool {
     : super self::B::•()
     ;
 }
-class D<P extends core::Object, Q extends core::Object> extends self::C<core::int, self::D::Q, self::D::P> {
+class D<P extends core::Object = dynamic, Q extends core::Object = dynamic> extends self::C<core::int, self::D::Q, self::D::P> {
   generic-covariant-impl generic-covariant-interface field core::Map<self::D::P, self::D::Q> foo = null;
 [@vm.bytecode=
 Bytecode {
@@ -215,7 +215,7 @@ ConstantPool {
   [14] = ICData target-name 'get:values', arg-desc CP#6
   [15] = Null
 }
-]  method foo3<T1 extends core::Object, T2 extends core::Object>(dynamic z) → dynamic {
+]  method foo3<T1 extends core::Object = dynamic, T2 extends core::Object = dynamic>(dynamic z) → dynamic {
     if(z is self::A<self::D::foo3::T1>) {
       core::print("31");
     }

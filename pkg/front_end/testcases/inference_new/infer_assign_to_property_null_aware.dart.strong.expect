@@ -47,6 +47,6 @@ class Test extends core::Object {
     self::B v7 = let final self::Test #t15 = t in #t15.==(null) ?{self::B} null : let final self::B #t16 = #t15.{self::Test::member} in let final self::B #t17 = #t15.{self::Test::member} = #t16.{self::B::-}(1) in #t16;
   }
 }
-static method f<T extends core::Object>() → self::f::T
+static method f<T extends core::Object = dynamic>() → self::f::T
   return null;
 static method main() → dynamic {}

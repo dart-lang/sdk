@@ -4,5 +4,4 @@
 
 # Status file for the test suite ../test/incremental_load_from_dill_yaml_test.dart.
 
-calculated_bounds_no_strongmode: Crash
 strongmode_mixins_2: Crash

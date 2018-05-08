@@ -2,13 +2,13 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-abstract class I<E extends core::Object> extends core::Object {
+abstract class I<E extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
   abstract method m(dynamic a, (dynamic, self::I::E) → core::String f) → core::String;
 }
-abstract class A<E extends core::Object> extends core::Object implements self::I<self::A::E> {
+abstract class A<E extends core::Object = dynamic> extends core::Object implements self::I<self::A::E> {
   const constructor •() → void
     : super core::Object::•()
     ;
@@ -20,7 +20,7 @@ abstract class M extends core::Object {
     : super core::Object::•()
     ;
 }
-class B<E extends core::Object> extends self::A<self::B::E> implements self::M {
+class B<E extends core::Object = dynamic> extends self::A<self::B::E> implements self::M {
   const constructor •() → void
     : super self::A::•()
     ;

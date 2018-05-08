@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class Foo<T extends core::Object> extends core::Object {
+class Foo<T extends core::Object = dynamic> extends core::Object {
   field self::Foo::T x;
   constructor from(core::String _init) → void
     ;

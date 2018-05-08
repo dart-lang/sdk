@@ -2,5 +2,5 @@ library;
 import self as self;
 import "dart:collection" as col;
 
-static field col::LinkedListEntry<col::LinkedListEntry<dynamic>> y;
+static field col::LinkedListEntry<dynamic> y;
 static method main() → dynamic {}

@@ -2,7 +2,7 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-class ActionDispatcher<P extends core::Object> extends core::Object {
+class ActionDispatcher<P extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;

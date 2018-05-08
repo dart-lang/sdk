@@ -9,7 +9,7 @@ class Foo extends core::Object {
     : super core::Object::•()
     ;
 }
-class Bar<T extends asy::Stream<core::String>> extends core::Object {
+class Bar<T extends asy::Stream<core::String> = asy::Stream<core::String>> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
@@ -67,7 +67,7 @@ Try changing the type of the left hand side, or casting the right hand side to '
     return :completer.{asy::Completer::future};
   }
 }
-class Baz<T extends core::Object, E extends asy::Stream<self::Baz::T>, S extends self::Baz::E> extends core::Object {
+class Baz<T extends core::Object = dynamic, E extends asy::Stream<self::Baz::T> = asy::Stream<dynamic>, S extends self::Baz::E = asy::Stream<dynamic>> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
@@ -126,8 +126,8 @@ Try changing the type of the left hand side, or casting the right hand side to '
     return :completer.{asy::Completer::future};
   }
 }
-abstract class MyStream<T extends core::Object> extends asy::Stream<self::MyStream::T> {
-  static factory •<T extends core::Object>() → self::MyStream<self::MyStream::•::T>
+abstract class MyStream<T extends core::Object = dynamic> extends asy::Stream<self::MyStream::T> {
+  static factory •<T extends core::Object = dynamic>() → self::MyStream<self::MyStream::•::T>
     return null;
 }
 static method test() → dynamic /* originally async */ {

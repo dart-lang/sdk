@@ -16,7 +16,7 @@ class C extends core::Object {
     ;
 }
 static field self::A aTopLevel;
-static method f<T extends core::Object>() → self::f::T
+static method f<T extends core::Object = dynamic>() → self::f::T
   ;
 static set aTopLevelSetter(self::A value) → void
   ;

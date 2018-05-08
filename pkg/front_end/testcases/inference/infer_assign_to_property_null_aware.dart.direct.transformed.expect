@@ -46,6 +46,6 @@ class Test extends core::Object {
     dynamic v7 = let final dynamic #t14 = t in #t14.==(null) ? null : let final dynamic #t15 = #t14.member in let final dynamic #t16 = #t14.member = #t15.-(1) in #t15;
   }
 }
-static method f<T extends core::Object>() → self::f::T
+static method f<T extends core::Object = dynamic>() → self::f::T
   return null;
 static method main() → dynamic {}

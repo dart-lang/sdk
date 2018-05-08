@@ -13,7 +13,7 @@ class B extends core::Object {
   method check(core::Object expectedValue) → void
     ;
 }
-abstract class I<T extends core::Object> extends core::Object {
+abstract class I<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → void
     ;
   abstract method f([self::I::T x]) → void;

@@ -3,13 +3,13 @@ import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
-class B<T extends core::Object> extends core::Object {
+class B<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
   operator []=(generic-covariant-impl generic-covariant-interface core::Map<core::int, self::B::T> x, generic-covariant-impl generic-covariant-interface core::List<self::B::T> y) → void {}
 }
-class C<U extends core::Object> extends self::B<asy::Future<self::C::U>> {
+class C<U extends core::Object = dynamic> extends self::B<asy::Future<self::C::U>> {
   synthetic constructor •() → void
     : super self::B::•()
     ;
@@ -18,6 +18,6 @@ class C<U extends core::Object> extends self::B<asy::Future<self::C::U>> {
     super.{self::B::[]=}(self::f<dynamic>() as{TypeError} core::Map<core::int, asy::Future<self::C::U>>, self::f<core::List<asy::Future<self::C::U>>>());
   }
 }
-static method f<T extends core::Object>() → self::f::T
+static method f<T extends core::Object = dynamic>() → self::f::T
   return null;
 static method main() → dynamic {}

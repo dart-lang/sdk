@@ -2,15 +2,15 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-typedef F<T extends core::Object> = (T) → void;
-class B<T extends core::Object> extends core::Object {
+typedef F<T extends core::Object = dynamic> = (T) → void;
+class B<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
   operator +(generic-covariant-impl generic-covariant-interface self::B<self::B::T> other) → self::B<self::B::T>
     return null;
 }
-class C<T extends core::Object> extends core::Object {
+class C<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;

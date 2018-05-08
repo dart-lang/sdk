@@ -12,7 +12,7 @@ class B extends self::A {
     : super self::A::•()
     ;
 }
-class Foo<T extends self::A> extends core::Object {
+class Foo<T extends self::A = self::A> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;

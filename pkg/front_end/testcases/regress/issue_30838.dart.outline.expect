@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-typedef Foo<S extends core::Object> = <T extends core::Object>(T) → S;
+typedef Foo<S extends core::Object = dynamic> = <T extends core::Object = dynamic>(T) → S;
 class A extends core::Object {
   field <T extends core::Object>(T) → core::int f;
   synthetic constructor •() → void
@@ -10,7 +10,7 @@ class A extends core::Object {
   method test() → void
     ;
 }
-static method foo<T extends core::Object>(self::foo::T x) → core::int
+static method foo<T extends core::Object = dynamic>(self::foo::T x) → core::int
   ;
 static method bar() → <T extends core::Object>(T) → core::int
   ;

@@ -2,8 +2,8 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-typedef F<U extends core::Object, V extends core::Object> = (U) → V;
-class Foo<T extends core::Object> extends core::Object {
+typedef F<U extends core::Object = dynamic, V extends core::Object = dynamic> = (U) → V;
+class Foo<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
@@ -26,7 +26,7 @@ class Foo<T extends core::Object> extends core::Object {
   get v9() → core::Map<self::Foo::T, (self::Foo::T) → self::Foo::T>
     return const <dynamic, dynamic>{};
 }
-class Bar<T extends core::Object> extends core::Object {
+class Bar<T extends core::Object = dynamic> extends core::Object {
   const constructor •() → void
     : super core::Object::•()
     ;

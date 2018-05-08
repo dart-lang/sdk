@@ -2,8 +2,8 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-typedef Asserter<T extends core::Object> = (T) → void;
-typedef AsserterBuilder<S extends core::Object, T extends core::Object> = (S) → (T) → void;
+typedef Asserter<T extends core::Object = dynamic> = (T) → void;
+typedef AsserterBuilder<S extends core::Object = dynamic, T extends core::Object = dynamic> = (S) → (T) → void;
 class DartType extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
@@ -26,7 +26,7 @@ abstract class C extends core::Object {
     assertEOf.call(<dynamic>[self::_isInt, self::_isString]);
   }
 }
-abstract class G<T extends core::Object> extends core::Object {
+abstract class G<T extends core::Object = dynamic> extends core::Object {
   field (core::List<(self::DartType) → void>) → (self::DartType) → void assertAOf = null;
   synthetic constructor •() → void
     : super core::Object::•()

@@ -14,6 +14,6 @@ class C extends core::Object {
     dynamic v5 = let final dynamic #t1 = 0 in let final dynamic #t2 = self::f<dynamic>() in let final dynamic #t3 = super.[]=(#t1, #t2) in #t2;
   }
 }
-static method f<T extends core::Object>() → self::f::T
+static method f<T extends core::Object = dynamic>() → self::f::T
   return null;
 static method main() → dynamic {}

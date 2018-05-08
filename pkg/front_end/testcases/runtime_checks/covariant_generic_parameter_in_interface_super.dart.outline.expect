@@ -8,7 +8,7 @@ class B extends core::Object {
   method f(core::int x) → void
     ;
 }
-abstract class I<T extends core::Object> extends core::Object {
+abstract class I<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → void
     ;
   abstract method f(self::I::T x) → void;

@@ -609,7 +609,7 @@ ConstantPool {
   [22] = StaticICData target 'dart.core::Map::_fromLiteral', arg-desc CP#7
   [23] = StaticICData target 'dart.core::print', arg-desc CP#9
 }
-]static method test_map_literal<T extends core::Object>(core::int a, core::int b, self::test_map_literal::T c) → void {
+]static method test_map_literal<T extends core::Object = dynamic>(core::int a, core::int b, self::test_map_literal::T c) → void {
   core::print(<core::int, core::int>{1: a, b: 2});
   core::print(<core::String, core::int>{"foo": a, b.{core::int::toString}(): 3});
   core::print(<core::String, self::test_map_literal::T>{});
@@ -660,7 +660,7 @@ ConstantPool {
   [4] = Null
   [5] = StaticICData target 'dart.core::print', arg-desc CP#1
 }
-]static method test_type_literal<T extends core::Object>() → void {
+]static method test_type_literal<T extends core::Object = dynamic>() → void {
   core::print(core::String);
   core::print(self::test_type_literal::T);
 }

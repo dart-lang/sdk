@@ -2,9 +2,9 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-typedef F<T extends core::Object> = (T) → void;
-typedef G<T extends core::Object> = () → (T) → void;
-class C<T extends core::Object> extends core::Object {
+typedef F<T extends core::Object = dynamic> = (T) → void;
+typedef G<T extends core::Object = dynamic> = () → (T) → void;
+class C<T extends core::Object = dynamic> extends core::Object {
   field (self::C::T) → void _x;
   constructor •((self::C::T) → void _x) → void
     : self::C::_x = _x, super core::Object::•()

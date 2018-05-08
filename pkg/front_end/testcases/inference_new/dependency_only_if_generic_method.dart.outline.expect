@@ -5,7 +5,7 @@ import "dart:core" as core;
 class A extends core::Object {
   synthetic constructor •() → void
     ;
-  method f<T extends core::Object>(self::A::f::T t) → self::A::f::T
+  method f<T extends core::Object = dynamic>(self::A::f::T t) → self::A::f::T
     ;
   method g(dynamic i) → core::int
     ;

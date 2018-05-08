@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 import "./mixin_library.dart" as mix;
 
-class Super<S extends core::Object> extends core::Object {
+class Super<S extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → void
     ;
   method foo() → dynamic
@@ -11,9 +11,9 @@ class Super<S extends core::Object> extends core::Object {
   method f() → dynamic
     ;
 }
-abstract class _C&Super&Mixin<V extends core::Object> = self::Super<self::_C&Super&Mixin::V> with mix::Mixin<self::_C&Super&Mixin::V> {
+abstract class _C&Super&Mixin<V extends core::Object = dynamic> = self::Super<self::_C&Super&Mixin::V> with mix::Mixin<self::_C&Super&Mixin::V> {
 }
-class C<V extends core::Object> extends self::_C&Super&Mixin<self::C::V> {
+class C<V extends core::Object = dynamic> extends self::_C&Super&Mixin<self::C::V> {
   synthetic constructor •() → void
     ;
 }
@@ -23,7 +23,7 @@ class D extends self::_D&Super&Mixin {
   synthetic constructor •() → void
     ;
 }
-class C2<V extends core::Object> = self::Super<self::C2::V> with mix::Mixin<self::C2::V> {
+class C2<V extends core::Object = dynamic> = self::Super<self::C2::V> with mix::Mixin<self::C2::V> {
   synthetic constructor •() → void
     : super self::Super::•()
     ;

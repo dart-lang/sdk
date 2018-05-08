@@ -14,7 +14,7 @@ class B extends core::Object {
   set y(core::int value) → void
     ;
 }
-abstract class I<T extends core::Object> extends core::Object {
+abstract class I<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → void
     ;
   abstract get x() → self::I::T;

@@ -2,12 +2,12 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-class A<T extends core::Object> extends core::Object {
+class A<T extends core::Object = dynamic> extends core::Object {
   generic-covariant-impl generic-covariant-interface field self::A<self::A::T> f = new self::A::•<self::A::T>();
   constructor •() → void
     : super core::Object::•()
     ;
-  static factory factory<T extends core::Object>() → self::A<self::A::factory::T>
+  static factory factory<T extends core::Object = dynamic>() → self::A<self::A::factory::T>
     return new self::A::•<self::A::factory::T>();
   method m() → self::A<self::A::T>
     return new self::A::•<self::A::T>();

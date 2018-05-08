@@ -2,23 +2,23 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-class F0<T extends core::Object> extends core::Object {
+class F0<T extends core::Object = dynamic> extends core::Object {
   constructor •(core::List<self::F0::T> a) → void
     : super core::Object::•() {}
 }
-class F1<T extends core::Object> extends core::Object {
+class F1<T extends core::Object = dynamic> extends core::Object {
   constructor •({core::List<self::F1::T> a = null}) → void
     : super core::Object::•() {}
 }
-class F2<T extends core::Object> extends core::Object {
+class F2<T extends core::Object = dynamic> extends core::Object {
   constructor •(core::Iterable<self::F2::T> a) → void
     : super core::Object::•() {}
 }
-class F3<T extends core::Object> extends core::Object {
+class F3<T extends core::Object = dynamic> extends core::Object {
   constructor •(core::Iterable<core::Iterable<self::F3::T>> a) → void
     : super core::Object::•() {}
 }
-class F4<T extends core::Object> extends core::Object {
+class F4<T extends core::Object = dynamic> extends core::Object {
   constructor •({core::Iterable<core::Iterable<self::F4::T>> a = null}) → void
     : super core::Object::•() {}
 }

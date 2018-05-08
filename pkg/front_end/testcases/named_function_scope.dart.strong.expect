@@ -61,7 +61,7 @@ static method test() → dynamic {
   {
     dynamic x = let final dynamic #t4 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/named_function_scope.dart:63:9: Error: 'T' is already declared in this scope.
         T< /*@context=DuplicatedNameCause*/ T>() {};
-        ^" in let final <T extends core::Object>() → dynamic T = <T extends core::Object>() → dynamic {} in T;
+        ^" in let final <T extends core::Object = dynamic>() → dynamic T = <T extends core::Object = dynamic>() → dynamic {} in T;
   }
   {
     self::T t;

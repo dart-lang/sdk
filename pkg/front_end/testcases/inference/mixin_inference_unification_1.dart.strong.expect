@@ -2,17 +2,17 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class I<X extends core::Object, Y extends core::Object> extends core::Object {
+class I<X extends core::Object = dynamic, Y extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
-class M0<T extends core::Object> extends core::Object implements self::I<self::M0::T, core::int> {
+class M0<T extends core::Object = dynamic> extends core::Object implements self::I<self::M0::T, core::int> {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
-class M1<T extends core::Object> extends core::Object implements self::I<core::String, self::M1::T> {
+class M1<T extends core::Object = dynamic> extends core::Object implements self::I<core::String, self::M1::T> {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
