@@ -9,6 +9,7 @@ cc/Dart2JSCompilerStats: Fail, Crash # Issue 27369
 cc/Fail0: Fail # These tests are expected to crash on all platforms.
 cc/Fail1: Fail # These tests are expected to crash on all platforms.
 cc/Fail2: Fail # These tests are expected to crash on all platforms.
+cc/IsolateReload_ChangeInstanceFormat9: Fail, Crash # issue 32942
 cc/IsolateReload_PendingConstructorCall_AbstractToConcrete: Fail, Crash # Issue 32981. Fails on non-Windows, crashes on Windows (because of test.py special handline)
 cc/IsolateReload_PendingConstructorCall_ConcreteToAbstract: Fail, Crash # Issue 32981. Fails on non-Windows, crashes on Windows (because of test.py special handline)
 cc/IsolateReload_PendingStaticCall_DefinedToNSM: Fail # Issue 32981

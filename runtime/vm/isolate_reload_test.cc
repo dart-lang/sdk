@@ -2782,6 +2782,39 @@ TEST_CASE(IsolateReload_ChangeInstanceFormat8) {
   EXPECT_STREQ("Instance of 'A' Instance of 'B'", SimpleInvokeStr(lib, "main"));
 }
 
+// Tests reload fails when type arguments change.
+// Change: Baz extends Foo<String> -> Baz extends Bar<String, double>
+// Validate: the right error message is returned.
+TEST_CASE(IsolateReload_ChangeInstanceFormat9) {
+  const char* kScript =
+      "class Foo<A> {\n"
+      "  var a;\n"
+      "}\n"
+      "class Bar<B, C> extends Foo<B> {}\n"
+      "class Baz extends Foo<String> {}"
+      "main() {\n"
+      "  new Baz();\n"
+      "  return 43;\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_EQ(43, SimpleInvoke(lib, "main"));
+
+  const char* kReloadScript =
+      "class Foo<A> {\n"
+      "  var a;\n"
+      "}\n"
+      "class Bar<B, C> extends Foo<B> {}\n"
+      "class Baz extends Bar<String, double> {}"
+      "main() {\n"
+      "  new Baz();\n"
+      "  return 43;\n"
+      "}\n";
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_ERROR(lib, "type parameters have changed");
+}
+
 TEST_CASE(IsolateReload_ShapeChangeRetainsHash) {
   const char* kScript =
       "class A{\n"
