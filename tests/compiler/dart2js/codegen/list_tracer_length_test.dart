@@ -90,7 +90,7 @@ main() {
 """;
 
 checkRangeError(String test, {bool hasRangeError}) async {
-  String generated = await compileAll(test, compileMode: CompileMode.memory);
+  String generated = await compileAll(test, useKernel: false);
   Expect.equals(
       hasRangeError,
       generated.contains('ioore'),

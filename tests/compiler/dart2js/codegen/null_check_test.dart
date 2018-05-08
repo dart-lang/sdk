@@ -18,8 +18,7 @@ main() {
 
 main() {
   runTest({bool useKernel}) async {
-    String generated = await compileAll(TEST1,
-        compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+    String generated = await compileAll(TEST1, useKernel: useKernel);
     Expect.isFalse(generated.contains('foo.length'));
   }
 

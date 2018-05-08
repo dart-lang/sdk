@@ -24,8 +24,7 @@ main() {
 
 main() {
   runTest({bool useKernel}) async {
-    String generated = await compileAll(TEST1,
-        compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+    String generated = await compileAll(TEST1, useKernel: useKernel);
     // Check that we're using the index operator on the object returned
     // by the A factory.
     Expect.isTrue(generated.contains('[0] = 42'));

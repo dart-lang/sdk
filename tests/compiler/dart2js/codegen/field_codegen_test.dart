@@ -21,13 +21,10 @@ main() { return x; }
 
 main() {
   runTests({bool useKernel}) async {
-    CompileMode compileMode =
-        useKernel ? CompileMode.kernel : CompileMode.memory;
-
-    String generated1 = await compileAll(TEST_NULL0, compileMode: compileMode);
+    String generated1 = await compileAll(TEST_NULL0, useKernel: useKernel);
     Expect.isTrue(generated1.contains("null"));
 
-    String generated2 = await compileAll(TEST_NULL1, compileMode: compileMode);
+    String generated2 = await compileAll(TEST_NULL1, useKernel: useKernel);
     Expect.isTrue(generated2.contains("null"));
   }
 

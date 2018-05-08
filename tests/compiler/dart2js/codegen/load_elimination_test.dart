@@ -236,9 +236,8 @@ void main() {
 main() {
   runTests({bool useKernel}) async {
     test(String code, String expected) async {
-      String generated = await compileAll(code,
-          disableInlining: false,
-          compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+      String generated =
+          await compileAll(code, disableInlining: false, useKernel: useKernel);
       Expect.isTrue(
           generated.contains(expected),
           "Generated code didn't contain '$expected'.\n"

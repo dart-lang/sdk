@@ -36,20 +36,17 @@ main() {
 
 main() {
   runTests({bool useKernel}) async {
-    CompileMode compileMode =
-        useKernel ? CompileMode.kernel : CompileMode.memory;
-
     // Test that we know the type of captured, non-mutated variables.
-    String generated1 = await compileAll(TEST1, compileMode: compileMode);
+    String generated1 = await compileAll(TEST1, useKernel: useKernel);
     Expect.isTrue(generated1.contains('+ 87'));
 
     // Test that we know the type of captured, mutated variables.
-    String generated2 = await compileAll(TEST2, compileMode: compileMode);
+    String generated2 = await compileAll(TEST2, useKernel: useKernel);
     Expect.isTrue(generated2.contains('+ 87'));
 
     // Test that we know when types of a captured, mutated variable
     // conflict.
-    String generated3 = await compileAll(TEST3, compileMode: compileMode);
+    String generated3 = await compileAll(TEST3, useKernel: useKernel);
     Expect.isFalse(generated3.contains('+ 87'));
   }
 

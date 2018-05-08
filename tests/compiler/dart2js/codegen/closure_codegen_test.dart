@@ -58,10 +58,9 @@ Future closureInvocation({bool useKernel, bool minify, String prefix}) async {
 
 // Make sure that the bailout version does not introduce a second version of
 // the closure.
-Future closureBailout(CompileMode compileMode,
-    {bool minify, String prefix}) async {
+Future closureBailout({bool useKernel, bool minify, String prefix}) async {
   String generated =
-      await compileAll(TEST_BAILOUT, compileMode: compileMode, minify: minify);
+      await compileAll(TEST_BAILOUT, useKernel: useKernel, minify: minify);
   RegExp regexp = new RegExp("$prefix\\\$0:${minify ? "" : " "}function");
   Iterator<Match> matches = regexp.allMatches(generated).iterator;
   checkNumberOfMatches(matches, 1);
@@ -72,10 +71,8 @@ main() {
     await closureInvocation(
         useKernel: useKernel, minify: false, prefix: "call");
     await closureInvocation(useKernel: useKernel, minify: true, prefix: "");
-    CompileMode compileMode =
-        useKernel ? CompileMode.kernel : CompileMode.memory;
-    await closureBailout(compileMode, minify: false, prefix: "call");
-    await closureBailout(compileMode, minify: true, prefix: "");
+    await closureBailout(useKernel: useKernel, minify: false, prefix: "call");
+    await closureBailout(useKernel: useKernel, minify: true, prefix: "");
   }
 
   asyncTest(() async {

@@ -9,7 +9,7 @@ import '../compiler_helper.dart';
 main() {
   runTest({bool useKernel}) async {
     String code = await compileAll(r'''main() { return "foo" + "bar"; }''',
-        compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+        useKernel: useKernel);
     Expect.isTrue(!code.contains(r'$add'));
   }
 

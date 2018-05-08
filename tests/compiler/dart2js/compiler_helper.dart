@@ -39,8 +39,6 @@ import 'memory_compiler.dart';
 import 'output_collector.dart';
 export 'output_collector.dart';
 
-enum CompileMode { memory, kernel }
-
 /// Compile [code] and returns either the code for [methodName] or, if
 /// [returnAll] is true, the code for the entire program.
 ///
@@ -112,11 +110,12 @@ Future<String> compileAll(String code,
     bool minify: false,
     int expectedErrors,
     int expectedWarnings,
-    CompileMode compileMode: CompileMode.memory}) async {
+    bool useKernel: false}) async {
   OutputCollector outputCollector = new OutputCollector();
   DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
   if (coreSource != null) {
-    throw new UnsupportedError('coreSource is not supported for $compileMode');
+    throw new UnsupportedError(
+        'coreSource is not supported for useKernel=$useKernel');
   }
   List<String> options = <String>[];
   if (disableInlining) {
@@ -128,8 +127,8 @@ Future<String> compileAll(String code,
   if (minify) {
     options.add(Flags.minify);
   }
-  if (compileMode == CompileMode.kernel) {
-    options.add(Flags.useKernel);
+  if (!useKernel) {
+    options.add(Flags.useOldFrontend);
   }
   CompilationResult result = await runCompiler(
       memorySourceFiles: {'main.dart': code},

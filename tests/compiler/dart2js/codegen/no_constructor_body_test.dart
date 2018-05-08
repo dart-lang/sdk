@@ -19,8 +19,7 @@ main() {
 
 main() {
   runTest({bool useKernel}) async {
-    String generated = await compileAll(TEST,
-        compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+    String generated = await compileAll(TEST, useKernel: useKernel);
 
     Expect.isTrue(generated
         .contains(new RegExp('A: {[ \n]*"\\^": "Object;",[ \n]*static:')));

@@ -27,8 +27,7 @@ use(x) {
 
 main() {
   runTest({bool useKernel}) async {
-    String generated = await compileAll(TEST_ONE,
-        compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+    String generated = await compileAll(TEST_ONE, useKernel: useKernel);
     Expect.isFalse(generated.contains('Tarantula!'), "failed to remove 'foo'");
     Expect.isTrue(generated.contains('Coelacanth!'));
   }

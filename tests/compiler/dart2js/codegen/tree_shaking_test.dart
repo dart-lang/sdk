@@ -27,8 +27,7 @@ main() {
 
 void main() {
   runTest({bool useKernel}) async {
-    String generated = await compileAll(TEST,
-        compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+    String generated = await compileAll(TEST, useKernel: useKernel);
     Expect.isTrue(generated.contains('return 42'));
     Expect.isTrue(generated.contains('return 54'));
     Expect.isFalse(generated.contains('return 68'));

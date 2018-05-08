@@ -91,9 +91,8 @@ main() {
 
 runTests({bool useKernel}) async {
   test(String code, Function f) async {
-    String generated = await compileAll(code,
-        disableInlining: true,
-        compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+    String generated =
+        await compileAll(code, disableInlining: true, useKernel: useKernel);
     Expect.isTrue(f(generated));
   }
 

@@ -127,20 +127,17 @@ main() {
       checkNumberOfMatches(new RegExp("shr").allMatches(generated).iterator, 1);
     });
 
-    CompileMode compileMode =
-        useKernel ? CompileMode.kernel : CompileMode.memory;
-
-    await compileAll(TEST_FIVE, compileMode: compileMode).then((generated) {
+    await compileAll(TEST_FIVE, useKernel: useKernel).then((generated) {
       checkNumberOfMatches(
           new RegExp("get\\\$foo").allMatches(generated).iterator, 1);
     });
-    await compileAll(TEST_SIX, compileMode: compileMode).then((generated) {
+    await compileAll(TEST_SIX, useKernel: useKernel).then((generated) {
       Expect.isTrue(generated.contains('for (t1 = a.field === 54; t1;)'));
     });
-    await compileAll(TEST_SEVEN, compileMode: compileMode).then((generated) {
+    await compileAll(TEST_SEVEN, useKernel: useKernel).then((generated) {
       Expect.isTrue(generated.contains('for (t1 = a.field === 54; t1;)'));
     });
-    await compileAll(TEST_EIGHT, compileMode: compileMode).then((generated) {
+    await compileAll(TEST_EIGHT, useKernel: useKernel).then((generated) {
       Expect.isTrue(generated.contains('for (; i < t1; ++i)'));
     });
   }

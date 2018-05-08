@@ -63,45 +63,45 @@ main() {
 }
 """;
 
-twoClasses(CompileMode compileMode) async {
-  String generated = await compileAll(TEST_ONE, compileMode: compileMode);
+twoClasses({bool useKernel}) async {
+  String generated = await compileAll(TEST_ONE, useKernel: useKernel);
   Expect.isTrue(generated.contains(new RegExp('A: {[ \n]*"\\^": "Object;"')));
   Expect.isTrue(generated.contains(new RegExp('B: {[ \n]*"\\^": "Object;"')));
 }
 
-subClass(CompileMode compileMode) async {
+subClass({bool useKernel}) async {
   checkOutput(String generated) {
     Expect.isTrue(generated.contains(new RegExp('A: {[ \n]*"\\^": "Object;"')));
     Expect.isTrue(generated.contains(new RegExp('B: {[ \n]*"\\^": "A;"')));
   }
 
-  checkOutput(await compileAll(TEST_TWO, compileMode: compileMode));
-  checkOutput(await compileAll(TEST_THREE, compileMode: compileMode));
+  checkOutput(await compileAll(TEST_TWO, useKernel: useKernel));
+  checkOutput(await compileAll(TEST_THREE, useKernel: useKernel));
 }
 
-fieldTest(CompileMode compileMode) async {
-  String generated = await compileAll(TEST_FOUR, compileMode: compileMode);
+fieldTest({bool useKernel}) async {
+  String generated = await compileAll(TEST_FOUR, useKernel: useKernel);
   Expect.isTrue(generated
       .contains(new RegExp('B: {[ \n]*"\\^": "A;y,z,x",[ \n]*static:')));
 }
 
-constructor1(CompileMode compileMode) async {
-  String generated = await compileAll(TEST_FIVE, compileMode: compileMode);
+constructor1({bool useKernel}) async {
+  String generated = await compileAll(TEST_FIVE, useKernel: useKernel);
   Expect.isTrue(generated.contains(new RegExp(r"new [$A-Z]+\.A\(a\);")));
 }
 
 main() {
-  runTests(CompileMode compileMode) async {
-    await twoClasses(compileMode);
-    await subClass(compileMode);
-    await fieldTest(compileMode);
-    await constructor1(compileMode);
+  runTests({bool useKernel}) async {
+    await twoClasses(useKernel: useKernel);
+    await subClass(useKernel: useKernel);
+    await fieldTest(useKernel: useKernel);
+    await constructor1(useKernel: useKernel);
   }
 
   asyncTest(() async {
     print('--test from ast---------------------------------------------------');
-    await runTests(CompileMode.memory);
+    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(CompileMode.kernel);
+    await runTests(useKernel: true);
   });
 }

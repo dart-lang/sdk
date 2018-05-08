@@ -69,29 +69,24 @@ main() {
 }
 
 main() {
-  asyncTest(() async {
-    String generated1 =
-        await compileAll(TEST1, compileMode: CompileMode.memory);
+  runTests({bool useKernel}) async {
+    bool useKernel = false;
+    String generated1 = await compileAll(TEST1, useKernel: useKernel);
     Expect.isTrue(generated1.contains('if (typeof t1'));
 
-    String generated2 =
-        await compileAll(TEST2, compileMode: CompileMode.memory);
+    String generated2 = await compileAll(TEST2, useKernel: useKernel);
     Expect.isTrue(generated2.contains('if (typeof t1'));
 
-    String generated3 =
-        await compileAll(TEST3, compileMode: CompileMode.memory);
+    String generated3 = await compileAll(TEST3, useKernel: useKernel);
     Expect.isTrue(generated3.contains('if (typeof t1'));
 
-    String generated4 =
-        await compileAll(TEST4, compileMode: CompileMode.memory);
+    String generated4 = await compileAll(TEST4, useKernel: useKernel);
     Expect.isTrue(generated4.contains('if (typeof t1'));
 
-    String generated5 =
-        await compileAll(TEST5, compileMode: CompileMode.memory);
+    String generated5 = await compileAll(TEST5, useKernel: useKernel);
     Expect.isFalse(generated5.contains('iae'));
 
-    String generated6 =
-        await compileAll(TEST6, compileMode: CompileMode.memory);
+    String generated6 = await compileAll(TEST6, useKernel: useKernel);
     Expect.isFalse(generated6.contains('iae'));
 
     var memberInvocations = const <String>[
@@ -105,9 +100,7 @@ main() {
     ];
     for (String member in memberInvocations) {
       String generated = await compileAll(generateTest('$member'),
-          expectedErrors: 0,
-          expectedWarnings: 0,
-          compileMode: CompileMode.memory);
+          expectedErrors: 0, expectedWarnings: 0, useKernel: useKernel);
       Expect.isTrue(
           generated.contains('+ 42'),
           "Missing '+ 42' code for invocation '$member':\n"
@@ -123,5 +116,12 @@ main() {
           "Unexpected 'if (t1 == null)' code for invocation '$member':\n"
           "$generated");*/
     }
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
   });
 }

@@ -20,8 +20,7 @@ main() {
 
 main() {
   runTest({bool useKernel}) async {
-    String generated = await compileAll(TEST_GUIDE,
-        compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+    String generated = await compileAll(TEST_GUIDE, useKernel: useKernel);
     Expect.isTrue(generated.contains("42"));
     Expect.isFalse(generated.contains("TITLE"));
   }

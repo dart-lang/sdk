@@ -51,8 +51,7 @@ main() {
 
 void main() {
   runTest({bool useKernel}) async {
-    String generated = await compileAll(TEST,
-        compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+    String generated = await compileAll(TEST, useKernel: useKernel);
     if (generated.contains(r'=== true')) {
       print(generated);
       Expect.fail("missing elision of '=== true'");

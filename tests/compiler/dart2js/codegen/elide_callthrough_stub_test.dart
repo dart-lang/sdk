@@ -39,9 +39,7 @@ main() {
 
 main() {
   runTests({bool useKernel}) async {
-    CompileMode compileMode =
-        useKernel ? CompileMode.kernel : CompileMode.memory;
-    String generated1 = await compileAll(TEST1, compileMode: compileMode);
+    String generated1 = await compileAll(TEST1, useKernel: useKernel);
     // Direct call through field.
     Expect.isTrue(generated1.contains(r'this._fun.call$1(zzz)'));
     // No stub.
@@ -49,7 +47,7 @@ main() {
     // No call to stub.
     Expect.isFalse(generated1.contains(r'_fun$1('));
 
-    String generated2 = await compileAll(TEST2, compileMode: compileMode);
+    String generated2 = await compileAll(TEST2, useKernel: useKernel);
     // No call through field.
     Expect.isFalse(generated2.contains(r'this._fun.call$1(zzz)'));
     // Call through stub.

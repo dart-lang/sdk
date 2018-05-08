@@ -30,8 +30,7 @@ baz(a) {
 
 main() {
   runTest({bool useKernel}) async {
-    String generated = await compileAll(TEST,
-        compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+    String generated = await compileAll(TEST, useKernel: useKernel);
     RegExp regexp = new RegExp('foo\\\$1\\\$a: function');
     Iterator<Match> matches = regexp.allMatches(generated).iterator;
     checkNumberOfMatches(matches, 1);

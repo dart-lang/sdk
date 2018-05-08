@@ -17,8 +17,7 @@ main() {
 
 main() {
   runTest({bool useKernel}) async {
-    String generated = await compileAll(CODE,
-        compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+    String generated = await compileAll(CODE, useKernel: useKernel);
     RegExp regexp = new RegExp(r'\A: {[ \n]*"\^": "[A-Za-z]+;"');
     Iterator<Match> matches = regexp.allMatches(generated).iterator;
     checkNumberOfMatches(matches, 1);
