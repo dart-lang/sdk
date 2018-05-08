@@ -159,6 +159,15 @@ class ProcessStartMode {
   @Deprecated("Use detachedWithStdio instead")
   static const DETACHED_WITH_STDIO = detachedWithStdio;
 
+  List<ProcessStartMode> get values => const <ProcessStartMode>[
+        normal,
+        inheritStdio,
+        detached,
+        detachedWithStdio
+      ];
+  String toString() =>
+      const ["normal", "inheritStdio", "detached", "detachedWithStdio"][_mode];
+
   final int _mode;
   const ProcessStartMode._internal(this._mode);
 }

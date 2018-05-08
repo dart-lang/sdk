@@ -70,13 +70,13 @@ abstract class ZLibOption {
 
   /// Use this strategy to limit match distances to one (run-length encoding)
   static const int strategyRle = 3;
-  @Deprecated("Use StrategyRle instead")
+  @Deprecated("Use strategyRle instead")
   static const int STRATEGY_RLE = 3;
 
   /// This strategy prevents the use of dynamic Huffman codes, allowing for a
   /// simpler decoder
   static const int strategyFixed = 4;
-  @Deprecated("Use StrategyFixed instead")
+  @Deprecated("Use strategyFixed instead")
   static const int STRATEGY_FIXED = 4;
 
   /// Recommended strategy for normal data
