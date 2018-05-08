@@ -182,8 +182,6 @@ async_star_regression_23116_test: RuntimeError
 async_star_test/02: RuntimeError
 await_test: RuntimeError
 bad_override_test/03: MissingCompileTimeError
-bad_override_test/04: MissingCompileTimeError
-bad_override_test/05: MissingCompileTimeError
 bit_operations_test/03: RuntimeError
 bit_operations_test/04: RuntimeError
 bit_operations_test/none: RuntimeError
@@ -321,7 +319,6 @@ field_override3_test/00: MissingCompileTimeError
 field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
 field_override3_test/03: MissingCompileTimeError
-field_override4_test/02: MissingCompileTimeError
 final_attempt_reinitialization_test/01: MissingCompileTimeError
 final_attempt_reinitialization_test/02: MissingCompileTimeError
 full_stacktrace1_test: RuntimeError # Issue 12698
@@ -333,7 +330,6 @@ generic_closure_test/none: RuntimeError
 generic_function_dcall_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_typedef_test: RuntimeError
-getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
@@ -366,8 +362,6 @@ map_literal8_test: RuntimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
-method_override8_test/00: MissingCompileTimeError
-method_override8_test/01: MissingCompileTimeError
 mint_arithmetic_test: RuntimeError # non JS number semantics
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
@@ -467,18 +461,7 @@ not_enough_positional_arguments_test/06: MissingCompileTimeError
 not_enough_positional_arguments_test/07: MissingCompileTimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError, OK # non JS number semantics
-override_field_method1_negative_test: Fail
-override_field_method2_negative_test: Fail
-override_field_method4_negative_test: Fail
-override_field_method5_negative_test: Fail
 override_field_test/01: MissingCompileTimeError
-override_inheritance_mixed_test/01: MissingCompileTimeError
-override_inheritance_mixed_test/02: MissingCompileTimeError
-override_inheritance_mixed_test/03: MissingCompileTimeError
-override_inheritance_mixed_test/04: MissingCompileTimeError
-override_inheritance_mixed_test/08: MissingCompileTimeError
-override_inheritance_mixed_test/09: MissingCompileTimeError
-override_method_with_field_test/01: MissingCompileTimeError
 positional_parameters_type_test/01: MissingCompileTimeError
 positional_parameters_type_test/02: MissingCompileTimeError
 private_super_constructor_test/01: MissingCompileTimeError
@@ -572,8 +555,6 @@ async_star_test/04: RuntimeError
 async_star_test/05: RuntimeError
 async_star_test/none: RuntimeError
 bad_override_test/03: MissingCompileTimeError
-bad_override_test/04: MissingCompileTimeError
-bad_override_test/05: MissingCompileTimeError
 bit_operations_test: RuntimeError
 branch_canonicalization_test: RuntimeError
 call_method_implicit_tear_off_implements_function_test/02: RuntimeError
@@ -650,7 +631,6 @@ field_override3_test/00: MissingCompileTimeError
 field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
 field_override3_test/03: MissingCompileTimeError
-field_override4_test/02: MissingCompileTimeError
 flatten_test/05: MissingRuntimeError
 flatten_test/08: MissingRuntimeError
 flatten_test/09: MissingRuntimeError
@@ -689,7 +669,6 @@ generic_methods_unused_parameter_test: RuntimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
-getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
@@ -727,8 +706,6 @@ many_overridden_no_such_method_test: RuntimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
-method_override8_test/00: MissingCompileTimeError
-method_override8_test/01: MissingCompileTimeError
 method_override_test: CompileTimeError
 minify_closure_variable_collision_test: CompileTimeError
 mint_arithmetic_test: RuntimeError # non JS number semantics
@@ -821,10 +798,6 @@ null_no_such_method_test: CompileTimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError, OK # non JS number semantics
 overridden_no_such_method_test: RuntimeError
-override_field_method1_negative_test: Fail
-override_field_method2_negative_test: Fail
-override_field_method4_negative_test: Fail
-override_field_method5_negative_test: Fail
 override_field_test/01: MissingCompileTimeError
 override_inheritance_field_test/04: CompileTimeError
 override_inheritance_field_test/06: CompileTimeError
@@ -833,13 +806,6 @@ override_inheritance_field_test/29: CompileTimeError
 override_inheritance_generic_test/02: CompileTimeError
 override_inheritance_method_test/28: CompileTimeError
 override_inheritance_method_test/29: CompileTimeError
-override_inheritance_mixed_test/01: MissingCompileTimeError
-override_inheritance_mixed_test/02: MissingCompileTimeError
-override_inheritance_mixed_test/03: MissingCompileTimeError
-override_inheritance_mixed_test/04: MissingCompileTimeError
-override_inheritance_mixed_test/08: MissingCompileTimeError
-override_inheritance_mixed_test/09: MissingCompileTimeError
-override_method_with_field_test/01: MissingCompileTimeError
 parser_quirks_test: CompileTimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
@@ -971,8 +937,6 @@ await_not_started_immediately_test: Crash # Assertion failure: Runtime type info
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
-bad_override_test/04: MissingCompileTimeError
-bad_override_test/05: MissingCompileTimeError
 bit_operations_test: RuntimeError
 branch_canonicalization_test: RuntimeError
 call_method_implicit_tear_off_implements_function_test/02: RuntimeError
@@ -1073,7 +1037,6 @@ field_override3_test/00: MissingCompileTimeError
 field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
 field_override3_test/03: MissingCompileTimeError
-field_override4_test/02: MissingCompileTimeError
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
 flatten_test/05: MissingRuntimeError
@@ -1117,7 +1080,6 @@ generic_methods_unused_parameter_test: Crash # Assertion failure: kind=special,m
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
-getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
@@ -1188,9 +1150,6 @@ method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
 method_override7_test/03: MissingCompileTimeError
-method_override8_test/00: MissingCompileTimeError
-method_override8_test/01: MissingCompileTimeError
-method_override8_test/03: MissingCompileTimeError
 method_override_test: CompileTimeError
 minify_closure_variable_collision_test: CompileTimeError
 mint_arithmetic_test: RuntimeError # non JS number semantics
@@ -1312,10 +1271,6 @@ number_identity2_test: RuntimeError
 numbers_test: RuntimeError, OK # non JS number semantics
 operator2_negative_test: Crash # 'file:*/pkg/compiler/lib/src/kernel/env.dart': Failed assertion: line 322 pos 16: '!name.contains('#')': is not true.
 overridden_no_such_method_test: RuntimeError
-override_field_method1_negative_test: Fail
-override_field_method2_negative_test: Fail
-override_field_method4_negative_test: Fail
-override_field_method5_negative_test: Fail
 override_field_test/01: MissingCompileTimeError
 override_field_test/02: MissingCompileTimeError
 override_field_test/03: MissingCompileTimeError
@@ -1331,13 +1286,6 @@ override_inheritance_field_test/54: MissingCompileTimeError
 override_inheritance_generic_test/02: CompileTimeError
 override_inheritance_method_test/28: CompileTimeError
 override_inheritance_method_test/29: CompileTimeError
-override_inheritance_mixed_test/01: MissingCompileTimeError
-override_inheritance_mixed_test/02: MissingCompileTimeError
-override_inheritance_mixed_test/03: MissingCompileTimeError
-override_inheritance_mixed_test/04: MissingCompileTimeError
-override_inheritance_mixed_test/08: MissingCompileTimeError
-override_inheritance_mixed_test/09: MissingCompileTimeError
-override_method_with_field_test/01: MissingCompileTimeError
 parser_quirks_test: CompileTimeError
 partial_tearoff_instantiation_test/05: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 partial_tearoff_instantiation_test/06: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
@@ -1549,8 +1497,6 @@ await_not_started_immediately_test: Crash # Assertion failure: Runtime type info
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
-bad_override_test/04: MissingCompileTimeError
-bad_override_test/05: MissingCompileTimeError
 bit_operations_test: RuntimeError
 branch_canonicalization_test: RuntimeError
 call_method_implicit_tear_off_implements_function_test/02: RuntimeError
@@ -1647,7 +1593,6 @@ field_override3_test/00: MissingCompileTimeError
 field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
 field_override3_test/03: MissingCompileTimeError
-field_override4_test/02: MissingCompileTimeError
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
 flatten_test/05: MissingRuntimeError
@@ -1689,7 +1634,6 @@ generic_methods_unused_parameter_test: RuntimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
-getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
@@ -1760,9 +1704,6 @@ method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
 method_override7_test/03: MissingCompileTimeError
-method_override8_test/00: MissingCompileTimeError
-method_override8_test/01: MissingCompileTimeError
-method_override8_test/03: MissingCompileTimeError
 method_override_test: CompileTimeError
 minify_closure_variable_collision_test: CompileTimeError
 mint_arithmetic_test: RuntimeError # non JS number semantics
@@ -1887,10 +1828,6 @@ null_no_such_method_test: CompileTimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError, OK # non JS number semantics
 overridden_no_such_method_test: RuntimeError
-override_field_method1_negative_test: Fail
-override_field_method2_negative_test: Fail
-override_field_method4_negative_test: Fail
-override_field_method5_negative_test: Fail
 override_field_test/01: MissingCompileTimeError
 override_field_test/02: MissingCompileTimeError
 override_field_test/03: MissingCompileTimeError
@@ -1906,13 +1843,6 @@ override_inheritance_field_test/54: MissingCompileTimeError
 override_inheritance_generic_test/02: CompileTimeError
 override_inheritance_method_test/28: CompileTimeError
 override_inheritance_method_test/29: CompileTimeError
-override_inheritance_mixed_test/01: MissingCompileTimeError
-override_inheritance_mixed_test/02: MissingCompileTimeError
-override_inheritance_mixed_test/03: MissingCompileTimeError
-override_inheritance_mixed_test/04: MissingCompileTimeError
-override_inheritance_mixed_test/08: MissingCompileTimeError
-override_inheritance_mixed_test/09: MissingCompileTimeError
-override_method_with_field_test/01: MissingCompileTimeError
 parser_quirks_test: CompileTimeError
 recursive_generic_test: RuntimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError

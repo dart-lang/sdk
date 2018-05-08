@@ -15,4 +15,7 @@ class B extends self::A {
   method foo() → dynamic
     return 42;
 }
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/bug30695.dart:11:3: Error: Can't declare a member that conflicts with an inherited one.
+  foo() => 42;
+  ^"]/* from null */;
 static method main() → dynamic {}

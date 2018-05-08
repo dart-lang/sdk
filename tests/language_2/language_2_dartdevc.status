@@ -152,6 +152,7 @@ regress_29784_test/02: MissingCompileTimeError
 regress_30121_test: CompileTimeError # Issue 31087
 regress_30339_test: CompileTimeError # As expected. Should we make this a multi test?
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 29920
+setter_override2_test/02: MissingCompileTimeError # Issue 14736
 stacktrace_test: RuntimeError # Issue 29920
 string_interpolate_test: CompileTimeError
 string_split_test: CompileTimeError
@@ -294,8 +295,6 @@ async_return_types_test/wrongReturnType: MissingCompileTimeError
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
-bad_override_test/04: MissingCompileTimeError
-bad_override_test/05: MissingCompileTimeError
 built_in_identifier_type_annotation_test/05: RuntimeError # Issue 32194
 built_in_identifier_type_annotation_test/none: RuntimeError # Issue 32194
 call_method_as_cast_test/06: RuntimeError # Kernel allows classes to subtype `Function` so DDK elides the explicit cast.
@@ -378,7 +377,6 @@ field_override3_test/00: MissingCompileTimeError
 field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
 field_override3_test/03: MissingCompileTimeError
-field_override4_test/02: MissingCompileTimeError
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
 function_propagation_test: RuntimeError
@@ -390,7 +388,6 @@ generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Warning: Superclass has no method named 'foo'.
 generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
 generic_test/01: MissingCompileTimeError # front end does not validate `extends`
-getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
@@ -443,9 +440,6 @@ map_literal3_test/03: MissingCompileTimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
-method_override8_test/00: MissingCompileTimeError
-method_override8_test/01: MissingCompileTimeError
-method_override8_test/03: MissingCompileTimeError
 method_override_test: CompileTimeError # Issue 31616
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
@@ -530,10 +524,6 @@ null_method_test: RuntimeError # Issue 32194
 null_no_such_method_test: CompileTimeError # Issue 31533
 null_test/none: RuntimeError # Issue 32194
 null_to_string_test: RuntimeError # Issue 32194
-override_field_method1_negative_test: Fail
-override_field_method2_negative_test: Fail
-override_field_method4_negative_test: Fail
-override_field_method5_negative_test: Fail
 override_field_test/01: MissingCompileTimeError
 override_field_test/02: MissingCompileTimeError
 override_inheritance_field_test/04: CompileTimeError # Issue 31616
@@ -548,13 +538,6 @@ override_inheritance_field_test/54: MissingCompileTimeError
 override_inheritance_generic_test/02: CompileTimeError # Issue 31616
 override_inheritance_method_test/28: CompileTimeError # Issue 31616
 override_inheritance_method_test/29: CompileTimeError # Issue 31616
-override_inheritance_mixed_test/01: MissingCompileTimeError
-override_inheritance_mixed_test/02: MissingCompileTimeError
-override_inheritance_mixed_test/03: MissingCompileTimeError
-override_inheritance_mixed_test/04: MissingCompileTimeError
-override_inheritance_mixed_test/08: MissingCompileTimeError
-override_inheritance_mixed_test/09: MissingCompileTimeError
-override_method_with_field_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError

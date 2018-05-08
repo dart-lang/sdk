@@ -278,6 +278,7 @@ implicit_creation/implicit_new_or_const_generic_test: Fail # No support for impl
 implicit_creation/implicit_new_or_const_test: Fail # No support for implicit creation.
 implicit_creation/implicit_new_prefix_constructor_generic_named_test: Fail # No support for implicit creation.
 implicit_creation/implicit_new_prefix_constructor_named_test: Fail # No support for implicit creation.
+setter_override2_test/02: MissingCompileTimeError # Issue 14736
 
 [ $compiler == app_jit || $compiler == none ]
 library_env_test/has_no_mirror_support: RuntimeError, OK

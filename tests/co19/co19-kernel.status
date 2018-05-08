@@ -57,10 +57,10 @@ LibTest/math/pow_A10_t01: CompileTimeError
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t01: MissingCompileTimeError
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t02: MissingCompileTimeError
 Language/Classes/Constructors/Constant_Constructors/invalid_constant_initializer_t02: MissingCompileTimeError
-Language/Classes/Getters/same_name_method_t03: MissingCompileTimeError
-Language/Classes/Getters/same_name_method_t04: MissingCompileTimeError
-Language/Classes/Getters/same_name_method_t05: MissingCompileTimeError
-Language/Classes/Getters/same_name_method_t07: MissingCompileTimeError
+Language/Classes/Instance_Methods/same_name_setter_t02: CompileTimeError # Issue 14736
+Language/Classes/Setters/name_t03: CompileTimeError
+Language/Classes/Setters/name_t04: CompileTimeError
+Language/Classes/Setters/name_t06: CompileTimeError
 Language/Classes/Superinterfaces/more_than_once_t01: MissingCompileTimeError
 Language/Classes/Superinterfaces/superclass_as_superinterface_t01: MissingCompileTimeError
 Language/Classes/same_name_instance_and_static_members_t01: MissingCompileTimeError
@@ -72,9 +72,10 @@ Language/Expressions/Constants/exception_t03: MissingCompileTimeError
 Language/Expressions/Constants/no_other_constant_expressions_t11: MissingCompileTimeError
 Language/Expressions/Constants/ternary_operator_t02: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/exception_t01: MissingCompileTimeError
+Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_members_t01: CompileTimeError
+Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t01: CompileTimeError
+Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t02: CompileTimeError
 Language/Metadata/compilation_t03: MissingCompileTimeError
-Language/Mixins/Mixin_Application/error_t01: MissingCompileTimeError
-Language/Mixins/Mixin_Application/error_t02: MissingCompileTimeError
 
 [ $compiler == fasta && !$strong ]
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t01: MissingCompileTimeError

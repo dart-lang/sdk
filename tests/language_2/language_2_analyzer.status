@@ -1160,6 +1160,7 @@ regress_22976_test/none: CompileTimeError
 regress_30121_test: CompileTimeError # Issue 31087
 regress_30339_test: CompileTimeError
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 28823
+setter_override2_test/02: MissingCompileTimeError # Issue 14736
 string_interpolate_test: CompileTimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
