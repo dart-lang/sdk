@@ -119,6 +119,6 @@ class LineInfo {
    * containing the given [offset].
    */
   int getOffsetOfLineAfter(int offset) {
-    return getOffsetOfLine(getLocation(offset).lineNumber + 1);
+    return getOffsetOfLine(getLocation(offset).lineNumber);
   }
 }
