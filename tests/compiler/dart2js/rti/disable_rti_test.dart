@@ -56,11 +56,10 @@ const Map<String, List<String>> expectedIsChecksMap =
 };
 
 main() {
-  runTest({bool useKernel}) async {
+  runTest() async {
     CompilationResult result = await runCompiler(
         memorySourceFiles: {'main.dart': code},
-        options: [Flags.disableRtiOptimization, Flags.disableInlining]
-          ..addAll(useKernel ? [] : [Flags.useOldFrontend]));
+        options: [Flags.disableRtiOptimization, Flags.disableInlining]);
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
     ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
@@ -100,9 +99,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

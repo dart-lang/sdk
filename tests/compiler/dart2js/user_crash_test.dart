@@ -6,16 +6,14 @@ import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/compiler_new.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'memory_compiler.dart';
 
 final EXCEPTION = 'Crash-marker';
 
 main() {
-  runTests({bool useKernel}) async {
-    test('Empty program', await run(useKernel: useKernel));
-    test('Crash diagnostics',
-        await run(useKernel: useKernel, diagnostics: new CrashingDiagnostics()),
+  runTests() async {
+    test('Empty program', await run());
+    test('Crash diagnostics', await run(diagnostics: new CrashingDiagnostics()),
         expectedLines: [
           'Uncaught exception in diagnostic handler: $EXCEPTION',
           null /* Stack trace*/
@@ -25,11 +23,9 @@ main() {
         ]);
     test(
         'Throw in package discovery',
-        await run(
-            useKernel: useKernel,
-            packagesDiscoveryProvider: (_) {
-              throw EXCEPTION;
-            }),
+        await run(packagesDiscoveryProvider: (_) {
+          throw EXCEPTION;
+        }),
         expectedLines: [
           'Uncaught exception in package discovery: $EXCEPTION',
           null /* Stack trace*/
@@ -40,30 +36,20 @@ main() {
     test(
         'new Future.error in package discovery',
         await run(
-            useKernel: useKernel,
             packagesDiscoveryProvider: (_) => new Future.error(EXCEPTION)),
         expectedExceptions: [EXCEPTION]);
 
-    List<String> expectedLines;
-    if (useKernel) {
-      expectedLines = ['Error: Input file not found: memory:main.dart.'];
-    } else {
-      expectedLines = [
-        'Uncaught exception in input provider: $EXCEPTION',
-        null, // Stack trace
-        'memory:main.dart:\nError: $EXCEPTION' /* READ_SELF_ERROR */
-      ];
-    }
+    List<String> expectedLines = [
+      'Error: Input file not found: memory:main.dart.'
+    ];
     test('Throw in input provider',
-        await run(useKernel: useKernel, memorySourceFiles: new CrashingMap()),
+        await run(memorySourceFiles: new CrashingMap()),
         expectedLines: expectedLines);
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }
 
@@ -90,8 +76,7 @@ void test(String title, RunResult result,
 Future<RunResult> run(
     {Map<String, String> memorySourceFiles: const {'main.dart': 'main() {}'},
     CompilerDiagnostics diagnostics,
-    PackagesDiscoveryProvider packagesDiscoveryProvider,
-    bool useKernel}) async {
+    PackagesDiscoveryProvider packagesDiscoveryProvider}) async {
   RunResult result = new RunResult();
   await runZoned(() async {
     try {
@@ -99,8 +84,7 @@ Future<RunResult> run(
           entryPoint: Uri.parse('memory:main.dart'),
           memorySourceFiles: memorySourceFiles,
           diagnosticHandler: diagnostics,
-          packagesDiscoveryProvider: packagesDiscoveryProvider,
-          options: useKernel ? [] : [Flags.useOldFrontend]);
+          packagesDiscoveryProvider: packagesDiscoveryProvider);
     } catch (e) {
       result.exceptions.add(e);
     }

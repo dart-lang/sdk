@@ -5,7 +5,6 @@
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import 'package:compiler/compiler_new.dart';
-import 'package:compiler/src/commandline_options.dart';
 import '../memory_compiler.dart';
 
 const MEMORY_SOURCE_FILES = const {
@@ -37,12 +36,10 @@ const MEMORY_SOURCE_FILES = const {
 };
 
 void main() {
-  runTest({bool useKernel}) async {
+  runTest() async {
     OutputCollector collector = new OutputCollector();
     await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES,
-        outputProvider: collector,
-        options: useKernel ? [] : [Flags.useOldFrontend]);
+        memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
     // Simply check that the constants of the small functions are still in the
     // output, and that we don't see the result of constant folding.
     String jsOutput = collector.getOutput('', OutputType.js);
@@ -57,9 +54,7 @@ void main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

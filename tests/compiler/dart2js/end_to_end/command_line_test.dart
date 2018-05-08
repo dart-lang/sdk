@@ -10,7 +10,6 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
 import 'package:compiler/compiler_new.dart' as api;
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/dart2js.dart' as entry;
 import 'package:compiler/src/options.dart' show CompilerOptions;
 
@@ -19,8 +18,6 @@ main() {
   asyncTest(() async {
     await test([], exitCode: 1);
     await test(['foo.dart']);
-    await test([Flags.useOldFrontend], exitCode: 1);
-    await test([Flags.useOldFrontend, 'foo.dart']);
   });
 }
 

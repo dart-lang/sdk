@@ -7,7 +7,6 @@ library jsinterop.world_test;
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common_elements.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart' show ClassEntity;
 import 'package:compiler/src/elements/names.dart';
@@ -18,8 +17,6 @@ import '../memory_compiler.dart';
 
 void main() {
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await testClasses([Flags.useOldFrontend]);
     print('--test from kernel------------------------------------------------');
     await testClasses([]);
     print('--test from kernel (strong mode)----------------------------------');

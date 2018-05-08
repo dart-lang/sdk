@@ -6,7 +6,6 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/types/types.dart';
 
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/world.dart';
@@ -23,10 +22,9 @@ main() {
 """;
 
 main() {
-  runTests({bool useKernel}) async {
-    CompilationResult result = await runCompiler(
-        memorySourceFiles: {'main.dart': CODE},
-        options: useKernel ? [] : [Flags.useOldFrontend]);
+  runTests() async {
+    CompilationResult result =
+        await runCompiler(memorySourceFiles: {'main.dart': CODE});
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
     ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
@@ -138,9 +136,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

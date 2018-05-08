@@ -530,7 +530,7 @@ Future testFunctionSubtypingNamed({bool strongMode}) async {
       .then((env) => functionSubtypingNamedHelper(env, strongMode));
 }
 
-Future testTypedefSubtypingNamed({bool useOldFrontend, bool strongMode}) async {
+Future testTypedefSubtypingNamed({bool strongMode}) async {
   await TypeEnvironment
       .create(createTypedefs(namedFunctionTypesData),
           options: strongMode ? [Flags.strongMode] : [])

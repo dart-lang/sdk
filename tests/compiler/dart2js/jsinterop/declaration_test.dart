@@ -439,22 +439,16 @@ class Test {
 runTest(Test test) async {
   print('==${test.name}======================================================');
   print(test.source);
-  await runTestInternal(test, useKernel: false);
   if (!test.skipForKernel) {
-    await runTestInternal(test, useKernel: true);
+    await runTestInternal(test);
   }
 }
 
-runTestInternal(Test test, {bool useKernel}) async {
+runTestInternal(Test test) async {
   DiagnosticCollector collector = new DiagnosticCollector();
   List<String> options = <String>[];
-  if (useKernel) {
-    // TODO(redemption): Enable inlining.
-    options.add(Flags.disableInlining);
-  } else {
-    options.add(Flags.useOldFrontend);
-  }
-  print('--useKernel=${useKernel}--------------------------------------------');
+  // TODO(redemption): Enable inlining.
+  options.add(Flags.disableInlining);
   await runCompiler(
       diagnosticHandler: collector,
       options: options,

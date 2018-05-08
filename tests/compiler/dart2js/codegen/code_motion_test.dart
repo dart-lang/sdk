@@ -22,7 +22,7 @@ foo(int a, int b, bool param2) {
 """;
 
 main() {
-  runTest({bool useKernel}) async {
+  runTest() async {
     await compile(TEST_ONE, entry: 'foo', check: (String generated) {
       RegExp regexp = new RegExp('a \\+ b');
       Iterator matches = regexp.allMatches(generated).iterator;
@@ -32,9 +32,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

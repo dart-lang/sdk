@@ -208,7 +208,7 @@ Future testUnionTypeMaskFlatten() async {
       containedClasses: [A, B, E]);
 }
 
-Future testStringSubtypes({bool useOldFrontend}) async {
+Future testStringSubtypes() async {
   TypeEnvironment env = await TypeEnvironment.create('', mainSource: r"""
       main() {
         '' is String;

@@ -37,12 +37,9 @@ class TestRandomAccessFileOutputProvider implements CompilerOutput {
 CompileFunc oldCompileFunc;
 
 Future<Null> test(List<String> arguments, List<String> expectedOutput,
-    {List<String> groupOutputs: const <String>[], bool useKernel}) async {
+    {List<String> groupOutputs: const <String>[]}) async {
   List<String> options = new List<String>.from(arguments)
     ..add("--library-root=${Uri.base.resolve('sdk/')}");
-  if (!useKernel) {
-    options.add(Flags.useOldFrontend);
-  }
   print('--------------------------------------------------------------------');
   print('dart2js ${options.join(' ')}');
   TestRandomAccessFileOutputProvider outputProvider;
@@ -75,7 +72,7 @@ main() {
   enableWriteString = false;
   oldCompileFunc = compileFunc;
 
-  runTests({bool useKernel}) async {
+  runTests() async {
     PRINT_GRAPH = true;
     TRACE_FILTER_PATTERN_FOR_TEST = 'x';
     await test([
@@ -91,7 +88,7 @@ main() {
       'dart.cfg', // From TRACE_FILTER_PATTERN_FOR_TEST
     ], groupOutputs: [
       '.dot', // From PRINT_GRAPH
-    ], useKernel: useKernel);
+    ]);
 
     PRINT_GRAPH = false;
     TRACE_FILTER_PATTERN_FOR_TEST = null;
@@ -102,26 +99,17 @@ main() {
       'out.js_1.part.js',
       'out.js_1.part.js.map',
     ];
-    if (!useKernel) {
-      // Option --use-multi-source-info is only supported for the old frontend.
-      expectedOutput.add('out.js.map.v2');
-      expectedOutput.add('out.js_1.part.js.map.v2');
-      additionOptionals.add(Flags.useMultiSourceInfo);
-    }
 
     await test(
         [
           'tests/compiler/dart2js/deferred/data/deferred_helper.dart',
           Flags.useContentSecurityPolicy,
         ]..addAll(additionOptionals),
-        expectedOutput,
-        useKernel: useKernel);
+        expectedOutput);
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

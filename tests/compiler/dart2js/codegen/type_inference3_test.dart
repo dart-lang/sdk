@@ -15,7 +15,7 @@ sum(param0, param1) {
 """;
 
 main() {
-  runTest({bool useKernel}) async {
+  runTest() async {
     await compile(TEST_ONE, entry: 'sum', check: (String generated) {
       RegExp regexp = new RegExp(getNumberTypeCheck('(param1|b)'));
       Expect.isTrue(
@@ -24,9 +24,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

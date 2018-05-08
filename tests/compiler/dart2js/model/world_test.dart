@@ -14,7 +14,7 @@ import 'package:compiler/src/world.dart' show ClassQuery, ClosedWorld;
 import '../type_test_helper.dart';
 
 void main() {
-  runTests({bool useOldFrontend}) async {
+  runTests() async {
     await testClassSets();
     await testProperties();
     await testNativeClasses();
@@ -22,10 +22,8 @@ void main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useOldFrontend: true);
     print('--test from kernel------------------------------------------------');
-    await runTests(useOldFrontend: false);
+    await runTests();
   });
 }
 

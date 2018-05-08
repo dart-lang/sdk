@@ -5,7 +5,6 @@
 import 'dart:io';
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_emitter/program_builder/program_builder.dart';
@@ -15,10 +14,9 @@ import '../helpers/program_lookup.dart';
 import '../memory_compiler.dart';
 
 main() {
-  runTest({bool useKernel}) async {
+  runTest() async {
     CompilationResult result = await runCompiler(
-        entryPoint: Platform.script.resolve('data/subtype_named_args.dart'),
-        options: useKernel ? [] : [Flags.useOldFrontend]);
+        entryPoint: Platform.script.resolve('data/subtype_named_args.dart'));
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
     ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
@@ -35,9 +33,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }
