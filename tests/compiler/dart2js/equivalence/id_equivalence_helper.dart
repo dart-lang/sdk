@@ -11,9 +11,6 @@ import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/elements/elements.dart';
-import 'package:compiler/src/io/source_file.dart';
-import 'package:compiler/src/source_file_provider.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 import 'package:sourcemap_testing/src/annotated_code_helper.dart';
@@ -157,12 +154,6 @@ Future<CompiledData> computeData(
   Map<Id, ActualData> globalData = <Id, ActualData>{};
 
   Map<Id, ActualData> actualMapFor(Entity entity) {
-    if (entity is Element) {
-      // TODO(johnniwinther): Remove this when patched members from kernel are
-      // no longer ascribed to the patch file.
-      Element element = entity;
-      entity = element.implementation;
-    }
     SourceSpan span =
         compiler.backendStrategy.spanFromSpannable(entity, entity);
     Uri uri = resolveFastaUri(span.uri);
@@ -171,9 +162,6 @@ Future<CompiledData> computeData(
 
   void processMember(MemberEntity member, Map<Id, ActualData> actualMap) {
     if (member.isAbstract) {
-      return;
-    }
-    if (member is ConstructorElement && member.isRedirectingFactory) {
       return;
     }
     if (skipUnprocessedMembers &&
@@ -838,144 +826,6 @@ void computeExpectedMap(Uri sourceUri, AnnotatedCode code,
       }
     }
   });
-}
-
-Future<bool> compareData(
-    Uri mainFileUri,
-    Uri entryPoint,
-    Map<String, String> memorySourceFiles,
-    ComputeMemberDataFunction computeAstData,
-    ComputeMemberDataFunction computeIrData,
-    {List<String> options: const <String>[],
-    bool forUserLibrariesOnly: true,
-    bool skipUnprocessedMembers: false,
-    bool skipFailedCompilations: false,
-    bool verbose: false,
-    bool whiteList(Uri uri, Id id)}) async {
-  print('--from ast----------------------------------------------------------');
-  CompiledData data1 = await computeData(
-      entryPoint, memorySourceFiles, computeAstData,
-      options: [Flags.useOldFrontend]..addAll(options),
-      forUserLibrariesOnly: forUserLibrariesOnly,
-      skipUnprocessedMembers: skipUnprocessedMembers,
-      skipFailedCompilations: skipFailedCompilations);
-  if (data1 == null) return false;
-  print('--from kernel-------------------------------------------------------');
-  CompiledData data2 = await computeData(
-      entryPoint, memorySourceFiles, computeIrData,
-      options: options,
-      forUserLibrariesOnly: forUserLibrariesOnly,
-      skipUnprocessedMembers: skipUnprocessedMembers,
-      skipFailedCompilations: skipFailedCompilations);
-  if (data2 == null) return false;
-  await compareCompiledData(mainFileUri, data1, data2,
-      whiteList: whiteList,
-      skipMissingUris: !forUserLibrariesOnly,
-      verbose: verbose);
-  return true;
-}
-
-Future compareCompiledData(
-    Uri mainFileUri, CompiledData data1, CompiledData data2,
-    {bool skipMissingUris: false,
-    bool verbose: false,
-    bool whiteList(Uri uri, Id id)}) async {
-  if (whiteList == null) {
-    whiteList = (uri, id) => false;
-  }
-  bool hasErrors = false;
-  String libraryRoot1;
-
-  SourceFileProvider provider1 = data1.compiler.provider;
-  SourceFileProvider provider2 = data2.compiler.provider;
-  for (Uri uri1 in data1.actualMaps.keys) {
-    Uri uri2 = uri1;
-    bool hasErrorsInUri = false;
-    Map<Id, ActualData> actualMap1 = data1.actualMaps[uri1];
-    Map<Id, ActualData> actualMap2 = data2.actualMaps[uri2];
-    if (actualMap2 == null && skipMissingUris) {
-      libraryRoot1 ??= '${data1.compiler.options.libraryRoot}';
-      String uriText = '$uri1';
-      if (uriText.startsWith(libraryRoot1)) {
-        String relativePath = uriText.substring(libraryRoot1.length);
-        uri2 =
-            resolveFastaUri(Uri.parse('patched_dart2js_sdk/${relativePath}'));
-        actualMap2 = data2.actualMaps[uri2];
-      }
-      if (actualMap2 == null) {
-        continue;
-      }
-    }
-    Expect.isNotNull(actualMap2,
-        "No data for $uri1 in:\n ${data2.actualMaps.keys.join('\n ')}");
-    SourceFile sourceFile1 = await provider1.getUtf8SourceFile(uri1) ??
-        await provider1.autoReadFromFile(uri1);
-    Expect.isNotNull(sourceFile1, 'No source file for $uri1');
-    String sourceCode1 = sourceFile1.slowText();
-    if (uri1 != uri2) {
-      SourceFile sourceFile2 = await provider2.getUtf8SourceFile(uri2) ??
-          await provider2.autoReadFromFile(uri2);
-      Expect.isNotNull(sourceFile2, 'No source file for $uri2');
-      String sourceCode2 = sourceFile2.slowText();
-      if (sourceCode1.length != sourceCode2.length) {
-        continue;
-      }
-    }
-
-    actualMap1.forEach((Id id, ActualData actualData1) {
-      IdValue value1 = actualData1.value;
-      IdValue value2 = actualMap2[id]?.value;
-
-      if (value1 != value2) {
-        String message;
-        if (value2 != null) {
-          String prefix = 'DATA MISMATCH for ${id.descriptor}';
-          message = '$prefix: Data from $astName: ${value1}, '
-              'data from $kernelName: ${value2}';
-        } else {
-          String prefix = 'MISSING $kernelName DATA for ${id.descriptor}, '
-              'object = ${actualData1.objectText}';
-          message = '$prefix: Data from $astName: ${value1}, '
-              'no data from $kernelName';
-        }
-        reportError(data1.compiler.reporter, actualData1.sourceSpan, message);
-        if (!whiteList(uri1, id)) {
-          hasErrors = hasErrorsInUri = true;
-        }
-      }
-    });
-    actualMap2.forEach((Id id, ActualData actualData2) {
-      IdValue value2 = actualData2.value;
-      IdValue value1 = actualMap1[id]?.value;
-      if (value1 != value2) {
-        String prefix = 'EXTRA $kernelName DATA for ${id.descriptor}, '
-            'object = ${actualData2.objectText}';
-        String message =
-            '$prefix: Data from $kernelName: ${value2}, no data from $astName';
-        reportError(data1.compiler.reporter, actualData2.sourceSpan, message);
-        if (!whiteList(uri1, id)) {
-          hasErrors = hasErrorsInUri = true;
-        }
-      }
-    });
-    if (hasErrorsInUri) {
-      Uri fileUri;
-      if (data1.compiler.mainLibraryUri == uri1) {
-        fileUri = mainFileUri;
-      } else {
-        fileUri = uri1;
-      }
-      print('--annotations diff for: $fileUri -------------------------------');
-      print(withAnnotations(
-          sourceCode1,
-          data1.computeDiffAnnotationsAgainst(actualMap1, actualMap2, uri1,
-              includeMatches: verbose)));
-      print('----------------------------------------------------------');
-    }
-  }
-  if (hasErrors) {
-    Expect.fail('Annotations mismatch');
-  }
 }
 
 /// Set of features used in annotations.
