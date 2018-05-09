@@ -226,20 +226,7 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to generate code compliant with content security policy (CSP).
   bool useContentSecurityPolicy = false;
 
-  /// Preview the unified front-end and compilation from kernel.
-  ///
-  /// When enabled the compiler will use the unified front-end to compile
-  /// sources to kernel, and then continue compilation from the kernel
-  /// representation.
-  ///
-  /// When this flag is on, the compiler also accepts reading .dill files from
-  /// disk. The compiler reads the sources differently depending on the
-  /// extension format.
-  final useKernel = true;
-
   /// Enables strong mode in dart2js.
-  ///
-  /// This is work-in-progress and will only be supported for [useKernel].
   bool strongMode = false;
 
   /// When obfuscating for minification, whether to use the frequency of a name
@@ -369,7 +356,7 @@ class CompilerOptions implements DiagnosticOptions {
     if (packageRoot != null && !packageRoot.path.endsWith("/")) {
       throw new ArgumentError("[packageRoot] must end with a /");
     }
-    if (useKernel && platformBinaries == null) {
+    if (platformBinaries == null) {
       throw new ArgumentError("Missing required ${Flags.platformBinaries}");
     }
   }
@@ -385,7 +372,8 @@ class CompilerOptions implements DiagnosticOptions {
         trustTypeAnnotations = true;
       }
     }
-    if (useKernel) generateCodeWithCompileTimeErrors = false;
+    // TODO(johnniwinther): Should we support this in the future?
+    generateCodeWithCompileTimeErrors = false;
     if (platformConfigUri == null) {
       platformConfigUri = _resolvePlatformConfig(libraryRoot, null, const []);
     }

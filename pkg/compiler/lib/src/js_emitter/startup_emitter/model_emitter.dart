@@ -228,12 +228,11 @@ class ModelEmitter {
   /// Generates a simple header that provides the compiler's build id.
   js.Comment buildGeneratedBy() {
     StringBuffer flavor = new StringBuffer();
-    flavor.write(compiler.options.useKernel ? 'kernel FE' : 'ast FE');
+    flavor.write('fast startup emitter');
     if (compiler.options.strongMode) flavor.write(', strong');
     if (compiler.options.trustPrimitives) flavor.write(', trust primitives');
     if (compiler.options.trustTypeAnnotations) flavor.write(', trust types');
     if (compiler.options.omitImplicitChecks) flavor.write(', omit checks');
-    flavor.write(', fast startup emitter');
     if (compiler.options.useContentSecurityPolicy) flavor.write(', CSP');
     return new js.Comment(generatedBy(compiler, flavor: '$flavor'));
   }

@@ -97,9 +97,6 @@ abstract class DeferredLoadTask extends CompilerTask {
   /// Will be `true` if the program contains deferred libraries.
   bool isProgramSplit = false;
 
-  /// Whether mirrors have been used in the program.
-  bool _isMirrorsUsed = false;
-
   static const ImpactUseCase IMPACT_USE = const ImpactUseCase('Deferred load');
 
   /// A mapping from the name of a defer import to all the output units it
@@ -222,10 +219,6 @@ abstract class DeferredLoadTask extends CompilerTask {
       }
       _collectDependenciesFromImpact(analyzableElement, elements);
       collectConstantsInBody(analyzableElement, constants);
-    }
-
-    if (_isMirrorsUsed) {
-      collectConstantsFromMetadata(element, constants);
     }
 
     if (element is FunctionEntity) {
@@ -686,8 +679,6 @@ abstract class DeferredLoadTask extends CompilerTask {
 
     work() {
       var queue = new WorkQueue(this.importSets);
-      _isMirrorsUsed =
-          closedWorld.backendUsage.isMirrorsUsed && !compiler.options.useKernel;
 
       // Add `main` and their recursive dependencies to the main output unit.
       // We do this upfront to avoid wasting time visiting these elements when
@@ -708,9 +699,6 @@ abstract class DeferredLoadTask extends CompilerTask {
         element = element is ClassElement ? element.implementation : element;
         queue.addElement(element, importSets.mainSet);
       }
-      if (_isMirrorsUsed) {
-        addMirrorElementsForLibrary(queue, main.library, importSets.mainSet);
-      }
 
       void emptyQueue() {
         while (queue.isNotEmpty) {
@@ -729,10 +717,6 @@ abstract class DeferredLoadTask extends CompilerTask {
       }
 
       emptyQueue();
-      if (_isMirrorsUsed) {
-        addDeferredMirrorElements(queue);
-        emptyQueue();
-      }
     }
 
     reporter.withCurrentElement(main.library, () => measure(work));

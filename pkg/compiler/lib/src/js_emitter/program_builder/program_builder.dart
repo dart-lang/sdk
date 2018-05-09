@@ -687,7 +687,6 @@ class ProgramBuilder {
         _rtiChecks,
         _rtiEncoder,
         _jsInteropAnalysis,
-        _options.useKernel,
         _options.strongMode);
 
     void visitMember(MemberEntity member) {

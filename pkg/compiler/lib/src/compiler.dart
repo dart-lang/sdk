@@ -39,7 +39,6 @@ import 'id_generator.dart';
 import 'io/source_information.dart' show SourceInformation;
 import 'io/source_file.dart' show Binary;
 import 'js_backend/backend.dart' show JavaScriptBackend;
-import 'js_backend/element_strategy.dart' show ElementBackendStrategy;
 import 'kernel/kernel_backend_strategy.dart';
 import 'kernel/kernel_strategy.dart';
 import 'library_loader.dart'
@@ -192,20 +191,12 @@ abstract class Compiler {
     } else {
       _reporter = new CompilerDiagnosticReporter(this, options);
     }
-    if (options.useKernel) {
-      kernelFrontEndTask = new GenericTask('Front end', measurer);
-      frontendStrategy = new KernelFrontEndStrategy(kernelFrontEndTask, options,
-          reporter, environment, options.kernelInitializedCompilerState);
-      backendStrategy = new KernelBackendStrategy(this);
-      _impactCache = <Entity, WorldImpact>{};
-      _impactCacheDeleter = new _MapImpactCacheDeleter(_impactCache);
-    } else {
-      frontendStrategy = new ResolutionFrontEndStrategy(this);
-      backendStrategy = new ElementBackendStrategy(this);
-      _resolution = createResolution();
-      _impactCache = _resolution._worldImpactCache;
-      _impactCacheDeleter = _resolution;
-    }
+    kernelFrontEndTask = new GenericTask('Front end', measurer);
+    frontendStrategy = new KernelFrontEndStrategy(kernelFrontEndTask, options,
+        reporter, environment, options.kernelInitializedCompilerState);
+    backendStrategy = new KernelBackendStrategy(this);
+    _impactCache = <Entity, WorldImpact>{};
+    _impactCacheDeleter = new _MapImpactCacheDeleter(_impactCache);
 
     if (options.verbose) {
       progress = new ProgressImpl(_reporter);
@@ -241,7 +232,7 @@ abstract class Compiler {
       dumpInfoTask = new DumpInfoTask(this),
       selfTask,
     ];
-    if (options.useKernel) tasks.add(kernelFrontEndTask);
+    tasks.add(kernelFrontEndTask);
 
     _parsingContext =
         new ParsingContext(reporter, parser, scanner, patchParser, backend);
@@ -385,47 +376,9 @@ abstract class Compiler {
     // front end for the Kernel path since Kernel doesn't have the notion of
     // imports (everything has already been resolved). (See
     // https://github.com/dart-lang/sdk/issues/29368)
-    if (!options.useKernel) {
-      for (Uri uri in resolvedUriTranslator.disallowedLibraryUris) {
-        if (loadedLibraries.containsLibrary(uri)) {
-          Set<String> importChains =
-              computeImportChainsFor(loadedLibraries, uri);
-          reporter.reportInfo(
-              NO_LOCATION_SPANNABLE, MessageKind.DISALLOWED_LIBRARY_IMPORT, {
-            'uri': uri,
-            'importChain': importChains
-                .join(MessageTemplate.DISALLOWED_LIBRARY_IMPORT_PADDING)
-          });
-        }
-      }
-
-      if (loadedLibraries.containsLibrary(Uris.dart_core)) {
-        bool importsMirrorsLibrary =
-            loadedLibraries.containsLibrary(Uris.dart_mirrors);
-        if (importsMirrorsLibrary && !backend.supportsReflection) {
-          Set<String> importChains =
-              computeImportChainsFor(loadedLibraries, Uris.dart_mirrors);
-          reporter.reportErrorMessage(NO_LOCATION_SPANNABLE,
-              MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND, {
-            'importChain': importChains
-                .join(MessageTemplate.MIRRORS_NOT_SUPPORTED_BY_BACKEND_PADDING)
-          });
-        } else if (importsMirrorsLibrary &&
-            !options.enableExperimentalMirrors) {
-          Set<String> importChains =
-              computeImportChainsFor(loadedLibraries, Uris.dart_mirrors);
-          reporter.reportWarningMessage(
-              NO_LOCATION_SPANNABLE, MessageKind.IMPORT_EXPERIMENTAL_MIRRORS, {
-            'importChain': importChains
-                .join(MessageTemplate.IMPORT_EXPERIMENTAL_MIRRORS_PADDING)
-          });
-        }
-      }
-    } else {
-      if (loadedLibraries.containsLibrary(Uris.dart_mirrors)) {
-        reporter.reportWarningMessage(NO_LOCATION_SPANNABLE,
-            MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_WITH_CFE);
-      }
+    if (loadedLibraries.containsLibrary(Uris.dart_mirrors)) {
+      reporter.reportWarningMessage(NO_LOCATION_SPANNABLE,
+          MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_WITH_CFE);
     }
     backend.onLibrariesLoaded(frontendStrategy.commonElements, loadedLibraries);
     return loadedLibraries;
@@ -529,11 +482,6 @@ abstract class Compiler {
         FunctionEntity mainFunction =
             frontendStrategy.computeMain(rootLibrary, mainImpact);
 
-        if (!options.useKernel) {
-          // TODO(johnniwinther): Support mirrors usages analysis from dill.
-          mirrorUsageAnalyzerTask.analyzeUsage(rootLibrary);
-        }
-
         // In order to see if a library is deferred, we must compute the
         // compile-time constants that are metadata.  This means adding
         // something to the resolution queue.  So we cannot wait with
@@ -561,11 +509,6 @@ abstract class Compiler {
                   libraryLoader.lookupLibrary(libraryUri)));
             }
           }
-        }
-        if (frontendStrategy.commonElements.mirrorsLibrary != null &&
-            !options.useKernel) {
-          // TODO(johnniwinther): Support mirrors from dill.
-          resolveLibraryMetadata();
         }
         reporter.log('Resolving...');
 

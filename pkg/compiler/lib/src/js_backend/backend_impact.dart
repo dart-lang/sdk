@@ -141,54 +141,30 @@ class BackendImpacts {
         } else {
           staticUses.add(_commonElements.asyncHelperStart);
         }
-        if (!_options.useKernel) {
-          if (_options.startAsyncSynchronously) {
-            staticUses.add(_commonElements.asyncAwaitCompleterFactory);
-          } else {
-            staticUses.add(_commonElements.syncCompleterFactory);
-          }
-        }
         return new BackendImpact(staticUses: staticUses);
       }();
 
   BackendImpact _syncStarBody;
 
   BackendImpact get syncStarBody {
-    return _syncStarBody ??= _options.useKernel
-        ? new BackendImpact(staticUses: [
-            _commonElements.endOfIteration,
-            _commonElements.yieldStar,
-            _commonElements.syncStarUncaughtError,
-          ])
-        : new BackendImpact(staticUses: [
-            _commonElements.endOfIteration,
-            _commonElements.yieldStar,
-            _commonElements.syncStarUncaughtError,
-            _commonElements.syncStarIterableFactory,
-          ]);
+    return _syncStarBody ??= new BackendImpact(staticUses: [
+      _commonElements.endOfIteration,
+      _commonElements.yieldStar,
+      _commonElements.syncStarUncaughtError,
+    ]);
   }
 
   BackendImpact _asyncStarBody;
 
   BackendImpact get asyncStarBody {
-    return _asyncStarBody ??= _options.useKernel
-        ? new BackendImpact(staticUses: [
-            _commonElements.asyncStarHelper,
-            _commonElements.streamOfController,
-            _commonElements.yieldSingle,
-            _commonElements.yieldStar,
-            _commonElements.streamIteratorConstructor,
-            _commonElements.wrapBody,
-          ])
-        : new BackendImpact(staticUses: [
-            _commonElements.asyncStarHelper,
-            _commonElements.streamOfController,
-            _commonElements.yieldSingle,
-            _commonElements.yieldStar,
-            _commonElements.streamIteratorConstructor,
-            _commonElements.wrapBody,
-            _commonElements.asyncStarStreamControllerFactory,
-          ]);
+    return _asyncStarBody ??= new BackendImpact(staticUses: [
+      _commonElements.asyncStarHelper,
+      _commonElements.streamOfController,
+      _commonElements.yieldSingle,
+      _commonElements.yieldStar,
+      _commonElements.streamIteratorConstructor,
+      _commonElements.wrapBody,
+    ]);
   }
 
   BackendImpact _typeVariableBoundCheck;
