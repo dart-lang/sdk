@@ -1388,16 +1388,17 @@ class CallSiteInliner : public ValueObject {
       // Find the closure of the callee.
       ASSERT(call->ArgumentCount() > 0);
       Function& target = Function::ZoneHandle();
-      AllocateObjectInstr* alloc =
-          call->ArgumentAt(0)->OriginalDefinition()->AsAllocateObject();
-      if ((alloc != NULL) && !alloc->closure_function().IsNull()) {
-        target ^= alloc->closure_function().raw();
-        ASSERT(alloc->cls().IsClosureClass());
-      }
-      ConstantInstr* constant =
-          call->ArgumentAt(0)->OriginalDefinition()->AsConstant();
-      if ((constant != NULL) && constant->value().IsClosure()) {
-        target ^= Closure::Cast(constant->value()).function();
+      Definition* receiver =
+          call->Receiver()->definition()->OriginalDefinition();
+      if (AllocateObjectInstr* alloc = receiver->AsAllocateObject()) {
+        if (!alloc->closure_function().IsNull()) {
+          target ^= alloc->closure_function().raw();
+          ASSERT(alloc->cls().IsClosureClass());
+        }
+      } else if (ConstantInstr* constant = receiver->AsConstant()) {
+        if (constant->value().IsClosure()) {
+          target ^= Closure::Cast(constant->value()).function();
+        }
       }
 
       if (target.IsNull()) {
@@ -1712,7 +1713,7 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
   // Replace the receiver argument with a redefinition to prevent code from
   // the inlined body from being hoisted above the inlined entry.
   GrowableArray<Definition*> arguments(call_->ArgumentCount());
-  Definition* receiver = call_->ArgumentAt(0);
+  Definition* receiver = call_->Receiver()->definition();
   RedefinitionInstr* redefinition =
       new (Z) RedefinitionInstr(new (Z) Value(receiver));
   redefinition->set_ssa_temp_index(
@@ -1768,7 +1769,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
   BlockEntryInstr* current_block = entry;
   Instruction* cursor = entry;
 
-  Definition* receiver = call_->ArgumentAt(0);
+  Definition* receiver = call_->Receiver()->definition();
   // There are at least two variants including non-inlined ones, so we have
   // at least one branch on the class id.
   LoadClassIdInstr* load_cid =
@@ -2930,13 +2931,14 @@ bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
   TargetEntryInstr* entry;
   Definition* last;
   if (FlowGraphInliner::TryInlineRecognizedMethod(
-          flow_graph, receiver_cid, target, call, call->ArgumentAt(0),
-          call->token_pos(), call->ic_data(), &entry, &last, policy)) {
+          flow_graph, receiver_cid, target, call,
+          call->Receiver()->definition(), call->token_pos(), call->ic_data(),
+          &entry, &last, policy)) {
     // Insert receiver class check if needed.
     if (MethodRecognizer::PolymorphicTarget(target) ||
         flow_graph->InstanceCallNeedsClassCheck(call, target.kind())) {
       Instruction* check = flow_graph->CreateCheckClass(
-          call->ArgumentAt(0), *Cids::Create(Z, *call->ic_data(), 0),
+          call->Receiver()->definition(), *Cids::Create(Z, *call->ic_data(), 0),
           call->deopt_id(), call->token_pos());
       flow_graph->InsertBefore(call, check, call->env(), FlowGraph::kEffect);
     }
@@ -2980,9 +2982,8 @@ bool FlowGraphInliner::TryReplaceStaticCallWithInline(
   Definition* receiver = NULL;
   intptr_t receiver_cid = kIllegalCid;
   if (!call->function().is_static()) {
-    receiver = call->ArgumentAt(call->FirstArgIndex());
-    receiver_cid =
-        call->PushArgumentAt(call->FirstArgIndex())->value()->Type()->ToCid();
+    receiver = call->Receiver()->definition();
+    receiver_cid = call->Receiver()->Type()->ToCid();
   }
   if (FlowGraphInliner::TryInlineRecognizedMethod(
           flow_graph, receiver_cid, call->function(), call, receiver,

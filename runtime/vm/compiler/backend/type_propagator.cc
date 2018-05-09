@@ -298,19 +298,22 @@ void FlowGraphTypePropagator::CheckNonNullSelector(
 
 void FlowGraphTypePropagator::VisitInstanceCall(InstanceCallInstr* instr) {
   if (instr->has_unique_selector()) {
-    SetCid(instr->ArgumentAt(0), instr->ic_data()->GetReceiverClassIdAt(0));
+    SetCid(instr->Receiver()->definition(),
+           instr->ic_data()->GetReceiverClassIdAt(0));
     return;
   }
-  CheckNonNullSelector(instr, instr->ArgumentAt(0), instr->function_name());
+  CheckNonNullSelector(instr, instr->Receiver()->definition(),
+                       instr->function_name());
 }
 
 void FlowGraphTypePropagator::VisitPolymorphicInstanceCall(
     PolymorphicInstanceCallInstr* instr) {
   if (instr->instance_call()->has_unique_selector()) {
-    SetCid(instr->ArgumentAt(0), instr->targets().MonomorphicReceiverCid());
+    SetCid(instr->Receiver()->definition(),
+           instr->targets().MonomorphicReceiverCid());
     return;
   }
-  CheckNonNullSelector(instr, instr->ArgumentAt(0),
+  CheckNonNullSelector(instr, instr->Receiver()->definition(),
                        instr->instance_call()->function_name());
 }
 
