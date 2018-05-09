@@ -235,7 +235,7 @@ class CompilerOptions implements DiagnosticOptions {
   /// When this flag is on, the compiler also accepts reading .dill files from
   /// disk. The compiler reads the sources differently depending on the
   /// extension format.
-  bool useKernel = true;
+  final useKernel = true;
 
   /// Enables strong mode in dart2js.
   ///
@@ -343,7 +343,6 @@ class CompilerOptions implements DiagnosticOptions {
       ..trustTypeAnnotations = _hasOption(options, Flags.trustTypeAnnotations)
       ..useContentSecurityPolicy =
           _hasOption(options, Flags.useContentSecurityPolicy)
-      ..useKernel = !_hasOption(options, Flags.useOldFrontend)
       ..useFrequencyNamer =
           !_hasOption(options, Flags.noFrequencyBasedMinification)
       ..useMultiSourceInfo = _hasOption(options, Flags.useMultiSourceInfo)

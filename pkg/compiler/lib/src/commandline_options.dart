@@ -35,12 +35,10 @@ class Flags {
   static const String generateCodeWithCompileTimeErrors =
       '--generate-code-with-compile-time-errors';
 
-  /// TODO(sigmund): delete this flag.
+  /// TODO(sigmund): delete these flags.
   static const String useKernel = '--use-kernel';
-
-  /// Temporary flag to revert to the old front-end once the new common
-  /// front-end is the default.
   static const String useOldFrontend = '--use-old-frontend';
+
   static const String strongMode = '--strong';
   static const String previewDart2 = '--preview-dart-2';
   static const String omitImplicitChecks = '--omit-implicit-checks';

@@ -132,7 +132,6 @@ Future<api.CompilationResult> compile(List<String> argv,
   bool showWarnings;
   bool showHints;
   bool enableColors;
-  bool useKernel = true;
   Uri platformBinaries = computePlatformBinariesLocation();
   Map<String, dynamic> environment = new Map<String, dynamic>();
 
@@ -248,8 +247,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   }
 
   void setUseOldFrontend(String argument) {
-    useKernel = false;
-    passThrough(argument);
+    helpAndFail("Option '${Flags.useOldFrontend}' is not supported.");
   }
 
   void setPlatformBinaries(String argument) {
@@ -505,11 +503,9 @@ Future<api.CompilationResult> compile(List<String> argv,
   }
 
   Uri script = currentDirectory.resolve(arguments[0]);
-  if (useKernel) {
-    diagnosticHandler.autoReadFileUri = true;
-    // TODO(sigmund): reenable hints (Issue #32111)
-    diagnosticHandler.showHints = showHints = false;
-  }
+  diagnosticHandler.autoReadFileUri = true;
+  // TODO(sigmund): reenable hints (Issue #32111)
+  diagnosticHandler.showHints = showHints = false;
   CompilerOptions compilerOptions = CompilerOptions.parse(options,
       libraryRoot: libraryRoot, platformBinaries: platformBinaries)
     ..entryPoint = script
