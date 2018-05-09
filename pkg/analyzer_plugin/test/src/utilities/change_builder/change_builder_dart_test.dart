@@ -154,6 +154,50 @@ import 'package:foo/foo.dart';
 ''');
   }
 
+  test_importLibrary_noDirectives_docComment() async {
+    await _assertImportLibraries('''
+/// Documentation comment.
+/// Continues.
+void main() {}
+''', ['dart:async'], '''
+import 'dart:async';
+
+/// Documentation comment.
+/// Continues.
+void main() {}
+''');
+  }
+
+  test_importLibrary_noDirectives_hashBang() async {
+    await _assertImportLibraries('''
+#!/bin/dart
+
+void main() {}
+''', ['dart:async'], '''
+#!/bin/dart
+
+import 'dart:async';
+
+void main() {}
+''');
+  }
+
+  test_importLibrary_noDirectives_lineComment() async {
+    await _assertImportLibraries('''
+// Not documentation comment.
+// Continues.
+
+void main() {}
+''', ['dart:async'], '''
+// Not documentation comment.
+// Continues.
+
+import 'dart:async';
+
+void main() {}
+''');
+  }
+
   test_importLibrary_package_afterDart() async {
     await _assertImportLibraries('''
 import 'dart:async';
