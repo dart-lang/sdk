@@ -4,6 +4,14 @@
 
 ### Language
 
+* Changed the `cast` method to always change the type.  Deprecated the
+  `retype` method and made it redirect to `cast`.  Applies to all of the
+  following interfaces:
+  * `Stream`:
+  * `StreamTransformer`
+  * `Iterable`
+  * `Map`
+
 #### Strong Mode
 
 ### Core library changes
