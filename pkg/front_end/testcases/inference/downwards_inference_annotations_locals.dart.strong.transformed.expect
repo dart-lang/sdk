@@ -8,7 +8,8 @@ class Foo extends core::Object {
     ;
 }
 static method test() → void {
-  function f(@self::Foo::•(const <dynamic>[]) dynamic x) → void {}
-  dynamic x = (@self::Foo::•(const <dynamic>[]) dynamic x) → dynamic {};
+  @self::Foo::•(const <core::String>[]) dynamic x;
+  @self::Foo::•(const <core::String>[])
+  function f() → void {}
 }
 static method main() → dynamic {}

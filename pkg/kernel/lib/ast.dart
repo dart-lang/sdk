@@ -4451,11 +4451,13 @@ class VariableDeclaration extends Statement {
   accept1(StatementVisitor1 v, arg) => v.visitVariableDeclaration(this, arg);
 
   visitChildren(Visitor v) {
+    visitList(annotations, v);
     type?.accept(v);
     initializer?.accept(v);
   }
 
   transformChildren(Transformer v) {
+    transformList(annotations, v, this);
     type = v.visitDartType(type);
     if (initializer != null) {
       initializer = initializer.accept(v);

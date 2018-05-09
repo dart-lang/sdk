@@ -34,6 +34,7 @@ import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_elimination.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart' hide InvalidExpression, InvalidInitializer;
+import 'package:kernel/clone.dart' show CloneVisitor;
 import 'package:kernel/frontend/accessors.dart';
 import 'package:kernel/type_algebra.dart';
 
@@ -879,6 +880,7 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
     }
     inferrer.inferStatement(body);
     if (_declaresVariable) {
+      inferrer.inferMetadataKeepingHelper(variable.annotations);
       var tempVar =
           new VariableDeclaration(null, type: inferredType, isFinal: true);
       var variableGet = new VariableGet(tempVar)
@@ -941,6 +943,7 @@ class ShadowFunctionDeclaration extends FunctionDeclaration
 
   @override
   void _inferStatement(ShadowTypeInferrer inferrer) {
+    inferrer.inferMetadataKeepingHelper(variable.annotations);
     inferrer.inferLocalFunction(
         function,
         null,
@@ -2270,6 +2273,26 @@ class ShadowVariableDeclaration extends VariableDeclaration
 
   @override
   void _inferStatement(ShadowTypeInferrer inferrer) {
+    inferrer.inferMetadataKeepingHelper(annotations);
+
+    // After the inference was done on the annotations, we may clone them for
+    // this instance of VariableDeclaration in order to avoid having the same
+    // annotation node for two VariableDeclaration nodes in a situation like
+    // the following:
+    //
+    //     class Foo { const Foo(List<String> list); }
+    //
+    //     @Foo(const [])
+    //     var x, y;
+    CloneVisitor cloner = new CloneVisitor();
+    for (int i = 0; i < annotations.length; ++i) {
+      Expression annotation = annotations[i];
+      if (annotation.parent != this) {
+        annotations[i] = cloner.clone(annotation);
+        annotations[i].parent = this;
+      }
+    }
+
     var declaredType = _implicitlyTyped ? const UnknownType() : type;
     DartType inferredType;
     DartType initializerType;
