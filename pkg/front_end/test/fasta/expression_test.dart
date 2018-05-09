@@ -325,6 +325,7 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
             test.expression,
             definitions,
             typeParams,
+            "debugExpr",
             test.library,
             test.className,
             test.isStaticMethod);

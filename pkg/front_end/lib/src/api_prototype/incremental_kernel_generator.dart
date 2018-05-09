@@ -61,6 +61,7 @@ abstract class IncrementalKernelGenerator {
       String expression,
       Map<String, DartType> definitions,
       List<TypeParameter> typeDefinitions,
+      String syntheticProcedureName,
       Uri libraryUri,
       [String className,
       bool isStatic = false]);

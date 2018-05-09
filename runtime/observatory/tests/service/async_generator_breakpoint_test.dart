@@ -69,7 +69,8 @@ Future testAsync(Isolate isolate) async {
 
   var hits = [];
 
-  isolate.rootLibrary.evaluate('testerReady = true;').then((result) {
+  isolate.rootLibrary.evaluate('testerReady = true').then((result) {
+    print(result);
     expect((result as Instance).valueAsString, equals('true'));
   });
 

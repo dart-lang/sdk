@@ -32,7 +32,7 @@ var tests = <IsolateTest>[
     });
 
     // Start listening for events first.
-    await isolate.rootLibrary.evaluate('testeeDo();');
+    await isolate.rootLibrary.evaluate('testeeDo()');
     return completer.future;
   },
 ];

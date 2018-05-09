@@ -360,6 +360,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       String expression,
       Map<String, DartType> definitions,
       List<TypeParameter> typeDefinitions,
+      String syntheticProcedureName,
       Uri libraryUri,
       [String className,
       bool isStatic = false]) async {
@@ -440,7 +441,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           debugLibrary, className, className != null && !isStatic, parameters);
 
       Procedure procedure = new Procedure(
-          new Name("debugExpr"), ProcedureKind.Method, parameters,
+          new Name(syntheticProcedureName), ProcedureKind.Method, parameters,
           isStatic: isStatic);
 
       parameters.body = new ReturnStatement(compiledExpression)
