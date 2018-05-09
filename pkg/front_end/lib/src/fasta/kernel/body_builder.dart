@@ -62,10 +62,6 @@ import '../type_inference/type_promotion.dart' show TypePromoter;
 
 import 'constness.dart' show Constness;
 
-import 'fangorn.dart' show Fangorn;
-
-import 'forest.dart' show Forest;
-
 import 'frontend_accessors.dart' show buildIsNull;
 
 import 'redirecting_factory_body.dart'
@@ -90,8 +86,9 @@ import 'kernel_builder.dart';
 // TODO(ahe): Remove this and ensure all nodes have a location.
 const noLocation = null;
 
-class BodyBuilder<Expression, Statement, Arguments>
-    extends ScopeListener<JumpTarget> implements BuilderHelper<Arguments> {
+abstract class BodyBuilder<Expression, Statement, Arguments>
+    extends ScopeListener<JumpTarget>
+    implements BuilderHelper<Expression, Statement, Arguments> {
   @override
   final KernelLibraryBuilder library;
 
@@ -184,8 +181,6 @@ class BodyBuilder<Expression, Statement, Arguments>
   /// and where that was.
   Map<String, int> initializedFields;
 
-  final Forest forestInternal;
-
   BodyBuilder(
       KernelLibraryBuilder library,
       this.member,
@@ -196,8 +191,7 @@ class BodyBuilder<Expression, Statement, Arguments>
       this.classBuilder,
       this.isInstanceMember,
       this.uri,
-      this._typeInferrer,
-      [this.forestInternal = const Fangorn()])
+      this._typeInferrer)
       : enclosingScope = scope,
         library = library,
         enableNative =
@@ -210,12 +204,6 @@ class BodyBuilder<Expression, Statement, Arguments>
             coreTypes.objectClass != classBuilder?.cls,
         typePromoter = _typeInferrer.typePromoter,
         super(scope);
-
-  Forest<
-      kernel.Expression, // TODO(ahe): Should be just `Expression`.
-      Statement,
-      Token,
-      Arguments> get forest => forestInternal;
 
   bool get hasParserError => recoverableErrors.isNotEmpty;
 
@@ -871,7 +859,8 @@ class BodyBuilder<Expression, Statement, Arguments>
           named = new List<NamedExpression>.from(seenNames.values);
         }
       }
-      push(forest.arguments(positional, beginToken, named: named));
+      push(forest.arguments(toExpressionList(positional), beginToken,
+          named: named));
     } else {
       push(forest.arguments(arguments, beginToken));
     }
@@ -1006,13 +995,16 @@ class BodyBuilder<Expression, Statement, Arguments>
       kernel.Expression result = buildMethodInvocation(
           a,
           new Name(operator),
-          forest.arguments(<kernel.Expression>[b], noLocation),
+          forest.arguments(
+              toExpressionList(<kernel.Expression>[b]), noLocation),
           token.charOffset,
           // This *could* be a constant expression, we can't know without
           // evaluating [a] and [b].
           isConstantExpression: !isSuper,
           isSuper: isSuper);
-      return negate ? forest.notExpression(result, null) : result;
+      return negate
+          ? toKernelExpression(forest.notExpression(toExpression(result), null))
+          : result;
     }
   }
 
@@ -1495,7 +1487,8 @@ class BodyBuilder<Expression, Statement, Arguments>
       if (first.lexeme.length > 1) {
         String value = unescapeFirstStringPart(first.lexeme, quote);
         if (value.isNotEmpty) {
-          expressions.add(forest.literalString(value, first));
+          expressions
+              .add(toKernelExpression(forest.literalString(value, first)));
         }
       }
       for (int i = 1; i < parts.length - 1; i++) {
@@ -1503,7 +1496,8 @@ class BodyBuilder<Expression, Statement, Arguments>
         if (part is Token) {
           if (part.lexeme.length != 0) {
             String value = unescape(part.lexeme, quote);
-            expressions.add(forest.literalString(value, part));
+            expressions
+                .add(toKernelExpression(forest.literalString(value, part)));
           }
         } else {
           expressions.add(toValue(part));
@@ -1513,10 +1507,12 @@ class BodyBuilder<Expression, Statement, Arguments>
       if (last.lexeme.length > 1) {
         String value = unescapeLastStringPart(last.lexeme, quote);
         if (value.isNotEmpty) {
-          expressions.add(forest.literalString(value, last));
+          expressions
+              .add(toKernelExpression(forest.literalString(value, last)));
         }
       }
-      push(forest.stringConcatenationExpression(expressions, endToken));
+      push(forest.stringConcatenationExpression(
+          toExpressionList(expressions), endToken));
     }
   }
 
@@ -1552,7 +1548,8 @@ class BodyBuilder<Expression, Statement, Arguments>
         }
       }
     }
-    push(forest.stringConcatenationExpression(expressions ?? parts, null));
+    push(forest.stringConcatenationExpression(
+        toExpressionList(expressions ?? parts), null));
   }
 
   @override
@@ -1840,7 +1837,7 @@ class BodyBuilder<Expression, Statement, Arguments>
   @override
   void endAwaitExpression(Token keyword, Token endToken) {
     debugEvent("AwaitExpression");
-    push(forest.awaitExpression(popForValue(), keyword));
+    push(forest.awaitExpression(toExpression(popForValue()), keyword));
   }
 
   @override
@@ -1876,7 +1873,7 @@ class BodyBuilder<Expression, Statement, Arguments>
         typeArgument,
         typeArguments,
         leftBracket,
-        expressions,
+        toExpressionList(expressions),
         rightBracket));
   }
 
@@ -1941,7 +1938,7 @@ class BodyBuilder<Expression, Statement, Arguments>
     debugEvent("LiteralMapEntry");
     kernel.Expression value = popForValue();
     kernel.Expression key = popForValue();
-    push(forest.mapEntry(key, colon, value));
+    push(forest.mapEntry(toExpression(key), colon, toExpression(value)));
   }
 
   String symbolPartToString(name) {
@@ -2063,7 +2060,7 @@ class BodyBuilder<Expression, Statement, Arguments>
       push(deprecated_buildCompileTimeError(
           "Not a constant expression.", operator.charOffset));
     } else {
-      push(forest.asExpression(expression, type, operator));
+      push(forest.asExpression(toExpression(expression), type, operator));
     }
   }
 
@@ -2071,13 +2068,12 @@ class BodyBuilder<Expression, Statement, Arguments>
   void handleIsOperator(Token operator, Token not, Token endToken) {
     debugEvent("IsOperator");
     DartType type = pop();
-    kernel.Expression operand = popForValue();
+    Expression operand = toExpression(popForValue());
     bool isInverted = not != null;
-    kernel.Expression isExpression =
-        forest.isExpression(operand, operator, not, type);
+    Expression isExpression = forest.isExpression(operand, operator, not, type);
     if (operand is VariableGet) {
-      typePromoter.handleIsCheck(isExpression, isInverted, operand.variable,
-          type, functionNestingLevel);
+      typePromoter.handleIsCheck(toKernelExpression(isExpression), isInverted,
+          operand.variable, type, functionNestingLevel);
     }
     if (constantContext != ConstantContext.none) {
       push(deprecated_buildCompileTimeError(
@@ -2106,9 +2102,9 @@ class BodyBuilder<Expression, Statement, Arguments>
   @override
   void endConditionalExpression(Token question, Token colon) {
     debugEvent("ConditionalExpression");
-    kernel.Expression elseExpression = popForValue();
-    kernel.Expression thenExpression = pop();
-    kernel.Expression condition = pop();
+    Expression elseExpression = toExpression(popForValue());
+    Expression thenExpression = pop();
+    Expression condition = pop();
     typePromoter.exitConditional();
     push(forest.conditionalExpression(
         condition, question, thenExpression, colon, elseExpression));
@@ -2376,7 +2372,7 @@ class BodyBuilder<Expression, Statement, Arguments>
     debugEvent("UnaryPrefixExpression");
     var receiver = pop();
     if (optional("!", token)) {
-      push(forest.notExpression(toValue(receiver), token));
+      push(forest.notExpression(toExpression(toValue(receiver)), token));
     } else {
       String operator = token.stringValue;
       if (optional("-", token)) {
@@ -2392,15 +2388,18 @@ class BodyBuilder<Expression, Statement, Arguments>
         }
       }
       bool isSuper = false;
-      kernel.Expression receiverValue;
+      Expression receiverValue;
       if (receiver is ThisAccessor && receiver.isSuper) {
         isSuper = true;
         receiverValue = forest.thisExpression(receiver.token);
       } else {
-        receiverValue = toValue(receiver);
+        receiverValue = toExpression(toValue(receiver));
       }
-      push(buildMethodInvocation(receiverValue, new Name(operator),
-          forest.argumentsEmpty(noLocation), token.charOffset,
+      push(buildMethodInvocation(
+          toKernelExpression(receiverValue),
+          new Name(operator),
+          forest.argumentsEmpty(noLocation),
+          token.charOffset,
           // This *could* be a constant expression, we can't know without
           // evaluating [receiver].
           isConstantExpression: !isSuper,
@@ -2543,7 +2542,7 @@ class BodyBuilder<Expression, Statement, Arguments>
         typeParameters);
     if (argMessage != null) {
       return throwNoSuchMethodError(
-          storeOffset(forest.literalNull(null), charOffset),
+          toKernelExpression(storeOffset(forest.literalNull(null), charOffset)),
           target.name.name,
           arguments,
           charOffset,
@@ -2744,8 +2743,11 @@ class BodyBuilder<Expression, Statement, Arguments>
     } else if (type is ErrorAccessor) {
       push(type.buildError(arguments));
     } else {
-      push(throwNoSuchMethodError(storeOffset(forest.literalNull(null), offset),
-          debugName(getNodeName(type), name), arguments, nameToken.charOffset));
+      push(throwNoSuchMethodError(
+          toKernelExpression(storeOffset(forest.literalNull(null), offset)),
+          debugName(getNodeName(type), name),
+          arguments,
+          nameToken.charOffset));
     }
     constantContext = savedConstantContext;
   }
@@ -2846,7 +2848,7 @@ class BodyBuilder<Expression, Statement, Arguments>
     }
     errorName ??= name;
     return throwNoSuchMethodError(
-        storeOffset(forest.literalNull(null), charOffset),
+        toKernelExpression(storeOffset(forest.literalNull(null), charOffset)),
         errorName,
         arguments,
         nameToken.charOffset);
@@ -3689,7 +3691,8 @@ class BodyBuilder<Expression, Statement, Arguments>
         new Let(
             new VariableDeclaration.forValue(expression)
               ..fileOffset = expression.fileOffset,
-            storeOffset(forest.literalNull(null), expression.fileOffset))
+            toKernelExpression(
+                storeOffset(forest.literalNull(null), expression.fileOffset)))
           ..fileOffset = expression.fileOffset)
       ..fileOffset = expression.fileOffset;
   }
@@ -3705,7 +3708,7 @@ class BodyBuilder<Expression, Statement, Arguments>
 
     return new Throw(buildStaticInvocation(
         library.loader.coreTypes.fallThroughErrorUrlAndLineConstructor,
-        forest.arguments(<kernel.Expression>[
+        forest.arguments(<Expression>[
           storeOffset(forest.literalString("${location?.file ?? uri}", null),
               charOffset),
           storeOffset(forest.literalInt(location?.line ?? 0, null), charOffset),
@@ -3721,7 +3724,7 @@ class BodyBuilder<Expression, Statement, Arguments>
     Builder constructor = library.loader.getAbstractClassInstantiationError();
     return new Throw(buildStaticInvocation(
         constructor.target,
-        forest.arguments(<kernel.Expression>[
+        forest.arguments(<Expression>[
           storeOffset(forest.literalString(className, null), charOffset)
         ], noLocation)));
   }
@@ -3796,7 +3799,7 @@ class BodyBuilder<Expression, Statement, Arguments>
         return buildInvalidInitializer(
             new Throw(buildStaticInvocation(
                 constructor.target,
-                forest.arguments(<kernel.Expression>[
+                forest.arguments(<Expression>[
                   storeOffset(forest.literalString(name, null), offset)
                 ], noLocation),
                 charOffset: offset)),
@@ -3970,7 +3973,7 @@ class BodyBuilder<Expression, Statement, Arguments>
           variable,
           new ConditionalExpression(
               buildIsNull(new VariableGet(variable), offset),
-              storeOffset(forest.literalNull(null), offset),
+              toKernelExpression(storeOffset(forest.literalNull(null), offset)),
               new MethodInvocation(new VariableGet(variable), name,
                   forest.castArguments(arguments), interfaceTarget)
                 ..fileOffset = offset,
@@ -4025,16 +4028,32 @@ class BodyBuilder<Expression, Statement, Arguments>
   kernel.Expression wrapInDeferredCheck(kernel.Expression expression,
       KernelPrefixBuilder prefix, int charOffset) {
     var check = new VariableDeclaration.forValue(
-        forest.checkLibraryIsLoaded(prefix.dependency))
+        toKernelExpression(forest.checkLibraryIsLoaded(prefix.dependency)))
       ..fileOffset = charOffset;
     return new ShadowDeferredCheck(check, expression);
   }
 
+  // TODO(ahe): Remove this method once Forest API is complete.
   @override
   T storeOffset<T>(T object, int offset) {
-    TreeNode node = object as TreeNode;
+    TreeNode node = object as dynamic;
     node.fileOffset = offset;
     return object;
+  }
+
+  // TODO(ahe): Remove this method once Forest API is complete.
+  kernel.Expression toKernelExpression(Expression expression) {
+    return expression as dynamic;
+  }
+
+  // TODO(ahe): Remove this method once Forest API is complete.
+  Expression toExpression(kernel.Expression expression) {
+    return expression as dynamic;
+  }
+
+  // TODO(ahe): Remove this method once Forest API is complete.
+  List<Expression> toExpressionList(List<kernel.Expression> expressions) {
+    return expressions as dynamic;
   }
 
   bool isErroneousNode(TreeNode node) {

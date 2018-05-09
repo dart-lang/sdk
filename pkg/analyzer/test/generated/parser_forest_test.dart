@@ -7,7 +7,7 @@ import 'dart:io' show File;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/fasta/ast_building_factory.dart';
+import 'package:analyzer/src/fasta/ast_body_builder.dart';
 import "package:front_end/src/api_prototype/front_end.dart";
 import "package:front_end/src/api_prototype/memory_file_system.dart";
 import "package:front_end/src/base/processed_options.dart";
@@ -16,7 +16,6 @@ import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/constant_context.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';
 import "package:front_end/src/fasta/fasta_codes.dart";
-import 'package:front_end/src/fasta/kernel/body_builder.dart';
 import 'package:front_end/src/fasta/kernel/forest.dart';
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
 import "package:front_end/src/fasta/kernel/kernel_target.dart";
@@ -1167,7 +1166,7 @@ class FastaParserTestCase extends Object
         false /* strong mode */,
       ));
 
-      BodyBuilder builder = new AstBodyBuilder(
+      AstBodyBuilder builder = new AstBodyBuilder(
         library,
         procedureBuilder,
         library.scope,
@@ -1178,7 +1177,6 @@ class FastaParserTestCase extends Object
         false /* isInstanceMember */,
         null /* uri */,
         typeInferrer,
-        new AstBuildingForest(),
       )..constantContext = ConstantContext.none; // .inferred ?
 
       Parser parser = new Parser(builder);
@@ -1240,35 +1238,4 @@ class FastaParserTestCase extends Object
       assert(kernelTarget.loader.coreTypes != null);
     });
   }
-}
-
-// TODO(ahe): Remove this class when we no longer need to override `forest`.
-class AstBodyBuilder extends BodyBuilder {
-  AstBodyBuilder(
-      library,
-      member,
-      scope,
-      formalParameterScope,
-      hierarchy,
-      coreTypes,
-      classBuilder,
-      isInstanceMember,
-      uri,
-      typeInferrer,
-      forestInternal)
-      : super(
-            library,
-            member,
-            scope,
-            formalParameterScope,
-            hierarchy,
-            coreTypes,
-            classBuilder,
-            isInstanceMember,
-            uri,
-            typeInferrer,
-            forestInternal);
-
-  // ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE
-  dynamic get forest => super.forestInternal;
 }

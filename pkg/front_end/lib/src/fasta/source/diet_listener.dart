@@ -24,7 +24,7 @@ import '../deprecated_problems.dart'
 import '../fasta_codes.dart'
     show Message, messageExpectedBlockToSkip, templateInternalProblemNotFound;
 
-import '../kernel/body_builder.dart' show BodyBuilder;
+import '../kernel/kernel_body_builder.dart' show KernelBodyBuilder;
 
 import '../parser.dart' show IdentifierContext, MemberKind, Parser, optional;
 
@@ -536,8 +536,17 @@ class DietListener extends StackListener {
     ConstantContext constantContext = builder.isConstructor && builder.isConst
         ? ConstantContext.inferred
         : ConstantContext.none;
-    return new BodyBuilder(library, builder, memberScope, formalParameterScope,
-        hierarchy, coreTypes, currentClass, isInstanceMember, uri, typeInferrer)
+    return new KernelBodyBuilder(
+        library,
+        builder,
+        memberScope,
+        formalParameterScope,
+        hierarchy,
+        coreTypes,
+        currentClass,
+        isInstanceMember,
+        uri,
+        typeInferrer)
       ..constantContext = constantContext;
   }
 
