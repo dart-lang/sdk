@@ -72,20 +72,15 @@ _callInIsolate(_IsolateContext isolate, Function function) {
 ///
 /// These functions only has to be called for code that can be run from a
 /// worker-isolate (so not for general dom operations).
-enterJsAsync() {
-  _globalState.topEventLoop._activeJsAsyncCount++;
-}
+enterJsAsync() {}
 
 /// Marks leaving a javascript async operation.
 ///
 /// See [enterJsAsync].
-leaveJsAsync() {
-  _globalState.topEventLoop._activeJsAsyncCount--;
-  assert(_globalState.topEventLoop._activeJsAsyncCount >= 0);
-}
+leaveJsAsync() {}
 
 /// Returns true if we are currently in a worker context.
-bool isWorker() => _globalState.isWorker;
+bool isWorker() => globalWindow == null && globalPostMessageDefined;
 
 /**
  * Called by the compiler to fetch the current isolate context.
@@ -787,7 +782,7 @@ class IsolateNatives {
       return JS('String', 'String(#.src)', currentScript);
     }
     // A worker has no script tag - so get an url from a stack-trace.
-    if (_globalState.isWorker) return computeThisScriptFromTrace();
+    if (isWorker()) return computeThisScriptFromTrace();
     // An isolate that doesn't support workers, but doesn't have a
     // currentScript either. This is most likely a Chrome extension.
     return null;
@@ -1372,31 +1367,11 @@ class ReceivePortImpl extends Stream implements ReceivePort {
 
 class TimerImpl implements Timer {
   final bool _once;
-  bool _inEventLoop = false;
   int _handle;
   int _tick = 0;
 
   TimerImpl(int milliseconds, void callback()) : _once = true {
-    if (milliseconds == 0 && (!hasTimer() || _globalState.isWorker)) {
-      void internalCallback() {
-        _handle = null;
-        callback();
-      }
-
-      // Setting _handle to something different from null indicates that the
-      // callback has not been run. Hence, the choice of 1 is arbitrary.
-      _handle = 1;
-
-      // This makes a dependency between the async library and the
-      // event loop of the isolate library. The compiler makes sure
-      // that the event loop is compiled if [Timer] is used.
-      // TODO(7907): In case of web workers, we need to use the event
-      // loop instead of setTimeout, to make sure the futures get executed in
-      // order.
-      _globalState.topEventLoop
-          .enqueue(_globalState.currentContext, internalCallback, 'timer');
-      _inEventLoop = true;
-    } else if (hasTimer()) {
+    if (hasTimer()) {
       void internalCallback() {
         _handle = null;
         leaveJsAsync();
@@ -1409,8 +1384,7 @@ class TimerImpl implements Timer {
       _handle = JS('int', 'self.setTimeout(#, #)',
           convertDartClosureToJS(internalCallback, 0), milliseconds);
     } else {
-      assert(milliseconds > 0);
-      throw new UnsupportedError('Timer greater than 0.');
+      throw new UnsupportedError('`setTimeout()` not found.');
     }
   }
 
@@ -1443,9 +1417,6 @@ class TimerImpl implements Timer {
 
   void cancel() {
     if (hasTimer()) {
-      if (_inEventLoop) {
-        throw new UnsupportedError('Timer in event loop cannot be canceled.');
-      }
       if (_handle == null) return;
       leaveJsAsync();
       if (_once) {

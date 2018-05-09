@@ -43,7 +43,6 @@ no_such_method_mirrors_test: Pass, Slow # TODO(kasperl): Please triage.
 
 [ $compiler == dart2js && $runtime == d8 && $fasta ]
 deferred_fail_and_retry_test: RuntimeError # Uses XHR in dart:html
-deferred_fail_and_retry_worker_test: Fail # Uses XHR in dart:html
 unconditional_dartio_import_test: RuntimeError # Uses dart:io
 
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
@@ -51,9 +50,6 @@ consistent_index_error_string_test: Pass, Slow # Issue 25940
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
-
-[ $compiler == dart2js && $runtime == safari ]
-deferred_fail_and_retry_worker_test: Timeout # Issue 22106
 
 [ $compiler == dart2js && $checked ]
 variable_type_test/01: Fail, OK
@@ -77,7 +73,6 @@ closure_signature_unneeded_test: RuntimeError # Too eager signature generation.
 [ $compiler == dart2js && $csp ]
 deferred_custom_loader_test: SkipByDesign # Issue 25683
 deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loading.
-deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed loading.
 js_interop_optional_arg_test: RuntimeError # Issue 31082
 js_interop_test: RuntimeError # Issue 31082
 

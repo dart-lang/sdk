@@ -14,18 +14,12 @@ native_no_such_method_exception5_frog_test: SkipByDesign # mirrors not supported
 [ $browser ]
 *: Skip
 
-[ $compiler == dart2js && $runtime == d8 && $system == windows && !$fasta ]
-compute_this_script_test: Skip # Issue 17458
-
 [ $compiler == dart2js && $fasta ]
 native_library_same_name_used_frog_test: CompileTimeError
 subclassing_constructor_1_test: RuntimeError
 subclassing_super_call_test: RuntimeError
 subclassing_super_field_1_test: RuntimeError
 subclassing_super_field_2_test: RuntimeError
-
-[ $compiler == dart2js && $fasta && $host_checked ]
-compute_this_script_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/types.dart': Failed assertion: line 63 pos 12: '!result.isEmpty': is not true.
 
 [ $compiler == dart2js && $minified ]
 optimization_hints_test: RuntimeError, OK # Test relies on unminified names.

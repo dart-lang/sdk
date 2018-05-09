@@ -312,26 +312,14 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     }
 
     // Enable isolate support if we start using something from the isolate
-    // library, or timers for the async library.  We exclude constant fields,
-    // which are ending here because their initializing expression is
-    // compiled.
-    LibraryEntity library = member.library;
-    if (!_backendUsage.isIsolateInUse && !(member.isField && member.isConst)) {
-      Uri uri = library.canonicalUri;
-      if (uri == Uris.dart_isolate) {
-        _backendUsage.isIsolateInUse = true;
-        worldImpact
-            .addImpact(_enableIsolateSupport(_elementEnvironment.mainFunction));
-      } else if (uri == Uris.dart_async) {
-        if (member.name == '_createTimer' ||
-            member.name == '_createPeriodicTimer') {
-          // The [:Timer:] class uses the event queue of the isolate
-          // library, so we make sure that event queue is generated.
-          _backendUsage.isIsolateInUse = true;
-          worldImpact.addImpact(
-              _enableIsolateSupport(_elementEnvironment.mainFunction));
-        }
-      }
+    // library.  We exclude constant fields, which are ending here because their
+    // initializing expression is compiled.
+    if (!_backendUsage.isIsolateInUse &&
+        !(member.isField && member.isConst) &&
+        member.library.canonicalUri == Uris.dart_isolate) {
+      _backendUsage.isIsolateInUse = true;
+      worldImpact
+          .addImpact(_enableIsolateSupport(_elementEnvironment.mainFunction));
     }
 
     if (member.isGetter && member.name == Identifiers.runtimeType_) {
@@ -437,6 +425,10 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _interceptorData.addInterceptorsForNativeClassMembers(cls);
     } else if (cls == _commonElements.jsIndexingBehaviorInterface) {
       _registerBackendImpact(impactBuilder, _impacts.jsIndexingBehavior);
+    } else if (cls.library.canonicalUri == Uris.dart_isolate) {
+      _backendUsage.isIsolateInUse = true;
+      impactBuilder
+          .addImpact(_enableIsolateSupport(_elementEnvironment.mainFunction));
     }
 
     _customElementsAnalysis.registerInstantiatedClass(cls);

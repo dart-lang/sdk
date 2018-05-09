@@ -26,6 +26,8 @@ webgl_1_test: StaticWarning
 window_nosuchmethod_test: StaticWarning
 
 [ $compiler == dart2js ]
+async_spawnuri_test: SkipByDesign
+async_test: SkipByDesign
 custom/document_register_type_extensions_test/construction: Pass, Timeout # Roll 50 failure
 custom/document_register_type_extensions_test/registration: Pass, Timeout # Roll 50 failure
 custom/entered_left_view_test/shadow_dom: Pass, Timeout # Roll 50 failure
@@ -194,7 +196,6 @@ xhr_test/json: Fail # TODO(dart2js-team): Please triage this failure.
 
 [ $compiler == dart2js && $runtime == d8 && $fasta ]
 async_spawnuri_test: RuntimeError
-async_test: RuntimeError
 audiobuffersourcenode_test: RuntimeError
 audiocontext_test: RuntimeError
 audioelement_test: RuntimeError

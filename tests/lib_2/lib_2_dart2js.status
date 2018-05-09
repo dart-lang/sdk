@@ -8,6 +8,8 @@ convert/base64_test/01: Fail, OK # Uses bit-wise operations to detect invalid va
 convert/chunked_conversion_utf88_test: Slow, Pass
 convert/utf85_test: Slow, Pass
 developer/timeline_test: Skip # Not supported
+html/async_spawnuri_test: SkipByDesign
+html/async_test: SkipByDesign
 html/custom/document_register_type_extensions_test/construction: Pass, Timeout # Roll 50 failure
 html/custom/document_register_type_extensions_test/registration: Pass, Timeout # Roll 50 failure
 html/custom/element_upgrade_failure_test: MissingCompileTimeError
@@ -26,6 +28,7 @@ html/svgelement_test/PathElement: Pass, RuntimeError # Roll 50 failure
 html/wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant to Dartium
 html/xhr_test: Pass, Slow
 isolate/browser/issue_12474_test: CompileTimeError # Issue 22529
+isolate/deferred_in_isolate2_test: SkipByDesign
 isolate/enum_const_test/02: RuntimeError # Issue 21817
 isolate/error_at_spawnuri_test: SkipByDesign # Test uses a ".dart" URI.
 isolate/error_exit_at_spawnuri_test: SkipByDesign # Test uses a ".dart" URI.
@@ -42,9 +45,11 @@ isolate/message3_test/constList_identical: RuntimeError # Issue 21817
 isolate/message3_test/constMap: RuntimeError # Issue 21817
 isolate/non_fatal_exception_in_timer_callback_test: Skip # Issue 23876
 isolate/spawn_uri_exported_main_test: SkipByDesign # Test uses a ".dart" URI.
+isolate/spawn_uri_missing_from_isolate_test: SkipByDesign
 isolate/spawn_uri_nested_vm_test: SkipByDesign # Test uses a ".dart" URI.
 isolate/spawn_uri_vm_test: SkipByDesign # Test uses a ".dart" URI.
 isolate/stacktrace_message_test: RuntimeError # Fails to send stacktrace object.
+isolate/timer_isolate_test: SkipByDesign
 math/double_pow_test: RuntimeError
 math/low_test: RuntimeError
 math/random_big_test: RuntimeError # Using bigint seeds for random.

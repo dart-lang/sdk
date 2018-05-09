@@ -188,7 +188,8 @@ LibTest/isolate/Isolate/spawnUri_A01_t06: RuntimeError # Dart issue 15974
 LibTest/isolate/Isolate/spawnUri_A01_t07: RuntimeError # Dart issue 15974
 LibTest/isolate/Isolate/spawnUri_A02_t01: RuntimeError, Pass # Dart issue 15617
 LibTest/isolate/Isolate/spawn_A02_t02: RuntimeError, Pass # Dart issue 15617
-LibTest/isolate/Isolate/spawn_A04_t01: RuntimeError # Dart issue 15974
+LibTest/isolate/Isolate/spawn_A04_t01: SkipByDesign
+LibTest/isolate/Isolate/spawn_A04_t02: SkipByDesign
 LibTest/isolate/Isolate/spawn_A06_t06: Skip # Times out. Please triage this failure.
 LibTest/math/MutableRectangle/boundingBox_A01_t01: RuntimeError, Pass # co19-roll r706: Please triage this failure.
 LibTest/math/Rectangle/boundingBox_A01_t01: RuntimeError, Pass # co19-roll r706: Please triage this failure.

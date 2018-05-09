@@ -7,6 +7,7 @@ browser/typed_data_message_test: StaticWarning
 
 [ $compiler == dart2js ]
 browser/issue_12474_test: CompileTimeError # Issue 22529
+deferred_in_isolate2_test: SkipByDesign
 enum_const_test/02: RuntimeError # Issue 21817
 error_at_spawnuri_test: SkipByDesign # Test uses a ".dart" URI.
 error_exit_at_spawnuri_test: SkipByDesign # Test uses a ".dart" URI.
@@ -23,9 +24,11 @@ message3_test/constList_identical: RuntimeError # Issue 21817
 message3_test/constMap: RuntimeError # Issue 21817
 non_fatal_exception_in_timer_callback_test: Skip # Issue 23876
 spawn_uri_exported_main_test: SkipByDesign # Test uses a ".dart" URI.
+spawn_uri_missing_from_isolate_test: SkipByDesign
 spawn_uri_nested_vm_test: SkipByDesign # Test uses a ".dart" URI.
 spawn_uri_vm_test: SkipByDesign # Test uses a ".dart" URI.
 stacktrace_message_test: RuntimeError # Fails to send stacktrace object.
+timer_isolate_test: SkipByDesign
 
 [ $compiler == fasta ]
 browser/compute_this_script_browser_test: CompileTimeError # TODO(ahe): Support dart:html in Fasta.
