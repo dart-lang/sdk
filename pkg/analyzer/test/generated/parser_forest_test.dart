@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io' show File;
 
+import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/fasta/ast_building_factory.dart';
 import "package:front_end/src/api_prototype/front_end.dart";
@@ -26,14 +27,13 @@ import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
-import 'package:front_end/src/scanner/token.dart';
 import 'package:kernel/class_hierarchy.dart' as kernel;
 import 'package:kernel/core_types.dart' as kernel;
 import 'package:kernel/kernel.dart' as kernel;
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'parser_test.dart';
+import 'test_support.dart';
 
 main() async {
   defineReflectiveSuite(() {
@@ -47,27 +47,6 @@ main() async {
 @reflectiveTest
 class ExpressionParserTest_Forest extends FastaParserTestCase
     with ExpressionParserTestMixin {
-  @failingTest
-  void test_1_plus_2() {
-    Expression expression = parseAdditiveExpression('1 + 2');
-    expect(expression, isNotNull);
-    assertNoErrors();
-    var binaryExpression = expression as BinaryExpression;
-    expect(binaryExpression.leftOperand, isNotNull);
-    expect(binaryExpression.operator, isNotNull);
-    expect(binaryExpression.operator.type, TokenType.PLUS);
-    expect(binaryExpression.rightOperand, isNotNull);
-  }
-
-  void test_int_literal() {
-    Expression expression = parseAdditiveExpression('1');
-    expect(expression, isNotNull);
-    // assertNoErrors();
-    expect(expression is IntegerLiteral, isTrue);
-    IntegerLiteral literal = expression;
-    expect(literal.value, equals(1));
-  }
-
   @failingTest
   void test_namedArgument() {
     super.test_namedArgument();
@@ -755,16 +734,6 @@ class ExpressionParserTest_Forest extends FastaParserTestCase
   }
 
   @failingTest
-  void test_parsePrimaryExpression_double() {
-    super.test_parsePrimaryExpression_double();
-  }
-
-  @failingTest
-  void test_parsePrimaryExpression_false() {
-    super.test_parsePrimaryExpression_false();
-  }
-
-  @failingTest
   void test_parsePrimaryExpression_function_arguments() {
     super.test_parsePrimaryExpression_function_arguments();
   }
@@ -780,18 +749,8 @@ class ExpressionParserTest_Forest extends FastaParserTestCase
   }
 
   @failingTest
-  void test_parsePrimaryExpression_hex() {
-    super.test_parsePrimaryExpression_hex();
-  }
-
-  @failingTest
   void test_parsePrimaryExpression_identifier() {
     super.test_parsePrimaryExpression_identifier();
-  }
-
-  @failingTest
-  void test_parsePrimaryExpression_int() {
-    super.test_parsePrimaryExpression_int();
   }
 
   @failingTest
@@ -815,11 +774,6 @@ class ExpressionParserTest_Forest extends FastaParserTestCase
   }
 
   @failingTest
-  void test_parsePrimaryExpression_mapLiteral() {
-    super.test_parsePrimaryExpression_mapLiteral();
-  }
-
-  @failingTest
   void test_parsePrimaryExpression_mapLiteral_typed() {
     super.test_parsePrimaryExpression_mapLiteral_typed();
   }
@@ -835,28 +789,8 @@ class ExpressionParserTest_Forest extends FastaParserTestCase
   }
 
   @failingTest
-  void test_parsePrimaryExpression_null() {
-    super.test_parsePrimaryExpression_null();
-  }
-
-  @failingTest
   void test_parsePrimaryExpression_parenthesized() {
     super.test_parsePrimaryExpression_parenthesized();
-  }
-
-  @failingTest
-  void test_parsePrimaryExpression_string() {
-    super.test_parsePrimaryExpression_string();
-  }
-
-  @failingTest
-  void test_parsePrimaryExpression_string_multiline() {
-    super.test_parsePrimaryExpression_string_multiline();
-  }
-
-  @failingTest
-  void test_parsePrimaryExpression_string_raw() {
-    super.test_parsePrimaryExpression_string_raw();
   }
 
   @failingTest
@@ -867,11 +801,6 @@ class ExpressionParserTest_Forest extends FastaParserTestCase
   @failingTest
   void test_parsePrimaryExpression_this() {
     super.test_parsePrimaryExpression_this();
-  }
-
-  @failingTest
-  void test_parsePrimaryExpression_true() {
-    super.test_parsePrimaryExpression_true();
   }
 
   @failingTest
@@ -1199,8 +1128,11 @@ class FastaParserTestCase extends Object
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
-  Expression parseAdditiveExpression(String code) {
-    ScannerResult scan = scanString(code);
+  Expression parseExpression(String source,
+      {List<ErrorCode> codes,
+      List<ExpectedError> errors,
+      int expectedEndOffset}) {
+    ScannerResult scan = scanString(source);
 
     return CompilerContext.runWithOptions(options, (CompilerContext c) {
       KernelLibraryBuilder library = new KernelLibraryBuilder(
@@ -1253,6 +1185,13 @@ class FastaParserTestCase extends Object
       parser.parseExpression(parser.syntheticPreviousToken(scan.tokens));
       return builder.pop();
     });
+  }
+
+  @override
+  Expression parsePrimaryExpression(String code,
+      {int expectedEndOffset, List<ExpectedError> errors}) {
+    return parseExpression(code,
+        expectedEndOffset: expectedEndOffset, errors: errors);
   }
 
   Future setUp() async {
