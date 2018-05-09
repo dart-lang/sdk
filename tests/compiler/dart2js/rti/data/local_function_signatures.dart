@@ -6,7 +6,6 @@ import 'package:expect/expect.dart';
 
 class Class1 {
   method1() {
-    /*ast.*/
     /*kernel.*/
     /*strong.needsSignature*/
     /*omit.needsSignature*/

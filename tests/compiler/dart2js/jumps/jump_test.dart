@@ -8,13 +8,11 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
-import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/jumps.dart';
 import 'package:compiler/src/js_model/locals.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
-import 'package:compiler/src/tree/nodes.dart' as ast;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -22,21 +20,10 @@ import 'package:kernel/ast.dart' as ir;
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    await checkTests(dataDir, computeJumpsData, computeKernelJumpsData,
+    await checkTests(dataDir, computeKernelJumpsData,
         options: [Flags.disableTypeInference, stopAfterTypeInference],
         args: args);
   });
-}
-
-/// Compute closure data mapping for [_member] as a [MemberElement].
-///
-/// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
-/// for the data origin.
-void computeJumpsData(
-    Compiler compiler, MemberEntity _member, Map<Id, ActualData> actualMap,
-    {bool verbose: false}) {
-  MemberElement member = _member;
-  new JumpsAstComputer(compiler.reporter, actualMap, member.resolvedAst).run();
 }
 
 /// Compute closure data mapping for [member] as a kernel based element.
@@ -113,85 +100,6 @@ abstract class JumpsMixin {
       String value = sb.toString();
       registerValue(data.sourceSpan, data.id, value, data);
     });
-  }
-}
-
-/// Ast visitor for computing jump data.
-class JumpsAstComputer extends AstDataExtractor with JumpsMixin {
-  JumpsAstComputer(DiagnosticReporter reporter, Map<Id, ActualData> actualMap,
-      ResolvedAst resolvedAst)
-      : super(reporter, actualMap, resolvedAst);
-
-  void run() {
-    super.run();
-    processData();
-  }
-
-  @override
-  String computeNodeValue(Id id, ast.Node node, [AstElement element]) {
-    // Node values are computed post-visit in [processData].
-    return null;
-  }
-
-  @override
-  String computeElementValue(Id id, AstElement element) {
-    return null;
-  }
-
-  @override
-  visitLoop(ast.Loop node) {
-    JumpTarget target = elements.getTargetDefinition(node);
-    if (target != null) {
-      NodeId id = createLoopId(node);
-      SourceSpan sourceSpan = computeSourceSpan(node);
-      targets[target] = new TargetData(index++, id, sourceSpan, target);
-    }
-    super.visitLoop(node);
-  }
-
-  @override
-  visitGotoStatement(ast.GotoStatement node) {
-    JumpTarget target = elements.getTargetOf(node);
-    assert(target != null, 'No target for $node.');
-    NodeId id = createGotoId(node);
-    SourceSpan sourceSpan = computeSourceSpan(node);
-    gotos.add(new GotoData(id, sourceSpan, target));
-    super.visitGotoStatement(node);
-  }
-
-  @override
-  visitLabeledStatement(ast.LabeledStatement node) {
-    if (node.statement is! ast.Loop && node.statement is! ast.SwitchStatement) {
-      JumpTarget target = elements.getTargetDefinition(node.statement);
-      if (target != null) {
-        NodeId id = createLabeledStatementId(node);
-        SourceSpan sourceSpan = computeSourceSpan(node);
-        targets[target] = new TargetData(index++, id, sourceSpan, target);
-      }
-    }
-    super.visitLabeledStatement(node);
-  }
-
-  @override
-  visitSwitchStatement(ast.SwitchStatement node) {
-    JumpTarget target = elements.getTargetDefinition(node);
-    if (target != null) {
-      NodeId id = createLoopId(node);
-      SourceSpan sourceSpan = computeSourceSpan(node);
-      targets[target] = new TargetData(index++, id, sourceSpan, target);
-    }
-    super.visitSwitchStatement(node);
-  }
-
-  @override
-  visitSwitchCase(ast.SwitchCase node) {
-    JumpTarget target = elements.getTargetDefinition(node);
-    if (target != null) {
-      NodeId id = createSwitchCaseId(node);
-      SourceSpan sourceSpan = computeSourceSpan(node);
-      targets[target] = new TargetData(index++, id, sourceSpan, target);
-    }
-    super.visitSwitchCase(node);
   }
 }
 

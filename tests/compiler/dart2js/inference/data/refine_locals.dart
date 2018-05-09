@@ -114,21 +114,15 @@ _refineToClass1InvokeIfNotNull(
     /*Union([exact=Class2], [null|exact=Class1])*/ o) {
   o
       ?.
-      /*ast.invoke: Union([exact=Class2], [null|exact=Class1])*/
-      /*kernel.invoke: Union([exact=Class1], [exact=Class2])*/
-      /*strong.invoke: Union([exact=Class1], [exact=Class2])*/
+      /*invoke: Union([exact=Class1], [exact=Class2])*/
       method1();
   o
       ?.
-      /*ast.invoke: [null|exact=Class1]*/
-      /*kernel.invoke: [exact=Class1]*/
-      /*strong.invoke: [exact=Class1]*/
+      /*invoke: [exact=Class1]*/
       method0();
   o
       ?.
-      /*ast.invoke: [null|exact=Class1]*/
-      /*kernel.invoke: [exact=Class1]*/
-      /*strong.invoke: [exact=Class1]*/
+      /*invoke: [exact=Class1]*/
       method2();
   return o;
 }

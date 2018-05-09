@@ -18,7 +18,6 @@ ArgParser createArgParser() {
   argParser.addFlag('verbose', negatable: true, defaultsTo: false);
   argParser.addFlag('colors', negatable: true);
   argParser.addFlag('all', negatable: false, defaultsTo: false);
-  argParser.addFlag('use-kernel', negatable: false, defaultsTo: false);
   argParser.addFlag('strong', negatable: false, defaultsTo: false);
   argParser.addFlag('omit-implicit-checks',
       negatable: false, defaultsTo: false);
@@ -27,17 +26,14 @@ ArgParser createArgParser() {
   return argParser;
 }
 
-show(ArgResults argResults, ComputeMemberDataFunction computeAstData,
-    ComputeMemberDataFunction computeKernelData,
-    {ComputeClassDataFunction computeAstClassData,
-    ComputeClassDataFunction computeKernelClassData,
+show(ArgResults argResults, ComputeMemberDataFunction computeKernelData,
+    {ComputeClassDataFunction computeKernelClassData,
     List<String> options: const <String>[]}) async {
   if (argResults.wasParsed('colors')) {
     useColors = argResults['colors'];
   }
   bool verbose = argResults['verbose'];
   bool strongMode = argResults['strong'];
-  bool useKernel = argResults['use-kernel'] || strongMode;
   bool omitImplicitChecks = argResults['omit-implicit-checks'];
   bool trustTypeAnnotations = argResults['trust-type-annotations'];
 
@@ -53,9 +49,6 @@ show(ArgResults argResults, ComputeMemberDataFunction computeAstData,
   }
 
   options = new List<String>.from(options);
-  if (!useKernel) {
-    options.add(Flags.useOldFrontend);
-  }
   if (strongMode) {
     options.add(Flags.strongMode);
   }
@@ -65,10 +58,8 @@ show(ArgResults argResults, ComputeMemberDataFunction computeAstData,
   if (omitImplicitChecks) {
     options.add(Flags.omitImplicitChecks);
   }
-  CompiledData data = await computeData(
-      entryPoint, const {}, useKernel ? computeKernelData : computeAstData,
-      computeClassData:
-          useKernel ? computeKernelClassData : computeAstClassData,
+  CompiledData data = await computeData(entryPoint, const {}, computeKernelData,
+      computeClassData: computeKernelClassData,
       options: options,
       forUserLibrariesOnly: false,
       skipUnprocessedMembers: true,

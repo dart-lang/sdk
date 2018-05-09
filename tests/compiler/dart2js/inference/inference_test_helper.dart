@@ -8,10 +8,7 @@ import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
-import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/resolution/send_structure.dart';
-import 'package:compiler/src/tree/nodes.dart' as ast;
 import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/js_model/locals.dart';
 import 'package:compiler/src/kernel/element_map.dart';
@@ -45,8 +42,7 @@ main(List<String> args) {
 runTests(List<String> args, [int shardIndex]) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    await checkTests(
-        dataDir, computeMemberAstTypeMasks, computeMemberIrTypeMasks,
+    await checkTests(dataDir, computeMemberIrTypeMasks,
         libDirectory: new Directory.fromUri(Platform.script.resolve('libs')),
         forUserLibrariesOnly: true,
         args: args,
@@ -55,21 +51,6 @@ runTests(List<String> args, [int shardIndex]) {
         skipForStrong: skipForStrong,
         shardIndex: shardIndex ?? 0,
         shards: shardIndex != null ? 2 : 1);
-  });
-}
-
-/// Compute type inference data for [_member] as a [MemberElement].
-///
-/// Fills [actualMap] with the data.
-void computeMemberAstTypeMasks(
-    Compiler compiler, MemberEntity _member, Map<Id, ActualData> actualMap,
-    {bool verbose: false}) {
-  MemberElement member = _member;
-  ResolvedAst resolvedAst = member.resolvedAst;
-  compiler.reporter.withCurrentElement(member.implementation, () {
-    new TypeMaskAstComputer(compiler.reporter, actualMap, resolvedAst,
-            compiler.globalInference.results)
-        .run();
   });
 }
 
@@ -100,63 +81,6 @@ abstract class ComputeValueMixin<T> {
 
   String getTypeMaskValue(TypeMask typeMask) {
     return typeMask != null ? '$typeMask' : null;
-  }
-}
-
-/// AST visitor for computing inference data for a member.
-class TypeMaskAstComputer extends AstDataExtractor
-    with ComputeValueMixin<ast.Node> {
-  final GlobalTypeInferenceResults<ast.Node> results;
-  final GlobalTypeInferenceElementResult<ast.Node> result;
-
-  TypeMaskAstComputer(DiagnosticReporter reporter,
-      Map<Id, ActualData> actualMap, ResolvedAst resolvedAst, this.results)
-      : result = results.resultOfMember(resolvedAst.element as MemberElement),
-        super(reporter, actualMap, resolvedAst);
-
-  @override
-  String computeElementValue(Id id, AstElement element) {
-    if (element.isParameter) {
-      ParameterElement parameter = element.implementation;
-      return getParameterValue(parameter);
-    } else if (element.isLocal && element.isFunction) {
-      LocalFunctionElement localFunction = element;
-      return getMemberValue(localFunction.callMethod);
-    } else {
-      MemberElement member = element.declaration;
-      return getMemberValue(member);
-    }
-  }
-
-  @override
-  String computeNodeValue(Id id, ast.Node node, [AstElement element]) {
-    if (element != null && element.isLocal && element.isFunction) {
-      return computeElementValue(id, element);
-    } else if (element != null && element.isParameter) {
-      return computeElementValue(id, element);
-    } else if (node is ast.SendSet) {
-      SendStructure sendStructure = elements.getSendStructure(node);
-      if (sendStructure?.kind == SendStructureKind.INDEX_SET) {
-        return getTypeMaskValue(result.typeOfSend(node));
-      } else if (id.kind == IdKind.invoke) {
-        return getTypeMaskValue(result.typeOfOperator(node));
-      } else if (id.kind == IdKind.update) {
-        return getTypeMaskValue(result.typeOfSend(node));
-      } else if (id.kind == IdKind.node) {
-        return getTypeMaskValue(result.typeOfGetter(node));
-      }
-    } else if (node is ast.Send) {
-      return getTypeMaskValue(result.typeOfSend(node));
-    } else if (node is ast.ForIn) {
-      if (id.kind == IdKind.iterator) {
-        return getTypeMaskValue(result.typeOfIterator(node));
-      } else if (id.kind == IdKind.current) {
-        return getTypeMaskValue(result.typeOfIteratorCurrent(node));
-      } else if (id.kind == IdKind.moveNext) {
-        return getTypeMaskValue(result.typeOfIteratorMoveNext(node));
-      }
-    }
-    return null;
   }
 }
 

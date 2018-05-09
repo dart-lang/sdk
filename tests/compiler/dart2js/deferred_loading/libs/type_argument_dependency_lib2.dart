@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*ast.class: A:OutputUnit(1, {c})*/
 /*kernel.class: A:OutputUnit(1, {c})*/
 /*strong.class: A:OutputUnit(main, {})*/
 /*omit.class: A:OutputUnit(main, {})*/

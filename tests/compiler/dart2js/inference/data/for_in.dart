@@ -32,7 +32,6 @@ forInDirect() {
 // Return element from a for-in loop on a list literal.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*ast.element: forInReturn:[null|subclass=Object]*/
 /*kernel.element: forInReturn:[null|subclass=Object]*/
 /*strong.element: forInReturn:[null|subclass=JSInt]*/
 forInReturn() {

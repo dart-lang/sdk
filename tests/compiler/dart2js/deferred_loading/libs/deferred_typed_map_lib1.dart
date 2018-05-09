@@ -9,8 +9,7 @@ typedef dynamic FF({M b});
 
 /*element: table:OutputUnit(1, {lib})*/
 const table =
-/*ast.null*/
-/*!ast.OutputUnit(1, {lib})*/
+/*OutputUnit(1, {lib})*/
     const <int, FF>{1: f1, 2: f2};
 
 /*element: f1:OutputUnit(1, {lib})*/

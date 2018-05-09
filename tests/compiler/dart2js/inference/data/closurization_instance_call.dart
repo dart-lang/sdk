@@ -28,21 +28,18 @@ closurizedCallToString() {
   var local = c. /*[exact=Class]*/ method;
   local
       .
-      /*ast.invoke: [subtype=Function]*/
       /*kernel.invoke: [subtype=Function]*/
       /*strong.invoke: [subclass=Closure]*/
       toString();
   local();
   local
       .
-      /*ast.invoke: [subtype=Function]*/
       /*kernel.invoke: [subtype=Function]*/
       /*strong.invoke: [subclass=Closure]*/
       toString();
   local.call();
   return local
       .
-      /*ast.invoke: [subtype=Function]*/
       /*kernel.invoke: [subtype=Function]*/
       /*strong.invoke: [subclass=Closure]*/
       toString();

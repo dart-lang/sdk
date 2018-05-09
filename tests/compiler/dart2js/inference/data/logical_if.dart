@@ -248,9 +248,7 @@ _promotedNotNotIfThen(/*Union([exact=Class10], [exact=JSUInt31])*/ o) {
   if (!(o is! Class10)) {
     o
         .
-        /*ast.invoke: Union([exact=Class10], [exact=JSUInt31])*/
-        /*kernel.invoke: [exact=Class10]*/
-        /*strong.invoke: [exact=Class10]*/
+        /*invoke: [exact=Class10]*/
         toString();
   }
 }
@@ -278,9 +276,7 @@ _promotedParenNotIfThenElse(
   } else {
     o
         .
-        /*ast.invoke: Union([exact=Class11], [exact=JSUInt31])*/
-        /*kernel.invoke: [exact=Class11]*/
-        /*strong.invoke: [exact=Class11]*/
+        /*invoke: [exact=Class11]*/
         toString();
   }
 }

@@ -57,7 +57,6 @@ String trustReturnTypeString() {
 // As above but without the annotation.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*ast.element: notTrustReturnTypeString:[null|subclass=Object]*/
 /*kernel.element: notTrustReturnTypeString:[null|subclass=Object]*/
 /*strong.element: notTrustReturnTypeString:[null|exact=JSString]*/
 String notTrustReturnTypeString() {
@@ -84,7 +83,6 @@ trustParameterTypeString() {
 /*element: _notTrustParameterTypeString:[null]*/
 _notTrustParameterTypeString(
     String
-        /*ast.[null|subclass=Object]*/
         /*kernel.[null|subclass=Object]*/
         /*strong.[null|exact=JSString]*/
         o) {}

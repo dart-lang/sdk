@@ -17,7 +17,6 @@ main() {
 
 /*element: _method1:[null]*/
 _method1(
-    /*ast.[null|subclass=Object]*/
     /*kernel.[null|subclass=Object]*/
     /*strong.[null|subclass=JSInt]*/
     o) {}
@@ -35,7 +34,6 @@ awaitOfFuture() async {
 
 /*element: _method2:[null]*/
 _method2(
-    /*ast.[null|subclass=Object]*/
     /*kernel.[null|subclass=Object]*/
     /*strong.[null|subclass=JSInt]*/
     o) {}
@@ -56,7 +54,6 @@ _method3(
 
 /*element: _method4:[null]*/
 _method4(
-    /*ast.[null|subclass=Object]*/
     /*kernel.[null|subclass=Object]*/
     /*strong.[null|subclass=JSInt]*/
     o) {}

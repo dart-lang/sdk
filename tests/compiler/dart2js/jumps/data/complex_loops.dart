@@ -22,11 +22,9 @@ complexForInLoopWithContinueLookalike1(list) {
 }
 
 complexForInLoopWithContinueLookalike2(list) {
-  /*kernel.0@continue*/
-  /*strong.0@continue*/
+  /*0@continue*/
   for (int i in list) {
     label:
-    /*ast.0@break*/
     {
       if (i % 2 == 0) /*target=0*/ break label;
       print(i);

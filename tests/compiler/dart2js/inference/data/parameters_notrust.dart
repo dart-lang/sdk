@@ -20,7 +20,6 @@ main() {
 // within the method and therefore infer the return type to be an int.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*ast.element: _dontTrustParameters:Union([exact=JSString], [exact=JSUInt31])*/
 /*kernel.element: _dontTrustParameters:Union([exact=JSString], [exact=JSUInt31])*/
 /*strong.element: _dontTrustParameters:[exact=JSUInt31]*/
 _dontTrustParameters(int /*Union([exact=JSString], [exact=JSUInt31])*/ i) {

@@ -8,13 +8,11 @@ import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
-import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/inferrer_engine.dart';
 import 'package:compiler/src/inferrer/type_graph_inferrer.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
-import 'package:compiler/src/tree/nodes.dart' as ast;
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -24,23 +22,8 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir =
         new Directory.fromUri(Platform.script.resolve('callers'));
-    await checkTests(dataDir, computeMemberAstCallers, computeMemberIrCallers,
+    await checkTests(dataDir, computeMemberIrCallers,
         args: args, options: [stopAfterTypeInference]);
-  });
-}
-
-/// Compute callers data for [_member] as a [MemberElement].
-///
-/// Fills [actualMap] with the data.
-void computeMemberAstCallers(
-    Compiler compiler, MemberEntity _member, Map<Id, ActualData> actualMap,
-    {bool verbose: false}) {
-  MemberElement member = _member;
-  ResolvedAst resolvedAst = member.resolvedAst;
-  compiler.reporter.withCurrentElement(member.implementation, () {
-    new CallersAstComputer(compiler.reporter, actualMap, resolvedAst,
-            compiler.globalInference.typesInferrerInternal)
-        .run();
   });
 }
 
@@ -64,37 +47,6 @@ abstract class ComputeValueMixin<T> {
       }).toList()
         ..sort();
       return '[${names.join(',')}]';
-    }
-    return null;
-  }
-}
-
-/// AST visitor for computing side effects data for a member.
-class CallersAstComputer extends AstDataExtractor
-    with ComputeValueMixin<ast.Node> {
-  final TypeGraphInferrer inferrer;
-
-  CallersAstComputer(DiagnosticReporter reporter, Map<Id, ActualData> actualMap,
-      ResolvedAst resolvedAst, this.inferrer)
-      : super(reporter, actualMap, resolvedAst);
-
-  @override
-  String computeElementValue(Id id, AstElement element) {
-    if (element.isParameter) {
-      return null;
-    } else if (element.isLocal && element.isFunction) {
-      LocalFunctionElement localFunction = element;
-      return getMemberValue(localFunction.callMethod);
-    } else {
-      MemberElement member = element.declaration;
-      return getMemberValue(member);
-    }
-  }
-
-  @override
-  String computeNodeValue(Id id, ast.Node node, [AstElement element]) {
-    if (element != null && element.isLocal && element.isFunction) {
-      return computeElementValue(id, element);
     }
     return null;
   }

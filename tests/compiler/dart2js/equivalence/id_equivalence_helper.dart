@@ -463,10 +463,9 @@ typedef void Callback();
 /// [setUpFunction] is called once for every test that is executed.
 /// If [forUserSourceFilesOnly] is true, we examine the elements in the main
 /// file and any supporting libraries.
-Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
-    ComputeMemberDataFunction computeFromKernel,
+Future checkTests(
+    Directory dataDir, ComputeMemberDataFunction computeFromKernel,
     {bool testStrongMode: true,
-    List<String> skipForAst: const <String>[],
     List<String> skipForKernel: const <String>[],
     List<String> skipForStrong: const <String>[],
     bool filterActualData(IdValue idValue, ActualData actualData),
@@ -475,7 +474,6 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     Directory libDirectory: null,
     bool forUserLibrariesOnly: true,
     Callback setUpFunction,
-    ComputeClassDataFunction computeClassDataFromAst,
     ComputeClassDataFunction computeClassDataFromKernel,
     int shards: 1,
     int shardIndex: 0,
@@ -564,27 +562,6 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
 
     if (setUpFunction != null) setUpFunction();
 
-    if (skipForAst.contains(name) || strongModeOnlyTest) {
-      print('--skipped for ast-----------------------------------------------');
-    } else {
-      print('--from ast------------------------------------------------------');
-      List<String> options = [Flags.useOldFrontend]..addAll(testOptions);
-      if (trustTypeAnnotations) {
-        options.add(Flags.trustTypeAnnotations);
-      }
-      MemberAnnotations<IdValue> annotations = expectedMaps[astMarker];
-      CompiledData compiledData1 = await computeData(
-          entryPoint, memorySourceFiles, computeFromAst,
-          computeClassData: computeClassDataFromAst,
-          options: options,
-          verbose: verbose,
-          forUserLibrariesOnly: forUserLibrariesOnly,
-          globalIds: annotations.globalData.keys);
-      if (await checkCode(astName, entity.uri, code, annotations, compiledData1,
-          fatalErrors: !testAfterFailures)) {
-        hasFailures = true;
-      }
-    }
     if (skipForKernel.contains(name) ||
         (testStrongMode && strongModeOnlyTest)) {
       print('--skipped for kernel--------------------------------------------');

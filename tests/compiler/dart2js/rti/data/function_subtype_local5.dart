@@ -18,12 +18,10 @@ typedef int Biz<T>(T a, int b);
 class C<T> {
   void test(String nameOfT, bool expectedResult) {
     // TODO(johnniwinther): Optimize local function type signature need.
-    /*ast.*/
     /*kernel.*/
     /*strong.needsSignature*/
     /*omit.needsSignature*/
     int foo(bool a, [String b]) => null;
-    /*ast.*/
     /*kernel.*/
     /*strong.needsSignature*/
     /*omit.needsSignature*/
