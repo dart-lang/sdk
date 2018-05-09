@@ -77,4 +77,8 @@ declare_args() {
   } else {
     dart_component_kind = "static_library"
   }
+
+  # Whether the runtime should interpret called functions for which bytecode
+  # is provided by kernel, rather than compile them before execution.
+  dart_use_interpreter = false
 }

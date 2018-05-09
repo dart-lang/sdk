@@ -5592,9 +5592,45 @@ void Function::AttachCode(const Code& value) const {
 }
 
 bool Function::HasCode() const {
+  NoSafepointScope no_safepoint;
   ASSERT(raw_ptr()->code_ != Code::null());
+#if defined(DART_USE_INTERPRETER)
+  return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code() &&
+         raw_ptr()->code_ != StubCode::InterpretCall_entry()->code();
+#else
   return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code();
+#endif
 }
+
+#if defined(DART_USE_INTERPRETER)
+void Function::AttachBytecode(const Code& value) const {
+  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
+  // Finish setting up code before activating it.
+  value.set_owner(*this);
+  StorePointer(&raw_ptr()->bytecode_, value.raw());
+
+  // We should not have loaded the bytecode if the function had code.
+  ASSERT(!HasCode());
+
+  // Set the code entry_point to to InterpretCall stub.
+  SetInstructions(Code::Handle(StubCode::InterpretCall_entry()->code()));
+}
+
+bool Function::HasBytecode() const {
+  return raw_ptr()->bytecode_ != Code::null();
+}
+
+bool Function::HasCode(RawFunction* function) {
+  NoSafepointScope no_safepoint;
+  ASSERT(function->ptr()->code_ != Code::null());
+  return function->ptr()->code_ != StubCode::LazyCompile_entry()->code() &&
+         function->ptr()->code_ != StubCode::InterpretCall_entry()->code();
+}
+
+bool Function::HasBytecode(RawFunction* function) {
+  return function->ptr()->bytecode_ != Code::null();
+}
+#endif
 
 void Function::ClearCode() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -14564,6 +14600,64 @@ RawCode* Code::FinalizeCode(const Function& function,
   return FinalizeCode("", assembler, optimized, stats);
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+#if defined(DART_USE_INTERPRETER)
+RawCode* Code::FinalizeBytecode(void* bytecode_data,
+                                intptr_t bytecode_size,
+                                const ObjectPool& object_pool,
+                                CodeStatistics* stats /* = nullptr */) {
+  // Allocate the Code and Instructions objects.  Code is allocated first
+  // because a GC during allocation of the code will leave the instruction
+  // pages read-only.
+  const intptr_t pointer_offset_count = 0;  // No fixups in bytecode.
+  Code& code = Code::ZoneHandle(Code::New(pointer_offset_count));
+  Instructions& instrs = Instructions::ZoneHandle(
+      Instructions::New(bytecode_size, true /* has_single_entry_point */));
+  INC_STAT(Thread::Current(), total_instr_size, bytecode_size);
+  INC_STAT(Thread::Current(), total_code_size, bytecode_size);
+
+  // Copy the bytecode data into the instruction area. No fixups to apply.
+  MemoryRegion instrs_region(reinterpret_cast<void*>(instrs.PayloadStart()),
+                             instrs.Size());
+  MemoryRegion bytecode_region(bytecode_data, bytecode_size);
+  // TODO(regis): Avoid copying bytecode.
+  instrs_region.CopyFrom(0, bytecode_region);
+
+  // TODO(regis): Keep following lines or not?
+  code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
+  // TODO(regis): Do we need to notify CodeObservers for bytecode too?
+  // If so, provide a better name using ToLibNamePrefixedQualifiedCString().
+  CodeObservers::NotifyAll("bytecode", instrs.PayloadStart(),
+                           0 /* prologue_offset */, instrs.Size(),
+                           false /* optimized */);
+  {
+    NoSafepointScope no_safepoint;
+
+    // Hook up Code and Instructions objects.
+    code.SetActiveInstructions(instrs);
+    code.set_instructions(instrs);
+    code.set_is_alive(true);
+
+    // Set object pool in Instructions object.
+    INC_STAT(Thread::Current(), total_code_size,
+             object_pool.Length() * sizeof(uintptr_t));
+    code.set_object_pool(object_pool.raw());
+
+    if (FLAG_write_protect_code) {
+      uword address = RawObject::ToAddr(instrs.raw());
+      VirtualMemory::Protect(reinterpret_cast<void*>(address),
+                             instrs.raw()->Size(), VirtualMemory::kReadExecute);
+    }
+  }
+  // No Code::Comments to set. Default is 0 length Comments.
+  // No prologue was ever entered, optimistically assume nothing was ever
+  // pushed onto the stack.
+  code.SetPrologueOffset(bytecode_size);  // TODO(regis): Correct?
+  INC_STAT(Thread::Current(), total_code_size,
+           code.comments().comments_.Length());
+  return code.raw();
+}
+#endif  // defined(DART_USE_INTERPRETER)
 
 bool Code::SlowFindRawCodeVisitor::FindObject(RawObject* raw_obj) const {
   return RawCode::ContainsPC(raw_obj, pc_);

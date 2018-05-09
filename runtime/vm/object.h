@@ -2229,12 +2229,22 @@ class Function : public Object {
   }
   void set_unoptimized_code(const Code& value) const;
   bool HasCode() const;
+#if defined(DART_USE_INTERPRETER)
+  static bool HasCode(RawFunction* function);
+  static bool HasBytecode(RawFunction* function);
+#endif
 
   static intptr_t code_offset() { return OFFSET_OF(RawFunction, code_); }
 
   static intptr_t entry_point_offset() {
     return OFFSET_OF(RawFunction, entry_point_);
   }
+
+#if defined(DART_USE_INTERPRETER)
+  void AttachBytecode(const Code& bytecode) const;
+  RawCode* Bytecode() const { return raw_ptr()->bytecode_; }
+  bool HasBytecode() const;
+#endif
 
   virtual intptr_t Hash() const;
 
@@ -4915,6 +4925,12 @@ class Code : public Object {
                                Assembler* assembler,
                                bool optimized,
                                CodeStatistics* stats = nullptr);
+#if defined(DART_USE_INTERPRETER)
+  static RawCode* FinalizeBytecode(void* bytecode_data,
+                                   intptr_t bytecode_size,
+                                   const ObjectPool& object_pool,
+                                   CodeStatistics* stats = nullptr);
+#endif
 #endif
   static RawCode* LookupCode(uword pc);
   static RawCode* LookupCodeInVmIsolate(uword pc);

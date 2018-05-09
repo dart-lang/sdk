@@ -1,9 +1,9 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef RUNTIME_VM_CONSTANTS_DBC_H_
-#define RUNTIME_VM_CONSTANTS_DBC_H_
+#ifndef RUNTIME_VM_CONSTANTS_KBC_H_
+#define RUNTIME_VM_CONSTANTS_KBC_H_
 
 #include "platform/assert.h"
 #include "platform/globals.h"
@@ -12,11 +12,11 @@
 namespace dart {
 
 // clang-format off
-// List of Dart Bytecode instructions.
+// List of KernelBytecode instructions.
 //
 // INTERPRETER STATE
 //
-//      current frame info (see stack_frame_dbc.h for layout)
+//      current frame info (see stack_frame_kbc.h for layout)
 //        v-----^-----v
 //   ~----+----~ ~----+-------+-------+-~ ~-+-------+-------+-~
 //   ~    |    ~ ~    | FP[0] | FP[1] | ~ ~ | SP[-1]| SP[0] |
@@ -492,7 +492,7 @@ namespace dart {
 //
 //  - StoreFieldTOS D
 //
-//    Store value SP[0] into object SP[-1] at offset (in words) D.
+//    Store value SP[0] into object SP[-1] at offset (in words) PP[D].
 //
 //  - LoadField rA, rB, C
 //
@@ -510,7 +510,7 @@ namespace dart {
 //
 //  - LoadFieldTOS D
 //
-//    Push value at offset (in words) D from object SP[0].
+//    Push value at offset (in words) PP[D] from object SP[0].
 //
 //  - BooleanNegateTOS
 //
@@ -529,6 +529,29 @@ namespace dart {
 //
 //    Function prologue for the function
 //        rD - number of local slots to reserve;
+//
+//  - EntryOptional A, B, C
+//
+//    Function prologue for the function with optional or named arguments:
+//        A - expected number of positional arguments;
+//        B - number of optional arguments;
+//        C - number of named arguments;
+//
+//    Only one of B and C can be not 0.
+//
+//    If B is not 0 then EntryOptional bytecode is followed by B LoadConstant
+//    bytecodes specifying default values for optional arguments.
+//
+//    If C is not 0 then EntryOptional is followed by 2 * B LoadConstant
+//    bytecodes.
+//    Bytecode at 2 * i specifies name of the i-th named argument and at
+//    2 * i + 1 default value. rA part of the LoadConstant bytecode specifies
+//    the location of the parameter on the stack. Here named arguments are
+//    sorted alphabetically to enable linear matching similar to how function
+//    prologues are implemented on other architectures.
+//
+//    Note: Unlike Entry bytecode EntryOptional does not setup the frame for
+//    local variables this is done by a separate bytecode Frame.
 //
 //  - EntryOptimized rD
 //
@@ -719,7 +742,7 @@ namespace dart {
 //
 // BYTECODE LIST FORMAT
 //
-// Bytecode list below is specified using the following format:
+// KernelBytecode list below is specified using the following format:
 //
 //     V(BytecodeName, OperandForm, Op1, Op2, Op3)
 //
@@ -739,220 +762,221 @@ namespace dart {
 //               instruction because PC is incremented immediately after fetch
 //               and before decoding.
 //
-#define BYTECODES_LIST(V)                                    \
-  V(Trap,                                  0, ___, ___, ___) \
-  V(Nop,                                 A_D, num, lit, ___) \
-  V(Compile,                               0, ___, ___, ___) \
-  V(HotCheck,                            A_D, num, num, ___) \
-  V(Intrinsic,                             A, num, ___, ___) \
-  V(Drop1,                                 0, ___, ___, ___) \
-  V(DropR,                                 A, num, ___, ___) \
-  V(Drop,                                  A, num, ___, ___) \
-  V(Jump,                                  T, tgt, ___, ___) \
-  V(Return,                                A, reg, ___, ___) \
-  V(ReturnTOS,                             0, ___, ___, ___) \
-  V(Move,                                A_X, reg, xeg, ___) \
-  V(Swap,                                A_X, reg, xeg, ___) \
-  V(Push,                                  X, xeg, ___, ___) \
-  V(LoadConstant,                        A_D, reg, lit, ___) \
-  V(LoadClassId,                         A_D, reg, reg, ___) \
-  V(LoadClassIdTOS,                        0, ___, ___, ___) \
-  V(PushConstant,                          D, lit, ___, ___) \
-  V(StoreLocal,                            X, xeg, ___, ___) \
-  V(PopLocal,                              X, xeg, ___, ___) \
-  V(IndirectStaticCall,                  A_D, num, num, ___) \
-  V(StaticCall,                          A_D, num, num, ___) \
-  V(InstanceCall1,                       A_D, num, num, ___) \
-  V(InstanceCall2,                       A_D, num, num, ___) \
-  V(InstanceCall1Opt,                    A_D, num, num, ___) \
-  V(InstanceCall2Opt,                    A_D, num, num, ___) \
-  V(PushPolymorphicInstanceCall,         A_D, num, num, ___) \
-  V(PushPolymorphicInstanceCallByRange,  A_D, num, num, ___) \
-  V(NativeCall,                        A_B_C, num, num, num) \
-  V(OneByteStringFromCharCode,           A_X, reg, xeg, ___) \
-  V(StringToCharCode,                    A_X, reg, xeg, ___) \
-  V(AddTOS,                                0, ___, ___, ___) \
-  V(SubTOS,                                0, ___, ___, ___) \
-  V(MulTOS,                                0, ___, ___, ___) \
-  V(BitOrTOS,                              0, ___, ___, ___) \
-  V(BitAndTOS,                             0, ___, ___, ___) \
-  V(EqualTOS,                              0, ___, ___, ___) \
-  V(LessThanTOS,                           0, ___, ___, ___) \
-  V(GreaterThanTOS,                        0, ___, ___, ___) \
-  V(SmiAddTOS,                             0, ___, ___, ___) \
-  V(SmiSubTOS,                             0, ___, ___, ___) \
-  V(SmiMulTOS,                             0, ___, ___, ___) \
-  V(SmiBitAndTOS,                          0, ___, ___, ___) \
-  V(Add,                               A_B_C, reg, reg, reg) \
-  V(Sub,                               A_B_C, reg, reg, reg) \
-  V(Mul,                               A_B_C, reg, reg, reg) \
-  V(Div,                               A_B_C, reg, reg, reg) \
-  V(Mod,                               A_B_C, reg, reg, reg) \
-  V(Shl,                               A_B_C, reg, reg, reg) \
-  V(Shr,                               A_B_C, reg, reg, reg) \
-  V(ShlImm,                            A_B_C, reg, reg, num) \
-  V(Neg,                                 A_D, reg, reg, ___) \
-  V(BitOr,                             A_B_C, reg, reg, reg) \
-  V(BitAnd,                            A_B_C, reg, reg, reg) \
-  V(BitXor,                            A_B_C, reg, reg, reg) \
-  V(BitNot,                              A_D, reg, reg, ___) \
-  V(Min,                               A_B_C, reg, reg, reg) \
-  V(Max,                               A_B_C, reg, reg, reg) \
-  V(WriteIntoDouble,                     A_D, reg, reg, ___) \
-  V(UnboxDouble,                         A_D, reg, reg, ___) \
-  V(CheckedUnboxDouble,                  A_D, reg, reg, ___) \
-  V(UnboxInt32,                        A_B_C, reg, reg, num) \
-  V(BoxInt32,                            A_D, reg, reg, ___) \
-  V(BoxUint32,                           A_D, reg, reg, ___) \
-  V(SmiToDouble,                         A_D, reg, reg, ___) \
-  V(DoubleToSmi,                         A_D, reg, reg, ___) \
-  V(DAdd,                              A_B_C, reg, reg, reg) \
-  V(DSub,                              A_B_C, reg, reg, reg) \
-  V(DMul,                              A_B_C, reg, reg, reg) \
-  V(DDiv,                              A_B_C, reg, reg, reg) \
-  V(DNeg,                                A_D, reg, reg, ___) \
-  V(DSqrt,                               A_D, reg, reg, ___) \
-  V(DMin,                              A_B_C, reg, reg, reg) \
-  V(DMax,                              A_B_C, reg, reg, reg) \
-  V(DCos,                                A_D, reg, reg, ___) \
-  V(DSin,                                A_D, reg, reg, ___) \
-  V(DPow,                              A_B_C, reg, reg, reg) \
-  V(DMod,                              A_B_C, reg, reg, reg) \
-  V(DTruncate,                           A_D, reg, reg, ___) \
-  V(DFloor,                              A_D, reg, reg, ___) \
-  V(DCeil,                               A_D, reg, reg, ___) \
-  V(DoubleToFloat,                       A_D, reg, reg, ___) \
-  V(FloatToDouble,                       A_D, reg, reg, ___) \
-  V(DoubleIsNaN,                           A, reg, ___, ___) \
-  V(DoubleIsInfinite,                      A, reg, ___, ___) \
-  V(StoreStaticTOS,                        D, lit, ___, ___) \
-  V(PushStatic,                            D, lit, ___, ___) \
-  V(InitStaticTOS,                         0, ___, ___, ___) \
-  V(IfNeStrictTOS,                         0, ___, ___, ___) \
-  V(IfEqStrictTOS,                         0, ___, ___, ___) \
-  V(IfNeStrictNumTOS,                      0, ___, ___, ___) \
-  V(IfEqStrictNumTOS,                      0, ___, ___, ___) \
-  V(IfSmiLtTOS,                            0, ___, ___, ___) \
-  V(IfSmiLeTOS,                            0, ___, ___, ___) \
-  V(IfSmiGeTOS,                            0, ___, ___, ___) \
-  V(IfSmiGtTOS,                            0, ___, ___, ___) \
-  V(IfNeStrict,                          A_D, reg, reg, ___) \
-  V(IfEqStrict,                          A_D, reg, reg, ___) \
-  V(IfLe,                                A_D, reg, reg, ___) \
-  V(IfLt,                                A_D, reg, reg, ___) \
-  V(IfGe,                                A_D, reg, reg, ___) \
-  V(IfGt,                                A_D, reg, reg, ___) \
-  V(IfULe,                               A_D, reg, reg, ___) \
-  V(IfULt,                               A_D, reg, reg, ___) \
-  V(IfUGe,                               A_D, reg, reg, ___) \
-  V(IfUGt,                               A_D, reg, reg, ___) \
-  V(IfDNe,                               A_D, reg, reg, ___) \
-  V(IfDEq,                               A_D, reg, reg, ___) \
-  V(IfDLe,                               A_D, reg, reg, ___) \
-  V(IfDLt,                               A_D, reg, reg, ___) \
-  V(IfDGe,                               A_D, reg, reg, ___) \
-  V(IfDGt,                               A_D, reg, reg, ___) \
-  V(IfNeStrictNum,                       A_D, reg, reg, ___) \
-  V(IfEqStrictNum,                       A_D, reg, reg, ___) \
-  V(IfEqNull,                              A, reg, ___, ___) \
-  V(IfNeNull,                              A, reg, ___, ___) \
-  V(CreateArrayTOS,                        0, ___, ___, ___) \
-  V(CreateArrayOpt,                    A_B_C, reg, reg, reg) \
-  V(Allocate,                              D, lit, ___, ___) \
-  V(AllocateT,                             0, ___, ___, ___) \
-  V(AllocateOpt,                         A_D, reg, lit, ___) \
-  V(AllocateTOpt,                        A_D, reg, lit, ___) \
-  V(StoreIndexedTOS,                       0, ___, ___, ___) \
-  V(StoreIndexed,                      A_B_C, reg, reg, reg) \
-  V(StoreIndexedUint8,                 A_B_C, reg, reg, reg) \
-  V(StoreIndexedExternalUint8,         A_B_C, reg, reg, reg) \
-  V(StoreIndexedOneByteString,         A_B_C, reg, reg, reg) \
-  V(StoreIndexedUint32,                A_B_C, reg, reg, reg) \
-  V(StoreIndexedFloat32,               A_B_C, reg, reg, reg) \
-  V(StoreIndexed4Float32,              A_B_C, reg, reg, reg) \
-  V(StoreIndexedFloat64,               A_B_C, reg, reg, reg) \
-  V(StoreIndexed8Float64,              A_B_C, reg, reg, reg) \
-  V(NoSuchMethod,                          0, ___, ___, ___) \
-  V(TailCall,                              0, ___, ___, ___) \
-  V(TailCallOpt,                         A_D, reg, reg, ___) \
-  V(LoadArgDescriptor,                     0, ___, ___, ___) \
-  V(LoadArgDescriptorOpt,                  A, reg, ___, ___) \
-  V(LoadFpRelativeSlot,                    X, reg, ___, ___) \
-  V(LoadFpRelativeSlotOpt,             A_B_Y, reg, reg, reg) \
-  V(StoreFpRelativeSlot,                    X, reg, ___, ___) \
-  V(StoreFpRelativeSlotOpt,             A_B_Y, reg, reg, reg) \
-  V(LoadIndexedTOS,                        0, ___, ___, ___) \
-  V(LoadIndexed,                       A_B_C, reg, reg, reg) \
-  V(LoadIndexedUint8,                  A_B_C, reg, reg, reg) \
-  V(LoadIndexedInt8,                   A_B_C, reg, reg, reg) \
-  V(LoadIndexedInt32,                  A_B_C, reg, reg, reg) \
-  V(LoadIndexedUint32,                 A_B_C, reg, reg, reg) \
-  V(LoadIndexedExternalUint8,          A_B_C, reg, reg, reg) \
-  V(LoadIndexedExternalInt8,           A_B_C, reg, reg, reg) \
-  V(LoadIndexedFloat32,                A_B_C, reg, reg, reg) \
-  V(LoadIndexed4Float32,               A_B_C, reg, reg, reg) \
-  V(LoadIndexedFloat64,                A_B_C, reg, reg, reg) \
-  V(LoadIndexed8Float64,               A_B_C, reg, reg, reg) \
-  V(LoadIndexedOneByteString,          A_B_C, reg, reg, reg) \
-  V(LoadIndexedTwoByteString,          A_B_C, reg, reg, reg) \
-  V(StoreField,                        A_B_C, reg, num, reg) \
-  V(StoreFieldExt,                       A_D, reg, reg, ___) \
-  V(StoreFieldTOS,                         D, num, ___, ___) \
-  V(LoadField,                         A_B_C, reg, reg, num) \
-  V(LoadFieldExt,                        A_D, reg, reg, ___) \
-  V(LoadUntagged,                      A_B_C, reg, reg, num) \
-  V(LoadFieldTOS,                          D, num, ___, ___) \
-  V(BooleanNegateTOS,                      0, ___, ___, ___) \
-  V(BooleanNegate,                       A_D, reg, reg, ___) \
-  V(Throw,                                 A, num, ___, ___) \
-  V(Entry,                                 D, num, ___, ___) \
-  V(EntryOptimized,                      A_D, num, num, ___) \
-  V(Frame,                                 D, num, ___, ___) \
-  V(SetFrame,                              A, num, ___, ___) \
-  V(AllocateContext,                       D, num, ___, ___) \
-  V(AllocateUninitializedContext,        A_D, reg, num, ___) \
-  V(CloneContext,                          0, ___, ___, ___) \
-  V(MoveSpecial,                         A_D, reg, num, ___) \
-  V(InstantiateType,                       D, lit, ___, ___) \
-  V(InstantiateTypeArgumentsTOS,         A_D, num, lit, ___) \
-  V(InstanceOf,                            0, ___, ___, ___) \
-  V(BadTypeError,                          0, ___, ___, ___) \
-  V(AssertAssignable,                    A_D, num, lit, ___) \
-  V(AssertSubtype,                         0, ___, ___, ___) \
-  V(AssertBoolean,                         A, num, ___, ___) \
-  V(TestSmi,                             A_D, reg, reg, ___) \
-  V(TestCids,                            A_D, reg, num, ___) \
-  V(CheckSmi,                              A, reg, ___, ___) \
-  V(CheckEitherNonSmi,                   A_D, reg, reg, ___) \
-  V(CheckClassId,                        A_D, reg, num, ___) \
-  V(CheckClassIdRange,                   A_D, reg, num, ___) \
-  V(CheckBitTest,                        A_D, reg, num, ___) \
-  V(CheckCids,                         A_B_C, reg, num, num) \
-  V(CheckCidsByRange,                  A_B_C, reg, num, num) \
-  V(CheckStack,                            0, ___, ___, ___) \
-  V(CheckStackAlwaysExit,                  0, ___, ___, ___) \
-  V(CheckFunctionTypeArgs,               A_D, num, num, ___) \
-  V(DebugStep,                             0, ___, ___, ___) \
-  V(DebugBreak,                            A, num, ___, ___) \
-  V(Deopt,                               A_D, num, num, ___) \
+#define KERNEL_BYTECODES_LIST(V)                                               \
+  V(Trap,                                  0, ___, ___, ___)                   \
+  V(Nop,                                 A_D, num, lit, ___)                   \
+  V(Compile,                               0, ___, ___, ___)                   \
+  V(HotCheck,                            A_D, num, num, ___)                   \
+  V(Intrinsic,                             A, num, ___, ___)                   \
+  V(Drop1,                                 0, ___, ___, ___)                   \
+  V(DropR,                                 A, num, ___, ___)                   \
+  V(Drop,                                  A, num, ___, ___)                   \
+  V(Jump,                                  T, tgt, ___, ___)                   \
+  V(Return,                                A, reg, ___, ___)                   \
+  V(ReturnTOS,                             0, ___, ___, ___)                   \
+  V(Move,                                A_X, reg, xeg, ___)                   \
+  V(Swap,                                A_X, reg, xeg, ___)                   \
+  V(Push,                                  X, xeg, ___, ___)                   \
+  V(LoadConstant,                        A_D, reg, lit, ___)                   \
+  V(LoadClassId,                         A_D, reg, reg, ___)                   \
+  V(LoadClassIdTOS,                        0, ___, ___, ___)                   \
+  V(PushConstant,                          D, lit, ___, ___)                   \
+  V(StoreLocal,                            X, xeg, ___, ___)                   \
+  V(PopLocal,                              X, xeg, ___, ___)                   \
+  V(IndirectStaticCall,                  A_D, num, num, ___)                   \
+  V(StaticCall,                          A_D, num, num, ___)                   \
+  V(InstanceCall1,                       A_D, num, num, ___)                   \
+  V(InstanceCall2,                       A_D, num, num, ___)                   \
+  V(InstanceCall1Opt,                    A_D, num, num, ___)                   \
+  V(InstanceCall2Opt,                    A_D, num, num, ___)                   \
+  V(PushPolymorphicInstanceCall,         A_D, num, num, ___)                   \
+  V(PushPolymorphicInstanceCallByRange,  A_D, num, num, ___)                   \
+  V(NativeCall,                        A_B_C, num, num, num)                   \
+  V(OneByteStringFromCharCode,           A_X, reg, xeg, ___)                   \
+  V(StringToCharCode,                    A_X, reg, xeg, ___)                   \
+  V(AddTOS,                                0, ___, ___, ___)                   \
+  V(SubTOS,                                0, ___, ___, ___)                   \
+  V(MulTOS,                                0, ___, ___, ___)                   \
+  V(BitOrTOS,                              0, ___, ___, ___)                   \
+  V(BitAndTOS,                             0, ___, ___, ___)                   \
+  V(EqualTOS,                              0, ___, ___, ___)                   \
+  V(LessThanTOS,                           0, ___, ___, ___)                   \
+  V(GreaterThanTOS,                        0, ___, ___, ___)                   \
+  V(SmiAddTOS,                             0, ___, ___, ___)                   \
+  V(SmiSubTOS,                             0, ___, ___, ___)                   \
+  V(SmiMulTOS,                             0, ___, ___, ___)                   \
+  V(SmiBitAndTOS,                          0, ___, ___, ___)                   \
+  V(Add,                               A_B_C, reg, reg, reg)                   \
+  V(Sub,                               A_B_C, reg, reg, reg)                   \
+  V(Mul,                               A_B_C, reg, reg, reg)                   \
+  V(Div,                               A_B_C, reg, reg, reg)                   \
+  V(Mod,                               A_B_C, reg, reg, reg)                   \
+  V(Shl,                               A_B_C, reg, reg, reg)                   \
+  V(Shr,                               A_B_C, reg, reg, reg)                   \
+  V(ShlImm,                            A_B_C, reg, reg, num)                   \
+  V(Neg,                                 A_D, reg, reg, ___)                   \
+  V(BitOr,                             A_B_C, reg, reg, reg)                   \
+  V(BitAnd,                            A_B_C, reg, reg, reg)                   \
+  V(BitXor,                            A_B_C, reg, reg, reg)                   \
+  V(BitNot,                              A_D, reg, reg, ___)                   \
+  V(Min,                               A_B_C, reg, reg, reg)                   \
+  V(Max,                               A_B_C, reg, reg, reg)                   \
+  V(WriteIntoDouble,                     A_D, reg, reg, ___)                   \
+  V(UnboxDouble,                         A_D, reg, reg, ___)                   \
+  V(CheckedUnboxDouble,                  A_D, reg, reg, ___)                   \
+  V(UnboxInt32,                        A_B_C, reg, reg, num)                   \
+  V(BoxInt32,                            A_D, reg, reg, ___)                   \
+  V(BoxUint32,                           A_D, reg, reg, ___)                   \
+  V(SmiToDouble,                         A_D, reg, reg, ___)                   \
+  V(DoubleToSmi,                         A_D, reg, reg, ___)                   \
+  V(DAdd,                              A_B_C, reg, reg, reg)                   \
+  V(DSub,                              A_B_C, reg, reg, reg)                   \
+  V(DMul,                              A_B_C, reg, reg, reg)                   \
+  V(DDiv,                              A_B_C, reg, reg, reg)                   \
+  V(DNeg,                                A_D, reg, reg, ___)                   \
+  V(DSqrt,                               A_D, reg, reg, ___)                   \
+  V(DMin,                              A_B_C, reg, reg, reg)                   \
+  V(DMax,                              A_B_C, reg, reg, reg)                   \
+  V(DCos,                                A_D, reg, reg, ___)                   \
+  V(DSin,                                A_D, reg, reg, ___)                   \
+  V(DPow,                              A_B_C, reg, reg, reg)                   \
+  V(DMod,                              A_B_C, reg, reg, reg)                   \
+  V(DTruncate,                           A_D, reg, reg, ___)                   \
+  V(DFloor,                              A_D, reg, reg, ___)                   \
+  V(DCeil,                               A_D, reg, reg, ___)                   \
+  V(DoubleToFloat,                       A_D, reg, reg, ___)                   \
+  V(FloatToDouble,                       A_D, reg, reg, ___)                   \
+  V(DoubleIsNaN,                           A, reg, ___, ___)                   \
+  V(DoubleIsInfinite,                      A, reg, ___, ___)                   \
+  V(StoreStaticTOS,                        D, lit, ___, ___)                   \
+  V(PushStatic,                            D, lit, ___, ___)                   \
+  V(InitStaticTOS,                         0, ___, ___, ___)                   \
+  V(IfNeStrictTOS,                         0, ___, ___, ___)                   \
+  V(IfEqStrictTOS,                         0, ___, ___, ___)                   \
+  V(IfNeStrictNumTOS,                      0, ___, ___, ___)                   \
+  V(IfEqStrictNumTOS,                      0, ___, ___, ___)                   \
+  V(IfSmiLtTOS,                            0, ___, ___, ___)                   \
+  V(IfSmiLeTOS,                            0, ___, ___, ___)                   \
+  V(IfSmiGeTOS,                            0, ___, ___, ___)                   \
+  V(IfSmiGtTOS,                            0, ___, ___, ___)                   \
+  V(IfNeStrict,                          A_D, reg, reg, ___)                   \
+  V(IfEqStrict,                          A_D, reg, reg, ___)                   \
+  V(IfLe,                                A_D, reg, reg, ___)                   \
+  V(IfLt,                                A_D, reg, reg, ___)                   \
+  V(IfGe,                                A_D, reg, reg, ___)                   \
+  V(IfGt,                                A_D, reg, reg, ___)                   \
+  V(IfULe,                               A_D, reg, reg, ___)                   \
+  V(IfULt,                               A_D, reg, reg, ___)                   \
+  V(IfUGe,                               A_D, reg, reg, ___)                   \
+  V(IfUGt,                               A_D, reg, reg, ___)                   \
+  V(IfDNe,                               A_D, reg, reg, ___)                   \
+  V(IfDEq,                               A_D, reg, reg, ___)                   \
+  V(IfDLe,                               A_D, reg, reg, ___)                   \
+  V(IfDLt,                               A_D, reg, reg, ___)                   \
+  V(IfDGe,                               A_D, reg, reg, ___)                   \
+  V(IfDGt,                               A_D, reg, reg, ___)                   \
+  V(IfNeStrictNum,                       A_D, reg, reg, ___)                   \
+  V(IfEqStrictNum,                       A_D, reg, reg, ___)                   \
+  V(IfEqNull,                              A, reg, ___, ___)                   \
+  V(IfNeNull,                              A, reg, ___, ___)                   \
+  V(CreateArrayTOS,                        0, ___, ___, ___)                   \
+  V(CreateArrayOpt,                    A_B_C, reg, reg, reg)                   \
+  V(Allocate,                              D, lit, ___, ___)                   \
+  V(AllocateT,                             0, ___, ___, ___)                   \
+  V(AllocateOpt,                         A_D, reg, lit, ___)                   \
+  V(AllocateTOpt,                        A_D, reg, lit, ___)                   \
+  V(StoreIndexedTOS,                       0, ___, ___, ___)                   \
+  V(StoreIndexed,                      A_B_C, reg, reg, reg)                   \
+  V(StoreIndexedUint8,                 A_B_C, reg, reg, reg)                   \
+  V(StoreIndexedExternalUint8,         A_B_C, reg, reg, reg)                   \
+  V(StoreIndexedOneByteString,         A_B_C, reg, reg, reg)                   \
+  V(StoreIndexedUint32,                A_B_C, reg, reg, reg)                   \
+  V(StoreIndexedFloat32,               A_B_C, reg, reg, reg)                   \
+  V(StoreIndexed4Float32,              A_B_C, reg, reg, reg)                   \
+  V(StoreIndexedFloat64,               A_B_C, reg, reg, reg)                   \
+  V(StoreIndexed8Float64,              A_B_C, reg, reg, reg)                   \
+  V(NoSuchMethod,                          0, ___, ___, ___)                   \
+  V(TailCall,                              0, ___, ___, ___)                   \
+  V(TailCallOpt,                         A_D, reg, reg, ___)                   \
+  V(LoadArgDescriptor,                     0, ___, ___, ___)                   \
+  V(LoadArgDescriptorOpt,                  A, reg, ___, ___)                   \
+  V(LoadFpRelativeSlot,                    X, reg, ___, ___)                   \
+  V(LoadFpRelativeSlotOpt,             A_B_Y, reg, reg, reg)                   \
+  V(StoreFpRelativeSlot,                    X, reg, ___, ___)                  \
+  V(StoreFpRelativeSlotOpt,             A_B_Y, reg, reg, reg)                  \
+  V(LoadIndexedTOS,                        0, ___, ___, ___)                   \
+  V(LoadIndexed,                       A_B_C, reg, reg, reg)                   \
+  V(LoadIndexedUint8,                  A_B_C, reg, reg, reg)                   \
+  V(LoadIndexedInt8,                   A_B_C, reg, reg, reg)                   \
+  V(LoadIndexedInt32,                  A_B_C, reg, reg, reg)                   \
+  V(LoadIndexedUint32,                 A_B_C, reg, reg, reg)                   \
+  V(LoadIndexedExternalUint8,          A_B_C, reg, reg, reg)                   \
+  V(LoadIndexedExternalInt8,           A_B_C, reg, reg, reg)                   \
+  V(LoadIndexedFloat32,                A_B_C, reg, reg, reg)                   \
+  V(LoadIndexed4Float32,               A_B_C, reg, reg, reg)                   \
+  V(LoadIndexedFloat64,                A_B_C, reg, reg, reg)                   \
+  V(LoadIndexed8Float64,               A_B_C, reg, reg, reg)                   \
+  V(LoadIndexedOneByteString,          A_B_C, reg, reg, reg)                   \
+  V(LoadIndexedTwoByteString,          A_B_C, reg, reg, reg)                   \
+  V(StoreField,                        A_B_C, reg, num, reg)                   \
+  V(StoreFieldExt,                       A_D, reg, reg, ___)                   \
+  V(StoreFieldTOS,                         D, lit, ___, ___)                   \
+  V(LoadField,                         A_B_C, reg, reg, num)                   \
+  V(LoadFieldExt,                        A_D, reg, reg, ___)                   \
+  V(LoadUntagged,                      A_B_C, reg, reg, num)                   \
+  V(LoadFieldTOS,                          D, lit, ___, ___)                   \
+  V(BooleanNegateTOS,                      0, ___, ___, ___)                   \
+  V(BooleanNegate,                       A_D, reg, reg, ___)                   \
+  V(Throw,                                 A, num, ___, ___)                   \
+  V(Entry,                                 D, num, ___, ___)                   \
+  V(EntryOptional,                     A_B_C, num, num, num)                   \
+  V(EntryOptimized,                      A_D, num, num, ___)                   \
+  V(Frame,                                 D, num, ___, ___)                   \
+  V(SetFrame,                              A, num, ___, num)                   \
+  V(AllocateContext,                       D, num, ___, ___)                   \
+  V(AllocateUninitializedContext,        A_D, reg, num, ___)                   \
+  V(CloneContext,                          0, ___, ___, ___)                   \
+  V(MoveSpecial,                         A_D, reg, num, ___)                   \
+  V(InstantiateType,                       D, lit, ___, ___)                   \
+  V(InstantiateTypeArgumentsTOS,         A_D, num, lit, ___)                   \
+  V(InstanceOf,                            0, ___, ___, ___)                   \
+  V(BadTypeError,                          0, ___, ___, ___)                   \
+  V(AssertAssignable,                    A_D, num, lit, ___)                   \
+  V(AssertSubtype,                         0, ___, ___, ___)                   \
+  V(AssertBoolean,                         A, num, ___, ___)                   \
+  V(TestSmi,                             A_D, reg, reg, ___)                   \
+  V(TestCids,                            A_D, reg, num, ___)                   \
+  V(CheckSmi,                              A, reg, ___, ___)                   \
+  V(CheckEitherNonSmi,                   A_D, reg, reg, ___)                   \
+  V(CheckClassId,                        A_D, reg, num, ___)                   \
+  V(CheckClassIdRange,                   A_D, reg, num, ___)                   \
+  V(CheckBitTest,                        A_D, reg, num, ___)                   \
+  V(CheckCids,                         A_B_C, reg, num, num)                   \
+  V(CheckCidsByRange,                  A_B_C, reg, num, num)                   \
+  V(CheckStack,                            0, ___, ___, ___)                   \
+  V(CheckStackAlwaysExit,                  0, ___, ___, ___)                   \
+  V(CheckFunctionTypeArgs,               A_D, num, num, ___)                   \
+  V(DebugStep,                             0, ___, ___, ___)                   \
+  V(DebugBreak,                            A, num, ___, ___)                   \
+  V(Deopt,                               A_D, num, num, ___)                   \
   V(DeoptRewind,                           0, ___, ___, ___)
 
 // clang-format on
 
-typedef uint32_t Instr;
+typedef uint32_t KBCInstr;
 
-class Bytecode {
+class KernelBytecode {
  public:
   enum Opcode {
 #define DECLARE_BYTECODE(name, encoding, op1, op2, op3) k##name,
-    BYTECODES_LIST(DECLARE_BYTECODE)
+    KERNEL_BYTECODES_LIST(DECLARE_BYTECODE)
 #undef DECLARE_BYTECODE
   };
 
-  static const char* NameOf(Instr instr) {
+  static const char* NameOf(KBCInstr instr) {
     const char* names[] = {
 #define NAME(name, encoding, op1, op2, op3) #name,
-        BYTECODES_LIST(NAME)
+        KERNEL_BYTECODES_LIST(NAME)
 #undef NAME
     };
     return names[DecodeOpcode(instr)];
@@ -970,61 +994,61 @@ class Bytecode {
   static const intptr_t kYShift = 24;
   static const intptr_t kYMask = 0xFF;
 
-  static Instr Encode(Opcode op, uintptr_t a, uintptr_t b, uintptr_t c) {
+  static KBCInstr Encode(Opcode op, uintptr_t a, uintptr_t b, uintptr_t c) {
     ASSERT((a & kAMask) == a);
     ASSERT((b & kBMask) == b);
     ASSERT((c & kCMask) == c);
     return op | (a << kAShift) | (b << kBShift) | (c << kCShift);
   }
 
-  static Instr Encode(Opcode op, uintptr_t a, uintptr_t d) {
+  static KBCInstr Encode(Opcode op, uintptr_t a, uintptr_t d) {
     ASSERT((a & kAMask) == a);
     ASSERT((d & kDMask) == d);
     return op | (a << kAShift) | (d << kDShift);
   }
 
-  static Instr EncodeSigned(Opcode op, uintptr_t a, intptr_t x) {
+  static KBCInstr EncodeSigned(Opcode op, uintptr_t a, intptr_t x) {
     ASSERT((a & kAMask) == a);
     ASSERT((x << kDShift) >> kDShift == x);
     return op | (a << kAShift) | (x << kDShift);
   }
 
-  static Instr EncodeSigned(Opcode op, intptr_t x) {
+  static KBCInstr EncodeSigned(Opcode op, intptr_t x) {
     ASSERT((x << kAShift) >> kAShift == x);
     return op | (x << kAShift);
   }
 
-  static Instr Encode(Opcode op) { return op; }
+  static KBCInstr Encode(Opcode op) { return op; }
 
-  DART_FORCE_INLINE static uint8_t DecodeA(Instr bc) {
+  DART_FORCE_INLINE static uint8_t DecodeA(KBCInstr bc) {
     return (bc >> kAShift) & kAMask;
   }
 
-  DART_FORCE_INLINE static uint8_t DecodeB(Instr bc) {
+  DART_FORCE_INLINE static uint8_t DecodeB(KBCInstr bc) {
     return (bc >> kBShift) & kBMask;
   }
 
-  DART_FORCE_INLINE static uint16_t DecodeD(Instr bc) {
+  DART_FORCE_INLINE static uint16_t DecodeD(KBCInstr bc) {
     return (bc >> kDShift) & kDMask;
   }
 
-  DART_FORCE_INLINE static Opcode DecodeOpcode(Instr bc) {
+  DART_FORCE_INLINE static Opcode DecodeOpcode(KBCInstr bc) {
     return static_cast<Opcode>(bc & 0xFF);
   }
 
-  DART_FORCE_INLINE static bool IsTrap(Instr instr) {
-    return DecodeOpcode(instr) == Bytecode::kTrap;
+  DART_FORCE_INLINE static bool IsTrap(KBCInstr instr) {
+    return DecodeOpcode(instr) == KernelBytecode::kTrap;
   }
 
-  DART_FORCE_INLINE static bool IsCallOpcode(Instr instr) {
+  DART_FORCE_INLINE static bool IsCallOpcode(KBCInstr instr) {
     switch (DecodeOpcode(instr)) {
-      case Bytecode::kStaticCall:
-      case Bytecode::kIndirectStaticCall:
-      case Bytecode::kInstanceCall1:
-      case Bytecode::kInstanceCall2:
-      case Bytecode::kInstanceCall1Opt:
-      case Bytecode::kInstanceCall2Opt:
-      case Bytecode::kDebugBreak:
+      case KernelBytecode::kStaticCall:
+      case KernelBytecode::kIndirectStaticCall:
+      case KernelBytecode::kInstanceCall1:
+      case KernelBytecode::kInstanceCall2:
+      case KernelBytecode::kInstanceCall1Opt:
+      case KernelBytecode::kInstanceCall2Opt:
+      case KernelBytecode::kDebugBreak:
         return true;
 
       default:
@@ -1032,16 +1056,16 @@ class Bytecode {
     }
   }
 
-  DART_FORCE_INLINE static bool IsFastSmiOpcode(Instr instr) {
+  DART_FORCE_INLINE static bool IsFastSmiOpcode(KBCInstr instr) {
     switch (DecodeOpcode(instr)) {
-      case Bytecode::kAddTOS:
-      case Bytecode::kSubTOS:
-      case Bytecode::kMulTOS:
-      case Bytecode::kBitOrTOS:
-      case Bytecode::kBitAndTOS:
-      case Bytecode::kEqualTOS:
-      case Bytecode::kLessThanTOS:
-      case Bytecode::kGreaterThanTOS:
+      case KernelBytecode::kAddTOS:
+      case KernelBytecode::kSubTOS:
+      case KernelBytecode::kMulTOS:
+      case KernelBytecode::kBitOrTOS:
+      case KernelBytecode::kBitAndTOS:
+      case KernelBytecode::kEqualTOS:
+      case KernelBytecode::kLessThanTOS:
+      case KernelBytecode::kGreaterThanTOS:
         return true;
 
       default:
@@ -1049,52 +1073,18 @@ class Bytecode {
     }
   }
 
-  DART_FORCE_INLINE static uint8_t DecodeArgc(Instr call) {
+  DART_FORCE_INLINE static uint8_t DecodeArgc(KBCInstr call) {
     ASSERT(IsCallOpcode(call));
     return (call >> 8) & 0xFF;
   }
 
-  static Instr At(uword pc) { return *reinterpret_cast<Instr*>(pc); }
+  static KBCInstr At(uword pc) { return *reinterpret_cast<KBCInstr*>(pc); }
 
  private:
   DISALLOW_ALLOCATION();
-  DISALLOW_IMPLICIT_CONSTRUCTORS(Bytecode);
+  DISALLOW_IMPLICIT_CONSTRUCTORS(KernelBytecode);
 };
-
-// Various dummy declarations to make shared code compile.
-// TODO(vegorov) we need to prune away as much dead code as possible instead
-// of just making it compile.
-typedef int16_t Register;
-
-const int16_t FPREG = 0;
-const int16_t SPREG = 1;
-#if defined(ARCH_IS_64_BIT)
-const intptr_t kNumberOfCpuRegisters = 64;
-#else
-const intptr_t kNumberOfCpuRegisters = 32;
-#endif
-const intptr_t kDartAvailableCpuRegs = -1;
-const intptr_t kNoRegister = -1;
-const intptr_t kReservedCpuRegisters = 0;
-const intptr_t ARGS_DESC_REG = 0;
-const intptr_t CODE_REG = 0;
-const intptr_t kExceptionObjectReg = 0;
-const intptr_t kStackTraceObjectReg = 0;
-
-enum FpuRegister {
-  kNoFpuRegister = -1,
-  kFakeFpuRegister,
-  kNumberOfDummyFpuRegisters,
-};
-const FpuRegister FpuTMP = kFakeFpuRegister;
-const intptr_t kNumberOfFpuRegisters = 1;
-
-// After a comparison, the condition NEXT_IS_TRUE means the following
-// instruction is executed if the comparison is true and skipped over overwise.
-// Condition NEXT_IS_FALSE means the following instruction is executed if the
-// comparison is false and skipped over otherwise.
-enum Condition { NEXT_IS_TRUE, NEXT_IS_FALSE, INVALID_CONDITION };
 
 }  // namespace dart
 
-#endif  // RUNTIME_VM_CONSTANTS_DBC_H_
+#endif  // RUNTIME_VM_CONSTANTS_KBC_H_

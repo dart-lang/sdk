@@ -664,6 +664,19 @@ class ProcedureAttributesMetadataHelper : public MetadataHelper {
                     ProcedureAttributesMetadata* metadata);
 };
 
+// Helper class which provides access to bytecode metadata.
+class BytecodeMetadataHelper : public MetadataHelper {
+ public:
+  static const char* tag() { return "vm.bytecode"; }
+
+  explicit BytecodeMetadataHelper(StreamingFlowGraphBuilder* builder)
+      : MetadataHelper(builder) {}
+
+#if defined(DART_USE_INTERPRETER)
+  void CopyBytecode(const Function& function);
+#endif
+};
+
 class StreamingDartTypeTranslator {
  public:
   StreamingDartTypeTranslator(StreamingFlowGraphBuilder* builder,
@@ -1179,6 +1192,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
         direct_call_metadata_helper_(this),
         inferred_type_metadata_helper_(this),
         procedure_attributes_metadata_helper_(this),
+        bytecode_metadata_helper_(this),
         metadata_scanned_(false) {}
 
   StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
@@ -1201,6 +1215,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
         direct_call_metadata_helper_(this),
         inferred_type_metadata_helper_(this),
         procedure_attributes_metadata_helper_(this),
+        bytecode_metadata_helper_(this),
         metadata_scanned_(false) {}
 
   StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
@@ -1223,6 +1238,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
         direct_call_metadata_helper_(this),
         inferred_type_metadata_helper_(this),
         procedure_attributes_metadata_helper_(this),
+        bytecode_metadata_helper_(this),
         metadata_scanned_(false) {}
 
   virtual ~StreamingFlowGraphBuilder() {}
@@ -1552,6 +1568,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   DirectCallMetadataHelper direct_call_metadata_helper_;
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
   ProcedureAttributesMetadataHelper procedure_attributes_metadata_helper_;
+  BytecodeMetadataHelper bytecode_metadata_helper_;
   bool metadata_scanned_;
 
   friend class ClassHelper;
@@ -1559,6 +1576,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   friend class ConstructorHelper;
   friend class DirectCallMetadataHelper;
   friend class ProcedureAttributesMetadataHelper;
+  friend class BytecodeMetadataHelper;
   friend class FieldHelper;
   friend class FunctionNodeHelper;
   friend class InferredTypeMetadataHelper;

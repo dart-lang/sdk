@@ -21,6 +21,7 @@
 #include "vm/flags.h"
 #include "vm/heap.h"
 #include "vm/image_snapshot.h"
+#include "vm/interpreter.h"
 #include "vm/isolate_reload.h"
 #include "vm/kernel_isolate.h"
 #include "vm/lockers.h"
@@ -905,6 +906,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       library_tag_handler_(NULL),
       api_state_(NULL),
       random_(),
+      interpreter_(NULL),
       simulator_(NULL),
       mutex_(new Mutex(NOT_IN_PRODUCT("Isolate::mutex_"))),
       symbols_mutex_(new Mutex(NOT_IN_PRODUCT("Isolate::symbols_mutex_"))),
@@ -980,6 +982,9 @@ Isolate::~Isolate() {
   delete heap_;
   delete object_store_;
   delete api_state_;
+#if defined(DART_USE_INTERPRETER)
+  delete interpreter_;
+#endif
 #if defined(USING_SIMULATOR)
   delete simulator_;
 #endif
@@ -1937,6 +1942,12 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
     deopt_context()->VisitObjectPointers(visitor);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+#if defined(DART_USE_INTERPRETER)
+  if (interpreter() != NULL) {
+    interpreter()->VisitObjectPointers(visitor);
+  }
+#endif  // defined(DART_USE_INTERPRETER)
 
 #if defined(TARGET_ARCH_DBC)
   if (simulator() != NULL) {

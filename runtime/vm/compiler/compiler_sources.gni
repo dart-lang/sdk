@@ -26,6 +26,8 @@ compiler_sources = [
   "assembler/disassembler_arm.cc",
   "assembler/disassembler_arm64.cc",
   "assembler/disassembler_dbc.cc",
+  "assembler/disassembler_kbc.cc",
+  "assembler/disassembler_kbc.h",
   "assembler/disassembler_x86.cc",
   "backend/block_scheduler.cc",
   "backend/block_scheduler.h",

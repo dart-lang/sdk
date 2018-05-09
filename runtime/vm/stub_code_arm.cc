@@ -886,6 +886,10 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Ret();
 }
 
+void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
+  __ Unimplemented("Interpreter not yet supported");
+}
+
 // Called for inline allocation of contexts.
 // Input:
 //   R1: number of context variables.
@@ -1676,6 +1680,10 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
   __ ldr(R2, FieldAddress(R0, Function::entry_point_offset()));
   __ bx(R2);
+}
+
+void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
+  __ Unimplemented("Interpreter not yet supported");
 }
 
 // R9: Contains an ICData.
