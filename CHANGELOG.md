@@ -14,9 +14,15 @@
 
 #### Pub
 
-* Retry on 500 errors from the pub server.
-
 #### Other Tools
+
+## 2.0.0-dev.54.0
+
+### Tool Changes
+
+#### Pub
+
+* Retry on 500 errors from the pub server.
 
 ## 2.0.0-dev.53.0
 
