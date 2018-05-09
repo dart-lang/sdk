@@ -33,7 +33,7 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/fasta/hybrid_file_system.dart';
-import 'package:kernel/kernel.dart' show Component, Procedure;
+import 'package:kernel/kernel.dart' show Component;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/target/vm.dart' show VmTarget;
 import 'package:vm/incremental_compiler.dart';
@@ -49,15 +49,10 @@ const String platformKernelFile = 'virtual_platform_kernel.dill';
 //   1 - Update in-memory file system with in-memory sources (used by tests).
 //   2 - Accept last compilation result.
 //   3 - APP JIT snapshot training run for kernel_service.
-//   4 - Compile an individual expression in some context (for debugging
-//       purposes).
 const int kCompileTag = 0;
 const int kUpdateSourcesTag = 1;
 const int kAcceptTag = 2;
 const int kTrainTag = 3;
-const int kCompileExpressionTag = 4;
-
-bool allowDartInternalImport = false;
 
 abstract class Compiler {
   final FileSystem fileSystem;
@@ -182,10 +177,9 @@ class SingleShotCompilerWrapper extends Compiler {
   }
 }
 
-final Map<int, IncrementalCompilerWrapper> isolateCompilers =
-    new Map<int, IncrementalCompilerWrapper>();
+final Map<int, Compiler> isolateCompilers = new Map<int, Compiler>();
 
-IncrementalCompilerWrapper lookupIncrementalCompiler(int isolateId) {
+Compiler lookupIncrementalCompiler(int isolateId) {
   return isolateCompilers[isolateId];
 }
 
@@ -248,60 +242,10 @@ void invalidateSources(IncrementalCompilerWrapper compiler, List sourceFiles) {
 
 // Process a request from the runtime. See KernelIsolate::CompileToKernel in
 // kernel_isolate.cc and Loader::SendKernelRequest in loader.cc.
-Future _processExpressionCompilationRequest(request) async {
-  final SendPort port = request[1];
-  final int isolateId = request[2];
-  final String expression = request[3];
-  final List definitions = request[4];
-  final List typeDefinitions = request[5];
-  final String libraryUri = request[6];
-  final String klass = request[7]; // might be null
-  final bool isStatic = request[8];
-
-  IncrementalCompilerWrapper compiler = isolateCompilers[isolateId];
-
-  if (compiler == null) {
-    port.send(new CompilationResult.errors(
-        ["No incremental compiler available for this isolate."]).toResponse());
-    return;
-  }
-
-  compiler.errors.clear();
-
-  CompilationResult result;
-  try {
-    Procedure procedure = await compiler.generator.compileExpression(
-        expression, definitions, typeDefinitions, libraryUri, klass, isStatic);
-
-    if (procedure == null) {
-      port.send(new CompilationResult.errors(["Invalid scope."]).toResponse());
-      return;
-    }
-
-    if (compiler.errors.isNotEmpty) {
-      // TODO(sigmund): the compiler prints errors to the console, so we
-      // shouldn't print those messages again here.
-      result = new CompilationResult.errors(compiler.errors);
-    } else {
-      result = new CompilationResult.ok(serializeProcedure(procedure));
-    }
-  } catch (error, stack) {
-    result = new CompilationResult.crash(error, stack);
-  }
-
-  port.send(result.toResponse());
-}
-
 Future _processLoadRequest(request) async {
   if (verbose) print("DFE: request: $request");
 
   int tag = request[0];
-
-  if (tag == kCompileExpressionTag) {
-    await _processExpressionCompilationRequest(request);
-    return;
-  }
-
   final SendPort port = request[1];
   final String inputFileUri = request[2];
   final Uri script =

@@ -34,8 +34,6 @@
 #include "vm/heap.h"
 #include "vm/isolate_reload.h"
 #include "vm/kernel.h"
-#include "vm/kernel_isolate.h"
-#include "vm/kernel_loader.h"
 #include "vm/native_symbol.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -3197,14 +3195,6 @@ static RawString* BuildClosureSource(const Array& formal_params,
   return String::ConcatAll(Array::Handle(Array::MakeFixedLength(src_pieces)));
 }
 
-static RawObject* EvaluateWithDFEHelper(const String& expression,
-                                        const Array& definitions,
-                                        const Array& type_definitions,
-                                        const String& library_url,
-                                        const String& klass,
-                                        bool is_static,
-                                        const Array& arguments);
-
 RawFunction* Function::EvaluateHelper(const Class& cls,
                                       const String& expr,
                                       const Array& param_names,
@@ -3231,12 +3221,6 @@ RawFunction* Function::EvaluateHelper(const Class& cls,
   return func.raw();
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-static void ReleaseFetchedBytes(uint8_t* buffer) {
-  free(buffer);
-}
-#endif
-
 RawObject* Class::Evaluate(const String& expr,
                            const Array& param_names,
                            const Array& param_values) const {
@@ -3248,17 +3232,11 @@ RawObject* Class::Evaluate(const String& expr,
     return UnhandledException::New(exception, stacktrace);
   }
 
-  if (Library::Handle(library()).kernel_data() == TypedData::null()) {
-    const Function& eval_func = Function::Handle(
-        Function::EvaluateHelper(*this, expr, param_names, true));
-    return DartEntry::InvokeFunction(eval_func, param_values);
-  }
-
-  return EvaluateWithDFEHelper(
-      expr, param_names, Array::Handle(Array::New(0)),
-      String::Handle(Library::Handle(library()).url()),
-      IsTopLevel() ? String::Handle() : String::Handle(UserVisibleName()),
-      !IsTopLevel(), param_values);
+  const Function& eval_func = Function::Handle(
+      Function::EvaluateHelper(*this, expr, param_names, true));
+  const Object& result =
+      Object::Handle(DartEntry::InvokeFunction(eval_func, param_values));
+  return result.raw();
 }
 
 // Ensure that top level parsing of the class has been done.
@@ -6055,9 +6033,6 @@ void Function::SetRedirectionTarget(const Function& target) const {
 
 // This field is heavily overloaded:
 //   eval function:           Script expression source
-//   kernel eval function:    Array[0] = Script
-//                            Array[1] = Kernel data
-//                            Array[2] = Kernel offset of enclosing library
 //   signature function:      SignatureData
 //   method extractor:        Function extracted closure function
 //   noSuchMethod dispatcher: Array arguments descriptor
@@ -7530,26 +7505,9 @@ RawClass* Function::origin() const {
   return PatchClass::Cast(obj).origin_class();
 }
 
-void Function::SetKernelDataAndScript(const Script& script,
-                                      const TypedData& data,
-                                      intptr_t offset) {
-  Array& data_field = Array::Handle(Array::New(3));
-  data_field.SetAt(0, script);
-  data_field.SetAt(1, data);
-  data_field.SetAt(2, Smi::Handle(Smi::New(offset)));
-  set_data(data_field);
-}
-
 RawScript* Function::script() const {
   // NOTE(turnidge): If you update this function, you probably want to
   // update Class::PatchFieldsAndFunctions() at the same time.
-  Object& data = Object::Handle(raw_ptr()->data_);
-  if (data.IsArray()) {
-    Object& script = Object::Handle(Array::Cast(data).At(0));
-    if (script.IsScript()) {
-      return Script::Cast(script).raw();
-    }
-  }
   if (token_pos() == TokenPosition::kMinSource) {
     // Testing for position 0 is an optimization that relies on temporary
     // eval functions having token position 0.
@@ -7574,13 +7532,6 @@ RawScript* Function::script() const {
 }
 
 RawTypedData* Function::KernelData() const {
-  Object& data = Object::Handle(raw_ptr()->data_);
-  if (data.IsArray()) {
-    Object& script = Object::Handle(Array::Cast(data).At(0));
-    if (script.IsScript()) {
-      return TypedData::RawCast(Array::Cast(data).At(1));
-    }
-  }
   if (IsClosureFunction()) {
     Function& parent = Function::Handle(parent_function());
     ASSERT(!parent.IsNull());
@@ -7597,13 +7548,6 @@ RawTypedData* Function::KernelData() const {
 }
 
 intptr_t Function::KernelDataProgramOffset() const {
-  Object& data = Object::Handle(raw_ptr()->data_);
-  if (data.IsArray()) {
-    Object& script = Object::Handle(Array::Cast(data).At(0));
-    if (script.IsScript()) {
-      return Smi::Value(Smi::RawCast(Array::Cast(data).At(2)));
-    }
-  }
   if (IsClosureFunction()) {
     Function& parent = Function::Handle(parent_function());
     ASSERT(!parent.IsNull());
@@ -11366,15 +11310,10 @@ void Library::InitCoreLibrary(Isolate* isolate) {
 RawObject* Library::Evaluate(const String& expr,
                              const Array& param_names,
                              const Array& param_values) const {
-  if (kernel_data() == TypedData::null()) {
-    // Evaluate the expression as a static function of the toplevel class.
-    Class& top_level_class = Class::Handle(toplevel_class());
-    ASSERT(top_level_class.is_finalized());
-    return top_level_class.Evaluate(expr, param_names, param_values);
-  }
-  return EvaluateWithDFEHelper(expr, param_names, Array::Handle(Array::New(0)),
-                               String::Handle(url()), String::Handle(), false,
-                               param_values);
+  // Evaluate the expression as a static function of the toplevel class.
+  Class& top_level_class = Class::Handle(toplevel_class());
+  ASSERT(top_level_class.is_finalized());
+  return top_level_class.Evaluate(expr, param_names, param_values);
 }
 
 void Library::InitNativeWrappersLibrary(Isolate* isolate, bool is_kernel) {
@@ -11430,118 +11369,6 @@ class LibraryLookupTraits {
   static RawObject* NewKey(const String& str) { return str.raw(); }
 };
 typedef UnorderedHashMap<LibraryLookupTraits> LibraryLookupMap;
-
-static RawObject* EvaluateWithDFEHelper(const String& expression,
-                                        const Array& definitions,
-                                        const Array& type_definitions,
-                                        const String& library_url,
-                                        const String& klass,
-                                        bool is_static,
-                                        const Array& arguments) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  const String& error_str = String::Handle(
-      String::New("Kernel service isolate not available in precompiled mode."));
-  return ApiError::New(error_str);
-#else
-  Isolate* I = Isolate::Current();
-  Thread* T = Thread::Current();
-
-  Dart_KernelCompilationResult compilation_result;
-  {
-    TransitionVMToNative transition(T);
-    compilation_result = KernelIsolate::CompileExpressionToKernel(
-        expression.ToCString(), definitions, type_definitions,
-        library_url.ToCString(), klass.IsNull() ? NULL : klass.ToCString(),
-        is_static);
-  }
-
-  Function& callee = Function::Handle();
-  intptr_t num_cids = I->class_table()->NumCids();
-  intptr_t num_libs =
-      GrowableObjectArray::Handle(I->object_store()->libraries()).Length();
-
-  void* kernel_pgm = NULL;
-  if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
-    const String& prefix =
-        String::Handle(String::New("Kernel isolate rejected this request:\n"));
-    const String& error_str = String::Handle(String::Concat(
-        prefix, String::Handle(String::New(compilation_result.error))));
-    free(compilation_result.error);
-    return ApiError::New(error_str);
-  }
-
-  const uint8_t* kernel_file = compilation_result.kernel;
-  intptr_t kernel_length = compilation_result.kernel_size;
-  ASSERT(kernel_file != NULL);
-  kernel_pgm =
-      Dart_ReadKernelBinary(kernel_file, kernel_length, ReleaseFetchedBytes);
-  if (kernel_pgm == NULL) {
-    return ApiError::New(String::Handle(
-        String::New("Kernel isolate returned ill-formed kernel.")));
-  }
-
-  // Load the program with the debug procedure as a regular, independent
-  // program.
-  kernel::KernelLoader loader(reinterpret_cast<kernel::Program*>(kernel_pgm));
-  loader.LoadProgram();
-  ASSERT(I->class_table()->NumCids() > num_cids &&
-         GrowableObjectArray::Handle(I->object_store()->libraries()).Length() ==
-             num_libs + 1);
-  const String& fake_library_url =
-      String::Handle(String::New("evaluate:source"));
-  const Library& loaded =
-      Library::Handle(Library::LookupLibrary(T, fake_library_url));
-  ASSERT(!loaded.IsNull());
-
-  String& debug_name = String::Handle(
-      String::New(Symbols::Symbol(Symbols::kDebugProcedureNameId)));
-  Class& fake_class = Class::Handle();
-  if (!klass.IsNull()) {
-    fake_class = loaded.LookupClass(String::Handle(String::New(klass)));
-    ASSERT(!fake_class.IsNull());
-    callee = fake_class.LookupFunctionAllowPrivate(debug_name);
-  } else {
-    callee = loaded.LookupFunctionAllowPrivate(debug_name);
-  }
-  ASSERT(!callee.IsNull());
-
-  // Save the loaded library's kernel data to the generic "data" field of the
-  // callee, so it doesn't require access it's parent library during
-  // compilation.
-  callee.SetKernelDataAndScript(Script::Handle(callee.script()),
-                                TypedData::Handle(loaded.kernel_data()),
-                                loaded.kernel_offset());
-
-  // Reparent the callee to the real enclosing class so we can remove the fake
-  // class and library from the object store.
-  const Library& real_library =
-      Library::Handle(Library::LookupLibrary(T, library_url));
-  ASSERT(!real_library.IsNull());
-  Class& real_class = Class::Handle();
-  if (!klass.IsNull()) {
-    real_class = real_library.LookupClass(String::Handle(String::New(klass)));
-  } else {
-    real_class = real_library.toplevel_class();
-  }
-  ASSERT(!real_class.IsNull());
-
-  callee.set_owner(real_class);
-
-  // Unlink the fake library and class from the object store.
-  GrowableObjectArray::Handle(I->object_store()->libraries())
-      .SetLength(num_libs);
-  I->class_table()->SetNumCids(num_cids);
-  if (!fake_class.IsNull()) {
-    fake_class.set_id(kIllegalCid);
-  }
-  LibraryLookupMap libraries_map(I->object_store()->libraries_map());
-  bool removed = libraries_map.Remove(fake_library_url);
-  ASSERT(removed);
-  I->object_store()->set_libraries_map(libraries_map.Release());
-
-  return DartEntry::InvokeFunction(callee, arguments);
-#endif
-}
 
 // Returns library with given url in current isolate, or NULL.
 RawLibrary* Library::LookupLibrary(Thread* thread, const String& url) {
@@ -15695,6 +15522,8 @@ RawObject* Instance::Evaluate(const Class& method_cls,
                               const String& expr,
                               const Array& param_names,
                               const Array& param_values) const {
+  const Function& eval_func = Function::Handle(
+      Function::EvaluateHelper(method_cls, expr, param_names, false));
   const Array& args = Array::Handle(Array::New(1 + param_values.Length()));
   PassiveObject& param = PassiveObject::Handle();
   args.SetAt(0, *this);
@@ -15702,18 +15531,7 @@ RawObject* Instance::Evaluate(const Class& method_cls,
     param = param_values.At(i);
     args.SetAt(i + 1, param);
   }
-
-  const Library& library = Library::Handle(method_cls.library());
-  if (library.kernel_data() == TypedData::null()) {
-    const Function& eval_func = Function::Handle(
-        Function::EvaluateHelper(method_cls, expr, param_names, false));
-    return DartEntry::InvokeFunction(eval_func, args);
-  } else {
-    return EvaluateWithDFEHelper(
-        expr, param_names, Array::Handle(Array::New(0)),
-        String::Handle(Library::Handle(method_cls.library()).url()),
-        String::Handle(method_cls.UserVisibleName()), false, args);
-  }
+  return DartEntry::InvokeFunction(eval_func, args);
 }
 
 RawObject* Instance::HashCode() const {

@@ -72,11 +72,9 @@ var tests = <IsolateTest>[
     expect(reasonForCancelling['type'], equals('ReasonForCancelling'));
     expect(reasonForCancelling['message'], contains('library_isnt_here_man'));
 
-    // TODO(32341): enable in Dart 2
-    if (!Platform.executableArguments.contains("--preview_dart_2")) {
-      String v2 = await invokeTest(spawnedIsolate);
-      expect(v2, 'apple');
-    }
+    // Invoke test in v2.
+    String v2 = await invokeTest(spawnedIsolate);
+    expect(v2, 'apple');
   }
 ];
 

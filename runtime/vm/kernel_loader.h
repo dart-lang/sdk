@@ -128,7 +128,7 @@ class KernelLoader : public ValueObject {
 
   // Returns the library containing the main procedure, null if there
   // was no main procedure, or a failure object if there was an error.
-  RawObject* LoadProgram(bool process_pending_classes = true);
+  Object& LoadProgram(bool process_pending_classes = true);
 
   // Finds all libraries that have been modified in this incremental
   // version of the kernel program file.
@@ -137,7 +137,7 @@ class KernelLoader : public ValueObject {
                                     BitVector* modified_libs,
                                     bool force_reload);
 
-  RawLibrary* LoadLibrary(intptr_t index);
+  void LoadLibrary(intptr_t index);
 
   static void FinishLoading(const Class& klass);
 

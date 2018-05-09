@@ -4495,7 +4495,6 @@ TEST_CASE(LinkedHashMap) {
   LinkedHashMap& cc_map = LinkedHashMap::Handle(LinkedHashMap::NewDefault());
 
   // 3. Expect them to have identical structure.
-  TransitionNativeToVM transition(thread);
   CheckIdenticalHashStructure(dart_map, cc_map);
 }
 

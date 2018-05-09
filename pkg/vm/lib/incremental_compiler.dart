@@ -10,8 +10,6 @@ import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:kernel/kernel.dart';
 
-const String kDebugProcedureName = ":Eval";
-
 /// Wrapper around [IncrementalKernelGenerator] that keeps track of rejected
 /// deltas and combines them together into resultant program until it is
 /// accepted.
@@ -75,31 +73,5 @@ class IncrementalCompiler {
   resetDeltaState() {
     _pendingDeltas.clear();
     fullComponent = true;
-  }
-
-  Future<Procedure> compileExpression(
-      String expression,
-      List<String> definitions,
-      List<String> typeDefinitions,
-      String libraryUri,
-      String klass,
-      bool isStatic) {
-    Map<String, DartType> completeDefinitions = {};
-    for (String name in definitions) {
-      if (!isLegalIdentifier(name)) continue;
-      completeDefinitions[name] = new DynamicType();
-    }
-
-    List<TypeParameter> typeParameters = [];
-    for (String name in typeDefinitions) {
-      if (!isLegalIdentifier(name)) continue;
-      typeParameters.add(new TypeParameter(name, new DynamicType()));
-    }
-
-    Uri library = Uri.parse(libraryUri);
-    if (library == null) return null;
-
-    return _generator.compileExpression(expression, completeDefinitions,
-        typeParameters, kDebugProcedureName, library, klass, isStatic);
   }
 }

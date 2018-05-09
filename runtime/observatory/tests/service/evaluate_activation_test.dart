@@ -114,7 +114,7 @@ Future testMethod(Isolate isolate) async {
     }
   });
 
-  var result = await rootLib.evaluate('new C().method(3)');
+  var result = await rootLib.evaluate('new C().method(3);');
   print("Result $result");
   expect(hitBreakpoint, isTrue);
 }
@@ -163,7 +163,7 @@ Future testMethod2(Isolate isolate) async {
     }
   });
 
-  var result = await rootLib.evaluate('C.method2(3)');
+  var result = await rootLib.evaluate('C.method2(3);');
   print("Result $result");
   expect(hitBreakpoint, isTrue);
 }
@@ -204,7 +204,7 @@ Future testMethod3(Isolate isolate) async {
     }
   });
 
-  var result = await rootLib.evaluate('new C().method3(3)');
+  var result = await rootLib.evaluate('new C().method3(3);');
   print("Result $result");
   expect(hitBreakpoint, isTrue);
 }

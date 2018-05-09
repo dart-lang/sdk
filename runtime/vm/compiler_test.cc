@@ -179,10 +179,6 @@ TEST_CASE(EvalExpression) {
 }
 
 ISOLATE_UNIT_TEST_CASE(EvalExpressionWithLazyCompile) {
-  {  // Initialize an incremental compiler in DFE mode.
-    TransitionVMToNative transition(thread);
-    TestCase::LoadTestScript("", NULL);
-  }
   Library& lib = Library::Handle(Library::CoreLibrary());
 
   const String& expression = String::Handle(
@@ -197,10 +193,6 @@ ISOLATE_UNIT_TEST_CASE(EvalExpressionWithLazyCompile) {
 }
 
 ISOLATE_UNIT_TEST_CASE(EvalExpressionExhaustCIDs) {
-  {  // Initialize an incremental compiler in DFE mode.
-    TransitionVMToNative transition(thread);
-    TestCase::LoadTestScript("", NULL);
-  }
   Library& lib = Library::Handle(Library::CoreLibrary());
 
   const String& expression = String::Handle(String::New("3 + 4"));

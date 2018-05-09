@@ -267,13 +267,7 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
       url, FLAG_strong ? platform_strong_dill : platform_dill,
       FLAG_strong ? platform_strong_dill_size : platform_dill_size,
       sourcefiles_count, sourcefiles, incrementally, NULL);
-  return ValidateCompilationResult(zone, compilation_result, kernel_pgm);
-}
 
-char* TestCase::ValidateCompilationResult(
-    Zone* zone,
-    Dart_KernelCompilationResult compilation_result,
-    void** kernel_pgm) {
   if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
     char* result =
         OS::SCreate(zone, "Compilation failed %s", compilation_result.error);
