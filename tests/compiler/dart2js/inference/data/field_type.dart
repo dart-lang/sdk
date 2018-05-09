@@ -348,8 +348,8 @@ test15() {
 }
 
 class A16 {
-  // TODO(johnniwinther): Investigate with these differ this includes `null`.
-  // The ast version didn't.
+  // TODO(johnniwinther): Investigate why these include `null`. The ast version
+  // didn't.
   /*kernel.element: A16.f16:Union([exact=JSString], [null|exact=JSUInt31])*/
   /*strong.element: A16.f16:Union([exact=JSString], [null|exact=JSUInt31])*/
   var f16;

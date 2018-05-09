@@ -4,7 +4,7 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
-import '../kernel/compiler_helper.dart';
+import '../helpers/d8_helper.dart';
 
 const String SOURCE1 = r'''
 import 'package:expect/expect.dart';

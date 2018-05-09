@@ -17,7 +17,6 @@ import 'package:sourcemap_testing/src/annotated_code_helper.dart';
 
 import '../memory_compiler.dart';
 import '../equivalence/id_equivalence.dart';
-import '../kernel/test_helpers.dart';
 
 /// `true` if ANSI colors are supported by stdout.
 bool useColors = stdout.supportsAnsiEscapes;
@@ -105,9 +104,6 @@ void reportError(
       .reportErrorMessage(spannable, MessageKind.GENERIC, {'text': message});
 }
 
-/// Display name used for compilation using the old dart2js frontend.
-const String astName = 'dart2js old frontend';
-
 /// Display name used for compilation using the new common frontend.
 const String kernelName = 'kernel';
 
@@ -156,7 +152,7 @@ Future<CompiledData> computeData(
   Map<Id, ActualData> actualMapFor(Entity entity) {
     SourceSpan span =
         compiler.backendStrategy.spanFromSpannable(entity, entity);
-    Uri uri = resolveFastaUri(span.uri);
+    Uri uri = span.uri;
     return actualMaps.putIfAbsent(uri, () => <Id, ActualData>{});
   }
 
@@ -518,7 +514,6 @@ Future checkTests(
           new AnnotatedCode.fromText(annotatedCode, commentStart, commentEnd)
     };
     Map<String, MemberAnnotations<IdValue>> expectedMaps = {
-      astMarker: new MemberAnnotations<IdValue>(),
       kernelMarker: new MemberAnnotations<IdValue>(),
       strongMarker: new MemberAnnotations<IdValue>(),
       omitMarker: new MemberAnnotations<IdValue>(),
@@ -781,7 +776,6 @@ Spannable computeSpannable(
   throw new UnsupportedError('Unsupported id $id.');
 }
 
-const String astMarker = 'ast.';
 const String kernelMarker = 'kernel.';
 const String strongMarker = 'strong.';
 const String omitMarker = 'omit.';
@@ -801,7 +795,7 @@ const String omitMarker = 'omit.';
 /// annotations without prefixes.
 void computeExpectedMap(Uri sourceUri, AnnotatedCode code,
     Map<String, MemberAnnotations<IdValue>> maps) {
-  List<String> mapKeys = [astMarker, kernelMarker, strongMarker, omitMarker];
+  List<String> mapKeys = [kernelMarker, strongMarker, omitMarker];
   Map<String, AnnotatedCode> split = splitByPrefixes(code, mapKeys);
 
   split.forEach((String marker, AnnotatedCode code) {

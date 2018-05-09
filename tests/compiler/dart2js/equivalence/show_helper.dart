@@ -10,7 +10,6 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/source_file_provider.dart';
-import '../kernel/test_helpers.dart';
 import 'id_equivalence_helper.dart';
 
 ArgParser createArgParser() {
@@ -73,7 +72,6 @@ show(ArgResults argResults, ComputeMemberDataFunction computeKernelData,
       if (show != null && !show.any((f) => '$uri'.endsWith(f))) {
         continue;
       }
-      uri = resolveFastaUri(uri);
       SourceFile sourceFile = await provider.autoReadFromFile(uri);
       String sourceCode = sourceFile?.slowText();
       if (sourceCode == null) {

@@ -10,50 +10,12 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:compiler/compiler_new.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/dart2js.dart' as dart2js;
 import 'package:compiler/src/filenames.dart';
-import 'package:compiler/src/universe/world_builder.dart';
-import 'package:compiler/src/util/util.dart';
 import 'package:expect/expect.dart';
 import 'package:sourcemap_testing/src/stacktrace_helper.dart';
 import '../memory_compiler.dart';
-
-/// Analyze [memorySourceFiles] with [entryPoint] as entry-point using the
-/// kernel based element model. The returned [Pair] contains the compiler used
-/// to create the IR and the kernel based compiler.
-Future<Pair<Compiler, Compiler>> analyzeOnly(
-    Uri entryPoint, Map<String, String> memorySourceFiles,
-    {bool printSteps: false}) async {
-  if (printSteps) {
-    print('---- analyze-all -------------------------------------------------');
-  }
-  CompilationResult result1 = await runCompiler(
-      entryPoint: entryPoint,
-      memorySourceFiles: memorySourceFiles,
-      options: [
-        Flags.useOldFrontend,
-        Flags.analyzeAll,
-        Flags.enableAssertMessage
-      ],
-      beforeRun: (compiler) {
-        compiler.impactCacheDeleter.retainCachesForTesting = true;
-      });
-
-  if (printSteps) {
-    print('---- closed world from kernel ------------------------------------');
-  }
-  ElementResolutionWorldBuilder.useInstantiationMap = true;
-  CompilationResult result2 = await runCompiler(
-      entryPoint: entryPoint,
-      memorySourceFiles: memorySourceFiles,
-      options: [Flags.analyzeOnly, Flags.enableAssertMessage],
-      beforeRun: (compiler) {
-        compiler.impactCacheDeleter.retainCachesForTesting = true;
-      });
-  return new Pair<Compiler, Compiler>(result1.compiler, result2.compiler);
-}
 
 Future createTemp(Uri entryPoint, Map<String, String> memorySourceFiles,
     {bool printSteps: false}) async {
@@ -108,32 +70,5 @@ Future<Compiler> runWithD8(
     Expect.stringEquals(expectedOutput.trim(),
         runResult.stdout.replaceAll('\r\n', '\n').trim());
   }
-  return result.compiler;
-}
-
-Future<Compiler> compileWithDill(
-    {Uri entryPoint,
-    Map<String, String> memorySourceFiles: const <String, String>{},
-    List<String> options: const <String>[],
-    CompilerDiagnostics diagnosticHandler,
-    bool printSteps: false,
-    CompilerOutput compilerOutput,
-    void beforeRun(Compiler compiler)}) async {
-  if (printSteps) {
-    print('---- compile from dill -------------------------------------------');
-  }
-  CompilationResult result = await runCompiler(
-      entryPoint: entryPoint,
-      memorySourceFiles: memorySourceFiles,
-      options: options,
-      diagnosticHandler: diagnosticHandler,
-      outputProvider: compilerOutput,
-      beforeRun: (compiler) {
-        ElementResolutionWorldBuilder.useInstantiationMap = true;
-        compiler.impactCacheDeleter.retainCachesForTesting = true;
-        if (beforeRun != null) {
-          beforeRun(compiler);
-        }
-      });
   return result.compiler;
 }
