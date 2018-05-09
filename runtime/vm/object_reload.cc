@@ -634,13 +634,9 @@ bool Class::RequiresInstanceMorphing(const Class& replacement) const {
 
 bool Class::CanReloadFinalized(const Class& replacement,
                                IsolateReloadContext* context) const {
-  // Make sure the declaration types matches for the two classes.
+  // Make sure the declaration types argument count matches for the two classes.
   // ex. class A<int,B> {} cannot be replace with class A<B> {}.
-
-  const AbstractType& dt = AbstractType::Handle(DeclarationType());
-  const AbstractType& replacement_dt =
-      AbstractType::Handle(replacement.DeclarationType());
-  if (!dt.Equals(replacement_dt)) {
+  if (NumTypeArguments() != replacement.NumTypeArguments()) {
     context->AddReasonForCancelling(new (context->zone()) TypeParametersChanged(
         context->zone(), *this, replacement));
     return false;
