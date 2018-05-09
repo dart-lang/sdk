@@ -1192,6 +1192,13 @@ class FastaParserTestCase extends Object
   static KernelTarget kernelTarget;
 
   @override
+  void assertNoErrors() {
+    // TODO(brianwilkerson) Implement this.
+  }
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
   Expression parseAdditiveExpression(String code) {
     ScannerResult scan = scanString(code);
 
@@ -1294,8 +1301,6 @@ class FastaParserTestCase extends Object
       assert(kernelTarget.loader.coreTypes != null);
     });
   }
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 // TODO(ahe): Remove this class when we no longer need to override `forest`.
