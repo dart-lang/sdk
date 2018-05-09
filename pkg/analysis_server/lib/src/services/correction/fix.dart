@@ -98,6 +98,8 @@ class DartFixKind {
       'ADD_MISSING_PARAMETER_POSITIONAL',
       31,
       "Add optional positional parameter");
+  static const ADD_MISSING_PARAMETER_NAMED = const FixKind(
+      'ADD_MISSING_PARAMETER_NAMED', 30, "Add named parameter '{0}'");
   static const ADD_MISSING_PARAMETER_REQUIRED = const FixKind(
       'ADD_MISSING_PARAMETER_REQUIRED', 30, "Add required parameter");
   static const ADD_MISSING_REQUIRED_ARGUMENT = const FixKind(

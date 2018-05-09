@@ -361,6 +361,9 @@ class FixProcessor {
       await _addFix_importLibrary_withTopLevelVariable();
       await _addFix_createLocalVariable();
     }
+    if (errorCode == StaticWarningCode.UNDEFINED_NAMED_PARAMETER) {
+      await _addFix_addMissingNamedArgument();
+    }
     if (errorCode == StaticTypeWarningCode.UNDEFINED_METHOD_WITH_CONSTRUCTOR) {
       await _addFix_undefinedMethodWithContructor();
     }
@@ -605,6 +608,60 @@ class FixProcessor {
         });
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.ADD_EXPLICIT_CAST);
+    }
+  }
+
+  Future<Null> _addFix_addMissingNamedArgument() async {
+    // Prepare the name of the missing parameter.
+    if (this.node is! SimpleIdentifier) {
+      return;
+    }
+    SimpleIdentifier node = this.node;
+    String name = node.name;
+
+    // We expect that the node is part of a NamedExpression.
+    if (node.parent?.parent is! NamedExpression) {
+      return;
+    }
+    NamedExpression namedExpression = node.parent.parent;
+
+    // We should be in an ArgumentList.
+    if (namedExpression.parent is! ArgumentList) {
+      return;
+    }
+    AstNode argumentList = namedExpression.parent;
+
+    // Prepare the invoked element.
+    var context =
+        new _ExecutableParameters(session, astProvider, argumentList.parent);
+    if (context == null) {
+      return;
+    }
+
+    // We cannot add named parameters when there are positional positional.
+    if (context.optionalPositional.isNotEmpty) {
+      return;
+    }
+
+    Future<void> addParameter(int offset, String prefix, String suffix) async {
+      if (offset != null) {
+        DartChangeBuilder changeBuilder = await context.addParameter(
+            offset, prefix, namedExpression.staticType, name, suffix);
+        _addFixFromBuilder(
+            changeBuilder, DartFixKind.ADD_MISSING_PARAMETER_NAMED,
+            args: [name]);
+      }
+    }
+
+    if (context.named.isNotEmpty) {
+      var prevNode = await context.getParameterNode(context.named.last);
+      await addParameter(prevNode?.end, ', ', '');
+    } else if (context.required.isNotEmpty) {
+      var prevNode = await context.getParameterNode(context.required.last);
+      await addParameter(prevNode?.end, ', {', '}');
+    } else {
+      var parameterList = await context.getParameterList();
+      await addParameter(parameterList?.leftParenthesis?.end, '{', '}');
     }
   }
 
@@ -3727,5 +3784,93 @@ class _ClosestElementFinder {
     for (Element element in elements) {
       _update(element);
     }
+  }
+}
+
+/**
+ * [ExecutableElement], its parameters, and operations on them.
+ */
+class _ExecutableParameters {
+  final AnalysisSession session;
+  final AstProvider astProvider;
+  final ExecutableElement executable;
+
+  final List<ParameterElement> required = [];
+  final List<ParameterElement> optionalPositional = [];
+  final List<ParameterElement> named = [];
+
+  factory _ExecutableParameters(
+      AnalysisSession session, AstProvider astProvider, AstNode invocation) {
+    Element element;
+    if (invocation is InstanceCreationExpression) {
+      element = invocation.staticElement;
+    }
+    if (invocation is MethodInvocation) {
+      element = invocation.methodName.staticElement;
+    }
+    if (element is ExecutableElement) {
+      return new _ExecutableParameters._(session, astProvider, element);
+    } else {
+      return null;
+    }
+  }
+
+  _ExecutableParameters._(this.session, this.astProvider, this.executable) {
+    for (var parameter in executable.parameters) {
+      if (parameter.isNotOptional) {
+        required.add(parameter);
+      } else if (parameter.isOptionalPositional) {
+        optionalPositional.add(parameter);
+      } else if (parameter.isNamed) {
+        named.add(parameter);
+      }
+    }
+  }
+
+  /**
+   * Write the code for a new parameter with the given [type] and [name].
+   */
+  Future<DartChangeBuilder> addParameter(int offset, String prefix,
+      DartType type, String name, String suffix) async {
+    String targetFile = executable.source.fullName;
+    var changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(targetFile, (builder) {
+      builder.addInsertion(offset, (builder) {
+        builder.write(prefix);
+        builder.writeParameter(name, type: type);
+        builder.write(suffix);
+      });
+    });
+    return changeBuilder;
+  }
+
+  /**
+   * Return the [FormalParameterList] of the [executable], or `null` is cannot
+   * be found.
+   */
+  Future<FormalParameterList> getParameterList() async {
+    var name = await astProvider.getParsedNameForElement(executable);
+    AstNode targetDeclaration = name?.parent;
+    if (targetDeclaration is FunctionDeclaration) {
+      FunctionExpression function = targetDeclaration.functionExpression;
+      return function.parameters;
+    } else if (targetDeclaration is MethodDeclaration) {
+      return targetDeclaration.parameters;
+    }
+    return null;
+  }
+
+  /**
+   * Return the [FormalParameter] of the [element] in [FormalParameterList],
+   * or `null` is cannot be found.
+   */
+  Future<FormalParameter> getParameterNode(ParameterElement element) async {
+    var name = await astProvider.getParsedNameForElement(element);
+    for (AstNode node = name; node != null; node = node.parent) {
+      if (node is FormalParameter && node.parent is FormalParameterList) {
+        return node;
+      }
+    }
+    return null;
   }
 }

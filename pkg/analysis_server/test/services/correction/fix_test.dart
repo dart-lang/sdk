@@ -825,6 +825,120 @@ class A {
 ''');
   }
 
+  test_addMissingParameterNamed_function_hasNamed() async {
+    await resolveTestUnit('''
+test(int a, {int b: 0}) {}
+
+main() {
+  test(1, b: 2, named: 3.0);
+}
+''');
+    await assertHasFix(DartFixKind.ADD_MISSING_PARAMETER_NAMED, '''
+test(int a, {int b: 0, double named}) {}
+
+main() {
+  test(1, b: 2, named: 3.0);
+}
+''');
+  }
+
+  test_addMissingParameterNamed_function_hasRequired() async {
+    await resolveTestUnit('''
+test(int a) {}
+
+main() {
+  test(1, named: 2.0);
+}
+''');
+    await assertHasFix(DartFixKind.ADD_MISSING_PARAMETER_NAMED, '''
+test(int a, {double named}) {}
+
+main() {
+  test(1, named: 2.0);
+}
+''');
+  }
+
+  test_addMissingParameterNamed_function_noParameters() async {
+    await resolveTestUnit('''
+test() {}
+
+main() {
+  test(named: 42);
+}
+''');
+    await assertHasFix(DartFixKind.ADD_MISSING_PARAMETER_NAMED, '''
+test({int named}) {}
+
+main() {
+  test(named: 42);
+}
+''');
+  }
+
+  test_addMissingParameterNamed_method_hasNamed() async {
+    await resolveTestUnit('''
+class A {
+  test(int a, {int b: 0}) {}
+
+  main() {
+    test(1, b: 2, named: 3.0);
+  }
+}
+''');
+    await assertHasFix(DartFixKind.ADD_MISSING_PARAMETER_NAMED, '''
+class A {
+  test(int a, {int b: 0, double named}) {}
+
+  main() {
+    test(1, b: 2, named: 3.0);
+  }
+}
+''');
+  }
+
+  test_addMissingParameterNamed_method_hasRequired() async {
+    await resolveTestUnit('''
+class A {
+  test(int a) {}
+
+  main() {
+    test(1, named: 2.0);
+  }
+}
+''');
+    await assertHasFix(DartFixKind.ADD_MISSING_PARAMETER_NAMED, '''
+class A {
+  test(int a, {double named}) {}
+
+  main() {
+    test(1, named: 2.0);
+  }
+}
+''');
+  }
+
+  test_addMissingParameterNamed_method_noParameters() async {
+    await resolveTestUnit('''
+class A {
+  test() {}
+
+  main() {
+    test(named: 42);
+  }
+}
+''');
+    await assertHasFix(DartFixKind.ADD_MISSING_PARAMETER_NAMED, '''
+class A {
+  test({int named}) {}
+
+  main() {
+    test(named: 42);
+  }
+}
+''');
+  }
+
   test_addMissingRequiredArg_cons_flutter_children() async {
     addFlutterPackage();
     _addMetaPackageSource();
