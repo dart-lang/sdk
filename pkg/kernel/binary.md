@@ -313,7 +313,7 @@ type Field extends Member {
   FileOffset fileOffset;
   FileOffset fileEndOffset;
   Byte flags (isFinal, isConst, isStatic, hasImplicitGetter, hasImplicitSetter,
-              isCovariant, isGenericCovariantImpl, isGenericCovariantInterface);
+              isCovariant, isGenericCovariantImpl);
   Name name;
   List<Expression> annotations;
   DartType type;
@@ -1095,7 +1095,7 @@ type VariableDeclaration {
   List<Expression> annotations;
 
   Byte flags (isFinal, isConst, isFieldFormal, isCovariant,
-              isInScope, isGenericCovariantImpl, isGenericCovariantInterface);
+              isInScope, isGenericCovariantImpl);
   // For named parameters, this is the parameter name.
   // For other variables, the name is cosmetic, may be empty,
   // and is not necessarily unique.
@@ -1202,7 +1202,7 @@ type TypeParameterType extends DartType {
 
 type TypeParameter {
   // Note: there is no tag on TypeParameter
-  Byte flags (isGenericCovariantImpl, isGenericCovariantInterface);
+  Byte flags (isGenericCovariantImpl);
   List<Expression> annotations;
   StringReference name; // Cosmetic, may be empty, not unique.
   DartType bound; // 'dynamic' if no explicit bound was given.

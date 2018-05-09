@@ -92,7 +92,6 @@ class TypeParameterHelper {
 
   enum Flag {
     kIsGenericCovariantImpl = 1 << 0,
-    kIsGenericCovariantInterface = 1 << 1
   };
 
   explicit TypeParameterHelper(KernelReaderHelper* helper) {
@@ -150,7 +149,6 @@ class VariableDeclarationHelper {
     kConst = 1 << 1,
     kCovariant = 1 << 3,
     kIsGenericCovariantImpl = 1 << 5,
-    kIsGenericCovariantInterface = 1 << 6
   };
 
   explicit VariableDeclarationHelper(KernelReaderHelper* helper)
@@ -169,9 +167,6 @@ class VariableDeclarationHelper {
   bool IsFinal() { return (flags_ & kFinal) != 0; }
   bool IsCovariant() { return (flags_ & kCovariant) != 0; }
 
-  bool IsGenericCovariantInterface() {
-    return (flags_ & kIsGenericCovariantInterface) != 0;
-  }
   bool IsGenericCovariantImpl() {
     return (flags_ & kIsGenericCovariantImpl) != 0;
   }
@@ -215,7 +210,6 @@ class FieldHelper {
     kStatic = 1 << 2,
     kIsCovariant = 1 << 5,
     kIsGenericCovariantImpl = 1 << 6,
-    kIsGenericCovariantInterface = 1 << 7
   };
 
   explicit FieldHelper(KernelReaderHelper* helper)
@@ -241,9 +235,6 @@ class FieldHelper {
   bool IsCovariant() const { return (flags_ & kIsCovariant) != 0; }
   bool IsGenericCovariantImpl() {
     return (flags_ & kIsGenericCovariantImpl) != 0;
-  }
-  bool IsGenericCovariantInterface() {
-    return (flags_ & kIsGenericCovariantInterface) != 0;
   }
 
   bool FieldHasFunctionLiteralInitializer(TokenPosition* start,

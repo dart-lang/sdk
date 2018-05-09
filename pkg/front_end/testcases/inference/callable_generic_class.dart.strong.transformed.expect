@@ -6,7 +6,7 @@ class ActionDispatcher<P extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
-  method call([generic-covariant-impl generic-covariant-interface self::ActionDispatcher::P value = null]) → void {}
+  method call([generic-covariant-impl self::ActionDispatcher::P value = null]) → void {}
 }
 class Bar extends core::Object {
   synthetic constructor •() → void

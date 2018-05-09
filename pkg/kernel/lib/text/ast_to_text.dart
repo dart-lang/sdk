@@ -891,8 +891,6 @@ class Printer extends Visitor<Null> {
     writeModifier(node.isStatic, 'static');
     writeModifier(node.isCovariant, 'covariant');
     writeModifier(node.isGenericCovariantImpl, 'generic-covariant-impl');
-    writeModifier(
-        node.isGenericCovariantInterface, 'generic-covariant-interface');
     writeModifier(node.isFinal, 'final');
     writeModifier(node.isConst, 'const');
     // Only show implicit getter/setter modifiers in cases where they are
@@ -1695,8 +1693,6 @@ class Printer extends Visitor<Null> {
     writeAnnotationList(node.annotations, separateLines: false);
     writeModifier(node.isCovariant, 'covariant');
     writeModifier(node.isGenericCovariantImpl, 'generic-covariant-impl');
-    writeModifier(
-        node.isGenericCovariantInterface, 'generic-covariant-interface');
     writeModifier(node.isFinal, 'final');
     writeModifier(node.isConst, 'const');
     if (node.type != null) {
@@ -1841,8 +1837,6 @@ class Printer extends Visitor<Null> {
 
   visitTypeParameter(TypeParameter node) {
     writeModifier(node.isGenericCovariantImpl, 'generic-covariant-impl');
-    writeModifier(
-        node.isGenericCovariantInterface, 'generic-covariant-interface');
     writeAnnotationList(node.annotations, separateLines: false);
     writeWord(getTypeParameterName(node));
     writeSpaced('extends');

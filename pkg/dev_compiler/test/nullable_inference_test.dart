@@ -223,7 +223,13 @@ void main() {
         s.trim();
         s.trimLeft();
         s.trimRight();
-        s.compareTo(s);
+
+        // compareTo relies on the interface target being String.compareTo
+        // except that method does not exist unless we insert too many
+        // forwarding stubs.
+        //
+        // s.compareTo(s);
+
         s.toString();
         // Pattern methods (allMatches, matchAsPrefix) are not recognized.
       }''');

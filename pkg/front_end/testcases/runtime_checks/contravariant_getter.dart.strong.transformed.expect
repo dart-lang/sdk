@@ -8,7 +8,7 @@ class C<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
-  method f(generic-covariant-impl generic-covariant-interface self::C::T value) → void {
+  method f(generic-covariant-impl self::C::T value) → void {
     this.{self::C::y}(value);
   }
 }

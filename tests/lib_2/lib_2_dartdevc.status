@@ -8,11 +8,9 @@ html/xhr_test: Pass, Slow
 
 [ $compiler == dartdevk ]
 async/slow_consumer_test: CompileTimeError
-convert/chunked_conversion1_test: RuntimeError
 convert/chunked_conversion_utf82_test: RuntimeError
 convert/chunked_conversion_utf86_test: RuntimeError
 convert/chunked_conversion_utf87_test: RuntimeError
-convert/codec1_test: RuntimeError
 convert/utf82_test: RuntimeError
 html/debugger_test: CompileTimeError
 

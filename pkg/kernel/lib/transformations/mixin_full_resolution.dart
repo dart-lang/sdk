@@ -158,8 +158,6 @@ class MixinFullResolution {
         VariableDeclaration parameter =
             setter.function.positionalParameters.first;
         clone.isGenericCovariantImpl = parameter.isGenericCovariantImpl;
-        clone.isGenericCovariantInterface =
-            parameter.isGenericCovariantInterface;
       }
       nonSetters.remove(field.name);
       class_.addMember(clone);

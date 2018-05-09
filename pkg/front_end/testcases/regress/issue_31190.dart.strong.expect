@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class Typed<T extends core::Object = dynamic> extends core::Object {
-  generic-covariant-impl generic-covariant-interface field self::Typed::T v = null;
+  generic-covariant-impl field self::Typed::T v = null;
   synthetic constructor •() → void
     : super core::Object::•()
     ;

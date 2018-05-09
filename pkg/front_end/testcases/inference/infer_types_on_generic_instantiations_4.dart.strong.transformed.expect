@@ -3,13 +3,13 @@ import self as self;
 import "dart:core" as core;
 
 class A<T extends core::Object = dynamic> extends core::Object {
-  generic-covariant-impl generic-covariant-interface field self::A::T x = null;
+  generic-covariant-impl field self::A::T x = null;
   synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
 class B<E extends core::Object = dynamic> extends self::A<self::B::E> {
-  generic-covariant-impl generic-covariant-interface field self::B::E y = null;
+  generic-covariant-impl field self::B::E y = null;
   synthetic constructor •() → void
     : super self::A::•()
     ;

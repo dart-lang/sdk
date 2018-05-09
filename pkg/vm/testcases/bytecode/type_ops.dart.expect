@@ -66,7 +66,7 @@ ConstantPool {
     ;
 }
 class D<P extends core::Object = dynamic, Q extends core::Object = dynamic> extends self::C<core::int, self::D::Q, self::D::P> {
-  generic-covariant-impl generic-covariant-interface field core::Map<self::D::P, self::D::Q> foo = null;
+  generic-covariant-impl field core::Map<self::D::P, self::D::Q> foo = null;
 [@vm.bytecode=
 Bytecode {
   Entry                0

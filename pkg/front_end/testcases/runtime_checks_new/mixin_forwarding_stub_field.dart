@@ -38,7 +38,7 @@ class B {
 
 abstract class I<T> {
   T get x;
-  void set x(T /*@covariance=genericInterface, genericImpl*/ value);
+  void set x(T /*@covariance=genericImpl*/ value);
   Object get y;
   void set y(covariant Object /*@covariance=explicit*/ value);
 }

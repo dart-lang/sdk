@@ -6,7 +6,7 @@
 library test;
 
 class B<T> {
-  void f(T /*@covariance=genericInterface, genericImpl*/ x, int y) {}
+  void f(T /*@covariance=genericImpl*/ x, int y) {}
 }
 
 abstract class I {
