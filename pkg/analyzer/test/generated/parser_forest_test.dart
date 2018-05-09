@@ -13,7 +13,6 @@ import "package:front_end/src/base/processed_options.dart";
 import "package:front_end/src/compute_platform_binaries_location.dart";
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/constant_context.dart';
-import 'package:front_end/src/fasta/dill/built_type_builder.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';
 import "package:front_end/src/fasta/fasta_codes.dart";
 import 'package:front_end/src/fasta/kernel/body_builder.dart';
@@ -1211,7 +1210,7 @@ class FastaParserTestCase extends Object
       KernelProcedureBuilder procedureBuilder = new KernelProcedureBuilder(
           null /* metadata */,
           Modifier.staticMask /* or Modifier.varMask */,
-          new BuiltTypeBuilder(new kernel.DynamicType()),
+          kernelTarget.dynamicType,
           "analyzerTest",
           typeVariableBuilders,
           formalParameterBuilders,
